@@ -338,6 +338,12 @@ below is a known, deliberate deviation to be closed in a later slice:
   (happiness), Factory chain (shields), Courthouse (corruption), and Palace
   await their systems. Wonder effects: Colossus and Great Wall only so far.
 - **Negative treasury is clamped to 0** — Civ 1 sells buildings instead.
+- **Score counts citizens/techs/wonders only** — happy-citizen points, Future
+  Tech points, and the pollution penalty from §10's full formula await their
+  systems. Elimination requires losing all units *and* cities (no capital rule).
+- **The v0 AI is deliberately dumb** (defends its first city, then spams
+  settlers; no improvements, no wonders, no tactics) and uses no RNG so AI
+  games replay deterministically.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

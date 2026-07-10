@@ -64,8 +64,8 @@ Screenshot the running game with:
 (SwiftShader flags are required — WebGL has no GPU here and fails without them.)
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
-cities, combat/barbarians, tech, visibility, mapgen, wiki2data — engine tests
-share `test/ruleset.js`), JSON scenarios (below), and
+cities, combat/barbarians, tech, ai, score, visibility, mapgen, wiki2data —
+engine tests share `test/ruleset.js`), JSON scenarios (below), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium and asserts the HUD reaches "turn 1" with a canvas and no
 surfaced error (self-skips when the browser is absent).
@@ -77,6 +77,13 @@ later, so keep them code-free. Scenarios skip until `engine/index.js` exists.
 Replaying a command log must reproduce the same final state hash
 (`shared/statehash.js`; cross-language golden: `{b:2,a:[1,"x",true]}` →
 `0x30db1e29`).
+
+**Crafted test states:** omit `player.alive` unless the test is about victory —
+only `alive: true` players can be eliminated / end the game, so states without
+the flag are exempt from game-end checks (this keeps scenario hashes stable).
+Include `buildings: []` on cities, `wonders: {}`, `cityOrder`, and the
+`nextUnitId`/`nextCityId` counters; players need `bulbs`/`taxRate`/`sciRate`
+to avoid lazy-default writes changing hashes mid-scenario.
 The terrain list in `test/mock-state.test.js` and the renderer's TERRAIN map
 must stay in sync with `docs/01-game-spec.md` §3.1 (later: with `data/terrain.json`).
 

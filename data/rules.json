@@ -1,5 +1,9 @@
 {
   "techBaseCost": 10,
   "defaultTaxRate": 50,
-  "defaultSciRate": 50
+  "defaultSciRate": 50,
+  "endYear": 2100,
+  "scorePerCitizen": 2,
+  "scorePerTech": 5,
+  "scorePerWonder": 20
 }

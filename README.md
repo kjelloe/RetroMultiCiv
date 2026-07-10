@@ -61,13 +61,14 @@ city founding/growth/production, Civ 1 one-shot combat (stack death, veterans,
 zone of control, city capture with plunder), and barbarians — all in the
 browser against the real engine. Select a unit, explore, press B to found a
 city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
-turns. Research is live (all 68 Civ 1 advances, T to pick), and so are
-buildings & wonders: all 21 of each with tech gates, costs, and working
-effects — Granary, Aqueduct, Barracks, City Walls ×3, Marketplace/Library
-economy bonuses, maintenance, Colossus, Great Wall — plus the wonder race
-(C cycles construction in a selected city). 59 headless tests including
-hash-locked JSON scenarios and a real-browser e2e smoke test.
-Next: AI opponents, victory conditions, save/load.
+turns. Research is live (all 68 Civ 1 advances, T to pick), buildings &
+wonders too (all 21 of each, working effects, wonder race, C to build), and
+now: **AI opponents** that explore, settle, defend, and attack under their own
+fog of war; **victory conditions** (conquest or score at 2100 AD, with a
+victory/defeat banner); and **save/load** (S/L keys). Start a bigger game with
+`?civs=3` (up to 7). **Phase 1 complete: a full, winnable game vs AI.**
+70 headless tests including hash-locked JSON scenarios, an AI-determinism
+lock, and a real-browser e2e smoke test. Next: phase 2 — hotseat multiplayer.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

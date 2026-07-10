@@ -103,6 +103,27 @@ test('ZOC exemption: a unit may still move onto its own unit or city', async () 
   assert.strictEqual(blocked.reason, 'zoc');
 });
 
+test('fortify: sets the flag, ends the turn, and moving clears it', async () => {
+  const { engine } = await load();
+  const tiles = [{ t: 'grassland' }, { t: 'grassland' }];
+  const state = miniState(tiles, 2, 1, {
+    u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  });
+  const res = engine.applyCommand(state, { type: 'fortify', playerId: 'p1', unitId: 'u1' });
+  assert.strictEqual(res.ok, true);
+  assert.strictEqual(res.state.units.u1.fortified, true);
+  assert.strictEqual(res.state.units.u1.moves, 0, 'fortifying ends the turn');
+
+  const again = engine.applyCommand(res.state, { type: 'fortify', playerId: 'p1', unitId: 'u1' });
+  assert.strictEqual(again.reason, 'alreadyFortified');
+
+  // next turn: moving drops the fortification
+  let s = engine.applyCommand(res.state, { type: 'endTurn', playerId: 'p1' }).state;
+  s = engine.applyCommand(s, { type: 'endTurn', playerId: 'p2' }).state;
+  const moved = engine.applyCommand(s, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+  assert.strictEqual(moved.state.units.u1.fortified, false);
+});
+
 test('sortIds orders numerically-suffixed ids portably', async () => {
   const { combat } = await load();
   assert.deepStrictEqual(combat.sortIds(['u10', 'u2', 'u1']), ['u1', 'u2', 'u10']);

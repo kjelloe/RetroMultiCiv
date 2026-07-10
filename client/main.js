@@ -6,7 +6,11 @@
 import { createEngine } from '../engine/index.js';
 import { filterView } from '../engine/visibility.js';
 import { availableTechs, researchCost } from '../engine/tech.js';
+import { runAiTurn } from '../engine/ai.js';
+import { score } from '../engine/score.js';
 import { createRenderer } from './renderer/renderer.js';
+
+const SAVE_KEY = 'retromulticiv-save';
 
 const HUMAN = 'p1';
 
@@ -48,18 +52,23 @@ if (params.get('mock') === '1') {
   state = await fetchJson('./mock-state.json');
 } else {
   const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
-  state = engine.createGame({
-    seed,
-    options: {
-      width: 80, height: 50,
-      players: [
-        { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
-        { id: 'p2', name: 'Zulus', color: '#d84a3b', human: false }
-      ]
-    }
-  });
+  const CIV_ROSTER = [
+    { name: 'Romans', color: '#3b7dd8' },
+    { name: 'Zulus', color: '#d84a3b' },
+    { name: 'Egyptians', color: '#d8b13b' },
+    { name: 'Greeks', color: '#3bd875' },
+    { name: 'Babylonians', color: '#b13bd8' },
+    { name: 'Mongols', color: '#d8703b' },
+    { name: 'Aztecs', color: '#3bc9d8' }
+  ];
+  const civs = Math.min(CIV_ROSTER.length, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
+  const playerDefs = [];
+  for (let i = 0; i < civs; i++) {
+    playerDefs.push({ id: 'p' + (i + 1), ...CIV_ROSTER[i], human: i === 0 });
+  }
+  state = engine.createGame({ seed, options: { width: 80, height: 50, players: playerDefs } });
   if (state.ok === false) throw new Error(`createGame failed: ${state.reason}`);
-  history.replaceState(null, '', `?seed=${seed}`);
+  history.replaceState(null, '', `?seed=${seed}&civs=${civs}`);
   hudStatus.textContent = `seed ${seed} · turn ${state.turn}`;
 }
 
@@ -143,7 +152,15 @@ function refresh() {
   renderer.setViewState(filterView(state, HUMAN));
   renderer.setSelection(selectedUnitId ? { unitId: selectedUnitId } : null);
   const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
-  hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+  if (state.gameOver) {
+    const w = state.players[state.winner];
+    const verdict = state.winner === HUMAN ? '🏆 VICTORY' : '💀 DEFEAT';
+    const scores = state.playerOrder.map(p => `${state.players[p].name} ${score(state, p, ruleset)}`).join(' · ');
+    hudStatus.style.color = state.winner === HUMAN ? '#ffe066' : '#ff7b6b';
+    hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`;
+  } else {
+    hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+  }
   const me = state.players[HUMAN];
   const hudResearch = document.getElementById('hud-research');
   const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
@@ -237,11 +254,14 @@ function apply(cmd) {
 function endTurn() {
   selectedUnitId = null;
   if (!apply({ type: 'endTurn', playerId: state.activePlayer })) return;
-  // no AI yet: auto-pass non-human players
   let guard = 10;
-  while (!state.players[state.activePlayer].human && guard-- > 0) {
-    apply({ type: 'endTurn', playerId: state.activePlayer });
+  while (!state.gameOver && !state.players[state.activePlayer].human && guard-- > 0) {
+    state = runAiTurn(engine, state, state.activePlayer, ruleset);
+    const res = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
+    if (!res.ok) break;
+    state = res.state;
   }
+  refresh();
 }
 
 renderer.onHover(pick => {
@@ -295,6 +315,45 @@ window.addEventListener('keydown', e => {
       const cityId = state.cityOrder[state.cityOrder.length - 1];
       selectedCityId = cityId;
       showCity(state.cities[cityId]);
+    }
+    return;
+  }
+  if (e.key === 'f' && selectedUnitId) {
+    if (apply({ type: 'fortify', playerId: state.activePlayer, unitId: selectedUnitId })) {
+      hudSelection.textContent = `🛡 ${units[state.units[selectedUnitId].type].name} fortified`;
+    }
+    return;
+  }
+  if (e.key === 'n') {
+    const movable = Object.values(state.units).filter(
+      u => u.owner === HUMAN && u.moves > 0 && u.id !== selectedUnitId
+    );
+    if (movable.length === 0) { hudSelection.textContent = 'no units with moves left — E to end turn'; return; }
+    const unit = movable[0];
+    selectedUnitId = unit.id;
+    selectedCityId = null;
+    renderer.setSelection({ unitId: unit.id });
+    renderer.centerOn(unit.x, unit.y);
+    const hint = unit.type === 'settlers' ? ' · B: found city' : ' · F: fortify';
+    hudSelection.textContent = `${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}${hint}`;
+    return;
+  }
+  if (e.key === 's') {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    hudSelection.textContent = `💾 saved (turn ${state.turn})`;
+    return;
+  }
+  if (e.key === 'l') {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) { hudSelection.textContent = 'no save found'; return; }
+    try {
+      state = JSON.parse(raw);
+      selectedUnitId = null;
+      selectedCityId = null;
+      refresh();
+      hudSelection.textContent = `📂 loaded (turn ${state.turn})`;
+    } catch (err) {
+      hudSelection.textContent = `load failed: ${err.message}`;
     }
     return;
   }

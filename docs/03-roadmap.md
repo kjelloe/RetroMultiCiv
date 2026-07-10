@@ -72,9 +72,22 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    remaining building/wonder effects (Temple, Factory chain, Palace,
    Great Library, Darwin's Voyage…), Future Tech repeatability, building sale
    instead of gold clamp.
-7. **AI opponents + victory/score** — heuristic AI issuing engine commands,
-   conquest and score victory, end screen. *(Milestone: a full winnable game.)*
-8. **Save/load** — snapshot + command log to localStorage / file download.
+7. ✅ **AI opponents + victory/score** *(done 2026-07-10)* — `engine/ai.js`:
+   the designer's v0 Expansionist (research lowest level, defend-then-expand
+   cities, settle good land, march on known enemies, explore fog) issuing only
+   legal commands through `applyCommand`, honoring its own fog, and fully
+   deterministic (AI-vs-AI same seed ⇒ identical hash — tested).
+   `engine/score.js`: conquest + end-year score victory, eliminations gated on
+   the `alive` flag so crafted test states are exempt; `gameOver` blocks all
+   further commands. Client: AI plays its turns on End Turn, victory/defeat
+   banner with scores, `?civs=2..7`. Verified: a full 80×50 AI game reaches
+   conquest (turn 33, 244 ms).
+8. ✅ **Save/load** *(done 2026-07-10)* — S/L keys snapshot the whole state to
+   localStorage (the state is plain JSON — that was the architecture's
+   promise); round-trip hash equality tested. ⬜ later: command-log saves,
+   file export.
+
+**Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
 
 **Acceptance:** a complete game vs 2 AI civs, start to victory, in the browser;
 engine test suite green; a replayed command log reproduces the same final state hash.

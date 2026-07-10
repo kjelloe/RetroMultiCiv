@@ -189,7 +189,7 @@ function createGame(setup, ruleset) {
     const p = playerDefs[i];
     players[p.id] = {
       id: p.id, name: p.name, color: p.color,
-      human: p.human === true, gold: 0, techs: [], researching: '',
+      human: p.human === true, alive: true, gold: 0, techs: [], researching: '',
       bulbs: 0,
       taxRate: ruleset.rules.defaultTaxRate,
       sciRate: ruleset.rules.defaultSciRate

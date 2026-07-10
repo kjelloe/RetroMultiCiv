@@ -8,6 +8,7 @@ import * as movement from './movement.js';
 import * as cities from './cities.js';
 import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
+import * as scoring from './score.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -41,6 +42,7 @@ function endTurn(state, cmd, ruleset) {
     cities.processCities(state, ruleset, events);
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
+    scoring.checkGameEnd(state, ruleset, events);
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
       unit.moves = ruleset.units[unit.type].moves;
@@ -55,9 +57,11 @@ function endTurn(state, cmd, ruleset) {
 
 function createEngine(ruleset) {
   function applyCommand(state, cmd) {
+    if (state.gameOver === true) return { ok: false, reason: 'gameOver', state, events: [] };
     const next = deepClone(state);
     let result;
     if (cmd.type === 'moveUnit') result = movement.moveUnit(next, cmd, ruleset);
+    else if (cmd.type === 'fortify') result = movement.fortify(next, cmd, ruleset);
     else if (cmd.type === 'endTurn') result = endTurn(next, cmd, ruleset);
     else if (cmd.type === 'foundCity') result = cities.foundCity(next, cmd, ruleset);
     else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
