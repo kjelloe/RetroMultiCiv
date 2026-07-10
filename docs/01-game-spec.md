@@ -329,12 +329,15 @@ below is a known, deliberate deviation to be closed in a later slice:
   rate caps, and happiness/disorder are not yet implemented. Research overflow
   carries between advances (Civ 1 discards it; tuneable choice, documented).
 - **Future Tech is a one-time advance** for now (repeatable scoring later).
-- **Growth food box empties fully** on growth (Granary halving comes with
-  buildings) and pop floors at 1 (no city destruction by starvation).
-- **Combat lacks City Walls (×3) and Fortress (×2)** multipliers until the
-  buildings slice; terrain/river/fortify/veteran multipliers are in. Goody
-  huts and era-based barbarian units are deferred; barbarians spawn as militia
-  from turn 16.
+- **Pop floors at 1** on starvation (no city destruction).
+- **Combat lacks the Fortress (×2)** multiplier (tile improvements slice);
+  City Walls ×3 and Great Wall are in. Goody huts and era-based barbarian
+  units are deferred; barbarians spawn as militia from turn 16.
+- **Building effects are a subset**: Granary, Aqueduct, Barracks, City Walls,
+  Marketplace, Bank, Library, University work; Temple/Cathedral/Colosseum
+  (happiness), Factory chain (shields), Courthouse (corruption), and Palace
+  await their systems. Wonder effects: Colossus and Great Wall only so far.
+- **Negative treasury is clamped to 0** — Civ 1 sells buildings instead.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

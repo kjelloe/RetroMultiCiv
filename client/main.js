@@ -32,13 +32,15 @@ async function fetchJson(url) {
 }
 
 const params = new URLSearchParams(location.search);
-const [terrain, units, techs, rules] = await Promise.all([
+const [terrain, units, techs, buildings, wonders, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
   fetchJson('../data/units.json'),
   fetchJson('../data/techs.json'),
+  fetchJson('../data/buildings.json'),
+  fetchJson('../data/wonders.json'),
   fetchJson('../data/rules.json')
 ]);
-const ruleset = { terrain, units, techs, rules };
+const ruleset = { terrain, units, techs, buildings, wonders, rules };
 const engine = createEngine(ruleset);
 
 let state;
@@ -150,11 +152,40 @@ function refresh() {
     : `🔬 nothing (press T) · ${bulbs} bulbs · 💰 ${me.gold}`;
 }
 
+function producingDef(city) {
+  const p = city.producing;
+  if (p.kind === 'building') return buildings[p.id];
+  if (p.kind === 'wonder') return wonders[p.id];
+  return units[p.id];
+}
+
 function showCity(city) {
-  const type = units[city.producing.id];
+  const def = producingDef(city);
+  const built = (city.buildings || []).length;
   hudSelection.textContent =
     `${city.name} · pop ${city.pop} · food ${city.food}/${10 * (city.pop + 1)}` +
-    ` · building ${type.name} ${city.shields}/${type.cost} · keys: 1 militia · 2 phalanx · 3 settlers`;
+    ` · building ${def.name} ${city.shields}/${def.cost}` +
+    (built ? ` · ${built} bldg` : '') +
+    ` · keys: 1/2/3 units · C: buildings/wonders`;
+}
+
+// every building/wonder the selected city could start right now
+function constructionOptions(city) {
+  const me = state.players[HUMAN];
+  const out = [];
+  for (const id of Object.keys(buildings).sort()) {
+    const b = buildings[id];
+    if ((city.buildings || []).includes(id)) continue;
+    if (b.tech !== '' && !me.techs.includes(b.tech)) continue;
+    out.push({ kind: 'building', id });
+  }
+  for (const id of Object.keys(wonders).sort()) {
+    const w = wonders[id];
+    if (state.wonders && state.wonders[id] !== undefined) continue;
+    if (w.tech !== '' && !me.techs.includes(w.tech)) continue;
+    out.push({ kind: 'wonder', id });
+  }
+  return out;
 }
 
 function describeTile(x, y) {
@@ -273,6 +304,17 @@ window.addEventListener('keydown', e => {
     const idx = avail.indexOf(state.players[HUMAN].researching);
     const next = avail[(idx + 1) % avail.length];
     apply({ type: 'setResearch', playerId: HUMAN, tech: next });
+    return;
+  }
+  if (e.key === 'c' && selectedCityId) {
+    const city = state.cities[selectedCityId];
+    const options = constructionOptions(city);
+    if (options.length === 0) return;
+    const idx = options.findIndex(o => o.kind === city.producing.kind && o.id === city.producing.id);
+    const next = options[(idx + 1) % options.length];
+    if (apply({ type: 'setProduction', playerId: state.activePlayer, cityId: selectedCityId, item: next })) {
+      showCity(state.cities[selectedCityId]);
+    }
     return;
   }
   if (PRODUCTION_KEYS[e.key] && selectedCityId) {

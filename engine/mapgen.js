@@ -213,6 +213,7 @@ function createGame(setup, ruleset) {
     units,
     cities: {},
     cityOrder: [],
+    wonders: {},
     nextUnitId: playerDefs.length + 1,
     nextCityId: 1,
     players,

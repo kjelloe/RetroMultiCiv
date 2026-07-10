@@ -99,6 +99,88 @@ function buildTechs() {
   return techs;
 }
 
+// Building costs/maintenance (Civ 1 values, tuneable) and structured effects.
+// IMPORTANT: effects are OUR encoding — never copy wiki description sentences
+// into committed data (CC BY-SA). Empty effect = buildable, no engine effect yet.
+const BUILDING_OVERLAY = {
+  'palace':              { cost: 200, maintenance: 0, effect: {} },
+  'barracks':            { cost: 40,  maintenance: 1, effect: { veteranUnits: true } },
+  'granary':             { cost: 60,  maintenance: 1, effect: { halvesGrowthFood: true } },
+  'temple':              { cost: 40,  maintenance: 1, effect: {} },
+  'marketplace':         { cost: 80,  maintenance: 1, effect: { taxBonus: 50 } },
+  'library':             { cost: 80,  maintenance: 1, effect: { sciBonus: 50 } },
+  'courthouse':          { cost: 80,  maintenance: 1, effect: {} },
+  'city-walls':          { cost: 120, maintenance: 2, effect: { defenseMultiplier: 3 } },
+  'aqueduct':            { cost: 120, maintenance: 2, effect: { growthPast10: true } },
+  'bank':                { cost: 120, maintenance: 3, effect: { taxBonus: 50 } },
+  'cathedral':           { cost: 160, maintenance: 3, effect: {} },
+  'university':          { cost: 160, maintenance: 3, effect: { sciBonus: 50 } },
+  'colosseum':           { cost: 100, maintenance: 4, effect: {} },
+  'factory':             { cost: 200, maintenance: 4, effect: {} },
+  'hydro-plant':         { cost: 240, maintenance: 4, effect: {} },
+  'power-plant':         { cost: 160, maintenance: 4, effect: {} },
+  'nuclear-plant':       { cost: 160, maintenance: 2, effect: {} },
+  'mfg-plant':           { cost: 320, maintenance: 6, effect: {} },
+  'recycling-center':    { cost: 200, maintenance: 2, effect: {} },
+  'mass-transit':        { cost: 160, maintenance: 4, effect: {} },
+  'sdi-defense':         { cost: 200, maintenance: 4, effect: {} }
+};
+
+const WONDER_OVERLAY = {
+  'colossus':   { effect: { cityTradeBonus: true } },
+  'great-wall': { effect: { wallsEverywhere: true } }
+};
+
+function techId(techs, raw, context) {
+  if (!raw || raw === 'None' || raw === 'Nothing') return '';
+  const id = slug(techName(raw).replace(/^The /, '').replace(/ \(advance\)$/, ''));
+  if (!techs[id]) throw new Error(`${context}: unknown tech "${raw}"`);
+  return id;
+}
+
+function buildBuildings(techs) {
+  const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-buildings-in-civ1.json'), 'utf8'));
+  const buildings = {};
+  for (const r of page.tables[0].rows) {
+    // "University (building)" disambiguation suffix mirrors the advances page
+    const name = techName(r[0]).replace(/ \(building\)$/, '');
+    if (!name) continue;
+    const id = slug(name);
+    const overlay = BUILDING_OVERLAY[id];
+    if (!overlay) throw new Error(`building "${id}" missing from BUILDING_OVERLAY`);
+    buildings[id] = {
+      name,
+      tech: techId(techs, r[1], `building ${id}`),
+      cost: overlay.cost,
+      maintenance: overlay.maintenance,
+      effect: overlay.effect
+    };
+  }
+  const count = Object.keys(buildings).length;
+  if (count !== 21) throw new Error(`expected 21 buildings, got ${count}`);
+  return buildings;
+}
+
+function buildWonders(techs) {
+  const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-wonders-in-civ1.json'), 'utf8'));
+  const wonders = {};
+  for (const r of page.tables[0].rows) {
+    const name = techName(r[1]);
+    if (!name) continue;
+    const id = slug(name);
+    wonders[id] = {
+      name,
+      tech: techId(techs, r[3], `wonder ${id}`),
+      obsoleteBy: techId(techs, r[4], `wonder ${id} obsoleteBy`),
+      cost: int(r[5], `${name} cost`),
+      effect: (WONDER_OVERLAY[id] && WONDER_OVERLAY[id].effect) || {}
+    };
+  }
+  const count = Object.keys(wonders).length;
+  if (count !== 21) throw new Error(`expected 21 wonders, got ${count}`);
+  return wonders;
+}
+
 function buildUnits(techs) {
   const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-units-in-civ1.json'), 'utf8'));
   const domains = ['land', 'sea', 'air'];
@@ -136,13 +218,19 @@ function main() {
   const terrain = buildTerrain();
   const techs = buildTechs();
   const units = buildUnits(techs);
+  const buildings = buildBuildings(techs);
+  const wonders = buildWonders(techs);
   fs.writeFileSync(path.join(OUT, 'terrain.json'), JSON.stringify(terrain, null, 2) + '\n');
   fs.writeFileSync(path.join(OUT, 'techs.json'), JSON.stringify(techs, null, 2) + '\n');
   fs.writeFileSync(path.join(OUT, 'units.json'), JSON.stringify(units, null, 2) + '\n');
+  fs.writeFileSync(path.join(OUT, 'buildings.json'), JSON.stringify(buildings, null, 2) + '\n');
+  fs.writeFileSync(path.join(OUT, 'wonders.json'), JSON.stringify(wonders, null, 2) + '\n');
   console.log(`terrain.json: ${Object.keys(terrain.terrains).length} terrains + river modifier`);
   console.log(`techs.json: ${Object.keys(techs).length} advances`);
   console.log(`units.json: ${Object.keys(units).length} units`);
+  console.log(`buildings.json: ${Object.keys(buildings).length} buildings`);
+  console.log(`wonders.json: ${Object.keys(wonders).length} wonders`);
 }
 
-module.exports = { buildTerrain, buildTechs, buildUnits };
+module.exports = { buildTerrain, buildTechs, buildUnits, buildBuildings, buildWonders };
 if (require.main === module) main();

@@ -48,6 +48,95 @@ test('growth: city grows when the food box fills, starves back down', async () =
   assert.ok(grew && grew.pop === 2);
 });
 
+test('aqueduct gates growth past pop 10; granary halves the food box', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 49; i++) tiles.push({ t: 'grassland', special: true });
+  const mkState = (buildings) => ({
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 7, height: 7, wrapX: false, tiles: tiles.map(t => ({ ...t })) },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'Metro', owner: 'p1', x: 3, y: 3, pop: 10, food: 108, shields: 0, buildings, producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  });
+  // shield-grassland everywhere: center 2 food + 10 worked × 2 = 22, eats 20 => +2/turn
+  const blocked = engine.applyCommand(mkState([]), { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(blocked.state.cities.c1.pop, 10, 'no growth past 10 without aqueduct');
+  assert.strictEqual(blocked.state.cities.c1.food, 110, 'food box capped at threshold');
+
+  const grown = engine.applyCommand(mkState(['aqueduct', 'granary']), { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(grown.state.cities.c1.pop, 11);
+  assert.strictEqual(grown.state.cities.c1.food, 55, 'granary keeps half the box (110/2)');
+});
+
+test('barracks makes newly built units veterans', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9; i++) tiles.push({ t: 'grassland', special: true });
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'Fort', owner: 'p1', x: 1, y: 1, pop: 1, food: 0, shields: 9, buildings: ['barracks'], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 5, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(res.state.units.u5.veteran, true, 'barracks-trained militia is veteran');
+});
+
+test('wonder race: only one civilization gets the wonder; the loser keeps shields', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9; i++) tiles.push({ t: 'grassland', special: true });
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'A', owner: 'p1', x: 0, y: 0, pop: 1, food: 0, shields: 299, buildings: [], producing: { kind: 'wonder', id: 'pyramids' } },
+      c2: { id: 'c2', name: 'B', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: 299, buildings: [], producing: { kind: 'wonder', id: 'pyramids' } }
+    },
+    cityOrder: ['c1', 'c2'], wonders: {}, nextUnitId: 1, nextCityId: 3,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: ['masonry'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(res.state.wonders.pyramids, 'c1', 'first city in cityOrder completes it');
+  const lost = res.events.find(e => e.type === 'wonderLost');
+  assert.ok(lost && lost.cityId === 'c2', 'second city loses the race');
+  assert.ok(res.state.cities.c2.shields >= 299, 'loser keeps its shields');
+  const taken = engine.applyCommand(res.state, { type: 'setProduction', playerId: 'p1', cityId: 'c2', item: { kind: 'wonder', id: 'pyramids' } });
+  assert.strictEqual(taken.reason, 'wonderTaken');
+});
+
+test('Colossus adds +1 trade per worked trade tile in its own city', async () => {
+  const { cities } = await load();
+  // ocean ring: center river grassland (1 trade) + 1 worked ocean (2 trade)
+  const tiles = [];
+  for (let i = 0; i < 9; i++) tiles.push({ t: 'ocean' });
+  tiles[4] = { t: 'grassland', river: true };
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'Rhodes', owner: 'p1', x: 1, y: 1, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: { colossus: 'c1' }, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const withWonder = cities.cityYields(state, state.cities.c1, RULESET);
+  state.wonders = {};
+  const without = cities.cityYields(state, state.cities.c1, RULESET);
+  assert.strictEqual(without.trade, 3, 'river center 1 + ocean 2');
+  assert.strictEqual(withWonder.trade, 5, 'both worked tiles produce trade: +2');
+});
+
 test('foundCity rejected on water, on an existing city, and for non-settlers', async () => {
   const { engine } = await load();
   const state = {

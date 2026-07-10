@@ -61,10 +61,13 @@ city founding/growth/production, Civ 1 one-shot combat (stack death, veterans,
 zone of control, city capture with plunder), and barbarians — all in the
 browser against the real engine. Select a unit, explore, press B to found a
 city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
-turns. Research is live: all 68 Civ 1 advances with prerequisites, funded by
-city trade through tax/science rates, with tech-gated production (press T to
-pick research). 54 headless tests including hash-locked JSON scenarios and a
-real-browser e2e smoke test. Next: buildings & wonders.
+turns. Research is live (all 68 Civ 1 advances, T to pick), and so are
+buildings & wonders: all 21 of each with tech gates, costs, and working
+effects — Granary, Aqueduct, Barracks, City Walls ×3, Marketplace/Library
+economy bonuses, maintenance, Colossus, Great Wall — plus the wonder race
+(C cycles construction in a selected city). 59 headless tests including
+hash-locked JSON scenarios and a real-browser e2e smoke test.
+Next: AI opponents, victory conditions, save/load.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

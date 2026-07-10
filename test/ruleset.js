@@ -3,5 +3,7 @@ module.exports = {
   terrain: require('../data/terrain.json'),
   units: require('../data/units.json'),
   techs: require('../data/techs.json'),
+  buildings: require('../data/buildings.json'),
+  wonders: require('../data/wonders.json'),
   rules: require('../data/rules.json')
 };

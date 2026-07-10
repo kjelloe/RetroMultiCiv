@@ -39,8 +39,10 @@ countable `[food]/[shield]/[trade]` tokens via `parseYields`).
 
 **License boundary:** `data/wiki-extract/` contains CC BY-SA prose and must
 never be committed. Committed `data/*.json` may carry names and numbers
-(facts) but **never wiki sentences** — building/wonder effects must be encoded
-as structured fields (e.g. `{ "defenseMultiplier": 3 }`), not description text.
+(facts) but **never wiki sentences** — building/wonder effects are encoded as
+structured fields (e.g. `{ "defenseMultiplier": 3 }`) authored in the
+`BUILDING_OVERLAY`/`WONDER_OVERLAY` tables inside `tools/mapdata.js`; add new
+effects there and regenerate, don't hand-edit the generated JSON.
 
 Cross-references use slug ids: `units.json` `tech` fields hold tech ids from
 `techs.json`; watch wiki naming drift when mapping (e.g. "The Wheel" vs

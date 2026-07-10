@@ -108,6 +108,26 @@ test('sortIds orders numerically-suffixed ids portably', async () => {
   assert.deepStrictEqual(combat.sortIds(['u10', 'u2', 'u1']), ['u1', 'u2', 'u10']);
 });
 
+test('city walls triple defense; Great Wall extends it until Gunpowder', async () => {
+  const { combat } = await load();
+  const state = miniState([{ t: 'grassland' }], 1, 1, {}, {
+    cities: { c1: { id: 'c1', name: 'K', owner: 'p2', x: 0, y: 0, pop: 1, food: 0, shields: 0, buildings: ['city-walls'], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}
+  });
+  const militia = { type: 'militia', x: 0, y: 0, fortified: false };
+  assert.strictEqual(combat.defenseStrength(state, militia, RULESET), 1 * 100 * 100 * 3);
+
+  // Great Wall: walls everywhere for its owner...
+  state.cities.c1.buildings = [];
+  state.cities.c2 = { id: 'c2', name: 'W', owner: 'p2', x: 0, y: 0, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } };
+  state.wonders['great-wall'] = 'c2';
+  assert.strictEqual(combat.defenseStrength(state, militia, RULESET), 1 * 100 * 100 * 3);
+
+  // ...until anyone discovers Gunpowder (obsoleteBy)
+  state.players.p1.techs = ['gunpowder'];
+  assert.strictEqual(combat.defenseStrength(state, militia, RULESET), 1 * 100 * 100);
+});
+
 test('barbarians spawn at the gate turn and hunt nearby units', async () => {
   const { engine } = await load();
   const barb = await import('../engine/barbarians.js');

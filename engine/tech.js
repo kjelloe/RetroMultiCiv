@@ -2,7 +2,7 @@
 // science bulbs (sci) by per-player rates; bulbs buy advances whose cost
 // escalates with the number of techs already known (Civ 1 global escalation,
 // not per-tech prices). Luxuries, corruption and government caps come later.
-import { cityYields } from './cities.js';
+import { cityYields, effectPct } from './cities.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -71,13 +71,24 @@ function processResearch(state, ruleset, events) {
     if (player.sciRate === undefined) player.sciRate = ruleset.rules.defaultSciRate;
     if (player.bulbs === undefined) player.bulbs = 0;
 
-    let trade = 0;
+    // per-city split so Marketplace/Bank (tax) and Library/University (sci)
+    // multiply their own city's share; building maintenance comes out of gold
+    let gold = 0, bulbs = 0, maintenance = 0;
     for (const cid of state.cityOrder || []) {
       const city = state.cities[cid];
-      if (city && city.owner === pid) trade += cityYields(state, city, ruleset).trade;
+      if (!city || city.owner !== pid) continue;
+      const trade = cityYields(state, city, ruleset).trade;
+      const cityTax = idiv(trade * player.taxRate, 100);
+      const citySci = idiv(trade * player.sciRate, 100);
+      gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
+      bulbs += citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
+      if (city.buildings !== undefined) {
+        for (const b of city.buildings) maintenance += ruleset.buildings[b].maintenance;
+      }
     }
-    player.gold = player.gold + idiv(trade * player.taxRate, 100);
-    player.bulbs = player.bulbs + idiv(trade * player.sciRate, 100);
+    player.gold = player.gold + gold - maintenance;
+    if (player.gold < 0) player.gold = 0; // Civ 1 sells buildings; clamped for now
+    player.bulbs = player.bulbs + bulbs;
 
     if (player.researching !== '' && player.researching !== undefined) {
       const cost = researchCost(state, pid, ruleset);

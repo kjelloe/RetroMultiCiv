@@ -9,6 +9,7 @@
 // inside a city only the defender dies.
 import { rollRange } from './rng.js';
 import { reveal } from './visibility.js';
+import { hasBuilding, wonderActive } from './cities.js';
 
 // Deterministic id ordering that ports to Lua (no reliance on key order):
 // shorter first, then lexicographic — so u2 < u10.
@@ -47,10 +48,23 @@ function attackStrength(unit, ruleset) {
   return ruleset.units[unit.type].attack * (unit.veteran ? 150 : 100) * 100;
 }
 
+// City Walls (or an active Great Wall) triple the defense of units in the city.
+function cityWallsAt(state, x, y, ruleset) {
+  const city = cityAt(state, x, y);
+  if (!city) return false;
+  if (hasBuilding(city, 'city-walls')) return true;
+  if (ruleset.wonders !== undefined && wonderActive(state, 'great-wall', ruleset)) {
+    const wonderHome = state.cities[state.wonders['great-wall']];
+    if (wonderHome && wonderHome.owner === city.owner) return true;
+  }
+  return false;
+}
+
 function defenseStrength(state, unit, ruleset) {
   return ruleset.units[unit.type].defense
     * tileDefensePct(state, unit.x, unit.y, ruleset)
-    * (unit.fortified ? 150 : 100);
+    * (unit.fortified ? 150 : 100)
+    * (cityWallsAt(state, unit.x, unit.y, ruleset) ? 3 : 1);
 }
 
 // Civ 1: the strongest defender on the tile fights.

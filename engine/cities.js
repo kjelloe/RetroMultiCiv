@@ -21,6 +21,42 @@ function tileYields(tile, ruleset) {
   return { food: base.food, shields: base.shields, trade };
 }
 
+function idiv(a, b) {
+  return Math.floor(a / b);
+}
+
+function hasBuilding(city, buildingId) {
+  return city.buildings !== undefined && city.buildings.indexOf(buildingId) !== -1;
+}
+
+// A wonder is active while built and its obsoleting tech is unknown to ALL
+// players (Civ 1: anyone's discovery retires it).
+function wonderActive(state, wonderId, ruleset) {
+  if (!state.wonders || !state.wonders[wonderId]) return false;
+  const obsoleteBy = ruleset.wonders[wonderId].obsoleteBy;
+  if (obsoleteBy === '') return true;
+  for (const pid of state.playerOrder) {
+    if (state.players[pid].techs.indexOf(obsoleteBy) !== -1) return false;
+  }
+  return true;
+}
+
+function wonderInCity(state, city, wonderId, ruleset) {
+  return wonderActive(state, wonderId, ruleset) && state.wonders[wonderId] === city.id;
+}
+
+// Sum a percentage effect (e.g. taxBonus, sciBonus) over a city's buildings.
+function effectPct(city, ruleset, key) {
+  let total = 0;
+  if (city.buildings !== undefined) {
+    for (const id of city.buildings) {
+      const val = ruleset.buildings[id].effect[key];
+      if (val !== undefined) total += val;
+    }
+  }
+  return total;
+}
+
 // Center tile (always worked, free) + the pop best tiles of the fat cross,
 // greedily by weighted score. Tile contention between cities comes later.
 function cityYields(state, city, ruleset) {
@@ -40,11 +76,15 @@ function cityYields(state, city, ruleset) {
     candidates.push({ score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }
   candidates.sort((a, b) => b.score - a.score);
+  let tradeTiles = total.trade > 0 ? 1 : 0; // center
   for (let i = 0; i < city.pop && i < candidates.length; i++) {
     total.food += candidates[i].yields.food;
     total.shields += candidates[i].yields.shields;
     total.trade += candidates[i].yields.trade;
+    if (candidates[i].yields.trade > 0) tradeTiles++;
   }
+  // Colossus: +1 trade on every worked trade-producing tile in its city
+  if (wonderInCity(state, city, 'colossus', ruleset)) total.trade += tradeTiles;
   return total;
 }
 
@@ -74,6 +114,7 @@ function foundCity(state, cmd, ruleset) {
     pop: 1,
     food: 0,
     shields: 0,
+    buildings: [],
     producing: { kind: 'unit', id: 'militia' }
   };
   state.cityOrder.push(cityId);
@@ -89,15 +130,29 @@ function setProduction(state, cmd, ruleset) {
   if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const item = cmd.item;
-  if (!item || item.kind !== 'unit' || !ruleset.units[item.id]) {
-    return { ok: false, reason: 'badItem' };
-  }
-  const requiredTech = ruleset.units[item.id].tech;
-  if (requiredTech !== '' && state.players[cmd.playerId].techs.indexOf(requiredTech) === -1) {
+  if (!item) return { ok: false, reason: 'badItem' };
+
+  let def = null;
+  if (item.kind === 'unit') def = ruleset.units[item.id];
+  else if (item.kind === 'building') def = ruleset.buildings[item.id];
+  else if (item.kind === 'wonder') def = ruleset.wonders[item.id];
+  if (!def) return { ok: false, reason: 'badItem' };
+
+  if (def.tech !== '' && state.players[cmd.playerId].techs.indexOf(def.tech) === -1) {
     return { ok: false, reason: 'techRequired' };
   }
-  // Civ 1 forfeits half the shields when switching category; unit->unit keeps them
-  city.producing = { kind: 'unit', id: item.id };
+  if (item.kind === 'building' && hasBuilding(city, item.id)) {
+    return { ok: false, reason: 'alreadyBuilt' };
+  }
+  if (item.kind === 'wonder' && state.wonders !== undefined && state.wonders[item.id] !== undefined) {
+    return { ok: false, reason: 'wonderTaken' };
+  }
+
+  // Civ 1: switching production category forfeits half the accumulated shields
+  if (city.producing.kind !== item.kind) {
+    city.shields = idiv(city.shields, 2);
+  }
+  city.producing = { kind: item.kind, id: item.id };
   return { ok: true, events: [{ type: 'productionSet', cityId: city.id, item: city.producing }] };
 }
 
@@ -111,10 +166,15 @@ function processCities(state, ruleset, events) {
     const yields = cityYields(state, city, ruleset);
 
     city.food = city.food + yields.food - city.pop * 2;
-    if (city.food >= 10 * (city.pop + 1)) {
-      city.pop = city.pop + 1;
-      city.food = 0;
-      events.push({ type: 'cityGrew', cityId, pop: city.pop });
+    const threshold = 10 * (city.pop + 1);
+    if (city.food >= threshold) {
+      if (city.pop >= 10 && !hasBuilding(city, 'aqueduct')) {
+        city.food = threshold; // growth stalls without an Aqueduct
+      } else {
+        city.pop = city.pop + 1;
+        city.food = hasBuilding(city, 'granary') ? idiv(threshold, 2) : 0;
+        events.push({ type: 'cityGrew', cityId, pop: city.pop });
+      }
     } else if (city.food < 0) {
       city.food = 0;
       if (city.pop > 1) {
@@ -124,20 +184,50 @@ function processCities(state, ruleset, events) {
     }
 
     city.shields = city.shields + yields.shields;
-    const unitType = ruleset.units[city.producing.id];
-    if (city.producing.kind === 'unit' && city.shields >= unitType.cost) {
-      city.shields = city.shields - unitType.cost;
-      const unitId = 'u' + state.nextUnitId;
-      state.nextUnitId = state.nextUnitId + 1;
-      state.units[unitId] = {
-        id: unitId, type: city.producing.id, owner: city.owner,
-        x: city.x, y: city.y, moves: unitType.moves,
-        fortified: false, veteran: false
-      };
-      reveal(state, city.owner, city.x, city.y, 1);
-      events.push({ type: 'unitBuilt', cityId, unitId, unitType: city.producing.id });
+    const prod = city.producing;
+    if (prod.kind === 'unit') {
+      const unitType = ruleset.units[prod.id];
+      if (city.shields >= unitType.cost) {
+        city.shields = city.shields - unitType.cost;
+        const unitId = 'u' + state.nextUnitId;
+        state.nextUnitId = state.nextUnitId + 1;
+        state.units[unitId] = {
+          id: unitId, type: prod.id, owner: city.owner,
+          x: city.x, y: city.y, moves: unitType.moves,
+          fortified: false, veteran: hasBuilding(city, 'barracks')
+        };
+        reveal(state, city.owner, city.x, city.y, 1);
+        events.push({ type: 'unitBuilt', cityId, unitId, unitType: prod.id });
+      }
+    } else if (prod.kind === 'building') {
+      const def = ruleset.buildings[prod.id];
+      if (city.shields >= def.cost) {
+        city.shields = city.shields - def.cost;
+        if (city.buildings === undefined) city.buildings = [];
+        city.buildings.push(prod.id);
+        city.producing = { kind: 'unit', id: 'militia' };
+        events.push({ type: 'buildingBuilt', cityId, building: prod.id });
+      }
+    } else if (prod.kind === 'wonder') {
+      const def = ruleset.wonders[prod.id];
+      if (city.shields >= def.cost) {
+        if (state.wonders !== undefined && state.wonders[prod.id] !== undefined) {
+          // another civilization finished it first — shields are kept
+          city.producing = { kind: 'unit', id: 'militia' };
+          events.push({ type: 'wonderLost', cityId, wonder: prod.id });
+        } else {
+          city.shields = city.shields - def.cost;
+          if (state.wonders === undefined) state.wonders = {};
+          state.wonders[prod.id] = city.id;
+          city.producing = { kind: 'unit', id: 'militia' };
+          events.push({ type: 'wonderBuilt', cityId, wonder: prod.id });
+        }
+      }
     }
   }
 }
 
-export { foundCity, setProduction, processCities, cityYields, tileYields, FAT_CROSS };
+export {
+  foundCity, setProduction, processCities, cityYields, tileYields, FAT_CROSS,
+  hasBuilding, wonderActive, wonderInCity, effectPct
+};

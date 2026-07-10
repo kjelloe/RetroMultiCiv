@@ -1,0 +1,165 @@
+{
+  "aqueduct": {
+    "name": "Aqueduct",
+    "tech": "construction",
+    "cost": 120,
+    "maintenance": 2,
+    "effect": {
+      "growthPast10": true
+    }
+  },
+  "bank": {
+    "name": "Bank",
+    "tech": "banking",
+    "cost": 120,
+    "maintenance": 3,
+    "effect": {
+      "taxBonus": 50
+    }
+  },
+  "barracks": {
+    "name": "Barracks",
+    "tech": "",
+    "cost": 40,
+    "maintenance": 1,
+    "effect": {
+      "veteranUnits": true
+    }
+  },
+  "cathedral": {
+    "name": "Cathedral",
+    "tech": "religion",
+    "cost": 160,
+    "maintenance": 3,
+    "effect": {}
+  },
+  "city-walls": {
+    "name": "City Walls",
+    "tech": "masonry",
+    "cost": 120,
+    "maintenance": 2,
+    "effect": {
+      "defenseMultiplier": 3
+    }
+  },
+  "colosseum": {
+    "name": "Colosseum",
+    "tech": "construction",
+    "cost": 100,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "courthouse": {
+    "name": "Courthouse",
+    "tech": "code-of-laws",
+    "cost": 80,
+    "maintenance": 1,
+    "effect": {}
+  },
+  "factory": {
+    "name": "Factory",
+    "tech": "industrialization",
+    "cost": 200,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "granary": {
+    "name": "Granary",
+    "tech": "pottery",
+    "cost": 60,
+    "maintenance": 1,
+    "effect": {
+      "halvesGrowthFood": true
+    }
+  },
+  "hydro-plant": {
+    "name": "Hydro Plant",
+    "tech": "electronics",
+    "cost": 240,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "library": {
+    "name": "Library",
+    "tech": "writing",
+    "cost": 80,
+    "maintenance": 1,
+    "effect": {
+      "sciBonus": 50
+    }
+  },
+  "marketplace": {
+    "name": "Marketplace",
+    "tech": "currency",
+    "cost": 80,
+    "maintenance": 1,
+    "effect": {
+      "taxBonus": 50
+    }
+  },
+  "mass-transit": {
+    "name": "Mass Transit",
+    "tech": "mass-production",
+    "cost": 160,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "mfg-plant": {
+    "name": "Mfg. Plant",
+    "tech": "robotics",
+    "cost": 320,
+    "maintenance": 6,
+    "effect": {}
+  },
+  "nuclear-plant": {
+    "name": "Nuclear Plant",
+    "tech": "nuclear-power",
+    "cost": 160,
+    "maintenance": 2,
+    "effect": {}
+  },
+  "palace": {
+    "name": "Palace",
+    "tech": "masonry",
+    "cost": 200,
+    "maintenance": 0,
+    "effect": {}
+  },
+  "power-plant": {
+    "name": "Power Plant",
+    "tech": "refining",
+    "cost": 160,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "recycling-center": {
+    "name": "Recycling Center",
+    "tech": "recycling",
+    "cost": 200,
+    "maintenance": 2,
+    "effect": {}
+  },
+  "sdi-defense": {
+    "name": "SDI Defense",
+    "tech": "superconductor",
+    "cost": 200,
+    "maintenance": 4,
+    "effect": {}
+  },
+  "temple": {
+    "name": "Temple",
+    "tech": "ceremonial-burial",
+    "cost": 40,
+    "maintenance": 1,
+    "effect": {}
+  },
+  "university": {
+    "name": "University",
+    "tech": "university",
+    "cost": 160,
+    "maintenance": 3,
+    "effect": {
+      "sciBonus": 50
+    }
+  }
+}

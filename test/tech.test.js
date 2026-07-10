@@ -101,6 +101,21 @@ test('tax rate converts trade to gold; setRates validates', async () => {
   assert.strictEqual(res.state.players.p1.bulbs, 0);
 });
 
+test('marketplace boosts tax gold; maintenance drains it', async () => {
+  const { engine } = await load();
+  // 3 trade, 100% tax: base 3 gold; marketplace +50% => 4; maintenance 1 => +3/turn
+  let state = labState({ taxRate: 100, sciRate: 0 });
+  state.cities.c1.buildings = ['marketplace'];
+  const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(res.state.players.p1.gold, 3);
+
+  // maintenance alone can never push gold below zero (clamped)
+  let poor = labState({ taxRate: 0, sciRate: 100 });
+  poor.cities.c1.buildings = ['city-walls']; // maintenance 2, no income
+  const drained = engine.applyCommand(poor, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(drained.state.players.p1.gold, 0);
+});
+
 test('production is tech-gated', async () => {
   const { engine } = await load();
   const state = labState();

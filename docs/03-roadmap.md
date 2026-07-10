@@ -39,8 +39,9 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    21-tile fat cross, food box growth/starvation, shield production of units,
    setProduction; client: B founds a city, click city + keys 1/2/3 pick
    production, HUD city panel. Locked by scenario 003 (hash `0xa1c78141`).
-   ⬜ remaining: buildings/wonders in production, buy, specialists, happiness,
-   trade/tax split, tile contention between cities, proper city screen UI.
+   ⬜ remaining: buy, specialists, happiness, tile contention between cities,
+   proper city screen UI. *(buildings/wonders production and the trade/tax
+   split landed with steps 6's slices below.)*
 5. 🔶 **Combat + barbarians** *(core done 2026-07-10)* — ✅ `engine/combat.js`:
    Civ 1 one-shot combat in pure integer math (strengths as products, roll in
    [0, att+def)), terrain/river/fortify/veteran multipliers, strongest-defender
@@ -57,9 +58,20 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    trade split by tax/science rates (`setRates`, 10% steps), Civ 1 global cost
    escalation (base × techs known+1), overflow carry, prereq-validated
    `setResearch`; ✅ production tech-gating (no more 4000 BC battleships);
-   ✅ client: research HUD + T to cycle available techs. Locked by scenario
-   006 (`0x955483fe`). ⬜ remaining: buildings/wonders data + effects,
-   governments, luxuries/happiness, corruption, Future Tech repeatability.
+   ✅ client: research HUD + T to cycle available techs (scenario 006);
+   ✅ **buildings & wonders** *(2026-07-10)*: `data/buildings.json` (21) +
+   `data/wonders.json` (21) with wiki-verified techs/costs/obsolescence and
+   structured effects (never wiki prose); building/wonder production with
+   Civ 1 category-switch shield forfeit; effects live: Granary halving,
+   Aqueduct pop-10 gate, Barracks veterans, City Walls ×3 in combat,
+   Marketplace/Bank/Library/University +50%, maintenance (gold clamped ≥0),
+   Colossus city trade, Great Wall empire walls with Gunpowder obsolescence;
+   wonder race uniqueness (first completion wins, `wonderLost` event);
+   client: C cycles available buildings/wonders. Locked by scenario 007
+   (`0x1057c8bc`). ⬜ remaining: governments, luxuries/happiness, corruption,
+   remaining building/wonder effects (Temple, Factory chain, Palace,
+   Great Library, Darwin's Voyage…), Future Tech repeatability, building sale
+   instead of gold clamp.
 7. **AI opponents + victory/score** — heuristic AI issuing engine commands,
    conquest and score victory, end screen. *(Milestone: a full winnable game.)*
 8. **Save/load** — snapshot + command log to localStorage / file download.

@@ -1,0 +1,61 @@
+{
+  "name": "buildings & wonders: completion, granary halving, duplicates, wonder tech gate, category-switch forfeit, maintenance",
+  "notes": "3x3 shield-grassland island, pop-2 city with a granary, 118 shields toward City Walls (120), 28 food toward growth (30). One turn wrap completes the walls AND grows the city with the granary keeping half the box (15). Maintenance (granary 1 + new walls 2) drains gold 10 -> 7. Switching production category (unit -> wonder) forfeits half the shields.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
+      "map": {
+        "width": 3, "height": 3, "wrapX": false,
+        "tiles": [
+          { "t": "grassland", "special": true }, { "t": "grassland", "special": true }, { "t": "grassland", "special": true },
+          { "t": "grassland", "special": true }, { "t": "grassland", "special": true }, { "t": "grassland", "special": true },
+          { "t": "grassland", "special": true }, { "t": "grassland", "special": true }, { "t": "grassland", "special": true }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": { "id": "c1", "name": "Uruk", "owner": "p1", "x": 1, "y": 1, "pop": 2, "food": 28, "shields": 118, "buildings": ["granary"], "producing": { "kind": "building", "id": "city-walls" } }
+      },
+      "cityOrder": ["c1"],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 2,
+      "players": {
+        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 10, "techs": ["masonry"], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 7
+    }
+  },
+  "script": [
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "building", "id": "granary" } },
+      "expect": { "ok": false }, "notes": "already built in this city" },
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "wonder", "id": "colossus" } },
+      "expect": { "ok": false }, "notes": "Colossus needs Bronze Working" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": {
+        "cities.c1.pop": 3,
+        "cities.c1.food": 15,
+        "cities.c1.buildings.1": "city-walls",
+        "cities.c1.shields": 1,
+        "cities.c1.producing.id": "militia",
+        "players.p1.gold": 7
+      } },
+      "notes": "walls complete (121-120), city grows with granary halving (30/2), maintenance 3 paid" },
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "wonder", "id": "pyramids" } },
+      "expect": { "ok": true, "state": { "cities.c1.shields": 0 } },
+      "notes": "Masonry unlocks Pyramids; unit->wonder switch forfeits half of 1 shield" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": { "cities.c1.shields": 4, "cities.c1.food": 17, "players.p1.gold": 4 } } }
+  ],
+  "final": {
+    "state": { "turn": 3, "cities.c1.producing.id": "pyramids" },
+    "hash": "0x1057c8bc"
+  }
+}
