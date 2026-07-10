@@ -116,6 +116,63 @@ test('barracks makes newly built units veterans', async () => {
   assert.strictEqual(res.state.units.u5.veteran, true, 'barracks-trained militia is veteran');
 });
 
+test('setWorkers: manual tile assignment overrides greedy, validates, resets', async () => {
+  const { cities, engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'plains' });     // 1/1/0
+  tiles[6] = { t: 'grassland', special: true };                  // 2/1/0 — greedy pick
+  tiles[8] = { t: 'ocean' };                                     // 1/0/2 — trade choice
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'T', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  // auto: greedy works the shield grassland — no trade
+  assert.strictEqual(cities.cityYields(state, state.cities.c1, RULESET).trade, 0);
+
+  // manual: work the ocean instead (idx 8) — optimize for trade
+  const res = engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [8] });
+  assert.strictEqual(res.ok, true);
+  const y = cities.cityYields(res.state, res.state.cities.c1, RULESET);
+  assert.strictEqual(y.trade, 2, 'ocean worked manually');
+  assert.strictEqual(y.shields, 1, 'only the plains center shield remains — grassland released');
+
+  // validation: too many workers, bad tile index, duplicates
+  assert.strictEqual(engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [6, 8] }).reason, 'badWorkers');
+  assert.strictEqual(engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [12] }).reason, 'badWorkers', 'center is not assignable');
+  assert.strictEqual(engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [99] }).reason, 'badWorkers');
+
+  // reset to automatic
+  const auto = engine.applyCommand(res.state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', auto: true });
+  assert.strictEqual(auto.state.cities.c1.workers, undefined);
+});
+
+test('manual workers: growth assigns the new citizen to the best free tile', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'grassland', special: true });
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'T', owner: 'p1', x: 2, y: 2, pop: 1, food: 19, shields: 0, buildings: [], workers: [7], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  // center 2 + worked 2 = 4 food, eats 2 => +2 → 21 ≥ 20: grows
+  const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(res.state.cities.c1.pop, 2);
+  assert.strictEqual(res.state.cities.c1.workers.length, 2, 'new citizen got a tile');
+  assert.strictEqual(res.state.cities.c1.workers[0], 7, 'existing assignment kept');
+});
+
 test('wonder race: only one civilization gets the wonder; the loser keeps shields', async () => {
   const { engine } = await load();
   const tiles = [];

@@ -257,6 +257,14 @@ html, body {
   outline-offset: -2px;
 }
 
+.ctile.assignable {
+  cursor: pointer;
+}
+
+.ctile.assignable:hover {
+  filter: brightness(1.35);
+}
+
 .ctile.center::before {
   content: "🏛";
   position: absolute;

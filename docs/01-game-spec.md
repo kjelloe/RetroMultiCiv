@@ -319,8 +319,10 @@ Unlocked by tech; switching triggers 1–4 turns of **Anarchy** (unless Pyramids
 The engine implements simplified first passes of some mechanics; each item
 below is a known, deliberate deviation to be closed in a later slice:
 
-- **Worked tiles** are auto-assigned greedily (center + pop best fat-cross
-  tiles); no manual assignment, no specialists, no contention between cities.
+- **Worked tiles**: auto-assigned greedily by default; manual per-tile
+  assignment is implemented (`setWorkers`, city-view clicks) with growth
+  auto-assigning the new citizen. Still missing: specialists
+  (entertainer/taxman/scientist) and tile contention between cities.
 - **Settlers don't eat food** yet (§4.3 says 1/turn) and there is no unit
   support cost.
 - **Calendar advances a flat 20 years/turn** — era-based steps come with

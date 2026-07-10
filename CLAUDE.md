@@ -54,9 +54,11 @@ Split by SEAM, not by line count — but as soft ceilings: engine modules ≤ ~3
 lines (each becomes a Luau ModuleScript 1:1; small files = reviewable port),
 client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
-`require`s acyclic. Planned (post-playtest): split client/main.js into
-main (bootstrap) / session (state owner — the phase-3 socket seam) /
-diagnostics / ui/{hud,panels,input,saves}.
+`require`s acyclic. The client is split as: main (bootstrap) / session
+(state owner + AI-drive — the phase-3 socket seam) / diagnostics /
+ui/{hud,panels,input,saves,combatlog}. UI reads session.state and calls
+session.apply()/endTurn(); session.onChange drives refresh. Keyboard handlers
+must ignore events from INPUT/TEXTAREA targets (dialogs).
 
 ## Testing & running
 

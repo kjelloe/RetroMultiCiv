@@ -65,6 +65,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'endTurn') result = endTurn(next, cmd, ruleset);
     else if (cmd.type === 'foundCity') result = cities.foundCity(next, cmd, ruleset);
     else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
+    else if (cmd.type === 'setWorkers') result = cities.setWorkers(next, cmd, ruleset);
     else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
     else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };

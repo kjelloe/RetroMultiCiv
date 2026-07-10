@@ -57,15 +57,10 @@ function effectPct(city, ruleset, key) {
   return total;
 }
 
-// Center tile (always worked, free) + the pop best tiles of the fat cross,
-// greedily by weighted score. Tile contention between cities comes later.
-// Returns the actual worked tiles (center first) — the city view renders this.
-function workedTiles(state, city, ruleset) {
+// All workable fat-cross tiles for a city, greedy-sorted; idx = y*width + x
+// is the stable tile id used by manual assignments (city.workers).
+function candidateTiles(state, city, ruleset) {
   const { width, height, wrapX, tiles } = state.map;
-  const worked = [{
-    x: city.x, y: city.y, center: true,
-    yields: tileYields(tiles[city.y * width + city.x], ruleset)
-  }];
   const candidates = [];
   for (const o of FAT_CROSS) {
     let x = city.x + o.dx;
@@ -76,13 +71,68 @@ function workedTiles(state, city, ruleset) {
       x = ((x % width) + width) % width;
     }
     const y_ = tileYields(tiles[y * width + x], ruleset);
-    candidates.push({ x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
+    candidates.push({ idx: y * width + x, x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }
   candidates.sort((a, b) => b.score - a.score);
+  return candidates;
+}
+
+// Center tile (always worked, free) + up to pop worked tiles: the player's
+// manual assignment (city.workers, tile indices) when present, otherwise the
+// greedy best. Returns the actual worked tiles (center first).
+function workedTiles(state, city, ruleset) {
+  const { width, tiles } = state.map;
+  const worked = [{
+    x: city.x, y: city.y, center: true,
+    yields: tileYields(tiles[city.y * width + city.x], ruleset)
+  }];
+  const candidates = candidateTiles(state, city, ruleset);
+  if (city.workers !== undefined) {
+    const byIdx = {};
+    for (const c of candidates) byIdx[c.idx] = c;
+    let count = 0;
+    for (const idx of city.workers) {
+      if (count >= city.pop) break;
+      const c = byIdx[idx];
+      if (!c) continue;
+      worked.push({ x: c.x, y: c.y, center: false, yields: c.yields });
+      count++;
+    }
+    return worked;
+  }
   for (let i = 0; i < city.pop && i < candidates.length; i++) {
     worked.push({ x: candidates[i].x, y: candidates[i].y, center: false, yields: candidates[i].yields });
   }
   return worked;
+}
+
+// Manual worker placement. `workers` is a list of candidate tile indices
+// (max pop, no duplicates); `auto: true` returns the city to greedy placement.
+function setWorkers(state, cmd, ruleset) {
+  const city = state.cities[cmd.cityId];
+  if (!city) return { ok: false, reason: 'unknownCity' };
+  if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+
+  if (cmd.auto === true) {
+    delete city.workers;
+    return { ok: true, events: [{ type: 'workersSet', cityId: city.id, auto: true }] };
+  }
+  const workers = cmd.workers;
+  if (!Array.isArray(workers) || workers.length > city.pop) {
+    return { ok: false, reason: 'badWorkers' };
+  }
+  const valid = {};
+  for (const c of candidateTiles(state, city, ruleset)) valid[c.idx] = true;
+  const seen = {};
+  for (const idx of workers) {
+    if (!Number.isInteger(idx) || !valid[idx] || seen[idx]) {
+      return { ok: false, reason: 'badWorkers' };
+    }
+    seen[idx] = true;
+  }
+  city.workers = workers.slice();
+  return { ok: true, events: [{ type: 'workersSet', cityId: city.id, auto: false }] };
 }
 
 function cityYields(state, city, ruleset) {
@@ -185,12 +235,21 @@ function processCities(state, ruleset, events) {
       } else {
         city.pop = city.pop + 1;
         city.food = hasBuilding(city, 'granary') ? idiv(threshold, 2) : 0;
+        // under manual placement the new citizen takes the best free tile
+        if (city.workers !== undefined) {
+          for (const c of candidateTiles(state, city, ruleset)) {
+            if (city.workers.indexOf(c.idx) === -1) { city.workers.push(c.idx); break; }
+          }
+        }
         events.push({ type: 'cityGrew', cityId, pop: city.pop });
       }
     } else if (city.food < 0) {
       city.food = 0;
       if (city.pop > 1) {
         city.pop = city.pop - 1;
+        if (city.workers !== undefined && city.workers.length > city.pop) {
+          city.workers = city.workers.slice(0, city.pop);
+        }
         events.push({ type: 'cityStarved', cityId, pop: city.pop });
       }
     }
@@ -240,6 +299,7 @@ function processCities(state, ruleset, events) {
 }
 
 export {
-  foundCity, setProduction, processCities, cityYields, workedTiles, tileYields,
-  FAT_CROSS, hasBuilding, wonderActive, wonderInCity, effectPct
+  foundCity, setProduction, setWorkers, processCities, cityYields, workedTiles,
+  candidateTiles, tileYields, FAT_CROSS, hasBuilding, wonderActive,
+  wonderInCity, effectPct
 };

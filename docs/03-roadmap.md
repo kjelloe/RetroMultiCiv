@@ -39,9 +39,11 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    21-tile fat cross, food box growth/starvation, shield production of units,
    setProduction; client: B founds a city, click city + keys 1/2/3 pick
    production, HUD city panel. Locked by scenario 003 (hash `0xa1c78141`).
-   ⬜ remaining: buy, specialists, happiness, tile contention between cities,
-   proper city screen UI. *(buildings/wonders production and the trade/tax
-   split landed with steps 6's slices below.)*
+   ✅ city screen UI (panel with yields, growth/production ETAs, clickable
+   5×5 worked-tile map with manual assignment via `setWorkers`, production
+   catalog); ⬜ remaining: buy, specialists, happiness, tile contention
+   between cities. *(buildings/wonders production and the trade/tax split
+   landed with step 6's slices below.)*
 5. 🔶 **Combat + barbarians** *(core done 2026-07-10)* — ✅ `engine/combat.js`:
    Civ 1 one-shot combat in pure integer math (strengths as products, roll in
    [0, att+def)), terrain/river/fortify/veteran multipliers, strongest-defender

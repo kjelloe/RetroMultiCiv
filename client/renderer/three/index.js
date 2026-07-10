@@ -131,9 +131,41 @@ export function createRenderer(container) {
     }
   }
 
+  // population badge: a small round sprite with the city size
+  const cityLabels = [];
+  function makeCityLabel(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const g = canvas.getContext('2d');
+    g.beginPath();
+    g.arc(32, 32, 28, 0, Math.PI * 2);
+    g.fillStyle = 'rgba(8, 12, 20, 0.82)';
+    g.fill();
+    g.lineWidth = 4;
+    g.strokeStyle = color;
+    g.stroke();
+    g.font = 'bold 32px monospace';
+    g.fillStyle = '#ffffff';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, 32, 35);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas), depthTest: false
+    }));
+    sprite.scale.set(0.55, 0.55, 1);
+    return sprite;
+  }
+
   function buildCities() {
     for (const mesh of cityMeshes.values()) worldGroup.remove(mesh);
     cityMeshes.clear();
+    for (const label of cityLabels) {
+      worldGroup.remove(label);
+      label.material.map.dispose();
+      label.material.dispose();
+    }
+    cityLabels.length = 0;
     for (const city of Object.values(view.cities || {})) {
       const color = view.players[city.owner]?.color || '#ffffff';
       const mesh = new THREE.Mesh(geoCity, new THREE.MeshLambertMaterial({ color }));
@@ -141,6 +173,10 @@ export function createRenderer(container) {
       mesh.userData.cityId = city.id;
       cityMeshes.set(city.id, mesh);
       worldGroup.add(mesh);
+      const label = makeCityLabel(String(city.pop), color);
+      label.position.set(city.x, tileTop(city.x, city.y) + 0.95, city.y);
+      cityLabels.push(label);
+      worldGroup.add(label);
     }
   }
 

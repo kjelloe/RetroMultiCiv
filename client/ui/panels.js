@@ -1,6 +1,6 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
-import { workedTiles } from '../../engine/cities.js';
+import { workedTiles, candidateTiles } from '../../engine/cities.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 
@@ -132,6 +132,7 @@ export function initPanels(ctx) {
     const surplus = totals.food - city.pop * 2;
     const threshold = 10 * (city.pop + 1);
     const def = itemDef(city.producing);
+    const idle = city.pop - (worked.length - 1);
     const stats = document.getElementById('city-stats');
     stats.innerHTML =
       `<div>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
@@ -145,13 +146,36 @@ export function initPanels(ctx) {
       + '</div>'
       + `<div>${(city.buildings || []).length
         ? 'built: ' + (city.buildings || []).map(b => buildings[b].name).join(', ')
-        : 'no buildings yet'}</div>`;
+        : 'no buildings yet'}</div>`
+      + `<div>${city.workers !== undefined
+        ? '👷 manual tile assignment — click tiles below'
+        : '👷 automatic tile assignment — click a tile to take over'}`
+      + (idle > 0 ? ` · <span class="loss">💤 ${idle} idle citizen${idle > 1 ? 's' : ''}</span>` : '')
+      + '</div>';
 
-    // 5x5 workable area, city at the center
+    // 5x5 workable area, city at the center; clicking tiles reassigns workers
     const map = document.getElementById('city-map');
     map.textContent = '';
     const isWorked = {};
     for (const w of worked) isWorked[`${w.x},${w.y}`] = true;
+
+    function toggleWorker(idx) {
+      const current = city.workers !== undefined
+        ? city.workers.slice()
+        : worked.filter(w => !w.center).map(w => w.y * state.map.width + w.x);
+      const at = current.indexOf(idx);
+      if (at !== -1) {
+        current.splice(at, 1);
+      } else if (current.length >= city.pop) {
+        ctx.hud.note('💤 no free citizens — unassign a worked tile first');
+        return;
+      } else {
+        current.push(idx);
+      }
+      const res = session.apply({ type: 'setWorkers', playerId: HUMAN, cityId: city.id, workers: current });
+      if (!res.ok) ctx.hud.note(`✗ setWorkers: ${res.reason}`);
+    }
+
     for (let dy = -2; dy <= 2; dy++) {
       for (let dx = -2; dx <= 2; dx++) {
         const cell = document.createElement('div');
@@ -174,11 +198,28 @@ export function initPanels(ctx) {
           const base = tile.special ? ty.special.yields : ty.yields;
           const trade = base.trade + (tile.river ? session.ruleset.terrain.riverModifier.tradeBonus : 0);
           cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(base.food, base.shields, trade);
+          cell.className += ' assignable';
+          const idx = y * state.map.width + x;
+          cell.addEventListener('click', () => toggleWorker(idx));
         }
-        cell.title = `(${x},${y}) ${tile.t}`;
+        cell.title = `(${x},${y}) ${tile.t}` + (dx === 0 && dy === 0 ? '' : ' — click to (un)assign a worker');
         map.appendChild(cell);
       }
     }
+
+    // reset to automatic placement
+    let resetBtn = document.getElementById('workers-reset');
+    if (!resetBtn) {
+      resetBtn = document.createElement('button');
+      resetBtn.id = 'workers-reset';
+      resetBtn.className = 'option';
+      map.parentElement.appendChild(resetBtn);
+    }
+    resetBtn.textContent = '↺ reset to automatic assignment';
+    resetBtn.style.display = city.workers !== undefined ? 'block' : 'none';
+    resetBtn.onclick = () => {
+      session.apply({ type: 'setWorkers', playerId: HUMAN, cityId: city.id, auto: true });
+    };
 
     // production choices — click selects, double-click selects and closes
     const prodEl = document.getElementById('city-production');

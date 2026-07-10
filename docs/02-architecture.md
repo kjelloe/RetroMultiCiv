@@ -70,8 +70,13 @@ multiciv/
 ├── client/
 │   ├── index.html
 │   ├── mock-state.json    # step-0 static world (schema-checked by tests)
-│   ├── vendor/            # three.module.min.js (pinned, no build step)
-│   ├── main.js            # game shell: input → commands, events → renderer
+│   ├── vendor/            # three.module.min.js (pinned r162, no build step)
+│   ├── main.js            # bootstrap: fetch ruleset, create session, wire UI
+│   ├── session.js         # ★ owns state; apply/endTurn/AI-drive — the seam a
+│   │                      #   socket-backed session replaces in phase 3
+│   ├── diagnostics.js     # WebGL capability probe (+ ?diag=1 panel)
+│   ├── ui/                # hud, panels (research/city/stack), input,
+│   │                      #   saves (F5/F9 + files), combat log — plain DOM
 │   ├── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │   │   ├── renderer.js    #   interface: init, drawMap, drawUnits, pick(x,y)…
 │   │   └── three/         #   v1: low-poly flat boxes + raycast picking
