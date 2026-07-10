@@ -1,4 +1,4 @@
-# MultiCiv — Development Roadmap
+# RetroMultiCiv — Development Roadmap
 
 Five phases, matching the agreed development path. Each phase ends with something
 playable/verifiable, and none requires reworking the previous one — that's what
@@ -11,10 +11,16 @@ No server beyond `npx serve` / `python -m http.server` for static files.
 
 **Build order (each step playable):**
 
+0. ✅ **Mock state + renderer** *(done 2026-07-10)* — static `client/mock-state.json`
+   (24×16 map, 4 units, generated from ASCII art) rendered by the three.js
+   flat-box renderer with raycast picking, pan/zoom, and HUD. Proves the state
+   shape and the view layer.
 1. **Data + engine skeleton** — ruleset JSON files (terrain, units first),
+   mapped from the raw wiki extraction *(✅ done: `tools/wiki2data.js` pulled
+   7/7 pages into `data/wiki-extract/`)* and reviewed by hand;
    `createGame(seed, ruleset)`, state shape, xorshift RNG, headless tests.
-2. **Map generation + 2D renderer** — generate 80×50 world, render tiles with
-   pan/zoom, tile picking. *(Milestone: look at generated worlds.)*
+2. **Map generation** — generate the world (default 80×50, size configurable),
+   render with pan/zoom, tile picking. *(Milestone: look at generated worlds.)*
 3. **Units + movement** — spawn starting Settlers, select/move, terrain costs,
    fog of war. *(Milestone: explore the map.)*
 4. **Cities** — found city, worked tiles, food box growth, production queue,
@@ -28,6 +34,12 @@ No server beyond `npx serve` / `python -m http.server` for static files.
 
 **Acceptance:** a complete game vs 2 AI civs, start to victory, in the browser;
 engine test suite green; a replayed command log reproduces the same final state hash.
+
+> Note: the designer's roadmap stands up a small `ws` echo/command server as
+> early as its step 3. That's compatible with this plan — because the engine is
+> host-agnostic, the Node socket wrapper can be built at any point without
+> rework. It's scheduled here in phase 3 to keep phase 1 dependency-free, but
+> pulling it earlier costs nothing if the ally wants to develop against it.
 
 ## Phase 2 — Local multiplayer / hotseat
 
@@ -88,5 +100,5 @@ In rough priority order:
 3. Pollution & global warming; Recycling/Mass Transit become meaningful
 4. Spaceship construction + space-race victory (Apollo Program gate)
 5. Difficulty levels (Chieftain→Emperor modifiers)
-6. three.js renderer implementation behind the renderer interface
+6. Higher-fidelity renderer pass (unit models, water, globe view) behind the renderer interface
 7. Simultaneous turns / timer option for multiplayer

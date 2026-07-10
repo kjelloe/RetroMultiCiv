@@ -1,4 +1,4 @@
-# MultiCiv — Game Specification
+# RetroMultiCiv — Game Specification
 
 A standalone browser strategy game implementing the core mechanics of *Sid Meier's
 Civilization* (1991). Scope for v1: the full core loop (map, cities, units, combat),
@@ -6,11 +6,14 @@ the complete Civ 1 technology tree, wonders, and a simplified government system.
 Diplomacy, caravans/trade routes, and the spaceship endgame are specified as later
 phases (see `03-roadmap.md`).
 
-> **Data fidelity note:** All numeric tables in this document are Civ 1-inspired
-> defaults from memory. They live in JSON data files (`data/`), not in code, and each
-> table should be verified against the Civilization wiki
-> (https://civilization.fandom.com/wiki/Sid_Meier%27s_Civilization) when the data
-> files are authored. The mechanics/formulas are the contract; the numbers are tuning.
+> **Data fidelity note:** Numeric tables in this document are Civ 1 defaults;
+> they live in JSON data files (`data/`), not in code. `tools/wiki2data.js` has
+> extracted the authoritative tables from the local wikiteam dump of the
+> Civilization Fandom wiki into `data/wiki-extract/` (7/7 key pages: 28 units,
+> 74 advance rows, 21 wonders, 21 buildings, terrain with yields). Extraction
+> **confirmed** this spec's terrain yields/defense multipliers and unit roster.
+> When authoring the final `data/*.json`, the wiki extraction wins over any
+> table below. The mechanics/formulas are the contract; the numbers are tuning.
 
 ---
 
@@ -64,7 +67,7 @@ The whole simulation is deterministic: same initial seed + same command sequence
 | Arctic    | 0    | 0       | 0     | 2         | ×1.0    | |
 | Swamp     | 1    | 0       | 0     | 2         | ×1.5    | Can be drained |
 | Jungle    | 1    | 0       | 0     | 2         | ×1.5    | Can be cleared |
-| River     | 2    | 0       | 1     | 1         | ×1.5    | In Civ 1 rivers are a tile type, not edges — keep that |
+| River     | 2    | 0       | 1     | 1         | ×1.5    | Stored as a `river` flag on the tile, not a terrain type: a Civ 1 "River" tile = Grassland + river flag (+1 trade, defense ×1.5). The flag model keeps Civ 1 behavior while allowing rivers over other terrain later |
 | Ocean     | 1    | 0       | 2     | 1 (naval) | ×1.0    | Land units only aboard transports |
 
 Special resources (one per terrain type, sparse deterministic placement) boost
@@ -96,6 +99,8 @@ from the wiki into `data/terrain.json`.
 
 ### 4.2 Growth
 
+- Each citizen eats **2 food/turn**; the city's food surplus is
+  `(worked-tile food) − 2 × P − settlerSupport`.
 - Food box: the city stores surplus food; when stored food ≥ `10 × (P + 1)`
   the city grows to *P+1* and the box empties (Granary: box only half-empties).
 - Food deficit: box drains; at 0 the population shrinks by 1 (starvation).
@@ -191,7 +196,9 @@ obsoleted-by tech, domain (land/sea/air), and flags (e.g. `ignoresWalls`,
 - Roads: ⅓ move point; Railroad: free (Civ 1) or capped (tuneable).
 - **Zone of control:** moving directly between two tiles adjacent to an enemy
   unit is forbidden (classic Civ 1 ZOC).
-- Fortify (defense ×1.5), Sentry, GoTo (pathfinding server-side).
+- **Unit actions:** Move, Fortify (defense ×1.5), Sentry, GoTo (engine-side
+  pathfinding), Wait/Skip, Pillage (destroy a tile improvement), Disband,
+  and for Settlers: Found City / Build Road / Irrigate / Mine / Clear.
 
 ### 5.4 Combat (Civ 1 one-shot model)
 
@@ -287,11 +294,16 @@ Unlocked by tech; switching triggers 1–4 turns of **Anarchy** (unless Pyramids
 
 - **Barbarians:** spawn from huts *(minor tribes: goody huts give gold, a tech, a
   unit, or barbarians)* and randomly on unowned land/sea; attack nearest city.
-- **AI civs (v1 = simple heuristic AI, same command API as humans):**
-  1. Expansion phase: found cities toward best-yield sites.
-  2. Improve tiles with settlers, build data-driven build orders.
-  3. Defend cities (keep N defenders), then attack weakest neighbor city.
-  4. Research along a fixed priority list per AI "personality".
+- **AI civs (v1 = simple heuristic AI, same command API as humans).**
+  Baseline v0 ruleset (per designer input — deliberately dumb, ship it first):
+  1. Settlers: on a good tile (food ≥ 2 in radius)? found city; else move toward
+     nearest river/coast.
+  2. Military: enemy city revealed? move toward it; else move toward nearest fog.
+  3. City build: no defender → build defender (Militia/Phalanx); else → Settlers.
+  4. Research: cheapest available tech.
+
+  v1 upgrades on top: keep N defenders per city, data-driven build orders,
+  research priority lists per AI "personality", attack weakest neighbor city.
 - AI must issue only legal commands through the same engine API as players —
   this keeps it portable and testable.
 
@@ -304,4 +316,7 @@ Unlocked by tech; switching triggers 1–4 turns of **Anarchy** (unless Pyramids
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &
 global warming, spaceship construction & space victory, difficulty-level
-modifiers beyond a single global multiplier, palace/throne-room fluff.
+modifiers beyond a single global multiplier, palace/throne-room fluff, and
+**random city disasters** (fire, plague, flood, pirates, earthquake — Civ 1 ties
+building effects to these, e.g. Aqueduct prevents fire/plague, Barracks prevents
+pirates; the building data in `data/wiki-extract/` records this for later).

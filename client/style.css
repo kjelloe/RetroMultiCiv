@@ -1,0 +1,41 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0d1420;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+#app {
+  position: absolute;
+  inset: 0;
+}
+
+#app canvas {
+  display: block;
+}
+
+#hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 10px 14px;
+  background: rgba(10, 16, 28, 0.85);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  color: #cdd8ea;
+  font-size: 13px;
+  line-height: 1.6;
+  pointer-events: none;
+  user-select: none;
+}
+
+#hud-title {
+  color: #ffe066;
+  font-weight: bold;
+}
+
+#hud-help {
+  color: #6d7d99;
+  font-size: 11px;
+}
