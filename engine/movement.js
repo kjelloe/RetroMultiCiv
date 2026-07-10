@@ -1,6 +1,7 @@
 // Unit movement: 8-directional, terrain move costs, Civ 1 partial-move rule
 // (a unit may enter any passable tile as long as it has ANY movement left).
 // Roads, railroads, ZOC and combat arrive in later slices.
+import { reveal } from './visibility.js';
 
 const DIRS = {
   N: { dx: 0, dy: -1 }, NE: { dx: 1, dy: -1 }, E: { dx: 1, dy: 0 },
@@ -47,6 +48,7 @@ function moveUnit(state, cmd, ruleset) {
   const cost = terrain.move;
   unit.moves = unit.moves - cost;
   if (unit.moves < 0) unit.moves = 0;
+  reveal(state, unit.owner, nx, ny, 1);
 
   return {
     ok: true,

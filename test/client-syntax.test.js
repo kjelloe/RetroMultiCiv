@@ -12,10 +12,12 @@ const CLIENT_MODULES = [
   'client/main.js',
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
+  'engine/cities.js',
   'engine/index.js',
   'engine/mapgen.js',
   'engine/movement.js',
   'engine/rng.js',
+  'engine/visibility.js',
   'shared/statehash.js'
 ];
 

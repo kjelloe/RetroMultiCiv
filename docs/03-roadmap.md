@@ -30,9 +30,17 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    client generates + renders real worlds (`?seed=` URL param).
 3. 🔶 **Units + movement** — ✅ engine movement + client wiring (select unit,
    click-to-move with engine validation, End Turn button/hotkey, auto-pass for
-   AI-less players). ⬜ remaining: fog of war (`engine/visibility.js`), GoTo.
-4. **Cities** — found city, worked tiles, food box growth, production queue,
-   basic buildings; city screen UI. *(Milestone: grow a civilization.)*
+   AI-less players); ✅ fog of war (`engine/visibility.js`: persistent explored
+   arrays, computed sight — units r1, cities r2 — and `filterView`, the exact
+   per-player view the phase-3 server will send; client renders unknown/dimmed
+   tiles). ⬜ remaining: GoTo.
+4. 🔶 **Cities** *(core done 2026-07-10)* — ✅ `engine/cities.js`: foundCity
+   (settlers consumed, min-1-tile spacing), auto-assigned worked tiles from the
+   21-tile fat cross, food box growth/starvation, shield production of units,
+   setProduction; client: B founds a city, click city + keys 1/2/3 pick
+   production, HUD city panel. Locked by scenario 003 (hash `0xa1c78141`).
+   ⬜ remaining: buildings/wonders in production, buy, specialists, happiness,
+   trade/tax split, tile contention between cities, proper city screen UI.
 5. **Combat + barbarians** — Civ 1 one-shot combat, ZOC, veterans, city capture.
 6. **Tech tree + wonders + governments** — full Civ 1 tech data, research UI,
    wonder effects, government switching, tax sliders, happiness/disorder.
