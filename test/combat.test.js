@@ -69,7 +69,14 @@ test('land units cannot attack ships at sea; ships can bombard the shore', async
   }, { activePlayer: 'p2', playerOrder: ['p2', 'p1'] });
   const res2 = engine.applyCommand(state2, { type: 'moveUnit', playerId: 'p2', unitId: 'u2', dir: 'W' });
   assert.strictEqual(res2.ok, true);
-  assert.strictEqual(res2.events[0].type, 'combatResolved');
+  const evt = res2.events[0];
+  assert.strictEqual(evt.type, 'combatResolved');
+  // the client combat log depends on these enriched fields
+  assert.strictEqual(evt.attackerType, 'frigate');
+  assert.strictEqual(evt.attackerOwner, 'p2');
+  assert.strictEqual(evt.defenderType, 'legion');
+  assert.strictEqual(evt.defenderOwner, 'p1');
+  assert.ok(Number.isInteger(evt.x) && Number.isInteger(evt.y));
 });
 
 test('ZOC exemption: a unit may still move onto its own unit or city', async () => {

@@ -63,8 +63,11 @@ browser against the real engine. Select a unit, explore, press B to found a
 city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
 turns. Research is live (all 68 Civ 1 advances — click the research bar for
 the full panel), buildings & wonders too (all 21 of each, working effects,
-wonder race — click a city for the city view with production, yields, and its
-workable area), and
+wonder race). Cities have a full city view: production catalog, yields and
+growth/production forecasts, population badges on the map, and a clickable
+worked-tile map for manual worker placement (optimize food, shields, or trade
+per city). Founding prompts for a name from your civilization's historic city
+list, and a collapsible combat log tracks every battle. And
 now: **AI opponents** that explore, settle, defend, and attack under their own
 fog of war; **victory conditions** (conquest or score at 2100 AD, with a
 victory/defeat banner); and **save/load** — S/L for quick browser saves,
