@@ -1,0 +1,36 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.11/" version="0.11">
+  <siteinfo>
+    <sitename>Civilization Wiki</sitename>
+  </siteinfo>
+  <page>
+    <title>Some Other Page</title>
+    <ns>0</ns>
+    <revision>
+      <text bytes="20" xml:space="preserve">Not a target page. {| class="x"
+! A !! B
+|-
+| 1 || 2
+|}</text>
+    </revision>
+  </page>
+  <page>
+    <title>List of units in Civ1</title>
+    <ns>0</ns>
+    <revision>
+      <text bytes="400" xml:space="preserve">Intro text about units.
+
+{| class="wikitable sortable"
+|+ Units in Civ1
+! Unit !! Attack !! Defense !! Moves !! Cost !! Requires
+|-
+| [[Militia (Civ1)|Militia]] || 1 || 1 || 1 || style="text-align:center" | 10 || &lt;i&gt;None&lt;/i&gt;
+|-
+| [[Phalanx (Civ1)|Phalanx]] || '''1''' || '''2''' || 1 || 20 || {{link|Bronze Working}}
+|-
+| [[Legion (Civ1)]] || 3 || 1 || 1 || 20 || [[Iron Working (Civ1)|Iron Working]]&lt;ref&gt;manual p.12&lt;/ref&gt;
+|}
+
+Trailing prose.</text>
+    </revision>
+  </page>
+</mediawiki>

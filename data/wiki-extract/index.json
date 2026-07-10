@@ -1,0 +1,49 @@
+{
+  "dump": "civilization.fandom.com-20260709-current.xml",
+  "scannedPages": 39667,
+  "extracted": [
+    {
+      "title": "List of advances in Civ1",
+      "file": "list-of-advances-in-civ1.json",
+      "tables": 1,
+      "rows": 74
+    },
+    {
+      "title": "List of buildings in Civ1",
+      "file": "list-of-buildings-in-civ1.json",
+      "tables": 1,
+      "rows": 21
+    },
+    {
+      "title": "List of terrain in Civ1",
+      "file": "list-of-terrain-in-civ1.json",
+      "tables": 0,
+      "rows": 0
+    },
+    {
+      "title": "List of units in Civ1",
+      "file": "list-of-units-in-civ1.json",
+      "tables": 3,
+      "rows": 28
+    },
+    {
+      "title": "List of wonders in Civ1",
+      "file": "list-of-wonders-in-civ1.json",
+      "tables": 1,
+      "rows": 21
+    },
+    {
+      "title": "Sid Meier's Civilization",
+      "file": "sid-meier-s-civilization.json",
+      "tables": 0,
+      "rows": 0
+    },
+    {
+      "title": "Terrain (Civ1)",
+      "file": "terrain-civ1.json",
+      "tables": 2,
+      "rows": 26
+    }
+  ],
+  "missing": []
+}

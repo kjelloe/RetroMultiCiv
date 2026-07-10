@@ -1,0 +1,121 @@
+{
+  "title": "List of buildings in Civ1",
+  "extractedAt": "2026-07-10T07:34:20.942Z",
+  "tables": [
+    {
+      "caption": "",
+      "headers": [
+        "Building",
+        "Required technology",
+        "Effect"
+      ],
+      "rows": [
+        [
+          "Aqueduct",
+          "Construction",
+          "Lets a city grow over size 10. Prevents Fire and Plague."
+        ],
+        [
+          "Bank",
+          "Banking",
+          "Tax and Luxuries increased by 50%. A Marketplace must exist."
+        ],
+        [
+          "Barracks",
+          "None",
+          "City creates veteran units. Prevents Pirates. Obsoleted by Gunpowder and Combustion"
+        ],
+        [
+          "Cathedral",
+          "Religion",
+          "4 Unhappy people are content. Michelangelo's Chapel increases to 6."
+        ],
+        [
+          "City Walls",
+          "Masonry",
+          "200% of defense bonus (x3). No population lost under attacks. Prevents Flood."
+        ],
+        [
+          "Colosseum",
+          "Construction",
+          "3 Unhappy people become content."
+        ],
+        [
+          "Courthouse",
+          "Code of Laws",
+          "Corruption reduced by 50%."
+        ],
+        [
+          "Factory",
+          "Industrialization",
+          "Production increased by 50%. Power plants increase production."
+        ],
+        [
+          "Granary",
+          "Pottery",
+          "City uses only 50% of Food for growth. Prevents Famine."
+        ],
+        [
+          "Hydro Plant",
+          "Electronics",
+          "Production increased by 50%. The city must be near a river or a ocean square. Reduces industrial pollution by 1/2."
+        ],
+        [
+          "Library",
+          "Writing",
+          "Science production increased by 50%."
+        ],
+        [
+          "Marketplace",
+          "Currency",
+          "Tax and Luxuries increased by 50%."
+        ],
+        [
+          "Mass Transit",
+          "Mass Production",
+          "Eliminates pollution caused by population."
+        ],
+        [
+          "Mfg. Plant",
+          "Robotics",
+          "Production increased by 100%. Makes Factory obsolete. Power Plants increase production."
+        ],
+        [
+          "Nuclear Plant",
+          "Nuclear Power",
+          "Production increased by 50%. Reduces industrial pollution by 1/2."
+        ],
+        [
+          "Palace",
+          "Masonry",
+          "Reduces corruption. You can have only one."
+        ],
+        [
+          "Power Plant",
+          "Refining",
+          "Production increased by 50%. A Factory or a Mfg. Plant must exist."
+        ],
+        [
+          "Recycling Center",
+          "Recycling",
+          "Industrial pollution reduced by 66%."
+        ],
+        [
+          "SDI Defense",
+          "Superconductor",
+          "Protects city from nuclear weapons."
+        ],
+        [
+          "Temple",
+          "Ceremonial Burial",
+          "1 Unhappy person is content. 2 with Mysticism. x2 effect with Oracle. Prevents Volcano."
+        ],
+        [
+          "University (building)",
+          "University (advance)",
+          "Science production increased by 50%. A Library must exist."
+        ]
+      ]
+    }
+  ]
+}

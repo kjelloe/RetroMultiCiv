@@ -1,0 +1,225 @@
+// Extract Civ1 stat tables from a wikiteam MediaWiki XML dump into draft JSON.
+//
+//   node tools/wiki2data.js <dump.xml> [outDir]
+//
+// Writes one JSON file per target page into outDir (default data/wiki-extract/)
+// plus an index.json listing what was found and what is still missing.
+// The output is a faithful, generic extraction of every wikitable on the page;
+// mapping to the final data/*.json rulesets is a separate, reviewed step.
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+const TARGET_TITLES = [
+  'List of units in Civ1',
+  'List of advances in Civ1',
+  'List of wonders in Civ1',
+  'List of buildings in Civ1',
+  'List of terrain in Civ1',
+  'Terrain (Civ1)',
+  "Sid Meier's Civilization"
+];
+
+function unescapeXml(s) {
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+// Strip wiki markup from one table cell, keeping human-readable text.
+// Yield icon templates ({{FoodIcon1}} etc.) become countable [food]/[shield]/
+// [trade] tokens so terrain yields survive extraction.
+function cleanCell(raw) {
+  let s = raw;
+  s = s.replace(/<ref[^>]*\/>/gi, '').replace(/<ref[\s\S]*?<\/ref>/gi, '');
+  s = s.replace(/<br\s*\/?>/gi, ' / ');
+  s = s.replace(/<[^>]+>/g, '');
+  s = s.replace(/&nbsp;/gi, ' ');
+  s = s.replace(/\[\[(?:File|Image):[^\]]*\]\]/gi, '');
+  s = s.replace(/\{\{(\w+?)Icon1\}\}/gi, (_, kind) => `[${kind.toLowerCase()}]`);
+  // other templates: {{name|a|b}} -> "a b" (icon/link templates usually carry
+  // the value in their arguments); numeric-only args are icon sizes -> dropped
+  for (let i = 0; i < 5 && s.includes('{{'); i++) {
+    s = s.replace(/\{\{([^{}]*)\}\}/g, (_, inner) => {
+      const parts = inner.split('|').slice(1)
+        .filter(p => !p.includes('=') && !/^\s*\d+\s*$/.test(p));
+      return parts.join(' ');
+    });
+  }
+  s = s.replace(/\[\[(?:[^\]|]*\|)?([^\]|]*)\]\]/g, '$1'); // [[a|b]] -> b, [[a]] -> a
+  s = s.replace(/'''''|'''|''/g, '');
+  // attribute prefix: style="..." | value  (only if the prefix looks like attrs)
+  const bar = s.indexOf('|');
+  if (bar !== -1) {
+    const prefix = s.slice(0, bar);
+    if (/=\s*"?[^"]*"?\s*$/.test(prefix.trim()) && !prefix.includes('[[')) {
+      s = s.slice(bar + 1);
+    }
+  }
+  s = s.replace(/^\s*\|/, '');
+  // trailing icon-size artifact: "Nuclear 30", "Advanced Flight 64"
+  // (requires non-space content before the number so pure numeric cells survive)
+  s = s.replace(/(\S)\s+\d{2,3}(px)?$/, '$1');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+// Count yield tokens in a cleaned cell: "[food][food] / [shield] / [trade] ↑"
+// -> { food: 2, shields: 1, trade: 1, republicBonus: true, despotismPenalty: false }
+function parseYields(cell) {
+  const count = kind => (cell.match(new RegExp(`\\[${kind}\\]`, 'g')) || []).length;
+  return {
+    food: count('food'),
+    shields: count('shield'),
+    trade: count('trade'),
+    republicBonus: cell.includes('↑'),
+    despotismPenalty: cell.includes('↓')
+  };
+}
+
+// Parse all {| ... |} wikitables in a page's wikitext.
+// Returns [{ caption, headers: [..], rows: [[..], ..] }]
+function extractTables(wikitext) {
+  const tables = [];
+  const lines = wikitext.split('\n');
+  let table = null;
+  let row = null;
+  let depth = 0;
+
+  const pushRow = () => {
+    if (table && row && row.some(c => c !== '')) table.rows.push(row);
+    row = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (line.startsWith('{|')) {
+      depth++;
+      if (depth === 1) { table = { caption: '', headers: [], rows: [] }; row = null; }
+      continue; // nested tables: contents of depth>1 are skipped
+    }
+    if (line.startsWith('|}')) {
+      if (depth === 1 && table) {
+        pushRow();
+        if (table.headers.length || table.rows.length) tables.push(table);
+        table = null;
+      }
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+    if (!table || depth !== 1) continue;
+
+    if (line.startsWith('|+')) {
+      table.caption = cleanCell(line.slice(2));
+    } else if (line.startsWith('|-')) {
+      pushRow();
+    } else if (line.startsWith('!')) {
+      pushRow();
+      const cells = line.slice(1).split('!!').map(cleanCell);
+      table.headers.push(...cells);
+    } else if (line.startsWith('|')) {
+      if (!row) row = [];
+      row.push(...line.slice(1).split('||').map(cleanCell));
+    }
+  }
+  return tables;
+}
+
+// Stream the dump; call onPage(title, wikitext) for each wanted page.
+// Resolves { found: [titles], scanned: pageCount }.
+async function scanDump(xmlPath, wantedTitles, onPage) {
+  const wanted = new Set(wantedTitles);
+  const found = [];
+  let scanned = 0;
+  let title = null;
+  let inText = false;
+  let capture = false;
+  let buf = [];
+
+  const rl = readline.createInterface({
+    input: fs.createReadStream(xmlPath, { encoding: 'utf8' }),
+    crlfDelay: Infinity
+  });
+
+  for await (const line of rl) {
+    if (!inText) {
+      const t = line.match(/<title>(.*?)<\/title>/);
+      if (t) {
+        title = unescapeXml(t[1]);
+        scanned++;
+        continue;
+      }
+      const open = line.match(/<text[^>]*>/);
+      if (open) {
+        capture = wanted.has(title);
+        const after = line.slice(line.indexOf(open[0]) + open[0].length);
+        const closeIdx = after.indexOf('</text>');
+        if (closeIdx !== -1) {
+          if (capture) { onPage(title, unescapeXml(after.slice(0, closeIdx))); found.push(title); }
+          capture = false;
+        } else {
+          inText = true;
+          buf = capture ? [after] : [];
+        }
+      }
+    } else {
+      const closeIdx = line.indexOf('</text>');
+      if (closeIdx !== -1) {
+        if (capture) {
+          buf.push(line.slice(0, closeIdx));
+          onPage(title, unescapeXml(buf.join('\n')));
+          found.push(title);
+        }
+        inText = false;
+        capture = false;
+        buf = [];
+      } else if (capture) {
+        buf.push(line);
+      }
+    }
+  }
+  return { found, scanned };
+}
+
+function slugify(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function main() {
+  const [xmlPath, outDirArg] = process.argv.slice(2);
+  if (!xmlPath) {
+    console.error('usage: node tools/wiki2data.js <dump.xml> [outDir]');
+    process.exit(1);
+  }
+  const outDir = outDirArg || path.join(__dirname, '..', 'data', 'wiki-extract');
+  fs.mkdirSync(outDir, { recursive: true });
+
+  const results = [];
+  const { found, scanned } = await scanDump(xmlPath, TARGET_TITLES, (title, wikitext) => {
+    const tables = extractTables(wikitext);
+    const file = slugify(title) + '.json';
+    fs.writeFileSync(
+      path.join(outDir, file),
+      JSON.stringify({ title, extractedAt: new Date().toISOString(), tables }, null, 2)
+    );
+    results.push({ title, file, tables: tables.length, rows: tables.reduce((n, t) => n + t.rows.length, 0) });
+    console.log(`extracted "${title}": ${tables.length} table(s), ${tables.reduce((n, t) => n + t.rows.length, 0)} row(s) -> ${file}`);
+  });
+
+  const missing = TARGET_TITLES.filter(t => !found.includes(t));
+  fs.writeFileSync(
+    path.join(outDir, 'index.json'),
+    JSON.stringify({ dump: path.basename(xmlPath), scannedPages: scanned, extracted: results, missing }, null, 2)
+  );
+  console.log(`\nscanned ${scanned} pages; extracted ${found.length}/${TARGET_TITLES.length} target pages`);
+  if (missing.length) console.log(`missing (dump incomplete?): ${missing.join(', ')}`);
+}
+
+module.exports = { cleanCell, extractTables, parseYields, scanDump, TARGET_TITLES };
+
+if (require.main === module) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}

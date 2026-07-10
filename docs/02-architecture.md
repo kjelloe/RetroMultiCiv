@@ -1,4 +1,4 @@
-# MultiCiv — Architecture & Tech Stack
+# RetroMultiCiv — Architecture & Tech Stack
 
 Design goal: **one simulation engine, many hosts.** The same game-logic code must
 run (1) in the browser for the single-player/hotseat prototype, (2) in Node.js as
@@ -43,7 +43,8 @@ replays, desync detection, and cross-language verification of the Lua port
 multiciv/
 ├── docs/                  # these documents
 ├── data/                  # rulesets as JSON — the single source of truth
-│   ├── terrain.json       #   loaded by JS at runtime,
+│   ├── wiki-extract/      # raw tables extracted from the wiki dump (generated)
+│   ├── terrain.json       #   final rulesets: loaded by JS at runtime,
 │   ├── units.json         #   converted to Lua tables by script for Roblox
 │   ├── techs.json
 │   ├── buildings.json
@@ -63,14 +64,16 @@ multiciv/
 │   ├── ai.js              # heuristic AI (emits commands only)
 │   └── score.js
 ├── shared/                # protocol: command & event shapes, validation
-│   └── protocol.js
+│   ├── protocol.js
+│   └── statehash.js       # canonical serialization + FNV-1a hash (Lua-portable)
 ├── client/
 │   ├── index.html
+│   ├── mock-state.json    # step-0 static world (schema-checked by tests)
+│   ├── vendor/            # three.module.min.js (pinned, no build step)
 │   ├── main.js            # game shell: input → commands, events → renderer
-│   ├── renderer/          # ★ RENDERER INTERFACE — 2D now, three.js later
+│   ├── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │   │   ├── renderer.js    #   interface: init, drawMap, drawUnits, pick(x,y)…
-│   │   ├── canvas2d/      #   v1 implementation (plain canvas or PixiJS)
-│   │   └── three/         #   phase-later implementation
+│   │   └── three/         #   v1: low-poly flat boxes + raycast picking
 │   └── ui/                # HUD, city screen, tech dialog (plain DOM)
 ├── server/                # Node adapter (phase 3+) — NOT ported to Lua
 │   ├── index.js           # node:http static hosting + ws game sessions
@@ -78,8 +81,11 @@ multiciv/
 │   └── persistence.js     # save/load (JSON files)
 ├── tools/
 │   ├── json2lua.js        # data/*.json → Roblox ModuleScript tables
+│   ├── wiki2data.js       # local wiki XML dump → draft data/*.json (stat tables)
 │   └── replay.js          # run a command log headless, print state hash
-└── test/                  # node:test — engine tests run headless
+└── test/                  # node:test — everything runs headless
+    ├── scenarios/         # ★ JSON scenario files — shared contract, see §8
+    └── scenario-runner.js # engine-agnostic runner (gets a Luau twin in phase 5)
 ```
 
 The **engine never imports** from `client/`, `server/`, or any Node built-in.
@@ -93,8 +99,8 @@ Chosen for minimal dependencies (per your preferences) with options noted.
 | Layer | Choice | Rationale / alternatives |
 |---|---|---|
 | Engine | Plain JavaScript, CommonJS-style modules via a tiny UMD wrapper (works in browser `<script>` and Node `require`) | No build step needed for phase 1–2. Alternative: ESM + Vite if you want imports and hot reload — fine, but adds tooling |
-| Client renderer v1 | **Plain Canvas 2D** with a sprite-sheet tile atlas | Zero deps, fully sufficient for an 80×50 tile map with pan/zoom. Alternative: **PixiJS** (WebGL, smoother at high zoom, still one dep) |
-| Client renderer later | **three.js** behind the same renderer interface | Extruded 3D tiles / globe view; also previews the Roblox 3D feel |
+| Client renderer v1 | **three.js**, low-poly: tiles as flat colored boxes (color/height by terrain), units & cities as simple meshes, raycast picking, orbit-lite camera (pan/zoom/slight tilt) | One dependency, vendored locally (`client/vendor/three.module.js` + import map — no bundler, no build step). Previews the Roblox look |
+| Client renderer later | Higher-fidelity three.js pass (unit models, water, day/night, globe?) or a canvas-2D fallback | Same renderer interface; optional |
 | Client UI | Plain DOM + CSS for HUD/dialogs | No framework; the game screen is the canvas, dialogs are simple |
 | Server (phase 3+) | Node.js: `node:http` for static files + **`ws`** for WebSockets | `ws` is the single runtime dependency. Alternative: Fastify + @fastify/websocket if you later want REST endpoints |
 | Persistence | JSON files on disk (`saves/*.json`) | It's a LAN game; no database. State snapshot + command log |
@@ -118,6 +124,11 @@ createRenderer(container, ruleset) => {
 `main.js` talks only to this interface and to the engine/protocol. Swapping
 canvas2d → three.js touches nothing outside `client/renderer/`.
 
+> **Decided (2026-07-09):** the v1 renderer is **three.js with low-poly flat
+> boxes and raycast picking**, per designer input. A canvas-2D fallback remains
+> possible behind this interface but is not planned. The renderer stays "dumb":
+> it maps view state to meshes and emits tile/unit picks — no rules knowledge.
+
 ## 4. Lua-portability rules for `engine/` (enforced by convention + lint)
 
 The engine is written in a strict subset of JavaScript chosen so the eventual
@@ -136,7 +147,10 @@ Luau rewrite is mechanical, file-by-file, function-by-function:
    synchronous; errors are returned values (`{ ok: false, reason }`).
 5. **Own PRNG.** `rng.js` implements xorshift32 with explicit state in the game
    state. Same algorithm re-implemented in Luau ⇒ identical rolls. Never
-   `Math.random()`.
+   `Math.random()`, and **not** `seedrandom` (JS) paired with `Random.new(seed)`
+   (Roblox) — those are different algorithms and will NOT produce the same
+   sequence, silently breaking cross-language replay verification. One
+   hand-rolled algorithm, two 20-line implementations, identical output.
 6. **Integer math for game logic.** Use `(x / y) | 0` style integer division via
    a helper `idiv(x, y)` (→ `math.floor(x/y)` in Lua). No float accumulation in
    yields, combat, or science.
@@ -175,6 +189,18 @@ StarterPlayerScripts/
 - Port verification: run a recorded browser game's command log through the Luau
   engine (in Roblox Studio or Lune) and compare state hashes per turn.
 
+### JS ↔ Luau quick reference (adapted from designer input, with corrections)
+
+| Feature | Node.js / JavaScript | Roblox / Luau |
+|---|---|---|
+| Logic modules | CommonJS `module.exports` | `ModuleScript` + `require` |
+| Game "loop" | none — turn-based reducer, commands drive everything | same; `RunService.Heartbeat` only for client animation, never game logic |
+| Data sync | `WebSocket.send(JSON)` | `RemoteEvent:FireClient(table)` |
+| Visuals | canvas sprites / `THREE.Mesh` | `Instance.new("Part")` / models |
+| Map grid | array of plain objects | array of tables (mind 1-based indexing — see rule 3) |
+| Randomness | own xorshift32 in `rng.js` | same xorshift32 in Luau — **not** `Random.new` (different sequence, breaks replay verification) |
+| Save/load | JSON snapshot + command log | `HttpService:JSONEncode` / DataStore |
+
 ## 6. Networking protocol (phase 3–4)
 
 WebSocket, JSON messages:
@@ -208,3 +234,27 @@ server → client:  { t: "state", view }            # full filtered view (resync
 ```
 
 Snapshot is what you load; the command log is for replay/debug/port-verification.
+
+## 8. Scenario test layer (cross-language)
+
+Mechanics tests live at the command/event boundary as **plain JSON scenario
+files** (`test/scenarios/*.json`): an initial state (or seed), a script of
+commands with per-step expectations (`ok`, dotted-path state assertions), and
+optional final assertions including a **golden state hash**. Because scenarios
+contain no code, the same files test every backend:
+
+- **Now:** `test/scenario-runner.js` (Node) runs them against `engine/*.js`
+  via `node --test`. Scenarios written before the engine exists skip, not fail
+  — they are TDD targets and the executable spec of command semantics.
+- **Phase 5:** a mechanical Luau port of the runner (~80 lines) runs the
+  *identical* JSON files against the Luau engine in Lune/Studio. Passing both
+  runners with equal hashes proves the port.
+
+The hash comes from `shared/statehash.js`: canonical serialization (sorted
+keys, integers only, printable ASCII, **no null/floats** — JSON null becomes
+`nil` in Lua and vanishes) + FNV-1a 32-bit using an overflow-safe `mul32`.
+Golden parity anchor: `hashState({ b: 2, a: [1, "x", true] }) === "0x30db1e29"`
+— the Luau implementation must reproduce it exactly.
+
+Writing a new mechanics test = adding one JSON file. No runner changes.
+Set `"final": { "hash": null }` to have the runner print the hash for recording.
