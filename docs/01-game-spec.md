@@ -312,7 +312,25 @@ Unlocked by tech; switching triggers 1–4 turns of **Anarchy** (unless Pyramids
 `score = citizens×2 + happyCitizens×1 + techs×5 + wonders×20 + futureTech×5 − pollution…`
 (Pollution optional/off in v1; exact weights tuneable in `data/rules.json`.)
 
-## 11. Out of scope for v1 (specified in roadmap phases)
+## 11. Implementation status vs this spec (kept honest as slices land)
+
+The engine implements simplified first passes of some mechanics; each item
+below is a known, deliberate deviation to be closed in a later slice:
+
+- **Worked tiles** are auto-assigned greedily (center + pop best fat-cross
+  tiles); no manual assignment, no specialists, no contention between cities.
+- **Settlers don't eat food** yet (§4.3 says 1/turn) and there is no unit
+  support cost.
+- **`setProduction` accepts any unit** — tech gating arrives with the tech
+  tree slice (scenario 003 documents this).
+- **Calendar advances a flat 20 years/turn** — era-based steps come with
+  `data/rules.json`.
+- **Trade is computed but unused** — tax/luxury/science split arrives with
+  the tech slice; happiness/disorder not yet implemented.
+- **Growth food box empties fully** on growth (Granary halving comes with
+  buildings) and pop floors at 1 (no city destruction by starvation).
+
+## 12. Out of scope for v1 (specified in roadmap phases)
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &
 global warming, spaceship construction & space victory, difficulty-level

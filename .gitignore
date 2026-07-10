@@ -1,0 +1,14 @@
+# Raw wiki extraction: contains CC BY-SA 3.0 prose from civilization.fandom.com
+# — regenerate locally with `node tools/wiki2data.js` against the wikiteam dump
+data/wiki-extract/
+
+# runtime output
+saves/
+*.log
+
+# tooling
+node_modules/
+.DS_Store
+
+# personal Claude Code permissions (the shared hook lives in .claude/settings.json)
+.claude/settings.local.json

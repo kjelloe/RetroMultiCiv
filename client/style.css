@@ -45,6 +45,17 @@ html, body {
   color: #8fd18f;
 }
 
+#hud-diag {
+  color: #7d94b8;
+  font-size: 11px;
+  white-space: pre-line;
+  max-width: 300px;
+}
+
+#hud-diag:empty {
+  display: none;
+}
+
 #end-turn {
   margin-top: 8px;
   padding: 4px 14px;

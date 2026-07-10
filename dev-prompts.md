@@ -101,6 +101,32 @@ prompts below.
 generated from the wiki extraction, `engine/rng.js` (xorshift32), and the
 first engine slice (`moveUnit`, `endTurn`) driven by scenario 001.
 
+### Prompts 11–15 — phase 1 build-out + the WebGL bug hunt (2026-07-10, verbatim in raw feed below)
+
+- **"Please continue with phase 1"** → map generation (`engine/mapgen.js`:
+  seeded continents, latitude bands, rivers, specials) + client wired to the
+  engine (real worlds, click-to-move, End Turn); `engine/` + `shared/` became
+  ESM; scenario 002 locks mapgen determinism by hash.
+- **"Please continue with next chunk"** → fog of war (`engine/visibility.js`
+  with the server-grade `filterView`) and cities (`engine/cities.js`: found,
+  fat-cross yields, food box growth, unit production); scenario 003; suite 36.
+- **"quick manual UI test … shows no map"** → real-user bug report. Debugged
+  with a cached headless Chromium: three.js threw "Error creating WebGL
+  context" uncaught, killing the page. Added HUD error surfacing; screenshot
+  proved the game renders (first visual verification of the project!).
+- **"Still error … NVIDIA GeForce MX550 Direct3D9Ex … Should we add a playwright test?"**
+  → root cause: browser stuck on ANGLE D3D9Ex = WebGL1 only, while three r163+
+  requires WebGL2. Added `test/browser.test.js` (headless e2e smoke: own static
+  server + DOM assertions) and a WebGL capability probe. Fixed favicon 404.
+- **"Got: Uncaught Error: WebGL2 unavailable (webgl1)"** → fixed on the game's
+  side: three.js downgraded and **pinned to r162** (last WebGL1-capable
+  release); WebGL1 accepted as fallback; verified by headless screenshot with
+  WebGL2 disabled (`--disable-es3-gl-context`). Lesson recorded in CLAUDE.md.
+
+**Research note:** the bug-hunt exchange is a nice case study — a user pasting
+raw console output twice was enough for the agent to reproduce, root-cause,
+regression-test, and work around a hardware-specific rendering failure.
+
 ---
 
 ## Raw prompt feed (auto-appended by hook)
@@ -112,3 +138,112 @@ first engine slice (`moveUnit`, `endTurn`) driven by scenario 001.
 **2026-07-10 11:43**
 
 > Please continue with next chunk
+
+**2026-07-10 12:20**
+
+> Before continuing, quick manual UI test at localhost:8123 shows no map, only the hud text display . Source code is: 
+> <!DOCTYPE html>
+> <html lang="en">
+> <head>
+>   <meta charset="utf-8">
+>   <meta name="viewport" content="width=device-width, initial-scale=1">
+>   <title>RetroMultiCiv</title>
+>   <link rel="stylesheet" href="style.css">
+>   <script type="importmap">
+>     { "imports": { "three": "./vendor/three.module.min.js" } }
+>   </script>
+> </head>
+> <body>
+>   <div id="app"></div>
+>   <div id="hud">
+>     <div id="hud-title">RetroMultiCiv</div>
+>     <div id="hud-status">generating world…</div>
+>     <div id="hud-tile"></div>
+>     <div id="hud-selection">click one of your units to select it</div>
+>     <div id="hud-help">drag: pan · wheel: zoom · click unit/city: select · click neighbor tile: move · B: found city · 1/2/3: set production · E/Enter: end turn</div>
+>     <button id="end-turn">End Turn</button>
+>   </div>
+>   <script type="module" src="main.js"></script>
+> </body>
+> </html>
+> 
+
+**2026-07-10 12:52**
+
+> Still error: three.module.min.js:6 THREE.WebGLRenderer: A WebGL context could not be created. Reason:  Could not create a WebGL context, VENDOR = 0x10de, DEVICE = 0x1f9f, GL_VENDOR = Google Inc. (NVIDIA), GL_RENDERER = ANGLE (NVIDIA, NVIDIA GeForce MX550 Direct3D9Ex vs_3_0 ps_3_0, nvldumdx.dll -32.0.15.9608), GL_VERSION = 32.0.15.9608, Sandboxed = yes, Optimus = no, AMD switchable = no, Reset notification strategy = 0x8252, ErrorMessage = BindToCurrentSequence failed: .
+> Rt @ three.module.min.js:6
+> three.module.min.js:6 THREE.WebGLRenderer: Error creating WebGL context.
+> ec @ three.module.min.js:6
+> three.module.min.js:6 Uncaught Error: Error creating WebGL context.
+>     at new ec (three.module.min.js:6:439722)
+>     at createRenderer (index.js:28:20)
+>     at main.js:62:14
+> :8123/favicon.ico:1  Failed to load resource: the server responded with a status of 404 (File not found) Should we add a playwright test?
+
+**2026-07-10 12:57**
+
+> Got: Uncaught Error: WebGL2 unavailable (webgl1)
+>     at main.js:84:9
+
+**2026-07-10 14:01**
+
+> Thanks! Can you update use-case specs, MDs, tests, documentation, skills and memories as applicable
+
+**2026-07-10 14:11**
+
+> Thanks. I moved to using Firefox. Also webgl ally suggests adding a clearer error message for browiser i.e Add a browser diagnostics screen
+> For a local game, add a small diagnostic function before loading the Three.js scene:
+> 
+> js
+> Copy
+> function getGraphicsDiagnostics() {
+>   const canvas = document.createElement("canvas");
+> 
+>   const webgl2 = canvas.getContext("webgl2");
+>   const webgl1 =
+>     canvas.getContext("webgl") ||
+>     canvas.getContext("experimental-webgl");
+> 
+>   const gl = webgl2 || webgl1;
+> 
+>   if (!gl) {
+>     return {
+>       webgl2: false,
+>       webgl1: false,
+>       renderer: null,
+>       vendor: null
+>     };
+>   }
+> 
+>   const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+> 
+>   return {
+>     webgl2: Boolean(webgl2),
+>     webgl1: Boolean(webgl1),
+>     renderer: debugInfo
+>       ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+>       : "Unavailable",
+>     vendor: debugInfo
+>       ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
+>       : "Unavailable"
+>   };
+> }
+> 
+> console.table(getGraphicsDiagnostics());
+> This tells you whether a context can be created before Three.js starts. If it prints both values as false, Three.js is not the failure point.
+
+**2026-07-10 14:15**
+
+> Firefox loaded without error, only a new webgl panel and two warnings: WEBGL_debug_renderer_info is deprecated in Firefox and will be removed. Please use RENDERER. main.js:73:21
+> console.table() main.js:100:9
+> (index)    Values
+> webgl2    true
+> webgl1    true
+> renderer    ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_5_0 ps_5_0), or similar
+> vendor    Google Inc. (Intel)
+> WebGL warning: drawElementsInstanced: Drawing to a destination rect smaller than the viewport rect. (This warning will only be given once)
+> 
+
+**2026-07-10 14:19**
+
+> Thanks! I'm connecting github repo now, so which License should I pick and any updates needed to README ?
