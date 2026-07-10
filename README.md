@@ -62,10 +62,9 @@ city founding/growth/production — all in the browser against the real engine
 E to end turns). 37 headless tests including hash-locked JSON scenarios and a
 real-browser e2e smoke test. Next: combat + barbarians, then the tech tree.
 
-The development prompts behind this project are logged verbatim in
-[dev-prompts.md](dev-prompts.md) for anyone curious about the process — this
-game is built AI-assisted (Claude Code) with a human designer and a WebGL
-specialist contributing reviews.
+This game is built AI-assisted (Claude Code) with a human designer and a WebGL
+specialist contributing reviews. The full development prompt log is kept
+locally and will be published, curated, with the 1.0 release.
 
 ## License
 
