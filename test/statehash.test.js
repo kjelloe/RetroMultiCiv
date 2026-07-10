@@ -2,7 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { canonicalize, hashState, mul32 } = require('../shared/statehash.js');
+// shared/ is ESM (browser + Node); load it once for all tests here
+const shared = import('../shared/statehash.js');
+let canonicalize, hashState, mul32;
+test.before(async () => { ({ canonicalize, hashState, mul32 } = await shared); });
 
 test('canonicalize sorts keys and is order-independent', () => {
   assert.strictEqual(canonicalize({ b: 2, a: [1, 'x', true] }), '{"a":[1,"x",true],"b":2}');

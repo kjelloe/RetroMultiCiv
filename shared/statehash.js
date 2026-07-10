@@ -74,4 +74,4 @@ function hashState(state) {
   return '0x' + hash.toString(16).padStart(8, '0');
 }
 
-module.exports = { canonicalize, hashState, mul32 };
+export { canonicalize, hashState, mul32 };

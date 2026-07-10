@@ -7,6 +7,7 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
       "map": {
         "width": 4,
         "height": 3,
@@ -55,6 +56,6 @@
   ],
   "final": {
     "state": { "turn": 3, "units.u1.x": 2, "units.u1.y": 0 },
-    "hash": null
+    "hash": "0xd0b04010"
   }
 }

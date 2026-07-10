@@ -9,7 +9,14 @@ const { runScenario } = require('./scenario-runner.js');
 
 const ENGINE_PATH = path.join(__dirname, '..', 'engine', 'index.js');
 const hasEngine = fs.existsSync(ENGINE_PATH);
-const engine = hasEngine ? require(ENGINE_PATH) : null;
+
+async function loadEngine() {
+  const { createEngine } = await import('../engine/index.js');
+  return createEngine({
+    terrain: require('../data/terrain.json'),
+    units: require('../data/units.json')
+  });
+}
 
 const scenarioDir = path.join(__dirname, 'scenarios');
 const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
@@ -26,8 +33,8 @@ test('at least one scenario exists and parses', () => {
 
 for (const f of files) {
   const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
-  test(`scenario ${f}: ${scenario.name}`, { skip: !hasEngine && 'engine not built yet (roadmap step 1)' }, () => {
-    const result = runScenario(engine, scenario);
+  test(`scenario ${f}: ${scenario.name}`, { skip: !hasEngine && 'engine not built yet (roadmap step 1)' }, async () => {
+    const result = await runScenario(await loadEngine(), scenario);
     assert.ok(result.pass, '\n' + result.failures.join('\n'));
   });
 }

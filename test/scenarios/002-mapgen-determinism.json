@@ -1,0 +1,25 @@
+{
+  "name": "createGame: generated world + turn cycle reproduces a golden hash",
+  "notes": "Locks map generation determinism across engines. Regenerate the hash (set to null, run tests, copy the printed value) whenever mapgen intentionally changes.",
+  "setup": {
+    "seed": 20260710,
+    "options": {
+      "width": 40,
+      "height": 30,
+      "players": [
+        { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true },
+        { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false }
+      ]
+    }
+  },
+  "script": [
+    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": false },
+      "notes": "only the active player may end the turn" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true, "state": { "turn": 2 } } }
+  ],
+  "final": {
+    "state": { "turn": 2, "activePlayer": "p1" },
+    "hash": "0x7285b0f1"
+  }
+}

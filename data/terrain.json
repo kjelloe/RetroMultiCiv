@@ -1,0 +1,225 @@
+{
+  "terrains": {
+    "arctic": {
+      "name": "Arctic",
+      "move": 2,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 0,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Seal",
+        "yields": {
+          "food": 2,
+          "shields": 0,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "desert": {
+      "name": "Desert",
+      "move": 1,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 0,
+        "shields": 1,
+        "trade": 0
+      },
+      "special": {
+        "name": "Oasis",
+        "yields": {
+          "food": 3,
+          "shields": 1,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "forest": {
+      "name": "Forest",
+      "move": 2,
+      "defenseBonus": 50,
+      "yields": {
+        "food": 1,
+        "shields": 2,
+        "trade": 0
+      },
+      "special": {
+        "name": "Game",
+        "yields": {
+          "food": 3,
+          "shields": 2,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "grassland": {
+      "name": "Grassland",
+      "move": 1,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 2,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Shield",
+        "yields": {
+          "food": 2,
+          "shields": 1,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "hills": {
+      "name": "Hills",
+      "move": 2,
+      "defenseBonus": 100,
+      "yields": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Coal",
+        "yields": {
+          "food": 1,
+          "shields": 2,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "jungle": {
+      "name": "Jungle",
+      "move": 2,
+      "defenseBonus": 50,
+      "yields": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Gem",
+        "yields": {
+          "food": 1,
+          "shields": 0,
+          "trade": 4
+        }
+      },
+      "domain": "land"
+    },
+    "mountains": {
+      "name": "Mountain",
+      "move": 3,
+      "defenseBonus": 200,
+      "yields": {
+        "food": 0,
+        "shields": 1,
+        "trade": 0
+      },
+      "special": {
+        "name": "Gold",
+        "yields": {
+          "food": 0,
+          "shields": 1,
+          "trade": 6
+        }
+      },
+      "domain": "land"
+    },
+    "ocean": {
+      "name": "Ocean",
+      "move": 1,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 1,
+        "shields": 0,
+        "trade": 2
+      },
+      "special": {
+        "name": "Fish",
+        "yields": {
+          "food": 3,
+          "shields": 0,
+          "trade": 2
+        }
+      },
+      "domain": "sea"
+    },
+    "plains": {
+      "name": "Plains",
+      "move": 1,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 1,
+        "shields": 1,
+        "trade": 0
+      },
+      "special": {
+        "name": "Horse",
+        "yields": {
+          "food": 1,
+          "shields": 3,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "swamp": {
+      "name": "Swamp",
+      "move": 2,
+      "defenseBonus": 50,
+      "yields": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Oil",
+        "yields": {
+          "food": 1,
+          "shields": 4,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    },
+    "tundra": {
+      "name": "Tundra",
+      "move": 1,
+      "defenseBonus": 0,
+      "yields": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "special": {
+        "name": "Game",
+        "yields": {
+          "food": 3,
+          "shields": 0,
+          "trade": 0
+        }
+      },
+      "domain": "land"
+    }
+  },
+  "riverModifier": {
+    "tradeBonus": 1,
+    "defenseBonus": 50,
+    "special": {
+      "name": "Shield",
+      "yields": {
+        "food": 2,
+        "shields": 1,
+        "trade": 1
+      }
+    }
+  }
+}

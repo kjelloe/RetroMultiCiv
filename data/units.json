@@ -1,0 +1,282 @@
+{
+  "armor": {
+    "name": "Armor",
+    "tech": "Automobile",
+    "attack": 10,
+    "defense": 5,
+    "moves": 3,
+    "cost": 80,
+    "domain": "land",
+    "notes": ""
+  },
+  "artillery": {
+    "name": "Artillery",
+    "tech": "Robotics",
+    "attack": 12,
+    "defense": 2,
+    "moves": 2,
+    "cost": 60,
+    "domain": "land",
+    "notes": ""
+  },
+  "cannon": {
+    "name": "Cannon",
+    "tech": "Metallurgy",
+    "attack": 8,
+    "defense": 1,
+    "moves": 1,
+    "cost": 40,
+    "domain": "land",
+    "notes": ""
+  },
+  "caravan": {
+    "name": "Caravan",
+    "tech": "Trade",
+    "attack": 0,
+    "defense": 1,
+    "moves": 1,
+    "cost": 50,
+    "domain": "land",
+    "notes": ""
+  },
+  "catapult": {
+    "name": "Catapult",
+    "tech": "Mathematics",
+    "attack": 6,
+    "defense": 1,
+    "moves": 1,
+    "cost": 40,
+    "domain": "land",
+    "notes": ""
+  },
+  "cavalry": {
+    "name": "Cavalry",
+    "tech": "Horseback Riding",
+    "attack": 2,
+    "defense": 1,
+    "moves": 2,
+    "cost": 20,
+    "domain": "land",
+    "notes": ""
+  },
+  "chariot": {
+    "name": "Chariot",
+    "tech": "The Wheel",
+    "attack": 4,
+    "defense": 1,
+    "moves": 2,
+    "cost": 40,
+    "domain": "land",
+    "notes": ""
+  },
+  "diplomat": {
+    "name": "Diplomat",
+    "tech": "Writing",
+    "attack": 0,
+    "defense": 0,
+    "moves": 2,
+    "cost": 30,
+    "domain": "land",
+    "notes": ""
+  },
+  "knights": {
+    "name": "Knights",
+    "tech": "Chivalry",
+    "attack": 4,
+    "defense": 2,
+    "moves": 2,
+    "cost": 40,
+    "domain": "land",
+    "notes": ""
+  },
+  "legion": {
+    "name": "Legion",
+    "tech": "Iron Working",
+    "attack": 3,
+    "defense": 1,
+    "moves": 1,
+    "cost": 20,
+    "domain": "land",
+    "notes": ""
+  },
+  "mech-inf": {
+    "name": "Mech. Inf.",
+    "tech": "Labor Union",
+    "attack": 6,
+    "defense": 6,
+    "moves": 3,
+    "cost": 50,
+    "domain": "land",
+    "notes": ""
+  },
+  "musketeers": {
+    "name": "Musketeers",
+    "tech": "Gunpowder",
+    "attack": 2,
+    "defense": 3,
+    "moves": 1,
+    "cost": 30,
+    "domain": "land",
+    "notes": ""
+  },
+  "phalanx": {
+    "name": "Phalanx",
+    "tech": "Bronze Working",
+    "attack": 1,
+    "defense": 2,
+    "moves": 1,
+    "cost": 20,
+    "domain": "land",
+    "notes": ""
+  },
+  "riflemen": {
+    "name": "Riflemen",
+    "tech": "Conscription",
+    "attack": 3,
+    "defense": 5,
+    "moves": 1,
+    "cost": 30,
+    "domain": "land",
+    "notes": ""
+  },
+  "militia": {
+    "name": "Militia",
+    "tech": "",
+    "attack": 1,
+    "defense": 1,
+    "moves": 1,
+    "cost": 10,
+    "domain": "land",
+    "notes": ""
+  },
+  "settlers": {
+    "name": "Settlers",
+    "tech": "",
+    "attack": 0,
+    "defense": 1,
+    "moves": 1,
+    "cost": 40,
+    "domain": "land",
+    "notes": ""
+  },
+  "battleship": {
+    "name": "Battleship",
+    "tech": "Steel",
+    "attack": 18,
+    "defense": 12,
+    "moves": 4,
+    "cost": 160,
+    "domain": "sea",
+    "notes": ""
+  },
+  "carrier": {
+    "name": "Carrier",
+    "tech": "Advanced Flight",
+    "attack": 1,
+    "defense": 12,
+    "moves": 5,
+    "cost": 160,
+    "domain": "sea",
+    "notes": ""
+  },
+  "cruiser": {
+    "name": "Cruiser",
+    "tech": "Combustion",
+    "attack": 6,
+    "defense": 6,
+    "moves": 6,
+    "cost": 80,
+    "domain": "sea",
+    "notes": ""
+  },
+  "frigate": {
+    "name": "Frigate",
+    "tech": "Magnetism",
+    "attack": 2,
+    "defense": 2,
+    "moves": 3,
+    "cost": 40,
+    "domain": "sea",
+    "notes": ""
+  },
+  "ironclad": {
+    "name": "Ironclad",
+    "tech": "Steam Engine",
+    "attack": 4,
+    "defense": 4,
+    "moves": 4,
+    "cost": 60,
+    "domain": "sea",
+    "notes": ""
+  },
+  "sail": {
+    "name": "Sail",
+    "tech": "Navigation",
+    "attack": 1,
+    "defense": 1,
+    "moves": 3,
+    "cost": 40,
+    "domain": "sea",
+    "notes": ""
+  },
+  "submarine": {
+    "name": "Submarine",
+    "tech": "Mass Production",
+    "attack": 8,
+    "defense": 2,
+    "moves": 3,
+    "cost": 50,
+    "domain": "sea",
+    "notes": ""
+  },
+  "transport": {
+    "name": "Transport",
+    "tech": "Industrialization",
+    "attack": 0,
+    "defense": 3,
+    "moves": 4,
+    "cost": 50,
+    "domain": "sea",
+    "notes": ""
+  },
+  "trireme": {
+    "name": "Trireme",
+    "tech": "Map Making",
+    "attack": 1,
+    "defense": 0,
+    "moves": 3,
+    "cost": 40,
+    "domain": "sea",
+    "notes": ""
+  },
+  "bomber": {
+    "name": "Bomber",
+    "tech": "Advanced Flight",
+    "attack": 12,
+    "defense": 1,
+    "moves": 8,
+    "cost": 120,
+    "domain": "air",
+    "notes": ""
+  },
+  "fighter": {
+    "name": "Fighter",
+    "tech": "Flight",
+    "attack": 4,
+    "defense": 2,
+    "moves": 10,
+    "cost": 60,
+    "domain": "air",
+    "notes": ""
+  },
+  "nuclear": {
+    "name": "Nuclear",
+    "tech": "Rocketry",
+    "attack": 99,
+    "defense": 0,
+    "moves": 16,
+    "cost": 160,
+    "domain": "air",
+    "notes": ""
+  }
+}

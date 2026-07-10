@@ -38,4 +38,25 @@ html, body {
 #hud-help {
   color: #6d7d99;
   font-size: 11px;
+  max-width: 300px;
+}
+
+#hud-status {
+  color: #8fd18f;
+}
+
+#end-turn {
+  margin-top: 8px;
+  padding: 4px 14px;
+  pointer-events: auto;
+  cursor: pointer;
+  background: #24406b;
+  color: #cdd8ea;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+#end-turn:hover {
+  background: #2f5388;
 }

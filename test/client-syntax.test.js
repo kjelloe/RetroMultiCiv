@@ -11,10 +11,15 @@ const { spawnSync } = require('child_process');
 const CLIENT_MODULES = [
   'client/main.js',
   'client/renderer/renderer.js',
-  'client/renderer/three/index.js'
+  'client/renderer/three/index.js',
+  'engine/index.js',
+  'engine/mapgen.js',
+  'engine/movement.js',
+  'engine/rng.js',
+  'shared/statehash.js'
 ];
 
-test('client ESM modules parse', () => {
+test('browser-facing ESM modules parse', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-check-'));
   try {
     for (const rel of CLIENT_MODULES) {
