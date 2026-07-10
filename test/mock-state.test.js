@@ -3,9 +3,8 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 
-// Keep in sync with docs/01-game-spec.md §3.1 and the renderer's TERRAIN map.
-const TERRAINS = ['ocean', 'grassland', 'plains', 'forest', 'hills', 'mountains',
-  'desert', 'tundra', 'arctic', 'swamp', 'jungle'];
+// Terrain ids come from the ruleset — the renderer's TERRAIN map must match.
+const TERRAINS = Object.keys(require('../data/terrain.json').terrains);
 const IMPASSABLE = ['ocean', 'arctic'];
 
 const state = JSON.parse(

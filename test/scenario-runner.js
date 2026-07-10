@@ -23,7 +23,12 @@
 // Engine adapter contract:
 //   createGame(setup) -> state
 //   applyCommand(state, cmd) -> { state, ok, reason?, events }
-const { hashState } = require('../shared/statehash.js');
+// shared/ is ESM (it must run in the browser too); this runner stays CJS and
+// loads it dynamically, so runScenario is async.
+async function loadHashState() {
+  const mod = await import('../shared/statehash.js');
+  return mod.hashState;
+}
 
 function getPath(obj, dotted) {
   let cur = obj;
@@ -43,7 +48,8 @@ function checkPaths(state, expected, label, failures) {
   }
 }
 
-function runScenario(engine, scenario) {
+async function runScenario(engine, scenario) {
+  const hashState = await loadHashState();
   const failures = [];
   let state = scenario.setup.state
     ? JSON.parse(JSON.stringify(scenario.setup.state))

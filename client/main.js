@@ -1,43 +1,137 @@
-// Game shell (step 0): load the mock state, render it, wire picking + HUD.
-// No engine yet — the view IS the raw state. Once engine/ exists, this file
-// sends commands and applies fog-filtered views instead.
+// Game shell (phase 1): generate a real world with the engine, render it,
+// and route input as engine commands. The view is still the full state —
+// fog-of-war filtering (engine/visibility.js) is a later slice.
+// URL params: ?seed=12345 for a reproducible world, ?mock=1 for the old
+// static mock state.
+import { createEngine } from '../engine/index.js';
 import { createRenderer } from './renderer/renderer.js';
 
 const hudTile = document.getElementById('hud-tile');
 const hudSelection = document.getElementById('hud-selection');
+const hudStatus = document.getElementById('hud-status');
+const endTurnBtn = document.getElementById('end-turn');
 
-const state = await fetch('./mock-state.json').then(r => {
-  if (!r.ok) throw new Error(`mock-state.json: HTTP ${r.status}`);
+async function fetchJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();
-});
+}
 
-const view = state; // step 0: omniscient view, no fog filtering yet
+const params = new URLSearchParams(location.search);
+const [terrain, units] = await Promise.all([
+  fetchJson('../data/terrain.json'),
+  fetchJson('../data/units.json')
+]);
+const engine = createEngine({ terrain, units });
+
+let state;
+if (params.get('mock') === '1') {
+  state = await fetchJson('./mock-state.json');
+} else {
+  const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
+  state = engine.createGame({
+    seed,
+    options: {
+      width: 80, height: 50,
+      players: [
+        { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
+        { id: 'p2', name: 'Zulus', color: '#d84a3b', human: false }
+      ]
+    }
+  });
+  if (state.ok === false) throw new Error(`createGame failed: ${state.reason}`);
+  history.replaceState(null, '', `?seed=${seed}`);
+  hudStatus.textContent = `seed ${seed} · turn ${state.turn}`;
+}
+
 const renderer = createRenderer(document.getElementById('app'));
-renderer.setViewState(view);
-renderer.centerOn(view.map.width / 2 - 6, view.map.height / 2);
-
 let selectedUnitId = null;
 
+function humanUnits() {
+  return Object.values(state.units).filter(
+    u => u.owner === state.activePlayer && state.players[u.owner].human
+  );
+}
+
+function refresh() {
+  renderer.setViewState(state);
+  renderer.setSelection(selectedUnitId ? { unitId: selectedUnitId } : null);
+  const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
+  hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+}
+
 function describeTile(x, y) {
-  const tile = view.map.tiles[y * view.map.width + x];
-  const river = tile.river ? ' +river' : '';
-  return `(${x},${y}) ${tile.t}${river}`;
+  const tile = state.map.tiles[y * state.map.width + x];
+  const extras = (tile.river ? ' +river' : '') + (tile.special ? ' ★' : '');
+  return `(${x},${y}) ${tile.t}${extras}`;
+}
+
+// Map a click on a neighboring tile to a direction command.
+function dirTo(unit, tx, ty) {
+  let dx = tx - unit.x;
+  if (state.map.wrapX) {
+    if (dx > 1) dx -= state.map.width;
+    if (dx < -1) dx += state.map.width;
+  }
+  const dy = ty - unit.y;
+  const key = { '0,-1': 'N', '1,-1': 'NE', '1,0': 'E', '1,1': 'SE', '0,1': 'S', '-1,1': 'SW', '-1,0': 'W', '-1,-1': 'NW' };
+  return key[`${dx},${dy}`];
+}
+
+function apply(cmd) {
+  const res = engine.applyCommand(state, cmd);
+  if (res.ok) {
+    state = res.state;
+    refresh();
+  } else {
+    hudSelection.textContent = `✗ ${cmd.type}: ${res.reason}`;
+  }
+  return res.ok;
+}
+
+function endTurn() {
+  selectedUnitId = null;
+  if (!apply({ type: 'endTurn', playerId: state.activePlayer })) return;
+  // no AI yet: auto-pass non-human players
+  let guard = 10;
+  while (!state.players[state.activePlayer].human && guard-- > 0) {
+    apply({ type: 'endTurn', playerId: state.activePlayer });
+  }
 }
 
 renderer.onHover(pick => {
-  hudTile.textContent = pick ? describeTile(pick.tile.x, pick.tile.y) : 'hover a tile…';
+  hudTile.textContent = pick ? describeTile(pick.tile.x, pick.tile.y) : '';
 });
 
 renderer.onPick(pick => {
-  if (pick.unitId) {
-    selectedUnitId = pick.unitId;
-    const u = view.units[pick.unitId];
-    const owner = view.players[u.owner];
-    hudSelection.textContent = `selected: ${u.type} (${owner.name}) at (${u.x},${u.y})`;
-    renderer.setSelection({ unitId: pick.unitId });
-  } else {
-    selectedUnitId = null;
-    hudSelection.textContent = `tile: ${describeTile(pick.tile.x, pick.tile.y)}`;
-    renderer.setSelection({ tile: pick.tile });
+  const unit = pick.unitId ? state.units[pick.unitId] : null;
+  if (unit && unit.owner === state.activePlayer) {
+    selectedUnitId = unit.id;
+    hudSelection.textContent = `${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}`;
+    renderer.setSelection({ unitId: unit.id });
+    return;
   }
+  if (selectedUnitId && state.units[selectedUnitId]) {
+    const sel = state.units[selectedUnitId];
+    const dir = dirTo(sel, pick.tile.x, pick.tile.y);
+    if (dir) {
+      if (apply({ type: 'moveUnit', playerId: state.activePlayer, unitId: sel.id, dir })) {
+        const moved = state.units[selectedUnitId];
+        hudSelection.textContent = `${units[moved.type].name} at (${moved.x},${moved.y}) · moves ${moved.moves}`;
+      }
+      return;
+    }
+  }
+  selectedUnitId = null;
+  hudSelection.textContent = describeTile(pick.tile.x, pick.tile.y);
+  renderer.setSelection({ tile: pick.tile });
 });
+
+endTurnBtn.addEventListener('click', endTurn);
+window.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === 'e') endTurn();
+});
+
+refresh();
+const firstUnit = humanUnits()[0];
+if (firstUnit) renderer.centerOn(firstUnit.x, firstUnit.y);

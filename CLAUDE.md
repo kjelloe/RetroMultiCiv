@@ -35,8 +35,11 @@ rulesets are mapped from the extraction and reviewed by hand.
 ## Testing & running
 
 `node --test test/` — headless, no deps (the dump integration test self-skips
-if the dump is absent). Preview the client with `cd client && python3 -m
-http.server 8123`.
+if the dump is absent). Play: `python3 -m http.server 8123` from the **repo
+root**, open `http://localhost:8123/client/` (`?seed=N` fixed world,
+`?mock=1` static state). `engine/` and `shared/` are ESM (per-dir
+`package.json` type markers) so they load in both browser and Node; CJS test
+files use dynamic `import()` for them. `tools/` stays CJS.
 
 **Mechanics tests are JSON scenarios** in `test/scenarios/` (format documented
 in `test/scenario-runner.js` and docs/02-architecture.md §8) — add a JSON file,

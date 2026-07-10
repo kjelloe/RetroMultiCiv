@@ -15,14 +15,22 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    (24×16 map, 4 units, generated from ASCII art) rendered by the three.js
    flat-box renderer with raycast picking, pan/zoom, and HUD. Proves the state
    shape and the view layer.
-1. **Data + engine skeleton** — ruleset JSON files (terrain, units first),
-   mapped from the raw wiki extraction *(✅ done: `tools/wiki2data.js` pulled
-   7/7 pages into `data/wiki-extract/`)* and reviewed by hand;
-   `createGame(seed, ruleset)`, state shape, xorshift RNG, headless tests.
-2. **Map generation** — generate the world (default 80×50, size configurable),
-   render with pan/zoom, tile picking. *(Milestone: look at generated worlds.)*
-3. **Units + movement** — spawn starting Settlers, select/move, terrain costs,
-   fog of war. *(Milestone: explore the map.)*
+1. 🔶 **Data + engine skeleton** *(mostly done 2026-07-10)* — ✅ `data/terrain.json`
+   + `data/units.json` generated from the wiki extraction via `tools/mapdata.js`
+   (11 terrains + river modifier, 28 units, wiki-verified stats); ✅ engine
+   skeleton: `createEngine(ruleset)`, `applyCommand` dispatcher with deep-clone
+   purity, `moveUnit` (8-dir, terrain costs, partial-move rule, domains, wrapX),
+   `endTurn` (player cycling, move refresh), xorshift32 RNG with golden
+   sequence; ✅ scenario 001 passes with hash `0xd0b04010`. ⬜ remaining:
+   `createGame` map generation (step 2), techs/buildings/wonders data files.
+2. ✅ **Map generation** *(done 2026-07-10)* — `engine/mapgen.js`: seeded
+   drunkard's-walk continents, latitude-band terrain, rivers, specials
+   (Civ 1-style grassland shield checkerboard), arctic poles, spaced starting
+   positions with Settlers. Deterministic (scenario 002 hash `0x7285b0f1`);
+   client generates + renders real worlds (`?seed=` URL param).
+3. 🔶 **Units + movement** — ✅ engine movement + client wiring (select unit,
+   click-to-move with engine validation, End Turn button/hotkey, auto-pass for
+   AI-less players). ⬜ remaining: fog of war (`engine/visibility.js`), GoTo.
 4. **Cities** — found city, worked tiles, food box growth, production queue,
    basic buildings; city screen UI. *(Milestone: grow a civilization.)*
 5. **Combat + barbarians** — Civ 1 one-shot combat, ZOC, veterans, city capture.

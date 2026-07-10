@@ -21,13 +21,15 @@ to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
 ## Running
 
 ```bash
-# preview the client (step 0: renders the mock world)
-cd client && python3 -m http.server 8123
-# then open http://localhost:8123
+# play: serve the repo root (client imports engine/ and data/ as siblings)
+python3 -m http.server 8123
+# then open http://localhost:8123/client/  (?seed=12345 for a fixed world)
 
 # run the test suite (headless, no deps)
 node --test test/
 
+# regenerate ruleset data from the wiki extraction
+node tools/mapdata.js
 # re-extract wiki stat tables (needs the dump, see below)
 node tools/wiki2data.js ../wikiteam/civ_articles_only/*-current.xml data/wiki-extract
 ```
@@ -44,6 +46,11 @@ unit numbers. Next: map these to the final `data/*.json` rulesets (hand-reviewed
 
 ## Status
 
-Roadmap step 0 complete: the client renders a mock world (three.js flat boxes,
-raycast picking, pan/zoom, HUD) from `client/mock-state.json`. Wiki extraction
-done. Next: roadmap phase 1 step 1 — data files + engine skeleton.
+Steps 0–1 largely complete: the client renders a mock world (three.js flat
+boxes, raycast picking, pan/zoom, HUD); `data/terrain.json` + `data/units.json`
+are generated from the wiki dump; the engine skeleton (movement, end-turn,
+seeded RNG) passes its first JSON scenario with a locked state hash.
+Next: map generation (`createGame`), then wiring the client to the engine.
+
+The development prompts behind this project are logged verbatim in
+[dev-prompts.md](dev-prompts.md) for anyone curious about the process.
