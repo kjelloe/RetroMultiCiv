@@ -27,21 +27,30 @@
     <button id="end-turn">End Turn</button>
   </div>
 
+  <div id="center-banner" class="hidden"></div>
+
+  <div id="stack-panel" class="hidden">
+    <div class="group-title">units on this tile</div>
+    <div id="stack-list"></div>
+  </div>
+
   <details id="help">
     <summary>⌨ Controls</summary>
     <ul>
       <li><b>drag</b> — pan the camera</li>
       <li><b>wheel</b> — zoom</li>
-      <li><b>click unit</b> — select it</li>
-      <li><b>click neighbor tile</b> — move / attack</li>
+      <li><b>click unit</b> — select it (stacks show a unit list)</li>
+      <li><b>WASD / arrows / click neighbor</b> — move or attack</li>
       <li><b>click city</b> — open the city view</li>
       <li><b>B</b> — found city (settlers)</li>
       <li><b>F</b> — fortify unit</li>
-      <li><b>N</b> — next unit with moves</li>
+      <li><b>N</b> — next idle unit (skips fortified)</li>
       <li><b>1 / 2 / 3</b> — quick unit production</li>
       <li><b>C</b> — cycle buildings / wonders</li>
       <li><b>T</b> — cycle research</li>
-      <li><b>S / L</b> — quick save / load</li>
+      <li><b>click research bar</b> — research panel</li>
+      <li><b>double-click</b> — pick production / research instantly</li>
+      <li><b>F5 / F9</b> — quick save / quick load</li>
       <li><b>Shift+S / Shift+L</b> — save file / load file</li>
       <li><b>drop a save file</b> — load it</li>
       <li><b>E / Enter</b> — end turn</li>
@@ -53,6 +62,9 @@
     <div class="panel-head"><h3>🔬 Research</h3><button class="panel-close" data-close="research-panel">✕</button></div>
     <div id="research-summary"></div>
     <div id="research-list"></div>
+    <div class="panel-foot">
+      <button id="research-start" disabled>Start research</button>
+    </div>
   </div>
 
   <div id="city-panel" class="panel hidden">
@@ -63,6 +75,9 @@
         <div id="city-map"></div>
       </div>
       <div id="city-production"></div>
+    </div>
+    <div class="panel-foot">
+      <button id="city-close">Close city view</button>
     </div>
   </div>
 

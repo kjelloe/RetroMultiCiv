@@ -264,6 +264,106 @@ html, body {
   opacity: 0.9;
 }
 
+/* --- yield color coding: food / shields / trade --- */
+.yf { color: #8fd18f; }
+.ys { color: #e0a458; }
+.yt { color: #6db3f2; }
+
+/* --- center banner (non-modal, unmissable) --- */
+#center-banner {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 28px;
+  background: rgba(10, 16, 28, 0.92);
+  border: 1px solid #ffe066;
+  border-radius: 8px;
+  color: #ffe066;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+#center-banner.hidden {
+  display: none;
+}
+
+/* --- stack panel (units on a tile) --- */
+#stack-panel {
+  position: absolute;
+  top: 260px;
+  left: 12px;
+  min-width: 220px;
+  background: rgba(10, 16, 28, 0.94);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #cdd8ea;
+  font-size: 12px;
+  z-index: 5;
+}
+
+#stack-panel.hidden {
+  display: none;
+}
+
+#stack-panel button.option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 2px 0;
+  padding: 3px 8px;
+  background: #16233a;
+  border: 1px solid #2a3a55;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#stack-panel button.option:hover {
+  background: #24406b;
+}
+
+#stack-panel button.option.current {
+  border-color: #ffe066;
+  color: #ffe066;
+}
+
+/* --- panel footers --- */
+.panel-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.panel-foot button {
+  padding: 5px 16px;
+  background: #24406b;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.panel-foot button:hover:not(:disabled) {
+  background: #2f5388;
+}
+
+.panel-foot button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.panel button.option.chosen {
+  background: #2f5388;
+  border-color: #6db3f2;
+}
+
 #end-turn {
   margin-top: 8px;
   padding: 4px 14px;

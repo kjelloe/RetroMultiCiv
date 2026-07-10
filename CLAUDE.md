@@ -48,6 +48,16 @@ Cross-references use slug ids: `units.json` `tech` fields hold tech ids from
 `techs.json`; watch wiki naming drift when mapping (e.g. "The Wheel" vs
 "Wheel", "(advance)" disambiguation suffixes, mid-word hyphenation).
 
+## File size & module policy
+
+Split by SEAM, not by line count — but as soft ceilings: engine modules ≤ ~300
+lines (each becomes a Luau ModuleScript 1:1; small files = reviewable port),
+client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
+risky, that IS the signal to split it. One module = one subsystem; keep
+`require`s acyclic. Planned (post-playtest): split client/main.js into
+main (bootstrap) / session (state owner — the phase-3 socket seam) /
+diagnostics / ui/{hud,panels,input,saves}.
+
 ## Testing & running
 
 `node --test test/` — headless, no deps (the dump integration test self-skips

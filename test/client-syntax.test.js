@@ -10,6 +10,12 @@ const { spawnSync } = require('child_process');
 
 const CLIENT_MODULES = [
   'client/main.js',
+  'client/session.js',
+  'client/diagnostics.js',
+  'client/ui/hud.js',
+  'client/ui/panels.js',
+  'client/ui/input.js',
+  'client/ui/saves.js',
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
   'engine/ai.js',
