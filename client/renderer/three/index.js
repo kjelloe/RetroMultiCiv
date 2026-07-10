@@ -13,9 +13,11 @@ const TERRAIN = {
   tundra:    { color: 0xb0b8a8, height: 0.26 },
   arctic:    { color: 0xe8eef0, height: 0.32 },
   swamp:     { color: 0x5d7a5a, height: 0.22 },
-  jungle:    { color: 0x3f7d46, height: 0.44 }
+  jungle:    { color: 0x3f7d46, height: 0.44 },
+  unknown:   { color: 0x0a0e16, height: 0.10 }
 };
 const RIVER_TINT = new THREE.Color(0x3a7ac8);
+const FOG_TINT = new THREE.Color(0x0a0e16);
 const TILE_GAP = 0.98; // slight seam between boxes for the retro grid look
 
 export function createRenderer(container) {
@@ -100,6 +102,7 @@ export function createRenderer(container) {
         tileMesh.setMatrixAt(i, m);
         c.setHex(spec.color);
         if (tiles[i].river) c.lerp(RIVER_TINT, 0.35);
+        if (tiles[i].visible === false) c.lerp(FOG_TINT, 0.45); // explored, not in sight
         tileMesh.setColorAt(i, c);
       }
     }

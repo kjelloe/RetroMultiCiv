@@ -5,6 +5,7 @@
 // Everything here follows the Lua-portable subset (docs/02-architecture.md §4).
 
 import * as movement from './movement.js';
+import * as cities from './cities.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -35,6 +36,7 @@ function endTurn(state, cmd, ruleset) {
     state.turn = state.turn + 1;
     state.year = state.year + 20; // placeholder step; era-based steps come with data/rules.json
     state.activePlayer = order[0];
+    cities.processCities(state, ruleset, events);
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
       unit.moves = ruleset.units[unit.type].moves;
@@ -53,6 +55,8 @@ function createEngine(ruleset) {
     let result;
     if (cmd.type === 'moveUnit') result = movement.moveUnit(next, cmd, ruleset);
     else if (cmd.type === 'endTurn') result = endTurn(next, cmd, ruleset);
+    else if (cmd.type === 'foundCity') result = cities.foundCity(next, cmd, ruleset);
+    else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };
 
     if (!result.ok) return { ok: false, reason: result.reason, state, events: [] };

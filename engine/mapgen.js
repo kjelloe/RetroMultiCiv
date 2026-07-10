@@ -2,6 +2,7 @@
 // Deterministic: same seed + options => identical state (and hash).
 // Integer math only; every random draw goes through engine/rng.js.
 import { seedRng, rollRange } from './rng.js';
+import { initExplored, reveal } from './visibility.js';
 
 const DEFAULTS = { width: 80, height: 50, landPercent: 32, continents: 5 };
 
@@ -199,7 +200,7 @@ function createGame(setup, ruleset) {
     };
   }
 
-  return {
+  const state = {
     version: 1,
     turn: 1,
     year: -4000,
@@ -208,9 +209,19 @@ function createGame(setup, ruleset) {
     map,
     units,
     cities: {},
+    cityOrder: [],
+    nextUnitId: playerDefs.length + 1,
+    nextCityId: 1,
     players,
     rngState: found.rngState
   };
+
+  initExplored(state);
+  for (const id of Object.keys(units)) {
+    const u = units[id];
+    reveal(state, u.owner, u.x, u.y, 2);
+  }
+  return state;
 }
 
 export { createGame, tileDistance, pickWeighted };

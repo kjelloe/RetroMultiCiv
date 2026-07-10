@@ -4,7 +4,10 @@
 // URL params: ?seed=12345 for a reproducible world, ?mock=1 for the old
 // static mock state.
 import { createEngine } from '../engine/index.js';
+import { filterView } from '../engine/visibility.js';
 import { createRenderer } from './renderer/renderer.js';
+
+const HUMAN = 'p1';
 
 const hudTile = document.getElementById('hud-tile');
 const hudSelection = document.getElementById('hud-selection');
@@ -46,6 +49,7 @@ if (params.get('mock') === '1') {
 
 const renderer = createRenderer(document.getElementById('app'));
 let selectedUnitId = null;
+let selectedCityId = null;
 
 function humanUnits() {
   return Object.values(state.units).filter(
@@ -54,10 +58,17 @@ function humanUnits() {
 }
 
 function refresh() {
-  renderer.setViewState(state);
+  renderer.setViewState(filterView(state, HUMAN));
   renderer.setSelection(selectedUnitId ? { unitId: selectedUnitId } : null);
   const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
   hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+}
+
+function showCity(city) {
+  const type = units[city.producing.id];
+  hudSelection.textContent =
+    `${city.name} · pop ${city.pop} · food ${city.food}/${10 * (city.pop + 1)}` +
+    ` · building ${type.name} ${city.shields}/${type.cost} · keys: 1 militia · 2 phalanx · 3 settlers`;
 }
 
 function describeTile(x, y) {
@@ -107,8 +118,18 @@ renderer.onPick(pick => {
   const unit = pick.unitId ? state.units[pick.unitId] : null;
   if (unit && unit.owner === state.activePlayer) {
     selectedUnitId = unit.id;
-    hudSelection.textContent = `${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}`;
+    selectedCityId = null;
+    const hint = unit.type === 'settlers' ? ' · B: found city' : '';
+    hudSelection.textContent = `${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}${hint}`;
     renderer.setSelection({ unitId: unit.id });
+    return;
+  }
+  const city = pick.cityId ? state.cities[pick.cityId] : null;
+  if (city && city.owner === state.activePlayer) {
+    selectedCityId = city.id;
+    selectedUnitId = null;
+    showCity(city);
+    renderer.setSelection({ tile: { x: city.x, y: city.y } });
     return;
   }
   if (selectedUnitId && state.units[selectedUnitId]) {
@@ -123,13 +144,32 @@ renderer.onPick(pick => {
     }
   }
   selectedUnitId = null;
+  selectedCityId = null;
   hudSelection.textContent = describeTile(pick.tile.x, pick.tile.y);
   renderer.setSelection({ tile: pick.tile });
 });
 
+const PRODUCTION_KEYS = { 1: 'militia', 2: 'phalanx', 3: 'settlers' };
+
 endTurnBtn.addEventListener('click', endTurn);
 window.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === 'e') endTurn();
+  if (e.key === 'Enter' || e.key === 'e') { endTurn(); return; }
+  if (e.key === 'b' && selectedUnitId) {
+    const unitId = selectedUnitId;
+    if (apply({ type: 'foundCity', playerId: state.activePlayer, unitId })) {
+      selectedUnitId = null;
+      const cityId = state.cityOrder[state.cityOrder.length - 1];
+      selectedCityId = cityId;
+      showCity(state.cities[cityId]);
+    }
+    return;
+  }
+  if (PRODUCTION_KEYS[e.key] && selectedCityId) {
+    const item = { kind: 'unit', id: PRODUCTION_KEYS[e.key] };
+    if (apply({ type: 'setProduction', playerId: state.activePlayer, cityId: selectedCityId, item })) {
+      showCity(state.cities[selectedCityId]);
+    }
+  }
 });
 
 refresh();

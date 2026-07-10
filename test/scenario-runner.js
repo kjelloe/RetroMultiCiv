@@ -42,6 +42,13 @@ function getPath(obj, dotted) {
 function checkPaths(state, expected, label, failures) {
   for (const [p, want] of Object.entries(expected)) {
     const got = getPath(state, p);
+    if (want === null) {
+      // null in a scenario means "this path must not exist" (e.g. consumed unit)
+      if (got !== undefined && got !== null) {
+        failures.push(`${label}: ${p} = ${JSON.stringify(got)}, expected absent`);
+      }
+      continue;
+    }
     if (JSON.stringify(got) !== JSON.stringify(want)) {
       failures.push(`${label}: ${p} = ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`);
     }
