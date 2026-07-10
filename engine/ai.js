@@ -172,7 +172,9 @@ function pickCommand(state, playerId, ruleset, done) {
 // Host-level driver: repeatedly ask for a command and apply it until the AI
 // has nothing left to do. Rejected commands just retire that actor for the
 // turn — the AI can never wedge the game. Returns the resulting state.
-function runAiTurn(engine, state, playerId, ruleset) {
+// Pass `eventsOut` to collect the events of every applied command (the
+// client's combat log wants to report what the AI did to the player).
+function runAiTurn(engine, state, playerId, ruleset, eventsOut) {
   const done = {};
   let guard = 500;
   while (guard > 0) {
@@ -180,7 +182,12 @@ function runAiTurn(engine, state, playerId, ruleset) {
     const cmd = pickCommand(state, playerId, ruleset, done);
     if (!cmd) break;
     const res = engine.applyCommand(state, cmd);
-    if (res.ok) state = res.state;
+    if (res.ok) {
+      state = res.state;
+      if (eventsOut) {
+        for (const e of res.events) eventsOut.push(e);
+      }
+    }
   }
   return state;
 }

@@ -365,17 +365,109 @@ html, body {
 }
 
 #end-turn {
-  margin-top: 8px;
-  padding: 4px 14px;
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  padding: 10px 26px;
+  font-size: 15px;
   pointer-events: auto;
   cursor: pointer;
   background: #24406b;
   color: #cdd8ea;
   border: 1px solid #3b5d8f;
-  border-radius: 4px;
+  border-radius: 6px;
   font-family: inherit;
+  z-index: 6;
 }
 
 #end-turn:hover {
   background: #2f5388;
+}
+
+/* --- flash banner (transient center message) --- */
+#flash-banner {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 28px;
+  background: rgba(60, 20, 16, 0.94);
+  border: 1px solid #ff7b6b;
+  border-radius: 8px;
+  color: #ffd9d0;
+  font-size: 17px;
+  pointer-events: none;
+  z-index: 21;
+  white-space: nowrap;
+}
+
+#flash-banner.hidden {
+  display: none;
+}
+
+/* --- combat log (bottom left, above the controls) --- */
+#combat-log {
+  position: absolute;
+  bottom: 52px;
+  left: 12px;
+  max-width: 380px;
+  max-height: 45vh;
+  overflow-y: auto;
+  background: rgba(10, 16, 28, 0.9);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  color: #9db0cc;
+  font-size: 12px;
+  padding: 6px 10px;
+  user-select: none;
+  z-index: 4;
+}
+
+#combat-log summary {
+  cursor: pointer;
+  color: #cdd8ea;
+}
+
+#combat-list {
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+#combat-list .win { color: #8fd18f; }
+#combat-list .loss { color: #ff7b6b; }
+
+/* --- city-name dialog --- */
+#name-dialog {
+  top: 30%;
+  min-width: 300px;
+}
+
+#name-dialog input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  background: #16233a;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #ffe066;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+#stack-city {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: #24406b;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#stack-city.hidden {
+  display: none;
 }

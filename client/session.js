@@ -29,19 +29,24 @@ export function createSession(ruleset, initialState) {
       return res;
     },
 
-    // End the human turn, then let every AI player act and pass.
+    // End the human turn, then let every AI player act and pass. All events
+    // from the whole round are delivered together (the combat log needs to
+    // see what the AI and barbarians did).
     endTurn() {
+      const collected = [];
       const first = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
       if (!first.ok) return first;
       state = first.state;
+      for (const e of first.events) collected.push(e);
       let guard = 10;
       while (!state.gameOver && !state.players[state.activePlayer].human && guard-- > 0) {
-        state = runAiTurn(engine, state, state.activePlayer, ruleset);
+        state = runAiTurn(engine, state, state.activePlayer, ruleset, collected);
         const res = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
         if (!res.ok) break;
         state = res.state;
+        for (const e of res.events) collected.push(e);
       }
-      notify(first.events);
+      notify(collected);
       return first;
     },
 

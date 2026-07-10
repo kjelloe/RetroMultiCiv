@@ -8,6 +8,7 @@ import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
+import { initCombatLog } from './ui/combatlog.js';
 
 const HUMAN = 'p1';
 const hudStatus = document.getElementById('hud-status');
@@ -65,19 +66,21 @@ try {
 import { createEngine } from '../engine/index.js';
 
 let initialState;
+let humanCityNames = [];
 if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
 } else {
   const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
   const CIV_ROSTER = [
-    { name: 'Romans', color: '#3b7dd8' },
-    { name: 'Zulus', color: '#d84a3b' },
-    { name: 'Egyptians', color: '#d8b13b' },
-    { name: 'Greeks', color: '#3bd875' },
-    { name: 'Babylonians', color: '#b13bd8' },
-    { name: 'Mongols', color: '#d8703b' },
-    { name: 'Aztecs', color: '#3bc9d8' }
+    { name: 'Romans', color: '#3b7dd8', cities: ['Rome', 'Ostia', 'Antium', 'Cumae', 'Pompeii', 'Ravenna', 'Neapolis', 'Verona'] },
+    { name: 'Zulus', color: '#d84a3b', cities: ['Zimbabwe', 'Ulundi', 'Bapedi', 'Hlobane', 'Isandhlwana', 'Intombe', 'Mpondo', 'Ngome'] },
+    { name: 'Egyptians', color: '#d8b13b', cities: ['Thebes', 'Memphis', 'Heliopolis', 'Elephantine', 'Alexandria', 'Byblos', 'Giza', 'Cairo'] },
+    { name: 'Greeks', color: '#3bd875', cities: ['Athens', 'Sparta', 'Corinth', 'Delphi', 'Eretria', 'Pharsalos', 'Argos', 'Mycenae'] },
+    { name: 'Babylonians', color: '#b13bd8', cities: ['Babylon', 'Sumer', 'Uruk', 'Nineveh', 'Ashur', 'Akkad', 'Eridu', 'Lagash'] },
+    { name: 'Mongols', color: '#d8703b', cities: ['Samarkand', 'Bokhara', 'Nishapur', 'Karakorum', 'Kashgar', 'Tabriz', 'Kabul'] },
+    { name: 'Aztecs', color: '#3bc9d8', cities: ['Tenochtitlan', 'Teotihuacan', 'Tlatelolco', 'Texcoco', 'Tlaxcala', 'Xochicalco', 'Tlacopan'] }
   ];
+  humanCityNames = CIV_ROSTER[0].cities; // founding-name suggestions
   const civs = Math.min(CIV_ROSTER.length, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
   const playerDefs = [];
   for (let i = 0; i < civs; i++) {
@@ -104,10 +107,23 @@ ctx.selectUnit = (unit, opts) => {
   ctx.hud.note(`${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}${hint}`);
 };
 
+// next unused name from the civilization's roster, else a numbered fallback
+ctx.suggestCityName = () => {
+  const taken = {};
+  for (const cid of Object.keys(session.state.cities)) {
+    taken[session.state.cities[cid].name] = true;
+  }
+  for (const name of humanCityNames) {
+    if (!taken[name]) return name;
+  }
+  return `New City ${session.state.nextCityId}`;
+};
+
 ctx.hud = initHud(ctx);
 ctx.panels = initPanels(ctx);
 initInput(ctx);
 initSaves(ctx);
+initCombatLog(ctx);
 
 session.onChange(() => {
   ctx.hud.refresh();

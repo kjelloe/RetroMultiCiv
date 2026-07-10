@@ -116,7 +116,8 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     for (const u of casualties) delete state.units[u.id];
     events.push({
       type: 'combatResolved', winner: 'attacker',
-      attackerId: attacker.id, defenderId: defender.id,
+      attackerId: attacker.id, attackerType: attacker.type, attackerOwner: attacker.owner,
+      defenderId: defender.id, defenderType: defender.type, defenderOwner: defender.owner,
       x: tx, y: ty, unitsLost: casualties.length
     });
     maybePromote(state, attacker, events);
@@ -124,7 +125,8 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     delete state.units[attacker.id];
     events.push({
       type: 'combatResolved', winner: 'defender',
-      attackerId: attacker.id, defenderId: defender.id,
+      attackerId: attacker.id, attackerType: attacker.type, attackerOwner: attacker.owner,
+      defenderId: defender.id, defenderType: defender.type, defenderOwner: defender.owner,
       x: tx, y: ty, unitsLost: 1
     });
     maybePromote(state, defender, events);

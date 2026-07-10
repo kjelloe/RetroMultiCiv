@@ -47,6 +47,7 @@ export function initSaves(ctx) {
   });
 
   window.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.key === 'F5') { // quick save (classic)
       e.preventDefault();
       localStorage.setItem(SAVE_KEY, JSON.stringify(session.state));

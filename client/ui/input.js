@@ -1,5 +1,5 @@
 // Input: renderer picks (select / move / attack / stacks) and the keyboard.
-import { unitsAt } from '../../engine/combat.js';
+import { unitsAt, cityAt } from '../../engine/combat.js';
 import { availableTechs } from '../../engine/tech.js';
 
 const MOVE_KEYS = {
@@ -108,9 +108,39 @@ export function initInput(ctx) {
   }
   ctx.endTurn = endTurn;
 
+  function foundCityFlow() {
+    if (!sel.unitId) return;
+    const unit = session.state.units[sel.unitId];
+    if (!unit || unit.type !== 'settlers') {
+      hud.note('✗ only settlers can found cities');
+      return;
+    }
+    const unitId = unit.id;
+    panels.openNameDialog(ctx.suggestCityName(), name => {
+      if (apply({ type: 'foundCity', playerId: session.state.activePlayer, unitId, name })) {
+        sel.unitId = null;
+        panels.openCityPanel(session.state.cityOrder[session.state.cityOrder.length - 1]);
+      }
+    });
+  }
+
   // --- renderer picks ---------------------------------------------------------
   renderer.onHover(pick => {
     hud.tile(pick ? describeTile(pick.tile.x, pick.tile.y) : '');
+    // attack preview: red hover ring when targeting an enemy with a unit selected
+    let attack = false;
+    if (pick && sel.unitId && session.state.units[sel.unitId]) {
+      const hostiles = unitsAt(session.state, pick.tile.x, pick.tile.y)
+        .filter(u => u.owner !== HUMAN);
+      attack = hostiles.length > 0;
+    }
+    renderer.setHoverColor(attack ? 0xff4433 : 0xffffff);
+  });
+
+  // double-click a city: open the city view even when units share the tile
+  renderer.onDblPick(pick => {
+    const city = cityAt(session.state, pick.tile.x, pick.tile.y);
+    if (city && city.owner === HUMAN) panels.openCityPanel(city.id);
   });
 
   renderer.onPick(pick => {
@@ -120,8 +150,14 @@ export function initInput(ctx) {
       const clicked = (pick.unitId && state.units[pick.unitId] && state.units[pick.unitId].owner === HUMAN)
         ? state.units[pick.unitId] : mineHere[0];
       ctx.selectUnit(clicked, { keepStack: true });
-      if (mineHere.length > 1) panels.openStackPanel(pick.tile.x, pick.tile.y);
-      else panels.closeStackPanel();
+      const cityHere = cityAt(state, pick.tile.x, pick.tile.y);
+      // show the list for stacks, and always inside cities (it carries the
+      // "Open city view" button there)
+      if (mineHere.length > 1 || (cityHere && cityHere.owner === HUMAN)) {
+        panels.openStackPanel(pick.tile.x, pick.tile.y);
+      } else {
+        panels.closeStackPanel();
+      }
       return;
     }
     const city = pick.cityId ? state.cities[pick.cityId] : null;
@@ -145,6 +181,7 @@ export function initInput(ctx) {
 
   document.getElementById('end-turn').addEventListener('click', endTurn);
   window.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.key === 'Escape') { panels.closeAll(); return; }
     if (MOVE_KEYS[e.key] && sel.unitId && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
@@ -153,11 +190,7 @@ export function initInput(ctx) {
     }
     if (e.key === 'Enter' || e.key === 'e') { endTurn(); return; }
     if (e.key === 'b' && sel.unitId) {
-      const unitId = sel.unitId;
-      if (apply({ type: 'foundCity', playerId: session.state.activePlayer, unitId })) {
-        sel.unitId = null;
-        panels.openCityPanel(session.state.cityOrder[session.state.cityOrder.length - 1]);
-      }
+      foundCityFlow();
       return;
     }
     if (e.key === 'f' && sel.unitId) {

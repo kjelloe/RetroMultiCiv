@@ -1,7 +1,7 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
 import { workedTiles } from '../../engine/cities.js';
-import { unitsAt } from '../../engine/combat.js';
+import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 
 export function initPanels(ctx) {
@@ -234,11 +234,19 @@ export function initPanels(ctx) {
 
   function fillStackPanel() {
     if (!stackTile) return;
-    const mine = unitsAt(session.state, stackTile.x, stackTile.y)
+    const state = session.state;
+    const mine = unitsAt(state, stackTile.x, stackTile.y)
       .filter(u => u.owner === HUMAN);
     if (mine.length === 0) { closeStackPanel(); return; }
     // the selected unit moved away: follow it out and close the list
     if (sel.unitId && !mine.some(u => u.id === sel.unitId)) { closeStackPanel(); return; }
+
+    const tile = state.map.tiles[stackTile.y * state.map.width + stackTile.x];
+    const cityHere = cityAt(state, stackTile.x, stackTile.y);
+    document.getElementById('stack-title').textContent = cityHere
+      ? `units in ${cityHere.name} (${tile.t} tile)`
+      : `units on this ${tile.t} tile`;
+
     const list = document.getElementById('stack-list');
     list.textContent = '';
     mine.forEach((u, i) => {
@@ -253,8 +261,47 @@ export function initPanels(ctx) {
       });
       list.appendChild(btn);
     });
+
+    const cityBtn = document.getElementById('stack-city');
+    if (cityHere && cityHere.owner === HUMAN) {
+      cityBtn.classList.remove('hidden');
+      cityBtn.onclick = () => openCityPanel(cityHere.id);
+    } else {
+      cityBtn.classList.add('hidden');
+    }
     stackPanel.classList.remove('hidden');
   }
+
+  // --- city-name dialog --------------------------------------------------------
+  const nameDialog = document.getElementById('name-dialog');
+  const nameInput = document.getElementById('name-input');
+  let nameConfirm = null;
+
+  function openNameDialog(suggestion, onConfirm) {
+    nameConfirm = onConfirm;
+    nameInput.value = suggestion;
+    nameDialog.classList.remove('hidden');
+    nameInput.focus();
+    nameInput.select();
+  }
+
+  function closeNameDialog() {
+    nameConfirm = null;
+    nameDialog.classList.add('hidden');
+  }
+
+  document.getElementById('name-ok').addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    const cb = nameConfirm;
+    closeNameDialog();
+    if (cb && name) cb(name);
+  });
+  document.getElementById('name-cancel').addEventListener('click', closeNameDialog);
+  nameInput.addEventListener('keydown', e => {
+    e.stopPropagation(); // keep game hotkeys out of the text field
+    if (e.key === 'Enter') document.getElementById('name-ok').click();
+    if (e.key === 'Escape') closeNameDialog();
+  });
 
   // --- chrome -----------------------------------------------------------------
   document.getElementById('research-bar').addEventListener('click', toggleResearchPanel);
@@ -270,6 +317,7 @@ export function initPanels(ctx) {
   function closeAll() {
     closeCityPanel();
     closeStackPanel();
+    closeNameDialog();
     researchPanel.classList.add('hidden');
   }
 
@@ -282,7 +330,7 @@ export function initPanels(ctx) {
 
   return {
     openCityPanel, closeCityPanel, toggleResearchPanel,
-    openStackPanel, closeStackPanel, closeAll, refresh,
+    openStackPanel, closeStackPanel, openNameDialog, closeAll, refresh,
     isCityOpen: () => openCityId !== null
   };
 }

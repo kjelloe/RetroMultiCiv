@@ -24,14 +24,31 @@
     <div id="hud-tile"></div>
     <div id="hud-selection">click one of your units to select it</div>
     <div id="hud-diag"></div>
-    <button id="end-turn">End Turn</button>
   </div>
 
+  <button id="end-turn">End Turn</button>
+
   <div id="center-banner" class="hidden"></div>
+  <div id="flash-banner" class="hidden"></div>
+
+  <details id="combat-log">
+    <summary>⚔ Combat log</summary>
+    <div id="combat-list"></div>
+  </details>
+
+  <div id="name-dialog" class="panel hidden">
+    <div class="panel-head"><h3>🏛 Found city</h3></div>
+    <input id="name-input" type="text" maxlength="24" autocomplete="off">
+    <div class="panel-foot">
+      <button id="name-cancel">Cancel</button>
+      <button id="name-ok">Found city</button>
+    </div>
+  </div>
 
   <div id="stack-panel" class="hidden">
-    <div class="group-title">units on this tile</div>
+    <div class="group-title" id="stack-title">units on this tile</div>
     <div id="stack-list"></div>
+    <button id="stack-city" class="hidden">Open city view</button>
   </div>
 
   <details id="help">
@@ -42,6 +59,7 @@
       <li><b>click unit</b> — select it (stacks show a unit list)</li>
       <li><b>WASD / arrows / click neighbor</b> — move or attack</li>
       <li><b>click city</b> — open the city view</li>
+      <li><b>double-click city</b> — city view even with units on the tile</li>
       <li><b>B</b> — found city (settlers)</li>
       <li><b>F</b> — fortify unit</li>
       <li><b>N</b> — next idle unit (skips fortified)</li>

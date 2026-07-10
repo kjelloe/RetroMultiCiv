@@ -147,7 +147,7 @@ export function createRenderer(container) {
   // --- picking ---
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  let pickCb = null, hoverCb = null;
+  let pickCb = null, hoverCb = null, dblCb = null;
 
   function castAt(clientX, clientY) {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -206,6 +206,12 @@ export function createRenderer(container) {
       hoverCb(pick);
     }
   });
+  renderer.domElement.addEventListener('dblclick', e => {
+    if (dblCb && view) {
+      const pick = castAt(e.clientX, e.clientY);
+      if (pick) dblCb(pick);
+    }
+  });
   renderer.domElement.addEventListener('wheel', e => {
     e.preventDefault();
     cam.dist = Math.min(cam.maxDist, Math.max(cam.minDist, cam.dist * (e.deltaY > 0 ? 1.1 : 0.9)));
@@ -234,12 +240,17 @@ export function createRenderer(container) {
     playEvents(_events) { /* step 0: no engine events yet */ },
     onPick(cb) { pickCb = cb; },
     onHover(cb) { hoverCb = cb; },
+    onDblPick(cb) { dblCb = cb; },
+    setHoverColor(hex) { hoverMarker.material.color.setHex(hex); },
     setSelection(sel) {
       if (sel?.unitId && view?.units[sel.unitId]) {
         const u = view.units[sel.unitId];
+        // yellow = can still move, orange = out of movement points
+        selectMarker.material.color.setHex(u.moves > 0 ? 0xffe066 : 0xe07b30);
         selectMarker.position.set(u.x, tileTop(u.x, u.y) + 0.06, u.y);
         selectMarker.visible = true;
       } else if (sel?.tile) {
+        selectMarker.material.color.setHex(0xffe066);
         selectMarker.position.set(sel.tile.x, tileTop(sel.tile.x, sel.tile.y) + 0.06, sel.tile.y);
         selectMarker.visible = true;
       } else {
