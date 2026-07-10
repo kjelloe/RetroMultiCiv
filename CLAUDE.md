@@ -53,7 +53,7 @@ Screenshot the running game with:
 (SwiftShader flags are required — WebGL has no GPU here and fails without them.)
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
-cities, visibility, mapgen, wiki2data), JSON scenarios (below), and
+cities, combat/barbarians, visibility, mapgen, wiki2data), JSON scenarios (below), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium and asserts the HUD reaches "turn 1" with a canvas and no
 surfaced error (self-skips when the browser is absent).

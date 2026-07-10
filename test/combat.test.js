@@ -72,6 +72,37 @@ test('land units cannot attack ships at sea; ships can bombard the shore', async
   assert.strictEqual(res2.events[0].type, 'combatResolved');
 });
 
+test('ZOC exemption: a unit may still move onto its own unit or city', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9; i++) tiles.push({ t: 'grassland' });
+  // p1 militia at (0,1) is in the ZOC of the enemy phalanx at (1,0);
+  // moving E to (1,1) is also in ZOC — but a friendly unit holds that tile.
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: {
+      u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 1, moves: 1, fortified: false, veteran: false },
+      u2: { id: 'u2', type: 'militia', owner: 'p1', x: 1, y: 1, moves: 1, fortified: false, veteran: false },
+      u3: { id: 'u3', type: 'phalanx', owner: 'p2', x: 1, y: 0, moves: 1, fortified: false, veteran: false }
+    },
+    cities: {}, cityOrder: [], nextUnitId: 4, nextCityId: 1,
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: true, gold: 0, techs: [], researching: '' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '' }
+    },
+    rngState: 1
+  };
+  const onto = engine.applyCommand(state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+  assert.strictEqual(onto.ok, true, 'stacking with own unit is exempt from ZOC');
+
+  // the same move without the friendly unit is blocked
+  delete state.units.u2;
+  const blocked = engine.applyCommand(state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+  assert.strictEqual(blocked.ok, false);
+  assert.strictEqual(blocked.reason, 'zoc');
+});
+
 test('sortIds orders numerically-suffixed ids portably', async () => {
   const { combat } = await load();
   assert.deepStrictEqual(combat.sortIds(['u10', 'u2', 'u1']), ['u1', 'u2', 'u10']);

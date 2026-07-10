@@ -57,10 +57,12 @@ for this engine. Tests that need the dump or extraction self-skip without them.
 ## Status
 
 Phase 1 is playable: seeded world generation, fog of war, unit movement,
-city founding/growth/production — all in the browser against the real engine
-(select a unit, walk, press B to found a city, 1/2/3 to set production,
-E to end turns). 37 headless tests including hash-locked JSON scenarios and a
-real-browser e2e smoke test. Next: combat + barbarians, then the tech tree.
+city founding/growth/production, Civ 1 one-shot combat (stack death, veterans,
+zone of control, city capture with plunder), and barbarians — all in the
+browser against the real engine. Select a unit, explore, press B to found a
+city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
+turns. 45 headless tests including hash-locked JSON scenarios covering both
+combat outcomes and a real-browser e2e smoke test. Next: the tech tree.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

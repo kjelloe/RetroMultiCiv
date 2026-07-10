@@ -61,6 +61,7 @@ multiciv/
 │   ├── tech.js
 │   ├── units.js
 │   ├── visibility.js      # fog of war, per-player state filtering
+│   ├── barbarians.js      # turn-gated spawns + hunt behavior (wrap processing)
 │   ├── ai.js              # heuristic AI (emits commands only)
 │   └── score.js
 ├── shared/                # protocol: command & event shapes, validation
