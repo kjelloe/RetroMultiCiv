@@ -12,10 +12,7 @@ const hasEngine = fs.existsSync(ENGINE_PATH);
 
 async function loadEngine() {
   const { createEngine } = await import('../engine/index.js');
-  return createEngine({
-    terrain: require('../data/terrain.json'),
-    units: require('../data/units.json')
-  });
+  return createEngine(require('./ruleset.js'));
 }
 
 const scenarioDir = path.join(__dirname, 'scenarios');

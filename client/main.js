@@ -5,6 +5,7 @@
 // static mock state.
 import { createEngine } from '../engine/index.js';
 import { filterView } from '../engine/visibility.js';
+import { availableTechs, researchCost } from '../engine/tech.js';
 import { createRenderer } from './renderer/renderer.js';
 
 const HUMAN = 'p1';
@@ -31,11 +32,14 @@ async function fetchJson(url) {
 }
 
 const params = new URLSearchParams(location.search);
-const [terrain, units] = await Promise.all([
+const [terrain, units, techs, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
-  fetchJson('../data/units.json')
+  fetchJson('../data/units.json'),
+  fetchJson('../data/techs.json'),
+  fetchJson('../data/rules.json')
 ]);
-const engine = createEngine({ terrain, units });
+const ruleset = { terrain, units, techs, rules };
+const engine = createEngine(ruleset);
 
 let state;
 if (params.get('mock') === '1') {
@@ -138,6 +142,12 @@ function refresh() {
   renderer.setSelection(selectedUnitId ? { unitId: selectedUnitId } : null);
   const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
   hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+  const me = state.players[HUMAN];
+  const hudResearch = document.getElementById('hud-research');
+  const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
+  hudResearch.textContent = me.researching
+    ? `🔬 ${techs[me.researching].name} ${bulbs}/${researchCost(state, HUMAN, ruleset)} · 💰 ${me.gold}`
+    : `🔬 nothing (press T) · ${bulbs} bulbs · 💰 ${me.gold}`;
 }
 
 function showCity(city) {
@@ -255,6 +265,14 @@ window.addEventListener('keydown', e => {
       selectedCityId = cityId;
       showCity(state.cities[cityId]);
     }
+    return;
+  }
+  if (e.key === 't') {
+    const avail = availableTechs(state, HUMAN, ruleset);
+    if (avail.length === 0 || state.activePlayer !== HUMAN) return;
+    const idx = avail.indexOf(state.players[HUMAN].researching);
+    const next = avail[(idx + 1) % avail.length];
+    apply({ type: 'setResearch', playerId: HUMAN, tech: next });
     return;
   }
   if (PRODUCTION_KEYS[e.key] && selectedCityId) {

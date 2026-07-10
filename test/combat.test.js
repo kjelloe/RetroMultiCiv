@@ -1,9 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-const TERRAIN = require('../data/terrain.json');
-const UNITS = require('../data/units.json');
-const RULESET = { terrain: TERRAIN, units: UNITS };
+const RULESET = require('./ruleset.js');
+const TERRAIN = RULESET.terrain;
+const UNITS = RULESET.units;
 
 async function load() {
   const combat = await import('../engine/combat.js');

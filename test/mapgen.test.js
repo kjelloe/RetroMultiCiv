@@ -1,8 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-const TERRAIN = require('../data/terrain.json');
-const UNITS = require('../data/units.json');
+const RULESET = require('./ruleset.js');
+const TERRAIN = RULESET.terrain;
+const UNITS = RULESET.units;
 
 const PLAYERS = [
   { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -12,7 +13,7 @@ const PLAYERS = [
 async function load() {
   const { createEngine } = await import('../engine/index.js');
   const { hashState } = await import('../shared/statehash.js');
-  return { engine: createEngine({ terrain: TERRAIN, units: UNITS }), hashState };
+  return { engine: createEngine(RULESET), hashState };
 }
 
 const SETUP = { seed: 42, options: { width: 80, height: 50, players: PLAYERS } };

@@ -82,7 +82,8 @@ multiciv/
 │   └── persistence.js     # save/load (JSON files)
 ├── tools/
 │   ├── json2lua.js        # data/*.json → Roblox ModuleScript tables
-│   ├── wiki2data.js       # local wiki XML dump → draft data/*.json (stat tables)
+│   ├── wiki2data.js       # local wiki XML dump → data/wiki-extract/ (raw tables)
+│   ├── mapdata.js         # wiki-extract → final rulesets (terrain/units/techs…)
 │   └── replay.js          # run a command log headless, print state hash
 └── test/                  # node:test — everything runs headless
     ├── scenarios/         # ★ JSON scenario files — shared contract, see §8

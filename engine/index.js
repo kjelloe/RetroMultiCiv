@@ -6,6 +6,7 @@
 
 import * as movement from './movement.js';
 import * as cities from './cities.js';
+import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
 import { createGame as generateGame } from './mapgen.js';
 
@@ -38,6 +39,7 @@ function endTurn(state, cmd, ruleset) {
     state.year = state.year + 20; // placeholder step; era-based steps come with data/rules.json
     state.activePlayer = order[0];
     cities.processCities(state, ruleset, events);
+    tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
@@ -59,6 +61,8 @@ function createEngine(ruleset) {
     else if (cmd.type === 'endTurn') result = endTurn(next, cmd, ruleset);
     else if (cmd.type === 'foundCity') result = cities.foundCity(next, cmd, ruleset);
     else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
+    else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
+    else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };
 
     if (!result.ok) return { ok: false, reason: result.reason, state, events: [] };

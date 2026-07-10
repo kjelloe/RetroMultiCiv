@@ -65,7 +65,41 @@ function buildTerrain() {
   return { terrains, riverModifier };
 }
 
-function buildUnits() {
+// Advance-name cleanup: disambiguated links come out as
+// "Republic (advance) / Republic" (take the display segment), and the wiki
+// table hyphenates long words across lines ("Industri-alization"). No real
+// Civ 1 advance contains a hyphen, so de-hyphenating is safe here.
+function techName(raw) {
+  const parts = raw.split(' / ');
+  return parts[parts.length - 1].replace(/(\w)-(\w)/g, '$1$2').trim();
+}
+
+function buildTechs() {
+  const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-advances-in-civ1.json'), 'utf8'));
+  const techs = {};
+  for (const r of page.tables[0].rows) {
+    if (!r[0]) continue; // trailing "no tech required" rows
+    const level = int(r[1], `${r[0]} level`);
+    if (level < 1) continue; // level-0 rows are always-available capabilities
+    const name = techName(r[0]);
+    techs[slug(name)] = {
+      name,
+      level,
+      prereqs: [r[2], r[3]].filter(p => p && p !== 'None').map(p => slug(techName(p)))
+    };
+  }
+  // integrity: every prereq must itself be an advance
+  for (const [id, t] of Object.entries(techs)) {
+    for (const p of t.prereqs) {
+      if (!techs[p]) throw new Error(`tech ${id} has unknown prereq "${p}"`);
+    }
+  }
+  const count = Object.keys(techs).length;
+  if (count < 60 || count > 80) throw new Error(`suspicious tech count: ${count}`);
+  return techs;
+}
+
+function buildUnits(techs) {
   const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-units-in-civ1.json'), 'utf8'));
   const domains = ['land', 'sea', 'air'];
   const units = {};
@@ -74,9 +108,14 @@ function buildUnits() {
     for (const r of table.rows) {
       const name = r[0];
       if (!name) continue;
+      // the units page writes "The Wheel"; the advances page names it "Wheel"
+      const techRaw = r[1] === 'None' ? '' : techName(r[1]).replace(/^The /, '');
+      if (techRaw && !techs[slug(techRaw)]) {
+        throw new Error(`unit ${name} requires unknown tech "${techRaw}"`);
+      }
       units[slug(name)] = {
         name,
-        tech: r[1] === 'None' ? '' : r[1],
+        tech: techRaw ? slug(techRaw) : '', // tech ID — engine gates on this
         attack: int(r[2], `${name} attack`),
         defense: int(r[3], `${name} defense`),
         moves: int(r[4], `${name} moves`),
@@ -95,12 +134,15 @@ function buildUnits() {
 
 function main() {
   const terrain = buildTerrain();
-  const units = buildUnits();
+  const techs = buildTechs();
+  const units = buildUnits(techs);
   fs.writeFileSync(path.join(OUT, 'terrain.json'), JSON.stringify(terrain, null, 2) + '\n');
+  fs.writeFileSync(path.join(OUT, 'techs.json'), JSON.stringify(techs, null, 2) + '\n');
   fs.writeFileSync(path.join(OUT, 'units.json'), JSON.stringify(units, null, 2) + '\n');
   console.log(`terrain.json: ${Object.keys(terrain.terrains).length} terrains + river modifier`);
+  console.log(`techs.json: ${Object.keys(techs).length} advances`);
   console.log(`units.json: ${Object.keys(units).length} units`);
 }
 
-module.exports = { buildTerrain, buildUnits };
+module.exports = { buildTerrain, buildTechs, buildUnits };
 if (require.main === module) main();

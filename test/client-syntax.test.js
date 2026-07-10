@@ -19,6 +19,7 @@ const CLIENT_MODULES = [
   'engine/mapgen.js',
   'engine/movement.js',
   'engine/rng.js',
+  'engine/tech.js',
   'engine/visibility.js',
   'shared/statehash.js'
 ];

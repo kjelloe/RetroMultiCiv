@@ -1,7 +1,7 @@
 {
   "armor": {
     "name": "Armor",
-    "tech": "Automobile",
+    "tech": "automobile",
     "attack": 10,
     "defense": 5,
     "moves": 3,
@@ -11,7 +11,7 @@
   },
   "artillery": {
     "name": "Artillery",
-    "tech": "Robotics",
+    "tech": "robotics",
     "attack": 12,
     "defense": 2,
     "moves": 2,
@@ -21,7 +21,7 @@
   },
   "cannon": {
     "name": "Cannon",
-    "tech": "Metallurgy",
+    "tech": "metallurgy",
     "attack": 8,
     "defense": 1,
     "moves": 1,
@@ -31,7 +31,7 @@
   },
   "caravan": {
     "name": "Caravan",
-    "tech": "Trade",
+    "tech": "trade",
     "attack": 0,
     "defense": 1,
     "moves": 1,
@@ -41,7 +41,7 @@
   },
   "catapult": {
     "name": "Catapult",
-    "tech": "Mathematics",
+    "tech": "mathematics",
     "attack": 6,
     "defense": 1,
     "moves": 1,
@@ -51,7 +51,7 @@
   },
   "cavalry": {
     "name": "Cavalry",
-    "tech": "Horseback Riding",
+    "tech": "horseback-riding",
     "attack": 2,
     "defense": 1,
     "moves": 2,
@@ -61,7 +61,7 @@
   },
   "chariot": {
     "name": "Chariot",
-    "tech": "The Wheel",
+    "tech": "wheel",
     "attack": 4,
     "defense": 1,
     "moves": 2,
@@ -71,7 +71,7 @@
   },
   "diplomat": {
     "name": "Diplomat",
-    "tech": "Writing",
+    "tech": "writing",
     "attack": 0,
     "defense": 0,
     "moves": 2,
@@ -81,7 +81,7 @@
   },
   "knights": {
     "name": "Knights",
-    "tech": "Chivalry",
+    "tech": "chivalry",
     "attack": 4,
     "defense": 2,
     "moves": 2,
@@ -91,7 +91,7 @@
   },
   "legion": {
     "name": "Legion",
-    "tech": "Iron Working",
+    "tech": "iron-working",
     "attack": 3,
     "defense": 1,
     "moves": 1,
@@ -101,7 +101,7 @@
   },
   "mech-inf": {
     "name": "Mech. Inf.",
-    "tech": "Labor Union",
+    "tech": "labor-union",
     "attack": 6,
     "defense": 6,
     "moves": 3,
@@ -111,7 +111,7 @@
   },
   "musketeers": {
     "name": "Musketeers",
-    "tech": "Gunpowder",
+    "tech": "gunpowder",
     "attack": 2,
     "defense": 3,
     "moves": 1,
@@ -121,7 +121,7 @@
   },
   "phalanx": {
     "name": "Phalanx",
-    "tech": "Bronze Working",
+    "tech": "bronze-working",
     "attack": 1,
     "defense": 2,
     "moves": 1,
@@ -131,7 +131,7 @@
   },
   "riflemen": {
     "name": "Riflemen",
-    "tech": "Conscription",
+    "tech": "conscription",
     "attack": 3,
     "defense": 5,
     "moves": 1,
@@ -161,7 +161,7 @@
   },
   "battleship": {
     "name": "Battleship",
-    "tech": "Steel",
+    "tech": "steel",
     "attack": 18,
     "defense": 12,
     "moves": 4,
@@ -171,7 +171,7 @@
   },
   "carrier": {
     "name": "Carrier",
-    "tech": "Advanced Flight",
+    "tech": "advanced-flight",
     "attack": 1,
     "defense": 12,
     "moves": 5,
@@ -181,7 +181,7 @@
   },
   "cruiser": {
     "name": "Cruiser",
-    "tech": "Combustion",
+    "tech": "combustion",
     "attack": 6,
     "defense": 6,
     "moves": 6,
@@ -191,7 +191,7 @@
   },
   "frigate": {
     "name": "Frigate",
-    "tech": "Magnetism",
+    "tech": "magnetism",
     "attack": 2,
     "defense": 2,
     "moves": 3,
@@ -201,7 +201,7 @@
   },
   "ironclad": {
     "name": "Ironclad",
-    "tech": "Steam Engine",
+    "tech": "steam-engine",
     "attack": 4,
     "defense": 4,
     "moves": 4,
@@ -211,7 +211,7 @@
   },
   "sail": {
     "name": "Sail",
-    "tech": "Navigation",
+    "tech": "navigation",
     "attack": 1,
     "defense": 1,
     "moves": 3,
@@ -221,7 +221,7 @@
   },
   "submarine": {
     "name": "Submarine",
-    "tech": "Mass Production",
+    "tech": "mass-production",
     "attack": 8,
     "defense": 2,
     "moves": 3,
@@ -231,7 +231,7 @@
   },
   "transport": {
     "name": "Transport",
-    "tech": "Industrialization",
+    "tech": "industrialization",
     "attack": 0,
     "defense": 3,
     "moves": 4,
@@ -241,7 +241,7 @@
   },
   "trireme": {
     "name": "Trireme",
-    "tech": "Map Making",
+    "tech": "map-making",
     "attack": 1,
     "defense": 0,
     "moves": 3,
@@ -251,7 +251,7 @@
   },
   "bomber": {
     "name": "Bomber",
-    "tech": "Advanced Flight",
+    "tech": "advanced-flight",
     "attack": 12,
     "defense": 1,
     "moves": 8,
@@ -261,7 +261,7 @@
   },
   "fighter": {
     "name": "Fighter",
-    "tech": "Flight",
+    "tech": "flight",
     "attack": 4,
     "defense": 2,
     "moves": 10,
@@ -271,7 +271,7 @@
   },
   "nuclear": {
     "name": "Nuclear",
-    "tech": "Rocketry",
+    "tech": "rocketry",
     "attack": 99,
     "defense": 0,
     "moves": 16,

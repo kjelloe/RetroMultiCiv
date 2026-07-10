@@ -32,10 +32,19 @@ structural changes: `01-game-spec.md` (rules), `02-architecture.md`
 
 Stat tables come from a local wikiteam XML dump of the Civilization Fandom wiki
 at `../wikiteam/civ_articles_only/` (not part of this repo; complete).
-`tools/wiki2data.js` has extracted the 7 key Civ 1 pages into
-`data/wiki-extract/` — treat that as the authority over spec tables; yields are
-countable `[food]/[shield]/[trade]` tokens (`parseYields`). Final `data/*.json`
-rulesets are mapped from the extraction and reviewed by hand.
+`tools/wiki2data.js` extracts the key Civ 1 pages into `data/wiki-extract/`
+(gitignored, regenerable — treat as the authority over spec tables; yields are
+countable `[food]/[shield]/[trade]` tokens via `parseYields`).
+`tools/mapdata.js` maps the extraction to the final committed rulesets.
+
+**License boundary:** `data/wiki-extract/` contains CC BY-SA prose and must
+never be committed. Committed `data/*.json` may carry names and numbers
+(facts) but **never wiki sentences** — building/wonder effects must be encoded
+as structured fields (e.g. `{ "defenseMultiplier": 3 }`), not description text.
+
+Cross-references use slug ids: `units.json` `tech` fields hold tech ids from
+`techs.json`; watch wiki naming drift when mapping (e.g. "The Wheel" vs
+"Wheel", "(advance)" disambiguation suffixes, mid-word hyphenation).
 
 ## Testing & running
 
@@ -53,7 +62,8 @@ Screenshot the running game with:
 (SwiftShader flags are required — WebGL has no GPU here and fails without them.)
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
-cities, combat/barbarians, visibility, mapgen, wiki2data), JSON scenarios (below), and
+cities, combat/barbarians, tech, visibility, mapgen, wiki2data — engine tests
+share `test/ruleset.js`), JSON scenarios (below), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium and asserts the HUD reaches "turn 1" with a canvas and no
 surfaced error (self-skips when the browser is absent).

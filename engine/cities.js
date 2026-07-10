@@ -92,6 +92,10 @@ function setProduction(state, cmd, ruleset) {
   if (!item || item.kind !== 'unit' || !ruleset.units[item.id]) {
     return { ok: false, reason: 'badItem' };
   }
+  const requiredTech = ruleset.units[item.id].tech;
+  if (requiredTech !== '' && state.players[cmd.playerId].techs.indexOf(requiredTech) === -1) {
+    return { ok: false, reason: 'techRequired' };
+  }
   // Civ 1 forfeits half the shields when switching category; unit->unit keeps them
   city.producing = { kind: 'unit', id: item.id };
   return { ok: true, events: [{ type: 'productionSet', cityId: city.id, item: city.producing }] };

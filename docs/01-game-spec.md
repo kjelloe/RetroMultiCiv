@@ -223,10 +223,12 @@ Surviving winners gain veteran status with probability 50%.
   tech grows linearly (`baseCost × techsDiscovered`, difficulty-scaled).
 - One research target at a time; player picks from currently-available techs
   (all prerequisites known).
-- **Full Civ 1 tree** in `data/techs.json`: ~67 advances plus repeatable
-  **Future Technology** (score points). Each entry: `id`, `name`, `prereqs`
-  (0–2), `unlocksUnits`, `unlocksBuildings`, `unlocksWonders`,
-  `unlocksGovernment`, `obsoletes`, `era`.
+- **Full Civ 1 tree** in `data/techs.json`: 68 advances (verified against the
+  wiki dump) including Future Technology. Each entry: `name`, `level`
+  (tree depth), `prereqs` (0–2 tech ids). Unlocks are *inverted*: units,
+  buildings, and wonders reference their required tech id in their own data
+  files, so the tech entries stay lean and there is a single source of truth
+  per item.
 
 Advances (grouped by era, prerequisites in the data file — verify list against wiki):
 
@@ -321,12 +323,12 @@ below is a known, deliberate deviation to be closed in a later slice:
   tiles); no manual assignment, no specialists, no contention between cities.
 - **Settlers don't eat food** yet (§4.3 says 1/turn) and there is no unit
   support cost.
-- **`setProduction` accepts any unit** — tech gating arrives with the tech
-  tree slice (scenario 003 documents this).
 - **Calendar advances a flat 20 years/turn** — era-based steps come with
-  `data/rules.json`.
-- **Trade is computed but unused** — tax/luxury/science split arrives with
-  the tech slice; happiness/disorder not yet implemented.
+  `data/rules.json` tuning.
+- **Trade splits into tax/science only** — luxuries, corruption, government
+  rate caps, and happiness/disorder are not yet implemented. Research overflow
+  carries between advances (Civ 1 discards it; tuneable choice, documented).
+- **Future Tech is a one-time advance** for now (repeatable scoring later).
 - **Growth food box empties fully** on growth (Granary halving comes with
   buildings) and pop floors at 1 (no city destruction by starvation).
 - **Combat lacks City Walls (×3) and Fortress (×2)** multipliers until the

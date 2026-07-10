@@ -51,8 +51,15 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    attack/capture). Locked by scenarios 004 (attacker path, `0xdc1336db`) and
    005 (defender path, `0x11a6a9e2`). ⬜ remaining: goody huts, era-based
    barbarian units, City Walls ×3 / Fortress ×2 (need the buildings slice).
-6. **Tech tree + wonders + governments** — full Civ 1 tech data, research UI,
-   wonder effects, government switching, tax sliders, happiness/disorder.
+6. 🔶 **Tech tree + wonders + governments** — ✅ `data/techs.json` (all 68
+   Civ 1 advances with prerequisites, generated from the wiki dump — count and
+   the seven root techs verified); ✅ `engine/tech.js`: research from city
+   trade split by tax/science rates (`setRates`, 10% steps), Civ 1 global cost
+   escalation (base × techs known+1), overflow carry, prereq-validated
+   `setResearch`; ✅ production tech-gating (no more 4000 BC battleships);
+   ✅ client: research HUD + T to cycle available techs. Locked by scenario
+   006 (`0x955483fe`). ⬜ remaining: buildings/wonders data + effects,
+   governments, luxuries/happiness, corruption, Future Tech repeatability.
 7. **AI opponents + victory/score** — heuristic AI issuing engine commands,
    conquest and score victory, end screen. *(Milestone: a full winnable game.)*
 8. **Save/load** — snapshot + command log to localStorage / file download.

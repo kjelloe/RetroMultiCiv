@@ -1,0 +1,65 @@
+{
+  "name": "research: rates, prereq validation, discovery with overflow, tech-gated production",
+  "notes": "Island city with 3 trade/turn (river shield-grassland center = 1, worked ocean = 2). Science at 100%: first advance costs 10 bulbs, discovered on the 4th processed turn with 2 bulbs overflow carried. Phalanx production is blocked until Bronze Working is known.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
+      "map": {
+        "width": 3, "height": 3, "wrapX": false,
+        "tiles": [
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "grassland", "river": true, "special": true }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": { "id": "c1", "name": "Lab", "owner": "p1", "x": 1, "y": 1, "pop": 1, "food": 0, "shields": 0, "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["c1"],
+      "nextUnitId": 1,
+      "nextCityId": 2,
+      "players": {
+        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 7
+    }
+  },
+  "script": [
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "phalanx" } },
+      "expect": { "ok": false }, "notes": "phalanx needs Bronze Working" },
+    { "cmd": { "type": "setResearch", "playerId": "p1", "tech": "writing" },
+      "expect": { "ok": false }, "notes": "Writing requires Alphabet first" },
+    { "cmd": { "type": "setRates", "playerId": "p1", "tax": 55, "sci": 45 },
+      "expect": { "ok": false }, "notes": "rates move in 10% steps" },
+    { "cmd": { "type": "setRates", "playerId": "p1", "tax": 0, "sci": 100 },
+      "expect": { "ok": true } },
+    { "cmd": { "type": "setResearch", "playerId": "p1", "tech": "bronze-working" },
+      "expect": { "ok": true, "state": { "players.p1.researching": "bronze-working" } } },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": { "players.p1.bulbs": 3 } } },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": { "players.p1.bulbs": 9 } } },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": { "players.p1.techs.0": "bronze-working", "players.p1.bulbs": 2, "players.p1.researching": "" } },
+      "notes": "12 bulbs >= cost 10: discovered, 2 bulbs overflow" },
+    { "cmd": { "type": "setResearch", "playerId": "p1", "tech": "bronze-working" },
+      "expect": { "ok": false }, "notes": "already known" },
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "phalanx" } },
+      "expect": { "ok": true }, "notes": "gate opens with the tech" }
+  ],
+  "final": {
+    "state": { "turn": 5, "players.p1.gold": 0, "cities.c1.producing.id": "phalanx" },
+    "hash": "0x955483fe"
+  }
+}

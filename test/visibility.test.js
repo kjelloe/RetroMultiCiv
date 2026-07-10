@@ -1,8 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-const TERRAIN = require('../data/terrain.json');
-const UNITS = require('../data/units.json');
+const RULESET = require('./ruleset.js');
+const TERRAIN = RULESET.terrain;
+const UNITS = RULESET.units;
 
 const PLAYERS = [
   { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -13,7 +14,7 @@ const SETUP = { seed: 7, options: { width: 40, height: 30, players: PLAYERS } };
 async function load() {
   const { createEngine } = await import('../engine/index.js');
   const vis = await import('../engine/visibility.js');
-  return { engine: createEngine({ terrain: TERRAIN, units: UNITS }), vis };
+  return { engine: createEngine(RULESET), vis };
 }
 
 test('createGame initializes fog: starts revealed, most of the world unknown', async () => {

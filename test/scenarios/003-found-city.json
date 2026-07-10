@@ -40,7 +40,7 @@
       "expect": { "ok": true, "state": { "units.u1": null, "cities.c1.pop": 1, "cities.c1.name": "Roma" } },
       "notes": "settlers consumed, city exists" },
     { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "battleship" } },
-      "expect": { "ok": true }, "notes": "engine allows any unit for now; tech gating comes with the tech slice" },
+      "expect": { "ok": false }, "notes": "no battleships in 4000 BC: production is tech-gated (needs Steel)" },
     { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "militia" } },
       "expect": { "ok": true } },
     { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
@@ -61,6 +61,6 @@
   ],
   "final": {
     "state": { "turn": 6, "cities.c1.pop": 1, "cities.c1.food": 10 },
-    "hash": "0xa1c78141"
+    "hash": "0xa53eb55d"
   }
 }
