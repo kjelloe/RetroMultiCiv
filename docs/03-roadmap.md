@@ -41,7 +41,16 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    production, HUD city panel. Locked by scenario 003 (hash `0xa1c78141`).
    ⬜ remaining: buildings/wonders in production, buy, specialists, happiness,
    trade/tax split, tile contention between cities, proper city screen UI.
-5. **Combat + barbarians** — Civ 1 one-shot combat, ZOC, veterans, city capture.
+5. 🔶 **Combat + barbarians** *(core done 2026-07-10)* — ✅ `engine/combat.js`:
+   Civ 1 one-shot combat in pure integer math (strengths as products, roll in
+   [0, att+def)), terrain/river/fortify/veteran multipliers, strongest-defender
+   rule, open-ground stack death vs city single-loss, 50% veteran promotion,
+   attack-by-moving, shore bombardment (sea→land) while land→sea is illegal;
+   ✅ zone of control; ✅ city capture with pop loss + capped plunder;
+   ✅ `engine/barbarians.js` (turn-gated spawns, hunt nearest civilization,
+   attack/capture). Locked by scenarios 004 (attacker path, `0xdc1336db`) and
+   005 (defender path, `0x11a6a9e2`). ⬜ remaining: goody huts, era-based
+   barbarian units, City Walls ×3 / Fortress ×2 (need the buildings slice).
 6. **Tech tree + wonders + governments** — full Civ 1 tech data, research UI,
    wonder effects, government switching, tax sliders, happiness/disorder.
 7. **AI opponents + victory/score** — heuristic AI issuing engine commands,

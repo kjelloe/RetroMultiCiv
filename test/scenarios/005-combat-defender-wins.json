@@ -1,0 +1,61 @@
+{
+  "name": "combat: defender path — attacker dies, defenders survive, defender promotes",
+  "notes": "Golden behavior for rngState 777 (recorded via probe). Same board as 004: the legion wins its first fight but loses against the stack — attacker removed, both stacked defenders survive, and the militia (the tile's best defender) earns the seeded veteran promotion.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
+      "map": {
+        "width": 6, "height": 4, "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "u1": { "id": "u1", "type": "legion", "owner": "p1", "x": 1, "y": 1, "moves": 1, "fortified": false, "veteran": false },
+        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 2, "y": 1, "moves": 1, "fortified": false, "veteran": false },
+        "u3": { "id": "u3", "type": "militia", "owner": "p2", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false },
+        "u4": { "id": "u4", "type": "settlers", "owner": "p2", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false },
+        "u5": { "id": "u5", "type": "settlers", "owner": "p1", "x": 3, "y": 0, "moves": 1, "fortified": false, "veteran": false },
+        "u6": { "id": "u6", "type": "militia", "owner": "p1", "x": 1, "y": 2, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {
+        "c1": { "id": "c1", "name": "Zimbabwe", "owner": "p2", "x": 4, "y": 1, "pop": 3, "food": 0, "shields": 0, "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["c1"],
+      "nextUnitId": 7,
+      "nextCityId": 2,
+      "players": {
+        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "" },
+        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 37, "techs": [], "researching": "" }
+      },
+      "rngState": 777
+    }
+  },
+  "script": [
+    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u5", "dir": "SW" },
+      "expect": { "ok": false } },
+    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u6", "dir": "S" },
+      "expect": { "ok": false } },
+    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
+      "expect": { "ok": true, "state": { "units.u2": null, "units.u1.veteran": true } },
+      "notes": "first fight won, promotion rolls in the attacker's favor this seed" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
+    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "SE" },
+      "expect": { "ok": true, "state": { "units.u1": null, "units.u3.veteran": true, "units.u4.type": "settlers" } },
+      "notes": "attacker loses: attacker removed, stack untouched, defending militia promotes" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true, "state": { "turn": 3 } } }
+  ],
+  "final": {
+    "state": { "cities.c1.owner": "p2", "players.p2.gold": 37 },
+    "hash": "0x11a6a9e2"
+  }
+}

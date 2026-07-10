@@ -165,11 +165,28 @@ function dirTo(unit, tx, ty) {
   return key[`${dx},${dy}`];
 }
 
+function describeEvents(events) {
+  for (const e of events) {
+    if (e.type === 'combatResolved') {
+      return e.winner === 'attacker'
+        ? `⚔ attack succeeded (${e.unitsLost} enemy lost)`
+        : '⚔ attack failed — unit lost';
+    }
+    if (e.type === 'cityCaptured') {
+      return `🏰 ${state.cities[e.cityId].name} captured! (+${e.plunder} gold)`;
+    }
+  }
+  return null;
+}
+
 function apply(cmd) {
   const res = engine.applyCommand(state, cmd);
   if (res.ok) {
     state = res.state;
+    if (selectedUnitId && !state.units[selectedUnitId]) selectedUnitId = null;
     refresh();
+    const note = describeEvents(res.events);
+    if (note) hudSelection.textContent = note;
   } else {
     hudSelection.textContent = `✗ ${cmd.type}: ${res.reason}`;
   }

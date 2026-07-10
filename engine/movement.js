@@ -1,7 +1,9 @@
 // Unit movement: 8-directional, terrain move costs, Civ 1 partial-move rule
-// (a unit may enter any passable tile as long as it has ANY movement left).
-// Roads, railroads, ZOC and combat arrive in later slices.
+// (a unit may enter any passable tile as long as it has ANY movement left),
+// zone of control, and attack-by-moving (delegated to combat.js).
+// Roads and railroads arrive in a later slice.
 import { reveal } from './visibility.js';
+import { resolveAttack, captureCity, unitsAt, cityAt } from './combat.js';
 
 const DIRS = {
   N: { dx: 0, dy: -1 }, NE: { dx: 1, dy: -1 }, E: { dx: 1, dy: 0 },
@@ -16,6 +18,21 @@ function tileAt(map, x, y) {
 function wrapX(map, x) {
   if (!map.wrapX) return x;
   return ((x % map.width) + map.width) % map.width;
+}
+
+// Is any enemy unit adjacent to (x, y)?  Used for the Civ 1 zone of control:
+// moving directly between two enemy-controlled tiles is forbidden unless the
+// destination holds your own unit or city (attacks never reach this check).
+function inEnemyZoc(state, x, y, owner) {
+  for (const id of Object.keys(state.units)) {
+    const u = state.units[id];
+    if (u.owner === owner) continue;
+    let dx = Math.abs(u.x - x);
+    if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
+    const dy = Math.abs(u.y - y);
+    if (dx <= 1 && dy <= 1 && (dx + dy) > 0) return true;
+  }
+  return false;
 }
 
 // Mutates `state` (the dispatcher hands us a fresh clone). Returns
@@ -36,10 +53,25 @@ function moveUnit(state, cmd, ruleset) {
     return { ok: false, reason: 'outOfBounds' };
   }
 
+  // enemy units on the target tile: this move is an attack, not a move
+  const hostiles = unitsAt(state, nx, ny).filter(u => u.owner !== unit.owner);
+  if (hostiles.length > 0) {
+    return resolveAttack(state, unit, nx, ny, ruleset);
+  }
+
   const terrain = ruleset.terrain.terrains[tileAt(map, nx, ny).t];
   const unitType = ruleset.units[unit.type];
   if (!terrain || !unitType) return { ok: false, reason: 'badRuleset' };
   if (terrain.domain !== unitType.domain) return { ok: false, reason: 'impassable' };
+
+  const targetCity = cityAt(state, nx, ny);
+  const ownAtTarget = unitsAt(state, nx, ny).length > 0
+    || (targetCity !== null && targetCity.owner === unit.owner);
+  if (!ownAtTarget
+      && inEnemyZoc(state, unit.x, unit.y, unit.owner)
+      && inEnemyZoc(state, nx, ny, unit.owner)) {
+    return { ok: false, reason: 'zoc' };
+  }
 
   const fromX = unit.x, fromY = unit.y;
   unit.x = nx;
@@ -50,10 +82,11 @@ function moveUnit(state, cmd, ruleset) {
   if (unit.moves < 0) unit.moves = 0;
   reveal(state, unit.owner, nx, ny, 1);
 
-  return {
-    ok: true,
-    events: [{ type: 'unitMoved', unitId: unit.id, fromX, fromY, toX: nx, toY: ny }]
-  };
+  const events = [{ type: 'unitMoved', unitId: unit.id, fromX, fromY, toX: nx, toY: ny }];
+  if (targetCity && targetCity.owner !== unit.owner) {
+    captureCity(state, unit, targetCity, events);
+  }
+  return { ok: true, events };
 }
 
 export { moveUnit, tileAt, wrapX, DIRS };

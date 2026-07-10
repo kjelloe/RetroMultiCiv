@@ -6,6 +6,7 @@
 
 import * as movement from './movement.js';
 import * as cities from './cities.js';
+import * as barbarians from './barbarians.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -37,6 +38,7 @@ function endTurn(state, cmd, ruleset) {
     state.year = state.year + 20; // placeholder step; era-based steps come with data/rules.json
     state.activePlayer = order[0];
     cities.processCities(state, ruleset, events);
+    barbarians.process(state, ruleset, events);
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
       unit.moves = ruleset.units[unit.type].moves;

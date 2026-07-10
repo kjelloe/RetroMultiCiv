@@ -1,61 +1,247 @@
 {
   "name": "moveUnit: movement costs, impassable terrain, ownership, end turn",
-  "notes": "First TDD target for engine step 1. Map is 4x3: row0 g g m ~, row1 g f g ~, row2 ~ ~ ~ ~. Civ 1 rule: a unit may enter any passable tile if it has ANY movement left (partial-move rule).",
+  "notes": "First TDD target for engine step 1. Map is 6x3; the enemy militia sits on a separate island (5,0) so zone of control never interferes — ZOC and combat are covered by scenario 004. Civ 1 rule: a unit may enter any passable tile if it has ANY movement left (partial-move rule).",
   "setup": {
     "state": {
       "version": 1,
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
-        "width": 4,
+        "width": 6,
         "height": 3,
         "wrapX": false,
         "tiles": [
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "mountains" }, { "t": "ocean" },
-          { "t": "grassland" }, { "t": "forest" },    { "t": "grassland" }, { "t": "ocean" },
-          { "t": "ocean" },     { "t": "ocean" },     { "t": "ocean" },     { "t": "ocean" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "mountains"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "forest"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          }
         ]
       },
       "units": {
-        "u1": { "id": "u1", "type": "settlers", "owner": "p1", "x": 0, "y": 0, "moves": 1, "fortified": false, "veteran": false },
-        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 2, "y": 1, "moves": 1, "fortified": false, "veteran": false }
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p2",
+          "x": 5,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
       },
       "cities": {},
       "players": {
-        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "" },
-        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "" }
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        }
       },
       "rngState": 42
     }
   },
   "script": [
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u2", "dir": "W" },
-      "expect": { "ok": false },
-      "notes": "cannot move another player's unit" },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": true, "state": { "units.u1.x": 1, "units.u1.y": 0, "units.u1.moves": 0 } },
-      "notes": "grassland costs 1, spends the settlers' single move point" },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": false, "state": { "units.u1.x": 1 } },
-      "notes": "no movement left this turn" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" },
-      "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "turn": 2, "units.u1.moves": 1 } },
-      "notes": "after all players end turn, movement points refresh" },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": true, "state": { "units.u1.x": 2, "units.u1.moves": 0 } },
-      "notes": "mountains cost 3 but Civ 1 partial-move rule lets 1 MP enter" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": false, "state": { "units.u1.x": 2 } },
-      "notes": "land unit cannot enter ocean" }
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u2",
+        "dir": "W"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "cannot move another player's unit"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1.x": 1,
+          "units.u1.y": 0,
+          "units.u1.moves": 0
+        }
+      },
+      "notes": "grassland costs 1, spends the settlers' single move point"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "units.u1.x": 1
+        }
+      },
+      "notes": "no movement left this turn"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "turn": 2,
+          "units.u1.moves": 1
+        }
+      },
+      "notes": "after all players end turn, movement points refresh"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1.x": 2,
+          "units.u1.moves": 0
+        }
+      },
+      "notes": "mountains cost 3 but Civ 1 partial-move rule lets 1 MP enter"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "units.u1.x": 2
+        }
+      },
+      "notes": "land unit cannot enter ocean"
+    }
   ],
   "final": {
-    "state": { "turn": 3, "units.u1.x": 2, "units.u1.y": 0 },
-    "hash": "0xd0b04010"
+    "state": {
+      "turn": 3,
+      "units.u1.x": 2,
+      "units.u1.y": 0
+    },
+    "hash": "0x85be4250"
   }
 }

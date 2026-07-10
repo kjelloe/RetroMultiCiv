@@ -99,7 +99,9 @@ function filterView(state, playerId) {
   }
 
   const players = {};
-  for (const pid of state.playerOrder) {
+  const playerIds = Object.keys(state.players);
+  playerIds.sort(); // include non-turn players (barbarians); sorted for determinism
+  for (const pid of playerIds) {
     const p = state.players[pid];
     players[pid] = { id: p.id, name: p.name, color: p.color, human: p.human };
     if (pid === playerId) {

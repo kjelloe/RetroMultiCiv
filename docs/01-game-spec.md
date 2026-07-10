@@ -329,6 +329,10 @@ below is a known, deliberate deviation to be closed in a later slice:
   the tech slice; happiness/disorder not yet implemented.
 - **Growth food box empties fully** on growth (Granary halving comes with
   buildings) and pop floors at 1 (no city destruction by starvation).
+- **Combat lacks City Walls (×3) and Fortress (×2)** multipliers until the
+  buildings slice; terrain/river/fortify/veteran multipliers are in. Goody
+  huts and era-based barbarian units are deferred; barbarians spawn as militia
+  from turn 16.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
