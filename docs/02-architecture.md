@@ -238,6 +238,11 @@ server → client:  { t: "state", view }            # full filtered view (resync
 ```
 
 Snapshot is what you load; the command log is for replay/debug/port-verification.
+Implemented today: localStorage snapshots (S/L) and JSON save files with a
+`{ format: "retromulticiv-save", savedAt, turn, state }` envelope
+(Shift+S download, Shift+L / drag-and-drop to load). Command logs come with
+the backend phase. Save files are plain state — they load directly into
+headless Node tooling and the scenario runner for debugging.
 
 ## 8. Scenario test layer (cross-language)
 

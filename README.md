@@ -65,7 +65,9 @@ turns. Research is live (all 68 Civ 1 advances, T to pick), buildings &
 wonders too (all 21 of each, working effects, wonder race, C to build), and
 now: **AI opponents** that explore, settle, defend, and attack under their own
 fog of war; **victory conditions** (conquest or score at 2100 AD, with a
-victory/defeat banner); and **save/load** (S/L keys). Start a bigger game with
+victory/defeat banner); and **save/load** — S/L for quick browser saves,
+Shift+S to download a JSON save file, Shift+L or drag-and-drop to load one
+(great for sharing bug reports). Start a bigger game with
 `?civs=3` (up to 7). **Phase 1 complete: a full, winnable game vs AI.**
 70 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e smoke test. Next: phase 2 — hotseat multiplayer.

@@ -305,6 +305,54 @@ renderer.onPick(pick => {
 
 const PRODUCTION_KEYS = { 1: 'militia', 2: 'phalanx', 3: 'settlers' };
 
+function stateLooksValid(s) {
+  return Boolean(s) && Boolean(s.map) && Array.isArray(s.map.tiles)
+    && s.map.tiles.length === s.map.width * s.map.height
+    && Boolean(s.units) && Boolean(s.players) && Array.isArray(s.playerOrder);
+}
+
+// Accepts a save-file envelope ({ format: 'retromulticiv-save', state }) or a
+// bare state object (older localStorage saves).
+function loadStateObject(obj, sourceLabel) {
+  const s = obj && obj.format === 'retromulticiv-save' ? obj.state : obj;
+  if (!stateLooksValid(s)) {
+    hudSelection.textContent = `✗ not a RetroMultiCiv save (${sourceLabel})`;
+    return;
+  }
+  state = s;
+  selectedUnitId = null;
+  selectedCityId = null;
+  refresh();
+  hudSelection.textContent = `📂 loaded ${sourceLabel} (turn ${state.turn})`;
+}
+
+function loadFromFile(file) {
+  file.text().then(text => {
+    try {
+      loadStateObject(JSON.parse(text), file.name);
+    } catch (err) {
+      hudSelection.textContent = `✗ ${file.name}: ${err.message}`;
+    }
+  });
+}
+
+const fileInput = document.createElement('input');
+fileInput.type = 'file';
+fileInput.accept = '.json,application/json';
+fileInput.style.display = 'none';
+document.body.appendChild(fileInput);
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length > 0) loadFromFile(fileInput.files[0]);
+  fileInput.value = '';
+});
+
+// drag & drop a save file anywhere on the page
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length > 0) loadFromFile(e.dataTransfer.files[0]);
+});
+
 endTurnBtn.addEventListener('click', endTurn);
 window.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === 'e') { endTurn(); return; }
@@ -338,6 +386,26 @@ window.addEventListener('keydown', e => {
     hudSelection.textContent = `${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}${hint}`;
     return;
   }
+  if (e.key === 'S') { // Shift+S: download a JSON save file (debugging/sharing)
+    const envelope = {
+      format: 'retromulticiv-save',
+      savedAt: new Date().toISOString(),
+      turn: state.turn,
+      state
+    };
+    const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `retromulticiv-turn${state.turn}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    hudSelection.textContent = `💾 downloaded ${a.download}`;
+    return;
+  }
+  if (e.key === 'L') { // Shift+L: load from a JSON file
+    fileInput.click();
+    return;
+  }
   if (e.key === 's') {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
     hudSelection.textContent = `💾 saved (turn ${state.turn})`;
@@ -347,11 +415,7 @@ window.addEventListener('keydown', e => {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) { hudSelection.textContent = 'no save found'; return; }
     try {
-      state = JSON.parse(raw);
-      selectedUnitId = null;
-      selectedCityId = null;
-      refresh();
-      hudSelection.textContent = `📂 loaded (turn ${state.turn})`;
+      loadStateObject(JSON.parse(raw), 'browser save');
     } catch (err) {
       hudSelection.textContent = `load failed: ${err.message}`;
     }
