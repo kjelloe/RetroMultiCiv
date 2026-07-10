@@ -85,7 +85,9 @@ multiciv/
 │   └── replay.js          # run a command log headless, print state hash
 └── test/                  # node:test — everything runs headless
     ├── scenarios/         # ★ JSON scenario files — shared contract, see §8
-    └── scenario-runner.js # engine-agnostic runner (gets a Luau twin in phase 5)
+    ├── scenario-runner.js # engine-agnostic runner (gets a Luau twin in phase 5)
+    └── browser.test.js    # e2e smoke: real client in headless Chromium
+                           # (software WebGL; self-skips if browser absent)
 ```
 
 The **engine never imports** from `client/`, `server/`, or any Node built-in.
@@ -99,7 +101,7 @@ Chosen for minimal dependencies (per your preferences) with options noted.
 | Layer | Choice | Rationale / alternatives |
 |---|---|---|
 | Engine | Plain JavaScript, CommonJS-style modules via a tiny UMD wrapper (works in browser `<script>` and Node `require`) | No build step needed for phase 1–2. Alternative: ESM + Vite if you want imports and hot reload — fine, but adds tooling |
-| Client renderer v1 | **three.js**, low-poly: tiles as flat colored boxes (color/height by terrain), units & cities as simple meshes, raycast picking, orbit-lite camera (pan/zoom/slight tilt) | One dependency, vendored locally (`client/vendor/three.module.js` + import map — no bundler, no build step). Previews the Roblox look |
+| Client renderer v1 | **three.js**, low-poly: tiles as flat colored boxes (color/height by terrain), units & cities as simple meshes, raycast picking, orbit-lite camera (pan/zoom/slight tilt) | One dependency, vendored locally (`client/vendor/three.module.min.js` + import map — no bundler, no build step). **Pinned to r162**: last release with WebGL1 fallback — required for browsers stuck on ANGLE Direct3D9 (see CLAUDE.md). Previews the Roblox look |
 | Client renderer later | Higher-fidelity three.js pass (unit models, water, day/night, globe?) or a canvas-2D fallback | Same renderer interface; optional |
 | Client UI | Plain DOM + CSS for HUD/dialogs | No framework; the game screen is the canvas, dialogs are simple |
 | Server (phase 3+) | Node.js: `node:http` for static files + **`ws`** for WebSockets | `ws` is the single runtime dependency. Alternative: Fastify + @fastify/websocket if you later want REST endpoints |

@@ -20,6 +20,11 @@ structural changes: `01-game-spec.md` (rules), `02-architecture.md`
   plain objects.** No null, no floats (JSON null becomes nil in Lua and
   vanishes; floats drift). `shared/statehash.js` enforces this.
 - No build step: plain JS, vendored `three.module.js` via import map.
+- **three.js is pinned to r162 — do NOT upgrade to r163+.** r163 removed WebGL1
+  support, and the user's own browser is stuck on ANGLE Direct3D9 (WebGL1
+  only). r162 auto-falls back to WebGL1. Verify any renderer change with the
+  headless screenshot loop below, including once with `--disable-es3-gl-context`
+  (emulates the WebGL1-only environment).
 - Minimal dependencies: `ws` (server) and vendored three.js are the whitelist;
   ask before adding anything else.
 
@@ -40,6 +45,18 @@ root**, open `http://localhost:8123/client/` (`?seed=N` fixed world,
 `?mock=1` static state). `engine/` and `shared/` are ESM (per-dir
 `package.json` type markers) so they load in both browser and Node; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.
+
+**Visual verification without a GPU:** a Playwright-cached headless Chromium
+exists at `~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell`.
+Screenshot the running game with:
+`chrome-headless-shell --no-sandbox --enable-unsafe-swiftshader --use-angle=swiftshader --window-size=1280,800 --virtual-time-budget=10000 --screenshot=out.png "http://127.0.0.1:8123/client/?seed=12345"`
+(SwiftShader flags are required — WebGL has no GPU here and fails without them.)
+
+**Test layers** (all via `node --test test/`): unit tests (rng, statehash,
+cities, visibility, mapgen, wiki2data), JSON scenarios (below), and
+`browser.test.js` — an e2e smoke that boots the real client in the cached
+headless Chromium and asserts the HUD reaches "turn 1" with a canvas and no
+surfaced error (self-skips when the browser is absent).
 
 **Mechanics tests are JSON scenarios** in `test/scenarios/` (format documented
 in `test/scenario-runner.js` and docs/02-architecture.md §8) — add a JSON file,
