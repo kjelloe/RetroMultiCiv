@@ -20,6 +20,12 @@ const RIVER_TINT = new THREE.Color(0x3a7ac8);
 const FOG_TINT = new THREE.Color(0x0a0e16);
 const TILE_GAP = 0.98; // slight seam between boxes for the retro grid look
 
+// terrain palette shared with the DOM UI (city view mini-map)
+export function terrainColor(terrainId) {
+  const spec = TERRAIN[terrainId] || TERRAIN.grassland;
+  return '#' + spec.color.toString(16).padStart(6, '0');
+}
+
 export function createRenderer(container) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d1420);

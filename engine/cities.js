@@ -59,10 +59,13 @@ function effectPct(city, ruleset, key) {
 
 // Center tile (always worked, free) + the pop best tiles of the fat cross,
 // greedily by weighted score. Tile contention between cities comes later.
-function cityYields(state, city, ruleset) {
+// Returns the actual worked tiles (center first) — the city view renders this.
+function workedTiles(state, city, ruleset) {
   const { width, height, wrapX, tiles } = state.map;
-  const total = tileYields(tiles[city.y * width + city.x], ruleset);
-
+  const worked = [{
+    x: city.x, y: city.y, center: true,
+    yields: tileYields(tiles[city.y * width + city.x], ruleset)
+  }];
   const candidates = [];
   for (const o of FAT_CROSS) {
     let x = city.x + o.dx;
@@ -73,15 +76,24 @@ function cityYields(state, city, ruleset) {
       x = ((x % width) + width) % width;
     }
     const y_ = tileYields(tiles[y * width + x], ruleset);
-    candidates.push({ score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
+    candidates.push({ x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }
   candidates.sort((a, b) => b.score - a.score);
-  let tradeTiles = total.trade > 0 ? 1 : 0; // center
   for (let i = 0; i < city.pop && i < candidates.length; i++) {
-    total.food += candidates[i].yields.food;
-    total.shields += candidates[i].yields.shields;
-    total.trade += candidates[i].yields.trade;
-    if (candidates[i].yields.trade > 0) tradeTiles++;
+    worked.push({ x: candidates[i].x, y: candidates[i].y, center: false, yields: candidates[i].yields });
+  }
+  return worked;
+}
+
+function cityYields(state, city, ruleset) {
+  const worked = workedTiles(state, city, ruleset);
+  const total = { food: 0, shields: 0, trade: 0 };
+  let tradeTiles = 0;
+  for (const w of worked) {
+    total.food += w.yields.food;
+    total.shields += w.yields.shields;
+    total.trade += w.yields.trade;
+    if (w.yields.trade > 0) tradeTiles++;
   }
   // Colossus: +1 trade on every worked trade-producing tile in its city
   if (wonderInCity(state, city, 'colossus', ruleset)) total.trade += tradeTiles;
@@ -228,6 +240,6 @@ function processCities(state, ruleset, events) {
 }
 
 export {
-  foundCity, setProduction, processCities, cityYields, tileYields, FAT_CROSS,
-  hasBuilding, wonderActive, wonderInCity, effectPct
+  foundCity, setProduction, processCities, cityYields, workedTiles, tileYields,
+  FAT_CROSS, hasBuilding, wonderActive, wonderInCity, effectPct
 };

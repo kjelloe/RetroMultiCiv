@@ -61,8 +61,10 @@ city founding/growth/production, Civ 1 one-shot combat (stack death, veterans,
 zone of control, city capture with plunder), and barbarians — all in the
 browser against the real engine. Select a unit, explore, press B to found a
 city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
-turns. Research is live (all 68 Civ 1 advances, T to pick), buildings &
-wonders too (all 21 of each, working effects, wonder race, C to build), and
+turns. Research is live (all 68 Civ 1 advances — click the research bar for
+the full panel), buildings & wonders too (all 21 of each, working effects,
+wonder race — click a city for the city view with production, yields, and its
+workable area), and
 now: **AI opponents** that explore, settle, defend, and attack under their own
 fog of war; **victory conditions** (conquest or score at 2100 AD, with a
 victory/defeat banner); and **save/load** — S/L for quick browser saves,

@@ -24,6 +24,32 @@ test('FAT_CROSS is the 20-tile Civ 1 city radius (21 minus center)', async () =>
   assert.strictEqual(cities.FAT_CROSS.length, 20);
 });
 
+test('workedTiles: center first, then pop best tiles; sums match cityYields', async () => {
+  const { cities } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'plains' });
+  tiles[6] = { t: 'grassland', special: true }; // best candidate
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'T', owner: 'p1', x: 2, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const worked = cities.workedTiles(state, state.cities.c1, RULESET);
+  assert.strictEqual(worked.length, 3, 'center + pop tiles');
+  assert.strictEqual(worked[0].center, true);
+  assert.deepStrictEqual({ x: worked[0].x, y: worked[0].y }, { x: 2, y: 2 });
+  assert.deepStrictEqual({ x: worked[1].x, y: worked[1].y }, { x: 1, y: 1 }, 'shield grassland picked first');
+
+  const sums = { food: 0, shields: 0, trade: 0 };
+  for (const w of worked) { sums.food += w.yields.food; sums.shields += w.yields.shields; sums.trade += w.yields.trade; }
+  assert.deepStrictEqual(cities.cityYields(state, state.cities.c1, RULESET), sums);
+});
+
 test('growth: city grows when the food box fills, starves back down', async () => {
   const { engine } = await load();
   // 3x3 all-grassland island state with one city

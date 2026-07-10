@@ -14,4 +14,4 @@
 //     destroy()
 //   }
 
-export { createRenderer } from './three/index.js';
+export { createRenderer, terrainColor } from './three/index.js';

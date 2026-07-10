@@ -12,16 +12,60 @@
 </head>
 <body>
   <div id="app"></div>
+
+  <div id="research-bar" title="Manage research">
+    <div id="research-fill"></div>
+    <span id="research-label">…</span>
+  </div>
+
   <div id="hud">
     <div id="hud-title">RetroMultiCiv</div>
     <div id="hud-status">generating world…</div>
-    <div id="hud-research"></div>
     <div id="hud-tile"></div>
     <div id="hud-selection">click one of your units to select it</div>
-    <div id="hud-help">drag: pan · wheel: zoom · click unit/city: select · click neighbor tile: move · B: found city · F: fortify · N: next unit · 1/2/3: unit production · C: buildings/wonders · T: research · S/L: save/load · Shift+S/L: save file (or drop one here) · E/Enter: end turn</div>
     <div id="hud-diag"></div>
     <button id="end-turn">End Turn</button>
   </div>
+
+  <details id="help">
+    <summary>⌨ Controls</summary>
+    <ul>
+      <li><b>drag</b> — pan the camera</li>
+      <li><b>wheel</b> — zoom</li>
+      <li><b>click unit</b> — select it</li>
+      <li><b>click neighbor tile</b> — move / attack</li>
+      <li><b>click city</b> — open the city view</li>
+      <li><b>B</b> — found city (settlers)</li>
+      <li><b>F</b> — fortify unit</li>
+      <li><b>N</b> — next unit with moves</li>
+      <li><b>1 / 2 / 3</b> — quick unit production</li>
+      <li><b>C</b> — cycle buildings / wonders</li>
+      <li><b>T</b> — cycle research</li>
+      <li><b>S / L</b> — quick save / load</li>
+      <li><b>Shift+S / Shift+L</b> — save file / load file</li>
+      <li><b>drop a save file</b> — load it</li>
+      <li><b>E / Enter</b> — end turn</li>
+      <li><b>Esc</b> — close panels</li>
+    </ul>
+  </details>
+
+  <div id="research-panel" class="panel hidden">
+    <div class="panel-head"><h3>🔬 Research</h3><button class="panel-close" data-close="research-panel">✕</button></div>
+    <div id="research-summary"></div>
+    <div id="research-list"></div>
+  </div>
+
+  <div id="city-panel" class="panel hidden">
+    <div class="panel-head"><h3 id="city-title">City</h3><button class="panel-close" data-close="city-panel">✕</button></div>
+    <div id="city-body">
+      <div id="city-left">
+        <div id="city-stats"></div>
+        <div id="city-map"></div>
+      </div>
+      <div id="city-production"></div>
+    </div>
+  </div>
+
   <script type="module" src="main.js"></script>
 </body>
 </html>
