@@ -104,6 +104,7 @@ ctx.selectUnit = (unit, opts) => {
   renderer.setSelection({ unitId: unit.id });
   if (!opts || !opts.keepStack) ctx.panels.closeStackPanel();
   ctx.hud.unitNote(unit);
+  if (ctx.refreshActionBar) ctx.refreshActionBar();
 };
 
 // next unused name from the civilization's roster, else a numbered fallback
@@ -142,6 +143,12 @@ if (firstUnit) {
 // the starting settlers and fill both panels, so their code paths execute
 // (hidden panel content stays in the DOM for --dump-dom to assert on).
 if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
+  // snapshot the selected settler's action bar before founding consumes it
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  probe.textContent = 'actionbar: ' + document.getElementById('action-bar').textContent;
+  document.body.appendChild(probe);
   session.apply({ type: 'foundCity', playerId: HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
   ctx.panels.toggleResearchPanel();
   if (session.state.cityOrder.length > 0) {

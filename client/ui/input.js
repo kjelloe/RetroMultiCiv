@@ -106,18 +106,57 @@ export function initInput(ctx) {
     return null;
   }
 
+  // engine rejections worth a center message when a unit ACTION fails
+  // (movement rejections stay in the quiet HUD note — arrow-key mashing)
+  const REASON_TEXT = {
+    alreadyImproved: 'that improvement is already on this tile',
+    badTerrain: 'this terrain does not support that',
+    noWater: 'irrigation needs an adjacent river, ocean, or irrigated tile',
+    noMovesLeft: 'no moves left this turn',
+    cityExists: 'a city already stands here',
+    notSettlers: 'only settlers can do that',
+    alreadyFortified: 'already fortified'
+  };
+  const ACTION_COMMANDS = { startWork: true, foundCity: true, fortify: true, wait: true };
+
   function apply(cmd) {
     const res = session.apply(cmd);
     if (res.ok) {
+      confirmEndTurnUntil = 0; // the situation changed — a stale confirmation dies
       if (sel.unitId && !session.state.units[sel.unitId]) sel.unitId = null;
       const note = describeEvents(res.events);
       if (note) hud.note(note);
     } else {
+      if (ACTION_COMMANDS[cmd.type] && REASON_TEXT[res.reason]) {
+        hud.flash(`✗ ${REASON_TEXT[res.reason]}`);
+      }
       hud.note(`✗ ${cmd.type}: ${res.reason}`);
     }
     return res.ok;
   }
   ctx.apply = apply;
+
+  // --- unit actions (shared by keyboard and the action bar) --------------------
+  function fortifySelected() {
+    if (!sel.unitId) return;
+    if (apply({ type: 'fortify', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note(`🛡 ${units[session.state.units[sel.unitId].type].name} fortified`);
+    }
+  }
+
+  function waitSelected() {
+    if (!sel.unitId) return;
+    if (apply({ type: 'wait', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      nextUnit();
+    }
+  }
+
+  function startWorkFor(work) {
+    if (!sel.unitId) return;
+    if (apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
+      hud.unitNote(session.state.units[sel.unitId]);
+    }
+  }
 
   function moveSelected(dir) {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
@@ -136,6 +175,7 @@ export function initInput(ctx) {
     );
     if (movable.length === 0) {
       hud.note('no units with moves left — E to end turn');
+      hud.banner('no units with moves left — press E to end the turn');
       return;
     }
     ctx.selectUnit(movable[0]);
@@ -155,7 +195,24 @@ export function initInput(ctx) {
     nextUnit();
   }
 
+  // Ending the turn with units still to move needs a second E (or End Turn
+  // click) within the warning banner's 5-second lifetime.
+  let confirmEndTurnUntil = 0;
   function endTurn() {
+    const state = session.state;
+    if (!state.gameOver && state.activePlayer === HUMAN
+        && state.players[HUMAN] && state.players[HUMAN].human) {
+      const movable = Object.values(state.units).filter(
+        u => u.owner === HUMAN && u.moves > 0 && !u.working
+      );
+      if (movable.length > 0 && Date.now() > confirmEndTurnUntil) {
+        confirmEndTurnUntil = Date.now() + 5000;
+        const plural = movable.length > 1;
+        hud.banner(`⚠ ${movable.length} unit${plural ? 's' : ''} still ${plural ? 'have' : 'has'} moves — E / End Turn again to confirm`);
+        return;
+      }
+    }
+    confirmEndTurnUntil = 0;
     panels.closeStackPanel();
     sel.cityId = null;
     const res = session.endTurn();
@@ -184,6 +241,38 @@ export function initInput(ctx) {
       }
     });
   }
+
+  // --- action bar: the selected unit's applicable actions, bottom center -------
+  const actionBar = document.getElementById('action-bar');
+  function refreshActionBar() {
+    const state = session.state;
+    const unit = sel.unitId ? state.units[sel.unitId] : null;
+    actionBar.textContent = '';
+    const usable = unit && unit.owner === HUMAN && !state.gameOver
+      && state.activePlayer === HUMAN && unit.moves > 0 && !unit.working;
+    if (!usable) {
+      actionBar.classList.add('hidden');
+      return;
+    }
+    const actions = [];
+    if (unit.type === 'settlers') {
+      actions.push({ label: '🏛 Found city', key: 'B', run: foundCityFlow });
+      actions.push({ label: '💧 Irrigate', key: 'I', run: () => startWorkFor('irrigate') });
+      actions.push({ label: '⛏ Mine', key: 'M', run: () => startWorkFor('mine') });
+      actions.push({ label: '🛤 Road', key: 'R', run: () => startWorkFor('road') });
+    }
+    if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
+    actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });
+    for (const a of actions) {
+      const btn = document.createElement('button');
+      btn.innerHTML = `${a.label} <span class="key">${a.key}</span>`;
+      btn.addEventListener('click', a.run);
+      actionBar.appendChild(btn);
+    }
+    actionBar.classList.remove('hidden');
+  }
+  ctx.refreshActionBar = refreshActionBar;
+  session.onChange(refreshActionBar);
 
   // --- renderer picks ---------------------------------------------------------
   let lastFootprintKey = null;
@@ -251,6 +340,7 @@ export function initInput(ctx) {
     sel.unitId = null;
     sel.cityId = null;
     panels.closeStackPanel();
+    refreshActionBar();
     hud.note(describeTile(pick.tile.x, pick.tile.y));
     renderer.setSelection({ tile: pick.tile });
   });
@@ -270,26 +360,16 @@ export function initInput(ctx) {
     if (e.key === 'Enter' || e.key === 'e') { endTurn(); return; }
     if (e.key === ' ' && sel.unitId) {
       e.preventDefault(); // keep space from scrolling or re-firing a focused button
-      if (apply({ type: 'wait', playerId: session.state.activePlayer, unitId: sel.unitId })) {
-        nextUnit();
-      }
+      waitSelected();
       return;
     }
     if (e.key === 'b' && sel.unitId) {
       foundCityFlow();
       return;
     }
-    if (e.key === 'f' && sel.unitId) {
-      if (apply({ type: 'fortify', playerId: session.state.activePlayer, unitId: sel.unitId })) {
-        hud.note(`🛡 ${units[session.state.units[sel.unitId].type].name} fortified`);
-      }
-      return;
-    }
+    if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
     if ((e.key === 'i' || e.key === 'm' || e.key === 'r') && sel.unitId) {
-      const work = { i: 'irrigate', m: 'mine', r: 'road' }[e.key];
-      if (apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
-        hud.unitNote(session.state.units[sel.unitId]);
-      }
+      startWorkFor({ i: 'irrigate', m: 'mine', r: 'road' }[e.key]);
       return;
     }
     if (e.key === 'n') { nextUnit(); return; }

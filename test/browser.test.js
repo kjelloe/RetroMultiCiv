@@ -78,6 +78,8 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /Testopolis/, 'the scripted city must appear in the city panel');
     assert.match(dom, /manual tile assignment/,
       'clicking a mini-map tile must switch the city to manual worker assignment');
+    assert.match(dom, /actionbar: .*Found city.*Irrigate.*Mine.*Road.*Fortify.*Skip/,
+      'the selected settler must show its full action bar (e2e probe snapshot)');
     assert.match(dom, /needs [A-Z]/, 'the production catalog must list tech-locked items');
     assert.match(dom, /unlocks /, 'the research panel must show what techs unlock');
     assert.match(dom, /tax 50%/, 'the tax/science split must render at its default');

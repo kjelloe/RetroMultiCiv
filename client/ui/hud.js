@@ -1,6 +1,6 @@
 // HUD: status line, research bar, tile/selection text, the center banner.
 import { filterView } from '../../engine/visibility.js';
-import { researchCost } from '../../engine/tech.js';
+import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 
 export function initHud(ctx) {
@@ -10,35 +10,52 @@ export function initHud(ctx) {
   const hudSelection = document.getElementById('hud-selection');
   const researchFill = document.getElementById('research-fill');
   const researchLabel = document.getElementById('research-label');
-  const banner = document.getElementById('center-banner');
-  const flashEl = document.getElementById('flash-banner');
   const techs = session.ruleset.techs;
 
-  // transient center message (warnings, first contact, wonder fanfare)
-  let flashTimer = 0;
-  function flash(text) {
-    flashEl.textContent = text;
-    flashEl.classList.remove('hidden');
-    clearTimeout(flashTimer);
-    flashTimer = setTimeout(() => flashEl.classList.add('hidden'), 5000);
+  // Center messages are transient: gone after 5 s, dismissed early by any
+  // click (left or right, anywhere), re-shown when the action repeats.
+  function makeBanner(el) {
+    let timer = 0;
+    function show(text) {
+      el.textContent = text;
+      el.classList.remove('hidden');
+      clearTimeout(timer);
+      timer = setTimeout(hide, 5000);
+    }
+    function hide() {
+      clearTimeout(timer);
+      el.classList.add('hidden');
+    }
+    return { show, hide };
   }
+  const centerBanner = makeBanner(document.getElementById('center-banner'));
+  const flashBanner = makeBanner(document.getElementById('flash-banner'));
+  window.addEventListener('pointerdown', () => {
+    centerBanner.hide();
+    flashBanner.hide();
+  });
 
+  // totals with the per-turn gain/loss behind them: "12/40 (+3) · 💰 200 (+5)"
   function updateResearchBar() {
     const me = session.state.players[HUMAN];
     const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
+    const income = playerIncome(session.state, HUMAN, session.ruleset);
+    const goldDelta = income.gold - income.maintenance;
+    const money = `💰 ${me.gold} (${goldDelta >= 0 ? '+' : ''}${goldDelta})`;
     if (me.researching) {
       const cost = researchCost(session.state, HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';
-      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} · 💰 ${me.gold}`;
+      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money}`;
     } else {
       researchFill.style.width = '0%';
-      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs · 💰 ${me.gold}`;
+      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs (+${income.bulbs}) · ${money}`;
     }
   }
 
-  // unmissable, non-modal: shown when the human has no moves left this turn;
-  // the End Turn button turns green at the same moment
+  // Shown once when the last unit finishes moving (the End Turn button turns
+  // green and stays green); pressing N with nothing left re-shows it.
   const endTurnBtn = document.getElementById('end-turn');
+  let wasAllMoved = false;
   function updateBanner() {
     const state = session.state;
     let allMoved = false;
@@ -47,12 +64,12 @@ export function initHud(ctx) {
       allMoved = movable.length === 0;
     }
     endTurnBtn.classList.toggle('ready', allMoved);
-    if (allMoved) {
-      banner.textContent = 'no units with moves left — press E to end the turn';
-      banner.classList.remove('hidden');
-    } else {
-      banner.classList.add('hidden');
+    if (allMoved && !wasAllMoved) {
+      centerBanner.show('no units with moves left — press E to end the turn');
+    } else if (!allMoved) {
+      centerBanner.hide();
     }
+    wasAllMoved = allMoved;
   }
 
   function refresh() {
@@ -91,7 +108,8 @@ export function initHud(ctx) {
 
   return {
     refresh,
-    flash,
+    flash: flashBanner.show,
+    banner: centerBanner.show,
     note(text) { hudSelection.textContent = text; },
     unitNote,
     tile(text) { hudTile.textContent = text; }

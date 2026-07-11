@@ -116,6 +116,19 @@ test('marketplace boosts tax gold; maintenance drains it', async () => {
   assert.strictEqual(drained.state.players.p1.gold, 0);
 });
 
+test('playerIncome forecasts exactly what processResearch applies (HUD contract)', async () => {
+  const { tech, engine } = await load();
+  const state = labState({ taxRate: 50, sciRate: 50 });
+  state.cities.c1.buildings = ['marketplace']; // taxBonus 50, maintenance 1
+  const income = tech.playerIncome(state, 'p1', RULESET);
+  const after = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(after.players.p1.gold, income.gold - income.maintenance);
+  assert.strictEqual(after.players.p1.bulbs, income.bulbs);
+  // pure: forecasting must not touch the state
+  assert.strictEqual(state.players.p1.gold, 0);
+  assert.strictEqual(state.players.p1.bulbs, 0);
+});
+
 test('production is tech-gated', async () => {
   const { engine } = await load();
   const state = labState();

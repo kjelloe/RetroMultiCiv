@@ -63,6 +63,30 @@ function setRates(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'ratesSet', playerId: cmd.playerId, tax, sci }] };
 }
 
+// Per-turn income for one player, before it is applied: per-city trade split
+// so Marketplace/Bank (tax) and Library/University (sci) multiply their own
+// city's share; building maintenance comes out of gold. Pure — also used by
+// the client HUD to show "gold 200 (+5)" forecasts.
+function playerIncome(state, playerId, ruleset) {
+  const player = state.players[playerId];
+  const taxRate = player.taxRate === undefined ? ruleset.rules.defaultTaxRate : player.taxRate;
+  const sciRate = player.sciRate === undefined ? ruleset.rules.defaultSciRate : player.sciRate;
+  let gold = 0, bulbs = 0, maintenance = 0;
+  for (const cid of state.cityOrder || []) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== playerId) continue;
+    const trade = cityYields(state, city, ruleset).trade;
+    const cityTax = idiv(trade * taxRate, 100);
+    const citySci = idiv(trade * sciRate, 100);
+    gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
+    bulbs += citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
+    if (city.buildings !== undefined) {
+      for (const b of city.buildings) maintenance += ruleset.buildings[b].maintenance;
+    }
+  }
+  return { gold, bulbs, maintenance };
+}
+
 // Runs once per game turn (turn wrap): collect trade, split, maybe discover.
 function processResearch(state, ruleset, events) {
   for (const pid of state.playerOrder) {
@@ -71,24 +95,10 @@ function processResearch(state, ruleset, events) {
     if (player.sciRate === undefined) player.sciRate = ruleset.rules.defaultSciRate;
     if (player.bulbs === undefined) player.bulbs = 0;
 
-    // per-city split so Marketplace/Bank (tax) and Library/University (sci)
-    // multiply their own city's share; building maintenance comes out of gold
-    let gold = 0, bulbs = 0, maintenance = 0;
-    for (const cid of state.cityOrder || []) {
-      const city = state.cities[cid];
-      if (!city || city.owner !== pid) continue;
-      const trade = cityYields(state, city, ruleset).trade;
-      const cityTax = idiv(trade * player.taxRate, 100);
-      const citySci = idiv(trade * player.sciRate, 100);
-      gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
-      bulbs += citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
-      if (city.buildings !== undefined) {
-        for (const b of city.buildings) maintenance += ruleset.buildings[b].maintenance;
-      }
-    }
-    player.gold = player.gold + gold - maintenance;
+    const income = playerIncome(state, pid, ruleset);
+    player.gold = player.gold + income.gold - income.maintenance;
     if (player.gold < 0) player.gold = 0; // Civ 1 sells buildings; clamped for now
-    player.bulbs = player.bulbs + bulbs;
+    player.bulbs = player.bulbs + income.bulbs;
 
     if (player.researching !== '' && player.researching !== undefined) {
       const cost = researchCost(state, pid, ruleset);
@@ -102,4 +112,4 @@ function processResearch(state, ruleset, events) {
   }
 }
 
-export { researchCost, availableTechs, setResearch, setRates, processResearch, prereqsMet };
+export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, prereqsMet };

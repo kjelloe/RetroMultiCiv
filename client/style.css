@@ -67,7 +67,7 @@ html, body {
   top: 12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 300px;
+  width: 380px;
   height: 26px;
   background: rgba(10, 16, 28, 0.85);
   border: 1px solid #2a3a55;
@@ -440,6 +440,42 @@ html, body {
 
 #end-turn.ready:hover {
   background: #38804e;
+}
+
+/* --- action bar (selected unit's actions, bottom center) --- */
+#action-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 6;
+}
+
+#action-bar.hidden {
+  display: none;
+}
+
+#action-bar button {
+  padding: 8px 14px;
+  background: rgba(22, 35, 58, 0.95);
+  border: 1px solid #3b5d8f;
+  border-radius: 6px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#action-bar button:hover {
+  background: #2f5388;
+}
+
+#action-bar .key {
+  color: #ffe066;
+  font-size: 11px;
 }
 
 /* --- flash banner (transient center message) --- */

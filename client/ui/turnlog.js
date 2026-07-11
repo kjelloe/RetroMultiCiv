@@ -3,6 +3,7 @@
 // elimination that touches the player (including AI/barbarian turns).
 // The first combat flashes a center-screen pointer to the log.
 import { filterView } from '../../engine/visibility.js';
+import { availableTechs } from '../../engine/tech.js';
 
 export function initTurnLog(ctx) {
   const { session, hud, HUMAN } = ctx;
@@ -126,6 +127,9 @@ export function initTurnLog(ctx) {
         const unlocks = techUnlocks[e.tech] || [];
         add(`🔬 ${techs[e.tech].name} discovered`
           + (unlocks.length ? ` — unlocks ${unlocks.join(', ')}` : ''), 'win');
+        if (availableTechs(state, HUMAN, session.ruleset).length > 0) {
+          flashMessage(`🔬 ${techs[e.tech].name} discovered! Choose new research — press T or click the research bar`);
+        }
       }
     }
     scanContacts(state, true);
