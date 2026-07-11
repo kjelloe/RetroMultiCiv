@@ -132,7 +132,9 @@ engine test suite green; a replayed command log reproduces the same final state 
 - Per-player fog: the view shown is `visibility.filterView(state, activePlayerId)`
   — the exact function the server uses later, so this phase proves it.
 
-**Acceptance:** 2 humans + 1 AI hotseat game with no information leaks between players.
+**Acceptance:** 2 humans + 1 AI hotseat game with no information leaks between
+players — and a playtest scored against the 10-question checklist at the end
+of `specs/gameplay-reference.md` (the designer ally's loop test).
 
 ## Phase 3 — Backend-authoritative simulation
 
@@ -175,6 +177,33 @@ least one mid-game disconnect/reconnect.
 **Acceptance:** identical state hashes for a full replayed game; a playable
 Roblox session with the ported engine.
 
+## Art & assets track (parallel — from `specs/plan-assets.md`)
+
+Runs alongside the gameplay phases, entirely behind the renderer interface
+(`client/renderer/`) — no engine impact, no phase depends on it. Staged per
+the designer ally's plan:
+
+- **A0 — AssetFactory seam** *(cheap, do before A1)*: extract unit/city mesh
+  construction from `renderer/three/index.js` into an asset-factory module
+  (also relieves that file's size ceiling). Same primitives, one place to
+  swap implementations incrementally.
+- **A1 — Procedural low-poly kit** *(good timing: with phase 2/3, makes
+  hotseat playtests legible)*: `THREE.Group` assets from primitives — 3–4
+  land-unit silhouettes + one ship, settlement clusters scaling with
+  population (walls ring when City Walls built), ownership as banner/base
+  ring rather than whole-mesh recolor, forest/resource props (instanced),
+  improvement markers replacing the tile tints. The ally judges this
+  "enough for a compelling local prototype."
+- **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
+  GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
+  Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel
+  factory), but `.glb` does NOT — Roblox needs its own MeshPart pipeline.
+  Keep all model construction inside the factory so the platforms can
+  diverge there and nowhere else.
+- **A3 — Animation & polish** *(only after gameplay is solid)*: flag sway,
+  unit movement bob, combat lunge, found-city construction effect — via the
+  renderer's existing `playEvents(events)` hook, which is still a no-op.
+
 ## Phase 6+ — Deferred Civ 1 features (post-port or interleaved)
 
 In rough priority order:
@@ -184,5 +213,10 @@ In rough priority order:
 3. Pollution & global warming; Recycling/Mass Transit become meaningful
 4. Spaceship construction + space-race victory (Apollo Program gate)
 5. Difficulty levels (Chieftain→Emperor modifiers)
-6. Higher-fidelity renderer pass (unit models, water, globe view) behind the renderer interface
+6. On-map city radius display (select a city → its fat cross via the
+   renderer footprint overlay); formal culture borders much later
+   (gameplay-reference Priority 2 §9)
 7. Simultaneous turns / timer option for multiplayer
+8. Globe view / water shaders and other renderer luxuries (see the art
+   track above for the staged asset plan that replaced the old
+   "renderer pass" item here)
