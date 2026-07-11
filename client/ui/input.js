@@ -115,9 +115,15 @@ export function initInput(ctx) {
     noMovesLeft: 'no moves left this turn',
     cityExists: 'a city already stands here',
     notSettlers: 'only settlers can do that',
-    alreadyFortified: 'already fortified'
+    alreadyFortified: 'already fortified',
+    nothingToPillage: 'nothing to pillage on this tile',
+    notEnoughGold: 'not enough gold',
+    alreadyComplete: 'production is already complete'
   };
-  const ACTION_COMMANDS = { startWork: true, foundCity: true, fortify: true, wait: true };
+  const ACTION_COMMANDS = {
+    startWork: true, foundCity: true, fortify: true, wait: true,
+    pillage: true, disband: true, buy: true
+  };
 
   function apply(cmd) {
     const res = session.apply(cmd);
@@ -155,6 +161,30 @@ export function initInput(ctx) {
     if (!sel.unitId) return;
     if (apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
       hud.unitNote(session.state.units[sel.unitId]);
+    }
+  }
+
+  function pillageSelected() {
+    if (!sel.unitId) return;
+    if (apply({ type: 'pillage', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note('🔥 improvement destroyed');
+    }
+  }
+
+  // destructive: needs a second press on the same unit within 5 seconds
+  let confirmDisband = { unitId: null, until: 0 };
+  function disbandSelected() {
+    if (!sel.unitId || !session.state.units[sel.unitId]) return;
+    const unit = session.state.units[sel.unitId];
+    if (confirmDisband.unitId !== unit.id || Date.now() > confirmDisband.until) {
+      confirmDisband = { unitId: unit.id, until: Date.now() + 5000 };
+      hud.banner(`⚠ Disband ${units[unit.type].name}? X / Disband again to confirm`);
+      return;
+    }
+    confirmDisband = { unitId: null, until: 0 };
+    if (apply({ type: 'disband', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note('☠ unit disbanded');
+      nextUnit();
     }
   }
 
@@ -263,6 +293,12 @@ export function initInput(ctx) {
     }
     if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
     actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });
+    const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+    if (session.ruleset.units[unit.type].domain === 'land'
+        && (tile.irrigation || tile.mine || tile.road)) {
+      actions.push({ label: '🔥 Pillage', key: 'P', run: pillageSelected });
+    }
+    actions.push({ label: '☠ Disband', key: 'X', run: disbandSelected });
     for (const a of actions) {
       const btn = document.createElement('button');
       btn.innerHTML = `${a.label} <span class="key">${a.key}</span>`;
@@ -352,6 +388,11 @@ export function initInput(ctx) {
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.key === 'Escape') { panels.closeAll(); return; }
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && panels.isCityOpen()) {
+      e.preventDefault();
+      panels.cycleCity(e.key === 'ArrowLeft' ? -1 : 1);
+      return;
+    }
     if (MOVE_KEYS[e.key] && sel.unitId && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       moveSelected(MOVE_KEYS[e.key]);
@@ -368,6 +409,8 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
+    if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
+    if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }
     if ((e.key === 'i' || e.key === 'm' || e.key === 'r') && sel.unitId) {
       startWorkFor({ i: 'irrigate', m: 'mine', r: 'road' }[e.key]);
       return;

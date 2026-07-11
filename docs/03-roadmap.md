@@ -33,7 +33,8 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    AI-less players); ✅ fog of war (`engine/visibility.js`: persistent explored
    arrays, computed sight — units r1, cities r2 — and `filterView`, the exact
    per-player view the phase-3 server will send; client renders unknown/dimmed
-   tiles). ⬜ remaining: GoTo.
+   tiles); ✅ wait/skip (Space) and disband *(2026-07-11)*.
+   ⬜ remaining: GoTo (client-side by design — see `04-phase1-enrichments.md` §4).
 4. 🔶 **Cities** *(core done 2026-07-10)* — ✅ `engine/cities.js`: foundCity
    (settlers consumed, min-1-tile spacing), auto-assigned worked tiles from the
    21-tile fat cross, food box growth/starvation, shield production of units,
@@ -41,9 +42,11 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    production, HUD city panel. Locked by scenario 003 (hash `0xa1c78141`).
    ✅ city screen UI (panel with yields, growth/production ETAs, clickable
    5×5 worked-tile map with manual assignment via `setWorkers`, production
-   catalog); ⬜ remaining: buy, specialists, happiness, tile contention
-   between cities. *(buildings/wonders production and the trade/tax split
-   landed with step 6's slices below.)*
+   catalog); ✅ buy *(2026-07-11 — flat 2 gold per missing shield, wonders 4;
+   scenario 009)*. ⬜ remaining: specialists, happiness, tile contention
+   between cities (all designed in `04-phase1-enrichments.md`).
+   *(buildings/wonders production and the trade/tax split landed with
+   step 6's slices below.)*
 5. 🔶 **Combat + barbarians** *(core done 2026-07-10)* — ✅ `engine/combat.js`:
    Civ 1 one-shot combat in pure integer math (strengths as products, roll in
    [0, att+def)), terrain/river/fortify/veteran multipliers, strongest-defender
@@ -112,10 +115,14 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    tuning values, the wiki has no turn counts). Client: I/M/R keys, tile
    tints, turn-log entries, working settlers skipped by N/auto-select and
    the End Turn readiness check. Locked by scenario 008 (`0xbaf61c43`).
+   ✅ pillage *(2026-07-11 — field works fall before roads; scenario 009)*.
    ⬜ remaining: AI use, terrain transforms (clear/drain/plant), railroads,
-   Fortress, pillage.
+   Fortress (all designed in `04-phase1-enrichments.md`).
 
 **Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
+The remaining ⬜ enrichments above are specified in
+[`04-phase1-enrichments.md`](04-phase1-enrichments.md) with a suggested
+implementation order — they interleave with the phases below.
 
 **Acceptance:** a complete game vs 2 AI civs, start to victory, in the browser;
 engine test suite green; a replayed command log reproduces the same final state hash.

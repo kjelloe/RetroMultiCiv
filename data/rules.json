@@ -10,5 +10,7 @@
     "road": 3,
     "irrigate": 5,
     "mine": 10
-  }
+  },
+  "buyGoldPerShield": 2,
+  "buyGoldPerShieldWonder": 4
 }

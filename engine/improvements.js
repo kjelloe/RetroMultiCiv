@@ -66,6 +66,28 @@ function startWork(state, cmd, ruleset) {
   return { ok: true, events: [{ type: 'workStarted', unitId: unit.id, work, x: unit.x, y: unit.y }] };
 }
 
+// Pillage: a land unit destroys one improvement on its tile — the field works
+// (irrigation/mine) fall before the road, as in Civ 1. Costs the turn.
+function pillage(state, cmd, ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
+  if (ruleset.units[unit.type].domain !== 'land') return { ok: false, reason: 'badTerrain' };
+  const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+  let destroyed = '';
+  if (tile.irrigation === true) { delete tile.irrigation; destroyed = 'irrigation'; }
+  else if (tile.mine === true) { delete tile.mine; destroyed = 'mine'; }
+  else if (tile.road === true) { delete tile.road; destroyed = 'road'; }
+  else return { ok: false, reason: 'nothingToPillage' };
+  unit.moves = 0;
+  return {
+    ok: true,
+    events: [{ type: 'pillaged', unitId: unit.id, owner: unit.owner, destroyed, x: unit.x, y: unit.y }]
+  };
+}
+
 // Runs once per game turn (turn wrap), before cities harvest, so a finished
 // improvement feeds the same turn's yields.
 function processWork(state, ruleset, events) {
@@ -86,4 +108,4 @@ function processWork(state, ruleset, events) {
   }
 }
 
-export { startWork, processWork, hasWaterSource, workFlag };
+export { startWork, processWork, pillage, hasWaterSource, workFlag };

@@ -68,7 +68,10 @@
       <li><b>I / M / R</b> — settlers: irrigate / mine / road</li>
       <li><b>F</b> — fortify unit</li>
       <li><b>Space</b> — skip unit this turn (wait)</li>
+      <li><b>P</b> — pillage improvement on this tile</li>
+      <li><b>X</b> — disband unit (press twice)</li>
       <li><b>N</b> — next idle unit (skips fortified)</li>
+      <li><b>← / →</b> — previous / next city (in city view)</li>
       <li><b>1 / 2 / 3</b> — quick unit production</li>
       <li><b>C</b> — cycle buildings / wonders</li>
       <li><b>T</b> — cycle research</li>
@@ -97,6 +100,8 @@
   </div>
 
   <div id="city-panel" class="panel hidden">
+    <button id="city-prev" class="city-nav" title="previous city (←)">‹</button>
+    <button id="city-next" class="city-nav" title="next city (→)">›</button>
     <div class="panel-head"><h3 id="city-title">City</h3><button class="panel-close" data-close="city-panel">✕</button></div>
     <div id="city-body">
       <div id="city-left">

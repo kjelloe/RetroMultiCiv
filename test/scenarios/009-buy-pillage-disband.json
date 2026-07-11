@@ -1,0 +1,71 @@
+{
+  "name": "buy fills the shield box, pillage strips improvements, disband removes units",
+  "notes": "c1 (pop 1) works its special center + the irrigated/roaded tile 1. Buying the militia (10 shields missing) costs 20 gold at 2/shield; production completes at the wrap. Pillage destroys field works before the road (two actions over two turns). Buying settlers (30 missing = 60 gold) is unaffordable after the first purchase.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
+      "map": {
+        "width": 3, "height": 1, "wrapX": false,
+        "tiles": [
+          { "t": "grassland", "special": true },
+          { "t": "grassland", "irrigation": true, "road": true },
+          { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "u1": { "id": "u1", "type": "militia", "owner": "p1", "x": 1, "y": 0, "moves": 1, "fortified": false, "veteran": false },
+        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 2, "y": 0, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {
+        "c1": { "id": "c1", "name": "Emporium", "owner": "p1", "x": 0, "y": 0, "pop": 1, "food": 0, "shields": 0, "buildings": [], "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["c1"],
+      "wonders": {},
+      "nextUnitId": 3,
+      "nextCityId": 2,
+      "players": {
+        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 30, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 42
+    }
+  },
+  "script": [
+    { "cmd": { "type": "buy", "playerId": "p1", "cityId": "c1" },
+      "expect": { "ok": true, "state": { "players.p1.gold": 10, "cities.c1.shields": 10 } },
+      "notes": "10 missing shields x 2 gold" },
+    { "cmd": { "type": "buy", "playerId": "p1", "cityId": "c1" },
+      "expect": { "ok": false }, "notes": "alreadyComplete" },
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "settlers" } },
+      "expect": { "ok": true, "state": { "cities.c1.shields": 10 } },
+      "notes": "same category: no shield forfeit" },
+    { "cmd": { "type": "buy", "playerId": "p1", "cityId": "c1" },
+      "expect": { "ok": false }, "notes": "30 missing = 60 gold, only 10 left: notEnoughGold" },
+    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "militia" } },
+      "expect": { "ok": true } },
+    { "cmd": { "type": "pillage", "playerId": "p1", "unitId": "u1" },
+      "expect": { "ok": true, "state": { "map.tiles.1.irrigation": null, "map.tiles.1.road": true, "units.u1.moves": 0 } },
+      "notes": "field works fall before the road" },
+    { "cmd": { "type": "pillage", "playerId": "p1", "unitId": "u1" },
+      "expect": { "ok": false }, "notes": "turn spent" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
+    { "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true, "state": { "units.u3.type": "militia", "cities.c1.shields": 1 } },
+      "notes": "bought militia completes at the wrap (10 + 1 harvested - 10 cost)" },
+    { "cmd": { "type": "pillage", "playerId": "p1", "unitId": "u1" },
+      "expect": { "ok": true, "state": { "map.tiles.1.road": null } } },
+    { "cmd": { "type": "pillage", "playerId": "p1", "unitId": "u3" },
+      "expect": { "ok": false }, "notes": "nothing left to pillage on the city tile" },
+    { "cmd": { "type": "disband", "playerId": "p1", "unitId": "u2" },
+      "expect": { "ok": false }, "notes": "not your unit" },
+    { "cmd": { "type": "disband", "playerId": "p1", "unitId": "u1" },
+      "expect": { "ok": true, "state": { "units.u1": null } } }
+  ],
+  "final": {
+    "hash": "0xfd859ea2"
+  }
+}

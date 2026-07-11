@@ -16,6 +16,17 @@ export function initPanels(ctx) {
   let chosenTech = null;
   let stackTile = null;
 
+  // Double-clicks can't be caught with 'dblclick': the first click re-renders
+  // the option list, so the second click lands on a fresh element. Detect
+  // repeats by key + time instead.
+  let lastOptionClick = { key: '', at: 0 };
+  function isDoubleClick(key) {
+    const now = Date.now();
+    const dbl = lastOptionClick.key === key && now - lastOptionClick.at < 450;
+    lastOptionClick = { key: dbl ? '' : key, at: now };
+    return dbl;
+  }
+
   // yields as color-coded food/shields/trade spans
   function yieldsHtml(f, s, t) {
     return `<span class="yf">${f}</span>/<span class="ys">${s}</span>/<span class="yt">${t}</span>`;
@@ -110,11 +121,11 @@ export function initPanels(ctx) {
         btn.appendChild(fx);
       }
       btn.addEventListener('click', () => {
+        if (isDoubleClick('tech:' + id)) { startResearch(id); return; }
         chosenTech = id;
         startBtn.disabled = false;
         fillResearchPanel();
       });
-      btn.addEventListener('dblclick', () => startResearch(id));
       list.appendChild(btn);
     }
     if (avail.length === 0) {
@@ -161,6 +172,17 @@ export function initPanels(ctx) {
     cityPanel.classList.add('hidden');
   }
 
+  // ‹ › arrows (and ←/→ keys) walk your cities in founding order
+  function cycleCity(dir) {
+    const state = session.state;
+    const mine = state.cityOrder.filter(id => state.cities[id] && state.cities[id].owner === HUMAN);
+    if (mine.length === 0) return;
+    const idx = mine.indexOf(openCityId);
+    openCityPanel(mine[((idx === -1 ? 0 : idx) + dir + mine.length) % mine.length]);
+  }
+  document.getElementById('city-prev').addEventListener('click', () => cycleCity(-1));
+  document.getElementById('city-next').addEventListener('click', () => cycleCity(1));
+
   function setProduction(city, item, closeAfter) {
     const res = session.apply({ type: 'setProduction', playerId: HUMAN, cityId: city.id, item });
     if (!res.ok) ctx.hud.note(`✗ setProduction: ${res.reason}`);
@@ -183,6 +205,15 @@ export function initPanels(ctx) {
     const threshold = 10 * (city.pop + 1);
     const def = itemDef(city.producing);
     const idle = city.pop - (worked.length - 1);
+    // rush-buy: flat gold per missing shield (wonders cost more)
+    const missing = def.cost - city.shields;
+    const buyRate = city.producing.kind === 'wonder'
+      ? session.ruleset.rules.buyGoldPerShieldWonder : session.ruleset.rules.buyGoldPerShield;
+    const buyPrice = missing * buyRate;
+    const canBuy = missing > 0 && state.players[HUMAN].gold >= buyPrice;
+    const buyHtml = missing > 0
+      ? ` <button id="city-buy"${canBuy ? '' : ' disabled'} title="finish it now for gold">💰 Buy ${buyPrice}</button>`
+      : '';
     const stats = document.getElementById('city-stats');
     stats.innerHTML =
       `<div>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
@@ -193,6 +224,7 @@ export function initPanels(ctx) {
         ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns` : 'no growth'}</div>`
       + `<div>building: ${def.name} <span class="ys">${city.shields}/${def.cost}</span>`
       + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((def.cost - city.shields) / totals.shields))} turns)` : '')
+      + buyHtml
       + '</div>'
       + `<div>${(city.buildings || []).length
         ? 'built: ' + (city.buildings || []).map(b => buildings[b].name).join(', ')
@@ -202,6 +234,11 @@ export function initPanels(ctx) {
         : '👷 automatic tile assignment — click a tile to take over'}`
       + (idle > 0 ? ` · <span class="loss">💤 ${idle} idle citizen${idle > 1 ? 's' : ''}</span>` : '')
       + '</div>';
+    const buyBtn = document.getElementById('city-buy');
+    if (buyBtn) {
+      buyBtn.addEventListener('click', () =>
+        ctx.apply({ type: 'buy', playerId: HUMAN, cityId: city.id }));
+    }
 
     // 5x5 workable area, city at the center; clicking tiles reassigns workers
     const map = document.getElementById('city-map');
@@ -291,8 +328,9 @@ export function initPanels(ctx) {
       btn.className = 'option'
         + (city.producing.kind === item.kind && city.producing.id === item.id ? ' current' : '');
       btn.innerHTML = label + (sub ? `<div class="fx">${sub}</div>` : '');
-      btn.addEventListener('click', () => setProduction(city, item, false));
-      btn.addEventListener('dblclick', () => setProduction(city, item, true));
+      // second click on the same item = set + close (quick change)
+      btn.addEventListener('click', () =>
+        setProduction(city, item, isDoubleClick(`prod:${item.kind}:${item.id}`)));
       prodEl.appendChild(btn);
     };
     const addLocked = (label, techId) => {
@@ -460,7 +498,7 @@ export function initPanels(ctx) {
   }
 
   return {
-    openCityPanel, closeCityPanel, toggleResearchPanel,
+    openCityPanel, closeCityPanel, toggleResearchPanel, cycleCity,
     openStackPanel, closeStackPanel, openNameDialog, closeAll, refresh,
     isCityOpen: () => openCityId !== null
   };

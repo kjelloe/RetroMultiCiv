@@ -96,6 +96,17 @@ function moveUnit(state, cmd, ruleset) {
   return { ok: true, events };
 }
 
+// Disband: the unit is removed for nothing in return (Civ 1: shed upkeep,
+// clear a tile, or retire obsolete units).
+function disband(state, cmd, _ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  delete state.units[cmd.unitId];
+  return { ok: true, events: [{ type: 'unitDisbanded', unitId: cmd.unitId, x: unit.x, y: unit.y }] };
+}
+
 // Wait/skip: the unit stays put and is done for this turn (Civ 1 space bar).
 function wait(state, cmd, _ruleset) {
   const unit = state.units[cmd.unitId];
@@ -121,4 +132,4 @@ function fortify(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'unitFortified', unitId: unit.id }] };
 }
 
-export { moveUnit, fortify, wait, tileAt, wrapX, DIRS };
+export { moveUnit, fortify, wait, disband, tileAt, wrapX, DIRS };

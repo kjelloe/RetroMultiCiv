@@ -349,6 +349,10 @@ below is a known, deliberate deviation to be closed in a later slice:
   Marketplace, Bank, Library, University work; Temple/Cathedral/Colosseum
   (happiness), Factory chain (shields), Courthouse (corruption), and Palace
   await their systems. Wonder effects: Colossus and Great Wall only so far.
+- **Buy uses a flat price** — 2 gold per missing shield (wonders 4,
+  `rules.json`) instead of Civ 1's tiered formula; purchases complete at the
+  next turn wrap. Pillage destroys field works (irrigation/mine) before
+  roads, one per action.
 - **Negative treasury is clamped to 0** — Civ 1 sells buildings instead.
 - **Score counts citizens/techs/wonders only** — happy-citizen points, Future
   Tech points, and the pollution penalty from §10's full formula await their

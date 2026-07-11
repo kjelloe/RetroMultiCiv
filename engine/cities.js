@@ -230,6 +230,33 @@ function setProduction(state, cmd, ruleset) {
   return { ok: true, events: [{ type: 'productionSet', cityId: city.id, item: city.producing }] };
 }
 
+// Buy: pay gold to fill the shield box; the purchase completes at the next
+// turn wrap like any production. Flat gold-per-missing-shield price
+// (rules.json; wonders cost more) — a simplification of Civ 1's tiered
+// formula, documented in the spec deviations.
+function buyProduction(state, cmd, ruleset) {
+  const city = state.cities[cmd.cityId];
+  if (!city) return { ok: false, reason: 'unknownCity' };
+  if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  const prod = city.producing;
+  let def = null;
+  if (prod.kind === 'unit') def = ruleset.units[prod.id];
+  else if (prod.kind === 'building') def = ruleset.buildings[prod.id];
+  else if (prod.kind === 'wonder') def = ruleset.wonders[prod.id];
+  if (!def) return { ok: false, reason: 'badItem' };
+  const missing = def.cost - city.shields;
+  if (missing <= 0) return { ok: false, reason: 'alreadyComplete' };
+  const rate = prod.kind === 'wonder'
+    ? ruleset.rules.buyGoldPerShieldWonder : ruleset.rules.buyGoldPerShield;
+  const price = missing * rate;
+  const player = state.players[cmd.playerId];
+  if (player.gold < price) return { ok: false, reason: 'notEnoughGold' };
+  player.gold = player.gold - price;
+  city.shields = def.cost;
+  return { ok: true, events: [{ type: 'productionBought', cityId: city.id, price, item: prod }] };
+}
+
 // Runs once per game turn (when the last player ends): food box + production.
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
@@ -311,7 +338,7 @@ function processCities(state, ruleset, events) {
 }
 
 export {
-  foundCity, setProduction, setWorkers, processCities, cityYields, workedTiles,
-  candidateTiles, tileYields, FAT_CROSS, hasBuilding, wonderActive,
-  wonderInCity, effectPct
+  foundCity, setProduction, setWorkers, buyProduction, processCities,
+  cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
+  wonderActive, wonderInCity, effectPct
 };

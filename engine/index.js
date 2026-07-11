@@ -70,6 +70,9 @@ function createEngine(ruleset) {
     else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
     else if (cmd.type === 'setWorkers') result = cities.setWorkers(next, cmd, ruleset);
     else if (cmd.type === 'startWork') result = improvements.startWork(next, cmd, ruleset);
+    else if (cmd.type === 'pillage') result = improvements.pillage(next, cmd, ruleset);
+    else if (cmd.type === 'disband') result = movement.disband(next, cmd, ruleset);
+    else if (cmd.type === 'buy') result = cities.buyProduction(next, cmd, ruleset);
     else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
     else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };

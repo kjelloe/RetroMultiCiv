@@ -3,7 +3,9 @@
 Browser 4X game recreating Sid Meier's Civilization (1991), built so the
 simulation engine ports mechanically to Roblox Luau. Read `docs/` before
 structural changes: `01-game-spec.md` (rules), `02-architecture.md`
-(engine-as-reducer, stack), `03-roadmap.md` (phases).
+(engine-as-reducer, stack), `03-roadmap.md` (phases),
+`04-phase1-enrichments.md` (designs for unimplemented Civ 1 systems —
+follow these when picking one up).
 
 ## Hard rules
 

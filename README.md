@@ -18,6 +18,7 @@ to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
 | [docs/01-game-spec.md](docs/01-game-spec.md) | Game rules: map, cities, units, combat, full Civ 1 tech tree, wonders, governments, AI, victory |
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
 | [docs/03-roadmap.md](docs/03-roadmap.md) | Five development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port |
+| [docs/04-phase1-enrichments.md](docs/04-phase1-enrichments.md) | Designs for the remaining Civ 1 systems (happiness, governments, transforms, goody huts…) with state shapes and hash-impact notes |
 | [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
@@ -92,7 +93,9 @@ clusters (owner-colored roofs, banner, walls once City Walls is built),
 trees on forests and jungles, and on-map markers for irrigation, mines,
 roads, and special resources.
 **Phase 1 complete: a full, winnable game vs AI.**
-82 headless tests including hash-locked JSON scenarios, an AI-determinism
+Cities can **rush-buy** production for gold, units can pillage and disband,
+and the city view pages through your empire with ‹ › arrows (or ←/→).
+83 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e that boots the client and inspects the live
 panels. Next: phase 2 — hotseat multiplayer.
 
