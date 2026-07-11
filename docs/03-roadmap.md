@@ -88,6 +88,22 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    localStorage (the state is plain JSON — that was the architecture's
    promise); round-trip hash equality tested. ⬜ later: command-log saves,
    file export.
+9. ✅ **Decision-support UI** *(done 2026-07-11, client-only)* — from the
+   ally's gameplay-loop review (`specs/gameplay-reference.md`): combat odds
+   preview on enemy hover (word + % + multiplier breakdown), settler site
+   rating with on-map footprint overlay, production catalog with per-item
+   ETAs / plain-language effects / tech-locked items showing their
+   prerequisite, research panel unlock + leads-to sublines, tax/science
+   slider, unit stat card in the HUD, End Turn goes green when every unit
+   has moved, and the combat log grew into a full **turn log** (growth,
+   completions, research, famine, wonder news, first-contact sightings).
+   ⬜ remaining from that review: terrain improvements
+   (irrigate/mine/road — an engine chunk, see below).
+10. ⬜ **Terrain improvements** — Settlers spend turns building: irrigate
+   (+1 food), mine (+1 shield), road (cheaper movement, +1 trade on some
+   terrains). The one gameplay system from the ally's review the engine
+   lacks entirely; needs tile flags, a Settler work command, AI use, and
+   its own JSON scenario.
 
 **Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
 

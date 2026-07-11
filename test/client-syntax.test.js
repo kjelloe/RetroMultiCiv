@@ -16,7 +16,7 @@ const CLIENT_MODULES = [
   'client/ui/panels.js',
   'client/ui/input.js',
   'client/ui/saves.js',
-  'client/ui/combatlog.js',
+  'client/ui/turnlog.js',
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
   'engine/ai.js',

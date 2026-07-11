@@ -56,7 +56,7 @@ client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
-ui/{hud,panels,input,saves,combatlog}. UI reads session.state and calls
+ui/{hud,panels,input,saves,turnlog}. UI reads session.state and calls
 session.apply()/endTurn(); session.onChange drives refresh. Keyboard handlers
 must ignore events from INPUT/TEXTAREA targets (dialogs).
 

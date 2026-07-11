@@ -31,9 +31,9 @@
   <div id="center-banner" class="hidden"></div>
   <div id="flash-banner" class="hidden"></div>
 
-  <details id="combat-log">
-    <summary>⚔ Combat log</summary>
-    <div id="combat-list"></div>
+  <details id="turn-log">
+    <summary>📜 Turn log</summary>
+    <div id="turn-list"></div>
   </details>
 
   <div id="name-dialog" class="panel hidden">
@@ -58,6 +58,8 @@
       <li><b>wheel</b> — zoom</li>
       <li><b>click unit</b> — select it (stacks show a unit list)</li>
       <li><b>WASD / arrows / click neighbor</b> — move or attack</li>
+      <li><b>hover an enemy</b> — combat odds preview</li>
+      <li><b>hover with settlers</b> — city site rating + footprint</li>
       <li><b>click city</b> — open the city view</li>
       <li><b>double-click city</b> — city view even with units on the tile</li>
       <li><b>B</b> — found city (settlers)</li>
@@ -79,6 +81,11 @@
   <div id="research-panel" class="panel hidden">
     <div class="panel-head"><h3>🔬 Research</h3><button class="panel-close" data-close="research-panel">✕</button></div>
     <div id="research-summary"></div>
+    <div id="rates-row">
+      <span id="rate-tax"></span>
+      <input id="rate-slider" type="range" min="0" max="100" step="10" title="Split trade between tax (gold) and science (bulbs)">
+      <span id="rate-sci"></span>
+    </div>
     <div id="research-list"></div>
     <div class="panel-foot">
       <button id="research-start" disabled>Start research</button>

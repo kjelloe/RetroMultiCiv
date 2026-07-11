@@ -8,7 +8,7 @@ import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
-import { initCombatLog } from './ui/combatlog.js';
+import { initTurnLog } from './ui/turnlog.js';
 
 const HUMAN = 'p1';
 const hudStatus = document.getElementById('hud-status');
@@ -103,8 +103,7 @@ ctx.selectUnit = (unit, opts) => {
   sel.cityId = null;
   renderer.setSelection({ unitId: unit.id });
   if (!opts || !opts.keepStack) ctx.panels.closeStackPanel();
-  const hint = unit.type === 'settlers' ? ' · B: found city' : ' · F: fortify';
-  ctx.hud.note(`${units[unit.type].name} at (${unit.x},${unit.y}) · moves ${unit.moves}${hint}`);
+  ctx.hud.unitNote(unit);
 };
 
 // next unused name from the civilization's roster, else a numbered fallback
@@ -123,7 +122,7 @@ ctx.hud = initHud(ctx);
 ctx.panels = initPanels(ctx);
 initInput(ctx);
 initSaves(ctx);
-initCombatLog(ctx);
+initTurnLog(ctx);
 
 session.onChange(() => {
   ctx.hud.refresh();
@@ -137,4 +136,15 @@ const firstUnit = Object.values(session.state.units).find(
 if (firstUnit) {
   ctx.selectUnit(firstUnit);
   renderer.centerOn(firstUnit.x, firstUnit.y);
+}
+
+// ?e2e=1: scripted sequence for the headless browser test — found a city with
+// the starting settlers and fill both panels, so their code paths execute
+// (hidden panel content stays in the DOM for --dump-dom to assert on).
+if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
+  session.apply({ type: 'foundCity', playerId: HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
+  ctx.panels.toggleResearchPanel();
+  if (session.state.cityOrder.length > 0) {
+    ctx.panels.openCityPanel(session.state.cityOrder[0]);
+  }
 }

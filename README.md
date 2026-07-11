@@ -18,7 +18,7 @@ to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
 | [docs/01-game-spec.md](docs/01-game-spec.md) | Game rules: map, cities, units, combat, full Civ 1 tech tree, wonders, governments, AI, victory |
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
 | [docs/03-roadmap.md](docs/03-roadmap.md) | Five development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port |
-| [reference-design.md](reference-design.md) | The designer ally's original "Project Founders" spec — kept for reference; its adopted ideas are merged into the docs above |
+| [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
 
@@ -67,15 +67,21 @@ wonder race). Cities have a full city view: production catalog, yields and
 growth/production forecasts, population badges on the map, and a clickable
 worked-tile map for manual worker placement (optimize food, shields, or trade
 per city). Founding prompts for a name from your civilization's historic city
-list, and a collapsible combat log tracks every battle. And
-now: **AI opponents** that explore, settle, defend, and attack under their own
+list. **AI opponents** explore, settle, defend, and attack under their own
 fog of war; **victory conditions** (conquest or score at 2100 AD, with a
-victory/defeat banner); and **save/load** — S/L for quick browser saves,
+victory/defeat banner); and **save/load** — F5/F9 for quick browser saves,
 Shift+S to download a JSON save file, Shift+L or drag-and-drop to load one
 (great for sharing bug reports). Start a bigger game with
-`?civs=3` (up to 7). **Phase 1 complete: a full, winnable game vs AI.**
-70 headless tests including hash-locked JSON scenarios, an AI-determinism
-lock, and a real-browser e2e smoke test. Next: phase 2 — hotseat multiplayer.
+`?civs=3` (up to 7). The UI explains itself: hovering an enemy shows a
+**combat odds preview** with the multiplier breakdown, a selected settler
+rates the hovered tile as a city site and projects its footprint on the map,
+the production catalog shows per-item build times, plain-language effects,
+and what technology unlocks the locked entries, and a collapsible **turn log**
+narrates growth, completions, discoveries, wonder news, first contacts, and
+every battle. **Phase 1 complete: a full, winnable game vs AI.**
+74 headless tests including hash-locked JSON scenarios, an AI-determinism
+lock, and a real-browser e2e that boots the client and inspects the live
+panels. Next: phase 2 — hotseat multiplayer.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

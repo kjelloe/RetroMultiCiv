@@ -21,6 +21,39 @@ export function initPanels(ctx) {
     return `<span class="yf">${f}</span>/<span class="ys">${s}</span>/<span class="yt">${t}</span>`;
   }
 
+  // plain-language lines for the structured effect fields (tools/mapdata.js overlays)
+  const EFFECT_TEXT = {
+    halvesGrowthFood: () => 'keeps half the food box when the city grows',
+    growthPast10: () => 'lets the city grow beyond population 10',
+    veteranUnits: () => 'new units here start as veterans',
+    defenseMultiplier: v => `defenders ×${v} against attacks`,
+    taxBonus: v => `+${v}% gold in this city`,
+    sciBonus: v => `+${v}% science in this city`,
+    cityTradeBonus: () => '+1 trade on every trade tile here',
+    wallsEverywhere: () => 'city walls in all your cities'
+  };
+  function effectText(def) {
+    const parts = [];
+    for (const key of Object.keys(def.effect || {})) {
+      if (EFFECT_TEXT[key]) parts.push(EFFECT_TEXT[key](def.effect[key]));
+    }
+    if (def.obsoleteBy) parts.push(`obsolete with ${techs[def.obsoleteBy].name}`);
+    return parts.join(' · ');
+  }
+
+  // tech id -> what it unlocks / which techs need it (research panel sublines)
+  const techUnlocks = {};
+  const techLeadsTo = {};
+  {
+    const add = (map, key, name) => { (map[key] = map[key] || []).push(name); };
+    for (const id of Object.keys(units)) if (units[id].tech !== '') add(techUnlocks, units[id].tech, units[id].name);
+    for (const id of Object.keys(buildings)) if (buildings[id].tech !== '') add(techUnlocks, buildings[id].tech, buildings[id].name);
+    for (const id of Object.keys(wonders)) if (wonders[id].tech !== '') add(techUnlocks, wonders[id].tech, wonders[id].name + ' 🏆');
+    for (const id of Object.keys(techs)) {
+      for (const p of techs[id].prereqs) add(techLeadsTo, p, techs[id].name);
+    }
+  }
+
   // --- research panel --------------------------------------------------------
   function startResearch(techId) {
     if (!techId) return;
@@ -39,7 +72,13 @@ export function initPanels(ctx) {
     const cost = researchCost(state, HUMAN, session.ruleset);
     document.getElementById('research-summary').textContent =
       `${me.techs.length}/${Object.keys(techs).length} advances known · `
-      + `${me.bulbs || 0} bulbs · next costs ${cost} · tax ${me.taxRate}% / sci ${me.sciRate}%`;
+      + `${me.bulbs || 0} bulbs · next costs ${cost}`;
+
+    const tax = me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate;
+    const sci = me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate;
+    document.getElementById('rate-tax').textContent = `💰 tax ${tax}%`;
+    document.getElementById('rate-sci').textContent = `sci ${sci}% 🔬`;
+    document.getElementById('rate-slider').value = sci;
 
     const list = document.getElementById('research-list');
     list.textContent = '';
@@ -59,6 +98,17 @@ export function initPanels(ctx) {
         + (me.researching === id ? ' current' : '')
         + (chosenTech === id ? ' chosen' : '');
       btn.textContent = techs[id].name;
+      const unlocks = techUnlocks[id] || [];
+      const leads = techLeadsTo[id] || [];
+      const bits = [];
+      if (unlocks.length) bits.push(`unlocks ${unlocks.join(', ')}`);
+      if (leads.length) bits.push(`→ ${leads.slice(0, 3).join(', ')}${leads.length > 3 ? '…' : ''}`);
+      if (bits.length) {
+        const fx = document.createElement('div');
+        fx.className = 'fx';
+        fx.textContent = bits.join(' · ');
+        btn.appendChild(fx);
+      }
       btn.addEventListener('click', () => {
         chosenTech = id;
         startBtn.disabled = false;
@@ -221,44 +271,80 @@ export function initPanels(ctx) {
       session.apply({ type: 'setWorkers', playerId: HUMAN, cityId: city.id, auto: true });
     };
 
-    // production choices — click selects, double-click selects and closes
+    // production choices — click selects, double-click selects and closes;
+    // tech-locked items are shown greyed with their prerequisite
     const prodEl = document.getElementById('city-production');
     prodEl.textContent = '';
     const me = state.players[HUMAN];
+    // switching category forfeits half the shields (Civ 1), so the ETA differs
+    const eta = (cost, kind) => {
+      if (totals.shields <= 0) return '';
+      const carried = city.producing.kind === kind ? city.shields : Math.floor(city.shields / 2);
+      return ` ~${Math.max(1, Math.ceil((cost - carried) / totals.shields))}t`;
+    };
     const addGroup = (title) => {
       const h = document.createElement('div');
       h.className = 'group-title';
       h.textContent = title;
       prodEl.appendChild(h);
     };
-    const addOption = (item, label) => {
+    const addOption = (item, label, sub) => {
       const btn = document.createElement('button');
       btn.className = 'option'
         + (city.producing.kind === item.kind && city.producing.id === item.id ? ' current' : '');
-      btn.innerHTML = label;
+      btn.innerHTML = label + (sub ? `<div class="fx">${sub}</div>` : '');
       btn.addEventListener('click', () => setProduction(city, item, false));
       btn.addEventListener('dblclick', () => setProduction(city, item, true));
       prodEl.appendChild(btn);
     };
+    const addLocked = (label, techId) => {
+      const btn = document.createElement('button');
+      btn.className = 'option locked';
+      btn.disabled = true;
+      btn.innerHTML = `🔒 ${label}<div class="fx">needs ${techs[techId].name}</div>`;
+      prodEl.appendChild(btn);
+    };
+    const byTechLevel = (a, b, set) =>
+      techs[set[a].tech].level - techs[set[b].tech].level || (a < b ? -1 : 1);
+
     addGroup('units');
+    const lockedUnits = [];
     for (const id of Object.keys(units).sort()) {
       const u = units[id];
-      if (u.tech !== '' && !me.techs.includes(u.tech)) continue;
-      addOption({ kind: 'unit', id }, `${u.name} · <span class="ys">${u.cost}⚒</span> · ${u.attack}/${u.defense}/${u.moves}`);
+      if (u.tech !== '' && !me.techs.includes(u.tech)) { lockedUnits.push(id); continue; }
+      addOption({ kind: 'unit', id },
+        `${u.name} · <span class="ys">${u.cost}⚒${eta(u.cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`);
     }
+    for (const id of lockedUnits.sort((a, b) => byTechLevel(a, b, units))) {
+      addLocked(`${units[id].name} · ${units[id].cost}⚒ · ${units[id].attack}/${units[id].defense}/${units[id].moves}`, units[id].tech);
+    }
+
     addGroup('buildings');
+    const lockedBuildings = [];
     for (const id of Object.keys(buildings).sort()) {
       const b = buildings[id];
       if ((city.buildings || []).includes(id)) continue;
-      if (b.tech !== '' && !me.techs.includes(b.tech)) continue;
-      addOption({ kind: 'building', id }, `${b.name} · <span class="ys">${b.cost}⚒</span> · upkeep ${b.maintenance}`);
+      if (b.tech !== '' && !me.techs.includes(b.tech)) { lockedBuildings.push(id); continue; }
+      addOption({ kind: 'building', id },
+        `${b.name} · <span class="ys">${b.cost}⚒${eta(b.cost, 'building')}</span> · upkeep ${b.maintenance}`,
+        effectText(b) || 'no effect implemented yet');
     }
+    for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {
+      addLocked(`${buildings[id].name} · ${buildings[id].cost}⚒`, buildings[id].tech);
+    }
+
     addGroup('wonders');
+    const lockedWonders = [];
     for (const id of Object.keys(wonders).sort()) {
       const w = wonders[id];
       if (session.state.wonders && session.state.wonders[id] !== undefined) continue;
-      if (w.tech !== '' && !me.techs.includes(w.tech)) continue;
-      addOption({ kind: 'wonder', id }, `${w.name} · <span class="ys">${w.cost}⚒</span>`);
+      if (w.tech !== '' && !me.techs.includes(w.tech)) { lockedWonders.push(id); continue; }
+      addOption({ kind: 'wonder', id },
+        `${w.name} · <span class="ys">${w.cost}⚒${eta(w.cost, 'wonder')}</span>`,
+        effectText(w) || `prestige — score +${session.ruleset.rules.scorePerWonder}`);
+    }
+    for (const id of lockedWonders.sort((a, b) => byTechLevel(a, b, wonders))) {
+      addLocked(`${wonders[id].name} · ${wonders[id].cost}⚒`, wonders[id].tech);
     }
   }
 
@@ -347,6 +433,12 @@ export function initPanels(ctx) {
   // --- chrome -----------------------------------------------------------------
   document.getElementById('research-bar').addEventListener('click', toggleResearchPanel);
   startBtn.addEventListener('click', () => startResearch(chosenTech));
+  // tax/science split: the slider position is the science share (10% steps)
+  document.getElementById('rate-slider').addEventListener('change', e => {
+    const sci = parseInt(e.target.value, 10);
+    const res = session.apply({ type: 'setRates', playerId: HUMAN, tax: 100 - sci, sci });
+    if (!res.ok) ctx.hud.note(`✗ setRates: ${res.reason}`);
+  });
   document.getElementById('city-close').addEventListener('click', closeCityPanel);
   for (const btn of document.querySelectorAll('.panel-close')) {
     btn.addEventListener('click', () => {

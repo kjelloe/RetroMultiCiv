@@ -26,18 +26,23 @@ export function initHud(ctx) {
     }
   }
 
-  // unmissable, non-modal: shown when the human has no moves left this turn
+  // unmissable, non-modal: shown when the human has no moves left this turn;
+  // the End Turn button turns green at the same moment
+  const endTurnBtn = document.getElementById('end-turn');
   function updateBanner() {
     const state = session.state;
+    let allMoved = false;
     if (!state.gameOver && state.activePlayer === HUMAN && state.players[HUMAN] && state.players[HUMAN].human) {
       const movable = Object.values(state.units).filter(u => u.owner === HUMAN && u.moves > 0);
-      if (movable.length === 0) {
-        banner.textContent = 'no units with moves left — press E to end the turn';
-        banner.classList.remove('hidden');
-        return;
-      }
+      allMoved = movable.length === 0;
     }
-    banner.classList.add('hidden');
+    endTurnBtn.classList.toggle('ready', allMoved);
+    if (allMoved) {
+      banner.textContent = 'no units with moves left — press E to end the turn';
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
   }
 
   function refresh() {
@@ -59,9 +64,23 @@ export function initHud(ctx) {
     updateBanner();
   }
 
+  // compact stat card for the selected unit:
+  // "Legion ★vet · ⚔3 🛡2 👟1/2 · hills (14,9) · ready · F: fortify"
+  function unitNote(unit) {
+    const t = session.ruleset.units[unit.type];
+    const tile = session.state.map.tiles[unit.y * session.state.map.width + unit.x];
+    const status = unit.fortified ? 'fortified' : unit.moves > 0 ? 'ready' : 'no moves left';
+    const hint = unit.type === 'settlers' ? ' · B: found city'
+      : unit.fortified ? '' : ' · F: fortify';
+    hudSelection.textContent = `${t.name}${unit.veteran ? ' ★vet' : ''}`
+      + ` · ⚔${t.attack} 🛡${t.defense} 👟${unit.moves}/${t.moves}`
+      + ` · ${tile.t} (${unit.x},${unit.y}) · ${status}${hint}`;
+  }
+
   return {
     refresh,
     note(text) { hudSelection.textContent = text; },
+    unitNote,
     tile(text) { hudTile.textContent = text; }
   };
 }

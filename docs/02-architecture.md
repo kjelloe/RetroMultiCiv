@@ -76,11 +76,10 @@ multiciv/
 │   │                      #   socket-backed session replaces in phase 3
 │   ├── diagnostics.js     # WebGL capability probe (+ ?diag=1 panel)
 │   ├── ui/                # hud, panels (research/city/stack), input,
-│   │                      #   saves (F5/F9 + files), combat log — plain DOM
-│   ├── renderer/          # ★ RENDERER INTERFACE — implementations swappable
-│   │   ├── renderer.js    #   interface: init, drawMap, drawUnits, pick(x,y)…
-│   │   └── three/         #   v1: low-poly flat boxes + raycast picking
-│   └── ui/                # HUD, city screen, tech dialog (plain DOM)
+│   │                      #   saves (F5/F9 + files), turn log — plain DOM
+│   └── renderer/          # ★ RENDERER INTERFACE — implementations swappable
+│       ├── renderer.js    #   interface: setViewState, picks, markers…
+│       └── three/         #   v1: low-poly flat boxes + raycast picking
 ├── server/                # Node adapter (phase 3+) — NOT ported to Lua
 │   ├── index.js           # node:http static hosting + ws game sessions
 │   ├── session.js         # lobby, player slots, command routing

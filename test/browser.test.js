@@ -66,13 +66,20 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
   const server = await startServer();
   try {
     const port = server.address().port;
-    const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&diag=1`);
+    // ?e2e=1 founds a city and fills the city + research panels (see main.js)
+    const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&diag=1&e2e=1`);
     assert.ok(dom.length > 0, 'browser produced no DOM');
     assert.match(dom, /turn 1 · 4000 BC · Romans/, 'HUD must show the initial turn status');
     assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
     assert.ok(!/WebGL is unavailable|could not start/.test(dom), 'WebGL failure path triggered');
     assert.match(dom, /<canvas/, 'renderer must have attached a canvas');
     assert.match(dom, /WebGL2: (yes|NO)/, 'diagnostics panel must render with ?diag=1');
+    // panel content from the e2e sequence
+    assert.match(dom, /Testopolis/, 'the scripted city must appear in the city panel');
+    assert.match(dom, /needs [A-Z]/, 'the production catalog must list tech-locked items');
+    assert.match(dom, /unlocks /, 'the research panel must show what techs unlock');
+    assert.match(dom, /tax 50%/, 'the tax/science split must render at its default');
+    assert.match(dom, /Turn log/, 'the turn log must be present');
   } finally {
     server.close();
   }

@@ -87,6 +87,14 @@ export function createRenderer(container) {
   selectMarker.visible = false;
   scene.add(selectMarker);
 
+  // settler site preview: translucent quads over the projected city footprint
+  const footprintGroup = new THREE.Group();
+  scene.add(footprintGroup);
+  const geoFootprint = new THREE.PlaneGeometry(0.94, 0.94);
+  const matFootprint = new THREE.MeshBasicMaterial({
+    color: 0xffe066, transparent: true, opacity: 0.22, depthWrite: false
+  });
+
   function tileTop(x, y) {
     const t = view.map.tiles[y * view.map.width + x];
     return (TERRAIN[t.t] || TERRAIN.grassland).height;
@@ -278,6 +286,17 @@ export function createRenderer(container) {
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },
     setHoverColor(hex) { hoverMarker.material.color.setHex(hex); },
+    // tiles: [{x, y}] to highlight (the settler's would-be city footprint), or null
+    setFootprint(tiles) {
+      footprintGroup.clear();
+      if (!tiles || !view) return;
+      for (const t of tiles) {
+        const quad = new THREE.Mesh(geoFootprint, matFootprint);
+        quad.rotation.x = -Math.PI / 2;
+        quad.position.set(t.x, tileTop(t.x, t.y) + 0.02, t.y);
+        footprintGroup.add(quad);
+      }
+    },
     setSelection(sel) {
       if (sel?.unitId && view?.units[sel.unitId]) {
         const u = view.units[sel.unitId];

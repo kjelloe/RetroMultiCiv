@@ -45,6 +45,11 @@ html, body {
   color: #8fd18f;
 }
 
+#hud-tile {
+  white-space: pre-line;
+  max-width: 340px;
+}
+
 #hud-diag {
   color: #7d94b8;
   font-size: 11px;
@@ -138,6 +143,7 @@ html, body {
   max-width: 640px;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  overflow-x: hidden;
   background: rgba(10, 16, 28, 0.96);
   border: 1px solid #3b5d8f;
   border-radius: 8px;
@@ -203,6 +209,39 @@ html, body {
   font-size: 11px;
   text-transform: uppercase;
 }
+
+/* subline inside option buttons: effects, unlocks, prerequisites */
+.panel .option .fx {
+  color: #7d94b8;
+  font-size: 11px;
+  margin-top: 1px;
+}
+
+.panel button.option.locked {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.panel button.option.locked:hover {
+  background: #16233a;
+}
+
+/* --- tax/science split slider (research panel) --- */
+#rates-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 2px;
+  font-size: 12px;
+}
+
+#rates-row input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: #6db3f2;
+}
+
+#rate-tax { color: #e0a458; }
+#rate-sci { color: #6db3f2; }
 
 /* --- city view --- */
 #city-body {
@@ -392,6 +431,17 @@ html, body {
   background: #2f5388;
 }
 
+/* all units moved: End Turn invites the press */
+#end-turn.ready {
+  background: #2e6b40;
+  border-color: #4f9a63;
+  color: #d8f0dc;
+}
+
+#end-turn.ready:hover {
+  background: #38804e;
+}
+
 /* --- flash banner (transient center message) --- */
 #flash-banner {
   position: absolute;
@@ -413,8 +463,8 @@ html, body {
   display: none;
 }
 
-/* --- combat log (bottom left, above the controls) --- */
-#combat-log {
+/* --- turn log (bottom left, above the controls) --- */
+#turn-log {
   position: absolute;
   bottom: 52px;
   left: 12px;
@@ -431,18 +481,18 @@ html, body {
   z-index: 4;
 }
 
-#combat-log summary {
+#turn-log summary {
   cursor: pointer;
   color: #cdd8ea;
 }
 
-#combat-list {
+#turn-list {
   margin-top: 6px;
   line-height: 1.6;
 }
 
-#combat-list .win { color: #8fd18f; }
-#combat-list .loss { color: #ff7b6b; }
+#turn-list .win { color: #8fd18f; }
+#turn-list .loss { color: #ff7b6b; }
 
 /* --- city-name dialog --- */
 #name-dialog {

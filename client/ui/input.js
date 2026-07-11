@@ -1,5 +1,6 @@
 // Input: renderer picks (select / move / attack / stacks) and the keyboard.
-import { unitsAt, cityAt } from '../../engine/combat.js';
+import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '../../engine/combat.js';
+import { candidateTiles, tileYields, wonderActive } from '../../engine/cities.js';
 import { availableTechs } from '../../engine/tech.js';
 
 const MOVE_KEYS = {
@@ -17,6 +18,62 @@ export function initInput(ctx) {
     const tile = session.state.map.tiles[y * session.state.map.width + x];
     const extras = (tile.river ? ' +river' : '') + (tile.special ? ' ★' : '');
     return `(${x},${y}) ${tile.t}${extras}`;
+  }
+
+  // "⚔ Favorable 67% — Legion 300 vs Militia 150 (mountains +200%, fortified +50%)"
+  function combatPreview(attacker, x, y) {
+    const state = session.state;
+    const ruleset = session.ruleset;
+    if (units[attacker.type].attack <= 0) return null;
+    const defender = bestDefender(state, x, y, ruleset);
+    if (!defender) return null;
+    const att = attackStrength(attacker, ruleset);
+    const def = defenseStrength(state, defender, ruleset);
+    const pct = Math.round(att * 100 / (att + def));
+    const word = pct >= 75 ? 'Strong' : pct >= 55 ? 'Favorable'
+      : pct >= 45 ? 'Even' : pct >= 25 ? 'Risky' : 'Desperate';
+    const parts = [];
+    const tile = state.map.tiles[y * state.map.width + x];
+    const terrainBonus = ruleset.terrain.terrains[tile.t].defenseBonus;
+    if (terrainBonus > 0) parts.push(`${tile.t} +${terrainBonus}%`);
+    if (tile.river) parts.push(`river +${ruleset.terrain.riverModifier.defenseBonus}%`);
+    if (defender.fortified) parts.push('fortified +50%');
+    if (attacker.veteran) parts.push('veteran attacker +50%');
+    const city = cityAt(state, x, y);
+    if (city) {
+      const greatWallHome = state.wonders && state.cities[state.wonders['great-wall']];
+      const walls = (city.buildings || []).indexOf('city-walls') !== -1
+        || (wonderActive(state, 'great-wall', ruleset) && greatWallHome && greatWallHome.owner === city.owner);
+      if (walls) parts.push('city walls ×3');
+    }
+    return `⚔ ${word} ${pct}% — ${units[attacker.type].name} ${att / 100} vs `
+      + `${units[defender.type].name} ${def / 100}`
+      + (parts.length ? ` (${parts.join(', ')})` : '');
+  }
+
+  // Rate the hovered tile as a city site: center + the 4 best workable tiles
+  // (what the first citizens would actually work), scored like the engine.
+  function sitePreview(x, y) {
+    const state = session.state;
+    const ruleset = session.ruleset;
+    const tile = state.map.tiles[y * state.map.width + x];
+    if (ruleset.terrain.terrains[tile.t].domain !== 'land') {
+      return { text: '🏛 cannot settle at sea', tiles: null };
+    }
+    if (cityAt(state, x, y)) return { text: '🏛 a city already stands here', tiles: null };
+    const candidates = candidateTiles(state, { x, y }, ruleset);
+    const center = tileYields(tile, ruleset);
+    let food = center.food, shields = center.shields, trade = center.trade;
+    for (const c of candidates.slice(0, 4)) {
+      food += c.yields.food; shields += c.yields.shields; trade += c.yields.trade;
+    }
+    const score = food * 3 + shields * 2 + trade;
+    const word = score >= 38 ? 'Excellent' : score >= 30 ? 'Good' : score >= 22 ? 'Fair' : 'Poor';
+    return {
+      text: `🏛 ${word} site — food ${food} · shields ${shields} · trade ${trade}`
+        + (tile.river ? ' · river' : ''),
+      tiles: [{ x, y }].concat(candidates.map(c => ({ x: c.x, y: c.y })))
+    };
   }
 
   function dirTo(unit, tx, ty) {
@@ -68,7 +125,7 @@ export function initInput(ctx) {
     if (apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId, dir })) {
       sel.lastMoved = unitId;
       const moved = session.state.units[unitId];
-      if (moved) hud.note(`${units[moved.type].name} at (${moved.x},${moved.y}) · moves ${moved.moves}`);
+      if (moved) hud.unitNote(moved);
     }
   }
 
@@ -125,16 +182,34 @@ export function initInput(ctx) {
   }
 
   // --- renderer picks ---------------------------------------------------------
+  let lastFootprintKey = null;
   renderer.onHover(pick => {
-    hud.tile(pick ? describeTile(pick.tile.x, pick.tile.y) : '');
-    // attack preview: red hover ring when targeting an enemy with a unit selected
+    let text = pick ? describeTile(pick.tile.x, pick.tile.y) : '';
     let attack = false;
-    if (pick && sel.unitId && session.state.units[sel.unitId]) {
+    let footprint = null;
+    const attacker = sel.unitId ? session.state.units[sel.unitId] : null;
+    if (pick && attacker) {
       const hostiles = unitsAt(session.state, pick.tile.x, pick.tile.y)
         .filter(u => u.owner !== HUMAN);
-      attack = hostiles.length > 0;
+      if (hostiles.length > 0) {
+        // attack preview: red hover ring + odds line
+        attack = true;
+        const odds = combatPreview(attacker, pick.tile.x, pick.tile.y);
+        if (odds) text += `\n${odds}`;
+      } else if (attacker.type === 'settlers') {
+        const site = sitePreview(pick.tile.x, pick.tile.y);
+        text += `\n${site.text}`;
+        footprint = site.tiles;
+      }
     }
+    hud.tile(text);
     renderer.setHoverColor(attack ? 0xff4433 : 0xffffff);
+    // rebuild the footprint overlay only when the hovered tile changes
+    const key = footprint ? `${pick.tile.x},${pick.tile.y}` : null;
+    if (key !== lastFootprintKey) {
+      lastFootprintKey = key;
+      renderer.setFootprint(footprint);
+    }
   });
 
   // double-click a city: open the city view even when units share the tile
