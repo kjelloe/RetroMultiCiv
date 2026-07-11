@@ -78,9 +78,13 @@ rates the hovered tile as a city site and projects its footprint on the map,
 the production catalog shows per-item build times, plain-language effects,
 and what technology unlocks the locked entries, and a collapsible **turn log**
 narrates growth, completions, discoveries, wonder news, first contacts, and
-every battle. Settlers work the land, too: press I/M/R to irrigate, mine, or
-build roads (Civ 1 rules — irrigation needs a water source, mined hills yield
-+3 shields, roads speed movement and add trade on open terrain).
+every battle. Settlers work the land, too: irrigate, mine, or build roads
+(Civ 1 rules — irrigation needs a water source, mined hills yield +3 shields,
+roads speed movement and add trade on open terrain). A bottom-center
+**action bar** lists the selected unit's applicable actions with their
+hotkeys; impossible actions explain themselves in a center message, the
+research bar shows gold and bulbs with per-turn deltas, and ending the turn
+with units still to move asks for a confirming second press.
 **Phase 1 complete: a full, winnable game vs AI.**
 80 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e that boots the client and inspects the live
