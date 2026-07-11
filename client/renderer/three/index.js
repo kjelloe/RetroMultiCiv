@@ -1,6 +1,8 @@
-// three.js low-poly renderer: tiles as flat colored boxes, units as simple
-// meshes, raycast picking. Fixed-tilt camera with drag-pan and wheel-zoom.
+// three.js low-poly renderer: tiles as flat colored boxes, units and cities
+// as AssetFactory groups (assets.js), raycast picking. Fixed-tilt camera with
+// drag-pan and wheel-zoom.
 import * as THREE from 'three';
+import { createUnitMesh, createCityMesh } from './assets.js';
 
 const TERRAIN = {
   ocean:     { color: 0x1d4e79, height: 0.06 },
@@ -71,9 +73,6 @@ export function createRenderer(container) {
   scene.add(worldGroup);
 
   const geoBox = new THREE.BoxGeometry(1, 1, 1);
-  const geoSettler = new THREE.ConeGeometry(0.28, 0.55, 8);
-  const geoSoldier = new THREE.CylinderGeometry(0.2, 0.24, 0.5, 8);
-  const geoCity = new THREE.BoxGeometry(0.7, 0.5, 0.7);
 
   const hoverMarker = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, 1.02, 1.02)),
@@ -136,10 +135,9 @@ export function createRenderer(container) {
     for (const mesh of unitMeshes.values()) worldGroup.remove(mesh);
     unitMeshes.clear();
     for (const u of Object.values(view.units || {})) {
-      const geo = u.type === 'settlers' ? geoSettler : geoSoldier;
       const color = view.players[u.owner]?.color || '#ffffff';
-      const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
-      mesh.position.set(u.x, tileTop(u.x, u.y) + 0.3, u.y);
+      const mesh = createUnitMesh(u.type, color); // group, base at y = 0
+      mesh.position.set(u.x, tileTop(u.x, u.y), u.y);
       mesh.userData.unitId = u.id;
       unitMeshes.set(u.id, mesh);
       worldGroup.add(mesh);
@@ -183,13 +181,13 @@ export function createRenderer(container) {
     cityLabels.length = 0;
     for (const city of Object.values(view.cities || {})) {
       const color = view.players[city.owner]?.color || '#ffffff';
-      const mesh = new THREE.Mesh(geoCity, new THREE.MeshLambertMaterial({ color }));
-      mesh.position.set(city.x, tileTop(city.x, city.y) + 0.25, city.y);
+      const mesh = createCityMesh(city, color); // group, base at y = 0
+      mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
       cityMeshes.set(city.id, mesh);
       worldGroup.add(mesh);
       const label = makeCityLabel(String(city.pop), color);
-      label.position.set(city.x, tileTop(city.x, city.y) + 0.95, city.y);
+      label.position.set(city.x, tileTop(city.x, city.y) + 1.05, city.y);
       cityLabels.push(label);
       worldGroup.add(label);
     }
@@ -207,7 +205,8 @@ export function createRenderer(container) {
     raycaster.setFromCamera(pointer, camera);
     const targets = [...unitMeshes.values(), ...cityMeshes.values()];
     if (tileMesh) targets.push(tileMesh);
-    const hit = raycaster.intersectObjects(targets, false)[0];
+    // recursive: units/cities are asset groups — the hit lands on a child
+    const hit = raycaster.intersectObjects(targets, true)[0];
     if (!hit) return null;
     if (hit.object === tileMesh) {
       const x = hit.instanceId % view.map.width;
@@ -216,7 +215,10 @@ export function createRenderer(container) {
       const unit = Object.values(view.units || {}).find(u => u.x === x && u.y === y);
       return { tile: { x, y }, unitId: unit?.id, cityId: undefined };
     }
-    const { unitId, cityId } = hit.object.userData;
+    let obj = hit.object;
+    while (obj && !obj.userData.unitId && !obj.userData.cityId) obj = obj.parent;
+    if (!obj) return null;
+    const { unitId, cityId } = obj.userData;
     const src = unitId ? view.units[unitId] : view.cities[cityId];
     return { tile: { x: src.x, y: src.y }, unitId, cityId };
   }
@@ -321,6 +323,10 @@ export function createRenderer(container) {
     },
     centerOn(x, y) {
       cam.targetX = x; cam.targetZ = y;
+      updateCamera();
+    },
+    setZoom(dist) {
+      cam.dist = Math.min(cam.maxDist, Math.max(cam.minDist, dist));
       updateCamera();
     },
     destroy() {

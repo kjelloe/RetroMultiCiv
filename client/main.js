@@ -138,6 +138,8 @@ if (firstUnit) {
   ctx.selectUnit(firstUnit);
   renderer.centerOn(firstUnit.x, firstUnit.y);
 }
+const zoom = parseInt(params.get('zoom') || '', 10);
+if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
 
 // ?e2e=1: scripted sequence for the headless browser test — found a city with
 // the starting settlers and fill both panels, so their code paths execute
@@ -157,4 +159,5 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
     if (workedCell) workedCell.click();
   }
+  if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }

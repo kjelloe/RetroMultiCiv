@@ -19,6 +19,7 @@ const CLIENT_MODULES = [
   'client/ui/turnlog.js',
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
+  'client/renderer/three/assets.js',
   'engine/ai.js',
   'engine/barbarians.js',
   'engine/cities.js',

@@ -81,6 +81,7 @@ multiciv/
 │   └── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │       ├── renderer.js    #   interface: setViewState, picks, markers…
 │       └── three/         #   v1: low-poly flat boxes + raycast picking
+│           └── assets.js  #   AssetFactory: all unit/city mesh construction
 ├── server/                # Node adapter (phase 3+) — NOT ported to Lua
 │   ├── index.js           # node:http static hosting + ws game sessions
 │   ├── session.js         # lobby, player slots, command routing

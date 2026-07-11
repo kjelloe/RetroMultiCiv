@@ -183,17 +183,20 @@ Runs alongside the gameplay phases, entirely behind the renderer interface
 (`client/renderer/`) — no engine impact, no phase depends on it. Staged per
 the designer ally's plan:
 
-- **A0 — AssetFactory seam** *(cheap, do before A1)*: extract unit/city mesh
-  construction from `renderer/three/index.js` into an asset-factory module
-  (also relieves that file's size ceiling). Same primitives, one place to
-  swap implementations incrementally.
-- **A1 — Procedural low-poly kit** *(good timing: with phase 2/3, makes
-  hotseat playtests legible)*: `THREE.Group` assets from primitives — 3–4
-  land-unit silhouettes + one ship, settlement clusters scaling with
-  population (walls ring when City Walls built), ownership as banner/base
-  ring rather than whole-mesh recolor, forest/resource props (instanced),
-  improvement markers replacing the tile tints. The ally judges this
-  "enough for a compelling local prototype."
+- ✅ **A0 — AssetFactory seam** *(done 2026-07-11)*:
+  `client/renderer/three/assets.js` owns all unit/city mesh construction
+  (shared geometries + per-color Lambert material caches — no per-mesh
+  disposal needed); picking went recursive with a parent walk to the
+  userData-carrying group.
+- 🔶 **A1 — Procedural low-poly kit** *(started 2026-07-11)*: ✅ wagon
+  (settlers/caravan/diplomat), ✅ foot-soldier token (militia→mech-inf),
+  ✅ city house clusters scaled by pop with owner-color roofs, banner, and
+  a wall ring when City Walls is built; ownership = colored base disc, not
+  whole-mesh recolor; other unit classes fall back to a base-disc token.
+  ⬜ remaining: mounted / siege / ship / aircraft silhouettes, improvement
+  markers replacing the batch-C tile tints, forest/resource props
+  (instanced). The ally judges the full kit "enough for a compelling local
+  prototype."
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

@@ -69,11 +69,11 @@ root**, open `http://localhost:8123/client/` (`?seed=N` fixed world,
 `package.json` type markers) so they load in both browser and Node; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.
 
-**Visual verification without a GPU:** a Playwright-cached headless Chromium
-exists at `~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell`.
-Screenshot the running game with:
-`chrome-headless-shell --no-sandbox --enable-unsafe-swiftshader --use-angle=swiftshader --window-size=1280,800 --virtual-time-budget=10000 --screenshot=out.png "http://127.0.0.1:8123/client/?seed=12345"`
-(SwiftShader flags are required — WebGL has no GPU here and fails without them.)
+**Visual verification without a GPU:** use `debugging/screenshot.sh [out.png]
+[url] [extra chrome flags]` — it wraps the Playwright-cached headless Chromium
+with the required SwiftShader flags (WebGL has no GPU here and fails without
+them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
+`?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
 cities, improvements, combat/barbarians, tech, ai, score, visibility, mapgen,
