@@ -52,6 +52,9 @@ The whole simulation is deterministic: same initial seed + same command sequence
   then climate bands assign terrain, then rivers and special resources.
 - **Fog of war:** tiles are `unknown` → `explored` (terrain remembered, contents
   stale) → `visible` (within a friendly unit's/city's sight radius).
+  What a rival city reveals on explored ground: its name, owner, size, and
+  walls — never its production, food box, worked tiles, or mood. Rival
+  units are seen only while inside your sight radius.
 
 ### 3.1 Terrain types
 

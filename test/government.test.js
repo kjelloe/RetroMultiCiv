@@ -93,6 +93,20 @@ test('corruption grows with distance to the capital; courthouse halves it', asyn
   assert.strictEqual(government.corruptionFor(state, state.cities.c1, 10, RULESET), 8, 'old capital now suffers');
 });
 
+test('governmentOf defaults to despotism for unknown players (site-preview probes)', async () => {
+  const { government } = await load();
+  const cities = await import('../engine/cities.js');
+  const state = govState();
+  assert.strictEqual(government.governmentOf(state, undefined, RULESET).id, 'despotism');
+  assert.strictEqual(government.governmentOf(state, 'nobody', RULESET).id, 'despotism');
+  // the settler site preview probes candidateTiles with a pseudo-city;
+  // with or without an owner it must never throw (playtest regression)
+  const probe = cities.candidateTiles(state, { x: 5, y: 0 }, RULESET);
+  assert.ok(probe.length > 0);
+  const owned = cities.candidateTiles(state, { x: 5, y: 0, owner: 'p1' }, RULESET);
+  assert.strictEqual(owned.length, probe.length);
+});
+
 test('despotism tile penalty: any yield of 3+ loses one', async () => {
   const { engine } = await load();
   const cities = await import('../engine/cities.js');

@@ -193,6 +193,18 @@ if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
 // the starting settlers and fill both panels, so their code paths execute
 // (hidden panel content stays in the DOM for --dump-dom to assert on).
 if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
+  // sweep the pointer across the centered map: the hover paths (settler site
+  // preview, combat odds) must not throw (playtest regression: the site
+  // preview crashed on every mouse move once governments landed)
+  const canvas = document.querySelector('#app canvas');
+  if (canvas) {
+    const r = canvas.getBoundingClientRect();
+    for (const fx of [0.5, 0.45, 0.55, 0.4, 0.6]) {
+      canvas.dispatchEvent(new PointerEvent('pointermove', {
+        clientX: r.left + r.width * fx, clientY: r.top + r.height * 0.5, bubbles: true
+      }));
+    }
+  }
   // snapshot the selected settler's action bar before founding consumes it
   const probe = document.createElement('div');
   probe.id = 'e2e-probe';
@@ -207,7 +219,8 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
     if (workedCell) workedCell.click();
   }
-  probe.textContent += ' · diaglog: ' + session.log.length; // recorder captured the commands
+  probe.textContent += ' · diaglog: ' + session.log.length // recorder captured the commands
+    + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }
 

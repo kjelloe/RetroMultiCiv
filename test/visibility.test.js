@@ -74,6 +74,55 @@ test('explored terrain is remembered after the unit moves away', async () => {
   }
 });
 
+test('view projection: a rival city on explored ground is only its outside', async () => {
+  const { engine, vis } = await load();
+  const state = engine.createGame(SETUP);
+  // put an enemy city with secrets on p1's own start tile (fully explored)
+  const u1 = Object.values(state.units).find(u => u.owner === 'p1');
+  state.cities.c9 = {
+    id: 'c9', name: 'Rivaltown', owner: 'p2', x: u1.x, y: u1.y, pop: 4,
+    food: 17, shields: 9, buildings: ['city-walls', 'granary', 'barracks'],
+    producing: { kind: 'unit', id: 'phalanx' }, workers: [3], taxmen: 1, disorder: true
+  };
+  state.cityOrder.push('c9');
+
+  const view = vis.filterView(state, 'p1');
+  const seen = view.cities.c9;
+  assert.ok(seen, 'the city itself is visible on explored ground');
+  assert.strictEqual(seen.name, 'Rivaltown');
+  assert.strictEqual(seen.pop, 4, 'size is public (the map badge shows it)');
+  assert.deepStrictEqual(seen.buildings, ['city-walls'], 'only physical structures show');
+  assert.strictEqual(seen.producing, undefined, 'production is secret');
+  assert.strictEqual(seen.food, undefined, 'the food box is secret');
+  assert.strictEqual(seen.shields, undefined);
+  assert.strictEqual(seen.workers, undefined);
+  assert.strictEqual(seen.taxmen, undefined);
+  assert.strictEqual(seen.disorder, undefined);
+  // the canonical state is untouched by the projection
+  assert.strictEqual(state.cities.c9.producing.id, 'phalanx');
+
+  // the owner's own view still carries everything
+  const ownView = vis.filterView(state, 'p2');
+  if (ownView.cities.c9) assert.strictEqual(ownView.cities.c9.producing.id, 'phalanx');
+});
+
+test('view projection: own player carries rates/government, rivals never do', async () => {
+  const { engine, vis } = await load();
+  const state = engine.createGame(SETUP);
+  state.players.p1.luxRate = 20;
+  state.players.p1.government = 'monarchy';
+  state.players.p2.government = 'republic';
+  state.players.p2.bulbs = 99;
+
+  const view = vis.filterView(state, 'p1');
+  assert.strictEqual(view.players.p1.taxRate, 50, 'own rates present');
+  assert.strictEqual(view.players.p1.luxRate, 20);
+  assert.strictEqual(view.players.p1.government, 'monarchy');
+  assert.strictEqual(view.players.p2.government, undefined, 'rival government hidden');
+  assert.strictEqual(view.players.p2.bulbs, undefined, 'rival research hidden');
+  assert.strictEqual(view.players.p2.taxRate, undefined);
+});
+
 test('omniscient fallback: players without explored arrays see everything', async () => {
   const { vis } = await load();
   const state = {

@@ -146,7 +146,7 @@ engine test suite green; a replayed command log reproduces the same final state 
 > rework. It's scheduled here in phase 3 to keep phase 1 dependency-free, but
 > pulling it earlier costs nothing if the ally wants to develop against it.
 
-## Phase 2 — Local multiplayer / hotseat
+## Phase 2 — Local hotseat and player-view projections
 
 - ✅ **Setup screen** *(2026-07-11)* — a bare `/client/` URL opens it:
   civilizations (2–7), human players (first N seats), optional seed; starts
@@ -164,11 +164,48 @@ engine test suite green; a replayed command log reproduces the same final state 
   Locked by a hotseat browser e2e (hand-off screen up, cover opaque,
   HUD already showing the incoming player's view beneath it).
 
-**Acceptance (pending playtest):** 2 humans + 1 AI hotseat game with no
-information leaks between players — and a playtest scored against the
-10-question checklist at the end of `specs/gameplay-reference.md`.
+- ✅ **View projection hardening** *(2026-07-11, from
+  `specs/plan-feedback.md`)* — `filterView` now EXCLUDES (not conceals)
+  rival internals: enemy cities on explored ground are projected to their
+  outside only (name/owner/size/walls — production, food box, workers, and
+  mood never enter the view); the own-player projection carries everything
+  the owner's UI needs (rates, government, bulbs) and rivals none of it.
+  Tested independently of rendering (`test/visibility.test.js`). Loading a
+  save now restores the correct seat behind the hand-off cover.
+  *(Deliberate simplification kept: humans occupy the FIRST N seats rather
+  than arbitrary slots — per-slot assignment can come with the lobby in
+  phase 4.)*
 
-## Phase 3 — Backend-authoritative simulation
+**Acceptance (pending playtest):** 2 humans + 1 AI hotseat game with no
+information leaks between players — a playtest scored against the
+10-question checklist at the end of `specs/gameplay-reference.md` plus the
+seven hotseat questions in `specs/plan-feedback.md`.
+
+## Phase 2.5 — Determinism contract and replay interoperability
+
+The ally's suggested explicit deliverable (rather than an implicit phase-5
+property). Status: **all five pieces exist** — this section is where they
+are pinned down:
+
+- ✅ Canonical serializer + hash algorithm: `shared/statehash.js` (sorted
+  keys, FNV-1a 32-bit, integers/printable-ASCII/booleans only; golden
+  anchor `{b:2,a:[1,"x",true]}` → `0x30db1e29`).
+- ✅ Engine-owned PRNG with state in the canonical state: `engine/rng.js`
+  (xorshift32; golden sequence for seed 123456789 in its tests). The Luau
+  port reimplements this algorithm — never `Random.new`.
+- ✅ Versioned replay format: the diagnostics recording
+  (`format: 'retromulticiv-diagnostics', version: 1` — initial state +
+  human command log + per-round hashes; Shift+D in the client).
+- ✅ Replay conformance tool: `node tools/replay.js <file>` re-runs a
+  recording through the engine and verifies every hash (the same harness
+  phase 5 points at the Luau engine).
+- ✅ Player-view projection tests: `test/visibility.test.js` asserts what a
+  rival's view may and may not contain, independent of rendering.
+
+Cross-engine test vectors beyond the anchors above: the ten hash-locked
+JSON scenarios in `test/scenarios/`.
+
+## Phase 3 — Node.js authoritative game server
 
 Move the engine out of the page into Node — still one human player, but the
 browser is now a thin client.
@@ -176,6 +213,14 @@ browser is now a thin client.
 - `server/`: `node:http` static hosting + `ws` WebSocket; session owns the state.
 - Client stops calling `applyCommand` directly; sends commands over the socket,
   receives events + filtered views (protocol in `02-architecture.md` §6).
+- **Explicit contracts from day one** (`specs/plan-feedback.md`): the client
+  sends command envelopes only (`{ commandId, gameId, playerId, type,
+  payload }`); the server authenticates the player, validates, reduces the
+  canonical state, persists, projects per-player views (`filterView` —
+  already leak-tested), and broadcasts. Rejections are structured
+  (`{ type: 'commandRejected', commandId, code, message }` — the engine's
+  reason codes + the client's `REASON_TEXT` map already provide code and
+  message). The client never resolves rules authoritatively.
 - Server-side validation of every command (playerId ownership, legality).
 - Saves move to server disk (`saves/*.json`).
 
@@ -183,7 +228,7 @@ browser is now a thin client.
 restarting the server resumes from the save; a tampering client (hand-crafted
 illegal commands) is rejected without state corruption.
 
-## Phase 4 — Networked multiplayer (LAN)
+## Phase 4 — LAN multiplayer, reconnection, and resynchronization
 
 - Lobby: named sessions, join by code, slot claiming, ready-up.
 - Turn-based play across machines: active-player highlighting, end-turn
@@ -194,7 +239,7 @@ illegal commands) is rejected without state corruption.
 **Acceptance:** you + ally on two machines over LAN complete a game with at
 least one mid-game disconnect/reconnect.
 
-## Phase 5 — Roblox Luau port
+## Phase 5 — Roblox Luau simulation port with replay conformance testing
 
 - `tools/json2lua.js` generates the ruleset ModuleScripts.
 - Port `engine/*.js` → Luau ModuleScripts 1:1 (the §4 portability rules make

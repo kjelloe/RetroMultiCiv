@@ -23,6 +23,15 @@ export function initSaves(ctx) {
     sel.lastMoved = null;
     panels.closeAll();
     session.replaceState(s);
+    // resume at the right seat: the active player if human, else the first
+    // human — behind the hand-off cover, as if the turn had just passed
+    const viewer = s.players[s.activePlayer] && s.players[s.activePlayer].human
+      ? s.activePlayer
+      : s.playerOrder.find(pid => s.players[pid] && s.players[pid].human);
+    if (viewer && viewer !== ctx.HUMAN && ctx.handoff) {
+      ctx.handoff.show(s.players[viewer].name, s.players[viewer].color, () => {});
+      ctx.setHuman(viewer);
+    }
     hud.note(`📂 loaded ${sourceLabel} (turn ${s.turn})`);
   }
 

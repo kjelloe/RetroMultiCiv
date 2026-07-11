@@ -63,7 +63,9 @@ export function initInput(ctx) {
       return { text: '🏛 cannot settle at sea', tiles: null };
     }
     if (cityAt(state, x, y)) return { text: '🏛 a city already stands here', tiles: null };
-    const candidates = candidateTiles(state, { x, y }, ruleset);
+    // owner matters since governments: the preview rates the site under
+    // the viewing player's government (despotism tile penalty etc.)
+    const candidates = candidateTiles(state, { x, y, owner: ctx.HUMAN }, ruleset);
     const center = tileYields(tile, ruleset);
     let food = center.food, shields = center.shields, trade = center.trade;
     for (const c of candidates.slice(0, 4)) {

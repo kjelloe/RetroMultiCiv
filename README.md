@@ -1,8 +1,10 @@
 # RetroMultiCiv
 
-A browser-based strategy game implementing the core mechanics of *Sid Meier's
-Civilization* (1991), architected so the simulation engine can later be ported
-to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
+A browser-based, turn-based 4X strategy game implementing classic early-4X
+mechanics (in the tradition of the 1991 original) through an original,
+deterministic simulation engine, architected for a mechanical
+module-by-module port to Roblox Luau. "Multi" as in multiplayer — and
+multiple implementations.
 
 ![Early-game world under fog of war: settlers on a revealed patch of terrain](docs/screenshot.png)
 
@@ -19,7 +21,7 @@ to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
 | [docs/03-roadmap.md](docs/03-roadmap.md) | Five development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port |
 | [docs/04-phase1-enrichments.md](docs/04-phase1-enrichments.md) | Designs for the remaining Civ 1 systems (happiness, governments, transforms, goody huts…) with state shapes and hash-impact notes |
-| [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan) — kept verbatim; adopted ideas are merged into the docs above |
+| [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan, plan feedback) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
 
@@ -111,7 +113,7 @@ plant woods, raise **fortresses**, and lay **railroads**.
 passes the keyboard between turns behind a fully opaque hand-off screen —
 each player sees only their own fog of war, through the exact per-player
 view filter the multiplayer server will use later.
-102 headless tests including hash-locked JSON scenarios, an AI-determinism
+105 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
 panels, and verify the hotseat hand-off. Next: hotseat playtest, then
 phase 3 — the backend-authoritative server.

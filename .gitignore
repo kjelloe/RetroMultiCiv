@@ -8,6 +8,9 @@ dev-prompts.md
 # status write-up shared directly with the designer ally & friends
 plan-update.md
 
+# Exclude Ctrl-D downloaded diagnostics logs
+debugging/logs/
+
 # runtime output
 saves/
 *.log

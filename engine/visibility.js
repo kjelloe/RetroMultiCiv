@@ -97,10 +97,22 @@ function filterView(state, playerId) {
     if (omniscient || visible[u.y * width + u.x] === 1) units[id] = u;
   }
 
+  // Own cities come through whole; a rival city on explored ground is only
+  // its outside: name, owner, size, and visible structures (walls). Its
+  // production, food box, workers, and mood are NOT in the view.
   const cities = {};
   for (const id of Object.keys(state.cities)) {
     const c = state.cities[id];
-    if (omniscient || me.explored[c.y * width + c.x] === 1) cities[id] = c;
+    if (!omniscient && me.explored[c.y * width + c.x] !== 1) continue;
+    if (omniscient || c.owner === playerId) {
+      cities[id] = c;
+    } else {
+      const shell = { id: c.id, name: c.name, owner: c.owner, x: c.x, y: c.y, pop: c.pop, buildings: [] };
+      if (c.buildings !== undefined && c.buildings.indexOf('city-walls') !== -1) {
+        shell.buildings.push('city-walls');
+      }
+      cities[id] = shell;
+    }
   }
 
   const players = {};
@@ -110,9 +122,17 @@ function filterView(state, playerId) {
     const p = state.players[pid];
     players[pid] = { id: p.id, name: p.name, color: p.color, human: p.human };
     if (pid === playerId) {
+      // everything the owner's own UI needs (and nothing about anyone else)
       players[pid].gold = p.gold;
       players[pid].techs = p.techs;
       players[pid].researching = p.researching;
+      if (p.bulbs !== undefined) players[pid].bulbs = p.bulbs;
+      if (p.taxRate !== undefined) players[pid].taxRate = p.taxRate;
+      if (p.sciRate !== undefined) players[pid].sciRate = p.sciRate;
+      if (p.luxRate !== undefined) players[pid].luxRate = p.luxRate;
+      if (p.government !== undefined) players[pid].government = p.government;
+      if (p.revolutionTurns !== undefined) players[pid].revolutionTurns = p.revolutionTurns;
+      if (p.pendingGovernment !== undefined) players[pid].pendingGovernment = p.pendingGovernment;
     }
   }
 

@@ -226,17 +226,22 @@ WebSocket, JSON messages:
 
 ```
 client → server:  { t: "join", name }            → { t: "joined", playerId, view }
-                  { t: "cmd", cmd: {...} }        # a protocol command
+                  { t: "cmd", commandId, cmd: {...} }   # envelope: id + engine command
 server → client:  { t: "state", view }            # full filtered view (resync)
                   { t: "events", events: [...] }  # incremental
-                  { t: "error", reason }
+                  { t: "rejected", commandId, code, message }  # structured, never silent
                   { t: "turn", activePlayerId }
 ```
 
-- Server is fully authoritative; clients are untrusted input devices.
+- Server is fully authoritative; clients are untrusted input devices that
+  never resolve rules. Rejections carry the engine's reason `code` plus the
+  human `message` (the client's `REASON_TEXT` map).
 - Per-player **view filtering** (fog of war) happens server-side in
-  `engine/visibility.js` — the client never receives hidden tiles/units.
-  This same function runs on the Roblox server later.
+  `engine/visibility.js` — the client never receives hidden tiles/units,
+  rival city internals (rival cities project to name/owner/size/walls
+  only), or other players' treasury/research/rates. The leak contract is
+  pinned by `test/visibility.test.js`, and this same function runs on the
+  Roblox server later.
 - Resync strategy: events normally; full view on join/reconnect/desync.
 
 ## 7. Save format

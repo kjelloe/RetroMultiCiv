@@ -88,6 +88,8 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /Despotism \(rates/, 'the government row must show the current government');
     assert.match(dom, /mood /, 'the city panel must show the mood row');
     assert.match(dom, /diaglog: [1-9]/, 'the diagnostics recorder must capture commands');
+    assert.match(dom, /errors: 0/,
+      'no JavaScript errors during the scripted session (incl. the hover sweep — HUD text may be overwritten, this counter is not)');
     assert.match(dom, /Turn log/, 'the turn log must be present');
   } finally {
     server.close();

@@ -6,8 +6,10 @@
 // keeps every pre-governments state valid and hash-stable.
 
 function governmentOf(state, playerId, ruleset) {
+  // an unknown player (e.g. a pseudo-city probe without an owner) is treated
+  // as despotism — the default everyone starts under
   const player = state.players[playerId];
-  const id = player.government === undefined ? 'despotism' : player.government;
+  const id = !player || player.government === undefined ? 'despotism' : player.government;
   return ruleset.governments[id];
 }
 
