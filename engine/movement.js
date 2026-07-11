@@ -1,7 +1,7 @@
-// Unit movement: 8-directional, terrain move costs, Civ 1 partial-move rule
-// (a unit may enter any passable tile as long as it has ANY movement left),
-// zone of control, and attack-by-moving (delegated to combat.js).
-// Roads and railroads arrive in a later slice.
+// Unit movement: 8-directional, terrain move costs (road-to-road costs 1),
+// Civ 1 partial-move rule (a unit may enter any passable tile as long as it
+// has ANY movement left), zone of control, and attack-by-moving (delegated
+// to combat.js). Railroads arrive in a later slice.
 import { reveal } from './visibility.js';
 import { resolveAttack, captureCity, unitsAt, cityAt } from './combat.js';
 
@@ -74,10 +74,17 @@ function moveUnit(state, cmd, ruleset) {
   }
 
   const fromX = unit.x, fromY = unit.y;
+  // road-to-road travel costs 1 regardless of terrain (v1 integer-math
+  // simplification of Civ 1's 1/3 movement point — see spec §11)
+  let cost = terrain.move;
+  if (tileAt(map, fromX, fromY).road === true && tileAt(map, nx, ny).road === true) {
+    cost = 1;
+  }
   unit.x = nx;
   unit.y = ny;
   unit.fortified = false;
-  const cost = terrain.move;
+  delete unit.working; // moving abandons any improvement in progress
+  delete unit.workLeft;
   unit.moves = unit.moves - cost;
   if (unit.moves < 0) unit.moves = 0;
   reveal(state, unit.owner, nx, ny, 1);
@@ -97,6 +104,8 @@ function fortify(state, cmd, _ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   if (unit.fortified) return { ok: false, reason: 'alreadyFortified' };
   unit.fortified = true;
+  delete unit.working; // fortifying abandons any improvement in progress
+  delete unit.workLeft;
   unit.moves = 0;
   return { ok: true, events: [{ type: 'unitFortified', unitId: unit.id }] };
 }

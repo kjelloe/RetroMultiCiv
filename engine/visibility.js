@@ -83,6 +83,9 @@ function filterView(state, playerId) {
     const tile = { t: src.t, visible: omniscient || visible[i] === 1 };
     if (src.river) tile.river = true;
     if (src.special) tile.special = true;
+    if (src.irrigation) tile.irrigation = true;
+    if (src.mine) tile.mine = true;
+    if (src.road) tile.road = true;
     tiles.push(tile);
   }
 

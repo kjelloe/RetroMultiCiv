@@ -125,6 +125,9 @@ export function initTurnLog(ctx) {
         if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`);
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
         add(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
+      } else if (e.type === 'improvementBuilt' && e.owner === HUMAN) {
+        const label = e.work === 'irrigate' ? 'irrigation' : e.work;
+        add(`🛠 ${label} completed at (${e.x},${e.y})`, 'win');
       } else if (e.type === 'techDiscovered' && e.playerId === HUMAN) {
         const unlocks = techUnlocks[e.tech] || [];
         add(`🔬 ${techs[e.tech].name} discovered`

@@ -26,6 +26,15 @@ function yields(cell) {
   return { food: y.food, shields: y.shields, trade: y.trade };
 }
 
+// Improvement columns hold the YIELD BONUS the improvement adds, or a terrain
+// transform like "→ Forest" (transforms are a later slice — skipped here).
+function improvementBonus(cell) {
+  if (!cell || cell.indexOf('→') !== -1) return null;
+  const y = yields(cell);
+  if (y.food + y.shields + y.trade === 0) return null;
+  return y;
+}
+
 function buildTerrain() {
   const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'terrain-civ1.json'), 'utf8'));
   const rows = page.tables[0].rows.filter(r => r.length >= 7 && r[1]);
@@ -43,6 +52,13 @@ function buildTerrain() {
       special: { name: r[5], yields: yields(r[6] || '') },
       domain: id === 'ocean' ? 'sea' : 'land'
     };
+    // settler improvements (columns: Irrigation, Mine, Road) — bonus yields
+    const irrigate = improvementBonus(r[7]);
+    const mine = improvementBonus(r[8]);
+    const road = improvementBonus(r[9]);
+    if (irrigate) entry.irrigate = irrigate;
+    if (mine) entry.mine = mine;
+    if (road) entry.road = road;
     if (id === 'river') {
       // Civ 1 "River" is a tile type; we store rivers as a tile flag instead:
       // River tile = Grassland + river flag (see docs/01-game-spec.md §3.1)

@@ -16,9 +16,21 @@ for (let dy = -2; dy <= 2; dy++) {
 function tileYields(tile, ruleset) {
   const terrain = ruleset.terrain.terrains[tile.t];
   const base = tile.special ? terrain.special.yields : terrain.yields;
+  let food = base.food;
+  let shields = base.shields;
   let trade = base.trade;
   if (tile.river) trade = trade + ruleset.terrain.riverModifier.tradeBonus;
-  return { food: base.food, shields: base.shields, trade };
+  if (tile.irrigation === true && terrain.irrigate !== undefined) {
+    food += terrain.irrigate.food; shields += terrain.irrigate.shields; trade += terrain.irrigate.trade;
+  }
+  if (tile.mine === true && terrain.mine !== undefined) {
+    food += terrain.mine.food; shields += terrain.mine.shields; trade += terrain.mine.trade;
+  }
+  // Civ 1: no road trade bonus on river tiles (the river already carries trade)
+  if (tile.road === true && terrain.road !== undefined && tile.river !== true) {
+    food += terrain.road.food; shields += terrain.road.shields; trade += terrain.road.trade;
+  }
+  return { food, shields, trade };
 }
 
 function idiv(a, b) {

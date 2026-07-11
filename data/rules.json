@@ -5,5 +5,10 @@
   "endYear": 2100,
   "scorePerCitizen": 2,
   "scorePerTech": 5,
-  "scorePerWonder": 20
+  "scorePerWonder": 20,
+  "workTurns": {
+    "road": 3,
+    "irrigate": 5,
+    "mine": 10
+  }
 }

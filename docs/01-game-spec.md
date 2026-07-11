@@ -60,7 +60,7 @@ The whole simulation is deterministic: same initial seed + same command sequence
 | Grassland | 2    | 0–1     | 0     | 1         | ×1.0    | Half of grassland tiles carry a "shield" bonus (deterministic pattern) |
 | Plains    | 1    | 1       | 0     | 1         | ×1.0    | |
 | Forest    | 1    | 2       | 0     | 2         | ×1.5    | Can be cleared to Plains |
-| Hills     | 1    | 0       | 0     | 2         | ×2.0    | Mine: +2 shields |
+| Hills     | 1    | 0       | 0     | 2         | ×2.0    | Mine: +3 shields (wiki-verified) |
 | Mountains | 0    | 1       | 0     | 3         | ×3.0    | |
 | Desert    | 0    | 1       | 0     | 1         | ×1.0    | Irrigable |
 | Tundra    | 1    | 0       | 0     | 1         | ×1.0    | |
@@ -83,7 +83,7 @@ from the wiki into `data/terrain.json`.
 | Road       | Move cost ⅓ along road; +1 trade on Grassland/Plains/Desert | — |
 | Railroad   | Free movement along rail; +50% shields on tile | Railroad tech; road first |
 | Irrigation | +1 food (Desert/Grassland/Hills/Plains/River) | Adjacent water/irrigation |
-| Mine       | +shields (Hills +2, Mountains +1, Desert +1) | — |
+| Mine       | +shields (Hills +3, Mountains +1, Desert +1) | — |
 | Fortress   | Units inside defend ×2 | Construction tech |
 | Clear/Drain| Forest→Plains, Jungle/Swamp→Grassland | — |
 
@@ -332,6 +332,16 @@ below is a known, deliberate deviation to be closed in a later slice:
   carries between advances (Civ 1 discards it; tuneable choice, documented).
 - **Future Tech is a one-time advance** for now (repeatable scoring later).
 - **Pop floors at 1** on starvation (no city destruction).
+- **Tile improvements are the additive subset**: road, irrigation, and mine
+  work (`startWork` command; bonuses per terrain from the wiki extraction;
+  mine/irrigation replace each other). Deviations: road-to-road movement
+  costs a flat 1 point instead of Civ 1's ⅓ (integer-math simplification);
+  build times are flat per improvement (`rules.json` `workTurns` — the wiki
+  has no turn counts, so these are tuning values); irrigation's water source
+  check uses the 8-neighborhood (matching our 8-directional movement).
+  Still missing: terrain transforms (clear forest/jungle, drain swamp, plant
+  forest via grassland/plains "mine"), railroads, Fortress, pillage, and
+  city tiles do not count as roads.
 - **Combat lacks the Fortress (×2)** multiplier (tile improvements slice);
   City Walls ×3 and Great Wall are in. Goody huts and era-based barbarian
   units are deferred; barbarians spawn as militia from turn 16.

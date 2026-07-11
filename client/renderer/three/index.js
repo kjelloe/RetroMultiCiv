@@ -17,6 +17,9 @@ const TERRAIN = {
   unknown:   { color: 0x0a0e16, height: 0.10 }
 };
 const RIVER_TINT = new THREE.Color(0x3a7ac8);
+const IRRIGATION_TINT = new THREE.Color(0x2fbf71); // lush green stripe look
+const MINE_TINT = new THREE.Color(0x6b6570);       // grey diggings
+const ROAD_TINT = new THREE.Color(0x8a6f4d);       // packed-earth brown
 const FOG_TINT = new THREE.Color(0x0a0e16);
 const TILE_GAP = 0.98; // slight seam between boxes for the retro grid look
 
@@ -116,6 +119,10 @@ export function createRenderer(container) {
         tileMesh.setMatrixAt(i, m);
         c.setHex(spec.color);
         if (tiles[i].river) c.lerp(RIVER_TINT, 0.35);
+        // settler improvements read as color shifts (proper models come with the art pass)
+        if (tiles[i].irrigation) c.lerp(IRRIGATION_TINT, 0.35);
+        if (tiles[i].mine) c.lerp(MINE_TINT, 0.4);
+        if (tiles[i].road) c.lerp(ROAD_TINT, 0.35);
         if (tiles[i].visible === false) c.lerp(FOG_TINT, 0.45); // explored, not in sight
         tileMesh.setColorAt(i, c);
       }

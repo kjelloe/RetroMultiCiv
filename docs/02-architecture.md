@@ -58,6 +58,7 @@ multiciv/
 │   ├── movement.js        # move costs, ZOC, pathfinding (GoTo)
 │   ├── combat.js
 │   ├── cities.js          # growth, production, happiness, corruption
+│   ├── improvements.js    # settler work: roads, irrigation, mines
 │   ├── tech.js
 │   ├── units.js
 │   ├── visibility.js      # fog of war, per-player state filtering

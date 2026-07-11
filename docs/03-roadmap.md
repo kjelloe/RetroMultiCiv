@@ -99,11 +99,20 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    completions, research, famine, wonder news, first-contact sightings).
    ⬜ remaining from that review: terrain improvements
    (irrigate/mine/road — an engine chunk, see below).
-10. ⬜ **Terrain improvements** — Settlers spend turns building: irrigate
-   (+1 food), mine (+1 shield), road (cheaper movement, +1 trade on some
-   terrains). The one gameplay system from the ally's review the engine
-   lacks entirely; needs tile flags, a Settler work command, AI use, and
-   its own JSON scenario.
+10. ✅ **Terrain improvements** *(done 2026-07-11)* — `engine/improvements.js`:
+   `startWork` command (settlers only, consumes the turn, moving/fortifying
+   abandons the job) + per-turn-wrap progress; bonuses parsed from the wiki
+   terrain table into `data/terrain.json` (irrigation +1 food on
+   desert/grassland/hills/plains with an 8-neighbor water-source check;
+   mine desert +1 / hills +3 / mountains +1 shields, replaces irrigation
+   and vice versa; road +1 trade on desert/grassland/plains, none on
+   rivers); road-to-road movement costs 1 (v1 stand-in for Civ 1's ⅓);
+   build times in `rules.json` `workTurns` (road 3 / irrigate 5 / mine 10 —
+   tuning values, the wiki has no turn counts). Client: I/M/R keys, tile
+   tints, turn-log entries, working settlers skipped by N/auto-select and
+   the End Turn readiness check. Locked by scenario 008 (`0xbaf61c43`).
+   ⬜ remaining: AI use, terrain transforms (clear/drain/plant), railroads,
+   Fortress, pillage.
 
 **Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
 

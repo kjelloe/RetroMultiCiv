@@ -22,6 +22,7 @@ const CLIENT_MODULES = [
   'engine/ai.js',
   'engine/barbarians.js',
   'engine/cities.js',
+  'engine/improvements.js',
   'engine/score.js',
   'engine/combat.js',
   'engine/index.js',

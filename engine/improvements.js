@@ -1,0 +1,89 @@
+// Tile improvements: Settlers spend whole turns building roads, irrigation,
+// and mines (docs/01-game-spec.md §3.2). Yield bonuses live in
+// data/terrain.json (irrigate/mine/road per terrain); build times in
+// data/rules.json workTurns. Civ 1 terrain transforms (clear/plant/drain),
+// railroads, fortresses, and pillage are later slices.
+import { sortIds } from './combat.js';
+
+// tile flag written by each kind of work
+function workFlag(work) {
+  return work === 'irrigate' ? 'irrigation' : work;
+}
+
+// Civ 1: irrigation needs a water source — a river on the tile, or an ocean/
+// river/irrigated tile among the 8 neighbors (we use the full neighborhood,
+// matching the game's 8-directional movement).
+function hasWaterSource(state, x, y) {
+  const map = state.map;
+  if (map.tiles[y * map.width + x].river === true) return true;
+  for (let dy = -1; dy <= 1; dy++) {
+    const yy = y + dy;
+    if (yy < 0 || yy >= map.height) continue;
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      let xx = x + dx;
+      if (xx < 0 || xx >= map.width) {
+        if (!map.wrapX) continue;
+        xx = ((xx % map.width) + map.width) % map.width;
+      }
+      const t = map.tiles[yy * map.width + xx];
+      if (t.t === 'ocean' || t.river === true || t.irrigation === true) return true;
+    }
+  }
+  return false;
+}
+
+// Command: a settler starts (or switches to) a job on its tile. Consumes the
+// turn; the work advances at every turn wrap until done. Moving cancels it.
+function startWork(state, cmd, ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  if (unit.type !== 'settlers') return { ok: false, reason: 'notSettlers' };
+  if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
+  const work = cmd.work;
+  if (work !== 'road' && work !== 'irrigate' && work !== 'mine') {
+    return { ok: false, reason: 'badWork' };
+  }
+
+  const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+  const terrain = ruleset.terrain.terrains[tile.t];
+  if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
+  // roads can be laid on any land; irrigation/mine only where the terrain
+  // yields a bonus (transform-only terrains like forest come later)
+  if (work !== 'road' && terrain[work] === undefined) {
+    return { ok: false, reason: 'badTerrain' };
+  }
+  if (tile[workFlag(work)] === true) return { ok: false, reason: 'alreadyImproved' };
+  if (work === 'irrigate' && !hasWaterSource(state, unit.x, unit.y)) {
+    return { ok: false, reason: 'noWater' };
+  }
+
+  unit.working = work;
+  unit.workLeft = ruleset.rules.workTurns[work];
+  unit.moves = 0;
+  return { ok: true, events: [{ type: 'workStarted', unitId: unit.id, work, x: unit.x, y: unit.y }] };
+}
+
+// Runs once per game turn (turn wrap), before cities harvest, so a finished
+// improvement feeds the same turn's yields.
+function processWork(state, ruleset, events) {
+  for (const id of sortIds(Object.keys(state.units))) {
+    const unit = state.units[id];
+    if (unit.working === undefined) continue;
+    unit.workLeft = unit.workLeft - 1;
+    if (unit.workLeft > 0) continue;
+    const work = unit.working;
+    const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+    tile[workFlag(work)] = true;
+    // Civ 1: irrigation and mine replace each other on a tile
+    if (work === 'irrigate') delete tile.mine;
+    if (work === 'mine') delete tile.irrigation;
+    delete unit.working;
+    delete unit.workLeft;
+    events.push({ type: 'improvementBuilt', unitId: unit.id, owner: unit.owner, work, x: unit.x, y: unit.y });
+  }
+}
+
+export { startWork, processWork, hasWaterSource, workFlag };

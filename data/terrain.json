@@ -36,7 +36,22 @@
           "trade": 0
         }
       },
-      "domain": "land"
+      "domain": "land",
+      "irrigate": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "mine": {
+        "food": 0,
+        "shields": 1,
+        "trade": 0
+      },
+      "road": {
+        "food": 0,
+        "shields": 0,
+        "trade": 1
+      }
     },
     "forest": {
       "name": "Forest",
@@ -74,7 +89,17 @@
           "trade": 0
         }
       },
-      "domain": "land"
+      "domain": "land",
+      "irrigate": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "road": {
+        "food": 0,
+        "shields": 0,
+        "trade": 1
+      }
     },
     "hills": {
       "name": "Hills",
@@ -93,7 +118,17 @@
           "trade": 0
         }
       },
-      "domain": "land"
+      "domain": "land",
+      "irrigate": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "mine": {
+        "food": 0,
+        "shields": 3,
+        "trade": 0
+      }
     },
     "jungle": {
       "name": "Jungle",
@@ -131,7 +166,12 @@
           "trade": 6
         }
       },
-      "domain": "land"
+      "domain": "land",
+      "mine": {
+        "food": 0,
+        "shields": 1,
+        "trade": 0
+      }
     },
     "ocean": {
       "name": "Ocean",
@@ -169,7 +209,17 @@
           "trade": 0
         }
       },
-      "domain": "land"
+      "domain": "land",
+      "irrigate": {
+        "food": 1,
+        "shields": 0,
+        "trade": 0
+      },
+      "road": {
+        "food": 0,
+        "shields": 0,
+        "trade": 1
+      }
     },
     "swamp": {
       "name": "Swamp",

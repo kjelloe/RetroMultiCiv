@@ -78,8 +78,11 @@ rates the hovered tile as a city site and projects its footprint on the map,
 the production catalog shows per-item build times, plain-language effects,
 and what technology unlocks the locked entries, and a collapsible **turn log**
 narrates growth, completions, discoveries, wonder news, first contacts, and
-every battle. **Phase 1 complete: a full, winnable game vs AI.**
-74 headless tests including hash-locked JSON scenarios, an AI-determinism
+every battle. Settlers work the land, too: press I/M/R to irrigate, mine, or
+build roads (Civ 1 rules — irrigation needs a water source, mined hills yield
++3 shields, roads speed movement and add trade on open terrain).
+**Phase 1 complete: a full, winnable game vs AI.**
+80 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e that boots the client and inspects the live
 panels. Next: phase 2 — hotseat multiplayer.
 

@@ -129,10 +129,10 @@ export function initInput(ctx) {
     }
   }
 
-  // next idle unit — skips fortified units unless selected by hand
+  // next idle unit — skips fortified and working units unless selected by hand
   function nextUnit() {
     const movable = Object.values(session.state.units).filter(
-      u => u.owner === HUMAN && u.moves > 0 && !u.fortified && u.id !== sel.unitId
+      u => u.owner === HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
     );
     if (movable.length === 0) {
       hud.note('no units with moves left — E to end turn');
@@ -146,7 +146,7 @@ export function initInput(ctx) {
   function autoSelectAfterTurn() {
     if (session.state.gameOver || session.state.activePlayer !== HUMAN) return;
     const last = sel.lastMoved && session.state.units[sel.lastMoved];
-    if (last && last.owner === HUMAN && last.moves > 0 && !last.fortified) {
+    if (last && last.owner === HUMAN && last.moves > 0 && !last.fortified && !last.working) {
       ctx.selectUnit(last);
       renderer.centerOn(last.x, last.y);
       return;
@@ -271,6 +271,13 @@ export function initInput(ctx) {
     if (e.key === 'f' && sel.unitId) {
       if (apply({ type: 'fortify', playerId: session.state.activePlayer, unitId: sel.unitId })) {
         hud.note(`🛡 ${units[session.state.units[sel.unitId].type].name} fortified`);
+      }
+      return;
+    }
+    if ((e.key === 'i' || e.key === 'm' || e.key === 'r') && sel.unitId) {
+      const work = { i: 'irrigate', m: 'mine', r: 'road' }[e.key];
+      if (apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
+        hud.unitNote(session.state.units[sel.unitId]);
       }
       return;
     }

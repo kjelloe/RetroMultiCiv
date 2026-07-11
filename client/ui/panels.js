@@ -1,6 +1,6 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
-import { workedTiles, candidateTiles } from '../../engine/cities.js';
+import { workedTiles, candidateTiles, tileYields } from '../../engine/cities.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 
@@ -244,10 +244,8 @@ export function initPanels(ctx) {
         if (isWorked[`${x},${y}`]) cell.className += ' worked';
         if (dx === 0 && dy === 0) cell.className += ' center';
         else {
-          const ty = session.ruleset.terrain.terrains[tile.t];
-          const base = tile.special ? ty.special.yields : ty.yields;
-          const trade = base.trade + (tile.river ? session.ruleset.terrain.riverModifier.tradeBonus : 0);
-          cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(base.food, base.shields, trade);
+          const y = tileYields(tile, session.ruleset); // includes improvement bonuses
+          cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(y.food, y.shields, y.trade);
           cell.className += ' assignable';
           const idx = y * state.map.width + x;
           cell.addEventListener('click', () => toggleWorker(idx));

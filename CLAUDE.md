@@ -76,11 +76,12 @@ Screenshot the running game with:
 (SwiftShader flags are required — WebGL has no GPU here and fails without them.)
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
-cities, combat/barbarians, tech, ai, score, visibility, mapgen, wiki2data —
-engine tests share `test/ruleset.js`), JSON scenarios (below), and
+cities, improvements, combat/barbarians, tech, ai, score, visibility, mapgen,
+wiki2data — engine tests share `test/ruleset.js`), JSON scenarios (below), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
-headless Chromium and asserts the HUD reaches "turn 1" with a canvas and no
-surfaced error (self-skips when the browser is absent).
+headless Chromium (`?e2e=1` founds a city and fills the panels) and asserts
+the HUD reaches "turn 1", the panels carry real content, and no error
+surfaced (self-skips when the browser is absent).
 
 **Mechanics tests are JSON scenarios** in `test/scenarios/` (format documented
 in `test/scenario-runner.js` and docs/02-architecture.md §8) — add a JSON file,

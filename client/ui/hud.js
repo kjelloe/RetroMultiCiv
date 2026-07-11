@@ -33,7 +33,7 @@ export function initHud(ctx) {
     const state = session.state;
     let allMoved = false;
     if (!state.gameOver && state.activePlayer === HUMAN && state.players[HUMAN] && state.players[HUMAN].human) {
-      const movable = Object.values(state.units).filter(u => u.owner === HUMAN && u.moves > 0);
+      const movable = Object.values(state.units).filter(u => u.owner === HUMAN && u.moves > 0 && !u.working);
       allMoved = movable.length === 0;
     }
     endTurnBtn.classList.toggle('ready', allMoved);
@@ -69,8 +69,10 @@ export function initHud(ctx) {
   function unitNote(unit) {
     const t = session.ruleset.units[unit.type];
     const tile = session.state.map.tiles[unit.y * session.state.map.width + unit.x];
-    const status = unit.fortified ? 'fortified' : unit.moves > 0 ? 'ready' : 'no moves left';
-    const hint = unit.type === 'settlers' ? ' · B: found city'
+    const status = unit.working ? `building ${unit.working === 'irrigate' ? 'irrigation' : unit.working} (${unit.workLeft} turns)`
+      : unit.fortified ? 'fortified' : unit.moves > 0 ? 'ready' : 'no moves left';
+    const hint = unit.working ? ''
+      : unit.type === 'settlers' ? ' · B: found city · I/M/R: improve'
       : unit.fortified ? '' : ' · F: fortify';
     hudSelection.textContent = `${t.name}${unit.veteran ? ' ★vet' : ''}`
       + ` · ⚔${t.attack} 🛡${t.defense} 👟${unit.moves}/${t.moves}`
