@@ -119,6 +119,17 @@ test('mine and irrigation replace each other on completion (Civ 1)', async () =>
   assert.strictEqual(state.map.tiles[0].mine, undefined, 'irrigating removed the mine');
 });
 
+test('pillage: sea units cannot pillage the shore', async () => {
+  const { engine } = await load();
+  const tiles = [{ t: 'grassland', road: true }, { t: 'ocean' }];
+  const state = miniState(tiles, 2, 1, {
+    u1: { id: 'u1', type: 'trireme', owner: 'p1', x: 1, y: 0, moves: 3, fortified: false, veteran: false }
+  });
+  const res = engine.applyCommand(state, { type: 'pillage', playerId: 'p1', unitId: 'u1' });
+  assert.strictEqual(res.ok, false);
+  assert.strictEqual(res.reason, 'badTerrain');
+});
+
 test('road-to-road movement costs 1 regardless of terrain; moving cancels work', async () => {
   const { engine } = await load();
   const tiles = [{ t: 'hills', road: true }, { t: 'hills', road: true }, { t: 'hills' }];

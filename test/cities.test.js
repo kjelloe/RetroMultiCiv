@@ -173,6 +173,33 @@ test('manual workers: growth assigns the new citizen to the best free tile', asy
   assert.strictEqual(res.state.cities.c1.workers[0], 7, 'existing assignment kept');
 });
 
+test('buy: wonders cost the wonder rate; exact-gold purchase succeeds', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'plains' });
+  const wonderId = Object.keys(RULESET.wonders).sort()[0];
+  const wonder = RULESET.wonders[wonderId];
+  const price = (wonder.cost - 5) * RULESET.rules.buyGoldPerShieldWonder;
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'T', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: 5, buildings: [], producing: { kind: 'wonder', id: wonderId } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: price - 1, techs: [wonder.tech], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const short = engine.applyCommand(state, { type: 'buy', playerId: 'p1', cityId: 'c1' });
+  assert.strictEqual(short.reason, 'notEnoughGold', 'one gold short at the wonder rate');
+
+  state.players.p1.gold = price;
+  const bought = engine.applyCommand(state, { type: 'buy', playerId: 'p1', cityId: 'c1' });
+  assert.strictEqual(bought.ok, true);
+  assert.strictEqual(bought.state.players.p1.gold, 0);
+  assert.strictEqual(bought.state.cities.c1.shields, wonder.cost);
+});
+
 test('wonder race: only one civilization gets the wonder; the loser keeps shields', async () => {
   const { engine } = await load();
   const tiles = [];
