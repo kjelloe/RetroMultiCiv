@@ -11,6 +11,9 @@ plan-update.md
 # Exclude Ctrl-D downloaded diagnostics logs
 debugging/logs/
 
+# simulation-test failure artifacts (test/sim-driver.js)
+debugging/sim/
+
 # runtime output
 saves/
 *.log

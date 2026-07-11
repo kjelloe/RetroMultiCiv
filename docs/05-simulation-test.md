@@ -1,4 +1,7 @@
-# Simulated playthrough test — design (no implementation yet)
+# Simulated playthrough test — design & implementation notes
+
+**Status: implemented** (test/sim-driver.js, test/simulation.test.js,
+tools/soak.js). §7 and §10 record where reality amended the design.
 
 A headless, UI-free regression net: four AI civilizations play full games
 through the real engine while an invariant checker audits the state. It
@@ -37,27 +40,35 @@ tools/soak.js            # CLI: many seeds / longer runs / reports
 so the driver owns the loop — the same shape as `tools/replay.js`'s round:
 
 ```js
-// runSim({ seed, civs: 4, width, height, turns, rulesOverrides, onTurn })
-for each turn until target:
-  for each player in playerOrder (skipping dead):
-    runAiTurn(engine, state, pid, ruleset, [])
-    applyCommand(state, { type: 'endTurn', playerId: pid })
-  onTurn(state, turn)   // invariants + checkpoint hooks
+// runSim({ seed, civs, width, height, turns, rulesOverrides, deepAt, ... })
+for each round until target:
+  while the game turn hasn't advanced:
+    runAiTurn(engine, state, activePlayer, ruleset, [])   // skipped if dead
+    applyCommand(state, { type: 'endTurn', playerId: activePlayer })
+  invariants + checkpoint hooks
   if state.gameOver: break
 ```
+
+Round semantics: round N plays game turn N, so a "turn 100 checkpoint" is
+the state with `state.turn === 101`. Replay interop: the driver's artifact
+uses `{ t: 'airound' }` log entries, and `tools/replay.js` replays them
+with this same loop (regular `round` entries stop at the next *human*,
+which an all-AI game never reaches).
 
 Ruleset overrides use the difficulty mechanism: suite games run with
 `{ endYear: 9999 }` so the score victory at 2100 AD (≈ turn 306) doesn't cut
 the run short of 400.
 
-**Two suite runs, one seed (fixed, e.g. 20260712):**
+**Two suite runs, one seed (20260712):**
 
-1. **Mechanics soak** — 4 AIs, 80×50, endYear override, to turn 400.
-   Checkpoints at 100/200/300/400. Run TWICE; checkpoint hashes must match
-   between runs (long-horizon determinism) and match the pinned goldens.
+1. **Mechanics soak** — 4 AIs, **56×35** (amended from 80×50 — see §7),
+   endYear override, to turn 400. Checkpoints at 100/200/300/400. Run
+   TWICE; checkpoint hashes must match between runs (long-horizon
+   determinism) and match the pinned goldens.
 2. **Natural end** — same seed, no override: assert the game reaches
    `gameOver` by turn 320 with a valid winner and a stable final hash
-   (golden). Proves victory conditions still fire.
+   (golden). Proves victory conditions still fire. (Measured: score
+   victory at round 305, as predicted by endYear 2100 ≈ turn 306.)
 
 ## 3. Invariant catalog
 
@@ -85,8 +96,11 @@ the run short of 400.
   determinism/golden probe.
 - fog-projection audit: `filterView(state, pid)` for every player, assert
   no rival internals (the visibility-test rules, applied to organic states).
-- happiness coherence: each city's stored `disorder` equals `cityMood`
-  recomputed at the wrap boundary.
+- happiness coherence (amended): `cityMood` recomputes cleanly on every
+  organic city — components non-negative and summing to workers — and
+  stored `disorder` flags are well-formed. Strict flag-equality can't be
+  asserted post-wrap: `processCities` may change pop *after* the verdict,
+  legitimately (the flag refreshes next wrap).
 - capital/corruption sanity: `capitalOf` resolves for every player with
   cities.
 - a one-line human summary per checkpoint in the test output
@@ -123,13 +137,28 @@ The assertion message carries seed, turn, player, and the offending entity.
 `MULTICIV_SIM_SEEDS` lets CI nightlies widen the net without touching the
 default suite. Failures produce the same artifacts.
 
-## 7. Runtime budget
+## 7. Runtime budget (measured — the design estimate was 100× off)
 
-Early-phase measurement: a full 80×50 conquest game ran in ~250 ms; today's
-engine does more per wrap (mood, corruption, upkeep). Estimate 4–10 s for
-400 turns × 4 AIs including per-turn invariants; double-run ×2. If the
-suite run exceeds ~15 s on the dev machine, first lever: cheap invariants
-every 5 turns instead of every turn (checkpoints stay full).
+The ~250 ms early measurement didn't survive contact: a 400-turn 4-AI game
+at 80×50 first clocked **129 s**. Profiling (`node --cpu-prof`) showed the
+guessed lever — invariant cadence — was wrong (invariants: 0.4%). The real
+costs:
+
+- **`deepClone` 63% + GC 10%** — `applyCommand` clones the whole state per
+  command and AIs issue hundreds of commands per turn; the per-player
+  `explored` arrays alone are ~16k primitives per clone. Fix: a flat-
+  primitive-array fast path in `deepClone` (`slice()`; Luau: `table.clone`)
+  — 129 s → 69 s, hashes bit-identical.
+- **`hashState` ~14%** — fix: rounds carry a hash only every `hashEvery`
+  (default 10) rounds plus checkpoints/game end; `tools/replay.js` skips
+  hashless entries, so artifacts stay bisectable at that granularity.
+- **Map size is the remaining lever** — clone cost scales with state size,
+  so the suite world is 56×35 (~9.5 s per 400-turn run) while soak mode
+  defaults to the full 80×50 (~70 s per seed, fine for an explicit run).
+
+Suite total: two soak runs + natural end + two small tests ≈ **31 s** for
+the file — over the ~15 s wish, but `node --test` runs test files in
+parallel, so the wall-clock impact on the whole suite is smaller.
 
 ## 8. Phase-5 payoff
 
@@ -138,13 +167,34 @@ runs the same seeds through the same loop and must hit the same five
 hashes. This test is therefore the long-horizon complement to the scenario
 suite in the port-verification story — worth building solidly now.
 
-## 9. Implementation order (when green-lit)
+## 9. Implementation order (all done)
 
-1. `test/sim-driver.js` — runSim + invariant checker (pure functions,
-   testable itself with a tiny crafted broken state).
-2. `test/simulation.test.js` — suite mode with null goldens, measure
-   runtime, record goldens, tune cadence to budget.
-3. `tools/soak.js` — CLI wrapper + artifacts.
-4. CLAUDE.md test-layers note + roadmap Phase 2.5 addendum.
-5. First soak across ~25 seeds; triage whatever it finds (expect it to
-   find something).
+1. ✅ `test/sim-driver.js` — runSim + invariant checker (checker unit-tested
+   against a crafted broken state in simulation.test.js).
+2. ✅ `test/simulation.test.js` — double-run + goldens + natural end.
+3. ✅ `tools/soak.js` — CLI wrapper; artifacts land in `debugging/sim/`
+   (gitignored).
+4. ✅ CLAUDE.md test-layers note + roadmap Phase 2.5 addendum.
+5. ✅ First soak across 25 seeds (see §10).
+
+## 10. First findings (triaged during implementation)
+
+The tripwires fired before the suite even landed — twice:
+
+- **Settler spam**: the v0 AI's "defended city → build settlers forever"
+  grew armies without bound once the land saturated (607 units by turn
+  245). Triage in `engine/ai.js`: settlers are capped at
+  `2 + cities/4`; saturated cities build the cheapest missing building,
+  then the cheapest available wonder, before falling back to defenders.
+- **Research starvation**: with the spam capped, three of four AIs still
+  had **zero techs at turn 300** — their city tiles produced no trade (no
+  rivers/specials, no roads), so no bulbs, no research, no buildings to
+  build, militia fallback spam, tripwire again. Triage: idle settlers with
+  no city spot now pave a road where they stand (the first slice of the
+  docs/04 "AI use of improvements" enrichment). Research flows; 400-turn
+  games complete with wars, buildings, and wonders.
+
+Both were real "unintended behavior drift" catches on day one — exactly
+the class of bug this test exists for. Note: AI changes alter AI-driven
+rounds, so *old* diagnostics recordings (e.g. pre-change playtests) no
+longer replay hash-for-hash; recordings are debug artifacts, not saves.

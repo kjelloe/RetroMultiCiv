@@ -12,6 +12,10 @@ import { unitsAt, cityAt, sortIds } from './combat.js';
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
 
+function idiv(a, b) {
+  return Math.floor(a / b);
+}
+
 function wrapDx(map, from, to) {
   let dx = to - from;
   if (map.wrapX) {
@@ -73,6 +77,53 @@ function towardBetterLand(state, unit, ruleset) {
   return bestDir;
 }
 
+function countSettlers(state, playerId) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId && u.type === 'settlers') n = n + 1;
+  }
+  return n;
+}
+
+function countCities(state, playerId) {
+  let n = 0;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c && c.owner === playerId) n = n + 1;
+  }
+  return n;
+}
+
+// Cheapest building the city lacks and the player can build (never a Palace —
+// capitalOf falls back to the oldest city, extra palaces would corrupt it).
+// Comparison-select, so the result is independent of key iteration order.
+function nextBuilding(city, me, ruleset) {
+  let best = null;
+  for (const id of Object.keys(ruleset.buildings)) {
+    const def = ruleset.buildings[id];
+    if (city.buildings !== undefined && city.buildings.indexOf(id) !== -1) continue;
+    if (def.effect.isPalace === true) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (best === null || def.cost < ruleset.buildings[best].cost
+      || (def.cost === ruleset.buildings[best].cost && id < best)) best = id;
+  }
+  return best;
+}
+
+function nextWonder(state, me, ruleset) {
+  const built = state.wonders === undefined ? {} : state.wonders;
+  let best = null;
+  for (const id of Object.keys(ruleset.wonders)) {
+    const def = ruleset.wonders[id];
+    if (built[id] !== undefined) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (best === null || def.cost < ruleset.wonders[best].cost
+      || (def.cost === ruleset.wonders[best].cost && id < best)) best = id;
+  }
+  return best;
+}
+
 function nearestKnownEnemy(state, unit, playerId) {
   const me = state.players[playerId];
   let best = null, bestDist = 9999;
@@ -131,9 +182,21 @@ function pickCommand(state, playerId, ruleset, done) {
     done['c:' + cid] = true;
     const defenders = unitsAt(state, city.x, city.y).filter(u => u.owner === playerId);
     const bestDefender = me.techs.indexOf('bronze-working') !== -1 ? 'phalanx' : 'militia';
-    const want = defenders.length === 0
-      ? { kind: 'unit', id: bestDefender }
-      : { kind: 'unit', id: 'settlers' };
+    // Defend first; expand while settlers are scarce (capped — endless settler
+    // spam grows armies without bound once the land is full, docs/05 §1);
+    // saturated empires improve instead: cheapest missing building, then the
+    // cheapest available wonder, and only then more defenders.
+    let want = { kind: 'unit', id: bestDefender };
+    if (defenders.length > 0) {
+      if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 4)) {
+        want = { kind: 'unit', id: 'settlers' };
+      } else {
+        const building = nextBuilding(city, me, ruleset);
+        const wonder = building === null ? nextWonder(state, me, ruleset) : null;
+        if (building !== null) want = { kind: 'building', id: building };
+        else if (wonder !== null) want = { kind: 'wonder', id: wonder };
+      }
+    }
     if (city.producing.kind !== want.kind || city.producing.id !== want.id) {
       return { type: 'setProduction', playerId, cityId: cid, item: want };
     }
@@ -143,11 +206,18 @@ function pickCommand(state, playerId, ruleset, done) {
     if (done['u:' + uid]) continue;
     const unit = state.units[uid];
     if (!unit || unit.owner !== playerId || unit.moves <= 0) continue;
+    if (unit.working !== undefined) continue; // moving would cancel the job
     done['u:' + uid] = true;
 
     if (unit.type === 'settlers') {
       if (goodCitySpot(state, unit, ruleset)) {
         return { type: 'foundCity', playerId, unitId: uid };
+      }
+      // no room for a city: pave where it stands — roads make trade, and
+      // trade is the AI's only path to research (docs/04 AI improvements v0)
+      const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+      if (ruleset.terrain.terrains[tile.t].domain === 'land' && tile.road !== true) {
+        return { type: 'startWork', playerId, unitId: uid, work: 'road' };
       }
       const dir = towardBetterLand(state, unit, ruleset);
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };

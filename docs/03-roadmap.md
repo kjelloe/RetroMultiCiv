@@ -223,7 +223,11 @@ are pinned down:
   rival's view may and may not contain, independent of rendering.
 
 Cross-engine test vectors beyond the anchors above: the ten hash-locked
-JSON scenarios in `test/scenarios/`.
+JSON scenarios in `test/scenarios/`, and the long-horizon complement — the
+simulated-playthrough goldens (`test/simulation.test.js`: a fixed-seed
+4-AI game whose 100/200/300/400-turn checkpoint hashes the Luau engine
+must reproduce; design in `docs/05-simulation-test.md`, wide-net soak via
+`node tools/soak.js`).
 
 ## Phase 3 — Node.js authoritative game server
 

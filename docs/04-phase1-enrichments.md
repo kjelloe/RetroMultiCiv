@@ -180,12 +180,13 @@ unit after End Turn.
   to the older city. **This changes yields in dense empires** — audit
   scenarios (city spacing in crafted states is generous; likely no
   re-records) and playtest AI games.
-- **AI improvements:** the v0 AI's settlers currently only found cities.
-  Cheap heuristic that keeps rng-free determinism: a settler standing on a
-  worked tile of an owned city with no improvement → irrigate (if legal)
-  else road; otherwise proceed to found logic. Changes AI-vs-AI outcomes →
-  the determinism test still passes (it compares two identical runs); the
-  full-game smoke test may need its turn-count expectation refreshed.
+- **AI improvements:** FIRST SLICE DONE (2026-07-12, forced by the
+  simulation test — docs/05 §10): a settler with no city spot paves a road
+  where it stands (rng-free), the AI skips units mid-job, settlers are
+  capped, and saturated cities build buildings/wonders. Remaining ideas:
+  irrigate worked tiles of owned cities (if legal) before roads; prefer
+  paving inside the fat cross of an owned city. Changes AI-vs-AI outcomes →
+  re-record the simulation goldens when picked up.
 
 ## Remaining wonder effects (for reference)
 

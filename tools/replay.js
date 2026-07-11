@@ -74,6 +74,30 @@ async function replayDiagnostics(diag, ruleset) {
       if (h !== entry.hash) {
         problems.push(`entry ${i} (round -> turn ${state.turn}): hash ${h}, recorded ${entry.hash}`);
       }
+    } else if (entry.t === 'airound') {
+      // all-AI games (test/sim-driver.js): a round is one full game turn —
+      // drive every player's AI until the turn wraps, same loop as the driver
+      rounds++;
+      const startTurn = state.turn;
+      let guard = state.playerOrder.length + 2;
+      while (state.turn === startTurn && !state.gameOver && guard-- > 0) {
+        const pid = state.activePlayer;
+        if (state.players[pid].alive !== false) {
+          state = runAiTurn(engine, state, pid, ruleset, []);
+        }
+        const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
+        if (!res.ok) {
+          problems.push(`entry ${i} (airound): endTurn rejected (${res.reason})`);
+          return;
+        }
+        state = res.state;
+      }
+      if (entry.hash !== undefined) { // the driver hashes every Nth round
+        const h = hashState(state);
+        if (h !== entry.hash) {
+          problems.push(`entry ${i} (airound -> turn ${state.turn}): hash ${h}, recorded ${entry.hash}`);
+        }
+      }
     }
   });
 

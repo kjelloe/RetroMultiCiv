@@ -16,6 +16,14 @@ import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
   if (Array.isArray(value)) {
+    // flat arrays of primitives (explored masks, worker lists) copy directly —
+    // applyCommand clones the whole state per command, and these arrays are
+    // most of it (Luau port: table.clone on the same flatness check)
+    let flat = true;
+    for (let i = 0; i < value.length; i++) {
+      if (typeof value[i] === 'object') { flat = false; break; }
+    }
+    if (flat) return value.slice();
     const out = [];
     for (const v of value) out.push(deepClone(v));
     return out;

@@ -92,7 +92,13 @@ wrong". Loading a save restarts the recording from the load point.
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
 cities, improvements, happiness, government, combat/barbarians, tech, ai,
 score, visibility, mapgen, wiki2data — engine tests share `test/ruleset.js`),
-JSON scenarios (below), and
+JSON scenarios (below),
+`simulation.test.js` — headless all-AI playthroughs via `test/sim-driver.js`
+(fixed seed, 400 turns run twice, invariants every turn, golden checkpoint
+hashes at 100/200/300/400 = phase-5 Luau anchors; ~30 s; design + golden
+re-record process in `docs/05-simulation-test.md`; failure artifacts in
+`debugging/sim/` are drag-droppable saves + `tools/replay.js`-bisectable
+diags; wide net: `node tools/soak.js --seeds 25`), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium (`?e2e=1` founds a city and fills the panels) and asserts
 the HUD reaches "turn 1", the panels carry real content, and no error

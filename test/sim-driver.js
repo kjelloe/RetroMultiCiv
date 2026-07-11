@@ -1,0 +1,444 @@
+// Headless all-AI playthrough driver (docs/05-simulation-test.md).
+// Runs N AI civilizations through the real engine with no client attached,
+// auditing the whole state with cheap invariants every round and deep checks
+// at checkpoints. Shared by test/simulation.test.js (fixed seed + goldens)
+// and tools/soak.js (many seeds). On failure it writes two artifacts to
+// debugging/sim/: a save file (drag-drop into the browser to inspect) and a
+// diagnostics file (bisect with `node tools/replay.js`).
+//
+// Round semantics: round N plays game turn N, so after N completed rounds
+// state.turn === N+1. Checkpoints are keyed by completed rounds.
+const fs = require('fs');
+const path = require('path');
+const RULESET = require('./ruleset.js');
+
+const DEFAULT_ARTIFACT_DIR = path.join(__dirname, '..', 'debugging', 'sim');
+
+// Fixed roster: stable ids/colors keep goldens stable; civ ids exercise the
+// specialty hooks (startTech, startGold, cheap items, veterans).
+const SIM_ROSTER = [
+  { id: 'p1', name: 'Romans', color: '#3b7dd8', civ: 'romans' },
+  { id: 'p2', name: 'Egyptians', color: '#d8b13b', civ: 'egyptians' },
+  { id: 'p3', name: 'Greeks', color: '#3bd87d', civ: 'greeks' },
+  { id: 'p4', name: 'Zulus', color: '#d84a3b', civ: 'zulus' },
+  { id: 'p5', name: 'Babylonians', color: '#9b59d0', civ: 'babylonians' },
+  { id: 'p6', name: 'Chinese', color: '#d07f3b', civ: 'chinese' },
+  { id: 'p7', name: 'Mongols', color: '#4fd0c9', civ: 'mongols' }
+];
+
+// Tripwires: generous ceilings that only trip on runaway feedback loops
+// (exponential unit spam, gold overflow), never on healthy games.
+const MAX_POP = 40;
+const MAX_UNITS = 600;
+const MAX_GOLD = 100000;
+
+let MODS = null;
+async function loadModules() {
+  if (MODS) return MODS;
+  const [engineMod, aiMod, hashMod, visMod, happyMod, govMod, scoreMod] = await Promise.all([
+    import('../engine/index.js'),
+    import('../engine/ai.js'),
+    import('../shared/statehash.js'),
+    import('../engine/visibility.js'),
+    import('../engine/happiness.js'),
+    import('../engine/government.js'),
+    import('../engine/score.js')
+  ]);
+  MODS = {
+    createEngine: engineMod.createEngine,
+    deepClone: engineMod.deepClone,
+    runAiTurn: aiMod.runAiTurn,
+    hashState: hashMod.hashState,
+    filterView: visMod.filterView,
+    cityMood: happyMod.cityMood,
+    capitalOf: govMod.capitalOf,
+    score: scoreMod.score
+  };
+  return MODS;
+}
+
+function isInt(n) {
+  return Number.isInteger(n);
+}
+
+// Cheap structural + numeric audit of the whole state. Pure and synchronous
+// so it is unit-testable against crafted broken states. Returns a list of
+// problem strings (empty = healthy).
+function checkInvariants(state, ruleset) {
+  const problems = [];
+  const bad = (msg) => problems.push(msg);
+  const { width, height, tiles } = state.map;
+  const size = width * height;
+  if (tiles.length !== size) bad(`map: ${tiles.length} tiles for ${width}x${height}`);
+  if (!isInt(state.turn) || state.turn < 1) bad(`turn ${state.turn} invalid`);
+  if (!isInt(state.year)) bad(`year ${state.year} invalid`);
+  if (!isInt(state.rngState) || state.rngState === 0) bad(`rngState ${state.rngState} invalid (xorshift32 must be a nonzero integer)`);
+  if (!state.players[state.activePlayer]) bad(`activePlayer ${state.activePlayer} missing from players`);
+  if (state.playerOrder.indexOf(state.activePlayer) === -1) bad(`activePlayer ${state.activePlayer} not in playerOrder`);
+
+  // units
+  const unitIds = Object.keys(state.units);
+  if (unitIds.length > MAX_UNITS) bad(`tripwire: ${unitIds.length} units > ${MAX_UNITS}`);
+  let maxUnitNum = 0;
+  for (const uid of unitIds) {
+    const u = state.units[uid];
+    if (u.id !== uid) bad(`unit ${uid}: id field "${u.id}" mismatches key`);
+    if (!state.players[u.owner]) bad(`unit ${uid}: owner "${u.owner}" missing`);
+    const def = ruleset.units[u.type];
+    if (!def) { bad(`unit ${uid}: unknown type "${u.type}"`); continue; }
+    if (!isInt(u.x) || !isInt(u.y) || u.x < 0 || u.x >= width || u.y < 0 || u.y >= height) {
+      bad(`unit ${uid}: position ${u.x},${u.y} out of bounds`);
+      continue;
+    }
+    if (!isInt(u.moves) || u.moves < 0) bad(`unit ${uid}: moves ${u.moves}`);
+    const tileDomain = ruleset.terrain.terrains[tiles[u.y * width + u.x].t].domain;
+    const inCity = cityAtTile(state, u.x, u.y);
+    if (def.domain === 'land' && tileDomain !== 'land') bad(`unit ${uid}: land unit (${u.type}) on ${tileDomain}`);
+    if (def.domain === 'sea' && tileDomain !== 'sea' && !inCity) bad(`unit ${uid}: sea unit (${u.type}) on ${tileDomain} outside a city`);
+    if (u.home !== undefined && !state.cities[u.home]) bad(`unit ${uid}: home city "${u.home}" missing`);
+    const m = /^u([0-9]+)$/.exec(uid);
+    if (m && Number(m[1]) > maxUnitNum) maxUnitNum = Number(m[1]);
+  }
+  if (maxUnitNum >= state.nextUnitId) bad(`nextUnitId ${state.nextUnitId} <= max used unit id ${maxUnitNum}`);
+
+  // cities + cityOrder set equality
+  const cityIds = Object.keys(state.cities);
+  const inOrder = {};
+  for (const cid of state.cityOrder) {
+    if (inOrder[cid]) bad(`cityOrder: duplicate "${cid}"`);
+    inOrder[cid] = true;
+    if (!state.cities[cid]) bad(`cityOrder: "${cid}" missing from cities`);
+  }
+  const seenTile = {};
+  let maxCityNum = 0;
+  for (const cid of cityIds) {
+    if (!inOrder[cid]) bad(`city ${cid} missing from cityOrder`);
+    const c = state.cities[cid];
+    if (c.id !== cid) bad(`city ${cid}: id field "${c.id}" mismatches key`);
+    if (!state.players[c.owner]) bad(`city ${cid}: owner "${c.owner}" missing`);
+    if (!isInt(c.x) || !isInt(c.y) || c.x < 0 || c.x >= width || c.y < 0 || c.y >= height) {
+      bad(`city ${cid}: position ${c.x},${c.y} out of bounds`);
+      continue;
+    }
+    const tkey = c.y * width + c.x;
+    if (seenTile[tkey]) bad(`city ${cid}: shares tile ${c.x},${c.y} with ${seenTile[tkey]}`);
+    seenTile[tkey] = cid;
+    if (!isInt(c.pop) || c.pop < 1) bad(`city ${cid}: pop ${c.pop}`);
+    if (c.pop > MAX_POP) bad(`tripwire: city ${cid} pop ${c.pop} > ${MAX_POP}`);
+    if (!isInt(c.food) || c.food < 0) bad(`city ${cid}: food ${c.food}`);
+    if (!isInt(c.shields) || c.shields < 0) bad(`city ${cid}: shields ${c.shields}`);
+    if (c.disorder !== undefined && c.disorder !== true) bad(`city ${cid}: disorder flag must be true or absent`);
+    const prod = c.producing;
+    if (!prod || (prod.kind === 'unit' ? !ruleset.units[prod.id]
+      : prod.kind === 'building' ? !ruleset.buildings[prod.id]
+      : prod.kind === 'wonder' ? !ruleset.wonders[prod.id] : true)) {
+      bad(`city ${cid}: invalid producing ${JSON.stringify(prod)}`);
+    }
+    if (c.buildings !== undefined) {
+      const seenB = {};
+      for (const b of c.buildings) {
+        if (!ruleset.buildings[b]) bad(`city ${cid}: unknown building "${b}"`);
+        if (seenB[b]) bad(`city ${cid}: duplicate building "${b}"`);
+        seenB[b] = true;
+      }
+    }
+    const taxmen = c.taxmen === undefined ? 0 : c.taxmen;
+    const scientists = c.scientists === undefined ? 0 : c.scientists;
+    if (!isInt(taxmen) || taxmen < 0 || !isInt(scientists) || scientists < 0) {
+      bad(`city ${cid}: specialists taxmen=${c.taxmen} scientists=${c.scientists}`);
+    }
+    if (taxmen + scientists > c.pop) bad(`city ${cid}: ${taxmen}+${scientists} specialists > pop ${c.pop}`);
+    if (c.workers !== undefined) {
+      if (!Array.isArray(c.workers) || c.workers.length > c.pop) {
+        bad(`city ${cid}: workers array longer than pop`);
+      } else {
+        const seenW = {};
+        for (const idx of c.workers) {
+          if (!isInt(idx) || idx < 0 || idx >= size) bad(`city ${cid}: worker tile ${idx} out of range`);
+          if (seenW[idx]) bad(`city ${cid}: duplicate worker tile ${idx}`);
+          seenW[idx] = true;
+        }
+      }
+    }
+    const m = /^c([0-9]+)$/.exec(cid);
+    if (m && Number(m[1]) > maxCityNum) maxCityNum = Number(m[1]);
+  }
+  if (maxCityNum >= state.nextCityId) bad(`nextCityId ${state.nextCityId} <= max used city id ${maxCityNum}`);
+
+  // wonders: known ids pointing at existing cities (cities are never razed)
+  for (const wid of Object.keys(state.wonders === undefined ? {} : state.wonders)) {
+    if (!ruleset.wonders[wid]) bad(`wonders: unknown "${wid}"`);
+    if (!state.cities[state.wonders[wid]]) bad(`wonders: ${wid} home city "${state.wonders[wid]}" missing`);
+  }
+
+  // players (the barbarian player lives outside playerOrder with a minimal
+  // shape — rate/explored checks only apply where the fields exist)
+  for (const pid of state.playerOrder) {
+    if (!state.players[pid]) bad(`playerOrder: "${pid}" missing from players`);
+  }
+  for (const pid of Object.keys(state.players)) {
+    const p = state.players[pid];
+    if (p.id !== pid) bad(`player ${pid}: id field mismatches key`);
+    if (!isInt(p.gold) || p.gold < 0) bad(`player ${pid}: gold ${p.gold}`);
+    if (p.gold > MAX_GOLD) bad(`tripwire: player ${pid} gold ${p.gold} > ${MAX_GOLD}`);
+    if (p.bulbs !== undefined && (!isInt(p.bulbs) || p.bulbs < 0)) bad(`player ${pid}: bulbs ${p.bulbs}`);
+    if (p.alive !== undefined && typeof p.alive !== 'boolean') bad(`player ${pid}: alive ${p.alive}`);
+    const seenT = {};
+    for (const t of p.techs) {
+      if (!ruleset.techs[t]) bad(`player ${pid}: unknown tech "${t}"`);
+      if (seenT[t]) bad(`player ${pid}: duplicate tech "${t}"`);
+      seenT[t] = true;
+    }
+    if (p.researching !== '' && !ruleset.techs[p.researching]) bad(`player ${pid}: researching unknown "${p.researching}"`);
+    if (p.taxRate !== undefined) {
+      const tax = p.taxRate, sci = p.sciRate === undefined ? 0 : p.sciRate;
+      const lux = p.luxRate === undefined ? 0 : p.luxRate;
+      const govId = p.government === undefined ? 'despotism' : p.government;
+      const gov = ruleset.governments[govId];
+      if (!gov) bad(`player ${pid}: unknown government "${govId}"`);
+      if (tax + sci + lux !== 100) bad(`player ${pid}: rates ${tax}+${sci}+${lux} != 100`);
+      for (const r of [tax, sci, lux]) {
+        if (!isInt(r) || r < 0 || r > 100 || r % 10 !== 0) bad(`player ${pid}: rate ${r} not a multiple of 10 in 0..100`);
+      }
+      if (gov && (tax > gov.maxRate || sci > gov.maxRate || lux > gov.maxRate)) {
+        bad(`player ${pid}: a rate exceeds ${govId} cap ${gov.maxRate}`);
+      }
+    }
+    if (p.revolutionTurns !== undefined) {
+      if (p.government !== 'anarchy') bad(`player ${pid}: revolutionTurns without anarchy`);
+      if (p.pendingGovernment === undefined) bad(`player ${pid}: revolutionTurns without pendingGovernment`);
+    }
+    if (p.explored !== undefined) {
+      if (p.explored.length !== size) {
+        bad(`player ${pid}: explored length ${p.explored.length} != ${size}`);
+      } else {
+        for (let i = 0; i < size; i++) {
+          const v = p.explored[i];
+          if (v !== 0 && v !== 1) { bad(`player ${pid}: explored[${i}] = ${v}`); break; }
+        }
+      }
+    }
+  }
+  return problems;
+}
+
+function cityAtTile(state, x, y) {
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (c && c.x === x && c.y === y) return c;
+  }
+  return null;
+}
+
+const CITY_SHELL_KEYS = { id: true, name: true, owner: true, x: true, y: true, pop: true, buildings: true };
+const RIVAL_PLAYER_KEYS = { id: true, name: true, color: true, human: true };
+
+// Deep audit at checkpoints: hashability (rejects any Lua-unsafe value),
+// fog-projection leaks on organic late-game states, mood arithmetic sanity,
+// and capital resolution. Call after loadModules() (runSim does).
+function checkDeep(state, ruleset, mods) {
+  const problems = [];
+  try {
+    mods.hashState(state);
+  } catch (e) {
+    problems.push(`state not hashable: ${e.message}`);
+  }
+  for (const pid of state.playerOrder) {
+    if (!state.players[pid] || state.players[pid].explored === undefined) continue;
+    const view = mods.filterView(state, pid);
+    if (view.rngState !== undefined) problems.push(`view for ${pid}: leaks rngState`);
+    for (const cid of Object.keys(view.cities)) {
+      const c = view.cities[cid];
+      if (c.owner === pid) continue;
+      for (const k of Object.keys(c)) {
+        if (!CITY_SHELL_KEYS[k]) problems.push(`view for ${pid}: rival city ${cid} leaks "${k}"`);
+      }
+      for (const b of c.buildings) {
+        if (b !== 'city-walls') problems.push(`view for ${pid}: rival city ${cid} leaks building "${b}"`);
+      }
+    }
+    for (const qid of Object.keys(view.players)) {
+      if (qid === pid) continue;
+      for (const k of Object.keys(view.players[qid])) {
+        if (!RIVAL_PLAYER_KEYS[k]) problems.push(`view for ${pid}: rival player ${qid} leaks "${k}"`);
+      }
+    }
+  }
+  for (const cid of state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city) continue;
+    const m = mods.cityMood(state, city, ruleset);
+    if (m.happy < 0 || m.content < 0 || m.unhappy < 0) {
+      problems.push(`city ${cid}: negative mood ${m.happy}/${m.content}/${m.unhappy}`);
+    }
+    if (m.happy + m.content + m.unhappy !== m.workers) {
+      problems.push(`city ${cid}: mood ${m.happy}+${m.content}+${m.unhappy} != workers ${m.workers}`);
+    }
+  }
+  for (const pid of state.playerOrder) {
+    let hasCity = false;
+    for (const cid of state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.owner === pid) { hasCity = true; break; }
+    }
+    if (hasCity && !mods.capitalOf(state, pid, ruleset)) problems.push(`player ${pid}: capitalOf unresolved despite cities`);
+  }
+  return problems;
+}
+
+// One readable line per checkpoint so soak logs tell a story at a glance.
+function summarize(state, ruleset, mods) {
+  const parts = [];
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid];
+    if (p.alive === false) { parts.push(`${p.name} DEAD`); continue; }
+    let cities = 0, units = 0;
+    for (const cid of state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.owner === pid) cities++;
+    }
+    for (const uid of Object.keys(state.units)) {
+      if (state.units[uid].owner === pid) units++;
+    }
+    parts.push(`${p.name} ${cities}c ${units}u ${p.techs.length}t s${mods.score(state, pid, ruleset)}`);
+  }
+  return `turn ${state.turn}: ${parts.join(' | ')}`;
+}
+
+function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides, reason, mods) {
+  fs.mkdirSync(dir, { recursive: true });
+  const savePath = path.join(dir, `sim-${seed}-t${state.turn}.save.json`);
+  fs.writeFileSync(savePath, JSON.stringify({
+    format: 'retromulticiv-save',
+    savedAt: new Date().toISOString(),
+    turn: state.turn,
+    state
+  }, null, 1));
+  const diag = {
+    format: 'retromulticiv-diagnostics',
+    version: 1,
+    allAi: true,
+    sim: { seed, reason },
+    rulesOverrides: rulesOverrides === undefined ? {} : rulesOverrides,
+    initialState,
+    log: roundLog
+  };
+  try {
+    diag.finalHash = mods.hashState(state);
+  } catch (e) { /* corrupt states stay bisectable up to the last good round */ }
+  const diagPath = path.join(dir, `sim-${seed}.diag.json`);
+  fs.writeFileSync(diagPath, JSON.stringify(diag));
+  return { save: savePath, diag: diagPath };
+}
+
+// Run one all-AI game. Options:
+//   seed (required), civs=4, width=80, height=50, turns=400,
+//   rulesOverrides   e.g. { endYear: 9999 } for the 400-turn mechanics soak
+//   checkEvery=1     cheap-invariant cadence (rounds)
+//   hashEvery=10     round-hash cadence (bisection granularity in artifacts)
+//   deepAt=[]        checkpoint rounds: deep audit + recorded hash
+//   onCheckpoint(state, round, hash)
+//   artifactsDir     failure artifact directory; false disables
+// Returns { state, rounds, checkpoints, roundLog, initialState, finalHash }.
+// Throws on any invariant failure or wedge (err.problems, err.artifacts).
+async function runSim(opts) {
+  const mods = await loadModules();
+  const civs = opts.civs === undefined ? 4 : opts.civs;
+  const width = opts.width === undefined ? 80 : opts.width;
+  const height = opts.height === undefined ? 50 : opts.height;
+  const turns = opts.turns === undefined ? 400 : opts.turns;
+  const checkEvery = opts.checkEvery === undefined ? 1 : opts.checkEvery;
+  const hashEvery = opts.hashEvery === undefined ? 10 : opts.hashEvery;
+  const deepAt = opts.deepAt === undefined ? [] : opts.deepAt;
+  const overrides = opts.rulesOverrides;
+  let ruleset = RULESET;
+  if (overrides !== undefined && Object.keys(overrides).length > 0) {
+    ruleset = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, overrides) });
+  }
+  const players = SIM_ROSTER.slice(0, civs).map(p => (
+    { id: p.id, name: p.name, color: p.color, human: false, civ: p.civ }
+  ));
+  if (players.length < civs) throw new Error(`sim roster supports up to ${SIM_ROSTER.length} civs`);
+
+  const engine = mods.createEngine(ruleset);
+  let state = engine.createGame({ seed: opts.seed, options: { width, height, players } });
+  if (state.ok === false) throw new Error(`createGame failed for seed ${opts.seed}: ${state.reason}`);
+  const initialState = mods.deepClone(state);
+  const roundLog = [];
+  const checkpoints = {};
+
+  function fail(reason, problems) {
+    let artifacts = null;
+    if (opts.artifactsDir !== false) {
+      const dir = opts.artifactsDir === undefined ? DEFAULT_ARTIFACT_DIR : opts.artifactsDir;
+      artifacts = writeArtifacts(dir, opts.seed, state, initialState, roundLog, overrides, reason, mods);
+    }
+    const detail = (problems || []).slice(0, 5).map(p => `\n  - ${p}`).join('');
+    const where = artifacts ? `\n  artifacts: ${artifacts.save} (drag-drop into the browser), ${artifacts.diag} (node tools/replay.js)` : '';
+    const err = new Error(`sim seed ${opts.seed}: ${reason}${detail}${where}`);
+    err.problems = problems || [];
+    err.artifacts = artifacts;
+    err.seed = opts.seed;
+    err.turn = state.turn;
+    throw err;
+  }
+
+  let prevYear = state.year;
+  let rounds = 0;
+  for (let round = 1; round <= turns; round++) {
+    const startTurn = state.turn;
+    let guard = state.playerOrder.length + 2;
+    while (state.turn === startTurn && !state.gameOver && guard > 0) {
+      guard--;
+      const pid = state.activePlayer;
+      if (state.players[pid].alive !== false) {
+        state = mods.runAiTurn(engine, state, pid, ruleset, []);
+      }
+      const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
+      if (!res.ok) fail(`endTurn rejected for ${pid} on turn ${startTurn} (${res.reason})`);
+      state = res.state;
+    }
+    if (!state.gameOver && state.turn !== startTurn + 1) fail(`round ${round} wedged: turn stuck at ${state.turn}`);
+    rounds = round;
+
+    // hashing is ~a third of the runtime, so rounds carry a hash only every
+    // hashEvery rounds (and at checkpoints/game end) — replay.js skips
+    // hashless entries, so artifacts stay bisectable at this granularity
+    const isCheckpoint = deepAt.indexOf(round) !== -1;
+    const entry = { t: 'airound', turn: state.turn, activePlayer: state.activePlayer };
+    let hash = '';
+    if (isCheckpoint || state.gameOver || round === turns || round % hashEvery === 0) {
+      try {
+        hash = mods.hashState(state);
+      } catch (e) {
+        fail(`turn ${state.turn}: state not hashable — ${e.message}`);
+      }
+      entry.hash = hash;
+    }
+    roundLog.push(entry);
+    if (state.year !== prevYear + 20) fail(`round ${round}: year ${state.year}, expected ${prevYear + 20}`);
+    prevYear = state.year;
+
+    if (isCheckpoint || state.gameOver || round % checkEvery === 0) {
+      const problems = checkInvariants(state, ruleset);
+      if (problems.length > 0) fail(`turn ${state.turn}: ${problems.length} invariant problem(s)`, problems);
+    }
+    if (isCheckpoint || state.gameOver) {
+      const problems = checkDeep(state, ruleset, mods);
+      if (problems.length > 0) fail(`turn ${state.turn}: ${problems.length} deep-audit problem(s)`, problems);
+    }
+    if (isCheckpoint) {
+      checkpoints[round] = hash;
+      if (opts.onCheckpoint) opts.onCheckpoint(state, round, hash);
+    }
+    if (state.gameOver) break;
+  }
+
+  const last = roundLog.length > 0 ? roundLog[roundLog.length - 1].hash : undefined;
+  return {
+    state, rounds, checkpoints, roundLog, initialState,
+    finalHash: last === undefined ? mods.hashState(state) : last
+  };
+}
+
+module.exports = { runSim, checkInvariants, checkDeep, summarize, loadModules, SIM_ROSTER };
