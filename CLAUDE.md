@@ -69,7 +69,8 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 `node --test test/` — headless, no deps (the dump integration test self-skips
 if the dump is absent). Play: `python3 -m http.server 8123` from the **repo
 root**, open `http://localhost:8123/client/` (bare URL = setup screen;
-`?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
+`?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat, `?civ=romans`,
+`?size=xsmall..huge`, `?difficulty=trainer..godemperor`, `?debug=1` per-command hashes,
 `?mock=1` static state). `engine/` and `shared/` are ESM (per-dir
 `package.json` type markers) so they load in both browser and Node; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.

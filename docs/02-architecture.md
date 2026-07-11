@@ -50,6 +50,7 @@ multiciv/
 │   ├── buildings.json
 │   ├── wonders.json
 │   ├── governments.json
+│   ├── civs.json          # 14 civilizations: city lists + one specialty each
 │   └── rules.json         # global tuning (food box, combat, score weights)
 ├── engine/                # ★ THE PORTABLE CORE — strict subset of JS (see §4)
 │   ├── index.js           # applyCommand, createGame(seed, options)
@@ -81,7 +82,7 @@ multiciv/
 │   ├── diagnostics.js     # WebGL capability probe (+ ?diag=1 panel)
 │   ├── ui/                # hud, panels (research/city/stack), input,
 │   │                      #   saves (F5/F9 + files), turn log, setup
-│   │                      #   screen, hotseat hand-off — plain DOM
+│   │                      #   screen, hotseat hand-off, options/help — DOM
 │   └── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │       ├── renderer.js    #   interface: setViewState, picks, markers…
 │       └── three/         #   v1: low-poly flat boxes + raycast picking

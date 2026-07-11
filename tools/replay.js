@@ -29,6 +29,12 @@ async function replayDiagnostics(diag, ruleset) {
   const { createEngine, deepClone } = await import('../engine/index.js');
   const { runAiTurn } = await import('../engine/ai.js');
   const { hashState } = await import('../shared/statehash.js');
+  // difficulty etc. are ruleset overrides — apply the ones the game ran with
+  if (diag.rulesOverrides !== undefined && Object.keys(diag.rulesOverrides).length > 0) {
+    ruleset = Object.assign({}, ruleset, {
+      rules: Object.assign({}, ruleset.rules, diag.rulesOverrides)
+    });
+  }
   const engine = createEngine(ruleset);
   let state = deepClone(diag.initialState);
   const problems = [];

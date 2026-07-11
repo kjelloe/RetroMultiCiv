@@ -91,6 +91,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /errors: 0/,
       'no JavaScript errors during the scripted session (incl. the hover sweep — HUD text may be overwritten, this counter is not)');
     assert.match(dom, /Turn log/, 'the turn log must be present');
+    assert.match(dom, /id="open-options"/, 'the options button must be present');
+    assert.match(dom, /Civil disorder/, 'the gameplay help panel must carry its entries');
+    assert.match(dom, /Next unit/, 'the action bar must offer Next unit');
   } finally {
     server.close();
   }

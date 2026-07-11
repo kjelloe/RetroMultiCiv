@@ -33,8 +33,11 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    AI-less players); ✅ fog of war (`engine/visibility.js`: persistent explored
    arrays, computed sight — units r1, cities r2 — and `filterView`, the exact
    per-player view the phase-3 server will send; client renders unknown/dimmed
-   tiles); ✅ wait/skip (Space) and disband *(2026-07-11)*.
-   ⬜ remaining: GoTo (client-side by design — see `04-phase1-enrichments.md` §4).
+   tiles); ✅ wait/skip (Space) and disband *(2026-07-11)*; ✅ GoTo
+   *(2026-07-12 — client-side by design per `04-phase1-enrichments.md` §4:
+   G + click sends a unit traveling over multiple turns, greedy steps that
+   never auto-attack, cancelled by manual steering or a blocked route)*.
+   **Step complete.**
 4. 🔶 **Cities** *(core done 2026-07-10)* — ✅ `engine/cities.js`: foundCity
    (settlers consumed, min-1-tile spacing), auto-assigned worked tiles from the
    21-tile fat cross, food box growth/starvation, shield production of units,
@@ -85,8 +88,9 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    (`unit.home`), corruption by capital distance (Palace moves the capital,
    Courthouse halves), revolutions with anarchy (Pyramids skip), luxuries as
    the third rate; Temple/Colosseum/Cathedral/Courthouse/Palace effects +
-   happiness wonders live; scenario 010)*. ⬜ remaining: Factory power
-   chain, Great Library/Darwin's Voyage/Newton/Copernicus/Lighthouse/
+   happiness wonders live; scenario 010)*. ✅ Factory power chain *(2026-07-12 —
+   Factory +50% shields, doubled by Power/Hydro/Nuclear Plant)*.
+   ⬜ remaining: Great Library/Darwin's Voyage/Newton/Copernicus/Lighthouse/
    Magellan/Adam Smith effects, Future Tech repeatability, building sale
    instead of gold clamp.
 7. ✅ **AI opponents + victory/score** *(done 2026-07-10)* — `engine/ai.js`:
@@ -160,9 +164,13 @@ engine test suite green; a replayed command log reproduces the same final state 
 
 ## Phase 2 — Local hotseat and player-view projections
 
-- ✅ **Setup screen** *(2026-07-11)* — a bare `/client/` URL opens it:
-  civilizations (2–7), human players (first N seats), optional seed; starts
-  by reloading with `?seed=&civs=&humans=` so the bootstrap stays one path.
+- ✅ **Setup screen** *(2026-07-11; extended 2026-07-12)* — a bare
+  `/client/` URL opens it: your civilization (with specialty blurb),
+  civilizations (2–7), human players (first N seats), map size
+  (XSmall→Huge), difficulty (Trainer→God-Emperor — adjusts the
+  content-citizen threshold as a RULESET override, recorded in diagnostics
+  so replays stay faithful), optional seed; starts by reloading with URL
+  params so the bootstrap stays one path.
 - ✅ **Turn hand-off** *(2026-07-11)* — `ui/handoff.js`: a fully opaque
   cover drops the moment a human's turn ends with another human next; the
   incoming player's view renders *underneath* it, so neither player ever

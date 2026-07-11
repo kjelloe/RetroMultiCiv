@@ -21,6 +21,25 @@ export function showSetupScreen() {
       <label>Human players (hotseat)
         <select id="setup-humans"><option value="1">1</option></select>
       </label>
+      <label>Map size
+        <select id="setup-size">
+          <option value="xsmall">XSmall</option>
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium (Civ 1)</option>
+          <option value="large">Large</option>
+          <option value="xlarge">XLarge</option>
+          <option value="huge">Huge</option>
+        </select>
+      </label>
+      <label>Difficulty
+        <select id="setup-difficulty">
+          <option value="trainer">Trainer</option>
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+          <option value="godemperor">God-Emperor</option>
+        </select>
+      </label>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
       <button id="setup-start">Start game</button>
     </div>`;
@@ -67,6 +86,10 @@ export function showSetupScreen() {
     const seed = parseInt(document.getElementById('setup-seed').value, 10)
       || (Date.now() % 1000000);
     const civ = civEl.value ? `&civ=${civEl.value}` : '';
-    location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`;
+    const size = document.getElementById('setup-size').value;
+    const difficulty = document.getElementById('setup-difficulty').value;
+    location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
+      + (size !== 'medium' ? `&size=${size}` : '')
+      + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '');
   });
 }

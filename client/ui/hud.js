@@ -53,19 +53,42 @@ export function initHud(ctx) {
   }
 
   // Shown once when the last unit finishes moving (the End Turn button turns
-  // green and stays green); pressing N with nothing left re-shows it.
+  // green and pulses); pressing N with nothing left re-shows it. The hint can
+  // be muted (🔕 / options), and "auto end turn" skips the wait entirely.
   const endTurnBtn = document.getElementById('end-turn');
   let wasAllMoved = false;
+  let autoEndedTurn = 0;
+  function showNoMovesBanner() {
+    centerBanner.show('no units with moves left — press E to end the turn ');
+    const mute = document.createElement('button');
+    mute.id = 'mute-hint';
+    mute.title = 'stop showing this hint (re-enable in ⚙ Options)';
+    mute.textContent = '🔕';
+    // pointerdown + stopPropagation: runs before the dismiss-anywhere handler
+    mute.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      if (ctx.options) ctx.options.set('hideNoMovesHint', true);
+      centerBanner.hide();
+    });
+    document.getElementById('center-banner').appendChild(mute);
+  }
   function updateBanner() {
     const state = session.state;
     let allMoved = false;
     if (!state.gameOver && state.activePlayer === ctx.HUMAN && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
-      const movable = Object.values(state.units).filter(u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working);
+      // fortified units keep their refreshed moves but are on standing orders
+      const movable = Object.values(state.units).filter(
+        u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working && !u.fortified);
       allMoved = movable.length === 0;
     }
     endTurnBtn.classList.toggle('ready', allMoved);
     if (allMoved && !wasAllMoved) {
-      centerBanner.show('no units with moves left — press E to end the turn');
+      if (ctx.options && ctx.options.get('autoEndTurn') && autoEndedTurn !== state.turn) {
+        autoEndedTurn = state.turn;
+        setTimeout(() => { if (ctx.endTurn) ctx.endTurn(); }, 350);
+      } else if (!ctx.options || !ctx.options.get('hideNoMovesHint')) {
+        showNoMovesBanner();
+      }
     } else if (!allMoved) {
       centerBanner.hide();
     }

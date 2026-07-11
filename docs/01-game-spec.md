@@ -331,7 +331,10 @@ below is a known, deliberate deviation to be closed in a later slice:
   martial law, war unhappiness, disorder halting shields/taxes) with
   deviations: luxuries are computed from the city's *raw* trade even during
   disorder (so disorder can't lock itself in); martial-law and content
-  numbers are flat per government table, not difficulty-scaled;
+  numbers are flat per government table; **difficulty** (Trainer→God-Emperor
+  in the setup screen) adjusts only the content-citizen threshold (6→2) as a
+  ruleset override — recorded in diagnostics so replays stay faithful; unit
+  cost/AI-bonus scaling waits for a later slice;
   Michelangelo's Chapel is approximated as +4 content everywhere and
   J.S. Bach's as +2 everywhere (Civ 1 limited Bach to one continent).
 - **Governments are in** (`data/governments.json`: rate caps, despotism

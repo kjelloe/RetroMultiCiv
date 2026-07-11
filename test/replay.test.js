@@ -84,3 +84,46 @@ test('a recorded game replays exactly (commands, rounds, failures, hashes)', asy
   const caught = await replayDiagnostics(bad, RULESET);
   assert.ok(caught.problems.length > 0, 'divergence detected');
 });
+
+test('difficulty overrides replay faithfully (diag.rulesOverrides)', async () => {
+  const { createEngine, deepClone } = await import('../engine/index.js');
+  const { hashState } = await import('../shared/statehash.js');
+  // a God-Emperor game: contentCitizens 2, so a pop-4 city falls into
+  // disorder — behavior the standard ruleset would NOT reproduce
+  const overrides = { contentCitizens: 2 };
+  const hardRules = Object.assign({}, RULESET, {
+    rules: Object.assign({}, RULESET.rules, overrides)
+  });
+  const engine = createEngine(hardRules);
+  const tiles = [];
+  for (let i = 0; i < 49; i++) tiles.push({ t: 'grassland' });
+  let state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 7, height: 7, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'Hard', owner: 'p1', x: 3, y: 3, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 5
+  };
+  const initialState = deepClone(state);
+  state = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(state.cities.c1.disorder, true, 'pop 4 > contentCitizens 2: disorder');
+
+  const diag = {
+    format: 'retromulticiv-diagnostics', version: 1,
+    rulesOverrides: overrides,
+    initialState,
+    log: [{ t: 'round', turn: state.turn, activePlayer: 'p1', hash: hashState(state) }],
+    finalHash: hashState(state)
+  };
+  const report = await replayDiagnostics(JSON.parse(JSON.stringify(diag)), RULESET);
+  assert.deepStrictEqual(report.problems, [], 'override applied: hashes match');
+
+  // without the recorded override the same log must diverge
+  const stripped = JSON.parse(JSON.stringify(diag));
+  delete stripped.rulesOverrides;
+  const diverged = await replayDiagnostics(stripped, RULESET);
+  assert.ok(diverged.problems.length > 0, 'standard rules cannot reproduce a God-Emperor game');
+});

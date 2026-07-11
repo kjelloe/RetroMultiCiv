@@ -13,6 +13,7 @@ import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
+import { initOptions } from './ui/options.js';
 
 const hudStatus = document.getElementById('hud-status');
 
@@ -56,6 +57,18 @@ const [terrain, units, techs, buildings, wonders, governments, civs, rules] = aw
   fetchJson('../data/rules.json')
 ]);
 const ruleset = { terrain, units, techs, buildings, wonders, governments, civs, rules };
+
+// Difficulty adjusts the content-citizen threshold (a RULESET override, not
+// state — recorded in diagnostics so tools/replay.js applies the same rules).
+const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+const MAP_SIZES = {
+  xsmall: [40, 25], small: [60, 38], medium: [80, 50],
+  large: [104, 65], xlarge: [128, 80], huge: [160, 100]
+};
+const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.get('difficulty') : 'medium';
+const rulesOverrides = {};
+if (difficulty !== 'medium') rulesOverrides.contentCitizens = DIFFICULTY[difficulty];
+ruleset.rules = Object.assign({}, rules, rulesOverrides);
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
 const diag = getGraphicsDiagnostics();
@@ -118,12 +131,17 @@ if (params.get('mock') === '1') {
     });
     cityNamesByPlayer['p' + (i + 1)] = civs[civId].cities;
   }
+  const size = MAP_SIZES[params.get('size')] !== undefined ? params.get('size') : 'medium';
+  const dims = MAP_SIZES[size];
   initialState = createEngine(ruleset).createGame({
-    seed, options: { width: 80, height: 50, players: playerDefs }
+    seed, options: { width: dims[0], height: dims[1], players: playerDefs }
   });
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
   history.replaceState(null, '',
-    `?seed=${seed}&civs=${civCount}&humans=${humans}${picked && civs[picked] ? `&civ=${picked}` : ''}`);
+    `?seed=${seed}&civs=${civCount}&humans=${humans}`
+    + `${picked && civs[picked] ? `&civ=${picked}` : ''}`
+    + `${size !== 'medium' ? `&size=${size}` : ''}`
+    + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`);
 }
 
 // --- wiring ------------------------------------------------------------------
@@ -131,7 +149,7 @@ if (params.get('mock') === '1') {
 // (default: after each end-turn round) — finer replay divergence pinpointing
 const session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
 const sel = { unitId: null, cityId: null, lastMoved: null };
-const ctx = { session, renderer, sel, HUMAN: 'p1', errors: capturedErrors };
+const ctx = { session, renderer, sel, HUMAN: 'p1', errors: capturedErrors, rulesOverrides };
 
 ctx.selectUnit = (unit, opts) => {
   sel.unitId = unit.id;
@@ -181,6 +199,7 @@ ctx.suggestCityName = () => {
   return `New City ${session.state.nextCityId}`;
 };
 
+initOptions(ctx);
 ctx.hud = initHud(ctx);
 ctx.panels = initPanels(ctx);
 ctx.handoff = initHandoff(ctx);

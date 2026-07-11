@@ -173,6 +173,31 @@ test('manual workers: growth assigns the new citizen to the best free tile', asy
   assert.strictEqual(res.state.cities.c1.workers[0], 7, 'existing assignment kept');
 });
 
+test('factory chain: +50% shields, doubled by a power source', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'plains' }); // 1 shield each
+  const base = (buildings) => ({
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units: {}, cities: {
+      c1: { id: 'c1', name: 'F', owner: 'p1', x: 2, y: 2, pop: 4, food: 0, shields: 0, buildings, producing: { kind: 'unit', id: 'battleship' } }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: ['steel'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  });
+  // pop 4 on plains: center + 4 tiles = 5 shields/turn raw
+  const plain = engine.applyCommand(base([]), { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(plain.cities.c1.shields, 5);
+  const factory = engine.applyCommand(base(['factory']), { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(factory.cities.c1.shields, 7, '5 + 50% (floored)');
+  const powered = engine.applyCommand(base(['factory', 'power-plant']), { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(powered.cities.c1.shields, 10, '5 + 100%');
+  const plantOnly = engine.applyCommand(base(['power-plant']), { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(plantOnly.cities.c1.shields, 5, 'a plant without a factory boosts nothing');
+});
+
 test('buy: wonders cost the wonder rate; exact-gold purchase succeeds', async () => {
   const { engine } = await load();
   const tiles = [];

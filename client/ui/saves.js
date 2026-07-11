@@ -97,7 +97,8 @@ export function initSaves(ctx) {
     if (e.key === 'D') { // Shift+D: diagnostics recording (replayable command log)
       const diag = session.exportDiagnostics({
         url: location.href,
-        errors: ctx.errors || []
+        errors: ctx.errors || [],
+        rulesOverrides: ctx.rulesOverrides || {} // difficulty etc — replay applies them
       });
       download(diag, `retromulticiv-diag-turn${session.state.turn}.json`);
       hud.flash('🧪 Diagnostics downloaded — verify with: node tools/replay.js <file>');

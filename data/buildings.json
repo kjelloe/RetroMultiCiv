@@ -68,7 +68,9 @@
     "tech": "industrialization",
     "cost": 200,
     "maintenance": 4,
-    "effect": {}
+    "effect": {
+      "shieldBonus": 50
+    }
   },
   "granary": {
     "name": "Granary",
@@ -84,7 +86,9 @@
     "tech": "electronics",
     "cost": 240,
     "maintenance": 4,
-    "effect": {}
+    "effect": {
+      "boostsFactory": true
+    }
   },
   "library": {
     "name": "Library",
@@ -124,7 +128,9 @@
     "tech": "nuclear-power",
     "cost": 160,
     "maintenance": 2,
-    "effect": {}
+    "effect": {
+      "boostsFactory": true
+    }
   },
   "palace": {
     "name": "Palace",
@@ -140,7 +146,9 @@
     "tech": "refining",
     "cost": 160,
     "maintenance": 4,
-    "effect": {}
+    "effect": {
+      "boostsFactory": true
+    }
   },
   "recycling-center": {
     "name": "Recycling Center",

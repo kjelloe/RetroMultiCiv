@@ -264,7 +264,7 @@ export function initPanels(ctx) {
       + `· box ${city.food}/${threshold}</div>`
       + `<div class="grow">${surplus > 0
         ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns` : 'no growth'}</div>`
-      + `<div>building: ${def.name} <span class="ys">${city.shields}/${defCost}</span>`
+      + `<div>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
       + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
       + buyHtml
       + '</div>'
@@ -409,8 +409,11 @@ export function initPanels(ctx) {
         `${u.name} · <span class="ys">${cost}⚒${eta(cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`
         + (cost < u.cost ? ' <span class="yf">★</span>' : ''));
     }
-    for (const id of lockedUnits.sort((a, b) => byTechLevel(a, b, units))) {
-      addLocked(`${units[id].name} · ${units[id].cost}⚒ · ${units[id].attack}/${units[id].defense}/${units[id].moves}`, units[id].tech);
+    const hideFuture = ctx.options && ctx.options.get('hideFuture');
+    if (!hideFuture) {
+      for (const id of lockedUnits.sort((a, b) => byTechLevel(a, b, units))) {
+        addLocked(`${units[id].name} · ${units[id].cost}⚒ · ${units[id].attack}/${units[id].defense}/${units[id].moves}`, units[id].tech);
+      }
     }
 
     addGroup('buildings');
@@ -425,8 +428,10 @@ export function initPanels(ctx) {
         + (cost < b.cost ? ' <span class="yf">★</span>' : ''),
         effectText(b) || 'no effect implemented yet');
     }
-    for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {
-      addLocked(`${buildings[id].name} · ${buildings[id].cost}⚒`, buildings[id].tech);
+    if (!hideFuture) {
+      for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {
+        addLocked(`${buildings[id].name} · ${buildings[id].cost}⚒`, buildings[id].tech);
+      }
     }
 
     addGroup('wonders');
@@ -439,8 +444,10 @@ export function initPanels(ctx) {
         `${w.name} · <span class="ys">${w.cost}⚒${eta(w.cost, 'wonder')}</span>`,
         effectText(w) || `prestige — score +${session.ruleset.rules.scorePerWonder}`);
     }
-    for (const id of lockedWonders.sort((a, b) => byTechLevel(a, b, wonders))) {
-      addLocked(`${wonders[id].name} · ${wonders[id].cost}⚒`, wonders[id].tech);
+    if (!hideFuture) {
+      for (const id of lockedWonders.sort((a, b) => byTechLevel(a, b, wonders))) {
+        addLocked(`${wonders[id].name} · ${wonders[id].cost}⚒`, wonders[id].tech);
+      }
     }
   }
 

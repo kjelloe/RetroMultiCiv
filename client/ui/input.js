@@ -201,10 +201,14 @@ export function initInput(ctx) {
   function moveSelected(dir) {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
     const unitId = sel.unitId;
+    delete gotoTargets[unitId]; // manual steering overrides GoTo
     if (apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId, dir })) {
       sel.lastMoved = unitId;
       const moved = session.state.units[unitId];
-      if (moved) hud.unitNote(moved);
+      if (moved) {
+        hud.unitNote(moved);
+        if (moved.moves === 0 && ctx.options && ctx.options.get('autoNextUnit')) nextUnit();
+      }
     }
   }
 
@@ -222,9 +226,10 @@ export function initInput(ctx) {
     renderer.centerOn(movable[0].x, movable[0].y);
   }
 
-  // new turn: return to the last-moved unit, else pick like N
+  // new turn: run queued GoTo routes, then return to the last-moved unit
   function autoSelectAfterTurn() {
     if (session.state.gameOver || session.state.activePlayer !== ctx.HUMAN) return;
+    runAllGotos();
     const last = sel.lastMoved && session.state.units[sel.lastMoved];
     if (last && last.owner === ctx.HUMAN && last.moves > 0 && !last.fortified && !last.working) {
       ctx.selectUnit(last);
@@ -243,7 +248,7 @@ export function initInput(ctx) {
     if (!state.gameOver && state.activePlayer === ctx.HUMAN
         && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
       const movable = Object.values(state.units).filter(
-        u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working
+        u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working && !u.fortified
       );
       if (movable.length > 0 && Date.now() > confirmEndTurnUntil) {
         confirmEndTurnUntil = Date.now() + 5000;
@@ -251,6 +256,16 @@ export function initInput(ctx) {
         hud.banner(`⚠ ${movable.length} unit${plural ? 's' : ''} still ${plural ? 'have' : 'has'} moves — E / End Turn again to confirm`);
         return;
       }
+      // a city finished its work and nobody chose what's next: open it
+      const pending = Object.keys(needsOrders)
+        .filter(id => state.cities[id] && state.cities[id].owner === ctx.HUMAN).sort();
+      if (pending.length > 0 && Date.now() > confirmOrdersUntil) {
+        confirmOrdersUntil = Date.now() + 5000;
+        panels.openCityPanel(pending[0]);
+        hud.banner(`🏭 ${state.cities[pending[0]].name} completed its work — choose production, or E again to continue`);
+        return;
+      }
+      for (const id of Object.keys(needsOrders)) delete needsOrders[id]; // ignored once
     }
     confirmEndTurnUntil = 0;
     panels.closeStackPanel();
@@ -290,6 +305,78 @@ export function initInput(ctx) {
       }
     });
   }
+
+  // --- GoTo: client-side multi-turn navigation (docs/04 §4) --------------------
+  // Targets live only in the client (the engine stays one-tile-per-command);
+  // each turn the unit greedily steps closer, never initiating an attack.
+  const gotoTargets = {}; // unitId -> { x, y }
+  let gotoArming = false;
+  const GOTO_VEC = {
+    N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1],
+    S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
+  };
+
+  function wrapDist(ax, ay, bx, by) {
+    const map = session.state.map;
+    let dx = Math.abs(ax - bx);
+    if (map.wrapX && map.width - dx < dx) dx = map.width - dx;
+    const dy = Math.abs(ay - by);
+    return dx > dy ? dx : dy;
+  }
+
+  function gotoStep(unitId) {
+    const state = session.state;
+    const unit = state.units[unitId];
+    const target = gotoTargets[unitId];
+    if (!unit || !target) { delete gotoTargets[unitId]; return false; }
+    if (unit.x === target.x && unit.y === target.y) { delete gotoTargets[unitId]; return false; }
+    const here = wrapDist(unit.x, unit.y, target.x, target.y);
+    const options = Object.keys(GOTO_VEC).map(dir => {
+      const v = GOTO_VEC[dir];
+      let nx = unit.x + v[0];
+      if (state.map.wrapX) nx = ((nx % state.map.width) + state.map.width) % state.map.width;
+      return { dir, nx, ny: unit.y + v[1], d: wrapDist(nx, unit.y + v[1], target.x, target.y) };
+    }).filter(o =>
+      o.d < here && o.ny >= 0 && o.ny < state.map.height
+      && !unitsAt(state, o.nx, o.ny).some(u => u.owner !== unit.owner) // never auto-attack
+    ).sort((a, b) => a.d - b.d);
+    for (const o of options) {
+      if (session.apply({ type: 'moveUnit', playerId: state.activePlayer, unitId, dir: o.dir }).ok) return true;
+    }
+    delete gotoTargets[unitId]; // boxed in: stop rather than wander
+    hud.note('🎯 route blocked — GoTo cancelled');
+    return false;
+  }
+
+  function runGoto(unitId) {
+    let guard = 40;
+    while (gotoTargets[unitId] && session.state.units[unitId]
+           && session.state.units[unitId].moves > 0 && guard-- > 0) {
+      if (!gotoStep(unitId)) break;
+    }
+    if (gotoTargets[unitId] && session.state.units[unitId]) {
+      hud.note(`🎯 en route to (${gotoTargets[unitId].x},${gotoTargets[unitId].y}) — continues next turn`);
+    }
+  }
+
+  function runAllGotos() {
+    for (const unitId of Object.keys(gotoTargets).sort()) runGoto(unitId);
+  }
+
+  // cities that completed something and were dropped back to default
+  // production — ending the turn opens them first (E again to ignore)
+  const needsOrders = {};
+  let confirmOrdersUntil = 0;
+  session.onChange((state, events) => {
+    for (const e of events) {
+      if ((e.type === 'buildingBuilt' || e.type === 'wonderBuilt' || e.type === 'wonderLost')
+          && state.cities[e.cityId] && state.cities[e.cityId].owner === ctx.HUMAN) {
+        needsOrders[e.cityId] = true;
+      } else if (e.type === 'productionSet' || e.type === 'cityCaptured') {
+        delete needsOrders[e.cityId];
+      }
+    }
+  });
 
   // --- action bar: the selected unit's applicable actions, bottom center -------
   const actionBar = document.getElementById('action-bar');
@@ -331,6 +418,15 @@ export function initInput(ctx) {
         && (tile.irrigation || tile.mine || tile.road || tile.railroad)) {
       actions.push({ label: '🔥 Pillage', key: 'P', run: pillageSelected });
     }
+    actions.push({
+      label: gotoArming ? '🎯 Click a tile…' : '🎯 Go to', key: 'G',
+      run: () => {
+        gotoArming = !gotoArming;
+        hud.note(gotoArming ? '🎯 click the destination tile' : 'GoTo cancelled');
+        refreshActionBar();
+      }
+    });
+    actions.push({ label: '⏩ Next unit', key: 'N', run: nextUnit });
     actions.push({ label: '☠ Disband', key: 'X', run: disbandSelected });
     for (const a of actions) {
       const btn = document.createElement('button');
@@ -382,6 +478,13 @@ export function initInput(ctx) {
 
   renderer.onPick(pick => {
     const state = session.state;
+    if (gotoArming && sel.unitId && state.units[sel.unitId]) {
+      gotoTargets[sel.unitId] = { x: pick.tile.x, y: pick.tile.y };
+      gotoArming = false;
+      runGoto(sel.unitId);
+      refreshActionBar();
+      return;
+    }
     const mineHere = unitsAt(state, pick.tile.x, pick.tile.y).filter(u => u.owner === ctx.HUMAN);
     if (mineHere.length > 0) {
       const clicked = (pick.unitId && state.units[pick.unitId] && state.units[pick.unitId].owner === ctx.HUMAN)
@@ -438,6 +541,7 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'b' && sel.unitId) {
+      e.preventDefault(); // the 'b' must not type into the name dialog it opens
       foundCityFlow();
       return;
     }
@@ -458,11 +562,16 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'n') { nextUnit(); return; }
+    if (e.key === 'g' && sel.unitId) {
+      gotoArming = !gotoArming;
+      hud.note(gotoArming ? '🎯 click the destination tile' : 'GoTo cancelled');
+      refreshActionBar();
+      return;
+    }
     if (e.key === 't') {
-      const avail = availableTechs(session.state, ctx.HUMAN, session.ruleset);
-      if (avail.length === 0 || session.state.activePlayer !== ctx.HUMAN) return;
-      const idx = avail.indexOf(session.state.players[ctx.HUMAN].researching);
-      apply({ type: 'setResearch', playerId: ctx.HUMAN, tech: avail[(idx + 1) % avail.length] });
+      // playtest feedback: T used to cycle research invisibly ("didn't seem
+      // to work") — opening the panel is what players expect
+      panels.toggleResearchPanel();
       return;
     }
     if (e.key === 'c' && sel.cityId) {

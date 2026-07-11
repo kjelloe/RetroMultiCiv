@@ -325,6 +325,18 @@ function processCities(state, ruleset, events) {
     const yields = cityYields(state, city, ruleset);
     if (city.disorder === true) yields.shields = 0; // civil disorder halts production
 
+    // Factory chain: +50% shields, doubled by any power source (Civ 1)
+    let shieldPct = effectPct(city, ruleset, 'shieldBonus');
+    if (shieldPct > 0) {
+      for (const b of city.buildings === undefined ? [] : city.buildings) {
+        if (ruleset.buildings[b].effect.boostsFactory === true) {
+          shieldPct = shieldPct * 2;
+          break;
+        }
+      }
+      yields.shields = yields.shields + idiv(yields.shields * shieldPct, 100);
+    }
+
     // unit upkeep in shields (government-dependent); units without a home
     // city (game start, old saves) are free
     const gov = governmentOf(state, city.owner, ruleset);
