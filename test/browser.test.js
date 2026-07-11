@@ -87,6 +87,7 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /lux 0%/, 'the luxuries rate must render');
     assert.match(dom, /Despotism \(rates/, 'the government row must show the current government');
     assert.match(dom, /mood /, 'the city panel must show the mood row');
+    assert.match(dom, /diaglog: [1-9]/, 'the diagnostics recorder must capture commands');
     assert.match(dom, /Turn log/, 'the turn log must be present');
   } finally {
     server.close();

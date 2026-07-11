@@ -36,6 +36,16 @@ export function initSaves(ctx) {
     });
   }
 
+  function download(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    hud.note(`💾 downloaded ${filename}`);
+  }
+
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = '.json,application/json';
@@ -72,13 +82,16 @@ export function initSaves(ctx) {
         turn: session.state.turn,
         state: session.state
       };
-      const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `retromulticiv-turn${session.state.turn}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      hud.note(`💾 downloaded ${a.download}`);
+      download(envelope, `retromulticiv-turn${session.state.turn}.json`);
+      return;
+    }
+    if (e.key === 'D') { // Shift+D: diagnostics recording (replayable command log)
+      const diag = session.exportDiagnostics({
+        url: location.href,
+        errors: ctx.errors || []
+      });
+      download(diag, `retromulticiv-diag-turn${session.state.turn}.json`);
+      hud.flash('🧪 Diagnostics downloaded — verify with: node tools/replay.js <file>');
       return;
     }
     if (e.key === 'L') { // Shift+L: load from a JSON file

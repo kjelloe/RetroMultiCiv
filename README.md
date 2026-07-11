@@ -73,8 +73,11 @@ per city). Founding prompts for a name from your civilization's historic city
 list. **AI opponents** explore, settle, defend, and attack under their own
 fog of war; **victory conditions** (conquest or score at 2100 AD, with a
 victory/defeat banner); and **save/load** — F5/F9 for quick browser saves,
-Shift+S to download a JSON save file, Shift+L or drag-and-drop to load one
-(great for sharing bug reports). Start a bigger game with
+Shift+S to download a JSON save file, Shift+L or drag-and-drop to load one.
+For bug reports there's something better: **Shift+D downloads a replayable
+diagnostics recording** (your commands + state hashes), and
+`node tools/replay.js <file>` re-runs the whole game through the engine to
+verify — or pinpoint — exactly what happened. Start a bigger game with
 `?civs=3` (up to 7). The UI explains itself: hovering an enemy shows a
 **combat odds preview** with the multiplier breakdown, a selected settler
 rates the hovered tile as a city site and projects its footprint on the map,

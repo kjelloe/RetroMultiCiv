@@ -16,14 +16,18 @@ import { initHandoff } from './ui/handoff.js';
 
 const hudStatus = document.getElementById('hud-status');
 
-// surface any failure in the HUD — a silent exception otherwise looks like an empty map
+// surface any failure in the HUD — a silent exception otherwise looks like an
+// empty map — and keep them for the Shift+D diagnostics download
+const capturedErrors = [];
 window.addEventListener('error', e => {
   if (`${e.message}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
+  capturedErrors.push(`${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`);
   hudStatus.textContent = `ERROR: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`;
   hudStatus.style.color = '#ff7b6b';
 });
 window.addEventListener('unhandledrejection', e => {
   if (`${e.reason}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
+  capturedErrors.push(`${e.reason && e.reason.message ? e.reason.message : e.reason}`);
   hudStatus.textContent = `ERROR: ${e.reason && e.reason.message ? e.reason.message : e.reason}`;
   hudStatus.style.color = '#ff7b6b';
 });
@@ -108,9 +112,11 @@ if (params.get('mock') === '1') {
 }
 
 // --- wiring ------------------------------------------------------------------
-const session = createSession(ruleset, initialState);
+// ?debug=1: the diagnostics recorder also hashes after every single command
+// (default: after each end-turn round) — finer replay divergence pinpointing
+const session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
 const sel = { unitId: null, cityId: null, lastMoved: null };
-const ctx = { session, renderer, sel, HUMAN: 'p1' };
+const ctx = { session, renderer, sel, HUMAN: 'p1', errors: capturedErrors };
 
 ctx.selectUnit = (unit, opts) => {
   sel.unitId = unit.id;
@@ -201,6 +207,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
     if (workedCell) workedCell.click();
   }
+  probe.textContent += ' · diaglog: ' + session.log.length; // recorder captured the commands
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }
 

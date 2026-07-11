@@ -81,6 +81,12 @@ them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 `debugging/gallery.html` shows every unit silhouette, city tier, and tile
 prop through the real renderer — screenshot it after any assets.js change.
+**Playtest diagnostics:** Shift+D in the client downloads a replayable
+recording (initial state + every human command + per-round state hashes;
+`?debug=1` hashes after every command). `node tools/replay.js <file>`
+re-runs it through the engine and pinpoints any hash divergence — the
+first tool to reach for when a playtest report says "something looked
+wrong". Loading a save restarts the recording from the load point.
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
 cities, improvements, happiness, government, combat/barbarians, tech, ai,
