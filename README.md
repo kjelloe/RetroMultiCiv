@@ -33,7 +33,9 @@ to Roblox Luau. "Multi" as in multiplayer — and multiple implementations.
 ```bash
 # play: serve the repo root (client imports engine/ and data/ as siblings)
 python3 -m http.server 8123
-# then open http://localhost:8123/client/  (?seed=12345 for a fixed world)
+# then open http://localhost:8123/client/ — the setup screen picks
+# civilizations, human players (hotseat), and the world seed
+# (?seed=12345&civs=3&humans=2 skips straight into that game)
 
 # run the test suite (headless, no deps)
 node --test test/
@@ -101,9 +103,15 @@ temples, and martial law, or watch a city fall into **civil disorder**;
 with rate caps, unit upkeep, war weariness, and corruption that grows with
 distance from your Palace); and settlers clear forests, drain swamps,
 plant woods, raise **fortresses**, and lay **railroads**.
-100 headless tests including hash-locked JSON scenarios, an AI-determinism
-lock, and a real-browser e2e that boots the client and inspects the live
-panels. Next: phase 2 — hotseat multiplayer.
+**Phase 2 hotseat is in**: a bare URL opens the game-setup screen
+(civilizations, human players, seed), and with two or more humans the game
+passes the keyboard between turns behind a fully opaque hand-off screen —
+each player sees only their own fog of war, through the exact per-player
+view filter the multiplayer server will use later.
+102 headless tests including hash-locked JSON scenarios, an AI-determinism
+lock, and real-browser e2e runs that boot the client, inspect the live
+panels, and verify the hotseat hand-off. Next: hotseat playtest, then
+phase 3 — the backend-authoritative server.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

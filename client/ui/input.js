@@ -11,7 +11,7 @@ const MOVE_KEYS = {
 };
 
 export function initInput(ctx) {
-  const { session, renderer, sel, panels, hud, HUMAN } = ctx;
+  const { session, renderer, sel, panels, hud } = ctx;
   const { units, buildings, wonders } = session.ruleset;
 
   function describeTile(x, y) {
@@ -101,7 +101,7 @@ export function initInput(ctx) {
       if (e.type === 'cityCaptured') {
         return `🏰 ${state.cities[e.cityId].name} captured! (+${e.plunder} gold)`;
       }
-      if (e.type === 'techDiscovered' && e.playerId === HUMAN) {
+      if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) {
         return `🔬 ${session.ruleset.techs[e.tech].name} discovered!`;
       }
     }
@@ -209,7 +209,7 @@ export function initInput(ctx) {
   // next idle unit — skips fortified and working units unless selected by hand
   function nextUnit() {
     const movable = Object.values(session.state.units).filter(
-      u => u.owner === HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
+      u => u.owner === ctx.HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
     );
     if (movable.length === 0) {
       hud.note('no units with moves left — E to end turn');
@@ -222,9 +222,9 @@ export function initInput(ctx) {
 
   // new turn: return to the last-moved unit, else pick like N
   function autoSelectAfterTurn() {
-    if (session.state.gameOver || session.state.activePlayer !== HUMAN) return;
+    if (session.state.gameOver || session.state.activePlayer !== ctx.HUMAN) return;
     const last = sel.lastMoved && session.state.units[sel.lastMoved];
-    if (last && last.owner === HUMAN && last.moves > 0 && !last.fortified && !last.working) {
+    if (last && last.owner === ctx.HUMAN && last.moves > 0 && !last.fortified && !last.working) {
       ctx.selectUnit(last);
       renderer.centerOn(last.x, last.y);
       return;
@@ -238,10 +238,10 @@ export function initInput(ctx) {
   let confirmEndTurnUntil = 0;
   function endTurn() {
     const state = session.state;
-    if (!state.gameOver && state.activePlayer === HUMAN
-        && state.players[HUMAN] && state.players[HUMAN].human) {
+    if (!state.gameOver && state.activePlayer === ctx.HUMAN
+        && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
       const movable = Object.values(state.units).filter(
-        u => u.owner === HUMAN && u.moves > 0 && !u.working
+        u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working
       );
       if (movable.length > 0 && Date.now() > confirmEndTurnUntil) {
         confirmEndTurnUntil = Date.now() + 5000;
@@ -255,6 +255,15 @@ export function initInput(ctx) {
     sel.cityId = null;
     const res = session.endTurn();
     if (!res.ok) { hud.note(`✗ endTurn: ${res.reason}`); return; }
+    const now = session.state;
+    const next = now.activePlayer;
+    if (!now.gameOver && next !== ctx.HUMAN && now.players[next] && now.players[next].human) {
+      // hotseat: drop the opaque curtain FIRST, then swap the viewpoint
+      // underneath it — neither player ever sees the other's map
+      ctx.handoff.show(now.players[next].name, now.players[next].color, () => {});
+      ctx.setHuman(next);
+      return;
+    }
     autoSelectAfterTurn();
     hud.refresh();
   }
@@ -286,8 +295,8 @@ export function initInput(ctx) {
     const state = session.state;
     const unit = sel.unitId ? state.units[sel.unitId] : null;
     actionBar.textContent = '';
-    const usable = unit && unit.owner === HUMAN && !state.gameOver
-      && state.activePlayer === HUMAN && unit.moves > 0 && !unit.working;
+    const usable = unit && unit.owner === ctx.HUMAN && !state.gameOver
+      && state.activePlayer === ctx.HUMAN && unit.moves > 0 && !unit.working;
     if (!usable) {
       actionBar.classList.add('hidden');
       return;
@@ -296,7 +305,7 @@ export function initInput(ctx) {
     if (unit.type === 'settlers') {
       const tile0 = state.map.tiles[unit.y * state.map.width + unit.x];
       const terrain = session.ruleset.terrain.terrains[tile0.t];
-      const me = state.players[HUMAN];
+      const me = state.players[ctx.HUMAN];
       const irrigateLabel = terrain.irrigate === undefined
         && terrain.transforms !== undefined && terrain.transforms.irrigate !== undefined
         ? '🌿 Clear/Drain' : '💧 Irrigate';
@@ -341,7 +350,7 @@ export function initInput(ctx) {
     const attacker = sel.unitId ? session.state.units[sel.unitId] : null;
     if (pick && attacker) {
       const hostiles = unitsAt(session.state, pick.tile.x, pick.tile.y)
-        .filter(u => u.owner !== HUMAN);
+        .filter(u => u.owner !== ctx.HUMAN);
       if (hostiles.length > 0) {
         // attack preview: red hover ring + odds line
         attack = true;
@@ -366,20 +375,20 @@ export function initInput(ctx) {
   // double-click a city: open the city view even when units share the tile
   renderer.onDblPick(pick => {
     const city = cityAt(session.state, pick.tile.x, pick.tile.y);
-    if (city && city.owner === HUMAN) panels.openCityPanel(city.id);
+    if (city && city.owner === ctx.HUMAN) panels.openCityPanel(city.id);
   });
 
   renderer.onPick(pick => {
     const state = session.state;
-    const mineHere = unitsAt(state, pick.tile.x, pick.tile.y).filter(u => u.owner === HUMAN);
+    const mineHere = unitsAt(state, pick.tile.x, pick.tile.y).filter(u => u.owner === ctx.HUMAN);
     if (mineHere.length > 0) {
-      const clicked = (pick.unitId && state.units[pick.unitId] && state.units[pick.unitId].owner === HUMAN)
+      const clicked = (pick.unitId && state.units[pick.unitId] && state.units[pick.unitId].owner === ctx.HUMAN)
         ? state.units[pick.unitId] : mineHere[0];
       ctx.selectUnit(clicked, { keepStack: true });
       const cityHere = cityAt(state, pick.tile.x, pick.tile.y);
       // show the list for stacks, and always inside cities (it carries the
       // "Open city view" button there)
-      if (mineHere.length > 1 || (cityHere && cityHere.owner === HUMAN)) {
+      if (mineHere.length > 1 || (cityHere && cityHere.owner === ctx.HUMAN)) {
         panels.openStackPanel(pick.tile.x, pick.tile.y);
       } else {
         panels.closeStackPanel();
@@ -439,7 +448,7 @@ export function initInput(ctx) {
       if (work === 'road' && u) {
         const t = session.state.map.tiles[u.y * session.state.map.width + u.x];
         if (t.road === true && t.railroad !== true
-            && session.state.players[HUMAN].techs.includes(session.ruleset.rules.railroadTech)) {
+            && session.state.players[ctx.HUMAN].techs.includes(session.ruleset.rules.railroadTech)) {
           work = 'railroad';
         }
       }
@@ -448,15 +457,15 @@ export function initInput(ctx) {
     }
     if (e.key === 'n') { nextUnit(); return; }
     if (e.key === 't') {
-      const avail = availableTechs(session.state, HUMAN, session.ruleset);
-      if (avail.length === 0 || session.state.activePlayer !== HUMAN) return;
-      const idx = avail.indexOf(session.state.players[HUMAN].researching);
-      apply({ type: 'setResearch', playerId: HUMAN, tech: avail[(idx + 1) % avail.length] });
+      const avail = availableTechs(session.state, ctx.HUMAN, session.ruleset);
+      if (avail.length === 0 || session.state.activePlayer !== ctx.HUMAN) return;
+      const idx = avail.indexOf(session.state.players[ctx.HUMAN].researching);
+      apply({ type: 'setResearch', playerId: ctx.HUMAN, tech: avail[(idx + 1) % avail.length] });
       return;
     }
     if (e.key === 'c' && sel.cityId) {
       const city = session.state.cities[sel.cityId];
-      const me = session.state.players[HUMAN];
+      const me = session.state.players[ctx.HUMAN];
       const options = [];
       for (const id of Object.keys(buildings).sort()) {
         if ((city.buildings || []).includes(id)) continue;

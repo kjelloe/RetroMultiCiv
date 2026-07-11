@@ -148,14 +148,25 @@ engine test suite green; a replayed command log reproduces the same final state 
 
 ## Phase 2 — Local multiplayer / hotseat
 
-- Player-slot setup screen (human/AI per slot).
-- Turn hand-off screen between human players ("Player 2 — press to start").
-- Per-player fog: the view shown is `visibility.filterView(state, activePlayerId)`
-  — the exact function the server uses later, so this phase proves it.
+- ✅ **Setup screen** *(2026-07-11)* — a bare `/client/` URL opens it:
+  civilizations (2–7), human players (first N seats), optional seed; starts
+  by reloading with `?seed=&civs=&humans=` so the bootstrap stays one path.
+- ✅ **Turn hand-off** *(2026-07-11)* — `ui/handoff.js`: a fully opaque
+  cover drops the moment a human's turn ends with another human next; the
+  incoming player's view renders *underneath* it, so neither player ever
+  sees the other's map. Click or any key to begin.
+- ✅ **Per-player viewpoint** — `ctx.HUMAN` is now the mutable viewpoint;
+  every UI module reads it live. The map is always
+  `visibility.filterView(state, viewpoint)` — the exact function the
+  phase-3 server sends, so hotseat proves the anti-leak seam. The turn log,
+  first-contact tracking, city-name rosters, and victory banner are all
+  per-viewpoint; the session already stopped AI-driving at any human.
+  Locked by a hotseat browser e2e (hand-off screen up, cover opaque,
+  HUD already showing the incoming player's view beneath it).
 
-**Acceptance:** 2 humans + 1 AI hotseat game with no information leaks between
-players — and a playtest scored against the 10-question checklist at the end
-of `specs/gameplay-reference.md` (the designer ally's loop test).
+**Acceptance (pending playtest):** 2 humans + 1 AI hotseat game with no
+information leaks between players — and a playtest scored against the
+10-question checklist at the end of `specs/gameplay-reference.md`.
 
 ## Phase 3 — Backend-authoritative simulation
 

@@ -6,7 +6,7 @@ import { filterView } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 
 export function initTurnLog(ctx) {
-  const { session, hud, HUMAN } = ctx;
+  const { session, hud } = ctx;
   const { units, buildings, wonders, techs } = session.ruleset;
   const details = document.getElementById('turn-log');
   const summary = details.querySelector('summary');
@@ -39,14 +39,14 @@ export function initTurnLog(ctx) {
   }
 
   // first contact: any rival whose unit or city enters the player's view
-  const met = {};
+  let met = {};
   function scanContacts(state, announce) {
-    const view = filterView(state, HUMAN);
+    const view = filterView(state, ctx.HUMAN);
     const seen = {};
     for (const u of Object.values(view.units || {})) seen[u.owner] = true;
     for (const c of Object.values(view.cities || {})) seen[c.owner] = true;
     for (const pid of Object.keys(seen).sort()) {
-      if (pid === HUMAN || met[pid]) continue;
+      if (pid === ctx.HUMAN || met[pid]) continue;
       met[pid] = true;
       if (!announce) continue;
       const name = playerName(state, pid);
@@ -59,19 +59,29 @@ export function initTurnLog(ctx) {
   scanContacts(session.state, false); // whoever is visible at start is already known
 
   function ownCity(state, cityId) {
-    return state.cities[cityId] && state.cities[cityId].owner === HUMAN;
+    return state.cities[cityId] && state.cities[cityId].owner === ctx.HUMAN;
+  }
+
+  // hotseat hand-off: the log belongs to the viewpoint — the incoming player
+  // starts with a clean sheet and their own contact baseline
+  function resetViewer() {
+    met = {};
+    list.textContent = '';
+    count = 0;
+    summary.textContent = '📜 Turn log';
+    scanContacts(session.state, false);
   }
 
   session.onChange((state, events) => {
     if (events.length === 0) {
       // wholesale state replacement (load): re-baseline contacts silently
-      for (const k of Object.keys(met)) delete met[k];
+      met = {};
       scanContacts(state, false);
       return;
     }
     for (const e of events) {
       if (e.type === 'combatResolved') {
-        const involvesMe = e.attackerOwner === HUMAN || e.defenderOwner === HUMAN;
+        const involvesMe = e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN;
         if (!involvesMe) continue;
         const att = `${playerName(state, e.attackerOwner)} ${units[e.attackerType].name}`;
         const def = `${playerName(state, e.defenderOwner)} ${units[e.defenderType].name}`;
@@ -79,10 +89,10 @@ export function initTurnLog(ctx) {
         if (e.winner === 'attacker') {
           text = `⚔ ${att} defeated ${def} at (${e.x},${e.y})`
             + (e.unitsLost > 1 ? ` — whole stack lost (${e.unitsLost})` : '');
-          cls = e.attackerOwner === HUMAN ? 'win' : 'loss';
+          cls = e.attackerOwner === ctx.HUMAN ? 'win' : 'loss';
         } else {
           text = `🛡 ${def} repelled ${att} at (${e.x},${e.y})`;
-          cls = e.defenderOwner === HUMAN ? 'win' : 'loss';
+          cls = e.defenderOwner === ctx.HUMAN ? 'win' : 'loss';
         }
         add(text, cls);
         if (!firstCombatShown) {
@@ -92,12 +102,12 @@ export function initTurnLog(ctx) {
             ? '⚔ First combat — victory! Details in the Turn log (bottom left)'
             : '⚔ First combat — a unit was lost. Details in the Turn log (bottom left)');
         }
-      } else if (e.type === 'cityCaptured' && (e.from === HUMAN || e.to === HUMAN)) {
+      } else if (e.type === 'cityCaptured' && (e.from === ctx.HUMAN || e.to === ctx.HUMAN)) {
         const name = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         add(`🏰 ${name} captured by ${playerName(state, e.to)} (+${e.plunder} gold plundered)`,
-          e.to === HUMAN ? 'win' : 'loss');
+          e.to === ctx.HUMAN ? 'win' : 'loss');
       } else if (e.type === 'playerDefeated') {
-        add(`💀 ${playerName(state, e.playerId)} eliminated`, e.playerId === HUMAN ? 'loss' : 'win');
+        add(`💀 ${playerName(state, e.playerId)} eliminated`, e.playerId === ctx.HUMAN ? 'loss' : 'win');
       } else if (e.type === 'barbariansSpawned') {
         add('🏴 barbarian uprising reported somewhere in the wilds');
       } else if (e.type === 'cityFounded' && ownCity(state, e.cityId)) {
@@ -120,7 +130,7 @@ export function initTurnLog(ctx) {
         if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`);
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
         add(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
-      } else if (e.type === 'improvementBuilt' && e.owner === HUMAN) {
+      } else if (e.type === 'improvementBuilt' && e.owner === ctx.HUMAN) {
         const label = e.transformedTo !== undefined
           ? `terrain worked into ${e.transformedTo}`
           : (e.work === 'irrigate' ? 'irrigation' : e.work) + ' completed';
@@ -130,20 +140,22 @@ export function initTurnLog(ctx) {
         flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`);
       } else if (e.type === 'cityOrderRestored' && ownCity(state, e.cityId)) {
         add(`😊 order restored in ${state.cities[e.cityId].name}`, 'win');
-      } else if (e.type === 'revolutionStarted' && e.playerId === HUMAN) {
+      } else if (e.type === 'revolutionStarted' && e.playerId === ctx.HUMAN) {
         add(`⚡ revolution! anarchy until ${session.ruleset.governments[e.government].name} takes hold`);
-      } else if (e.type === 'governmentChanged' && e.playerId === HUMAN) {
+      } else if (e.type === 'governmentChanged' && e.playerId === ctx.HUMAN) {
         add(`🏛 new government: ${session.ruleset.governments[e.government].name}`, 'win');
         flashMessage(`🏛 The ${session.ruleset.governments[e.government].name} is established!`);
-      } else if (e.type === 'techDiscovered' && e.playerId === HUMAN) {
+      } else if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) {
         const unlocks = techUnlocks[e.tech] || [];
         add(`🔬 ${techs[e.tech].name} discovered`
           + (unlocks.length ? ` — unlocks ${unlocks.join(', ')}` : ''), 'win');
-        if (availableTechs(state, HUMAN, session.ruleset).length > 0) {
+        if (availableTechs(state, ctx.HUMAN, session.ruleset).length > 0) {
           flashMessage(`🔬 ${techs[e.tech].name} discovered! Choose new research — press T or click the research bar`);
         }
       }
     }
     scanContacts(state, true);
   });
+
+  return { resetViewer };
 }

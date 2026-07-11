@@ -1,6 +1,8 @@
 // Bootstrap: fetch the ruleset, create the world + session, wire the UI.
 // State lives in session.js; panels/input/saves/hud are in ui/*.
-// URL params: ?seed=N fixed world · ?civs=2..7 · ?mock=1 static state · ?diag=1
+// URL params: ?seed=N fixed world · ?civs=2..7 · ?humans=1..civs (hotseat)
+// · ?mock=1 static state · ?diag=1 · a bare URL opens the setup screen.
+// ctx.HUMAN is the current VIEWPOINT (hotseat hands it between players).
 import { createRenderer } from './renderer/renderer.js';
 import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostics.js';
 import { createSession } from './session.js';
@@ -9,16 +11,19 @@ import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
+import { showSetupScreen } from './ui/setup.js';
+import { initHandoff } from './ui/handoff.js';
 
-const HUMAN = 'p1';
 const hudStatus = document.getElementById('hud-status');
 
 // surface any failure in the HUD — a silent exception otherwise looks like an empty map
 window.addEventListener('error', e => {
+  if (`${e.message}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
   hudStatus.textContent = `ERROR: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`;
   hudStatus.style.color = '#ff7b6b';
 });
 window.addEventListener('unhandledrejection', e => {
+  if (`${e.reason}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
   hudStatus.textContent = `ERROR: ${e.reason && e.reason.message ? e.reason.message : e.reason}`;
   hudStatus.style.color = '#ff7b6b';
 });
@@ -30,6 +35,12 @@ async function fetchJson(url) {
 }
 
 const params = new URLSearchParams(location.search);
+// a bare URL (no world parameters) gets the game-setup screen; it reloads
+// with ?seed=&civs=&humans= filled in
+if (!params.has('seed') && !params.has('civs') && !params.has('mock')) {
+  showSetupScreen();
+  throw new Error('setup'); // stop the bootstrap; the setup screen reloads
+}
 const [terrain, units, techs, buildings, wonders, governments, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
   fetchJson('../data/units.json'),
@@ -67,7 +78,8 @@ try {
 import { createEngine } from '../engine/index.js';
 
 let initialState;
-let humanCityNames = [];
+let humans = 1;
+const cityNamesByPlayer = {}; // pid -> that civilization's historic city list
 if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
 } else {
@@ -81,23 +93,24 @@ if (params.get('mock') === '1') {
     { name: 'Mongols', color: '#d8703b', cities: ['Samarkand', 'Bokhara', 'Nishapur', 'Karakorum', 'Kashgar', 'Tabriz', 'Kabul'] },
     { name: 'Aztecs', color: '#3bc9d8', cities: ['Tenochtitlan', 'Teotihuacan', 'Tlatelolco', 'Texcoco', 'Tlaxcala', 'Xochicalco', 'Tlacopan'] }
   ];
-  humanCityNames = CIV_ROSTER[0].cities; // founding-name suggestions
   const civs = Math.min(CIV_ROSTER.length, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
+  humans = Math.min(civs, Math.max(1, parseInt(params.get('humans') || '1', 10) || 1));
   const playerDefs = [];
   for (let i = 0; i < civs; i++) {
-    playerDefs.push({ id: 'p' + (i + 1), ...CIV_ROSTER[i], human: i === 0 });
+    playerDefs.push({ id: 'p' + (i + 1), ...CIV_ROSTER[i], human: i < humans });
+    cityNamesByPlayer['p' + (i + 1)] = CIV_ROSTER[i].cities;
   }
   initialState = createEngine(ruleset).createGame({
     seed, options: { width: 80, height: 50, players: playerDefs }
   });
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
-  history.replaceState(null, '', `?seed=${seed}&civs=${civs}`);
+  history.replaceState(null, '', `?seed=${seed}&civs=${civs}&humans=${humans}`);
 }
 
 // --- wiring ------------------------------------------------------------------
 const session = createSession(ruleset, initialState);
 const sel = { unitId: null, cityId: null, lastMoved: null };
-const ctx = { session, renderer, sel, HUMAN };
+const ctx = { session, renderer, sel, HUMAN: 'p1' };
 
 ctx.selectUnit = (unit, opts) => {
   sel.unitId = unit.id;
@@ -108,13 +121,40 @@ ctx.selectUnit = (unit, opts) => {
   if (ctx.refreshActionBar) ctx.refreshActionBar();
 };
 
-// next unused name from the civilization's roster, else a numbered fallback
+// select the viewpoint's first idle unit (game start and every hand-off)
+function selectFirstUnit() {
+  const unit = Object.values(session.state.units).find(
+    u => u.owner === ctx.HUMAN && u.moves > 0
+  );
+  if (unit) {
+    ctx.selectUnit(unit);
+    renderer.centerOn(unit.x, unit.y);
+  } else {
+    sel.unitId = null;
+    if (ctx.refreshActionBar) ctx.refreshActionBar();
+  }
+}
+
+// Hotseat hand-off: swap the viewpoint to the (human) active player. All
+// per-player UI resets and the map re-renders through THEIR fog.
+ctx.setHuman = (pid) => {
+  ctx.HUMAN = pid;
+  sel.unitId = null;
+  sel.cityId = null;
+  sel.lastMoved = null;
+  ctx.panels.closeAll();
+  if (ctx.turnlog) ctx.turnlog.resetViewer();
+  ctx.hud.refresh();
+  selectFirstUnit();
+};
+
+// next unused name from the viewpoint civilization's roster, else a fallback
 ctx.suggestCityName = () => {
   const taken = {};
   for (const cid of Object.keys(session.state.cities)) {
     taken[session.state.cities[cid].name] = true;
   }
-  for (const name of humanCityNames) {
+  for (const name of cityNamesByPlayer[ctx.HUMAN] || []) {
     if (!taken[name]) return name;
   }
   return `New City ${session.state.nextCityId}`;
@@ -122,9 +162,10 @@ ctx.suggestCityName = () => {
 
 ctx.hud = initHud(ctx);
 ctx.panels = initPanels(ctx);
+ctx.handoff = initHandoff(ctx);
 initInput(ctx);
 initSaves(ctx);
-initTurnLog(ctx);
+ctx.turnlog = initTurnLog(ctx);
 
 session.onChange(() => {
   ctx.hud.refresh();
@@ -133,7 +174,7 @@ session.onChange(() => {
 
 ctx.hud.refresh();
 const firstUnit = Object.values(session.state.units).find(
-  u => u.owner === HUMAN && session.state.players[HUMAN].human
+  u => u.owner === ctx.HUMAN && session.state.players[ctx.HUMAN].human
 );
 if (firstUnit) {
   ctx.selectUnit(firstUnit);
@@ -152,7 +193,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   probe.style.display = 'none';
   probe.textContent = 'actionbar: ' + document.getElementById('action-bar').textContent;
   document.body.appendChild(probe);
-  session.apply({ type: 'foundCity', playerId: HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
+  session.apply({ type: 'foundCity', playerId: ctx.HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
   ctx.panels.toggleResearchPanel();
   if (session.state.cityOrder.length > 0) {
     ctx.panels.openCityPanel(session.state.cityOrder[0]);
@@ -161,4 +202,12 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     if (workedCell) workedCell.click();
   }
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
+}
+
+// ?e2e=2 (with &humans=2): scripted hotseat hand-off — end player 1's turn
+// (twice: the first press is the units-still-have-moves confirmation) so the
+// opaque hand-off screen for player 2 is up when --dump-dom fires.
+if (params.get('e2e') === '2') {
+  ctx.endTurn();
+  ctx.endTurn();
 }

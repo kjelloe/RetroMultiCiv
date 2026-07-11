@@ -84,8 +84,43 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /needs [A-Z]/, 'the production catalog must list tech-locked items');
     assert.match(dom, /unlocks /, 'the research panel must show what techs unlock');
     assert.match(dom, /tax 50%/, 'the tax/science split must render at its default');
+    assert.match(dom, /lux 0%/, 'the luxuries rate must render');
+    assert.match(dom, /Despotism \(rates/, 'the government row must show the current government');
+    assert.match(dom, /mood /, 'the city panel must show the mood row');
     assert.match(dom, /Turn log/, 'the turn log must be present');
   } finally {
     server.close();
   }
 });
+
+test('browser setup: a bare URL shows the setup screen instead of booting a game',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/`);
+      assert.match(dom, /id="setup-screen"/, 'the setup screen must be present');
+      assert.match(dom, /Start game/, 'with its start button');
+      assert.match(dom, /hotseat/, 'and the human-players picker');
+      assert.ok(!/<canvas/.test(dom), 'no renderer starts before the setup choices');
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+    } finally {
+      server.close();
+    }
+  });
+
+test('browser hotseat: ending the turn hands off to the second human behind an opaque cover',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      // ?e2e=2 ends player 1's turn (see main.js); player 2 is human
+      const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&civs=2&humans=2&e2e=2`);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      assert.match(dom, /Zulus — your turn/, 'the hand-off screen must name the incoming player');
+      assert.match(dom, /id="handoff-screen" class=""/, 'the opaque cover must be visible (not .hidden)');
+      assert.match(dom, /Zulus · Despotism/, 'beneath the cover, the HUD already shows the new viewpoint');
+    } finally {
+      server.close();
+    }
+  });

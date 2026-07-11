@@ -6,7 +6,7 @@ import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 
 export function initPanels(ctx) {
-  const { session, renderer, sel, HUMAN } = ctx;
+  const { session, renderer, sel } = ctx;
   const { techs, units, buildings, wonders } = session.ruleset;
   const researchPanel = document.getElementById('research-panel');
   const cityPanel = document.getElementById('city-panel');
@@ -69,7 +69,7 @@ export function initPanels(ctx) {
   // --- research panel --------------------------------------------------------
   function startResearch(techId) {
     if (!techId) return;
-    const res = session.apply({ type: 'setResearch', playerId: HUMAN, tech: techId });
+    const res = session.apply({ type: 'setResearch', playerId: ctx.HUMAN, tech: techId });
     if (res.ok) {
       chosenTech = null;
       researchPanel.classList.add('hidden');
@@ -80,8 +80,8 @@ export function initPanels(ctx) {
 
   function fillResearchPanel() {
     const state = session.state;
-    const me = state.players[HUMAN];
-    const cost = researchCost(state, HUMAN, session.ruleset);
+    const me = state.players[ctx.HUMAN];
+    const cost = researchCost(state, ctx.HUMAN, session.ruleset);
     document.getElementById('research-summary').textContent =
       `${me.techs.length}/${Object.keys(techs).length} advances known · `
       + `${me.bulbs || 0} bulbs · next costs ${cost}`;
@@ -118,14 +118,14 @@ export function initPanels(ctx) {
         btn.textContent = `→ ${gov.name}`;
         btn.title = 'start a revolution (a few turns of Anarchy first)';
         btn.addEventListener('click', () =>
-          ctx.apply({ type: 'setGovernment', playerId: HUMAN, government: id }));
+          ctx.apply({ type: 'setGovernment', playerId: ctx.HUMAN, government: id }));
         govRow.appendChild(btn);
       }
     }
 
     const list = document.getElementById('research-list');
     list.textContent = '';
-    const avail = availableTechs(state, HUMAN, session.ruleset)
+    const avail = availableTechs(state, ctx.HUMAN, session.ruleset)
       .sort((a, b) => techs[a].level - techs[b].level || (a < b ? -1 : 1));
     let level = -1;
     for (const id of avail) {
@@ -207,7 +207,7 @@ export function initPanels(ctx) {
   // ‹ › arrows (and ←/→ keys) walk your cities in founding order
   function cycleCity(dir) {
     const state = session.state;
-    const mine = state.cityOrder.filter(id => state.cities[id] && state.cities[id].owner === HUMAN);
+    const mine = state.cityOrder.filter(id => state.cities[id] && state.cities[id].owner === ctx.HUMAN);
     if (mine.length === 0) return;
     const idx = mine.indexOf(openCityId);
     openCityPanel(mine[((idx === -1 ? 0 : idx) + dir + mine.length) % mine.length]);
@@ -216,7 +216,7 @@ export function initPanels(ctx) {
   document.getElementById('city-next').addEventListener('click', () => cycleCity(1));
 
   function setProduction(city, item, closeAfter) {
-    const res = session.apply({ type: 'setProduction', playerId: HUMAN, cityId: city.id, item });
+    const res = session.apply({ type: 'setProduction', playerId: ctx.HUMAN, cityId: city.id, item });
     if (!res.ok) ctx.hud.note(`✗ setProduction: ${res.reason}`);
     else if (closeAfter) closeCityPanel();
   }
@@ -224,7 +224,7 @@ export function initPanels(ctx) {
   function fillCityPanel() {
     const state = session.state;
     const city = state.cities[openCityId];
-    if (!city || city.owner !== HUMAN) { closeCityPanel(); return; }
+    if (!city || city.owner !== ctx.HUMAN) { closeCityPanel(); return; }
     document.getElementById('city-title').textContent =
       `🏛 ${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
 
@@ -247,7 +247,7 @@ export function initPanels(ctx) {
     const buyRate = city.producing.kind === 'wonder'
       ? session.ruleset.rules.buyGoldPerShieldWonder : session.ruleset.rules.buyGoldPerShield;
     const buyPrice = missing * buyRate;
-    const canBuy = missing > 0 && state.players[HUMAN].gold >= buyPrice;
+    const canBuy = missing > 0 && state.players[ctx.HUMAN].gold >= buyPrice;
     const buyHtml = missing > 0
       ? ` <button id="city-buy"${canBuy ? '' : ' disabled'} title="finish it now for gold">💰 Buy ${buyPrice}</button>`
       : '';
@@ -280,10 +280,10 @@ export function initPanels(ctx) {
     const buyBtn = document.getElementById('city-buy');
     if (buyBtn) {
       buyBtn.addEventListener('click', () =>
-        ctx.apply({ type: 'buy', playerId: HUMAN, cityId: city.id }));
+        ctx.apply({ type: 'buy', playerId: ctx.HUMAN, cityId: city.id }));
     }
     const specCmd = (taxmen, scientists) => ctx.apply({
-      type: 'setWorkers', playerId: HUMAN, cityId: city.id,
+      type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id,
       workers: currentWorkerIdx(), taxmen, scientists
     });
     const taxBtn = document.getElementById('spec-taxman');
@@ -310,7 +310,7 @@ export function initPanels(ctx) {
       } else {
         current.push(idx);
       }
-      const res = session.apply({ type: 'setWorkers', playerId: HUMAN, cityId: city.id, workers: current });
+      const res = session.apply({ type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id, workers: current });
       if (!res.ok) ctx.hud.note(`✗ setWorkers: ${res.reason}`);
     }
 
@@ -354,14 +354,14 @@ export function initPanels(ctx) {
     resetBtn.textContent = '↺ reset to automatic assignment';
     resetBtn.style.display = city.workers !== undefined ? 'block' : 'none';
     resetBtn.onclick = () => {
-      session.apply({ type: 'setWorkers', playerId: HUMAN, cityId: city.id, auto: true });
+      session.apply({ type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id, auto: true });
     };
 
     // production choices — click selects, double-click selects and closes;
     // tech-locked items are shown greyed with their prerequisite
     const prodEl = document.getElementById('city-production');
     prodEl.textContent = '';
-    const me = state.players[HUMAN];
+    const me = state.players[ctx.HUMAN];
     // switching category forfeits half the shields (Civ 1), so the ETA differs
     const eta = (cost, kind) => {
       if (totals.shields <= 0) return '';
@@ -450,7 +450,7 @@ export function initPanels(ctx) {
     if (!stackTile) return;
     const state = session.state;
     const mine = unitsAt(state, stackTile.x, stackTile.y)
-      .filter(u => u.owner === HUMAN);
+      .filter(u => u.owner === ctx.HUMAN);
     if (mine.length === 0) { closeStackPanel(); return; }
     // the selected unit moved away: follow it out and close the list
     if (sel.unitId && !mine.some(u => u.id === sel.unitId)) { closeStackPanel(); return; }
@@ -477,7 +477,7 @@ export function initPanels(ctx) {
     });
 
     const cityBtn = document.getElementById('stack-city');
-    if (cityHere && cityHere.owner === HUMAN) {
+    if (cityHere && cityHere.owner === ctx.HUMAN) {
       cityBtn.classList.remove('hidden');
       cityBtn.onclick = () => openCityPanel(cityHere.id);
     } else {
@@ -523,7 +523,7 @@ export function initPanels(ctx) {
   // tax/science slider (the science share of what luxuries leave over) and
   // the luxuries stepper (±10%, taken from/returned to tax first)
   function ratesOf() {
-    const me = session.state.players[HUMAN];
+    const me = session.state.players[ctx.HUMAN];
     return {
       tax: me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate,
       sci: me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate,
@@ -533,7 +533,7 @@ export function initPanels(ctx) {
   document.getElementById('rate-slider').addEventListener('change', e => {
     const { lux } = ratesOf();
     const sci = Math.min(parseInt(e.target.value, 10), 100 - lux);
-    ctx.apply({ type: 'setRates', playerId: HUMAN, tax: 100 - lux - sci, sci, lux });
+    ctx.apply({ type: 'setRates', playerId: ctx.HUMAN, tax: 100 - lux - sci, sci, lux });
   });
   function nudgeLux(delta) {
     const r = ratesOf();
@@ -543,7 +543,7 @@ export function initPanels(ctx) {
     let sci = r.sci;
     if (tax < 0) { sci = sci + tax; tax = 0; }
     if (sci < 0) { lux = lux + sci; sci = 0; }
-    ctx.apply({ type: 'setRates', playerId: HUMAN, tax, sci, lux });
+    ctx.apply({ type: 'setRates', playerId: ctx.HUMAN, tax, sci, lux });
   }
   document.getElementById('lux-minus').addEventListener('click', () => nudgeLux(-10));
   document.getElementById('lux-plus').addEventListener('click', () => nudgeLux(10));

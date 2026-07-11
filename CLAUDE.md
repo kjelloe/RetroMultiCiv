@@ -58,15 +58,18 @@ client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
-ui/{hud,panels,input,saves,turnlog}. UI reads session.state and calls
-session.apply()/endTurn(); session.onChange drives refresh. Keyboard handlers
-must ignore events from INPUT/TEXTAREA targets (dialogs).
+ui/{hud,panels,input,saves,turnlog,setup,handoff}. UI reads session.state
+and calls session.apply()/endTurn(); session.onChange drives refresh.
+`ctx.HUMAN` is the CURRENT VIEWPOINT (mutable — hotseat hands it between
+players via ctx.setHuman); never cache it in a module-level const. Keyboard
+handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 
 ## Testing & running
 
 `node --test test/` — headless, no deps (the dump integration test self-skips
 if the dump is absent). Play: `python3 -m http.server 8123` from the **repo
-root**, open `http://localhost:8123/client/` (`?seed=N` fixed world,
+root**, open `http://localhost:8123/client/` (bare URL = setup screen;
+`?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?mock=1` static state). `engine/` and `shared/` are ESM (per-dir
 `package.json` type markers) so they load in both browser and Node; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.
@@ -80,8 +83,9 @@ them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 prop through the real renderer — screenshot it after any assets.js change.
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
-cities, improvements, combat/barbarians, tech, ai, score, visibility, mapgen,
-wiki2data — engine tests share `test/ruleset.js`), JSON scenarios (below), and
+cities, improvements, happiness, government, combat/barbarians, tech, ai,
+score, visibility, mapgen, wiki2data — engine tests share `test/ruleset.js`),
+JSON scenarios (below), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium (`?e2e=1` founds a city and fills the panels) and asserts
 the HUD reaches "turn 1", the panels carry real content, and no error

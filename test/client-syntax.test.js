@@ -17,6 +17,8 @@ const CLIENT_MODULES = [
   'client/ui/input.js',
   'client/ui/saves.js',
   'client/ui/turnlog.js',
+  'client/ui/setup.js',
+  'client/ui/handoff.js',
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
   'client/renderer/three/assets.js',

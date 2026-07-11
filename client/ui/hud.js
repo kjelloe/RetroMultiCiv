@@ -4,7 +4,7 @@ import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 
 export function initHud(ctx) {
-  const { session, renderer, sel, HUMAN } = ctx;
+  const { session, renderer, sel } = ctx;
   const hudStatus = document.getElementById('hud-status');
   const hudTile = document.getElementById('hud-tile');
   const hudSelection = document.getElementById('hud-selection');
@@ -37,13 +37,13 @@ export function initHud(ctx) {
 
   // totals with the per-turn gain/loss behind them: "12/40 (+3) · 💰 200 (+5)"
   function updateResearchBar() {
-    const me = session.state.players[HUMAN];
+    const me = session.state.players[ctx.HUMAN];
     const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
-    const income = playerIncome(session.state, HUMAN, session.ruleset);
+    const income = playerIncome(session.state, ctx.HUMAN, session.ruleset);
     const goldDelta = income.gold - income.maintenance;
     const money = `💰 ${me.gold} (${goldDelta >= 0 ? '+' : ''}${goldDelta})`;
     if (me.researching) {
-      const cost = researchCost(session.state, HUMAN, session.ruleset);
+      const cost = researchCost(session.state, ctx.HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';
       researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money}`;
     } else {
@@ -59,8 +59,8 @@ export function initHud(ctx) {
   function updateBanner() {
     const state = session.state;
     let allMoved = false;
-    if (!state.gameOver && state.activePlayer === HUMAN && state.players[HUMAN] && state.players[HUMAN].human) {
-      const movable = Object.values(state.units).filter(u => u.owner === HUMAN && u.moves > 0 && !u.working);
+    if (!state.gameOver && state.activePlayer === ctx.HUMAN && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
+      const movable = Object.values(state.units).filter(u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working);
       allMoved = movable.length === 0;
     }
     endTurnBtn.classList.toggle('ready', allMoved);
@@ -74,18 +74,18 @@ export function initHud(ctx) {
 
   function refresh() {
     const state = session.state;
-    renderer.setViewState(filterView(state, HUMAN));
+    renderer.setViewState(filterView(state, ctx.HUMAN));
     renderer.setSelection(sel.unitId ? { unitId: sel.unitId } : null);
     const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
     if (state.gameOver) {
       const w = state.players[state.winner];
-      const verdict = state.winner === HUMAN ? '🏆 VICTORY' : '💀 DEFEAT';
+      const verdict = state.winner === ctx.HUMAN ? '🏆 VICTORY' : '💀 DEFEAT';
       const scores = state.playerOrder
         .map(p => `${state.players[p].name} ${score(state, p, session.ruleset)}`).join(' · ');
-      hudStatus.style.color = state.winner === HUMAN ? '#ffe066' : '#ff7b6b';
+      hudStatus.style.color = state.winner === ctx.HUMAN ? '#ffe066' : '#ff7b6b';
       hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`;
     } else {
-      const me = state.players[HUMAN];
+      const me = state.players[ctx.HUMAN];
       const gov = me.revolutionTurns !== undefined
         ? `Anarchy (${me.revolutionTurns})`
         : session.ruleset.governments[me.government === undefined ? 'despotism' : me.government].name;

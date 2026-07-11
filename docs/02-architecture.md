@@ -57,8 +57,11 @@ multiciv/
 │   ├── mapgen.js
 │   ├── movement.js        # move costs, ZOC, pathfinding (GoTo)
 │   ├── combat.js
-│   ├── cities.js          # growth, production, happiness, corruption
-│   ├── improvements.js    # settler work: roads, irrigation, mines
+│   ├── cities.js          # growth, production, worked tiles, buy
+│   ├── improvements.js    # settler work: roads/rails, irrigation, mines,
+│   │                      #   fortresses, terrain transforms, pillage
+│   ├── happiness.js       # citizen mood, luxuries, specialists, disorder
+│   ├── government.js      # revolutions, rate caps, corruption, capitals
 │   ├── tech.js
 │   ├── units.js
 │   ├── visibility.js      # fog of war, per-player state filtering
@@ -77,7 +80,8 @@ multiciv/
 │   │                      #   socket-backed session replaces in phase 3
 │   ├── diagnostics.js     # WebGL capability probe (+ ?diag=1 panel)
 │   ├── ui/                # hud, panels (research/city/stack), input,
-│   │                      #   saves (F5/F9 + files), turn log — plain DOM
+│   │                      #   saves (F5/F9 + files), turn log, setup
+│   │                      #   screen, hotseat hand-off — plain DOM
 │   └── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │       ├── renderer.js    #   interface: setViewState, picks, markers…
 │       └── three/         #   v1: low-poly flat boxes + raycast picking
