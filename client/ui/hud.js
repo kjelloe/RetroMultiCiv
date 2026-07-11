@@ -11,7 +11,17 @@ export function initHud(ctx) {
   const researchFill = document.getElementById('research-fill');
   const researchLabel = document.getElementById('research-label');
   const banner = document.getElementById('center-banner');
+  const flashEl = document.getElementById('flash-banner');
   const techs = session.ruleset.techs;
+
+  // transient center message (warnings, first contact, wonder fanfare)
+  let flashTimer = 0;
+  function flash(text) {
+    flashEl.textContent = text;
+    flashEl.classList.remove('hidden');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => flashEl.classList.add('hidden'), 5000);
+  }
 
   function updateResearchBar() {
     const me = session.state.players[HUMAN];
@@ -81,6 +91,7 @@ export function initHud(ctx) {
 
   return {
     refresh,
+    flash,
     note(text) { hudSelection.textContent = text; },
     unitNote,
     tile(text) { hudTile.textContent = text; }

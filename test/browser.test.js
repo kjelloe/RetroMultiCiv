@@ -76,6 +76,8 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /WebGL2: (yes|NO)/, 'diagnostics panel must render with ?diag=1');
     // panel content from the e2e sequence
     assert.match(dom, /Testopolis/, 'the scripted city must appear in the city panel');
+    assert.match(dom, /manual tile assignment/,
+      'clicking a mini-map tile must switch the city to manual worker assignment');
     assert.match(dom, /needs [A-Z]/, 'the production catalog must list tech-locked items');
     assert.match(dom, /unlocks /, 'the research panel must show what techs unlock');
     assert.match(dom, /tax 50%/, 'the tax/science split must render at its default');

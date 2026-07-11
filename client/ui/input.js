@@ -172,6 +172,10 @@ export function initInput(ctx) {
       hud.note('✗ only settlers can found cities');
       return;
     }
+    if (unit.moves <= 0) {
+      hud.flash('⏳ These settlers have no moves left — found the city next turn');
+      return;
+    }
     const unitId = unit.id;
     panels.openNameDialog(ctx.suggestCityName(), name => {
       if (apply({ type: 'foundCity', playerId: session.state.activePlayer, unitId, name })) {
@@ -264,6 +268,13 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'Enter' || e.key === 'e') { endTurn(); return; }
+    if (e.key === ' ' && sel.unitId) {
+      e.preventDefault(); // keep space from scrolling or re-firing a focused button
+      if (apply({ type: 'wait', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+        nextUnit();
+      }
+      return;
+    }
     if (e.key === 'b' && sel.unitId) {
       foundCityFlow();
       return;

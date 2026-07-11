@@ -5,12 +5,12 @@
 import { filterView } from '../../engine/visibility.js';
 
 export function initTurnLog(ctx) {
-  const { session, HUMAN } = ctx;
+  const { session, hud, HUMAN } = ctx;
   const { units, buildings, wonders, techs } = session.ruleset;
   const details = document.getElementById('turn-log');
   const summary = details.querySelector('summary');
   const list = document.getElementById('turn-list');
-  const flash = document.getElementById('flash-banner');
+  const flashMessage = hud.flash; // center-screen transient banner
   let count = 0;
   let firstCombatShown = false;
 
@@ -21,12 +21,6 @@ export function initTurnLog(ctx) {
       if (set[id].tech === '') continue;
       (techUnlocks[set[id].tech] = techUnlocks[set[id].tech] || []).push(set[id].name);
     }
-  }
-
-  function flashMessage(text) {
-    flash.textContent = text;
-    flash.classList.remove('hidden');
-    setTimeout(() => flash.classList.add('hidden'), 5000);
   }
 
   function playerName(state, pid) {

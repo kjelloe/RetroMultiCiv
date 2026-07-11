@@ -131,6 +131,21 @@ test('fortify: sets the flag, ends the turn, and moving clears it', async () => 
   assert.strictEqual(moved.state.units.u1.fortified, false);
 });
 
+test('wait: the unit is done for this turn, nothing else changes', async () => {
+  const { engine } = await load();
+  const state = miniState([{ t: 'grassland' }], 1, 1, {
+    u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  });
+  const res = engine.applyCommand(state, { type: 'wait', playerId: 'p1', unitId: 'u1' });
+  assert.strictEqual(res.ok, true);
+  assert.strictEqual(res.state.units.u1.moves, 0);
+  assert.strictEqual(res.state.units.u1.fortified, false, 'waiting is not fortifying');
+  assert.strictEqual(res.events[0].type, 'unitWaited');
+
+  const again = engine.applyCommand(res.state, { type: 'wait', playerId: 'p1', unitId: 'u1' });
+  assert.strictEqual(again.reason, 'noMovesLeft');
+});
+
 test('sortIds orders numerically-suffixed ids portably', async () => {
   const { combat } = await load();
   assert.deepStrictEqual(combat.sortIds(['u10', 'u2', 'u1']), ['u1', 'u2', 'u10']);

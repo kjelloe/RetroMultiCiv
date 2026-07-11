@@ -146,5 +146,8 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   ctx.panels.toggleResearchPanel();
   if (session.state.cityOrder.length > 0) {
     ctx.panels.openCityPanel(session.state.cityOrder[0]);
+    // click a worked mini-map tile: unassigns it and switches to manual mode
+    const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
+    if (workedCell) workedCell.click();
   }
 }

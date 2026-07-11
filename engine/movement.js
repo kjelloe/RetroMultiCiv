@@ -96,6 +96,17 @@ function moveUnit(state, cmd, ruleset) {
   return { ok: true, events };
 }
 
+// Wait/skip: the unit stays put and is done for this turn (Civ 1 space bar).
+function wait(state, cmd, _ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
+  unit.moves = 0;
+  return { ok: true, events: [{ type: 'unitWaited', unitId: unit.id }] };
+}
+
 // Fortify: dig in for the ×1.5 defense bonus; ends the unit's turn (Civ 1).
 function fortify(state, cmd, _ruleset) {
   const unit = state.units[cmd.unitId];
@@ -110,4 +121,4 @@ function fortify(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'unitFortified', unitId: unit.id }] };
 }
 
-export { moveUnit, fortify, tileAt, wrapX, DIRS };
+export { moveUnit, fortify, wait, tileAt, wrapX, DIRS };

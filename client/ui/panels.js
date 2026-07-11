@@ -244,8 +244,8 @@ export function initPanels(ctx) {
         if (isWorked[`${x},${y}`]) cell.className += ' worked';
         if (dx === 0 && dy === 0) cell.className += ' center';
         else {
-          const y = tileYields(tile, session.ruleset); // includes improvement bonuses
-          cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(y.food, y.shields, y.trade);
+          const ty = tileYields(tile, session.ruleset); // includes improvement bonuses
+          cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(ty.food, ty.shields, ty.trade);
           cell.className += ' assignable';
           const idx = y * state.map.width + x;
           cell.addEventListener('click', () => toggleWorker(idx));

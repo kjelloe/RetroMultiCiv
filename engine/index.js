@@ -64,6 +64,7 @@ function createEngine(ruleset) {
     let result;
     if (cmd.type === 'moveUnit') result = movement.moveUnit(next, cmd, ruleset);
     else if (cmd.type === 'fortify') result = movement.fortify(next, cmd, ruleset);
+    else if (cmd.type === 'wait') result = movement.wait(next, cmd, ruleset);
     else if (cmd.type === 'endTurn') result = endTurn(next, cmd, ruleset);
     else if (cmd.type === 'foundCity') result = cities.foundCity(next, cmd, ruleset);
     else if (cmd.type === 'setProduction') result = cities.setProduction(next, cmd, ruleset);
