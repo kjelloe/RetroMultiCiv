@@ -375,6 +375,17 @@ function processCities(state, ruleset, events) {
         if (city.workers !== undefined && city.workers.length > city.pop) {
           city.workers = city.workers.slice(0, city.pop);
         }
+        // specialists can't outnumber the shrunken citizenry either
+        while ((city.taxmen !== undefined ? city.taxmen : 0)
+             + (city.scientists !== undefined ? city.scientists : 0) > city.pop) {
+          if (city.scientists !== undefined && city.scientists > 0) {
+            city.scientists = city.scientists - 1;
+            if (city.scientists === 0) delete city.scientists;
+          } else {
+            city.taxmen = city.taxmen - 1;
+            if (city.taxmen === 0) delete city.taxmen;
+          }
+        }
         events.push({ type: 'cityStarved', cityId, pop: city.pop });
       }
     }

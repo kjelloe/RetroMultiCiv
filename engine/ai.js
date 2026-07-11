@@ -77,6 +77,13 @@ function towardBetterLand(state, unit, ruleset) {
   return bestDir;
 }
 
+// mark a tech and its whole prerequisite closure in `out`
+function markTechPath(ruleset, techId, out) {
+  if (out[techId] === true) return;
+  out[techId] = true;
+  for (const req of ruleset.techs[techId].prereqs) markTechPath(ruleset, req, out);
+}
+
 function countSettlers(state, playerId) {
   let n = 0;
   for (const uid of Object.keys(state.units)) {
@@ -167,12 +174,35 @@ function pickCommand(state, playerId, ruleset, done) {
     done.research = true;
     const avail = availableTechs(state, playerId, ruleset);
     if (avail.length > 0) {
-      let best = avail[0];
-      for (const id of avail) {
+      // beeline Monarchy first (Civ 1 AIs rush a government); breadth-first
+      // level-order research would otherwise not reach it in 400 turns
+      let pool = avail;
+      if (me.techs.indexOf('monarchy') === -1) {
+        const path = {};
+        markTechPath(ruleset, 'monarchy', path);
+        const onPath = [];
+        for (const id of avail) {
+          if (path[id] === true) onPath.push(id);
+        }
+        if (onPath.length > 0) pool = onPath;
+      }
+      let best = pool[0];
+      for (const id of pool) {
         if (ruleset.techs[id].level < ruleset.techs[best].level) best = id;
       }
       return { type: 'setResearch', playerId, tech: best };
     }
+  }
+
+  // one revolution, to Monarchy, once the advance is known — the stable
+  // government for a garrisoned AI (martial law, no war unhappiness); the
+  // volatile governments stay human territory
+  if (!done.government
+      && (me.government === undefined || me.government === 'despotism')
+      && me.revolutionTurns === undefined
+      && me.techs.indexOf('monarchy') !== -1) {
+    done.government = true;
+    return { type: 'setGovernment', playerId, government: 'monarchy' };
   }
 
   for (const cid of state.cityOrder || []) {
@@ -185,7 +215,9 @@ function pickCommand(state, playerId, ruleset, done) {
     // Defend first; expand while settlers are scarce (capped — endless settler
     // spam grows armies without bound once the land is full, docs/05 §1);
     // saturated empires improve instead: cheapest missing building, then the
-    // cheapest available wonder, and only then more defenders.
+    // cheapest available wonder. With nothing buildable (a tech-starved civ)
+    // garrisons cap at 3 and further shields go to settlers — pavers whose
+    // roads create the trade that ends the tech drought (docs/05 §10-11).
     let want = { kind: 'unit', id: bestDefender };
     if (defenders.length > 0) {
       if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 4)) {
@@ -195,6 +227,7 @@ function pickCommand(state, playerId, ruleset, done) {
         const wonder = building === null ? nextWonder(state, me, ruleset) : null;
         if (building !== null) want = { kind: 'building', id: building };
         else if (wonder !== null) want = { kind: 'wonder', id: wonder };
+        else if (defenders.length >= 3) want = { kind: 'unit', id: 'settlers' };
       }
     }
     if (city.producing.kind !== want.kind || city.producing.id !== want.id) {

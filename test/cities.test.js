@@ -74,6 +74,31 @@ test('growth: city grows when the food box fills, starves back down', async () =
   assert.ok(grew && grew.pop === 2);
 });
 
+test('starvation trims specialists that would outnumber the shrunken pop', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9; i++) tiles.push({ t: 'mountains' }); // 0 food anywhere
+  const state = {
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: {}, cities: {
+      // pop 5, all idle: 2 taxmen + 3 scientists (sum 5 = pop, legal)
+      c1: { id: 'c1', name: 'T', owner: 'p1', x: 1, y: 1, pop: 5, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' }, workers: [], taxmen: 2, scientists: 3 }
+    },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 1, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+  assert.strictEqual(res.ok, true);
+  const c = res.state.cities.c1;
+  assert.strictEqual(c.pop, 4, 'no food: starved');
+  assert.strictEqual((c.taxmen || 0) + (c.scientists || 0) <= c.pop, true,
+    `specialists ${c.taxmen}/${c.scientists} must fit pop ${c.pop}`);
+  assert.strictEqual(c.scientists, 2, 'scientists trimmed first');
+  assert.strictEqual(c.taxmen, 2);
+});
+
 test('aqueduct gates growth past pop 10; granary halves the food box', async () => {
   const { engine } = await load();
   const tiles = [];

@@ -12,6 +12,9 @@
 //   --size S     xsmall|small|medium|large|xlarge|huge (default medium = 80x50)
 //   --natural    keep the standard endYear (games end ~turn 306 on score);
 //                default pushes endYear out so every game soaks all --turns
+//   --no-chaos   disable the deterministic chaos-command layer (on by
+//                default: buy/rates/workers/pillage/disband/volatile
+//                governments injected from a separate seeded stream)
 //
 // Invariants run every turn; deep audits + a summary line at each checkpoint.
 // Goldens don't apply (seeds vary). Failures leave artifacts in debugging/sim/
@@ -25,11 +28,12 @@ const SIZES = {
 };
 
 function parseArgs(argv) {
-  const opts = { seeds: 5, start: 1, turns: 400, civs: 4, size: 'medium', natural: false, seed: null };
+  const opts = { seeds: 5, start: 1, turns: 400, civs: 4, size: 'medium', natural: false, seed: null, chaos: true };
   if (process.env.MULTICIV_SIM_SEEDS !== undefined) opts.seeds = Number(process.env.MULTICIV_SIM_SEEDS);
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--natural') opts.natural = true;
+    else if (a === '--no-chaos') opts.chaos = false;
     else if (a === '--seeds') opts.seeds = Number(argv[++i]);
     else if (a === '--seed') opts.seed = Number(argv[++i]);
     else if (a === '--start') opts.start = Number(argv[++i]);
@@ -51,7 +55,7 @@ async function main() {
   for (let t = 100; t <= opts.turns; t += 100) checkpoints.push(t);
   const mods = await loadModules();
 
-  console.log(`soaking ${seeds.length} seed(s): ${opts.civs} AIs on ${width}x${height}, ${opts.turns} turns, ${opts.natural ? 'natural end year' : 'endYear pushed out'}`);
+  console.log(`soaking ${seeds.length} seed(s): ${opts.civs} AIs on ${width}x${height}, ${opts.turns} turns, ${opts.natural ? 'natural end year' : 'endYear pushed out'}, chaos ${opts.chaos ? 'on' : 'off'}`);
   let failures = 0;
   for (const seed of seeds) {
     const t0 = Date.now();
@@ -59,6 +63,7 @@ async function main() {
       const r = await runSim({
         seed, civs: opts.civs, width, height, turns: opts.turns,
         rulesOverrides: opts.natural ? undefined : { endYear: 9999 },
+        chaos: opts.chaos,
         deepAt: checkpoints,
         onCheckpoint: (state) => console.log(`  ${summarize(state, RULESET, mods)}`)
       });

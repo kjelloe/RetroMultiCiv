@@ -94,8 +94,9 @@ cities, improvements, happiness, government, combat/barbarians, tech, ai,
 score, visibility, mapgen, wiki2data — engine tests share `test/ruleset.js`),
 JSON scenarios (below),
 `simulation.test.js` — headless all-AI playthroughs via `test/sim-driver.js`
-(fixed seed, 400 turns run twice, invariants every turn, golden checkpoint
-hashes at 100/200/300/400 = phase-5 Luau anchors; ~30 s; design + golden
+(fixed seed, 400 turns run twice with chaos-command injection, invariants
+every turn, golden checkpoint
+hashes at 100/200/300/400 = phase-5 Luau anchors; ~45 s; design + golden
 re-record process in `docs/05-simulation-test.md`; failure artifacts in
 `debugging/sim/` are drag-droppable saves + `tools/replay.js`-bisectable
 diags; wide net: `node tools/soak.js --seeds 25`), and

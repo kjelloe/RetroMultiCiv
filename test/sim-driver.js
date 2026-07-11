@@ -35,14 +35,17 @@ const MAX_GOLD = 100000;
 let MODS = null;
 async function loadModules() {
   if (MODS) return MODS;
-  const [engineMod, aiMod, hashMod, visMod, happyMod, govMod, scoreMod] = await Promise.all([
+  const [engineMod, aiMod, hashMod, visMod, happyMod, govMod, scoreMod, rngMod, citiesMod, combatMod] = await Promise.all([
     import('../engine/index.js'),
     import('../engine/ai.js'),
     import('../shared/statehash.js'),
     import('../engine/visibility.js'),
     import('../engine/happiness.js'),
     import('../engine/government.js'),
-    import('../engine/score.js')
+    import('../engine/score.js'),
+    import('../engine/rng.js'),
+    import('../engine/cities.js'),
+    import('../engine/combat.js')
   ]);
   MODS = {
     createEngine: engineMod.createEngine,
@@ -52,7 +55,11 @@ async function loadModules() {
     filterView: visMod.filterView,
     cityMood: happyMod.cityMood,
     capitalOf: govMod.capitalOf,
-    score: scoreMod.score
+    score: scoreMod.score,
+    seedRng: rngMod.seedRng,
+    rollRange: rngMod.rollRange,
+    candidateTiles: citiesMod.candidateTiles,
+    sortIds: combatMod.sortIds
   };
   return MODS;
 }
@@ -300,9 +307,79 @@ function summarize(state, ruleset, mods) {
     for (const uid of Object.keys(state.units)) {
       if (state.units[uid].owner === pid) units++;
     }
-    parts.push(`${p.name} ${cities}c ${units}u ${p.techs.length}t s${mods.score(state, pid, ruleset)}`);
+    const gov = (p.government === undefined ? 'despotism' : p.government).slice(0, 3).toUpperCase();
+    parts.push(`${p.name} ${cities}c ${units}u ${p.techs.length}t s${mods.score(state, pid, ruleset)} ${gov}`);
   }
   return `turn ${state.turn}: ${parts.join(' | ')}`;
+}
+
+// Chaos: deterministic pseudo-random commands from a SEPARATE xorshift
+// stream (never the game's rngState) covering the command surface the AI
+// doesn't use — buy, pillage, disband, manual workers, rates, volatile
+// governments, research switches. Legal-shaped, not legal: rejections are a
+// feature (they exercise validation) and replay identically. RATE_COMBOS
+// are multiples of 10 summing to 100; high entries probe government caps.
+const RATE_COMBOS = [
+  [40, 60, 0], [60, 40, 0], [30, 50, 20], [50, 30, 20], [20, 70, 10], [10, 80, 10]
+];
+
+function ownCities(state, pid) {
+  const out = [];
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (c && c.owner === pid) out.push(cid);
+  }
+  return out;
+}
+
+function ownUnits(state, pid, mods) {
+  const out = [];
+  for (const uid of mods.sortIds(Object.keys(state.units))) {
+    if (state.units[uid].owner === pid) out.push(uid);
+  }
+  return out;
+}
+
+function pickChaosCommand(state, pid, roll, ruleset, mods) {
+  const kind = roll(8);
+  if (kind === 0 || kind === 7) { // buy, double weight — the main gold sink
+    const cities = ownCities(state, pid);
+    if (cities.length === 0) return null;
+    return { type: 'buy', playerId: pid, cityId: cities[roll(cities.length)] };
+  }
+  if (kind === 1) { // pillage own ground (usually rejects: nothing improved)
+    const units = ownUnits(state, pid, mods);
+    if (units.length === 0) return null;
+    return { type: 'pillage', playerId: pid, unitId: units[roll(units.length)] };
+  }
+  if (kind === 2) { // disband — chaos may eat a settler; that's the point
+    const units = ownUnits(state, pid, mods);
+    if (units.length === 0) return null;
+    return { type: 'disband', playerId: pid, unitId: units[roll(units.length)] };
+  }
+  if (kind === 3) {
+    const c = RATE_COMBOS[roll(RATE_COMBOS.length)];
+    return { type: 'setRates', playerId: pid, tax: c[0], sci: c[1], lux: c[2] };
+  }
+  if (kind === 4) { // manual workers on some candidate tiles, or back to auto
+    const cities = ownCities(state, pid);
+    if (cities.length === 0) return null;
+    const city = state.cities[cities[roll(cities.length)]];
+    if (roll(3) === 0) return { type: 'setWorkers', playerId: pid, cityId: city.id, auto: true };
+    const candidates = mods.candidateTiles(state, city, ruleset);
+    const n = Math.min(city.pop, candidates.length, 1 + roll(4));
+    const workers = [];
+    for (let i = 0; i < n; i++) workers.push(candidates[i].idx);
+    return { type: 'setWorkers', playerId: pid, cityId: city.id, workers };
+  }
+  if (kind === 5) { // volatile government (AI itself stops at monarchy)
+    const gov = roll(2) === 0 ? 'republic' : 'democracy';
+    return { type: 'setGovernment', playerId: pid, government: gov };
+  }
+  // research switch: a random advance — mostly rejects on prereqs, sometimes
+  // swaps research midway (the bulb-carry path)
+  const techIds = Object.keys(ruleset.techs).sort();
+  return { type: 'setResearch', playerId: pid, tech: techIds[roll(techIds.length)] };
 }
 
 function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides, reason, mods) {
@@ -337,6 +414,10 @@ function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides
 //   checkEvery=1     cheap-invariant cadence (rounds)
 //   hashEvery=10     round-hash cadence (bisection granularity in artifacts)
 //   deepAt=[]        checkpoint rounds: deep audit + recorded hash
+//   chaos=false      inject deterministic pseudo-random commands (own
+//                    xorshift stream, ~1 per 6 player-slots) covering the
+//                    human-only command surface; recorded per slot in the
+//                    airound log entries so artifacts replay exactly
 //   onCheckpoint(state, round, hash)
 //   artifactsDir     failure artifact directory; false disables
 // Returns { state, rounds, checkpoints, roundLog, initialState, finalHash }.
@@ -383,16 +464,34 @@ async function runSim(opts) {
     throw err;
   }
 
+  let chaosRng = mods.seedRng(opts.seed + 999331); // separate stream, never state.rngState
+  function roll(n) {
+    const r = mods.rollRange(chaosRng, n);
+    chaosRng = r.rngState;
+    return r.value;
+  }
+
   let prevYear = state.year;
   let rounds = 0;
   for (let round = 1; round <= turns; round++) {
     const startTurn = state.turn;
+    const chaosLog = [];
     let guard = state.playerOrder.length + 2;
     while (state.turn === startTurn && !state.gameOver && guard > 0) {
       guard--;
       const pid = state.activePlayer;
       if (state.players[pid].alive !== false) {
         state = mods.runAiTurn(engine, state, pid, ruleset, []);
+        if (opts.chaos === true && roll(6) === 0) {
+          const cmd = pickChaosCommand(state, pid, roll, ruleset, mods);
+          if (cmd) {
+            const res = engine.applyCommand(state, cmd);
+            const centry = { playerId: pid, cmd, ok: res.ok };
+            if (res.ok) state = res.state;
+            else centry.reason = res.reason;
+            chaosLog.push(centry);
+          }
+        }
       }
       const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
       if (!res.ok) fail(`endTurn rejected for ${pid} on turn ${startTurn} (${res.reason})`);
@@ -406,6 +505,7 @@ async function runSim(opts) {
     // hashless entries, so artifacts stay bisectable at this granularity
     const isCheckpoint = deepAt.indexOf(round) !== -1;
     const entry = { t: 'airound', turn: state.turn, activePlayer: state.activePlayer };
+    if (chaosLog.length > 0) entry.chaos = chaosLog;
     let hash = '';
     if (isCheckpoint || state.gameOver || round === turns || round % hashEvery === 0) {
       try {

@@ -197,6 +197,27 @@ test('fortress: doubles defense (walls win) and stops stack death', async () => 
   assert.fail('no winning seed found under 50');
 });
 
+test('capture clears manual workers and specialists (pop drops beneath them)', async () => {
+  const { combat } = await load();
+  const state = miniState([{ t: 'grassland' }, { t: 'grassland' }], 2, 1, {
+    u1: { id: 'u1', type: 'legion', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  }, {
+    cities: {
+      c1: { id: 'c1', name: 'T', owner: 'p2', x: 1, y: 0, pop: 5, food: 0, shields: 7, buildings: [], producing: { kind: 'unit', id: 'settlers' }, workers: [0, 1], taxmen: 2, scientists: 1 }
+    },
+    cityOrder: ['c1']
+  });
+  const events = [];
+  combat.captureCity(state, state.units.u1, state.cities.c1, events);
+  const c = state.cities.c1;
+  assert.strictEqual(c.owner, 'p1');
+  assert.strictEqual(c.pop, 4);
+  assert.strictEqual(c.workers, undefined, 'manual assignment does not survive capture');
+  assert.strictEqual(c.taxmen, undefined);
+  assert.strictEqual(c.scientists, undefined);
+  assert.ok(events.find(e => e.type === 'cityCaptured'));
+});
+
 test('barbarians spawn at the gate turn and hunt nearby units', async () => {
   const { engine } = await load();
   const barb = await import('../engine/barbarians.js');

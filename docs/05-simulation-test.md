@@ -198,3 +198,45 @@ Both were real "unintended behavior drift" catches on day one — exactly
 the class of bug this test exists for. Note: AI changes alter AI-driven
 rounds, so *old* diagnostics recordings (e.g. pre-change playtests) no
 longer replay hash-for-hash; recordings are debug artifacts, not saves.
+
+## 11. Chaos layer + AI governments (second wave)
+
+The first soak proved states stay *legal* but exposed a coverage hole: the
+AI never issued `setGovernment`/`setRates`/`buy`/`pillage`/`disband`/
+`setWorkers`, so those pipelines ran in zero soaked turns. Two additions:
+
+- **AI government slice** (`engine/ai.js`): the AI beelines the Monarchy
+  prerequisite path (level-order research never reached level 3 in 400
+  turns) and revolts to Monarchy once known — the stable government for a
+  garrisoned AI (martial law, no war unhappiness). Revolutions, anarchy,
+  `clampRates`, martial law, and per-government corruption now run in
+  every sim.
+- **Chaos layer** (`runSim({ chaos: true })`, suite mechanics run + soak
+  default, `--no-chaos` to disable): ~1 command per 6 player-slots drawn
+  from a SEPARATE seeded xorshift stream (never the game's `rngState`) —
+  buy (double weight), pillage, disband, setRates combos, manual/auto
+  workers, volatile-government revolts (Republic/Democracy), research
+  switches. Legal-*shaped*, not legal: rejections exercise validation and
+  replay identically. Every injected command is recorded per player-slot
+  in the `airound` log entries (`chaos: [{playerId, cmd, ok}]`) and
+  `tools/replay.js` re-applies them in place, so artifacts stay exact.
+  The natural-end suite run stays chaos-free (pure victory path).
+
+**Second-wave catches:**
+
+- (chaos, within 100 turns of governments waking up) `captureCity`
+  decremented pop without clearing manual `workers`/`taxmen`/`scientists`
+  — a captured city could carry more assignments than citizens (wrong
+  mood math: negative workers). Starvation had the same gap for
+  specialists. Both fixed (capture reverts the city to automatic
+  placement; starvation trims scientists, then taxmen) with unit tests in
+  combat.test.js / cities.test.js. Pre-existing bugs reachable by human
+  play — found by the sim in minutes.
+- (15-seed chaos soak, seed 12) the stagnant-civ militia loop finally
+  tripped the 600-unit wire at scale: a civ that stays tech-starved with
+  several cities has nothing buildable, so the defender fallback spammed
+  militia unboundedly. Fix: fallback garrisons cap at 3 per city; past
+  that the city builds settlers — pavers whose roads create the trade
+  that ends the tech drought (self-healing, 602 → 193 units on seed 12).
+  The golden seed's hashes were unaffected: its civs never enter the
+  drought, so the branch is purely a safety net there.

@@ -148,6 +148,11 @@ function captureCity(state, unit, city, events) {
   const loserId = city.owner;
   city.owner = unit.owner;
   if (city.pop > 1) city.pop = city.pop - 1;
+  // the new ruler reshuffles the citizenry: manual assignments and
+  // specialists don't survive capture (they could exceed the reduced pop)
+  delete city.workers;
+  delete city.taxmen;
+  delete city.scientists;
   city.producing = { kind: 'unit', id: 'militia' };
   city.shields = 0;
 

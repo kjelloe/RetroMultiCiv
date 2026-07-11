@@ -22,19 +22,20 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0xc7793d4e',
-    200: '0xb267b619',
-    300: '0x076b5e23',
-    400: '0x8a6d284f'
+    100: '0xb2ee3600',
+    200: '0xe9296aa2',
+    300: '0x71e291f5',
+    400: '0x6efb1329'
   },
-  finalHash: '0x8a6d284f'
+  finalHash: '0x6efb1329'
 };
-const GOLDEN_NATURAL = { rounds: 305, winner: 'p2', finalHash: '0xe3269e03' };
+const GOLDEN_NATURAL = { rounds: 305, winner: 'p1', finalHash: '0x8d0a0322' };
 
-test('mechanics soak: 400 turns, run twice — deterministic and golden', async () => {
+test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
     turns: 400,
     rulesOverrides: { endYear: 9999 }, // score victory at 2100 AD ~ turn 306 must not cut the soak short
+    chaos: true, // exercise the human-only command surface (buy/rates/workers/volatile governments)
     deepAt: CHECKPOINTS
   });
   const a = await runSim(opts);
@@ -93,7 +94,8 @@ test('the invariant checker passes a healthy state and names seeded defects', ()
 // A sim artifact must replay through the same tool that verifies playtest
 // recordings — the airound entries drive the identical all-AI loop.
 test('a sim diagnostics artifact replays hash-for-hash through tools/replay.js', async () => {
-  const r = await runSim({ seed: 777, civs: 3, width: 40, height: 25, turns: 40, hashEvery: 5, artifactsDir: false });
+  // chaos on: the airound entries must carry and replay the injected commands
+  const r = await runSim({ seed: 777, civs: 3, width: 40, height: 25, turns: 40, chaos: true, hashEvery: 5, artifactsDir: false });
   const diag = {
     format: 'retromulticiv-diagnostics', version: 1, allAi: true,
     rulesOverrides: {}, initialState: r.initialState, log: r.roundLog, finalHash: r.finalHash
