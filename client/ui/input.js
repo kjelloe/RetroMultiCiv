@@ -45,6 +45,8 @@ export function initInput(ctx) {
       const walls = (city.buildings || []).indexOf('city-walls') !== -1
         || (wonderActive(state, 'great-wall', ruleset) && greatWallHome && greatWallHome.owner === city.owner);
       if (walls) parts.push('city walls ×3');
+    } else if (tile.fortress === true) {
+      parts.push('fortress ×2');
     }
     return `⚔ ${word} ${pct}% — ${units[attacker.type].name} ${att / 100} vs `
       + `${units[defender.type].name} ${def / 100}`
@@ -118,11 +120,17 @@ export function initInput(ctx) {
     alreadyFortified: 'already fortified',
     nothingToPillage: 'nothing to pillage on this tile',
     notEnoughGold: 'not enough gold',
-    alreadyComplete: 'production is already complete'
+    alreadyComplete: 'production is already complete',
+    techRequired: 'needs a technology you have not discovered',
+    rateTooHigh: 'your government caps rates — see the research panel',
+    inRevolution: 'wait for the revolution to end',
+    alreadyGovernment: 'that is already your government',
+    badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare'
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
-    pillage: true, disband: true, buy: true
+    pillage: true, disband: true, buy: true,
+    setGovernment: true, setRates: true, setWorkers: true
   };
 
   function apply(cmd) {
@@ -286,16 +294,30 @@ export function initInput(ctx) {
     }
     const actions = [];
     if (unit.type === 'settlers') {
+      const tile0 = state.map.tiles[unit.y * state.map.width + unit.x];
+      const terrain = session.ruleset.terrain.terrains[tile0.t];
+      const me = state.players[HUMAN];
+      const irrigateLabel = terrain.irrigate === undefined
+        && terrain.transforms !== undefined && terrain.transforms.irrigate !== undefined
+        ? '🌿 Clear/Drain' : '💧 Irrigate';
+      const mineLabel = terrain.mine === undefined
+        && terrain.transforms !== undefined && terrain.transforms.mine !== undefined
+        ? '🌲 Plant/Clear' : '⛏ Mine';
+      const rail = tile0.road === true && tile0.railroad !== true
+        && me.techs.includes(session.ruleset.rules.railroadTech);
       actions.push({ label: '🏛 Found city', key: 'B', run: foundCityFlow });
-      actions.push({ label: '💧 Irrigate', key: 'I', run: () => startWorkFor('irrigate') });
-      actions.push({ label: '⛏ Mine', key: 'M', run: () => startWorkFor('mine') });
-      actions.push({ label: '🛤 Road', key: 'R', run: () => startWorkFor('road') });
+      actions.push({ label: irrigateLabel, key: 'I', run: () => startWorkFor('irrigate') });
+      actions.push({ label: mineLabel, key: 'M', run: () => startWorkFor('mine') });
+      actions.push({ label: rail ? '🚂 Railroad' : '🛤 Road', key: 'R', run: () => startWorkFor(rail ? 'railroad' : 'road') });
+      if (me.techs.includes(session.ruleset.rules.fortressTech) && tile0.fortress !== true) {
+        actions.push({ label: '🏰 Fortress', key: 'O', run: () => startWorkFor('fortress') });
+      }
     }
     if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
     actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });
     const tile = state.map.tiles[unit.y * state.map.width + unit.x];
     if (session.ruleset.units[unit.type].domain === 'land'
-        && (tile.irrigation || tile.mine || tile.road)) {
+        && (tile.irrigation || tile.mine || tile.road || tile.railroad)) {
       actions.push({ label: '🔥 Pillage', key: 'P', run: pillageSelected });
     }
     actions.push({ label: '☠ Disband', key: 'X', run: disbandSelected });
@@ -411,8 +433,17 @@ export function initInput(ctx) {
     if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
     if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
     if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }
-    if ((e.key === 'i' || e.key === 'm' || e.key === 'r') && sel.unitId) {
-      startWorkFor({ i: 'irrigate', m: 'mine', r: 'road' }[e.key]);
+    if ((e.key === 'i' || e.key === 'm' || e.key === 'r' || e.key === 'o') && sel.unitId) {
+      let work = { i: 'irrigate', m: 'mine', r: 'road', o: 'fortress' }[e.key];
+      const u = session.state.units[sel.unitId];
+      if (work === 'road' && u) {
+        const t = session.state.map.tiles[u.y * session.state.map.width + u.x];
+        if (t.road === true && t.railroad !== true
+            && session.state.players[HUMAN].techs.includes(session.ruleset.rules.railroadTech)) {
+          work = 'railroad';
+        }
+      }
+      startWorkFor(work);
       return;
     }
     if (e.key === 'n') { nextUnit(); return; }

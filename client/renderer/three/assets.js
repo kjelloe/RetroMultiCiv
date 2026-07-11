@@ -206,15 +206,16 @@ export function createUnitMesh(unitType, color) {
 // color, a banner pole, and a wall ring once City Walls is built.
 // --- tile props: improvements, trees, special resources (instanced) ------------
 const PROP_GEO = {
-  strip: new THREE.BoxGeometry(0.72, 0.02, 0.14),   // irrigation channel / road
+  strip: new THREE.BoxGeometry(0.72, 0.02, 0.14),   // irrigation channel / road / rail
   mine: new THREE.ConeGeometry(0.13, 0.2, 4),
   tree: new THREE.ConeGeometry(0.11, 0.28, 6),
-  special: new THREE.SphereGeometry(0.07, 8, 6)
+  special: new THREE.SphereGeometry(0.07, 8, 6),
+  fortress: new THREE.TorusGeometry(0.34, 0.05, 6, 12)
 };
 const PROP_MAT = new THREE.MeshLambertMaterial({ color: 0xffffff }); // × instance color
 const PROP_COLOR = {
-  irrigation: 0x5db8e8, road: 0x8a6f4d, mine: 0x8a8494,
-  forest: 0x1e6b2f, jungle: 0x2f8d3f, special: 0xffd75e
+  irrigation: 0x5db8e8, road: 0x8a6f4d, railroad: 0x3c3c46, mine: 0x8a8494,
+  forest: 0x1e6b2f, jungle: 0x2f8d3f, special: 0xffd75e, fortress: 0xb8ab8e
 };
 const PROP_FOG = new THREE.Color(0x0a0e16);
 
@@ -222,7 +223,7 @@ const PROP_FOG = new THREE.Color(0x0a0e16);
 // the tile is explored but not visible). Rebuilt wholesale with the tiles;
 // geometries/material are shared, so only the instance buffers need disposal.
 export function createTileProps(map, tileTop) {
-  const items = { strip: [], mine: [], tree: [], special: [] };
+  const items = { strip: [], mine: [], tree: [], special: [], fortress: [] };
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       const t = map.tiles[y * map.width + x];
@@ -230,11 +231,13 @@ export function createTileProps(map, tileTop) {
       const dim = t.visible === false;
       const top = tileTop(x, y);
       if (t.irrigation) items.strip.push({ x, y, top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, dy: 0.02 });
-      if (t.road) {
-        items.strip.push({ x, y, top, dim, color: PROP_COLOR.road, rotY: 0, dy: 0.03 });
-        items.strip.push({ x, y, top, dim, color: PROP_COLOR.road, rotY: Math.PI / 2, dy: 0.03 });
+      if (t.road || t.railroad) {
+        const c = t.railroad ? PROP_COLOR.railroad : PROP_COLOR.road;
+        items.strip.push({ x, y, top, dim, color: c, rotY: 0, dy: 0.03 });
+        items.strip.push({ x, y, top, dim, color: c, rotY: Math.PI / 2, dy: 0.03 });
       }
       if (t.mine) items.mine.push({ x, y, top, dim, color: PROP_COLOR.mine, dx: 0.18, dz: -0.16, dy: 0.1 });
+      if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
       if (t.t === 'forest' || t.t === 'jungle') {
         const color = PROP_COLOR[t.t];
         items.tree.push({ x, y, top, dim, color, dx: -0.18, dz: -0.12, dy: 0.14 });
@@ -252,7 +255,7 @@ export function createTileProps(map, tileTop) {
     const mesh = new THREE.InstancedMesh(PROP_GEO[kind], PROP_MAT, list.length);
     list.forEach((it, i) => {
       dummy.position.set(it.x + (it.dx || 0), it.top + (it.dy || 0), it.y + (it.dz || 0));
-      dummy.rotation.set(0, it.rotY || 0, 0);
+      dummy.rotation.set(it.rotX || 0, it.rotY || 0, 0);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
       c.setHex(it.color);

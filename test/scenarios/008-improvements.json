@@ -7,50 +7,222 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
-        "width": 3, "height": 1, "wrapX": false,
+        "width": 3,
+        "height": 1,
+        "wrapX": false,
         "tiles": [
-          { "t": "grassland", "river": true }, { "t": "grassland" }, { "t": "hills" }
+          {
+            "t": "grassland",
+            "river": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "hills"
+          }
         ]
       },
       "units": {
-        "u1": { "id": "u1", "type": "settlers", "owner": "p1", "x": 1, "y": 0, "moves": 1, "fortified": false, "veteran": false },
-        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 2, "y": 0, "moves": 1, "fortified": false, "veteran": false }
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 1,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
       },
       "cities": {},
       "cityOrder": [],
       "nextUnitId": 3,
       "nextCityId": 1,
       "players": {
-        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "" },
-        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "" }
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        }
       },
       "rngState": 42
     }
   },
   "script": [
-    { "cmd": { "type": "startWork", "playerId": "p1", "unitId": "u1", "work": "mine" },
-      "expect": { "ok": false }, "notes": "grassland mine is a transform (later slice)" },
-    { "cmd": { "type": "startWork", "playerId": "p1", "unitId": "u1", "work": "irrigate" },
-      "expect": { "ok": true, "state": { "units.u1.working": "irrigate", "units.u1.workLeft": 5, "units.u1.moves": 0 } } },
-    { "cmd": { "type": "startWork", "playerId": "p1", "unitId": "u1", "work": "road" },
-      "expect": { "ok": false }, "notes": "the turn is spent" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "units.u1.workLeft": 4 } } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "map.tiles.1.irrigation": null, "units.u1.workLeft": 1 } },
-      "notes": "4th wrap: one turn of digging left" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "map.tiles.1.irrigation": true, "units.u1.working": null, "units.u1.workLeft": null, "units.u1.moves": 1 } },
-      "notes": "5th wrap: irrigation done, settler freed with fresh moves" }
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u1",
+        "work": "fortress"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "fortress needs Construction"
+    },
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u1",
+        "work": "irrigate"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1.working": "irrigate",
+          "units.u1.workLeft": 5,
+          "units.u1.moves": 0
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u1",
+        "work": "road"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "the turn is spent"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1.workLeft": 4
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "map.tiles.1.irrigation": null,
+          "units.u1.workLeft": 1
+        }
+      },
+      "notes": "4th wrap: one turn of digging left"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "map.tiles.1.irrigation": true,
+          "units.u1.working": null,
+          "units.u1.workLeft": null,
+          "units.u1.moves": 1
+        }
+      },
+      "notes": "5th wrap: irrigation done, settler freed with fresh moves"
+    }
   ],
   "final": {
     "hash": "0xbaf61c43"

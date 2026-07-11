@@ -121,8 +121,20 @@ export function initTurnLog(ctx) {
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
         add(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
       } else if (e.type === 'improvementBuilt' && e.owner === HUMAN) {
-        const label = e.work === 'irrigate' ? 'irrigation' : e.work;
-        add(`🛠 ${label} completed at (${e.x},${e.y})`, 'win');
+        const label = e.transformedTo !== undefined
+          ? `terrain worked into ${e.transformedTo}`
+          : (e.work === 'irrigate' ? 'irrigation' : e.work) + ' completed';
+        add(`🛠 ${label} at (${e.x},${e.y})`, 'win');
+      } else if (e.type === 'cityDisorder' && ownCity(state, e.cityId)) {
+        add(`😠 civil disorder in ${state.cities[e.cityId].name}!`, 'loss');
+        flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`);
+      } else if (e.type === 'cityOrderRestored' && ownCity(state, e.cityId)) {
+        add(`😊 order restored in ${state.cities[e.cityId].name}`, 'win');
+      } else if (e.type === 'revolutionStarted' && e.playerId === HUMAN) {
+        add(`⚡ revolution! anarchy until ${session.ruleset.governments[e.government].name} takes hold`);
+      } else if (e.type === 'governmentChanged' && e.playerId === HUMAN) {
+        add(`🏛 new government: ${session.ruleset.governments[e.government].name}`, 'win');
+        flashMessage(`🏛 The ${session.ruleset.governments[e.government].name} is established!`);
       } else if (e.type === 'techDiscovered' && e.playerId === HUMAN) {
         const unlocks = techUnlocks[e.tech] || [];
         add(`🔬 ${techs[e.tech].name} discovered`

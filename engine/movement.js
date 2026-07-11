@@ -75,11 +75,12 @@ function moveUnit(state, cmd, ruleset) {
 
   const fromX = unit.x, fromY = unit.y;
   // road-to-road travel costs 1 regardless of terrain (v1 integer-math
-  // simplification of Civ 1's 1/3 movement point — see spec §11)
+  // simplification of Civ 1's 1/3 point); rail-to-rail is free (Civ 1)
   let cost = terrain.move;
-  if (tileAt(map, fromX, fromY).road === true && tileAt(map, nx, ny).road === true) {
-    cost = 1;
-  }
+  const from = tileAt(map, fromX, fromY);
+  const to = tileAt(map, nx, ny);
+  if (from.railroad === true && to.railroad === true) cost = 0;
+  else if (from.road === true && to.road === true) cost = 1;
   unit.x = nx;
   unit.y = ny;
   unit.fortified = false;

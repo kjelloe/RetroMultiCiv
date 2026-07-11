@@ -35,6 +35,10 @@ function hasWaterSource(state, x, y) {
 
 // Command: a settler starts (or switches to) a job on its tile. Consumes the
 // turn; the work advances at every turn wrap until done. Moving cancels it.
+// The irrigate/mine orders TRANSFORM terrains that support no bonus (clear
+// forest/jungle, drain swamp, plant forest — data/terrain.json transforms);
+// transforms need no water source. Fortress needs Construction; railroad
+// needs the Railroad advance and an existing road.
 function startWork(state, cmd, ruleset) {
   const unit = state.units[cmd.unitId];
   if (!unit) return { ok: false, reason: 'unknownUnit' };
@@ -43,21 +47,32 @@ function startWork(state, cmd, ruleset) {
   if (unit.type !== 'settlers') return { ok: false, reason: 'notSettlers' };
   if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
   const work = cmd.work;
-  if (work !== 'road' && work !== 'irrigate' && work !== 'mine') {
+  if (work !== 'road' && work !== 'irrigate' && work !== 'mine'
+      && work !== 'fortress' && work !== 'railroad') {
     return { ok: false, reason: 'badWork' };
   }
 
   const tile = state.map.tiles[unit.y * state.map.width + unit.x];
   const terrain = ruleset.terrain.terrains[tile.t];
+  const techs = state.players[cmd.playerId].techs;
   if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
-  // roads can be laid on any land; irrigation/mine only where the terrain
-  // yields a bonus (transform-only terrains like forest come later)
-  if (work !== 'road' && terrain[work] === undefined) {
-    return { ok: false, reason: 'badTerrain' };
-  }
   if (tile[workFlag(work)] === true) return { ok: false, reason: 'alreadyImproved' };
-  if (work === 'irrigate' && !hasWaterSource(state, unit.x, unit.y)) {
-    return { ok: false, reason: 'noWater' };
+
+  if (work === 'fortress') {
+    if (techs.indexOf(ruleset.rules.fortressTech) === -1) return { ok: false, reason: 'techRequired' };
+    for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.x === unit.x && c.y === unit.y) return { ok: false, reason: 'badTerrain' };
+    }
+  } else if (work === 'railroad') {
+    if (techs.indexOf(ruleset.rules.railroadTech) === -1) return { ok: false, reason: 'techRequired' };
+    if (tile.road !== true) return { ok: false, reason: 'badTerrain' }; // rails need a road first
+  } else if (work !== 'road') {
+    const transform = terrain.transforms !== undefined && terrain.transforms[work] !== undefined;
+    if (terrain[work] === undefined && !transform) return { ok: false, reason: 'badTerrain' };
+    if (work === 'irrigate' && !transform && !hasWaterSource(state, unit.x, unit.y)) {
+      return { ok: false, reason: 'noWater' };
+    }
   }
 
   unit.working = work;
@@ -79,6 +94,7 @@ function pillage(state, cmd, ruleset) {
   let destroyed = '';
   if (tile.irrigation === true) { delete tile.irrigation; destroyed = 'irrigation'; }
   else if (tile.mine === true) { delete tile.mine; destroyed = 'mine'; }
+  else if (tile.railroad === true) { delete tile.railroad; destroyed = 'railroad'; }
   else if (tile.road === true) { delete tile.road; destroyed = 'road'; }
   else return { ok: false, reason: 'nothingToPillage' };
   unit.moves = 0;
@@ -98,13 +114,25 @@ function processWork(state, ruleset, events) {
     if (unit.workLeft > 0) continue;
     const work = unit.working;
     const tile = state.map.tiles[unit.y * state.map.width + unit.x];
-    tile[workFlag(work)] = true;
-    // Civ 1: irrigation and mine replace each other on a tile
-    if (work === 'irrigate') delete tile.mine;
-    if (work === 'mine') delete tile.irrigation;
+    const terrain = ruleset.terrain.terrains[tile.t];
+    const transform = (work === 'irrigate' || work === 'mine')
+      && terrain[work] === undefined
+      && terrain.transforms !== undefined && terrain.transforms[work] !== undefined;
+    const event = { type: 'improvementBuilt', unitId: unit.id, owner: unit.owner, work, x: unit.x, y: unit.y };
+    if (transform) {
+      tile.t = terrain.transforms[work]; // clear/drain/plant: the terrain changes
+      delete tile.irrigation;
+      delete tile.mine;
+      event.transformedTo = tile.t;
+    } else {
+      tile[workFlag(work)] = true;
+      // Civ 1: irrigation and mine replace each other on a tile
+      if (work === 'irrigate') delete tile.mine;
+      if (work === 'mine') delete tile.irrigation;
+    }
     delete unit.working;
     delete unit.workLeft;
-    events.push({ type: 'improvementBuilt', unitId: unit.id, owner: unit.owner, work, x: unit.x, y: unit.y });
+    events.push(event);
   }
 }
 

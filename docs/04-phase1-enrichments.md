@@ -3,8 +3,12 @@
 Phase 1's milestone is met; these are the deliberately-deferred Civ 1 systems
 still open inside its steps (see `03-roadmap.md`). Already shipped:
 improvements (roads/irrigation/mines), **buy**, **pillage**, **disband**,
-wait/skip. This documents the rest so any of them can be picked up cold —
-each entry: mechanics, state/data shape, commands/events, hash impact, tests.
+wait/skip — and, on 2026-07-11, **§1 happiness pack**, **§2 governments +
+corruption**, and **§3 Fortress/transforms/railroads** (all three
+implemented; kept below as the design of record — actual deviations are
+listed in `01-game-spec.md` §11). This documents the rest so any of them
+can be picked up cold — each entry: mechanics, state/data shape,
+commands/events, hash impact, tests.
 
 Ground rules for all of them (from `02-architecture.md` §4): Lua-portable
 engine subset, all numbers in `data/*.json`, new state fields must be

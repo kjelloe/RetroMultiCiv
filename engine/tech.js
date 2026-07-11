@@ -3,6 +3,7 @@
 // escalates with the number of techs already known (Civ 1 global escalation,
 // not per-tech prices). Luxuries, corruption and government caps come later.
 import { cityYields, effectPct } from './cities.js';
+import { governmentOf, corruptionFor } from './government.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -53,14 +54,19 @@ function setRates(state, cmd, _ruleset) {
   const player = state.players[cmd.playerId];
   if (!player) return { ok: false, reason: 'unknownPlayer' };
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
-  const { tax, sci } = cmd;
-  const valid = Number.isInteger(tax) && Number.isInteger(sci)
-    && tax >= 0 && sci >= 0 && tax + sci === 100
-    && tax % 10 === 0 && sci % 10 === 0;
-  if (!valid) return { ok: false, reason: 'badRates' }; // luxuries join the split later
+  const tax = cmd.tax;
+  const sci = cmd.sci;
+  const lux = cmd.lux === undefined ? 0 : cmd.lux;
+  const valid = Number.isInteger(tax) && Number.isInteger(sci) && Number.isInteger(lux)
+    && tax >= 0 && sci >= 0 && lux >= 0 && tax + sci + lux === 100
+    && tax % 10 === 0 && sci % 10 === 0 && lux % 10 === 0;
+  if (!valid) return { ok: false, reason: 'badRates' };
+  const cap = governmentOf(state, cmd.playerId, _ruleset).maxRate;
+  if (tax > cap || sci > cap || lux > cap) return { ok: false, reason: 'rateTooHigh' };
   player.taxRate = tax;
   player.sciRate = sci;
-  return { ok: true, events: [{ type: 'ratesSet', playerId: cmd.playerId, tax, sci }] };
+  if (lux > 0) player.luxRate = lux; else delete player.luxRate;
+  return { ok: true, events: [{ type: 'ratesSet', playerId: cmd.playerId, tax, sci, lux }] };
 }
 
 // Per-turn income for one player, before it is applied: per-city trade split
@@ -71,18 +77,25 @@ function playerIncome(state, playerId, ruleset) {
   const player = state.players[playerId];
   const taxRate = player.taxRate === undefined ? ruleset.rules.defaultTaxRate : player.taxRate;
   const sciRate = player.sciRate === undefined ? ruleset.rules.defaultSciRate : player.sciRate;
+  const perSpecialist = ruleset.rules.specialistOutput;
+  const anarchy = governmentOf(state, playerId, ruleset).id === 'anarchy';
   let gold = 0, bulbs = 0, maintenance = 0;
   for (const cid of state.cityOrder || []) {
     const city = state.cities[cid];
     if (!city || city.owner !== playerId) continue;
-    const trade = cityYields(state, city, ruleset).trade;
+    if (city.buildings !== undefined) {
+      for (const b of city.buildings) maintenance += ruleset.buildings[b].maintenance;
+    }
+    if (city.disorder === true) continue; // civil disorder: no taxes, no research
+    if (anarchy) continue; // anarchy: the state collects nothing
+    let trade = cityYields(state, city, ruleset).trade;
+    trade = trade - corruptionFor(state, city, trade, ruleset);
     const cityTax = idiv(trade * taxRate, 100);
     const citySci = idiv(trade * sciRate, 100);
     gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
     bulbs += citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
-    if (city.buildings !== undefined) {
-      for (const b of city.buildings) maintenance += ruleset.buildings[b].maintenance;
-    }
+    if (city.taxmen !== undefined) gold += city.taxmen * perSpecialist;
+    if (city.scientists !== undefined) bulbs += city.scientists * perSpecialist;
   }
   return { gold, bulbs, maintenance };
 }

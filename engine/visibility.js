@@ -86,6 +86,8 @@ function filterView(state, playerId) {
     if (src.irrigation) tile.irrigation = true;
     if (src.mine) tile.mine = true;
     if (src.road) tile.road = true;
+    if (src.railroad) tile.railroad = true;
+    if (src.fortress) tile.fortress = true;
     tiles.push(tile);
   }
 

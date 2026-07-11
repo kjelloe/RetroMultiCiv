@@ -10,6 +10,8 @@ import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
 import * as scoring from './score.js';
 import * as improvements from './improvements.js';
+import * as happiness from './happiness.js';
+import * as government from './government.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -41,6 +43,8 @@ function endTurn(state, cmd, ruleset) {
     state.year = state.year + 20; // placeholder step; era-based steps come with data/rules.json
     state.activePlayer = order[0];
     improvements.processWork(state, ruleset, events); // before harvest: a finished improvement counts this turn
+    government.processRevolutions(state, ruleset, events);
+    happiness.updateDisorder(state, ruleset, events); // one disorder verdict per city for the whole turn
     cities.processCities(state, ruleset, events);
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
@@ -73,6 +77,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'pillage') result = improvements.pillage(next, cmd, ruleset);
     else if (cmd.type === 'disband') result = movement.disband(next, cmd, ruleset);
     else if (cmd.type === 'buy') result = cities.buyProduction(next, cmd, ruleset);
+    else if (cmd.type === 'setGovernment') result = government.setGovernment(next, cmd, ruleset);
     else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
     else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };

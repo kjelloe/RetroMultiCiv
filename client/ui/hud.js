@@ -85,7 +85,11 @@ export function initHud(ctx) {
       hudStatus.style.color = state.winner === HUMAN ? '#ffe066' : '#ff7b6b';
       hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`;
     } else {
-      hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name}`;
+      const me = state.players[HUMAN];
+      const gov = me.revolutionTurns !== undefined
+        ? `Anarchy (${me.revolutionTurns})`
+        : session.ruleset.governments[me.government === undefined ? 'despotism' : me.government].name;
+      hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name} · ${gov}`;
     }
     updateResearchBar();
     updateBanner();

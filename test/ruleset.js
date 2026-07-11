@@ -5,5 +5,6 @@ module.exports = {
   techs: require('../data/techs.json'),
   buildings: require('../data/buildings.json'),
   wonders: require('../data/wonders.json'),
+  governments: require('../data/governments.json'),
   rules: require('../data/rules.json')
 };

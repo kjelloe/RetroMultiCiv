@@ -56,11 +56,23 @@ test('startWork validation: unit type, terrain support, water source, duplicates
   assert.strictEqual(res.state.units.u1.workLeft, WORK_TURNS.irrigate);
   assert.strictEqual(res.state.units.u1.moves, 0, 'starting work consumes the turn');
 
-  // grassland supports no mine (Civ 1: mining grassland plants forest — later slice)
+  // grassland "mine" is now a transform (plants forest, no water needed)...
   const grass = base();
   grass.units.u1.x = 1;
   res = engine.applyCommand(grass, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'mine' });
+  assert.strictEqual(res.ok, true, 'mining grassland plants forest (transform)');
+
+  // ...but tundra supports neither a bonus nor a transform
+  const tundra = base();
+  tundra.map.tiles[0].t = 'tundra';
+  res = engine.applyCommand(tundra, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'mine' });
   assert.strictEqual(res.reason, 'badTerrain');
+
+  // fortress and railroad are tech-gated
+  res = engine.applyCommand(base(), { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'fortress' });
+  assert.strictEqual(res.reason, 'techRequired');
+  res = engine.applyCommand(base(), { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'railroad' });
+  assert.strictEqual(res.reason, 'techRequired');
 
   // an existing road rejects a second one
   const roaded = base();
@@ -117,6 +129,48 @@ test('mine and irrigation replace each other on completion (Civ 1)', async () =>
   }
   assert.strictEqual(state.map.tiles[0].irrigation, true);
   assert.strictEqual(state.map.tiles[0].mine, undefined, 'irrigating removed the mine');
+});
+
+test('transforms: draining a swamp needs no water and changes the terrain', async () => {
+  const { engine } = await load();
+  const tiles = [{ t: 'swamp', mine: true }, { t: 'grassland' }];
+  let state = miniState(tiles, 2, 1, { u1: settler(0, 0) });
+  state = engine.applyCommand(state, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'irrigate' }).state;
+  let built = null;
+  for (let i = 0; i < WORK_TURNS.irrigate; i++) {
+    state = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' }).state;
+    const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p2' });
+    state = res.state;
+    built = built || res.events.find(e => e.type === 'improvementBuilt');
+  }
+  assert.strictEqual(state.map.tiles[0].t, 'grassland', 'swamp drained to grassland');
+  assert.strictEqual(state.map.tiles[0].mine, undefined, 'old improvements cleared by the transform');
+  assert.strictEqual(built.transformedTo, 'grassland');
+});
+
+test('railroad: needs a road and the tech; rail travel is free; +50% shields', async () => {
+  const { engine, cities } = await load();
+  const tiles = [{ t: 'hills', road: true, mine: true }, { t: 'grassland' }];
+  const state = miniState(tiles, 2, 1, { u1: settler(0, 0) });
+  state.players.p1.techs = ['railroad'];
+  const noRoad = miniState([{ t: 'grassland' }], 1, 1, { u1: settler(0, 0) });
+  noRoad.players.p1.techs = ['railroad'];
+  assert.strictEqual(
+    engine.applyCommand(noRoad, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'railroad' }).reason,
+    'badTerrain', 'rails need a road first');
+  const ok = engine.applyCommand(state, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'railroad' });
+  assert.strictEqual(ok.ok, true);
+
+  // mined hills = 3 shields; the railroad adds half again
+  assert.strictEqual(cities.tileYields({ t: 'hills', mine: true, railroad: true }, RULESET).shields, 4);
+
+  // rail-to-rail movement costs nothing
+  const railTiles = [{ t: 'hills', railroad: true }, { t: 'hills', railroad: true }];
+  const rider = miniState(railTiles, 2, 1, {
+    u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  });
+  const moved = engine.applyCommand(rider, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+  assert.strictEqual(moved.state.units.u1.moves, 1, 'free movement along rails');
 });
 
 test('pillage: sea units cannot pillage the shore', async () => {

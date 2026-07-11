@@ -321,34 +321,48 @@ below is a known, deliberate deviation to be closed in a later slice:
 
 - **Worked tiles**: auto-assigned greedily by default; manual per-tile
   assignment is implemented (`setWorkers`, city-view clicks) with growth
-  auto-assigning the new citizen. Still missing: specialists
-  (entertainer/taxman/scientist) and tile contention between cities.
-- **Settlers don't eat food** yet (§4.3 says 1/turn) and there is no unit
-  support cost.
+  auto-assigning the new citizen; specialists work (Entertainer implicit for
+  idle citizens, Taxman/Scientist via `setWorkers` at pop ≥ 5). Still
+  missing: tile contention between cities.
+- **Happiness is in** (contentCitizens, luxuries worst-first, Temple chain,
+  martial law, war unhappiness, disorder halting shields/taxes) with
+  deviations: luxuries are computed from the city's *raw* trade even during
+  disorder (so disorder can't lock itself in); martial-law and content
+  numbers are flat per government table, not difficulty-scaled;
+  Michelangelo's Chapel is approximated as +4 content everywhere and
+  J.S. Bach's as +2 everywhere (Civ 1 limited Bach to one continent).
+- **Governments are in** (`data/governments.json`: rate caps, despotism
+  tile penalty, Republic/Democracy trade bonus + war unhappiness, unit
+  upkeep in shields, corruption by capital distance with Courthouse relief,
+  revolutions with flat `rules.revolutionTurns` of anarchy, Pyramids skip).
+  Deviations: unpayable upkeep clamps shields at 0 instead of disbanding;
+  units built before this slice have no home city and are support-free; the
+  capital defaults to the oldest city when no Palace exists; the Democracy
+  senate and Communism's spy bonuses wait for diplomacy.
+- **Settlers don't eat food** yet (§4.3 says 1/turn).
 - **Calendar advances a flat 20 years/turn** — era-based steps come with
   `data/rules.json` tuning.
-- **Trade splits into tax/science only** — luxuries, corruption, government
-  rate caps, and happiness/disorder are not yet implemented. Research overflow
-  carries between advances (Civ 1 discards it; tuneable choice, documented).
+- **Research overflow carries between advances** (Civ 1 discards it;
+  tuneable choice, documented).
 - **Future Tech is a one-time advance** for now (repeatable scoring later).
 - **Pop floors at 1** on starvation (no city destruction).
-- **Tile improvements are the additive subset**: road, irrigation, and mine
-  work (`startWork` command; bonuses per terrain from the wiki extraction;
-  mine/irrigation replace each other). Deviations: road-to-road movement
-  costs a flat 1 point instead of Civ 1's ⅓ (integer-math simplification);
-  build times are flat per improvement (`rules.json` `workTurns` — the wiki
-  has no turn counts, so these are tuning values); irrigation's water source
-  check uses the 8-neighborhood (matching our 8-directional movement).
-  Still missing: terrain transforms (clear forest/jungle, drain swamp, plant
-  forest via grassland/plains "mine"), railroads, Fortress, pillage, and
-  city tiles do not count as roads.
-- **Combat lacks the Fortress (×2)** multiplier (tile improvements slice);
-  City Walls ×3 and Great Wall are in. Goody huts and era-based barbarian
-  units are deferred; barbarians spawn as militia from turn 16.
-- **Building effects are a subset**: Granary, Aqueduct, Barracks, City Walls,
-  Marketplace, Bank, Library, University work; Temple/Cathedral/Colosseum
-  (happiness), Factory chain (shields), Courthouse (corruption), and Palace
-  await their systems. Wonder effects: Colossus and Great Wall only so far.
+- **Tile improvements**: road/irrigation/mine bonuses, terrain transforms
+  (clear/drain/plant via the same orders), Fortress (Construction), and
+  railroads (Railroad tech, road first, free rail movement, +50% shields)
+  all work. Deviations: road-to-road movement costs a flat 1 point instead
+  of Civ 1's ⅓ (integer-math simplification); rail movement is free with no
+  per-turn cap (as Civ 1); build times are flat per improvement
+  (`rules.json` `workTurns` — tuning values); irrigation's water source
+  check uses the 8-neighborhood; city tiles do not count as roads.
+- **Fortress ×2 is in** (walls take precedence; fortresses stop stack
+  death). Goody huts and era-based barbarian units are deferred; barbarians
+  spawn as militia from turn 16.
+- **Building effects**: Granary, Aqueduct, Barracks, City Walls, Marketplace
+  (tax+lux), Bank (tax+lux), Library, University, Temple (+Mysticism/Oracle
+  doubling), Colosseum, Cathedral, Courthouse, and Palace (capital) work;
+  the Factory power chain awaits its slice. Wonder effects: Colossus, Great
+  Wall, Pyramids, Hanging Gardens, J.S. Bach, Michelangelo, Shakespeare,
+  Cure for Cancer, Oracle so far.
 - **Buy uses a flat price** — 2 gold per missing shield (wonders 4,
   `rules.json`) instead of Civ 1's tiered formula; purchases complete at the
   next turn wrap. Pillage destroys field works (irrigation/mine) before

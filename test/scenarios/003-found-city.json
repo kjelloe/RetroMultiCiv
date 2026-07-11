@@ -7,60 +7,314 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
-        "width": 5, "height": 5, "wrapX": false,
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
         "tiles": [
-          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
-          { "t": "ocean" }, { "t": "grassland", "special": true }, { "t": "grassland" }, { "t": "plains" }, { "t": "ocean" },
-          { "t": "ocean" }, { "t": "grassland" }, { "t": "grassland", "special": true }, { "t": "grassland", "special": true }, { "t": "ocean" },
-          { "t": "ocean" }, { "t": "plains" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" },
-          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland",
+            "special": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "plains"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "special": true
+          },
+          {
+            "t": "grassland",
+            "special": true
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "plains"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          }
         ]
       },
       "units": {
-        "u1": { "id": "u1", "type": "settlers", "owner": "p1", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false },
-        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 3, "y": 3, "moves": 1, "fortified": false, "veteran": false }
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p2",
+          "x": 3,
+          "y": 3,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
       },
       "cities": {},
       "cityOrder": [],
       "nextUnitId": 3,
       "nextCityId": 1,
       "players": {
-        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "" },
-        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "" }
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        }
       },
       "rngState": 42
     }
   },
   "script": [
-    { "cmd": { "type": "foundCity", "playerId": "p1", "unitId": "u2" },
-      "expect": { "ok": false }, "notes": "not your unit" },
-    { "cmd": { "type": "foundCity", "playerId": "p1", "unitId": "u1", "name": "Roma" },
-      "expect": { "ok": true, "state": { "units.u1": null, "cities.c1.pop": 1, "cities.c1.name": "Roma" } },
-      "notes": "settlers consumed, city exists" },
-    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "battleship" } },
-      "expect": { "ok": false }, "notes": "no battleships in 4000 BC: production is tech-gated (needs Steel)" },
-    { "cmd": { "type": "setProduction", "playerId": "p1", "cityId": "c1", "item": { "kind": "unit", "id": "militia" } },
-      "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "cities.c1.shields": 2, "cities.c1.food": 2 } },
-      "notes": "turn 2: +2 shields, +2 food surplus" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "cities.c1.shields": 8 } } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" },
-      "expect": { "ok": true, "state": { "cities.c1.shields": 0, "units.u3.type": "militia", "units.u3.x": 2, "units.u3.y": 2 } },
-      "notes": "turn 6: 10th shield completes the militia in the city" }
+    {
+      "cmd": {
+        "type": "foundCity",
+        "playerId": "p1",
+        "unitId": "u2"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "not your unit"
+    },
+    {
+      "cmd": {
+        "type": "foundCity",
+        "playerId": "p1",
+        "unitId": "u1",
+        "name": "Roma"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1": null,
+          "cities.c1.pop": 1,
+          "cities.c1.name": "Roma"
+        }
+      },
+      "notes": "settlers consumed, city exists"
+    },
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c1",
+        "item": {
+          "kind": "unit",
+          "id": "battleship"
+        }
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "no battleships in 4000 BC: production is tech-gated (needs Steel)"
+    },
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c1",
+        "item": {
+          "kind": "unit",
+          "id": "militia"
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.shields": 2,
+          "cities.c1.food": 2
+        }
+      },
+      "notes": "turn 2: +2 shields, +2 food surplus"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.shields": 8
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.shields": 0,
+          "units.u3.type": "militia",
+          "units.u3.x": 2,
+          "units.u3.y": 2
+        }
+      },
+      "notes": "turn 6: 10th shield completes the militia in the city"
+    }
   ],
   "final": {
-    "state": { "turn": 6, "cities.c1.pop": 1, "cities.c1.food": 10 },
-    "hash": "0x84fd5dc8"
+    "state": {
+      "turn": 6,
+      "cities.c1.pop": 1,
+      "cities.c1.food": 10
+    },
+    "hash": "0xdac5cd0d"
   }
 }

@@ -27,7 +27,9 @@
     "tech": "genetic-engineering",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "happyEverywhere": 1
+    }
   },
   "darwin-s-voyage": {
     "name": "Darwin's Voyage",
@@ -57,7 +59,9 @@
     "tech": "pottery",
     "obsoleteBy": "invention",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "contentEverywhere": 1
+    }
   },
   "hoover-dam": {
     "name": "Hoover Dam",
@@ -78,7 +82,9 @@
     "tech": "religion",
     "obsoleteBy": "",
     "cost": 400,
-    "effect": {}
+    "effect": {
+      "contentEverywhere": 2
+    }
   },
   "lighthouse": {
     "name": "Lighthouse",
@@ -106,14 +112,18 @@
     "tech": "religion",
     "obsoleteBy": "communism",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "contentEverywhere": 4
+    }
   },
   "oracle": {
     "name": "Oracle",
     "tech": "mysticism",
     "obsoleteBy": "religion",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "doublesTemple": true
+    }
   },
   "pyramids": {
     "name": "Pyramids",
@@ -134,7 +144,9 @@
     "tech": "medicine",
     "obsoleteBy": "electronics",
     "cost": 400,
-    "effect": {}
+    "effect": {
+      "allContentInCity": true
+    }
   },
   "united-nations": {
     "name": "United Nations",

@@ -65,7 +65,8 @@
       <li><b>click city</b> — open the city view</li>
       <li><b>double-click city</b> — city view even with units on the tile</li>
       <li><b>B</b> — found city (settlers)</li>
-      <li><b>I / M / R</b> — settlers: irrigate / mine / road</li>
+      <li><b>I / M / R / O</b> — settlers: irrigate / mine / road / fortress</li>
+      <li><b>R on a road</b> — upgrade to railroad (needs the tech)</li>
       <li><b>F</b> — fortify unit</li>
       <li><b>Space</b> — skip unit this turn (wait)</li>
       <li><b>P</b> — pillage improvement on this tile</li>
@@ -92,7 +93,11 @@
       <span id="rate-tax"></span>
       <input id="rate-slider" type="range" min="0" max="100" step="10" title="Split trade between tax (gold) and science (bulbs)">
       <span id="rate-sci"></span>
+      <span id="rate-lux"></span>
+      <button id="lux-minus" title="less luxuries">−</button>
+      <button id="lux-plus" title="more luxuries (happiness)">+</button>
     </div>
+    <div id="gov-row"></div>
     <div id="research-list"></div>
     <div class="panel-foot">
       <button id="research-start" disabled>Start research</button>

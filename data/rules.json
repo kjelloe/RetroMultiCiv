@@ -9,8 +9,16 @@
   "workTurns": {
     "road": 3,
     "irrigate": 5,
-    "mine": 10
+    "mine": 10,
+    "fortress": 6,
+    "railroad": 6
   },
+  "fortressTech": "construction",
+  "railroadTech": "railroad",
   "buyGoldPerShield": 2,
-  "buyGoldPerShieldWonder": 4
+  "buyGoldPerShieldWonder": 4,
+  "contentCitizens": 4,
+  "luxPerStep": 2,
+  "specialistOutput": 2,
+  "revolutionTurns": 2
 }

@@ -36,6 +36,8 @@
     Object.assign(at(7, 1), { t: 'desert', mine: true, road: true });
     at(8, 1).river = true;
     Object.assign(at(9, 1), { t: 'mountains' });
+    Object.assign(at(0, 6), { fortress: true });
+    Object.assign(at(1, 6), { road: true, railroad: true });
     // row 5: water for the fleet
     for (let x = 0; x < W; x++) at(x, 5).t = 'ocean';
 

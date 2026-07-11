@@ -24,6 +24,8 @@ const CLIENT_MODULES = [
   'engine/barbarians.js',
   'engine/cities.js',
   'engine/improvements.js',
+  'engine/happiness.js',
+  'engine/government.js',
   'engine/score.js',
   'engine/combat.js',
   'engine/index.js',

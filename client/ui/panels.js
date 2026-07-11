@@ -1,6 +1,7 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
 import { workedTiles, candidateTiles, tileYields } from '../../engine/cities.js';
+import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 
@@ -87,9 +88,40 @@ export function initPanels(ctx) {
 
     const tax = me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate;
     const sci = me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate;
+    const lux = me.luxRate === undefined ? 0 : me.luxRate;
     document.getElementById('rate-tax').textContent = `💰 tax ${tax}%`;
     document.getElementById('rate-sci').textContent = `sci ${sci}% 🔬`;
-    document.getElementById('rate-slider').value = sci;
+    document.getElementById('rate-lux').textContent = `🎭 lux ${lux}%`;
+    const slider = document.getElementById('rate-slider');
+    slider.max = 100 - lux;
+    slider.value = sci;
+
+    // government: current + revolution options for known techs
+    const govRow = document.getElementById('gov-row');
+    govRow.textContent = '';
+    const governments = session.ruleset.governments;
+    const current = me.government === undefined ? 'despotism' : me.government;
+    const label = document.createElement('span');
+    label.id = 'gov-label';
+    label.textContent = me.revolutionTurns !== undefined
+      ? `⚡ Anarchy — ${me.revolutionTurns} turn${me.revolutionTurns > 1 ? 's' : ''} until ${governments[me.pendingGovernment].name} · `
+      : `🏛 ${governments[current].name}`
+        + ` (rates ≤ ${governments[current].maxRate}%) · `;
+    govRow.appendChild(label);
+    if (me.revolutionTurns === undefined) {
+      for (const id of Object.keys(governments)) {
+        if (id === 'anarchy' || id === current) continue;
+        const gov = governments[id];
+        if (gov.tech !== '' && !me.techs.includes(gov.tech)) continue;
+        const btn = document.createElement('button');
+        btn.className = 'gov-btn';
+        btn.textContent = `→ ${gov.name}`;
+        btn.title = 'start a revolution (a few turns of Anarchy first)';
+        btn.addEventListener('click', () =>
+          ctx.apply({ type: 'setGovernment', playerId: HUMAN, government: id }));
+        govRow.appendChild(btn);
+      }
+    }
 
     const list = document.getElementById('research-list');
     list.textContent = '';
@@ -204,7 +236,12 @@ export function initPanels(ctx) {
     const surplus = totals.food - city.pop * 2;
     const threshold = 10 * (city.pop + 1);
     const def = itemDef(city.producing);
-    const idle = city.pop - (worked.length - 1);
+    const mood = cityMood(state, city, session.ruleset);
+    const canSpecialize = mood.entertainers > 0 && city.pop >= 5;
+    // the worker set as tile indices (manual when set, else the greedy picks)
+    const currentWorkerIdx = () => city.workers !== undefined
+      ? city.workers.slice()
+      : worked.filter(w => !w.center).map(w => w.y * state.map.width + w.x);
     // rush-buy: flat gold per missing shield (wonders cost more)
     const missing = def.cost - city.shields;
     const buyRate = city.producing.kind === 'wonder'
@@ -231,14 +268,30 @@ export function initPanels(ctx) {
         : 'no buildings yet'}</div>`
       + `<div>${city.workers !== undefined
         ? '👷 manual tile assignment — click tiles below'
-        : '👷 automatic tile assignment — click a tile to take over'}`
-      + (idle > 0 ? ` · <span class="loss">💤 ${idle} idle citizen${idle > 1 ? 's' : ''}</span>` : '')
-      + '</div>';
+        : '👷 automatic tile assignment — click a tile to take over'}</div>`
+      + `<div>mood <span class="yf">😊${mood.happy}</span> 😐${mood.content} <span class="loss">😠${mood.unhappy}</span>`
+      + ` · 🎭${mood.entertainers} 💰${mood.taxmen} 🔬${mood.scientists}`
+      + (canSpecialize ? ' <button class="spec-btn" id="spec-taxman" title="entertainer → taxman">🎭→💰</button>'
+        + '<button class="spec-btn" id="spec-scientist" title="entertainer → scientist">🎭→🔬</button>' : '')
+      + (mood.taxmen + mood.scientists > 0 ? ' <button class="spec-btn" id="spec-clear" title="all specialists back to entertainers">↺🎭</button>' : '')
+      + '</div>'
+      + (city.disorder === true
+        ? '<div class="loss">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
     const buyBtn = document.getElementById('city-buy');
     if (buyBtn) {
       buyBtn.addEventListener('click', () =>
         ctx.apply({ type: 'buy', playerId: HUMAN, cityId: city.id }));
     }
+    const specCmd = (taxmen, scientists) => ctx.apply({
+      type: 'setWorkers', playerId: HUMAN, cityId: city.id,
+      workers: currentWorkerIdx(), taxmen, scientists
+    });
+    const taxBtn = document.getElementById('spec-taxman');
+    if (taxBtn) taxBtn.addEventListener('click', () => specCmd(mood.taxmen + 1, mood.scientists));
+    const sciBtn = document.getElementById('spec-scientist');
+    if (sciBtn) sciBtn.addEventListener('click', () => specCmd(mood.taxmen, mood.scientists + 1));
+    const clearBtn = document.getElementById('spec-clear');
+    if (clearBtn) clearBtn.addEventListener('click', () => specCmd(0, 0));
 
     // 5x5 workable area, city at the center; clicking tiles reassigns workers
     const map = document.getElementById('city-map');
@@ -247,9 +300,7 @@ export function initPanels(ctx) {
     for (const w of worked) isWorked[`${w.x},${w.y}`] = true;
 
     function toggleWorker(idx) {
-      const current = city.workers !== undefined
-        ? city.workers.slice()
-        : worked.filter(w => !w.center).map(w => w.y * state.map.width + w.x);
+      const current = currentWorkerIdx();
       const at = current.indexOf(idx);
       if (at !== -1) {
         current.splice(at, 1);
@@ -469,12 +520,33 @@ export function initPanels(ctx) {
   // --- chrome -----------------------------------------------------------------
   document.getElementById('research-bar').addEventListener('click', toggleResearchPanel);
   startBtn.addEventListener('click', () => startResearch(chosenTech));
-  // tax/science split: the slider position is the science share (10% steps)
+  // tax/science slider (the science share of what luxuries leave over) and
+  // the luxuries stepper (±10%, taken from/returned to tax first)
+  function ratesOf() {
+    const me = session.state.players[HUMAN];
+    return {
+      tax: me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate,
+      sci: me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate,
+      lux: me.luxRate === undefined ? 0 : me.luxRate
+    };
+  }
   document.getElementById('rate-slider').addEventListener('change', e => {
-    const sci = parseInt(e.target.value, 10);
-    const res = session.apply({ type: 'setRates', playerId: HUMAN, tax: 100 - sci, sci });
-    if (!res.ok) ctx.hud.note(`✗ setRates: ${res.reason}`);
+    const { lux } = ratesOf();
+    const sci = Math.min(parseInt(e.target.value, 10), 100 - lux);
+    ctx.apply({ type: 'setRates', playerId: HUMAN, tax: 100 - lux - sci, sci, lux });
   });
+  function nudgeLux(delta) {
+    const r = ratesOf();
+    let lux = r.lux + delta;
+    if (lux < 0 || lux > 100) return;
+    let tax = r.tax - delta;
+    let sci = r.sci;
+    if (tax < 0) { sci = sci + tax; tax = 0; }
+    if (sci < 0) { lux = lux + sci; sci = 0; }
+    ctx.apply({ type: 'setRates', playerId: HUMAN, tax, sci, lux });
+  }
+  document.getElementById('lux-minus').addEventListener('click', () => nudgeLux(-10));
+  document.getElementById('lux-plus').addEventListener('click', () => nudgeLux(10));
   document.getElementById('city-close').addEventListener('click', closeCityPanel);
   for (const btn of document.querySelectorAll('.panel-close')) {
     btn.addEventListener('click', () => {

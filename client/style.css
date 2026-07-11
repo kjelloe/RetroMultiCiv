@@ -242,6 +242,56 @@ html, body {
 
 #rate-tax { color: #e0a458; }
 #rate-sci { color: #6db3f2; }
+#rate-lux { color: #d88fd8; }
+
+#rates-row button {
+  width: 24px;
+  height: 22px;
+  background: #16233a;
+  border: 1px solid #2a3a55;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+#rates-row button:hover { background: #24406b; }
+
+/* --- government row (research panel) --- */
+#gov-row {
+  margin: 2px 0 6px;
+  font-size: 12px;
+  color: #cdd8ea;
+}
+
+.gov-btn {
+  margin: 0 3px 3px 0;
+  padding: 2px 8px;
+  background: #16233a;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.gov-btn:hover { background: #24406b; }
+
+/* --- specialist mini-buttons (city view) --- */
+.spec-btn {
+  margin-left: 3px;
+  padding: 1px 6px;
+  background: #16233a;
+  border: 1px solid #2a3a55;
+  border-radius: 4px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.spec-btn:hover { background: #24406b; }
 
 /* --- city view --- */
 #city-panel {

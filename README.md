@@ -95,7 +95,13 @@ roads, and special resources.
 **Phase 1 complete: a full, winnable game vs AI.**
 Cities can **rush-buy** production for gold, units can pillage and disband,
 and the city view pages through your empire with ‹ › arrows (or ←/→).
-83 headless tests including hash-locked JSON scenarios, an AI-determinism
+Citizens now have moods: keep them content with luxuries, entertainers,
+temples, and martial law, or watch a city fall into **civil disorder**;
+**governments** run from Despotism to Democracy (revolutions included,
+with rate caps, unit upkeep, war weariness, and corruption that grows with
+distance from your Palace); and settlers clear forests, drain swamps,
+plant woods, raise **fortresses**, and lay **railroads**.
+100 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e that boots the client and inspects the live
 panels. Next: phase 2 — hotseat multiplayer.
 

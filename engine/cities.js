@@ -1,7 +1,6 @@
 // Cities: founding, worked-tile yields, growth, and shield production.
-// This slice: auto-assigned worked tiles, unit production, food box growth.
-// Later slices: buildings/wonders, buy, specialists, happiness, trade split.
 import { reveal } from './visibility.js';
+import { governmentOf } from './government.js';
 
 // 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 const FAT_CROSS = [];
@@ -30,6 +29,7 @@ function tileYields(tile, ruleset) {
   if (tile.road === true && terrain.road !== undefined && tile.river !== true) {
     food += terrain.road.food; shields += terrain.road.shields; trade += terrain.road.trade;
   }
+  if (tile.railroad === true) shields += Math.floor(shields / 2); // +50% shields (Civ 1)
   return { food, shields, trade };
 }
 
@@ -69,10 +69,24 @@ function effectPct(city, ruleset, key) {
   return total;
 }
 
+// Government adjustments per worked tile: the despotism −1 on any yield of
+// 3+, and the Republic/Democracy +1 trade on trade-producing tiles (Civ 1).
+function govAdjustYields(y, gov) {
+  const out = { food: y.food, shields: y.shields, trade: y.trade };
+  if (gov.tilePenalty === true) {
+    if (out.food >= 3) out.food = out.food - 1;
+    if (out.shields >= 3) out.shields = out.shields - 1;
+    if (out.trade >= 3) out.trade = out.trade - 1;
+  }
+  if (gov.tradeBonus > 0 && out.trade > 0) out.trade = out.trade + gov.tradeBonus;
+  return out;
+}
+
 // All workable fat-cross tiles for a city, greedy-sorted; idx = y*width + x
 // is the stable tile id used by manual assignments (city.workers).
 function candidateTiles(state, city, ruleset) {
   const { width, height, wrapX, tiles } = state.map;
+  const gov = governmentOf(state, city.owner, ruleset);
   const candidates = [];
   for (const o of FAT_CROSS) {
     let x = city.x + o.dx;
@@ -82,7 +96,7 @@ function candidateTiles(state, city, ruleset) {
       if (!wrapX) continue;
       x = ((x % width) + width) % width;
     }
-    const y_ = tileYields(tiles[y * width + x], ruleset);
+    const y_ = govAdjustYields(tileYields(tiles[y * width + x], ruleset), gov);
     candidates.push({ idx: y * width + x, x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }
   candidates.sort((a, b) => b.score - a.score);
@@ -94,9 +108,10 @@ function candidateTiles(state, city, ruleset) {
 // greedy best. Returns the actual worked tiles (center first).
 function workedTiles(state, city, ruleset) {
   const { width, tiles } = state.map;
+  const gov = governmentOf(state, city.owner, ruleset);
   const worked = [{
     x: city.x, y: city.y, center: true,
-    yields: tileYields(tiles[city.y * width + city.x], ruleset)
+    yields: govAdjustYields(tileYields(tiles[city.y * width + city.x], ruleset), gov)
   }];
   const candidates = candidateTiles(state, city, ruleset);
   if (city.workers !== undefined) {
@@ -119,7 +134,10 @@ function workedTiles(state, city, ruleset) {
 }
 
 // Manual worker placement. `workers` is a list of candidate tile indices
-// (max pop, no duplicates); `auto: true` returns the city to greedy placement.
+// (max pop, no duplicates); `auto: true` returns the city to greedy placement
+// and clears explicit specialists. Optional `taxmen`/`scientists` turn idle
+// citizens into those specialists (pop >= 5, Civ 1); the rest of the idle
+// are entertainers implicitly.
 function setWorkers(state, cmd, ruleset) {
   const city = state.cities[cmd.cityId];
   if (!city) return { ok: false, reason: 'unknownCity' };
@@ -128,6 +146,8 @@ function setWorkers(state, cmd, ruleset) {
 
   if (cmd.auto === true) {
     delete city.workers;
+    delete city.taxmen;
+    delete city.scientists;
     return { ok: true, events: [{ type: 'workersSet', cityId: city.id, auto: true }] };
   }
   const workers = cmd.workers;
@@ -143,7 +163,20 @@ function setWorkers(state, cmd, ruleset) {
     }
     seen[idx] = true;
   }
+  const taxmen = cmd.taxmen === undefined ? (city.taxmen === undefined ? 0 : city.taxmen) : cmd.taxmen;
+  const scientists = cmd.scientists === undefined ? (city.scientists === undefined ? 0 : city.scientists) : cmd.scientists;
+  if (!Number.isInteger(taxmen) || !Number.isInteger(scientists) || taxmen < 0 || scientists < 0) {
+    return { ok: false, reason: 'badSpecialists' };
+  }
+  if ((taxmen > 0 || scientists > 0) && city.pop < 5) {
+    return { ok: false, reason: 'badSpecialists' }; // Civ 1: pop >= 5 for taxmen/scientists
+  }
+  if (workers.length + taxmen + scientists > city.pop) {
+    return { ok: false, reason: 'badSpecialists' };
+  }
   city.workers = workers.slice();
+  if (taxmen > 0) city.taxmen = taxmen; else delete city.taxmen;
+  if (scientists > 0) city.scientists = scientists; else delete city.scientists;
   return { ok: true, events: [{ type: 'workersSet', cityId: city.id, auto: false }] };
 }
 
@@ -265,6 +298,22 @@ function processCities(state, ruleset, events) {
     const city = state.cities[cityId];
     if (!city) continue;
     const yields = cityYields(state, city, ruleset);
+    if (city.disorder === true) yields.shields = 0; // civil disorder halts production
+
+    // unit upkeep in shields (government-dependent); units without a home
+    // city (game start, old saves) are free
+    const gov = governmentOf(state, city.owner, ruleset);
+    if (gov.upkeepShields > 0) {
+      let supported = 0;
+      for (const uid of Object.keys(state.units)) {
+        if (state.units[uid].home === cityId) supported = supported + 1;
+      }
+      const owed = (supported - gov.freeUnitsPerCity) * gov.upkeepShields;
+      if (owed > 0) {
+        yields.shields = yields.shields - owed;
+        if (yields.shields < 0) yields.shields = 0; // deviation: nothing disbands
+      }
+    }
 
     city.food = city.food + yields.food - city.pop * 2;
     const threshold = 10 * (city.pop + 1);
@@ -304,7 +353,8 @@ function processCities(state, ruleset, events) {
         state.units[unitId] = {
           id: unitId, type: prod.id, owner: city.owner,
           x: city.x, y: city.y, moves: unitType.moves,
-          fortified: false, veteran: hasBuilding(city, 'barracks')
+          fortified: false, veteran: hasBuilding(city, 'barracks'),
+          home: cityId
         };
         reveal(state, city.owner, city.x, city.y, 1);
         events.push({ type: 'unitBuilt', cityId, unitId, unitType: prod.id });

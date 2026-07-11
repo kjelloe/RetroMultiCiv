@@ -27,12 +27,20 @@ function yields(cell) {
 }
 
 // Improvement columns hold the YIELD BONUS the improvement adds, or a terrain
-// transform like "→ Forest" (transforms are a later slice — skipped here).
+// transform like "→ Forest" (the same settler order changes the terrain).
 function improvementBonus(cell) {
   if (!cell || cell.indexOf('→') !== -1) return null;
   const y = yields(cell);
   if (y.food + y.shields + y.trade === 0) return null;
   return y;
+}
+
+function transformTarget(cell) {
+  if (!cell || cell.indexOf('→') === -1) return null;
+  const raw = cell.split('→')[1].trim().toLowerCase();
+  const targets = { plains: 'plains', grass: 'grassland', grassland: 'grassland', forest: 'forest' };
+  if (!targets[raw]) throw new Error(`unknown transform target "${raw}"`);
+  return targets[raw];
 }
 
 function buildTerrain() {
@@ -53,12 +61,19 @@ function buildTerrain() {
       domain: id === 'ocean' ? 'sea' : 'land'
     };
     // settler improvements (columns: Irrigation, Mine, Road) — bonus yields
+    // or terrain transforms ("→ Forest": the order changes the terrain)
     const irrigate = improvementBonus(r[7]);
     const mine = improvementBonus(r[8]);
     const road = improvementBonus(r[9]);
     if (irrigate) entry.irrigate = irrigate;
     if (mine) entry.mine = mine;
     if (road) entry.road = road;
+    const transforms = {};
+    const irrigateTo = transformTarget(r[7]);
+    const mineTo = transformTarget(r[8]);
+    if (irrigateTo) transforms.irrigate = irrigateTo;
+    if (mineTo) transforms.mine = mineTo;
+    if (irrigateTo || mineTo) entry.transforms = transforms;
     if (id === 'river') {
       // Civ 1 "River" is a tile type; we store rivers as a tile flag instead:
       // River tile = Grassland + river flag (see docs/01-game-spec.md §3.1)
@@ -119,19 +134,19 @@ function buildTechs() {
 // IMPORTANT: effects are OUR encoding — never copy wiki description sentences
 // into committed data (CC BY-SA). Empty effect = buildable, no engine effect yet.
 const BUILDING_OVERLAY = {
-  'palace':              { cost: 200, maintenance: 0, effect: {} },
+  'palace':              { cost: 200, maintenance: 0, effect: { isPalace: true } },
   'barracks':            { cost: 40,  maintenance: 1, effect: { veteranUnits: true } },
   'granary':             { cost: 60,  maintenance: 1, effect: { halvesGrowthFood: true } },
-  'temple':              { cost: 40,  maintenance: 1, effect: {} },
-  'marketplace':         { cost: 80,  maintenance: 1, effect: { taxBonus: 50 } },
+  'temple':              { cost: 40,  maintenance: 1, effect: { contentBonus: 1, contentDoubleTech: 'mysticism' } },
+  'marketplace':         { cost: 80,  maintenance: 1, effect: { taxBonus: 50, luxBonus: 50 } },
   'library':             { cost: 80,  maintenance: 1, effect: { sciBonus: 50 } },
-  'courthouse':          { cost: 80,  maintenance: 1, effect: {} },
+  'courthouse':          { cost: 80,  maintenance: 1, effect: { corruptionReduction: 50 } },
   'city-walls':          { cost: 120, maintenance: 2, effect: { defenseMultiplier: 3 } },
   'aqueduct':            { cost: 120, maintenance: 2, effect: { growthPast10: true } },
-  'bank':                { cost: 120, maintenance: 3, effect: { taxBonus: 50 } },
-  'cathedral':           { cost: 160, maintenance: 3, effect: {} },
+  'bank':                { cost: 120, maintenance: 3, effect: { taxBonus: 50, luxBonus: 50 } },
+  'cathedral':           { cost: 160, maintenance: 3, effect: { contentBonus: 4 } },
   'university':          { cost: 160, maintenance: 3, effect: { sciBonus: 50 } },
-  'colosseum':           { cost: 100, maintenance: 4, effect: {} },
+  'colosseum':           { cost: 100, maintenance: 4, effect: { contentBonus: 3 } },
   'factory':             { cost: 200, maintenance: 4, effect: {} },
   'hydro-plant':         { cost: 240, maintenance: 4, effect: {} },
   'power-plant':         { cost: 160, maintenance: 4, effect: {} },
@@ -143,8 +158,14 @@ const BUILDING_OVERLAY = {
 };
 
 const WONDER_OVERLAY = {
-  'colossus':   { effect: { cityTradeBonus: true } },
-  'great-wall': { effect: { wallsEverywhere: true } }
+  'colossus':              { effect: { cityTradeBonus: true } },
+  'great-wall':            { effect: { wallsEverywhere: true } },
+  'hanging-gardens':       { effect: { contentEverywhere: 1 } },
+  'j-s-bach-s-cathedral':  { effect: { contentEverywhere: 2 } },
+  'michelangelo-s-chapel': { effect: { contentEverywhere: 4 } },
+  'cure-for-cancer':       { effect: { happyEverywhere: 1 } },
+  'shakespeare-s-theatre': { effect: { allContentInCity: true } },
+  'oracle':                { effect: { doublesTemple: true } }
 };
 
 function techId(techs, raw, context) {

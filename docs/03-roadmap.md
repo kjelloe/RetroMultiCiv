@@ -43,8 +43,12 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    ✅ city screen UI (panel with yields, growth/production ETAs, clickable
    5×5 worked-tile map with manual assignment via `setWorkers`, production
    catalog); ✅ buy *(2026-07-11 — flat 2 gold per missing shield, wonders 4;
-   scenario 009)*. ⬜ remaining: specialists, happiness, tile contention
-   between cities (all designed in `04-phase1-enrichments.md`).
+   scenario 009)*; ✅ **happiness pack** *(2026-07-11 — `engine/happiness.js`:
+   content/unhappy citizens, luxuries worst-first, specialists
+   (entertainer/taxman/scientist via `setWorkers`), Temple chain with
+   Mysticism/Oracle doubling, martial law, war unhappiness, civil disorder
+   halting shields and taxes; scenario 010)*. ⬜ remaining: tile contention
+   between cities (designed in `04-phase1-enrichments.md`).
    *(buildings/wonders production and the trade/tax split landed with
    step 6's slices below.)*
 5. 🔶 **Combat + barbarians** *(core done 2026-07-10)* — ✅ `engine/combat.js`:
@@ -56,8 +60,9 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    ✅ `engine/barbarians.js` (turn-gated spawns, hunt nearest civilization,
    attack/capture). Locked by scenarios 004 (attacker path, `0xdc1336db`) and
    005 (defender path, `0x11a6a9e2`). *(City Walls ×3 landed with step 6's
-   buildings slice.)* ⬜ remaining: goody huts, era-based barbarian units,
-   Fortress ×2 (needs the Fortress improvement, see step 10).
+   buildings slice; Fortress ×2 + no-stack-death landed with step 10's
+   fortress slice, 2026-07-11.)* ⬜ remaining: goody huts, era-based
+   barbarian units.
 6. 🔶 **Tech tree + wonders + governments** — ✅ `data/techs.json` (all 68
    Civ 1 advances with prerequisites, generated from the wiki dump — count and
    the seven root techs verified); ✅ `engine/tech.js`: research from city
@@ -74,9 +79,15 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    Colossus city trade, Great Wall empire walls with Gunpowder obsolescence;
    wonder race uniqueness (first completion wins, `wonderLost` event);
    client: C cycles available buildings/wonders. Locked by scenario 007
-   (`0x1057c8bc`). ⬜ remaining: governments, luxuries/happiness, corruption,
-   remaining building/wonder effects (Temple, Factory chain, Palace,
-   Great Library, Darwin's Voyage…), Future Tech repeatability, building sale
+   (`0x1057c8bc`). ✅ **governments + corruption** *(2026-07-11 —
+   `engine/government.js` + `data/governments.json`: despotism→democracy
+   with rate caps, tile penalty/trade bonus, unit upkeep in shields
+   (`unit.home`), corruption by capital distance (Palace moves the capital,
+   Courthouse halves), revolutions with anarchy (Pyramids skip), luxuries as
+   the third rate; Temple/Colosseum/Cathedral/Courthouse/Palace effects +
+   happiness wonders live; scenario 010)*. ⬜ remaining: Factory power
+   chain, Great Library/Darwin's Voyage/Newton/Copernicus/Lighthouse/
+   Magellan/Adam Smith effects, Future Tech repeatability, building sale
    instead of gold clamp.
 7. ✅ **AI opponents + victory/score** *(done 2026-07-10)* — `engine/ai.js`:
    the designer's v0 Expansionist (research lowest level, defend-then-expand
@@ -115,9 +126,11 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    tuning values, the wiki has no turn counts). Client: I/M/R keys, tile
    tints, turn-log entries, working settlers skipped by N/auto-select and
    the End Turn readiness check. Locked by scenario 008 (`0xbaf61c43`).
-   ✅ pillage *(2026-07-11 — field works fall before roads; scenario 009)*.
-   ⬜ remaining: AI use, terrain transforms (clear/drain/plant), railroads,
-   Fortress (all designed in `04-phase1-enrichments.md`).
+   ✅ pillage *(2026-07-11 — field works fall before roads/rails; scenario
+   009)*; ✅ terrain transforms, Fortress, railroads *(2026-07-11 — the
+   irrigate/mine orders clear/drain/plant per the wiki table; Fortress ×2
+   at Construction; railroads on roads at the Railroad tech: free rail
+   movement, +50% shields)*. ⬜ remaining: AI use of improvements.
 
 **Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
 The remaining ⬜ enrichments above are specified in

@@ -60,11 +60,18 @@ function cityWallsAt(state, x, y, ruleset) {
   return false;
 }
 
+// A fortress doubles defense (city walls take precedence, they don't stack).
+function fortressAt(state, x, y) {
+  return state.map.tiles[y * state.map.width + x].fortress === true
+    && cityAt(state, x, y) === null;
+}
+
 function defenseStrength(state, unit, ruleset) {
   return ruleset.units[unit.type].defense
     * tileDefensePct(state, unit.x, unit.y, ruleset)
     * (unit.fortified ? 150 : 100)
-    * (cityWallsAt(state, unit.x, unit.y, ruleset) ? 3 : 1);
+    * (cityWallsAt(state, unit.x, unit.y, ruleset) ? 3
+      : fortressAt(state, unit.x, unit.y) ? 2 : 1);
 }
 
 // Civ 1: the strongest defender on the tile fights.
@@ -111,8 +118,9 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const events = [];
   if (attackerWins) {
-    const inCity = cityAt(state, tx, ty) !== null;
-    const casualties = inCity ? [defender] : unitsAt(state, tx, ty);
+    // stacks die on open ground; cities AND fortresses lose one unit at a time
+    const sheltered = cityAt(state, tx, ty) !== null || fortressAt(state, tx, ty);
+    const casualties = sheltered ? [defender] : unitsAt(state, tx, ty);
     for (const u of casualties) delete state.units[u.id];
     events.push({
       type: 'combatResolved', winner: 'attacker',

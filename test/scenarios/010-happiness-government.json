@@ -1,0 +1,360 @@
+{
+  "name": "happiness + governments: disorder, entertainers, revolution, rate caps",
+  "notes": "Pop-6 despotism city: 6 workers - 4 content = 2 unhappy > 0 happy, disorder at the first wrap (no shields banked). Pulling two citizens off the fields (4 manual workers) makes them entertainers = 4 luxuries = 2 upgrades; order returns. Despotism rejects sci 70; after the revolution (2 turns of anarchy) Monarchy accepts it.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 7,
+        "height": 7,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "special": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Byzantium",
+          "owner": "p1",
+          "x": 3,
+          "y": 3,
+          "pop": 6,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 2,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "monarchy"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 11
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setRates",
+        "playerId": "p1",
+        "tax": 30,
+        "sci": 70
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "despotism caps rates at 60"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.disorder": true,
+          "cities.c1.shields": 0
+        }
+      },
+      "notes": "6 workers, 2 unhappy, 0 happy: disorder halts the shield on the special tile"
+    },
+    {
+      "cmd": {
+        "type": "setWorkers",
+        "playerId": "p1",
+        "cityId": "c1",
+        "workers": [
+          23,
+          25,
+          17,
+          31
+        ]
+      },
+      "expect": {
+        "ok": true
+      },
+      "notes": "two citizens leave the fields and become entertainers"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.disorder": null
+        }
+      },
+      "notes": "4 luxuries = 2 upgrades: order restored"
+    },
+    {
+      "cmd": {
+        "type": "setWorkers",
+        "playerId": "p1",
+        "cityId": "c1",
+        "workers": [
+          23,
+          25,
+          17,
+          31
+        ],
+        "taxmen": 1,
+        "scientists": 1
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.taxmen": 1,
+          "cities.c1.scientists": 1
+        }
+      },
+      "notes": "pop 6 >= 5: specialists allowed"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.gold": 2,
+          "players.p1.bulbs": 2
+        }
+      },
+      "notes": "taxman +2 gold, scientist +2 bulbs (no tile trade on grassland)"
+    },
+    {
+      "cmd": {
+        "type": "setGovernment",
+        "playerId": "p1",
+        "government": "monarchy"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.government": "anarchy",
+          "players.p1.revolutionTurns": 2
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.revolutionTurns": 1
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.government": "monarchy",
+          "players.p1.revolutionTurns": null
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "setRates",
+        "playerId": "p1",
+        "tax": 30,
+        "sci": 70
+      },
+      "expect": {
+        "ok": true
+      },
+      "notes": "monarchy lifts the cap to 70"
+    }
+  ],
+  "final": {
+    "hash": "0x47e2d5d0"
+  }
+}

@@ -30,15 +30,16 @@ async function fetchJson(url) {
 }
 
 const params = new URLSearchParams(location.search);
-const [terrain, units, techs, buildings, wonders, rules] = await Promise.all([
+const [terrain, units, techs, buildings, wonders, governments, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
   fetchJson('../data/units.json'),
   fetchJson('../data/techs.json'),
   fetchJson('../data/buildings.json'),
   fetchJson('../data/wonders.json'),
+  fetchJson('../data/governments.json'),
   fetchJson('../data/rules.json')
 ]);
-const ruleset = { terrain, units, techs, buildings, wonders, rules };
+const ruleset = { terrain, units, techs, buildings, wonders, governments, rules };
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
 const diag = getGraphicsDiagnostics();

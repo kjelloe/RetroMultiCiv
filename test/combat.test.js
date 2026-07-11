@@ -171,6 +171,32 @@ test('city walls triple defense; Great Wall extends it until Gunpowder', async (
   assert.strictEqual(combat.defenseStrength(state, militia, RULESET), 1 * 100 * 100);
 });
 
+test('fortress: doubles defense (walls win) and stops stack death', async () => {
+  const { combat, engine } = await load();
+  const state = miniState([{ t: 'grassland', fortress: true }], 1, 1, {});
+  const militia = { type: 'militia', x: 0, y: 0, fortified: false };
+  assert.strictEqual(combat.defenseStrength(state, militia, RULESET), 1 * 100 * 100 * 2);
+
+  // attacker guaranteed to win (huge attack): only ONE defender dies in a fortress
+  const tiles = [{ t: 'grassland' }, { t: 'grassland', fortress: true }];
+  const s2 = miniState(tiles, 2, 1, {
+    u1: { id: 'u1', type: 'armor', owner: 'p1', x: 0, y: 0, moves: 8, fortified: false, veteran: true },
+    u2: { id: 'u2', type: 'militia', owner: 'p2', x: 1, y: 0, moves: 1, fortified: false, veteran: false },
+    u3: { id: 'u3', type: 'militia', owner: 'p2', x: 1, y: 0, moves: 1, fortified: false, veteran: false }
+  });
+  // find a seed where the attacker wins, then count survivors
+  for (let seed = 1; seed < 50; seed++) {
+    s2.rngState = seed;
+    const res = engine.applyCommand(s2, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+    const evt = res.events[0];
+    if (evt.winner !== 'attacker') continue;
+    assert.strictEqual(evt.unitsLost, 1, 'fortress: single loss, no stack death');
+    assert.strictEqual(Object.keys(res.state.units).filter(id => res.state.units[id].owner === 'p2').length, 1);
+    return;
+  }
+  assert.fail('no winning seed found under 50');
+});
+
 test('barbarians spawn at the gate turn and hunt nearby units', async () => {
   const { engine } = await load();
   const barb = await import('../engine/barbarians.js');

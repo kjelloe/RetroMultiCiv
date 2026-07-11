@@ -14,7 +14,8 @@
     "cost": 120,
     "maintenance": 3,
     "effect": {
-      "taxBonus": 50
+      "taxBonus": 50,
+      "luxBonus": 50
     }
   },
   "barracks": {
@@ -31,7 +32,9 @@
     "tech": "religion",
     "cost": 160,
     "maintenance": 3,
-    "effect": {}
+    "effect": {
+      "contentBonus": 4
+    }
   },
   "city-walls": {
     "name": "City Walls",
@@ -47,14 +50,18 @@
     "tech": "construction",
     "cost": 100,
     "maintenance": 4,
-    "effect": {}
+    "effect": {
+      "contentBonus": 3
+    }
   },
   "courthouse": {
     "name": "Courthouse",
     "tech": "code-of-laws",
     "cost": 80,
     "maintenance": 1,
-    "effect": {}
+    "effect": {
+      "corruptionReduction": 50
+    }
   },
   "factory": {
     "name": "Factory",
@@ -94,7 +101,8 @@
     "cost": 80,
     "maintenance": 1,
     "effect": {
-      "taxBonus": 50
+      "taxBonus": 50,
+      "luxBonus": 50
     }
   },
   "mass-transit": {
@@ -123,7 +131,9 @@
     "tech": "masonry",
     "cost": 200,
     "maintenance": 0,
-    "effect": {}
+    "effect": {
+      "isPalace": true
+    }
   },
   "power-plant": {
     "name": "Power Plant",
@@ -151,7 +161,10 @@
     "tech": "ceremonial-burial",
     "cost": 40,
     "maintenance": 1,
-    "effect": {}
+    "effect": {
+      "contentBonus": 1,
+      "contentDoubleTech": "mysticism"
+    }
   },
   "university": {
     "name": "University",
