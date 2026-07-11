@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RetroMultiCiv asset gallery</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1420; }
+    #app { position: absolute; inset: 0; }
+    #label { position: absolute; top: 8px; left: 12px; color: #cdd8ea;
+             font: 13px ui-monospace, monospace; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../client/vendor/three.module.min.js" } }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="label">asset gallery — row 1: props (trees, special, mine, irrigation, roads) ·
+    row 3: land units · row 5: ships · row 6: aircraft · row 7: cities (pop 1 / pop 5 walled / pop 12)</div>
+  <script type="module">
+    import { createRenderer } from '../client/renderer/renderer.js';
+
+    const W = 10, H = 8;
+    const tiles = [];
+    for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
+    const at = (x, y) => tiles[y * W + x];
+
+    // row 1: terrain props and improvement markers
+    at(0, 1).t = 'forest';
+    at(1, 1).t = 'jungle';
+    at(2, 1).special = true;
+    Object.assign(at(3, 1), { t: 'hills', mine: true });
+    at(4, 1).irrigation = true;
+    at(5, 1).road = true;
+    Object.assign(at(6, 1), { road: true, irrigation: true });
+    Object.assign(at(7, 1), { t: 'desert', mine: true, road: true });
+    at(8, 1).river = true;
+    Object.assign(at(9, 1), { t: 'mountains' });
+    // row 5: water for the fleet
+    for (let x = 0; x < W; x++) at(x, 5).t = 'ocean';
+
+    const units = {};
+    let n = 0;
+    const put = (type, x, y, owner) => {
+      n++;
+      units['u' + n] = { id: 'u' + n, type, owner: owner || 'p1', x, y };
+    };
+    ['settlers', 'militia', 'legion', 'cavalry', 'chariot', 'catapult', 'armor', 'diplomat', 'riflemen', 'mech-inf']
+      .forEach((t, i) => put(t, i, 3, i % 2 ? 'p2' : 'p1'));
+    ['trireme', 'sail', 'frigate', 'transport', 'ironclad', 'cruiser', 'battleship', 'submarine', 'carrier']
+      .forEach((t, i) => put(t, i, 5, i % 2 ? 'p1' : 'p2'));
+    ['fighter', 'bomber', 'nuclear'].forEach((t, i) => put(t, 3 + i, 6));
+
+    const cities = {
+      c1: { id: 'c1', name: 'One', owner: 'p1', x: 1, y: 7, pop: 1, buildings: [] },
+      c2: { id: 'c2', name: 'Five', owner: 'p2', x: 4, y: 7, pop: 5, buildings: ['city-walls'] },
+      c3: { id: 'c3', name: 'Twelve', owner: 'p1', x: 7, y: 7, pop: 12, buildings: [] }
+    };
+
+    const view = {
+      map: { width: W, height: H, wrapX: false, tiles },
+      units, cities,
+      players: {
+        p1: { id: 'p1', name: 'Blue', color: '#3b7dd8' },
+        p2: { id: 'p2', name: 'Red', color: '#d84a3b' }
+      }
+    };
+
+    const renderer = createRenderer(document.getElementById('app'));
+    renderer.setViewState(view);
+    renderer.centerOn(4.5, 4);
+    renderer.setZoom(9);
+  </script>
+</body>
+</html>

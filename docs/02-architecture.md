@@ -121,12 +121,17 @@ Chosen for minimal dependencies (per your preferences) with options noted.
 
 ```js
 // client/renderer/renderer.js — every renderer implements this
-createRenderer(container, ruleset) => {
-  setViewState(view)   // filtered per-player state: tiles, units, cities, fog
-  playEvents(events)   // animate combat, movement, city growth…
-  screenToTile(x, y)   // picking
+createRenderer(container) => {
+  setViewState(view)     // filtered per-player state: tiles, units, cities, fog
+  playEvents(events)     // animate combat, movement, city growth… (still a no-op)
+  onPick(cb)             // cb({ tile: {x, y}, unitId?, cityId? }) on click
+  onDblPick(cb)          // same pick shape, double-click
+  onHover(cb)            // cb(pick | null) on pointer move
+  setHoverColor(hex)     // tint the hover marker (red = attack preview)
+  setSelection(sel)      // { unitId?, tile? } | null — highlight marker
+  setFootprint(tiles)    // [{x, y}] overlay (settler site preview) | null
   centerOn(tileX, tileY)
-  setZoom(z)
+  setZoom(dist)
   destroy()
 }
 ```

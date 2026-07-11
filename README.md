@@ -84,12 +84,15 @@ roads speed movement and add trade on open terrain). A bottom-center
 **action bar** lists the selected unit's applicable actions with their
 hotkeys; impossible actions explain themselves in a center message, the
 research bar shows gold and bulbs with per-turn deltas, and ending the turn
-with units still to move asks for a confirming second press. A first
-low-poly art pass is underway: settlers roll as covered wagons, infantry
-are spear-carrying tokens, and cities grow as house clusters with
-owner-colored roofs, a banner, and walls once City Walls is built.
+with units still to move asks for a confirming second press. The first
+low-poly art kit is in: covered-wagon settlers, spear-carrying infantry,
+horses, siege engines and tanks, sailing and powered ships, aircraft —
+all with ownership as a colored base disc — plus cities that grow as house
+clusters (owner-colored roofs, banner, walls once City Walls is built),
+trees on forests and jungles, and on-map markers for irrigation, mines,
+roads, and special resources.
 **Phase 1 complete: a full, winnable game vs AI.**
-80 headless tests including hash-locked JSON scenarios, an AI-determinism
+82 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and a real-browser e2e that boots the client and inspects the live
 panels. Next: phase 2 — hotseat multiplayer.
 

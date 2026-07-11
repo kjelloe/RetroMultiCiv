@@ -15,14 +15,14 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    (24×16 map, 4 units, generated from ASCII art) rendered by the three.js
    flat-box renderer with raycast picking, pan/zoom, and HUD. Proves the state
    shape and the view layer.
-1. 🔶 **Data + engine skeleton** *(mostly done 2026-07-10)* — ✅ `data/terrain.json`
+1. ✅ **Data + engine skeleton** *(done 2026-07-10)* — `data/terrain.json`
    + `data/units.json` generated from the wiki extraction via `tools/mapdata.js`
-   (11 terrains + river modifier, 28 units, wiki-verified stats); ✅ engine
+   (11 terrains + river modifier, 28 units, wiki-verified stats); engine
    skeleton: `createEngine(ruleset)`, `applyCommand` dispatcher with deep-clone
    purity, `moveUnit` (8-dir, terrain costs, partial-move rule, domains, wrapX),
    `endTurn` (player cycling, move refresh), xorshift32 RNG with golden
-   sequence; ✅ scenario 001 passes with hash `0xd0b04010`. ⬜ remaining:
-   `createGame` map generation (step 2), techs/buildings/wonders data files.
+   sequence. *(Its one-time "remaining" items — map generation and the
+   techs/buildings/wonders data — landed as steps 2 and 6.)*
 2. ✅ **Map generation** *(done 2026-07-10)* — `engine/mapgen.js`: seeded
    drunkard's-walk continents, latitude-band terrain, rivers, specials
    (Civ 1-style grassland shield checkerboard), arctic poles, spaced starting
@@ -52,8 +52,9 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    ✅ zone of control; ✅ city capture with pop loss + capped plunder;
    ✅ `engine/barbarians.js` (turn-gated spawns, hunt nearest civilization,
    attack/capture). Locked by scenarios 004 (attacker path, `0xdc1336db`) and
-   005 (defender path, `0x11a6a9e2`). ⬜ remaining: goody huts, era-based
-   barbarian units, City Walls ×3 / Fortress ×2 (need the buildings slice).
+   005 (defender path, `0x11a6a9e2`). *(City Walls ×3 landed with step 6's
+   buildings slice.)* ⬜ remaining: goody huts, era-based barbarian units,
+   Fortress ×2 (needs the Fortress improvement, see step 10).
 6. 🔶 **Tech tree + wonders + governments** — ✅ `data/techs.json` (all 68
    Civ 1 advances with prerequisites, generated from the wiki dump — count and
    the seven root techs verified); ✅ `engine/tech.js`: research from city
@@ -188,15 +189,19 @@ the designer ally's plan:
   (shared geometries + per-color Lambert material caches — no per-mesh
   disposal needed); picking went recursive with a parent walk to the
   userData-carrying group.
-- 🔶 **A1 — Procedural low-poly kit** *(started 2026-07-11)*: ✅ wagon
-  (settlers/caravan/diplomat), ✅ foot-soldier token (militia→mech-inf),
-  ✅ city house clusters scaled by pop with owner-color roofs, banner, and
-  a wall ring when City Walls is built; ownership = colored base disc, not
-  whole-mesh recolor; other unit classes fall back to a base-disc token.
-  ⬜ remaining: mounted / siege / ship / aircraft silhouettes, improvement
-  markers replacing the batch-C tile tints, forest/resource props
-  (instanced). The ally judges the full kit "enough for a compelling local
-  prototype."
+- ✅ **A1 — Procedural low-poly kit** *(done 2026-07-11)*: six silhouette
+  classes cover all 28 unit types — wagon (settlers/caravan/diplomat),
+  foot-soldier token (militia→mech-inf), mounted (cavalry/knights/chariot),
+  siege (catapult/cannon/artillery; armor gets a tank hull+turret), ships
+  (sail / powered / submarine variants), aircraft. City house clusters
+  scale with pop (owner-color roofs, banner, wall ring when City Walls is
+  built). Ownership = colored base disc, not whole-mesh recolor.
+  Improvement markers (irrigation strip / mine pyramid / road cross),
+  forest+jungle trees, and special-resource dots are **InstancedMeshes**
+  with per-instance fog dimming — they replaced the tile tints.
+  `debugging/gallery.html` renders one of everything through the real
+  renderer for review (`debugging/screenshot.sh` it). The ally judged this
+  kit "enough for a compelling local prototype."
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

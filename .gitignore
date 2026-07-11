@@ -5,6 +5,9 @@ data/wiki-extract/
 # development prompt log — kept local until curated for the 1.0 release
 dev-prompts.md
 
+# status write-up shared directly with the designer ally & friends
+plan-update.md
+
 # runtime output
 saves/
 *.log

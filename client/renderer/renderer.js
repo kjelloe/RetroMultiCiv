@@ -14,6 +14,7 @@
 //     setSelection(sel)         // { unitId? , tile? } | null — highlight marker
 //     setFootprint(tiles)       // [{x, y}] overlay (settler site preview) | null
 //     centerOn(x, y)
+//     setZoom(dist)             // camera distance (clamped)
 //     destroy()
 //   }
 

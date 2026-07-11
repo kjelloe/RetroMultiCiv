@@ -74,6 +74,8 @@ files use dynamic `import()` for them. `tools/` stays CJS.
 with the required SwiftShader flags (WebGL has no GPU here and fails without
 them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
+`debugging/gallery.html` shows every unit silhouette, city tier, and tile
+prop through the real renderer — screenshot it after any assets.js change.
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
 cities, improvements, combat/barbarians, tech, ai, score, visibility, mapgen,
