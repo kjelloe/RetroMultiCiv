@@ -18,6 +18,7 @@ function loadRuleset() {
     buildings: data('buildings.json'),
     wonders: data('wonders.json'),
     governments: data('governments.json'),
+    civs: data('civs.json'),
     rules: data('rules.json')
   };
 }

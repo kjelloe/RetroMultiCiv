@@ -114,7 +114,19 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    completions, research, famine, wonder news, first-contact sightings).
    ⬜ remaining from that review: terrain improvements
    (irrigate/mine/road — an engine chunk, see below).
-10. ✅ **Terrain improvements** *(done 2026-07-11)* — `engine/improvements.js`:
+10. ✅ **Civilizations & specialties** *(done 2026-07-11)* — `data/civs.json`:
+   the full Civ 1 roster of 14 civilizations, each with a historic city
+   list and ONE specialty built on four generic, portable engine hooks —
+   `startTech` (Babylonians/Egyptians), `startGold` (Aztecs),
+   `cheapUnit`/`cheapBuilding` (Romans' legions, Mongol cavalry, Greek
+   libraries…, applied in production, buy, and the catalog UI), and
+   `veteranUnit` (Zulu impi militia, German musketeers, Russian riflemen).
+   `player.civ` is optional — crafted states and old saves are untouched.
+   The setup screen picks your civilization (specialty blurb shown;
+   `?civ=romans`); opponents are seed-shuffled from the roster, so a URL
+   still reproduces the exact game. *(Specialties are our one deliberate
+   post-Civ 1 flavor addition — Civ 1 civs differed only in name.)*
+11. ✅ **Terrain improvements** *(done 2026-07-11)* — `engine/improvements.js`:
    `startWork` command (settlers only, consumes the turn, moving/fortifying
    abandons the job) + per-turn-wrap progress; bonuses parsed from the wiki
    terrain table into `data/terrain.json` (irrigation +1 food on
@@ -278,6 +290,14 @@ the designer ally's plan:
   `debugging/gallery.html` renders one of everything through the real
   renderer for review (`debugging/screenshot.sh` it). The ally judged this
   kit "enough for a compelling local prototype."
+- ✅ **A1.5 — Procedural terrain detail** *(done 2026-07-11, from
+  `specs/terrain-art.md` — parallel with phase 2, exactly as the ally
+  recommended)*: deterministic per-tile shade variation (`visualRand(x, y,
+  salt)` — never `Math.random`, nothing stored in state), 3–5 scattered
+  varied trees per forest/jungle tile, rock mounds on hills, snow-capped
+  angular peaks on mountains, sparse scrub on open ground, and **connected
+  roads** — segments drawn toward each neighboring road/rail/city tile
+  instead of a generic cross. All instanced, all fog-dimmed per instance.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

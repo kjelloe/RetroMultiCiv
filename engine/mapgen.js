@@ -194,6 +194,16 @@ function createGame(setup, ruleset) {
       taxRate: ruleset.rules.defaultTaxRate,
       sciRate: ruleset.rules.defaultSciRate
     };
+    // civilization identity + starting specialty (data/civs.json); defs
+    // without a civ (tests, older callers) get none — hash-stable
+    if (p.civ !== undefined && ruleset.civs !== undefined && ruleset.civs[p.civ] !== undefined) {
+      players[p.id].civ = p.civ;
+      const spec = ruleset.civs[p.civ].specialty;
+      if (spec !== undefined) {
+        if (spec.type === 'startTech') players[p.id].techs.push(spec.tech);
+        if (spec.type === 'startGold') players[p.id].gold = players[p.id].gold + spec.gold;
+      }
+    }
     playerOrder.push(p.id);
     const uid = 'u' + (i + 1);
     units[uid] = {

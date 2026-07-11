@@ -1,0 +1,72 @@
+{
+  "romans": {
+    "name": "Romans", "color": "#3b7dd8",
+    "cities": ["Rome", "Ostia", "Antium", "Cumae", "Pompeii", "Ravenna", "Neapolis", "Verona"],
+    "specialty": { "type": "cheapUnit", "unit": "legion", "pct": 25, "blurb": "Legions cost 25% less" }
+  },
+  "babylonians": {
+    "name": "Babylonians", "color": "#b13bd8",
+    "cities": ["Babylon", "Sumer", "Uruk", "Nineveh", "Ashur", "Akkad", "Eridu", "Lagash"],
+    "specialty": { "type": "startTech", "tech": "alphabet", "blurb": "Begin knowing Alphabet" }
+  },
+  "germans": {
+    "name": "Germans", "color": "#8a949e",
+    "cities": ["Berlin", "Leipzig", "Hamburg", "Bremen", "Frankfurt", "Bonn", "Nuremberg", "Cologne"],
+    "specialty": { "type": "veteranUnit", "unit": "musketeers", "blurb": "Musketeers start as veterans" }
+  },
+  "egyptians": {
+    "name": "Egyptians", "color": "#d8b13b",
+    "cities": ["Thebes", "Memphis", "Heliopolis", "Elephantine", "Alexandria", "Byblos", "Giza", "Cairo"],
+    "specialty": { "type": "startTech", "tech": "ceremonial-burial", "blurb": "Begin knowing Ceremonial Burial" }
+  },
+  "americans": {
+    "name": "Americans", "color": "#4b6bd8",
+    "cities": ["Washington", "New York", "Boston", "Philadelphia", "Atlanta", "Chicago", "Buffalo", "St. Louis"],
+    "specialty": { "type": "cheapBuilding", "building": "marketplace", "pct": 25, "blurb": "Marketplaces cost 25% less" }
+  },
+  "greeks": {
+    "name": "Greeks", "color": "#3bd875",
+    "cities": ["Athens", "Sparta", "Corinth", "Delphi", "Eretria", "Pharsalos", "Argos", "Mycenae"],
+    "specialty": { "type": "cheapBuilding", "building": "library", "pct": 25, "blurb": "Libraries cost 25% less" }
+  },
+  "indians": {
+    "name": "Indians", "color": "#d88fd8",
+    "cities": ["Delhi", "Bombay", "Madras", "Bangalore", "Calcutta", "Lahore", "Karachi", "Kolhapur"],
+    "specialty": { "type": "cheapBuilding", "building": "temple", "pct": 50, "blurb": "Temples cost 50% less" }
+  },
+  "russians": {
+    "name": "Russians", "color": "#d84a3b",
+    "cities": ["Moscow", "Leningrad", "Kiev", "Minsk", "Smolensk", "Odessa", "Sevastopol", "Tbilisi"],
+    "specialty": { "type": "veteranUnit", "unit": "riflemen", "blurb": "Riflemen start as veterans" }
+  },
+  "zulus": {
+    "name": "Zulus", "color": "#b0632f",
+    "cities": ["Zimbabwe", "Ulundi", "Bapedi", "Hlobane", "Isandhlwana", "Intombe", "Mpondo", "Ngome"],
+    "specialty": { "type": "veteranUnit", "unit": "militia", "blurb": "Impi: militia start as veterans" }
+  },
+  "french": {
+    "name": "French", "color": "#6db3f2",
+    "cities": ["Paris", "Orleans", "Lyons", "Tours", "Chartres", "Bordeaux", "Rouen", "Avignon"],
+    "specialty": { "type": "cheapUnit", "unit": "knights", "pct": 25, "blurb": "Knights cost 25% less" }
+  },
+  "aztecs": {
+    "name": "Aztecs", "color": "#3bc9d8",
+    "cities": ["Tenochtitlan", "Teotihuacan", "Tlatelolco", "Texcoco", "Tlaxcala", "Xochicalco", "Tlacopan"],
+    "specialty": { "type": "startGold", "gold": 50, "blurb": "Begin with 50 gold in tribute" }
+  },
+  "chinese": {
+    "name": "Chinese", "color": "#d8d83b",
+    "cities": ["Peking", "Shanghai", "Canton", "Nanking", "Tsingtao", "Hangchow", "Tientsin", "Tatung"],
+    "specialty": { "type": "cheapBuilding", "building": "city-walls", "pct": 25, "blurb": "City Walls cost 25% less" }
+  },
+  "english": {
+    "name": "English", "color": "#d83b8a",
+    "cities": ["London", "Coventry", "Birmingham", "Dover", "Nottingham", "York", "Liverpool", "Brighton"],
+    "specialty": { "type": "cheapUnit", "unit": "frigate", "pct": 25, "blurb": "Frigates cost 25% less" }
+  },
+  "mongols": {
+    "name": "Mongols", "color": "#d8703b",
+    "cities": ["Samarkand", "Bokhara", "Nishapur", "Karakorum", "Kashgar", "Tabriz", "Kabul"],
+    "specialty": { "type": "cheapUnit", "unit": "cavalry", "pct": 25, "blurb": "Cavalry cost 25% less" }
+  }
+}

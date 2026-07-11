@@ -2,7 +2,7 @@
 // as AssetFactory groups (assets.js), raycast picking. Fixed-tilt camera with
 // drag-pan and wheel-zoom.
 import * as THREE from 'three';
-import { createUnitMesh, createCityMesh, createTileProps } from './assets.js';
+import { createUnitMesh, createCityMesh, createTileProps, visualRand } from './assets.js';
 
 const TERRAIN = {
   ocean:     { color: 0x1d4e79, height: 0.06 },
@@ -103,7 +103,12 @@ export function createRenderer(container) {
   function buildTiles() {
     if (tileMesh) { worldGroup.remove(tileMesh); tileMesh.dispose?.(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
-    propMeshes = createTileProps(view.map, tileTop);
+    // roads draw segments toward neighbors; city tiles count as connections
+    const joins = {};
+    for (const city of Object.values(view.cities || {})) {
+      joins[city.y * view.map.width + city.x] = true;
+    }
+    propMeshes = createTileProps(view.map, tileTop, joins);
     for (const m of propMeshes) worldGroup.add(m);
     const { width, height, tiles } = view.map;
     const mat = new THREE.MeshLambertMaterial();
@@ -118,6 +123,11 @@ export function createRenderer(container) {
         m.setPosition(x, spec.height / 2, y);
         tileMesh.setMatrixAt(i, m);
         c.setHex(spec.color);
+        // subtle deterministic per-tile shade variation (terrain art A1.5):
+        // a uniform grid looks artificial; ±3% lightness makes it a world
+        if (tiles[i].t !== 'unknown') {
+          c.offsetHSL(0, 0, (visualRand(x, y, 0) - 0.5) * 0.06);
+        }
         if (tiles[i].river) c.lerp(RIVER_TINT, 0.35);
         if (tiles[i].visible === false) c.lerp(FOG_TINT, 0.45); // explored, not in sight
         tileMesh.setColorAt(i, c);

@@ -45,16 +45,17 @@ if (!params.has('seed') && !params.has('civs') && !params.has('mock')) {
   showSetupScreen();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
-const [terrain, units, techs, buildings, wonders, governments, rules] = await Promise.all([
+const [terrain, units, techs, buildings, wonders, governments, civs, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
   fetchJson('../data/units.json'),
   fetchJson('../data/techs.json'),
   fetchJson('../data/buildings.json'),
   fetchJson('../data/wonders.json'),
   fetchJson('../data/governments.json'),
+  fetchJson('../data/civs.json'),
   fetchJson('../data/rules.json')
 ]);
-const ruleset = { terrain, units, techs, buildings, wonders, governments, rules };
+const ruleset = { terrain, units, techs, buildings, wonders, governments, civs, rules };
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
 const diag = getGraphicsDiagnostics();
@@ -88,27 +89,41 @@ if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
 } else {
   const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
-  const CIV_ROSTER = [
-    { name: 'Romans', color: '#3b7dd8', cities: ['Rome', 'Ostia', 'Antium', 'Cumae', 'Pompeii', 'Ravenna', 'Neapolis', 'Verona'] },
-    { name: 'Zulus', color: '#d84a3b', cities: ['Zimbabwe', 'Ulundi', 'Bapedi', 'Hlobane', 'Isandhlwana', 'Intombe', 'Mpondo', 'Ngome'] },
-    { name: 'Egyptians', color: '#d8b13b', cities: ['Thebes', 'Memphis', 'Heliopolis', 'Elephantine', 'Alexandria', 'Byblos', 'Giza', 'Cairo'] },
-    { name: 'Greeks', color: '#3bd875', cities: ['Athens', 'Sparta', 'Corinth', 'Delphi', 'Eretria', 'Pharsalos', 'Argos', 'Mycenae'] },
-    { name: 'Babylonians', color: '#b13bd8', cities: ['Babylon', 'Sumer', 'Uruk', 'Nineveh', 'Ashur', 'Akkad', 'Eridu', 'Lagash'] },
-    { name: 'Mongols', color: '#d8703b', cities: ['Samarkand', 'Bokhara', 'Nishapur', 'Karakorum', 'Kashgar', 'Tabriz', 'Kabul'] },
-    { name: 'Aztecs', color: '#3bc9d8', cities: ['Tenochtitlan', 'Teotihuacan', 'Tlatelolco', 'Texcoco', 'Tlaxcala', 'Xochicalco', 'Tlacopan'] }
-  ];
-  const civs = Math.min(CIV_ROSTER.length, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
-  humans = Math.min(civs, Math.max(1, parseInt(params.get('humans') || '1', 10) || 1));
+  const civCount = Math.min(7, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
+  humans = Math.min(civCount, Math.max(1, parseInt(params.get('humans') || '1', 10) || 1));
+
+  // Which civilizations play: player 1's pick (?civ=romans) first, the rest
+  // drawn from data/civs.json in a seed-shuffled order — same seed, same
+  // opponents, so games stay reproducible from the URL alone.
+  const roster = Object.keys(civs).sort();
+  let shuffleRng = seed;
+  const shuffled = roster.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    shuffleRng = (shuffleRng * 1103515245 + 12345) % 2147483648;
+    const j = shuffleRng % (i + 1);
+    const tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+  }
+  const picked = params.get('civ');
+  const lineup = picked && civs[picked]
+    ? [picked].concat(shuffled.filter(id => id !== picked))
+    : shuffled;
+
   const playerDefs = [];
-  for (let i = 0; i < civs; i++) {
-    playerDefs.push({ id: 'p' + (i + 1), ...CIV_ROSTER[i], human: i < humans });
-    cityNamesByPlayer['p' + (i + 1)] = CIV_ROSTER[i].cities;
+  for (let i = 0; i < civCount; i++) {
+    const civId = lineup[i];
+    playerDefs.push({
+      id: 'p' + (i + 1), civ: civId,
+      name: civs[civId].name, color: civs[civId].color,
+      human: i < humans
+    });
+    cityNamesByPlayer['p' + (i + 1)] = civs[civId].cities;
   }
   initialState = createEngine(ruleset).createGame({
     seed, options: { width: 80, height: 50, players: playerDefs }
   });
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
-  history.replaceState(null, '', `?seed=${seed}&civs=${civs}&humans=${humans}`);
+  history.replaceState(null, '',
+    `?seed=${seed}&civs=${civCount}&humans=${humans}${picked && civs[picked] ? `&civ=${picked}` : ''}`);
 }
 
 // --- wiring ------------------------------------------------------------------

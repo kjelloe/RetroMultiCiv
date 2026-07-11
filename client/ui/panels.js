@@ -1,6 +1,6 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
-import { workedTiles, candidateTiles, tileYields } from '../../engine/cities.js';
+import { workedTiles, candidateTiles, tileYields, itemCost } from '../../engine/cities.js';
 import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
@@ -103,10 +103,12 @@ export function initPanels(ctx) {
     const current = me.government === undefined ? 'despotism' : me.government;
     const label = document.createElement('span');
     label.id = 'gov-label';
-    label.textContent = me.revolutionTurns !== undefined
-      ? `⚡ Anarchy — ${me.revolutionTurns} turn${me.revolutionTurns > 1 ? 's' : ''} until ${governments[me.pendingGovernment].name} · `
-      : `🏛 ${governments[current].name}`
-        + ` (rates ≤ ${governments[current].maxRate}%) · `;
+    const myCiv = me.civ !== undefined && session.ruleset.civs ? session.ruleset.civs[me.civ] : undefined;
+    const specialty = myCiv && myCiv.specialty ? ` · ★ ${myCiv.specialty.blurb}` : '';
+    label.textContent = (me.revolutionTurns !== undefined
+      ? `⚡ Anarchy — ${me.revolutionTurns} turn${me.revolutionTurns > 1 ? 's' : ''} until ${governments[me.pendingGovernment].name}`
+      : `🏛 ${governments[current].name} (rates ≤ ${governments[current].maxRate}%)`)
+      + specialty + ' · ';
     govRow.appendChild(label);
     if (me.revolutionTurns === undefined) {
       for (const id of Object.keys(governments)) {
@@ -236,6 +238,9 @@ export function initPanels(ctx) {
     const surplus = totals.food - city.pop * 2;
     const threshold = 10 * (city.pop + 1);
     const def = itemDef(city.producing);
+    // the civ-effective cost (specialties discount some units/buildings)
+    const defCost = itemCost(city.producing.kind, city.producing.id, def,
+      state.players[city.owner], session.ruleset);
     const mood = cityMood(state, city, session.ruleset);
     const canSpecialize = mood.entertainers > 0 && city.pop >= 5;
     // the worker set as tile indices (manual when set, else the greedy picks)
@@ -243,7 +248,7 @@ export function initPanels(ctx) {
       ? city.workers.slice()
       : worked.filter(w => !w.center).map(w => w.y * state.map.width + w.x);
     // rush-buy: flat gold per missing shield (wonders cost more)
-    const missing = def.cost - city.shields;
+    const missing = defCost - city.shields;
     const buyRate = city.producing.kind === 'wonder'
       ? session.ruleset.rules.buyGoldPerShieldWonder : session.ruleset.rules.buyGoldPerShield;
     const buyPrice = missing * buyRate;
@@ -259,8 +264,8 @@ export function initPanels(ctx) {
       + `· box ${city.food}/${threshold}</div>`
       + `<div class="grow">${surplus > 0
         ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns` : 'no growth'}</div>`
-      + `<div>building: ${def.name} <span class="ys">${city.shields}/${def.cost}</span>`
-      + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((def.cost - city.shields) / totals.shields))} turns)` : '')
+      + `<div>building: ${def.name} <span class="ys">${city.shields}/${defCost}</span>`
+      + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
       + buyHtml
       + '</div>'
       + `<div>${(city.buildings || []).length
@@ -399,8 +404,10 @@ export function initPanels(ctx) {
     for (const id of Object.keys(units).sort()) {
       const u = units[id];
       if (u.tech !== '' && !me.techs.includes(u.tech)) { lockedUnits.push(id); continue; }
+      const cost = itemCost('unit', id, u, me, session.ruleset);
       addOption({ kind: 'unit', id },
-        `${u.name} · <span class="ys">${u.cost}⚒${eta(u.cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`);
+        `${u.name} · <span class="ys">${cost}⚒${eta(cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`
+        + (cost < u.cost ? ' <span class="yf">★</span>' : ''));
     }
     for (const id of lockedUnits.sort((a, b) => byTechLevel(a, b, units))) {
       addLocked(`${units[id].name} · ${units[id].cost}⚒ · ${units[id].attack}/${units[id].defense}/${units[id].moves}`, units[id].tech);
@@ -412,8 +419,10 @@ export function initPanels(ctx) {
       const b = buildings[id];
       if ((city.buildings || []).includes(id)) continue;
       if (b.tech !== '' && !me.techs.includes(b.tech)) { lockedBuildings.push(id); continue; }
+      const cost = itemCost('building', id, b, me, session.ruleset);
       addOption({ kind: 'building', id },
-        `${b.name} · <span class="ys">${b.cost}⚒${eta(b.cost, 'building')}</span> · upkeep ${b.maintenance}`,
+        `${b.name} · <span class="ys">${cost}⚒${eta(cost, 'building')}</span> · upkeep ${b.maintenance}`
+        + (cost < b.cost ? ' <span class="yf">★</span>' : ''),
         effectText(b) || 'no effect implemented yet');
     }
     for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {

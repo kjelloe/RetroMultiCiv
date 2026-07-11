@@ -57,6 +57,30 @@ function wonderInCity(state, city, wonderId, ruleset) {
   return wonderActive(state, wonderId, ruleset) && state.wonders[wonderId] === city.id;
 }
 
+// The effective shield cost of an item for a player — civilization
+// specialties (data/civs.json) discount one unit or building type.
+function itemCost(kind, id, def, player, ruleset) {
+  if (!player || player.civ === undefined || ruleset.civs === undefined) return def.cost;
+  const civ = ruleset.civs[player.civ];
+  const spec = civ === undefined ? undefined : civ.specialty;
+  if (spec === undefined) return def.cost;
+  if (kind === 'unit' && spec.type === 'cheapUnit' && spec.unit === id) {
+    return def.cost - idiv(def.cost * spec.pct, 100);
+  }
+  if (kind === 'building' && spec.type === 'cheapBuilding' && spec.building === id) {
+    return def.cost - idiv(def.cost * spec.pct, 100);
+  }
+  return def.cost;
+}
+
+// Does this player's civilization field veterans of the given unit type?
+function civVeteran(player, unitId, ruleset) {
+  if (!player || player.civ === undefined || ruleset.civs === undefined) return false;
+  const civ = ruleset.civs[player.civ];
+  const spec = civ === undefined ? undefined : civ.specialty;
+  return spec !== undefined && spec.type === 'veteranUnit' && spec.unit === unitId;
+}
+
 // Sum a percentage effect (e.g. taxBonus, sciBonus) over a city's buildings.
 function effectPct(city, ruleset, key) {
   let total = 0;
@@ -278,7 +302,8 @@ function buyProduction(state, cmd, ruleset) {
   else if (prod.kind === 'building') def = ruleset.buildings[prod.id];
   else if (prod.kind === 'wonder') def = ruleset.wonders[prod.id];
   if (!def) return { ok: false, reason: 'badItem' };
-  const missing = def.cost - city.shields;
+  const cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset);
+  const missing = cost - city.shields;
   if (missing <= 0) return { ok: false, reason: 'alreadyComplete' };
   const rate = prod.kind === 'wonder'
     ? ruleset.rules.buyGoldPerShieldWonder : ruleset.rules.buyGoldPerShield;
@@ -286,7 +311,7 @@ function buyProduction(state, cmd, ruleset) {
   const player = state.players[cmd.playerId];
   if (player.gold < price) return { ok: false, reason: 'notEnoughGold' };
   player.gold = player.gold - price;
-  city.shields = def.cost;
+  city.shields = cost; // the civ-effective cost, so completion triggers at the wrap
   return { ok: true, events: [{ type: 'productionBought', cityId: city.id, price, item: prod }] };
 }
 
@@ -344,16 +369,19 @@ function processCities(state, ruleset, events) {
 
     city.shields = city.shields + yields.shields;
     const prod = city.producing;
+    const owner = state.players[city.owner];
     if (prod.kind === 'unit') {
       const unitType = ruleset.units[prod.id];
-      if (city.shields >= unitType.cost) {
-        city.shields = city.shields - unitType.cost;
+      const cost = itemCost('unit', prod.id, unitType, owner, ruleset);
+      if (city.shields >= cost) {
+        city.shields = city.shields - cost;
         const unitId = 'u' + state.nextUnitId;
         state.nextUnitId = state.nextUnitId + 1;
         state.units[unitId] = {
           id: unitId, type: prod.id, owner: city.owner,
           x: city.x, y: city.y, moves: unitType.moves,
-          fortified: false, veteran: hasBuilding(city, 'barracks'),
+          fortified: false,
+          veteran: hasBuilding(city, 'barracks') || civVeteran(owner, prod.id, ruleset),
           home: cityId
         };
         reveal(state, city.owner, city.x, city.y, 1);
@@ -361,8 +389,9 @@ function processCities(state, ruleset, events) {
       }
     } else if (prod.kind === 'building') {
       const def = ruleset.buildings[prod.id];
-      if (city.shields >= def.cost) {
-        city.shields = city.shields - def.cost;
+      const cost = itemCost('building', prod.id, def, owner, ruleset);
+      if (city.shields >= cost) {
+        city.shields = city.shields - cost;
         if (city.buildings === undefined) city.buildings = [];
         city.buildings.push(prod.id);
         city.producing = { kind: 'unit', id: 'militia' };
@@ -390,5 +419,5 @@ function processCities(state, ruleset, events) {
 export {
   foundCity, setProduction, setWorkers, buyProduction, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
-  wonderActive, wonderInCity, effectPct
+  wonderActive, wonderInCity, effectPct, itemCost, civVeteran
 };

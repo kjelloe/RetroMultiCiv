@@ -67,7 +67,7 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
   try {
     const port = server.address().port;
     // ?e2e=1 founds a city and fills the city + research panels (see main.js)
-    const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&diag=1&e2e=1`);
+    const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&diag=1&e2e=1&civ=romans`);
     assert.ok(dom.length > 0, 'browser produced no DOM');
     assert.match(dom, /turn 1 · 4000 BC · Romans/, 'HUD must show the initial turn status');
     assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
@@ -118,11 +118,15 @@ test('browser hotseat: ending the turn hands off to the second human behind an o
     try {
       const port = server.address().port;
       // ?e2e=2 ends player 1's turn (see main.js); player 2 is human
-      const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&civs=2&humans=2&e2e=2`);
+      const dom = await dumpDom(chromium, `http://127.0.0.1:${port}/client/?seed=12345&civs=2&humans=2&e2e=2&civ=romans`);
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
-      assert.match(dom, /Zulus — your turn/, 'the hand-off screen must name the incoming player');
+      // player 2's civ is seed-shuffled — name it dynamically from the dump
+      const incoming = dom.match(/id="handoff-title"[^>]*>([^<]+) — your turn</);
+      assert.ok(incoming, 'the hand-off screen must name the incoming player');
+      assert.notStrictEqual(incoming[1], 'Romans', 'the incoming player is NOT player 1');
       assert.match(dom, /id="handoff-screen" class=""/, 'the opaque cover must be visible (not .hidden)');
-      assert.match(dom, /Zulus · Despotism/, 'beneath the cover, the HUD already shows the new viewpoint');
+      assert.ok(dom.includes(`${incoming[1]} · Despotism`),
+        'beneath the cover, the HUD already shows the new viewpoint');
     } finally {
       server.close();
     }

@@ -6,5 +6,6 @@ module.exports = {
   buildings: require('../data/buildings.json'),
   wonders: require('../data/wonders.json'),
   governments: require('../data/governments.json'),
+  civs: require('../data/civs.json'),
   rules: require('../data/rules.json')
 };

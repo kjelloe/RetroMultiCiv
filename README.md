@@ -113,6 +113,14 @@ plant woods, raise **fortresses**, and lay **railroads**.
 passes the keyboard between turns behind a fully opaque hand-off screen —
 each player sees only their own fog of war, through the exact per-player
 view filter the multiplayer server will use later.
+Pick from the **full Civ 1 roster of 14 civilizations**, each with a
+historic city list and a light specialty (Roman legions cost less, Zulu
+militia are born veterans, Babylonians start with Alphabet, Aztec
+tribute gold…); opponents are drawn seed-deterministically, so a URL still
+reproduces the exact game. And the world got its first procedural terrain
+detail pass: shade-varied tiles, scattered forests, rocky hills,
+snow-capped peaks, ground scrub, and roads that visibly connect to
+neighboring roads and cities.
 105 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
 panels, and verify the hotseat hand-off. Next: hotseat playtest, then
