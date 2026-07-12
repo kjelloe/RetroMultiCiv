@@ -187,6 +187,26 @@ unit after End Turn.
   irrigate worked tiles of owned cities (if legal) before roads; prefer
   paving inside the fat cross of an owned city. Changes AI-vs-AI outcomes →
   re-record the simulation goldens when picked up.
+- **AI expansion — target 5–10 cities by game end** (goal set 2026-07-12;
+  nightly telemetry shows civs averaging only 2.2–2.5 cities at turn
+  400, where Civ 1 AIs run 5–10). The suspects, in likely-impact order:
+  1. `goodCitySpot` only accepts grassland/plains — Civ 1 AIs also found
+     on hills/rivers/coast; widen the terrain set (river tiles
+     especially).
+  2. Settlers only check the tile they STAND on — add a small explored-
+     radius site search and walk to the best spot (rng-free: scan in
+     sortIds-style deterministic order) instead of paving the moment the
+     current tile disqualifies.
+  3. `towardBetterLand` scores any tile with a unit on it 0 — friendly
+     traffic jams strand settlers around the capital; only enemy units
+     and cities should block.
+  4. The settler cap `2 + cities/4` throttles small empires — consider
+     `2 + cities/2`, or exempting settlers en route to a chosen site.
+  5. Paving competes with expanding: prefer founding over roadwork
+     whenever a reachable valid site exists.
+  Watch the units-per-civ tripwire and the stagnant-civ counter in the
+  soak telemetry to confirm each lever; batch levers + one golden
+  re-record.
 
 ## Remaining wonder effects (for reference)
 

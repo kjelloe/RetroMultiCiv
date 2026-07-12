@@ -1,31 +1,14 @@
-// three.js low-poly renderer: tiles as flat colored boxes, units and cities
-// as AssetFactory groups (assets.js), raycast picking. Fixed-tilt camera with
-// drag-pan and wheel-zoom.
+// three.js low-poly renderer: one continuous faceted terrain surface
+// (terrain.js, specs/terrain-mesh.md), units and cities as AssetFactory
+// groups (assets.js), raycast picking. Fixed-tilt camera with drag-pan and
+// wheel-zoom.
 import * as THREE from 'three';
-import { createUnitMesh, createCityMesh, createTileProps, visualRand } from './assets.js';
-
-const TERRAIN = {
-  ocean:     { color: 0x1d4e79, height: 0.06 },
-  grassland: { color: 0x4c9a3f, height: 0.30 },
-  plains:    { color: 0xc2b46b, height: 0.30 },
-  forest:    { color: 0x2d6a35, height: 0.42 },
-  hills:     { color: 0x96854f, height: 0.58 },
-  mountains: { color: 0x8c8c94, height: 0.95 },
-  desert:    { color: 0xd9c27e, height: 0.28 },
-  tundra:    { color: 0xb0b8a8, height: 0.26 },
-  arctic:    { color: 0xe8eef0, height: 0.32 },
-  swamp:     { color: 0x5d7a5a, height: 0.22 },
-  jungle:    { color: 0x3f7d46, height: 0.44 },
-  unknown:   { color: 0x0a0e16, height: 0.10 }
-};
-const RIVER_TINT = new THREE.Color(0x3a7ac8);
-const FOG_TINT = new THREE.Color(0x0a0e16);
-const TILE_GAP = 0.98; // slight seam between boxes for the retro grid look
+import { createUnitMesh, createCityMesh, createTileProps } from './assets.js';
+import { buildTerrain, terrainBaseColor } from './terrain.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
 export function terrainColor(terrainId) {
-  const spec = TERRAIN[terrainId] || TERRAIN.grassland;
-  return '#' + spec.color.toString(16).padStart(6, '0');
+  return terrainBaseColor(terrainId);
 }
 
 export function createRenderer(container) {
@@ -63,16 +46,14 @@ export function createRenderer(container) {
 
   // --- scene content, rebuilt by setViewState ---
   let view = null;
-  let tileMesh = null;            // one InstancedMesh, instanceId = y * width + x
+  let terrain = null;             // { mesh, tileTop, dispose } from terrain.js
   const unitMeshes = new Map();   // unitId -> mesh   (client-only; Map is fine outside engine/)
   const cityMeshes = new Map();
   const worldGroup = new THREE.Group();
   scene.add(worldGroup);
 
-  const geoBox = new THREE.BoxGeometry(1, 1, 1);
-
   const hoverMarker = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, 1.02, 1.02)),
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, 0.16, 1.02)),
     new THREE.LineBasicMaterial({ color: 0xffffff })
   );
   hoverMarker.visible = false;
@@ -95,14 +76,16 @@ export function createRenderer(container) {
   });
 
   function tileTop(x, y) {
-    const t = view.map.tiles[y * view.map.width + x];
-    return (TERRAIN[t.t] || TERRAIN.grassland).height;
+    return terrain ? terrain.tileTop(x, y) : 0;
   }
 
   let propMeshes = [];
   function buildTiles() {
-    if (tileMesh) { worldGroup.remove(tileMesh); tileMesh.dispose?.(); }
+    if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
+    // the continuous surface: heights, palette facets, river tint, fog dim
+    terrain = buildTerrain(view.map);
+    worldGroup.add(terrain.mesh);
     // roads draw segments toward neighbors; city tiles count as connections
     const joins = {};
     for (const city of Object.values(view.cities || {})) {
@@ -110,32 +93,6 @@ export function createRenderer(container) {
     }
     propMeshes = createTileProps(view.map, tileTop, joins);
     for (const m of propMeshes) worldGroup.add(m);
-    const { width, height, tiles } = view.map;
-    const mat = new THREE.MeshLambertMaterial();
-    tileMesh = new THREE.InstancedMesh(geoBox, mat, width * height);
-    const m = new THREE.Matrix4();
-    const c = new THREE.Color();
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const i = y * width + x;
-        const spec = TERRAIN[tiles[i].t] || TERRAIN.grassland;
-        m.makeScale(TILE_GAP, spec.height, TILE_GAP);
-        m.setPosition(x, spec.height / 2, y);
-        tileMesh.setMatrixAt(i, m);
-        c.setHex(spec.color);
-        // subtle deterministic per-tile shade variation (terrain art A1.5):
-        // a uniform grid looks artificial; ±3% lightness makes it a world
-        if (tiles[i].t !== 'unknown') {
-          c.offsetHSL(0, 0, (visualRand(x, y, 0) - 0.5) * 0.06);
-        }
-        if (tiles[i].river) c.lerp(RIVER_TINT, 0.35);
-        if (tiles[i].visible === false) c.lerp(FOG_TINT, 0.45); // explored, not in sight
-        tileMesh.setColorAt(i, c);
-      }
-    }
-    tileMesh.instanceMatrix.needsUpdate = true;
-    tileMesh.instanceColor.needsUpdate = true;
-    worldGroup.add(tileMesh);
   }
 
   function buildUnits() {
@@ -211,13 +168,14 @@ export function createRenderer(container) {
     pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
     const targets = [...unitMeshes.values(), ...cityMeshes.values()];
-    if (tileMesh) targets.push(tileMesh);
+    if (terrain) targets.push(terrain.mesh);
     // recursive: units/cities are asset groups — the hit lands on a child
     const hit = raycaster.intersectObjects(targets, true)[0];
     if (!hit) return null;
-    if (hit.object === tileMesh) {
-      const x = hit.instanceId % view.map.width;
-      const y = Math.floor(hit.instanceId / view.map.width);
+    if (terrain && hit.object === terrain.mesh) {
+      // continuous surface: the hit point IS the tile (tiles centered on ints)
+      const x = Math.min(view.map.width - 1, Math.max(0, Math.round(hit.point.x)));
+      const y = Math.min(view.map.height - 1, Math.max(0, Math.round(hit.point.z)));
       // a unit standing on this tile is picked with it
       const unit = Object.values(view.units || {}).find(u => u.x === x && u.y === y);
       return { tile: { x, y }, unitId: unit?.id, cityId: undefined };
@@ -256,9 +214,8 @@ export function createRenderer(container) {
     } else if (hoverCb && view) {
       const pick = castAt(e.clientX, e.clientY);
       if (pick) {
-        hoverMarker.position.set(pick.tile.x, tileTop(pick.tile.x, pick.tile.y) / 2, pick.tile.y);
-        hoverMarker.scale.setScalar(1);
-        hoverMarker.scale.y = tileTop(pick.tile.x, pick.tile.y);
+        // a thin frame floating just above the surface at the tile center
+        hoverMarker.position.set(pick.tile.x, tileTop(pick.tile.x, pick.tile.y) + 0.06, pick.tile.y);
         hoverMarker.visible = true;
       } else {
         hoverMarker.visible = false;

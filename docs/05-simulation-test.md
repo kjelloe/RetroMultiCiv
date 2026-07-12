@@ -79,7 +79,9 @@ the run short of 400.
 - ownership: every unit/city owner exists in `players`; `home` city, when
   set, exists or the field was cleared.
 - geometry: all coordinates in bounds; land units on land, sea units at sea
-  (transports don't exist yet — revisit); no two cities on one tile.
+  (transports don't exist yet — revisit); no two cities on one tile; no
+  tile holds units of two different owners (moving onto an enemy is always
+  an attack, so a mixed stack means a movement/combat bug).
 - numbers: gold/bulbs/shields/food ≥ 0; pop ≥ 1; moves ≥ 0; rates are
   multiples of 10 summing to 100 and within the government cap;
   `revolutionTurns` implies government anarchy; workers arrays ≤ pop with
@@ -103,6 +105,11 @@ the run short of 400.
   legitimately (the flag refreshes next wrap).
 - capital/corruption sanity: `capitalOf` resolves for every player with
   cities.
+- `playerIncome` computes sane integers (bulbs/maintenance ≥ 0) on every
+  organic state. (Strict forecast==applied is not well-defined across the
+  wrap: improvements finish and cities grow/build before income applies.)
+- manual worker lists hold real candidate tiles (stronger than the cheap
+  bounds check — growth appends candidates, capture clears the list).
 - a one-line human summary per checkpoint in the test output
   (`turn 200: 14 cities, 31 units, techs 9/6/11/8, scores …`) so soak logs
   are readable.
@@ -131,11 +138,29 @@ The assertion message carries seed, turn, player, and the offending entity.
 
 ## 6. Soak mode (`tools/soak.js`)
 
-`node tools/soak.js --seeds 25 --turns 400 --civs 4 [--size huge]`
-— many seeds, invariants always on, goldens off (seeds vary), summary table
-(seed, end turn, winner, checkpoint hashes, ms/turn). Env
-`MULTICIV_SIM_SEEDS` lets CI nightlies widen the net without touching the
-default suite. Failures produce the same artifacts.
+`node tools/soak.js --seeds 25 --turns 400 --civs 4 [--size small]`
+— many seeds, invariants always on, goldens off (seeds vary). Env
+`MULTICIV_SIM_SEEDS` lets CI widen the net without touching the default
+suite. Failures produce the same artifacts. Flags (header has the full
+list):
+
+- `--jobs N` — parallel seed processes (default cores−1; ~12× on the dev
+  machine: 25 God-Emperor seeds in ~70 s wall).
+- `--stats file.jsonl` — one telemetry row per checkpoint plus a result
+  row per seed (`snapshot()` in sim-driver: per-player government, cities,
+  units, techs, gold, score). Append-only JSONL, parallel-safe — chart
+  balance drift across engine versions.
+- `--difficulty trainer..godemperor` — the client's contentCitizens table;
+  godemperor (2) is the disorder/happiness stress configuration.
+- `--natural` — standard endYear, and every seed must reach a victory by
+  the turn limit or the seed FAILS (victory robustness across worlds).
+- `--no-chaos` — disable the chaos layer (§11).
+
+**Nightly** (`.github/workflows/nightly-soak.yml`, also runnable on
+demand via workflow_dispatch): full test suite + 25-seed God-Emperor soak
++ 25-seed natural-victory soak, telemetry and failure artifacts uploaded
+from `debugging/sim/`. The repo needs no npm install — the engine and
+tests have zero dependencies, and the browser e2e self-skips on runners.
 
 ## 7. Runtime budget (measured — the design estimate was 100× off)
 
@@ -240,3 +265,28 @@ AI never issued `setGovernment`/`setRates`/`buy`/`pillage`/`disband`/
   that ends the tech drought (self-healing, 602 → 193 units on seed 12).
   The golden seed's hashes were unaffected: its civs never enter the
   drought, so the branch is purely a safety net there.
+
+### Chaos backlog — commands it should learn next
+
+Each addition widens organic coverage; each changes game evolution, so
+batch them and re-record goldens once per batch:
+
+- **setProduction** — random kind/id switches: exercises category-switch
+  shield halving, `wonderAlreadyBuilt`/`techRequired` rejections, and civ
+  `cheapUnit`/`cheapBuilding` cost hooks mid-game.
+- **moveUnit** — short random walks: chaos-initiated combat, ZOC
+  rejections, and attacks the AI's own targeting would never pick (combat
+  consumes engine RNG, so this reshuffles everything downstream — the
+  biggest re-record).
+- **foundCity** — settlers founding in odd spots: spacing/terrain
+  validation and duplicate-name handling on organic states.
+- **startWork variety** — irrigate/mine/fortress/railroad attempts (today
+  only the AI's roads run): `noWater`, `techRequired`, transform paths.
+- **setWorkers with taxmen/scientists** — the specialist arm (pop ≥ 5
+  validation, entertainer/taxman/scientist mood arithmetic under stress);
+  today chaos only assigns worker tiles or resets to auto.
+- **setGovernment communism** — the one legal government chaos never
+  attempts (fixed corruption distance is otherwise dormant in sims).
+- **driver-level, not a command**: a mid-run save/load round-trip —
+  JSON-serialize the state, reload, and the hash must be unchanged (the
+  browser save path, exercised on organic late-game states).

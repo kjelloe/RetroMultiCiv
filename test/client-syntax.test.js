@@ -23,6 +23,7 @@ const CLIENT_MODULES = [
   'client/renderer/renderer.js',
   'client/renderer/three/index.js',
   'client/renderer/three/assets.js',
+  'client/renderer/three/terrain.js',
   'engine/ai.js',
   'engine/barbarians.js',
   'engine/cities.js',

@@ -81,7 +81,9 @@ with the required SwiftShader flags (WebGL has no GPU here and fails without
 them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 `debugging/gallery.html` shows every unit silhouette, city tier, and tile
-prop through the real renderer — screenshot it after any assets.js change.
+prop through the real renderer — screenshot it after any assets.js or
+terrain.js change (terrain.js = the continuous faceted surface; explicit
+per-face normals, NOT flatShading, which needs a WebGL1 extension).
 **Playtest diagnostics:** Shift+D in the client downloads a replayable
 recording (initial state + every human command + per-round state hashes;
 `?debug=1` hashes after every command). `node tools/replay.js <file>`
@@ -99,7 +101,10 @@ every turn, golden checkpoint
 hashes at 100/200/300/400 = phase-5 Luau anchors; ~45 s; design + golden
 re-record process in `docs/05-simulation-test.md`; failure artifacts in
 `debugging/sim/` are drag-droppable saves + `tools/replay.js`-bisectable
-diags; wide net: `node tools/soak.js --seeds 25`), and
+diags; wide net: `node tools/soak.js --seeds 25` — parallel via `--jobs`,
+telemetry via `--stats`, stress via `--difficulty godemperor`, victory
+check via `--natural`; nightly CI runs the last two,
+`.github/workflows/nightly-soak.yml`), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium (`?e2e=1` founds a city and fills the panels) and asserts
 the HUD reaches "turn 1", the panels carry real content, and no error
@@ -119,8 +124,10 @@ the flag are exempt from game-end checks (this keeps scenario hashes stable).
 Include `buildings: []` on cities, `wonders: {}`, `cityOrder`, and the
 `nextUnitId`/`nextCityId` counters; players need `bulbs`/`taxRate`/`sciRate`
 to avoid lazy-default writes changing hashes mid-scenario.
-The terrain list in `test/mock-state.test.js` and the renderer's TERRAIN map
-must stay in sync with `docs/01-game-spec.md` §3.1 (later: with `data/terrain.json`).
+The renderer's TERRAIN table lives in `client/renderer/three/terrain.js`
+(heights + palettes); `test/mock-state.test.js` asserts it covers every
+`data/terrain.json` id plus `unknown` — a new terrain needs an entry there
+or it silently renders as grassland.
 
 ## Workflow
 

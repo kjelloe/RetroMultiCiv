@@ -35,3 +35,17 @@ test('mock state: global fields are sane', () => {
   assert.ok(Number.isInteger(state.rngState), 'rngState must be an integer');
   assert.ok(Number.isInteger(state.turn) && state.turn >= 1);
 });
+
+// terrain.js is browser ESM (imports 'three' via the import map), so the
+// coverage check reads its TERRAIN table from source: a terrain added to
+// data/terrain.json without a height/palette entry would silently render
+// as grassland otherwise.
+test('renderer terrain table covers every ruleset terrain (terrain.js)', () => {
+  const src = fs.readFileSync(
+    path.join(__dirname, '..', 'client', 'renderer', 'three', 'terrain.js'), 'utf8');
+  const table = src.match(/const TERRAIN = \{([\s\S]*?)\n\};/);
+  assert.ok(table, 'terrain.js must define its TERRAIN table');
+  const ids = [...table[1].matchAll(/^\s*([a-z]+):\s*\{/gm)].map(m => m[1]);
+  for (const t of TERRAINS) assert.ok(ids.includes(t), `terrain.js TERRAIN missing "${t}"`);
+  assert.ok(ids.includes('unknown'), 'terrain.js must style fogged (unknown) tiles');
+});

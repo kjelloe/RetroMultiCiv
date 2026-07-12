@@ -310,6 +310,19 @@ the designer ally's plan:
   angular peaks on mountains, sparse scrub on open ground, and **connected
   roads** — segments drawn toward each neighboring road/rail/city tile
   instead of a generic cross. All instanced, all fog-dimmed per instance.
+- ✅ **A1.75 — Continuous low-poly terrain surface** *(done 2026-07-12, from
+  `specs/terrain-mesh.md`)*: the instanced tile boxes are replaced by ONE
+  displaced, non-indexed `BufferGeometry` (`client/renderer/three/terrain.js`)
+  — per-face palette colors (3 shades per terrain) + explicit per-face
+  normals give the faceted tabletop look WITHOUT `flatShading` (that flag
+  needs the derivatives extension on WebGL1; explicit normals need nothing).
+  Water sits in a sunken basin, coasts ramp, hills mound, mountains ridge
+  under their peak props, deserts get sine dunes. `tileTop(x, y)` now reads
+  the surface height at the tile-center vertex, so units/cities/props/
+  markers all sit on the landscape. Picking raycasts the surface and rounds
+  `hit.point` to tile coords. All displacement through `visualRand` —
+  deterministic, nothing in state. Verified WebGL2 + WebGL1
+  (`--disable-es3-gl-context`) + gallery + browser e2e.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel
