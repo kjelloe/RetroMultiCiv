@@ -124,7 +124,7 @@ docs/06 §3 protocol over a WebSocket. GOLDEN-SAFE: no engine changes.
   served-by-server case to test/browser.test.js (self-skips without
   chromium, like the rest). Verify goldens did not move.
 
-## A10 — Phase-3 slice 4: docs sync + server e2e polish (after A9)
+## A10 — Phase-3 slice 4: docs sync + server e2e polish (after A9)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — docs/03 Phase-3 slices ✅ + Phase-4→docs/08 pointer; docs/06 status + §8 slice statuses; docs/02 server/ layout (game.js/protocol.js) + §5 ref fix; CLAUDE.md server run-path + server/browser test layers; README + plan-update 133/124→135 + server paragraphs; sweep clean (no stale server names). dumpDomLive left in place (works). Suite 135/135; golden-safe]
 
 docs/03 phase-3 checkboxes with dates; docs/06 slice statuses; CLAUDE.md
 "Testing & running" gains the `node server/index.js` path next to the

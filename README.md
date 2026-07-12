@@ -121,10 +121,15 @@ reproduces the exact game. And the world got its first procedural terrain
 detail pass: shade-varied tiles, scattered forests, rocky hills,
 snow-capped peaks, ground scrub, and roads that visibly connect to
 neighboring roads and cities.
-124 headless tests including hash-locked JSON scenarios, an AI-determinism
+135 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
-panels, and verify the hotseat hand-off. Next: hotseat playtest, then
-phase 3 — the backend-authoritative server.
+panels, verify the hotseat hand-off, and play a turn through the
+authoritative server over a WebSocket. The optional Node server
+(`node server/index.js`, then open the client with `?server=1`) now runs the
+same engine authoritatively: the browser becomes a thin client that sends
+commands and renders the per-player filtered views the server pushes, with
+save/resume and reconnect on the server side. Next: the socket playtest, then
+phase 4 — LAN multiplayer.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

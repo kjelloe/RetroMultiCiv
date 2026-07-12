@@ -68,12 +68,17 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 ## Testing & running
 
 `node --test test/` — headless, no deps (the dump integration test self-skips
-if the dump is absent). Play: `python3 -m http.server 8123` from the **repo
-root**, open `http://localhost:8123/client/` (bare URL = setup screen;
-`?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat, `?civ=romans`,
-`?size=xsmall..huge`, `?difficulty=trainer..godemperor`, `?debug=1` per-command hashes,
-`?mock=1` static state). `engine/` and `shared/` are ESM (per-dir
-`package.json` type markers) so they load in both browser and Node; CJS test
+if the dump is absent). Play (local engine): `python3 -m http.server 8123` from
+the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
+screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
+`?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
+`?debug=1` per-command hashes, `?mock=1` static state). Play (phase-3
+authoritative server): `node server/index.js [--port 8123] [--seed N]
+[--civs N] [--size medium] [--game saves/<id>.json] [--no-save]` hosts the
+client AND the game; open `http://localhost:8123/client/?server=1` — the
+client joins over `/ws` instead of running its own engine (hotseat stays
+local-only). `engine/` and `shared/` are ESM (per-dir `package.json` type
+markers) so they load in both browser and Node; `server/` is ESM too; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.
 
 **Visual verification without a GPU:** use `debugging/screenshot.sh [out.png]
@@ -105,11 +110,16 @@ re-record process in `docs/05-simulation-test.md`; failure artifacts in
 diags; wide net: `node tools/soak.js --seeds 25` — parallel via `--jobs`,
 telemetry via `--stats`, stress via `--difficulty godemperor`, victory
 check via `--natural`; nightly CI runs the last two,
-`.github/workflows/nightly-soak.yml`), and
+`.github/workflows/nightly-soak.yml`), the **phase-3 server tests**
+(`server-protocol.test.js` — pure frame parse/route/seat-auth/playerId-stamp;
+`server.test.js` — a real `ws` client drives join → play → restart-from-autosave
+→ token reconnect → tamper-reject), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
-headless Chromium (`?e2e=1` founds a city and fills the panels) and asserts
-the HUD reaches "turn 1", the panels carry real content, and no error
-surfaced (self-skips when the browser is absent).
+headless Chromium (`?e2e=1` founds a city and fills the panels; a
+served-by-server case drives `?server=1` through the socket via a live-page
+CDP poll — `dumpDomLive`, since virtual-time `--dump-dom` races the ws join)
+and asserts the HUD reaches "turn 1", the panels carry real content, and no
+error surfaced (self-skips when the browser is absent).
 
 **Mechanics tests are JSON scenarios** in `test/scenarios/` (format documented
 in `test/scenario-runner.js` and docs/02-architecture.md §8) — add a JSON file,

@@ -1,9 +1,9 @@
 # Phase 3 — Authoritative Node server: design
 
-Status: DESIGN (2026-07-12). Implementation slices at the bottom; the
-protocol here supersedes and expands `02-architecture.md` §6 (which stays
-as the summary). Roadmap acceptance: a full game playable through the
-socket; killing and restarting the server resumes from the save; a
+Status: **IMPLEMENTED** (slices 1–4, 2026-07-12; slice 5 = the human socket
+playtest). The protocol here supersedes and expands `02-architecture.md` §6
+(which stays as the summary). Roadmap acceptance: a full game playable through
+the socket; killing and restarting the server resumes from the save; a
 tampering client's hand-crafted commands are rejected server-side.
 
 ## 1. What moves where
@@ -145,16 +145,21 @@ recording that SPANS a server restart.
 
 ## 8. Implementation slices (in order)
 
-1. **[architect]** server/game.js + protocol.js with unit tests — the
+1. ✅ **[architect]** server/game.js + protocol.js with unit tests — the
    authoritative core, no sockets yet (pure function boundary).
-2. **[architect]** server/index.js: ws + static hosting + integration test
-   (boot/join/play/restart-resume).
-3. **[helper-ready]** client session-remote.js + main.js boot switch +
-   async-apply sweep of the ui call sites (mechanical once slice 1 defines
-   the shapes; spec will be an agent-workitems item with exact call-site
-   list).
-4. **[helper-ready]** browser e2e served-by-server case; docs sync (02 §6
-   pointer to this file, roadmap phase-3 checkboxes, plan-update
-   paragraph).
-5. **[human]** playtest through the socket, restart mid-game, judge
-   latency; then phase-3 acceptance is closable.
+   *(`test/server-protocol.test.js`.)*
+2. ✅ **[architect]** server/index.js: ws + static hosting + integration test
+   (boot/join/play/restart-resume). *(`test/server.test.js`.)*
+3. ✅ **[helper]** client session-remote.js + main.js `?server=` boot switch +
+   async-apply sweep of the ui call sites *(2026-07-12 — apply/endTurn are now
+   Promise-based on BOTH sessions; input.js funnel/helpers/GoTo chain, panels
+   3 fns, main e2e all `await`. Client-side shims for filterView omissions
+   (own-player explored/wonders/cityOrder/nextCityId) pending a filterView
+   extension + shim-removal follow-up).*
+4. ✅ **[helper]** browser e2e served-by-server case + docs sync *(2026-07-12 —
+   `dumpDomLive` CDP live-page waiter, since virtual-time `--dump-dom` races
+   the ws join; this file, 02 §6, roadmap phase-3 checkboxes, CLAUDE.md run
+   path, README + plan-update paragraphs).*
+5. ⬜ **[human]** playtest through the socket, restart mid-game, judge
+   latency; then phase-3 acceptance is closable *(open — see
+   `human-workitems.md`).*

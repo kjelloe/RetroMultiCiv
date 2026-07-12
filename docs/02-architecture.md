@@ -100,9 +100,10 @@ multiciv/
 │       └── three/         #   v1: low-poly flat boxes + raycast picking
 │           └── assets.js  #   AssetFactory: all unit/city mesh construction
 ├── server/                # Node adapter (phase 3+) — NOT ported to Lua
-│   ├── index.js           # node:http static hosting + ws game sessions
-│   ├── session.js         # lobby, player slots, command routing
-│   └── persistence.js     # save/load (JSON files)
+│   ├── index.js           # node:http static hosting + ws; thin socket layer
+│   ├── game.js            # authoritative session: state owner, apply/endTurn
+│   │                      #   + AI, diagnostics, seat tokens, atomic save/resume
+│   └── protocol.js        # frame parse/validate + routing (pure functions)
 ├── tools/
 │   ├── json2lua.js        # data/*.json → Roblox ModuleScript tables
 │   ├── wiki2data.js       # local wiki XML dump → data/wiki-extract/ (raw tables)
@@ -212,9 +213,10 @@ StarterPlayerScripts/
 └── GameClient.lua      # input → RemoteEvent commands; renders world
 ```
 
-- The Node `server/session.js` and Roblox `GameServer.lua` play the same role:
-  authenticate command → tag with playerId → `applyCommand` → broadcast.
-  Keeping `session.js` thin makes the Roblox equivalent thin too.
+- The Node server (`server/index.js` socket layer + `server/protocol.js`
+  routing + `server/game.js` state) and Roblox `GameServer.lua` play the same
+  role: authenticate command → stamp playerId → `applyCommand` → broadcast.
+  Keeping the socket/routing layer thin makes the Roblox equivalent thin too.
 - The browser renderer does not port; the Roblox client renders tiles as
   parts/terrain and units as models — but consumes the **same view state and
   events**, which is why those shapes live in `shared/protocol.js`.

@@ -29,6 +29,13 @@ async function replayDiagnostics(diag, ruleset) {
   const { createEngine, deepClone } = await import('../engine/index.js');
   const { runAiTurn } = await import('../engine/ai.js');
   const { hashState } = await import('../shared/statehash.js');
+  if (!diag.initialState) {
+    return {
+      commands: 0, rounds: 0, turn: 0, finalHash: '',
+      problems: ['no initialState — a client in SERVER mode (?server=1) only holds views; '
+        + 'the authoritative recording is inside the server save: replay saves/<gameId>.json instead']
+    };
+  }
   // difficulty etc. are ruleset overrides — apply the ones the game ran with
   if (diag.rulesOverrides !== undefined && Object.keys(diag.rulesOverrides).length > 0) {
     ruleset = Object.assign({}, ruleset, {
@@ -131,7 +138,11 @@ if (require.main === module) {
     console.error('usage: node tools/replay.js <diagnostics.json>');
     process.exit(1);
   }
-  const diag = JSON.parse(fs.readFileSync(file, 'utf8'));
+  let diag = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (diag.format === 'retromulticiv-server-save' && diag.diag) {
+    console.log(`server save (game ${diag.gameId}) — replaying its embedded diagnostics`);
+    diag = diag.diag;
+  }
   if (diag.format !== 'retromulticiv-diagnostics') {
     console.error(`not a diagnostics file (format: ${diag.format}) — use Shift+D in the client, not Shift+S`);
     process.exit(1);

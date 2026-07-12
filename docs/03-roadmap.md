@@ -272,25 +272,39 @@ must reproduce; design in `docs/05-simulation-test.md`, wide-net soak via
 Move the engine out of the page into Node — still one human player, but the
 browser is now a thin client.
 
-- `server/`: `node:http` static hosting + `ws` WebSocket; session owns the state.
-- Client stops calling `applyCommand` directly; sends commands over the socket,
-  receives events + filtered views (protocol in `02-architecture.md` §6).
-- **Explicit contracts from day one** (`specs/plan-feedback.md`): the client
-  sends command envelopes only (`{ commandId, gameId, playerId, type,
-  payload }`); the server authenticates the player, validates, reduces the
-  canonical state, persists, projects per-player views (`filterView` —
-  already leak-tested), and broadcasts. Rejections are structured
-  (`{ type: 'commandRejected', commandId, code, message }` — the engine's
-  reason codes + the client's `REASON_TEXT` map already provide code and
-  message). The client never resolves rules authoritatively.
-- Server-side validation of every command (playerId ownership, legality).
-- Saves move to server disk (`saves/*.json`).
+> 🔶 **Implemented 2026-07-12** (design: [`06-phase3-server.md`](06-phase3-server.md)).
+> Slices 1–4 landed; slice 5 (the human socket playtest) is the remaining item.
+
+- ✅ `server/`: `node:http` static hosting + `ws` WebSocket; `server/game.js`
+  owns the state and mirrors `session.js` (apply/endTurn/AI/diagnostics),
+  `server/protocol.js` parses/routes frames, `server/index.js` boots both.
+- ✅ Client stops calling `applyCommand` directly: `?server=1` selects
+  `client/session-remote.js`, which sends commands over the socket and renders
+  the filtered views the server pushes (protocol in `06-phase3-server.md` §3,
+  summarised in `02-architecture.md` §6).
+- ✅ **Explicit contracts** (`specs/plan-feedback.md`): the client sends
+  command envelopes only (`{ commandId, gameId, token, cmd }`); the server
+  authenticates the seat by token, **stamps the playerId** (a forged one is
+  overwritten then engine-rejected), reduces the canonical state, persists,
+  projects per-player views (`filterView` — leak-tested), and broadcasts.
+  Rejections are structured (`{ t: 'rejected', commandId, code, message }`).
+  The client never resolves rules authoritatively.
+- ✅ Server-side validation of every command (token→seat auth, playerId
+  stamping, engine legality).
+- ✅ Saves move to server disk (atomic `saves/<gameId>.json`), resumed with
+  `--game`; seats/tokens persist so a restarted server honours old tokens.
 
 **Acceptance:** Phase 1 game fully playable through the socket; killing and
-restarting the server resumes from the save; a tampering client (hand-crafted
-illegal commands) is rejected without state corruption.
+restarting the server resumes from the save; a tampering client is rejected
+without state corruption. ✅ The restart-resume and tamper-rejection legs are
+covered by `test/server.test.js` + the served-by-server `test/browser.test.js`
+case; ⬜ the full human socket playtest (latency, mid-game restart) is the
+open acceptance item (see `human-workitems.md`).
 
 ## Phase 4 — LAN multiplayer, reconnection, and resynchronization
+
+> Design draft: [`08-phase4-lan.md`](08-phase4-lan.md) (builds on the phase-3
+> seats/tokens/per-seat-views/save-resume primitives).
 
 - Lobby: named sessions, join by code, slot claiming, ready-up.
 - Turn-based play across machines: active-player highlighting, end-turn
