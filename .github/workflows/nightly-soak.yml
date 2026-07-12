@@ -1,0 +1,44 @@
+# Nightly wide-net simulation soak (docs/05-simulation-test.md §6):
+# the per-commit suite runs one golden seed; this sweeps 25 seeds under the
+# two stress configurations that don't fit the suite budget. No npm install —
+# the repo has zero runtime dependencies for the engine and tests (the
+# browser e2e self-skips without the Playwright cache).
+name: nightly-soak
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Full test suite (incl. golden-seed simulation)
+        run: node --test test/
+
+  soak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: God-Emperor soak — 25 seeds, 400 turns under contentCitizens 2
+        run: node tools/soak.js --seeds 25 --turns 400 --size small --difficulty godemperor --stats debugging/sim/nightly-godemperor.jsonl
+      - name: Natural-rules soak — 25 seeds must each produce a winner
+        if: ${{ !cancelled() }}
+        run: node tools/soak.js --seeds 25 --turns 320 --size small --natural --stats debugging/sim/nightly-natural.jsonl
+      - name: Upload telemetry + failure artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-sim
+          path: debugging/sim/
+          if-no-files-found: ignore
