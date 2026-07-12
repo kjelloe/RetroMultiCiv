@@ -39,7 +39,8 @@ const CLIENT_MODULES = [
   'engine/rng.js',
   'engine/tech.js',
   'engine/visibility.js',
-  'shared/statehash.js'
+  'shared/statehash.js',
+  'shared/gamecode.js'
 ];
 
 test('browser-facing ESM modules parse', () => {
