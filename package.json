@@ -1,0 +1,14 @@
+{
+  "name": "retromulticiv",
+  "private": true,
+  "description": "Browser 4X inspired by classic civilization builders — deterministic engine, authoritative Node server, Roblox Luau port planned. No build step.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/",
+    "server": "node server/index.js",
+    "soak": "node tools/soak.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

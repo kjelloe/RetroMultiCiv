@@ -235,6 +235,10 @@ StarterPlayerScripts/
 
 ## 6. Networking protocol (phase 3–4)
 
+The full phase-3 design — message catalog, seat tokens, playerId
+stamping, persistence/resume, testing plan, implementation slices — lives
+in `06-phase3-server.md`; this section stays as the summary.
+
 WebSocket, JSON messages:
 
 ```

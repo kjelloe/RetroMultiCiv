@@ -149,7 +149,11 @@ list):
 - `--stats file.jsonl` — one telemetry row per checkpoint plus a result
   row per seed (`snapshot()` in sim-driver: per-player government, cities,
   units, techs, gold, score). Append-only JSONL, parallel-safe — chart
-  balance drift across engine versions.
+  balance drift across engine versions. Drag one or more of these logs
+  onto `debugging/stats.html` (static, dependency-free Canvas 2D — no
+  build) for per-seed city/tech/score curves per civ and a summary table
+  (eliminated %, stagnant %, government mix); `?file=<url>` deep-links a
+  same-origin log.
 - `--difficulty trainer..godemperor` — the client's contentCitizens table;
   godemperor (2) is the disorder/happiness stress configuration.
 - `--natural` — standard endYear, and every seed must reach a victory by

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RetroMultiCiv telemetry</title>
+  <style>
+    :root {
+      --bg: #0d1420; --panel: #141d2e; --edge: #26324a;
+      --ink: #cdd8ea; --dim: #7d8aa5; --accent: #4dabf7;
+      --grid: #1e2a40; --axis: #46587c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink);
+                 font: 13px ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    body { padding: 14px 16px 40px; }
+    h1 { font-size: 16px; margin: 0 0 2px; font-weight: 600; }
+    .sub { color: var(--dim); margin: 0 0 12px; }
+    a { color: var(--accent); }
+
+    #drop { border: 1px dashed var(--edge); border-radius: 8px; padding: 14px;
+            background: var(--panel); margin-bottom: 14px; }
+    #drop.hot { border-color: var(--accent); background: #16233b; }
+    #drop label { color: var(--accent); cursor: pointer; text-decoration: underline; }
+    #files { color: var(--dim); margin-top: 8px; white-space: pre-wrap; }
+    input[type=file] { display: none; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+                margin-bottom: 14px; }
+    .controls .grp { display: flex; gap: 6px; align-items: center; }
+    button.metric { background: var(--panel); color: var(--ink); border: 1px solid var(--edge);
+                    border-radius: 6px; padding: 5px 11px; cursor: pointer; font: inherit; }
+    button.metric.on { background: var(--accent); color: #06101f; border-color: var(--accent);
+                       font-weight: 600; }
+    button.ghost { background: none; color: var(--dim); border: 1px solid var(--edge);
+                   border-radius: 6px; padding: 5px 11px; cursor: pointer; font: inherit; }
+    input[type=number] { width: 52px; background: var(--panel); color: var(--ink);
+                         border: 1px solid var(--edge); border-radius: 6px; padding: 4px 6px;
+                         font: inherit; }
+    .lbl { color: var(--dim); }
+
+    #summary { background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
+               padding: 12px 14px; margin-bottom: 16px; }
+    #summary h2 { font-size: 13px; margin: 0 0 8px; color: var(--dim); font-weight: 600;
+                  letter-spacing: .04em; text-transform: uppercase; }
+    .stat-row { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-bottom: 10px; }
+    .stat { display: flex; flex-direction: column; }
+    .stat .n { font-size: 20px; font-weight: 600; }
+    .stat .k { color: var(--dim); font-size: 11px; }
+    .govbar { display: flex; height: 16px; border-radius: 4px; overflow: hidden;
+              border: 1px solid var(--edge); margin: 4px 0 6px; }
+    .govbar span { display: block; }
+    .govkey { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--dim); font-size: 11px; }
+    .govkey i { display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+                margin-right: 4px; vertical-align: middle; }
+
+    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
+            padding: 10px 12px 12px; }
+    .card .title { display: flex; justify-content: space-between; align-items: baseline;
+                   margin-bottom: 6px; gap: 8px; }
+    .card .title b { font-weight: 600; }
+    .card .title .out { color: var(--dim); font-size: 11px; text-align: right; }
+    canvas { width: 100%; height: auto; display: block; }
+    .clegend { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 7px; font-size: 11px; }
+    .clegend span { color: var(--ink); }
+    .clegend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px;
+                 margin-right: 4px; vertical-align: middle; }
+    .clegend .dead { color: var(--dim); text-decoration: line-through; }
+    .empty { color: var(--dim); padding: 30px 0; text-align: center; }
+    .warn { color: #ffa94d; }
+  </style>
+</head>
+<body>
+  <h1>RetroMultiCiv — soak telemetry</h1>
+  <p class="sub">Charts balance drift from <code>soak.js --stats</code> JSONL logs.
+     Generate one with <code>node tools/soak.js --seeds N --turns 400 --stats out.jsonl</code>.</p>
+
+  <div id="drop">
+    <label for="picker">Choose JSONL file(s)</label> or drag them here.
+    <input type="file" id="picker" accept=".jsonl,.json,.log,.txt" multiple>
+    <div id="files">No files loaded.</div>
+  </div>
+
+  <div class="controls">
+    <div class="grp"><span class="lbl">metric</span><span id="metrics"></span></div>
+    <div class="grp">
+      <span class="lbl">stagnant =&nbsp;alive with ≤</span>
+      <input type="number" id="stag" min="0" max="68" value="2" step="1">
+      <span class="lbl">techs at end</span>
+    </div>
+    <button class="ghost" id="clear">clear</button>
+  </div>
+
+  <div id="summary" hidden></div>
+  <div id="grid"><div class="empty">Load a soak <code>--stats</code> JSONL to see per-seed curves and a balance summary.</div></div>
+
+  <script>
+  'use strict';
+
+  // ---- config ----
+  const METRICS = ['cities', 'techs', 'score', 'units', 'gold'];
+  // seat-indexed civ palette (bright on the dark panel); index 7 = barbarians/overflow
+  const CIV_COLORS = ['#ff6b6b', '#4dabf7', '#51cf66', '#ffd43b', '#cc5de8', '#ff922b', '#22d3d3', '#adb5bd'];
+  const GOV_COLORS = {
+    despotism: '#868e96', anarchy: '#e03131', monarchy: '#f59f00',
+    republic: '#1c7ed6', democracy: '#37b24d', communism: '#d6336c'
+  };
+  const GOV_ORDER = ['despotism', 'anarchy', 'monarchy', 'republic', 'democracy', 'communism'];
+
+  // ---- state ----
+  const loaded = [];            // { name, checkpoints:[row], results:[row], bad }
+  let metric = 'cities';
+  let stagThreshold = 2;
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---- parsing ----
+  function parseJsonl(text) {
+    const rows = []; let bad = 0;
+    for (const line of text.split('\n')) {
+      const s = line.trim();
+      if (s === '') continue;
+      try { rows.push(JSON.parse(s)); } catch (e) { bad++; }
+    }
+    return { rows, bad };
+  }
+
+  function isCiv(p) { return p && p.id !== 'barb' && p.name !== 'Barbarians'; }
+
+  function addFile(name, text) {
+    const { rows, bad } = parseJsonl(text);
+    const checkpoints = rows.filter(r => r && r.t === 'checkpoint' && Array.isArray(r.players));
+    const results = rows.filter(r => r && r.t === 'result');
+    loaded.push({ name, checkpoints, results, bad });
+    render();
+  }
+
+  // Build one dataset per (file, seed): ordered checkpoints + the result row.
+  function buildDatasets() {
+    const byKey = new Map();
+    loaded.forEach((f, fi) => {
+      for (const r of f.checkpoints) {
+        const key = fi + '#' + r.seed;
+        let d = byKey.get(key);
+        if (!d) {
+          d = { file: f.name, fileIdx: fi, seed: r.seed, meta: r, checkpoints: [], result: null };
+          byKey.set(key, d);
+        }
+        d.checkpoints.push(r);
+      }
+      for (const r of f.results) {
+        const key = fi + '#' + r.seed;
+        const d = byKey.get(key);
+        if (d) d.result = r;
+      }
+    });
+    const out = [...byKey.values()];
+    for (const d of out) {
+      d.checkpoints.sort((a, b) => a.turn - b.turn);
+      // seat-ordered civ id list (first appearance), barbarians filtered out
+      const seen = []; const idx = {};
+      for (const cp of d.checkpoints) {
+        cp.players.forEach((p, i) => {
+          if (!isCiv(p)) return;
+          if (!(p.id in idx)) { idx[p.id] = seen.length; seen.push(p.id); }
+        });
+      }
+      d.civIds = seen;
+      d.finalCp = d.checkpoints[d.checkpoints.length - 1] || null;
+    }
+    out.sort((a, b) => a.fileIdx - b.fileIdx || a.seed - b.seed);
+    return out;
+  }
+
+  function playerAt(cp, id) {
+    for (const p of cp.players) if (p.id === id) return p;
+    return null;
+  }
+  function seatColor(d, id) { return CIV_COLORS[Math.min(d.civIds.indexOf(id), CIV_COLORS.length - 1)]; }
+
+  // ---- summary ----
+  function renderSummary(datasets) {
+    const box = $('summary');
+    let civTotal = 0, eliminated = 0, stagnant = 0;
+    const govCount = {}; let govAlive = 0;
+    for (const d of datasets) {
+      if (!d.finalCp) continue;
+      for (const p of d.finalCp.players) {
+        if (!isCiv(p)) continue;
+        civTotal++;
+        if (p.alive === false) { eliminated++; continue; }
+        if ((p.techs || 0) <= stagThreshold) stagnant++;
+        const g = p.government || 'despotism';
+        govCount[g] = (govCount[g] || 0) + 1; govAlive++;
+      }
+    }
+    if (civTotal === 0) { box.hidden = true; return; }
+    box.hidden = false;
+    const pct = (n) => civTotal ? (100 * n / civTotal).toFixed(0) + '%' : '—';
+    const seeds = datasets.length;
+    const badTotal = loaded.reduce((a, f) => a + f.bad, 0);
+
+    let govBar = '', govKey = '';
+    for (const g of GOV_ORDER) {
+      const n = govCount[g]; if (!n) continue;
+      const w = (100 * n / govAlive).toFixed(1);
+      govBar += `<span style="width:${w}%;background:${GOV_COLORS[g]}" title="${g} ${n}"></span>`;
+      govKey += `<span><i style="background:${GOV_COLORS[g]}"></i>${g} ${n} (${(100 * n / govAlive).toFixed(0)}%)</span>`;
+    }
+
+    box.innerHTML =
+      `<h2>Balance summary — final checkpoint of each seed</h2>
+       <div class="stat-row">
+         <div class="stat"><span class="n">${seeds}</span><span class="k">seeds</span></div>
+         <div class="stat"><span class="n">${civTotal}</span><span class="k">civ-instances</span></div>
+         <div class="stat"><span class="n">${eliminated}</span><span class="k">eliminated (${pct(eliminated)})</span></div>
+         <div class="stat"><span class="n">${stagnant}</span><span class="k">stagnant ≤${stagThreshold}t (${pct(stagnant)})</span></div>
+         <div class="stat"><span class="n">${govAlive}</span><span class="k">alive &amp; governing</span></div>
+       </div>
+       <div class="k lbl" style="margin-bottom:2px">government mix (alive civs)</div>
+       <div class="govbar">${govBar || '<span style="width:100%;background:var(--grid)"></span>'}</div>
+       <div class="govkey">${govKey || '<span>no surviving civs</span>'}</div>
+       ${badTotal ? `<div class="warn" style="margin-top:8px">⚠ ${badTotal} unparseable line(s) skipped.</div>` : ''}`;
+  }
+
+  // ---- charts ----
+  function drawChart(canvas, d) {
+    const DPR = window.devicePixelRatio || 1;
+    const W = 356, H = 176;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.height = H + 'px';
+    const g = canvas.getContext('2d');
+    g.scale(DPR, DPR);
+    g.clearRect(0, 0, W, H);
+
+    const padL = 34, padR = 10, padT = 10, padB = 20;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+
+    const turns = d.checkpoints.map(cp => cp.turn);
+    let tMin = Math.min(...turns), tMax = Math.max(...turns);
+    if (tMin === tMax) { tMin -= 1; tMax += 1; }
+
+    let vMax = 1;
+    for (const cp of d.checkpoints) for (const id of d.civIds) {
+      const p = playerAt(cp, id); if (p) vMax = Math.max(vMax, p[metric] || 0);
+    }
+    // round vMax up to a tidy number
+    const step = Math.max(1, Math.ceil(vMax / 4));
+    vMax = step * 4;
+
+    const xOf = (t) => padL + (t - tMin) / (tMax - tMin) * plotW;
+    const yOf = (v) => padT + plotH - (v / vMax) * plotH;
+
+    // gridlines + y labels
+    g.strokeStyle = '#1e2a40'; g.fillStyle = '#7d8aa5';
+    g.lineWidth = 1; g.font = '10px ui-monospace, monospace'; g.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const v = step * i, y = yOf(v);
+      g.beginPath(); g.moveTo(padL, y); g.lineTo(W - padR, y); g.stroke();
+      g.textAlign = 'right'; g.fillText(String(v), padL - 5, y);
+    }
+    // x ticks (checkpoint turns)
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (const t of turns) g.fillText(String(t), xOf(t), H - padB + 4);
+
+    // axis
+    g.strokeStyle = '#46587c';
+    g.beginPath(); g.moveTo(padL, padT); g.lineTo(padL, padT + plotH); g.lineTo(W - padR, padT + plotH); g.stroke();
+
+    // one line per civ
+    for (const id of d.civIds) {
+      const col = seatColor(d, id);
+      const pts = [];
+      for (const cp of d.checkpoints) { const p = playerAt(cp, id); if (p) pts.push([xOf(cp.turn), yOf(p[metric] || 0)]); }
+      if (!pts.length) continue;
+      g.strokeStyle = col; g.lineWidth = 1.6;
+      g.beginPath();
+      pts.forEach((pt, i) => i ? g.lineTo(pt[0], pt[1]) : g.moveTo(pt[0], pt[1]));
+      g.stroke();
+      g.fillStyle = col;
+      for (const pt of pts) { g.beginPath(); g.arc(pt[0], pt[1], 2.1, 0, 7); g.fill(); }
+    }
+  }
+
+  function outcomeText(d) {
+    const r = d.result;
+    if (r && r.gameOver) {
+      const fp = d.finalCp; let wn = r.winner;
+      if (fp) { const w = playerAt(fp, r.winner); if (w) wn = w.name; }
+      return `win: ${wn} · t${r.rounds}`;
+    }
+    if (r) return `turn limit t${r.rounds}`;
+    return '';
+  }
+
+  function renderCharts(datasets) {
+    const grid = $('grid');
+    grid.innerHTML = '';
+    if (!datasets.length) {
+      grid.innerHTML = '<div class="empty">Load a soak <code>--stats</code> JSONL to see per-seed curves and a balance summary.</div>';
+      return;
+    }
+    for (const d of datasets) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const meta = d.meta;
+      const tag = `seed ${d.seed} · ${meta.size || '?'} · ${meta.civs || d.civIds.length} civs`
+        + (meta.chaos ? ' · chaos' : '') + (meta.difficulty && meta.difficulty !== 'medium' ? ' · ' + meta.difficulty : '');
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.innerHTML = `<b>${tag}</b><span class="out">${outcomeText(d)}</span>`;
+      card.appendChild(title);
+
+      const canvas = document.createElement('canvas');
+      card.appendChild(canvas);
+
+      const legend = document.createElement('div');
+      legend.className = 'clegend';
+      const fp = d.finalCp;
+      for (const id of d.civIds) {
+        const p = fp ? playerAt(fp, id) : null;
+        const dead = p && p.alive === false;
+        const name = p ? p.name : id;
+        legend.innerHTML += `<span class="${dead ? 'dead' : ''}"><i style="background:${seatColor(d, id)}"></i>${name}${dead ? ' †' : ''}</span>`;
+      }
+      card.appendChild(legend);
+      grid.appendChild(card);
+      drawChart(canvas, d);
+    }
+  }
+
+  // ---- render orchestration ----
+  function render() {
+    const datasets = buildDatasets();
+    // file list
+    $('files').textContent = loaded.length
+      ? loaded.map(f => `• ${f.name} — ${f.checkpoints.length} checkpoints, ${f.results.length} results`
+          + (f.bad ? `, ${f.bad} skipped` : '')).join('\n')
+      : 'No files loaded.';
+    renderSummary(datasets);
+    renderCharts(datasets);
+  }
+
+  // ---- metric buttons ----
+  function buildMetricButtons() {
+    const host = $('metrics');
+    for (const m of METRICS) {
+      const b = document.createElement('button');
+      b.className = 'metric' + (m === metric ? ' on' : '');
+      b.textContent = m;
+      b.onclick = () => {
+        metric = m;
+        [...host.children].forEach(c => c.classList.toggle('on', c.textContent === m));
+        renderCharts(buildDatasets());
+      };
+      host.appendChild(b);
+    }
+  }
+
+  // ---- input wiring ----
+  function readFiles(fileList) {
+    for (const file of fileList) {
+      const reader = new FileReader();
+      reader.onload = () => addFile(file.name, reader.result);
+      reader.readAsText(file);
+    }
+  }
+
+  $('picker').addEventListener('change', e => readFiles(e.target.files));
+  $('stag').addEventListener('input', e => {
+    stagThreshold = Math.max(0, parseInt(e.target.value, 10) || 0);
+    renderSummary(buildDatasets());
+  });
+  $('clear').addEventListener('click', () => { loaded.length = 0; render(); });
+
+  const drop = $('drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add('hot');
+  }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove('hot');
+  }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer) readFiles(e.dataTransfer.files); });
+
+  buildMetricButtons();
+
+  // ---- optional URL-driven load (headless verification / deep links) ----
+  // ?file=a.jsonl,b.jsonl fetches same-origin logs; ?metric=techs picks a metric.
+  (function initFromUrl() {
+    const q = new URLSearchParams(location.search);
+    const m = q.get('metric');
+    if (m && METRICS.includes(m)) { metric = m; [...$('metrics').children].forEach(c => c.classList.toggle('on', c.textContent === m)); }
+    const s = q.get('stag');
+    if (s !== null && !isNaN(parseInt(s, 10))) { stagThreshold = Math.max(0, parseInt(s, 10)); $('stag').value = stagThreshold; }
+    const files = q.get('file');
+    if (files) for (const url of files.split(',')) {
+      fetch(url.trim())
+        .then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
+        .then(t => addFile(url.split('/').pop(), t))
+        .catch(err => { $('files').textContent = `fetch failed for ${url}: ${err.message}`; });
+    }
+  })();
+  </script>
+</body>
+</html>

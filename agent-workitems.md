@@ -85,7 +85,7 @@ communism, and the driver-level save/load hash round-trip.
 - Done when: each new command type appears applied at least once in a
   60-turn chaos probe (count by `cmd.type` over `roundLog`), suite green.
 
-## A3 — Telemetry chart page
+## A3 — Telemetry chart page  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — debugging/stats.html: Canvas 2D, zero deps, drag-drop + file-picker + ?file= fetch; per-seed city/tech/score/units/gold curves per civ + summary (eliminated %, tunable stagnant %, government mix); verified headless on a real 4-seed/400-turn --stats log; docs/05 pointer offered to architect (docs/ is theirs this window)]
 
 A static, dependency-free HTML page (e.g. `debugging/stats.html`) that
 loads one or more soak `--stats` JSONL files via a file picker or
@@ -95,6 +95,41 @@ government mix). Canvas 2D — NO chart libraries (dependency whitelist).
 Read `test/sim-driver.js` `snapshot()` for the row shape. Verify with
 `debugging/screenshot.sh` against a generated JSONL. Client-only: no
 hashes, no goldens.
+
+## A9 — Phase-3 slice 3: client remote session (design: docs/06 §5)
+
+Server core + socket layer exist and are tested (server/game.js,
+server/protocol.js, server/index.js; test/server-protocol.test.js +
+test/server.test.js show the full message flow). This item is the client
+side: `client/session-remote.js` with the SAME five-surface contract as
+client/session.js (state/apply/endTurn/onChange/ruleset), speaking the
+docs/06 §3 protocol over a WebSocket. GOLDEN-SAFE: no engine changes.
+
+- Boot switch in main.js: `?server=1` (same-origin `/ws`) selects the
+  remote session; everything else (renderer, ui wiring) stays identical.
+  Client fetches data/*.json as today and applies `rulesOverrides` from
+  the `joined` message (the difficulty mechanism).
+- `apply(cmd)` returns a Promise resolving `{ok, reason?, events}` on
+  `applied`/`rejected` (match by commandId, monotonic counter). Give the
+  LOCAL session the same Promise shape (resolve immediately) so the ui
+  has one contract. Call sites to sweep to `await` (verified inventory:
+  input.js ×3, panels.js ×9, main.js ×1 — plus `ctx.apply` consumers,
+  which all flow through input.js's single funnel).
+- `state` = latest server view; `view`/`events` pushes fire `onChange`.
+  Token in localStorage (`retromulticiv-token-<gameId>`); on socket
+  close, banner + retry join with the stored token (docs/06 §5).
+- Hotseat/`?humans>1` stays LOCAL-session only — guard the boot switch.
+- Verify: `node server/index.js --seed 12345`, then a screenshot of
+  `?server=1&e2e=1` founding a city THROUGH the socket; add a
+  served-by-server case to test/browser.test.js (self-skips without
+  chromium, like the rest). Verify goldens did not move.
+
+## A10 — Phase-3 slice 4: docs sync + server e2e polish (after A9)
+
+docs/03 phase-3 checkboxes with dates; docs/06 slice statuses; CLAUDE.md
+"Testing & running" gains the `node server/index.js` path next to the
+python one; README + plan-update paragraphs (plain language); an A1-style
+sweep for any drift the server work left behind.
 
 ## A4 — Goody huts (design: docs/04)
 
