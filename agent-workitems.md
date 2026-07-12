@@ -33,6 +33,41 @@ items live in `./human-workitems.md`.
 
 ---
 
+## B-queue — AI bugfixer
+
+Bugs and regressions. Same rules as A-items PLUS: before editing, mail
+the architect the exact file list you intend to touch (bugs have no
+pre-fenced lane) and wait for an ack if any file overlaps an in-flight
+A-item. Fix format: failing test FIRST where feasible, then the fix,
+then the standing checks.
+
+### B0 — Standing: diagnostics triage (recurring, claim per file)
+
+When a new recording lands in `debugging/logs/`: `node tools/replay.js
+<file>` FIRST. Hash-exact + 0 errors = report "verified clean" with the
+stats. Divergence or captured errors = bisect (the replay report
+pinpoints the first bad entry; `?debug=1` recordings hash per command),
+write the failing test, mail the architect the diagnosis BEFORE fixing
+anything in engine/ (engine bugs usually need a golden-lock decision).
+Server-mode stubs are non-replayable — use `saves/<gameId>.json`.
+
+### B1 — Regression test: GoTo must survive a hotseat hand-off  [claimed: bugfixer 2026-07-13] [done: 2026-07-13 — browser.test.js case 6 + main.js ?e2e=3 (real 'g'+pick-path GoTos for BOTH players over p1→p2→p1→p2); both fix hunks revert-proven to fail independently (missing autoSelectAfterTurn ⇒ p1 leg 2 lost; missing owner filter ⇒ p2's route cancelled by p1's turn-start — caught via the extra half-round, positions alone can't see it); suite 160/160]
+
+The architect's wave-III fix (client/ui/input.js: owner-filtered
+runAllGotos + autoSelectAfterTurn on the human→human hand-off path)
+shipped WITHOUT a regression test — write the test that would have
+caught the original bug: in a 2-human game, player 1 issues a GoTo
+spanning multiple turns, hands off, player 2 hands back, and player 1's
+unit MUST have advanced along the route (and player 2's units must NOT
+have moved during player 1's turn). This is client-side logic, so it
+needs the browser e2e harness (test/browser.test.js — an ?e2e= variant
+like the existing hotseat case; read main.js's e2e blocks). FILE CLAIM
+REQUIRED first: browser.test.js + main.js e2e hooks may overlap
+coder-helper's in-flight A13 — mail your exact file list and wait for
+my ack. Test-only, golden-safe. Done-when: the new case fails if the
+input.js fix is reverted (prove it: revert locally, watch it fail,
+restore), suite green.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
@@ -164,7 +199,7 @@ All three slices, in order; each is golden-safe. Run AFTER A9/A10.
 Done when: golden vectors pinned and green, tampered-state test (edit
 gold in a crafted state → different code), suite green, screenshots read.
 
-## A12 — Phase-4 slice 1: server lobby (design: docs/08 §2, §6 — after A11)  [claimed: coder-helper 2026-07-12]
+## A12 — Phase-4 slice 1: server lobby (design: docs/08 §2, §6 — after A11)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — server/lobby.js registry (5-char Crockford join codes, create/list/resolve, connection-scoped seat reservation, chart-authoring start per @e82e7068: lobby authors setup.players so bindSeat first-free lands the chart, names from reservations, unfilled/dropped→AI, register() wraps the phase-3 boot game); protocol.js create/list/start + join seat; index.js multi-game dispatch + per-game fan-out + start orchestration + disconnect→releaseSeat, phase-3 default-game preserved; session-remote join sends gameId only when known (fixes bare ?server=1 vs multi-game resolveId). Tests: lobby.test.js (7) + server-lobby.test.js integration (create→join-by-code→seat-pick→start→play, unfilled→AI); all 17 phase-3 server tests still green. Suite 157/157; golden-safe. Spectators + skip-vote deferred to A13 per @e82e7068.]
 
 Multi-game server layer above the UNTOUCHED game.js: create/list/join/
 start messages, games map keyed by gameId, 5-char Crockford join codes
@@ -176,7 +211,7 @@ explored-less player, never vote). Extend protocol.js + index.js; unit +
 integration tests mirroring the phase-3 ones. Golden-safe. GATE: phase-3
 acceptance declared by the user (human-workitems).
 
-## A13 — Phase-4 slice 2: client lobby UI + turn flow (after A12)
+## A13 — Phase-4 slice 2: client lobby UI + turn flow (after A12)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — boot path per @704be920: ui/lobby.js host/join flows inside the setup box (own ws, waiting room renders pushed roster, join-by-code + seat pick), persists token+gameId into session-remote's keys, reloads ?server=1&game=<id>; setup.js Host/Join LAN buttons + ?e2ehost e2e; browser case proves host→start→reload→named seat ("Kjell" in HUD). Turn flow: your-turn banner (2+ humans), presence broadcasts + waiting-for-<name> banner, host skipTurn + proposeSkip/vote >2/3 (server machinery + #mp-status controls; turnBroadcasts extracted so route/skip can't drift); spectator pseudo-seats server-side (omniscient, tokenless, voteless). session-remote +setMetaHandler/sendMeta. Screenshots: setup buttons + waiting room read. Suite 159/159; golden-safe. FLAGGED: spectator CLIENT UI needs its own read-only pass (server ready).]
 
 Setup screen grows host/join modes (join-code field, seat picker,
 waiting room); reuses session-remote unchanged. "Your turn" banner on
@@ -185,7 +220,7 @@ skip-turn controls (host button; propose→vote >2/3 of connected human
 seats excluding the at-turn player, docs/08 §6). Screenshot-verified;
 browser test for the lobby boot path. Golden-safe.
 
-## A14 — Art A1.6a: faction identity + status markers (spec: specs/plan-assets-2.md)
+## A14 — Art A1.6a: faction identity + status markers (spec: specs/plan-assets-2.md)  [claimed: coder-helper 2026-07-12] [done: 2026-07-13 — data/civs.json `visual` per civ (ally values, architect slot map, compact style preserved); new renderer/three/factions.js (14 canvas emblems in build order, CanvasTexture sRGB + data-URL caches, isLightColor thr=150 → exactly Ivory+Arctic get dark rims per ally table); assets.js token layer (bright/dim disc by moves, gold vet rim, fortified shield chip, dark rims) + pennants (primary flag + secondary emblem dot) on foot/mounted/siege/ships + cities, capitals fly CanvasTexture emblem flags; index.js setFactions + status threading + palace capital detect; main.js pid→visual map (fallback player.color for mock/lobby); emblem chips in setup + city header; gallery rebuilt 14×14 with the 14-civ × 5-terrain acceptance grid + ?cx/cy/zoom params, ally shot at debugging/gallery-factions-a14.png. Screenshots read: acceptance grid, close-up (emblems/rims/chips legible), game WebGL2+WebGL1. Suite 159/159; state/hash untouched (client-only). NOTE: city-header chip screenshot blocked by code toast overlay (same draw path as verified textures).]
 
 The ally's "highest-return move". Client-only, golden-safe, NO golden lock.
 1. Civ visual table: extend data/civs.json with `visual: {primary,
@@ -216,6 +251,12 @@ game screenshots WebGL2 + WebGL1 pass, browser e2e stays green.
 
 ## A15 — Art A1.6b: water, coastline, materials, terrain patterns (same spec)
 
+PRE-STEP (from A14's size flag): assets.js sits at 466 lines, over the
+~450 soft ceiling — split the tile-props seam FIRST (createTileProps +
+PROP_GEO into renderer/three/props.js, mirroring the factions.js split)
+before adding water/coastline geometry. Auto-discovered by the ESM
+check; screenshot gallery after the move to prove nothing shifted.
+
 1. Water pass: Phong water slightly transparent, shallow-band along
    coasts, foam strips at land borders, texture-offset wave drift driven
    by RENDER TIME ONLY (never simulation state).
@@ -228,6 +269,43 @@ game screenshots WebGL2 + WebGL1 pass, browser e2e stays green.
    own caution).
 Same verification loop as A14. A1.7 (sway/interpolation/smoke/combat
 flashes + reduce-animation option) is NOTED for later — not queued.
+
+## A17 — Spectator client mode (small; server side already tested)
+
+A13's honest gap: a spectator join today would crash UI reads of
+players[ctx.HUMAN]. Add a deliberate read-only client mode: join with
+{spectator:true} from the lobby UI (visible only on allowSpectators
+games), ctx.HUMAN stays a pseudo-viewer — hide the action bar/End Turn/
+production interactions, show a "spectating" chip, render the omniscient
+view the server already sends. Golden-safe, client-only. Verify by
+screenshot with a live server.
+
+## A16 — Playtest wave III client refinements (AFTER A13 — collision-fenced)
+
+From the user's hotseat acceptance playtest (2026-07-12). All client-only,
+golden-safe. The GoTo-across-hand-offs bug and the engine items (city
+square roaded+irrigated, starts ≥3 from edges) are ALREADY FIXED by the
+architect — do not redo them.
+
+1. Combat linger: after a combat resolves involving the viewer's unit,
+   keep the camera at the battle site (center on it) and SUPPRESS
+   autoNextUnit for that action — the player wants to see the outcome.
+   A short highlight on the surviving/lost tile is a bonus.
+2. City view: center the fat-cross mini-map horizontally in #city-left
+   (it currently hugs the left edge). ALSO catch the display up to the
+   new engine rule: the mini-map center tile and the settler site
+   preview must show the city square as roaded+irrigated (workedTiles
+   already returns the right yields — use its center entry instead of
+   raw tileYields where applicable).
+3. Hand-off centering, full version: remember lastMoved PER PLAYER
+   (sel.lastMovedBy[pid] or similar) so an incoming hotseat player lands
+   on THEIR last-moved unit; fall back to their capital (capitalOf), then
+   any unit. (Architect's goto fix already lands on *a* unit — this is
+   the polish.)
+4. New key: center on capital. 'C' when NO city is selected (C with a
+   city selected keeps cycling production); fall back note in the help
+   panel + gettingstarted.
+Verify: screenshots incl. a hotseat hand-off sequence; browser e2e green.
 
 ## A4 — Goody huts (design: docs/04)
 

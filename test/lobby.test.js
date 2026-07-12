@@ -1,0 +1,100 @@
+// Phase-4 slice 1 (docs/08 §2): the pure lobby registry surface — join-code
+// derivation and create/list/resolve. The seat-token lifecycle across
+// lobby→start is pending an architect design decision and is NOT yet tested.
+const test = require('node:test');
+const assert = require('node:assert');
+const RULESET = require('./ruleset.js');
+const lobby = import('../server/lobby.js');
+let joinCode, createRegistry;
+test.before(async () => { ({ joinCode, createRegistry } = await lobby); });
+
+test('joinCode: 5 Crockford chars, deterministic, alphabet-clean', () => {
+  assert.strictEqual(joinCode('g1'), joinCode('g1'), 'deterministic');
+  assert.match(joinCode('g1'), /^[0-9A-HJKMNP-TV-Z]{5}$/, '5 Crockford chars (no I/L/O/U)');
+  // distinct gameIds almost never collide — sample a batch
+  const codes = new Set();
+  for (let i = 1; i <= 200; i++) codes.add(joinCode('g' + i));
+  assert.ok(codes.size >= 198, `few collisions across 200 ids (got ${codes.size} distinct)`);
+});
+
+test('create: builds a pre-start lobby with the right seats, clamped', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  const { entry: e } = reg.create({ civs: 4, humans: 2, size: 'small' }, 'Kjell');
+  assert.strictEqual(e.status, 'lobby');
+  assert.strictEqual(e.gameId, 'g1');
+  assert.strictEqual(e.joinCode, joinCode('g1'));
+  assert.strictEqual(Object.keys(e.seats).length, 4);
+  assert.deepStrictEqual(Object.keys(e.seats).map(p => e.seats[p].human), [true, true, false, false]);
+  assert.strictEqual(e.game, null, 'no engine game until start');
+  // clamping: civs 2..7, humans 1..civs
+  const { entry: big } = reg.create({ civs: 99, humans: 99, size: 'nonsense' }, 'Kjell');
+  assert.strictEqual(Object.keys(big.seats).length, 7);
+  assert.strictEqual(big.options.size, 'medium', 'unknown size falls back');
+  assert.strictEqual(Object.values(big.seats).filter(s => s.human).length, 7);
+  const { entry: tiny } = reg.create({ civs: 1, humans: 0 }, 'Kjell');
+  assert.strictEqual(Object.keys(tiny.seats).length, 2, 'civs floors at 2');
+  assert.strictEqual(Object.values(tiny.seats).filter(s => s.human).length, 1, 'humans floors at 1');
+});
+
+test('resolveId: by gameId and by join code (case-insensitive)', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  const { entry: e } = reg.create({ civs: 2, humans: 1 }, 'Kjell');
+  assert.strictEqual(reg.resolveId(e.gameId), e.gameId);
+  assert.strictEqual(reg.resolveId(e.joinCode), e.gameId);
+  assert.strictEqual(reg.resolveId(e.joinCode.toLowerCase()), e.gameId, 'codes are case-insensitive');
+  assert.strictEqual(reg.resolveId('ZZZZZ'), null);
+});
+
+test('list: reflects seat occupancy', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  const { entry } = reg.create({ civs: 3, humans: 2 }, 'Kjell'); // creator holds p1
+  let row = reg.list().find(g => g.gameId === entry.gameId);
+  assert.deepStrictEqual(row.seats, { taken: 1, total: 2 }); // creator reserved p1
+  assert.strictEqual(row.started, false);
+  reg.reserveSeat(entry.gameId, { name: 'Ada' });
+  row = reg.list().find(g => g.gameId === entry.gameId);
+  assert.deepStrictEqual(row.seats, { taken: 2, total: 2 });
+});
+
+test('reserveSeat: first-free, requested pick, full, and release', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  const { entry } = reg.create({ civs: 4, humans: 3 }, 'Kjell'); // creator p1
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Ada' }), { ok: true, seat: 'p2' }, 'first free');
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Bo', seat: 'p3' }), { ok: true, seat: 'p3' }, 'honors pick');
+  assert.strictEqual(reg.reserveSeat(entry.gameId, { name: 'X' }).reason, 'gameFull', 'no human seats left');
+  assert.strictEqual(reg.reserveSeat(entry.gameId, { name: 'X', seat: 'p4' }).reason, 'gameFull', 'p4 is an AI seat');
+  reg.releaseSeat(entry.gameId, 'p3');
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Cy', seat: 'p3' }), { ok: true, seat: 'p3' }, 'freed seat reusable');
+});
+
+test('start: authors the seating chart — picked seat + name, unfilled/dropped → AI', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: RULESET, gameIdFn: () => 'g' + (++n), seedFn: () => 424242 });
+  const { entry } = reg.create({ civs: 3, humans: 3, size: 'xsmall' }, 'Kjell'); // p1..p3 human; creator p1
+  reg.reserveSeat(entry.gameId, { name: 'Ada', seat: 'p3' }); // Ada picks p3; p2 left unfilled
+  const res = reg.start(entry.gameId, ['p1', 'p3']); // p1, p3 live
+  assert.ok(res.ok, res.reason);
+  assert.deepStrictEqual(res.humanSeats, ['p1', 'p3'], 'human seats in seat order');
+  const players = res.game.state.players;
+  assert.strictEqual(players.p1.name, 'Kjell'); assert.strictEqual(players.p1.human, true);
+  assert.strictEqual(players.p2.human, false, 'unfilled human seat → AI');
+  assert.strictEqual(players.p3.name, 'Ada', 'picked seat keeps the picker name');
+  assert.strictEqual(players.p3.human, true);
+  assert.strictEqual(entry.status, 'started');
+  assert.strictEqual(reg.start(entry.gameId, ['p1']).reason, 'alreadyStarted', 'no double start');
+});
+
+test('start: a reserved seat whose connection dropped becomes AI', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: RULESET, gameIdFn: () => 'g' + (++n), seedFn: () => 55 });
+  const { entry } = reg.create({ civs: 2, humans: 2, size: 'xsmall' }, 'Kjell');
+  reg.reserveSeat(entry.gameId, { name: 'Bo', seat: 'p2' });
+  const res = reg.start(entry.gameId, ['p1']); // p2 reserved but not live
+  assert.ok(res.ok, res.reason);
+  assert.strictEqual(res.game.state.players.p2.human, false, 'dropped reservation → AI');
+  assert.deepStrictEqual(res.humanSeats, ['p1']);
+});

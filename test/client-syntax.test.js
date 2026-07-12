@@ -8,40 +8,22 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const CLIENT_MODULES = [
-  'client/main.js',
-  'client/session.js',
-  'client/session-remote.js',
-  'client/diagnostics.js',
-  'client/ui/hud.js',
-  'client/ui/panels.js',
-  'client/ui/input.js',
-  'client/ui/saves.js',
-  'client/ui/turnlog.js',
-  'client/ui/setup.js',
-  'client/ui/handoff.js',
-  'client/ui/options.js',
-  'client/renderer/renderer.js',
-  'client/renderer/three/index.js',
-  'client/renderer/three/assets.js',
-  'client/renderer/three/terrain.js',
-  'engine/ai.js',
-  'engine/barbarians.js',
-  'engine/cities.js',
-  'engine/improvements.js',
-  'engine/happiness.js',
-  'engine/government.js',
-  'engine/score.js',
-  'engine/combat.js',
-  'engine/index.js',
-  'engine/mapgen.js',
-  'engine/movement.js',
-  'engine/rng.js',
-  'engine/tech.js',
-  'engine/visibility.js',
-  'shared/statehash.js',
-  'shared/gamecode.js'
-];
+// Auto-discovered: every .js under these roots is checked — a hand-kept
+// list missed newly added files TWICE (terrain.js, gamecode.js).
+function walk(dir, out) {
+  for (const name of fs.readdirSync(dir)) {
+    const full = path.join(dir, name);
+    if (fs.statSync(full).isDirectory()) {
+      if (name === 'vendor' || name === 'node_modules') continue;
+      walk(full, out);
+    } else if (name.endsWith('.js')) {
+      out.push(path.relative(path.join(__dirname, '..'), full));
+    }
+  }
+  return out;
+}
+const CLIENT_MODULES = ['client', 'engine', 'shared', 'server']
+  .flatMap(root => walk(path.join(__dirname, '..', root), []));
 
 test('browser-facing ESM modules parse', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-check-'));

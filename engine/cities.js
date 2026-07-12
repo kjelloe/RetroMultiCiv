@@ -136,9 +136,19 @@ function candidateTiles(state, city, ruleset) {
 function workedTiles(state, city, ruleset) {
   const { width, tiles } = state.map;
   const gov = governmentOf(state, city.owner, ruleset);
+  // Civ 1 (wiki, Terrain page): the city tile automatically produces as if
+  // ROADED & IRRIGATED (irrigation skipped when a mine occupies the tile) —
+  // the other 20 squares need citizens. Copy the tile; never mutate state.
+  const centerSrc = tiles[city.y * width + city.x];
+  const centerTile = { t: centerSrc.t };
+  if (centerSrc.special === true) centerTile.special = true;
+  if (centerSrc.river === true) centerTile.river = true;
+  if (centerSrc.mine === true) centerTile.mine = true; else centerTile.irrigation = true;
+  centerTile.road = true;
+  if (centerSrc.railroad === true) centerTile.railroad = true;
   const worked = [{
     x: city.x, y: city.y, center: true,
-    yields: govAdjustYields(tileYields(tiles[city.y * width + city.x], ruleset), gov)
+    yields: govAdjustYields(tileYields(centerTile, ruleset), gov)
   }];
   const candidates = candidateTiles(state, city, ruleset);
   if (city.workers !== undefined) {

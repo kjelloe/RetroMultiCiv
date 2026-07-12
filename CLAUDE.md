@@ -8,7 +8,9 @@ structural changes: `01-game-spec.md` (rules), `02-architecture.md`
 follow these when picking one up), `06-phase3-server.md` (the
 authoritative-server design — protocol, seats, persistence, slices),
 `07-game-code.md` (save-tamper verification code), `08-phase4-lan.md`
-(lobby, join codes, skip-vote, AI regency — decisions final).
+(lobby, join codes, skip-vote, AI regency — decisions final),
+`09-phase5-luau.md` (port mapping: the trap list, port order with
+anchor/scenario/golden gates, harness plan).
 
 ## Hard rules
 
@@ -30,8 +32,9 @@ authoritative-server design — protocol, seats, persistence, slices),
   only). r162 auto-falls back to WebGL1. Verify any renderer change with the
   headless screenshot loop below, including once with `--disable-es3-gl-context`
   (emulates the WebGL1-only environment).
-- Minimal dependencies: `ws` (server) and vendored three.js are the whitelist;
-  ask before adding anything else.
+- Minimal dependencies: `ws` (server), vendored three.js, and `lune`
+  (dev-only, phase-5 Luau CI twins — user-approved 2026-07-12) are the
+  whitelist; ask before adding anything else.
 
 ## Data source
 
@@ -146,12 +149,17 @@ or it silently renders as grassland.
 
 User handles all git commits and pushes. Build → test → stop and report.
 
-Work splits across `agent-workitems.md` (implementation/doc tasks for a
-local coder-helper agent — each item is self-contained with its own
-verification steps and golden-re-record instructions; the main coder
-curates the list) and `human-workitems.md` (verification and decisions
-only the user/humans can make). Claim items in-file, mark them done,
+Work splits across `agent-workitems.md` (A-items: features/docs for the
+local **coder-helper**; B-items: bug triage/fixes for the local
+**AI bugfixer** — each item self-contained with verification steps and
+golden-re-record instructions; the **architect** curates both queues,
+holds design authority, and reviews everything) and `human-workitems.md`
+(verification and decisions only the user/humans can make). Bugs have no
+fixed lane, so the bugfixer MUST claim the exact files by mail before
+editing and the architect arbitrates collisions; only ONE agent holds the
+golden lock at a time. Claim items in-file, mark them done,
 never reorder someone else's. Agent⇄architect coordination goes through
-`python3 tools/agent-mail.py` (send/inbox/peek/log, per-role unread
+`python3 tools/agent-mail.py` (send/inbox/peek/log/show, global @hashes
+per message, per-role unread
 cursors — check your inbox at task start and end); `agent-chat.md` is
 the long-form archive. Both are gitignored.

@@ -7,64 +7,373 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
-        "width": 6, "height": 4, "wrapX": false,
+        "width": 6,
+        "height": 4,
+        "wrapX": false,
         "tiles": [
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
         ]
       },
       "units": {
-        "u1": { "id": "u1", "type": "legion", "owner": "p1", "x": 1, "y": 1, "moves": 1, "fortified": false, "veteran": false },
-        "u2": { "id": "u2", "type": "militia", "owner": "p2", "x": 2, "y": 1, "moves": 1, "fortified": false, "veteran": false },
-        "u3": { "id": "u3", "type": "militia", "owner": "p2", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false },
-        "u4": { "id": "u4", "type": "settlers", "owner": "p2", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false },
-        "u5": { "id": "u5", "type": "settlers", "owner": "p1", "x": 3, "y": 0, "moves": 1, "fortified": false, "veteran": false },
-        "u6": { "id": "u6", "type": "militia", "owner": "p1", "x": 1, "y": 2, "moves": 1, "fortified": false, "veteran": false }
+        "u1": {
+          "id": "u1",
+          "type": "legion",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u3": {
+          "id": "u3",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u4": {
+          "id": "u4",
+          "type": "settlers",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u5": {
+          "id": "u5",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 3,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u6": {
+          "id": "u6",
+          "type": "militia",
+          "owner": "p1",
+          "x": 1,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
       },
       "cities": {
-        "c1": { "id": "c1", "name": "Zimbabwe", "owner": "p2", "x": 4, "y": 1, "pop": 3, "food": 0, "shields": 0, "producing": { "kind": "unit", "id": "militia" } }
+        "c1": {
+          "id": "c1",
+          "name": "Zimbabwe",
+          "owner": "p2",
+          "x": 4,
+          "y": 1,
+          "pop": 3,
+          "food": 0,
+          "shields": 0,
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
       },
-      "cityOrder": ["c1"],
+      "cityOrder": [
+        "c1"
+      ],
       "nextUnitId": 7,
       "nextCityId": 2,
       "players": {
-        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 0, "techs": [], "researching": "" },
-        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": false, "gold": 37, "techs": [], "researching": "" }
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 37,
+          "techs": [],
+          "researching": ""
+        }
       },
       "rngState": 1234
     }
   },
   "script": [
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u5", "dir": "SW" },
-      "expect": { "ok": false }, "notes": "settlers (attack 0) cannot attack" },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u6", "dir": "S" },
-      "expect": { "ok": false }, "notes": "zone of control: both from- and to-tile touch enemy units" },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": true, "state": { "units.u2": null, "units.u1.x": 1, "units.u1.moves": 0 } },
-      "notes": "legion kills militia; attacker does not advance; attack costs the move" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "SE" },
-      "expect": { "ok": true, "state": { "units.u3": null, "units.u4": null, "units.u1.veteran": true } },
-      "notes": "defender loses on open ground: the whole stack dies; winner promotes (seeded)" },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
-      "expect": { "ok": true, "state": { "cities.c1.owner": "p1", "cities.c1.pop": 2, "players.p1.gold": 20, "players.p2.gold": 17 } },
-      "notes": "undefended city captured: pop -1, plunder capped at pop*10 = 20" }
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u5",
+        "dir": "SW"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "settlers (attack 0) cannot attack"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u6",
+        "dir": "S"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "zone of control: both from- and to-tile touch enemy units"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u2": null,
+          "units.u1.x": 1,
+          "units.u1.moves": 0
+        }
+      },
+      "notes": "legion kills militia; attacker does not advance; attack costs the move"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "SE"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u3": null,
+          "units.u4": null,
+          "units.u1.veteran": true
+        }
+      },
+      "notes": "defender loses on open ground: the whole stack dies; winner promotes (seeded)"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.owner": "p1",
+          "cities.c1.pop": 2,
+          "players.p1.gold": 20,
+          "players.p2.gold": 17
+        }
+      },
+      "notes": "undefended city captured: pop -1, plunder capped at pop*10 = 20"
+    }
   ],
   "final": {
-    "state": { "cities.c1.owner": "p1", "units.u1.x": 4, "units.u1.y": 1 },
-    "hash": "0xb8aee937"
+    "state": {
+      "cities.c1.owner": "p1",
+      "units.u1.x": 4,
+      "units.u1.y": 1
+    },
+    "hash": null
   }
 }

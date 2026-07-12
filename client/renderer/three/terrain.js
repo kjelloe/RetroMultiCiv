@@ -6,7 +6,7 @@
 // ANGLE D3D9 and SwiftShader. Deterministic: every wobble goes through
 // visualRand(x, y, salt); nothing touches game state.
 import * as THREE from 'three';
-import { visualRand } from './assets.js';
+import { visualRand } from './props.js';
 
 const SEGS = 2; // grid cells per tile edge — tile centers land on vertices
 

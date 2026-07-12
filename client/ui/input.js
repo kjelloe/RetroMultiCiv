@@ -298,6 +298,12 @@ export function initInput(ctx) {
       // underneath it — neither player ever sees the other's map
       ctx.handoff.show(now.players[next].name, now.players[next].color, () => {});
       ctx.setHuman(next);
+      // the incoming human's queued GoTo routes must run at the START of
+      // their turn (this path returns before autoSelectAfterTurn, which was
+      // why hotseat GoTos froze after the first leg) — and it also lands
+      // the camera on one of their own units instead of the other player's
+      // last view
+      await autoSelectAfterTurn();
       return;
     }
     await autoSelectAfterTurn();
@@ -380,7 +386,14 @@ export function initInput(ctx) {
   }
 
   async function runAllGotos() {
-    for (const unitId of Object.keys(gotoTargets).sort()) await runGoto(unitId);
+    // hotseat: both players' orders live in this one map — only ever run
+    // the CURRENT viewer's routes on their own turn
+    for (const unitId of Object.keys(gotoTargets).sort()) {
+      const u = session.state.units[unitId];
+      if (!u) { delete gotoTargets[unitId]; continue; }
+      if (u.owner !== ctx.HUMAN || session.state.activePlayer !== ctx.HUMAN) continue;
+      await runGoto(unitId);
+    }
   }
 
   // the route a GoTo order INTENDS to take (same greedy rule as gotoStep,

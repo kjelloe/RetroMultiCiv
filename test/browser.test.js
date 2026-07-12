@@ -219,3 +219,66 @@ test('browser served-by-server: the client founds a city through the WebSocket',
       await gs.close();
     }
   });
+
+// Phase-4 slice 2 (docs/08, boot path @704be920): ?e2ehost=1 drives the whole
+// lobby flow in one live page — setup screen → create (lobby ws) → start →
+// {joined} persists token+gameId → reload into ?server=1&game=<id> → the
+// UNCHANGED remote session reconnects onto the bound seat. The HUD showing the
+// HOST'S NAME (not "Player 1") proves the lobby's seating chart carried through
+// the reload.
+test('browser lobby: host → start → reload boots the game on the named seat',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 99, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+    try {
+      const url = `http://127.0.0.1:${gs.port}/client/?e2ehost=1`;
+      const dom = await dumpDomLive(chromium, url,
+        h => /turn 1 · 4000 BC · Kjell/.test(h), 25000);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      assert.match(dom, /turn 1 · 4000 BC · Kjell/, 'the reloaded game runs on the lobby-named seat');
+      assert.match(dom, /<canvas/, 'the renderer attached after the lobby reload');
+      assert.ok(!/id="setup-screen"/.test(dom), 'the setup screen is gone after the boot');
+    } finally {
+      await gs.close();
+    }
+  });
+
+// B1 regression (wave-III input.js fix): a multi-turn GoTo must survive a
+// hotseat hand-off. ?e2e=3 (main.js) arms a REAL GoTo per player through the
+// pick path, plays p1 → p2 → p1 → p2, and records positions in the probe.
+// The two-hunk fix under test, each caught by its own assertion:
+// (1) endTurn's human→human path must run autoSelectAfterTurn — else p1's
+//     leg 2 never fires at the hand-back (the "hotseat GoTos froze" bug) and
+//     p1's displacement stays 1 instead of 2;
+// (2) runAllGotos must be owner-filtered — else p1's turn-start CANCELS p2's
+//     queued route with notYourUnit rejections (units refreshed at the wrap),
+//     which no position shows until p2's own next turn: p2's leg 2 goes
+//     missing and p2's displacement stays 1 instead of 2.
+test('browser hotseat GoTo: queued routes survive hand-offs and only run for their owner',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&civs=2&humans=2&e2e=3&civ=romans`);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      const m = dom.match(
+        /goto p1 (\d+),(\d+) (\d+),(\d+) (\d+),(\d+) p2 (\d+),(\d+) (\d+),(\d+) (\d+),(\d+) (\d+),(\d+)/);
+      assert.ok(m, `the e2e=3 probe must record both units' positions:\n${dom.match(/goto [^<]*/)?.[0] || '(no probe)'}`);
+      const [s1x, s1y, a1x, a1y, f1x, f1y,
+        s2x, s2y, a2x, a2y, m2x, m2y, f2x, f2y] = m.slice(1).map(Number);
+      // starts sit mid-map on seed 12345 and legs are single tiles — no wrap math needed
+      const cheb = (ax, ay, bx, by) => Math.max(Math.abs(ax - bx), Math.abs(ay - by));
+      assert.strictEqual(cheb(s1x, s1y, a1x, a1y), 1, 'p1 GoTo leg 1 must run on p1 own turn');
+      assert.strictEqual(cheb(s1x, s1y, f1x, f1y), 2,
+        'p1 GoTo leg 2 must run when the turn comes back (autoSelectAfterTurn on the hand-off path)');
+      assert.strictEqual(cheb(s2x, s2y, a2x, a2y), 1, 'p2 GoTo leg 1 must run on p2 own turn');
+      assert.strictEqual(`${a2x},${a2y}`, `${m2x},${m2y}`,
+        "p2's unit must NOT move during p1's turn");
+      assert.strictEqual(cheb(s2x, s2y, f2x, f2y), 2,
+        "p2's route must survive p1's turn-start and continue on p2's turn (owner-filtered runAllGotos)");
+      assert.match(dom, /errors: 0/, 'no JavaScript errors during the scripted hotseat GoTo session');
+    } finally {
+      server.close();
+    }
+  });

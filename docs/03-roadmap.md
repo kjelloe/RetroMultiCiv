@@ -317,6 +317,11 @@ least one mid-game disconnect/reconnect.
 
 ## Phase 5 — Roblox Luau simulation port with replay conformance testing
 
+> Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
+> (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port
+> order with anchor/scenario/golden gates, and the lune CI harness
+> (approved 2026-07-12).
+
 - `tools/json2lua.js` generates the ruleset ModuleScripts.
 - Port `engine/*.js` → Luau ModuleScripts 1:1 (the §4 portability rules make
   this mechanical). Port order: rng → movement → combat → cities → tech →

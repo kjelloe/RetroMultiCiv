@@ -18,9 +18,17 @@ export function createRemoteSession(opts) {
   // The server owns the gameId; the client learns it from the joined reply and
   // NEEDS it for the /saves/<gameId>.json fetch + localStorage key names. Persist
   // it per-origin so a page reload can find its token key before joining (the
-  // seat-reclaim chicken-and-egg).
+  // seat-reclaim chicken-and-egg). KNOWN LIMIT (accepted for phase 4,
+  // @704be920): one slot = one concurrent server game per browser origin;
+  // ?game=<id> in the URL beats the stored value when both exist.
   const GAMEID_KEY = 'retromulticiv-gameid';
-  let gameId = opts.gameId || localStorage.getItem(GAMEID_KEY) || 'g1';
+  const storedGameId = localStorage.getItem(GAMEID_KEY);
+  let gameId = opts.gameId || storedGameId || 'g1';
+  // 'g1' is only a placeholder for keying; a bare ?server=1 join must NOT send
+  // it (the multi-game server would reject an unknown id) — omit gameId until
+  // we actually know one (from ?game=, localStorage, or the joined reply), so
+  // the server routes to its default game.
+  let gameIdKnown = Boolean(opts.gameId || storedGameId);
 
   let ws = null;
   let state = null;
@@ -33,6 +41,7 @@ export function createRemoteSession(opts) {
   const listeners = [];
   const sent = [];                        // lightweight log for diagnostics/probe
   let statusHandler = null;
+  let metaHandler = null;                 // phase-4 turn-flow frames (presence, skipVote…)
 
   // one command in flight at a time (the ui awaits): the ack's events wait
   // here for the view that resolves the caller's Promise.
@@ -94,6 +103,7 @@ export function createRemoteSession(opts) {
       playerId = msg.playerId;
       if (msg.gameId) { // adopt the server's real id BEFORE keying the token by it
         gameId = msg.gameId;
+        gameIdKnown = true;
         try { localStorage.setItem(GAMEID_KEY, gameId); } catch (e) { /* private mode */ }
       }
       token = msg.token;
@@ -136,7 +146,10 @@ export function createRemoteSession(opts) {
       notify([]); // refresh displays that read the code (e.g. the game-over line)
       return {};
     }
-    // turn / pong: informational — the view is the authoritative state.
+    // everything else (turn, presence, skipVote, turnSkipped, pong…) is
+    // informational — the view is the authoritative state. The phase-4 turn
+    // flow UI (ui/lobby.js initMultiplayerFlow) listens through this hook.
+    if (metaHandler) metaHandler(msg);
     return {};
   }
 
@@ -160,7 +173,7 @@ export function createRemoteSession(opts) {
     let triedFresh = false;
     ws = new WebSocket(wsUrl);
     ws.addEventListener('open', () => {
-      send({ t: 'join', gameId, name, token: token || undefined });
+      send({ t: 'join', gameId: gameIdKnown ? gameId : undefined, name, token: token || undefined });
     });
     ws.addEventListener('message', ev => {
       let msg;
@@ -174,7 +187,7 @@ export function createRemoteSession(opts) {
           triedFresh = true;
           token = null;
           try { localStorage.removeItem(tokenKey(gameId)); } catch (e) { /* private mode */ }
-          send({ t: 'join', gameId, name });
+          send({ t: 'join', gameId: gameIdKnown ? gameId : undefined, name });
         } else if (rejectJoin) {
           const f = rejectJoin; rejectJoin = null; f(new Error('join rejected: ' + msg.code));
         }
@@ -199,6 +212,10 @@ export function createRemoteSession(opts) {
 
     onChange(cb) { listeners.push(cb); },
     setStatusHandler(fn) { statusHandler = fn; },
+    setMetaHandler(fn) { metaHandler = fn; },
+    // fire-and-forget phase-4 frames (skipTurn / proposeSkip / vote) — no
+    // commandId, no waiter; the server answers with broadcasts.
+    sendMeta(frame) { send(Object.assign({ gameId }, frame)); },
 
     apply(cmd) { return request({ t: 'cmd', cmd }); },
     endTurn() { return request({ t: 'endTurn' }); },

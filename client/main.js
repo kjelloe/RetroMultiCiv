@@ -116,6 +116,9 @@ let initialState = null;
 let humans = 1;
 let session = null;
 const cityNamesByPlayer = {}; // pid -> that civilization's historic city list
+const factionsByPid = {};     // pid -> data/civs.json visual (art A1.6a); the
+                              // renderer falls back to player.color when empty
+                              // (mock states, server/lobby games without civs)
 const serverParam = params.get('server');
 if (serverParam) {
   // Phase-3 (docs/06 §5): the authoritative engine runs on the server. Join
@@ -161,6 +164,7 @@ if (serverParam) {
       human: i < humans
     });
     cityNamesByPlayer['p' + (i + 1)] = civs[civId].cities;
+    if (civs[civId].visual) factionsByPid['p' + (i + 1)] = civs[civId].visual;
   }
   const size = MAP_SIZES[params.get('size')] !== undefined ? params.get('size') : 'medium';
   const dims = MAP_SIZES[size];
@@ -244,14 +248,17 @@ ctx.lastSaveCode = null; // set by ui/saves.js on save; shown on the hand-off sc
 
 initOptions(ctx);
 ctx.hud = initHud(ctx);
-// server mode: surface disconnect/reconnect notices in the HUD banner
+// server mode: surface disconnect/reconnect notices in the HUD banner, and
+// wire the phase-4 turn flow (your-turn chime, waiting-for-<name>, skip vote)
 if (session.setStatusHandler) session.setStatusHandler(msg => ctx.hud.banner(`⚠ ${msg}`));
+if (serverParam) import('./ui/lobby.js').then(m => m.initMultiplayerFlow(ctx));
 ctx.panels = initPanels(ctx);
 ctx.handoff = initHandoff(ctx);
 initInput(ctx);
 initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
 
+if (renderer.setFactions) renderer.setFactions(factionsByPid);
 session.onChange(() => {
   ctx.hud.refresh();
   ctx.panels.refresh();
@@ -313,4 +320,107 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
 if (params.get('e2e') === '2') {
   await ctx.endTurn();
   await ctx.endTurn();
+}
+
+// ?e2e=3 (with &humans=2): B1 regression — a GoTo must survive a hotseat
+// hand-off (input.js: owner-filtered runAllGotos + autoSelectAfterTurn on the
+// human→human path). Both players arm a REAL GoTo through the pick path
+// ('g' + a canvas click); the probe records each unit's position at
+// start / after-arm / final so the browser test can assert that p1's leg 2
+// ran at the hand-back and that p2's unit never moved during p1's turn.
+if (params.get('e2e') === '3' && firstUnit && firstUnit.type === 'settlers') {
+  const canvas = document.querySelector('#app canvas');
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const map = session.state.map;
+  const pos = id => { const u = session.state.units[id]; return u ? `${u.x},${u.y}` : 'gone'; };
+  const tick = () => new Promise(r => setTimeout(r, 120));
+
+  // target scan: same greedy rule as input.js gotoStep (strictly-closer
+  // options, stable-sorted, first passable wins), with land as the
+  // apply-succeeds proxy — a settler's step onto land always succeeds this
+  // early. The raycast pick can land one tile off, so a target only
+  // qualifies when it AND all 8 neighbors offer two greedy legs.
+  const VEC = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
+  const wrapDist = (ax, ay, bx, by) => {
+    let dx = Math.abs(ax - bx);
+    if (map.wrapX && map.width - dx < dx) dx = map.width - dx;
+    const dy = Math.abs(ay - by);
+    return dx > dy ? dx : dy;
+  };
+  const isLand = (x, y) => ruleset.terrain.terrains[map.tiles[y * map.width + x].t].domain === 'land';
+  function greedyStep(cx, cy, tx, ty) {
+    const here = wrapDist(cx, cy, tx, ty);
+    const options = Object.keys(VEC).map(dir => {
+      let nx = cx + VEC[dir][0];
+      if (map.wrapX) nx = ((nx % map.width) + map.width) % map.width;
+      return { nx, ny: cy + VEC[dir][1], d: wrapDist(nx, cy + VEC[dir][1], tx, ty) };
+    }).filter(o => o.d < here && o.ny >= 0 && o.ny < map.height).sort((a, b) => a.d - b.d);
+    for (const o of options) if (isLand(o.nx, o.ny)) return o;
+    return null;
+  }
+  function twoLegs(sx, sy, tx, ty) {
+    if (wrapDist(sx, sy, tx, ty) < 3) return false;
+    const s1 = greedyStep(sx, sy, tx, ty);
+    return s1 !== null && greedyStep(s1.nx, s1.ny, tx, ty) !== null;
+  }
+  function findTarget(u) {
+    for (let D = 6; D >= 4; D--) {
+      for (const dir of Object.keys(VEC)) {
+        const tx = ((u.x + VEC[dir][0] * D) % map.width + map.width) % map.width;
+        const ty = u.y + VEC[dir][1] * D;
+        if (ty < 2 || ty >= map.height - 2) continue;
+        let ok = true;
+        for (let dy = -1; dy <= 1 && ok; dy++) {
+          for (let dx = -1; dx <= 1 && ok; dx++) {
+            const nx = ((tx + dx) % map.width + map.width) % map.width;
+            if (!twoLegs(u.x, u.y, nx, ty + dy)) ok = false;
+          }
+        }
+        if (ok) return { tx, ty };
+      }
+    }
+    return null;
+  }
+
+  // arm a GoTo the way a player does: select, press G, click the destination
+  // (centerOn puts the target tile under the canvas center for the raycast)
+  async function armGoto(unit, tx, ty) {
+    ctx.selectUnit(unit);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g', bubbles: true }));
+    renderer.centerOn(tx, ty);
+    const r = canvas.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { clientX: cx, clientY: cy, bubbles: true }));
+    window.dispatchEvent(new PointerEvent('pointerup', { clientX: cx, clientY: cy, bubbles: true }));
+    await tick(); // the pick handler fires runGoto without awaiting — let leg 1 land
+  }
+
+  const u1 = firstUnit.id;
+  const t1 = findTarget(session.state.units[u1]);
+  const p1start = pos(u1);
+  if (t1) await armGoto(session.state.units[u1], t1.tx, t1.ty);
+  const p1arm = pos(u1);
+  await ctx.endTurn(); // leg 1 spent the settler's move — no confirmation needed
+  // the hand-off curtain is up for player 2: any key confirms it
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bubbles: true }));
+  const u2 = Object.values(session.state.units).find(u => u.owner === ctx.HUMAN && u.moves > 0);
+  const t2 = u2 ? findTarget(u2) : null;
+  const p2start = u2 ? pos(u2.id) : 'none';
+  if (u2 && t2) await armGoto(u2, t2.tx, t2.ty);
+  const p2arm = u2 ? pos(u2.id) : 'none';
+  await ctx.endTurn(); // wraps the turn (moves refresh); the hand-back must run p1's queued route
+  const p1final = pos(u1);
+  const p2mid = u2 ? pos(u2.id) : 'none'; // p2 must not have moved on p1's turn
+  // one more half-round: p2's route must have SURVIVED p1's turn-start
+  // (an unfiltered runAllGotos would have cancelled it with notYourUnit
+  // rejections — invisible in positions until p2's own next turn)
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', bubbles: true }));
+  await ctx.endTurn(); // p1 -> p2 hand-off runs p2's queued leg 2
+  probe.textContent = `goto p1 ${p1start} ${p1arm} ${p1final}`
+    + ` p2 ${p2start} ${p2arm} ${p2mid} ${u2 ? pos(u2.id) : 'none'}`
+    + ` targets ${t1 ? `${t1.tx},${t1.ty}` : 'none'} ${t2 ? `${t2.tx},${t2.ty}` : 'none'}`
+    + ` errors: ${capturedErrors.length}`;
 }

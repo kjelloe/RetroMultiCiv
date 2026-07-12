@@ -37,8 +37,12 @@ HELP
   exit 0
 fi
 
-PORT="${1:-8123}"
-[ $# -ge 1 ] && shift
+# first arg is the port ONLY if numeric — `./run.sh --humans 2` must not
+# swallow a flag as the port (a real user hit exactly that)
+case "${1:-}" in
+  ''|*[!0-9]*) PORT=8123 ;;
+  *) PORT="$1"; shift ;;
+esac
 
 # stop whichever previous server holds the port (old python static or node)
 if pkill -f "http\.server $PORT" 2>/dev/null; then

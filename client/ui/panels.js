@@ -238,8 +238,19 @@ export function initPanels(ctx) {
     const state = session.state;
     const city = state.cities[openCityId];
     if (!city || city.owner !== ctx.HUMAN) { closeCityPanel(); return; }
-    document.getElementById('city-title').textContent =
-      `🏛 ${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
+    const title = document.getElementById('city-title');
+    title.textContent = `🏛 ${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
+    // faction emblem chip (art A1.6a): the owner's flag from data/civs.json
+    const ownerCiv = state.players[city.owner].civ;
+    const visual = ownerCiv && session.ruleset.civs[ownerCiv] && session.ruleset.civs[ownerCiv].visual;
+    if (visual) {
+      import('../renderer/three/factions.js').then(m => {
+        const img = document.createElement('img');
+        img.src = m.emblemDataUrl(visual);
+        img.style.cssText = 'width:18px;height:18px;vertical-align:-3px;margin-right:6px;border-radius:3px;';
+        title.prepend(img);
+      });
+    }
 
     const worked = workedTiles(state, city, session.ruleset);
     const totals = { food: 0, shields: 0, trade: 0 };

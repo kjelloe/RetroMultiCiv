@@ -369,6 +369,12 @@ below is a known, deliberate deviation to be closed in a later slice:
   Civ 1); build times are flat per improvement (`rules.json` `workTurns` —
   tuning values); irrigation's water source check uses the 8-neighborhood;
   city tiles do not count as roads.
+- **The city square auto-develops** (wiki-verified Civ 1 rule): the center
+  tile yields as if roaded & irrigated (irrigation skipped over a mine) —
+  note despotism's tile penalty applies to it too, so the food gain often
+  shows only after a revolution. Client mini-map/site-preview display of
+  this is queued (A16).
+- **Starting positions** keep at least 3 tiles from the polar map edges.
 - **City spacing**: founding is rejected within `rules.minCityDistance`
   (4) tiles of ANY existing city, any civ (Civ 1 was adjacency-only —
   playtest choice for less city-carpet).

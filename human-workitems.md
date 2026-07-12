@@ -2,77 +2,88 @@
 
 Things only a human (Kjell or friends) can verify or decide. Check off with
 a date; add playtest findings to the bottom section. Agent/coder tasks live
-in `./agent-workitems.md`.
+in `./agent-workitems.md`. Refreshed 2026-07-13 — completed items moved to
+the Done log at the bottom.
 
-## Verify in real play
+## Pending — verify in real play
 
-- [ ] **Playtest wave II spot-check** (all landed 2026-07-12): city view
-  gives the left column the width; Temple shows a real effect line; N goes
-  to the *nearest* unit; selecting a GoTo unit shows its route line with
-  Re-route/✕ Cancel in the action bar; unit stat card sits above the
-  action bar; ⌖ in turn-log lines flies the camera there; settler site
-  rating says "unexplored territory" / "N tiles unexplored" under fog;
-  founding inside 4 tiles of any city is rejected with a clear message;
-  roads feel 3× (militia crosses 3 road tiles per turn).
-- [ ] **Combat feel**: new games default to Best-of-three (setup dropdown
-  "Combat calculations"). Does a 4:1 attack now *feel* right (~90% wins)?
-  If you prefer authentic Civ 1 as the default instead, say so — one-line
-  change.
-- [ ] **Terrain mesh on real GPUs**: the continuous low-poly surface is
-  headless-verified (WebGL2 + WebGL1), but judge the *look* in Firefox
-  (WebGL2/D3D11) and the WebGL1-stuck Chrome: readability of tiles,
-  mountain heights vs unit visibility, water contrast, fog dimming.
-- [ ] **End Turn latency late-game**: expansion AI now reaches 10–24
-  cities on some seeds; if End Turn stalls noticeably vs a big AI, report
-  the turn number + a Shift+D diagnostics file.
-- [ ] **Hotseat acceptance playtest** (still pending from phase 2): a real
-  2-human+AI session scored against the 10-question checklist in
-  `specs/gameplay-reference.md` and the 7 hotseat questions in
-  `specs/plan-feedback.md` — plus the ally's new comprehension question
-  (specs/plan-feedback-2.md): did happiness, government, tax allocation,
-  and worker improvements feel understandable, or like hidden bookkeeping?
-- [ ] **AI settlers in hotseat**: steal an AI's founding spot on purpose —
-  its settler should now walk off to a secondary site instead of loitering.
-- [ ] **AI military behavior** (batch 3, 2026-07-12): AI settlers should
-  travel with escorts; threatened AI cities should hold two defenders;
-  AI armies should no longer trek across the whole map at you — verify
-  wars feel local and AI civs are harder to snowball over early.
+- [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3
+  code-complete, suite 159/159): `./run.sh` on one machine; both browsers
+  to `http://<host-ip>:8123/client/` → Host a LAN game on one, Join by
+  the 5-char code on the other (pick a seat; your names should show in
+  the waiting room), start, play a few turns. Then the roadmap
+  acceptance: kill the at-turn player's browser mid-turn (⏳ waiting
+  banner; try host-skip, and the propose/vote if you seat a third
+  human), reconnect and continue; kill the SERVER mid-game,
+  `./run.sh 8123 --game saves/<gameId>.json`, both rejoin. Also eyeball
+  the 🔔 your-turn / ⏳ waiting / vote banners — integration-tested but
+  not yet visually verified (A13's honest note). Ticking this = phase 4
+  accepted.
+- [ ] **Score & declare the phase-2 hotseat acceptance**: your turn-35
+  hotseat session replayed hash-exact and produced wave III — what's
+  left is the verdict: score it against the 10 questions in
+  `specs/gameplay-reference.md`, the 7 hotseat questions in
+  `specs/plan-feedback.md`, and the ally's comprehension question
+  (did happiness/government/tax/workers feel understandable or like
+  hidden bookkeeping?). Tick = phase 2 formally closed.
+- [ ] **Wave-III fix verification** (next hotseat/solo session): GoTo now
+  continues across hotseat hand-offs (the turn-35 bug); city squares act
+  roaded+irrigated (watch your capital's yields — the food gain appears
+  after leaving Despotism); starts spawn ≥3 tiles from the polar edges.
+- [ ] **End Turn latency late-game** (standing): if End Turn stalls
+  noticeably vs a big AI (10–24 cities on some seeds), report turn
+  number + Shift+D file.
 
-- [ ] **Declare phase 3 accepted** — the three roadmap criteria are met in
-  practice: you played 20 turns through the socket (replayed hash-exact
-  from `saves/g672813.json`), restart-resume works (`--game`, and
-  `--reset-seats` for cross-port), and tamper rejection is automated
-  (server-protocol tests). If the socket game FELT right (latency, view
-  updates), tick this — it gates the helper's phase-4 items (A12/A13).
+## Pending — decisions / ops
 
-## Decisions / ops only you can do
+- [ ] **Merge `dev` → `main`**: both nightly runs went green from the
+  `dev` branch via manual dispatch — but the 3 AM cron only arms once
+  the workflow file lands on `main`. Merging also publishes phase 3+4,
+  the game code, and the guards to the default branch.
+- [ ] **Arctic poles: passable or wall?** (wave-III #5 follow-up):
+  today's behavior is Civ 1-authentic — E-W wrap, hard N-S edges, and
+  arctic cap rows that units CAN walk on. If you'd rather the poles be
+  an impassable ice wall, it's a one-line data change — say the word.
+- [ ] **Ally sign-off loop for A14** (after the helper lands it): send
+  him the 14-civ gallery-row screenshots — his own acceptance criteria
+  from `specs/civ-visuals.md` — for design sign-off, plus the pending
+  thank-you for authoring the table (`ally-reply-assets.md` has the
+  broader asset-plan reply if not yet shared).
+- [ ] **Old recordings cleanup** (at leisure): everything in
+  `debugging/logs/` predating 2026-07-12's engine changes no longer
+  replays (expected — goldens re-recorded); the bugfixer has marked all
+  six existing files pre-triaged. Delete when convenient.
+- [ ] **Commit checkpoint**: the working tree carries A13 (lobby UI),
+  wave III (engine + GoTo fix), the B-queue/A16/A17 items, docs/09, and
+  the guards — a known-green 159-test baseline worth committing before
+  the next batch lands.
 
-- [ ] **Push + first nightly run**: after committing, trigger
-  `.github/workflows/nightly-soak.yml` once by hand (GitHub → Actions →
-  nightly-soak → Run workflow) and confirm both soak legs pass on the
-  runner and the telemetry artifact uploads. The 3 AM cron only activates
-  once the file is on `main`.
-- [ ] **Share `plan-update.md`** with the designer ally + friends (it has
-  the terrain-upgrade and simulation-harness paragraphs, test count 124).
-- [ ] **Tell the designer ally about the terrain adoption**: his spec
-  (saved verbatim at `specs/terrain-mesh.md`) is implemented with three
-  deviations documented in `docs/03-roadmap.md` A1.75 — flat-shading via
-  explicit per-face normals (WebGL1 safety), Lambert instead of Standard
-  material, and his grid-overlay idea (#7) deferred; the existing
-  hover/selection/footprint markers cover interactions for now.
-- [ ] **Explain the WebGL1 stance to the ally** (his plan-feedback-2 edit
-  #1 assumed we target WebGL2-only): WebGL1 support is deliberate, not an
-  oversight — one of our own test machines is stuck on ANGLE D3D9
-  (WebGL1-only), which is exactly why three.js is pinned to r162, the
-  last WebGL1-capable release. His other wording edits were adopted
-  verbatim in plan-update.md; this one was adapted to keep the fact and
-  state the reason.
-- [ ] **Old recordings note**: diagnostics files recorded before
-  2026-07-12 no longer replay (AI + rules changed); saves still load.
-  Delete stale files in `debugging/logs/` at your leisure.
+## Later (not yet actionable)
+
+- [ ] **Roblox/phase-5 setup**: Studio project, publishing, lune
+  toolchain install for CI (approved 2026-07-12) — when the port starts.
+- [ ] **AI happiness management verdict**: nightly God-Emperor telemetry
+  shows the AI can't cope with contentCitizens 2 (47% stagnant) — decide
+  eventually whether an "AI luxuries/entertainers" batch 4 is worth it
+  or God-Emperor stays a humans-only difficulty.
 
 ## Playtest findings inbox
 
 (add bugs/refinements here or hand them over in chat as before — Shift+D
 diagnostics files into `debugging/logs/` for anything that looks like an
-engine issue)
+engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
+
+## Done log
+
+- ✅ 2026-07-12 — Wave-II spot-check, combat-default preference
+  (best-of-three stays), terrain look on real GPUs, AI settler re-route
+  + military behavior checks (user cleared the batch).
+- ✅ 2026-07-12 — Phase 3 accepted (20/67/112/120-turn socket games all
+  replay hash-exact; resume + tamper-rejection verified).
+- ✅ 2026-07-12 — First nightly run green (soak + suite, run 29208654981);
+  telemetry pulled and scored.
+- ✅ 2026-07-12 — Ally comms: asset-plan reply + terrain deviations +
+  WebGL1 stance conveyed; ally authored the 14-civ table in response.
+- ✅ 2026-07-12 — Hotseat playtest session run (turn 35, seed 12345,
+  replayed hash-exact) → wave III filed; formal scoring still pending
+  (see above).

@@ -48,8 +48,13 @@ export function showSetupScreen() {
       </label>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
       <button id="setup-start">Start game</button>
+      <div id="setup-lan">
+        <button id="setup-host" class="setup-lan-btn">Host LAN game</button>
+        <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
+      </div>
     </div>`;
   document.body.appendChild(overlay);
+  const setupBox = document.getElementById('setup-box');
 
   // fill the civilization picker (specialty shown under the select)
   const civEl = document.getElementById('setup-civ');
@@ -64,6 +69,16 @@ export function showSetupScreen() {
     const showSpecialty = () => {
       const c = civs[civEl.value];
       specEl.textContent = c && c.specialty ? `★ ${c.specialty.blurb}` : 'a random civilization awaits';
+      // faction emblem chip (art A1.6a) next to the blurb
+      if (c && c.visual) {
+        import('../renderer/three/factions.js').then(m => {
+          if (civs[civEl.value] !== c) return; // selection changed meanwhile
+          const img = document.createElement('img');
+          img.src = m.emblemDataUrl(c.visual);
+          img.style.cssText = 'width:16px;height:16px;vertical-align:-3px;margin-right:6px;border-radius:3px;';
+          specEl.prepend(img);
+        });
+      }
     };
     civEl.addEventListener('change', showSpecialty);
     showSpecialty();
@@ -100,4 +115,33 @@ export function showSetupScreen() {
       + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '');
   });
+
+  // --- phase-4 LAN lobby (ui/lobby.js): host with the form's world options,
+  // or join by code. Both take over this box; the game itself boots via the
+  // ?server=1&game= reload the lobby performs.
+  function worldOptions() {
+    return {
+      civs: parseInt(civsEl.value, 10),
+      humans: parseInt(humansEl.value, 10),
+      size: document.getElementById('setup-size').value,
+      difficulty: document.getElementById('setup-difficulty').value,
+      combat: document.getElementById('setup-combat').value,
+      seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined
+    };
+  }
+  document.getElementById('setup-host').addEventListener('click', () => {
+    import('./lobby.js').then(m => m.startHostFlow(setupBox, worldOptions()));
+  });
+  document.getElementById('setup-join').addEventListener('click', () => {
+    import('./lobby.js').then(m => m.startJoinFlow(setupBox));
+  });
+
+  // e2e: ?e2ehost=1 auto-hosts a tiny 1-human game and starts it (the browser
+  // test's lobby boot path); &e2ehold=1 stops at the waiting room (screenshots).
+  const params = new URLSearchParams(location.search);
+  if (params.get('e2ehost') === '1') {
+    import('./lobby.js').then(m => m.startHostFlow(setupBox,
+      { civs: 2, humans: 1, size: 'xsmall', seed: 12345 },
+      { auto: true, name: 'Kjell', hold: params.get('e2ehold') === '1' }));
+  }
 }

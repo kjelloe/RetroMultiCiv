@@ -765,6 +765,56 @@ html, body {
   background: #2f5388;
 }
 
+/* --- phase-4 LAN lobby (host/join buttons + waiting room) --- */
+#setup-lan { margin-top: 10px; }
+.setup-lan-btn {
+  margin: 0 4px;
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid #3b5d8f;
+  border-radius: 6px;
+  color: #8fa8cc;
+  font-family: inherit;
+  cursor: pointer;
+}
+.setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
+#lobby-code {
+  font-size: 30px;
+  letter-spacing: 6px;
+  color: #ffe066;
+  margin: 4px 0 12px;
+}
+#lobby-roster { margin: 0 auto 8px; text-align: left; display: inline-block; }
+#lobby-roster div { padding: 2px 0; }
+.lobby-open { color: #7d8aa5; }
+.lobby-ai { color: #5a6b85; }
+#setup-box a { color: #8fa8cc; }
+#mp-status {
+  position: fixed;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 39;
+  background: #2b2416;
+  border: 1px solid #6b5d2f;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #ffe066;
+  font-family: inherit;
+  font-size: 13px;
+}
+#mp-status button {
+  margin-left: 8px;
+  padding: 3px 10px;
+  background: #24406b;
+  border: 1px solid #3b5d8f;
+  border-radius: 5px;
+  color: #cdd8ea;
+  font-family: inherit;
+  cursor: pointer;
+}
+#mp-status button:hover { background: #2f5388; }
+
 /* --- flash banner (transient center message) --- */
 #flash-banner {
   position: absolute;

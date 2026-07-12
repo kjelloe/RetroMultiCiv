@@ -3,7 +3,8 @@
 // groups (assets.js), raycast picking. Fixed-tilt camera with drag-pan and
 // wheel-zoom.
 import * as THREE from 'three';
-import { createUnitMesh, createCityMesh, createTileProps } from './assets.js';
+import { createUnitMesh, createCityMesh } from './assets.js';
+import { createTileProps } from './props.js';
 import { buildTerrain, terrainBaseColor } from './terrain.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
@@ -110,12 +111,23 @@ export function createRenderer(container) {
     for (const m of propMeshes) worldGroup.add(m);
   }
 
+  // faction visuals (art A1.6a): pid -> {primary, secondary, emblem} from
+  // data/civs.json, provided by the host (main.js/gallery). Anyone absent
+  // falls back to their plain player color — mock/test states, lobby games.
+  let factions = {};
+  function visualOf(pid) {
+    return factions[pid] || view.players[pid]?.color || '#ffffff';
+  }
+
   function buildUnits() {
     for (const mesh of unitMeshes.values()) worldGroup.remove(mesh);
     unitMeshes.clear();
     for (const u of Object.values(view.units || {})) {
-      const color = view.players[u.owner]?.color || '#ffffff';
-      const mesh = createUnitMesh(u.type, color); // group, base at y = 0
+      const mesh = createUnitMesh(u.type, visualOf(u.owner), {
+        veteran: u.veteran === true,
+        fortified: u.fortified === true,
+        canMove: u.moves > 0
+      }); // group, base at y = 0
       mesh.position.set(u.x, tileTop(u.x, u.y), u.y);
       mesh.userData.unitId = u.id;
       unitMeshes.set(u.id, mesh);
@@ -160,7 +172,10 @@ export function createRenderer(container) {
     cityLabels.length = 0;
     for (const city of Object.values(view.cities || {})) {
       const color = view.players[city.owner]?.color || '#ffffff';
-      const mesh = createCityMesh(city, color); // group, base at y = 0
+      // the capital flies the CanvasTexture emblem flag (own cities carry
+      // buildings in the view; rival shells only show walls — pennant then)
+      const isCapital = (city.buildings || []).indexOf('palace') !== -1;
+      const mesh = createCityMesh(city, visualOf(city.owner), isCapital); // base at y = 0
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
       cityMeshes.set(city.id, mesh);
@@ -268,6 +283,12 @@ export function createRenderer(container) {
       buildTiles();
       buildUnits();
       buildCities();
+    },
+    // faction visuals (art A1.6a): pid -> data/civs.json `visual` object;
+    // players absent from the map keep their plain color
+    setFactions(map) {
+      factions = map || {};
+      if (view) { buildUnits(); buildCities(); }
     },
     playEvents(_events) { /* step 0: no engine events yet */ },
     onPick(cb) { pickCb = cb; },

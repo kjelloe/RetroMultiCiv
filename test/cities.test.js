@@ -157,14 +157,15 @@ test('setWorkers: manual tile assignment overrides greedy, validates, resets', a
     players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
     rngState: 1
   };
-  // auto: greedy works the shield grassland — no trade
-  assert.strictEqual(cities.cityYields(state, state.cities.c1, RULESET).trade, 0);
+  // auto: greedy works the shield grassland — the only trade is the city
+  // square's own (it acts roaded & irrigated, Civ 1)
+  assert.strictEqual(cities.cityYields(state, state.cities.c1, RULESET).trade, 1);
 
   // manual: work the ocean instead (idx 8) — optimize for trade
   const res = engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [8] });
   assert.strictEqual(res.ok, true);
   const y = cities.cityYields(res.state, res.state.cities.c1, RULESET);
-  assert.strictEqual(y.trade, 2, 'ocean worked manually');
+  assert.strictEqual(y.trade, 3, 'ocean worked manually (+ the roaded city square)');
   assert.strictEqual(y.shields, 1, 'only the plains center shield remains — grassland released');
 
   // validation: too many workers, bad tile index, duplicates

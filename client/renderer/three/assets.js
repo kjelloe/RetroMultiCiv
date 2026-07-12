@@ -6,6 +6,24 @@
 // cached per color; geometries are shared module constants, so removing a
 // group from the scene needs no disposal.
 import * as THREE from 'three';
+import { emblemTexture, isLightColor } from './factions.js';
+
+// --- faction visuals (art A1.6a) -----------------------------------------------
+// Factories accept either a plain color string (mock/test states, lobby games
+// without civs — the fallback path) or a data/civs.json visual object
+// { primary, secondary, emblem }. Everything downstream works off this shape.
+function resolveVisual(colorOrVisual) {
+  if (colorOrVisual && typeof colorOrVisual === 'object') return colorOrVisual;
+  return { primary: colorOrVisual || '#ffffff', secondary: '#e8e0cc', emblem: '' };
+}
+const dimCache = {};
+function dimmed(color) { // moved-out units: same hue, clearly darker
+  if (!dimCache[color]) {
+    const c = new THREE.Color(color).lerp(new THREE.Color(0x11151d), 0.55);
+    dimCache[color] = '#' + c.getHexString();
+  }
+  return dimCache[color];
+}
 
 // --- shared materials ---------------------------------------------------------
 const NEUTRAL = {
@@ -51,8 +69,26 @@ const GEO = {
   flag: new THREE.PlaneGeometry(0.22, 0.13),
   wallRing: new THREE.TorusGeometry(0.42, 0.05, 6, 16),
   box: new THREE.BoxGeometry(1, 1, 1),
-  roof: new THREE.ConeGeometry(1, 1, 4)
+  roof: new THREE.ConeGeometry(1, 1, 4),
+  // faction identity + status markers (art A1.6a)
+  emblemDisc: new THREE.CircleGeometry(0.042, 10),      // secondary dot on pennants
+  baseRim: new THREE.TorusGeometry(0.3, 0.016, 6, 18),  // veteran gold / light-civ dark
+  shieldChip: new THREE.BoxGeometry(0.09, 0.11, 0.02),  // fortified marker
+  cityFlag: new THREE.PlaneGeometry(0.3, 0.3)           // capital CanvasTexture flag
 };
+const GOLD = new THREE.MeshLambertMaterial({ color: 0xd9a521 });
+const DARK_RIM = new THREE.MeshLambertMaterial({ color: 0x20242e });
+const SHIELD = new THREE.MeshLambertMaterial({ color: 0xcfd6df });
+const flagTexCache = {};
+function flagTexMatFor(visual) {
+  const key = visual.primary + '|' + visual.emblem;
+  if (!flagTexCache[key]) {
+    flagTexCache[key] = new THREE.MeshLambertMaterial({
+      map: emblemTexture(visual), side: THREE.DoubleSide
+    });
+  }
+  return flagTexCache[key];
+}
 
 function add(group, geo, mat, x, y, z) {
   const mesh = new THREE.Mesh(geo, mat);
@@ -73,18 +109,51 @@ const SAIL_TYPES = { trireme: true, sail: true, frigate: true, transport: true }
 const POWERED_TYPES = { ironclad: true, cruiser: true, battleship: true, carrier: true };
 const AIR_TYPES = { fighter: true, bomber: true, nuclear: true };
 
-function footSoldier(group, color) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+// --- unit token layer (art A1.6a): every unit sits on this ---------------------
+// base disc in the faction primary (bright = can move, dim = moved out), a
+// thin dark rim for light civs (readability), gold rim for veterans, a small
+// shield chip when fortified. Ownership stays readable before any silhouette.
+function baseToken(group, visual, status, discY) {
+  const s = status || {};
+  const discColor = s.canMove === false ? dimmed(visual.primary) : visual.primary;
+  add(group, GEO.baseDisc, matFor(discColor), 0, discY, 0);
+  if (isLightColor(visual.primary)) {
+    const rim = add(group, GEO.baseRim, DARK_RIM, 0, discY + 0.02, 0);
+    rim.rotation.x = Math.PI / 2;
+  }
+  if (s.veteran) {
+    const rim = add(group, GEO.baseRim, GOLD, 0, discY + 0.045, 0);
+    rim.rotation.x = Math.PI / 2;
+  }
+  if (s.fortified) add(group, GEO.shieldChip, SHIELD, 0.24, 0.14, 0.14);
+}
+
+// small faction pennant: pole + primary flag + secondary emblem dot (the
+// ally's first-implementation geometric flag; capitals upgrade to the
+// CanvasTexture emblem in createCityMesh)
+function pennant(group, visual, x, y, scale) {
+  const s = scale || 1;
+  const pole = add(group, GEO.pole, NEUTRAL.wood, x, y, 0);
+  pole.scale.setScalar(s * 0.8);
+  const flag = add(group, GEO.flag, flagMatFor(visual.primary), x + 0.09 * s, y + 0.24 * s, 0);
+  flag.scale.setScalar(s * 0.8);
+  if (visual.emblem) {
+    const dot = add(group, GEO.emblemDisc, flagMatFor(visual.secondary), x + 0.09 * s, y + 0.24 * s, 0.006);
+    dot.scale.setScalar(s);
+  }
+}
+
+function footSoldier(group, visual) {
   add(group, GEO.body, NEUTRAL.cloth, 0, 0.28, 0);
   add(group, GEO.head, NEUTRAL.skin, 0, 0.56, 0);
   const spear = add(group, GEO.spear, NEUTRAL.wood, 0.15, 0.42, 0);
   spear.rotation.z = -0.12;
   const tip = add(group, GEO.spearTip, NEUTRAL.metal, 0.19, 0.8, 0);
   tip.rotation.z = -0.12;
+  pennant(group, visual, -0.16, 0.3, 0.7);
 }
 
-function wagon(group, color) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+function wagon(group, visual) {
   add(group, GEO.wagonBody, NEUTRAL.wood, 0, 0.22, 0);
   const top = add(group, GEO.wagonTop, NEUTRAL.canvas, 0, 0.34, 0);
   top.rotation.z = Math.PI / 2; // canvas roof lies along the wagon
@@ -94,10 +163,10 @@ function wagon(group, color) {
       wheel.rotation.x = Math.PI / 2;
     }
   }
+  pennant(group, visual, -0.3, 0.32, 0.7);
 }
 
-function mounted(group, color, isChariot) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+function mounted(group, visual, isChariot) {
   const body = add(group, GEO.box, NEUTRAL.horse, 0, 0.3, 0);
   body.scale.set(0.42, 0.16, 0.16);
   const neck = add(group, GEO.box, NEUTRAL.horse, 0.18, 0.42, 0);
@@ -119,10 +188,10 @@ function mounted(group, color, isChariot) {
       wheel.rotation.x = Math.PI / 2;
     }
   }
+  pennant(group, visual, -0.28, 0.34, 0.7);
 }
 
-function siege(group, color, isArmor) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+function siege(group, visual, isArmor) {
   if (isArmor) {
     const hull = add(group, GEO.box, NEUTRAL.darkMetal, 0, 0.18, 0);
     hull.scale.set(0.46, 0.16, 0.3);
@@ -143,10 +212,10 @@ function siege(group, color, isArmor) {
     barrel.rotation.z = -0.9;
     barrel.scale.set(2.2, 0.6, 2.2);
   }
+  pennant(group, visual, -0.26, 0.3, 0.65);
 }
 
-function ship(group, color, kind) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.02, 0);
+function ship(group, visual, kind) {
   const hullMat = kind === 'sail' ? NEUTRAL.wood
     : kind === 'sub' ? NEUTRAL.darkMetal : NEUTRAL.hull;
   const hull = add(group, GEO.box, hullMat, -0.04, 0.14, 0);
@@ -167,12 +236,10 @@ function ship(group, color, kind) {
     const bridge = add(group, GEO.box, NEUTRAL.hull, 0.08, 0.26, 0);
     bridge.scale.set(0.14, 0.1, 0.12);
   }
-  const flag = add(group, GEO.flag, flagMatFor(color), -0.28, 0.3, 0);
-  flag.scale.setScalar(0.6);
+  pennant(group, visual, -0.28, 0.14, 0.65);
 }
 
-function aircraft(group, color) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+function aircraft(group, visual) {
   const fuselage = add(group, GEO.box, NEUTRAL.metal, 0, 0.32, 0);
   fuselage.scale.set(0.42, 0.08, 0.1);
   const wings = add(group, GEO.box, NEUTRAL.metal, 0.04, 0.32, 0);
@@ -181,184 +248,38 @@ function aircraft(group, color) {
   tail.scale.set(0.08, 0.1, 0.02);
 }
 
-function fallbackToken(group, color) {
-  add(group, GEO.baseDisc, matFor(color), 0, 0.035, 0);
+function fallbackToken(group) {
   add(group, GEO.fallback, NEUTRAL.cloth, 0, 0.32, 0);
 }
 
 // Returns a group with its base at y = 0 (place it on the tile top).
-export function createUnitMesh(unitType, color) {
+// colorOrVisual: '#hex' fallback OR a civ visual {primary, secondary, emblem};
+// status: { veteran, fortified, canMove } drives the token-layer markers.
+export function createUnitMesh(unitType, colorOrVisual, status) {
   const group = new THREE.Group();
-  if (WAGON_TYPES[unitType]) wagon(group, color);
-  else if (FOOT_TYPES[unitType]) footSoldier(group, color);
-  else if (MOUNTED_TYPES[unitType]) mounted(group, color, unitType === 'chariot');
-  else if (unitType === 'armor') siege(group, color, true);
-  else if (SIEGE_TYPES[unitType]) siege(group, color, false);
-  else if (SAIL_TYPES[unitType]) ship(group, color, 'sail');
-  else if (unitType === 'submarine') ship(group, color, 'sub');
-  else if (POWERED_TYPES[unitType]) ship(group, color, 'powered');
-  else if (AIR_TYPES[unitType]) aircraft(group, color);
-  else fallbackToken(group, color);
+  const visual = resolveVisual(colorOrVisual);
+  const naval = SAIL_TYPES[unitType] || POWERED_TYPES[unitType] || unitType === 'submarine';
+  baseToken(group, visual, status, naval ? 0.02 : 0.035);
+  if (WAGON_TYPES[unitType]) wagon(group, visual);
+  else if (FOOT_TYPES[unitType]) footSoldier(group, visual);
+  else if (MOUNTED_TYPES[unitType]) mounted(group, visual, unitType === 'chariot');
+  else if (unitType === 'armor') siege(group, visual, true);
+  else if (SIEGE_TYPES[unitType]) siege(group, visual, false);
+  else if (SAIL_TYPES[unitType]) ship(group, visual, 'sail');
+  else if (unitType === 'submarine') ship(group, visual, 'sub');
+  else if (POWERED_TYPES[unitType]) ship(group, visual, 'powered');
+  else if (AIR_TYPES[unitType]) aircraft(group, visual);
+  else fallbackToken(group);
   return group;
 }
 
 // Deterministic house cluster scaled by population, roofs in the owner's
 // color, a banner pole, and a wall ring once City Walls is built.
-// --- deterministic visual randomness (terrain art A1.5) -------------------------
-// Decoration must be identical across refreshes, saves, and clients, and
-// never touch canonical state — so it derives from tile coordinates alone.
-export function visualRand(x, y, salt) {
-  let h = (x * 374761393 + y * 668265263 + (salt + 1) * 2246822519) >>> 0;
-  h = (h ^ (h >>> 13)) >>> 0;
-  h = (h * 1274126177) >>> 0;
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
 
-// --- tile props: terrain features, improvements, resources (instanced) ---------
-const PROP_GEO = {
-  strip: new THREE.BoxGeometry(0.72, 0.02, 0.14),   // irrigation channel
-  roadSeg: new THREE.BoxGeometry(0.5, 0.02, 0.12),  // half-tile road segment
-  mine: new THREE.ConeGeometry(0.13, 0.2, 4),
-  tree: new THREE.ConeGeometry(0.11, 0.28, 6),
-  scrub: new THREE.ConeGeometry(0.055, 0.11, 5),
-  rock: new THREE.DodecahedronGeometry(0.14, 0),
-  peak: new THREE.ConeGeometry(0.26, 0.5, 5),
-  snow: new THREE.ConeGeometry(0.12, 0.2, 5),
-  special: new THREE.SphereGeometry(0.07, 8, 6),
-  fortress: new THREE.TorusGeometry(0.34, 0.05, 6, 12)
-};
-const PROP_MAT = new THREE.MeshLambertMaterial({ color: 0xffffff }); // × instance color
-const PROP_COLOR = {
-  irrigation: 0x5db8e8, road: 0x8a6f4d, railroad: 0x3c3c46, mine: 0x8a8494,
-  forest: 0x1e6b2f, jungle: 0x2f8d3f, special: 0xffd75e, fortress: 0xb8ab8e,
-  rock: 0x7d7468, peak: 0x63636d, snow: 0xe8eef0,
-  grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d
-};
-const PROP_FOG = new THREE.Color(0x0a0e16);
-const SCRUB_COLOR = { grassland: 0x3f8f3f, plains: 0x9d8f55, desert: 0x9d8f55, tundra: 0x9fae9d };
-// eight neighbor directions for road connectivity (rotY aligns the segment)
-const ROAD_DIRS = [
-  { dx: 1, dy: 0, rot: 0, diag: false }, { dx: -1, dy: 0, rot: 0, diag: false },
-  { dx: 0, dy: 1, rot: Math.PI / 2, diag: false }, { dx: 0, dy: -1, rot: Math.PI / 2, diag: false },
-  { dx: 1, dy: 1, rot: -Math.PI / 4, diag: true }, { dx: -1, dy: -1, rot: -Math.PI / 4, diag: true },
-  { dx: 1, dy: -1, rot: Math.PI / 4, diag: true }, { dx: -1, dy: 1, rot: Math.PI / 4, diag: true }
-];
-
-// One InstancedMesh per prop geometry, colored per instance (fog-dimmed when
-// the tile is explored but not visible). Rebuilt wholesale with the tiles;
-// geometries/material are shared, so only the instance buffers need disposal.
-// `joins` marks tile indices that roads visually connect to (own cities).
-export function createTileProps(map, tileTop, joins) {
-  const items = {
-    strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
-    rock: [], peak: [], snow: [], special: [], fortress: []
-  };
-  const roadAt = (x, y) => {
-    if (y < 0 || y >= map.height) return false;
-    let xx = x;
-    if (xx < 0 || xx >= map.width) {
-      if (!map.wrapX) return false;
-      xx = ((xx % map.width) + map.width) % map.width;
-    }
-    const n = map.tiles[y * map.width + xx];
-    return n.road === true || n.railroad === true || joins[y * map.width + xx] === true;
-  };
-  for (let y = 0; y < map.height; y++) {
-    for (let x = 0; x < map.width; x++) {
-      const t = map.tiles[y * map.width + x];
-      if (t.t === 'unknown') continue;
-      const dim = t.visible === false;
-      const top = tileTop(x, y);
-      if (t.irrigation) items.strip.push({ x, y, top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, dy: 0.02 });
-      if (t.road || t.railroad) {
-        // segments toward each connected neighbor; an isolated road is a stub
-        const color = t.railroad ? PROP_COLOR.railroad : PROP_COLOR.road;
-        let connected = 0;
-        for (const d of ROAD_DIRS) {
-          if (!roadAt(x + d.dx, y + d.dy)) continue;
-          connected++;
-          items.roadSeg.push({
-            x, y, top, dim, color, rotY: d.rot, dy: 0.03,
-            dx: d.dx * 0.25, dz: d.dy * 0.25, sx: d.diag ? 1.42 : 1
-          });
-        }
-        if (connected === 0) {
-          items.roadSeg.push({ x, y, top, dim, color, rotY: 0, dy: 0.03, sx: 0.5 });
-        }
-      }
-      if (t.mine) items.mine.push({ x, y, top, dim, color: PROP_COLOR.mine, dx: 0.18, dz: -0.16, dy: 0.1 });
-      if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
-      if (t.t === 'forest' || t.t === 'jungle') {
-        // 3–5 trees, deterministically scattered and sized per tile
-        const color = PROP_COLOR[t.t];
-        const count = 3 + Math.floor(visualRand(x, y, 1) * 3);
-        for (let i = 0; i < count; i++) {
-          const s = 0.75 + visualRand(x, y, 10 + i) * 0.55;
-          items.tree.push({
-            x, y, top, dim, color,
-            dx: (visualRand(x, y, 20 + i) - 0.5) * 0.62,
-            dz: (visualRand(x, y, 30 + i) - 0.5) * 0.62,
-            dy: 0.14 * s, sx: s, sy: s, sz: s
-          });
-        }
-      } else if (t.t === 'hills') {
-        const count = 1 + (visualRand(x, y, 2) > 0.55 ? 1 : 0);
-        for (let i = 0; i < count; i++) {
-          items.rock.push({
-            x, y, top, dim, color: PROP_COLOR.rock,
-            dx: (visualRand(x, y, 40 + i) - 0.5) * 0.5,
-            dz: (visualRand(x, y, 50 + i) - 0.5) * 0.5,
-            dy: 0.05, sy: 0.6, rotY: visualRand(x, y, 60 + i) * Math.PI
-          });
-        }
-      } else if (t.t === 'mountains') {
-        const px = (visualRand(x, y, 3) - 0.5) * 0.3;
-        const pz = (visualRand(x, y, 4) - 0.5) * 0.3;
-        const s = 0.85 + visualRand(x, y, 5) * 0.4;
-        items.peak.push({ x, y, top, dim, color: PROP_COLOR.peak, dx: px, dz: pz, dy: 0.25 * s, sx: s, sy: s, sz: s, rotY: visualRand(x, y, 6) * Math.PI });
-        items.snow.push({ x, y, top, dim, color: PROP_COLOR.snow, dx: px, dz: pz, dy: 0.42 * s, sx: s, sy: s, sz: s, rotY: visualRand(x, y, 6) * Math.PI });
-      } else if (SCRUB_COLOR[t.t] !== undefined && visualRand(x, y, 7) > 0.55) {
-        // sparse tufts/scrub so open ground reads as a world, not a board
-        const count = 1 + (visualRand(x, y, 8) > 0.7 ? 1 : 0);
-        for (let i = 0; i < count; i++) {
-          items.scrub.push({
-            x, y, top, dim, color: SCRUB_COLOR[t.t],
-            dx: (visualRand(x, y, 70 + i) - 0.5) * 0.7,
-            dz: (visualRand(x, y, 80 + i) - 0.5) * 0.7,
-            dy: 0.05
-          });
-        }
-      }
-      if (t.special) items.special.push({ x, y, top, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });
-    }
-  }
-  const dummy = new THREE.Object3D();
-  const c = new THREE.Color();
-  const meshes = [];
-  for (const kind of Object.keys(items)) {
-    const list = items[kind];
-    if (list.length === 0) continue;
-    const mesh = new THREE.InstancedMesh(PROP_GEO[kind], PROP_MAT, list.length);
-    list.forEach((it, i) => {
-      dummy.position.set(it.x + (it.dx || 0), it.top + (it.dy || 0), it.y + (it.dz || 0));
-      dummy.rotation.set(it.rotX || 0, it.rotY || 0, 0);
-      dummy.scale.set(it.sx || 1, it.sy || 1, it.sz || 1);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-      c.setHex(it.color);
-      if (it.dim) c.lerp(PROP_FOG, 0.45);
-      mesh.setColorAt(i, c);
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    meshes.push(mesh);
-  }
-  return meshes;
-}
-
-export function createCityMesh(city, color) {
+export function createCityMesh(city, colorOrVisual, isCapital) {
   const group = new THREE.Group();
-  const roofMat = matFor(color);
+  const visual = resolveVisual(colorOrVisual);
+  const roofMat = matFor(visual.primary);
   const houses = Math.min(2 + city.pop, 12);
   for (let i = 0; i < houses; i++) {
     const angle = (i / houses) * Math.PI * 2 + 0.5;
@@ -373,8 +294,19 @@ export function createCityMesh(city, color) {
     roof.scale.set(w * 0.8, h * 0.6, w * 0.8);
     roof.rotation.y = Math.PI / 4;
   }
-  add(group, GEO.pole, NEUTRAL.stone, 0, 0.35, 0);
-  add(group, GEO.flag, flagMatFor(color), 0.11, 0.6, 0);
+  if (isCapital && visual.emblem) {
+    // the capital flies the full CanvasTexture emblem flag (art A1.6a)
+    add(group, GEO.pole, NEUTRAL.stone, 0, 0.42, 0);
+    add(group, GEO.cityFlag, flagTexMatFor(visual), 0.16, 0.62, 0);
+  } else {
+    pennant(group, visual, 0, 0.4, 1.15);
+  }
+  if (isLightColor(visual.primary)) {
+    // light civs (Ivory Tower, Arctic Rune) need a dark ground outline
+    const rim = add(group, GEO.wallRing, DARK_RIM, 0, 0.03, 0);
+    rim.rotation.x = Math.PI / 2;
+    rim.scale.set(0.9, 0.9, 0.5);
+  }
   if ((city.buildings || []).indexOf('city-walls') !== -1) {
     const wall = add(group, GEO.wallRing, NEUTRAL.stone, 0, 0.06, 0);
     wall.rotation.x = Math.PI / 2;

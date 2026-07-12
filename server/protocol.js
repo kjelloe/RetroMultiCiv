@@ -26,6 +26,25 @@ export function parseMessage(raw) {
     if (msg.token !== undefined && typeof msg.token !== 'string') {
       return { ok: false, code: 'badShape' };
     }
+    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
+  // phase-4 lobby frames (docs/08 §2): create a game, list open games, start.
+  if (msg.t === 'create') {
+    if (typeof msg.name !== 'string' || msg.name.length < 1 || msg.name.length > 24) {
+      return { ok: false, code: 'badName' };
+    }
+    if (msg.options !== undefined && (typeof msg.options !== 'object' || Array.isArray(msg.options))) {
+      return { ok: false, code: 'badShape' };
+    }
+    return { ok: true, msg };
+  }
+  if (msg.t === 'list' || msg.t === 'start') return { ok: true, msg };
+  // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
+  if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
+  if (msg.t === 'vote') {
+    if (typeof msg.yes !== 'boolean') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
   if (msg.t === 'cmd' || msg.t === 'endTurn') {
@@ -44,6 +63,16 @@ export function parseMessage(raw) {
 function rejected(commandId, code, message) {
   const out = { t: 'rejected', commandId, code };
   if (message) out.message = message;
+  return out;
+}
+
+// The broadcasts every turn-advancing action produces — route() emits them
+// after cmd/endTurn, and index.js reuses them for a passed skip-vote so the
+// two paths can't drift. code broadcast per docs/07 (rides every autosave).
+export function turnBroadcasts(game) {
+  const out = [{ t: 'turn', activePlayerId: game.state.activePlayer, turn: game.state.turn }];
+  out.push({ t: 'code', turn: game.state.turn, code: game.code() });
+  if (game.state.gameOver === true) out.push({ t: 'gameOver', winner: game.state.winner });
   return out;
 }
 
@@ -94,14 +123,9 @@ export function route(game, msg) {
   if (!res.ok) {
     return { reply: [rejected(msg.commandId, res.reason)], broadcast: [], viewsChanged: false };
   }
-  const broadcast = [{ t: 'turn', activePlayerId: game.state.activePlayer, turn: game.state.turn }];
-  broadcast.push({ t: 'code', turn: game.state.turn, code: game.code() }); // docs/07: on every autosave
-  if (game.state.gameOver === true) {
-    broadcast.push({ t: 'gameOver', winner: game.state.winner });
-  }
   return {
     reply: [{ t: 'applied', commandId: msg.commandId, events: res.events || [] }],
-    broadcast,
+    broadcast: turnBroadcasts(game),
     viewsChanged: true
   };
 }

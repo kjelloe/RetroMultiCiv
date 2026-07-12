@@ -15,12 +15,15 @@
 </head>
 <body>
   <div id="app"></div>
-  <div id="label">asset gallery — row 1: props (trees, special, mine, irrigation, roads) ·
-    row 3: land units · row 5: ships · row 6: aircraft · row 7: cities (pop 1 / pop 5 walled / pop 12)</div>
+  <div id="label">asset gallery — row 1: props · row 3: land units (moves/vet/fort mixed) ·
+    row 5: ships · row 6: aircraft · row 7: cities (pop 1 / 5 walled / 12) ·
+    rows 9–13: FACTION GRID (A1.6a acceptance) — all 14 civs on grassland /
+    desert (mounted) / forest (fortified) / ocean (ships) / tundra (veteran);
+    capitals fly CanvasTexture emblem flags</div>
   <script type="module">
     import { createRenderer } from '../client/renderer/renderer.js';
 
-    const W = 10, H = 8;
+    const W = 14, H = 14;
     const tiles = [];
     for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
     const at = (x, y) => tiles[y * W + x];
@@ -38,17 +41,27 @@
     Object.assign(at(9, 1), { t: 'mountains' });
     Object.assign(at(0, 6), { fortress: true });
     Object.assign(at(1, 6), { road: true, railroad: true });
-    // row 5: water for the fleet
+    // row 5: water for the fleet; rows 9–13: the faction-grid terrains
     for (let x = 0; x < W; x++) at(x, 5).t = 'ocean';
+    for (let x = 0; x < W; x++) {
+      at(x, 10).t = 'desert';
+      at(x, 11).t = 'forest';
+      at(x, 12).t = 'ocean';
+      at(x, 13).t = 'tundra';
+    }
 
     const units = {};
     let n = 0;
-    const put = (type, x, y, owner) => {
+    const put = (type, x, y, owner, extra) => {
       n++;
-      units['u' + n] = { id: 'u' + n, type, owner: owner || 'p1', x, y };
+      units['u' + n] = Object.assign({ id: 'u' + n, type, owner: owner || 'p1', x, y, moves: 1 }, extra || {});
     };
+    // legacy rows keep plain p1/p2 colors — they prove the no-civ fallback path.
+    // Mixed status on the land row: moved-out (dim), veteran (gold rim),
+    // fortified (shield chip) per silhouette.
     ['settlers', 'militia', 'legion', 'cavalry', 'chariot', 'catapult', 'armor', 'diplomat', 'riflemen', 'mech-inf']
-      .forEach((t, i) => put(t, i, 3, i % 2 ? 'p2' : 'p1'));
+      .forEach((t, i) => put(t, i, 3, i % 2 ? 'p2' : 'p1',
+        i % 3 === 0 ? { moves: 0 } : i % 3 === 1 ? { veteran: true } : { fortified: true }));
     ['trireme', 'sail', 'frigate', 'transport', 'ironclad', 'cruiser', 'battleship', 'submarine', 'carrier']
       .forEach((t, i) => put(t, i, 5, i % 2 ? 'p1' : 'p2'));
     ['fighter', 'bomber', 'nuclear'].forEach((t, i) => put(t, 3 + i, 6));
@@ -59,19 +72,47 @@
       c3: { id: 'c3', name: 'Twelve', owner: 'p1', x: 7, y: 7, pop: 12, buildings: [] }
     };
 
+    const players = {
+      p1: { id: 'p1', name: 'Blue', color: '#3b7dd8' },
+      p2: { id: 'p2', name: 'Red', color: '#d84a3b' }
+    };
+
+    // --- faction grid (art A1.6a acceptance, specs/civ-visuals.md): one civ
+    // per column f1..f14 in the ally's build order; each carries its
+    // data/civs.json visual. Row 9 = capital city (emblem flag) + militia,
+    // then desert mounted / forest fortified / ocean ship / tundra veteran.
+    const civs = await fetch('../data/civs.json').then(r => r.json());
+    const ORDER = ['romans', 'english', 'aztecs', 'chinese', 'babylonians',
+      'germans', 'americans', 'zulus', 'egyptians', 'french', 'greeks',
+      'indians', 'russians', 'mongols'];
+    const factions = {};
+    ORDER.forEach((id, i) => {
+      const pid = 'f' + (i + 1);
+      players[pid] = { id: pid, name: civs[id].name, color: civs[id].color };
+      factions[pid] = civs[id].visual;
+      cities['fc' + i] = {
+        id: 'fc' + i, name: civs[id].name, owner: pid, x: i, y: 9, pop: 3,
+        buildings: ['palace'] // capitals: the CanvasTexture emblem flag
+      };
+      put('militia', i, 9, pid);
+      put('cavalry', i, 10, pid);
+      put('legion', i, 11, pid, { fortified: true });
+      put('trireme', i, 12, pid);
+      put('militia', i, 13, pid, { veteran: true });
+    });
+
     const view = {
       map: { width: W, height: H, wrapX: false, tiles },
-      units, cities,
-      players: {
-        p1: { id: 'p1', name: 'Blue', color: '#3b7dd8' },
-        p2: { id: 'p2', name: 'Red', color: '#d84a3b' }
-      }
+      units, cities, players
     };
 
     const renderer = createRenderer(document.getElementById('app'));
+    renderer.setFactions(factions);
     renderer.setViewState(view);
-    renderer.centerOn(4.5, 4);
-    renderer.setZoom(9);
+    // ?cx=&cy=&zoom= let screenshots frame any region (e.g. the faction grid)
+    const q = new URLSearchParams(location.search);
+    renderer.centerOn(parseFloat(q.get('cx')) || 6.5, parseFloat(q.get('cy')) || 7.5);
+    renderer.setZoom(parseFloat(q.get('zoom')) || 13);
   </script>
 </body>
 </html>

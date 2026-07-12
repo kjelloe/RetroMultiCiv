@@ -146,8 +146,8 @@ function findStarts(rng, map, players) {
       attempts--;
       let roll = rollRange(r, width); r = roll.rngState;
       const x = roll.value;
-      roll = rollRange(r, height - 4); r = roll.rngState;
-      const y = 2 + roll.value;
+      roll = rollRange(r, height - 7); r = roll.rngState;
+      const y = 3 + roll.value; // starts keep 3 tiles from the polar edges
       const tile = tiles[y * width + x];
       if (!GOOD[tile.t]) continue;
       let clear = true;

@@ -17,8 +17,14 @@ Conventions: roles are free-form (architect, helper, helper2...); --to all
 broadcasts; multi-line bodies via stdin: `... send --from x --to y -` reads
 the body from stdin. Tags (--tag done|question|fyi|claim) make filtering
 easy: `inbox --as architect --tag done`.
+
+Every message has a GLOBAL id hash (8 hex chars, derived from its content,
+identical for every reader) shown next to the sequence number — refer to
+messages by hash across inboxes and sessions; `show <hash-prefix>` prints
+the full message.
 """
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -42,6 +48,14 @@ def read_all():
                 except json.JSONDecodeError:
                     pass
     return out
+
+
+def msg_hash(m):
+    # content-derived: every reader computes the same hash, no migration
+    # needed for old messages, and racing senders that collide on the
+    # sequential id still get distinct hashes
+    key = f"{m.get('id')}|{m.get('ts')}|{m.get('from')}|{m.get('to')}|{m.get('text')}"
+    return hashlib.sha256(key.encode('utf-8')).hexdigest()[:8]
 
 
 def cursor_file(role):
@@ -70,7 +84,7 @@ def unread_for(role):
 def fmt(m):
     ts = time.strftime('%H:%M', time.localtime(m['ts']))
     tag = f" [{m['tag']}]" if m.get('tag') else ''
-    head = f"#{m['id']} {ts} {m['from']} → {m['to']}{tag}"
+    head = f"#{m['id']} @{msg_hash(m)} {ts} {m['from']} → {m['to']}{tag}"
     body = m['text'] if '\n' not in m['text'] else '\n  ' + m['text'].replace('\n', '\n  ')
     return f"{head}: {body}" if '\n' not in m['text'] else f"{head}:{body}"
 
@@ -93,6 +107,9 @@ def main():
     l = sub.add_parser('log')
     l.add_argument('-n', type=int, default=15)
 
+    sh = sub.add_parser('show')
+    sh.add_argument('prefix', help='global message hash (or unique prefix)')
+
     sub.add_parser('who')
 
     a = p.parse_args()
@@ -109,7 +126,7 @@ def main():
             msg['tag'] = a.tag
         with open(LOG, 'a', encoding='utf-8') as f:
             f.write(json.dumps(msg) + '\n')
-        print(f"sent #{msg['id']} to {a.to}")
+        print(f"sent #{msg['id']} @{msg_hash(msg)} to {a.to}")
 
     elif a.cmd in ('inbox', 'peek'):
         msgs = unread_for(a.role)
@@ -127,6 +144,14 @@ def main():
     elif a.cmd == 'log':
         for m in read_all()[-a.n:]:
             print(fmt(m))
+
+    elif a.cmd == 'show':
+        hits = [m for m in read_all() if msg_hash(m).startswith(a.prefix.lstrip('@'))]
+        if not hits:
+            sys.exit(f'no message matches @{a.prefix}')
+        if len(hits) > 1:
+            sys.exit(f'ambiguous: {len(hits)} messages match @{a.prefix} — use more characters')
+        print(fmt(hits[0]))
 
     elif a.cmd == 'who':
         msgs = read_all()
