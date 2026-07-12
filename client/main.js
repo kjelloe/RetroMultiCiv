@@ -6,6 +6,7 @@
 import { createRenderer } from './renderer/renderer.js';
 import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostics.js';
 import { createSession } from './session.js';
+import { createRemoteSession } from './session-remote.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
@@ -42,7 +43,7 @@ async function fetchJson(url) {
 const params = new URLSearchParams(location.search);
 // a bare URL (no world parameters) gets the game-setup screen; it reloads
 // with ?seed=&civs=&humans= filled in
-if (!params.has('seed') && !params.has('civs') && !params.has('mock')) {
+if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params.has('server')) {
   showSetupScreen();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
@@ -100,10 +101,24 @@ try {
 // --- world -----------------------------------------------------------------
 import { createEngine } from '../engine/index.js';
 
-let initialState;
+let initialState = null;
 let humans = 1;
+let session = null;
 const cityNamesByPlayer = {}; // pid -> that civilization's historic city list
-if (params.get('mock') === '1') {
+const serverParam = params.get('server');
+if (serverParam) {
+  // Phase-3 (docs/06 §5): the authoritative engine runs on the server. Join
+  // it and let the per-seat filtered view BE our state; hotseat stays a
+  // local-only feature (a server game is 1 human + AI until phase 4).
+  const wsUrl = serverParam === '1'
+    ? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`
+    : serverParam;
+  const pick = params.get('civ');
+  const myName = (pick && civs[pick] && civs[pick].name) || 'Player';
+  session = await createRemoteSession({
+    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || 'g1'
+  });
+} else if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
 } else {
   const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
@@ -153,9 +168,9 @@ if (params.get('mock') === '1') {
 // --- wiring ------------------------------------------------------------------
 // ?debug=1: the diagnostics recorder also hashes after every single command
 // (default: after each end-turn round) — finer replay divergence pinpointing
-const session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
+if (!session) session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
 const sel = { unitId: null, cityId: null, lastMoved: null };
-const ctx = { session, renderer, sel, HUMAN: 'p1', errors: capturedErrors, rulesOverrides };
+const ctx = { session, renderer, sel, HUMAN: session.playerId || 'p1', errors: capturedErrors, rulesOverrides };
 
 ctx.selectUnit = (unit, opts) => {
   sel.unitId = unit.id;
@@ -207,6 +222,8 @@ ctx.suggestCityName = () => {
 
 initOptions(ctx);
 ctx.hud = initHud(ctx);
+// server mode: surface disconnect/reconnect notices in the HUD banner
+if (session.setStatusHandler) session.setStatusHandler(msg => ctx.hud.banner(`⚠ ${msg}`));
 ctx.panels = initPanels(ctx);
 ctx.handoff = initHandoff(ctx);
 initInput(ctx);
@@ -251,7 +268,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   probe.style.display = 'none';
   probe.textContent = 'actionbar: ' + document.getElementById('action-bar').textContent;
   document.body.appendChild(probe);
-  session.apply({ type: 'foundCity', playerId: ctx.HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
+  await session.apply({ type: 'foundCity', playerId: ctx.HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
   ctx.panels.toggleResearchPanel();
   if (session.state.cityOrder.length > 0) {
     ctx.panels.openCityPanel(session.state.cityOrder[0]);
@@ -268,6 +285,6 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
 // (twice: the first press is the units-still-have-moves confirmation) so the
 // opaque hand-off screen for player 2 is up when --dump-dom fires.
 if (params.get('e2e') === '2') {
-  ctx.endTurn();
-  ctx.endTurn();
+  await ctx.endTurn();
+  await ctx.endTurn();
 }

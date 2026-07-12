@@ -153,7 +153,9 @@ list):
   onto `debugging/stats.html` (static, dependency-free Canvas 2D — no
   build) for per-seed city/tech/score curves per civ and a summary table
   (eliminated %, stagnant %, government mix); `?file=<url>` deep-links a
-  same-origin log.
+  same-origin log. `node debugging/stats-summary.js <log>` prints the
+  same numbers on the command line — it is the scorer for the AI-quality
+  exit criteria (docs/03 division of labour).
 - `--difficulty trainer..godemperor` — the client's contentCitizens table;
   godemperor (2) is the disorder/happiness stress configuration.
 - `--natural` — standard endYear, and every seed must reach a victory by

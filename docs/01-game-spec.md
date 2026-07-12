@@ -389,14 +389,21 @@ below is a known, deliberate deviation to be closed in a later slice:
 - **Score counts citizens/techs/wonders only** — happy-citizen points, Future
   Tech points, and the pollution penalty from §10's full formula await their
   systems. Elimination requires losing all units *and* cities (no capital rule).
-- **The AI expands, improves, and builds** but has no military tactics or
-  diplomacy: it defends its cities, seeks the best explored site
-  (`bestCitySite`) under a `2 + cities/2` settler cap, paves a road where a
-  settler stands when no site is reachable, and lets saturated cities build
-  the cheapest missing building then the cheapest available wonder. It uses
-  no RNG so AI games replay deterministically. See
-  `docs/04-phase1-enrichments.md` §7 for the expansion levers and measured
-  city counts (avg 4.4/civ at turn 400).
+- **The AI expands, develops, and defends itself** but has no diplomacy
+  and only defensive-minded tactics: settlers are danger-aware (never
+  stepping next to a known enemy; the corps splits into expanders and
+  homeland improvers who road/irrigate worked tiles), military units
+  escort unguarded field settlers, garrisons scale with threat (2 when an
+  enemy is known within 8, 1 in peacetime), aggression is radius-limited,
+  and a per-civ army cap redirects surplus shields to settler-pavers.
+  Saturated cities build the cheapest missing building, then the cheapest
+  available wonder. It uses no RNG so AI games replay deterministically.
+  See `docs/04-phase1-enrichments.md` §7 for all three AI batches with
+  measured results (median 4–5 cities/civ, tech median ~11 at turn 400).
+- **Revolutions clamp rates immediately**: entering anarchy caps
+  tax/science/luxuries at anarchy's 60 on the spot (a Monarchy running
+  70% science drops to 60 for the interregnum) — found organically by
+  the simulation invariant net.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

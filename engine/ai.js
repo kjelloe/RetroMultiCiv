@@ -1,13 +1,23 @@
-// v0 "Expansionist" AI (per the designer's ruleset) — deliberately dumb:
-//   1. research: pick the lowest-level available advance
-//   2. cities: no defender -> build one; defended -> build settlers
-//   3. settlers: found a city on good land, else walk toward better land
-//   4. military: march on the nearest known enemy, else explore the fog
+// The "Expansionist" AI — deliberately simple, no longer dumb:
+//   1. research: beeline Monarchy's prerequisites, then lowest-level advances
+//   2. government: one revolution, to Monarchy, once the advance is known
+//   3. cities: defender first; settlers while scarce (cap 2 + cities/2);
+//      saturated cities build the cheapest missing building, then the
+//      cheapest available wonder, then garrisons (max 3), then settler-pavers
+//   4. settlers: the lead settler (first by id) EXPANDS — walks to the best
+//      explored founding site, avoiding known enemies (they die alone); the
+//      others IMPROVE the homeland first — road, then irrigate, the worked
+//      tiles of nearby own cities (trade is the AI's research lifeline) —
+//      and join the expansion when nothing needs improving. Siteless
+//      settlers pave the tile they stand on.
+//   5. military: march on the nearest known enemy, else explore the fog
 // The AI only issues regular commands through applyCommand — it cannot cheat.
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
 import { unitsAt, cityAt, sortIds } from './combat.js';
+import { workedTiles } from './cities.js';
+import { hasWaterSource } from './improvements.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
@@ -73,6 +83,89 @@ function goodCitySpot(state, unit, ruleset) {
   return canFoundAt(state, unit.x, unit.y, ruleset);
 }
 
+// Any KNOWN enemy unit within `radius` of (x, y)? Settlers keep away —
+// order-independent boolean, so plain key iteration is fine.
+function enemyNear(state, me, playerId, x, y, radius) {
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId) continue;
+    if (!isExplored(me, state.map, u.x, u.y)) continue;
+    if (chebyshev(state.map, x, y, u.x, u.y) <= radius) return true;
+  }
+  return false;
+}
+
+// A step toward (tx, ty) that a lone settler can survive: land only, never
+// onto or adjacent to a known enemy. Null = no safe step (hold position).
+function safeDirToward(state, me, playerId, unit, tx, ty, ruleset) {
+  const map = state.map;
+  let best = null, bestD = chebyshev(map, unit.x, unit.y, tx, ty);
+  for (const key of DIR_KEYS) {
+    let nx = unit.x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= map.width) {
+      if (!map.wrapX) continue;
+      nx = ((nx % map.width) + map.width) % map.width;
+    }
+    const ny = unit.y + DIR_VECS[key][1];
+    if (ny < 1 || ny >= map.height - 1) continue;
+    if (ruleset.terrain.terrains[map.tiles[ny * map.width + nx].t].domain !== 'land') continue;
+    let hostile = false;
+    for (const u of unitsAt(state, nx, ny)) {
+      if (u.owner !== playerId) hostile = true;
+    }
+    if (hostile) continue;
+    if (enemyNear(state, me, playerId, nx, ny, 1)) continue;
+    const d = chebyshev(map, nx, ny, tx, ty);
+    if (d < bestD) { bestD = d; best = key; }
+  }
+  return best;
+}
+
+// This settler's rank among the civ's settlers (sorted ids): rank 0 is the
+// EXPANDER, the rest are homeland IMPROVERS first. Deterministic.
+function settlerRank(state, playerId, uid) {
+  let rank = 0;
+  for (const id of sortIds(Object.keys(state.units))) {
+    const u = state.units[id];
+    if (u.owner !== playerId || u.type !== 'settlers') continue;
+    if (id === uid) return rank;
+    rank++;
+  }
+  return 0;
+}
+
+// The nearest unimproved WORKED tile of a nearby own city: roads first
+// (trade -> research), then irrigation where legal. {x, y, work} or null.
+function bestImprovementJob(state, unit, playerId, ruleset) {
+  const map = state.map;
+  let best = null, bestD = 9999;
+  for (const cid of state.cityOrder || []) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== playerId) continue;
+    if (chebyshev(map, unit.x, unit.y, city.x, city.y) > 6) continue;
+    for (const w of workedTiles(state, city, ruleset)) {
+      if (cityAt(state, w.x, w.y)) continue; // the center works itself
+      const tile = map.tiles[w.y * map.width + w.x];
+      const terrain = ruleset.terrain.terrains[tile.t];
+      if (terrain.domain !== 'land') continue;
+      let work = null;
+      if (tile.road !== true) work = 'road';
+      else if (tile.irrigation !== true && tile.mine !== true
+               && terrain.irrigate !== undefined
+               && hasWaterSource(state, w.x, w.y)) work = 'irrigate';
+      if (work === null) continue;
+      let hostile = false;
+      for (const u of unitsAt(state, w.x, w.y)) {
+        if (u.owner !== playerId) hostile = true;
+      }
+      if (hostile) continue;
+      const d = chebyshev(map, unit.x, unit.y, w.x, w.y);
+      if (d < bestD) { bestD = d; best = { x: w.x, y: w.y, work }; }
+    }
+  }
+  return best;
+}
+
 // The best founding site within an explored radius — settlers WALK to a
 // real spot instead of paving the moment the tile underfoot disqualifies.
 // Deterministic: fixed scan order, strict > keeps the first of any tie.
@@ -90,6 +183,7 @@ function siteScan(state, unit, me, ruleset, radius, distPenalty) {
       }
       if (!isExplored(me, map, x, y)) continue;
       if (!canFoundAt(state, x, y, ruleset)) continue;
+      if (enemyNear(state, me, me.id, x, y, 2)) continue; // no cradles in war zones
       const tile = map.tiles[y * map.width + x];
       let score = tile.t === 'grassland' ? 30 : tile.t === 'plains' ? 26
         : tile.t === 'hills' ? 22 : 18;
@@ -160,6 +254,15 @@ function countCities(state, playerId) {
   return n;
 }
 
+function countMilitary(state, playerId, ruleset) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId && ruleset.units[u.type].attack > 0) n = n + 1;
+  }
+  return n;
+}
+
 // Cheapest building the city lacks and the player can build (never a Palace —
 // capitalOf falls back to the oldest city, extra palaces would corrupt it).
 // Comparison-select, so the result is independent of key iteration order.
@@ -185,6 +288,29 @@ function nextWonder(state, me, ruleset) {
     if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
     if (best === null || def.cost < ruleset.wonders[best].cost
       || (def.cost === ruleset.wonders[best].cost && id < best)) best = id;
+  }
+  return best;
+}
+
+// The nearest own settler in the open (not in a city) with no adjacent
+// military guard other than this unit — escort duty target. Excluding
+// `unit` from the guard check keeps the current escort standing its post.
+function nearestUnguardedSettler(state, unit, playerId, ruleset, radius) {
+  let best = null, bestD = radius + 1;
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const s = state.units[uid];
+    if (s.owner !== playerId || s.type !== 'settlers') continue;
+    if (cityAt(state, s.x, s.y)) continue; // in a city = already safe
+    let guarded = false;
+    for (const gid of Object.keys(state.units)) {
+      const g = state.units[gid];
+      if (g.id === unit.id || g.owner !== playerId) continue;
+      if (ruleset.units[g.type].attack <= 0) continue;
+      if (chebyshev(state.map, g.x, g.y, s.x, s.y) <= 1) guarded = true;
+    }
+    if (guarded) continue;
+    const d = chebyshev(state.map, unit.x, unit.y, s.x, s.y);
+    if (d < bestD) { bestD = d; best = s; }
   }
   return best;
 }
@@ -270,14 +396,17 @@ function pickCommand(state, playerId, ruleset, done) {
     done['c:' + cid] = true;
     const defenders = unitsAt(state, city.x, city.y).filter(u => u.owner === playerId);
     const bestDefender = me.techs.indexOf('bronze-working') !== -1 ? 'phalanx' : 'militia';
-    // Defend first; expand while settlers are scarce (capped — endless settler
-    // spam grows armies without bound once the land is full, docs/05 §1);
-    // saturated empires improve instead: cheapest missing building, then the
-    // cheapest available wonder. With nothing buildable (a tech-starved civ)
-    // garrisons cap at 3 and further shields go to settlers — pavers whose
-    // roads create the trade that ends the tech drought (docs/05 §10-11).
+    // Defend first — TWO garrisons when a known enemy is within 8 of the
+    // city, one in peacetime; then expand while settlers are scarce
+    // (capped — endless settler spam grows armies without bound once the
+    // land is full, docs/05 §1); saturated empires improve instead:
+    // cheapest missing building, then the cheapest available wonder. With
+    // nothing buildable (a tech-starved civ) garrisons cap at 3 and
+    // further shields go to settlers — pavers whose roads create the
+    // trade that ends the tech drought (docs/05 §10-11).
+    const wantDefenders = enemyNear(state, me, playerId, city.x, city.y, 8) ? 2 : 1;
     let want = { kind: 'unit', id: bestDefender };
-    if (defenders.length > 0) {
+    if (defenders.length >= wantDefenders) {
       if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 2)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
@@ -285,7 +414,13 @@ function pickCommand(state, playerId, ruleset, done) {
         const wonder = building === null ? nextWonder(state, me, ruleset) : null;
         if (building !== null) want = { kind: 'building', id: building };
         else if (wonder !== null) want = { kind: 'wonder', id: wonder };
-        else if (defenders.length >= 3) want = { kind: 'unit', id: 'settlers' };
+        else if (defenders.length >= 3
+                 || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * 4 + 4) {
+          // enough army empire-wide: garrison surplus now roams (escorts,
+          // explorers), so the LOCAL count alone no longer saturates —
+          // without this cap a tech-starved civ mints militia forever
+          want = { kind: 'unit', id: 'settlers' };
+        }
       }
     }
     if (city.producing.kind !== want.kind || city.producing.id !== want.id) {
@@ -301,14 +436,31 @@ function pickCommand(state, playerId, ruleset, done) {
     done['u:' + uid] = true;
 
     if (unit.type === 'settlers') {
-      if (goodCitySpot(state, unit, ruleset)) {
+      if (goodCitySpot(state, unit, ruleset)
+          && !enemyNear(state, me, playerId, unit.x, unit.y, 2)) {
         return { type: 'foundCity', playerId, unitId: uid };
       }
-      // founding beats everything: walk to the best known site in range
+      // improvers develop the homeland before joining the expansion —
+      // roads on worked tiles are the trade that funds all research.
+      // Alternating ranks split the corps: even ranks expand, odd improve.
+      if (settlerRank(state, playerId, uid) % 2 === 1) {
+        const job = bestImprovementJob(state, unit, playerId, ruleset);
+        if (job) {
+          if (job.x === unit.x && job.y === unit.y) {
+            return { type: 'startWork', playerId, unitId: uid, work: job.work };
+          }
+          const dir = safeDirToward(state, me, playerId, unit, job.x, job.y, ruleset);
+          if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+        }
+      }
+      // the expander (and idle improvers): walk to the best known site,
+      // avoiding known enemies; a blocked path means HOLD, not wander into
+      // the danger that blocked it
       const site = bestCitySite(state, unit, playerId, ruleset);
       if (site) {
-        const dir = dirToward(state.map, unit.x, unit.y, site.x, site.y);
+        const dir = safeDirToward(state, me, playerId, unit, site.x, site.y, ruleset);
         if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+        continue;
       }
       // no reachable site: pave where it stands — roads make trade, and
       // trade is the AI's only path to research (docs/04 AI improvements v0)
@@ -322,10 +474,33 @@ function pickCommand(state, playerId, ruleset, done) {
     }
 
     const enemy = nearestKnownEnemy(state, unit, playerId);
-    // garrison duty: with no known enemy, a unit standing in its own city digs in
+    // hold the fort: a garrison stays until its city is safely manned —
+    // two guards when a known enemy is within 8, one in peacetime
     const home = cityAt(state, unit.x, unit.y);
-    if (!enemy && home && home.owner === playerId && !unit.fortified) {
-      return { type: 'fortify', playerId, unitId: uid };
+    if (home && home.owner === playerId && !unit.fortified) {
+      let guards = 0;
+      for (const g of unitsAt(state, unit.x, unit.y)) {
+        if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
+      }
+      const need = enemyNear(state, me, playerId, home.x, home.y, 8) ? 2 : 1;
+      if (guards <= need) {
+        return { type: 'fortify', playerId, unitId: uid };
+      }
+    }
+    // fight what's actually near; distant enemies are not worth a suicide
+    // trek across the map (that churn was where armies went to die)
+    if (enemy && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= 8) {
+      const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+    }
+    // escort duty: stand beside a field settler that has no guard yet
+    const ward = nearestUnguardedSettler(state, unit, playerId, ruleset, 10);
+    if (ward) {
+      if (chebyshev(state.map, unit.x, unit.y, ward.x, ward.y) <= 1) {
+        return { type: 'wait', playerId, unitId: uid }; // stand guard, re-decide next turn
+      }
+      const dir = dirToward(state.map, unit.x, unit.y, ward.x, ward.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
     let dir = null;
     if (enemy) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);

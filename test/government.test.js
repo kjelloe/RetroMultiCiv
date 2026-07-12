@@ -56,6 +56,19 @@ test('revolution: anarchy for revolutionTurns, then the new government', async (
   assert.strictEqual(state.players.p1.revolutionTurns, undefined);
 });
 
+test('entering a revolution clamps rates to the anarchy cap immediately', async () => {
+  const { engine } = await load();
+  // a Monarchy player running 70% science (legal at monarchy's cap of 70)
+  // revolts — anarchy caps at 60, so the surplus must move at once
+  const state = govState({ government: 'monarchy', techs: ['monarchy', 'code-of-laws'], taxRate: 30, sciRate: 70 });
+  const res = engine.applyCommand(state, { type: 'setGovernment', playerId: 'p1', government: 'despotism' });
+  assert.strictEqual(res.ok, true);
+  const p = res.state.players.p1;
+  assert.strictEqual(p.government, 'anarchy');
+  assert.ok(p.sciRate <= 60, `science ${p.sciRate} must respect anarchy's cap`);
+  assert.strictEqual(p.taxRate + p.sciRate + (p.luxRate || 0), 100, 'rates still sum to 100');
+});
+
 test('the Pyramids skip anarchy entirely', async () => {
   const { engine } = await load();
   const state = govState();

@@ -205,6 +205,35 @@ unit after End Turn.
   settlers or start on siteless terrain stay small (geography + military
   survival, the next AI frontier); sprawl seeds run slower (one hit
   ~600 ms/turn in the sim — watch the nightly runtime).
+- **AI quality batch 2 — survival + homeland development** (2026-07-12,
+  one golden re-record): settlers are danger-aware (never step onto or
+  adjacent to a KNOWN enemy, no founding sites within 2 of one, blocked
+  path = hold, don't wander into the threat) and the settler corps splits
+  by deterministic rank — even ranks expand, odd ranks serve as homeland
+  IMPROVERS building roads then legal irrigation on the worked tiles of
+  nearby own cities before joining the expansion. **Measured** (15-seed
+  400-turn soaks): tech median 4 → **11**, stagnant civs 12% → **8%**
+  (exit criterion <10% MET), avg cities 5.6, Monarchy adoption 88%.
+  Median cities 3 vs the ≥4 criterion — NOT met, but the drag is now war
+  losers (17–18% of civs eliminated), not expansion logic. Next lever is
+  military: defender escorts for settlers and garrison scaling with city
+  count (or revisit whether the median criterion should exclude civs that
+  legitimately lost wars).
+- **AI quality batch 3 — military survival** (2026-07-12, user chose the
+  military lever; one golden re-record): field settlers get ESCORTS
+  (military units without nearby work stand guard beside unguarded
+  settlers, re-deciding each turn); garrisons are threat-responsive (2
+  defenders held/built when a known enemy is within 8 of the city, 1 in
+  peacetime — surplus roams); aggression is radius-limited (march only on
+  enemies within 8 — the cross-map suicide treks were where armies went
+  to die); and a per-civ army cap (4×cities+4) closes the leak the roving
+  garrisons opened in the production fallback. Sim net also caught a REAL
+  engine bug organically here: entering a revolution didn't clamp rates
+  to anarchy's cap (fixed in government.js). **Measured** (15 paired +
+  25 fresh seeds): median cities 3 → **4–5** (criterion MET on both
+  samples), avg ~6, tech median 10–11; stagnant hovers at 13% on fresh
+  seeds (was 8% on the paired batch — sample-sensitive, watch nightly
+  telemetry); eliminations ~21% (wars remain real and lethal, by design).
 
 ## Remaining wonder effects (for reference)
 

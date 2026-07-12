@@ -143,8 +143,8 @@ export function initInput(ctx) {
     setGovernment: true, setRates: true, setWorkers: true
   };
 
-  function apply(cmd) {
-    const res = session.apply(cmd);
+  async function apply(cmd) {
+    const res = await session.apply(cmd);
     if (res.ok) {
       confirmEndTurnUntil = 0; // the situation changed — a stale confirmation dies
       if (sel.unitId && !session.state.units[sel.unitId]) sel.unitId = null;
@@ -161,37 +161,37 @@ export function initInput(ctx) {
   ctx.apply = apply;
 
   // --- unit actions (shared by keyboard and the action bar) --------------------
-  function fortifySelected() {
+  async function fortifySelected() {
     if (!sel.unitId) return;
-    if (apply({ type: 'fortify', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+    if (await apply({ type: 'fortify', playerId: session.state.activePlayer, unitId: sel.unitId })) {
       hud.note(`🛡 ${units[session.state.units[sel.unitId].type].name} fortified`);
     }
   }
 
-  function waitSelected() {
+  async function waitSelected() {
     if (!sel.unitId) return;
-    if (apply({ type: 'wait', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+    if (await apply({ type: 'wait', playerId: session.state.activePlayer, unitId: sel.unitId })) {
       nextUnit();
     }
   }
 
-  function startWorkFor(work) {
+  async function startWorkFor(work) {
     if (!sel.unitId) return;
-    if (apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
+    if (await apply({ type: 'startWork', playerId: session.state.activePlayer, unitId: sel.unitId, work })) {
       hud.unitNote(session.state.units[sel.unitId]);
     }
   }
 
-  function pillageSelected() {
+  async function pillageSelected() {
     if (!sel.unitId) return;
-    if (apply({ type: 'pillage', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+    if (await apply({ type: 'pillage', playerId: session.state.activePlayer, unitId: sel.unitId })) {
       hud.note('🔥 improvement destroyed');
     }
   }
 
   // destructive: needs a second press on the same unit within 5 seconds
   let confirmDisband = { unitId: null, until: 0 };
-  function disbandSelected() {
+  async function disbandSelected() {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
     const unit = session.state.units[sel.unitId];
     if (confirmDisband.unitId !== unit.id || Date.now() > confirmDisband.until) {
@@ -200,17 +200,17 @@ export function initInput(ctx) {
       return;
     }
     confirmDisband = { unitId: null, until: 0 };
-    if (apply({ type: 'disband', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+    if (await apply({ type: 'disband', playerId: session.state.activePlayer, unitId: sel.unitId })) {
       hud.note('☠ unit disbanded');
       nextUnit();
     }
   }
 
-  function moveSelected(dir) {
+  async function moveSelected(dir) {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
     const unitId = sel.unitId;
     delete gotoTargets[unitId]; // manual steering overrides GoTo
-    if (apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId, dir })) {
+    if (await apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId, dir })) {
       sel.lastMoved = unitId;
       const moved = session.state.units[unitId];
       if (moved) {
@@ -246,9 +246,9 @@ export function initInput(ctx) {
   }
 
   // new turn: run queued GoTo routes, then return to the last-moved unit
-  function autoSelectAfterTurn() {
+  async function autoSelectAfterTurn() {
     if (session.state.gameOver || session.state.activePlayer !== ctx.HUMAN) return;
-    runAllGotos();
+    await runAllGotos();
     const last = sel.lastMoved && session.state.units[sel.lastMoved];
     if (last && last.owner === ctx.HUMAN && last.moves > 0 && !last.fortified && !last.working) {
       ctx.selectUnit(last);
@@ -262,7 +262,7 @@ export function initInput(ctx) {
   // Ending the turn with units still to move needs a second E (or End Turn
   // click) within the warning banner's 5-second lifetime.
   let confirmEndTurnUntil = 0;
-  function endTurn() {
+  async function endTurn() {
     const state = session.state;
     if (!state.gameOver && state.activePlayer === ctx.HUMAN
         && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
@@ -289,7 +289,7 @@ export function initInput(ctx) {
     confirmEndTurnUntil = 0;
     panels.closeStackPanel();
     sel.cityId = null;
-    const res = session.endTurn();
+    const res = await session.endTurn();
     if (!res.ok) { hud.note(`✗ endTurn: ${res.reason}`); return; }
     const now = session.state;
     const next = now.activePlayer;
@@ -300,7 +300,7 @@ export function initInput(ctx) {
       ctx.setHuman(next);
       return;
     }
-    autoSelectAfterTurn();
+    await autoSelectAfterTurn();
     hud.refresh();
   }
   ctx.endTurn = endTurn;
@@ -317,8 +317,8 @@ export function initInput(ctx) {
       return;
     }
     const unitId = unit.id;
-    panels.openNameDialog(ctx.suggestCityName(), name => {
-      if (apply({ type: 'foundCity', playerId: session.state.activePlayer, unitId, name })) {
+    panels.openNameDialog(ctx.suggestCityName(), async name => {
+      if (await apply({ type: 'foundCity', playerId: session.state.activePlayer, unitId, name })) {
         sel.unitId = null;
         panels.openCityPanel(session.state.cityOrder[session.state.cityOrder.length - 1]);
       }
@@ -343,7 +343,7 @@ export function initInput(ctx) {
     return dx > dy ? dx : dy;
   }
 
-  function gotoStep(unitId) {
+  async function gotoStep(unitId) {
     const state = session.state;
     const unit = state.units[unitId];
     const target = gotoTargets[unitId];
@@ -360,26 +360,27 @@ export function initInput(ctx) {
       && !unitsAt(state, o.nx, o.ny).some(u => u.owner !== unit.owner) // never auto-attack
     ).sort((a, b) => a.d - b.d);
     for (const o of options) {
-      if (session.apply({ type: 'moveUnit', playerId: state.activePlayer, unitId, dir: o.dir }).ok) return true;
+      const r = await session.apply({ type: 'moveUnit', playerId: state.activePlayer, unitId, dir: o.dir });
+      if (r.ok) return true;
     }
     delete gotoTargets[unitId]; // boxed in: stop rather than wander
     hud.note('🎯 route blocked — GoTo cancelled');
     return false;
   }
 
-  function runGoto(unitId) {
+  async function runGoto(unitId) {
     let guard = 40;
     while (gotoTargets[unitId] && session.state.units[unitId]
            && session.state.units[unitId].moves > 0 && guard-- > 0) {
-      if (!gotoStep(unitId)) break;
+      if (!(await gotoStep(unitId))) break;
     }
     if (gotoTargets[unitId] && session.state.units[unitId]) {
       hud.note(`🎯 en route to (${gotoTargets[unitId].x},${gotoTargets[unitId].y}) — continues next turn`);
     }
   }
 
-  function runAllGotos() {
-    for (const unitId of Object.keys(gotoTargets).sort()) runGoto(unitId);
+  async function runAllGotos() {
+    for (const unitId of Object.keys(gotoTargets).sort()) await runGoto(unitId);
   }
 
   // the route a GoTo order INTENDS to take (same greedy rule as gotoStep,

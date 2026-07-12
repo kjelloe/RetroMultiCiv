@@ -60,6 +60,56 @@ function dumpDom(chromium, url) {
   });
 }
 
+// A served-by-server page joins over a real WebSocket during boot. The shared
+// dumpDom uses --virtual-time-budget, which pauses for pending fetch() (so the
+// local path's data/*.json loads finish) but NOT for ws frames — so it snapshots
+// before `joined` arrives. Drive a LIVE page (real time) instead and poll its
+// DOM over the DevTools protocol until it settles or the deadline passes.
+function dumpDomLive(chromium, url, ready, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const WebSocket = require('ws');
+    const port = 9222 + Math.floor(Math.random() * 4000);
+    const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-cdp-'));
+    const proc = spawn(chromium, [
+      '--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+      '--window-size=800,600', '--user-data-dir=' + prof,
+      `--remote-debugging-port=${port}`, url
+    ], { stdio: ['ignore', 'ignore', 'ignore'] });
+    const deadline = Date.now() + timeoutMs;
+    let done = false, last = '';
+    const finish = (err, html) => {
+      if (done) return; done = true;
+      try { proc.kill('SIGKILL'); } catch (e) { /* already gone */ }
+      fs.rm(prof, { recursive: true, force: true }, () => {});
+      err ? reject(err) : resolve(html);
+    };
+    proc.on('error', finish);
+    async function connect() {
+      let targets;
+      try { targets = await fetch(`http://127.0.0.1:${port}/json`).then(r => r.json()); }
+      catch (e) { return Date.now() > deadline ? finish(new Error('devtools never came up')) : setTimeout(connect, 200); }
+      const page = targets.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+      if (!page) return Date.now() > deadline ? finish(new Error('no CDP page target')) : setTimeout(connect, 200);
+      const ws = new WebSocket(page.webSocketDebuggerUrl, { maxPayload: 64 * 1024 * 1024 });
+      let id = 0; const waiters = {};
+      const cmd = (method, params) => new Promise(res => { const i = ++id; waiters[i] = res; ws.send(JSON.stringify({ id: i, method, params })); });
+      ws.on('message', d => { const m = JSON.parse(d); if (m.id && waiters[m.id]) { waiters[m.id](m); delete waiters[m.id]; } });
+      ws.on('error', () => finish(new Error('CDP socket error')));
+      ws.on('open', async () => {
+        while (Date.now() < deadline && !done) {
+          const r = await cmd('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
+          last = (r.result && r.result.result && r.result.result.value) || '';
+          if (ready(last)) { try { ws.close(); } catch (e) {} return finish(null, last); }
+          await new Promise(s => setTimeout(s, 250));
+        }
+        try { ws.close(); } catch (e) {}
+        finish(null, last); // let the assertions report exactly what was missing
+      });
+    }
+    connect();
+  });
+}
+
 const chromium = findChromium();
 
 test('browser smoke: client boots to a playable state', { skip: !chromium && 'headless chromium not cached' }, async () => {
@@ -134,5 +184,31 @@ test('browser hotseat: ending the turn hands off to the second human behind an o
         'beneath the cover, the HUD already shows the new viewpoint');
     } finally {
       server.close();
+    }
+  });
+
+// Phase-3 slice 3 (docs/06 §5): the SAME client, but ?server=1 makes it join
+// the authoritative Node server over a WebSocket instead of running its own
+// engine. The served-by-server case boots server/index.js (static + ws) and
+// drives the e2e founding — the strongest proof that ui-over-socket works.
+test('browser served-by-server: the client founds a city through the WebSocket',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 12345, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+    try {
+      // ?server=1 joins gs over ws://…/ws; ?e2e=1 founds a city through it. The
+      // server stamps its own seat names (Player N) and Testopolis appears only
+      // if the awaited foundCity round-tripped the socket.
+      const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=1&civ=romans`;
+      const dom = await dumpDomLive(chromium, url,
+        h => /turn 1 · 4000 BC · Player 1/.test(h) && /Testopolis/.test(h), 20000);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      assert.match(dom, /<canvas/, 'the renderer must attach a canvas in server mode');
+      assert.match(dom, /turn 1 · 4000 BC · Player 1/, 'the HUD must show the joined seat and turn');
+      assert.match(dom, /Testopolis/, 'the city founded over the socket must appear in the panel');
+      assert.match(dom, /diaglog: [1-9]/, 'the remote session must have sent at least one command');
+      assert.match(dom, /errors: 0/, 'no JavaScript errors during the socket session (incl. the hover sweep)');
+    } finally {
+      await gs.close();
     }
   });

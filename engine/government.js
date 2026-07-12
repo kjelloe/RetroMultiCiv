@@ -109,6 +109,9 @@ function setGovernment(state, cmd, ruleset) {
   player.government = 'anarchy';
   player.pendingGovernment = cmd.government;
   player.revolutionTurns = ruleset.rules.revolutionTurns;
+  // anarchy caps rates too — a Monarchy running 70% science must drop to
+  // the interregnum's 60 immediately (found organically by the sim net)
+  clampRates(player, ruleset.governments.anarchy, ruleset.rules);
   return { ok: true, events: [{ type: 'revolutionStarted', playerId: cmd.playerId, government: cmd.government }] };
 }
 

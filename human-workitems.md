@@ -33,6 +33,10 @@ in `./agent-workitems.md`.
   and worker improvements feel understandable, or like hidden bookkeeping?
 - [ ] **AI settlers in hotseat**: steal an AI's founding spot on purpose —
   its settler should now walk off to a secondary site instead of loitering.
+- [ ] **AI military behavior** (batch 3, 2026-07-12): AI settlers should
+  travel with escorts; threatened AI cities should hold two defenders;
+  AI armies should no longer trek across the whole map at you — verify
+  wars feel local and AI civs are harder to snowball over early.
 
 ## Decisions / ops only you can do
 

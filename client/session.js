@@ -32,6 +32,10 @@ export function createSession(ruleset, initialState, opts) {
 
     onChange(cb) { listeners.push(cb); },
 
+    // Returns a Promise so the UI has ONE apply() contract across the local
+    // and the phase-3 remote session (docs/06 §5). The state mutation is
+    // synchronous — only the return value is wrapped — so callers that read
+    // session.state right after (without awaiting) still see the new state.
     apply(cmd) {
       const res = engine.applyCommand(state, cmd);
       const entry = { t: 'cmd', turn: state.turn, cmd };
@@ -46,7 +50,7 @@ export function createSession(ruleset, initialState, opts) {
         entry.reason = res.reason;
         log.push(entry);
       }
-      return res;
+      return Promise.resolve(res);
     },
 
     // End the human turn, then let every AI player act and pass — stopping
@@ -57,7 +61,7 @@ export function createSession(ruleset, initialState, opts) {
       const first = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
       if (!first.ok) {
         log.push({ t: 'cmd', turn: state.turn, cmd: { type: 'endTurn', playerId: state.activePlayer }, ok: false, reason: first.reason });
-        return first;
+        return Promise.resolve(first);
       }
       state = first.state;
       for (const e of first.events) collected.push(e);
@@ -71,7 +75,7 @@ export function createSession(ruleset, initialState, opts) {
       }
       log.push({ t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) });
       notify(collected);
-      return first;
+      return Promise.resolve(first);
     },
 
     // Load a saved/foreign state wholesale (save files, quick load). The

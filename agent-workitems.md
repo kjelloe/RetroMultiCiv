@@ -96,7 +96,7 @@ Read `test/sim-driver.js` `snapshot()` for the row shape. Verify with
 `debugging/screenshot.sh` against a generated JSONL. Client-only: no
 hashes, no goldens.
 
-## A9 — Phase-3 slice 3: client remote session (design: docs/06 §5)
+## A9 — Phase-3 slice 3: client remote session (design: docs/06 §5)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — client/session-remote.js (same 5-surface contract over ws); main.js ?server= boot switch; apply/endTurn now Promise-based on BOTH sessions + await sweep (input.js funnel/helpers/GoTo chain/endTurn, panels 3 fns, main e2e); served-by-server browser case (CDP live-page waiter — virtual-time races ws); full suite 135/135, both paths screenshot-verified. Client-side shims for filterView omissions (cityOrder/wonders/nextCityId/explored) — FLAGGED for architect. Golden-safe.]
 
 Server core + socket layer exist and are tested (server/game.js,
 server/protocol.js, server/index.js; test/server-protocol.test.js +
@@ -130,6 +130,39 @@ docs/03 phase-3 checkboxes with dates; docs/06 slice statuses; CLAUDE.md
 "Testing & running" gains the `node server/index.js` path next to the
 python one; README + plan-update paragraphs (plain language); an A1-style
 sweep for any drift the server work left behind.
+
+## A11 — Game verification code (design: docs/07-game-code.md — GREEN-LIT)
+
+All three slices, in order; each is golden-safe. Run AFTER A9/A10.
+
+1. `shared/gamecode.js` (ESM, Lua-portable subset like statehash.js):
+   `gameCode(state)` → 13 Crockford-base32 chars grouped `XXXX-XXXX-XXXX2`.
+   64 bits = `hi * 2^32 + lo` where `lo` = the existing
+   `hashState`-style FNV-1a-32 over `canonicalize(state)`, and `hi` =
+   FNV-1a-32 over the SAME canonical string iterated in REVERSE
+   (last char to first) with the standard basis/prime — a genuinely
+   different function of the input built from the same portable
+   primitives (reuse `mul32`; do NOT invent new constants). Crockford
+   alphabet `0123456789ABCDEFGHJKMNPQRSTVWXYZ`, no checksum char,
+   grouped 4-4-5. Pin GOLDEN VECTORS in a new test (the statehash
+   golden `{b:2,a:[1,"x",true]}` object plus one crafted game state)
+   — these become phase-5 cross-engine anchors; record them
+   null→run→paste like scenario hashes.
+2. Client hooks (docs/07 §3–4): persistent save dialog with the code
+   (NOT the 5s banner) in ui/saves.js; load banner + localStorage
+   auto-compare per gameId (`retromulticiv-code-<gameId>`, key exists
+   only after first save/load); game-over line in hud; crash overlay
+   in main.js shows code of last coherent state + quicksaves it;
+   handoff screen carries "code as of last save". Screenshot-verify
+   the save dialog and the load banner (e2e URL params as usual).
+3. Server (grant: server/game.js + protocol.js are yours for this
+   slice): code in the save envelope, in the `joined` reply, and a
+   `{t:"code", turn, code}` broadcast wherever autosave fires; extend
+   test/server-protocol.test.js + the integration test's restart case
+   (code must be IDENTICAL before shutdown and after resume).
+
+Done when: golden vectors pinned and green, tampered-state test (edit
+gold in a crafted state → different code), suite green, screenshots read.
 
 ## A4 — Goody huts (design: docs/04)
 

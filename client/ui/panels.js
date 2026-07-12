@@ -78,9 +78,9 @@ export function initPanels(ctx) {
   }
 
   // --- research panel --------------------------------------------------------
-  function startResearch(techId) {
+  async function startResearch(techId) {
     if (!techId) return;
-    const res = session.apply({ type: 'setResearch', playerId: ctx.HUMAN, tech: techId });
+    const res = await session.apply({ type: 'setResearch', playerId: ctx.HUMAN, tech: techId });
     if (res.ok) {
       chosenTech = null;
       researchPanel.classList.add('hidden');
@@ -228,8 +228,8 @@ export function initPanels(ctx) {
   document.getElementById('city-prev').addEventListener('click', () => cycleCity(-1));
   document.getElementById('city-next').addEventListener('click', () => cycleCity(1));
 
-  function setProduction(city, item, closeAfter) {
-    const res = session.apply({ type: 'setProduction', playerId: ctx.HUMAN, cityId: city.id, item });
+  async function setProduction(city, item, closeAfter) {
+    const res = await session.apply({ type: 'setProduction', playerId: ctx.HUMAN, cityId: city.id, item });
     if (!res.ok) ctx.hud.note(`✗ setProduction: ${res.reason}`);
     else if (closeAfter) closeCityPanel();
   }
@@ -315,7 +315,7 @@ export function initPanels(ctx) {
     const isWorked = {};
     for (const w of worked) isWorked[`${w.x},${w.y}`] = true;
 
-    function toggleWorker(idx) {
+    async function toggleWorker(idx) {
       const current = currentWorkerIdx();
       const at = current.indexOf(idx);
       if (at !== -1) {
@@ -326,7 +326,7 @@ export function initPanels(ctx) {
       } else {
         current.push(idx);
       }
-      const res = session.apply({ type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id, workers: current });
+      const res = await session.apply({ type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id, workers: current });
       if (!res.ok) ctx.hud.note(`✗ setWorkers: ${res.reason}`);
     }
 
