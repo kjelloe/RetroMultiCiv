@@ -35,7 +35,7 @@ const MAX_GOLD = 100000;
 let MODS = null;
 async function loadModules() {
   if (MODS) return MODS;
-  const [engineMod, aiMod, hashMod, visMod, happyMod, govMod, scoreMod, rngMod, citiesMod, combatMod] = await Promise.all([
+  const [engineMod, aiMod, hashMod, visMod, happyMod, govMod, scoreMod, rngMod, citiesMod, combatMod, techMod] = await Promise.all([
     import('../engine/index.js'),
     import('../engine/ai.js'),
     import('../shared/statehash.js'),
@@ -45,7 +45,8 @@ async function loadModules() {
     import('../engine/score.js'),
     import('../engine/rng.js'),
     import('../engine/cities.js'),
-    import('../engine/combat.js')
+    import('../engine/combat.js'),
+    import('../engine/tech.js')
   ]);
   MODS = {
     createEngine: engineMod.createEngine,
@@ -59,7 +60,8 @@ async function loadModules() {
     seedRng: rngMod.seedRng,
     rollRange: rngMod.rollRange,
     candidateTiles: citiesMod.candidateTiles,
-    sortIds: combatMod.sortIds
+    sortIds: combatMod.sortIds,
+    playerIncome: techMod.playerIncome
   };
   return MODS;
 }
@@ -83,9 +85,11 @@ function checkInvariants(state, ruleset) {
   if (!state.players[state.activePlayer]) bad(`activePlayer ${state.activePlayer} missing from players`);
   if (state.playerOrder.indexOf(state.activePlayer) === -1) bad(`activePlayer ${state.activePlayer} not in playerOrder`);
 
-  // units
+  // units (combat makes mixed-owner tiles unrepresentable: moving onto an
+  // enemy is always an attack — co-location means a movement/combat bug)
   const unitIds = Object.keys(state.units);
   if (unitIds.length > MAX_UNITS) bad(`tripwire: ${unitIds.length} units > ${MAX_UNITS}`);
+  const tileOwner = {};
   let maxUnitNum = 0;
   for (const uid of unitIds) {
     const u = state.units[uid];
@@ -98,6 +102,11 @@ function checkInvariants(state, ruleset) {
       continue;
     }
     if (!isInt(u.moves) || u.moves < 0) bad(`unit ${uid}: moves ${u.moves}`);
+    const tkey = u.y * width + u.x;
+    if (tileOwner[tkey] !== undefined && tileOwner[tkey] !== u.owner) {
+      bad(`unit ${uid}: shares tile ${u.x},${u.y} with a ${tileOwner[tkey]} unit (mixed-owner stack)`);
+    }
+    tileOwner[tkey] = u.owner;
     const tileDomain = ruleset.terrain.terrains[tiles[u.y * width + u.x].t].domain;
     const inCity = cityAtTile(state, u.x, u.y);
     if (def.domain === 'land' && tileDomain !== 'land') bad(`unit ${uid}: land unit (${u.type}) on ${tileDomain}`);
@@ -289,16 +298,36 @@ function checkDeep(state, ruleset, mods) {
       if (c && c.owner === pid) { hasCity = true; break; }
     }
     if (hasCity && !mods.capitalOf(state, pid, ruleset)) problems.push(`player ${pid}: capitalOf unresolved despite cities`);
+    // income forecast must at least be computable and sane on organic states
+    // (strict forecast==applied is not well-defined: the wrap mutates yields
+    // before income applies — improvements finish, cities grow/build)
+    const inc = mods.playerIncome(state, pid, ruleset);
+    if (!Number.isInteger(inc.gold) || !Number.isInteger(inc.bulbs) || !Number.isInteger(inc.maintenance)
+        || inc.bulbs < 0 || inc.maintenance < 0) {
+      problems.push(`player ${pid}: playerIncome ${JSON.stringify(inc)} not sane`);
+    }
+  }
+  // manual worker lists must hold real candidate tiles (stronger than the
+  // per-turn bounds check; growth appends candidates, capture clears)
+  for (const cid of state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city || city.workers === undefined) continue;
+    const valid = {};
+    for (const c of mods.candidateTiles(state, city, ruleset)) valid[c.idx] = true;
+    for (const idx of city.workers) {
+      if (valid[idx] !== true) problems.push(`city ${cid}: manual worker tile ${idx} is not a candidate tile`);
+    }
   }
   return problems;
 }
 
-// One readable line per checkpoint so soak logs tell a story at a glance.
-function summarize(state, ruleset, mods) {
-  const parts = [];
+// Structured per-player stats for one state — the telemetry row format
+// (tools/soak.js --stats appends these as JSONL for balance-drift charting)
+// and the base of the human summary line.
+function snapshot(state, ruleset, mods) {
+  const players = [];
   for (const pid of state.playerOrder) {
     const p = state.players[pid];
-    if (p.alive === false) { parts.push(`${p.name} DEAD`); continue; }
     let cities = 0, units = 0;
     for (const cid of state.cityOrder) {
       const c = state.cities[cid];
@@ -307,10 +336,25 @@ function summarize(state, ruleset, mods) {
     for (const uid of Object.keys(state.units)) {
       if (state.units[uid].owner === pid) units++;
     }
-    const gov = (p.government === undefined ? 'despotism' : p.government).slice(0, 3).toUpperCase();
-    parts.push(`${p.name} ${cities}c ${units}u ${p.techs.length}t s${mods.score(state, pid, ruleset)} ${gov}`);
+    players.push({
+      id: pid, name: p.name, alive: p.alive !== false,
+      government: p.government === undefined ? 'despotism' : p.government,
+      cities, units, techs: p.techs.length, gold: p.gold,
+      score: mods.score(state, pid, ruleset)
+    });
   }
-  return `turn ${state.turn}: ${parts.join(' | ')}`;
+  return { turn: state.turn, year: state.year, players };
+}
+
+// One readable line per checkpoint so soak logs tell a story at a glance.
+function summarize(state, ruleset, mods) {
+  const snap = snapshot(state, ruleset, mods);
+  const parts = [];
+  for (const p of snap.players) {
+    if (!p.alive) { parts.push(`${p.name} DEAD`); continue; }
+    parts.push(`${p.name} ${p.cities}c ${p.units}u ${p.techs}t s${p.score} ${p.government.slice(0, 3).toUpperCase()}`);
+  }
+  return `turn ${snap.turn}: ${parts.join(' | ')}`;
 }
 
 // Chaos: deterministic pseudo-random commands from a SEPARATE xorshift
@@ -541,4 +585,4 @@ async function runSim(opts) {
   };
 }
 
-module.exports = { runSim, checkInvariants, checkDeep, summarize, loadModules, SIM_ROSTER };
+module.exports = { runSim, checkInvariants, checkDeep, snapshot, summarize, loadModules, SIM_ROSTER };

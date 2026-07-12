@@ -13,7 +13,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 
 const RULESET = require('./ruleset.js');
-const { runSim, checkInvariants } = require('./sim-driver.js');
+const { runSim, checkInvariants, snapshot, loadModules } = require('./sim-driver.js');
 const { replayDiagnostics } = require('../tools/replay.js');
 
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
@@ -89,6 +89,26 @@ test('the invariant checker passes a healthy state and names seeded defects', ()
   assert.ok(problems.some(p => /city c1: pop 0/.test(p)), `missing pop problem in: ${problems}`);
   assert.ok(problems.some(p => /player p1: gold -5/.test(p)), `missing gold problem in: ${problems}`);
   assert.ok(problems.some(p => /rates 60\+50\+0/.test(p)), `missing rates problem in: ${problems}`);
+
+  // two owners on one tile is unrepresentable through legal moves (attacks
+  // never co-locate) — a movement/combat bug must not slip past
+  const stacked = craftedState();
+  stacked.players.p2 = { id: 'p2', name: 'Y', color: '#000', human: false, gold: 0, techs: [], researching: '' };
+  stacked.units.u9 = { id: 'u9', type: 'militia', owner: 'p2', x: 2, y: 2, moves: 1, fortified: false, veteran: false };
+  stacked.nextUnitId = 10;
+  const stackProblems = checkInvariants(stacked, RULESET);
+  assert.ok(stackProblems.some(p => /mixed-owner stack/.test(p)), `missing stack problem in: ${stackProblems}`);
+});
+
+test('snapshot: the structured telemetry row carries per-player stats', async () => {
+  const mods = await loadModules();
+  const snap = snapshot(craftedState(), RULESET, mods);
+  assert.strictEqual(snap.turn, 5);
+  assert.strictEqual(snap.players.length, 1);
+  const p = snap.players[0];
+  assert.deepStrictEqual(
+    { cities: p.cities, units: p.units, government: p.government, alive: p.alive, techs: p.techs },
+    { cities: 1, units: 1, government: 'despotism', alive: true, techs: 0 });
 });
 
 // A sim artifact must replay through the same tool that verifies playtest
