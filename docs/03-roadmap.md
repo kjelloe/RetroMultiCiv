@@ -1,5 +1,40 @@
 # RetroMultiCiv — Development Roadmap
 
+## Division of labour (agreed 2026-07-12)
+
+Three parties work in parallel: the **main coder** (Claude — design,
+architecture, engine/AI frontiers, curation and review), a **coder helper**
+agent (implementation + documentation tasks from `agent-workitems.md`,
+each item self-contained), and the **humans** (verification, decisions,
+git, and everything physical — `human-workitems.md`). Per phase:
+
+- **Phase 1 close-out**: helper burns down items A4–A8 (goody huts, era
+  barbarians, Future Tech/building sale, remaining wonders, tile
+  contention); main coder takes AI quality (stagnant-civ recovery —
+  military survival + exploration); humans judge "does it feel like
+  Civ 1". Exit: docs/04 empty, 25-seed soak with median cities ≥ 4 and
+  <10% stagnant civs.
+- **Phase 2 close-out**: humans run the pending acceptance playtest
+  (10 questions + 7 hotseat questions in specs/); main coder fixes
+  findings. Phase 2.5 is done and continuously enforced by the sim
+  goldens.
+- **Phase 3**: main coder writes the protocol/session design first (§6 of
+  docs/02 + this file's phase-3 contracts); then the helper implements in
+  slices (ws plumbing, validation, persistence, client socket adapter,
+  server e2e); humans verify restart-resume and latency.
+- **Phase 4**: main coder designs lobby/join/reconnect-resync (per-slot
+  human/AI assignment lands here, as deferred); helper implements; humans
+  run the two-machine LAN + mid-game-disconnect acceptance.
+- **Phase 5**: main coder does the Luau mapping/harness pass; helper
+  mechanically ports engine modules 1:1 (≤300 lines each, by design) plus
+  the statehash/scenario-runner/sim-driver twins; humans own Roblox
+  Studio, publishing, and in-Roblox playtests. Verification is already
+  built: scenario hashes, sim checkpoint goldens, replay conformance.
+- **Ordering**: 3 → 4 strictly; 5 can start once phase 3 stabilizes the
+  engine's shape (engine changes after the port starts cost double). The
+  art track never gates a phase; the nightly workflow quietly gates
+  everything — it is what keeps three parties honest in one codebase.
+
 Five phases, matching the agreed development path. Each phase ends with something
 playable/verifiable, and none requires reworking the previous one — that's what
 the engine-as-pure-reducer architecture buys (see `02-architecture.md`).

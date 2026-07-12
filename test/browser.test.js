@@ -108,6 +108,8 @@ test('browser setup: a bare URL shows the setup screen instead of booting a game
       assert.match(dom, /id="setup-screen"/, 'the setup screen must be present');
       assert.match(dom, /Start game/, 'with its start button');
       assert.match(dom, /hotseat/, 'and the human-players picker');
+      assert.match(dom, /id="setup-difficulty"/, 'and the difficulty picker');
+      assert.match(dom, /id="setup-combat"/, 'and the combat-calculations picker');
       assert.ok(!/<canvas/.test(dom), 'no renderer starts before the setup choices');
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
     } finally {
