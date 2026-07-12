@@ -375,6 +375,11 @@ below is a known, deliberate deviation to be closed in a later slice:
   shows only after a revolution. Client mini-map/site-preview display of
   this is queued (A16).
 - **Starting positions** keep at least 3 tiles from the polar map edges.
+- **Arctic is an impassable ice wall** (user decision 2026-07-13 — a
+  deliberate deviation from Civ 1's walkable poles): its terrain domain
+  is `ice`, matching no unit domain, so movement, founding, and
+  barbarian spawns all reject it. Cities adjacent to the ice can still
+  work special tiles on it (seals).
 - **City spacing**: founding is rejected within `rules.minCityDistance`
   (4) tiles of ANY existing city, any civ (Civ 1 was adjacency-only —
   playtest choice for less city-carpet).

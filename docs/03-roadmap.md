@@ -394,6 +394,14 @@ the designer ally's plan:
   rims for light civs), gallery 14×5 acceptance grid. A1.6b (water/
   coastline/patterns) is queued as A15 with a mandatory assets.js split
   pre-step.
+- ✅ **A1.6b — Water, coastlines, materials, infrastructure** *(done
+  2026-07-13, specs/plan-assets-2.md §1/§3–§5)*: translucent Phong water
+  plane over the sunken basins (depth grading free from the terrain
+  ramps), instanced foam shore-outlines (grid-readability strengthened,
+  per the ally's own caution), render-time-only wave drift, one shared
+  low-contrast mottle texture (per-terrain atlas = ally-triggered
+  follow-up), railroad ties / mine entrances / irrigation fields; plus
+  the assets.js split (renderer/three/props.js) proven byte-identical.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

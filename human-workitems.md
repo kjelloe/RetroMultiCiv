@@ -18,7 +18,14 @@ the Done log at the bottom.
   `./run.sh 8123 --game saves/<gameId>.json`, both rejoin. Also eyeball
   the 🔔 your-turn / ⏳ waiting / vote banners — integration-tested but
   not yet visually verified (A13's honest note). Ticking this = phase 4
-  accepted.
+  accepted. PRE-FLIGHT DONE (2026-07-13): a four-client end-to-end test
+  now passes on localhost (create → join by code with a seat pick →
+  named seats → full round in seat order → identical game codes on all
+  four → per-seat fog) — multi-machine is now a networking exercise, not
+  a software risk. The server now binds 0.0.0.0 (was loopback-only —
+  found via your question!) and run.sh echoes the LAN URL. WSL2 hosts
+  need the two PowerShell one-liners in gettingstarted §4 (portproxy +
+  firewall).
 - [ ] **Score & declare the phase-2 hotseat acceptance**: your turn-35
   hotseat session replayed hash-exact and produced wave III — what's
   left is the verdict: score it against the 10 questions in
@@ -40,10 +47,6 @@ the Done log at the bottom.
   `dev` branch via manual dispatch — but the 3 AM cron only arms once
   the workflow file lands on `main`. Merging also publishes phase 3+4,
   the game code, and the guards to the default branch.
-- [ ] **Arctic poles: passable or wall?** (wave-III #5 follow-up):
-  today's behavior is Civ 1-authentic — E-W wrap, hard N-S edges, and
-  arctic cap rows that units CAN walk on. If you'd rather the poles be
-  an impassable ice wall, it's a one-line data change — say the word.
 - [ ] **Ally sign-off loop for A14** (after the helper lands it): send
   him the 14-civ gallery-row screenshots — his own acceptance criteria
   from `specs/civ-visuals.md` — for design sign-off, plus the pending
@@ -62,10 +65,9 @@ the Done log at the bottom.
 
 - [ ] **Roblox/phase-5 setup**: Studio project, publishing, lune
   toolchain install for CI (approved 2026-07-12) — when the port starts.
-- [ ] **AI happiness management verdict**: nightly God-Emperor telemetry
-  shows the AI can't cope with contentCitizens 2 (47% stagnant) — decide
-  eventually whether an "AI luxuries/entertainers" batch 4 is worth it
-  or God-Emperor stays a humans-only difficulty.
+- [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
+  ("do it if it helps God-Emperor") — criterion + design sketch recorded
+  in docs/04; architect's queue, golden lock required.
 
 ## Playtest findings inbox
 
@@ -74,6 +76,11 @@ diagnostics files into `debugging/logs/` for anything that looks like an
 engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
 
 ## Done log
+
+- ✅ 2026-07-13 — Arctic poles decided + implemented: impassable ice wall
+  (terrain domain `ice` via the mapdata overlay; unit test added;
+  suite green with no golden movement).
+- ✅ 2026-07-13 — dev merged to main; 3 AM nightly cron armed.
 
 - ✅ 2026-07-12 — Wave-II spot-check, combat-default preference
   (best-of-three stays), terrain look on real GPUs, AI settler re-route

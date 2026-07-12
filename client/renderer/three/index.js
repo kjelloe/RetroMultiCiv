@@ -4,7 +4,7 @@
 // wheel-zoom.
 import * as THREE from 'three';
 import { createUnitMesh, createCityMesh } from './assets.js';
-import { createTileProps } from './props.js';
+import { createTileProps, WATER_LEVEL } from './props.js';
 import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
@@ -132,7 +132,10 @@ export function createRenderer(container) {
         fortified: u.fortified === true,
         canMove: u.moves > 0
       }); // group, base at y = 0
-      mesh.position.set(u.x, tileTop(u.x, u.y), u.y);
+      // units on water ride the SURFACE, not the sunken basin floor — else the
+      // translucent water plane (A1.6b) washes out their ownership disc
+      const top = Math.max(tileTop(u.x, u.y), WATER_LEVEL + 0.01);
+      mesh.position.set(u.x, top, u.y);
       mesh.userData.unitId = u.id;
       unitMeshes.set(u.id, mesh);
       worldGroup.add(mesh);

@@ -25,6 +25,7 @@ server args (passed to node server/index.js):
                       seats fresh (needed when resuming on a DIFFERENT port
                       or browser — tokens live in per-origin localStorage)
   --no-save           disable the autosave after each accepted command
+  --host IP           bind address (default 0.0.0.0 = reachable on the LAN)
 
 examples:
   ./run.sh                          # port 8123, fresh random game
@@ -70,3 +71,5 @@ echo "  play (local engine, hotseat OK):  http://localhost:$PORT/client/"
 echo "  play THROUGH the server:          http://localhost:$PORT/client/?server=1"
 echo "  diagnostics HUD: ?diag=1 · fixed world: ?seed=12345 · setup: bare URL"
 echo "  soak telemetry:  http://localhost:$PORT/debugging/stats.html"
+LANIP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[ -n "$LANIP" ] && echo "  LAN players:     http://$LANIP:$PORT/client/  (WSL2: see gettingstarted.md §4 for the Windows portproxy + firewall one-liners)"

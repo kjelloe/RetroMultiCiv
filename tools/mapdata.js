@@ -58,7 +58,10 @@ function buildTerrain() {
       defenseBonus: int(r[3].replace(/[+%]/g, ''), `${name} defense`),
       yields: yields(r[4]),
       special: { name: r[5], yields: yields(r[6] || '') },
-      domain: id === 'ocean' ? 'sea' : 'land'
+      // arctic is an impassable ice wall (user decision 2026-07-13 —
+      // deliberate deviation from Civ 1's walkable poles); its domain
+      // matches no unit domain, so movement/founding/spawning all reject
+      domain: id === 'ocean' ? 'sea' : id === 'arctic' ? 'ice' : 'land'
     };
     // settler improvements (columns: Irrigation, Mine, Road) — bonus yields
     // or terrain transforms ("→ Forest": the order changes the terrain)

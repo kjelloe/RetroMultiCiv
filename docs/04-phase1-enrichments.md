@@ -235,6 +235,19 @@ unit after End Turn.
   seeds (was 8% on the paired batch — sample-sensitive, watch nightly
   telemetry); eliminations ~21% (wars remain real and lethal, by design).
 
+- **AI happiness management (batch 4) — APPROVED conditionally** (user,
+  2026-07-13): "do it if it helps the AI cope with God-Emperor." The
+  measurable gate: nightly God-Emperor telemetry shows 47% stagnant civs
+  and median 1 city (the AI never uses luxuries or entertainers, so
+  contentCitizens 2 strangles it). Design sketch: when a city is in
+  disorder and lux < cap, the AI raises the luxury rate one step (and
+  lowers it back when no city has disorder); optionally assign
+  entertainers in the disordered city first. Success = stagnant % and
+  median cities on the God-Emperor nightly leg move meaningfully toward
+  the natural leg's numbers; abandon if two lever iterations don't move
+  them (then God-Emperor stays a humans-only difficulty). Golden lock
+  required.
+
 ## Remaining wonder effects (for reference)
 
 Mapped to the systems above: Hanging Gardens/Cure for Cancer/Shakespeare/

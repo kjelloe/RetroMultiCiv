@@ -65,7 +65,7 @@ risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
 ui/{hud,panels,input,saves,turnlog,setup,handoff,options,lobby}. The
-renderer splits renderer/three/{index,assets,terrain,factions}. UI reads session.state
+renderer splits renderer/three/{index,assets,props,terrain,factions}. UI reads session.state
 and calls session.apply()/endTurn(); session.onChange drives refresh.
 `ctx.HUMAN` is the CURRENT VIEWPOINT (mutable — hotseat hands it between
 players via ctx.setHuman); never cache it in a module-level const. Keyboard
@@ -73,8 +73,9 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 
 ## Testing & running
 
-`node --test test/` — headless, no deps (the dump integration test self-skips
-if the dump is absent). Play (local engine): `python3 -m http.server 8123` from
+`node --test test/` — headless (the dump integration test self-skips if
+the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
+invocation (summary + failure blocks, no inline pipes). Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,

@@ -97,12 +97,17 @@ multiciv/
 │   │                      #   screen, hotseat hand-off, options/help — DOM
 │   └── renderer/          # ★ RENDERER INTERFACE — implementations swappable
 │       ├── renderer.js    #   interface: setViewState, picks, markers…
-│       └── three/         #   v1: low-poly flat boxes + raycast picking
-│           └── assets.js  #   AssetFactory: all unit/city mesh construction
+│       └── three/         #   v1: continuous faceted terrain + raycast picking
+│           ├── assets.js  #   AssetFactory: unit/city mesh construction
+│           ├── props.js   #   instanced tile props (trees/roads/foam/…)
+│           ├── terrain.js #   the displaced single-mesh terrain surface
+│           └── factions.js#   civ colors/emblems/flags (CanvasTextures)
 ├── server/                # Node adapter (phase 3+) — NOT ported to Lua
 │   ├── index.js           # node:http static hosting + ws; thin socket layer
 │   ├── game.js            # authoritative session: state owner, apply/endTurn
 │   │                      #   + AI, diagnostics, seat tokens, atomic save/resume
+│   ├── lobby.js           # phase-4 registry: join codes, seat reservations,
+│   │                      #   the seating chart authored into createGame setups
 │   └── protocol.js        # frame parse/validate + routing (pure functions)
 ├── tools/
 │   ├── json2lua.js        # data/*.json → Roblox ModuleScript tables

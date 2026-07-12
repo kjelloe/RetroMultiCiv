@@ -1,6 +1,7 @@
 // Input: renderer picks (select / move / attack / stacks) and the keyboard.
 import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '../../engine/combat.js';
 import { candidateTiles, tileYields, wonderActive } from '../../engine/cities.js';
+import { capitalOf } from '../../engine/government.js';
 import { availableTechs } from '../../engine/tech.js';
 
 const MOVE_KEYS = {
@@ -72,7 +73,14 @@ export function initInput(ctx) {
     const all = candidateTiles(state, { x, y, owner: ctx.HUMAN }, ruleset);
     const candidates = all.filter(c => known(c.x, c.y));
     const hidden = all.length - candidates.length;
-    const center = tileYields(tile, ruleset);
+    // wave III catch-up: the engine yields the CITY SQUARE as roaded +
+    // irrigated (mine kept if present) — mirror that so the rating matches
+    // what founding actually produces (engine/cities.js workedTiles center)
+    const centerTile = { t: tile.t, road: true };
+    if (tile.special === true) centerTile.special = true;
+    if (tile.river === true) centerTile.river = true;
+    if (tile.mine === true) centerTile.mine = true; else centerTile.irrigation = true;
+    const center = tileYields(centerTile, ruleset);
     let food = center.food, shields = center.shields, trade = center.trade;
     for (const c of candidates.slice(0, 4)) {
       food += c.yields.food; shields += c.yields.shields; trade += c.yields.trade;
@@ -143,11 +151,21 @@ export function initInput(ctx) {
     setGovernment: true, setRates: true, setWorkers: true
   };
 
+  // wave III: after a combat involving the viewer, keep the camera at the
+  // battle site and skip the auto-next-unit jump for that one action — the
+  // player wants to SEE the outcome. Consumed by moveSelected.
+  let combatLinger = false;
   async function apply(cmd) {
     const res = await session.apply(cmd);
     if (res.ok) {
       confirmEndTurnUntil = 0; // the situation changed — a stale confirmation dies
       if (sel.unitId && !session.state.units[sel.unitId]) sel.unitId = null;
+      const combat = (res.events || []).find(e => e.type === 'combatResolved'
+        && (e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN));
+      if (combat && combat.x !== undefined) {
+        combatLinger = true;
+        renderer.centerOn(combat.x, combat.y);
+      }
       const note = describeEvents(res.events);
       if (note) hud.note(note);
     } else {
@@ -211,11 +229,13 @@ export function initInput(ctx) {
     const unitId = sel.unitId;
     delete gotoTargets[unitId]; // manual steering overrides GoTo
     if (await apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId, dir })) {
-      sel.lastMoved = unitId;
+      sel.lastMovedBy[ctx.HUMAN] = unitId; // per player: hotseat lands each on THEIR unit
       const moved = session.state.units[unitId];
+      const linger = combatLinger; // wave III: stay at the battle site once
+      combatLinger = false;
       if (moved) {
         hud.unitNote(moved);
-        if (moved.moves === 0 && ctx.options && ctx.options.get('autoNextUnit')) nextUnit();
+        if (moved.moves === 0 && !linger && ctx.options && ctx.options.get('autoNextUnit')) nextUnit();
       }
     }
   }
@@ -231,8 +251,9 @@ export function initInput(ctx) {
       hud.banner('no units with moves left — press E to end the turn');
       return;
     }
+    const lastId = sel.lastMovedBy[ctx.HUMAN];
     const anchor = (sel.unitId && session.state.units[sel.unitId])
-      || (sel.lastMoved && session.state.units[sel.lastMoved]) || null;
+      || (lastId && session.state.units[lastId]) || null;
     let pick = movable[0];
     if (anchor) {
       let best = 1e9;
@@ -249,7 +270,8 @@ export function initInput(ctx) {
   async function autoSelectAfterTurn() {
     if (session.state.gameOver || session.state.activePlayer !== ctx.HUMAN) return;
     await runAllGotos();
-    const last = sel.lastMoved && session.state.units[sel.lastMoved];
+    const lastId = sel.lastMovedBy[ctx.HUMAN];
+    const last = lastId && session.state.units[lastId];
     if (last && last.owner === ctx.HUMAN && last.moves > 0 && !last.fortified && !last.working) {
       ctx.selectUnit(last);
       renderer.centerOn(last.x, last.y);
@@ -668,6 +690,14 @@ export function initInput(ctx) {
       if (options.length === 0) return;
       const idx = options.findIndex(o => o.kind === city.producing.kind && o.id === city.producing.id);
       apply({ type: 'setProduction', playerId: session.state.activePlayer, cityId: sel.cityId, item: options[(idx + 1) % options.length] });
+      return;
+    }
+    if (e.key === 'c' && !sel.cityId) {
+      // wave III: C with no city selected flies to the capital (Palace, else
+      // the oldest city — engine capitalOf); C on a city keeps cycling builds
+      const cap = capitalOf(session.state, ctx.HUMAN, session.ruleset); // city object
+      if (cap) renderer.centerOn(cap.x, cap.y);
+      else hud.note('no capital yet — found a city first');
       return;
     }
     if (PRODUCTION_KEYS[e.key] && sel.cityId) {

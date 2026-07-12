@@ -385,6 +385,7 @@ html, body {
   grid-template-columns: repeat(5, 46px);
   grid-auto-rows: 46px;
   gap: 2px;
+  justify-content: center; /* wave III: don't hug the left edge of #city-left */
 }
 
 .ctile {

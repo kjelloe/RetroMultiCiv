@@ -64,6 +64,19 @@ restarts (`./run.sh 8123 --game saves/<gameId>.json`). Every save shows
 a **game code** (like `AD1X-Q5MR-DP7H9`) — note it down; when the game
 loads again, matching codes prove nobody edited the save in between.
 
+**Windows/WSL2 host?** Two one-time steps in an *admin* PowerShell so LAN
+players can reach the server inside WSL (players connect to the WINDOWS
+machine's IP from `ipconfig`):
+
+```powershell
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=8123 connectaddress=$(wsl hostname -I).Trim() connectport=8123
+netsh advfirewall firewall add rule name="RetroMultiCiv 8123" dir=in action=allow protocol=TCP localport=8123
+```
+
+(Windows 11 alternative: set `networkingMode=mirrored` in `%UserProfile%\.wslconfig`
+and only the firewall rule is needed. The WSL IP changes across reboots —
+re-run the portproxy line, or use mirrored mode.)
+
 ## 5. Playing THROUGH the server, solo (optional)
 
 `./run.sh` also hosts an authoritative game server. Open

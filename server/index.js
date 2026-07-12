@@ -326,7 +326,9 @@ export function startServer(opts) {
   });
 
   return new Promise(resolve => {
-    httpServer.listen(opts.port || 0, '127.0.0.1', () => {
+    // 0.0.0.0 so LAN machines can reach the game (the CLI default);
+    // tests pass host '127.0.0.1' explicitly to stay loopback-only
+    httpServer.listen(opts.port || 0, opts.host || '0.0.0.0', () => {
       resolve({
         port: httpServer.address().port,
         game: defaultGame,
@@ -352,6 +354,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--size') opts.size = argv[++i];
     else if (a === '--game') opts.game = argv[++i];
     else if (a === '--reset-seats') opts.resetSeats = true;
+    else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }

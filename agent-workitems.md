@@ -68,6 +68,18 @@ my ack. Test-only, golden-safe. Done-when: the new case fails if the
 input.js fix is reverted (prove it: revert locally, watch it fail,
 restore), suite green.
 
+### B2 — Harden the 4-client LAN test against parallel-suite load
+
+The helper observed test/server-lan4.test.js fail ONCE under the full
+parallel suite (passes alone and on reruns) — 4 ws clients + ephemeral
+server under parallel-file CPU load; 8s expect() timeouts are the likely
+squeeze. Diagnose properly (don't just raise numbers blind: reproduce
+under load, e.g. run the suite with the sim file concurrently), then
+harden — longer/adaptive timeouts, or node:test concurrency hints, or
+both. The test is the user's pre-LAN gate, so it must be trustworthy:
+zero flakes across 10 consecutive full-suite runs = done. Architect's
+file, claim granted in advance.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
@@ -249,7 +261,7 @@ The ally's "highest-return move". Client-only, golden-safe, NO golden lock.
 Verify: gallery screenshot (it must show flags/markers per silhouette),
 game screenshots WebGL2 + WebGL1 pass, browser e2e stays green.
 
-## A15 — Art A1.6b: water, coastline, materials, terrain patterns (same spec)
+## A15 — Art A1.6b: water, coastline, materials, terrain patterns (same spec)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — PRE-STEP: props seam split to renderer/three/props.js (assets 315/props 157, gallery BYTE-IDENTICAL post-move). Water: translucent Phong plane at WATER_LEVEL=-0.02 (depth-graded shallows for free over the ramped basin), foam strips per shore edge (instanced, fog-dimmed), band-texture drift in the render loop (RENDER TIME ONLY); ship-height bug found via screenshot read + fixed (naval units now ride the surface — discs were submerged/washed out). Mottle: ONE shared low-contrast world-planar CanvasTexture multiplied into terrain face colors (uv attr added) — DEVIATION: per-terrain pattern set simplified to shared mottle, flagged. Infrastructure: rail cross-ties, mine entrance+timber lintel, irrigation field patches. Grid readability kept (foam reinforces coasts). Exhibits debugging/gallery-water-a15.png; game WebGL2+WebGL1 read. Suite 162/162 (one lan4 flake under load — not mine, passes alone+rerun, flagged).]
 
 PRE-STEP (from A14's size flag): assets.js sits at 466 lines, over the
 ~450 soft ceiling — split the tile-props seam FIRST (createTileProps +
@@ -280,7 +292,7 @@ production interactions, show a "spectating" chip, render the omniscient
 view the server already sends. Golden-safe, client-only. Verify by
 screenshot with a live server.
 
-## A16 — Playtest wave III client refinements (AFTER A13 — collision-fenced)
+## A16 — Playtest wave III client refinements (AFTER A13 — collision-fenced)  [claimed: coder-helper 2026-07-13]
 
 From the user's hotseat acceptance playtest (2026-07-12). All client-only,
 golden-safe. The GoTo-across-hand-offs bug and the engine items (city

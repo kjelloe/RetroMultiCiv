@@ -267,6 +267,16 @@ test('foundCity: rejects sites closer than rules.minCityDistance to ANY city', a
   assert.strictEqual(farEnough.ok, true, 'distance 4 is legal');
 });
 
+test('arctic is an impassable ice wall (user decision 2026-07-13)', async () => {
+  const { engine } = await load();
+  const state = miniState([{ t: 'grassland' }, { t: 'arctic' }], 2, 1, {
+    u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  });
+  const res = engine.applyCommand(state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+  assert.strictEqual(res.ok, false);
+  assert.strictEqual(res.reason, 'impassable', 'land units cannot enter the ice');
+});
+
 test('capture clears manual workers and specialists (pop drops beneath them)', async () => {
   const { combat } = await load();
   const state = miniState([{ t: 'grassland' }, { t: 'grassland' }], 2, 1, {
