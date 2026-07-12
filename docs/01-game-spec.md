@@ -220,6 +220,13 @@ rule — brutal, tuneable). Capturing a city (moving into an undefended /
 just-cleared city) transfers it; pop −1; chance of gold plunder.
 Surviving winners gain veteran status with probability 50%.
 
+`rules.combatRounds` (default 1 = the authentic single roll above) can be 3:
+best-of-three sub-rounds at the same per-roll odds — a setup-screen option
+("Combat calculations") that softens upsets (80% → ~90%) without removing
+them. It rides the difficulty-style ruleset-override mechanism, so replays
+record it. A full hitpoints/firepower system is noted as a possible third
+mode, not planned for v1.
+
 ## 6. Technology
 
 - Science "bulbs" accumulate from the science share of trade. Cost of the *n*-th
@@ -355,11 +362,16 @@ below is a known, deliberate deviation to be closed in a later slice:
 - **Tile improvements**: road/irrigation/mine bonuses, terrain transforms
   (clear/drain/plant via the same orders), Fortress (Construction), and
   railroads (Railroad tech, road first, free rail movement, +50% shields)
-  all work. Deviations: road-to-road movement costs a flat 1 point instead
-  of Civ 1's ⅓ (integer-math simplification); rail movement is free with no
-  per-turn cap (as Civ 1); build times are flat per improvement
-  (`rules.json` `workTurns` — tuning values); irrigation's water source
-  check uses the 8-neighborhood; city tiles do not count as roads.
+  all work. Deviations: roads give 3× movement via TWO FREE road-to-road
+  steps per base move point (transient integer counter `unit.roadSteps`,
+  cleared each turn wrap — no thirds, Luau-portable; past the allowance a
+  road step costs 1); rail movement is free with no per-turn cap (as
+  Civ 1); build times are flat per improvement (`rules.json` `workTurns` —
+  tuning values); irrigation's water source check uses the 8-neighborhood;
+  city tiles do not count as roads.
+- **City spacing**: founding is rejected within `rules.minCityDistance`
+  (4) tiles of ANY existing city, any civ (Civ 1 was adjacency-only —
+  playtest choice for less city-carpet).
 - **Fortress ×2 is in** (walls take precedence; fortresses stop stack
   death). Goody huts and era-based barbarian units are deferred; barbarians
   spawn as militia from turn 16.

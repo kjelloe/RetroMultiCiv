@@ -58,6 +58,10 @@ export function initInput(ctx) {
   function sitePreview(x, y) {
     const state = session.state;
     const ruleset = session.ruleset;
+    const me = state.players[ctx.HUMAN];
+    const known = (tx, ty) => !me.explored || me.explored[ty * state.map.width + tx] === 1;
+    // the rating must not read through the fog — that would leak the map
+    if (!known(x, y)) return { text: '🏛 unexplored territory', tiles: null };
     const tile = state.map.tiles[y * state.map.width + x];
     if (ruleset.terrain.terrains[tile.t].domain !== 'land') {
       return { text: '🏛 cannot settle at sea', tiles: null };
@@ -65,7 +69,9 @@ export function initInput(ctx) {
     if (cityAt(state, x, y)) return { text: '🏛 a city already stands here', tiles: null };
     // owner matters since governments: the preview rates the site under
     // the viewing player's government (despotism tile penalty etc.)
-    const candidates = candidateTiles(state, { x, y, owner: ctx.HUMAN }, ruleset);
+    const all = candidateTiles(state, { x, y, owner: ctx.HUMAN }, ruleset);
+    const candidates = all.filter(c => known(c.x, c.y));
+    const hidden = all.length - candidates.length;
     const center = tileYields(tile, ruleset);
     let food = center.food, shields = center.shields, trade = center.trade;
     for (const c of candidates.slice(0, 4)) {
@@ -75,7 +81,8 @@ export function initInput(ctx) {
     const word = score >= 38 ? 'Excellent' : score >= 30 ? 'Good' : score >= 22 ? 'Fair' : 'Poor';
     return {
       text: `🏛 ${word} site — food ${food} · shields ${shields} · trade ${trade}`
-        + (tile.river ? ' · river' : ''),
+        + (tile.river ? ' · river' : '')
+        + (hidden > 0 ? ` · ${hidden} tile${hidden > 1 ? 's' : ''} unexplored` : ''),
       tiles: [{ x, y }].concat(candidates.map(c => ({ x: c.x, y: c.y })))
     };
   }
@@ -127,7 +134,8 @@ export function initInput(ctx) {
     rateTooHigh: 'your government caps rates — see the research panel',
     inRevolution: 'wait for the revolution to end',
     alreadyGovernment: 'that is already your government',
-    badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare'
+    badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
+    tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 4} tiles of spacing — any civilization's city counts`
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
@@ -212,7 +220,8 @@ export function initInput(ctx) {
     }
   }
 
-  // next idle unit — skips fortified and working units unless selected by hand
+  // next idle unit — skips fortified and working units unless selected by
+  // hand; NEAREST first, so the camera glides instead of teleporting
   function nextUnit() {
     const movable = Object.values(session.state.units).filter(
       u => u.owner === ctx.HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
@@ -222,8 +231,18 @@ export function initInput(ctx) {
       hud.banner('no units with moves left — press E to end the turn');
       return;
     }
-    ctx.selectUnit(movable[0]);
-    renderer.centerOn(movable[0].x, movable[0].y);
+    const anchor = (sel.unitId && session.state.units[sel.unitId])
+      || (sel.lastMoved && session.state.units[sel.lastMoved]) || null;
+    let pick = movable[0];
+    if (anchor) {
+      let best = 1e9;
+      for (const u of movable) {
+        const d = wrapDist(u.x, u.y, anchor.x, anchor.y);
+        if (d < best) { best = d; pick = u; }
+      }
+    }
+    ctx.selectUnit(pick);
+    renderer.centerOn(pick.x, pick.y);
   }
 
   // new turn: run queued GoTo routes, then return to the last-moved unit
@@ -363,6 +382,39 @@ export function initInput(ctx) {
     for (const unitId of Object.keys(gotoTargets).sort()) runGoto(unitId);
   }
 
+  // the route a GoTo order INTENDS to take (same greedy rule as gotoStep,
+  // simulated without moving) — drawn over the map while the unit is selected
+  function gotoPreviewPath(unit, target) {
+    const state = session.state;
+    const points = [{ x: unit.x, y: unit.y }];
+    let cx = unit.x, cy = unit.y, guard = 120;
+    while ((cx !== target.x || cy !== target.y) && guard-- > 0) {
+      const here = wrapDist(cx, cy, target.x, target.y);
+      let best = null;
+      for (const dir of Object.keys(GOTO_VEC)) {
+        const v = GOTO_VEC[dir];
+        let nx = cx + v[0];
+        if (state.map.wrapX) nx = ((nx % state.map.width) + state.map.width) % state.map.width;
+        const ny = cy + v[1];
+        if (ny < 0 || ny >= state.map.height) continue;
+        const d = wrapDist(nx, ny, target.x, target.y);
+        if (d >= here) continue;
+        if (unitsAt(state, nx, ny).some(u => u.owner !== unit.owner)) continue;
+        if (!best || d < best.d) best = { nx, ny, d };
+      }
+      if (!best) break; // blocked: the drawn route ends where the unit would stop
+      cx = best.nx; cy = best.ny;
+      points.push({ x: cx, y: cy });
+    }
+    return points;
+  }
+
+  function refreshGotoPath() {
+    const unit = sel.unitId ? session.state.units[sel.unitId] : null;
+    const target = unit ? gotoTargets[unit.id] : null;
+    renderer.setPath(unit && target ? gotoPreviewPath(unit, target) : null);
+  }
+
   // cities that completed something and were dropped back to default
   // production — ending the turn opens them first (E again to ignore)
   const needsOrders = {};
@@ -383,6 +435,9 @@ export function initInput(ctx) {
   function refreshActionBar() {
     const state = session.state;
     const unit = sel.unitId ? state.units[sel.unitId] : null;
+    refreshGotoPath(); // the selected unit's route overlay tracks the bar
+    if (unit && unit.owner === ctx.HUMAN) hud.unitNote(unit);
+    else hud.clearUnitLine();
     actionBar.textContent = '';
     const usable = unit && unit.owner === ctx.HUMAN && !state.gameOver
       && state.activePlayer === ctx.HUMAN && unit.moves > 0 && !unit.working;
@@ -418,19 +473,29 @@ export function initInput(ctx) {
         && (tile.irrigation || tile.mine || tile.road || tile.railroad)) {
       actions.push({ label: '🔥 Pillage', key: 'P', run: pillageSelected });
     }
+    const hasRoute = gotoTargets[unit.id] !== undefined;
     actions.push({
-      label: gotoArming ? '🎯 Click a tile…' : '🎯 Go to', key: 'G',
+      label: gotoArming ? '🎯 Click a tile…' : hasRoute ? '🎯 Re-route' : '🎯 Go to', key: 'G',
       run: () => {
         gotoArming = !gotoArming;
         hud.note(gotoArming ? '🎯 click the destination tile' : 'GoTo cancelled');
         refreshActionBar();
       }
     });
+    if (hasRoute && !gotoArming) {
+      actions.push({
+        label: '✕ Cancel route', key: '', run: () => {
+          delete gotoTargets[unit.id];
+          hud.note('🎯 GoTo order cancelled');
+          refreshActionBar();
+        }
+      });
+    }
     actions.push({ label: '⏩ Next unit', key: 'N', run: nextUnit });
     actions.push({ label: '☠ Disband', key: 'X', run: disbandSelected });
     for (const a of actions) {
       const btn = document.createElement('button');
-      btn.innerHTML = `${a.label} <span class="key">${a.key}</span>`;
+      btn.innerHTML = a.key ? `${a.label} <span class="key">${a.key}</span>` : a.label;
       btn.addEventListener('click', a.run);
       actionBar.appendChild(btn);
     }

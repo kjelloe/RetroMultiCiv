@@ -197,6 +197,76 @@ test('fortress: doubles defense (walls win) and stops stack death', async () => 
   assert.fail('no winning seed found under 50');
 });
 
+test('combatRounds 3: best-of-three consumes 2-3 rolls and softens upsets', async () => {
+  const { engine } = await load();
+  const RULES3 = Object.assign({}, RULESET, {
+    rules: Object.assign({}, RULESET.rules, { combatRounds: 3 })
+  });
+  const { createEngine } = await import('../engine/index.js');
+  const engine3 = createEngine(RULES3);
+  const mk = (rng) => miniState([{ t: 'grassland' }, { t: 'grassland' }], 2, 1, {
+    a: { id: 'a', type: 'chariot', owner: 'p1', x: 0, y: 0, moves: 2, fortified: false, veteran: false },
+    d: { id: 'd', type: 'militia', owner: 'p2', x: 1, y: 0, moves: 1, fortified: false, veteran: false }
+  }, { rngState: rng });
+  // statistical: A4 vs D1 = 80% single-roll, ~89.6% best-of-three
+  let one = 0, three = 0;
+  const N = 3000;
+  for (let i = 1; i <= N; i++) {
+    const rng = (i * 2654435761) % 4294967295 || 1;
+    const r1 = engine.applyCommand(mk(rng), { type: 'moveUnit', playerId: 'p1', unitId: 'a', dir: 'E' });
+    if (r1.state.units.d === undefined) one++;
+    const r3 = engine3.applyCommand(mk(rng), { type: 'moveUnit', playerId: 'p1', unitId: 'a', dir: 'E' });
+    if (r3.state.units.d === undefined) three++;
+  }
+  assert.ok(one / N > 0.77 && one / N < 0.83, `single-roll rate ${one / N} should be ~0.80`);
+  assert.ok(three / N > 0.87 && three / N < 0.92, `best-of-3 rate ${three / N} should be ~0.896`);
+  assert.ok(three > one, 'best-of-three must favor the stronger side');
+});
+
+test('roads move 3x: two free road steps per move point, reset at the wrap', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 6; i++) tiles.push({ t: 'grassland', road: true });
+  let state = miniState(tiles, 6, 1, {
+    u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false }
+  }, { playerOrder: ['p1'], cityOrder: [], wonders: {}, cities: {} });
+  const step = () => {
+    const res = engine.applyCommand(state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
+    if (res.ok) state = res.state;
+    return res;
+  };
+  assert.strictEqual(step().ok, true, 'free road step 1');
+  assert.strictEqual(state.units.u1.roadSteps, 1);
+  assert.strictEqual(state.units.u1.moves, 1, 'free steps leave moves untouched');
+  assert.strictEqual(step().ok, true, 'free road step 2');
+  assert.strictEqual(step().ok, true, 'paid road step 3');
+  assert.strictEqual(state.units.u1.moves, 0);
+  const fourth = step();
+  assert.strictEqual(fourth.ok, false, 'militia road range is 3, not 4');
+  assert.strictEqual(fourth.reason, 'noMovesLeft');
+  // the allowance is per-turn: the wrap clears it
+  state = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(state.units.u1.roadSteps, undefined, 'transient counter cleared at wrap');
+  assert.strictEqual(step().ok, true, 'fresh allowance next turn');
+});
+
+test('foundCity: rejects sites closer than rules.minCityDistance to ANY city', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 60; i++) tiles.push({ t: 'grassland' });
+  const mk = (x) => miniState(tiles, 10, 6, {
+    s1: { id: 's1', type: 'settlers', owner: 'p1', x, y: 2, moves: 1, fortified: false, veteran: false }
+  }, {
+    cities: { c1: { id: 'c1', name: 'Rival', owner: 'p2', x: 0, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}
+  });
+  const tooClose = engine.applyCommand(mk(3), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(tooClose.ok, false);
+  assert.strictEqual(tooClose.reason, 'tooCloseToCity', 'distance 3 < minCityDistance 4 — any civ counts');
+  const farEnough = engine.applyCommand(mk(4), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(farEnough.ok, true, 'distance 4 is legal');
+});
+
 test('capture clears manual workers and specialists (pop drops beneath them)', async () => {
   const { combat } = await load();
   const state = miniState([{ t: 'grassland' }, { t: 'grassland' }], 2, 1, {

@@ -61,9 +61,10 @@ function canFoundAt(state, x, y, ruleset) {
   if (ruleset.terrain.terrains[tile.t].domain !== 'land') return false;
   if (NEVER_FOUND[tile.t]) return false;
   if (!FOUND_TERRAIN[tile.t] && tile.river !== true) return false;
+  const minDist = ruleset.rules.minCityDistance === undefined ? 3 : ruleset.rules.minCityDistance;
   for (const cid of state.cityOrder || []) {
     const c = state.cities[cid];
-    if (c && chebyshev(state.map, x, y, c.x, c.y) < 3) return false;
+    if (c && chebyshev(state.map, x, y, c.x, c.y) < minDist) return false;
   }
   return true;
 }
@@ -75,15 +76,13 @@ function goodCitySpot(state, unit, ruleset) {
 // The best founding site within an explored radius — settlers WALK to a
 // real spot instead of paving the moment the tile underfoot disqualifies.
 // Deterministic: fixed scan order, strict > keeps the first of any tie.
-function bestCitySite(state, unit, playerId, ruleset) {
-  const me = state.players[playerId];
+function siteScan(state, unit, me, ruleset, radius, distPenalty) {
   const map = state.map;
-  const R = 7;
   let best = null, bestScore = 0;
-  for (let dy = -R; dy <= R; dy++) {
+  for (let dy = -radius; dy <= radius; dy++) {
     const y = unit.y + dy;
     if (y < 1 || y >= map.height - 1) continue;
-    for (let dx = -R; dx <= R; dx++) {
+    for (let dx = -radius; dx <= radius; dx++) {
       let x = unit.x + dx;
       if (x < 0 || x >= map.width) {
         if (!map.wrapX) continue;
@@ -96,11 +95,22 @@ function bestCitySite(state, unit, playerId, ruleset) {
         : tile.t === 'hills' ? 22 : 18;
       if (tile.river === true) score = score + 6;
       if (tile.special === true) score = score + 3;
-      score = score - chebyshev(map, unit.x, unit.y, x, y) * 2;
+      score = score - chebyshev(map, unit.x, unit.y, x, y) * distPenalty;
       if (score > bestScore) { bestScore = score; best = { x, y }; }
     }
   }
   return best;
+}
+
+function bestCitySite(state, unit, playerId, ruleset) {
+  const me = state.players[playerId];
+  // nearby first; when the neighborhood is claimed (e.g. a rival grabbed
+  // the planned spot), fall back to anywhere explored with a soft distance
+  // penalty — settlers re-route to secondary sites instead of loitering
+  const local = siteScan(state, unit, me, ruleset, 7, 2);
+  if (local) return local;
+  const far = state.map.width > state.map.height ? state.map.width : state.map.height;
+  return siteScan(state, unit, me, ruleset, far, 1);
 }
 
 // Best adjacent tile for a wandering settler: prefer fertile open land.

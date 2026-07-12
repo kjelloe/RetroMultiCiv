@@ -229,9 +229,18 @@ function foundCity(state, cmd, ruleset) {
 
   const terrain = ruleset.terrain.terrains[state.map.tiles[unit.y * state.map.width + unit.x].t];
   if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
+  // cities keep their distance from EVERY city, any civ (rules.minCityDistance;
+  // crafted states under rulesets without the rule keep the old behavior)
+  const minDist = ruleset.rules.minCityDistance === undefined ? 1 : ruleset.rules.minCityDistance;
   for (const id of state.cityOrder) {
     const c = state.cities[id];
     if (c.x === unit.x && c.y === unit.y) return { ok: false, reason: 'cityExists' };
+    let dx = c.x - unit.x;
+    if (dx < 0) dx = -dx;
+    if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
+    let dy = c.y - unit.y;
+    if (dy < 0) dy = -dy;
+    if ((dx > dy ? dx : dy) < minDist) return { ok: false, reason: 'tooCloseToCity' };
   }
 
   const cityId = 'c' + state.nextCityId;

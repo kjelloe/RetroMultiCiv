@@ -132,3 +132,10 @@ or it silently renders as grassland.
 ## Workflow
 
 User handles all git commits and pushes. Build → test → stop and report.
+
+Work splits across `agent-workitems.md` (implementation/doc tasks for a
+local coder-helper agent — each item is self-contained with its own
+verification steps and golden-re-record instructions; the main coder
+curates the list) and `human-workitems.md` (verification and decisions
+only the user/humans can make). Claim items in-file, mark them done,
+never reorder someone else's.

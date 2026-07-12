@@ -118,8 +118,10 @@ export function initHud(ctx) {
     updateBanner();
   }
 
-  // compact stat card for the selected unit:
+  // compact stat card for the selected unit, shown just ABOVE the action bar
+  // (playtest: the actions clearly belong to this unit):
   // "Legion ★vet · ⚔3 🛡2 👟1/2 · hills (14,9) · ready · F: fortify"
+  const unitLine = document.getElementById('unit-line');
   function unitNote(unit) {
     const t = session.ruleset.units[unit.type];
     const tile = session.state.map.tiles[unit.y * session.state.map.width + unit.x];
@@ -128,9 +130,13 @@ export function initHud(ctx) {
     const hint = unit.working ? ''
       : unit.type === 'settlers' ? ' · B: found city · I/M/R: improve'
       : unit.fortified ? '' : ' · F: fortify';
-    hudSelection.textContent = `${t.name}${unit.veteran ? ' ★vet' : ''}`
+    unitLine.textContent = `${t.name}${unit.veteran ? ' ★vet' : ''}`
       + ` · ⚔${t.attack} 🛡${t.defense} 👟${unit.moves}/${t.moves}`
       + ` · ${tile.t} (${unit.x},${unit.y}) · ${status}${hint}`;
+    unitLine.classList.remove('hidden');
+  }
+  function clearUnitLine() {
+    unitLine.classList.add('hidden');
   }
 
   return {
@@ -139,6 +145,7 @@ export function initHud(ctx) {
     banner: centerBanner.show,
     note(text) { hudSelection.textContent = text; },
     unitNote,
+    clearUnitLine,
     tile(text) { hudTile.textContent = text; }
   };
 }

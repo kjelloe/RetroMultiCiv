@@ -41,6 +41,17 @@ export function initPanels(ctx) {
     defenseMultiplier: v => `defenders ×${v} against attacks`,
     taxBonus: v => `+${v}% gold in this city`,
     sciBonus: v => `+${v}% science in this city`,
+    luxBonus: v => `+${v}% luxuries in this city`,
+    contentBonus: v => `calms ${v} unhappy citizen${v > 1 ? 's' : ''}`,
+    contentDoubleTech: v => `doubled once you know ${techs[v].name}`,
+    corruptionReduction: v => `−${v}% corruption in this city`,
+    shieldBonus: v => `+${v}% shields in this city`,
+    boostsFactory: () => 'doubles the Factory bonus here',
+    isPalace: () => 'your capital — no corruption at the seat of power',
+    contentEverywhere: v => `${v} content citizen${v > 1 ? 's' : ''} in every city`,
+    happyEverywhere: v => `${v} happy citizen${v > 1 ? 's' : ''} in every city`,
+    allContentInCity: () => 'everyone in this city stays content',
+    doublesTemple: () => 'your Temples work twice as hard',
     cityTradeBonus: () => '+1 trade on every trade tile here',
     wallsEverywhere: () => 'city walls in all your cities'
   };

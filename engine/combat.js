@@ -109,9 +109,19 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const att = attackStrength(attacker, ruleset);
   const def = defenseStrength(state, defender, ruleset);
-  const roll = rollRange(state.rngState, att + def);
-  state.rngState = roll.rngState;
-  const attackerWins = roll.value < att;
+  // rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll —
+  // byte-identical to the original algorithm); 3 = best-of-three, a setup
+  // option that softens upsets (80% odds become ~90%) without removing them
+  const rounds = ruleset.rules.combatRounds === undefined ? 1 : ruleset.rules.combatRounds;
+  const need = Math.floor(rounds / 2) + 1;
+  let attWins = 0, defWins = 0;
+  while (attWins < need && defWins < need) {
+    const roll = rollRange(state.rngState, att + def);
+    state.rngState = roll.rngState;
+    if (roll.value < att) attWins = attWins + 1;
+    else defWins = defWins + 1;
+  }
+  const attackerWins = attWins === need;
 
   attacker.moves = attacker.moves - 1;
   attacker.fortified = false;

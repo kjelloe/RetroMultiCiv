@@ -357,13 +357,16 @@ html, body {
 }
 
 #city-left {
-  flex: 0 0 240px;
-  width: 240px; /* the 5×46 mini-map; keeps the reset button from stretching */
+  /* stats + mini-map get the spare width; the catalog only what it needs */
+  flex: 1 1 auto;
+  min-width: 240px; /* never narrower than the 5×46 mini-map */
 }
 
 #city-production {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  width: max-content;
   min-width: 200px;
+  max-width: 280px;
   max-height: 340px;
   overflow-y: auto;
 }
@@ -629,6 +632,42 @@ html, body {
   gap: 6px;
   max-width: calc(100vw - 360px); /* never collide with End Turn / logs */
   z-index: 6;
+}
+
+/* the selected unit's stat card, riding just above its action bar */
+#unit-line {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  background: rgba(10, 16, 28, 0.85);
+  border: 1px solid #2c4770;
+  border-radius: 6px;
+  color: #cdd8ea;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 6;
+}
+
+#unit-line.hidden {
+  display: none;
+}
+
+/* turn-log entries about a place carry a camera-jump button */
+.log-jump {
+  margin-left: 6px;
+  padding: 0 5px;
+  background: #1b2c48;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #8fc7ff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.log-jump:hover {
+  background: #2f5388;
 }
 
 #action-bar.hidden {

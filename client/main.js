@@ -66,8 +66,13 @@ const MAP_SIZES = {
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
 const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.get('difficulty') : 'medium';
+// combat calculations: authentic Civ 1 one-shot (rules default) or
+// best-of-three (?combat=bestof3 — the setup screen's default pick);
+// a full hitpoints system is a possible third mode later
+const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
 if (difficulty !== 'medium') rulesOverrides.contentCitizens = DIFFICULTY[difficulty];
+if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
 ruleset.rules = Object.assign({}, rules, rulesOverrides);
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
@@ -141,7 +146,8 @@ if (params.get('mock') === '1') {
     `?seed=${seed}&civs=${civCount}&humans=${humans}`
     + `${picked && civs[picked] ? `&civ=${picked}` : ''}`
     + `${size !== 'medium' ? `&size=${size}` : ''}`
-    + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`);
+    + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`
+    + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`);
 }
 
 // --- wiring ------------------------------------------------------------------

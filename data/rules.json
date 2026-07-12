@@ -20,5 +20,7 @@
   "contentCitizens": 4,
   "luxPerStep": 2,
   "specialistOutput": 2,
-  "revolutionTurns": 2
+  "revolutionTurns": 2,
+  "minCityDistance": 4,
+  "combatRounds": 1
 }

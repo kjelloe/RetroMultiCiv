@@ -40,6 +40,12 @@ export function showSetupScreen() {
           <option value="godemperor">God-Emperor</option>
         </select>
       </label>
+      <label>Combat calculations
+        <select id="setup-combat">
+          <option value="authentic">Authentic Civ 1 (one roll)</option>
+          <option value="bestof3" selected>Best-of-three (fewer upsets)</option>
+        </select>
+      </label>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
       <button id="setup-start">Start game</button>
     </div>`;
@@ -88,8 +94,10 @@ export function showSetupScreen() {
     const civ = civEl.value ? `&civ=${civEl.value}` : '';
     const size = document.getElementById('setup-size').value;
     const difficulty = document.getElementById('setup-difficulty').value;
+    const combat = document.getElementById('setup-combat').value;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
-      + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '');
+      + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
+      + (combat !== 'authentic' ? `&combat=${combat}` : '');
   });
 }

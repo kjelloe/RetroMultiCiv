@@ -44,7 +44,8 @@ function moveUnit(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const dir = DIRS[cmd.dir];
   if (!dir) return { ok: false, reason: 'badDirection' };
-  if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
+  // NOTE: the moves check happens after the cost is known — free road/rail
+  // steps are legal at 0 moves; attacks and paid steps are not
 
   const map = state.map;
   const nx = wrapX(map, unit.x + dir.dx);
@@ -56,7 +57,7 @@ function moveUnit(state, cmd, ruleset) {
   // enemy units on the target tile: this move is an attack, not a move
   const hostiles = unitsAt(state, nx, ny).filter(u => u.owner !== unit.owner);
   if (hostiles.length > 0) {
-    return resolveAttack(state, unit, nx, ny, ruleset);
+    return resolveAttack(state, unit, nx, ny, ruleset); // rejects at 0 moves
   }
 
   const terrain = ruleset.terrain.terrains[tileAt(map, nx, ny).t];
@@ -74,13 +75,26 @@ function moveUnit(state, cmd, ruleset) {
   }
 
   const fromX = unit.x, fromY = unit.y;
-  // road-to-road travel costs 1 regardless of terrain (v1 integer-math
-  // simplification of Civ 1's 1/3 point); rail-to-rail is free (Civ 1)
+  // rail-to-rail is free (Civ 1); road-to-road grants 2 FREE steps per base
+  // move point — 3x road range — tracked in the transient integer counter
+  // unit.roadSteps (no thirds: Luau-portable, cleared at every turn wrap;
+  // only present mid-turn, so crafted-state hashes stay stable). Past the
+  // free allowance a road step costs 1 like before.
   let cost = terrain.move;
   const from = tileAt(map, fromX, fromY);
   const to = tileAt(map, nx, ny);
-  if (from.railroad === true && to.railroad === true) cost = 0;
-  else if (from.road === true && to.road === true) cost = 1;
+  if (from.railroad === true && to.railroad === true) {
+    cost = 0;
+  } else if (from.road === true && to.road === true) {
+    const used = unit.roadSteps === undefined ? 0 : unit.roadSteps;
+    if (used < ruleset.units[unit.type].moves * 2) {
+      cost = 0;
+      unit.roadSteps = used + 1;
+    } else {
+      cost = 1;
+    }
+  }
+  if (cost > 0 && unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
   unit.x = nx;
   unit.y = ny;
   unit.fortified = false;

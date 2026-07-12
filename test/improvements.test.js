@@ -184,7 +184,7 @@ test('pillage: sea units cannot pillage the shore', async () => {
   assert.strictEqual(res.reason, 'badTerrain');
 });
 
-test('road-to-road movement costs 1 regardless of terrain; moving cancels work', async () => {
+test('road-to-road steps are free (3x roads) regardless of terrain; moving cancels work', async () => {
   const { engine } = await load();
   const tiles = [{ t: 'hills', road: true }, { t: 'hills', road: true }, { t: 'hills' }];
   // 2 movement points: normally the first hills step (cost 2) would spend both
@@ -192,7 +192,8 @@ test('road-to-road movement costs 1 regardless of terrain; moving cancels work',
     u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 2, fortified: false, veteran: false }
   });
   let res = engine.applyCommand(state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
-  assert.strictEqual(res.state.units.u1.moves, 1, 'road-to-road hills step costs 1');
+  assert.strictEqual(res.state.units.u1.moves, 2, 'road-to-road hills step is a free road step');
+  assert.strictEqual(res.state.units.u1.roadSteps, 1, 'the transient counter tracks it');
   res = engine.applyCommand(res.state, { type: 'moveUnit', playerId: 'p1', unitId: 'u1', dir: 'E' });
   assert.strictEqual(res.state.units.u1.moves, 0, 'stepping off the road pays terrain cost');
 

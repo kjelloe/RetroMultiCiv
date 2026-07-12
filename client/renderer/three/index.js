@@ -67,6 +67,21 @@ export function createRenderer(container) {
   selectMarker.visible = false;
   scene.add(selectMarker);
 
+  // GoTo route preview: a line riding the terrain from unit to destination
+  const pathLine = new THREE.LineSegments(
+    new THREE.BufferGeometry(),
+    new THREE.LineBasicMaterial({ color: 0x4fd0ff })
+  );
+  pathLine.visible = false;
+  scene.add(pathLine);
+  const pathEnd = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.05, 8, 20),
+    new THREE.MeshBasicMaterial({ color: 0x4fd0ff })
+  );
+  pathEnd.rotation.x = Math.PI / 2;
+  pathEnd.visible = false;
+  scene.add(pathEnd);
+
   // settler site preview: translucent quads over the projected city footprint
   const footprintGroup = new THREE.Group();
   scene.add(footprintGroup);
@@ -259,6 +274,29 @@ export function createRenderer(container) {
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },
     setHoverColor(hex) { hoverMarker.material.color.setHex(hex); },
+    // GoTo preview: ordered tile points, or null to clear. Drawn as segment
+    // pairs so a wrap-crossing step doesn't streak across the whole map.
+    setPath(points) {
+      if (!points || points.length < 2 || !view) {
+        pathLine.visible = false;
+        pathEnd.visible = false;
+        return;
+      }
+      const segs = [];
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i];
+        if (Math.abs(a.x - b.x) > 1) continue; // seam step: skip the streak
+        segs.push(a.x, tileTop(a.x, a.y) + 0.22, a.y);
+        segs.push(b.x, tileTop(b.x, b.y) + 0.22, b.y);
+      }
+      pathLine.geometry.dispose();
+      pathLine.geometry = new THREE.BufferGeometry();
+      pathLine.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(segs), 3));
+      pathLine.visible = segs.length > 0;
+      const last = points[points.length - 1];
+      pathEnd.position.set(last.x, tileTop(last.x, last.y) + 0.1, last.y);
+      pathEnd.visible = true;
+    },
     // tiles: [{x, y}] to highlight (the settler's would-be city footprint), or null
     setFootprint(tiles) {
       footprintGroup.clear();

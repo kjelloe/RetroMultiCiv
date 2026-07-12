@@ -60,6 +60,7 @@ function endTurn(state, cmd, ruleset) {
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
       unit.moves = ruleset.units[unit.type].moves;
+      delete unit.roadSteps; // free road allowance resets with the turn
     }
     events.push({ type: 'turnStarted', turn: state.turn, activePlayer: state.activePlayer });
   } else {
