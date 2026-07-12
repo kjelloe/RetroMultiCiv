@@ -33,7 +33,7 @@ items live in `./human-workitems.md`.
 
 ---
 
-## A1 — Standing sync pass: specs, MDs, tests, documentation, memories
+## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
 skills and memories as applicable", made concrete. Run it after any feature
@@ -57,10 +57,11 @@ batch lands (and whenever the main coder queues it).
   the sim can reach should keep invariants green (`node tools/soak.js
   --seeds 5 --size small` as a spot check). New client modules must be
   listed in `test/client-syntax.test.js` (this was forgotten once).
-- **Memories**: if you are a Claude Code session with the project memory
-  directory, append the batch summary to `retromulticiv-project.md`
-  (facts: what landed, hash impacts, gotchas). If you have no memory
-  access, end your report with a "suggested memory notes" section instead.
+- **Memories**: the project memory file has a single writer (the
+  architect). Always end your report with a "suggested memory notes"
+  section — facts: what landed, hash impacts, gotchas — for the architect
+  to fold in at review. Do not write the memory file directly even if you
+  can see it.
 - **Skills**: none exist in this repo today; skip unless one appears.
 - Done when: every doc that mentions a changed behavior agrees with the
   code, the suite is green, and the report lists what was synced.

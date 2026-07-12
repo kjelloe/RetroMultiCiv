@@ -389,9 +389,14 @@ below is a known, deliberate deviation to be closed in a later slice:
 - **Score counts citizens/techs/wonders only** — happy-citizen points, Future
   Tech points, and the pollution penalty from §10's full formula await their
   systems. Elimination requires losing all units *and* cities (no capital rule).
-- **The v0 AI is deliberately dumb** (defends its first city, then spams
-  settlers; no improvements, no wonders, no tactics) and uses no RNG so AI
-  games replay deterministically.
+- **The AI expands, improves, and builds** but has no military tactics or
+  diplomacy: it defends its cities, seeks the best explored site
+  (`bestCitySite`) under a `2 + cities/2` settler cap, paves a road where a
+  settler stands when no site is reachable, and lets saturated cities build
+  the cheapest missing building then the cheapest available wonder. It uses
+  no RNG so AI games replay deterministically. See
+  `docs/04-phase1-enrichments.md` §7 for the expansion levers and measured
+  city counts (avg 4.4/civ at turn 400).
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

@@ -181,7 +181,10 @@ No server beyond `npx serve` / `python -m http.server` for static files.
    009)*; ✅ terrain transforms, Fortress, railroads *(2026-07-11 — the
    irrigate/mine orders clear/drain/plant per the wiki table; Fortress ×2
    at Construction; railroads on roads at the Railroad tech: free rail
-   movement, +50% shields)*. ⬜ remaining: AI use of improvements.
+   movement, +50% shields)*. 🔶 AI use of improvements: first slice done
+   *(2026-07-12 — siteless settlers pave a road where they stand; saturated
+   cities build buildings/wonders — see `04-phase1-enrichments.md` §7)*;
+   ⬜ remaining: AI irrigation + fat-cross paving.
 
 **Phase 1 milestone reached: a complete, winnable game against AI in the browser.**
 The remaining ⬜ enrichments above are specified in
