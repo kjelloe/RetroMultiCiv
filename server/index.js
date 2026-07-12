@@ -57,7 +57,19 @@ export function startServer(opts) {
   let game;
   let saveFile = opts.saveFile;
   if (opts.game) {
-    game = createGame({ ruleset, save: JSON.parse(fs.readFileSync(opts.game, 'utf8')) });
+    const parsed = JSON.parse(fs.readFileSync(opts.game, 'utf8'));
+    if (parsed.format !== 'retromulticiv-server-save') {
+      throw new Error(
+        `--game needs a SERVER save (saves/<gameId>.json, written by the server's autosave) — `
+        + `this file is "${parsed.format || 'unknown format'}". Client Shift+S files hold one `
+        + `player's state${parsed.format === 'retromulticiv-save' ? ' (and in ?server=1 mode only a fog-filtered VIEW)' : ''} `
+        + `and cannot boot a server.`);
+    }
+    game = createGame({ ruleset, save: parsed });
+    if (opts.resetSeats) {
+      game.resetSeats();
+      console.log('seat bindings cleared (--reset-seats) — first joiners take the seats');
+    }
     if (!saveFile) saveFile = opts.game;
   } else {
     game = createGame({
@@ -144,11 +156,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--humans') opts.humans = Number(argv[++i]);
     else if (a === '--size') opts.size = argv[++i];
     else if (a === '--game') opts.game = argv[++i];
+    else if (a === '--reset-seats') opts.resetSeats = true;
     else if (a === '--no-save') opts.autosave = false;
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
-  startServer(opts).then(({ port, game }) => {
+  Promise.resolve().then(() => startServer(opts)).then(({ port, game }) => {
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'}`);
+  }).catch(err => {
+    console.error(`cannot start: ${err.message}`);
+    process.exit(1);
   });
 }

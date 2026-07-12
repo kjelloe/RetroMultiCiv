@@ -106,7 +106,9 @@ export function initHud(ctx) {
       const scores = state.playerOrder
         .map(p => `${state.players[p].name} ${score(state, p, session.ruleset)}`).join(' · ');
       hudStatus.style.color = state.winner === ctx.HUMAN ? '#ffe066' : '#ff7b6b';
-      hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`;
+      const code = ctx.gameCode ? ctx.gameCode() : null; // docs/07 §3.3: verified-game stamp
+      hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`
+        + (code ? ` · code ${code}` : '');
     } else {
       const me = state.players[ctx.HUMAN];
       const gov = me.revolutionTurns !== undefined

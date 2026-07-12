@@ -279,6 +279,13 @@ function checkDeep(state, ruleset, mods) {
         if (!RIVAL_PLAYER_KEYS[k]) problems.push(`view for ${pid}: rival player ${qid} leaks "${k}"`);
       }
     }
+    // cityOrder in a view must reference only cities the view contains —
+    // the full array would leak how many hidden cities exist
+    for (const cid of view.cityOrder === undefined ? [] : view.cityOrder) {
+      if (view.cities[cid] === undefined) {
+        problems.push(`view for ${pid}: cityOrder leaks unseen city "${cid}"`);
+      }
+    }
   }
   for (const cid of state.cityOrder) {
     const city = state.cities[cid];

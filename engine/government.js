@@ -96,7 +96,8 @@ function setGovernment(state, cmd, ruleset) {
     let active = true;
     if (obsoleteBy !== '') {
       for (const pid of state.playerOrder) {
-        if (state.players[pid].techs.indexOf(obsoleteBy) !== -1) active = false;
+        const techs = state.players[pid].techs === undefined ? [] : state.players[pid].techs;
+        if (techs.indexOf(obsoleteBy) !== -1) active = false;
       }
     }
     if (active && home && home.owner === cmd.playerId) instant = true;

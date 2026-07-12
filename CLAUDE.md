@@ -6,7 +6,9 @@ structural changes: `01-game-spec.md` (rules), `02-architecture.md`
 (engine-as-reducer, stack), `03-roadmap.md` (phases),
 `04-phase1-enrichments.md` (designs for unimplemented Civ 1 systems —
 follow these when picking one up), `06-phase3-server.md` (the
-authoritative-server design — protocol, seats, persistence, slices).
+authoritative-server design — protocol, seats, persistence, slices),
+`07-game-code.md` (save-tamper verification code), `08-phase4-lan.md`
+(lobby, join codes, skip-vote, AI regency — decisions final).
 
 ## Hard rules
 
@@ -149,4 +151,7 @@ local coder-helper agent — each item is self-contained with its own
 verification steps and golden-re-record instructions; the main coder
 curates the list) and `human-workitems.md` (verification and decisions
 only the user/humans can make). Claim items in-file, mark them done,
-never reorder someone else's.
+never reorder someone else's. Agent⇄architect coordination goes through
+`python3 tools/agent-mail.py` (send/inbox/peek/log, per-role unread
+cursors — check your inbox at task start and end); `agent-chat.md` is
+the long-form archive. Both are gitignored.

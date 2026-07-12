@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RetroMultiCiv — Getting started</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>&#127757;</text></svg>">
+<style>
+  body { margin: 0; background: #0d1420; color: #cdd8ea; font-family: ui-monospace, Consolas, monospace; line-height: 1.55; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { color: #ffe066; font-size: 26px; }
+  h2 { color: #8fc7ff; margin-top: 34px; border-bottom: 1px solid #2c4770; padding-bottom: 4px; }
+  a { color: #8fc7ff; }
+  kbd { background: #1b2c48; border: 1px solid #3b5d8f; border-radius: 4px; padding: 1px 6px; color: #ffe066; font-size: 0.9em; }
+  code, pre { background: #121c2e; border-radius: 5px; }
+  code { padding: 1px 5px; }
+  pre { padding: 12px 14px; overflow-x: auto; border: 1px solid #22355a; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #2c4770; padding: 6px 10px; text-align: left; }
+  th { background: #16233a; }
+  .tip { background: #14243c; border-left: 3px solid #ffe066; padding: 8px 14px; margin: 14px 0; }
+  .play { display: inline-block; background: #1d5a33; border: 1px solid #2f8a4f; color: #eaffea; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-size: 15px; margin: 4px 8px 4px 0; }
+  .play:hover { background: #257041; }
+</style>
+</head>
+<body>
+<main>
+<h1>🌍 RetroMultiCiv — Getting started</h1>
+<p>A browser 4X in the spirit of the 1991 classics. Seeded worlds, fog of
+war, 68 advances, 21 wonders, moody citizens, revolutions — and a fully
+deterministic engine underneath.</p>
+
+<p>
+<a class="play" href="/client/">▶ Play (setup screen)</a>
+<a class="play" href="/client/?server=1">▶ Play through the server</a>
+</p>
+
+<h2>1. Start the server</h2>
+<pre>./run.sh              # serves everything on http://localhost:8123
+./run.sh 9000         # a different port
+./run.sh --help       # all options (seed, civs, resume a save, ...)</pre>
+<p>Then open <a href="/client/">/client/</a> — the bare URL shows the
+<b>setup screen</b>. (No Node? <code>python3 -m http.server 8123</code>
+from the repo root works for local play.)</p>
+
+<h2>2. Player vs AI (single player)</h2>
+<ol>
+  <li><b>Your civilization</b> — each has a small Civ&nbsp;1-style specialty; or Random.</li>
+  <li><b>Civilizations</b> — how many are in the world (2–7).</li>
+  <li><b>Human players: 1 (vs AI)</b> — the single-player setting.</li>
+  <li><b>Map size</b>, <b>Difficulty</b> (Trainer→God-Emperor), and
+      <b>Combat calculations</b> (authentic one-roll Civ&nbsp;1, or
+      best-of-three for fewer heartbreaking upsets).</li>
+  <li><b>World seed</b> — blank for random; a number gives a reproducible
+      world you can share.</li>
+  <li><b>Start game.</b></li>
+</ol>
+<p>You begin in 4000&nbsp;BC with settlers. Click a unit, move with
+<kbd>WASD</kbd>/<kbd>arrows</kbd> or click a neighboring tile, found your
+first city with <kbd>B</kbd>, end the turn with <kbd>E</kbd>. The action
+bar (bottom center) shows what the selected unit can do; the
+<b>⌨ Controls</b> panel (bottom left) lists every key. Win by conquest —
+or by score at 2100&nbsp;AD.</p>
+
+<h2>3. Hotseat (2+ humans, one keyboard)</h2>
+<p>Same setup screen — set <b>Human players to 2 or more</b> (humans take
+the first seats, AI fills the rest). After each human's turn an
+<b>opaque hand-off screen</b> names the next player: pass the keyboard and
+click to continue. Each player sees <b>only their own map</b> — fog of war
+is per player, so no peeking.</p>
+<div class="tip">Saving mid-session: <kbd>F5</kbd> quick-saves,
+<kbd>Shift+S</kbd> downloads a save file; <kbd>F9</kbd> /
+<kbd>Shift+L</kbd> / drag-drop loads it back — resuming at the right
+player's seat, behind the cover.</div>
+
+<h2>4. Playing THROUGH the server (optional)</h2>
+<p><code>./run.sh</code> also hosts an authoritative game server. Open
+<a href="/client/?server=1">/client/?server=1</a> and the browser becomes
+a thin client: every move is validated server-side, the game autosaves to
+<code>saves/&lt;gameId&gt;.json</code> after every action, and a
+killed/restarted server resumes exactly where you were
+(<code>./run.sh 8123 --game saves/&lt;gameId&gt;.json</code>; add
+<code>--reset-seats</code> when rejoining from a different browser or
+port). This is the foundation for LAN multiplayer — for everyday play,
+the plain URL is all you need.</p>
+
+<h2>5. Useful URL parameters</h2>
+<table>
+<tr><th>Parameter</th><th>Effect</th></tr>
+<tr><td><code>?seed=12345</code></td><td>fixed world (skips the setup screen)</td></tr>
+<tr><td><code>&amp;civs=4&amp;humans=2</code></td><td>civs in the world, humans in the front seats</td></tr>
+<tr><td><code>&amp;civ=romans</code></td><td>your civilization</td></tr>
+<tr><td><code>&amp;size=large</code> <code>&amp;difficulty=hard</code> <code>&amp;combat=bestof3</code></td><td>as on the setup screen</td></tr>
+<tr><td><code>?server=1</code></td><td>play through the authoritative server</td></tr>
+<tr><td><code>?diag=1</code></td><td>graphics diagnostics HUD</td></tr>
+</table>
+
+<h2>6. If something looks wrong</h2>
+<ul>
+  <li><b>Blank map / WebGL error</b>: hard reload (<kbd>Ctrl+Shift+R</kbd>);
+      the game deliberately runs even on WebGL1-only machines, but a crashed
+      GPU process sometimes needs a browser restart.</li>
+  <li><b>Report a bug</b>: press <kbd>Shift+D</kbd> — it downloads a
+      diagnostics recording that lets us replay your exact game, move for
+      move. For <code>?server=1</code> games the recording lives
+      server-side in <code>saves/&lt;gameId&gt;.json</code> — send that
+      file instead.</li>
+</ul>
+</main>
+</body>
+</html>

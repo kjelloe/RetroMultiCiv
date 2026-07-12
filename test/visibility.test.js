@@ -45,7 +45,32 @@ test('filterView hides enemy units outside sight and strips secrets', async () =
   assert.strictEqual(view.rngState, undefined, 'rngState must never reach a view');
   assert.strictEqual(view.players.p2.gold, undefined, 'enemy internals hidden');
   assert.strictEqual(view.players.p1.gold, 0, 'own internals present');
-  assert.strictEqual(view.players.p2.explored, undefined, 'explored arrays stay server-side');
+  assert.strictEqual(view.players.p2.explored, undefined, 'RIVAL explored arrays stay server-side');
+  // the view carries what the client needs without shims (phase-3 remote
+  // session): own fog knowledge, world-news wonders, and the founding
+  // order of VISIBLE cities only
+  assert.deepStrictEqual(view.players.p1.explored, state.players.p1.explored,
+    'own explored array travels with the view');
+  assert.deepStrictEqual(view.wonders, {}, 'wonders map present (empty at start)');
+  assert.deepStrictEqual(view.cityOrder, [], 'cityOrder present (no cities yet)');
+});
+
+test('view cityOrder lists only visible cities; wonders are world news', async () => {
+  const { engine, vis } = await load();
+  const state = engine.createGame(SETUP);
+  // a rival city far outside p1's sight, and one wonder somewhere
+  const far = { id: 'c9', name: 'Hidden', owner: 'p2', x: 0, y: 0, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } };
+  const p1u = Object.values(state.units).find(u => u.owner === 'p1');
+  far.x = (p1u.x + 12) % state.map.width; // far from p1's revealed start
+  state.cities.c9 = far;
+  state.cityOrder.push('c9');
+  state.wonders.pyramids = 'c9';
+  const view = vis.filterView(state, 'p1');
+  assert.strictEqual(view.cities.c9, undefined, 'the far city is not in view');
+  assert.deepStrictEqual(view.cityOrder, [],
+    'cityOrder must not reveal that hidden cities exist');
+  assert.strictEqual(view.wonders.pyramids, 'c9',
+    'wonder completions are public news even when the home city is unseen');
 });
 
 test('explored terrain is remembered after the unit moves away', async () => {

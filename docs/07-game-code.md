@@ -16,9 +16,16 @@ machinery we already trust:
 ```
 canon  = canonicalize(state)              // shared/statehash.js, unchanged
 codeLo = FNV-1a-32(canon)                 // the existing hash, existing anchors
-codeHi = FNV-1a-32(canon) with the ALTERNATE basis/prime pair
+codeHi = FNV-1a-32(canon REVERSED)        // same STANDARD basis/prime, iterated
+                                          // last char to first — a genuinely
+                                          // different function of the input
+                                          // with zero invented constants
 code   = base32crockford(codeHi * 2^32 + codeLo)   // integer math via mul32
 ```
+
+(An earlier draft said "alternate basis/prime pair" — superseded: there is
+no second standard FNV-32 pair, and invented constants would weaken the
+independence claim. Reverse iteration is authoritative; A11 pins it.)
 
 - Hashes ONLY `state` — the same object across quicksave, file save, and
   the server envelope, so all save kinds yield the same code, and the

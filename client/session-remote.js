@@ -21,6 +21,7 @@ export function createRemoteSession(opts) {
   let state = null;
   let ruleset = baseRuleset;
   let playerId = null;
+  let serverCode; // docs/07: the authoritative code, from joined + {t:'code'} pushes
   let token = tokenKey(gameId) && localStorage.getItem(tokenKey(gameId)) || null;
   let commandId = 0;
   let joined = false;
@@ -90,6 +91,7 @@ export function createRemoteSession(opts) {
       try { localStorage.setItem(tokenKey(gameId), token); } catch (e) { /* private mode */ }
       applyRuleset(msg.rulesOverrides);
       state = augment(msg.view);
+      if (msg.code !== undefined) serverCode = msg.code;
       const wasJoined = joined;
       joined = true;
       if (wasJoined) notify([]); // reconnect: refresh the view under the ui
@@ -118,6 +120,11 @@ export function createRemoteSession(opts) {
     }
     if (msg.t === 'gameOver') {
       if (state) { state.gameOver = true; state.winner = msg.winner; }
+      return {};
+    }
+    if (msg.t === 'code') {
+      serverCode = msg.code;
+      notify([]); // refresh displays that read the code (e.g. the game-over line)
       return {};
     }
     // turn / pong: informational — the view is the authoritative state.
@@ -178,6 +185,8 @@ export function createRemoteSession(opts) {
     get log() { return sent; },
     get ruleset() { return ruleset; },
     get playerId() { return playerId; },
+    get gameId() { return gameId; }, // presence signals server mode to ui/saves.js
+    get serverCode() { return serverCode; }, // docs/07: authoritative code for ctx.gameCode()
 
     onChange(cb) { listeners.push(cb); },
     setStatusHandler(fn) { statusHandler = fn; },

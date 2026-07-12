@@ -56,6 +56,7 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
     assert.strictEqual(joined.playerId, 'p1');
     assert.strictEqual(joined.view.you, 'p1');
     assert.strictEqual(joined.view.rngState, undefined, 'no rngState over the wire');
+    assert.match(joined.code, /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}$/, 'joined carries the game code');
     const token = joined.token;
 
     // a forged command is rejected and echoes its commandId
@@ -70,6 +71,10 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
     assert.ok(applied.events.some(e => e.type === 'cityFounded'));
     const view1 = await client.expect(m => m.t === 'view', 'view push');
     assert.ok(Object.values(view1.view.cities).some(c => c.name === 'Sockettown'));
+    // docs/07: every command broadcasts the new authoritative code
+    const codeMsg = await client.expect(m => m.t === 'code', 'code broadcast');
+    assert.match(codeMsg.code, /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}$/);
+    assert.notStrictEqual(codeMsg.code, joined.code, 'founding a city moves the code');
 
     // end the turn: server drives the AI and hands the turn back
     client.send({ t: 'endTurn', token, commandId: 3 });
@@ -81,6 +86,8 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
     client.close();
     await s1.close();
     assert.ok(fs.existsSync(saveFile), 'autosave written');
+    const saved = JSON.parse(fs.readFileSync(saveFile, 'utf8'));
+    assert.match(saved.code, /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}$/, 'the save envelope carries the code');
     const s2 = await startServer({ ruleset: RULESET, game: saveFile });
     try {
       client = await connect(s2.port);
@@ -89,6 +96,7 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
       assert.strictEqual(rejoined.playerId, 'p1');
       assert.strictEqual(rejoined.view.turn, 2, 'the game resumed where it stopped');
       assert.ok(Object.values(rejoined.view.cities).some(c => c.name === 'Sockettown'));
+      assert.strictEqual(rejoined.code, saved.code, 'the resumed game reports the saved code');
 
       // and it still plays
       client.send({ t: 'endTurn', token, commandId: 4 });

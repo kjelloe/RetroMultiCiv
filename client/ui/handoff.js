@@ -9,6 +9,7 @@ export function initHandoff(ctx) {
   overlay.innerHTML = `
     <div id="handoff-box">
       <h2 id="handoff-title"></h2>
+      <p id="handoff-code" class="hidden"></p>
       <p>Take the keyboard, then click or press any key.</p>
       <button id="handoff-go">Begin turn</button>
     </div>`;
@@ -35,6 +36,15 @@ export function initHandoff(ctx) {
     show(playerName, color, cb) {
       document.getElementById('handoff-title').textContent = `${playerName} — your turn`;
       document.getElementById('handoff-title').style.color = color;
+      // docs/07 §3.1: carry the last-save code so the player who wasn't holding
+      // the keyboard still sees it.
+      const codeEl = document.getElementById('handoff-code');
+      if (ctx.lastSaveCode) {
+        codeEl.textContent = `code as of last save: ${ctx.lastSaveCode}`;
+        codeEl.classList.remove('hidden');
+      } else {
+        codeEl.classList.add('hidden');
+      }
       overlay.classList.remove('hidden');
       onConfirm = cb;
     },

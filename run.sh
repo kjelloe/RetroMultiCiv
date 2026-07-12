@@ -8,6 +8,35 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  cat <<'HELP'
+usage: ./run.sh [PORT] [server args...]
+
+  PORT                first argument, default 8123
+
+server args (passed to node server/index.js):
+  --seed N            world seed (default: random)
+  --civs N            civilizations 2..7 (default 2)
+  --humans N          human seats (default 1; server games are 1 human
+                      until phase 4 — hotseat plays LOCAL, without ?server=1)
+  --size S            xsmall|small|medium|large|xlarge|huge (default medium)
+  --game FILE         resume a server save (e.g. saves/g42.json)
+  --reset-seats       with --game: drop seat-token bindings so joiners take
+                      seats fresh (needed when resuming on a DIFFERENT port
+                      or browser — tokens live in per-origin localStorage)
+  --no-save           disable the autosave after each accepted command
+
+examples:
+  ./run.sh                          # port 8123, fresh random game
+  ./run.sh 9000 --seed 42 --civs 4
+  ./run.sh 8123 --game saves/g672813.json   # resume + keep autosaving there
+
+after start:  play locally at /client/ · through the server at /client/?server=1
+verify a server game:  node tools/replay.js saves/<gameId>.json
+HELP
+  exit 0
+fi
+
 PORT="${1:-8123}"
 [ $# -ge 1 ] && shift
 
@@ -25,8 +54,9 @@ nohup node server/index.js --port "$PORT" "$@" > /tmp/multiciv-server.log 2>&1 &
 PID=$!
 sleep 0.5
 if ! kill -0 "$PID" 2>/dev/null; then
-  echo "server failed to start — last log lines:" >&2
-  tail -5 /tmp/multiciv-server.log >&2
+  echo "server failed to start:" >&2
+  # the friendly reason is on a 'cannot start:' line; fall back to the tail
+  grep "^cannot start:" /tmp/multiciv-server.log >&2 || tail -10 /tmp/multiciv-server.log >&2
   exit 1
 fi
 

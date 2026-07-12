@@ -48,7 +48,10 @@ function wonderActive(state, wonderId, ruleset) {
   const obsoleteBy = ruleset.wonders[wonderId].obsoleteBy;
   if (obsoleteBy === '') return true;
   for (const pid of state.playerOrder) {
-    if (state.players[pid].techs.indexOf(obsoleteBy) !== -1) return false;
+    // filtered VIEWS hide rival techs — treat unknown as not-yet-discovered
+    // (client-preview approximation; the server always has the real answer)
+    const techs = state.players[pid].techs === undefined ? [] : state.players[pid].techs;
+    if (techs.indexOf(obsoleteBy) !== -1) return false;
   }
   return true;
 }

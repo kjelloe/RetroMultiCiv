@@ -61,7 +61,12 @@ export function route(game, msg) {
   if (msg.t === 'join') {
     const bound = game.bindSeat(msg.name, msg.token);
     if (bound.error) {
-      return { reply: [rejected(-1, bound.error)], broadcast: [], viewsChanged: false };
+      const hint = bound.error === 'gameFull'
+        ? 'every human seat is bound to an earlier session — rejoin from the '
+          + 'original browser AND port (seat tokens live in per-origin '
+          + 'localStorage), or restart the server with --reset-seats'
+        : 'unknown or stale seat token — rejoin without a token to take a free seat';
+      return { reply: [rejected(-1, bound.error, hint)], broadcast: [], viewsChanged: false };
     }
     return {
       reply: [{
@@ -69,7 +74,8 @@ export function route(game, msg) {
         playerId: bound.playerId,
         token: bound.token,
         view: game.view(bound.playerId),
-        rulesOverrides: game.rulesOverrides
+        rulesOverrides: game.rulesOverrides,
+        code: game.code() // docs/07: the authoritative verification code
       }],
       broadcast: [],
       viewsChanged: false
@@ -88,6 +94,7 @@ export function route(game, msg) {
     return { reply: [rejected(msg.commandId, res.reason)], broadcast: [], viewsChanged: false };
   }
   const broadcast = [{ t: 'turn', activePlayerId: game.state.activePlayer, turn: game.state.turn }];
+  broadcast.push({ t: 'code', turn: game.state.turn, code: game.code() }); // docs/07: on every autosave
   if (game.state.gameOver === true) {
     broadcast.push({ t: 'gameOver', winner: game.state.winner });
   }

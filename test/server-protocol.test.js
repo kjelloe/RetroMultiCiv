@@ -41,6 +41,17 @@ test('seats: first join binds the first human seat; tokens reclaim; full is full
   assert.deepStrictEqual(game.bindSeat('X', 'forged'), { error: 'badToken' });
 });
 
+test('resetSeats: a resumed game can hand its seats out fresh (--reset-seats)', async () => {
+  const game = await freshGame();
+  game.bindSeat('Kjell'); // p1 bound to tok1
+  assert.deepStrictEqual(game.bindSeat('OtherBrowser'), { error: 'gameFull' },
+    'without the token the seat is unreachable (per-origin localStorage)');
+  game.resetSeats();
+  assert.deepStrictEqual(game.bindSeat('OtherBrowser'), { playerId: 'p1', token: 'tok2' },
+    'after the reset the next joiner takes the seat with a fresh token');
+  assert.strictEqual(game.seatOf('tok1'), null, 'the old token is dead');
+});
+
 test('tamper rejection: a forged playerId inside the command is stamped over', async () => {
   const { hashState } = await import('../shared/statehash.js');
   const game = await freshGame();

@@ -7,6 +7,7 @@ import { createRenderer } from './renderer/renderer.js';
 import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostics.js';
 import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
+import { gameCode as computeGameCode } from '../shared/gamecode.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
@@ -26,6 +27,16 @@ window.addEventListener('error', e => {
   capturedErrors.push(`${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`);
   hudStatus.textContent = `ERROR: ${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`;
   hudStatus.style.color = '#ff7b6b';
+  // docs/07 §3.2: quicksave the last coherent state and show its code, so an
+  // abrupt end still yields a verifiable stamp. Never let this throw (const TDZ
+  // during bootstrap, a corrupt state, etc. all fall through the catch).
+  try {
+    const code = ctx.gameCode();
+    if (code) {
+      localStorage.setItem('retromulticiv-save', JSON.stringify(session.state));
+      hudStatus.textContent += ` · state code ${code} (autosaved)`;
+    }
+  } catch (_) { /* the error handler must not error */ }
 });
 window.addEventListener('unhandledrejection', e => {
   if (`${e.reason}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
@@ -220,6 +231,17 @@ ctx.suggestCityName = () => {
   return `New City ${session.state.nextCityId}`;
 };
 
+// The game verification code (docs/07): computed locally from the full state,
+// but in server mode the client only holds a filtered VIEW — the authoritative
+// code comes from the server (slice 3, `session.serverCode`). Returns null when
+// no trustworthy code is available yet (server mode before the first code push).
+ctx.gameCode = () => {
+  if (session.serverCode !== undefined) return session.serverCode;
+  if (serverParam) return null;
+  try { return computeGameCode(session.state); } catch (e) { return null; }
+};
+ctx.lastSaveCode = null; // set by ui/saves.js on save; shown on the hand-off screen
+
 initOptions(ctx);
 ctx.hud = initHud(ctx);
 // server mode: surface disconnect/reconnect notices in the HUD banner
@@ -276,7 +298,10 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
     if (workedCell) workedCell.click();
   }
-  probe.textContent += ' · diaglog: ' + session.log.length // recorder captured the commands
+  // docs/07: exercise the save path so the persistent game-code toast renders
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
+  probe.textContent += ' · code: ' + (ctx.gameCode() || 'none')
+    + ' · diaglog: ' + session.log.length // recorder captured the commands
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }

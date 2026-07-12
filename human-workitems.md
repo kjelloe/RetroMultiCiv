@@ -38,6 +38,13 @@ in `./agent-workitems.md`.
   AI armies should no longer trek across the whole map at you — verify
   wars feel local and AI civs are harder to snowball over early.
 
+- [ ] **Declare phase 3 accepted** — the three roadmap criteria are met in
+  practice: you played 20 turns through the socket (replayed hash-exact
+  from `saves/g672813.json`), restart-resume works (`--game`, and
+  `--reset-seats` for cross-port), and tamper rejection is automated
+  (server-protocol tests). If the socket game FELT right (latency, view
+  updates), tick this — it gates the helper's phase-4 items (A12/A13).
+
 ## Decisions / ops only you can do
 
 - [ ] **Push + first nightly run**: after committing, trigger

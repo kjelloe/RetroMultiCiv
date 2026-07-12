@@ -138,6 +138,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /Despotism \(rates/, 'the government row must show the current government');
     assert.match(dom, /mood /, 'the city panel must show the mood row');
     assert.match(dom, /diaglog: [1-9]/, 'the diagnostics recorder must capture commands');
+    // docs/07 game verification code: the e2e save shows the persistent toast
+    assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
+    assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');
     assert.match(dom, /errors: 0/,
       'no JavaScript errors during the scripted session (incl. the hover sweep — HUD text may be overwritten, this counter is not)');
     assert.match(dom, /Turn log/, 'the turn log must be present');
@@ -208,6 +211,8 @@ test('browser served-by-server: the client founds a city through the WebSocket',
       assert.match(dom, /Testopolis/, 'the city founded over the socket must appear in the panel');
       assert.match(dom, /diaglog: [1-9]/, 'the remote session must have sent at least one command');
       assert.match(dom, /errors: 0/, 'no JavaScript errors during the socket session (incl. the hover sweep)');
+      // docs/07 slice 3: the server-provided game code reaches the client (not 'none')
+      assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the server game code reaches the client');
     } finally {
       await gs.close();
     }

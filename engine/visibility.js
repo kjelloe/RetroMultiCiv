@@ -136,6 +136,19 @@ function filterView(state, playerId) {
     }
   }
 
+  // the viewer's own fog knowledge travels with the view (it IS their
+  // knowledge); rival explored arrays never do
+  if (me && me.explored !== undefined) {
+    players[playerId].explored = me.explored;
+  }
+
+  // founding order of the cities this player can see — the FULL cityOrder
+  // would leak how many hidden cities exist
+  const cityOrder = [];
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    if (cities[cid] !== undefined) cityOrder.push(cid);
+  }
+
   return {
     you: playerId,
     turn: state.turn,
@@ -145,6 +158,10 @@ function filterView(state, playerId) {
     map: { width, height, wrapX, tiles },
     units,
     cities,
+    cityOrder,
+    // wonders are world news (Civ 1 announces completions to everyone);
+    // an unseen home city stays a dangling id — every reader guards it
+    wonders: state.wonders === undefined ? {} : state.wonders,
     players
   };
 }

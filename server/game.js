@@ -10,6 +10,7 @@ import { createEngine, deepClone } from '../engine/index.js';
 import { runAiTurn } from '../engine/ai.js';
 import { filterView } from '../engine/visibility.js';
 import { hashState } from '../shared/statehash.js';
+import { gameCode } from '../shared/gamecode.js';
 
 const SAVE_FORMAT = 'retromulticiv-server-save';
 
@@ -119,6 +120,21 @@ export function createGame(opts) {
     return filterView(state, playerId);
   }
 
+  // docs/07: the 64-bit verification code of the authoritative state. The
+  // client can't compute it in server mode (it holds only a filtered view),
+  // so the server provides it in the joined reply, save envelope, and
+  // `{t:'code'}` broadcasts.
+  function code() {
+    return gameCode(state);
+  }
+
+  // Recovery hatch (--reset-seats): drop all token bindings so the next
+  // joiners take the seats fresh — for resumes from another browser/port
+  // (tokens live in per-origin localStorage and don't travel).
+  function resetSeats() {
+    for (const pid of Object.keys(seats)) delete seats[pid];
+  }
+
   function toSave() {
     return {
       format: SAVE_FORMAT,
@@ -128,6 +144,7 @@ export function createGame(opts) {
       rulesOverrides,
       seats,
       state,
+      code: gameCode(state), // docs/07: the file carries its own verification code
       diag: {
         format: 'retromulticiv-diagnostics',
         version: 1,
@@ -155,9 +172,11 @@ export function createGame(opts) {
     rulesOverrides,
     bindSeat,
     seatOf,
+    resetSeats,
     apply,
     endTurn,
     view,
+    code,
     toSave,
     saveTo
   };

@@ -131,7 +131,7 @@ docs/03 phase-3 checkboxes with dates; docs/06 slice statuses; CLAUDE.md
 python one; README + plan-update paragraphs (plain language); an A1-style
 sweep for any drift the server work left behind.
 
-## A11 — Game verification code (design: docs/07-game-code.md — GREEN-LIT)
+## A11 — Game verification code (design: docs/07-game-code.md — GREEN-LIT)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — all 3 slices. S1: shared/gamecode.js (reverse-iter FNV codeHi + integer-limb base32; golden AD1X-Q5MR-DP7H9, codeLo=statehash anchor; architect-verified in Python) + gamecode.test.js. S2: client hooks — persistent code toast on save (screenshot-verified), load localStorage compare, hud game-over line, main.js error-overlay autosave code, handoff last-save line, server-mode Shift+S/D→/saves fetch. S3: server code in envelope+joined+{t:'code'} broadcast, remote session captures serverCode. Suite 144/144; golden-safe. NOTE: docs/07 DESIGN→IMPLEMENTED flip is docs/ (architect lane) — flagged. A9 shims now dead (filterView landed) — cleanup pending.]
 
 All three slices, in order; each is golden-safe. Run AFTER A9/A10.
 
@@ -163,6 +163,27 @@ All three slices, in order; each is golden-safe. Run AFTER A9/A10.
 
 Done when: golden vectors pinned and green, tampered-state test (edit
 gold in a crafted state → different code), suite green, screenshots read.
+
+## A12 — Phase-4 slice 1: server lobby (design: docs/08 §2, §6 — after A11)
+
+Multi-game server layer above the UNTOUCHED game.js: create/list/join/
+start messages, games map keyed by gameId, 5-char Crockford join codes
+derived from gameId, per-slot human/AI seat assignment (joiners fill
+human seats in join order, `seat:"pN"` picks a free one, creator's
+`{t:"start"}` flips unfilled human seats to AI and builds the engine
+game), spectator pseudo-seats when `allowSpectators` (omniscient view =
+explored-less player, never vote). Extend protocol.js + index.js; unit +
+integration tests mirroring the phase-3 ones. Golden-safe. GATE: phase-3
+acceptance declared by the user (human-workitems).
+
+## A13 — Phase-4 slice 2: client lobby UI + turn flow (after A12)
+
+Setup screen grows host/join modes (join-code field, seat picker,
+waiting room); reuses session-remote unchanged. "Your turn" banner on
+the turn broadcast; at-turn-disconnect "waiting for <name>" banner; the
+skip-turn controls (host button; propose→vote >2/3 of connected human
+seats excluding the at-turn player, docs/08 §6). Screenshot-verified;
+browser test for the lobby boot path. Golden-safe.
 
 ## A4 — Goody huts (design: docs/04)
 
