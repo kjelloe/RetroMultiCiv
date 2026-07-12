@@ -164,7 +164,7 @@ All three slices, in order; each is golden-safe. Run AFTER A9/A10.
 Done when: golden vectors pinned and green, tampered-state test (edit
 gold in a crafted state → different code), suite green, screenshots read.
 
-## A12 — Phase-4 slice 1: server lobby (design: docs/08 §2, §6 — after A11)
+## A12 — Phase-4 slice 1: server lobby (design: docs/08 §2, §6 — after A11)  [claimed: coder-helper 2026-07-12]
 
 Multi-game server layer above the UNTOUCHED game.js: create/list/join/
 start messages, games map keyed by gameId, 5-char Crockford join codes
@@ -189,9 +189,16 @@ browser test for the lobby boot path. Golden-safe.
 
 The ally's "highest-return move". Client-only, golden-safe, NO golden lock.
 1. Civ visual table: extend data/civs.json with `visual: {primary,
-   secondary, emblem}` per civ — ORIGINAL emblem names (sun/star/diamond/
-   chevron/wave/tower/oak/mountain/hammer/wheel + 4 more), never copied
-   designs. Client-side only consumption; player.color in STATE stays
+   secondary, emblem}` per civ — VALUES ARE AUTHORED by the designer ally
+   in specs/civ-visuals.md (his acceptance criteria at the bottom are
+   THIS ITEM'S acceptance criteria, incl. the 14-civs-side-by-side
+   gallery row on 5 terrains + colorblind checks + dark rims for light
+   civs). Architect's slot->civ mapping (swappable data, not gospel):
+   romans=Crimson Sun, english=Azure Wave, aztecs=Emerald Oak,
+   chinese=Imperial Violet, babylonians=Amber Wheel, germans=Iron
+   Mountain, americans=Teal Chevron, zulus=Umber Hammer, egyptians=Ivory
+   Tower, french=Rose Diamond, greeks=Cobalt Crescent, indians=Olive
+   Spiral, russians=Maroon Flame, mongols=Arctic Rune. Client-side only consumption; player.color in STATE stays
    untouched (hash-safe) — the visual table is looked up by player.civ,
    falling back to player.color for civ-less test states.
 2. Pennant flags (pole+plane+emblem primitives, DoubleSide) on every city

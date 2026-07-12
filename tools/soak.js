@@ -29,6 +29,7 @@
 // and exit 1.
 const fs = require('fs');
 const os = require('os');
+const path = require('path');
 const { spawn } = require('child_process');
 const { runSim, summarize, snapshot, loadModules } = require('../test/sim-driver.js');
 const RULESET = require('../test/ruleset.js');
@@ -73,6 +74,9 @@ function rulesOverridesFor(opts) {
 }
 
 function appendStats(file, row) {
+  // a fresh CI checkout has no debugging/sim/ (gitignored) — appendFileSync
+  // creates files, not directories (the first nightly failed on exactly this)
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.appendFileSync(file, JSON.stringify(row) + '\n'); // O_APPEND: parallel-safe per line
 }
 
