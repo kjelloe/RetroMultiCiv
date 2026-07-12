@@ -5,6 +5,18 @@ run (1) in the browser for the single-player/hotseat prototype, (2) in Node.js a
 an authoritative server, and (3) eventually rewritten mechanically into Roblox
 Luau. Everything below serves that goal.
 
+The designer ally's review distilled it into one "correctness pipeline",
+which every phase rides end-to-end:
+
+```text
+Commands
+  → deterministic simulation
+  → canonical state
+  → state hash / replay verification
+  → per-player fog-filtered view
+  → browser or Roblox rendering
+```
+
 ## 1. The core idea: engine as a pure state machine
 
 The engine is a **pure, synchronous, deterministic reducer** over plain data:

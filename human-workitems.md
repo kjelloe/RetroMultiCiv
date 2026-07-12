@@ -28,7 +28,9 @@ in `./agent-workitems.md`.
 - [ ] **Hotseat acceptance playtest** (still pending from phase 2): a real
   2-human+AI session scored against the 10-question checklist in
   `specs/gameplay-reference.md` and the 7 hotseat questions in
-  `specs/plan-feedback.md`.
+  `specs/plan-feedback.md` — plus the ally's new comprehension question
+  (specs/plan-feedback-2.md): did happiness, government, tax allocation,
+  and worker improvements feel understandable, or like hidden bookkeeping?
 - [ ] **AI settlers in hotseat**: steal an AI's founding spot on purpose —
   its settler should now walk off to a secondary site instead of loitering.
 
@@ -47,6 +49,13 @@ in `./agent-workitems.md`.
   explicit per-face normals (WebGL1 safety), Lambert instead of Standard
   material, and his grid-overlay idea (#7) deferred; the existing
   hover/selection/footprint markers cover interactions for now.
+- [ ] **Explain the WebGL1 stance to the ally** (his plan-feedback-2 edit
+  #1 assumed we target WebGL2-only): WebGL1 support is deliberate, not an
+  oversight — one of our own test machines is stuck on ANGLE D3D9
+  (WebGL1-only), which is exactly why three.js is pinned to r162, the
+  last WebGL1-capable release. His other wording edits were adopted
+  verbatim in plan-update.md; this one was adapted to keep the fact and
+  state the reason.
 - [ ] **Old recordings note**: diagnostics files recorded before
   2026-07-12 no longer replay (AI + rules changed); saves still load.
   Delete stale files in `debugging/logs/` at your leisure.
