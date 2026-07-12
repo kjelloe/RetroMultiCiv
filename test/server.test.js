@@ -57,6 +57,7 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
     assert.strictEqual(joined.view.you, 'p1');
     assert.strictEqual(joined.view.rngState, undefined, 'no rngState over the wire');
     assert.match(joined.code, /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}$/, 'joined carries the game code');
+    assert.strictEqual(joined.gameId, 'itest', 'joined carries the real gameId, not the client default');
     const token = joined.token;
 
     // a forged command is rejected and echoes its commandId
@@ -94,6 +95,7 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
       client.send({ t: 'join', name: 'Kjell', token }); // reclaim the seat
       const rejoined = await client.expect(m => m.t === 'joined', 'rejoined');
       assert.strictEqual(rejoined.playerId, 'p1');
+      assert.strictEqual(rejoined.gameId, 'itest', 'the resumed non-default gameId reaches the client (the 404 fix)');
       assert.strictEqual(rejoined.view.turn, 2, 'the game resumed where it stopped');
       assert.ok(Object.values(rejoined.view.cities).some(c => c.name === 'Sockettown'));
       assert.strictEqual(rejoined.code, saved.code, 'the resumed game reports the saved code');

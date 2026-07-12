@@ -1,6 +1,13 @@
-# Game verification code — design (not yet implemented)
+# Game verification code — design & implementation
 
-Status: DESIGN (2026-07-12, user request). A short alphanumeric code shown
+Status: IMPLEMENTED (A11, 2026-07-12). Golden anchors (phase-5
+cross-engine, doubly derived — helper implementation + architect's
+independent Python): for the statehash golden object {b:2,a:[1,"x",true]}:
+codeLo 0x30db1e29 (= the statehash anchor), codeHi 0xa687b72d,
+gameCode AD1X-Q5MR-DP7H9. One open fix: the joined reply must carry
+gameId (server-mode Shift+S/D 404 on resumed games).
+
+The feature: a short alphanumeric code shown
 to every human player whenever a game pauses (save-and-quit, crash, game
 over), and again on load — so players can verify the save wasn't modified
 between sessions. Mainly for multiplayer (phase 3–4: the HOST holds the

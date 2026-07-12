@@ -15,7 +15,12 @@ export function createRemoteSession(opts) {
   const baseRules = opts.baseRules || baseRuleset.rules;
   const wsUrl = opts.wsUrl;
   const name = opts.name || 'Player';
-  const gameId = opts.gameId || 'g1';
+  // The server owns the gameId; the client learns it from the joined reply and
+  // NEEDS it for the /saves/<gameId>.json fetch + localStorage key names. Persist
+  // it per-origin so a page reload can find its token key before joining (the
+  // seat-reclaim chicken-and-egg).
+  const GAMEID_KEY = 'retromulticiv-gameid';
+  let gameId = opts.gameId || localStorage.getItem(GAMEID_KEY) || 'g1';
 
   let ws = null;
   let state = null;
@@ -87,6 +92,10 @@ export function createRemoteSession(opts) {
   function handle(msg) {
     if (msg.t === 'joined') {
       playerId = msg.playerId;
+      if (msg.gameId) { // adopt the server's real id BEFORE keying the token by it
+        gameId = msg.gameId;
+        try { localStorage.setItem(GAMEID_KEY, gameId); } catch (e) { /* private mode */ }
+      }
       token = msg.token;
       try { localStorage.setItem(tokenKey(gameId), token); } catch (e) { /* private mode */ }
       applyRuleset(msg.rulesOverrides);

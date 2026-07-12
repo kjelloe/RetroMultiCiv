@@ -213,6 +213,8 @@ test('browser served-by-server: the client founds a city through the WebSocket',
       assert.match(dom, /errors: 0/, 'no JavaScript errors during the socket session (incl. the hover sweep)');
       // docs/07 slice 3: the server-provided game code reaches the client (not 'none')
       assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the server game code reaches the client');
+      // the 404 fix: the client captures the server's real gameId (seed 12345 → g12345)
+      assert.match(dom, /gameId: g12345/, 'the client adopts the server gameId for the /saves fetch');
     } finally {
       await gs.close();
     }

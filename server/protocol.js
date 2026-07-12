@@ -72,6 +72,7 @@ export function route(game, msg) {
       reply: [{
         t: 'joined',
         playerId: bound.playerId,
+        gameId: game.gameId, // the client needs the real id for the /saves fetch + keys
         token: bound.token,
         view: game.view(bound.playerId),
         rulesOverrides: game.rulesOverrides,

@@ -127,7 +127,7 @@ if (serverParam) {
   const pick = params.get('civ');
   const myName = (pick && civs[pick] && civs[pick].name) || 'Player';
   session = await createRemoteSession({
-    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || 'g1'
+    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined
   });
 } else if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
@@ -301,6 +301,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   // docs/07: exercise the save path so the persistent game-code toast renders
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
   probe.textContent += ' · code: ' + (ctx.gameCode() || 'none')
+    + ' · gameId: ' + (session.gameId || 'none') // server's real id (404-fix regression guard)
     + ' · diaglog: ' + session.log.length // recorder captured the commands
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots

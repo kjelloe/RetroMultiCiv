@@ -131,7 +131,7 @@ docs/03 phase-3 checkboxes with dates; docs/06 slice statuses; CLAUDE.md
 python one; README + plan-update paragraphs (plain language); an A1-style
 sweep for any drift the server work left behind.
 
-## A11 — Game verification code (design: docs/07-game-code.md — GREEN-LIT)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — all 3 slices. S1: shared/gamecode.js (reverse-iter FNV codeHi + integer-limb base32; golden AD1X-Q5MR-DP7H9, codeLo=statehash anchor; architect-verified in Python) + gamecode.test.js. S2: client hooks — persistent code toast on save (screenshot-verified), load localStorage compare, hud game-over line, main.js error-overlay autosave code, handoff last-save line, server-mode Shift+S/D→/saves fetch. S3: server code in envelope+joined+{t:'code'} broadcast, remote session captures serverCode. Suite 144/144; golden-safe. NOTE: docs/07 DESIGN→IMPLEMENTED flip is docs/ (architect lane) — flagged. A9 shims now dead (filterView landed) — cleanup pending.]
+## A11 — Game verification code (design: docs/07-game-code.md — GREEN-LIT)  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — all 3 slices. S1: shared/gamecode.js (reverse-iter FNV codeHi + integer-limb base32; golden AD1X-Q5MR-DP7H9, codeLo=statehash anchor; architect-verified in Python) + gamecode.test.js. S2: client hooks — persistent code toast on save (screenshot-verified), load localStorage compare, hud game-over line, main.js error-overlay autosave code, handoff last-save line, server-mode Shift+S/D→/saves fetch. S3: server code in envelope+joined+{t:'code'} broadcast, remote session captures serverCode. Suite 144/144; golden-safe. NOTE: docs/07 DESIGN→IMPLEMENTED flip is docs/ (architect lane) — flagged. A9 shims now dead (filterView landed) — cleanup pending. +gameId-in-joined 404 fix (user turn-150 playtest): joined carries gameId, remote session adopts+persists it for the /saves fetch + localStorage keys; server test resumes non-default gameId 'itest'.]
 
 All three slices, in order; each is golden-safe. Run AFTER A9/A10.
 
@@ -184,6 +184,43 @@ the turn broadcast; at-turn-disconnect "waiting for <name>" banner; the
 skip-turn controls (host button; propose→vote >2/3 of connected human
 seats excluding the at-turn player, docs/08 §6). Screenshot-verified;
 browser test for the lobby boot path. Golden-safe.
+
+## A14 — Art A1.6a: faction identity + status markers (spec: specs/plan-assets-2.md)
+
+The ally's "highest-return move". Client-only, golden-safe, NO golden lock.
+1. Civ visual table: extend data/civs.json with `visual: {primary,
+   secondary, emblem}` per civ — ORIGINAL emblem names (sun/star/diamond/
+   chevron/wave/tower/oak/mountain/hammer/wheel + 4 more), never copied
+   designs. Client-side only consumption; player.color in STATE stays
+   untouched (hash-safe) — the visual table is looked up by player.civ,
+   falling back to player.color for civ-less test states.
+2. Pennant flags (pole+plane+emblem primitives, DoubleSide) on every city
+   and on unit banners; CanvasTexture 64x64 emblem flags for capitals +
+   the setup screen + city-view header (sRGBColorSpace, r162-safe).
+3. Status markers on the unit token layer: veteran = thin gold base rim,
+   fortified = small shield chip, moved-out = dimmer base disc,
+   still-can-move = brighter. (Selected ring + GoTo route already exist.)
+4. Keep the ally's visual hierarchy: ownership/type > infrastructure >
+   terrain > decoration. Use visualRand(x,y,salt) for ALL placement
+   jitter (our existing convention — NOT his worldSeed formula; ours is
+   already save-stable and state-free).
+Verify: gallery screenshot (it must show flags/markers per silhouette),
+game screenshots WebGL2 + WebGL1 pass, browser e2e stays green.
+
+## A15 — Art A1.6b: water, coastline, materials, terrain patterns (same spec)
+
+1. Water pass: Phong water slightly transparent, shallow-band along
+   coasts, foam strips at land borders, texture-offset wave drift driven
+   by RENDER TIME ONLY (never simulation state).
+2. Low-contrast CanvasTexture terrain patterns (grass flecks, dune
+   streaks, rock mottle, snow speckle) from a local seeded generator.
+3. Infrastructure upgrades: railroad cross-ties, mine entrance + timber,
+   irrigation field patches + channel. Roads/rivers keep connecting to
+   neighbors (already do).
+4. Do NOT hide tile boundaries — grid-readability beats realism (ally's
+   own caution).
+Same verification loop as A14. A1.7 (sway/interpolation/smoke/combat
+flashes + reduce-animation option) is NOTED for later — not queued.
 
 ## A4 — Goody huts (design: docs/04)
 
