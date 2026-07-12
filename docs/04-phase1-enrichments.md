@@ -188,25 +188,23 @@ unit after End Turn.
   paving inside the fat cross of an owned city. Changes AI-vs-AI outcomes →
   re-record the simulation goldens when picked up.
 - **AI expansion — target 5–10 cities by game end** (goal set 2026-07-12;
-  nightly telemetry shows civs averaging only 2.2–2.5 cities at turn
-  400, where Civ 1 AIs run 5–10). The suspects, in likely-impact order:
-  1. `goodCitySpot` only accepts grassland/plains — Civ 1 AIs also found
-     on hills/rivers/coast; widen the terrain set (river tiles
-     especially).
-  2. Settlers only check the tile they STAND on — add a small explored-
-     radius site search and walk to the best spot (rng-free: scan in
-     sortIds-style deterministic order) instead of paving the moment the
-     current tile disqualifies.
-  3. `towardBetterLand` scores any tile with a unit on it 0 — friendly
-     traffic jams strand settlers around the capital; only enemy units
-     and cities should block.
-  4. The settler cap `2 + cities/4` throttles small empires — consider
-     `2 + cities/2`, or exempting settlers en route to a chosen site.
-  5. Paving competes with expanding: prefer founding over roadwork
-     whenever a reachable valid site exists.
-  Watch the units-per-civ tripwire and the stagnant-civ counter in the
-  soak telemetry to confirm each lever; batch levers + one golden
-  re-record.
+  telemetry showed 2.2–2.5 cities/civ at turn 400). ALL FIVE LEVERS
+  LANDED (2026-07-12, one golden re-record):
+  1. ✅ founding terrain widened: grassland/plains/hills always, a river
+     redeems most other land, never arctic/mountains (`canFoundAt`).
+  2. ✅ `bestCitySite`: explored-radius-7 site search, settlers WALK to
+     the best spot (deterministic scan, strict `>` tie-break) instead of
+     paving the moment the tile underfoot disqualifies.
+  3. ✅ `towardBetterLand`: only enemy units and cities block — friendly
+     traffic jams no longer strand settlers.
+  4. ✅ settler cap loosened to `2 + cities/2`.
+  5. ✅ founding beats paving whenever a site is in reach (order of the
+     settler decision chain).
+  **Measured** (10-seed 400-turn soak): avg cities/civ 2.4 → **4.4**, max
+  24, invariants clean. Residuals: median still 2 — civs that lose early
+  settlers or start on siteless terrain stay small (geography + military
+  survival, the next AI frontier); sprawl seeds run slower (one hit
+  ~600 ms/turn in the sim — watch the nightly runtime).
 
 ## Remaining wonder effects (for reference)
 

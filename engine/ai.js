@@ -50,17 +50,62 @@ function isExplored(me, map, x, y) {
   return me.explored[y * map.width + x] === 1;
 }
 
-function goodCitySpot(state, unit, ruleset) {
-  const terrain = state.map.tiles[unit.y * state.map.width + unit.x].t;
-  if (terrain !== 'grassland' && terrain !== 'plains') return false;
+// Founding terrain (Civ 1-flavored): the fertile opens always qualify,
+// hills for defense, and a river redeems most other land. Never arctic or
+// mountains. Plus the 3-tile spacing from every existing city.
+const FOUND_TERRAIN = { grassland: true, plains: true, hills: true };
+const NEVER_FOUND = { arctic: true, mountains: true };
+
+function canFoundAt(state, x, y, ruleset) {
+  const tile = state.map.tiles[y * state.map.width + x];
+  if (ruleset.terrain.terrains[tile.t].domain !== 'land') return false;
+  if (NEVER_FOUND[tile.t]) return false;
+  if (!FOUND_TERRAIN[tile.t] && tile.river !== true) return false;
   for (const cid of state.cityOrder || []) {
     const c = state.cities[cid];
-    if (c && chebyshev(state.map, unit.x, unit.y, c.x, c.y) < 3) return false;
+    if (c && chebyshev(state.map, x, y, c.x, c.y) < 3) return false;
   }
   return true;
 }
 
+function goodCitySpot(state, unit, ruleset) {
+  return canFoundAt(state, unit.x, unit.y, ruleset);
+}
+
+// The best founding site within an explored radius — settlers WALK to a
+// real spot instead of paving the moment the tile underfoot disqualifies.
+// Deterministic: fixed scan order, strict > keeps the first of any tie.
+function bestCitySite(state, unit, playerId, ruleset) {
+  const me = state.players[playerId];
+  const map = state.map;
+  const R = 7;
+  let best = null, bestScore = 0;
+  for (let dy = -R; dy <= R; dy++) {
+    const y = unit.y + dy;
+    if (y < 1 || y >= map.height - 1) continue;
+    for (let dx = -R; dx <= R; dx++) {
+      let x = unit.x + dx;
+      if (x < 0 || x >= map.width) {
+        if (!map.wrapX) continue;
+        x = ((x % map.width) + map.width) % map.width;
+      }
+      if (!isExplored(me, map, x, y)) continue;
+      if (!canFoundAt(state, x, y, ruleset)) continue;
+      const tile = map.tiles[y * map.width + x];
+      let score = tile.t === 'grassland' ? 30 : tile.t === 'plains' ? 26
+        : tile.t === 'hills' ? 22 : 18;
+      if (tile.river === true) score = score + 6;
+      if (tile.special === true) score = score + 3;
+      score = score - chebyshev(map, unit.x, unit.y, x, y) * 2;
+      if (score > bestScore) { bestScore = score; best = { x, y }; }
+    }
+  }
+  return best;
+}
+
 // Best adjacent tile for a wandering settler: prefer fertile open land.
+// Own units never block (stacking is legal) — friendly traffic jams used
+// to strand settlers around the capital; only enemies and cities do.
 function towardBetterLand(state, unit, ruleset) {
   let bestDir = null, bestScore = 0;
   for (const key of DIR_KEYS) {
@@ -71,7 +116,10 @@ function towardBetterLand(state, unit, ruleset) {
     let score = t === 'grassland' ? 3 : t === 'plains' ? 2
       : ruleset.terrain.terrains[t].domain === 'land' ? 1 : 0;
     if (cityAt(state, nx, ny)) score = 0;
-    if (unitsAt(state, nx, ny).length > 0) score = 0;
+    const others = unitsAt(state, nx, ny);
+    for (const u of others) {
+      if (u.owner !== unit.owner) score = 0;
+    }
     if (score > bestScore) { bestScore = score; bestDir = key; }
   }
   return bestDir;
@@ -220,7 +268,7 @@ function pickCommand(state, playerId, ruleset, done) {
     // roads create the trade that ends the tech drought (docs/05 §10-11).
     let want = { kind: 'unit', id: bestDefender };
     if (defenders.length > 0) {
-      if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 4)) {
+      if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 2)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
         const building = nextBuilding(city, me, ruleset);
@@ -246,7 +294,13 @@ function pickCommand(state, playerId, ruleset, done) {
       if (goodCitySpot(state, unit, ruleset)) {
         return { type: 'foundCity', playerId, unitId: uid };
       }
-      // no room for a city: pave where it stands — roads make trade, and
+      // founding beats everything: walk to the best known site in range
+      const site = bestCitySite(state, unit, playerId, ruleset);
+      if (site) {
+        const dir = dirToward(state.map, unit.x, unit.y, site.x, site.y);
+        if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+      }
+      // no reachable site: pave where it stands — roads make trade, and
       // trade is the AI's only path to research (docs/04 AI improvements v0)
       const tile = state.map.tiles[unit.y * state.map.width + unit.x];
       if (ruleset.terrain.terrains[tile.t].domain === 'land' && tile.road !== true) {
