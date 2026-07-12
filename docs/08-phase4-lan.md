@@ -1,6 +1,10 @@
-# Phase 4 — LAN multiplayer: design draft
+# Phase 4 — LAN multiplayer: design & implementation
 
-Status: DRAFT (2026-07-12) — builds directly on the phase-3 primitives
+Status: slices 1–3 IMPLEMENTED (A12/A13, 2026-07-13) — server lobby with
+join codes + seating chart, client lobby UI + reload boot path, turn
+flow with presence, host-skip and >2/3 vote, server-side spectators.
+Remaining: spectator CLIENT mode (A17) and the two-machine human
+acceptance (human-workitems). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
 (docs/06: seats, tokens, per-seat views, save/resume). Roadmap acceptance:
 a full game between two machines surviving a mid-game disconnect.
 

@@ -303,6 +303,11 @@ open acceptance item (see `human-workitems.md`).
 
 ## Phase 4 — LAN multiplayer, reconnection, and resynchronization
 
+> Implemented through slice 3 (2026-07-13, design in `08-phase4-lan.md`):
+> lobby + join codes + per-slot seats ✅, client lobby UI + boot path ✅,
+> turn presence/host-skip/vote + server-side spectators ✅. Open: A17
+> spectator client mode; the two-machine acceptance is the human gate.
+
 > Design draft: [`08-phase4-lan.md`](08-phase4-lan.md) (builds on the phase-3
 > seats/tokens/per-seat-views/save-resume primitives).
 
@@ -380,6 +385,15 @@ the designer ally's plan:
   `hit.point` to tile coords. All displacement through `visualRand` —
   deterministic, nothing in state. Verified WebGL2 + WebGL1
   (`--disable-es3-gl-context`) + gallery + browser e2e.
+- ✅ **A1.6a — Faction identity & status markers** *(done 2026-07-13, from
+  `specs/plan-assets-2.md` + the ally-authored table in
+  `specs/civ-visuals.md`)*: per-civ visual{primary, secondary, emblem} in
+  data/civs.json, all 14 emblems as CanvasTextures
+  (renderer/three/factions.js), pennants + capital emblem flags, unit
+  token layer (move-state brightness, veteran rim, fortified chip, dark
+  rims for light civs), gallery 14×5 acceptance grid. A1.6b (water/
+  coastline/patterns) is queued as A15 with a mandatory assets.js split
+  pre-step.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

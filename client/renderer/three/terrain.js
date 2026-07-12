@@ -6,7 +6,31 @@
 // ANGLE D3D9 and SwiftShader. Deterministic: every wobble goes through
 // visualRand(x, y, salt); nothing touches game state.
 import * as THREE from 'three';
-import { visualRand } from './props.js';
+import { visualRand, WATER_LEVEL } from './props.js';
+
+// --- low-contrast surface mottle (art A1.6b §2) --------------------------------
+// One tileable 64x64 CanvasTexture of faint speckles, world-planar mapped and
+// MULTIPLIED into the per-face palette colors — enriches the surface without
+// turning the map into noise (the ally's own caution). Seeded locally.
+let mottleTex = null;
+function mottleTexture() {
+  if (mottleTex) return mottleTex;
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const g = canvas.getContext('2d');
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, 64, 64);
+  let seed = 20260713; // fixed local seed — visual only, never game state
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let i = 0; i < 260; i++) {
+    const v = 244 + Math.floor(rnd() * 11); // 244..254: ±4% brightness dip
+    g.fillStyle = `rgb(${v},${v},${v})`;
+    g.fillRect(Math.floor(rnd() * 64), Math.floor(rnd() * 64), 1 + Math.floor(rnd() * 2), 1);
+  }
+  mottleTex = new THREE.CanvasTexture(canvas);
+  mottleTex.wrapS = mottleTex.wrapT = THREE.RepeatWrapping;
+  return mottleTex;
+}
 
 const SEGS = 2; // grid cells per tile edge — tile centers land on vertices
 
@@ -91,6 +115,7 @@ export function buildTerrain(map) {
   const positions = new Float32Array(faces * 9);
   const normals = new Float32Array(faces * 9);
   const colors = new Float32Array(faces * 9);
+  const uvs = new Float32Array(faces * 6); // world-planar, for the mottle map
   const color = new THREE.Color();
   const a = new THREE.Vector3(), b = new THREE.Vector3(), n = new THREE.Vector3();
 
@@ -124,6 +149,7 @@ export function buildTerrain(map) {
           positions[p] = v[0]; positions[p + 1] = v[1]; positions[p + 2] = v[2];
           normals[p] = n.x; normals[p + 1] = n.y; normals[p + 2] = n.z;
           colors[p] = color.r; colors[p + 1] = color.g; colors[p + 2] = color.b;
+          uvs[(p / 3) * 2] = v[0] / 4; uvs[(p / 3) * 2 + 1] = v[2] / 4;
           p += 3;
         }
       }
@@ -134,9 +160,12 @@ export function buildTerrain(map) {
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   // DoubleSide: the sheet is hand-wound; culling half of it by winding
   // mistakes is a worse deal than shading both faces of one terrain mesh
-  const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  const material = new THREE.MeshLambertMaterial({
+    vertexColors: true, side: THREE.DoubleSide, map: mottleTexture()
+  });
   const mesh = new THREE.Mesh(geometry, material);
 
   function tileTop(x, y) {
@@ -148,6 +177,53 @@ export function buildTerrain(map) {
   return {
     mesh,
     tileTop,
+    dispose() {
+      geometry.dispose();
+      material.dispose();
+    }
+  };
+}
+
+// --- water plane (art A1.6b §1) -------------------------------------------------
+// One translucent Phong sheet at WATER_LEVEL over the whole map: the sunken
+// ocean basin shows through it, so shallows near ramped coasts read lighter
+// and deep water darker for free. A faint band texture drifts by RENDER TIME
+// ONLY — pure presentation, never simulation state. Land (base ≥ +0.02) and
+// unknown tiles (base 0.0) sit above the plane and simply hide it.
+let bandTex = null;
+function bandTexture() {
+  if (bandTex) return bandTex;
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const g = canvas.getContext('2d');
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, 64, 64);
+  g.fillStyle = 'rgb(238,242,246)'; // faint lighter bands, low contrast
+  for (const y of [6, 27, 47]) {
+    g.fillRect(0, y, 64, 3);
+    g.fillRect(0, y + 9, 40, 2);
+  }
+  bandTex = new THREE.CanvasTexture(canvas);
+  bandTex.wrapS = bandTex.wrapT = THREE.RepeatWrapping;
+  return bandTex;
+}
+
+export function buildWater(map) {
+  const geometry = new THREE.PlaneGeometry(map.width, map.height);
+  const tex = bandTexture();
+  tex.repeat.set(map.width / 6, map.height / 6);
+  const material = new THREE.MeshPhongMaterial({
+    color: 0x3d84b8, map: tex, transparent: true, opacity: 0.45,
+    shininess: 35 // the ally's number — a gentle specular glint, WebGL1-safe
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set((map.width - 1) / 2, WATER_LEVEL, (map.height - 1) / 2);
+  return {
+    mesh,
+    tick(timeMs) { // render-time wave drift (never simulation state)
+      tex.offset.set((timeMs * 0.000012) % 1, (timeMs * 0.000007) % 1);
+    },
     dispose() {
       geometry.dispose();
       material.dispose();

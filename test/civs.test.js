@@ -36,6 +36,22 @@ test('civ dataset: 14 civilizations, valid specialties, ASCII city names', () =>
   }
 });
 
+test('civ visuals: all 14 carry the ally-authored identity (A14 contract)', () => {
+  const EMBLEMS = ['sun', 'wave', 'oak', 'star', 'wheel', 'mountain', 'chevron',
+    'hammer', 'tower', 'diamond', 'crescent', 'spiral', 'flame', 'rune'];
+  const seen = new Set();
+  for (const [id, civ] of Object.entries(CIVS)) {
+    assert.ok(civ.visual, `${id} missing visual{}`);
+    for (const k of ['primary', 'secondary']) {
+      assert.match(civ.visual[k], /^#[0-9A-Fa-f]{6}$/, `${id} ${k} not a hex color`);
+    }
+    assert.ok(EMBLEMS.includes(civ.visual.emblem), `${id} emblem "${civ.visual.emblem}" unknown`);
+    assert.ok(!seen.has(civ.visual.emblem), `${id} duplicates emblem ${civ.visual.emblem}`);
+    seen.add(civ.visual.emblem);
+  }
+  assert.strictEqual(seen.size, 14, 'every emblem used exactly once');
+});
+
 test('start specialties: techs and gold applied at createGame; no civ = no change', async () => {
   const { engine } = await load();
   const state = engine.createGame({

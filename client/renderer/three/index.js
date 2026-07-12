@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { createUnitMesh, createCityMesh } from './assets.js';
 import { createTileProps } from './props.js';
-import { buildTerrain, terrainBaseColor } from './terrain.js';
+import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
 export function terrainColor(terrainId) {
@@ -48,6 +48,7 @@ export function createRenderer(container) {
   // --- scene content, rebuilt by setViewState ---
   let view = null;
   let terrain = null;             // { mesh, tileTop, dispose } from terrain.js
+  let water = null;               // { mesh, tick, dispose } — translucent plane (A1.6b)
   const unitMeshes = new Map();   // unitId -> mesh   (client-only; Map is fine outside engine/)
   const cityMeshes = new Map();
   const worldGroup = new THREE.Group();
@@ -102,6 +103,9 @@ export function createRenderer(container) {
     // the continuous surface: heights, palette facets, river tint, fog dim
     terrain = buildTerrain(view.map);
     worldGroup.add(terrain.mesh);
+    if (water) { worldGroup.remove(water.mesh); water.dispose(); }
+    water = buildWater(view.map);
+    worldGroup.add(water.mesh);
     // roads draw segments toward neighbors; city tiles count as connections
     const joins = {};
     for (const city of Object.values(view.cities || {})) {
@@ -270,6 +274,7 @@ export function createRenderer(container) {
   function loop() {
     if (disposed) return;
     requestAnimationFrame(loop);
+    if (water) water.tick(performance.now()); // wave drift: render time only
     renderer.render(scene, camera);
   }
 

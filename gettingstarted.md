@@ -51,7 +51,20 @@ Saving mid-session: **F5** quick-saves, **Shift+S** downloads a save file;
 **F9 / Shift+L / drag-drop** load it back. Loading resumes at the right
 player's seat, behind the hand-off cover.
 
-## 4. Playing THROUGH the server (optional)
+## 4. LAN multiplayer (host + join codes)
+
+`./run.sh`, then friends on your network open
+`http://<your-ip>:8123/client/` — on the setup screen use **Host a LAN
+game** (you get a 5-letter join code and a waiting room) while they use
+**Join** with that code, pick seats, and appear by name. Start when
+ready — unfilled seats become AI. Mid-game niceties: a 🔔 your-turn
+banner, a ⏳ waiting banner if someone disconnects (the host can skip
+their turn, or players can vote), and full resume if the server
+restarts (`./run.sh 8123 --game saves/<gameId>.json`). Every save shows
+a **game code** (like `AD1X-Q5MR-DP7H9`) — note it down; when the game
+loads again, matching codes prove nobody edited the save in between.
+
+## 5. Playing THROUGH the server, solo (optional)
 
 `./run.sh` also hosts an authoritative game server. Open
 **http://localhost:8123/client/?server=1** and the browser becomes a thin
@@ -62,7 +75,7 @@ saves/<gameId>.json`; add `--reset-seats` if you're rejoining from a
 different browser or port). This is the foundation for LAN multiplayer —
 for everyday solo/hotseat play, the plain URL is all you need.
 
-## 5. Useful URL parameters
+## 6. Useful URL parameters
 
 | Parameter | Effect |
 |---|---|
@@ -73,7 +86,7 @@ for everyday solo/hotseat play, the plain URL is all you need.
 | `?server=1` | play through the authoritative server |
 | `?diag=1` | graphics diagnostics HUD |
 
-## 6. If something looks wrong
+## 7. If something looks wrong
 
 - **Blank map / WebGL error**: try a hard reload (Ctrl+Shift+R); the game
   runs on WebGL1-only machines too (that's deliberate), but a crashed GPU

@@ -73,7 +73,18 @@ is per player, so no peeking.</p>
 <kbd>Shift+L</kbd> / drag-drop loads it back — resuming at the right
 player's seat, behind the cover.</div>
 
-<h2>4. Playing THROUGH the server (optional)</h2>
+<h2>4. LAN multiplayer (host + join codes)</h2>
+<p><code>./run.sh</code>, then friends on your network open
+<code>http://&lt;your-ip&gt;:8123/client/</code> — on the setup screen use
+<b>Host a LAN game</b> (you get a 5-letter join code and a waiting room)
+while they use <b>Join</b> with that code, pick seats, and appear by name.
+Start when ready — unfilled seats become AI. Mid-game: a 🔔 your-turn
+banner, a ⏳ waiting banner on disconnects (host skip, or a player vote),
+and full resume if the server restarts. Every save shows a
+<b>game code</b> (like <code>AD1X-Q5MR-DP7H9</code>) — note it down;
+matching codes on reload prove nobody edited the save in between.</p>
+
+<h2>5. Playing THROUGH the server, solo (optional)</h2>
 <p><code>./run.sh</code> also hosts an authoritative game server. Open
 <a href="/client/?server=1">/client/?server=1</a> and the browser becomes
 a thin client: every move is validated server-side, the game autosaves to
@@ -84,7 +95,7 @@ killed/restarted server resumes exactly where you were
 port). This is the foundation for LAN multiplayer — for everyday play,
 the plain URL is all you need.</p>
 
-<h2>5. Useful URL parameters</h2>
+<h2>6. Useful URL parameters</h2>
 <table>
 <tr><th>Parameter</th><th>Effect</th></tr>
 <tr><td><code>?seed=12345</code></td><td>fixed world (skips the setup screen)</td></tr>
@@ -95,7 +106,7 @@ the plain URL is all you need.</p>
 <tr><td><code>?diag=1</code></td><td>graphics diagnostics HUD</td></tr>
 </table>
 
-<h2>6. If something looks wrong</h2>
+<h2>7. If something looks wrong</h2>
 <ul>
   <li><b>Blank map / WebGL error</b>: hard reload (<kbd>Ctrl+Shift+R</kbd>);
       the game deliberately runs even on WebGL1-only machines, but a crashed

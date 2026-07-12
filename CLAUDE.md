@@ -64,7 +64,8 @@ client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
-ui/{hud,panels,input,saves,turnlog,setup,handoff,options}. UI reads session.state
+ui/{hud,panels,input,saves,turnlog,setup,handoff,options,lobby}. The
+renderer splits renderer/three/{index,assets,terrain,factions}. UI reads session.state
 and calls session.apply()/endTurn(); session.onChange drives refresh.
 `ctx.HUMAN` is the CURRENT VIEWPOINT (mutable — hotseat hands it between
 players via ctx.setHuman); never cache it in a module-level const. Keyboard
@@ -91,9 +92,10 @@ files use dynamic `import()` for them. `tools/` stays CJS.
 with the required SwiftShader flags (WebGL has no GPU here and fails without
 them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
-`debugging/gallery.html` shows every unit silhouette, city tier, and tile
-prop through the real renderer — screenshot it after any assets.js or
-terrain.js change (terrain.js = the continuous faceted surface; explicit
+`debugging/gallery.html` shows every unit silhouette, city tier, tile
+prop, AND the 14-civ faction acceptance grid through the real renderer
+(`?cx/cy/zoom` reposition it) — screenshot it after any change under
+renderer/three/ (terrain.js = the continuous faceted surface; explicit
 per-face normals, NOT flatShading, which needs a WebGL1 extension).
 **Playtest diagnostics:** Shift+D in the client downloads a replayable
 recording (initial state + every human command + per-round state hashes;

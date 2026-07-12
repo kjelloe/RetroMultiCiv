@@ -25,15 +25,26 @@ const PROP_GEO = {
   peak: new THREE.ConeGeometry(0.26, 0.5, 5),
   snow: new THREE.ConeGeometry(0.12, 0.2, 5),
   special: new THREE.SphereGeometry(0.07, 8, 6),
-  fortress: new THREE.TorusGeometry(0.34, 0.05, 6, 12)
+  fortress: new THREE.TorusGeometry(0.34, 0.05, 6, 12),
+  // art A1.6b infrastructure + coast
+  tie: new THREE.BoxGeometry(0.03, 0.024, 0.17),        // railroad cross-tie
+  mineDoor: new THREE.BoxGeometry(0.11, 0.1, 0.02),     // dark mine entrance
+  mineBeam: new THREE.BoxGeometry(0.15, 0.03, 0.04),    // timber lintel
+  fieldPatch: new THREE.BoxGeometry(0.24, 0.012, 0.16), // cultivated strip
+  foam: new THREE.BoxGeometry(0.82, 0.01, 0.06)         // shoreline foam strip
 };
 const PROP_MAT = new THREE.MeshLambertMaterial({ color: 0xffffff }); // × instance color
 const PROP_COLOR = {
   irrigation: 0x5db8e8, road: 0x8a6f4d, railroad: 0x3c3c46, mine: 0x8a8494,
   forest: 0x1e6b2f, jungle: 0x2f8d3f, special: 0xffd75e, fortress: 0xb8ab8e,
   rock: 0x7d7468, peak: 0x63636d, snow: 0xe8eef0,
-  grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d
+  grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d,
+  tie: 0x2c2620, mineDoor: 0x17130e, mineBeam: 0x6b4a2a,
+  fieldPatch: 0x59a03e, foam: 0xdcecf2
 };
+// the translucent water plane's height (terrain.js buildWater) — foam strips
+// ride just above it; ocean floor is at -0.18, lowest land at +0.02
+export const WATER_LEVEL = -0.02;
 const PROP_FOG = new THREE.Color(0x0a0e16);
 const SCRUB_COLOR = { grassland: 0x3f8f3f, plains: 0x9d8f55, desert: 0x9d8f55, tundra: 0x9fae9d };
 // eight neighbor directions for road connectivity (rotY aligns the segment)
@@ -51,7 +62,8 @@ const ROAD_DIRS = [
 export function createTileProps(map, tileTop, joins) {
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
-    rock: [], peak: [], snow: [], special: [], fortress: []
+    rock: [], peak: [], snow: [], special: [], fortress: [],
+    tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: []
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -63,13 +75,28 @@ export function createTileProps(map, tileTop, joins) {
     const n = map.tiles[y * map.width + xx];
     return n.road === true || n.railroad === true || joins[y * map.width + xx] === true;
   };
+  const landAt = (x, y) => {
+    if (y < 0 || y >= map.height) return false;
+    let xx = x;
+    if (xx < 0 || xx >= map.width) {
+      if (!map.wrapX) return false;
+      xx = ((xx % map.width) + map.width) % map.width;
+    }
+    const n = map.tiles[y * map.width + xx];
+    return n.t !== 'ocean' && n.t !== 'unknown';
+  };
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       const t = map.tiles[y * map.width + x];
       if (t.t === 'unknown') continue;
       const dim = t.visible === false;
       const top = tileTop(x, y);
-      if (t.irrigation) items.strip.push({ x, y, top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, dy: 0.02 });
+      if (t.irrigation) {
+        // thin channel + two cultivated field patches (art A1.6b)
+        items.strip.push({ x, y, top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, dy: 0.02 });
+        items.fieldPatch.push({ x, y, top, dim, color: PROP_COLOR.fieldPatch, dx: -0.2, dz: 0.14, dy: 0.015, rotY: Math.PI / 4 });
+        items.fieldPatch.push({ x, y, top, dim, color: PROP_COLOR.fieldPatch, dx: 0.16, dz: -0.2, dy: 0.015, rotY: Math.PI / 4 });
+      }
       if (t.road || t.railroad) {
         // segments toward each connected neighbor; an isolated road is a stub
         const color = t.railroad ? PROP_COLOR.railroad : PROP_COLOR.road;
@@ -81,12 +108,26 @@ export function createTileProps(map, tileTop, joins) {
             x, y, top, dim, color, rotY: d.rot, dy: 0.03,
             dx: d.dx * 0.25, dz: d.dy * 0.25, sx: d.diag ? 1.42 : 1
           });
+          if (t.railroad) {
+            // cross-ties along the rail segment (art A1.6b)
+            for (const k of [0.14, 0.3]) {
+              items.tie.push({
+                x, y, top, dim, color: PROP_COLOR.tie, rotY: d.rot, dy: 0.032,
+                dx: d.dx * k, dz: d.dy * k
+              });
+            }
+          }
         }
         if (connected === 0) {
           items.roadSeg.push({ x, y, top, dim, color, rotY: 0, dy: 0.03, sx: 0.5 });
         }
       }
-      if (t.mine) items.mine.push({ x, y, top, dim, color: PROP_COLOR.mine, dx: 0.18, dz: -0.16, dy: 0.1 });
+      if (t.mine) {
+        // rock pile + dark entrance + timber lintel (art A1.6b)
+        items.mine.push({ x, y, top, dim, color: PROP_COLOR.mine, dx: 0.18, dz: -0.16, dy: 0.1 });
+        items.mineDoor.push({ x, y, top, dim, color: PROP_COLOR.mineDoor, dx: 0.18, dz: -0.06, dy: 0.045 });
+        items.mineBeam.push({ x, y, top, dim, color: PROP_COLOR.mineBeam, dx: 0.18, dz: -0.055, dy: 0.1 });
+      }
       if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
       if (t.t === 'forest' || t.t === 'jungle') {
         // 3–5 trees, deterministically scattered and sized per tile
@@ -126,6 +167,18 @@ export function createTileProps(map, tileTop, joins) {
             dx: (visualRand(x, y, 70 + i) - 0.5) * 0.7,
             dz: (visualRand(x, y, 80 + i) - 0.5) * 0.7,
             dy: 0.05
+          });
+        }
+      }
+      if (t.t === 'ocean') {
+        // foam strips along shore edges, riding just above the water plane
+        // (art A1.6b §4: stylized, grid-readable — one strip per land edge)
+        for (const d of [{ dx: 1, dy: 0, rot: Math.PI / 2 }, { dx: -1, dy: 0, rot: Math.PI / 2 },
+          { dx: 0, dy: 1, rot: 0 }, { dx: 0, dy: -1, rot: 0 }]) {
+          if (!landAt(x + d.dx, y + d.dy)) continue;
+          items.foam.push({
+            x, y, dim, top: WATER_LEVEL + 0.008, dy: 0,
+            color: PROP_COLOR.foam, rotY: d.rot, dx: d.dx * 0.44, dz: d.dy * 0.44
           });
         }
       }
