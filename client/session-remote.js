@@ -36,6 +36,7 @@ export function createRemoteSession(opts) {
   let ruleset = baseRuleset;
   let playerId = null;
   let serverCode; // docs/07: the authoritative code, from joined + {t:'code'} pushes
+  let playerCivsMap = {}; // A24: pid -> civ id from the joined reply
   let token = tokenKey(gameId) && localStorage.getItem(tokenKey(gameId)) || null;
   let commandId = 0;
   let joined = false;
@@ -114,6 +115,7 @@ export function createRemoteSession(opts) {
       applyRuleset(msg.rulesOverrides);
       state = augment(msg.view);
       if (msg.code !== undefined) serverCode = msg.code;
+      if (msg.civs !== undefined) playerCivsMap = msg.civs;
       const wasJoined = joined;
       joined = true;
       if (wasJoined) notify([]); // reconnect: refresh the view under the ui
@@ -216,6 +218,7 @@ export function createRemoteSession(opts) {
     get playerId() { return playerId; },
     get gameId() { return gameId; }, // presence signals server mode to ui/saves.js
     get serverCode() { return serverCode; }, // docs/07: authoritative code for ctx.gameCode()
+    get playerCivs() { return playerCivsMap; }, // A24: pid -> civ id (public identity)
 
     onChange(cb) { listeners.push(cb); },
     setStatusHandler(fn) { statusHandler = fn; },

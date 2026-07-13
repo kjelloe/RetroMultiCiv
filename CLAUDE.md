@@ -76,7 +76,11 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 
 `node --test test/` — headless (the dump integration test self-skips if
 the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
-invocation (summary + failure blocks, no inline pipes). Play (local engine): `python3 -m http.server 8123` from
+invocation (summary + failure blocks, no inline pipes), and
+`debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
+`ss` — never pkill patterns, they self-match the calling shell). Agents:
+use these scripts, not hand-composed pipe one-liners — inline pipes
+trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
@@ -129,7 +133,10 @@ check via `--natural`; nightly CI runs the last two,
 `.github/workflows/nightly-soak.yml`), the **phase-3 server tests**
 (`server-protocol.test.js` — pure frame parse/route/seat-auth/playerId-stamp;
 `server.test.js` — a real `ws` client drives join → play → restart-from-autosave
-→ token reconnect → tamper-reject), and
+→ token reconnect → tamper-reject; socket tests budget ~30s per awaited
+message and dump the unmatched inbox on timeout — the parallel suite runs
+them 6–10× slower than isolated, measured; `server-lan4.test.js` is the
+template), and
 `browser.test.js` — an e2e smoke that boots the real client in the cached
 headless Chromium (`?e2e=1` founds a city and fills the panels; a
 served-by-server case drives `?server=1` through the socket via a live-page

@@ -282,3 +282,29 @@ test('browser hotseat GoTo: queued routes survive hand-offs and only run for the
       server.close();
     }
   });
+
+// B3 regression (wave V bug 0): in a LAN game with two human seats, MY
+// endTurn hands the turn to the OTHER human — the client must NOT take the
+// hotseat hand-off path (it dropped the curtain on the wrong machine and
+// flipped ctx.HUMAN to the rival, whose filtered view entry carries no
+// techs — the research panel then died in researchCost, tech.js:13).
+// One browser as p1 suffices: p2's human seat stays unbound, so the server
+// parks the turn there and p1's client sees a human rival at turn.
+test('browser LAN turn pass: handing to the other human keeps my own viewpoint',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 4242, civs: 2, humans: 2, size: 'xsmall', autosave: false });
+    try {
+      const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=4&civ=romans`;
+      const dom = await dumpDomLive(chromium, url, h => /e2e4 human:/.test(h), 20000);
+      const m = dom.match(/e2e4 human:(\w+) active:(\w+) handoffOpen:(\w+) errors:(\d+)/);
+      assert.ok(m, `the e2e=4 probe must report:\n${dom.match(/e2e4[^<]*/)?.[0] || '(no probe)'}`);
+      assert.strictEqual(m[2], 'p2', 'the server parked the turn on the unbound human seat');
+      assert.strictEqual(m[1], 'p1', 'ctx.HUMAN must STAY the local seat when a rival human is at turn');
+      assert.strictEqual(m[3], 'false', 'the hotseat curtain must not drop in server mode');
+      assert.strictEqual(m[4], '0', 'opening the research panel as the not-at-turn player must not throw');
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+    } finally {
+      await gs.close();
+    }
+  });

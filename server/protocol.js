@@ -60,6 +60,19 @@ export function parseMessage(raw) {
   return { ok: false, code: 'unknownType' };
 }
 
+// A24: pid -> civ id for every player that has one — public identity (the
+// scoreboard names civs anyway), so the client can wire city-name rosters and
+// faction visuals in server games. Cleaner long-term home: filterView's
+// players projection — flagged to the architect; this rides the joined reply
+// meanwhile (survives reconnect and spectate for free).
+export function playerCivs(game) {
+  const out = {};
+  for (const pid of game.state.playerOrder) {
+    if (game.state.players[pid].civ !== undefined) out[pid] = game.state.players[pid].civ;
+  }
+  return out;
+}
+
 function rejected(commandId, code, message) {
   const out = { t: 'rejected', commandId, code };
   if (message) out.message = message;
@@ -105,7 +118,8 @@ export function route(game, msg) {
         token: bound.token,
         view: game.view(bound.playerId),
         rulesOverrides: game.rulesOverrides,
-        code: game.code() // docs/07: the authoritative verification code
+        code: game.code(), // docs/07: the authoritative verification code
+        civs: playerCivs(game) // A24: public identity — city rosters + faction visuals
       }],
       broadcast: [],
       viewsChanged: false

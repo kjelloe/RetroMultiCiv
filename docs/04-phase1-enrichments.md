@@ -254,6 +254,18 @@ unit after End Turn.
   measure against THESE numbers (`debugging/sim/ge-baseline-postA21
   .jsonl`; architect holds the golden lock as of mail #64).
 
+## Per-player difficulty (parked 2026-07-13, from lobby wave V.4)
+
+The user wants per-slot difficulty in the LAN lobby "if possible".
+Today difficulty is ONE global knob (rules.contentCitizens override).
+Per-player needs an engine change: happiness reads
+`player.contentCitizens ?? rules.contentCitizens` (same pattern any
+future per-player handicap would use — gold bonuses, barbarian bias).
+Small diff but golden-locked (happiness path), and the state schema
+gains an optional integer field (hash-stable for states without it).
+Queue as its own item when a lobby actually wants it; the A27 slot UI
+leaves a cell for it.
+
 ## Remaining wonder effects (for reference)
 
 Mapped to the systems above: Hanging Gardens/Cure for Cancer/Shakespeare/

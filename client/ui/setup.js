@@ -18,9 +18,13 @@ export function showSetupScreen() {
           ${[2, 3, 4, 5, 6, 7].map(n => `<option value="${n}">${n}</option>`).join('')}
         </select>
       </label>
-      <label>Human players (hotseat)
+      <label>Human players
         <select id="setup-humans"><option value="1">1</option></select>
       </label>
+      <label id="setup-hotseat-row" class="hidden">Enable hotseat game
+        <input id="setup-hotseat" type="checkbox">
+      </label>
+      <p class="setup-hint hidden" id="setup-hotseat-hint"></p>
       <label>Map size
         <select id="setup-size">
           <option value="xsmall">XSmall</option>
@@ -109,6 +113,25 @@ export function showSetupScreen() {
 
   const civsEl = document.getElementById('setup-civs');
   const humansEl = document.getElementById('setup-humans');
+  // A23: humans ≠ hotseat since LAN landed. Multiple humans reveal an
+  // explicit hotseat checkbox (default OFF); unchecked, the extra humans
+  // are LAN seats and Start routes to hosting a lobby.
+  const hotseatRow = document.getElementById('setup-hotseat-row');
+  const hotseatEl = document.getElementById('setup-hotseat');
+  const hotseatHint = document.getElementById('setup-hotseat-hint');
+  const startBtn = document.getElementById('setup-start');
+  function refreshMode() {
+    const multi = parseInt(humansEl.value, 10) > 1;
+    hotseatRow.classList.toggle('hidden', !multi);
+    hotseatHint.classList.toggle('hidden', !multi);
+    if (multi) {
+      hotseatHint.textContent = hotseatEl.checked
+        ? 'everyone shares this keyboard — pass it between turns'
+        : 'friends join over the network — you host a lobby with a join code';
+    }
+    startBtn.textContent = !multi ? 'Start game'
+      : hotseatEl.checked ? 'Start hotseat game' : 'Host LAN game';
+  }
   function refreshHumans() {
     const civs = parseInt(civsEl.value, 10);
     const keep = Math.min(parseInt(humansEl.value, 10) || 1, civs);
@@ -116,17 +139,34 @@ export function showSetupScreen() {
     for (let n = 1; n <= civs; n++) {
       const opt = document.createElement('option');
       opt.value = String(n);
-      opt.textContent = n === 1 ? '1 (vs AI)' : `${n} (hotseat)`;
+      opt.textContent = n === 1 ? '1 (vs AI)' : String(n);
       if (n === keep) opt.selected = true;
       humansEl.appendChild(opt);
     }
+    refreshMode();
   }
   civsEl.addEventListener('change', refreshHumans);
+  humansEl.addEventListener('change', refreshMode);
+  hotseatEl.addEventListener('change', refreshMode);
   refreshHumans();
+  // ?setupdemo=lan|hotseat presets the multi-human states for screenshots
+  const demo = new URLSearchParams(location.search).get('setupdemo');
+  if (demo === 'lan' || demo === 'hotseat') {
+    humansEl.value = '2';
+    hotseatEl.checked = demo === 'hotseat';
+    refreshMode();
+  }
 
   document.getElementById('setup-start').addEventListener('click', () => {
     const civs = parseInt(civsEl.value, 10);
     const humans = parseInt(humansEl.value, 10);
+    // A23: multiple humans WITHOUT hotseat = host a LAN lobby (the extra
+    // humans are seats to fill by join code). ?humans=N URLs stay hotseat
+    // for saved links — only this button routes differently.
+    if (humans > 1 && !hotseatEl.checked) {
+      import('./lobby.js').then(m => m.startHostFlow(setupBox, worldOptions()));
+      return;
+    }
     const seed = parseInt(document.getElementById('setup-seed').value, 10)
       || (Date.now() % 1000000);
     const civ = civEl.value ? `&civ=${civEl.value}` : '';

@@ -123,6 +123,13 @@ test('server: static hosting serves the client files', async () => {
     assert.strictEqual(rules.minCityDistance, 4);
     const forbidden = await fetch(`http://127.0.0.1:${s.port}/../etc/passwd`);
     assert.notStrictEqual(forbidden.status, 200, 'no path traversal');
+    // A22: friendly entry points redirect to /client/ keeping the query
+    const root = await fetch(`http://127.0.0.1:${s.port}/`, { redirect: 'manual' });
+    assert.strictEqual(root.status, 302);
+    assert.strictEqual(root.headers.get('location'), '/client/');
+    const noSlash = await fetch(`http://127.0.0.1:${s.port}/client?server=1&game=g7`, { redirect: 'manual' });
+    assert.strictEqual(noSlash.status, 302);
+    assert.strictEqual(noSlash.headers.get('location'), '/client/?server=1&game=g7', 'query string preserved');
   } finally {
     await s.close();
   }

@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry } from './lobby.js';
-import { parseMessage, route, turnBroadcasts } from './protocol.js';
+import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MIME = {
@@ -98,7 +98,15 @@ export function startServer(opts) {
   const defaultGameId = defaultGame.gameId;
 
   const httpServer = http.createServer((req, res) => {
-    const urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    const parsed = new URL(req.url, 'http://x');
+    const urlPath = decodeURIComponent(parsed.pathname);
+    // A22: friendly entry points — the bare host and /client (no slash) both
+    // land on /client/ (302 keeps the query string: join links carry params)
+    if (urlPath === '/' || urlPath === '/client') {
+      res.writeHead(302, { Location: '/client/' + parsed.search });
+      res.end();
+      return;
+    }
     let file = path.normalize(path.join(REPO, urlPath));
     if (!file.startsWith(REPO)) { res.writeHead(403); res.end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
@@ -233,7 +241,8 @@ export function startServer(opts) {
       info.gameId = gameId; info.playerId = 'spectator'; info.spectator = true;
       send(ws, {
         t: 'joined', playerId: 'spectator', gameId,
-        view: e.game.view('spectator'), rulesOverrides: e.game.rulesOverrides, code: e.game.code()
+        view: e.game.view('spectator'), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
+        civs: playerCivs(e.game) // A24: faction visuals for the omniscient view too
       });
       return;
     }
@@ -272,7 +281,8 @@ export function startServer(opts) {
         ci.playerId = bound.playerId; ci.seat = pid;
         send(o, {
           t: 'joined', playerId: bound.playerId, gameId, token: bound.token,
-          view: res.game.view(bound.playerId), rulesOverrides: res.game.rulesOverrides, code: res.game.code()
+          view: res.game.view(bound.playerId), rulesOverrides: res.game.rulesOverrides, code: res.game.code(),
+          civs: playerCivs(res.game) // A24: city rosters + faction visuals
         });
       }
     }

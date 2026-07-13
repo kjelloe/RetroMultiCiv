@@ -134,6 +134,13 @@ if (serverParam) {
     ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined,
     spectator: params.get('spectate') === '1' // A17: tokenless omniscient viewer
   });
+  // A24: server games now carry each player's civ (joined reply) — wire the
+  // city-name rosters and faction visuals exactly like local games
+  for (const [pid, civId] of Object.entries(session.playerCivs || {})) {
+    if (!civs[civId]) continue;
+    cityNamesByPlayer[pid] = civs[civId].cities;
+    if (civs[civId].visual) factionsByPid[pid] = civs[civId].visual;
+  }
 } else if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
 } else {
@@ -505,4 +512,24 @@ if (params.get('e2e') === '3' && firstUnit && firstUnit.type === 'settlers') {
     + ` p2 ${p2start} ${p2arm} ${p2mid} ${u2 ? pos(u2.id) : 'none'}`
     + ` targets ${t1 ? `${t1.tx},${t1.ty}` : 'none'} ${t2 ? `${t2.tx},${t2.ty}` : 'none'}`
     + ` errors: ${capturedErrors.length}`;
+}
+
+// ?e2e=4 (with &server=1 in a 2-human game): B3 regression — ending my turn
+// while the OTHER human is next must NOT take the hotseat hand-off path in
+// server mode (it flipped ctx.HUMAN to the rival, whose filtered view entry
+// carries no techs/gold, so the research panel crashed in researchCost).
+if (params.get('e2e') === '4') {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  await ctx.endTurn(); // first call arms the units-still-have-moves confirm
+  await ctx.endTurn(); // second call ends the turn; next seat is the rival human
+  try {
+    ctx.panels.toggleResearchPanel(); // crashed pre-fix (rival ctx.HUMAN)
+  } catch (e) {
+    capturedErrors.push(`research panel: ${e.message}`);
+  }
+  probe.textContent = `e2e4 human:${ctx.HUMAN} active:${session.state.activePlayer}`
+    + ` handoffOpen:${ctx.handoff.isOpen()} errors:${capturedErrors.length}`;
 }

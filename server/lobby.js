@@ -127,12 +127,32 @@ export function createRegistry(deps) {
     if (e.status === 'started') return { ok: false, reason: 'alreadyStarted' };
     const live = {};
     for (const s of (liveSeats || [])) live[s] = true;
+    // A24: every lobby seat gets a DISTINCT civilization — seed-shuffled with
+    // the same LCG client/main.js uses for local games, so a seed reproduces
+    // the same lineup. Humans keep their chosen names; AI seats take the civ
+    // name; colors come from the civ (faction visuals light up downstream).
+    const roster = Object.keys(ruleset.civs || {}).sort();
+    let shuffleRng = e.options.seed;
+    for (let i = roster.length - 1; i > 0; i--) {
+      shuffleRng = (shuffleRng * 1103515245 + 12345) % 2147483648;
+      const j = shuffleRng % (i + 1);
+      const tmp = roster[i]; roster[i] = roster[j]; roster[j] = tmp;
+    }
     const players = [];
     const humanSeats = [];
     Object.keys(e.seats).forEach((pid, i) => {
       const s = e.seats[pid];
       const human = s.human && s.reserved && live[pid] === true;
-      players.push({ id: pid, name: human ? s.name : ('AI ' + (i + 1)), color: COLORS[i % COLORS.length], human });
+      const civId = roster.length > 0 ? roster[i % roster.length] : undefined;
+      const civ = civId ? ruleset.civs[civId] : undefined;
+      const def = {
+        id: pid,
+        name: human ? s.name : (civ ? civ.name : 'AI ' + (i + 1)),
+        color: civ ? civ.color : COLORS[i % COLORS.length],
+        human
+      };
+      if (civId) def.civ = civId;
+      players.push(def);
       if (human) humanSeats.push(pid);
     });
     const dims = SIZES[e.options.size];

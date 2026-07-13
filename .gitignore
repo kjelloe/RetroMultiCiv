@@ -26,3 +26,6 @@ node_modules/
 .claude/settings.local.json
 .agent-mail/
 agent-chat.md
+
+# personal ops playbook (hosting recipes, deploy notes) — not part of the MIT repo
+ops/

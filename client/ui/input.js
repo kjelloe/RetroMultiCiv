@@ -317,7 +317,13 @@ export function initInput(ctx) {
     if (!res.ok) { hud.note(`✗ endTurn: ${res.reason}`); return; }
     const now = session.state;
     const next = now.activePlayer;
-    if (!now.gameOver && next !== ctx.HUMAN && now.players[next] && now.players[next].human) {
+    // hotseat is LOCAL-only: in server mode (the remote session exposes its
+    // bound playerId) the next human plays their OWN machine — taking this
+    // path there dropped the curtain on the wrong screen and flipped
+    // ctx.HUMAN to a rival whose filtered view has no techs/gold (LAN
+    // research-panel crash, wave V bug 0)
+    if (!now.gameOver && session.playerId === undefined
+        && next !== ctx.HUMAN && now.players[next] && now.players[next].human) {
       // hotseat: drop the opaque curtain FIRST, then swap the viewpoint
       // underneath it — neither player ever sees the other's map
       ctx.handoff.show(now.players[next].name, now.players[next].color, () => {});

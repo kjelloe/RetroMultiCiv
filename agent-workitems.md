@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 163 tests), the item's own verification steps pass, related
+   (currently 180 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -79,6 +79,28 @@ harden — longer/adaptive timeouts, or node:test concurrency hints, or
 both. The test is the user's pre-LAN gate, so it must be trustworthy:
 zero flakes across 10 consecutive full-suite runs = done. Architect's
 file, claim granted in advance.
+
+### B3 — LAN research crash: rival playerId reaches tech.js researchCost (wave V bug 0)  [claimed: bugfixer 2026-07-13] [done: 2026-07-13 — root cause was neither triage suspect: all researchCost callers pass ctx.HUMAN, but input.js endTurn's HOTSEAT branch had no local-session guard, so a 2-human LAN turn-pass dropped the curtain on the wrong machine and setHuman(rival) flipped ctx.HUMAN — rival view entries carry no techs → tech.js:13. One guard (session.playerId === undefined = local only); engine untouched. Failing-first browser case 7 (?e2e=4, single browser + unbound p2 seat) red→green; local hotseat cases still green; suite 181/181]
+
+User report (LAN game, 2 humans + 2 AI): clicking research selection →
+`TypeError: state.players[playerId].techs is undefined (tech.js:13)`.
+ARCHITECT TRIAGE DONE (2026-07-13): the recording
+`debugging/logs/retromulticiv-g3.json` replays HASH-EXACT (engine
+innocent — canonical state has `techs: []` on all four players);
+`filterView` DOES whitelist the viewer's own techs
+(engine/visibility.js:127); therefore some client path passes a
+NON-VIEWER playerId (rival entries carry no techs in server-mode
+views — correct secrecy). tech.js:13 is `researchCost`. Suspects:
+any caller using `state.activePlayer` instead of `ctx.HUMAN` while a
+rival is at turn, or turnlog narration computing costs for a rival's
+techDiscovered event. Repro guidance: boot a 2-human lobby game (g3's
+shape), open the research UI as the NOT-at-turn player. Failing test
+first (browser e2e ?server=1 variant or a targeted unit test on the
+offending module), then fix — likely a one-line playerId correction
+or a guard. Golden-safe (views are never hashed). If the right fix
+turns out to be defensive (`availableTechs`/`researchCost` returning
+empty/0 for tech-less entries), mail me first — I'd rather fix the
+CALLER and keep the engine strict.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -483,6 +505,132 @@ assert turn + a stable statehash twice = deterministic; assert every
 player's techs equal the grant union and researching is ''); browser
 screenshot of a Renaissance-or-later start (cities/roads visible at
 boot — READ it); one `?server=1` create with an age option.
+
+## A22 — Server URL routing: / and /client → /client/ (wave V.1+2, tiny)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — 302s for / and /client (exact) → /client/ with query preserved; asserted in server.test.js static case (Location headers, ?server=1&game=g7 round-trips). Suite spot: server tests 2/2.]
+
+`http://<host>:8123` 404s and `/client` (no trailing slash) serves the
+client HTML with broken relative paths (assets resolve against `/`).
+In server/index.js's static handler: `/` → 302 to `/client/`;
+`/client` (exact, no slash) → 302 to `/client/` (preserve the query
+string — join links carry params). Add both cases to the server tests
+(a plain http GET asserting the Location header). Golden-safe.
+
+## A23 — Setup screen: hotseat is a checkbox, not a label (wave V.3)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — label "(hotseat)" dropped; humans>1 reveals "Enable hotseat game" (default OFF) + a mode hint; checked → button "Start hotseat game" (today's ?humans=N flow); unchecked+multi → button "Host LAN game" and Start ROUTES to startHostFlow (extra humans = lobby seats). ?humans=N URLs unchanged (saved links stay hotseat). ?setupdemo=lan|hotseat screenshot hook; both states shot + READ. Cosmetic note: primary Host button duplicates the secondary in LAN state. Suite 180/180 via debugging/t.sh.]
+
+"Human players (hotseat)" misleads LAN hosts — humans ≠ hotseat now.
+In client/ui/setup.js: drop "(hotseat)" from the label; when humans >
+1, reveal a checkbox "Enable hotseat game" (default OFF); when
+checked, the Start button text becomes "Start hotseat game". Semantics:
+hotseat checked = today's local multi-human flow (?humans=N); NOT
+checked with humans > 1 = the LAN hosting flow (the extra humans are
+seats to fill in the lobby). Keep URL-param behavior compatible
+(?humans=N alone still means hotseat for saved links — document in the
+item done-mail if you deviate). Screenshot both states. Golden-safe.
+
+## A24 — Lobby games must assign civilizations (wave V.5 — the "New city 1" fix)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — lobby.start() assigns DISTINCT seed-shuffled civs (main.js's exact LCG — a seed reproduces the lineup), colors from the civ, AI seats take civ names, humans keep theirs; joined replies (route + lobby-start + spectator) carry a pid→civ map (protocol.js playerCivs — cleaner filterView home FLAGGED); session-remote exposes it; main.js wires cityNamesByPlayer + factionsByPid in server mode. ws test asserts distinct civs/civ colors/AI civ names; spectator screenshot of a started lobby game shows faction discs (Imperial Violet + Emerald Oak, not palette colors). Suite 180/180.]
+
+PROVEN by the user's g3 save: `lobby.start()` (server/lobby.js:135)
+authors players WITHOUT a `civ` field → no civilization city names
+("New city 1"), no faction visuals, generic colors — every LAN game.
+Fix in start(): assign each slot a DISTINCT civ from data/civs.json —
+seed-shuffled like client/main.js's local roster (deterministic from
+the game seed; the chart is authored once so downstream determinism
+holds either way), and take each player's `color` from the civ's
+`color` field (matching local games; factionsByPid then lights up
+pennants/emblems too — verify a lobby game shows them). Slot-picked
+civs come later with A27 — this item is the RANDOM default. Verify:
+extend a lobby/server test to assert distinct civ ids + civ-roster
+city names appear after start; browser screenshot of a lobby game
+showing a real city name + faction colors. Golden-safe.
+
+## A25 — Turn banners: dismiss + suppress (wave V.6)
+
+The 🔔 "Player N — take your turn" banners can't be dismissed. Add an
+✕ on the banner (dismiss this one) and a mute icon (suppress future
+your-turn banners for this session; persist per-origin in
+localStorage next to the other client prefs; re-enable via ⚙ Options,
+where the setting also lives as a checkbox). The audio chime obeys the
+same suppress. Screenshot banner-with-controls + the Options entry.
+Golden-safe.
+
+## A26 — Waiting-for-player status + slow-poke log note (wave V.7)
+
+In server games, above End Turn show a calm one-liner: "⏳ <name> is
+moving · 12s" — name = state.players[state.activePlayer].name, timer
+starts when a turn/view message hands the turn to someone else and
+resets on every turn change. When the wait crosses a threshold
+(default 30s, configurable in ⚙ Options as "slow player note,
+seconds"), add ONE turn-log entry "Waited 47s for Player 2" (per
+player-turn, not per second; client-side only — the log is local
+narration, nothing enters game state). Verify: unit-test the timer
+formatting/threshold logic as a pure helper; screenshot the line in a
+2-human lobby game. Golden-safe.
+
+## A27 — Lobby seat management: host controls (wave V.4 — DESIGN INCLUDED)
+
+Host-side lobby power before start: (a) per-slot toggle AI ↔ Open
+(open = joinable by humans; AI = locked to AI even if someone joins
+late); (b) add/remove slots within 2..7 civs while waiting; (c)
+per-slot civ dropdown (each civ once, plus Random — Random resolves
+via A24's seed-shuffle at start); (d) expose map size + starting age
+on the host form itself (they exist in options already — surface
+them, so hosting doesn't require the setup-screen detour). Joiners
+see the slot list update live (the lobby already broadcasts roster
+changes — extend the message with slot mode + civ pick). Protocol:
+new host-only `{t:'setSlot', seat, mode|civ}` and `{t:'setSlots',
+civs}` messages — host-auth = the connection that created the lobby
+(the reservation already knows), reject from others (add protocol
+tests). PER-SLOT DIFFICULTY: NOT in this item — the engine reads one
+global rules.contentCitizens; a per-player override
+(player.contentCitizens ?? rules) is an ENGINE change (golden lock,
+happiness.js) — parked in docs/04 as a phase-6 candidate; the item
+only leaves room in the slot UI layout for a future difficulty cell.
+Verify: protocol tests for setSlot auth/validation; a lan4-style
+integration case where the host flips a slot to AI + picks a civ and
+the started game honors both; screenshots of host vs joiner lobby
+views. Golden-safe.
+
+## PARKED — Global "find a game" + internet hosting (user note 2026-07-13, NOT QUEUED)
+
+The vision: a public server (first a local PC behind the DNS name
+`retromulticiv.kjell.today`, later a Hetzner VM per the user's proven
+recipe — stored verbatim in `ops/hosting-recipe.md`, gitignored) where
+players browse a **global game listing** and join without a shouted
+code. Design facts for when this opens:
+
+- **The code is closer than it looks.** The server already binds
+  0.0.0.0, validates every command (authoritative), autosaves, and
+  handles reconnects; the client already speaks `wss://` when the page
+  is https (main.js wsUrl derives from location.protocol). A first
+  internet game needs ZERO code: DNS name → router port-forward →
+  existing join codes.
+- **Find-a-game v1** = the single server lists its own open lobbies:
+  the lobby registry already tracks status/seats — add a
+  `{t:'listGames'}` reply (name, open seats, size, age, spectators
+  allowed; NEVER join codes) + a browse panel in the client lobby UI,
+  "join" = the existing joinCode flow with the code delivered by the
+  server on click. Host opts IN to public listing at create (private
+  by default — a checkbox next to Allow-spectators). Small item.
+- **Find-a-game v2** (much later) = a directory where MULTIPLE hosts
+  register — needs a hosted registry service, host heartbeats, NAT
+  reality (most home hosts unreachable) — do not start this until v1
+  demand exists.
+- **Recipe deltas for our stack** (vs the VoteText recipe): nginx
+  needs the WebSocket upgrade block for `/ws` (`proxy_set_header
+  Upgrade $http_upgrade; proxy_set_header Connection "upgrade";
+  proxy_read_timeout` long — turn-based games idle for minutes); no
+  SQLite/no init-db (saves are JSON files — the backup cron targets
+  `saves/`); no Express (plain node http — static + ws already one
+  process, port via `--port`); systemd ExecStart = `node
+  server/index.js --port 3000 --host 127.0.0.1` (loopback behind
+  nginx — the --host flag exists).
+- **Public-internet hardening before flipping DNS on** (own item when
+  queued): per-IP rate limit on join/create, cap concurrent games +
+  connections, lobby idle expiry, and a look at ws payload limits
+  (64KB cap exists). Join-code space (32^5 ≈ 33M) is fine for v1.
+
+Ordering: after the two-machine LAN acceptance; v1 listing pairs
+naturally with A27's lobby work.
 
 ## PARKED — Big-lobby scaling probe: 8/12/16 players (user note 2026-07-13, NOT QUEUED)
 

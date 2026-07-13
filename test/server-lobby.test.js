@@ -66,6 +66,13 @@ test('lobby: create → join-by-code (seat pick) → start → play; unfilled se
     assert.strictEqual(gj.playerId, 'p2', 'the picked seat lands on p2');
     assert.strictEqual(gj.view.players.p2.name, 'Ada', 'p2 carries the picker name');
     assert.strictEqual(gj.view.players.p3.human, false, 'the unfilled human seat started as AI');
+    // A24: every seat has a DISTINCT civilization; colors come from the civ;
+    // the joined reply carries the pid->civ map for client rosters/visuals
+    const civIds = Object.values(gj.civs || {});
+    assert.strictEqual(civIds.length, 3, 'all three players have civs');
+    assert.strictEqual(new Set(civIds).size, 3, 'civs are distinct');
+    assert.strictEqual(gj.view.players.p2.color, RULESET.civs[gj.civs.p2].color, 'color from the civ');
+    assert.strictEqual(gj.view.players.p3.name, RULESET.civs[gj.civs.p3].name, 'AI seats take the civ name');
     await host.expect(m => m.t === 'started', 'started broadcast');
 
     // and it plays: the host founds a city through the socket

@@ -8,7 +8,7 @@ the Done log at the bottom.
 ## Pending — verify in real play
 
 - [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3 +
-  spectator mode code-complete, suite 170/170): `./run.sh` on one
+  spectator mode code-complete, suite 180/180, flake-hardened): `./run.sh` on one
   machine (it prints the WSL port-forward/firewall commands itself;
   or host natively on Windows with `.\run.ps1`); both browsers
   to `http://<host-ip>:8123/client/` → Host a LAN game on one, Join by
@@ -78,6 +78,14 @@ the Done log at the bottom.
 
 ## Later (not yet actionable)
 
+- [ ] **Global "find a game" + internet hosting**: noted 2026-07-13 —
+  parked item with full design facts in agent-workitems; your Hetzner
+  recipe is stored verbatim in `ops/hosting-recipe.md` (gitignored).
+  First stop needs zero code: DNS `retromulticiv.kjell.today` → your
+  PC → existing join codes. The public game LISTING is a small item
+  (lobby registry already tracks everything); decide after LAN
+  acceptance. Before real public exposure: the hardening bullet
+  (rate limits, caps) becomes its own item.
 - [ ] **Big-lobby scaling (8/12/16 players)**: noted 2026-07-13 — a
   parked probe item with the full fact sheet lives in agent-workitems
   ("PARKED — Big-lobby scaling"). 16+ civs decided: draw from Civ
@@ -95,6 +103,16 @@ the Done log at the bottom.
 (add bugs/refinements here or hand them over in chat as before — Shift+D
 diagnostics files into `debugging/logs/` for anything that looks like an
 engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
+
+- ✅ 2026-07-13 — Wave V (LAN playtest, g3 recording) RECEIVED and
+  routed: bug 0 (research crash) = B3 with architect triage (engine
+  innocent, replays hash-exact; a rival playerId reaches researchCost);
+  items 1–7 = A22–A27 (routing redirects, hotseat checkbox, lobby civ
+  assignment — g3 proved every LAN player has no civ —, banner
+  dismiss/suppress, waiting-status + slow-poke log, lobby seat
+  management). Per-slot difficulty parked in docs/04 (engine change,
+  golden lock). Re-verify in the next LAN session once B3/A22/A24
+  land.
 
 ## Done log
 
