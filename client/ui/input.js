@@ -285,6 +285,7 @@ export function initInput(ctx) {
   // click) within the warning banner's 5-second lifetime.
   let confirmEndTurnUntil = 0;
   async function endTurn() {
+    if (ctx.SPECTATOR) return; // A17: view-only — nothing to end
     const state = session.state;
     if (!state.gameOver && state.activePlayer === ctx.HUMAN
         && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {

@@ -38,6 +38,11 @@ export function initHud(ctx) {
   // totals with the per-turn gain/loss behind them: "12/40 (+3) · 💰 200 (+5)"
   function updateResearchBar() {
     const me = session.state.players[ctx.HUMAN];
+    if (!me) { // A17 spectator: no own empire to report
+      researchFill.style.width = '0%';
+      researchLabel.textContent = '👁 spectating — omniscient view, no controls';
+      return;
+    }
     const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
     const income = playerIncome(session.state, ctx.HUMAN, session.ruleset);
     const goldDelta = income.gold - income.maintenance;
@@ -111,9 +116,10 @@ export function initHud(ctx) {
         + (code ? ` · code ${code}` : '');
     } else {
       const me = state.players[ctx.HUMAN];
-      const gov = me.revolutionTurns !== undefined
-        ? `Anarchy (${me.revolutionTurns})`
-        : session.ruleset.governments[me.government === undefined ? 'despotism' : me.government].name;
+      const gov = !me ? '👁 spectator' // A17: no own government to show
+        : me.revolutionTurns !== undefined
+          ? `Anarchy (${me.revolutionTurns})`
+          : session.ruleset.governments[me.government === undefined ? 'despotism' : me.government].name;
       hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name} · ${gov}`;
     }
     updateResearchBar();

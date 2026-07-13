@@ -8,6 +8,7 @@ import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostic
 import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
+import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
@@ -130,7 +131,8 @@ if (serverParam) {
   const pick = params.get('civ');
   const myName = (pick && civs[pick] && civs[pick].name) || 'Player';
   session = await createRemoteSession({
-    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined
+    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined,
+    spectator: params.get('spectate') === '1' // A17: tokenless omniscient viewer
   });
 } else if (params.get('mock') === '1') {
   initialState = await fetchJson('./mock-state.json');
@@ -184,8 +186,29 @@ if (serverParam) {
 // ?debug=1: the diagnostics recorder also hashes after every single command
 // (default: after each end-turn round) — finer replay divergence pinpointing
 if (!session) session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
-const sel = { unitId: null, cityId: null, lastMoved: null };
+// lastMovedBy: pid -> unitId, PER PLAYER (wave III) — a hotseat hand-off lands
+// each incoming player on THEIR last-moved unit, not the previous player's
+const sel = { unitId: null, cityId: null, lastMovedBy: {} };
 const ctx = { session, renderer, sel, HUMAN: session.playerId || 'p1', errors: capturedErrors, rulesOverrides };
+// A17 spectator mode: ctx.HUMAN is the 'spectator' pseudo-viewer — the UI
+// renders the omniscient view read-only (no players[ctx.HUMAN] entry exists,
+// so hud/input/panels gate their owner reads on this flag)
+ctx.SPECTATOR = ctx.HUMAN === 'spectator';
+if (ctx.SPECTATOR) {
+  const chip = document.createElement('div');
+  chip.id = 'spectator-chip';
+  chip.textContent = '👁 spectating';
+  chip.style.cssText = 'position:fixed;top:8px;right:96px;z-index:41;background:#2b2416;'
+    + 'border:1px solid #6b5d2f;border-radius:6px;padding:4px 10px;color:#ffe066;'
+    + 'font-family:inherit;font-size:12px;';
+  document.body.appendChild(chip);
+  const endBtn = document.getElementById('end-turn');
+  if (endBtn) endBtn.style.display = 'none'; // nothing to end — view-only
+  const selNote = document.getElementById('hud-selection');
+  if (selNote) selNote.textContent = 'watching — click any unit to inspect it';
+  // no own unit to land on — open on the middle of the world instead
+  renderer.centerOn(Math.floor(session.state.map.width / 2), Math.floor(session.state.map.height / 2));
+}
 
 ctx.selectUnit = (unit, opts) => {
   sel.unitId = unit.id;
@@ -197,13 +220,13 @@ ctx.selectUnit = (unit, opts) => {
 };
 
 // select the viewpoint's first idle unit (game start and every hand-off)
-function selectFirstUnit() {
+function selectFirstUnit(noCenter) {
   const unit = Object.values(session.state.units).find(
     u => u.owner === ctx.HUMAN && u.moves > 0
   );
   if (unit) {
     ctx.selectUnit(unit);
-    renderer.centerOn(unit.x, unit.y);
+    if (!noCenter) renderer.centerOn(unit.x, unit.y);
   } else {
     sel.unitId = null;
     if (ctx.refreshActionBar) ctx.refreshActionBar();
@@ -216,11 +239,20 @@ ctx.setHuman = (pid) => {
   ctx.HUMAN = pid;
   sel.unitId = null;
   sel.cityId = null;
-  sel.lastMoved = null;
   ctx.panels.closeAll();
   if (ctx.turnlog) ctx.turnlog.resetViewer();
   ctx.hud.refresh();
-  selectFirstUnit();
+  // wave III landing order: THEIR last-moved unit → their capital → any unit
+  const lastId = sel.lastMovedBy[pid];
+  const last = lastId && session.state.units[lastId];
+  if (last && last.owner === pid) {
+    ctx.selectUnit(last);
+    renderer.centerOn(last.x, last.y);
+    return;
+  }
+  const cap = capitalOf(session.state, pid, ruleset);
+  if (cap) renderer.centerOn(cap.x, cap.y);
+  selectFirstUnit(Boolean(cap)); // capital shown: select without re-centering
 };
 
 // next unused name from the viewpoint civilization's roster, else a fallback
@@ -266,7 +298,8 @@ session.onChange(() => {
 
 ctx.hud.refresh();
 const firstUnit = Object.values(session.state.units).find(
-  u => u.owner === ctx.HUMAN && session.state.players[ctx.HUMAN].human
+  u => u.owner === ctx.HUMAN && session.state.players[ctx.HUMAN]
+    && session.state.players[ctx.HUMAN].human
 );
 if (firstUnit) {
   ctx.selectUnit(firstUnit);

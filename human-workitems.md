@@ -8,7 +8,7 @@ the Done log at the bottom.
 ## Pending — verify in real play
 
 - [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3
-  code-complete, suite 159/159): `./run.sh` on one machine; both browsers
+  code-complete, suite 163/163): `./run.sh` on one machine; both browsers
   to `http://<host-ip>:8123/client/` → Host a LAN game on one, Join by
   the 5-char code on the other (pick a seat; your names should show in
   the waiting room), start, play a few turns. Then the roadmap
@@ -25,7 +25,10 @@ the Done log at the bottom.
   a software risk. The server now binds 0.0.0.0 (was loopback-only —
   found via your question!) and run.sh echoes the LAN URL. WSL2 hosts
   need the two PowerShell one-liners in gettingstarted §4 (portproxy +
-  firewall).
+  firewall). Optional while you're at it: a third browser can now join
+  as a spectator (Spectate checkbox on the join form, or
+  `?server=1&spectate=1` against a `./run.sh` boot game) — screenshot-
+  verified headless, one human eyeball welcome.
 - [ ] **Score & declare the phase-2 hotseat acceptance**: your turn-35
   hotseat session replayed hash-exact and produced wave III — what's
   left is the verdict: score it against the 10 questions in
@@ -37,29 +40,35 @@ the Done log at the bottom.
   continues across hotseat hand-offs (the turn-35 bug); city squares act
   roaded+irrigated (watch your capital's yields — the food gain appears
   after leaving Despotism); starts spawn ≥3 tiles from the polar edges.
+  A16 (accepted 2026-07-13) adds the client half — feel-test these too:
+  the camera lingers on battles instead of jumping away, the city-view
+  mini-map is centered and the center tile shows its real (roaded +
+  irrigated) yields, hotseat hand-offs land each player on THEIR
+  last-moved unit (else their capital), and **C** with nothing selected
+  flies to your capital.
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.
 
 ## Pending — decisions / ops
 
-- [ ] **Merge `dev` → `main`**: both nightly runs went green from the
-  `dev` branch via manual dispatch — but the 3 AM cron only arms once
-  the workflow file lands on `main`. Merging also publishes phase 3+4,
-  the game code, and the guards to the default branch.
-- [ ] **Ally sign-off loop for A14** (after the helper lands it): send
-  him the 14-civ gallery-row screenshots — his own acceptance criteria
-  from `specs/civ-visuals.md` — for design sign-off, plus the pending
-  thank-you for authoring the table (`ally-reply-assets.md` has the
-  broader asset-plan reply if not yet shared).
+- [ ] **Ally sign-off loop for A14/A15**: send him the exhibits —
+  `debugging/gallery-factions-a14.png` (his own acceptance criteria from
+  `specs/civ-visuals.md`) and `debugging/gallery-water-a15.png` — for
+  design sign-off, plus the pending thank-you for authoring the table
+  (`ally-reply-assets.md` has the broader asset-plan reply if not yet
+  shared). His plan-update feedback (2026-07-13) is applied — the
+  refreshed `plan-update.md` is ready to re-share.
 - [ ] **Old recordings cleanup** (at leisure): everything in
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
   six existing files pre-triaged. Delete when convenient.
-- [ ] **Commit checkpoint**: the working tree carries A13 (lobby UI),
-  wave III (engine + GoTo fix), the B-queue/A16/A17 items, docs/09, and
-  the guards — a known-green 159-test baseline worth committing before
-  the next batch lands.
+- [ ] **Commit checkpoint**: the working tree carries A16 (wave-III
+  client refinements) and A17 (spectator mode) — both accepted — plus
+  two small review fixes (saves.js, spectator HUD hint) and the
+  ally-feedback rewrite of `plan-update.md` (gitignored) — a known-green
+  163-test baseline worth committing before A2/B2 land (A2 re-records
+  the goldens).
 
 ## Later (not yet actionable)
 

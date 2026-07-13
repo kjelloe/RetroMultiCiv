@@ -182,6 +182,7 @@ export function initPanels(ctx) {
   }
 
   function toggleResearchPanel() {
+    if (ctx.SPECTATOR) { ctx.hud.note('👁 spectating — no research of your own'); return; }
     if (researchPanel.classList.contains('hidden')) {
       chosenTech = null;
       fillResearchPanel();
@@ -357,8 +358,13 @@ export function initPanels(ctx) {
         cell.style.background = terrainColor(tile.t);
         if (tile.river) cell.style.boxShadow = 'inset 0 0 0 2px #3a7ac8';
         if (isWorked[`${x},${y}`]) cell.className += ' worked';
-        if (dx === 0 && dy === 0) cell.className += ' center';
-        else {
+        if (dx === 0 && dy === 0) {
+          cell.className += ' center';
+          // wave III catch-up: the city square yields as if roaded+irrigated
+          // (engine rule) — show the REAL worked yields, not the raw tile
+          const cy = worked[0].yields;
+          cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(cy.food, cy.shields, cy.trade);
+        } else {
           const ty = tileYields(tile, session.ruleset); // includes improvement bonuses
           cell.innerHTML = (tile.special ? '★' : '') + yieldsHtml(ty.food, ty.shields, ty.trade);
           cell.className += ' assignable';

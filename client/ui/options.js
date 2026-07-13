@@ -87,6 +87,9 @@ export function initOptions(ctx) {
       Anarchy (no taxes or research) unless you own the Pyramids.</div>
     <div class="help-entry"><b>🏭 Production</b> — when a city completes a building, pick something
       new or it defaults to militia. Units repeat (∞) until you change them.</div>
+    <div class="help-entry"><b>🏛 Capital</b> — press <b>C</b> with no city selected to fly to your
+      capital (the Palace city, or your oldest). With a city selected, C cycles
+      its buildable improvements instead.</div>
     <div class="help-entry"><i>More entries will land here as systems grow.</i></div>`;
   document.body.appendChild(helpPanel);
   helpPanel.querySelector('.panel-close').addEventListener('click', () => helpPanel.classList.add('hidden'));

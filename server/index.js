@@ -91,7 +91,10 @@ export function startServer(opts) {
     });
     saveFiles[defaultGame.gameId] = opts.saveFile || path.join(REPO, 'saves', defaultGame.gameId + '.json');
   }
-  registry.register(defaultGame);
+  // the boot game allows spectators by default (a local-dev convenience; the
+  // CLI host stays in control via --no-spectators — docs/08 §6). Lobby-created
+  // games remain opt-in at create.
+  registry.register(defaultGame, opts.spectators !== false);
   const defaultGameId = defaultGame.gameId;
 
   const httpServer = http.createServer((req, res) => {
@@ -356,6 +359,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--reset-seats') opts.resetSeats = true;
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
+    else if (a === '--no-spectators') opts.spectators = false;
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
   Promise.resolve().then(() => startServer(opts)).then(({ port, game }) => {

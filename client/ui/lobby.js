@@ -19,11 +19,12 @@ function wsUrl() {
 }
 
 function persistAndBoot(msg) {
+  const spectator = msg.playerId === 'spectator'; // A17: tokenless viewer
   try {
     localStorage.setItem(GAMEID_KEY, msg.gameId);
-    localStorage.setItem('retromulticiv-token-' + msg.gameId, msg.token);
+    if (!spectator) localStorage.setItem('retromulticiv-token-' + msg.gameId, msg.token);
   } catch (e) { /* private mode: the reload join will bind a fresh seat */ }
-  location.search = `?server=1&game=${msg.gameId}`;
+  location.search = `?server=1&game=${msg.gameId}` + (spectator ? '&spectate=1' : '');
 }
 
 // One shared little message pump: onMsg returns nothing; onDead runs when the
@@ -100,10 +101,15 @@ export function startHostFlow(box, options, flags) {
     <h2>Host a LAN game</h2>
     <p class="setup-hint">uses the world options you just picked</p>
     <label>Your name <input id="lobby-name" type="text" maxlength="24" value="Player 1"></label>
+    <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
+    <p class="setup-hint">spectators see the whole map — admit people you'd
+      let stand behind your chair</p>
     <button id="setup-start">Create game</button>
     <p class="setup-hint"><a href="./">← back</a></p>`;
-  document.getElementById('setup-start').addEventListener('click',
-    () => create(document.getElementById('lobby-name').value.trim() || 'Player 1'));
+  document.getElementById('setup-start').addEventListener('click', () => {
+    options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
+    create(document.getElementById('lobby-name').value.trim() || 'Player 1');
+  });
 }
 
 // --- in-game turn flow (docs/08 §3, §4, §6) — server mode only ---------------
@@ -205,6 +211,9 @@ export function startJoinFlow(box) {
         ${[1, 2, 3, 4, 5, 6, 7].map(n => `<option value="p${n}">p${n}</option>`).join('')}
       </select>
     </label>
+    <label>Spectate <input id="lobby-spectate" type="checkbox"></label>
+    <p class="setup-hint">spectators see everything and control nothing —
+      only works when the host allowed it</p>
     <button id="setup-start">Join</button>
     <p class="setup-hint" id="lobby-status"></p>
     <p class="setup-hint"><a href="./">← back</a></p>`;
@@ -212,6 +221,7 @@ export function startJoinFlow(box) {
     const name = document.getElementById('lobby-name').value.trim() || 'Player';
     const code = document.getElementById('lobby-code-in').value.trim().toUpperCase();
     const seat = document.getElementById('lobby-seat').value || undefined;
+    const spectate = document.getElementById('lobby-spectate').checked || undefined;
     if (code.length !== 5) { fail(box, 'a join code is 5 characters'); return; }
     let mySeat = null;
     const ws = openLobbySocket((msg) => {
@@ -224,9 +234,11 @@ export function startJoinFlow(box) {
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
+          : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
+          : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
           : `server rejected: ${msg.code}`);
       }
     }, () => fail(box, 'no game server — start it with: node server/index.js'));
-    ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat })));
+    ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate })));
   });
 }

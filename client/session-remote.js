@@ -15,6 +15,7 @@ export function createRemoteSession(opts) {
   const baseRules = opts.baseRules || baseRuleset.rules;
   const wsUrl = opts.wsUrl;
   const name = opts.name || 'Player';
+  const spectator = opts.spectator === true; // A17: tokenless view-only pseudo-seat
   // The server owns the gameId; the client learns it from the joined reply and
   // NEEDS it for the /saves/<gameId>.json fetch + localStorage key names. Persist
   // it per-origin so a page reload can find its token key before joining (the
@@ -106,8 +107,10 @@ export function createRemoteSession(opts) {
         gameIdKnown = true;
         try { localStorage.setItem(GAMEID_KEY, gameId); } catch (e) { /* private mode */ }
       }
-      token = msg.token;
-      try { localStorage.setItem(tokenKey(gameId), token); } catch (e) { /* private mode */ }
+      if (!spectator) { // spectators are tokenless — nothing to persist/reclaim
+        token = msg.token;
+        try { localStorage.setItem(tokenKey(gameId), token); } catch (e) { /* private mode */ }
+      }
       applyRuleset(msg.rulesOverrides);
       state = augment(msg.view);
       if (msg.code !== undefined) serverCode = msg.code;
@@ -173,7 +176,11 @@ export function createRemoteSession(opts) {
     let triedFresh = false;
     ws = new WebSocket(wsUrl);
     ws.addEventListener('open', () => {
-      send({ t: 'join', gameId: gameIdKnown ? gameId : undefined, name, token: token || undefined });
+      send({
+        t: 'join', gameId: gameIdKnown ? gameId : undefined, name,
+        token: spectator ? undefined : (token || undefined),
+        spectator: spectator || undefined
+      });
     });
     ws.addEventListener('message', ev => {
       let msg;

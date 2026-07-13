@@ -282,7 +282,7 @@ check; screenshot gallery after the move to prove nothing shifted.
 Same verification loop as A14. A1.7 (sway/interpolation/smoke/combat
 flashes + reduce-animation option) is NOTED for later — not queued.
 
-## A17 — Spectator client mode (small; server side already tested)
+## A17 — Spectator client mode (small; server side already tested)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — ?spectate=1 boots a tokenless viewer (session-remote spectator opt: join {spectator:true}, no token persist/reclaim); lobby join form Spectate checkbox (+spectatorsOff/notStarted texts) + host form Allow-spectators checkbox; boot game allows spectators by default with --no-spectators CLI switch (register() gained the flag — docs/08 §6 host control); read-only guards: hud research bar "👁 spectating" + spectator gov line, endTurn early-return, toggleResearchPanel block, firstUnit guard, End Turn hidden, 👁 chip, camera opens on world center (own-nothing case caught by screenshot read). Live-server screenshot: full omniscient map, no fog, chip+HUD+bar correct. Suite 163/163.]
 
 A13's honest gap: a spectator join today would crash UI reads of
 players[ctx.HUMAN]. Add a deliberate read-only client mode: join with
@@ -292,7 +292,7 @@ production interactions, show a "spectating" chip, render the omniscient
 view the server already sends. Golden-safe, client-only. Verify by
 screenshot with a live server.
 
-## A16 — Playtest wave III client refinements (AFTER A13 — collision-fenced)  [claimed: coder-helper 2026-07-13]
+## A16 — Playtest wave III client refinements (AFTER A13 — collision-fenced)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — (1) combat linger: apply() centers on combatResolved x/y when the viewer's involved + one-shot autoNextUnit suppression; (2) mini-map centered (justify-content) + center tile now DISPLAYS worked[0].yields (roaded+irrigated rule — screenshot shows 2/1/1 on plains) + sitePreview center synthesizes road+irrigation(mine-kept) mirroring engine/cities.js; (3) sel.lastMoved → sel.lastMovedBy[pid], setHuman lands on THEIR unit → capitalOf → first unit (selectFirstUnit gained noCenter); (4) C with no city → fly to capital (capitalOf city object) + help-panel entry — NOTE: no 'gettingstarted' doc exists anywhere, help panel got the note. Screenshots read (city panel, hand-off cover); suite 163/163 incl. B1's GoTo-handoff case through the rewired landing. Combat linger + capital key are suite/logic-verified, not visually (static shots can't show them).]
 
 From the user's hotseat acceptance playtest (2026-07-12). All client-only,
 golden-safe. The GoTo-across-hand-offs bug and the engine items (city

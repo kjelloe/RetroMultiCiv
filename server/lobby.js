@@ -149,7 +149,7 @@ export function createRegistry(deps) {
   // Register an ALREADY-STARTED game (the phase-3 boot game / a --game resume)
   // so a bare targetless join still reaches it and it shows in the list. Its
   // seats are game.js's, not lobby reservations — mirror them for the roster.
-  function register(game) {
+  function register(game, allowSpectators) {
     const gameId = game.gameId;
     const seats = {};
     for (const pid of game.state.playerOrder) {
@@ -158,7 +158,8 @@ export function createRegistry(deps) {
     }
     const code = joinCode(gameId);
     const entry = {
-      gameId, joinCode: code, status: 'started', options: {}, seats, game,
+      gameId, joinCode: code, status: 'started',
+      options: { allowSpectators: allowSpectators === true }, seats, game,
       hostSeat: Object.keys(seats)[0] || 'p1' // first human seat hosts the boot game
     };
     games[gameId] = entry;

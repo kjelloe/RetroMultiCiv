@@ -69,7 +69,7 @@ export function initSaves(ctx) {
     }
     sel.unitId = null;
     sel.cityId = null;
-    sel.lastMoved = null;
+    sel.lastMovedBy = {}; // unit ids from another game could collide
     panels.closeAll();
     session.replaceState(s);
     // resume at the right seat: the active player if human, else the first
