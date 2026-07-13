@@ -6,7 +6,8 @@ const DEFAULTS = {
   autoNextUnit: true,     // jump to the next idle unit when one is spent
   hideFuture: false,      // hide not-yet-buildable items in the city catalog
   hideNoMovesHint: false, // mute the center "press E" hint
-  clock: 'off'            // off | elapsed | time
+  clock: 'off',           // off | elapsed | time
+  slowPokeSecs: '30'      // A26: turn-log note after waiting this long (0 = off)
 };
 
 export function initOptions(ctx) {
@@ -49,6 +50,9 @@ export function initOptions(ctx) {
         <option value="elapsed">minutes played</option>
         <option value="time">time of day</option>
       </select>
+    </label>
+    <label>Slow player note, seconds (0 = off)
+      <input type="number" data-opt="slowPokeSecs" min="0" step="5" style="width:64px">
     </label>`;
   document.body.appendChild(panel);
 

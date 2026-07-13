@@ -174,5 +174,6 @@ export function initTurnLog(ctx) {
     scanContacts(state, true);
   });
 
-  return { resetViewer };
+  // note: external one-off narration (A26 slow-poke etc.) — same list, same cap
+  return { resetViewer, note: add };
 }

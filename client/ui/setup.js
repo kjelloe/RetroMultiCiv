@@ -131,6 +131,9 @@ export function showSetupScreen() {
     }
     startBtn.textContent = !multi ? 'Start game'
       : hotseatEl.checked ? 'Start hotseat game' : 'Host LAN game';
+    // A23 residue: hide the secondary Host button when the primary reads the same
+    const hostBtn = document.getElementById('setup-host');
+    if (hostBtn) hostBtn.classList.toggle('hidden', startBtn.textContent === 'Host LAN game');
   }
   function refreshHumans() {
     const civs = parseInt(civsEl.value, 10);

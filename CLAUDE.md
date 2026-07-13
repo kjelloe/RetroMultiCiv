@@ -76,11 +76,13 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 
 `node --test test/` — headless (the dump integration test self-skips if
 the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
-invocation (summary + failure blocks, no inline pipes), and
+invocation (summary + failure blocks, no inline pipes),
 `debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
-`ss` — never pkill patterns, they self-match the calling shell). Agents:
-use these scripts, not hand-composed pipe one-liners — inline pipes
-trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
+`ss` — never pkill patterns, they self-match the calling shell), and
+`debugging/peek.sh [-c N] FILE PATTERN… | FILE N-M` prints numbered
+matches-with-context or a line range (replaces grep|sed|head chains).
+Agents: use these scripts, not hand-composed pipe one-liners — inline
+pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 180 tests), the item's own verification steps pass, related
+   (currently 186 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -553,7 +553,7 @@ where the setting also lives as a checkbox). The audio chime obeys the
 same suppress. Screenshot banner-with-controls + the Options entry.
 Golden-safe.
 
-## A26 — Waiting-for-player status + slow-poke log note (wave V.7)
+## A26 — Waiting-for-player status + slow-poke log note (wave V.7)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — client/ui/wait-status.js pure tracker (reset per turn change, note fires ONCE per player-turn, threshold live-changeable, 0=off) + 5 unit tests; hud #wait-line above End Turn (1s tick + immediate on refresh; server-mode only via session.gameId; hidden on own turn/game over); Options "Slow player note, seconds" (default 30); turnlog gained the ACKed additive note() export (reuses add — same list/cap). Screenshot READ: "⏳ Player 1 is moving · 5s" via spectator topology. BONUS FIX found by screenshot read: .hidden was per-element CSS, never global — my A23 setup rows + the residue Host-button toggle silently didn't hide; scoped #setup-box .hidden rule added, all three setup states re-shot correct (residue follow-up folded ✓). Suite 186/186.]
 
 In server games, above End Turn show a calm one-liner: "⏳ <name> is
 moving · 12s" — name = state.players[state.activePlayer].name, timer

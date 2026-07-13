@@ -6,8 +6,14 @@ flow with presence, host-skip and >2/3 vote, server-side spectators.
 Spectator CLIENT mode IMPLEMENTED too (A17, 2026-07-13): `?spectate=1`
 boot path, Spectate checkbox on join + Allow-spectators at create (the
 CLI boot game defaults to allowed, `--no-spectators` reverts), read-only
-guards, 👁 chip. Remaining: the two-machine human acceptance
-(human-workitems). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
+guards, 👁 chip. Wave-V hardening (2026-07-13, from the first real LAN
+playtest): lobby games assign distinct seed-shuffled civilizations
+(city rosters + faction visuals — `joined` replies carry a pid→civ
+map), bare `/` and `/client` redirect to `/client/`, the hotseat
+curtain is local-session-guarded (it used to flip a LAN client's
+viewpoint to the rival after endTurn — the research-crash root cause),
+and the setup screen splits "Start hotseat game" from "Host LAN game".
+Remaining: the two-machine human acceptance (human-workitems). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
 (docs/06: seats, tokens, per-seat views, save/resume). Roadmap acceptance:
 a full game between two machines surviving a mid-game disconnect.
 

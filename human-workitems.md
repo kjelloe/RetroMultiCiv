@@ -8,10 +8,12 @@ the Done log at the bottom.
 ## Pending — verify in real play
 
 - [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3 +
-  spectator mode code-complete, suite 180/180, flake-hardened): `./run.sh` on one
-  machine (it prints the WSL port-forward/firewall commands itself;
-  or host natively on Windows with `.\run.ps1`); both browsers
-  to `http://<host-ip>:8123/client/` → Host a LAN game on one, Join by
+  spectator mode code-complete, suite 186/186, flake-hardened, wave-V
+  fixes in: research crash fixed, civs assigned, bare URLs redirect):
+  `./run.sh` on one machine (it prints the WSL port-forward/firewall
+  commands itself; or host natively on Windows with `.\run.ps1`); both
+  browsers to `http://<host-ip>:8123` (redirects to the game now) →
+  Host a LAN game on one, Join by
   the 5-char code on the other (pick a seat; your names should show in
   the waiting room), start, play a few turns. Then the roadmap
   acceptance: kill the at-turn player's browser mid-turn (⏳ waiting

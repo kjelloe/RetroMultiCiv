@@ -766,6 +766,8 @@ html, body {
   background: #2f5388;
 }
 
+#setup-box .hidden { display: none; } /* A23/A26: rows/buttons toggled by mode */
+
 /* --- phase-4 LAN lobby (host/join buttons + waiting room) --- */
 #setup-lan { margin-top: 10px; }
 .setup-lan-btn {
@@ -815,6 +817,16 @@ html, body {
   cursor: pointer;
 }
 #mp-status button:hover { background: #2f5388; }
+#wait-line { /* A26: who we're waiting for, calm, above End Turn */
+  position: fixed;
+  right: 22px;
+  bottom: 72px;
+  z-index: 5;
+  color: #8fa8cc;
+  font-family: inherit;
+  font-size: 13px;
+}
+.log-wait { color: #9d8f55; }
 
 /* --- flash banner (transient center message) --- */
 #flash-banner {

@@ -2,6 +2,7 @@
 import { filterView } from '../../engine/visibility.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
+import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
 
 export function initHud(ctx) {
   const { session, renderer, sel } = ctx;
@@ -30,6 +31,35 @@ export function initHud(ctx) {
   }
   const centerBanner = makeBanner(document.getElementById('center-banner'));
   const flashBanner = makeBanner(document.getElementById('flash-banner'));
+
+  // A26 (server games): a calm "who are we waiting for" line above End Turn,
+  // ticking every second; crossing the Options threshold logs ONE slow-poke
+  // note per player-turn. Pure timing logic lives in wait-status.js.
+  const waitLine = document.createElement('div');
+  waitLine.id = 'wait-line';
+  waitLine.className = 'hidden';
+  document.body.appendChild(waitLine);
+  const waitTracker = createWaitTracker();
+  function tickWait() {
+    const state = session.state;
+    if (session.gameId === undefined || !state || state.gameOver) { // local games: hotseat curtain covers this
+      waitLine.classList.add('hidden');
+      return;
+    }
+    const threshold = parseInt(ctx.options && ctx.options.get('slowPokeSecs'), 10) || 0;
+    const w = waitTracker.update(state.activePlayer, ctx.HUMAN, Date.now(), threshold);
+    if (w.waitingFor === null) {
+      waitLine.classList.add('hidden');
+      return;
+    }
+    const name = state.players[w.waitingFor] ? state.players[w.waitingFor].name : w.waitingFor;
+    waitLine.textContent = formatWait(name, w.elapsedSec);
+    waitLine.classList.remove('hidden');
+    if (w.note && ctx.turnlog && ctx.turnlog.note) {
+      ctx.turnlog.note(formatSlowNote(name, w.elapsedSec), 'log-wait');
+    }
+  }
+  setInterval(tickWait, 1000);
   window.addEventListener('pointerdown', () => {
     centerBanner.hide();
     flashBanner.hide();
@@ -124,6 +154,7 @@ export function initHud(ctx) {
     }
     updateResearchBar();
     updateBanner();
+    tickWait(); // A26: the waiting line reacts to turn changes immediately
   }
 
   // compact stat card for the selected unit, shown just ABOVE the action bar
