@@ -132,6 +132,8 @@ export function startServer(opts) {
       options: entry.options,
       seats: Object.keys(entry.seats).map(pid => ({
         seat: pid, human: entry.seats[pid].human,
+        mode: entry.seats[pid].human ? 'open' : 'ai', // A27: explicit slot mode
+        civ: entry.seats[pid].civ, // A27: host's pick (undefined = Random)
         reserved: entry.seats[pid].reserved === true, name: entry.seats[pid].name
       }))
     };
@@ -322,6 +324,18 @@ export function startServer(opts) {
       }
       if (msg.t === 'join') { handleJoin(ws, info, msg); return; }
       if (msg.t === 'start') { handleStart(ws, info); return; }
+      if (msg.t === 'setSlot' || msg.t === 'setSlots') { // A27: host-only lobby edits
+        if (!info.gameId || !info.isCreator) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          return;
+        }
+        const r = msg.t === 'setSlot'
+          ? registry.setSlot(info.gameId, msg.seat, { mode: msg.mode, civ: msg.civ })
+          : registry.setSlots(info.gameId, msg.civs);
+        if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
+        broadcastLobby(info.gameId); // joiners see the slot list update live
+        return;
+      }
       if (msg.t === 'skipTurn' || msg.t === 'proposeSkip' || msg.t === 'vote') {
         handleSkipFrames(ws, info, msg); return;
       }

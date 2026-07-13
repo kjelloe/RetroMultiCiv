@@ -87,6 +87,55 @@ test('lobby: create → join-by-code (seat pick) → start → play; unfilled se
   }
 });
 
+test('A27 host controls: slot modes, civ picks, resize, no-kick, honored at start', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    const host = await connect(s.port);
+    host.send({ t: 'create', name: 'Kjell', options: { civs: 4, humans: 3, size: 'xsmall', seed: 99 } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    const ada = await connect(s.port);
+    ada.send({ t: 'join', joinCode: created.joinCode, name: 'Ada', seat: 'p2' });
+    await ada.expect(m => m.t === 'joinedLobby', 'ada seated');
+    await host.expect(m => m.t === 'lobby', 'roster broadcast');
+
+    // auth: only the creator may edit slots
+    ada.send({ t: 'setSlot', seat: 'p3', mode: 'ai' });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'non-host')).code, 'notCreator');
+    // shape: parseMessage rejects an empty patch
+    host.send({ t: 'setSlot', seat: 'p3' });
+    assert.strictEqual((await host.expect(m => m.t === 'rejected', 'empty patch')).code, 'badShape');
+    // NO-KICK (@3b520ebc): a reserved seat cannot be flipped to AI
+    host.send({ t: 'setSlot', seat: 'p2', mode: 'ai' });
+    assert.strictEqual((await host.expect(m => m.t === 'rejected', 'kick blocked')).code, 'seatReserved');
+
+    // legit edits: p3 → AI with Romans; duplicate civ pick rejected; resize 4→5→4
+    host.send({ t: 'setSlot', seat: 'p3', mode: 'ai', civ: 'romans' });
+    const rosterMsg = await ada.expect(m => m.t === 'lobby'
+      && m.lobby.seats.some(x => x.seat === 'p3' && x.mode === 'ai' && x.civ === 'romans'), 'joiner sees the edit live');
+    assert.ok(rosterMsg);
+    host.send({ t: 'setSlot', seat: 'p4', civ: 'romans' });
+    assert.strictEqual((await host.expect(m => m.t === 'rejected', 'dupe civ')).code, 'civTaken');
+    host.send({ t: 'setSlots', civs: 5 });
+    await host.expect(m => m.t === 'lobby' && m.lobby.seats.length === 5, 'grown to 5');
+    host.send({ t: 'setSlots', civs: 4 });
+    await host.expect(m => m.t === 'lobby' && m.lobby.seats.length === 4, 'shrunk to 4');
+
+    // start: the edits are honored, and Ada is UNDISTURBED on her seat
+    host.send({ t: 'start' });
+    const hj = await host.expect(m => m.t === 'joined', 'host joined');
+    const aj = await ada.expect(m => m.t === 'joined', 'ada joined');
+    assert.strictEqual(aj.playerId, 'p2', 'the occupant kept her seat through the blocked kick');
+    assert.strictEqual(aj.view.players.p2.name, 'Ada');
+    assert.strictEqual(hj.view.players.p3.human, false, 'p3 started as AI (host flip)');
+    assert.strictEqual(hj.civs.p3, 'romans', 'p3 carries the picked civ');
+    assert.strictEqual(new Set(Object.values(hj.civs)).size, 4, 'civs stay distinct around the pick');
+    host.close(); ada.close();
+  } finally {
+    await s.close();
+  }
+});
+
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

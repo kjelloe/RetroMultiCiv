@@ -116,6 +116,57 @@ export function createRegistry(deps) {
     }
   }
 
+  // A27 host controls. NO-KICK policy (@3b520ebc): mode flips reject on
+  // reserved seats — 'locked to AI' governs FUTURE joiners, never occupants;
+  // kicking would be its own deliberate social feature. Civ picks are fine on
+  // any slot (nobody loses a seat).
+  function setSlot(gameId, seat, patch) {
+    const e = games[gameId];
+    if (!e) return { ok: false, reason: 'noSuchGame' };
+    if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
+    const s = e.seats[seat];
+    if (!s) return { ok: false, reason: 'noSuchSeat' };
+    if (patch.mode !== undefined) {
+      if (patch.mode !== 'open' && patch.mode !== 'ai') return { ok: false, reason: 'badMode' };
+      if (s.reserved) return { ok: false, reason: 'seatReserved' };
+      s.human = patch.mode === 'open';
+    }
+    if (patch.civ !== undefined) {
+      if (patch.civ === '') {
+        delete s.civ; // back to Random (A24's seed-shuffle resolves at start)
+      } else {
+        if (!ruleset.civs || !ruleset.civs[patch.civ]) return { ok: false, reason: 'noSuchCiv' };
+        for (const pid of Object.keys(e.seats)) {
+          if (pid !== seat && e.seats[pid].civ === patch.civ) return { ok: false, reason: 'civTaken' };
+        }
+        s.civ = patch.civ;
+      }
+    }
+    return { ok: true };
+  }
+
+  // Resize to N civs (2..7): grow with Open slots; shrink only past
+  // UNRESERVED tail slots (no-kick applies to removal too).
+  function setSlots(gameId, civCount) {
+    const e = games[gameId];
+    if (!e) return { ok: false, reason: 'noSuchGame' };
+    if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
+    const n = clamp(civCount, 2, 7);
+    const pids = Object.keys(e.seats);
+    if (n > pids.length) {
+      for (let i = pids.length; i < n; i++) {
+        e.seats['p' + (i + 1)] = { human: true, name: null, reserved: false };
+      }
+    } else if (n < pids.length) {
+      for (let i = pids.length; i > n; i--) {
+        if (e.seats['p' + i].reserved) return { ok: false, reason: 'seatReserved' };
+      }
+      for (let i = pids.length; i > n; i--) delete e.seats['p' + i];
+    }
+    e.options.civs = n;
+    return { ok: true };
+  }
+
   // Build the engine game at the creator's start. liveSeats = seat ids whose
   // reserving connection is still present; a reserved-but-dropped seat OR an
   // unfilled human seat becomes AI (the creator's "start anyway"). Returns
@@ -129,8 +180,13 @@ export function createRegistry(deps) {
     for (const s of (liveSeats || [])) live[s] = true;
     // A24: every lobby seat gets a DISTINCT civilization — seed-shuffled with
     // the same LCG client/main.js uses for local games, so a seed reproduces
-    // the same lineup. Humans keep their chosen names; AI seats take the civ
-    // name; colors come from the civ (faction visuals light up downstream).
+    // the same lineup. A27: host civ PICKS take precedence; the shuffle only
+    // fills the Random slots (skipping every picked civ). Humans keep their
+    // chosen names; AI seats take the civ name; colors come from the civ.
+    const picked = {};
+    for (const pid of Object.keys(e.seats)) {
+      if (e.seats[pid].civ !== undefined) picked[e.seats[pid].civ] = true;
+    }
     const roster = Object.keys(ruleset.civs || {}).sort();
     let shuffleRng = e.options.seed;
     for (let i = roster.length - 1; i > 0; i--) {
@@ -138,12 +194,15 @@ export function createRegistry(deps) {
       const j = shuffleRng % (i + 1);
       const tmp = roster[i]; roster[i] = roster[j]; roster[j] = tmp;
     }
+    const pool = roster.filter(id => picked[id] !== true);
+    let poolAt = 0;
     const players = [];
     const humanSeats = [];
     Object.keys(e.seats).forEach((pid, i) => {
       const s = e.seats[pid];
       const human = s.human && s.reserved && live[pid] === true;
-      const civId = roster.length > 0 ? roster[i % roster.length] : undefined;
+      const civId = s.civ !== undefined ? s.civ
+        : pool.length > 0 ? pool[poolAt++ % pool.length] : undefined;
       const civ = civId ? ruleset.civs[civId] : undefined;
       const def = {
         id: pid,
@@ -240,5 +299,5 @@ export function createRegistry(deps) {
     });
   }
 
-  return { create, reserveSeat, releaseSeat, start, register, resolveId, entryOf, list };
+  return { create, reserveSeat, releaseSeat, setSlot, setSlots, start, register, resolveId, entryOf, list };
 }

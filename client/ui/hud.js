@@ -157,6 +157,48 @@ export function initHud(ctx) {
     tickWait(); // A26: the waiting line reacts to turn changes immediately
   }
 
+  // A25: the LAN your-turn banner — dismissible (✕), mutable (🔕 → the same
+  // Options checkbox), with a soft two-note chime that obeys the mute. The
+  // buttons use pointerdown+stopPropagation so they run before the global
+  // dismiss-anywhere handler (the no-moves-hint mute pattern).
+  let audioCtx = null;
+  function chime() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      for (const [freq, at] of [[660, 0], [880, 0.12]]) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.06, audioCtx.currentTime + at);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + at + 0.25);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + at);
+        osc.stop(audioCtx.currentTime + at + 0.3);
+      }
+    } catch (e) { /* audio blocked pre-gesture — the banner still shows */ }
+  }
+  function turnBanner(text) {
+    if (ctx.options && ctx.options.get('muteTurnBanner') === true) return;
+    centerBanner.show(text);
+    const host = document.getElementById('center-banner');
+    for (const [label, title, onDown] of [
+      ['✕', 'dismiss', () => centerBanner.hide()],
+      ['🔕', 'mute your-turn banners (re-enable in ⚙ Options)', () => {
+        if (ctx.options) ctx.options.set('muteTurnBanner', true);
+        centerBanner.hide();
+      }]
+    ]) {
+      const btn = document.createElement('button');
+      btn.className = 'banner-btn';
+      btn.title = title;
+      btn.textContent = label;
+      btn.addEventListener('pointerdown', e => { e.stopPropagation(); onDown(); });
+      host.appendChild(btn);
+    }
+    chime();
+  }
+
   // compact stat card for the selected unit, shown just ABOVE the action bar
   // (playtest: the actions clearly belong to this unit):
   // "Legion ★vet · ⚔3 🛡2 👟1/2 · hills (14,9) · ready · F: fortify"
@@ -182,6 +224,7 @@ export function initHud(ctx) {
     refresh,
     flash: flashBanner.show,
     banner: centerBanner.show,
+    turnBanner,
     note(text) { hudSelection.textContent = text; },
     unitNote,
     clearUnitLine,

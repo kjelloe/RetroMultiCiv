@@ -43,31 +43,95 @@ function openLobbySocket(onMsg, onDead) {
   return ws;
 }
 
-function seatLine(s, mySeat) {
-  if (!s.human) return `<span class="lobby-ai">${s.seat} · AI</span>`;
-  if (!s.reserved) return `<span class="lobby-open">${s.seat} · — open —</span>`;
-  const you = s.seat === mySeat ? ' (you)' : '';
-  return `<b>${s.seat} · ${s.name}${you}</b>`;
+// civ names for the host's per-slot dropdowns (fetched once, cached)
+let civsPromise = null;
+function loadCivs() {
+  if (!civsPromise) civsPromise = fetch('../data/civs.json').then(r => r.json()).catch(() => ({}));
+  return civsPromise;
 }
 
-function renderWaitingRoom(box, info, isCreator, onStart) {
+function seatLine(s, mySeat, civs) {
+  const civTag = s.civ && civs && civs[s.civ] ? ` · ${civs[s.civ].name}` : '';
+  if (!s.human) return `<span class="lobby-ai">${s.seat} · AI${civTag}</span>`;
+  if (!s.reserved) return `<span class="lobby-open">${s.seat} · — open —${civTag}</span>`;
+  const you = s.seat === mySeat ? ' (you)' : '';
+  return `<b>${s.seat} · ${s.name}${you}</b>${civTag}`;
+}
+
+function renderWaitingRoom(box, info, hostCtl, onStart) {
   box.innerHTML = `
     <h2>Game lobby</h2>
     <p class="setup-hint">join code — tell your friends:</p>
     <p id="lobby-code">${info.joinCode}</p>
+    ${hostCtl ? `<p class="setup-hint">slots: <button id="slot-minus" class="setup-lan-btn">−</button>
+      <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button></p>` : ''}
     <div id="lobby-roster"></div>
-    <p class="setup-hint" id="lobby-status">${isCreator
+    <p class="setup-hint" id="lobby-status">${hostCtl
       ? 'start when everyone is seated — open seats become AI'
       : 'waiting for the host to start…'}</p>
-    ${isCreator ? '<button id="setup-start">Start game</button>' : ''}
+    ${hostCtl ? '<button id="setup-start">Start game</button>' : ''}
     <p class="setup-hint"><a href="./">← back (leaves your seat)</a></p>`;
-  if (isCreator) document.getElementById('setup-start').addEventListener('click', onStart);
-  updateRoster(info.lobby, info.seat);
+  if (hostCtl) {
+    document.getElementById('setup-start').addEventListener('click', onStart);
+    document.getElementById('slot-minus').addEventListener('click',
+      () => hostCtl.send({ t: 'setSlots', civs: hostCtl.count - 1 }));
+    document.getElementById('slot-plus').addEventListener('click',
+      () => hostCtl.send({ t: 'setSlots', civs: hostCtl.count + 1 }));
+  }
+  updateRoster(info.lobby, info.seat, hostCtl);
 }
 
-function updateRoster(lobby, mySeat) {
+// A27: the host sees interactive rows (AI↔Open toggle on unreserved slots +
+// a civ pick; each civ once, Random = the A24 shuffle at start); joiners see
+// the same list read-only, updating live off the lobby broadcasts. Layout
+// leaves room for a future per-slot difficulty cell (parked, engine change).
+function updateRoster(lobby, mySeat, hostCtl) {
   const el = document.getElementById('lobby-roster');
-  if (el && lobby) el.innerHTML = lobby.seats.map(s => `<div>${seatLine(s, mySeat)}</div>`).join('');
+  if (!el || !lobby) return;
+  if (hostCtl) hostCtl.count = lobby.seats.length;
+  const countEl = document.getElementById('slot-count');
+  if (countEl) countEl.textContent = String(lobby.seats.length);
+  loadCivs().then(civs => {
+    if (!document.getElementById('lobby-roster')) return; // room closed meanwhile
+    const taken = {};
+    for (const s of lobby.seats) if (s.civ) taken[s.civ] = s.seat;
+    el.textContent = '';
+    for (const s of lobby.seats) {
+      const row = document.createElement('div');
+      row.className = 'lobby-row';
+      const label = document.createElement('span');
+      label.innerHTML = seatLine(s, mySeat, civs);
+      row.appendChild(label);
+      if (hostCtl) {
+        if (!s.reserved) { // no-kick (@3b520ebc): occupants keep their seats
+          const toggle = document.createElement('button');
+          toggle.className = 'setup-lan-btn';
+          toggle.textContent = s.mode === 'ai' ? 'make open' : 'make AI';
+          toggle.addEventListener('click', () => hostCtl.send({
+            t: 'setSlot', seat: s.seat, mode: s.mode === 'ai' ? 'open' : 'ai'
+          }));
+          row.appendChild(toggle);
+        }
+        const pick = document.createElement('select');
+        const rnd = document.createElement('option');
+        rnd.value = '';
+        rnd.textContent = 'Random';
+        pick.appendChild(rnd);
+        for (const id of Object.keys(civs).sort()) {
+          if (taken[id] && taken[id] !== s.seat) continue; // each civ once
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = civs[id].name;
+          if (s.civ === id) opt.selected = true;
+          pick.appendChild(opt);
+        }
+        pick.addEventListener('change',
+          () => hostCtl.send({ t: 'setSlot', seat: s.seat, civ: pick.value }));
+        row.appendChild(pick);
+      }
+      el.appendChild(row);
+    }
+  });
 }
 
 function fail(box, text) {
@@ -83,24 +147,41 @@ export function startHostFlow(box, options, flags) {
   function create(name) {
     box.innerHTML = '<h2>Game lobby</h2><p class="setup-hint">creating game…</p>';
     let mySeat = null;
+    const hostCtl = { count: 2, send: null }; // A27: roster controls post via the lobby ws
     const ws = openLobbySocket((msg, sock) => {
       if (msg.t === 'created') {
         mySeat = msg.seat;
-        renderWaitingRoom(box, msg, true, () => sock.send(JSON.stringify({ t: 'start' })));
+        hostCtl.send = frame => sock.send(JSON.stringify(frame));
+        renderWaitingRoom(box, msg, hostCtl, () => sock.send(JSON.stringify({ t: 'start' })));
         if (auto && !(flags && flags.hold)) sock.send(JSON.stringify({ t: 'start' }));
       } else if (msg.t === 'lobby') {
-        updateRoster(msg.lobby, mySeat);
+        updateRoster(msg.lobby, mySeat, hostCtl);
       } else if (msg.t === 'rejected') {
-        fail(box, `server rejected: ${msg.code}`);
+        fail(box, msg.code === 'seatReserved'
+          ? 'that seat is taken — they can leave, or pick another slot for the AI'
+          : msg.code === 'civTaken' ? 'another slot already has that civilization'
+          : `server rejected: ${msg.code}`);
       }
     }, () => fail(box, 'no game server — start it with: node server/index.js'));
     ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'create', name, options })));
   }
   if (auto) { create(flags.name || 'Host'); return; }
+  // A27 (d): size + starting age live ON the host form — hosting shouldn't
+  // require the setup-screen detour (they default from whatever it passed)
+  const SIZES = ['xsmall', 'small', 'medium', 'large', 'xlarge', 'huge'];
+  const AGES = ['ancient', 'renaissance', 'industrial', 'modern', 'space'];
   box.innerHTML = `
     <h2>Host a LAN game</h2>
-    <p class="setup-hint">uses the world options you just picked</p>
+    <p class="setup-hint">world options — slots and civs come next, in the lobby</p>
     <label>Your name <input id="lobby-name" type="text" maxlength="24" value="Player 1"></label>
+    <label>Map size
+      <select id="lobby-size">${SIZES.map(s =>
+        `<option value="${s}"${s === options.size ? ' selected' : ''}>${s}</option>`).join('')}</select>
+    </label>
+    <label>Starting age
+      <select id="lobby-age">${AGES.map(a =>
+        `<option value="${a}"${a === options.age ? ' selected' : ''}>${a}</option>`).join('')}</select>
+    </label>
     <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
     <p class="setup-hint">spectators see the whole map — admit people you'd
       let stand behind your chair</p>
@@ -108,6 +189,8 @@ export function startHostFlow(box, options, flags) {
     <p class="setup-hint"><a href="./">← back</a></p>`;
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
+    options.size = document.getElementById('lobby-size').value;
+    options.age = document.getElementById('lobby-age').value;
     create(document.getElementById('lobby-name').value.trim() || 'Player 1');
   });
 }
@@ -190,14 +273,26 @@ export function initMultiplayerFlow(ctx) {
   session.onChange(() => {
     const s = session.state;
     if (s && s.activePlayer !== prevActive) {
-      // the hand-back moment (docs/08 §3) — only worth a chime with 2+ humans
+      // the hand-back moment (docs/08 §3) — only worth a chime with 2+ humans;
+      // A25: dismissible + mutable, and the chime obeys the same mute
       if (s.activePlayer === ctx.HUMAN && humanCount() > 1 && !s.gameOver) {
-        ctx.hud.banner('🔔 Your turn');
+        ctx.hud.turnBanner('🔔 Your turn');
       }
       prevActive = s.activePlayer;
     }
     render();
   });
+}
+
+// e2e/screenshots: auto-join a lobby by code without the form (?e2ejoin=CODE)
+export function autoJoin(box, code, name) {
+  let mySeat = null;
+  const ws = openLobbySocket((msg) => {
+    if (msg.t === 'joinedLobby') { mySeat = msg.seat; renderWaitingRoom(box, msg, null, null); }
+    else if (msg.t === 'lobby') updateRoster(msg.lobby, mySeat, null);
+    else if (msg.t === 'rejected') fail(box, `server rejected: ${msg.code}`);
+  }, () => fail(box, 'no game server'));
+  ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name: name || 'Joiner' })));
 }
 
 // Join: by code, with an optional seat pick (falls back to first free).
@@ -227,9 +322,9 @@ export function startJoinFlow(box) {
     const ws = openLobbySocket((msg) => {
       if (msg.t === 'joinedLobby') {
         mySeat = msg.seat;
-        renderWaitingRoom(box, msg, false, null);
+        renderWaitingRoom(box, msg, null, null);
       } else if (msg.t === 'lobby') {
-        updateRoster(msg.lobby, mySeat);
+        updateRoster(msg.lobby, mySeat, null);
       } else if (msg.t === 'rejected') {
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'

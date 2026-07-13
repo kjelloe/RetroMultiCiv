@@ -153,6 +153,10 @@ export function showSetupScreen() {
   hotseatEl.addEventListener('change', refreshMode);
   refreshHumans();
   // ?setupdemo=lan|hotseat presets the multi-human states for screenshots
+  // ?e2ejoin=CODE — joiner-view screenshots without driving the form
+  const joinCode = new URLSearchParams(location.search).get('e2ejoin');
+  if (joinCode) import('./lobby.js').then(m => m.autoJoin(setupBox, joinCode.toUpperCase(), 'Ada'));
+
   const demo = new URLSearchParams(location.search).get('setupdemo');
   if (demo === 'lan' || demo === 'hotseat') {
     humansEl.value = '2';

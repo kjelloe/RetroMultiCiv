@@ -789,6 +789,11 @@ html, body {
 }
 #lobby-roster { margin: 0 auto 8px; text-align: left; display: inline-block; }
 #lobby-roster div { padding: 2px 0; }
+.lobby-row { display: flex; align-items: center; gap: 8px; } /* A27 host rows */
+.lobby-row select {
+  background: #141d2e; color: #cdd8ea; border: 1px solid #3b5d8f;
+  border-radius: 4px; font-family: inherit; padding: 2px 4px;
+}
 .lobby-open { color: #7d8aa5; }
 .lobby-ai { color: #5a6b85; }
 #setup-box a { color: #8fa8cc; }
@@ -827,6 +832,17 @@ html, body {
   font-size: 13px;
 }
 .log-wait { color: #9d8f55; }
+.banner-btn { /* A25: ✕ / 🔕 riding the center banner */
+  margin-left: 8px;
+  background: none;
+  border: 1px solid #46587c;
+  border-radius: 4px;
+  color: #8fa8cc;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 1px 7px;
+}
+.banner-btn:hover { color: #cdd8ea; border-color: #8fa8cc; }
 
 /* --- flash banner (transient center message) --- */
 #flash-banner {

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 186 tests), the item's own verification steps pass, related
+   (currently 188 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -101,6 +101,23 @@ or a guard. Golden-safe (views are never hashed). If the right fix
 turns out to be defensive (`availableTechs`/`researchCost` returning
 empty/0 for tech-less entries), mail me first — I'd rather fix the
 CALLER and keep the engine strict.
+
+### B4 — Sweep: inert `classList.add('hidden')` calls (from A26's bonus find)
+
+The helper proved `.hidden` has NEVER been a global CSS rule in
+style.css — only per-element rules (`.panel.hidden` etc.) exist, so any
+`classList` use of 'hidden' on an element WITHOUT a matching scoped
+rule silently does nothing (his A23 setup toggles were inert until a
+`#setup-box .hidden` rule landed). Mechanical sweep: grep every
+`'hidden'` classList/className site in client/, check each element has
+a covering CSS rule, fix the gaps (scoped rules preferred over a
+global one — a global `.hidden` could surprise three.js overlay
+stacking; decide per case and note it). For each fix: screenshot
+before/after (the before should show the element wrongly visible).
+Also consider the durable guard: a client-syntax-style test that
+extracts hidden-toggled ids from JS and asserts a matching CSS
+selector exists — flag feasibility in the done-mail rather than
+forcing it. Golden-safe.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -543,7 +560,7 @@ extend a lobby/server test to assert distinct civ ids + civ-roster
 city names appear after start; browser screenshot of a lobby game
 showing a real city name + faction colors. Golden-safe.
 
-## A25 — Turn banners: dismiss + suppress (wave V.6)
+## A25 — Turn banners: dismiss + suppress (wave V.6)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — hud.turnBanner: ✕ dismiss + 🔕 mute (pointerdown+stopPropagation, the no-moves-hint pattern; buttons survive because centerBanner.show's textContent reset clears them each show); mute = Options "muteTurnBanner" checkbox, persisted with the other prefs; NEW soft two-note WebAudio chime (osc 660→880Hz, try/catch for pre-gesture autoplay) obeying the same mute; lobby initMultiplayerFlow calls turnBanner. ?bannerdemo=1 hook (interval-refired — 5s transient expired under virtual-time before the first shot caught it). V.6 REGRESSION NET: new browser case on the B3 topology — rival at turn ⇒ "⏳ Player 2 is moving · Ns" wait-line present AND no 🔔 banner on the waiting machine. Screenshots read (banner+controls; Options entry in panel). Suite 187/187.]
 
 The 🔔 "Player N — take your turn" banners can't be dismissed. Add an
 ✕ on the banner (dismiss this one) and a mute icon (suppress future
@@ -566,7 +583,7 @@ narration, nothing enters game state). Verify: unit-test the timer
 formatting/threshold logic as a pure helper; screenshot the line in a
 2-human lobby game. Golden-safe.
 
-## A27 — Lobby seat management: host controls (wave V.4 — DESIGN INCLUDED)
+## A27 — Lobby seat management: host controls (wave V.4 — DESIGN INCLUDED)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — registry setSlot (mode open↔ai NO-KICK per @3b520ebc: reserved seats reject 'seatReserved'; civ picks allowed anywhere, '' = Random, civTaken/noSuchCiv validated) + setSlots resize 2..7 (grow=Open slots, shrink rejects past reserved tails); start() honors picks — shuffle fills only Randoms (pool excludes picked); roster carries mode+civ; protocol setSlot/setSlots shapes + host-only routing (notCreator) + live broadcastLobby. Client: host waiting room = interactive rows (mode toggle on unreserved only, per-slot civ dropdowns with each-civ-once filtering, − N + resize) + host form gained size/age selects (item d); joiners see edits live read-only; friendly seatReserved/civTaken texts; ?e2ejoin=CODE hook. Integration test: auth reject, empty-patch badShape, KICK BLOCKED + occupant joins started game on her seat (ruling requirement), dupe-civ reject, resize both ways, start honors AI-flip + Romans pick with distinct civs. Screenshots read: host view (controls) + joiner view (live 'p3 · AI · Romans'). Suite 188/188. NOTE for docs/08 §6 sync: no-kick is POLICY. Wave V complete.]
 
 Host-side lobby power before start: (a) per-slot toggle AI ↔ Open
 (open = joinable by humans; AI = locked to AI even if someone joins

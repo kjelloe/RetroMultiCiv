@@ -41,6 +41,18 @@ export function parseMessage(raw) {
     return { ok: true, msg };
   }
   if (msg.t === 'list' || msg.t === 'start') return { ok: true, msg };
+  // A27 host-only lobby edits: slot mode/civ + slot-count resize
+  if (msg.t === 'setSlot') {
+    if (typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.mode !== undefined && msg.mode !== 'open' && msg.mode !== 'ai') return { ok: false, code: 'badShape' };
+    if (msg.civ !== undefined && typeof msg.civ !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.mode === undefined && msg.civ === undefined) return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
+  if (msg.t === 'setSlots') {
+    if (!Number.isInteger(msg.civs)) return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {

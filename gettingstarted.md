@@ -53,16 +53,24 @@ player's seat, behind the hand-off cover.
 
 ## 4. LAN multiplayer (host + join codes)
 
-`./run.sh`, then friends on your network open
-`http://<your-ip>:8123/client/` — on the setup screen use **Host a LAN
-game** (you get a 5-letter join code and a waiting room) while they use
-**Join** with that code, pick seats, and appear by name. Start when
-ready — unfilled seats become AI. Mid-game niceties: a 🔔 your-turn
-banner, a ⏳ waiting banner if someone disconnects (the host can skip
-their turn, or players can vote), and full resume if the server
-restarts (`./run.sh 8123 --game saves/<gameId>.json`). Every save shows
-a **game code** (like `AD1X-Q5MR-DP7H9`) — note it down; when the game
-loads again, matching codes prove nobody edited the save in between.
+`./run.sh`, then friends on your network open `http://<your-ip>:8123`
+(it lands on the game) — on the setup screen use **Host a LAN game**
+(you get a 5-letter join code and a waiting room) while they use
+**Join** with that code, pick seats, and appear by name. The host's
+waiting room is a control panel: toggle each seat between **Open** (a
+human can join it) and **AI**, pick each seat's civilization (or leave
+it Random), resize the game 2–7, and set map size and starting age
+right there. Seated players can never be kicked — a taken seat is
+theirs. Start when ready — unfilled seats become AI with real
+civilizations. Mid-game niceties: a 🔔 your-turn banner with a soft
+chime (✕ dismisses, 🔕 mutes — also in ⚙ Options), a calm "⏳ who's
+moving · seconds" line above End Turn (waits past a threshold get a
+turn-log note), a ⏳ waiting banner if someone disconnects (the host
+can skip their turn, or players can vote), and full resume if the
+server restarts (`./run.sh 8123 --game saves/<gameId>.json`). Every
+save shows a **game code** (like `AD1X-Q5MR-DP7H9`) — note it down;
+when the game loads again, matching codes prove nobody edited the save
+in between.
 
 **Windows/WSL2 host?** `./run.sh` detects WSL and prints the exact
 commands for YOUR setup — paste them once into an *admin* PowerShell on

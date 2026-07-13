@@ -7,7 +7,8 @@ const DEFAULTS = {
   hideFuture: false,      // hide not-yet-buildable items in the city catalog
   hideNoMovesHint: false, // mute the center "press E" hint
   clock: 'off',           // off | elapsed | time
-  slowPokeSecs: '30'      // A26: turn-log note after waiting this long (0 = off)
+  slowPokeSecs: '30',     // A26: turn-log note after waiting this long (0 = off)
+  muteTurnBanner: false   // A25: suppress the 🔔 your-turn banner + chime
 };
 
 export function initOptions(ctx) {
@@ -44,6 +45,7 @@ export function initOptions(ctx) {
     <label><input type="checkbox" data-opt="autoNextUnit"> Auto-select the next unit when one is spent</label>
     <label><input type="checkbox" data-opt="hideFuture"> Hide future units/buildings in the city catalog</label>
     <label><input type="checkbox" data-opt="hideNoMovesHint"> Hide the "press E to end the turn" hint</label>
+    <label><input type="checkbox" data-opt="muteTurnBanner"> Mute the "your turn" banner and chime (LAN games)</label>
     <label>Clock
       <select data-opt="clock">
         <option value="off">off</option>

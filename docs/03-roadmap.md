@@ -404,6 +404,14 @@ the designer ally's plan:
   low-contrast mottle texture (per-terrain atlas = ally-triggered
   follow-up), railroad ties / mine entrances / irrigation fields; plus
   the assets.js split (renderer/three/props.js) proven byte-identical.
+  **Ally SIGN-OFF 2026-07-13 (A1.6a+b together)**, with his three-point
+  gallery checklist run by the architect against fresh shots: ivory
+  civ reads on tundra via the dark/gold rims (the tightest pair, by
+  design); Emerald Oak vs grassland and Azure Wave vs ocean carry via
+  disc saturation + rims + secondary-color pennants (blue-on-ocean is
+  the weakest, within his "saturation or secondary accent" criterion);
+  rails/irrigation crossing dunes stay legible, foam dashes crisp
+  (`debugging/gallery-signoff-{grid,props}.png`).
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

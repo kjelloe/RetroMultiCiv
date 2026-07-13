@@ -349,6 +349,14 @@ if (firstUnit) {
 const zoom = parseInt(params.get('zoom') || '', 10);
 if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
 
+// ?bannerdemo=1 (A25 screenshots): render the your-turn banner with its
+// dismiss/mute controls deterministically — re-fired so the 5s transient
+// can't expire before a virtual-time screenshot captures it
+if (params.get('bannerdemo') === '1') {
+  ctx.hud.turnBanner('🔔 Your turn');
+  setInterval(() => ctx.hud.turnBanner('🔔 Your turn'), 3000);
+}
+
 // ?hoverdemo=1 (A19 screenshots): with the camera centered on the selected
 // unit, hover a screen point offset from canvas center (&hoverdx/&hoverdy px)
 // so the move-affordance arrow renders deterministically in headless shots

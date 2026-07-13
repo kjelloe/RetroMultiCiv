@@ -308,3 +308,25 @@ test('browser LAN turn pass: handing to the other human keeps my own viewpoint',
       await gs.close();
     }
   });
+
+// A25/A26 (wave V.6 regression net, same topology as the B3 case): with the
+// turn parked on the RIVAL human, MY machine shows the calm waiting line and
+// NEVER the 🔔 your-turn banner — the banner belongs to the machine whose
+// turn it IS. (Post-B3, server-mode turn banners come from initMultiplayerFlow
+// alone, so this pins both the name and the machine.)
+test('browser LAN wait: rival at turn shows the waiting line, not the your-turn banner',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 4242, civs: 2, humans: 2, size: 'xsmall', autosave: false });
+    try {
+      const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=4&civ=romans`;
+      const dom = await dumpDomLive(chromium, url, h => /is moving · \d+s/.test(h), 25000);
+      const wait = dom.match(/⏳ ([^<]+) is moving · \d+s/);
+      assert.ok(wait, 'the waiting line must appear once the rival is at turn');
+      assert.strictEqual(wait[1], 'Player 2', 'it names the player we are waiting FOR');
+      assert.ok(!/🔔 Your turn/.test(dom), 'the your-turn banner must NOT show on the waiting machine');
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+    } finally {
+      await gs.close();
+    }
+  });

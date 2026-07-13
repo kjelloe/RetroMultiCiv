@@ -75,12 +75,18 @@ player's seat, behind the cover.</div>
 
 <h2>4. LAN multiplayer (host + join codes)</h2>
 <p><code>./run.sh</code>, then friends on your network open
-<code>http://&lt;your-ip&gt;:8123/client/</code> — on the setup screen use
-<b>Host a LAN game</b> (you get a 5-letter join code and a waiting room)
-while they use <b>Join</b> with that code, pick seats, and appear by name.
-Start when ready — unfilled seats become AI. Mid-game: a 🔔 your-turn
-banner, a ⏳ waiting banner on disconnects (host skip, or a player vote),
-and full resume if the server restarts. Every save shows a
+<code>http://&lt;your-ip&gt;:8123</code> (it lands on the game) — on the
+setup screen use <b>Host a LAN game</b> (you get a 5-letter join code
+and a waiting room) while they use <b>Join</b> with that code, pick
+seats, and appear by name. The host's waiting room is a control panel:
+toggle each seat <b>Open ↔ AI</b>, pick each seat's civilization (or
+Random), resize the game 2–7, and set map size and starting age right
+there — seated players can never be kicked. Start when ready — unfilled
+seats become AI with real civilizations. Mid-game: a 🔔 your-turn banner
+with a soft chime (✕ dismisses, 🔕 mutes — also in ⚙ Options), a calm
+"⏳ who's moving · seconds" line above End Turn (long waits get a
+turn-log note), a ⏳ waiting banner on disconnects (host skip, or a
+player vote), and full resume if the server restarts. Every save shows a
 <b>game code</b> (like <code>AD1X-Q5MR-DP7H9</code>) — note it down;
 matching codes on reload prove nobody edited the save in between.</p>
 <div class="tip"><b>Windows/WSL2 host?</b> <code>./run.sh</code> detects

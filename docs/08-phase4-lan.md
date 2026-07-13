@@ -13,6 +13,13 @@ map), bare `/` and `/client` redirect to `/client/`, the hotseat
 curtain is local-session-guarded (it used to flip a LAN client's
 viewpoint to the rival after endTurn — the research-crash root cause),
 and the setup screen splits "Start hotseat game" from "Host LAN game".
+Wave V closed 6/6 (A27, 2026-07-13): the host's waiting room is a
+control panel — per-slot AI↔Open toggles (no-kick, §6), per-slot civ
+picks (each civ once, Random default), slot resize 2..7, map size +
+starting age on the host form; joiners see edits live. Turn banners
+carry ✕/🔕 (mute in ⚙, chime included — a real WebAudio chime exists
+now), and a "⏳ <name> is moving · Ns" wait-line sits above End Turn
+with a configurable slow-poke turn-log note.
 Remaining: the two-machine human acceptance (human-workitems). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
 (docs/06: seats, tokens, per-seat views, save/resume). Roadmap acceptance:
 a full game between two machines surviving a mid-game disconnect.
@@ -100,6 +107,12 @@ banner "Your turn" on the broadcast is the only new client UX.
   with the skipped seat, logged in the diagnostics like any command.
 - **Lobby auth: join codes only** — no names/passwords in v1 (it's a LAN
   among friends; the join code is the invitation).
+- **Slot kicks: NO** (architect ruling @3b520ebc, A27 2026-07-13) —
+  "locked to AI" governs FUTURE joiners, never occupants; the host's
+  `setSlot`/`setSlots` reject on reserved seats (`seatReserved`), and a
+  shrink cannot remove a reserved tail seat either. Kicking a seated
+  human is a deliberate future social feature (notification, maybe a
+  rejoin block), not a lobby toggle.
 
 ## 7. Later option (noted, not phase 4): AI regency
 

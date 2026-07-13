@@ -8,18 +8,24 @@ the Done log at the bottom.
 ## Pending — verify in real play
 
 - [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3 +
-  spectator mode code-complete, suite 186/186, flake-hardened, wave-V
-  fixes in: research crash fixed, civs assigned, bare URLs redirect):
+  spectator mode code-complete, suite 188/188, flake-hardened, wave V
+  closed 6/6: research crash fixed, civs assigned, bare URLs redirect,
+  host slot controls + civ picks, banner ✕/🔕 + chime, waiting line):
   `./run.sh` on one machine (it prints the WSL port-forward/firewall
   commands itself; or host natively on Windows with `.\run.ps1`); both
   browsers to `http://<host-ip>:8123` (redirects to the game now) →
   Host a LAN game on one, Join by
   the 5-char code on the other (pick a seat; your names should show in
   the waiting room), start, play a few turns. Then the roadmap
-  acceptance: kill the at-turn player's browser mid-turn (⏳ waiting
-  banner; try host-skip, and the propose/vote if you seat a third
-  human), reconnect and continue; kill the SERVER mid-game,
-  `./run.sh 8123 --game saves/<gameId>.json`, both rejoin. Also eyeball
+  acceptance — the designer ally's recommended script (2026-07-13):
+  (1) 3-player game: you, a second human, one AI; (2) play to ~turn
+  50; (3) hard-kill the network on the second machine (not just the
+  tab); (4) kill the Node server process; (5) restart it with
+  `./run.sh 8123 --game saves/<gameId>.json`; (6) both humans rejoin;
+  (7) **compare the game verification code before and after** — they
+  must match; (8) the second player resumes their turn exactly where
+  they were. Also try host-skip and the propose/vote while the second
+  machine is dark. Also eyeball
   the 🔔 your-turn / ⏳ waiting / vote banners — integration-tested but
   not yet visually verified (A13's honest note). Ticking this = phase 4
   accepted. PRE-FLIGHT DONE (2026-07-13): a four-client end-to-end test
@@ -66,13 +72,15 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
-- [ ] **Ally sign-off loop for A14/A15**: send him the exhibits —
-  `debugging/gallery-factions-a14.png` (his own acceptance criteria from
-  `specs/civ-visuals.md`) and `debugging/gallery-water-a15.png` — for
-  design sign-off, plus the pending thank-you for authoring the table
-  (`ally-reply-assets.md` has the broader asset-plan reply if not yet
-  shared). His plan-update feedback (2026-07-13) is applied — the
-  refreshed `plan-update.md` is ready to re-share.
+- [ ] **Ally loop — final relay**: he SIGNED OFF on A1.6a/b
+  (2026-07-13) pending his three-point gallery checklist, which the
+  architect ran and passed (verdicts + fresh shots
+  `debugging/gallery-signoff-{grid,props}.png`; details in docs/03 art
+  track). Remaining human step: relay the checklist verdicts + the
+  shots to him, share the refreshed `plan-update.md` (both his feedback
+  rounds applied, incl. "Phase 5 — designed, next major technical
+  target"), and the thank-you for the civ table. His disconnect
+  stress-test script is folded into the LAN acceptance item above.
 - [ ] **Old recordings cleanup** (at leisure): everything in
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
