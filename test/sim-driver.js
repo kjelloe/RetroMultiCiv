@@ -50,6 +50,7 @@ async function loadModules() {
   ]);
   MODS = {
     createEngine: engineMod.createEngine,
+    nextYear: engineMod.nextYear,
     deepClone: engineMod.deepClone,
     runAiTurn: aiMod.runAiTurn,
     hashState: hashMod.hashState,
@@ -391,8 +392,37 @@ function ownUnits(state, pid, mods) {
   return out;
 }
 
+// chaos moveUnit walks use the engine's direction vocabulary
+const CHAOS_DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+// mine is double-weighted: on grassland it is the plant-forest TRANSFORM, the
+// one work order that is legal almost anywhere — it keeps the accept path warm
+const CHAOS_WORKS = ['irrigate', 'mine', 'fortress', 'railroad', 'mine'];
+const CHAOS_NAMES = ['Chaosville', 'Entropy', 'Mayhem']; // tiny pool → duplicate-name path
+const CHAOS_BASICS = ['militia', 'settlers']; // tech-free: keeps setProduction's accept path warm
+
+function ownSettlers(state, pid, mods) {
+  const out = [];
+  const spent = [];
+  for (const uid of mods.sortIds(Object.keys(state.units))) {
+    const u = state.units[uid];
+    if (u.owner === pid && u.type === 'settlers') {
+      (u.moves > 0 ? out : spent).push(uid);
+    }
+  }
+  // settlers with moves first (found/startWork need them); spent ones still
+  // exercise the noMovesLeft rejection when nothing better exists
+  return out.concat(spent);
+}
+
 function pickChaosCommand(state, pid, roll, ruleset, mods) {
-  const kind = roll(8);
+  // 16 slots: the three youngest kinds (setProduction / foundCity / startWork)
+  // are double-weighted — their legal windows are thin (settlers scarce
+  // mid-game, most ids tech-locked), so extra attempts keep both their accept
+  // AND reject paths exercised within a 60-turn probe
+  let kind = roll(16);
+  if (kind === 13) kind = 8;
+  else if (kind === 14) kind = 10;
+  else if (kind === 15) kind = 11;
   if (kind === 0 || kind === 7) { // buy, double weight — the main gold sink
     const cities = ownCities(state, pid);
     if (cities.length === 0) return null;
@@ -423,14 +453,121 @@ function pickChaosCommand(state, pid, roll, ruleset, mods) {
     for (let i = 0; i < n; i++) workers.push(candidates[i].idx);
     return { type: 'setWorkers', playerId: pid, cityId: city.id, workers };
   }
-  if (kind === 5) { // volatile government (AI itself stops at monarchy)
-    const gov = roll(2) === 0 ? 'republic' : 'democracy';
+  if (kind === 5) { // volatile government (AI itself stops at monarchy);
+    // communism included — the one arm chaos never tried (fixedCorruptionDist)
+    const gov = ['republic', 'democracy', 'communism'][roll(3)];
     return { type: 'setGovernment', playerId: pid, government: gov };
   }
-  // research switch: a random advance — mostly rejects on prereqs, sometimes
-  // swaps research midway (the bulb-carry path)
-  const techIds = Object.keys(ruleset.techs).sort();
-  return { type: 'setResearch', playerId: pid, tech: techIds[roll(techIds.length)] };
+  if (kind === 6) { // research switch — mostly rejects on prereqs, sometimes
+    // swaps research midway (the bulb-carry path)
+    const techIds = Object.keys(ruleset.techs).sort();
+    return { type: 'setResearch', playerId: pid, tech: techIds[roll(techIds.length)] };
+  }
+  if (kind === 8) { // production switch: category-halving, techRequired,
+    // wonder-race and cheapUnit/cheapBuilding hooks on organic states
+    const cities = ownCities(state, pid);
+    if (cities.length === 0) return null;
+    const cityId = cities[roll(cities.length)];
+    const pools = [
+      ['unit', CHAOS_BASICS],               // double weight: always-legal units
+      ['unit', Object.keys(ruleset.units).sort()],
+      ['building', Object.keys(ruleset.buildings).sort()],
+      ['wonder', Object.keys(ruleset.wonders).sort()]
+    ];
+    const pool = pools[roll(4)];
+    return {
+      type: 'setProduction', playerId: pid, cityId,
+      item: { kind: pool[0], id: pool[1][roll(pool[1].length)] }
+    };
+  }
+  if (kind === 9) { // short random walk: chaos combat, ZOC rejections, and
+    // engine-RNG consumption the AI's own targeting would never produce
+    const units = ownUnits(state, pid, mods);
+    if (units.length === 0) return null;
+    return {
+      type: 'moveUnit', playerId: pid, unitId: units[roll(units.length)],
+      dir: CHAOS_DIRS[roll(8)]
+    };
+  }
+  if (kind === 10 || kind === 11) {
+    // foundCity in odd spots / startWork variety. Settler windows are BRIEF
+    // (the AI consumes them founding) — when none exists, chaos orders one
+    // built instead (setProduction→settlers): it breeds its own future
+    // windows, so both accept paths run within a 60-turn probe. A roll(4)
+    // sliver still picks a NON-settler = the notSettlers rejection path.
+    const settlers = ownSettlers(state, pid, mods);
+    if (settlers.length === 0 || roll(6) === 0) {
+      const all = ownUnits(state, pid, mods);
+      if (settlers.length === 0 && all.length > 0 && roll(2) === 0) {
+        return kind === 10
+          ? { type: 'foundCity', playerId: pid, unitId: all[roll(all.length)], name: CHAOS_NAMES[roll(CHAOS_NAMES.length)] }
+          : { type: 'startWork', playerId: pid, unitId: all[roll(all.length)], work: CHAOS_WORKS[roll(CHAOS_WORKS.length)] };
+      }
+      const cities = ownCities(state, pid);
+      if (cities.length === 0) return null;
+      return {
+        type: 'setProduction', playerId: pid,
+        cityId: cities[roll(cities.length)], item: { kind: 'unit', id: 'settlers' }
+      };
+    }
+    if (kind === 11) {
+      return { type: 'startWork', playerId: pid, unitId: settlers[roll(settlers.length)], work: CHAOS_WORKS[roll(CHAOS_WORKS.length)] };
+    }
+    // foundCity: the accept window is a settler standing >= minCityDistance
+    // from EVERY city (fresh ones sit IN their home city; the AI founds the
+    // moment it arrives at a site, so windows last ~1 turn — pre-AI injection
+    // is what makes them reachable at all). Scan for a window; without one,
+    // WALK the farthest settler outward — chaos makes its own windows.
+    const minDist = ruleset.rules.minCityDistance === undefined ? 4 : ruleset.rules.minCityDistance;
+    let windowId = null, farId = null, farDist = -1, farUnit = null;
+    for (const uid of settlers) {
+      const u = state.units[uid];
+      let near = 1e9;
+      for (const cid of state.cityOrder) {
+        const c = state.cities[cid];
+        const dx = Math.abs(u.x - c.x), dy = Math.abs(u.y - c.y);
+        const d = dx > dy ? dx : dy;
+        if (d < near) near = d;
+      }
+      if (near >= minDist && windowId === null && u.moves > 0) windowId = uid;
+      if (near > farDist) { farDist = near; farId = uid; farUnit = u; }
+    }
+    if (windowId !== null) {
+      return { type: 'foundCity', playerId: pid, unitId: windowId, name: CHAOS_NAMES[roll(CHAOS_NAMES.length)] };
+    }
+    // no window: nudge the farthest settler outward, away from its nearest
+    // city — a moveUnit that grows the next roll's founding chances
+    let nx = 0, ny = 0, bestD = farDist;
+    for (const [dir, dx, dy] of [['N', 0, -1], ['NE', 1, -1], ['E', 1, 0], ['SE', 1, 1], ['S', 0, 1], ['SW', -1, 1], ['W', -1, 0], ['NW', -1, -1]]) {
+      let near = 1e9;
+      for (const cid of state.cityOrder) {
+        const c = state.cities[cid];
+        const ddx = Math.abs(farUnit.x + dx - c.x), ddy = Math.abs(farUnit.y + dy - c.y);
+        const d = ddx > ddy ? ddx : ddy;
+        if (d < near) near = d;
+      }
+      if (near > bestD) { bestD = near; nx = dx; ny = dy; }
+    }
+    const DIR_BY_VEC = { '0,-1': 'N', '1,-1': 'NE', '1,0': 'E', '1,1': 'SE', '0,1': 'S', '-1,1': 'SW', '-1,0': 'W', '-1,-1': 'NW' };
+    const outward = DIR_BY_VEC[nx + ',' + ny];
+    if (outward !== undefined) {
+      return { type: 'moveUnit', playerId: pid, unitId: farId, dir: outward };
+    }
+    return { type: 'foundCity', playerId: pid, unitId: farId, name: CHAOS_NAMES[roll(CHAOS_NAMES.length)] };
+  }
+  // kind 12: the specialist arm — taxmen/scientists (pop >= 5 validation and
+  // the mood arithmetic under stress); workers list stays a candidates prefix
+  const cities = ownCities(state, pid);
+  if (cities.length === 0) return null;
+  const city = state.cities[cities[roll(cities.length)]];
+  const candidates = mods.candidateTiles(state, city, ruleset);
+  const n = Math.min(Math.max(city.pop - 2, 0), candidates.length, roll(3));
+  const workers = [];
+  for (let i = 0; i < n; i++) workers.push(candidates[i].idx);
+  return {
+    type: 'setWorkers', playerId: pid, cityId: city.id, workers,
+    taxmen: roll(3), scientists: roll(3)
+  };
 }
 
 function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides, reason, mods) {
@@ -532,8 +669,11 @@ async function runSim(opts) {
       guard--;
       const pid = state.activePlayer;
       if (state.players[pid].alive !== false) {
-        state = mods.runAiTurn(engine, state, pid, ruleset, []);
-        if (opts.chaos === true && roll(6) === 0) {
+        // chaos injects BEFORE the AI turn as of 2026-07-13 (@9ba56f30): a
+        // player command lands on fresh moves and the AI plays around it —
+        // post-AI leftovers made foundCity/moveUnit structurally dead. Sim
+        // artifacts recorded before this date do not replay.
+        if (opts.chaos === true && roll(opts.chaosRate === undefined ? 6 : opts.chaosRate) === 0) {
           const cmd = pickChaosCommand(state, pid, roll, ruleset, mods);
           if (cmd) {
             const res = engine.applyCommand(state, cmd);
@@ -543,6 +683,7 @@ async function runSim(opts) {
             chaosLog.push(centry);
           }
         }
+        state = mods.runAiTurn(engine, state, pid, ruleset, []);
       }
       const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
       if (!res.ok) fail(`endTurn rejected for ${pid} on turn ${startTurn} (${res.reason})`);
@@ -567,7 +708,10 @@ async function runSim(opts) {
       entry.hash = hash;
     }
     roundLog.push(entry);
-    if (state.year !== prevYear + 20) fail(`round ${round}: year ${state.year}, expected ${prevYear + 20}`);
+    // the calendar follows the yearSteps curve (A21) — verify against the
+    // engine's own pure step function, not a hardcoded increment
+    const expectYear = mods.nextYear(prevYear, ruleset.rules);
+    if (state.year !== expectYear) fail(`round ${round}: year ${state.year}, expected ${expectYear}`);
     prevYear = state.year;
 
     if (isCheckpoint || state.gameOver || round % checkEvery === 0) {
@@ -577,6 +721,15 @@ async function runSim(opts) {
     if (isCheckpoint || state.gameOver) {
       const problems = checkDeep(state, ruleset, mods);
       if (problems.length > 0) fail(`turn ${state.turn}: ${problems.length} deep-audit problem(s)`, problems);
+      // driver-level save/load round-trip (docs/05 §11 backlog): the browser
+      // save path is a JSON snapshot — serialize + reload the ORGANIC state
+      // and its canonical hash must not move (nulls/floats/undefined would)
+      const reloaded = JSON.parse(JSON.stringify(state));
+      const rtHash = mods.hashState(reloaded);
+      const liveHash = mods.hashState(state);
+      if (rtHash !== liveHash) {
+        fail(`turn ${state.turn}: save/load round-trip hash moved`, [`${liveHash} -> ${rtHash}`]);
+      }
     }
     if (isCheckpoint) {
       checkpoints[round] = hash;

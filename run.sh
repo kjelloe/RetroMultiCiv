@@ -72,4 +72,30 @@ echo "  play THROUGH the server:          http://localhost:$PORT/client/?server=
 echo "  diagnostics HUD: ?diag=1 · fixed world: ?seed=12345 · setup: bare URL"
 echo "  soak telemetry:  http://localhost:$PORT/debugging/stats.html"
 LANIP=$(hostname -I 2>/dev/null | awk '{print $1}')
-[ -n "$LANIP" ] && echo "  LAN players:     http://$LANIP:$PORT/client/  (WSL2: see gettingstarted.md §4 for the Windows portproxy + firewall one-liners)"
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  # WSL host: the Windows firewall (and under NAT, a portproxy) must let the
+  # LAN in — print the exact commands so the host just pastes them.
+  NETMODE=$(wslinfo --networking-mode 2>/dev/null || echo nat)
+  if [ "$NETMODE" = "mirrored" ]; then
+    [ -n "$LANIP" ] && echo "  LAN players:     http://$LANIP:$PORT/client/"
+    echo
+    echo "  WSL2 (mirrored networking) — once, in an ADMIN PowerShell on Windows:"
+    echo "    netsh advfirewall firewall add rule name=\"RetroMultiCiv $PORT\" dir=in action=allow protocol=TCP localport=$PORT"
+  else
+    # NAT mode: $LANIP is WSL-internal — LAN players need the WINDOWS IP.
+    WINIP=$(timeout 3 powershell.exe -NoProfile -Command \
+      '(Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address.IPAddress' \
+      2>/dev/null | tr -d '\r' | head -1 || true)
+    echo "  LAN players:     http://${WINIP:-<windows-ip: ipconfig -> IPv4>}:$PORT/client/"
+    echo
+    echo "  WSL2 (NAT networking) — once, in an ADMIN PowerShell on Windows:"
+    echo "    netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=$PORT connectaddress=$LANIP connectport=$PORT"
+    echo "    netsh advfirewall firewall add rule name=\"RetroMultiCiv $PORT\" dir=in action=allow protocol=TCP localport=$PORT"
+    echo "  (the WSL address changes across reboots — if players stop reaching you"
+    echo "   after a restart, refresh the proxy: delete then re-run ./run.sh for the"
+    echo "   current add-line:"
+    echo "    netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=$PORT )"
+  fi
+else
+  [ -n "$LANIP" ] && echo "  LAN players:     http://$LANIP:$PORT/client/"
+fi

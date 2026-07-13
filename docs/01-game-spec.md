@@ -21,9 +21,9 @@ phases (see `03-roadmap.md`).
 
 - Turn-based 4X strategy on a 2D tile map.
 - 2–7 civilizations (human and/or AI) plus barbarians.
-- Game starts in 4000 BC. Each turn advances the calendar (large steps early,
-  shrinking over time, e.g. 20 yrs/turn until 1 AD, then 10, 5, 2, 1). Default end
-  year 2100 AD.
+- Game starts in 4000 BC. Each turn advances the calendar in shrinking steps
+  (50 yrs/turn to 1000 BC, 25 to 1 AD, 20 to 1000 AD, 10 to 1500, 5 to 1850,
+  then 2 — `data/rules.json` `yearSteps`). Default end year 2100 AD ≈ turn 396.
 - **Victory conditions (v1):**
   1. **Conquest** — eliminate all rival civilizations.
   2. **Score** — highest civilization score at the end year (population, techs,
@@ -353,8 +353,12 @@ below is a known, deliberate deviation to be closed in a later slice:
   capital defaults to the oldest city when no Palace exists; the Democracy
   senate and Communism's spy bonuses wait for diplomacy.
 - **Settlers don't eat food** yet (§4.3 says 1/turn).
-- **Calendar advances a flat 20 years/turn** — era-based steps come with
-  `data/rules.json` tuning.
+- **Calendar follows a Civ-1-style variable curve** (`data/rules.json`
+  `yearSteps`, landed 2026-07-13): 50 yrs/turn to 1000 BC, 25 to 1 AD,
+  20 to 1000 AD, 10 to 1500, 5 to 1850, then 2 — the 2100 AD score end
+  lands at turn ~396 (unit-tested landmarks in `test/year.test.js`).
+  Rulesets without the table keep the old flat 20 (crafted test states
+  stay stable).
 - **Research overflow carries between advances** (Civ 1 discards it;
   tuneable choice, documented).
 - **Future Tech is a one-time advance** for now (repeatable scoring later).

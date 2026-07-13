@@ -83,14 +83,21 @@ banner, a ⏳ waiting banner on disconnects (host skip, or a player vote),
 and full resume if the server restarts. Every save shows a
 <b>game code</b> (like <code>AD1X-Q5MR-DP7H9</code>) — note it down;
 matching codes on reload prove nobody edited the save in between.</p>
-<div class="tip"><b>Windows/WSL2 host?</b> Two one-time steps in an
-<i>admin</i> PowerShell so LAN players can reach the server inside WSL
-(players connect to the WINDOWS machine's IP from <code>ipconfig</code>):<br>
+<div class="tip"><b>Windows/WSL2 host?</b> <code>./run.sh</code> detects
+WSL and prints the exact commands for YOUR setup — paste them once into
+an <i>admin</i> PowerShell on Windows. Under the default NAT networking
+that's a port forward plus a firewall rule (players connect to the
+WINDOWS machine's IP from <code>ipconfig</code>, which run.sh prints
+when it can):<br>
 <code>netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=8123 connectaddress=$(wsl hostname -I).Trim() connectport=8123</code><br>
 <code>netsh advfirewall firewall add rule name="RetroMultiCiv 8123" dir=in action=allow protocol=TCP localport=8123</code><br>
 Windows 11 alternative: <code>networkingMode=mirrored</code> in
-<code>.wslconfig</code>, then only the firewall rule is needed. The WSL IP
-changes across reboots — re-run the portproxy line, or use mirrored mode.</div>
+<code>.wslconfig</code> — run.sh detects mirrored mode and prints only
+the firewall rule, and players connect straight to the address it
+shows. The WSL IP changes across reboots under NAT — if players stop
+reaching you after a restart, <code>netsh interface portproxy delete
+v4tov4 listenaddress=0.0.0.0 listenport=8123</code>, then re-run
+<code>./run.sh</code> for a fresh add-line.</div>
 
 <h2>5. Playing THROUGH the server, solo (optional)</h2>
 <p><code>./run.sh</code> also hosts an authoritative game server. Open

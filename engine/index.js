@@ -36,6 +36,19 @@ function deepClone(value) {
   return value;
 }
 
+// Civ-1-style variable calendar (data/rules.json `yearSteps`): the FIRST
+// bracket with year < until supplies the step; past the last bracket its step
+// keeps applying (runaway guard). Rulesets without the table keep the old
+// flat +20 (crafted test states stay stable). Pure integer math, plain scan.
+function nextYear(year, rules) {
+  const steps = rules.yearSteps;
+  if (steps === undefined || steps.length === 0) return year + 20;
+  for (const b of steps) {
+    if (year < b.until) return year + b.step;
+  }
+  return year + steps[steps.length - 1].step;
+}
+
 // End the active player's turn. When the last player in playerOrder ends,
 // the game turn advances and every unit's movement refreshes.
 function endTurn(state, cmd, ruleset) {
@@ -48,7 +61,7 @@ function endTurn(state, cmd, ruleset) {
 
   if (idx === order.length - 1) {
     state.turn = state.turn + 1;
-    state.year = state.year + 20; // placeholder step; era-based steps come with data/rules.json
+    state.year = nextYear(state.year, ruleset.rules); // Civ-1-style era steps (A21)
     state.activePlayer = order[0];
     improvements.processWork(state, ruleset, events); // before harvest: a finished improvement counts this turn
     government.processRevolutions(state, ruleset, events);
@@ -102,4 +115,4 @@ function createEngine(ruleset) {
   return { applyCommand, createGame };
 }
 
-export { createEngine, deepClone };
+export { createEngine, deepClone, nextYear };

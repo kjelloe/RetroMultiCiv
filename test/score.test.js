@@ -57,7 +57,7 @@ test('conquest: last civilization standing wins at turn wrap', async () => {
 test('score victory at the end year', async () => {
   const { engine } = await load();
   const state = duelState({
-    year: 2090,
+    year: 2099, // the A21 curve steps +2 here → 2101 crosses endYear 2100
     units: {
       u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
       u2: { id: 'u2', type: 'militia', owner: 'p2', x: 4, y: 4, moves: 1, fortified: false, veteran: false }
@@ -65,7 +65,7 @@ test('score victory at the end year', async () => {
   });
   let res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
   res = engine.applyCommand(res.state, { type: 'endTurn', playerId: 'p2' });
-  assert.strictEqual(res.state.gameOver, true, 'year 2110 >= endYear 2100');
+  assert.strictEqual(res.state.gameOver, true, 'year 2101 >= endYear 2100');
   assert.strictEqual(res.state.winner, 'p1', 'higher score wins');
   assert.strictEqual(res.events.find(e => e.type === 'gameOver').victory, 'score');
 });

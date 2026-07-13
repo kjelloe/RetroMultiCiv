@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 124 tests), the item's own verification steps pass, related
+   (currently 163 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -113,7 +113,7 @@ batch lands (and whenever the main coder queues it).
 - Done when: every doc that mentions a changed behavior agrees with the
   code, the suite is green, and the report lists what was synced.
 
-## A2 — Chaos layer: next command batch
+## A2 — Chaos layer: next command batch  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — all backlog kinds on the chaos stream (setProduction w/ always-legal basics pool, moveUnit walks, foundCity window-detection + settler-breeding + outward-walk shaping, startWork w/ transform bias, setGovernment communism, setWorkers taxmen/scientists) + driver save/load hash round-trip at checkpoints + opts.chaosRate probe knob (default 6 unchanged). INJECTION MOVED PRE-AI per @9ba56f30 (fresh moves; replay.js airound reordered, dated comment; client Shift+D recordings write NO airound entries — no-op confirmed; pre-2026-07-13 sim artifacts don't replay). Probe (60t, rate 2, 3 seeds): ALL new types applied incl. foundCity. Fresh 80-round artifact (47 chaos entries) replays hash-exact; 10-seed soak clean; goldens re-recorded: soak {100:0x811a85c1, 200:0x0f345b0d, 300:0x7721ce77, 400:0xcbff6f34}, natural UNCHANGED {305,p4,0xa159b643} (chaos-off run — proves the change is chaos-scoped). Suite 163/163. Lock retained for A21 per @337cac89.]
 
 Teach the sim's chaos layer (test/sim-driver.js `pickChaosCommand`) the
 commands listed in `docs/05-simulation-test.md` §11 "Chaos backlog":
@@ -318,6 +318,171 @@ architect — do not redo them.
    city selected keeps cycling production); fall back note in the help
    panel + gettingstarted.
 Verify: screenshots incl. a hotseat hand-off sequence; browser e2e green.
+
+## A21 — Civ-1-style variable year curve (user-approved 2026-07-13 — DO FIRST after A2, golden lock stays with you)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — rules.json yearSteps (exact item table); engine nextYear() pure helper (exported; flat-+20 fallback keeps table-less crafted rulesets stable) wired into endTurn; test/year.test.js pins ALL landmarks exactly in wrap-count terms (60→1000BC, 100→1AD, 150→1000, 200→1500, 270→1850, 395→2100) + fallback + runaway guard; sim-driver year invariant now checks against nextYear (not +20); natural leg bound 320→399; score.test crafted year 2090→2099; all 11 scenarios green unchanged (none pins a hash across a wrap). MEASURED GAME END: round 395 (winner p2) < 400 budget ✓. Goldens: soak {100:0x98c538fa, 200:0x7f0ad127, 300:0x92aefa7c, 400:0x9fde1a68}, natural {395, p2, 0x602ffea7}. docs/01 §1+§11 updated per item grant. 3-seed soak clean; suite 166/166. LOCK RELEASED.]
+
+The engine's own declared TODO (`engine/index.js` endTurn: "placeholder
+step; era-based steps come with data/rules.json"). Replace the flat
++20yr/turn with a bracket table in `data/rules.json` (hand-curated):
+
+```json
+"yearSteps": [
+  { "until": -1000, "step": 50 },
+  { "until": 0,     "step": 25 },
+  { "until": 1000,  "step": 20 },
+  { "until": 1500,  "step": 10 },
+  { "until": 1850,  "step": 5  },
+  { "until": 2100,  "step": 2  }
+]
+```
+
+Semantics: on turn wrap, add the `step` of the FIRST bracket with
+`state.year < until`; past the last bracket keep its step (runaway
+guard). Integer math, plain array scan — Lua-portable. Landmark turns
+this table produces (unit-test these exactly): turn 60 = 1000 BC,
+turn 100 = 1 AD boundary (year 0), turn 150 = 1000 AD, turn 200 =
+1500, turn 270 = 1850, and the 2100 AD score-end lands at turn ~395 —
+DELIBERATELY under the sim harness's 400-round budget so the soak
+`--natural` leg and the 400-checkpoint keep working; if you adjust the
+brackets, keep game end < 400.
+
+Consequences you own in this item: GOLDEN_SOAK/GOLDEN_NATURAL re-record
+(you hold the lock — natural's turn/winner will move from {305, p4}),
+plus any `test/scenarios/*.json` whose hash shifts (scenarios that end
+turns see different years — rule 4 process). docs/01 gets the year
+table. Done-mail: new goldens, the measured game-end turn, and a
+15-word year-curve line for plan-update that I'll place.
+
+Verify: landmark unit test; full suite green after re-records; one
+sim smoke (`node tools/soak.js --seeds 3`) green.
+
+## A18 — Production catalog: one-tech look-ahead (wave IV.1 — client-only, golden-safe)  [claimed: coder-helper 2026-07-13]
+
+User request: the city production catalog currently greys out EVERY
+tech-locked unit/building/wonder — tanks visible in 4000 BC. Filter the
+locked lists (`client/ui/panels.js` ~line 431: `lockedUnits`,
+`lockedBuildings`, `lockedWonders`) to the RESEARCH FRONTIER only:
+a locked item stays visible iff its unlocking tech has ALL of its
+prerequisites already in `me.techs` (i.e. the player could pick that
+tech as their next research — this includes whatever they are
+researching now). Everything deeper is hidden entirely; as each tech
+lands, the frontier advances and the next ring appears. Items with
+`tech: ""` are always visible (unchanged). Keep the grey styling,
+"requires X" label, and `byTechLevel` sort for the survivors.
+
+Put the frontier predicate in a small pure helper (it only needs
+`me.techs` + `ruleset.techs`) so the next-tech UI can reuse it.
+Verify: browser e2e green; screenshot a fresh-start city panel (should
+show only ancient-adjacent locked items — READ it) and note in the
+done-mail which items disappeared for a seed-12345 Roman start.
+
+## A19 — Movement affordance arrow on hover (wave IV.3 — client-only, golden-safe)
+
+User request: with a unit selected that has moves left, hovering an
+ADJACENT tile the unit could enter should show a small arrow (the
+"click will move here" affordance). Today the hover marker is a ring
+that turns red for attacks (`input.js` ~555, `renderer.setHoverColor`).
+
+v1 scope: adjacent tiles only (GoTo already covers long routes with its
+planned-route drawing). Show the arrow when: a unit is selected AND
+`unit.moves > 0` AND the hovered tile is one of `neighbors()` AND the
+terrain domain admits the unit (land/sea/ice rules — use the ruleset
+tables, do NOT invent cost math) AND it's not an enemy-occupied tile
+(that stays the red attack ring, unchanged). Renderer: add a small
+direction arrow to the hover marker (rotate toward the step direction;
+`renderer/three/index.js` owns the hoverMarker — new
+`setHoverArrow(dir|null)` alongside `setHoverColor`). Keep the
+legality predicate in a pure helper module so Node can unit-test it
+(state+ruleset in, boolean out — cover land unit vs ocean, ship vs
+land, ice wall, zero moves, enemy tile cases).
+
+Verify: pure-helper unit test in Node; for the visual, dispatch a
+synthetic mousemove in the e2e page (CDP or page script) and screenshot
+— if that turns out flaky, a `?hoverdemo=1`-style debug param that
+forces the marker to a fixed adjacent tile is an acceptable stand-in.
+READ the screenshot: arrow visible, pointing from unit to tile.
+
+## A20 — Starting-age setup via AI fast-forward (wave IV.2 — design below, golden-safe)
+
+User request: the setup screen asks for a starting age (Ancient → Space
+age). Any age past Ancient means: create the world, let ALL civs play
+as AI up to that age's suggested turn, then the humans take over their
+chosen civs and play on from there. No engine changes — this reuses the
+public engine API the way `test/sim-driver.js` and session AI-drive do.
+
+Design (architect, 2026-07-13, rev 2 after measurement — questions by
+mail before deviating):
+
+MEASURED FACT that shapes this design (6 seeds × full AI games,
+2026-07-13): the game ends by score at turn ~305 (flat +20yr/turn
+placeholder reaches endYear 2100), and AI civs research only 9–15 of
+68 techs by then — they NEVER leave the Ancient era. So a later-age
+start CANNOT come from simulation alone; it is fast-forward (for the
+world: cities, borders, improvements) PLUS a deterministic TECH GRANT
+(for the era: every civ receives the cumulative techs of all prior
+ages at takeover — the Civ-series convention for late starts).
+
+- **Era buckets on techs**: the user supplied a Civ2-derived era
+  mapping covering all 68 advances exactly once (architect holds the
+  table — ancient 22 / renaissance 15 (Religion stands in for
+  Theology) / industrial 14 / modern 17; ask by mail and I'll paste
+  it). techs.json is GENERATED, so the buckets go in a `TECH_OVERLAY`
+  era field in `tools/mapdata.js` → regenerate — never hand-edit the
+  JSON. New optional field = no engine reads = golden-safe; confirm
+  with the suite.
+- **Ages table** in `data/rules.json` (hand-curated — mapdata does not
+  own it): `"ages": [{ "id", "name", "turn", "grantEras": [...] }]`.
+  Five entries, turns anchored to historical years via A21's approved
+  curve (A21 lands FIRST; user-tunable in data): Ancient 0 (no grant,
+  today's behavior), Renaissance 190 (≈1400 AD, grant ancient),
+  Industrial 256 (≈1780, +renaissance), Modern 305 (≈1920,
+  +industrial), Space Age 325 (≈1960, grant everything except Future
+  Tech — "only the space race remains"; NOTE the spaceship system
+  itself is phase 6+, so a Space Age start plays for score/conquest
+  until then — the user knows). Game ends ≈turn 395, so even a Space
+  Age start leaves ~70 turns.
+- **Mechanism**: build the setup's player list with the SAME civs/names
+  but `human: false` on every seat → `createGame` → drive full AI
+  rounds (`runAiTurn` + endTurn, exactly the session loop) until
+  `state.turn` reaches the age's turn → apply the tech grant to EVERY
+  player (pure function in the shared helper: techs = union of
+  `grantEras` buckets, `researching` reset to '' — the player picks —
+  `bulbs` 0; identical grant for all civs, fairness) → flip
+  `human: true` on the seats the setup chose → hand the state to the
+  normal boot path AS THE INITIAL STATE (identical to the load-a-save
+  path, so the diagnostics recording starts at the takeover point and
+  `tools/replay.js` needs nothing new). Deterministic: same seed + age
+  ⇒ same world and same grant, always.
+- **Ordering**: A21 (year curve, LANDED 2026-07-13) came first — the
+  age turns above assume its brackets. If A21's table gets tuned,
+  re-derive these turns from the year anchors (1400/1780/1920/1960 AD),
+  not the other way around. NOTE (A21's off-by-one flag): the age
+  `turn` field means STATE.TURN at takeover (a turn-1 start makes
+  state.turn = wraps + 1), so year anchors are ~1 turn approximate —
+  by design, don't chase exactness.
+- **Placement**: the fast-forward loop goes in `shared/` (ESM, runs in
+  browser and Node; importing engine from shared is fine — engine
+  itself imports nothing back). Client setup screen gains the Starting
+  age dropdown (default Ancient = today's behavior, zero fast-forward);
+  show progress ("simulating history… turn N/T", chunked via
+  setTimeout so the tab stays alive). Server: plumb the option through
+  create so LAN lobbies inherit it (Node runs the same loop at create;
+  flag by mail if that plumbing balloons and we'll split it out).
+- **Edge cases, decided**: if a to-be-human civ is eliminated (or the
+  game ends) during the fast-forward, ABORT with a friendly message
+  naming the dead civ and suggesting another seed/age/civ — never
+  silently re-roll seeds (determinism UX). Difficulty applies during
+  the fast-forward like any AI game. `?age=<id>` URL param joins the
+  existing setup params.
+
+Golden-safety: no engine/ or data edits beyond the NEW ages block
+(new optional rules key = no hash movement — goldens don't read it),
+so no re-record and no lock needed — but confirm the full suite agrees.
+Verify: unit test on the fast-forward helper (seeded, fixed turn target,
+assert turn + a stable statehash twice = deterministic; assert every
+player's techs equal the grant union and researching is ''); browser
+screenshot of a Renaissance-or-later start (cities/roads visible at
+boot — READ it); one `?server=1` create with an age option.
 
 ## A4 — Goody huts (design: docs/04)
 

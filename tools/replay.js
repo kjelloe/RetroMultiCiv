@@ -84,8 +84,10 @@ async function replayDiagnostics(diag, ruleset) {
     } else if (entry.t === 'airound') {
       // all-AI games (test/sim-driver.js): a round is one full game turn —
       // drive every player's AI until the turn wraps, same loop as the driver.
-      // Chaos-mode commands were injected after a player's AI turn and are
-      // recorded per slot; re-apply them in place (order preserved).
+      // Chaos-mode commands apply BEFORE the AI's turn as of 2026-07-13
+      // (@9ba56f30 — a player command lands on fresh moves, the AI plays
+      // around it); sim artifacts recorded before this date do not replay.
+      // Client Shift+D recordings carry no chaos arrays and are unaffected.
       rounds++;
       const chaosBySlot = {};
       for (const c of entry.chaos === undefined ? [] : entry.chaos) {
@@ -96,9 +98,6 @@ async function replayDiagnostics(diag, ruleset) {
       let guard = state.playerOrder.length + 2;
       while (state.turn === startTurn && !state.gameOver && guard-- > 0) {
         const pid = state.activePlayer;
-        if (state.players[pid].alive !== false) {
-          state = runAiTurn(engine, state, pid, ruleset, []);
-        }
         for (const c of chaosBySlot[pid] === undefined ? [] : chaosBySlot[pid]) {
           commands++;
           const cres = engine.applyCommand(state, c.cmd);
@@ -106,6 +105,9 @@ async function replayDiagnostics(diag, ruleset) {
             problems.push(`entry ${i} (airound chaos ${c.cmd.type}): ok=${cres.ok}${cres.reason ? ` (${cres.reason})` : ''}, recorded ok=${c.ok}${c.reason ? ` (${c.reason})` : ''}`);
           }
           if (cres.ok) state = cres.state;
+        }
+        if (state.players[pid].alive !== false) {
+          state = runAiTurn(engine, state, pid, ruleset, []);
         }
         const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
         if (!res.ok) {

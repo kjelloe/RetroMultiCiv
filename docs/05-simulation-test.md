@@ -274,8 +274,8 @@ AI never issued `setGovernment`/`setRates`/`buy`/`pillage`/`disband`/
 
 ### Chaos backlog — commands it should learn next
 
-Each addition widens organic coverage; each changes game evolution, so
-batch them and re-record goldens once per batch:
+IMPLEMENTED IN FULL as A2 (2026-07-13, goldens re-recorded once for the
+batch). The original backlog list, kept for the rationale per command:
 
 - **setProduction** — random kind/id switches: exercises category-switch
   shield halving, `wonderAlreadyBuilt`/`techRequired` rejections, and civ
@@ -296,3 +296,28 @@ batch them and re-record goldens once per batch:
 - **driver-level, not a command**: a mid-run save/load round-trip —
   JSON-serialize the state, reload, and the hash must be unchanged (the
   browser save path, exercised on organic late-game states).
+
+### Findings from the A2 batch (third wave, 2026-07-13)
+
+- **Chaos injection moved BEFORE the AI's turn** (was after). The
+  rejection histogram proved the old order structurally starved
+  `foundCity`/`moveUnit`: the AI had already spent every unit's moves,
+  so chaos only ever saw leftovers. New semantics: a chaos command is a
+  player command landing on fresh moves, and the AI plays around it.
+  `tools/replay.js`'s airound loop changed to match (order-only) — sim
+  artifacts recorded before 2026-07-13 no longer replay; client Shift+D
+  recordings never carry airound entries and are unaffected.
+- **Settler windows are ~1 turn wide** — fresh settlers sit inside
+  their home city (`tooCloseToCity`) and the AI founds the moment one
+  reaches a site. Chaos `foundCity` therefore scans for a real window
+  and, when none exists, either walks the farthest settler outward or
+  orders one built — it breeds its own future windows. A `roll(4)`
+  sliver still targets non-settlers to keep the `notSettlers` rejection
+  exercised.
+- **`opts.chaosRate` knob** (driver): default 6 = suite behavior
+  byte-identical; lower = chattier chaos for probes. Free stress lever
+  if soak.js ever wants `--chaos-rate`.
+- **Save/load hash round-trip** now runs live at every deep-audit
+  checkpoint (the browser save path on organic late-game states).
+- The chaos-off natural leg reproduced its golden bit-exact through the
+  whole batch — direct proof the changes are chaos-scoped.
