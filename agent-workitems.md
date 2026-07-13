@@ -119,6 +119,36 @@ extracts hidden-toggled ids from JS and asserts a matching CSS
 selector exists — flag feasibility in the done-mail rather than
 forcing it. Golden-safe.
 
+### B5 — Turn log misses rival-vs-rival / AI combat in server games (wave VI bug)
+
+User report (LAN, turn 41): Babylonians (AI) attacked a militia — no
+turn-log entry on the human's machine. ARCHITECT PRE-TRIAGE: the save
+`debugging/logs/retromulticiv-g3-turn53.json` replays HASH-EXACT
+(engine + log integrity fine — this is a client/broadcast gap).
+Suspect: in LOCAL games the session collects events from every AI
+turn and turnlog narrates them; in SERVER games clients receive
+turn/view broadcasts — check whether `turnBroadcasts`/the view push
+carries the round's EVENTS at all, and if it does, whether the remote
+session forwards them to turnlog. Combat "that touches the player"
+must reach every human's log (visibility rule: only narrate what the
+viewer could SEE — an attack on/by your units or inside your explored
+map; don't leak fog). Failing test first (extend a server test:
+AI-vs-AI combat near p1's units ⇒ p1's client receives the event;
+or the lan4 pattern). If the fix needs the protocol to carry filtered
+per-seat events, mail me the shape BEFORE implementing — protocol
+changes are design-reviewed.
+
+### B6 — Server-save banner ✕ does nothing (wave VI.8)
+
+The "Saved turn N — game code …" banner's ✕ doesn't dismiss. Two
+suspect classes, check both: (a) the B4 family — an inert `.hidden`
+with no scoped CSS rule; (b) the banner is re-shown every autosave
+broadcast (each accepted command autosaves — the ✕ works but the next
+broadcast instantly re-shows it; if so the fix is show-once-per-turn
+or per-SAVE-code-change, not per broadcast). Failing test or
+screenshot-proof both directions. Coordinate with A33 (save code into
+the turn log) — same broadcast, complementary fixes.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
@@ -606,6 +636,198 @@ Verify: protocol tests for setSlot auth/validation; a lan4-style
 integration case where the host flips a slot to AI + picks a civ and
 the started game honors both; screenshots of host vs joiner lobby
 views. Golden-safe.
+
+## A28 — Art A1.7: animation polish (ally spec §"Art A1.7", golden-safe, pulled forward 2026-07-13)  [claimed: coder-helper 2026-07-14]
+
+The ally's final procedural-art stage, from `specs/plan-assets-2.md`
+(verbatim line: flag bob/sway from render time only; unit movement
+interpolation; small city smoke; water texture scrolling [already done
+in A15]; combat flashes with a "reduce animation" option — none may
+change simulation, command timing, save data, fog, or replay hashes).
+
+HARD RULE, same as A15's wave drift: ALL motion is render-time only —
+derive phases from clock + position (like the water drift), never from
+engine RNG or state; nothing new enters game state. Slices:
+1. Flag/pennant sway — subtle vertex or rotation bob on the capital
+   flags + unit pennants.
+2. Movement interpolation — units GLIDE between tiles (~150–250ms
+   render-layer tween). The renderer owns display positions; the
+   simulation position updates instantly as today, and CLICK HITBOXES/
+   selection must track the LOGICAL tile, not the tween — test that a
+   click mid-glide selects correctly (e2e can click immediately after
+   a move command). GoTo multi-step should chain tweens without drift.
+3. City smoke — tiny particle/billboard wisps on larger cities,
+   deterministic placement (visualRand pattern), animated by clock.
+4. Combat flash — a brief render-only flash at combatResolved x/y
+   (pairs with A16's camera linger; event-driven, no state).
+5. **"Reduce animation" option** in ⚙ (single checkbox disables sway/
+   smoke/flashes AND makes movement instant — accessibility; persist
+   with the other prefs).
+Verify: browser e2e green (incl. the mid-glide click case); WebGL1
+pass; screenshots for static evidence + honest notes on what only
+eyeballs can judge (motion); gallery must stay byte-stable for
+untouched assets — flag any regeneration. Suite + goldens untouched
+(render-only — the suite proves it).
+
+## A29 — Wave VI quick wins: HUD civ, GoTo flush, End-Turn states, two UI fixes (VI.1/4/6/10/12)
+
+Five small client-only items, one claim:
+1. **HUD civ (VI.1)**: the status line shows the viewer's CIVILIZATION
+   (e.g. "… · Romans (Kjell) · Monarchy") — player.civ via ruleset/
+   playerCivs; falls back to the name alone when civ is absent (mock).
+2. **GoTo flush before the idle warning (VI.4)**: when End Turn finds
+   units with pending GoTo orders AND moves, run runAllGotos for the
+   viewer FIRST, then re-evaluate the idle-units warning — players
+   shouldn't be nagged about units that had standing orders.
+3. **End-Turn button states (VI.6)**: server/hotseat games — GREYED
+   (disabled look + no-op) when it's not your turn; when your turn
+   ARRIVES, a brief yellow pulse (CSS animation, 2–3 blinks) then
+   normal. Respects reduce-animation (A28) if it lands first — no
+   pulse, just the state change.
+4. **Rate-slider snapback (VI.10)**: when the engine caps tax/sci
+   rates ("your government caps rates"), reset the slider POSITION to
+   the actual rate after rejection — the thumb currently stays where
+   the user dragged it while the numbers stay correct.
+5. **Site assessment near cities (VI.12)**: when the hovered/selected
+   settler tile is within minCityDistance of any KNOWN city, skip the
+   site rating entirely — show plain tile properties only (the rating
+   is noise where founding is illegal anyway).
+Verify: e2e green; screenshots for 1/3/4; a hotseat/server manual
+check note for 3. All golden-safe.
+
+## A30 — AI-turn waiting indicator + chunked AI rounds (VI.3, medium)
+
+The A26 wait-line should also show "⏳ Americans (AI) is moving · Ns"
+during AI turns. SERVER games: the line already keys off activePlayer
+— verify it renders for AI seats and add "(AI)" when player.human is
+false. LOCAL/hotseat games: the AI round currently runs as ONE
+synchronous JS batch (UI can't repaint mid-round), so: chunk the
+session's AI loop — one AI player per macrotask (setTimeout 0 /
+queueMicrotask + rAF between players) so the HUD updates between AI
+players. DETERMINISM UNCHANGED: same commands, same order, only
+yielding to the event loop between players; the diagnostics recording
+must be byte-identical for the same inputs (assert: run a seeded
+hotseat e2e, compare the round hash to the unchunked value). Big AI
+empires late-game = this is also the End-Turn-latency perceived-
+responsiveness fix. Golden-safe (no engine changes).
+
+## A33 — Save code into the turn log (VI.7)
+
+When the server's autosave broadcast delivers a game code at a turn
+wrap, add ONE turn-log line per turn for every player (incl.
+spectators): "💾 saved · code FWN6-X6PQ-3X5TD". Use turnlog.note()
+(A26's export). Dedupe: only when the code CHANGES (it changes every
+round — fine, one line per round wrap; if the log gets noisy make it
+every N rounds via an Options value, default every round). Coordinate
+with B6 (same broadcast). Golden-safe.
+
+## A34 — Host resumes server saves from the lobby (VI.9, medium — design included)
+
+Today resuming needs the CLI (`./run.sh 8123 --game saves/x.json`).
+Add: the Host flow offers "Resume a saved game" — server endpoint
+(GET /saves-list or a lobby ws message {t:'listSaves'}) returns the
+host machine's saves/ inventory: gameId, turn, year, player names/
+civs, saved-at mtime, game code. Host picks one → server loads it via
+the EXISTING --game path (registry.register + reset-seats semantics:
+tokens live in per-origin localStorage and machines change, so
+resumed lobby games always reset seats and joiners re-pick by name —
+exactly the --reset-seats teaching flow, now automatic). Joiners see
+the usual waiting room; the game code shows in the lobby so players
+can verify it matches their notes BEFORE playing (the docs/07 trust
+loop, now visible). SECURITY note: list only `saves/*.json` basenames
+server-side, never client-supplied paths (the existing --game
+validation applies). Tests: listSaves shape; resume-from-lobby e2e
+(ws): create → play → save exists → new lobby resumes it → codes
+match. Golden-safe.
+
+## A35 — Spectator hover info (VI.13)
+
+Spectators (omniscient) get hover tooltips: units — civ, type,
+attack/defense/moves, veteran; cities — civ, name, population.
+Reuse the hover pick + the unit stat-card formatting; render as a
+small tooltip near the cursor or reuse the hud note line (pick
+whichever reads better in the shot — show me both if unsure).
+Players' hover behavior unchanged (fog rules already limit them).
+Verify: spectator screenshot with a tooltip visible over a rival
+unit AND a city. Golden-safe.
+
+## A36 — City names on the map + growth tiers (VI.14, renderer — medium)
+
+1. **Name labels**: every KNOWN city shows its name on the map
+   (CanvasTexture sprite under the pop badge, faction-tinted border or
+   plain — try both, screenshot). Fog rules: named only when explored
+   (the visible-cities view already gates this). Label scale must stay
+   readable at default zoom and not swim under WebGL1.
+2. **Growth tiers**: the house-cluster model currently has ~3 tiers
+   (1/5/12). Civ 1 pops reach ~40+ — extend to 5 tiers (thresholds
+   from data-driven breakpoints in the renderer table, e.g.
+   1/4/8/16/28+) with visibly denser/taller clusters; walls still
+   render at any tier. Gallery row 7 gains the new tiers — gallery
+   screenshot is the acceptance evidence, plus mock-state coverage so
+   `test/mock-state.test.js` sees any missing tier mapping.
+Golden-safe (renderer only).
+
+## A37 — Lobby chat + host moderation: kick / kick-and-block (VI.15 — design included)
+
+SUPERSEDES the A27 no-kick ruling (@3b520ebc) BY USER DECISION
+(2026-07-14): kicking is now a deliberate, explicit host action — NOT
+the silent setSlot flip, which keeps rejecting (`seatReserved`).
+
+1. **Lobby chat** (pre-game only, v1): a panel below the game
+   configuration. Host checkbox "Enable lobby chat" (create option +
+   live toggle, default ON). Messages: `{t:'chat', text}` → broadcast
+   `{t:'chat', seat, name, text}` to the lobby. HARD RULES: text
+   length-capped server-side (200 chars), rate-limited (1/sec/conn),
+   escaped through the client's esc() path before innerHTML (XSS —
+   add the payload e2e case), NEVER stored in game state (chat is
+   transient lobby traffic; determinism untouched).
+2. **Roster with identity**: the host's slot rows show each joiner's
+   name; the connection's remote IP appears on HOVER — HOST ONLY
+   (never broadcast IPs to other joiners or spectators).
+3. **Kick**: host-only `{t:'kick', seat}` → the kicked client gets
+   `{t:'kicked'}` (friendly full-screen "the host removed you from
+   the lobby" + back-to-setup), the reservation frees, roster
+   broadcasts. Works in the LOBBY only (v1) — kicking a seated player
+   MID-GAME stays out of scope (that's the AI-regency design's
+   territory, docs/08 §7).
+4. **Kick-and-block (this game)**: same + the connection's IP joins
+   the lobby entry's blocklist; joins from a blocked IP get
+   `{t:'rejected', code:'blocked'}` ("the host has blocked you from
+   this game"). Block list dies with the lobby entry — per-game, not
+   persistent.
+Protocol tests: non-host kick/chat-toggle rejected (notCreator), kick
+frees the seat + notifies, blocked rejoin bounces, chat cap/rate/
+escape. UI screenshots: chat panel host + joiner views, kick
+confirmation, blocked-join message. Golden-safe (nothing enters game
+state).
+
+## ARCHITECT — Wave VI engine batch (VI.2 capital trade + VI.5 city spacing; golden window)
+
+Mine, under the batch-4 lock window (one extra re-record):
+- **VI.2**: the CAPITAL's city-square gains +1 trade (rules.json
+  `capitalCenterTradeBonus: 1`, applied in cities.js workedTiles
+  center for the capitalOf city) — every starting city yields ≥1 bulb.
+- **VI.5**: city spacing metric becomes 3-orthogonal/2-diagonal:
+  legal iff Chebyshev ≥ 3 OR (|dx| ≥ 2 AND |dy| ≥ 2). rules.json
+  minCityDistance 3 + minCityDiagonal 2; update the combat.test
+  spacing cases + scenario hashes as needed; AI founding uses the same
+  predicate (candidate scoring already consults it).
+Both re-recorded together with batch 4's goldens.
+
+## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
+
+Let players adjust rates/research/production/workers while a rival
+moves — "pre-work" applied to their own empire out of turn. This
+touches the engine's turn discipline (most commands reject
+notYourTurn) and the protocol. Design direction: allow an explicit
+WHITELIST of self-scoped commands (setRates, setResearch,
+setProduction, setWorkers) out of turn — the server serializes them
+into the command log as usual so replay determinism holds by
+construction; the engine check loosens from "activePlayer only" to
+"activePlayer OR whitelisted self-scoped". Needs: docs/02 §commands
+note, engine change (golden lock), scenario for an out-of-turn
+setProduction, and UI unlocking (panels currently assume own-turn).
+NOT QUEUED until the design is written and the lock frees — architect.
 
 ## PARKED — Global "find a game" + internet hosting (user note 2026-07-13, NOT QUEUED)
 

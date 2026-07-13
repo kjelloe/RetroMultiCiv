@@ -1,8 +1,12 @@
 # Phase 5 — Roblox Luau port: mapping & verification design
 
-Status: DESIGN (2026-07-12). The port is mechanical BY CONSTRUCTION — the
-engine was written in a Lua-shaped JS subset from day one — so this doc is
-mostly the trap list, the port order with its gates, and the harness plan.
+Status: DESIGN (2026-07-12) — **UNBLOCKED 2026-07-14**: phases 1–4 are
+all accepted (the two-machine LAN acceptance passed), making this port
+the next major technical target. The port is mechanical BY CONSTRUCTION
+— the engine was written in a Lua-shaped JS subset from day one — so
+this doc is mostly the trap list, the port order with its gates, and
+the harness plan. Remaining prerequisite before slice 1: the user's
+Roblox/lune toolchain setup (human-workitems "Later").
 
 ## 1. Verification assets already in hand
 

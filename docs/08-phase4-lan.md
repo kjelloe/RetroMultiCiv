@@ -20,7 +20,10 @@ starting age on the host form; joiners see edits live. Turn banners
 carry ✕/🔕 (mute in ⚙, chime included — a real WebAudio chime exists
 now), and a "⏳ <name> is moving · Ns" wait-line sits above End Turn
 with a configurable slow-poke turn-log note.
-Remaining: the two-machine human acceptance (human-workitems). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
+**PHASE 4 ACCEPTED 2026-07-14**: real two-machine session (2 humans +
+spectator + AI) survived the full stress script — network kill on the
+host PC and a server-process kill with save-resume; the turn-53 server
+save replays hash-exact (395 commands, 0xebaa99b1). Originally drafted 2026-07-12 — builds directly on the phase-3 primitives
 (docs/06: seats, tokens, per-seat views, save/resume). Roadmap acceptance:
 a full game between two machines surviving a mid-game disconnect.
 
@@ -107,12 +110,17 @@ banner "Your turn" on the broadcast is the only new client UX.
   with the skipped seat, logged in the diagnostics like any command.
 - **Lobby auth: join codes only** — no names/passwords in v1 (it's a LAN
   among friends; the join code is the invitation).
-- **Slot kicks: NO** (architect ruling @3b520ebc, A27 2026-07-13) —
-  "locked to AI" governs FUTURE joiners, never occupants; the host's
-  `setSlot`/`setSlots` reject on reserved seats (`seatReserved`), and a
-  shrink cannot remove a reserved tail seat either. Kicking a seated
-  human is a deliberate future social feature (notification, maybe a
-  rejoin block), not a lobby toggle.
+- **Slot kicks via setSlot: NO** (architect ruling @3b520ebc, A27
+  2026-07-13) — "locked to AI" governs FUTURE joiners, never occupants;
+  the host's `setSlot`/`setSlots` reject on reserved seats
+  (`seatReserved`), and a shrink cannot remove a reserved tail seat.
+  **SUPERSEDED IN PART by user decision 2026-07-14 (wave VI.15 →
+  A37)**: kicking becomes a deliberate, EXPLICIT host action — a
+  dedicated `{t:'kick'}` with notification to the kicked client, plus
+  an optional per-game IP block — exactly the "future social feature"
+  this ruling reserved. The silent setSlot flip keeps rejecting; lobby
+  chat (host-togglable) and host-only IP-on-hover arrive in the same
+  item. Mid-game kicks remain out of scope (AI-regency territory, §7).
 
 ## 7. Later option (noted, not phase 4): AI regency
 

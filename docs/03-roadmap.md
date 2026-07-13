@@ -303,12 +303,12 @@ open acceptance item (see `human-workitems.md`).
 
 ## Phase 4 — LAN multiplayer, reconnection, and resynchronization
 
-> Implemented through slice 3 (2026-07-13, design in `08-phase4-lan.md`):
-> lobby + join codes + per-slot seats ✅, client lobby UI + boot path ✅,
-> turn presence/host-skip/vote + server-side spectators ✅, spectator
-> client mode (`?spectate=1`, view-only, host-controlled) ✅. Open:
-> the two-machine acceptance is the human gate (run.sh prints the WSL
-> port-forward/firewall commands; run.ps1 hosts natively on Windows).
+> **ACCEPTED 2026-07-14** — real two-machine session (2 humans +
+> spectator + AI) survived a host-PC network kill AND a server kill
+> with save-resume; the session save replays hash-exact. All slices ✅:
+> lobby + join codes + seating chart, client lobby UI + boot path,
+> presence/host-skip/vote, spectators (server + client), host slot
+> controls, and the wave-V hardening from the first real playtest.
 
 > Design draft: [`08-phase4-lan.md`](08-phase4-lan.md) (builds on the phase-3
 > seats/tokens/per-seat-views/save-resume primitives).
@@ -412,6 +412,11 @@ the designer ally's plan:
   the weakest, within his "saturation or secondary accent" criterion);
   rails/irrigation crossing dunes stay legible, foam dashes crisp
   (`debugging/gallery-signoff-{grid,props}.png`).
+- 🔶 **A1.7 — Animation polish** *(queued as A28, 2026-07-13, ally spec
+  §"Art A1.7")*: flag/pennant sway, unit movement glide (render-layer
+  tween, hitboxes stay logical), city smoke, combat flashes, and a
+  "reduce animation" accessibility option — all render-time-only, zero
+  state, zero hash movement.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

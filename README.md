@@ -130,8 +130,12 @@ authoritative server over a WebSocket. The optional Node server
 (`node server/index.js`, then open the client with `?server=1`) now runs the
 same engine authoritatively: the browser becomes a thin client that sends
 commands and renders the per-player filtered views the server pushes, with
-save/resume and reconnect on the server side. Next: the socket playtest, then
-phase 4 — LAN multiplayer.
+save/resume and reconnect on the server side. **LAN multiplayer is in and
+accepted**: host with `./run.sh` (or `run.ps1` on Windows), friends join by
+a 5-letter code, pick seats and civilizations in the host's waiting room,
+spectators can watch — and a real two-machine session survived a network
+cut plus a server restart with save-resume, replaying hash-for-hash.
+Next: the Roblox Luau port of the engine, verified by those same replays.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

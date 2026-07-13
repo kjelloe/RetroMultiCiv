@@ -7,38 +7,10 @@ the Done log at the bottom.
 
 ## Pending — verify in real play
 
-- [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3 +
-  spectator mode code-complete, suite 188/188, flake-hardened, wave V
-  closed 6/6: research crash fixed, civs assigned, bare URLs redirect,
-  host slot controls + civ picks, banner ✕/🔕 + chime, waiting line):
-  `./run.sh` on one machine (it prints the WSL port-forward/firewall
-  commands itself; or host natively on Windows with `.\run.ps1`); both
-  browsers to `http://<host-ip>:8123` (redirects to the game now) →
-  Host a LAN game on one, Join by
-  the 5-char code on the other (pick a seat; your names should show in
-  the waiting room), start, play a few turns. Then the roadmap
-  acceptance — the designer ally's recommended script (2026-07-13):
-  (1) 3-player game: you, a second human, one AI; (2) play to ~turn
-  50; (3) hard-kill the network on the second machine (not just the
-  tab); (4) kill the Node server process; (5) restart it with
-  `./run.sh 8123 --game saves/<gameId>.json`; (6) both humans rejoin;
-  (7) **compare the game verification code before and after** — they
-  must match; (8) the second player resumes their turn exactly where
-  they were. Also try host-skip and the propose/vote while the second
-  machine is dark. Also eyeball
-  the 🔔 your-turn / ⏳ waiting / vote banners — integration-tested but
-  not yet visually verified (A13's honest note). Ticking this = phase 4
-  accepted. PRE-FLIGHT DONE (2026-07-13): a four-client end-to-end test
-  now passes on localhost (create → join by code with a seat pick →
-  named seats → full round in seat order → identical game codes on all
-  four → per-seat fog) — multi-machine is now a networking exercise, not
-  a software risk. The server now binds 0.0.0.0 (was loopback-only —
-  found via your question!) and run.sh echoes the LAN URL. WSL2 hosts
-  need the two PowerShell one-liners in gettingstarted §4 (portproxy +
-  firewall). Optional while you're at it: a third browser can now join
-  as a spectator (Spectate checkbox on the join form, or
-  `?server=1&spectate=1` against a `./run.sh` boot game) — screenshot-
-  verified headless, one human eyeball welcome.
+- [x] 2026-07-14 — **Phase-4 two-machine LAN acceptance: PASSED** (2
+  humans + spectator + AI; network kill on the host PC AND server kill
+  + save-resume both survived; turn-53 save replays hash-exact; moved
+  to the Done log).
 - [ ] **Score & declare the phase-2 hotseat acceptance**: your turn-35
   hotseat session replayed hash-exact and produced wave III — what's
   left is the verdict: score it against the 10 questions in
@@ -46,41 +18,38 @@ the Done log at the bottom.
   `specs/plan-feedback.md`, and the ally's comprehension question
   (did happiness/government/tax/workers feel understandable or like
   hidden bookkeeping?). Tick = phase 2 formally closed.
-- [ ] **Wave-III fix verification** (next hotseat/solo session): GoTo now
-  continues across hotseat hand-offs (the turn-35 bug); city squares act
-  roaded+irrigated (watch your capital's yields — the food gain appears
-  after leaving Despotism); starts spawn ≥3 tiles from the polar edges.
-  A16 (accepted 2026-07-13) adds the client half — feel-test these too:
-  the camera lingers on battles instead of jumping away, the city-view
-  mini-map is centered and the center tile shows its real (roaded +
-  irrigated) yields, hotseat hand-offs land each player on THEIR
-  last-moved unit (else their capital), and **C** with nothing selected
-  flies to your capital. Wave IV (accepted 2026-07-13): the build
-  catalog hides items beyond one tech ahead (A18), hovering a
-  neighboring tile shows a move arrow when the step is legal (A19),
-  and the year now advances Civ-style (50yr ancient → 2yr modern;
-  games run to ~turn 395 — watch late-game pacing). A20 (accepted
-  2026-07-13): the setup screen offers a **starting age** (Ancient →
-  Space Age) — the world fast-forwards under AI and every civ receives
-  the prior eras' techs at takeover. Helper's timing note: Renaissance
-  ≈3–5s on a small map; Modern/Space on bigger maps run ~10–20s behind
-  the progress counter — feel it once before the LAN session. A
-  Renaissance-start LAN game might be the most fun acceptance test.
+- [ ] **Feel-test backlog** (largely exercised by the 2026-07-14
+  acceptance session — tick whatever you consider covered): waves
+  III/IV polish (battle linger, centered mini-map + real center
+  yields, per-player hand-off landing, C-to-capital, one-tech-ahead
+  catalog, hover move arrow, Civ-style calendar pacing to ~turn 395,
+  starting-age fast-forward + its 10–20s wait on big maps). Wave VI
+  items get their own verification pass once B5/B6/A29+ land.
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.
 
 ## Pending — decisions / ops
 
+- [ ] **Commit checkpoint**: the tree carries the phase-4 acceptance
+  markings (docs/03/08/09, plan-update, README), the full wave-VI
+  routing (B5/B6, A29–A37, the architect engine batch), and the
+  helper's in-flight A28 — commit at a green-suite stop.
+- [ ] **Two queue decisions, NOW ACTIONABLE** (both were parked on the
+  acceptance, which passed): (a) queue the big-lobby scaling probe
+  (8/12/16 players)? (b) queue find-a-game v1 (public lobby listing —
+  pairs with the A27/A37 lobby work)? Say go/hold for each.
+- [ ] **Phase-5 kickoff prerequisite** (when you want the port to
+  start): Roblox Studio project + lune toolchain install (approved
+  2026-07-12) — docs/09 is otherwise ready and now unblocked.
 - [ ] **Ally loop — final relay**: he SIGNED OFF on A1.6a/b
   (2026-07-13) pending his three-point gallery checklist, which the
   architect ran and passed (verdicts + fresh shots
   `debugging/gallery-signoff-{grid,props}.png`; details in docs/03 art
   track). Remaining human step: relay the checklist verdicts + the
   shots to him, share the refreshed `plan-update.md` (both his feedback
-  rounds applied, incl. "Phase 5 — designed, next major technical
-  target"), and the thank-you for the civ table. His disconnect
-  stress-test script is folded into the LAN acceptance item above.
+  rounds applied — and it now leads with **PHASE 4 ACCEPTED**, via his
+  own stress-test script), and the thank-you for the civ table.
 - [ ] **Old recordings cleanup** (at leisure): everything in
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
@@ -126,6 +95,12 @@ engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
 
 ## Done log
 
+- ✅ 2026-07-14 — **PHASE 4 ACCEPTED**: two-machine LAN session (2
+  humans + spectator + AI), survived BOTH tortures — network kill on
+  the host PC AND a server-process kill with save-resume ("it
+  worked!"). The turn-53 server save replays hash-exact (395 commands,
+  105 rounds, 0xebaa99b1); game code CS3E-4SQN-TN6DH noted. Wave VI
+  (14 refinements + 1 bug) filed from the same session — routed.
 - ✅ 2026-07-13 — Commit checkpoint landed (8f674b9): wave IV complete
   (A16–A21), run scripts + fixes, sync passes #7/#8, 180-test baseline;
   the untracked-fastforward landmine confirmed defused (both files
