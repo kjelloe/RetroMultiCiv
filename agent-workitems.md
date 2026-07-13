@@ -68,7 +68,7 @@ my ack. Test-only, golden-safe. Done-when: the new case fails if the
 input.js fix is reverted (prove it: revert locally, watch it fail,
 restore), suite green.
 
-### B2 — Harden the 4-client LAN test against parallel-suite load
+### B2 — Harden the 4-client LAN test against parallel-suite load  [claimed: bugfixer 2026-07-13] [done: 2026-07-13 — diagnosed under real load: no logic race; 6-10x contention multiplier measured (0.24s isolated vs 1.3-2.5s across 10 full-suite runs, 16 parallel files + chromium children), so the 8s expect budget was a tail-risk squeeze. Hardened: 30s budget + timeout errors now dump the unmatched inbox (future stalls self-diagnose). Acceptance: 10 consecutive full-suite runs pre-fix AND 10 post-fix, 20x zero flakes, 180/180]
 
 The helper observed test/server-lan4.test.js fail ONCE under the full
 parallel suite (passes alone and on reruns) — 4 ws clients + ephemeral
@@ -491,9 +491,19 @@ players and measure performance and latency. Facts for whoever designs
 it: the 7-player cap is a soft clamp in exactly three places
 (client/main.js:141 `Math.min(7, …)`, the lobby seat dropdown p1..p7,
 test/sim-driver.js SIM_ROSTER) — data/civs.json already carries 14
-identities, so 8–14 players is a clamp-raise + roster extension; 16
-needs either new civ identities or duplicate-civ handling (names,
-colors, emblems collide). What to measure: headless soak ms/turn vs
+identities, so 8–14 players is a clamp-raise + roster extension.
+DECIDED (user 2026-07-13): beyond the original 14, draw new
+civilizations from **Civ 2/3/4** rosters and adapt each one's
+perk/speciality to our `specialty` schema (`{type: cheapUnit|
+cheapBuilding|…, unit/building, pct, blurb}` — invent new structured
+types only where an adapted perk truly needs one, and keep them
+engine-read like the existing hooks). The local wiki dump covers the
+whole Civilization Fandom wiki, so names/leaders/city lists/perk facts
+extract the licensed way (facts and numbers via tools/wiki2data.js +
+mapdata overlays — never prose). Each new civ ALSO needs a visual{}
+identity (primary/secondary/emblem) — the 14-civ table is the designer
+ally's work and his acceptance criteria apply, so batch the new
+identities through him. What to measure: headless soak ms/turn vs
 player count (today ~60–235 ms/turn at 4 civs on medium/GE), server
 per-command cost (filterView runs once per CONNECTED seat per
 broadcast — it scales players × map tiles), ws fan-out latency with 8+

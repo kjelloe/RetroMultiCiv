@@ -75,23 +75,15 @@ the Done log at the bottom.
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
   six existing files pre-triaged. Delete when convenient.
-- [ ] **Commit checkpoint — ⚠ two files MUST be `git add`ed**: the
-  tree carries A20 (starting ages) whose NEW files
-  `shared/fastforward.js` and `test/fastforward.test.js` are UNTRACKED
-  while tracked `server/lobby.js`/`client/main.js` import them —
-  committing without `git add` on those two breaks every fresh clone
-  with ERR_MODULE_NOT_FOUND (the bugfixer flagged this while triaging
-  your GAMING-MINI report). Also in the tree: sync-pass #7+#8 doc
-  updates and the new ages data-contract guard test. Suite-green
-  baseline: 176 tests (+1 guard pending bugfixer's run-script fixes).
 
 ## Later (not yet actionable)
 
 - [ ] **Big-lobby scaling (8/12/16 players)**: noted 2026-07-13 — a
   parked probe item with the full fact sheet lives in agent-workitems
-  ("PARKED — Big-lobby scaling"). Decide after the two-machine
-  acceptance whether to queue it (8–14 is data-ready; 16 needs new or
-  duplicated civ identities).
+  ("PARKED — Big-lobby scaling"). 16+ civs decided: draw from Civ
+  2/3/4 rosters, adapt perks to our specialty schema; new visual
+  identities go through the designer ally's acceptance loop. Queue
+  after the two-machine acceptance.
 - [ ] **Roblox/phase-5 setup**: Studio project, publishing, lune
   toolchain install for CI (approved 2026-07-12) — when the port starts.
 - [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
@@ -106,6 +98,12 @@ engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
 
 ## Done log
 
+- ✅ 2026-07-13 — Commit checkpoint landed (8f674b9): wave IV complete
+  (A16–A21), run scripts + fixes, sync passes #7/#8, 180-test baseline;
+  the untracked-fastforward landmine confirmed defused (both files
+  tracked).
+- ✅ 2026-07-13 — 16+ civs decision: draw from Civ 2/3/4, adapt perks
+  to the specialty schema (recorded in the parked scaling item).
 - ✅ 2026-07-13 — Arctic poles decided + implemented: impassable ice wall
   (terrain domain `ice` via the mapdata overlay; unit test added;
   suite green with no golden movement).

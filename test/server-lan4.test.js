@@ -22,7 +22,14 @@ function connect(port) {
     const hit = inbox.findIndex(match);
     if (hit !== -1) return Promise.resolve(inbox.splice(hit, 1)[0]);
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(`timeout: ${label}`)), 8000);
+      // 30s: the full parallel suite runs this test 6-10x slower than
+      // isolated (measured 0.24s alone vs up to 2.5s under 16-way load with
+      // chromium/SwiftShader children) — 8s left too little tail margin and
+      // flaked once. The budget only bounds failure-reporting time.
+      const timer = setTimeout(() => {
+        const seen = inbox.map(m => m.t + (m.turn !== undefined ? `(turn ${m.turn})` : '')).join(', ');
+        reject(new Error(`timeout: ${label} — unmatched inbox: [${seen}]`));
+      }, 30000);
       waiters.push({ match, resolve: m => { clearTimeout(timer); resolve(m); } });
     });
   }
