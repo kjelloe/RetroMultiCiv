@@ -7,8 +7,10 @@ the Done log at the bottom.
 
 ## Pending — verify in real play
 
-- [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3
-  code-complete, suite 163/163): `./run.sh` on one machine; both browsers
+- [ ] **Phase-4 two-machine LAN acceptance** (ACTIONABLE — slices 1–3 +
+  spectator mode code-complete, suite 170/170): `./run.sh` on one
+  machine (it prints the WSL port-forward/firewall commands itself;
+  or host natively on Windows with `.\run.ps1`); both browsers
   to `http://<host-ip>:8123/client/` → Host a LAN game on one, Join by
   the 5-char code on the other (pick a seat; your names should show in
   the waiting room), start, play a few turns. Then the roadmap
@@ -45,7 +47,11 @@ the Done log at the bottom.
   mini-map is centered and the center tile shows its real (roaded +
   irrigated) yields, hotseat hand-offs land each player on THEIR
   last-moved unit (else their capital), and **C** with nothing selected
-  flies to your capital.
+  flies to your capital. Wave IV (accepted 2026-07-13): the build
+  catalog hides items beyond one tech ahead (A18), hovering a
+  neighboring tile shows a move arrow when the step is legal (A19),
+  and the year now advances Civ-style (50yr ancient → 2yr modern;
+  games run to ~turn 395 — watch late-game pacing).
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.
@@ -63,12 +69,11 @@ the Done log at the bottom.
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
   six existing files pre-triaged. Delete when convenient.
-- [ ] **Commit checkpoint**: the working tree carries A16 (wave-III
-  client refinements) and A17 (spectator mode) — both accepted — plus
-  two small review fixes (saves.js, spectator HUD hint) and the
-  ally-feedback rewrite of `plan-update.md` (gitignored) — a known-green
-  163-test baseline worth committing before A2/B2 land (A2 re-records
-  the goldens).
+- [ ] **Commit checkpoint**: A2/A21/A18/A19 are committed (fef7fae);
+  the tree still carries the sync-pass-#7 doc updates (README 170,
+  docs/03 phase-4 status, CLAUDE.md server flags/run scripts,
+  gettingstarted spectate row) — small, safe to fold into the next
+  commit.
 
 ## Later (not yet actionable)
 

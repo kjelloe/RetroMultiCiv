@@ -81,10 +81,14 @@ screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
 `?debug=1` per-command hashes, `?mock=1` static state). Play (phase-3
 authoritative server): `node server/index.js [--port 8123] [--seed N]
-[--civs N] [--size medium] [--game saves/<id>.json] [--no-save]` hosts the
-client AND the game; open `http://localhost:8123/client/?server=1` — the
-client joins over `/ws` instead of running its own engine (hotseat stays
-local-only). `engine/` and `shared/` are ESM (per-dir `package.json` type
+[--civs N] [--size medium] [--game saves/<id>.json] [--no-save]
+[--no-spectators] [--host IP]` hosts the client AND the game; open
+`http://localhost:8123/client/?server=1` — the client joins over `/ws`
+instead of running its own engine (hotseat stays local-only);
+`&spectate=1` joins tokenless as a view-only omniscient spectator
+(host-controlled). `./run.sh [PORT] [server args]` wraps the server
+(prereq checks, restart, WSL port-forward/firewall guidance);
+`run.ps1` is its native-Windows twin. `engine/` and `shared/` are ESM (per-dir `package.json` type
 markers) so they load in both browser and Node; `server/` is ESM too; CJS test
 files use dynamic `import()` for them. `tools/` stays CJS.
 
@@ -107,7 +111,8 @@ wrong". Loading a save restarts the recording from the load point.
 
 **Test layers** (all via `node --test test/`): unit tests (rng, statehash,
 cities, improvements, happiness, government, combat/barbarians, tech, ai,
-score, visibility, mapgen, wiki2data — engine tests share `test/ruleset.js`),
+score, visibility, mapgen, year, move-hints, wiki2data — engine tests share
+`test/ruleset.js`),
 JSON scenarios (below),
 `simulation.test.js` — headless all-AI playthroughs via `test/sim-driver.js`
 (fixed seed, 400 turns run twice with chaos-command injection, invariants

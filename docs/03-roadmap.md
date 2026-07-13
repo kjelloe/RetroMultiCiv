@@ -305,8 +305,10 @@ open acceptance item (see `human-workitems.md`).
 
 > Implemented through slice 3 (2026-07-13, design in `08-phase4-lan.md`):
 > lobby + join codes + per-slot seats ✅, client lobby UI + boot path ✅,
-> turn presence/host-skip/vote + server-side spectators ✅. Open: A17
-> spectator client mode; the two-machine acceptance is the human gate.
+> turn presence/host-skip/vote + server-side spectators ✅, spectator
+> client mode (`?spectate=1`, view-only, host-controlled) ✅. Open:
+> the two-machine acceptance is the human gate (run.sh prints the WSL
+> port-forward/firewall commands; run.ps1 hosts natively on Windows).
 
 > Design draft: [`08-phase4-lan.md`](08-phase4-lan.md) (builds on the phase-3
 > seats/tokens/per-seat-views/save-resume primitives).

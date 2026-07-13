@@ -109,6 +109,7 @@ for everyday solo/hotseat play, the plain URL is all you need.
 | `&civ=romans` | your civilization |
 | `&size=large` `&difficulty=hard` `&combat=bestof3` | as on the setup screen |
 | `?server=1` | play through the authoritative server |
+| `?server=1&spectate=1` | watch a server game — whole map, no controls (host must allow it) |
 | `?diag=1` | graphics diagnostics HUD |
 
 ## 7. If something looks wrong
