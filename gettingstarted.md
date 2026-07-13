@@ -82,6 +82,13 @@ across reboots under NAT — if players stop reaching you after a restart,
 `netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0
 listenport=8123`, then re-run `./run.sh` for a fresh add-line.)
 
+**Or skip WSL entirely**: on a native Windows 11 host, clone the repo,
+install [Node.js LTS](https://nodejs.org) (`winget install
+OpenJS.NodeJS.LTS`), run `npm ci` once, and start with `.\run.ps1` —
+same arguments as run.sh. Native hosting needs **no portproxy**, only
+the firewall rule (run.ps1 prints it). Both scripts check for Node and
+tell you what to install if it's missing.
+
 ## 5. Playing THROUGH the server, solo (optional)
 
 `./run.sh` also hosts an authoritative game server. Open

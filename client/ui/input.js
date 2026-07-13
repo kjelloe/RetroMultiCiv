@@ -3,6 +3,7 @@ import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '
 import { candidateTiles, tileYields, wonderActive } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
 import { availableTechs } from '../../engine/tech.js';
+import { canStepTo, stepDir } from './move-hints.js';
 
 const MOVE_KEYS = {
   w: 'N', ArrowUp: 'N',
@@ -564,6 +565,14 @@ export function initInput(ctx) {
     }
     hud.tile(text);
     renderer.setHoverColor(attack ? 0xff4433 : 0xffffff);
+    // A19 movement affordance: an arrow on legal adjacent steps ("click will
+    // move here"); enemy tiles keep the red attack ring instead
+    renderer.setHoverArrow(
+      pick && attacker && !attack
+        && canStepTo(session.state, attacker, pick.tile.x, pick.tile.y, session.ruleset)
+        ? stepDir(session.state.map, attacker, pick.tile.x, pick.tile.y)
+        : null
+    );
     // rebuild the footprint overlay only when the hovered tile changes
     const key = footprint ? `${pick.tile.x},${pick.tile.y}` : null;
     if (key !== lastFootprintKey) {

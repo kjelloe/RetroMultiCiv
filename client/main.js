@@ -308,6 +308,21 @@ if (firstUnit) {
 const zoom = parseInt(params.get('zoom') || '', 10);
 if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
 
+// ?hoverdemo=1 (A19 screenshots): with the camera centered on the selected
+// unit, hover a screen point offset from canvas center (&hoverdx/&hoverdy px)
+// so the move-affordance arrow renders deterministically in headless shots
+if (params.get('hoverdemo') === '1' && firstUnit) {
+  const canvas = document.querySelector('#app canvas');
+  if (canvas) {
+    const r = canvas.getBoundingClientRect();
+    canvas.dispatchEvent(new PointerEvent('pointermove', {
+      clientX: r.left + r.width / 2 + (parseInt(params.get('hoverdx') || '', 10) || 80),
+      clientY: r.top + r.height / 2 + (parseInt(params.get('hoverdy') || '', 10) || 0),
+      bubbles: true
+    }));
+  }
+}
+
 // ?e2e=1: scripted sequence for the headless browser test — found a city with
 // the starting settlers and fill both panels, so their code paths execute
 // (hidden panel content stays in the DOM for --dump-dom to assert on).

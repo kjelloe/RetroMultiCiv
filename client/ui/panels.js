@@ -427,11 +427,22 @@ export function initPanels(ctx) {
     const byTechLevel = (a, b, set) =>
       techs[set[a].tech].level - techs[set[b].tech].level || (a < b ? -1 : 1);
 
+    // A18 one-tech look-ahead: a locked item stays in the catalog only while
+    // its tech sits on the RESEARCH FRONTIER (all prereqs known — the exact
+    // availableTechs set, which includes the current research). Deeper items
+    // hide entirely; each discovery advances the frontier and reveals the
+    // next ring. No more battleships in the 4000 BC catalog.
+    const frontier = {};
+    for (const t of availableTechs(session.state, ctx.HUMAN, session.ruleset)) frontier[t] = true;
+
     addGroup('units');
     const lockedUnits = [];
     for (const id of Object.keys(units).sort()) {
       const u = units[id];
-      if (u.tech !== '' && !me.techs.includes(u.tech)) { lockedUnits.push(id); continue; }
+      if (u.tech !== '' && !me.techs.includes(u.tech)) {
+        if (frontier[u.tech]) lockedUnits.push(id);
+        continue;
+      }
       const cost = itemCost('unit', id, u, me, session.ruleset);
       addOption({ kind: 'unit', id },
         `${u.name} · <span class="ys">${cost}⚒${eta(cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`
@@ -449,7 +460,10 @@ export function initPanels(ctx) {
     for (const id of Object.keys(buildings).sort()) {
       const b = buildings[id];
       if ((city.buildings || []).includes(id)) continue;
-      if (b.tech !== '' && !me.techs.includes(b.tech)) { lockedBuildings.push(id); continue; }
+      if (b.tech !== '' && !me.techs.includes(b.tech)) {
+        if (frontier[b.tech]) lockedBuildings.push(id); // A18 frontier filter
+        continue;
+      }
       const cost = itemCost('building', id, b, me, session.ruleset);
       addOption({ kind: 'building', id },
         `${b.name} · <span class="ys">${cost}⚒${eta(cost, 'building')}</span> · upkeep ${b.maintenance}`
@@ -467,7 +481,10 @@ export function initPanels(ctx) {
     for (const id of Object.keys(wonders).sort()) {
       const w = wonders[id];
       if (session.state.wonders && session.state.wonders[id] !== undefined) continue;
-      if (w.tech !== '' && !me.techs.includes(w.tech)) { lockedWonders.push(id); continue; }
+      if (w.tech !== '' && !me.techs.includes(w.tech)) {
+        if (frontier[w.tech]) lockedWonders.push(id); // A18 frontier filter
+        continue;
+      }
       addOption({ kind: 'wonder', id },
         `${w.name} · <span class="ys">${w.cost}⚒${eta(w.cost, 'wonder')}</span>`,
         effectText(w) || `prestige — score +${session.ruleset.rules.scorePerWonder}`);

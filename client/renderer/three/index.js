@@ -60,6 +60,20 @@ export function createRenderer(container) {
   );
   hoverMarker.visible = false;
   scene.add(hoverMarker);
+  // A19 movement affordance: a small arrow on the hover ring pointing along
+  // the step the click would take (input.js decides legality; we just aim it)
+  const hoverArrow = new THREE.Mesh(
+    new THREE.ConeGeometry(0.09, 0.24, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffe066 })
+  );
+  hoverArrow.rotation.order = 'YXZ'; // yaw around world-Y after the flat tilt
+  hoverArrow.rotation.x = Math.PI / 2; // lie flat, tip pointing +z before yaw
+  hoverArrow.visible = false;
+  scene.add(hoverArrow);
+  const ARROW_YAW = { // radians around Y so the tip points INTO the tile
+    E: Math.PI / 2, NE: Math.PI * 0.75, N: Math.PI, NW: -Math.PI * 0.75,
+    W: -Math.PI / 2, SW: -Math.PI / 4, S: 0, SE: Math.PI / 4
+  };
 
   const selectMarker = new THREE.Mesh(
     new THREE.TorusGeometry(0.42, 0.05, 8, 24),
@@ -256,8 +270,9 @@ export function createRenderer(container) {
         hoverMarker.visible = true;
       } else {
         hoverMarker.visible = false;
+        hoverArrow.visible = false;
       }
-      hoverCb(pick);
+      hoverCb(pick); // may call setHoverArrow for the move affordance
     }
   });
   renderer.domElement.addEventListener('dblclick', e => {
@@ -303,6 +318,18 @@ export function createRenderer(container) {
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },
     setHoverColor(hex) { hoverMarker.material.color.setHex(hex); },
+    // A19: aim the small move-affordance arrow along the step direction the
+    // click would take, riding the hover ring; null hides it
+    setHoverArrow(dir) {
+      if (dir === null || ARROW_YAW[dir] === undefined || !hoverMarker.visible) {
+        hoverArrow.visible = false;
+        return;
+      }
+      hoverArrow.position.copy(hoverMarker.position);
+      hoverArrow.position.y += 0.1;
+      hoverArrow.rotation.set(Math.PI / 2, ARROW_YAW[dir], 0);
+      hoverArrow.visible = true;
+    },
     // GoTo preview: ordered tile points, or null to clear. Drawn as segment
     // pairs so a wrap-crossing step doesn't streak across the whole map.
     setPath(points) {

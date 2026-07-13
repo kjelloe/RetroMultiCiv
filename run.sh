@@ -38,6 +38,19 @@ HELP
   exit 0
 fi
 
+# prerequisites: node runs the server, ws is its one dependency
+if ! command -v node >/dev/null 2>&1; then
+  echo "node is required but not installed. Install it first:" >&2
+  echo "  Ubuntu/Debian/WSL:  sudo apt-get update && sudo apt-get install -y nodejs npm" >&2
+  echo "  any platform:       https://nodejs.org (pick the LTS)" >&2
+  exit 1
+fi
+if [ ! -d node_modules/ws ]; then
+  echo "dependencies missing (node_modules/ws) — from the repo root run:" >&2
+  echo "  npm ci" >&2
+  exit 1
+fi
+
 # first arg is the port ONLY if numeric — `./run.sh --humans 2` must not
 # swallow a flag as the port (a real user hit exactly that)
 case "${1:-}" in

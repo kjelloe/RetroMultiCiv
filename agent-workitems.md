@@ -356,7 +356,7 @@ table. Done-mail: new goldens, the measured game-end turn, and a
 Verify: landmark unit test; full suite green after re-records; one
 sim smoke (`node tools/soak.js --seeds 3`) green.
 
-## A18 — Production catalog: one-tech look-ahead (wave IV.1 — client-only, golden-safe)  [claimed: coder-helper 2026-07-13]
+## A18 — Production catalog: one-tech look-ahead (wave IV.1 — client-only, golden-safe)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — frontier filter in panels.js: locked items survive iff their tech ∈ availableTechs (the existing engine frontier helper — pure, reused as the item wanted); grey styling/"needs X"/byTechLevel kept. Fresh Roman start: locked shrinks to cavalry/chariot/phalanx + city-walls/granary/palace/temple + colossus/great-wall/hanging-gardens/pyramids; 56 deeper items hidden (armor/battleship/nuclear gone from 4000 BC). Screenshot read; suite 166/166.]
 
 User request: the city production catalog currently greys out EVERY
 tech-locked unit/building/wonder — tanks visible in 4000 BC. Filter the
@@ -376,7 +376,7 @@ Verify: browser e2e green; screenshot a fresh-start city panel (should
 show only ancient-adjacent locked items — READ it) and note in the
 done-mail which items disappeared for a seed-12345 Roman start.
 
-## A19 — Movement affordance arrow on hover (wave IV.3 — client-only, golden-safe)
+## A19 — Movement affordance arrow on hover (wave IV.3 — client-only, golden-safe)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — client/ui/move-hints.js (37 lines): pure canStepTo/stepDir (adjacent + moves>0 + terrain.domain===unit.domain per engine/movement.js + no enemy = red ring unchanged; wrapX handled); test/move-hints.test.js 4 cases (land→ocean, ship→land, zero moves/non-adjacent/enemy/off-map, x-wrap). Renderer setHoverArrow(dir|null): cone on the hover ring, YXZ yaw table, hides with the ring. input.js onHover wires it. ?hoverdemo=1&hoverdx/dy deterministic screenshot hook in main.js. Shots READ: E-neighbor arrow points into the tile; own-tile hover correctly arrowless; WebGL1 identical. Suite 170/170.]
 
 User request: with a unit selected that has moves left, hovering an
 ADJACENT tile the unit could enter should show a small arrow (the

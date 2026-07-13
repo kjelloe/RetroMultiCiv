@@ -97,7 +97,14 @@ the firewall rule, and players connect straight to the address it
 shows. The WSL IP changes across reboots under NAT — if players stop
 reaching you after a restart, <code>netsh interface portproxy delete
 v4tov4 listenaddress=0.0.0.0 listenport=8123</code>, then re-run
-<code>./run.sh</code> for a fresh add-line.</div>
+<code>./run.sh</code> for a fresh add-line.<br><br>
+<b>Or skip WSL entirely</b>: on a native Windows 11 host, clone the
+repo, install <a href="https://nodejs.org">Node.js LTS</a>
+(<code>winget install OpenJS.NodeJS.LTS</code>), run <code>npm ci</code>
+once, and start with <code>.\run.ps1</code> — same arguments as run.sh.
+Native hosting needs <b>no portproxy</b>, only the firewall rule
+(run.ps1 prints it). Both scripts check for Node and tell you what to
+install if it's missing.</div>
 
 <h2>5. Playing THROUGH the server, solo (optional)</h2>
 <p><code>./run.sh</code> also hosts an authoritative game server. Open
