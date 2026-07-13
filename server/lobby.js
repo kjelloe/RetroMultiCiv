@@ -13,6 +13,8 @@
 // game.bindSeat (so first-free IS the chart) and pushes the phase-3 joined
 // reply. Reservation names become the player names (killing "Player N").
 import { createGame } from './game.js';
+import { createEngine } from '../engine/index.js';
+import { fastForwardTo } from '../shared/fastforward.js';
 import { fnv32 } from '../shared/gamecode.js';
 
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -75,7 +77,9 @@ export function createRegistry(deps) {
         size: SIZES[options.size] ? options.size : 'medium',
         difficulty: options.difficulty, combat: options.combat,
         seed: options.seed !== undefined ? options.seed : seedFn(),
-        allowSpectators: options.allowSpectators === true
+        allowSpectators: options.allowSpectators === true,
+        // A20 starting age (validated against the ruleset; ancient = none)
+        age: ((ruleset.rules && ruleset.rules.ages) || []).some(a => a.id === options.age) ? options.age : 'ancient'
       },
       seats, game: null
     };
@@ -132,12 +136,38 @@ export function createRegistry(deps) {
       if (human) humanSeats.push(pid);
     });
     const dims = SIZES[e.options.size];
+    const ageEntry = ((ruleset.rules && ruleset.rules.ages) || []).find(a => a.id === e.options.age);
     let game;
     try {
-      game = createGame({
-        ruleset, gameId, rulesOverrides: overridesFor(e.options),
-        setup: { seed: e.options.seed, options: { width: dims[0], height: dims[1], players } }
-      });
+      if (ageEntry && ageEntry.turn > 0) {
+        // A20: the whole world plays as AI to the age turn, then the chart's
+        // human seats take over (fastForwardTo grants techs + flips them)
+        const allAi = players.map(p => Object.assign({}, p, { human: false }));
+        const engine = createEngine(Object.assign({}, ruleset, {
+          rules: Object.assign({}, ruleset.rules, overridesFor(e.options))
+        }));
+        const raw = engine.createGame({
+          seed: e.options.seed, options: { width: dims[0], height: dims[1], players: allAi }
+        });
+        if (raw.ok === false) return { ok: false, reason: raw.reason };
+        const r = fastForwardTo(ruleset, raw, ageEntry, humanSeats);
+        if (r.aborted) {
+          return {
+            ok: false,
+            reason: r.aborted.reason === 'civEliminated'
+              ? `ageAborted: ${r.aborted.name} died before the ${ageEntry.name}`
+              : `ageAborted: ${r.aborted.reason}`
+          };
+        }
+        game = createGame({
+          ruleset, gameId, rulesOverrides: overridesFor(e.options), initialState: r.state
+        });
+      } else {
+        game = createGame({
+          ruleset, gameId, rulesOverrides: overridesFor(e.options),
+          setup: { seed: e.options.seed, options: { width: dims[0], height: dims[1], players } }
+        });
+      }
     } catch (err) {
       return { ok: false, reason: err.message };
     }

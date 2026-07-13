@@ -157,13 +157,19 @@ if (serverParam) {
     ? [picked].concat(shuffled.filter(id => id !== picked))
     : shuffled;
 
+  // A20 starting age: any age past Ancient means the whole world plays as AI
+  // up to the age's turn (see shared/fastforward.js), then the humans take
+  // over their seats with the cumulative tech grant of prior eras
+  const age = (ruleset.rules.ages || []).find(a => a.id === (params.get('age') || 'ancient'))
+    || { id: 'ancient', turn: 0 };
+
   const playerDefs = [];
   for (let i = 0; i < civCount; i++) {
     const civId = lineup[i];
     playerDefs.push({
       id: 'p' + (i + 1), civ: civId,
       name: civs[civId].name, color: civs[civId].color,
-      human: i < humans
+      human: age.turn > 0 ? false : i < humans // late starts: AI plays history first
     });
     cityNamesByPlayer['p' + (i + 1)] = civs[civId].cities;
     if (civs[civId].visual) factionsByPid['p' + (i + 1)] = civs[civId].visual;
@@ -174,12 +180,40 @@ if (serverParam) {
     seed, options: { width: dims[0], height: dims[1], players: playerDefs }
   });
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
+
+  if (age.turn > 0) {
+    const { createFastForward, applyAgeGrant } = await import('../shared/fastforward.js');
+    const humanSeats = [];
+    for (let i = 0; i < humans; i++) humanSeats.push('p' + (i + 1));
+    const fwd = createFastForward(ruleset, initialState, { humanSeats });
+    let r = { done: false };
+    while (!r.done) {
+      r = fwd.step(5, age.turn); // 5 rounds per slice keeps the tab responsive
+      hudStatus.textContent = `⏳ simulating history… turn ${fwd.turn}/${age.turn}`;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    if (fwd.aborted) {
+      // deterministic UX: name the casualty, never silently re-roll seeds
+      const a = fwd.aborted;
+      hudStatus.style.color = '#ff7b6b';
+      hudStatus.textContent = a.reason === 'civEliminated'
+        ? `✗ ${a.name} was destroyed before the ${age.name} — try another seed, age, or civilization`
+        : `✗ history ended early (${a.reason}) — try another seed or an earlier age`;
+      throw new Error('setup'); // stop the bootstrap; the message stays
+    }
+    initialState = fwd.state;
+    applyAgeGrant(initialState, age, ruleset);
+    for (const pid of humanSeats) initialState.players[pid].human = true;
+    hudStatus.textContent = '';
+  }
+
   history.replaceState(null, '',
     `?seed=${seed}&civs=${civCount}&humans=${humans}`
     + `${picked && civs[picked] ? `&civ=${picked}` : ''}`
     + `${size !== 'medium' ? `&size=${size}` : ''}`
     + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`
-    + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`);
+    + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`
+    + `${age.turn > 0 ? `&age=${age.id}` : ''}`);
 }
 
 // --- wiring ------------------------------------------------------------------

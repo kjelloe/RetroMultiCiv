@@ -46,6 +46,10 @@ export function showSetupScreen() {
           <option value="bestof3" selected>Best-of-three (fewer upsets)</option>
         </select>
       </label>
+      <label>Starting age
+        <select id="setup-age"><option value="ancient" selected>Ancient (4000 BC)</option></select>
+      </label>
+      <p class="setup-hint" id="setup-age-hint"></p>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
       <button id="setup-start">Start game</button>
       <div id="setup-lan">
@@ -84,6 +88,25 @@ export function showSetupScreen() {
     showSpecialty();
   });
 
+  // starting ages from data/rules.json (A20): later ages fast-forward the
+  // world as all-AI history, then the humans take over
+  const ageEl = document.getElementById('setup-age');
+  const ageHint = document.getElementById('setup-age-hint');
+  fetch('../data/rules.json').then(r => r.json()).then(rules => {
+    for (const age of (rules.ages || []).slice(1)) { // ancient is already there
+      const opt = document.createElement('option');
+      opt.value = age.id;
+      opt.textContent = `${age.name} (turn ${age.turn})`;
+      ageEl.appendChild(opt);
+    }
+    const hint = () => {
+      ageHint.textContent = ageEl.value === 'ancient' ? ''
+        : 'the AI plays history first — worlds arrive with cities and roads';
+    };
+    ageEl.addEventListener('change', hint);
+    hint();
+  });
+
   const civsEl = document.getElementById('setup-civs');
   const humansEl = document.getElementById('setup-humans');
   function refreshHumans() {
@@ -110,10 +133,12 @@ export function showSetupScreen() {
     const size = document.getElementById('setup-size').value;
     const difficulty = document.getElementById('setup-difficulty').value;
     const combat = document.getElementById('setup-combat').value;
+    const age = document.getElementById('setup-age').value;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
       + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
-      + (combat !== 'authentic' ? `&combat=${combat}` : '');
+      + (combat !== 'authentic' ? `&combat=${combat}` : '')
+      + (age !== 'ancient' ? `&age=${age}` : '');
   });
 
   // --- phase-4 LAN lobby (ui/lobby.js): host with the form's world options,
@@ -126,7 +151,8 @@ export function showSetupScreen() {
       size: document.getElementById('setup-size').value,
       difficulty: document.getElementById('setup-difficulty').value,
       combat: document.getElementById('setup-combat').value,
-      seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined
+      seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined,
+      age: document.getElementById('setup-age').value // A20: LAN lobbies inherit it
     };
   }
   document.getElementById('setup-host').addEventListener('click', () => {

@@ -402,7 +402,7 @@ synthetic mousemove in the e2e page (CDP or page script) and screenshot
 forces the marker to a fixed adjacent tile is an acceptable stand-in.
 READ the screenshot: arrow visible, pointing from unit to tile.
 
-## A20 — Starting-age setup via AI fast-forward (wave IV.2 — design below, golden-safe)
+## A20 — Starting-age setup via AI fast-forward (wave IV.2 — design below, golden-safe)  [claimed: coder-helper 2026-07-13] [done: 2026-07-13 — TECH_ERAS overlay in mapdata (user's attested table @5f97c2b5, exactly-once + unknown-name guards, "RailRoad"/"Future Tech" quirks handled) → techs.json regenerated (+68 era lines ONLY); rules.json ages block (turns = PROPOSED year anchors) + space "except": ["future-tech"] (data-driven); shared/fastforward.js: createFastForward stepper (browser chunking) + fastForwardTo + applyAgeGrant (sorted union, researching ''/bulbs 0, identical per civ); main.js ?age boot w/ chunked progress + abort-names-the-civ UX; setup dropdown from rules.json + &age param; server: lobby create validates age, start() runs ff (all-AI world → grant → chart humans flipped), game.js opts.initialState. Tests: 6 (era guard 22/15/14/17, double-run hash determinism, grant union/reset, space-except 67, abort seed-42, ancient no-op). Verified: Renaissance browser boot READ (turn 190 · 1390 AD · Monarchy · cities/roads/garrisons/285g); server create+age → joined turn 190/22 techs/researching "". Suite 176/176; goldens untouched (unread optional keys). Wave IV complete.]
 
 User request: the setup screen asks for a starting age (Ancient → Space
 age). Any age past Ancient means: create the world, let ALL civs play

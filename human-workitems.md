@@ -51,7 +51,13 @@ the Done log at the bottom.
   catalog hides items beyond one tech ahead (A18), hovering a
   neighboring tile shows a move arrow when the step is legal (A19),
   and the year now advances Civ-style (50yr ancient → 2yr modern;
-  games run to ~turn 395 — watch late-game pacing).
+  games run to ~turn 395 — watch late-game pacing). A20 (accepted
+  2026-07-13): the setup screen offers a **starting age** (Ancient →
+  Space Age) — the world fast-forwards under AI and every civ receives
+  the prior eras' techs at takeover. Helper's timing note: Renaissance
+  ≈3–5s on a small map; Modern/Space on bigger maps run ~10–20s behind
+  the progress counter — feel it once before the LAN session. A
+  Renaissance-start LAN game might be the most fun acceptance test.
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.

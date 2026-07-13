@@ -2,6 +2,7 @@
   "advanced-flight": {
     "name": "Advanced Flight",
     "level": 13,
+    "era": "modern",
     "prereqs": [
       "flight",
       "electricity"
@@ -10,11 +11,13 @@
   "alphabet": {
     "name": "Alphabet",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "astronomy": {
     "name": "Astronomy",
     "level": 3,
+    "era": "renaissance",
     "prereqs": [
       "mysticism",
       "mathematics"
@@ -23,6 +26,7 @@
   "atomic-theory": {
     "name": "Atomic Theory",
     "level": 7,
+    "era": "industrial",
     "prereqs": [
       "theory-of-gravity",
       "physics"
@@ -31,6 +35,7 @@
   "automobile": {
     "name": "Automobile",
     "level": 12,
+    "era": "modern",
     "prereqs": [
       "combustion",
       "steel"
@@ -39,6 +44,7 @@
   "banking": {
     "name": "Banking",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "republic",
       "trade"
@@ -47,6 +53,7 @@
   "bridge-building": {
     "name": "Bridge Building",
     "level": 4,
+    "era": "ancient",
     "prereqs": [
       "iron-working",
       "construction"
@@ -55,16 +62,19 @@
   "bronze-working": {
     "name": "Bronze Working",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "ceremonial-burial": {
     "name": "Ceremonial Burial",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "chemistry": {
     "name": "Chemistry",
     "level": 6,
+    "era": "renaissance",
     "prereqs": [
       "medicine",
       "university"
@@ -73,6 +83,7 @@
   "chivalry": {
     "name": "Chivalry",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "horseback-riding",
       "feudalism"
@@ -81,6 +92,7 @@
   "code-of-laws": {
     "name": "Code of Laws",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "alphabet"
     ]
@@ -88,6 +100,7 @@
   "combustion": {
     "name": "Combustion",
     "level": 11,
+    "era": "industrial",
     "prereqs": [
       "refining",
       "explosives"
@@ -96,6 +109,7 @@
   "communism": {
     "name": "Communism",
     "level": 9,
+    "era": "industrial",
     "prereqs": [
       "philosophy",
       "industrialization"
@@ -104,6 +118,7 @@
   "computers": {
     "name": "Computers",
     "level": 10,
+    "era": "modern",
     "prereqs": [
       "electronics",
       "mathematics"
@@ -112,6 +127,7 @@
   "conscription": {
     "name": "Conscription",
     "level": 8,
+    "era": "industrial",
     "prereqs": [
       "republic",
       "explosives"
@@ -120,6 +136,7 @@
   "construction": {
     "name": "Construction",
     "level": 3,
+    "era": "ancient",
     "prereqs": [
       "currency",
       "masonry"
@@ -128,6 +145,7 @@
   "corporation": {
     "name": "Corporation",
     "level": 9,
+    "era": "industrial",
     "prereqs": [
       "banking",
       "industrialization"
@@ -136,6 +154,7 @@
   "currency": {
     "name": "Currency",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "bronze-working"
     ]
@@ -143,6 +162,7 @@
   "democracy": {
     "name": "Democracy",
     "level": 5,
+    "era": "industrial",
     "prereqs": [
       "philosophy",
       "literacy"
@@ -151,6 +171,7 @@
   "electricity": {
     "name": "Electricity",
     "level": 8,
+    "era": "industrial",
     "prereqs": [
       "metallurgy",
       "magnetism"
@@ -159,6 +180,7 @@
   "electronics": {
     "name": "Electronics",
     "level": 9,
+    "era": "modern",
     "prereqs": [
       "engineering",
       "electricity"
@@ -167,6 +189,7 @@
   "engineering": {
     "name": "Engineering",
     "level": 4,
+    "era": "ancient",
     "prereqs": [
       "wheel",
       "construction"
@@ -175,6 +198,7 @@
   "explosives": {
     "name": "Explosives",
     "level": 7,
+    "era": "industrial",
     "prereqs": [
       "gunpowder",
       "chemistry"
@@ -183,6 +207,7 @@
   "feudalism": {
     "name": "Feudalism",
     "level": 4,
+    "era": "ancient",
     "prereqs": [
       "monarchy",
       "masonry"
@@ -191,6 +216,7 @@
   "flight": {
     "name": "Flight",
     "level": 12,
+    "era": "industrial",
     "prereqs": [
       "combustion",
       "physics"
@@ -199,6 +225,7 @@
   "fusion-power": {
     "name": "Fusion Power",
     "level": 18,
+    "era": "modern",
     "prereqs": [
       "nuclear-power",
       "superconductor"
@@ -207,6 +234,7 @@
   "future-tech": {
     "name": "Future Tech",
     "level": 19,
+    "era": "modern",
     "prereqs": [
       "fusion-power"
     ]
@@ -214,6 +242,7 @@
   "genetic-engineering": {
     "name": "Genetic Engineering",
     "level": 10,
+    "era": "modern",
     "prereqs": [
       "corporation",
       "medicine"
@@ -222,6 +251,7 @@
   "gunpowder": {
     "name": "Gunpowder",
     "level": 6,
+    "era": "renaissance",
     "prereqs": [
       "iron-working",
       "invention"
@@ -230,11 +260,13 @@
   "horseback-riding": {
     "name": "Horseback Riding",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "industrialization": {
     "name": "Industrialization",
     "level": 8,
+    "era": "industrial",
     "prereqs": [
       "banking",
       "railroad"
@@ -243,6 +275,7 @@
   "invention": {
     "name": "Invention",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "engineering",
       "literacy"
@@ -251,6 +284,7 @@
   "iron-working": {
     "name": "Iron Working",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "bronze-working"
     ]
@@ -258,6 +292,7 @@
   "labor-union": {
     "name": "Labor Union",
     "level": 14,
+    "era": "modern",
     "prereqs": [
       "mass-production",
       "communism"
@@ -266,6 +301,7 @@
   "literacy": {
     "name": "Literacy",
     "level": 3,
+    "era": "ancient",
     "prereqs": [
       "code-of-laws",
       "writing"
@@ -274,6 +310,7 @@
   "magnetism": {
     "name": "Magnetism",
     "level": 6,
+    "era": "renaissance",
     "prereqs": [
       "navigation",
       "physics"
@@ -282,6 +319,7 @@
   "map-making": {
     "name": "Map Making",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "alphabet"
     ]
@@ -289,11 +327,13 @@
   "masonry": {
     "name": "Masonry",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "mass-production": {
     "name": "Mass Production",
     "level": 13,
+    "era": "modern",
     "prereqs": [
       "corporation",
       "automobile"
@@ -302,6 +342,7 @@
   "mathematics": {
     "name": "Mathematics",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "alphabet",
       "masonry"
@@ -310,6 +351,7 @@
   "medicine": {
     "name": "Medicine",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "philosophy",
       "trade"
@@ -318,6 +360,7 @@
   "metallurgy": {
     "name": "Metallurgy",
     "level": 7,
+    "era": "renaissance",
     "prereqs": [
       "gunpowder",
       "university"
@@ -326,6 +369,7 @@
   "monarchy": {
     "name": "Monarchy",
     "level": 3,
+    "era": "ancient",
     "prereqs": [
       "code-of-laws",
       "ceremonial-burial"
@@ -334,6 +378,7 @@
   "mysticism": {
     "name": "Mysticism",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "ceremonial-burial"
     ]
@@ -341,6 +386,7 @@
   "navigation": {
     "name": "Navigation",
     "level": 4,
+    "era": "renaissance",
     "prereqs": [
       "astronomy",
       "map-making"
@@ -349,6 +395,7 @@
   "nuclear-fission": {
     "name": "Nuclear Fission",
     "level": 14,
+    "era": "modern",
     "prereqs": [
       "mass-production",
       "atomic-theory"
@@ -357,6 +404,7 @@
   "nuclear-power": {
     "name": "Nuclear Power",
     "level": 15,
+    "era": "modern",
     "prereqs": [
       "electronics",
       "nuclear-fission"
@@ -365,6 +413,7 @@
   "philosophy": {
     "name": "Philosophy",
     "level": 4,
+    "era": "renaissance",
     "prereqs": [
       "mysticism",
       "literacy"
@@ -373,6 +422,7 @@
   "physics": {
     "name": "Physics",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "navigation",
       "mathematics"
@@ -381,6 +431,7 @@
   "plastics": {
     "name": "Plastics",
     "level": 16,
+    "era": "modern",
     "prereqs": [
       "refining",
       "space-flight"
@@ -389,11 +440,13 @@
   "pottery": {
     "name": "Pottery",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "railroad": {
     "name": "RailRoad",
     "level": 7,
+    "era": "industrial",
     "prereqs": [
       "bridge-building",
       "steam-engine"
@@ -402,6 +455,7 @@
   "recycling": {
     "name": "Recycling",
     "level": 14,
+    "era": "modern",
     "prereqs": [
       "mass-production",
       "democracy"
@@ -410,6 +464,7 @@
   "refining": {
     "name": "Refining",
     "level": 10,
+    "era": "industrial",
     "prereqs": [
       "corporation",
       "chemistry"
@@ -418,6 +473,7 @@
   "religion": {
     "name": "Religion",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "philosophy",
       "writing"
@@ -426,6 +482,7 @@
   "republic": {
     "name": "Republic",
     "level": 4,
+    "era": "ancient",
     "prereqs": [
       "code-of-laws",
       "literacy"
@@ -434,6 +491,7 @@
   "robotics": {
     "name": "Robotics",
     "level": 17,
+    "era": "modern",
     "prereqs": [
       "computers",
       "plastics"
@@ -442,6 +500,7 @@
   "rocketry": {
     "name": "Rocketry",
     "level": 14,
+    "era": "modern",
     "prereqs": [
       "electronics",
       "advanced-flight"
@@ -450,6 +509,7 @@
   "space-flight": {
     "name": "Space Flight",
     "level": 15,
+    "era": "modern",
     "prereqs": [
       "computers",
       "rocketry"
@@ -458,6 +518,7 @@
   "steam-engine": {
     "name": "Steam Engine",
     "level": 6,
+    "era": "industrial",
     "prereqs": [
       "invention",
       "physics"
@@ -466,6 +527,7 @@
   "steel": {
     "name": "Steel",
     "level": 9,
+    "era": "industrial",
     "prereqs": [
       "metallurgy",
       "industrialization"
@@ -474,6 +536,7 @@
   "superconductor": {
     "name": "Superconductor",
     "level": 17,
+    "era": "modern",
     "prereqs": [
       "mass-production",
       "plastics"
@@ -482,6 +545,7 @@
   "theory-of-gravity": {
     "name": "Theory of Gravity",
     "level": 6,
+    "era": "renaissance",
     "prereqs": [
       "astronomy",
       "university"
@@ -490,6 +554,7 @@
   "trade": {
     "name": "Trade",
     "level": 3,
+    "era": "ancient",
     "prereqs": [
       "code-of-laws",
       "currency"
@@ -498,6 +563,7 @@
   "university": {
     "name": "University",
     "level": 5,
+    "era": "renaissance",
     "prereqs": [
       "philosophy",
       "mathematics"
@@ -506,11 +572,13 @@
   "wheel": {
     "name": "Wheel",
     "level": 1,
+    "era": "ancient",
     "prereqs": []
   },
   "writing": {
     "name": "Writing",
     "level": 2,
+    "era": "ancient",
     "prereqs": [
       "alphabet"
     ]

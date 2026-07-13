@@ -108,25 +108,63 @@ function techName(raw) {
   return parts[parts.length - 1].replace(/(\w)-(\w)/g, '$1$2').trim();
 }
 
+// A20 era buckets — the user's Civ2-derived table (attested 2026-07-13,
+// mail @5f97c2b5; Religion stands in for Civ2's Theology). Keys are the
+// EXACT techs.json name fields (note "RailRoad" and "Future Tech"). Every
+// advance must appear exactly once — buildTechs enforces it, so a wiki
+// regeneration can never silently drop a tech from the age grant.
+const TECH_ERAS = {
+  ancient: ['Alphabet', 'Literacy', 'Mathematics', 'Writing', 'Bridge Building',
+    'Bronze Working', 'Construction', 'Engineering', 'Iron Working', 'Masonry',
+    'Wheel', 'Currency', 'Map Making', 'Pottery', 'Trade', 'Feudalism',
+    'Horseback Riding', 'Ceremonial Burial', 'Code of Laws', 'Monarchy',
+    'Mysticism', 'Republic'],
+  renaissance: ['Astronomy', 'Chemistry', 'Invention', 'Physics', 'University',
+    'Banking', 'Medicine', 'Navigation', 'Chivalry', 'Gunpowder', 'Metallurgy',
+    'Philosophy', 'Magnetism', 'Theory of Gravity', 'Religion'],
+  industrial: ['Atomic Theory', 'Steam Engine', 'Combustion', 'Electricity',
+    'Explosives', 'Flight', 'Refining', 'Steel', 'Corporation',
+    'Industrialization', 'RailRoad', 'Conscription', 'Communism', 'Democracy'],
+  modern: ['Fusion Power', 'Future Tech', 'Genetic Engineering',
+    'Nuclear Fission', 'Nuclear Power', 'Space Flight', 'Superconductor',
+    'Advanced Flight', 'Automobile', 'Computers', 'Electronics',
+    'Mass Production', 'Plastics', 'Recycling', 'Robotics', 'Rocketry',
+    'Labor Union']
+};
+
 function buildTechs() {
   const page = JSON.parse(fs.readFileSync(path.join(EXTRACT, 'list-of-advances-in-civ1.json'), 'utf8'));
+  const eraByName = {};
+  for (const [era, names] of Object.entries(TECH_ERAS)) {
+    for (const n of names) {
+      if (eraByName[n]) throw new Error(`tech "${n}" appears in two eras`);
+      eraByName[n] = era;
+    }
+  }
   const techs = {};
   for (const r of page.tables[0].rows) {
     if (!r[0]) continue; // trailing "no tech required" rows
     const level = int(r[1], `${r[0]} level`);
     if (level < 1) continue; // level-0 rows are always-available capabilities
     const name = techName(r[0]);
+    if (!eraByName[name]) throw new Error(`tech "${name}" missing from TECH_ERAS`);
     techs[slug(name)] = {
       name,
       level,
+      era: eraByName[name],
       prereqs: [r[2], r[3]].filter(p => p && p !== 'None').map(p => slug(techName(p)))
     };
   }
-  // integrity: every prereq must itself be an advance
+  // integrity: every prereq must itself be an advance, and the era table
+  // must not name advances that no longer exist
   for (const [id, t] of Object.entries(techs)) {
     for (const p of t.prereqs) {
       if (!techs[p]) throw new Error(`tech ${id} has unknown prereq "${p}"`);
     }
+  }
+  const named = Object.values(techs).map(t => t.name);
+  for (const n of Object.keys(eraByName)) {
+    if (!named.includes(n)) throw new Error(`TECH_ERAS names unknown advance "${n}"`);
   }
   const count = Object.keys(techs).length;
   if (count < 60 || count > 80) throw new Error(`suspicious tech count: ${count}`);

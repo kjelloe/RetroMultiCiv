@@ -42,6 +42,15 @@ export function createGame(opts) {
     state = opts.save.state;
     log = opts.save.diag.log;
     logStart = opts.save.diag.initialState;
+  } else if (opts.initialState) {
+    // A20: a pre-built state (the lobby's age fast-forward) — treated exactly
+    // like a fresh game whose history starts at the takeover point, so the
+    // diagnostics recording and tools/replay.js need nothing new
+    gameId = opts.gameId || 'game1';
+    seats = {};
+    state = opts.initialState;
+    log = [];
+    logStart = deepClone(state);
   } else {
     gameId = opts.gameId || 'game1';
     seats = {};

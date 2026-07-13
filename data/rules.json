@@ -11,6 +11,13 @@
     { "until": 1850, "step": 5 },
     { "until": 2100, "step": 2 }
   ],
+  "ages": [
+    { "id": "ancient", "name": "Ancient", "turn": 0, "grantEras": [] },
+    { "id": "renaissance", "name": "Renaissance", "turn": 190, "grantEras": ["ancient"] },
+    { "id": "industrial", "name": "Industrial", "turn": 256, "grantEras": ["ancient", "renaissance"] },
+    { "id": "modern", "name": "Modern", "turn": 305, "grantEras": ["ancient", "renaissance", "industrial"] },
+    { "id": "space", "name": "Space Age", "turn": 325, "grantEras": ["ancient", "renaissance", "industrial", "modern"], "except": ["future-tech"] }
+  ],
   "scorePerCitizen": 2,
   "scorePerTech": 5,
   "scorePerWonder": 20,
