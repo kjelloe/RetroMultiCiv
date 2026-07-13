@@ -419,6 +419,15 @@ below is a known, deliberate deviation to be closed in a later slice:
   tax/science/luxuries at anarchy's 60 on the spot (a Monarchy running
   70% science drops to 60 for the interregnum) — found organically by
   the simulation invariant net.
+- **Starting ages (setup option, A20 2026-07-13)**: Ancient starts at
+  4000 BC as always; Renaissance/Industrial/Modern/Space Age fast-forward
+  an all-AI world to a year-anchored turn (190/256/305/325 on the A21
+  calendar), then grant every civ the cumulative techs of the prior eras
+  (Civ2-derived era buckets carried as `era` fields in `data/techs.json`;
+  Space Age grants everything except Future Tech) and hand the chosen
+  seats to the humans. Deterministic per seed; aborts openly if a chosen
+  civ died during the fast-forward. Not a Civ 1 feature — a deliberate
+  quality-of-life addition.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

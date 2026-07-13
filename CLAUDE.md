@@ -49,8 +49,9 @@ countable `[food]/[shield]/[trade]` tokens via `parseYields`).
 never be committed. Committed `data/*.json` may carry names and numbers
 (facts) but **never wiki sentences** — building/wonder effects are encoded as
 structured fields (e.g. `{ "defenseMultiplier": 3 }`) authored in the
-`BUILDING_OVERLAY`/`WONDER_OVERLAY` tables inside `tools/mapdata.js`; add new
-effects there and regenerate, don't hand-edit the generated JSON.
+`BUILDING_OVERLAY`/`WONDER_OVERLAY`/`TECH_ERAS` tables inside
+`tools/mapdata.js`; add new effects there and regenerate, don't hand-edit
+the generated JSON.
 
 Cross-references use slug ids: `units.json` `tech` fields hold tech ids from
 `techs.json`; watch wiki naming drift when mapping (e.g. "The Wheel" vs
@@ -79,7 +80,9 @@ invocation (summary + failure blocks, no inline pipes). Play (local engine): `py
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
-`?debug=1` per-command hashes, `?mock=1` static state). Play (phase-3
+`?age=ancient..space` starting age (AI fast-forward + era tech grant,
+shared/fastforward.js), `?debug=1` per-command hashes, `?mock=1` static
+state). Play (phase-3
 authoritative server): `node server/index.js [--port 8123] [--seed N]
 [--civs N] [--size medium] [--game saves/<id>.json] [--no-save]
 [--no-spectators] [--host IP]` hosts the client AND the game; open

@@ -36,8 +36,10 @@ multiple implementations.
 # play: serve the repo root (client imports engine/ and data/ as siblings)
 python3 -m http.server 8123
 # then open http://localhost:8123/client/ — the setup screen picks
-# civilizations, human players (hotseat), and the world seed
-# (?seed=12345&civs=3&humans=2 skips straight into that game)
+# civilizations, human players (hotseat), the world seed, and the
+# starting age (Ancient → Space Age: the world fast-forwards under AI
+# and you take over) — ?seed=12345&civs=3&humans=2&age=renaissance
+# skips straight into that game
 
 # run the test suite (headless, no deps)
 node --test test/
@@ -121,7 +123,7 @@ reproduces the exact game. And the world got its first procedural terrain
 detail pass: shade-varied tiles, scattered forests, rocky hills,
 snow-capped peaks, ground scrub, and roads that visibly connect to
 neighboring roads and cities.
-170 headless tests including hash-locked JSON scenarios, an AI-determinism
+176 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
 panels, verify the hotseat hand-off, and play a turn through the
 authoritative server over a WebSocket. The optional Node server

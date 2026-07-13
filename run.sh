@@ -73,8 +73,15 @@ PID=$!
 sleep 0.5
 if ! kill -0 "$PID" 2>/dev/null; then
   echo "server failed to start:" >&2
-  # the friendly reason is on a 'cannot start:' line; fall back to the tail
-  grep "^cannot start:" /tmp/multiciv-server.log >&2 || tail -10 /tmp/multiciv-server.log >&2
+  # the reason sits ABOVE the stack trace: the friendly 'cannot start:' line
+  # or node's module-resolution message — a bare tail showed a real user ten
+  # stack frames and no module name
+  grep -E -m 3 "^cannot start:|Cannot find (module|package)|^[A-Za-z]*Error" /tmp/multiciv-server.log >&2 \
+    || tail -20 /tmp/multiciv-server.log >&2
+  if grep -q "ERR_MODULE_NOT_FOUND" /tmp/multiciv-server.log; then
+    echo "a file or package is missing — the clone may be stale or dependencies incomplete; from the repo root try:" >&2
+    echo "  git pull && npm ci" >&2
+  fi
   exit 1
 fi
 

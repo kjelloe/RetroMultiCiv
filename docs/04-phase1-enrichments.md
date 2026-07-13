@@ -247,6 +247,12 @@ unit after End Turn.
   the natural leg's numbers; abandon if two lever iterations don't move
   them (then God-Emperor stays a humans-only difficulty). Golden lock
   required.
+  **Baseline RE-MEASURED post-A21** (2026-07-13, 25 seeds × 400 rounds,
+  the calendar change made the old 47% figure stale): eliminated 20%,
+  cities median 2 (avg 3.6), techs median 4, stagnant 31/80 = **39%**,
+  governments monarchy 41 / despotism 39. Batch 4's lever iterations
+  measure against THESE numbers (`debugging/sim/ge-baseline-postA21
+  .jsonl`; architect holds the golden lock as of mail #64).
 
 ## Remaining wonder effects (for reference)
 

@@ -81,9 +81,10 @@ multiciv/
 │   ├── barbarians.js      # turn-gated spawns + hunt behavior (wrap processing)
 │   ├── ai.js              # heuristic AI (emits commands only)
 │   └── score.js
-├── shared/                # protocol: command & event shapes, validation
-│   ├── protocol.js
-│   └── statehash.js       # canonical serialization + FNV-1a hash (Lua-portable)
+├── shared/                # browser+Node ESM: hashing, codes, setup helpers
+│   ├── statehash.js       # canonical serialization + FNV-1a hash (Lua-portable)
+│   ├── gamecode.js        # 64-bit save-verification code (docs/07)
+│   └── fastforward.js     # starting-age AI fast-forward + era tech grant (A20)
 ├── client/
 │   ├── index.html
 │   ├── mock-state.json    # step-0 static world (schema-checked by tests)
@@ -224,7 +225,8 @@ StarterPlayerScripts/
   Keeping the socket/routing layer thin makes the Roblox equivalent thin too.
 - The browser renderer does not port; the Roblox client renders tiles as
   parts/terrain and units as models — but consumes the **same view state and
-  events**, which is why those shapes live in `shared/protocol.js`.
+  events**, which is why those shapes are pinned in `server/protocol.js`
+  (parse/route/validate — kept dependency-free so the Luau twin is mechanical).
 - Port verification: run a recorded browser game's command log through the Luau
   engine (in Roblox Studio or Lune) and compare state hashes per turn.
 

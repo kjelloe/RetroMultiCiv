@@ -108,6 +108,7 @@ for everyday solo/hotseat play, the plain URL is all you need.
 | `&civs=4&humans=2` | world size of the match, humans in front seats |
 | `&civ=romans` | your civilization |
 | `&size=large` `&difficulty=hard` `&combat=bestof3` | as on the setup screen |
+| `&age=renaissance` | start in a later age (Ancient → Space Age): the world fast-forwards under AI, every civ gets the prior eras' techs, you take over |
 | `?server=1` | play through the authoritative server |
 | `?server=1&spectate=1` | watch a server game — whole map, no controls (host must allow it) |
 | `?diag=1` | graphics diagnostics HUD |

@@ -484,6 +484,26 @@ player's techs equal the grant union and researching is ''); browser
 screenshot of a Renaissance-or-later start (cities/roads visible at
 boot — READ it); one `?server=1` create with an age option.
 
+## PARKED — Big-lobby scaling probe: 8/12/16 players (user note 2026-07-13, NOT QUEUED)
+
+Before phase-4 grows past friends-on-a-LAN: simulate 8, 12, and 16
+players and measure performance and latency. Facts for whoever designs
+it: the 7-player cap is a soft clamp in exactly three places
+(client/main.js:141 `Math.min(7, …)`, the lobby seat dropdown p1..p7,
+test/sim-driver.js SIM_ROSTER) — data/civs.json already carries 14
+identities, so 8–14 players is a clamp-raise + roster extension; 16
+needs either new civ identities or duplicate-civ handling (names,
+colors, emblems collide). What to measure: headless soak ms/turn vs
+player count (today ~60–235 ms/turn at 4 civs on medium/GE), server
+per-command cost (filterView runs once per CONNECTED seat per
+broadcast — it scales players × map tiles), ws fan-out latency with 8+
+live sockets (extend test/server-lan4.test.js's pattern), and
+end-of-round AI time (16 AI turns back-to-back between human turns).
+Also needs a bigger-maps sanity pass (16 starts ≥3 from poles and ≥4
+apart may not FIT below `large`). Golden-impact: none for the probe
+itself if measured on scratch configs; raising the shipped cap touches
+setup/lobby only. Queue it when the two-machine acceptance is done.
+
 ## A4 — Goody huts (design: docs/04)
 
 Implement per the docs/04 design: hut tiles placed by mapgen (seeded),

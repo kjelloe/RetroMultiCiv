@@ -75,14 +75,23 @@ the Done log at the bottom.
   `debugging/logs/` predating 2026-07-12's engine changes no longer
   replays (expected — goldens re-recorded); the bugfixer has marked all
   six existing files pre-triaged. Delete when convenient.
-- [ ] **Commit checkpoint**: A2/A21/A18/A19 are committed (fef7fae);
-  the tree still carries the sync-pass-#7 doc updates (README 170,
-  docs/03 phase-4 status, CLAUDE.md server flags/run scripts,
-  gettingstarted spectate row) — small, safe to fold into the next
-  commit.
+- [ ] **Commit checkpoint — ⚠ two files MUST be `git add`ed**: the
+  tree carries A20 (starting ages) whose NEW files
+  `shared/fastforward.js` and `test/fastforward.test.js` are UNTRACKED
+  while tracked `server/lobby.js`/`client/main.js` import them —
+  committing without `git add` on those two breaks every fresh clone
+  with ERR_MODULE_NOT_FOUND (the bugfixer flagged this while triaging
+  your GAMING-MINI report). Also in the tree: sync-pass #7+#8 doc
+  updates and the new ages data-contract guard test. Suite-green
+  baseline: 176 tests (+1 guard pending bugfixer's run-script fixes).
 
 ## Later (not yet actionable)
 
+- [ ] **Big-lobby scaling (8/12/16 players)**: noted 2026-07-13 — a
+  parked probe item with the full fact sheet lives in agent-workitems
+  ("PARKED — Big-lobby scaling"). Decide after the two-machine
+  acceptance whether to queue it (8–14 is data-ready; 16 needs new or
+  duplicated civ identities).
 - [ ] **Roblox/phase-5 setup**: Studio project, publishing, lune
   toolchain install for CI (approved 2026-07-12) — when the port starts.
 - [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**

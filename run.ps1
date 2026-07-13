@@ -15,6 +15,11 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location -Path $PSScriptRoot
 
+# ValueFromRemainingArguments binds NOTHING when no extra args are given -
+# $Args is then $null, and @(...) + $null smuggles a null ELEMENT into
+# Start-Process -ArgumentList (real Windows 11 report). Normalize once.
+if ($null -eq $Args) { $Args = @() }
+
 if ($Help -or ($Args -contains '--help') -or ($Args -contains '-h')) {
   Write-Host @'
 usage: .\run.ps1 [PORT] [server args...]
@@ -57,8 +62,9 @@ if (-not (Test-Path 'node_modules/ws')) {
 $Port = 8123
 if ($Args.Count -gt 0 -and $Args[0] -match '^[0-9]+$') {
   $Port = [int]$Args[0]
-  $Args = $Args[1..($Args.Count - 1)]
-  if ($null -eq $Args) { $Args = @() }
+  # NOT $Args[1..($Args.Count - 1)]: with a single element that range is
+  # 1..0, which walks BACKWARDS and re-yields the port as a server arg
+  $Args = @($Args | Select-Object -Skip 1)
 }
 
 # stop a previous game server holding this port (match the command line,
