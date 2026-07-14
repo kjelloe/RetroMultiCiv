@@ -284,6 +284,26 @@ export function startServer(opts) {
       send(ws, { t: 'joinedLobby', gameId, joinCode: e.joinCode, seat: res.seat, lobby: roster(e) });
       broadcastLobby(gameId);
     } else {
+      // A46 seat-code reclaim gates (the route itself is pure): 1/sec/conn
+      // against brute force, and a LIVE seat rejects the code — the code is
+      // recovery while disconnected, never a displacement tool
+      if (msg.seatCode !== undefined) {
+        const now = Date.now();
+        if (info.lastReclaimAt !== undefined && now - info.lastReclaimAt < 1000) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          return;
+        }
+        info.lastReclaimAt = now;
+        const pid = e.game.seatOfCode(msg.seatCode);
+        if (pid) {
+          for (const [, i] of conns) {
+            if (i.gameId === gameId && i.playerId === pid) {
+              send(ws, { t: 'rejected', commandId: -1, code: 'seatOccupied' });
+              return;
+            }
+          }
+        }
+      }
       info.gameId = gameId; // started game: phase-3 join / reconnect via route
       const out = route(e.game, msg);
       for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
@@ -312,6 +332,7 @@ export function startServer(opts) {
         ci.playerId = bound.playerId; ci.seat = pid;
         send(o, {
           t: 'joined', playerId: bound.playerId, gameId, token: bound.token,
+          seatCode: bound.seatCode, // A46: private to this seat's connection
           view: res.game.view(bound.playerId), rulesOverrides: res.game.rulesOverrides, code: res.game.code(),
           civs: playerCivs(res.game) // A24: city rosters + faction visuals
         });

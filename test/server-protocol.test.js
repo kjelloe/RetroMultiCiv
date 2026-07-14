@@ -25,20 +25,29 @@ const SETUP = {
 async function freshGame(extra) {
   const { createGame } = await import('../server/game.js');
   let n = 0;
+  let c = 0;
   return createGame(Object.assign({
     ruleset: RULESET, setup: SETUP, gameId: 'test1',
-    tokenFn: () => `tok${++n}` // deterministic tokens for assertions
+    tokenFn: () => `tok${++n}`,        // deterministic tokens for assertions
+    seatCodeFn: () => `SC0${++c}-TEST` // A46: deterministic seat codes too
   }, extra || {}));
 }
 
 test('seats: first join binds the first human seat; tokens reclaim; full is full', async () => {
   const game = await freshGame();
   const a = game.bindSeat('Kjell');
-  assert.deepStrictEqual(a, { playerId: 'p1', token: 'tok1' });
+  assert.deepStrictEqual(a, { playerId: 'p1', token: 'tok1', seatCode: 'SC01-TEST' });
   const again = game.bindSeat('Kjell', 'tok1');
-  assert.deepStrictEqual(again, { playerId: 'p1', token: 'tok1' }, 'token reclaims the same seat');
+  assert.deepStrictEqual(again, { playerId: 'p1', token: 'tok1', seatCode: 'SC01-TEST' },
+    'token reclaims the same seat (and re-shows its code)');
   assert.deepStrictEqual(game.bindSeat('Late'), { error: 'gameFull' }, 'one human seat in this setup');
   assert.deepStrictEqual(game.bindSeat('X', 'forged'), { error: 'badToken' });
+  // A46: the code reclaims WITHOUT the token, rotating it
+  const reclaimed = game.bindSeat('Kjell', undefined, 'SC01-TEST');
+  assert.deepStrictEqual(reclaimed, { playerId: 'p1', token: 'tok2', seatCode: 'SC01-TEST' },
+    'the seat code reclaims the seat with a ROTATED token');
+  assert.strictEqual(game.seatOf('tok1'), null, 'the old device token died with the move');
+  assert.deepStrictEqual(game.bindSeat('X', undefined, 'ZZZZ-ZZZZ'), { error: 'badSeatCode' });
 });
 
 test('resetSeats: a resumed game can hand its seats out fresh (--reset-seats)', async () => {
@@ -47,9 +56,10 @@ test('resetSeats: a resumed game can hand its seats out fresh (--reset-seats)', 
   assert.deepStrictEqual(game.bindSeat('OtherBrowser'), { error: 'gameFull' },
     'without the token the seat is unreachable (per-origin localStorage)');
   game.resetSeats();
-  assert.deepStrictEqual(game.bindSeat('OtherBrowser'), { playerId: 'p1', token: 'tok2' },
-    'after the reset the next joiner takes the seat with a fresh token');
+  assert.deepStrictEqual(game.bindSeat('OtherBrowser'), { playerId: 'p1', token: 'tok2', seatCode: 'SC02-TEST' },
+    'after the reset the next joiner takes the seat with a fresh token AND a fresh code');
   assert.strictEqual(game.seatOf('tok1'), null, 'the old token is dead');
+  assert.strictEqual(game.seatOfCode('SC01-TEST'), null, 'the old seat code is dead too (A46)');
 });
 
 test('tamper rejection: a forged playerId inside the command is stamped over', async () => {

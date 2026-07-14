@@ -686,6 +686,30 @@ if (params.get('e2e') === '7') {
     + ` hidden:${waitEl.classList.contains('hidden')} errors:${capturedErrors.length}`;
 }
 
+// ?e2e=8 (A46, server mode): reconnect coverage — sever the live socket and
+// assert session-remote's 1/s retry loop reclaims the seat with the stored
+// token and the HUD recovers. The reconnect announces itself via the
+// stateReplaced marker (A30), which is exactly what the probe listens for.
+if (params.get('e2e') === '8' && session.dropSocket) {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  session.onChange((_s, ev) => {
+    if (ev.some(e => e.type === 'stateReplaced')) probe.dataset.reconnected = '1';
+  });
+  session.dropSocket();
+  const poll = setInterval(() => {
+    if (probe.dataset.reconnected === '1') {
+      clearInterval(poll);
+      probe.textContent = `e2e8 reconnected:true`
+        + ` hud:[${document.getElementById('hud-status').textContent}]`
+        + ` seatCode:${session.seatCode ? 'present' : 'missing'}`
+        + ` errors:${capturedErrors.length}`;
+    }
+  }, 200);
+}
+
 // ?e2e=4 (with &server=1 in a 2-human game): B3 regression — ending my turn
 // while the OTHER human is next must NOT take the hotseat hand-off path in
 // server mode (it flipped ctx.HUMAN to the rival, whose filtered view entry

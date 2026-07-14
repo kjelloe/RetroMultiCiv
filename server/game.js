@@ -32,13 +32,14 @@ export function createGame(opts) {
   const engine = createEngine(ruleset);
   const tokenFn = opts.tokenFn || (() => randomBytes(12).toString('hex'));
 
-  let state, seats, log, logStart, gameId;
+  let state, seats, seatCodes, log, logStart, gameId;
   if (opts.save) {
     if (opts.save.format !== SAVE_FORMAT) {
       throw new Error(`not a server save (format: ${opts.save.format})`);
     }
     gameId = opts.save.gameId;
     seats = opts.save.seats || {};
+    seatCodes = opts.save.seatCodes || {}; // A46: envelope-only, older saves lack it
     state = opts.save.state;
     log = opts.save.diag.log;
     logStart = opts.save.diag.initialState;
@@ -48,12 +49,14 @@ export function createGame(opts) {
     // diagnostics recording and tools/replay.js need nothing new
     gameId = opts.gameId || 'game1';
     seats = {};
+    seatCodes = {};
     state = opts.initialState;
     log = [];
     logStart = deepClone(state);
   } else {
     gameId = opts.gameId || 'game1';
     seats = {};
+    seatCodes = {};
     state = engine.createGame(opts.setup);
     if (state.ok === false) throw new Error(`createGame failed: ${state.reason}`);
     log = [];
@@ -67,17 +70,49 @@ export function createGame(opts) {
     return null;
   }
 
+  // A46 per-seat reclaim code: a short recovery secret in the game-code
+  // alphabet (docs/07), generated from the server's crypto like tokens —
+  // NEVER game state, never hashed; persists in the save ENVELOPE only.
+  // Two groups of four: "XXXX-YYYY".
+  const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const seatCodeFn = opts.seatCodeFn || (() => {
+    const bytes = randomBytes(8);
+    let out = '';
+    for (let i = 0; i < 8; i++) {
+      if (i === 4) out += '-';
+      out += CROCKFORD[bytes[i] % 32];
+    }
+    return out;
+  });
+  function seatOfCode(code) {
+    const norm = String(code || '').toUpperCase();
+    for (const pid of Object.keys(seatCodes)) {
+      if (seatCodes[pid] === norm) return pid;
+    }
+    return null;
+  }
+
   // First join takes the first unbound human seat; a token reclaims its seat
   // across reconnects AND server restarts (seats persist in the save).
-  function bindSeat(name, token) {
+  // A46: a seatCode reclaims a bound seat from a NEW device — the token is
+  // ROTATED so the old device's copy dies with the move (its retry loop gets
+  // badToken, which is correct: the seat changed hands deliberately).
+  function bindSeat(name, token, seatCode) {
     if (token !== undefined && token !== '') {
       const pid = seatOf(token);
-      return pid ? { playerId: pid, token } : { error: 'badToken' };
+      return pid ? { playerId: pid, token, seatCode: seatCodes[pid] } : { error: 'badToken' };
+    }
+    if (seatCode !== undefined && seatCode !== '') {
+      const pid = seatOfCode(seatCode);
+      if (!pid) return { error: 'badSeatCode' };
+      seats[pid] = tokenFn(); // rotate: the old device's token dies here
+      return { playerId: pid, token: seats[pid], seatCode: seatCodes[pid] };
     }
     for (const pid of state.playerOrder) {
       if (state.players[pid].human === true && seats[pid] === undefined) {
         seats[pid] = tokenFn();
-        return { playerId: pid, token: seats[pid] };
+        seatCodes[pid] = seatCodeFn();
+        return { playerId: pid, token: seats[pid], seatCode: seatCodes[pid] };
       }
     }
     return { error: 'gameFull' };
@@ -148,6 +183,7 @@ export function createGame(opts) {
   // (tokens live in per-origin localStorage and don't travel).
   function resetSeats() {
     for (const pid of Object.keys(seats)) delete seats[pid];
+    for (const pid of Object.keys(seatCodes)) delete seatCodes[pid]; // A46: codes regenerate at rebind
   }
 
   function toSave() {
@@ -158,6 +194,7 @@ export function createGame(opts) {
       savedAt: new Date().toISOString(),
       rulesOverrides,
       seats,
+      seatCodes, // A46: recovery codes, envelope-only — never state, never hashed
       state,
       code: gameCode(state), // docs/07: the file carries its own verification code
       diag: {
@@ -187,6 +224,7 @@ export function createGame(opts) {
     rulesOverrides,
     bindSeat,
     seatOf,
+    seatOfCode, // A46: index.js's liveness gate resolves the code first
     resetSeats,
     apply,
     endTurn,

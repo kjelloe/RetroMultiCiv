@@ -483,6 +483,9 @@ export function startJoinFlow(box) {
     <label>Spectate <input id="lobby-spectate" type="checkbox"></label>
     <p class="setup-hint">spectators see everything and control nothing —
       only works when the host allowed it</p>
+    <label>Seat code <input id="lobby-seatcode" type="text" maxlength="9" placeholder="XXXX-YYYY"></label>
+    <p class="setup-hint">rejoining a STARTED game from another device? enter
+      the seat code the game showed you (close the old tab first)</p>
     <button id="setup-start">Join</button>
     <p class="setup-hint" id="lobby-status"></p>
     <p class="setup-hint"><a href="./">← back</a></p>`;
@@ -550,6 +553,7 @@ export function startJoinFlow(box) {
     const code = document.getElementById('lobby-code-in').value.trim().toUpperCase();
     const seat = document.getElementById('lobby-seat').value || undefined;
     const spectate = document.getElementById('lobby-spectate').checked || undefined;
+    const seatCode = document.getElementById('lobby-seatcode').value.trim().toUpperCase() || undefined; // A46
     if (code.length !== 5) { fail(box, 'a join code is 5 characters'); return; }
     let mySeat = null;
     const ws = openLobbySocket((msg, sock) => {
@@ -566,13 +570,15 @@ export function startJoinFlow(box) {
       } else if (msg.t === 'rejected') {
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
-          : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
+          : msg.code === 'alreadyStarted' ? 'that game already started — rejoin with your seat code'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
           : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
           : msg.code === 'blocked' ? 'the host has blocked you from this game' // A37
+          : msg.code === 'badSeatCode' ? 'no seat carries that code — check the XXXX-YYYY the game showed you' // A46
+          : msg.code === 'seatOccupied' ? 'that seat is still connected — close its tab first, then retry' // A46
           : `server rejected: ${msg.code}`);
       }
     }, () => fail(box, 'no game server — start it with: node server/index.js'));
-    ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate })));
+    ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate, seatCode })));
   });
 }

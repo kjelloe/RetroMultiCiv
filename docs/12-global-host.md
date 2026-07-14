@@ -21,8 +21,16 @@ Why this shape wins:
 - The failure domain is honest: if the host is down, everything is
   down, and everyone can see why.
 
-Out of scope, permanently-until-demand: multi-host directory,
-accounts, matchmaking, mid-game host migration.
+AMENDED 2026-07-14 (user): the hosted-games model is joined by a
+**master-index service** (§6) — the QuakeWorld/Counter-Strike
+pattern: privately hosted servers, run by people who know how to
+host, announce themselves to a global lookup list. The user's VM
+plays both roles: it hosts games AND runs the index, with its own
+server simply the first entry.
+
+Out of scope, permanently-until-demand: accounts, matchmaking,
+mid-game host migration, NAT relays (self-hosters port-forward, as
+in the old days — that is the admission ticket).
 
 ## 2. What already exists (shipped, tested)
 
@@ -77,8 +85,8 @@ accounts, matchmaking, mid-game host migration.
   (nginx TLS termination, ws upgrade block with a long
   proxy_read_timeout — turn-based games idle for minutes; systemd;
   save-directory backups). The repo carries no personal specifics.
-- **Phase C (only on demand)**: the find-a-game v2 directory
-  question reopens IF multiple people want to host. Not before.
+- **Phase C**: the master index goes live (§6) — the user's VM adds
+  the lookup service; self-hosters announce with one flag.
 
 ## 5. Capacity & cost honesty
 
@@ -87,3 +95,48 @@ memory per game is one state object (tens of KB) + logs. The
 plausible bottleneck is nothing technical: it is moderation of a
 public lobby list. That is why v1 ships private-by-default with
 opt-in listing, and why the allowlist escape hatch exists.
+
+## 6. The master index (A51 — the QuakeWorld/CS pattern, user-set 2026-07-14)
+
+A bulletin board, not a broker: the master lists servers; game
+traffic NEVER touches it. Players browse the index and connect
+DIRECTLY to the chosen host's ws origin.
+
+- **Announce**: `server/index.js --announce <master-url> [--public-name
+  "Kjell's Friday server"]` heartbeats every ~60s over plain HTTP
+  POST: name, advertised host:port, protocol version + rules-data
+  checksums (the eight canonical hashes — clients see instantly
+  whether a server speaks their ruleset), open public games count
+  (the A41 listGames summary, already computed). No heartbeat for
+  ~3 minutes → delisted. One flag = listed; stop the server = gone.
+- **Validate before listing** (the classic master behavior): on
+  first announce and periodically, the master probes the advertised
+  address with a cheap HTTP GET (`/healthz` from A50) — unreachable
+  hosts (NAT misconfigured, firewall) are held OFF the list with the
+  reason available to the announcing server, which surfaces it in
+  its console ("master says: unreachable from the internet — check
+  port forwarding"). Dead listings were the old master lists' curse;
+  this kills them at the door.
+- **The service itself**: a small plain-node HTTP process (zero new
+  dependencies) — `tools/master.js` or a `--master` mode of the
+  server; in-memory registry + TTL sweep, no database (a restart
+  just means hosts re-announce within a minute). Rate limits and
+  size caps on announcements; an entry is a few hundred bytes. It
+  COLOCATES on whatever box already exists (the game VM, or even
+  the phase-A PC) — it carries no secrets (public listings only),
+  so plain HTTP behind the alias is an acceptable v1; TLS arrives
+  with the nginx front whenever the box gets one. Standing up a
+  dedicated master host is explicitly NOT required.
+- **Client**: the find-a-game panel gains a "global" tab when a
+  master URL is configured — server rows (name, version match,
+  games open, ping-ish reachability age) → pick one → the existing
+  A41 browse flow against THAT host's origin (ws connections are
+  not CORS-restricted; the client stays a static page from anywhere).
+  Version-mismatched servers show greyed with the checksum hint, not
+  hidden — honesty over curation.
+- **Trust model, stated plainly in the UI**: a listed server is
+  someone's private machine; your name and chat go to it. Join codes,
+  kicks, blocks all work exactly as on LAN because it IS the LAN
+  server, someone else's. The master curates nothing beyond
+  reachability + version tags; an abuse-report path is a v2 question
+  only if the list outgrows friends-of-friends.

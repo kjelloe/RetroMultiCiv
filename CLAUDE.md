@@ -19,9 +19,10 @@ in-file marks as the durable record and hub-down fallback; code
 travels via git, pumped by the user), `11-sim-runner.md` (a fifth
 agent's spawn-ready role spec: measurement executor, zero write
 footprint — spawns when phase-5 parity gates need offloading),
-`12-global-host.md` (the public server-only host service: games run
-ON one public VM, no home-host directory; A50 hardening checklist —
-gated on the user scheduling DNS).
+`12-global-host.md` (public hosting, both roles: games run ON the
+user's VM, plus a QuakeWorld-style master index where self-hosted
+servers announce themselves; A50 hardening + A51 master — both gated
+on the user scheduling DNS).
 
 ## Hard rules
 
@@ -89,6 +90,10 @@ and calls session.apply()/endTurn(); session.onChange drives refresh.
 `ctx.HUMAN` is the CURRENT VIEWPOINT (mutable — hotseat hands it between
 players via ctx.setHuman); never cache it in a module-level const. Keyboard
 handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
+main.js canonicalizes the URL after boot (history.replaceState drops
+unknown params) — a ui module reading its own `?param` hook must capture
+location.search at MODULE EVAL (imports run before main.js's body), never
+lazily (A45 trap).
 
 ## Testing & running
 
@@ -215,5 +220,7 @@ answers "may I edit this RIGHT NOW". Claim items in-file, mark them done,
 never reorder someone else's. Agent⇄architect coordination goes through
 `python3 tools/agent-mail.py` (send/inbox/peek/log/show, global @hashes
 per message, per-role unread
-cursors — check your inbox at task start and end); `agent-chat.md` is
-the long-form archive. Both are gitignored.
+cursors — check your inbox at task start and end); usage incl. the
+LAN hub, flag aliases, and the measured gotchas is documented in
+`tools/agent-mail.md`. `agent-chat.md` is
+the long-form archive. The store is gitignored; the md is tracked.

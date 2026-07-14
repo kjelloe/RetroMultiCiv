@@ -113,6 +113,51 @@ test('server: join, play over the socket, restart from autosave, reconnect', asy
   }
 });
 
+test('A46 seat codes: reclaim while disconnected, live seat protected, brute force limited, never broadcast', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 31, civs: 2, humans: 2, size: 'xsmall', autosave: false });
+  try {
+    const kjell = await connect(s.port);
+    kjell.send({ t: 'join', name: 'Kjell' });
+    const kj = await kjell.expect(m => m.t === 'joined', 'kjell joined');
+    assert.match(kj.seatCode, /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/,
+      'the joined reply hands the OWNER a docs/07-alphabet seat code');
+    const ada = await connect(s.port);
+    ada.send({ t: 'join', name: 'Ada' });
+    const aj = await ada.expect(m => m.t === 'joined', 'ada joined');
+    assert.notStrictEqual(aj.seatCode, kj.seatCode, 'codes are per-seat');
+    // absence discipline: the view carries no seat codes (they are envelope
+    // data, not state)
+    assert.ok(!JSON.stringify(kj.view).includes(kj.seatCode), 'code never rides the view');
+
+    // a LIVE seat rejects code reclaim — recovery, never displacement
+    const thief = await connect(s.port);
+    thief.send({ t: 'join', name: 'Thief', seatCode: aj.seatCode });
+    assert.strictEqual((await thief.expect(m => m.t === 'rejected', 'live')).code, 'seatOccupied');
+
+    // wrong code → badSeatCode; an immediate retry → tooFast (1/sec/conn)
+    await new Promise(r => setTimeout(r, 1100));
+    thief.send({ t: 'join', name: 'Thief', seatCode: 'AAAA-AAAA' });
+    assert.strictEqual((await thief.expect(m => m.t === 'rejected', 'wrong')).code, 'badSeatCode');
+    thief.send({ t: 'join', name: 'Thief', seatCode: 'BBBB-BBBB' });
+    assert.strictEqual((await thief.expect(m => m.t === 'rejected', 'rate')).code, 'tooFast');
+
+    // the real flow: Kjell's device dies; a NEW device reclaims by code —
+    // same seat, ROTATED token (the old device's copy is dead with the move)
+    kjell.close();
+    await new Promise(r => setTimeout(r, 150)); // let the server see the close
+    const laptop = await connect(s.port);
+    laptop.send({ t: 'join', name: 'Kjell', seatCode: kj.seatCode });
+    const re = await laptop.expect(m => m.t === 'joined', 'reclaimed');
+    assert.strictEqual(re.playerId, kj.playerId, 'the code lands on ITS seat');
+    assert.notStrictEqual(re.token, kj.token, 'the token rotated');
+    assert.strictEqual(re.seatCode, kj.seatCode, 'the code itself is stable');
+    ada.close(); thief.close(); laptop.close();
+  } finally {
+    await s.close();
+  }
+});
+
 test('server: static hosting serves the client files', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

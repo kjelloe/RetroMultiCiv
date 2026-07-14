@@ -16,8 +16,9 @@ for _, f in ipairs({ "terrain", "units", "techs", "buildings", "wonders", "gover
 	ruleset[f] = json2lua.parse(fs.readFile("data/" .. f .. ".json"))
 end
 
--- args: [rounds] or "natural" (standard endYear, 399 rounds — the
--- GOLDEN_NATURAL configuration: expect rounds 395, winner p2)
+-- args: [rounds] or "natural" (standard endYear, 399 rounds, CHAOS OFF —
+-- the exact GOLDEN_NATURAL configuration in test/simulation.test.js:
+-- expect rounds 395, winner p2, finalHash 0x6d3aaf65)
 local turns = 100
 local natural = false
 if process.args[1] == "natural" then
@@ -27,9 +28,11 @@ elseif process.args[1] ~= nil then
 	turns = tonumber(process.args[1]) :: number
 end
 local deepAt = {}
-for _, cp in ipairs({ 100, 200, 300, 400 }) do
-	if cp <= turns then
-		table.insert(deepAt, cp)
+if not natural then -- soak checkpoints are the chaos-on trajectory only
+	for _, cp in ipairs({ 100, 200, 300, 400 }) do
+		if cp <= turns then
+			table.insert(deepAt, cp)
+		end
 	end
 end
 
@@ -39,7 +42,7 @@ local result = simDriver.runSim({
 	seed = 20260712, civs = 4, width = 56, height = 35,
 	turns = turns,
 	rulesOverrides = if natural then nil else { endYear = 9999 },
-	chaos = true,
+	chaos = not natural, -- the natural golden is a chaos-OFF run (JS SIM defaults)
 	deepAt = deepAt,
 })
 local elapsed = os.clock() - t0

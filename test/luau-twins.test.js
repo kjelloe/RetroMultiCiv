@@ -185,3 +185,41 @@ test('luau engine: data checksums, ported scenarios green, unported fail in-cont
       }
     }
   });
+
+// P5-8 (the summit): the Luau AI must THINK identically. The turn-100
+// smoke replays the golden-seed all-AI game (chaos on) through the FULL
+// Luau engine + AI + chaos stream and must land on the pinned soak
+// checkpoint. (~15-30s under lune; the 400-round + natural goldens run on
+// the sim-runner's box — Gate B — and were verified locally at port time.)
+test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
+    const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 180000 });
+    assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
+    assert.match(res.stdout, /checkpoint 100: 0x560088f5\n/,
+      'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
+  });
+
+// P5-8 Gate C: VERDICT EQUALITY — the JS and Luau replayers must produce
+// byte-identical reports for real recordings, including agreeing on HOW a
+// stale recording diverges. Files are untracked runtime artifacts, so each
+// is skipped when absent (CI has none; dev boxes replay what they have).
+test('luau replay: verdicts are byte-identical with tools/replay.js',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
+    const fs = require('fs');
+    const candidates = [
+      'debugging/logs/retromulticiv-g1.json',
+      'debugging/logs/retromulticiv-g3.json',
+      'debugging/logs/retromulticiv-g3-turn53.json',
+      'saves/g530734.json', 'saves/g672813.json'
+    ].filter(f => fs.existsSync(path.join(REPO, f)));
+    if (candidates.length === 0) return; // nothing recorded on this box
+    for (const f of candidates) {
+      const js = spawnSync('node', ['tools/replay.js', f], { cwd: REPO, encoding: 'utf8', timeout: 120000 });
+      const luau = spawnSync('lune', ['run', 'luau/replay.luau', f], { cwd: REPO, encoding: 'utf8', timeout: 120000 });
+      // exit codes differ by design (node sets exitCode 1 on divergence);
+      // the REPORT TEXT is the contract
+      assert.strictEqual(luau.stdout, js.stdout,
+        `${f}: the two replayers must agree verbatim — even about divergence`);
+    }
+  });

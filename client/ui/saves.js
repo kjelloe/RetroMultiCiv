@@ -34,7 +34,14 @@ export function initSaves(ctx) {
     if (!code) { hud.note(`💾 saved (turn ${turn})`); return; }
     ctx.lastSaveCode = code;
     localStorage.setItem(codeKey, code);
-    showCode(`💾 Saved turn ${turn} — game code <b>${code}</b>. Every player should note it.`);
+    // A46: the seat code rides next to the game code — the recovery secret
+    // for rejoining from another device (a LIVE seat rejects it by design,
+    // so switching devices means closing the old tab first)
+    const seat = session.seatCode
+      ? `<br><span title="rejoin from another device with this code — close the old tab first">`
+        + `your seat code <b>${session.seatCode}</b> (rejoin from another device)</span>`
+      : '';
+    showCode(`💾 Saved turn ${turn} — game code <b>${code}</b>. Every player should note it.${seat}`);
   }
 
   // Server mode: the client holds only a filtered view, so it can't compute the

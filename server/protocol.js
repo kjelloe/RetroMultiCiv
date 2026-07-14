@@ -28,6 +28,10 @@ export function parseMessage(raw) {
     }
     if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
     if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: 'badShape' };
+    if (msg.seatCode !== undefined // A46: XXXX-YYYY in the docs/07 alphabet
+        && !/^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}-[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}$/.test(msg.seatCode)) {
+      return { ok: false, code: 'badShape' };
+    }
     return { ok: true, msg };
   }
   // phase-4 lobby frames (docs/08 §2): create a game, list open games, start.
@@ -153,12 +157,14 @@ export function route(game, msg) {
   }
 
   if (msg.t === 'join') {
-    const bound = game.bindSeat(msg.name, msg.token);
+    const bound = game.bindSeat(msg.name, msg.token, msg.seatCode);
     if (bound.error) {
       const hint = bound.error === 'gameFull'
         ? 'every human seat is bound to an earlier session — rejoin from the '
           + 'original browser AND port (seat tokens live in per-origin '
-          + 'localStorage), or restart the server with --reset-seats'
+          + 'localStorage), use your seat code, or restart the server with --reset-seats'
+        : bound.error === 'badSeatCode'
+          ? 'no seat carries that code — check the XXXX-YYYY code the game showed you'
         : 'unknown or stale seat token — rejoin without a token to take a free seat';
       return { reply: [rejected(-1, bound.error, hint)], broadcast: [], viewsChanged: false };
     }
@@ -168,6 +174,7 @@ export function route(game, msg) {
         playerId: bound.playerId,
         gameId: game.gameId, // the client needs the real id for the /saves fetch + keys
         token: bound.token,
+        seatCode: bound.seatCode, // A46: shown to its OWNER only (private reply)
         view: game.view(bound.playerId),
         rulesOverrides: game.rulesOverrides,
         code: game.code(), // docs/07: the authoritative verification code

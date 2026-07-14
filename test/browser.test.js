@@ -366,6 +366,27 @@ test('browser A30: the wait line shows the moving AI during a local round',
     }
   });
 
+// A46 reconnect: ?e2e=8 severs the live socket mid-game; session-remote's
+// 1/s retry loop must reclaim the seat with the stored token and the HUD
+// must recover — the gap only manual LAN tests exercised before. Live page
+// (dumpDomLive), not virtual time: the known ws race.
+test('browser reconnect: a severed socket reclaims its seat and the HUD recovers',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 99, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+    try {
+      const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=8&civ=romans`;
+      const dom = await dumpDomLive(chromium, url, h => /e2e8 reconnected:true/.test(h), 20000);
+      const m = dom.match(/e2e8 reconnected:true hud:\[([^\]]*)\] seatCode:(\w+) errors:(\d+)/);
+      assert.ok(m, `the e2e=8 probe must report:\n${dom.match(/e2e8 [^<]*/)?.[0] || '(no probe)'}`);
+      assert.match(m[1], /turn \d/, 'the HUD recovered to a live turn line');
+      assert.strictEqual(m[2], 'present', 'the seat code survived the reconnect (re-sent in joined)');
+      assert.strictEqual(m[3], '0', 'no page errors across the drop + reclaim');
+    } finally {
+      await gs.close();
+    }
+  });
+
 // A45 map overlays: ?overlay=territory,units activates both layers over the
 // e2e=1 world (a founded city = a fat-cross territory tint; units = tinted
 // tiles), ?overlaydiag=1 probes the quad count and the reordered left stack

@@ -36,6 +36,7 @@ export function createRemoteSession(opts) {
   let ruleset = baseRuleset;
   let playerId = null;
   let serverCode; // docs/07: the authoritative code, from joined + {t:'code'} pushes
+  let mySeatCode; // A46: this seat's recovery code (private, joined reply only)
   let playerCivsMap = {}; // A24: pid -> civ id from the joined reply
   let token = tokenKey(gameId) && localStorage.getItem(tokenKey(gameId)) || null;
   let commandId = 0;
@@ -115,6 +116,7 @@ export function createRemoteSession(opts) {
       applyRuleset(msg.rulesOverrides);
       state = augment(msg.view);
       if (msg.code !== undefined) serverCode = msg.code;
+      if (msg.seatCode !== undefined) mySeatCode = msg.seatCode; // A46: this seat's recovery code
       if (msg.civs !== undefined) playerCivsMap = msg.civs;
       const wasJoined = joined;
       joined = true;
@@ -229,6 +231,8 @@ export function createRemoteSession(opts) {
     get playerId() { return playerId; },
     get gameId() { return gameId; }, // presence signals server mode to ui/saves.js
     get serverCode() { return serverCode; }, // docs/07: authoritative code for ctx.gameCode()
+    get seatCode() { return mySeatCode; },   // A46: shown next to the game code
+    dropSocket() { if (ws) ws.close(); },    // A46 e2e: sever the live socket (retry loop takes over)
     get playerCivs() { return playerCivsMap; }, // A24: pid -> civ id (public identity)
 
     onChange(cb) { listeners.push(cb); },

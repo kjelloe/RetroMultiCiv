@@ -235,7 +235,7 @@ remaining endTurn guards are exactly two; this batch deletes both.
 Golden-safe (JS untouched). Suite + twins green, all ten hashes in
 the done-mail.
 
-### P5-8 — The summit: ai + full index → sim-twin goldens + replay conformance (assigned: bugfixer; docs/09 §4 step 6)
+### P5-8 — The summit: ai + full index → sim-twin goldens + replay conformance (assigned: bugfixer; docs/09 §4 step 6)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — THE SUMMIT: Gate A turn-100 0x560088f5 FIRST RUN; all four soak checkpoints + finalHash 0x8cd74434 bit-exact locally under lune (400 rounds, 139-347 ms/turn); natural 395/p2/0x6d3aaf65 exact (after fixing MY harness bug: natural is chaos-OFF — correction mailed to sim-runner before their run); Gate B measure job mailed (@0d53a2d6+@abb205b5, cross-machine report pending); Gate C: FIVE files verdict-IDENTICAL byte-for-byte with tools/replay.js incl. agreeing on HOW stale recordings diverge. luau/{ai,sim-driver,sim-smoke,replay}.luau; dispatcher audit: 14/14 commands routed, zero flags; durable gates in luau-twins (turn-100 smoke + replay verdict equality). Suite: my lane green (twins 5/5); 2 reds are the helper·s LOCKED A46 seat tests. docs/09 §4 engine column CLOSES]
 
 The port's final validation tier. The AI ports LAST as designed —
 and here it must THINK identically, not just replay: the sim goldens
@@ -425,20 +425,48 @@ Orbit/pan camera; click-to-select resolving to TILES (logical
 hitboxes, never visual bodies — A28's mid-glide lesson). Selection
 highlight Part. Screenshot + a described click test.
 
-R4+ (GameServer, RemoteEvents, live engine loop) arrive from the
-architect once the lune port reaches the engine core.
-DESIGN REQUIREMENT already banked for R4+ (user-caught during R3's
-click test, mail @77b4ae09): the live scene must respect PER-PLAYER
-VISIBILITY — both the rendered world AND selection output show only
-what the viewing seat could see (the JS client rule; engine seam is
-`filterView`/`filterEvents` in engine/visibility.js, so the server
-sends each client a filtered view and the render/selection consume
-that, never raw state). R3's omniscient scene is fine only because
-mock-state carries no explored data.
-Also banked for R4+ (user request during R3, deferred): a
-**follow-avatar camera mode** — the map-cam focus optionally TRACKS
-the player character; a toggle, not a replacement (the Scriptable
-free cam stays primary).
+### R4 — GameServer: the live engine loop over RemoteEvents (assigned: roblox-helper 2026-07-14 — the engine column is CLOSED, P5-8 accepted)
+
+The port's engine is done (all ten pins, five goldens, five replay
+verdicts agree Node ≡ lune; anchors ≡ Studio). R4 makes it a GAME:
+`GameServer.server.luau` owns the authoritative loop; clients see
+only filtered views. Single Studio instance is the R4 scope (one
+human seat + AI opponents); multiplayer seats/regency are R5+.
+
+1. **Server loop**: engine.createGame from the committed rulesets
+   (json2lua output) with a fixed seed for the acceptance run;
+   applyCommand/endTurn exactly as session.js sequences them —
+   including the chunked AI rounds pattern (one AI player per
+   heartbeat step, the A30 lesson transplanted: no frozen frames).
+2. **The visibility law (banked @77b4ae09)**: every state push to a
+   client is `filterView(state, seat)`; events ride
+   `filterEvents`. The client render/selection consume the VIEW,
+   never raw state — RenderWorld rebuilds from view pushes (explored
+   tiles only; unknown = void, exactly the JS client rule). Selection
+   output prints view contents only.
+3. **RemoteEvents protocol**: mirror the ws shapes (docs/06) —
+   {t:'view'}, {t:'cmd'}, rejections with reasons — so the protocol
+   knowledge transfers; Roblox identity (UserId) IS the seat binding,
+   no tokens needed in-Studio.
+4. **Input → commands**: R3's selection picks the unit/tile; a
+   minimal action surface for R4 = move (click destination), found
+   city, end turn. The full action bar is R5.
+5. **Follow-avatar camera toggle** (banked user request): map-cam
+   focus optionally tracks the character; free cam stays primary.
+6. **ACCEPTANCE — the live cross-language proof**: play N turns in
+   Studio (human + AI), the server prints the command log + per-round
+   hashes to Output; paste the log through the Node engine
+   (tools/replay.js) — every hash must match. A Studio-PLAYED game
+   replaying exact in JS is the phase-5 promise made flesh. Also:
+   anchors re-printed same run; check.sh gates green; screenshots
+   READ (fogged world from the seat's view — the void must be
+   visible in the shot).
+Lane: roblox/ exclusive as ever; luau/ consumed read-only.
+
+R5+ (multiplayer seats, DataStore persistence, regency, the full
+action surface) arrive from the architect after R4's acceptance.
+Also still banked: nothing — both R3-era notes are folded into the
+item above.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -1575,10 +1603,12 @@ Queue: after A48. If the lane proves itself, candidates for later
 specs: resume-from-lobby two-client, replay theater (A47), regency
 handoff (A40).
 
-## A50 — Public-host hardening (docs/12 §3 — GATED: queue when the user schedules DNS)
+## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14: DNS is a quick alias for the user, so the CODE is the real gate)
 
-The pre-DNS checklist made an item. NOT claimable until the user
-says the public host is happening; design is final in docs/12.
+Queue normally at the helper tail (after A49). Every piece hardens
+the LAN server too — nothing here waits on public plans. When A50
+lands, docs/12 phase A (DNS alias → the user's PC, supervised
+weekends) is available the moment the user flips the alias.
 1. Join-by-id closed for non-public games (code required; resume by
    game code as the authorization — docs/12 §3.1).
 2. Per-IP rate limits on join/create/listGames/chat + global caps
@@ -1592,6 +1622,32 @@ says the public host is happening; design is final in docs/12.
    escape hatch).
 Tests mirror A41's discipline: every limit has a red case, listings
 carry no secrets, expiry is clock-injectable. Golden-safe.
+
+## A51 — Master index: the QuakeWorld-style server lookup (docs/12 §6 — GATED on the master HOST existing, the real work per user 2026-07-14; code can queue after A50 whenever the user says the box is coming)
+
+Privately hosted servers announce to a global list; players connect
+DIRECTLY to the chosen host (the master is a bulletin board, never a
+broker). Design final in docs/12 §6; queue with/after A50.
+1. `tools/master.js` (plain node http, zero deps): in-memory
+   registry, POST /announce (rate-limited, size-capped), TTL sweep
+   (~3 min), GET /servers. Restart-safe by re-announce, no database.
+2. Server `--announce <master-url>` + `--public-name`: ~60s heartbeat
+   carrying name, host:port, protocol version, the eight rules-data
+   checksums, open public-game count (A41's summary, already
+   computed).
+3. Reachability validation before listing: master probes /healthz
+   (A50); unreachable = held off-list, reason relayed to the
+   announcing server's console ("check port forwarding").
+4. Client "global" tab in find-a-game when a master URL is
+   configured: server rows → pick → the existing A41 browse flow
+   against that host's origin. Version mismatch = greyed with the
+   checksum hint, never hidden.
+5. Trust line in the UI: a listed server is someone's private
+   machine (name + chat go there); join codes/kick/block work as on
+   LAN because it IS a LAN server, someone else's.
+Tests: announce/expire/validate cycles clock-injectable; the list
+carries no secrets (same absence discipline); a mock unreachable
+host stays unlisted. Golden-safe.
 
 ## PARKED CONTEXT — Global internet hosting (superseded: design now lives in docs/12-global-host.md; this block kept for the recipe deltas)
 

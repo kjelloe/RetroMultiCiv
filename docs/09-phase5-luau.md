@@ -188,13 +188,23 @@ are human-owned regardless (division of labour, docs/03).
 
 ## 6. Slices (queued when phase 5 opens)
 
-1. [architect] trap-audit pass over engine/ (annotate every `%`, bare
-   truthiness, unsorted-keys site) — produces the port checklist.
-2. [helper] json2lua + rng/statehash/gamecode twins + anchor gates.
-3. [helper] engine modules in §4 order, scenario gates per batch.
-4. [helper] sim-driver twin + goldens gate; replay conformance.
-5. [human] lune decision (§5); Studio project, RemoteEvents host,
-   AssetFactory-for-Parts (with the ally), publish, playtest.
+1. ✅ [architect] trap-audit pass over engine/ — DONE 2026-07-14 (§7;
+   engine came back clean, pure transliteration).
+2. ✅ [bugfixer] json2lua + rng/statehash/gamecode twins + anchor
+   gates — DONE 2026-07-14 (P5-1/P5-2; all anchors first run).
+3. ✅ [bugfixer] engine modules in §4 order, scenario gates per batch
+   — DONE 2026-07-14 (P5-3..P5-7; ALL TEN scenario pins green
+   cross-language, endTurn unguarded).
+4. ✅ [bugfixer] sim-driver twin + goldens gate; replay conformance —
+   DONE 2026-07-14 (P5-8: four checkpoints + natural golden
+   bit-exact under lune; five replay files byte-identical verdicts;
+   sim-runner cross-machine confirmation = the one open layer).
+   **The engine column of this doc is CLOSED — in one day, P5-3
+   through P5-8.**
+5. [human] lune decision (§5) ✅ 2026-07-12; Studio project ✅ (R1-R3
+   took camera/selection further than this line imagined). REMAINS:
+   RemoteEvents host (R4, the GameServer), AssetFactory-for-Parts
+   (with the ally), publish, playtest.
 
 ## 7. Trap-audit results (§6 slice 1, architect, 2026-07-14)
 

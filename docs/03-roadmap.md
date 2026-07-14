@@ -351,10 +351,17 @@ least one mid-game disconnect/reconnect.
 > runs unguarded end to end** (the guarded-no-op era closed
 > ten-for-ten). R3 (Studio camera + tile selection) accepted on a
 > 30+-pick user-driven probe. The trap ledger grew the stable-sort
-> rule and the scan-order-as-rng-contract lesson. In flight: P5-8,
-> the summit — the AI port + sim-driver twin vs all four checkpoint
-> goldens + replay conformance on real recordings; R4 (GameServer)
-> follows it.
+> rule and the scan-order-as-rng-contract lesson. **P5-8 TOOK THE
+> SUMMIT same-day: the Luau AI thinks identically** — all four
+> checkpoint goldens + the natural-end golden bit-exact under lune,
+> five real recordings produce byte-identical replay verdicts from
+> both engines (they even agree on HOW stale recordings diverge),
+> dispatcher 14/14, zero notPorted anywhere. The docs/09 §4 engine
+> column is CLOSED — P5-1 through P5-8 in two days, the rule modules
+> in one. Open: the sim-runner's cross-machine golden confirmation
+> (measure job in flight) and R4 (GameServer over RemoteEvents —
+> assigned; acceptance = a game PLAYED in Studio whose command log
+> replays hash-exact through the Node engine).
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port
