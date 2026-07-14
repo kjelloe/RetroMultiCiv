@@ -61,11 +61,28 @@ local function refreshFilter()
 	rayParams.FilterDescendantsInstances = character and { cursor, character } or { cursor }
 end
 
+-- LMB is shared with the camera (hold-drag orbits): only a press that ends
+-- within DRAG_EPS pixels of where it started counts as a selection click
+local DRAG_EPS = 5
+local pressAt = nil
+
 UserInputService.InputBegan:Connect(function(input, processed)
-	if processed or input.UserInputType ~= Enum.UserInputType.MouseButton1 then
+	if not processed and input.UserInputType == Enum.UserInputType.MouseButton1 then
+		pressAt = Vector2.new(input.Position.X, input.Position.Y)
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1 or not pressAt then
 		return
 	end
-	local ray = camera:ViewportPointToRay(input.Position.X, input.Position.Y)
+	local releaseAt = Vector2.new(input.Position.X, input.Position.Y)
+	local moved = (releaseAt - pressAt).Magnitude
+	pressAt = nil
+	if moved > DRAG_EPS then
+		return -- that was an orbit drag, not a click
+	end
+	local ray = camera:ViewportPointToRay(releaseAt.X, releaseAt.Y)
 	refreshFilter()
 	local hit = workspace:Raycast(ray.Origin, ray.Direction * 1000, rayParams)
 	if not hit then

@@ -365,7 +365,7 @@ palette/height reference), units as Part groups with owner-colored
 base discs, cities as clustered blocks. Screenshot, READ, describe in
 the done-note. No engine calls yet — a static scene.
 
-### R3 — Camera + logical-tile selection  [claimed: roblox-helper 2026-07-14]
+### R3 — Camera + logical-tile selection  [claimed: roblox-helper 2026-07-14] [done: 2026-07-14 — Camera.client.luau (Scriptable; LMB-drag orbit POLLED per frame since mouse events arrive pre-sunk by default controls, RMB-drag grab-the-map pan clamped to map, Q/E focus lift, wheel zoom; WASD stays with the avatar per user playtest) + Select.client.luau (pick = hit POSITION rounded to tile w/ normal nudge, never the hit body — A28; 5px click-vs-drag threshold; neon cursor CanQuery=false). Click test verbatim: settlers body-click → 'tile (5,4) grassland — unit u1 (settlers, p1)', city block → 'tile (6,4) grassland — city DemoCity p1 (p1)', flanks resolve to own tile; controls verified hands-on by user. R3.png READ (cursor on tile, both continents). check.sh 16 gates GREEN. Visibility finding mailed @77b4ae09 (banked below). DEFERRED user request: follow-avatar camera mode. Tooling: rojo serve must run NATIVELY on Windows (C:\GIT\rojo\rojo.exe) — a WSL serve on /mnt/c is inotify-blind and goes silently stale]
 
 Orbit/pan camera; click-to-select resolving to TILES (logical
 hitboxes, never visual bodies — A28's mid-glide lesson). Selection

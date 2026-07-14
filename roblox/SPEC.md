@@ -102,22 +102,33 @@ generated data. Render-only contracts:
 
 ## 3c. Camera + tile selection (`src/client/`, R3)
 
-`Camera.client.luau` — Scriptable map camera, the character never
-drives the view: RMB-drag orbit (yaw free, pitch clamped -85°…-15°),
-WASD/arrow pan in the camera's ground plane (clamped to the map,
-speed scales with zoom), wheel zoom (15–220 studs). Starts over the
-western continent (tile 5,4). Pan input is ignored while a TextBox has
-focus (the JS client's INPUT/TEXTAREA rule, ported).
+`Camera.client.luau` — Scriptable map camera. Control scheme (user
+playtest decision 2026-07-14): WASD/arrows stay with the CHARACTER
+(default controls untouched); hold-LMB drag orbits (yaw free, pitch
+clamped -85°…-15°), hold-RMB drag pans (grab-the-map: terrain follows
+the mouse, focus clamped to the map, speed scales with zoom), Q/E
+lowers/raises the focus (clamped 0–100 studs), wheel zooms (15–220
+studs). Starts over the western continent
+(tile 5,4). Orbit is POLLED (`IsMouseButtonPressed` + screen-position
+delta per frame) because mouse events arrive pre-sunk by the default
+control scripts — event handlers never fire for them. Q/E is ignored
+while a TextBox has focus (the JS client's INPUT/TEXTAREA rule).
+DEFERRED (user-requested): follow-avatar mode — the focus tracks the
+character instead of staying free.
 
 `Select.client.luau` — click-to-select resolving to **logical tiles**
 (A28's rule): raycast the click, then
 `tile = clamp(round((hitPos - normal*0.05) / TILE))` — the pick comes
 from the hit POSITION, never the hit body, so units, city blocks, and
 mountain flanks all resolve to the tile they stand on (the normal
-nudge keeps tall-column side hits on their own tile). One reusable
-neon cursor Part (`CanQuery = false` so it never swallows the next
-click) plus a `[Select] tile (x,y) terrain — contents` Output line per
-pick: that line is the click-test evidence.
+nudge keeps tall-column side hits on their own tile). LMB is shared
+with the camera: only a press that ends within 5 px of where it
+started selects; farther is an orbit drag. One reusable neon cursor
+Part (`CanQuery = false` so it never swallows the next click) plus a
+`[Select] tile (x,y) terrain — contents` Output line per pick: that
+line is the click-test evidence. KNOWN GAP (by design until R4+):
+there is no visibility model — any tile's contents print, unexplored
+or not; the live-state renderer must respect per-player visibility.
 
 Both scripts read the baked `GameData` modules; `TILE = 4` must match
 RenderWorld's scale (single-constant duplication accepted until a
@@ -156,6 +167,7 @@ done-note, screenshots read and described.
   by finding: Glass washes out to grey on low graphics settings. Known
   cosmetic gap: the baked ocean navy reads slate-grey under Studio
   lighting vs the JS sea.
-- R3: code complete (§3c; `src/client` flipped to a required path) —
-  open until the Studio screenshot + described click test land in the
-  done-note.
+- R3: **DONE 2026-07-14** — §3c scheme verified hands-on in Play Solo
+  (orbit/pan/lift/zoom/click-select + avatar movement), click test
+  logged (body clicks resolve to tiles per A28), R3.png read.
+  Deferred: follow-avatar camera mode (user-requested).

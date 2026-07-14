@@ -27,6 +27,21 @@ don't commit it.
 1. From the repo root: `rojo serve roblox` (listens on port 34872).
    Under WSL this is reachable from Windows Studio at `localhost:34872`
    (WSL2 forwards localhost automatically).
+   **WSL gotcha:** a serve run from the WSL `rojo` binary with the
+   repo on `/mnt/c` never sees file changes (9p has no inotify) — live
+   sync silently goes stale (tell-tale: script line numbers in Output
+   stop matching the files on disk). Run the NATIVE Windows binary
+   instead — it watches NTFS directly, so WSL-side edits sync live.
+   From PowerShell:
+
+       C:\GIT\rojo\rojo.exe serve C:\GIT\RetroMultiCiv\roblox
+
+   or equivalently from a WSL shell in the repo root (Windows-exe
+   interop; same native watcher):
+
+       /mnt/c/GIT/rojo/rojo.exe serve roblox
+
+   (The WSL `rojo` stays for `rojo build`/check.sh, which don't watch.)
 2. In Studio: install the Rojo plugin (Plugins → Manage Plugins, or from
    https://rojo.space/docs — match the plugin to Rojo 7.x), open any
    place (or the built `build.rbxlx`), click the Rojo plugin button,
@@ -40,9 +55,11 @@ don't commit it.
    `RenderWorld.server.luau` also builds the R2 static scene
    (`workspace.World`: terrain columns, unit discs, city clusters) and
    prints one `[RenderWorld]` summary line.
-4. R3 controls in Play: RMB-drag orbits, WASD/arrows pan, wheel zooms;
-   LMB picks the logical tile under the cursor (yellow neon cursor +
-   one `[Select] tile (x,y) …` Output line per pick).
+4. R3 controls in Play: WASD/arrows move the avatar; hold LMB and drag
+   to orbit, hold RMB and drag to pan (grab-the-map), Q/E moves the
+   camera down/up, wheel zooms; a plain LMB click (no drag) picks the
+   logical tile under the cursor (yellow neon cursor + one
+   `[Select] tile (x,y) …` Output line per pick).
 
 Expected values live in docs/09 §1 and are immutable — a "close" twin is
 a wrong twin; report mismatches to the architect, never edit the gate.
