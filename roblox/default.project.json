@@ -1,0 +1,25 @@
+{
+  "name": "RetroMultiCiv",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$className": "Folder",
+        "$path": { "optional": "../luau" }
+      }
+    },
+    "ServerScriptService": {
+      "RetroMultiCiv": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "RetroMultiCivClient": {
+          "$className": "Folder",
+          "$path": { "optional": "src/client" }
+        }
+      }
+    }
+  }
+}

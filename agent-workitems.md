@@ -190,7 +190,7 @@ Cross-machine coordination is GIT (the user pumps commits both ways) —
 no mailbox, no locks; the lane fence in docs/10 §2 is absolute. Items
 below are self-contained; claims/dones in-file like everyone else's.
 
-### R1 — Rojo scaffold + the three anchors printed inside Studio  [claimed: roblox-helper 2026-07-14]
+### R1 — Rojo scaffold + the three anchors printed inside Studio  [claimed: roblox-helper 2026-07-14] [done: 2026-07-14 — all four anchors PASS in Studio Play Solo (xorshift seq 2714967881/2238813396/1250077441/3820100336, hashState 0x30db1e29, codeHi 0xa687b72d, gameCode AD1X-Q5MR-DP7H9); rojo build green from clean tree; roblox/check.sh (build+mapping+anchor-drift) ALL GREEN; luau/ ran UNMODIFIED in the Studio VM incl. gamecode's relative string require; scaffold contracts in roblox/SPEC.md]
 
 Per docs/10 §3+§5: roblox/default.project.json (maps ../luau into
 ReplicatedStorage), src/server/VerifyAnchors.server.luau requiring the

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# roblox/ lane self-test (roblox-helper, SPEC.md §4). Headless gates only —
+# Luau execution is provable only in Studio (Play Solo output).
+#   1. rojo build green from the current tree
+#   2. built place contains every mapped instance
+#   3. anchor literals in VerifyAnchors.server.luau match the canonical
+#      goldens in test/ (drift check; test/ is consumed read-only)
+set -u
+cd "$(dirname "$0")/.."
+command -v rojo >/dev/null 2>&1 || PATH="$HOME/.local/bin:$PATH"
+
+fail=0
+note() { printf '%s %s\n' "$1" "$2"; [ "$1" = "FAIL" ] && fail=1; }
+
+# gate 1 — build
+out=$(mktemp /tmp/rmc-build-XXXXXX.rbxlx)
+if rojo build roblox -o "$out" >/dev/null 2>&1; then
+  note PASS "gate 1: rojo build roblox"
+else
+  note FAIL "gate 1: rojo build roblox (rerun without -o to see the error)"
+fi
+
+# gate 2 — mapped instances present in the built place
+for name in VerifyAnchors RetroMultiCiv Shared RetroMultiCivClient; do
+  if grep -q "$name" "$out" 2>/dev/null; then
+    note PASS "gate 2: $name in built place"
+  else
+    note FAIL "gate 2: $name missing from built place"
+  fi
+done
+rm -f "$out"
+
+# gate 3 — anchor literals must match the canonical goldens (docs/09 §1)
+va=roblox/src/server/VerifyAnchors.server.luau
+seq=$(grep -o 'GOLDEN = \[[0-9, ]*\]' test/rng.test.js | grep -o '[0-9][0-9, ]*[0-9]')
+if [ -n "$seq" ] && grep -qF "$seq" "$va"; then
+  note PASS "gate 3: xorshift sequence matches test/rng.test.js ($seq)"
+else
+  note FAIL "gate 3: xorshift sequence drifted from test/rng.test.js"
+fi
+for anchor in 0x30db1e29 0xa687b72d AD1X-Q5MR-DP7H9; do
+  if grep -qF "$anchor" "$va" && grep -rqF "$anchor" test/gamecode.test.js test/statehash.test.js 2>/dev/null; then
+    note PASS "gate 3: $anchor present in gate and test/"
+  else
+    note FAIL "gate 3: $anchor drifted (gate vs test/)"
+  fi
+done
+
+[ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
+exit $fail
