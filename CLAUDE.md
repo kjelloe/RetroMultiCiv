@@ -33,6 +33,11 @@ on the user scheduling DNS).
 - **Determinism is sacred:** all randomness through `engine/rng.js` (xorshift32,
   state in game state). Never `Math.random()`, never `seedrandom`, and the Luau
   port must reimplement the same algorithm — not `Random.new`.
+- **The engine is a verified cross-language core (since 2026-07-14):**
+  any change to engine semantics adds a replay fixture FIRST, then
+  changes `engine/*.js` AND its `luau/` twin together in one golden
+  window (ally round-5 rule; twin fidelity = byte-shaped, refactor JS
+  first if ever).
 - `engine/` imports nothing from `client/`, `server/`, or Node built-ins.
 - Ruleset numbers live in `data/*.json`, never hardcoded in engine logic.
 - **Game state holds only integers, printable-ASCII strings, booleans, arrays,
@@ -177,12 +182,20 @@ headless Chromium (`?e2e=1` founds a city and fills the panels; a
 served-by-server case drives `?server=1` through the socket via a live-page
 CDP poll — `dumpDomLive`, since virtual-time `--dump-dom` races the ws join)
 and asserts the HUD reaches "turn 1", the panels carry real content, and no
-error surfaced (self-skips when the browser is absent).
+error surfaced (self-skips when the browser is absent), and
+`luau-twins.test.js` — the phase-5 cross-language gates (self-skip without
+`lune`): the rng/statehash/gamecode anchors, all ten scenario setups AND
+runs vs their pinned hashes, the eight data-file checksums, the golden-seed
+turn-100 AI sim (`luau/sim-smoke.luau`; the full goldens run via
+`luau/sim-smoke.luau 400` / `natural`), and replay VERDICT equality between
+`tools/replay.js` and `luau/replay.luau` over whatever recordings exist.
 
 **Mechanics tests are JSON scenarios** in `test/scenarios/` (format documented
 in `test/scenario-runner.js` and docs/02-architecture.md §8) — add a JSON file,
-not runner code. They run against the Node engine now and the Luau engine
-later, so keep them code-free. Scenarios skip until `engine/index.js` exists.
+not runner code. They run against BOTH engines (Node via the scenario suite,
+Luau via `luau/scenario-runner.luau` in the twins gate), so keep them
+code-free; the pinned `final.hash` is the cross-language contract and may
+never be committed null (guards enforce the paste-back).
 Replaying a command log must reproduce the same final state hash
 (`shared/statehash.js`; cross-language golden: `{b:2,a:[1,"x",true]}` →
 `0x30db1e29`).

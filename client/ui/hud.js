@@ -193,8 +193,13 @@ export function initHud(ctx) {
     const myTurn = !ctx.SPECTATOR && !state.gameOver
       && state.activePlayer === ctx.HUMAN
       && state.players[ctx.HUMAN] !== undefined && state.players[ctx.HUMAN].human === true;
-    endTurnBtn.disabled = !myTurn;
-    if (myTurn && !wasMyTurn
+    // A40: a regent playing this seat grays the button to "Auto Turn" — the
+    // third state the A29 marker reserved; the 🤖 (regency.js) takes control back
+    const regent = ctx.regency && ctx.regency.isRegent && ctx.regency.isRegent();
+    endTurnBtn.disabled = !myTurn || regent;
+    endTurnBtn.classList.toggle('auto-turn', regent === true);
+    endTurnBtn.textContent = regent ? 'Auto Turn' : 'End Turn';
+    if (myTurn && !regent && !wasMyTurn
         && (!ctx.options || ctx.options.get('reduceAnimation') !== true)) {
       endTurnBtn.classList.add('pulse');
       setTimeout(() => endTurnBtn.classList.remove('pulse'), 1600);

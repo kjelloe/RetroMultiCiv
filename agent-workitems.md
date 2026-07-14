@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 230 tests), the item's own verification steps pass, related
+   (currently 236 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -453,10 +453,13 @@ human seat + AI opponents); multiplayer seats/regency are R5+.
    city, end turn. The full action bar is R5.
 5. **Follow-avatar camera toggle** (banked user request): map-cam
    focus optionally tracks the character; free cam stays primary.
-6. **ACCEPTANCE — the live cross-language proof**: play N turns in
-   Studio (human + AI), the server prints the command log + per-round
-   hashes to Output; paste the log through the Node engine
-   (tools/replay.js) — every hash must match. A Studio-PLAYED game
+6. **ACCEPTANCE — the live cross-language proof, FORMALIZED per ally
+   round-5**: play a complete game (or N substantial turns) in
+   Studio; the server prints the command log + per-COMMAND hashes to
+   Output; replay the log through BOTH engines (tools/replay.js and
+   luau/replay.luau) — the canonical state hash must match after
+   EVERY command i (H_browser(S_i) == H_Luau(S_i) for all i), and
+   the final game verification code must agree. A Studio-PLAYED game
    replaying exact in JS is the phase-5 promise made flesh. Also:
    anchors re-printed same run; check.sh gates green; screenshots
    READ (fogged world from the seat's view — the void must be
@@ -1457,7 +1460,7 @@ recordings).
 Queue: after A41 (A42-diorama and A44 may reorder around it at the
 helper's discretion — smallest-diff-first applies). Golden-safe.
 
-## A46 — Per-seat reclaim code + reconnect e2e coverage (user decisions 2026-07-14)
+## A46 — Per-seat reclaim code + reconnect e2e coverage (user decisions 2026-07-14)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — "XXXX-YYYY" docs/07-alphabet codes from server crypto (seatCodeFn injectable), parallel seatCodes map persisted in the save ENVELOPE (never state/hash; old saves = no codes); join.seatCode parser-validated; reclaim ROTATES the token (old device dies with the move), token reconnects re-show the code, resetSeats clears codes. Liveness gate in index.js ('seatOccupied' while live — recovery never displacement) + 1/sec/conn rate limit; code never in views/listings/spectator (asserted). E2E GAP CLOSED: ?e2e=8 dumpDomLive severs the socket → 1/s retry reclaims + HUD recovers (the A30 stateReplaced marker = the observable). Join-screen seat-code input + toast line; toast SHOT lost to virtual-time ws family (delivery machine-asserted ×2; A49 Playwright owns the visual). Protocol unit tests evolved. Suite 234/234.]
 
 Today a seat survives disconnects via the localStorage token (same
 browser only: session-remote auto-retries 1/s with the stored token;
@@ -1602,6 +1605,66 @@ lost: MULTI-CLIENT live-socket flows under event-driven waits.
 Queue: after A48. If the lane proves itself, candidates for later
 specs: resume-from-lobby two-client, replay theater (A47), regency
 handoff (A40).
+
+## A52 — Ally round-5 follow-ups (specs/plan-feedback-5.md; queue after A40-slice-2)
+
+Small bundle, one claim:
+1. **Overlay label rename**: player-facing "Territory" → **"City
+   influence"** (his caution: a working-area derivation must not
+   visually imply a legal border/ownership model the game doesn't
+   have; "Borders" stays reserved for a possible future ownership
+   system). The registry id may stay `territory` — the LABEL is the
+   fix. Standing invariant recorded here: EVERY future overlay keeps
+   the never-tint-unexplored rule.
+2. **Seat-code acceptance cases** (his five, triaged):
+   a. valid code vs OCCUPIED seat rejected — COVERED already; cite
+      the existing case in the done-mail.
+   b. reconnect delivers the correct fog-filtered view IMMEDIATELY —
+      ADD: assert the joined/view push after a code reclaim is
+      filterView-shaped for that seat (not omniscient, not stale).
+   c. spectator holding a player's seat code gets NOTHING extra
+      unless genuinely reclaiming the now-empty seat — ADD the
+      explicit case.
+   d. no duplicate identity / two live control paths for one seat —
+      ADD: after reclaim's token rotation, assert the OLD
+      connection's commands reject AND only one connection receives
+      that seat's views.
+   e. restart preserves only appropriate seat-code metadata — ADD
+      tests for BOTH resume paths and DOCUMENT the nuance in docs/08
+      §4: `--game` CLI resume keeps seats+tokens+codes (envelope);
+      lobby resume (A34) resets seats so codes die with them (by
+      design — machines change, joiners re-pick by name).
+3. **Lobby chat timestamps** (sender names exist; add times). NOTE
+   ONLY, no code: the future in-game chat design must keep the
+   waiting/status line more prominent than chatter — carry this into
+   the phase-6/VI.11 design when written.
+Golden-safe. Suite + screenshots as usual.
+
+## A53 — Setup-screen polish: two-column form (user request 2026-07-15; SMALL — slot right after A40-s2)
+
+The user's spec:
+1. **Two columns**: labels/text left, controls (dropdowns/inputs)
+   right — a CSS grid (`max-content 1fr` or similar), labels
+   right-aligned against the control column so rows scan cleanly.
+   Panel stays center-aligned at its current width; the splash
+   diorama behind it is loved — change nothing about that layering.
+2. **Remove the "(fewer upsets)" parenthetical** from the combat
+   dropdown option — keep the meaning as a title tooltip so the
+   information survives ("best-of-three: fewer heartbreaking
+   upsets").
+3. **Buttons unchanged**: Start game / Host LAN game / Join LAN game
+   keep their current arrangement.
+Architect additions (small, same claim):
+4. **Consistent control widths** — dropdowns and the seed field share
+   one width so the right column reads as a column, not a ragged
+   edge.
+5. **Fixed-height hint slots** — the "a random civilization awaits" /
+   age-hint lines reserve their height even when empty, so switching
+   civ/age never makes the panel jump.
+Evidence: before/after screenshots (plain AND ?splash=1 — the panel
+must stay readable over the diorama), bare-URL browser case still
+green, no layout shift on civ/age change. Golden-safe, pure
+presentation.
 
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14: DNS is a quick alias for the user, so the CODE is the real gate)
 

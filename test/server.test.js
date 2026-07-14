@@ -158,6 +158,57 @@ test('A46 seat codes: reclaim while disconnected, live seat protected, brute for
   }
 });
 
+test('A40 regency: a regent seat plays unattended, its commands log, replay is hash-exact', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const { startServer } = await import('../server/index.js');
+  const { replayDiagnostics } = require('../tools/replay.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'a40-'));
+  const saveFile = path.join(dir, 'regent.json');
+  // 1 human, 1 AI, xsmall — the human hands its seat to the AI and the
+  // SERVER must carry the game forward turn after turn with nobody attending
+  const s = await startServer({ ruleset: RULESET, seed: 88, civs: 2, humans: 1, size: 'xsmall', saveFile, gameId: 'a40' });
+  try {
+    const kjell = await connect(s.port);
+    kjell.send({ t: 'join', name: 'Kjell' });
+    const kj = await kjell.expect(m => m.t === 'joined', 'joined');
+    assert.strictEqual(kj.view.activePlayer, 'p1', 'it is the human seat turn');
+    const turn0 = kj.view.turn;
+
+    // hand p1 to the AI: the server starts driving and the turn advances
+    // WITHOUT the human ending it — presence tags the seat auto
+    kjell.send({ t: 'regent', stance: 'balanced' });
+    const pres = await kjell.expect(m => m.t === 'presence' && m.regents && m.regents.p1, 'regent presence');
+    assert.ok(pres.regents.p1, 'the seat reads as on regency');
+    // the game moves forward on its own (several unattended turns)
+    let latest = kj.view;
+    for (let i = 0; i < 3; i++) {
+      const t = await kjell.expect(m => m.t === 'view' && m.view.turn > latest.turn, `unattended turn ${i}`);
+      latest = t.view;
+    }
+    assert.ok(latest.turn >= turn0 + 3, 'the regent advanced the game unattended');
+
+    // take control back mid-game — the drive stops cleanly
+    kjell.send({ t: 'regent', stance: null });
+    await kjell.expect(m => m.t === 'presence' && (!m.regents || !m.regents.p1), 'control returned');
+
+    // the autosave's diagnostics must replay hash-exact: the regent's own
+    // commands are cmd entries (re-applied), AI chains are round entries
+    await new Promise(r => setTimeout(r, 200));
+    assert.ok(fs.existsSync(saveFile), 'the game autosaved');
+    const saved = JSON.parse(fs.readFileSync(saveFile, 'utf8'));
+    assert.ok(saved.diag.log.some(e => e.t === 'cmd' && e.cmd.playerId === 'p1'),
+      'the regent seat commands landed in the diag as cmd entries');
+    const report = await replayDiagnostics(saved.diag, RULESET);
+    assert.deepStrictEqual(report.problems, [], 'the regent game replayed hash-exact');
+    kjell.close();
+  } finally {
+    await s.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('server: static hosting serves the client files', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

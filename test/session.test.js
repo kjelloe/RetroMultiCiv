@@ -87,6 +87,31 @@ test('commands are rejected while the chunked round is in flight', async () => {
     'the rejected intruders left no trace in the recording');
 });
 
+test('A40 regent turn: the recording replays hash-exact (individual cmd entries, not a round)', async () => {
+  const { createEngine, deepClone, hashState, createSession } = await load();
+  const { replayDiagnostics } = require('../tools/replay.js');
+  const engine = createEngine(RULESET);
+  const initial = engine.createGame({
+    seed: 40, options: { width: 30, height: 20, players: PLAYERS }
+  });
+  const session = createSession(RULESET, deepClone(initial), {});
+  // hand p1 (the human) to the AI, then play a regent turn: its commands log
+  // as cmd entries, the AI chain that follows logs a round entry
+  session.setRegent('p1', 'balanced');
+  await session.regentTurn();
+  assert.strictEqual(session.state.activePlayer, 'p1', 'the round came back to p1');
+  const liveHash = hashState(session.state);
+  // the recording (initial + the regent's cmd entries + the round) must
+  // re-derive the exact same state through tools/replay.js — regent turns
+  // are re-APPLIED (cmd), the AI chain is re-DERIVED (round)
+  const diag = session.exportDiagnostics();
+  const report = await replayDiagnostics(JSON.parse(JSON.stringify(diag)), RULESET);
+  assert.deepStrictEqual(report.problems, [], 'the regent recording diverged on replay');
+  assert.ok(session.log.some(e => e.t === 'cmd'), 'the regent commands are individual cmd entries');
+  assert.ok(session.log.some(e => e.t === 'round'), 'the following AI chain is a round entry');
+  assert.strictEqual(report.finalHash, liveHash, 'replay reproduced the live hash');
+});
+
 test('replaceState announces itself with the stateReplaced marker', async () => {
   const { createEngine, deepClone, createSession } = await load();
   const engine = createEngine(RULESET);

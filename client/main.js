@@ -15,6 +15,7 @@ import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
+import { initRegency } from './ui/regency.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
@@ -337,6 +338,7 @@ initInput(ctx);
 initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
+ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // A28: renderer animations honor the ⚙ reduce-animation preference, live

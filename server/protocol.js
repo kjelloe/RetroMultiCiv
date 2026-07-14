@@ -75,6 +75,11 @@ export function parseMessage(raw) {
     if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // A40 slice 2: hand your OWN seat to the AI (stance) or take it back (null).
+  if (msg.t === 'regent') {
+    if (msg.stance !== null && typeof msg.stance !== 'string') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   // A41 find-a-game: browse is auth-free; joinListed carries the same join
   // fields and the server resolves it to the SAME reservation path — but
   // only for lobbies that opted INTO the public list.

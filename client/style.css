@@ -607,6 +607,54 @@ html, body {
   animation: end-turn-arrive 0.55s ease-in-out 3;
 }
 
+/* A40: the grayed "Auto Turn" state while a regent plays the seat */
+#end-turn.auto-turn {
+  background: #2a2f3a;
+  color: #7f8ba0;
+  border-color: #3a4150;
+  animation: none;
+}
+
+/* A40: the 🤖 regency button, left of End Turn */
+#regent-btn {
+  position: absolute;
+  right: 128px;
+  bottom: 16px;
+  padding: 10px 12px;
+  font-size: 15px;
+  pointer-events: auto;
+  cursor: pointer;
+  background: #24406b;
+  color: #cdd8ea;
+  border: 1px solid #3b5d8f;
+  border-radius: 6px;
+  z-index: 6;
+}
+#regent-btn.active { background: #2e6b40; border-color: #4f9a63; }
+#regent-dialog {
+  position: absolute;
+  right: 16px;
+  bottom: 60px;
+  width: 300px;
+  z-index: 12;
+}
+.regent-stance {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+  padding: 6px 10px;
+  background: #1b2740;
+  color: #cdd8ea;
+  border: 1px solid #2b3d5f;
+  border-radius: 5px;
+  cursor: pointer;
+  font: inherit;
+}
+.regent-stance.chosen { border-color: #4f9a63; background: #223a2c; }
+.regent-blurb { color: #8fa3c0; font-size: 11px; }
+#regent-off { margin-top: 8px; width: 100%; padding: 6px; cursor: pointer; }
+
 /* A39: turn-log filter row + display-time class filtering (the entries
    stay in the DOM — toggling a class back reveals the retained history) */
 #log-filters {

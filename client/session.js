@@ -10,7 +10,7 @@
 // <file>` verifies every hash and pinpoints any divergence. Shift+D
 // downloads it (ui/saves.js).
 import { createEngine, deepClone } from '../engine/index.js';
-import { runAiTurn } from '../engine/ai.js';
+import { runAiTurn, pickCommand } from '../engine/ai.js';
 import { hashState } from '../shared/statehash.js';
 
 export function createSession(ruleset, initialState, opts) {
@@ -24,6 +24,37 @@ export function createSession(ruleset, initialState, opts) {
   // command may slip into the recording (it would replay in a different
   // order than it ran live) — apply() and endTurn() reject until it lands
   let roundInFlight = false;
+
+  // A40 slice 2: per-seat regency — pid -> stance string. UI/session state
+  // only, NEVER game state (players[pid].human stays true, hashes
+  // untouched). The regent's commands are LOGGED as ordinary cmd entries,
+  // so replay needs nothing new (docs/08 §7): replay applies them like any
+  // human command.
+  const regents = {};
+
+  // The regent plays a seat with the REAL pick logic (engine/ai.js
+  // pickCommand — not a parallel implementation), each attempt recorded
+  // exactly as session.apply records human commands.
+  function playSeatLogged(pid, collected) {
+    const done = {};
+    let guard = 500;
+    while (guard-- > 0) {
+      const cmd = pickCommand(state, pid, ruleset, done);
+      if (!cmd) break;
+      const res = engine.applyCommand(state, cmd);
+      const entry = { t: 'cmd', turn: state.turn, cmd };
+      if (res.ok) {
+        state = res.state;
+        entry.ok = true;
+        if (debug) entry.hash = hashState(state);
+        for (const e of res.events) collected.push(e);
+      } else {
+        entry.ok = false;
+        entry.reason = res.reason;
+      }
+      log.push(entry);
+    }
+  }
 
   function notify(events) {
     for (const cb of listeners) cb(state, events || []);
@@ -99,6 +130,30 @@ export function createSession(ruleset, initialState, opts) {
       log.push({ t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) });
       notify(collected.slice(seen));
       return first;
+    },
+
+    // A40 slice 2: toggle a seat's regent (stance string | null). The
+    // regent's OWN current turn is driven by regentTurn below; later turns
+    // play inside endTurn's round loop like AI seats.
+    setRegent(pid, stance) {
+      if (stance === null || stance === undefined) delete regents[pid];
+      else regents[pid] = stance;
+    },
+    get regents() { return regents; },
+    get busy() { return roundInFlight; },
+
+    // Play the ACTIVE seat's regent turn (its units, logged), then end it —
+    // the round loop carries on through AI and other regent seats. The UI's
+    // onChange driver re-kicks this while regency stays on.
+    async regentTurn() {
+      if (roundInFlight) return { ok: false, reason: 'roundInFlight', events: [] };
+      if (regents[state.activePlayer] === undefined) {
+        return { ok: false, reason: 'notRegent', events: [] };
+      }
+      const collected = [];
+      playSeatLogged(state.activePlayer, collected);
+      notify(collected);
+      return this.endTurn();
     },
 
     // Load a saved/foreign state wholesale (save files, quick load). The

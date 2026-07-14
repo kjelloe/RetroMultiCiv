@@ -34,6 +34,12 @@ the Done log at the bottom.
     feel fair? (soak median is now 18 AI cities; expect real pressure).
   - [ ] Resume-from-save via the lobby (A34, once reviewed): pick a
     save in the host flow, everyone rejoins, game code matches.
+  - [ ] **Ally round-5 UX questions** (his priority 5 — the human
+    feedback that matters now): is waiting/turn ownership obvious?
+    does chat distract from game-critical status? does seat-code
+    recovery FEEL trustworthy (try it from the second PC)? do the
+    City-influence and forces overlays clarify or clutter? do
+    spectators understand what they can see and do?
 - [ ] **Splash diorama feel** (A42 slice 2, first visit only —
   `?splash=1` forces it any time): does the 9-second camera drift feel
   calm or distracting? One constant to slow it; say the word.

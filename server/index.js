@@ -199,6 +199,38 @@ export function startServer(opts) {
     }
     return Object.keys(seats);
   }
+  // A40 slice 2: while the active seat is a regent, the SERVER plays it — the
+  // regent's commands log as individual cmd entries (playRegentSeat), then
+  // endTurn runs the following AI chain (its own round entry), and we loop
+  // if the next active seat is also a regent. Replay stays hash-exact: regent
+  // turns are cmd entries (re-applied verbatim), AI chains are round entries
+  // (re-derived). Guarded against re-entrancy per game.
+  // YIELDS between turns (setTimeout 0) so frames flush and the event loop
+  // breathes — a solo regent would otherwise run the whole game to gameOver
+  // in one synchronous block, starving delivery and blocking take-back. The
+  // per-game guard prevents overlapping drives (a re-entrant kick is a no-op).
+  const regentDriving = {};
+  async function driveRegents(gameId, e) {
+    if (!e || !e.game || regentDriving[gameId]) return;
+    regentDriving[gameId] = true;
+    try {
+      let guard = 2000;
+      while (guard-- > 0) {
+        const seat = e.game.state.activePlayer;
+        if (e.game.state.gameOver || e.game.regentOf(seat) === undefined) break;
+        const regentEvents = e.game.playRegentSeat(seat);
+        const res = e.game.endTurn(seat);
+        if (!res.ok) break;
+        const events = regentEvents.concat(res.events || []);
+        fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true, events }, e.game);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (!registry.entryOf(gameId)) break; // game gone (shutdown)
+      }
+    } finally {
+      regentDriving[gameId] = false;
+    }
+  }
+
   function doSkip(gameId, e) {
     const seat = e.game.state.activePlayer;
     const res = e.game.endTurn(seat); // stamped with the skipped seat, logged like any command
@@ -252,6 +284,18 @@ export function startServer(opts) {
     }
     for (const [, i] of gameConns(gameId)) if (i.playerId && !i.spectator) all[i.playerId] = true;
     return all;
+  }
+  // A40: which human seats are on AI regency (pid present = auto) — rides the
+  // presence broadcast so every client's wait line can tag "🤖 (auto)"
+  function regentMap(gameId) {
+    const out = {};
+    const e = registry.entryOf(gameId);
+    if (e && e.game) {
+      for (const pid of e.game.state.playerOrder) {
+        if (e.game.regentOf(pid) !== undefined) out[pid] = true;
+      }
+    }
+    return out;
   }
 
   function handleJoin(ws, info, msg) {
@@ -309,7 +353,7 @@ export function startServer(opts) {
       for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
         broadcastGame(gameId, { t: 'presence', playerId: info.playerId, connected: true });
-        send(ws, { t: 'presence', all: presenceMap(gameId) });
+        send(ws, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
       }
     }
   }
@@ -339,7 +383,7 @@ export function startServer(opts) {
       }
     }
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'started', gameId });
-    broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId) });
+    broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
     if (autosave) res.game.saveTo(savePath(gameId));
   }
 
@@ -526,6 +570,17 @@ export function startServer(opts) {
         broadcastLobby(info.gameId);
         return;
       }
+      if (msg.t === 'regent') { // A40: seat-owner-only auto-play toggle
+        const e = info.gameId ? registry.entryOf(info.gameId) : null;
+        if (!e || !e.game || !info.playerId || info.playerId === 'spectator') {
+          send(ws, { t: 'rejected', commandId: -1, code: 'noSeat' });
+          return;
+        }
+        e.game.setRegent(info.playerId, msg.stance);
+        broadcastGame(info.gameId, { t: 'presence', all: presenceMap(info.gameId), regents: regentMap(info.gameId) });
+        driveRegents(info.gameId, e); // if it's their turn now, start playing
+        return;
+      }
       if (msg.t === 'skipTurn' || msg.t === 'proposeSkip' || msg.t === 'vote') {
         handleSkipFrames(ws, info, msg); return;
       }
@@ -539,6 +594,7 @@ export function startServer(opts) {
       const out = route(e.game, msg);
       for (const m of out.reply) send(ws, m);
       fanout(gameId, out, e.game);
+      driveRegents(gameId, e); // A40: if the turn landed on a regent, play it
     });
   });
 

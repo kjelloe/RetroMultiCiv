@@ -328,7 +328,18 @@ open acceptance item (see `human-workitems.md`).
 **Acceptance:** you + ally on two machines over LAN complete a game with at
 least one mid-game disconnect/reconnect.
 
-## Phase 5 — Roblox Luau simulation port with replay conformance testing
+## Phase 5 — Roblox integration (engine port COMPLETE 2026-07-14; wording per ally round-5 required correction)
+
+> The deterministic Luau rules engine is complete and verified: all
+> replay fixtures, seeded world generation, AI simulations, chaos
+> scenarios, and recorded browser games reproduce the same canonical
+> outcomes in both runtimes. The remaining work is Roblox
+> INTEGRATION: authoritative session/server flow, client command UI
+> and filtered views, seat identity/reconnect behavior, and an
+> acceptance game played in Roblox whose recorded move log replays
+> hash-exact through the browser engine (formally: the canonical
+> state hash matches after EVERY command, and the final game
+> verification code agrees).
 
 > **UNDERWAY (2026-07-14)** — P5-1 landed same-day as the phase opened:
 > `luau/{rng,statehash,gamecode}` passed ALL anchors on the first lune

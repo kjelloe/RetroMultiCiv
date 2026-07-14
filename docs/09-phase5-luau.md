@@ -1,12 +1,15 @@
 # Phase 5 — Roblox Luau port: mapping & verification design
 
-Status: DESIGN (2026-07-12) — **UNBLOCKED 2026-07-14**: phases 1–4 are
-all accepted (the two-machine LAN acceptance passed), making this port
-the next major technical target. The port is mechanical BY CONSTRUCTION
-— the engine was written in a Lua-shaped JS subset from day one — so
-this doc is mostly the trap list, the port order with its gates, and
-the harness plan. Remaining prerequisite before slice 1: the user's
-Roblox/lune toolchain setup (human-workitems "Later").
+Status: **ENGINE COLUMN COMPLETE (2026-07-14)** — designed 2026-07-12,
+unblocked and executed the same week: §4 steps 1–6 all gated green
+(P5-1..P5-8). Every engine module, mapgen, the AI, the sim driver, and
+the replayer run in Luau with four anchors, ten scenario pins, five sim
+goldens, and five replay verdicts agreeing across Node, lune, and
+Studio's VM. The port was mechanical BY CONSTRUCTION — the engine was
+written in a Lua-shaped JS subset from day one — and the trap list
+below (§3, §7) is the record of the exceptions that needed judgment.
+Remaining: the Roblox-side GameServer/client (R-queue, docs/10) and
+the CI lune step (human-workitems).
 
 ## 1. Verification assets already in hand
 
@@ -165,7 +168,7 @@ the one auth simplification the platform gives us for free).
    need to "think alike" — they need to REPLAY alike (ally's framing;
    it was always the design, now it's stated).
 
-### The first-divergence report (ally contract, 2026-07-14)
+### The first-divergence report (ally contract, 2026-07-14 — PERMANENT: a first-class project feature per ally round-5, resident in CI for the life of the twin engines, never a temporary porting script)
 
 Cross-language failures must be repair loops, not archaeology. On any
 hash mismatch, the harness emits: replay version + RULES-DATA version

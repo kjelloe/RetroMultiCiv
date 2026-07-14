@@ -7,7 +7,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createEngine, deepClone } from '../engine/index.js';
-import { runAiTurn } from '../engine/ai.js';
+import { runAiTurn, pickCommand } from '../engine/ai.js';
 import { filterView, filterEvents } from '../engine/visibility.js';
 import { hashState } from '../shared/statehash.js';
 import { gameCode } from '../shared/gamecode.js';
@@ -32,7 +32,7 @@ export function createGame(opts) {
   const engine = createEngine(ruleset);
   const tokenFn = opts.tokenFn || (() => randomBytes(12).toString('hex'));
 
-  let state, seats, seatCodes, log, logStart, gameId;
+  let state, seats, seatCodes, regents, log, logStart, gameId;
   if (opts.save) {
     if (opts.save.format !== SAVE_FORMAT) {
       throw new Error(`not a server save (format: ${opts.save.format})`);
@@ -40,6 +40,7 @@ export function createGame(opts) {
     gameId = opts.save.gameId;
     seats = opts.save.seats || {};
     seatCodes = opts.save.seatCodes || {}; // A46: envelope-only, older saves lack it
+    regents = opts.save.regents || {}; // A40: envelope-only, regency survives resume
     state = opts.save.state;
     log = opts.save.diag.log;
     logStart = opts.save.diag.initialState;
@@ -50,6 +51,7 @@ export function createGame(opts) {
     gameId = opts.gameId || 'game1';
     seats = {};
     seatCodes = {};
+    regents = {};
     state = opts.initialState;
     log = [];
     logStart = deepClone(state);
@@ -57,6 +59,7 @@ export function createGame(opts) {
     gameId = opts.gameId || 'game1';
     seats = {};
     seatCodes = {};
+    regents = {};
     state = engine.createGame(opts.setup);
     if (state.ok === false) throw new Error(`createGame failed: ${state.reason}`);
     log = [];
@@ -116,6 +119,44 @@ export function createGame(opts) {
       }
     }
     return { error: 'gameFull' };
+  }
+
+  // A40 slice 2: per-seat regency. `regents` is a PARALLEL map (like seats/
+  // seatCodes) — never game state, state.human stays true so hashes are
+  // untouched; envelope-persisted so regency survives a resume. Regent turns
+  // log INDIVIDUAL cmd entries (below), NOT a round entry — replay re-applies
+  // them verbatim (a round entry's re-derivation only handles non-human
+  // seats and would diverge on a regent human).
+  function setRegent(pid, stance) {
+    if (stance === null || stance === undefined) delete regents[pid];
+    else regents[pid] = stance;
+  }
+  function regentOf(pid) { return regents[pid]; }
+
+  // Play a regent seat's whole turn with the REAL pick logic (engine/ai.js —
+  // not a parallel impl), logging each attempt as an ordinary cmd entry.
+  // Does NOT end the turn (the caller does, so the following AI chain logs
+  // its own round entry). Returns the collected events.
+  function playRegentSeat(pid) {
+    const done = {};
+    const events = [];
+    let guard = 500;
+    while (guard-- > 0) {
+      const cmd = pickCommand(state, pid, ruleset, done);
+      if (!cmd) break;
+      const res = engine.applyCommand(state, cmd);
+      const entry = { t: 'cmd', turn: state.turn, cmd };
+      if (res.ok) {
+        state = res.state;
+        entry.ok = true;
+        for (const e of res.events) events.push(e);
+      } else {
+        entry.ok = false;
+        entry.reason = res.reason;
+      }
+      log.push(entry);
+    }
+    return events;
   }
 
   // The server STAMPS playerId from the seat: a forged playerId inside the
@@ -195,6 +236,7 @@ export function createGame(opts) {
       rulesOverrides,
       seats,
       seatCodes, // A46: recovery codes, envelope-only — never state, never hashed
+      regents, // A40: regency stances, envelope-only — never state, never hashed
       state,
       code: gameCode(state), // docs/07: the file carries its own verification code
       diag: {
@@ -225,6 +267,7 @@ export function createGame(opts) {
     bindSeat,
     seatOf,
     seatOfCode, // A46: index.js's liveness gate resolves the code first
+    setRegent, regentOf, playRegentSeat, // A40 slice 2
     resetSeats,
     apply,
     endTurn,
