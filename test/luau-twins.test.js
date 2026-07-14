@@ -127,16 +127,17 @@ test('luau json2lua: all ten scenario setups and a messy save hash equal in both
 // scenarios into PORTED and this test enforces the new gate.
 const PORTED = [
   '001-move-unit.json', // P5-3 batch 1: movement + visibility
-  '008-improvements.json' // P5-4 batch 2: improvements (city-less wraps)
-  // 009 needs buy/setProduction (cities) — P5-5 column, checked not assumed
+  '008-improvements.json', // P5-4 batch 2: improvements
+  '004-combat.json', '005-combat-defender-wins.json', // P5-4 combat, pins reached via P5-5 harvest
+  '003-found-city.json', '006-research.json', '007-buildings.json',
+  '009-buy-pillage-disband.json' // P5-5 batch 3: cities + tech (+happiness/government helpers)
+  // 002 waits for mapgen (P5-7); 010 waits for government proper (P5-6)
 ];
-// P5-4 partial column: the combat STEPS pass cross-language (both rng
-// branches, promotions, stack deaths — steps 0..N-1 asserted by the runner),
-// but the pinned FINAL hash needs the cities harvest at the turn wrap
-// (city.food changes in JS processCities) — flagged @P5-4 done-mail; these
-// flip to PORTED with the P5-5 cities batch. Value = the exact command
-// where the guard must fire: earlier means a combat regression.
-const PARTIAL = { '004-combat.json': 4, '005-combat-defender-wins.json': 4 };
+// Partial column (P5-3 convention): steps before the value pass cross-
+// language; the guard must fire at EXACTLY that command — earlier means a
+// regression in an already-ported module. 010's steps 0-5 exercise
+// happiness/tech; step 6 is setGovernment (P5-6).
+const PARTIAL = { '010-happiness-government.json': 6 };
 test('luau engine: data checksums, ported scenarios green, unported fail in-contract',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
     const fs = require('fs');

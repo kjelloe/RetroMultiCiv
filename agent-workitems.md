@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 227 tests), the item's own verification steps pass, related
+   (currently 229 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -162,7 +162,7 @@ the divergence report's rngBefore/rngAfter fields are your bisect
 tool. Golden-safe (JS untouched). Suite + luau-twins green, mail with
 per-scenario hashes.
 
-### P5-5 — Batch 3 rule modules: cities + tech (assigned: bugfixer; docs/09 §4 step 5)
+### P5-5 — Batch 3 rule modules: cities + tech (assigned: bugfixer; docs/09 §4 step 5)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — ALL GATES FIRST RUN: 003 0x866fe652 · 006 0x13d7ad54 · 007 0xc5663e66 · 009 0x419f157e green vs pins; 004/005 PARTIAL RETIRED, green vs pins unchanged (0xa5bc9369/0x077f7a14 — the pins encoded the harvest); 001/008 pins unmoved; 010 in-contract at exactly command 6 (setGovernment, new PARTIAL); 002 awaits mapgen. Scope finding honored: happiness.luau FULL + government.luau PARTIAL rode in (the wrap chain forces cityMood) — P5-6 shrinks to government proper. New trap: JS sort STABILITY (candidateTiles ties) needs an explicit fat-cross-order tie-break in table.sort. Guards deleted: updateDisorder/processCities/processResearch. Suite 229/229]
 
 The big one — cities is the engine's largest module. Pinned-contract
 discipline throughout.
@@ -189,6 +189,28 @@ discipline throughout.
    in this module).
 Golden-safe (JS untouched). Suite + twins green, mail per-scenario
 hashes and which guards were deleted.
+
+### P5-6 — Batch 4: government proper (assigned: bugfixer; docs/09 §4 step 5, re-scoped by P5-5's dependency pull)
+
+Small batch by design — P5-5 already pulled happiness (full) and
+government's pure helpers in as wrap-chain dependencies.
+1. **`luau/government.luau` completed** (delete its non-final flag):
+   setGovernment + clampRates (delete the dispatcher rejection),
+   processRevolutions (delete its guard — anarchy countdown; if any
+   rng rides the revolution completion, preserve call order), and the
+   Pyramids instant-switch — the first WONDER EFFECT to go
+   cross-language (wonderActive is already ported; verify the seam).
+2. **GATE: 010-happiness-government flips PORTED** — green vs pin
+   0xf9f9a086; its PARTIAL column (exact-index 6) retires. NINE of
+   ten green; 002 remains the mapgen gate (P5-7 territory).
+3. Sort-tie audit per the new docs/09 P5-5 trap: grep government.js
+   (and anything it drags) for `.sort(` — prove comparators total or
+   add the explicit tie-break.
+4. Remaining guards after this batch: barbarians (turn>=16),
+   checkGameEnd (alive flags) — name them in the done-mail so P5-7's
+   scope is unambiguous.
+Golden-safe (JS untouched). Suite + twins green, per-scenario hashes
+in the done-mail.
 
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
@@ -1160,6 +1182,18 @@ pillage rules (cutting a road severs the chain — strategy!). NOT
 QUEUED — design first, architect; candidate for a phase-6+ headline
 feature alongside diplomacy.
 
+## PARKED/GAME-V2 — Mobile-friendly UI/UX (user note 2026-07-14)
+
+A phone-usable client view so people can join LAN/internet games on
+the go — pairs naturally with AI regency (A40): check in from a
+phone, make the key decisions, let the regent handle the rest. Scope
+when picked up: touch controls (tap-select, pinch zoom; the
+hover-dependent UI — combat odds, move hints — needs tap
+alternatives), responsive HUD/panels (left stack and city view don't
+fit portrait), performance on mobile GPUs (scene is light; verify the
+WebGL1 story on mobile browsers). Same client codebase preferred
+(CSS + input-mode switches), not a fork. NOT QUEUED — v2 shelf.
+
 ## PARKED/GAME-V2 — Civ4-style culture areas (user note 2026-07-14, VERY later)
 
 Real culture/border mechanics as ENGINE state (cities exert cultural
@@ -1262,7 +1296,7 @@ constant, keep them byte-neutral and prove it with a gallery
 rest-pose screenshot compare). Slot after A36 — same renderer
 knowledge, warm cache.
 
-## A44 — Ally sign-off follow-ups bundle (round 4, non-blockers; after A42)
+## A44 — Ally sign-off follow-ups bundle (round 4, non-blockers; after A42)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — (1) coverage guard: all 28 unit types map to real silhouettes (armor/submarine ARE special-cased — ally worry disproven), failure names unmapped types; (2) shared-vertex invariant: no-conflicting-writes = code-shape comment (heights per-vertex pure BEFORE faces; colors per-face), determinism = mechanical ?vertexcheck=1 twice-built byte-compare browser case; (3) color vs visual.primary semantics documented in the render-spec schema (civs.json has NO generator — honest deviation; rename = future migration note); (4) gallery 16-wide margin columns — edge pills (Romans/Mongols) uncropped, intended regen. Mid-flight CI red closed (derived files now regenerate in-burst). Suite 229/229.]
 
 Four small items from the visual sign-off, one claim:
 1. **Renderer-coverage guard**: a suite test asserting EVERY
@@ -1340,6 +1374,45 @@ recordings).
    (omniscient = whole map tints — that's correct, not a bug).
 Queue: after A41 (A42-diorama and A44 may reorder around it at the
 helper's discretion — smallest-diff-first applies). Golden-safe.
+
+## A46 — Per-seat reclaim code + reconnect e2e coverage (user decisions 2026-07-14)
+
+Today a seat survives disconnects via the localStorage token (same
+browser only: session-remote auto-retries 1/s with the stored token;
+the server-side reclaim loop is proven in server.test.js incl.
+restart-from-autosave). This item adds the NEW-DEVICE / cleared-
+storage path, per three user decisions:
+
+1. **Per-seat reclaim code** (decision: per-seat code, not passphrase,
+   not host-approval): at seat bind the server generates a short
+   per-seat code (reuse the gamecode alphabet/format machinery —
+   docs/07 — but per seat, e.g. 2 groups not 3; store a hash or the
+   code in the seat entry, NEVER in view pushes or listings). Shown
+   to that player ONLY: in the lobby room and in the game HUD next to
+   the game code ("your seat code — for rejoining from another
+   device"). {t:'join'} gains an optional seatCode field: valid
+   game + name/seat + seatCode reclaims the seat WITHOUT the token.
+2. **Reclaim window** (decision: only while disconnected): a seat
+   whose connection is LIVE rejects code-reclaim ('seatOccupied') —
+   the code is recovery, never a displacement tool. (Deliberate
+   device-switch = close the old tab first; note this in the HUD
+   tooltip.)
+3. **Security posture**: the seat code never appears in listGames,
+   roster broadcasts, or spectator views — same discipline as A41's
+   code/IP absence assertions, test it the same way. Rate-limit
+   reclaim attempts (reuse the 1/sec pattern) so codes can't be
+   brute-forced in-lobby.
+4. **Reconnect e2e coverage** (the gap the user asked about): a
+   browser case that kills the live socket mid-game (CDP or server-
+   side close) and asserts the 1/s retry loop reclaims the seat and
+   the HUD recovers — the session-remote path that today only manual
+   LAN tests exercise. Use the live-page CDP poll pattern
+   (dumpDomLive), not virtual-time --dump-dom (known ws race).
+5. Tests: ws cases for reclaim-while-disconnected (green),
+   reclaim-while-live (rejected), wrong code (rejected + rate limit),
+   code absent from every broadcast shape.
+Server + client/lobby + session-remote + tests. Golden-safe. Queue:
+after A45 (tail: A44 → A42-diorama → A45 → A46).
 
 ## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
 

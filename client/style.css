@@ -634,6 +634,22 @@ html, body {
 #lobby-chat-text { flex: 1; }
 .lobby-kick { border-color: #8f3b3b; color: #e8b0a8; }
 
+/* A42 slice 2: the first-visit diorama behind the setup card — dimmed so
+   the card stays readable on top of the animated scene */
+#setup-diorama {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+#setup-diorama::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(9, 13, 22, 0.35) 0%, rgba(9, 13, 22, 0.82) 100%);
+  pointer-events: none;
+}
+#setup-box { position: relative; z-index: 1; }
+
 /* A34: the host form's resume-a-save picker */
 #lobby-resume.hidden { display: none; }
 #lobby-saves .lobby-save {

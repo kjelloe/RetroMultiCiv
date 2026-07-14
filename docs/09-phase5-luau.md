@@ -88,6 +88,16 @@ the one auth simplification the platform gives us for free).
 >   screen delta instead. Recorded here because docs/09 is the trap
 >   ledger; the full client note lives in roblox/SPEC.md.
 
+> **P5-5 addition (2026-07-14, cities/tech/happiness batch — the
+> subtle one):**
+> - **JS `Array.sort` is STABLE; Luau `table.sort` is NOT.** A greedy
+>   sort with score ties (candidateTiles' worked-tile picks) orders
+>   ties arbitrarily in Luau and silently shuffles downstream state.
+>   Rule: every ported sort whose comparator can tie needs an
+>   EXPLICIT tie-break (candidateTiles ties on the original fat-cross
+>   position). Review habit: grep the JS module for `.sort(` before
+>   porting and prove each comparator total or tie-broken.
+
 1. **Stored indices are 0-based VALUES.** Tile index math
    (`idx = y*width + x`) produces numbers stored IN STATE
    (`city.workers`, explored arrays are positional). Luau tables iterate

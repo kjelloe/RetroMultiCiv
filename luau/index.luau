@@ -11,6 +11,9 @@
 local statehash = require("./statehash")
 local movement = require("./movement") -- batch 1 (P5-3)
 local improvements = require("./improvements") -- batch 2 (P5-4)
+local cities = require("./cities") -- batch 3 (P5-5)
+local tech = require("./tech") -- batch 3 (P5-5)
+local happiness = require("./happiness") -- batch 3 (P5-5, pin dependency)
 
 local function isArrayLike(t: any): boolean
 	return t[1] ~= nil or getmetatable(t) == statehash.ARRAY_MT
@@ -78,9 +81,6 @@ end
 -- ported behavior batch 1 needs: processResearch's lazy default writes
 -- (taxRate/sciRate/bulbs) — the first real cross-language divergence this
 -- harness caught was exactly JS writing bulbs:0 where the no-op didn't.
-local function hasCities(state: any): boolean
-	return state.cityOrder ~= nil and #state.cityOrder > 0
-end
 local hooks = {}
 hooks.processWork = improvements.processWork -- batch 2: guard deleted, module in
 hooks.processRevolutions = function(state: any, _ruleset: any, _events: any)
@@ -90,33 +90,9 @@ hooks.processRevolutions = function(state: any, _ruleset: any, _events: any)
 		end
 	end
 end
-hooks.updateDisorder = function(state: any, _ruleset: any, _events: any)
-	if hasCities(state) then
-		error("notPorted:happiness (cities exist)")
-	end
-end
-hooks.processCities = function(state: any, _ruleset: any, _events: any)
-	if hasCities(state) then
-		error("notPorted:cities (cities exist)")
-	end
-end
-hooks.processResearch = function(state: any, ruleset: any, _events: any)
-	if hasCities(state) then
-		error("notPorted:tech (cities exist - income math not ported)")
-	end
-	for _, pid in ipairs(state.playerOrder) do
-		local player = state.players[pid]
-		if player.taxRate == nil then player.taxRate = ruleset.rules.defaultTaxRate end
-		if player.sciRate == nil then player.sciRate = ruleset.rules.defaultSciRate end
-		if player.bulbs == nil then player.bulbs = 0 end
-		-- city-less income is 0/0/0; gold += 0 and bulbs += 0 are no-ops, and
-		-- researching '' never completes — the defaults are the whole effect
-		if player.researching ~= "" and player.researching ~= nil then
-			-- a pending discovery could complete only with bulbs income; with
-			-- zero income it cannot — safe as long as no cities exist (guarded)
-		end
-	end
-end
+hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
+hooks.processCities = cities.processCities -- batch 3: guard deleted
+hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
 hooks.processBarbarians = function(state: any, _ruleset: any, _events: any)
 	if state.turn >= 16 then
 		error("notPorted:barbarians (turn >= 16 - spawn checks would roll RNG)")
@@ -184,17 +160,24 @@ local function createEngine(ruleset: any)
 			result = movement.wait(next_, cmd, ruleset)
 		elseif cmd.type == "disband" then
 			result = movement.disband(next_, cmd, ruleset)
-		elseif cmd.type == "foundCity" or cmd.type == "setProduction"
-			or cmd.type == "setWorkers" or cmd.type == "buy" then
-			result = { ok = false, reason = "notPorted:cities" }
+		elseif cmd.type == "foundCity" then
+			result = cities.foundCity(next_, cmd, ruleset)
+		elseif cmd.type == "setProduction" then
+			result = cities.setProduction(next_, cmd, ruleset)
+		elseif cmd.type == "setWorkers" then
+			result = cities.setWorkers(next_, cmd, ruleset)
+		elseif cmd.type == "buy" then
+			result = cities.buyProduction(next_, cmd, ruleset)
 		elseif cmd.type == "startWork" then
 			result = improvements.startWork(next_, cmd, ruleset)
 		elseif cmd.type == "pillage" then
 			result = improvements.pillage(next_, cmd, ruleset)
 		elseif cmd.type == "setGovernment" then
 			result = { ok = false, reason = "notPorted:government" }
-		elseif cmd.type == "setResearch" or cmd.type == "setRates" then
-			result = { ok = false, reason = "notPorted:tech" }
+		elseif cmd.type == "setResearch" then
+			result = tech.setResearch(next_, cmd, ruleset)
+		elseif cmd.type == "setRates" then
+			result = tech.setRates(next_, cmd, ruleset)
 		else
 			result = { ok = false, reason = "unknownCommand" }
 		end

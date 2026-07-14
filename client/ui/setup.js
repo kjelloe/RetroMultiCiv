@@ -67,6 +67,78 @@ export function showSetupScreen() {
   document.body.appendChild(overlay);
   const setupBox = document.getElementById('setup-box');
 
+  // A42 slice 2: a first-visit animated diorama BEHIND the setup card —
+  // the renderer + assets ARE the splash art (a coast, a walled city, a few
+  // units; A28 sway + A15 water animate themselves; we add slow camera
+  // drift). Lazy: return visits (per-origin flag), reduce-animation,
+  // headless runs (navigator.webdriver) and every demo/e2e param skip the
+  // whole path — zero load cost when skipped. ?splash=1 forces it
+  // (screenshots), ?splash=0 forces the plain screen.
+  const sq = new URLSearchParams(location.search);
+  const SEEN_KEY = 'retromulticiv-splash-seen';
+  let reduceAnim = false;
+  try { reduceAnim = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
+  const demoParams = ['setupdemo', 'lobbydemo', 'e2ehost', 'e2ejoin', 'e2ehostform', 'e2ejoinform', 'e2echat'];
+  const splashForced = sq.get('splash') === '1';
+  const splashWanted = splashForced || (
+    sq.get('splash') !== '0'
+    && !localStorage.getItem(SEEN_KEY)
+    && !reduceAnim
+    && !navigator.webdriver
+    && !demoParams.some(p => sq.has(p))
+  );
+  if (splashWanted) {
+    try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* private mode */ }
+    const dio = document.createElement('div');
+    dio.id = 'setup-diorama';
+    overlay.insertBefore(dio, setupBox);
+    import('../renderer/renderer.js').then(async ({ createRenderer }) => {
+      const civs = await fetch('../data/civs.json').then(r => r.json()).catch(() => ({}));
+      // a small crafted coast: ocean west, a river-mouth city, escorts
+      const W = 14, H = 10;
+      const tiles = [];
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          tiles.push({
+            t: x < 4 ? 'ocean' : x < 5 ? 'plains' : x > 11 ? 'hills' : y < 2 ? 'forest' : 'grassland',
+            visible: true, river: x === 7 && y > 4
+          });
+        }
+      }
+      const view = {
+        map: { width: W, height: H, wrapX: false, tiles },
+        players: {
+          p1: { id: 'p1', name: 'Romans', color: '#3b7dd8' },
+          p2: { id: 'p2', name: 'Zulus', color: '#b0632f' }
+        },
+        cities: { // a harbor city on the LEFT band — the card owns the center
+          c1: { id: 'c1', name: 'Roma', owner: 'p1', x: 5, y: 5, pop: 6, buildings: ['city-walls', 'palace'] }
+        },
+        units: {
+          u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 6, y: 7, moves: 1 },
+          u2: { id: 'u2', type: 'legion', owner: 'p1', x: 5, y: 4, moves: 1, fortified: true },
+          u3: { id: 'u3', type: 'trireme', owner: 'p1', x: 2, y: 5, moves: 1 },
+          u4: { id: 'u4', type: 'cavalry', owner: 'p2', x: 12, y: 4, moves: 1 }
+        }
+      };
+      const r = createRenderer(dio);
+      if (r.setFactions) {
+        r.setFactions({
+          p1: civs.romans && civs.romans.visual, p2: civs.zulus && civs.zulus.visual
+        });
+      }
+      r.setViewState(view);
+      r.setZoom(10);
+      const t0 = performance.now();
+      const drift = () => { // slow pan: the harbor city rides the left band
+        if (!document.getElementById('setup-diorama')) return; // screen left
+        r.centerOn(8.5 + Math.sin((performance.now() - t0) / 9000) * 1.1, 4.8);
+        requestAnimationFrame(drift);
+      };
+      drift();
+    }).catch(() => dio.remove()); // no WebGL etc: the plain screen is fine
+  }
+
   // fill the civilization picker (specialty shown under the select)
   const civEl = document.getElementById('setup-civ');
   const specEl = document.getElementById('setup-specialty');
