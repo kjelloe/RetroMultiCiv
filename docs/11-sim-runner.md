@@ -1,9 +1,11 @@
 # The sim-runner agent — role spec (docs/11, spawn-when-needed)
 
 Written 2026-07-14 (user offered a fifth local agent for simulation
-offloading). **SPAWNED 2026-07-14** on the Roblox PC, ahead of the
-original trigger (P5-2+ replay-parity gates) — first job was a
-hardware-calibration soak that doubles as the loop's smoke test.
+offloading). **SPAWNED AND KIT-VALIDATED 2026-07-14** on the Roblox PC (12
+cores, ~14 ms/turn — 4-17× the dev box; all five sim goldens
+reproduced BIT-EXACT there, extending cross-machine determinism to a
+third box; lune installed for parity jobs). First job: the
+hardware-calibration soak.
 
 **Placement (user decision 2026-07-14): the Roblox PC** — alongside
 the roblox-helper, connected through the mail hub

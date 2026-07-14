@@ -27,15 +27,21 @@ the Done log at the bottom.
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.
+- [ ] **Ally round-4 playtest checks** (his two non-automatable
+  follow-ups, next session): (a) can the water highlights ever be
+  mistaken for rails, GoTo routes, or grid seams in ordinary play?
+  (his rule: water soft/broken/low-contrast; rails dark crisp
+  land-bound; routes player-colored and unmistakable); (b) do city
+  population badges become visually dominant at normal zoom in dense
+  late games? (his suggestion if so: fade when zoomed out, or show
+  only own/selected/hovered).
 
 ## Pending — decisions / ops
 
-- [ ] **Nightly workflow: lune install step** (from P5-1): the Luau
-  twin test self-skips without lune, so CI silently loses the anchor
-  gate until `.github/workflows/nightly-soak.yml` installs the
-  official lune-org binary (curl the pinned v0.10.5 release zip)
-  before `node --test`. Say go and I'll queue the workflow edit with
-  a claim, or edit it yourself with the commit.
+- [x] 2026-07-14 — **Nightly lune install: DONE** (architect edited
+  the workflow on your go: pinned v0.10.5 release zip, suite job only,
+  release URL verified live; guards green). The next nightly (or a
+  manual dispatch after pushing) proves it end to end.
 
 - [ ] **Commit checkpoint**: the tree carries the phase-4 acceptance
   markings (docs/03/08/09, plan-update, README), the full wave-VI
@@ -60,30 +66,6 @@ the Done log at the bottom.
   contended threads) — the 4070 sits idle for sims but earns an
   optional second duty running GPU-real screenshot sweeps. Trigger:
   P5-2+ parity gates; I'll say when, or spawn early if you like.
-- [ ] **Ally loop — final relay**: he SIGNED OFF on A1.6a/b
-  (2026-07-13) pending his three-point gallery checklist, which the
-  architect ran and passed (verdicts + fresh shots
-  `debugging/gallery-signoff-{grid,props}.png`; details in docs/03 art
-  track). Remaining human step: relay the checklist verdicts + the
-  shots to him, share the refreshed `plan-update.md` (both his feedback
-  rounds applied — and it now leads with **PHASE 4 ACCEPTED**, via his
-  own stress-test script), and the thank-you for the civ table. HIS
-  NEW REQUEST is queued as A43: a machine-readable render spec
-  (`specs/render-spec.json`, generated + drift-guarded) so his system
-  can validate the rendering design beyond visuals — tell him it's
-  coming, and that the rendering CODE is already public in the repo
-  under `client/renderer/three/` (the export gives him the
-  declarative tables with a schema, not a code dump). HIS THIRD
-  FEEDBACK ROUND (2026-07-14) is APPLIED: all four wording edits in
-  plan-update (canonical-contract phrasing, phase-4 code-vs-replay
-  distinction, local-vs-LAN Try-it split, the 14-seats line) and both
-  technical adoptions in docs/09 (dispatcher-early port order +
-  static-data checksum gate; the first-divergence report contract).
-  FOR HIS A1.7 VISUAL REVIEW he asked for the PNGs: send
-  debugging/anim-a28-{rest,live}.png + a fresh ?anim=1 gallery shot,
-  and his five checks are listed in his message (readability during
-  movement, smoke/water occlusion, flash clarity, zoom identify,
-  ivory-on-snow).
 - [x] 2026-07-14 — Old recordings cleanup done (pre-2026-07-12 files
   removed from `debugging/logs/`).
 
@@ -153,6 +135,12 @@ engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
   land.
 
 ## Done log
+
+- ✅ 2026-07-14 — **ALLY LOOP COMPLETE, FULL SIGN-OFF RECEIVED**:
+  round 4 approved A1.7 as the browser reference implementation,
+  formally validated phases 2–4, blessed phase 5's continuation, and
+  reviewed render-spec.json ("substantial success"). All his edits
+  applied same-day; his 7 follow-ups routed (A44 + 2 playtest checks).
 
 - ✅ 2026-07-14 — **PHASE 4 ACCEPTED**: two-machine LAN session (2
   humans + spectator + AI), survived BOTH tortures — network kill on

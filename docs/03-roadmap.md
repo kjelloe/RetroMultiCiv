@@ -437,6 +437,13 @@ the designer ally's plan:
   asset comparison); `?anim=1`/`?flashdemo=1`/`?glidedemo=1` opt in.
   Feel constants (sway 0.18 rad, glide 200ms) await user tuning. The
   procedural art track is COMPLETE — A2 (.glb models) stays optional.
+  **ALLY VISUAL SIGN-OFF 2026-07-14 (round 4): A1.7 approved as the
+  BROWSER REFERENCE IMPLEMENTATION** — full acceptance checklist
+  signed (terrain, palettes, coast, city tiers, unit families,
+  ownership layering, light-faction protection, render-only motion,
+  reduce-animation, the gallery as regression tool). Seven small
+  non-blocker follow-ups queued as A44 + playtest checks; future
+  silhouette-differentiation note recorded as an A1.8 candidate.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

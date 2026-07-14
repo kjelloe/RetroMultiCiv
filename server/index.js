@@ -146,11 +146,23 @@ export function startServer(opts) {
       }))
     };
   }
+  function ipOf(ws) {
+    return (ws._socket && ws._socket.remoteAddress) || '';
+  }
   function broadcastLobby(gameId) {
     const e = registry.entryOf(gameId);
     if (!e) return;
     const r = roster(e);
-    for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'lobby', gameId, lobby: r });
+    // A37: the HOST's copy carries each seat's remote IP (hover identity) —
+    // never broadcast to other joiners or spectators
+    const seatIp = {};
+    for (const [o, i] of conns) if (i.gameId === gameId && i.seat) seatIp[i.seat] = ipOf(o);
+    const hostR = Object.assign({}, r, {
+      seats: r.seats.map(s => s.reserved ? Object.assign({}, s, { ip: seatIp[s.seat] || '' }) : s)
+    });
+    for (const [o, i] of conns) {
+      if (i.gameId === gameId) send(o, { t: 'lobby', gameId, lobby: i.isCreator ? hostR : r });
+    }
   }
   // broadcast + per-seat view fan-out to every connection in the given game
   // (spectator pseudo-seats get game.view('spectator') — omniscient, docs/08 §6).
@@ -261,6 +273,11 @@ export function startServer(opts) {
       return;
     }
     if (e.status === 'lobby') {
+      // A37 kick-and-block: a blocked IP bounces before any reservation
+      if (e.blockedIps && e.blockedIps[ipOf(ws)] === true) {
+        send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
+        return;
+      }
       const res = registry.reserveSeat(gameId, { name: msg.name, seat: msg.seat });
       if (!res.ok) { send(ws, { t: 'rejected', commandId: -1, code: res.reason }); return; }
       info.gameId = gameId; info.seat = res.seat;
@@ -351,6 +368,54 @@ export function startServer(opts) {
           : registry.setSlots(info.gameId, msg.civs);
         if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
         broadcastLobby(info.gameId); // joiners see the slot list update live
+        return;
+      }
+      if (msg.t === 'chat') { // A37: transient lobby traffic — never game state
+        const e = info.gameId ? registry.entryOf(info.gameId) : null;
+        if (!e || e.status !== 'lobby' || !info.seat) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'noLobby' });
+          return;
+        }
+        if (e.options.chat !== true) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'chatOff' });
+          return;
+        }
+        const now = Date.now(); // rate limit: 1/sec per connection
+        if (info.lastChatAt !== undefined && now - info.lastChatAt < 1000) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          return;
+        }
+        info.lastChatAt = now;
+        const name = (e.seats[info.seat] && e.seats[info.seat].name) || info.seat;
+        for (const [o, i] of conns) {
+          if (i.gameId === info.gameId) send(o, { t: 'chat', seat: info.seat, name, text: msg.text });
+        }
+        return;
+      }
+      if (msg.t === 'setChat' || msg.t === 'kick') { // A37: host-only moderation
+        if (!info.gameId || !info.isCreator) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          return;
+        }
+        if (msg.t === 'setChat') {
+          const r = registry.setChat(info.gameId, msg.on);
+          if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
+          broadcastLobby(info.gameId); // the roster options carry the flag
+          return;
+        }
+        // kick (+block): frees the reservation; the kicked connection gets a
+        // friendly {t:'kicked'} and its lobby membership is severed
+        const r = registry.kick(info.gameId, msg.seat, info.seat);
+        if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
+        for (const [o, i] of conns) {
+          if (i.gameId === info.gameId && i.seat === msg.seat && o !== ws) {
+            if (msg.block === true) registry.blockIp(info.gameId, ipOf(o));
+            send(o, { t: 'kicked', gameId: info.gameId });
+            conns.set(o, {}); // no longer in this lobby
+            break;
+          }
+        }
+        broadcastLobby(info.gameId);
         return;
       }
       if (msg.t === 'skipTurn' || msg.t === 'proposeSkip' || msg.t === 'vote') {

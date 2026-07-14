@@ -366,6 +366,27 @@ test('browser A30: the wait line shows the moving AI during a local round',
     }
   });
 
+// A37 XSS: a chat payload must render INERT — the client inserts chat via
+// textContent (never innerHTML), so the markup arrives as visible text and
+// no element is created. ?e2ehost=1&e2ehold=1&e2echat=<payload> sends it
+// through the REAL server path (cap + rate + broadcast) back to the page.
+test('browser lobby chat: a script payload renders as text, not markup',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const { startServer: startGameServer } = await import('../server/index.js');
+    const gs = await startGameServer({ seed: 99, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+    try {
+      const payload = encodeURIComponent('<img src=x onerror="document.title=1">hi');
+      const url = `http://127.0.0.1:${gs.port}/client/?e2ehost=1&e2ehold=1&e2echat=${payload}`;
+      const dom = await dumpDomLive(chromium, url, h => /lobby-chat-log/.test(h) && /Kjell:/.test(h), 20000);
+      const log = dom.match(/id="lobby-chat-log"[\s\S]*?<\/div>/)[0];
+      assert.match(log, /Kjell: &lt;img/, 'the payload is visible as escaped text');
+      assert.ok(!/<img/.test(log), 'no element was created from the payload');
+      assert.ok(!/onerror/.test(dom.match(/<img[^>]*>/g)?.join('') || ''), 'no live onerror anywhere');
+    } finally {
+      await gs.close();
+    }
+  });
+
 // B3 regression (wave V bug 0): in a LAN game with two human seats, MY
 // endTurn hands the turn to the OTHER human — the client must NOT take the
 // hotseat hand-off path (it dropped the curtain on the wrong machine and

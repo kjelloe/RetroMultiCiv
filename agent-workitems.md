@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 218 tests), the item's own verification steps pass, related
+   (currently 223 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -107,6 +107,30 @@ This slice makes every later engine-module port instantly checkable
 first, as always; report any new traps for docs/09. Golden-safe
 (nothing touches JS). Done-mail: the ten per-scenario hash pairs
 printed from BOTH languages.
+
+### P5-3 — First rule-module batch + the dispatcher (assigned: bugfixer; docs/09 §4 step 4-amended + step 5 start)
+
+Three deliverables, gates per the amended order:
+1. **Minimal `luau/index.luau`**: the applyCommand DISPATCHER shell —
+   command table lookup, unknown-command rejection, the deep-clone
+   purity contract (port deepClone with the ARRAY_MT discipline), and
+   endTurn's shell (turn/year advance via a ported nextYear, player
+   cycling, moves refresh) with per-module process hooks that no-op
+   until their modules land. GATE: scenario 001-move-unit still FAILS
+   (movement not ported) but FAILS CORRECTLY — the runner executes
+   the script and reports the divergence in the docs/09 first-
+   divergence format (this is the contract's shakedown).
+2. **Batch 1 rule modules**: `movement` + `visibility` (the ally's
+   vertical-slice order: movement/fog/projection early). GATE:
+   scenario 001 green cross-language (same final hash both engines).
+3. **Static-data checksums** (the amended step-4 gate): every
+   data/*.json canonical-hashed identically in both languages —
+   extend luau-twins.test.js with the eight data files.
+Failure output SHAPED for the first-divergence contract from the
+first red run — fixture, command index, turn/actor, payload, both
+hashes, first differing canonical path, RNG before/after. Trap-list
+first; docs/09 §7 says transliteration suffices — prove it again.
+Golden-safe (JS untouched).
 
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
@@ -1102,6 +1126,36 @@ EXCEPT: if extraction demands small refactors like naming an inline
 constant, keep them byte-neutral and prove it with a gallery
 rest-pose screenshot compare). Slot after A36 — same renderer
 knowledge, warm cache.
+
+## A44 — Ally sign-off follow-ups bundle (round 4, non-blockers; after A42)
+
+Four small items from the visual sign-off, one claim:
+1. **Renderer-coverage guard**: a suite test asserting EVERY
+   data/units.json type maps to exactly one silhouette class,
+   specialized builder, or EXPLICITLY listed fallback in assets.js —
+   failure names the unmapped types ("Missing visual mapping: tank").
+   His specific worry: tank/submarine may ride a generic fallback —
+   the guard reveals it; if they do, give them real silhouettes (his
+   sketches: low tracked hull + turret distinct from artillery; low
+   dark narrow hull + conning tower). Gallery re-shot if models change.
+2. **Shared-vertex rule, documented + checked**: terrain.js gains the
+   invariant comment ("every shared vertex receives ONE deterministic
+   height + palette decision; adjacent tiles never write conflicting
+   values") and, if cheap, a test that builds a small mesh twice and
+   asserts identical vertex buffers (determinism half) — the
+   no-conflicting-writes half can be a code-shape argument in the
+   comment if a mechanical check is disproportionate; say which.
+3. **Faction color-field docs**: render-spec schema (and a comment in
+   civs.json's generator) documenting `color` = gameplay/seat display
+   color vs `visual.primary/secondary` = client-only art palette.
+   (Renaming color→seatColor is NOT in scope — data migration touches
+   saves; note it as a possible future migration instead.)
+4. **Gallery label padding**: left/right edge labels crop/crowd —
+   pad the grid or two-line the long names; gallery-only, re-shot.
+Also NOTED (not in this bundle): his water-streaks-vs-rails check and
+late-game badge prominence are PLAYTEST items (human list); adjacent-
+tier silhouette differentiation is recorded as an A1.8 candidate in
+docs/03. Golden-safe throughout.
 
 ## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
 

@@ -13,12 +13,38 @@ local json2lua = require("./json2lua")
 local runner = require("./scenario-runner")
 local statehash = require("./statehash")
 
+local engineModule = require("./index")
+local RULESET_FILES = { "terrain", "units", "techs", "buildings", "wonders", "governments", "civs", "rules" }
+local ruleset = {}
+for _, f in ipairs(RULESET_FILES) do
+	ruleset[f] = json2lua.parse(fs.readFile("data/" .. f .. ".json"))
+end
+local engine = engineModule.createEngine(ruleset)
+
 local names = fs.readDir("test/scenarios")
 table.sort(names)
 for _, name in names do
 	if string.sub(name, -5) == ".json" then
 		local scenario = json2lua.parse(fs.readFile("test/scenarios/" .. name))
 		print(name .. ": " .. runner.hashSetup(scenario))
+		-- P5-3: RUN the scenario; pass prints the final hash, failure prints
+		-- the docs/09 first-divergence report block
+		local result = runner.runScenario(engine, scenario, name)
+		if result.pass then
+			print("run:" .. name .. ": " .. result.finalHash)
+		else
+			local r = result.report
+			print(string.format("DIVERGENCE fixture=%s command=%d turn=%s actor=%s",
+				r.fixture, r.commandIndex, tostring(r.turn), tostring(r.actor)))
+			print("  payload=" .. tostring(r.payload))
+			print("  luauHash=" .. tostring(r.luauHash) .. " rngBefore=" .. tostring(r.rngBefore) .. " rngAfter=" .. tostring(r.rngAfter))
+			for _, f in ipairs(r.failures) do
+				print("  fail: " .. f)
+			end
+			if r.canon ~= nil then
+				print("  canon=" .. r.canon)
+			end
+		end
 	end
 end
 

@@ -20,7 +20,13 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - name: Full test suite (incl. golden-seed simulation)
+      - name: Install lune (Luau twin gates — test/luau-twins self-skips without it)
+        run: |
+          curl -fsSL -o /tmp/lune.zip https://github.com/lune-org/lune/releases/download/v0.10.5/lune-0.10.5-linux-x86_64.zip
+          unzip -o /tmp/lune.zip -d /tmp/lune-bin
+          chmod +x /tmp/lune-bin/lune
+          echo /tmp/lune-bin >> "$GITHUB_PATH"
+      - name: Full test suite (incl. golden-seed simulation + Luau anchor gates)
         run: node --test test/
 
   soak:

@@ -167,6 +167,58 @@ test('A38 big lobbies: seats-per-size gate, resize clamp, 12 civs start distinct
   }
 });
 
+test('A37 lobby chat + moderation: cap, rate, toggle, kick frees the seat, block bounces the rejoin', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    const host = await connect(s.port);
+    host.send({ t: 'create', name: 'Kjell', options: { civs: 3, humans: 3, size: 'xsmall', seed: 9 } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    const ada = await connect(s.port);
+    ada.send({ t: 'join', joinCode: created.joinCode, name: 'Ada' });
+    const aj = await ada.expect(m => m.t === 'joinedLobby', 'ada seated');
+    await host.expect(m => m.t === 'lobby', 'roster');
+
+    // chat: both directions, name attached; parseMessage hard-caps 200
+    ada.send({ t: 'chat', text: 'hello from Ada' });
+    const heard = await host.expect(m => m.t === 'chat', 'host hears');
+    assert.deepStrictEqual({ seat: heard.seat, name: heard.name, text: heard.text },
+      { seat: aj.seat, name: 'Ada', text: 'hello from Ada' });
+    await ada.expect(m => m.t === 'chat', 'echo to sender too');
+    ada.send({ t: 'chat', text: 'x'.repeat(201) });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'cap')).code, 'badShape');
+    ada.send({ t: 'chat', text: 'too quick' }); // < 1s after "hello from Ada"
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'rate')).code, 'tooFast');
+
+    // moderation is host-only; the live toggle silences the room
+    ada.send({ t: 'setChat', on: false });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'non-host toggle')).code, 'notCreator');
+    ada.send({ t: 'kick', seat: 'p1' });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'non-host kick')).code, 'notCreator');
+    host.send({ t: 'setChat', on: false });
+    await host.expect(m => m.t === 'lobby' && m.lobby.options.chat === false, 'chat off broadcast');
+    await new Promise(r => setTimeout(r, 1100)); // clear Ada's rate window
+    ada.send({ t: 'chat', text: 'anyone?' });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'chat off')).code, 'chatOff');
+    host.send({ t: 'kick', seat: created.seat });
+    assert.strictEqual((await host.expect(m => m.t === 'rejected', 'self-kick')).code, 'cannotKickHost');
+
+    // kick-and-block: Ada is removed, notified, her seat frees, rejoin bounces
+    host.send({ t: 'kick', seat: aj.seat, block: true });
+    await ada.expect(m => m.t === 'kicked', 'ada notified');
+    const after = await host.expect(m => m.t === 'lobby'
+      && m.lobby.seats.some(x => x.seat === aj.seat && x.reserved === false), 'seat freed');
+    assert.ok(after);
+    const adaAgain = await connect(s.port);
+    adaAgain.send({ t: 'join', joinCode: created.joinCode, name: 'Ada' });
+    assert.strictEqual((await adaAgain.expect(m => m.t === 'rejected', 'blocked rejoin')).code, 'blocked',
+      'the per-game blocklist bounces the rejoin');
+    host.close(); ada.close(); adaAgain.close();
+  } finally {
+    await s.close();
+  }
+});
+
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

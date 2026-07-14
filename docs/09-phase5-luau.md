@@ -113,7 +113,8 @@ the one auth simplification the platform gives us for free).
 ### The first-divergence report (ally contract, 2026-07-14)
 
 Cross-language failures must be repair loops, not archaeology. On any
-hash mismatch, the harness emits: replay version + fixture name;
+hash mismatch, the harness emits: replay version + RULES-DATA version
++ fixture name;
 command number / turn / acting seat; the command payload; the JS
 canonical hash AND the Luau canonical hash; the FIRST canonical
 path/value that differs (walk the two canonical strings to the first

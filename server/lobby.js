@@ -341,5 +341,8 @@ export function createRegistry(deps) {
     });
   }
 
-  return { create, reserveSeat, releaseSeat, setSlot, setSlots, start, register, resolveId, entryOf, list };
+  return {
+    create, reserveSeat, releaseSeat, setSlot, setSlots, start, register,
+    resolveId, entryOf, list, kick, blockIp, setChat // A37
+  };
 }

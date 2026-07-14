@@ -247,6 +247,9 @@ export function showSetupScreen() {
         civs: parseInt(params.get('e2ecivs') || '2', 10),
         humans: 1, size: params.get('e2esize') || 'xsmall', seed: 12345
       },
-      { auto: true, name: 'Kjell', hold: params.get('e2ehold') === '1' }));
+      {
+        auto: true, name: 'Kjell', hold: params.get('e2ehold') === '1',
+        chat: params.get('e2echat') || null // A37: XSS e2e sends this payload
+      }));
   }
 }

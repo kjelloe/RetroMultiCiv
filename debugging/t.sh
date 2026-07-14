@@ -12,7 +12,7 @@ VERBOSE=0
 TARGETS=("$@")
 [ ${#TARGETS[@]} -eq 0 ] && TARGETS=(test/)
 
-OUT=$(node --test "${TARGETS[@]}" 2>&1)
+OUT=$(node --test --test-reporter=tap "${TARGETS[@]}" 2>&1)
 STATUS=$?
 
 if [ "$VERBOSE" = 1 ]; then

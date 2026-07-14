@@ -58,14 +58,22 @@ function seatLine(s, mySeat, civs) {
   return `<b>${s.seat} · ${s.name}${you}</b>${civTag}`;
 }
 
-function renderWaitingRoom(box, info, hostCtl, onStart) {
+function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
   box.innerHTML = `
     <h2>Game lobby</h2>
     <p class="setup-hint">join code — tell your friends:</p>
     <p id="lobby-code">${info.joinCode}</p>
     ${hostCtl ? `<p class="setup-hint">slots: <button id="slot-minus" class="setup-lan-btn">−</button>
-      <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button></p>` : ''}
+      <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button>
+      · <label id="lobby-chat-toggle">chat <input id="lobby-chat-on" type="checkbox"></label></p>` : ''}
     <div id="lobby-roster"></div>
+    <div id="lobby-chat" class="hidden">
+      <div id="lobby-chat-log"></div>
+      <div id="lobby-chat-row">
+        <input id="lobby-chat-text" type="text" maxlength="200" placeholder="say something…">
+        <button id="lobby-chat-send" class="setup-lan-btn">send</button>
+      </div>
+    </div>
     <p class="setup-hint" id="lobby-status">${hostCtl
       ? 'start when everyone is seated — open seats become AI'
       : 'waiting for the host to start…'}</p>
@@ -77,8 +85,51 @@ function renderWaitingRoom(box, info, hostCtl, onStart) {
       () => hostCtl.send({ t: 'setSlots', civs: hostCtl.count - 1 }));
     document.getElementById('slot-plus').addEventListener('click',
       () => hostCtl.send({ t: 'setSlots', civs: hostCtl.count + 1 }));
+    document.getElementById('lobby-chat-on').addEventListener('change',
+      e => hostCtl.send({ t: 'setChat', on: e.target.checked }));
   }
+  // A37 chat: send via Enter or the button; incoming lines land through
+  // appendChat — textContent only, so payloads render inert (no innerHTML)
+  if (sendFn) {
+    const text = document.getElementById('lobby-chat-text');
+    const submit = () => {
+      const t = text.value.trim();
+      if (t.length === 0) return;
+      sendFn({ t: 'chat', text: t.slice(0, 200) });
+      text.value = '';
+    };
+    document.getElementById('lobby-chat-send').addEventListener('click', submit);
+    text.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  }
+  syncChatPanel(info.lobby, hostCtl);
   updateRoster(info.lobby, info.seat, hostCtl);
+}
+
+// A37: the chat panel follows the host's live toggle (roster options.chat)
+function syncChatPanel(lobby, hostCtl) {
+  const panel = document.getElementById('lobby-chat');
+  if (!panel || !lobby) return;
+  const on = !lobby.options || lobby.options.chat !== false;
+  panel.classList.toggle('hidden', !on);
+  const box = document.getElementById('lobby-chat-on');
+  if (box) box.checked = on;
+}
+
+function appendChat(msg) {
+  const log = document.getElementById('lobby-chat-log');
+  if (!log) return;
+  const line = document.createElement('div');
+  line.textContent = `${msg.name}: ${msg.text}`; // textContent = XSS-inert
+  log.appendChild(line);
+  while (log.children.length > 50) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
+// A37: the friendly full-screen for a kicked joiner
+function showKicked(box) {
+  box.innerHTML = `<h2>Game lobby</h2>
+    <p class="setup-hint">⛔ the host removed you from the lobby</p>
+    <p class="setup-hint"><a href="./">← back to setup</a></p>`;
 }
 
 // A27: the host sees interactive rows (AI↔Open toggle on unreserved slots +
@@ -103,7 +154,7 @@ function updateRoster(lobby, mySeat, hostCtl) {
       label.innerHTML = seatLine(s, mySeat, civs);
       row.appendChild(label);
       if (hostCtl) {
-        if (!s.reserved) { // no-kick (@3b520ebc): occupants keep their seats
+        if (!s.reserved) { // the SILENT flip still never touches occupants
           const toggle = document.createElement('button');
           toggle.className = 'setup-lan-btn';
           toggle.textContent = s.mode === 'ai' ? 'make open' : 'make AI';
@@ -111,6 +162,34 @@ function updateRoster(lobby, mySeat, hostCtl) {
             t: 'setSlot', seat: s.seat, mode: s.mode === 'ai' ? 'open' : 'ai'
           }));
           row.appendChild(toggle);
+        }
+        if (s.reserved && s.seat !== mySeat) {
+          // A37 (supersedes @3b520ebc by user decision): kicking is an
+          // EXPLICIT host action with an inline confirm — never silent
+          if (s.ip) row.title = `connection: ${s.ip}`; // host-only hover identity
+          const kick = document.createElement('button');
+          kick.className = 'setup-lan-btn lobby-kick';
+          kick.textContent = '⛔';
+          kick.title = `remove ${s.name} from the lobby`;
+          kick.addEventListener('click', () => {
+            kick.replaceWith(...(() => {
+              const confirmK = document.createElement('button');
+              confirmK.className = 'setup-lan-btn lobby-kick';
+              confirmK.textContent = `kick ${s.name}`;
+              confirmK.addEventListener('click', () => hostCtl.send({ t: 'kick', seat: s.seat }));
+              const confirmB = document.createElement('button');
+              confirmB.className = 'setup-lan-btn lobby-kick';
+              confirmB.textContent = '+ block';
+              confirmB.title = 'kick and block their address from this game';
+              confirmB.addEventListener('click', () => hostCtl.send({ t: 'kick', seat: s.seat, block: true }));
+              const cancel = document.createElement('button');
+              cancel.className = 'setup-lan-btn';
+              cancel.textContent = '✕';
+              cancel.addEventListener('click', () => updateRoster(lobby, mySeat, hostCtl));
+              return [confirmK, confirmB, cancel];
+            })());
+          });
+          row.appendChild(kick);
         }
         const pick = document.createElement('select');
         const rnd = document.createElement('option');
@@ -130,6 +209,11 @@ function updateRoster(lobby, mySeat, hostCtl) {
         row.appendChild(pick);
       }
       el.appendChild(row);
+    }
+    // ?e2ekick=1 (A37 screenshots): open the first kick confirm deterministically
+    if (new URLSearchParams(location.search).get('e2ekick') === '1') {
+      const b = el.querySelector('.lobby-kick');
+      if (b) b.click();
     }
   });
 }
@@ -152,10 +236,17 @@ export function startHostFlow(box, options, flags) {
       if (msg.t === 'created') {
         mySeat = msg.seat;
         hostCtl.send = frame => sock.send(JSON.stringify(frame));
-        renderWaitingRoom(box, msg, hostCtl, () => sock.send(JSON.stringify({ t: 'start' })));
+        renderWaitingRoom(box, msg, hostCtl,
+          () => sock.send(JSON.stringify({ t: 'start' })), hostCtl.send);
+        if (auto && flags && flags.chat) { // A37 XSS e2e: echo a chat payload
+          hostCtl.send({ t: 'chat', text: flags.chat });
+        }
         if (auto && !(flags && flags.hold)) sock.send(JSON.stringify({ t: 'start' }));
       } else if (msg.t === 'lobby') {
+        syncChatPanel(msg.lobby, hostCtl);
         updateRoster(msg.lobby, mySeat, hostCtl);
+      } else if (msg.t === 'chat') {
+        appendChat(msg);
       } else if (msg.t === 'rejected') {
         fail(box, msg.code === 'seatReserved'
           ? 'that seat is taken — they can leave, or pick another slot for the AI'
@@ -187,10 +278,12 @@ export function startHostFlow(box, options, flags) {
     <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
     <p class="setup-hint">spectators see the whole map — admit people you'd
       let stand behind your chair</p>
+    <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
     <button id="setup-start">Create game</button>
     <p class="setup-hint"><a href="./">← back</a></p>`;
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
+    options.chat = document.getElementById('lobby-allow-chat').checked; // A37
     options.size = document.getElementById('lobby-size').value;
     options.age = document.getElementById('lobby-age').value;
     create(document.getElementById('lobby-name').value.trim() || 'Player 1');
@@ -289,9 +382,13 @@ export function initMultiplayerFlow(ctx) {
 // e2e/screenshots: auto-join a lobby by code without the form (?e2ejoin=CODE)
 export function autoJoin(box, code, name) {
   let mySeat = null;
-  const ws = openLobbySocket((msg) => {
-    if (msg.t === 'joinedLobby') { mySeat = msg.seat; renderWaitingRoom(box, msg, null, null); }
-    else if (msg.t === 'lobby') updateRoster(msg.lobby, mySeat, null);
+  const ws = openLobbySocket((msg, sock) => {
+    if (msg.t === 'joinedLobby') {
+      mySeat = msg.seat;
+      renderWaitingRoom(box, msg, null, null, frame => sock.send(JSON.stringify(frame)));
+    } else if (msg.t === 'lobby') { syncChatPanel(msg.lobby, null); updateRoster(msg.lobby, mySeat, null); }
+    else if (msg.t === 'chat') appendChat(msg);
+    else if (msg.t === 'kicked') showKicked(box);
     else if (msg.t === 'rejected') fail(box, `server rejected: ${msg.code}`);
   }, () => fail(box, 'no game server'));
   ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name: name || 'Joiner' })));
@@ -305,7 +402,7 @@ export function startJoinFlow(box) {
     <label>Join code <input id="lobby-code-in" type="text" maxlength="5" placeholder="Q7F2M"></label>
     <label>Seat
       <select id="lobby-seat"><option value="">auto</option>
-        ${[1, 2, 3, 4, 5, 6, 7].map(n => `<option value="p${n}">p${n}</option>`).join('')}
+        ${Array.from({ length: 14 }, (_, i) => `<option value="p${i + 1}">p${i + 1}</option>`).join('')}
       </select>
     </label>
     <label>Spectate <input id="lobby-spectate" type="checkbox"></label>
@@ -321,18 +418,24 @@ export function startJoinFlow(box) {
     const spectate = document.getElementById('lobby-spectate').checked || undefined;
     if (code.length !== 5) { fail(box, 'a join code is 5 characters'); return; }
     let mySeat = null;
-    const ws = openLobbySocket((msg) => {
+    const ws = openLobbySocket((msg, sock) => {
       if (msg.t === 'joinedLobby') {
         mySeat = msg.seat;
-        renderWaitingRoom(box, msg, null, null);
+        renderWaitingRoom(box, msg, null, null, frame => sock.send(JSON.stringify(frame)));
       } else if (msg.t === 'lobby') {
+        syncChatPanel(msg.lobby, null);
         updateRoster(msg.lobby, mySeat, null);
+      } else if (msg.t === 'chat') {
+        appendChat(msg);
+      } else if (msg.t === 'kicked') {
+        showKicked(box); // A37: the friendly removal screen
       } else if (msg.t === 'rejected') {
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
           : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
+          : msg.code === 'blocked' ? 'the host has blocked you from this game' // A37
           : `server rejected: ${msg.code}`);
       }
     }, () => fail(box, 'no game server — start it with: node server/index.js'));

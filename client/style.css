@@ -613,6 +613,27 @@ html, body {
 #turn-list.hide-rival > .lg-rival,
 #turn-list.hide-saves > .lg-saves { display: none; }
 
+/* A37: lobby chat + kick controls */
+#lobby-chat {
+  margin: 10px auto;
+  max-width: 420px;
+  text-align: left;
+}
+#lobby-chat.hidden { display: none; }
+#lobby-chat-log {
+  height: 110px;
+  overflow-y: auto;
+  background: rgba(8, 12, 20, 0.6);
+  border: 1px solid #2b3d5f;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #cdd8ea;
+}
+#lobby-chat-row { display: flex; gap: 6px; margin-top: 6px; }
+#lobby-chat-text { flex: 1; }
+.lobby-kick { border-color: #8f3b3b; color: #e8b0a8; }
+
 /* A35: the spectator's cursor tooltip (units + cities, omniscient) */
 #spectator-tip {
   position: fixed;
