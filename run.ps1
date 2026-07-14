@@ -82,8 +82,25 @@ $log = Join-Path $env:TEMP 'multiciv-server.log'
 $nodeArgs = @('server/index.js', '--port', "$Port") + $Args
 $proc = Start-Process -FilePath 'node' -ArgumentList $nodeArgs -NoNewWindow -PassThru `
   -RedirectStandardOutput $log -RedirectStandardError "$log.err"
-Start-Sleep -Milliseconds 700
-if ($proc.HasExited) {
+# Liveness VERDICT, not a fixed-delay sample (B8, twin of run.sh's B7): poll
+# until the process dies (failure), OUR pid listens on the port (success —
+# a squatter can't fake it), or the window runs out (report the uncertainty;
+# never kill a slow healthy server).
+$window = 3
+if ($env:MULTICIV_BOOT_WINDOW -match '^[0-9]+$') { $window = [int]$env:MULTICIV_BOOT_WINDOW }
+$verdict = ''
+for ($i = 0; $i -lt $window * 10; $i++) {
+  if ($proc.HasExited) { $verdict = 'dead'; break }
+  $listening = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue |
+    Where-Object { $_.OwningProcess -eq $proc.Id }
+  if ($listening) { $verdict = 'up'; break }
+  Start-Sleep -Milliseconds 100
+}
+if ($verdict -eq '') {
+  Write-Host "server (pid $($proc.Id)) is alive but not listening after ${window}s - slow start, or check --host"
+  Write-Host "  watch it:  Get-Content $log -Wait"
+}
+if ($verdict -eq 'dead') {
   Write-Host 'server failed to start:'
   foreach ($f in @($log, "$log.err")) {
     if (Test-Path $f) { Get-Content $f -Tail 10 | Write-Host }

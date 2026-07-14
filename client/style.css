@@ -624,7 +624,7 @@ html, body {
   padding: 4px 8px;
   font-size: 12px;
   color: #cdd8ea;
-  white-space: nowrap;
+  white-space: pre; /* city line + garrison line */
 }
 #spectator-tip.hidden { display: none; }
 

@@ -251,3 +251,22 @@ test('run.sh: a healthy listener gets the success banner without waiting out the
     spawnSync('bash', ['-c', 'kill $(ss -ltnp 2>/dev/null | grep ":18993" | grep -o "pid=[0-9]*" | cut -d= -f2) 2>/dev/null'], { encoding: 'utf8' });
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('run.ps1: a SLOW crash must not be reported as a running server (B8, real PowerShell)',
+  { skip: !psReady && 'powershell.exe (with Windows node) not reachable' }, () => {
+    // twin of the B7 bash case: this stub outlives the old fixed 700ms
+    // HasExited sample, which printed the success banner for a dying server
+    const dir = stubServerTree('multiciv-ps-slowcrash-',
+      "console.error('going down late');\nsetTimeout(() => process.exit(7), 1200);\n");
+    try {
+      fs.copyFileSync(path.join(REPO, 'run.ps1'), path.join(dir, 'run.ps1'));
+      const script = winPath(path.join(dir, 'run.ps1'));
+      const res = psRun(['-Command',
+        `$env:MULTICIV_BOOT_WINDOW='20'; & '${script}' 18991; exit $LASTEXITCODE`]);
+      const out = `${res.stdout}\n${res.stderr}`;
+      assert.ok(!/server running/.test(out),
+        `a crashing server must never get the success banner:\n${out}`);
+      assert.match(out, /server failed to start/, `must reach the failure report:\n${out}`);
+      assert.strictEqual(res.status, 1, `run.ps1 must exit 1:\n${out}`);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  });

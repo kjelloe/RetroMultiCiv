@@ -265,16 +265,29 @@ unit after End Turn.
   cities 1). Both reverted; goldens never moved for the experiments.
   **MANDATE EXTENDED (user, 2026-07-14): up to 10 intentional
   iterations, run IN THE BACKGROUND without blocking other work** — so
-  iterations 3+ happen in a scratchpad LAB COPY of the repo (edit the
-  lab's engine, soak the lab, tree stays green); only a lever that
-  BEATS the baseline gets ported into the real tree with a short
-  golden window. Hypothesis ledger for future iterations: (3) the
-  elimination drop from iteration 2 suggests a SURVIVAL lever is real —
-  measure elimination% as a tracked secondary; (4) entertainer
-  assignment in the disordered city only (localized, no empire rate
-  drain); (5) temple-priority in saturated builds under GE; (6) tax-
-  funded rush-buy of temples in disorder cities. Each iteration: one
-  hypothesis, 25-seed GE run, numbers in this ledger.
+  iterations 3+ happen in a scratchpad LAB COPY of the repo; only a
+  lever that BEATS the baseline gets ported with a short golden window.
+  **ITERATION 3 — ENTERTAINERS-LOCAL: WON AND SHIPPED (2026-07-14).**
+  Lab (25 GE seeds): stagnant 39%→7%, techs median 4→8, monarchies
+  41→73, eliminations 20→15%. Real-tree validation (25 GE seeds,
+  post-port with the corrected anti-flap guard): stagnant **3%**,
+  cities median 7 (avg 10), techs median 13, republics/democracy now
+  appearing at GE. Mechanism: disorder fixed IN-CITY (worst tile →
+  entertainer), production never halts, science never drained, the
+  beeline untouched — compounding. Port hardening: the lab lever's
+  revert FLAPPED (the entertainer's calm triggered its own removal);
+  shipped revert requires a hypothetical workers-less cityMood to stay
+  orderly, pinned by a no-flap test. SIDE EFFECTS, both deliberate:
+  normal-difficulty AI is much stronger (median 12 cities, techs 22,
+  zero stagnant — user to judge difficulty FEEL; ladder is the knob),
+  and the sim MAX_UNITS tripwire recalibrated 600→1000 (seed 6 hit 603
+  healthy units at turn 314 — thriving, not runaway).
+  **Batch 4 CLOSED at 3 of 10 iterations — criterion decisively met.**
+  Remaining hypotheses stay recorded for a future batch: (5) temple-
+  priority in saturated GE builds; (6) rush-buy temples in disorder
+  cities; NEW (7) settler-paver accumulation trim (~270-unit thriving
+  empires carry idle paver piles under freeUnitsPerCity 99 — an
+  efficiency target, linear not runaway).
 
 ## Per-player difficulty (parked 2026-07-13, from lobby wave V.4)
 

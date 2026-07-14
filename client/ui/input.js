@@ -595,24 +595,24 @@ export function initInput(ctx) {
   }
   function spectatorTip(pick) {
     const state = session.state;
-    let text = null;
+    const lines = [];
+    // the city line leads even when the ray hits its garrison's mesh —
+    // spectators hovering a city want the city first, the garrison second
+    const c = pick
+      ? (pick.cityId && state.cities[pick.cityId]) || cityAt(state, pick.tile.x, pick.tile.y)
+      : null;
+    if (c) lines.push(`${whoName(state, c.owner)} · ${c.name} · pop ${c.pop}`);
     if (pick && pick.unitId && state.units[pick.unitId]) {
       const u = state.units[pick.unitId];
       const t = units[u.type];
-      text = `${whoName(state, u.owner)} · ${t.name}${u.veteran ? ' ★vet' : ''}`
-        + ` · ⚔${t.attack} 🛡${t.defense} 👟${u.moves}/${t.moves}`;
-    } else if (pick && pick.cityId && state.cities[pick.cityId]) {
-      const c = state.cities[pick.cityId];
-      text = `${whoName(state, c.owner)} · ${c.name} · pop ${c.pop}`;
-    } else if (pick) {
-      const c = cityAt(state, pick.tile.x, pick.tile.y);
-      if (c) text = `${whoName(state, c.owner)} · ${c.name} · pop ${c.pop}`;
+      lines.push(`${whoName(state, u.owner)} · ${t.name}${u.veteran ? ' ★vet' : ''}`
+        + ` · ⚔${t.attack} 🛡${t.defense} 👟${u.moves}/${t.moves}`);
     }
-    if (text === null) {
+    if (lines.length === 0) {
       specTip.classList.add('hidden');
       return;
     }
-    specTip.textContent = text;
+    specTip.textContent = lines.join('\n');
     specTip.style.left = `${lastPointer.x + 14}px`;
     specTip.style.top = `${lastPointer.y + 18}px`;
     specTip.classList.remove('hidden');

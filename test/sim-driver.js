@@ -39,8 +39,14 @@ const SIM_ROSTER = [
 
 // Tripwires: generous ceilings that only trip on runaway feedback loops
 // (exponential unit spam, gold overflow), never on healthy games.
+// MAX_UNITS recalibrated 600→1000 (2026-07-14): batch-4's entertainers
+// lever made healthy GE empires far larger (16 cities / ~270 units per
+// thriving civ — seed 6 hit 603 at turn 314 and completed 400 rounds
+// fine on replay). The known growth driver is settler-paver
+// accumulation under freeUnitsPerCity 99 — an AI-efficiency target in
+// the docs/04 ledger, not a runaway: growth is linear with cities.
 const MAX_POP = 40;
-const MAX_UNITS = 600;
+const MAX_UNITS = 1000;
 const MAX_GOLD = 100000;
 
 let MODS = null;
