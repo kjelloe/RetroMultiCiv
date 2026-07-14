@@ -52,6 +52,14 @@ the Done log at the bottom.
 - [ ] **Phase-5 kickoff prerequisite** (when you want the port to
   start): Roblox Studio project + lune toolchain install (approved
   2026-07-12) — docs/09 is otherwise ready and now unblocked.
+- [ ] **Sim-runner agent — spawn when phase 5 needs it, ON THE
+  ROBLOX PC** (decided 2026-07-14): docs/11 is the role prompt —
+  measurement executor, zero write footprint, jobs by mail tagged
+  'measure'; hub connection is the same remote one-liner. Honest
+  hardware note: its CPU is the contribution (relieves this box's 16
+  contended threads) — the 4070 sits idle for sims but earns an
+  optional second duty running GPU-real screenshot sweeps. Trigger:
+  P5-2+ parity gates; I'll say when, or spawn early if you like.
 - [ ] **Ally loop — final relay**: he SIGNED OFF on A1.6a/b
   (2026-07-13) pending his three-point gallery checklist, which the
   architect ran and passed (verdicts + fresh shots
@@ -59,7 +67,13 @@ the Done log at the bottom.
   track). Remaining human step: relay the checklist verdicts + the
   shots to him, share the refreshed `plan-update.md` (both his feedback
   rounds applied — and it now leads with **PHASE 4 ACCEPTED**, via his
-  own stress-test script), and the thank-you for the civ table.
+  own stress-test script), and the thank-you for the civ table. HIS
+  NEW REQUEST is queued as A43: a machine-readable render spec
+  (`specs/render-spec.json`, generated + drift-guarded) so his system
+  can validate the rendering design beyond visuals — tell him it's
+  coming, and that the rendering CODE is already public in the repo
+  under `client/renderer/three/` (the export gives him the
+  declarative tables with a schema, not a code dump).
 - [x] 2026-07-14 — Old recordings cleanup done (pre-2026-07-12 files
   removed from `debugging/logs/`).
 

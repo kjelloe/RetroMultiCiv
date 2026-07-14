@@ -123,7 +123,7 @@ reproduces the exact game. And the world got its first procedural terrain
 detail pass: shade-varied tiles, scattered forests, rocky hills,
 snow-capped peaks, ground scrub, and roads that visibly connect to
 neighboring roads and cities.
-215 headless tests including hash-locked JSON scenarios, an AI-determinism
+216 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
 panels, verify the hotseat hand-off, and play a turn through the
 authoritative server over a WebSocket. The optional Node server

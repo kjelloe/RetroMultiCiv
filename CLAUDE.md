@@ -16,7 +16,9 @@ consumes `luau/` read-only; mail + locks cross machines LIVE via the
 agent-mail hub — `agent-mail.py serve` on the dev PC, a one-line
 `.agent-mail/remote` URL file on the other clone — with tracked
 in-file marks as the durable record and hub-down fallback; code
-travels via git, pumped by the user).
+travels via git, pumped by the user), `11-sim-runner.md` (a fifth
+agent's spawn-ready role spec: measurement executor, zero write
+footprint — spawns when phase-5 parity gates need offloading).
 
 ## Hard rules
 

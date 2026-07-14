@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 215 tests), the item's own verification steps pass, related
+   (currently 216 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -828,7 +828,7 @@ validation applies). Tests: listSaves shape; resume-from-lobby e2e
 (ws): create → play → save exists → new lobby resumes it → codes
 match. Golden-safe.
 
-## A35 — Spectator hover info (VI.13)
+## A35 — Spectator hover info (VI.13)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — cursor tooltip chosen over the hud line (spectators scan wide; info at the point of attention); #spectator-tip fixed near pointer, input.js tracks coords itself (no renderer-contract change), ctx.SPECTATOR-gated so player hover untouched. Unit line = stat-card format w/ civ-first names; SHOT-READ FIND: garrison mesh-hits swallowed the city tooltip → two-line form, city leads + garrison follows. Evidence: crafted turn-61 server save (new batch-4 AI world) + ?spechover=unit|city hook; both shots read. Suite 216/216.]
 
 Spectators (omniscient) get hover tooltips: units — civ, type,
 attack/defense/moves, veteran; cities — civ, name, population.
@@ -1032,6 +1032,44 @@ Golden-safe (lobby/protocol/client only). Pairs naturally after A34
 (saves-resume lives in the same host panel) and with A37's lobby
 moderation in place (public listing without kick would be premature —
 A37 lands first by queue order).
+
+## A43 — Machine-readable render spec for the designer ally (user request 2026-07-14)
+
+The ally wants to validate the rendering DESIGN through his own
+system, not just by looking at screenshots: the declarative specs +
+pointers to the code. The right shape is a GENERATED EXPORT — the
+code stays the single source of truth, a tool emits the declarative
+tables as versioned JSON, and a drift guard keeps them honest:
+
+1. **`tools/render-spec.js`** exports `specs/render-spec.json`
+   (committed — it is OUR data, MIT-clean) containing:
+   - the TERRAIN table from `renderer/three/terrain.js` verbatim:
+     per-terrain heights + the three palette shades (+ water level,
+     foam and mottle constants);
+   - the faction table: `data/civs.json` visual{} joined with the
+     emblem NAMES and the isLightColor threshold + dark-rim rule
+     (factions.js constants);
+   - model recipes from assets.js/props.js: per unit type / city
+     tier / prop, the primitive list (shape, dimensions, offset,
+     color source) — mechanical extraction; if a recipe resists
+     declarative capture, list it as `{ "procedural": true }` with a
+     one-line description rather than faking it;
+   - anim constants (sway rad, glide ms, smoke params) from anim.js;
+   - a `schema` header (version + field meanings) so his system can
+     parse it without reading our code.
+2. **Drift guard** in the suite: regenerate in a temp dir, compare to
+   the committed file, fail with "run tools/render-spec.js" when the
+   renderer tables change — the sync-check pattern, mechanical.
+3. **`specs/render-spec.md`** (SHORT): what the JSON is, how it is
+   generated, the pointer map to the living code
+   (renderer/three/*.js paths per section) — the repo is public, so
+   code references are just paths.
+
+Golden-safe (tool + generated JSON + guard; no renderer changes —
+EXCEPT: if extraction demands small refactors like naming an inline
+constant, keep them byte-neutral and prove it with a gallery
+rest-pose screenshot compare). Slot after A36 — same renderer
+knowledge, warm cache.
 
 ## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
 
