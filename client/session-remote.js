@@ -154,8 +154,12 @@ export function createRemoteSession(opts) {
       return {};
     }
     if (msg.t === 'code') {
+      // A33: the autosave broadcast — announce a CHANGED code as a synthetic
+      // client event (never state, never hashed) so the turn log can note
+      // "💾 saved · code …" once per wrap; unchanged codes just repaint
+      const changed = msg.code !== serverCode;
       serverCode = msg.code;
-      notify([]); // refresh displays that read the code (e.g. the game-over line)
+      notify(changed ? [{ type: 'saveCode', code: msg.code }] : []);
       return {};
     }
     // everything else (turn, presence, skipVote, turnSkipped, pong…) is

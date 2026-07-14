@@ -82,7 +82,7 @@ For bug reports there's something better: **Shift+D downloads a replayable
 diagnostics recording** (your commands + state hashes), and
 `node tools/replay.js <file>` re-runs the whole game through the engine to
 verify — or pinpoint — exactly what happened. Start a bigger game with
-`?civs=3` (up to 7). The UI explains itself: hovering an enemy shows a
+`?civs=3` (up to 14 — larger maps seat more civilizations). The UI explains itself: hovering an enemy shows a
 **combat odds preview** with the multiplier breakdown, a selected settler
 rates the hovered tile as a city site and projects its footprint on the map,
 the production catalog shows per-item build times, plain-language effects,
@@ -123,7 +123,7 @@ reproduces the exact game. And the world got its first procedural terrain
 detail pass: shade-varied tiles, scattered forests, rocky hills,
 snow-capped peaks, ground scrub, and roads that visibly connect to
 neighboring roads and cities.
-204 headless tests including hash-locked JSON scenarios, an AI-determinism
+207 headless tests including hash-locked JSON scenarios, an AI-determinism
 lock, and real-browser e2e runs that boot the client, inspect the live
 panels, verify the hotseat hand-off, and play a turn through the
 authoritative server over a WebSocket. The optional Node server

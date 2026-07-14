@@ -35,11 +35,22 @@ function roster(n) {
   return players;
 }
 
+const HELP = `A38 scaling probe — measures before the civ cap ships (docs/08 §8).
+usage: node tools/probe-scale.js [--mode turns|fit] [options]
+  --mode turns   engine cost: ms/turn + ms/ROUND, early/late halves (default)
+  --mode fit     mapgen start fit: achieved min pairwise start distance
+  --turns N      rounds per config in turns mode (default 200)
+  --seeds N      seeds per cell in fit mode (default 40)
+  --seed N       base seed (default 20260714)
+  --civs a,b,c   civ counts (defaults: turns 4,8,12,16 · fit 8,12,14,16)
+  --sizes a,b    map sizes (defaults: turns large,xlarge · fit small..huge)`;
+
 function parseArgs(argv) {
   const opts = { mode: 'turns', turns: 200, seeds: 40, seed: 20260714, civs: null, sizes: null };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--mode') opts.mode = argv[++i];
+    if (a === '--help' || a === '-h') { console.log(HELP); process.exit(0); }
+    else if (a === '--mode') opts.mode = argv[++i];
     else if (a === '--turns') opts.turns = Number(argv[++i]);
     else if (a === '--seeds') opts.seeds = Number(argv[++i]);
     else if (a === '--seed') opts.seed = Number(argv[++i]);

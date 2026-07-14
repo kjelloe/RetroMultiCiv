@@ -16,7 +16,7 @@ usage: ./run.sh [PORT] [server args...]
 
 server args (passed to node server/index.js):
   --seed N            world seed (default: random)
-  --civs N            civilizations 2..7 (default 2)
+  --civs N            civilizations 2..14, capped by map size (default 2)
   --humans N          human seats (default 1; server games are 1 human
                       until phase 4 — hotseat plays LOCAL, without ?server=1)
   --size S            xsmall|small|medium|large|xlarge|huge (default medium)

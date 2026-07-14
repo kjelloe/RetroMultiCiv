@@ -37,6 +37,15 @@ done-mail step. A lock held by someone else = mail them or the architect —
 never edit through it. Only the holder (or the architect with --force,
 which logs a broadcast) may unlock. Locks are advisory-but-mandatory
 convention; stale ones (see age) get arbitrated, not ignored.
+
+LAN HUB (cross-machine mail + locks, 2026-07-14): the dev PC runs
+`agent-mail.py serve [--port 8970] [--host 0.0.0.0]` — a tiny HTTP hub
+over the same .agent-mail/ store. Any other clone on the LAN writes the
+hub's URL into `.agent-mail/remote` (one line, e.g.
+http://192.168.1.116:8970) and EVERY agent-mail command there proxies
+transparently: same commands, same output, one shared mailbox and ONE
+shared lock registry across machines. Trusted-LAN posture (no auth —
+same stance as the game server); delete the remote file to go local.
 """
 import argparse
 import hashlib
@@ -132,7 +141,105 @@ def fmt(m):
     return f"{head}: {body}" if '\n' not in m['text'] else f"{head}:{body}"
 
 
+REMOTE_FILE = os.path.join(BOX, 'remote')
+
+
+def remote_url():
+    url = os.environ.get('AGENT_MAIL_URL', '')
+    if url:
+        return url.strip().rstrip('/')
+    try:
+        with open(REMOTE_FILE) as f:
+            u = f.read().strip()
+            return u.rstrip('/') if u else None
+    except FileNotFoundError:
+        return None
+
+
+def proxy(argv, url):
+    import urllib.request
+    req = urllib.request.Request(url + '/rpc',
+        data=json.dumps({'argv': argv}).encode('utf-8'),
+        headers={'Content-Type': 'application/json'}, method='POST')
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            reply = json.loads(r.read().decode('utf-8'))
+    except Exception as e:
+        sys.exit(f'mail hub unreachable at {url}: {e} — fix or delete .agent-mail/remote')
+    out = reply.get('out', '')
+    if out:
+        print(out, end='' if out.endswith('\n') else '\n')
+    return int(reply.get('code', 0))
+
+
+def serve(host, port):
+    import io
+    import contextlib
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *a):  # quiet; the hub prints its own line on start
+            pass
+
+        def do_GET(self):
+            body = f'agent-mail hub · {len(read_all())} messages · {len(read_locks())} locks\n'.encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self):
+            if self.path != '/rpc':
+                self.send_response(404); self.end_headers(); return
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                argv = json.loads(self.rfile.read(length).decode('utf-8'))['argv']
+                assert isinstance(argv, list) and argv and argv[0] != 'serve'
+            except Exception:
+                self.send_response(400); self.end_headers(); return
+            buf = io.StringIO()
+            code = 0
+            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                try:
+                    dispatch([str(a) for a in argv])
+                except SystemExit as e:
+                    if isinstance(e.code, str):
+                        print(e.code)
+                        code = 1
+                    else:
+                        code = e.code or 0
+                except Exception as e:  # keep the hub alive; report the error
+                    print(f'hub error: {e}')
+                    code = 1
+            body = json.dumps({'out': buf.getvalue(), 'code': code}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(body)
+
+    srv = ThreadingHTTPServer((host, port), Handler)
+    print(f'agent-mail hub listening on {host}:{port} (store: {BOX})')
+    srv.serve_forever()
+
+
 def main():
+    argv = sys.argv[1:]
+    if argv and argv[0] == 'serve':
+        sp = argparse.ArgumentParser()
+        sp.add_argument('serve')
+        sp.add_argument('--port', type=int, default=8970)
+        sp.add_argument('--host', default='0.0.0.0')
+        a = sp.parse_args(argv)
+        os.makedirs(BOX, exist_ok=True)
+        serve(a.host, a.port)
+        return
+    url = remote_url()
+    if url:
+        sys.exit(proxy(argv, url))
+    dispatch(argv)
+
+
+def dispatch(argv):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='cmd', required=True)
 
@@ -168,7 +275,7 @@ def main():
 
     sub.add_parser('locks')
 
-    a = p.parse_args()
+    a = p.parse_args(argv)
     os.makedirs(BOX, exist_ok=True)
 
     if a.cmd == 'send':

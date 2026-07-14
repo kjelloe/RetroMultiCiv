@@ -2,8 +2,9 @@
 // research, first contact with rivals, and every battle, capture, and
 // elimination that touches the player (including AI/barbarian turns).
 // The first combat flashes a center-screen pointer to the log.
-import { filterView } from '../../engine/visibility.js';
+import { filterView, filterEvents } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
+import { classifyEvent, LOG_CLASSES } from './turnlog-classes.js';
 
 export function initTurnLog(ctx) {
   const { session, hud } = ctx;
@@ -14,6 +15,50 @@ export function initTurnLog(ctx) {
   const flashMessage = hud.flash; // center-screen transient banner
   let count = 0;
   let firstCombatShown = false;
+
+  // A39: per-player display filters — a funnel row ON the log panel (the
+  // noise is noticed here, not in ⚙ Options), persisted with the other
+  // prefs. Filtering is DISPLAY-time via container classes over the
+  // retained entries: toggling a class back on reveals suppressed history
+  // (within the 60-entry cap). 🌍 world news has no checkbox by design.
+  const filters = Object.assign(
+    { combat: true, cities: true, research: true, rival: true, saves: true },
+    (ctx.options && ctx.options.get('logFilters')) || {});
+  function applyFilters() {
+    for (const c of LOG_CLASSES) list.classList.toggle('hide-' + c.id, filters[c.id] === false);
+  }
+  const filterRow = document.createElement('div');
+  filterRow.id = 'log-filters';
+  const filterBtn = document.createElement('button');
+  filterBtn.id = 'log-filter-toggle';
+  filterBtn.textContent = '⚙ filters';
+  filterBtn.title = 'choose which entries this log shows';
+  const filterBoxes = document.createElement('span');
+  filterBoxes.id = 'log-filter-boxes';
+  filterBoxes.className = 'hidden';
+  for (const c of LOG_CLASSES) {
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = filters[c.id] !== false;
+    box.addEventListener('change', () => {
+      filters[c.id] = box.checked;
+      if (ctx.options) ctx.options.set('logFilters', filters);
+      applyFilters();
+    });
+    label.appendChild(box);
+    label.appendChild(document.createTextNode(' ' + c.label));
+    filterBoxes.appendChild(label);
+  }
+  const worldNote = document.createElement('span');
+  worldNote.id = 'log-filter-world';
+  worldNote.textContent = '🌍 world news always shows';
+  filterBoxes.appendChild(worldNote);
+  filterBtn.addEventListener('click', () => filterBoxes.classList.toggle('hidden'));
+  filterRow.appendChild(filterBtn);
+  filterRow.appendChild(filterBoxes);
+  details.insertBefore(filterRow, list);
+  applyFilters();
 
   // tech id -> unit/building/wonder names it unlocks (for discovery entries)
   const techUnlocks = {};
@@ -28,12 +73,13 @@ export function initTurnLog(ctx) {
     return state.players[pid] ? state.players[pid].name : pid;
   }
 
-  // loc {x, y}: entries about a place get a ⌖ that flies the camera there
-  function add(text, cls, loc) {
+  // loc {x, y}: entries about a place get a ⌖ that flies the camera there;
+  // klass (A39): the filter class this entry belongs to (lg-<class>)
+  function add(text, cls, loc, klass) {
     count++;
     const div = document.createElement('div');
     div.textContent = `T${session.state.turn} · ${text}`;
-    if (cls) div.className = cls;
+    div.className = [cls, klass ? 'lg-' + klass : ''].filter(Boolean).join(' ');
     if (loc) {
       const jump = document.createElement('button');
       jump.className = 'log-jump';
@@ -67,7 +113,7 @@ export function initTurnLog(ctx) {
       met[pid] = true;
       if (!announce) continue;
       const name = playerName(state, pid);
-      add(`👁 first contact: ${name} sighted`, 'loss');
+      add(`👁 first contact: ${name} sighted`, 'loss', null, 'rival');
       flashMessage(pid === 'barb'
         ? '🏴 Barbarians sighted!'
         : `👁 You have made contact with the ${name}!`);
@@ -98,12 +144,28 @@ export function initTurnLog(ctx) {
       scanContacts(state, false);
       return;
     }
-    for (const e of events) {
-      if (e.type === 'combatResolved') {
-        const involvesMe = e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN;
-        if (!involvesMe) continue;
+    // A39: the log narrates only what this viewpoint could SEE — the same
+    // engine filter the server applies per seat (B5); in local games the
+    // session's round events are omniscient, so this is the fog gate
+    const seen = filterEvents(state, events, ctx.HUMAN);
+    for (const e of seen) {
+      // filter class (A39): tags the entry for the display-time filter row
+      const klass = classifyEvent(e, ctx.HUMAN,
+        cid => state.cities[cid] ? state.cities[cid].owner : null);
+      const put = (text, cls, loc) => add(text, cls, loc, klass);
+      if (e.type === 'saveCode') {
+        // A33: the autosave broadcast's code, one line per changed code
+        put(`💾 saved · code ${e.code}`);
+      } else if (e.type === 'combatResolved') {
         const att = `${playerName(state, e.attackerOwner)} ${units[e.attackerType].name}`;
         const def = `${playerName(state, e.defenderOwner)} ${units[e.defenderType].name}`;
+        const involvesMe = e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN;
+        if (!involvesMe) {
+          // A39: the B5 live narration — rival battles inside my view
+          put(`👀 ${e.winner === 'attacker' ? `${att} defeated ${def}` : `${def} repelled ${att}`}`
+            + ` at (${e.x},${e.y})`, '', { x: e.x, y: e.y });
+          continue;
+        }
         let text, cls;
         if (e.winner === 'attacker') {
           text = `⚔ ${att} defeated ${def} at (${e.x},${e.y})`
@@ -113,7 +175,7 @@ export function initTurnLog(ctx) {
           text = `🛡 ${def} repelled ${att} at (${e.x},${e.y})`;
           cls = e.defenderOwner === ctx.HUMAN ? 'win' : 'loss';
         }
-        add(text, cls, { x: e.x, y: e.y });
+        put(text, cls, { x: e.x, y: e.y });
         if (!firstCombatShown) {
           firstCombatShown = true;
           details.open = true;
@@ -121,52 +183,61 @@ export function initTurnLog(ctx) {
             ? '⚔ First combat — victory! Details in the Turn log (bottom left)'
             : '⚔ First combat — a unit was lost. Details in the Turn log (bottom left)');
         }
-      } else if (e.type === 'cityCaptured' && (e.from === ctx.HUMAN || e.to === ctx.HUMAN)) {
+      } else if (e.type === 'cityCaptured') {
         const name = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
-        add(`🏰 ${name} captured by ${playerName(state, e.to)} (+${e.plunder} gold plundered)`,
-          e.to === ctx.HUMAN ? 'win' : 'loss', cityLoc(state, e.cityId));
+        if (e.from === ctx.HUMAN || e.to === ctx.HUMAN) {
+          put(`🏰 ${name} captured by ${playerName(state, e.to)} (+${e.plunder} gold plundered)`,
+            e.to === ctx.HUMAN ? 'win' : 'loss', cityLoc(state, e.cityId));
+        } else { // A39: a rival conquest inside my view
+          put(`👀 ${playerName(state, e.to)} captured ${name}`, '', cityLoc(state, e.cityId));
+        }
       } else if (e.type === 'playerDefeated') {
-        add(`💀 ${playerName(state, e.playerId)} eliminated`, e.playerId === ctx.HUMAN ? 'loss' : 'win');
+        put(`💀 ${playerName(state, e.playerId)} eliminated`, e.playerId === ctx.HUMAN ? 'loss' : 'win');
       } else if (e.type === 'barbariansSpawned') {
-        add('🏴 barbarian uprising reported somewhere in the wilds');
-      } else if (e.type === 'cityFounded' && ownCity(state, e.cityId)) {
-        add(`🏛 ${state.cities[e.cityId].name} founded`, 'win', cityLoc(state, e.cityId));
+        put('🏴 barbarian uprising reported somewhere in the wilds');
+      } else if (e.type === 'cityFounded') {
+        if (ownCity(state, e.cityId)) {
+          put(`🏛 ${state.cities[e.cityId].name} founded`, 'win', cityLoc(state, e.cityId));
+        } else if (state.cities[e.cityId]) { // A39: a rival city rises in view
+          put(`👀 ${playerName(state, state.cities[e.cityId].owner)} founded ${state.cities[e.cityId].name}`,
+            '', cityLoc(state, e.cityId));
+        }
       } else if (e.type === 'cityGrew' && ownCity(state, e.cityId)) {
-        add(`🌾 ${state.cities[e.cityId].name} grows to population ${e.pop}`, 'win', cityLoc(state, e.cityId));
+        put(`🌾 ${state.cities[e.cityId].name} grows to population ${e.pop}`, 'win', cityLoc(state, e.cityId));
       } else if (e.type === 'cityStarved' && ownCity(state, e.cityId)) {
-        add(`🍂 famine in ${state.cities[e.cityId].name} — population ${e.pop}`, 'loss', cityLoc(state, e.cityId));
+        put(`🍂 famine in ${state.cities[e.cityId].name} — population ${e.pop}`, 'loss', cityLoc(state, e.cityId));
       } else if (e.type === 'unitBuilt' && ownCity(state, e.cityId)) {
-        add(`⚒ ${state.cities[e.cityId].name} completed ${units[e.unitType].name}`, '', cityLoc(state, e.cityId));
+        put(`⚒ ${state.cities[e.cityId].name} completed ${units[e.unitType].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'buildingBuilt' && ownCity(state, e.cityId)) {
-        add(`🏠 ${state.cities[e.cityId].name} completed ${buildings[e.building].name}`, '', cityLoc(state, e.cityId));
+        put(`🏠 ${state.cities[e.cityId].name} completed ${buildings[e.building].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'wonderBuilt') {
         // wonders are world news (Civ 1 announces them to everyone)
         const mine = ownCity(state, e.cityId);
         const where = mine
           ? state.cities[e.cityId].name
           : `a ${playerName(state, state.cities[e.cityId].owner)} city`;
-        add(`🏆 ${wonders[e.wonder].name} completed in ${where}`, mine ? 'win' : 'loss', mine ? cityLoc(state, e.cityId) : null);
+        put(`🏆 ${wonders[e.wonder].name} completed in ${where}`, mine ? 'win' : 'loss', mine ? cityLoc(state, e.cityId) : null);
         if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`);
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
-        add(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
+        put(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
       } else if (e.type === 'improvementBuilt' && e.owner === ctx.HUMAN) {
         const label = e.transformedTo !== undefined
           ? `terrain worked into ${e.transformedTo}`
           : (e.work === 'irrigate' ? 'irrigation' : e.work) + ' completed';
-        add(`🛠 ${label} at (${e.x},${e.y})`, 'win', { x: e.x, y: e.y });
+        put(`🛠 ${label} at (${e.x},${e.y})`, 'win', { x: e.x, y: e.y });
       } else if (e.type === 'cityDisorder' && ownCity(state, e.cityId)) {
-        add(`😠 civil disorder in ${state.cities[e.cityId].name}!`, 'loss', cityLoc(state, e.cityId));
+        put(`😠 civil disorder in ${state.cities[e.cityId].name}!`, 'loss', cityLoc(state, e.cityId));
         flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`);
       } else if (e.type === 'cityOrderRestored' && ownCity(state, e.cityId)) {
-        add(`😊 order restored in ${state.cities[e.cityId].name}`, 'win', cityLoc(state, e.cityId));
+        put(`😊 order restored in ${state.cities[e.cityId].name}`, 'win', cityLoc(state, e.cityId));
       } else if (e.type === 'revolutionStarted' && e.playerId === ctx.HUMAN) {
-        add(`⚡ revolution! anarchy until ${session.ruleset.governments[e.government].name} takes hold`);
+        put(`⚡ revolution! anarchy until ${session.ruleset.governments[e.government].name} takes hold`);
       } else if (e.type === 'governmentChanged' && e.playerId === ctx.HUMAN) {
-        add(`🏛 new government: ${session.ruleset.governments[e.government].name}`, 'win');
+        put(`🏛 new government: ${session.ruleset.governments[e.government].name}`, 'win');
         flashMessage(`🏛 The ${session.ruleset.governments[e.government].name} is established!`);
       } else if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) {
         const unlocks = techUnlocks[e.tech] || [];
-        add(`🔬 ${techs[e.tech].name} discovered`
+        put(`🔬 ${techs[e.tech].name} discovered`
           + (unlocks.length ? ` — unlocks ${unlocks.join(', ')}` : ''), 'win');
         if (availableTechs(state, ctx.HUMAN, session.ruleset).length > 0) {
           flashMessage(`🔬 ${techs[e.tech].name} discovered! Choose new research — press T or click the research bar`);

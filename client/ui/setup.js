@@ -8,7 +8,9 @@ export function showSetupScreen() {
   overlay.innerHTML = `
     <div id="setup-box">
       <h2>RetroMultiCiv</h2>
-      <p class="setup-hint">One engine, one world, 4000 BC. Humans play first, in seat order — pass the keyboard when your turn ends.</p>
+      <p class="setup-hint">One deterministic engine, one world, 4000 BC — or any age you pick.
+        Play solo against the AI, pass the keyboard in hotseat, or host a LAN game
+        friends join with a 5-letter code.<span id="setup-maxciv-line"></span></p>
       <label>Your civilization
         <select id="setup-civ"><option value="">Random</option></select>
       </label>
@@ -110,6 +112,11 @@ export function showSetupScreen() {
     };
     ageEl.addEventListener('change', hint);
     hint();
+    // A42: the splash's civ count is DATA-DRIVEN — it updates itself when a
+    // bigger roster ships (never hardcode the 14)
+    const ceiling = Math.max(...Object.values(rules.maxCivsBySize || { any: 7 }));
+    document.getElementById('setup-maxciv-line').textContent =
+      ` Up to ${ceiling} civilizations.`;
     // A38: the map size gates the civ count (measured seats-per-size table)
     // — the dropdown offers only what the selected size seats reliably
     const sizeSel = document.getElementById('setup-size');

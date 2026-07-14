@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 204 tests), the item's own verification steps pass, related
+   (currently 207 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -947,7 +947,7 @@ of the dialog + Auto Turn state.
 Slice order: 2 can ship with stance=balanced only (regency without
 flavors) if 1 waits on the golden window — flag if you take that path.
 
-## A42 — Setup/splash screen refresh: honest copy + a first-visit flourish (user, 2026-07-14)
+## A42 — Setup/splash screen refresh: honest copy + a first-visit flourish (user, 2026-07-14)  [slice 1 done: coder-helper 2026-07-14 — tagline replaced with the three-ways-to-play copy; civ count DATA-DRIVEN via max(rules.maxCivsBySize) rendered into #setup-maxciv-line ("Up to 14 civilizations." today, self-updating); splash screenshot read; browser suite green. Slice 2 (first-visit diorama) remains queued after A41.]
 
 **Slice 1 — the copy (fold into your NEXT stop, it's minutes):** the
 tagline "One engine, one world, 4000 BC. Humans play first, in seat
@@ -1075,7 +1075,7 @@ code. Design facts for when this opens:
 Ordering: after the two-machine LAN acceptance; v1 listing pairs
 naturally with A27's lobby work.
 
-## A38 — Big-lobby scaling: probe + raise the cap to 14 (USER GO 2026-07-14)
+## A38 — Big-lobby scaling: probe + raise the cap to 14 (USER GO 2026-07-14)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — MEASURED (docs/08 §8 tables): engine 200-round halves — large/12 ≈ 830ms/ROUND late (fine w/ A30 progress), xlarge/12-16 ≈ 1.7-1.9s; lan8 probe (8 live ws clients) — start fan-out 241/299ms, per-command 7-rival push 51/72ms, full 8-human round 326/486ms; fit sweep 40 seeds/cell w/ achieved-min-start-distance metric under FINAL VI.5 rule — xsmall 7 (93%, status quo), small 12 (98%), medium+ 14 (100%). SHIPPED: rules.json maxCivsBySize enforced at 5 gates (setup dropdown+hint, lobby create mapTooSmall+client text, setSlots clamp, ?civs= clamp, --civs validation); SIM_ROSTER 7→14 with p1-p7 FROZEN + first-4 assertion in simulation.test.js (goldens green; p11 color dodges frozen p4's). Probes re-runnable: tools/probe-scale.js (--help added per review) + debugging/probe-lan8.js. Tests: lobby clamp evolved to 14-ceiling + table-gate case + ws 12-civ case (reject 13-on-small, resize clamp, 12 distinct civs at start). Shots read: 12-slot lobby, 12-civ world. Suite 207/207. 16 unshipped by design.]
 
 Two halves, one item — measure first, then ship what the numbers
 support.

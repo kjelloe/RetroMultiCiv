@@ -581,6 +581,38 @@ html, body {
   animation: end-turn-arrive 0.55s ease-in-out 3;
 }
 
+/* A39: turn-log filter row + display-time class filtering (the entries
+   stay in the DOM — toggling a class back reveals the retained history) */
+#log-filters {
+  padding: 2px 6px;
+  font-size: 11px;
+}
+#log-filter-toggle {
+  background: none;
+  border: 1px solid #3b5d8f;
+  border-radius: 4px;
+  color: #8fa3c0;
+  font: inherit;
+  cursor: pointer;
+  padding: 1px 6px;
+}
+#log-filter-boxes label {
+  margin-left: 8px;
+  color: #cdd8ea;
+  white-space: nowrap;
+}
+#log-filter-boxes.hidden { display: none; }
+#log-filter-world {
+  margin-left: 8px;
+  color: #8fa3c0;
+  font-style: italic;
+}
+#turn-list.hide-combat > .lg-combat,
+#turn-list.hide-cities > .lg-cities,
+#turn-list.hide-research > .lg-research,
+#turn-list.hide-rival > .lg-rival,
+#turn-list.hide-saves > .lg-saves { display: none; }
+
 /* --- top-right corner: clock + help + options --- */
 #corner-buttons {
   position: absolute;

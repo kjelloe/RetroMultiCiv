@@ -12,8 +12,11 @@ authoritative-server design — protocol, seats, persistence, slices),
 `09-phase5-luau.md` (port mapping: the trap list, port order with
 anchor/scenario/golden gates, harness plan), `10-roblox-agent.md` (the
 SECOND-PC roblox-helper's role spec: owns `roblox/` exclusively,
-consumes `luau/` read-only, coordinates via git in-file marks — no
-mailbox/locks across machines).
+consumes `luau/` read-only; mail + locks cross machines LIVE via the
+agent-mail hub — `agent-mail.py serve` on the dev PC, a one-line
+`.agent-mail/remote` URL file on the other clone — with tracked
+in-file marks as the durable record and hub-down fallback; code
+travels via git, pumped by the user).
 
 ## Hard rules
 
@@ -100,7 +103,7 @@ debugging/logs/ with one verdict line each (B0's mechanized form), and
 docs. Agents: use these scripts, not hand-composed pipe one-liners —
 inline pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
-screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
+screen; `?seed=N` fixed world skips it, `?civs=2..14` (size-capped via rules.maxCivsBySize), `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
 `?age=ancient..space` starting age (AI fast-forward + era tech grant,
 shared/fastforward.js), `?debug=1` per-command hashes, `?mock=1` static

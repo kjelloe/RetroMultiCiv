@@ -28,7 +28,7 @@ usage: .\run.ps1 [PORT] [server args...]
 
 server args (passed to node server/index.js):
   --seed N            world seed (default: random)
-  --civs N            civilizations 2..7 (default 2)
+  --civs N            civilizations 2..14, capped by map size (default 2)
   --humans N          human seats (default 1; hotseat plays LOCAL, without ?server=1)
   --size S            xsmall|small|medium|large|xlarge|huge (default medium)
   --game FILE         resume a server save (e.g. saves/g42.json)

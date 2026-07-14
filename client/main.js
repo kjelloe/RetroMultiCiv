@@ -612,6 +612,27 @@ if (params.get('e2e') === '6') {
     + ` errors:${capturedErrors.length}`;
 }
 
+// ?logdemo=1 (A39 screenshots): seed the turn log with one entry per filter
+// class, open it with the filter row showing; &logdemooff=cities (or any
+// class) unchecks that box so the shot proves the entries vanish
+if (params.get('logdemo') === '1') {
+  const note = ctx.turnlog.note;
+  note('⚔ Roman Legion defeated Zulu Militia at (12,9)', 'win', null, 'combat');
+  note('🏛 Testopolis founded', 'win', null, 'cities');
+  note('🔬 Bronze Working discovered', 'win', null, 'research');
+  note('👀 Zulus founded Zimbabwe', '', null, 'rival');
+  note('🏆 The Pyramids completed in a Zulu city', 'loss', null, 'world');
+  note('💾 saved · code FWN6-X6PQ-3X5TD', '', null, 'saves');
+  document.getElementById('turn-log').open = true;
+  document.getElementById('log-filter-toggle').click();
+  const off = params.get('logdemooff');
+  if (off) {
+    for (const box of document.querySelectorAll('#log-filter-boxes input')) {
+      if (box.parentElement.textContent.trim().endsWith(off)) box.click();
+    }
+  }
+}
+
 // ?e2e=7 (A30): the chunked AI round must repaint the HUD between AI
 // players — a MutationObserver watches the wait line show "<civ> (AI) is
 // moving" DURING a local endTurn, which was impossible while the round ran

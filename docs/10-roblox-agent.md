@@ -19,8 +19,16 @@ a read-only dependency and prove it runs identically inside Studio.
 
 ## 2. The lane (absolute — this replaces file locks across machines)
 
-The mailbox (`.agent-mail/`) and lock registry are FILESYSTEM-LOCAL —
-they do not cross machines. Cross-PC safety is therefore structural:
+The mailbox and lock registry live on the dev PC — but they now CROSS
+machines when its hub runs (`agent-mail.py serve`, 2026-07-14): write
+the hub URL into your clone's `.agent-mail/remote` (one line, e.g.
+`http://192.168.1.112:8970` — ASK THE USER for the dev PC's current
+address; DHCP has moved it before) and every agent-mail command —
+send, inbox, lock, locks — proxies transparently. USE IT: check `locks`
+before edits and mail your claims/dones like the local agents. If the
+hub is down (the dev PC sleeps), fall back to the in-file marks below;
+code always travels via git either way. The lane fence stays absolute
+regardless:
 
 - **You own `roblox/` exclusively.** Everything you create lives there.
 - **Read-only for you**: `luau/` (bugfixer's lane), `engine/`,
@@ -29,13 +37,12 @@ they do not cross machines. Cross-PC safety is therefore structural:
   architect routes it.
 - **Never touch**: `client/`, `server/`, `tools/`, the goldens, or
   anyone's queue entries but your own.
-- **Coordination = git, pumped by the user**: claims and done-notes are
-  in-file marks on your R-items in `agent-workitems.md` (tracked), in
-  the same `[claimed:]`/`[done: — result]` format the other agents
-  use. The user commits/pushes on both machines; expect latency and
-  write done-notes that stand alone. Questions for the architect go in
-  the done-note too, clearly marked `QUESTION:` — or through the user
-  in chat when urgent.
+- **Coordination**: mail via the hub when it's up (preferred — live);
+  PLUS the in-file marks on your R-items in `agent-workitems.md`
+  (`[claimed:]`/`[done: — result]`, tracked — these are the durable
+  record and the fallback when the hub sleeps). Code and item files
+  travel via git, pumped by the user on both machines — write
+  done-notes that stand alone.
 
 ## 3. Repo structure you build and own
 

@@ -80,11 +80,27 @@ the Done log at the bottom.
   2. Install **Roblox Studio**, sign in, confirm a Baseplate opens.
   3. Install **Rojo** (executable + the Studio plugin from its docs).
   4. Create a private Experience ("RetroMultiCiv dev").
-  5. Start a Claude Code session in the clone and point it at
+  5. **Mail hub** (live cross-PC mail + locks): on THIS machine run
+     `python3 tools/agent-mail.py serve` (port 8970) and open it
+     through WSL once, in an ADMIN PowerShell:
+     `netsh interface portproxy add v4tov4 listenaddress=0.0.0.0
+     listenport=8970 connectaddress=$(wsl hostname -I).Trim()
+     connectport=8970` + `netsh advfirewall firewall add rule
+     name="RetroMultiCiv mail 8970" dir=in action=allow protocol=TCP
+     localport=8970`. On the Roblox PC's clone:
+     `echo http://192.168.1.112:8970 > .agent-mail/remote` — its
+     agent-mail commands then share this mailbox + lock registry live.
+     ⚠ IP DRIFT: this PC was .116 during the LAN test, is .112 now —
+     DHCP moves it. Sturdier options: reserve this PC's IP in the
+     router, or use the Windows hostname instead of the IP in the
+     remote file (LAN name resolution usually works); if the hub stops
+     answering after a reboot, re-check `ipconfig` here and update the
+     one-line remote file there.
+  6. Start a Claude Code session in the clone and point it at
      `docs/10-roblox-agent.md` — that file IS the role prompt; it
-     claims R1 from agent-workitems like the other agents do.
-  6. You pump git both ways (their claims/done-notes ride commits) —
-     the agents never touch git, same rule as here.
+     claims R1 and mails through the hub like the local agents do.
+  7. You still pump git both ways for CODE (agents never touch git);
+     the hub only carries mail and locks.
 - [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
   ("do it if it helps God-Emperor") — criterion + design sketch recorded
   in docs/04; architect's queue, golden lock required.
