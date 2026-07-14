@@ -116,3 +116,56 @@ test('luau json2lua: all ten scenario setups and a messy save hash equal in both
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+
+// P5-3 gates: (1) the eight data/*.json files canonical-hash identically in
+// both languages — every engine twin's rule lookups depend on it; (2) the
+// LUAU ENGINE runs scenario 001 to the same final hash the JS engine
+// computes LIVE (engine-vs-engine, not engine-vs-archive — the committed
+// scenario hashes are unpinned, flagged @6b1e41b5); (3) every scenario a
+// batch has NOT yet reached must fail IN-CONTRACT: a docs/09 first-
+// divergence block, never a crash or a silent pass. As port batches land,
+// move their scenarios into PORTED and this test enforces the new gate.
+const PORTED = ['001-move-unit.json']; // P5-3 batch 1: movement + visibility
+test('luau engine: data checksums, ported scenarios green, unported fail in-contract',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const fs = require('fs');
+    const { hashState } = await import('../shared/statehash.js');
+    const { createEngine } = await import('../engine/index.js');
+    const { runScenario } = require('./scenario-runner.js');
+    const RULESET = require('./ruleset.js');
+
+    // gate 1: static data
+    const dataRes = spawnSync('lune', ['run', 'luau/data-hashes.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+    assert.strictEqual(dataRes.status, 0, `data harness failed:\n${dataRes.stdout}\n${dataRes.stderr}`);
+    const dataFiles = fs.readdirSync(path.join(REPO, 'data')).filter(f => f.endsWith('.json')).sort();
+    assert.strictEqual(dataFiles.length, 8, 'the eight ruleset files');
+    for (const f of dataFiles) {
+      const nodeHash = hashState(JSON.parse(fs.readFileSync(path.join(REPO, 'data', f), 'utf8')));
+      assert.ok(dataRes.stdout.includes(`${f}: ${nodeHash}`),
+        `${f}: Luau must hash it as ${nodeHash} — got:\n${dataRes.stdout}`);
+    }
+
+    // gates 2+3: scenario runs
+    const res = spawnSync('lune', ['run', 'luau/scenario-hashes.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 120000 });
+    assert.strictEqual(res.status, 0, `scenario harness failed:\n${res.stdout}\n${res.stderr}`);
+    const scenarioDir = path.join(REPO, 'test', 'scenarios');
+    for (const f of fs.readdirSync(scenarioDir).filter(x => x.endsWith('.json')).sort()) {
+      if (PORTED.includes(f)) {
+        const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
+        const js = await runScenario(createEngine(RULESET), scenario);
+        assert.ok(js.pass, `${f}: the JS engine itself must pass: ${js.failures}`);
+        const jsHash = hashState(js.state);
+        assert.ok(res.stdout.includes(`run:${f}: ${jsHash}`),
+          `${f}: Luau final hash must equal the JS engine's live ${jsHash} — harness said:\n`
+          + `${(res.stdout.match(new RegExp(`(run:${f}|DIVERGENCE fixture=${f})[^]*?(?=\\n[^ ])`)) || ['(no line)'])[0]}`);
+      } else {
+        const block = res.stdout.match(new RegExp(`DIVERGENCE fixture=${f} command=(-?\\d+) turn=\\S+ actor=\\S+`));
+        assert.ok(block, `${f}: an unported scenario must fail IN-CONTRACT (divergence block), harness said:\n`
+          + res.stdout.split('\n').filter(l => l.includes(f)).join('\n'));
+        assert.ok(res.stdout.includes(`fixture=${f}`) && /fail: /.test(res.stdout),
+          `${f}: the divergence block must carry failure lines`);
+      }
+    }
+  });

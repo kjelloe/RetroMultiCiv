@@ -121,7 +121,13 @@ local function runScenario(engine: any, scenario: any, fixture: string): any
 		local step = script[i]
 		local failures = {}
 		local rngBefore = state.rngState
-		local res = engine.applyCommand(state, step.cmd)
+		-- an engine error (e.g. a batch-guard's loud notPorted) is still an
+		-- IN-CONTRACT divergence, never a harness crash
+		local okCall, res = pcall(engine.applyCommand, state, step.cmd)
+		if not okCall then
+			table.insert(failures, string.format("step %d: engine error: %s", i - 1, tostring(res)))
+			return report(fixture, i - 1, state, step.cmd, rngBefore, failures)
+		end
 		if res.state ~= nil then
 			state = res.state
 		end

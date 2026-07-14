@@ -70,19 +70,70 @@ local function nextYear(year: number, rules: any): number
 	return year + steps[#steps].step
 end
 
--- P5-3 batch-1 hooks: the turn-wrap process chain no-ops until each module
--- ports (improvements, government, happiness, cities, tech, barbarians,
--- score — in engine/index.js call order, which is FROZEN).
-local function noopHook(_state: any, _ruleset: any, _events: any) end
-local hooks = {
-	processWork = noopHook, -- notPorted:improvements
-	processRevolutions = noopHook, -- notPorted:government
-	updateDisorder = noopHook, -- notPorted:happiness
-	processCities = noopHook, -- notPorted:cities
-	processResearch = noopHook, -- notPorted:tech
-	processBarbarians = noopHook, -- notPorted:barbarians
-	checkGameEnd = noopHook, -- notPorted:score
-}
+-- P5-3 batch-1 hooks (engine/index.js call order, FROZEN): each unported
+-- process hook is a GUARDED no-op — it errors loudly the moment a state
+-- could make the real JS hook do observable work, so a silent divergence is
+-- impossible; each batch replaces its guard with the real module. The one
+-- ported behavior batch 1 needs: processResearch's lazy default writes
+-- (taxRate/sciRate/bulbs) — the first real cross-language divergence this
+-- harness caught was exactly JS writing bulbs:0 where the no-op didn't.
+local function hasCities(state: any): boolean
+	return state.cityOrder ~= nil and #state.cityOrder > 0
+end
+local hooks = {}
+hooks.processWork = function(state: any, _ruleset: any, _events: any)
+	for _, u in pairs(state.units) do
+		if u.working ~= nil then
+			error("notPorted:improvements (a unit has work in progress)")
+		end
+	end
+end
+hooks.processRevolutions = function(state: any, _ruleset: any, _events: any)
+	for _, pid in ipairs(state.playerOrder) do
+		if state.players[pid].revolutionTurns ~= nil then
+			error("notPorted:government (a revolution is ticking)")
+		end
+	end
+end
+hooks.updateDisorder = function(state: any, _ruleset: any, _events: any)
+	if hasCities(state) then
+		error("notPorted:happiness (cities exist)")
+	end
+end
+hooks.processCities = function(state: any, _ruleset: any, _events: any)
+	if hasCities(state) then
+		error("notPorted:cities (cities exist)")
+	end
+end
+hooks.processResearch = function(state: any, ruleset: any, _events: any)
+	if hasCities(state) then
+		error("notPorted:tech (cities exist - income math not ported)")
+	end
+	for _, pid in ipairs(state.playerOrder) do
+		local player = state.players[pid]
+		if player.taxRate == nil then player.taxRate = ruleset.rules.defaultTaxRate end
+		if player.sciRate == nil then player.sciRate = ruleset.rules.defaultSciRate end
+		if player.bulbs == nil then player.bulbs = 0 end
+		-- city-less income is 0/0/0; gold += 0 and bulbs += 0 are no-ops, and
+		-- researching '' never completes — the defaults are the whole effect
+		if player.researching ~= "" and player.researching ~= nil then
+			-- a pending discovery could complete only with bulbs income; with
+			-- zero income it cannot — safe as long as no cities exist (guarded)
+		end
+	end
+end
+hooks.processBarbarians = function(state: any, _ruleset: any, _events: any)
+	if state.turn >= 16 then
+		error("notPorted:barbarians (turn >= 16 - spawn checks would roll RNG)")
+	end
+end
+hooks.checkGameEnd = function(state: any, _ruleset: any, _events: any)
+	for _, pid in ipairs(state.playerOrder) do
+		if state.players[pid].alive == true then
+			error("notPorted:score (alive flags present - eliminations possible)")
+		end
+	end
+end
 
 local function endTurn(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then

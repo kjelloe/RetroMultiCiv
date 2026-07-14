@@ -108,7 +108,7 @@ first, as always; report any new traps for docs/09. Golden-safe
 (nothing touches JS). Done-mail: the ten per-scenario hash pairs
 printed from BOTH languages.
 
-### P5-3 — First rule-module batch + the dispatcher (assigned: bugfixer; docs/09 §4 step 4-amended + step 5 start)
+### P5-3 — First rule-module batch + the dispatcher (assigned: bugfixer; docs/09 §4 step 4-amended + step 5 start)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — ALL THREE GATES: (1) shakedown — dispatcher-only 001 failed IN-CONTRACT (fixture/cmd#/turn/actor/payload/hash/rng/canon all present); (2) 001 GREEN cross-language vs the LIVE JS engine, 0x06636df6 both, canonical states byte-identical; (3) 8/8 data checksums equal. luau/{index,movement,visibility,combat-stub}.luau; hooks are GUARDED no-ops (error loudly when a state could make the JS hook act — the harness immediately caught JS processResearch lazy-writing bulbs:0, first real engine divergence, fixed by porting the defaults). Unported scenarios fail in-contract per the PORTED-list test. New traps: "until" is a Lua keyword (yearSteps needs brackets); lazy-default hook writes. Suite 224/224]
 
 Three deliverables, gates per the amended order:
 1. **Minimal `luau/index.luau`**: the applyCommand DISPATCHER shell —
@@ -273,6 +273,14 @@ highlight Part. Screenshot + a described click test.
 
 R4+ (GameServer, RemoteEvents, live engine loop) arrive from the
 architect once the lune port reaches the engine core.
+DESIGN REQUIREMENT already banked for R4+ (user-caught during R3's
+click test, mail @77b4ae09): the live scene must respect PER-PLAYER
+VISIBILITY — both the rendered world AND selection output show only
+what the viewing seat could see (the JS client rule; engine seam is
+`filterView`/`filterEvents` in engine/visibility.js, so the server
+sends each client a filtered view and the render/selection consume
+that, never raw state). R3's omniscient scene is fine only because
+mock-state carries no explored data.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -911,7 +919,7 @@ unit AND a city. Golden-safe.
    `test/mock-state.test.js` sees any missing tier mapping.
 Golden-safe (renderer only).
 
-## A37 — Lobby chat + host moderation: kick / kick-and-block (VI.15 — design included)
+## A37 — Lobby chat + host moderation: kick / kick-and-block (VI.15 — design included)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — chat: 200-cap in parseMessage, 1/sec/conn in router, client inserts via textContent (NO innerHTML path at all), XSS proven in-suite (real-server round-trip, payload renders inert); create checkbox + live toggle ('chatOff'). Kick: host-only lobby-only {t:'kick',seat,block?}, self-kick rejected, kicked gets friendly screen + severed membership, seat frees; block = per-game IP list, rejoin bounces 'blocked'. IP-on-hover: host's roster copy alone carries IPs (dual broadcastLobby payloads). UI: explicit ⛔ → [kick][+block][✕] confirm; silent setSlot flip STILL rejects occupants. ws integration case (cap/rate/toggle/auth/self-kick/free/notify/block) + XSS browser case. Shots: live host chat room; kick-confirm/joiner/blocked via ?lobbydemo crafted-roster hook (live two-client shot dies under virtual time — known family; behavior socket-tested). Bonus: join seat-picker p1–p7 → p1–p14 (A38 miss). docs/08 §6 supersession line → architect sync. Suite 224/224.]
 
 SUPERSEDES the A27 no-kick ruling (@3b520ebc) BY USER DECISION
 (2026-07-14): kicking is now a deliberate, explicit host action — NOT

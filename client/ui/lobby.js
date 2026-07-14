@@ -379,6 +379,31 @@ export function initMultiplayerFlow(ctx) {
   });
 }
 
+// ?lobbydemo=host|joiner|blocked|kicked (A37 screenshots): render the
+// waiting-room states from a CRAFTED roster, no server — the ws pairing is
+// fragile under the screenshot tool's virtual time (the known ?server=1
+// limitation), and the kick/block BEHAVIOR is integration-tested; these
+// shots document the UI. hostCtl.send is a no-op.
+export function lobbyDemo(box, kind) {
+  if (kind === 'blocked') { fail(box, 'the host has blocked you from this game'); return; }
+  if (kind === 'kicked') { showKicked(box); return; }
+  const info = {
+    joinCode: '20A4N', seat: kind === 'host' ? 'p1' : 'p2',
+    lobby: {
+      options: { chat: true },
+      seats: [
+        { seat: 'p1', human: true, mode: 'open', reserved: true, name: 'Kjell', ip: '127.0.0.1' },
+        { seat: 'p2', human: true, mode: 'open', reserved: true, name: 'Ada', ip: '192.168.1.7' },
+        { seat: 'p3', human: false, mode: 'ai' }
+      ]
+    }
+  };
+  const hostCtl = kind === 'host' ? { count: 3, send: () => {} } : null;
+  renderWaitingRoom(box, info, hostCtl, () => {}, () => {});
+  appendChat({ name: 'Kjell', text: 'welcome to the lobby' });
+  appendChat({ name: 'Ada', text: 'hi! ready when you are' });
+}
+
 // e2e/screenshots: auto-join a lobby by code without the form (?e2ejoin=CODE)
 export function autoJoin(box, code, name) {
   let mySeat = null;

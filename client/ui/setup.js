@@ -186,6 +186,12 @@ export function showSetupScreen() {
   const joinCode = new URLSearchParams(location.search).get('e2ejoin');
   if (joinCode) import('./lobby.js').then(m => m.autoJoin(setupBox, joinCode.toUpperCase(), 'Ada'));
 
+  // ?lobbydemo=host|joiner|blocked|kicked — A37 waiting-room UI states
+  const lobbyDemoKind = new URLSearchParams(location.search).get('lobbydemo');
+  if (lobbyDemoKind) {
+    import('./lobby.js').then(m => m.lobbyDemo(setupBox, lobbyDemoKind));
+  }
+
   const demo = new URLSearchParams(location.search).get('setupdemo');
   if (demo === 'lan' || demo === 'hotseat') {
     humansEl.value = '2';

@@ -18,6 +18,11 @@ broadcasts; multi-line bodies via stdin: `... send --from x --to y -` reads
 the body from stdin. Tags (--tag done|question|fyi|claim) make filtering
 easy: `inbox --as architect --tag done`.
 
+Forgiving flags (agents guess these; all accepted): the identity flag is
+--from/--as/--role/--sender interchangeably on every command that takes
+one; the send body may be positional OR --body/--text/--message/-m;
+lock's --why also answers to --reason.
+
 Every message has a GLOBAL id hash (8 hex chars, derived from its content,
 identical for every reader) shown next to the sequence number — refer to
 messages by hash across inboxes and sessions; `show <hash-prefix>` prints
@@ -244,14 +249,17 @@ def dispatch(argv):
     sub = p.add_subparsers(dest='cmd', required=True)
 
     s = sub.add_parser('send')
-    s.add_argument('--from', dest='sender', required=True)
+    s.add_argument('--from', '--as', '--sender', dest='sender', required=True)
     s.add_argument('--to', dest='to', required=True)
     s.add_argument('--tag', dest='tag', default='')
-    s.add_argument('text', help="message body, or '-' to read from stdin")
+    s.add_argument('text', nargs='?', default=None,
+                   help="message body, or '-' to read from stdin")
+    s.add_argument('--body', '--text', '--message', '-m', dest='body',
+                   default=None, help='message body (alias for the positional)')
 
     for name in ('inbox', 'peek'):
         i = sub.add_parser(name)
-        i.add_argument('--as', dest='role', required=True)
+        i.add_argument('--as', '--from', '--role', dest='role', required=True)
         i.add_argument('--tag', dest='tag', default='')
 
     l = sub.add_parser('log')
@@ -264,12 +272,12 @@ def dispatch(argv):
 
     lk = sub.add_parser('lock')
     lk.add_argument('path', help='file to lock (repo-relative)')
-    lk.add_argument('--as', dest='role', required=True)
-    lk.add_argument('--why', dest='why', default='')
+    lk.add_argument('--as', '--from', '--role', dest='role', required=True)
+    lk.add_argument('--why', '--reason', dest='why', default='')
 
     ul = sub.add_parser('unlock')
     ul.add_argument('path')
-    ul.add_argument('--as', dest='role', required=True)
+    ul.add_argument('--as', '--from', '--role', dest='role', required=True)
     ul.add_argument('--force', action='store_true',
                     help='architect arbitration: release someone else\'s lock (broadcasts)')
 
@@ -279,7 +287,12 @@ def dispatch(argv):
     os.makedirs(BOX, exist_ok=True)
 
     if a.cmd == 'send':
-        text = sys.stdin.read().strip() if a.text == '-' else a.text
+        if a.text is not None and a.body is not None:
+            sys.exit('give the body once: positional OR --body, not both')
+        raw = a.body if a.body is not None else a.text
+        if raw is None:
+            sys.exit('missing message body (positional text or --body "...")')
+        text = sys.stdin.read().strip() if raw == '-' else raw
         if not text:
             sys.exit('empty message')
         msgs = read_all()
