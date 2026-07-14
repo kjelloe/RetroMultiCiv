@@ -90,8 +90,10 @@ export function initTurnLog(ctx) {
   }
 
   session.onChange((state, events) => {
-    if (events.length === 0) {
-      // wholesale state replacement (load): re-baseline contacts silently
+    // A30: loads announce themselves with the synthetic stateReplaced event
+    // — a plain empty notify is now just a repaint (the chunked AI round
+    // emits those between players) and must NOT wipe the contact baseline
+    if (events.some(e => e.type === 'stateReplaced')) {
       met = {};
       scanContacts(state, false);
       return;

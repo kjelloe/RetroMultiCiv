@@ -591,10 +591,13 @@ export function initPanels(ctx) {
       lux: me.luxRate === undefined ? 0 : me.luxRate
     };
   }
-  document.getElementById('rate-slider').addEventListener('change', e => {
+  document.getElementById('rate-slider').addEventListener('change', async e => {
     const { lux } = ratesOf();
     const sci = Math.min(parseInt(e.target.value, 10), 100 - lux);
-    ctx.apply({ type: 'setRates', playerId: ctx.HUMAN, tax: 100 - lux - sci, sci, lux });
+    const ok = await ctx.apply({ type: 'setRates', playerId: ctx.HUMAN, tax: 100 - lux - sci, sci, lux });
+    // A29 (VI.10): a capped rate leaves state untouched and nothing redraws
+    // — snap the thumb back to the real rate instead of where the drag died
+    if (!ok) e.target.value = ratesOf().sci;
   });
   function nudgeLux(delta) {
     const r = ratesOf();

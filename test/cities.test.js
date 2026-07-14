@@ -158,14 +158,15 @@ test('setWorkers: manual tile assignment overrides greedy, validates, resets', a
     rngState: 1
   };
   // auto: greedy works the shield grassland — the only trade is the city
-  // square's own (it acts roaded & irrigated, Civ 1)
-  assert.strictEqual(cities.cityYields(state, state.cities.c1, RULESET).trade, 1);
+  // square's own (roaded & irrigated, Civ 1) +1 capital bonus (VI.2 —
+  // a lone city IS its owner's capital)
+  assert.strictEqual(cities.cityYields(state, state.cities.c1, RULESET).trade, 2);
 
   // manual: work the ocean instead (idx 8) — optimize for trade
   const res = engine.applyCommand(state, { type: 'setWorkers', playerId: 'p1', cityId: 'c1', workers: [8] });
   assert.strictEqual(res.ok, true);
   const y = cities.cityYields(res.state, res.state.cities.c1, RULESET);
-  assert.strictEqual(y.trade, 3, 'ocean worked manually (+ the roaded city square)');
+  assert.strictEqual(y.trade, 4, 'ocean worked manually (+ the roaded, capital-bonused city square)');
   assert.strictEqual(y.shields, 1, 'only the plains center shield remains — grassland released');
 
   // validation: too many workers, bad tile index, duplicates
@@ -294,8 +295,8 @@ test('Colossus adds +1 trade per worked trade tile in its own city', async () =>
   const withWonder = cities.cityYields(state, state.cities.c1, RULESET);
   state.wonders = {};
   const without = cities.cityYields(state, state.cities.c1, RULESET);
-  assert.strictEqual(without.trade, 3, 'river center 1 + ocean 2');
-  assert.strictEqual(withWonder.trade, 5, 'both worked tiles produce trade: +2');
+  assert.strictEqual(without.trade, 4, 'river center 1 +1 capital (VI.2) + ocean 2');
+  assert.strictEqual(withWonder.trade, 6, 'both worked tiles produce trade: +2');
 });
 
 test('foundCity rejected on water, on an existing city, and for non-settlers', async () => {

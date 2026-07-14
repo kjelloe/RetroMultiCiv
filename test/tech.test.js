@@ -79,14 +79,15 @@ test('setResearch validates prereqs and duplicates', async () => {
 test('trade converts to bulbs and discovers techs with overflow carry', async () => {
   const { engine } = await load();
   let state = labState({ researching: 'bronze-working' });
-  // 3 trade × 100% sci = 3 bulbs/turn; first tech costs 10 → discovered on turn 4 (12 bulbs)
+  // 4 trade (3 worked + 1 capital bonus, VI.2) × 100% sci = 4 bulbs/turn;
+  // first tech costs 10 → discovered on turn 3 (12 bulbs), carry 2 + 4 more
   for (let i = 0; i < 4; i++) {
     const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
     assert.strictEqual(res.ok, true);
     state = res.state;
   }
   assert.deepStrictEqual(state.players.p1.techs, ['bronze-working']);
-  assert.strictEqual(state.players.p1.bulbs, 2, 'overflow carries');
+  assert.strictEqual(state.players.p1.bulbs, 6, 'overflow carries (2) + one more 4-bulb turn');
   assert.strictEqual(state.players.p1.researching, '');
   assert.strictEqual(state.players.p1.gold, 0, 'tax rate 0 yields no gold');
 });
@@ -97,17 +98,18 @@ test('tax rate converts trade to gold; setRates validates', async () => {
   assert.strictEqual(engine.applyCommand(state, { type: 'setRates', playerId: 'p1', tax: 55, sci: 45 }).reason, 'badRates');
   assert.strictEqual(engine.applyCommand(state, { type: 'setRates', playerId: 'p1', tax: 90, sci: 20 }).reason, 'badRates');
   const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
-  assert.strictEqual(res.state.players.p1.gold, 3);
+  assert.strictEqual(res.state.players.p1.gold, 4, '3 worked + 1 capital bonus (VI.2)');
   assert.strictEqual(res.state.players.p1.bulbs, 0);
 });
 
 test('marketplace boosts tax gold; maintenance drains it', async () => {
   const { engine } = await load();
-  // 3 trade, 100% tax: base 3 gold; marketplace +50% => 4; maintenance 1 => +3/turn
+  // 4 trade (3 worked + 1 capital, VI.2), 100% tax: base 4 gold;
+  // marketplace +50% => 6; maintenance 1 => +5/turn
   let state = labState({ taxRate: 100, sciRate: 0 });
   state.cities.c1.buildings = ['marketplace'];
   const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
-  assert.strictEqual(res.state.players.p1.gold, 3);
+  assert.strictEqual(res.state.players.p1.gold, 5);
 
   // maintenance alone can never push gold below zero (clamped)
   let poor = labState({ taxRate: 0, sciRate: 100 });

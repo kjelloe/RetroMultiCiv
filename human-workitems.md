@@ -11,13 +11,12 @@ the Done log at the bottom.
   humans + spectator + AI; network kill on the host PC AND server kill
   + save-resume both survived; turn-53 save replays hash-exact; moved
   to the Done log).
-- [ ] **Score & declare the phase-2 hotseat acceptance**: your turn-35
-  hotseat session replayed hash-exact and produced wave III — what's
-  left is the verdict: score it against the 10 questions in
-  `specs/gameplay-reference.md`, the 7 hotseat questions in
-  `specs/plan-feedback.md`, and the ally's comprehension question
-  (did happiness/government/tax/workers feel understandable or like
-  hidden bookkeeping?). Tick = phase 2 formally closed.
+- [x] 2026-07-14 — **Phase-2 hotseat verdict delivered: ACCEPTED.**
+  Ten original questions all good; hotseat questions 6/7 pass —
+  question 4 (diplomacy legibility) scoped to phase 6 (no diplomacy
+  exists yet; noted as a phase-6 acceptance criterion). Verdict
+  recorded as a labeled appendix in `specs/phase2-assessment.md`.
+  Phase 2 formally closed — ALL phase gates through 4 now passed.
 - [ ] **Feel-test backlog** (largely exercised by the 2026-07-14
   acceptance session — tick whatever you consider covered): waves
   III/IV polish (battle linger, centered mini-map + real center
@@ -35,10 +34,12 @@ the Done log at the bottom.
   markings (docs/03/08/09, plan-update, README), the full wave-VI
   routing (B5/B6, A29–A37, the architect engine batch), and the
   helper's in-flight A28 — commit at a green-suite stop.
-- [ ] **Two queue decisions, NOW ACTIONABLE** (both were parked on the
-  acceptance, which passed): (a) queue the big-lobby scaling probe
-  (8/12/16 players)? (b) queue find-a-game v1 (public lobby listing —
-  pairs with the A27/A37 lobby work)? Say go/hold for each.
+- [x] 2026-07-14 — Queue decision (a): **big-lobby scaling GO** —
+  activated as A38 (probe at 4/8/12/16 + shipped cap raised to 14,
+  gated on measurements; 16 stays test-only until the Civ 2/3/4
+  roster + ally identities).
+- [ ] **Queue decision (b) still open**: find-a-game v1 (public lobby
+  listing — pairs with the A27/A37 lobby work)? Go/hold.
 - [ ] **Phase-5 kickoff prerequisite** (when you want the port to
   start): Roblox Studio project + lune toolchain install (approved
   2026-07-12) — docs/09 is otherwise ready and now unblocked.
@@ -50,10 +51,8 @@ the Done log at the bottom.
   shots to him, share the refreshed `plan-update.md` (both his feedback
   rounds applied — and it now leads with **PHASE 4 ACCEPTED**, via his
   own stress-test script), and the thank-you for the civ table.
-- [ ] **Old recordings cleanup** (at leisure): everything in
-  `debugging/logs/` predating 2026-07-12's engine changes no longer
-  replays (expected — goldens re-recorded); the bugfixer has marked all
-  six existing files pre-triaged. Delete when convenient.
+- [x] 2026-07-14 — Old recordings cleanup done (pre-2026-07-12 files
+  removed from `debugging/logs/`).
 
 ## Later (not yet actionable)
 

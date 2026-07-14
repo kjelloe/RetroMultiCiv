@@ -8,7 +8,8 @@ const DEFAULTS = {
   hideNoMovesHint: false, // mute the center "press E" hint
   clock: 'off',           // off | elapsed | time
   slowPokeSecs: '30',     // A26: turn-log note after waiting this long (0 = off)
-  muteTurnBanner: false   // A25: suppress the 🔔 your-turn banner + chime
+  muteTurnBanner: false,  // A25: suppress the 🔔 your-turn banner + chime
+  reduceAnimation: false  // A28: no sway/smoke/flashes, instant movement
 };
 
 export function initOptions(ctx) {
@@ -16,6 +17,7 @@ export function initOptions(ctx) {
   try { stored = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { stored = {}; }
   const values = Object.assign({}, DEFAULTS, stored);
 
+  const watchers = [];
   ctx.options = {
     get(k) { return values[k]; },
     set(k, v) {
@@ -23,7 +25,10 @@ export function initOptions(ctx) {
       localStorage.setItem(KEY, JSON.stringify(values));
       syncPanel();
       syncClock();
-    }
+      for (const w of watchers) w(k, v);
+    },
+    // live consumers (A28 renderer animations) — called with (key, value)
+    watch(fn) { watchers.push(fn); }
   };
 
   // --- top-right buttons + clock -------------------------------------------
@@ -46,6 +51,7 @@ export function initOptions(ctx) {
     <label><input type="checkbox" data-opt="hideFuture"> Hide future units/buildings in the city catalog</label>
     <label><input type="checkbox" data-opt="hideNoMovesHint"> Hide the "press E to end the turn" hint</label>
     <label><input type="checkbox" data-opt="muteTurnBanner"> Mute the "your turn" banner and chime (LAN games)</label>
+    <label><input type="checkbox" data-opt="reduceAnimation"> Reduce animation (no sway, smoke, or combat flashes; units move instantly)</label>
     <label>Clock
       <select data-opt="clock">
         <option value="off">off</option>

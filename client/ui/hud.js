@@ -42,9 +42,19 @@ export function initHud(ctx) {
   const waitTracker = createWaitTracker();
   function tickWait() {
     const state = session.state;
-    if (session.gameId === undefined || !state || state.gameOver) { // local games: hotseat curtain covers this
+    if (!state || state.gameOver) {
       waitLine.classList.add('hidden');
       return;
+    }
+    // A30: local games show the line ONLY while an AI is moving (the
+    // chunked round repaints between players); human-next stays hidden —
+    // the hotseat curtain covers that hand-off. Server games: any rival.
+    if (session.gameId === undefined) {
+      const active = state.players[state.activePlayer];
+      if (!active || active.human !== false) {
+        waitLine.classList.add('hidden');
+        return;
+      }
     }
     const threshold = parseInt(ctx.options && ctx.options.get('slowPokeSecs'), 10) || 0;
     const w = waitTracker.update(state.activePlayer, ctx.HUMAN, Date.now(), threshold);
@@ -52,7 +62,9 @@ export function initHud(ctx) {
       waitLine.classList.add('hidden');
       return;
     }
-    const name = state.players[w.waitingFor] ? state.players[w.waitingFor].name : w.waitingFor;
+    const p = state.players[w.waitingFor];
+    const name = (p ? p.name : w.waitingFor)
+      + (p && p.human === false ? ' (AI)' : ''); // A30 (VI.3)
     waitLine.textContent = formatWait(name, w.elapsedSec);
     waitLine.classList.remove('hidden');
     if (w.note && ctx.turnlog && ctx.turnlog.note) {
@@ -150,11 +162,44 @@ export function initHud(ctx) {
         : me.revolutionTurns !== undefined
           ? `Anarchy (${me.revolutionTurns})`
           : session.ruleset.governments[me.government === undefined ? 'despotism' : me.government].name;
-      hudStatus.textContent = `turn ${state.turn} · ${year} · ${state.players[state.activePlayer].name} · ${gov}`;
+      // A29 (VI.1): the viewer reads as "Romans (Kjell)" — civ from the
+      // player entry (local) or the joined reply (server); local seats are
+      // NAMED after their civ, so skip the redundant parens there. No civ
+      // at all (mock/test states) falls back to the name alone.
+      let who = state.players[state.activePlayer].name; // spectators: whose turn
+      if (me) {
+        const civId = me.civ !== undefined ? me.civ
+          : session.playerCivs ? session.playerCivs[ctx.HUMAN] : undefined;
+        const civName = civId !== undefined && session.ruleset.civs
+          && session.ruleset.civs[civId] ? session.ruleset.civs[civId].name : null;
+        who = civName && civName !== me.name ? `${civName} (${me.name})` : civName || me.name;
+      }
+      hudStatus.textContent = `turn ${state.turn} · ${year} · ${who} · ${gov}`;
     }
     updateResearchBar();
     updateBanner();
+    updateTurnButton(state); // A29: greyed off-turn, pulse on arrival
     tickWait(); // A26: the waiting line reacts to turn changes immediately
+  }
+
+  // A29 (VI.6): the End-Turn button reads the turn state — greyed + no-op
+  // while it's not the viewer's turn (server/hotseat), and a brief yellow
+  // pulse when the turn ARRIVES (skipped under ⚙ reduce animation).
+  // A40 marker: the third state lands HERE — greyed "Auto Turn" while an
+  // AI-regency stance plays this seat; keep the state derivation in this
+  // one function so A40 only adds a branch.
+  let wasMyTurn = false;
+  function updateTurnButton(state) {
+    const myTurn = !ctx.SPECTATOR && !state.gameOver
+      && state.activePlayer === ctx.HUMAN
+      && state.players[ctx.HUMAN] !== undefined && state.players[ctx.HUMAN].human === true;
+    endTurnBtn.disabled = !myTurn;
+    if (myTurn && !wasMyTurn
+        && (!ctx.options || ctx.options.get('reduceAnimation') !== true)) {
+      endTurnBtn.classList.add('pulse');
+      setTimeout(() => endTurnBtn.classList.remove('pulse'), 1600);
+    }
+    wasMyTurn = myTurn;
   }
 
   // A25: the LAN your-turn banner — dismissible (✕), mutable (🔕 → the same

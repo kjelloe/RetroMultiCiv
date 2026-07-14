@@ -1,6 +1,6 @@
 // Cities: founding, worked-tile yields, growth, and shield production.
 import { reveal } from './visibility.js';
-import { governmentOf } from './government.js';
+import { governmentOf, capitalOf } from './government.js';
 
 // 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 const FAT_CROSS = [];
@@ -146,9 +146,19 @@ function workedTiles(state, city, ruleset) {
   if (centerSrc.mine === true) centerTile.mine = true; else centerTile.irrigation = true;
   centerTile.road = true;
   if (centerSrc.railroad === true) centerTile.railroad = true;
+  const centerYields = govAdjustYields(tileYields(centerTile, ruleset), gov);
+  // VI.2: the CAPITAL's city square carries a trade bonus (the palace's
+  // administration) — applied after the government adjustment so despotism
+  // cannot erase it: every capital researches from turn one.
+  const capBonus = ruleset.rules.capitalCenterTradeBonus === undefined
+    ? 0 : ruleset.rules.capitalCenterTradeBonus;
+  if (capBonus > 0) {
+    const cap = capitalOf(state, city.owner, ruleset);
+    if (cap && cap.id === city.id) centerYields.trade = centerYields.trade + capBonus;
+  }
   const worked = [{
     x: city.x, y: city.y, center: true,
-    yields: govAdjustYields(tileYields(centerTile, ruleset), gov)
+    yields: centerYields
   }];
   const candidates = candidateTiles(state, city, ruleset);
   if (city.workers !== undefined) {
@@ -242,18 +252,14 @@ function foundCity(state, cmd, ruleset) {
 
   const terrain = ruleset.terrain.terrains[state.map.tiles[unit.y * state.map.width + unit.x].t];
   if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
-  // cities keep their distance from EVERY city, any civ (rules.minCityDistance;
-  // crafted states under rulesets without the rule keep the old behavior)
-  const minDist = ruleset.rules.minCityDistance === undefined ? 1 : ruleset.rules.minCityDistance;
+  // cities keep their distance from EVERY city, any civ (VI.5 metric:
+  // 3 orthogonal / 2 diagonal — citySpacingOk below)
   for (const id of state.cityOrder) {
     const c = state.cities[id];
     if (c.x === unit.x && c.y === unit.y) return { ok: false, reason: 'cityExists' };
-    let dx = c.x - unit.x;
-    if (dx < 0) dx = -dx;
-    if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
-    let dy = c.y - unit.y;
-    if (dy < 0) dy = -dy;
-    if ((dx > dy ? dx : dy) < minDist) return { ok: false, reason: 'tooCloseToCity' };
+    if (!citySpacingOk(state.map, unit.x, unit.y, c.x, c.y, ruleset.rules)) {
+      return { ok: false, reason: 'tooCloseToCity' };
+    }
   }
 
   const cityId = 'c' + state.nextCityId;
@@ -461,8 +467,27 @@ function processCities(state, ruleset, events) {
   }
 }
 
+// VI.5 spacing metric (user, from the phase-4 acceptance playtest): legal
+// iff Chebyshev >= minCityDistance OR the site sits fully diagonal at
+// >= minCityDiagonal on BOTH axes (3-orthogonal / 2-diagonal with the
+// shipped rules). Rulesets without the diagonal rule keep the plain
+// Chebyshev check; without either rule, distance 1 (crafted-state compat).
+function citySpacingOk(map, x, y, cx, cy, rules) {
+  let dx = cx - x;
+  if (dx < 0) dx = -dx;
+  if (map.wrapX && map.width - dx < dx) dx = map.width - dx;
+  let dy = cy - y;
+  if (dy < 0) dy = -dy;
+  const cheb = dx > dy ? dx : dy;
+  const minDist = rules.minCityDistance === undefined ? 1 : rules.minCityDistance;
+  if (cheb >= minDist) return true;
+  const diag = rules.minCityDiagonal;
+  if (diag === undefined) return false;
+  return dx >= diag && dy >= diag;
+}
+
 export {
   foundCity, setProduction, setWorkers, buyProduction, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
-  wonderActive, wonderInCity, effectPct, itemCost, civVeteran
+  wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk
 };

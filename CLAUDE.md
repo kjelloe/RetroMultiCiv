@@ -79,11 +79,19 @@ handlers must ignore events from INPUT/TEXTAREA targets (dialogs).
 the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
 invocation (summary + failure blocks, no inline pipes),
 `debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
-`ss` — never pkill patterns, they self-match the calling shell), and
+`ss` — never pkill patterns, they self-match the calling shell),
 `debugging/peek.sh [-c N] FILE PATTERN… | FILE N-M` prints numbered
-matches-with-context or a line range (replaces grep|sed|head chains).
-Agents: use these scripts, not hand-composed pipe one-liners — inline
-pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
+matches-with-context or a line range (replaces grep|sed|head chains),
+`debugging/shoot.sh out.png "/client/?params" [--server "args"]
+[--webgl1]` serves + screenshots + cleans up in one call (static python
+by default, `--server` boots the node server for `?server=1` pages),
+`debugging/info.sh <save.json>` summarizes any save/recording (turn,
+players, hash, game code — the first look before replaying),
+`debugging/triage.sh [files…]` replays every recording in
+debugging/logs/ with one verdict line each (B0's mechanized form), and
+`debugging/sync-check.sh [count]` flags stale test counts in the pinned
+docs. Agents: use these scripts, not hand-composed pipe one-liners —
+inline pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..7`, `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
@@ -178,7 +186,13 @@ holds design authority, and reviews everything) and `human-workitems.md`
 (verification and decisions only the user/humans can make). Bugs have no
 fixed lane, so the bugfixer MUST claim the exact files by mail before
 editing and the architect arbitrates collisions; only ONE agent holds the
-golden lock at a time. Claim items in-file, mark them done,
+golden lock at a time. File claims are MECHANICAL as well as by mail:
+`agent-mail.py lock <file> --as <role> --why "…"` before editing any
+shared file, `locks` to check holders (age shown — stale locks get
+arbitrated, never edited through), `unlock` when your done-mail goes out;
+only the holder or the architect (`--force`, which broadcasts) releases.
+The mail claim still carries the WHY and the regions; the registry
+answers "may I edit this RIGHT NOW". Claim items in-file, mark them done,
 never reorder someone else's. Agent⇄architect coordination goes through
 `python3 tools/agent-mail.py` (send/inbox/peek/log/show, global @hashes
 per message, per-role unread

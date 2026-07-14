@@ -202,6 +202,12 @@ engine test suite green; a replayed command log reproduces the same final state 
 
 ## Phase 2 — Local hotseat and player-view projections
 
+> **ACCEPTED 2026-07-14** — user verdict against the ten gameplay-loop
+> questions (all good) + the seven hotseat questions (6/7; question 4,
+> diplomacy legibility, is phase-6 scope — no diplomacy exists yet).
+> Verdict appendix in `specs/phase2-assessment.md`. With phase 4's
+> same-week acceptance, every phase gate through 4 is passed.
+
 - ✅ **Setup screen** *(2026-07-11; extended 2026-07-12)* — a bare
   `/client/` URL opens it: your civilization (with specialty blurb),
   civilizations (2–7), human players (first N seats), map size

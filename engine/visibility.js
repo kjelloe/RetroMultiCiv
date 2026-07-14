@@ -166,4 +166,73 @@ function filterView(state, playerId) {
   };
 }
 
-export { initExplored, reveal, computeVisible, filterView };
+// Fog policy for round EVENTS (B5, shape @9edac2e9): which of a round's
+// events may this player hear about? Pure; the server calls it per seat
+// before pushing events to clients, and the Luau server will need it
+// verbatim. Classes (pinned by the architect):
+//   world news        wonderBuilt/wonderLost/gameOver/playerDefeated —
+//                     Civ 1 announces these to everyone
+//   own science       techDiscovered reaches only its own player
+//   everything else   visible iff any of its coordinates (its own x/y
+//                     fields, or those of the unit/city it names) fall in
+//                     the viewer's visible mask, OR the viewer is a named
+//                     party (owner / playerId / attacker / defender /
+//                     capture sides) — your unit fighting outside your
+//                     sight is still YOUR news
+// A viewer without an explored array (spectators, test states) is
+// omniscient and hears everything, matching filterView's convention.
+const WORLD_NEWS = { wonderBuilt: true, wonderLost: true, gameOver: true, playerDefeated: true };
+
+function eventParties(e) {
+  const out = [];
+  if (e.playerId !== undefined) out.push(e.playerId);
+  if (e.owner !== undefined) out.push(e.owner);
+  if (e.attackerOwner !== undefined) out.push(e.attackerOwner);
+  if (e.defenderOwner !== undefined) out.push(e.defenderOwner);
+  if (e.type === 'cityCaptured') { out.push(e.from); out.push(e.to); }
+  return out;
+}
+
+// every map coordinate an event speaks about, including the current spot of
+// a unit/city it references (dead units are fine — the x/y fields remain)
+function eventCoords(state, e) {
+  const out = [];
+  if (e.x !== undefined && e.y !== undefined) out.push([e.x, e.y]);
+  if (e.fromX !== undefined) out.push([e.fromX, e.fromY]);
+  if (e.toX !== undefined) out.push([e.toX, e.toY]);
+  if (e.unitId !== undefined && state.units[e.unitId] !== undefined) {
+    out.push([state.units[e.unitId].x, state.units[e.unitId].y]);
+  }
+  if (e.cityId !== undefined && state.cities[e.cityId] !== undefined) {
+    out.push([state.cities[e.cityId].x, state.cities[e.cityId].y]);
+  }
+  return out;
+}
+
+function filterEvents(state, events, playerId) {
+  const me = state.players[playerId];
+  if (!me || !me.explored) return events.slice(); // omniscient: spectators, tests
+  const visible = computeVisible(state, playerId);
+  const width = state.map.width;
+  const out = [];
+  for (const e of events) {
+    if (WORLD_NEWS[e.type] === true) { out.push(e); continue; }
+    if (e.type === 'techDiscovered') {
+      if (e.playerId === playerId) out.push(e);
+      continue;
+    }
+    let keep = false;
+    for (const pid of eventParties(e)) {
+      if (pid === playerId) { keep = true; break; }
+    }
+    if (!keep) {
+      for (const c of eventCoords(state, e)) {
+        if (visible[c[1] * width + c[0]] === 1) { keep = true; break; }
+      }
+    }
+    if (keep) out.push(e);
+  }
+  return out;
+}
+
+export { initExplored, reveal, computeVisible, filterView, filterEvents };

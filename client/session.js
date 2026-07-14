@@ -20,6 +20,10 @@ export function createSession(ruleset, initialState, opts) {
   let log = [];
   let logStart = deepClone(initialState);
   const listeners = [];
+  // A30: while the chunked AI round is awaiting between players, no other
+  // command may slip into the recording (it would replay in a different
+  // order than it ran live) — apply() and endTurn() reject until it lands
+  let roundInFlight = false;
 
   function notify(events) {
     for (const cb of listeners) cb(state, events || []);
@@ -37,6 +41,9 @@ export function createSession(ruleset, initialState, opts) {
     // synchronous — only the return value is wrapped — so callers that read
     // session.state right after (without awaiting) still see the new state.
     apply(cmd) {
+      if (roundInFlight) {
+        return Promise.resolve({ ok: false, reason: 'roundInFlight', events: [] });
+      }
       const res = engine.applyCommand(state, cmd);
       const entry = { t: 'cmd', turn: state.turn, cmd };
       if (res.ok) {
@@ -54,28 +61,44 @@ export function createSession(ruleset, initialState, opts) {
     },
 
     // End the human turn, then let every AI player act and pass — stopping
-    // at the next human (hotseat). All events from the whole round are
-    // delivered together (the turn log needs the AI/barbarian actions).
-    endTurn() {
+    // at the next human (hotseat). A30: the round YIELDS to the event loop
+    // between AI players (one macrotask each) so the HUD can repaint the
+    // "⏳ <civ> (AI) is moving" line — big late-game empires no longer
+    // freeze the page for the whole round. DETERMINISM UNCHANGED: the same
+    // commands run in the same order and the recorder still writes ONE
+    // round entry with the same hash (test/session.test.js pins this
+    // against an unchunked twin). Events reach subscribers as per-player
+    // DELTAS during the round; the recording is untouched.
+    async endTurn() {
+      if (roundInFlight) return { ok: false, reason: 'roundInFlight', events: [] };
       const collected = [];
       const first = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
       if (!first.ok) {
         log.push({ t: 'cmd', turn: state.turn, cmd: { type: 'endTurn', playerId: state.activePlayer }, ok: false, reason: first.reason });
-        return Promise.resolve(first);
+        return first;
       }
       state = first.state;
       for (const e of first.events) collected.push(e);
       let guard = 10;
-      while (!state.gameOver && !state.players[state.activePlayer].human && guard-- > 0) {
-        state = runAiTurn(engine, state, state.activePlayer, ruleset, collected);
-        const res = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
-        if (!res.ok) break;
-        state = res.state;
-        for (const e of res.events) collected.push(e);
+      let seen = 0;
+      roundInFlight = true;
+      try {
+        while (!state.gameOver && !state.players[state.activePlayer].human && guard-- > 0) {
+          notify(collected.slice(seen)); // repaint: activePlayer = the AI about to act
+          seen = collected.length;
+          await new Promise(resolve => setTimeout(resolve, 0));
+          state = runAiTurn(engine, state, state.activePlayer, ruleset, collected);
+          const res = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });
+          if (!res.ok) break;
+          state = res.state;
+          for (const e of res.events) collected.push(e);
+        }
+      } finally {
+        roundInFlight = false;
       }
       log.push({ t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) });
-      notify(collected);
-      return Promise.resolve(first);
+      notify(collected.slice(seen));
+      return first;
     },
 
     // Load a saved/foreign state wholesale (save files, quick load). The
@@ -84,7 +107,10 @@ export function createSession(ruleset, initialState, opts) {
       state = next;
       log = [];
       logStart = deepClone(next);
-      notify([]);
+      // stateReplaced: a synthetic CLIENT-side event (never logged, never
+      // hashed) — subscribers that keep per-game baselines (turn-log
+      // contacts) re-baseline on it; a plain empty notify is just a repaint
+      notify([{ type: 'stateReplaced' }]);
     },
 
     // Everything tools/replay.js needs to reproduce and verify this game.

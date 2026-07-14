@@ -91,3 +91,4 @@ test('a full AI-vs-AI game is deterministic and reaches an end', async () => {
   // the game either ended or is still legally in progress after the cap
   if (a.gameOver) assert.ok(a.players[a.winner], 'winner is a real player');
 });
+

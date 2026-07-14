@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 188 tests), the item's own verification steps pass, related
+   (currently 204 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -30,6 +30,14 @@ items live in `./human-workitems.md`.
    screenshots — do not claim visuals work without looking.
 6. Mark the item `[claimed: <who> <date>]` when starting, `[done: <date>]`
    with a one-line result when finished. Do not reorder other items.
+7. **File locks** (added 2026-07-14 after a real collision):
+   `python3 tools/agent-mail.py lock <file> --as <role> --why "item"`
+   BEFORE editing any file another agent might touch (all of client/,
+   server/, shared/, test/browser.test.js at minimum); check `locks`
+   first — a held lock means mail the holder or the architect, never
+   edit through it; `unlock` everything you hold as part of your
+   done-mail step. Mail claims still carry the why/regions; the
+   registry is the instant may-I-edit answer.
 
 ---
 
@@ -40,6 +48,33 @@ the architect the exact file list you intend to touch (bugs have no
 pre-fenced lane) and wait for an ack if any file overlaps an in-flight
 A-item. Fix format: failing test FIRST where feasible, then the fix,
 then the standing checks.
+
+### P5-1 — Phase 5 opens: Luau twins of rng + statehash + gamecode under lune (assigned: bugfixer)
+
+The port's first slice per docs/09's order, needing NO Studio and no
+user setup — `lune` is dev-only and already on the dependency
+whitelist (user-approved 2026-07-12): `npm install --save-dev lune`
+(or the platform binary if the npm wrapper misbehaves — note which).
+Deliverables:
+1. `luau/rng.luau` — xorshift32, same algorithm as engine/rng.js
+   (NEVER Random.new). GATE: the golden sequence from the rng tests
+   (seed 123456789) reproduced exactly.
+2. `luau/statehash.luau` — canonical serialize + FNV-1a 32 with the
+   same integer semantics (docs/09 trap list: JS mul32 vs Luau number
+   handling — the bit32 library is the tool). GATE: the anchor
+   {b:2,a:[1,"x",true]} -> 0x30db1e29.
+3. `luau/gamecode.luau` — codeLo/codeHi + Crockford grouping. GATES:
+   codeHi anchor 0xa687b72d, gameCode AD1X-Q5MR-DP7H9.
+4. `test/luau-twins.test.js` — a Node test that self-skips without
+   lune, else runs `lune run` on a small Luau harness printing the
+   three gate values and asserts them (the CI twin pattern docs/09
+   describes; nightly picks it up once lune installs there — flag the
+   workflow edit separately, do NOT edit .github/ without a claim).
+Read docs/09's trap list FIRST (0-based index VALUES stored in state,
+JS % vs Lua %, truthiness). Anchors are non-negotiable: a twin that
+needs a "close enough" is a wrong twin. Golden-safe (nothing touches
+the JS engine). Done-mail: the three gate values as printed by Luau,
+plus any trap-list additions you discover — docs/09 wants them.
 
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
@@ -102,7 +137,7 @@ turns out to be defensive (`availableTechs`/`researchCost` returning
 empty/0 for tech-less entries), mail me first — I'd rather fix the
 CALLER and keep the engine strict.
 
-### B4 — Sweep: inert `classList.add('hidden')` calls (from A26's bonus find)
+### B4 — Sweep: inert `classList.add('hidden')` calls (from A26's bonus find)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — static cross-referencer over all 43 client hidden-toggle sites: 3 inert beyond B6's #code-toast (#wait-line + #mp-status = live LAN bugs, the waiting/skip-vote lines never dismissed + empty pills from boot; #handoff-code = stale save-code linger). +3 scoped CSS rules; DURABLE GUARD implemented in guards.test.js (resolves ids via getElementById/created-id/querySelector + .panel class coverage incl. JS-created panels; unresolved receivers skipped by design) — red on exactly the 3 ids pre-fix, zero false positives. Screenshots: clean server boot + functional waiting state. Family tally: 4 sites. Suite 196/196]
 
 The helper proved `.hidden` has NEVER been a global CSS rule in
 style.css — only per-element rules (`.panel.hidden` etc.) exist, so any
@@ -119,7 +154,7 @@ extracts hidden-toggled ids from JS and asserts a matching CSS
 selector exists — flag feasibility in the done-mail rather than
 forcing it. Golden-safe.
 
-### B5 — Turn log misses rival-vs-rival / AI combat in server games (wave VI bug)
+### B5 — Turn log misses rival-vs-rival / AI combat in server games (wave VI bug)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — shape @9edac2e9: engine/visibility.js filterEvents (Lua-portable; world news incl. playerDefeated, own-only tech, coord-or-named-party rule, spectator omniscient passthrough); per-seat filtered events ride every view push (index.js fanout + doSkip), actor ack belt-and-braces filtered (protocol.js), session-remote notifies view.events. 5 unit cases + server-events.test.js integration (crafted 3-human strip: victim hears rival combat, fogged seat does not) — revert-proven red with self-diagnosing inbox dump. Suite 194/194]
 
 User report (LAN, turn 41): Babylonians (AI) attacked a militia — no
 turn-log entry on the human's machine. ARCHITECT PRE-TRIAGE: the save
@@ -138,7 +173,7 @@ or the lan4 pattern). If the fix needs the protocol to carry filtered
 per-seat events, mail me the shape BEFORE implementing — protocol
 changes are design-reviewed.
 
-### B6 — Server-save banner ✕ does nothing (wave VI.8)
+### B6 — Server-save banner ✕ does nothing (wave VI.8)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — suspect (b) cleared (no autosave re-show loop; all showCode callers are user actions); pure B4 family: #code-toast had no scoped .hidden rule, so the ✕ styled nothing AND the empty pill rendered from creation. +1 CSS rule; failing-first via computed-style probe in ?e2e=1 (class-only checks lie); screenshot-verified dismissed. B4 tally: 1 site swept]
 
 The "Saved turn N — game code …" banner's ✕ doesn't dismiss. Two
 suspect classes, check both: (a) the B4 family — an inert `.hidden`
@@ -637,7 +672,7 @@ integration case where the host flips a slot to AI + picks a civ and
 the started game honors both; screenshots of host vs joiner lobby
 views. Golden-safe.
 
-## A28 — Art A1.7: animation polish (ally spec §"Art A1.7", golden-safe, pulled forward 2026-07-13)  [claimed: coder-helper 2026-07-14]
+## A28 — Art A1.7: animation polish (ally spec §"Art A1.7", golden-safe, pulled forward 2026-07-13)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — new renderer/three/anim.js layer, all phases clock+position (A15 pattern, zero engine RNG/state): pennant+capital flags on sway hinges (rest pose byte-identical — land-only gallery shots byte-stable across runs; full-view 3-byte drift attributed to pre-existing A15 water); 200ms glides keyed by unitId (rebind across rebuilds, chain drift-free, wrap-seam snaps like setPath); deterministic city smoke pop≥5 (visualRand, placement biased OUTWARD of the pop-badge overdraw — found via screenshot read); combat flash ring on viewer-involved combatResolved via session.onChange events (fog-safe, pairs with A16 linger); ⚙ reduceAnimation option + ctx.options.watch() live hook. Picking logical-tile-native by construction; PROVEN by new ?e2e=5 + browser case: deselect → step → mid-glide click (animBusy:true) re-selects the settler naming the DESTINATION coords. Gallery gained rest-pose default + ?anim/?flashdemo/?glidedemo hooks. WebGL1 pass clean. Suite 199/199 post-golden-close. Motion smoothness itself = eyeball check for the user.]
 
 The ally's final procedural-art stage, from `specs/plan-assets-2.md`
 (verbatim line: flag bob/sway from render time only; unit movement
@@ -669,7 +704,7 @@ eyeballs can judge (motion); gallery must stay byte-stable for
 untouched assets — flag any regeneration. Suite + goldens untouched
 (render-only — the suite proves it).
 
-## A29 — Wave VI quick wins: HUD civ, GoTo flush, End-Turn states, two UI fixes (VI.1/4/6/10/12)
+## A29 — Wave VI quick wins: HUD civ, GoTo flush, End-Turn states, two UI fixes (VI.1/4/6/10/12)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — (1) status line "Romans (Kjell)": player.civ + session.playerCivs fallback, name-alone for mock, civ-named local seats collapse the parens; lobby-boot test assertion evolved to the new format. (2) endTurn flushes viewer runAllGotos first + idle warning excludes routed units (blocked routes stop nagging). (3) updateTurnButton: disabled+no-op off-turn, 3-blink arrival pulse, respects reduceAnimation; A40 "Auto Turn" marker ON the function + CSS. (4) slider snapback on rejected setRates — PROVEN by new ?e2e=6 (drag to 100 under despotism cap → thumb === real rate). (5) sitePreview shows plain tile text inside KNOWN cities' spacing zones via engine citySpacingOk (VI.5 metric), explored-only = fog-safe. Screenshots: local HUD civ line read; spectators render no End-Turn button (A17) so greyed/pulse visuals = manual LAN check note. Suite 200/200.]
 
 Five small client-only items, one claim:
 1. **HUD civ (VI.1)**: the status line shows the viewer's CIVILIZATION
@@ -695,7 +730,7 @@ Five small client-only items, one claim:
 Verify: e2e green; screenshots for 1/3/4; a hotseat/server manual
 check note for 3. All golden-safe.
 
-## A30 — AI-turn waiting indicator + chunked AI rounds (VI.3, medium)
+## A30 — AI-turn waiting indicator + chunked AI rounds (VI.3, medium)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — session.endTurn yields one macrotask per AI player with per-player event DELTAS; DETERMINISM PINNED by test/session.test.js: chunked round vs unchunked twin — same hash, deepStrictEqual event stream, byte-identical {t:'round'} recording. New contracts (tested): apply/endTurn reject 'roundInFlight' mid-round (recording order protected); loads announce via synthetic stateReplaced event (empty notify = repaint — the old convention would wipe turn-log contacts every repaint; also fixed session-remote's code-refresh notify([]) silently re-baselining on every save). Wait line: local shows only while AI moves (curtain owns human hand-offs), "(AI)" tag both modes. Visible proof: ?e2e=7 MutationObserver catches "(AI) is moving" DURING endTurn + hides after. Suite 204/204.]
 
 The A26 wait-line should also show "⏳ Americans (AI) is moving · Ns"
 during AI turns. SERVER games: the line already keys off activePlayer
@@ -720,6 +755,25 @@ spectators): "💾 saved · code FWN6-X6PQ-3X5TD". Use turnlog.note()
 round — fine, one line per round wrap; if the log gets noisy make it
 every N rounds via an Options value, default every round). Coordinate
 with B6 (same broadcast). Golden-safe.
+
+## A39 — Turn-log filters (user request 2026-07-14, relayed via bugfixer @5d452697)
+
+B5 made LAN turn logs chattier by design (rival visible actions now
+narrate live) — give each player a filter. A small filter row on the
+turn-log panel itself (a ⚙/funnel toggle revealing checkboxes — NOT
+buried in the Options panel; the log is where you notice the noise),
+persisted per-origin with the other prefs. Classes, mapped at
+NARRATION time in turnlog.js (filter the display, never the data —
+toggling a class back on reveals the suppressed history from the
+retained entries, within the existing 60-entry cap): ⚔ combat ·
+🏛 cities (founded/grew/production/captured) · 🔬 research ·
+👀 rival actions (the B5 live narration) · 🌍 world news
+(wonders/defeats — consider leaving this one always-on, it's rare
+and load-bearing) · 💾 saves (A33's code lines). Defaults: all ON.
+Spectators get the same filters (they see the most traffic).
+Verify: unit-test the event→class mapping as a pure helper; screenshot
+the filter row open with one class off and its entries absent; e2e
+green. Golden-safe, client-only. Pairs with A33 — do them together.
 
 ## A34 — Host resumes server saves from the lobby (VI.9, medium — design included)
 
@@ -814,6 +868,51 @@ Mine, under the batch-4 lock window (one extra re-record):
   predicate (candidate scoring already consults it).
 Both re-recorded together with batch 4's goldens.
 
+## A40 — AI regency: "let the AI take over for me" with 5 stances (user request 2026-07-14 — design included, TWO SLICES)
+
+The docs/08 §7 future feature, now specced by the user: a 🤖 button
+LEFT of End Turn opens a dialog — hand your seat to the AI with a
+stance: **Defensive / Aggressive / Science / Growth / Balanced**
+(default Balanced). While the regent plays, End Turn is grayed and
+reads "Auto Turn"; clicking the 🤖 (or the grayed button) takes
+control back. Defaults CONFIRMED by user (2026-07-14): the regent ENDS
+TURNS automatically; in LAN games regency PERSISTS across disconnect
+(close the laptop, the AI plays on — the waiting-for-player flow skips
+regent seats); available in solo, hotseat, and LAN alike;
+seat-owner-only toggle in LAN.
+
+**Slice 1 — engine stances (GOLDEN-SENSITIVE, architect reviews the
+identity proof):** `pickCommand`/`runAiTurn` gain an optional `stance`
+parameter. HARD REQUIREMENT: `balanced` (and the omitted default)
+must be BIT-IDENTICAL to today's behavior — the unchanged sim goldens
+ARE the proof; run them before and after. Biases live in one visible
+STANCES table at the top of ai.js (AI constants precedent — behavior
+knobs, not ruleset facts): defensive (threat garrison 2 always,
+aggression radius 0, walls-priority in saturated builds), aggressive
+(army cap raised, aggression radius widened, attack bias), science
+(rates prefer sci when disorder-free, library/university priority),
+growth (higher settler ratio, granary priority, irrigation-first
+improvers). Unit tests per stance on crafted states + the identity
+assertion.
+
+**Slice 2 — regency plumbing (golden-safe):** LOCAL: session drives
+the seat via runAiTurn(stance) on its turn; commands record as
+ordinary cmd diag entries (replay needs NOTHING new — docs/08 §7's
+principle). SERVER: `{t:'regent', stance|null}` seat-owner-only;
+`seats[pid].regent = stance` (server-side seat property, NOT game
+state — state.human stays true, hashes untouched); the server drives
+regent seats' turns with the engine AI, logging commands normally;
+presence/wait-line shows "🤖 <name> (auto)"; rival/spectator views
+unchanged. UI: the dialog (5 stances, Balanced preselected), the
+grayed "Auto Turn" state (pairs with A29's button-state work), 🤖
+placement left of End Turn. Tests: server test — a regent seat plays
+a full turn unattended, its commands land in the save's diag, replay
+hash-exact; reclaim mid-game returns control cleanly; e2e screenshot
+of the dialog + Auto Turn state.
+
+Slice order: 2 can ship with stance=balanced only (regency without
+flavors) if 1 waits on the golden window — flag if you take that path.
+
 ## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
 
 Let players adjust rates/research/production/workers while a rival
@@ -829,7 +928,45 @@ note, engine change (golden lock), scenario for an out-of-turn
 setProduction, and UI unlocking (panels currently assume own-turn).
 NOT QUEUED until the design is written and the lock frees — architect.
 
-## PARKED — Global "find a game" + internet hosting (user note 2026-07-13, NOT QUEUED)
+## A41 — Find-a-game v1: the public lobby listing (DESIGNED 2026-07-14 per user go — queue after A34)
+
+The single server lists its OWN open lobbies so players browse and
+join without a shouted code. Design (architect):
+
+- **Server**: `{t:'listGames'}` (no auth — it's the browse screen)
+  returns entries for every lobby with `options.public === true`:
+  `{name, hostName, openSeats, totalSeats, size, age, spectators,
+  status}` — NEVER the join code, NEVER seated players' IPs. Hosts opt
+  IN at create: a "List publicly" checkbox next to Allow-spectators
+  (create option `public: true`; default OFF — private-by-default is
+  the LAN posture and the internet posture both). `{t:'joinListed',
+  gameIndexOrId, name, seat?}` performs the join — the server resolves
+  it to the SAME reservation path as joinCode internally (the code
+  stays the host's secret; listed joining is capability-by-listing).
+  Started games and full lobbies drop off the list (or show
+  status-only if spectators are allowed — spectate-join from the list
+  included). Rate-limit listGames per connection (1/sec) — it's the
+  one message a bored crawler would hammer.
+- **Client**: the setup screen's "Join LAN game" panel gains a
+  "Browse open games" section above the code field — list with
+  name/seats/size/age, click → seat-pick → the normal waiting room.
+  Empty state: "no public games — ask your host for a code".
+- **Tests**: protocol shape + public-flag filtering (private lobbies
+  NEVER appear), join-from-list lands on the reservation path
+  (protocol test asserts same seat semantics as joinCode), rate-limit
+  case, e2e screenshot of the browse panel with one listed game.
+- **Scope fence**: this is LISTING, not the internet-hardening item —
+  the per-IP join/create limits, connection caps, and lobby expiry
+  from the hosting note become their own pre-DNS item; A41 ships for
+  the LAN/trusted-DNS context first. v2 (multi-host directory) stays
+  parked.
+
+Golden-safe (lobby/protocol/client only). Pairs naturally after A34
+(saves-resume lives in the same host panel) and with A37's lobby
+moderation in place (public listing without kick would be premature —
+A37 lands first by queue order).
+
+## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
 
 The vision: a public server (first a local PC behind the DNS name
 `retromulticiv.kjell.today`, later a Hetzner VM per the user's proven
@@ -871,35 +1008,46 @@ code. Design facts for when this opens:
 Ordering: after the two-machine LAN acceptance; v1 listing pairs
 naturally with A27's lobby work.
 
-## PARKED — Big-lobby scaling probe: 8/12/16 players (user note 2026-07-13, NOT QUEUED)
+## A38 — Big-lobby scaling: probe + raise the cap to 14 (USER GO 2026-07-14)
 
-Before phase-4 grows past friends-on-a-LAN: simulate 8, 12, and 16
-players and measure performance and latency. Facts for whoever designs
-it: the 7-player cap is a soft clamp in exactly three places
-(client/main.js:141 `Math.min(7, …)`, the lobby seat dropdown p1..p7,
-test/sim-driver.js SIM_ROSTER) — data/civs.json already carries 14
-identities, so 8–14 players is a clamp-raise + roster extension.
-DECIDED (user 2026-07-13): beyond the original 14, draw new
-civilizations from **Civ 2/3/4** rosters and adapt each one's
-perk/speciality to our `specialty` schema (`{type: cheapUnit|
-cheapBuilding|…, unit/building, pct, blurb}` — invent new structured
-types only where an adapted perk truly needs one, and keep them
-engine-read like the existing hooks). The local wiki dump covers the
-whole Civilization Fandom wiki, so names/leaders/city lists/perk facts
-extract the licensed way (facts and numbers via tools/wiki2data.js +
-mapdata overlays — never prose). Each new civ ALSO needs a visual{}
-identity (primary/secondary/emblem) — the 14-civ table is the designer
-ally's work and his acceptance criteria apply, so batch the new
-identities through him. What to measure: headless soak ms/turn vs
-player count (today ~60–235 ms/turn at 4 civs on medium/GE), server
-per-command cost (filterView runs once per CONNECTED seat per
-broadcast — it scales players × map tiles), ws fan-out latency with 8+
-live sockets (extend test/server-lan4.test.js's pattern), and
-end-of-round AI time (16 AI turns back-to-back between human turns).
-Also needs a bigger-maps sanity pass (16 starts ≥3 from poles and ≥4
-apart may not FIT below `large`). Golden-impact: none for the probe
-itself if measured on scratch configs; raising the shipped cap touches
-setup/lobby only. Queue it when the two-machine acceptance is done.
+Two halves, one item — measure first, then ship what the numbers
+support.
+
+**Probe (measurements land in a new docs/08 §8 "Scaling" section):**
+- Headless: soak ms/turn at 4 / 8 / 12 / 16 civs (16 via a TEST-ONLY
+  duplicated roster — measurement needs bodies, not distinct flags) on
+  large/xlarge maps, seeded. Measure END-OF-ROUND time separately —
+  the N-AI-turns-between-human-turns number (A30's chunking makes it
+  perceivable; this measures it). Baseline today: ~60–235 ms/turn at
+  4 civs medium/GE.
+- Server: extend the lan4 pattern to 8 live ws clients — join/start/
+  full-round latency and per-command broadcast cost (filterView runs
+  once per CONNECTED seat per push, scaling players × map tiles —
+  measure, don't guess).
+- Mapgen: at which sizes do 8/12/14/16 legal starts (≥3 from poles +
+  the spacing rule) reliably fit? Seed-sweep; produce a civs →
+  minimum-map-size table.
+
+**Ship (gated on the numbers):**
+- Raise the played cap 7 → 14 (data/civs.json already has 14
+  identities): client/main.js:141 clamp, setup civs dropdown, lobby
+  seat list + setSlots clamp, server --civs validation. SIM_ROSTER may
+  extend for the probe BUT its first 4 entries stay byte-identical —
+  the sim goldens slice those; ADD AN ASSERTION.
+- Enforce the civs→min-size table at setup + lobby create (friendly
+  rejection: "12 civilizations need at least a Large map").
+- NOTE the spacing rule changes under my wave-VI engine batch (VI.5,
+  3-ortho/2-diag) — run the mapgen fit sweep AFTER my batch lands, or
+  re-run it then; coordinate by mail on timing.
+
+16 as a SHIPPED option stays out: it needs the Civ 2/3/4 roster
+extension (user decision 2026-07-13: adapt their perks to our
+specialty schema, facts via wiki2data/mapdata — never prose) AND ally
+visual identities — that is a separate future item with his loop.
+
+Done-mail: the measured table (ms/turn, round time, fan-out, fit),
+recommended caps per size, screenshots of a started 12-civ lobby game.
+Golden-safe with the SIM_ROSTER first-4 assertion.
 
 ## A4 — Goody huts (design: docs/04)
 

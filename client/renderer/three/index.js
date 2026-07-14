@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { createUnitMesh, createCityMesh } from './assets.js';
 import { createTileProps, WATER_LEVEL } from './props.js';
 import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
+import { createAnimLayer } from './anim.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
 export function terrainColor(terrainId) {
@@ -53,6 +54,9 @@ export function createRenderer(container) {
   const cityMeshes = new Map();
   const worldGroup = new THREE.Group();
   scene.add(worldGroup);
+  // A28 animation layer: sway/glide/smoke/flash — render-time only, disabled
+  // by the ⚙ "reduce animation" option (setReduceAnimation below)
+  const anim = createAnimLayer(scene, unitMeshes);
 
   const hoverMarker = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, 0.16, 1.02)),
@@ -137,22 +141,27 @@ export function createRenderer(container) {
     return factions[pid] || view.players[pid]?.color || '#ffffff';
   }
 
+  function unitTop(x, y) {
+    // units on water ride the SURFACE, not the sunken basin floor — else the
+    // translucent water plane (A1.6b) washes out their ownership disc
+    return Math.max(tileTop(x, y), WATER_LEVEL + 0.01);
+  }
+
   function buildUnits() {
     for (const mesh of unitMeshes.values()) worldGroup.remove(mesh);
     unitMeshes.clear();
+    anim.resetSway('unit');
     for (const u of Object.values(view.units || {})) {
       const mesh = createUnitMesh(u.type, visualOf(u.owner), {
         veteran: u.veteran === true,
         fortified: u.fortified === true,
         canMove: u.moves > 0
       }); // group, base at y = 0
-      // units on water ride the SURFACE, not the sunken basin floor — else the
-      // translucent water plane (A1.6b) washes out their ownership disc
-      const top = Math.max(tileTop(u.x, u.y), WATER_LEVEL + 0.01);
-      mesh.position.set(u.x, top, u.y);
+      mesh.position.set(u.x, unitTop(u.x, u.y), u.y);
       mesh.userData.unitId = u.id;
       unitMeshes.set(u.id, mesh);
       worldGroup.add(mesh);
+      anim.collectSway('unit', mesh, u.x, u.y);
     }
   }
 
@@ -185,6 +194,8 @@ export function createRenderer(container) {
   function buildCities() {
     for (const mesh of cityMeshes.values()) worldGroup.remove(mesh);
     cityMeshes.clear();
+    anim.resetSway('city');
+    anim.resetSmoke();
     for (const label of cityLabels) {
       worldGroup.remove(label);
       label.material.map.dispose();
@@ -201,6 +212,8 @@ export function createRenderer(container) {
       mesh.userData.cityId = city.id;
       cityMeshes.set(city.id, mesh);
       worldGroup.add(mesh);
+      anim.collectSway('city', mesh, city.x, city.y);
+      anim.addSmoke(city.x, city.y, tileTop(city.x, city.y), city.pop);
       const label = makeCityLabel(String(city.pop), color);
       label.position.set(city.x, tileTop(city.x, city.y) + 1.05, city.y);
       cityLabels.push(label);
@@ -292,7 +305,9 @@ export function createRenderer(container) {
   function loop() {
     if (disposed) return;
     requestAnimationFrame(loop);
-    if (water) water.tick(performance.now()); // wave drift: render time only
+    const now = performance.now();
+    if (water) water.tick(now); // wave drift: render time only
+    anim.tick(now);             // A28 sway/glide/smoke/flash: same clock
     renderer.render(scene, camera);
   }
 
@@ -302,10 +317,26 @@ export function createRenderer(container) {
 
   return {
     setViewState(v) {
+      // A28 movement glide: snapshot logical positions before the rebuild,
+      // then tween any unit that stepped ONE tile (multi-tile jumps and
+      // wrap-seam steps snap, matching setPath's seam rule). Picking is
+      // untouched — castAt resolves from view.units, the logical truth.
+      const prev = {};
+      if (view) {
+        for (const u of Object.values(view.units || {})) prev[u.id] = { x: u.x, y: u.y };
+      }
       view = v;
       buildTiles();
       buildUnits();
       buildCities();
+      for (const u of Object.values(view.units || {})) {
+        const p = prev[u.id];
+        if (!p || (p.x === u.x && p.y === u.y)) continue;
+        if (Math.abs(p.x - u.x) > 1 || Math.abs(p.y - u.y) > 1) continue;
+        anim.glide(u.id,
+          { x: p.x, y: unitTop(p.x, p.y), z: p.y },
+          { x: u.x, y: unitTop(u.x, u.y), z: u.y });
+      }
     },
     // faction visuals (art A1.6a): pid -> data/civs.json `visual` object;
     // players absent from the map keep their plain color
@@ -313,7 +344,20 @@ export function createRenderer(container) {
       factions = map || {};
       if (view) { buildUnits(); buildCities(); }
     },
-    playEvents(_events) { /* step 0: no engine events yet */ },
+    // A28 combat flash: a brief expanding ring at each combat site (the
+    // caller filters to viewer-involved fights — pairs with the A16 linger)
+    playEvents(events) {
+      if (!view) return;
+      for (const e of events || []) {
+        if (e.type === 'combatResolved' && e.x !== undefined) {
+          anim.flashAt(e.x, unitTop(e.x, e.y) + 0.3, e.y);
+        }
+      }
+    },
+    // A28 accessibility: ⚙ "reduce animation" — no sway/smoke/flashes,
+    // movement lands instantly
+    setReduceAnimation(flag) { anim.setEnabled(flag !== true); },
+    animBusy() { return anim.busy(); }, // e2e: is a glide in flight?
     onPick(cb) { pickCb = cb; },
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },

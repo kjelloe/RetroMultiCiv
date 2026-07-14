@@ -22,6 +22,21 @@ Every message has a GLOBAL id hash (8 hex chars, derived from its content,
 identical for every reader) shown next to the sequence number — refer to
 messages by hash across inboxes and sessions; `show <hash-prefix>` prints
 the full message.
+
+FILE LOCKS (the claim protocol, made mechanical — a mail claim carries the
+WHY; the lock registry answers "may I edit this file RIGHT NOW"):
+
+  python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e block"
+  python3 tools/agent-mail.py locks                    # who holds what, with age
+  python3 tools/agent-mail.py unlock client/main.js --as helper
+  python3 tools/agent-mail.py unlock client/main.js --as architect --force
+
+Rules: check `locks` BEFORE editing any shared file (client/, server/,
+shared/, test/browser.test.js); lock what you edit, unlock in your
+done-mail step. A lock held by someone else = mail them or the architect —
+never edit through it. Only the holder (or the architect with --force,
+which logs a broadcast) may unlock. Locks are advisory-but-mandatory
+convention; stale ones (see age) get arbitrated, not ignored.
 """
 import argparse
 import hashlib
@@ -33,6 +48,34 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BOX = os.path.join(ROOT, '.agent-mail')
 LOG = os.path.join(BOX, 'messages.jsonl')
+LOCKS = os.path.join(BOX, 'locks.json')
+
+
+def read_locks():
+    try:
+        with open(LOCKS, encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def write_locks(locks):
+    tmp = LOCKS + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(locks, f, indent=1)
+    os.replace(tmp, LOCKS)
+
+
+def norm_path(path):
+    # registry keys are repo-relative with forward slashes — the same file
+    # must hash to the same key no matter how the caller spelled it
+    ap = os.path.abspath(os.path.join(ROOT, path)) if not os.path.isabs(path) else path
+    return os.path.relpath(ap, ROOT).replace(os.sep, '/')
+
+
+def age_str(ts):
+    mins = int((time.time() - ts) / 60)
+    return f'{mins}m' if mins < 120 else f'{mins // 60}h{mins % 60:02d}m'
 
 
 def read_all():
@@ -112,6 +155,19 @@ def main():
 
     sub.add_parser('who')
 
+    lk = sub.add_parser('lock')
+    lk.add_argument('path', help='file to lock (repo-relative)')
+    lk.add_argument('--as', dest='role', required=True)
+    lk.add_argument('--why', dest='why', default='')
+
+    ul = sub.add_parser('unlock')
+    ul.add_argument('path')
+    ul.add_argument('--as', dest='role', required=True)
+    ul.add_argument('--force', action='store_true',
+                    help='architect arbitration: release someone else\'s lock (broadcasts)')
+
+    sub.add_parser('locks')
+
     a = p.parse_args()
     os.makedirs(BOX, exist_ok=True)
 
@@ -158,6 +214,48 @@ def main():
         roles = sorted({m['from'] for m in msgs} | {m['to'] for m in msgs if m['to'] != 'all'})
         for r in roles:
             print(f'{r}: {len(unread_for(r))} unread')
+
+    elif a.cmd == 'lock':
+        locks = read_locks()
+        key = norm_path(a.path)
+        held = locks.get(key)
+        if held and held['by'] != a.role:
+            sys.exit(f"DENIED: {key} locked by {held['by']} {age_str(held['ts'])} ago"
+                     f" ({held.get('why') or 'no reason given'}) — mail them or the architect")
+        locks[key] = {'by': a.role, 'ts': int(time.time()), 'why': a.why}
+        write_locks(locks)
+        print(f'locked {key} for {a.role}' + (' (renewed)' if held else ''))
+
+    elif a.cmd == 'unlock':
+        locks = read_locks()
+        key = norm_path(a.path)
+        held = locks.get(key)
+        if not held:
+            print(f'{key} was not locked')
+            return
+        if held['by'] != a.role and not a.force:
+            sys.exit(f"DENIED: {key} is {held['by']}'s lock — only they (or --force by the architect) release it")
+        del locks[key]
+        write_locks(locks)
+        print(f'unlocked {key}')
+        if held['by'] != a.role:
+            # forced release is arbitration — everyone hears about it
+            msgs = read_all()
+            msg = {'id': (msgs[-1]['id'] + 1) if msgs else 1, 'ts': int(time.time()),
+                   'from': a.role, 'to': 'all', 'tag': 'fyi',
+                   'text': f"FORCED UNLOCK: {key} (was {held['by']}'s: {held.get('why') or 'no reason'})"}
+            with open(LOG, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(msg) + '\n')
+            print(f"broadcast #{msg['id']} @{msg_hash(msg)}")
+
+    elif a.cmd == 'locks':
+        locks = read_locks()
+        if not locks:
+            print('(no locks held)')
+            return
+        for key in sorted(locks):
+            h = locks[key]
+            print(f"{key}  ·  {h['by']}  ·  {age_str(h['ts'])}  ·  {h.get('why') or '-'}")
 
 
 if __name__ == '__main__':

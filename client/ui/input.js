@@ -1,6 +1,6 @@
 // Input: renderer picks (select / move / attack / stacks) and the keyboard.
 import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '../../engine/combat.js';
-import { candidateTiles, tileYields, wonderActive } from '../../engine/cities.js';
+import { candidateTiles, tileYields, wonderActive, citySpacingOk } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
 import { availableTechs } from '../../engine/tech.js';
 import { canStepTo, stepDir } from './move-hints.js';
@@ -69,6 +69,16 @@ export function initInput(ctx) {
       return { text: '🏛 cannot settle at sea', tiles: null };
     }
     if (cityAt(state, x, y)) return { text: '🏛 a city already stands here', tiles: null };
+    // A29 (VI.12): inside another city's spacing zone founding is illegal —
+    // a rating is noise there, so show plain tile properties instead. KNOWN
+    // cities only: a rival city the viewer has never seen must not change
+    // the readout (that would leak the map through the fog).
+    for (const c of Object.values(state.cities)) {
+      if (!known(c.x, c.y)) continue;
+      if (!citySpacingOk(state.map, x, y, c.x, c.y, ruleset.rules)) {
+        return { text: describeTile(x, y), tiles: null };
+      }
+    }
     // owner matters since governments: the preview rates the site under
     // the viewing player's government (despotism tile penalty etc.)
     const all = candidateTiles(state, { x, y, owner: ctx.HUMAN }, ruleset);
@@ -144,7 +154,7 @@ export function initInput(ctx) {
     inRevolution: 'wait for the revolution to end',
     alreadyGovernment: 'that is already your government',
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
-    tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 4} tiles of spacing — any civilization's city counts`
+    tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
@@ -287,11 +297,23 @@ export function initInput(ctx) {
   let confirmEndTurnUntil = 0;
   async function endTurn() {
     if (ctx.SPECTATOR) return; // A17: view-only — nothing to end
-    const state = session.state;
+    if (!session.state.gameOver && session.state.activePlayer !== ctx.HUMAN) {
+      return; // A29 (VI.6): off-turn no-op — the button is greyed to match
+    }
+    if (!session.state.gameOver && session.state.activePlayer === ctx.HUMAN
+        && session.state.players[ctx.HUMAN] && session.state.players[ctx.HUMAN].human) {
+      // A29 (VI.4): units with standing GoTo orders aren't idle — run their
+      // legs FIRST, then warn only about the truly orderless
+      const routed = Object.values(session.state.units).some(u => u.owner === ctx.HUMAN
+        && u.moves > 0 && !u.working && gotoTargets[u.id] !== undefined);
+      if (routed) await runAllGotos();
+    }
+    const state = session.state; // runAllGotos replaced it (reducer)
     if (!state.gameOver && state.activePlayer === ctx.HUMAN
         && state.players[ctx.HUMAN] && state.players[ctx.HUMAN].human) {
       const movable = Object.values(state.units).filter(
         u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working && !u.fortified
+          && gotoTargets[u.id] === undefined // orders standing = not idle
       );
       if (movable.length > 0 && Date.now() > confirmEndTurnUntil) {
         confirmEndTurnUntil = Date.now() + 5000;

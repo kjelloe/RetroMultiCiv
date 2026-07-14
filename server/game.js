@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createEngine, deepClone } from '../engine/index.js';
 import { runAiTurn } from '../engine/ai.js';
-import { filterView } from '../engine/visibility.js';
+import { filterView, filterEvents } from '../engine/visibility.js';
 import { hashState } from '../shared/statehash.js';
 import { gameCode } from '../shared/gamecode.js';
 
@@ -129,6 +129,12 @@ export function createGame(opts) {
     return filterView(state, playerId);
   }
 
+  // Fog policy for round events (B5): what this seat may hear about.
+  // Spectators and unknown ids fall through to omniscient, like filterView.
+  function eventsFor(playerId, events) {
+    return filterEvents(state, events || [], playerId);
+  }
+
   // docs/07: the 64-bit verification code of the authoritative state. The
   // client can't compute it in server mode (it holds only a filtered view),
   // so the server provides it in the joined reply, save envelope, and
@@ -185,6 +191,7 @@ export function createGame(opts) {
     apply,
     endTurn,
     view,
+    eventsFor,
     code,
     toSave,
     saveTo

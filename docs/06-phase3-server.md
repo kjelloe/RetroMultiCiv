@@ -98,6 +98,15 @@ server). The remote session:
   everything the UI shows today; this formally ends the local-play
   shortcut of reading rival internals, which phase 3 was always meant to
   do).
+- **Events ride the view push** (B5, 2026-07-14): every `{t:'view'}`
+  carries `events` filtered per seat by `engine/visibility.js
+  filterEvents` — the event-fog primitive (world news to all; own-only
+  research; coordinate/party rule otherwise; omniscient spectators get
+  everything; the Luau server reuses it verbatim in phase 5). Frame
+  consumers must treat `msg.events` as OPTIONAL (older servers/saves
+  replay without it). Side effect, deliberate: rival HUMANS' visible
+  actions now reach other seats' turn logs as they happen — turn-log
+  volume in LAN games grew accordingly.
 - `apply(cmd)` returns a **Promise** resolving `{ok, reason?, events}`
   when `applied`/`rejected` arrives. The local session's `apply` gets the
   same Promise shape (resolved synchronously) so the ui has ONE contract.

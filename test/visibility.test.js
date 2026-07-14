@@ -160,3 +160,81 @@ test('omniscient fallback: players without explored arrays see everything', asyn
   assert.strictEqual(view.map.tiles[0].t, 'grassland');
   assert.strictEqual(view.map.tiles[0].visible, true);
 });
+
+// --- filterEvents (B5, shape @9edac2e9): fog policy for round events -------
+// A 10x1 strip: p1's unit at x=0 (visible radius 1), p2's at x=9. Both
+// explored the whole strip, so only the VISIBLE mask separates them.
+function eventsState() {
+  const tiles = [];
+  for (let i = 0; i < 10; i++) tiles.push({ t: 'grassland' });
+  const explored = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+  return {
+    turn: 5, year: -3900, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 10, height: 1, wrapX: false, tiles },
+    units: {
+      u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
+      u2: { id: 'u2', type: 'militia', owner: 'p2', x: 9, y: 0, moves: 1, fortified: false, veteran: false }
+    },
+    cities: {}, cityOrder: [], wonders: {},
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#fff', human: true, gold: 0, techs: [], researching: '', explored: explored.slice() },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: true, gold: 0, techs: [], researching: '', explored: explored.slice() }
+    }
+  };
+}
+
+test('filterEvents: coordinate rule — combat in sight passes, fogged combat is dropped', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  const nearP1 = { type: 'combatResolved', winner: 'attacker', attackerId: 'x1', attackerType: 'militia', attackerOwner: 'p3', defenderId: 'x2', defenderType: 'militia', defenderOwner: 'p4', x: 1, y: 0, unitsLost: 1 };
+  const farFromP1 = Object.assign({}, nearP1, { x: 8 });
+  assert.deepStrictEqual(vis.filterEvents(state, [nearP1], 'p1'), [nearP1], 'combat one tile from p1 unit is visible');
+  assert.deepStrictEqual(vis.filterEvents(state, [farFromP1], 'p1'), [], 'combat across the map is fogged for p1');
+  assert.deepStrictEqual(vis.filterEvents(state, [farFromP1], 'p2'), [farFromP1], 'the same combat is visible to p2');
+});
+
+test('filterEvents: named-party rule — your unit fighting outside your sight is still your news', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  // p1's unit attacked at x=8 (outside p1's visible radius — u1 stands at 0)
+  const myUnitFar = { type: 'combatResolved', winner: 'defender', attackerId: 'u9', attackerType: 'militia', attackerOwner: 'p2', defenderId: 'u7', defenderType: 'militia', defenderOwner: 'p1', x: 8, y: 0, unitsLost: 1 };
+  assert.deepStrictEqual(vis.filterEvents(state, [myUnitFar], 'p1'), [myUnitFar]);
+});
+
+test('filterEvents: world news reaches everyone, techDiscovered stays its own player', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  const events = [
+    { type: 'wonderBuilt', cityId: 'c9', wonder: 'pyramids' },
+    { type: 'playerDefeated', playerId: 'p7' },
+    { type: 'gameOver', winner: 'p2', victory: 'conquest' },
+    { type: 'techDiscovered', playerId: 'p2', tech: 'alphabet' }
+  ];
+  const p1Gets = vis.filterEvents(state, events, 'p1');
+  assert.deepStrictEqual(p1Gets.map(e => e.type), ['wonderBuilt', 'playerDefeated', 'gameOver'],
+    'world news passes, a rival tech does not');
+  const p2Gets = vis.filterEvents(state, events, 'p2');
+  assert.strictEqual(p2Gets.length, 4, 'the discoverer hears their own tech');
+});
+
+test('filterEvents: referenced city/unit coordinates count; spectators hear everything', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  state.cities.c1 = { id: 'c1', name: 'Far', owner: 'p2', x: 8, y: 0, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } };
+  state.cityOrder = ['c1'];
+  const grew = { type: 'cityGrew', cityId: 'c1', pop: 3 }; // no x/y on the event itself
+  assert.deepStrictEqual(vis.filterEvents(state, [grew], 'p1'), [], 'rival city growth beyond sight is fogged');
+  assert.deepStrictEqual(vis.filterEvents(state, [grew], 'p2'), [grew], 'the owner hears it via the city lookup');
+  assert.deepStrictEqual(vis.filterEvents(state, [grew], 'spectator'), [grew], 'omniscient fallback passes everything');
+});
+
+test('filterEvents: an actor\'s own-action events pass unchanged (applied-ack belt and braces)', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  const own = [
+    { type: 'unitMoved', unitId: 'u1', fromX: 0, fromY: 0, toX: 1, toY: 0 },
+    { type: 'unitFortified', unitId: 'u1' }
+  ];
+  const kept = vis.filterEvents(state, own, 'p1');
+  assert.deepStrictEqual(kept, own, 'own-unit events pass the party rule untouched');
+});

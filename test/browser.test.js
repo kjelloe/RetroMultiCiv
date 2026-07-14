@@ -141,6 +141,11 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // docs/07 game verification code: the e2e save shows the persistent toast
     assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
     assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');
+    // B6: the ✕ must genuinely hide the toast — '.hidden' is per-element in
+    // this codebase, and #code-toast shipped without its scoped rule (the
+    // e2e block clicks the ✕ and records the COMPUTED display)
+    assert.match(dom, /toastDisplay: none/,
+      "the toast ✕ must actually dismiss it (computed display, not just the class)");
     assert.match(dom, /errors: 0/,
       'no JavaScript errors during the scripted session (incl. the hover sweep — HUD text may be overwritten, this counter is not)');
     assert.match(dom, /Turn log/, 'the turn log must be present');
@@ -232,10 +237,12 @@ test('browser lobby: host → start → reload boots the game on the named seat'
     const gs = await startGameServer({ seed: 99, civs: 2, humans: 1, size: 'xsmall', autosave: false });
     try {
       const url = `http://127.0.0.1:${gs.port}/client/?e2ehost=1`;
+      // A29 (VI.1): the status line reads "<Civ> (Kjell)" — the parenthesised
+      // name is still the proof that the lobby's seating chart survived
       const dom = await dumpDomLive(chromium, url,
-        h => /turn 1 · 4000 BC · Kjell/.test(h), 25000);
+        h => /turn 1 · 4000 BC · [^·]*\(Kjell\)/.test(h), 25000);
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
-      assert.match(dom, /turn 1 · 4000 BC · Kjell/, 'the reloaded game runs on the lobby-named seat');
+      assert.match(dom, /turn 1 · 4000 BC · [^·]*\(Kjell\)/, 'the reloaded game runs on the lobby-named seat');
       assert.match(dom, /<canvas/, 'the renderer attached after the lobby reload');
       assert.ok(!/id="setup-screen"/.test(dom), 'the setup screen is gone after the boot');
     } finally {
@@ -278,6 +285,82 @@ test('browser hotseat GoTo: queued routes survive hand-offs and only run for the
       assert.strictEqual(cheb(s2x, s2y, f2x, f2y), 2,
         "p2's route must survive p1's turn-start and continue on p2's turn (owner-filtered runAllGotos)");
       assert.match(dom, /errors: 0/, 'no JavaScript errors during the scripted hotseat GoTo session');
+    } finally {
+      server.close();
+    }
+  });
+
+// A28 movement glide: picking must track the LOGICAL tile mid-tween. ?e2e=5
+// (main.js) deselects, steps the settler once, and clicks the destination
+// tile while renderer.animBusy() reports a glide in flight — the unit line
+// must re-appear naming the destination coordinates.
+test('browser mid-glide click: picking tracks the logical tile, not the tween',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&e2e=5&civ=romans`);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      const m = dom.match(
+        /e2e5 moved:(\w+) dest:\((\d+),(\d+)\) busy:(\w+) clearedLine:(\w+) selLine:\[([^\]]*)\] errors:(\d+)/);
+      assert.ok(m, `the e2e=5 probe must report:\n${dom.match(/e2e5 [^<]*/)?.[0] || '(no probe)'}`);
+      const [, moved, dx, dy, busy, clearedLine, selLine, errors] = m;
+      assert.notStrictEqual(moved, '', 'a step direction was accepted');
+      assert.strictEqual(busy, 'true', 'the glide was in flight when the click fired');
+      assert.strictEqual(clearedLine, 'true', 'the far click deselected first');
+      assert.match(selLine, /Settlers/, 'the mid-glide click re-selected the settler');
+      assert.ok(selLine.includes(`(${dx},${dy})`),
+        `the selection names the LOGICAL destination tile (${dx},${dy}): ${selLine}`);
+      assert.strictEqual(errors, '0', 'no page errors during the mid-glide click session');
+    } finally {
+      server.close();
+    }
+  });
+
+// A29 quick wins: ?e2e=6 (main.js) drags the science slider to 100 — the
+// government cap rejects it and the thumb must snap back to the REAL rate
+// (VI.10). The probe also proves the status line carries the civilization
+// (VI.1) and the End-Turn button is enabled on the viewer's own turn (VI.6).
+test('browser A29: slider snapback, civ in the status line, End-Turn enabled on turn',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&e2e=6&civ=romans`);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      const m = dom.match(/e2e6 slider:(\d+) sci:(\d+) status:\[([^\]]*)\] endTurnDisabled:(\w+) errors:(\d+)/);
+      assert.ok(m, `the e2e=6 probe must report:\n${dom.match(/e2e6 [^<]*/)?.[0] || '(no probe)'}`);
+      const [, slider, sci, status, endTurnDisabled, errors] = m;
+      assert.notStrictEqual(sci, '100', 'the capped setRates(100) must have been rejected');
+      assert.strictEqual(slider, sci, 'the slider thumb snapped back to the real science rate');
+      assert.match(status, /Romans/, 'the status line names the viewer civilization');
+      assert.strictEqual(endTurnDisabled, 'false', 'End Turn is live on the viewer own turn');
+      assert.strictEqual(errors, '0', 'no page errors during the A29 probe session');
+    } finally {
+      server.close();
+    }
+  });
+
+// A30 chunked AI rounds: ?e2e=7 (main.js) observes the wait line DURING a
+// local endTurn — it must show "<civ> (AI) is moving" between AI players
+// (the round yields one macrotask per player) and hide again afterwards.
+test('browser A30: the wait line shows the moving AI during a local round',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&civs=3&e2e=7&civ=romans`);
+      assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
+      const m = dom.match(/e2e7 seen:\[([^\]]*)\] hidden:(\w+) errors:(\d+)/);
+      assert.ok(m, `the e2e=7 probe must report:\n${dom.match(/e2e7 [^<]*/)?.[0] || '(no probe)'}`);
+      const [, seen, hidden, errors] = m;
+      assert.match(seen, /\(AI\) is moving/,
+        'the wait line surfaced a moving AI mid-round (the chunking repaint)');
+      assert.strictEqual(hidden, 'true', 'the line hides once the round lands');
+      assert.strictEqual(errors, '0', 'no page errors during the chunked round');
     } finally {
       server.close();
     }

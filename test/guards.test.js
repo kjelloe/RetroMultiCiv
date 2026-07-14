@@ -118,6 +118,20 @@ test('run.ps1: no-args and port-only invocations build a clean ArgumentList (rea
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
+test('agent toolbox: every debugging/*.sh parses and agent-mail.py compiles', () => {
+  const fs = require('fs');
+  const dir = path.join(REPO, 'debugging');
+  const scripts = fs.readdirSync(dir).filter(f => f.endsWith('.sh'));
+  assert.ok(scripts.length >= 7, `expected the toolbox scripts, found ${scripts.length}`);
+  for (const s of scripts) {
+    const res = spawnSync('bash', ['-n', path.join(dir, s)], { encoding: 'utf8' });
+    assert.strictEqual(res.status, 0, `${s} has a bash syntax error:\n${res.stderr}`);
+  }
+  const py = spawnSync('python3', ['-m', 'py_compile', path.join(REPO, 'tools', 'agent-mail.py')],
+    { encoding: 'utf8' });
+  assert.strictEqual(py.status, 0, `agent-mail.py does not compile:\n${py.stderr}`);
+});
+
 test('ages data contract: hand-edited rules.json cannot silently break the tech grant', () => {
   const rules = require('../data/rules.json');
   const techs = require('../data/techs.json');
@@ -148,4 +162,53 @@ test('nightly workflow installs dependencies before testing', () => {
   const jobs = yml.split(/\n  \w+:\n/).length - 1;
   const installs = (yml.match(/npm ci/g) || []).length;
   assert.ok(installs >= 2, `every CI job needs npm ci (found ${installs}; the first nightly failed on exactly this)`);
+});
+
+test('.hidden is per-element: every JS hidden-toggle target has a scoped CSS rule', () => {
+  // One bug family, four shipped instances (A23 setup rows, #code-toast,
+  // #wait-line, #mp-status): classList.add('hidden') on an element with no
+  // matching '#id.hidden' rule silently styles nothing. Cross-reference the
+  // client statically. Conservative: receivers we cannot resolve to an id
+  // are skipped (panels.js's data-close loop targets are .panel anyway), so
+  // a miss here is a REAL hole, not a heuristic artifact.
+  const clientDir = path.join(REPO, 'client');
+  const css = fs.readFileSync(path.join(clientDir, 'style.css'), 'utf8');
+  const html = fs.readFileSync(path.join(clientDir, 'index.html'), 'utf8');
+  const ruled = new Set();
+  for (const m of css.matchAll(/#([\w-]+)\.hidden/g)) ruled.add(m[1]);
+  const panelClassIds = new Set(); // covered by the generic .panel.hidden rule
+  for (const m of html.matchAll(/id="([\w-]+)" class="[^"]*\bpanel\b[^"]*"/g)) panelClassIds.add(m[1]);
+
+  const jsFiles = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'vendor') continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.js')) jsFiles.push(p);
+    }
+  })(clientDir);
+
+  const missing = [];
+  for (const file of jsFiles) {
+    const src = fs.readFileSync(file, 'utf8');
+    const varToId = {};
+    for (const m of src.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*document\.getElementById\('([\w-]+)'\)/g)) varToId[m[1]] = m[2];
+    for (const m of src.matchAll(/(\w+)\.id\s*=\s*'([\w-]+)'/g)) varToId[m[1]] = m[2];
+    for (const m of src.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*document\.querySelector\('#([\w-]+)'\)/g)) varToId[m[1]] = m[2];
+    // JS-created panels: el.className = '... panel ...' extends the covered set
+    for (const m of src.matchAll(/(\w+)\.className\s*=\s*'([^']*)'/g)) {
+      if (varToId[m[1]] && /\bpanel\b/.test(m[2])) panelClassIds.add(varToId[m[1]]);
+    }
+    for (const m of src.matchAll(/([\w.()'-]+)\.classList\.(?:add|remove|toggle)\('hidden'\)|(\w+)\.className\s*=\s*'hidden'/g)) {
+      const recv = (m[1] || m[2]).trim();
+      const inline = recv.match(/^document\.getElementById\('([\w-]+)'\)$/);
+      const id = inline ? inline[1] : varToId[recv];
+      if (!id) continue; // unresolved receiver: out of scope by design
+      if (ruled.has(id) || panelClassIds.has(id)) continue;
+      missing.push(`${path.relative(REPO, file)}: #${id}`);
+    }
+  }
+  assert.deepStrictEqual([...new Set(missing)], [],
+    'these elements toggle .hidden but no scoped rule styles it — add "#<id>.hidden { display: none; }" to client/style.css');
 });

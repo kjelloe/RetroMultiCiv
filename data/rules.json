@@ -36,6 +36,8 @@
   "luxPerStep": 2,
   "specialistOutput": 2,
   "revolutionTurns": 2,
-  "minCityDistance": 4,
+  "minCityDistance": 3,
+  "minCityDiagonal": 2,
+  "capitalCenterTradeBonus": 1,
   "combatRounds": 1
 }

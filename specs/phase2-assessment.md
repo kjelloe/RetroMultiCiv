@@ -219,3 +219,22 @@ Keep the original ten questions, and add:
 7. Could you resume a saved hotseat game without confusion?
 
 Overall: this has progressed far beyond a normal “proof of concept.” The current plan is credible, technically disciplined, and has the right separation between simulation, view, networking, and visual assets. The most valuable next investment is the **player-view projection layer** and its automated tests, because it is the seam that makes hotseat, server multiplayer, and Roblox all fit together cleanly.
+
+---
+
+## APPENDIX — User verdict (recorded by the architect, 2026-07-14; not part of the ally's text above)
+
+Scored from the turn-35 hotseat session (seed 12345, replayed
+hash-exact) and subsequent play through the phase-4 acceptance session:
+
+- **The original ten questions: all good.**
+- **The seven hotseat questions: 6 of 7 pass.** Question 4 (diplomacy/
+  war state when meeting another human) is **not complete — permanent
+  war, no diplomacy as of yet**. This is phase-6+ scope by design
+  (docs/01 §12), not a hotseat defect: the war state is trivially
+  legible because it is the only state. The note transfers to the
+  phase-6 diplomacy design as an acceptance criterion — when diplomacy
+  lands, meeting a human must make the diplomatic state legible.
+
+**Phase 2 is formally ACCEPTED and closed** — with phase 4's
+2026-07-14 acceptance, every phase gate through 4 is passed.

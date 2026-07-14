@@ -150,8 +150,14 @@ export function route(game, msg) {
     return { reply: [rejected(msg.commandId, res.reason)], broadcast: [], viewsChanged: false };
   }
   return {
-    reply: [{ t: 'applied', commandId: msg.commandId, events: res.events || [] }],
+    // the actor's ack: own actions are visible by definition, but run them
+    // through the same fog policy anyway (belt-and-braces, B5 ruling)
+    reply: [{ t: 'applied', commandId: msg.commandId, events: game.eventsFor(playerId, res.events || []) }],
     broadcast: turnBroadcasts(game),
-    viewsChanged: true
+    viewsChanged: true,
+    // raw round events for the socket layer: fanout filters them PER SEAT
+    // and rides them on each view push (B5 — every human's turn log hears
+    // the AI/rival combat their fog allows)
+    events: res.events || []
   };
 }

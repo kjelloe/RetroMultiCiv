@@ -260,11 +260,47 @@ test('foundCity: rejects sites closer than rules.minCityDistance to ANY city', a
     cities: { c1: { id: 'c1', name: 'Rival', owner: 'p2', x: 0, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
     cityOrder: ['c1'], wonders: {}
   });
-  const tooClose = engine.applyCommand(mk(3), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  const tooClose = engine.applyCommand(mk(2), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
   assert.strictEqual(tooClose.ok, false);
-  assert.strictEqual(tooClose.reason, 'tooCloseToCity', 'distance 3 < minCityDistance 4 — any civ counts');
-  const farEnough = engine.applyCommand(mk(4), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
-  assert.strictEqual(farEnough.ok, true, 'distance 4 is legal');
+  assert.strictEqual(tooClose.reason, 'tooCloseToCity', 'orthogonal 2 < minCityDistance 3 — any civ counts');
+  const farEnough = engine.applyCommand(mk(3), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(farEnough.ok, true, 'orthogonal distance 3 is legal');
+});
+
+test('VI.5: the diagonal spacing exception — (2,2) legal, (2,1) not, (1,1) not', async () => {
+  const { engine } = await load();
+  const tiles = [];
+  for (let i = 0; i < 60; i++) tiles.push({ t: 'grassland' });
+  const mk = (x, y) => miniState(tiles, 10, 6, {
+    s1: { id: 's1', type: 'settlers', owner: 'p1', x, y, moves: 1, fortified: false, veteran: false }
+  }, {
+    cities: { c1: { id: 'c1', name: 'Rival', owner: 'p2', x: 2, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}
+  });
+  const diag = engine.applyCommand(mk(4, 4), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(diag.ok, true, 'full diagonal (2,2) is legal under minCityDiagonal 2');
+  const knight = engine.applyCommand(mk(4, 3), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(knight.ok, false, '(2,1): only one axis reaches the diagonal minimum');
+  const near = engine.applyCommand(mk(3, 3), { type: 'foundCity', playerId: 'p1', unitId: 's1' });
+  assert.strictEqual(near.ok, false, '(1,1) stays illegal');
+});
+
+test('VI.2: the capital city square carries the palace trade bonus', async () => {
+  const { engine } = await load();
+  const cities = await import('../engine/cities.js');
+  const tiles = [];
+  for (let i = 0; i < 60; i++) tiles.push({ t: 'grassland' });
+  const state = miniState(tiles, 10, 6, {}, {
+    cities: {
+      c1: { id: 'c1', name: 'Capital', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } },
+      c2: { id: 'c2', name: 'Second', owner: 'p1', x: 7, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1', 'c2'], wonders: {}
+  });
+  const capCenter = cities.workedTiles(state, state.cities.c1, RULESET)[0];
+  const secondCenter = cities.workedTiles(state, state.cities.c2, RULESET)[0];
+  assert.strictEqual(capCenter.yields.trade - secondCenter.yields.trade, 1,
+    'the oldest city (the capital) out-trades an identical second city by exactly the bonus');
 });
 
 test('arctic is an impassable ice wall (user decision 2026-07-13)', async () => {

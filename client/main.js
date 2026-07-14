@@ -332,9 +332,25 @@ initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
-session.onChange(() => {
+// A28: renderer animations honor the ⚙ reduce-animation preference, live
+if (renderer.setReduceAnimation) {
+  renderer.setReduceAnimation(ctx.options.get('reduceAnimation') === true);
+  ctx.options.watch((k, v) => {
+    if (k === 'reduceAnimation') {
+      renderer.setReduceAnimation(v === true);
+      ctx.hud.refresh(); // rebuild so re-enabling re-registers sway/smoke
+    }
+  });
+}
+session.onChange((_state, events) => {
   ctx.hud.refresh();
   ctx.panels.refresh();
+  // A28 combat flash: viewer-involved fights only (fog: rival-vs-rival
+  // battles may sit on tiles this player has never seen) — same filter as
+  // the A16 camera linger it pairs with
+  const combats = (events || []).filter(e => e.type === 'combatResolved'
+    && e.x !== undefined && (e.attackerOwner === ctx.HUMAN || e.defenderOwner === ctx.HUMAN));
+  if (combats.length > 0 && renderer.playEvents) renderer.playEvents(combats);
 });
 
 ctx.hud.refresh();
@@ -404,7 +420,13 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   }
   // docs/07: exercise the save path so the persistent game-code toast renders
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
-  probe.textContent += ' · code: ' + (ctx.gameCode() || 'none')
+  // B6: the toast's ✕ must ACTUALLY hide it — record the computed display
+  // after the click (a class-only check would pass even with no CSS rule)
+  const toastX = document.getElementById('code-toast-x');
+  if (toastX) toastX.click();
+  const toastEl = document.getElementById('code-toast');
+  probe.textContent += ' · toastDisplay: ' + (toastEl ? getComputedStyle(toastEl).display : 'missing')
+    + ' · code: ' + (ctx.gameCode() || 'none')
     + ' · gameId: ' + (session.gameId || 'none') // server's real id (404-fix regression guard)
     + ' · diaglog: ' + session.log.length // recorder captured the commands
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
@@ -520,6 +542,94 @@ if (params.get('e2e') === '3' && firstUnit && firstUnit.type === 'settlers') {
     + ` p2 ${p2start} ${p2arm} ${p2mid} ${u2 ? pos(u2.id) : 'none'}`
     + ` targets ${t1 ? `${t1.tx},${t1.ty}` : 'none'} ${t2 ? `${t2.tx},${t2.ty}` : 'none'}`
     + ` errors: ${capturedErrors.length}`;
+}
+
+// ?e2e=5 (A28): mid-glide click. Deselect, step the settler one tile, then
+// click its DESTINATION tile while the render-layer glide is still in
+// flight — the pick must resolve to the LOGICAL tile (castAt reads
+// view.units, never the tween), re-selecting the settler at its new home
+// mid-animation. The probe carries the destination coords so the test can
+// assert the unit line names the logical tile.
+if (params.get('e2e') === '5' && firstUnit && firstUnit.type === 'settlers') {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const canvas = document.querySelector('#app canvas');
+  const clickCenter = () => {
+    const r = canvas.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { clientX: cx, clientY: cy, bubbles: true }));
+    window.dispatchEvent(new PointerEvent('pointerup', { clientX: cx, clientY: cy, bubbles: true }));
+  };
+  const unitLine = document.getElementById('unit-line');
+  // deselect first (far empty tile), so the mid-glide click must do the
+  // real selection work — the unit line hides on deselect
+  const u0 = session.state.units[firstUnit.id];
+  renderer.centerOn(u0.x + (u0.x > 6 ? -5 : 5), u0.y);
+  clickCenter();
+  const clearedLine = unitLine.classList.contains('hidden');
+  // one step in the first direction the engine accepts; the glide starts in
+  // the same synchronous refresh chain, so no clock ticks before the click
+  let moved = '';
+  for (const dir of ['E', 'W', 'N', 'S', 'NE', 'SE', 'SW', 'NW']) {
+    const r = await session.apply({ type: 'moveUnit', playerId: session.state.activePlayer, unitId: firstUnit.id, dir });
+    if (r.ok) { moved = dir; break; }
+  }
+  const u = session.state.units[firstUnit.id];
+  const busy = renderer.animBusy ? renderer.animBusy() : 'noapi';
+  renderer.centerOn(u.x, u.y); // the destination tile sits under the canvas center
+  clickCenter();
+  probe.textContent = `e2e5 moved:${moved} dest:(${u.x},${u.y}) busy:${busy}`
+    + ` clearedLine:${clearedLine} selLine:[${unitLine.classList.contains('hidden') ? '' : unitLine.textContent}]`
+    + ` errors:${capturedErrors.length}`;
+}
+
+// ?e2e=6 (A29): rate-slider snapback + HUD civ + turn-button state. Drag the
+// science slider to 100 — despotism caps rates, the engine rejects, and the
+// thumb must SNAP BACK to the real rate instead of staying where the drag
+// died. The probe also carries the status line (VI.1 civ format) and the
+// End-Turn disabled state on the viewer's own turn (VI.6: must be enabled).
+if (params.get('e2e') === '6') {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const slider = document.getElementById('rate-slider');
+  slider.value = '100';
+  slider.dispatchEvent(new Event('change', { bubbles: true }));
+  await new Promise(r => setTimeout(r, 150)); // the async reject + snapback
+  const me = session.state.players[ctx.HUMAN];
+  const sciNow = me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate;
+  probe.textContent = `e2e6 slider:${slider.value} sci:${sciNow}`
+    + ` status:[${document.getElementById('hud-status').textContent}]`
+    + ` endTurnDisabled:${document.getElementById('end-turn').disabled}`
+    + ` errors:${capturedErrors.length}`;
+}
+
+// ?e2e=7 (A30): the chunked AI round must repaint the HUD between AI
+// players — a MutationObserver watches the wait line show "<civ> (AI) is
+// moving" DURING a local endTurn, which was impossible while the round ran
+// as one synchronous batch. Two presses: the first is the units-still-have-
+// moves confirmation.
+if (params.get('e2e') === '7') {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const waitEl = document.getElementById('wait-line');
+  let seenText = '';
+  const obs = new MutationObserver(() => {
+    if (!waitEl.classList.contains('hidden') && waitEl.textContent) {
+      seenText = waitEl.textContent;
+    }
+  });
+  obs.observe(waitEl, { attributes: true, childList: true, characterData: true, subtree: true });
+  await ctx.endTurn();
+  await ctx.endTurn();
+  obs.disconnect();
+  probe.textContent = `e2e7 seen:[${seenText}]`
+    + ` hidden:${waitEl.classList.contains('hidden')} errors:${capturedErrors.length}`;
 }
 
 // ?e2e=4 (with &server=1 in a 2-human game): B3 regression — ending my turn

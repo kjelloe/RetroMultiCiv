@@ -252,7 +252,29 @@ unit after End Turn.
   cities median 2 (avg 3.6), techs median 4, stagnant 31/80 = **39%**,
   governments monarchy 41 / despotism 39. Batch 4's lever iterations
   measure against THESE numbers (`debugging/sim/ge-baseline-postA21
-  .jsonl`; architect holds the golden lock as of mail #64).
+  .jsonl`).
+  **ITERATIONS 1–2 MEASURED AND REVERTED (2026-07-14).** Lever 1
+  (disorder ⇒ +10% lux from science; lower-back only at zero unhappy):
+  stagnant 39→45%, median cities 2→1, monarchies 41→34 — the science
+  drain DELAYED the monarchy beeline, which costs more than disorder
+  does; winners sprawled (max 34 cities) while strugglers stalled.
+  Iteration 2 (lever gated OFF under despotism/anarchy — beeline
+  sacred, martial law handles early disorder): repaired the damage
+  (monarchies 45, techs median back to 4, eliminations 20→14% — a real
+  survival effect) but did NOT beat the baseline (stagnant 40%, median
+  cities 1). Both reverted; goldens never moved for the experiments.
+  **MANDATE EXTENDED (user, 2026-07-14): up to 10 intentional
+  iterations, run IN THE BACKGROUND without blocking other work** — so
+  iterations 3+ happen in a scratchpad LAB COPY of the repo (edit the
+  lab's engine, soak the lab, tree stays green); only a lever that
+  BEATS the baseline gets ported into the real tree with a short
+  golden window. Hypothesis ledger for future iterations: (3) the
+  elimination drop from iteration 2 suggests a SURVIVAL lever is real —
+  measure elimination% as a tracked secondary; (4) entertainer
+  assignment in the disordered city only (localized, no empire rate
+  drain); (5) temple-priority in saturated builds under GE; (6) tax-
+  funded rush-buy of temples in disorder cities. Each iteration: one
+  hypothesis, 25-seed GE run, numbers in this ledger.
 
 ## Per-player difficulty (parked 2026-07-13, from lobby wave V.4)
 

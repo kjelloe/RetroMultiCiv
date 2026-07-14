@@ -16,6 +16,10 @@ const DEFAULT_ARTIFACT_DIR = path.join(__dirname, '..', 'debugging', 'sim');
 
 // Fixed roster: stable ids/colors keep goldens stable; civ ids exercise the
 // specialty hooks (startTech, startGold, cheap items, veterans).
+// A38: entries p1–p7 are FROZEN byte-for-byte (the sim goldens run at
+// civs=4 and slice the head; simulation.test.js asserts the first 4) —
+// p8–p14 extend the bench to the full data/civs.json roster so scaling
+// runs (soak --civs up to 14) have bodies.
 const SIM_ROSTER = [
   { id: 'p1', name: 'Romans', color: '#3b7dd8', civ: 'romans' },
   { id: 'p2', name: 'Egyptians', color: '#d8b13b', civ: 'egyptians' },
@@ -23,7 +27,14 @@ const SIM_ROSTER = [
   { id: 'p4', name: 'Zulus', color: '#d84a3b', civ: 'zulus' },
   { id: 'p5', name: 'Babylonians', color: '#9b59d0', civ: 'babylonians' },
   { id: 'p6', name: 'Chinese', color: '#d07f3b', civ: 'chinese' },
-  { id: 'p7', name: 'Mongols', color: '#4fd0c9', civ: 'mongols' }
+  { id: 'p7', name: 'Mongols', color: '#4fd0c9', civ: 'mongols' },
+  { id: 'p8', name: 'Germans', color: '#8a949e', civ: 'germans' },
+  { id: 'p9', name: 'Americans', color: '#4b6bd8', civ: 'americans' },
+  { id: 'p10', name: 'Indians', color: '#d88fd8', civ: 'indians' },
+  { id: 'p11', name: 'Russians', color: '#a8342a', civ: 'russians' },
+  { id: 'p12', name: 'French', color: '#6db3f2', civ: 'french' },
+  { id: 'p13', name: 'Aztecs', color: '#3bc9d8', civ: 'aztecs' },
+  { id: 'p14', name: 'English', color: '#d83b8a', civ: 'english' }
 ];
 
 // Tripwires: generous ceilings that only trip on runaway feedback loops

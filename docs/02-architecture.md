@@ -91,7 +91,16 @@ multiciv/
 │   ├── vendor/            # three.module.min.js (pinned r162, no build step)
 │   ├── main.js            # bootstrap: fetch ruleset, create session, wire UI
 │   ├── session.js         # ★ owns state; apply/endTurn/AI-drive — the seam a
-│   │                      #   socket-backed session replaces in phase 3
+│   │                      #   socket-backed session replaces in phase 3.
+│   │                      #   A30 contract: endTurn chunks one macrotask per
+│   │                      #   AI player (per-player event deltas to onChange;
+│   │                      #   recording byte-identical to the synchronous
+│   │                      #   loop — pinned by test/session.test.js's
+│   │                      #   unchunked twin); apply/endTurn reject
+│   │                      #   'roundInFlight' mid-round; loads notify a
+│   │                      #   synthetic client-only 'stateReplaced' event
+│   │                      #   (BOTH session kinds — the retired empty-notify
+│   │                      #   convention must not come back)
 │   ├── diagnostics.js     # WebGL capability probe (+ ?diag=1 panel)
 │   ├── ui/                # hud, panels (research/city/stack), input,
 │   │                      #   saves (F5/F9 + files), turn log, setup

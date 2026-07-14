@@ -561,6 +561,26 @@ html, body {
   animation: none;
 }
 
+/* A29 (VI.6): off-turn the button is inert (server/hotseat rivals moving);
+   A40 will reuse this look for its greyed "Auto Turn" regency state */
+#end-turn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+#end-turn:disabled:hover {
+  background: #24406b;
+}
+
+/* A29 (VI.6): your turn just arrived — two-three yellow blinks, then normal
+   (hud.js removes the class; ⚙ reduce-animation skips adding it) */
+@keyframes end-turn-arrive {
+  0%, 100% { background: #24406b; color: #cdd8ea; }
+  50% { background: #ffe066; color: #1b2130; }
+}
+#end-turn.pulse {
+  animation: end-turn-arrive 0.55s ease-in-out 3;
+}
+
 /* --- top-right corner: clock + help + options --- */
 #corner-buttons {
   position: absolute;
@@ -862,6 +882,28 @@ html, body {
 }
 
 #flash-banner.hidden {
+  display: none;
+}
+
+/* the persistent game-code toast (ui/saves.js): .hidden is per-element in
+   this codebase — without this rule the ✕ was inert AND the empty toast
+   rendered from creation (B6/B4 family) */
+#code-toast.hidden {
+  display: none;
+}
+
+/* B4 sweep: the other three inert .hidden sites — without these the
+   waiting/skip-vote lines never dismissed and a stale hand-off code
+   could linger (guards.test.js now enforces the whole family) */
+#wait-line.hidden {
+  display: none;
+}
+
+#mp-status.hidden {
+  display: none;
+}
+
+#handoff-code.hidden {
   display: none;
 }
 

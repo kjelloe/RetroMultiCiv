@@ -118,7 +118,9 @@ export function createRemoteSession(opts) {
       if (msg.civs !== undefined) playerCivsMap = msg.civs;
       const wasJoined = joined;
       joined = true;
-      if (wasJoined) notify([]); // reconnect: refresh the view under the ui
+      // reconnect: a wholesale view replacement — the stateReplaced marker
+      // re-baselines subscribers (turn-log contacts), same as a local load
+      if (wasJoined) notify([{ type: 'stateReplaced' }]);
       return { joinedNow: !wasJoined };
     }
     if (msg.t === 'applied') {
@@ -136,10 +138,15 @@ export function createRemoteSession(opts) {
     }
     if (msg.t === 'view') {
       state = augment(msg.view);
-      const events = awaitingEvents || [];
+      // B5: per-seat fog-filtered round events ride the view push, so every
+      // seat's turn log hears the AI/rival actions its fog allows — not just
+      // the seat that ended the round. The applied ack's events still
+      // resolve the actor's Promise (its own HUD notes).
+      const forNotify = msg.events !== undefined ? msg.events : (awaitingEvents || []);
+      const forPromise = awaitingEvents || [];
       awaitingEvents = null;
-      notify(events);                     // ui refreshes on the new state first
-      if (awaiting) { const w = awaiting; awaiting = null; w.resolve({ ok: true, events }); }
+      notify(forNotify);                  // ui refreshes on the new state first
+      if (awaiting) { const w = awaiting; awaiting = null; w.resolve({ ok: true, events: forPromise }); }
       return {};
     }
     if (msg.t === 'gameOver') {

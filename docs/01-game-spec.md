@@ -419,6 +419,13 @@ below is a known, deliberate deviation to be closed in a later slice:
   tax/science/luxuries at anarchy's 60 on the spot (a Monarchy running
   70% science drops to 60 for the interregnum) — found organically by
   the simulation invariant net.
+- **Wave-VI engine pair (2026-07-14)**: the CAPITAL's city square
+  carries +1 trade (`rules.capitalCenterTradeBonus`, applied after the
+  government adjustment — every capital researches from turn one; a
+  deliberate deviation, Civ 1 has no such bonus), and city spacing uses
+  a 3-orthogonal / 2-diagonal metric (`minCityDistance` 3 +
+  `minCityDiagonal` 2: legal iff Chebyshev ≥ 3 or both axes ≥ 2 —
+  user-tuned from playtests, replacing the flat 4).
 - **Starting ages (setup option, A20 2026-07-13)**: Ancient starts at
   4000 BC as always; Renaissance/Industrial/Modern/Space Age fast-forward
   an all-AI world to a year-anchored turn (190/256/305/325 on the A21

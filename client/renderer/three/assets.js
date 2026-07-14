@@ -135,10 +135,17 @@ function pennant(group, visual, x, y, scale) {
   const s = scale || 1;
   const pole = add(group, GEO.pole, NEUTRAL.wood, x, y, 0);
   pole.scale.setScalar(s * 0.8);
-  const flag = add(group, GEO.flag, flagMatFor(visual.primary), x + 0.09 * s, y + 0.24 * s, 0);
+  // flag + emblem dot ride a hinge group at the pole top, so the A28 sway
+  // can flutter them around the pole axis without desyncing the dot; the
+  // rest pose decomposes to the exact same world transforms as before
+  const hinge = new THREE.Group();
+  hinge.position.set(x, y + 0.24 * s, 0);
+  hinge.userData.sway = 1;
+  group.add(hinge);
+  const flag = add(hinge, GEO.flag, flagMatFor(visual.primary), 0.09 * s, 0, 0);
   flag.scale.setScalar(s * 0.8);
   if (visual.emblem) {
-    const dot = add(group, GEO.emblemDisc, flagMatFor(visual.secondary), x + 0.09 * s, y + 0.24 * s, 0.006);
+    const dot = add(hinge, GEO.emblemDisc, flagMatFor(visual.secondary), 0.09 * s, 0, 0.006);
     dot.scale.setScalar(s);
   }
 }
@@ -295,9 +302,14 @@ export function createCityMesh(city, colorOrVisual, isCapital) {
     roof.rotation.y = Math.PI / 4;
   }
   if (isCapital && visual.emblem) {
-    // the capital flies the full CanvasTexture emblem flag (art A1.6a)
+    // the capital flies the full CanvasTexture emblem flag (art A1.6a),
+    // hinged at the pole top for the A28 sway like the pennants
     add(group, GEO.pole, NEUTRAL.stone, 0, 0.42, 0);
-    add(group, GEO.cityFlag, flagTexMatFor(visual), 0.16, 0.62, 0);
+    const hinge = new THREE.Group();
+    hinge.position.set(0, 0.62, 0);
+    hinge.userData.sway = 1;
+    group.add(hinge);
+    add(hinge, GEO.cityFlag, flagTexMatFor(visual), 0.16, 0, 0);
   } else {
     pennant(group, visual, 0, 0.4, 1.15);
   }

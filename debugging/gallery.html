@@ -107,12 +107,32 @@
     };
 
     const renderer = createRenderer(document.getElementById('app'));
+    const q = new URLSearchParams(location.search);
+    // A28: the gallery compares assets at REST POSE by default (byte-stable
+    // screenshots — no sway/smoke). Animation demos opt in:
+    //   ?anim=1       sway + city smoke live
+    //   ?flashdemo=1  re-fires a combat flash between the pop-5/12 cities
+    //   ?glidedemo=1  bounces the row-3 settlers one tile (mid-glide capture)
+    const animOn = q.get('anim') === '1' || q.get('flashdemo') === '1' || q.get('glidedemo') === '1';
+    renderer.setReduceAnimation(!animOn);
     renderer.setFactions(factions);
     renderer.setViewState(view);
     // ?cx=&cy=&zoom= let screenshots frame any region (e.g. the faction grid)
-    const q = new URLSearchParams(location.search);
     renderer.centerOn(parseFloat(q.get('cx')) || 6.5, parseFloat(q.get('cy')) || 7.5);
     renderer.setZoom(parseFloat(q.get('zoom')) || 13);
+    if (q.get('flashdemo') === '1') {
+      const fire = () => renderer.playEvents([{ type: 'combatResolved', x: 5, y: 7 }]);
+      fire();
+      setInterval(fire, 300); // transient outlives any virtual-time capture point
+    }
+    if (q.get('glidedemo') === '1') {
+      let flip = false;
+      setInterval(() => {
+        flip = !flip;
+        units.u1.x = flip ? 1 : 0; // row-3 settlers steps E and back
+        renderer.setViewState(view);
+      }, 300); // 300ms interval vs 200ms glide: most frames are mid-tween
+    }
   </script>
 </body>
 </html>

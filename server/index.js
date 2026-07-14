@@ -149,7 +149,11 @@ export function startServer(opts) {
   function fanout(gameId, out, game) {
     for (const m of out.broadcast) for (const [o, i] of conns) if (i.gameId === gameId) send(o, m);
     if (out.viewsChanged) {
-      for (const [o, i] of conns) if (i.gameId === gameId && i.playerId) send(o, { t: 'view', view: game.view(i.playerId) });
+      for (const [o, i] of conns) if (i.gameId === gameId && i.playerId) {
+        // per-seat fog-filtered round events ride the view push (B5) —
+        // spectators hit filterEvents' omniscient fallback like filterView
+        send(o, { t: 'view', view: game.view(i.playerId), events: game.eventsFor(i.playerId, out.events) });
+      }
       if (autosave) game.saveTo(savePath(gameId));
       // a stale skip vote dies the moment the turn moves off its target
       const e = registry.entryOf(gameId);
@@ -181,7 +185,7 @@ export function startServer(opts) {
     e.skipVote = null;
     if (!res.ok) return;
     broadcastGame(gameId, { t: 'turnSkipped', playerId: seat });
-    fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true }, e.game);
+    fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true, events: res.events || [] }, e.game);
   }
   function skipVoteState(e, gameId) {
     const eligible = eligibleVoters(gameId, e.skipVote.target);

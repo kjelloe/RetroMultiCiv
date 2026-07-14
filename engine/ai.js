@@ -16,7 +16,7 @@
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
 import { unitsAt, cityAt, sortIds } from './combat.js';
-import { workedTiles } from './cities.js';
+import { workedTiles, citySpacingOk } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -71,10 +71,9 @@ function canFoundAt(state, x, y, ruleset) {
   if (ruleset.terrain.terrains[tile.t].domain !== 'land') return false;
   if (NEVER_FOUND[tile.t]) return false;
   if (!FOUND_TERRAIN[tile.t] && tile.river !== true) return false;
-  const minDist = ruleset.rules.minCityDistance === undefined ? 3 : ruleset.rules.minCityDistance;
   for (const cid of state.cityOrder || []) {
     const c = state.cities[cid];
-    if (c && chebyshev(state.map, x, y, c.x, c.y) < minDist) return false;
+    if (c && !citySpacingOk(state.map, x, y, c.x, c.y, ruleset.rules)) return false;
   }
   return true;
 }

@@ -120,7 +120,7 @@ test('server: static hosting serves the client files', async () => {
     const html = await fetch(`http://127.0.0.1:${s.port}/client/`).then(r => r.text());
     assert.match(html, /RetroMultiCiv/);
     const rules = await fetch(`http://127.0.0.1:${s.port}/data/rules.json`).then(r => r.json());
-    assert.strictEqual(rules.minCityDistance, 4);
+    assert.strictEqual(rules.minCityDistance, 3);
     const forbidden = await fetch(`http://127.0.0.1:${s.port}/../etc/passwd`);
     assert.notStrictEqual(forbidden.status, 200, 'no path traversal');
     // A22: friendly entry points redirect to /client/ keeping the query
