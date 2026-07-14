@@ -418,11 +418,16 @@ the designer ally's plan:
   the weakest, within his "saturation or secondary accent" criterion);
   rails/irrigation crossing dunes stay legible, foam dashes crisp
   (`debugging/gallery-signoff-{grid,props}.png`).
-- 🔶 **A1.7 — Animation polish** *(queued as A28, 2026-07-13, ally spec
-  §"Art A1.7")*: flag/pennant sway, unit movement glide (render-layer
-  tween, hitboxes stay logical), city smoke, combat flashes, and a
-  "reduce animation" accessibility option — all render-time-only, zero
-  state, zero hash movement.
+- ✅ **A1.7 — Animation polish** *(done 2026-07-14 as A28, ally spec
+  §"Art A1.7")*: flag/pennant sway on hinge sub-groups, 200ms unit
+  movement glides (hitboxes stay logical — proven by a mid-flight
+  click e2e), city smoke at pop ≥ 5, fog-filtered combat flash rings,
+  and the ⚙ "reduce animation" accessibility option — all in the new
+  `renderer/three/anim.js`, render-time-only, zero state, zero hash
+  movement. The gallery boots at REST POSE by default (byte-stable
+  asset comparison); `?anim=1`/`?flashdemo=1`/`?glidedemo=1` opt in.
+  Feel constants (sway 0.18 rad, glide 200ms) await user tuning. The
+  procedural art track is COMPLETE — A2 (.glb models) stays optional.
 - **A2 — Hand-authored `.glb` models** *(post-A1, browser-only)*: Blender →
   GLTFLoader for unit sets, city kits, wonders. **Porting note:** primitive
   Groups map near-1:1 to Roblox Parts (the phase-5 client gets a parallel

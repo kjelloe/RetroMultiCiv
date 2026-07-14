@@ -67,7 +67,9 @@ risky, that IS the signal to split it. One module = one subsystem; keep
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
 ui/{hud,panels,input,saves,turnlog,setup,handoff,options,lobby,
 move-hints,wait-status}. The
-renderer splits renderer/three/{index,assets,props,terrain,factions}. UI reads session.state
+renderer splits renderer/three/{index,assets,props,terrain,factions,anim
+— anim.js is render-time-only motion: clock+position phases, never
+engine RNG/state}. UI reads session.state
 and calls session.apply()/endTurn(); session.onChange drives refresh.
 `ctx.HUMAN` is the CURRENT VIEWPOINT (mutable — hotseat hands it between
 players via ctx.setHuman); never cache it in a module-level const. Keyboard
@@ -117,7 +119,9 @@ them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 `debugging/gallery.html` shows every unit silhouette, city tier, tile
 prop, AND the 14-civ faction acceptance grid through the real renderer
-(`?cx/cy/zoom` reposition it) — screenshot it after any change under
+(`?cx/cy/zoom` reposition it; boots at REST POSE so asset shots stay
+byte-comparable — `?anim=1` opts into motion) — screenshot it after any
+change under
 renderer/three/ (terrain.js = the continuous faceted surface; explicit
 per-face normals, NOT flatShading, which needs a WebGL1 extension).
 **Playtest diagnostics:** Shift+D in the client downloads a replayable

@@ -38,8 +38,10 @@ the Done log at the bottom.
   activated as A38 (probe at 4/8/12/16 + shipped cap raised to 14,
   gated on measurements; 16 stays test-only until the Civ 2/3/4
   roster + ally identities).
-- [ ] **Queue decision (b) still open**: find-a-game v1 (public lobby
-  listing — pairs with the A27/A37 lobby work)? Go/hold.
+- [x] 2026-07-14 — Queue decision (b): **find-a-game v1 GO** — A41
+  confirmed in the helper's queue (after A34/A37 by design: listing
+  without kick would be premature). Both post-acceptance decisions
+  now resolved.
 - [ ] **Phase-5 kickoff prerequisite** (when you want the port to
   start): Roblox Studio project + lune toolchain install (approved
   2026-07-12) — docs/09 is otherwise ready and now unblocked.
@@ -70,8 +72,20 @@ the Done log at the bottom.
   2/3/4 rosters, adapt perks to our specialty schema; new visual
   identities go through the designer ally's acceptance loop. Queue
   after the two-machine acceptance.
-- [ ] **Roblox/phase-5 setup**: Studio project, publishing, lune
-  toolchain install for CI (approved 2026-07-12) — when the port starts.
+- [ ] **Phase-5 second gear — the concrete checklist** (none of it
+  blocks the engine twins now running under lune; it becomes blocking
+  only when the Roblox CLIENT/GameServer work starts):
+  1. Install **Roblox Studio** on the Windows machine and sign in
+     (your Roblox account); confirm it opens a Baseplate.
+  2. Create a private **Experience** ("RetroMultiCiv dev") — File →
+     New → save to Roblox as private. No publishing needed.
+  3. **Approve Rojo** (rojo.space) as the dev tool that syncs the
+     repo's `luau/` tree into Studio as ModuleScripts — the ecosystem
+     standard; it's an executable + a Studio plugin, and it would be
+     a whitelist addition like lune was. Alternative for the first
+     client slices: manual ModuleScript copy-paste (workable, tedious).
+  4. That's all — HTTP permissions, publishing, and team-test come
+     much later with the multiplayer port.
 - [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
   ("do it if it helps God-Emperor") — criterion + design sketch recorded
   in docs/04; architect's queue, golden lock required.

@@ -13,8 +13,20 @@ const test = require('node:test');
 const assert = require('node:assert');
 
 const RULESET = require('./ruleset.js');
-const { runSim, checkInvariants, snapshot, loadModules } = require('./sim-driver.js');
+const { runSim, checkInvariants, snapshot, loadModules, SIM_ROSTER } = require('./sim-driver.js');
 const { replayDiagnostics } = require('../tools/replay.js');
+
+// A38: the roster grew to 14 for scaling runs, but the goldens above run at
+// civs=4 and SLICE THE HEAD — the first four entries are load-bearing bytes.
+// Anyone reordering or "fixing" them re-records every golden in this file.
+test('SIM_ROSTER head is frozen: the golden games are built from these bytes', () => {
+  assert.deepStrictEqual(SIM_ROSTER.slice(0, 4), [
+    { id: 'p1', name: 'Romans', color: '#3b7dd8', civ: 'romans' },
+    { id: 'p2', name: 'Egyptians', color: '#d8b13b', civ: 'egyptians' },
+    { id: 'p3', name: 'Greeks', color: '#3bd87d', civ: 'greeks' },
+    { id: 'p4', name: 'Zulus', color: '#d84a3b', civ: 'zulus' }
+  ], 'the sim goldens slice these four — a change here IS a golden re-record');
+});
 
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
