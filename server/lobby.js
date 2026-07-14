@@ -91,9 +91,11 @@ export function createRegistry(deps) {
         seed: options.seed !== undefined ? options.seed : seedFn(),
         allowSpectators: options.allowSpectators === true,
         // A20 starting age (validated against the ruleset; ancient = none)
-        age: ((ruleset.rules && ruleset.rules.ages) || []).some(a => a.id === options.age) ? options.age : 'ancient'
+        age: ((ruleset.rules && ruleset.rules.ages) || []).some(a => a.id === options.age) ? options.age : 'ancient',
+        chat: options.chat !== false // A37: lobby chat, host-toggleable, default ON
       },
-      seats, game: null
+      seats, game: null,
+      blockedIps: {} // A37 kick-and-block: per-game, dies with the entry
     };
     seats.p1.reserved = true;
     seats.p1.name = creatorName || 'Player 1';
@@ -154,6 +156,33 @@ export function createRegistry(deps) {
         s.civ = patch.civ;
       }
     }
+    return { ok: true };
+  }
+
+  // A37: host moderation. Kick frees a reserved seat (LOBBY only — mid-game
+  // seats are the AI-regency design's territory, docs/08 §7); the host's own
+  // seat is not kickable. The connection cleanup + {t:'kicked'} notify is
+  // index.js's job — the registry only owns the seat state.
+  function kick(gameId, seat, hostSeat) {
+    const e = games[gameId];
+    if (!e) return { ok: false, reason: 'noSuchGame' };
+    if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
+    const s = e.seats[seat];
+    if (!s) return { ok: false, reason: 'noSuchSeat' };
+    if (seat === hostSeat) return { ok: false, reason: 'cannotKickHost' };
+    if (!s.reserved) return { ok: false, reason: 'seatNotReserved' };
+    s.reserved = false;
+    s.name = null;
+    return { ok: true };
+  }
+  function blockIp(gameId, ip) {
+    const e = games[gameId];
+    if (e && typeof ip === 'string' && ip.length > 0) e.blockedIps[ip] = true;
+  }
+  function setChat(gameId, on) {
+    const e = games[gameId];
+    if (!e) return { ok: false, reason: 'noSuchGame' };
+    e.options.chat = on === true;
     return { ok: true };
   }
 

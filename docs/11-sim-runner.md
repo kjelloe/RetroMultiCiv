@@ -1,10 +1,9 @@
 # The sim-runner agent — role spec (docs/11, spawn-when-needed)
 
 Written 2026-07-14 (user offered a fifth local agent for simulation
-offloading). NOT SPAWNED YET — the trigger is phase 5 reaching replay
-parity gates (P5-2+), when every port slice needs scenario + golden
-re-runs through the slow Luau interpreter. This file is the role
-prompt when that day comes; until then it just exists.
+offloading). **SPAWNED 2026-07-14** on the Roblox PC, ahead of the
+original trigger (P5-2+ replay-parity gates) — first job was a
+hardware-calibration soak that doubles as the loop's smoke test.
 
 **Placement (user decision 2026-07-14): the Roblox PC** — alongside
 the roblox-helper, connected through the mail hub

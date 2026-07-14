@@ -12,6 +12,10 @@ const GLIDE_MS = 200;
 const FLASH_MS = 420;
 const SMOKE_POP = 5;          // cities this size and up show chimney wisps
 const SMOKE_RISE = 0.45;
+const SWAY_Y_AMP = 0.18;      // flag flutter around the pole axis (radians)
+const SWAY_Y_HZ = 1.8;
+const SWAY_Z_AMP = 0.04;      // the small ripple component
+const SWAY_Z_HZ = 2.6;
 
 let smokeTex = null;
 function smokeTexture() {
@@ -124,8 +128,8 @@ export function createAnimLayer(scene, unitMeshes) {
     const t = now / 1000;
     for (const kind of ['unit', 'city']) {
       for (const e of sway[kind]) {
-        e.node.rotation.y = Math.sin(t * 1.8 + e.phase) * 0.18;
-        e.node.rotation.z = Math.sin(t * 2.6 + e.phase) * 0.04;
+        e.node.rotation.y = Math.sin(t * SWAY_Y_HZ + e.phase) * SWAY_Y_AMP;
+        e.node.rotation.z = Math.sin(t * SWAY_Z_HZ + e.phase) * SWAY_Z_AMP;
       }
     }
     for (const s of smoke) {

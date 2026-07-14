@@ -73,7 +73,17 @@ the Done log at the bottom.
   can validate the rendering design beyond visuals — tell him it's
   coming, and that the rendering CODE is already public in the repo
   under `client/renderer/three/` (the export gives him the
-  declarative tables with a schema, not a code dump).
+  declarative tables with a schema, not a code dump). HIS THIRD
+  FEEDBACK ROUND (2026-07-14) is APPLIED: all four wording edits in
+  plan-update (canonical-contract phrasing, phase-4 code-vs-replay
+  distinction, local-vs-LAN Try-it split, the 14-seats line) and both
+  technical adoptions in docs/09 (dispatcher-early port order +
+  static-data checksum gate; the first-divergence report contract).
+  FOR HIS A1.7 VISUAL REVIEW he asked for the PNGs: send
+  debugging/anim-a28-{rest,live}.png + a fresh ?anim=1 gallery shot,
+  and his five checks are listed in his message (readability during
+  movement, smoke/water occlusion, flash clarity, zoom identify,
+  ivory-on-snow).
 - [x] 2026-07-14 — Old recordings cleanup done (pre-2026-07-12 files
   removed from `debugging/logs/`).
 

@@ -87,7 +87,8 @@ the run short of 400.
   `revolutionTurns` implies government anarchy; workers arrays ≤ pop with
   valid unique candidate indices; taxmen+scientists+workers ≤ pop.
 - fog: explored arrays are width×height of 0/1.
-- tripwires against runaway feedback loops: pop ≤ 40, total units ≤ 600,
+- tripwires against runaway feedback loops: pop ≤ 40, total units ≤ 1000
+  (recalibrated from 600 when batch-4's AI made thriving empires bigger),
   gold ≤ 100000 (generous — they exist to catch exponential bugs, not to
   tune balance).
 - turn/year advance by exactly 1/20 per round.
@@ -133,6 +134,13 @@ failing the test (gitignored, e.g. `debugging/sim/`):
   into the browser** to inspect the broken world with the full UI.
 - `sim-<seed>.diag.json` — diagnostics format (initial state + round log +
   hashes) so `tools/replay.js` can bisect where things went wrong.
+
+Both envelopes are SELF-DESCRIBING since B9 (2026-07-14): they embed
+the failing turn and the invariant problem strings VERBATIM (`sim.
+problems` in the diag; `simFailure {seed, reason, turn, problems}` in
+the save) — an artifact in hand is the diagnosis in hand, even three
+days later with no terminal transcript (the gap cost a 7-minute
+re-simulation once; never again).
 
 The assertion message carries seed, turn, player, and the offending entity.
 

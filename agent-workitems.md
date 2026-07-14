@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 216 tests), the item's own verification steps pass, related
+   (currently 218 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -76,7 +76,7 @@ needs a "close enough" is a wrong twin. Golden-safe (nothing touches
 the JS engine). Done-mail: the three gate values as printed by Luau,
 plus any trap-list additions you discover — docs/09 wants them.
 
-### P5-2 — json2lua + the scenario-runner twin (assigned: bugfixer; docs/09 §4 step 4)
+### P5-2 — json2lua + the scenario-runner twin (assigned: bugfixer; docs/09 §4 step 4)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — GATE MET first run: all ten scenario setups + a messy crafted save hash IDENTICALLY in Node and Luau (diff of both tables: zero differences). luau/json2lua.luau (pure-Luau JSON parser, arrays ARRAY_MT-marked at the token where []-vs-{} is knowable, NULL sentinel for scenario expects, assertState enforces the contract), luau/scenario-runner.luau (buildSetup/hashSetup; script execution lands with P5-3 engines), luau/scenario-hashes.luau (lune harness), luau-twins gate test. 002 (seed setup) hashes the raw setup object both sides until mapgen ports. Suite 221/221]
 
 The harness before more engine — two deliverables, one compound gate:
 
@@ -1065,7 +1065,7 @@ Golden-safe (lobby/protocol/client only). Pairs naturally after A34
 moderation in place (public listing without kick would be premature —
 A37 lands first by queue order).
 
-## A43 — Machine-readable render spec for the designer ally (user request 2026-07-14)
+## A43 — Machine-readable render spec for the designer ally (user request 2026-07-14)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — tools/render-spec.js source-slices the browser-ESM tables (brace-matched literals, evaluated standalone) → specs/render-spec.json v1 (12.5KB, no timestamps = byte-stable): terrain.tiles+waterLevel+SEGS, 14 factions + emblem names + isLightColor threshold PARSED not restated, 18 GEO primitives, 11 neutrals, 7 type-classes, CITY_TIERS, prop colors, A28 anim constants. Nine builders + prop placement honestly {procedural:true}+description (flat lists would carry wrong dimensions). One refactor: anim.js inline sway numbers → named constants, byte-neutrality PROVEN (gallery rest-pose cmp identical). Drift guard regenerate-and-compare + shape test; specs/render-spec.md pointer map. Suite 220/220.]
 
 The ally wants to validate the rendering DESIGN through his own
 system, not just by looking at screenshots: the declarative specs +

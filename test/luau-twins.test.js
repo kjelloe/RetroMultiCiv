@@ -36,3 +36,83 @@ test('luau twins: rng + statehash + gamecode reproduce the phase-5 anchors under
     assert.match(out, /emptyarray: \{"a":\[\],"b":\{\}\}\n/,
       'ARRAY_MT-marked empty tables must serialize as [] and plain empties as {}');
   });
+
+// P5-2 gate: every scenario's setup hashes IDENTICALLY in Node and Luau —
+// json2lua's array/object/integer fidelity is what's really under test
+// (inline states are contract-asserted; seed setups hash the raw setup
+// object until the engine ports land, same rule both sides). Plus one
+// deliberately MESSY save state — tidy scenario states won't find what
+// empty arrays, empty objects, and deep nesting will.
+test('luau json2lua: all ten scenario setups and a messy save hash equal in both languages',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const fs = require('fs');
+    const os = require('os');
+    const { hashState } = await import('../shared/statehash.js');
+
+    // the messy save: every state-contract shape that has bitten before
+    const messyState = {
+      version: 1, turn: 42, year: -3160, activePlayer: 'p1',
+      playerOrder: ['p1', 'p2'],
+      map: {
+        width: 3, height: 2, wrapX: true,
+        tiles: [
+          { t: 'grassland', special: true }, { t: 'ocean' },
+          { t: 'hills', mine: true, road: true }, { t: 'desert', irrigation: true },
+          { t: 'grassland', river: true, railroad: true, road: true }, { t: 'arctic' }
+        ]
+      },
+      units: {
+        u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 0, fortified: false, veteran: true, home: 'c1' },
+        u10: { id: 'u10', type: 'militia', owner: 'p2', x: 2, y: 1, moves: 1, fortified: true, veteran: false }
+      },
+      cities: {
+        c1: {
+          id: 'c1', name: 'Messy Town (test)', owner: 'p1', x: 2, y: 0,
+          pop: 5, food: 0, shields: 13,
+          buildings: [], workers: [0, 4], taxmen: 1,
+          producing: { kind: 'wonder', id: 'pyramids' }
+        }
+      },
+      cityOrder: ['c1'], wonders: {},
+      nextUnitId: 11, nextCityId: 2,
+      players: {
+        p1: {
+          id: 'p1', name: 'A', color: '#3b7dd8', human: true, alive: true,
+          gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50,
+          explored: [1, 1, 1, 0, 0, 1], government: 'monarchy'
+        },
+        p2: {
+          id: 'p2', name: 'B "quoted"', color: '#d84a3b', human: false, alive: true,
+          gold: 100000, techs: ['alphabet', 'bronze-working'], researching: 'currency',
+          bulbs: 7, taxRate: 60, sciRate: 40, explored: [0, 0, 0, 0, 0, 0]
+        }
+      },
+      rngState: 2463534242
+    };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-p52-'));
+    const savePath = path.join(dir, 'messy.save.json');
+    fs.writeFileSync(savePath, JSON.stringify({ format: 'retromulticiv-save', turn: 42, state: messyState }));
+    try {
+      const res = spawnSync('lune', ['run', 'luau/scenario-hashes.luau', savePath],
+        { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+      assert.strictEqual(res.status, 0, `harness failed:\n${res.stdout}\n${res.stderr}`);
+      const luauHashes = {};
+      for (const line of res.stdout.trim().split('\n')) {
+        const m = line.match(/^(\S+): (0x[0-9a-f]{8})$/);
+        if (m) luauHashes[m[1]] = m[2];
+      }
+      const scenarioDir = path.join(REPO, 'test', 'scenarios');
+      const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
+      assert.strictEqual(files.length, 10, 'the ten scenarios');
+      for (const f of files) {
+        const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
+        const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
+        assert.strictEqual(luauHashes[f], nodeHash,
+          `${f}: Luau ${luauHashes[f]} != Node ${nodeHash} — json2lua fidelity broke`);
+      }
+      assert.strictEqual(luauHashes['save:messy.save.json'], hashState(messyState),
+        'the messy save state must hash identically (empty arrays/objects, quotes, deep nesting)');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });

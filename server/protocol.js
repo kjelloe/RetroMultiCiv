@@ -53,6 +53,24 @@ export function parseMessage(raw) {
     if (!Number.isInteger(msg.civs)) return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // A37: lobby chat + host moderation. Chat text is HARD-capped here (200
+  // chars) so oversized frames never reach routing; chat is transient lobby
+  // traffic and NEVER enters game state.
+  if (msg.t === 'chat') {
+    if (typeof msg.text !== 'string' || msg.text.length === 0 || msg.text.length > 200) {
+      return { ok: false, code: 'badShape' };
+    }
+    return { ok: true, msg };
+  }
+  if (msg.t === 'setChat') {
+    if (typeof msg.on !== 'boolean') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
+  if (msg.t === 'kick') {
+    if (typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {

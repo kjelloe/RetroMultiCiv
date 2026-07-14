@@ -87,14 +87,40 @@ the one auth simplification the platform gives us for free).
 
 1. `rng` → GATE: golden sequence.
 2. `statehash` → GATE: `0x30db1e29`. 3. `gamecode` → GATE: the A11 anchors.
-4. `json2lua` + scenario-runner twin (harness before more engine).
+4. `json2lua` + scenario-runner twin (harness before more engine) —
+   AMENDED 2026-07-14 (ally review caught a sequencing hole we walked
+   past): this step also ports a MINIMAL `index` — the applyCommand
+   DISPATCHER shell with rejections for unknown commands — because the
+   scenario runner cannot execute script steps without it; rule
+   modules then land as dispatcher entries one batch at a time.
+   ADDITIONAL GATE (ally): static-data checksums — every
+   `data/*.json` canonical-hashed identically in both languages
+   (json2lua exercised on real ruleset shapes, not just states).
 5. `visibility`, `government`, `combat` (needs rng), `improvements`,
    `happiness`, `cities`, `tech`, `movement`, `barbarians`, `score` —
    GATE per batch: scenarios 001–010 go green progressively.
-6. `ai`, `mapgen`, `index` → GATE: scenario 002 (mapgen golden), then the
-   sim-driver twin reproduces ALL FOUR checkpoint goldens, then replay
-   conformance on real recordings (g530734 et al.) — the same
-   `tools/replay.js` verdict, now cross-language.
+6. `mapgen` EARLY within this step (ally: same seed → same world,
+   gated by the generated-world canonical hash BEFORE any turn — our
+   scenario 002 golden is exactly that gate), then `ai`, then full
+   `index` → the sim-driver twin reproduces ALL FOUR checkpoint
+   goldens, then replay conformance on real recordings — the same
+   `tools/replay.js` verdict, now cross-language. AI PORTS LAST and
+   is not needed for early validation: the Luau engine replays
+   browser-RECORDED commands (human and AI alike), so both AIs never
+   need to "think alike" — they need to REPLAY alike (ally's framing;
+   it was always the design, now it's stated).
+
+### The first-divergence report (ally contract, 2026-07-14)
+
+Cross-language failures must be repair loops, not archaeology. On any
+hash mismatch, the harness emits: replay version + fixture name;
+command number / turn / acting seat; the command payload; the JS
+canonical hash AND the Luau canonical hash; the FIRST canonical
+path/value that differs (walk the two canonical strings to the first
+byte, then name the state path it sits in); RNG state before and
+after the command; and, where relevant, the filtered player-view hash
+too. The P5-2 scenario-runner twin shapes its failure output for this
+contract from day one.
 
 ## 5. Harness & CI (one open decision — human input)
 

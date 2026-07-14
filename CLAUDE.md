@@ -152,7 +152,7 @@ every turn, golden checkpoint
 hashes at 100/200/300/400 = phase-5 Luau anchors; ~45 s; design + golden
 re-record process in `docs/05-simulation-test.md`; failure artifacts in
 `debugging/sim/` are drag-droppable saves + `tools/replay.js`-bisectable
-diags; wide net: `node tools/soak.js --seeds 25` — parallel via `--jobs`,
+diags, SELF-DESCRIBING since B9 (embedded verbatim invariant text); wide net: `node tools/soak.js --seeds 25` — parallel via `--jobs`,
 telemetry via `--stats`, stress via `--difficulty godemperor`, victory
 check via `--natural`; nightly CI runs the last two,
 `.github/workflows/nightly-soak.yml`), the **phase-3 server tests**

@@ -1,0 +1,568 @@
+{
+  "schema": {
+    "version": 1,
+    "generatedBy": "tools/render-spec.js — regenerate after any renderer table change",
+    "fields": {
+      "terrain": "tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = mesh density (terrain.js SEGS)",
+      "factions": "data/civs.json visual{} per civ id + flat color; lightColor = luminance rule forcing dark rims on light primaries (factions.js)",
+      "models": "shared primitive geometries (three.js constructor args), neutral material colors, unit-type → silhouette class map, city growth tiers; builders that resist declarative capture are procedural:true with a description (assets.js)",
+      "props": "tile decoration colors (props.js PROP_COLOR); placement is deterministic visualRand(x,y,salt) — procedural by design",
+      "anim": "A28 render-time animation constants (anim.js); all phases derive from clock + position, never game state"
+    }
+  },
+  "terrain": {
+    "tiles": {
+      "ocean": {
+        "base": -0.18,
+        "jitter": 0.01,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#1d4e79",
+          "#1a4870",
+          "#225a86"
+        ]
+      },
+      "grassland": {
+        "base": 0.05,
+        "jitter": 0.05,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#4c9a3f",
+          "#57a848",
+          "#428a37"
+        ]
+      },
+      "plains": {
+        "base": 0.05,
+        "jitter": 0.05,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#c2b46b",
+          "#cbbd76",
+          "#b7a960"
+        ]
+      },
+      "forest": {
+        "base": 0.08,
+        "jitter": 0.06,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#2d6a35",
+          "#33743c",
+          "#27602f"
+        ]
+      },
+      "hills": {
+        "base": 0.26,
+        "jitter": 0.1,
+        "peak": 0.1,
+        "dunes": false,
+        "palette": [
+          "#96854f",
+          "#a08f58",
+          "#8a7a47"
+        ]
+      },
+      "mountains": {
+        "base": 0.55,
+        "jitter": 0.2,
+        "peak": 0.35,
+        "dunes": false,
+        "palette": [
+          "#8c8c94",
+          "#7f7f86",
+          "#9a9aa2"
+        ]
+      },
+      "desert": {
+        "base": 0.05,
+        "jitter": 0.03,
+        "peak": 0,
+        "dunes": true,
+        "palette": [
+          "#d9c27e",
+          "#e2cd8a",
+          "#cdb671"
+        ]
+      },
+      "tundra": {
+        "base": 0.04,
+        "jitter": 0.04,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#b0b8a8",
+          "#a5ad9d",
+          "#bbc3b3"
+        ]
+      },
+      "arctic": {
+        "base": 0.1,
+        "jitter": 0.06,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#e8eef0",
+          "#dde4e7",
+          "#f2f7f8"
+        ]
+      },
+      "swamp": {
+        "base": 0.02,
+        "jitter": 0.03,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#5d7a5a",
+          "#546f52",
+          "#668563"
+        ]
+      },
+      "jungle": {
+        "base": 0.08,
+        "jitter": 0.06,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#3f7d46",
+          "#46884e",
+          "#38723f"
+        ]
+      },
+      "unknown": {
+        "base": 0,
+        "jitter": 0,
+        "peak": 0,
+        "dunes": false,
+        "palette": [
+          "#0a0e16"
+        ]
+      }
+    },
+    "waterLevel": -0.02,
+    "gridSegmentsPerTile": 2
+  },
+  "factions": {
+    "lightColor": {
+      "rule": "luminance 0.299r+0.587g+0.114b",
+      "threshold": 150,
+      "effect": "dark rim under base disc / dark ground ring under cities"
+    },
+    "emblems": [
+      "sun",
+      "wave",
+      "oak",
+      "star",
+      "wheel",
+      "mountain",
+      "chevron",
+      "hammer",
+      "tower",
+      "diamond",
+      "crescent",
+      "spiral",
+      "flame",
+      "rune"
+    ],
+    "civs": {
+      "americans": {
+        "primary": "#218C8C",
+        "secondary": "#FFE0A3",
+        "emblem": "chevron",
+        "color": "#4b6bd8"
+      },
+      "aztecs": {
+        "primary": "#3F8F4A",
+        "secondary": "#F0E2B6",
+        "emblem": "oak",
+        "color": "#3bc9d8"
+      },
+      "babylonians": {
+        "primary": "#C9822B",
+        "secondary": "#3F2A16",
+        "emblem": "wheel",
+        "color": "#b13bd8"
+      },
+      "chinese": {
+        "primary": "#6B4BB3",
+        "secondary": "#E6D7FF",
+        "emblem": "star",
+        "color": "#d8d83b"
+      },
+      "egyptians": {
+        "primary": "#F0E6C8",
+        "secondary": "#2C2C35",
+        "emblem": "tower",
+        "color": "#d8b13b"
+      },
+      "english": {
+        "primary": "#2F6FB3",
+        "secondary": "#D9EEF7",
+        "emblem": "wave",
+        "color": "#d83b8a"
+      },
+      "french": {
+        "primary": "#C24C7A",
+        "secondary": "#FFD6E6",
+        "emblem": "diamond",
+        "color": "#6db3f2"
+      },
+      "germans": {
+        "primary": "#5F6872",
+        "secondary": "#E8EEF2",
+        "emblem": "mountain",
+        "color": "#8a949e"
+      },
+      "greeks": {
+        "primary": "#1F4F99",
+        "secondary": "#F5D36C",
+        "emblem": "crescent",
+        "color": "#3bd875"
+      },
+      "indians": {
+        "primary": "#758A35",
+        "secondary": "#F4E9C1",
+        "emblem": "spiral",
+        "color": "#d88fd8"
+      },
+      "mongols": {
+        "primary": "#66AFC2",
+        "secondary": "#1D3340",
+        "emblem": "rune",
+        "color": "#d8703b"
+      },
+      "romans": {
+        "primary": "#B83C3C",
+        "secondary": "#F2C66D",
+        "emblem": "sun",
+        "color": "#3b7dd8"
+      },
+      "russians": {
+        "primary": "#8E2F45",
+        "secondary": "#FFB36B",
+        "emblem": "flame",
+        "color": "#d84a3b"
+      },
+      "zulus": {
+        "primary": "#7A4B2A",
+        "secondary": "#F0B85A",
+        "emblem": "hammer",
+        "color": "#b0632f"
+      }
+    }
+  },
+  "models": {
+    "geometries": {
+      "baseDisc": {
+        "shape": "Cylinder",
+        "args": [
+          0.3,
+          0.3,
+          0.07,
+          12
+        ]
+      },
+      "body": {
+        "shape": "Cone",
+        "args": [
+          0.17,
+          0.42,
+          8
+        ]
+      },
+      "head": {
+        "shape": "Sphere",
+        "args": [
+          0.1,
+          10,
+          8
+        ]
+      },
+      "spear": {
+        "shape": "Cylinder",
+        "args": [
+          0.015,
+          0.015,
+          0.7,
+          6
+        ]
+      },
+      "spearTip": {
+        "shape": "Cone",
+        "args": [
+          0.05,
+          0.12,
+          4
+        ]
+      },
+      "wagonBody": {
+        "shape": "Box",
+        "args": [
+          0.5,
+          0.18,
+          0.3
+        ]
+      },
+      "wagonTop": {
+        "shape": "Cylinder",
+        "args": [
+          0.14,
+          0.14,
+          0.44,
+          10
+        ]
+      },
+      "wheel": {
+        "shape": "Cylinder",
+        "args": [
+          0.09,
+          0.09,
+          0.04,
+          10
+        ]
+      },
+      "fallback": {
+        "shape": "Cylinder",
+        "args": [
+          0.2,
+          0.24,
+          0.5,
+          8
+        ]
+      },
+      "pole": {
+        "shape": "Cylinder",
+        "args": [
+          0.012,
+          0.012,
+          0.7,
+          6
+        ]
+      },
+      "flag": {
+        "shape": "Plane",
+        "args": [
+          0.22,
+          0.13
+        ]
+      },
+      "wallRing": {
+        "shape": "Torus",
+        "args": [
+          0.42,
+          0.05,
+          6,
+          16
+        ]
+      },
+      "box": {
+        "shape": "Box",
+        "args": [
+          1,
+          1,
+          1
+        ]
+      },
+      "roof": {
+        "shape": "Cone",
+        "args": [
+          1,
+          1,
+          4
+        ]
+      },
+      "emblemDisc": {
+        "shape": "Circle",
+        "args": [
+          0.042,
+          10
+        ]
+      },
+      "baseRim": {
+        "shape": "Torus",
+        "args": [
+          0.3,
+          0.016,
+          6,
+          18
+        ]
+      },
+      "shieldChip": {
+        "shape": "Box",
+        "args": [
+          0.09,
+          0.11,
+          0.02
+        ]
+      },
+      "cityFlag": {
+        "shape": "Plane",
+        "args": [
+          0.3,
+          0.3
+        ]
+      }
+    },
+    "neutralColors": {
+      "wood": "#6b4a2a",
+      "wheel": "#4a3319",
+      "canvas": "#e8e0cc",
+      "cloth": "#8b93a5",
+      "skin": "#d7a27d",
+      "metal": "#b8b8b8",
+      "stone": "#c2ab82",
+      "house": "#e1d0ad",
+      "horse": "#7a5230",
+      "hull": "#8a8f96",
+      "darkMetal": "#5a5f52"
+    },
+    "typeClasses": {
+      "wagon": [
+        "settlers",
+        "caravan",
+        "diplomat"
+      ],
+      "foot": [
+        "militia",
+        "phalanx",
+        "legion",
+        "musketeers",
+        "riflemen",
+        "mech-inf"
+      ],
+      "mounted": [
+        "cavalry",
+        "knights",
+        "chariot"
+      ],
+      "siege": [
+        "catapult",
+        "cannon",
+        "artillery"
+      ],
+      "sail": [
+        "trireme",
+        "sail",
+        "frigate",
+        "transport"
+      ],
+      "powered": [
+        "ironclad",
+        "cruiser",
+        "battleship",
+        "carrier"
+      ],
+      "air": [
+        "fighter",
+        "bomber",
+        "nuclear"
+      ]
+    },
+    "cityTiers": [
+      {
+        "minPop": 1,
+        "houses": 3,
+        "scale": 1
+      },
+      {
+        "minPop": 4,
+        "houses": 6,
+        "scale": 1.1
+      },
+      {
+        "minPop": 8,
+        "houses": 9,
+        "scale": 1.25
+      },
+      {
+        "minPop": 16,
+        "houses": 12,
+        "scale": 1.45
+      },
+      {
+        "minPop": 28,
+        "houses": 15,
+        "scale": 1.7
+      }
+    ],
+    "builders": {
+      "baseToken": {
+        "procedural": true,
+        "description": "ownership disc (faction primary, dimmed when out of moves) + dark rim for light civs + gold veteran rim + fortified shield chip"
+      },
+      "pennant": {
+        "procedural": true,
+        "description": "pole + primary flag + secondary emblem dot on a sway hinge at the pole top"
+      },
+      "wagon": {
+        "procedural": true,
+        "description": "settlers/caravan/diplomat: wood body, canvas roof, four wheels, pennant"
+      },
+      "footSoldier": {
+        "procedural": true,
+        "description": "cone body, sphere head, tilted spear with tip, pennant"
+      },
+      "mounted": {
+        "procedural": true,
+        "description": "box-built horse (body/neck/head/four legs), cone rider, chariot wheels when chariot, pennant"
+      },
+      "siege": {
+        "procedural": true,
+        "description": "armor: hull+turret+barrel; catapult/cannon/artillery: wood platform, two wheels, angled barrel, pennant"
+      },
+      "ship": {
+        "procedural": true,
+        "description": "hull + bow cone; sail: mast+canvas; sub: fin; powered: funnel+bridge; pennant"
+      },
+      "aircraft": {
+        "procedural": true,
+        "description": "fuselage + wings + tail boxes, no pennant"
+      },
+      "city": {
+        "procedural": true,
+        "description": "house ring per CITY_TIERS (angle-spread boxes with roof cones in the faction primary), capital emblem flag or pennant, dark ground ring for light civs, stone wall ring with city-walls"
+      }
+    }
+  },
+  "props": {
+    "colors": {
+      "irrigation": "#5db8e8",
+      "road": "#8a6f4d",
+      "railroad": "#3c3c46",
+      "mine": "#8a8494",
+      "forest": "#1e6b2f",
+      "jungle": "#2f8d3f",
+      "special": "#ffd75e",
+      "fortress": "#b8ab8e",
+      "rock": "#7d7468",
+      "peak": "#63636d",
+      "snow": "#e8eef0",
+      "grassTuft": "#3f8f3f",
+      "dryScrub": "#9d8f55",
+      "tundraScrub": "#9fae9d",
+      "tie": "#2c2620",
+      "mineDoor": "#17130e",
+      "mineBeam": "#6b4a2a",
+      "fieldPatch": "#59a03e",
+      "foam": "#dcecf2"
+    },
+    "placement": {
+      "procedural": true,
+      "description": "deterministic visualRand(x, y, salt) hash — identical across clients, never touches game state"
+    }
+  },
+  "anim": {
+    "glideMs": 200,
+    "flashMs": 420,
+    "smokeMinPop": 5,
+    "smokeRise": 0.45,
+    "swayYAmplitudeRad": 0.18,
+    "swayYHz": 1.8,
+    "swayZAmplitudeRad": 0.04,
+    "swayZHz": 2.6
+  }
+}
