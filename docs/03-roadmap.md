@@ -330,6 +330,15 @@ least one mid-game disconnect/reconnect.
 
 ## Phase 5 — Roblox Luau simulation port with replay conformance testing
 
+> **UNDERWAY (2026-07-14)** — P5-1 landed same-day as the phase opened:
+> `luau/{rng,statehash,gamecode}` passed ALL anchors on the first lune
+> run, and the roblox-helper's R1 then printed the same four anchors
+> inside Roblox Studio — **Node ≡ lune ≡ Studio VM proven**. The
+> engine trap-audit (docs/09 §7) came back clean: pure transliteration
+> ahead, no JS pre-fixes. In flight: P5-2 (json2lua + scenario-runner
+> twin, gated on cross-language setup-state hashes for all ten
+> scenarios) and R2 (first Parts-rendered world).
+
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port
 > order with anchor/scenario/golden gates, and the lune CI harness

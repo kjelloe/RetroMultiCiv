@@ -24,11 +24,13 @@ On the setup screen:
 
 1. **Your civilization** — pick one (each has a small Civ 1-style
    specialty, shown under the picker) or leave Random.
-2. **Civilizations** — how many are in the world (2–7).
+2. **Civilizations** — how many are in the world (2–14; bigger maps seat more).
 3. **Human players: 1 (vs AI)** — this is the single-player setting.
 4. **Map size** (XSmall→Huge), **Difficulty** (Trainer→God-Emperor),
    **Combat calculations** (authentic one-roll Civ 1, or best-of-three
-   for fewer heartbreaking upsets).
+   for fewer heartbreaking upsets), and **Starting age** (Ancient →
+   Space Age — later ages fast-forward the world under AI and hand
+   you a living empire with the prior eras' knowledge).
 5. **World seed** — leave blank for random, or type a number to get a
    reproducible world (share the seed with a friend: same world).
 6. **Start game.**
@@ -59,13 +61,15 @@ player's seat, behind the hand-off cover.
 **Join** with that code, pick seats, and appear by name. The host's
 waiting room is a control panel: toggle each seat between **Open** (a
 human can join it) and **AI**, pick each seat's civilization (or leave
-it Random), resize the game 2–7, and set map size and starting age
+it Random), resize the game (up to 14 on medium+ maps), and set map size and starting age
 right there. Seated players can never be kicked — a taken seat is
 theirs. Start when ready — unfilled seats become AI with real
 civilizations. Mid-game niceties: a 🔔 your-turn banner with a soft
 chime (✕ dismisses, 🔕 mutes — also in ⚙ Options), a calm "⏳ who's
 moving · seconds" line above End Turn (waits past a threshold get a
-turn-log note), a ⏳ waiting banner if someone disconnects (the host
+turn-log note; AI turns tick live too), a filter funnel on the turn
+log (mute save-codes, rival moves, or combat noise per player),
+spectator tooltips on hover (unit stats; city + garrison), a ⏳ waiting banner if someone disconnects (the host
 can skip their turn, or players can vote), and full resume if the
 server restarts (`./run.sh 8123 --game saves/<gameId>.json`). Every
 save shows a **game code** (like `AD1X-Q5MR-DP7H9`) — note it down;

@@ -191,6 +191,39 @@ export function createRenderer(container) {
     return sprite;
   }
 
+  // A36: the city's NAME on the map — a pill sprite under the pop badge,
+  // faction-tinted border (shipped variant; plain lost the shot comparison).
+  // Fog-safe by construction: buildCities reads the filtered view, and rival
+  // shells carry name/pop only once explored.
+  function makeNameLabel(text, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 44;
+    const g = canvas.getContext('2d');
+    g.font = 'bold 22px monospace';
+    const w = Math.min(250, g.measureText(text).width + 20);
+    const x0 = (256 - w) / 2;
+    g.beginPath();
+    g.roundRect(x0, 4, w, 34, 12);
+    g.fillStyle = 'rgba(8, 12, 20, 0.8)';
+    g.fill();
+    g.lineWidth = 3;
+    g.strokeStyle = color;
+    g.stroke();
+    g.fillStyle = '#ffffff';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, 128, 22);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas), depthTest: false
+    }));
+    // screen-constant-ish: the loop rescales by camera distance so the name
+    // stays readable zoomed out and stops ballooning zoomed in
+    sprite.userData.nameScale = { w: 1.45, h: 0.25 };
+    sprite.scale.set(1.45, 0.25, 1);
+    return sprite;
+  }
+
   function buildCities() {
     for (const mesh of cityMeshes.values()) worldGroup.remove(mesh);
     cityMeshes.clear();
@@ -218,6 +251,12 @@ export function createRenderer(container) {
       label.position.set(city.x, tileTop(city.x, city.y) + 1.05, city.y);
       cityLabels.push(label);
       worldGroup.add(label);
+      if (city.name) { // A36: the name pill sits clear BELOW the pop badge
+        const nameLabel = makeNameLabel(city.name, color);
+        nameLabel.position.set(city.x, tileTop(city.x, city.y) + 0.62, city.y);
+        cityLabels.push(nameLabel); // same lifecycle: removed + disposed on rebuild
+        worldGroup.add(nameLabel);
+      }
     }
   }
 
@@ -308,6 +347,12 @@ export function createRenderer(container) {
     const now = performance.now();
     if (water) water.tick(now); // wave drift: render time only
     anim.tick(now);             // A28 sway/glide/smoke/flash: same clock
+    // A36: name pills track the camera distance (readable at any zoom)
+    const nameF = Math.min(2.2, Math.max(0.8, cam.dist / 12));
+    for (const l of cityLabels) {
+      const ns = l.userData.nameScale;
+      if (ns) l.scale.set(ns.w * nameF, ns.h * nameF, 1);
+    }
     renderer.render(scene, camera);
   }
 

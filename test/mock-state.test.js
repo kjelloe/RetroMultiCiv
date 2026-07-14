@@ -49,3 +49,24 @@ test('renderer terrain table covers every ruleset terrain (terrain.js)', () => {
   for (const t of TERRAINS) assert.ok(ids.includes(t), `terrain.js TERRAIN missing "${t}"`);
   assert.ok(ids.includes('unknown'), 'terrain.js must style fogged (unknown) tiles');
 });
+
+// A36: the five growth tiers (assets.js CITY_TIERS, source-parsed like the
+// TERRAIN table above) — every Civ 1 population must map to a tier, the
+// breakpoints ascend from pop 1, and density/height grow with the tier
+// (a silently missing tier would render every big city as a hamlet).
+test('renderer city growth tiers cover pop 1..40+ and grow monotonically (assets.js)', () => {
+  const src = fs.readFileSync(
+    path.join(__dirname, '..', 'client', 'renderer', 'three', 'assets.js'), 'utf8');
+  const table = src.match(/const CITY_TIERS = \[([\s\S]*?)\n\];/);
+  assert.ok(table, 'assets.js must define its CITY_TIERS table');
+  const tiers = [...table[1].matchAll(/minPop:\s*(\d+),\s*houses:\s*(\d+),\s*scale:\s*([\d.]+)/g)]
+    .map(m => ({ minPop: Number(m[1]), houses: Number(m[2]), scale: Number(m[3]) }));
+  assert.strictEqual(tiers.length, 5, 'five growth tiers (VI.14)');
+  assert.strictEqual(tiers[0].minPop, 1, 'tier 1 starts at pop 1 — no unmapped populations');
+  for (let i = 1; i < tiers.length; i++) {
+    assert.ok(tiers[i].minPop > tiers[i - 1].minPop, `breakpoints ascend (${i})`);
+    assert.ok(tiers[i].houses > tiers[i - 1].houses, `density grows (${i})`);
+    assert.ok(tiers[i].scale > tiers[i - 1].scale, `height grows (${i})`);
+  }
+  assert.ok(tiers[tiers.length - 1].minPop <= 40, 'the top tier is reachable in a real game');
+});

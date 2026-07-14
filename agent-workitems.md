@@ -76,6 +76,38 @@ needs a "close enough" is a wrong twin. Golden-safe (nothing touches
 the JS engine). Done-mail: the three gate values as printed by Luau,
 plus any trap-list additions you discover — docs/09 wants them.
 
+### P5-2 — json2lua + the scenario-runner twin (assigned: bugfixer; docs/09 §4 step 4)
+
+The harness before more engine — two deliverables, one compound gate:
+
+1. **`luau/json2lua.luau`**: parse our JSON (scenario files, saves,
+   states) into Luau tables honoring the shipped conventions —
+   EMPTY ARRAYS carry `statehash.ARRAY_MT` (your own trap-list entry:
+   buildings/cityOrder/techs are everywhere; a marker missed = a hash
+   silently wrong), integers stay integers, and reject/flag anything
+   the state contract forbids (floats, null) rather than coercing.
+   Pure Luau, no lune-specific APIs in the module itself (Studio will
+   consume it too — R-lane reads it later).
+2. **`luau/scenario-runner.luau`**: the test/scenario-runner.js twin —
+   loads a scenario JSON, builds the setup state, and (once engine
+   modules exist, P5-3+) applies the script commands and checks
+   expectations + the final hash. For THIS slice it runs the part that
+   is checkable today: setup-state construction + canonical hashing.
+3. **THE GATE (new cross-language anchor set)**: for ALL TEN
+   `test/scenarios/*.json`, `hashState(json2lua(scenario.setup.state))`
+   in Luau must equal the hash Node computes for the same setup —
+   extend `test/luau-twins.test.js` to compute both sides and assert
+   equality per scenario (self-skip without lune, as before). Also
+   hash ONE real server save's state (the committed test fixture or a
+   crafted mini-save) — scenario states are tidy; a real save is the
+   mess that finds bugs.
+
+This slice makes every later engine-module port instantly checkable
+(P5-3's per-batch scenario gates run through this runner). Trap list
+first, as always; report any new traps for docs/09. Golden-safe
+(nothing touches JS). Done-mail: the ten per-scenario hash pairs
+printed from BOTH languages.
+
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
 When a new recording lands in `debugging/logs/`: `node tools/replay.js
@@ -839,7 +871,7 @@ Players' hover behavior unchanged (fog rules already limit them).
 Verify: spectator screenshot with a tooltip visible over a rival
 unit AND a city. Golden-safe.
 
-## A36 — City names on the map + growth tiers (VI.14, renderer — medium)
+## A36 — City names on the map + growth tiers (VI.14, renderer — medium)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — CITY_TIERS five breakpoints {1/4/8/16/28 → 3..15 houses ×1.0..1.7}, cityTierFor exported, walls at every tier; mock-state.test source-parses the table (ascending, dense+tall monotone, pop-1 anchored). Gallery row 7 = the five tiers (INTENDED regen; faction capitals redistribute 5→3 houses at tier 1). Names: tinted-border pill SHIPPED over plain (14-civ grid comparison), fog-safe via view shells; two shot-read finds fixed — badge overlap (pill → +0.62) and default-zoom illegibility (pills rescale with cam.dist 0.8–2.2, "Testopolis" legible at dist 18). WebGL1 pixel-equivalent. Suite 217/217.]
 
 1. **Name labels**: every KNOWN city shows its name on the map
    (CanvasTexture sprite under the pop badge, faction-tinted border or

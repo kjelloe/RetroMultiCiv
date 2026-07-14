@@ -75,8 +75,8 @@ client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
 (state owner + AI-drive — the phase-3 socket seam) / diagnostics /
-ui/{hud,panels,input,saves,turnlog,setup,handoff,options,lobby,
-move-hints,wait-status}. The
+ui/{hud,panels,input,saves,turnlog,turnlog-classes,setup,handoff,
+options,lobby,move-hints,wait-status}. The
 renderer splits renderer/three/{index,assets,props,terrain,factions,anim
 — anim.js is render-time-only motion: clock+position phases, never
 engine RNG/state}. UI reads session.state

@@ -6,7 +6,9 @@ flow with presence, host-skip and >2/3 vote, server-side spectators.
 Spectator CLIENT mode IMPLEMENTED too (A17, 2026-07-13): `?spectate=1`
 boot path, Spectate checkbox on join + Allow-spectators at create (the
 CLI boot game defaults to allowed, `--no-spectators` reverts), read-only
-guards, 👁 chip. Wave-V hardening (2026-07-13, from the first real LAN
+guards, 👁 chip; wave-VI polish added cursor TOOLTIPS for spectators
+(unit stats / city+garrison two-liner, A35) and per-player turn-log
+filters incl. the 💾 save-code class (A33+A39). Wave-V hardening (2026-07-13, from the first real LAN
 playtest): lobby games assign distinct seed-shuffled civilizations
 (city rosters + faction visuals — `joined` replies carry a pid→civ
 map), bare `/` and `/client` redirect to `/client/`, the hotseat

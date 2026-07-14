@@ -16,7 +16,7 @@
 <body>
   <div id="app"></div>
   <div id="label">asset gallery — row 1: props · row 3: land units (moves/vet/fort mixed) ·
-    row 5: ships · row 6: aircraft · row 7: cities (pop 1 / 5 walled / 12) ·
+    row 5: ships · row 6: aircraft · row 7: city growth tiers (pop 1 / 5 walled / 8 / 16 / 28) ·
     rows 9–13: FACTION GRID (A1.6a acceptance) — all 14 civs on grassland /
     desert (mounted) / forest (fortified) / ocean (ships) / tundra (veteran);
     capitals fly CanvasTexture emblem flags</div>
@@ -66,10 +66,15 @@
       .forEach((t, i) => put(t, i, 5, i % 2 ? 'p1' : 'p2'));
     ['fighter', 'bomber', 'nuclear'].forEach((t, i) => put(t, 3 + i, 6));
 
+    // row 7: the five A36 growth tiers (1/4/8/16/28 breakpoints), walls on
+    // the tier-2 city to prove they render at any tier; names show the A36
+    // label pills
     const cities = {
       c1: { id: 'c1', name: 'One', owner: 'p1', x: 1, y: 7, pop: 1, buildings: [] },
-      c2: { id: 'c2', name: 'Five', owner: 'p2', x: 4, y: 7, pop: 5, buildings: ['city-walls'] },
-      c3: { id: 'c3', name: 'Twelve', owner: 'p1', x: 7, y: 7, pop: 12, buildings: [] }
+      c2: { id: 'c2', name: 'Five', owner: 'p2', x: 3, y: 7, pop: 5, buildings: ['city-walls'] },
+      c3: { id: 'c3', name: 'Eight', owner: 'p1', x: 6, y: 7, pop: 8, buildings: [] },
+      c4: { id: 'c4', name: 'Sixteen', owner: 'p2', x: 9, y: 7, pop: 16, buildings: [] },
+      c5: { id: 'c5', name: 'TwentyEight', owner: 'p1', x: 12, y: 7, pop: 28, buildings: [] }
     };
 
     const players = {

@@ -113,3 +113,34 @@ are human-owned regardless (division of labour, docs/03).
 4. [helper] sim-driver twin + goldens gate; replay conformance.
 5. [human] lune decision (§5); Studio project, RemoteEvents host,
    AssetFactory-for-Parts (with the ally), publish, playtest.
+
+## 7. Trap-audit results (§6 slice 1, architect, 2026-07-14)
+
+Full pass over `engine/*.js` for the three transliteration traps.
+Verdict: **the discipline held — zero code changes required before
+porting.** Per category:
+
+- **`%` sites (16)**: every one is either the non-negative wrap idiom
+  `((x % w) + w) % w` (idempotent under Lua's floored `%` — port
+  verbatim), or provably non-negative operands (uint32 rng, rate
+  multiples-of-10, turn counters, checkerboard `(x+y) % 2`). NO
+  negative-dividend site exists.
+- **Bare `Object.keys` iterations (~25)**: each site audited for
+  order sensitivity (Luau `pairs()` is arbitrary where JS is
+  insertion-ordered). ALL are order-insensitive: boolean scans
+  (ZOC, enemyNear, guarded), commutative counts/sums (upkeep, score,
+  martial law), idempotent set-marking (mapgen reveal), per-key
+  assignment (moves refresh, deepClone), or min-searches with
+  EXPLICIT id tiebreaks (`nextBuilding`/`nextWonder`: cost, then
+  `id <` — order-proof by construction). Everything order-sensitive
+  already goes through `sortIds` (the header rule was followed).
+  PORT RULE anyway: twins iterate via a sorted-keys helper wherever
+  the JS used bare keys — harmless where insensitive, and removes
+  the category of doubt.
+- **Bare truthiness on numbers (0-falsy trap)**: none found — the
+  engine compares explicitly (`> 0`, `===`, `!== undefined`)
+  throughout.
+
+P5-3 (engine modules in §4 order) may proceed on transliteration
+alone; the only conventions the twins must carry are the P5-1/P5-2
+additions above (ARRAY_MT, `%d` rendering, sorted-keys iteration).

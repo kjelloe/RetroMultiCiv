@@ -280,19 +280,32 @@ export function createUnitMesh(unitType, colorOrVisual, status) {
   return group;
 }
 
-// Deterministic house cluster scaled by population, roofs in the owner's
-// color, a banner pole, and a wall ring once City Walls is built.
+// Deterministic house cluster in five GROWTH TIERS (A36 — Civ 1 pops reach
+// 40+; the cluster reads the tier at a glance: denser and taller), roofs in
+// the owner's color, a banner pole, a wall ring once City Walls is built.
+export const CITY_TIERS = [ // ascending minPop; the last match wins
+  { minPop: 1, houses: 3, scale: 1.0 },
+  { minPop: 4, houses: 6, scale: 1.1 },
+  { minPop: 8, houses: 9, scale: 1.25 },
+  { minPop: 16, houses: 12, scale: 1.45 },
+  { minPop: 28, houses: 15, scale: 1.7 }
+];
+export function cityTierFor(pop) {
+  let tier = CITY_TIERS[0];
+  for (const t of CITY_TIERS) if (pop >= t.minPop) tier = t;
+  return tier;
+}
 
 export function createCityMesh(city, colorOrVisual, isCapital) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const roofMat = matFor(visual.primary);
-  const houses = Math.min(2 + city.pop, 12);
-  for (let i = 0; i < houses; i++) {
-    const angle = (i / houses) * Math.PI * 2 + 0.5;
+  const tier = cityTierFor(city.pop);
+  for (let i = 0; i < tier.houses; i++) {
+    const angle = (i / tier.houses) * Math.PI * 2 + 0.5;
     const dist = 0.16 + (i % 3) * 0.1;
     const w = 0.14 + (i % 2) * 0.04;
-    const h = 0.12 + (i % 4) * 0.03;
+    const h = (0.12 + (i % 4) * 0.03) * tier.scale;
     const x = Math.cos(angle) * dist;
     const z = Math.sin(angle) * dist;
     const base = add(group, GEO.box, NEUTRAL.house, x, h / 2, z);

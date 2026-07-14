@@ -587,20 +587,24 @@ function pickChaosCommand(state, pid, roll, ruleset, mods) {
   };
 }
 
-function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides, reason, mods) {
+function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides, reason, mods, problems) {
   fs.mkdirSync(dir, { recursive: true });
   const savePath = path.join(dir, `sim-${seed}-t${state.turn}.save.json`);
   fs.writeFileSync(savePath, JSON.stringify({
     format: 'retromulticiv-save',
     savedAt: new Date().toISOString(),
     turn: state.turn,
-    state
+    state,
+    // B9: the save travels alone (drag-drop) — it carries its own diagnosis
+    simFailure: { seed, reason, turn: state.turn, problems: problems || [] }
   }, null, 1));
   const diag = {
     format: 'retromulticiv-diagnostics',
     version: 1,
     allAi: true,
-    sim: { seed, reason },
+    // B9: problem TEXT verbatim, not just the count in `reason` — extracting
+    // it from a lost terminal once cost a 7-minute re-simulation
+    sim: { seed, reason, turn: state.turn, problems: problems || [] },
     rulesOverrides: rulesOverrides === undefined ? {} : rulesOverrides,
     initialState,
     log: roundLog
@@ -625,6 +629,9 @@ function writeArtifacts(dir, seed, state, initialState, roundLog, rulesOverrides
 //                    airound log entries so artifacts replay exactly
 //   onCheckpoint(state, round, hash)
 //   artifactsDir     failure artifact directory; false disables
+//   extraInvariant   caller tripwires: state => [problem strings] — runs with
+//                    the cheap invariants (scenario-specific soak checks; also
+//                    the deterministic failure injector in the B9 test)
 // Returns { state, rounds, checkpoints, roundLog, initialState, finalHash }.
 // Throws on any invariant failure or wedge (err.problems, err.artifacts).
 async function runSim(opts) {
@@ -657,7 +664,9 @@ async function runSim(opts) {
     let artifacts = null;
     if (opts.artifactsDir !== false) {
       const dir = opts.artifactsDir === undefined ? DEFAULT_ARTIFACT_DIR : opts.artifactsDir;
-      artifacts = writeArtifacts(dir, opts.seed, state, initialState, roundLog, overrides, reason, mods);
+      // B9: the artifacts must carry the DIAGNOSIS (problem text + turn), not
+      // just a count — the throwing process's transcript is not durable
+      artifacts = writeArtifacts(dir, opts.seed, state, initialState, roundLog, overrides, reason, mods, problems);
     }
     const detail = (problems || []).slice(0, 5).map(p => `\n  - ${p}`).join('');
     const where = artifacts ? `\n  artifacts: ${artifacts.save} (drag-drop into the browser), ${artifacts.diag} (node tools/replay.js)` : '';
@@ -733,6 +742,9 @@ async function runSim(opts) {
 
     if (isCheckpoint || state.gameOver || round % checkEvery === 0) {
       const problems = checkInvariants(state, ruleset);
+      if (opts.extraInvariant) {
+        for (const p of opts.extraInvariant(state) || []) problems.push(p);
+      }
       if (problems.length > 0) fail(`turn ${state.turn}: ${problems.length} invariant problem(s)`, problems);
     }
     if (isCheckpoint || state.gameOver) {
