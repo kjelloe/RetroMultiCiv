@@ -190,7 +190,7 @@ Cross-machine coordination is GIT (the user pumps commits both ways) —
 no mailbox, no locks; the lane fence in docs/10 §2 is absolute. Items
 below are self-contained; claims/dones in-file like everyone else's.
 
-### R1 — Rojo scaffold + the three anchors printed inside Studio
+### R1 — Rojo scaffold + the three anchors printed inside Studio  [claimed: roblox-helper 2026-07-14]
 
 Per docs/10 §3+§5: roblox/default.project.json (maps ../luau into
 ReplicatedStorage), src/server/VerifyAnchors.server.luau requiring the
