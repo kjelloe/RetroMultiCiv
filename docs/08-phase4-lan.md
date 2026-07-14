@@ -121,8 +121,9 @@ banner "Your turn" on the broadcast is the only new client UX.
   dedicated `{t:'kick'}` with notification to the kicked client, plus
   an optional per-game IP block — exactly the "future social feature"
   this ruling reserved. The silent setSlot flip keeps rejecting; lobby
-  chat (host-togglable) and host-only IP-on-hover arrive in the same
-  item. Mid-game kicks remain out of scope (AI-regency territory, §7).
+  chat (host-togglable) and host-only IP-on-hover landed in the same
+  item (A37, 2026-07-14). Mid-game kicks remain out of scope
+  (AI-regency territory, §7).
 
 ## 7. Later option (noted, not phase 4): AI regency
 

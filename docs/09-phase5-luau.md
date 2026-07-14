@@ -56,6 +56,22 @@ the one auth simplification the platform gives us for free).
 >   requires or a Rojo/darklua transform are the candidate answers
 >   (roblox-helper proposes, architect rules).
 
+> **P5-3 additions (2026-07-14, found porting the dispatcher +
+> movement/visibility batch — the first genuine cross-language
+> divergence was caught by the report contract in minutes):**
+> - **JSON field names that are Lua keywords need bracket access.**
+>   `data/rules.json` yearSteps uses `"until"` — `b["until"]` works,
+>   `b.until` is a SYNTAX error. Audit any new data field name against
+>   the Lua keyword list.
+> - **Lazy-default writes make JS process hooks NON-NEUTRAL.** JS
+>   `processResearch` writes missing `bulbs`/`taxRate`/`sciRate`
+>   defaults, so a naive no-op twin hook diverges the hash (001 hit
+>   this at byte 419). Batch discipline: unported hooks are GUARDED
+>   no-ops that error loudly when a state could make their JS twin do
+>   observable work; porting a module = deleting its guard. Guard
+>   errors surface as in-contract divergence reports, never harness
+>   crashes.
+
 1. **Stored indices are 0-based VALUES.** Tile index math
    (`idx = y*width + x`) produces numbers stored IN STATE
    (`city.workers`, explored arrays are positional). Luau tables iterate

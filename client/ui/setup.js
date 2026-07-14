@@ -113,14 +113,16 @@ export function showSetupScreen() {
     ageEl.addEventListener('change', hint);
     hint();
     // A42: the splash's civ count is DATA-DRIVEN — it updates itself when a
-    // bigger roster ships (never hardcode the 14)
+    // bigger roster ships (never hardcode the 14). Null guards: demo hooks
+    // (?lobbydemo) swap the setup DOM before this async fetch lands.
     const ceiling = Math.max(...Object.values(rules.maxCivsBySize || { any: 7 }));
-    document.getElementById('setup-maxciv-line').textContent =
-      ` Up to ${ceiling} civilizations.`;
+    const maxCivLine = document.getElementById('setup-maxciv-line');
+    if (maxCivLine) maxCivLine.textContent = ` Up to ${ceiling} civilizations.`;
     // A38: the map size gates the civ count (measured seats-per-size table)
     // — the dropdown offers only what the selected size seats reliably
     const sizeSel = document.getElementById('setup-size');
     const civsHint = document.getElementById('setup-civs-hint');
+    if (!sizeSel || !civsHint) return; // demo path dropped the form
     function refreshCivs() {
       const max = (rules.maxCivsBySize && rules.maxCivsBySize[sizeSel.value]) || 14;
       const keep = Math.min(parseInt(civsEl.value, 10) || 2, max);

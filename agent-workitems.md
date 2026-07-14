@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 223 tests), the item's own verification steps pass, related
+   (currently 224 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -240,11 +240,31 @@ or per-SAVE-code-change, not per broadcast). Failing test or
 screenshot-proof both directions. Coordinate with A33 (save code into
 the turn log) — same broadcast, complementary fixes.
 
+### B10 — Re-pin all ten scenario final hashes + the null guard (assigned: bugfixer, ruling @2e3c2166)
+
+All ten test/scenarios/*.json carry `"final":{"hash": null}` committed
+(gate silently OFF since the f8b5938-era re-record missed the
+paste-back). Not a golden window — pasting values only ADDS passing
+assertions. Steps, in order:
+1. Convention sweep FIRST: bring crafted scenario states up to the
+   CLAUDE.md house rules (001 lacks `bulbs`/`taxRate`/`sciRate` on
+   players — P5-3 found the lazy-default drift the convention exists
+   to prevent; sweep all ten). This changes the hashes, so it precedes
+   the pin.
+2. One run printing all ten final hashes → paste → rerun asserting green.
+3. Guard test: every committed test/scenarios/*.json final.hash must
+   match `/^0x[0-9a-f]{8}$/` — makes a forgotten paste-back loudly red.
+4. One-line notes: docs/05 re-record paragraph + header rule 4 above.
+5. The Luau twin gate then compares against the PINNED values (the pin
+   is the cross-language contract), not a live JS run.
+
 ## R-queue — roblox-helper (second PC; spec = docs/10-roblox-agent.md)
 
-Cross-machine coordination is GIT (the user pumps commits both ways) —
-no mailbox, no locks; the lane fence in docs/10 §2 is absolute. Items
-below are self-contained; claims/dones in-file like everyone else's.
+Cross-machine coordination: code travels via GIT (the user pumps
+commits both ways); mail + file locks work LIVE across machines through
+the agent-mail LAN hub (docs/10 §4 — `.agent-mail/remote` on the
+second PC). The lane fence in docs/10 §2 is absolute. Items below are
+self-contained; claims/dones in-file like everyone else's.
 
 ### R1 — Rojo scaffold + the three anchors printed inside Studio  [claimed: roblox-helper 2026-07-14] [done: 2026-07-14 — all four anchors PASS in Studio Play Solo (xorshift seq 2714967881/2238813396/1250077441/3820100336, hashState 0x30db1e29, codeHi 0xa687b72d, gameCode AD1X-Q5MR-DP7H9); rojo build green from clean tree; roblox/check.sh (build+mapping+anchor-drift) ALL GREEN; luau/ ran UNMODIFIED in the Studio VM incl. gamecode's relative string require; scaffold contracts in roblox/SPEC.md]
 
