@@ -1155,7 +1155,7 @@ Mine, under the batch-4 lock window (one extra re-record):
   predicate (candidate scoring already consults it).
 Both re-recorded together with batch 4's goldens.
 
-## A40 — AI regency: "let the AI take over for me" with 5 stances (user request 2026-07-14 — design included, TWO SLICES)
+## A40 — AI regency: "let the AI take over for me" with 5 stances (user request 2026-07-14 — design included, TWO SLICES)  [slice 2 done: coder-helper 2026-07-15 — regency plumbing, golden-safe (sim 6/6 unchanged, no ai.js touch). Regent HUMAN turns log INDIVIDUAL cmd entries (playRegentSeat via real pickCommand), AI chains stay round entries → replay re-applies vs re-derives = hash-exact (PROVEN local + server unattended-play tests). LOCAL session.js setRegent/regentTurn re-kicked per turn (instant take-back); SERVER game.js regents parallel map (never state, envelope-persisted) + index.js driveRegents YIELDS between turns (solo-to-gameOver block was a real caught bug) + presence regents tag + seat-owner-only {t:'regent'}. UI regency.js: 🤖 left of End Turn, 5-stance dialog, grayed "Auto Turn" = the A29 marker's one branch; A45 replaceState param trap hit again → module-eval capture. Shots read: dialog + Auto Turn. SLICE 1 (stances) still needs the both-sides golden window (ai.js+ai.luau twin per ruling). Suite 236/236.]
 
 The docs/08 §7 future feature, now specced by the user: a 🤖 button
 LEFT of End Turn opens a dialog — hand your seat to the AI with a

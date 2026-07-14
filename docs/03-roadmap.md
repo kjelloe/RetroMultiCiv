@@ -369,9 +369,11 @@ least one mid-game disconnect/reconnect.
 > both engines (they even agree on HOW stale recordings diverge),
 > dispatcher 14/14, zero notPorted anywhere. The docs/09 §4 engine
 > column is CLOSED — P5-1 through P5-8 in two days, the rule modules
-> in one. Open: the sim-runner's cross-machine golden confirmation
-> (measure job in flight) and R4 (GameServer over RemoteEvents —
-> assigned; acceptance = a game PLAYED in Studio whose command log
+> in one — and CONFIRMED CROSS-MACHINE (2026-07-15: the sim-runner
+> reproduced all four checkpoints + the natural golden bit-exact on
+> independent hardware; the port is proven across three machines and
+> two languages). Open: R4 only (GameServer over RemoteEvents —
+> claimed; acceptance = a game PLAYED in Studio whose command log
 > replays hash-exact through the Node engine).
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
