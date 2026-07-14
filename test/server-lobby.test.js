@@ -275,6 +275,51 @@ test('A34 resume from the host flow: listSaves inventory, resume loads + seats r
   }
 });
 
+test('A41 find-a-game: public-only listing, no codes leaked, joinListed = the reservation path, rate limit', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    // one PRIVATE lobby (default) and one PUBLIC one
+    const hostA = await connect(s.port);
+    hostA.send({ t: 'create', name: 'Secret', options: { civs: 2, humans: 2, size: 'xsmall', seed: 1 } });
+    await hostA.expect(m => m.t === 'created', 'private created');
+    const hostB = await connect(s.port);
+    hostB.send({ t: 'create', name: 'Kjell', options: { civs: 3, humans: 3, size: 'medium', seed: 2, public: true } });
+    const pub = await hostB.expect(m => m.t === 'created', 'public created');
+
+    const ada = await connect(s.port);
+    ada.send({ t: 'listGames' });
+    const listing = await ada.expect(m => m.t === 'openGames', 'browse');
+    assert.strictEqual(listing.games.length, 1, 'private lobbies NEVER appear (nor the default started game)');
+    const g = listing.games[0];
+    assert.deepStrictEqual(
+      { hostName: g.hostName, openSeats: g.openSeats, totalSeats: g.totalSeats, size: g.size, status: g.status },
+      { hostName: 'Kjell', openSeats: 2, totalSeats: 3, size: 'medium', status: 'lobby' });
+    assert.strictEqual(g.joinCode, undefined, 'the code stays the host secret');
+    assert.strictEqual(g.ip, undefined, 'no addresses in listings');
+
+    // rate limit: an immediate second browse bounces
+    ada.send({ t: 'listGames' });
+    assert.strictEqual((await ada.expect(m => m.t === 'rejected', 'rate')).code, 'tooFast');
+
+    // joinListed lands on the SAME reservation path — seat pick honored
+    ada.send({ t: 'joinListed', gameId: g.gameId, name: 'Ada', seat: 'p3' });
+    const aj = await ada.expect(m => m.t === 'joinedLobby', 'joined from the list');
+    assert.strictEqual(aj.seat, 'p3', 'the seat pick behaves exactly like a code join');
+    const roster = await hostB.expect(m => m.t === 'lobby'
+      && m.lobby.seats.some(x => x.seat === 'p3' && x.name === 'Ada' && x.reserved), 'reserved like any join');
+    assert.ok(roster);
+
+    // a PRIVATE gameId through the listed path is refused
+    const bo = await connect(s.port);
+    bo.send({ t: 'joinListed', gameId: 'g1', name: 'Bo' });
+    assert.strictEqual((await bo.expect(m => m.t === 'rejected', 'private')).code, 'notPublic');
+    hostA.close(); hostB.close(); ada.close(); bo.close();
+  } finally {
+    await s.close();
+  }
+});
+
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

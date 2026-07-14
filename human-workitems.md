@@ -8,13 +8,32 @@ the Done log at the bottom.
 ## Pending — verify in real play
 
 - [ ] **Next LAN session verification list** (everything landed since
-  the 07-14 acceptance test): lobby **chat** (host toggle on/off live),
-  **kick** and **kick-and-block** (block is per-IP — on one machine via
-  localhost it blocks everyone; test from two machines), the 14-seat
-  lobby + seat picker, log filters, city name pills + tier looks,
-  animations feel (`?anim` default on), and the noticeably **stronger
-  normal-difficulty AI** (median 18 cities on soak — does a normal game
-  still feel fair?).
+  the 07-14 acceptance test; two machines needed for the kick/block
+  items):
+  - [ ] Lobby **chat**: messages flow both ways; host toggles chat OFF
+    live (joiner's panel hides, sends bounce) and back ON.
+  - [ ] Chat hygiene: paste something HTML-ish (`<b>hi</b>`) — must
+    render as literal text, never formatting.
+  - [ ] **Kick**: host ⛔ → inline confirm → the kicked player gets the
+    friendly "removed" screen, their seat frees in the roster, and
+    they CAN rejoin with the code.
+  - [ ] **Kick-and-block**: same but rejoin bounces with the blocked
+    message. NOTE: block is per-IP — from one machine via localhost it
+    blocks everyone, so test from the second PC.
+  - [ ] Host-only **IP-on-hover** on roster rows (joiners must NOT see
+    IPs on theirs).
+  - [ ] **14-seat lobby**: crank slots up on a medium+ map; seat picker
+    offers p1–p14; a size below medium caps lower (xsmall 7/small 12).
+  - [ ] **Turn-log filters** in a live game (and rival-vs-rival combat
+    appearing per the B5 fog rules).
+  - [ ] **City name pills + tier looks** at normal zoom on both
+    machines' GPUs.
+  - [ ] **Animation feel** over a LAN session (flags/glide/smoke;
+    "reduce animation" honored).
+  - [ ] **Stronger normal AI**: does a normal-difficulty game still
+    feel fair? (soak median is now 18 AI cities; expect real pressure).
+  - [ ] Resume-from-save via the lobby (A34, once reviewed): pick a
+    save in the host flow, everyone rejoins, game code matches.
 - [ ] **Feel-test backlog** (largely exercised by the 2026-07-14
   acceptance session — tick whatever you consider covered): waves
   III/IV polish (battle linger, centered mini-map + real center
@@ -68,6 +87,13 @@ the Done log at the bottom.
 - [ ] **Phase-6 acceptance criterion on record**: diplomacy legibility
   (phase-2 verdict question 4) — permanent war is the current rule;
   when diplomacy ships, it must be legible in play.
+- [ ] **Two design considerations noted 2026-07-14** (full scope notes
+  parked in agent-workitems, architect designs first — your call on
+  when): (a) **Civ2-style combat option** — per-unit health, damage
+  instead of instant death, healing over time (faster in cities /
+  fortifications, which would arrive with it); (b) **Civ4-style
+  strategic resource chains** — iron etc. on the map; units/buildings
+  need a connected (road/rail/sea) + improved resource tile to build.
 
 ## Playtest findings inbox
 

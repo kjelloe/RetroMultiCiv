@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 224 tests), the item's own verification steps pass, related
+   (currently 226 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -21,7 +21,9 @@ items live in `./human-workitems.md`.
    `data/*.json` shifts them. Re-record ONLY when your item says so: set
    `GOLDEN_SOAK`/`GOLDEN_NATURAL` to `null`, run the file, paste the
    printed JSON back, run again green. Same process for scenario hashes
-   (`test/scenarios/*.json`, set `"hash": null`).
+   (`test/scenarios/*.json`, set `"hash": null`). The paste-back is
+   ENFORCED (B10): guards.test.js fails on any committed null hash, so a
+   re-record stays loudly red until the printed values are pasted.
 5. Client changes need the headless visual loop: serve the repo root
    (`python3 -m http.server 8123`), then `debugging/screenshot.sh out.png
    "http://127.0.0.1:8123/client/?seed=12345&civ=romans&e2e=1"`, once more
@@ -132,6 +134,34 @@ hashes, first differing canonical path, RNG before/after. Trap-list
 first; docs/09 §7 says transliteration suffices — prove it again.
 Golden-safe (JS untouched).
 
+### P5-4 — Batch 2 rule modules: combat + improvements (assigned: bugfixer; docs/09 §4 step 5)
+
+The pinned-contract era begins: every gate in this and later batches
+asserts Luau == the PINNED scenario hash (B10), transitivity with the
+JS suite replacing live-JS comparison.
+1. **`luau/combat.luau` for real** — replace the P5-3 stub (delete its
+   `notPorted:combat` rejection AND the guarded no-op combat hook;
+   porting a module = deleting its guard). resolveAttack with the rng
+   call sequence EXACTLY as JS (order of rolls is part of the
+   contract), veteran/terrain/fortify/walls multipliers, stack death,
+   zone-of-control interactions with movement where combat owns them.
+   GATE: scenarios 004-combat AND 005-combat-defender-wins green vs
+   pins — 005 matters doubly: defender-wins exercises the OTHER rng
+   branch.
+2. **`luau/improvements.luau`** — roads/rails/irrigation/mines/
+   fortress build + pillage effects, terrain transforms if the module
+   owns them. GATE: scenario 008-improvements green vs pin; also
+   009's pillage step if 009 turns out to need only
+   combat+improvements+already-ported modules — check, don't assume;
+   if 009 needs cities (buy/disband), it stays in the P5-5 column.
+3. Update the PORTED-scenarios list; everything unported must still
+   fail in-contract (the P5-3 two-column gate discipline).
+Trap watch for THIS batch: combat is the first module where rng CALL
+COUNT is behavioral — a stray extra roll diverges everything after;
+the divergence report's rngBefore/rngAfter fields are your bisect
+tool. Golden-safe (JS untouched). Suite + luau-twins green, mail with
+per-scenario hashes.
+
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
 When a new recording lands in `debugging/logs/`: `node tools/replay.js
@@ -240,7 +270,7 @@ or per-SAVE-code-change, not per broadcast). Failing test or
 screenshot-proof both directions. Coordinate with A33 (save code into
 the turn log) — same broadcast, complementary fixes.
 
-### B10 — Re-pin all ten scenario final hashes + the null guard (assigned: bugfixer, ruling @2e3c2166)
+### B10 — Re-pin all ten scenario final hashes + the null guard (assigned: bugfixer, ruling @2e3c2166)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — order per the amended ruling: (1) convention sweep first — 5 scenarios (001/003/004/005/008) gained bulbs/taxRate/sciRate on players (defaults 0/50/50); (2) all ten final hashes pinned in one deterministic pass (001 0x06636df6 = exactly what the Luau engine already produced — the sweep validated the P5-3 fix); (3) guards.test.js null-hash regex guard (a forgotten paste-back is now loudly red); (4) docs/05 + header rule 4 notes; (5) luau-twins PORTED gate flipped from live-JS to the PINNED contract. Suite 226/226]
 
 All ten test/scenarios/*.json carry `"final":{"hash": null}` committed
 (gate silently OFF since the f8b5938-era re-record missed the
@@ -893,7 +923,7 @@ Verify: unit-test the event→class mapping as a pure helper; screenshot
 the filter row open with one class off and its entries absent; e2e
 green. Golden-safe, client-only. Pairs with A33 — do them together.
 
-## A34 — Host resumes server saves from the lobby (VI.9, medium — design included)
+## A34 — Host resumes server saves from the lobby (VI.9, medium — design included)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — {t:'listSaves'} scans saves/ basenames only (foreign files skipped), newest-first w/ turn/year/players/CODE/loaded; {t:'resume',file} double-locked (parser basename shape + server-side saves/-scoped resolution), loads via the EXISTING --game path + ALWAYS resetSeats (joiners re-pick by name — the teaching flow automatic) + registry.register; autosaves continue into the same file; live re-resume = no clobber. Host form gains the picker; resumed → auto-join by gameId → shared joined boot. INTERPRETATION FLAGGED: register machinery = started game, direct seat-bind (no waiting room) — docs/07 code visible at picker/resumed/joined, ws-asserted end-to-end; room-wrapped variant offered as follow-up. Shot-read finds: user's real saves listed (live proof) + pre-docs/07 codeless save rendered "code undefined" → fixed. Also fixed: architect's ?lobbydemo null-guard find (setup.js). ws test: inventory shape, traversal reject, code chain, join-by-name, no-clobber. Suite 226/226.]
 
 Today resuming needs the CLI (`./run.sh 8123 --game saves/x.json`).
 Add: the Host flow offers "Resume a saved game" — server endpoint
@@ -1063,6 +1093,40 @@ setup), flag the seam in a question note BEFORE restructuring main.js
 
 Queue position: slice 1 immediately (any stop); slice 2 after A41,
 before A40.
+
+## PARKED/DESIGN — Civ2-style combat option: unit health + healing (user note 2026-07-14)
+
+A THIRD combat style alongside authentic-one-roll and best-of-three:
+per-unit hitpoints (Civ 2 model) — combat deals damage instead of
+instant death, damaged units fight/move at reduced strength, and units
+HEAL over time: slowly in the field, faster in cities and inside
+fortifications (note: fortification-based healing doesn't exist in the
+current engine either — it arrives WITH this option, not before).
+Scope notes when picked up: engine change under golden lock (unit
+state gains hp — a state-shape change, so scenario hashes and goldens
+re-record); ruleset numbers in data/rules.json (hp per unit era or
+flat, heal rates by location class); combat-style stays a setup-screen
+choice so classic one-roll remains the default; sim soak must verify
+AI still wins wars under the hp model. NOT QUEUED — design first,
+architect.
+
+## PARKED/DESIGN — Civ4-style strategic resource chains (user note 2026-07-14)
+
+A more advanced resource model for consideration: strategic resources
+(iron, horses, oil, …) distributed on the map at mapgen; some units
+and/or buildings REQUIRE access to a resource to be built. Access =
+the resource tile carries its appropriate improvement (mine on iron,
+pasture-analog, well) AND the tile is CONNECTED to the building city
+via road/railroad/sea connectivity (harbor-to-harbor counts). Scope
+notes when picked up: this is a big system — mapgen distribution
+(deterministic, rng.js), a connectivity graph over improvements
+(engine, Lua-portable, likely flood-fill per player per turn or on
+demand), unit/building `requires` fields in data/*.json, UI surfacing
+(catalog lock reasons: "needs Iron — none connected"), and AI
+awareness (settle toward/road to resources). Interacts with the
+pillage rules (cutting a road severs the chain — strategy!). NOT
+QUEUED — design first, architect; candidate for a phase-6+ headline
+feature alongside diplomacy.
 
 ## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
 

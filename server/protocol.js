@@ -71,6 +71,17 @@ export function parseMessage(raw) {
     if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // A41 find-a-game: browse is auth-free; joinListed carries the same join
+  // fields and the server resolves it to the SAME reservation path — but
+  // only for lobbies that opted INTO the public list.
+  if (msg.t === 'listGames') return { ok: true, msg };
+  if (msg.t === 'joinListed') {
+    if (typeof msg.gameId !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.name !== undefined && typeof msg.name !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   // A34: resume server saves from the host flow. `file` is a BASENAME only —
   // the strict shape here plus the server-side saves/-scoped resolution keeps
   // client-supplied paths out (no separators, no dotfiles, .json only).

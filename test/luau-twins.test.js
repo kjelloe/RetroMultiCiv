@@ -119,20 +119,17 @@ test('luau json2lua: all ten scenario setups and a messy save hash equal in both
 
 // P5-3 gates: (1) the eight data/*.json files canonical-hash identically in
 // both languages — every engine twin's rule lookups depend on it; (2) the
-// LUAU ENGINE runs scenario 001 to the same final hash the JS engine
-// computes LIVE (engine-vs-engine, not engine-vs-archive — the committed
-// scenario hashes are unpinned, flagged @6b1e41b5); (3) every scenario a
-// batch has NOT yet reached must fail IN-CONTRACT: a docs/09 first-
-// divergence block, never a crash or a silent pass. As port batches land,
-// move their scenarios into PORTED and this test enforces the new gate.
+// LUAU ENGINE runs each PORTED scenario to its PINNED final.hash — the pin
+// is the cross-language contract (B10, ruling @2e3c2166): the JS suite
+// asserts JS==pin, this asserts Luau==pin; (3) every scenario a batch has
+// NOT yet reached must fail IN-CONTRACT: a docs/09 first-divergence block,
+// never a crash or a silent pass. As port batches land, move their
+// scenarios into PORTED and this test enforces the new gate.
 const PORTED = ['001-move-unit.json']; // P5-3 batch 1: movement + visibility
 test('luau engine: data checksums, ported scenarios green, unported fail in-contract',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
     const fs = require('fs');
     const { hashState } = await import('../shared/statehash.js');
-    const { createEngine } = await import('../engine/index.js');
-    const { runScenario } = require('./scenario-runner.js');
-    const RULESET = require('./ruleset.js');
 
     // gate 1: static data
     const dataRes = spawnSync('lune', ['run', 'luau/data-hashes.luau'],

@@ -199,6 +199,11 @@ export function showSetupScreen() {
     import('./lobby.js').then(m => m.startHostFlow(setupBox,
       { civs: 2, humans: 2, size: 'medium', age: 'ancient' }));
   }
+  // ?e2ejoinform=1 (A41 screenshots): open the JOIN form so the browse list
+  // renders against the live server's public lobbies
+  if (new URLSearchParams(location.search).get('e2ejoinform') === '1') {
+    import('./lobby.js').then(m => m.startJoinFlow(setupBox));
+  }
 
   const demo = new URLSearchParams(location.search).get('setupdemo');
   if (demo === 'lan' || demo === 'hotseat') {

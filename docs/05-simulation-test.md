@@ -123,7 +123,9 @@ the run short of 400.
   scenarios: set the golden table to `null`, run, copy the printed values —
   one table, five hashes (100/200/300/400 + natural end). Expect to
   re-record on every intentional balance/rules change; the double-run and
-  invariants still guard the change itself.
+  invariants still guard the change itself. NOTE (B10): committed scenario
+  `final.hash` values may never be null — guards.test.js fails the suite on
+  an unpasted re-record, so the null step is loudly temporary by design.
 
 ## 5. Failure artifacts
 

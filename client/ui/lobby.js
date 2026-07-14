@@ -279,6 +279,9 @@ export function startHostFlow(box, options, flags) {
     <p class="setup-hint">spectators see the whole map — admit people you'd
       let stand behind your chair</p>
     <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
+    <label>List publicly <input id="lobby-public" type="checkbox"></label>
+    <p class="setup-hint">listed games appear on everyone's Browse screen —
+      no code needed to join (private by default)</p>
     <button id="setup-start">Create game</button>
     <div id="lobby-resume" class="hidden">
       <p class="setup-hint">— or resume a saved game (players re-pick their
@@ -289,6 +292,7 @@ export function startHostFlow(box, options, flags) {
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37
+    options.public = document.getElementById('lobby-public').checked;   // A41
     options.size = document.getElementById('lobby-size').value;
     options.age = document.getElementById('lobby-age').value;
     create(document.getElementById('lobby-name').value.trim() || 'Player 1');
@@ -466,6 +470,10 @@ export function startJoinFlow(box) {
   box.innerHTML = `
     <h2>Join a LAN game</h2>
     <label>Your name <input id="lobby-name" type="text" maxlength="24" value="Player 2"></label>
+    <div id="lobby-browse">
+      <p class="setup-hint">open games on this server:</p>
+      <div id="lobby-browse-list"><span class="setup-hint">looking…</span></div>
+    </div>
     <label>Join code <input id="lobby-code-in" type="text" maxlength="5" placeholder="Q7F2M"></label>
     <label>Seat
       <select id="lobby-seat"><option value="">auto</option>
@@ -478,6 +486,65 @@ export function startJoinFlow(box) {
     <button id="setup-start">Join</button>
     <p class="setup-hint" id="lobby-status"></p>
     <p class="setup-hint"><a href="./">← back</a></p>`;
+  // A41: browse the server's PUBLIC lobbies — click joins through the same
+  // reservation path as a code (seat/spectate picks from the form apply)
+  function joinVia(frame) {
+    let mySeat = null;
+    const ws = openLobbySocket((msg, sock) => {
+      if (msg.t === 'joinedLobby') {
+        mySeat = msg.seat;
+        renderWaitingRoom(box, msg, null, null, f => sock.send(JSON.stringify(f)));
+      } else if (msg.t === 'lobby') { syncChatPanel(msg.lobby, null); updateRoster(msg.lobby, mySeat, null); }
+      else if (msg.t === 'chat') appendChat(msg);
+      else if (msg.t === 'kicked') showKicked(box);
+      else if (msg.t === 'rejected') {
+        fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
+          : msg.code === 'gameFull' ? 'that game is full'
+          : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
+          : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
+          : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
+          : msg.code === 'blocked' ? 'the host has blocked you from this game' // A37
+          : msg.code === 'notPublic' ? 'that game is no longer listed' // A41
+          : `server rejected: ${msg.code}`);
+      }
+    }, () => fail(box, 'no game server — start it with: node server/index.js'));
+    ws.addEventListener('open', () => ws.send(JSON.stringify(frame)));
+  }
+  const browseWs = openLobbySocket((msg) => {
+    if (msg.t !== 'openGames') return;
+    const list = document.getElementById('lobby-browse-list');
+    if (!list) return;
+    list.textContent = '';
+    if (msg.games.length === 0) {
+      const empty = document.createElement('span');
+      empty.className = 'setup-hint';
+      empty.textContent = 'no public games — ask your host for a code';
+      list.appendChild(empty);
+      return;
+    }
+    for (const g of msg.games) {
+      const row = document.createElement('div');
+      row.className = 'lobby-row lobby-save';
+      const label = document.createElement('span');
+      label.textContent = g.status === 'lobby'
+        ? `${g.hostName}'s game · ${g.openSeats}/${g.totalSeats} seats open · ${g.size} · ${g.age}`
+        : `${g.hostName}'s game · in progress · spectators welcome`;
+      row.appendChild(label);
+      const btn = document.createElement('button');
+      btn.className = 'setup-lan-btn';
+      btn.textContent = g.status === 'lobby' ? 'join' : 'spectate';
+      btn.addEventListener('click', () => joinVia({
+        t: 'joinListed', gameId: g.gameId,
+        name: document.getElementById('lobby-name').value.trim() || 'Player',
+        seat: g.status === 'lobby' ? (document.getElementById('lobby-seat').value || undefined) : undefined,
+        spectator: g.status === 'lobby' ? undefined : true
+      }));
+      row.appendChild(btn);
+      list.appendChild(row);
+    }
+  }, () => { /* no server: the Join click surfaces the real error */ });
+  browseWs.addEventListener('open', () => browseWs.send(JSON.stringify({ t: 'listGames' })));
+
   document.getElementById('setup-start').addEventListener('click', () => {
     const name = document.getElementById('lobby-name').value.trim() || 'Player';
     const code = document.getElementById('lobby-code-in').value.trim().toUpperCase();

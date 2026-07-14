@@ -92,7 +92,8 @@ export function createRegistry(deps) {
         allowSpectators: options.allowSpectators === true,
         // A20 starting age (validated against the ruleset; ancient = none)
         age: ((ruleset.rules && ruleset.rules.ages) || []).some(a => a.id === options.age) ? options.age : 'ancient',
-        chat: options.chat !== false // A37: lobby chat, host-toggleable, default ON
+        chat: options.chat !== false, // A37: lobby chat, host-toggleable, default ON
+        public: options.public === true // A41: find-a-game listing, OPT-IN
       },
       seats, game: null,
       blockedIps: {} // A37 kick-and-block: per-game, dies with the entry

@@ -82,6 +82,16 @@ banner "Your turn" on the broadcast is the only new client UX.
   recovery path; tokens persist in the envelope, everyone rejoins. This
   is the acceptance test, and it already passes at the single-human
   level in test/server.test.js.
+- Resume from the host flow (A34, landed 2026-07-14): `{t:'listSaves'}`
+  inventories saves/ basenames (envelope-parsed, code shown BEFORE
+  loading), `{t:'resume', file}` loads via the existing `--game` path
+  with seats ALWAYS reset (machines change; joiners re-pick by name).
+  RULED: resume yields a STARTED registered game — joiners bind seats
+  directly (phase-3 flow), no pre-game waiting room; the docs/07 code
+  is visible at picker → resumed-ack → every joined reply. A
+  room-wrapped resume variant stays an optional follow-up only if a
+  playtest asks for it. Autosaves continue into the SAME file;
+  re-resuming a live gameId joins it instead of clobbering.
 
 ## 5. Implementation slices (helper-friendly once design is final)
 

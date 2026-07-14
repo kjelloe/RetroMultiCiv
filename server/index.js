@@ -345,6 +345,43 @@ export function startServer(opts) {
       const info = conns.get(ws);
       if (msg.t === 'ping') { send(ws, { t: 'pong' }); return; }
       if (msg.t === 'list') { send(ws, { t: 'games', games: registry.list() }); return; }
+      if (msg.t === 'listGames') { // A41 find-a-game: public lobbies only
+        const now = Date.now(); // 1/sec/conn — the one message crawlers hammer
+        if (info.lastListAt !== undefined && now - info.lastListAt < 1000) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          return;
+        }
+        info.lastListAt = now;
+        const games = [];
+        for (const g of registry.list()) {
+          const e = registry.entryOf(g.gameId);
+          if (!e || e.options.public !== true) continue; // private-by-default
+          const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
+          const total = Object.values(e.seats).filter(x => x.human).length;
+          if (e.status === 'lobby' && open === 0) continue; // full lobbies drop off
+          if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
+          // NEVER the join code, NEVER seated players' IPs
+          games.push({
+            gameId: g.gameId, // capability-by-listing: public lobbies are joinable
+            hostName: (e.seats[e.hostSeat] && e.seats[e.hostSeat].name) || 'host',
+            openSeats: open, totalSeats: total,
+            size: e.options.size, age: e.options.age,
+            spectators: e.options.allowSpectators === true,
+            status: e.status
+          });
+        }
+        send(ws, { t: 'openGames', games });
+        return;
+      }
+      if (msg.t === 'joinListed') { // A41: the SAME reservation path, gated
+        const e = registry.entryOf(msg.gameId);
+        if (!e || e.options.public !== true) { // private lobbies are not listed-joinable
+          send(ws, { t: 'rejected', commandId: -1, code: 'notPublic' });
+          return;
+        }
+        handleJoin(ws, info, { joinCode: msg.gameId, name: msg.name, seat: msg.seat, spectator: msg.spectator });
+        return;
+      }
       if (msg.t === 'listSaves') { // A34: the host machine's saves/ inventory
         const dir = path.join(REPO, 'saves');
         const saves = [];
