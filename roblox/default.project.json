@@ -19,8 +19,7 @@
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "RetroMultiCivClient": {
-          "$className": "Folder",
-          "$path": { "optional": "src/client" }
+          "$path": "src/client"
         }
       }
     }

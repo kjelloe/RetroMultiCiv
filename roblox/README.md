@@ -40,6 +40,9 @@ don't commit it.
    `RenderWorld.server.luau` also builds the R2 static scene
    (`workspace.World`: terrain columns, unit discs, city clusters) and
    prints one `[RenderWorld]` summary line.
+4. R3 controls in Play: RMB-drag orbits, WASD/arrows pan, wheel zooms;
+   LMB picks the logical tile under the cursor (yellow neon cursor +
+   one `[Select] tile (x,y) …` Output line per pick).
 
 Expected values live in docs/09 §1 and are immutable — a "close" twin is
 a wrong twin; report mismatches to the architect, never edit the gate.

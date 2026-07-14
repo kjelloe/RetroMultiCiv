@@ -100,6 +100,29 @@ generated data. Render-only contracts:
   owner-colored base disc, cities an owner-colored plaza disc under a
   fixed block skyline. Prints one `[RenderWorld]` summary line.
 
+## 3c. Camera + tile selection (`src/client/`, R3)
+
+`Camera.client.luau` — Scriptable map camera, the character never
+drives the view: RMB-drag orbit (yaw free, pitch clamped -85°…-15°),
+WASD/arrow pan in the camera's ground plane (clamped to the map,
+speed scales with zoom), wheel zoom (15–220 studs). Starts over the
+western continent (tile 5,4). Pan input is ignored while a TextBox has
+focus (the JS client's INPUT/TEXTAREA rule, ported).
+
+`Select.client.luau` — click-to-select resolving to **logical tiles**
+(A28's rule): raycast the click, then
+`tile = clamp(round((hitPos - normal*0.05) / TILE))` — the pick comes
+from the hit POSITION, never the hit body, so units, city blocks, and
+mountain flanks all resolve to the tile they stand on (the normal
+nudge keeps tall-column side hits on their own tile). One reusable
+neon cursor Part (`CanQuery = false` so it never swallows the next
+click) plus a `[Select] tile (x,y) terrain — contents` Output line per
+pick: that line is the click-test evidence.
+
+Both scripts read the baked `GameData` modules; `TILE = 4` must match
+RenderWorld's scale (single-constant duplication accepted until a
+shared Scale module is warranted).
+
 ## 4. Verification (`check.sh` + Studio)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -133,5 +156,6 @@ done-note, screenshots read and described.
   by finding: Glass washes out to grey on low graphics settings. Known
   cosmetic gap: the baked ocean navy reads slate-grey under Studio
   lighting vs the JS sea.
-- R3 (camera/selection) is specified in `agent-workitems.md`; nothing
-  for it exists here yet.
+- R3: code complete (§3c; `src/client` flipped to a required path) —
+  open until the Studio screenshot + described click test land in the
+  done-note.

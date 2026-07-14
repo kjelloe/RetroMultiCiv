@@ -265,7 +265,7 @@ palette/height reference), units as Part groups with owner-colored
 base discs, cities as clustered blocks. Screenshot, READ, describe in
 the done-note. No engine calls yet — a static scene.
 
-### R3 — Camera + logical-tile selection
+### R3 — Camera + logical-tile selection  [claimed: roblox-helper 2026-07-14]
 
 Orbit/pan camera; click-to-select resolving to TILES (logical
 hitboxes, never visual bodies — A28's mid-glide lesson). Selection

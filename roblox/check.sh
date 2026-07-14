@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors RetroMultiCiv Shared RetroMultiCivClient GameData RenderWorld MockState TerrainPalette; do
+for name in VerifyAnchors RetroMultiCiv Shared RetroMultiCivClient GameData RenderWorld MockState TerrainPalette Camera Select; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
