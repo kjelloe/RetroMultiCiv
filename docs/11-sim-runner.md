@@ -69,6 +69,14 @@ harness lands — the lune twin runners. Check the mail hub
   `~/.local/bin/lune`; anchors + all 10 scenario hashes + the
   luau-twins Node test green. `luau/scenario-hashes.luau` must run
   from the repo ROOT (reads `test/scenarios/` relative to cwd).
+- P5-8 Gate B (mails #269/#272, tree 82990ea): the lune sim-driver
+  twin reproduced all four checkpoint goldens AND the natural-end
+  golden (395/p2/0x6d3aaf65) bit-exact — cross-language ×
+  cross-machine at full horizon. **lune throughput inverts the node
+  ratio**: 203.3 ms/turn chaos-on / 145.9 chaos-off here vs 139.5 on
+  the dev box (~1.5× slower under lune despite ~2.5× faster under
+  node; lune/node ≈ 6× on this hardware). Size lune jobs on measured
+  lune numbers, never extrapolated from node calibration.
 - The role's zero-write rule covers the shared tree's code and queues;
   this doc's status/record sections are maintained under a normal
   file lock (user-directed exception, 2026-07-14 — the architect
