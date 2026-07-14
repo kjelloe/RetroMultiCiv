@@ -342,8 +342,19 @@ least one mid-game disconnect/reconnect.
 > divergence-report contract caught its FIRST real cross-language bug
 > — JS lazy-default writes — within minutes of existing; docs/09 §3
 > carries the P5-3 trap block). R2 rendered the first Parts world in
-> Studio. In flight: R3 (camera + tile selection), B10 (scenario hash
-> re-pin — the values every later batch gates against), then P5-4.
+> Studio. B10 then pinned all ten scenario hashes (the cross-language
+> contract, guard-enforced), and P5-4 through P5-7 ported the entire
+> rulebook — combat, improvements, cities, tech, happiness,
+> government (the Pyramids instant-switch = first wonder effect
+> cross-language), mapgen, barbarians, score — **ALL TEN scenarios
+> now run green cross-language against unchanged pins, and endTurn
+> runs unguarded end to end** (the guarded-no-op era closed
+> ten-for-ten). R3 (Studio camera + tile selection) accepted on a
+> 30+-pick user-driven probe. The trap ledger grew the stable-sort
+> rule and the scan-order-as-rng-contract lesson. In flight: P5-8,
+> the summit — the AI port + sim-driver twin vs all four checkpoint
+> goldens + replay conformance on real recordings; R4 (GameServer)
+> follows it.
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port

@@ -14,6 +14,7 @@ import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
+import { initOverlays } from './ui/overlays.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
@@ -335,6 +336,7 @@ ctx.handoff = initHandoff(ctx);
 initInput(ctx);
 initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
+ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // A28: renderer animations honor the ⚙ reduce-animation preference, live

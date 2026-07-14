@@ -104,7 +104,7 @@ html, body {
 /* --- collapsible help (bottom left) --- */
 #help {
   position: absolute;
-  bottom: 12px;
+  bottom: 92px; /* A45 left-stack order top→bottom: Controls, Overlays, Turn log */
   left: 12px;
   max-height: 70vh;
   overflow-y: auto;
@@ -120,6 +120,32 @@ html, body {
 #help {
   z-index: 6; /* above the turn log so every hint is readable when open */
 }
+
+/* A45: the Map overlays panel — middle of the left stack */
+#map-overlays {
+  position: absolute;
+  bottom: 52px;
+  left: 12px;
+  background: rgba(10, 16, 28, 0.9);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  color: #9db0cc;
+  font-size: 12px;
+  padding: 6px 10px;
+  user-select: none;
+  z-index: 5;
+}
+#map-overlays summary {
+  cursor: pointer;
+  color: #cdd8ea;
+}
+#map-overlay-boxes {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#map-overlay-boxes label { white-space: nowrap; }
 
 #help summary {
   cursor: pointer;
@@ -1002,7 +1028,7 @@ html, body {
 /* --- turn log (bottom left, above the controls) --- */
 #turn-log {
   position: absolute;
-  bottom: 52px;
+  bottom: 12px; /* A45: the Turn log holds the lower-left anchor */
   left: 12px;
   max-width: 380px;
   max-height: 45vh;

@@ -98,6 +98,19 @@ the one auth simplification the platform gives us for free).
 >   position). Review habit: grep the JS module for `.sort(` before
 >   porting and prove each comparator total or tie-broken.
 
+> **P5-7 addition (2026-07-14, mapgen/barbarians/score — the purest
+> statement of call-order discipline):**
+> - **Scan order is itself RNG contract when rolls are conditional.**
+>   mapgen's specials pass consumes a roll ONLY on non-grassland
+>   tiles, so the ORDER tiles are visited determines which tile gets
+>   which roll — reordering a loop that conditionally consumes rng is
+>   a silent full-stream divergence even when every individual roll
+>   is transcribed perfectly. Same family: the start-placement
+>   relaxation loop's retry COUNT is part of the stream (exit
+>   conditions must transcribe exactly). Port rule: loops that touch
+>   rng keep their iteration order, bounds, and early-exit shape
+>   verbatim.
+
 1. **Stored indices are 0-based VALUES.** Tile index math
    (`idx = y*width + x`) produces numbers stored IN STATE
    (`city.workers`, explored arrays are positional). Luau tables iterate

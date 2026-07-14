@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 229 tests), the item's own verification steps pass, related
+   (currently 230 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -190,7 +190,7 @@ discipline throughout.
 Golden-safe (JS untouched). Suite + twins green, mail per-scenario
 hashes and which guards were deleted.
 
-### P5-6 — Batch 4: government proper (assigned: bugfixer; docs/09 §4 step 5, re-scoped by P5-5's dependency pull)
+### P5-6 — Batch 4: government proper (assigned: bugfixer; docs/09 §4 step 5, re-scoped by P5-5 dependency pull)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — 010 GREEN vs pin 0xf9f9a086 first run; PARTIAL column empty (mechanism kept); NINE of ten cross-language, 002 = mapgen only. government.luau completed (setGovernment incl. the Pyramids instant-switch transcribed from the JS inline check, clampRates, processRevolutions — no RNG, no sorts, tie audit trivially clean); guards deleted: processRevolutions + the setGovernment rejection. REMAINING GUARDS for P5-7 scope: processBarbarians (turn>=16, RNG-consuming) + checkGameEnd (alive flags); unported modules: barbarians, score, mapgen, ai + the runner seed-setup path. Suite 229/229]
 
 Small batch by design — P5-5 already pulled happiness (full) and
 government's pure helpers in as wrap-chain dependencies.
@@ -211,6 +211,60 @@ government's pure helpers in as wrap-chain dependencies.
    scope is unambiguous.
 Golden-safe (JS untouched). Suite + twins green, per-scenario hashes
 in the done-mail.
+
+### P5-7 — Batch 5: mapgen + barbarians + score — ALL TEN green, endTurn unguarded (assigned: bugfixer; docs/09 §4 steps 5-tail + 6-start)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — ALL TEN scenarios green cross-language, every gate FIRST RUN incl. 002 vs pin 0x7daaf12a (the full drunkard-walk mapgen reproduces bit-exactly); luau/{mapgen,barbarians,score}.luau + engine.createGame + the runner seed-setup path; BOTH remaining guards deleted — endTurn runs UNGUARDED end to end, the guarded-no-op era closes; sort audit clean. Suite: my gates green; the single red is the helper·s LOCKED in-flight A45 overlay test (their lane, second-lander re-run). PARTIAL mechanism parked empty]
+
+The last rule batch before the AI. Per P5-6's guard inventory the
+remaining endTurn guards are exactly two; this batch deletes both.
+1. **`luau/mapgen.luau`** — the full deterministic generator
+   (continents, rivers, specials, start positions; every rng call in
+   JS order — the heaviest RNG consumer so far, and the docs/09
+   mapgen gate is the point: same seed → same world canonical hash
+   BEFORE any turn). Sort-tie audit: grep .sort( regardless of how
+   much rides rng. GATE: 002-mapgen-determinism green vs pin
+   0x7daaf12a — ALL TEN scenarios then run green cross-language; the
+   scenario-runner's seed-setup path goes live.
+2. **`luau/barbarians.luau`** — processBarbarians (turn>=16 guard
+   DELETED; spawn rolls + movement, rng call-order discipline).
+3. **`luau/score.luau`** — scoring + checkGameEnd (alive-flags guard
+   DELETED; the crafted-state exemption — no alive flag = exempt from
+   game-end checks — must transliterate exactly).
+4. **endTurn runs UNGUARDED end to end** — state in the done-mail
+   that ZERO guards remain reachable; the guarded-no-op era closes.
+   PARTIAL mechanism stays parked for future use.
+Golden-safe (JS untouched). Suite + twins green, all ten hashes in
+the done-mail.
+
+### P5-8 — The summit: ai + full index → sim-twin goldens + replay conformance (assigned: bugfixer; docs/09 §4 step 6)
+
+The port's final validation tier. The AI ports LAST as designed —
+and here it must THINK identically, not just replay: the sim goldens
+are all-AI games, and the engine's determinism makes identical
+thought possible. This is where iteration-order and sort-tie traps
+bite hardest — every Object.keys walk in ai.js rides sortIds or is
+order-insensitive (the §7 audit says so); prove it again in Luau.
+1. **`luau/ai.luau`** — pickCommand and every subsystem (founding
+   site scoring, settler split + escorts, garrisons, threat response,
+   research/rates policy, the batch-4 happinessCommand with its
+   hypothetical-mood revert guard). Sort-tie audit MANDATORY.
+2. **`luau/index.luau` completed** — audit the dispatcher table
+   against JS applyCommand for any command not yet routed; delete the
+   last non-final flags.
+3. **GATE A (local smoke, you)**: the sim-driver twin under lune —
+   golden seed, chaos ON (the chaos stream is deterministic, part of
+   the contract) — reproduces the TURN-100 checkpoint golden
+   0x560088f5. Measure lune ms/turn while there; it sizes gate B.
+4. **GATE B (sim-runner measure job, mail tagged 'measure')**: the
+   full run on the Roblox PC — all four checkpoint goldens
+   (100/200/300/400) + the natural-end golden (turn 395) bit-exact
+   under lune. docs/11 anticipated exactly this job.
+5. **GATE C (replay conformance)**: tools/replay.js verdicts
+   cross-language — the recordings in debugging/logs/ (and the
+   user's turn-53 server save) through the Luau engine; every one
+   matches its JS final hash, misses report in-contract.
+Golden-safe (JS untouched). This closes docs/09 §4's engine column;
+after it, phase-5's remaining work is R4+ (GameServer/client) and
+docs/09 §6's slice list gets its DONE marks.
 
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
@@ -1115,7 +1169,7 @@ of the dialog + Auto Turn state.
 Slice order: 2 can ship with stance=balanced only (regency without
 flavors) if 1 waits on the golden window — flag if you take that path.
 
-## A42 — Setup/splash screen refresh: honest copy + a first-visit flourish (user, 2026-07-14)  [slice 1 done: coder-helper 2026-07-14 — tagline replaced with the three-ways-to-play copy; civ count DATA-DRIVEN via max(rules.maxCivsBySize) rendered into #setup-maxciv-line ("Up to 14 civilizations." today, self-updating); splash screenshot read; browser suite green. Slice 2 (first-visit diorama) remains queued after A41.]
+## A42 — Setup/splash screen refresh: honest copy + a first-visit flourish (user, 2026-07-14)  [slice 1 done: coder-helper 2026-07-14 — tagline replaced with the three-ways-to-play copy; civ count DATA-DRIVEN via max(rules.maxCivsBySize) rendered into #setup-maxciv-line ("Up to 14 civilizations." today, self-updating); splash screenshot read; browser suite green. Slice 2 done: coder-helper 2026-07-14 — bootstrap seam AVOIDED: setup owns a lazy renderer instance w/ crafted 14×10 coast view (walled harbor city Roma + legion/settlers/trireme/rival cavalry, zero new assets); A28/A15 animate themselves + 9s sine camera drift; radial vignette keeps the card readable. Gate BEFORE the import: seen-flag/reduceAnimation/demo-params/navigator.webdriver all skip — suite untouched by construction, return visits literally zero-cost; ?splash=1/0 force-override; WebGL-fail → plain screen automatic. Shot-read reframe: city moved from behind-the-card to the left band. Shots: first/return/WebGL1 read. Suite 229/229.]
 
 **Slice 1 — the copy (fold into your NEXT stop, it's minutes):** the
 tagline "One engine, one world, 4000 BC. Humans play first, in seat
@@ -1326,7 +1380,7 @@ late-game badge prominence are PLAYTEST items (human list); adjacent-
 tier silhouette differentiation is recorded as an A1.8 candidate in
 docs/03. Golden-safe throughout.
 
-## A45 — Map overlays panel: semi-transparent data layers + left-panel reorder (user request 2026-07-14)
+## A45 — Map overlays panel: semi-transparent data layers + left-panel reorder (user request 2026-07-14)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — renderer/three/overlays.js (anim.js-shaped, per-tile quads, water-surface tint, per-layer lift) + ui/overlays.js (registry {id,label,computeTiles}, panel, options persistence; BOTH LAWS: filterView-gated derivations = fog can never tint, ctx.HUMAN read live in recompute). Territory fat-cross w/ Chebyshev-then-lowest-id ties; Units green-own/red-rival. Left stack Controls/Overlays/Turn-log, anchor PINNED by browser rect probe. TWO CATCHES: main.js history.replaceState canonicalizes the URL post-boot dropping unknown params → module-eval capture (documented trap); FAT_CROSS entries are {dx,dy} objects — probe try/catch surfaced the destructure crash. 3 shots read (overview/close/spectator-omniscient). Suite 230/230.]
 
 Civ4-style toggleable overlays drawn over EXPLORED tiles only —
 pure view layer: no engine change, no state, no goldens; overlay
@@ -1414,7 +1468,132 @@ storage path, per three user decisions:
 Server + client/lobby + session-remote + tests. Golden-safe. Queue:
 after A45 (tail: A44 → A42-diorama → A45 → A46).
 
-## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
+## A47 — Post-game replay theater (user request 2026-07-14)
+
+After gameOver: "⏵ Watch the replay" — the whole game re-run from
+turn 0 as a GLOBAL spectator. Everything rides machinery we already
+trust: the in-memory recording (initial state + every command, the
+Shift+D payload) re-applied through the real engine, rendered
+omnisciently. Zero engine changes; the replay engine instance is a
+sandbox (never touches the finished session's state).
+
+1. **View**: all tiles revealed + zoomed-out boot framing (reuse the
+   spectator omniscient path — players['spectator']===undefined reads
+   — and the world-center boot camera). Normal camera controls stay
+   live during playback; pause/resume button.
+2. **Tempo**: 1–50 turns/second slider. Implementation note: above
+   ~5 t/s do NOT render every turn — apply commands in batches per
+   animation frame and render the latest state (the engine applies
+   commands far faster than the renderer draws; 50 t/s is an apply
+   throttle, not a render promise). Animations auto-off during
+   high-tempo playback (render-time only, so this is free).
+3. **Major-events log**: a running feed built from engine events as
+   rounds apply, UNFILTERED (global spectator sees all), but limited
+   to the MAJOR classes: city founded, tech discovered, city
+   captured/lost, wonder built, war declared/first contact if the
+   events exist, civilization eliminated, game end. Reuse
+   turnlog-classes for icons/wording; prefix entries with turn+year.
+   Clicking a log entry = camera fly-to (coords ride most events).
+4. **Sources**: (a) server games — new `{t:'fullLog'}` request
+   answered ONLY when state.gameOver === true (after game end
+   everything is public; before it, rejected — no fog leak). Server
+   saves ALREADY carry full history across sessions (diag.initialState
+   + diag.log, appended-to on resume — server/game.js) so this path
+   spans save/resume chains for free. (b) local games — the session
+   recording is in memory from turn 0; AMENDED per user 2026-07-14:
+   local saves gain the same optional `diag: {initialState, log}`
+   block in the save ENVELOPE (never game state — hashes untouched),
+   and loading a save that carries it SEEDS the session recording
+   instead of restarting it, so the replay spans every session of
+   the game's life. Chained save→load→save composes (the block
+   carries forward, commands keep appending). Saves WITHOUT the
+   block (older files) fall back to replay-from-load-point, and the
+   theater says so honestly. Bonus worth a test: a full-history save
+   is fully re-derivable — replaying diag.log from diag.initialState
+   must reproduce the saved state hash (a stronger tamper check than
+   the game code alone; assert it in the browser case).
+   Both paths feed the same theater.
+5. **Tests**: unit-level = major-event extraction from a crafted
+   event stream; browser case = ?e2e drives a short game to gameOver
+   (or crafted gameOver state + recording), opens the theater,
+   asserts the log fills and the final replayed hash equals the
+   recording's final hash (the theater IS a replay-verifier with a
+   face — assert it). ws case: fullLog rejected pre-gameOver, served
+   post.
+Golden-safe. Queue: after A46. The tempo ceiling and the major-event
+class list are the user's; extending either later is one constant /
+one class-list entry.
+
+## A48 — Nightly visual-regression goldens (user tier-2 GO 2026-07-14)
+
+Byte-compare screenshots against committed golden PNGs, nightly.
+SwiftShader rasterizes deterministically for a GIVEN chromium build —
+so the goldens are CI-AUTHORITATIVE: record them FROM a CI run's
+artifacts (a re-record = download the artifact, commit the PNGs);
+local comparisons are informational only (a different chromium/
+SwiftShader build may differ legitimately — do NOT chase local-vs-CI
+pixel diffs, docs the caveat in the script header).
+1. Shots (rest pose, the byte-comparable discipline the gallery
+   already lives by): `debugging/gallery.html` (assets + 14-civ grid)
+   and `/client/?splash=1` (the diorama at its boot frame — needs a
+   `?splashstill=1` variant or drift-phase-0 guarantee; add it).
+2. `debugging/visual-check.sh`: shoot both, `cmp` against
+   `debugging/goldens/*.png`, exit nonzero with the diff summary;
+   `--record` regenerates.
+3. Nightly suite job: run after the chromium install step; on
+   mismatch upload actual+golden as artifacts.
+4. Re-record process documented in the script + docs/05-style note:
+   intended visual changes re-record via CI artifact, PR carries the
+   new PNGs alongside the renderer change that caused them.
+Golden-safe (renderer untouched; adds script + workflow step + PNGs).
+Queue: after A47.
+
+## A49 — Playwright multi-client UI lane, nightly-only (user tier-3 GO 2026-07-14 — dev-dep approved)
+
+`@playwright/test` enters devDependencies (whitelist updated:
+CLAUDE.md + the guards.test.js dep test — allow `@playwright/*` +
+`playwright` dev-only). The lane exists for what raw CDP repeatedly
+lost: MULTI-CLIENT live-socket flows under event-driven waits.
+1. New `test-ui/` directory (NOT under test/ — `node --test test/`
+   stays playwright-free and fast; the lane runs via
+   `npx playwright test`, nightly job step + on-demand locally).
+2. First specs, each a real two-context flow against one live server:
+   (a) host+joiner lobby chat both ways + host toggle + kick/block
+   (the shot that "defeated me twice" becomes an assertion);
+   (b) live reconnect: kill the joiner's socket, assert the 1/s
+   retry reclaims the seat (complements A46's browser case);
+   (c) spectator: joins tokenless, sees the whole map, controls
+   nothing.
+3. Config: chromium-headless-shell + SwiftShader flags (same as
+   shoot.sh), trace+screenshot on first retry, 2 workers max (ws
+   contention is measured and real — see B2).
+4. Nightly workflow: a third step in the suite job (or its own job if
+   runtime demands); failures upload traces as artifacts.
+5. Keep the existing browser.test.js cases where they are — this
+   lane ADDS multi-client coverage, it does not migrate singles.
+Queue: after A48. If the lane proves itself, candidates for later
+specs: resume-from-lobby two-client, replay theater (A47), regency
+handoff (A40).
+
+## A50 — Public-host hardening (docs/12 §3 — GATED: queue when the user schedules DNS)
+
+The pre-DNS checklist made an item. NOT claimable until the user
+says the public host is happening; design is final in docs/12.
+1. Join-by-id closed for non-public games (code required; resume by
+   game code as the authorization — docs/12 §3.1).
+2. Per-IP rate limits on join/create/listGames/chat + global caps
+   (games, connections, creates/IP/hour).
+3. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist+retention,
+   abandoned-game archive, saves/ size budget.
+4. General messages/sec/conn limiter (chat's pattern, widened).
+5. `/healthz` endpoint + one-line structured logs (join/create/
+   expire).
+6. Invite-code allowlist mode as one server flag (the no-accounts
+   escape hatch).
+Tests mirror A41's discipline: every limit has a red case, listings
+carry no secrets, expiry is clock-injectable. Golden-safe.
+
+## PARKED CONTEXT — Global internet hosting (superseded: design now lives in docs/12-global-host.md; this block kept for the recipe deltas)
 
 The vision: a public server (first a local PC behind the DNS name
 `retromulticiv.kjell.today`, later a Hetzner VM per the user's proven

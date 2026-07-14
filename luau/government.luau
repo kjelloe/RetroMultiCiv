@@ -1,11 +1,10 @@
 --!strict
--- PARTIAL twin of engine/government.js (phase 5, P5-5): the pure helpers
--- cities/tech/happiness import. setGovernment, processRevolutions and
--- clampRates are the P5-6 batch — the dispatcher rejects setGovernment as
--- notPorted:government and the revolutions hook stays guarded until then.
--- EXPORTS (stable): governmentOf(state, playerId, ruleset),
--- capitalOf(state, playerId, ruleset), corruptionFor(state, city, trade,
--- ruleset).
+-- Luau twin of engine/government.js (phase 5 — helpers P5-5, completed
+-- P5-6): rate caps, corruption, revolutions (anarchy countdown), and the
+-- Pyramids instant-switch — the first wonder EFFECT to run cross-language.
+-- No RNG anywhere in this module; no sorts (tie audit trivially clean).
+-- EXPORTS (stable): governmentOf, capitalOf, corruptionFor, clampRates,
+-- setGovernment, processRevolutions.
 
 local function governmentOf(state: any, playerId: string, ruleset: any): any
 	-- an unknown player (e.g. a pseudo-city probe) is treated as despotism
@@ -74,8 +73,117 @@ local function corruptionFor(state: any, city: any, trade: number, ruleset: any)
 	return corruption
 end
 
+-- Clamp a player's rates to the government's cap; overflow goes to tax
+-- first, then luxuries (caps are >= 60, so a fit always exists).
+local function clampRates(player: any, gov: any, rules: any)
+	local tax = if player.taxRate == nil then rules.defaultTaxRate else player.taxRate
+	local sci = if player.sciRate == nil then rules.defaultSciRate else player.sciRate
+	local lux = if player.luxRate == nil then 0 else player.luxRate
+	if sci > gov.maxRate then
+		sci = gov.maxRate
+	end
+	if tax > gov.maxRate then
+		tax = gov.maxRate
+	end
+	if lux > gov.maxRate then
+		lux = gov.maxRate
+	end
+	local rest = 100 - tax - sci - lux
+	local taxRoom = gov.maxRate - tax
+	local taxAdd = if rest < taxRoom then rest else taxRoom
+	tax += taxAdd
+	rest -= taxAdd
+	lux += rest
+	player.taxRate = tax
+	player.sciRate = sci
+	if lux > 0 then
+		player.luxRate = lux
+	else
+		player.luxRate = nil
+	end
+end
+
+-- Command: start a revolution toward a known government.
+local function setGovernment(state: any, cmd: any, ruleset: any): any
+	local player = state.players[cmd.playerId]
+	if player == nil then
+		return { ok = false, reason = "unknownPlayer" }
+	end
+	if state.activePlayer ~= cmd.playerId then
+		return { ok = false, reason = "notYourTurn" }
+	end
+	local gov = ruleset.governments[cmd.government]
+	if gov == nil or cmd.government == "anarchy" then
+		return { ok = false, reason = "badGovernment" }
+	end
+	if gov.tech ~= "" and table.find(player.techs, gov.tech) == nil then
+		return { ok = false, reason = "techRequired" }
+	end
+	local current = if player.government == nil then "despotism" else player.government
+	if current == cmd.government then
+		return { ok = false, reason = "alreadyGovernment" }
+	end
+	if player.revolutionTurns ~= nil then
+		return { ok = false, reason = "inRevolution" }
+	end
+
+	-- the Pyramids: switch instantly, no anarchy (Civ 1) — transcribed from
+	-- the JS inline check, not routed through wonderActive (twin fidelity)
+	local instant = false
+	if state.wonders ~= nil and state.wonders["pyramids"] ~= nil then
+		local home = state.cities[state.wonders["pyramids"]]
+		local obsoleteBy = ruleset.wonders["pyramids"].obsoleteBy
+		local active = true
+		if obsoleteBy ~= "" then
+			for _, pid in ipairs(state.playerOrder) do
+				local techs = state.players[pid].techs
+				if techs ~= nil and table.find(techs, obsoleteBy) ~= nil then
+					active = false
+				end
+			end
+		end
+		if active and home ~= nil and home.owner == cmd.playerId then
+			instant = true
+		end
+	end
+	if instant then
+		player.government = cmd.government
+		clampRates(player, gov, ruleset.rules)
+		return { ok = true, events = { { type = "governmentChanged", playerId = cmd.playerId, government = cmd.government } } }
+	end
+	player.government = "anarchy"
+	player.pendingGovernment = cmd.government
+	player.revolutionTurns = ruleset.rules.revolutionTurns
+	-- anarchy caps rates too — a Monarchy running 70% science must drop to
+	-- the interregnum's 60 immediately (found organically by the sim net)
+	clampRates(player, ruleset.governments.anarchy, ruleset.rules)
+	return { ok = true, events = { { type = "revolutionStarted", playerId = cmd.playerId, government = cmd.government } } }
+end
+
+-- Turn wrap: revolutions tick down; the new government arrives with
+-- clamped rates.
+local function processRevolutions(state: any, ruleset: any, events: any)
+	for _, pid in ipairs(state.playerOrder) do
+		local player = state.players[pid]
+		if player.revolutionTurns ~= nil then
+			player.revolutionTurns -= 1
+			if player.revolutionTurns <= 0 then
+				local next_ = player.pendingGovernment
+				player.government = next_
+				player.pendingGovernment = nil
+				player.revolutionTurns = nil
+				clampRates(player, ruleset.governments[next_], ruleset.rules)
+				table.insert(events, { type = "governmentChanged", playerId = pid, government = next_ })
+			end
+		end
+	end
+end
+
 return {
 	governmentOf = governmentOf,
 	capitalOf = capitalOf,
 	corruptionFor = corruptionFor,
+	clampRates = clampRates,
+	setGovernment = setGovernment,
+	processRevolutions = processRevolutions,
 }

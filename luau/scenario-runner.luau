@@ -119,10 +119,17 @@ end
 
 local function runScenario(engine: any, scenario: any, fixture: string): any
 	local built = buildSetup(scenario)
-	if built.kind ~= "state" then
-		return report(fixture, -1, { turn = 0 }, nil, nil, { "setup: notPorted:mapgen (seed-based scenario)" })
+	local state
+	if built.kind == "state" then
+		state = built.state
+	else
+		-- seed-based setup: the engine's createGame builds the world (P5-7 —
+		-- the mapgen gate; a failed generation is an in-contract report)
+		state = engine.createGame(built.setup)
+		if state.ok == false then
+			return report(fixture, -1, { turn = 0 }, nil, nil, { "setup: createGame failed: " .. tostring(state.reason) })
+		end
 	end
-	local state = built.state
 
 	local script = scenario.script or {}
 	for i = 1, #script do

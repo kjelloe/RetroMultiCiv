@@ -7,6 +7,7 @@ import { createUnitMesh, createCityMesh } from './assets.js';
 import { createTileProps, WATER_LEVEL } from './props.js';
 import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
 import { createAnimLayer } from './anim.js';
+import { createOverlayLayer } from './overlays.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
 export function terrainColor(terrainId) {
@@ -57,6 +58,8 @@ export function createRenderer(container) {
   // A28 animation layer: sway/glide/smoke/flash — render-time only, disabled
   // by the ⚙ "reduce animation" option (setReduceAnimation below)
   const anim = createAnimLayer(scene, unitMeshes);
+  // A45 data overlays: tinted per-tile quads, contents decided by the UI
+  const overlays = createOverlayLayer(scene);
 
   const hoverMarker = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, 0.16, 1.02)),
@@ -403,6 +406,12 @@ export function createRenderer(container) {
     // movement lands instantly
     setReduceAnimation(flag) { anim.setEnabled(flag !== true); },
     animBusy() { return anim.busy(); }, // e2e: is a glide in flight?
+    // A45: replace the data-overlay quads ([{idx,color,alpha,lift?}] | null)
+    setOverlays(entries) {
+      if (!view) return; // pre-first-refresh: onChange recomputes right after
+      overlays.set(entries, view.map.width, tileTop);
+    },
+    overlayCount() { return overlays.count(); }, // e2e probe
     onPick(cb) { pickCb = cb; },
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },

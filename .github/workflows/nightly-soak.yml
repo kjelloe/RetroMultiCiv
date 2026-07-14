@@ -26,6 +26,8 @@ jobs:
           unzip -o /tmp/lune.zip -d /tmp/lune-bin
           chmod +x /tmp/lune-bin/lune
           echo /tmp/lune-bin >> "$GITHUB_PATH"
+      - name: Install headless chromium (browser UI cases self-skip without it — user-approved tier 1, 2026-07-14)
+        run: npx --yes playwright install --with-deps chromium-headless-shell
       - name: Full test suite (incl. golden-seed simulation + Luau anchor gates)
         run: node --test test/
 

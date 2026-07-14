@@ -366,6 +366,27 @@ test('browser A30: the wait line shows the moving AI during a local round',
     }
   });
 
+// A45 map overlays: ?overlay=territory,units activates both layers over the
+// e2e=1 world (a founded city = a fat-cross territory tint; units = tinted
+// tiles), ?overlaydiag=1 probes the quad count and the reordered left stack
+// (Turn log must hold the lower-left anchor, below Overlays, below Controls).
+test('browser overlays: layers tint tiles and the Turn log anchors lower-left',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&civ=romans&e2e=1&overlay=territory,units&overlaydiag=1`);
+      const m = dom.match(/overlaydiag count:(-?\d+) order:(\w+)/);
+      assert.ok(m, `the overlay probe must report:\n${dom.match(/overlaydiag [^<]*/)?.[0] || '(no probe)'}`);
+      assert.ok(Number(m[1]) > 20, `both layers tint tiles (fat cross + units) — got ${m[1]}`);
+      assert.strictEqual(m[2], 'ok', 'left stack order: Controls above Overlays above Turn log');
+      assert.match(dom, /id="map-overlays"/, 'the panel exists');
+    } finally {
+      server.close();
+    }
+  });
+
 // A44: the shared-vertex determinism half — the gallery's ?vertexcheck=1
 // builds the terrain mesh twice and byte-compares position+color buffers
 // (the no-conflicting-writes half is a code-shape argument in terrain.js).

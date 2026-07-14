@@ -18,7 +18,10 @@ agent-mail hub — `agent-mail.py serve` on the dev PC, a one-line
 in-file marks as the durable record and hub-down fallback; code
 travels via git, pumped by the user), `11-sim-runner.md` (a fifth
 agent's spawn-ready role spec: measurement executor, zero write
-footprint — spawns when phase-5 parity gates need offloading).
+footprint — spawns when phase-5 parity gates need offloading),
+`12-global-host.md` (the public server-only host service: games run
+ON one public VM, no home-host directory; A50 hardening checklist —
+gated on the user scheduling DNS).
 
 ## Hard rules
 
@@ -40,11 +43,13 @@ footprint — spawns when phase-5 parity gates need offloading).
   only). r162 auto-falls back to WebGL1. Verify any renderer change with the
   headless screenshot loop below, including once with `--disable-es3-gl-context`
   (emulates the WebGL1-only environment).
-- Minimal dependencies: `ws` (server), vendored three.js, and `lune`
-  (dev-only, phase-5 Luau CI twins — user-approved 2026-07-12) are the
-  whitelist; `Rojo` + its Studio plugin are approved on the ROBLOX PC
-  only (user-approved 2026-07-14, docs/10). Ask before adding anything
-  else.
+- Minimal dependencies: `ws` (server), vendored three.js, `lune`
+  (dev-only, phase-5 Luau CI twins — user-approved 2026-07-12), and
+  `@playwright/test` (dev-only, the nightly multi-client UI lane in
+  `test-ui/` — user-approved 2026-07-14, arrives with A49; `node
+  --test test/` stays playwright-free) are the whitelist; `Rojo` +
+  its Studio plugin are approved on the ROBLOX PC only (user-approved
+  2026-07-14, docs/10). Ask before adding anything else.
 
 ## Data source
 

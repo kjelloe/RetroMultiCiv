@@ -34,6 +34,9 @@ the Done log at the bottom.
     feel fair? (soak median is now 18 AI cities; expect real pressure).
   - [ ] Resume-from-save via the lobby (A34, once reviewed): pick a
     save in the host flow, everyone rejoins, game code matches.
+- [ ] **Splash diorama feel** (A42 slice 2, first visit only —
+  `?splash=1` forces it any time): does the 9-second camera drift feel
+  calm or distracting? One constant to slow it; say the word.
 - [ ] **Feel-test backlog** (largely exercised by the 2026-07-14
   acceptance session — tick whatever you consider covered): waves
   III/IV polish (battle linger, centered mini-map + real center
@@ -54,17 +57,27 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
-- [ ] **Pull on the Roblox PC**: the 611499b→HEAD pushes carry the B10
-  item text, docs/09 P5-3 trap block, and the R4 visibility
-  requirement — the roblox-helper's mail/locks flow live over the hub,
-  but doc/queue text travels by git.
-- [ ] **Glance at the first nightly with the lune step** (Actions tab,
-  after tonight's 03:00 run or a manual dispatch): the suite job now
-  installs lune v0.10.5, so the Luau twin gates run in CI for the
-  first time instead of self-skipping.
-- [ ] **Next commit checkpoint**: when B10 (scenario re-pin), A34
-  (lobby resume), and R3 (Studio camera/selection) land reviewed —
-  I'll suggest the one-liner as usual.
+- [x] 2026-07-14 — **R3 click probe DONE, R3 ACCEPTED**: 30+ picks
+  script-verified against mock-state, side-face and boundary cases
+  all green (the adjacent mountain pair splitting at its shared wall
+  was the money shot).
+- [ ] **Pull on the Roblox PC**: tonight's pushes carry the P5-4/5/6
+  items, the docs/09 trap additions (incl. the R3 input trap), and
+  A46 — mail/locks flow live over the hub, but doc/queue text travels
+  by git.
+- [ ] **Commit: GO (suite 230/230)** — carries the all-ten port
+  milestone (P5-6/P5-7 luau), A45 overlays + panel reorder, the
+  tier-1 chromium CI step, CLAUDE.md playwright whitelist, docs/12
+  global-host design + gated A50, A47–A49 items, docs/03/09 syncs.
+  Suggested: "All ten scenarios cross-language + A45 overlays, docs/12
+  global host, UI-test tiers (chromium in CI), A46-A50 queued, 230
+  tests". Push both branches as before.
+- [ ] **Glance at tomorrow's 03:00 nightly** (Actions tab) — it
+  answers three questions at once after the next push: soak green
+  (400-turn fix on the cron path), the lune gates on schedule, and
+  the browser UI cases running in CI for the FIRST time (tier 1 —
+  they self-skipped every night until now; expect the suite step to
+  take a few minutes longer).
 - [ ] **Hub IP-drift note (standing ops)**: this PC was .116 during
   the LAN test, is .112 now — DHCP moves it. If the hub stops
   answering after a reboot: re-check `ipconfig`, update the one-line
@@ -73,13 +86,13 @@ the Done log at the bottom.
 
 ## Later (not yet actionable)
 
-- [ ] **Global "find a game" + internet hosting**: LAN-local listing
-  is now underway as A41 (helper queue, after A34). The INTERNET
-  half stays parked: your Hetzner recipe is stored verbatim in
-  `ops/hosting-recipe.md` (gitignored); first stop needs zero code —
-  DNS `retromulticiv.kjell.today` → your PC → existing join codes.
-  Before real public exposure: the hardening bullet (rate limits,
-  caps) becomes its own item.
+- [ ] **Global "find a game" + internet hosting**: the LAN-local
+  listing SHIPPED (A41 — public lobbies opt-in, browse panel). The
+  INTERNET half stays parked: your Hetzner recipe is stored verbatim
+  in `ops/hosting-recipe.md` (gitignored); first stop needs zero code
+  — DNS `retromulticiv.kjell.today` → your PC → existing join codes.
+  Before real public exposure: the hardening item (rate limits, caps,
+  and the join-by-guessable-gameId decision A41's review flagged).
 - [ ] **16+ civs roster**: cap is shipped at 14 (A38); going past it
   waits on the Civ 2/3/4 roster adaptation (perks → our specialty
   schema) and new visual identities through the designer ally's

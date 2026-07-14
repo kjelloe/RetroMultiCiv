@@ -1,8 +1,8 @@
 --!strict
--- Luau twin of engine/index.js (phase 5, P5-3): the pure deterministic
--- reducer. Input state never mutated; on failure the original returns.
--- Unported rule modules are explicit no-op hooks / notPorted rejections —
--- each batch replaces its hook, and the scenario gates flip green.
+-- Luau twin of engine/index.js (phase 5, P5-3..P5-8 — COMPLETE): the pure
+-- deterministic reducer. Input state never mutated; on failure the original
+-- returns. Every command routes to its ported module and endTurn's process
+-- chain runs unguarded end to end (the guarded-no-op era closed in P5-7).
 -- TRAP (docs/09 addition): data/rules.json yearSteps uses the field name
 -- "until" — a Lua KEYWORD, so it needs bracket access, never dot access.
 -- EXPORTS (stable): createEngine(ruleset) -> { applyCommand }, deepClone,
@@ -14,6 +14,10 @@ local improvements = require("./improvements") -- batch 2 (P5-4)
 local cities = require("./cities") -- batch 3 (P5-5)
 local tech = require("./tech") -- batch 3 (P5-5)
 local happiness = require("./happiness") -- batch 3 (P5-5, pin dependency)
+local government = require("./government") -- batch 4 (P5-6, completed)
+local barbarians = require("./barbarians") -- batch 5 (P5-7)
+local score = require("./score") -- batch 5 (P5-7)
+local mapgen = require("./mapgen") -- batch 5 (P5-7)
 
 local function isArrayLike(t: any): boolean
 	return t[1] ~= nil or getmetatable(t) == statehash.ARRAY_MT
@@ -83,28 +87,12 @@ end
 -- harness caught was exactly JS writing bulbs:0 where the no-op didn't.
 local hooks = {}
 hooks.processWork = improvements.processWork -- batch 2: guard deleted, module in
-hooks.processRevolutions = function(state: any, _ruleset: any, _events: any)
-	for _, pid in ipairs(state.playerOrder) do
-		if state.players[pid].revolutionTurns ~= nil then
-			error("notPorted:government (a revolution is ticking)")
-		end
-	end
-end
+hooks.processRevolutions = government.processRevolutions -- batch 4: guard deleted
 hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
 hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
-hooks.processBarbarians = function(state: any, _ruleset: any, _events: any)
-	if state.turn >= 16 then
-		error("notPorted:barbarians (turn >= 16 - spawn checks would roll RNG)")
-	end
-end
-hooks.checkGameEnd = function(state: any, _ruleset: any, _events: any)
-	for _, pid in ipairs(state.playerOrder) do
-		if state.players[pid].alive == true then
-			error("notPorted:score (alive flags present - eliminations possible)")
-		end
-	end
-end
+hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
+hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
 
 local function endTurn(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then
@@ -173,7 +161,7 @@ local function createEngine(ruleset: any)
 		elseif cmd.type == "pillage" then
 			result = improvements.pillage(next_, cmd, ruleset)
 		elseif cmd.type == "setGovernment" then
-			result = { ok = false, reason = "notPorted:government" }
+			result = government.setGovernment(next_, cmd, ruleset)
 		elseif cmd.type == "setResearch" then
 			result = tech.setResearch(next_, cmd, ruleset)
 		elseif cmd.type == "setRates" then
@@ -188,7 +176,11 @@ local function createEngine(ruleset: any)
 		return { ok = true, state = next_, events = result.events }
 	end
 
-	return { applyCommand = applyCommand }
+	local function createGame(setup: any): any
+		return mapgen.createGame(setup, ruleset)
+	end
+
+	return { applyCommand = applyCommand, createGame = createGame }
 end
 
 return {
