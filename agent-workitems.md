@@ -425,7 +425,7 @@ Orbit/pan camera; click-to-select resolving to TILES (logical
 hitboxes, never visual bodies — A28's mid-glide lesson). Selection
 highlight Part. Screenshot + a described click test.
 
-### R4 — GameServer: the live engine loop over RemoteEvents (assigned: roblox-helper 2026-07-14 — the engine column is CLOSED, P5-8 accepted)
+### R4 — GameServer: the live engine loop over RemoteEvents (assigned: roblox-helper 2026-07-14 — the engine column is CLOSED, P5-8 accepted)  [claimed: roblox-helper 2026-07-15] [done: 2026-07-15 — ACCEPTANCE GREEN: user played 36 turns in Studio (98 commands, 35 rounds, incl. a lost combat); assemble.js replayed EVERY per-command + per-round hash exact through the Node engine, createGame parity (initialHash 0x0ca5d97c both sides), final gameCode BA05-2M69-QYHRN agrees — the phase-5 live cross-language proof. Boot data gate 8/8 (json2lua-parsed rulesets vs statehash pins). Chunked AI round (task.wait/AI), filterView/filterEvents only, join handshake client-initiated, playerId server-stamped. Fogged R4.png READ (void + dim ring + HUD). Log committed roblox/acceptance/run1.txt. Playtest fixes landed same-day: ScreenPointToRay (ViewportPointToRay + UIS coords = GUI-inset offset, the '60% across the tile' click bug), template Baseplate destroyed at boot (buried ocean columns), StreamingEnabled pinned false (fog pop-in suspect). Banked for R5+: city view/production picker, morph-into-unit avatar mode + N-next-unit (user request)]
 
 The port's engine is done (all ten pins, five goldens, five replay
 verdicts agree Node ≡ lune; anchors ≡ Studio). R4 makes it a GAME:

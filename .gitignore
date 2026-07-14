@@ -32,3 +32,6 @@ ops/
 
 # Ignore any py-cache
 __pycache__/
+
+# Roblox test images
+roblox/*.png

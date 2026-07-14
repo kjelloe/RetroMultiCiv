@@ -1,0 +1,630 @@
+  01:18:23.201  === RetroMultiCiv R1 anchor gate ===  -  Server - VerifyAnchors:35
+  01:18:23.202  xorshift32(123456789): 2714967881, 2238813396, 1250077441, 3820100336  -  Server - VerifyAnchors:29
+  01:18:23.202    PASS (2714967881, 2238813396, 1250077441, 3820100336)  -  Server - VerifyAnchors:30
+  01:18:23.202  hashState({b=2,a={1,"x",true}}): 0x30db1e29  -  Server - VerifyAnchors:29
+  01:18:23.202    PASS (0x30db1e29)  -  Server - VerifyAnchors:30
+  01:18:23.202  gamecode codeHi: 0xa687b72d  -  Server - VerifyAnchors:29
+  01:18:23.202    PASS (0xa687b72d)  -  Server - VerifyAnchors:30
+  01:18:23.202  gameCode: AD1X-Q5MR-DP7H9  -  Server - VerifyAnchors:29
+  01:18:23.202    PASS (AD1X-Q5MR-DP7H9)  -  Server - VerifyAnchors:30
+  01:18:23.202  === R1 anchor gate: ALL PASS ===  -  Server - VerifyAnchors:74
+  01:18:23.216  [GameServer] data gate: 8/8 ruleset hashes match the Node side  -  Server - GameServer:50
+  01:18:23.220  [R4INIT] seed=42 width=40 height=25 civs=romans,babylonians,germans humanSeat=p1 initialHash=0x0ca5d97c  -  Server - GameServer:75
+  01:18:23.220  [GameServer] R4 live loop up: seat open, awaiting join  -  Server - GameServer:220
+  01:18:23.363  [Camera] R4 map camera up: dist 60 — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar  -  Client - Camera:122
+  01:18:23.363  [Hud] R4 hud up  -  Client - Hud:60
+  01:18:23.364  [ViewRenderer] R4 view renderer up: waiting for the first view push  -  Client - ViewRenderer:172
+  01:18:23.365  [Select] R4 actions up: click select/move, B found city, Return end turn  -  Client - Select:181
+  01:18:23.366  [GameServer] seat p1 bound to UserId 2363222931 (vv_beemy)  -  Server - GameServer:117
+  01:18:23.551  Animation Spoofer cannot run while game is running  -  Server
+  01:18:24.144  Animation Spoofer cannot run while game is running  -  Client
+  01:18:24.536  [Client] joined as p1 (turn 1, p1 active)  -  Client - ClientState:59
+  01:18:57.415  [Select] tile (23,15) unknown  -  Client - Select:110
+  01:19:31.331  [Select] tile (33,16) mountains  -  Client - Select:110
+  01:19:31.815   ▶ [Select] tile (33,14) mountains (x2)  -  Client - Select:110
+  01:19:35.197  [Select] selected u1 (settlers) at (34,16), moves 1  -  Client - Select:95
+  01:19:36.081  [Select] move u1 W -> (33,16)  -  Client - Select:102
+  01:19:36.117  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u1"},"hash":"0xec1731ce","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  01:19:36.781  [Select] move u1 E -> (34,16)  -  Client - Select:102
+  01:19:36.814  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u1"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":1}  -  Server - GameServer:80
+  01:19:36.847  [Client] rejected (commandId 2): noMovesLeft  -  Client - ClientState:71
+  01:19:39.281  [Hud] end turn 1  -  Client - Hud:39
+  01:19:39.337  [R4LOG] {"activePlayer":"p1","hash":"0xb8e259a5","t":"round","turn":2}  -  Server - GameServer:80
+  01:19:39.342  [R4CODE] turn=2 code=6MCP-9NPW-E4PD5  -  Server - GameServer:156
+  01:19:41.080  [Select] tile (30,14) unknown  -  Client - Select:110
+  01:19:41.831  [Select] selected u1 (settlers) at (33,16), moves 1  -  Client - Select:95
+  01:19:43.048  [Select] move u1 E -> (34,16)  -  Client - Select:102
+  01:19:43.084  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u1"},"hash":"0x7955715f","ok":true,"t":"cmd","turn":2}  -  Server - GameServer:80
+  01:19:44.931  [Select] tile (34,16) grassland — unit u1 (settlers, p1)  -  Client - Select:110
+  01:19:46.847  [Select] found city: select a settlers unit first  -  Client - Select:169
+  01:19:48.148  [Select] tile (33,16) mountains  -  Client - Select:110
+  01:19:48.780  [Select] selected u1 (settlers) at (34,16), moves 0  -  Client - Select:95
+  01:19:49.197  [Select] move u1 NW -> (33,15)  -  Client - Select:102
+  01:19:49.230  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u1"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":2}  -  Server - GameServer:80
+  01:19:49.263  [Client] rejected (commandId 5): noMovesLeft  -  Client - ClientState:71
+  01:19:49.513  [Select] found city 'Colony 1' with u1 at (34,16)  -  Client - Select:166
+  01:19:49.547  [R4LOG] {"cmd":{"name":"Colony 1","playerId":"p1","type":"foundCity","unitId":"u1"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":2}  -  Server - GameServer:80
+  01:19:49.579  [Client] rejected (commandId 6): noMovesLeft  -  Client - ClientState:71
+  01:19:51.781  [Hud] end turn 2  -  Client - Hud:39
+  01:19:51.835  [R4LOG] {"activePlayer":"p1","hash":"0xcb278adc","t":"round","turn":3}  -  Server - GameServer:80
+  01:19:51.839  [R4CODE] turn=3 code=B7SM-SZB5-JF2PW  -  Server - GameServer:156
+  01:19:52.713  [Select] move u1 W -> (33,16)  -  Client - Select:102
+  01:19:52.749  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u1"},"hash":"0xfb67f4ca","ok":true,"t":"cmd","turn":3}  -  Server - GameServer:80
+  01:19:53.530  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:19:54.579  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:19:55.280  [Select] found city 'Colony 1' with u1 at (33,16)  -  Client - Select:166
+  01:19:55.312  [R4LOG] {"cmd":{"name":"Colony 1","playerId":"p1","type":"foundCity","unitId":"u1"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":3}  -  Server - GameServer:80
+  01:19:55.331  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:19:55.345  [Client] rejected (commandId 9): noMovesLeft  -  Client - ClientState:71
+  01:19:58.930  [Select] tile (34,16) grassland  -  Client - Select:110
+  01:19:59.979  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:02.499  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:03.181  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:05.179  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:07.312  [Select] tile (34,15) plains  -  Client - Select:110
+  01:20:08.346  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:09.131  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:09.712  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:10.195  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:10.613  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:11.563  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:11.796  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:12.145  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:12.847  [Select] selected u1 (settlers) at (33,16), moves 0  -  Client - Select:95
+  01:20:13.462  [Select] tile (31,15) unknown  -  Client - Select:110
+  01:20:14.596  [Hud] end turn 3  -  Client - Hud:39
+  01:20:14.650  [R4LOG] {"activePlayer":"p1","hash":"0xc6849af2","t":"round","turn":4}  -  Server - GameServer:80
+  01:20:14.655  [R4CODE] turn=4 code=6BS8-06K3-896QJ  -  Server - GameServer:156
+  01:20:15.445  [Select] tile (31,15) unknown  -  Client - Select:110
+  01:20:16.379  [Select] selected u1 (settlers) at (33,16), moves 1  -  Client - Select:95
+  01:20:17.463  [Select] tile (33,16) mountains — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:18.195  [Select] selected u1 (settlers) at (33,16), moves 1  -  Client - Select:95
+  01:20:19.279  [Select] tile (31,15) unknown  -  Client - Select:110
+  01:20:19.862  [Select] selected u1 (settlers) at (33,16), moves 1  -  Client - Select:95
+  01:20:24.396  [Select] move u1 E -> (34,16)  -  Client - Select:102
+  01:20:24.432  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u1"},"hash":"0xa210d078","ok":true,"t":"cmd","turn":4}  -  Server - GameServer:80
+  01:20:25.912  [Select] move u1 W -> (33,16)  -  Client - Select:102
+  01:20:25.945  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u1"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":4}  -  Server - GameServer:80
+  01:20:25.978  [Client] rejected (commandId 12): noMovesLeft  -  Client - ClientState:71
+  01:20:26.761  [Hud] end turn 4  -  Client - Hud:39
+  01:20:26.816  [R4LOG] {"activePlayer":"p1","hash":"0xdc135c4d","t":"round","turn":5}  -  Server - GameServer:80
+  01:20:26.821  [R4CODE] turn=5 code=CSZ4-J7QE-16Q2D  -  Server - GameServer:156
+  01:20:28.030  [Select] tile (34,16) grassland — unit u1 (settlers, p1)  -  Client - Select:110
+  01:20:29.345  [Select] found city: select a settlers unit first  -  Client - Select:169
+  01:20:38.261  [Select] tile (33,16) mountains  -  Client - Select:110
+  01:20:39.195  [Select] selected u1 (settlers) at (34,16), moves 1  -  Client - Select:95
+  01:20:42.829  [Select] found city 'Colony 1' with u1 at (34,16)  -  Client - Select:166
+  01:20:42.864  [R4LOG] {"cmd":{"name":"Colony 1","playerId":"p1","type":"foundCity","unitId":"u1"},"hash":"0x4ccfd89e","ok":true,"t":"cmd","turn":5}  -  Server - GameServer:80
+  01:20:45.194  [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1)  -  Client - Select:110
+  01:20:45.745   ▶ [Select] tile (33,16) mountains (x2)  -  Client - Select:110
+  01:20:46.394   ▶ [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1) (x7)  -  Client - Select:110
+  01:21:01.277   ▶ [Select] tile (33,16) mountains (x2)  -  Client - Select:110
+  01:21:01.879   ▶ [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1) (x5)  -  Client - Select:110
+  01:21:05.061  [Hud] end turn 5  -  Client - Hud:39
+  01:21:05.115  [R4LOG] {"activePlayer":"p1","hash":"0x9614bc4c","t":"round","turn":6}  -  Server - GameServer:80
+  01:21:05.119  [R4CODE] turn=6 code=BT28-WYTB-19F2C  -  Server - GameServer:156
+  01:21:07.260  [Hud] end turn 6  -  Client - Hud:39
+  01:21:07.315  [R4LOG] {"activePlayer":"p1","hash":"0x3741553c","t":"round","turn":7}  -  Server - GameServer:80
+  01:21:07.319  [R4CODE] turn=7 code=9D5B-ES0V-M2N9W  -  Server - GameServer:156
+  01:21:25.493   ▶ [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1) (x3)  -  Client - Select:110
+  01:21:38.543  [Select] tile (35,16) forest  -  Client - Select:110
+  01:21:39.443   ▶ [Select] tile (34,17) forest (x8)  -  Client - Select:110
+  01:21:43.677  [Select] tile (35,17) plains  -  Client - Select:110
+  01:21:52.142   ▶ [Select] tile (35,16) forest (x4)  -  Client - Select:110
+  01:21:54.892  [Select] tile (36,16) grassland  -  Client - Select:110
+  01:22:17.708   ▶ [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1) (x11)  -  Client - Select:110
+  01:22:23.123  [Select] tile (33,16) mountains  -  Client - Select:110
+  01:22:23.656   ▶ [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1) (x5)  -  Client - Select:110
+  01:22:35.773  [Hud] end turn 7  -  Client - Hud:39
+  01:22:35.828  [R4LOG] {"activePlayer":"p1","hash":"0x8f5ffe9b","t":"round","turn":8}  -  Server - GameServer:80
+  01:22:35.833  [R4CODE] turn=8 code=3QN3-V2E7-NZZMV  -  Server - GameServer:156
+  01:22:39.456  [Hud] end turn 8  -  Client - Hud:39
+  01:22:39.512  [R4LOG] {"activePlayer":"p1","hash":"0xd0e7f209","t":"round","turn":9}  -  Server - GameServer:80
+  01:22:39.517  [R4CODE] turn=9 code=AYJX-GS78-EFWG9  -  Server - GameServer:156
+  01:22:41.890  [Select] selected u6 (militia) at (34,16), moves 1  -  Client - Select:95
+  01:22:44.656  [Select] move u6 E -> (35,16)  -  Client - Select:102
+  01:22:44.692  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x3ea8c673","ok":true,"t":"cmd","turn":9}  -  Server - GameServer:80
+  01:22:46.107  [Select] tile (35,16) forest — unit u6 (militia, p1)  -  Client - Select:110
+  01:22:47.406  [Hud] end turn 9  -  Client - Hud:39
+  01:22:47.460  [R4LOG] {"activePlayer":"p1","hash":"0x962ce325","t":"round","turn":10}  -  Server - GameServer:80
+  01:22:47.465  [R4CODE] turn=10 code=AGJJ-HE6B-2SRS5  -  Server - GameServer:156
+  01:22:48.172  [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1)  -  Client - Select:110
+  01:22:48.739  [Select] selected u6 (militia) at (35,16), moves 1  -  Client - Select:95
+  01:22:49.239  [Select] tile (35,16) forest — unit u6 (militia, p1)  -  Client - Select:110
+  01:22:49.923  [Select] selected u6 (militia) at (35,16), moves 1  -  Client - Select:95
+  01:22:50.657  [Select] tile (35,16) forest — unit u6 (militia, p1)  -  Client - Select:110
+  01:22:51.740  [Select] tile (36,16) grassland  -  Client - Select:110
+  01:22:52.472  [Select] tile (34,16) grassland — city Colony 1 (p1, pop 1)  -  Client - Select:110
+  01:22:53.073  [Select] selected u6 (militia) at (35,16), moves 1  -  Client - Select:95
+  01:22:54.139  [Select] move u6 E -> (36,16)  -  Client - Select:102
+  01:22:54.176  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xa6fa95e6","ok":true,"t":"cmd","turn":10}  -  Server - GameServer:80
+  01:22:55.372  [Select] move u6 E -> (37,16)  -  Client - Select:102
+  01:22:55.406  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":10}  -  Server - GameServer:80
+  01:22:55.439  [Client] rejected (commandId 22): noMovesLeft  -  Client - ClientState:71
+  01:22:56.090  [Select] tile (36,16) grassland — unit u6 (militia, p1)  -  Client - Select:110
+  01:22:57.156  [Hud] end turn 10  -  Client - Hud:39
+  01:22:57.210  [R4LOG] {"activePlayer":"p1","hash":"0x9a72d098","t":"round","turn":11}  -  Server - GameServer:80
+  01:22:57.215  [R4CODE] turn=11 code=18G8-1WAD-75M4R  -  Server - GameServer:156
+  01:22:58.123  [Select] tile (37,16) swamp  -  Client - Select:110
+  01:22:59.439  [Select] selected u6 (militia) at (36,16), moves 1  -  Client - Select:95
+  01:23:02.989  [Select] move u6 E -> (37,16)  -  Client - Select:102
+  01:23:03.025  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x6662dddf","ok":true,"t":"cmd","turn":11}  -  Server - GameServer:80
+  01:23:04.156  [Select] move u6 E -> (38,16)  -  Client - Select:102
+  01:23:04.189  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":11}  -  Server - GameServer:80
+  01:23:04.222  [Client] rejected (commandId 25): noMovesLeft  -  Client - ClientState:71
+  01:23:05.289  [Hud] end turn 11  -  Client - Hud:39
+  01:23:05.346  [R4LOG] {"activePlayer":"p1","hash":"0xa18a2501","t":"round","turn":12}  -  Server - GameServer:80
+  01:23:05.351  [R4CODE] turn=12 code=8WJK-CM6G-RM981  -  Server - GameServer:156
+  01:23:05.973  [Select] move u6 E -> (38,16)  -  Client - Select:102
+  01:23:06.009  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x6ef038ae","ok":true,"t":"cmd","turn":12}  -  Server - GameServer:80
+  01:23:07.290  [Select] selected u9 (militia) at (34,16), moves 1  -  Client - Select:95
+  01:23:08.473  [Select] move u9 SW -> (33,17)  -  Client - Select:102
+  01:23:08.508  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x2b29729b","ok":true,"t":"cmd","turn":12}  -  Server - GameServer:80
+  01:23:10.122  [Hud] end turn 12  -  Client - Hud:39
+  01:23:10.177  [R4LOG] {"activePlayer":"p1","hash":"0xfc0862e1","t":"round","turn":13}  -  Server - GameServer:80
+  01:23:10.182  [R4CODE] turn=13 code=ERHA-85QY-0GRQ1  -  Server - GameServer:156
+  01:23:11.022  [Select] move u9 S -> (33,18)  -  Client - Select:102
+  01:23:11.059  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x6f144d1e","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  01:23:11.889  [Select] move u9 SW -> (32,19)  -  Client - Select:102
+  01:23:11.921  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":13}  -  Server - GameServer:80
+  01:23:11.954  [Client] rejected (commandId 31): impassable  -  Client - ClientState:71
+  01:23:13.106  [Select] tile (38,6) unknown  -  Client - Select:110
+  01:23:14.038  [Hud] end turn 13  -  Client - Hud:39
+  01:23:14.094  [R4LOG] {"activePlayer":"p1","hash":"0x59f5d658","t":"round","turn":14}  -  Server - GameServer:80
+  01:23:14.099  [R4CODE] turn=14 code=7KZJ-53SC-ZBNJR  -  Server - GameServer:156
+  01:23:14.806  [Select] tile (38,15) jungle  -  Client - Select:110
+  01:23:15.489  [Select] selected u6 (militia) at (38,16), moves 1  -  Client - Select:95
+  01:23:15.890  [Select] move u6 N -> (38,15)  -  Client - Select:102
+  01:23:15.925  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x81c0d0ff","ok":true,"t":"cmd","turn":14}  -  Server - GameServer:80
+  01:23:17.655  [Hud] end turn 14  -  Client - Hud:39
+  01:23:17.711  [R4LOG] {"activePlayer":"p1","hash":"0xd117fc68","t":"round","turn":15}  -  Server - GameServer:80
+  01:23:17.715  [R4CODE] turn=15 code=FT2Q-JYK8-HFZ38  -  Server - GameServer:156
+  01:23:18.538  [Select] move u6 N -> (38,14)  -  Client - Select:102
+  01:23:18.574  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xd9c0ca33","ok":true,"t":"cmd","turn":15}  -  Server - GameServer:80
+  01:23:20.872  [Select] selected u9 (militia) at (33,18), moves 1  -  Client - Select:95
+  01:23:21.222  [Select] move u9 S -> (33,19)  -  Client - Select:102
+  01:23:21.258  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x25c933a0","ok":true,"t":"cmd","turn":15}  -  Server - GameServer:80
+  01:23:23.054  [Hud] end turn 15  -  Client - Hud:39
+  01:23:23.110  [R4LOG] {"activePlayer":"p1","hash":"0xcac37e22","t":"round","turn":16}  -  Server - GameServer:80
+  01:23:23.115  [R4CODE] turn=16 code=43E0-VJ35-C6ZH2  -  Server - GameServer:156
+  01:23:24.071  [Select] tile (33,19) grassland — unit u9 (militia, p1)  -  Client - Select:110
+  01:23:24.605  [Select] tile (32,18) hills  -  Client - Select:110
+  01:23:25.788  [Select] tile (32,19) ocean  -  Client - Select:110
+  01:23:26.372   ▶ [Select] tile (31,19) unknown (x2)  -  Client - Select:110
+  01:23:27.338  [Select] tile (32,19) ocean  -  Client - Select:110
+  01:23:28.388  [Select] selected u6 (militia) at (38,14), moves 1  -  Client - Select:95
+  01:23:28.871  [Select] move u6 N -> (38,13)  -  Client - Select:102
+  01:23:28.908  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x14b7f67f","ok":true,"t":"cmd","turn":16}  -  Server - GameServer:80
+  01:23:31.605  [Hud] end turn 16  -  Client - Hud:39
+  01:23:31.661  [R4LOG] {"activePlayer":"p1","hash":"0xd95aa7e2","t":"round","turn":17}  -  Server - GameServer:80
+  01:23:31.665  [R4CODE] turn=17 code=C1KB-CWBC-NN9Z2  -  Server - GameServer:156
+  01:24:16.487  [Select] tile (38,10) unknown  -  Client - Select:110
+  01:24:17.370  [Select] tile (35,15) desert  -  Client - Select:110
+  01:24:19.552  [Select] tile (37,13) grassland  -  Client - Select:110
+  01:24:20.137  [Select] selected u6 (militia) at (38,13), moves 1  -  Client - Select:95
+  01:24:25.270  [Select] tile (38,11) unknown  -  Client - Select:110
+  01:24:26.119  [Select] tile (39,12) plains  -  Client - Select:110
+  01:24:26.852  [Select] tile (37,12) swamp  -  Client - Select:110
+  01:24:27.585  [Select] selected u6 (militia) at (38,13), moves 1  -  Client - Select:95
+  01:24:28.502  [Select] tile (38,11) unknown  -  Client - Select:110
+  01:24:29.103  [Select] selected u6 (militia) at (38,13), moves 1  -  Client - Select:95
+  01:24:30.602  [Select] tile (38,11) unknown  -  Client - Select:110
+  01:24:31.285  [Select] selected u6 (militia) at (38,13), moves 1  -  Client - Select:95
+  01:24:31.669  [Select] move u6 NE -> (39,12)  -  Client - Select:102
+  01:24:31.705  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xdab31010","ok":true,"t":"cmd","turn":17}  -  Server - GameServer:80
+  01:24:33.202  [Select] tile (30,19) unknown  -  Client - Select:110
+  01:24:33.836   ▶ [Select] tile (31,19) unknown (x2)  -  Client - Select:110
+  01:24:34.736  [Select] selected u9 (militia) at (33,19), moves 1  -  Client - Select:95
+  01:24:35.703  [Select] tile (31,20) unknown  -  Client - Select:110
+  01:24:36.268   ▶ [Select] tile (31,19) unknown (x2)  -  Client - Select:110
+  01:24:37.369   ▶ [Select] tile (32,19) ocean (x2)  -  Client - Select:110
+  01:24:38.435  [Select] tile (32,18) hills  -  Client - Select:110
+  01:24:38.919  [Select] tile (32,19) ocean  -  Client - Select:110
+  01:24:39.369  [Select] tile (31,19) unknown  -  Client - Select:110
+  01:24:40.286  [Select] tile (32,18) hills  -  Client - Select:110
+  01:24:41.569  [Select] selected u9 (militia) at (33,19), moves 1  -  Client - Select:95
+  01:24:43.669  [Select] move u9 SW -> (32,20)  -  Client - Select:102
+  01:24:43.701  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:24:43.734  [Client] rejected (commandId 41): impassable  -  Client - ClientState:71
+  01:24:44.169  [Select] move u9 SW -> (32,20)  -  Client - Select:102
+  01:24:44.201  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:24:44.235  [Client] rejected (commandId 42): impassable  -  Client - ClientState:71
+  01:24:44.369  [Select] move u9 SW -> (32,20)  -  Client - Select:102
+  01:24:44.401  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:24:44.433  [Client] rejected (commandId 43): impassable  -  Client - ClientState:71
+  01:25:00.369  [Select] move u9 S -> (33,20)  -  Client - Select:102
+  01:25:00.401  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:25:00.433  [Client] rejected (commandId 44): impassable  -  Client - ClientState:71
+  01:25:01.602  [Select] move u9 S -> (33,20)  -  Client - Select:102
+  01:25:01.634  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:25:01.666  [Client] rejected (commandId 45): impassable  -  Client - ClientState:71
+  01:25:04.051  [Select] move u9 W -> (32,19)  -  Client - Select:102
+  01:25:04.083  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":17}  -  Server - GameServer:80
+  01:25:04.116  [Client] rejected (commandId 46): impassable  -  Client - ClientState:71
+  01:25:04.684  [Select] move u9 NW -> (32,18)  -  Client - Select:102
+  01:25:04.721  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0xcee2a8e4","ok":true,"t":"cmd","turn":17}  -  Server - GameServer:80
+  01:25:07.651  [Select] tile (32,18) hills — unit u9 (militia, p1)  -  Client - Select:110
+  01:25:08.801  [Hud] end turn 17  -  Client - Hud:39
+  01:25:08.857  [R4LOG] {"activePlayer":"p1","hash":"0xc48b0b19","t":"round","turn":18}  -  Server - GameServer:80
+  01:25:08.862  [R4CODE] turn=18 code=EQ89-QHQ2-8P2RS  -  Server - GameServer:156
+  01:25:13.133  [Select] tile (31,19) ocean  -  Client - Select:110
+  01:25:17.634  [Select] selected u9 (militia) at (32,18), moves 1  -  Client - Select:95
+  01:25:18.583  [Select] tile (32,18) hills — unit u9 (militia, p1)  -  Client - Select:110
+  01:25:20.884  [Select] tile (31,19) ocean  -  Client - Select:110
+  01:25:36.700  [Select] tile (30,22) unknown  -  Client - Select:110
+  01:25:37.533  [Select] selected u9 (militia) at (32,18), moves 1  -  Client - Select:95
+  01:25:39.567  [Select] move u9 NW -> (31,17)  -  Client - Select:102
+  01:25:39.602  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x7daec032","ok":true,"t":"cmd","turn":18}  -  Server - GameServer:80
+  01:25:42.866  [Select] tile (30,15) unknown  -  Client - Select:110
+  01:25:43.299  [Select] tile (31,16) plains  -  Client - Select:110
+  01:25:44.383  [Hud] end turn 18  -  Client - Hud:39
+  01:25:44.440  [R4LOG] {"activePlayer":"p1","hash":"0x4635dc86","t":"round","turn":19}  -  Server - GameServer:80
+  01:25:44.445  [R4CODE] turn=19 code=7ZWZ-3293-3BQ46  -  Server - GameServer:156
+  01:25:45.917  [Select] tile (30,16) grassland  -  Client - Select:110
+  01:25:46.632  [Select] selected u9 (militia) at (31,17), moves 1  -  Client - Select:95
+  01:25:47.349  [Select] move u9 NW -> (30,16)  -  Client - Select:102
+  01:25:47.385  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x8f3736c8","ok":true,"t":"cmd","turn":19}  -  Server - GameServer:80
+  01:25:52.799   ▶ [Select] tile (39,11) plains (x2)  -  Client - Select:110
+  01:25:53.848  [Select] selected u6 (militia) at (39,12), moves 1  -  Client - Select:95
+  01:25:54.466  [Select] tile (39,10) unknown  -  Client - Select:110
+  01:25:55.166  [Select] tile (39,11) plains  -  Client - Select:110
+  01:25:57.933  [Select] tile (39,10) unknown  -  Client - Select:110
+  01:25:58.549   ▶ [Select] tile (39,11) plains (x2)  -  Client - Select:110
+  01:25:59.499  [Select] selected u6 (militia) at (39,12), moves 1  -  Client - Select:95
+  01:26:00.482  [Select] tile (38,10) unknown  -  Client - Select:110
+  01:26:01.098  [Select] selected u6 (militia) at (39,12), moves 1  -  Client - Select:95
+  01:26:03.215  [Select] tile (39,10) unknown  -  Client - Select:110
+  01:26:03.932  [Select] tile (39,11) plains  -  Client - Select:110
+  01:26:04.549  [Select] selected u6 (militia) at (39,12), moves 1  -  Client - Select:95
+  01:26:05.665  [Select] move u6 NW -> (38,11)  -  Client - Select:102
+  01:26:05.701  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8987e7f3","ok":true,"t":"cmd","turn":19}  -  Server - GameServer:80
+  01:26:06.849  [Select] move u6 NW -> (37,10)  -  Client - Select:102
+  01:26:06.881  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  01:26:06.914  [Client] rejected (commandId 53): noMovesLeft  -  Client - ClientState:71
+  01:26:07.231  [Select] move u6 NW -> (37,10)  -  Client - Select:102
+  01:26:07.264  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  01:26:07.297  [Client] rejected (commandId 54): noMovesLeft  -  Client - ClientState:71
+  01:26:07.383  [Select] move u6 NW -> (37,10)  -  Client - Select:102
+  01:26:07.415  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  01:26:07.447  [Client] rejected (commandId 55): noMovesLeft  -  Client - ClientState:71
+  01:26:08.932  [Hud] end turn 19  -  Client - Hud:39
+  01:26:08.988  [R4LOG] {"activePlayer":"p1","hash":"0x8590f724","t":"round","turn":20}  -  Server - GameServer:80
+  01:26:08.993  [R4CODE] turn=20 code=4YD8-BWT2-S1XS4  -  Server - GameServer:156
+  01:26:11.349  [Select] selected u9 (militia) at (30,16), moves 1  -  Client - Select:95
+  01:26:12.064  [Select] move u9 NW -> (29,15)  -  Client - Select:102
+  01:26:12.101  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x2f64cc1b","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  01:26:13.748  [Select] tile (39,10) swamp  -  Client - Select:110
+  01:26:14.265  [Select] selected u6 (militia) at (38,11), moves 1  -  Client - Select:95
+  01:26:15.249  [Select] move u6 NW -> (37,10)  -  Client - Select:102
+  01:26:15.285  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x4b95947b","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  01:26:17.549  [Select] selected u11 (militia) at (34,16), moves 1  -  Client - Select:95
+  01:26:18.448  [Select] move u11 N -> (34,15)  -  Client - Select:102
+  01:26:18.484  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x749363ad","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  01:26:19.399  [Select] move u11 N -> (34,14)  -  Client - Select:102
+  01:26:19.432  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":20}  -  Server - GameServer:80
+  01:26:19.463  [Client] rejected (commandId 60): noMovesLeft  -  Client - ClientState:71
+  01:26:20.898  [Hud] end turn 20  -  Client - Hud:39
+  01:26:20.955  [R4LOG] {"activePlayer":"p1","hash":"0x9d1aa655","t":"round","turn":21}  -  Server - GameServer:80
+  01:26:20.960  [R4CODE] turn=21 code=ETEA-89PE-HN9JN  -  Server - GameServer:156
+  01:26:21.881  [Select] move u11 N -> (34,14)  -  Client - Select:102
+  01:26:21.917  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x8a94a528","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  01:26:24.582  [Select] tile (34,14) grassland — unit u11 (militia, p1)  -  Client - Select:110
+  01:26:25.415  [Select] tile (34,13) jungle  -  Client - Select:110
+  01:26:26.597  [Select] selected u9 (militia) at (29,15), moves 1  -  Client - Select:95
+  01:26:27.214  [Select] move u9 NW -> (28,14)  -  Client - Select:102
+  01:26:27.250  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x606434b6","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  01:26:28.548  [Select] selected u6 (militia) at (37,10), moves 1  -  Client - Select:95
+  01:26:29.381  [Select] move u6 NW -> (36,9)  -  Client - Select:102
+  01:26:29.417  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x0dfe3f01","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  01:26:32.731  [Select] selected u9 (militia) at (28,14), moves 0  -  Client - Select:95
+  01:26:39.298  [Select] tile (28,14) mountains — unit u9 (militia, p1)  -  Client - Select:110
+  01:26:42.413  [Select] tile (27,13) desert  -  Client - Select:110
+  01:26:43.114  [Select] selected u9 (militia) at (28,14), moves 0  -  Client - Select:95
+  01:26:44.281  [Select] move u9 NW -> (27,13)  -  Client - Select:102
+  01:26:44.313  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":21}  -  Server - GameServer:80
+  01:26:44.347  [Client] rejected (commandId 65): noMovesLeft  -  Client - ClientState:71
+  01:26:47.913  [Hud] end turn 21  -  Client - Hud:39
+  01:26:47.970  [R4LOG] {"activePlayer":"p1","hash":"0x6e845d20","t":"round","turn":22}  -  Server - GameServer:80
+  01:26:47.975  [R4CODE] turn=22 code=A11K-R59Q-88Q90  -  Server - GameServer:156
+  01:26:49.546  [Select] move u9 NW -> (27,13)  -  Client - Select:102
+  01:26:49.583  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x05ba723a","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  01:26:56.229   ▶ [Select] tile (38,7) unknown (x2)  -  Client - Select:110
+  01:26:59.030  [Select] tile (37,9) plains  -  Client - Select:110
+  01:26:59.463  [Select] selected u6 (militia) at (36,9), moves 1  -  Client - Select:95
+  01:27:01.730  [Select] tile (38,7) unknown  -  Client - Select:110
+  01:27:02.348   ▶ [Select] tile (37,8) grassland (x2)  -  Client - Select:110
+  01:27:03.280  [Select] selected u6 (militia) at (36,9), moves 1  -  Client - Select:95
+  01:27:04.763  [Select] tile (39,7) unknown  -  Client - Select:110
+  01:27:05.346  [Select] tile (37,8) grassland  -  Client - Select:110
+  01:27:07.013  [Select] selected u6 (militia) at (36,9), moves 1  -  Client - Select:95
+  01:27:08.612  [Select] move u6 NE -> (37,8)  -  Client - Select:102
+  01:27:08.649  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xc710d64f","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  01:27:09.896  [Select] move u6 NE -> (38,7)  -  Client - Select:102
+  01:27:09.929  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":22}  -  Server - GameServer:80
+  01:27:09.961  [Client] rejected (commandId 69): noMovesLeft  -  Client - ClientState:71
+  01:27:12.197  [Select] tile (33,14) mountains  -  Client - Select:110
+  01:27:12.829  [Select] selected u11 (militia) at (34,14), moves 1  -  Client - Select:95
+  01:27:13.579  [Select] move u11 N -> (34,13)  -  Client - Select:102
+  01:27:13.615  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x8ccaa7c8","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  01:27:14.329  [Select] move u11 N -> (34,12)  -  Client - Select:102
+  01:27:14.362  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":22}  -  Server - GameServer:80
+  01:27:14.395  [Client] rejected (commandId 71): noMovesLeft  -  Client - ClientState:71
+  01:27:15.695  [Hud] end turn 22  -  Client - Hud:39
+  01:27:15.752  [R4LOG] {"activePlayer":"p1","hash":"0x020c9678","t":"round","turn":23}  -  Server - GameServer:80
+  01:27:15.757  [R4CODE] turn=23 code=AJ1J-ZJ81-0S5KR  -  Server - GameServer:156
+  01:27:17.162  [Select] tile (34,13) jungle — unit u11 (militia, p1)  -  Client - Select:110
+  01:27:17.912  [Select] tile (34,12) plains  -  Client - Select:110
+  01:27:19.062  [Select] selected u6 (militia) at (37,8), moves 1  -  Client - Select:95
+  01:27:19.746  [Select] move u6 N -> (37,7)  -  Client - Select:102
+  01:27:19.782  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xd014e587","ok":true,"t":"cmd","turn":23}  -  Server - GameServer:80
+  01:27:23.028  [Select] selected u9 (militia) at (27,13), moves 1  -  Client - Select:95
+  01:27:23.896  [Select] move u9 NW -> (26,12)  -  Client - Select:102
+  01:27:23.931  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0xf164b7af","ok":true,"t":"cmd","turn":23}  -  Server - GameServer:80
+  01:27:24.962  [Select] move u9 NW -> (25,11)  -  Client - Select:102
+  01:27:24.995  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":23}  -  Server - GameServer:80
+  01:27:25.028  [Client] rejected (commandId 75): noMovesLeft  -  Client - ClientState:71
+  01:27:25.895  [Select] move u9 E -> (27,12)  -  Client - Select:102
+  01:27:25.929  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":23}  -  Server - GameServer:80
+  01:27:25.962  [Client] rejected (commandId 76): impassable  -  Client - ClientState:71
+  01:27:28.612  [Hud] end turn 23  -  Client - Hud:39
+  01:27:28.671  [R4LOG] {"activePlayer":"p1","hash":"0x75600c7e","t":"round","turn":24}  -  Server - GameServer:80
+  01:27:28.676  [R4CODE] turn=24 code=27ZS-5HHT-P033Y  -  Server - GameServer:156
+  01:27:30.946  [Select] move u9 NW -> (25,11)  -  Client - Select:102
+  01:27:30.982  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x6b10c668","ok":true,"t":"cmd","turn":24}  -  Server - GameServer:80
+  01:27:32.462  [Select] tile (36,6) ocean  -  Client - Select:110
+  01:27:32.896  [Select] tile (36,5) unknown  -  Client - Select:110
+  01:27:33.396   ▶ [Select] tile (37,5) unknown (x2)  -  Client - Select:110
+  01:27:35.045  [Select] tile (37,6) plains  -  Client - Select:110
+  01:27:36.029  [Select] selected u6 (militia) at (37,7), moves 1  -  Client - Select:95
+  01:27:36.879  [Select] tile (37,5) unknown  -  Client - Select:110
+  01:27:37.496   ▶ [Select] tile (37,6) plains (x2)  -  Client - Select:110
+  01:27:38.395  [Select] tile (36,6) ocean  -  Client - Select:110
+  01:27:38.828  [Select] tile (36,7) ocean  -  Client - Select:110
+  01:27:39.479  [Select] tile (36,6) ocean  -  Client - Select:110
+  01:27:39.894  [Select] tile (37,6) plains  -  Client - Select:110
+  01:27:40.745   ▶ [Select] tile (33,12) jungle (x2)  -  Client - Select:110
+  01:27:41.828  [Select] selected u11 (militia) at (34,13), moves 1  -  Client - Select:95
+  01:27:42.528  [Select] tile (32,11) unknown  -  Client - Select:110
+  01:27:43.145  [Select] tile (33,12) jungle  -  Client - Select:110
+  01:27:43.611   ▶ [Select] tile (34,12) plains (x2)  -  Client - Select:110
+  01:27:44.628   ▶ [Select] tile (33,12) jungle (x2)  -  Client - Select:110
+  01:27:45.510  [Select] selected u11 (militia) at (34,13), moves 1  -  Client - Select:95
+  01:27:48.661  [Select] tile (33,11) unknown  -  Client - Select:110
+  01:27:49.362  [Select] tile (33,12) jungle  -  Client - Select:110
+  01:27:49.711  [Select] selected u11 (militia) at (34,13), moves 1  -  Client - Select:95
+  01:27:50.428  [Select] tile (34,11) unknown  -  Client - Select:110
+  01:27:50.961  [Select] tile (33,13) ocean  -  Client - Select:110
+  01:27:51.411   ▶ [Select] tile (33,12) jungle (x2)  -  Client - Select:110
+  01:27:53.460   ▶ [Select] tile (34,12) plains (x2)  -  Client - Select:110
+  01:27:54.327  [Select] tile (33,13) ocean  -  Client - Select:110
+  01:27:54.944  [Select] tile (34,12) plains  -  Client - Select:110
+  01:27:55.427  [Select] selected u11 (militia) at (34,13), moves 1  -  Client - Select:95
+  01:27:56.561  [Select] move u11 N -> (34,12)  -  Client - Select:102
+  01:27:56.597  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0xd8eed431","ok":true,"t":"cmd","turn":24}  -  Server - GameServer:80
+  01:27:59.444  [Hud] end turn 24  -  Client - Hud:39
+  01:27:59.502  [R4LOG] {"activePlayer":"p1","hash":"0x83f09b66","t":"round","turn":25}  -  Server - GameServer:80
+  01:27:59.507  [R4CODE] turn=25 code=6YQ8-PX21-Z16V6  -  Server - GameServer:156
+  01:28:00.928  [Select] selected u9 (militia) at (25,11), moves 1  -  Client - Select:95
+  01:28:01.860  [Select] move u9 NW -> (24,10)  -  Client - Select:102
+  01:28:01.898  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x691cf37c","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  01:28:03.194   ▶ [Select] tile (34,11) ocean (x2)  -  Client - Select:110
+  01:28:04.110  [Select] selected u11 (militia) at (34,12), moves 1  -  Client - Select:95
+  01:28:05.560  [Select] move u11 NW -> (33,11)  -  Client - Select:102
+  01:28:05.597  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0xbbc8885c","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  01:28:06.743   ▶ [Select] tile (37,6) plains (x3)  -  Client - Select:110
+  01:28:08.345  [Select] selected u6 (militia) at (37,7), moves 1  -  Client - Select:95
+  01:28:09.443  [Select] tile (38,5) unknown  -  Client - Select:110
+  01:28:10.111  [Select] selected u6 (militia) at (37,7), moves 1  -  Client - Select:95
+  01:28:11.026  [Select] tile (37,5) unknown  -  Client - Select:110
+  01:28:11.760  [Select] selected u6 (militia) at (37,7), moves 1  -  Client - Select:95
+  01:28:14.045  [Select] move u6 N -> (37,6)  -  Client - Select:102
+  01:28:14.080  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x9edf5d93","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  01:28:15.460  [Select] tile (33,10) plains  -  Client - Select:110
+  01:28:16.576  [Select] tile (39,1) unknown  -  Client - Select:110
+  01:28:17.444  [Select] tile (32,10) plains  -  Client - Select:110
+  01:28:18.127  [Select] tile (31,9) unknown  -  Client - Select:110
+  01:28:18.593  [Select] tile (32,10) plains  -  Client - Select:110
+  01:28:19.176  [Select] tile (33,10) plains  -  Client - Select:110
+  01:28:19.727  [Select] selected u11 (militia) at (33,11), moves 0  -  Client - Select:95
+  01:28:20.260  [Select] tile (31,10) unknown  -  Client - Select:110
+  01:28:20.876  [Select] tile (32,10) plains  -  Client - Select:110
+  01:28:21.492  [Select] selected u11 (militia) at (33,11), moves 0  -  Client - Select:95
+  01:28:22.593  [Select] move u11 NW -> (32,10)  -  Client - Select:102
+  01:28:22.626  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":25}  -  Server - GameServer:80
+  01:28:22.659  [Client] rejected (commandId 84): noMovesLeft  -  Client - ClientState:71
+  01:28:23.127  [Select] move u11 NW -> (32,10)  -  Client - Select:102
+  01:28:23.160  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":25}  -  Server - GameServer:80
+  01:28:23.175  [Client] rejected (commandId 85): noMovesLeft  -  Client - ClientState:71
+  01:28:25.710  [Hud] end turn 25  -  Client - Hud:39
+  01:28:25.768  [R4LOG] {"activePlayer":"p1","hash":"0x71b7b148","t":"round","turn":26}  -  Server - GameServer:80
+  01:28:25.773  [R4CODE] turn=26 code=7MHR-ERHR-VFCA8  -  Server - GameServer:156
+  01:28:26.676  [Select] move u11 NW -> (32,10)  -  Client - Select:102
+  01:28:26.714  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0xce9a2384","ok":true,"t":"cmd","turn":26}  -  Server - GameServer:80
+  01:28:27.959   ▶ [Select] tile (23,9) ocean (x2)  -  Client - Select:110
+  01:28:28.993  [Select] selected u9 (militia) at (24,10), moves 1  -  Client - Select:95
+  01:28:30.176  [Select] tile (22,10) unknown  -  Client - Select:110
+  01:28:30.993  [Select] tile (23,9) ocean  -  Client - Select:110
+  01:28:31.892  [Select] selected u9 (militia) at (24,10), moves 1  -  Client - Select:95
+  01:28:32.409  [Select] move u9 W -> (23,10)  -  Client - Select:102
+  01:28:32.446  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x62850389","ok":true,"t":"cmd","turn":26}  -  Server - GameServer:80
+  01:28:33.909  [Hud] end turn 26  -  Client - Hud:39
+  01:28:33.967  [R4LOG] {"activePlayer":"p1","hash":"0x17c25da5","t":"round","turn":27}  -  Server - GameServer:80
+  01:28:33.972  [R4CODE] turn=27 code=F0C9-38MB-W4QD5  -  Server - GameServer:156
+  01:28:35.159  [Select] move u9 NW -> (22,9)  -  Client - Select:102
+  01:28:35.193  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:35.228  [Client] rejected (commandId 90): impassable  -  Client - ClientState:71
+  01:28:35.743  [Select] move u9 NW -> (22,9)  -  Client - Select:102
+  01:28:35.776  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:35.809  [Client] rejected (commandId 91): impassable  -  Client - ClientState:71
+  01:28:36.125  [Select] move u9 NW -> (22,9)  -  Client - Select:102
+  01:28:36.159  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:36.192  [Client] rejected (commandId 92): impassable  -  Client - ClientState:71
+  01:28:36.676  [Select] move u9 N -> (23,9)  -  Client - Select:102
+  01:28:36.709  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:36.742  [Client] rejected (commandId 93): impassable  -  Client - ClientState:71
+  01:28:37.143  [Select] move u9 W -> (22,10)  -  Client - Select:102
+  01:28:37.175  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:37.209  [Client] rejected (commandId 94): impassable  -  Client - ClientState:71
+  01:28:37.592  [Select] move u9 N -> (23,9)  -  Client - Select:102
+  01:28:37.625  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:37.658  [Client] rejected (commandId 95): impassable  -  Client - ClientState:71
+  01:28:38.493  [Select] move u9 N -> (23,9)  -  Client - Select:102
+  01:28:38.525  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:38.558  [Client] rejected (commandId 96): impassable  -  Client - ClientState:71
+  01:28:40.692  [Select] move u9 W -> (22,10)  -  Client - Select:102
+  01:28:40.725  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:40.759  [Client] rejected (commandId 97): impassable  -  Client - ClientState:71
+  01:28:41.142  [Select] move u9 NW -> (22,9)  -  Client - Select:102
+  01:28:41.176  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:41.208  [Client] rejected (commandId 98): impassable  -  Client - ClientState:71
+  01:28:41.675  [Select] move u9 N -> (23,9)  -  Client - Select:102
+  01:28:41.709  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":27}  -  Server - GameServer:80
+  01:28:41.741  [Client] rejected (commandId 99): impassable  -  Client - ClientState:71
+  01:28:45.192  [Select] tile (23,8) unknown  -  Client - Select:110
+  01:28:45.993  [Select] tile (22,9) ocean  -  Client - Select:110
+  01:28:46.509  [Select] tile (22,10) ocean  -  Client - Select:110
+  01:28:47.109   ▶ [Select] tile (23,9) ocean (x2)  -  Client - Select:110
+  01:28:49.058  [Hud] end turn 27  -  Client - Hud:39
+  01:28:49.117  [R4LOG] {"activePlayer":"p1","hash":"0xf8acff4d","t":"round","turn":28}  -  Server - GameServer:80
+  01:28:49.123  [R4CODE] turn=28 code=0D03-1FQW-ASZTD  -  Server - GameServer:156
+  01:28:50.325  [Select] selected u9 (militia) at (23,10), moves 1  -  Client - Select:95
+  01:28:51.858  [Select] tile (24,8) unknown  -  Client - Select:110
+  01:28:52.674  [Select] tile (22,10) ocean  -  Client - Select:110
+  01:28:53.126  [Select] selected u9 (militia) at (23,10), moves 1  -  Client - Select:95
+  01:28:54.741  [Select] move u9 NE -> (24,9)  -  Client - Select:102
+  01:28:54.779  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x09323cfa","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  01:28:56.459  [Select] tile (32,9) grassland  -  Client - Select:110
+  01:28:57.442  [Select] selected u11 (militia) at (32,10), moves 1  -  Client - Select:95
+  01:28:58.259  [Select] move u11 NW -> (31,9)  -  Client - Select:102
+  01:28:58.295  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x61140435","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  01:28:59.558  [Select] tile (37,5) ocean  -  Client - Select:110
+  01:29:00.091  [Select] selected u6 (militia) at (37,6), moves 1  -  Client - Select:95
+  01:29:01.792  [Select] move u6 SE -> (38,7)  -  Client - Select:102
+  01:29:01.827  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x9c70ab51","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  01:29:03.192  [Hud] end turn 28  -  Client - Hud:39
+  01:29:03.250  [R4LOG] {"activePlayer":"p1","hash":"0x936004ec","t":"round","turn":29}  -  Server - GameServer:80
+  01:29:03.255  [R4CODE] turn=29 code=DFH2-ZD29-P017C  -  Server - GameServer:156
+  01:29:08.758  [Select] selected u9 (militia) at (24,9), moves 1  -  Client - Select:95
+  01:29:09.574  [Select] move u9 W -> (23,9)  -  Client - Select:102
+  01:29:09.608  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":29}  -  Server - GameServer:80
+  01:29:09.641  [Client] rejected (commandId 105): impassable  -  Client - ClientState:71
+  01:29:10.524  [Select] tile (24,9) desert — unit u9 (militia, p1)  -  Client - Select:110
+  01:29:11.191  [Select] selected u9 (militia) at (24,9), moves 1  -  Client - Select:95
+  01:30:19.205  [Hud] end turn 29  -  Client - Hud:39
+  01:30:19.264  [R4LOG] {"activePlayer":"p1","hash":"0x8671dce2","t":"round","turn":30}  -  Server - GameServer:80
+  01:30:19.269  [R4CODE] turn=30 code=FQM2-22J3-73Q72  -  Server - GameServer:156
+  01:30:20.422  [Select] tile (24,9) desert — unit u9 (militia, p1)  -  Client - Select:110
+  01:30:21.272  [Select] selected u9 (militia) at (24,9), moves 1  -  Client - Select:95
+  01:30:23.105  [Select] move u9 SW -> (23,10)  -  Client - Select:102
+  01:30:23.142  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x437e05e6","ok":true,"t":"cmd","turn":30}  -  Server - GameServer:80
+  01:30:25.039  [Select] selected u11 (militia) at (31,9), moves 1  -  Client - Select:95
+  01:30:26.106  [Select] move u11 NW -> (30,8)  -  Client - Select:102
+  01:30:26.142  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x1f37a992","ok":true,"t":"cmd","turn":30}  -  Server - GameServer:80
+  01:30:27.488  [Select] tile (39,6) ocean  -  Client - Select:110
+  01:30:27.955  [Select] tile (38,6) ocean  -  Client - Select:110
+  01:30:29.521  [Select] selected u6 (militia) at (38,7), moves 1  -  Client - Select:95
+  01:30:30.838  [Select] move u6 SE -> (39,8)  -  Client - Select:102
+  01:30:30.875  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x0ff6cbf1","ok":true,"t":"cmd","turn":30}  -  Server - GameServer:80
+  01:30:32.287  [Hud] end turn 30  -  Client - Hud:39
+  01:30:32.347  [R4LOG] {"activePlayer":"p1","hash":"0x64fc777d","t":"round","turn":31}  -  Server - GameServer:80
+  01:30:32.352  [R4CODE] turn=31 code=5N2Y-WXNJ-FRXVX  -  Server - GameServer:156
+  01:30:34.021  [Select] selected u9 (militia) at (23,10), moves 1  -  Client - Select:95
+  01:30:35.071  [Select] move u9 S -> (23,11)  -  Client - Select:102
+  01:30:35.107  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x0e06d469","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  01:30:36.404  [Select] selected u11 (militia) at (30,8), moves 1  -  Client - Select:95
+  01:30:37.471  [Select] tile (30,8) grassland — unit u11 (militia, p1)  -  Client - Select:110
+  01:30:38.221  [Select] selected u11 (militia) at (30,8), moves 1  -  Client - Select:95
+  01:30:39.255  [Select] tile (30,8) grassland — unit u11 (militia, p1)  -  Client - Select:110
+  01:30:40.037  [Select] selected u11 (militia) at (30,8), moves 1  -  Client - Select:95
+  01:30:40.721  [Select] move u11 NW -> (29,7)  -  Client - Select:102
+  01:30:40.757  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x0560bfc0","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  01:30:42.271  [Hud] end turn 31  -  Client - Hud:39
+  01:30:42.332  [R4LOG] {"activePlayer":"p1","hash":"0x9017a161","t":"round","turn":32}  -  Server - GameServer:80
+  01:30:42.337  [R4CODE] turn=32 code=AT35-5S68-1F8B1  -  Server - GameServer:156
+  01:30:43.271  [Select] tile (29,7) swamp — unit u11 (militia, p1)  -  Client - Select:110
+  01:30:44.188   ▶ [Select] tile (28,6) plains (x2)  -  Client - Select:110
+  01:30:45.987  [Select] tile (29,6) grassland  -  Client - Select:110
+  01:30:46.653  [Select] tile (28,7) forest  -  Client - Select:110
+  01:30:47.104  [Select] selected u11 (militia) at (29,7), moves 1  -  Client - Select:95
+  01:30:48.321  [Select] tile (29,7) swamp — unit u11 (militia, p1)  -  Client - Select:110
+  01:30:49.087  [Select] tile (28,6) plains  -  Client - Select:110
+  01:30:49.621  [Select] selected u11 (militia) at (29,7), moves 1  -  Client - Select:95
+  01:30:50.720  [Select] move u11 NW -> (28,6)  -  Client - Select:102
+  01:30:50.756  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0xd6ef1df7","ok":true,"t":"cmd","turn":32}  -  Server - GameServer:80
+  01:30:51.820  [Select] tile (22,11) ocean  -  Client - Select:110
+  01:30:52.288  [Select] tile (22,10) ocean  -  Client - Select:110
+  01:30:52.687  [Select] selected u9 (militia) at (23,11), moves 1  -  Client - Select:95
+  01:30:53.454  [Select] move u9 E -> (24,11)  -  Client - Select:102
+  01:30:53.487  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":32}  -  Server - GameServer:80
+  01:30:53.519  [Client] rejected (commandId 115): impassable  -  Client - ClientState:71
+  01:30:54.120  [Select] move u9 S -> (23,12)  -  Client - Select:102
+  01:30:54.156  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x7f7b87d6","ok":true,"t":"cmd","turn":32}  -  Server - GameServer:80
+  01:30:55.571  [Select] tile (27,5) plains  -  Client - Select:110
+  01:30:56.403  [Hud] end turn 32  -  Client - Hud:39
+  01:30:56.464  [R4LOG] {"activePlayer":"p1","hash":"0xa24f881b","t":"round","turn":33}  -  Server - GameServer:80
+  01:30:56.469  [R4CODE] turn=33 code=1Q6M-MGEH-4Z20V  -  Server - GameServer:156
+  01:30:57.220  [Select] selected u9 (militia) at (23,12), moves 1  -  Client - Select:95
+  01:30:58.219  [Select] move u9 S -> (23,13)  -  Client - Select:102
+  01:30:58.258  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0xec6184a6","ok":true,"t":"cmd","turn":33}  -  Server - GameServer:80
+  01:30:59.486  [Select] selected u11 (militia) at (28,6), moves 1  -  Client - Select:95
+  01:31:00.671  [Select] tile (28,6) plains — unit u11 (militia, p1)  -  Client - Select:110
+  01:31:01.604  [Select] tile (28,5) grassland  -  Client - Select:110
+  01:31:02.054  [Select] selected u11 (militia) at (28,6), moves 1  -  Client - Select:95
+  01:31:02.936  [Select] tile (28,6) plains — unit u11 (militia, p1)  -  Client - Select:110
+  01:31:03.537  [Select] tile (27,5) plains  -  Client - Select:110
+  01:31:03.953  [Select] selected u11 (militia) at (28,6), moves 1  -  Client - Select:95
+  01:31:04.620  [Select] move u11 N -> (28,5)  -  Client - Select:102
+  01:31:04.657  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0x43f28e5b","ok":true,"t":"cmd","turn":33}  -  Server - GameServer:80
+  01:31:06.236  [Hud] end turn 33  -  Client - Hud:39
+  01:31:06.296  [R4LOG] {"activePlayer":"p1","hash":"0xc5319b31","t":"round","turn":34}  -  Server - GameServer:80
+  01:31:06.302  [R4CODE] turn=34 code=E04Z-MTQ2-K36SH  -  Server - GameServer:156
+  01:31:07.337  [Select] selected u9 (militia) at (23,13), moves 1  -  Client - Select:95
+  01:31:09.036  [Select] move u9 NW -> (22,12)  -  Client - Select:102
+  01:31:09.069  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:09.103  [Client] rejected (commandId 121): impassable  -  Client - ClientState:71
+  01:31:09.585  [Select] move u9 NW -> (22,12)  -  Client - Select:102
+  01:31:09.619  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:09.652  [Client] rejected (commandId 122): impassable  -  Client - ClientState:71
+  01:31:10.136  [Select] move u9 NW -> (22,12)  -  Client - Select:102
+  01:31:10.169  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:10.203  [Client] rejected (commandId 123): impassable  -  Client - ClientState:71
+  01:31:10.820  [Select] move u9 NW -> (22,12)  -  Client - Select:102
+  01:31:10.853  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u9"},"ok":false,"reason":"impassable","t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:10.885  [Client] rejected (commandId 124): impassable  -  Client - ClientState:71
+  01:31:13.102  [Select] tile (23,13) plains — unit u9 (militia, p1)  -  Client - Select:110
+  01:31:14.286  [Select] selected u9 (militia) at (23,13), moves 1  -  Client - Select:95
+  01:31:14.887  [Select] move u9 E -> (24,13)  -  Client - Select:102
+  01:31:14.923  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0xec7d003a","ok":true,"t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:17.253  [Select] selected u11 (militia) at (28,5), moves 1  -  Client - Select:95
+  01:31:18.553  [Select] move u11 NW -> (27,4)  -  Client - Select:102
+  01:31:18.589  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u11"},"hash":"0xb1dc9d02","ok":true,"t":"cmd","turn":34}  -  Server - GameServer:80
+  01:31:19.669  [Hud] end turn 34  -  Client - Hud:39
+  01:31:19.728  [R4LOG] {"activePlayer":"p1","hash":"0x92cad478","t":"round","turn":35}  -  Server - GameServer:80
+  01:31:19.734  [R4CODE] turn=35 code=B93D-JBA9-CNN3R  -  Server - GameServer:156
+  01:31:23.169  [Select] move u11 N -> (27,3)  -  Client - Select:102
+  01:31:23.203  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"zoc","t":"cmd","turn":35}  -  Server - GameServer:80
+  01:31:23.235  [Client] rejected (commandId 128): zoc  -  Client - ClientState:71
+  01:31:24.318   ▶ [Select] tile (24,12) ocean (x2)  -  Client - Select:110
+  01:31:26.252   ▶ [Select] tile (26,3) grassland (x2)  -  Client - Select:110
+  01:31:27.153   ▶ [Select] tile (27,3) forest (x3)  -  Client - Select:110
+  01:31:28.819  [Select] tile (28,4) grassland  -  Client - Select:110
+  01:31:29.668   ▶ [Select] tile (27,3) forest (x2)  -  Client - Select:110
+  01:31:30.536  [Select] tile (28,4) grassland  -  Client - Select:110
+  01:31:31.186  [Select] selected u11 (militia) at (27,4), moves 1  -  Client - Select:95
+  01:31:37.151  [Select] move u11 N -> (27,3)  -  Client - Select:102
+  01:31:37.185  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"zoc","t":"cmd","turn":35}  -  Server - GameServer:80
+  01:31:37.218  [Client] rejected (commandId 129): zoc  -  Client - ClientState:71
+  01:31:45.185  [Select] move u11 N -> (27,3)  -  Client - Select:102
+  01:31:45.219  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"zoc","t":"cmd","turn":35}  -  Server - GameServer:80
+  01:31:45.251  [Client] rejected (commandId 130): zoc  -  Client - ClientState:71
+  01:31:45.718  [Select] move u11 N -> (27,3)  -  Client - Select:102
+  01:31:45.751  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u11"},"ok":false,"reason":"zoc","t":"cmd","turn":35}  -  Server - GameServer:80
+  01:31:45.784  [Client] rejected (commandId 131): zoc  -  Client - ClientState:71
+  01:31:49.584  [Select] tile (24,12) ocean  -  Client - Select:110
+  01:31:50.068  [Select] tile (23,12) swamp  -  Client - Select:110
+  01:31:50.618  [Select] selected u9 (militia) at (24,13), moves 1  -  Client - Select:95
+  01:31:51.751  [Select] move u9 S -> (24,14)  -  Client - Select:102
+  01:31:51.787  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u9"},"hash":"0x5fb07de7","ok":true,"t":"cmd","turn":35}  -  Server - GameServer:80
+  01:31:53.985  [Hud] end turn 35  -  Client - Hud:39
+  01:31:54.044  [R4LOG] {"activePlayer":"p1","hash":"0x937f4715","t":"round","turn":36}  -  Server - GameServer:80
+  01:31:54.049  [R4CODE] turn=36 code=BA05-2M69-QYHRN  -  Server - GameServer:156

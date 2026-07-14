@@ -1,26 +1,38 @@
--- R3: map camera (roblox/SPEC.md §3c), control scheme per user playtest
--- 2026-07-14: WASD/arrows stay with the CHARACTER (default controls remain
--- enabled); the camera is driven by mouse + Q/E only.
+-- R3+R4: map camera (roblox/SPEC.md §3c/§3e), control scheme per user
+-- playtest 2026-07-14: WASD/arrows stay with the CHARACTER (default controls
+-- remain enabled); the camera is driven by mouse + Q/E only.
 --   hold LMB + drag   orbit (yaw free, pitch clamped; a <5px drag is a
 --                     selection click — see Select.client.luau)
 --   hold RMB + drag   pan (grab-the-map, clamped to the map, scales w/ zoom)
 --   Q / E             focus down / up
 --   mouse wheel       zoom (distance clamped)
--- Deferred (user-requested): follow-avatar mode — camera focus tracks the
--- character instead of staying free.
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+--   F                 follow-avatar toggle (R4, banked user request) — the
+--                     focus tracks the character; free cam stays primary
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
-local MockState = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("MockState"))
+local ClientState = require(script.Parent:WaitForChild("ClientState"))
 
-local TILE = 4 -- must match RenderWorld's scale
+local TILE = ClientState.TILE
 
 local camera = workspace.CurrentCamera
 
--- start over the western continent (units around tile 5,4)
-local focus = Vector3.new(5 * TILE, 0, 4 * TILE)
+local focus = Vector3.new(0, 0, 0)
+-- center on our first unit when the first view arrives
+local centered = false
+ClientState.onView(function(view)
+	if centered then
+		return
+	end
+	for _, u in pairs(view.units) do
+		if u.owner == view.you then
+			focus = Vector3.new(u.x * TILE, 0, u.y * TILE)
+			centered = true
+			break
+		end
+	end
+end)
 local yaw = math.rad(-30)
 local pitch = math.rad(-55)
 local dist = 60
@@ -32,8 +44,13 @@ local LIFT_SPEED = 25 -- studs/second for Q/E
 local ORBIT_SENS = 0.008
 local PAN_SENS = 0.0015 -- studs per pixel per stud of distance (grab feel)
 
-local mapMaxX = (MockState.map.width - 1) * TILE
-local mapMaxZ = (MockState.map.height - 1) * TILE
+local function mapMax()
+	local view = ClientState.view
+	if view == nil then
+		return 1000, 1000 -- unclamped until the first view arrives
+	end
+	return (view.map.width - 1) * TILE, (view.map.height - 1) * TILE
+end
 
 -- orbit is POLLED (IsMouseButtonPressed + screen-position delta): mouse
 -- events arrive pre-sunk by the default control scripts, polling can't be
@@ -42,6 +59,13 @@ local lastMouse = nil
 UserInputService.InputChanged:Connect(function(input, processed)
 	if input.UserInputType == Enum.UserInputType.MouseWheel and not processed then
 		dist = math.clamp(dist * (input.Position.Z > 0 and 0.85 or 1.18), DIST_MIN, DIST_MAX)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if not processed and input.KeyCode == Enum.KeyCode.F then
+		ClientState.followAvatar = not ClientState.followAvatar
+		print("[Camera] follow-avatar " .. (ClientState.followAvatar and "ON" or "OFF"))
 	end
 end)
 
@@ -60,12 +84,22 @@ RunService.RenderStepped:Connect(function(dt)
 			local look = Vector3.new(math.sin(yaw), 0, math.cos(yaw)) -- focus->camera
 			local right = Vector3.new(look.Z, 0, -look.X)
 			local s = dist * PAN_SENS
+			local maxX, maxZ = mapMax()
 			focus += (-right * delta.X - look * delta.Y) * s
 			focus = Vector3.new(
-				math.clamp(focus.X, 0, mapMaxX), focus.Y, math.clamp(focus.Z, 0, mapMaxZ))
+				math.clamp(focus.X, 0, maxX), focus.Y, math.clamp(focus.Z, 0, maxZ))
 		end
 	end
 	lastMouse = mouse
+
+	-- follow-avatar (R4): the focus rides the character's ground position
+	if ClientState.followAvatar then
+		local character = Players.LocalPlayer.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if root then
+			focus = Vector3.new(root.Position.X, focus.Y, root.Position.Z)
+		end
+	end
 
 	if not UserInputService:GetFocusedTextBox() then
 		local lift = 0
@@ -85,4 +119,4 @@ RunService.RenderStepped:Connect(function(dt)
 	camera.CFrame = CFrame.lookAt(focus + offset, focus)
 end)
 
-print(("[Camera] R3 map camera up: focus tile (5,4), dist %d — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom; WASD moves the avatar"):format(dist))
+print(("[Camera] R4 map camera up: dist %d — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar"):format(dist))

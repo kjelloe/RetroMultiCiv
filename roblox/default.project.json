@@ -2,6 +2,9 @@
   "name": "RetroMultiCiv",
   "tree": {
     "$className": "DataModel",
+    "Workspace": {
+      "$properties": { "StreamingEnabled": false }
+    },
     "ReplicatedStorage": {
       "Shared": {
         "$className": "Folder",

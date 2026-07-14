@@ -55,11 +55,19 @@ don't commit it.
    `RenderWorld.server.luau` also builds the R2 static scene
    (`workspace.World`: terrain columns, unit discs, city clusters) and
    prints one `[RenderWorld]` summary line.
-4. R3 controls in Play: WASD/arrows move the avatar; hold LMB and drag
+4. Controls in Play: WASD/arrows move the avatar; hold LMB and drag
    to orbit, hold RMB and drag to pan (grab-the-map), Q/E moves the
-   camera down/up, wheel zooms; a plain LMB click (no drag) picks the
-   logical tile under the cursor (yellow neon cursor + one
-   `[Select] tile (x,y) …` Output line per pick).
+   camera down/up, wheel zooms, F toggles follow-avatar; a plain LMB
+   click (no drag) picks the logical tile (yellow cursor; clicking
+   your own unit selects it — cyan cursor).
+5. Playing (R4): the place IS a live game — seed 42, you are the
+   Romans (p1) vs two AI civs, fog of war on (void = unexplored).
+   Click your settlers, `B` founds a city; click an adjacent tile to
+   move the selected unit; `Return` or the End Turn button ends your
+   turn (the AI round advances visibly). The server prints
+   `[R4INIT]`/`[R4LOG]`/`[R4CODE]` — copy the whole Output into
+   `roblox/acceptance/<run>.txt` and verify with
+   `node roblox/acceptance/assemble.js <that file>` (SPEC.md §5).
 
 Expected values live in docs/09 §1 and are immutable — a "close" twin is
 a wrong twin; report mismatches to the architect, never edit the gate.

@@ -1,59 +1,116 @@
--- R3: click-to-select resolving to LOGICAL TILES (roblox/SPEC.md §3c).
--- A28's mid-glide lesson, honored the Roblox way: the pick comes from the
--- hit POSITION rounded to tile coords, never from which visual body the ray
--- struck — a unit mid-tile, a city block, or a mountain flank all resolve to
--- the tile they stand on.
+-- R4: tile selection + the minimal action surface (roblox/SPEC.md §3e).
+-- Picking stays LOGICAL (A28: hit POSITION rounded to tile, never the hit
+-- body; 0.05 normal nudge; 5px click-vs-drag threshold shares LMB with the
+-- camera). Everything printed or acted on comes from ClientState.view — the
+-- filtered view is all this script can see, so fog is respected by
+-- construction. Actions: click own unit = select; click adjacent tile with a
+-- selection = moveUnit (dir-based, wrap-aware); B = found city (settlers);
+-- Return = end turn.
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
-local gameData = ReplicatedStorage:WaitForChild("GameData")
-local MockState = require(gameData:WaitForChild("MockState"))
+local ClientState = require(script.Parent:WaitForChild("ClientState"))
 
-local TILE = 4 -- must match RenderWorld's scale
-local map = MockState.map
-
+local TILE = ClientState.TILE
 local camera = workspace.CurrentCamera
-local world = workspace:WaitForChild("World")
+local world = workspace:WaitForChild("ClientWorld")
 
--- one reusable neon cursor, hidden until the first pick
+local DIR_BY_DELTA = {
+	["0,-1"] = "N", ["1,-1"] = "NE", ["1,0"] = "E", ["1,1"] = "SE",
+	["0,1"] = "S", ["-1,1"] = "SW", ["-1,0"] = "W", ["-1,-1"] = "NW",
+}
+
 local cursor = Instance.new("Part")
 cursor.Name = "TileCursor"
 cursor.Anchored = true
 cursor.CanCollide = false
-cursor.CanQuery = false -- the cursor must never swallow the next click
+cursor.CanQuery = false
 cursor.Size = Vector3.new(TILE, 0.4, TILE)
 cursor.Material = Enum.Material.Neon
 cursor.Color = Color3.fromRGB(255, 220, 60)
 cursor.Transparency = 0.45
 cursor.Parent = world
 
-local function terrainAt(x, y) -- stored 0-based coords, +1 only at access
-	return map.tiles[y * map.width + x + 1]
-end
-
 local function tileTopY(x, y)
-	-- read the actual terrain column so the cursor sits on the surface
 	local part = world.Terrain:FindFirstChild(("Tile_%d_%d"):format(x, y))
 	return part and (part.Position.Y + part.Size.Y / 2) or 0
 end
 
-local function contentsAt(x, y)
+local function moveCursor(x, y, selected)
+	cursor.Position = Vector3.new(x * TILE, tileTopY(x, y) + 0.25, y * TILE)
+	cursor.Color = selected and Color3.fromRGB(80, 220, 255) or Color3.fromRGB(255, 220, 60)
+end
+
+local function contentsAt(view, x, y)
 	local found = {}
-	for _, u in ipairs(MockState.units) do
+	for id, u in pairs(view.units) do
 		if u.x == x and u.y == y then
-			table.insert(found, ("unit %s (%s, %s)"):format(u.id, u.type, u.owner))
+			table.insert(found, ("unit %s (%s, %s)"):format(id, u.type, u.owner))
 		end
 	end
-	for _, c in ipairs(MockState.cities) do
+	for id, c in pairs(view.cities) do
 		if c.x == x and c.y == y then
-			table.insert(found, ("city %s (%s)"):format(c.name, c.owner))
+			table.insert(found, ("city %s (%s, pop %d)"):format(c.name, c.owner, c.pop or 1))
 		end
 	end
+	table.sort(found)
 	return #found > 0 and (" — " .. table.concat(found, ", ")) or ""
 end
 
+-- wrap-aware step from the selected unit to (tx,ty): a single king-move
+local function dirTo(view, u, tx, ty)
+	local dx = tx - u.x
+	if view.map.wrapX then
+		local w = view.map.width
+		if dx > w / 2 then dx -= w end
+		if dx < -w / 2 then dx += w end
+	end
+	local dy = ty - u.y
+	return DIR_BY_DELTA[dx .. "," .. dy]
+end
+
+local function ownCityCount(view)
+	local n = 0
+	for _, c in pairs(view.cities) do
+		if c.owner == ClientState.playerId then
+			n += 1
+		end
+	end
+	return n
+end
+
+local function handlePick(tx, ty)
+	local view = ClientState.view
+	if view == nil then
+		return
+	end
+	local tile = view.map.tiles[ty * view.map.width + tx + 1]
+	local own = ClientState.ownUnitAt(tx, ty)
+	local selected = ClientState.selectedUnitId and view.units[ClientState.selectedUnitId]
+
+	if own ~= nil and (selected == nil or own.id ~= selected.id) then
+		ClientState.selectedUnitId = own.id
+		moveCursor(tx, ty, true)
+		print(("[Select] selected %s (%s) at (%d,%d), moves %d"):format(own.id, own.type, tx, ty, own.moves))
+		return
+	end
+
+	if selected ~= nil then
+		local dir = dirTo(view, selected, tx, ty)
+		if dir ~= nil then
+			print(("[Select] move %s %s -> (%d,%d)"):format(selected.id, dir, tx, ty))
+			ClientState.send({ type = "moveUnit", unitId = selected.id, dir = dir })
+			return
+		end
+	end
+
+	ClientState.selectedUnitId = nil
+	moveCursor(tx, ty, false)
+	print(("[Select] tile (%d,%d) %s%s"):format(tx, ty, tile.t, contentsAt(view, tx, ty)))
+end
+
+-- ---- raycast pick (A28 logical-tile rule, unchanged from R3) ---------------
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 local function refreshFilter()
@@ -61,8 +118,6 @@ local function refreshFilter()
 	rayParams.FilterDescendantsInstances = character and { cursor, character } or { cursor }
 end
 
--- LMB is shared with the camera (hold-drag orbits): only a press that ends
--- within DRAG_EPS pixels of where it started counts as a selection click
 local DRAG_EPS = 5
 local pressAt = nil
 
@@ -79,23 +134,51 @@ UserInputService.InputEnded:Connect(function(input)
 	local releaseAt = Vector2.new(input.Position.X, input.Position.Y)
 	local moved = (releaseAt - pressAt).Magnitude
 	pressAt = nil
-	if moved > DRAG_EPS then
-		return -- that was an orbit drag, not a click
+	if moved > DRAG_EPS or ClientState.view == nil then
+		return
 	end
-	local ray = camera:ViewportPointToRay(releaseAt.X, releaseAt.Y)
+	-- ScreenPointToRay, NOT ViewportPointToRay: InputObject positions are in
+	-- GUI-inset space; the viewport variant is offset by the topbar (~36px),
+	-- which at shallow angles walks the pick most of a tile (R4 user finding)
+	local ray = camera:ScreenPointToRay(releaseAt.X, releaseAt.Y)
 	refreshFilter()
 	local hit = workspace:Raycast(ray.Origin, ray.Direction * 1000, rayParams)
 	if not hit then
 		return
 	end
-	-- nudge INTO the surface so flank hits on tall columns round to the
-	-- column's own tile, then resolve position -> logical tile, clamped
 	local p = hit.Position - hit.Normal * 0.05
+	local map = ClientState.view.map
 	local tx = math.clamp(math.floor(p.X / TILE + 0.5), 0, map.width - 1)
 	local ty = math.clamp(math.floor(p.Z / TILE + 0.5), 0, map.height - 1)
-
-	cursor.Position = Vector3.new(tx * TILE, tileTopY(tx, ty) + 0.25, ty * TILE)
-	print(("[Select] tile (%d,%d) %s%s"):format(tx, ty, terrainAt(tx, ty), contentsAt(tx, ty)))
+	handlePick(tx, ty)
 end)
 
-print("[Select] R3 tile selection up: LMB picks the logical tile under the cursor")
+-- ---- keys: B found city, Return end turn -----------------------------------
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
+		return
+	end
+	local view = ClientState.view
+	if view == nil then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.B then
+		local u = ClientState.selectedUnitId and view.units[ClientState.selectedUnitId]
+		if u ~= nil and u.type == "settlers" then
+			local name = "Colony " .. (ownCityCount(view) + 1)
+			print(("[Select] found city '%s' with %s at (%d,%d)"):format(name, u.id, u.x, u.y))
+			ClientState.send({ type = "foundCity", unitId = u.id, name = name })
+		else
+			print("[Select] found city: select a settlers unit first")
+		end
+	elseif input.KeyCode == Enum.KeyCode.Return then
+		if ClientState.myTurn() then
+			print("[Select] end turn " .. view.turn)
+			ClientState.send({ type = "endTurn" })
+		else
+			print("[Select] not your turn (" .. tostring(view.activePlayer) .. " active)")
+		end
+	end
+end)
+
+print("[Select] R4 actions up: click select/move, B found city, Return end turn")
