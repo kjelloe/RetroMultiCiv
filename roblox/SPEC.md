@@ -109,10 +109,14 @@ clamped -85°…-15°), hold-RMB drag pans (grab-the-map: terrain follows
 the mouse, focus clamped to the map, speed scales with zoom), Q/E
 lowers/raises the focus (clamped 0–100 studs), wheel zooms (15–220
 studs). Starts over the western continent
-(tile 5,4). Orbit is POLLED (`IsMouseButtonPressed` + screen-position
-delta per frame) because mouse events arrive pre-sunk by the default
-control scripts — event handlers never fire for them. Q/E is ignored
-while a TextBox has focus (the JS client's INPUT/TEXTAREA rule).
+(tile 5,4). **Input trap** (recorded in docs/09 §3, roblox/-client
+scope): with default character controls enabled, mouse-button events
+arrive at `UserInputService` handlers pre-sunk (`gameProcessedEvent`
+true) or not at all — so all camera mouse input is POLLED per frame
+(`IsMouseButtonPressed` + screen-position delta), which nothing can
+sink. Symptom if regressed: buttons "do nothing" while wheel/keys
+work. Q/E is ignored while a TextBox has focus (the JS client's
+INPUT/TEXTAREA rule).
 DEFERRED (user-requested): follow-avatar mode — the focus tracks the
 character instead of staying free.
 
