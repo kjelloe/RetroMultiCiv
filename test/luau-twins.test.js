@@ -125,7 +125,18 @@ test('luau json2lua: all ten scenario setups and a messy save hash equal in both
 // NOT yet reached must fail IN-CONTRACT: a docs/09 first-divergence block,
 // never a crash or a silent pass. As port batches land, move their
 // scenarios into PORTED and this test enforces the new gate.
-const PORTED = ['001-move-unit.json']; // P5-3 batch 1: movement + visibility
+const PORTED = [
+  '001-move-unit.json', // P5-3 batch 1: movement + visibility
+  '008-improvements.json' // P5-4 batch 2: improvements (city-less wraps)
+  // 009 needs buy/setProduction (cities) — P5-5 column, checked not assumed
+];
+// P5-4 partial column: the combat STEPS pass cross-language (both rng
+// branches, promotions, stack deaths — steps 0..N-1 asserted by the runner),
+// but the pinned FINAL hash needs the cities harvest at the turn wrap
+// (city.food changes in JS processCities) — flagged @P5-4 done-mail; these
+// flip to PORTED with the P5-5 cities batch. Value = the exact command
+// where the guard must fire: earlier means a combat regression.
+const PARTIAL = { '004-combat.json': 4, '005-combat-defender-wins.json': 4 };
 test('luau engine: data checksums, ported scenarios green, unported fail in-contract',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
     const fs = require('fs');
@@ -164,6 +175,11 @@ test('luau engine: data checksums, ported scenarios green, unported fail in-cont
           + res.stdout.split('\n').filter(l => l.includes(f)).join('\n'));
         assert.ok(res.stdout.includes(`fixture=${f}`) && /fail: /.test(res.stdout),
           `${f}: the divergence block must carry failure lines`);
+        if (PARTIAL[f] !== undefined) {
+          assert.strictEqual(Number(block[1]), PARTIAL[f],
+            `${f}: the ported steps before the wrap must PASS — failing earlier than `
+            + `command ${PARTIAL[f]} means a regression in an already-ported module`);
+        }
       }
     }
   });

@@ -42,7 +42,10 @@ jobs:
         run: node tools/soak.js --seeds 25 --turns 400 --size small --difficulty godemperor --stats debugging/sim/nightly-godemperor.jsonl
       - name: Natural-rules soak — 25 seeds must each produce a winner
         if: ${{ !cancelled() }}
-        run: node tools/soak.js --seeds 25 --turns 320 --size small --natural --stats debugging/sim/nightly-natural.jsonl
+        # 400, not 320: the Civ-style calendar (A21) puts 2100 AD — where the
+        # score victory fires — at ~turn 395; a shorter budget strands natural
+        # games in the 1800s with no winner (the 2026-07-14 24/25 failure).
+        run: node tools/soak.js --seeds 25 --turns 400 --size small --natural --stats debugging/sim/nightly-natural.jsonl
       - name: Upload telemetry + failure artifacts
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

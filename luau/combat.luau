@@ -1,13 +1,20 @@
 --!strict
--- PARTIAL twin of engine/combat.js (phase 5, P5-3 batch 1): only the pure
--- helpers movement.luau imports. resolveAttack is a STUB rejecting
--- "notPorted:combat" — batch 2 replaces this module wholesale; the R-lane
--- must NOT treat the stub as final API (flagged in the P5-3 claim mail).
--- EXPORTS (stable): sortIds(ids), unitsAt(state, x, y), cityAt(state, x, y).
--- EXPORTS (stub, batch 2): resolveAttack.
+-- Luau twin of engine/combat.js (phase 5, P5-4 batch 2 — replaces the P5-3
+-- stub). Civ 1 one-shot combat: strengths are integer PRODUCTS (percent
+-- scale x100 per factor) so the probability roll needs no division.
+-- RNG CALL ORDER IS PART OF THE CONTRACT: combat roll(s) first (one per
+-- round under rules.combatRounds), then exactly one promotion roll for the
+-- surviving non-veteran — a stray roll diverges every hash after it.
+-- EXPORTS (stable): resolveAttack, captureCity, bestDefender, unitsAt,
+-- cityAt, attackStrength, defenseStrength, tileDefensePct, sortIds.
+
+local rng = require("./rng")
+local statehash = require("./statehash")
+local visibility = require("./visibility")
+local cities = require("./cities")
 
 -- Deterministic id ordering that needs no key order: shorter first, then
--- lexicographic — so u2 < u10. (JS twin: sortIds in engine/combat.js.)
+-- lexicographic — so u2 < u10.
 local function sortIds(ids: { string }): { string }
 	local out = table.clone(ids)
 	table.sort(out, function(a, b)
@@ -44,20 +51,192 @@ local function cityAt(state: any, x: number, y: number): any
 	return nil
 end
 
-local function resolveAttack(_state: any, _attacker: any, _tx: number, _ty: number, _ruleset: any): any
-	return { ok = false, reason = "notPorted:combat" }
+local function tileDefensePct(state: any, x: number, y: number, ruleset: any): number
+	local tile = state.map.tiles[y * state.map.width + x + 1]
+	local terrain = ruleset.terrain.terrains[tile.t]
+	local pct = 100 + terrain.defenseBonus
+	if tile.river then
+		pct += ruleset.terrain.riverModifier.defenseBonus
+	end
+	return pct
 end
 
--- called mid-move (the step already happened) — a silent rejection would
--- diverge from JS, so an unported capture must fail LOUDLY instead
-local function captureCity(_state: any, _unit: any, _city: any, _events: any)
-	error("notPorted:combat.captureCity")
+local function attackStrength(unit: any, ruleset: any): number
+	return ruleset.units[unit.type].attack * (if unit.veteran then 150 else 100) * 100
+end
+
+-- City Walls (or an active Great Wall) triple the defense of units in the city.
+local function cityWallsAt(state: any, x: number, y: number, ruleset: any): boolean
+	local city = cityAt(state, x, y)
+	if city == nil then
+		return false
+	end
+	if cities.hasBuilding(city, "city-walls") then
+		return true
+	end
+	if ruleset.wonders ~= nil and cities.wonderActive(state, "great-wall", ruleset) then
+		local wonderHome = state.cities[state.wonders["great-wall"]]
+		if wonderHome ~= nil and wonderHome.owner == city.owner then
+			return true
+		end
+	end
+	return false
+end
+
+-- A fortress doubles defense (city walls take precedence, they don't stack).
+local function fortressAt(state: any, x: number, y: number): boolean
+	return state.map.tiles[y * state.map.width + x + 1].fortress == true
+		and cityAt(state, x, y) == nil
+end
+
+local function defenseStrength(state: any, unit: any, ruleset: any): number
+	return ruleset.units[unit.type].defense
+		* tileDefensePct(state, unit.x, unit.y, ruleset)
+		* (if unit.fortified then 150 else 100)
+		* (if cityWallsAt(state, unit.x, unit.y, ruleset) then 3
+			elseif fortressAt(state, unit.x, unit.y) then 2
+			else 1)
+end
+
+-- Civ 1: the strongest defender on the tile fights. Strict > keeps the
+-- first of any tie in unitsAt's sorted order, like JS.
+local function bestDefender(state: any, x: number, y: number, ruleset: any): any
+	local best = nil
+	local bestScore = -1
+	for _, u in ipairs(unitsAt(state, x, y)) do
+		local score = defenseStrength(state, u, ruleset)
+		if score > bestScore then
+			best = u
+			bestScore = score
+		end
+	end
+	return best
+end
+
+local function maybePromote(state: any, unit: any, events: any)
+	if unit.veteran then
+		return
+	end
+	local roll = rng.rollRange(state.rngState, 2)
+	state.rngState = roll.rngState
+	if roll.value == 0 then
+		unit.veteran = true
+		table.insert(events, { type = "promoted", unitId = unit.id })
+	end
+end
+
+-- Attacker on (attacker.x/y) strikes the defended tile (tx, ty). Mutates state.
+local function resolveAttack(state: any, attacker: any, tx: number, ty: number, ruleset: any): any
+	local atype = ruleset.units[attacker.type]
+	if atype.attack <= 0 then
+		return { ok = false, reason = "cannotAttack" }
+	end
+	if attacker.moves <= 0 then
+		return { ok = false, reason = "noMovesLeft" }
+	end
+
+	local tileDomain = ruleset.terrain.terrains[state.map.tiles[ty * state.map.width + tx + 1].t].domain
+	local canReach = tileDomain == atype.domain or (atype.domain == "sea" and tileDomain == "land")
+	if not canReach then
+		return { ok = false, reason = "cannotAttackThere" } -- e.g. land unit vs ships at sea
+	end
+
+	local defender = bestDefender(state, tx, ty, ruleset)
+	if defender == nil then
+		return { ok = false, reason = "nothingToAttack" }
+	end
+
+	local att = attackStrength(attacker, ruleset)
+	local def = defenseStrength(state, defender, ruleset)
+	-- rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll);
+	-- 3 = best-of-three, a setup option
+	local rounds = if ruleset.rules.combatRounds == nil then 1 else ruleset.rules.combatRounds
+	local need = math.floor(rounds / 2) + 1
+	local attWins, defWins = 0, 0
+	while attWins < need and defWins < need do
+		local roll = rng.rollRange(state.rngState, att + def)
+		state.rngState = roll.rngState
+		if roll.value < att then
+			attWins += 1
+		else
+			defWins += 1
+		end
+	end
+	local attackerWins = attWins == need
+
+	attacker.moves = attacker.moves - 1
+	attacker.fortified = false
+
+	local events = setmetatable({}, statehash.ARRAY_MT)
+	if attackerWins then
+		-- stacks die on open ground; cities AND fortresses lose one at a time
+		local sheltered = cityAt(state, tx, ty) ~= nil or fortressAt(state, tx, ty)
+		local casualties = if sheltered then { defender } else unitsAt(state, tx, ty)
+		for _, u in ipairs(casualties) do
+			state.units[u.id] = nil
+		end
+		table.insert(events, {
+			type = "combatResolved", winner = "attacker",
+			attackerId = attacker.id, attackerType = attacker.type, attackerOwner = attacker.owner,
+			defenderId = defender.id, defenderType = defender.type, defenderOwner = defender.owner,
+			x = tx, y = ty, unitsLost = #casualties,
+		})
+		maybePromote(state, attacker, events)
+	else
+		state.units[attacker.id] = nil
+		table.insert(events, {
+			type = "combatResolved", winner = "defender",
+			attackerId = attacker.id, attackerType = attacker.type, attackerOwner = attacker.owner,
+			defenderId = defender.id, defenderType = defender.type, defenderOwner = defender.owner,
+			x = tx, y = ty, unitsLost = 1,
+		})
+		maybePromote(state, defender, events)
+	end
+	return { ok = true, events = events }
+end
+
+-- A unit entering an undefended enemy city: ownership flips, population
+-- drops, a share of the loser's treasury is plundered.
+local function captureCity(state: any, unit: any, city: any, events: any)
+	local loserId = city.owner
+	city.owner = unit.owner
+	if city.pop > 1 then
+		city.pop = city.pop - 1
+	end
+	-- the new ruler reshuffles the citizenry
+	city.workers = nil
+	city.taxmen = nil
+	city.scientists = nil
+	city.producing = { kind = "unit", id = "militia" }
+	city.shields = 0
+
+	local plunder = city.pop * 10
+	local loser = state.players[loserId]
+	if loser ~= nil then
+		if plunder > loser.gold then
+			plunder = loser.gold
+		end
+		loser.gold = loser.gold - plunder
+	else
+		plunder = 0
+	end
+	local winner = state.players[unit.owner]
+	if winner ~= nil then
+		winner.gold = winner.gold + plunder
+	end
+
+	visibility.reveal(state, unit.owner, city.x, city.y, 2)
+	table.insert(events, { type = "cityCaptured", cityId = city.id, from = loserId, to = unit.owner, plunder = plunder })
 end
 
 return {
-	sortIds = sortIds,
-	unitsAt = unitsAt,
-	cityAt = cityAt,
 	resolveAttack = resolveAttack,
 	captureCity = captureCity,
+	bestDefender = bestDefender,
+	unitsAt = unitsAt,
+	cityAt = cityAt,
+	attackStrength = attackStrength,
+	defenseStrength = defenseStrength,
+	tileDefensePct = tileDefensePct,
+	sortIds = sortIds,
 }

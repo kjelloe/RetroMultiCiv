@@ -49,7 +49,15 @@ local function getPath(obj: any, dotted: string): any
 		if cur == nil then
 			return nil
 		end
-		cur = cur[key]
+		-- dotted paths carry 0-BASED array indices (JS convention:
+		-- "map.tiles.1" is the second tile) — numeric segments address
+		-- array positions, so they get the +1; state object keys are never
+		-- bare digits (docs/09 trap-list addition, P5-4)
+		if string.match(key, "^%d+$") ~= nil then
+			cur = cur[tonumber(key) :: number + 1]
+		else
+			cur = cur[key]
+		end
 	end
 	return cur
 end

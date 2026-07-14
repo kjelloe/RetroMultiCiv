@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 226 tests), the item's own verification steps pass, related
+   (currently 227 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -134,7 +134,7 @@ hashes, first differing canonical path, RNG before/after. Trap-list
 first; docs/09 §7 says transliteration suffices — prove it again.
 Golden-safe (JS untouched).
 
-### P5-4 — Batch 2 rule modules: combat + improvements (assigned: bugfixer; docs/09 §4 step 5)
+### P5-4 — Batch 2 rule modules: combat + improvements (assigned: bugfixer; docs/09 §4 step 5)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — combat.luau (full, stub deleted; rng call order preserved) + improvements.luau (guard deleted, hook wired) + partial cities.luau (hasBuilding/wonderActive for walls). GATES: 008 GREEN vs pin 0x7183a0ea; 004/005 combat STEPS all pass cross-language (both rng branches, promotions, stack deaths) but their PINS require the cities harvest at the wrap (JS writes city.food — measured) so full-green moves to P5-5 with a PARTIAL column asserting the exact guard point (earlier failure = combat regression); 009 needs buy/setProduction, stays P5-5 (checked). Runner fix: dotted-path 0-BASED array indices now +1-translated (new trap). Suite 227/227]
 
 The pinned-contract era begins: every gate in this and later batches
 asserts Luau == the PINNED scenario hash (B10), transitivity with the
@@ -161,6 +161,34 @@ COUNT is behavioral — a stray extra roll diverges everything after;
 the divergence report's rngBefore/rngAfter fields are your bisect
 tool. Golden-safe (JS untouched). Suite + luau-twins green, mail with
 per-scenario hashes.
+
+### P5-5 — Batch 3 rule modules: cities + tech (assigned: bugfixer; docs/09 §4 step 5)
+
+The big one — cities is the engine's largest module. Pinned-contract
+discipline throughout.
+1. **`luau/cities.luau` for real** — replace the P5-4 partial (keep
+   hasBuilding/wonderActive, delete the non-final flag): found/
+   captureCity interplay (combat already calls captureCity — verify
+   the seam), workedTiles + govAdjustYields + the capital trade bonus,
+   growth/starvation, production + buy + setProduction + disband,
+   setWorkers + auto-assign, candidateTiles, capitalOf, citySpacingOk.
+   Delete the cities guard; the harvest wrap goes live.
+2. **`luau/tech.luau`** — researchCost/discovery/era, bulbs
+   accumulation from trade, setResearch; delete the tech hook's
+   guarded no-op AND its ported lazy-defaults comment (the real
+   module owns the defaults now — watch that the hash stays put:
+   001's pin must NOT move).
+3. **GATES**: 003-found-city, 006-research, 007-buildings,
+   009-buy-pillage-disband all GREEN vs pins; 004/005 PARTIAL columns
+   RETIRED — they flip to PORTED and must go green vs their pins
+   unchanged (the pins encoded the harvest all along). 010 stays
+   unported (happiness+government = P5-6) and must still fail
+   in-contract.
+4. rng call-order discipline continues where cities rolls (if any —
+   audit; growth/production are deterministic, barbarians are not
+   in this module).
+Golden-safe (JS untouched). Suite + twins green, mail per-scenario
+hashes and which guards were deleted.
 
 ### B0 — Standing: diagnostics triage (recurring, claim per file)
 
@@ -331,6 +359,10 @@ what the viewing seat could see (the JS client rule; engine seam is
 sends each client a filtered view and the render/selection consume
 that, never raw state). R3's omniscient scene is fine only because
 mock-state carries no explored data.
+Also banked for R4+ (user request during R3, deferred): a
+**follow-avatar camera mode** — the map-cam focus optionally TRACKS
+the player character; a toggle, not a replacement (the Scriptable
+free cam stays primary).
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -1128,6 +1160,17 @@ pillage rules (cutting a road severs the chain — strategy!). NOT
 QUEUED — design first, architect; candidate for a phase-6+ headline
 feature alongside diplomacy.
 
+## PARKED/GAME-V2 — Civ4-style culture areas (user note 2026-07-14, VERY later)
+
+Real culture/border mechanics as ENGINE state (cities exert cultural
+pressure, borders grow over time, tiles flip ownership) — explicitly
+a game-v2 potential, NOT current scope. Until then, "territory" exists
+only as A45's view-side fat-cross tint derivation. If ever picked up:
+state-shape change (tile ownership map), golden re-record, ruleset
+tables for culture output/thresholds, AI awareness — pairs naturally
+with the Civ4 resource-chains parked item (borders define whose
+resource it is). No design work now; this note is the whole item.
+
 ## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
 
 Let players adjust rates/research/production/workers while a rival
@@ -1143,7 +1186,7 @@ note, engine change (golden lock), scenario for an out-of-turn
 setProduction, and UI unlocking (panels currently assume own-turn).
 NOT QUEUED until the design is written and the lock frees — architect.
 
-## A41 — Find-a-game v1: the public lobby listing (DESIGNED 2026-07-14 per user go — queue after A34)
+## A41 — Find-a-game v1: the public lobby listing (DESIGNED 2026-07-14 per user go — queue after A34)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — listGames auth-free + 1/sec/conn rate limit, public===true only (create checkbox, default OFF), hostName/seats/size/age/spectators/status — code+IP absence ASSERTED; full lobbies drop, started+spectators stay spectate-only. joinListed gates notPublic then delegates to handleJoin VERBATIM (same reservation path by construction; seat-pick identity tested). Browse panel above the code field w/ empty state; shot READ against a live public lobby. Hardening note filed: pre-existing join-by-gameId (needed by resume) → pre-DNS item decides. Suite 227/227.]
 
 The single server lists its OWN open lobbies so players browse and
 join without a shouted code. Design (architect):
@@ -1249,6 +1292,55 @@ late-game badge prominence are PLAYTEST items (human list); adjacent-
 tier silhouette differentiation is recorded as an A1.8 candidate in
 docs/03. Golden-safe throughout.
 
+## A45 — Map overlays panel: semi-transparent data layers + left-panel reorder (user request 2026-07-14)
+
+Civ4-style toggleable overlays drawn over EXPLORED tiles only —
+pure view layer: no engine change, no state, no goldens; overlay
+choice is per-viewer UI state (never in game state, never in
+recordings).
+
+1. **New left panel "Map overlays"** (`client/ui/overlays.js`), a
+   sibling of Turn log/Controls. REORDER the left stack top→bottom:
+   **Controls, Map overlays, Turn log** (Turn log takes the lower-left
+   anchor). Same collapsible pattern; remember open/closed + active
+   overlays in the options store like other UI prefs.
+2. **Renderer side** (`client/renderer/three/overlays.js`, render-only
+   module like anim.js — never engine RNG/state): one semi-transparent
+   tinted quad per affected tile, floating just above the terrain
+   surface (same y-offset trick as the city-footprint overlay;
+   depth-test friendly, no z-fighting). Rebuild on session.onChange +
+   overlay toggle; tiles outside `explored` NEVER get a tint (fog is
+   the law; in server games the filtered view already enforces data,
+   but don't paint unknown tiles even when mock/local state has data).
+3. **Overlay 1 — Territory**: which empire an area belongs to.
+   Derivation (view-side, documented in the module): every explored
+   tile within each city's workable footprint (the classic 21-tile
+   fat cross) tints in that city's owner faction color at low alpha;
+   ties → nearest city (Chebyshev), then lowest city id
+   (deterministic, but it's render-only so this is for visual
+   stability not hashes). Unclaimed explored land = no tint.
+4. **Overlay 2 — Units**: tiles with VISIBLE units tint red (any
+   enemy of the current viewpoint) / green (own); both present on
+   one tile (can't stack with enemies, but adjacency reads matter)
+   is simply per-tile by occupant owner. `ctx.HUMAN` is the CURRENT
+   VIEWPOINT — read it live (hotseat hands it over), never cache.
+5. **Extensible registry**: overlays declared as
+   {id, label, computeTiles(state, viewpoint) -> [{idx, color,
+   alpha}]} so later Civ4-style layers (resources, yields, culture)
+   are one entry each. Multiple overlays may stack (alpha blend);
+   keyboard: reuse nothing that collides with existing bindings —
+   check input.js's map first, and ignore INPUT/TEXTAREA targets as
+   always.
+6. **Tests + evidence**: new modules listed in client-syntax.test.js
+   (the forgotten-once rule); an e2e hook (?overlay=territory,units)
+   for screenshots; browser case asserts the panel exists, toggling
+   adds/removes overlay meshes (scene-graph count probe), and the
+   turnlog panel anchors lower-left after the reorder. Screenshots
+   READ both zoom levels (overview + close), spectator included
+   (omniscient = whole map tints — that's correct, not a bug).
+Queue: after A41 (A42-diorama and A44 may reorder around it at the
+helper's discretion — smallest-diff-first applies). Golden-safe.
+
 ## PARKED CONTEXT — Global internet hosting (the fuller vision behind A41)
 
 The vision: a public server (first a local PC behind the DNS name
@@ -1287,6 +1379,12 @@ code. Design facts for when this opens:
   queued): per-IP rate limit on join/create, cap concurrent games +
   connections, lobby idle expiry, and a look at ws payload limits
   (64KB cap exists). Join-code space (32^5 ≈ 33M) is fine for v1.
+  ADDED by A41 review (helper's catch, 2026-07-14): the pre-existing
+  `{t:'join'}` resolveId accepts RAW gameIds, so private lobbies are
+  join-by-guessable-id today (fine on a trusted LAN; A34's resume
+  depends on it). The hardening item must decide: require the code
+  for join-by-id on non-public games, or make gameIds unguessable —
+  BEFORE any internet exposure.
 
 Ordering: after the two-machine LAN acceptance; v1 listing pairs
 naturally with A27's lobby work.

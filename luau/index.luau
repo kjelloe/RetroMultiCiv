@@ -10,6 +10,7 @@
 
 local statehash = require("./statehash")
 local movement = require("./movement") -- batch 1 (P5-3)
+local improvements = require("./improvements") -- batch 2 (P5-4)
 
 local function isArrayLike(t: any): boolean
 	return t[1] ~= nil or getmetatable(t) == statehash.ARRAY_MT
@@ -81,13 +82,7 @@ local function hasCities(state: any): boolean
 	return state.cityOrder ~= nil and #state.cityOrder > 0
 end
 local hooks = {}
-hooks.processWork = function(state: any, _ruleset: any, _events: any)
-	for _, u in pairs(state.units) do
-		if u.working ~= nil then
-			error("notPorted:improvements (a unit has work in progress)")
-		end
-	end
-end
+hooks.processWork = improvements.processWork -- batch 2: guard deleted, module in
 hooks.processRevolutions = function(state: any, _ruleset: any, _events: any)
 	for _, pid in ipairs(state.playerOrder) do
 		if state.players[pid].revolutionTurns ~= nil then
@@ -192,8 +187,10 @@ local function createEngine(ruleset: any)
 		elseif cmd.type == "foundCity" or cmd.type == "setProduction"
 			or cmd.type == "setWorkers" or cmd.type == "buy" then
 			result = { ok = false, reason = "notPorted:cities" }
-		elseif cmd.type == "startWork" or cmd.type == "pillage" then
-			result = { ok = false, reason = "notPorted:improvements" }
+		elseif cmd.type == "startWork" then
+			result = improvements.startWork(next_, cmd, ruleset)
+		elseif cmd.type == "pillage" then
+			result = improvements.pillage(next_, cmd, ruleset)
 		elseif cmd.type == "setGovernment" then
 			result = { ok = false, reason = "notPorted:government" }
 		elseif cmd.type == "setResearch" or cmd.type == "setRates" then

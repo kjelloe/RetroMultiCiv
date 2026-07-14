@@ -366,6 +366,23 @@ test('browser A30: the wait line shows the moving AI during a local round',
     }
   });
 
+// A44: the shared-vertex determinism half — the gallery's ?vertexcheck=1
+// builds the terrain mesh twice and byte-compares position+color buffers
+// (the no-conflicting-writes half is a code-shape argument in terrain.js).
+test('browser terrain: two builds of the same map are byte-identical',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/debugging/gallery.html?vertexcheck=1`);
+      assert.match(dom, /vertexcheck positions:true colors:true/,
+        'the vertex buffers must be deterministic across builds');
+    } finally {
+      server.close();
+    }
+  });
+
 // A37 XSS: a chat payload must render INERT — the client inserts chat via
 // textContent (never innerHTML), so the markup arrives as visible text and
 // no element is created. ?e2ehost=1&e2ehold=1&e2echat=<payload> sends it

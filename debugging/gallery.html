@@ -23,7 +23,9 @@
   <script type="module">
     import { createRenderer } from '../client/renderer/renderer.js';
 
-    const W = 14, H = 14;
+    // A44: 16 wide — one margin column each side so edge-column name pills
+    // (English, Russians…) never crop at the viewport edge
+    const W = 16, H = 14;
     const tiles = [];
     for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
     const at = (x, y) => tiles[y * W + x];
@@ -95,15 +97,16 @@
       const pid = 'f' + (i + 1);
       players[pid] = { id: pid, name: civs[id].name, color: civs[id].color };
       factions[pid] = civs[id].visual;
+      const col = i + 1; // A44: margin column keeps edge name pills uncropped
       cities['fc' + i] = {
-        id: 'fc' + i, name: civs[id].name, owner: pid, x: i, y: 9, pop: 3,
+        id: 'fc' + i, name: civs[id].name, owner: pid, x: col, y: 9, pop: 3,
         buildings: ['palace'] // capitals: the CanvasTexture emblem flag
       };
-      put('militia', i, 9, pid);
-      put('cavalry', i, 10, pid);
-      put('legion', i, 11, pid, { fortified: true });
-      put('trireme', i, 12, pid);
-      put('militia', i, 13, pid, { veteran: true });
+      put('militia', col, 9, pid);
+      put('cavalry', col, 10, pid);
+      put('legion', col, 11, pid, { fortified: true });
+      put('trireme', col, 12, pid);
+      put('militia', col, 13, pid, { veteran: true });
     });
 
     const view = {
@@ -113,6 +116,20 @@
 
     const renderer = createRenderer(document.getElementById('app'));
     const q = new URLSearchParams(location.search);
+    // ?vertexcheck=1 (A44): the shared-vertex determinism half — build the
+    // terrain mesh twice, byte-compare position+color buffers into #label
+    if (q.get('vertexcheck') === '1') {
+      const { buildTerrain } = await import('../client/renderer/three/terrain.js');
+      const eq = (x, y) => x.length === y.length && x.every((v, i) => v === y[i]);
+      const t1 = buildTerrain(view.map), t2 = buildTerrain(view.map);
+      const pos = eq(Array.from(t1.mesh.geometry.attributes.position.array),
+        Array.from(t2.mesh.geometry.attributes.position.array));
+      const col = eq(Array.from(t1.mesh.geometry.attributes.color.array),
+        Array.from(t2.mesh.geometry.attributes.color.array));
+      document.getElementById('label').textContent =
+        `vertexcheck positions:${pos} colors:${col}`;
+      t1.dispose(); t2.dispose();
+    }
     // A28: the gallery compares assets at REST POSE by default (byte-stable
     // screenshots — no sway/smoke). Animation demos opt in:
     //   ?anim=1       sway + city smoke live
@@ -123,7 +140,7 @@
     renderer.setFactions(factions);
     renderer.setViewState(view);
     // ?cx=&cy=&zoom= let screenshots frame any region (e.g. the faction grid)
-    renderer.centerOn(parseFloat(q.get('cx')) || 6.5, parseFloat(q.get('cy')) || 7.5);
+    renderer.centerOn(parseFloat(q.get('cx')) || 7.5, parseFloat(q.get('cy')) || 7.5);
     renderer.setZoom(parseFloat(q.get('zoom')) || 13);
     if (q.get('flashdemo') === '1') {
       const fire = () => renderer.playEvents([{ type: 'combatResolved', x: 5, y: 7 }]);

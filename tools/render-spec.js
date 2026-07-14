@@ -118,7 +118,7 @@ function build() {
       generatedBy: 'tools/render-spec.js — regenerate after any renderer table change',
       fields: {
         terrain: 'tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = mesh density (terrain.js SEGS)',
-        factions: 'data/civs.json visual{} per civ id + flat color; lightColor = luminance rule forcing dark rims on light primaries (factions.js)',
+        factions: 'data/civs.json visual{} per civ id + flat color. FIELD SEMANTICS (A44): `color` is the gameplay/seat display color (HUD text, scores, pop badges — anywhere a flat swatch identifies the player) while `visual.primary/secondary` is the CLIENT-ONLY art palette (base discs, flags, roofs); they often differ deliberately for on-terrain readability. A color→seatColor rename is a possible FUTURE migration (touches saves) — not done. lightColor = luminance rule forcing dark rims on light primaries (factions.js)',
         models: 'shared primitive geometries (three.js constructor args), neutral material colors, unit-type → silhouette class map, city growth tiers; builders that resist declarative capture are procedural:true with a description (assets.js)',
         props: 'tile decoration colors (props.js PROP_COLOR); placement is deterministic visualRand(x,y,salt) — procedural by design',
         anim: 'A28 render-time animation constants (anim.js); all phases derive from clock + position, never game state'

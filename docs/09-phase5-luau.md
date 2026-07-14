@@ -72,6 +72,22 @@ the one auth simplification the platform gives us for free).
 >   errors surface as in-contract divergence reports, never harness
 >   crashes.
 
+> **P5-4 additions (2026-07-14, combat + improvements batch):**
+> - **Scenario dotted paths carry 0-BASED array indices**
+>   (`"map.tiles.1"` = the SECOND tile — they were authored against
+>   JS). The Luau runner's getPath +1-translates numeric segments;
+>   safe because state object keys are never bare digits.
+> - **PARTIAL gate column**: a scenario whose steps a batch fully
+>   validates but whose WRAP needs an unported module (004/005 combat
+>   steps green, wraps need cities) is pinned to fail in-contract at
+>   an EXACT command index — any earlier failure = regression in the
+>   ported module. It flips to PORTED when the blocking module lands.
+> - **Roblox CLIENT input trap** (R3, applies to roblox/ work, not
+>   the engine): default control scripts pre-sink mouse events —
+>   handlers never fire; POLL `IsMouseButtonPressed` + per-frame
+>   screen delta instead. Recorded here because docs/09 is the trap
+>   ledger; the full client note lives in roblox/SPEC.md.
+
 1. **Stored indices are 0-based VALUES.** Tile index math
    (`idx = y*width + x`) produces numbers stored IN STATE
    (`city.workers`, explored arrays are positional). Luau tables iterate

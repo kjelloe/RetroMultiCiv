@@ -94,6 +94,9 @@ the Done log at the bottom.
   fortifications, which would arrive with it); (b) **Civ4-style
   strategic resource chains** — iron etc. on the map; units/buildings
   need a connected (road/rail/sea) + improved resource tile to build.
+  Also on the game-v2 shelf: **Civ4-style culture areas** (real border
+  mechanics in engine state — noted 2026-07-14, very later; A45's
+  territory overlay covers the visual need until then).
 
 ## Playtest findings inbox
 

@@ -99,6 +99,16 @@ function heightAt(map, fx, fy, vi, vj) {
 // Build the whole surface for one view. Returns { mesh, tileTop, dispose } —
 // tileTop(x, y) is the exact surface height at a tile's center vertex, the
 // anchor every unit/city/prop/marker sits on.
+//
+// SHARED-VERTEX INVARIANT (A44, ally sign-off): every shared vertex receives
+// ONE deterministic height + palette decision; adjacent tiles never write
+// conflicting values. This holds by CODE SHAPE, not by reconciliation: the
+// height grid H is computed once per vertex from heightAt(x, y) — a pure
+// function of world coordinates via visualRand — before any face exists, so
+// nothing tile-scoped COULD write a second value; face colors are then read
+// per-face (each face belongs to exactly one tile), never per shared vertex.
+// The determinism half is mechanically checked in the browser suite
+// (gallery.html?vertexcheck=1 builds this mesh twice, byte-compares buffers).
 export function buildTerrain(map) {
   const { width, height } = map;
   const gw = width * SEGS, gh = height * SEGS;
