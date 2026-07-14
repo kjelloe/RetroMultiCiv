@@ -6,6 +6,9 @@
       "Shared": {
         "$className": "Folder",
         "$path": { "optional": "../luau" }
+      },
+      "GameData": {
+        "$path": "data/generated"
       }
     },
     "ServerScriptService": {

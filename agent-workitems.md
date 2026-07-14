@@ -233,7 +233,7 @@ Done = `rojo build roblox -o build.rbxlx` green from a clean tree +
 the Studio output pasted verbatim in the done-note. If luau/ hasn't
 reached your clone, scaffold with a placeholder and say so.
 
-### R2 — Static world render (Parts)
+### R2 — Static world render (Parts)  [claimed: roblox-helper 2026-07-14] [done: 2026-07-14 — converter roblox/data/build.js (mock-state.json + terrain.js TERRAIN → committed MockState/TerrainPalette.luau, --check wired as check.sh gate 4) + RenderWorld.server.luau (terrain columns w/ 3-shade position-hash, unit discs+bodies, city plaza+skyline; 2 demo cities baked). Studio: '[RenderWorld] R2 static scene: 24x16 tiles, 4 units, 2 cities', anchors still ALL PASS. Screenshots READ: top-down (both arctic edge rows, 2 continents, ocean-as-Glass finding → fixed to SmoothPlastic) + close angled (3-shade grass mottle, tan plains, city block cluster, settlers wagon on blue owner disc). check.sh 14 gates GREEN. Finding: ocean palette reads slate-grey under Studio lighting vs JS sea — parity pass only if wanted]
 
 Render a baked state (client/mock-state.json as read-only reference):
 terrain as colored Parts (renderer/three/terrain.js TERRAIN table =

@@ -7,6 +7,9 @@ Rojo project mapping this tree plus the bugfixer's `../luau` port (read-only,
 optional until it lands) into a Roblox place:
 
 - `../luau` → `ReplicatedStorage.Shared` (engine/shared ModuleScripts)
+- `data/generated` → `ReplicatedStorage.GameData` (committed output of
+  `node roblox/data/build.js` — regenerate after mock-state/terrain
+  changes, never hand-edit)
 - `src/server` → `ServerScriptService.RetroMultiCiv`
 - `src/client` → `StarterPlayer.StarterPlayerScripts.RetroMultiCivClient`
 
@@ -34,6 +37,9 @@ don't commit it.
    - `hashState({b=2,a={1,"x",true}})` → `0x30db1e29`
    - gamecode `codeHi` → `0xa687b72d`, `gameCode` → `AD1X-Q5MR-DP7H9`
    Until `luau/` lands on this clone it prints `R1 gate PENDING` instead.
+   `RenderWorld.server.luau` also builds the R2 static scene
+   (`workspace.World`: terrain columns, unit discs, city clusters) and
+   prints one `[RenderWorld]` summary line.
 
 Expected values live in docs/09 §1 and are immutable — a "close" twin is
 a wrong twin; report mismatches to the architect, never edit the gate.

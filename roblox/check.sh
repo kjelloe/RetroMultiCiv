@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors RetroMultiCiv Shared RetroMultiCivClient; do
+for name in VerifyAnchors RetroMultiCiv Shared RetroMultiCivClient GameData RenderWorld MockState TerrainPalette; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -45,6 +45,17 @@ for anchor in 0x30db1e29 0xa687b72d AD1X-Q5MR-DP7H9; do
     note FAIL "gate 3: $anchor drifted (gate vs test/)"
   fi
 done
+
+# gate 4 — generated Luau data matches its JS/JSON sources (R2 converter)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/data/build.js --check >/dev/null 2>&1; then
+    note PASS "gate 4: generated data matches sources (build.js --check)"
+  else
+    note FAIL "gate 4: generated data drifted — rerun: node roblox/data/build.js"
+  fi
+else
+  note SKIP "gate 4: node absent"
+fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

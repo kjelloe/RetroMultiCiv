@@ -15,11 +15,15 @@ gate proving the port behaves identically inside Roblox.
 
 ## 2. Project mapping (`default.project.json`)
 
-| Repo path      | Place path                                             | Mode     |
-|----------------|--------------------------------------------------------|----------|
-| `../luau`      | `ReplicatedStorage.Shared`                             | optional |
-| `src/server`   | `ServerScriptService.RetroMultiCiv`                    | required |
-| `src/client`   | `StarterPlayer.StarterPlayerScripts.RetroMultiCivClient` | optional |
+| Repo path        | Place path                                             | Mode     |
+|------------------|--------------------------------------------------------|----------|
+| `../luau`        | `ReplicatedStorage.Shared`                             | optional |
+| `data/generated` | `ReplicatedStorage.GameData`                           | required |
+| `src/server`     | `ServerScriptService.RetroMultiCiv`                    | required |
+| `src/client`     | `StarterPlayer.StarterPlayerScripts.RetroMultiCivClient` | optional |
+
+`data/generated` is required because its files are COMMITTED (a clean
+clone has them) — see §3a.
 
 Contracts:
 
@@ -59,6 +63,43 @@ Contracts:
   `R1 gate PENDING` and exits cleanly — that output still counts as
   scaffold verification, not as R1 done.
 
+## 3a. Data converter (`data/build.js`, R2)
+
+Per docs/10 §3, JS/JSON references cross into Roblox ONLY via this
+converter — no number is ever hand-copied:
+
+- `client/mock-state.json` → `data/generated/MockState.luau`
+- `client/renderer/three/terrain.js` `TERRAIN` table →
+  `data/generated/TerrainPalette.luau` (parsed textually — terrain.js
+  imports three.js/`document`, so it can't be require()d in Node)
+
+Contracts:
+
+- Generated files are **committed** (rojo build must be green from a
+  clean clone) and never hand-edited; regenerate with
+  `node roblox/data/build.js`. `--check` diffs instead of writing —
+  check.sh gate 4 fails on drift.
+- Stored `x`/`y` stay **0-based** (docs/09 trap 1): only Luau-side
+  table access adds `+1`, never the stored values or index arithmetic.
+- The two demo cities are an R2 bake (the source mock has none):
+  first non-ocean unoccupied neighbor of each player's settlers, fixed
+  scan order, deterministic.
+
+## 3b. Static renderer (`src/server/RenderWorld.server.luau`, R2)
+
+Builds `workspace.World.{Terrain,Units,Cities}` at Play start from the
+generated data. Render-only contracts:
+
+- No engine calls, no randomness — palette shade picks are
+  position-hashed (`(x*7 + y*13) % #palette`), so the scene is
+  identical every run (screenshot-stable, the JS renderer's REST-POSE
+  discipline).
+- Scale: `TILE = 4` studs/tile edge, `HEIGHT = 6` studs per 1.0 of
+  TERRAIN base+peak/2, columns extend `BASIN = 2` studs down.
+- Owner color comes from the baked player table; units get an
+  owner-colored base disc, cities an owner-colored plaza disc under a
+  fixed block skyline. Prints one `[RenderWorld]` summary line.
+
 ## 4. Verification (`check.sh` + Studio)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -68,10 +109,13 @@ architect):
 1. `rojo build roblox` to a temp file succeeds.
 2. The built place contains the mapped instances (`VerifyAnchors`,
    `RetroMultiCiv` under ServerScriptService, `Shared`,
-   `RetroMultiCivClient`).
+   `RetroMultiCivClient`, `GameData`, `RenderWorld`, `MockState`,
+   `TerrainPalette`).
 3. The anchor literals in `VerifyAnchors.server.luau` match the
    canonical goldens in `test/rng.test.js` and `test/gamecode.test.js`
    (drift check — read-only consumption of `test/`).
+4. `node data/build.js --check` — generated Luau data still matches
+   its JS/JSON sources (skips if node is absent).
 
 What check.sh cannot cover: Luau execution. The only executable proof
 is Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
@@ -83,5 +127,11 @@ done-note, screenshots read and described.
   Play Solo with `luau/` mapped and unmodified (including gamecode's
   relative string require, which the Studio VM resolves); rojo build
   and check.sh green.
-- R2 (static world render) and R3 (camera/selection) are specified in
-  `agent-workitems.md`; nothing for them exists here yet.
+- R2: **DONE 2026-07-14** — scene verified in Play Solo
+  (`[RenderWorld] R2 static scene: 24x16 tiles, 4 units, 2 cities`),
+  two screenshots read and described. Ocean material is SmoothPlastic
+  by finding: Glass washes out to grey on low graphics settings. Known
+  cosmetic gap: the baked ocean navy reads slate-grey under Studio
+  lighting vs the JS sea.
+- R3 (camera/selection) is specified in `agent-workitems.md`; nothing
+  for it exists here yet.
