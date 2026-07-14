@@ -130,7 +130,10 @@
           "human": true,
           "gold": 0,
           "techs": [],
-          "researching": ""
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
         },
         "p2": {
           "id": "p2",
@@ -139,7 +142,10 @@
           "human": false,
           "gold": 0,
           "techs": [],
-          "researching": ""
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
         }
       },
       "rngState": 42
@@ -315,6 +321,6 @@
       "cities.c1.pop": 1,
       "cities.c1.food": 10
     },
-    "hash": null
+    "hash": "0x866fe652"
   }
 }

@@ -193,6 +193,12 @@ export function showSetupScreen() {
   if (lobbyDemoKind) {
     import('./lobby.js').then(m => m.lobbyDemo(setupBox, lobbyDemoKind));
   }
+  // ?e2ehostform=1 (A34 screenshots): open the HOST FORM (not auto-create) so
+  // the resume-a-save picker renders against the live server's inventory
+  if (new URLSearchParams(location.search).get('e2ehostform') === '1') {
+    import('./lobby.js').then(m => m.startHostFlow(setupBox,
+      { civs: 2, humans: 2, size: 'medium', age: 'ancient' }));
+  }
 
   const demo = new URLSearchParams(location.search).get('setupdemo');
   if (demo === 'lan' || demo === 'hotseat') {

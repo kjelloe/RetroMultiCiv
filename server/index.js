@@ -345,6 +345,56 @@ export function startServer(opts) {
       const info = conns.get(ws);
       if (msg.t === 'ping') { send(ws, { t: 'pong' }); return; }
       if (msg.t === 'list') { send(ws, { t: 'games', games: registry.list() }); return; }
+      if (msg.t === 'listSaves') { // A34: the host machine's saves/ inventory
+        const dir = path.join(REPO, 'saves');
+        const saves = [];
+        for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {
+          if (!f.endsWith('.json')) continue;
+          try {
+            const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+            if (p.format !== 'retromulticiv-server-save') continue;
+            saves.push({
+              file: f, gameId: p.gameId, code: p.code, savedAt: p.savedAt,
+              turn: p.state.turn, year: p.state.year,
+              players: p.state.playerOrder.map(pid => ({
+                name: p.state.players[pid].name,
+                civ: p.state.players[pid].civ,
+                human: p.state.players[pid].human === true
+              })),
+              loaded: registry.entryOf(p.gameId) !== null // already live?
+            });
+          } catch (e) { /* foreign/corrupt file: not listable, not an error */ }
+        }
+        saves.sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1)); // newest first
+        send(ws, { t: 'saves', saves });
+        return;
+      }
+      if (msg.t === 'resume') { // A34: load via the --game path, seats reset
+        const file = path.join(REPO, 'saves', msg.file); // shape-validated basename
+        if (!fs.existsSync(file)) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'noSuchSave' });
+          return;
+        }
+        let parsed;
+        try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { parsed = {}; }
+        if (parsed.format !== 'retromulticiv-server-save') {
+          send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
+          return;
+        }
+        if (registry.entryOf(parsed.gameId)) { // already live — just join it
+          send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
+          return;
+        }
+        const game = createGame({ ruleset, save: parsed });
+        // tokens live in per-origin localStorage and machines change between
+        // sessions — resumed lobby games ALWAYS reset seats; joiners re-pick
+        // by name (the --reset-seats teaching flow, now automatic)
+        game.resetSeats();
+        registry.register(game, false); // spectators: off for resumed games (v1)
+        saveFiles[game.gameId] = file;     // autosaves continue into the same file
+        send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
+        return;
+      }
       if (msg.t === 'create') {
         const res = registry.create(msg.options || {}, msg.name);
         if (res.ok === false) { // A38: civ count exceeds what the map seats

@@ -71,6 +71,17 @@ export function parseMessage(raw) {
     if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // A34: resume server saves from the host flow. `file` is a BASENAME only —
+  // the strict shape here plus the server-side saves/-scoped resolution keeps
+  // client-supplied paths out (no separators, no dotfiles, .json only).
+  if (msg.t === 'listSaves') return { ok: true, msg };
+  if (msg.t === 'resume') {
+    if (typeof msg.file !== 'string' || !/^[A-Za-z0-9][\w.-]*\.json$/.test(msg.file)
+        || msg.file.includes('..') || msg.file.includes('/') || msg.file.includes('\\')) {
+      return { ok: false, code: 'badShape' };
+    }
+    return { ok: true, msg };
+  }
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {

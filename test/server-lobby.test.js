@@ -219,6 +219,62 @@ test('A37 lobby chat + moderation: cap, rate, toggle, kick frees the seat, block
   }
 });
 
+test('A34 resume from the host flow: listSaves inventory, resume loads + seats reset, codes match', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const { createGame } = await import('../server/game.js');
+  const { startServer } = await import('../server/index.js');
+  // a real server save on disk, uniquely named (no cross-test races)
+  const game0 = createGame({
+    ruleset: RULESET, gameId: 'a34resume',
+    setup: { seed: 777, options: { width: 40, height: 25, players: [
+      { id: 'p1', name: 'Kjell', color: '#3b7dd8', human: true },
+      { id: 'p2', name: 'Zulus', color: '#d84a3b', human: false }
+    ] } }
+  });
+  const saveFile = path.join(__dirname, '..', 'saves', 'a34resume.json');
+  game0.saveTo(saveFile);
+  const wantCode = game0.code();
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    const host = await connect(s.port);
+    // inventory: shape + the docs/07 code so the host can verify BEFORE playing
+    host.send({ t: 'listSaves' });
+    const inv = await host.expect(m => m.t === 'saves', 'inventory');
+    const mine = inv.saves.find(x => x.gameId === 'a34resume');
+    assert.ok(mine, 'the crafted save is listed');
+    assert.deepStrictEqual(
+      { file: mine.file, turn: mine.turn, code: mine.code, loaded: mine.loaded,
+        humans: mine.players.filter(p => p.human).map(p => p.name) },
+      { file: 'a34resume.json', turn: 1, code: wantCode, loaded: false, humans: ['Kjell'] });
+
+    // security: client-supplied paths never resolve outside saves/
+    host.send({ t: 'resume', file: '../package.json' });
+    assert.strictEqual((await host.expect(m => m.t === 'rejected', 'traversal')).code, 'badShape');
+
+    // resume: loads via the --game path with seats RESET; the code survives
+    host.send({ t: 'resume', file: 'a34resume.json' });
+    const resumed = await host.expect(m => m.t === 'resumed', 'resumed');
+    assert.strictEqual(resumed.gameId, 'a34resume');
+    assert.strictEqual(resumed.code, wantCode, 'the resumed game carries the SAME verification code');
+
+    // the host joins by gameId and lands on the (reset) seat by name
+    host.send({ t: 'join', joinCode: 'a34resume', name: 'Kjell' });
+    const hj = await host.expect(m => m.t === 'joined', 'joined the resumed game');
+    assert.strictEqual(hj.view.players[hj.playerId].name, 'Kjell', 'seat re-picked by name');
+    assert.strictEqual(hj.code, wantCode, 'the docs/07 trust loop: code visible on join');
+
+    // a second resume of the live game just points at it (no clobber)
+    host.send({ t: 'resume', file: 'a34resume.json' });
+    const again = await host.expect(m => m.t === 'resumed', 'already live');
+    assert.strictEqual(again.gameId, 'a34resume');
+    host.close();
+  } finally {
+    await s.close();
+    fs.rmSync(saveFile, { force: true });
+  }
+});
+
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

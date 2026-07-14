@@ -335,9 +335,15 @@ least one mid-game disconnect/reconnect.
 > run, and the roblox-helper's R1 then printed the same four anchors
 > inside Roblox Studio — **Node ≡ lune ≡ Studio VM proven**. The
 > engine trap-audit (docs/09 §7) came back clean: pure transliteration
-> ahead, no JS pre-fixes. In flight: P5-2 (json2lua + scenario-runner
-> twin, gated on cross-language setup-state hashes for all ten
-> scenarios) and R2 (first Parts-rendered world).
+> ahead, no JS pre-fixes. P5-2 followed (json2lua + scenario-runner
+> twin: ten-for-ten cross-language setup-state hashes), then P5-3
+> (applyCommand dispatcher + movement/visibility twins: scenario 001
+> green cross-language, 8/8 data-file checksums equal, and the
+> divergence-report contract caught its FIRST real cross-language bug
+> — JS lazy-default writes — within minutes of existing; docs/09 §3
+> carries the P5-3 trap block). R2 rendered the first Parts world in
+> Studio. In flight: R3 (camera + tile selection), B10 (scenario hash
+> re-pin — the values every later batch gates against), then P5-4.
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port

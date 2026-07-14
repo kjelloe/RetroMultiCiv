@@ -153,12 +153,13 @@ test('luau engine: data checksums, ported scenarios green, unported fail in-cont
     const scenarioDir = path.join(REPO, 'test', 'scenarios');
     for (const f of fs.readdirSync(scenarioDir).filter(x => x.endsWith('.json')).sort()) {
       if (PORTED.includes(f)) {
+        // B10: the PINNED final.hash is the cross-language contract — the JS
+        // suite asserts JS==pin, this asserts Luau==pin (ruling @2e3c2166)
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
-        const js = await runScenario(createEngine(RULESET), scenario);
-        assert.ok(js.pass, `${f}: the JS engine itself must pass: ${js.failures}`);
-        const jsHash = hashState(js.state);
-        assert.ok(res.stdout.includes(`run:${f}: ${jsHash}`),
-          `${f}: Luau final hash must equal the JS engine's live ${jsHash} — harness said:\n`
+        assert.match(scenario.final.hash || '', /^0x[0-9a-f]{8}$/,
+          `${f}: a PORTED scenario needs its pinned hash (guards enforce this too)`);
+        assert.ok(res.stdout.includes(`run:${f}: ${scenario.final.hash}`),
+          `${f}: Luau final hash must equal the PINNED ${scenario.final.hash} — harness said:\n`
           + `${(res.stdout.match(new RegExp(`(run:${f}|DIVERGENCE fixture=${f})[^]*?(?=\\n[^ ])`)) || ['(no line)'])[0]}`);
       } else {
         const block = res.stdout.match(new RegExp(`DIVERGENCE fixture=${f} command=(-?\\d+) turn=\\S+ actor=\\S+`));

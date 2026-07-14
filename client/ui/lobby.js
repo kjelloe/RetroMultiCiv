@@ -280,6 +280,11 @@ export function startHostFlow(box, options, flags) {
       let stand behind your chair</p>
     <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
     <button id="setup-start">Create game</button>
+    <div id="lobby-resume" class="hidden">
+      <p class="setup-hint">— or resume a saved game (players re-pick their
+        seats by name; check the code matches your notes) —</p>
+      <div id="lobby-saves"></div>
+    </div>
     <p class="setup-hint"><a href="./">← back</a></p>`;
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
@@ -288,6 +293,43 @@ export function startHostFlow(box, options, flags) {
     options.age = document.getElementById('lobby-age').value;
     create(document.getElementById('lobby-name').value.trim() || 'Player 1');
   });
+  // A34: the host machine's saves, newest first — resume loads it on the
+  // server (seats reset) and this connection joins it straight away
+  const savesWs = openLobbySocket((msg, sock) => {
+    if (msg.t === 'saves' && msg.saves.length > 0) {
+      const host = document.getElementById('lobby-saves');
+      if (!host) return;
+      document.getElementById('lobby-resume').classList.remove('hidden');
+      for (const s of msg.saves.slice(0, 8)) {
+        const row = document.createElement('div');
+        row.className = 'lobby-row lobby-save';
+        const year = s.year < 0 ? `${-s.year} BC` : `${s.year} AD`;
+        const who = s.players.filter(p => p.human).map(p => p.name).join(', ');
+        const label = document.createElement('span');
+        label.textContent = `turn ${s.turn} · ${year} · ${who || 'all AI'}`
+          + (s.code ? ` · code ${s.code}` : '') // pre-docs/07 saves carry none
+          + (s.loaded ? ' · live' : '');
+        row.appendChild(label);
+        const btn = document.createElement('button');
+        btn.className = 'setup-lan-btn';
+        btn.textContent = s.loaded ? 'join' : 'resume';
+        btn.addEventListener('click', () => sock.send(JSON.stringify({ t: 'resume', file: s.file })));
+        row.appendChild(btn);
+        host.appendChild(row);
+      }
+    } else if (msg.t === 'resumed') {
+      // the join boots the game via the shared {t:'joined'} path
+      sock.send(JSON.stringify({
+        t: 'join', joinCode: msg.gameId,
+        name: document.getElementById('lobby-name').value.trim() || 'Player 1'
+      }));
+    } else if (msg.t === 'rejected') {
+      fail(box, msg.code === 'noSuchSave' ? 'that save is gone from saves/'
+        : msg.code === 'badSave' ? 'that file is not a server save'
+        : `server rejected: ${msg.code}`);
+    }
+  }, () => { /* no server: the Create click surfaces the real error */ });
+  savesWs.addEventListener('open', () => savesWs.send(JSON.stringify({ t: 'listSaves' })));
 }
 
 // --- in-game turn flow (docs/08 §3, §4, §6) — server mode only ---------------

@@ -270,3 +270,17 @@ test('run.ps1: a SLOW crash must not be reported as a running server (B8, real P
       assert.strictEqual(res.status, 1, `run.ps1 must exit 1:\n${out}`);
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
+
+test('scenario goldens are PINNED: no committed final.hash may be null (B10)', () => {
+  // the gate was silently OFF for days: a re-record set all ten hashes to
+  // null (print mode) and the paste-back step was missed — suites stayed
+  // green asserting nothing. A forgotten paste-back is now loudly red;
+  // during a re-record this test fails until the printed values are pasted,
+  // which is exactly the point (ruling @2e3c2166).
+  const dir = path.join(REPO, 'test', 'scenarios');
+  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.json'))) {
+    const s = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+    assert.ok(s.final && typeof s.final.hash === 'string' && /^0x[0-9a-f]{8}$/.test(s.final.hash),
+      `${f}: final.hash is ${s.final && JSON.stringify(s.final.hash)} — run the scenario, paste the printed hash back`);
+  }
+});

@@ -2,28 +2,25 @@
 
 Things only a human (Kjell or friends) can verify or decide. Check off with
 a date; add playtest findings to the bottom section. Agent/coder tasks live
-in `./agent-workitems.md`. Refreshed 2026-07-13 — completed items moved to
+in `./agent-workitems.md`. Refreshed 2026-07-14 — completed items moved to
 the Done log at the bottom.
 
 ## Pending — verify in real play
 
-- [x] 2026-07-14 — **Phase-4 two-machine LAN acceptance: PASSED** (2
-  humans + spectator + AI; network kill on the host PC AND server kill
-  + save-resume both survived; turn-53 save replays hash-exact; moved
-  to the Done log).
-- [x] 2026-07-14 — **Phase-2 hotseat verdict delivered: ACCEPTED.**
-  Ten original questions all good; hotseat questions 6/7 pass —
-  question 4 (diplomacy legibility) scoped to phase 6 (no diplomacy
-  exists yet; noted as a phase-6 acceptance criterion). Verdict
-  recorded as a labeled appendix in `specs/phase2-assessment.md`.
-  Phase 2 formally closed — ALL phase gates through 4 now passed.
+- [ ] **Next LAN session verification list** (everything landed since
+  the 07-14 acceptance test): lobby **chat** (host toggle on/off live),
+  **kick** and **kick-and-block** (block is per-IP — on one machine via
+  localhost it blocks everyone; test from two machines), the 14-seat
+  lobby + seat picker, log filters, city name pills + tier looks,
+  animations feel (`?anim` default on), and the noticeably **stronger
+  normal-difficulty AI** (median 18 cities on soak — does a normal game
+  still feel fair?).
 - [ ] **Feel-test backlog** (largely exercised by the 2026-07-14
   acceptance session — tick whatever you consider covered): waves
   III/IV polish (battle linger, centered mini-map + real center
   yields, per-player hand-off landing, C-to-capital, one-tech-ahead
   catalog, hover move arrow, Civ-style calendar pacing to ~turn 395,
-  starting-age fast-forward + its 10–20s wait on big maps). Wave VI
-  items get their own verification pass once B5/B6/A29+ land.
+  starting-age fast-forward + its 10–20s wait on big maps).
 - [ ] **End Turn latency late-game** (standing): if End Turn stalls
   noticeably vs a big AI (10–24 cities on some seeds), report turn
   number + Shift+D file.
@@ -38,85 +35,39 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
-- [x] 2026-07-14 — **Nightly lune install: DONE** (architect edited
-  the workflow on your go: pinned v0.10.5 release zip, suite job only,
-  release URL verified live; guards green). The next nightly (or a
-  manual dispatch after pushing) proves it end to end.
-
-- [ ] **Commit checkpoint**: the tree carries the phase-4 acceptance
-  markings (docs/03/08/09, plan-update, README), the full wave-VI
-  routing (B5/B6, A29–A37, the architect engine batch), and the
-  helper's in-flight A28 — commit at a green-suite stop.
-- [x] 2026-07-14 — Queue decision (a): **big-lobby scaling GO** —
-  activated as A38 (probe at 4/8/12/16 + shipped cap raised to 14,
-  gated on measurements; 16 stays test-only until the Civ 2/3/4
-  roster + ally identities).
-- [x] 2026-07-14 — Queue decision (b): **find-a-game v1 GO** — A41
-  confirmed in the helper's queue (after A34/A37 by design: listing
-  without kick would be premature). Both post-acceptance decisions
-  now resolved.
-- [ ] **Phase-5 kickoff prerequisite** (when you want the port to
-  start): Roblox Studio project + lune toolchain install (approved
-  2026-07-12) — docs/09 is otherwise ready and now unblocked.
-- [ ] **Sim-runner agent — spawn when phase 5 needs it, ON THE
-  ROBLOX PC** (decided 2026-07-14): docs/11 is the role prompt —
-  measurement executor, zero write footprint, jobs by mail tagged
-  'measure'; hub connection is the same remote one-liner. Honest
-  hardware note: its CPU is the contribution (relieves this box's 16
-  contended threads) — the 4070 sits idle for sims but earns an
-  optional second duty running GPU-real screenshot sweeps. Trigger:
-  P5-2+ parity gates; I'll say when, or spawn early if you like.
-- [x] 2026-07-14 — Old recordings cleanup done (pre-2026-07-12 files
-  removed from `debugging/logs/`).
+- [ ] **Pull on the Roblox PC**: the 611499b→HEAD pushes carry the B10
+  item text, docs/09 P5-3 trap block, and the R4 visibility
+  requirement — the roblox-helper's mail/locks flow live over the hub,
+  but doc/queue text travels by git.
+- [ ] **Glance at the first nightly with the lune step** (Actions tab,
+  after tonight's 03:00 run or a manual dispatch): the suite job now
+  installs lune v0.10.5, so the Luau twin gates run in CI for the
+  first time instead of self-skipping.
+- [ ] **Next commit checkpoint**: when B10 (scenario re-pin), A34
+  (lobby resume), and R3 (Studio camera/selection) land reviewed —
+  I'll suggest the one-liner as usual.
+- [ ] **Hub IP-drift note (standing ops)**: this PC was .116 during
+  the LAN test, is .112 now — DHCP moves it. If the hub stops
+  answering after a reboot: re-check `ipconfig`, update the one-line
+  `.agent-mail/remote` file on the Roblox PC (or reserve this PC's IP
+  in the router / use the Windows hostname instead).
 
 ## Later (not yet actionable)
 
-- [ ] **Global "find a game" + internet hosting**: noted 2026-07-13 —
-  parked item with full design facts in agent-workitems; your Hetzner
-  recipe is stored verbatim in `ops/hosting-recipe.md` (gitignored).
-  First stop needs zero code: DNS `retromulticiv.kjell.today` → your
-  PC → existing join codes. The public game LISTING is a small item
-  (lobby registry already tracks everything); decide after LAN
-  acceptance. Before real public exposure: the hardening bullet
-  (rate limits, caps) becomes its own item.
-- [ ] **Big-lobby scaling (8/12/16 players)**: noted 2026-07-13 — a
-  parked probe item with the full fact sheet lives in agent-workitems
-  ("PARKED — Big-lobby scaling"). 16+ civs decided: draw from Civ
-  2/3/4 rosters, adapt perks to our specialty schema; new visual
-  identities go through the designer ally's acceptance loop. Queue
-  after the two-machine acceptance.
-- [ ] **Phase-5 second gear — ON THE ROBLOX PC** (Rojo approved
-  2026-07-14; spec + structure written = docs/10-roblox-agent.md,
-  R1–R3 queued in agent-workitems). Your steps on that machine:
-  1. Clone the repo (git is the cross-machine transport — commit/push
-     here first so docs/10 + the R-queue travel).
-  2. Install **Roblox Studio**, sign in, confirm a Baseplate opens.
-  3. Install **Rojo** (executable + the Studio plugin from its docs).
-  4. Create a private Experience ("RetroMultiCiv dev").
-  5. **Mail hub** (live cross-PC mail + locks): on THIS machine run
-     `python3 tools/agent-mail.py serve` (port 8970) and open it
-     through WSL once, in an ADMIN PowerShell:
-     `netsh interface portproxy add v4tov4 listenaddress=0.0.0.0
-     listenport=8970 connectaddress=$(wsl hostname -I).Trim()
-     connectport=8970` + `netsh advfirewall firewall add rule
-     name="RetroMultiCiv mail 8970" dir=in action=allow protocol=TCP
-     localport=8970`. On the Roblox PC's clone:
-     `echo http://192.168.1.112:8970 > .agent-mail/remote` — its
-     agent-mail commands then share this mailbox + lock registry live.
-     ⚠ IP DRIFT: this PC was .116 during the LAN test, is .112 now —
-     DHCP moves it. Sturdier options: reserve this PC's IP in the
-     router, or use the Windows hostname instead of the IP in the
-     remote file (LAN name resolution usually works); if the hub stops
-     answering after a reboot, re-check `ipconfig` here and update the
-     one-line remote file there.
-  6. Start a Claude Code session in the clone and point it at
-     `docs/10-roblox-agent.md` — that file IS the role prompt; it
-     claims R1 and mails through the hub like the local agents do.
-  7. You still pump git both ways for CODE (agents never touch git);
-     the hub only carries mail and locks.
-- [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
-  ("do it if it helps God-Emperor") — criterion + design sketch recorded
-  in docs/04; architect's queue, golden lock required.
+- [ ] **Global "find a game" + internet hosting**: LAN-local listing
+  is now underway as A41 (helper queue, after A34). The INTERNET
+  half stays parked: your Hetzner recipe is stored verbatim in
+  `ops/hosting-recipe.md` (gitignored); first stop needs zero code —
+  DNS `retromulticiv.kjell.today` → your PC → existing join codes.
+  Before real public exposure: the hardening bullet (rate limits,
+  caps) becomes its own item.
+- [ ] **16+ civs roster**: cap is shipped at 14 (A38); going past it
+  waits on the Civ 2/3/4 roster adaptation (perks → our specialty
+  schema) and new visual identities through the designer ally's
+  acceptance loop.
+- [ ] **Phase-6 acceptance criterion on record**: diplomacy legibility
+  (phase-2 verdict question 4) — permanent war is the current rule;
+  when diplomacy ships, it must be legible in play.
 
 ## Playtest findings inbox
 
@@ -136,6 +87,26 @@ engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
 
 ## Done log
 
+- ✅ 2026-07-14 — **Phase-5 launch COMPLETE, both machines**: Studio +
+  Rojo + private Experience on the Roblox PC, lune on all three boxes,
+  mail hub live cross-PC (port 8970 portproxy + firewall), roblox-helper
+  AND sim-runner spawned and kit-validated. Results already banked:
+  P5-1/2/3 done (Node ≡ lune ≡ Studio proven, ten-for-ten setup hashes,
+  dispatcher + movement/visibility green cross-language), R1/R2 done
+  (anchors + first Parts world in Studio).
+- ✅ 2026-07-14 — **Phase-2 hotseat verdict delivered: ACCEPTED.** Ten
+  original questions all good; hotseat 6/7 pass — question 4
+  (diplomacy legibility) scoped to phase 6. Verdict recorded as a
+  labeled appendix in `specs/phase2-assessment.md`. ALL phase gates
+  through 4 now passed.
+- ✅ 2026-07-14 — Queue decisions resolved: **big-lobby scaling GO**
+  (A38 landed same day — measured probe, cap raised to 14, seat picker
+  followed in A37) and **find-a-game v1 GO** (A41 queued after
+  A34/A37 by design).
+- ✅ 2026-07-14 — Nightly lune install done (workflow pins the v0.10.5
+  release zip, suite job only; URL verified live).
+- ✅ 2026-07-14 — Old recordings cleanup (pre-2026-07-12 files removed
+  from `debugging/logs/`).
 - ✅ 2026-07-14 — **ALLY LOOP COMPLETE, FULL SIGN-OFF RECEIVED**:
   round 4 approved A1.7 as the browser reference implementation,
   formally validated phases 2–4, blessed phase 5's continuation, and
@@ -158,6 +129,10 @@ engine issue; for `?server=1` games send `saves/<gameId>.json` instead)
   (terrain domain `ice` via the mapdata overlay; unit test added;
   suite green with no golden movement).
 - ✅ 2026-07-13 — dev merged to main; 3 AM nightly cron armed.
+- ✅ 2026-07-13 — **AI happiness batch 4**: approved conditionally
+  ("do it if it helps God-Emperor") → won at lab iteration 3 of 10
+  (entertainers-on-disorder): GE stagnation 39%→3% confirmed on 25
+  real seeds by the sim-runner; side effect = stronger normal AI.
 
 - ✅ 2026-07-12 — Wave-II spot-check, combat-default preference
   (best-of-three stays), terrain look on real GPUs, AI settler re-route
