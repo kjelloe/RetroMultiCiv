@@ -10,7 +10,10 @@ authoritative-server design — protocol, seats, persistence, slices),
 `07-game-code.md` (save-tamper verification code), `08-phase4-lan.md`
 (lobby, join codes, skip-vote, AI regency — decisions final),
 `09-phase5-luau.md` (port mapping: the trap list, port order with
-anchor/scenario/golden gates, harness plan).
+anchor/scenario/golden gates, harness plan), `10-roblox-agent.md` (the
+SECOND-PC roblox-helper's role spec: owns `roblox/` exclusively,
+consumes `luau/` read-only, coordinates via git in-file marks — no
+mailbox/locks across machines).
 
 ## Hard rules
 
@@ -34,7 +37,9 @@ anchor/scenario/golden gates, harness plan).
   (emulates the WebGL1-only environment).
 - Minimal dependencies: `ws` (server), vendored three.js, and `lune`
   (dev-only, phase-5 Luau CI twins — user-approved 2026-07-12) are the
-  whitelist; ask before adding anything else.
+  whitelist; `Rojo` + its Studio plugin are approved on the ROBLOX PC
+  only (user-approved 2026-07-14, docs/10). Ask before adding anything
+  else.
 
 ## Data source
 

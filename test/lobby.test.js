@@ -27,14 +27,31 @@ test('create: builds a pre-start lobby with the right seats, clamped', () => {
   assert.strictEqual(Object.keys(e.seats).length, 4);
   assert.deepStrictEqual(Object.keys(e.seats).map(p => e.seats[p].human), [true, true, false, false]);
   assert.strictEqual(e.game, null, 'no engine game until start');
-  // clamping: civs 2..7, humans 1..civs
+  // clamping (A38): civs 2..14 (the roster ceiling; no maxCivsBySize table
+  // in this bare ruleset), humans 1..civs
   const { entry: big } = reg.create({ civs: 99, humans: 99, size: 'nonsense' }, 'Kjell');
-  assert.strictEqual(Object.keys(big.seats).length, 7);
+  assert.strictEqual(Object.keys(big.seats).length, 14);
   assert.strictEqual(big.options.size, 'medium', 'unknown size falls back');
-  assert.strictEqual(Object.values(big.seats).filter(s => s.human).length, 7);
+  assert.strictEqual(Object.values(big.seats).filter(s => s.human).length, 14);
   const { entry: tiny } = reg.create({ civs: 1, humans: 0 }, 'Kjell');
   assert.strictEqual(Object.keys(tiny.seats).length, 2, 'civs floors at 2');
   assert.strictEqual(Object.values(tiny.seats).filter(s => s.human).length, 1, 'humans floors at 1');
+});
+
+test('create: the measured seats-per-size table gates civ counts (A38)', () => {
+  let n = 0;
+  const ruleset = { rules: { maxCivsBySize: { xsmall: 7, small: 12, medium: 14 } } };
+  const reg = createRegistry({ ruleset, gameIdFn: () => 'g' + (++n) });
+  const rej = reg.create({ civs: 13, humans: 1, size: 'small' }, 'Kjell');
+  assert.strictEqual(rej.ok, false);
+  assert.strictEqual(rej.reason, 'mapTooSmall');
+  assert.strictEqual(rej.maxCivs, 12, 'the rejection names the limit');
+  const { entry: ok } = reg.create({ civs: 12, humans: 1, size: 'small' }, 'Kjell');
+  assert.strictEqual(Object.keys(ok.seats).length, 12, 'at the limit is fine');
+  // setSlots clamps at the table too — greedy growth stops at the size cap
+  const grown = reg.setSlots(ok.gameId, 99);
+  assert.strictEqual(grown.ok, true);
+  assert.strictEqual(Object.keys(ok.seats).length, 12, 'resize clamps to small\'s 12');
 });
 
 test('resolveId: by gameId and by join code (case-insensitive)', () => {

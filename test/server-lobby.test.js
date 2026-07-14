@@ -136,6 +136,37 @@ test('A27 host controls: slot modes, civ picks, resize, no-kick, honored at star
   }
 });
 
+test('A38 big lobbies: seats-per-size gate, resize clamp, 12 civs start distinct', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    // the measured table gates create: 13 civs never fit a small map
+    const host = await connect(s.port);
+    host.send({ t: 'create', name: 'Kjell', options: { civs: 13, humans: 1, size: 'small', seed: 5 } });
+    const rej = await host.expect(m => m.t === 'rejected', 'mapTooSmall');
+    assert.strictEqual(rej.code, 'mapTooSmall');
+    assert.strictEqual(rej.maxCivs, 12, 'the rejection carries the size limit');
+
+    // 12 civs on a medium map create, resize clamps at the size cap, start
+    host.send({ t: 'create', name: 'Kjell', options: { civs: 12, humans: 1, size: 'medium', seed: 5 } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    assert.strictEqual(created.lobby.seats.length, 12, 'twelve seats');
+    host.send({ t: 'setSlots', civs: 99 }); // greedy resize clamps to medium's 14
+    await host.expect(m => m.t === 'lobby' && m.lobby.seats.length === 14, 'clamped to 14');
+    host.send({ t: 'setSlots', civs: 12 });
+    await host.expect(m => m.t === 'lobby' && m.lobby.seats.length === 12, 'back to 12');
+    host.send({ t: 'start' });
+    const hj = await host.expect(m => m.t === 'joined', 'host joined');
+    assert.strictEqual(Object.keys(hj.view.players).length, 12, 'twelve players in the world');
+    const civIds = Object.values(hj.civs || {});
+    assert.strictEqual(new Set(civIds).size, 12, 'twelve DISTINCT civilizations (A24 shuffle at scale)');
+    await host.expect(m => m.t === 'started', 'started');
+    host.close();
+  } finally {
+    await s.close();
+  }
+});
+
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

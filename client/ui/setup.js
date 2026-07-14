@@ -18,6 +18,7 @@ export function showSetupScreen() {
           ${[2, 3, 4, 5, 6, 7].map(n => `<option value="${n}">${n}</option>`).join('')}
         </select>
       </label>
+      <p class="setup-hint hidden" id="setup-civs-hint"></p>
       <label>Human players
         <select id="setup-humans"><option value="1">1</option></select>
       </label>
@@ -109,6 +110,27 @@ export function showSetupScreen() {
     };
     ageEl.addEventListener('change', hint);
     hint();
+    // A38: the map size gates the civ count (measured seats-per-size table)
+    // — the dropdown offers only what the selected size seats reliably
+    const sizeSel = document.getElementById('setup-size');
+    const civsHint = document.getElementById('setup-civs-hint');
+    function refreshCivs() {
+      const max = (rules.maxCivsBySize && rules.maxCivsBySize[sizeSel.value]) || 14;
+      const keep = Math.min(parseInt(civsEl.value, 10) || 2, max);
+      civsEl.innerHTML = '';
+      for (let n = 2; n <= max; n++) {
+        const opt = document.createElement('option');
+        opt.value = String(n);
+        opt.textContent = String(n);
+        if (n === keep) opt.selected = true;
+        civsEl.appendChild(opt);
+      }
+      civsHint.textContent = `this map size seats up to ${max} civilizations`;
+      civsHint.classList.toggle('hidden', max >= 14);
+      refreshHumans();
+    }
+    sizeSel.addEventListener('change', refreshCivs);
+    refreshCivs();
   });
 
   const civsEl = document.getElementById('setup-civs');
@@ -214,7 +236,10 @@ export function showSetupScreen() {
   const params = new URLSearchParams(location.search);
   if (params.get('e2ehost') === '1') {
     import('./lobby.js').then(m => m.startHostFlow(setupBox,
-      { civs: 2, humans: 1, size: 'xsmall', seed: 12345 },
+      { // A38: ?e2ecivs/?e2esize override the tiny default (12-civ shots)
+        civs: parseInt(params.get('e2ecivs') || '2', 10),
+        humans: 1, size: params.get('e2esize') || 'xsmall', seed: 12345
+      },
       { auto: true, name: 'Kjell', hold: params.get('e2ehold') === '1' }));
   }
 }

@@ -39,5 +39,13 @@
   "minCityDistance": 3,
   "minCityDiagonal": 2,
   "capitalCenterTradeBonus": 1,
-  "combatRounds": 1
+  "combatRounds": 1,
+  "maxCivsBySize": {
+    "xsmall": 7,
+    "small": 12,
+    "medium": 14,
+    "large": 14,
+    "xlarge": 14,
+    "huge": 14
+  }
 }

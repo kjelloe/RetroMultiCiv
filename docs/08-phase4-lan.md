@@ -137,3 +137,47 @@ replay's AI-drive only reconstructs commands for `human: false` players,
 so a regency period replays from the log, not from re-derivation. Toggle
 moments: explicit (player button), or host-granted for a disconnected
 player as a gentler alternative to skip-turn.
+
+## 8. Scaling (A38 probe, 2026-07-14 — measured on the dev box, WSL2)
+
+Method: `tools/probe-scale.js` (engine-only ms/turn + mapgen fit sweep,
+seeded) and `debugging/probe-lan8.js` (8 live ws clients). Numbers are
+machine-relative; compare shapes, not absolutes.
+
+**Engine, 200 all-AI rounds, halves h1/h2 = early/late game (seed 20260714):**
+
+| size   | civs | ms/turn h1→h2 | ms/ROUND h1→h2 | units at end |
+|--------|------|---------------|----------------|--------------|
+| large  | 4    | 17 → 21       | 68 → 84        | 65  |
+| large  | 8    | 20 → 52       | 163 → 414      | 231 |
+| large  | 12   | 30 → 69       | 357 → 832      | 240 |
+| large  | 16   | 22 → 53       | 355 → 854      | 393 |
+| xlarge | 4    | 30 → 84       | 120 → 338      | 145 |
+| xlarge | 8    | 39 → 91       | 308 → 731      | 280 |
+| xlarge | 12   | 48 → 138      | 578 → 1657     | 508 |
+| xlarge | 16   | 45 → 121      | 722 → 1941     | 627 |
+
+The human-perceived wait is ms/ROUND: ≤ ~0.9 s late-game at 12 civs on
+large, ~1.7–1.9 s on xlarge — acceptable with the A30 chunked wait line
+showing per-civ progress. Per-turn cost stays inside the pre-A38
+baseline band (60–235 ms/turn).
+
+**LAN, 8 live ws clients (seed 424242):** join ≤ 1 ms each; start →
+all-8 `{joined}` 241 ms (large) / 299 ms (xlarge); one command's
+applied+7-rival view fan-out 51 / 72 ms; a full 8-human round 326 /
+486 ms. filterView-per-seat scales linearly and stays far from
+perceptible.
+
+**Mapgen fit, 40 seeds/cell, fit = min pairwise start distance ≥ 6**
+(mapgen relaxes spacing 12→0 by 3s before failing, so the metric is the
+achieved distance): xsmall seats 7 (93% — the pre-A38 status quo),
+small 12 (98%; 14 drops seeds to distance 3–4), medium and larger seat
+14 at 100%. Shipped as `data/rules.json maxCivsBySize =
+{ xsmall: 7, small: 12, medium/large/xlarge/huge: 14 }`, enforced at
+the setup screen (size-aware civs dropdown), lobby create
+(`mapTooSmall` rejection), `setSlots` clamp, the `?civs=` URL clamp,
+and server `--civs` startup validation.
+
+16 as a shipped option stays out (needs the Civ 2/3/4 roster extension
++ ally visuals — a separate future item); the probe measured it via
+test-only duplicated rosters to know the headroom exists.

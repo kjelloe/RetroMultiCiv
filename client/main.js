@@ -145,7 +145,12 @@ if (serverParam) {
   initialState = await fetchJson('./mock-state.json');
 } else {
   const seed = parseInt(params.get('seed') || '', 10) || (Date.now() % 1000000);
-  const civCount = Math.min(7, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
+  // A38: the map size gates the civ count (measured seats-per-size table,
+  // data/rules.json maxCivsBySize) — URL abuse clamps down silently, the
+  // setup screen enforces the same table interactively
+  const sizeParam = MAP_SIZES[params.get('size')] !== undefined ? params.get('size') : 'medium';
+  const maxCivs = (rules.maxCivsBySize && rules.maxCivsBySize[sizeParam]) || 14;
+  const civCount = Math.min(maxCivs, Math.max(2, parseInt(params.get('civs') || '2', 10) || 2));
   humans = Math.min(civCount, Math.max(1, parseInt(params.get('humans') || '1', 10) || 1));
 
   // Which civilizations play: player 1's pick (?civ=romans) first, the rest
@@ -181,7 +186,7 @@ if (serverParam) {
     cityNamesByPlayer['p' + (i + 1)] = civs[civId].cities;
     if (civs[civId].visual) factionsByPid['p' + (i + 1)] = civs[civId].visual;
   }
-  const size = MAP_SIZES[params.get('size')] !== undefined ? params.get('size') : 'medium';
+  const size = sizeParam; // resolved above the civ clamp (A38)
   const dims = MAP_SIZES[size];
   initialState = createEngine(ruleset).createGame({
     seed, options: { width: dims[0], height: dims[1], players: playerDefs }

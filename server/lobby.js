@@ -59,9 +59,21 @@ export function createRegistry(deps) {
   const games = {};      // gameId -> entry
   const codeIndex = {};  // joinCode -> gameId
 
+  // A38: how many civs a map size seats reliably (measured fit sweep,
+  // data/rules.json maxCivsBySize); absent table = the 14-identity ceiling
+  function maxCivsFor(size) {
+    const table = ruleset.rules && ruleset.rules.maxCivsBySize;
+    return (table && table[size]) || 14;
+  }
+
   // A fresh pre-start lobby, with the creator holding the first human seat.
   function create(options, creatorName) {
-    const civs = clamp(options.civs, 2, 7);
+    const size = SIZES[options.size] ? options.size : 'medium';
+    const wanted = clamp(options.civs, 2, 14);
+    if (wanted > maxCivsFor(size)) {
+      return { ok: false, reason: 'mapTooSmall', maxCivs: maxCivsFor(size), size };
+    }
+    const civs = wanted;
     const humans = clamp(options.humans, 1, civs);
     let gameId = gameIdFn();
     let code = joinCode(gameId);
@@ -74,7 +86,7 @@ export function createRegistry(deps) {
       hostSeat: 'p1', // the creator's seat — may use the host skip (docs/08 §6)
       options: {
         civs, humans,
-        size: SIZES[options.size] ? options.size : 'medium',
+        size,
         difficulty: options.difficulty, combat: options.combat,
         seed: options.seed !== undefined ? options.seed : seedFn(),
         allowSpectators: options.allowSpectators === true,
@@ -145,13 +157,14 @@ export function createRegistry(deps) {
     return { ok: true };
   }
 
-  // Resize to N civs (2..7): grow with Open slots; shrink only past
-  // UNRESERVED tail slots (no-kick applies to removal too).
+  // Resize to N civs (2 up to what the map seats — A38): grow with Open
+  // slots; shrink only past UNRESERVED tail slots (no-kick applies to
+  // removal too).
   function setSlots(gameId, civCount) {
     const e = games[gameId];
     if (!e) return { ok: false, reason: 'noSuchGame' };
     if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
-    const n = clamp(civCount, 2, 7);
+    const n = clamp(civCount, 2, maxCivsFor(e.options.size));
     const pids = Object.keys(e.seats);
     if (n > pids.length) {
       for (let i = pids.length; i < n; i++) {

@@ -72,20 +72,19 @@ the Done log at the bottom.
   2/3/4 rosters, adapt perks to our specialty schema; new visual
   identities go through the designer ally's acceptance loop. Queue
   after the two-machine acceptance.
-- [ ] **Phase-5 second gear — the concrete checklist** (none of it
-  blocks the engine twins now running under lune; it becomes blocking
-  only when the Roblox CLIENT/GameServer work starts):
-  1. Install **Roblox Studio** on the Windows machine and sign in
-     (your Roblox account); confirm it opens a Baseplate.
-  2. Create a private **Experience** ("RetroMultiCiv dev") — File →
-     New → save to Roblox as private. No publishing needed.
-  3. **Approve Rojo** (rojo.space) as the dev tool that syncs the
-     repo's `luau/` tree into Studio as ModuleScripts — the ecosystem
-     standard; it's an executable + a Studio plugin, and it would be
-     a whitelist addition like lune was. Alternative for the first
-     client slices: manual ModuleScript copy-paste (workable, tedious).
-  4. That's all — HTTP permissions, publishing, and team-test come
-     much later with the multiplayer port.
+- [ ] **Phase-5 second gear — ON THE ROBLOX PC** (Rojo approved
+  2026-07-14; spec + structure written = docs/10-roblox-agent.md,
+  R1–R3 queued in agent-workitems). Your steps on that machine:
+  1. Clone the repo (git is the cross-machine transport — commit/push
+     here first so docs/10 + the R-queue travel).
+  2. Install **Roblox Studio**, sign in, confirm a Baseplate opens.
+  3. Install **Rojo** (executable + the Studio plugin from its docs).
+  4. Create a private Experience ("RetroMultiCiv dev").
+  5. Start a Claude Code session in the clone and point it at
+     `docs/10-roblox-agent.md` — that file IS the role prompt; it
+     claims R1 from agent-workitems like the other agents do.
+  6. You pump git both ways (their claims/done-notes ride commits) —
+     the agents never touch git, same rule as here.
 - [x] 2026-07-13 — **AI happiness batch 4: approved conditionally**
   ("do it if it helps God-Emperor") — criterion + design sketch recorded
   in docs/04; architect's queue, golden lock required.

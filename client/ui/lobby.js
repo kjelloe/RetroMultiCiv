@@ -160,6 +160,8 @@ export function startHostFlow(box, options, flags) {
         fail(box, msg.code === 'seatReserved'
           ? 'that seat is taken — they can leave, or pick another slot for the AI'
           : msg.code === 'civTaken' ? 'another slot already has that civilization'
+          : msg.code === 'mapTooSmall' // A38: measured seats-per-size table
+            ? `a ${msg.size} map seats up to ${msg.maxCivs} civilizations — pick a bigger map or fewer civs`
           : `server rejected: ${msg.code}`);
       }
     }, () => fail(box, 'no game server — start it with: node server/index.js'));

@@ -58,6 +58,14 @@ function setupFromOpts(opts) {
 // DEFAULT game (phase-3 compat) used by the integration test and the CLI.
 export function startServer(opts) {
   const ruleset = opts.ruleset || loadRuleset();
+  // A38: the measured seats-per-size table gates --civs (data/rules.json)
+  if (opts.civs !== undefined) {
+    const table = (ruleset.rules && ruleset.rules.maxCivsBySize) || {};
+    const maxCivs = table[opts.size || 'medium'] || 14;
+    if (opts.civs > maxCivs) {
+      throw new Error(`--civs ${opts.civs} needs a bigger map: ${opts.size || 'medium'} seats up to ${maxCivs} civilizations`);
+    }
+  }
   const registry = createRegistry({ ruleset });
   const saveFiles = {};    // gameId -> autosave path
   const autosave = opts.autosave !== false;
@@ -321,7 +329,12 @@ export function startServer(opts) {
       if (msg.t === 'ping') { send(ws, { t: 'pong' }); return; }
       if (msg.t === 'list') { send(ws, { t: 'games', games: registry.list() }); return; }
       if (msg.t === 'create') {
-        const { entry, seat } = registry.create(msg.options || {}, msg.name);
+        const res = registry.create(msg.options || {}, msg.name);
+        if (res.ok === false) { // A38: civ count exceeds what the map seats
+          send(ws, { t: 'rejected', commandId: -1, code: res.reason, maxCivs: res.maxCivs, size: res.size });
+          return;
+        }
+        const { entry, seat } = res;
         info.gameId = entry.gameId; info.seat = seat; info.isCreator = true;
         send(ws, { t: 'created', gameId: entry.gameId, joinCode: entry.joinCode, seat, lobby: roster(entry) });
         return;

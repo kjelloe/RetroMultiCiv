@@ -184,6 +184,40 @@ or per-SAVE-code-change, not per broadcast). Failing test or
 screenshot-proof both directions. Coordinate with A33 (save code into
 the turn log) — same broadcast, complementary fixes.
 
+## R-queue — roblox-helper (second PC; spec = docs/10-roblox-agent.md)
+
+Cross-machine coordination is GIT (the user pumps commits both ways) —
+no mailbox, no locks; the lane fence in docs/10 §2 is absolute. Items
+below are self-contained; claims/dones in-file like everyone else's.
+
+### R1 — Rojo scaffold + the three anchors printed inside Studio
+
+Per docs/10 §3+§5: roblox/default.project.json (maps ../luau into
+ReplicatedStorage), src/server/VerifyAnchors.server.luau requiring the
+bugfixer's rng/statehash/gamecode modules and printing the gate values
+(docs/09 §1: xorshift sequence, 0x30db1e29, 0xa687b72d,
+AD1X-Q5MR-DP7H9), roblox/README.md (rojo serve + plugin connect).
+Done = `rojo build roblox -o build.rbxlx` green from a clean tree +
+the Studio output pasted verbatim in the done-note. If luau/ hasn't
+reached your clone, scaffold with a placeholder and say so.
+
+### R2 — Static world render (Parts)
+
+Render a baked state (client/mock-state.json as read-only reference):
+terrain as colored Parts (renderer/three/terrain.js TERRAIN table =
+palette/height reference), units as Part groups with owner-colored
+base discs, cities as clustered blocks. Screenshot, READ, describe in
+the done-note. No engine calls yet — a static scene.
+
+### R3 — Camera + logical-tile selection
+
+Orbit/pan camera; click-to-select resolving to TILES (logical
+hitboxes, never visual bodies — A28's mid-glide lesson). Selection
+highlight Part. Screenshot + a described click test.
+
+R4+ (GameServer, RemoteEvents, live engine loop) arrive from the
+architect once the lune port reaches the engine core.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
@@ -912,6 +946,39 @@ of the dialog + Auto Turn state.
 
 Slice order: 2 can ship with stance=balanced only (regency without
 flavors) if 1 waits on the golden window — flag if you take that path.
+
+## A42 — Setup/splash screen refresh: honest copy + a first-visit flourish (user, 2026-07-14)
+
+**Slice 1 — the copy (fold into your NEXT stop, it's minutes):** the
+tagline "One engine, one world, 4000 BC. Humans play first, in seat
+order — pass the keyboard when your turn ends." predates LAN,
+spectators, starting ages, and AI options. New copy must be TRUE and
+DATA-DRIVEN where it counts: player count from
+rules.maxCivsBySize (today "up to 14 civilizations" on medium+ — it
+updates itself when the 16-civ roster lands; never hardcode), and
+mention the three ways to play (solo vs AI · hotseat · LAN with a
+join code) + starting ages. Keep it to 2–3 short lines — it's a
+splash, not a manual. Architect's suggested shape, wordsmith freely:
+"One deterministic engine, one world, 4000 BC — or any age you pick.
+Play solo against the AI, pass the keyboard in hotseat, or host a
+LAN game friends join with a 5-letter code. Up to N civilizations."
+
+**Slice 2 — first-visit flourish:** an animated low-poly vignette
+BEHIND the setup card on first visit (per-origin localStorage flag;
+static forever after; skip entirely under ⚙ reduce-animation and
+?e2e/?setupdemo). Reuse what exists — the renderer + assets ARE the
+splash art: a small baked diorama (a coast tile cluster, a city, a
+couple of units) with slow camera drift and the A28 sway/water
+already animating. Budget: no new assets, no load-time regression on
+return visits (lazy-init only on the first-visit path), WebGL1 pass
+mandatory, and the setup card stays readable on top (dim/vignette the
+scene). Screenshots: first-visit + return-visit + WebGL1. If the
+diorama fights the bootstrap order (renderer currently boots after
+setup), flag the seam in a question note BEFORE restructuring main.js
+— a static gradient + the copy is an acceptable v1 fallback.
+
+Queue position: slice 1 immediately (any stop); slice 2 after A41,
+before A40.
 
 ## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
 
