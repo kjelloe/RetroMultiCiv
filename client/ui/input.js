@@ -572,7 +572,58 @@ export function initInput(ctx) {
 
   // --- renderer picks ---------------------------------------------------------
   let lastFootprintKey = null;
+  // A35: spectators (omniscient) get a cursor tooltip over units and cities
+  // — civ, stats, population — reusing the unit stat-card formatting.
+  // Players' hover is untouched (fog already limits what they can pick).
+  const specTip = document.createElement('div');
+  specTip.id = 'spectator-tip';
+  specTip.className = 'hidden';
+  document.body.appendChild(specTip);
+  const lastPointer = { x: 0, y: 0 };
+  window.addEventListener('pointermove', e => {
+    lastPointer.x = e.clientX;
+    lastPointer.y = e.clientY;
+  });
+  function whoName(state, pid) {
+    const p = state.players[pid];
+    if (!p) return pid;
+    const civId = p.civ !== undefined ? p.civ
+      : session.playerCivs ? session.playerCivs[pid] : undefined;
+    const civName = civId !== undefined && session.ruleset.civs
+      && session.ruleset.civs[civId] ? session.ruleset.civs[civId].name : null;
+    return civName && civName !== p.name ? `${civName} (${p.name})` : civName || p.name;
+  }
+  function spectatorTip(pick) {
+    const state = session.state;
+    let text = null;
+    if (pick && pick.unitId && state.units[pick.unitId]) {
+      const u = state.units[pick.unitId];
+      const t = units[u.type];
+      text = `${whoName(state, u.owner)} · ${t.name}${u.veteran ? ' ★vet' : ''}`
+        + ` · ⚔${t.attack} 🛡${t.defense} 👟${u.moves}/${t.moves}`;
+    } else if (pick && pick.cityId && state.cities[pick.cityId]) {
+      const c = state.cities[pick.cityId];
+      text = `${whoName(state, c.owner)} · ${c.name} · pop ${c.pop}`;
+    } else if (pick) {
+      const c = cityAt(state, pick.tile.x, pick.tile.y);
+      if (c) text = `${whoName(state, c.owner)} · ${c.name} · pop ${c.pop}`;
+    }
+    if (text === null) {
+      specTip.classList.add('hidden');
+      return;
+    }
+    specTip.textContent = text;
+    specTip.style.left = `${lastPointer.x + 14}px`;
+    specTip.style.top = `${lastPointer.y + 18}px`;
+    specTip.classList.remove('hidden');
+  }
+
   renderer.onHover(pick => {
+    if (ctx.SPECTATOR) {
+      spectatorTip(pick);
+      hud.tile(pick ? describeTile(pick.tile.x, pick.tile.y) : '');
+      return;
+    }
     let text = pick ? describeTile(pick.tile.x, pick.tile.y) : '';
     let attack = false;
     let footprint = null;

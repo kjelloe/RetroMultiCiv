@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 207 tests), the item's own verification steps pass, related
+   (currently 213 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -49,7 +49,7 @@ pre-fenced lane) and wait for an ack if any file overlaps an in-flight
 A-item. Fix format: failing test FIRST where feasible, then the fix,
 then the standing checks.
 
-### P5-1 — Phase 5 opens: Luau twins of rng + statehash + gamecode under lune (assigned: bugfixer)
+### P5-1 — Phase 5 opens: Luau twins of rng + statehash + gamecode under lune (assigned: bugfixer)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — ALL THREE GATES on first run: rng 2714967881,2238813396,1250077441,3820100336 · statehash 0x30db1e29 (canon byte-identical) · codeHi 0xa687b72d + AD1X-Q5MR-DP7H9. luau/{rng,statehash,gamecode,anchors}.luau + test/luau-twins.test.js (self-skips sans lune). NOTE: npm "lune" is a moon-phase lib — official binary v0.10.5 used instead (~/.local/bin). Trap-list addition: empty-array-vs-object needs the ARRAY_MT marker convention. Suite 210/210]
 
 The port's first slice per docs/09's order, needing NO Studio and no
 user setup — `lune` is dev-only and already on the dependency
@@ -780,7 +780,7 @@ hotseat e2e, compare the round hash to the unchunked value). Big AI
 empires late-game = this is also the End-Turn-latency perceived-
 responsiveness fix. Golden-safe (no engine changes).
 
-## A33 — Save code into the turn log (VI.7)
+## A33 — Save code into the turn log (VI.7)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — session-remote {t:'code'} emits synthetic {type:'saveCode'} ONLY on change (stateReplaced convention); turnlog narrates "💾 saved · code …" once per wrap, spectators included, classed 'saves' for A39's filters. No cadence knob (one/wrap read fine; 5-line follow-up if noisy). Suite 210/210.]
 
 When the server's autosave broadcast delivers a game code at a turn
 wrap, add ONE turn-log line per turn for every player (incl.
@@ -790,7 +790,7 @@ round — fine, one line per round wrap; if the log gets noisy make it
 every N rounds via an Options value, default every round). Coordinate
 with B6 (same broadcast). Golden-safe.
 
-## A39 — Turn-log filters (user request 2026-07-14, relayed via bugfixer @5d452697)
+## A39 — Turn-log filters (user request 2026-07-14, relayed via bugfixer @5d452697)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — PURE mapping module turnlog-classes.js (unit-tested headless): ownership splits combat/cities vs 👀 rival, world absolute, saveCode → saves; filter row ON the log panel (⚙ filters → checkboxes, 🌍 world always-on with inline note), persisted 'logFilters'; DISPLAY-time filtering via lg-<class> entries + hide-<class> container CSS — retained history reappears on re-check. Load-bearing addition: turnlog now gates ALL narration through engine filterEvents (B5's per-seat filter) — enables rival narration (battles/foundings/conquests in view, both modes) AND closes the local-omniscient-events fog gap. Shots read: all-on + cities-off (entry absent). Suite 210/210.]
 
 B5 made LAN turn logs chattier by design (rival visible actions now
 narrate live) — give each player a filter. A small filter row on the

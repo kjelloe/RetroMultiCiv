@@ -70,8 +70,23 @@ fi
 
 nohup node server/index.js --port "$PORT" "$@" > /tmp/multiciv-server.log 2>&1 &
 PID=$!
-sleep 0.5
-if ! kill -0 "$PID" 2>/dev/null; then
+# Liveness VERDICT, not a fixed-delay sample (B7): under load a broken server
+# can be too slow to crash for a 0.5s check and a healthy one too slow to
+# listen — poll until the process dies (failure), OUR pid listens on the port
+# (success; a squatter on the port doesn't count), or the window runs out
+# (report the uncertainty honestly, never kill a slow healthy server).
+WINDOW="${MULTICIV_BOOT_WINDOW:-3}"
+VERDICT=""
+for _ in $(seq 1 $((WINDOW * 10))); do
+  if ! kill -0 "$PID" 2>/dev/null; then VERDICT=dead; break; fi
+  if ss -ltnp 2>/dev/null | grep -q "pid=$PID,"; then VERDICT=up; break; fi
+  sleep 0.1
+done
+if [ -z "$VERDICT" ]; then
+  echo "server (pid $PID) is alive but not listening after ${WINDOW}s — slow start, or check --host" >&2
+  echo "  watch it:  tail -f /tmp/multiciv-server.log" >&2
+fi
+if [ "$VERDICT" = "dead" ]; then
   echo "server failed to start:" >&2
   # the reason sits ABOVE the stack trace: the friendly 'cannot start:' line
   # or node's module-resolution message — a bare tail showed a real user ten

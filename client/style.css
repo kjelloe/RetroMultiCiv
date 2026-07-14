@@ -613,6 +613,21 @@ html, body {
 #turn-list.hide-rival > .lg-rival,
 #turn-list.hide-saves > .lg-saves { display: none; }
 
+/* A35: the spectator's cursor tooltip (units + cities, omniscient) */
+#spectator-tip {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  background: rgba(8, 12, 20, 0.92);
+  border: 1px solid #3b5d8f;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #cdd8ea;
+  white-space: nowrap;
+}
+#spectator-tip.hidden { display: none; }
+
 /* --- top-right corner: clock + help + options --- */
 #corner-buttons {
   position: absolute;

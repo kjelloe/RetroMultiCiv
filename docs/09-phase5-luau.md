@@ -38,6 +38,24 @@ the one auth simplification the platform gives us for free).
 
 ## 3. The trap list (audit these; everything else is transliteration)
 
+> **P5-1 additions (2026-07-14, found porting rng/statehash/gamecode —
+> all three anchors passed on the first lune run):**
+> - **Empty `[]` vs empty `{}` is THE representation question** JS
+>   never had: a bare Luau table can't say which it is. Shipped
+>   convention (`luau/statehash.luau`): a table is an array iff
+>   `t[1] ~= nil`; EMPTY arrays carry the `ARRAY_MT` metatable marker
+>   (`setmetatable({}, statehash.ARRAY_MT)`). Game states are full of
+>   empty arrays (`buildings`, `cityOrder`, `techs`) — every engine
+>   twin and any json→lua loader MUST emit the marker, or hashes break
+>   silently. The anchors harness proves `{"a":[],"b":{}}`.
+> - **Canonical number rendering** uses `string.format("%d")` after
+>   the integer check — never `tostring` (immune to integral-double
+>   formatting drift).
+> - **require style is a lune-vs-Studio seam**: `require("./x")` under
+>   lune vs `script.Parent.x` in Studio — R1 hits this first; string
+>   requires or a Rojo/darklua transform are the candidate answers
+>   (roblox-helper proposes, architect rules).
+
 1. **Stored indices are 0-based VALUES.** Tile index math
    (`idx = y*width + x`) produces numbers stored IN STATE
    (`city.workers`, explored arrays are positional). Luau tables iterate

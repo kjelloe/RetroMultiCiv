@@ -92,3 +92,45 @@ test('a full AI-vs-AI game is deterministic and reaches an end', async () => {
   if (a.gameOver) assert.ok(a.players[a.winner], 'winner is a real player');
 });
 
+
+// --- Batch 4 iteration 3 (docs/04): entertainers-local disorder management --
+
+test('batch 4: a disordered city converts its worst tile to an entertainer', async () => {
+  const { ai, engine } = await load();
+  // pop 6, no garrison, contentCitizens 4 => unhappy 2 > happy 0 = disorder
+  const state = grassState(9, 9, {}, {
+    c9: { id: 'c9', name: 'Riot', owner: 'p1', x: 4, y: 4, pop: 6, food: 20, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+  });
+  const after = ai.runAiTurn(engine, state, 'p1', RULESET);
+  const c = after.cities.c9;
+  assert.ok(Array.isArray(c.workers), 'manual assignment set');
+  assert.strictEqual(c.workers.length, 5, 'pop 6 works 5 tiles: one citizen entertains');
+  assert.strictEqual(after.players.p1.luxRate, undefined, 'rates untouched — the cost stays local');
+});
+
+test('batch 4: no flap — the entertainer is NOT reverted while the auto layout would riot', async () => {
+  const { ai, engine } = await load();
+  const state = grassState(9, 9, {}, {
+    c9: { id: 'c9', name: 'Riot', owner: 'p1', x: 4, y: 4, pop: 6, food: 20, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+  });
+  const once = ai.runAiTurn(engine, state, 'p1', RULESET);
+  // run a second AI turn on the result: the hypothetical auto layout still
+  // riots (nothing else changed), so the assignment must SURVIVE
+  const twice = ai.runAiTurn(engine, once, 'p1', RULESET);
+  assert.ok(Array.isArray(twice.cities.c9.workers), 'assignment kept');
+  assert.strictEqual(twice.cities.c9.workers.length, 5, 'still one entertainer — no oscillation');
+});
+
+test('batch 4: a temple calms the city and the tiles go back to auto', async () => {
+  const { ai, engine } = await load();
+  const state = grassState(9, 9, {}, {
+    c9: { id: 'c9', name: 'Calmed', owner: 'p1', x: 4, y: 4, pop: 5, food: 20, shields: 0, buildings: ['temple'], producing: { kind: 'unit', id: 'militia' }, workers: [0, 1, 2, 3] }
+  });
+  // pop 5 auto layout has ONE would-be rioter; the temple's contentBonus 1
+  // calms exactly that one, so the hypothetical passes and the AI hands
+  // the tiles back (pop 6 would need temple+market — one temple is not
+  // enough, and the no-flap test above proves the guard holds there)
+  const after = ai.runAiTurn(engine, state, 'p1', RULESET);
+  assert.strictEqual(after.cities.c9.workers, undefined,
+    'reverted to auto (setWorkers auto:true clears manual mode)');
+});

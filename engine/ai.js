@@ -16,8 +16,9 @@
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
 import { unitsAt, cityAt, sortIds } from './combat.js';
-import { workedTiles, citySpacingOk } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles } from './cities.js';
 import { hasWaterSource } from './improvements.js';
+import { cityMood } from './happiness.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
@@ -349,9 +350,54 @@ function towardUnexplored(state, unit, me) {
   return dirToward(state.map, unit.x, unit.y, best.x, best.y);
 }
 
+// Batch 4, iteration 3 (docs/04 ledger — the WINNER: GE stagnant 39%->7%):
+// entertainers-local. A disordered city converts its worst worked tile to an
+// entertainer — the cost is one tile's yields IN THAT CITY, so production
+// never halts empire-wide, science is never drained, and the monarchy
+// beeline is untouched. Revert hands tiles back to the auto-assigner only
+// when a HYPOTHETICAL mood without manual assignment is disorder-free (a
+// plain copy without `workers` — cityMood then scores the auto layout), so
+// the entertainer's own calm can never trigger the flap that re-creates
+// the disorder it fixed. One city per turn, cityOrder = deterministic.
+function happinessCommand(state, playerId, ruleset) {
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== playerId) continue;
+    const mood = cityMood(state, city, ruleset);
+    if (mood.disorder && city.pop >= 2) {
+      const cands = candidateTiles(state, city, ruleset);
+      const target = city.pop - 1 - (city.taxmen === undefined ? 0 : city.taxmen)
+        - (city.scientists === undefined ? 0 : city.scientists);
+      const current = city.workers !== undefined ? city.workers.length
+        : (city.pop < cands.length ? city.pop : cands.length);
+      if (target < current && target >= 0 && cands.length > 0) {
+        const keep = [];
+        for (let i = 0; i < cands.length && keep.length < target; i++) keep.push(cands[i].idx);
+        return { type: 'setWorkers', playerId, cityId: cid, workers: keep };
+      }
+    }
+    if (!mood.disorder && city.workers !== undefined && mood.entertainers > 0) {
+      const probe = {};
+      for (const k of Object.keys(city)) {
+        if (k !== 'workers') probe[k] = city[k];
+      }
+      if (cityMood(state, probe, ruleset).disorder === false) {
+        return { type: 'setWorkers', playerId, cityId: cid, auto: true };
+      }
+    }
+  }
+  return null;
+}
+
 // One decision at a time; `done` prevents re-considering the same actor this turn.
 function pickCommand(state, playerId, ruleset, done) {
   const me = state.players[playerId];
+
+  if (!done.happiness) {
+    done.happiness = true; // one assignment change per turn — gradual
+    const cmd = happinessCommand(state, playerId, ruleset);
+    if (cmd) return cmd;
+  }
 
   if ((me.researching === '' || me.researching === undefined) && !done.research) {
     done.research = true;

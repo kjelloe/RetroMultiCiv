@@ -212,3 +212,42 @@ test('.hidden is per-element: every JS hidden-toggle target has a scoped CSS rul
   assert.deepStrictEqual([...new Set(missing)], [],
     'these elements toggle .hidden but no scoped rule styles it — add "#<id>.hidden { display: none; }" to client/style.css');
 });
+
+test('run.sh: a SLOW crash must not be reported as a running server (B7)', () => {
+  // the recurring flake, made deterministic: under load a broken server can
+  // be too slow to crash for a fixed 0.5s liveness SAMPLE — this stub takes
+  // 1.2s to die, which fooled the sampler into printing the success banner.
+  // The poll waits for a verdict: death -> failure, listening -> success.
+  const dir = stubServerTree('multiciv-slowcrash-',
+    "await new Promise(r => setTimeout(r, 1200));\nawait import('./missing.js');\n");
+  try {
+    fs.copyFileSync(path.join(REPO, 'run.sh'), path.join(dir, 'run.sh'));
+    const res = spawnSync('bash', ['run.sh', '18994'], {
+      cwd: dir, encoding: 'utf8', timeout: 60000,
+      env: Object.assign({}, process.env, { MULTICIV_BOOT_WINDOW: '20' })
+    });
+    assert.ok(!/server running/.test(res.stdout),
+      `a crashing server must never get the success banner:\n${res.stdout}`);
+    assert.strictEqual(res.status, 1, `run.sh must exit 1 (stdout: ${res.stdout}\nstderr: ${res.stderr})`);
+    assert.match(res.stderr, /Cannot find module/, 'and still surface the crash reason');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('run.sh: a healthy listener gets the success banner without waiting out the window (B7)', () => {
+  const dir = stubServerTree('multiciv-listen-',
+    "const net = await import('node:net');\n"
+    + "net.createServer(() => {}).listen(Number(process.argv[3]), '127.0.0.1');\n");
+  try {
+    fs.copyFileSync(path.join(REPO, 'run.sh'), path.join(dir, 'run.sh'));
+    const t0 = Date.now();
+    const res = spawnSync('bash', ['run.sh', '18993'], {
+      cwd: dir, encoding: 'utf8', timeout: 60000,
+      env: Object.assign({}, process.env, { MULTICIV_BOOT_WINDOW: '20' })
+    });
+    const took = Date.now() - t0;
+    assert.strictEqual(res.status, 0, `run.sh must succeed (stdout: ${res.stdout}\nstderr: ${res.stderr})`);
+    assert.match(res.stdout, /server running/, 'the success banner prints for a listening server');
+    assert.ok(took < 15000, `success must come from the listen check, not window exhaustion (took ${took}ms)`);
+    spawnSync('bash', ['-c', 'kill $(ss -ltnp 2>/dev/null | grep ":18993" | grep -o "pid=[0-9]*" | cut -d= -f2) 2>/dev/null'], { encoding: 'utf8' });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

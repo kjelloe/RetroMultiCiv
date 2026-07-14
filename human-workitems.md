@@ -30,6 +30,13 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
+- [ ] **Nightly workflow: lune install step** (from P5-1): the Luau
+  twin test self-skips without lune, so CI silently loses the anchor
+  gate until `.github/workflows/nightly-soak.yml` installs the
+  official lune-org binary (curl the pinned v0.10.5 release zip)
+  before `node --test`. Say go and I'll queue the workflow edit with
+  a claim, or edit it yourself with the commit.
+
 - [ ] **Commit checkpoint**: the tree carries the phase-4 acceptance
   markings (docs/03/08/09, plan-update, README), the full wave-VI
   routing (B5/B6, A29–A37, the architect engine batch), and the

@@ -378,6 +378,32 @@ if (params.get('bannerdemo') === '1') {
   setInterval(() => ctx.hud.turnBanner('🔔 Your turn'), 3000);
 }
 
+// ?spechover=unit|city (A35 screenshots): as a spectator, park the cursor
+// over the first city (or a unit standing outside any city) and fire the
+// hover so the tooltip renders — re-fired for virtual-time captures
+if (params.get('spechover')) {
+  const spKind = params.get('spechover');
+  const spState = session.state;
+  const cityTiles = {};
+  for (const c of Object.values(spState.cities)) cityTiles[`${c.x},${c.y}`] = true;
+  const spTarget = spKind === 'city'
+    ? Object.values(spState.cities)[0]
+    : Object.values(spState.units).find(u => !cityTiles[`${u.x},${u.y}`]);
+  if (spTarget) {
+    renderer.centerOn(spTarget.x, spTarget.y);
+    renderer.setZoom(8);
+    const fire = () => {
+      const canvas = document.querySelector('#app canvas');
+      const r = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(new PointerEvent('pointermove', {
+        clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true
+      }));
+    };
+    fire();
+    setInterval(fire, 400);
+  }
+}
+
 // ?hoverdemo=1 (A19 screenshots): with the camera centered on the selected
 // unit, hover a screen point offset from canvas center (&hoverdx/&hoverdy px)
 // so the move-affordance arrow renders deterministically in headless shots
