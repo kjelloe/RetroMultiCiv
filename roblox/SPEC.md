@@ -113,6 +113,15 @@ true) or not at all — so all camera mouse input is POLLED per frame
 sink. Symptom if regressed: buttons "do nothing" while wheel/keys
 work. Q/E is ignored while a TextBox has focus (the JS client's
 INPUT/TEXTAREA rule).
+**Second input trap** (R4 playtest, docs/09 ledger): `InputObject`
+positions are GUI-INSET space — feed them to `ScreenPointToRay`,
+never `ViewportPointToRay`; the viewport variant is offset by the
+topbar (~36 px), which at shallow camera angles walks a ground pick
+most of a tile. Symptom: clicks select the tile "behind" the pointer,
+worse the flatter the camera.
+**Third trap** (R4): a server push at `PlayerAdded` races the client
+script load — the client must open the conversation (`{t='join'}`),
+the server only ever replies.
 DEFERRED (user-requested): follow-avatar mode — the focus tracks the
 character instead of staying free.
 
