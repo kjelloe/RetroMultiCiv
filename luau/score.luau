@@ -6,7 +6,10 @@
 -- EXPORTS (stable): score(state, playerId, ruleset), checkGameEnd(state,
 -- ruleset, events), hasAssets(state, playerId).
 
-local function score(state: any, playerId: string, ruleset: any): number
+-- A73: the score by COMPONENT (population / techs / wonders) — score() is the
+-- total; sum + order unchanged, so state.winner and the goldens are byte-
+-- identical (hash-neutral refactor). The end screen renders the real arithmetic.
+local function scoreBreakdown(state: any, playerId: string, ruleset: any): any
 	local player = state.players[playerId]
 	local citizens = 0
 	for _, cid in ipairs(state.cityOrder or {}) do
@@ -25,9 +28,14 @@ local function score(state: any, playerId: string, ruleset: any): number
 		end
 	end
 	local rules = ruleset.rules
-	return citizens * rules.scorePerCitizen
-		+ #player.techs * rules.scorePerTech
-		+ wonders * rules.scorePerWonder
+	local population = citizens * rules.scorePerCitizen
+	local techs = #player.techs * rules.scorePerTech
+	local wonderScore = wonders * rules.scorePerWonder
+	return { population = population, techs = techs, wonders = wonderScore, total = population + techs + wonderScore }
+end
+
+local function score(state: any, playerId: string, ruleset: any): number
+	return scoreBreakdown(state, playerId, ruleset).total
 end
 
 local function hasAssets(state: any, playerId: string): boolean
@@ -95,6 +103,7 @@ end
 
 return {
 	score = score,
+	scoreBreakdown = scoreBreakdown,
 	checkGameEnd = checkGameEnd,
 	hasAssets = hasAssets,
 }

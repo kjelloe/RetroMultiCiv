@@ -3,7 +3,11 @@
 // year. Only players created with `alive: true` (i.e. real game participants
 // from createGame) can be eliminated — hand-crafted test states without the
 // flag are exempt, which also keeps their scenario hashes stable.
-function score(state, playerId, ruleset) {
+// A73: the score by COMPONENT (population / techs / wonders) so the end screen
+// and the historian's report render the real arithmetic, never a parallel one.
+// score() is the total; the sum + order are unchanged, so state.winner and the
+// goldens are byte-identical (hash-neutral refactor).
+function scoreBreakdown(state, playerId, ruleset) {
   const player = state.players[playerId];
   let citizens = 0;
   for (const cid of state.cityOrder || []) {
@@ -18,9 +22,14 @@ function score(state, playerId, ruleset) {
     }
   }
   const rules = ruleset.rules;
-  return citizens * rules.scorePerCitizen
-    + player.techs.length * rules.scorePerTech
-    + wonders * rules.scorePerWonder;
+  const population = citizens * rules.scorePerCitizen;
+  const techs = player.techs.length * rules.scorePerTech;
+  const wonderScore = wonders * rules.scorePerWonder;
+  return { population, techs, wonders: wonderScore, total: population + techs + wonderScore };
+}
+
+function score(state, playerId, ruleset) {
+  return scoreBreakdown(state, playerId, ruleset).total;
 }
 
 function hasAssets(state, playerId) {
@@ -73,4 +82,4 @@ function checkGameEnd(state, ruleset, events) {
   }
 }
 
-export { score, checkGameEnd, hasAssets };
+export { score, scoreBreakdown, checkGameEnd, hasAssets };
