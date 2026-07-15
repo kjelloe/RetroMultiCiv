@@ -174,6 +174,16 @@ function buildTechs() {
 // Building costs/maintenance (Civ 1 values, tuneable) and structured effects.
 // IMPORTANT: effects are OUR encoding — never copy wiki description sentences
 // into committed data (CC BY-SA). Empty effect = buildable, no engine effect yet.
+// Unit semantic flags that aren't raw wiki stat columns — authored here like
+// BUILDING_OVERLAY/WONDER_OVERLAY and merged onto the wiki-derived unit.
+// B18: Diplomats, Caravans, and nuclear weapons IGNORE zone of control (the
+// wiki's Diplomat attribute is literally "Ignores adjacent enemy units").
+const UNIT_OVERLAY = {
+  'diplomat': { ignoresZoc: true },
+  'caravan':  { ignoresZoc: true },
+  'nuclear':  { ignoresZoc: true }
+};
+
 const BUILDING_OVERLAY = {
   'palace':              { cost: 200, maintenance: 0, effect: { isPalace: true } },
   'barracks':            { cost: 40,  maintenance: 1, effect: { veteranUnits: true } },
@@ -273,7 +283,8 @@ function buildUnits(techs) {
       if (techRaw && !techs[slug(techRaw)]) {
         throw new Error(`unit ${name} requires unknown tech "${techRaw}"`);
       }
-      units[slug(name)] = {
+      const id = slug(name);
+      units[id] = Object.assign({
         name,
         tech: techRaw ? slug(techRaw) : '', // tech ID — engine gates on this
         attack: int(r[2], `${name} attack`),
@@ -282,7 +293,7 @@ function buildUnits(techs) {
         cost: int(r[5], `${name} cost`),
         domain: domains[i],
         notes: r[7] || ''
-      };
+      }, UNIT_OVERLAY[id] || {});
     }
   });
 

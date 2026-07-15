@@ -27,8 +27,9 @@ local function wrapX(map: any, x: number): number
 	return ((x % map.width) + map.width) % map.width
 end
 
--- Is any enemy unit adjacent to (x, y)? Order-independent boolean, so plain
--- pairs iteration is fine (docs/09 §7).
+-- Is any enemy unit OR CITY adjacent to (x, y)? Order-independent boolean, so
+-- plain iteration is fine (docs/09 §7). B18: enemy CITIES exert ZOC too (twin
+-- of engine/movement.js — the wiki's "adjacent to an enemy unit OR CITY").
 local function inEnemyZoc(state: any, x: number, y: number, owner: string): boolean
 	for _, u in pairs(state.units) do
 		if u.owner ~= owner then
@@ -37,6 +38,18 @@ local function inEnemyZoc(state: any, x: number, y: number, owner: string): bool
 				dx = state.map.width - dx
 			end
 			local dy = math.abs(u.y - y)
+			if dx <= 1 and dy <= 1 and (dx + dy) > 0 then
+				return true
+			end
+		end
+	end
+	for _, c in pairs(state.cities) do
+		if c.owner ~= owner then
+			local dx = math.abs(c.x - x)
+			if state.map.wrapX and state.map.width - dx < dx then
+				dx = state.map.width - dx
+			end
+			local dy = math.abs(c.y - y)
 			if dx <= 1 and dy <= 1 and (dx + dy) > 0 then
 				return true
 			end
@@ -96,7 +109,9 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	local targetCity = combat.cityAt(state, nx, ny)
 	local ownAtTarget = #combat.unitsAt(state, nx, ny) > 0
 		or (targetCity ~= nil and targetCity.owner == unit.owner)
-	if not ownAtTarget
+	-- B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
+	-- ignoresZoc) — they walk between enemy-controlled tiles freely.
+	if not ownAtTarget and unitType.ignoresZoc ~= true
 		and inEnemyZoc(state, unit.x, unit.y, unit.owner)
 		and inEnemyZoc(state, nx, ny, unit.owner) then
 		return { ok = false, reason = "zoc" }

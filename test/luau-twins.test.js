@@ -132,7 +132,8 @@ const PORTED = [
   '003-found-city.json', '006-research.json', '007-buildings.json',
   '009-buy-pillage-disband.json', // P5-5 batch 3: cities + tech
   '010-happiness-government.json', // P5-6 batch 4: government proper
-  '002-mapgen-determinism.json' // P5-7 batch 5: mapgen — ALL TEN green
+  '002-mapgen-determinism.json', // P5-7 batch 5: mapgen — ALL TEN green
+  '013-zoc.json' // B18: enemy-city ZOC + ignoresZoc (post-port golden window)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

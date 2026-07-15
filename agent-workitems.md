@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 287 tests), the item's own verification steps pass, related
+   (currently 290 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -2594,7 +2594,7 @@ cue), the tunes in a music section, a COMMENT box per row, and
 the user clicks through, types reactions, and hands the file back
 for the tuning round. Zero game deps beyond sound-map + sound.js.
 
-## A78 — First-timer tutorial advice (user ruling 2026-07-16)
+## A78 — First-timer tutorial advice (user ruling 2026-07-16)  [claimed: coder-helper 2026-07-16] [done: 2026-07-16 — client/ui/advice.js: 8 short original ADVICE OFFERS surfaced once each. Pure gate in client/ui/advice-gate.js (adviceGate(id,seen,enabled,isBot) — DOM-free, 3 unit tests): shows iff tips enabled, human (never webdriver/e2e), and unseen (per-id first-visit flag in localStorage). Non-blocking lower-left card with "OK, got it" (marks this id seen) or "No thanks" (silences all present+future); a queue shows one at a time. TRIGGERS — event-driven off session.onChange with NO hooks in the emitters (disorder→cityDisorder, save-code→saveCode, regent→regentTurn, settler→first own settler in state); interaction hooks are one-liners (unit-selected→main.js selectUnit, city-view→panels openCityPanel own city, tech-choice→panels toggleResearchPanel, combat-hover→input.js on an attack-odds hover). ⚙ "Show first-time tips" toggle (firstTimeTips default true) — re-checking calls reset() so they reappear (ctx.options.watch). Content is short prose; the A58 pedia link is a future field. Screenshot-verified (the 'Founding a city' card, lower-left, OK/No-thanks); browser e2e 16/16 (webdriver-gated → no cards, existing shots byte-stable); full suite 290/290. Golden-safe (client + localStorage only). Files: client/ui/{advice(new),advice-gate(new),options,input,panels}.js, client/main.js, client/style.css, test/advice.test.js(new).]
 
 First-time players get contextual ADVICE OFFERS — dismissible ALL
 at once ("no thanks") or acknowledged one-by-one ("OK, got it"),

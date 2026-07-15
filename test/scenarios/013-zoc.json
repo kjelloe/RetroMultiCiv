@@ -1,0 +1,298 @@
+{
+  "name": "zoc fidelity: enemy cities exert ZOC; diplomats/caravans ignore it (B18)",
+  "notes": "7x5 all grassland, ONE undefended enemy city at (3,2) and NO enemy units, so the city is the ONLY zone-of-control source. Civ 1: a unit cannot move from a tile adjacent to an enemy unit OR CITY into another such tile (unless a friendly unit/city holds the destination). Diplomats, Caravans, and nuclear weapons IGNORE ZOC (wiki: Diplomat \"Ignores adjacent enemy units\"). u1 militia is blocked stepping between two city-adjacent tiles; u2 diplomat and u4 caravan walk the same geometry via ignoresZoc; u3 militia proves ZOC needs BOTH tiles adjacent (its destination is not). No enemy units means combat never interferes.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 7,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "u1": {
+          "id": "u1",
+          "type": "militia",
+          "owner": "p1",
+          "x": 2,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "diplomat",
+          "owner": "p1",
+          "x": 2,
+          "y": 3,
+          "moves": 2,
+          "fortified": false,
+          "veteran": false
+        },
+        "u3": {
+          "id": "u3",
+          "type": "militia",
+          "owner": "p1",
+          "x": 4,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u4": {
+          "id": "u4",
+          "type": "caravan",
+          "owner": "p1",
+          "x": 4,
+          "y": 3,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Ur",
+          "owner": "p2",
+          "x": 3,
+          "y": 2,
+          "pop": 3,
+          "food": 0,
+          "shields": 0,
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "writing",
+            "trade",
+            "rocketry"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Sumer",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 99,
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "units.u1.x": 2,
+          "units.u1.y": 1
+        }
+      },
+      "notes": "militia blocked: both (2,1) and (3,1) are adjacent to the enemy city (3,2) — city ZOC"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u2",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u2.x": 3,
+          "units.u2.y": 3
+        }
+      },
+      "notes": "diplomat walks the same geometry: ignoresZoc"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u3",
+        "dir": "N"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u3.x": 4,
+          "units.u3.y": 0
+        }
+      },
+      "notes": "militia moves freely: destination (4,0) is NOT city-adjacent, so ZOC (needs BOTH) does not bind"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u4",
+        "dir": "N"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u4.x": 4,
+          "units.u4.y": 2
+        }
+      },
+      "notes": "caravan walks between two city-adjacent tiles: ignoresZoc"
+    }
+  ],
+  "final": {
+    "state": {
+      "units.u1.x": 2,
+      "units.u2.x": 3,
+      "units.u3.y": 0,
+      "units.u4.y": 2
+    },
+    "hash": "0xcb7e13e6"
+  }
+}

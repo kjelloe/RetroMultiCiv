@@ -20,9 +20,11 @@ function wrapX(map, x) {
   return ((x % map.width) + map.width) % map.width;
 }
 
-// Is any enemy unit adjacent to (x, y)?  Used for the Civ 1 zone of control:
-// moving directly between two enemy-controlled tiles is forbidden unless the
-// destination holds your own unit or city (attacks never reach this check).
+// Is any enemy unit OR CITY adjacent to (x, y)? Used for the Civ 1 zone of
+// control: moving directly between two enemy-controlled tiles is forbidden
+// unless the destination holds your own unit or city (attacks never reach
+// this check). B18: enemy CITIES exert ZOC too (wiki: "adjacent to an enemy
+// unit OR CITY") — an undefended city still projects it.
 function inEnemyZoc(state, x, y, owner) {
   for (const id of Object.keys(state.units)) {
     const u = state.units[id];
@@ -30,6 +32,14 @@ function inEnemyZoc(state, x, y, owner) {
     let dx = Math.abs(u.x - x);
     if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
     const dy = Math.abs(u.y - y);
+    if (dx <= 1 && dy <= 1 && (dx + dy) > 0) return true;
+  }
+  for (const cid of Object.keys(state.cities)) {
+    const c = state.cities[cid];
+    if (!c || c.owner === owner) continue;
+    let dx = Math.abs(c.x - x);
+    if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
+    const dy = Math.abs(c.y - y);
     if (dx <= 1 && dy <= 1 && (dx + dy) > 0) return true;
   }
   return false;
@@ -68,7 +78,9 @@ function moveUnit(state, cmd, ruleset) {
   const targetCity = cityAt(state, nx, ny);
   const ownAtTarget = unitsAt(state, nx, ny).length > 0
     || (targetCity !== null && targetCity.owner === unit.owner);
-  if (!ownAtTarget
+  // B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
+  // ignoresZoc) — they walk between enemy-controlled tiles freely.
+  if (!ownAtTarget && unitType.ignoresZoc !== true
       && inEnemyZoc(state, unit.x, unit.y, unit.owner)
       && inEnemyZoc(state, nx, ny, unit.owner)) {
     return { ok: false, reason: 'zoc' };
