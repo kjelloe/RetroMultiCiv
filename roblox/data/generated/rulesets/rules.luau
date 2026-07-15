@@ -24,6 +24,7 @@ return [==[{
   "scorePerCitizen": 2,
   "scorePerTech": 5,
   "scorePerWonder": 20,
+  "worldAgeThreshold": 30,
   "workTurns": {
     "road": 3,
     "irrigate": 5,

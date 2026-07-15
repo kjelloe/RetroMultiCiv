@@ -87,6 +87,14 @@ harness lands — the lune twin runners. Check the mail hub
   never in the shared tree. Consumer trap found there twice:
   barbarian-owned UNITS and CITIES exist (non-roster owners) — guard
   per-seat maps; recorded in B13.
+- M1–M14 baseline (mails #384/#386, tree 57719cf, 2026-07-16): 4×25
+  seeds × 400 turns (chaos-on + no-chaos × normal + godemperor), 100/100
+  clean, ~2–5 min per config at `--jobs 6`. Headline finds: AI never
+  rush-buys (all M10 buys were chaos-injected), stuck-army 59–100%,
+  crossWater 0 in all 100 games, and the GE AI collapses WITHOUT the
+  chaos stream (its rate/government churn masks disorder paralysis) —
+  no-chaos-for-capability / chaos-for-regression adopted into docs/05
+  §12. Raw JSONLs + tables: `~/sim-lab/baseline-*`.
 - The role's zero-write rule covers the shared tree's code and queues;
   this doc's status/record sections are maintained under a normal
   file lock (user-directed exception, 2026-07-14 — the architect
