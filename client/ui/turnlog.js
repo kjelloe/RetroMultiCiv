@@ -211,6 +211,9 @@ export function initTurnLog(ctx) {
         put(`💀 ${playerName(state, e.playerId)} eliminated`, e.playerId === ctx.HUMAN ? 'loss' : 'win');
       } else if (e.type === 'barbariansSpawned') {
         put('🏴 barbarian uprising reported somewhere in the wilds');
+      } else if (e.type === 'ageChanged') { // A75: world news (the interstitial is the loud form)
+        const age = (session.ruleset.rules.ages || []).find(a => a.id === e.age);
+        put(`🌍 the world enters the ${age ? age.name : e.age} Age`);
       } else if (e.type === 'cityFounded') {
         if (ownCity(state, e.cityId)) {
           put(`🏛 ${state.cities[e.cityId].name} founded`, 'win', cityLoc(state, e.cityId));

@@ -47,3 +47,13 @@ test('majorEvents: unknown/empty streams yield nothing', async () => {
   assert.deepStrictEqual(majorEvents([], STATE, RULESET), []);
   assert.deepStrictEqual(majorEvents([{ type: 'somethingNew' }], STATE, RULESET), []);
 });
+
+test('majorEvents: A75 ageChanged rides the feed with the age name', async () => {
+  const { majorEvents } = await load();
+  const ruleset = { rules: { ages: [{ id: 'renaissance', name: 'Renaissance' }] }, techs: {}, wonders: {} };
+  const got = majorEvents([{ type: 'ageChanged', age: 'renaissance', turn: 210 }], STATE, ruleset);
+  assert.deepStrictEqual(got.map(e => e.icon), ['🌍']);
+  assert.match(got[0].text, /the world enters the Renaissance Age/);
+  // falls back to the id when rules/ages are absent (never crashes)
+  assert.match(majorEvents([{ type: 'ageChanged', age: 'modern' }], STATE, RULESET)[0].text, /the modern Age/);
+});

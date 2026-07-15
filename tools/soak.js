@@ -92,9 +92,9 @@ async function runSeed(seed, opts, checkpoints, mods) {
     rulesOverrides: rulesOverridesFor(opts),
     chaos: opts.chaos,
     deepAt: checkpoints,
-    onCheckpoint: (state) => {
+    onCheckpoint: (state, round, hash, tel, contLabels) => {
       console.log(`  ${summarize(state, RULESET, mods)}`);
-      if (opts.stats) appendStats(opts.stats, Object.assign({ t: 'checkpoint' }, meta, snapshot(state, RULESET, mods)));
+      if (opts.stats) appendStats(opts.stats, Object.assign({ t: 'checkpoint' }, meta, snapshot(state, RULESET, mods, tel, contLabels)));
     }
   });
   const ms = Date.now() - t0;

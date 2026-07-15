@@ -94,6 +94,57 @@ hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
 hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
 
+-- A75: the world's CURRENT AGE is DERIVED — the highest TECH ERA reached by at
+-- least worldAgeThreshold% of ALIVE civs. "Reached era i" = knows >= 1 tech
+-- whose era index >= i (cumulative-upward). Ranges over the FOUR TECH ERAS ONLY
+-- (Space Age is a starting option, not a tech era). PURE READ — no state change.
+local function worldEraOrder(ruleset: any): { string }
+	local isEra = {}
+	for id in pairs(ruleset.techs) do
+		isEra[ruleset.techs[id].era] = true
+	end
+	local order = {}
+	local ages = if ruleset.rules.ages == nil then {} else ruleset.rules.ages
+	for _, age in ipairs(ages) do
+		if isEra[age.id] == true then
+			table.insert(order, age.id)
+		end
+	end
+	return order
+end
+
+local function worldAge(state: any, ruleset: any): string
+	local order = worldEraOrder(ruleset)
+	if #order == 0 then return "" end
+	local eraIdx = {}
+	for i = 1, #order do eraIdx[order[i]] = i - 1 end -- 0-based to match the JS twin
+	local alive = 0
+	for _, pid in ipairs(state.playerOrder) do
+		if state.players[pid].alive ~= false then alive += 1 end
+	end
+	if alive == 0 then return order[1] end
+	local reachedCount = {}
+	for i = 1, #order do reachedCount[i] = 0 end
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		if p.alive ~= false then
+			local best = 0
+			for _, t in ipairs(p.techs) do
+				local def = ruleset.techs[t]
+				local idx = if def == nil or eraIdx[def.era] == nil then 0 else eraIdx[def.era]
+				if idx > best then best = idx end
+			end
+			for i = 0, best do reachedCount[i + 1] = reachedCount[i + 1] + 1 end
+		end
+	end
+	local threshold = ruleset.rules.worldAgeThreshold
+	local hi = 0
+	for i = 0, #order - 1 do
+		if reachedCount[i + 1] * 100 >= alive * threshold then hi = i end
+	end
+	return order[hi + 1]
+end
+
 local function endTurn(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then
 		return { ok = false, reason = "notYourTurn" }
@@ -111,6 +162,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		state.turn = state.turn + 1
 		state.year = nextYear(state.year, ruleset.rules)
 		state.activePlayer = order[1]
+		local ageBefore = worldAge(state, ruleset) -- A75: sample the age across the wrap
 		hooks.processWork(state, ruleset, events)
 		hooks.processRevolutions(state, ruleset, events)
 		hooks.updateDisorder(state, ruleset, events)
@@ -118,6 +170,13 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processResearch(state, ruleset, events)
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.checkGameEnd(state, ruleset, events)
+		local ageAfter = worldAge(state, ruleset)
+		if ageAfter ~= ageBefore then
+			local eo = worldEraOrder(ruleset)
+			if (table.find(eo, ageAfter) :: number) > (table.find(eo, ageBefore) :: number) then
+				table.insert(events, { type = "ageChanged", age = ageAfter, turn = state.turn })
+			end
+		end
 		for _, id in sortedKeys(state.units) do
 			local unit = state.units[id]
 			unit.moves = ruleset.units[unit.type].moves

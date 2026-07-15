@@ -1131,7 +1131,7 @@ async function runSim(opts) {
     }
     if (isCheckpoint) {
       checkpoints[round] = hash;
-      if (opts.onCheckpoint) opts.onCheckpoint(state, round, hash);
+      if (opts.onCheckpoint) opts.onCheckpoint(state, round, hash, tel, contLabels);
     }
     if (state.gameOver) break;
   }
@@ -1143,4 +1143,9 @@ async function runSim(opts) {
   };
 }
 
-module.exports = { runSim, checkInvariants, checkDeep, snapshot, summarize, loadModules, SIM_ROSTER };
+module.exports = {
+  runSim, checkInvariants, checkDeep, snapshot, basicSnapshot, summarize, loadModules, SIM_ROSTER,
+  // A64 telemetry internals, exported for test/sim-telemetry.test.js
+  landContinents, netComponents, networkPct, explorationPct, continentsSettled,
+  makeTelemetry, absorbEvents, updateLedger, idleCounts
+};

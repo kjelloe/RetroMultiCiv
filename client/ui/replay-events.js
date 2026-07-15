@@ -31,6 +31,12 @@ export function majorEvents(events, state, ruleset) {
       case 'barbariansSpawned':
         out.push({ icon: '🏴', text: 'a barbarian uprising' });
         break;
+      case 'ageChanged': {
+        const ages = (ruleset.rules && ruleset.rules.ages) || [];
+        const age = ages.find(a => a.id === e.age);
+        out.push({ icon: '🌍', text: `the world enters the ${age ? age.name : e.age} Age` });
+        break;
+      }
       case 'gameOver':
         out.push({ icon: '🏁', text: `game over — ${who(e.winner)} wins` });
         break;

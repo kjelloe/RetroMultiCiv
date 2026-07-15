@@ -32,7 +32,7 @@ export function classifyEvent(e, viewer, cityOwner) {
       // rivals' discoveries never reach a fogged seat (engine filterEvents)
       return e.playerId === viewer ? 'research' : null;
     case 'playerDefeated': case 'wonderBuilt': case 'wonderLost':
-    case 'barbariansSpawned': case 'gameOver':
+    case 'barbariansSpawned': case 'gameOver': case 'ageChanged':
       return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';

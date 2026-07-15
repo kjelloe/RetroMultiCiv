@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 259 tests), the item's own verification steps pass, related
+   (currently 277 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -461,6 +461,23 @@ cities, wandering-settler civs) — per-owner consumers must guard
 (the probe crashed twice on exactly this). ALL golden-affecting →
 window discipline, and (a) should land WITH A63's data.
 
+### B18 — ZOC fidelity pair from B14's wiki read (engine legality; one window, both engines, scenario pins)
+
+Two Civ 1 divergences found while closing B14 (wiki authority,
+same page):
+1. **Enemy CITIES exert ZOC** — our inEnemyZoc scans units only; an
+   undefended enemy city currently projects nothing. Civ 1: it does.
+2. **Diplomat / Caravan / Nuclear IGNORE ZOC** (diplomat's wiki
+   attribute is literally "Ignores adjacent enemy units") — no
+   exemption path exists in movement.js. Fix shape: a units.json
+   boolean (`ignoresZoc`) + one guard in inEnemyZoc/moveUnit — the
+   flag also serves A71's diplomat activation and A72's nuclear
+   family (design once).
+One golden window for the pair (movement legality changes AI paths),
+both engines one claim, scenario 013-zoc pins both behaviors
+(city-ZOC blocks; diplomat walks through). Queue: with the
+B13/A63 window family, or standalone when the bugfixer frees.
+
 ### B16 — Turn-371 save: history diverges from BOTH engine versions at turn 328 (wave VIII follow-on; bugfixer — B0 machinery, high interest)
 
 The user's `debugging/logs/retromulticiv-turn371.json` carries the
@@ -487,6 +504,30 @@ python/server static paths (or a build-stamp check in the client
 that warns 'your modules are mixed'). USER QUESTION PENDING: did
 he reload the tab / pull mid-game around turn 328?
 
+[done: bugfixer 2026-07-16 — ROOT CAUSE: none of (a)/(b)/(c). THE
+RECORDING IS PERFECT — the game ran on TRAINER difficulty and the A47
+diag block inside Shift+S saves dropped rulesOverrides, so every
+extraction replayed under DEFAULT rules. Proof: with contentCitizens 6
+all 721 entries replay clean, 675 cmds + 46 rounds -> turn 371, final
+hash 0xd83254b8 == the save's own state hash; the pre-triage's computed
+0x9a470f60 reproduces bit-for-bit under contentCitizens 4 (default) —
+the 325-327 "match window" is just where no city crossed the content
+threshold. Nothing was wrong with the user's session; the pending user
+question is withdrawn. FIX: (1) saves.js buildSaveEnvelope (factored,
+DOM-free, red-first) embeds diag.rulesOverrides ({} = default-recorded;
+absence = pre-B16); (2) tools/replay.js normalizeReplayInput accepts
+local save envelopes natively — hashState(save.state) is the recorded
+final truth, pre-B16 envelopes get a one-line phantom-divergence
+warning (triage.sh now handles save files without hand extraction);
+(3) test/save-envelope.test.js: envelope pin + native-replay pin + the
+finding itself pinned on the REAL turn-371 file (self-skips if absent):
+under contentCitizens 6 it must replay with zero problems — if that
+ever reds, the engine actually regressed against this game's history.
+FLAGGED for architect ruling (not fixed): loadStateObject ignores the
+save's difficulty — cross-difficulty loads silently change rules AND
+make the composed A47 recording unreplayable by construction. Suite
+277/277.]
+
 ### B14 — ZOC across domains: land units should not zone-control sea (wave VIII.18; bugfixer — wiki first)
 
 Check Civ 1's actual rule in the wiki extract: does land ZOC bind
@@ -495,6 +536,19 @@ units). If our engine diverges from Civ 1: engine fix = movement
 legality change = golden window + both engines + a scenario pin.
 If Civ 1 agrees with our current behavior: document in docs/01 §11
 and close with no change.
+
+[done: bugfixer 2026-07-15 — CLOSED NO-CHANGE, wiki as authority: the
+Civ1 ZOC statement (Zone of control page, civ1 overview) carries NO
+land/sea exemption — only Diplomats, Caravans, and nuclear weapons
+ignore ZOC (and Civ2's page shows the contrast: THAT game exempts
+non-ground units explicitly, Civ1's does not). So land units binding
+adjacent sea movement matches Civ 1; the user's expectation is a
+Civ2-era memory. Documented in docs/01 §11. TWO NEW DIVERGENCES
+surfaced from the same source, mailed for queueing (not B14's scope,
+both are engine legality changes = golden window): (1) enemy CITIES
+should exert ZOC — inEnemyZoc checks units only; (2) diplomat/caravan/
+nuclear should IGNORE ZOC — all three exist in data/units.json, engine
+has no exemption path. No code change, no test-count change.]
 
 ### B15 — Save-code banner has no dismiss and never leaves (wave VIII.19; bugfixer — B6 regression check FIRST)
 
@@ -505,6 +559,19 @@ case (does its test still pass? does the live path differ from the
 tested one?) or a SECOND banner path (LAN autosave notice?) that
 never got the ✕/auto-dismiss. Failing test first; the B4 sweep
 pattern applies if it's another inert-hidden site.
+
+[done: bugfixer 2026-07-15 — TRIAGE: NOT a B6 regression (e2e toast guard
+green, #code-toast.hidden scoped, live path = tested path: the turn-371
+envelope proves local Shift+S announceSave, whose showCode always injects
+the ✕) and no second banner path (showCode's 3 call sites all carry it).
+VERDICT: the ✕ existed but was a subtle gray 1px button, and persistence
+is docs/07 BY DESIGN — the user couldn't find the dismiss. FIX (intent
+kept): the whole toast is now a click-to-dismiss target (cursor:pointer +
+title), Escape dismisses (INPUT-guard honored), ✕ restyled bold "✕
+dismiss". PROOF: ?e2e=1 probe extended (body-click hides; re-shown toast's
+✕ hides — both computed-display, not class); browser.test.js asserts both;
+revert-proof run: red without the click-anywhere hunk, green with it.
+Suite green (assertion-level additions, no new test count).]
 
 ### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first — USER CONFIRMED VIII.11: traversal WORKS east-west, but the move-hint ARROW never shows across the seam (black tile, no arrow) — so the engine wraps and the CLIENT adjacency/hint math doesn't; the |dx|<=1-without-wrap suspicion is now the primary target, and A65's wrap-seam pathfind test gives the fixed reference behavior)  [done: bugfixer 2026-07-15 — TRIAGE VERDICT, measured: the |dx|<=1-without-wrap suspicion is FALSE — move-hints stepDir/canStepTo wrap correctly BOTH directions incl. diagonals (probed live + pinned in test/move-hints.test.js "B12: seam steps show the arrow both directions"). ROOT CAUSE of the missing arrow: the terrain mesh spans exactly x 0..width-1 (terrain.js gw=width*SEGS, plane at (width-1)/2) and the camera pans freely past the edge — beyond the seam there is NO GEOMETRY, castAt's raycast MISSES (index.js:281 returns null), so no pick ever reaches the affordance; the user's "black tile" is the void background. The fix is seam RENDERING (edge-ghost columns with modulo pick-mapping, or fly-across) — exactly the "later polish call for the user" the item already names; escalated, not implemented. Suite 259/259.]
 
@@ -2125,7 +2192,9 @@ UI: Auto badge + the order in the action bar. Depends on B11's
 policy factoring (the callable it creates is exactly what this
 consumes) — queue after B11 lands.
 
-## A75 — World ages: the definition, the change event, and the historian's report (user design session 2026-07-15)
+## A75 — World ages: the definition, the change event, and the historian's report (user design session 2026-07-15)  [claimed: coder-helper 2026-07-16] [done: 2026-07-16 — worldAge(state,ruleset) in engine/index.js + luau/index.luau (both engines, one claim per parity policy): highest of the FOUR TECH ERAS (ancient/renaissance/industrial/modern — Space Age is NOT a worldAge) reached by ≥ rules.json worldAgeThreshold(=30)% of ALIVE civs, "reached era i"=knows≥1 tech with eraIdx≥i (cumulative-upward). ageChanged emitted STATELESSLY: worldAge sampled before/after the endTurn wrap-processing, pushed on advance — transient event, never state, so GOLDEN-SAFE (sim 6/6 vs A60 pins, luau twins green incl. data checksums, event verified firing →renaissance at turn 211 in a real all-AI game). Fires at exactly THREE transitions (→renaissance/industrial/modern). CLIENT: client/ui/historian.js interstitial (age headline + world-public standings ranked by the REAL score.js components — score/cities/techs/pop, dead civs grayed; dismissable Esc/Enter/click, screenshot-verified); ageChanged→'world' class (turnlog-classes.js), a 🌍 turn-log line (turnlog.js), and rides the replay feed (replay-events.js). Tests: test/world-age.test.js (5: floor/threshold/cumulative-upward/dead-exclusion/space-ceiling), replay-events + turnlog-classes extended. Full suite 277/277. Files: engine/index.js, luau/index.luau, data/rules.json, client/ui/{historian.js(new),turnlog.js,turnlog-classes.js,replay-events.js}, client/main.js, client/style.css, test/{world-age(new),replay-events,turnlog-classes}.test.js.]
+
+RULING (architect @d4c3e49b): worldAge ranges over the FOUR TECH ERAS ONLY — the Space Age stays a STARTING-scenario option (turn-keyed, no tech era of its own) and is NOT a worldAge, so the historian's report fires at exactly THREE transitions (→renaissance, →industrial, →modern).
 
 THE DEFINITION (user's proposal, adopted — one mechanism family
 with A66's barbarians): the world's CURRENT AGE is derived —
@@ -2283,7 +2352,7 @@ Barbarians must not stay militia-forever in a musket world:
    re-record); telemetry check: barb/rebel kill pressure stays a
    THREAT band, never the strongest army on the map.
 
-## A64 — Soak telemetry v2: the nine AI-health columns (docs/05 §12; golden-safe, ships BEFORE any AI capability work)
+## A64 — Soak telemetry v2: the nine AI-health columns (docs/05 §12; golden-safe, ships BEFORE any AI capability work)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — all FOURTEEN columns M3–M14 in one pass (architect ruling @2d95d58e: accumulator side-channel, all-14). test/sim-driver.js snapshot() enriched with pure-state columns (M3 pop, M4 imprPct over workedTiles, M5 netRoad/netRail via road-network components + continent flood-fill, M6 milPct best-tier proxy [full obsoletedBy % reserved for A63], M7 bldgPct tech-available beneficial coverage, M8 wonders/wonderAct, M9 explPct non-ice, M13 continents, M14 scoreSpread + alive/deadCivs) + a DRIVER-OWNED accumulator (never state) for the cumulative half: capture the events the engine already emits (replaced the throwaway [] passed to runAiTurn; read endTurn/chaos res.events) → M8 wonderTry (deduped), M10 buys, M11 attacks/captures, M13 crossWater; a driver-only unit-idle ledger → M12 idleSet/stuckU. Threaded through runSim (makeTelemetry + once-labelled continents) and onCheckpoint(...,tel,contLabels); tools/soak.js --stats passes them into the JSONL. GOLDEN-SAFE: simulation.test.js 6/6 green vs the A60 pins (event capture is behavior-neutral — eventsOut is write-only). PERF: 400-turn seed TEL-ON 34.2s vs TEL-OFF 35.3s — within noise, <1% (well under the 5% budget). 9 unit tests (test/sim-telemetry.test.js: continents incl. diagonal-bridge + wrap, road connectivity, exploration, event accumulator, idle ledger). Field map documented in docs/05 §12. Full suite 268/268. Files: test/sim-driver.js, tools/soak.js, test/sim-telemetry.test.js (new), docs/05-simulation-test.md. Sim-runner's ≥25-seed baseline can run.]
 
 The measurement half of the user's metric contract (docs/05 §12
 table M1–M9): tools/soak.js --stats + the sim-driver stats surface

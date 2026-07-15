@@ -132,24 +132,58 @@ async function replayDiagnostics(diag, ruleset) {
   return { commands, rounds, turn: state.turn, finalHash, problems };
 }
 
-module.exports = { replayDiagnostics, loadRuleset };
+// B16: accept every replayable artifact shape, not just Shift+D files.
+// A LOCAL save envelope (Shift+S) carries its history in .diag and its own
+// final state — hashState(state) is the recorded truth to replay against.
+// Pre-B16 envelopes lack diag.rulesOverrides: a game played on a non-default
+// difficulty then replays under the WRONG ruleset and reports phantom
+// divergence (the turn-371 hunt) — warn instead of confusing the triage.
+async function normalizeReplayInput(obj) {
+  if (obj && obj.format === 'retromulticiv-server-save' && obj.diag) {
+    return {
+      note: `server save (game ${obj.gameId}) — replaying its embedded diagnostics`,
+      diag: obj.diag
+    };
+  }
+  if (obj && obj.format === 'retromulticiv-save' && obj.diag && obj.diag.initialState) {
+    const { hashState } = await import('../shared/statehash.js');
+    const diag = {
+      format: 'retromulticiv-diagnostics',
+      version: 1,
+      initialState: obj.diag.initialState,
+      log: obj.diag.log,
+      finalHash: hashState(obj.state),
+      finalTurn: obj.turn
+    };
+    let note = `local save (turn ${obj.turn}) — replaying its embedded history against the save's own state hash`;
+    if (obj.diag.rulesOverrides !== undefined) {
+      diag.rulesOverrides = obj.diag.rulesOverrides;
+    } else {
+      note += '\nWARNING: pre-B16 save — difficulty overrides were not recorded;'
+        + ' a game played on a non-default difficulty will report phantom divergence';
+    }
+    return { note, diag };
+  }
+  return { note: null, diag: obj };
+}
+
+module.exports = { replayDiagnostics, loadRuleset, normalizeReplayInput };
 
 if (require.main === module) {
   const file = process.argv[2];
   if (!file) {
-    console.error('usage: node tools/replay.js <diagnostics.json>');
+    console.error('usage: node tools/replay.js <diagnostics-or-save.json>');
     process.exit(1);
   }
-  let diag = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (diag.format === 'retromulticiv-server-save' && diag.diag) {
-    console.log(`server save (game ${diag.gameId}) — replaying its embedded diagnostics`);
-    diag = diag.diag;
-  }
-  if (diag.format !== 'retromulticiv-diagnostics') {
-    console.error(`not a diagnostics file (format: ${diag.format}) — use Shift+D in the client, not Shift+S`);
-    process.exit(1);
-  }
-  replayDiagnostics(diag, loadRuleset()).then(report => {
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  (async () => {
+    const { note, diag } = await normalizeReplayInput(raw);
+    if (note) console.log(note);
+    if (diag.format !== 'retromulticiv-diagnostics') {
+      console.error(`not a replayable file (format: ${diag.format}) — Shift+D diagnostics, a Shift+S save with its history block, or a server save`);
+      process.exit(1);
+    }
+    const report = await replayDiagnostics(diag, loadRuleset());
     console.log(`replayed ${report.commands} commands + ${report.rounds} rounds -> turn ${report.turn}, final hash ${report.finalHash}`);
     if (report.problems.length === 0) {
       console.log('OK: the recorded game reproduces exactly');
@@ -158,5 +192,5 @@ if (require.main === module) {
       for (const p of report.problems) console.log('  ' + p);
       process.exitCode = 1;
     }
-  });
+  })();
 }

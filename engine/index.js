@@ -49,6 +49,51 @@ function nextYear(year, rules) {
   return year + steps[steps.length - 1].step;
 }
 
+// A75: the world's CURRENT AGE is DERIVED (not stored) — the highest TECH ERA
+// reached by at least worldAgeThreshold% of ALIVE civs. "Reached era i" = a civ
+// knows >= 1 tech whose era index >= i (cumulative-upward: a beeliner counts
+// for the highest era it has touched, so the aggregate has no gaps). Ranges
+// over the FOUR TECH ERAS ONLY (the Space Age is a starting-scenario option,
+// not a tech era) — advances fire at three transitions (→renaissance,
+// →industrial, →modern). PURE READ: no state change, so goldens are untouched.
+function worldEraOrder(ruleset) {
+  const isEra = {};
+  for (const id of Object.keys(ruleset.techs)) isEra[ruleset.techs[id].era] = true;
+  const order = [];
+  const ages = ruleset.rules.ages === undefined ? [] : ruleset.rules.ages;
+  for (const age of ages) if (isEra[age.id] === true) order.push(age.id);
+  return order;
+}
+
+function worldAge(state, ruleset) {
+  const order = worldEraOrder(ruleset);
+  if (order.length === 0) return '';
+  const eraIdx = {};
+  for (let i = 0; i < order.length; i++) eraIdx[order[i]] = i;
+  let alive = 0;
+  for (const pid of state.playerOrder) if (state.players[pid].alive !== false) alive = alive + 1;
+  if (alive === 0) return order[0];
+  const reachedCount = []; // reachedCount[i] = alive civs that reached era index i or higher
+  for (let i = 0; i < order.length; i++) reachedCount.push(0);
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid];
+    if (p.alive === false) continue;
+    let best = 0;
+    for (const t of p.techs) {
+      const def = ruleset.techs[t];
+      const idx = def === undefined || eraIdx[def.era] === undefined ? 0 : eraIdx[def.era];
+      if (idx > best) best = idx;
+    }
+    for (let i = 0; i <= best; i++) reachedCount[i] = reachedCount[i] + 1;
+  }
+  const threshold = ruleset.rules.worldAgeThreshold;
+  let hi = 0;
+  for (let i = 0; i < order.length; i++) {
+    if (reachedCount[i] * 100 >= alive * threshold) hi = i;
+  }
+  return order[hi];
+}
+
 // End the active player's turn. When the last player in playerOrder ends,
 // the game turn advances and every unit's movement refreshes.
 function endTurn(state, cmd, ruleset) {
@@ -63,6 +108,7 @@ function endTurn(state, cmd, ruleset) {
     state.turn = state.turn + 1;
     state.year = nextYear(state.year, ruleset.rules); // Civ-1-style era steps (A21)
     state.activePlayer = order[0];
+    const ageBefore = worldAge(state, ruleset); // A75: sample the age across the wrap
     improvements.processWork(state, ruleset, events); // before harvest: a finished improvement counts this turn
     government.processRevolutions(state, ruleset, events);
     happiness.updateDisorder(state, ruleset, events); // one disorder verdict per city for the whole turn
@@ -70,6 +116,15 @@ function endTurn(state, cmd, ruleset) {
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
     scoring.checkGameEnd(state, ruleset, events);
+    // A75: research/deaths this wrap may have advanced the world's age — emit a
+    // transient world-news event (not hashed, so goldens are untouched)
+    const ageAfter = worldAge(state, ruleset);
+    if (ageAfter !== ageBefore) {
+      const eo = worldEraOrder(ruleset);
+      if (eo.indexOf(ageAfter) > eo.indexOf(ageBefore)) {
+        events.push({ type: 'ageChanged', age: ageAfter, turn: state.turn });
+      }
+    }
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
       unit.moves = ruleset.units[unit.type].moves;
@@ -115,4 +170,4 @@ function createEngine(ruleset) {
   return { applyCommand, createGame };
 }
 
-export { createEngine, deepClone, nextYear };
+export { createEngine, deepClone, nextYear, worldAge };

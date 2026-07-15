@@ -141,9 +141,13 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // docs/07 game verification code: the e2e save shows the persistent toast
     assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
     assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');
+    // B15: clicking anywhere ON the toast must dismiss it (the unmissable
+    // affordance — the user played 8 turns unable to find the small ✕)
+    assert.match(dom, /toastBodyClickDisplay: none/,
+      'a click anywhere on the toast must dismiss it (computed display)');
     // B6: the ✕ must genuinely hide the toast — '.hidden' is per-element in
     // this codebase, and #code-toast shipped without its scoped rule (the
-    // e2e block clicks the ✕ and records the COMPUTED display)
+    // e2e block re-shows the toast, clicks the ✕, records the COMPUTED display)
     assert.match(dom, /toastDisplay: none/,
       "the toast ✕ must actually dismiss it (computed display, not just the class)");
     assert.match(dom, /errors: 0/,

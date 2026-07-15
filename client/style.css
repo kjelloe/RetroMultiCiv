@@ -664,6 +664,70 @@ html, body {
 .replay-line.has-loc { cursor: pointer; }
 .replay-line.has-loc:hover { color: #cdd8ea; }
 
+/* A75: the historian's report — an age-change interstitial with world standings */
+#historian {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 9, 16, 0.82);
+  z-index: 22;
+}
+#historian-card {
+  background: #121a2b;
+  border: 1px solid #2f486f;
+  border-radius: 10px;
+  padding: 22px 26px;
+  max-width: 560px;
+  width: calc(100% - 40px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  color: #cdd8ea;
+}
+#historian-head {
+  font-size: 24px;
+  color: #e6d59a;
+  text-align: center;
+}
+#historian-sub {
+  font-size: 13px;
+  color: #8fa3c0;
+  text-align: center;
+  margin: 4px 0 16px;
+}
+#historian-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+#historian-table th {
+  text-align: right;
+  color: #8fa3c0;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-bottom: 1px solid #2a3a55;
+}
+#historian-table th:nth-child(1), #historian-table th:nth-child(2) { text-align: left; }
+#historian-table td { text-align: right; padding: 4px 8px; border-bottom: 1px solid #1c2740; }
+#historian-table td.rank { text-align: left; color: #8fa3c0; }
+#historian-table td.civ { text-align: left; }
+#historian-table tr.dead td { color: #6b7890; }
+#historian-table .swatch {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border-radius: 2px;
+  margin-right: 7px;
+  vertical-align: -1px;
+}
+#historian-close {
+  display: block;
+  margin: 18px auto 0;
+  background: #2e6b40;
+  color: #d8f0dc;
+  border: 1px solid #4f9a63;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* A56(a): fast-forward interstitial — the year counter over the AI history run */
 #ff-overlay {
   position: absolute;

@@ -352,6 +352,14 @@ below is a known, deliberate deviation to be closed in a later slice:
   units built before this slice have no home city and are support-free; the
   capital defaults to the oldest city when no Palace exists; the Democracy
   senate and Communism's spy bonuses wait for diplomacy.
+- **ZOC is domain-blind, unit-only, exemption-free** (B14 verdict
+  2026-07-15, wiki extract as authority): Civ 1's rule carries no land/sea
+  exemption — any unit exerts ZOC on all eight neighbors, so land units DO
+  bind adjacent sea movement. This matches `engine/movement.js
+  inEnemyZoc`; closed no-change. Known gaps vs the same source, queued
+  separately: enemy *cities* should also exert ZOC, and Diplomat /
+  Caravan / Nuclear should ignore it (all three exist in
+  `data/units.json`; the engine has no exemption path yet).
 - **Settlers don't eat food** yet (§4.3 says 1/turn).
 - **Calendar follows a Civ-1-style variable curve** (`data/rules.json`
   `yearSteps`, landed 2026-07-13): 50 yrs/turn to 1000 BC, 25 to 1 AD,
@@ -435,6 +443,18 @@ below is a known, deliberate deviation to be closed in a later slice:
   seats to the humans. Deterministic per seed; aborts openly if a chosen
   civ died during the fast-forward. Not a Civ 1 feature — a deliberate
   quality-of-life addition.
+
+### World ages (A75, 2026-07-16 — not a Civ 1 feature, a QoL addition)
+
+The world's CURRENT AGE is a live derived property: the highest of
+the four tech eras reached (≥1 tech of that era or later) by ≥30%
+of living civs (`rules.json worldAgeThreshold`). Era transitions
+fire a world-news `ageChanged` event and the client's historian's
+report (global standings interstitial). Space Age remains a
+starting-scenario option only. Save-file rule (B16): a game's
+`rulesOverrides` (difficulty) travels inside its save envelope and
+applies on load with a visible notice — a save's rules ARE the
+game's rules.
 
 ### Known missing Civ 1 systems (the wave-VIII audit, 2026-07-15 — all queued)
 

@@ -17,6 +17,7 @@ import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
+import { initHistorian } from './ui/historian.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
@@ -349,6 +350,7 @@ ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
 ctx.replay = initReplay(ctx);     // A47: post-game replay theater
+ctx.historian = initHistorian(ctx); // A75: the age-change historian's report
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // A28: renderer animations honor the ⚙ reduce-animation preference, live
@@ -483,12 +485,17 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   }
   // docs/07: exercise the save path so the persistent game-code toast renders
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
-  // B6: the toast's ✕ must ACTUALLY hide it — record the computed display
-  // after the click (a class-only check would pass even with no CSS rule)
+  // B15: clicking ANYWHERE on the toast must hide it (the unmissable dismiss)
+  const toastEl = document.getElementById('code-toast');
+  if (toastEl) toastEl.click();
+  const bodyClickDisplay = toastEl ? getComputedStyle(toastEl).display : 'missing';
+  // B6: re-show, then the ✕ must ALSO actually hide it — record the computed
+  // display after the click (a class-only check would pass with no CSS rule)
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
   const toastX = document.getElementById('code-toast-x');
   if (toastX) toastX.click();
-  const toastEl = document.getElementById('code-toast');
-  probe.textContent += ' · toastDisplay: ' + (toastEl ? getComputedStyle(toastEl).display : 'missing')
+  probe.textContent += ' · toastBodyClickDisplay: ' + bodyClickDisplay
+    + ' · toastDisplay: ' + (toastEl ? getComputedStyle(toastEl).display : 'missing')
     + ' · code: ' + (ctx.gameCode() || 'none')
     + ' · gameId: ' + (session.gameId || 'none') // server's real id (404-fix regression guard)
     + ' · diaglog: ' + session.log.length // recorder captured the commands

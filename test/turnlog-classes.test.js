@@ -33,7 +33,7 @@ test('classifyEvent: ownership splits combat/cities/rival; world and saves are a
   assert.strictEqual(classifyEvent({ type: 'techDiscovered', playerId: 'p2' }, 'p1', cityOwner), null);
 
   // world news: always the same class regardless of viewer
-  for (const type of ['playerDefeated', 'wonderBuilt', 'wonderLost', 'barbariansSpawned', 'gameOver']) {
+  for (const type of ['playerDefeated', 'wonderBuilt', 'wonderLost', 'barbariansSpawned', 'gameOver', 'ageChanged']) {
     assert.strictEqual(classifyEvent({ type }, 'p1', cityOwner), 'world', type);
   }
 

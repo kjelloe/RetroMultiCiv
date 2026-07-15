@@ -400,3 +400,21 @@ only winners port, both engines together, goldens re-record per
 window. M5 rails, M6 reactive modernization, M7 era buildings, and
 M8 wonder targeting are NEW AI capabilities; M1–M4 largely need
 tuning of existing behavior.
+
+**A64 emitted `--stats` fields (landed 2026-07-15).** Each `t:"checkpoint"`
+JSONL row carries per-player entries plus row-level cross-civ figures.
+Per-player: `techs` (M1), `cities` (M2), `pop` (M3), `imprPct` (M4),
+`netRoad`/`netRail` (M5 — % of same-continent city pairs connected; `null`
+when the civ has <2 same-continent cities), `milPct` (M6 — PARTIAL: best-power
+tier proxy, full obsoletedBy % reserved for A63), `bldgPct` (M7 — % of the
+tech-available beneficial buildings the city has, averaged), `wonders` +
+`wonderAct` + `wonderTry` (M8 completed / in-progress / distinct attempts),
+`explPct` (M9 — explored non-ice %), `gold` + `buys` (M10), `attacks` +
+`captures` (M11), `idleSet` + `stuckU` (M12), `continents` + `crossWater`
+(M13). Row-level: `aliveCivs`/`deadCivs` (M11 elimination base) and
+`scoreSpread` (M14 — best/worst surviving-civ score ratio, `null` pre-scores).
+The cumulative columns (`buys`, `attacks`, `captures`, `wonderTry`,
+`crossWater`, `idleSet`/`stuckU`) come from a DRIVER-OWNED accumulator that
+reads the events the engine already emits and a driver-only unit-idle ledger —
+never state, so goldens are untouched (measured: per-turn capture cost is
+within run-to-run noise, <1%). Helpers unit-tested in `test/sim-telemetry.test.js`.

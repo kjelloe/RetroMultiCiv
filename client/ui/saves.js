@@ -1,6 +1,38 @@
 // Saving: F5/F9 quick save via localStorage, Shift+S/L JSON files, drag & drop.
 const SAVE_KEY = 'retromulticiv-save';
 
+// The Shift+S save envelope, DOM-free so it unit-tests (B16). The A47 diag
+// block makes the save's whole history replayable; it must carry everything
+// tools/replay.js needs to rebuild the ruleset the game actually ran with.
+export function buildSaveEnvelope(session, ctx) {
+  const code = ctx.gameCode ? ctx.gameCode() : null;
+  const envelope = {
+    format: 'retromulticiv-save',
+    savedAt: new Date().toISOString(),
+    turn: session.state.turn,
+    state: session.state
+  };
+  if (code) envelope.code = code; // the file carries its own code (docs/07)
+  // A47: the full-history block (never game state — hashes untouched) so a
+  // loaded save's replay theater spans the game's whole life; guarded so
+  // server-mode / recording-less sessions simply omit it
+  if (session.exportDiagnostics) {
+    const d = session.exportDiagnostics();
+    if (d && d.log) {
+      // B16: the ruleset overrides the game RAN with travel with the history
+      // — without them a replay reconstructs the wrong rules and reports
+      // phantom divergence (the turn-371 hunt). {} means "default rules,
+      // recorded"; absence means a pre-B16 save (replay warns).
+      envelope.diag = {
+        initialState: d.initialState,
+        log: d.log,
+        rulesOverrides: ctx.rulesOverrides || {}
+      };
+    }
+  }
+  return envelope;
+}
+
 export function initSaves(ctx) {
   const { session, sel, panels, hud } = ctx;
 
@@ -12,19 +44,30 @@ export function initSaves(ctx) {
 
   // Persistent game-code toast (docs/07 §3–4): shows the verification code and
   // STAYS until dismissed — "note this code" must not vanish like a 5s banner.
+  // B15: the persistence is by design, but the DISMISS must be unmissable —
+  // the whole toast is a click target (plus Escape), not just the small ✕.
   const codeToast = document.createElement('div');
   codeToast.id = 'code-toast';
   codeToast.className = 'hidden';
+  codeToast.title = 'click to dismiss';
   codeToast.style.cssText = 'position:fixed;top:44px;left:50%;transform:translateX(-50%);'
     + 'z-index:40;background:#141d2e;border:1px solid #26324a;border-radius:8px;'
     + 'padding:10px 14px;color:#cdd8ea;font:13px ui-monospace,monospace;max-width:90vw;'
-    + 'box-shadow:0 4px 16px rgba(0,0,0,.5);';
+    + 'box-shadow:0 4px 16px rgba(0,0,0,.5);cursor:pointer;';
   document.body.appendChild(codeToast);
+  codeToast.addEventListener('click', () => codeToast.classList.add('hidden'));
+  window.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'Escape') codeToast.classList.add('hidden');
+  });
   function showCode(html) {
-    codeToast.innerHTML = html + ' <button id="code-toast-x" style="margin-left:8px;'
-      + 'background:none;border:1px solid #46587c;border-radius:4px;color:#7d8aa5;'
-      + 'cursor:pointer;font:inherit;padding:1px 6px;">✕</button>';
+    codeToast.innerHTML = html + ' <button id="code-toast-x" title="dismiss" '
+      + 'style="margin-left:10px;background:#26324a;border:1px solid #5b6f96;'
+      + 'border-radius:4px;color:#e6edf7;cursor:pointer;font:inherit;'
+      + 'font-weight:bold;padding:2px 9px;">✕ dismiss</button>';
     codeToast.classList.remove('hidden');
+    // the ✕ keeps its own handler (belt and braces — the toast-wide click
+    // covers it, but the button must never become decorative)
     document.getElementById('code-toast-x').addEventListener('click',
       () => codeToast.classList.add('hidden'));
   }
@@ -158,23 +201,9 @@ export function initSaves(ctx) {
     }
     if (e.key === 'S') { // Shift+S: download a JSON save file (debugging/sharing)
       if (isServer()) { fetchServerSave(); return; }
-      const code = ctx.gameCode();
-      const envelope = {
-        format: 'retromulticiv-save',
-        savedAt: new Date().toISOString(),
-        turn: session.state.turn,
-        state: session.state
-      };
-      if (code) envelope.code = code; // the file carries its own code (docs/07)
-      // A47: the full-history block (never game state — hashes untouched) so a
-      // loaded save's replay theater spans the game's whole life; guarded so
-      // server-mode / recording-less sessions simply omit it
-      if (session.exportDiagnostics) {
-        const d = session.exportDiagnostics();
-        if (d && d.log) envelope.diag = { initialState: d.initialState, log: d.log };
-      }
+      const envelope = buildSaveEnvelope(session, ctx);
       download(envelope, `retromulticiv-turn${session.state.turn}.json`);
-      announceSave(session.state.turn, code);
+      announceSave(session.state.turn, envelope.code || null);
       return;
     }
     if (e.key === 'D') { // Shift+D: diagnostics recording (replayable command log)
