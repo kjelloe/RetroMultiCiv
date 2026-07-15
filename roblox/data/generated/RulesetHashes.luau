@@ -8,6 +8,6 @@ return {
 	rules = "0x3da4ddcf",
 	techs = "0x9fd04b61",
 	terrain = "0x0f366ad4",
-	units = "0x96b70673",
+	units = "0xa2d86606",
 	wonders = "0xa001ac71",
 }

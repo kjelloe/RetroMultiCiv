@@ -40,7 +40,8 @@ return [==[{
     "moves": 1,
     "cost": 50,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true
   },
   "catapult": {
     "name": "Catapult",
@@ -80,7 +81,8 @@ return [==[{
     "moves": 2,
     "cost": 30,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true
   },
   "knights": {
     "name": "Knights",
@@ -280,7 +282,8 @@ return [==[{
     "moves": 16,
     "cost": 160,
     "domain": "air",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true
   }
 }
 ]==]
