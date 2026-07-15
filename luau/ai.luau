@@ -26,6 +26,23 @@ local function idiv(a: number, b: number): number
 	return math.floor(a / b)
 end
 
+-- A40 slice 1 TWIN of engine/ai.js STANCES. Behavior knobs; balanced (and the
+-- omitted default) is the IDENTITY — its values equal the historical literals,
+-- so every substitution is unchanged. Must match ai.js exactly (the twins).
+local STANCES: { [string]: any } = {
+	balanced = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false },
+	defensive = { marchRadius = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false },
+	aggressive = { marchRadius = 14, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false },
+	science = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true },
+	growth = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false },
+}
+local function stanceOf(stance: any): any
+	if stance ~= nil and STANCES[stance] ~= nil then
+		return STANCES[stance]
+	end
+	return STANCES.balanced
+end
+
 local function sortedKeys(t: any): { string }
 	local keys = {}
 	for k in pairs(t) do
@@ -177,7 +194,7 @@ local function settlerRank(state: any, playerId: string, uid: string): number
 end
 
 -- The nearest unimproved WORKED tile of a nearby own city.
-local function bestImprovementJob(state: any, unit: any, playerId: string, ruleset: any): any
+local function bestImprovementJob(state: any, unit: any, playerId: string, ruleset: any, improveFirst: any): any
 	local map = state.map
 	local best = nil
 	local bestD = 9999
@@ -190,12 +207,16 @@ local function bestImprovementJob(state: any, unit: any, playerId: string, rules
 					local tile = map.tiles[w.y * map.width + w.x + 1]
 					local terrain = ruleset.terrain.terrains[tile.t]
 					if terrain.domain == "land" then
-						local work = nil
-						if tile.road ~= true then
-							work = "road"
-						elseif tile.irrigation ~= true and tile.mine ~= true
+						local canIrrigate = tile.irrigation ~= true and tile.mine ~= true
 							and terrain.irrigate ~= nil
-							and improvements.hasWaterSource(state, w.x, w.y) then
+							and improvements.hasWaterSource(state, w.x, w.y)
+						local work = nil
+						-- A40 growth irrigates first; balanced keeps roads-first
+						if improveFirst == "irrigate" and canIrrigate then
+							work = "irrigate"
+						elseif tile.road ~= true then
+							work = "road"
+						elseif canIrrigate then
 							work = "irrigate"
 						end
 						if work ~= nil then
@@ -403,6 +424,21 @@ local function nextWonder(state: any, me: any, ruleset: any): string?
 	return best
 end
 
+-- A40 stance build preference (TWIN of ai.js stanceBuilding): a specific
+-- building if missing + tech-known, else the historical cheapest. balanced
+-- (buildPriority nil) short-circuits to nextBuilding — byte-identical.
+local function stanceBuilding(city: any, me: any, ruleset: any, S: any): string?
+	if S.buildPriority ~= nil then
+		local id = S.buildPriority
+		local def = ruleset.buildings[id]
+		local missing = city.buildings == nil or table.find(city.buildings, id) == nil
+		if def ~= nil and missing and (def.tech == "" or table.find(me.techs, def.tech) ~= nil) then
+			return id
+		end
+	end
+	return nextBuilding(city, me, ruleset)
+end
+
 -- The nearest own settler in the open with no adjacent military guard.
 local function nearestUnguardedSettler(state: any, unit: any, playerId: string, ruleset: any, radius: number): any
 	local best = nil
@@ -525,8 +561,9 @@ local function happinessCommand(state: any, playerId: string, ruleset: any): any
 end
 
 -- One decision at a time; `done` prevents re-considering an actor this turn.
-local function pickCommand(state: any, playerId: string, ruleset: any, done: any): any
+local function pickCommand(state: any, playerId: string, ruleset: any, done: any, stance: any): any
 	local me = state.players[playerId]
+	local S = stanceOf(stance) -- balanced (or omitted) = the identity
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
@@ -565,6 +602,30 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		end
 	end
 
+	-- A40 science stance ONLY: prefer science when disorder-free (a setRates
+	-- the balanced AI never issues — gated on the stance, so balanced games
+	-- never reach this branch). One rate change per turn.
+	if S.sciRates == true and done.rates ~= true then
+		done.rates = true
+		local anyDisorder = false
+		for _, cid in ipairs(state.cityOrder or {}) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner == playerId and c.disorder == true then
+				anyDisorder = true
+				break
+			end
+		end
+		if not anyDisorder then
+			local gov = ruleset.governments[if me.government == nil then "despotism" else me.government]
+			local cap = if gov.maxRate == nil then 60 else gov.maxRate
+			local sci = cap
+			local tax = if 100 - sci <= cap then 100 - sci else cap
+			if me.sciRate ~= sci then
+				return { type = "setRates", playerId = playerId, tax = tax, sci = sci, lux = 100 - sci - tax }
+			end
+		end
+	end
+
 	-- one revolution, to Monarchy, once the advance is known
 	if done.government ~= true
 		and (me.government == nil or me.government == "despotism")
@@ -586,20 +647,23 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 				end
 				local bestDefender = if table.find(me.techs, "bronze-working") ~= nil then "phalanx" else "militia"
-				local wantDefenders = if enemyNear(state, me, playerId, city.x, city.y, 8) then 2 else 1
+				-- A40 stance knobs (balanced = the historical literals): defensive
+				-- always wants 2 guards; growth wants more settlers; aggressive
+				-- raises the empire army cap.
+				local wantDefenders = if (S.garrisonAlways2 or enemyNear(state, me, playerId, city.x, city.y, 8)) then 2 else 1
 				local want = { kind = "unit", id = bestDefender }
 				if defenders >= wantDefenders then
-					if countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 2) then
+					if countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else
-						local building = nextBuilding(city, me, ruleset)
+						local building = stanceBuilding(city, me, ruleset, S)
 						local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
 						if building ~= nil then
 							want = { kind = "building", id = building }
 						elseif wonder ~= nil then
 							want = { kind = "wonder", id = wonder }
 						elseif defenders >= 3
-							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * 4 + 4 then
+							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
 							want = { kind = "unit", id = "settlers" }
 						end
 					end
@@ -624,7 +688,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						return { type = "foundCity", playerId = playerId, unitId = uid }
 					end
 					if settlerRank(state, playerId, uid) % 2 == 1 then
-						local job = bestImprovementJob(state, unit, playerId, ruleset)
+						local job = bestImprovementJob(state, unit, playerId, ruleset, S.improveFirst)
 						if job ~= nil then
 							if job.x == unit.x and job.y == unit.y then
 								return { type = "startWork", playerId = playerId, unitId = uid, work = job.work }
@@ -668,7 +732,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end
 				end
-				if enemy ~= nil and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= 8 then
+				-- A40: defensive never marches out (radius 0), aggressive ranges
+				-- wider; balanced keeps the historical 8 — byte-identical.
+				if enemy ~= nil and S.marchRadius > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= S.marchRadius then
 					local dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
 					if dir ~= nil then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
@@ -685,7 +751,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 				end
 				local dir = nil
-				if enemy ~= nil then
+				-- balanced marches toward a known enemy; defensive (radius 0)
+				-- explores instead — never leaves to attack
+				if enemy ~= nil and S.marchRadius > 0 then
 					dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
 				else
 					dir = towardUnexplored(state, unit, me)
@@ -702,12 +770,12 @@ end
 
 -- Host-level driver: ask for a command and apply until nothing is left.
 -- Rejected commands just retire that actor — the AI can never wedge.
-local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any, eventsOut: any): any
+local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any, eventsOut: any, stance: any): any
 	local done = {}
 	local guard = 500
 	while guard > 0 do
 		guard -= 1
-		local cmd = pickCommand(state, playerId, ruleset, done)
+		local cmd = pickCommand(state, playerId, ruleset, done, stance)
 		if cmd == nil then
 			break
 		end

@@ -14,6 +14,10 @@ debugging/logs/
 # simulation-test failure artifacts (test/sim-driver.js)
 debugging/sim/
 
+# A48 visual-regression mismatch candidates (the goldens themselves ARE tracked;
+# actual-*.png are the nightly's upload-on-mismatch artifacts, never committed)
+debugging/goldens/actual-*.png
+
 # runtime output
 saves/
 *.log

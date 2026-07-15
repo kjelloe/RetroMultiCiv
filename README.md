@@ -21,7 +21,14 @@ multiple implementations.
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
 | [docs/03-roadmap.md](docs/03-roadmap.md) | Five development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port |
 | [docs/04-phase1-enrichments.md](docs/04-phase1-enrichments.md) | Designs for the remaining Civ 1 systems (happiness, governments, transforms, goody huts…) with state shapes and hash-impact notes |
-| [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan, plan feedback) — kept verbatim; adopted ideas are merged into the docs above |
+| [docs/05-simulation-test.md](docs/05-simulation-test.md) | The headless all-AI simulation harness: chaos injection, invariants, golden checkpoint hashes |
+| [docs/06-phase3-server.md](docs/06-phase3-server.md) | Authoritative server: protocol, seats, tokens, per-player views, persistence |
+| [docs/07-game-code.md](docs/07-game-code.md) | The save-tamper verification code (the 5-letter-group game code) |
+| [docs/08-phase4-lan.md](docs/08-phase4-lan.md) | LAN multiplayer: lobby, join codes, skip-vote, kick, seat codes, AI regency |
+| [docs/09-phase5-luau.md](docs/09-phase5-luau.md) | The Luau port: trap ledger, port order and gates, cross-language verification contract |
+| [docs/12-global-host.md](docs/12-global-host.md) | Public hosting design: hosted games + a QuakeWorld-style master index (future) |
+| [docs/13-roblox-ui-parity.md](docs/13-roblox-ui-parity.md) | The Roblox client roadmap: every browser UI element's Roblox representation, in tiers |
+| [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan, plan feedback rounds) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
 
@@ -61,81 +68,52 @@ the wiki and stays out of this MIT repo — regenerate it locally when needed.
 The committed `data/*.json` rulesets hold game statistics (facts) structured
 for this engine. Tests that need the dump or extraction self-skip without them.
 
-## Status
+## Status — v0.5
 
-Phase 1 is playable: seeded world generation, fog of war, unit movement,
-city founding/growth/production, Civ 1 one-shot combat (stack death, veterans,
-zone of control, city capture with plunder), and barbarians — all in the
-browser against the real engine. Select a unit, explore, press B to found a
-city, 1/2/3 to set production, attack by clicking adjacent enemies, E to end
-turns. Research is live (all 68 Civ 1 advances — click the research bar for
-the full panel), buildings & wonders too (all 21 of each, working effects,
-wonder race). Cities have a full city view: production catalog, yields and
-growth/production forecasts, population badges on the map, and a clickable
-worked-tile map for manual worker placement (optimize food, shields, or trade
-per city). Founding prompts for a name from your civilization's historic city
-list. **AI opponents** explore, settle, defend, and attack under their own
-fog of war; **victory conditions** (conquest or score at 2100 AD, with a
-victory/defeat banner); and **save/load** — F5/F9 for quick browser saves,
-Shift+S to download a JSON save file, Shift+L or drag-and-drop to load one.
-For bug reports there's something better: **Shift+D downloads a replayable
-diagnostics recording** (your commands + state hashes), and
-`node tools/replay.js <file>` re-runs the whole game through the engine to
-verify — or pinpoint — exactly what happened. Start a bigger game with
-`?civs=3` (up to 14 — larger maps seat more civilizations). The UI explains itself: hovering an enemy shows a
-**combat odds preview** with the multiplier breakdown, a selected settler
-rates the hovered tile as a city site and projects its footprint on the map,
-the production catalog shows per-item build times, plain-language effects,
-and what technology unlocks the locked entries, and a collapsible **turn log**
-narrates growth, completions, discoveries, wonder news, first contacts, and
-every battle. Settlers work the land, too: irrigate, mine, or build roads
-(Civ 1 rules — irrigation needs a water source, mined hills yield +3 shields,
-roads speed movement and add trade on open terrain). A bottom-center
-**action bar** lists the selected unit's applicable actions with their
-hotkeys; impossible actions explain themselves in a center message, the
-research bar shows gold and bulbs with per-turn deltas, and ending the turn
-with units still to move asks for a confirming second press. The first
-low-poly art kit is in: covered-wagon settlers, spear-carrying infantry,
-horses, siege engines and tanks, sailing and powered ships, aircraft —
-all with ownership as a colored base disc — plus cities that grow as house
-clusters (owner-colored roofs, banner, walls once City Walls is built),
-trees on forests and jungles, and on-map markers for irrigation, mines,
-roads, and special resources.
-**Phase 1 complete: a full, winnable game vs AI.**
-Cities can **rush-buy** production for gold, units can pillage and disband,
-and the city view pages through your empire with ‹ › arrows (or ←/→).
-Citizens now have moods: keep them content with luxuries, entertainers,
-temples, and martial law, or watch a city fall into **civil disorder**;
-**governments** run from Despotism to Democracy (revolutions included,
-with rate caps, unit upkeep, war weariness, and corruption that grows with
-distance from your Palace); and settlers clear forests, drain swamps,
-plant woods, raise **fortresses**, and lay **railroads**.
-**Phase 2 hotseat is in**: a bare URL opens the game-setup screen
-(civilizations, human players, seed), and with two or more humans the game
-passes the keyboard between turns behind a fully opaque hand-off screen —
-each player sees only their own fog of war, through the exact per-player
-view filter the multiplayer server will use later.
-Pick from the **full Civ 1 roster of 14 civilizations**, each with a
-historic city list and a light specialty (Roman legions cost less, Zulu
-militia are born veterans, Babylonians start with Alphabet, Aztec
-tribute gold…); opponents are drawn seed-deterministically, so a URL still
-reproduces the exact game. And the world got its first procedural terrain
-detail pass: shade-varied tiles, scattered forests, rocky hills,
-snow-capped peaks, ground scrub, and roads that visibly connect to
-neighboring roads and cities.
-236 headless tests including hash-locked JSON scenarios, an AI-determinism
-lock, and real-browser e2e runs that boot the client, inspect the live
-panels, verify the hotseat hand-off, and play a turn through the
-authoritative server over a WebSocket. The optional Node server
-(`node server/index.js`, then open the client with `?server=1`) now runs the
-same engine authoritatively: the browser becomes a thin client that sends
-commands and renders the per-player filtered views the server pushes, with
-save/resume and reconnect on the server side. **LAN multiplayer is in and
-accepted**: host with `./run.sh` (or `run.ps1` on Windows), friends join by
-a 5-letter code, pick seats and civilizations in the host's waiting room,
-spectators can watch — and a real two-machine session survived a network
-cut plus a server restart with save-resume, replaying hash-for-hash.
-Next: the Roblox Luau port of the engine, verified by those same replays.
+**The full game, in the browser.** A complete, winnable classic-4X
+game against AI opponents: seeded 80×50 worlds with fog of war, all 28
+units / 21 buildings / 21 wonders / 68 advances, Civ 1 one-shot combat
+(veterans, zone of control, stack death, city capture), citizen moods
+and civil disorder, governments from Despotism to Democracy
+(revolutions, corruption, war weariness), land improvement through
+railroads and terrain transforms, barbarians, and victory by conquest
+or score at 2100 AD. Pick any of the **14 classic civilizations**
+(historic city lists, light specialties), start in any age from
+Ancient to Space (the world fast-forwards under AI and you take over),
+and tune difficulty from Trainer to God-Emperor. The UI explains
+itself — combat odds with the multiplier breakdown, city-site ratings,
+per-item build times and unlock reasons, a narrated turn log, map
+overlays (city influence, forces) — in an original low-poly art style
+with animated flags, gliding units, and a living title-screen diorama.
+
+**Multiplayer, accepted for real.** Hotseat behind an opaque hand-off
+screen; or host a LAN game with `./run.sh` (or `run.ps1`) — friends
+join by a 5-letter code, pick seats and civilizations in a lobby with
+chat and host moderation, spectators can watch, and every seat gets a
+private code for rejoining from any device. Disconnects reconnect;
+an **AI regent** can play your seat while you step away; the server
+autosaves and resumes. The acceptance test was physical: a real
+two-machine session survived a network cut AND a server kill with
+save-resume, replaying hash-for-hash.
+
+**The Roblox port is complete and verified.** The entire deterministic
+engine — every rule, world generation, and the AI itself — runs in
+Luau and provably matches the JavaScript engine: identical canonical
+state hashes across ten pinned replay scenarios, full 400-turn AI
+games, and real recorded sessions, verified on three machines. The
+acceptance test was *played*, not just run: a 36-turn game inside
+Roblox Studio whose command log replays hash-exact through the browser
+engine (the artifact lives in `roblox/acceptance/`). Next: deepening
+the in-Roblox client (city panels, avatar unit-possession) along the
+[docs/13](docs/13-roblox-ui-parity.md) parity tiers.
+
+**Determinism is the whole architecture.** One pure engine, state as
+plain data, every random draw seeded and ordered. 245 headless tests
+including hash-locked replay scenarios, an AI-determinism lock, and
+real-browser e2e runs; a nightly CI soak plays 50 full AI games. Every
+game can prove itself: **Shift+D downloads a replayable recording**,
+and `node tools/replay.js <file>` re-runs it through the engine to
+verify — or pinpoint — exactly what happened.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
 specialist contributing reviews. The full development prompt log is kept

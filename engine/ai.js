@@ -23,6 +23,36 @@ import { cityMood } from './happiness.js';
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
 
+// A40 slice 1: AI regency STANCES. Behavior knobs (NOT ruleset facts — an
+// AI-constants precedent), read through the resolved S object in pickCommand.
+// HARD INVARIANT: `balanced` (and the omitted default) is the IDENTITY — its
+// knobs equal the historical literals, so every substitution below is
+// arithmetically unchanged and the sim goldens stay green by construction.
+// Only the four flavored stances read different knobs; the sim never passes
+// one, so they are golden-free. Twin: luau/ai.luau STANCES must match.
+const STANCES = {
+  balanced:   { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false },
+  defensive:  { marchRadius: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false },
+  aggressive: { marchRadius: 14, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false },
+  science:    { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true },
+  growth:     { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false }
+};
+function stanceOf(stance) {
+  return (stance !== undefined && STANCES[stance] !== undefined) ? STANCES[stance] : STANCES.balanced;
+}
+// Stance build preference: a specific building if it is missing + tech-known,
+// else the historical cheapest-missing pick. balanced (buildPriority null)
+// short-circuits to nextBuilding — byte-identical.
+function stanceBuilding(city, me, ruleset, S) {
+  if (S.buildPriority !== null) {
+    const id = S.buildPriority;
+    const def = ruleset.buildings[id];
+    const missing = city.buildings === undefined || city.buildings.indexOf(id) === -1;
+    if (def !== undefined && missing && (def.tech === '' || me.techs.indexOf(def.tech) !== -1)) return id;
+  }
+  return nextBuilding(city, me, ruleset);
+}
+
 function idiv(a, b) {
   return Math.floor(a / b);
 }
@@ -136,7 +166,7 @@ function settlerRank(state, playerId, uid) {
 
 // The nearest unimproved WORKED tile of a nearby own city: roads first
 // (trade -> research), then irrigation where legal. {x, y, work} or null.
-function bestImprovementJob(state, unit, playerId, ruleset) {
+function bestImprovementJob(state, unit, playerId, ruleset, improveFirst) {
   const map = state.map;
   let best = null, bestD = 9999;
   for (const cid of state.cityOrder || []) {
@@ -148,11 +178,14 @@ function bestImprovementJob(state, unit, playerId, ruleset) {
       const tile = map.tiles[w.y * map.width + w.x];
       const terrain = ruleset.terrain.terrains[tile.t];
       if (terrain.domain !== 'land') continue;
+      const canIrrigate = tile.irrigation !== true && tile.mine !== true
+        && terrain.irrigate !== undefined && hasWaterSource(state, w.x, w.y);
       let work = null;
-      if (tile.road !== true) work = 'road';
-      else if (tile.irrigation !== true && tile.mine !== true
-               && terrain.irrigate !== undefined
-               && hasWaterSource(state, w.x, w.y)) work = 'irrigate';
+      // A40 growth stance irrigates first; balanced (improveFirst undefined)
+      // keeps roads-first — the trade-that-funds-research order, byte-identical
+      if (improveFirst === 'irrigate' && canIrrigate) work = 'irrigate';
+      else if (tile.road !== true) work = 'road';
+      else if (canIrrigate) work = 'irrigate';
       if (work === null) continue;
       let hostile = false;
       for (const u of unitsAt(state, w.x, w.y)) {
@@ -390,8 +423,9 @@ function happinessCommand(state, playerId, ruleset) {
 }
 
 // One decision at a time; `done` prevents re-considering the same actor this turn.
-function pickCommand(state, playerId, ruleset, done) {
+function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
+  const S = stanceOf(stance); // balanced (or omitted) = the identity
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual
@@ -423,6 +457,25 @@ function pickCommand(state, playerId, ruleset, done) {
     }
   }
 
+  // A40 science stance ONLY: prefer science when the empire is disorder-free
+  // (a setRates the balanced AI never issues — gated on the stance, so the
+  // sim's balanced games never reach this branch). One rate change per turn.
+  if (S.sciRates && !done.rates) {
+    done.rates = true;
+    let anyDisorder = false;
+    for (const cid of state.cityOrder || []) {
+      const c = state.cities[cid];
+      if (c && c.owner === playerId && c.disorder === true) { anyDisorder = true; break; }
+    }
+    if (!anyDisorder) {
+      const gov = ruleset.governments[me.government === undefined ? 'despotism' : me.government];
+      const cap = gov.maxRate === undefined ? 60 : gov.maxRate;
+      const sci = cap;
+      const tax = 100 - sci <= cap ? 100 - sci : cap;
+      if (me.sciRate !== sci) return { type: 'setRates', playerId, tax, sci, lux: 100 - sci - tax };
+    }
+  }
+
   // one revolution, to Monarchy, once the advance is known — the stable
   // government for a garrisoned AI (martial law, no war unhappiness); the
   // volatile governments stay human territory
@@ -449,18 +502,21 @@ function pickCommand(state, playerId, ruleset, done) {
     // nothing buildable (a tech-starved civ) garrisons cap at 3 and
     // further shields go to settlers — pavers whose roads create the
     // trade that ends the tech drought (docs/05 §10-11).
-    const wantDefenders = enemyNear(state, me, playerId, city.x, city.y, 8) ? 2 : 1;
+    // stance knobs (balanced = the historical literals, so this is unchanged
+    // for the sim): defensive always wants 2 guards; growth wants more
+    // settlers; aggressive raises the empire army cap.
+    const wantDefenders = (S.garrisonAlways2 || enemyNear(state, me, playerId, city.x, city.y, 8)) ? 2 : 1;
     let want = { kind: 'unit', id: bestDefender };
     if (defenders.length >= wantDefenders) {
-      if (countSettlers(state, playerId) < 2 + idiv(countCities(state, playerId), 2)) {
+      if (countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
-        const building = nextBuilding(city, me, ruleset);
+        const building = stanceBuilding(city, me, ruleset, S);
         const wonder = building === null ? nextWonder(state, me, ruleset) : null;
         if (building !== null) want = { kind: 'building', id: building };
         else if (wonder !== null) want = { kind: 'wonder', id: wonder };
         else if (defenders.length >= 3
-                 || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * 4 + 4) {
+                 || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
           // enough army empire-wide: garrison surplus now roams (escorts,
           // explorers), so the LOCAL count alone no longer saturates —
           // without this cap a tech-starved civ mints militia forever
@@ -489,7 +545,7 @@ function pickCommand(state, playerId, ruleset, done) {
       // roads on worked tiles are the trade that funds all research.
       // Alternating ranks split the corps: even ranks expand, odd improve.
       if (settlerRank(state, playerId, uid) % 2 === 1) {
-        const job = bestImprovementJob(state, unit, playerId, ruleset);
+        const job = bestImprovementJob(state, unit, playerId, ruleset, S.improveFirst);
         if (job) {
           if (job.x === unit.x && job.y === unit.y) {
             return { type: 'startWork', playerId, unitId: uid, work: job.work };
@@ -533,8 +589,10 @@ function pickCommand(state, playerId, ruleset, done) {
       }
     }
     // fight what's actually near; distant enemies are not worth a suicide
-    // trek across the map (that churn was where armies went to die)
-    if (enemy && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= 8) {
+    // trek across the map (that churn was where armies went to die). A40:
+    // defensive never marches out (radius 0), aggressive ranges wider;
+    // balanced keeps the historical 8 — byte-identical.
+    if (enemy && S.marchRadius > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= S.marchRadius) {
       const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
@@ -548,7 +606,9 @@ function pickCommand(state, playerId, ruleset, done) {
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
     let dir = null;
-    if (enemy) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
+    // balanced (marchRadius 8) marches toward a known enemy as before;
+    // defensive (radius 0) explores instead — never leaves to attack
+    if (enemy && S.marchRadius > 0) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
     else dir = towardUnexplored(state, unit, me);
     if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
   }
@@ -561,12 +621,12 @@ function pickCommand(state, playerId, ruleset, done) {
 // turn — the AI can never wedge the game. Returns the resulting state.
 // Pass `eventsOut` to collect the events of every applied command (the
 // client's combat log wants to report what the AI did to the player).
-function runAiTurn(engine, state, playerId, ruleset, eventsOut) {
+function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   const done = {};
   let guard = 500;
   while (guard > 0) {
     guard--;
-    const cmd = pickCommand(state, playerId, ruleset, done);
+    const cmd = pickCommand(state, playerId, ruleset, done, stance);
     if (!cmd) break;
     const res = engine.applyCommand(state, cmd);
     if (res.ok) {

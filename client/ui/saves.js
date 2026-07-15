@@ -78,7 +78,10 @@ export function initSaves(ctx) {
     sel.cityId = null;
     sel.lastMovedBy = {}; // unit ids from another game could collide
     panels.closeAll();
-    session.replaceState(s);
+    // A47: a save carrying a diag block seeds the recorder with the game's
+    // full history (the replay theater then spans every session); older
+    // saves without it replay from the load point
+    session.replaceState(s, obj && obj.diag);
     // resume at the right seat: the active player if human, else the first
     // human — behind the hand-off cover, as if the turn had just passed
     const viewer = s.players[s.activePlayer] && s.players[s.activePlayer].human
@@ -163,6 +166,13 @@ export function initSaves(ctx) {
         state: session.state
       };
       if (code) envelope.code = code; // the file carries its own code (docs/07)
+      // A47: the full-history block (never game state — hashes untouched) so a
+      // loaded save's replay theater spans the game's whole life; guarded so
+      // server-mode / recording-less sessions simply omit it
+      if (session.exportDiagnostics) {
+        const d = session.exportDiagnostics();
+        if (d && d.log) envelope.diag = { initialState: d.initialState, log: d.log };
+      }
       download(envelope, `retromulticiv-turn${session.state.turn}.json`);
       announceSave(session.state.turn, code);
       return;

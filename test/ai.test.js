@@ -71,6 +71,65 @@ test('AI military marches toward a known enemy city', async () => {
   assert.strictEqual(after.units.u1.x, 2, 'stepped east toward the enemy city');
 });
 
+// A40 slice 1: regency stances. The HARD invariant first — balanced (and the
+// omitted default) is the IDENTITY: pickCommand returns the exact same command
+// with stance 'balanced', undefined, or an unknown value across crafted states.
+test('AI stances: balanced / undefined / unknown are the byte-identical default', async () => {
+  const { ai, engine } = await load();
+  const crafted = [
+    grassState(9, 9, { u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 4, y: 4, moves: 1, fortified: false, veteran: false } }),
+    grassState(9, 9, {}, { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } }),
+    grassState(12, 5, { u1: { id: 'u1', type: 'legion', owner: 'p1', x: 1, y: 2, moves: 1, fortified: false, veteran: false } },
+      { c9: { id: 'c9', name: 'T', owner: 'p2', x: 9, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } })
+  ];
+  for (const st of crafted) {
+    const base = ai.pickCommand(st, 'p1', RULESET, {});
+    assert.deepStrictEqual(ai.pickCommand(st, 'p1', RULESET, {}, 'balanced'), base, 'balanced == default');
+    assert.deepStrictEqual(ai.pickCommand(st, 'p1', RULESET, {}, undefined), base, 'undefined == default');
+    assert.deepStrictEqual(ai.pickCommand(st, 'p1', RULESET, {}, 'nonsense'), base, 'unknown stance falls back to balanced');
+  }
+});
+
+test('AI stance defensive: garrisons two + prioritizes city walls', async () => {
+  const { ai, engine } = await load();
+  // a city with ONE guard, producing settlers, no enemy near
+  const mk = () => grassState(9, 9,
+    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+    { players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const balanced = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'balanced');
+  const defensive = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'defensive');
+  assert.strictEqual(balanced.cities.c9.producing.id, 'settlers', 'balanced (1 guard, no threat): keeps expanding');
+  assert.strictEqual(defensive.cities.c9.producing.id, 'militia', 'defensive: wants a second guard');
+});
+
+test('AI stance growth: builds settlers past the balanced cap', async () => {
+  const { ai, engine } = await load();
+  // 1 city, 2 settlers already exist → balanced is AT its ratio (2 < 2 false);
+  // growth (base 3, div 1) still wants more
+  const mk = () => grassState(14, 9,
+    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+      u2: { id: 'u2', type: 'settlers', owner: 'p1', x: 6, y: 4, moves: 0, fortified: false, veteran: false },
+      u3: { id: 'u3', type: 'settlers', owner: 'p1', x: 8, y: 4, moves: 0, fortified: false, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'building', id: 'granary' } } });
+  const balanced = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'balanced');
+  const growth = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'growth');
+  assert.notStrictEqual(balanced.cities.c9.producing.id, 'settlers', 'balanced: enough settlers, builds otherwise');
+  assert.strictEqual(growth.cities.c9.producing.id, 'settlers', 'growth: keeps expanding');
+});
+
+test('AI stance science: prefers science rates when disorder-free', async () => {
+  const { ai, engine } = await load();
+  const mk = () => grassState(9, 9,
+    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+    { players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const balanced = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'balanced');
+  const science = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'science');
+  assert.strictEqual(balanced.players.p1.sciRate, 50, 'balanced never touches rates');
+  assert.ok(science.players.p1.sciRate > 50, `science raises the science rate (got ${science.players.p1.sciRate})`);
+});
+
 test('a full AI-vs-AI game is deterministic and reaches an end', async () => {
   const { ai, engine, hashState } = await load();
   const play = () => {

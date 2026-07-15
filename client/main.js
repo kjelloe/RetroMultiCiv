@@ -16,6 +16,7 @@ import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
 import { initRegency } from './ui/regency.js';
+import { initReplay } from './ui/replay.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
@@ -339,6 +340,7 @@ initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
+ctx.replay = initReplay(ctx);     // A47: post-game replay theater
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // A28: renderer animations honor the ⚙ reduce-animation preference, live
@@ -406,6 +408,24 @@ if (params.get('spechover')) {
     fire();
     setInterval(fire, 400);
   }
+}
+
+// ?e2e=9 (A47): the replay theater IS a replay-verifier. Found a city, play a
+// few rounds to build a real recording, then replay it in the sandbox and
+// assert the reproduced final hash equals the recording's — and that the
+// major-events feed filled. Also proves the full-history save round-trips.
+if (params.get('e2e') === '9' && firstUnit && firstUnit.type === 'settlers') {
+  const probe = document.createElement('div');
+  probe.id = 'e2e-probe';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  await session.apply({ type: 'foundCity', playerId: ctx.HUMAN, unitId: firstUnit.id, name: 'Replayville' });
+  for (let i = 0; i < 3; i++) await ctx.endTurn();
+  const rec = await ctx.replay.getRecording();
+  const v = ctx.replay.verifyReplay(rec);
+  probe.textContent = `e2e9 match:${v.replayHash === v.recordedHash}`
+    + ` majors:${v.majors.length} entries:${session.log.length} errors:${capturedErrors.length}`;
+  if (params.get('e2eopen') === '1') await ctx.replay.open(); // screenshot the theater
 }
 
 // ?hoverdemo=1 (A19 screenshots): with the camera centered on the selected

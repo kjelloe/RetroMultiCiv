@@ -607,6 +607,61 @@ html, body {
   animation: end-turn-arrive 0.55s ease-in-out 3;
 }
 
+/* A47: the replay theater — button + control bar + events feed */
+#replay-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 60px;
+  padding: 8px 18px;
+  font-size: 14px;
+  background: #2e6b40;
+  color: #d8f0dc;
+  border: 1px solid #4f9a63;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 7;
+}
+#replay-btn.hidden { display: none; }
+#replay-theater {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+#replay-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: rgba(8, 12, 20, 0.9);
+  color: #cdd8ea;
+  font-size: 13px;
+  pointer-events: auto;
+}
+#replay-bar button {
+  background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f;
+  border-radius: 5px; padding: 5px 12px; cursor: pointer; font-family: inherit;
+}
+#replay-bar #replay-turn { margin-left: auto; color: #8fa3c0; }
+#replay-feed {
+  position: absolute;
+  left: 16px; top: 52px; bottom: 16px;
+  width: 320px;
+  overflow-y: auto;
+  background: rgba(8, 12, 20, 0.82);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #9db0cc;
+  pointer-events: auto;
+}
+.replay-line { padding: 1px 0; }
+.replay-line.has-loc { cursor: pointer; }
+.replay-line.has-loc:hover { color: #cdd8ea; }
+
 /* A40: the grayed "Auto Turn" state while a regent plays the seat */
 #end-turn.auto-turn {
   background: #2a2f3a;

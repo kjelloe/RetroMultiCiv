@@ -408,6 +408,28 @@ test('browser overlays: layers tint tiles and the Turn log anchors lower-left',
     }
   });
 
+// A47 replay theater: ?e2e=9 founds a city, plays a few rounds, then replays
+// the recording in the sandbox — the theater IS a replay-verifier, so the
+// reproduced final hash must equal the recording's and the major-events feed
+// must fill. (The full recording round-trips through the same machinery.)
+test('browser replay theater: the sandbox reproduces the recorded final hash',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const port = server.address().port;
+      const dom = await dumpDom(chromium,
+        `http://127.0.0.1:${port}/client/?seed=12345&civ=romans&e2e=9`);
+      const m = dom.match(/e2e9 match:(\w+) majors:(\d+) entries:(\d+) errors:(\d+)/);
+      assert.ok(m, `the e2e=9 probe must report:\n${dom.match(/e2e9 [^<]*/)?.[0] || '(no probe)'}`);
+      assert.strictEqual(m[1], 'true', 'the replayed final hash equals the recording — the theater verifies');
+      assert.ok(Number(m[2]) >= 1, `the major-events feed filled (founded/tech/…): ${m[2]}`);
+      assert.ok(Number(m[3]) >= 3, `the recording spans the played rounds: ${m[3]}`);
+      assert.strictEqual(m[4], '0', 'no page errors driving the theater');
+    } finally {
+      server.close();
+    }
+  });
+
 // A44: the shared-vertex determinism half — the gallery's ?vertexcheck=1
 // builds the terrain mesh twice and byte-compares position+color buffers
 // (the no-conflicting-writes half is a code-shape argument in terrain.js).

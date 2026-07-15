@@ -80,6 +80,8 @@ export function parseMessage(raw) {
     if (msg.stance !== null && typeof msg.stance !== 'string') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // A47: the full recording for the replay theater — served ONLY post-gameOver
+  if (msg.t === 'fullLog') return { ok: true, msg };
   // A41 find-a-game: browse is auth-free; joinListed carries the same join
   // fields and the server resolves it to the SAME reservation path — but
   // only for lobbies that opted INTO the public list.

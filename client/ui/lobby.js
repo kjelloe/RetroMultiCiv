@@ -119,7 +119,11 @@ function appendChat(msg) {
   const log = document.getElementById('lobby-chat-log');
   if (!log) return;
   const line = document.createElement('div');
-  line.textContent = `${msg.name}: ${msg.text}`; // textContent = XSS-inert
+  // A52: a local HH:MM timestamp (chat is transient — the time is a client
+  // render detail, never sent or stored). textContent keeps it XSS-inert.
+  const d = new Date();
+  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  line.textContent = `[${time}] ${msg.name}: ${msg.text}`;
   log.appendChild(line);
   while (log.children.length > 50) log.removeChild(log.firstChild);
   log.scrollTop = log.scrollHeight;

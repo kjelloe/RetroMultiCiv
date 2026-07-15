@@ -201,6 +201,27 @@ Suite total: two soak runs + natural end + two small tests ≈ **31 s** for
 the file — over the ~15 s wish, but `node --test` runs test files in
 parallel, so the wall-clock impact on the whole suite is smaller.
 
+## 7b. Visual-regression goldens (A48, nightly)
+
+Alongside the numeric goldens above, `debugging/visual-check.sh` byte-
+compares two rest-pose renderer shots — `debugging/gallery.html` (assets +
+14-civ grid) and `/client/?splashstill=1` (the setup diorama frozen at
+drift phase 0) — against committed PNGs in `debugging/goldens/`. Frames are
+byte-stable by construction: rest pose (no sway/smoke), and reduce-animation
+now freezes the water drift too (`renderer/three/index.js`), so
+ocean-bearing frames don't jitter. `?splashstill=1` renders the diorama with
+the camera at the sine-drift's t=0 position and animation off.
+
+**CI-AUTHORITATIVE.** SwiftShader rasterizes deterministically for a GIVEN
+chromium build, so the committed goldens are the ones a CI nightly produced.
+A re-record after an INTENDED visual change = download the nightly's uploaded
+`actual-*.png` artifacts (the `visual-goldens` artifact, uploaded on
+mismatch) and commit them alongside the renderer change that caused the
+diff. Local runs are informational only — a different local chromium may
+differ from CI legitimately; do NOT chase local-vs-CI pixel diffs. (The
+repo's initial goldens were bootstrapped locally; the first CI nightly
+re-records the authoritative set.)
+
 ## 8. Phase-5 payoff
 
 The driver + checkpoint goldens are cross-engine anchors: the Luau port

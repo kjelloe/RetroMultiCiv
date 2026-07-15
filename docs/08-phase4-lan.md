@@ -82,6 +82,21 @@ banner "Your turn" on the broadcast is the only new client UX.
   recovery path; tokens persist in the envelope, everyone rejoins. This
   is the acceptance test, and it already passes at the single-human
   level in test/server.test.js.
+- New-device / cleared-storage rejoin (A46): each seat carries a
+  per-seat reclaim CODE (docs/07 alphabet, `seats`-parallel `seatCodes`
+  map — never game state, never hashed). A `{t:'join', seatCode}`
+  reclaims the seat WITHOUT the token, but ONLY while its connection is
+  dead ('seatOccupied' otherwise — recovery, not displacement); the
+  reclaim ROTATES the token so the old device's copy dies with the move
+  (one seat = one live control path). Rate-limited 1/sec/conn against
+  brute force; the code never rides views, listings, or spectator
+  replies. RESUME-PATH NUANCE (A52, seat-code metadata scope): a `--game`
+  CLI resume KEEPS seats + tokens + codes (they ride the save envelope,
+  so a supervised host restart is seamless); the lobby "Resume a saved
+  game" flow (A34) instead `resetSeats()`, so tokens AND codes die and
+  joiners re-pick by name — deliberate, because machines change between
+  sessions and the game code (shown in the picker) is the continuity
+  proof there, not a stale per-seat secret.
 - Resume from the host flow (A34, landed 2026-07-14): `{t:'listSaves'}`
   inventories saves/ basenames (envelope-parsed, code shown BEFORE
   loading), `{t:'resume', file}` loads via the existing `--game` path
@@ -150,10 +165,15 @@ and re-derives AI rounds, hash-exact by construction. The server's
 `driveRegents` YIELDS between turns (a solo regent would otherwise
 play to gameOver in one synchronous block — caught by its own first
 test). UI: 🤖 button by End Turn, five-stance dialog (Balanced
-preselected and the only stance ACTIVE until slice 1 ports the
-stance table into ai.js AND ai.luau together), grayed "Auto Turn"
-button state, instant take-back. Toggle: explicit player button
-(host-granted-for-disconnected remains a future option).
+preselected), grayed "Auto Turn" button state, instant take-back.
+SLICE 1 LANDED (2026-07-15, the first post-port golden window):
+the STANCES table lives in engine/ai.js AND luau/ai.luau —
+balanced is arithmetically the identity (every golden stayed
+green, no re-record), and the four flavored stances (defensive /
+aggressive / science / growth) are live: a regent actually plays
+its chosen stance. Toggle: explicit player button
+(host-granted-for-disconnected remains a future option). The same
+stance table is A59's substrate (AI leader personalities).
 
 ## 8. Scaling (A38 probe, 2026-07-14 — measured on the dev box, WSL2)
 

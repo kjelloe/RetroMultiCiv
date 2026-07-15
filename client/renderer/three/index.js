@@ -58,6 +58,7 @@ export function createRenderer(container) {
   // A28 animation layer: sway/glide/smoke/flash — render-time only, disabled
   // by the ⚙ "reduce animation" option (setReduceAnimation below)
   const anim = createAnimLayer(scene, unitMeshes);
+  let animReduced = false; // A48: also freezes the water drift when true
   // A45 data overlays: tinted per-tile quads, contents decided by the UI
   const overlays = createOverlayLayer(scene);
 
@@ -348,7 +349,10 @@ export function createRenderer(container) {
     if (disposed) return;
     requestAnimationFrame(loop);
     const now = performance.now();
-    if (water) water.tick(now); // wave drift: render time only
+    // A48: reduce-animation freezes the water drift too (it is render-time
+    // animation like the rest) — completes the accessibility option AND makes
+    // ocean-bearing frames byte-stable for the visual-regression goldens
+    if (water && !animReduced) water.tick(now); // wave drift: render time only
     anim.tick(now);             // A28 sway/glide/smoke/flash: same clock
     // A36: name pills track the camera distance (readable at any zoom)
     const nameF = Math.min(2.2, Math.max(0.8, cam.dist / 12));
@@ -404,7 +408,7 @@ export function createRenderer(container) {
     },
     // A28 accessibility: ⚙ "reduce animation" — no sway/smoke/flashes,
     // movement lands instantly
-    setReduceAnimation(flag) { anim.setEnabled(flag !== true); },
+    setReduceAnimation(flag) { animReduced = flag === true; anim.setEnabled(flag !== true); },
     animBusy() { return anim.busy(); }, // e2e: is a glide in flight?
     // A45: replace the data-overlay quads ([{idx,color,alpha,lift?}] | null)
     setOverlays(entries) {

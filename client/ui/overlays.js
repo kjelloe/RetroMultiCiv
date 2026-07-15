@@ -18,7 +18,11 @@ const PARAMS = new URLSearchParams(location.search);
 // renderer lifts each layer a hair so blending never z-fights).
 const OVERLAYS = [
   {
-    id: 'territory', label: '🏛 Territory',
+    // A52 (ally round 5): "City influence", NOT "Territory" — this is a
+    // working-area derivation (city fat crosses), not a legal border/
+    // ownership model; "Borders" stays reserved for a future ownership
+    // system. The registry id stays 'territory'; only the label is the fix.
+    id: 'territory', label: '🏛 City influence',
     // Which empire an area belongs to: every explored tile in a city's
     // 21-tile fat cross tints in the owner's seat color; ties go to the
     // nearest city (Chebyshev), then the lowest city id — deterministic

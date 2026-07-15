@@ -142,7 +142,9 @@ export function createGame(opts) {
     const events = [];
     let guard = 500;
     while (guard-- > 0) {
-      const cmd = pickCommand(state, pid, ruleset, done);
+      // A40 slice 1: the regent plays with its chosen stance (balanced by
+      // default — byte-identical to the AI-round path)
+      const cmd = pickCommand(state, pid, ruleset, done, regents[pid]);
       if (!cmd) break;
       const res = engine.applyCommand(state, cmd);
       const entry = { t: 'cmd', turn: state.turn, cmd };
@@ -268,6 +270,7 @@ export function createGame(opts) {
     seatOf,
     seatOfCode, // A46: index.js's liveness gate resolves the code first
     setRegent, regentOf, playRegentSeat, // A40 slice 2
+    fullLog() { return { initialState: logStart, log, finalHash: hashState(state) }; }, // A47: replay theater source
     resetSeats,
     apply,
     endTurn,

@@ -30,6 +30,16 @@ jobs:
         run: npx --yes playwright install --with-deps chromium-headless-shell
       - name: Full test suite (incl. golden-seed simulation + Luau anchor gates)
         run: node --test test/
+      - name: Visual-regression goldens (A48 — byte-compare rest-pose shots)
+        if: ${{ !cancelled() }}
+        run: debugging/visual-check.sh
+      - name: Upload visual diffs (actual + golden) on mismatch
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-goldens
+          path: debugging/goldens/
+          if-no-files-found: ignore
 
   soak:
     runs-on: ubuntu-latest

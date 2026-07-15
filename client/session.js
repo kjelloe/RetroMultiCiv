@@ -39,7 +39,9 @@ export function createSession(ruleset, initialState, opts) {
     const done = {};
     let guard = 500;
     while (guard-- > 0) {
-      const cmd = pickCommand(state, pid, ruleset, done);
+      // A40 slice 1: the regent plays with ITS chosen stance (balanced by
+      // default — identical to the AI-round path)
+      const cmd = pickCommand(state, pid, ruleset, done, regents[pid]);
       if (!cmd) break;
       const res = engine.applyCommand(state, cmd);
       const entry = { t: 'cmd', turn: state.turn, cmd };
@@ -157,11 +159,20 @@ export function createSession(ruleset, initialState, opts) {
     },
 
     // Load a saved/foreign state wholesale (save files, quick load). The
-    // diagnostics recording restarts here — replays run from the load point.
-    replaceState(next) {
+    // diagnostics recording restarts at the load point UNLESS the save
+    // carries a `recording` block (A47: {initialState, log}) — then the
+    // recorder is SEEDED with the game's full history so the replay theater
+    // spans every session, and new commands keep appending (save→load→save
+    // composes). Older saves without the block replay from the load point.
+    replaceState(next, recording) {
       state = next;
-      log = [];
-      logStart = deepClone(next);
+      if (recording && recording.initialState && Array.isArray(recording.log)) {
+        logStart = deepClone(recording.initialState);
+        log = recording.log.slice();
+      } else {
+        log = [];
+        logStart = deepClone(next);
+      }
       // stateReplaced: a synthetic CLIENT-side event (never logged, never
       // hashed) — subscribers that keep per-game baselines (turn-log
       // contacts) re-baseline on it; a plain empty notify is just a repaint

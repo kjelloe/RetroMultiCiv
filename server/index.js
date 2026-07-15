@@ -570,6 +570,17 @@ export function startServer(opts) {
         broadcastLobby(info.gameId);
         return;
       }
+      if (msg.t === 'fullLog') { // A47: replay source — post-gameOver only
+        const e = info.gameId ? registry.entryOf(info.gameId) : null;
+        if (!e || !e.game) { send(ws, { t: 'rejected', commandId: -1, code: 'noGame' }); return; }
+        if (e.game.state.gameOver !== true) { // before the end it would leak fog
+          send(ws, { t: 'rejected', commandId: -1, code: 'notOver' });
+          return;
+        }
+        const rec = e.game.fullLog();
+        send(ws, { t: 'fullLog', initialState: rec.initialState, log: rec.log, finalHash: rec.finalHash });
+        return;
+      }
       if (msg.t === 'regent') { // A40: seat-owner-only auto-play toggle
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
         if (!e || !e.game || !info.playerId || info.playerId === 'spectator') {

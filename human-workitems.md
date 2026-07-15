@@ -67,19 +67,14 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
-- [ ] **R4 STUDIO ACCEPTANCE RUN (the fun one — play the game in
-  Roblox!)**: on the Roblox PC, 1) commit+push the roblox-helper's
-  R4 code and pull here (I review the code from this side); 2) open
-  the place in Studio, Play Solo — the Output must print
-  `[R4INIT] … 0x0ca5d97c` at boot (anything else = the first live
-  cross-language divergence, report it verbatim); 3) actually play:
-  move units (click-select, click-adjacent), found a city (B), end
-  turns (Return), F toggles follow-avatar — a decent handful of
-  turns; 4) copy the full Output log to the roblox-helper, who runs
-  `roblox/acceptance/assemble.js` — the verdict must be hash-exact
-  through BOTH engines + the game code must agree. That verdict is
-  phase 5's formal acceptance: a game PLAYED in Roblox, replayed
-  exactly in the browser engine.
+- [x] 2026-07-15 — **R4 STUDIO ACCEPTANCE RUN: PASSED AND CLOSED** —
+  36 turns played in Studio (98 commands, cities founded, a combat
+  lost); assemble.js verdict ALL HASHES MATCH incl. the
+  pre-registered boot hash 0x0ca5d97c and the game code; the
+  architect's independent replay on the dev machine returned the
+  verdict verbatim. Phase 5's formal acceptance criterion met to the
+  letter; release tagged v0.5. Three playtest fixes verified
+  hands-on same night (ray inset, Baseplate, streaming fog).
 
 - [x] 2026-07-14 — **R3 click probe DONE, R3 ACCEPTED**: 30+ picks
   script-verified against mock-state, side-face and boundary cases

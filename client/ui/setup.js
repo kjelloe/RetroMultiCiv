@@ -79,7 +79,10 @@ export function showSetupScreen() {
   let reduceAnim = false;
   try { reduceAnim = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
   const demoParams = ['setupdemo', 'lobbydemo', 'e2ehost', 'e2ejoin', 'e2ehostform', 'e2ejoinform', 'e2echat'];
-  const splashForced = sq.get('splash') === '1';
+  // A48: ?splashstill=1 — the diorama frozen at drift phase 0 (t=0 camera,
+  // animations off) for a BYTE-STABLE visual-regression golden
+  const splashStill = sq.get('splashstill') === '1';
+  const splashForced = sq.get('splash') === '1' || splashStill;
   const splashWanted = splashForced || (
     sq.get('splash') !== '0'
     && !localStorage.getItem(SEEN_KEY)
@@ -129,13 +132,19 @@ export function showSetupScreen() {
       }
       r.setViewState(view);
       r.setZoom(10);
-      const t0 = performance.now();
-      const drift = () => { // slow pan: the harbor city rides the left band
-        if (!document.getElementById('setup-diorama')) return; // screen left
-        r.centerOn(8.5 + Math.sin((performance.now() - t0) / 9000) * 1.1, 4.8);
-        requestAnimationFrame(drift);
-      };
-      drift();
+      if (splashStill) {
+        // A48: freeze — drift phase 0 camera, sway/water off, one still frame
+        if (r.setReduceAnimation) r.setReduceAnimation(true);
+        r.centerOn(8.5, 4.8); // sin(0) = 0 → the drift's phase-0 position
+      } else {
+        const t0 = performance.now();
+        const drift = () => { // slow pan: the harbor city rides the left band
+          if (!document.getElementById('setup-diorama')) return; // screen left
+          r.centerOn(8.5 + Math.sin((performance.now() - t0) / 9000) * 1.1, 4.8);
+          requestAnimationFrame(drift);
+        };
+        drift();
+      }
     }).catch(() => dio.remove()); // no WebGL etc: the plain screen is fine
   }
 

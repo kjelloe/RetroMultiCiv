@@ -38,6 +38,7 @@ export function createRemoteSession(opts) {
   let serverCode; // docs/07: the authoritative code, from joined + {t:'code'} pushes
   let mySeatCode; // A46: this seat's recovery code (private, joined reply only)
   let myRegent;   // A40: 'on' when the server reports my seat on regency
+  let fullLogWaiter = null; // A47: pending requestFullLog resolver
   let playerCivsMap = {}; // A24: pid -> civ id from the joined reply
   let token = tokenKey(gameId) && localStorage.getItem(tokenKey(gameId)) || null;
   let commandId = 0;
@@ -170,6 +171,16 @@ export function createRemoteSession(opts) {
     if (msg.t === 'presence' && msg.regents) {
       myRegent = msg.regents[playerId] ? 'on' : undefined;
     }
+    if (msg.t === 'fullLog' && fullLogWaiter) { // A47: the replay recording
+      const w = fullLogWaiter; fullLogWaiter = null;
+      w.resolve({ initialState: msg.initialState, log: msg.log, finalHash: msg.finalHash });
+      return {};
+    }
+    if (msg.t === 'rejected' && msg.code === 'notOver' && fullLogWaiter) {
+      const w = fullLogWaiter; fullLogWaiter = null;
+      w.reject(new Error('the game is not over yet'));
+      return {};
+    }
     // everything else (turn, presence, skipVote, turnSkipped, pong…) is
     // informational — the view is the authoritative state. The phase-4 turn
     // flow UI (ui/lobby.js initMultiplayerFlow) listens through this hook.
@@ -240,6 +251,15 @@ export function createRemoteSession(opts) {
     get seatCode() { return mySeatCode; },   // A46: shown next to the game code
     regentStance() { return myRegent; },     // A40: my seat's regency, from presence
     send(frame) { send(Object.assign({ gameId }, frame)); }, // A40: fire-and-forget {t:'regent'}
+    // A47: the full recording for the replay theater (server-owned; only
+    // answered post-gameOver). Resolves {initialState, log, finalHash}.
+    requestFullLog() {
+      return new Promise((resolve, reject) => {
+        fullLogWaiter = { resolve, reject };
+        send({ gameId, t: 'fullLog' });
+        setTimeout(() => { if (fullLogWaiter) { fullLogWaiter = null; reject(new Error('fullLog timeout')); } }, 8000);
+      });
+    },
     dropSocket() { if (ws) ws.close(); },    // A46 e2e: sever the live socket (retry loop takes over)
     get playerCivs() { return playerCivsMap; }, // A24: pid -> civ id (public identity)
 

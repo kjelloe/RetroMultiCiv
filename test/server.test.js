@@ -209,6 +209,121 @@ test('A40 regency: a regent seat plays unattended, its commands log, replay is h
   }
 });
 
+test('A52 seat-code acceptance: fog-shaped reclaim, spectator gets nothing, single control path, resume paths', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const { startServer } = await import('../server/index.js');
+  const { createGame } = await import('../server/game.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'a52-'));
+  const saveFile = path.join(dir, 'sc.json');
+  const s = await startServer({ ruleset: RULESET, seed: 51, civs: 2, humans: 1, size: 'medium', saveFile, gameId: 'a52', spectators: true });
+  try {
+    const kjell = await connect(s.port);
+    kjell.send({ t: 'join', name: 'Kjell' });
+    const kj = await kjell.expect(m => m.t === 'joined', 'joined');
+    const seatCode = kj.seatCode;
+
+    // (b) a code reclaim after disconnect delivers the FOG-FILTERED view for
+    // that seat — not the omniscient spectator view, not stale
+    assert.ok(kj.view.map.tiles.some(t => t.t === 'unknown'), 'the seat view is fog-filtered (has unknown tiles)');
+    kjell.close();
+    await new Promise(r => setTimeout(r, 150));
+    const laptop = await connect(s.port);
+    laptop.send({ t: 'join', name: 'Kjell', seatCode });
+    const re = await laptop.expect(m => m.t === 'joined', 'reclaimed');
+    assert.strictEqual(re.playerId, kj.playerId, 'reclaimed its own seat');
+    assert.ok(re.view.map.tiles.some(t => t.t === 'unknown'),
+      'the reclaim view is fog-filtered for the seat, not omniscient');
+    assert.ok(re.view.rngState === undefined, 'and never leaks rngState');
+
+    // (c) a SPECTATOR holding the seat code gets only the spectator view —
+    // the code buys nothing extra while spectating (spectate path ignores it)
+    const watcher = await connect(s.port);
+    watcher.send({ t: 'join', name: 'Watcher', spectator: true, seatCode });
+    const sj = await watcher.expect(m => m.t === 'joined', 'spectator joined');
+    assert.strictEqual(sj.playerId, 'spectator', 'a spectator with a code still only spectates');
+    assert.strictEqual(sj.token, undefined, 'no seat token for the spectator');
+    assert.ok(!sj.view.map.tiles.some(t => t.t === 'unknown'), 'spectator view stays omniscient');
+
+    // (d) after the reclaim rotated the token, the OLD token is dead — a
+    // connection presenting it is refused, so one seat = one control path
+    const stale = await connect(s.port);
+    const settlers = Object.values(re.view.units).find(u => u.owner === re.playerId && u.type === 'settlers');
+    stale.send({ t: 'cmd', token: kj.token, commandId: 1, cmd: { type: 'fortify', unitId: settlers ? settlers.id : 'u1' } });
+    assert.strictEqual((await stale.expect(m => m.t === 'rejected', 'stale token')).code, 'badToken',
+      'the pre-rotation token no longer controls the seat');
+    watcher.close(); stale.close();
+
+    // (e) resume paths — the metadata nuance documented in docs/08 §4:
+    // --game CLI resume KEEPS seats+codes (envelope); lobby resume (A34)
+    // resetSeats so codes die (machines change, joiners re-pick by name).
+    // Play one accepted command from the reclaimed seat so the autosave writes.
+    laptop.send({ t: 'cmd', token: re.token, commandId: 2, cmd: { type: 'fortify', unitId: settlers.id } });
+    await laptop.expect(m => m.t === 'applied' && m.commandId === 2, 'reclaimed seat plays');
+    laptop.close();
+    await new Promise(r => setTimeout(r, 200));
+    const saved = JSON.parse(fs.readFileSync(saveFile, 'utf8'));
+    assert.ok(saved.seatCodes && Object.keys(saved.seatCodes).length > 0, 'codes ride the save envelope');
+    const cliResumed = createGame({ ruleset: RULESET, save: saved });
+    assert.strictEqual(cliResumed.seatOfCode(seatCode), kj.playerId, '--game resume keeps the seat code');
+    const lobbyResumed = createGame({ ruleset: RULESET, save: saved });
+    lobbyResumed.resetSeats(); // the A34 lobby-resume flow
+    assert.strictEqual(lobbyResumed.seatOfCode(seatCode), null, 'lobby resume resets seats — codes die by design');
+  } finally {
+    await s.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('A47 fullLog: rejected before game end (no fog leak), served after', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  const { startServer } = await import('../server/index.js');
+  const { createGame } = await import('../server/game.js');
+
+  // PRE-gameOver: a live game refuses the full recording
+  const live = await startServer({ ruleset: RULESET, seed: 7, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+  try {
+    const c = await connect(live.port);
+    c.send({ t: 'join', name: 'Kjell' });
+    await c.expect(m => m.t === 'joined', 'joined');
+    c.send({ t: 'fullLog' });
+    assert.strictEqual((await c.expect(m => m.t === 'rejected', 'pre')).code, 'notOver',
+      'before game end fullLog is refused — it would leak fog');
+    c.close();
+  } finally { await live.close(); }
+
+  // POST-gameOver: craft a finished server save and serve its recording
+  const g0 = createGame({ ruleset: RULESET, gameId: 'over',
+    setup: { seed: 9, options: { width: 20, height: 15, players: [
+      { id: 'p1', name: 'Kjell', color: '#3b7dd8', human: true },
+      { id: 'p2', name: 'Zulus', color: '#d84a3b', human: false }
+    ] } } });
+  const envelope = g0.toSave();
+  const over = JSON.parse(JSON.stringify(g0.state));
+  over.gameOver = true; over.winner = 'p1';
+  envelope.state = over; // a genuine initial world, hand-marked finished
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'a47-'));
+  const file = path.join(dir, 'over.json');
+  fs.writeFileSync(file, JSON.stringify(envelope));
+  const done = await startServer({ ruleset: RULESET, game: file, autosave: false });
+  try {
+    const c = await connect(done.port);
+    c.send({ t: 'join', name: 'Kjell' });
+    await c.expect(m => m.t === 'joined', 'joined the finished game');
+    c.send({ t: 'fullLog' });
+    const rec = await c.expect(m => m.t === 'fullLog', 'served');
+    assert.ok(rec.initialState && Array.isArray(rec.log), 'the recording carries initialState + log');
+    assert.match(rec.finalHash, /^0x[0-9a-f]+$/, 'and the final hash for verification');
+    c.close();
+  } finally {
+    await done.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('server: static hosting serves the client files', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });

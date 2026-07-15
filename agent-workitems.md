@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 236 tests), the item's own verification steps pass, related
+   (currently 245 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -391,6 +391,50 @@ assertions. Steps, in order:
 4. One-line notes: docs/05 re-record paragraph + header rule 4 above.
 5. The Luau twin gate then compares against the PINNED values (the pin
    is the cross-language contract), not a live JS run.
+
+### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)
+
+ARCHITECT PRE-TRIAGE (recording
+`debugging/logs/retromulticiv-diag-turn264.json` replays HASH-EXACT —
+2120 commands + 74 rounds, engine + log integrity fine):
+- The regent DID move units: turns 249–263 carry 18–34 p1 cmd
+  entries each (the user's "didn't move" is a VISIBILITY complaint —
+  see (c)).
+- THE REAL GAP: across 15 regency turns — ZERO setResearch, only 3
+  setProduction, ZERO startWork (no roads/irrigation/mines). Suspect:
+  the engine AI's empire policy (research choice, production choice,
+  improvement orders) lives behind `human: false` branches (the
+  processing/runAiTurn layer), which regent seats never reach —
+  regency keeps human:true BY DESIGN. pickCommand covers unit
+  actions; the policy layer silently skips the seat. FIX SHAPE: the
+  regent driver must apply the same empire policy the AI gets —
+  factor the policy out of the !human branch into a callable the
+  regent path uses (engine change → fixture first, both languages,
+  golden analysis: policy factoring must be a NO-OP for pure-AI
+  seats or goldens move — if they move, STOP per window rules).
+- (b) TAKE-BACK LEAVES AUTO-END-TURN ARMED (user: "when I moved
+  them, it turned into a kind of auto-end-turn") — the local
+  session's regentTurn re-kick apparently survives the take-back;
+  find the flag/rekick path, failing test first.
+- (c) VISIBILITY: regent turns should be WATCHABLE — turn log
+  narration at minimum ("🤖 moved Legion…" or a per-turn summary);
+  the user could not tell the regent acted at all.
+Verification: a local game, enable regent 3+ turns → research
+progresses, production changes, improvements started, log narrates;
+take back → full manual control, no auto-end. Suite + goldens green.
+
+### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first)
+
+The map wraps east-west (mapgen, rendering, neighbors()). The user
+believes units cannot walk OFF the east edge onto the west edge.
+TRIAGE ORDER: (1) engine — a movement unit test crossing x=width-1 →
+x=0 (neighbors() almost certainly wraps; prove it); (2) if engine is
+fine, the CLIENT: the adjacency/move-hint/GoTo checks may compare
+x±1 WITHOUT wrap (the classic |dx|<=1 test fails at the seam), and
+the renderer seam has no duplicated columns so a wrap move may look
+like a teleport (acceptable v1 — a fly-across or edge-ghost columns
+is a later polish call for the user). Fix where the truth says;
+scenario or unit test pinning the seam crossing either way.
 
 ## R-queue — roblox-helper (second PC; spec = docs/10-roblox-agent.md)
 
@@ -1194,7 +1238,8 @@ TURNS automatically; in LAN games regency PERSISTS across disconnect
 regent seats); available in solo, hotseat, and LAN alike;
 seat-owner-only toggle in LAN.
 
-**Slice 1 — engine stances (GOLDEN-SENSITIVE, architect reviews the
+**Slice 1 [done: coder-helper 2026-07-15 — STANCES table in engine/ai.js AND luau/ai.luau (twin); pickCommand/runAiTurn gain optional stance; BALANCED IS THE IDENTITY (knobs = historical literals → every substitution arithmetically unchanged). Knobs: marchRadius (defensive 0 / aggressive 14), garrisonAlways2 (defensive), armyCap (aggressive 6/8), settler ratio (growth 3/1), buildPriority (defensive walls / science library / growth granary), improveFirst (growth irrigate-first), sciRates (science-only new setRates branch, gated so balanced never reaches it). Regent stance wired through session.playSeatLogged + game.playRegentSeat. GOLDENS HELD: sim 6/6, luau twins turn-100 checkpoint 0x560088f5, natural, scenarios, full 245/245 — the identity is proven by every golden staying green. Unit tests: identity (balanced/undefined/unknown byte-identical) + 4 stance behaviors. Window kept OPEN for bugfixer B11 policy factoring per architect one-window preference.]**
+**Slice 1 (original spec) — engine stances (GOLDEN-SENSITIVE, architect reviews the
 identity proof):** `pickCommand`/`runAiTurn` gain an optional `stance`
 parameter. HARD REQUIREMENT: `balanced` (and the omitted default)
 must be BIT-IDENTICAL to today's behavior — the unchanged sim goldens
@@ -1293,6 +1338,146 @@ pillage rules (cutting a road severs the chain — strategy!). NOT
 QUEUED — design first, architect; candidate for a phase-6+ headline
 feature alongside diplomacy.
 
+## A59 — AI leader personalities (wave VII items 4+5 — DESIGNED 2026-07-15 with the user; all four decisions his)
+
+Every AI civilization gets a NAMED LEADER with ONE STANCE from the
+A40 table — fixed per civ so opponents build reputations across
+games, with a setup option to randomize.
+
+1. **Data** (`data/civs.json`, hand-maintained — no generator, per
+   A44): each civ gains `leader: { name, stance }`. DRAFT table
+   (Civ 1's historical roster; stances historically flavored —
+   every NAME and stance is the user's editorial call, swap freely,
+   they are facts not code):
+   (stance names = A40's EXACT table: balanced / aggressive /
+   defensive / science / growth)
+   Romans/Caesar aggressive · Babylonians/Hammurabi science ·
+   Germans/Frederick defensive · Egyptians/Ramesses growth ·
+   Americans/Lincoln balanced · Greeks/Alexander aggressive ·
+   Indians/Gandhi defensive · Russians/Catherine growth ·
+   Zulus/Shaka aggressive · French/Napoleon aggressive ·
+   Aztecs/Montezuma balanced · Chinese/Qin Shi Huang science ·
+   English/Elizabeth science · Mongols/Genghis Khan aggressive.
+   (Draft leans aggressive-heavy like Civ 1 did; the balance sweep
+   in (5) is where the mix gets tuned by measurement.)
+   STANCE CONTENT is A40-s1's table (behavior knobs at the top of
+   ai.js, not ruleset facts): defensive = threat-garrison 2 always,
+   aggression radius 0, walls priority; aggressive = army cap
+   raised, aggression radius widened, attack bias; science = rates
+   prefer sci when disorder-free, library/university priority;
+   growth = higher settler ratio, granary priority, irrigation-first
+   improvers. NOTE (user question 2026-07-15): "growth" deliberately
+   blends WIDE (settlers → more cities) and TALL (granary/irrigation
+   → bigger cities) in v1 — one coherent knob family; the wide-vs-
+   tall split arrives with the axis WEIGHTS in the later-depth pass,
+   not as a sixth stance. Stances are BIASES on existing scoring,
+   never forced actions — an aggressive leader on a peaceful island
+   degrades gracefully toward balanced behavior (nothing to attack =
+   the bias has nothing to bite). Stance × difficulty compounding
+   (esp. aggressive at God-Emperor) is an explicit telemetry check.
+2. **State + determinism**: `players[pid].stance` is set at
+   createGame — from the civ's leader by default, or a seed-derived
+   permutation when the setup's "Randomize personalities" checkbox
+   is on. The stance LIVES IN STATE (a printable string), so replays
+   and the Luau twin derive behavior identically with zero side
+   channels. STATE-SHAPE CHANGE ⇒ new games only, but sim goldens
+   re-record (AI seats gain stances) — this is GOLDEN WINDOW #3
+   territory: full re-record, soak re-baseline, natural-end golden,
+   both engines in one claim (ai.js + ai.luau + createGame +
+   json2lua data pins).
+3. **One stance resolution everywhere** (the A40 symmetry): regent
+   override > players[pid].stance > 'balanced'. AI seats read their
+   state stance; a human seat's stance is dormant until a regent
+   uses it (the regent dialog PRESELECTS the civ's leader stance —
+   your empire acts in character when you step away).
+4. **Visibility (all shown, user decision)**: first-contact turn-log
+   line ("You meet Caesar of the Romans — aggressive"); leader name +
+   stance on score-line hover; the setup screen shows your own civ's
+   leader; A58's encyclopedia gets leader entries. Spectators see
+   all.
+5. **Quality bar (batch-4 discipline — measure, don't vibe)**: each
+   stance must show a MEASURABLE behavioral signature in soak
+   telemetry (aggressive → more attacks launched; expansionist →
+   more cities; scientific → more techs; defensive → higher unit
+   survival/garrison rates) AND no stance may tank the health
+   metrics (GE stagnation stays ≤ batch-4 levels, natural games
+   still produce winners). Lab-copy iteration up to the user's
+   10-iteration mandate; only winners port.
+6. **Sequencing (hard prerequisites)**: A40-s1 window CLOSES first
+   (stance machinery proven balanced-identical) → B11 lands (empire
+   policy factoring — stances modulate that same policy layer) →
+   the ff-outlier check runs (sim-runner measure job: fast-forward
+   telemetry per seat at handover — cities/improvements/army mix —
+   answering whether the 1-city/29-militia Renaissance seat was a
+   seed outlier, a takeover-seat special case, or a militia-spam
+   policy loop; the fix for THAT precedes personalities so stances
+   tune a healthy baseline, not a bug).
+Roblox side: personality data crosses in civs.json (already one of
+the eight checksummed files); ai.luau twin in the same claim.
+
+LATER-DEPTH NOTE (user, 2026-07-15 — design the v1 data shape so
+these slot in WITHOUT migration): personality strategy gains
+complexity in a later pass — (a) PERCENTAGE WEIGHTS PER AXIS
+(e.g. Caesar: aggression 70 / expansion 40 / science 20 — the
+single stance becomes the dominant axis of a weight vector; keep
+`leader.stance` as the v1 field and let a future `leader.weights`
+object coexist, stance derivable as its argmax); (b) FAVORITE
+BEELINE TECHNOLOGIES per leader (e.g. Hammurabi beelines Writing→
+Literacy, Genghis beelines Horseback Riding→Wheel) — a
+`leader.beelines: [techIds]` list the research policy prefers while
+available; (c) PREFERRED UNITS / BUILDINGS / WONDERS (user follow-up
+same day): `leader.favorites: { units: [ids], buildings: [ids],
+wonders: [ids] }` — the production policy weights favorites upward
+when buildable (never exclusively — a favorite is a thumb on the
+scale, not a script, or leaders become exploitable). Wonder
+favorites are the flavor jackpot: leaders RACE their signature
+wonders (Ramesses wants the Pyramids, Elizabeth wants Magna Carta),
+and losing "their" wonder to you should sting in the log. All
+favorites fields are data/civs.json + policy consumers, all
+golden-affecting when activated, all measured under the same
+signature-telemetry bar (a favorite that doesn't appear in build
+statistics doesn't ship; a leader whose favorites tank their
+military health gets retuned).
+
+DRAFT FAVORITES TABLE (architect, from Civ 1 lore + the existing
+civ specialties; user does the editorial pass at activation. SPARSE
+IS FINE — not every leader needs every category; an empty slot
+means "no thumb on that scale". Wonder RIVALRIES are deliberate
+drama — two leaders wanting the same wonder race for it):
+- Caesar: beeline Iron Working; units Legion (the discount
+  specialty), Catapult; buildings Aqueduct, Colosseum.
+- Hammurabi: beeline Writing→Code of Laws (the man WROTE the code);
+  buildings Library, Courthouse; wonder Hanging Gardens (home turf).
+- Frederick: beeline Feudalism; units Musketeers; buildings City
+  Walls, Barracks; wonder Great Wall (rivalry with Qin).
+- Ramesses: beeline Pottery→Monarchy; units Chariot; buildings
+  Granary, Temple; wonder PYRAMIDS (rivalry with Montezuma).
+- Lincoln: beeline the Democracy line; buildings Marketplace, Bank;
+  wonder Women's Suffrage.
+- Alexander: beeline Bronze Working→Mathematics; units Phalanx,
+  Catapult; wonders Colossus, Oracle.
+- Gandhi: beeline Ceremonial Burial→Mysticism; buildings Temple,
+  Cathedral; wonder United Nations.
+- Catherine: beeline Bridge Building; units Cavalry; buildings
+  Granary; wonder Hoover Dam.
+- Shaka: units Militia (the veteran specialty), Phalanx; beeline
+  Iron Working; no wonder favorite — armies are his monuments.
+- Napoleon: beeline Gunpowder→Metallurgy; units Musketeers, Cannon;
+  wonder slot open (nothing rang true).
+- Montezuma: beeline Ceremonial Burial; units Chariot; wonder
+  Pyramids (the Ramesses rivalry).
+- Qin Shi Huang: beeline Writing→Literacy; buildings Library,
+  Granary; wonder GREAT WALL (obviously; Frederick contests).
+- Elizabeth: beeline Navigation→Magnetism; units Sail, Frigate;
+  wonders Shakespeare's Theatre, Magellan's Expedition.
+- Genghis Khan: beeline Horseback Riding→Chivalry; units Knights,
+  Cavalry; no build favorites — his favorite building is yours,
+  captured.
+(All ids resolve against data/{techs,units,buildings,wonders}.json
+at activation — watch the slug-id naming drift the data source
+section warns about; "Magna Carta" mentioned above is NOT a Civ 1
+wonder, Elizabeth's real slots are as drafted here.)
+
 ## PARKED/GAME-V2 — Mobile-friendly UI/UX (user note 2026-07-14)
 
 A phone-usable client view so people can join LAN/internet games on
@@ -1316,20 +1501,53 @@ tables for culture output/thresholds, AI awareness — pairs naturally
 with the Civ4 resource-chains parked item (borders define whose
 resource it is). No design work now; this note is the whole item.
 
-## PARKED/DESIGN — Off-turn pre-work (VI.11, architect design first)
+## A54 — Off-turn pre-work: the self-scoped command whitelist (VI.11 — DESIGNED 2026-07-15, user GO; queue after A47)
 
-Let players adjust rates/research/production/workers while a rival
-moves — "pre-work" applied to their own empire out of turn. This
-touches the engine's turn discipline (most commands reject
-notYourTurn) and the protocol. Design direction: allow an explicit
-WHITELIST of self-scoped commands (setRates, setResearch,
-setProduction, setWorkers) out of turn — the server serializes them
-into the command log as usual so replay determinism holds by
-construction; the engine check loosens from "activePlayer only" to
-"activePlayer OR whitelisted self-scoped". Needs: docs/02 §commands
-note, engine change (golden lock), scenario for an out-of-turn
-setProduction, and UI unlocking (panels currently assume own-turn).
-NOT QUEUED until the design is written and the lock frees — architect.
+Let players adjust their OWN empire while rivals move: rates,
+research pick, city production, worked tiles. Full design:
+
+1. **The whitelist** (engine constant, exported): `setRates`,
+   `setResearch`, `setProduction`, `setWorkers` — all self-scoped
+   (touch only the issuing player's state), zero rng, no reads of
+   the active player's in-progress turn. Everything else keeps
+   `notYourTurn`.
+2. **Engine change** (fixture-FIRST per the verified-core rule):
+   the turn check in applyCommand loosens to "activePlayer OR
+   (whitelisted AND cmd.playerId === issuer)". NEW scenario
+   011-offturn-prework (its own pin) exercises an out-of-turn
+   setProduction + setRates between two other players' turns.
+   GOLDEN-SAFE ANALYSIS (verified reasoning, assert in review):
+   existing goldens/recordings contain no out-of-turn commands
+   (they were impossible), and rejections are never logged — so no
+   existing pin moves; this is ADDITIVE semantics. Still a
+   both-sides change: engine/index.js AND luau/index.luau in ONE
+   claim, scenario 011 green cross-language, per the CLAUDE.md
+   verified-core rule. (No golden re-record expected; the window
+   formality is the paired-twin claim itself.)
+3. **Server**: routing already serializes arrival order into the
+   log — replay determinism by construction. The whitelist check
+   lives in the ENGINE (single source); protocol.js only loses its
+   own-turn pre-filter for these four types.
+4. **Local session (the subtle half)**: apply() during a chunked AI
+   round currently rejects 'roundInFlight' (A30). Whitelisted
+   commands QUEUE and flush at the next chunk boundary (macrotask
+   seam) — the engine applies them BETWEEN AI turns, the recording
+   captures actual application order, replay stays exact. UI shows
+   the pending tick ("queued") only in the rare in-flight window.
+5. **UI unlock**: rate slider, research picker, city production +
+   workers become active off-turn (they currently disable);
+   rejection paths unchanged (caps still snap back, A29). Hotseat
+   UNCHANGED: off-turn there means the other human's screen — the
+   whitelist applies to LAN seats and the local human during AI
+   rounds only.
+6. Tests: scenario 011 (pinned, cross-language), a ws case (p2 sets
+   production during p1's turn; p1's turn outcome unaffected; log
+   order preserved), an unchunked-twin session case for the queue
+   flush (the A30 pattern), UI enablement browser probe.
+Golden-safe per analysis in (2) — but treated as the first
+verified-core engine change: fixture first, both languages, one
+claim. Queue after A47 (helper), with the luau half coordinated
+exactly like A40-s1's window.
 
 ## A41 — Find-a-game v1: the public lobby listing (DESIGNED 2026-07-14 per user go — queue after A34)  [claimed: coder-helper 2026-07-14] [done: 2026-07-14 — listGames auth-free + 1/sec/conn rate limit, public===true only (create checkbox, default OFF), hostName/seats/size/age/spectators/status — code+IP absence ASSERTED; full lobbies drop, started+spectators stay spectate-only. joinListed gates notPublic then delegates to handleJoin VERBATIM (same reservation path by construction; seat-pick identity tested). Browse panel above the code field w/ empty state; shot READ against a live public lobby. Hardening note filed: pre-existing join-by-gameId (needed by resume) → pre-DNS item decides. Suite 227/227.]
 
@@ -1525,7 +1743,7 @@ storage path, per three user decisions:
 Server + client/lobby + session-remote + tests. Golden-safe. Queue:
 after A45 (tail: A44 → A42-diorama → A45 → A46).
 
-## A47 — Post-game replay theater (user request 2026-07-14)
+## A47 — Post-game replay theater (user request 2026-07-14)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — "⏵ Watch the replay" on gameOver → sandbox engine (createEngine/deepClone, never touches the session) re-applies the recording, rendered omnisciently (filterView 'spectator' path). Tempo 1-50/s = rAF apply-throttle batching turns/frame, anims off during playback; pause/resume, major-events feed (turn+year, click=fly-to), close restores. VERIFIER-WITH-A-FACE: end compares hashState(replayed)===finalHash → "✅ replay verified" (e2e=9 asserts match + feed filled; shot read). Sources: server {t:'fullLog'} gated gameOver ('notOver' pre — ws-tested both sides), local session recording + AMENDED save diag envelope (Shift+S writes {diag}, replaceState(next,recording) seeds recorder → replay spans game's whole life, composes; blockless saves fall back). Pure replay-events.js extractor unit-tested (7 headline classes). Suite 241/241.]
 
 After gameOver: "⏵ Watch the replay" — the whole game re-run from
 turn 0 as a GLOBAL spectator. Everything rides machinery we already
@@ -1632,7 +1850,7 @@ Queue: after A48. If the lane proves itself, candidates for later
 specs: resume-from-lobby two-client, replay theater (A47), regency
 handoff (A40).
 
-## A52 — Ally round-5 follow-ups (specs/plan-feedback-5.md; queue after A40-slice-2)
+## A52 — Ally round-5 follow-ups (specs/plan-feedback-5.md; queue after A40-slice-2)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — (1) overlay label "Territory"→"City influence" (id stays; working-area not borders, comment records the caution; DOM-confirmed); (2) seat-code acceptance: a=cited existing A46 seatOccupied case, b=fog-shaped reclaim (unknown tiles, no rngState), c=spectator+code stays omniscient tokenless (spectate path ignores code), d=post-rotation old token → badToken (single control path), e=both resume paths (--game keeps codes / lobby resetSeats kills them) + docs/08 §4 nuance documented; (3) chat [HH:MM] timestamps (client render only, XSS-inert; future-chat-prominence note carried to VI.11). Shots read: chat + City-influence tint. Suite 237/237.]
 
 Small bundle, one claim:
 1. **Overlay label rename**: player-facing "Territory" → **"City
@@ -1691,6 +1909,82 @@ Evidence: before/after screenshots (plain AND ?splash=1 — the panel
 must stay readable over the diorama), bare-URL browser case still
 green, no layout shift on civ/age change. Golden-safe, pure
 presentation.
+
+## A57 — Left-stack panels: no overlap + modal-exclusive (wave VII item 1; small, next helper slot after the window)
+
+When "Turn log" or "Map overlays" expands, the neighboring buttons
+must MOVE UP/DOWN so nothing overlaps (the stack reflows; expanded
+content pushes, never covers). And the three left panels become
+MUTUALLY EXCLUSIVE (user spec): opening any one (Controls, Map
+overlays, Turn log) collapses whichever other was open — one
+expanded panel at a time. Keep the lower-left Turn-log anchor (the
+A45 pinned rect-order still holds with everything collapsed).
+Browser case: open each in sequence, assert single-open + no
+bounding-box overlaps. Golden-safe.
+
+## A58 — Complete the in-game encyclopedia (wave VII item 2; "later" per user — queue after A48/A49)
+
+Every unit, building, wonder, government, terrain, and CONCEPT
+(happiness, corruption, zones of control, veterancy, the game code…)
+gets an in-game reference entry. Inventory first: what exists today
+(catalog effect lines, tooltips) vs a real browsable pedia panel.
+Data-driven from data/*.json wherever stats are concerned (never
+hand-duplicate numbers — render them from the rulesets); concept
+prose is ORIGINAL text (the license boundary applies: never wiki
+sentences). Cross-links (unit → its tech → its era). Also becomes
+the source for docs/13 Tier-2 Roblox help surfaces later.
+
+## A56 — Fast-forward needs a center-screen animation (user note 2026-07-15; DESIGN DISCUSSION PENDING)
+
+Starting in any age past Ancient leaves a 10–20s silent gap while
+the AI simulates history. The user wants a fitting center-screen
+animation — WHAT it is gets discussed later; candidates for that
+discussion:
+(a) a spinning YEAR COUNTER sweeping 4000 BC → the start year, era
+    names fading through ("Bronze Age… Classical…"), driven by the
+    real simulated turn (the ff is chunked — live progress exists);
+(b) the deluxe cut: the actual world BUILDING ITSELF — checkpoint
+    states rendered as history passes (the A47 replay-theater
+    machinery could drive this nearly verbatim);
+(c) minimal: progress bar + "the AI is playing N centuries of
+    history…" with a live turn count.
+All variants must show REAL progress (turn i of N), honor
+reduceAnimation (falls back to c), and never delay the hand-off.
+NOT QUEUED for build until the user picks the shape.
+
+## A60 — AI cities get real names (A55.1 ACTIVATED + root-caused 2026-07-15; assigned: helper — WINDOW: opens when the B11 window closes, this one is a REAL re-record)
+
+ROOT CAUSE (architect): engine/cities.js:269 `cmd.name || 'City ' +
+cityId` is the ONLY naming; the AI's foundCity command carries no
+name (ai.js:542) — every AI city in EVERY game has always been
+"City cN"; human cities differ only because the CLIENT prompt sends
+a name. Fix in the ENGINE so every caller benefits (AI rounds,
+regent turns, fast-forward, Roblox):
+1. foundCity, when cmd.name is absent: walk
+   `ruleset.civs[player.civ].cities`, take the first name not used
+   by ANY current city (global uniqueness — two Romes read as a
+   bug; iterate via cityOrder, never Object.keys); list exhausted →
+   "New <list[k]>" cycling; exhausted again → "<CivName> Outpost N"
+   with N derived from nextCityId (deterministic, never a bare id).
+   Player without a civ (crafted states) → old fallback stands, so
+   crafted-scenario hashes without civs are untouched.
+2. BOTH ENGINES one claim (cities.luau twin; the uniqueness-walk
+   order is part of the contract).
+3. GOLDEN IMPACT — REAL RE-RECORD (the first since the port):
+   every sim golden contains AI-founded cities, so all five sim
+   goldens + the natural golden move; scenario 003 re-pins if it
+   founds nameless. Full discipline: re-record BOTH engines, paste,
+   twins green vs the new pins, 5-seed soak spot-check.
+4. While in there: consider extending the 8-name civ lists toward
+   Civ 1's ~16 (data facts, cheap) — fewer "New Rome"s.
+USER-BLOCKING: the v0.5 README screenshot waits on this. Sequence:
+B11 window closes → A60's window opens (same day intended).
+
+## A55 — remaining micro-finding (screenshot hunt 2026-07-15)
+
+**`?zoom` / `?overlay` params are ignored on the `?age=` path** —
+the fast-forward hand-off overrides the boot camera and overlay
+init. Honor explicit params after hand-off. Client-only, small.
 
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14: DNS is a quick alias for the user, so the CODE is the real gate)
 
