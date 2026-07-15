@@ -392,7 +392,7 @@ assertions. Steps, in order:
 5. The Luau twin gate then compares against the PINNED values (the pin
    is the cross-language contract), not a live JS run.
 
-### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)
+### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)  [claimed: bugfixer 2026-07-15 — pre-triage correction measured (@8d3e6af0): engine half is a NO-BUG (research was busy all 15 turns, zero settlers to startWork; the regent DID run the shared pickCommand policy — setProduction×3, setWorkers×4). Real bugs are client-side: the armed regent stalls after ONE turn (kicking-flag swallows the re-kick) and any manual command re-kicks a full sweep + auto-end. No engine files touched → no golden exposure.]
 
 ARCHITECT PRE-TRIAGE (recording
 `debugging/logs/retromulticiv-diag-turn264.json` replays HASH-EXACT —
@@ -446,7 +446,52 @@ density generally low late-game — measure first (soak army-mix/
 rails/improvement telemetry columns), then tune. ALL golden-
 affecting → window discipline, and (a) should land WITH A63's data.
 
-### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first)
+### B16 — Turn-371 save: history diverges from BOTH engine versions at turn 328 (wave VIII follow-on; bugfixer — B0 machinery, high interest)
+
+The user's `debugging/logs/retromulticiv-turn371.json` carries the
+A47 diag envelope (initialState turn 325, 721 entries). ARCHITECT
+PRE-TRIAGE: extraction + replay works (entries 1–51 = turns
+325–327 MATCH), then round→turn-328 diverges — computed 0x9a470f60
+vs recorded 0x089ce1bd — and stays divergent. CRITICAL FACT: the
+pre-stances engine (fdbfe3a) computes BYTE-IDENTICAL hashes to
+HEAD, so both repo builds agree with each other and disagree with
+the recording: NOT an identity violation, NOT an engine regression.
+Hypotheses, in order: (a) the user's browser served a STALE-CACHED
+module mix mid-session (a reload across one of today's pulls
+re-fetched some modules but cached others — a mixed-engine client
+records an unreproducible trajectory); (b) a mid-session
+build-boundary reload with real engine differences (harder to
+square with 325–327 matching TODAY'S engine); (c) something in the
+A47 seeding path corrupts recorded round hashes after N turns
+(check the seeding code path — this recording came through a LOAD).
+Bisect with the first-divergence discipline: canonical-diff entry
+52's recorded vs computed state if the recorded canon exists;
+inspect what round 328 DID differently (which AI decision forked).
+If (a), the FIX is operational: cache-busting headers from the
+python/server static paths (or a build-stamp check in the client
+that warns 'your modules are mixed'). USER QUESTION PENDING: did
+he reload the tab / pull mid-game around turn 328?
+
+### B14 — ZOC across domains: land units should not zone-control sea (wave VIII.18; bugfixer — wiki first)
+
+Check Civ 1's actual rule in the wiki extract: does land ZOC bind
+adjacent SEA movement? The user believes not (barring special
+units). If our engine diverges from Civ 1: engine fix = movement
+legality change = golden window + both engines + a scenario pin.
+If Civ 1 agrees with our current behavior: document in docs/01 §11
+and close with no change.
+
+### B15 — Save-code banner has no dismiss and never leaves (wave VIII.19; bugfixer — B6 regression check FIRST)
+
+"Saved turn 371 — game code … Every player should note it" persisted
+through turn 379 with NO ✕. B6 fixed exactly this family (#code-toast
+scoped .hidden) — first check whether this is a REGRESSION of B6's
+case (does its test still pass? does the live path differ from the
+tested one?) or a SECOND banner path (LAN autosave notice?) that
+never got the ✕/auto-dismiss. Failing test first; the B4 sweep
+pattern applies if it's another inert-hidden site.
+
+### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first — USER CONFIRMED VIII.11: traversal WORKS east-west, but the move-hint ARROW never shows across the seam (black tile, no arrow) — so the engine wraps and the CLIENT adjacency/hint math doesn't; the |dx|<=1-without-wrap suspicion is now the primary target, and A65's wrap-seam pathfind test gives the fixed reference behavior)
 
 The map wraps east-west (mapgen, rendering, neighbors()). The user
 believes units cannot walk OFF the east edge onto the west edge.
@@ -1960,23 +2005,20 @@ prose is ORIGINAL text (the license boundary applies: never wiki
 sentences). Cross-links (unit → its tech → its era). Also becomes
 the source for docs/13 Tier-2 Roblox help surfaces later.
 
-## A56 — Fast-forward needs a center-screen animation (user note 2026-07-15; DESIGN DISCUSSION PENDING)
+## A56 — Fast-forward animation: DECIDED (a) year counter (user 2026-07-15); (b) world-builds-itself = OPTIONAL LATER  [claimed: coder-helper 2026-07-15] [done(a): 2026-07-15 — client/ui/ff-overlay.js: a center-screen interstitial over the age fast-forward. Big year counter sweeping 4000 BC→start year (from fwd.state.year), era name fading through (eraNameForTurn walks rules.json ages, highest turn≤now), progress "turn i/N" — driven by the REAL sim from the same main.js slices that advance it, removed the instant history hands off (never delays). Honors reduceAnimation → a single plain progress line (no counter, no fades). Pure helpers (eraNameForTurn/formatYear) Node-tested (test/ff-overlay.test.js, 3 cases); overlay screenshot-verified both modes via a throwaway harness; the real age=modern boot reaches turn 305 clean. Golden-safe (client DOM+CSS only). Suite 254/254. (b) world-builds-itself stays OPTIONAL LATER per the item.]
 
 Starting in any age past Ancient leaves a 10–20s silent gap while
 the AI simulates history. The user wants a fitting center-screen
 animation — WHAT it is gets discussed later; candidates for that
 discussion:
-(a) a spinning YEAR COUNTER sweeping 4000 BC → the start year, era
-    names fading through ("Bronze Age… Classical…"), driven by the
-    real simulated turn (the ff is chunked — live progress exists);
-(b) the deluxe cut: the actual world BUILDING ITSELF — checkpoint
-    states rendered as history passes (the A47 replay-theater
-    machinery could drive this nearly verbatim);
-(c) minimal: progress bar + "the AI is playing N centuries of
-    history…" with a live turn count.
-All variants must show REAL progress (turn i of N), honor
-reduceAnimation (falls back to c), and never delay the hand-off.
-NOT QUEUED for build until the user picks the shape.
+BUILD (a): a center-screen YEAR COUNTER sweeping 4000 BC → the
+start year, era names fading through ("Bronze Age… Classical…"),
+driven by the REAL simulated turn (the ff is chunked — live
+progress exists); shows turn i of N; honors reduceAnimation
+(falls back to a plain progress line); never delays the hand-off.
+OPTIONAL LATER (user-noted): (b) the deluxe cut — the actual world
+BUILDING ITSELF, checkpoint states rendered as history passes via
+the A47 theater machinery. Queue (a) at the helper tail.
 
 ## A60 — AI cities get real names (A55.1 ACTIVATED + root-caused 2026-07-15; assigned: helper — WINDOW: opens when the B11 window closes, this one is a REAL re-record)
 
@@ -2005,6 +2047,202 @@ regent turns, fast-forward, Roblox):
    Civ 1's ~16 (data facts, cheap) — fewer "New Rome"s.
 USER-BLOCKING: the v0.5 README screenshot waits on this. Sequence:
 B11 window closes → A60's window opens (same day intended).
+
+## A67 — Art pass: tank + APC + the refined-models list (wave VIII.7 — ally loop)
+
+Tanks and mech. inf render as generic figures in PLAY (the user saw
+them; reconcile with A44's coverage-guard verdict — the guard proves
+a MAPPING exists, not that the mapping is worthy). Deliverables: a
+real tracked TANK silhouette and an APC for mech inf, then a review
+table of every unit whose current model is a generic figure vs one
+"closer to the unit it represents" — the user wants the list grown.
+Gallery re-shot; A48 visual goldens re-recorded (the process exists
+now); the ally gets the before/after per the acceptance loop.
+
+## A68 — Wave VIII UI bundle (items 8, 9, 10, 13, 16, 17-verify)
+
+1. (VIII.8) Unit status line must FLOW UP when the action bar wraps
+   to 2+ rows (settlers) — currently hidden behind the top row.
+2. (VIII.9) HUD tile readout gains the tile's IMPROVEMENTS (road/
+   rail/irrigation/mine/fortress); settler action bar GRAYS OUT
+   inapplicable improvements (already-exists, wrong terrain) instead
+   of letting the click bounce with an error.
+3. (VIII.10) Own-city map labels: current production + turns left
+   below the name pill.
+4. (VIII.13) Civil disorder is LOUD: red city outline + a revolt
+   icon on the map; inside the city view a red/dark-orange banner
+   "CIVIL DISORDER — no production".
+5. (VIII.16) Hovering a visible enemy unit shows unit type + civ.
+6. (VIII.17-verify) SHIP GoTo: A65's findPath is domain-aware via
+   injected canEnter, so sea routing over land should already be
+   fixed — ADD the ship unit test (route around a peninsula through
+   water; enter own coastal city) and confirm; if the greedy
+   FALLBACK still walks ships toward land, fix the fallback's
+   domain check. (The user played pre-A65 — likely already cured.)
+All golden-safe client work. Screenshots read per item.
+
+## A69 — Naval transport: ships carry land units (wave VIII.14 — MISSING Civ 1 mechanic, engine design)
+
+Ships with transport capacity load/unload land units; if the ship
+dies, its cargo dies with it. Design sketch (wiki verifies all
+numbers at build — the user's Frigate 2 / Transport 8 are opening
+values; Civ 1's real table incl. Trireme/Sail/Galleon rules):
+- Data: `transport: N` on ship units (units.json via overlay).
+- State: land units aboard get `aboard: <shipUnitId>` (string —
+  state-shape change); aboard units don't act, don't exert ZOC,
+  move WITH the ship, are hidden from combat except via the ship.
+- Commands: implicit load (move land unit onto the ship's tile /
+  ship at coast), unload (move from ship to adjacent land) — Civ 1
+  semantics, wiki-checked; sleep-aboard default.
+- Combat: ship sunk ⇒ every aboard unit destroyed (events narrate).
+- GOLDEN-AFFECTING + state shape: full window, both engines,
+  scenario fixtures FIRST (load/sail/unload; sink-with-cargo).
+- Unlocks M13 (cross-ocean expansion) for the AI later — AI usage
+  is its own batch after the mechanic exists for humans.
+
+## A70 — Auto-improve for human settlers (wave VIII.15)
+
+An "Auto" order on a settler: the CLIENT drives it each turn with
+the engine AI's own improve policy (the regent pattern — the
+policy picks, the client issues ordinary commands, replays record
+them; golden-safe by construction). Cancel on attack/manual order.
+UI: Auto badge + the order in the action bar. Depends on B11's
+policy factoring (the callable it creates is exactly what this
+consumes) — queue after B11 lands.
+
+## A75 — World ages: the definition, the change event, and the historian's report (user design session 2026-07-15)
+
+THE DEFINITION (user's proposal, adopted — one mechanism family
+with A66's barbarians): the world's CURRENT AGE is derived —
+`worldAge(state, ruleset)` = the highest age whose TRIGGER TECHS
+are known by ≥ 30% of alive civs (threshold shares
+rules.json `barbTierThreshold`'s pattern; trigger techs per age
+come from the existing TECH_ERAS mapping in techs.json — ages were
+previously only STARTING options keyed by turn; this makes them a
+live world property). Derived from state = no state change,
+deterministic, Luau-free.
+THE EVENT: when worldAge advances at a turn wrap, an `ageChanged`
+event (transient, not hashed — golden-safe) fires world-news to
+every seat (B5 filter class: world news).
+THE HISTORIAN'S REPORT (user: "global statistics every change of
+age"): the client shows an interstitial on ageChanged — "The world
+enters the Industrial Age" + a compact global standings snapshot
+(per-civ score/cities/techs/pop ranking AT THAT MOMENT, rendered
+from the same engine components as A73's end screen; fog-safe:
+scores are public like the score line today). Dismissable, logged
+in the turn log, replay theater shows them at the right moments
+for free (events ride the feed).
+
+## A73-STATS — the statistics page content (designed with the user 2026-07-15)
+
+The end screen's "View statistics" opens:
+1. **Time-series charts per civ** — score, cities, population,
+   techs OVER THE GAME: derived by a fast sandbox replay of the
+   recording collecting a snapshot per round (the A47 theater
+   machinery at max apply-throttle, render-free — measured cost is
+   seconds). Lines colored by civ, dead civs end at their death
+   turn.
+2. **Battles**: won/lost per civ (from combat events in the log).
+3. **Wonders timeline**: who built what, when.
+4. **Age markers**: A75's ageChanged moments as vertical lines on
+   the charts (the historian's reports, revisitable).
+5. The final M-column snapshot (cities founded, improvements,
+   exploration %) once A64's telemetry helpers exist client-side.
+Golden-safe throughout (reads recording + events).
+
+## A74 — Replay theater polish (wave VIII.23-24; small, helper)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — (1) label "tempo"→"Replay speed"; (2) ⏮ Start button re-seeds the sandbox from turn 0 via a shared restart() (re-invoke of the existing initialState rebuild — resets state/idx/acc/feed/verified verdict; the ⏵-at-end path now routes through it too); (3) theater is now a flex column so #replay-feed is flex:1/min-height:0 full-height-minus-bar instead of the old top:52/bottom:16 absolute box. Golden-safe (client DOM+CSS only, no engine/renderer change). Screenshot read (e2e=9&e2eopen=1): label, ⏮ button, and full-height feed all render; feed shows real majors + "replay verified". Suite 251/251.]
+
+1. Rename "tempo" → **"Replay speed"** (label only).
+2. **⏮ back-to-start** button (re-seeds the sandbox from turn 0 —
+   the machinery already rebuilds from initialState, this is a
+   re-invoke, not new plumbing).
+3. The theater's event feed (left side) uses the FULL vertical
+   height minus the Play + Replay-speed controls — currently it
+   under-uses the column.
+Golden-safe, screenshots read.
+
+## A73 — End-game scoreboard: who won, WHY, and by how much (user request 2026-07-15, after the Mongols surprise)
+
+The game ends and the winner banner explains nothing — the user
+lost to a score victory at 2100 AD and rightly asked "how?!". A
+full-screen END SCREEN on gameOver:
+1. **The headline: the victory REASON in plain words** — "Score
+   victory: the year 2100 arrived and the Mongols had the greatest
+   civilization" / "Conquest: only the Romans remain" / defeat
+   variants. The reason comes from the gameOver event (checkGameEnd
+   knows it; carry it in the event payload if it doesn't already).
+2. **The standings table**: every civ (dead ones grayed with their
+   end turn), final SCORE with the BREAKDOWN by component exactly as
+   engine/score.js computes it (population/cities/techs/wonders —
+   render the real components from the engine's arithmetic, never a
+   parallel formula), plus the M-column flavor stats we already
+   track (cities founded, techs, wonders built).
+3. **Buttons**: ⏵ Watch the replay (A47's theater — the natural
+   pairing), **View statistics** (VIII.24: a stats page — CONTENT
+   TBD with the user; candidates: score/cities/techs per civ over
+   time charted from the recording's per-round data, battles
+   won/lost, wonders timeline — design discussion pending),
+   **Go to lobby** (VIII.25, LAN games: the server opens a FRESH
+   lobby pre-seated with the same connected players — same host,
+   names carried, civ picks reset to Random unless re-picked;
+   disconnected players get open seats; anyone may leave via the
+   existing flow; the rematch lobby is a NEW gameId/registry entry,
+   the finished game stays resumable/replayable), New game (local),
+   Load.
+4. Spectators + LAN: everyone sees the same scoreboard (scores are
+   world-public at gameOver; fullLog is already gameOver-gated).
+5. Roblox: docs/13 Tier-4 gains the same screen (view-derived).
+Golden-safe (render + event payload; if checkGameEnd's event gains
+a reason field that IS an engine change — fixture-first, both
+engines, but hash-neutral if events aren't hashed — verify: events
+are transient, not state → truly golden-safe).
+
+## A72 — AIR MOVEMENT + fuel: the whole air force is grounded (wave VIII.22 root-caused — a missing subsystem)
+
+ROOT CAUSE (architect): movement.js:66 rejects any tile whose
+terrain domain ≠ the unit's domain — and no terrain is domain
+'air', so fighters, bombers, AND the nuclear missile cannot move AT
+ALL (the user found it via the nuke; data says moves 16, the engine
+says no). Design (Civ 1 rules, wiki verifies specifics):
+1. Air units enter ANY tile (fly over land + sea); combat per Civ 1
+   air rules (attack ground targets; interception later?).
+2. FUEL: air units must END the game-turn in a city or on a carrier
+   (or airbase if ever added) — Civ 1: fighter = 1 turn aloft,
+   bomber = 2 (wiki authoritative); out of fuel elsewhere → crashes,
+   destroyed with a turn-log line. State: a fuel/aloft counter on
+   air units when airborne (state-shape change).
+3. Nuclear = one-shot air (Civ 1): moves city-to-city, attacks once
+   and is consumed; crash rules apply.
+4. Carrier capacity = the A69 transport machinery with domain air —
+   design the aboard mechanism ONCE for both (A69 first, this
+   consumes it).
+GOLDEN-AFFECTING + state shape: fixtures first, both engines, full
+window. Sequenced after A69's aboard machinery lands.
+
+### B17 — Improvement-terrain matching: audit vs the wiki (wave VIII.21; likely working-as-Civ1, verify)
+
+The engine already runs Civ 1's TRANSFORM model (improvements.js:
+irrigate/mine on terrains with no bonus TRANSFORM the terrain —
+mine-on-grassland plants forest, per data/terrain.json). The user
+expects hard matching (mines only on hills/mountains/desert…) —
+AUDIT: (1) terrain.json's irrigate/mine/transform table cell-by-cell
+vs the wiki extract; (2) the on-map MARKER rendering (does a
+transform ever leave a stray mine marker on the wrong terrain?);
+(3) whatever the truth is, A68's settler gray-out reads THIS table
+so UI and engine agree. Outcome: fixes if the table drifts from
+Civ 1, or a docs/01 §11 note that transforms ARE the Civ 1 behavior
+(+ tell the user which).
+
+## A71 — Special-units audit (wave VIII.20 — architect + wiki first)
+
+Walk EVERY non-plain unit through the wiki extract and rule:
+correct / missing behavior / add-remove bonus. Known suspects:
+catapult-vs-walls interactions, battleship's role, nuclear missile
+(Civ 1 nukes!), submarine (invisibility rules!), carrier (air
+capacity), diplomat + caravan (do they exist AT ALL in our 28?),
+fighter/bomber fuel rules. Output: a table in docs/01 §11 (have /
+missing / decision per unit) that becomes the next engine-feature
+queue. Architect audits; items cut from the verdicts.
 
 ## A66 — Barbarians era-scale, then become REBELS (wave VIII.6 — design; rides the A63/B13 window family)
 
@@ -2117,6 +2355,13 @@ build time, never from memory).
    at Gunpowder (rebuild for the musket era) and again at
    Combustion; the user asked for clarification and this is the
    proposal — wiki extract decides, user confirms the final table.
+   EXTENDED (VIII.12, user): the table covers ALL obsoletable
+   buildings (city walls included if Civ 1 says so) AND wonder
+   EXPIRY (Civ 1 wonders expire on specific techs — e.g. the
+   classic Colossus/Oracle expirations; the wiki extract carries
+   the full expiry column). No user input needed: wiki is the
+   authority, the user gets the editorial pass on the final table
+   exactly like the leader names.
    GOLDEN-AFFECTING (state change on tech discovery).
 3. **Field upgrades for gold** (item 4, Civ4-style): an
    `upgradeUnit` command — a unit standing IN AN OWNED CITY may

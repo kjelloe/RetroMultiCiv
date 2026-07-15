@@ -625,12 +625,12 @@ html, body {
 #replay-theater {
   position: absolute;
   inset: 0;
+  display: flex;
+  flex-direction: column;
   pointer-events: none;
   z-index: 15;
 }
 #replay-bar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -646,9 +646,11 @@ html, body {
 }
 #replay-bar #replay-turn { margin-left: auto; color: #8fa3c0; }
 #replay-feed {
-  position: absolute;
-  left: 16px; top: 52px; bottom: 16px;
+  flex: 1;
+  min-height: 0; /* let the flex child shrink so its content scrolls */
+  align-self: flex-start;
   width: 320px;
+  margin: 8px 16px 16px;
   overflow-y: auto;
   background: rgba(8, 12, 20, 0.82);
   border: 1px solid #2a3a55;
@@ -661,6 +663,44 @@ html, body {
 .replay-line { padding: 1px 0; }
 .replay-line.has-loc { cursor: pointer; }
 .replay-line.has-loc:hover { color: #cdd8ea; }
+
+/* A56(a): fast-forward interstitial — the year counter over the AI history run */
+#ff-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(6, 9, 16, 0.72);
+  z-index: 20;
+  pointer-events: none;
+  text-align: center;
+}
+#ff-era {
+  font-size: 30px;
+  letter-spacing: 2px;
+  color: #d9c48a;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  min-height: 38px;
+}
+#ff-year {
+  font-size: 64px;
+  font-weight: 700;
+  color: #eaf1fb;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+#ff-progress { font-size: 14px; color: #8fa3c0; }
+#ff-overlay.ff-reduced #ff-era,
+#ff-overlay.ff-reduced #ff-year { display: none; }
+#ff-overlay.ff-reduced #ff-progress { font-size: 18px; color: #cdd8ea; }
+#ff-overlay.ff-failed #ff-progress { color: #ff9b8b; font-size: 16px; }
+.ff-fade { animation: ff-era-in 0.5s ease-out; }
+@keyframes ff-era-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* A40: the grayed "Auto Turn" state while a regent plays the seat */
 #end-turn.auto-turn {

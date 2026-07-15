@@ -402,6 +402,18 @@ least one mid-game disconnect/reconnect.
 **Acceptance:** identical state hashes for a full replayed game; a playable
 Roblox session with the ported engine.
 
+## Phase 6 — Diplomacy (DESIGNED 2026-07-15; docs/14)
+
+Designed with the user in one session: classic Civ 1 scope (war/
+peace treaties, leader audiences, tribute, tech exchange,
+embassies), reputation + the Civ 1 senate, and formal human
+treaties in LAN. Slices D1–D6 in docs/14; the acceptance test pays
+the phase-2 verdict's standing debt (diplomacy legibility).
+Prerequisite chain: A59 leader personalities → the B13/A63
+knowledge model → D1. Not started — the AI-quality program (metrics
+M1–M14) and the wave-VIII systems (naval transport, air movement,
+obsolescence) come first.
+
 ## Art & assets track (parallel — from `specs/plan-assets.md`)
 
 Runs alongside the gameplay phases, entirely behind the renderer interface

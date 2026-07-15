@@ -88,8 +88,9 @@ export function initReplay(ctx) {
     panel.id = 'replay-theater';
     panel.innerHTML = `
       <div id="replay-bar">
+        <button id="replay-restart" title="Back to start">⏮ Start</button>
         <button id="replay-playpause">⏸ Pause</button>
-        <label>tempo <input id="replay-tempo" type="range" min="1" max="50" value="4"> <span id="replay-tempo-n">4</span>/s</label>
+        <label>Replay speed <input id="replay-tempo" type="range" min="1" max="50" value="4"> <span id="replay-tempo-n">4</span>/s</label>
         <span id="replay-turn"></span>
         <button id="replay-close">✕ Close</button>
       </div>
@@ -155,12 +156,25 @@ export function initReplay(ctx) {
       requestAnimationFrame(loop);
     }
 
+    // re-seed the sandbox from turn 0 — the machinery already rebuilds from
+    // initialState, so this is a re-invoke, not new plumbing (⏮ + auto-loop)
+    function restart() {
+      state = deepClone(rec.initialState);
+      idx = 0;
+      acc = 0; last = performance.now();
+      feed.textContent = '';
+      playing = true;
+      panel.querySelector('#replay-playpause').textContent = '⏸ Pause';
+      delete panel.dataset.verified;
+      renderer.setViewState(omniscient(state));
+      turnLabel.textContent = `turn ${state.turn}`;
+    }
+
+    panel.querySelector('#replay-restart').addEventListener('click', restart);
     panel.querySelector('#replay-playpause').addEventListener('click', e => {
+      if (idx >= rec.log.length) { restart(); return; } // ⏵ at the end replays
       playing = !playing;
       e.target.textContent = playing ? '⏸ Pause' : '⏵ Play';
-      if (playing && idx >= rec.log.length) { // replay from the top
-        state = deepClone(rec.initialState); idx = 0; feed.textContent = '';
-      }
     });
     const tempoEl = panel.querySelector('#replay-tempo');
     tempoEl.addEventListener('input', () => {

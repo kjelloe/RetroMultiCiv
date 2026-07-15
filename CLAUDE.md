@@ -21,8 +21,12 @@ agent's spawn-ready role spec: measurement executor, zero write
 footprint — spawns when phase-5 parity gates need offloading),
 `12-global-host.md` (public hosting, both roles: games run ON the
 user's VM, plus a QuakeWorld-style master index where self-hosted
-servers announce themselves; A50 hardening + A51 master — both gated
-on the user scheduling DNS).
+servers announce themselves; A51 gated on the user scheduling DNS),
+`13-roblox-ui-parity.md` (the Roblox client roadmap: every browser
+UI element's Roblox shape, in tiers), `14-phase6-diplomacy.md`
+(phase-6 design: Civ 1-scope treaties, audiences, reputation +
+senate, human treaties in LAN — slices D1–D6; A59 is the
+prerequisite).
 
 ## Hard rules
 

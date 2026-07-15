@@ -130,6 +130,48 @@ test('AI stance science: prefers science rates when disorder-free', async () => 
   assert.ok(science.players.p1.sciRate > 50, `science raises the science rate (got ${science.players.p1.sciRate})`);
 });
 
+// B11: the regent path (client playSeatLogged) and the AI round share ONE
+// policy — pickCommand — and it never reads players[pid].human. Pin that a
+// human:true seat gets the identical full empire policy (research, production,
+// improvements), so "the regent skips the empire" can never regress into
+// truth: the whole command stream must match the AI seat's byte for byte.
+test('B11: a human seat (regency) gets the identical empire policy stream', async () => {
+  const { ai, engine } = await load();
+  const mk = (human) => grassState(14, 9,
+    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+      u2: { id: 'u2', type: 'settlers', owner: 'p1', x: 5, y: 4, moves: 1, fortified: false, veteran: false },
+      u3: { id: 'u3', type: 'settlers', owner: 'p1', x: 6, y: 4, moves: 1, fortified: false, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' }, workers: [0, 1] } },
+    { players: { p1: { id: 'p1', name: 'A', color: '#00f', human, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  // three turns: the improver settler first WALKS to its job tile, then
+  // startWork lands on a later turn — same shape either seat
+  const stream = (human) => {
+    let state = mk(human);
+    const cmds = [];
+    for (let round = 0; round < 3; round++) {
+      const done = {};
+      let guard = 100;
+      while (guard-- > 0) {
+        const cmd = ai.pickCommand(state, 'p1', RULESET, done);
+        if (!cmd) break;
+        const res = engine.applyCommand(state, cmd);
+        if (res.ok) state = res.state;
+        cmds.push(cmd);
+      }
+      let res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
+      if (res.ok) state = res.state;
+      res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p2' });
+      if (res.ok) state = res.state;
+    }
+    return cmds;
+  };
+  const aiSeat = stream(false);
+  const regentSeat = stream(true);
+  assert.deepStrictEqual(regentSeat, aiSeat, 'the seat flag must not change the policy');
+  assert.ok(aiSeat.some(c => c.type === 'setResearch'), 'idle research gets a pick');
+  assert.ok(aiSeat.some(c => c.type === 'startWork'), 'the improver settler starts work');
+});
+
 test('a full AI-vs-AI game is deterministic and reaches an end', async () => {
   const { ai, engine, hashState } = await load();
   const play = () => {

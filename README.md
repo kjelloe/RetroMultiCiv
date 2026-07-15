@@ -6,7 +6,7 @@ deterministic simulation engine, architected for a mechanical
 module-by-module port to Roblox Luau. "Multi" as in multiplayer — and
 multiple implementations.
 
-![Early-game world under fog of war: settlers on a revealed patch of terrain](docs/screenshot.png)
+![Late-game world at 1958 AD: cities with population badges, roads, units on patrol, the unit-stack panel and action bar](docs/screenshot.png)
 
 - Browser client: three.js low-poly renderer (flat tile boxes + raycast picking) behind a renderer interface — three pinned to r162 so WebGL1-only browsers still render
 - Backend: Node.js (minimal deps), authoritative from phase 3
@@ -19,7 +19,7 @@ multiple implementations.
 |---|---|
 | [docs/01-game-spec.md](docs/01-game-spec.md) | Game rules: map, cities, units, combat, full Civ 1 tech tree, wonders, governments, AI, victory |
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
-| [docs/03-roadmap.md](docs/03-roadmap.md) | Five development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port |
+| [docs/03-roadmap.md](docs/03-roadmap.md) | The development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port (all complete) → diplomacy (designed) |
 | [docs/04-phase1-enrichments.md](docs/04-phase1-enrichments.md) | Designs for the remaining Civ 1 systems (happiness, governments, transforms, goody huts…) with state shapes and hash-impact notes |
 | [docs/05-simulation-test.md](docs/05-simulation-test.md) | The headless all-AI simulation harness: chaos injection, invariants, golden checkpoint hashes |
 | [docs/06-phase3-server.md](docs/06-phase3-server.md) | Authoritative server: protocol, seats, tokens, per-player views, persistence |
@@ -28,6 +28,7 @@ multiple implementations.
 | [docs/09-phase5-luau.md](docs/09-phase5-luau.md) | The Luau port: trap ledger, port order and gates, cross-language verification contract |
 | [docs/12-global-host.md](docs/12-global-host.md) | Public hosting design: hosted games + a QuakeWorld-style master index (future) |
 | [docs/13-roblox-ui-parity.md](docs/13-roblox-ui-parity.md) | The Roblox client roadmap: every browser UI element's Roblox representation, in tiers |
+| [docs/14-phase6-diplomacy.md](docs/14-phase6-diplomacy.md) | Phase 6 design: Civ 1-scale treaties, leader audiences, reputation + senate, human treaties in LAN |
 | [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan, plan feedback rounds) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
@@ -85,6 +86,8 @@ itself — combat odds with the multiplier breakdown, city-site ratings,
 per-item build times and unlock reasons, a narrated turn log, map
 overlays (city influence, forces) — in an original low-poly art style
 with animated flags, gliding units, and a living title-screen diorama.
+
+![City view at pop 10: yields, worked-tile assignment grid, the full production catalog, rush-buy — and a civil-disorder warning demanding attention](docs/screenshot-cityview.png)
 
 **Multiplayer, accepted for real.** Hotseat behind an opaque hand-off
 screen; or host a LAN game with `./run.sh` (or `run.ps1`) — friends

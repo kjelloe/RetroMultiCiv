@@ -20,6 +20,7 @@ import { initReplay } from './ui/replay.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
+import { createFfOverlay } from './ui/ff-overlay.js';
 
 const hudStatus = document.getElementById('hud-status');
 
@@ -201,21 +202,28 @@ if (serverParam) {
     const humanSeats = [];
     for (let i = 0; i < humans; i++) humanSeats.push('p' + (i + 1));
     const fwd = createFastForward(ruleset, initialState, { humanSeats });
+    // A56(a): a center-screen year counter sweeping 4000 BC → the start year,
+    // era names fading through, driven by the REAL simulated turn; honors
+    // reduceAnimation; removed the instant history hands off (never delays it).
+    // ctx.options isn't wired yet at bootstrap, so read the flag from storage.
+    let ffReduce = false;
+    try { ffReduce = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
+    const ffOverlay = createFfOverlay({ reduceAnimation: ffReduce, ages: ruleset.rules.ages || [] });
     let r = { done: false };
     while (!r.done) {
       r = fwd.step(5, age.turn); // 5 rounds per slice keeps the tab responsive
-      hudStatus.textContent = `⏳ simulating history… turn ${fwd.turn}/${age.turn}`;
+      ffOverlay.update(fwd.turn, age.turn, fwd.state.year);
       await new Promise(resolve => setTimeout(resolve, 0));
     }
     if (fwd.aborted) {
       // deterministic UX: name the casualty, never silently re-roll seeds
       const a = fwd.aborted;
-      hudStatus.style.color = '#ff7b6b';
-      hudStatus.textContent = a.reason === 'civEliminated'
+      ffOverlay.fail(a.reason === 'civEliminated'
         ? `✗ ${a.name} was destroyed before the ${age.name} — try another seed, age, or civilization`
-        : `✗ history ended early (${a.reason}) — try another seed or an earlier age`;
+        : `✗ history ended early (${a.reason}) — try another seed or an earlier age`);
       throw new Error('setup'); // stop the bootstrap; the message stays
     }
+    ffOverlay.remove();
     initialState = fwd.state;
     applyAgeGrant(initialState, age, ruleset);
     for (const pid of humanSeats) initialState.players[pid].human = true;

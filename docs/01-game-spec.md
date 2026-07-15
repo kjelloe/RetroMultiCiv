@@ -436,6 +436,26 @@ below is a known, deliberate deviation to be closed in a later slice:
   civ died during the fast-forward. Not a Civ 1 feature — a deliberate
   quality-of-life addition.
 
+### Known missing Civ 1 systems (the wave-VIII audit, 2026-07-15 — all queued)
+
+Named honestly after the user's deep late-game playtest, all with
+designed items in agent-workitems:
+- **Air movement does not exist** (A72): movement rejects any tile
+  whose terrain domain ≠ the unit's, and no terrain is 'air' —
+  fighters, bombers, and the nuclear missile are all buildable and
+  immobile. Full fly-anywhere + Civ 1 fuel/crash rules designed.
+- **Naval transport does not exist** (A69): no ship carries land
+  units; cross-ocean settlement/invasion is impossible for everyone.
+- **Obsolescence does not exist** (A63): nothing ever leaves the
+  production catalog; the AI happily builds phalanxes with 67 techs.
+  Units-obsolete + building auto-sell + wonder expiry + field
+  upgrades (with Leonardo's Workshop finally gaining its effect).
+- **Barbarians never era-scale** (A66): militia forever; the tier
+  system + the REBELS rename are designed.
+- **Special-unit behaviors unaudited** (A71): submarine
+  invisibility, carrier capacity, catapult-vs-walls etc. — audit
+  pending; Diplomat/Caravan remain out of scope (§12).
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &
