@@ -466,10 +466,36 @@ human seat + AI opponents); multiplayer seats/regency are R5+.
    visible in the shot).
 Lane: roblox/ exclusive as ever; luau/ consumed read-only.
 
-R5+ (multiplayer seats, DataStore persistence, regency, the full
-action surface) arrive from the architect after R4's acceptance.
-Also still banked: nothing — both R3-era notes are folded into the
-item above.
+### R5 — Playable-depth pass: city view, unit possession, fog verification (assigned: roblox-helper 2026-07-15)
+
+R4's acceptance is PASSED (run1.txt: all 98 command hashes match,
+game code agrees, pre-registered boot hash hit). R5 makes the Studio
+game worth playing longer, per the user's own playtest asks:
+1. **City view + production picker** (his first friction: waiting on
+   default builds): click own city → panel with population, yields,
+   current build + the production list (from the FILTERED view's
+   city data; the browser catalog rules apply — buildable shown,
+   tech-locked greyed). setProduction + buy as RemoteEvent commands
+   through the same dispatcher path.
+2. **Morph-into-unit avatar mode** (his idea, the most Roblox-native
+   of the phase): "possess" a selected unit — avatar rides it, WASD
+   steps it one tile per press (engine move commands, ALL rules
+   apply — no free movement), N jumps to next unit, Esc/F releases
+   to free cam (R4's follow-avatar machinery reused).
+3. **StreamingEnabled fog verification** (R4's open suspect, pinned
+   false in project.json): a fresh run must show NO fog
+   glitch-in/out; report the verdict either way.
+4. **R5+ SCOPING ONLY, no build**: one paragraph each in the
+   done-mail on (a) multiplayer seats (UserId→seat exists; what 2+
+   players in one server still needs) and (b) persistence (DataStore
+   vs the envelope pattern). These become R6 with the architect.
+Acceptance: a second recorded run (run2.txt) INCLUDING production
+changes + possessed-unit moves, replayed hash-exact both engines
+(the R4 bar is the standing bar now); screenshots READ (city panel,
+possession cam); check.sh green; anchors re-printed.
+
+Also still banked: nothing — both R3-era notes are folded into R4
+above.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
@@ -1640,7 +1666,7 @@ Small bundle, one claim:
    the phase-6/VI.11 design when written.
 Golden-safe. Suite + screenshots as usual.
 
-## A53 — Setup-screen polish: two-column form (user request 2026-07-15; SMALL — slot right after A40-s2)
+## A53 — Setup-screen polish: two-column form (user request 2026-07-15; SMALL — slot right after A40-s2)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — #setup-box label = grid(1fr max-content), text right-aligned vs control column; shared 210px control width (checkboxes exempt), justify-self start = clean right edge; fixed min-height on specialty/age/civs hints = no jump on civ/age switch; combat "(fewer upsets)" → title tooltip (both options). Panel centered, buttons unchanged, splash diorama layering intact (verified ?splash=1). Shots read plain + splash. Pure presentation, suite 236/236.]
 
 The user's spec:
 1. **Two columns**: labels/text left, controls (dropdowns/inputs)

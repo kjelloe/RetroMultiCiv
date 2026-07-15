@@ -34,6 +34,10 @@ the Done log at the bottom.
     feel fair? (soak median is now 18 AI cities; expect real pressure).
   - [ ] Resume-from-save via the lobby (A34, once reviewed): pick a
     save in the host flow, everyone rejoins, game code matches.
+  - [ ] **Regency hand-off** (A40-s2): hand your seat to the 🤖
+    mid-LAN-game, watch it play a few turns (others keep playing
+    normally), take it back — feels clean? Then kill your browser
+    while the regent drives and rejoin: regency survived?
   - [ ] **Ally round-5 UX questions** (his priority 5 — the human
     feedback that matters now): is waiting/turn ownership obvious?
     does chat distract from game-critical status? does seat-code
@@ -62,6 +66,20 @@ the Done log at the bottom.
   only own/selected/hovered).
 
 ## Pending — decisions / ops
+
+- [ ] **R4 STUDIO ACCEPTANCE RUN (the fun one — play the game in
+  Roblox!)**: on the Roblox PC, 1) commit+push the roblox-helper's
+  R4 code and pull here (I review the code from this side); 2) open
+  the place in Studio, Play Solo — the Output must print
+  `[R4INIT] … 0x0ca5d97c` at boot (anything else = the first live
+  cross-language divergence, report it verbatim); 3) actually play:
+  move units (click-select, click-adjacent), found a city (B), end
+  turns (Return), F toggles follow-avatar — a decent handful of
+  turns; 4) copy the full Output log to the roblox-helper, who runs
+  `roblox/acceptance/assemble.js` — the verdict must be hash-exact
+  through BOTH engines + the game code must agree. That verdict is
+  phase 5's formal acceptance: a game PLAYED in Roblox, replayed
+  exactly in the browser engine.
 
 - [x] 2026-07-14 — **R3 click probe DONE, R3 ACCEPTED**: 30+ picks
   script-verified against mock-state, side-face and boundary cases

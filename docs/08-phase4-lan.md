@@ -135,21 +135,25 @@ banner "Your turn" on the broadcast is the only new client UX.
   item (A37, 2026-07-14). Mid-game kicks remain out of scope
   (AI-regency territory, §7).
 
-## 7. Later option (noted, not phase 4): AI regency
+## 7. AI regency — LANDED (A40 slice 2, 2026-07-15; stances = slice 1, pending the first post-port golden window)
 
 A human player hands control to the AI while away and re-takes it on
-return. The architecture makes this cheap and it must be built WITHOUT
-touching game state: `state.players[pid].human` stays `true` (no hash
-impact, no engine change) — regency is a SERVER seat property
-(`seats[pid].regent = true`). While set, the server's round loop calls
-`runAiTurn` for that seat instead of waiting for commands; clearing it
-(the returning player's `{t:"resume"}`) hands control back at their next
-turn. One real subtlety for the design to carry: the regent's AI
-commands must be recorded as `cmd` entries in the diagnostics log —
-replay's AI-drive only reconstructs commands for `human: false` players,
-so a regency period replays from the log, not from re-derivation. Toggle
-moments: explicit (player button), or host-granted for a disconnected
-player as a gentler alternative to skip-turn.
+return. Built exactly as designed, WITHOUT touching game state:
+`state.players[pid].human` stays `true` — regency lives in a PARALLEL
+map (`regents`, beside `seatCodes`; parallel maps are the house
+pattern for seat metadata), envelope-persisted so regency survives
+resume. The design's one real subtlety proved to be THE crux and
+held: regent turns log as individual `cmd` entries (thought by the
+REAL `engine/ai.js` pickCommand at play time) while AI chains stay
+derived `round` entries — replay re-applies regent commands verbatim
+and re-derives AI rounds, hash-exact by construction. The server's
+`driveRegents` YIELDS between turns (a solo regent would otherwise
+play to gameOver in one synchronous block — caught by its own first
+test). UI: 🤖 button by End Turn, five-stance dialog (Balanced
+preselected and the only stance ACTIVE until slice 1 ports the
+stance table into ai.js AND ai.luau together), grayed "Auto Turn"
+button state, instant take-back. Toggle: explicit player button
+(host-granted-for-disconnected remains a future option).
 
 ## 8. Scaling (A38 probe, 2026-07-14 — measured on the dev box, WSL2)
 

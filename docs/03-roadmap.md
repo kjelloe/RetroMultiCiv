@@ -372,9 +372,17 @@ least one mid-game disconnect/reconnect.
 > in one — and CONFIRMED CROSS-MACHINE (2026-07-15: the sim-runner
 > reproduced all four checkpoints + the natural golden bit-exact on
 > independent hardware; the port is proven across three machines and
-> two languages). Open: R4 only (GameServer over RemoteEvents —
-> claimed; acceptance = a game PLAYED in Studio whose command log
-> replays hash-exact through the Node engine).
+> two languages). **THE ACCEPTANCE TEST IS PASSED (2026-07-15): the
+> user played 36 turns in Roblox Studio — 98 commands, cities
+> founded, a combat lost — and every per-command hash matched both
+> engines (H_js(S_i)==H_Luau(S_i) for all i), the final game
+> verification code agreed, and the pre-registered boot hash
+> 0x0ca5d97c hit exactly** (artifact: roblox/acceptance/run1.txt;
+> independently replayed by the architect on the dev machine
+> 2026-07-15 — same verdict verbatim, exit 0: the phase-5 acceptance
+> is closed on every side). R5 (city view, unit possession, fog verification) is
+> the playable-depth pass; multiplayer seats and persistence get
+> scoped in its done-mail.
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port

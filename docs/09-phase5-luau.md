@@ -90,6 +90,15 @@ the one auth simplification the platform gives us for free).
 >   handlers never fire; POLL `IsMouseButtonPressed` + per-frame
 >   screen delta instead. Recorded here because docs/09 is the trap
 >   ledger; the full client note lives in roblox/SPEC.md.
+> - **Roblox CLIENT ray trap** (R4 acceptance playtest):
+>   `ViewportPointToRay` with `UserInputService` coordinates is off
+>   by the GUI inset (~36px vertical — most of a tile at shallow
+>   camera angles); use `ScreenPointToRay` with UIS coords (or
+>   inset-correct explicitly). Symptom: clicks select the tile
+>   BEHIND the intended one, worse the flatter the camera. Also from
+>   the same run: template Baseplates sit at y=0 and bury below-zero
+>   world geometry (destroy at boot), and `StreamingEnabled` is a
+>   fog-flicker suspect (pin false for authoritative-view games).
 
 > **P5-5 addition (2026-07-14, cities/tech/happiness batch — the
 > subtle one):**

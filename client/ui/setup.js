@@ -49,8 +49,8 @@ export function showSetupScreen() {
       </label>
       <label>Combat calculations
         <select id="setup-combat">
-          <option value="authentic">Authentic Civ 1 (one roll)</option>
-          <option value="bestof3" selected>Best-of-three (fewer upsets)</option>
+          <option value="authentic" title="one dice roll, like the 1991 original">Authentic Civ 1</option>
+          <option value="bestof3" selected title="best-of-three: fewer heartbreaking upsets">Best-of-three</option>
         </select>
       </label>
       <label>Starting age

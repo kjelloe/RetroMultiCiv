@@ -919,22 +919,38 @@ html, body {
   max-width: 340px;
 }
 
+/* A53: two-column form — label text right-aligned in the left column, the
+   control in a fixed-width right column so the rows scan as a clean grid.
+   The panel stays centered at its width; the splash diorama layering is
+   untouched. */
 #setup-box label {
-  display: block;
-  margin: 10px 0;
+  display: grid;
+  grid-template-columns: 1fr max-content;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  text-align: right;
 }
 
 #setup-box select, #setup-box input {
-  margin-left: 8px;
   background: #16233a;
   border: 1px solid #3b5d8f;
   border-radius: 4px;
   color: #cdd8ea;
   font-family: inherit;
   padding: 4px 8px;
+  width: 210px; /* A53: one shared control width — no ragged right edge */
+  box-sizing: border-box;
+  justify-self: start;
 }
+#setup-box input[type="checkbox"] { width: auto; } /* A53: not the shared width */
 
-#setup-box input { width: 110px; }
+/* A53: the civ/age hint lines reserve their height even when empty, so
+   switching civilization or starting age never makes the panel jump */
+#setup-specialty, #setup-age-hint, #setup-civs-hint {
+  min-height: 1.2em;
+  margin: 2px 0;
+}
 
 #setup-start, #handoff-go {
   margin-top: 14px;
