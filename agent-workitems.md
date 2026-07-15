@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 290 tests), the item's own verification steps pass, related
+   (currently 295 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -477,6 +477,28 @@ One golden window for the pair (movement legality changes AI paths),
 both engines one claim, scenario 013-zoc pins both behaviors
 (city-ZOC blocks; diplomat walks through). Queue: with the
 B13/A63 window family, or standalone when the bugfixer frees.
+
+[done: bugfixer 2026-07-16 — landed standalone (claim @af772f20).
+BOTH engines, one claim: engine/movement.js inEnemyZoc now scans
+enemy CITIES too (Object.keys(state.cities), order-independent
+boolean, symmetric with the unit scan — no cityOrder dependency),
+and moveUnit skips the ZOC check when the moving unit's type has
+ignoresZoc; luau/movement.luau byte-shaped twin. FLAG: authored via
+a new UNIT_OVERLAY in tools/mapdata.js (mirrors BUILDING/WONDER
+overlays) → ignoresZoc:true on diplomat/caravan/nuclear, units.json
+regenerated (clean +3-boolean diff, verified vs a no-op regen).
+scenario 013-zoc.json pins BOTH behaviors, final.hash 0xcb7e13e6,
+in PORTED — Luau reproduces it + its setup hash; data checksums
+self-recompute with the new units.json (both sides). GOLDEN
+OUTCOME: the sim goldens did NOT move — the AI marches onto enemy
+cities to capture (never laterally between two city-adjacent tiles)
+and builds no ignoresZoc units, so no re-record; turn-100 twin held.
+test/zoc.test.js: direct engine block/pass + the three-unit flag
+coverage incl. nuclear (air unit, can't be shown in a land scenario).
+Red-first: scenario step 0 + zoc test failed pre-change; revert-proof
+both hunks (city-scan and ignoresZoc guard) independently red. Full
+suite 295/295, twins gate green under lune. The ignoresZoc flag now
+also serves A71 (diplomat) and A72 (nuclear) per the item.]
 
 ### B19 — River fidelity trio from B17's wiki audit (engine legality; one window when picked up)
 
@@ -2480,6 +2502,10 @@ One-line default change + the A42 test's flag case updates. The
 zero-cost-return-visit property is retired deliberately.
 
 ## A63 — Obsolescence & upgrades bundle (wave VIII items 2–4 — DESIGN; golden-affecting parts staged)
+
+**[A63 DATA-HALF: recon done (helper @a1ffc956), RULED by architect @4cfe6d31 — extraction queued as a fresh focused pass, pacing granted; B13's window waits on quality not the clock.]** Findings: the wikiteam dump is MULTI-GAME (Civ1-7) — Civ1 must be isolated by "(Civ1)" tags; the item's proposed chains were partly Civ2. RULINGS: (a) UNITS — author the WIKI-AUTHENTIC per-successor Civ1 chains ("[Successor] renders X,Y,Z obsolete", stated in the successor's article; e.g. Riflemen[def5/cost30/Conscription] obsoletes Cavalry/Legion/Musketeer), DISCARD the item's proposed militia→musketeers→riflemen where it diverges. (b) BUILDINGS — tech-triggered auto-sell MOVED OUT to the Civ2-rules-mode shelf (not Civ1-authentic); A63's Civ1 default keeps only wiki-supported obsolescence. (c) GREAT WALL obsoletes-barracks — model as a WONDER EFFECT (obsoletesBuilding field), the one authentic Civ1 building obsolescence. (d) WONDER expiry — already extracted (wonders.json obsoleteBy, 11/21 from the "Made obsolete by" column); verify completeness. PLAN: per-Civ1-article extraction of successor→obsoletes, naming-drift to slugs, obsoletedBy overlays in tools/mapdata.js, regenerate, goldens byte-identical + data-checksum parity (engine-unconsumed until B13 = golden-neutral), paste the table for the user's editorial pass.
+
+
 
 Three features, one substrate: an `obsoletedBy` chain in the unit
 (and building) data, authored via tools/mapdata.js overlays from

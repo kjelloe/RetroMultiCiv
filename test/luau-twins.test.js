@@ -43,7 +43,7 @@ test('luau twins: rng + statehash + gamecode reproduce the phase-5 anchors under
 // object until the engine ports land, same rule both sides). Plus one
 // deliberately MESSY save state — tidy scenario states won't find what
 // empty arrays, empty objects, and deep nesting will.
-test('luau json2lua: all ten scenario setups and a messy save hash equal in both languages',
+test('luau json2lua: every scenario setup and a messy save hash equal in both languages',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
     const fs = require('fs');
     const os = require('os');
@@ -103,7 +103,7 @@ test('luau json2lua: all ten scenario setups and a messy save hash equal in both
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 10, 'the ten scenarios');
+      assert.strictEqual(files.length, 11, 'the eleven scenarios (013-zoc added in B18)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);

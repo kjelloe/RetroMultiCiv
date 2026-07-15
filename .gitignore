@@ -39,3 +39,4 @@ __pycache__/
 
 # Roblox test images
 roblox/*.png
+roblox/*.rbxl.lock
