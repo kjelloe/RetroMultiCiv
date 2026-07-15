@@ -20,18 +20,27 @@ export function stepDir(map, unit, x, y) {
   return key === undefined ? null : key;
 }
 
-// true iff the hover should show the move arrow: adjacent, moves left,
-// domain admits the unit, and no enemy on the tile (that is the attack ring)
-export function canStepTo(state, unit, x, y, ruleset) {
-  if (!unit || unit.moves <= 0) return false;
-  if (stepDir(state.map, unit, x, y) === null) return false;
-  if (y < 0 || y >= state.map.height) return false;
+// A65: can a unit of this type ENTER tile (x,y) at all? — the tile-entry
+// legality shared by the affordance and the GoTo pathfinder (shared/
+// pathfind.js): known (not fog), domain match, no enemy. Position- and
+// moves-INDEPENDENT (a path plans through tiles the unit isn't adjacent to,
+// and across turns when moves are spent), so canStepTo layers those on top.
+export function tileEnterable(state, unit, x, y, ruleset) {
+  if (x < 0 || x >= state.map.width || y < 0 || y >= state.map.height) return false;
   const tile = state.map.tiles[y * state.map.width + x];
-  if (tile === undefined || tile.t === 'unknown') return false;
+  if (tile === undefined || tile.t === 'unknown') return false; // fog is the law
   const terrain = ruleset.terrain.terrains[tile.t];
   if (terrain === undefined || terrain.domain !== ruleset.units[unit.type].domain) return false;
   for (const u of unitsAt(state, x, y)) {
     if (u.owner !== unit.owner) return false; // enemy tile = the red attack ring
   }
   return true;
+}
+
+// true iff the hover should show the move arrow: adjacent, moves left, and
+// the tile is enterable (domain / fog / enemy — via tileEnterable above)
+export function canStepTo(state, unit, x, y, ruleset) {
+  if (!unit || unit.moves <= 0) return false;
+  if (stepDir(state.map, unit, x, y) === null) return false;
+  return tileEnterable(state, unit, x, y, ruleset);
 }

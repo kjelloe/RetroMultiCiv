@@ -27,6 +27,10 @@ done
 
 bash debugging/killport.sh "$PORT" >/dev/null 2>&1
 if [ "$MODE" = node ]; then
+  # A61: the node server is hardened-by-default (client/engine/shared/data
+  # only). A /debugging/ URL (gallery over --server) needs --debug's
+  # whole-repo serving — add it automatically so shots keep working.
+  case "$URLPATH" in /debugging/*) SRVARGS="$SRVARGS --debug" ;; esac
   # shellcheck disable=SC2086
   node server/index.js --port "$PORT" --no-save $SRVARGS >/tmp/multiciv-shoot.log 2>&1 &
   SRV=$!

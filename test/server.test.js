@@ -345,3 +345,45 @@ test('server: static hosting serves the client files', async () => {
     await s.close();
   }
 });
+
+test('A61 hardened-by-default: saves + debugging are OFF the wire; --debug restores them', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const { startServer } = await import('../server/index.js');
+  // a REAL save with a seat token on disk — it must be unreachable over HTTP
+  const savePath = path.join(__dirname, '..', 'saves', 'a61hard.json');
+  fs.mkdirSync(path.dirname(savePath), { recursive: true });
+  fs.writeFileSync(savePath, JSON.stringify({
+    format: 'retromulticiv-server-save', gameId: 'a61hard',
+    seats: { p1: 'SECRET-TOKEN-abc123' }, seatCodes: { p1: 'AAAA-BBBB' },
+    state: { turn: 1 }, diag: { initialState: {}, log: [] }
+  }));
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    // the four whitelisted roots serve
+    for (const p of ['/client/', '/data/rules.json', '/engine/ai.js', '/shared/statehash.js']) {
+      assert.strictEqual((await fetch(`http://127.0.0.1:${s.port}${p}`)).status, 200, `${p} serves`);
+    }
+    // the save is 404 — and its token/code NEVER travel
+    const saveRes = await fetch(`http://127.0.0.1:${s.port}/saves/a61hard.json`);
+    assert.strictEqual(saveRes.status, 404, 'saves/ is off the wire by default');
+    const saveBody = await saveRes.text();
+    assert.ok(!saveBody.includes('SECRET-TOKEN'), 'the seat token never travels');
+    assert.ok(!saveBody.includes('AAAA-BBBB'), 'the seat code never travels');
+    // debugging + gitignored-on-disk roots are 404 too
+    for (const p of ['/debugging/gallery.html', '/debugging/logs/x.json', '/ops/hosting-recipe.md', '/package.json']) {
+      assert.strictEqual((await fetch(`http://127.0.0.1:${s.port}${p}`)).status, 404, `${p} is blocked by default`);
+    }
+  } finally { await s.close(); }
+
+  // --debug restores whole-repo serving (the gallery needs it)
+  const dbg = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false, debug: true });
+  try {
+    assert.strictEqual((await fetch(`http://127.0.0.1:${dbg.port}/debugging/gallery.html`)).status, 200,
+      '--debug serves the gallery');
+    assert.strictEqual((await fetch(`http://127.0.0.1:${dbg.port}/client/`)).status, 200, '--debug still serves the client');
+  } finally {
+    await dbg.close();
+    fs.rmSync(savePath, { force: true });
+  }
+});

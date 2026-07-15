@@ -3,7 +3,8 @@ import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '
 import { candidateTiles, tileYields, wonderActive, citySpacingOk } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
 import { availableTechs } from '../../engine/tech.js';
-import { canStepTo, stepDir } from './move-hints.js';
+import { canStepTo, stepDir, tileEnterable } from './move-hints.js';
+import { findPath } from '../../shared/pathfind.js';
 
 const MOVE_KEYS = {
   w: 'N', ArrowUp: 'N',
@@ -401,12 +402,30 @@ export function initInput(ctx) {
     return dx > dy ? dx : dy;
   }
 
+  // A65: the injected legality the pathfinder plans with — the same
+  // tile-entry verdict the move affordance uses (domain / fog / enemy)
+  function planCanEnter(state, unit) {
+    return (x, y) => tileEnterable(state, unit, x, y, session.ruleset);
+  }
+
   async function gotoStep(unitId) {
     const state = session.state;
     const unit = state.units[unitId];
     const target = gotoTargets[unitId];
     if (!unit || !target) { delete gotoTargets[unitId]; return false; }
     if (unit.x === target.x && unit.y === target.y) { delete gotoTargets[unitId]; return false; }
+    // A65: least-cost route over roads/rails — replanned each step so fog
+    // lifting and terrain revise the path. The engine still validates every
+    // move; a fog/enemy target the planner can't reach falls back to greedy.
+    const planned = findPath(state, session.ruleset, unit, target, planCanEnter(state, unit));
+    if (planned && planned.points.length > 1) {
+      const next = planned.points[1];
+      const dir = stepDir(state.map, unit, next.x, next.y);
+      if (dir) {
+        const r = await session.apply({ type: 'moveUnit', playerId: state.activePlayer, unitId, dir });
+        if (r.ok) return true;
+      }
+    }
     const here = wrapDist(unit.x, unit.y, target.x, target.y);
     const options = Object.keys(GOTO_VEC).map(dir => {
       const v = GOTO_VEC[dir];
@@ -448,10 +467,13 @@ export function initInput(ctx) {
     }
   }
 
-  // the route a GoTo order INTENDS to take (same greedy rule as gotoStep,
-  // simulated without moving) — drawn over the map while the unit is selected
+  // the route a GoTo order INTENDS to take — drawn over the map while the
+  // unit is selected. A65: the cost-aware path when reachable (roads/rails
+  // preferred); the greedy simulation is the fog/enemy-target fallback.
   function gotoPreviewPath(unit, target) {
     const state = session.state;
+    const planned = findPath(state, session.ruleset, unit, target, planCanEnter(state, unit));
+    if (planned) return planned.points;
     const points = [{ x: unit.x, y: unit.y }];
     let cx = unit.x, cy = unit.y, guard = 120;
     while ((cx !== target.x || cy !== target.y) && guard-- > 0) {

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 245 tests), the item's own verification steps pass, related
+   (currently 251 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -422,6 +422,29 @@ ARCHITECT PRE-TRIAGE (recording
 Verification: a local game, enable regent 3+ turns → research
 progresses, production changes, improvements started, log narrates;
 take back → full manual control, no auto-end. Suite + goldens green.
+
+### B13 — Late-era AI stagnation: phalanx spam, zero rails, sparse improvements (wave VIII bug 0; assigned: bugfixer, AFTER B11 — same ai.js territory, window discipline)
+
+ARCHITECT PRE-TRIAGE (recording replays exact — 0 commands, the ff
+result IS the initial state; numbers from it):
+- turn 325, ALL 67 techs granted, yet: p2 (AI) = 53 phalanx + 13
+  militia (cheapest-defender choice never scales with era); map has
+  47 roads, ZERO rails ever, 14 irrigation+mines TOTAL. Soak
+  telemetry never measured army mix or rails — this was invisible
+  until the user toured a late world.
+- p1 (user's seat) 2 cities vs p2's 7: NOT a takeover special-case
+  (fastforward.js:93 flips human AFTER the run — both seats got the
+  full AI). Asymmetry = map luck OR systematic; the sim-runner
+  ff-telemetry job (commissioned, also A59's prerequisite) answers
+  across seeds.
+Sub-items: (a) AI unit choice must scale with era — NOTE: A63's
+obsolescence (units unbuildable once successor available) cures
+this structurally, prefer that over a parallel heuristic; (b)
+improver logic never upgrades roads→rails (Railroad tech known,
+rails never built) — extend the improve policy; (c) improvement
+density generally low late-game — measure first (soak army-mix/
+rails/improvement telemetry columns), then tune. ALL golden-
+affecting → window discipline, and (a) should land WITH A63's data.
 
 ### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first)
 
@@ -1397,12 +1420,15 @@ games, with a setup option to randomize.
    all.
 5. **Quality bar (batch-4 discipline — measure, don't vibe)**: each
    stance must show a MEASURABLE behavioral signature in soak
-   telemetry (aggressive → more attacks launched; expansionist →
-   more cities; scientific → more techs; defensive → higher unit
-   survival/garrison rates) AND no stance may tank the health
-   metrics (GE stagnation stays ≤ batch-4 levels, natural games
-   still produce winners). Lab-copy iteration up to the user's
-   10-iteration mandate; only winners port.
+   telemetry — now with NAMED columns per docs/05 §12's
+   stance-conditioned block (user 2026-07-15): aggressive → cities
+   CONQUERED ≥ 2 by t300 (+ attacks); defensive → conquests ≈ 0 IS
+   the signature, unit survival + zero cities lost; growth → most
+   founded + highest total pop; science → tech lead + wonder
+   completions. AND no stance may tank the health metrics (GE
+   stagnation stays ≤ batch-4 levels, natural games still produce
+   winners). Lab-copy iteration up to the user's 10-iteration
+   mandate; only winners port.
 6. **Sequencing (hard prerequisites)**: A40-s1 window CLOSES first
    (stance machinery proven balanced-identical) → B11 lands (empire
    policy factoring — stances modulate that same policy layer) →
@@ -1799,7 +1825,7 @@ Golden-safe. Queue: after A46. The tempo ceiling and the major-event
 class list are the user's; extending either later is one constant /
 one class-list entry.
 
-## A48 — Nightly visual-regression goldens (user tier-2 GO 2026-07-14)
+## A48 — Nightly visual-regression goldens (user tier-2 GO 2026-07-14)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — ?splashstill=1 drift-phase-0 variant + reduce-animation now freezes water drift (renderer index.js — the A15 ocean jitter that broke byte-stability); ?splashstill & gallery.html each byte-IDENTICAL across runs now. debugging/visual-check.sh (cmp vs debugging/goldens/*.png, --record, writes actual-* on mismatch) + nightly step (after suite, uploads visual-goldens artifact on fail). CI-AUTHORITATIVE documented (script header + docs/05 §7b): committed goldens = local bootstrap, first CI nightly re-records authoritative set from its artifact; local-vs-CI diffs not chased. .gitignore tracks goldens, ignores actual-*. Golden-safe (no sim/ai touch), ran during B11 window. Suite 245/245.]
 
 Byte-compare screenshots against committed golden PNGs, nightly.
 SwiftShader rasterizes deterministically for a GIVEN chromium build —
@@ -1980,13 +2006,165 @@ regent turns, fast-forward, Roblox):
 USER-BLOCKING: the v0.5 README screenshot waits on this. Sequence:
 B11 window closes → A60's window opens (same day intended).
 
+## A66 — Barbarians era-scale, then become REBELS (wave VIII.6 — design; rides the A63/B13 window family)
+
+Barbarians must not stay militia-forever in a musket world:
+1. **Tier function** (engine, derived — no new state):
+   `barbTier(state, ruleset)` = the highest military era such that
+   ≥ 30% of ALIVE civs know its trigger tech — the SAME trigger
+   techs as A63's barracks obsolescence (Gunpowder, Combustion):
+   one vocabulary, one data table. The 30% threshold is a ruleset
+   number (data/rules.json `barbTierThreshold` — the user's opening
+   number, tunable).
+2. **Spawn table per tier** (data/rules.json): tier 0 militia
+   (+legion mix?), tier 1 musketeers, tier 2 riflemen, tier 3+
+   mech-inf/armor mix — exact mixes authored at build time,
+   wiki-informed where Civ 1 has an answer.
+3. **THE RENAME (user flavor ruling)**: past the riflemen tier,
+   barbarians present as **REBELS** — a display-name derivation
+   from barbTier (client, turn log, Roblox), NO state change (seat
+   id stays `barb`; the name derives deterministically from state,
+   fog-safe).
+4. GOLDEN-AFFECTING (spawn rolls change) — rides the same window
+   family as A63 slices 1–2 / B13 (shared trigger-tech data, one
+   re-record); telemetry check: barb/rebel kill pressure stays a
+   THREAT band, never the strongest army on the map.
+
+## A64 — Soak telemetry v2: the nine AI-health columns (docs/05 §12; golden-safe, ships BEFORE any AI capability work)
+
+The measurement half of the user's metric contract (docs/05 §12
+table M1–M9): tools/soak.js --stats + the sim-driver stats surface
+gain columns for M3 total pop, M4 improvement-completeness % (per
+city's WORKED tiles carrying their appropriate improvement), M5
+road/rail same-continent city-pair connectivity (flood-fill along
+road/rail tiles), M6 army-modernity (best-tier distribution now;
+the % vs obsoletedBy chains arrives with A63's data; the
+observed-enemy tier gap needs the A63/B13 knowledge model — column
+reserved), M7 era-appropriate building coverage, M8 wonder
+attempts/completions per civ, M9 exploration coverage % (non-polar
+tiles per civ over checkpoints), PLUS the M10–M14 additions
+(user-approved 2026-07-15): M10 gold circulation (treasury
+trajectory + buy usage), M11 conflict health (attacks/captures/
+elimination band 20–40% by t300 — user-set), M12 idle assets
+(settlers idle >10t, units stuck >15t), M13 cross-ocean expansion
+(cross-water foundings, continents per civ), M14 competitive
+spread (surviving-civ score ratio band). Fourteen columns, one
+pass. Pure telemetry — reads states,
+changes NO behavior, goldens untouched. Then the sim-runner
+baselines ≥25 seeds × {normal, godemperor} on medium so the user's
+targets get real numbers to tune against; docs/05 §12 pins the
+tuned targets after that discussion.
+
+## A65 — Cost-aware GoTo: real pathfinding over roads and rails (wave VIII item 5 — activates docs/04's open pathfinding note)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — shared/pathfind.js findPath: PURE Dijkstra, lua-portable subset (plain-object dist/prev/visited, array open list + idx tie-break, CAP 8000); cost ×3 integer (rail 0 / road 1 / terrain.move×3) so roads+rails preferred by cost not special-case. Legality INJECTED (canEnter) — extracted tileEnterable from move-hints so affordance + planner share ONE source; fog-honest (explored only, replans per step). input.js: gotoStep/gotoPreviewPath use findPath, greedy fallback for fog/enemy targets. 5 unit tests (road detour, rail corridor, fog+unexplored-target block, wrap seam→B12, ocean domain); e2e=3 proves client integration. pathfind.luau = roblox-helper Tier-1 (subset ready, not gated). Golden-safe (client-consumer). Suite 251/251.]
+
+GoTo currently uses the greedy stepper (deliberately NOT a
+pathfinder — the ally's round-2 wording stands in docs/04). The
+user now wants routing that USES the network: a real least-cost
+path over movement costs — terrain moveCost from data, road = 1/3,
+rail = free (Civ 1 rules), so roads/rails are preferred exactly as
+much as they're cheaper, never by special-case.
+1. **Where it lives**: `shared/pathfind.js` — PURE function
+   (state, ruleset, unit, target) → [steps], written in the
+   Lua-portable subset. Reasons: the Roblox client wants it next
+   (docs/13 Tier 1 GoTo), and the AI may adopt it later (THAT
+   adoption = golden window; until then this is golden-safe by
+   construction — the pathfinder only chooses which ordinary move
+   commands the CLIENT issues, and replays record the moves
+   themselves).
+2. **Fog honesty**: route only through EXPLORED tiles; unexplored =
+   untraversable for planning (the route replans as fog lifts —
+   GoTo already re-evaluates per turn). Never read unseen state.
+3. **Algorithm**: Dijkstra (or A* with admissible terrain-min
+   heuristic) over the wrapped grid; ZOC and impassables respected
+   via the same movement-legality helper the engine uses — reuse,
+   don't re-implement legality.
+4. Client: GoTo planned-route rendering unchanged in look, now
+   showing the cost-aware path; move-hints unaffected.
+5. Tests: unit tests on crafted maps (road detour beats short rough
+   path; rail corridor wins; fog blocks; wrap seam routes east-west
+   — ties into B12); client case: a GoTo across a road network
+   follows the road.
+Golden-safe (client-consumer only). Queue: helper tail after A62.
+
+## A62 [done: coder-helper 2026-07-15 — diorama always-on: dropped the first-visit SEEN_KEY gate from splashWanted; remaining skips (reduceAnimation, webdriver, demo/e2e params, ?splash=0) stand; ?splash=1/?splashstill=1 still force. No test to update (A42 screenshot-verified; webdriver skip keeps browser cases unaffected). Suite 246/246.] — Diorama on every visit (wave VIII item 1 — NOT a regression; tiny, helper)
+
+The user misses the splash diorama: it vanished BY DESIGN (A42 was
+first-visit-only via a localStorage flag; he is now a return
+visitor). RULING: he loves it, so flip to ALWAYS-ON — the skips
+that remain are reduceAnimation, e2e/webdriver paths, and ?splash=0.
+One-line default change + the A42 test's flag case updates. The
+zero-cost-return-visit property is retired deliberately.
+
+## A63 — Obsolescence & upgrades bundle (wave VIII items 2–4 — DESIGN; golden-affecting parts staged)
+
+Three features, one substrate: an `obsoletedBy` chain in the unit
+(and building) data, authored via tools/mapdata.js overlays from
+the wiki extract (the authority — verify every trigger there at
+build time, never from memory).
+1. **Units obsolete** (item 2): once a unit's successor is BUILDABLE
+   (its tech known), the older unit leaves the production catalog
+   (client hides; engine setProduction rejects 'obsolete').
+   Chains from Civ 1 (verify vs wiki): militia→musketeers→riflemen
+   →mech inf; phalanx→pikemen? (Civ 1 has no pikemen — verify the
+   real chain); cavalry→knights→armor per the wiki. AI unit choice
+   automatically stops building stale units = the structural cure
+   for B13(a)'s phalanx spam. GOLDEN-AFFECTING (AI choices change):
+   window + re-record, land WITH B13(a).
+2. **Auto-sell obsolete buildings** (item 3): when the obsoleting
+   tech is discovered, affected buildings sell automatically for
+   their Civ 1 sell price (gold credit) with a turn-log line —
+   PROPOSED triggers pending wiki verification: Barracks obsolete
+   at Gunpowder (rebuild for the musket era) and again at
+   Combustion; the user asked for clarification and this is the
+   proposal — wiki extract decides, user confirms the final table.
+   GOLDEN-AFFECTING (state change on tech discovery).
+3. **Field upgrades for gold** (item 4, Civ4-style): an
+   `upgradeUnit` command — a unit standing IN AN OWNED CITY may
+   upgrade to its successor for gold. PROPOSED formula (editable):
+   `gold = 10 + 2 × (costNew − costOld)` (shield costs from
+   units.json). Veteran status carries. HUMAN-ONLY at first =
+   GOLDEN-SAFE initial slice; AI adoption later rides a window.
+   SYNERGY: Leonardo's Workshop (already in wonders.json) gets its
+   true Civ 1 effect — free automatic upgrades while active — from
+   the same machinery; check what our Leonardo effect field
+   currently does and wire it here.
+Order: design confirmed → data authored (mapdata overlay) →
+slice 3 human-only (golden-safe, ships first) → slices 1+2 in the
+B13 window with the re-record.
+
 ## A55 — remaining micro-finding (screenshot hunt 2026-07-15)
 
 **`?zoom` / `?overlay` params are ignored on the `?age=` path** —
 the fast-forward hand-off overrides the boot camera and overlay
 init. Honor explicit params after hand-off. Client-only, small.
 
-## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14: DNS is a quick alias for the user, so the CODE is the real gate)
+## A61 — Hardened-by-default server + `--debug` mode (user posture ruling 2026-07-15; URGENT SLICE — assigned: helper, ideal B11-window filler, golden-safe)  [slice 1 done: coder-helper 2026-07-15 — static WHITELIST (/client /engine /shared /data only; else 404 before file read); --debug restores whole-repo (servable() short-circuit). Proven: real save-with-token on disk → /saves/*.json 404 + token AND seat code absence-asserted in body; /debugging /ops /package.json 404; --debug serves gallery. --debug CLI flag + boot-log posture line; shoot.sh --server auto-adds --debug for /debugging/ URLs; run.sh passes through + --help documents it. Regression-checked gallery(python) + /client/?server=1(--server). Suite 246/246. SLICE 2 (logging/error --debug umbrella) NOT done — non-urgent, wire already safe, follow-up on request.]
+
+USER RULING: the DEFAULT server posture is HARDENED; a `--debug`
+flag (passed through by run.sh/run.ps1) opens the dev conveniences.
+FINDING THAT MAKES SLICE 1 URGENT (architect): server/index.js:118
+serves the ENTIRE repo root with only a traversal guard — on any
+LAN game, `/saves/<gameId>.json` is fetchable over plain HTTP and
+carries SEAT TOKENS + SEAT CODES (seat hijack by URL);
+`/debugging/logs/*` and gitignored-on-disk files (ops/,
+.agent-mail/) are served too.
+1. **Static WHITELIST (slice 1, do first)**: default mode serves
+   ONLY `/client/*`, `/engine/*`, `/shared/*`, `/data/*`; anything
+   else 404s. `--debug` restores whole-repo serving
+   (debugging/gallery.html needs it; shoot.sh's `--server` mode
+   passes --debug when its URL targets /debugging/).
+2. **--debug umbrella**: verbose logging in debug / one-line in
+   default; error replies carry detail in debug / bare codes in
+   default where reasons would leak internals; future dev endpoints
+   hang off the same flag. Document in run.sh --help + README.
+3. Tests: default — /saves/*.json and /debugging/* 404 while the
+   four whitelisted roots serve (absence-assert tokens never
+   travel); --debug serves the gallery; run.sh --help documents the
+   flag (the guards pattern).
+A50 builds ON this posture; its remaining items assume
+hardened-default.
+
+## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14; NOTE 2026-07-15: A61 sets the hardened-DEFAULT posture + static whitelist FIRST; A50's items assume it)
 
 Queue normally at the helper tail (after A49). Every piece hardens
 the LAN server too — nothing here waits on public plans. When A50

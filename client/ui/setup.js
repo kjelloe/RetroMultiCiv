@@ -67,15 +67,14 @@ export function showSetupScreen() {
   document.body.appendChild(overlay);
   const setupBox = document.getElementById('setup-box');
 
-  // A42 slice 2: a first-visit animated diorama BEHIND the setup card —
-  // the renderer + assets ARE the splash art (a coast, a walled city, a few
-  // units; A28 sway + A15 water animate themselves; we add slow camera
-  // drift). Lazy: return visits (per-origin flag), reduce-animation,
-  // headless runs (navigator.webdriver) and every demo/e2e param skip the
-  // whole path — zero load cost when skipped. ?splash=1 forces it
-  // (screenshots), ?splash=0 forces the plain screen.
+  // A42/A62: an animated diorama BEHIND the setup card — the renderer +
+  // assets ARE the splash art (a coast, a walled city, a few units; A28
+  // sway + A15 water animate themselves; we add slow camera drift). A62
+  // (user 2026-07-15): ALWAYS ON (the first-visit-only flag was retired —
+  // he missed it as a return visitor). Still skipped by reduce-animation,
+  // headless (navigator.webdriver) and every demo/e2e param, and by
+  // ?splash=0; ?splash=1/?splashstill=1 force it for screenshots.
   const sq = new URLSearchParams(location.search);
-  const SEEN_KEY = 'retromulticiv-splash-seen';
   let reduceAnim = false;
   try { reduceAnim = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
   const demoParams = ['setupdemo', 'lobbydemo', 'e2ehost', 'e2ejoin', 'e2ehostform', 'e2ejoinform', 'e2echat'];
@@ -85,13 +84,11 @@ export function showSetupScreen() {
   const splashForced = sq.get('splash') === '1' || splashStill;
   const splashWanted = splashForced || (
     sq.get('splash') !== '0'
-    && !localStorage.getItem(SEEN_KEY)
     && !reduceAnim
     && !navigator.webdriver
     && !demoParams.some(p => sq.has(p))
   );
   if (splashWanted) {
-    try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* private mode */ }
     const dio = document.createElement('div');
     dio.id = 'setup-diorama';
     overlay.insertBefore(dio, setupBox);

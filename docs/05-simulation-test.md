@@ -352,3 +352,51 @@ batch). The original backlog list, kept for the rationale per command:
   checkpoint (the browser save path on organic late-game states).
 - The chaos-off natural leg reproduced its golden bit-exact through the
   whole batch — direct proof the changes are chaos-scoped.
+
+## 12. AI health metrics v2 (user-set targets, 2026-07-15 — the wave-VIII contract)
+
+The original telemetry (cities, techs, stagnation, governments) missed
+army composition, infrastructure, and wonders — a turn-325 world full
+of phalanxes and zero rails soaked "healthy" for weeks. The user set
+the v2 target list; each metric gets a soak/--stats column (A64) and
+the targets below are HIS opening numbers to tune after the first
+baseline run (sim-runner measures, we discuss, targets pin here).
+
+| # | Metric | Definition (measurable) | Proposed target (t≈300, normal) |
+|---|--------|------------------------|--------------------------------|
+| M1 | Research | techs known (existing) | median ≥ 30; stagnation ≤ 5% |
+| M2 | Cities founded | count (existing) | median ≥ 12 |
+| M3 | Total population | Σ city pop per civ | median ≥ 45 |
+| M4 | Improvement completeness | % of each city's WORKED tiles carrying their appropriate improvement (irrigation on food ground, mine on hills/mountains, road everywhere workable) | ≥ 70% |
+| M5 | Network connectivity | % of same-continent city PAIRS connected by contiguous road (rail once Railroad known) — flood-fill along road/rail tiles | road 100% by t200; rail ≥ 80% of pairs by t300 |
+| M6 | Military modernity | % of army that is current-best-available (per the A63 obsoletedBy chains); PLUS the reactive gap: best defender tier in each city vs best attacker tier observed among KNOWN enemies — modernize faster when a neighbor is aggressive with newer units | ≥ 60% modern; observed-enemy gap ≤ 1 tier |
+| M7 | Building currency | distinct beneficial building types present per city, era-appropriate ("if they help": marketplace where trade flows, library where bulbs flow) | era-appropriate set in ≥ 70% of cities |
+| M8 | Wonder ambition | AI civs ATTEMPT wonders with relevant bonuses; time-to-complete feasibility gate: only start if projected < 100 turns (prefer < 60) | ≥ 1 wonder attempt per surviving civ per era; completions > 0 |
+| M9 | Exploration coverage | per civ: % of NON-polar land+coast tiles explored, over time — unexplored should shrink until only ice caps and hostile interiors plausibly remain (user addendum) | ≥ 85% of own continent by t150; ≥ 70% of the world by t300 |
+| M10 | Gold circulation | treasury trajectory + rush-buy usage per era — empires SPEND; unbounded treasury growth is stagnation (seen: 1811g at +1/turn, turn 325) | buy commands > 0 per era per civ; treasury growth bounded (< ~50g/turn sustained) |
+| M11 | Conflict health | attacks launched per era, cities captured, elimination-rate band — no-war worlds and runaway steamrolls are both unhealthy | 20–40% of civs eliminated by t300 (user-set); attacks > 0 every era |
+| M12 | Idle assets | settlers idle > 10 turns; units unmoved > 15 turns outside cities/fortresses (seen: 3 unspent settlers, turn 325) | idle settlers ≈ 0; stuck units < 5% of army |
+| M13 | Cross-ocean expansion | cross-water founding events; continents settled per civ (suspected: transports never used — single-civ terrarium continents) | ≥ 1 cross-water settlement per game among surviving civs by t250 |
+| M14 | Competitive spread | score gap band between best and worst SURVIVING civ at checkpoints — too narrow = nothing differentiates, too wide = runaway | max/min score ratio in ~1.5–6× band at t300 |
+
+**Stance-conditioned signatures (user addendum — activates with A59
+leader personalities):** once stances drive AI seats, the M-columns
+split per stance, and each personality has its own expected shape —
+the conquest columns being the sharpest: **aggressive civs: cities
+CONQUERED ≥ 2 by t300** (razed counts too once razing exists as a
+choice; today capture is the event); **defensive civs: conquests ≈ 0
+is CORRECT, not a failure** — their signature is unit survival +
+zero cities lost; growth: most cities FOUNDED + highest M3 pop;
+science: tech lead + M8 wonder completions. A stance whose signature
+column is indistinguishable from balanced doesn't ship (the A59
+quality bar, now with named columns).
+
+Two halves, strictly ordered: (1) A64 = the MEASUREMENT (telemetry
+columns in sim-driver/soak --stats — golden-safe, ships first;
+sim-runner then baselines current behavior across ≥25 seeds); (2)
+the AI CAPABILITY program (B13 + A63 + batches 5+) improves toward
+the targets under the batch-4 lab discipline — measured iterations,
+only winners port, both engines together, goldens re-record per
+window. M5 rails, M6 reactive modernization, M7 era buildings, and
+M8 wonder targeting are NEW AI capabilities; M1–M4 largely need
+tuning of existing behavior.

@@ -26,6 +26,11 @@ server args (passed to node server/index.js):
                       or browser — tokens live in per-origin localStorage)
   --no-save           disable the autosave after each accepted command
   --host IP           bind address (default 0.0.0.0 = reachable on the LAN)
+  --debug             dev mode: serve the WHOLE repo over HTTP (gallery,
+                      diagnostics) + verbose logging. DEFAULT is HARDENED —
+                      only /client /engine /shared /data are served, so
+                      saves/ (seat tokens + codes) and debugging/ stay off
+                      the wire. Use --debug only on a trusted machine.
 
 examples:
   ./run.sh                          # port 8123, fresh random game

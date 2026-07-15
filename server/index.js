@@ -105,6 +105,18 @@ export function startServer(opts) {
   registry.register(defaultGame, opts.spectators !== false);
   const defaultGameId = defaultGame.gameId;
 
+  // A61 slice 1: HARDENED BY DEFAULT. The static handler used to serve the
+  // WHOLE repo root behind only a traversal guard — so /saves/<id>.json (SEAT
+  // TOKENS + SEAT CODES = hijack by URL), /debugging/logs/*, ops/,
+  // .agent-mail/ were all fetchable on any LAN game. Default now serves ONLY
+  // the four roots the client needs; --debug restores whole-repo for the
+  // gallery + diagnostics (shoot.sh --server passes it for /debugging/ URLs).
+  const debugMode = opts.debug === true;
+  const STATIC_ROOTS = ['/client/', '/engine/', '/shared/', '/data/'];
+  function servable(urlPath) {
+    if (debugMode) return true; // dev: whole repo (gallery, /debugging/*)
+    return STATIC_ROOTS.some(r => urlPath.startsWith(r));
+  }
   const httpServer = http.createServer((req, res) => {
     const parsed = new URL(req.url, 'http://x');
     const urlPath = decodeURIComponent(parsed.pathname);
@@ -115,6 +127,7 @@ export function startServer(opts) {
       res.end();
       return;
     }
+    if (!servable(urlPath)) { res.writeHead(404); res.end(); return; } // A61: whitelist
     let file = path.normalize(path.join(REPO, urlPath));
     if (!file.startsWith(REPO)) { res.writeHead(403); res.end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
@@ -641,11 +654,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else if (a === '--no-spectators') opts.spectators = false;
+    else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
   Promise.resolve().then(() => startServer(opts)).then(({ port, game }) => {
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
-    console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — lobby: create/list/join-code/start`);
+    console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
   }).catch(err => {
     console.error(`cannot start: ${err.message}`);
     process.exit(1);
