@@ -63,7 +63,8 @@ UserInputService.InputChanged:Connect(function(input, processed)
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
-	if not processed and input.KeyCode == Enum.KeyCode.F then
+	-- while possessed, F belongs to Possess (dismount); it manages follow itself
+	if not processed and input.KeyCode == Enum.KeyCode.F and ClientState.possessedUnitId == nil then
 		ClientState.followAvatar = not ClientState.followAvatar
 		print("[Camera] follow-avatar " .. (ClientState.followAvatar and "ON" or "OFF"))
 	end

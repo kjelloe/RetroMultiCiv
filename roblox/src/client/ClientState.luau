@@ -12,12 +12,39 @@ local M = {
 	playerId = nil,
 	gameOver = false,
 	selectedUnitId = nil,
+	possessedUnitId = nil, -- R5: unit the avatar is riding (Possess.client.luau)
 	followAvatar = false,
 	TILE = 4, -- studs per tile edge (must match ViewRenderer)
 }
 
 local viewCallbacks = {}
+local cityOpenCallbacks = {}
 local nextCommandId = 1
+
+-- lazy client-side ruleset tables (R5 city panel): same baked JSON, same
+-- json2lua parser as the server — read-only display data, never game logic
+local rulesetCache = nil
+function M.rulesets()
+	if rulesetCache == nil then
+		local json2lua = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("json2lua"))
+		local folder = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("rulesets")
+		rulesetCache = {}
+		for _, name in ipairs({ "units", "buildings", "wonders", "techs", "rules" }) do
+			rulesetCache[name] = json2lua.parse(require(folder:WaitForChild(name)))
+		end
+	end
+	return rulesetCache
+end
+
+function M.onCityOpen(cb)
+	table.insert(cityOpenCallbacks, cb)
+end
+
+function M.openCity(cityId)
+	for _, cb in ipairs(cityOpenCallbacks) do
+		cb(cityId)
+	end
+end
 
 function M.onView(cb)
 	table.insert(viewCallbacks, cb)
@@ -63,6 +90,9 @@ remote.OnClientEvent:Connect(function(msg)
 		M.gameOver = msg.gameOver == true
 		if M.selectedUnitId ~= nil and M.view.units[M.selectedUnitId] == nil then
 			M.selectedUnitId = nil -- unit died or left our sight
+		end
+		if M.possessedUnitId ~= nil and M.view.units[M.possessedUnitId] == nil then
+			M.possessedUnitId = nil -- ridden unit died; Possess handles the dismount
 		end
 		for _, cb in ipairs(viewCallbacks) do
 			cb(M.view)

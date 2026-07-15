@@ -593,7 +593,7 @@ human seat + AI opponents); multiplayer seats/regency are R5+.
    visible in the shot).
 Lane: roblox/ exclusive as ever; luau/ consumed read-only.
 
-### R5 — Playable-depth pass: city view, unit possession, fog verification (assigned: roblox-helper 2026-07-15)
+### R5 — Playable-depth pass: city view, unit possession, fog verification (assigned: roblox-helper 2026-07-15)  [claimed: roblox-helper 2026-07-15]
 
 R4's acceptance is PASSED (run1.txt: all 98 command hashes match,
 game code agrees, pre-registered boot hash hit). R5 makes the Studio

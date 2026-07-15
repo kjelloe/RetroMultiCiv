@@ -77,6 +77,16 @@ harness lands — the lune twin runners. Check the mail hub
   the dev box (~1.5× slower under lune despite ~2.5× faster under
   node; lune/node ≈ 6× on this hardware). Size lune jobs on measured
   lune numbers, never extrapolated from node calibration.
+- A60's golden re-record (2026-07-14 evening, mail #345) re-pinned
+  every sim golden; the Gate B hashes above are the pre-A60 values,
+  kept as the record of what that gate ran. Current pins live in the
+  repo — the scratchpad refresh picks them up.
+- FF telemetry probe (mails #314/#342): job-specific probe scripts
+  live in `~/sim-lab/` beside the scratchpad, never inside
+  `~/sim-lab/repo/` (the rsync `--delete` refresh would eat them) and
+  never in the shared tree. Consumer trap found there twice:
+  barbarian-owned UNITS and CITIES exist (non-roster owners) — guard
+  per-seat maps; recorded in B13.
 - The role's zero-write rule covers the shared tree's code and queues;
   this doc's status/record sections are maintained under a normal
   file lock (user-directed exception, 2026-07-14 — the architect

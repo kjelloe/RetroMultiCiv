@@ -43,9 +43,11 @@ end)
 
 local function refresh(view)
 	local mine = ClientState.myTurn()
-	local bits = ("  turn %d · %s · active %s%s"):format(
+	local me = view.players[view.you]
+	local bits = ("  turn %d · %s · gold %d · active %s%s"):format(
 		view.turn,
 		view.year < 0 and (-view.year .. " BC") or (view.year .. " AD"),
+		me and me.gold or 0,
 		view.activePlayer,
 		mine and " (YOU)" or " (AI thinking…)")
 	if ClientState.gameOver then

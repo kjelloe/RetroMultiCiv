@@ -1,7 +1,7 @@
-# roblox/ — SPEC (R1–R4)
+# roblox/ — SPEC (R1–R5)
 
 Owner: roblox-helper (docs/10 §2 — this tree is its exclusive lane).
-Scope: what exists after R1–R4 and the contracts it must keep. The
+Scope: what exists after R1–R5 and the contracts it must keep. The
 role spec and lane rules live in `docs/10-roblox-agent.md`; the anchor
 values in `docs/09-phase5-luau.md` §1.
 
@@ -201,7 +201,33 @@ The authoritative loop, single Studio instance (one human seat + AI).
   (dir-based, wrapX-aware delta); `B` = `foundCity` with a selected
   settlers (name `Colony <n>`); `Return`/HUD button = `endTurn`.
 
-## 4. Verification (`check.sh` + Studio)
+## 3f. City panel + possession (`src/client/`, R5)
+
+`CityPanel.client.luau` — opens on clicking an own city (Select routes
+it; a garrisoned city takes two clicks — first selects the unit).
+Shows name/pop/food/shields/gold and the current build with progress;
+the catalog lists every unit/building/wonder from the baked rulesets
+(parsed client-side with the same `json2lua` — display data only,
+never local game logic): buildable rows send
+`setProduction {item={kind,id}}`, locked rows are greyed with the
+reason (needs <tech> / built / taken — the browser catalog rules).
+`Buy` sends `buy`; rejections (notEnoughGold, alreadyComplete…) print
+via the standard rejected path.
+
+`Possess.client.luau` — the docs/13 Roblox-native exemplar: `P`
+possesses the selected own unit (avatar pinned to its tile, anchored,
+default controls disabled, camera follows), `N` jumps to the next own
+unit with moves left (sorted ids, wraps), WASD/arrows step ONE tile
+per press as `moveUnit` engine commands — every rule applies, the
+avatar is a costume, the engine is the only mover. Keys are
+MAP-ABSOLUTE (W=N always: camera-relative would make identical
+recordings depend on camera state). `F`/`Esc` dismounts (`F` is
+possession-aware in Camera; `Esc` is Roblox-menu-reserved, so `F` is
+the reliable one). All keys respect chat focus
+(`GetFocusedTextBox` guard). Dismount is automatic when the ridden
+unit dies or leaves the view.
+
+## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
 with rojo; the suite-hookup twin on the dev PC is requested via the
@@ -268,3 +294,9 @@ fixed setup is `0x0ca5d97c`.
   ocean columns), `StreamingEnabled` pinned false (fog pop-in
   suspect — verify next run). Banked for R5+: city view/production
   picker, morph-into-unit avatar mode + N-next-unit (user request).
+- R5: **CODE-COMPLETE 2026-07-15** — §3f city panel + possession
+  landed; check.sh extended to 22 gates (ALL GREEN); `run1.txt`
+  re-replays ALL HASHES MATCH on the current tree. Acceptance
+  PENDING: the user's run2 playtest (production change + Buy +
+  possessed moves + fog verdict), `acceptance/run2.txt` replayed via
+  assemble.js, screenshots `R5-city.png`/`R5-possess.png` read.

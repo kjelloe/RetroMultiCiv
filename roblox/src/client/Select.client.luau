@@ -96,6 +96,17 @@ local function handlePick(tx, ty)
 		return
 	end
 
+	-- own city (and no fresh unit pick): open the city panel (R5). A
+	-- garrisoned city takes two clicks — first selects the unit, second opens.
+	for id, c in pairs(view.cities) do
+		if c.x == tx and c.y == ty and c.owner == view.you then
+			moveCursor(tx, ty, false)
+			print(("[Select] open city %s (%s)"):format(c.name, id))
+			ClientState.openCity(id)
+			return
+		end
+	end
+
 	if selected ~= nil then
 		local dir = dirTo(view, selected, tx, ty)
 		if dir ~= nil then
