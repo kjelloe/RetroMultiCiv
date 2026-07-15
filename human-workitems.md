@@ -67,6 +67,21 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
+- [ ] **README screenshot re-shoot — UNBLOCKED (A60 landed)**: same
+  seeds now yield historic city names (my verification shot shows
+  "Tenochtitlan" where "City c3" was). Re-run your favorite world,
+  replace docs/screenshot.png / -cityview.png at leisure.
+
+- [ ] **R5 STUDIO RUN (run2 — the second fun one)**: pull on the
+  Roblox PC if you haven't since the roblox-helper's R5 push, then
+  in Studio: click your own city → change production + rush-buy;
+  press P on a selected unit and walk it with WASD (map-absolute:
+  W=north), N to hop units, F to dismount; confirm the fog verdict
+  (no glitch-in/out with streaming off). Play enough turns to make
+  it a real recording, then hand the Output log over — run2.txt must
+  replay hash-exact through both engines incl. your production
+  commands and possessed moves (the R4 bar is the standing bar).
+
 - [x] 2026-07-15 — **R4 STUDIO ACCEPTANCE RUN: PASSED AND CLOSED** —
   36 turns played in Studio (98 commands, cities founded, a combat
   lost); assemble.js verdict ALL HASHES MATCH incl. the

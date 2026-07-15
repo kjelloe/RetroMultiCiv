@@ -242,6 +242,32 @@ function cityYields(state, city, ruleset) {
   return total;
 }
 
+// A60: name a newly-founded city. An explicit cmd.name wins (the human prompt;
+// '' is falsy here, matching the old `cmd.name ||`). Otherwise, for a civ'd
+// player, walk that civ's city list for the first name not already used by ANY
+// current city (global uniqueness — two Romes read as a bug; iterate cityOrder
+// for determinism), then a "New <name>" cycle, then "<CivName> Outpost <id>".
+// A player with no civ (crafted states) keeps the old "City <cityId>" fallback,
+// so scenario hashes built without civs are untouched.
+function cityName(state, cmd, ruleset, cityId, idNum) {
+  if (cmd.name) return cmd.name;
+  const player = state.players[cmd.playerId];
+  if (!player || player.civ === undefined || ruleset.civs === undefined) return 'City ' + cityId;
+  const civ = ruleset.civs[player.civ];
+  if (civ === undefined || civ.cities === undefined) return 'City ' + cityId;
+
+  const used = {};
+  for (const id of state.cityOrder) used[state.cities[id].name] = true;
+  const list = civ.cities;
+  for (let k = 0; k < list.length; k++) {
+    if (used[list[k]] !== true) return list[k];
+  }
+  for (let k = 0; k < list.length; k++) {
+    if (used['New ' + list[k]] !== true) return 'New ' + list[k];
+  }
+  return civ.name + ' Outpost ' + idNum;
+}
+
 function foundCity(state, cmd, ruleset) {
   const unit = state.units[cmd.unitId];
   if (!unit) return { ok: false, reason: 'unknownUnit' };
@@ -262,11 +288,12 @@ function foundCity(state, cmd, ruleset) {
     }
   }
 
-  const cityId = 'c' + state.nextCityId;
+  const idNum = state.nextCityId;
+  const cityId = 'c' + idNum;
   state.nextCityId = state.nextCityId + 1;
   state.cities[cityId] = {
     id: cityId,
-    name: cmd.name || 'City ' + cityId,
+    name: cityName(state, cmd, ruleset, cityId, idNum),
     owner: cmd.playerId,
     x: unit.x,
     y: unit.y,

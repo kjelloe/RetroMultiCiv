@@ -34,10 +34,12 @@ export function createSession(ruleset, initialState, opts) {
 
   // The regent plays a seat with the REAL pick logic (engine/ai.js
   // pickCommand — not a parallel implementation), each attempt recorded
-  // exactly as session.apply records human commands.
+  // exactly as session.apply records human commands. Returns a tally of the
+  // APPLIED commands (B11: regentTurn narrates it to the turn log).
   function playSeatLogged(pid, collected) {
     const done = {};
     let guard = 500;
+    const tally = { applied: 0, byType: {}, research: '', production: [] };
     while (guard-- > 0) {
       // A40 slice 1: the regent plays with ITS chosen stance (balanced by
       // default — identical to the AI-round path)
@@ -50,12 +52,17 @@ export function createSession(ruleset, initialState, opts) {
         entry.ok = true;
         if (debug) entry.hash = hashState(state);
         for (const e of res.events) collected.push(e);
+        tally.applied++;
+        tally.byType[cmd.type] = (tally.byType[cmd.type] === undefined ? 0 : tally.byType[cmd.type]) + 1;
+        if (cmd.type === 'setResearch') tally.research = cmd.tech;
+        if (cmd.type === 'setProduction') tally.production.push(cmd.item.id);
       } else {
         entry.ok = false;
         entry.reason = res.reason;
       }
       log.push(entry);
     }
+    return tally;
   }
 
   function notify(events) {
@@ -153,7 +160,13 @@ export function createSession(ruleset, initialState, opts) {
         return { ok: false, reason: 'notRegent', events: [] };
       }
       const collected = [];
-      playSeatLogged(state.activePlayer, collected);
+      const pid = state.activePlayer;
+      const tally = playSeatLogged(pid, collected);
+      // B11: a synthetic CLIENT-side summary (the stateReplaced precedent —
+      // never logged, never hashed) so the turn log can narrate what the
+      // regent did; filterEvents passes it to its own seat as a named party
+      collected.push({ type: 'regentTurn', playerId: pid, applied: tally.applied,
+        byType: tally.byType, research: tally.research, production: tally.production });
       notify(collected);
       return this.endTurn();
     },

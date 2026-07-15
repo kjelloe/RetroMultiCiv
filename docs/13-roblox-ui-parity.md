@@ -83,6 +83,46 @@ destroy; chat/keyboard focus vs game keys (Roblox chat eats keys —
 audit every binding against chat focus, the INPUT/TEXTAREA lesson's
 platform twin); touch/gamepad deferred until Tier 1 is stable.
 
+## Roblox-native review round (roblox-helper, 2026-07-15 — adopted)
+
+Tier-1 refinements, all ADOPTED: actions live in a fixed bottom
+ScreenGui bar with hotkeys (Billboards are for INFO — odds, labels;
+world-anchored buttons fight the orbit camera); every hotkey passes
+the chat-focus audit (GetFocusedTextBox guard = house pattern); GoTo
+reuses Select's pick machinery with a mode flag (Esc cancels), and
+the move-hint tint doubles as the GoTo legality preview — one
+overlay system, not two; the tax slider becomes +/- STEPPERS (no
+native slider; a drag slider fights LMB-orbit; A29 snap-back
+unchanged); move hints from view data are approximate under fog BY
+CONSTRUCTION (hidden ZOC — the browser shares the property; not a
+bug).
+
+SERVER PREREQUISITE found: GameServer passes eventsOut=nil during
+AI rounds — round events are dropped before filterEvents runs. The
+turn-log row's first half is server-side: collect + filter + push
+per-seat round events.
+
+RULING (architect): the client MAY require read-only luau engine
+modules for presentational math (combat odds, city-site rating) —
+no state mutation, no RNG draw, nothing acts on the result; the
+no-local-game-logic rule governs ACTING, not explaining. Cheaper
+and always-consistent vs a server query round-trip.
+
+Tier-2: Roblox has no clipboard API — the game-code chip is a
+selectable TextBox (read/retype; trust loop intact, wording adapts).
+
+Tier-3 amendments: SPECTATOR DEFAULT — visitors must NOT get an
+omniscient view by default (fog leak); default = lobby-only or the
+host's-seat view until seated, host grants omniscient explicitly
+(the browser's host-controlled precedent). REGENCY-ON-LEAVE is
+R6's TWIN feature with multiplayer seats, not later — player churn
+makes it load-bearing on this platform.
+
+Standing interaction list additions: possession-mode WASD respects
+chat focus AND maps to map-absolute N/W/S/E (camera-relative would
+make identical inputs produce different commands — recordings read
+better absolute).
+
 ## Process
 
 Tiers become R-items in order (Tier 1 ≈ R6–R8, sized by the

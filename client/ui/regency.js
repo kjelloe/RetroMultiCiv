@@ -10,6 +10,8 @@
 // Captured at MODULE EVAL — main.js canonicalizes the URL after boot
 // (history.replaceState drops unknown params), so a live location.search read
 // would miss ?regentdemo (the A45 overlays trap).
+import { createRegentDriver } from './regent-driver.js';
+
 const PARAMS = new URLSearchParams(location.search);
 
 const STANCES = [
@@ -23,7 +25,8 @@ const STANCES = [
 export function initRegency(ctx) {
   const { session } = ctx;
   const local = session.gameId === undefined; // hotseat/solo drive here
-  let kicking = false;
+  // B11: the drive loop lives in regent-driver.js (DOM-free, unit-tested)
+  const driver = local ? createRegentDriver(session, () => ctx.HUMAN) : null;
 
   // 🤖 button, left of End Turn
   const btn = document.createElement('button');
@@ -59,17 +62,10 @@ export function initRegency(ctx) {
     refresh();
   }
 
-  // LOCAL drive: while it's my turn and I'm a regent, play + end, re-kicked
-  // by onChange after each turn resolves (a discrete step, so taking control
-  // back is instant — clear the flag and the next onChange won't re-kick).
-  async function drive() {
-    if (!local || kicking) return;
-    const st = session.state;
-    if (st.gameOver || st.activePlayer !== ctx.HUMAN) return;
-    if (session.regents[ctx.HUMAN] === undefined) return;
-    if (session.busy) return;
-    kicking = true;
-    try { await session.regentTurn(); } finally { kicking = false; }
+  // LOCAL drive: while regency is armed, the driver plays turn after turn;
+  // take-back (regents cleared) stops it at the next turn boundary.
+  function drive() {
+    if (driver) driver.kick();
   }
 
   function refresh() {

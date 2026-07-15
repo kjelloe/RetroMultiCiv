@@ -112,6 +112,34 @@ test('A40 regent turn: the recording replays hash-exact (individual cmd entries,
   assert.strictEqual(report.finalHash, liveHash, 'replay reproduced the live hash');
 });
 
+test('B11: regentTurn narrates itself with a synthetic summary event (never recorded)', async () => {
+  const { createEngine, deepClone, createSession } = await load();
+  const engine = createEngine(RULESET);
+  const initial = engine.createGame({
+    seed: 40, options: { width: 30, height: 20, players: PLAYERS }
+  });
+  const session = createSession(RULESET, deepClone(initial), {});
+  const summaries = [];
+  session.onChange((_state, events) => {
+    for (const e of events) if (e.type === 'regentTurn') summaries.push(e);
+  });
+  session.setRegent('p1', 'balanced');
+  await session.regentTurn();
+  assert.strictEqual(summaries.length, 1, 'exactly one summary per regent turn');
+  const s = summaries[0];
+  assert.strictEqual(s.playerId, 'p1', 'the summary names the seat');
+  // the tally mirrors the cmd entries the recorder logged for this turn
+  const applied = session.log.filter(e => e.t === 'cmd' && e.ok);
+  assert.strictEqual(s.applied, applied.length, 'applied count matches the recording');
+  const moves = applied.filter(e => e.cmd.type === 'moveUnit').length;
+  assert.strictEqual(s.byType.moveUnit === undefined ? 0 : s.byType.moveUnit, moves,
+    'per-type counts match the recording');
+  // synthetic = client-side only: never a log entry, never in the export
+  const diag = session.exportDiagnostics();
+  assert.ok(!diag.log.some(e => e.t !== 'cmd' && e.t !== 'round'),
+    'the recording carries only cmd/round entries — the summary is not recorded');
+});
+
 test('replaceState announces itself with the stateReplaced marker', async () => {
   const { createEngine, deepClone, createSession } = await load();
   const engine = createEngine(RULESET);

@@ -22,7 +22,7 @@ export function initTurnLog(ctx) {
   // retained entries: toggling a class back on reveals suppressed history
   // (within the 60-entry cap). 🌍 world news has no checkbox by design.
   const filters = Object.assign(
-    { combat: true, cities: true, research: true, rival: true, saves: true },
+    { combat: true, cities: true, research: true, rival: true, saves: true, regent: true },
     (ctx.options && ctx.options.get('logFilters')) || {});
   function applyFilters() {
     for (const c of LOG_CLASSES) list.classList.toggle('hide-' + c.id, filters[c.id] === false);
@@ -156,6 +156,22 @@ export function initTurnLog(ctx) {
       if (e.type === 'saveCode') {
         // A33: the autosave broadcast's code, one line per changed code
         put(`💾 saved · code ${e.code}`);
+      } else if (e.type === 'regentTurn' && e.playerId === ctx.HUMAN) {
+        // B11: the regent's per-turn audit line — the seat owner can WATCH
+        // what the AI did with their empire (the item's visibility ask)
+        const bits = [];
+        const n = t => e.byType[t] === undefined ? 0 : e.byType[t];
+        if (n('moveUnit') > 0) bits.push(`${n('moveUnit')} move${n('moveUnit') === 1 ? '' : 's'}`);
+        if (n('fortify') > 0) bits.push(`${n('fortify')} fortified`);
+        if (n('startWork') > 0) bits.push(`${n('startWork')} work${n('startWork') === 1 ? '' : 's'} started`);
+        if (e.research !== '') bits.push(`research → ${techs[e.research].name}`);
+        for (const id of e.production) {
+          const def = units[id] || buildings[id] || wonders[id];
+          bits.push(`production → ${def ? def.name : id}`);
+        }
+        if (n('setWorkers') > 0) bits.push('citizens reassigned');
+        if (n('foundCity') > 0) bits.push(`${n('foundCity')} cit${n('foundCity') === 1 ? 'y' : 'ies'} founded`);
+        put(`🤖 regent played your turn${bits.length ? ': ' + bits.join(' · ') : ' (nothing to do)'}`);
       } else if (e.type === 'combatResolved') {
         const att = `${playerName(state, e.attackerOwner)} ${units[e.attackerType].name}`;
         const def = `${playerName(state, e.defenderOwner)} ${units[e.defenderType].name}`;

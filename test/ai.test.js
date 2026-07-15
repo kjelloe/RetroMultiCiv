@@ -140,8 +140,10 @@ test('B11: a human seat (regency) gets the identical empire policy stream', asyn
   const mk = (human) => grassState(14, 9,
     { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
       u2: { id: 'u2', type: 'settlers', owner: 'p1', x: 5, y: 4, moves: 1, fortified: false, veteran: false },
-      u3: { id: 'u3', type: 'settlers', owner: 'p1', x: 6, y: 4, moves: 1, fortified: false, veteran: false } },
-    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' }, workers: [0, 1] } },
+      // u3 = settler rank 1 (the homeland IMPROVER) parked ON a worked tile
+      // of c9 — its road job is underfoot, so startWork lands immediately
+      u3: { id: 'u3', type: 'settlers', owner: 'p1', x: 4, y: 2, moves: 1, fortified: false, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
     { players: { p1: { id: 'p1', name: 'A', color: '#00f', human, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } } });
   // three turns: the improver settler first WALKS to its job tile, then
   // startWork lands on a later turn — same shape either seat

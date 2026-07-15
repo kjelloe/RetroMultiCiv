@@ -51,3 +51,32 @@ test('x-wrap adjacency counts', () => {
   assert.strictEqual(stepDir(s.map, s.units.u1, 3, 1), 'W', 'wrapped neighbor');
   assert.strictEqual(canStepTo(s, s.units.u1, 3, 1, RULESET), true);
 });
+
+// B12: the seam-crossing verdict — the AFFORDANCE MATH is seam-correct in
+// BOTH directions (including diagonals), so "no arrow at the seam" can never
+// be this layer's fault. The user-visible gap is upstream: the renderer draws
+// no geometry beyond x = width-1, so the wrapped column cannot be hovered at
+// all (the raycast misses — the "black tile"). Pinned here so any future
+// seam-rendering work (ghost columns etc.) inherits a proven predicate.
+test('B12: seam steps show the arrow both directions on a wrapping map', () => {
+  const tiles = [];
+  for (let i = 0; i < 10 * 5; i++) tiles.push({ t: 'grassland', visible: true });
+  const s = {
+    map: { width: 10, height: 5, wrapX: true, tiles },
+    units: { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 0, y: 2, moves: 1 } },
+    players: { p1: { id: 'p1' } }
+  };
+  // west across the seam: unit at x=0, hover x=width-1
+  assert.strictEqual(stepDir(s.map, s.units.u1, 9, 2), 'W');
+  assert.strictEqual(canStepTo(s, s.units.u1, 9, 2, RULESET), true, 'W across the seam');
+  assert.strictEqual(canStepTo(s, s.units.u1, 9, 1, RULESET), true, 'NW across the seam');
+  assert.strictEqual(canStepTo(s, s.units.u1, 9, 3, RULESET), true, 'SW across the seam');
+  // east across the seam: unit at x=width-1, hover x=0
+  s.units.u1.x = 9;
+  assert.strictEqual(stepDir(s.map, s.units.u1, 0, 2), 'E');
+  assert.strictEqual(canStepTo(s, s.units.u1, 0, 2, RULESET), true, 'E across the seam');
+  // and NOT on a flat map: the same hover is a full map away
+  s.map.wrapX = false;
+  assert.strictEqual(stepDir(s.map, s.units.u1, 0, 2), null, 'no wrap on a flat map');
+  assert.strictEqual(canStepTo(s, s.units.u1, 0, 2, RULESET), false);
+});

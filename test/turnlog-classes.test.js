@@ -40,11 +40,14 @@ test('classifyEvent: ownership splits combat/cities/rival; world and saves are a
   // A33's synthetic save-code event; unknown types are not narrated
   assert.strictEqual(classifyEvent({ type: 'saveCode', code: 'AAAA-BBBB-CCCCC' }, 'p1', cityOwner), 'saves');
   assert.strictEqual(classifyEvent({ type: 'somethingNew' }, 'p1', cityOwner), null);
+
+  // B11's synthetic regent-turn summary — filterable like any own-seat news
+  assert.strictEqual(classifyEvent({ type: 'regentTurn', playerId: 'p1' }, 'p1', cityOwner), 'regent');
 });
 
 test('LOG_CLASSES: the filter row offers exactly the checkbox classes (world is always-on)', async () => {
   const { LOG_CLASSES } = await load();
   assert.deepStrictEqual(LOG_CLASSES.map(c => c.id),
-    ['combat', 'cities', 'research', 'rival', 'saves'],
+    ['combat', 'cities', 'research', 'rival', 'saves', 'regent'],
     'world has no checkbox by design — rare and load-bearing');
 });

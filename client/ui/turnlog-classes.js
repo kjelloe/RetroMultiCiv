@@ -8,7 +8,8 @@ export const LOG_CLASSES = [
   { id: 'cities', label: '🏛 cities' },
   { id: 'research', label: '🔬 research' },
   { id: 'rival', label: '👀 rivals' },
-  { id: 'saves', label: '💾 saves' }
+  { id: 'saves', label: '💾 saves' },
+  { id: 'regent', label: '🤖 regent' }
 ];
 
 // viewer: the viewpoint pid; cityOwner(cityId) -> pid|null resolves city
@@ -35,6 +36,8 @@ export function classifyEvent(e, viewer, cityOwner) {
       return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';
+    case 'regentTurn': // synthetic client event (session regency, B11)
+      return 'regent';
     default:
       return null;
   }

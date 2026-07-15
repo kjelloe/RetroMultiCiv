@@ -354,6 +354,44 @@ local function citySpacingOk(map: any, x: number, y: number, cx: number, cy: num
 	return dx >= diag and dy >= diag
 end
 
+-- A60: name a newly-founded city. An explicit cmd.name wins (the human prompt;
+-- '' is FALSY here, matching the old `cmd.name ||`). Otherwise, for a civ'd
+-- player, walk that civ's city list for the first name not already used by ANY
+-- current city (global uniqueness — two Romes read as a bug; iterate cityOrder
+-- for determinism), then a "New <name>" cycle, then "<CivName> Outpost <id>".
+-- A player with no civ (crafted states) keeps the old "City <cityId>" fallback,
+-- so scenario hashes built without civs are untouched.
+local function cityName(state: any, cmd: any, ruleset: any, cityId: string, idNum: number): string
+	if cmd.name ~= nil and cmd.name ~= "" then
+		return cmd.name
+	end
+	local player = state.players[cmd.playerId]
+	if player == nil or player.civ == nil or ruleset.civs == nil then
+		return "City " .. cityId
+	end
+	local civ = ruleset.civs[player.civ]
+	if civ == nil or civ.cities == nil then
+		return "City " .. cityId
+	end
+
+	local used = {}
+	for _, id in ipairs(state.cityOrder) do
+		used[state.cities[id].name] = true
+	end
+	local list = civ.cities
+	for k = 1, #list do
+		if used[list[k]] ~= true then
+			return list[k]
+		end
+	end
+	for k = 1, #list do
+		if used["New " .. list[k]] ~= true then
+			return "New " .. list[k]
+		end
+	end
+	return civ.name .. " Outpost " .. idNum
+end
+
 local function foundCity(state: any, cmd: any, ruleset: any): any
 	local unit = state.units[cmd.unitId]
 	if unit == nil then
@@ -386,10 +424,10 @@ local function foundCity(state: any, cmd: any, ruleset: any): any
 		end
 	end
 
-	local cityId = "c" .. state.nextCityId
+	local idNum = state.nextCityId
+	local cityId = "c" .. idNum
 	state.nextCityId += 1
-	-- JS `cmd.name || fallback`: empty string is FALSY there (truthiness trap)
-	local name = if cmd.name ~= nil and cmd.name ~= "" then cmd.name else "City " .. cityId
+	local name = cityName(state, cmd, ruleset, cityId, idNum)
 	state.cities[cityId] = {
 		id = cityId,
 		name = name,

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 251 tests), the item's own verification steps pass, related
+   (currently 259 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -392,7 +392,7 @@ assertions. Steps, in order:
 5. The Luau twin gate then compares against the PINNED values (the pin
    is the cross-language contract), not a live JS run.
 
-### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)  [claimed: bugfixer 2026-07-15 — pre-triage correction measured (@8d3e6af0): engine half is a NO-BUG (research was busy all 15 turns, zero settlers to startWork; the regent DID run the shared pickCommand policy — setProduction×3, setWorkers×4). Real bugs are client-side: the armed regent stalls after ONE turn (kicking-flag swallows the re-kick) and any manual command re-kicks a full sweep + auto-end. No engine files touched → no golden exposure.]
+### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)  [claimed: bugfixer 2026-07-15 — pre-triage correction measured (@8d3e6af0): engine half is a NO-BUG (research was busy all 15 turns, zero settlers to startWork; the regent DID run the shared pickCommand policy — setProduction×3, setWorkers×4). Real bugs are client-side: the armed regent stalls after ONE turn (kicking-flag swallows the re-kick) and any manual command re-kicks a full sweep + auto-end. No engine files touched → no golden exposure.] [done: bugfixer 2026-07-15 — (a) engine NO-BUG, pinned: test/ai.test.js "B11: a human seat (regency) gets the identical empire policy stream" proves the seat flag never changes pickCommand's command stream and that idle research + improver startWork fire. (b) ROOT CAUSE of the stall: regency.js drive()'s kicking flag was still true when endTurn's final notify fired, so the re-kick was swallowed — the armed regent played ONE turn then stalled, and any manual command's onChange then swept the seat + auto-ended ("when I moved them" — recording confirms every regent turn 249-263 starts with a manual-looking cmd, turn 263 with 16 rejected u16 moves). FIX: client/ui/regent-driver.js (DOM-free, extracted) owns a while-armed loop w/ macrotask yield; take-back honored at every turn boundary; regency.js delegates. test/regent-driver.test.js: red-first (stalled at turn 2) → self-continue to turn 5 + take-back stops + manual poke never auto-ends. (c) narration: session.regentTurn emits a synthetic {type:'regentTurn', playerId, applied, byType, research, production} (stateReplaced precedent — never logged/hashed; verified absent from exportDiagnostics; filterEvents passes it to its own seat only, zero engine change). turnlog.js renders "🤖 regent played your turn: N moves · research → X · production → Y…"; LOG_CLASSES gains a 🤖 regent filter checkbox. Server-regency narration = follow-up candidate (server/game.js playRegentSeat has no summary — LAN seats won't see the 🤖 line; local path was the reported bug). Suite 258/258, docs count-synced.]
 
 ARCHITECT PRE-TRIAGE (recording
 `debugging/logs/retromulticiv-diag-turn264.json` replays HASH-EXACT —
@@ -443,8 +443,23 @@ this structurally, prefer that over a parallel heuristic; (b)
 improver logic never upgrades roads→rails (Railroad tech known,
 rails never built) — extend the improve policy; (c) improvement
 density generally low late-game — measure first (soak army-mix/
-rails/improvement telemetry columns), then tune. ALL golden-
-affecting → window discipline, and (a) should land WITH A63's data.
+rails/improvement telemetry columns), then tune; (d) NEW from the
+ff-telemetry baseline (sim-runner, 30 worlds): the AI NEVER builds
+a mine — irrigation and roads happen, mines zero across every
+world; the improve slice has no mine path at all; (e) NO ATTACKER
+IS EVER BUILT — 30 worlds contain only phalanx/militia/settlers;
+armies are 100% defensive, so nobody ever prunes a runaway leader.
+MEASURED READ (sim-runner, adopted): the 2-vs-7 asymmetry is
+LEADER COMPOUNDING, not weak-seat bad luck (median leader 12+
+cities at t190; the tail's idle settlers grow 6→21 with land
+saturation) — capping the leader via real conflict (attackers +
+obsolescence + era-scaling) IS the fairness fix; a
+boost-the-weakest handover tweak would still hand humans a
+hopeless t305 world 9 times in 10. CONSUMER TRAP for the ledger:
+state can contain units/cities owned by NON-ROSTER owners (barb
+cities, wandering-settler civs) — per-owner consumers must guard
+(the probe crashed twice on exactly this). ALL golden-affecting →
+window discipline, and (a) should land WITH A63's data.
 
 ### B16 — Turn-371 save: history diverges from BOTH engine versions at turn 328 (wave VIII follow-on; bugfixer — B0 machinery, high interest)
 
@@ -491,7 +506,7 @@ tested one?) or a SECOND banner path (LAN autosave notice?) that
 never got the ✕/auto-dismiss. Failing test first; the B4 sweep
 pattern applies if it's another inert-hidden site.
 
-### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first — USER CONFIRMED VIII.11: traversal WORKS east-west, but the move-hint ARROW never shows across the seam (black tile, no arrow) — so the engine wraps and the CLIENT adjacency/hint math doesn't; the |dx|<=1-without-wrap suspicion is now the primary target, and A65's wrap-seam pathfind test gives the fixed reference behavior)
+### B12 — East-west wrap: can units actually traverse the seam? (wave VII item 3; assigned: bugfixer, triage first — USER CONFIRMED VIII.11: traversal WORKS east-west, but the move-hint ARROW never shows across the seam (black tile, no arrow) — so the engine wraps and the CLIENT adjacency/hint math doesn't; the |dx|<=1-without-wrap suspicion is now the primary target, and A65's wrap-seam pathfind test gives the fixed reference behavior)  [done: bugfixer 2026-07-15 — TRIAGE VERDICT, measured: the |dx|<=1-without-wrap suspicion is FALSE — move-hints stepDir/canStepTo wrap correctly BOTH directions incl. diagonals (probed live + pinned in test/move-hints.test.js "B12: seam steps show the arrow both directions"). ROOT CAUSE of the missing arrow: the terrain mesh spans exactly x 0..width-1 (terrain.js gw=width*SEGS, plane at (width-1)/2) and the camera pans freely past the edge — beyond the seam there is NO GEOMETRY, castAt's raycast MISSES (index.js:281 returns null), so no pick ever reaches the affordance; the user's "black tile" is the void background. The fix is seam RENDERING (edge-ghost columns with modulo pick-mapping, or fly-across) — exactly the "later polish call for the user" the item already names; escalated, not implemented. Suite 259/259.]
 
 The map wraps east-west (mapgen, rendering, neighbors()). The user
 believes units cannot walk OFF the east edge onto the west edge.
@@ -2020,7 +2035,7 @@ OPTIONAL LATER (user-noted): (b) the deluxe cut — the actual world
 BUILDING ITSELF, checkpoint states rendered as history passes via
 the A47 theater machinery. Queue (a) at the helper tail.
 
-## A60 — AI cities get real names (A55.1 ACTIVATED + root-caused 2026-07-15; assigned: helper — WINDOW: opens when the B11 window closes, this one is a REAL re-record)
+## A60 — AI cities get real names (A55.1 ACTIVATED + root-caused 2026-07-15; assigned: helper — WINDOW: opens when the B11 window closes, this one is a REAL re-record)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — new cityName(state,cmd,ruleset,cityId,idNum) in engine/cities.js + luau/cities.luau (both engines, one claim, byte-shaped twin): cmd.name wins ('' falsy as before); else for a civ'd player walk ruleset.civs[civ].cities for the first name unused by ANY current city (used-map over cityOrder), then a 'New <name>' cycle, then '<CivName> Outpost <idNum>'; player with no civ keeps the old 'City <cityId>' fallback so crafted/no-civ scenario hashes hold. Verified live: romans found Rome/Ostia/Antium/Cumae/Pompeii/Ravenna/Neapolis/Verona → New Rome/New Ostia/… ; no-civ → 'City c0'. REAL RE-RECORD: sim goldens 100:0x88490ab4 200:0x65d4c523 300:0xd43e98cf 400:0x56b7fbd3, natural rounds395/p2/0x56a3c878 (double-run deterministic); luau turn-100 twin re-pinned 0x560088f5→0x88490ab4, GREEN cross-language under lune (Luau reproduces the new hash). Scenario 003 did NOT move (founds no nameless civ cities). 5-seed soak clean. Item pt4 (extend 8→16 name lists) DEFERRED — data-source-governed, and 8 names already name every civ's first cities for the README shot. Files: engine/cities.js, luau/cities.luau, test/simulation.test.js, test/luau-twins.test.js.]
 
 ROOT CAUSE (architect): engine/cities.js:269 `cmd.name || 'City ' +
 cityId` is the ONLY naming; the AI's foundCity command carries no

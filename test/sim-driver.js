@@ -78,6 +78,9 @@ async function loadModules() {
     seedRng: rngMod.seedRng,
     rollRange: rngMod.rollRange,
     candidateTiles: citiesMod.candidateTiles,
+    workedTiles: citiesMod.workedTiles,
+    hasBuilding: citiesMod.hasBuilding,
+    wonderActive: citiesMod.wonderActive,
     sortIds: combatMod.sortIds,
     playerIncome: techMod.playerIncome
   };
@@ -348,8 +351,8 @@ function checkDeep(state, ruleset, mods) {
 
 // Structured per-player stats for one state — the telemetry row format
 // (tools/soak.js --stats appends these as JSONL for balance-drift charting)
-// and the base of the human summary line.
-function snapshot(state, ruleset, mods) {
+// and the base of the human summary line. M1 techs + M2 cities live here.
+function basicSnapshot(state, ruleset, mods) {
   const players = [];
   for (const pid of state.playerOrder) {
     const p = state.players[pid];
@@ -371,9 +374,365 @@ function snapshot(state, ruleset, mods) {
   return { turn: state.turn, year: state.year, players };
 }
 
+// ==== A64 AI-health telemetry (docs/05 §12, columns M3–M14) =================
+// DRIVER-OWNED DIAGNOSTICS: everything here READS state/events; the cumulative
+// half (M8-attempts, M10-M13 events, M12 idle) rides a `tel` accumulator passed
+// ALONGSIDE state, never inside it — so the recording and the golden hashes are
+// untouched (architect ruling @2d95d58e). Pure-state columns need no tel.
+
+// 8-connected, wrap-aware flood-fill labelling every LAND tile with a continent
+// id (-1 = not land). Movement is 8-directional so a diagonal land bridge is
+// one landmass — "same continent" (M5) and "cross-water" (M13) both key off it.
+// Land↔water never changes under any work order, so runSim labels once.
+function landContinents(map, ruleset) {
+  const W = map.width, H = map.height, N = W * H;
+  const label = new Array(N).fill(-1);
+  const isLand = (i) => {
+    const terr = ruleset.terrain.terrains[map.tiles[i].t];
+    return terr !== undefined && terr.domain === 'land';
+  };
+  let next = 0;
+  const stack = [];
+  for (let s = 0; s < N; s++) {
+    if (label[s] !== -1 || !isLand(s)) continue;
+    label[s] = next; stack.length = 0; stack.push(s);
+    while (stack.length > 0) {
+      const i = stack.pop();
+      const x = i % W, y = (i - x) / W;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          let nx = x + dx;
+          if (map.wrapX === true) nx = ((nx % W) + W) % W;
+          const ny = y + dy;
+          if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+          const ni = ny * W + nx;
+          if (label[ni] === -1 && isLand(ni)) { label[ni] = next; stack.push(ni); }
+        }
+      }
+    }
+    next = next + 1;
+  }
+  return { label, count: next };
+}
+
+// Connected components of the movement network (city tiles are hubs — Civ 1
+// cities carry an implicit road). useRail restricts it to railed tiles. Two
+// cities in the same component are network-connected. Global (all civs' roads).
+function netComponents(state, useRail) {
+  const map = state.map, W = map.width, H = map.height, N = W * H;
+  const cityTile = {};
+  for (const cid of state.cityOrder) { const c = state.cities[cid]; if (c) cityTile[c.y * W + c.x] = true; }
+  const onNet = (i) => {
+    if (cityTile[i] === true) return true;
+    const t = map.tiles[i];
+    return useRail ? t.railroad === true : (t.road === true || t.railroad === true);
+  };
+  const label = new Array(N).fill(-1);
+  let next = 0; const stack = [];
+  for (let s = 0; s < N; s++) {
+    if (label[s] !== -1 || !onNet(s)) continue;
+    label[s] = next; stack.length = 0; stack.push(s);
+    while (stack.length > 0) {
+      const i = stack.pop();
+      const x = i % W, y = (i - x) / W;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          let nx = x + dx;
+          if (map.wrapX === true) nx = ((nx % W) + W) % W;
+          const ny = y + dy;
+          if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+          const ni = ny * W + nx;
+          if (label[ni] === -1 && onNet(ni)) { label[ni] = next; stack.push(ni); }
+        }
+      }
+    }
+    next = next + 1;
+  }
+  return label;
+}
+
+// M4: over a civ's WORKED tiles, the share carrying the improvement its terrain
+// warrants — road where roadable, and irrigation OR mine where the terrain
+// yields one. The auto-improved city centre counts as complete.
+function improvementPct(state, pid, ruleset, mods) {
+  const W = state.map.width;
+  let worked = 0, done = 0;
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== pid) continue;
+    for (const wt of mods.workedTiles(state, c, ruleset)) {
+      const tile = state.map.tiles[wt.y * W + wt.x];
+      const terr = ruleset.terrain.terrains[tile.t];
+      if (terr === undefined) continue;
+      worked = worked + 1;
+      if (wt.center === true) { done = done + 1; continue; } // city square is auto-developed
+      const roadOk = terr.road === undefined || tile.road === true || tile.railroad === true;
+      const digOk = (terr.irrigate === undefined && terr.mine === undefined)
+        || tile.irrigation === true || tile.mine === true;
+      if (roadOk && digOk) done = done + 1;
+    }
+  }
+  return worked === 0 ? null : Math.round((done * 100) / worked);
+}
+
+// M5: of a civ's SAME-CONTINENT city pairs, the share joined by a contiguous
+// road (or rail) network. null when the civ has < 2 same-continent cities.
+function networkPct(state, pid, contLabels, netLabel) {
+  const W = state.map.width;
+  const cities = [];
+  for (const cid of state.cityOrder) { const c = state.cities[cid]; if (c && c.owner === pid) cities.push(c); }
+  let pairs = 0, conn = 0;
+  for (let i = 0; i < cities.length; i++) {
+    for (let j = i + 1; j < cities.length; j++) {
+      const ia = cities[i].y * W + cities[i].x, ib = cities[j].y * W + cities[j].x;
+      if (contLabels.label[ia] === -1 || contLabels.label[ia] !== contLabels.label[ib]) continue;
+      pairs = pairs + 1;
+      if (netLabel[ia] !== -1 && netLabel[ia] === netLabel[ib]) conn = conn + 1;
+    }
+  }
+  return pairs === 0 ? null : Math.round((conn * 100) / pairs);
+}
+
+// M9: share of NON-ice tiles the civ has explored (the poles are excluded — the
+// target is "everything but the ice caps"). Omniscient test states report 100.
+function explorationPct(state, pid, ruleset) {
+  const p = state.players[pid];
+  if (!p || !p.explored) return 100;
+  const tiles = state.map.tiles;
+  let total = 0, seen = 0;
+  for (let i = 0; i < tiles.length; i++) {
+    const terr = ruleset.terrain.terrains[tiles[i].t];
+    if (terr === undefined || terr.domain === 'ice') continue;
+    total = total + 1;
+    if (p.explored[i] === 1) seen = seen + 1;
+  }
+  return total === 0 ? 0 : Math.round((seen * 100) / total);
+}
+
+// M6 (PARTIAL — full obsoletedBy % is reserved for A63, per §12): the share of
+// a civ's MILITARY units (attack >= 1) sitting at the civ's own best power tier
+// (max of attack/defense). A coarse "is the army modern for what this civ can
+// field" proxy until the tech obsoletedBy chains land.
+function militaryPct(state, pid, ruleset) {
+  const powers = [];
+  let best = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner !== pid) continue;
+    const d = ruleset.units[u.type];
+    if (!d || (d.attack === undefined ? 0 : d.attack) < 1) continue; // non-military
+    const atk = d.attack === undefined ? 0 : d.attack;
+    const def = d.defense === undefined ? 0 : d.defense;
+    const pw = atk > def ? atk : def;
+    powers.push(pw);
+    if (pw > best) best = pw;
+  }
+  if (powers.length === 0) return null;
+  let atBest = 0;
+  for (const pw of powers) if (pw === best) atBest = atBest + 1;
+  return Math.round((atBest * 100) / powers.length);
+}
+
+// M7: per-city, the share of the beneficial (non-defensive) buildings the civ's
+// TECH makes available that the city actually has — "are cities keeping their
+// economic buildings current for their era", averaged over the civ's cities.
+function eraBuildingPct(state, pid, ruleset, mods) {
+  const p = state.players[pid];
+  const known = {};
+  for (const t of p.techs) known[t] = true;
+  const avail = [];
+  for (const bid of Object.keys(ruleset.buildings)) {
+    const d = ruleset.buildings[bid];
+    if (d.defenseMultiplier !== undefined) continue; // purely defensive → not this column
+    if (d.tech === undefined || known[d.tech] === true) avail.push(bid);
+  }
+  if (avail.length === 0) return null;
+  let cities = 0, sum = 0;
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== pid) continue;
+    cities = cities + 1;
+    let have = 0;
+    for (const bid of avail) if (mods.hasBuilding(c, bid)) have = have + 1;
+    sum = sum + (have * 100) / avail.length;
+  }
+  return cities === 0 ? null : Math.round(sum / cities);
+}
+
+// M8 (state half): wonders completed + wonders in production right now.
+function wonderStats(state, pid) {
+  let completed = 0, active = 0;
+  const built = state.wonders === undefined ? {} : state.wonders;
+  for (const wid of Object.keys(built)) {
+    const c = state.cities[built[wid]];
+    if (c && c.owner === pid) completed = completed + 1;
+  }
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (c && c.owner === pid && c.producing && c.producing.kind === 'wonder') active = active + 1;
+  }
+  return { completed, active };
+}
+
+// M13 (state half): distinct continents the civ has a city on.
+function continentsSettled(state, pid, contLabels) {
+  const W = state.map.width;
+  const seen = {}; let n = 0;
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== pid) continue;
+    const lab = contLabels.label[c.y * W + c.x];
+    if (lab !== -1 && seen[lab] !== true) { seen[lab] = true; n = n + 1; }
+  }
+  return n;
+}
+
+// M12 (state half over the ledger): settlers idle > 10 turns (NOT terraforming)
+// and non-settler units unmoved > 15 turns outside a city/fortress.
+function idleCounts(tel, state, ruleset) {
+  const W = state.map.width;
+  const out = {};
+  for (const pid of state.playerOrder) out[pid] = { idleSet: 0, stuckU: 0 };
+  const cityTile = {};
+  for (const cid of state.cityOrder) { const c = state.cities[cid]; if (c) cityTile[c.y * W + c.x] = true; }
+  const turn = state.turn;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    const rec = tel.ledger[uid];
+    const o = out[u.owner];
+    if (rec === undefined || !o) continue;
+    const idle = turn - rec.since;
+    if (u.type === 'settlers') {
+      if (idle > 10 && u.working === undefined) o.idleSet = o.idleSet + 1;
+    } else {
+      const i = u.y * W + u.x;
+      const sheltered = cityTile[i] === true || state.map.tiles[i].fortress === true;
+      if (idle > 15 && !sheltered) o.stuckU = o.stuckU + 1;
+    }
+  }
+  return out;
+}
+
+// The cumulative accumulator — driver-only, seeded from the initial roster.
+function makeTelemetry(state) {
+  const per = {};
+  for (const pid of state.playerOrder) {
+    per[pid] = { buys: 0, attacks: 0, captures: 0, crossWater: 0, wonderTry: 0 };
+  }
+  return { per, ledger: {}, seenWonders: {} };
+}
+
+// Passive consumption of the events the engine ALREADY produced this turn —
+// feeds M8-attempts / M10-buys / M11-attacks+captures / M13-cross-water. Reads
+// state (to resolve a city's owner), never writes it.
+function absorbEvents(tel, events, state, contLabels) {
+  const W = state.map.width;
+  for (const e of events) {
+    if (e.type === 'combatResolved') {
+      const a = tel.per[e.attackerOwner]; if (a) a.attacks = a.attacks + 1;
+    } else if (e.type === 'cityCaptured') {
+      const a = tel.per[e.to]; if (a) a.captures = a.captures + 1;
+    } else if (e.type === 'productionBought') {
+      const c = state.cities[e.cityId];
+      if (c) { const a = tel.per[c.owner]; if (a) a.buys = a.buys + 1; }
+    } else if (e.type === 'productionSet') {
+      if (e.item && e.item.kind === 'wonder') {
+        const c = state.cities[e.cityId];
+        if (c) {
+          const key = c.owner + ':' + e.item.id;
+          if (tel.seenWonders[key] !== true) {
+            tel.seenWonders[key] = true;
+            const a = tel.per[c.owner]; if (a) a.wonderTry = a.wonderTry + 1;
+          }
+        }
+      }
+    } else if (e.type === 'cityFounded') {
+      const c = state.cities[e.cityId];
+      if (c) {
+        const lab = contLabels.label[e.y * W + e.x];
+        let other = false, sameCont = false;
+        for (const cid of state.cityOrder) {
+          const oc = state.cities[cid];
+          if (!oc || oc.owner !== c.owner || oc.id === c.id) continue;
+          other = true;
+          if (contLabels.label[oc.y * W + oc.x] === lab) { sameCont = true; break; }
+        }
+        if (other && !sameCont) { const a = tel.per[c.owner]; if (a) a.crossWater = a.crossWater + 1; }
+      }
+    }
+  }
+}
+
+// Refresh the driver-only unit ledger: a unit whose tile is unchanged accrues
+// idle turns (M12). New units start their clock; dead units drop out.
+function updateLedger(tel, state, turn) {
+  const live = {};
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    live[uid] = true;
+    const rec = tel.ledger[uid];
+    if (rec === undefined) tel.ledger[uid] = { x: u.x, y: u.y, since: turn };
+    else if (rec.x !== u.x || rec.y !== u.y) { rec.x = u.x; rec.y = u.y; rec.since = turn; }
+  }
+  for (const uid of Object.keys(tel.ledger)) if (live[uid] !== true) delete tel.ledger[uid];
+}
+
+// The full telemetry row (basicSnapshot enriched with M3–M14). `tel` and
+// `contLabels` are optional: without them the pure-state columns still fill and
+// the cumulative ones are omitted (summarize passes neither).
+function snapshot(state, ruleset, mods, tel, contLabels) {
+  const snap = basicSnapshot(state, ruleset, mods);
+  const cont = contLabels || landContinents(state.map, ruleset);
+  const netRoad = netComponents(state, false);
+  const netRail = netComponents(state, true);
+  const idle = tel ? idleCounts(tel, state, ruleset) : null;
+  for (const pl of snap.players) {
+    const pid = pl.id;
+    let pop = 0;
+    for (const cid of state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.owner === pid) pop = pop + c.pop;
+    }
+    const w = wonderStats(state, pid);
+    pl.pop = pop;                                        // M3
+    pl.imprPct = improvementPct(state, pid, ruleset, mods); // M4
+    pl.netRoad = networkPct(state, pid, cont, netRoad);  // M5 road
+    pl.netRail = networkPct(state, pid, cont, netRail);  // M5 rail
+    pl.milPct = militaryPct(state, pid, ruleset);        // M6 (partial)
+    pl.bldgPct = eraBuildingPct(state, pid, ruleset, mods); // M7
+    pl.wonders = w.completed;                            // M8 completions
+    pl.wonderAct = w.active;                             // M8 in-progress
+    pl.explPct = explorationPct(state, pid, ruleset);    // M9
+    pl.continents = continentsSettled(state, pid, cont); // M13 (state half)
+    if (tel && tel.per[pid]) {
+      const t = tel.per[pid];
+      pl.buys = t.buys;                 // M10 (gold already on the row)
+      pl.attacks = t.attacks;           // M11
+      pl.captures = t.captures;         // M11
+      pl.wonderTry = t.wonderTry;       // M8 attempts
+      pl.crossWater = t.crossWater;     // M13 (event half)
+    }
+    if (idle) { pl.idleSet = idle[pid].idleSet; pl.stuckU = idle[pid].stuckU; } // M12
+  }
+  // M11 eliminations + M14 spread are cross-civ — row-level, from the survivors
+  let alive = 0, best = 0, worst = 0;
+  for (const pl of snap.players) {
+    if (!pl.alive) continue;
+    alive = alive + 1;
+    if (worst === 0 || pl.score < worst) worst = pl.score;
+    if (pl.score > best) best = pl.score;
+  }
+  snap.aliveCivs = alive;                                          // M11 elimination base
+  snap.deadCivs = snap.players.length - alive;
+  snap.scoreSpread = worst > 0 ? Math.round((best * 100) / worst) / 100 : null; // M14 (×100 → 2dp)
+  return snap;
+}
+
 // One readable line per checkpoint so soak logs tell a story at a glance.
 function summarize(state, ruleset, mods) {
-  const snap = snapshot(state, ruleset, mods);
+  const snap = basicSnapshot(state, ruleset, mods);
   const parts = [];
   for (const p of snap.players) {
     if (!p.alive) { parts.push(`${p.name} DEAD`); continue; }
@@ -659,6 +1018,10 @@ async function runSim(opts) {
   const initialState = mods.deepClone(state);
   const roundLog = [];
   const checkpoints = {};
+  // A64: driver-owned telemetry — the cumulative accumulator + the once-labelled
+  // continents (land↔water never changes under any work order). Never in state.
+  const tel = makeTelemetry(state);
+  const contLabels = landContinents(state.map, ruleset);
 
   function fail(reason, problems) {
     let artifacts = null;
@@ -690,6 +1053,7 @@ async function runSim(opts) {
   for (let round = 1; round <= turns; round++) {
     const startTurn = state.turn;
     const chaosLog = [];
+    const evs = []; // A64: this round's events, captured (not discarded) for tel
     let guard = state.playerOrder.length + 2;
     while (state.turn === startTurn && !state.gameOver && guard > 0) {
       guard--;
@@ -704,19 +1068,24 @@ async function runSim(opts) {
           if (cmd) {
             const res = engine.applyCommand(state, cmd);
             const centry = { playerId: pid, cmd, ok: res.ok };
-            if (res.ok) state = res.state;
+            if (res.ok) { state = res.state; for (const e of res.events) evs.push(e); }
             else centry.reason = res.reason;
             chaosLog.push(centry);
           }
         }
-        state = mods.runAiTurn(engine, state, pid, ruleset, []);
+        state = mods.runAiTurn(engine, state, pid, ruleset, evs);
       }
       const res = engine.applyCommand(state, { type: 'endTurn', playerId: pid });
       if (!res.ok) fail(`endTurn rejected for ${pid} on turn ${startTurn} (${res.reason})`);
       state = res.state;
+      for (const e of res.events) evs.push(e);
     }
     if (!state.gameOver && state.turn !== startTurn + 1) fail(`round ${round} wedged: turn stuck at ${state.turn}`);
     rounds = round;
+    // A64: fold this round's events + settled unit positions into the telemetry
+    // accumulator (passive reads of outputs the engine already produced).
+    absorbEvents(tel, evs, state, contLabels);
+    updateLedger(tel, state, state.turn);
 
     // hashing is ~a third of the runtime, so rounds carry a hash only every
     // hashEvery rounds (and at checkpoints/game end) — replay.js skips
