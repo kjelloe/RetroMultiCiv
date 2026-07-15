@@ -391,6 +391,33 @@ science: tech lead + M8 wonder completions. A stance whose signature
 column is indistinguishable from balanced doesn't ship (the A59
 quality bar, now with named columns).
 
+**FIRST BASELINE (sim-runner, 2026-07-16 — 25 seeds × {normal, GE}
+× {chaos, no-chaos}, 4 civs medium, 100/100 clean; telemetry proven
+golden-safe by unchanged hashes). Verdicts vs the proposed targets:**
+- PASSING: M12-idle-settlers (median 0–1), M14-normal (median 3.8×,
+  16/25 in band).
+- MISSES with a capability gap named: M8 wonder ambition (median
+  attempts 0 per civ); **M10 — the AI NEVER rush-buys** (0 buys in
+  all no-chaos games; chaos-on numbers measured the chaos stream);
+  **M12-stuck — CATASTROPHIC: 59–100% of armies never move**
+  (chaos flatters it by resetting the counter); **M13 — crossWater
+  = 0 in ALL 100 games** (the terrarium is a measured fact); M9
+  exploration far under target.
+- DEFINITION FIXES before pinning: M9's denominator includes ocean
+  (spec says land+coast) and lacks the own-continent-t150 column;
+  M11's elimination band quantizes coarsely at 4 civs (0/25/50%) —
+  the CANONICAL BASELINE CIV COUNT needs deciding (4 vs 7);
+  checkpoint labels are t101/201/301/401 (pin targets in that
+  convention).
+- **THE BIG FLAG: GE no-chaos COLLAPSE** — cities median 1, techs 7,
+  stuck 100% at t301: the chaos stream's churn has been quietly
+  RESCUING the God-Emperor AI from disorder paralysis, so chaos-on
+  soaks overstate AI health. ADOPTED: the AI-capability program
+  baselines against the NO-CHAOS pair; chaos-on remains the
+  regression-soak configuration.
+Targets get pinned in the user's tuning session against these
+distributions.
+
 Two halves, strictly ordered: (1) A64 = the MEASUREMENT (telemetry
 columns in sim-driver/soak --stats — golden-safe, ships first;
 sim-runner then baselines current behavior across ≥25 seeds); (2)

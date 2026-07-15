@@ -33,6 +33,35 @@ export function buildSaveEnvelope(session, ctx) {
   return envelope;
 }
 
+// B16 apply-on-load (architect ruling @1220b527): the save IS the game — its
+// recorded rulesOverrides replace the URL's on load, in place, so the live
+// engine and every future envelope run the loaded game's actual rules. A URL
+// param must never silently mutate a loaded game's difficulty. Returns a
+// human notice line, or null when the save records nothing (pre-B16 saves
+// keep the status quo — their rules are unknowable). DOM-free for tests.
+const DIFFICULTY_NAMES = { 6: 'Trainer', 5: 'Easy', 4: 'Medium', 3: 'Hard', 2: 'God-Emperor' };
+export function applyLoadedRules(session, ctx, diagBlock) {
+  if (!diagBlock || diagBlock.rulesOverrides === undefined || !ctx.baseRules) return null;
+  const ov = diagBlock.rulesOverrides;
+  const rules = session.ruleset.rules;
+  const next = Object.assign({}, ctx.baseRules, ov);
+  // mutate IN PLACE: the engine closure and every module hold this object
+  for (const k of Object.keys(rules)) {
+    if (next[k] === undefined) delete rules[k];
+  }
+  Object.assign(rules, next);
+  ctx.rulesOverrides = ov; // the next envelope stamps the loaded game's truth
+  const bits = [];
+  if (ov.contentCitizens !== undefined && DIFFICULTY_NAMES[ov.contentCitizens]) {
+    bits.push(`${DIFFICULTY_NAMES[ov.contentCitizens]} difficulty`);
+  }
+  if (ov.combatRounds !== undefined && ov.combatRounds > 1) bits.push('best-of-3 combat');
+  for (const k of Object.keys(ov)) {
+    if (k !== 'contentCitizens' && k !== 'combatRounds') bits.push(`${k}=${ov[k]}`);
+  }
+  return bits.length > 0 ? `⚖ rules from save: ${bits.join(' · ')}` : null;
+}
+
 export function initSaves(ctx) {
   const { session, sel, panels, hud } = ctx;
 
@@ -121,10 +150,15 @@ export function initSaves(ctx) {
     sel.cityId = null;
     sel.lastMovedBy = {}; // unit ids from another game could collide
     panels.closeAll();
+    // B16 apply-on-load: the save's recorded rules replace the URL's — the
+    // loaded game keeps ITS difficulty and the composed recording stays
+    // replayable by construction (notice line below, never a dialog)
+    const rulesNotice = applyLoadedRules(session, ctx, obj && obj.diag);
     // A47: a save carrying a diag block seeds the recorder with the game's
     // full history (the replay theater then spans every session); older
     // saves without it replay from the load point
     session.replaceState(s, obj && obj.diag);
+    if (rulesNotice) hud.note(rulesNotice);
     // resume at the right seat: the active player if human, else the first
     // human — behind the hand-off cover, as if the turn had just passed
     const viewer = s.players[s.activePlayer] && s.players[s.activePlayer].human

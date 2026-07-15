@@ -89,6 +89,14 @@ export function showSetupScreen() {
     && !demoParams.some(p => sq.has(p))
   );
   if (splashWanted) {
+    // A77: the title theme under the diorama — a music-only sound instance
+    // (honors the ⚙ music toggle; webdriver is already excluded above; the
+    // context resumes on the first click per browser autoplay policy)
+    import('./sound.js').then(({ initSound }) => {
+      let so = { soundMaster: '70', soundMusic: true };
+      try { so = Object.assign(so, JSON.parse(localStorage.getItem('retromulticiv-options') || '{}')); } catch (e) { /* fresh */ }
+      initSound({ options: { get: k => so[k] }, session: null }).playTune('splash');
+    }).catch(() => { /* audio is best-effort */ });
     const dio = document.createElement('div');
     dio.id = 'setup-diorama';
     overlay.insertBefore(dio, setupBox);

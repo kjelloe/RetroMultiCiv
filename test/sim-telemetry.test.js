@@ -8,8 +8,10 @@ const test = require('node:test');
 const assert = require('node:assert');
 const {
   landContinents, netComponents, networkPct, explorationPct, continentsSettled,
-  makeTelemetry, absorbEvents, updateLedger, idleCounts
+  makeTelemetry, absorbEvents, updateLedger, idleCounts,
+  runSim, snapshot, loadModules
 } = require('./sim-driver.js');
+const REAL_RULESET = require('./ruleset.js');
 
 // a tiny ruleset: land vs ocean vs ice — only what the geography helpers read
 const RULESET = { terrain: { terrains: {
@@ -145,4 +147,21 @@ test('idleCounts: idle settlers (not terraforming) and stuck units, over the led
   const out = idleCounts(tel, state, { units: { settlers: {}, militia: {} } });
   assert.strictEqual(out.p1.idleSet, 1, 's1 idle 19t; s2 is terraforming so excluded');
   assert.strictEqual(out.p1.stuckU, 1, 'w1 unmoved 19t, not in a city/fortress');
+});
+
+// A64 follow-up (sim-runner gap): the cumulative columns must REACH a consumer.
+// A DIRECT runSim caller reads the accumulator from the return; snapshot() built
+// from it must carry buys/attacks/idleSet etc. (the check the soak-only smoke
+// missed — soak's onCheckpoint path works, but a direct-runSim harness needs
+// tel on the return).
+test('runSim return exposes tel + contLabels; a snapshot from them carries the cumulative columns', async () => {
+  const mods = await loadModules();
+  const r = await runSim({ seed: 7, civs: 4, width: 40, height: 25, turns: 80, chaos: true, deepAt: [], artifactsDir: false });
+  assert.ok(r.tel && r.tel.per, 'runSim return carries the telemetry accumulator');
+  assert.ok(r.contLabels && Array.isArray(r.contLabels.label), 'runSim return carries continent labels');
+  const snap = snapshot(r.state, REAL_RULESET, mods, r.tel, r.contLabels);
+  for (const key of ['buys', 'attacks', 'captures', 'crossWater', 'wonderTry', 'idleSet', 'stuckU']) {
+    assert.ok(snap.players.every(p => typeof p[key] === 'number'),
+      `every player row has a numeric ${key} (cumulative column reached the snapshot)`);
+  }
 });

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 277 tests), the item's own verification steps pass, related
+   (currently 287 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -478,6 +478,20 @@ both engines one claim, scenario 013-zoc pins both behaviors
 (city-ZOC blocks; diplomat walks through). Queue: with the
 B13/A63 window family, or standalone when the bugfixer frees.
 
+### B19 — River fidelity trio from B17's wiki audit (engine legality; one window when picked up)
+
+Three Civ 1 deviations recorded during B17's cell-by-cell terrain
+audit (wiki authority):
+1. **Bridge Building gates nothing** — Civ 1 required it for roads
+   on river tiles; ours builds river roads tech-free. THE most
+   user-visible of the trio.
+2. Rivered tiles can transform into forest+river hybrids (Civ 1's
+   River terrain had no mine/transform option).
+3. Rivered roads currently get base-terrain trade (Civ 1's River
+   road gave none).
+All movement/economy legality = one golden window, both engines,
+scenario pins. Queue: bugfixer's discretion alongside B18/B13.
+
 ### B16 — Turn-371 save: history diverges from BOTH engine versions at turn 328 (wave VIII follow-on; bugfixer — B0 machinery, high interest)
 
 The user's `debugging/logs/retromulticiv-turn371.json` carries the
@@ -527,6 +541,16 @@ FLAGGED for architect ruling (not fixed): loadStateObject ignores the
 save's difficulty — cross-difficulty loads silently change rules AND
 make the composed A47 recording unreplayable by construction. Suite
 277/277.]
+[follow-up done: bugfixer 2026-07-16 — APPLY-ON-LOAD landed per the
+ruling (@1220b527/@e849e7f4, no dialog): saves.js applyLoadedRules
+(exported, DOM-free, red-first) rebuilds the live rules IN PLACE as
+base + the save's recorded overrides (same object — the engine closure
+picks it up), updates ctx.rulesOverrides so the next envelope stamps
+the loaded truth, and hud-notes '⚖ rules from save: Trainer difficulty'
+(named via a local difficulty map; {} = silent reset to base; pre-B16
+saves without the field stay untouched — unknowable). main.js passes
+ctx.baseRules. Covered in test/save-envelope.test.js incl. the
+compose-through-Shift+S case.]
 
 ### B14 — ZOC across domains: land units should not zone-control sea (wave VIII.18; bugfixer — wiki first)
 
@@ -1470,6 +1494,24 @@ choice so classic one-roll remains the default; sim soak must verify
 AI still wins wars under the hp model. NOT QUEUED — design first,
 architect.
 
+EXTENDED INTO A "CIV 2 RULES MODE" UMBRELLA (user note 2026-07-16):
+alongside hp/healing, the mode adds —
+- **Ranged BOMBARD** for siege weapons and modern ships: artillery,
+  a new TREBUCHET unit (not in Civ 1's roster — this mode may add
+  units), battleships/cruisers shelling adjacent-or-ranged tiles
+  without entering combat themselves. Needs: a bombard command
+  (attack without move-in; damage under the hp model — bombard only
+  makes sense WITH hitpoints, so it's strictly part of this mode),
+  range data per unit, AI usage policy.
+- **Civ 2 ZOC**: only ground units exert zones of control, sea/air
+  exempt (B14 established our Civ 1 ZOC is domain-blind and
+  CORRECT for the default rules; this mode flips the rule as data —
+  `rules.json zocDomains` or similar — never a code fork).
+Everything stays ONE ruleset toggle at setup ("Civ 1 authentic" vs
+"Civ 2 rules"), differences data-driven wherever possible, and the
+whole mode is a golden-window family with its own scenario pins
+when designed. NOT QUEUED — v2 shelf, design-first, architect.
+
 ## PARKED/DESIGN — Civ4-style strategic resource chains (user note 2026-07-14)
 
 A more advanced resource model for consideration: strategic resources
@@ -2217,7 +2259,7 @@ scores are public like the score line today). Dismissable, logged
 in the turn log, replay theater shows them at the right moments
 for free (events ride the feed).
 
-## A73-STATS — the statistics page content (designed with the user 2026-07-15)
+## A73-STATS — the statistics page content (designed with the user 2026-07-15)  [claimed: coder-helper 2026-07-16] [done: 2026-07-16 — opened from the end screen's "View statistics". client/ui/stats-data.js: PURE collectStats(rec, deps) — a render-free sandbox replay (same stepEntry contract as A47 + tools/replay.js, engine deps injected) collecting per-turn per-civ score/cities/pop/techs + battles won-lost (combatResolved), the wonders timeline (wonderBuilt), age markers (A75 ageChanged), and each civ's death turn (playerDefeated); DOM-free, 3 unit tests (aligned series / monotonic techs / deterministic). client/ui/stats.js: pure-SVG (no libs) time-series line charts (score/pop/cities/techs) with civ-coloured lines truncated at death, dashed AGE MARKER verticals labelled by age, a battles table + wonders timeline. Screenshot-verified (4 charts w/ Renaissance+Industrial markers, Greeks line truncates at its death, axes, legend; data cross-checked in node). Point 5 (M-column snapshot) DEFERRED per the item — needs A64 telemetry client-side. Golden-safe (reads recording + emitted events; no engine change). Wired: endscreen View-statistics → ctx.stats.open (coming-soon note remains the fallback), main.js initStats. Browser boot e2e 10/10, full suite 283/283. Files: client/ui/{stats-data(new),stats(new),endscreen}.js, client/main.js, client/style.css, test/stats-data.test.js(new).]
 
 The end screen's "View statistics" opens:
 1. **Time-series charts per civ** — score, cities, population,
@@ -2245,7 +2287,7 @@ Golden-safe throughout (reads recording + events).
    under-uses the column.
 Golden-safe, screenshots read.
 
-## A73 — End-game scoreboard: who won, WHY, and by how much (user request 2026-07-15, after the Mongols surprise)
+## A73 — End-game scoreboard: who won, WHY, and by how much (user request 2026-07-15, after the Mongols surprise)  [claimed: coder-helper 2026-07-16] [done: 2026-07-16 — client/ui/endscreen.js: full-screen END SCREEN on gameOver. (1) HEADLINE names the victory REASON in plain words from the gameOver event's victory field ('Score victory — the year 1850 AD arrived, and the Romans had built the greatest civilization' / 'Conquest — the X stand alone'), VICTORY/DEFEAT/spectator verdict by viewpoint. (2) STANDINGS ranked by score with the COMPONENT BREAKDOWN as a stacked bar (population/techs/wonders, green/blue/gold) from engine scoreBreakdown() — NEW in engine/score.js + luau/score.luau, score()=breakdown.total so HASH-NEUTRAL (sim 6/6 vs A60 pins, luau twins green, verified). Winner row highlighted+👑, dead civs grayed with their FALL TURN (client-side deathTurn ledger from playerDefeated events, never state), plus city/tech/wonder counts. (3) BUTTONS: Watch the replay (ctx.replay.open), View statistics (A73-STATS landing = 'coming soon' note), New game (→ setup), Load (reuses saves.js Shift+L). (4) world-public scores → spectators/LAN see the same board; fires on the gameOver event AND on loading an already-over game. Screenshot-verified (score arithmetic matches scoreBreakdown: Romans 21pop×2+20×5+2×20=182). Golden-safe (render + pre-existing event payload; the score refactor is hash-neutral). Tests: scoreBreakdown component/sum test in score.test.js. Full suite 279/279. Files: engine/score.js, luau/score.luau, client/ui/endscreen.js(new), client/main.js, client/style.css, test/score.test.js. UNBLOCKS A73-STATS (the standings + scoreBreakdown are its base).]
 
 The game ends and the winner banner explains nothing — the user
 lost to a score victory at 2100 AD and rightly asked "how?!". A
@@ -2316,6 +2358,26 @@ transform ever leave a stray mine marker on the wrong terrain?);
 so UI and engine agree. Outcome: fixes if the table drifts from
 Civ 1, or a docs/01 §11 note that transforms ARE the Civ 1 behavior
 (+ tell the user which).
+
+[done: bugfixer 2026-07-16 — WORKING-AS-CIV1, verified cell-by-cell:
+data/terrain.json matches the wiki terrain table on all ELEVEN rows
+(irrigation +1 food on desert/grassland/hills/plains; mine +1sh
+desert/mountains, +3sh hills; transforms forest→plains both works,
+mine plants forest on grassland/plains/jungle/swamp, irrigate clears
+jungle/swamp→grassland; nothing on arctic/tundra/ocean). The user's
+'mines only on hills/mountains/desert' expectation is later-Civ
+memory — Civ 1 mine-on-grassland PLANTS FOREST and our engine does
+exactly that. (2) markers clean BY CONSTRUCTION: processWork's
+transform path deletes both tile flags and props.js draws markers
+from those flags — no stray-marker path exists. (3) docs/01 §11
+verdict note added (tells the user which). THREE river-flag
+deviations recorded there + mailed as queue candidates (all inherent
+to the deliberate §3.1 flag model): rivered tiles can mine-transform
+into forest+river hybrids Civ 1 never had (River had no mine option);
+rivered roads get the base terrain's trade bonus (Civ 1 River road
+gave none); bridge-building tech exists but gates nothing (Civ 1
+required it for roads on River squares). No code change. Suite
+283/283 (with the apply-on-load follow-up in the same run).]
 
 ## A71 — Special-units audit (wave VIII.20 — architect + wiki first)
 
@@ -2492,6 +2554,69 @@ carries SEAT TOKENS + SEAT CODES (seat hijack by URL);
    flag (the guards pattern).
 A50 builds ON this posture; its remaining items assume
 hardened-default.
+
+## A76 — Space victory: Apollo Program → spaceship → Alpha Centauri (user 1.0 ruling 2026-07-16)
+
+Civ 1's real endgame, promoted from §12 out-of-scope by the user:
+someone completing the APOLLO PROGRAM wonder unlocks spaceship
+PARTS in every civ's catalog (structural/component/module per
+Civ 1 — the wiki extract carries part counts/costs/success math);
+build parts in cities, launch, first ship to arrive (or best odds,
+per Civ 1's rules) wins the SPACE VICTORY; conquest of the
+launcher's capital scrubs the flight (Civ 1 rule — verify). New
+victory type in checkGameEnd + A73's reason line + M-columns
+(parts built, launches). Engine + data + UI; state shape grows a
+spaceship block per civ = golden window family, fixtures first.
+Design pass on the wiki numbers, then slices.
+
+## A77 — Sound design v1 (user ruling 2026-07-16: effects for ALL events; tunes for creation + splash; soundtrack later)  [claimed: coder-helper 2026-07-16] [done(v1 impl): 2026-07-16 — SYNTHESIS approved (architect @0920cba9): chiptune-adjacent WebAudio, ZERO repo bytes / zero licensing surface. client/ui/sound-map.js: PURE soundForEvent(e,viewer,cityOwner) riding the turnlog-classes inputs — viewer-aware so combat-win/combat-loss are the user's triumphant/sad pair; SOUND_IDS is the published contract (Roblox row mirrors the MAP, not the source); 4 unit tests. client/ui/sound.js: a tiny oscillator+envelope synth, a recipe table for all 22 cues + two procedural TUNES (creation/splash), fog-filtered cue wiring (filterEvents, session-optional), lazy AudioContext resumed on first gesture (autoplay policy), ⚙ split (master+effects+music, SEPARATE from reduceAnimation). options.js: soundMaster range + soundEffects/soundMusic toggles + defaults. Wired: cues via ctx.sound=initSound (main.js), creation tune under the fast-forward, splash tune under the setup diorama (both tune-only instances reading stored prefs; webdriver-excluded via splashWanted). debugging/soundboard.html (architect addition @7962d375): the gallery's audio twin — every SOUND_ID as a ▶ row + both tunes + per-row comment box + download-JSON/copy-all, served under --debug; it's the USER's tuning surface AND my dev harness. VERIFIED headless (quality = the user's ears by design ruling): map tested, soundboard screenshot renders every row (synth builds w/o throwing), browser e2e 16/16 boots+plays cues in real games w/o throwing, full suite 287/287. HUMAN TUNING PASS pending → points at debugging/soundboard.html. Files: client/ui/{sound-map(new),sound(new),options,setup}.js, client/main.js, debugging/soundboard.html(new), test/sound-map.test.js(new).]
+
+Every game event gets a sound effect — combat WINS triumphant,
+LOSSES sad (the user's explicit pair), founding, growth, discovery,
+wonder completion, disorder, era change (the historian deserves a
+fanfare), regent handoff, treaty events when diplomacy lands. Plus
+two tunes now: world-creation/fast-forward accompaniment and a
+splash/diorama theme; full soundtrack LATER by design. Design
+questions for the item pass: asset sourcing (original/generated
+only — the license discipline extends to audio), a data-driven
+event→sound map (events already flow through turnlog-classes — the
+map rides the same classification), volume/mute controls in ⚙
+(master + effects/music split; reduceAnimation does NOT imply
+mute — separate toggle), Roblox parity via the same event map
+(docs/13 gains a sound row). Browser: WebAudio, SYNTHESIZED (ruled
+2026-07-16 — license-clean by construction, no vendored audio).
+PLUS THE SOUNDBOARD (user request 2026-07-16):
+`debugging/soundboard.html` — the gallery's audio twin, served
+under `--debug` (A61 blocks /debugging by default): every
+SOUND_ID as a numbered row with a ▶ button (plays the real synth
+cue), the tunes in a music section, a COMMENT box per row, and
+"download comments" (JSON with sound id → note) + copy-all — so
+the user clicks through, types reactions, and hands the file back
+for the tuning round. Zero game deps beyond sound-map + sound.js.
+
+## A78 — First-timer tutorial advice (user ruling 2026-07-16)
+
+First-time players get contextual ADVICE OFFERS — dismissible ALL
+at once ("no thanks") or acknowledged one-by-one ("OK, got it"),
+and mutable later in ⚙. Trigger moments (first-visit flag per
+advice id, localStorage like the old splash flag): first unit
+selected (movement + action bar), first settler (founding), first
+city view (production/workers), first combat hover (odds), first
+disorder, first tech choice, first save-code toast, first regent
+offer. Content is short original prose (pedia A58 carries the
+depth; advice links into it). Never blocks input; never shown to
+returning players; e2e/webdriver paths skip.
+
+## A79 — Blockade: enemy units block worked tiles (user war-doctrine rule 2026-07-16; wiki-check first)
+
+An enemy unit standing on a tile a city works BLOCKS that tile's
+harvest (city view shows the blocked tile red/crossed). CHECK the
+wiki first: Civ 1 may already specify this (if authentic, it's
+fidelity; if not, it's a house rule the user wants regardless —
+document which). Engine change in workedTiles/auto-assign (skip
+blocked tiles; manual assignment to a blocked tile rejected or
+zero-yield — design call at build), golden window + scenario pin.
+Sieges (docs/15 §2.4) emerge from this rule nearly free.
 
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14; NOTE 2026-07-15: A61 sets the hardened-DEFAULT posture + static whitelist FIRST; A50's items assume it)
 

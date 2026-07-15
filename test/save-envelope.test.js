@@ -66,6 +66,45 @@ test('B16: tools/replay.js accepts a local save envelope natively', async () => 
   assert.strictEqual(old.diag.rulesOverrides, undefined);
 });
 
+// B16 apply-on-load (architect ruling): loading a save that records its
+// rules overrides must swap the LIVE rules to the save's — in place, so the
+// engine closure and the next save envelope both see the loaded game's truth.
+test('B16: loading a save applies its recorded rules overrides in place', async () => {
+  const { applyLoadedRules, buildSaveEnvelope } = await import('../client/ui/saves.js');
+  const baseRules = { contentCitizens: 4, combatRounds: 1, endYear: 2100 };
+  // a session booted on god-emperor (URL override), loading a TRAINER save
+  const liveRules = Object.assign({}, baseRules, { contentCitizens: 2 });
+  const session = { ruleset: { rules: liveRules }, state: { turn: 5 } };
+  const ctx = { baseRules, rulesOverrides: { contentCitizens: 2 }, gameCode: () => null };
+  const notice = applyLoadedRules(session, ctx, {
+    initialState: {}, log: [], rulesOverrides: { contentCitizens: 6 }
+  });
+  assert.strictEqual(session.ruleset.rules, liveRules,
+    'the SAME object mutates — the engine closure reads it live');
+  assert.strictEqual(liveRules.contentCitizens, 6, "the save's difficulty applies");
+  assert.strictEqual(liveRules.endYear, 2100, 'untouched base keys survive');
+  assert.strictEqual(liveRules.combatRounds, 1,
+    "the URL-era override family resets to base where the save doesn't override");
+  assert.match(notice, /Trainer/, 'the visible notice names the loaded difficulty');
+  assert.deepStrictEqual(ctx.rulesOverrides, { contentCitizens: 6 },
+    'the next Shift+S envelope must stamp the LOADED overrides');
+  // and it composes: a save built now records the loaded game's rules
+  session.exportDiagnostics = () => ({ initialState: {}, log: [{}] });
+  const envelope = buildSaveEnvelope(session, ctx);
+  assert.deepStrictEqual(envelope.diag.rulesOverrides, { contentCitizens: 6 });
+  // default-rules save ({}): applies too, resetting the URL override
+  const notice2 = applyLoadedRules(session, ctx, {
+    initialState: {}, log: [], rulesOverrides: {}
+  });
+  assert.strictEqual(liveRules.contentCitizens, 4, 'back to base rules');
+  assert.strictEqual(notice2, null, 'default rules need no notice line');
+  // pre-B16 save (no field): status quo, no notice
+  liveRules.contentCitizens = 2;
+  ctx.rulesOverrides = { contentCitizens: 2 };
+  assert.strictEqual(applyLoadedRules(session, ctx, { initialState: {}, log: [] }), null);
+  assert.strictEqual(liveRules.contentCitizens, 2, 'unknowable rules stay untouched');
+});
+
 // the finding itself, pinned on the real artifact (self-skips if absent):
 // the user's turn-371 recording is SOUND — under the trainer ruleset it
 // replays every entry clean to the save's own hash. If this ever reds, the

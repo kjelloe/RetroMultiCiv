@@ -1139,7 +1139,11 @@ async function runSim(opts) {
   const last = roundLog.length > 0 ? roundLog[roundLog.length - 1].hash : undefined;
   return {
     state, rounds, checkpoints, roundLog, initialState,
-    finalHash: last === undefined ? mods.hashState(state) : last
+    finalHash: last === undefined ? mods.hashState(state) : last,
+    // A64: expose the driver-owned telemetry accumulator + continent labels so a
+    // DIRECT runSim caller (not going through soak's onCheckpoint) can build a
+    // full snapshot: snapshot(result.state, ruleset, mods, result.tel, result.contLabels).
+    tel, contLabels
   };
 }
 

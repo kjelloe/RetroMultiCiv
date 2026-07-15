@@ -12,7 +12,7 @@ for the architect and any number of coder agents. Storage is
 python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"
 python3 tools/agent-mail.py send --from helper --to architect --tag done "A11 done"
 python3 tools/agent-mail.py send --from helper --to all "broadcast"
-echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # stdin
+echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # stdin (hub-safe since 2026-07-16: the client resolves '-' before proxying)
 python3 tools/agent-mail.py inbox --as helper      # unread for me (marks read)
 python3 tools/agent-mail.py peek  --as helper      # unread, does NOT mark
 python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag

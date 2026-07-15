@@ -188,6 +188,7 @@ export function initPanels(ctx) {
       fillResearchPanel();
       researchPanel.classList.remove('hidden');
       closeCityPanel();
+      if (ctx.advice) ctx.advice.offer('tech-choice'); // A78
     } else {
       researchPanel.classList.add('hidden');
     }
@@ -211,6 +212,7 @@ export function initPanels(ctx) {
     researchPanel.classList.add('hidden');
     fillCityPanel();
     cityPanel.classList.remove('hidden');
+    if (ctx.advice && city && city.owner === ctx.HUMAN) ctx.advice.offer('city-view'); // A78
   }
 
   function closeCityPanel() {

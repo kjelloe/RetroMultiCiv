@@ -9,7 +9,11 @@ const DEFAULTS = {
   clock: 'off',           // off | elapsed | time
   slowPokeSecs: '30',     // A26: turn-log note after waiting this long (0 = off)
   muteTurnBanner: false,  // A25: suppress the 🔔 your-turn banner + chime
-  reduceAnimation: false  // A28: no sway/smoke/flashes, instant movement
+  reduceAnimation: false, // A28: no sway/smoke/flashes, instant movement
+  soundMaster: '70',      // A77: master volume 0-100 (string: it's a range input)
+  soundEffects: true,     // A77: event sound effects (separate from reduceAnimation)
+  soundMusic: true,       // A77: the creation + splash tunes
+  firstTimeTips: true     // A78: contextual first-timer advice (re-enable resets)
 };
 
 export function initOptions(ctx) {
@@ -61,7 +65,13 @@ export function initOptions(ctx) {
     </label>
     <label>Slow player note, seconds (0 = off)
       <input type="number" data-opt="slowPokeSecs" min="0" step="5" style="width:64px">
-    </label>`;
+    </label>
+    <label>🔊 Sound volume
+      <input type="range" data-opt="soundMaster" min="0" max="100" step="10" style="width:120px">
+    </label>
+    <label><input type="checkbox" data-opt="soundEffects"> Sound effects (combat, cities, discoveries, era changes)</label>
+    <label><input type="checkbox" data-opt="soundMusic"> Music (world-creation and title themes)</label>
+    <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>`;
   document.body.appendChild(panel);
 
   function syncPanel() {

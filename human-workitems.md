@@ -67,6 +67,13 @@ the Done log at the bottom.
 
 ## Pending — decisions / ops
 
+- [ ] **Sound listening pass (A77, when it lands)**: run the server
+  with `--debug`, open `/debugging/soundboard.html` — every sound
+  as a numbered ▶ row, the tunes below, a comment box per sound;
+  click through, type reactions, hit "download comments" and hand
+  me the file. Your ears are the acceptance test; the helper ships
+  defaults, you tune.
+
 - [ ] **README screenshot re-shoot — UNBLOCKED (A60 landed)**: same
   seeds now yield historic city names (my verification shot shows
   "Tenochtitlan" where "City c3" was). Re-run your favorite world,

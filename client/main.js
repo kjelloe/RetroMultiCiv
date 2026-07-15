@@ -18,6 +18,10 @@ import { initOverlays } from './ui/overlays.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
+import { initEndScreen } from './ui/endscreen.js';
+import { initStats } from './ui/stats.js';
+import { initSound } from './ui/sound.js';
+import { initAdvice } from './ui/advice.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
@@ -55,6 +59,17 @@ async function fetchJson(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();
+}
+
+// A77: an options-like reader over localStorage for the bootstrap tunes (the
+// real ctx.options isn't wired until after the world builds). Sound defaults
+// mirror ui/options.js DEFAULTS.
+function storedOptions() {
+  const D = { soundMaster: '70', soundEffects: true, soundMusic: true };
+  return { get(k) {
+    try { const o = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}'); return o[k] !== undefined ? o[k] : D[k]; }
+    catch (e) { return D[k]; }
+  } };
 }
 
 const params = new URLSearchParams(location.search);
@@ -210,6 +225,10 @@ if (serverParam) {
     let ffReduce = false;
     try { ffReduce = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
     const ffOverlay = createFfOverlay({ reduceAnimation: ffReduce, ages: ruleset.rules.ages || [] });
+    // A77: the world-creation tune under the fast-forward (ctx.sound isn't wired
+    // yet at bootstrap — a tune-only instance reading the stored sound prefs)
+    const ffSound = initSound({ options: storedOptions(), session: null });
+    ffSound.playTune('creation');
     let r = { done: false };
     while (!r.done) {
       r = fwd.step(5, age.turn); // 5 rounds per slice keeps the tab responsive
@@ -217,6 +236,7 @@ if (serverParam) {
       await new Promise(resolve => setTimeout(resolve, 0));
     }
     if (fwd.aborted) {
+      ffSound.stopTune();
       // deterministic UX: name the casualty, never silently re-roll seeds
       const a = fwd.aborted;
       ffOverlay.fail(a.reason === 'civEliminated'
@@ -224,6 +244,7 @@ if (serverParam) {
         : `✗ history ended early (${a.reason}) — try another seed or an earlier age`);
       throw new Error('setup'); // stop the bootstrap; the message stays
     }
+    ffSound.stopTune();
     ffOverlay.remove();
     initialState = fwd.state;
     applyAgeGrant(initialState, age, ruleset);
@@ -247,7 +268,9 @@ if (!session) session = createSession(ruleset, initialState, { debug: params.get
 // lastMovedBy: pid -> unitId, PER PLAYER (wave III) — a hotseat hand-off lands
 // each incoming player on THEIR last-moved unit, not the previous player's
 const sel = { unitId: null, cityId: null, lastMovedBy: {} };
-const ctx = { session, renderer, sel, HUMAN: session.playerId || 'p1', errors: capturedErrors, rulesOverrides };
+// baseRules = the untouched rules.json: loading a save re-derives the live
+// rules as base + THE SAVE'S recorded overrides (B16 apply-on-load ruling)
+const ctx = { session, renderer, sel, HUMAN: session.playerId || 'p1', errors: capturedErrors, rulesOverrides, baseRules: rules };
 // A17 spectator mode: ctx.HUMAN is the 'spectator' pseudo-viewer — the UI
 // renders the omniscient view read-only (no players[ctx.HUMAN] entry exists,
 // so hud/input/panels gate their owner reads on this flag)
@@ -275,6 +298,7 @@ ctx.selectUnit = (unit, opts) => {
   if (!opts || !opts.keepStack) ctx.panels.closeStackPanel();
   ctx.hud.unitNote(unit);
   if (ctx.refreshActionBar) ctx.refreshActionBar();
+  if (ctx.advice) ctx.advice.offer('unit-selected'); // A78
 };
 
 // select the viewpoint's first idle unit (game start and every hand-off)
@@ -351,6 +375,10 @@ ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
 ctx.replay = initReplay(ctx);     // A47: post-game replay theater
 ctx.historian = initHistorian(ctx); // A75: the age-change historian's report
+ctx.stats = initStats(ctx);         // A73-STATS: the statistics page
+ctx.sound = initSound(ctx);         // A77: event sound cues (fog-filtered)
+ctx.advice = initAdvice(ctx);       // A78: first-timer contextual advice
+ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // A28: renderer animations honor the ⚙ reduce-animation preference, live

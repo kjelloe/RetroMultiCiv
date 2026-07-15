@@ -38,6 +38,15 @@ test('score: citizens, techs, and wonders weighted per rules.json', async () => 
   assert.strictEqual(scoring.score(state, 'p2', RULESET), 0);
 });
 
+test('A73: scoreBreakdown components sum to score() (hash-neutral contract)', async () => {
+  const { scoring } = await load();
+  const state = duelState();
+  const bd = scoring.scoreBreakdown(state, 'p1', RULESET);
+  assert.deepStrictEqual(bd, { population: 8, techs: 10, wonders: 20, total: 38 }); // 4*2 / 2*5 / 1*20
+  assert.strictEqual(bd.population + bd.techs + bd.wonders, bd.total, 'components sum to the total');
+  assert.strictEqual(bd.total, scoring.score(state, 'p1', RULESET), 'score() equals the breakdown total');
+});
+
 test('conquest: last civilization standing wins at turn wrap', async () => {
   const { engine } = await load();
   const state = duelState(); // p2 has no assets at all

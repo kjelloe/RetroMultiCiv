@@ -240,6 +240,11 @@ def main():
         return
     url = remote_url()
     if url:
+        # resolve stdin bodies BEFORE proxying — the hub's stdin is empty,
+        # so a literal '-' must become text on the client side
+        if '-' in argv:
+            body = sys.stdin.read().strip()
+            argv = [body if a == '-' else a for a in argv]
         sys.exit(proxy(argv, url))
     dispatch(argv)
 

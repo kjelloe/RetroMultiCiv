@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RetroMultiCiv — Soundboard (A77)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #0b1220; color: #cdd8ea; font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; }
+    h1 { font-size: 20px; color: #e6d59a; margin: 0 0 4px; }
+    .sub { color: #8fa3c0; margin: 0 0 18px; font-size: 13px; }
+    .hint { background: #16223a; border: 1px solid #2a3a55; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; color: #9fb4d6; }
+    h2 { font-size: 15px; color: #8fa3c0; margin: 22px 0 8px; border-bottom: 1px solid #2a3a55; padding-bottom: 4px; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #131e33; }
+    .num { width: 26px; color: #6b7d99; text-align: right; }
+    .id { width: 150px; font-family: ui-monospace, monospace; color: #cdd8ea; }
+    button { background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f; border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit; }
+    button.play { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; min-width: 42px; }
+    button.stop { background: #6b2e2e; border-color: #9a4f4f; }
+    input.note { flex: 1; min-width: 120px; background: #0e1626; border: 1px solid #2a3a55; border-radius: 5px; color: #cdd8ea; padding: 5px 8px; font: inherit; }
+    .toolbar { margin: 20px 0 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .toolbar .vol { display: flex; align-items: center; gap: 6px; color: #8fa3c0; }
+    #copied { color: #7fd08a; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>🔊 RetroMultiCiv Soundboard</h1>
+  <p class="sub">A77 sound design v1 — every event cue and both tunes, played through the real WebAudio synth (client/ui/sound.js). Click through, jot notes, and hand the downloaded JSON back for the tuning round.</p>
+  <div class="hint">Browsers block audio until you interact with the page — click any ▶ once to start. Served under <code>--debug</code> (A61 whitelist), or via a static server from the repo root.</div>
+
+  <div class="toolbar">
+    <span class="vol">Volume <input id="vol" type="range" min="0" max="100" step="10" value="80"></span>
+    <button id="download">⬇ Download comments (JSON)</button>
+    <button id="copyall">📋 Copy all notes</button>
+    <span id="copied"></span>
+  </div>
+
+  <h2>Event cues</h2>
+  <div id="cues"></div>
+
+  <h2>Tunes</h2>
+  <div id="tunes"></div>
+
+  <script type="module">
+    import { initSound } from '/client/ui/sound.js';
+    import { SOUND_IDS } from '/client/ui/sound-map.js';
+
+    let master = '80';
+    const ctx = {
+      HUMAN: 'p1',
+      options: { get: k => ({ soundMaster: master, soundEffects: true, soundMusic: true }[k]) },
+      session: { onChange: () => {} } // the soundboard drives cues directly, not via events
+    };
+    const sound = initSound(ctx);
+    document.getElementById('vol').addEventListener('input', e => { master = e.target.value; });
+
+    const notes = {}; // id -> comment
+    const cues = document.getElementById('cues');
+    SOUND_IDS.forEach((id, i) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<span class="num">${i + 1}</span>`
+        + `<button class="play" data-id="${id}">▶</button>`
+        + `<span class="id">${id}</span>`
+        + `<input class="note" data-id="${id}" placeholder="notes on this cue…">`;
+      cues.appendChild(row);
+    });
+    cues.addEventListener('click', e => { if (e.target.dataset.id && e.target.classList.contains('play')) sound.play(e.target.dataset.id); });
+    cues.addEventListener('input', e => { if (e.target.classList.contains('note')) notes[e.target.dataset.id] = e.target.value; });
+
+    const tunes = document.getElementById('tunes');
+    tunes.innerHTML = `<div class="row"><span class="num">♪</span><button class="play" data-tune="creation">▶</button><span class="id">creation / fast-forward</span><input class="note" data-id="tune:creation" placeholder="notes…"></div>`
+      + `<div class="row"><span class="num">♪</span><button class="play" data-tune="splash">▶</button><span class="id">splash / title theme</span><input class="note" data-id="tune:splash" placeholder="notes…"></div>`
+      + `<div class="row"><span class="num"></span><button class="stop" id="stoptune">⏹ Stop music</button></div>`;
+    tunes.addEventListener('click', e => {
+      if (e.target.dataset.tune) sound.playTune(e.target.dataset.tune);
+      if (e.target.id === 'stoptune') sound.stopTune();
+    });
+    tunes.addEventListener('input', e => { if (e.target.classList.contains('note')) notes[e.target.dataset.id] = e.target.value; });
+
+    function commentText() {
+      return SOUND_IDS.map(id => `${id}: ${notes[id] || ''}`).join('\n')
+        + `\ntune:creation: ${notes['tune:creation'] || ''}\ntune:splash: ${notes['tune:splash'] || ''}`;
+    }
+    document.getElementById('download').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'soundboard-notes.json';
+      a.click();
+    });
+    document.getElementById('copyall').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(commentText()); document.getElementById('copied').textContent = 'copied ✓'; }
+      catch (_) { document.getElementById('copied').textContent = commentText(); }
+      setTimeout(() => { document.getElementById('copied').textContent = ''; }, 2000);
+    });
+  </script>
+</body>
+</html>

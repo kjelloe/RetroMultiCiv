@@ -360,6 +360,23 @@ below is a known, deliberate deviation to be closed in a later slice:
   separately: enemy *cities* should also exert ZOC, and Diplomat /
   Caravan / Nuclear should ignore it (all three exist in
   `data/units.json`; the engine has no exemption path yet).
+- **Improvement-terrain matching is the authentic Civ 1 TRANSFORM model**
+  (B17 audit 2026-07-16, wiki terrain table as authority, verified
+  cell-by-cell): `data/terrain.json` matches all eleven rows — irrigation
+  bonuses on Desert/Grassland/Hills/Plains (+1 food), mines on
+  Desert/Mountains (+1 shield) and Hills (+3), and the transforms:
+  Forest→Plains (either work), mine plants Forest on Grassland/Plains/
+  Jungle/Swamp, irrigate clears Jungle/Swamp to Grassland; nothing on
+  Arctic/Tundra/Ocean. "Mines only on hills/mountains" is later-Civ
+  memory — in Civ 1, mining grassland *plants a forest*, and the engine
+  does exactly that. Transforms delete both work flags and the renderer
+  draws markers from those flags, so a transform can never leave a stray
+  mine/irrigation marker. Known river-flag deviations vs Civ 1's River
+  terrain (inherent to the deliberate flag model, §3.1): a rivered tile
+  can be mine-transformed into forest+river (Civ 1's River had no mine
+  option), roads on rivered tiles get the base terrain's trade bonus
+  (Civ 1's River road gave none), and Bridge Building does not yet gate
+  road-building on river tiles (the tech exists unused by improvements).
 - **Settlers don't eat food** yet (§4.3 says 1/turn).
 - **Calendar follows a Civ-1-style variable curve** (`data/rules.json`
   `yearSteps`, landed 2026-07-13): 50 yrs/turn to 1000 BC, 25 to 1 AD,

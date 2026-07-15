@@ -657,7 +657,7 @@ export function initInput(ctx) {
         // attack preview: red hover ring + odds line
         attack = true;
         const odds = combatPreview(attacker, pick.tile.x, pick.tile.y);
-        if (odds) text += `\n${odds}`;
+        if (odds) { text += `\n${odds}`; if (ctx.advice) ctx.advice.offer('combat-hover'); } // A78
       } else if (attacker.type === 'settlers') {
         const site = sitePreview(pick.tile.x, pick.tile.y);
         text += `\n${site.text}`;
