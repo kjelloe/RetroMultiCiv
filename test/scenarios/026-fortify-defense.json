@@ -1,0 +1,115 @@
+{
+  "name": "combat: the fortify x1.5 bonus is load-bearing (B25a)",
+  "notes": "4x3 open grassland (no city, no walls, no fortress, no river) so the ONLY defensive factor beyond the base is fortification. rngState 2: an attacking militia (A1 -> att 10000) strikes a FORTIFIED defending militia (D1 x grassland 100 x fortified 150 = def 15000, range 25000, roll 15738 >= 10000 -> DEFENDER WINS). Strip the x1.5 and the same seed gives def 10000, range 20000, roll 738 < 10000 -> the attacker would win instead: this pin fails the instant the fortify bonus is removed in either engine. The surviving defender then rolls the seeded veteran promotion.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 4,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" },
+          { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "u1": {
+          "id": "u1",
+          "type": "militia",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 1,
+          "moves": 1,
+          "fortified": true,
+          "veteran": false
+        }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 3,
+      "nextCityId": 1,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 2
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "u1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u1": null,
+          "units.u2.veteran": true,
+          "units.u2.x": 2,
+          "units.u2.y": 1
+        }
+      },
+      "notes": "the fortified defender wins BECAUSE of the x1.5; attacker removed, defender holds its tile and promotes"
+    }
+  ],
+  "final": {
+    "state": {
+      "units.u2.fortified": true
+    },
+    "hash": "0x6dc8d8af"
+  }
+}

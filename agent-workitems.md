@@ -3383,7 +3383,7 @@ User numbering kept:
 CONE PICK = FAN (user, final): wedge-fan becomes the N-cone mode;
 the stack variant stays code-side for the gallery only.
 
-### B25 — City defense verification (Playtest-C #8; bugfixer, verify-first vs the dump)
+### B25 — City defense verification (Playtest-C #8; bugfixer, verify-first vs the dump)  [claimed: bugfixer 2026-07-17] [done: 2026-07-17 — (a) fortify x1.5 confirmed in BOTH engines but NOT behaviorally pinned; added scenario 026-fortify-defense (open grassland, rngState 2: fortified militia WINS, strip x1.5 → attacker wins → hash flips). JS==Luau pin 0x6dc8d8af, revert-proof shown. (b) WIKI-VERIFIED (Combat/City Walls/Fortify/Fortress Civ1): NO inherent city-defense bonus without City Walls, units NOT auto-fortified in a city — engine is authentic; documented in docs/01 §5.4. No engine change, no golden window. Suite 380/380 zero-skip.]
 
 User asks: (a) fortified units give their bonus? (engine: ×1.5,
 combat.js — VERIFY a scenario exercises it, pin if not); (b) do

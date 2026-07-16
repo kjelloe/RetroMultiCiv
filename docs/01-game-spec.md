@@ -227,6 +227,18 @@ them. It rides the difficulty-style ruleset-override mechanism, so replays
 record it. A full hitpoints/firepower system is noted as a possible third
 mode, not planned for v1.
 
+**City defense — no inherent bonus (wiki-verified, B25):** a unit standing
+in a city gets **no** defensive multiplier from the city itself. The only
+city-side defence is **City Walls (×3 vs land attacks)**; without walls a
+defender in a city fights at exactly its open-ground strength (base × terrain
+× fortified × fortress). Units are **not** auto-fortified inside a city —
+`Fortify` (×1.5) is a manual command that must be issued, and moving cancels
+it. The city's sole extra protection without walls is the *stack* rule: in a
+city (or Fortress) defenders die **one at a time**, and each defender lost
+also costs the city one population point *unless* it has City Walls (Combat
+(Civ 1) / City Walls (Civ 1) fandom pages). Scenario `026-fortify-defense`
+pins that the fortify ×1.5 is load-bearing in both engines.
+
 ## 6. Technology
 
 - Science "bulbs" accumulate from the science share of trade. Cost of the *n*-th

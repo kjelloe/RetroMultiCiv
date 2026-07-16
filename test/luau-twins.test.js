@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 23, 'the twenty-three scenarios (025 sell-building added in A86)');
+      assert.strictEqual(files.length, 24, 'the twenty-four scenarios (026 fortify-defense added in B25)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -145,7 +145,8 @@ const PORTED = [
   '022-air-fuel.json', // A72: an air unit out of fuel crashes at the wrap
   '023-air-carrier.json', // A72: a carrier bases air units (A69 aboard reuse)
   '024-nuclear.json', // A72: the nuclear missile strikes once and is consumed
-  '025-sell-building.json' // A86: manual building sale (shared A63 helper)
+  '025-sell-building.json', // A86: manual building sale (shared A63 helper)
+  '026-fortify-defense.json' // B25: the fortify x1.5 bonus is load-bearing (combat already ported)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
