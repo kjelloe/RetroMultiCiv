@@ -75,6 +75,21 @@ REMAINING: ~~Studio run2~~ ✅ DONE mid-day (88 turns/579 commands,
 replayed hash-exact BOTH engines, accepted) — superseded by the
 AFTERNOON LIST below.
 
+## THE MORNING-3 LIST (2026-07-17 — night-2 ran; read the architect's marker report first)
+
+1. **Read the MORNING REPORT** (deliveries per marker) — includes
+   accumulated breaking-change notes (overnight markers were
+   pre-authorized; the report is where the acks live now).
+2. **Merge the latest declared marker** to dev/main.
+3. **Reviews deferred to you**: pyramid roof + worked-tile 3D
+   overlay (Studio look), GALAXY ROUND 2 re-look (V-cycle — your
+   FRAME pick stands unless the new sky wins), R9 lobby flow if it
+   landed.
+4. **The M11 pinning session** — the post-B26 elim table should be
+   waiting; the band dials will finally connect.
+5. Standing: human-benchmark recordings; ally round-7 send
+   (plan-update is current).
+
 ## THE AFTERNOON LIST (2026-07-16 — after the R7 velocity day)
 
 1. **Merge marker — always the LATEST the architect declares

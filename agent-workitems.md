@@ -2835,7 +2835,10 @@ time (mass vs engine power), success probability (food+energy+
 flight time). Launch = point of no return; capital captured ⇒
 ship destroyed (may rebuild); FIRST ARRIVAL wins the score bonus
 (zero-success arrivals score nothing). All costs/caps/masses to
-rules.json; numbers above are the wiki's.]**
+rules.json; numbers above are the wiki's. UI RULING (user
+2026-07-17): GRAPHICAL FROM THE START — the visual ship-assembly
+view (parts appear as built), not the minimal panel; helper half
+H8.]**
 
 Civ 1's real endgame, promoted from §12 out-of-scope by the user:
 someone completing the APOLLO PROGRAM wonder unlocks spaceship

@@ -415,6 +415,13 @@ least one mid-game disconnect/reconnect.
 **Acceptance:** identical state hashes for a full replayed game; a playable
 Roblox session with the ported engine.
 
+> NIGHT-2 (2026-07-17): the user pre-authorized overnight markers
+> and opened four gates at last call — PHASE 6 BUILD BEGINS (D1-D2
+> behind A59), the A76 space race builds engine+GRAPHICAL screen,
+> the A51 master-index CODE builds (deploy still box-gated), the
+> onboarding advisor builds. Order of battle: 19 engine windows /
+> 9 helper items / 11 roblox items / continuous measurement.
+
 ## The 1.0 definition (user-ruled 2026-07-16 evening — the MAXIMAL cut)
 
 v1.0 = **the complete Civ 1, playable two ways, with a public

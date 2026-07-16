@@ -133,6 +133,15 @@ client KEYMAP INVENTORY (action bar B/G/Space/X/I/M/R + T/L/P/N/
 F/V/C/J + K gallery) is now the binding authority — consult it
 before assigning any key.
 
+**R7c-3 UN-GATED (user 2026-07-17: "proceed regardless") — the
+worked-tile 3D overlay builds in full; pyramid + worked-tile
+review deferred to the user's later look. GALAXY ART ROUND 2
+built (parallax star layers, milky-way band, nebulae, owned
+lighting) — the user's FRAME pick stands pending his re-look; the
+frame/galaxy toggle moves to the options panel (R16). NIGHT
+OVERFLOW R13-R18 queued (sell parity, pathfind+GoTo, picker
+effects, options, debug menu post-A92, replay theater).**
+
 **CLICK-ONLY MOVEMENT PAD (R7c-13/14, DECIDED):** left side shows
 an ARROW-PAD icon toggling pad behavior — but PREFER AUTO-DETECT
 of non-keyboard clients (touch/gamepad → pads on by default). Ride

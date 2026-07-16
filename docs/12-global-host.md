@@ -96,7 +96,7 @@ plausible bottleneck is nothing technical: it is moderation of a
 public lobby list. That is why v1 ships private-by-default with
 opt-in listing, and why the allowlist escape hatch exists.
 
-## 6. The master index (A51 — the QuakeWorld/CS pattern, user-set 2026-07-14; 1.0-REQUIRED per the user's 2026-07-16 definition ruling — no longer post-launch polish, though still gated on the user scheduling DNS + the host box)
+## 6. The master index (A51 — the QuakeWorld/CS pattern, user-set 2026-07-14; 1.0-REQUIRED; **CODE BUILD GREEN-LIT 2026-07-17** (user last-call ruling) — announce protocol + index service + in-client server browser build now, tested against a local index; only DEPLOYMENT stays gated on the user scheduling DNS + the host box)
 
 A bulletin board, not a broker: the master lists servers; game
 traffic NEVER touches it. Players browse the index and connect

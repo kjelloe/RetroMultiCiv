@@ -1,7 +1,10 @@
 # Phase 6 — Diplomacy (designed with the user, 2026-07-15)
 
-Status: DESIGNED; **FULL D1–D6 is 1.0-REQUIRED** (user definition
-ruling 2026-07-16 — human LAN treaties included, not deferred).
+Status: **BUILD OPENS 2026-07-17 night** (user ruling: D1–D2 —
+war/peace + relationship core + first-contact audiences with the
+five voices — start overnight behind the A59 leader build).
+**FULL D1–D6 is 1.0-REQUIRED** (user definition ruling 2026-07-16
+— human LAN treaties included, not deferred).
 Four scope decisions are the user's (session
 2026-07-15): classic Civ 1 scope · modal audiences for AI-initiated
 contact + inline status · reputation AND senate consequences ·
