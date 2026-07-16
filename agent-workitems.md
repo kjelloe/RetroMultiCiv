@@ -393,6 +393,7 @@ assertions. Steps, in order:
    is the cross-language contract), not a live JS run.
 
 ### B11 — Regency plays units but not the EMPIRE (wave VII bug 0; assigned: bugfixer — NOTE the golden window is open for A40-s1, coordinate with the helper if your fix touches ai.js: it probably must, so likely lands INSIDE the same window)  [claimed: bugfixer 2026-07-15 — pre-triage correction measured (@8d3e6af0): engine half is a NO-BUG (research was busy all 15 turns, zero settlers to startWork; the regent DID run the shared pickCommand policy — setProduction×3, setWorkers×4). Real bugs are client-side: the armed regent stalls after ONE turn (kicking-flag swallows the re-kick) and any manual command re-kicks a full sweep + auto-end. No engine files touched → no golden exposure.] [done: bugfixer 2026-07-15 — (a) engine NO-BUG, pinned: test/ai.test.js "B11: a human seat (regency) gets the identical empire policy stream" proves the seat flag never changes pickCommand's command stream and that idle research + improver startWork fire. (b) ROOT CAUSE of the stall: regency.js drive()'s kicking flag was still true when endTurn's final notify fired, so the re-kick was swallowed — the armed regent played ONE turn then stalled, and any manual command's onChange then swept the seat + auto-ended ("when I moved them" — recording confirms every regent turn 249-263 starts with a manual-looking cmd, turn 263 with 16 rejected u16 moves). FIX: client/ui/regent-driver.js (DOM-free, extracted) owns a while-armed loop w/ macrotask yield; take-back honored at every turn boundary; regency.js delegates. test/regent-driver.test.js: red-first (stalled at turn 2) → self-continue to turn 5 + take-back stops + manual poke never auto-ends. (c) narration: session.regentTurn emits a synthetic {type:'regentTurn', playerId, applied, byType, research, production} (stateReplaced precedent — never logged/hashed; verified absent from exportDiagnostics; filterEvents passes it to its own seat only, zero engine change). turnlog.js renders "🤖 regent played your turn: N moves · research → X · production → Y…"; LOG_CLASSES gains a 🤖 regent filter checkbox. Server-regency narration = follow-up candidate (server/game.js playRegentSeat has no summary — LAN seats won't see the 🤖 line; local path was the reported bug). Suite 258/258, docs count-synced.]
+[B11b follow-up done: bugfixer 2026-07-16 — server/game.js playRegentSeat now appends the SAME synthetic {type:'regentTurn',playerId,applied,byType,research,production} event onto its returned events array (the local session.js twin), so LAN regent seats get the 🤖 turn-log line too. Rides driveRegents' fanout; filterEvents delivers it to the regent's OWN seat only (playerId party), withheld from others. GOLDEN-SAFE: the event goes to the client-push events, NEVER to `log` or state — the A40 test's existing replay-hash-exact assertion still passes, proving the recording is untouched. test/server.test.js A40 regency test extended: asserts a view carries the regentTurn event for p1 (red-first before the push). Suite 295/295.]
 
 ARCHITECT PRE-TRIAGE (recording
 `debugging/logs/retromulticiv-diag-turn264.json` replays HASH-EXACT —
@@ -736,6 +737,30 @@ possession cam); check.sh green; anchors re-printed.
 
 Also still banked: nothing — both R3-era notes are folded into R4
 above.
+
+### R6 — Tier-1 parity: the core-loop actions (cut from docs/13 amended Tier 1; assigned: roblox-helper — run2 acceptance for R5 stays pending in parallel)
+
+The browser's core-loop UI reaches Studio, per the review-round
+ground rules (ScreenGui actions / Billboard info; every hotkey
+chat-focus-guarded; view-only + commands-only):
+1. **Action bar**: fixed bottom ScreenGui — the selected unit's
+   applicable actions with hotkeys (fortify, skip, irrigate/mine/
+   road, disband; GoTo enters a target-pick mode via Select's
+   machinery, Esc cancels).
+2. **Research picker**: current tech + bulbs/turn + the pick-next
+   list (one-ring-ahead rule), setResearch through the dispatcher.
+3. **Tax/science steppers** (+/- per the review ruling; A29
+   snap-back on rejection).
+4. **Turn log, server half FIRST**: GameServer collects per-round
+   events (replace the eventsOut=nil), filterEvents per seat, push
+   with views; then the client scroll-frame renders the feed
+   (major classes; the B5 fog rules verbatim).
+5. **Move hints**: reachable-tile tint for the selected unit
+   (fog-approximate by construction — documented, not a bug).
+ACCEPTANCE: R4 bar — a recorded run exercising every new command
+path replays hash-exact both engines; screenshots read per surface.
+pathfind.luau (the A65 port, subset-ready) may land here if GoTo
+wants it — your call, flag it.
 
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 

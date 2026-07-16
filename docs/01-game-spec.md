@@ -493,6 +493,23 @@ designed items in agent-workitems:
   invisibility, carrier capacity, catapult-vs-walls etc. — audit
   pending; Diplomat/Caravan remain out of scope (§12).
 
+### Special-units audit (A71, architect vs the dump, 2026-07-16 — user rules the Decision column)
+
+| Unit | Civ 1 behavior (wiki) | Ours | Recommendation |
+|---|---|---|---|
+| Submarine | invisible to land units (spotted only adjacent by sea/air); sight 2; cannot attack land | plain ship | MISSING — visibility model extension; with B13 family or own item |
+| Carrier | carries 8 air units (incl. Nuclear); sight 2 | plain ship | A72 dependency (air) + A69 aboard machinery — already designed |
+| Battleship / Cruiser | sight 2; **can bombard/attack units on coastal land squares** | attack = move-into, ships can't enter land ⇒ **ours likely CANNOT attack coastal land at all** — verify, then fix | REAL GAP — attack-in-place vs adjacent land; small engine item, near-term |
+| Fighter | must return to city/Carrier EVERY turn; the ONLY unit that can attack air units | grounded (A72) | A72 covers fuel; add air-vs-air exclusivity to A72 |
+| Bomber | 2 turns aloft; **ignores City Walls when attacking**; sight 2 | grounded (A72) | A72 + the walls-ignore flag (one combat multiplier guard) |
+| Nuclear | one-shot air attack (A72 design verified) | immobile | A72, designed |
+| Trireme | **lost at sea if not adjacent to land at turn end**; carries 2 | plain ship | charming + cheap: coastal-loss check joins A69 |
+| Transport | carries 8; no away-unhappiness | plain ship | A69, designed |
+| Diplomat | ignores ZOC ✅ (B18); no upkeep; no Rep/Dem away-unhappiness; ACTIONS: establish embassy / investigate city / steal tech (once per city) / industrial sabotage / bribe units | ZOC flag only | the action suite = docs/14 D6 (diplomacy era); upkeep/unhappiness flags cheap now |
+| Caravan | ignores enemy units moving; no upkeep/unhappiness; **+50 shields to a domestic wonder**; establishes trade routes (top 3 kept); consumed on use | ZOC flag only | wonder-help is small + delightful (near-term candidate); trade routes = the Civ4-chains shelf neighbor, design with phase 6 economy |
+| Catapult / Artillery | nothing special — stats only (no anti-wall behavior in Civ 1) | correct | CLOSED — the walls suspicion was another Civ2+ memory |
+| Sight ranges | subs/carriers/battleships/cruisers/bombers see 2 | all units sight 1 (verify) | audit row: a per-unit sight field, visibility-model extension |
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &

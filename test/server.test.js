@@ -182,12 +182,21 @@ test('A40 regency: a regent seat plays unattended, its commands log, replay is h
     const pres = await kjell.expect(m => m.t === 'presence' && m.regents && m.regents.p1, 'regent presence');
     assert.ok(pres.regents.p1, 'the seat reads as on regency');
     // the game moves forward on its own (several unattended turns)
+    // B11b: each unattended turn must narrate itself — the server pushes the
+    // synthetic regentTurn summary to the regent's OWN seat so the LAN client
+    // shows the 🤖 turn-log line (same as local play)
     let latest = kj.view;
+    let sawRegentSummary = false;
     for (let i = 0; i < 3; i++) {
       const t = await kjell.expect(m => m.t === 'view' && m.view.turn > latest.turn, `unattended turn ${i}`);
+      if (Array.isArray(t.events) && t.events.some(e => e.type === 'regentTurn' && e.playerId === 'p1')) {
+        sawRegentSummary = true;
+      }
       latest = t.view;
     }
     assert.ok(latest.turn >= turn0 + 3, 'the regent advanced the game unattended');
+    assert.ok(sawRegentSummary,
+      'the regent seat received a regentTurn summary event (the 🤖 turn-log line)');
 
     // take control back mid-game — the drive stops cleanly
     kjell.send({ t: 'regent', stance: null });

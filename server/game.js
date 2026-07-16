@@ -141,6 +141,7 @@ export function createGame(opts) {
     const done = {};
     const events = [];
     let guard = 500;
+    const tally = { applied: 0, byType: {}, research: '', production: [] };
     while (guard-- > 0) {
       // A40 slice 1: the regent plays with its chosen stance (balanced by
       // default — byte-identical to the AI-round path)
@@ -152,12 +153,22 @@ export function createGame(opts) {
         state = res.state;
         entry.ok = true;
         for (const e of res.events) events.push(e);
+        tally.applied++;
+        tally.byType[cmd.type] = (tally.byType[cmd.type] === undefined ? 0 : tally.byType[cmd.type]) + 1;
+        if (cmd.type === 'setResearch') tally.research = cmd.tech;
+        if (cmd.type === 'setProduction') tally.production.push(cmd.item.id);
       } else {
         entry.ok = false;
         entry.reason = res.reason;
       }
       log.push(entry);
     }
+    // B11b: the synthetic regent summary — same shape session.js emits locally,
+    // never logged/hashed (not in `log`), so replay stays exact. filterEvents
+    // delivers it to the regent's OWN seat only (playerId party) so the LAN
+    // client shows the 🤖 turn-log line exactly like local play.
+    events.push({ type: 'regentTurn', playerId: pid, applied: tally.applied,
+      byType: tally.byType, research: tally.research, production: tally.production });
     return events;
   }
 
