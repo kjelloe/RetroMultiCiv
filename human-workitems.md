@@ -105,8 +105,9 @@ AFTERNOON LIST below.
    (a) barracks sell price = FULL BUILD COST (40g); (b) NO
    AMPHIBIOUS ASSAULT — aboard units unload to open land first
    (no Marine in Civ 1); (c) transport capacities trireme 2 /
-   sail 3 / frigate 4 / transport 8; (d) coming with A72's close:
-   fighter fuel 1 / bomber 2 / carrier capacity 8.
+   sail 3 / frigate 4 / transport 8; (d) fighter fuel 1 / bomber
+   fuel 2 / carrier airCapacity 8 / nuclear fuel 1 + strikes-once-
+   consumed (A72 CLOSED — all canonical, wiki tables absent).
 6. **1.0 rulings recorded** (2026-07-16 quad session — no further
    action): maximal cut (docs/03 block) — full D1–D6, Roblox
    Tier 3 at launch, master index in 1.0, all content extras;
