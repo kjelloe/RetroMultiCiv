@@ -85,6 +85,7 @@ After=network.target
 Type=simple
 User=multiciv
 WorkingDirectory=/opt/multiciv
+UMask=0077
 ExecStart=/usr/bin/node server/index.js --port 8123 --host 127.0.0.1
 Restart=on-failure
 RestartSec=5
@@ -102,6 +103,10 @@ Notes:
   directly reachable on the LAN with no proxy.
 - Run as a dedicated **non-login user** (`sudo useradd -r -s /usr/sbin/nologin
   multiciv && sudo chown -R multiciv /opt/multiciv`), never root.
+- **Secure `saves/`** — it holds seat tokens and game codes. `UMask=0077`
+  above makes every autosaved file owner-only from birth; also lock the
+  directory once: `sudo -u multiciv mkdir -p /opt/multiciv/saves &&
+  sudo chmod 700 /opt/multiciv/saves`.
 - Logs go to the journal — no files to rotate: `journalctl -u multiciv -f`.
 
 **4. Enable and start:**
@@ -282,6 +287,11 @@ sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ### 5. DNS + TLS
+
+**TLS is required for a public host, not optional.** Seat tokens travel over
+the game socket; on plain `ws://` they cross the open internet in the clear,
+so anyone on the path can hijack a seat. Terminating TLS here makes it `wss://`
+and closes that. (On a trusted LAN, plain `ws://` is acceptable.)
 
 Point an **A record** for `yourdomain.example` at the VM's IP. Then let
 certbot fetch the certificate and rewrite the nginx site to add HTTPS +
