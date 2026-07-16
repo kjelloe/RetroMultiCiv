@@ -35,6 +35,16 @@ return [==[{
   "fortressTech": "construction",
   "railroadTech": "railroad",
   "bridgeTech": "bridge-building",
+  "sellPriceRatio": 1,
+  "exploreMarchRadius": 8,
+  "threatRadius": 8,
+  "barbTierThreshold": 30,
+  "barbTiers": [
+    { "tech": "", "unit": "militia" },
+    { "tech": "gunpowder", "unit": "musketeers" },
+    { "tech": "conscription", "unit": "riflemen" },
+    { "tech": "labor-union", "unit": "mech-inf" }
+  ],
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
   "contentCitizens": 4,
