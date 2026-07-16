@@ -3332,6 +3332,29 @@ try Studio's direct glTF import, Blender only if FBX forced, user
 OK'd occasional manual Studio imports) stays SHELVED until Studio
 screenshots show a silhouette the Part mapping can't carry.
 
+### R9 — The lobby place: observation deck + pads (Tier-3 slice 1; user design 2026-07-16 — docs/13 Tier-3 block is the spec)
+
+Observation-deck spawn + first-visit greeting + the pad flow
+(start-a-new-game/60s host countdown, join-game, 30s start
+countdown, take-over-AI-civ RANDOM assignment), admins-only kick,
+NO CHAT (age restriction — assert Roblox chat disabled). Server
+seat model reuses R6; regency pairs with take-over.
+
+### R10 — Roblox save/resume: DataStore keyed by game code (Tier-3 slice 2; user design 2026-07-16)
+
+Private servers: full load/save. Public: ephemeral + all-humans-
+left + 120s → end; host "Get resume code" button (game-options
+menu) persists the save envelope in a DataStore keyed by the
+docs/07 game code; a new server resumes by code (browser A98's
+twin). Retention window configurable.
+
+### R11 — Click-only ride-mode movement pad (R7c-13/14; user design 2026-07-16)
+
+Left-side arrow-pad icon toggle, AUTO-DETECT non-keyboard clients
+(touch/gamepad default the pads ON); ride mode renders 8 click-
+targets (4 cardinal + 4 diagonal) surrounding the mounted player
+in-world — click = move there (same command path as WASD).
+
 ### R8 — Luau AssetFactory from recipes (roblox-helper; after A88's recipes.json lands) [claimed: roblox-helper 2026-07-16 @f35fc677]
 
 AssetRecipes bake (json2lua, RulesetHashes-gated like rulesets) +

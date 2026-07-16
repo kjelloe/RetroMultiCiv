@@ -94,6 +94,42 @@ per item; the architect cuts R-items from the tiers in order.
 
 ## Tier 3 — multiplayer/social (needs R6 seats first; **1.0-REQUIRED** — user ruling 2026-07-16: both platforms launch multiplayer-complete)
 
+**USER DESIGN SESSION (2026-07-16 night — the Tier-3 shape, DECIDED):**
+- **The place is a classical Roblox lobby**: players spawn on an
+  OBSERVATION DECK high above the world when a game is in progress
+  (or none started) — spectating from the sky IS the lobby.
+- **First visit**: an introduction/greeting welcome message.
+- **Ground pads drive everything**: "START A NEW GAME" pad → first
+  player becomes HOST, selects map type / player count / options —
+  selections must complete within a 60-SECOND COUNTDOWN or the
+  host window closes (pad re-opens it). Next players get a "JOIN
+  GAME" pad (pick civ + options). Host completes setup → a
+  30-SECOND game-start countdown.
+- **Late joiners** get a "TAKE OVER AI CIV" pad — assignment is
+  RANDOM among available AI civs (user lean: no cherry-picking).
+  This is Roblox regency-in-reverse and pairs with regent-on-leave.
+- **Kicking: ADMINS ONLY** for now (no host-kick, no vote-kick —
+  deferred). **NO CHAT on Roblox** (age restrictions) — the A37
+  chat does NOT carry; turn-log + pads carry all communication.
+
+**SAVE/RESUME MODEL (same session, DECIDED — resolves the R6
+DataStore-vs-envelope question):**
+- **Private servers**: full load/save (DataStore-backed).
+- **Public servers**: EPHEMERAL — the game runs until all humans
+  leave + 120 seconds grace, then ends. The HOST has a "GET RESUME
+  CODE" button in the game-options menu: the save persists in a
+  DataStore KEYED BY THE GAME CODE (the docs/07 code — the same
+  authorization-by-knowledge as browser A98), and a new session on
+  a new server resumes by entering the code (if the save still
+  exists — retention window host/config-defined).
+
+**CLICK-ONLY MOVEMENT PAD (R7c-13/14, DECIDED):** left side shows
+an ARROW-PAD icon toggling pad behavior — but PREFER AUTO-DETECT
+of non-keyboard clients (touch/gamepad → pads on by default). Ride
+mode: LEFT/RIGHT/UP/DOWN + DIAGONAL click-targets SURROUNDING the
+mounted player in-world — click one, the unit moves there. (R7c-3
+worked-tile view: user feedback pending.)
+
 | Browser element | Roblox shape | Notes |
 |---|---|---|
 | Lobby (seats, civs, chat, kick) | Roblox-native: the SERVER is the room; seat claim UI at spawn; Roblox chat exists natively — decide what of A37 carries | kick/block partially platform-provided |
