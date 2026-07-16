@@ -2897,7 +2897,7 @@ guard) so non-technical players understand verification. Golden-
 safe (client consumer). Roblox theater inherits the same shapes
 later (docs/13 Tier-4).
 
-## A88 — Asset recipes: the factory becomes data (user ruling 2026-07-16: Option C now, mesh pipeline B only where fidelity demands later; ally proposal specs/three-factory-roblox-assets.md, adapted)
+## A88 — Asset recipes: the factory becomes data (user ruling 2026-07-16: Option C now, mesh pipeline B only where fidelity demands later; ally proposal specs/three-factory-roblox-assets.md, adapted)  [claimed: coder-helper 2026-07-16] [done: 2026-07-16 — client/renderer/three/recipes.js (NEW, pure data, no THREE/DOM): every unit silhouette body + city house/roof + tile-prop SHAPE as a {shape,size,seg,pos,scale,rot,colorRole} table; box/cyl/sphere primitive, cone/dodeca/torus = R8 approximation points (noted in the artifact header per @aa8c1ef7). assets.js + props.js refactored: one generic composeRecipe replaces the per-shape builders; base token / pennant / capital flag / wall ring / sail-plane stay PROCEDURAL (plane/torus/circle markers, ally Part 7). colorRole 'primary'/'secondary' injected from the civ visual — data never carries faction hex. GALLERY BYTE-IDENTICAL at rest pose (cmp clean across units→+cities→+props→final; WebGL1 renders). tools/export-asset-recipes.js → data/assets/asset-recipes.json (RENDER artifact in a subdir, NOT a top-level engine ruleset — ruling @aa8c1ef7 keeps the twins-gate '8 data/*.json = engine rulesets' contract crisp). Drift gate test/asset-recipes.test.js 4/4 (every units.json id→recipe, primitives well-formed, PROP_SHAPES covers every prop kind, committed JSON in sync). Twins gate green (8 files). MISS ledgered: added a 9th top-level data file, tripped the twins-gate directory COUNT (first-occurrence of the enumeration-coupling class the three-strikes rule watches); did NOT edit through the bugfixer's lock, escalated, architect relocated. Unblocks R8. Files: client/renderer/three/{recipes(new),assets,props}.js, tools/export-asset-recipes.js(new), data/assets/asset-recipes.json(new), test/asset-recipes.test.js(new).]
 
 The ally proposed a glTF→Blender→FBX→Studio mesh pipeline. RULED
 DOWN to the recipe approach: our silhouettes are COMPOSITIONS of
@@ -2916,7 +2916,12 @@ gallery.
 2. tools/export-asset-recipes.js: imports the recipes module in
    Node (pure data — NO DOM, NO headless-three, none of the
    ally's canvas/gl deps needed) and writes
-   data/asset-recipes.json (committed, like other rulesets).
+   data/assets/asset-recipes.json (committed). PATH RULED
+   2026-07-16 (#504): a SUBDIR, deliberately outside the twins
+   gate's top-level enumeration — "top-level data/*.json = engine
+   rulesets, cross-language checksummed, count-gated" stays a
+   crisp contract; render/other artifacts live in data/ subdirs.
+   Standing rule for future data files.
 3. Drift gate: a test asserting recipe keys cover every
    data/units.json id, every city tier, every props.js prop (the
    mock-state terrain-coverage pattern).

@@ -7,6 +7,7 @@
 // group from the scene needs no disposal.
 import * as THREE from 'three';
 import { emblemTexture, isLightColor } from './factions.js';
+import { UNIT_RECIPES, CITY_RECIPE } from './recipes.js';
 
 // --- faction visuals (art A1.6a) -----------------------------------------------
 // Factories accept either a plain color string (mock/test states, lobby games
@@ -97,6 +98,42 @@ function add(group, geo, mat, x, y, z) {
   return mesh;
 }
 
+// A88: build a geometry from a recipe primitive (cached, so shared shapes reuse
+// one buffer exactly as the GEO constants did — sharing vs new instance never
+// moves a pixel). shape/size/seg mirror the three.js constructors 1:1.
+const recipeGeo = {};
+function geometryFor(p) {
+  const key = p.shape + '|' + p.size.join(',') + '|' + (p.seg === undefined ? '' : [].concat(p.seg).join(','));
+  if (recipeGeo[key]) return recipeGeo[key];
+  let g;
+  if (p.shape === 'box') g = new THREE.BoxGeometry(p.size[0], p.size[1], p.size[2]);
+  else if (p.shape === 'cyl') g = new THREE.CylinderGeometry(p.size[0], p.size[1], p.size[2], p.seg);
+  else if (p.shape === 'cone') g = new THREE.ConeGeometry(p.size[0], p.size[1], p.seg);
+  else if (p.shape === 'sphere') g = new THREE.SphereGeometry(p.size[0], p.seg[0], p.seg[1]);
+  else if (p.shape === 'dodeca') g = new THREE.DodecahedronGeometry(p.size[0], p.seg || 0);
+  recipeGeo[key] = g;
+  return g;
+}
+// a colorRole slot → material: neutral roles from NEUTRAL, 'primary'/'secondary'
+// injected from the civ visual (the data itself never carries a faction hex)
+function roleMaterial(role, visual) {
+  if (role === 'primary') return matFor(visual.primary);
+  if (role === 'secondary') return matFor(visual.secondary);
+  return NEUTRAL[role];
+}
+// compose a recipe's primitive list into the group — byte-identical to the
+// hand-written add()/scale/rotation the silhouette functions used to do inline
+function composeRecipe(group, recipe, visual) {
+  for (const p of recipe) {
+    const mesh = add(group, geometryFor(p), roleMaterial(p.color, visual), p.pos[0], p.pos[1], p.pos[2]);
+    if (p.scale !== undefined) {
+      if (Array.isArray(p.scale)) mesh.scale.set(p.scale[0], p.scale[1], p.scale[2]);
+      else mesh.scale.setScalar(p.scale);
+    }
+    if (p.rot) mesh.rotation.set(p.rot[0], p.rot[1], p.rot[2]);
+  }
+}
+
 // silhouette classes covering all 28 Civ 1 unit types
 const WAGON_TYPES = { settlers: true, caravan: true, diplomat: true };
 const FOOT_TYPES = {
@@ -151,112 +188,45 @@ function pennant(group, visual, x, y, scale) {
 }
 
 function footSoldier(group, visual) {
-  add(group, GEO.body, NEUTRAL.cloth, 0, 0.28, 0);
-  add(group, GEO.head, NEUTRAL.skin, 0, 0.56, 0);
-  const spear = add(group, GEO.spear, NEUTRAL.wood, 0.15, 0.42, 0);
-  spear.rotation.z = -0.12;
-  const tip = add(group, GEO.spearTip, NEUTRAL.metal, 0.19, 0.8, 0);
-  tip.rotation.z = -0.12;
+  composeRecipe(group, UNIT_RECIPES.footSoldier, visual); // A88: body is data
   pennant(group, visual, -0.16, 0.3, 0.7);
 }
 
 function wagon(group, visual) {
-  add(group, GEO.wagonBody, NEUTRAL.wood, 0, 0.22, 0);
-  const top = add(group, GEO.wagonTop, NEUTRAL.canvas, 0, 0.34, 0);
-  top.rotation.z = Math.PI / 2; // canvas roof lies along the wagon
-  for (const dx of [-0.17, 0.17]) {
-    for (const dz of [-0.16, 0.16]) {
-      const wheel = add(group, GEO.wheel, NEUTRAL.wheel, dx, 0.09, dz);
-      wheel.rotation.x = Math.PI / 2;
-    }
-  }
+  composeRecipe(group, UNIT_RECIPES.wagon, visual); // A88: body is data
   pennant(group, visual, -0.3, 0.32, 0.7);
 }
 
 function mounted(group, visual, isChariot) {
-  const body = add(group, GEO.box, NEUTRAL.horse, 0, 0.3, 0);
-  body.scale.set(0.42, 0.16, 0.16);
-  const neck = add(group, GEO.box, NEUTRAL.horse, 0.18, 0.42, 0);
-  neck.scale.set(0.1, 0.2, 0.1);
-  neck.rotation.z = -0.35;
-  const head = add(group, GEO.box, NEUTRAL.horse, 0.27, 0.5, 0);
-  head.scale.set(0.14, 0.08, 0.09);
-  for (const dx of [-0.15, 0.15]) {
-    for (const dz of [-0.05, 0.05]) {
-      const leg = add(group, GEO.box, NEUTRAL.horse, dx, 0.13, dz);
-      leg.scale.set(0.05, 0.19, 0.05);
-    }
-  }
-  const rider = add(group, GEO.body, NEUTRAL.cloth, -0.06, 0.52, 0);
-  rider.scale.setScalar(0.7);
-  if (isChariot) {
-    for (const dz of [-0.12, 0.12]) {
-      const wheel = add(group, GEO.wheel, NEUTRAL.wheel, -0.14, 0.11, dz);
-      wheel.rotation.x = Math.PI / 2;
-    }
-  }
+  composeRecipe(group, UNIT_RECIPES.mounted, visual); // A88
+  if (isChariot) composeRecipe(group, UNIT_RECIPES.chariotWheels, visual);
   pennant(group, visual, -0.28, 0.34, 0.7);
 }
 
 function siege(group, visual, isArmor) {
-  if (isArmor) {
-    const hull = add(group, GEO.box, NEUTRAL.darkMetal, 0, 0.18, 0);
-    hull.scale.set(0.46, 0.16, 0.3);
-    const turret = add(group, GEO.box, NEUTRAL.darkMetal, 0, 0.32, 0);
-    turret.scale.set(0.2, 0.12, 0.18);
-    const barrel = add(group, GEO.spear, NEUTRAL.metal, 0.24, 0.34, 0);
-    barrel.rotation.z = Math.PI / 2 - 0.08;
-    barrel.scale.setScalar(0.6);
-  } else {
-    const platform = add(group, GEO.box, NEUTRAL.wood, 0, 0.2, 0);
-    platform.scale.set(0.4, 0.1, 0.24);
-    for (const dz of [-0.14, 0.14]) {
-      const wheel = add(group, GEO.wheel, NEUTRAL.wheel, 0, 0.11, dz);
-      wheel.rotation.x = Math.PI / 2;
-      wheel.scale.setScalar(1.2);
-    }
-    const barrel = add(group, GEO.spear, NEUTRAL.metal, 0.1, 0.38, 0);
-    barrel.rotation.z = -0.9;
-    barrel.scale.set(2.2, 0.6, 2.2);
-  }
+  composeRecipe(group, isArmor ? UNIT_RECIPES.siegeArmor : UNIT_RECIPES.siege, visual); // A88
   pennant(group, visual, -0.26, 0.3, 0.65);
 }
 
 function ship(group, visual, kind) {
-  const hullMat = kind === 'sail' ? NEUTRAL.wood
-    : kind === 'sub' ? NEUTRAL.darkMetal : NEUTRAL.hull;
-  const hull = add(group, GEO.box, hullMat, -0.04, 0.14, 0);
-  hull.scale.set(0.5, kind === 'sub' ? 0.1 : 0.14, 0.2);
-  const bow = add(group, GEO.roof, hullMat, 0.28, 0.14, 0);
-  bow.scale.set(0.1, 0.12, 0.1);
-  bow.rotation.z = -Math.PI / 2;
   if (kind === 'sail') {
-    add(group, GEO.pole, NEUTRAL.wood, -0.04, 0.45, 0);
-    const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02);
+    composeRecipe(group, UNIT_RECIPES.shipSail, visual); // A88 (hull/bow/pole)
+    const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02); // sail is a plane → procedural
     sail.scale.set(1.3, 2, 1);
   } else if (kind === 'sub') {
-    const fin = add(group, GEO.box, NEUTRAL.darkMetal, -0.06, 0.24, 0);
-    fin.scale.set(0.12, 0.12, 0.05);
+    composeRecipe(group, UNIT_RECIPES.shipSub, visual);
   } else {
-    const funnel = add(group, GEO.wheel, NEUTRAL.darkMetal, -0.1, 0.28, 0);
-    funnel.scale.set(0.6, 2.4, 0.6);
-    const bridge = add(group, GEO.box, NEUTRAL.hull, 0.08, 0.26, 0);
-    bridge.scale.set(0.14, 0.1, 0.12);
+    composeRecipe(group, UNIT_RECIPES.shipPowered, visual);
   }
   pennant(group, visual, -0.28, 0.14, 0.65);
 }
 
 function aircraft(group, visual) {
-  const fuselage = add(group, GEO.box, NEUTRAL.metal, 0, 0.32, 0);
-  fuselage.scale.set(0.42, 0.08, 0.1);
-  const wings = add(group, GEO.box, NEUTRAL.metal, 0.04, 0.32, 0);
-  wings.scale.set(0.12, 0.02, 0.46);
-  const tail = add(group, GEO.box, NEUTRAL.metal, -0.18, 0.38, 0);
-  tail.scale.set(0.08, 0.1, 0.02);
+  composeRecipe(group, UNIT_RECIPES.aircraft, visual); // A88
 }
 
 function fallbackToken(group) {
-  add(group, GEO.fallback, NEUTRAL.cloth, 0, 0.32, 0);
+  composeRecipe(group, UNIT_RECIPES.fallback); // A88 (all-neutral, no visual needed)
 }
 
 // Returns a group with its base at y = 0 (place it on the tile top).
@@ -299,8 +269,12 @@ export function cityTierFor(pop) {
 export function createCityMesh(city, colorOrVisual, isCapital) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
-  const roofMat = matFor(visual.primary);
   const tier = cityTierFor(city.pop);
+  // A88: house/roof SHAPES from CITY_RECIPE; the ring placement stays procedural
+  const houseGeo = geometryFor(CITY_RECIPE.house);
+  const roofGeo = geometryFor(CITY_RECIPE.roof);
+  const houseMat = roleMaterial(CITY_RECIPE.house.color, visual);
+  const roofMat = roleMaterial(CITY_RECIPE.roof.color, visual);
   for (let i = 0; i < tier.houses; i++) {
     const angle = (i / tier.houses) * Math.PI * 2 + 0.5;
     const dist = 0.16 + (i % 3) * 0.1;
@@ -308,9 +282,9 @@ export function createCityMesh(city, colorOrVisual, isCapital) {
     const h = (0.12 + (i % 4) * 0.03) * tier.scale;
     const x = Math.cos(angle) * dist;
     const z = Math.sin(angle) * dist;
-    const base = add(group, GEO.box, NEUTRAL.house, x, h / 2, z);
+    const base = add(group, houseGeo, houseMat, x, h / 2, z);
     base.scale.set(w, h, w);
-    const roof = add(group, GEO.roof, roofMat, x, h + h * 0.3, z);
+    const roof = add(group, roofGeo, roofMat, x, h + h * 0.3, z);
     roof.scale.set(w * 0.8, h * 0.6, w * 0.8);
     roof.rotation.y = Math.PI / 4;
   }

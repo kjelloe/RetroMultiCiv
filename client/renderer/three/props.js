@@ -3,6 +3,7 @@
 // deterministic visualRand every decoration derives from. One seam = one
 // module, mirroring factions.js; assets.js keeps unit/city construction only.
 import * as THREE from 'three';
+import { PROP_SHAPES } from './recipes.js';
 
 // --- deterministic visual randomness (terrain art A1.5) -------------------------
 // Decoration must be identical across refreshes, saves, and clients, and
@@ -15,24 +16,18 @@ export function visualRand(x, y, salt) {
 }
 
 // --- tile props: terrain features, improvements, resources (instanced) ---------
-const PROP_GEO = {
-  strip: new THREE.BoxGeometry(0.72, 0.02, 0.14),   // irrigation channel
-  roadSeg: new THREE.BoxGeometry(0.5, 0.02, 0.12),  // half-tile road segment
-  mine: new THREE.ConeGeometry(0.13, 0.2, 4),
-  tree: new THREE.ConeGeometry(0.11, 0.28, 6),
-  scrub: new THREE.ConeGeometry(0.055, 0.11, 5),
-  rock: new THREE.DodecahedronGeometry(0.14, 0),
-  peak: new THREE.ConeGeometry(0.26, 0.5, 5),
-  snow: new THREE.ConeGeometry(0.12, 0.2, 5),
-  special: new THREE.SphereGeometry(0.07, 8, 6),
-  fortress: new THREE.TorusGeometry(0.34, 0.05, 6, 12),
-  // art A1.6b infrastructure + coast
-  tie: new THREE.BoxGeometry(0.03, 0.024, 0.17),        // railroad cross-tie
-  mineDoor: new THREE.BoxGeometry(0.11, 0.1, 0.02),     // dark mine entrance
-  mineBeam: new THREE.BoxGeometry(0.15, 0.03, 0.04),    // timber lintel
-  fieldPatch: new THREE.BoxGeometry(0.24, 0.012, 0.16), // cultivated strip
-  foam: new THREE.BoxGeometry(0.82, 0.01, 0.06)         // shoreline foam strip
-};
+// A88: geometries built from the shared PROP_SHAPES recipe table (data), so the
+// Roblox composer (R8) builds the same shapes; placement below stays procedural.
+function propGeometry(p) {
+  if (p.shape === 'box') return new THREE.BoxGeometry(p.size[0], p.size[1], p.size[2]);
+  if (p.shape === 'cone') return new THREE.ConeGeometry(p.size[0], p.size[1], p.seg);
+  if (p.shape === 'sphere') return new THREE.SphereGeometry(p.size[0], p.seg[0], p.seg[1]);
+  if (p.shape === 'dodeca') return new THREE.DodecahedronGeometry(p.size[0], p.seg);
+  if (p.shape === 'torus') return new THREE.TorusGeometry(p.size[0], p.size[1], p.seg[0], p.seg[1]);
+  return null;
+}
+const PROP_GEO = {};
+for (const kind of Object.keys(PROP_SHAPES)) PROP_GEO[kind] = propGeometry(PROP_SHAPES[kind]);
 const PROP_MAT = new THREE.MeshLambertMaterial({ color: 0xffffff }); // × instance color
 const PROP_COLOR = {
   irrigation: 0x5db8e8, road: 0x8a6f4d, railroad: 0x3c3c46, mine: 0x8a8494,
