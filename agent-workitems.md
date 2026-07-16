@@ -2831,6 +2831,28 @@ Both engines one claim (mapgen.luau twin), wiki pass on Civ 1's
 authentic customize-world knobs at design time. Queue: after the
 era-scaling family (it feeds the SAME sim program).
 
+**DESIGNED with the user 2026-07-16 (four rulings, AskUserQuestion):**
+1. **V1 SCOPE = Tier 1 + climate skews**: Continents (the IDENTITY
+   preset — landPercent 32 / continents 5 = today's literals),
+   Pangaea (1, ~36), Archipelago (12–16, ~28), Islands (20+, ~24),
+   Big & Small (new sizeSplit — one walker takes most of the land
+   budget). Masks (Inland Sea/Donut), Lakes (punch-lakes pass), and
+   novelty shapes = a SECOND pass.
+2. **SEA LEVEL + CLIMATE as separate dropdowns** (Civ4 pattern,
+   honors Civ 1 Customize World): sea level low/medium/high =
+   landPercent ±8; climate temperate/arid/tropical/cold = latitude
+   band-table swaps (the four BAND_* tables become per-climate
+   data). Defaults = today's world. riverDivisor may ride climate.
+3. **TERRA gated on A69** (naval transport) — an unreachable new
+   world is a trap type; starts-on-largest-landmass logic designs
+   with it then.
+4. **CIV CAPS = per-type table** (maxCivsByType modifiers layered
+   on maxCivsBySize, enforced at the same five A38 gates).
+Twins: per-(seed,type,seaLevel,climate) world-hash anchor table in
+the twins gate. Sim: the topology axis joins the sweep matrix
+(docs/15 §3); M13 crossWater finally measurable. Setup dropdowns +
+?maptype=&sealevel=&climate= params + lobby create options.
+
 ## B20 — Ships attack coastal land (A71 headline gap; user green-lit 2026-07-16)
 
 Civ 1: battleships/cruisers bombard units on coastal land squares.
