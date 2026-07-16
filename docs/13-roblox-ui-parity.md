@@ -39,9 +39,12 @@ per item; the architect cuts R-items from the tiers in order.
 > research picker (with bulbs/turn), tax steppers, the turn log
 > (server-filtered round events — the eventsOut fix), and move
 > hints ALL LANDED; GoTo deferred (Select's click-move covers the
-> step case; pathfind.luau ports when GoTo justifies it). Combat
-> odds + city-site preview remain the open Tier-1 rows. Played
-> acceptance folds into the user's run2.
+> step case; pathfind.luau ports when GoTo justifies it).
+> **TIER 1 CLOSED 2026-07-16 (afternoon)**: combat odds preview
+> (R7d, cross-engine byte-identical spot-check) and city-site
+> preview (R7b site stars + found-grey) landed the same day —
+> only GoTo remains, deferred by design. Played acceptance for the
+> whole R7 arc = the user's runC.
 >
 > RUN2 PLAYED ACCEPTANCE (2026-07-16): 88 turns / 579 commands in
 > Studio, replayed ALL HASHES MATCH, game code agrees at turn 88 —
@@ -55,6 +58,13 @@ per item; the architect cuts R-items from the tiers in order.
 > production picker HIDES beyond-next-tech entries (browser shows
 > locked-with-reasons); auto end-turn + auto next-unit DEFAULT ON
 > (browser defaults off).
+>
+> R7d (same day) additionally landed FOUR Tier-2-or-above rows:
+> city list/paging, game-code HUD chip (docs/07 trust loop, rides
+> every server push), a fog-structural statistics panel, and the
+> A29 three-state End-Turn — plus the odds preview above. R8
+> (asset recipes → native-Part silhouettes) is the queued visual
+> pass; A88 feeds it.
 
 | Browser element | Roblox shape (proposal) | Notes |
 |---|---|---|

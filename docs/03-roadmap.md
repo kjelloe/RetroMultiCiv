@@ -417,6 +417,15 @@ Roblox session with the ported engine.
 
 ## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
 
+> STATUS 2026-07-16 afternoon: the B13 era-scaling window is OPEN
+> (bugfixer holds the golden lock; bounded-chunk cadence). Slice 1
+> (obsolescence-consume, both engines) landed GOLDEN-NEUTRAL — the
+> 400-turn golden trajectory never reaches Gunpowder, so re-record
+> pressure comes from the attacker/improver/walls slices. Scenario
+> 015-obsolescence pinned; era-chain defender pick tested. The B16
+> turn-371 witness diverges at turn 326 BY DESIGN (re-scoped guard;
+> fresh witness re-records at window close).
+
 Fourteen health metrics with user-set targets; a measured baseline
 (sim-runner, 100 games) exposing the gaps: no attackers ever built,
 zero rails, zero mines, no walls, exploration blindness, terrarium

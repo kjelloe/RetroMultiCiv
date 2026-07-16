@@ -71,8 +71,29 @@ the Done log at the bottom.
 ADOPTED (per-combat-rule, docs/15 §3) · ✅ A71 Decision column ruled
 (B20 + A83 green-lit) · ✅ canonical config confirmed (7 civs, A84)
 · ✅ soundboard signed off (A77 CLOSED; board = permanent tooling).
-REMAINING: **Studio run2** (R5 + R6 in one session, replay bar) and
-the standing next-playtest checklist below.
+REMAINING: ~~Studio run2~~ ✅ DONE mid-day (88 turns/579 commands,
+replayed hash-exact BOTH engines, accepted) — superseded by the
+AFTERNOON LIST below.
+
+## THE AFTERNOON LIST (2026-07-16 — after the R7 velocity day)
+
+1. **Merge marker — always the LATEST the architect declares
+   consistent** (your ruling). Declared at this writing: the sync
+   commit after this edit (the architect names it in chat).
+2. **Studio runC** — one session over the whole R7 arc: R7a small
+   UI (auto-next/auto-end defaults, nearest next-unit, grey/dead
+   gating, research at top center), R7b (unit billboards, site
+   stars, discovery splash), R7d (odds preview vs browser numbers,
+   C city list, J statistics, code chip, three-state End Turn) +
+   the run2 leftovers: click the TAX STEPPERS at least once, note
+   the fog verdict, and SCREENSHOT BOTH void-cover variants
+   (V cycles frame/galaxy/none) for the art pick.
+3. **Void-cover art pick** — parchment frame vs galaxy backdrop,
+   from your runC screenshots (soundboard pattern).
+4. **Coming to you later** (no action yet): cone-fidelity pick
+   from R8's Studio gallery grid (wedge-fan vs truncated-cylinder);
+   barracks sell-price confirm + M-target pinning after the B13
+   window closes and the canonical re-baseline runs.
 
 1. **Review + merge dev_night** — the whole night is one diff; the
    architect's briefing (work / discoveries / decisions) comes with
