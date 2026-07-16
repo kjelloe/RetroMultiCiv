@@ -3076,7 +3076,15 @@ VERBATIM in specs/ai-weakness-fixes.md; supersedes the architect's
 first slicing):** per-weakness designs — naval probe (ocean ratio
 within 6 of cities > threshold → navyPriority; airUnlocked on
 tech), periodic government re-eval every 20 turns + 40-turn
-revolutionCooldown (Republic > Monarchy at cities>6 & peace),
+revolutionCooldown (Republic > Monarchy at cities>6 & peace) —
+GROUNDING RULE (user check 2026-07-16 night): the scorer reads the
+REAL engine signals, which already model Civ 1 faithfully — actual
+trade lost to corruptionFor last turn (factors 4/3/3/2/0 by gov,
+distance-scaled, democracy zero), maxRate headroom (60/70 vs
+80/100), tradeBonus, upkeep/free-units, warUnhappiness — not
+abstract heuristics; the incentive exists in-engine, the AI just
+never reads it. ("Shield waste" = Civ 2 → the Civ2-rules-mode
+shelf, third entry),
 tech-era urgency multiplier + minimum-science floor (~40% — gold
 deficit before science deficit), wonder opportunity window
 (capital-completes-in-15-turns → queue above buildings +
