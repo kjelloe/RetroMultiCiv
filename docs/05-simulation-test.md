@@ -427,7 +427,18 @@ columns ADOPTED: garrison% (own-city-tile military share),
 resourceCov% (worked special-resources within Chebyshev-2 —
 healthy 85-94%, high-bar target ≥80%), disorderTurns (cumulative
 city-turns; target caps the TAIL <500 by t400, not the median),
-river-ADJACENCY% (redefined from on-tile, weak-watch). From the
+river-ADJACENCY% (DROPPED post-B21 — terrain noise even as
+adjacency). **M-TARGETS PINNED (user session 2026-07-16 evening,
+post-B21 numbers #558): M4 improvement% ≥75 · resourceCov% ≥80 ·
+M10 buys >0 per civ · M10 treasury bounded (<~50g/turn sustained
+climb) · M2 cities ≥8 · M3 pop ≥50 — all at t401, canonical 7-civ
+no-chaos normal; enforcement = A93 (soak floor-check in the
+nightly). KNOB DEFAULTS RULED: attackerPerCity 1, aiBuyThreshold
+200, aiScoutSharePct 25, aiAttackerTechWeight 1 (sweep curves in
+#558). HOLD until gaps close: M5 rails, M6 modernity, M11
+conflict — gap 1 = attacker k/l ~0.28 (coordination window's
+justification), gap 2 = exploration algorithm-bound ~7% (B23).
+disorderTurns target = p90 < 800 by t400 (B22 in flight).** From the
 re-baseline on, a HUMAN BENCHMARK row (metrics extracted from the
 user's real Shift+D recordings per difficulty) sits beside the AI
 configs — the tuning target is "challenging, legible, fair" vs the

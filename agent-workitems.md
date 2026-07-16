@@ -3021,6 +3021,27 @@ disorderTurns tail — implement only if the tail still exceeds the
 otherwise close measured-no-change with this diagnosis as the
 ledger. Golden window + full re-record when it goes.]**
 
+## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)
+
+M9 stuck ~7% of the world through t400; NEITHER exploreMarchRadius
+NOR aiScoutSharePct moves it (sweeps #558 — the knobs are dead
+ends). towardUnexplored's greedy step doesn't RANGE: units orbit
+their empire's fringe. Needs a real scouting behavior — frontier-
+seeking (target the nearest unexplored REGION, commit to the trip,
+A65 pathfind reuse), possibly explore-until-blocked auto-mode.
+Design with the war-lab loop: hypothesis → 10-seed probe → ship.
+Unblocks fog-honest contact (war), M13 crossWater (with A69 ships
+now real), and the M9 target.
+
+## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)
+
+tools/soak.js --stats gains a FLOORS check on the canonical
+config: the six pinned targets (docs/05 §12) asserted at t401,
+median over seeds; a floor breach fails the nightly lane loudly
+(the M-targets are regression FLOORS, not aspirations). Floors
+data-driven from a table in the script header, values mirror
+docs/05 §12 — one source comment linking both.
+
 ## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
 
 Small A64 follow-up: M9's denominator becomes non-polar LAND+COAST
