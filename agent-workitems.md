@@ -862,6 +862,29 @@ ACCEPTANCE: R4 bar for anything command-adjacent; screenshots per
 surface; run3 folds R7a+R7b. setRates exercise + fog verdict +
 per-surface screenshot READ (the run2 leftovers) close with it.
 
+**R7d — browser-parity fill (user ask 2026-07-16: "more of what
+the browser already has, before I playtest"; view-data-only, no
+design session needed, no new commands):**
+- COMBAT ODDS PREVIEW (closes the last active Tier-1 row): long-
+  press/hover an attackable target → Billboard with odds + the
+  multiplier breakdown, browser string as the spec
+  (client/ui/input.js:26 shape: "⚔ Favorable 67% — Legion 300 vs
+  Militia 150 (mountains +200%, fortified +50%)"). Same math as
+  the browser preview — read-only vs the view, server still
+  judges the actual attack.
+- GAME CODE HUD CHIP (docs/07 trust loop — must stay visible):
+  code shown on the HUD, selectable TextBox for copying.
+- CITY LIST / PAGING (Tier-2): panel with arrows, tap a row →
+  camera to city + open its panel.
+- STATISTICS PANEL (the reserved top-center slot): the browser's
+  view-statistics content in table form — per-civ score
+  components, cities/pop/techs; charts stay browser-only for now.
+- END-TURN THREE-STATE polish (A29 grey/pulse/confirm — the
+  "partially in R4's Hud" row): finish to browser parity.
+Acceptance: screenshots per surface; odds preview numbers spot-
+checked against the browser for 2–3 identical setups; runC covers
+it with R7a/R7b.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
