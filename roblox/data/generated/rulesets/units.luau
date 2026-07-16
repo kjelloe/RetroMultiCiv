@@ -30,7 +30,8 @@ return [==[{
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "robotics"
   },
   "caravan": {
     "name": "Caravan",
@@ -51,7 +52,8 @@ return [==[{
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "metallurgy"
   },
   "cavalry": {
     "name": "Cavalry",
@@ -61,7 +63,8 @@ return [==[{
     "moves": 2,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "chariot": {
     "name": "Chariot",
@@ -71,7 +74,8 @@ return [==[{
     "moves": 2,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "chivalry"
   },
   "diplomat": {
     "name": "Diplomat",
@@ -92,7 +96,8 @@ return [==[{
     "moves": 2,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "automobile"
   },
   "legion": {
     "name": "Legion",
@@ -102,7 +107,8 @@ return [==[{
     "moves": 1,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "mech-inf": {
     "name": "Mech. Inf.",
@@ -122,7 +128,8 @@ return [==[{
     "moves": 1,
     "cost": 30,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "phalanx": {
     "name": "Phalanx",
@@ -132,7 +139,8 @@ return [==[{
     "moves": 1,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "gunpowder"
   },
   "riflemen": {
     "name": "Riflemen",
@@ -152,7 +160,8 @@ return [==[{
     "moves": 1,
     "cost": 10,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "gunpowder"
   },
   "settlers": {
     "name": "Settlers",
@@ -202,7 +211,8 @@ return [==[{
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "industrialization"
   },
   "ironclad": {
     "name": "Ironclad",
@@ -212,7 +222,8 @@ return [==[{
     "moves": 4,
     "cost": 60,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "combustion"
   },
   "sail": {
     "name": "Sail",
@@ -222,7 +233,8 @@ return [==[{
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "magnetism"
   },
   "submarine": {
     "name": "Submarine",
@@ -252,7 +264,8 @@ return [==[{
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "navigation"
   },
   "bomber": {
     "name": "Bomber",

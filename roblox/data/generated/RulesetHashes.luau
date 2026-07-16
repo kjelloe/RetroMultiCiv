@@ -2,12 +2,12 @@
 -- hand-edit. GameServer boot gate: json2lua.parse of each baked ruleset
 -- must reproduce these hashes exactly (data-crossing contract).
 return {
-	buildings = "0xf5a52a28",
+	buildings = "0x26ecb6e9",
 	civs = "0x3d007f9e",
 	governments = "0x63112578",
 	rules = "0x3a2d7e56",
 	techs = "0x9fd04b61",
 	terrain = "0x0f366ad4",
-	units = "0xa2d86606",
+	units = "0x6bdd9ab8",
 	wonders = "0xa001ac71",
 }

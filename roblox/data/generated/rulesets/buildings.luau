@@ -28,7 +28,11 @@ return [==[{
     "maintenance": 1,
     "effect": {
       "veteranUnits": true
-    }
+    },
+    "obsoletedByTechs": [
+      "gunpowder",
+      "combustion"
+    ]
   },
   "cathedral": {
     "name": "Cathedral",
