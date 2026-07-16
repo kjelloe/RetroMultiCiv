@@ -30,11 +30,11 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCity = 1, attackerBase = 0 },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCity = 0, attackerBase = 0 },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCity = 2, attackerBase = 2 },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCity = 1, attackerBase = 0 },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCity = 1, attackerBase = 0 },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40 },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150 },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
 }
 local function stanceOf(stance: any): any
 	if stance ~= nil and STANCES[stance] ~= nil then
@@ -47,6 +47,19 @@ end
 -- marchRadiusPct (identity: idiv(8 * 100, 100) = 8). Sweepable via rulesOverrides.
 local function marchRadiusOf(ruleset: any, S: any): number
 	return idiv(ruleset.rules.exploreMarchRadius * S.marchRadiusPct, 100)
+end
+
+-- B21(a) twin: offensive-army target = rules.json base x stance pct (the
+-- marchRadiusOf passthrough shape). Defaults reproduce the B13e resolved values.
+local function attackerPerCityOf(ruleset: any, S: any): number
+	return idiv(ruleset.rules.attackerPerCity * S.attackerPerCityPct, 100)
+end
+local function attackerBaseOf(ruleset: any, S: any): number
+	return idiv(ruleset.rules.attackerBase * S.attackerBasePct, 100)
+end
+-- B21(d) twin: share of a civ's military that scouts (rules base x stance pct).
+local function scoutShareOf(ruleset: any, S: any): number
+	return idiv(ruleset.rules.aiScoutSharePct * S.scoutSharePct, 100)
 end
 
 local function sortedKeys(t: any): { string }
@@ -365,6 +378,24 @@ local function markTechPath(ruleset: any, techId: string, out: any)
 	end
 end
 
+-- B21(b) twin: the tech that unlocks the earliest OFFENSIVE unit (lowest tech
+-- LEVEL among land attack>defense units; tech-id tie-break). Data-driven, no
+-- hardcoded id. "" when no offensive unit needs a tech. Matches engine/ai.js.
+local function attackerTech(ruleset: any): string
+	local best, bestLevel = nil, 0
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "land" and def.attack > def.defense and def.tech ~= "" then
+			local lvl = if ruleset.techs[def.tech] == nil then 0 else ruleset.techs[def.tech].level
+			if best == nil or lvl < bestLevel or (lvl == bestLevel and def.tech < best) then
+				best = def.tech
+				bestLevel = lvl
+			end
+		end
+	end
+	return if best == nil then "" else best
+end
+
 local function countSettlers(state: any, playerId: string): number
 	local n = 0
 	for _, u in pairs(state.units) do
@@ -394,6 +425,67 @@ local function countMilitary(state: any, playerId: string, ruleset: any): number
 		end
 	end
 	return n
+end
+
+-- B21(d) twin: is this unit one of the civ's dedicated SCOUTS? The NEWEST
+-- scoutShare% of the civ's military (highest sorted ids) range the fog instead
+-- of garrisoning/marching. Deterministic. Matches engine/ai.js.
+local function isScout(state: any, playerId: string, ruleset: any, uid: string, scoutShare: number): boolean
+	if scoutShare <= 0 then
+		return false
+	end
+	local mil = {}
+	for _, id in ipairs(combat.sortIds(sortedKeys(state.units))) do
+		local u = state.units[id]
+		if u.owner == playerId and ruleset.units[u.type].attack > 0 then
+			table.insert(mil, id)
+		end
+	end
+	local count = idiv(#mil * scoutShare, 100)
+	-- JS loops i = len-count .. len-1 (0-based); 1-based is len-count+1 .. len
+	for i = #mil - count + 1, #mil do
+		if mil[i] == uid then
+			return true
+		end
+	end
+	return false
+end
+
+-- B21(c) twin: rush-buy a THREATENED own city's defender/walls/attacker when the
+-- treasury sits above rules.aiBuyThreshold and the buy is affordable. One buy per
+-- turn, cityOrder = deterministic. Matches engine/ai.js.
+local function rushBuyCommand(state: any, playerId: string, ruleset: any): any
+	local me = state.players[playerId]
+	local threshold = if ruleset.rules.aiBuyThreshold == nil then -1 else ruleset.rules.aiBuyThreshold
+	if threshold < 0 or me.gold <= threshold then
+		return nil
+	end
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local city = state.cities[cid]
+		if city ~= nil and city.owner == playerId
+			and enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius) then
+			local prod = city.producing
+			local def = nil
+			if prod.kind == "building" and prod.id == "city-walls" then
+				def = ruleset.buildings[prod.id]
+			elseif prod.kind == "unit" and prod.id ~= "settlers" then
+				local u = ruleset.units[prod.id]
+				if u ~= nil and (u.attack > 0 or u.defense > 0) then
+					def = u
+				end
+			end
+			if def ~= nil then
+				local missing = def.cost - city.shields
+				if missing > 0 then
+					local price = missing * ruleset.rules.buyGoldPerShield
+					if me.gold >= price then
+						return { type = "buy", playerId = playerId, cityId = cid }
+					end
+				end
+			end
+		end
+	end
+	return nil
 end
 
 -- B13e twin: best OFFENSIVE land unit (attack > own defense), non-obsolete,
@@ -641,6 +733,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	local me = state.players[playerId]
 	local S = stanceOf(stance) -- balanced (or omitted) = the identity
 	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
+	local scoutShare = scoutShareOf(ruleset, S) -- B21(d): sweepable via rules.json
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
@@ -655,24 +748,39 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		local avail = tech.availableTechs(state, playerId, ruleset)
 		if #avail > 0 then
 			-- beeline Monarchy first (Civ 1 AIs rush a government)
-			local pool = avail
+			local monarchyPath = {}
 			if table.find(me.techs, "monarchy") == nil then
-				local path = {}
-				markTechPath(ruleset, "monarchy", path)
-				local onPath = {}
-				for _, id in ipairs(avail) do
-					if path[id] == true then
-						table.insert(onPath, id)
-					end
-				end
-				if #onPath > 0 then
-					pool = onPath
+				markTechPath(ruleset, "monarchy", monarchyPath)
+			end
+			-- B21(b): also pull the earliest attacker tech into the beeline while the
+			-- civ has no offensive unit yet -- knob-weighted (rules.aiAttackerTechWeight;
+			-- 0 = the old monarchy-only rush). The weight discounts attacker-path tech
+			-- levels so a higher knob rushes them ahead of monarchy.
+			local atkWeight = if ruleset.rules.aiAttackerTechWeight == nil then 0 else ruleset.rules.aiAttackerTechWeight
+			local atkPath = {}
+			if atkWeight > 0 and bestAttackerUnit(me, ruleset) == nil then
+				local at = attackerTech(ruleset)
+				if at ~= "" then
+					markTechPath(ruleset, at, atkPath)
 				end
 			end
+			local pool = avail
+			local onPath = {}
+			for _, id in ipairs(avail) do
+				if monarchyPath[id] == true or atkPath[id] == true then
+					table.insert(onPath, id)
+				end
+			end
+			if #onPath > 0 then
+				pool = onPath
+			end
 			local best = pool[1]
+			local bestEff = ruleset.techs[best].level - (if atkPath[best] == true then atkWeight else 0)
 			for _, id in ipairs(pool) do
-				if ruleset.techs[id].level < ruleset.techs[best].level then
+				local eff = ruleset.techs[id].level - (if atkPath[id] == true then atkWeight else 0)
+				if eff < bestEff then
 					best = id
+					bestEff = eff
 				end
 			end
 			return { type = "setResearch", playerId = playerId, tech = best }
@@ -712,6 +820,15 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		return { type = "setGovernment", playerId = playerId, government = "monarchy" }
 	end
 
+	-- B21(c): rush-buy a threatened city's military production (one per turn)
+	if done.buy ~= true then
+		done.buy = true
+		local cmd = rushBuyCommand(state, playerId, ruleset)
+		if cmd ~= nil then
+			return cmd
+		end
+	end
+
 	for _, cid in ipairs(state.cityOrder or {}) do
 		if done["c:" .. cid] ~= true then
 			local city = state.cities[cid]
@@ -740,21 +857,29 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						local canWall = threatened and wallsDef ~= nil
 							and (city.buildings == nil or table.find(city.buildings, "city-walls") == nil)
 							and (wallsDef.tech == "" or table.find(me.techs, wallsDef.tech) ~= nil)
-						local building = if canWall then "city-walls" else stanceBuilding(city, me, ruleset, S)
-						local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
-						-- B13e: buildings + wonders done — field an OFFENSIVE army up
-						-- to the empire target before settler-pavers (twin of ai.js).
-						local attacker = if building == nil and wonder == nil then bestAttackerUnit(me, ruleset) else nil
-						local armyTarget = countCities(state, playerId) * S.attackerPerCity + S.attackerBase
-						if building ~= nil then
-							want = { kind = "building", id = building }
-						elseif wonder ~= nil then
-							want = { kind = "wonder", id = wonder }
-						elseif attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget then
+						-- B21(a): the offensive army gets a REAL build-order slot -- right after
+						-- walls, ABOVE buildings/wonders (the re-baseline found attackers = 0
+						-- because the old branch sat behind them, which never run dry). Empire-
+						-- wide target = a standing army; sweepable via rules.attackerPerCity/Base.
+						local attacker = bestAttackerUnit(me, ruleset)
+						local armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
+							+ attackerBaseOf(ruleset, S)
+						local underArmy = attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget
+						if canWall then
+							want = { kind = "building", id = "city-walls" }
+						elseif underArmy then
 							want = { kind = "unit", id = attacker }
-						elseif defenders >= 3
-							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
-							want = { kind = "unit", id = "settlers" }
+						else
+							local building = stanceBuilding(city, me, ruleset, S)
+							local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
+							if building ~= nil then
+								want = { kind = "building", id = building }
+							elseif wonder ~= nil then
+								want = { kind = "wonder", id = wonder }
+							elseif defenders >= 3
+								or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
+								want = { kind = "unit", id = "settlers" }
+							end
 						end
 					end
 				end
@@ -820,6 +945,15 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
 					if guards <= need then
 						return { type = "fortify", playerId = playerId, unitId = uid }
+					end
+				end
+				-- B21(d): a dedicated scout ranges the fog before garrisoning or
+				-- marching (its city is already guarded -- the hold block above
+				-- returned otherwise). No fog left: fall through to normal behavior.
+				if isScout(state, playerId, ruleset, uid, scoutShare) then
+					local sdir = towardUnexplored(state, unit, me)
+					if sdir ~= nil then
+						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
 					end
 				end
 				-- A40: defensive never marches out (radius 0), aggressive ranges

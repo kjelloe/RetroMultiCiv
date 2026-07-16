@@ -26,17 +26,20 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // A40 slice 1: AI regency STANCES. Behavior knobs (NOT ruleset facts — an
 // AI-constants precedent), read through the resolved S object in pickCommand.
 // A40 identity note (now historical): balanced WAS the pure pre-stance
-// identity so the A40 stance window stayed golden-neutral. B13e INTENTIONALLY
-// breaks that for the attacker knobs — balanced now fields an offensive army
-// (attackerPerCity/attackerBase > 0), which is the whole point of the era-
-// scaling window and moves the goldens (re-recorded once at window close).
+// identity so the A40 stance window stayed golden-neutral. B13e broke that for
+// the attacker knobs — balanced fields an offensive army. B21 turned the
+// attacker/scout knobs into rules.json PASSTHROUGHS: the stance fields are now
+// PERCENTS (attackerPerCityPct/attackerBasePct/scoutSharePct) scaling a
+// rules.json base via attackerPerCityOf/attackerBaseOf/scoutShareOf — the
+// marchRadiusPct pattern, so the sim-runner sweeps army size + scouting via
+// rulesOverrides. Defaults reproduce the B13e resolved per-stance values.
 // Twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCity: 1, attackerBase: 0 },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCity: 0, attackerBase: 0 },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCity: 2, attackerBase: 2 },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCity: 1, attackerBase: 0 },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCity: 1, attackerBase: 0 }
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40 },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150 },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 }
 };
 // B13f: the AI's march-vs-explore radius. The BASE lives in data/rules.json
 // (exploreMarchRadius) so the sim-runner can SWEEP contact behavior via
@@ -46,6 +49,22 @@ const STANCES = {
 // Identity by default: idiv(8 * pct, 100) reproduces the old literals.
 function marchRadiusOf(ruleset, S) {
   return idiv(ruleset.rules.exploreMarchRadius * S.marchRadiusPct, 100);
+}
+// B21(a): the offensive-army target is a rules.json BASE scaled by the stance
+// pct — same passthrough shape as marchRadiusOf, so the sim-runner sweeps the
+// standing-army size via rulesOverrides. Defaults reproduce the B13e per-stance
+// values (attackerPerCity 1x{100,0,200,100,100}=1/0/2/1/1; attackerBase
+// 2x{0,0,100,0,0}=0/0/2/0/0).
+function attackerPerCityOf(ruleset, S) {
+  return idiv(ruleset.rules.attackerPerCity * S.attackerPerCityPct, 100);
+}
+function attackerBaseOf(ruleset, S) {
+  return idiv(ruleset.rules.attackerBase * S.attackerBasePct, 100);
+}
+// B21(d): the share of a civ's military that scouts instead of garrisoning —
+// rules.aiScoutSharePct base scaled by the stance pct (balanced 100 = the base).
+function scoutShareOf(ruleset, S) {
+  return idiv(ruleset.rules.aiScoutSharePct * S.scoutSharePct, 100);
 }
 function stanceOf(stance) {
   return (stance !== undefined && STANCES[stance] !== undefined) ? STANCES[stance] : STANCES.balanced;
@@ -294,6 +313,24 @@ function markTechPath(ruleset, techId, out) {
   for (const req of ruleset.techs[techId].prereqs) markTechPath(ruleset, req, out);
 }
 
+// B21(b): the tech that unlocks the earliest OFFENSIVE unit — the beeline term
+// that lets an AI field attackers at all (the re-baseline found attackers = 0
+// partly because the monarchy beeline never reaches an attacker tech). Lowest
+// tech LEVEL among land attack>defense units; deterministic (tech-id tie-break).
+// Data-driven: no hardcoded tech id. '' when no offensive unit needs a tech.
+function attackerTech(ruleset) {
+  let best = null, bestLevel = 0;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'land' || def.attack <= def.defense || def.tech === '') continue;
+    const lvl = ruleset.techs[def.tech] === undefined ? 0 : ruleset.techs[def.tech].level;
+    if (best === null || lvl < bestLevel || (lvl === bestLevel && def.tech < best)) {
+      best = def.tech; bestLevel = lvl;
+    }
+  }
+  return best === null ? '' : best;
+}
+
 function countSettlers(state, playerId) {
   let n = 0;
   for (const uid of Object.keys(state.units)) {
@@ -319,6 +356,57 @@ function countMilitary(state, playerId, ruleset) {
     if (u.owner === playerId && ruleset.units[u.type].attack > 0) n = n + 1;
   }
   return n;
+}
+
+// B21(d): is this unit one of the civ's dedicated SCOUTS? The first `scoutShare`
+// percent of the civ's military (by sorted id) range the fog instead of
+// garrisoning/marching — the re-baseline found exploration stuck at 6-7% because
+// the radius knob was inert: too FEW units explored, not too short a reach.
+// Deterministic (sorted-id rank). scoutShare 0 -> no dedicated scouts.
+function isScout(state, playerId, ruleset, uid, scoutShare) {
+  if (scoutShare <= 0) return false;
+  const mil = [];
+  for (const id of sortIds(Object.keys(state.units))) {
+    const u = state.units[id];
+    if (u.owner === playerId && ruleset.units[u.type].attack > 0) mil.push(id);
+  }
+  // the NEWEST share (highest ids) scout: fresh units are the mobile surplus
+  // that reaches the roam tier, where the oldest ids are dug-in founder
+  // garrisons that fortify first and never range. Deterministic.
+  const count = idiv(mil.length * scoutShare, 100);
+  for (let i = mil.length - count; i < mil.length; i++) {
+    if (mil[i] === uid) return true;
+  }
+  return false;
+}
+
+// B21(c): rush-buy — a THREATENED own city finishing a defender/walls/attacker
+// buys it out when the treasury sits comfortably above rules.aiBuyThreshold. The
+// re-baseline found 0 buys across all 306 civ-checkpoints; this is the economic-
+// coherence lever ("no buys ever" dies here). One buy per turn, cityOrder =
+// deterministic. Sweep the threshold up to switch buying off.
+function rushBuyCommand(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  const threshold = ruleset.rules.aiBuyThreshold === undefined ? -1 : ruleset.rules.aiBuyThreshold;
+  if (threshold < 0 || me.gold <= threshold) return null;
+  for (const cid of state.cityOrder || []) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== playerId) continue;
+    if (!enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius)) continue;
+    const prod = city.producing;
+    let def = undefined;
+    if (prod.kind === 'building' && prod.id === 'city-walls') def = ruleset.buildings[prod.id];
+    else if (prod.kind === 'unit' && prod.id !== 'settlers') {
+      const u = ruleset.units[prod.id];
+      if (u !== undefined && (u.attack > 0 || u.defense > 0)) def = u;
+    }
+    if (def === undefined) continue;
+    const missing = def.cost - city.shields;
+    if (missing <= 0) continue; // already complete
+    const price = missing * ruleset.rules.buyGoldPerShield;
+    if (me.gold >= price) return { type: 'buy', playerId, cityId: cid };
+  }
+  return null;
 }
 
 // B13e: the best OFFENSIVE land unit the player can build now — attack strictly
@@ -511,6 +599,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
   const S = stanceOf(stance); // balanced (or omitted) = the identity
   const marchR = marchRadiusOf(ruleset, S); // B13f: sweepable via rules.json
+  const scoutShare = scoutShareOf(ruleset, S); // B21(d): sweepable via rules.json
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual
@@ -523,20 +612,30 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     const avail = availableTechs(state, playerId, ruleset);
     if (avail.length > 0) {
       // beeline Monarchy first (Civ 1 AIs rush a government); breadth-first
-      // level-order research would otherwise not reach it in 400 turns
-      let pool = avail;
-      if (me.techs.indexOf('monarchy') === -1) {
-        const path = {};
-        markTechPath(ruleset, 'monarchy', path);
-        const onPath = [];
-        for (const id of avail) {
-          if (path[id] === true) onPath.push(id);
-        }
-        if (onPath.length > 0) pool = onPath;
+      // level-order research would otherwise not reach it in 400 turns.
+      const monarchyPath = {};
+      if (me.techs.indexOf('monarchy') === -1) markTechPath(ruleset, 'monarchy', monarchyPath);
+      // B21(b): also pull the earliest attacker tech into the beeline while the
+      // civ has no offensive unit yet — knob-weighted (rules.aiAttackerTechWeight;
+      // 0 = the old monarchy-only rush). The weight discounts attacker-path techs
+      // by that many levels, so a higher knob rushes them ahead of monarchy.
+      const atkWeight = ruleset.rules.aiAttackerTechWeight === undefined ? 0 : ruleset.rules.aiAttackerTechWeight;
+      const atkPath = {};
+      if (atkWeight > 0 && bestAttackerUnit(me, ruleset) === null) {
+        const at = attackerTech(ruleset);
+        if (at !== '') markTechPath(ruleset, at, atkPath);
       }
+      let pool = avail;
+      const onPath = [];
+      for (const id of avail) {
+        if (monarchyPath[id] === true || atkPath[id] === true) onPath.push(id);
+      }
+      if (onPath.length > 0) pool = onPath;
       let best = pool[0];
+      let bestEff = ruleset.techs[best].level - (atkPath[best] === true ? atkWeight : 0);
       for (const id of pool) {
-        if (ruleset.techs[id].level < ruleset.techs[best].level) best = id;
+        const eff = ruleset.techs[id].level - (atkPath[id] === true ? atkWeight : 0);
+        if (eff < bestEff) { best = id; bestEff = eff; }
       }
       return { type: 'setResearch', playerId, tech: best };
     }
@@ -572,6 +671,13 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     return { type: 'setGovernment', playerId, government: 'monarchy' };
   }
 
+  // B21(c): rush-buy a threatened city's military production (one per turn)
+  if (!done.buy) {
+    done.buy = true;
+    const cmd = rushBuyCommand(state, playerId, ruleset);
+    if (cmd) return cmd;
+  }
+
   for (const cid of state.cityOrder || []) {
     if (done['c:' + cid]) continue;
     const city = state.cities[cid];
@@ -604,24 +710,33 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const canWall = threatened && wallsDef !== undefined
           && (city.buildings === undefined || city.buildings.indexOf('city-walls') === -1)
           && (wallsDef.tech === '' || me.techs.indexOf(wallsDef.tech) !== -1);
-        const building = canWall ? 'city-walls' : stanceBuilding(city, me, ruleset, S);
-        const wonder = building === null ? nextWonder(state, me, ruleset) : null;
-        // B13e: buildings + wonders done — field an OFFENSIVE army up to the
-        // empire target (attackerPerCity per city + a base) before falling
-        // back to settler-pavers. This is why late-game AIs are no longer
-        // 100% defensive; era-scales through bestAttackerUnit.
-        const attacker = (building === null && wonder === null) ? bestAttackerUnit(me, ruleset) : null;
-        const armyTarget = countCities(state, playerId) * S.attackerPerCity + S.attackerBase;
-        if (building !== null) want = { kind: 'building', id: building };
-        else if (wonder !== null) want = { kind: 'wonder', id: wonder };
-        else if (attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget) {
+        // B21(a): the offensive army gets a REAL build-order slot — right after
+        // walls, ABOVE buildings/wonders. The re-baseline (sim-runner #534) found
+        // attacker-type units = 0 at t400 because the old branch sat behind
+        // buildings+wonders, which never run dry. Now: while the empire is under
+        // its attacker target, a saturated city builds the attacker first. Empire-
+        // wide target so it is a standing army, not a per-city stack. Sweepable
+        // via rules.attackerPerCity/attackerBase (stance pct passthrough).
+        const attacker = bestAttackerUnit(me, ruleset);
+        const armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
+          + attackerBaseOf(ruleset, S);
+        const underArmy = attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget;
+        if (canWall) {
+          want = { kind: 'building', id: 'city-walls' };
+        } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
-        } else if (defenders.length >= 3
-                 || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
-          // enough army empire-wide: garrison surplus now roams (escorts,
-          // explorers), so the LOCAL count alone no longer saturates —
-          // without this cap a tech-starved civ mints militia forever
-          want = { kind: 'unit', id: 'settlers' };
+        } else {
+          const building = stanceBuilding(city, me, ruleset, S);
+          const wonder = building === null ? nextWonder(state, me, ruleset) : null;
+          if (building !== null) want = { kind: 'building', id: building };
+          else if (wonder !== null) want = { kind: 'wonder', id: wonder };
+          else if (defenders.length >= 3
+                   || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
+            // enough army empire-wide: garrison surplus now roams (escorts,
+            // explorers), so the LOCAL count alone no longer saturates —
+            // without this cap a tech-starved civ mints militia forever
+            want = { kind: 'unit', id: 'settlers' };
+          }
         }
       }
     }
@@ -688,6 +803,13 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       if (guards <= need) {
         return { type: 'fortify', playerId, unitId: uid };
       }
+    }
+    // B21(d): a dedicated scout ranges the fog before it garrisons or marches —
+    // its city is already adequately guarded (the hold block above returned
+    // otherwise). No fog left: fall through to the normal military behavior.
+    if (isScout(state, playerId, ruleset, uid, scoutShare)) {
+      const sdir = towardUnexplored(state, unit, me);
+      if (sdir) return { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
     }
     // fight what's actually near; distant enemies are not worth a suicide
     // trek across the map (that churn was where armies went to die). A40:

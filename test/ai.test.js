@@ -110,6 +110,97 @@ test('B13f: exploreMarchRadius is sweepable and defaults to the historical march
     'exploreMarchRadius 0: the knob changes contact behaviour — no march');
 });
 
+// B21: the wake-the-capabilities knobs are sweepable rules.json levers, each
+// with an identity/documented default and a sweep that measurably changes AI
+// behaviour (the marchRadius test above is the template).
+function withRules(overrides) {
+  return Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, overrides) });
+}
+
+// B21(a): the attacker BUILD-ORDER slot fires above buildings/wonders while the
+// empire is under its attacker target (rules.attackerPerCity/attackerBase).
+test('B21(a): attackerPerCity is sweepable — a defended city builds the attacker slot', async () => {
+  const { ai } = await load();
+  // one defended city, settlers no longer scarce (two afield), an attacker
+  // unlocked (iron-working -> legion), currently producing settlers.
+  const mk = () => grassState(9, 9, {
+    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+    us1: { id: 'us1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
+    us2: { id: 'us2', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } }
+  }, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['bronze-working', 'iron-working'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const doneAll = { happiness: true, research: true, rates: true, government: true, buy: true };
+  // default: armyTarget = 1 city * 1 + 0 = 1, no attackers yet -> build the legion
+  const def = ai.pickCommand(mk(), 'p1', RULESET, Object.assign({}, doneAll));
+  assert.strictEqual(def.item.id, 'legion', 'default attackerPerCity fields the offensive slot');
+  // sweep to 0: armyTarget 0 -> the slot never fires; the city defends instead
+  const swept = ai.pickCommand(mk(), 'p1', withRules({ attackerPerCity: 0 }), Object.assign({}, doneAll));
+  assert.notStrictEqual(swept.item.id, 'legion', 'attackerPerCity 0: no attacker slot');
+});
+
+// B21(b): the research beeline pulls the earliest attacker tech, knob-weighted
+// (rules.aiAttackerTechWeight). 0 = the old monarchy-only rush.
+test('B21(b): aiAttackerTechWeight is sweepable — it steers the beeline', async () => {
+  const { ai } = await load();
+  const mk = () => grassState(9, 9, {}, {}, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const doneH = { happiness: true };
+  const off = ai.pickCommand(mk(), 'p1', withRules({ aiAttackerTechWeight: 0 }), Object.assign({}, doneH));
+  const on = ai.pickCommand(mk(), 'p1', withRules({ aiAttackerTechWeight: 5 }), Object.assign({}, doneH));
+  assert.strictEqual(off.type, 'setResearch');
+  assert.strictEqual(on.type, 'setResearch');
+  assert.notStrictEqual(on.tech, off.tech, 'a heavy attacker-tech weight steers the beeline off the monarchy-only path');
+});
+
+// B21(c): rush-buy a threatened city's military production above the gold floor
+// (rules.aiBuyThreshold). "no buys ever" dies here.
+test('B21(c): aiBuyThreshold is sweepable — a flush, threatened city rush-buys', async () => {
+  const { ai } = await load();
+  // c9 threatened by an adjacent enemy, producing a defender, p1 flush with gold
+  const mk = () => grassState(9, 9, {
+    ue: { id: 'ue', type: 'legion', owner: 'p2', x: 6, y: 4, moves: 1, fortified: false, veteran: false },
+    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+  }, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 500, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const doneAll = { happiness: true, research: true, rates: true, government: true };
+  const def = ai.pickCommand(mk(), 'p1', RULESET, Object.assign({}, doneAll));
+  assert.strictEqual(def.type, 'buy', 'default threshold: a flush threatened city buys its defender');
+  const swept = ai.pickCommand(mk(), 'p1', withRules({ aiBuyThreshold: 99999 }), Object.assign({}, doneAll));
+  assert.ok(swept === null || swept.type !== 'buy', 'aiBuyThreshold above the treasury: no buy');
+});
+
+// B21(d): a share of the military scouts the fog (rules.aiScoutSharePct); 0 is
+// the old incidental exploration. Live-knob proof: 0 marches, 100 scouts.
+test('B21(d): aiScoutSharePct is sweepable — it diverts military to the fog', async () => {
+  const { ai, hashState } = await load();
+  const { createEngine } = await import('../engine/index.js');
+  // east half explored (the enemy is visible there); west is fog. Two legions
+  // in the field: as scouts they head into the western fog, else they march east.
+  const W = 12, H = 5;
+  const explored = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) explored.push(x >= 4 ? 1 : 0);
+  const mk = () => grassState(W, H, {
+    u1: { id: 'u1', type: 'legion', owner: 'p1', x: 5, y: 2, moves: 1, fortified: false, veteran: false },
+    u2: { id: 'u2', type: 'legion', owner: 'p1', x: 6, y: 2, moves: 1, fortified: false, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'E', owner: 'p2', x: 9, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+  }, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, explored },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const none = withRules({ aiScoutSharePct: 0 });
+  const all = withRules({ aiScoutSharePct: 100 });
+  const hNone = hashState(ai.runAiTurn(createEngine(none), mk(), 'p1', none));
+  const hAll = hashState(ai.runAiTurn(createEngine(all), mk(), 'p1', all));
+  assert.notStrictEqual(hAll, hNone, 'aiScoutSharePct changes where the military goes (fog vs march)');
+});
+
 // A40 slice 1: regency stances. The HARD invariant first — balanced (and the
 // omitted default) is the IDENTITY: pickCommand returns the exact same command
 // with stance 'balanced', undefined, or an unknown value across crafted states.

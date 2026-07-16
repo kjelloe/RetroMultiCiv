@@ -35,6 +35,11 @@
   "sellPriceRatio": 1,
   "exploreMarchRadius": 8,
   "threatRadius": 8,
+  "attackerPerCity": 1,
+  "attackerBase": 2,
+  "aiAttackerTechWeight": 1,
+  "aiBuyThreshold": 200,
+  "aiScoutSharePct": 25,
   "barbTierThreshold": 30,
   "barbTiers": [
     { "tech": "", "unit": "militia" },
