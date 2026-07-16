@@ -10,6 +10,29 @@ criterion predates this doc: the phase-2 verdict scoped "diplomacy
 legibility" here — a player must always understand who they're at
 war with, why, and what a treaty did.
 
+RELATIONSHIP MODEL ADOPTED (user ruling 2026-07-17, ally doc
+specs/leader-attributes.md — supersedes the bare reputation int):
+per-pair state carries status (peace|war|ceasefire|treaty) + FOUR
+integer values 0–100: TRUST (honors commitments → more trade,
+fewer pre-emptive wars), FEAR (military danger → defense,
+appeasement), GRIEVANCE (hostile acts → demands, war likelihood),
+RESPECT (competence → serious offers) — "a weak but trustworthy
+neighbor is treated differently from a powerful treacherous one".
+Plus situational derived inputs (borderPressure, militaryBalance,
+tradeValue) and cooldown turns (lastDemandTurn etc.). Decisions =
+SCORE MODELS over personality axes + relationship values (the
+ally's scoreWarIntent shape; constants in rules.json). MVP action
+set = first contact, war/peace, tribute demand, fixed-duration
+treaty/ceasefire, betrayal memory, peace offer, tech exchange —
+alliance blocs/espionage/multi-party DEFERRED. Event→dialogue:
+the sim resolves everything (dialogueKey + stance + variables in
+the pushed event); clients ONLY render. Dialogue templates
+per-STANCE with {leader}/{civ}/{demand}/{tech}/{offer}/{reason}
+interpolation; per-leader text = a later cosmetic layer. The
+ally's diplomacy metrics table + map-class segmentation gate the
+tuning (A82 map types before diplomacy tuning). All relationship
+values INTEGERS (the ally's floats adapted — state bans floats).
+
 ALLY ROUND-6 REQUIREMENT (2026-07-16, adopted): a PERSISTENT
 diplomatic summary — never state hidden inside audience dialogue
 text alone — carrying per pair: relationship state (peace / war /
