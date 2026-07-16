@@ -2669,6 +2669,33 @@ blocked tiles; manual assignment to a blocked tile rejected or
 zero-yield — design call at build), golden window + scenario pin.
 Sieges (docs/15 §2.4) emerge from this rule nearly free.
 
+## A82 — Map types: Continents / Pangaea / Archipelago (user note 2026-07-16, night close)
+
+Civ 1's "Customize World" (land mass / temperature / climate / age
+— wiki verifies the authentic knob set) and the Civ 2-style map
+FORMS the user names: Continents, Pangaea, Archipelago (+ more as
+data). Design:
+1. `setup.mapType` → a rules-driven PRESET table (data/rules.json
+   mapTypes: each preset = mapgen parameter overrides — continent
+   count/size distribution, drunkard-walk budgets, ocean fraction).
+   Mapgen consumes the preset; SAME rng discipline, deterministic
+   per (seed, type).
+2. **THE IDENTITY PATTERN (A40-s1's trick)**: the DEFAULT preset's
+   parameters EQUAL today's literals — goldens and scenario 002
+   unchanged by construction; the proof is them staying green. New
+   types are additive presets.
+3. Setup dropdown + ?maptype= param; lobby create option; ff and
+   sim harness accept it.
+4. **THE SIM ANGLE (the user's actual point)**: landmass topology
+   governs finding/attacking other civs — the war-lab ratio
+   results are TOPOLOGY-CONDITIONED (current default only until
+   this lands). Once presets exist, the sweep matrix gains a map-
+   type axis (ratios × {pangaea, continents, archipelago}) — and
+   M13 crossWater finally gets worlds where boats MATTER.
+Both engines one claim (mapgen.luau twin), wiki pass on Civ 1's
+authentic customize-world knobs at design time. Queue: after the
+era-scaling family (it feeds the SAME sim program).
+
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14; NOTE 2026-07-15: A61 sets the hardened-DEFAULT posture + static whitelist FIRST; A50's items assume it)
 
 Queue normally at the helper tail (after A49). Every piece hardens
