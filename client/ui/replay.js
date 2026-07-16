@@ -31,7 +31,30 @@ export function initReplay(ctx) {
   function getRecording() {
     if (session.requestFullLog) return session.requestFullLog();
     const d = session.exportDiagnostics();
-    return Promise.resolve({ initialState: d.initialState, log: d.log, finalHash: d.finalHash });
+    return Promise.resolve({ initialState: d.initialState, log: d.log, finalHash: d.finalHash,
+      format: d.format, version: d.version });
+  }
+
+  // A87 (c): a recording we know how to replay. Server recordings arrive with
+  // no envelope (trusted, current); a LOCAL recording carrying a format must
+  // match the version the theater speaks, else "format unsupported".
+  const SUPPORTED = { format: 'retromulticiv-diagnostics', version: 1 };
+  function recordingSupported(rec) {
+    if (rec.format === undefined) return true;
+    return rec.format === SUPPORTED.format && rec.version === SUPPORTED.version;
+  }
+  // A87 (c): the FIRST recorded entry whose replayed hash disagrees (the
+  // divergence index the verifier already computes), or null. cmd entries carry
+  // a hash only under ?debug=1; round entries always do (client/session.js).
+  function firstDivergence(rec) {
+    let state = deepClone(rec.initialState);
+    let applied = 0;
+    for (const entry of rec.log) {
+      state = stepEntry(state, entry).state;
+      applied++;
+      if (entry.hash !== undefined && hashState(state) !== entry.hash) return applied;
+    }
+    return null;
   }
 
   // Apply ONE log entry to the sandbox, returning its events. cmd = a human/
@@ -71,26 +94,44 @@ export function initReplay(ctx) {
       state = r.state;
       for (const m of majorEvents(r.events, state, ruleset)) majors.push(m);
     }
-    return { replayHash: hashState(state), recordedHash: rec.finalHash, majors };
+    return { replayHash: hashState(state), recordedHash: rec.finalHash, majors,
+      divergedAt: firstDivergence(rec) };
   }
 
   let theater = null;
-  function omniscient(state) { return filterView(state, 'spectator'); } // players.spectator===undefined → all revealed
+  // A87 (b): 'spectator' = omniscient (players.spectator===undefined → all
+  // revealed); a real playerId = that civ's fog-of-war eyes (filterView).
 
   async function open() {
     if (theater) return;
     const rec = await getRecording();
+    // A87 (c): a recording from a newer/foreign format can't be replayed
+    // honestly — say so plainly instead of playing something wrong.
+    if (!recordingSupported(rec)) {
+      const warn = document.createElement('div');
+      warn.id = 'replay-theater';
+      warn.innerHTML = `<div id="replay-bar"><span id="replay-turn">⚠ Replay format unsupported`
+        + ` — this recording was made by a different version.</span>`
+        + `<button id="replay-close">✕ Close</button></div>`;
+      document.body.appendChild(warn);
+      theater = { panel: warn, close: () => { warn.remove(); theater = null; } };
+      warn.querySelector('#replay-close').addEventListener('click', theater.close);
+      return;
+    }
     // animations off during playback (render-time only, so it's free); restore
     const priorReduce = ctx.options && ctx.options.get('reduceAnimation');
     if (renderer.setReduceAnimation) renderer.setReduceAnimation(true);
 
+    const totalRounds = rec.log.reduce((n, e) => n + (e.t === 'round' ? 1 : 0), 0);
     const panel = document.createElement('div');
     panel.id = 'replay-theater';
     panel.innerHTML = `
       <div id="replay-bar">
         <button id="replay-restart" title="Back to start">⏮ Start</button>
         <button id="replay-playpause">⏸ Pause</button>
-        <label>Replay speed <input id="replay-tempo" type="range" min="1" max="50" value="4"> <span id="replay-tempo-n">4</span>/s</label>
+        <label>Speed <input id="replay-tempo" type="range" min="1" max="50" value="4"> <span id="replay-tempo-n">4</span>/s</label>
+        <label>Jump <input id="replay-scrub" type="range" min="0" max="${totalRounds}" value="0" title="jump to a turn"></label>
+        <label>View <select id="replay-view" title="whose eyes"></select></label>
         <span id="replay-turn"></span>
         <button id="replay-close">✕ Close</button>
       </div>
@@ -99,11 +140,27 @@ export function initReplay(ctx) {
 
     let state = deepClone(rec.initialState);
     let idx = 0;
+    let applied = 0;         // A87 (c): entries applied — the "command N" index
+    let divergedAt = null;   // first entry whose replayed hash disagreed
+    let roundsDone = 0;      // A87 (a): rounds applied — the scrubber position
+    let perspective = 'spectator'; // A87 (b): 'spectator' (omniscient) | a playerId
     let playing = true;
     let tempo = 4;
     const feed = panel.querySelector('#replay-feed');
     const turnLabel = panel.querySelector('#replay-turn');
-    renderer.setViewState(omniscient(state));
+    const scrubEl = panel.querySelector('#replay-scrub');
+    const viewFor = s => filterView(s, perspective);
+
+    // A87 (b): the view dropdown — omniscient plus each civ in the game
+    const viewEl = panel.querySelector('#replay-view');
+    viewEl.innerHTML = '<option value="spectator">🌍 Omniscient</option>'
+      + (rec.initialState.playerOrder || []).map(pid => {
+        const p = rec.initialState.players[pid];
+        const civ = p.civ && ruleset.civs[p.civ] ? ruleset.civs[p.civ].name : (p.name || pid);
+        return `<option value="${pid}">👁 ${civ}</option>`;
+      }).join('');
+
+    renderer.setViewState(viewFor(state));
     renderer.centerOn(Math.floor(state.map.width / 2), Math.floor(state.map.height / 2));
 
     function addFeed(m) {
@@ -128,8 +185,10 @@ export function initReplay(ctx) {
         const entry = rec.log[idx++];
         const r = stepEntry(state, entry);
         state = r.state;
+        applied++;
+        if (divergedAt === null && entry.hash !== undefined && hashState(state) !== entry.hash) divergedAt = applied;
         for (const m of majorEvents(r.events, state, ruleset)) addFeed(m);
-        if (entry.t === 'round') sawRound = true;
+        if (entry.t === 'round') { sawRound = true; roundsDone++; }
       }
     }
 
@@ -141,16 +200,26 @@ export function initReplay(ctx) {
         acc += dt * tempo;
         let budget = 200; // apply-throttle: batch turns per frame above ~5/s, render once
         while (acc >= 1 && idx < rec.log.length && budget-- > 0) { stepTurn(); acc -= 1; }
-        renderer.setViewState(omniscient(state));
+        renderer.setViewState(viewFor(state));
+        scrubEl.value = String(roundsDone); // A87 (a): the scrubber tracks playback
         const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
         turnLabel.textContent = `turn ${state.turn} · ${year}`;
         if (idx >= rec.log.length) {
           playing = false;
           panel.querySelector('#replay-playpause').textContent = '⏵ Play';
-          // the verifier's verdict, shown honestly
-          const ok = hashState(state) === rec.finalHash;
-          turnLabel.textContent += ok ? ' · ✅ replay verified' : ' · ⚠ replay diverged';
-          panel.dataset.verified = ok ? '1' : '0';
+          // A87 (c): the verifier's verdict in human terms
+          if (divergedAt !== null) {
+            turnLabel.textContent += ` · ❌ Mismatch at command ${divergedAt}`;
+            panel.dataset.verified = '0';
+          } else if (hashState(state) === rec.finalHash) {
+            turnLabel.textContent += ' · ✅ Verified';
+            panel.dataset.verified = '1';
+          } else {
+            // final hashes differ but no per-entry hash pinned where (a recording
+            // without per-command hashes) — still honest, just less precise
+            turnLabel.textContent += ' · ⚠ replay diverged';
+            panel.dataset.verified = '0';
+          }
         }
       }
       requestAnimationFrame(loop);
@@ -161,13 +230,28 @@ export function initReplay(ctx) {
     function restart() {
       state = deepClone(rec.initialState);
       idx = 0;
+      applied = 0; divergedAt = null; roundsDone = 0;
       acc = 0; last = performance.now();
       feed.textContent = '';
+      scrubEl.value = '0';
       playing = true;
       panel.querySelector('#replay-playpause').textContent = '⏸ Pause';
       delete panel.dataset.verified;
-      renderer.setViewState(omniscient(state));
+      renderer.setViewState(viewFor(state));
       turnLabel.textContent = `turn ${state.turn}`;
+    }
+
+    // A87 (a): jump to round N — re-apply from turn 0 to that boundary (the
+    // sandbox rebuilds from initialState; no per-step render, one at the end).
+    function scrubTo(target) {
+      state = deepClone(rec.initialState);
+      idx = 0; applied = 0; divergedAt = null; roundsDone = 0;
+      feed.textContent = '';
+      while (idx < rec.log.length && roundsDone < target) stepTurn();
+      renderer.setViewState(viewFor(state));
+      const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
+      turnLabel.textContent = `turn ${state.turn} · ${year}`;
+      delete panel.dataset.verified;
     }
 
     panel.querySelector('#replay-restart').addEventListener('click', restart);
@@ -180,6 +264,17 @@ export function initReplay(ctx) {
     tempoEl.addEventListener('input', () => {
       tempo = parseInt(tempoEl.value, 10);
       panel.querySelector('#replay-tempo-n').textContent = String(tempo);
+    });
+    // A87 (a): drag to jump — pause and re-derive to that turn on release
+    scrubEl.addEventListener('change', () => {
+      playing = false;
+      panel.querySelector('#replay-playpause').textContent = '⏵ Play';
+      scrubTo(parseInt(scrubEl.value, 10));
+    });
+    // A87 (b): switch whose eyes we watch through — re-render the current state
+    viewEl.addEventListener('change', () => {
+      perspective = viewEl.value;
+      renderer.setViewState(viewFor(state));
     });
     panel.querySelector('#replay-close').addEventListener('click', close);
 
