@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 11, 'the eleven scenarios (013-zoc added in B18)');
+      assert.strictEqual(files.length, 12, 'the twelve scenarios (014-river added in B19)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -133,7 +133,8 @@ const PORTED = [
   '009-buy-pillage-disband.json', // P5-5 batch 3: cities + tech
   '010-happiness-government.json', // P5-6 batch 4: government proper
   '002-mapgen-determinism.json', // P5-7 batch 5: mapgen — ALL TEN green
-  '013-zoc.json' // B18: enemy-city ZOC + ignoresZoc (post-port golden window)
+  '013-zoc.json', // B18: enemy-city ZOC + ignoresZoc (post-port golden window)
+  '014-river.json' // B19: Bridge Building river roads + no river mining
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

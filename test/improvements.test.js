@@ -212,3 +212,50 @@ test('road-to-road steps are free (3x roads) regardless of terrain; moving cance
   }
   assert.strictEqual(s2.map.tiles[0].road, undefined, 'abandoned work never completes');
 });
+
+// B19: Civ 1 river rules (wiki-verified) — roads over rivers need Bridge
+// Building; rivers cannot be mined (only desert/hills/mountain are). The
+// cross-language behavior is pinned in scenario 014-river.json; these are the
+// fast JS-side assertions, including the road-WITH-bridge case a fixed-tech
+// scenario can't show and the control that rivers stay irrigable.
+test('B19: roads over rivers require Bridge Building', async () => {
+  const { engine } = await load();
+  const river = () => miniState([{ t: 'grassland', river: true }], 1, 1, { u1: settler(0, 0) });
+  const noBridge = engine.applyCommand(river(), { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'road' });
+  assert.strictEqual(noBridge.ok, false, 'no Bridge Building: river road blocked');
+  assert.strictEqual(noBridge.reason, 'techRequired');
+  // grant the tech and the same road is legal
+  const withBridge = river();
+  withBridge.players.p1.techs = ['bridge-building'];
+  const ok = engine.applyCommand(withBridge, { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'road' });
+  assert.strictEqual(ok.ok, true, 'with Bridge Building: river road allowed');
+  assert.strictEqual(ok.state.units.u1.working, 'road');
+});
+
+test('B19: rivers cannot be mined; roads/irrigation off- and on-river still work', async () => {
+  const { engine } = await load();
+  // mine on a river tile is rejected (was wrongly allowed via the grassland
+  // mine->forest transform)
+  const mineRiver = engine.applyCommand(
+    miniState([{ t: 'grassland', river: true }], 1, 1, { u1: settler(0, 0) }),
+    { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'mine' });
+  assert.strictEqual(mineRiver.ok, false, 'rivers are not minable');
+  assert.strictEqual(mineRiver.reason, 'badTerrain');
+  // mining a hills tile still works (hills are minable)
+  const mineHills = engine.applyCommand(
+    miniState([{ t: 'hills' }], 1, 1, { u1: settler(0, 0) }),
+    { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'mine' });
+  assert.strictEqual(mineHills.ok, true, 'hills are minable');
+  // rivers stay IRRIGABLE (River wiki page: "may be irrigated") — B19 must not
+  // have broken that: a river tile has its own water source
+  const irrigateRiver = engine.applyCommand(
+    miniState([{ t: 'grassland', river: true }], 1, 1, { u1: settler(0, 0) }),
+    { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'irrigate' });
+  assert.strictEqual(irrigateRiver.ok, true, 'rivers remain irrigable');
+  assert.strictEqual(irrigateRiver.state.units.u1.working, 'irrigate');
+  // road off-river needs no tech
+  const roadPlain = engine.applyCommand(
+    miniState([{ t: 'grassland' }], 1, 1, { u1: settler(0, 0) }),
+    { type: 'startWork', playerId: 'p1', unitId: 'u1', work: 'road' });
+  assert.strictEqual(roadPlain.ok, true, 'off-river roads are tech-free');
+});

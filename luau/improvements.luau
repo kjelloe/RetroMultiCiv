@@ -83,6 +83,18 @@ local function startWork(state: any, cmd: any, ruleset: any): any
 		return { ok = false, reason = "alreadyImproved" }
 	end
 
+	-- B19: Civ 1 river rules — roads over rivers need Bridge Building; rivers
+	-- cannot be mined (the grassland mine->forest transform must not apply on
+	-- a river tile). Twin of engine/improvements.js.
+	if tile.river == true then
+		if work == "road" and table.find(techs, ruleset.rules.bridgeTech) == nil then
+			return { ok = false, reason = "techRequired" }
+		end
+		if work == "mine" then
+			return { ok = false, reason = "badTerrain" }
+		end
+	end
+
 	if work == "fortress" then
 		if table.find(techs, ruleset.rules.fortressTech) == nil then
 			return { ok = false, reason = "techRequired" }

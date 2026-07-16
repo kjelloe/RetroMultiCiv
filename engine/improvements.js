@@ -58,6 +58,17 @@ function startWork(state, cmd, ruleset) {
   if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
   if (tile[workFlag(work)] === true) return { ok: false, reason: 'alreadyImproved' };
 
+  // B19: Civ 1 river rules — roads over rivers need Bridge Building (River +
+  // Bridge Building wiki pages); rivers cannot be mined (the Mine page lists
+  // only desert/hills/mountain), so the grassland mine->forest transform must
+  // not apply on a river tile.
+  if (tile.river === true) {
+    if (work === 'road' && techs.indexOf(ruleset.rules.bridgeTech) === -1) {
+      return { ok: false, reason: 'techRequired' };
+    }
+    if (work === 'mine') return { ok: false, reason: 'badTerrain' };
+  }
+
   if (work === 'fortress') {
     if (techs.indexOf(ruleset.rules.fortressTech) === -1) return { ok: false, reason: 'techRequired' };
     for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {

@@ -65,6 +65,22 @@ the Done log at the bottom.
   late games? (his suggestion if so: fade when zoomed out, or show
   only own/selected/hovered).
 
+## THE MORNING LIST (2026-07-16, in order)
+
+1. **Review + merge dev_night** — the whole night is one diff; the
+   architect's briefing (work / discoveries / decisions) comes with
+   your first message.
+2. **Read the war-lab verdict** (ratio sweep × combat rules) and
+   the baseline tables — then the target-tuning + canonical-config
+   decisions (civ count 4 vs 7, M9 definition).
+3. **Studio run2** — now covers R5 (city panel, possession) AND R6
+   (action bar, research picker, turn log, move hints) in one
+   session, under the replay bar.
+4. **Soundboard session** — --debug, /debugging/soundboard.html,
+   comments file back.
+5. **Rule the A71 Decision column** (docs/01 §11 table — ships
+   can't bombard coasts is the headline gap).
+
 ## Pending — decisions / ops
 
 - [ ] **Sound listening pass (A77, when it lands)**: run the server

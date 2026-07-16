@@ -26,7 +26,9 @@ servers announce themselves; A51 gated on the user scheduling DNS),
 UI element's Roblox shape, in tiers), `14-phase6-diplomacy.md`
 (phase-6 design: Civ 1-scope treaties, audiences, reputation +
 senate, human treaties in LAN — slices D1–D6; A59 is the
-prerequisite).
+prerequisite), `15-ai-war.md` (the AI war doctrine: user's 3:1-both
+ruling with sim-swept ratios per combat rule, army options, siege/
+blockade, era templates).
 
 ## Hard rules
 
@@ -217,7 +219,11 @@ or it silently renders as grassland.
 
 ## Workflow
 
-User handles all git commits and pushes. Build → test → stop and report.
+User handles all git commits and pushes on dev/main. The dev_night
+branch is the OVERNIGHT exception (user grant 2026-07-16): the
+architect commits accepted gate-green work there and coordinates
+the gaming-PC's git operator (sim-runner) by mail; the user reviews
+and merges dev_night each morning. Build → test → stop and report.
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
 local **coder-helper**; B-items: bug triage/fixes for the local

@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 295 tests), the item's own verification steps pass, related
+   (currently 298 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -514,6 +514,33 @@ audit (wiki authority):
    road gave none).
 All movement/economy legality = one golden window, both engines,
 scenario pins. Queue: bugfixer's discretion alongside B18/B13.
+
+[done: bugfixer 2026-07-16 — SCOPE CORRECTED on wiki re-verification
+(audited my own B17 note before building on it): sub-item 3 (river
+roads give no trade) was ALREADY CORRECT since the original
+improvement commit — cities.js:29 has the `tile.river !== true` guard;
+my B17 note #3 was imprecise, nothing to do. The two REAL items, both
+wiki-CONFIRMED and landed (both engines, one claim): (1) Bridge
+Building gates river roads — River(Civ1)/Bridge Building(Civ1) pages
+both state roads over rivers need the advance; startWork('road') on a
+river tile now requires rules.json bridgeTech='bridge-building'. (2)
+rivers cannot be mined — Mine(Civ1) lists ONLY desert/hills/mountain;
+startWork('mine') on a river tile now rejects (was wrongly allowed via
+the grassland mine->forest transform). engine/improvements.js + luau
+twin, one guard block each. scenario 014-river pins both + controls
+(off-river road tech-free, hills minable), final.hash 0x17147783, in
+PORTED — Luau reproduces it + setup; data checksums self-recompute with
+the new rules.json (bridgeTech). GOLDEN OUTCOME: sim did NOT move
+(6/6) — the golden AI doesn't build river roads pre-bridge and never
+mines (B13(d)), so no re-record; turn-100 twin held. test/improvements
+.test.js: road-WITH-bridge succeeds (the case the fixed-tech scenario
+can't show), mine-on-river rejects, and rivers STAY IRRIGABLE (control
+— B19 didn't break irrigation). Red-first (scenario steps 0+2, 2 unit
+tests); revert-proof the guard block. Full suite 298/298, twins green.
+ADJACENT FINDING flagged to architect (NOT reopened): Mine(Civ1) lists
+only desert/hills/mountain as minable, in tension with B17's accepted
+'mine-plants-forest transform is Civ 1' — summary page may omit
+transforms; left for architect ruling, out of B19 scope.]
 
 ### B16 — Turn-371 save: history diverges from BOTH engine versions at turn 328 (wave VIII follow-on; bugfixer — B0 machinery, high interest)
 

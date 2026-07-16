@@ -31,7 +31,11 @@ and A63's obsolescence so armies modernize.
    both the composition ratio and the engagement threshold,
    independently) — the M-columns decide which pair wins wars
    without tanking economies. Measurement picks the number; 3:1 is
-   the opening bid.
+   the opening bid. ADDENDUM (user, 2026-07-16): the COMBAT RULE
+   (Civ 1 one-roll vs best-of-three) is a sweep axis too — upset
+   variance differs, so the optimal (R,E) likely differs per rule,
+   and the shipped constants may be a per-combat-rule table in
+   rules.json rather than one global pair.
 2. **Army abstraction**: (a) EMERGENT — units share a target and
    converge (no new state, pickCommand coordination via shared
    objectives derived per turn); (b) EXPLICIT ARMY GROUPS — a
