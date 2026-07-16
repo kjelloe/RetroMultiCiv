@@ -419,7 +419,12 @@ Targets get pinned in the user's tuning session against these
 distributions. CANONICAL MEASUREMENT CONFIG (user, 2026-07-16):
 **7 civs, medium 80×50, NO-CHAOS**, checkpoint labels t101/201/301/
 401 as measured; M9's denominator becomes non-polar land+coast
-(A84). The re-baseline runs AFTER the era-scaling family lands —
+(A84). The re-baseline runs AFTER the era-scaling family lands; from the
+re-baseline on, a HUMAN BENCHMARK row (metrics extracted from the
+user's real Shift+D recordings per difficulty) sits beside the AI
+configs — the tuning target is "challenging, legible, fair" vs the
+human line, not AI self-play win rate (ally, specs/ingame-AI-
+factors.md) —
 measuring the pre-fix AI twice buys nothing.
 
 Two halves, strictly ordered: (1) A64 = the MEASUREMENT (telemetry

@@ -167,3 +167,40 @@ production + composition (the 3:1 build side) → engagement doctrine
 templates (after A69/A72). Every slice: lab-measured under the
 no-chaos baseline config (docs/05 §12 flag), signatures per stance,
 goldens re-record per window.
+
+## 4. The factor catalog (designer ally, 2026-07-16 — verbatim in specs/ingame-AI-factors.md; architect triage)
+
+Ten factor groups for the simulation program. Triage against what
+already exists — the catalog becomes the COMMISSIONING MENU for
+sim-runner rounds after the era-scaling re-baseline:
+
+- ALREADY IN FLIGHT: group 5 (walls = B13g with its within-8
+  threat radius as the sweep constant; ZOC = B18 landed), group 6
+  target-selection (the coordination-doctrine window's ranked
+  question), group 7 naval (A69/A79/M13 + the user's escort
+  doctrine §1), group 8 spaceship queueing (A76), obsolete-stack
+  transition (B13a).
+- NEW SWEEP AXES, ADOPTED (priority per the ally, gated on the
+  knobs living in rules.json per the B13f pattern): (1) TECH PATH
+  strategy — beeline vs broad-front, military/economy/science
+  ordering; pairs with A59 leaders' favorite-beeline design, and
+  the revolution-timing knob (group 4) interacts strongly with it
+  (his research-path × government cross-experiment, adopted).
+  (2) ECONOMIC coherence — dynamic tax slider, luxury-vs-temples,
+  RUSH-BUY threshold (the baseline's "no buys ever" gap, now a
+  sweepable policy), his tax × rush-buy × wonder-priority cross.
+  (3) CITY PLACEMENT quality metrics — resource-coverage %,
+  corruption-aware capital distance, coastal preference (feeds
+  A82 island worlds), chokepoint founding.
+- NEW METRICS (M-column candidates at the re-baseline): garrison
+  ratio interior-vs-front, resource coverage by t50/100/200,
+  disorder turns, river-crossing attack share.
+- GROUP 10 + META, ADOPTED AS A STANDING PRINCIPLE: difficulty =
+  which LEVERS feel fair, and the HUMAN BENCHMARK — the user's
+  real playtest recordings (Shift+D diags already carry full
+  metrics-derivable state) become a baseline row next to AI
+  configs; the target is "challenging, legible, fair", not AI
+  self-play win rate (docs/05 §12 note).
+- His experiment structure (control/one-variable/fixed seeds)
+  matches the lab process; cell size grows 10→25+ seeds as runs
+  get cheaper post-window.
