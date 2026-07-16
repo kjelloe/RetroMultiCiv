@@ -2745,6 +2745,24 @@ hardened-default.
 
 ## A76 — Space victory: Apollo Program → spaceship → Alpha Centauri (user 1.0 ruling 2026-07-16)
 
+**[DETAIL PASS (user ruling 2026-07-16 night: same composition as
+Civ 1, wiki-documented — facts extracted):** Apollo Program
+(wonder, 600, Space Flight) gates ALL civs' part-building (each
+needs Plastics/Robotics/Space Flight per part type) + reveals the
+whole map. Parts as city builds, auto-added to the ONE ship per
+civ: **STRUCTURAL** (Space Flight, 80 shields, 100t, max 39) — the
+frame; unconnected parts don't function; **COMPONENTS** (Plastics,
+160, 400t, max 8 EACH): propulsion / fuel, 1 fuel powers 1
+propulsion; **MODULES** (Robotics, 320, max 4 EACH): habitation
+(10k colonists, 1600t) / life support (feeds one hab, 1600t) /
+solar (powers 2 modules, 400t). SHIP CHARACTERISTICS (all derived,
+integer math): population, support%, energy%, mass, fuel%, flight
+time (mass vs engine power), success probability (food+energy+
+flight time). Launch = point of no return; capital captured ⇒
+ship destroyed (may rebuild); FIRST ARRIVAL wins the score bonus
+(zero-success arrivals score nothing). All costs/caps/masses to
+rules.json; numbers above are the wiki's.]**
+
 Civ 1's real endgame, promoted from §12 out-of-scope by the user:
 someone completing the APOLLO PROGRAM wonder unlocks spaceship
 PARTS in every civ's catalog (structural/component/module per
