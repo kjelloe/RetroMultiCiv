@@ -2897,6 +2897,53 @@ guard) so non-technical players understand verification. Golden-
 safe (client consumer). Roblox theater inherits the same shapes
 later (docs/13 Tier-4).
 
+## A88 — Asset recipes: the factory becomes data (user ruling 2026-07-16: Option C now, mesh pipeline B only where fidelity demands later; ally proposal specs/three-factory-roblox-assets.md, adapted)
+
+The ally proposed a glTF→Blender→FBX→Studio mesh pipeline. RULED
+DOWN to the recipe approach: our silhouettes are COMPOSITIONS of
+~13 solid-colored primitives (box/cylinder/cone/sphere), so the
+cross-platform artifact is the RECIPE, not the mesh. NOTE: the
+ally's inventory names (warrior/archer/tank, client/AssetFactory
+.js, src/roblox/) do NOT match this repo — derive the real
+manifest from client/renderer/three/{assets,props}.js + the
+gallery.
+1. REFACTOR assets.js + props.js to build every unit silhouette,
+   city tier, and prop from a RECIPES data table (per asset: list
+   of {shape: box|cyl|cone|sphere, size, offset, rot, colorRole});
+   the three.js builders become one generic composer. The gallery
+   is the acceptance instrument: byte-comparable screenshots
+   BEFORE/AFTER must match (rest pose — that is what it is for).
+2. tools/export-asset-recipes.js: imports the recipes module in
+   Node (pure data — NO DOM, NO headless-three, none of the
+   ally's canvas/gl deps needed) and writes
+   data/asset-recipes.json (committed, like other rulesets).
+3. Drift gate: a test asserting recipe keys cover every
+   data/units.json id, every city tier, every props.js prop (the
+   mock-state terrain-coverage pattern).
+4. json2lua bakes it → the roblox lane consumes (R8). Markers
+   (discs/flags/stars/rings/selection/GoTo arrows) stay PROCEDURAL
+   per the ally's Part 7 — adopted verbatim; recipes carry
+   colorRole slots, never faction colors.
+Golden-safe (render-only). Helper item; queue at will — unblocks
+R8. The mesh pipeline (trimmed Option B: shimmed/hand glTF writer,
+try Studio's direct glTF import, Blender only if FBX forced, user
+OK'd occasional manual Studio imports) stays SHELVED until Studio
+screenshots show a silhouette the Part mapping can't carry.
+
+### R8 — Luau AssetFactory from recipes (roblox-helper; after A88's recipes.json lands)
+
+AssetRecipes bake (json2lua, RulesetHashes-gated like rulesets) +
+a recipe composer: box→Block, cylinder→Cylinder, sphere→Ball,
+4-sided cone→4 wedges (pyramid roofs), N-sided cone→your best
+approximation (tapered SpecialMesh torso / wedge fan — your call,
+flag it). Faction identity stays procedural on top (disc/flag/
+markers — current Parts code survives). Replaces the placeholder
+blocks unit-by-unit; gallery-grid screenshot in Studio vs the
+browser gallery is the acceptance (user judges cone fidelity —
+his ruling explicitly holds mesh-upgrade (B) for silhouettes that
+disappoint). Ally's check-asset-sync idea lands as a check.sh
+gate comparing baked recipe keys vs the manifest.
+
 ## ALLY ROUND-6 DISPOSITIONS (2026-07-16 — verbatim in specs/plan-feedback-6.md)
 
 - Phase 5 ACCEPTED + phase-6 priority order adopted → docs/03.
