@@ -199,6 +199,14 @@ export function initTurnLog(ctx) {
             ? '⚔ First combat — victory! Details in the Turn log (bottom left)'
             : '⚔ First combat — a unit was lost. Details in the Turn log (bottom left)');
         }
+      } else if (e.type === 'unitLoaded' && e.owner === ctx.HUMAN) {
+        const u = state.units[e.unitId];
+        put(`⚓ ${u ? units[u.type].name : 'a unit'} boarded a transport at (${e.x},${e.y})`, '', { x: e.x, y: e.y });
+      } else if (e.type === 'unitUnloaded' && e.owner === ctx.HUMAN) {
+        const u = state.units[e.unitId];
+        put(`🏖 ${u ? units[u.type].name : 'a unit'} landed at (${e.x},${e.y})`, '', { x: e.x, y: e.y });
+      } else if (e.type === 'cargoLost' && e.owner === ctx.HUMAN) {
+        put(`🌊 a unit went down with its transport at (${e.x},${e.y})`, 'loss', { x: e.x, y: e.y });
       } else if (e.type === 'cityCaptured') {
         const name = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         if (e.from === ctx.HUMAN || e.to === ctx.HUMAN) {

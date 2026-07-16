@@ -34,7 +34,8 @@ local function unitsAt(state: any, x: number, y: number): { any }
 	end
 	for _, id in sortIds(keys) do
 		local u = state.units[id]
-		if u.x == x and u.y == y then
+		-- A69: cargo aboard a ship is hidden -- it occupies no tile of its own
+		if u.aboard == nil and u.x == x and u.y == y then
 			table.insert(out, u)
 		end
 	end
@@ -174,6 +175,18 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 		local casualties = if sheltered then { defender } else unitsAt(state, tx, ty)
 		for _, u in ipairs(casualties) do
 			state.units[u.id] = nil
+			-- A69: a sunk ship drowns its cargo (deterministic id order)
+			local cargoKeys = {}
+			for id in pairs(state.units) do
+				table.insert(cargoKeys, id)
+			end
+			for _, cid in sortIds(cargoKeys) do
+				local c = state.units[cid]
+				if c ~= nil and c.aboard == u.id then
+					state.units[cid] = nil
+					table.insert(events, { type = "cargoLost", unitId = cid, owner = c.owner, shipId = u.id, x = u.x, y = u.y })
+				end
+			end
 		end
 		table.insert(events, {
 			type = "combatResolved", winner = "attacker",

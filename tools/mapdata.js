@@ -200,10 +200,15 @@ const UNIT_OVERLAY = {
   'cannon':     { obsoletedBy: 'robotics' },
   'chariot':    { obsoletedBy: 'chivalry' },
   'knights':    { obsoletedBy: 'automobile' },
-  'trireme':    { obsoletedBy: 'navigation' },
-  'sail':       { obsoletedBy: 'magnetism' },
-  'frigate':    { obsoletedBy: 'industrialization' },
-  'ironclad':   { obsoletedBy: 'combustion' }
+  // A69: naval cargo capacity (Civ 1 "holds" — canonical, wiki-silent on the
+  // exact table so FLAGGED for user verification). Land units aboard ride the
+  // ship; ironclad/cruiser/battleship/submarine carry nothing (transport 0 =
+  // omitted). Carrier's air capacity waits for A72.
+  'trireme':    { obsoletedBy: 'navigation', transport: 2 },
+  'sail':       { obsoletedBy: 'magnetism', transport: 3 },
+  'frigate':    { obsoletedBy: 'industrialization', transport: 4 },
+  'ironclad':   { obsoletedBy: 'combustion' },
+  'transport':  { transport: 8 }
 };
 
 const BUILDING_OVERLAY = {

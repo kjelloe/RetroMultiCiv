@@ -1,0 +1,64 @@
+{
+  "name": "A69: a land unit loads onto a transport, sails, and unloads",
+  "notes": "5x5, columns 0-2 grassland (land), 3-4 ocean (sea). A transport s1 at the coast (3,2) and a militia u1 on the adjacent land (2,2). u1 moves E onto the ship -> LOADS (aboard=s1, rides the ship tile, move spent). s1 sails N to (3,1) -> the cargo tracks. endTurn refreshes moves. u1 moves W onto land (2,1) -> UNLOADS (aboard cleared). Final state (militia ashore, ship at 3,1) is the cross-language contract. No RNG: turn 5<16 so no barbarians, no cities.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1"],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" }
+        ]
+      },
+      "units": {
+        "s1": { "id": "s1", "type": "transport", "owner": "p1", "x": 3, "y": 2, "moves": 4, "fortified": false, "veteran": false },
+        "u1": { "id": "u1", "type": "militia", "owner": "p1", "x": 2, "y": 2, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "E" },
+      "expect": { "ok": true, "state": { "units.u1.aboard": "s1", "units.u1.x": 3, "units.u1.y": 2 } },
+      "notes": "load onto the transport"
+    },
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "s1", "dir": "N" },
+      "expect": { "ok": true, "state": { "units.s1.y": 1, "units.u1.y": 1, "units.u1.x": 3 } },
+      "notes": "sail north; the cargo tracks the ship"
+    },
+    {
+      "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true },
+      "notes": "wrap refreshes moves"
+    },
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "u1", "dir": "W" },
+      "expect": { "ok": true, "state": { "units.u1.aboard": null, "units.u1.x": 2, "units.u1.y": 1 } },
+      "notes": "unload onto land"
+    }
+  ],
+  "final": {
+    "state": { "units.u1.x": 2, "units.u1.y": 1, "units.s1.x": 3, "units.s1.y": 1 },
+    "hash": "0x713c1a30"
+  }
+}

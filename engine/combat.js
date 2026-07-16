@@ -23,6 +23,9 @@ function unitsAt(state, x, y) {
   const out = [];
   for (const id of sortIds(Object.keys(state.units))) {
     const u = state.units[id];
+    // A69: cargo aboard a ship is hidden — the ship defends the tile, and a
+    // sunk ship drowns its cargo (resolveAttack). It occupies no tile of its own.
+    if (u.aboard !== undefined) continue;
     if (u.x === x && u.y === y) out.push(u);
   }
   return out;
@@ -131,7 +134,17 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     // stacks die on open ground; cities AND fortresses lose one unit at a time
     const sheltered = cityAt(state, tx, ty) !== null || fortressAt(state, tx, ty);
     const casualties = sheltered ? [defender] : unitsAt(state, tx, ty);
-    for (const u of casualties) delete state.units[u.id];
+    for (const u of casualties) {
+      delete state.units[u.id];
+      // A69: a sunk ship drowns its cargo (deterministic id order)
+      for (const cid of sortIds(Object.keys(state.units))) {
+        const c = state.units[cid];
+        if (c && c.aboard === u.id) {
+          delete state.units[cid];
+          events.push({ type: 'cargoLost', unitId: cid, owner: c.owner, shipId: u.id, x: u.x, y: u.y });
+        }
+      }
+    }
     events.push({
       type: 'combatResolved', winner: 'attacker',
       attackerId: attacker.id, attackerType: attacker.type, attackerOwner: attacker.owner,

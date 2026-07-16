@@ -210,7 +210,8 @@
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "industrialization"
+    "obsoletedBy": "industrialization",
+    "transport": 4
   },
   "ironclad": {
     "name": "Ironclad",
@@ -232,7 +233,8 @@
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "magnetism"
+    "obsoletedBy": "magnetism",
+    "transport": 3
   },
   "submarine": {
     "name": "Submarine",
@@ -252,7 +254,8 @@
     "moves": 4,
     "cost": 50,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "transport": 8
   },
   "trireme": {
     "name": "Trireme",
@@ -263,7 +266,8 @@
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "navigation"
+    "obsoletedBy": "navigation",
+    "transport": 2
   },
   "bomber": {
     "name": "Bomber",

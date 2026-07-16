@@ -32,7 +32,7 @@ end
 -- of engine/movement.js — the wiki's "adjacent to an enemy unit OR CITY").
 local function inEnemyZoc(state: any, x: number, y: number, owner: string): boolean
 	for _, u in pairs(state.units) do
-		if u.owner ~= owner then
+		if u.owner ~= owner and u.aboard == nil then -- A69: cargo exerts no ZOC
 			local dx = math.abs(u.x - x)
 			if state.map.wrapX and state.map.width - dx < dx then
 				dx = state.map.width - dx
@@ -56,6 +56,36 @@ local function inEnemyZoc(state: any, x: number, y: number, owner: string): bool
 		end
 	end
 	return false
+end
+
+-- A69: the friendly transport at (x, y) with a free cargo slot -- deterministic
+-- (first by sorted id). Returns the ship, "full" if transports exist but all are
+-- laden, or nil if no transport is here at all. Twin of engine/movement.js.
+local function pickTransport(state: any, x: number, y: number, owner: string, ruleset: any): any
+	local anyTransport = false
+	local keys = {}
+	for id in pairs(state.units) do
+		table.insert(keys, id)
+	end
+	for _, id in ipairs(combat.sortIds(keys)) do
+		local s = state.units[id]
+		if s.owner == owner and s.x == x and s.y == y and s.aboard == nil then
+			local cap = ruleset.units[s.type].transport
+			if cap ~= nil and cap > 0 then
+				anyTransport = true
+				local load = 0
+				for _, c in pairs(state.units) do
+					if c.aboard == s.id then
+						load += 1
+					end
+				end
+				if load < cap then
+					return s
+				end
+			end
+		end
+	end
+	return if anyTransport then "full" else nil
 end
 
 -- Mutates `state` (the dispatcher hands a fresh clone). Returns
@@ -94,6 +124,11 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 		end
 	end
 	if hostile then
+		-- A69: Civ 1 has no Marines -- a unit cannot attack straight off a ship;
+		-- unload to open land first, then attack next turn.
+		if unit.aboard ~= nil then
+			return { ok = false, reason = "noAmphibiousAssault" }
+		end
 		return combat.resolveAttack(state, unit, nx, ny, ruleset) -- rejects at 0 moves
 	end
 
@@ -103,6 +138,33 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 		return { ok = false, reason = "badRuleset" }
 	end
 	if terrain.domain ~= unitType.domain then
+		-- A69: a land unit stepping onto a sea tile LOADS onto a friendly transport
+		-- there (with a free slot); otherwise the sea stays impassable to it.
+		if unitType.domain == "land" and terrain.domain == "sea" then
+			local ship = pickTransport(state, nx, ny, unit.owner, ruleset)
+			if ship == "full" then
+				return { ok = false, reason = "transportFull" }
+			end
+			if ship ~= nil then
+				if unit.moves <= 0 then
+					return { ok = false, reason = "noMovesLeft" }
+				end
+				unit.aboard = ship.id
+				unit.x = nx
+				unit.y = ny
+				unit.fortified = false
+				unit.working = nil
+				unit.workLeft = nil
+				unit.moves = unit.moves - 1
+				if unit.moves < 0 then
+					unit.moves = 0
+				end
+				visibility.reveal(state, unit.owner, nx, ny, 1)
+				local ev = setmetatable({}, statehash.ARRAY_MT)
+				table.insert(ev, { type = "unitLoaded", unitId = unit.id, owner = unit.owner, shipId = ship.id, x = nx, y = ny })
+				return { ok = true, events = ev }
+			end
+		end
 		return { ok = false, reason = "impassable" }
 	end
 
@@ -150,6 +212,18 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 
 	local events = setmetatable({}, statehash.ARRAY_MT)
 	table.insert(events, { type = "unitMoved", unitId = unit.id, fromX = fromX, fromY = fromY, toX = nx, toY = ny })
+	-- A69: a unit that was aboard and has stepped onto land has disembarked
+	if unit.aboard ~= nil then
+		unit.aboard = nil
+		table.insert(events, { type = "unitUnloaded", unitId = unit.id, owner = unit.owner, x = nx, y = ny })
+	end
+	-- A69: a ship that moved drags its cargo along (x/y tracks the ship)
+	for _, v in pairs(state.units) do
+		if v.aboard == unit.id then
+			v.x = nx
+			v.y = ny
+		end
+	end
 	if targetCity ~= nil and targetCity.owner ~= unit.owner then
 		combat.captureCity(state, unit, targetCity, events)
 	end

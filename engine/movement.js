@@ -3,7 +3,7 @@
 // has ANY movement left), zone of control, and attack-by-moving (delegated
 // to combat.js). Railroads arrive in a later slice.
 import { reveal } from './visibility.js';
-import { resolveAttack, captureCity, unitsAt, cityAt } from './combat.js';
+import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 
 const DIRS = {
   N: { dx: 0, dy: -1 }, NE: { dx: 1, dy: -1 }, E: { dx: 1, dy: 0 },
@@ -29,6 +29,7 @@ function inEnemyZoc(state, x, y, owner) {
   for (const id of Object.keys(state.units)) {
     const u = state.units[id];
     if (u.owner === owner) continue;
+    if (u.aboard !== undefined) continue; // A69: cargo exerts no ZOC
     let dx = Math.abs(u.x - x);
     if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx;
     const dy = Math.abs(u.y - y);
@@ -43,6 +44,26 @@ function inEnemyZoc(state, x, y, owner) {
     if (dx <= 1 && dy <= 1 && (dx + dy) > 0) return true;
   }
   return false;
+}
+
+// A69: the friendly transport at (x, y) with a free cargo slot — deterministic
+// (first by sorted id). Returns the ship, 'full' if transports exist but all
+// are laden, or null if no transport is here at all.
+function pickTransport(state, x, y, owner, ruleset) {
+  let anyTransport = false;
+  for (const id of sortIds(Object.keys(state.units))) {
+    const s = state.units[id];
+    if (s.owner !== owner || s.x !== x || s.y !== y || s.aboard !== undefined) continue;
+    const cap = ruleset.units[s.type].transport;
+    if (cap === undefined || cap <= 0) continue;
+    anyTransport = true;
+    let load = 0;
+    for (const cid of Object.keys(state.units)) {
+      if (state.units[cid].aboard === s.id) load = load + 1;
+    }
+    if (load < cap) return s;
+  }
+  return anyTransport ? 'full' : null;
 }
 
 // Mutates `state` (the dispatcher hands us a fresh clone). Returns
@@ -67,13 +88,38 @@ function moveUnit(state, cmd, ruleset) {
   // enemy units on the target tile: this move is an attack, not a move
   const hostiles = unitsAt(state, nx, ny).filter(u => u.owner !== unit.owner);
   if (hostiles.length > 0) {
+    // A69: Civ 1 has no Marines — a unit cannot attack straight off a ship
+    // (wiki silent on the explicit rule; no amphibious unit exists). Unload to
+    // open land first, then attack next turn.
+    if (unit.aboard !== undefined) return { ok: false, reason: 'noAmphibiousAssault' };
     return resolveAttack(state, unit, nx, ny, ruleset); // rejects at 0 moves
   }
 
   const terrain = ruleset.terrain.terrains[tileAt(map, nx, ny).t];
   const unitType = ruleset.units[unit.type];
   if (!terrain || !unitType) return { ok: false, reason: 'badRuleset' };
-  if (terrain.domain !== unitType.domain) return { ok: false, reason: 'impassable' };
+  if (terrain.domain !== unitType.domain) {
+    // A69: a land unit stepping onto a sea tile LOADS onto a friendly transport
+    // there (with a free slot); otherwise the sea stays impassable to it.
+    if (unitType.domain === 'land' && terrain.domain === 'sea') {
+      const ship = pickTransport(state, nx, ny, unit.owner, ruleset);
+      if (ship === 'full') return { ok: false, reason: 'transportFull' };
+      if (ship !== null) {
+        if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
+        unit.aboard = ship.id;
+        unit.x = nx;
+        unit.y = ny;
+        unit.fortified = false;
+        delete unit.working;
+        delete unit.workLeft;
+        unit.moves = unit.moves - 1;
+        if (unit.moves < 0) unit.moves = 0;
+        reveal(state, unit.owner, nx, ny, 1);
+        return { ok: true, events: [{ type: 'unitLoaded', unitId: unit.id, owner: unit.owner, shipId: ship.id, x: nx, y: ny }] };
+      }
+    }
+    return { ok: false, reason: 'impassable' };
+  }
 
   const targetCity = cityAt(state, nx, ny);
   const ownAtTarget = unitsAt(state, nx, ny).length > 0
@@ -117,6 +163,16 @@ function moveUnit(state, cmd, ruleset) {
   reveal(state, unit.owner, nx, ny, 1);
 
   const events = [{ type: 'unitMoved', unitId: unit.id, fromX, fromY, toX: nx, toY: ny }];
+  // A69: a unit that was aboard and has stepped onto land has disembarked
+  if (unit.aboard !== undefined) {
+    delete unit.aboard;
+    events.push({ type: 'unitUnloaded', unitId: unit.id, owner: unit.owner, x: nx, y: ny });
+  }
+  // A69: a ship that moved drags its cargo along (x/y tracks the ship)
+  for (const vid of Object.keys(state.units)) {
+    const v = state.units[vid];
+    if (v.aboard === unit.id) { v.x = nx; v.y = ny; }
+  }
   if (targetCity && targetCity.owner !== unit.owner) {
     captureCity(state, unit, targetCity, events);
   }

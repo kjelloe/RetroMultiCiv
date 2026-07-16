@@ -101,9 +101,12 @@ AFTERNOON LIST below.
    browser games you play, one per difficulty when it happens —
    they seed the HUMAN BENCHMARK row the AI tuning now targets
    ("challenging, legible, fair" vs YOUR line, docs/05 §12).
-5. **One small confirm available now**: barracks sell price shipped
-   as FULL BUILD COST (40g — wiki silent, architect ruling); veto
-   if your memory says a ratio.
+5. **Three small confirms available now** (wiki-silent rulings,
+   veto any): (a) barracks sell price = FULL BUILD COST (40g);
+   (b) NO AMPHIBIOUS ASSAULT — a unit aboard a ship cannot attack
+   from the water; it unloads to open land first (no Marine unit
+   in Civ 1); (c) transport capacities: trireme 2 / sail 3 /
+   frigate 4 / transport 8 (canonical, wiki table absent).
 6. **Coming to you later** (no action yet): the M-TARGET PINNING
    session once the post-B21 re-baseline + knob sweeps land
    (sim-runner in flight) — the first tuning conversation where
