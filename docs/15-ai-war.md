@@ -162,6 +162,28 @@ land TOGETHER — the coordination + per-unit-odds window (B24) is
 what makes the default rule attacker-coherent; flipping the
 default would be treating the symptom.
 
+## 2f. THE INTEGRATED VERDICTS (sim-runner B23-close batch, 2026-07-17 — shipped code, all four windows live)
+
+1. **bfs exploration default CONFIRMED**: 19% median explored
+   (2.7× greedy), CHEAPEST mode (121 ms/turn vs ~340 — better
+   routes shrink the sim), tightest competitive spread (M14 2.8),
+   universal first contact ~t72. wallfollow = viable #2 (14%, 3×
+   cost). GAP 2 closed.
+2. **The §2e inversion is ROBUST**: best-of-three underfights
+   one-roll even WITH the B24 odds gate and real contact (k/l
+   0.26 vs 0.31 bfs). The war-lab's bo3 k/l≈1.1 was a LAB
+   ARTIFACT (isolated gate, fog-relaxed, no defensive-loss
+   contamination). ONE-ROLL is the conquest-effective rule on
+   shipped code; the per-rule doctrine table stays (it correctly
+   keys behavior), expectations recalibrated.
+3. **B24 fires empire-wide** (2-3 capturing civs/game) — and the
+   stack now **OVER-CONQUERS: elim 57% by t401 vs the 20-40%
+   target band**. The new #1 tuning target. Levers (all rules-
+   reachable): attackerPerCity down, massSize up, combat rule,
+   and structurally the phase-6 senate/diminishing-aggression.
+   M11 pinning happens against an attackerPerCity × combatRounds
+   × massSize mini-sweep (commissioned).
+
 ## 3. Sequencing — ADOPTED (user, 2026-07-16 morning, data in hand)
 
 Per-combat-rule doctrine table in rules.json (one-roll = mass

@@ -439,6 +439,12 @@ nightly). KNOB DEFAULTS RULED: attackerPerCity 1, aiBuyThreshold
 conflict — gap 1 = attacker k/l ~0.28 (coordination window's
 justification), gap 2 = exploration algorithm-bound ~7% (B23).
 disorderTurns target = p90 < 800 by t400 (B22 in flight).**
+**POST-B23 FLOOR RESULTS (2026-07-17 close batch): M9 18% WIN ·
+M6 67.5 WIN (attackers modernize the mix) · buys/treasury MET ·
+M2 8.0 MET-borderline · M3 pop 48 MARGINAL (war attrition) · M4
+impr% 70.5 MARGINAL MISS (workers pulled to explore+war — watch)
+· M11 elim% 57 FAR ABOVE the 20-40 band = the OVER-CONQUEST gap,
+the pinning session's #1 item (docs/15 §2f).**
 **THE NO-OP CHECK (user standing order, 2026-07-16 night): before
 declaring any strategy/knob INERT ("unchanged vs golden"), assert
 the ACTIVITY DENOMINATOR is nonzero — 0 exploration steps, 0
