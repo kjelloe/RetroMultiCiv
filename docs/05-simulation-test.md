@@ -438,7 +438,17 @@ nightly). KNOB DEFAULTS RULED: attackerPerCity 1, aiBuyThreshold
 #558). HOLD until gaps close: M5 rails, M6 modernity, M11
 conflict — gap 1 = attacker k/l ~0.28 (coordination window's
 justification), gap 2 = exploration algorithm-bound ~7% (B23).
-disorderTurns target = p90 < 800 by t400 (B22 in flight).** From the
+disorderTurns target = p90 < 800 by t400 (B22 in flight).**
+**THE NO-OP CHECK (user standing order, 2026-07-16 night): before
+declaring any strategy/knob INERT ("unchanged vs golden"), assert
+the ACTIVITY DENOMINATOR is nonzero — 0 exploration steps, 0
+conquest attempts, 0 boats IS the finding, not a null result. A
+sweep that cannot move because nothing happens in the baseline
+must be reported as a DORMANT-CAPABILITY verdict (with the zero
+named), never as "knob has no effect". Retroactive examples: the
+attackerPerCity byte-identical sweep (attackers=0), the
+scoutShare dead-end (scouts pinned), the inert coastline-follow
+(scouts never ranged).** From the
 re-baseline on, a HUMAN BENCHMARK row (metrics extracted from the
 user's real Shift+D recordings per difficulty) sits beside the AI
 configs — the tuning target is "challenging, legible, fair" vs the
