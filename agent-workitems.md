@@ -3015,11 +3015,34 @@ condition is false forever), so despotism/republic cities needing
 unhappy=2 in disorder). FIX PRE-APPROVED: escalate one entertainer
 per turn (target = current_workers - 1 while in disorder;
 auto-revert unchanged = no flap; witness clears in 2 turns).
-SEQUENCED option (ii): WAIT for the post-B21 re-baseline's
+VALIDATED + CLOSED (sim-runner 2026-07-16 night): p90 @ t400 = 387 medium / 310 GE vs the <800 target — median 523→35; decisive. SEQUENCED option (ii): WAIT for the post-B21 re-baseline's
 disorderTurns tail — implement only if the tail still exceeds the
 <500 target (B21's rush-buy/build-reorder may have moved it);
 otherwise close measured-no-change with this diagnosis as the
 ledger. Golden window + full re-record when it goes.]**
+
+## B24 — The coordination doctrine window (docs/15 §3's next window; justified twice — GAP 1 k/l≈0.28 + the §2e combat-rule inversion)
+
+The war-lab-proven levers land on the shipped AI (docs/15 §2b–2e,
+§3 — the design is DONE, this is the build):
+1. PER-COMBAT-RULE DOCTRINE TABLE in rules.json: one-roll = MASS
+   (no odds gate, coordinate S=3–5, volume wins); best-of-three =
+   per-unit odds gate E≈2, surgical (the lab's k/l 1.1 cell).
+   Table keyed by rules.combatRounds — the default rule becomes
+   attacker-coherent (§2e).
+2. DERIVED ARMY GROUPS (state-free, recomputed per turn): shared
+   target = nearest enemy city; converge to its edge; HOLD until S
+   massed adjacent; assault together (round-3's 6.8× captures).
+3. PER-UNIT ODDS GATE (bo3 branch): an attacker strikes only when
+   ITS odds ≥ E (round-2's correct gate).
+4. Retreat-on-failed-assault + target re-selection stay OUT
+   (later sweeps, per the adopted sequencing).
+Golden window (moves everything), both engines, sweep tests per
+constant (S, E in rules.json), lab identity default where sane.
+Re-baseline + a fresh combatRounds leg at close proves §2e
+inverts (bo3 should now beat or match one-roll for the attacker).
+AFTER this: B23 exploration (its M9/contact fixes then measure on
+a coherent war baseline).
 
 ## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)
 

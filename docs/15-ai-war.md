@@ -148,6 +148,20 @@ three ways in one night):
   defensive wall-building AI (so siege becomes live), multi-front
   waves (one-roll can afford 2 fronts; bo3 cannot).
 
+## 2e. THE SHIPPED-AI COMBAT-RULE INVERSION (sim-runner, 2026-07-16 night — the doctrine-table insight, measured on SHIPPED code)
+
+Best-of-three HURTS the shipped B21 attacker (k/l 0.30→0.24,
+captures 658→495 across 25 seeds) — the OPPOSITE of the war-lab,
+which saw bo3 lift odds-gated attackers toward k/l 1.1. WHY: bo3
+favors the FAVORED side by stripping upset variance. The lab's
+attacker was odds-gated (favored); the shipped AI attacks at any
+odds (underdog vs fortified defenders) and lives on lucky upsets,
+which bo3 removes. CONSEQUENCE: the game's best-of-three DEFAULT
+(user ruling 2026-07-12, unchanged) and the AI war doctrine must
+land TOGETHER — the coordination + per-unit-odds window (B24) is
+what makes the default rule attacker-coherent; flipping the
+default would be treating the symptom.
+
 ## 3. Sequencing — ADOPTED (user, 2026-07-16 morning, data in hand)
 
 Per-combat-rule doctrine table in rules.json (one-roll = mass
