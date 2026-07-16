@@ -16,6 +16,9 @@ export function initPanels(ctx) {
   let openCityId = null;
   let chosenTech = null;
   let stackTile = null;
+  // A97: sell needs a two-step confirm; the armed building survives the
+  // re-render between the two clicks (key = cityId:building, short window)
+  let sellConfirm = { key: null, until: 0 };
 
   // Double-clicks can't be caught with 'dblclick': the first click re-renders
   // the option list, so the second click lands on a fresh element. Detect
@@ -237,6 +240,30 @@ export function initPanels(ctx) {
     else if (closeAfter) closeCityPanel();
   }
 
+  // A97: the built-buildings line, with a per-row sell affordance (A86's
+  // sellBuilding). Palace has no sell; buttons appear only on the owner's turn
+  // and disable once the city has sold this turn — the soldThisTurn view-side
+  // mirror keeps the button and the engine gate in agreement (the A90 lesson).
+  function buildBuiltList(city, state) {
+    const built = city.buildings || [];
+    if (built.length === 0) return 'no buildings yet';
+    const canSell = state.activePlayer === ctx.HUMAN && state.gameOver !== true;
+    const ratio = session.ruleset.rules.sellPriceRatio;
+    const sold = city.soldThisTurn === true;
+    const rows = built.map(b => {
+      const name = buildings[b].name;
+      const isPalace = buildings[b].effect !== undefined && buildings[b].effect.isPalace === true;
+      if (!canSell || isPalace) return `<span class="bldg">${name}</span>`;
+      const price = buildings[b].cost * ratio;
+      const armed = sellConfirm.key === city.id + ':' + b && Date.now() <= sellConfirm.until;
+      const label = armed ? `Confirm? 💰${price}` : `💰 Sell ${price}`;
+      const title = sold ? 'already sold a building this turn' : `sell ${name} for ${price} gold`;
+      return `<span class="bldg">${name} <button class="sell-btn${armed ? ' armed' : ''}"`
+        + ` data-b="${b}"${sold ? ' disabled' : ''} title="${title}">${label}</button></span>`;
+    });
+    return 'built: ' + rows.join(' ');
+  }
+
   function fillCityPanel() {
     const state = session.state;
     const city = state.cities[openCityId];
@@ -293,9 +320,7 @@ export function initPanels(ctx) {
       + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
       + buyHtml
       + '</div>'
-      + `<div>${(city.buildings || []).length
-        ? 'built: ' + (city.buildings || []).map(b => buildings[b].name).join(', ')
-        : 'no buildings yet'}</div>`
+      + `<div class="city-built">${buildBuiltList(city, state)}</div>`
       + `<div>${city.workers !== undefined
         ? '👷 manual tile assignment — click tiles below'
         : '👷 automatic tile assignment — click a tile to take over'}</div>`
@@ -311,6 +336,22 @@ export function initPanels(ctx) {
     if (buyBtn) {
       buyBtn.addEventListener('click', () =>
         ctx.apply({ type: 'buy', playerId: ctx.HUMAN, cityId: city.id }));
+    }
+    // A97: two-step sell — first click arms (button survives the re-render via
+    // sellConfirm), second click within the window emits sellBuilding
+    for (const btn of stats.querySelectorAll('.sell-btn')) {
+      btn.addEventListener('click', () => {
+        const b = btn.getAttribute('data-b');
+        const key = city.id + ':' + b;
+        if (sellConfirm.key !== key || Date.now() > sellConfirm.until) {
+          sellConfirm = { key, until: Date.now() + 4000 };
+          btn.classList.add('armed');
+          btn.textContent = `Confirm? 💰${buildings[b].cost * session.ruleset.rules.sellPriceRatio}`;
+          return;
+        }
+        sellConfirm = { key: null, until: 0 };
+        ctx.apply({ type: 'sellBuilding', playerId: ctx.HUMAN, cityId: city.id, building: b });
+      });
     }
     const specCmd = (taxmen, scientists) => ctx.apply({
       type: 'setWorkers', playerId: ctx.HUMAN, cityId: city.id,

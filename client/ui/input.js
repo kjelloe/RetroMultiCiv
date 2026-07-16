@@ -157,11 +157,13 @@ export function initInput(ctx) {
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
     notBuildingWonder: 'this city is not building a wonder',
     cannotHelpWonder: 'this unit cannot help build wonders',
+    alreadySoldThisTurn: 'only one building can be sold per city each turn',
+    cannotSellPalace: 'the palace cannot be sold',
     tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
-    pillage: true, disband: true, buy: true, helpWonder: true,
+    pillage: true, disband: true, buy: true, helpWonder: true, sellBuilding: true,
     setGovernment: true, setRates: true, setWorkers: true
   };
 
