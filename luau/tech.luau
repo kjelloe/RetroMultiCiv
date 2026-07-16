@@ -150,7 +150,6 @@ end
 -- full build cost x rules.sellPriceRatio credited, buildingSold event per city.
 -- Deterministic: cityOrder x sorted building ids (matches engine/tech.js).
 local function sellObsoletedBuildings(state: any, pid: string, discoveredTech: string, ruleset: any, events: any)
-	local player = state.players[pid]
 	local buildingIds = {}
 	for id in pairs(ruleset.buildings) do
 		table.insert(buildingIds, id)
@@ -163,12 +162,9 @@ local function sellObsoletedBuildings(state: any, pid: string, discoveredTech: s
 			for _, bid in ipairs(buildingIds) do
 				local def = ruleset.buildings[bid]
 				if def.obsoletedByTechs ~= nil and table.find(def.obsoletedByTechs, discoveredTech) ~= nil then
-					local idx = table.find(city.buildings, bid)
-					if idx ~= nil then
-						table.remove(city.buildings, idx)
-						local credit = def.cost * ruleset.rules.sellPriceRatio
-						player.gold = player.gold + credit
-						table.insert(events, { type = "buildingSold", playerId = pid, cityId = cid, building = bid, gold = credit })
+					if table.find(city.buildings, bid) ~= nil then
+						-- A86: shared removal+credit helper (the manual sell uses the same path)
+						cities.sellBuildingFrom(state, city, bid, ruleset, events, "obsolete")
 					end
 				end
 			end

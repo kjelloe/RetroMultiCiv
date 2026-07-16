@@ -2,7 +2,7 @@
 // science bulbs (sci) by per-player rates; bulbs buy advances whose cost
 // escalates with the number of techs already known (Civ 1 global escalation,
 // not per-tech prices). Luxuries, corruption and government caps come later.
-import { cityYields, effectPct } from './cities.js';
+import { cityYields, effectPct, sellBuildingFrom } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
 
 function idiv(a, b) {
@@ -110,7 +110,6 @@ function playerIncome(state, playerId, ruleset) {
 // flag here. Non-roster-owner safe (only iterates the researching player's own
 // cities via the owner guard).
 function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
-  const player = state.players[pid];
   const buildingIds = Object.keys(ruleset.buildings).sort();
   for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
     const city = state.cities[cid];
@@ -118,12 +117,9 @@ function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
     for (const bid of buildingIds) {
       const def = ruleset.buildings[bid];
       if (def.obsoletedByTechs === undefined || def.obsoletedByTechs.indexOf(discoveredTech) === -1) continue;
-      const idx = city.buildings.indexOf(bid);
-      if (idx === -1) continue;
-      city.buildings.splice(idx, 1);
-      const credit = def.cost * ruleset.rules.sellPriceRatio;
-      player.gold = player.gold + credit;
-      events.push({ type: 'buildingSold', playerId: pid, cityId: cid, building: bid, gold: credit });
+      if (city.buildings.indexOf(bid) === -1) continue;
+      // A86: shared removal+credit helper (the manual sell uses the same path)
+      sellBuildingFrom(state, city, bid, ruleset, events, 'obsolete');
     }
   }
 }

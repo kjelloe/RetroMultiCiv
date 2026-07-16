@@ -3073,7 +3073,7 @@ story (recommend reverse proxy TLS termination — caddy/nginx
 snippets in A94's guide), Pi/Hetzner firewall guidance. Deliverable:
 docs/16-security-assessment.md + a gap list feeding A50's queue.
 
-## A96 — Nightly self-check + maintenance fallback (user package; helper, server-adjacent)
+## A96 — Nightly self-check + maintenance fallback (user package; helper, server-adjacent)  [claimed: helper 2026-07-16]
 
 1. HOST-SIDE nightly cron (documented in A94, shipped as
    tools/host-selfcheck.sh): npm audit → IF findings, apply `npm

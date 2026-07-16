@@ -412,6 +412,43 @@ function helpWonder(state, cmd, ruleset) {
   }] };
 }
 
+// A86/A63: remove a building and credit its sale price (gold = shield cost ×
+// rules.sellPriceRatio) to the city's owner, with a buildingSold event carrying
+// the trigger `reason`. Shared by the tech-obsolescence auto-sell (reason
+// 'obsolete') and the manual sellBuilding command (reason 'manual') — one
+// removal+credit implementation, two triggers. Callers guarantee the building
+// is present (they check first). Does NOT touch the one-sale flag.
+function sellBuildingFrom(state, city, buildingId, ruleset, events, reason) {
+  const def = ruleset.buildings[buildingId];
+  const idx = city.buildings.indexOf(buildingId);
+  city.buildings.splice(idx, 1);
+  const credit = def.cost * ruleset.rules.sellPriceRatio;
+  const owner = state.players[city.owner];
+  owner.gold = owner.gold + credit;
+  events.push({ type: 'buildingSold', playerId: city.owner, cityId: city.id, building: buildingId, gold: credit, reason });
+}
+
+// A86: the human sells one city improvement for gold. Civ 1 allows ONE sale per
+// city per turn (the omit-safe city.soldThisTurn flag, cleared at the wrap). The
+// Palace cannot be sold (capitalOf would corrupt). AI never issues this.
+function sellBuilding(state, cmd, ruleset) {
+  const city = state.cities[cmd.cityId];
+  if (!city) return { ok: false, reason: 'unknownCity' };
+  if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  if (city.soldThisTurn === true) return { ok: false, reason: 'alreadySoldThisTurn' };
+  if (city.buildings === undefined || city.buildings.indexOf(cmd.building) === -1) {
+    return { ok: false, reason: 'noSuchBuilding' };
+  }
+  const def = ruleset.buildings[cmd.building];
+  if (!def) return { ok: false, reason: 'badBuilding' };
+  if (def.effect !== undefined && def.effect.isPalace === true) return { ok: false, reason: 'cannotSellPalace' };
+  const events = [];
+  sellBuildingFrom(state, city, cmd.building, ruleset, events, 'manual');
+  city.soldThisTurn = true;
+  return { ok: true, events };
+}
+
 // Runs once per game turn (when the last player ends): food box + production.
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
@@ -556,7 +593,8 @@ function citySpacingOk(map, x, y, cx, cy, rules) {
 }
 
 export {
-  foundCity, setProduction, setWorkers, buyProduction, helpWonder, processCities,
+  foundCity, setProduction, setWorkers, buyProduction, helpWonder,
+  sellBuilding, sellBuildingFrom, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
   unitObsolete

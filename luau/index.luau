@@ -185,6 +185,13 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 			unit.moves = ruleset.units[unit.type].moves
 			unit.roadSteps = nil -- free road allowance resets with the turn
 		end
+		-- A86: the one-sale-per-turn flag resets with the game turn (omit-safe)
+		for _, cid in ipairs(state.cityOrder or {}) do
+			local c = state.cities[cid]
+			if c ~= nil and c.soldThisTurn ~= nil then
+				c.soldThisTurn = nil
+			end
+		end
 		table.insert(events, { type = "turnStarted", turn = state.turn, activePlayer = state.activePlayer })
 	else
 		state.activePlayer = order[(idx :: number) + 1]
@@ -220,6 +227,8 @@ local function createEngine(ruleset: any)
 			result = cities.buyProduction(next_, cmd, ruleset)
 		elseif cmd.type == "helpWonder" then
 			result = cities.helpWonder(next_, cmd, ruleset)
+		elseif cmd.type == "sellBuilding" then
+			result = cities.sellBuilding(next_, cmd, ruleset)
 		elseif cmd.type == "startWork" then
 			result = improvements.startWork(next_, cmd, ruleset)
 		elseif cmd.type == "pillage" then

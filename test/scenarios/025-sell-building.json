@@ -1,0 +1,48 @@
+{
+  "name": "A86: selling a building credits its cost and sets the one-sale flag",
+  "notes": "5x5 grassland, single player. c1 holds a barracks (cost 40). sellBuilding removes it, credits 40 gold (cost x sellPriceRatio 1), and sets the omit-safe soldThisTurn flag. Final state (barracks gone, gold 40, soldThisTurn true) is the cross-language contract. No RNG. Shares the removal+credit helper with the B13/A63 auto-sell.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 20,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1"],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": { "id": "c1", "name": "Rome", "owner": "p1", "x": 2, "y": 2, "pop": 3, "food": 0, "shields": 0, "buildings": ["barracks"], "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["c1"],
+      "wonders": {},
+      "nextUnitId": 5,
+      "nextCityId": 5,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "sellBuilding", "playerId": "p1", "cityId": "c1", "building": "barracks" },
+      "expect": { "ok": true, "state": { "players.p1.gold": 40, "cities.c1.soldThisTurn": true } },
+      "notes": "barracks sold for 40 gold, flag set"
+    }
+  ],
+  "final": {
+    "state": { "players.p1.gold": 40, "cities.c1.soldThisTurn": true },
+    "hash": "0xd65fcc9d"
+  }
+}

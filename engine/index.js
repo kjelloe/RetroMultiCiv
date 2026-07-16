@@ -132,6 +132,11 @@ function endTurn(state, cmd, ruleset) {
       unit.moves = ruleset.units[unit.type].moves;
       delete unit.roadSteps; // free road allowance resets with the turn
     }
+    // A86: the one-sale-per-turn flag resets with the game turn (omit-safe)
+    for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.soldThisTurn !== undefined) delete c.soldThisTurn;
+    }
     events.push({ type: 'turnStarted', turn: state.turn, activePlayer: state.activePlayer });
   } else {
     state.activePlayer = order[idx + 1];
@@ -157,6 +162,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'disband') result = movement.disband(next, cmd, ruleset);
     else if (cmd.type === 'buy') result = cities.buyProduction(next, cmd, ruleset);
     else if (cmd.type === 'helpWonder') result = cities.helpWonder(next, cmd, ruleset);
+    else if (cmd.type === 'sellBuilding') result = cities.sellBuilding(next, cmd, ruleset);
     else if (cmd.type === 'setGovernment') result = government.setGovernment(next, cmd, ruleset);
     else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
     else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);

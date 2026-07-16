@@ -242,9 +242,10 @@ export function initTurnLog(ctx) {
       } else if (e.type === 'buildingBuilt' && ownCity(state, e.cityId)) {
         put(`🏠 ${state.cities[e.cityId].name} completed ${buildings[e.building].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'buildingSold' && e.playerId === ctx.HUMAN) {
-        // B13/A63: an obsoleted building auto-sold for gold on the new tech
+        // B13/A63: obsoleted building auto-sold; A86: a manual sell (no suffix)
         const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
-        put(`💰 ${cityName} sold ${buildings[e.building].name} (+${e.gold}g, obsolete)`, '', cityLoc(state, e.cityId));
+        const suffix = e.reason === 'obsolete' ? ', obsolete' : '';
+        put(`💰 ${cityName} sold ${buildings[e.building].name} (+${e.gold}g${suffix})`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'wonderHelped' && e.playerId === ctx.HUMAN) {
         // A83: a caravan poured its shields into a wonder in progress
         const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;

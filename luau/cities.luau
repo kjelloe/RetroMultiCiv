@@ -591,6 +591,52 @@ local function helpWonder(state: any, cmd: any, ruleset: any): any
 	} } }
 end
 
+-- A86/A63 twin: remove a building and credit its sale price (cost x
+-- sellPriceRatio) to the owner, with a buildingSold event carrying the trigger
+-- `reason`. Shared by the tech-obsolescence auto-sell ('obsolete') and the manual
+-- sellBuilding command ('manual'). Callers guarantee the building is present.
+local function sellBuildingFrom(state: any, city: any, buildingId: string, ruleset: any, events: any, reason: string)
+	local def = ruleset.buildings[buildingId]
+	local idx = table.find(city.buildings, buildingId)
+	table.remove(city.buildings, idx)
+	local credit = def.cost * ruleset.rules.sellPriceRatio
+	local owner = state.players[city.owner]
+	owner.gold = owner.gold + credit
+	table.insert(events, { type = "buildingSold", playerId = city.owner, cityId = city.id, building = buildingId, gold = credit, reason = reason })
+end
+
+-- A86 twin: the human sells one city improvement for gold. ONE sale per city per
+-- turn (omit-safe soldThisTurn, cleared at the wrap); the Palace is not sellable.
+local function sellBuilding(state: any, cmd: any, ruleset: any): any
+	local city = state.cities[cmd.cityId]
+	if city == nil then
+		return { ok = false, reason = "unknownCity" }
+	end
+	if city.owner ~= cmd.playerId then
+		return { ok = false, reason = "notYourCity" }
+	end
+	if state.activePlayer ~= cmd.playerId then
+		return { ok = false, reason = "notYourTurn" }
+	end
+	if city.soldThisTurn == true then
+		return { ok = false, reason = "alreadySoldThisTurn" }
+	end
+	if city.buildings == nil or table.find(city.buildings, cmd.building) == nil then
+		return { ok = false, reason = "noSuchBuilding" }
+	end
+	local def = ruleset.buildings[cmd.building]
+	if def == nil then
+		return { ok = false, reason = "badBuilding" }
+	end
+	if def.effect ~= nil and def.effect.isPalace == true then
+		return { ok = false, reason = "cannotSellPalace" }
+	end
+	local events = {}
+	sellBuildingFrom(state, city, cmd.building, ruleset, events, "manual")
+	city.soldThisTurn = true
+	return { ok = true, events = events }
+end
+
 -- Runs once per game turn (when the last player ends): food box + production.
 local function processCities(state: any, ruleset: any, events: any)
 	local order = state.cityOrder
@@ -745,6 +791,8 @@ return {
 	setWorkers = setWorkers,
 	buyProduction = buyProduction,
 	helpWonder = helpWonder,
+	sellBuilding = sellBuilding,
+	sellBuildingFrom = sellBuildingFrom,
 	processCities = processCities,
 	cityYields = cityYields,
 	workedTiles = workedTiles,
