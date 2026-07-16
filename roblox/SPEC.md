@@ -328,6 +328,36 @@ numbers are Roblox-Playtest-B item numbers):
   spheres. `V` cycles frame → galaxy → none; the user picks by
   screenshot (the soundboard pattern).
 
+## 3j. Tier-1 close-out (`src/client/` + GameServer, R7d)
+
+- (1) `OddsPreview.client.luau` — hover an ADJACENT enemy tile with an
+  attack-capable unit selected: a Billboard shows the browser preview
+  string (client/ui/input.js:26 is the spec — word/pct thresholds,
+  att/100 vs def/100, terrain/river/fortified/veteran/walls ×3/
+  fortress ×2 parts). Math is READ-ONLY `combat.attackStrength/
+  defenseStrength/bestDefender` on a view shim; walls come from the
+  city SHELL's own exposure, so fog holds by the view. Parity proof:
+  three crafted setups print byte-identical att/def/pct through
+  engine/combat.js and luau/combat.luau. COORDINATE NOTE:
+  `GetMouseLocation` is VIEWPORT space → `ViewportPointToRay` — the
+  inverse pairing of trap 2 (InputObject = GUI-inset →
+  `ScreenPointToRay`).
+- (2) Game-code chip (docs/07 trust loop): GameServer sends
+  `gamecode.gameCode(state)` with EVERY push (additive, Roblox-
+  internal payload field); the Hud shows it in a read-only SELECTABLE
+  TextBox (no clipboard API — trap 8).
+- (3) `CityList.client.luau` (`C`): own cities with pop + production
+  progress; tap → `ClientState.focusCamera` (new channel; Camera
+  listens and breaks follow) + `openCity`.
+- (4) `Statistics.client.luau` (`J`, the reserved top-center slot):
+  THE FOG RULE is structural — rival rows are view-derived counts
+  only (cities seen / units in sight), the own row adds the seat's
+  filterView fields (gold, tech count, government, research).
+- (5) Three-state End Turn (A29): grey off-turn / green READY when no
+  movable unit remains (fortified/working are standing orders) /
+  two-press CONFIRM when units still have moves (first press warns
+  "N can move!", second within 3 s sends).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -427,5 +457,21 @@ Stop) are hash-verified but must not skew the code check.
   cover): **CODE-COMPLETE 2026-07-16**, check.sh 28 gates; the void
   art pick (frame vs galaxy) waits on the user's screenshots. R7c
   is design-first with the architect — not started by order.
-  Acceptance: run3 (run letter C) folds R7a+R7b + the run2 leftovers
-  (setRates, fog verdict, per-surface screenshots).
+- R7d (§3j, Tier-1 close-out): **CODE-COMPLETE + ACCEPTED
+  2026-07-16** (@d6294b0c, pending post-push review) — odds preview
+  (cross-engine spot-check byte-identical on three setups), game-code
+  chip, city list, fog-structural statistics, three-state End Turn;
+  check.sh 31 gates. Acceptance: runC folds R7a+R7b+R7d + the run2
+  leftovers (setRates, fog verdict, per-surface screenshots incl.
+  both void variants).
+
+## 7. Shared-tree workflow (dev_night)
+
+The clone is SHARED with the sim-runner (the git operator — docs/12's
+dev_night protocol). Ruling @f243859a: between a done-mail's
+files-for-sweep manifest and the architect's push-confirm, the listed
+files are FROZEN on the helper's side (whole-file staging would sweep
+any later edit in silently); next-item work starts only in files
+outside the pending manifest. Flag unavoidable mid-flight files in the
+done-mail ("working tree also carries X, exclude"). Any push-payload
+(protocol) change is flagged explicitly in the done-mail (@d6294b0c).

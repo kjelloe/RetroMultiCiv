@@ -83,7 +83,12 @@ don't commit it.
    move pips; settlers add a 1-3 star site rating), a discovery
    splash + blinking Research button when a pick is due, and the
    void cover — `V` cycles the border art (ornate map frame /
-   galaxy / none) so you can screenshot both and pick. The server prints
+   galaxy / none) so you can screenshot both and pick. R7d: hover an
+   adjacent enemy with a unit selected for the combat odds billboard;
+   `C` opens the city list (tap a row to fly there), `J` the
+   statistics panel; the HUD shows the game verification code
+   (selectable); End Turn goes green when everything moved and asks
+   twice ("N can move!") if you end early. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`
