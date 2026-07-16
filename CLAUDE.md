@@ -223,10 +223,15 @@ or it silently renders as grassland.
 ## Workflow
 
 User handles all git commits and pushes on dev/main. The dev_night
-branch is the OVERNIGHT exception (user grant 2026-07-16): the
-architect commits accepted gate-green work there and coordinates
-the gaming-PC's git operator (sim-runner) by mail; the user reviews
-and merges dev_night each morning. Build → test → stop and report.
+branch is the STANDING exception (user grant 2026-07-16, widened
+same day): the architect commits accepted gate-green work there and
+coordinates the gaming-PC's git operator (sim-runner) by mail; the
+architect TAGS save points as `marker-NNNN` (zero-padded, sequential
+— marker-0001 = 5a93473) and the user merges tagged points into
+dev/main at his leisure — no waiting on the user for small changes,
+but BREAKING changes (protocol, save format, golden re-records,
+anything a running game or another lane must react to) get an
+explicit alert before the tag. Build → test → stop and report.
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
 local **coder-helper**; B-items: bug triage/fixes for the local
