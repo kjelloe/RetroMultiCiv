@@ -3118,7 +3118,26 @@ now real), and the M9 target.
 **USER DOCTRINE (2026-07-16 night — the design's spine, like the
 3:1 rule was for war): "the basic strategy is following a COAST
 LINE with a scouting unit, and then have TWO, going in opposite
-directions."** Implementation shape: coast-following = wall-
+directions."**
+
+**B23b — PHASED ALLOCATION (user doctrine #2, same night; the
+NEXT measured slice after B23's ranging+coastline mechanics land,
+A/B'd against them):** who scouts, when, with what —
+1. OPENING: the FIRST military unit of the FIRST city scouts the
+   local area (explore-before-garrison for the opener — it finds
+   the second city site).
+2. EARLY GAME: 2–5 militias from the first 2–3 cities go
+   exploring — UNLESS a VISIBLE THREAT (barbarian or rival unit
+   within rules.threatRadius of that city) suppresses that city's
+   dispatch (local veto, not global).
+3. LATER ERAS: 1–4 two-movement units (horseback-class: moves≥2)
+   range far on LARGE landmasses; 2–4 BOATS on coastal maps (ties
+   into Wave-2's naval probe — the same ocean-ratio signal picks
+   boat-scouts).
+All counts/radii/thresholds = rules.json knobs (scoutQuotaByCities
+table, threat veto radius, fast-scout count, boat-scout count);
+deterministic (unit-id order); lab sweeps each around the user's
+suggested bands. Implementation shape: coast-following = wall-
 following (keep water on a fixed hand side — deterministic, cheap,
 Lua-portable, naturally circumnavigates the landmass); the civ's
 first two scouts take OPPOSITE hands (clockwise/counter-clockwise
