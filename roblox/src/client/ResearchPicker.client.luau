@@ -149,11 +149,22 @@ local function refresh()
 	-- only read players[pid].techs, so the filtered own-player row suffices
 	local shim = { players = { [view.you] = m } }
 	local cost = techModule.researchCost(shim, view.you, rs)
+	-- bulbs/turn: playerIncome over a view-shaped shim — own cities arrive
+	-- WHOLE and their radius is always explored, which is everything the
+	-- income walk reads. pcall: presentational only, never blocks the picker.
+	local perTurn = ""
+	local incomeShim = { players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, map = view.map }
+	local okIncome, income = pcall(techModule.playerIncome, incomeShim, view.you, rs)
+	if okIncome and income ~= nil then
+		perTurn = (" +%d/turn"):format(income.bulbs or 0)
+	end
 	if m.researching ~= nil then
 		local def = rs.techs[m.researching]
-		current.Text = ("researching: %s (%d/%d bulbs)"):format(def and def.name or m.researching, m.bulbs or 0, cost)
+		current.Text = ("researching: %s (%d/%d bulbs%s)"):format(def and def.name or m.researching,
+			m.bulbs or 0, cost, perTurn)
 	else
-		current.Text = ("no research set - pick below (%d bulbs each)"):format(cost)
+		current.Text = ("no research set - pick below (%d bulbs each%s)"):format(cost, perTurn)
 	end
 
 	local tax, sci, lux = rates()

@@ -765,7 +765,7 @@ possession cam); check.sh green; anchors re-printed.
 Also still banked: nothing — both R3-era notes are folded into R4
 above.
 
-### R6 — Tier-1 parity: the core-loop actions (cut from docs/13 amended Tier 1; assigned: roblox-helper — run2 acceptance for R5 stays pending in parallel)
+### R6 — Tier-1 parity: the core-loop actions (cut from docs/13 amended Tier 1; assigned: roblox-helper — run2 acceptance for R5 stays pending in parallel) [claimed: roblox-helper 2026-07-16 @239ff322; code-complete @b3084114]
 
 The browser's core-loop UI reaches Studio, per the review-round
 ground rules (ScreenGui actions / Billboard info; every hotkey

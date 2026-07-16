@@ -34,6 +34,7 @@ return [==[{
   },
   "fortressTech": "construction",
   "railroadTech": "railroad",
+  "bridgeTech": "bridge-building",
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
   "contentCitizens": 4,

@@ -2,8 +2,10 @@
 -- ScreenGui, not Billboards, per the adopted review). Buttons mirror the
 -- hotkeys and grey out when the context is wrong; every action is a command
 -- through ClientState.send, nothing acts locally. Hotkeys here: G fortify,
--- Space wait (skip unit), X disband — B (found) and Return (end turn) stay in
+-- Space wait (skip unit), X disband, I/M/R irrigate/mine/road (settlers,
+-- startWork on the stood-on tile) — B (found) and Return (end turn) stay in
 -- Select, P/N in Possess, T in ResearchPicker, L in TurnLog. All chat-guarded.
+-- GoTo/pathfind: deferred (flagged @b3084114) — Select's click-move covers it.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -17,8 +19,8 @@ gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 560, 0, 34)
-bar.Position = UDim2.new(0.5, -280, 1, -42)
+bar.Size = UDim2.new(0, 790, 0, 34)
+bar.Position = UDim2.new(0.5, -395, 1, -42)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -52,8 +54,11 @@ local foundBtn = addButton(1, "Found (B)", 90)
 local fortifyBtn = addButton(2, "Fortify (G)", 90)
 local waitBtn = addButton(3, "Wait (Spc)", 90)
 local disbandBtn = addButton(4, "Disband (X)", 100)
-local possessBtn = addButton(5, "Ride (P)", 80)
-local researchBtn = addButton(6, "Research (T)", 100)
+local irrigateBtn = addButton(5, "Irr (I)", 70)
+local mineBtn = addButton(6, "Mine (M)", 70)
+local roadBtn = addButton(7, "Road (R)", 70)
+local possessBtn = addButton(8, "Ride (P)", 80)
+local researchBtn = addButton(9, "Research (T)", 100)
 
 local function selectedUnit()
 	local view = ClientState.view
@@ -95,6 +100,15 @@ local function doUnitCmd(cmdType)
 	end
 end
 
+-- settlers job on the stood-on tile; the server judges terrain/tech/dupes
+local function doWork(work)
+	local u = selectedUnit()
+	if u ~= nil and u.type == "settlers" then
+		print(("[ActionBar] startWork %s %s"):format(work, u.id))
+		ClientState.send({ type = "startWork", unitId = u.id, work = work })
+	end
+end
+
 foundBtn.Activated:Connect(doFound)
 fortifyBtn.Activated:Connect(function()
 	doUnitCmd("fortify")
@@ -104,6 +118,15 @@ waitBtn.Activated:Connect(function()
 end)
 disbandBtn.Activated:Connect(function()
 	doUnitCmd("disband")
+end)
+irrigateBtn.Activated:Connect(function()
+	doWork("irrigate")
+end)
+mineBtn.Activated:Connect(function()
+	doWork("mine")
+end)
+roadBtn.Activated:Connect(function()
+	doWork("road")
 end)
 researchBtn.Activated:Connect(function()
 	ClientState.openResearch()
@@ -127,7 +150,11 @@ RunService.Heartbeat:Connect(function()
 	lastKey = key
 	local mine = ClientState.myTurn()
 	local unitReady = mine and u ~= nil
-	foundBtn.BackgroundColor3 = (unitReady and u.type == "settlers") and ENABLED or DISABLED
+	local settlersReady = unitReady and u.type == "settlers"
+	foundBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
+	irrigateBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
+	mineBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
+	roadBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
 	fortifyBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
 	disbandBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
@@ -149,7 +176,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		doUnitCmd("wait")
 	elseif input.KeyCode == Enum.KeyCode.X then
 		doUnitCmd("disband")
+	elseif input.KeyCode == Enum.KeyCode.I then
+		doWork("irrigate")
+	elseif input.KeyCode == Enum.KeyCode.M then
+		doWork("mine")
+	elseif input.KeyCode == Enum.KeyCode.R then
+		doWork("road")
 	end
 end)
 
-print("[ActionBar] R6 action bar up (G fortify, Space wait, X disband)")
+print("[ActionBar] R6 action bar up (G fortify, Space wait, X disband, I/M/R work)")

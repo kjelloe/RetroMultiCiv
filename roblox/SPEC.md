@@ -246,19 +246,28 @@ touches state or RNG: hashes and the R4 acceptance bar are unchanged.
   `[?] <type>` rather than killing the loop.
 - `ActionBar.client.luau` — bottom-center bar (ScreenGui, not
   Billboards — the adopted docs/13 review): Found (B) / Fortify (G) /
-  Wait (Space) / Disband (X) / Ride (P, narrates where the real key
-  lives) / Research (T). Buttons grey by context (selected own unit,
-  your turn); actions are commands only; hotkeys G/Space/X live here,
+  Wait (Space) / Disband (X) / Irr (I) / Mine (M) / Road (R) /
+  Ride (P, narrates where the real key lives) / Research (T).
+  I/M/R send `startWork {unitId, work}` on the stood-on tile,
+  settlers-gated client-side, terrain/tech judged by the server.
+  Buttons grey by context (selected own unit / settlers, your turn);
+  actions are commands only; hotkeys G/Space/X/I/M/R live here,
   chat-guarded. Space also jumps the avatar — cosmetic, unanchored
-  avatar only.
+  avatar only. GoTo/pathfind deferred (flagged @b3084114);
+  click-move covers the step case.
 - `ResearchPicker.client.luau` — `T` toggles; auto-opens once each
-  time research is unset on your turn. Lists `availableTechs` and
-  `researchCost` REQUIRED from the read-only luau engine modules on a
-  view-shaped shim (the @b81f92dd ruling: presentational math may use
-  engine modules; ACTING stays commands — `setResearch {tech}`).
+  time research is unset on your turn. Lists `availableTechs` (the
+  one-ring-ahead rule) and shows `researchCost` + bulbs/turn via
+  `playerIncome`, all REQUIRED from the read-only luau engine modules
+  on view-shaped shims (the @b81f92dd ruling: presentational math may
+  use engine modules; ACTING stays commands — `setResearch {tech}`).
+  The income shim works because own cities arrive WHOLE and their
+  radius is always explored; pcall-guarded, display-only.
   Below: tax/lux STEPPERS (±10, science is the remainder; sliders
   fight the camera drag) sending `setRates {tax,sci,lux}`; the gov
-  cap shows when known, the server stays the judge.
+  cap shows when known, the server stays the judge. A29 snap-back is
+  satisfied BY CONSTRUCTION: the display only ever reads the view
+  (no optimistic write), so a rejection leaves server truth showing.
 - `MoveHints.client.luau` — while an own unit with moves is selected,
   its eight neighbors get markers: green = legal step (known tile,
   domain match, no enemy — move-hints.js's A19 legality, never cost/
