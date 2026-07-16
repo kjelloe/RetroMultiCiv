@@ -213,6 +213,14 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	if unit.moves < 0 then
 		unit.moves = 0
 	end
+	-- B23: the mover may record a heading (omit-safe unit.scoutDir) -- a generic
+	-- reducer field the caller gives meaning to (the wallfollow scout persists its
+	-- hand-rule facing; a plain move without a heading clears it).
+	if cmd.heading ~= nil then
+		unit.scoutDir = cmd.heading
+	elseif unit.scoutDir ~= nil then
+		unit.scoutDir = nil
+	end
 	visibility.reveal(state, unit.owner, nx, ny, 1)
 
 	local events = setmetatable({}, statehash.ARRAY_MT)

@@ -166,6 +166,11 @@ function moveUnit(state, cmd, ruleset) {
   delete unit.workLeft;
   unit.moves = unit.moves - cost;
   if (unit.moves < 0) unit.moves = 0;
+  // B23: the mover may record a heading (omit-safe unit.scoutDir) — a GENERIC
+  // reducer field the caller gives meaning to (the wallfollow scout persists its
+  // hand-rule facing here; a plain move without a heading clears it).
+  if (cmd.heading !== undefined) unit.scoutDir = cmd.heading;
+  else if (unit.scoutDir !== undefined) delete unit.scoutDir;
   reveal(state, unit.owner, nx, ny, 1);
 
   const events = [{ type: 'unitMoved', unitId: unit.id, fromX, fromY, toX: nx, toY: ny }];

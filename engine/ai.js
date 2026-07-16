@@ -420,9 +420,13 @@ function isScout(state, playerId, ruleset, uid, scoutShare) {
     const u = state.units[id];
     if (u.owner === playerId && ruleset.units[u.type].attack > 0) mil.push(id);
   }
-  // the NEWEST share (highest ids) scout: fresh units are the mobile surplus
-  // that reaches the roam tier, where the oldest ids are dug-in founder
-  // garrisons that fortify first and never range. Deterministic.
+  // B21/B23: the NEWEST share (highest ids) scout. B21 chose newest so scouts
+  // are the mobile surplus, not dug-in founders; B23 kept it — with the BFS
+  // ROUTER the newest scout ranges effectively (the router commits it around
+  // bays that trapped the greedy step), and newest ids never strip a founding
+  // garrison. Measured: newest + bfs explores ~13x more (768 vs 58 tiles) and
+  // the civ thrives, where an oldest-scout stripped a key defender and the civ
+  // died. Deterministic.
   const count = idiv(mil.length * scoutShare, 100);
   for (let i = mil.length - count; i < mil.length; i++) {
     if (mil[i] === uid) return true;
@@ -603,6 +607,120 @@ function towardUnexplored(state, unit, me) {
   }
   if (!best) return null;
   return dirToward(state.map, unit.x, unit.y, best.x, best.y);
+}
+
+// B23: the BFS ROUTER — the real "commit to the trip" (docs/15 §item, the A65
+// pathfind). Breadth-first over PASSABLE LAND from the scout, returning the
+// first-step direction of the shortest land path to the nearest UNEXPLORED land
+// tile. This routes THROUGH explored land around bays/isthmuses that trap the
+// greedy step (measured: u6 stalled at a bay with the frontier 3 tiles off but
+// no distance-reducing land step). It fulfils the user's "explored map is the
+// memory" seal — the memory generalises from adjacent-step to shortest-known-
+// path. DETERMINISM CONTRACT (docs/09 trap class): neighbours are expanded in
+// DIR_KEYS order and the FIRST unexplored land tile reached wins — the Luau twin
+// must expand in the identical order. Plain arrays (Lua-portable queue). null
+// when the landmass is fully charted (naval needed for more).
+function bfsStepToNearestUnexplored(state, unit, me, ruleset) {
+  if (!me.explored) return null;
+  const map = state.map;
+  const { width, height, wrapX } = map;
+  const visited = {};
+  visited[unit.y * width + unit.x] = true;
+  const queue = [{ x: unit.x, y: unit.y, first: null }];
+  let qi = 0;
+  while (qi < queue.length) {
+    const cur = queue[qi]; qi = qi + 1;
+    for (const key of DIR_KEYS) {
+      let nx = cur.x + DIR_VECS[key][0];
+      if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
+      const ny = cur.y + DIR_VECS[key][1];
+      if (ny < 1 || ny >= height - 1) continue;
+      const idx = ny * width + nx;
+      if (visited[idx] === true) continue;
+      if (ruleset.terrain.terrains[map.tiles[idx].t].domain !== 'land') continue;
+      visited[idx] = true;
+      const first = cur.first === null ? key : cur.first;
+      if (me.explored[idx] !== 1) return first; // nearest unexplored land — commit
+      queue.push({ x: nx, y: ny, first });
+    }
+  }
+  return null;
+}
+
+// B23: the user's LITERAL wall-follower (rules.aiExploreMode "wallfollow"), a
+// measurable alternative to bfs. Keeps water on a fixed HAND (unit-id parity:
+// even=left, odd=right) and steps along the coast, so it traverses EXPLORED
+// coast to escape a bay. Needs a persisted heading (unit.scoutDir, set via the
+// generic moveUnit cmd.heading) — returns { dir, heading }. Deterministic
+// 8-dir hand-rule: from the heading, rotate toward the hand to the first
+// passable land step. Seeds the heading from a sea-neighbour tangent when unset.
+function wallFollowDir(state, unit, me, ruleset) {
+  const map = state.map;
+  const { width, height, wrapX } = map;
+  const hand = (parseInt(unit.id.slice(1), 10) % 2) === 0 ? -1 : 1; // even=left(CCW), odd=right(CW)
+  const nbr = (k) => {
+    let nx = unit.x + DIR_VECS[DIR_KEYS[k]][0];
+    if (nx < 0 || nx >= width) { if (!wrapX) return null; nx = ((nx % width) + width) % width; }
+    const ny = unit.y + DIR_VECS[DIR_KEYS[k]][1];
+    if (ny < 1 || ny >= height - 1) return null;
+    return { nx, ny, land: ruleset.terrain.terrains[map.tiles[ny * width + nx].t].domain === 'land' };
+  };
+  let h = unit.scoutDir === undefined ? -1 : DIR_KEYS.indexOf(unit.scoutDir);
+  if (h < 0) { // seed the heading: perpendicular to the first sea neighbour, by hand
+    for (let k = 0; k < 8; k++) {
+      const n = nbr(k);
+      if (n && !n.land) { h = ((k + hand * 2) % 8 + 8) % 8; break; }
+    }
+    if (h < 0) h = 0;
+  }
+  // rotate from (heading turned 90° toward the hand) against the hand to the
+  // first passable land — the standard hand-on-wall traversal.
+  const startk = ((h - hand * 2) % 8 + 8) % 8;
+  for (let i = 0; i < 8; i++) {
+    const k = ((startk + hand * i) % 8 + 8) % 8;
+    const n = nbr(k);
+    if (n && n.land) return { dir: DIR_KEYS[k], heading: DIR_KEYS[k] };
+  }
+  return { dir: null, heading: undefined };
+}
+
+// B23: a LAND tile with at least one SEA neighbour (8-dir) — the coastline the
+// scouts trace. Pure ruleset/terrain read.
+function isCoastal(state, x, y, ruleset) {
+  const { width, height, wrapX } = state.map;
+  if (ruleset.terrain.terrains[state.map.tiles[y * width + x].t].domain !== 'land') return false;
+  for (const key of DIR_KEYS) {
+    let nx = x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
+    const ny = y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= height) continue;
+    if (ruleset.terrain.terrains[state.map.tiles[ny * width + nx].t].domain === 'sea') return true;
+  }
+  return false;
+}
+
+// B23: memoryless coastline-following. A coastal scout steps to an adjacent
+// UNEXPLORED COASTAL land tile — the explored map is monotone, so the walk is
+// self-avoiding by construction (no oscillation) and traces the perimeter. At a
+// fork the HAND (unit-id parity: even=left/first, odd=right/last by DIR_KEYS
+// order) picks the rotational extreme, so two scouts trace OPPOSITE perimeters.
+// null when no unexplored coastal step exists (caller falls back to inland).
+function coastalScoutDir(state, unit, me, ruleset) {
+  const { width, height, wrapX } = state.map;
+  const cands = [];
+  for (const key of DIR_KEYS) {
+    let nx = unit.x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
+    const ny = unit.y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= height) continue;
+    if (ruleset.terrain.terrains[state.map.tiles[ny * width + nx].t].domain !== 'land') continue;
+    if (isExplored(me, state.map, nx, ny)) continue;
+    if (!isCoastal(state, nx, ny, ruleset)) continue;
+    cands.push(key);
+  }
+  if (cands.length === 0) return null;
+  const num = parseInt(unit.id.slice(1), 10);
+  return (num % 2) === 0 ? cands[0] : cands[cands.length - 1];
 }
 
 // Batch 4, iteration 3 (docs/04 ledger — the WINNER: GE stagnant 39%->7%):
@@ -847,8 +965,16 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     }
 
     const enemy = nearestKnownEnemy(state, unit, playerId);
-    // hold the fort: a garrison stays until its city is safely manned —
-    // two guards when a known enemy is within 8, one in peacetime
+    // B23: a SCOUT is not a garrison — it departs to range the map even when its
+    // city is a guard short (the accepted cost of knowing the map, architect
+    // ruling @aec2b4db). Non-scouts hold the fort: a garrison stays until its
+    // city is safely manned (two guards when a known enemy is within 8, else one).
+    const exploreMode = ruleset.rules.aiExploreMode === undefined ? 'bfs' : ruleset.rules.aiExploreMode;
+    const scouting = isScout(state, playerId, ruleset, uid, scoutShare);
+    // B23: outside the greedy identity mode, a SCOUT is not a garrison — it
+    // departs to range the map even when its city is a guard short (the accepted
+    // cost of knowing the map, ruling @aec2b4db). Non-scouts (and greedy-mode
+    // scouts, pre-B23) hold the fort until the city is safely manned.
     const home = cityAt(state, unit.x, unit.y);
     if (home && home.owner === playerId && !unit.fortified) {
       let guards = 0;
@@ -856,16 +982,44 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
       }
       const need = enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) ? 2 : 1;
-      if (guards <= need) {
+      // B23: a scout departs to range the map ONLY if the city keeps another
+      // defender (>= 2 guards here) — "a city one guard short", never one left
+      // UNDEFENDED (a sole guard stays, or the city falls and the civ dies —
+      // measured: unconditional exemption eliminated p1 by t100). greedy mode is
+      // the pre-B23 identity: no departure.
+      const scoutDepart = scouting && exploreMode !== 'greedy' && guards >= 2;
+      if (guards <= need && !scoutDepart) {
         return { type: 'fortify', playerId, unitId: uid };
       }
     }
-    // B21(d): a dedicated scout ranges the fog before it garrisons or marches —
-    // its city is already adequately guarded (the hold block above returned
-    // otherwise). No fog left: fall through to the normal military behavior.
-    if (isScout(state, playerId, ruleset, uid, scoutShare)) {
-      const sdir = towardUnexplored(state, unit, me);
-      if (sdir) return { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
+    // B23: a scout ranges the fog by rules.aiExploreMode — greedy (pre-B23
+    // nearest-fog step, the identity guard), bfs (the router that routes THROUGH
+    // explored land around bays; the default) or wallfollow (the stored-heading
+    // hand-rule). In bfs/wallfollow the coastline step-preference (user doctrine)
+    // is the cheap fast-path when adjacent unexplored coast exists.
+    if (scouting) {
+      let sdir = null;
+      let heading;
+      if (exploreMode === 'greedy') {
+        sdir = towardUnexplored(state, unit, me);
+      } else {
+        if (ruleset.rules.aiCoastFollow !== false && isCoastal(state, unit.x, unit.y, ruleset)) {
+          sdir = coastalScoutDir(state, unit, me, ruleset);
+        }
+        if (!sdir) {
+          if (exploreMode === 'wallfollow') {
+            const wf = wallFollowDir(state, unit, me, ruleset);
+            sdir = wf.dir; heading = wf.heading;
+          } else {
+            sdir = bfsStepToNearestUnexplored(state, unit, me, ruleset);
+          }
+        }
+      }
+      if (sdir) {
+        const cmd = { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
+        if (heading !== undefined) cmd.heading = heading;
+        return cmd;
+      }
     }
     // B24: OFFENSIVE units form derived army groups — converge on the nearest
     // known enemy city, HOLD at its edge until `massSize` attackers are massed,
@@ -952,4 +1106,4 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   return state;
 }
 
-export { runAiTurn, pickCommand, goodCitySpot };
+export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir };

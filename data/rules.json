@@ -40,6 +40,8 @@
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiScoutSharePct": 25,
+  "aiExploreMode": "bfs",
+  "aiCoastFollow": true,
   "aiWarDoctrine": {
     "1": { "massSize": 4, "oddsGate": 0 },
     "3": { "massSize": 4, "oddsGate": 2 }

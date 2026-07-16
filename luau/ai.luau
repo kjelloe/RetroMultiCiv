@@ -738,6 +738,157 @@ local function towardUnexplored(state: any, unit: any, me: any): string?
 	return dirToward(state.map, unit.x, unit.y, best.x, best.y)
 end
 
+-- B23 twin: a LAND tile with at least one SEA neighbour (8-dir).
+local function isCoastal(state: any, x: number, y: number, ruleset: any): boolean
+	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
+	if ruleset.terrain.terrains[state.map.tiles[y * width + x + 1].t].domain ~= "land" then
+		return false
+	end
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = x + DIR_VECS[key][1]
+		if nx < 0 or nx >= width then
+			if not wrapX then
+				continue
+			end
+			nx = ((nx % width) + width) % width
+		end
+		local ny = y + DIR_VECS[key][2]
+		if ny < 0 or ny >= height then
+			continue
+		end
+		if ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t].domain == "sea" then
+			return true
+		end
+	end
+	return false
+end
+
+-- B23 twin: memoryless coastal step-preference (unexplored coastal land; hand by
+-- unit-id parity picks the fork). null when no adjacent unexplored coast.
+local function coastalScoutDir(state: any, unit: any, me: any, ruleset: any): string?
+	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
+	local cands = {}
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = unit.x + DIR_VECS[key][1]
+		if nx < 0 or nx >= width then
+			if not wrapX then
+				continue
+			end
+			nx = ((nx % width) + width) % width
+		end
+		local ny = unit.y + DIR_VECS[key][2]
+		if ny < 0 or ny >= height then
+			continue
+		end
+		if ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t].domain ~= "land" then
+			continue
+		end
+		if isExplored(me, state.map, nx, ny) then
+			continue
+		end
+		if not isCoastal(state, nx, ny, ruleset) then
+			continue
+		end
+		table.insert(cands, key)
+	end
+	if #cands == 0 then
+		return nil
+	end
+	local num = tonumber(string.sub(unit.id, 2))
+	if num % 2 == 0 then
+		return cands[1]
+	end
+	return cands[#cands]
+end
+
+-- B23 twin: the BFS ROUTER. Breadth-first over passable land; first unexplored
+-- land tile reached (DIR_KEYS expansion order = the scan-order contract) returns
+-- its first-step dir. Routes around bays. null when the landmass is fully charted.
+local function bfsStepToNearestUnexplored(state: any, unit: any, me: any, ruleset: any): string?
+	if me.explored == nil then
+		return nil
+	end
+	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
+	local visited = {}
+	visited[unit.y * width + unit.x] = true
+	local queue = { { x = unit.x, y = unit.y, first = nil } }
+	local qi = 1
+	while qi <= #queue do
+		local cur = queue[qi]
+		qi += 1
+		for _, key in ipairs(DIR_KEYS) do
+			local nx = cur.x + DIR_VECS[key][1]
+			if nx < 0 or nx >= width then
+				if not wrapX then
+					continue
+				end
+				nx = ((nx % width) + width) % width
+			end
+			local ny = cur.y + DIR_VECS[key][2]
+			if ny < 1 or ny >= height - 1 then
+				continue
+			end
+			local idx = ny * width + nx
+			if visited[idx] == true then
+				continue
+			end
+			if ruleset.terrain.terrains[state.map.tiles[idx + 1].t].domain ~= "land" then
+				continue
+			end
+			visited[idx] = true
+			local first = if cur.first == nil then key else cur.first
+			if me.explored[idx + 1] ~= 1 then
+				return first
+			end
+			table.insert(queue, { x = nx, y = ny, first = first })
+		end
+	end
+	return nil
+end
+
+-- B23 twin: the user's literal wall-follower (rules.aiExploreMode wallfollow).
+-- Keeps water on a hand (parity); persisted heading unit.scoutDir. { dir, heading }.
+local function wallFollowDir(state: any, unit: any, me: any, ruleset: any): any
+	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
+	local hand = if tonumber(string.sub(unit.id, 2)) % 2 == 0 then -1 else 1
+	local function nbr(k: number): any
+		local nx = unit.x + DIR_VECS[DIR_KEYS[k + 1]][1]
+		if nx < 0 or nx >= width then
+			if not wrapX then
+				return nil
+			end
+			nx = ((nx % width) + width) % width
+		end
+		local ny = unit.y + DIR_VECS[DIR_KEYS[k + 1]][2]
+		if ny < 1 or ny >= height - 1 then
+			return nil
+		end
+		return { nx = nx, ny = ny, land = ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t].domain == "land" }
+	end
+	local h = if unit.scoutDir == nil then -1 else (table.find(DIR_KEYS, unit.scoutDir) :: number) - 1
+	if h < 0 then
+		for k = 0, 7 do
+			local n = nbr(k)
+			if n ~= nil and not n.land then
+				h = ((k + hand * 2) % 8 + 8) % 8
+				break
+			end
+		end
+		if h < 0 then
+			h = 0
+		end
+	end
+	local startk = ((h - hand * 2) % 8 + 8) % 8
+	for i = 0, 7 do
+		local k = ((startk + hand * i) % 8 + 8) % 8
+		local n = nbr(k)
+		if n ~= nil and n.land then
+			return { dir = DIR_KEYS[k + 1], heading = DIR_KEYS[k + 1] }
+		end
+	end
+	return { dir = nil, heading = nil }
+end
+
 -- Batch 4, iteration 3 (docs/04 ledger): entertainers-local disorder fix.
 -- Revert only when a HYPOTHETICAL mood without manual assignment (a shallow
 -- copy minus `workers` — cityMood then scores the auto layout) is
@@ -989,6 +1140,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				end
 
 				local enemy = nearestKnownEnemy(state, unit, playerId)
+				local exploreMode = if ruleset.rules.aiExploreMode == nil then "bfs" else ruleset.rules.aiExploreMode
+				local scouting = isScout(state, playerId, ruleset, uid, scoutShare)
 				local home = combat.cityAt(state, unit.x, unit.y)
 				if home ~= nil and home.owner == playerId and not unit.fortified then
 					local guards = 0
@@ -998,17 +1151,41 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						end
 					end
 					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
-					if guards <= need then
+					-- B23: a scout departs to range only if the city keeps another
+					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
+					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
+					if guards <= need and not scoutDepart then
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end
 				end
-				-- B21(d): a dedicated scout ranges the fog before garrisoning or
-				-- marching (its city is already guarded -- the hold block above
-				-- returned otherwise). No fog left: fall through to normal behavior.
-				if isScout(state, playerId, ruleset, uid, scoutShare) then
-					local sdir = towardUnexplored(state, unit, me)
+				-- B23: a scout ranges the fog by rules.aiExploreMode -- greedy (pre-B23
+				-- nearest-fog), bfs (router through explored land around bays), or
+				-- wallfollow (stored-heading hand-rule); coastal fast-path when adjacent.
+				if scouting then
+					local sdir = nil
+					local heading = nil
+					if exploreMode == "greedy" then
+						sdir = towardUnexplored(state, unit, me)
+					else
+						if ruleset.rules.aiCoastFollow ~= false and isCoastal(state, unit.x, unit.y, ruleset) then
+							sdir = coastalScoutDir(state, unit, me, ruleset)
+						end
+						if sdir == nil then
+							if exploreMode == "wallfollow" then
+								local wf = wallFollowDir(state, unit, me, ruleset)
+								sdir = wf.dir
+								heading = wf.heading
+							else
+								sdir = bfsStepToNearestUnexplored(state, unit, me, ruleset)
+							end
+						end
+					end
 					if sdir ~= nil then
-						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
+						local cmd = { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
+						if heading ~= nil then
+							cmd.heading = heading
+						end
+						return cmd
 					end
 				end
 				-- B24: OFFENSIVE units form derived army groups -- converge on the

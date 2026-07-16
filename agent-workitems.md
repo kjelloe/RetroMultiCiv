@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 373 tests), the item's own verification steps pass, related
+   (currently 379 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -3122,7 +3122,7 @@ constants rules.json knobs; each slice lab-measured before the
 next; B23 exploration still lands FIRST (it feeds naval probe +
 contact).
 
-## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)
+## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)  [claimed: bugfixer 2026-07-16 night] [done: 2026-07-17 — FIVE-ITERATION saga (pinned scouts → ranging → CONCAVE-COAST ENTRAPMENT root cause → BFS router → self-caught oldest-scout wrong turn). Shipped rules.aiExploreMode bfs(default: coastal fast-path per user doctrine → BFS through explored land)/wallfollow(user literal hand-rule, moveUnit cmd.heading→omit-safe scoutDir)/greedy(identity); newest scout; garrison-exempt if city keeps ≥2 guards. MEASURED: bfs 39.2%/9 cities · wallfollow 20%/8 · greedy 3%/3 — M9 ceiling shattered 13×, civ THRIVES. GOLDEN RE-RECORD incl. turn-100 AND natural (winner FLIPPED p2→p1 — exploration decides games); JS==Luau every value; suite 379/379.]
 
 M9 stuck ~7% of the world through t400; NEITHER exploreMarchRadius
 NOR aiScoutSharePct moves it (sweeps #558 — the knobs are dead
