@@ -80,16 +80,22 @@ AFTERNOON LIST below.
 1. **Merge marker — always the LATEST the architect declares
    consistent** (your ruling). Declared at this writing: the sync
    commit after this edit (the architect names it in chat).
-2. **Studio runC** — one session over the whole R7 arc: R7a small
-   UI (auto-next/auto-end defaults, nearest next-unit, grey/dead
-   gating, research at top center), R7b (unit billboards, site
-   stars, discovery splash), R7d (odds preview vs browser numbers,
-   C city list, J statistics, code chip, three-state End Turn) +
-   the run2 leftovers: click the TAX STEPPERS at least once, note
-   the fog verdict, and SCREENSHOT BOTH void-cover variants
-   (V cycles frame/galaxy/none) for the art pick.
-3. **Void-cover art pick** — parchment frame vs galaxy backdrop,
-   from your runC screenshots (soundboard pattern).
+2. **Studio runC** — one session, THREE deliverables:
+   (a) the R7 arc: R7a small UI (auto-next/auto-end defaults,
+   nearest next-unit, grey/dead gating, research at top center),
+   R7b (unit billboards, site stars, discovery splash), R7d (odds
+   preview vs browser numbers, C city list, J statistics, code
+   chip, three-state End Turn) + run2 leftovers: click the TAX
+   STEPPERS once, note the fog verdict;
+   (b) **V void-cover screenshots** (frame / galaxy / none) for
+   the art pick;
+   (c) **F9 gallery grid screenshot** (R8) — every unit silhouette
+   as native Parts, BOTH cone variants (fan | stack) side by side,
+   for the cone-fidelity pick. If pyramids render inside-out, say
+   so — known one-line apex fix.
+3. **Two art picks from the runC screenshots** (soundboard
+   pattern): void cover (parchment frame vs galaxy) and cone mode
+   (wedge-fan vs disc-stack).
 4. **Coming to you later** (no action yet): cone-fidelity pick
    from R8's Studio gallery grid (wedge-fan vs truncated-cylinder);
    barracks sell-price confirm + M-target pinning after the B13
