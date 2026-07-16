@@ -96,6 +96,28 @@ and A63's obsolescence so armies modernize.
   hashes byte-for-byte. Instruments (fog-relaxed targeting, greedy
   stepper) are lab-only; the shippable AI stays fog-honest.
 
+## 2c. ROUND 2 RESULTS (same night)
+
+- **Per-unit odds gating CONFIRMED as the correct gate — and its
+  constant is COMBAT-RULE-KEYED** (the strongest per-rule signal of
+  the job): best-of-three at per-unit E≈2 is net-positive (k/l 1.1,
+  73% win rate); under ONE-ROLL no odds gate reaches net-positive —
+  single-roll variance defeats every ratio, so one-roll aggression
+  needs MASS (overwhelming numbers), not odds. The AI's war
+  constants will be a per-combat-rule table (the user predicted
+  this before the data existed).
+- **Composition ratio is inert under BOTH formulations** (per-own-
+  defender and per-known-enemy) — attrition saturates it; do not
+  pin R as a tunable until conversion works.
+- **Siege is unmeasurable because AI CITIES ARE NEVER WALLED**
+  (0/36 at t300 — masonry sits off the beeline and the cheapest-
+  building picker never reaches walls): the capture barrier is
+  fortified units, not walls. AI DEFENSIVE BUILDING (walls priority)
+  is a named gap feeding B13/M7.
+- **Winning battles ≠ winning wars**: 73% win rates still produce
+  rare captures. The next lever is CITY-ASSAULT COORDINATION
+  (stack and focus one city) — round 3 tests it.
+
 ## 3. Sequencing
 
 A63 obsolescence (armies must modernize first) → attacker
