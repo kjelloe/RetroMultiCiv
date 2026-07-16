@@ -461,6 +461,15 @@ state can contain units/cities owned by NON-ROSTER owners (barb
 cities, wandering-settler civs) — per-owner consumers must guard
 (the probe crashed twice on exactly this). ALL golden-affecting →
 window discipline, and (a) should land WITH A63's data.
+WAR-PREREQUISITE ADDITIONS (user adopted the doctrine 2026-07-16 —
+docs/15 §2b-2d + §3): the family gains (f) EXPLORATION WEIGHT — the
+lab proved same-continent civs never find each other, so fog-honest
+war is impossible without it (sweep-tuned constant); (g) DEFENSIVE
+BUILDING priority — the AI has never built a wall (0/36 at t300);
+walls-when-threatened joins the build policy. THE FULL FAMILY = ONE
+WINDOW: obsolescence-consume + attackers + era-scaling + explore +
+walls (+ A66 barb tiers). The COORDINATION DOCTRINE window
+(per-combat-rule table, derived army groups) follows it.
 
 ### B18 — ZOC fidelity pair from B14's wiki read (engine legality; one window, both engines, scenario pins)
 
@@ -2557,6 +2566,12 @@ zero-cost-return-visit property is retired deliberately.
 
 **[A63 DATA-HALF: recon done (helper @a1ffc956), RULED by architect @4cfe6d31 — extraction queued as a fresh focused pass, pacing granted; B13's window waits on quality not the clock.]** Findings: the wikiteam dump is MULTI-GAME (Civ1-7) — Civ1 must be isolated by "(Civ1)" tags; the item's proposed chains were partly Civ2. RULINGS: (a) UNITS — author the WIKI-AUTHENTIC per-successor Civ1 chains ("[Successor] renders X,Y,Z obsolete", stated in the successor's article; e.g. Riflemen[def5/cost30/Conscription] obsoletes Cavalry/Legion/Musketeer), DISCARD the item's proposed militia→musketeers→riflemen where it diverges. (b) BUILDINGS — tech-triggered auto-sell MOVED OUT to the Civ2-rules-mode shelf (not Civ1-authentic); A63's Civ1 default keeps only wiki-supported obsolescence. (c) GREAT WALL obsoletes-barracks — model as a WONDER EFFECT (obsoletesBuilding field), the one authentic Civ1 building obsolescence. (d) WONDER expiry — already extracted (wonders.json obsoleteBy, 11/21 from the "Made obsolete by" column); verify completeness. PLAN: per-Civ1-article extraction of successor→obsoletes, naming-drift to slugs, obsoletedBy overlays in tools/mapdata.js, regenerate, goldens byte-identical + data-checksum parity (engine-unconsumed until B13 = golden-neutral), paste the table for the user's editorial pass.
 
+**[A63 RE-RULING (architect, 2026-07-16, from helper @457's fuller dig + user Playtest-IX):** rulings (b) and (c) above are CORRECTED. (b-rev) Barracks obsolescence IS Civ1-authentic — the buildings table and the Barracks (Civ1) article both say "Obsoleted by Gunpowder AND Combustion". AUTHOR NOW: `barracks.obsoletedByTechs = ["gunpowder","combustion"]` via BUILDING_OVERLAY + regenerate (engine-unconsumed = golden-neutral). MECHANIC (consumed at B13): the user rules from playtest memory that barracks were **SOLD (gold credited), not vanished** — the wiki article says vanish-and-rebuild, delta logged, USER AUTHORITY WINS: on discovering each listed tech, every existing barracks is removed and its sell price credited, turn-log line per city. The sell path is SHARED with A86 (manual sell). The Civ2-rules-mode shelf keeps only the broader Civ2 auto-sell-any-obsolete-building flavor. (c-rev) Great Wall obsoletes-barracks WITHDRAWN — helper's misread, his correction accepted; Gunpowder independently expires the Great Wall (existing wonder-expiry entry), obsoletes militia/phalanx (unit table), and obsoletes barracks (b-rev). No obsoletesBuilding wonder field.]**
+
+**[A63 UNIT HALF + WONDER HALF DONE 2026-07-16 (helper @65b5040d) — building half pending re-ruling]** SOURCE: each Civ1 unit INFOBOX has a structured `|obsolete = <Tech>` field (columnar, not prose-only as recon feared) — cross-checked vs the tech articles. Authored 13 obsoletedBy in UNIT_OVERLAY + regenerated units.json (zero naming drift; diff = only the added fields; other 4 data files byte-identical). TABLE: phalanx/militia→gunpowder, musketeers/cavalry/legion→conscription, catapult→metallurgy, cannon→robotics, chariot→chivalry, knights→automobile, trireme→navigation, sail→magnetism, frigate→industrialization, ironclad→combustion. Suite 298/298 = golden-NEUTRAL + luau checksum parity. WONDER expiry already complete (11 obsoleteBy incl. great-wall→gunpowder) — no work. RULING CORRECTIONS surfaced (@65b5040d): (b) Civ1 barracks obsolescence IS authentic — "Obsoleted by Gunpowder AND Combustion", VANISH-and-rebuild mechanic (auto-SELL is the Civ2 part); awaiting re-ruling to author barracks.obsoletedByTechs. (c) WITHDRAWN — Great Wall does NOT obsolete barracks (recon misread); it's Gunpowder that obsoletes barracks + expires the Great Wall wonder (already the wonder-expiry entry). Files: tools/mapdata.js, data/units.json.
+
+**[A63 DATA HALF COMPLETE 2026-07-16 (helper) — B13 window openable]** Barracks authored per re-ruling @8c1d2261: barracks.obsoletedByTechs = ["gunpowder","combustion"] in BUILDING_OVERLAY + a conditional pass-through in buildBuildings (only barracks gets it; other 20 buildings byte-identical). Regenerated; suite 298/298 = golden-neutral + luau checksum parity. MECHANIC (B13, not this data pass): on discovering each listed tech, REMOVE the barracks and CREDIT its sell price as gold + turn-log line (user authority over the wiki's vanish; delta logged). Removal+credit helper SHARED with A86 (manual sell-building). A63 data half DONE: 13 unit obsoletedBy chains + barracks obsoletedByTechs + wonder expiry (pre-existing). Files: tools/mapdata.js, data/units.json, data/buildings.json.
+
 
 
 Three features, one substrate: an `obsoletedBy` chain in the unit
@@ -2647,7 +2662,7 @@ victory type in checkGameEnd + A73's reason line + M-columns
 spaceship block per civ = golden window family, fixtures first.
 Design pass on the wiki numbers, then slices.
 
-## A77 — Sound design v1 (user ruling 2026-07-16: effects for ALL events; tunes for creation + splash; soundtrack later)  [claimed: coder-helper 2026-07-16] [done(v1 impl): 2026-07-16 — SYNTHESIS approved (architect @0920cba9): chiptune-adjacent WebAudio, ZERO repo bytes / zero licensing surface. client/ui/sound-map.js: PURE soundForEvent(e,viewer,cityOwner) riding the turnlog-classes inputs — viewer-aware so combat-win/combat-loss are the user's triumphant/sad pair; SOUND_IDS is the published contract (Roblox row mirrors the MAP, not the source); 4 unit tests. client/ui/sound.js: a tiny oscillator+envelope synth, a recipe table for all 22 cues + two procedural TUNES (creation/splash), fog-filtered cue wiring (filterEvents, session-optional), lazy AudioContext resumed on first gesture (autoplay policy), ⚙ split (master+effects+music, SEPARATE from reduceAnimation). options.js: soundMaster range + soundEffects/soundMusic toggles + defaults. Wired: cues via ctx.sound=initSound (main.js), creation tune under the fast-forward, splash tune under the setup diorama (both tune-only instances reading stored prefs; webdriver-excluded via splashWanted). debugging/soundboard.html (architect addition @7962d375): the gallery's audio twin — every SOUND_ID as a ▶ row + both tunes + per-row comment box + download-JSON/copy-all, served under --debug; it's the USER's tuning surface AND my dev harness. VERIFIED headless (quality = the user's ears by design ruling): map tested, soundboard screenshot renders every row (synth builds w/o throwing), browser e2e 16/16 boots+plays cues in real games w/o throwing, full suite 287/287. HUMAN TUNING PASS pending → points at debugging/soundboard.html. Files: client/ui/{sound-map(new),sound(new),options,setup}.js, client/main.js, debugging/soundboard.html(new), test/sound-map.test.js(new).]
+## A77 — Sound design v1 (user ruling 2026-07-16: effects for ALL events; tunes for creation + splash; soundtrack later)  [claimed: coder-helper 2026-07-16] [done(v1 impl): 2026-07-16 — SYNTHESIS approved (architect @0920cba9): chiptune-adjacent WebAudio, ZERO repo bytes / zero licensing surface. client/ui/sound-map.js: PURE soundForEvent(e,viewer,cityOwner) riding the turnlog-classes inputs — viewer-aware so combat-win/combat-loss are the user's triumphant/sad pair; SOUND_IDS is the published contract (Roblox row mirrors the MAP, not the source); 4 unit tests. client/ui/sound.js: a tiny oscillator+envelope synth, a recipe table for all 22 cues + two procedural TUNES (creation/splash), fog-filtered cue wiring (filterEvents, session-optional), lazy AudioContext resumed on first gesture (autoplay policy), ⚙ split (master+effects+music, SEPARATE from reduceAnimation). options.js: soundMaster range + soundEffects/soundMusic toggles + defaults. Wired: cues via ctx.sound=initSound (main.js), creation tune under the fast-forward, splash tune under the setup diorama (both tune-only instances reading stored prefs; webdriver-excluded via splashWanted). debugging/soundboard.html (architect addition @7962d375): the gallery's audio twin — every SOUND_ID as a ▶ row + both tunes + per-row comment box + download-JSON/copy-all, served under --debug; it's the USER's tuning surface AND my dev harness. VERIFIED headless (quality = the user's ears by design ruling): map tested, soundboard screenshot renders every row (synth builds w/o throwing), browser e2e 16/16 boots+plays cues in real games w/o throwing, full suite 287/287. HUMAN TUNING PASS pending → points at debugging/soundboard.html. Files: client/ui/{sound-map(new),sound(new),options,setup}.js, client/main.js, debugging/soundboard.html(new), test/sound-map.test.js(new).] [tuning round 1: 2026-07-16 — user soundboard verdicts (16 ok, both tunes approved, 6 reworked in sound.js RECIPES): combat-win longer+triumphant (rising fanfare held on high C), capture-win more triumphant (brighter high fanfare), build more triumphant (rising C-E-G), disorder = a RIOT (detuned low cluster that beats like an angry crowd), elimination longer+sadder (slow descending minor line), regent = a "yes, sir" two-note affirmative (rising fifth). Other 16 cues + tunes frozen as-approved. Synth builds (soundboard re-renders), suite 298/298. User re-runs the soundboard to sign off.]
 
 Every game event gets a sound effect — combat WINS triumphant,
 LOSSES sad (the user's explicit pair), founding, growth, discovery,
@@ -2712,7 +2727,10 @@ data). Design:
    unchanged by construction; the proof is them staying green. New
    types are additive presets.
 3. Setup dropdown + ?maptype= param; lobby create option; ff and
-   sim harness accept it.
+   sim harness accept it. (User re-confirmed Playtest-IX 2026-07-16:
+   the game-options screen MUST carry the choice — Continents /
+   Pangaea / Archipelago; Civ4-style variants = later ADDITIVE
+   presets, data-only once the preset table exists.)
 4. **THE SIM ANGLE (the user's actual point)**: landmass topology
    governs finding/attacking other civs — the war-lab ratio
    results are TOPOLOGY-CONDITIONED (current default only until
@@ -2722,6 +2740,62 @@ data). Design:
 Both engines one claim (mapgen.luau twin), wiki pass on Civ 1's
 authentic customize-world knobs at design time. Queue: after the
 era-scaling family (it feeds the SAME sim program).
+
+## B20 — Ships attack coastal land (A71 headline gap; user green-lit 2026-07-16)
+
+Civ 1: battleships/cruisers bombard units on coastal land squares.
+Ours: attack = move-into, and ships can't enter land ⇒ verify then
+fix — an ATTACK-IN-PLACE path for sea units vs adjacent land
+targets (combat resolves normally, attacker stays at sea; no
+capture from sea — an empty coastal city cannot be taken by a
+ship, wiki-verify that edge). Both engines, scenario pin, golden
+window (likely no golden movement since the AI builds no navy, but
+window discipline anyway).
+
+## A83 — Caravan wonder-help (A71's cheap delight; user green-lit 2026-07-16)
+
+Civ 1: a caravan entering a DOMESTIC city building a wonder adds
+its 50 shields and is consumed. Small engine command-path (the
+caravan exists, unpowered today), turn-log line, both engines,
+scenario pin. Trade routes stay in the phase-6/chains design.
+
+## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
+
+Small A64 follow-up: M9's denominator becomes non-polar LAND+COAST
+(spec-true) + the own-continent-explored-by-t150 column; docs/05
+§12 records the CANONICAL config = 7 civs, medium, no-chaos, labels
+t101/201/301/401 as measured. Re-baseline once era-scaling lands.
+
+## A85 — Seam ghost columns (user pick: LATER, behind the AI program)
+
+The seamless east-west illusion: duplicate k columns each side of
+the seam, modulo mapping in castAt picks, mirrored rendering for
+seam-adjacent entities. Polish; keyboard/GoTo already cross.
+
+## A86 — Sell building in city view (user, Playtest-IX 2026-07-16)
+
+Civ 1 lets the player sell a city improvement for gold; ours has no
+sell path at all. Engine + UI + the A63 hookup:
+1. Engine command `sellBuilding {cityId, building}` — removes the
+   building, credits gold, and enforces the Civ 1 limit of ONE sale
+   per city per turn (a per-city `soldThisTurn` flag cleared at turn
+   end — crafted-state note: omit-safe lazy default would move
+   hashes, so include it in the state shape from the start). WIKI-
+   VERIFY the price rule at build time (expected: gold = the
+   building's shield cost; confirm vs the dump, numbers to
+   data/rules.json, never hardcoded).
+2. City view UI: a sell affordance on the buildings list (price
+   shown, confirm on click, turn-log line, disabled once the city
+   has sold this turn). Keyboard-safe per the INPUT/TEXTAREA rule.
+3. **Shared path with A63/B13**: the barracks tech-obsolescence
+   auto-sell (user ruling: SOLD, gold credited) calls the SAME
+   engine removal+credit helper — one implementation, two triggers.
+4. Both engines (twin ModuleScript change), scenario pin for the
+   command, golden window discipline (state-shape addition WILL
+   move goldens — coordinate with the era-scaling window; if B13
+   is open, ride the same window rather than opening a second).
+Roblox parity: a docs/13 Tier-2 row (city panel action) once the
+browser shape settles.
 
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14; NOTE 2026-07-15: A61 sets the hardened-DEFAULT posture + static whitelist FIRST; A50's items assume it)
 

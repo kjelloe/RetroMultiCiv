@@ -402,6 +402,19 @@ least one mid-game disconnect/reconnect.
 **Acceptance:** identical state hashes for a full replayed game; a playable
 Roblox session with the ported engine.
 
+## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
+
+Fourteen health metrics with user-set targets; a measured baseline
+(sim-runner, 100 games) exposing the gaps: no attackers ever built,
+zero rails, zero mines, no walls, exploration blindness, terrarium
+continents. A three-round overnight WAR LABORATORY graded the
+doctrine: the combat rule picks the strategy (one-roll wins by
+coordinated MASS, best-of-three by per-unit ODDS at ~2:1; small
+stacks, strike early; siege is the gate to conquest). Build order
+adopted: the B13 era-scaling family (obsolescence + attackers +
+exploration + walls, one golden window) → the coordination-doctrine
+window → siege. Every slice lab-measured before it ships.
+
 ## Phase 6 — Diplomacy (DESIGNED 2026-07-15; docs/14)
 
 Designed with the user in one session: classic Civ 1 scope (war/

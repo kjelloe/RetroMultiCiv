@@ -123,7 +123,10 @@ players, hash, game code — the first look before replaying),
 `debugging/triage.sh [files…]` replays every recording in
 debugging/logs/ with one verdict line each (B0's mechanized form), and
 `debugging/sync-check.sh [count]` flags stale test counts in the pinned
-docs. Agents: use these scripts, not hand-composed pipe one-liners —
+docs, and `debugging/soundboard.html` (served only under the server's
+`--debug`) plays every synth cue + tune with per-row comment boxes —
+the PERMANENT audio-review tool (user ruling 2026-07-16); new
+SOUND_IDS rows appear automatically. Agents: use these scripts, not hand-composed pipe one-liners —
 inline pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..14` (size-capped via rules.maxCivsBySize), `?humans=N` hotseat,

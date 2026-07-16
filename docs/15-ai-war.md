@@ -140,7 +140,18 @@ three ways in one night):
   defensive wall-building AI (so siege becomes live), multi-front
   waves (one-roll can afford 2 fronts; bo3 cannot).
 
-## 3. Sequencing
+## 3. Sequencing — ADOPTED (user, 2026-07-16 morning, data in hand)
+
+Per-combat-rule doctrine table in rules.json (one-roll = mass
+doctrine, no odds gate, coordinate S=3–5; best-of-three = per-unit
+E≈2 odds-gated surgical mass), derived army groups (state-free),
+nearest-city targeting first (leader-capping = a later sweep).
+BUILD ORDER: the B13 era-scaling family FIRST (obsolescence +
+attackers + explore-weight + walls-building — the two war
+prerequisites the lab exposed) → the coordination doctrine window →
+siege (live once walls exist). Topology (A82) joins the sweep
+matrix when it lands; every slice lab-measured no-chaos, both
+combat rules, per-stance signatures.
 
 A63 obsolescence (armies must modernize first) → attacker
 production + composition (the 3:1 build side) → engagement doctrine

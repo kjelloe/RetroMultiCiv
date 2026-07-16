@@ -416,7 +416,11 @@ golden-safe by unchanged hashes). Verdicts vs the proposed targets:**
   baselines against the NO-CHAOS pair; chaos-on remains the
   regression-soak configuration.
 Targets get pinned in the user's tuning session against these
-distributions.
+distributions. CANONICAL MEASUREMENT CONFIG (user, 2026-07-16):
+**7 civs, medium 80×50, NO-CHAOS**, checkpoint labels t101/201/301/
+401 as measured; M9's denominator becomes non-polar land+coast
+(A84). The re-baseline runs AFTER the era-scaling family lands —
+measuring the pre-fix AI twice buys nothing.
 
 Two halves, strictly ordered: (1) A64 = the MEASUREMENT (telemetry
 columns in sim-driver/soak --stats — golden-safe, ships first;

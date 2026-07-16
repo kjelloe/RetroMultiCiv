@@ -65,7 +65,14 @@ the Done log at the bottom.
   late games? (his suggestion if so: fade when zoomed out, or show
   only own/selected/hovered).
 
-## THE MORNING LIST (2026-07-16, in order)
+## THE MORNING LIST (2026-07-16 — mostly DONE by mid-morning)
+
+✅ dev_night reviewed + merged · ✅ war-lab verdict read, doctrine
+ADOPTED (per-combat-rule, docs/15 §3) · ✅ A71 Decision column ruled
+(B20 + A83 green-lit) · ✅ canonical config confirmed (7 civs, A84)
+· ✅ soundboard signed off (A77 CLOSED; board = permanent tooling).
+REMAINING: **Studio run2** (R5 + R6 in one session, replay bar) and
+the standing next-playtest checklist below.
 
 1. **Review + merge dev_night** — the whole night is one diff; the
    architect's briefing (work / discoveries / decisions) comes with

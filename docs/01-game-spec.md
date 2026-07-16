@@ -485,8 +485,14 @@ designed items in agent-workitems:
   units; cross-ocean settlement/invasion is impossible for everyone.
 - **Obsolescence does not exist** (A63): nothing ever leaves the
   production catalog; the AI happily builds phalanxes with 67 techs.
-  Units-obsolete + building auto-sell + wonder expiry + field
+  Units-obsolete + barracks-sold-at-Gunpowder/Combustion (user
+  ruling Playtest-IX: SOLD with gold credited, not vanished; the
+  wiki says vanish — delta logged in A63) + wonder expiry + field
   upgrades (with Leonardo's Workshop finally gaining its effect).
+- **Buildings cannot be sold** (A86): Civ 1 allows selling one
+  improvement per city per turn for gold; ours has no sell path.
+  Engine command + city-view affordance designed; the barracks
+  obsolescence above reuses the same removal+credit helper.
 - **Barbarians never era-scale** (A66): militia forever; the tier
   system + the REBELS rename are designed.
 - **Special-unit behaviors unaudited** (A71): submarine

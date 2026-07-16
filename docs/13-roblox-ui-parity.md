@@ -35,6 +35,14 @@ per item; the architect cuts R-items from the tiers in order.
 
 ## Tier 1 — the core-loop gap (a solo game feels complete)
 
+> STATUS (R6, 2026-07-16): action bar (incl. improvement orders),
+> research picker (with bulbs/turn), tax steppers, the turn log
+> (server-filtered round events — the eventsOut fix), and move
+> hints ALL LANDED; GoTo deferred (Select's click-move covers the
+> step case; pathfind.luau ports when GoTo justifies it). Combat
+> odds + city-site preview remain the open Tier-1 rows. Played
+> acceptance folds into the user's run2.
+
 | Browser element | Roblox shape (proposal) | Notes |
 |---|---|---|
 | Action bar (unit orders) | context buttons near selected unit (BillboardGui or bottom bar): fortify, skip, irrigate/mine/road, disband, GoTo | GoTo needs a target-pick mode like the browser's |
@@ -53,6 +61,7 @@ per item; the architect cuts R-items from the tiers in order.
 | City list / paging | panel with arrows (browser parity) | |
 | Build catalog w/ locks+effects | production picker grows lock reasons + plain-language effects | data already in view |
 | Worked-tile assignment | city panel: tap tiles in the fat cross to toggle; auto/manual reset | the browser's setWorkers semantics |
+| Sell building (A86) | city panel buildings list: sell action w/ price + confirm | follows the browser shape once A86 lands; one sale/city/turn |
 | Options (anim, auto-end-turn…) | settings panel; Roblox adds its own (streaming off is pinned, input prefs) | |
 | Save/load | R6 question — DataStore vs envelope (scoping lands with R5) | |
 | Game code display | HUD chip + copyable (docs/07 trust loop must stay visible) | |

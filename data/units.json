@@ -27,7 +27,8 @@
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "robotics"
   },
   "caravan": {
     "name": "Caravan",
@@ -48,7 +49,8 @@
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "metallurgy"
   },
   "cavalry": {
     "name": "Cavalry",
@@ -58,7 +60,8 @@
     "moves": 2,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "chariot": {
     "name": "Chariot",
@@ -68,7 +71,8 @@
     "moves": 2,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "chivalry"
   },
   "diplomat": {
     "name": "Diplomat",
@@ -89,7 +93,8 @@
     "moves": 2,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "automobile"
   },
   "legion": {
     "name": "Legion",
@@ -99,7 +104,8 @@
     "moves": 1,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "mech-inf": {
     "name": "Mech. Inf.",
@@ -119,7 +125,8 @@
     "moves": 1,
     "cost": 30,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "conscription"
   },
   "phalanx": {
     "name": "Phalanx",
@@ -129,7 +136,8 @@
     "moves": 1,
     "cost": 20,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "gunpowder"
   },
   "riflemen": {
     "name": "Riflemen",
@@ -149,7 +157,8 @@
     "moves": 1,
     "cost": 10,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "gunpowder"
   },
   "settlers": {
     "name": "Settlers",
@@ -199,7 +208,8 @@
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "industrialization"
   },
   "ironclad": {
     "name": "Ironclad",
@@ -209,7 +219,8 @@
     "moves": 4,
     "cost": 60,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "combustion"
   },
   "sail": {
     "name": "Sail",
@@ -219,7 +230,8 @@
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "magnetism"
   },
   "submarine": {
     "name": "Submarine",
@@ -249,7 +261,8 @@
     "moves": 3,
     "cost": 40,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "obsoletedBy": "navigation"
   },
   "bomber": {
     "name": "Bomber",

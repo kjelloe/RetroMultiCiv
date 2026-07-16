@@ -28,28 +28,28 @@ function arp(wave, gain, freqs, step, dur) { return seq(wave, gain, freqs.map((f
 function fall(wave, gain, from, to, dur) { return seq(wave, gain, [[from, 0, dur * 0.5], [to, dur * 0.5, dur * 0.5]]); }
 
 const RECIPES = {
-  'combat-win': chord('square', 0.18, [NOTE.C4, NOTE.E4, NOTE.G4], 0.16),          // a triumphant triad
+  'combat-win': seq('square', 0.2, [[NOTE.C4, 0, 0.1], [NOTE.E4, 0.09, 0.1], [NOTE.G4, 0.18, 0.1], [NOTE.C5, 0.27, 0.34]]), // user: longer + more triumphant — a rising fanfare held on the high C
   'combat-loss': fall('sawtooth', 0.16, NOTE.E4, NOTE.C4, 0.22),                    // a sad drop
   'combat-distant': seq('triangle', 0.05, [[NOTE.C4, 0, 0.06]]),                    // a faint clash
-  'capture-win': arp('square', 0.18, [NOTE.C4, NOTE.G4, NOTE.C5], 0.06, 0.14),
+  'capture-win': seq('square', 0.2, [[NOTE.G4, 0, 0.1], [NOTE.C5, 0.09, 0.1], [NOTE.E5, 0.18, 0.1], [NOTE.G5, 0.27, 0.36]]), // user: more triumphant — a brighter, higher rising fanfare
   'capture-loss': fall('sawtooth', 0.18, NOTE.C4, NOTE.G3, 0.3),
   'capture-distant': seq('triangle', 0.05, [[NOTE.G3, 0, 0.08]]),
   'found': arp('triangle', 0.16, [NOTE.C4, NOTE.G4], 0.07, 0.14),                   // a settling chime
   'grow': seq('triangle', 0.13, [[NOTE.G4, 0, 0.08], [NOTE.C5, 0.06, 0.1]]),
   'starve': fall('sine', 0.14, NOTE.A3, NOTE.E3, 0.28),
-  'build': seq('square', 0.1, [[NOTE.E4, 0, 0.06], [NOTE.G4, 0.06, 0.08]]),
-  'disorder': seq('sawtooth', 0.14, [[NOTE.C4, 0, 0.12], [NOTE.B4 / 2, 0.05, 0.14]]), // a dissonant wobble
+  'build': seq('square', 0.14, [[NOTE.C4, 0, 0.09], [NOTE.E4, 0.08, 0.09], [NOTE.G4, 0.16, 0.22]]), // user: more triumphant — a confident rising C-E-G held on G
+  'disorder': seq('sawtooth', 0.11, [[NOTE.C3, 0, 0.26], [NOTE.C3 * 1.06, 0.03, 0.26], [NOTE.E3, 0.07, 0.24], [NOTE.C3 * 0.94, 0.12, 0.28]]), // user: a RIOT of unhappy people — a detuned low cluster that beats/murmurs like an angry crowd
   'order': arp('triangle', 0.12, [NOTE.E4, NOTE.G4, NOTE.C5], 0.05, 0.1),
   'tech': arp('square', 0.12, [NOTE.G4, NOTE.C5, NOTE.E5, NOTE.G5], 0.045, 0.09),   // a sparkle
   'wonder': arp('square', 0.2, [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.E5], 0.08, 0.2), // fanfare
   'age': arp('square', 0.22, [NOTE.C4, NOTE.G4, NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6], 0.09, 0.26), // the historian's fanfare
   'defeat': fall('sawtooth', 0.2, NOTE.A3, NOTE.C3, 0.5),
-  'elimination': seq('triangle', 0.12, [[NOTE.C4, 0, 0.1], [NOTE.G3, 0.1, 0.16]]),
+  'elimination': seq('triangle', 0.14, [[NOTE.E4, 0, 0.24], [NOTE.C4, 0.22, 0.24], [NOTE.A3, 0.44, 0.28], [NOTE.E3, 0.66, 0.44]]), // user: longer + sadder — a slow descending minor line settling on a held low E
   'barbarian': seq('sawtooth', 0.16, [[NOTE.C3, 0, 0.14], [NOTE.E3, 0.07, 0.14]]),  // a menacing horn
   'victory': arp('square', 0.24, [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.G4, NOTE.C5], 0.1, 0.28),
   'gameover': fall('sawtooth', 0.2, NOTE.G3, NOTE.C3, 0.6),
   'government': arp('triangle', 0.14, [NOTE.C4, NOTE.F4, NOTE.A4], 0.07, 0.14),
-  'regent': seq('square', 0.08, [[NOTE.G4, 0, 0.05], [NOTE.E4, 0.05, 0.06]])        // a soft robot blip
+  'regent': seq('square', 0.11, [[NOTE.C4, 0, 0.08], [NOTE.G4, 0.08, 0.14]])        // user: a "yes, sir" — a crisp two-note affirmative rising a confident fifth
 };
 
 // The two TUNES: short looping note lists [freq, dur] on a mellow triangle.

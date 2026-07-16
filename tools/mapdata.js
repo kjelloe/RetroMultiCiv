@@ -178,15 +178,43 @@ function buildTechs() {
 // BUILDING_OVERLAY/WONDER_OVERLAY and merged onto the wiki-derived unit.
 // B18: Diplomats, Caravans, and nuclear weapons IGNORE zone of control (the
 // wiki's Diplomat attribute is literally "Ignores adjacent enemy units").
+// A63 (data half): each unit's obsoletedBy TECH, verified against the Civ1 wiki
+// unit infoboxes (the `|obsolete =` field, cross-checked against the tech
+// articles' "renders X obsolete" prose). A unit leaves the catalog once this
+// tech is known — the ENGINE does not consume this yet (B13 wires it), so it is
+// golden-neutral. Units absent here never obsolete (Armor, Riflemen, Battleship,
+// modern/space units, Settlers, Diplomat, Caravan, …). Chains: phalanx/militia
+// →gunpowder, musketeers/cavalry/legion→conscription, catapult→metallurgy,
+// cannon→robotics, chariot→chivalry, knights→automobile, trireme→navigation,
+// sail→magnetism, frigate→industrialization, ironclad→combustion.
 const UNIT_OVERLAY = {
   'diplomat': { ignoresZoc: true },
   'caravan':  { ignoresZoc: true },
-  'nuclear':  { ignoresZoc: true }
+  'nuclear':  { ignoresZoc: true },
+  'phalanx':    { obsoletedBy: 'gunpowder' },
+  'militia':    { obsoletedBy: 'gunpowder' },
+  'musketeers': { obsoletedBy: 'conscription' },
+  'cavalry':    { obsoletedBy: 'conscription' },
+  'legion':     { obsoletedBy: 'conscription' },
+  'catapult':   { obsoletedBy: 'metallurgy' },
+  'cannon':     { obsoletedBy: 'robotics' },
+  'chariot':    { obsoletedBy: 'chivalry' },
+  'knights':    { obsoletedBy: 'automobile' },
+  'trireme':    { obsoletedBy: 'navigation' },
+  'sail':       { obsoletedBy: 'magnetism' },
+  'frigate':    { obsoletedBy: 'industrialization' },
+  'ironclad':   { obsoletedBy: 'combustion' }
 };
 
 const BUILDING_OVERLAY = {
   'palace':              { cost: 200, maintenance: 0, effect: { isPalace: true } },
-  'barracks':            { cost: 40,  maintenance: 1, effect: { veteranUnits: true } },
+  // A63: Civ1 barracks are made obsolete by Gunpowder AND Combustion (wiki
+  // infobox + Gunpowder/Combustion articles; user Playtest-IX confirms). B13
+  // wires the mechanic — REMOVE the building and CREDIT its sell price as gold
+  // on discovering each listed tech (user ruling over the wiki's vanish; the
+  // removal+credit helper is shared with A86 manual sell). Golden-neutral until
+  // then (engine-unconsumed field).
+  'barracks':            { cost: 40,  maintenance: 1, effect: { veteranUnits: true }, obsoletedByTechs: ['gunpowder', 'combustion'] },
   'granary':             { cost: 60,  maintenance: 1, effect: { halvesGrowthFood: true } },
   'temple':              { cost: 40,  maintenance: 1, effect: { contentBonus: 1, contentDoubleTech: 'mysticism' } },
   'marketplace':         { cost: 80,  maintenance: 1, effect: { taxBonus: 50, luxBonus: 50 } },
@@ -243,6 +271,7 @@ function buildBuildings(techs) {
       maintenance: overlay.maintenance,
       effect: overlay.effect
     };
+    if (overlay.obsoletedByTechs) buildings[id].obsoletedByTechs = overlay.obsoletedByTechs; // A63
   }
   const count = Object.keys(buildings).length;
   if (count !== 21) throw new Error(`expected 21 buildings, got ${count}`);
