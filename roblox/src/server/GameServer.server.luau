@@ -88,15 +88,22 @@ remote.Parent = ReplicatedStorage
 local seatUserId = nil
 local roundInFlight = false
 
-local function pushView(player)
-	remote:FireClient(player, {
+-- rawEvents (optional) ride the push AFTER the fog policy — filterEvents at
+-- push time with the then-current state, the session.js incremental-notify
+-- semantics (R6: the turn log's server half)
+local function pushView(player, rawEvents)
+	local payload = {
 		t = "view",
 		view = visibility.filterView(state, HUMAN_SEAT),
 		activePlayer = state.activePlayer,
 		turn = state.turn,
 		year = state.year,
 		gameOver = state.gameOver == true,
-	})
+	}
+	if rawEvents ~= nil and #rawEvents > 0 then
+		payload.events = visibility.filterEvents(state, rawEvents, HUMAN_SEAT)
+	end
+	remote:FireClient(player, payload)
 end
 
 local function seatPlayer()
@@ -131,22 +138,39 @@ local function handleJoin(player, commandId)
 	})
 end
 
--- the chunked AI round: session.js endTurn(), one heartbeat per AI player
-local function runAiRound(player)
+-- the chunked AI round: session.js endTurn(), one heartbeat per AI player.
+-- R6: `collected` gathers every event of the round (the human endTurn's own,
+-- each AI's runAiTurn eventsOut, each AI endTurn's) — the eventsOut=nil gap
+-- that starved the turn log. Progress pushes carry the slice since the last
+-- push; the caller sends whatever remains. Event collection never touches
+-- state or RNG, so hashes are unchanged.
+local function runAiRound(player, collected)
 	roundInFlight = true
+	local seen = 0
+	local function pushProgress()
+		if player == nil then
+			seen = #collected
+			return
+		end
+		local slice = table.move(collected, seen + 1, #collected, 1, {})
+		seen = #collected
+		pushView(player, slice) -- progress: the client watches the round advance
+	end
+	pushProgress() -- repaint after the human endTurn, carrying its events
 	local guard = 10
 	while state.gameOver ~= true and state.players[state.activePlayer].human ~= true and guard > 0 do
 		guard = guard - 1
 		task.wait() -- A30: yield a frame per AI player; no frozen frames
-		state = aiModule.runAiTurn(engine, state, state.activePlayer, ruleset, nil)
+		state = aiModule.runAiTurn(engine, state, state.activePlayer, ruleset, collected)
 		local res = engine.applyCommand(state, { type = "endTurn", playerId = state.activePlayer })
 		if not res.ok then
 			break
 		end
 		state = res.state
-		if player then
-			pushView(player) -- progress: the client watches the round advance
+		for _, e in ipairs(res.events) do
+			table.insert(collected, e)
 		end
+		pushProgress()
 	end
 	roundInFlight = false
 	logEntry({ t = "round", turn = state.turn, activePlayer = state.activePlayer,
@@ -154,6 +178,7 @@ local function runAiRound(player)
 	-- the player-visible acceptance token (@c0ad3988): the Node replay must
 	-- reproduce this exact code from the same point in the log
 	print(("[R4CODE] turn=%d code=%s"):format(state.turn, gamecode.gameCode(state)))
+	return seen
 end
 
 remote.OnServerEvent:Connect(function(player, msg)
@@ -192,16 +217,21 @@ remote.OnServerEvent:Connect(function(player, msg)
 	end
 
 	state = res.state
+	local pending = res.events
 	if cmd.type == "endTurn" then
 		-- session.js semantics: an OK endTurn is subsumed by the round entry
-		pushView(player)
-		runAiRound(player)
+		local collected = {}
+		for _, e in ipairs(res.events) do
+			table.insert(collected, e)
+		end
+		local seen = runAiRound(player, collected)
+		pending = table.move(collected, seen + 1, #collected, 1, {})
 	else
 		logEntry({ t = "cmd", turn = state.turn, cmd = cmd, ok = true,
 			hash = statehash.hashState(state) })
 	end
 
-	local events = visibility.filterEvents(state, res.events, HUMAN_SEAT)
+	local events = visibility.filterEvents(state, pending, HUMAN_SEAT)
 	remote:FireClient(player, {
 		t = "view",
 		view = visibility.filterView(state, HUMAN_SEAT),

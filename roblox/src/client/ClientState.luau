@@ -19,6 +19,8 @@ local M = {
 
 local viewCallbacks = {}
 local cityOpenCallbacks = {}
+local eventCallbacks = {} -- R6: filtered round events riding view pushes
+local researchOpenCallbacks = {} -- R6: research picker open/toggle channel
 local nextCommandId = 1
 
 -- lazy client-side ruleset tables (R5 city panel): same baked JSON, same
@@ -29,7 +31,7 @@ function M.rulesets()
 		local json2lua = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("json2lua"))
 		local folder = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("rulesets")
 		rulesetCache = {}
-		for _, name in ipairs({ "units", "buildings", "wonders", "techs", "rules" }) do
+		for _, name in ipairs({ "units", "buildings", "wonders", "techs", "rules", "terrain", "governments" }) do
 			rulesetCache[name] = json2lua.parse(require(folder:WaitForChild(name)))
 		end
 	end
@@ -43,6 +45,20 @@ end
 function M.openCity(cityId)
 	for _, cb in ipairs(cityOpenCallbacks) do
 		cb(cityId)
+	end
+end
+
+function M.onEvents(cb)
+	table.insert(eventCallbacks, cb)
+end
+
+function M.onResearchOpen(cb)
+	table.insert(researchOpenCallbacks, cb)
+end
+
+function M.openResearch()
+	for _, cb in ipairs(researchOpenCallbacks) do
+		cb()
 	end
 end
 
@@ -96,6 +112,11 @@ remote.OnClientEvent:Connect(function(msg)
 		end
 		for _, cb in ipairs(viewCallbacks) do
 			cb(M.view)
+		end
+		if msg.events ~= nil and #msg.events > 0 then
+			for _, cb in ipairs(eventCallbacks) do
+				cb(msg.events, M.view)
+			end
 		end
 	elseif msg.t == "rejected" then
 		print(("[Client] rejected (commandId %s): %s"):format(tostring(msg.commandId), tostring(msg.code)))

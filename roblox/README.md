@@ -68,7 +68,13 @@ don't commit it.
    city panel (production picker + Buy). `P` possesses the selected
    unit (avatar rides it, WASD/arrows step it one tile per press —
    map-absolute, W=N), `N` jumps to the next unit with moves, `F`
-   dismounts. The server prints `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
+   dismounts. R6 surfaces: the bottom action bar (Found `B`, Fortify
+   `G`, Wait `Space`, Disband `X`, Research `T`), the turn log
+   (`L` toggles, bottom left, counts unseen entries while closed),
+   the research picker with tax/lux steppers (`T`; auto-opens when
+   research is unset), and green/red move hints around the selected
+   unit (legal steps / attacks). The server prints
+   `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`
    (SPEC.md §5).

@@ -227,6 +227,45 @@ the reliable one). All keys respect chat focus
 (`GetFocusedTextBox` guard). Dismount is automatic when the ridden
 unit dies or leaves the view.
 
+## 3g. Tier-1 core-loop parity (`src/client/`, R6)
+
+The server half came first (architect item order): `GameServer`'s AI
+round now COLLECTS events — the human endTurn's own, each AI player's
+`runAiTurn` eventsOut (the `nil` that starved the browser turn log's
+twin), and each AI endTurn's — and every progress push carries the
+slice since the last push through `filterEvents` at push time (the
+session.js incremental-notify semantics). Event collection never
+touches state or RNG: hashes and the R4 acceptance bar are unchanged.
+`ClientState` fans them out via `onEvents(cb)`.
+
+- `TurnLog.client.luau` — collapsible bottom-left log (`L` toggles;
+  the closed toggle counts unseen entries). Narrates the browser
+  turnlog.js vocabulary (combat/captures/growth/completions/wonders/
+  government/tech…) from the view + baked rulesets; win/loss/rival/
+  world color classes; 150-row cap; an unknown event shape prints
+  `[?] <type>` rather than killing the loop.
+- `ActionBar.client.luau` — bottom-center bar (ScreenGui, not
+  Billboards — the adopted docs/13 review): Found (B) / Fortify (G) /
+  Wait (Space) / Disband (X) / Ride (P, narrates where the real key
+  lives) / Research (T). Buttons grey by context (selected own unit,
+  your turn); actions are commands only; hotkeys G/Space/X live here,
+  chat-guarded. Space also jumps the avatar — cosmetic, unanchored
+  avatar only.
+- `ResearchPicker.client.luau` — `T` toggles; auto-opens once each
+  time research is unset on your turn. Lists `availableTechs` and
+  `researchCost` REQUIRED from the read-only luau engine modules on a
+  view-shaped shim (the @b81f92dd ruling: presentational math may use
+  engine modules; ACTING stays commands — `setResearch {tech}`).
+  Below: tax/lux STEPPERS (±10, science is the remainder; sliders
+  fight the camera drag) sending `setRates {tax,sci,lux}`; the gov
+  cap shows when known, the server stays the judge.
+- `MoveHints.client.luau` — while an own unit with moves is selected,
+  its eight neighbors get markers: green = legal step (known tile,
+  domain match, no enemy — move-hints.js's A19 legality, never cost/
+  ZOC math), red = enemy on an enterable tile (the attack ring).
+  Markers are `CanQuery=false` so Select's raycast passes through;
+  selection isn't evented, so a per-frame key compare drives refresh.
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -300,3 +339,9 @@ fixed setup is `0x0ca5d97c`.
   PENDING: the user's run2 playtest (production change + Buy +
   possessed moves + fog verdict), `acceptance/run2.txt` replayed via
   assemble.js, screenshots `R5-city.png`/`R5-possess.png` read.
+- R6: **CODE-COMPLETE 2026-07-16** (claimed @814b833e, built
+  overnight) — §3g: turn-log server half (AI-round event collection)
+  + turn log, action bar, research picker + rate steppers, move
+  hints; check.sh 26 gates. pathfind/GoTo deferred (flagged to the
+  architect). Acceptance PENDING: a played Studio run exercising the
+  new surfaces, replayed to the R4 bar.
