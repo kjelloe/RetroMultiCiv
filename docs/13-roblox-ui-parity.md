@@ -92,7 +92,7 @@ per item; the architect cuts R-items from the tiers in order.
 | Save/load | R6 question — DataStore vs envelope (scoping lands with R5) | |
 | Game code display | HUD chip + copyable (docs/07 trust loop must stay visible) | |
 
-## Tier 3 — multiplayer/social (needs R6 seats first)
+## Tier 3 — multiplayer/social (needs R6 seats first; **1.0-REQUIRED** — user ruling 2026-07-16: both platforms launch multiplayer-complete)
 
 | Browser element | Roblox shape | Notes |
 |---|---|---|

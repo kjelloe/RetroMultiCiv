@@ -1,6 +1,8 @@
 # Phase 6 — Diplomacy (designed with the user, 2026-07-15)
 
-Status: DESIGNED. Four scope decisions are the user's (session
+Status: DESIGNED; **FULL D1–D6 is 1.0-REQUIRED** (user definition
+ruling 2026-07-16 — human LAN treaties included, not deferred).
+Four scope decisions are the user's (session
 2026-07-15): classic Civ 1 scope · modal audiences for AI-initiated
 contact + inline status · reputation AND senate consequences ·
 formal treaties for humans in LAN too. The standing acceptance

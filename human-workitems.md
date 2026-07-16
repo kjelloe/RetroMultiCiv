@@ -101,12 +101,20 @@ AFTERNOON LIST below.
    browser games you play, one per difficulty when it happens —
    they seed the HUMAN BENCHMARK row the AI tuning now targets
    ("challenging, legible, fair" vs YOUR line, docs/05 §12).
-5. **Three small confirms available now** (wiki-silent rulings,
-   veto any): (a) barracks sell price = FULL BUILD COST (40g);
-   (b) NO AMPHIBIOUS ASSAULT — a unit aboard a ship cannot attack
-   from the water; it unloads to open land first (no Marine unit
-   in Civ 1); (c) transport capacities: trireme 2 / sail 3 /
-   frigate 4 / transport 8 (canonical, wiki table absent).
+5. **Confirms available now** (wiki-silent rulings, veto any):
+   (a) barracks sell price = FULL BUILD COST (40g); (b) NO
+   AMPHIBIOUS ASSAULT — aboard units unload to open land first
+   (no Marine in Civ 1); (c) transport capacities trireme 2 /
+   sail 3 / frigate 4 / transport 8; (d) coming with A72's close:
+   fighter fuel 1 / bomber 2 / carrier capacity 8.
+6. **1.0 rulings recorded** (2026-07-16 quad session — no further
+   action): maximal cut (docs/03 block) — full D1–D6, Roblox
+   Tier 3 at launch, master index in 1.0, all content extras;
+   pollution AUTHENTIC-ON; nukes enabled everywhere + lobby
+   toggle; debug commands with permanent DEBUG taint; A59 leaders
+   build-ready after sweeps. YOUR future gate on the master index:
+   scheduling DNS + the host box (docs/12 phase C) — sometime
+   before 1.0.
 6. **Coming to you later** (no action yet): the M-TARGET PINNING
    session once the post-B21 re-baseline + knob sweeps land
    (sim-runner in flight) — the first tuning conversation where
