@@ -11,8 +11,13 @@ window → N8. W2 #10 tile yield scorer → N9. A79 blockade → N10.
 A89 caravan trade routes → N11. A63-rest field upgrades/Leonardo
 (upgradeUnit) → N12. A92 debug commands → N13. A4 goody huts →
 N14. A59 leaders build (fully specified; axes+favorites consume
-the Wave-2 machinery) → N15. A91 pollution → N16. A82 map types
-v1. (W2 #6 catch-up stays LAST-by-design — not tonight.)
+the Wave-2 machinery) → **N15. D1 diplomacy (war/peace state +
+relationship-model core — USER GO 2026-07-17: phase 6 opens
+tonight) → N16. D2 (first-contact audiences + the five dialogue
+voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
+arrival per the wiki facts; the GRAPHICAL screen is the helper's
+half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
+catch-up stays LAST-by-design — not tonight.)
 
 **HELPER — golden-neutral lane, parallel; order:**
 H1. A93 M-floor nightly enforcement (small) → H2. A50 items 1–3
@@ -21,13 +26,19 @@ user rotation spec; join-by-id close — the docs/16 gap list) →
 H3. A49 playwright lane (dep user-approved; DOM backlog
 A87/A90/A97/A98 as its first cases) → H4. A54 off-turn pre-work →
 H5. A67 art pass (visual-golden stream; re-record via
-workflow_dispatch artifacts, the proven flow) → H6. A58 pedia
-(as far as the night allows).
+workflow_dispatch artifacts, the proven flow) → H6. ONBOARDING
+ADVISOR (user go — the designed muteable hint system) → H7. A51
+MASTER-INDEX CODE (user go — announce protocol + index service +
+in-client server browser, docs/12 §6; deploy waits on the box,
+tests run against a local index) → H8. A76-UI GRAPHICAL ship
+screen (user ruling: graphical FROM THE START — visual ship
+assembly, parts appearing as built; pairs with N17's engine) →
+H9. A58 pedia (as far as the night allows).
 
 **ROBLOX-HELPER:** R12 close → R9 lobby place → R10 save/resume →
-R11 ride pad → R7c-3 worked-tile PROTOTYPE (build + screenshot
-for the user's morning look — approved-shape pending, prototype
-is not shipping). Manifests via sim-runner as usual.
+R11 ride pad → R7c-3 worked-tile FULL BUILD (user un-gated
+2026-07-17: "proceed regardless" — pyramid + worked-tile review
+deferred to his later look; note-for-review marks in SPEC). Manifests via sim-runner as usual.
 
 **SIM-RUNNER:** B26 elim re-sweep at its close (the M11 table for
 the user session) → per-slice measurement after EACH Wave-2 slice
