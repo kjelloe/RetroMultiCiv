@@ -3090,6 +3090,26 @@ lesson). Keyboard-safe per the INPUT rule; the 'manual'
 buildingSold turn-log line already exists (A86). Roblox parity
 joins the existing docs/13 Tier-2 sell row.
 
+## A98 — LAN resume-by-code: the game code as the host's resume passphrase (user 2026-07-16 night; helper)
+
+When setting up a LAN game, the HOST can enter a game code (the
+docs/07 verification code every save already carries — it IS the
+passphrase, no new secret invented) to resume that specific saved
+game from the CLIENT:
+1. Lobby create panel gains "Resume from code" (input + button,
+   next to the A34 pick-a-save flow it generalizes).
+2. Server: host-only message resumeByCode{code} → scan/index
+   saves/ for the envelope whose gameCode matches → boot it via
+   the existing A34 resume path; reject with a friendly reason if
+   absent. The code is authorization-by-knowledge (docs/12 §3.1's
+   design, arriving on LAN first).
+3. Roblox parity later (docs/13 Tier-3 lobby row).
+Server + lobby UI + ws test (resume-by-code round-trip + wrong-
+code reject); golden-neutral. NOTE the A50 tie-in: rotation (item
+3 there) must NEVER rotate out a save the host may still resume —
+completed/abandoned first, and the how-to-host saves section
+documents the interplay.
+
 ## A94 — How-to-host guide + Docker image + README links (user package 2026-07-16 evening; helper)  [claimed: helper 2026-07-16] [done: 2026-07-16 — docs/how-to-host.md (source of truth: quick-start run.sh/run.ps1, Ubuntu+systemd, Docker, promoted Hetzner nginx+certbot walkthrough SANITIZED from ops/hosting-recipe.md — DB/secrets stripped since we have neither, the /ws WebSocket upgrade block made explicit as the one RetroMultiCiv delta, Raspberry Pi deltas-only, full flag reference); client/host-guide.html (hand-authored served twin under the hardened /client/ whitelist, self-contained, renders clean); Dockerfile (node:22-slim, npm ci --omit=dev = ws only, ENTRYPOINT node server/index.js so `docker run … --flags` pass through, VOLUME /app/saves) + .dockerignore + compose.yaml; .github/workflows/docker-image.yml (build job validates always; publish job GATED on repo var PUBLISH_GHCR=='true' — owner opt-in for the public GHCR artifact per §2); README.md "Host your own server" section near top + docs-table row. All flags/paths verified against server/index.js (port 8123, /ws, hardened whitelist client/engine/shared/data). GOLDEN-NEUTRAL (docs/infra/static only); suite 359/359 zero-skip; YAML validated; host-guide screenshotted. OPTIONAL FOLLOW-UP: a visible in-client link to /client/host-guide.html from setup/lobby (left out — touches setup.js, a UI-placement call for you/user). A96 (self-check + maintenance page) is the package's second half, still queued.]
 
 1. **docs/how-to-host.md** (source of truth) + **client/host-guide
@@ -3284,7 +3304,12 @@ weekends) is available the moment the user flips the alias.
 2. Per-IP rate limits on join/create/listGames/chat + global caps
    (games, connections, creates/IP/hour).
 3. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist+retention,
-   abandoned-game archive, saves/ size budget.
+   abandoned-game archive, saves/ size budget. USER SPEC
+   (2026-07-16 night): ROTATION like logs — config-driven caps,
+   defaults maxSaves=100 AND maxSavesMb=<NN, host-config>; oldest
+   completed/abandoned games rotate out first, ACTIVE games never;
+   log rotation likewise (maxLogDays=10 / maxLogMb=10). Flags +
+   how-to-host.md documentation ride the same slice.
 4. General messages/sec/conn limiter (chat's pattern, widened).
 5. `/healthz` endpoint + one-line structured logs (join/create/
    expire).
