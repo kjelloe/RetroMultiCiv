@@ -1,0 +1,53 @@
+{
+  "name": "A72: an air unit flies over land and out over the sea",
+  "notes": "5x5, columns 0-2 grassland (land), 3-4 ocean (sea). A fighter (domain 'air') at (1,2) flies E over land to (2,2), then E over the OCEAN to (3,2) — no terrain is domain 'air', so before A72 it was grounded. Air spends 1 movement per tile (terrain-blind). Final state (fighter at 3,2, two moves spent) is the cross-language contract. No RNG.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1"],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" }
+        ]
+      },
+      "units": {
+        "f1": { "id": "f1", "type": "fighter", "owner": "p1", "x": 1, "y": 2, "moves": 10, "fortified": false, "veteran": false }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "f1", "dir": "E" },
+      "expect": { "ok": true, "state": { "units.f1.x": 2, "units.f1.moves": 9 } },
+      "notes": "fly over land, 1 movement"
+    },
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "f1", "dir": "E" },
+      "expect": { "ok": true, "state": { "units.f1.x": 3, "units.f1.moves": 8 } },
+      "notes": "fly out over the ocean"
+    }
+  ],
+  "final": {
+    "state": { "units.f1.x": 3, "units.f1.y": 2, "units.f1.moves": 8 },
+    "hash": "0x87aa2674"
+  }
+}

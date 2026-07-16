@@ -277,7 +277,9 @@
     "moves": 8,
     "cost": 120,
     "domain": "air",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true,
+    "fuel": 2
   },
   "fighter": {
     "name": "Fighter",
@@ -287,7 +289,9 @@
     "moves": 10,
     "cost": 60,
     "domain": "air",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true,
+    "fuel": 1
   },
   "nuclear": {
     "name": "Nuclear",

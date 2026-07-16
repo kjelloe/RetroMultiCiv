@@ -104,7 +104,9 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
   if (attacker.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
 
   const tileDomain = ruleset.terrain.terrains[state.map.tiles[ty * state.map.width + tx].t].domain;
-  const canReach = tileDomain === atype.domain || (atype.domain === 'sea' && tileDomain === 'land');
+  // A72: air units strike targets on any tile; sea units bombard coastal land.
+  const canReach = atype.domain === 'air' || tileDomain === atype.domain
+    || (atype.domain === 'sea' && tileDomain === 'land');
   if (!canReach) return { ok: false, reason: 'cannotAttackThere' }; // e.g. land unit vs ships at sea
 
   const defender = bestDefender(state, tx, ty, ruleset);

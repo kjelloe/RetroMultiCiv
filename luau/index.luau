@@ -16,6 +16,7 @@ local tech = require("./tech") -- batch 3 (P5-5)
 local happiness = require("./happiness") -- batch 3 (P5-5, pin dependency)
 local government = require("./government") -- batch 4 (P5-6, completed)
 local barbarians = require("./barbarians") -- batch 5 (P5-7)
+local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
 local mapgen = require("./mapgen") -- batch 5 (P5-7)
 
@@ -92,6 +93,7 @@ hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
 hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
+hooks.processAir = air.processAir -- A72: fuel/crash for airborne units
 hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
 
 -- A75: the world's CURRENT AGE is DERIVED — the highest TECH ERA reached by at
@@ -169,6 +171,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processCities(state, ruleset, events)
 		hooks.processResearch(state, ruleset, events)
 		hooks.processBarbarians(state, ruleset, events)
+		hooks.processAir(state, ruleset, events)
 		hooks.checkGameEnd(state, ruleset, events)
 		local ageAfter = worldAge(state, ruleset)
 		if ageAfter ~= ageBefore then

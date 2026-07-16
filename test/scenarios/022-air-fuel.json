@@ -1,0 +1,53 @@
+{
+  "name": "A72: a fighter aloft past its fuel crashes at the turn wrap",
+  "notes": "5x5 grassland, single player, no cities. A fighter (fuel 1) sits in the open. endTurn wraps turn 5->6: processAir counts it 1 turn aloft (survives). A second endTurn (6->7): aloft would hit 2 > fuel 1, so it crashes (airCrashed) and is removed. Final state (no units) is the cross-language contract. No RNG: turn <16 so no barbarians, no cities.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1"],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "f1": { "id": "f1", "type": "fighter", "owner": "p1", "x": 2, "y": 2, "moves": 10, "fortified": false, "veteran": false }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true, "state": { "units.f1.aloft": 1 } },
+      "notes": "one turn aloft, survives"
+    },
+    {
+      "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true, "state": { "units.f1": null } },
+      "notes": "out of fuel — crashes"
+    }
+  ],
+  "final": {
+    "state": { "units.f1": null },
+    "hash": "0x43cf9dc1"
+  }
+}

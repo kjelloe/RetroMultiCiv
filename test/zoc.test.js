@@ -60,10 +60,10 @@ test('B18: city ZOC needs BOTH tiles adjacent (positive control)', async () => {
   assert.strictEqual(res.ok, true, 'destination is not city-adjacent, so ZOC does not bind');
 });
 
-test('B18: exactly diplomat/caravan/nuclear carry ignoresZoc in units.json', async () => {
+test('B18/A72: diplomat/caravan/nuclear + the air units carry ignoresZoc in units.json', async () => {
   const flagged = Object.keys(UNITS).filter(id => UNITS[id].ignoresZoc === true).sort();
-  assert.deepStrictEqual(flagged, ['caravan', 'diplomat', 'nuclear'],
-    'the three Civ 1 ZOC-ignoring units, and only those');
+  assert.deepStrictEqual(flagged, ['bomber', 'caravan', 'diplomat', 'fighter', 'nuclear'],
+    'the ground ZOC-ignorers (B18) plus the air units (A72), and only those');
   // a normal unit must not carry it (guards the overlay against over-application)
   assert.strictEqual(UNITS.militia.ignoresZoc, undefined);
   assert.strictEqual(UNITS.legion.ignoresZoc, undefined);

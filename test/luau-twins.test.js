@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 18, 'the eighteen scenarios (019/020 naval transport added in A69)');
+      assert.strictEqual(files.length, 20, 'the twenty scenarios (022 air fuel added in A72)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -140,7 +140,9 @@ const PORTED = [
   '017-ship-vs-land.json', // B20: ships attack coastal land in-place, no capture from sea
   '018-caravan-wonder.json', // A83: caravan helps build a wonder (helpWonder command)
   '019-naval-transport.json', // A69: load onto a transport, sail, unload
-  '020-transport-sunk.json' // A69: a sunk transport drowns its cargo
+  '020-transport-sunk.json', // A69: a sunk transport drowns its cargo
+  '021-air-movement.json', // A72: air units fly over any tile
+  '022-air-fuel.json' // A72: an air unit out of fuel crashes at the wrap
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

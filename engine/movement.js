@@ -98,7 +98,9 @@ function moveUnit(state, cmd, ruleset) {
   const terrain = ruleset.terrain.terrains[tileAt(map, nx, ny).t];
   const unitType = ruleset.units[unit.type];
   if (!terrain || !unitType) return { ok: false, reason: 'badRuleset' };
-  if (terrain.domain !== unitType.domain) {
+  // A72: air units (domain 'air') fly over ANY tile — no terrain is domain
+  // 'air', so without this they are grounded. Non-air units keep the domain rule.
+  if (terrain.domain !== unitType.domain && unitType.domain !== 'air') {
     // A69: a land unit stepping onto a sea tile LOADS onto a friendly transport
     // there (with a free slot); otherwise the sea stays impassable to it.
     if (unitType.domain === 'land' && terrain.domain === 'sea') {
@@ -139,17 +141,21 @@ function moveUnit(state, cmd, ruleset) {
   // only present mid-turn, so crafted-state hashes stay stable). Past the
   // free allowance a road step costs 1 like before.
   let cost = terrain.move;
-  const from = tileAt(map, fromX, fromY);
-  const to = tileAt(map, nx, ny);
-  if (from.railroad === true && to.railroad === true) {
-    cost = 0;
-  } else if (from.road === true && to.road === true) {
-    const used = unit.roadSteps === undefined ? 0 : unit.roadSteps;
-    if (used < ruleset.units[unit.type].moves * 2) {
+  if (unitType.domain === 'air') {
+    cost = 1; // A72: air units spend 1 movement per tile, terrain-blind
+  } else {
+    const from = tileAt(map, fromX, fromY);
+    const to = tileAt(map, nx, ny);
+    if (from.railroad === true && to.railroad === true) {
       cost = 0;
-      unit.roadSteps = used + 1;
-    } else {
-      cost = 1;
+    } else if (from.road === true && to.road === true) {
+      const used = unit.roadSteps === undefined ? 0 : unit.roadSteps;
+      if (used < ruleset.units[unit.type].moves * 2) {
+        cost = 0;
+        unit.roadSteps = used + 1;
+      } else {
+        cost = 1;
+      }
     }
   }
   if (cost > 0 && unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };

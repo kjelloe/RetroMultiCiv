@@ -191,6 +191,11 @@ const UNIT_OVERLAY = {
   'diplomat': { ignoresZoc: true },
   'caravan':  { ignoresZoc: true, helpsWonder: true },
   'nuclear':  { ignoresZoc: true },
+  // A72: air units fly over zones of control (Civ 1 — ZOC is a ground concept)
+  // and burn fuel — they must end the turn on a friendly base or crash. fuel =
+  // turns aloft allowed (fighter 1, bomber 2; canonical, FLAGGED for user).
+  'fighter':  { ignoresZoc: true, fuel: 1 },
+  'bomber':   { ignoresZoc: true, fuel: 2 },
   'phalanx':    { obsoletedBy: 'gunpowder' },
   'militia':    { obsoletedBy: 'gunpowder' },
   'musketeers': { obsoletedBy: 'conscription' },

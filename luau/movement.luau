@@ -137,7 +137,8 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	if terrain == nil or unitType == nil then
 		return { ok = false, reason = "badRuleset" }
 	end
-	if terrain.domain ~= unitType.domain then
+	-- A72: air units (domain 'air') fly over ANY tile; non-air keep the rule.
+	if terrain.domain ~= unitType.domain and unitType.domain ~= "air" then
 		-- A69: a land unit stepping onto a sea tile LOADS onto a friendly transport
 		-- there (with a free slot); otherwise the sea stays impassable to it.
 		if unitType.domain == "land" and terrain.domain == "sea" then
@@ -183,17 +184,21 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	-- rail-to-rail is free; road-to-road grants moves*2 FREE steps per turn
 	-- (unit.roadSteps, transient integer, cleared at the turn wrap)
 	local cost = terrain.move
-	local from = tileAt(map, fromX, fromY)
-	local to = tileAt(map, nx, ny)
-	if from.railroad == true and to.railroad == true then
-		cost = 0
-	elseif from.road == true and to.road == true then
-		local used = if unit.roadSteps == nil then 0 else unit.roadSteps
-		if used < ruleset.units[unit.type].moves * 2 then
+	if unitType.domain == "air" then
+		cost = 1 -- A72: air units spend 1 movement per tile, terrain-blind
+	else
+		local from = tileAt(map, fromX, fromY)
+		local to = tileAt(map, nx, ny)
+		if from.railroad == true and to.railroad == true then
 			cost = 0
-			unit.roadSteps = used + 1
-		else
-			cost = 1
+		elseif from.road == true and to.road == true then
+			local used = if unit.roadSteps == nil then 0 else unit.roadSteps
+			if used < ruleset.units[unit.type].moves * 2 then
+				cost = 0
+				unit.roadSteps = used + 1
+			else
+				cost = 1
+			end
 		end
 	end
 	if cost > 0 and unit.moves <= 0 then

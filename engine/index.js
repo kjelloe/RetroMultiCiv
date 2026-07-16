@@ -8,6 +8,7 @@ import * as movement from './movement.js';
 import * as cities from './cities.js';
 import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
+import * as air from './air.js';
 import * as scoring from './score.js';
 import * as improvements from './improvements.js';
 import * as happiness from './happiness.js';
@@ -115,6 +116,7 @@ function endTurn(state, cmd, ruleset) {
     cities.processCities(state, ruleset, events);
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
+    air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
     scoring.checkGameEnd(state, ruleset, events);
     // A75: research/deaths this wrap may have advanced the world's age — emit a
     // transient world-news event (not hashed, so goldens are untouched)
