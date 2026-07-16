@@ -473,26 +473,31 @@ starting-scenario option only. Save-file rule (B16): a game's
 applies on load with a visible notice — a save's rules ARE the
 game's rules.
 
-### Known missing Civ 1 systems (the wave-VIII audit, 2026-07-15 — all queued)
+### Known missing Civ 1 systems (wave-VIII audit 2026-07-15; STATUS SWEEP 2026-07-16 evening)
 
-Named honestly after the user's deep late-game playtest, all with
-designed items in agent-workitems:
+Named honestly after the user's deep late-game playtest. The B13
+era-scaling window (2026-07-16) SHIPPED a large slice of this list:
+- **SHIPPED — Obsolescence** (B13/A63): units leave the catalog on
+  their obsoletedBy tech; the AI era-scales its army; barracks are
+  SOLD with gold credited at Gunpowder/Combustion (user ruling;
+  wiki-says-vanish delta logged); wonder expiry was already data.
+  STILL OPEN from the A63 family: field upgrades / Leonardo's
+  Workshop effect (upgradeUnit, human-golden-safe slice).
+- **SHIPPED — Barbarians era-scale** (A66, rode B13): tiered spawns
+  keyed to the obsolescence trigger techs (rules.barbTiers).
+- **SHIPPED — the AI fights** (B21): attacker build slot, attacker-
+  tech beeline term, rush-buy under threat, scout share — the
+  re-baseline's dormant-capability verdict answered; sweeps pending.
+- **IN FLIGHT — Naval transport** (A69, claimed 2026-07-16 evening):
+  transport:N on ships, aboard:<shipId>, implicit load/unload via
+  move; sink-with-cargo. Unblocks A72.
 - **Air movement does not exist** (A72): movement rejects any tile
-  whose terrain domain ≠ the unit's, and no terrain is 'air' —
-  fighters, bombers, and the nuclear missile are all buildable and
-  immobile. Full fly-anywhere + Civ 1 fuel/crash rules designed.
-- **Naval transport does not exist** (A69): no ship carries land
-  units; cross-ocean settlement/invasion is impossible for everyone.
-- **Obsolescence does not exist** (A63): nothing ever leaves the
-  production catalog; the AI happily builds phalanxes with 67 techs.
-  Units-obsolete + barracks-sold-at-Gunpowder/Combustion (user
-  ruling Playtest-IX: SOLD with gold credited, not vanished; the
-  wiki says vanish — delta logged in A63) + wonder expiry + field
-  upgrades (with Leonardo's Workshop finally gaining its effect).
-- **Buildings cannot be sold** (A86): Civ 1 allows selling one
-  improvement per city per turn for gold; ours has no sell path.
-  Engine command + city-view affordance designed; the barracks
-  obsolescence above reuses the same removal+credit helper.
+  whose terrain domain ≠ the unit's — fighters/bombers/nuclear
+  buildable and immobile. Designed; queued AFTER A69.
+- **Buildings cannot be sold manually** (A86): the barracks
+  auto-sell (B13) landed the removal+credit machinery; the manual
+  one-per-city-per-turn command + city-view affordance remain
+  (state-shape flag → own golden window).
 - **Barbarians never era-scale** (A66): militia forever; the tier
   system + the REBELS rename are designed.
 - **Special-unit behaviors unaudited** (A71): submarine

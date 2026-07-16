@@ -428,6 +428,17 @@ Roblox session with the ported engine.
 > lands. New columns adopted: garrison%, resourceCov% (healthy
 > 85-94%), disorderTurns (tail-capped — B22), river-adjacency.
 >
+> STATUS UPDATE (2026-07-16 evening): B21 WAKE-THE-CAPABILITIES
+> LANDED — the sleeping levers are awake (attackers 14-15/civ at
+> t200, was 0 at t400; rush-buy fires under threat; scout share
+> live). ALL goldens re-recorded incl. the turn-100 anchor,
+> JS==Luau byte-exact on every value, five sweepable rules.json
+> knobs each with identity+sweep tests. B22 (disorder tail) is
+> DIAGNOSED (one-entertainer cap, fix pre-approved) and GATED on
+> the post-B21 re-baseline's tail number. A69 naval transport in
+> flight. NEXT MEASUREMENTS: post-B21 canonical re-baseline + 4
+> knob sweeps → then the M-target pinning session with the user.
+>
 > STATUS 2026-07-16 late afternoon: the B13 era-scaling window is
 > OPEN past its midpoint (bugfixer holds the golden lock; bounded-
 > chunk cadence). LANDED cross-language: slice 1 obsolescence-

@@ -78,8 +78,9 @@ AFTERNOON LIST below.
 ## THE AFTERNOON LIST (2026-07-16 — after the R7 velocity day)
 
 1. **Merge marker — always the LATEST the architect declares
-   consistent** (your ruling). Declared at this writing: the sync
-   commit after this edit (the architect names it in chat).
+   consistent** (your ruling). Declared at this writing:
+   **marker-0013** (B13 + B21 golden re-records both acked; the
+   AI now era-scales, fights, buys, scouts, walls).
 2. **Studio runC** — one session, THREE deliverables:
    (a) the R7 arc: R7a small UI (auto-next/auto-end defaults,
    nearest next-unit, grey/dead gating, research at top center),
@@ -100,10 +101,14 @@ AFTERNOON LIST below.
    browser games you play, one per difficulty when it happens —
    they seed the HUMAN BENCHMARK row the AI tuning now targets
    ("challenging, legible, fair" vs YOUR line, docs/05 §12).
-5. **Coming to you later** (no action yet): barracks sell-price
-   confirm + M-target pinning after the B13 window closes and the
-   canonical re-baseline runs; a breaking-change alert precedes
-   the window-close marker (full golden re-record).
+5. **One small confirm available now**: barracks sell price shipped
+   as FULL BUILD COST (40g — wiki silent, architect ruling); veto
+   if your memory says a ratio.
+6. **Coming to you later** (no action yet): the M-TARGET PINNING
+   session once the post-B21 re-baseline + knob sweeps land
+   (sim-runner in flight) — the first tuning conversation where
+   M6/M11 mean something; B22's disorder fix goes in right after
+   if the tail survives B21.
 
 1. **Review + merge dev_night** — the whole night is one diff; the
    architect's briefing (work / discoveries / decisions) comes with

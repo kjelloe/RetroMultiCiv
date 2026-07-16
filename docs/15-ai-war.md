@@ -157,7 +157,12 @@ nearest-city targeting first (leader-capping = a later sweep).
 BUILD ORDER: the B13 era-scaling family FIRST (obsolescence +
 attackers + explore-weight + walls-building — the two war
 prerequisites the lab exposed) → the coordination doctrine window →
-siege (live once walls exist). Topology (A82) joins the sweep
+siege (live once walls exist). EXECUTED 2026-07-16: B13 landed,
+then the re-baseline exposed the capabilities as DORMANT (docs/03),
+so B21 (build-slot/beeline/rush-buy/scout-share) was inserted and
+landed same day — attackers now exist at t200. COORDINATION waits
+on the post-B21 sweeps; SIEGE waits on coordination + walls-in-play
+(walls ship in B13g, sparse pending tuning). Topology (A82) joins the sweep
 matrix when it lands; every slice lab-measured no-chaos, both
 combat rules, per-stance signatures.
 
