@@ -13,6 +13,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 
@@ -187,12 +188,13 @@ local function renderUnits(view)
 		disc.Material = Enum.Material.SmoothPlastic
 		disc.Parent = model
 
-		if u.type == "settlers" then
-			block(model, "Body", Vector3.new(2.0, 0.9, 1.2),
-				Vector3.new(cx, top + 0.75, cz), Color3.fromRGB(150, 111, 51))
-			block(model, "Canopy", Vector3.new(1.4, 0.6, 1.0),
-				Vector3.new(cx, top + 1.5, cz), Color3.fromRGB(222, 214, 190))
-		else
+		-- R8: the body is DATA — the same recipe table the browser renders;
+		-- primary/secondary are the color-role slots (A88 contract). Faction
+		-- identity stays procedural on top (disc, rampart, billboard).
+		local built = pcall(AssetFactory.buildUnit, model, u.type,
+			{ primary = ownerColor, secondary = ownerColor:Lerp(Color3.new(1, 1, 1), 0.35) },
+			CFrame.new(cx, top + 0.1, cz))
+		if not built then -- recipes gate failed or bad recipe: old placeholder
 			block(model, "Body", Vector3.new(0.9, 1.6, 0.9),
 				Vector3.new(cx, top + 1.1, cz), Color3.fromRGB(120, 120, 126))
 			block(model, "Head", Vector3.new(0.6, 0.5, 0.6),

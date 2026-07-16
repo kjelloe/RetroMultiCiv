@@ -88,7 +88,11 @@ don't commit it.
    `C` opens the city list (tap a row to fly there), `J` the
    statistics panel; the HUD shows the game verification code
    (selectable); End Turn goes green when everything moved and asks
-   twice ("N can move!") if you end early. The server prints
+   twice ("N can move!") if you end early. R8: unit models now build
+   from the shared asset recipes (same silhouettes as the browser);
+   `F9` toggles the floating gallery grid — every recipe in BOTH cone
+   variants (fan | stack) plus city and props — screenshot it for the
+   cone-fidelity pick. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`

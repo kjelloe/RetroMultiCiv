@@ -2935,7 +2935,7 @@ try Studio's direct glTF import, Blender only if FBX forced, user
 OK'd occasional manual Studio imports) stays SHELVED until Studio
 screenshots show a silhouette the Part mapping can't carry.
 
-### R8 — Luau AssetFactory from recipes (roblox-helper; after A88's recipes.json lands)
+### R8 — Luau AssetFactory from recipes (roblox-helper; after A88's recipes.json lands) [claimed: roblox-helper 2026-07-16 @f35fc677]
 
 AssetRecipes bake (json2lua, RulesetHashes-gated like rulesets) +
 a recipe composer: box→Block, cylinder→Cylinder, sphere→Ball,

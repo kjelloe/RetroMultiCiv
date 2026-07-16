@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -55,6 +55,18 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 4: node absent"
+fi
+
+# gate 5 — R8 recipe keys: every units.json id resolves through
+# unitSilhouette to a real recipe (the ally's check-asset-sync idea)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/data/build.js --keys >/dev/null 2>&1; then
+    note PASS "gate 5: recipe keys cover units.json (build.js --keys)"
+  else
+    note FAIL "gate 5: recipe keys broken — run: node roblox/data/build.js --keys"
+  fi
+else
+  note SKIP "gate 5: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

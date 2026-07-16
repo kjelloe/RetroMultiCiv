@@ -358,6 +358,43 @@ numbers are Roblox-Playtest-B item numbers):
   two-press CONFIRM when units still have moves (first press warns
   "N can move!", second within 3 s sends).
 
+## 3k. AssetFactory from recipes (R8)
+
+The A88 contract: unit/city/prop silhouettes are DATA
+(`data/assets/asset-recipes.json` — note the ruled `data/assets/`
+subdir; top-level `data/` stays the 8-file engine contract), and both
+renderers compose the SAME primitives from it.
+
+- Bake: `build.js` embeds the raw JSON as `GameData.AssetRecipes`;
+  the pin rides `RulesetHashes.assetRecipes` as **fnv32 over the raw
+  bytes** (recipes carry floats + prose, so statehash — a game-state
+  hasher — can't gate them; JS reads latin1, Luau feeds the baked
+  long string: byte-identical by construction, verified 12285661
+  both sides).
+- `AssetFactory.luau` (ModuleScript): box→Block, cyl→Cylinder
+  (stood up; **no taper** — radius = mean of rTop/rBot, flagged),
+  sphere→Ball, cone seg 4 → square pyramid from 4 CornerWedgeParts,
+  cone seg N → `coneMode` "fan" (N wedge slabs, chord-width) or
+  "stack" (3-disc ziggurat) — the USER'S judgment point;
+  dodeca→squat Ball, torus→8-box ring (both flagged best-effort).
+  Cones shift half-height in their OWN rotated frame (three centers
+  ConeGeometry; a tilted spearhead's base moves along its axis).
+  `primary`/`secondary` are injected at build time — the data never
+  carries a faction hex. Chariot = mounted + chariotWheels (the
+  assets.js rule). Ship SAILS stay procedural in the browser and are
+  omitted here (flagged).
+- `ViewRenderer` builds unit bodies via `AssetFactory.buildUnit`
+  (placeholder blocks remain only as the pcall fallback); the owner
+  disc / rampart / billboard stay procedural on top.
+- `GalleryGrid.client.luau`: **F9** toggles a floating grid — every
+  unit recipe twice (fan | stack), the city house+roof, every
+  propShape, labeled. The Studio screenshot of this grid vs
+  `debugging/gallery.html` is the R8 acceptance; the user judges
+  cone fidelity (mesh-upgrade explicitly held for silhouettes that
+  disappoint).
+- check.sh gate 5: `build.js --keys` — every units.json id resolves
+  through `unitSilhouette` to a real recipe, both directions.
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -464,6 +501,12 @@ Stop) are hash-verified but must not skew the code check.
   check.sh 31 gates. Acceptance: runC folds R7a+R7b+R7d + the run2
   leftovers (setRates, fog verdict, per-surface screenshots incl.
   both void variants).
+- R8 (§3k, AssetFactory): **CODE-COMPLETE 2026-07-16** (claimed
+  @f35fc677) — recipes bake (fnv32 pin 12285661, MATCH verified via
+  lune), composer with both cone variants, ViewRenderer bodies from
+  data, gallery grid (F9), check.sh gate 5 (keys); 35 gates.
+  Acceptance PENDING: the Studio gallery-grid screenshot vs the
+  browser gallery — the user judges cone fidelity (fan vs stack).
 
 ## 7. Shared-tree workflow (dev_night)
 
