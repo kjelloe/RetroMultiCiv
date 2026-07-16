@@ -396,3 +396,45 @@ test('A61 hardened-by-default: saves + debugging are OFF the wire; --debug resto
     fs.rmSync(savePath, { force: true });
   }
 });
+
+test('A98 resume-by-code: the docs/07 game code resumes the saved game; wrong/empty code rejects', async () => {
+  const { startServer } = await import('../server/index.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-a98-'));
+
+  // server 1: found a city so it autosaves into `dir`; capture the broadcast code
+  const s1 = await startServer({ ruleset: RULESET, seed: 909, civs: 2, humans: 1, size: 'xsmall', savesDir: dir, gameId: 'a98game' });
+  let savedCode;
+  const c1 = await connect(s1.port);
+  try {
+    c1.send({ t: 'join', name: 'Kjell' });
+    const joined = await c1.expect(m => m.t === 'joined', 'joined');
+    const settlers = Object.values(joined.view.units).find(u => u.owner === 'p1' && u.type === 'settlers');
+    c1.send({ t: 'cmd', token: joined.token, commandId: 1, cmd: { type: 'foundCity', unitId: settlers.id, name: 'Codeville' } });
+    await c1.expect(m => m.t === 'applied' && m.commandId === 1, 'applied');
+    savedCode = (await c1.expect(m => m.t === 'code', 'code broadcast')).code;
+  } finally { c1.close(); await s1.close(); }
+  assert.match(savedCode, /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}$/, 'captured a real game code');
+  assert.ok(fs.readdirSync(dir).some(f => f.endsWith('.json')), 'a server save landed in the savesDir');
+
+  // server 2: FRESH game, same savesDir — resume the first game purely by its code
+  const s2 = await startServer({ ruleset: RULESET, seed: 1, civs: 2, humans: 1, size: 'xsmall', savesDir: dir, gameId: 'a98other' });
+  const c2 = await connect(s2.port);
+  try {
+    // wrong code → friendly reject, nothing resumed
+    c2.send({ t: 'resumeByCode', code: 'ZZZZ-ZZZZ-ZZZZZ' });
+    assert.strictEqual((await c2.expect(m => m.t === 'rejected', 'wrong-code reject')).code, 'noSuchCode');
+    // empty code → its own reason
+    c2.send({ t: 'resumeByCode', code: '   ' });
+    assert.strictEqual((await c2.expect(m => m.t === 'rejected', 'empty-code reject')).code, 'noCode');
+    // right code, entered lower-case and hyphen-free → normalization still matches
+    c2.send({ t: 'resumeByCode', code: savedCode.replace(/-/g, '').toLowerCase() });
+    const resumed = await c2.expect(m => m.t === 'resumed', 'resumed');
+    assert.strictEqual(resumed.code, savedCode, 'the resumed game reports the saved code');
+    assert.ok(resumed.turn >= 1, 'resumed at the saved turn');
+    // the resumed game is now joinable and carries the founded city
+    c2.send({ t: 'join', joinCode: resumed.gameId, name: 'Kjell' });
+    const joined2 = await c2.expect(m => m.t === 'joined', 'joined the resumed game');
+    assert.ok(Object.values(joined2.view.cities).some(city => city.name === 'Codeville'),
+      'the resumed game still has the city founded before the save');
+  } finally { c2.close(); await s2.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});

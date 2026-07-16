@@ -104,6 +104,10 @@ export function parseMessage(raw) {
     }
     return { ok: true, msg };
   }
+  if (msg.t === 'resumeByCode') { // A98: code is the passphrase; empty→noCode in the handler
+    if (typeof msg.code !== 'string' || msg.code.length > 40) return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {

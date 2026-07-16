@@ -149,8 +149,11 @@ server {
   <p>Point an A record at the VM, then
   <code>sudo certbot --nginx -d yourdomain.example --redirect</code> rewrites
   the site to HTTPS. The WebSocket becomes WSS automatically — the client uses
-  <code>wss://</code> on an HTTPS page. Full step-by-step (firewall, deploy
-  user, systemd) is in <code>docs/how-to-host.md</code>.</p>
+  <code>wss://</code> on an HTTPS page. <strong>TLS is required for a public
+  host</strong> — seat tokens cross the game socket, so plain <code>ws://</code>
+  over the internet would expose them (a trusted LAN is fine). Full step-by-step
+  (firewall, deploy user, systemd, securing <code>saves/</code>) is in
+  <code>docs/how-to-host.md</code>.</p>
 
   <h2 id="pi">Raspberry Pi</h2>
   <p>A Pi hosts a small game fine. Only the deltas from the Ubuntu path:</p>

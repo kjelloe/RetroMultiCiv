@@ -292,6 +292,13 @@ export function startHostFlow(box, options, flags) {
         seats by name; check the code matches your notes) —</p>
       <div id="lobby-saves"></div>
     </div>
+    <div id="lobby-resume-code">
+      <p class="setup-hint">— or resume by game code (the code your save shows;
+        knowing it is the permission) —</p>
+      <label>Game code <input id="lobby-code" type="text" maxlength="20"
+        placeholder="e.g. ABCD-EFGH-JKLMN"></label>
+      <button id="lobby-code-btn" class="setup-lan-btn">Resume from code</button>
+    </div>
     <p class="setup-hint"><a href="./">← back</a> · <a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a></p>`;
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
@@ -334,10 +341,19 @@ export function startHostFlow(box, options, flags) {
     } else if (msg.t === 'rejected') {
       fail(box, msg.code === 'noSuchSave' ? 'that save is gone from saves/'
         : msg.code === 'badSave' ? 'that file is not a server save'
+        : msg.code === 'noSuchCode' ? 'no saved game on this server has that code'
+        : msg.code === 'noCode' ? 'enter a game code first'
         : `server rejected: ${msg.code}`);
     }
   }, () => { /* no server: the Create click surfaces the real error */ });
   savesWs.addEventListener('open', () => savesWs.send(JSON.stringify({ t: 'listSaves' })));
+  // A98: resume by the docs/07 game code — the same savesWs handles the
+  // {t:'resumed'} reply (shared with the A34 pick-a-save flow above)
+  document.getElementById('lobby-code-btn').addEventListener('click', () => {
+    if (savesWs.readyState !== WebSocket.OPEN) { fail(box, 'no game server is running to resume from'); return; }
+    const code = document.getElementById('lobby-code').value.trim();
+    savesWs.send(JSON.stringify({ t: 'resumeByCode', code }));
+  });
 }
 
 // --- in-game turn flow (docs/08 §3, §4, §6) — server mode only ---------------

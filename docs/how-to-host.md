@@ -324,6 +324,13 @@ Done: **https://yourdomain.example/client/?server=1** is a public game.
 wire (the hardened static whitelist never serves `saves/`), so treat that
 directory as the one thing worth backing up and keeping private.
 
+A host can resume any of these games from the client's lobby — either by
+picking it from the list, or by typing its **game code** (the code shown on
+every save is the resume passphrase: knowing it is the permission). Because a
+save is resumable by code, any future automatic cleanup of `saves/` must
+retire **completed or abandoned** games first and never evict a game a host
+might still resume — a live resumable save is not disk to reclaim.
+
 ---
 
 ## Raspberry Pi

@@ -69,6 +69,7 @@ export function startServer(opts) {
   const registry = createRegistry({ ruleset });
   const saveFiles = {};    // gameId -> autosave path
   const autosave = opts.autosave !== false;
+  const SAVES = opts.savesDir || path.join(REPO, 'saves'); // A98: overridable for tests
 
   // Boot the default game (phase-3): a resume (--game) or a fresh setup.
   let defaultGame;
@@ -97,7 +98,7 @@ export function startServer(opts) {
         humans: opts.humans || 1, size: opts.size || 'medium'
       })
     });
-    saveFiles[defaultGame.gameId] = opts.saveFile || path.join(REPO, 'saves', defaultGame.gameId + '.json');
+    saveFiles[defaultGame.gameId] = opts.saveFile || path.join(SAVES, defaultGame.gameId + '.json');
   }
   // the boot game allows spectators by default (a local-dev convenience; the
   // CLI host stays in control via --no-spectators — docs/08 §6). Lobby-created
@@ -145,8 +146,27 @@ export function startServer(opts) {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
   }
   function savePath(gameId) {
-    if (!saveFiles[gameId]) saveFiles[gameId] = path.join(REPO, 'saves', gameId + '.json');
+    if (!saveFiles[gameId]) saveFiles[gameId] = path.join(SAVES, gameId + '.json');
     return saveFiles[gameId];
+  }
+  // A34/A98: load a saves/ envelope into a live game and answer the caller.
+  // Shared by resume (by filename) and resumeByCode (by the docs/07 code).
+  // Seats ALWAYS reset — resumed lobby games re-pick by name (tokens are
+  // per-origin/per-machine); autosaves continue into the same file.
+  function resumeFromFile(ws, file) {
+    if (!fs.existsSync(file)) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchSave' }); return; }
+    let parsed;
+    try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { parsed = {}; }
+    if (parsed.format !== 'retromulticiv-server-save') { send(ws, { t: 'rejected', commandId: -1, code: 'badSave' }); return; }
+    if (registry.entryOf(parsed.gameId)) { // already live — point the caller at it
+      send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
+      return;
+    }
+    const game = createGame({ ruleset, save: parsed });
+    game.resetSeats();
+    registry.register(game, false); // spectators: off for resumed games (v1)
+    saveFiles[game.gameId] = file;
+    send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
   }
   function roster(entry) {
     return {
@@ -461,7 +481,7 @@ export function startServer(opts) {
         return;
       }
       if (msg.t === 'listSaves') { // A34: the host machine's saves/ inventory
-        const dir = path.join(REPO, 'saves');
+        const dir = SAVES;
         const saves = [];
         for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {
           if (!f.endsWith('.json')) continue;
@@ -484,30 +504,28 @@ export function startServer(opts) {
         send(ws, { t: 'saves', saves });
         return;
       }
-      if (msg.t === 'resume') { // A34: load via the --game path, seats reset
-        const file = path.join(REPO, 'saves', msg.file); // shape-validated basename
-        if (!fs.existsSync(file)) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'noSuchSave' });
-          return;
+      if (msg.t === 'resume') { // A34: load a listed save by basename, seats reset
+        resumeFromFile(ws, path.join(SAVES, path.basename(String(msg.file || ''))));
+        return;
+      }
+      if (msg.t === 'resumeByCode') { // A98: the docs/07 game code IS the resume
+        // passphrase (authorization-by-knowledge, docs/12 §3.1). Scan saves/ for
+        // the envelope whose code matches; the file never comes from the client.
+        const norm = s => String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '');
+        const want = norm(msg.code);
+        if (want.length === 0) { send(ws, { t: 'rejected', commandId: -1, code: 'noCode' }); return; }
+        const dir = SAVES;
+        let best = null; // newest matching envelope wins
+        for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {
+          if (!f.endsWith('.json')) continue;
+          try {
+            const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+            if (p.format !== 'retromulticiv-server-save' || norm(p.code) !== want) continue;
+            if (best === null || String(p.savedAt || '') > String(best.savedAt || '')) best = { file: f, savedAt: p.savedAt };
+          } catch (e) { /* foreign/corrupt file: skip */ }
         }
-        let parsed;
-        try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { parsed = {}; }
-        if (parsed.format !== 'retromulticiv-server-save') {
-          send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
-          return;
-        }
-        if (registry.entryOf(parsed.gameId)) { // already live — just join it
-          send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
-          return;
-        }
-        const game = createGame({ ruleset, save: parsed });
-        // tokens live in per-origin localStorage and machines change between
-        // sessions — resumed lobby games ALWAYS reset seats; joiners re-pick
-        // by name (the --reset-seats teaching flow, now automatic)
-        game.resetSeats();
-        registry.register(game, false); // spectators: off for resumed games (v1)
-        saveFiles[game.gameId] = file;     // autosaves continue into the same file
-        send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
+        if (best === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchCode' }); return; }
+        resumeFromFile(ws, path.join(dir, best.file));
         return;
       }
       if (msg.t === 'create') {
