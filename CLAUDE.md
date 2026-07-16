@@ -227,8 +227,9 @@ branch is the STANDING exception (user grant 2026-07-16, widened
 same day): the architect commits accepted gate-green work there and
 coordinates the gaming-PC's git operator (sim-runner) by mail; the
 architect TAGS save points as `marker-NNNN` (zero-padded, sequential
-— marker-0001 = 5a93473) and the user merges tagged points into
-dev/main at his leisure — no waiting on the user for small changes,
+— marker-0001 = 5a93473) and the user merges ONLY the LATEST
+marker the architect declares consistent (declare it explicitly
+with every tag report) — no waiting on the user for small changes,
 but BREAKING changes (protocol, save format, golden re-records,
 anything a running game or another lane must react to) get an
 explicit alert before the tag. Build → test → stop and report.
