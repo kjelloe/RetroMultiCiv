@@ -62,9 +62,12 @@ per item; the architect cuts R-items from the tiers in order.
 > R7d (same day) additionally landed FOUR Tier-2-or-above rows:
 > city list/paging, game-code HUD chip (docs/07 trust loop, rides
 > every server push), a fog-structural statistics panel, and the
-> A29 three-state End-Turn — plus the odds preview above. R8
-> (asset recipes → native-Part silhouettes) is the queued visual
-> pass; A88 feeds it.
+> A29 three-state End-Turn — plus the odds preview above.
+> R8 LANDED same day: the Luau recipe composer builds every unit
+> silhouette from A88's baked recipes (FNV32 raw-bytes pin,
+> lune-verified; pyramids = 4 CornerWedges; BOTH N-cone variants
+> on the F9 gallery grid). Acceptance = the user's F9 screenshot
+> (cone pick + pyramid-apex check) in the runC session.
 
 | Browser element | Roblox shape (proposal) | Notes |
 |---|---|---|

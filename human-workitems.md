@@ -96,10 +96,14 @@ AFTERNOON LIST below.
 3. **Two art picks from the runC screenshots** (soundboard
    pattern): void cover (parchment frame vs galaxy) and cone mode
    (wedge-fan vs disc-stack).
-4. **Coming to you later** (no action yet): cone-fidelity pick
-   from R8's Studio gallery grid (wedge-fan vs truncated-cylinder);
-   barracks sell-price confirm + M-target pinning after the B13
-   window closes and the canonical re-baseline runs.
+4. **Standing, low-effort**: keep a Shift+D recording from real
+   browser games you play, one per difficulty when it happens —
+   they seed the HUMAN BENCHMARK row the AI tuning now targets
+   ("challenging, legible, fair" vs YOUR line, docs/05 §12).
+5. **Coming to you later** (no action yet): barracks sell-price
+   confirm + M-target pinning after the B13 window closes and the
+   canonical re-baseline runs; a breaking-change alert precedes
+   the window-close marker (full golden re-record).
 
 1. **Review + merge dev_night** — the whole night is one diff; the
    architect's briefing (work / discoveries / decisions) comes with

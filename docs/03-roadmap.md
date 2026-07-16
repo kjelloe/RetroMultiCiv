@@ -417,14 +417,22 @@ Roblox session with the ported engine.
 
 ## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
 
-> STATUS 2026-07-16 afternoon: the B13 era-scaling window is OPEN
-> (bugfixer holds the golden lock; bounded-chunk cadence). Slice 1
-> (obsolescence-consume, both engines) landed GOLDEN-NEUTRAL — the
-> 400-turn golden trajectory never reaches Gunpowder, so re-record
-> pressure comes from the attacker/improver/walls slices. Scenario
-> 015-obsolescence pinned; era-chain defender pick tested. The B16
-> turn-371 witness diverges at turn 326 BY DESIGN (re-scoped guard;
-> fresh witness re-records at window close).
+> STATUS 2026-07-16 late afternoon: the B13 era-scaling window is
+> OPEN past its midpoint (bugfixer holds the golden lock; bounded-
+> chunk cadence). LANDED cross-language: slice 1 obsolescence-
+> consume (golden-neutral — the 400-turn trajectory never reaches
+> Gunpowder; scenario 015 pinned, era-chain defender pick tested),
+> the attacker + improver slices (rails, mines), and B13g walls-
+> when-threatened (known enemy within 8 → masonry+walls first) —
+> the pre-Gunpowder slices moved the sim goldens as predicted,
+> JS==Luau verified at every checkpoint. REMAINING: B13f explore-
+> weight (ruled: knob in rules.json, stances as deltas — sweepable
+> via rulesOverrides) + A66 barb tiers, then ONE full golden
+> re-record at close. The B16 turn-371 witness diverges at turn
+> 326 BY DESIGN (re-scoped guard; fresh witness at close). The
+> ally's 10-group factor catalog (docs/15 §4) is the commissioning
+> menu for lab rounds after the re-baseline; a HUMAN BENCHMARK row
+> joins the tables (docs/05 §12).
 
 Fourteen health metrics with user-set targets; a measured baseline
 (sim-runner, 100 games) exposing the gaps: no attackers ever built,

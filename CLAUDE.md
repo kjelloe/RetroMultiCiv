@@ -46,6 +46,9 @@ blockade, era templates).
   first if ever).
 - `engine/` imports nothing from `client/`, `server/`, or Node built-ins.
 - Ruleset numbers live in `data/*.json`, never hardcoded in engine logic.
+  **Top-level `data/*.json` = engine rulesets ONLY** (the twins gate
+  count-checks them cross-language); generated non-engine artifacts
+  live in `data/` subdirs (e.g. `data/assets/asset-recipes.json`).
 - **Game state holds only integers, printable-ASCII strings, booleans, arrays,
   plain objects.** No null, no floats (JSON null becomes nil in Lua and
   vanishes; floats drift). `shared/statehash.js` enforces this.
