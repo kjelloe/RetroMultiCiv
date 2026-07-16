@@ -99,6 +99,7 @@ local function pushView(player, rawEvents)
 		turn = state.turn,
 		year = state.year,
 		gameOver = state.gameOver == true,
+		code = gamecode.gameCode(state), -- R7d: the docs/07 trust-loop chip
 	}
 	if rawEvents ~= nil and #rawEvents > 0 then
 		payload.events = visibility.filterEvents(state, rawEvents, HUMAN_SEAT)
@@ -135,6 +136,7 @@ local function handleJoin(player, commandId)
 		turn = state.turn,
 		year = state.year,
 		gameOver = state.gameOver == true,
+		code = gamecode.gameCode(state),
 	})
 end
 
@@ -241,6 +243,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 		year = state.year,
 		gameOver = state.gameOver == true,
 		commandId = commandId,
+		code = gamecode.gameCode(state),
 	})
 	if state.gameOver == true then
 		print("[R4FINAL] hash=" .. statehash.hashState(state))

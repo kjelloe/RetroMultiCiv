@@ -60,6 +60,18 @@ function M.onPossessRequest(cb)
 	table.insert(possessCallbacks, cb)
 end
 
+-- R7d: camera focus-jump channel (city list rows etc. -> Camera listens)
+local cameraFocusCallbacks = {}
+function M.onCameraFocus(cb)
+	table.insert(cameraFocusCallbacks, cb)
+end
+
+function M.focusCamera(x, y)
+	for _, cb in ipairs(cameraFocusCallbacks) do
+		cb(x, y)
+	end
+end
+
 function M.requestPossess(unitId)
 	for _, cb in ipairs(possessCallbacks) do
 		cb(unitId)
@@ -165,6 +177,9 @@ remote.OnClientEvent:Connect(function(msg)
 	if msg.t == "joined" or msg.t == "view" then
 		M.view = msg.view
 		M.gameOver = msg.gameOver == true
+		if msg.code ~= nil then
+			M.code = msg.code -- R7d: the docs/07 game verification code
+		end
 		if M.selectedUnitId ~= nil and M.view.units[M.selectedUnitId] == nil then
 			M.selectedUnitId = nil -- unit died or left our sight
 		end

@@ -33,6 +33,12 @@ ClientState.onView(function(view)
 		end
 	end
 end)
+
+-- R7d: focus-jump requests (city list rows); breaks follow so the jump sticks
+ClientState.onCameraFocus(function(x, y)
+	ClientState.followAvatar = false
+	focus = Vector3.new(x * TILE, focus.Y, y * TILE)
+end)
 local yaw = math.rad(-30)
 local pitch = math.rad(-55)
 local dist = 60
