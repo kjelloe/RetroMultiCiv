@@ -2894,6 +2894,35 @@ its 50 shields and is consumed. Small engine command-path (the
 caravan exists, unpowered today), turn-log line, both engines,
 scenario pin. Trade routes stay in the phase-6/chains design.
 
+## A89 — Caravan trade routes, Civ1-authentic (user prompt + wiki verified 2026-07-16; queue after A83)
+
+The caravan's OTHER role (A83 = wonder-help only). Wiki (Caravan
+(Civ1) article, formulas = facts, paraphrased):
+1. ESTABLISH ROUTE: entering a FOREIGN city auto-establishes;
+   entering a DOMESTIC city ≥10 tiles from home offers the choice
+   (route or keep moving). Caravan consumed.
+2. WINDFALL (one-time, cash AND research bulbs, both to sender):
+   base = (distance + 10) × (tradeArrows(cityA)+tradeArrows(cityB))
+   ÷ 24, integer math. ×½ if same continent; ×½ if same civ; ×⅔ if
+   sender knows railroad; ×⅔ if sender knows flight (stacking ⇒
+   1/9 minimum).
+3. PERMANENT: home city gains trade arrows = (both cities' arrows
+   + 4) ÷ 8, recomputed as the cities grow (LIVE bonus, not a
+   snapshot); ×½ if same civ; distance does NOT affect this (the
+   original manual was wrong — wiki correction).
+4. Per-city cap: only the 3 most lucrative routes count toward
+   arrows (extras still pay the windfall). Routes are NOT
+   bilateral.
+5. State: city.tradeRoutes = [{partnerCityId}] (live recompute
+   keeps state lean); statehash-safe integers only.
+USER-MEMORY DELTA (ruled): "+1 food / +1 shield" caravan delivery
+is CIV 2 (food caravans/freight) — Civ2-rules-mode shelf, same as
+barracks auto-sell; NOT in the Civ1 default. All numbers to
+data/rules.json (tradeRoute block); both engines one window;
+scenario pins (domestic-choice, foreign-auto, windfall math,
+3-route cap). Turn-log 🐫 line + phase-6 chains design consumes
+this later.
+
 ## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
 
 Small A64 follow-up: M9's denominator becomes non-polar LAND+COAST
