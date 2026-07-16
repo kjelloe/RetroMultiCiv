@@ -2923,7 +2923,7 @@ scenario pins (domestic-choice, foreign-auto, windfall math,
 3-route cap). Turn-log 🐫 line + phase-6 chains design consumes
 this later.
 
-## A90 — Help-Wonder action-bar button (A83's client half; helper, small)
+## A90 — Help-Wonder action-bar button (A83's client half; helper, small)  [claimed: helper 2026-07-16] [done: 2026-07-16 — client/ui/input.js only: shared helpWonderCityFor(unit) gate (helpsWonder unit standing in a DOMESTIC city whose producing.kind==='wonder', mirrors engine helpWonder checks) drives both an action-bar "🏛 Help Wonder (+N shields, consumed)" button (N=def.cost, data-driven, absent otherwise) and the H key (silent no-op when gate fails; inside the INPUT/TEXTAREA-guarded keydown handler); dispatches helpWonder → hud note + nextUnit; helpWonder added to ACTION_COMMANDS, notBuildingWonder/cannotHelpWonder added to REASON_TEXT. GOLDEN-NEUTRAL (client-only, no engine/data touch); suite 324/324; node --check clean; headless boot clean (falsy gate path exercised). Truthy path verified by logic-mirror + confirmed data fields (caravan.helpsWonder=true, cost=50, ruleset.wonders keying); crafted save available for manual click-through.]
 
 When the selected unit has helpsWonder:true AND stands in a
 DOMESTIC city whose production is a wonder: the action bar shows a

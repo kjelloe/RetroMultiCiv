@@ -155,11 +155,13 @@ export function initInput(ctx) {
     inRevolution: 'wait for the revolution to end',
     alreadyGovernment: 'that is already your government',
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
+    notBuildingWonder: 'this city is not building a wonder',
+    cannotHelpWonder: 'this unit cannot help build wonders',
     tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
-    pillage: true, disband: true, buy: true,
+    pillage: true, disband: true, buy: true, helpWonder: true,
     setGovernment: true, setRates: true, setWorkers: true
   };
 
@@ -216,6 +218,32 @@ export function initInput(ctx) {
     if (!sel.unitId) return;
     if (await apply({ type: 'pillage', playerId: session.state.activePlayer, unitId: sel.unitId })) {
       hud.note('🔥 improvement destroyed');
+    }
+  }
+
+  // A90: the domestic city a helpsWonder unit stands in that is building a
+  // wonder, or null — shared by the action-bar gate and the H key so both
+  // agree on when the action exists.
+  function helpWonderCityFor(unit) {
+    if (!unit || session.ruleset.units[unit.type].helpsWonder !== true) return null;
+    for (const cid of session.state.cityOrder) {
+      const c = session.state.cities[cid];
+      if (c && c.x === unit.x && c.y === unit.y) {
+        return (c.owner === ctx.HUMAN && c.producing.kind === 'wonder') ? c : null;
+      }
+    }
+    return null;
+  }
+
+  async function helpWonderSelected() {
+    if (!sel.unitId) return;
+    const unit = session.state.units[sel.unitId];
+    const city = helpWonderCityFor(unit);
+    if (!city) return;
+    const wonderName = session.ruleset.wonders[city.producing.id].name;
+    if (await apply({ type: 'helpWonder', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note(`🏛 ${units[unit.type].name} sped ${wonderName}`);
+      nextUnit();
     }
   }
 
@@ -554,6 +582,10 @@ export function initInput(ctx) {
         actions.push({ label: '🏰 Fortress', key: 'O', run: () => startWorkFor('fortress') });
       }
     }
+    if (helpWonderCityFor(unit)) {
+      const added = session.ruleset.units[unit.type].cost;
+      actions.push({ label: `🏛 Help Wonder (+${added} shields, consumed)`, key: 'H', run: helpWonderSelected });
+    }
     if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
     actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });
     const tile = state.map.tiles[unit.y * state.map.width + unit.x];
@@ -758,6 +790,7 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
+    if (e.key === 'h' && sel.unitId) { helpWonderSelected(); return; }
     if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
     if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }
     if ((e.key === 'i' || e.key === 'm' || e.key === 'r' || e.key === 'o') && sel.unitId) {
