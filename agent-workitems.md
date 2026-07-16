@@ -1,3 +1,48 @@
+# NIGHT-2 ORDER OF BATTLE (2026-07-17, user order: "queue at least 8× as much as seems likely"; architect gates/commits/tags markers; morning report = deliveries per marker)
+
+**BUGFIXER — sequential golden windows, ONE at a time, each with
+full window discipline + done-mail; pull the next the moment the
+architect accepts the last. Order:**
+N1. B26 close (in flight) → N2. B23b phased allocation (user
+doctrine, item text) → N3. Wave-2 #1 naval probe → N4. W2 #2
+government re-eval (grounding rule in item) → N5. W2 #8 garrison
+cap → N6. W2 #9 gold policy tiers → N7. W2 #7 wonder opportunity
+window → N8. W2 #10 tile yield scorer → N9. A79 blockade → N10.
+A89 caravan trade routes → N11. A63-rest field upgrades/Leonardo
+(upgradeUnit) → N12. A92 debug commands → N13. A4 goody huts →
+N14. A59 leaders build (fully specified; axes+favorites consume
+the Wave-2 machinery) → N15. A91 pollution → N16. A82 map types
+v1. (W2 #6 catch-up stays LAST-by-design — not tonight.)
+
+**HELPER — golden-neutral lane, parallel; order:**
+H1. A93 M-floor nightly enforcement (small) → H2. A50 items 1–3
+(per-IP rate limits + global caps; lifecycle expiry incl. the
+user rotation spec; join-by-id close — the docs/16 gap list) →
+H3. A49 playwright lane (dep user-approved; DOM backlog
+A87/A90/A97/A98 as its first cases) → H4. A54 off-turn pre-work →
+H5. A67 art pass (visual-golden stream; re-record via
+workflow_dispatch artifacts, the proven flow) → H6. A58 pedia
+(as far as the night allows).
+
+**ROBLOX-HELPER:** R12 close → R9 lobby place → R10 save/resume →
+R11 ride pad → R7c-3 worked-tile PROTOTYPE (build + screenshot
+for the user's morning look — approved-shape pending, prototype
+is not shipping). Manifests via sim-runner as usual.
+
+**SIM-RUNNER:** B26 elim re-sweep at its close (the M11 table for
+the user session) → per-slice measurement after EACH Wave-2 slice
+(canonical config; no-op check per arm; small cells fine) →
+the hostile-stream scale test (docs/16 gap 6) as filler between
+sweeps → keep the git-operator duty responsive (roblox manifests
+preempt measurements).
+
+RULES OF THE NIGHT: engine golden stream is SINGULAR (bugfixer);
+visual-golden stream (A67) is separate and may run parallel;
+architect review+commit per window with marker tags (no user acks
+overnight — the user pre-authorized; BREAKING notes accumulate in
+the morning report instead); anything AMBIGUOUS gets parked with a
+mail, never guessed.
+
 # Agent work items — RetroMultiCiv
 
 Implementation and documentation tasks the **main coder** (Claude, design +
