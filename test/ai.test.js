@@ -60,6 +60,24 @@ test('AI keeps a defender: undefended city switches production to a unit', async
   assert.strictEqual(after2.cities.c9.producing.id, 'settlers');
 });
 
+// B13a/B13e: the AI's defender choice era-scales past obsolete units — once a
+// tech obsoletes phalanx/militia (gunpowder), the AI builds the successor
+// instead of an obsolete unit setProduction now rejects.
+test('B13a: AI defender era-scales (phalanx → musketeers → riflemen → mech-inf)', async () => {
+  const { ai, engine } = await load();
+  const mk = (techs) => grassState(9, 9, {},
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+    { players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const defenderFor = (techs) => ai.runAiTurn(engine, mk(techs), 'p1', RULESET).cities.c9.producing.id;
+  assert.strictEqual(defenderFor([]), 'militia', 'no tech: militia');
+  assert.strictEqual(defenderFor(['bronze-working']), 'phalanx', 'bronze-working: phalanx (unchanged)');
+  assert.strictEqual(defenderFor(['bronze-working', 'gunpowder']), 'musketeers', 'gunpowder obsoletes phalanx → musketeers');
+  assert.strictEqual(defenderFor(['bronze-working', 'gunpowder', 'conscription']), 'riflemen', 'conscription → riflemen');
+  assert.strictEqual(defenderFor(['bronze-working', 'gunpowder', 'conscription', 'labor-union']), 'mech-inf', 'labor-union → mech-inf');
+});
+
 test('AI military marches toward a known enemy city', async () => {
   const { ai, engine } = await load();
   const state = grassState(12, 5, {
@@ -69,6 +87,27 @@ test('AI military marches toward a known enemy city', async () => {
   });
   const after = ai.runAiTurn(engine, state, 'p1', RULESET);
   assert.strictEqual(after.units.u1.x, 2, 'stepped east toward the enemy city');
+});
+
+// B13f: the march-vs-explore radius is a sweepable rules.json knob
+// (exploreMarchRadius) so the sim-runner can tune contact behavior. Default =
+// the historical literal (8 -> marches); sweeping it to 0 makes even balanced
+// never march on a known enemy (the war-lab "civs never meet" axis).
+test('B13f: exploreMarchRadius is sweepable and defaults to the historical march', async () => {
+  const { ai } = await load();
+  const { createEngine } = await import('../engine/index.js');
+  const mk = () => grassState(12, 5, {
+    u1: { id: 'u1', type: 'legion', owner: 'p1', x: 1, y: 2, moves: 1, fortified: false, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'Target', owner: 'p2', x: 9, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+  });
+  // drift-guard: default rules reproduce the historical march (east toward the enemy)
+  assert.strictEqual(ai.runAiTurn(createEngine(RULESET), mk(), 'p1', RULESET).units.u1.x, 2,
+    'default exploreMarchRadius (8) marches — the historical behaviour');
+  // sweep to 0: balanced no longer marches on the known enemy (holds / explores)
+  const noWar = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { exploreMarchRadius: 0 }) });
+  assert.strictEqual(ai.runAiTurn(createEngine(noWar), mk(), 'p1', noWar).units.u1.x, 1,
+    'exploreMarchRadius 0: the knob changes contact behaviour — no march');
 });
 
 // A40 slice 1: regency stances. The HARD invariant first — balanced (and the
@@ -172,6 +211,98 @@ test('B11: a human seat (regency) gets the identical empire policy stream', asyn
   assert.deepStrictEqual(regentSeat, aiSeat, 'the seat flag must not change the policy');
   assert.ok(aiSeat.some(c => c.type === 'setResearch'), 'idle research gets a pick');
   assert.ok(aiSeat.some(c => c.type === 'startWork'), 'the improver settler starts work');
+});
+
+// B13e: the AI now fields an OFFENSIVE army — a defended, settler-saturated,
+// fully-built city builds an era-appropriate attacker instead of only settlers.
+test('B13e: a maxed-out city builds an attacker, era-scaling with tech', async () => {
+  const { ai, engine } = await load();
+  // 1 city + a garrison (wantDefenders met) + 2 settlers (settler target met);
+  // barracks is the only tech-free building so nextBuilding is exhausted, and
+  // no wonder tech is known — so the loop reaches the attacker branch.
+  const mk = (techs) => grassState(14, 9,
+    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+      u2: { id: 'u2', type: 'settlers', owner: 'p1', x: 6, y: 4, moves: 0, fortified: false, veteran: false },
+      u3: { id: 'u3', type: 'settlers', owner: 'p1', x: 8, y: 4, moves: 0, fortified: false, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: ['barracks'], producing: { kind: 'building', id: 'barracks' } } },
+    { players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const attackerFor = (techs) => ai.runAiTurn(engine, mk(techs), 'p1', RULESET).cities.c9.producing.id;
+  assert.strictEqual(attackerFor(['iron-working']), 'legion', 'iron-working: legion (atk 3)');
+  assert.strictEqual(attackerFor(['iron-working', 'mathematics']), 'catapult', 'mathematics: catapult (atk 6)');
+  assert.strictEqual(attackerFor(['iron-working', 'mathematics', 'metallurgy']), 'cannon', 'metallurgy: cannon (atk 8)');
+  // no offensive unit unlocked yet (only militia/phalanx-tier): stays defensive
+  const noAttacker = ai.runAiTurn(engine, mk([]), 'p1', RULESET).cities.c9.producing.id;
+  assert.notStrictEqual(noAttacker, 'legion', 'no attacker tech: does not build an attacker');
+});
+
+// B13b/B13d: the AI improver now mines shield terrain and upgrades roads to
+// rails once Railroad is known — it was only ever roading + irrigating before.
+test('B13d/B13b: improver mines a worked hills tile, then rails it with Railroad', async () => {
+  const { ai, engine } = await load();
+  // all-hills 9x9 so the city works hills tiles (minable); c9 pop 6 works
+  // (3,3) among others (verified). u1=rank0 expander far off; u2=rank1
+  // improver STANDING on the worked, roaded tile so it starts work in place.
+  // pop-3 city works (4,4)(3,2)(4,2)(5,2); a fortified garrison keeps it out of
+  // disorder so the worked set stays put. u0=garrison; u1=rank0 settler parked
+  // ADJACENT to the city (can't found — spacing — so the settler count and
+  // thus u2's rank stay stable); u2=rank1 improver STANDING on worked (4,2).
+  const build = (techs, tile42) => {
+    const tiles = [];
+    for (let i = 0; i < 81; i++) tiles.push({ t: 'hills' });
+    tiles[2 * 9 + 4] = Object.assign({ t: 'hills' }, tile42);
+    return {
+      version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+      map: { width: 9, height: 9, wrapX: false, tiles },
+      units: {
+        u0: { id: 'u0', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+        u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 5, y: 5, moves: 1, fortified: false, veteran: false },
+        u2: { id: 'u2', type: 'settlers', owner: 'p1', x: 4, y: 2, moves: 1, fortified: false, veteran: false } },
+      cities: { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+      cityOrder: ['c9'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+      players: {
+        p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+        p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } },
+      rngState: 1
+    };
+  };
+  // roaded (not mined) hills → the improver mines it (shields beat irrigation food)
+  const mined = ai.runAiTurn(engine, build([], { road: true }), 'p1', RULESET);
+  assert.strictEqual(mined.units.u2.working, 'mine', 'roaded hills gets mined');
+  // roaded AND mined, Railroad known → the improver upgrades the road to rail
+  const railed = ai.runAiTurn(engine, build(['railroad'], { road: true, mine: true }), 'p1', RULESET);
+  assert.strictEqual(railed.units.u2.working, 'railroad', 'a finished road is upgraded to rail');
+});
+
+// B13g: a city with a known enemy within 8 walls up first (masonry known) —
+// balanced no longer leaves threatened cities unwalled.
+test('B13g: a threatened city builds city-walls first', async () => {
+  const { ai, engine } = await load();
+  // 2 fortified guards so the city is defended and reaches the building branch;
+  // 2 parked settlers keep the settler count at target; masonry known.
+  const mk = (enemyX) => {
+    const tiles = [];
+    for (let i = 0; i < 13 * 9; i++) tiles.push({ t: 'grassland' });
+    return {
+      version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+      map: { width: 13, height: 9, wrapX: false, tiles },
+      units: {
+        g1: { id: 'g1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+        g2: { id: 'g2', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+        s1: { id: 's1', type: 'settlers', owner: 'p1', x: 3, y: 4, moves: 0, fortified: false, veteran: false },
+        s2: { id: 's2', type: 'settlers', owner: 'p1', x: 5, y: 4, moves: 0, fortified: false, veteran: false },
+        e1: { id: 'e1', type: 'legion', owner: 'p2', x: enemyX, y: 4, moves: 0, fortified: false, veteran: false } },
+      cities: { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+      cityOrder: ['c9'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+      players: {
+        p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+        p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } }, rngState: 1 };
+  };
+  const threatened = ai.runAiTurn(engine, mk(10), 'p1', RULESET); // enemy at (10,4): 6 tiles away
+  assert.strictEqual(threatened.cities.c9.producing.id, 'city-walls', 'threatened + masonry → walls');
+  const safe = ai.runAiTurn(engine, mk(99), 'p1', RULESET); // enemy off-map far
+  assert.notStrictEqual(safe.cities.c9.producing.id, 'city-walls', 'no threat → no urgent walls');
 });
 
 test('a full AI-vs-AI game is deterministic and reaches an end', async () => {

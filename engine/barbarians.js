@@ -13,6 +13,33 @@ const EVERY = 4;         // spawn check every N turns
 const SPAWN_CHANCE = 3;  // 1-in-N on each check
 const HUNT_RADIUS = 8;
 
+// A66/B13: barbarians era-scale instead of spawning militia forever. The tier
+// is the highest rules.barbTiers entry whose trigger tech is known by at least
+// rules.barbTierThreshold percent of the ALIVE non-barb civs — reusing the
+// obsolescence-era trigger techs (gunpowder/conscription/labor-union). Pure +
+// deterministic (playerOrder scan). Non-roster-owner safe: only counts the
+// roster civs (skips 'barb' and any dead/absent player).
+function barbTier(state, ruleset) {
+  const tiers = ruleset.rules.barbTiers;
+  let alive = 0;
+  for (const pid of state.playerOrder) {
+    if (pid === BARB_ID) continue;
+    const p = state.players[pid];
+    if (p && p.alive !== false) alive = alive + 1;
+  }
+  let unit = tiers[0].unit;
+  for (let i = 1; i < tiers.length; i++) {
+    let know = 0;
+    for (const pid of state.playerOrder) {
+      if (pid === BARB_ID) continue;
+      const p = state.players[pid];
+      if (p && p.alive !== false && p.techs.indexOf(tiers[i].tech) !== -1) know = know + 1;
+    }
+    if (alive > 0 && know * 100 >= alive * ruleset.rules.barbTierThreshold) unit = tiers[i].unit;
+  }
+  return unit;
+}
+
 function ensureBarbPlayer(state) {
   if (!state.players[BARB_ID]) {
     state.players[BARB_ID] = {
@@ -60,11 +87,12 @@ function trySpawn(state, ruleset, events) {
     if (nearCity) continue;
 
     ensureBarbPlayer(state);
+    const barbUnit = barbTier(state, ruleset);
     const unitId = 'u' + state.nextUnitId;
     state.nextUnitId = state.nextUnitId + 1;
     state.units[unitId] = {
-      id: unitId, type: 'militia', owner: BARB_ID,
-      x, y, moves: ruleset.units.militia.moves, fortified: false, veteran: false
+      id: unitId, type: barbUnit, owner: BARB_ID,
+      x, y, moves: ruleset.units[barbUnit].moves, fortified: false, veteran: false
     };
     events.push({ type: 'barbariansSpawned', unitId, x, y });
     return;
@@ -140,4 +168,4 @@ function process(state, ruleset, events) {
   }
 }
 
-export { process, BARB_ID, FIRST_TURN };
+export { process, BARB_ID, FIRST_TURN, barbTier };

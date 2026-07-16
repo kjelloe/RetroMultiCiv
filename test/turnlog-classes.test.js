@@ -26,6 +26,9 @@ test('classifyEvent: ownership splits combat/cities/rival; world and saves are a
   assert.strictEqual(classifyEvent({ type: 'cityCaptured', from: 'p2', to: 'p3' }, 'p1', cityOwner), 'rival');
   assert.strictEqual(classifyEvent({ type: 'improvementBuilt', owner: 'p1' }, 'p1', cityOwner), 'cities');
   assert.strictEqual(classifyEvent({ type: 'improvementBuilt', owner: 'p2' }, 'p1', cityOwner), 'rival');
+  // B13/A63: an obsolete building auto-sold is own-seat city news (rivals' never reach a fogged seat)
+  assert.strictEqual(classifyEvent({ type: 'buildingSold', playerId: 'p1', cityId: 'c1' }, 'p1', cityOwner), 'cities');
+  assert.strictEqual(classifyEvent({ type: 'buildingSold', playerId: 'p2', cityId: 'c2' }, 'p1', cityOwner), null);
   assert.strictEqual(classifyEvent({ type: 'governmentChanged', playerId: 'p1' }, 'p1', cityOwner), 'cities');
 
   // research: own only (the engine's filterEvents never delivers rivals')

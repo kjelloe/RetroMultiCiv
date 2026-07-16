@@ -30,17 +30,23 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false },
-	defensive = { marchRadius = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false },
-	aggressive = { marchRadius = 14, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false },
-	science = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true },
-	growth = { marchRadius = 8, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCity = 1, attackerBase = 0 },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCity = 0, attackerBase = 0 },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCity = 2, attackerBase = 2 },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCity = 1, attackerBase = 0 },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCity = 1, attackerBase = 0 },
 }
 local function stanceOf(stance: any): any
 	if stance ~= nil and STANCES[stance] ~= nil then
 		return STANCES[stance]
 	end
 	return STANCES.balanced
+end
+
+-- B13f twin: march-vs-explore radius = rules.exploreMarchRadius x the stance's
+-- marchRadiusPct (identity: idiv(8 * 100, 100) = 8). Sweepable via rulesOverrides.
+local function marchRadiusOf(ruleset: any, S: any): number
+	return idiv(ruleset.rules.exploreMarchRadius * S.marchRadiusPct, 100)
 end
 
 local function sortedKeys(t: any): { string }
@@ -196,6 +202,8 @@ end
 -- The nearest unimproved WORKED tile of a nearby own city.
 local function bestImprovementJob(state: any, unit: any, playerId: string, ruleset: any, improveFirst: any): any
 	local map = state.map
+	local me = state.players[playerId]
+	local knowsRail = table.find(me.techs, ruleset.rules.railroadTech) ~= nil
 	local best = nil
 	local bestD = 9999
 	for _, cid in ipairs(state.cityOrder or {}) do
@@ -210,14 +218,26 @@ local function bestImprovementJob(state: any, unit: any, playerId: string, rules
 						local canIrrigate = tile.irrigation ~= true and tile.mine ~= true
 							and terrain.irrigate ~= nil
 							and improvements.hasWaterSource(state, w.x, w.y)
+						-- B13d: mine shield terrain (prefer over irrigation only
+						-- where it yields MORE shields than the irrigation food)
+						local canMine = tile.irrigation ~= true and tile.mine ~= true
+							and terrain.mine ~= nil
+						local mineBetter = canMine and (not canIrrigate or terrain.mine.shields > terrain.irrigate.food)
+						-- B13b: upgrade a finished road to rail once Railroad known
+						local canRail = knowsRail and tile.road == true and tile.railroad ~= true
 						local work = nil
-						-- A40 growth irrigates first; balanced keeps roads-first
+						-- A40 growth irrigates first; balanced keeps roads-first,
+						-- then the terrain yield (mine/irrigate), then rail-upgrade
 						if improveFirst == "irrigate" and canIrrigate then
 							work = "irrigate"
 						elseif tile.road ~= true then
 							work = "road"
+						elseif mineBetter then
+							work = "mine"
 						elseif canIrrigate then
 							work = "irrigate"
+						elseif canRail then
+							work = "railroad"
 						end
 						if work ~= nil then
 							local hostile = false
@@ -376,8 +396,64 @@ local function countMilitary(state: any, playerId: string, ruleset: any): number
 	return n
 end
 
+-- B13e twin: best OFFENSIVE land unit (attack > own defense), non-obsolete,
+-- tech-known; attack desc, cost asc, id asc (matches engine/ai.js). nil if
+-- none. Era-scales legion -> catapult -> knights -> cannon -> armor/artillery.
+local function bestAttackerUnit(me: any, ruleset: any): string?
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "land" and def.attack > def.defense
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or def.attack > bestDef.attack
+				or (def.attack == bestDef.attack and def.cost < bestDef.cost)
+				or (def.attack == bestDef.attack and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return best
+end
+
+-- B13e twin: the player's OFFENSIVE units (attack > defense).
+local function countAttackers(state: any, playerId: string, ruleset: any): number
+	local n = 0
+	for _, u in pairs(state.units) do
+		local def = ruleset.units[u.type]
+		if u.owner == playerId and def.attack > def.defense then
+			n += 1
+		end
+	end
+	return n
+end
+
 -- Cheapest building the city lacks (never a Palace). Comparison-select with
 -- an explicit id tie-break — independent of key iteration order.
+-- B13a/B13e twin: best LAND defender the player can build now — highest
+-- defense, then cheapest, then id (deterministic tie-breaks; matches
+-- engine/ai.js). Skips obsolete units so the choice era-scales.
+local function bestDefenderUnit(me: any, ruleset: any): string
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "land" and def.defense > 0
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or def.defense > bestDef.defense
+				or (def.defense == bestDef.defense and def.cost < bestDef.cost)
+				or (def.defense == bestDef.defense and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return if best == nil then "militia" else best
+end
+
 local function nextBuilding(city: any, me: any, ruleset: any): string?
 	local best = nil
 	for _, id in ipairs(sortedKeys(ruleset.buildings)) do
@@ -564,6 +640,7 @@ end
 local function pickCommand(state: any, playerId: string, ruleset: any, done: any, stance: any): any
 	local me = state.players[playerId]
 	local S = stanceOf(stance) -- balanced (or omitted) = the identity
+	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
@@ -646,22 +723,35 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						defenders += 1
 					end
 				end
-				local bestDefender = if table.find(me.techs, "bronze-working") ~= nil then "phalanx" else "militia"
+				local bestDefender = bestDefenderUnit(me, ruleset)
 				-- A40 stance knobs (balanced = the historical literals): defensive
 				-- always wants 2 guards; growth wants more settlers; aggressive
 				-- raises the empire army cap.
-				local wantDefenders = if (S.garrisonAlways2 or enemyNear(state, me, playerId, city.x, city.y, 8)) then 2 else 1
+				local threatened = enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius)
+					local wantDefenders = if (S.garrisonAlways2 or threatened) then 2 else 1
 				local want = { kind = "unit", id = bestDefender }
 				if defenders >= wantDefenders then
 					if countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else
-						local building = stanceBuilding(city, me, ruleset, S)
+						-- B13g: a THREATENED city walls up first (masonry known, not
+						-- already walled) before any other building.
+						local wallsDef = ruleset.buildings["city-walls"]
+						local canWall = threatened and wallsDef ~= nil
+							and (city.buildings == nil or table.find(city.buildings, "city-walls") == nil)
+							and (wallsDef.tech == "" or table.find(me.techs, wallsDef.tech) ~= nil)
+						local building = if canWall then "city-walls" else stanceBuilding(city, me, ruleset, S)
 						local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
+						-- B13e: buildings + wonders done — field an OFFENSIVE army up
+						-- to the empire target before settler-pavers (twin of ai.js).
+						local attacker = if building == nil and wonder == nil then bestAttackerUnit(me, ruleset) else nil
+						local armyTarget = countCities(state, playerId) * S.attackerPerCity + S.attackerBase
 						if building ~= nil then
 							want = { kind = "building", id = building }
 						elseif wonder ~= nil then
 							want = { kind = "wonder", id = wonder }
+						elseif attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget then
+							want = { kind = "unit", id = attacker }
 						elseif defenders >= 3
 							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
 							want = { kind = "unit", id = "settlers" }
@@ -727,14 +817,14 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							guards += 1
 						end
 					end
-					local need = if enemyNear(state, me, playerId, home.x, home.y, 8) then 2 else 1
+					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
 					if guards <= need then
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end
 				end
 				-- A40: defensive never marches out (radius 0), aggressive ranges
 				-- wider; balanced keeps the historical 8 — byte-identical.
-				if enemy ~= nil and S.marchRadius > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= S.marchRadius then
+				if enemy ~= nil and marchR > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR then
 					local dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
 					if dir ~= nil then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
@@ -753,7 +843,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				local dir = nil
 				-- balanced marches toward a known enemy; defensive (radius 0)
 				-- explores instead — never leaves to attack
-				if enemy ~= nil and S.marchRadius > 0 then
+				if enemy ~= nil and marchR > 0 then
 					dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
 				else
 					dir = towardUnexplored(state, unit, me)

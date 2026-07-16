@@ -145,6 +145,37 @@ local function playerIncome(state: any, playerId: string, ruleset: any)
 	return { gold = gold, bulbs = bulbs, maintenance = maintenance }
 end
 
+-- B13/A63 twin: discovering a tech SELLS every building it obsoletes from the
+-- player's cities (barracks at Gunpowder, again at Combustion). Removed and its
+-- full build cost x rules.sellPriceRatio credited, buildingSold event per city.
+-- Deterministic: cityOrder x sorted building ids (matches engine/tech.js).
+local function sellObsoletedBuildings(state: any, pid: string, discoveredTech: string, ruleset: any, events: any)
+	local player = state.players[pid]
+	local buildingIds = {}
+	for id in pairs(ruleset.buildings) do
+		table.insert(buildingIds, id)
+	end
+	table.sort(buildingIds)
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	for _, cid in ipairs(order) do
+		local city = state.cities[cid]
+		if city ~= nil and city.owner == pid and city.buildings ~= nil then
+			for _, bid in ipairs(buildingIds) do
+				local def = ruleset.buildings[bid]
+				if def.obsoletedByTechs ~= nil and table.find(def.obsoletedByTechs, discoveredTech) ~= nil then
+					local idx = table.find(city.buildings, bid)
+					if idx ~= nil then
+						table.remove(city.buildings, idx)
+						local credit = def.cost * ruleset.rules.sellPriceRatio
+						player.gold = player.gold + credit
+						table.insert(events, { type = "buildingSold", playerId = pid, cityId = cid, building = bid, gold = credit })
+					end
+				end
+			end
+		end
+	end
+end
+
 -- Runs once per game turn (turn wrap): collect trade, split, maybe discover.
 local function processResearch(state: any, ruleset: any, events: any)
 	for _, pid in ipairs(state.playerOrder) do
@@ -172,6 +203,7 @@ local function processResearch(state: any, ruleset: any, events: any)
 				player.bulbs -= cost -- overflow carries into the next advance
 				table.insert(player.techs, player.researching)
 				table.insert(events, { type = "techDiscovered", playerId = pid, tech = player.researching })
+				sellObsoletedBuildings(state, pid, player.researching, ruleset, events)
 				player.researching = ""
 			end
 		end

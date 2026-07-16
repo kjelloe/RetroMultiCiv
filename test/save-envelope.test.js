@@ -109,7 +109,17 @@ test('B16: loading a save applies its recorded rules overrides in place', async 
 // the user's turn-371 recording is SOUND — under the trainer ruleset it
 // replays every entry clean to the save's own hash. If this ever reds, the
 // engine changed behavior for this game's history (a real regression).
-test('B16: the turn-371 save replays clean under its actual difficulty', async (t) => {
+// The B16 finding (the envelope lost its difficulty, the recording itself is
+// sound) still stands — the pre-B16 warning fires and applying the recorded
+// difficulty is the fix. But this all-techs turn-325+ recording was captured
+// with the PRE-B13 AI, which built obsolete phalanx late-game; B13's era-
+// scaling makes the AI build the era successor, so the re-derived AI rounds
+// now diverge from the recorded ones at the FIRST round (turn 326). The
+// recording predates an intentional AI change — a revert of B13 would make it
+// replay clean again, so this stays a live regression guard for B13's late-era
+// AI (architect flagged @<B13 window> — re-record a fresh post-B13 witness if
+// a clean-replay artifact is wanted).
+test('B16/B13: the turn-371 save carries its difficulty; B13 re-scaled its late-era AI', async (t) => {
   const file = path.join(__dirname, '..', 'debugging', 'logs', 'retromulticiv-turn371.json');
   if (!fs.existsSync(file)) {
     t.skip('debugging/logs/retromulticiv-turn371.json not present');
@@ -120,7 +130,38 @@ test('B16: the turn-371 save replays clean under its actual difficulty', async (
   assert.match(note, /pre-B16/, 'the artifact predates the fix — the warning must fire');
   diag.rulesOverrides = { contentCitizens: 6 }; // the measured actual difficulty
   const report = await replayDiagnostics(diag, JSON.parse(JSON.stringify(RULESET)));
+  // (b) the pre-B13 late-era recording no longer replays identically
+  assert.ok(report.problems.length > 0,
+    '(b) B13 intentionally re-scaled the late-era AI — the recording diverges');
+  // (a)+(b) explicit: the FIRST divergence is entry 28, the turn-326 ROUND.
+  // Because problems are in entry order, entry 28 being first proves every
+  // prior entry (0-27: the turn-325 HUMAN commands, plus the envelope
+  // difficulty applied on load) replayed EXACT — the B16 property, still fully
+  // witnessed. That the divergence is an AI ROUND (not a human cmd) is B13's
+  // expected consequence; a revert of B13 removes it and this test screams.
+  assert.match(report.problems[0], /^entry 28 \(round -> turn 326\)/,
+    '(a) all turn-325 human commands replay exact; (b) the first AI round (326) diverges — B13 era-scaling');
+});
+
+// B13 fresh witness (architect @beaba272): a POST-B13 late-era all-AI recording
+// carrying its trainer-difficulty rulesOverrides, generated after the era-
+// scaling re-record. It replays CLEAN through the current engine — the live
+// guard that succeeds the turn-371 artifact (which now witnesses B13's change
+// rather than a clean replay). Self-skips if absent. Regenerate with
+// debugging/ tooling if an intentional engine change invalidates it.
+test('B13 witness: the post-B13 rulesOverrides recording replays clean', async (t) => {
+  const file = path.join(__dirname, '..', 'debugging', 'logs', 'retromulticiv-witness-b13.json');
+  if (!fs.existsSync(file)) {
+    t.skip('debugging/logs/retromulticiv-witness-b13.json not present');
+    return;
+  }
+  const save = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { note, diag } = await normalizeReplayInput(save);
+  // it CARRIES its rulesOverrides (post-B16 envelope) — no pre-B16 warning
+  assert.doesNotMatch(note, /pre-B16/, 'the witness records its own difficulty');
+  assert.deepStrictEqual(diag.rulesOverrides, { contentCitizens: 6 }, 'trainer difficulty travels with the recording');
+  const report = await replayDiagnostics(diag, JSON.parse(JSON.stringify(RULESET)));
   assert.deepStrictEqual(report.problems, [],
-    'the recording was never divergent — only the extraction lost the difficulty');
-  assert.strictEqual(report.turn, 371);
+    'the post-B13 recording reproduces exactly — the fresh live guard');
+  assert.ok(report.turn > 100, 'a genuine late-era game (100+ turns)');
 });

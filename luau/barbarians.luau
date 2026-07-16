@@ -15,6 +15,38 @@ local EVERY = 4 -- spawn check every N turns
 local SPAWN_CHANCE = 3 -- 1-in-N on each check
 local HUNT_RADIUS = 8
 
+-- A66/B13 twin: barbarians era-scale — the spawn unit is the highest
+-- rules.barbTiers entry whose trigger tech is known by >= barbTierThreshold%
+-- of the ALIVE non-barb civs. Non-roster-owner safe. Matches engine/barbarians.js.
+local function barbTier(state: any, ruleset: any): string
+	local tiers = ruleset.rules.barbTiers
+	local alive = 0
+	for _, pid in ipairs(state.playerOrder) do
+		if pid ~= BARB_ID then
+			local p = state.players[pid]
+			if p ~= nil and p.alive ~= false then
+				alive += 1
+			end
+		end
+	end
+	local unit = tiers[1].unit
+	for i = 2, #tiers do
+		local know = 0
+		for _, pid in ipairs(state.playerOrder) do
+			if pid ~= BARB_ID then
+				local p = state.players[pid]
+				if p ~= nil and p.alive ~= false and table.find(p.techs, tiers[i].tech) ~= nil then
+					know += 1
+				end
+			end
+		end
+		if alive > 0 and know * 100 >= alive * ruleset.rules.barbTierThreshold then
+			unit = tiers[i].unit
+		end
+	end
+	return unit
+end
+
 local function ensureBarbPlayer(state: any)
 	if state.players[BARB_ID] == nil then
 		state.players[BARB_ID] = {
@@ -79,11 +111,12 @@ local function trySpawn(state: any, ruleset: any, events: any)
 		end
 		if ok then
 			ensureBarbPlayer(state)
+			local barbUnit = barbTier(state, ruleset)
 			local unitId = "u" .. state.nextUnitId
 			state.nextUnitId += 1
 			state.units[unitId] = {
-				id = unitId, type = "militia", owner = BARB_ID,
-				x = x, y = y, moves = ruleset.units.militia.moves,
+				id = unitId, type = barbUnit, owner = BARB_ID,
+				x = x, y = y, moves = ruleset.units[barbUnit].moves,
 				fortified = false, veteran = false,
 			}
 			table.insert(events, { type = "barbariansSpawned", unitId = unitId, x = x, y = y })

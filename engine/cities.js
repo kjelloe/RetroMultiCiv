@@ -41,6 +41,15 @@ function hasBuilding(city, buildingId) {
   return city.buildings !== undefined && city.buildings.indexOf(buildingId) !== -1;
 }
 
+// B13a/A63: a unit leaves the production catalog once its obsoletedBy tech is
+// known (data/units.json chains, wiki-verified). Pure — reads the def + the
+// player's techs. Shared by setProduction (build-menu legality) and the AI's
+// unit choice so both prune identically.
+function unitObsolete(def, techs) {
+  return def.obsoletedBy !== undefined && def.obsoletedBy !== ''
+    && techs.indexOf(def.obsoletedBy) !== -1;
+}
+
 // A wonder is active while built and its obsoleting tech is unknown to ALL
 // players (Civ 1: anyone's discovery retires it).
 function wonderActive(state, wonderId, ruleset) {
@@ -327,6 +336,10 @@ function setProduction(state, cmd, ruleset) {
   if (def.tech !== '' && state.players[cmd.playerId].techs.indexOf(def.tech) === -1) {
     return { ok: false, reason: 'techRequired' };
   }
+  // B13a/A63: a unit obsoleted by a known tech has left the catalog
+  if (item.kind === 'unit' && unitObsolete(def, state.players[cmd.playerId].techs)) {
+    return { ok: false, reason: 'obsolete' };
+  }
   if (item.kind === 'building' && hasBuilding(city, item.id)) {
     return { ok: false, reason: 'alreadyBuilt' };
   }
@@ -516,5 +529,6 @@ function citySpacingOk(map, x, y, cx, cy, rules) {
 export {
   foundCity, setProduction, setWorkers, buyProduction, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
-  wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk
+  wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
+  unitObsolete
 };

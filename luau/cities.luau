@@ -65,6 +65,13 @@ local function hasBuilding(city: any, buildingId: string): boolean
 	return city.buildings ~= nil and table.find(city.buildings, buildingId) ~= nil
 end
 
+-- B13a/A63 twin: a unit leaves the production catalog once its obsoletedBy
+-- tech is known. Pure; shared by setProduction and the AI's unit choice.
+local function unitObsolete(def: any, techs: { string }): boolean
+	return def.obsoletedBy ~= nil and def.obsoletedBy ~= ""
+		and table.find(techs, def.obsoletedBy) ~= nil
+end
+
 -- A wonder is active while built and its obsoleting tech is unknown to ALL
 -- players (Civ 1: anyone's discovery retires it).
 local function wonderActive(state: any, wonderId: string, ruleset: any): boolean
@@ -478,6 +485,10 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 	if def.tech ~= "" and table.find(state.players[cmd.playerId].techs, def.tech) == nil then
 		return { ok = false, reason = "techRequired" }
 	end
+	-- B13a/A63: a unit obsoleted by a known tech has left the catalog
+	if item.kind == "unit" and unitObsolete(def, state.players[cmd.playerId].techs) then
+		return { ok = false, reason = "obsolete" }
+	end
 	if item.kind == "building" and hasBuilding(city, item.id) then
 		return { ok = false, reason = "alreadyBuilt" }
 	end
@@ -700,4 +711,5 @@ return {
 	itemCost = itemCost,
 	civVeteran = civVeteran,
 	citySpacingOk = citySpacingOk,
+	unitObsolete = unitObsolete,
 }

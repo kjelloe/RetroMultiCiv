@@ -16,7 +16,7 @@
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
 import { unitsAt, cityAt, sortIds } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 
@@ -25,18 +25,28 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 
 // A40 slice 1: AI regency STANCES. Behavior knobs (NOT ruleset facts — an
 // AI-constants precedent), read through the resolved S object in pickCommand.
-// HARD INVARIANT: `balanced` (and the omitted default) is the IDENTITY — its
-// knobs equal the historical literals, so every substitution below is
-// arithmetically unchanged and the sim goldens stay green by construction.
-// Only the four flavored stances read different knobs; the sim never passes
-// one, so they are golden-free. Twin: luau/ai.luau STANCES must match.
+// A40 identity note (now historical): balanced WAS the pure pre-stance
+// identity so the A40 stance window stayed golden-neutral. B13e INTENTIONALLY
+// breaks that for the attacker knobs — balanced now fields an offensive army
+// (attackerPerCity/attackerBase > 0), which is the whole point of the era-
+// scaling window and moves the goldens (re-recorded once at window close).
+// Twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false },
-  defensive:  { marchRadius: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false },
-  aggressive: { marchRadius: 14, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false },
-  science:    { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true },
-  growth:     { marchRadius: 8, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false }
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCity: 1, attackerBase: 0 },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCity: 0, attackerBase: 0 },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCity: 2, attackerBase: 2 },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCity: 1, attackerBase: 0 },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCity: 1, attackerBase: 0 }
 };
+// B13f: the AI's march-vs-explore radius. The BASE lives in data/rules.json
+// (exploreMarchRadius) so the sim-runner can SWEEP contact behavior via
+// rulesOverrides — the war-lab "same-continent civs never meet" knob. Each
+// stance scales it by marchRadiusPct (balanced 100% = the historical 8;
+// defensive 0% stays "never march" under any sweep; aggressive 175% = 14).
+// Identity by default: idiv(8 * pct, 100) reproduces the old literals.
+function marchRadiusOf(ruleset, S) {
+  return idiv(ruleset.rules.exploreMarchRadius * S.marchRadiusPct, 100);
+}
 function stanceOf(stance) {
   return (stance !== undefined && STANCES[stance] !== undefined) ? STANCES[stance] : STANCES.balanced;
 }
@@ -168,6 +178,8 @@ function settlerRank(state, playerId, uid) {
 // (trade -> research), then irrigation where legal. {x, y, work} or null.
 function bestImprovementJob(state, unit, playerId, ruleset, improveFirst) {
   const map = state.map;
+  const me = state.players[playerId];
+  const knowsRail = me.techs.indexOf(ruleset.rules.railroadTech) !== -1;
   let best = null, bestD = 9999;
   for (const cid of state.cityOrder || []) {
     const city = state.cities[cid];
@@ -180,12 +192,25 @@ function bestImprovementJob(state, unit, playerId, ruleset, improveFirst) {
       if (terrain.domain !== 'land') continue;
       const canIrrigate = tile.irrigation !== true && tile.mine !== true
         && terrain.irrigate !== undefined && hasWaterSource(state, w.x, w.y);
+      // B13d: a mine path — shield terrains (hills/mountains/desert have
+      // terrain.mine) get mined; prefer a mine over irrigation only where it
+      // yields MORE shields than the irrigation gives food (so hills mine,
+      // desert still irrigates for scarce food, grassland/plains irrigate).
+      const canMine = tile.irrigation !== true && tile.mine !== true
+        && terrain.mine !== undefined;
+      const mineBetter = canMine && (!canIrrigate || terrain.mine.shields > terrain.irrigate.food);
+      // B13b: once Railroad is known, upgrade a finished road to rail (needs a
+      // road first — startWork enforces it too).
+      const canRail = knowsRail && tile.road === true && tile.railroad !== true;
       let work = null;
       // A40 growth stance irrigates first; balanced (improveFirst undefined)
-      // keeps roads-first — the trade-that-funds-research order, byte-identical
+      // keeps roads-first — the trade-that-funds-research order. B13: after the
+      // road, take the terrain yield (mine or irrigate), then rail-upgrade.
       if (improveFirst === 'irrigate' && canIrrigate) work = 'irrigate';
       else if (tile.road !== true) work = 'road';
+      else if (mineBetter) work = 'mine';
       else if (canIrrigate) work = 'irrigate';
+      else if (canRail) work = 'railroad';
       if (work === null) continue;
       let hostile = false;
       for (const u of unitsAt(state, w.x, w.y)) {
@@ -294,6 +319,65 @@ function countMilitary(state, playerId, ruleset) {
     if (u.owner === playerId && ruleset.units[u.type].attack > 0) n = n + 1;
   }
   return n;
+}
+
+// B13e: the best OFFENSIVE land unit the player can build now — attack strictly
+// above its OWN defense (a true attacker, not a high-attack defender like
+// mech-inf), non-obsolete, tech-known; ranked attack desc, cost asc, id asc
+// (deterministic; the Luau twin must match). Era-scales legion -> catapult ->
+// knights -> cannon -> armor/artillery. null when the player has no offensive
+// unit unlocked yet.
+function bestAttackerUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'land' || def.attack <= def.defense) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.attack > bestDef.attack
+        || (def.attack === bestDef.attack && def.cost < bestDef.cost)
+        || (def.attack === bestDef.attack && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best;
+}
+
+// B13e: the player's OFFENSIVE units (attack > defense) — the army target that
+// makes the AI field an attacking force excludes pure defenders.
+function countAttackers(state, playerId, ruleset) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    const def = ruleset.units[u.type];
+    if (u.owner === playerId && def.attack > def.defense) n = n + 1;
+  }
+  return n;
+}
+
+// B13a/B13e: the best LAND defender the player can actually build now —
+// highest defense, then cheapest, then id (deterministic tie-breaks; the Luau
+// twin must match). Skips units whose obsoletedBy tech is known, so the choice
+// era-scales (phalanx -> musketeers -> riflemen -> mech-inf) instead of
+// jamming on an obsolete unit setProduction now rejects. Comparison-select =
+// key-order-independent. Falls back to militia (tech-free base) if somehow
+// nothing qualifies.
+function bestDefenderUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'land' || def.defense <= 0) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.defense > bestDef.defense
+        || (def.defense === bestDef.defense && def.cost < bestDef.cost)
+        || (def.defense === bestDef.defense && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best === null ? 'militia' : best;
 }
 
 // Cheapest building the city lacks and the player can build (never a Palace —
@@ -426,6 +510,7 @@ function happinessCommand(state, playerId, ruleset) {
 function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
   const S = stanceOf(stance); // balanced (or omitted) = the identity
+  const marchR = marchRadiusOf(ruleset, S); // B13f: sweepable via rules.json
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual
@@ -493,7 +578,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (!city || city.owner !== playerId) continue;
     done['c:' + cid] = true;
     const defenders = unitsAt(state, city.x, city.y).filter(u => u.owner === playerId);
-    const bestDefender = me.techs.indexOf('bronze-working') !== -1 ? 'phalanx' : 'militia';
+    const bestDefender = bestDefenderUnit(me, ruleset);
     // Defend first — TWO garrisons when a known enemy is within 8 of the
     // city, one in peacetime; then expand while settlers are scarce
     // (capped — endless settler spam grows armies without bound once the
@@ -505,17 +590,33 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // stance knobs (balanced = the historical literals, so this is unchanged
     // for the sim): defensive always wants 2 guards; growth wants more
     // settlers; aggressive raises the empire army cap.
-    const wantDefenders = (S.garrisonAlways2 || enemyNear(state, me, playerId, city.x, city.y, 8)) ? 2 : 1;
+    const threatened = enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius);
+    const wantDefenders = (S.garrisonAlways2 || threatened) ? 2 : 1;
     let want = { kind: 'unit', id: bestDefender };
     if (defenders.length >= wantDefenders) {
       if (countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
-        const building = stanceBuilding(city, me, ruleset, S);
+        // B13g: a THREATENED city walls up first (a known enemy within 8),
+        // masonry known and not already walled — before any other building.
+        // 0/36 walled at t300 was the gap; balanced now reacts to real danger.
+        const wallsDef = ruleset.buildings['city-walls'];
+        const canWall = threatened && wallsDef !== undefined
+          && (city.buildings === undefined || city.buildings.indexOf('city-walls') === -1)
+          && (wallsDef.tech === '' || me.techs.indexOf(wallsDef.tech) !== -1);
+        const building = canWall ? 'city-walls' : stanceBuilding(city, me, ruleset, S);
         const wonder = building === null ? nextWonder(state, me, ruleset) : null;
+        // B13e: buildings + wonders done — field an OFFENSIVE army up to the
+        // empire target (attackerPerCity per city + a base) before falling
+        // back to settler-pavers. This is why late-game AIs are no longer
+        // 100% defensive; era-scales through bestAttackerUnit.
+        const attacker = (building === null && wonder === null) ? bestAttackerUnit(me, ruleset) : null;
+        const armyTarget = countCities(state, playerId) * S.attackerPerCity + S.attackerBase;
         if (building !== null) want = { kind: 'building', id: building };
         else if (wonder !== null) want = { kind: 'wonder', id: wonder };
-        else if (defenders.length >= 3
+        else if (attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget) {
+          want = { kind: 'unit', id: attacker };
+        } else if (defenders.length >= 3
                  || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
           // enough army empire-wide: garrison surplus now roams (escorts,
           // explorers), so the LOCAL count alone no longer saturates —
@@ -583,7 +684,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       for (const g of unitsAt(state, unit.x, unit.y)) {
         if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
       }
-      const need = enemyNear(state, me, playerId, home.x, home.y, 8) ? 2 : 1;
+      const need = enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) ? 2 : 1;
       if (guards <= need) {
         return { type: 'fortify', playerId, unitId: uid };
       }
@@ -592,7 +693,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // trek across the map (that churn was where armies went to die). A40:
     // defensive never marches out (radius 0), aggressive ranges wider;
     // balanced keeps the historical 8 — byte-identical.
-    if (enemy && S.marchRadius > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= S.marchRadius) {
+    if (enemy && marchR > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR) {
       const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
@@ -608,7 +709,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     let dir = null;
     // balanced (marchRadius 8) marches toward a known enemy as before;
     // defensive (radius 0) explores instead — never leaves to attack
-    if (enemy && S.marchRadius > 0) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
+    if (enemy && marchR > 0) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
     else dir = towardUnexplored(state, unit, me);
     if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
   }

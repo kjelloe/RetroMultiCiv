@@ -101,6 +101,33 @@ function playerIncome(state, playerId, ruleset) {
 }
 
 // Runs once per game turn (turn wrap): collect trade, split, maybe discover.
+// B13/A63: discovering a tech SELLS every building it obsoletes from the
+// player's cities (Civ 1: barracks at Gunpowder, again at Combustion — the
+// obsoletedByTechs list in data/buildings.json). The building is removed and
+// its sell price (full build cost × rules.sellPriceRatio, integer gold)
+// credited, with a buildingSold event per city for the turn log. Deterministic:
+// cityOrder × sorted building ids. Reusable by A86 (manual sell); no per-city
+// flag here. Non-roster-owner safe (only iterates the researching player's own
+// cities via the owner guard).
+function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
+  const player = state.players[pid];
+  const buildingIds = Object.keys(ruleset.buildings).sort();
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== pid || city.buildings === undefined) continue;
+    for (const bid of buildingIds) {
+      const def = ruleset.buildings[bid];
+      if (def.obsoletedByTechs === undefined || def.obsoletedByTechs.indexOf(discoveredTech) === -1) continue;
+      const idx = city.buildings.indexOf(bid);
+      if (idx === -1) continue;
+      city.buildings.splice(idx, 1);
+      const credit = def.cost * ruleset.rules.sellPriceRatio;
+      player.gold = player.gold + credit;
+      events.push({ type: 'buildingSold', playerId: pid, cityId: cid, building: bid, gold: credit });
+    }
+  }
+}
+
 function processResearch(state, ruleset, events) {
   for (const pid of state.playerOrder) {
     const player = state.players[pid];
@@ -119,6 +146,7 @@ function processResearch(state, ruleset, events) {
         player.bulbs = player.bulbs - cost; // overflow carries into the next advance
         player.techs.push(player.researching);
         events.push({ type: 'techDiscovered', playerId: pid, tech: player.researching });
+        sellObsoletedBuildings(state, pid, player.researching, ruleset, events);
         player.researching = '';
       }
     }

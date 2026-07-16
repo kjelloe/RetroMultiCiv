@@ -229,6 +229,10 @@ export function initTurnLog(ctx) {
         put(`⚒ ${state.cities[e.cityId].name} completed ${units[e.unitType].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'buildingBuilt' && ownCity(state, e.cityId)) {
         put(`🏠 ${state.cities[e.cityId].name} completed ${buildings[e.building].name}`, '', cityLoc(state, e.cityId));
+      } else if (e.type === 'buildingSold' && e.playerId === ctx.HUMAN) {
+        // B13/A63: an obsoleted building auto-sold for gold on the new tech
+        const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
+        put(`💰 ${cityName} sold ${buildings[e.building].name} (+${e.gold}g, obsolete)`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'wonderBuilt') {
         // wonders are world news (Civ 1 announces them to everyone)
         const mine = ownCity(state, e.cityId);
