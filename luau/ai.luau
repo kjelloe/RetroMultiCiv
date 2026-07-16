@@ -696,11 +696,13 @@ local function happinessCommand(state: any, playerId: string, ruleset: any): any
 			local mood = happiness.cityMood(state, city, ruleset)
 			if mood.disorder and city.pop >= 2 then
 				local cands = cities.candidateTiles(state, city, ruleset)
-				local target = city.pop - 1 - (if city.taxmen == nil then 0 else city.taxmen)
-					- (if city.scientists == nil then 0 else city.scientists)
 				local current = if city.workers ~= nil then #city.workers
 					else (if city.pop < #cands then city.pop else #cands)
-				if target < current and target >= 0 and #cands > 0 then
+				-- B22: ESCALATE -- one more entertainer each disorder turn (the old
+				-- fixed pop-1 cap stalled at one, drowning cities needing 2+); the
+				-- auto-revert still snaps a recovering city back, so no flap.
+				local target = current - 1
+				if target >= 0 and #cands > 0 then
 					-- keep enters STATE via setWorkers and may be EMPTY: marked
 					local keep = setmetatable({}, statehash.ARRAY_MT)
 					for i = 1, #cands do

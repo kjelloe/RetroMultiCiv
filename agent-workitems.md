@@ -13,7 +13,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 337 tests), the item's own verification steps pass, related
+   (currently 351 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -3041,6 +3041,55 @@ median over seeds; a floor breach fails the nightly lane loudly
 (the M-targets are regression FLOORS, not aspirations). Floors
 data-driven from a table in the script header, values mirror
 docs/05 §12 — one source comment linking both.
+
+## A94 — How-to-host guide + Docker image + README links (user package 2026-07-16 evening; helper)
+
+1. **docs/how-to-host.md** (source of truth) + **client/host-guide
+   .html** (hand-authored twin, served by the default whitelist —
+   linkable from a running server). Sections: quick start (run.sh /
+   run.ps1), Ubuntu + systemd unit, DOCKER, HETZNER (a specific
+   promoted walkthrough — public sanitized version of the user's
+   recipe: CX-class box, ufw, node LTS, systemd, DNS), RASPBERRY
+   PI/Raspbian (differences only: ARM node via nodesource, port-80
+   via cap_net_bind_service, memory notes on 1-2GB models —
+   otherwise identical to Ubuntu).
+2. **Dockerfile** (node LTS slim, no build step — the repo IS the
+   app) + compose example + a GitHub Actions image build; PUBLISH
+   to GHCR flagged for user approval (free, but it is a public
+   artifact channel).
+3. **README.md**: a "Host your own server" section near the top
+   linking the md + the Docker one-liner (user: "readily available
+   when visiting the github page").
+
+## A95 — Information-security assessment of the hosted surface (architect drafts docs/16; helper reviews)
+
+Enumerate and assess EVERYTHING a hosting operator exposes:
+HTTP static whitelist (path-traversal posture), /ws protocol
+(frame parsing, payload caps, seat auth, tamper rejection), join/
+create/chat (rate-limit status vs A50's queue), saves on disk
+(tokens off the wire since A61 — verify at rest), --debug OFF
+posture, DoS surface, dependency chain (ws + dev-only deps), TLS
+story (recommend reverse proxy TLS termination — caddy/nginx
+snippets in A94's guide), Pi/Hetzner firewall guidance. Deliverable:
+docs/16-security-assessment.md + a gap list feeding A50's queue.
+
+## A96 — Nightly self-check + maintenance fallback (user package; helper, server-adjacent)
+
+1. HOST-SIDE nightly cron (documented in A94, shipped as
+   tools/host-selfcheck.sh): npm audit → IF findings, apply `npm
+   audit fix` in a STAGING copy, run the full suite there, and
+   only swap+restart on green (architect note: NEVER silent
+   auto-fix on the live tree — determinism + the dependency
+   whitelist demand the test gate; the user's intent is honored,
+   with brakes).
+2. MAINTENANCE PAGE: a watchdog wrapper (tools/serve-maintenance
+   .js — dependency-free, cannot fail) — if the real server exits
+   non-zero N times in a row, serve a static "down for
+   maintenance" page on the port; MAINTENANCE_CONTACT env
+   (email / discord) rendered when configured.
+3. LATER (noted, not built): resend-mail integration so the
+   server emails the maintainer — new dependency, needs the
+   user's explicit approval when its time comes.
 
 ## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
 

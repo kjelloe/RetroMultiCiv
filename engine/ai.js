@@ -571,11 +571,17 @@ function happinessCommand(state, playerId, ruleset) {
     const mood = cityMood(state, city, ruleset);
     if (mood.disorder && city.pop >= 2) {
       const cands = candidateTiles(state, city, ruleset);
-      const target = city.pop - 1 - (city.taxmen === undefined ? 0 : city.taxmen)
-        - (city.scientists === undefined ? 0 : city.scientists);
       const current = city.workers !== undefined ? city.workers.length
         : (city.pop < cands.length ? city.pop : cands.length);
-      if (target < current && target >= 0 && cands.length > 0) {
+      // B22: ESCALATE — pull ONE more worker into an entertainer each disorder
+      // turn (target = current - 1). The old fixed pop-1-specialists cap could
+      // only ever add ONE entertainer and then stalled (target < current became
+      // false), so a city needing 2+ entertainers drowned permanently — the
+      // disorderTurns tail. The auto-revert below still undoes the whole thing
+      // the moment the auto layout would be calm, so a recovering city snaps
+      // back and there is no flap.
+      const target = current - 1;
+      if (target >= 0 && cands.length > 0) {
         const keep = [];
         for (let i = 0; i < cands.length && keep.length < target; i++) keep.push(cands[i].idx);
         return { type: 'setWorkers', playerId, cityId: cid, workers: keep };
