@@ -209,6 +209,8 @@ export function initTurnLog(ctx) {
         put(`🌊 a unit went down with its transport at (${e.x},${e.y})`, 'loss', { x: e.x, y: e.y });
       } else if (e.type === 'airCrashed' && e.owner === ctx.HUMAN) {
         put(`✈💥 an air unit ran out of fuel and crashed at (${e.x},${e.y})`, 'loss', { x: e.x, y: e.y });
+      } else if (e.type === 'unitConsumed' && e.owner === ctx.HUMAN) {
+        put(`☢ your missile struck and was spent at (${e.x},${e.y})`, '', { x: e.x, y: e.y });
       } else if (e.type === 'cityCaptured') {
         const name = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         if (e.from === ctx.HUMAN || e.to === ctx.HUMAN) {

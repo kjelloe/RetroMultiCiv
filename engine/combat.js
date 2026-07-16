@@ -153,7 +153,14 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
       defenderId: defender.id, defenderType: defender.type, defenderOwner: defender.owner,
       x: tx, y: ty, unitsLost: casualties.length
     });
-    maybePromote(state, attacker, events);
+    // A72: a one-shot attacker (the nuclear missile) is consumed by its strike
+    // and does not promote; a normal attacker rolls for veteran promotion.
+    if (atype.oneShot) {
+      delete state.units[attacker.id];
+      events.push({ type: 'unitConsumed', unitId: attacker.id, owner: attacker.owner, x: attacker.x, y: attacker.y });
+    } else {
+      maybePromote(state, attacker, events);
+    }
   } else {
     delete state.units[attacker.id];
     events.push({

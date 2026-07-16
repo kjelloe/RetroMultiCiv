@@ -1,0 +1,54 @@
+{
+  "name": "A72: a fighter flies onto a carrier and is based at the wrap",
+  "notes": "5x5, columns 0-2 grassland, 3-4 ocean. A carrier at (3,2); a fighter at (2,2) land flies E onto the carrier's sea tile (air flies over any tile). endTurn wraps: processAir bases the fighter on the carrier (aboard=cv, fuel reset) since it ended on a friendly carrier with a free slot. Final state (fighter aboard the carrier) is the cross-language contract. No RNG (turn <16, no cities).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1"],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "ocean" }, { "t": "ocean" }
+        ]
+      },
+      "units": {
+        "cv": { "id": "cv", "type": "carrier", "owner": "p1", "x": 3, "y": 2, "moves": 5, "fortified": false, "veteran": false },
+        "f1": { "id": "f1", "type": "fighter", "owner": "p1", "x": 2, "y": 2, "moves": 10, "fortified": false, "veteran": false }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "f1", "dir": "E" },
+      "expect": { "ok": true, "state": { "units.f1.x": 3, "units.f1.aboard": null } },
+      "notes": "fly onto the carrier's tile (not yet based)"
+    },
+    {
+      "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true, "state": { "units.f1.aboard": "cv" } },
+      "notes": "the wrap bases the fighter on the carrier"
+    }
+  ],
+  "final": {
+    "state": { "units.f1.aboard": "cv", "units.f1.x": 3, "units.f1.y": 2 },
+    "hash": "0xca7d01e0"
+  }
+}

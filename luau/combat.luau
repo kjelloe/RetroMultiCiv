@@ -196,7 +196,14 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 			defenderId = defender.id, defenderType = defender.type, defenderOwner = defender.owner,
 			x = tx, y = ty, unitsLost = #casualties,
 		})
-		maybePromote(state, attacker, events)
+		-- A72: a one-shot attacker (nuclear) is consumed by its strike and does
+		-- not promote; a normal attacker rolls for veteran promotion.
+		if atype.oneShot == true then
+			state.units[attacker.id] = nil
+			table.insert(events, { type = "unitConsumed", unitId = attacker.id, owner = attacker.owner, x = attacker.x, y = attacker.y })
+		else
+			maybePromote(state, attacker, events)
+		end
 	else
 		state.units[attacker.id] = nil
 		table.insert(events, {

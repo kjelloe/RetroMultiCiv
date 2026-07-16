@@ -190,7 +190,10 @@ function buildTechs() {
 const UNIT_OVERLAY = {
   'diplomat': { ignoresZoc: true },
   'caravan':  { ignoresZoc: true, helpsWonder: true },
-  'nuclear':  { ignoresZoc: true },
+  // A72: the nuclear missile is a one-shot air weapon (Civ 1) — it strikes once
+  // and is consumed, and burns fuel like any air unit (area damage/pollution is
+  // a deferred follow-up). fuel FLAGGED for user with the other air numbers.
+  'nuclear':  { ignoresZoc: true, oneShot: true, fuel: 1 },
   // A72: air units fly over zones of control (Civ 1 — ZOC is a ground concept)
   // and burn fuel — they must end the turn on a friendly base or crash. fuel =
   // turns aloft allowed (fighter 1, bomber 2; canonical, FLAGGED for user).
@@ -213,7 +216,11 @@ const UNIT_OVERLAY = {
   'sail':       { obsoletedBy: 'magnetism', transport: 3 },
   'frigate':    { obsoletedBy: 'industrialization', transport: 4 },
   'ironclad':   { obsoletedBy: 'combustion' },
-  'transport':  { transport: 8 }
+  'transport':  { transport: 8 },
+  // A72: a carrier is a mobile airbase — it holds AIR units (airCapacity), not
+  // land units (no `transport`), so the A69 load path never boards it. Capacity
+  // canonical (8), FLAGGED for user with the other air/naval numbers.
+  'carrier':    { airCapacity: 8 }
 };
 
 const BUILDING_OVERLAY = {

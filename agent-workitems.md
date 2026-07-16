@@ -3042,7 +3042,7 @@ median over seeds; a floor breach fails the nightly lane loudly
 data-driven from a table in the script header, values mirror
 docs/05 §12 — one source comment linking both.
 
-## A94 — How-to-host guide + Docker image + README links (user package 2026-07-16 evening; helper)
+## A94 — How-to-host guide + Docker image + README links (user package 2026-07-16 evening; helper)  [claimed: helper 2026-07-16]
 
 1. **docs/how-to-host.md** (source of truth) + **client/host-guide
    .html** (hand-authored twin, served by the default whitelist —

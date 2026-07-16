@@ -31,7 +31,7 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'wonderHelped': // A83: caravan helped a wonder (own-seat only)
       return e.playerId === viewer ? 'cities' : null;
     case 'unitLoaded': case 'unitUnloaded': case 'cargoLost': // A69: naval transport (own-seat)
-    case 'airCrashed': // A72: air unit out of fuel (own-seat)
+    case 'airCrashed': case 'unitConsumed': // A72: air fuel crash / one-shot missile (own-seat)
       return e.owner === viewer ? 'combat' : null;
     case 'revolutionStarted': case 'governmentChanged':
       return e.playerId === viewer ? 'cities' : 'rival';

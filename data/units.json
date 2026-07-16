@@ -189,7 +189,8 @@
     "moves": 5,
     "cost": 160,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "airCapacity": 8
   },
   "cruiser": {
     "name": "Cruiser",
@@ -302,6 +303,8 @@
     "cost": 160,
     "domain": "air",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "oneShot": true,
+    "fuel": 1
   }
 }
