@@ -1703,6 +1703,8 @@ feature alongside diplomacy.
 
 ## A59 — AI leader personalities (wave VII items 4+5 — DESIGNED 2026-07-15 with the user; all four decisions his)
 
+**[BUILD-READY (user confirm 2026-07-16 evening): ship as designed — named leaders, ONE stance each shown openly, plausible favorites, randomize option; queue AFTER the sim-runner's post-B21 knob sweeps so stance tuning lands on measured baselines. B21's stance-percent passthrough machinery is exactly the shape leader personalities consume.]**
+
 Every AI civilization gets a NAMED LEADER with ONE STANCE from the
 A40 table — fixed per civ so opponents build reputations across
 games, with a setup option to randomize.
@@ -2922,6 +2924,41 @@ data/rules.json (tradeRoute block); both engines one window;
 scenario pins (domestic-choice, foreign-auto, windfall math,
 3-route cap). Turn-log 🐫 line + phase-6 chains design consumes
 this later.
+
+## A91 — Pollution, global warming, nuclear area effects (designed with user 2026-07-16; 1.0-required)
+
+Civ 1 authentic, AUTHENTIC-ON default (user ruling; setup toggle
+to disable):
+1. CITY POLLUTION: points from shields (factory/power plants
+   worsen; recycling/mass-transit/hydro/nuclear-plant reduce —
+   BUILDING_OVERLAY effect fields) + population post-industrial
+   techs (wiki-extract the trigger list). Threshold exceeded → a
+   nearby tile gains polluted:true (skull prop; yields halved),
+   placement via engine RNG (deterministic).
+2. CLEANUP: settlers gain cleanPollution work (turns like mine).
+3. GLOBAL WARMING: sustained world polluted-tile count → warming
+   event (terrain transforms — swamp/jungle/desert spread; 🌍
+   turn-log + historian mention). Thresholds/cadence data-driven.
+4. NUKES: Manhattan Project gates globally (wonder effect); nuclear
+   attack kills ALL units on target, halves city pop, pollutes the
+   ring; ENABLED EVERYWHERE (user ruling) with a lobby host
+   no-nukes toggle. Consumes A72's one-shot machinery.
+All numbers wiki-extracted to rules.json/overlays; both engines;
+scenario pins (pollution spawn, cleanup, warming, nuke strike);
+MOVES GOLDENS (AI cities pollute) → full golden window.
+
+## A92 — Debug-command surface (designed with user 2026-07-16; unblocks R7c-17)
+
+debug:* command family — grantGold, spawnUnit, grantTech,
+revealMap — RECORDED like any command (replays verify hash-exact).
+Legality: state.debugEnabled fixed at game creation (server
+--debug / Studio local / ?debug=1 local engine). TAINT (user
+ruling): the first debug command sets state.debugUsed=true
+PERMANENTLY — game-code display gains a DEBUG watermark, gameOver/
+highscore flags it (docs/07 trust loop stays honest). Both
+engines; scenario pin (a debug command + the taint flag in the
+hash); the Roblox debug menu (R7c-17) and a browser --debug panel
+become thin clients of it later.
 
 ## A90 — Help-Wonder action-bar button (A83's client half; helper, small)  [claimed: helper 2026-07-16] [done: 2026-07-16 — client/ui/input.js only: shared helpWonderCityFor(unit) gate (helpsWonder unit standing in a DOMESTIC city whose producing.kind==='wonder', mirrors engine helpWonder checks) drives both an action-bar "🏛 Help Wonder (+N shields, consumed)" button (N=def.cost, data-driven, absent otherwise) and the H key (silent no-op when gate fails; inside the INPUT/TEXTAREA-guarded keydown handler); dispatches helpWonder → hud note + nextUnit; helpWonder added to ACTION_COMMANDS, notBuildingWonder/cannotHelpWonder added to REASON_TEXT. GOLDEN-NEUTRAL (client-only, no engine/data touch); suite 324/324; node --check clean; headless boot clean (falsy gate path exercised). Truthy path verified by logic-mirror + confirmed data fields (caravan.helpsWonder=true, cost=50, ruleset.wonders keying); crafted save available for manual click-through.]
 

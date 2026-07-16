@@ -415,6 +415,30 @@ least one mid-game disconnect/reconnect.
 **Acceptance:** identical state hashes for a full replayed game; a playable
 Roblox session with the ported engine.
 
+## The 1.0 definition (user-ruled 2026-07-16 evening — the MAXIMAL cut)
+
+v1.0 = **the complete Civ 1, playable two ways, with a public
+face.** User chose the widest option on every axis:
+1. **Every Civ 1 system faithful**: the missing-systems audit
+   closed (naval ✓, air in flight) PLUS pollution/global warming +
+   nuclear area effects (A91), the space race (A76), manual sell
+   (A86), trade routes (A89), field upgrades/Leonardo (A63 rest),
+   goody huts (A4), remaining wonder effects (A7), tile contention
+   (A8) — ALL 1.0-required.
+2. **Diplomacy FULL D1–D6** — including human-to-human LAN
+   treaties.
+3. **AI at its M-targets** with leaders (A59), coordination
+   doctrine, siege, map-type-swept balance.
+4. **Roblox multiplayer-complete (Tier 3)**: seats, lobby, regency
+   — both platforms launch multiplayer.
+5. **Public hosting incl. the master index (A51/docs/12)**: games
+   on the user's VM + the QuakeWorld-style server browser.
+6. Map types (A82 v1), sound ✓, pedia (A58), onboarding advisor,
+   playwright lane (A49).
+Post-1.0 (v2 shelf): mobile UI, Civ4-style culture, novelty map
+shapes, checkpointed save format, Blender/glTF fidelity pass.
+Interim releases keep shipping via the marker cadence (v0.6…).
+
 ## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
 
 > RE-BASELINE VERDICT (2026-07-16 evening, sim-runner #534, 50
