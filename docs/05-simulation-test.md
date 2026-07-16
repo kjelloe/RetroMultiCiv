@@ -419,7 +419,15 @@ Targets get pinned in the user's tuning session against these
 distributions. CANONICAL MEASUREMENT CONFIG (user, 2026-07-16):
 **7 civs, medium 80×50, NO-CHAOS**, checkpoint labels t101/201/301/
 401 as measured; M9's denominator becomes non-polar land+coast
-(A84). The re-baseline runs AFTER the era-scaling family lands; from the
+(A84). The re-baseline runs AFTER the era-scaling family lands — RAN
+2026-07-16 evening (sim-runner #534): capabilities real-but-
+dormant, attackers 0/50 games, buys 0/306, expl ~6%; M6/M11
+targets DEFERRED to post-B21 (they'd measure militia noise). New
+columns ADOPTED: garrison% (own-city-tile military share),
+resourceCov% (worked special-resources within Chebyshev-2 —
+healthy 85-94%, high-bar target ≥80%), disorderTurns (cumulative
+city-turns; target caps the TAIL <500 by t400, not the median),
+river-ADJACENCY% (redefined from on-tile, weak-watch). From the
 re-baseline on, a HUMAN BENCHMARK row (metrics extracted from the
 user's real Shift+D recordings per difficulty) sits beside the AI
 configs — the tuning target is "challenging, legible, fair" vs the

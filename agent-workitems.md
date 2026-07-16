@@ -2923,6 +2923,44 @@ scenario pins (domestic-choice, foreign-auto, windfall math,
 3-route cap). Turn-log 🐫 line + phase-6 chains design consumes
 this later.
 
+## B21 — Wake the sleeping capabilities (post-B13 re-baseline verdict, sim-runner #534; bugfixer, ONE window, after A83)
+
+The re-baseline's headline: B13's capabilities are REAL IN CODE,
+DORMANT IN PLAY. Attacker-type units = 0 at t400 across all 50
+games (the branch sits behind buildings+wonders AND the monarchy
+beeline never reaches attacker techs); buys = 0 in all 306 civ-
+checkpoints; exploration stuck 6-7% (the radius knob is inert —
+scouting is bottlenecked on WHO explores, not how far); rails
+median 0%. The window (all knobs rules.json, sweepable):
+(a) ATTACKER BUILD PRIORITY: the attacker branch gets a real
+    build-order slot (fires when countAttackers < target, not
+    behind wonders); attackerPerCity/attackerBase move to
+    rules.json passthrough (STANCES become pcts of the base, the
+    exploreMarchRadius pattern — the sim-runner's env hook showed
+    the shape).
+(b) RESEARCH GATE: the beeline gains an attacker-tech term
+    (bronze/iron-working/wheel reachable early) — knob-weighted;
+    this is factor-catalog group 1's first real lever and feeds
+    A59 leader beelines.
+(c) RUSH-BUY: the economic-coherence knob — buy defender/walls/
+    (attacker) when threatened and gold > rules.buyThreshold;
+    "no buys ever" dies here.
+(d) SCOUT WEIGHT: a dedicated explore-unit assignment knob (share
+    of military that ranges; the radius alone proved inert).
+Golden window discipline (this WILL move goldens — full re-record
+at close), both engines, scenario pins where commands change,
+sweep-proof per knob (identity default + a sweep test). The
+COORDINATION-DOCTRINE window moves BEHIND this one (measured
+re-order: coordination is pointless while no attackers exist).
+
+## B22 — Disorder tail collapse (re-baseline candidate; design-first, after B21)
+
+disorderTurns median 181→352 is fine but the TAIL hits 2863/3820
+city-turns — a minority of civs drown permanently. Diagnose (which
+seeds/civs, what breaks the entertainer fallback long-term), then
+a happiness-policy fix; target caps the TAIL (<500 by t400), not
+the median.
+
 ## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
 
 Small A64 follow-up: M9's denominator becomes non-polar LAND+COAST

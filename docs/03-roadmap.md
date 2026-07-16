@@ -417,6 +417,17 @@ Roblox session with the ported engine.
 
 ## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
 
+> RE-BASELINE VERDICT (2026-07-16 evening, sim-runner #534, 50
+> games canonical config): B13's capabilities are REAL IN CODE but
+> LARGELY DORMANT IN PLAY — attackers 0 at t400 (branch gated
+> behind wonders + late techs), buys still 0/306, exploration
+> stuck ~6%, walls/mines real-but-sparse. MEASURED RE-ORDER: the
+> WAKE-THE-CAPABILITIES window (B21: build-order slot, attacker-
+> tech research term, rush-buy knob, scout weight) comes BEFORE
+> the coordination doctrine; M6/M11 targets NOT pinnable until it
+> lands. New columns adopted: garrison%, resourceCov% (healthy
+> 85-94%), disorderTurns (tail-capped — B22), river-adjacency.
+>
 > STATUS 2026-07-16 late afternoon: the B13 era-scaling window is
 > OPEN past its midpoint (bugfixer holds the golden lock; bounded-
 > chunk cadence). LANDED cross-language: slice 1 obsolescence-
