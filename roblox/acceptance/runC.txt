@@ -1,0 +1,1123 @@
+  23:14:55.988  === RetroMultiCiv R1 anchor gate ===  -  Server - VerifyAnchors:35
+  23:14:55.989  xorshift32(123456789): 2714967881, 2238813396, 1250077441, 3820100336  -  Server - VerifyAnchors:29
+  23:14:55.989    PASS (2714967881, 2238813396, 1250077441, 3820100336)  -  Server - VerifyAnchors:30
+  23:14:55.989  hashState({b=2,a={1,"x",true}}): 0x30db1e29  -  Server - VerifyAnchors:29
+  23:14:55.989    PASS (0x30db1e29)  -  Server - VerifyAnchors:30
+  23:14:55.989  gamecode codeHi: 0xa687b72d  -  Server - VerifyAnchors:29
+  23:14:55.989    PASS (0xa687b72d)  -  Server - VerifyAnchors:30
+  23:14:55.989  gameCode: AD1X-Q5MR-DP7H9  -  Server - VerifyAnchors:29
+  23:14:55.989    PASS (AD1X-Q5MR-DP7H9)  -  Server - VerifyAnchors:30
+  23:14:55.989  === R1 anchor gate: ALL PASS ===  -  Server - VerifyAnchors:74
+  23:14:56.004  [GameServer] data gate: 8/8 ruleset hashes match the Node side  -  Server - GameServer:50
+  23:14:56.007  [R4INIT] seed=42 width=40 height=25 civs=romans,babylonians,germans humanSeat=p1 initialHash=0x0ca5d97c  -  Server - GameServer:75
+  23:14:56.007  [GameServer] R4 live loop up: seat open, awaiting join  -  Server - GameServer:260
+  23:14:56.173  [Options] R7a play-flow options up (auto next unit ON, auto end turn ON)  -  Client - Options:133
+  23:14:56.173  [ActionBar] R6 action bar up (G fortify, Space wait, X disband, I/M/R work)  -  Client - ActionBar:264
+  23:14:56.177  [Hud] R7d hud up (three-state End Turn, game-code chip)  -  Client - Hud:129
+  23:14:56.178  [Stats] R7d statistics up (J toggles)  -  Client - Statistics:136
+  23:14:56.178  [Camera] R4 map camera up: dist 60 — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar  -  Client - Camera:129
+  23:14:56.178  [CityPanel] R5 city panel up  -  Client - CityPanel:210
+  23:14:56.179  [Gallery] R8 gallery grid ready (F9 toggles; fly there or zoom out)  -  Client - GalleryGrid:126
+  23:14:56.180  [TurnLog] R6 turn log up (L toggles)  -  Client - TurnLog:224
+  23:14:56.185  [ViewRenderer] R4 view renderer up: waiting for the first view push  -  Client - ViewRenderer:254
+  23:14:56.185  [CityList] R7d city list up (C toggles)  -  Client - CityList:113
+  23:14:56.185  [Odds] R7d combat odds preview up (hover an adjacent enemy)  -  Client - OddsPreview:177
+  23:14:56.187  [Research] R6 research picker + rate steppers up (T toggles)  -  Client - ResearchPicker:288
+  23:14:56.187  [Select] R4 actions up: click select/move, B found city, Return end turn  -  Client - Select:210
+  23:14:56.187  [MoveHints] R6 move hints up  -  Client - MoveHints:112
+  23:14:56.187  [Possess] R5 possession up: P possess selected, N next unit, WASD/arrows step, Esc/F release  -  Client - Possess:147
+  23:14:56.202  Animation Spoofer cannot run while game is running  -  Server
+  23:14:56.204  [GameServer] seat p1 bound to UserId 2363222931 (vv_beemy)  -  Server - GameServer:125
+  23:14:56.799  Animation Spoofer cannot run while game is running  -  Client
+  23:14:57.167  [Client] joined as p1 (turn 1, p1 active)  -  Client - ClientState:175
+  23:14:57.168  [VoidCover] R7b void cover up: guard walls on, art = frame (V cycles)  -  Client - VoidCover:146
+  23:15:03.219  [Select] found city: select a settlers unit first  -  Client - Select:198
+  23:15:22.185  [Select] selected u1 (settlers) at (34,16), moves 1  -  Client - Select:110
+  23:15:24.218  [Select] found city 'Colony 1' with u1 at (34,16)  -  Client - Select:195
+  23:15:24.254  [R4LOG] {"cmd":{"name":"Colony 1","playerId":"p1","type":"foundCity","unitId":"u1"},"hash":"0x06fc33bf","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  23:15:26.451   ▶ [Select] open city Colony 1 (c1) (x5)  -  Client - Select:119
+  23:16:02.933  [Research] setResearch pottery  -  Client - ResearchPicker:194
+  23:16:02.969  [R4LOG] {"cmd":{"playerId":"p1","tech":"pottery","type":"setResearch"},"hash":"0xfcd5ff32","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  23:16:09.333  [Research] setResearch pottery  -  Client - ResearchPicker:194
+  23:16:09.368  [R4LOG] {"cmd":{"playerId":"p1","tech":"pottery","type":"setResearch"},"hash":"0xfcd5ff32","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  23:16:09.551  [Research] setResearch pottery  -  Client - ResearchPicker:194
+  23:16:09.586  [R4LOG] {"cmd":{"playerId":"p1","tech":"pottery","type":"setResearch"},"hash":"0xfcd5ff32","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  23:16:10.583  [Research] setResearch pottery  -  Client - ResearchPicker:194
+  23:16:10.620  [R4LOG] {"cmd":{"playerId":"p1","tech":"pottery","type":"setResearch"},"hash":"0xfcd5ff32","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:80
+  23:16:19.332  [Hud] end turn 1  -  Client - Hud:95
+  23:16:19.392  [R4LOG] {"activePlayer":"p1","hash":"0x3b761a25","t":"round","turn":2}  -  Server - GameServer:80
+  23:16:19.396  [R4CODE] turn=2 code=FSP7-1V4X-QC6H5  -  Server - GameServer:182
+  23:16:21.050  [Hud] end turn 2  -  Client - Hud:95
+  23:16:21.109  [R4LOG] {"activePlayer":"p1","hash":"0xf7322cc6","t":"round","turn":3}  -  Server - GameServer:80
+  23:16:21.113  [R4CODE] turn=3 code=2P2C-9J3V-K4B66  -  Server - GameServer:182
+  23:16:21.783  [Hud] end turn 3  -  Client - Hud:95
+  23:16:21.841  [R4LOG] {"activePlayer":"p1","hash":"0x1c6a3034","t":"round","turn":4}  -  Server - GameServer:80
+  23:16:21.845  [R4CODE] turn=4 code=AK26-ZVRE-6MC1M  -  Server - GameServer:182
+  23:16:22.332  [Hud] end turn 4  -  Client - Hud:95
+  23:16:22.391  [R4LOG] {"activePlayer":"p1","hash":"0xcb568d45","t":"round","turn":5}  -  Server - GameServer:80
+  23:16:22.395  [R4CODE] turn=5 code=BNKH-6775-ND3A5  -  Server - GameServer:182
+  23:16:24.900  [Select] selected u4 (militia) at (34,16), moves 1  -  Client - Select:110
+  23:16:25.599   ▶ [Select] open city Colony 1 (c1) (x5)  -  Client - Select:119
+  23:16:53.417   ▶ [Possess] no units with moves left (x5)  -  Client - Possess:117
+  23:16:57.332   ▶ [Select] open city Colony 1 (c1) (x8)  -  Client - Select:119
+  23:17:05.949  [Select] move u4 SW -> (33,17)  -  Client - Select:128
+  23:17:05.985  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xac303b90","ok":true,"t":"cmd","turn":5}  -  Server - GameServer:80
+  23:17:07.031  [Options] auto end turn 5  -  Client - Options:116
+  23:17:07.074  [R4LOG] {"activePlayer":"p1","hash":"0x5a033428","t":"round","turn":6}  -  Server - GameServer:80
+  23:17:07.078  [R4CODE] turn=6 code=3M8K-WAHD-06D18  -  Server - GameServer:182
+  23:17:12.465  [Select] move u4 E -> (34,17)  -  Client - Select:128
+  23:17:12.502  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xf4945a24","ok":true,"t":"cmd","turn":6}  -  Server - GameServer:80
+  23:17:13.531  [Options] auto end turn 6  -  Client - Options:116
+  23:17:13.573  [R4LOG] {"activePlayer":"p1","hash":"0x66e1c5f7","t":"round","turn":7}  -  Server - GameServer:80
+  23:17:13.578  [R4CODE] turn=7 code=0TAP-3AXK-E3HFQ  -  Server - GameServer:182
+  23:17:14.915   ▶ [Select] open city Colony 1 (c1) (x5)  -  Client - Select:119
+  23:17:17.998  [Select] tile (34,17) forest — unit u4 (militia, p1)  -  Client - Select:136
+  23:17:18.531  [Select] tile (34,18) plains  -  Client - Select:136
+  23:17:19.697  [Select] selected u4 (militia) at (34,17), moves 1  -  Client - Select:110
+  23:17:23.864  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:17:26.465  [Select] tile (34,17) forest — unit u4 (militia, p1)  -  Client - Select:136
+  23:17:27.548  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:17:32.081  [Select] selected u4 (militia) at (34,17), moves 1  -  Client - Select:110
+  23:17:33.080  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:17:39.630  [Select] tile (34,17) forest — unit u4 (militia, p1)  -  Client - Select:136
+  23:17:41.813  [Select] tile (29,15) unknown  -  Client - Select:136
+  23:17:44.664  [Select] selected u4 (militia) at (34,17), moves 1  -  Client - Select:110
+  23:17:46.714  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:17:47.247  [Camera] follow-avatar ON  -  Client - Camera:75
+  23:17:54.647  [Camera] follow-avatar OFF  -  Client - Camera:75
+  23:17:56.030  [ActionBar] wait u4  -  Client - ActionBar:166
+  23:17:56.066  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u4"},"hash":"0xbe9688e6","ok":true,"t":"cmd","turn":7}  -  Server - GameServer:80
+  23:17:57.097  [Options] auto end turn 7  -  Client - Options:116
+  23:17:57.139  [R4LOG] {"activePlayer":"p1","hash":"0x5749ea6e","t":"round","turn":8}  -  Server - GameServer:80
+  23:17:57.144  [R4CODE] turn=8 code=B0XD-NCHB-MKTKE  -  Server - GameServer:182
+  23:17:58.131  [ActionBar] wait u4  -  Client - ActionBar:166
+  23:17:58.165  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u4"},"hash":"0xbb223c19","ok":true,"t":"cmd","turn":8}  -  Server - GameServer:80
+  23:17:58.196  [Options] auto next: selected u6  -  Client - Options:100
+  23:18:06.079  [ActionBar] wait u6  -  Client - ActionBar:166
+  23:18:06.117  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u6"},"hash":"0xd1d1b158","ok":true,"t":"cmd","turn":8}  -  Server - GameServer:80
+  23:18:07.162  [Options] auto end turn 8  -  Client - Options:116
+  23:18:07.207  [R4LOG] {"activePlayer":"p1","hash":"0x4cc6fe71","t":"round","turn":9}  -  Server - GameServer:80
+  23:18:07.212  [R4CODE] turn=9 code=781W-14N6-CDZKH  -  Server - GameServer:182
+  23:18:10.464  [ActionBar] wait u6  -  Client - ActionBar:166
+  23:18:10.499  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u6"},"hash":"0xa4615052","ok":true,"t":"cmd","turn":9}  -  Server - GameServer:80
+  23:18:10.529  [Options] auto next: selected u4  -  Client - Options:100
+  23:18:11.179  [ActionBar] wait u4  -  Client - ActionBar:166
+  23:18:11.216  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u4"},"hash":"0xbf4c8e9f","ok":true,"t":"cmd","turn":9}  -  Server - GameServer:80
+  23:18:12.246  [Options] auto end turn 9  -  Client - Options:116
+  23:18:12.290  [R4LOG] {"activePlayer":"p1","hash":"0x385a5fbd","t":"round","turn":10}  -  Server - GameServer:80
+  23:18:12.295  [R4CODE] turn=10 code=ED0N-CSMW-5MQXX  -  Server - GameServer:182
+  23:18:13.247  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:18:15.213  [Select] tile (34,17) forest — unit u4 (militia, p1)  -  Client - Select:136
+  23:18:16.363  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:21:18.958  [Select] tile (39,0) unknown  -  Client - Select:136
+  23:21:21.457  [Select] tile (30,0) unknown  -  Client - Select:136
+  23:21:22.725  [Possess] riding u4 (militia) at (34,17), moves 1  -  Client - Possess:78
+  23:21:25.290  [Possess] step u4 N  -  Client - Possess:125
+  23:21:25.327  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x532c3679","ok":true,"t":"cmd","turn":10}  -  Server - GameServer:80
+  23:21:25.356  [Options] auto next: riding u6  -  Client - Options:97
+  23:21:25.357  [Possess] riding u6 (militia) at (34,16), moves 1  -  Client - Possess:78
+  23:21:25.790  [Possess] step u6 N  -  Client - Possess:125
+  23:21:25.827  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x2979d7ab","ok":true,"t":"cmd","turn":10}  -  Server - GameServer:80
+  23:21:26.108  [Possess] step u6 S  -  Client - Possess:125
+  23:21:26.140  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":10}  -  Server - GameServer:80
+  23:21:26.173  [Client] rejected (commandId 24): noMovesLeft  -  Client - ClientState:198
+  23:21:26.625  [Possess] step u6 N  -  Client - Possess:125
+  23:21:26.657  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":10}  -  Server - GameServer:80
+  23:21:26.689  [Client] rejected (commandId 25): noMovesLeft  -  Client - ClientState:198
+  23:21:26.873  [Options] auto end turn 10  -  Client - Options:116
+  23:21:26.917  [R4LOG] {"activePlayer":"p1","hash":"0x90d5a953","t":"round","turn":11}  -  Server - GameServer:80
+  23:21:26.922  [R4CODE] turn=11 code=6FTB-9YE8-DBAAK  -  Server - GameServer:182
+  23:21:27.407  [Possess] riding u4 (militia) at (34,16), moves 1  -  Client - Possess:78
+  23:21:33.906  [Research] setResearch bronze-working  -  Client - ResearchPicker:194
+  23:21:33.944  [R4LOG] {"cmd":{"playerId":"p1","tech":"bronze-working","type":"setResearch"},"hash":"0xc34b4bf9","ok":true,"t":"cmd","turn":11}  -  Server - GameServer:80
+  23:21:37.608  [Possess] step u4 N  -  Client - Possess:125
+  23:21:37.643  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x18404d9f","ok":true,"t":"cmd","turn":11}  -  Server - GameServer:80
+  23:21:37.673  [Options] auto next: riding u6  -  Client - Options:97
+  23:21:37.673  [Possess] riding u6 (militia) at (34,15), moves 1  -  Client - Possess:78
+  23:21:38.290  [Possess] step u6 N  -  Client - Possess:125
+  23:21:38.326  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x5b9b5dae","ok":true,"t":"cmd","turn":11}  -  Server - GameServer:80
+  23:21:38.356  [Options] auto next: riding u8  -  Client - Options:97
+  23:21:38.357  [Possess] riding u8 (militia) at (34,16), moves 1  -  Client - Possess:78
+  23:21:38.390  [Possess] step u8 N  -  Client - Possess:125
+  23:21:38.427  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x1ed9c948","ok":true,"t":"cmd","turn":11}  -  Server - GameServer:80
+  23:21:39.472  [Options] auto end turn 11  -  Client - Options:116
+  23:21:39.518  [R4LOG] {"activePlayer":"p1","hash":"0x1b8ce315","t":"round","turn":12}  -  Server - GameServer:80
+  23:21:39.522  [R4CODE] turn=12 code=0RKW-36MD-RSRRN  -  Server - GameServer:182
+  23:21:41.057  [Possess] step u8 N  -  Client - Possess:125
+  23:21:41.093  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0xef80dd39","ok":true,"t":"cmd","turn":12}  -  Server - GameServer:80
+  23:21:41.123  [Options] auto next: riding u6  -  Client - Options:97
+  23:21:41.124  [Possess] riding u6 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:21:42.673  [Possess] step u6 N  -  Client - Possess:125
+  23:21:42.709  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xd1dedf42","ok":true,"t":"cmd","turn":12}  -  Server - GameServer:80
+  23:21:42.740  [Options] auto next: riding u4  -  Client - Options:97
+  23:21:42.740  [Possess] riding u4 (militia) at (34,15), moves 1  -  Client - Possess:78
+  23:21:44.290  [Possess] step u4 W  -  Client - Possess:125
+  23:21:44.326  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x4c1e7efa","ok":true,"t":"cmd","turn":12}  -  Server - GameServer:80
+  23:21:45.057  [Possess] step u4 W  -  Client - Possess:125
+  23:21:45.090  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":12}  -  Server - GameServer:80
+  23:21:45.122  [Client] rejected (commandId 35): noMovesLeft  -  Client - ClientState:198
+  23:21:45.356  [Options] auto end turn 12  -  Client - Options:116
+  23:21:45.400  [R4LOG] {"activePlayer":"p1","hash":"0x398dea88","t":"round","turn":13}  -  Server - GameServer:80
+  23:21:45.405  [R4CODE] turn=13 code=3MJ6-P0RW-RVTM8  -  Server - GameServer:182
+  23:21:51.773  [CityPanel] setProduction c1 -> building granary  -  Client - CityPanel:104
+  23:21:51.809  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"granary","kind":"building"},"playerId":"p1","type":"setProduction"},"hash":"0xbb588c6f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:21:52.790   ▶ [Select] open city Colony 1 (c1) (x5)  -  Client - Select:119
+  23:22:36.288  [Research] setResearch bronze-working  -  Client - ResearchPicker:194
+  23:22:36.325  [R4LOG] {"cmd":{"playerId":"p1","tech":"bronze-working","type":"setResearch"},"hash":"0xbb588c6f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:22:36.473  [Research] setResearch bronze-working  -  Client - ResearchPicker:194
+  23:22:36.508  [R4LOG] {"cmd":{"playerId":"p1","tech":"bronze-working","type":"setResearch"},"hash":"0xbb588c6f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:22:38.823  [Possess] riding u8 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:22:41.205  [Possess] riding u4 (militia) at (33,15), moves 1  -  Client - Possess:78
+  23:22:44.738  [Research] setRates tax=60 sci=40 lux=0  -  Client - ResearchPicker:119
+  23:22:44.775  [R4LOG] {"cmd":{"lux":0,"playerId":"p1","sci":40,"tax":60,"type":"setRates"},"hash":"0x3150365f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:22:45.604  [Research] setRates tax=50 sci=50 lux=0  -  Client - ResearchPicker:119
+  23:22:45.642  [R4LOG] {"cmd":{"lux":0,"playerId":"p1","sci":50,"tax":50,"type":"setRates"},"hash":"0xbb588c6f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:22:47.222  [Research] setRates tax=50 sci=40 lux=10  -  Client - ResearchPicker:119
+  23:22:47.258  [R4LOG] {"cmd":{"lux":10,"playerId":"p1","sci":40,"tax":50,"type":"setRates"},"hash":"0xf4954a36","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:22:47.927  [Research] setRates tax=50 sci=50 lux=0  -  Client - ResearchPicker:119
+  23:22:47.959  [R4LOG] {"cmd":{"lux":0,"playerId":"p1","sci":50,"tax":50,"type":"setRates"},"hash":"0xbb588c6f","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:24:11.153   ▶ [Select] open city Colony 1 (c1) (x3)  -  Client - Select:119
+  23:26:01.483  [Select] selected u8 (militia) at (34,14), moves 1  -  Client - Select:110
+  23:26:02.049  [Select] tile (34,12) plains  -  Client - Select:136
+  23:26:03.532  [Possess] step u4 N  -  Client - Possess:125
+  23:26:03.569  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x70e1da1c","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:26:03.599  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:03.600  [Possess] riding u6 (militia) at (34,13), moves 1  -  Client - Possess:78
+  23:26:04.649  [Possess] step u6 W  -  Client - Possess:125
+  23:26:04.682  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"impassable","t":"cmd","turn":13}  -  Server - GameServer:80
+  23:26:04.714  [Client] rejected (commandId 45): impassable  -  Client - ClientState:198
+  23:26:05.366  [Possess] riding u8 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:26:05.832  [Possess] riding u6 (militia) at (34,13), moves 1  -  Client - Possess:78
+  23:26:07.023  [Possess] step u6 N  -  Client - Possess:125
+  23:26:07.053  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x86e734c7","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:26:07.082  [Options] auto next: riding u8  -  Client - Options:97
+  23:26:07.082  [Possess] riding u8 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:26:07.699  [Possess] step u8 N  -  Client - Possess:125
+  23:26:07.734  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0xe0b8ee59","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:80
+  23:26:07.999  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:08.566  [Possess] step u8 N  -  Client - Possess:125
+  23:26:08.600  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":13}  -  Server - GameServer:80
+  23:26:08.631  [Client] rejected (commandId 48): noMovesLeft  -  Client - ClientState:198
+  23:26:08.783  [Options] auto end turn 13  -  Client - Options:116
+  23:26:08.826  [R4LOG] {"activePlayer":"p1","hash":"0x19b166bf","t":"round","turn":14}  -  Server - GameServer:80
+  23:26:08.830  [R4CODE] turn=14 code=CFA5-Q1WC-V2SNZ  -  Server - GameServer:182
+  23:26:08.900  [Possess] step u8 W  -  Client - Possess:125
+  23:26:08.932  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"impassable","t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:08.966  [Client] rejected (commandId 50): impassable  -  Client - ClientState:198
+  23:26:09.299  [Possess] riding u4 (militia) at (33,14), moves 1  -  Client - Possess:78
+  23:26:09.616  [Possess] step u4 W  -  Client - Possess:125
+  23:26:09.651  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x16efec9a","ok":true,"t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:09.682  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:09.682  [Possess] riding u6 (militia) at (34,12), moves 1  -  Client - Possess:78
+  23:26:09.983  [Possess] step u6 W  -  Client - Possess:125
+  23:26:10.018  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x3cc53eea","ok":true,"t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:10.048  [Options] auto next: riding u8  -  Client - Options:97
+  23:26:10.048  [Possess] riding u8 (militia) at (34,13), moves 1  -  Client - Possess:78
+  23:26:10.515  [Possess] step u8 N  -  Client - Possess:125
+  23:26:10.552  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x683b77fe","ok":true,"t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:10.749  [Possess] step u8 N  -  Client - Possess:125
+  23:26:10.782  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"impassable","t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:10.815  [Client] rejected (commandId 54): impassable  -  Client - ClientState:198
+  23:26:11.149  [Possess] step u8 W  -  Client - Possess:125
+  23:26:11.182  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":14}  -  Server - GameServer:80
+  23:26:11.215  [Client] rejected (commandId 55): noMovesLeft  -  Client - ClientState:198
+  23:26:11.599  [Options] auto end turn 14  -  Client - Options:116
+  23:26:11.600  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:11.644  [R4LOG] {"activePlayer":"p1","hash":"0xcf52252a","t":"round","turn":15}  -  Server - GameServer:80
+  23:26:11.649  [R4CODE] turn=15 code=4G51-WRK7-N499A  -  Server - GameServer:182
+  23:26:12.115  [Possess] step u8 W  -  Client - Possess:125
+  23:26:12.152  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x0ebfdd62","ok":true,"t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:12.183  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:12.183  [Possess] riding u6 (militia) at (33,12), moves 1  -  Client - Possess:78
+  23:26:12.566  [Possess] step u6 N  -  Client - Possess:125
+  23:26:12.602  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x201c2e51","ok":true,"t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:12.631  [Options] auto next: riding u4  -  Client - Options:97
+  23:26:12.631  [Possess] riding u4 (militia) at (32,14), moves 1  -  Client - Possess:78
+  23:26:13.198  [Possess] step u4 W  -  Client - Possess:125
+  23:26:13.235  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xb0819598","ok":true,"t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:13.632  [Possess] step u4 W  -  Client - Possess:125
+  23:26:13.665  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:13.699  [Client] rejected (commandId 60): noMovesLeft  -  Client - ClientState:198
+  23:26:13.898  [Possess] step u4 W  -  Client - Possess:125
+  23:26:13.932  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:13.966  [Client] rejected (commandId 61): noMovesLeft  -  Client - ClientState:198
+  23:26:14.033  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:14.266  [Possess] step u4 N  -  Client - Possess:125
+  23:26:14.282  [Options] auto end turn 15  -  Client - Options:116
+  23:26:14.299  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":15}  -  Server - GameServer:80
+  23:26:14.326  [R4LOG] {"activePlayer":"p1","hash":"0x38fc467c","t":"round","turn":16}  -  Server - GameServer:80
+  23:26:14.330  [R4CODE] turn=16 code=3ZWX-3WRW-FRHKW  -  Server - GameServer:182
+  23:26:14.337  [Client] rejected (commandId 62): noMovesLeft  -  Client - ClientState:198
+  23:26:14.482  [Possess] step u4 N  -  Client - Possess:125
+  23:26:14.519  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xb08c3bca","ok":true,"t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:14.548  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:14.548  [Possess] riding u6 (militia) at (33,11), moves 1  -  Client - Possess:78
+  23:26:14.816  [Possess] step u6 W  -  Client - Possess:125
+  23:26:14.852  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x73f5e190","ok":true,"t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:14.883  [Options] auto next: riding u8  -  Client - Options:97
+  23:26:14.883  [Possess] riding u8 (militia) at (33,12), moves 1  -  Client - Possess:78
+  23:26:15.116  [Possess] step u8 N  -  Client - Possess:125
+  23:26:15.153  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x9fb863ae","ok":true,"t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:15.415  [Possess] step u8 N  -  Client - Possess:125
+  23:26:15.448  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:15.482  [Client] rejected (commandId 67): noMovesLeft  -  Client - ClientState:198
+  23:26:15.666  [Possess] step u8 N  -  Client - Possess:125
+  23:26:15.700  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:15.731  [Client] rejected (commandId 68): noMovesLeft  -  Client - ClientState:198
+  23:26:15.900  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:16.116  [Possess] step u8 W  -  Client - Possess:125
+  23:26:16.148  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":16}  -  Server - GameServer:80
+  23:26:16.181  [Client] rejected (commandId 69): noMovesLeft  -  Client - ClientState:198
+  23:26:16.199  [Options] auto end turn 16  -  Client - Options:116
+  23:26:16.243  [R4LOG] {"activePlayer":"p1","hash":"0xab4e8843","t":"round","turn":17}  -  Server - GameServer:80
+  23:26:16.248  [R4CODE] turn=17 code=A7YY-W0EN-MX223  -  Server - GameServer:182
+  23:26:16.315  [Possess] step u8 W  -  Client - Possess:125
+  23:26:16.352  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0xd0076501","ok":true,"t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:16.382  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:16.382  [Possess] riding u6 (militia) at (32,11), moves 1  -  Client - Possess:78
+  23:26:16.515  [Possess] step u6 W  -  Client - Possess:125
+  23:26:16.552  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x1fe6926d","ok":true,"t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:16.581  [Options] auto next: riding u4  -  Client - Options:97
+  23:26:16.581  [Possess] riding u4 (militia) at (31,13), moves 1  -  Client - Possess:78
+  23:26:16.699  [Possess] step u4 W  -  Client - Possess:125
+  23:26:16.736  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x8fd98cae","ok":true,"t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:16.948  [Possess] step u4 N  -  Client - Possess:125
+  23:26:16.981  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:17.015  [Client] rejected (commandId 74): noMovesLeft  -  Client - ClientState:198
+  23:26:17.298  [Possess] step u4 W  -  Client - Possess:125
+  23:26:17.333  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:17.365  [Client] rejected (commandId 75): noMovesLeft  -  Client - ClientState:198
+  23:26:17.399  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:17.616  [Possess] step u4 N  -  Client - Possess:125
+  23:26:17.648  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":17}  -  Server - GameServer:80
+  23:26:17.681  [Client] rejected (commandId 76): noMovesLeft  -  Client - ClientState:198
+  23:26:17.781  [Options] auto end turn 17  -  Client - Options:116
+  23:26:17.815  [Possess] step u4 N  -  Client - Possess:125
+  23:26:17.827  [R4LOG] {"activePlayer":"p1","hash":"0xe585c18b","t":"round","turn":18}  -  Server - GameServer:80
+  23:26:17.832  [R4CODE] turn=18 code=8KWN-FCFJ-RBGCB  -  Server - GameServer:182
+  23:26:17.854  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x9b25bf34","ok":true,"t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:17.881  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:17.882  [Possess] riding u6 (militia) at (31,11), moves 1  -  Client - Possess:78
+  23:26:18.033  [Possess] step u6 N  -  Client - Possess:125
+  23:26:18.069  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xf2bf65af","ok":true,"t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:18.098  [Options] auto next: riding u8  -  Client - Options:97
+  23:26:18.098  [Possess] riding u8 (militia) at (32,11), moves 1  -  Client - Possess:78
+  23:26:18.281  [Possess] step u8 N  -  Client - Possess:125
+  23:26:18.319  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x2168f5cc","ok":true,"t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:18.533  [Possess] step u8 N  -  Client - Possess:125
+  23:26:18.565  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:18.599  [Client] rejected (commandId 81): noMovesLeft  -  Client - ClientState:198
+  23:26:18.815  [Possess] step u8 N  -  Client - Possess:125
+  23:26:18.849  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:18.883  [Client] rejected (commandId 82): noMovesLeft  -  Client - ClientState:198
+  23:26:19.031  [Possess] step u8 W  -  Client - Possess:125
+  23:26:19.065  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:19.089  [Possess] no units with moves left  -  Client - Possess:117
+  23:26:19.099  [Client] rejected (commandId 83): noMovesLeft  -  Client - ClientState:198
+  23:26:19.333  [Possess] step u8 W  -  Client - Possess:125
+  23:26:19.365  [Options] auto end turn 18  -  Client - Options:116
+  23:26:19.366  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":18}  -  Server - GameServer:80
+  23:26:19.399  [Client] rejected (commandId 84): noMovesLeft  -  Client - ClientState:198
+  23:26:19.411  [R4LOG] {"activePlayer":"p1","hash":"0x23ef3300","t":"round","turn":19}  -  Server - GameServer:80
+  23:26:19.416  [R4CODE] turn=19 code=6MKS-DKRH-YYCR0  -  Server - GameServer:182
+  23:26:19.499  [Possess] step u8 N  -  Client - Possess:125
+  23:26:19.535  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x6f95bc9c","ok":true,"t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:19.565  [Options] auto next: riding u6  -  Client - Options:97
+  23:26:19.565  [Possess] riding u6 (militia) at (31,10), moves 1  -  Client - Possess:78
+  23:26:19.882  [Possess] step u6 N  -  Client - Possess:125
+  23:26:19.918  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xbe637b38","ok":true,"t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:19.949  [Options] auto next: riding u4  -  Client - Options:97
+  23:26:19.949  [Possess] riding u4 (militia) at (30,12), moves 1  -  Client - Possess:78
+  23:26:20.099  [Possess] step u4 N  -  Client - Possess:125
+  23:26:20.135  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x7f16ddbf","ok":true,"t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:20.298  [Possess] step u4 N  -  Client - Possess:125
+  23:26:20.333  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:20.365  [Client] rejected (commandId 89): noMovesLeft  -  Client - ClientState:198
+  23:26:20.799  [Possess] step u4 W  -  Client - Possess:125
+  23:26:20.831  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:20.865  [Client] rejected (commandId 90): noMovesLeft  -  Client - ClientState:198
+  23:26:20.882  [Possess] step u4 W  -  Client - Possess:125
+  23:26:20.916  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:20.948  [Client] rejected (commandId 91): noMovesLeft  -  Client - ClientState:198
+  23:26:21.149  [Possess] step u4 W  -  Client - Possess:125
+  23:26:21.165  [Options] auto end turn 19  -  Client - Options:116
+  23:26:21.182  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":19}  -  Server - GameServer:80
+  23:26:21.210  [R4LOG] {"activePlayer":"p1","hash":"0x7a37a322","t":"round","turn":20}  -  Server - GameServer:80
+  23:26:21.215  [R4CODE] turn=20 code=8MNQ-TASX-3F8S2  -  Server - GameServer:182
+  23:26:21.222  [Client] rejected (commandId 92): noMovesLeft  -  Client - ClientState:198
+  23:26:21.253  [Possess] riding u6 (militia) at (31,9), moves 1  -  Client - Possess:78
+  23:31:20.690  [Possess] step u6 N  -  Client - Possess:125
+  23:31:20.726  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8c0726cd","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:20.756  [Options] auto next: riding u8  -  Client - Options:97
+  23:31:20.756  [Possess] riding u8 (militia) at (32,9), moves 1  -  Client - Possess:78
+  23:31:21.240  [Possess] step u8 N  -  Client - Possess:125
+  23:31:21.276  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x84d2020a","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:21.306  [Options] auto next: riding u4  -  Client - Options:97
+  23:31:21.306  [Possess] riding u4 (militia) at (30,11), moves 1  -  Client - Possess:78
+  23:31:21.775  [Possess] step u4 W  -  Client - Possess:125
+  23:31:21.810  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x031d494c","ok":true,"t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:21.907  [Possess] step u4 N  -  Client - Possess:125
+  23:31:21.939  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:21.972  [Client] rejected (commandId 97): noMovesLeft  -  Client - ClientState:198
+  23:31:22.023  [Possess] step u4 W  -  Client - Possess:125
+  23:31:22.056  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:22.089  [Client] rejected (commandId 98): impassable  -  Client - ClientState:198
+  23:31:22.457  [Possess] step u4 W  -  Client - Possess:125
+  23:31:22.490  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:22.522  [Client] rejected (commandId 99): impassable  -  Client - ClientState:198
+  23:31:22.757  [Possess] step u4 N  -  Client - Possess:125
+  23:31:22.789  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":20}  -  Server - GameServer:80
+  23:31:22.822  [Client] rejected (commandId 100): noMovesLeft  -  Client - ClientState:198
+  23:31:22.856  [Options] auto end turn 20  -  Client - Options:116
+  23:31:22.902  [R4LOG] {"activePlayer":"p1","hash":"0xb525be32","t":"round","turn":21}  -  Server - GameServer:80
+  23:31:22.907  [R4CODE] turn=21 code=EH4C-KD2T-JBFHJ  -  Server - GameServer:182
+  23:31:23.923  [Possess] step u4 S  -  Client - Possess:125
+  23:31:23.959  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xd8029597","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  23:31:23.990  [Options] auto next: riding u6  -  Client - Options:97
+  23:31:23.990  [Possess] riding u6 (militia) at (31,8), moves 1  -  Client - Possess:78
+  23:31:24.556  [Possess] step u6 N  -  Client - Possess:125
+  23:31:24.591  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"ok":false,"reason":"impassable","t":"cmd","turn":21}  -  Server - GameServer:80
+  23:31:24.623  [Client] rejected (commandId 103): impassable  -  Client - ClientState:198
+  23:31:24.923  [Possess] step u6 W  -  Client - Possess:125
+  23:31:24.959  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x1239f00a","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  23:31:24.990  [Options] auto next: riding u8  -  Client - Options:97
+  23:31:24.990  [Possess] riding u8 (militia) at (32,8), moves 1  -  Client - Possess:78
+  23:31:25.623  [Possess] step u8 N  -  Client - Possess:125
+  23:31:25.656  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"impassable","t":"cmd","turn":21}  -  Server - GameServer:80
+  23:31:25.689  [Client] rejected (commandId 105): impassable  -  Client - ClientState:198
+  23:32:13.022  [Possess] step u8 N  -  Client - Possess:125
+  23:32:13.055  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"impassable","t":"cmd","turn":21}  -  Server - GameServer:80
+  23:32:13.087  [Client] rejected (commandId 106): impassable  -  Client - ClientState:198
+  23:32:13.439  [Possess] step u8 W  -  Client - Possess:125
+  23:32:13.476  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x72c5c492","ok":true,"t":"cmd","turn":21}  -  Server - GameServer:80
+  23:32:14.355  [Possess] step u8 W  -  Client - Possess:125
+  23:32:14.388  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":21}  -  Server - GameServer:80
+  23:32:14.421  [Client] rejected (commandId 108): noMovesLeft  -  Client - ClientState:198
+  23:32:14.521  [Options] auto end turn 21  -  Client - Options:116
+  23:32:14.567  [R4LOG] {"activePlayer":"p1","hash":"0xecb4820a","t":"round","turn":22}  -  Server - GameServer:80
+  23:32:14.572  [R4CODE] turn=22 code=C8FQ-1MBP-B90GA  -  Server - GameServer:182
+  23:32:14.805  [Possess] step u8 N  -  Client - Possess:125
+  23:32:14.838  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"impassable","t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:14.871  [Client] rejected (commandId 110): impassable  -  Client - ClientState:198
+  23:32:18.805  [Possess] step u8 W  -  Client - Possess:125
+  23:32:18.841  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x3e968f1c","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:18.871  [Options] auto next: riding u6  -  Client - Options:97
+  23:32:18.871  [Possess] riding u6 (militia) at (30,8), moves 1  -  Client - Possess:78
+  23:32:19.589  [Possess] step u6 W  -  Client - Possess:125
+  23:32:19.624  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8e8d3de8","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:19.654  [Options] auto next: riding u4  -  Client - Options:97
+  23:32:19.655  [Possess] riding u4 (militia) at (29,12), moves 1  -  Client - Possess:78
+  23:32:20.338  [Possess] step u4 W  -  Client - Possess:125
+  23:32:20.374  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x7f7756c7","ok":true,"t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:20.755  [Possess] step u4 W  -  Client - Possess:125
+  23:32:20.788  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:20.821  [Client] rejected (commandId 114): impassable  -  Client - ClientState:198
+  23:32:21.055  [Possess] step u4 S  -  Client - Possess:125
+  23:32:21.088  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:21.121  [Client] rejected (commandId 115): noMovesLeft  -  Client - ClientState:198
+  23:32:21.388  [Possess] step u4 W  -  Client - Possess:125
+  23:32:21.405  [Options] auto end turn 22  -  Client - Options:116
+  23:32:21.421  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":22}  -  Server - GameServer:80
+  23:32:21.450  [R4LOG] {"activePlayer":"p1","hash":"0xf3808042","t":"round","turn":23}  -  Server - GameServer:80
+  23:32:21.455  [R4CODE] turn=23 code=B8P0-37KS-R1022  -  Server - GameServer:182
+  23:32:21.462  [Client] rejected (commandId 116): impassable  -  Client - ClientState:198
+  23:35:29.133  [Select] tile (36,6) unknown  -  Client - Select:136
+  23:35:29.917  [Possess] step u4 S  -  Client - Possess:125
+  23:35:29.952  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xc1cd21de","ok":true,"t":"cmd","turn":23}  -  Server - GameServer:80
+  23:35:29.982  [Options] auto next: riding u6  -  Client - Options:97
+  23:35:29.982  [Possess] riding u6 (militia) at (29,8), moves 1  -  Client - Possess:78
+  23:35:30.550  [Possess] step u6 N  -  Client - Possess:125
+  23:35:30.585  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xf9d4293b","ok":true,"t":"cmd","turn":23}  -  Server - GameServer:80
+  23:35:30.616  [Options] auto next: riding u8  -  Client - Options:97
+  23:35:30.616  [Possess] riding u8 (militia) at (30,8), moves 1  -  Client - Possess:78
+  23:35:31.066  [Possess] step u8 N  -  Client - Possess:125
+  23:35:31.102  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x321865de","ok":true,"t":"cmd","turn":23}  -  Server - GameServer:80
+  23:35:31.516  [Possess] step u8 N  -  Client - Possess:125
+  23:35:31.549  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":23}  -  Server - GameServer:80
+  23:35:31.583  [Client] rejected (commandId 121): noMovesLeft  -  Client - ClientState:198
+  23:35:31.934  [Possess] step u8 W  -  Client - Possess:125
+  23:35:31.966  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":23}  -  Server - GameServer:80
+  23:35:31.999  [Client] rejected (commandId 122): noMovesLeft  -  Client - ClientState:198
+  23:35:32.149  [Options] auto end turn 23  -  Client - Options:116
+  23:35:32.195  [R4LOG] {"activePlayer":"p1","hash":"0x669a061b","t":"round","turn":24}  -  Server - GameServer:80
+  23:35:32.200  [R4CODE] turn=24 code=1KVN-WZDK-9M1GV  -  Server - GameServer:182
+  23:35:32.383  [Possess] step u8 N  -  Client - Possess:125
+  23:35:32.419  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x96614bf6","ok":true,"t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:32.450  [Options] auto next: riding u6  -  Client - Options:97
+  23:35:32.450  [Possess] riding u6 (militia) at (29,7), moves 1  -  Client - Possess:78
+  23:35:32.999  [Possess] step u6 W  -  Client - Possess:125
+  23:35:33.037  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xec86745f","ok":true,"t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:33.066  [Options] auto next: riding u4  -  Client - Options:97
+  23:35:33.066  [Possess] riding u4 (militia) at (28,13), moves 1  -  Client - Possess:78
+  23:35:33.366  [Possess] step u4 W  -  Client - Possess:125
+  23:35:33.404  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x7f6065ec","ok":true,"t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:33.733  [Possess] step u4 W  -  Client - Possess:125
+  23:35:33.766  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:33.799  [Client] rejected (commandId 127): noMovesLeft  -  Client - ClientState:198
+  23:35:34.016  [Possess] step u4 W  -  Client - Possess:125
+  23:35:34.049  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:34.082  [Client] rejected (commandId 128): noMovesLeft  -  Client - ClientState:198
+  23:35:34.250  [Possess] step u4 N  -  Client - Possess:125
+  23:35:34.282  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":24}  -  Server - GameServer:80
+  23:35:34.315  [Client] rejected (commandId 129): impassable  -  Client - ClientState:198
+  23:35:34.448  [Options] auto end turn 24  -  Client - Options:116
+  23:35:34.494  [R4LOG] {"activePlayer":"p1","hash":"0xa1791055","t":"round","turn":25}  -  Server - GameServer:80
+  23:35:34.499  [R4CODE] turn=25 code=85QT-1EPG-QJ42N  -  Server - GameServer:182
+  23:35:34.549  [Possess] step u4 N  -  Client - Possess:125
+  23:35:34.582  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:34.615  [Client] rejected (commandId 131): impassable  -  Client - ClientState:198
+  23:35:35.000  [Possess] step u4 W  -  Client - Possess:125
+  23:35:35.036  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xab562892","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:35.065  [Options] auto next: riding u6  -  Client - Options:97
+  23:35:35.066  [Possess] riding u6 (militia) at (28,7), moves 1  -  Client - Possess:78
+  23:35:35.582  [Possess] step u6 W  -  Client - Possess:125
+  23:35:35.619  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xfc70152b","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:35.648  [Options] auto next: riding u8  -  Client - Options:97
+  23:35:35.648  [Possess] riding u8 (militia) at (30,6), moves 1  -  Client - Possess:78
+  23:35:35.883  [Possess] step u8 W  -  Client - Possess:125
+  23:35:35.919  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x924ea363","ok":true,"t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:36.216  [Possess] step u8 N  -  Client - Possess:125
+  23:35:36.249  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:36.282  [Client] rejected (commandId 135): noMovesLeft  -  Client - ClientState:198
+  23:35:36.632  [Possess] step u8 W  -  Client - Possess:125
+  23:35:36.666  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":25}  -  Server - GameServer:80
+  23:35:36.698  [Client] rejected (commandId 136): noMovesLeft  -  Client - ClientState:198
+  23:35:36.949  [Options] auto end turn 25  -  Client - Options:116
+  23:35:36.995  [R4LOG] {"activePlayer":"p1","hash":"0x35aa177f","t":"round","turn":26}  -  Server - GameServer:80
+  23:35:36.999  [R4CODE] turn=26 code=1P5A-V9WT-TM5VZ  -  Server - GameServer:182
+  23:35:37.066  [Possess] step u8 W  -  Client - Possess:125
+  23:35:37.099  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":26}  -  Server - GameServer:80
+  23:35:37.132  [Client] rejected (commandId 138): zoc  -  Client - ClientState:198
+  23:35:37.449  [Possess] step u8 W  -  Client - Possess:125
+  23:35:37.483  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":26}  -  Server - GameServer:80
+  23:35:37.515  [Client] rejected (commandId 139): zoc  -  Client - ClientState:198
+  23:35:38.099  [Odds] Even 50% - Militia 100 vs Militia 100  -  Client - OddsPreview:173
+  23:35:43.066  [Select] selected u6 (militia) at (27,7), moves 1  -  Client - Select:110
+  23:35:44.033  [Select] move u6 NE -> (28,6)  -  Client - Select:128
+  23:35:44.068  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x313c0887","ok":true,"t":"cmd","turn":26}  -  Server - GameServer:80
+  23:35:45.032  [Select] selected u8 (militia) at (29,6), moves 1  -  Client - Select:110
+  23:35:47.549  [Possess] riding u4 (militia) at (26,13), moves 1  -  Client - Possess:78
+  23:35:48.567  [Select] move u4 NW -> (25,12)  -  Client - Select:128
+  23:35:48.601  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x84e24bf3","ok":true,"t":"cmd","turn":26}  -  Server - GameServer:80
+  23:35:48.631  [Options] auto next: riding u8  -  Client - Options:97
+  23:35:48.632  [Possess] riding u8 (militia) at (29,6), moves 1  -  Client - Possess:78
+  23:35:48.714   ▶ [Odds] Even 50% - Militia 100 vs Militia 100 (x2)  -  Client - OddsPreview:173
+  23:35:51.449  [ActionBar] fortify u8  -  Client - ActionBar:166
+  23:35:51.484  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u8"},"hash":"0xbafeb5c5","ok":true,"t":"cmd","turn":26}  -  Server - GameServer:80
+  23:35:52.449  [Possess] no units with moves left  -  Client - Possess:117
+  23:35:52.532  [Options] auto end turn 26  -  Client - Options:116
+  23:35:52.577  [R4LOG] {"activePlayer":"p1","hash":"0x174320ec","t":"round","turn":27}  -  Server - GameServer:80
+  23:35:52.582  [R4CODE] turn=27 code=4HQ3-32GB-M687C  -  Server - GameServer:182
+  23:35:54.183  [Select] move u8 N -> (29,5)  -  Client - Select:128
+  23:35:54.217  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0x5485f11c","ok":true,"t":"cmd","turn":27}  -  Server - GameServer:80
+  23:35:54.248  [Options] auto next: riding u6  -  Client - Options:97
+  23:35:54.248  [Possess] riding u6 (militia) at (28,6), moves 1  -  Client - Possess:78
+  23:35:55.683  [Select] move u6 N -> (28,5)  -  Client - Select:128
+  23:35:55.719  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xb9b46459","ok":true,"t":"cmd","turn":27}  -  Server - GameServer:80
+  23:35:55.748  [Options] auto next: riding u4  -  Client - Options:97
+  23:35:55.748  [Possess] riding u4 (militia) at (25,12), moves 1  -  Client - Possess:78
+  23:35:56.681  [Select] move u4 N -> (25,11)  -  Client - Select:128
+  23:35:56.719  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x6f0a4ab4","ok":true,"t":"cmd","turn":27}  -  Server - GameServer:80
+  23:35:57.249  [Possess] step u4 N  -  Client - Possess:125
+  23:35:57.282  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":27}  -  Server - GameServer:80
+  23:35:57.315  [Client] rejected (commandId 147): noMovesLeft  -  Client - ClientState:198
+  23:35:57.765  [Options] auto end turn 27  -  Client - Options:116
+  23:35:57.812  [R4LOG] {"activePlayer":"p1","hash":"0xec724f2c","t":"round","turn":28}  -  Server - GameServer:80
+  23:35:57.817  [R4CODE] turn=28 code=1907-M9BP-74KSC  -  Server - GameServer:182
+  23:35:58.499  [Possess] step u4 N  -  Client - Possess:125
+  23:35:58.535  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xaea8fa55","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  23:35:58.566  [Options] auto next: riding u6  -  Client - Options:97
+  23:35:58.566  [Possess] riding u6 (militia) at (28,5), moves 1  -  Client - Possess:78
+  23:36:04.715  [Select] move u6 SE -> (29,6)  -  Client - Select:128
+  23:36:04.751  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x9c5b23ea","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:04.782  [Options] auto next: riding u8  -  Client - Options:97
+  23:36:04.782  [Possess] riding u8 (militia) at (29,5), moves 1  -  Client - Possess:78
+  23:36:06.432  [Possess] step u8 N  -  Client - Possess:125
+  23:36:06.464  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:06.498  [Client] rejected (commandId 151): zoc  -  Client - ClientState:198
+  23:36:07.431  [Possess] step u8 N  -  Client - Possess:125
+  23:36:07.466  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:07.498  [Client] rejected (commandId 152): zoc  -  Client - ClientState:198
+  23:36:08.648  [Select] tile (29,5) grassland — unit u8 (militia, p1)  -  Client - Select:136
+  23:36:09.631  [Possess] step u8 N  -  Client - Possess:125
+  23:36:09.664  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:09.698  [Client] rejected (commandId 153): zoc  -  Client - ClientState:198
+  23:36:14.631   ▶ [Possess] no units with moves left (x3)  -  Client - Possess:117
+  23:36:38.847  [Select] tile (28,4) grassland — unit u11 (militia, p3)  -  Client - Select:136
+  23:36:39.397  [Select] selected u8 (militia) at (29,5), moves 1  -  Client - Select:110
+  23:36:40.163  [Odds] Even 50% - Militia 100 vs Militia 100  -  Client - OddsPreview:173
+  23:36:41.848  [Select] move u8 N -> (29,4)  -  Client - Select:128
+  23:36:41.880  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":false,"reason":"zoc","t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:41.896  [Client] rejected (commandId 154): zoc  -  Client - ClientState:198
+  23:36:42.431  [Odds] Even 50% - Militia 100 vs Militia 100  -  Client - OddsPreview:173
+  23:36:42.498  [Select] move u8 NW -> (28,4)  -  Client - Select:128
+  23:36:42.534  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u8"},"hash":"0xea896d8d","ok":true,"t":"cmd","turn":28}  -  Server - GameServer:80
+  23:36:43.431  [Select] selected u6 (militia) at (29,6), moves 0  -  Client - Select:110
+  23:36:43.580  [Options] auto end turn 28  -  Client - Options:116
+  23:36:43.627  [R4LOG] {"activePlayer":"p1","hash":"0xaecaaa91","t":"round","turn":29}  -  Server - GameServer:80
+  23:36:43.632  [R4CODE] turn=29 code=4ZKV-QCPQ-CNAMH  -  Server - GameServer:182
+  23:36:43.997   ▶ [Odds] Favorable 60% - Militia 150 vs Militia 100 (veteran attacker +50%) (x2)  -  Client - OddsPreview:173
+  23:36:44.897  [Select] tile (29,6) grassland — unit u6 (militia, p1)  -  Client - Select:136
+  23:36:45.747  [Select] selected u6 (militia) at (29,6), moves 1  -  Client - Select:110
+  23:36:46.163  [Odds] Favorable 60% - Militia 150 vs Militia 100 (veteran attacker +50%)  -  Client - OddsPreview:173
+  23:36:46.348  [Select] move u6 N -> (29,5)  -  Client - Select:128
+  23:36:46.383  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8432ead9","ok":true,"t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:47.447  [Select] tile (29,5) grassland  -  Client - Select:136
+  23:36:49.015  [Possess] riding u18 (militia) at (34,16), moves 1  -  Client - Possess:78
+  23:36:49.880  [Possess] step u18 N  -  Client - Possess:125
+  23:36:49.916  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x868cbab3","ok":true,"t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:49.947  [Options] auto next: riding u4  -  Client - Options:97
+  23:36:49.947  [Possess] riding u4 (militia) at (25,10), moves 1  -  Client - Possess:78
+  23:36:50.730  [Possess] step u4 W  -  Client - Possess:125
+  23:36:50.767  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xae4ed6b4","ok":true,"t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:51.164  [Possess] step u4 N  -  Client - Possess:125
+  23:36:51.196  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:51.229  [Client] rejected (commandId 160): noMovesLeft  -  Client - ClientState:198
+  23:36:51.430  [Possess] step u4 N  -  Client - Possess:125
+  23:36:51.463  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:51.496  [Client] rejected (commandId 161): noMovesLeft  -  Client - ClientState:198
+  23:36:51.514  [Possess] step u4 E  -  Client - Possess:125
+  23:36:51.547  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:51.579  [Client] rejected (commandId 162): noMovesLeft  -  Client - ClientState:198
+  23:36:51.797  [Possess] step u4 N  -  Client - Possess:125
+  23:36:51.813  [Options] auto end turn 29  -  Client - Options:116
+  23:36:51.830  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":29}  -  Server - GameServer:80
+  23:36:51.860  [R4LOG] {"activePlayer":"p1","hash":"0x1cf427e5","t":"round","turn":30}  -  Server - GameServer:80
+  23:36:51.865  [R4CODE] turn=30 code=8DKJ-FKME-F89Z5  -  Server - GameServer:182
+  23:36:51.872  [Client] rejected (commandId 163): noMovesLeft  -  Client - ClientState:198
+  23:36:52.247  [Possess] riding u18 (militia) at (34,15), moves 1  -  Client - Possess:78
+  23:36:55.080  [Select] tile (34,15) plains — unit u18 (militia, p1)  -  Client - Select:136
+  23:36:57.830   ▶ [ActionBar] possession: select an own unit and press P (F dismounts) (x2)  -  Client - ActionBar:205
+  23:37:01.047  [Possess] step u18 N  -  Client - Possess:125
+  23:37:01.084  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x582bd149","ok":true,"t":"cmd","turn":30}  -  Server - GameServer:80
+  23:37:01.113  [Options] auto next: riding u4  -  Client - Options:97
+  23:37:01.113  [Possess] riding u4 (militia) at (24,10), moves 1  -  Client - Possess:78
+  23:37:01.713  [Possess] step u4 N  -  Client - Possess:125
+  23:37:01.749  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x40cf0e45","ok":true,"t":"cmd","turn":30}  -  Server - GameServer:80
+  23:37:02.497  [Possess] step u4 N  -  Client - Possess:125
+  23:37:02.529  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"impassable","t":"cmd","turn":30}  -  Server - GameServer:80
+  23:37:02.562  [Client] rejected (commandId 167): impassable  -  Client - ClientState:198
+  23:37:02.780  [Possess] step u4 E  -  Client - Possess:125
+  23:37:02.796  [Options] auto end turn 30  -  Client - Options:116
+  23:37:02.813  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":30}  -  Server - GameServer:80
+  23:37:02.843  [R4LOG] {"activePlayer":"p1","hash":"0x9a7d4530","t":"round","turn":31}  -  Server - GameServer:80
+  23:37:02.848  [R4CODE] turn=31 code=0PZ9-192D-7TH9G  -  Server - GameServer:182
+  23:37:02.855  [Client] rejected (commandId 168): noMovesLeft  -  Client - ClientState:198
+  23:37:17.412  [Research] setResearch iron-working  -  Client - ResearchPicker:194
+  23:37:17.448  [R4LOG] {"cmd":{"playerId":"p1","tech":"iron-working","type":"setResearch"},"hash":"0x6fb937c0","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:19.480  [Possess] step u4 E  -  Client - Possess:125
+  23:37:19.515  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xedd85016","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:19.546  [Options] auto next: riding u18  -  Client - Options:97
+  23:37:19.546  [Possess] riding u18 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:37:21.180  [Possess] step u18 N  -  Client - Possess:125
+  23:37:21.215  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x9151e47c","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:21.246  [Options] auto next: riding u21  -  Client - Options:97
+  23:37:21.246  [Possess] riding u21 (militia) at (34,16), moves 1  -  Client - Possess:78
+  23:37:23.730  [Select] open city Colony 1 (c1)  -  Client - Select:119
+  23:37:34.819  [CityPanel] setProduction c1 -> unit settlers  -  Client - CityPanel:104
+  23:37:34.849  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0xcd7ad1d5","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:38.445  [Possess] step u21 N  -  Client - Possess:125
+  23:37:38.482  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x03590fd7","ok":true,"t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:39.063  [Possess] step u21 W  -  Client - Possess:125
+  23:37:39.095  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":31}  -  Server - GameServer:80
+  23:37:39.128  [Client] rejected (commandId 175): noMovesLeft  -  Client - ClientState:198
+  23:37:39.512  [Options] auto end turn 31  -  Client - Options:116
+  23:37:39.559  [R4LOG] {"activePlayer":"p1","hash":"0xf12046f5","t":"round","turn":32}  -  Server - GameServer:80
+  23:37:39.564  [R4CODE] turn=32 code=4ATM-78QR-J0HQN  -  Server - GameServer:182
+  23:37:39.829  [Possess] riding u18 (militia) at (34,13), moves 1  -  Client - Possess:78
+  23:37:40.445  [Possess] step u18 W  -  Client - Possess:125
+  23:37:40.479  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":false,"reason":"impassable","t":"cmd","turn":32}  -  Server - GameServer:80
+  23:37:40.512  [Client] rejected (commandId 177): impassable  -  Client - ClientState:198
+  23:37:40.852  [Possess] step u18 N  -  Client - Possess:125
+  23:37:40.882  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x0011b7b9","ok":true,"t":"cmd","turn":32}  -  Server - GameServer:80
+  23:37:40.912  [Options] auto next: riding u21  -  Client - Options:97
+  23:37:40.912  [Possess] riding u21 (militia) at (34,15), moves 1  -  Client - Possess:78
+  23:37:42.378  [Possess] step u21 N  -  Client - Possess:125
+  23:37:42.416  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x30c155d5","ok":true,"t":"cmd","turn":32}  -  Server - GameServer:80
+  23:37:42.445  [Options] auto next: riding u4  -  Client - Options:97
+  23:37:42.445  [Possess] riding u4 (militia) at (25,9), moves 1  -  Client - Possess:78
+  23:37:43.979  [Possess] step u4 W  -  Client - Possess:125
+  23:37:44.015  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xc7850db3","ok":true,"t":"cmd","turn":32}  -  Server - GameServer:80
+  23:37:44.945  [Possess] step u4 S  -  Client - Possess:125
+  23:37:44.979  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":32}  -  Server - GameServer:80
+  23:37:45.012  [Client] rejected (commandId 181): noMovesLeft  -  Client - ClientState:198
+  23:37:45.062  [Options] auto end turn 32  -  Client - Options:116
+  23:37:45.109  [R4LOG] {"activePlayer":"p1","hash":"0x097adfda","t":"round","turn":33}  -  Server - GameServer:80
+  23:37:45.114  [R4CODE] turn=33 code=DZ0Y-RCG4-QNQYT  -  Server - GameServer:182
+  23:37:45.896  [Possess] step u4 S  -  Client - Possess:125
+  23:37:45.931  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xc44b341b","ok":true,"t":"cmd","turn":33}  -  Server - GameServer:80
+  23:37:45.962  [Options] auto next: riding u18  -  Client - Options:97
+  23:37:45.962  [Possess] riding u18 (militia) at (34,12), moves 1  -  Client - Possess:78
+  23:37:46.679  [Possess] step u18 W  -  Client - Possess:125
+  23:37:46.716  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x0018f2d3","ok":true,"t":"cmd","turn":33}  -  Server - GameServer:80
+  23:37:46.745  [Options] auto next: riding u21  -  Client - Options:97
+  23:37:46.745  [Possess] riding u21 (militia) at (34,14), moves 1  -  Client - Possess:78
+  23:37:47.329  [Possess] step u21 N  -  Client - Possess:125
+  23:37:47.365  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x0c4fbc15","ok":true,"t":"cmd","turn":33}  -  Server - GameServer:80
+  23:37:48.046  [Possess] step u21 W  -  Client - Possess:125
+  23:37:48.079  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"ok":false,"reason":"impassable","t":"cmd","turn":33}  -  Server - GameServer:80
+  23:37:48.111  [Client] rejected (commandId 186): impassable  -  Client - ClientState:198
+  23:37:48.395  [Options] auto end turn 33  -  Client - Options:116
+  23:37:48.443  [R4LOG] {"activePlayer":"p1","hash":"0x8209a5d4","t":"round","turn":34}  -  Server - GameServer:80
+  23:37:48.448  [R4CODE] turn=34 code=2B0A-SG21-0K9EM  -  Server - GameServer:182
+  23:37:48.912  [Possess] riding u18 (militia) at (33,12), moves 1  -  Client - Possess:78
+  23:37:50.062  [Possess] step u18 N  -  Client - Possess:125
+  23:37:50.099  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x02640e12","ok":true,"t":"cmd","turn":34}  -  Server - GameServer:80
+  23:37:50.128  [Options] auto next: riding u21  -  Client - Options:97
+  23:37:50.128  [Possess] riding u21 (militia) at (34,13), moves 1  -  Client - Possess:78
+  23:37:50.796  [Possess] step u21 N  -  Client - Possess:125
+  23:37:50.832  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x1c047d76","ok":true,"t":"cmd","turn":34}  -  Server - GameServer:80
+  23:37:50.861  [Options] auto next: riding u4  -  Client - Options:97
+  23:37:50.862  [Possess] riding u4 (militia) at (24,10), moves 1  -  Client - Possess:78
+  23:37:51.562  [Possess] step u4 W  -  Client - Possess:125
+  23:37:51.599  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x6928396d","ok":true,"t":"cmd","turn":34}  -  Server - GameServer:80
+  23:37:52.278  [Possess] step u4 S  -  Client - Possess:125
+  23:37:52.311  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":34}  -  Server - GameServer:80
+  23:37:52.345  [Client] rejected (commandId 191): noMovesLeft  -  Client - ClientState:198
+  23:37:52.644  [Options] auto end turn 34  -  Client - Options:116
+  23:37:52.692  [R4LOG] {"activePlayer":"p1","hash":"0xff9947a0","t":"round","turn":35}  -  Server - GameServer:80
+  23:37:52.697  [R4CODE] turn=35 code=8Y99-7Q3Z-SJHX0  -  Server - GameServer:182
+  23:37:52.961  [Possess] riding u18 (militia) at (33,11), moves 1  -  Client - Possess:78
+  23:37:53.528  [Possess] step u18 N  -  Client - Possess:125
+  23:37:53.566  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0xe6e12b71","ok":true,"t":"cmd","turn":35}  -  Server - GameServer:80
+  23:37:53.595  [Options] auto next: riding u21  -  Client - Options:97
+  23:37:53.595  [Possess] riding u21 (militia) at (34,12), moves 1  -  Client - Possess:78
+  23:38:20.646  [VoidCover] art = galaxy  -  Client - VoidCover:165
+  23:38:23.530  [VoidCover] art = none  -  Client - VoidCover:165
+  23:38:25.194  [VoidCover] art = frame  -  Client - VoidCover:165
+  23:38:25.927  [Possess] step u21 W  -  Client - Possess:125
+  23:38:25.964  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0xf1a6402d","ok":true,"t":"cmd","turn":35}  -  Server - GameServer:80
+  23:38:25.994  [Options] auto next: riding u4  -  Client - Options:97
+  23:38:25.995  [Possess] riding u4 (militia) at (23,10), moves 1  -  Client - Possess:78
+  23:38:28.960  [Possess] step u4 S  -  Client - Possess:125
+  23:38:28.998  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xa495a991","ok":true,"t":"cmd","turn":35}  -  Server - GameServer:80
+  23:38:30.044  [Options] auto end turn 35  -  Client - Options:116
+  23:38:30.091  [R4LOG] {"activePlayer":"p1","hash":"0x4245b12f","t":"round","turn":36}  -  Server - GameServer:80
+  23:38:30.096  [R4CODE] turn=36 code=AFPN-ABX1-4BC9F  -  Server - GameServer:182
+  23:38:31.544  [Select] tile (25,5) unknown  -  Client - Select:136
+  23:38:33.411  [Select] tile (26,5) unknown  -  Client - Select:136
+  23:38:46.712  [VoidCover] art = galaxy  -  Client - VoidCover:165
+  23:38:59.461  [VoidCover] art = none  -  Client - VoidCover:165
+  23:40:22.741  [VoidCover] art = frame  -  Client - VoidCover:165
+  23:40:23.158  [VoidCover] art = galaxy  -  Client - VoidCover:165
+  23:40:24.092  [VoidCover] art = none  -  Client - VoidCover:165
+  23:45:06.149  [Select] tile (21,0) unknown  -  Client - Select:136
+  23:45:07.816  [Select] selected u4 (militia) at (23,11), moves 1  -  Client - Select:110
+  23:45:08.582  [Possess] step u4 N  -  Client - Possess:125
+  23:45:08.620  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x86c3621b","ok":true,"t":"cmd","turn":36}  -  Server - GameServer:80
+  23:45:08.649  [Options] auto next: riding u18  -  Client - Options:97
+  23:45:08.649  [Possess] riding u18 (militia) at (33,10), moves 1  -  Client - Possess:78
+  23:45:09.566  [Possess] step u18 N  -  Client - Possess:125
+  23:45:09.603  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x59a25f4b","ok":true,"t":"cmd","turn":36}  -  Server - GameServer:80
+  23:45:09.632  [Options] auto next: riding u21  -  Client - Options:97
+  23:45:09.632  [Possess] riding u21 (militia) at (33,12), moves 1  -  Client - Possess:78
+  23:45:10.250  [Possess] step u21 W  -  Client - Possess:125
+  23:45:10.285  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x97b93d61","ok":true,"t":"cmd","turn":36}  -  Server - GameServer:80
+  23:45:10.699  [Possess] step u21 N  -  Client - Possess:125
+  23:45:10.732  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":36}  -  Server - GameServer:80
+  23:45:10.764  [Client] rejected (commandId 200): noMovesLeft  -  Client - ClientState:198
+  23:45:11.331  [Options] auto end turn 36  -  Client - Options:116
+  23:45:11.349  [Possess] step u21 W  -  Client - Possess:125
+  23:45:11.382  [R4LOG] {"activePlayer":"p1","hash":"0x49ad992c","t":"round","turn":37}  -  Server - GameServer:80
+  23:45:11.388  [R4CODE] turn=37 code=1QKS-8Y94-TV69C  -  Server - GameServer:182
+  23:45:11.399  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x7a2d1464","ok":true,"t":"cmd","turn":37}  -  Server - GameServer:80
+  23:45:11.433  [Options] auto next: riding u18  -  Client - Options:97
+  23:45:11.433  [Possess] riding u18 (militia) at (33,9), moves 1  -  Client - Possess:78
+  23:45:12.099  [Possess] step u18 W  -  Client - Possess:125
+  23:45:12.136  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x576261e6","ok":true,"t":"cmd","turn":37}  -  Server - GameServer:80
+  23:45:12.166  [Options] auto next: riding u4  -  Client - Options:97
+  23:45:12.166  [Possess] riding u4 (militia) at (23,10), moves 1  -  Client - Possess:78
+  23:45:12.782  [Possess] step u4 E  -  Client - Possess:125
+  23:45:12.819  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xced3e45e","ok":true,"t":"cmd","turn":37}  -  Server - GameServer:80
+  23:45:13.183  [Possess] step u4 N  -  Client - Possess:125
+  23:45:13.216  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":37}  -  Server - GameServer:80
+  23:45:13.248  [Client] rejected (commandId 205): noMovesLeft  -  Client - ClientState:198
+  23:45:13.665  [Possess] step u4 E  -  Client - Possess:125
+  23:45:13.699  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":37}  -  Server - GameServer:80
+  23:45:13.731  [Client] rejected (commandId 206): noMovesLeft  -  Client - ClientState:198
+  23:45:13.866  [Options] auto end turn 37  -  Client - Options:116
+  23:45:13.914  [R4LOG] {"activePlayer":"p1","hash":"0x9c13213e","t":"round","turn":38}  -  Server - GameServer:80
+  23:45:13.919  [R4CODE] turn=38 code=FPQA-CQTE-1689Y  -  Server - GameServer:182
+  23:45:14.099  [Possess] step u4 N  -  Client - Possess:125
+  23:45:14.136  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x6cbc6605","ok":true,"t":"cmd","turn":38}  -  Server - GameServer:80
+  23:45:14.165  [Options] auto next: riding u21  -  Client - Options:97
+  23:45:14.165  [Possess] riding u21 (militia) at (31,12), moves 1  -  Client - Possess:78
+  23:45:14.832  [Possess] step u21 N  -  Client - Possess:125
+  23:45:14.869  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x3fb03c2f","ok":true,"t":"cmd","turn":38}  -  Server - GameServer:80
+  23:45:14.898  [Options] auto next: riding u18  -  Client - Options:97
+  23:45:14.898  [Possess] riding u18 (militia) at (32,9), moves 1  -  Client - Possess:78
+  23:45:15.399  [Possess] step u18 W  -  Client - Possess:125
+  23:45:15.435  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u18"},"hash":"0x737cde13","ok":true,"t":"cmd","turn":38}  -  Server - GameServer:80
+  23:45:15.999  [Possess] step u18 N  -  Client - Possess:125
+  23:45:16.033  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":false,"reason":"zoc","t":"cmd","turn":38}  -  Server - GameServer:80
+  23:45:16.066  [Client] rejected (commandId 211): zoc  -  Client - ClientState:198
+  23:45:16.465  [Options] auto end turn 38  -  Client - Options:116
+  23:45:16.513  [R4LOG] {"activePlayer":"p1","hash":"0xd55ba199","t":"round","turn":39}  -  Server - GameServer:80
+  23:45:16.518  [R4CODE] turn=39 code=CT8N-WTQA-NQ8CS  -  Server - GameServer:182
+  23:45:21.166  [Possess] riding u21 (militia) at (31,11), moves 1  -  Client - Possess:78
+  23:45:22.448  [Possess] step u21 N  -  Client - Possess:125
+  23:45:22.485  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x5a6263b9","ok":true,"t":"cmd","turn":39}  -  Server - GameServer:80
+  23:45:22.516  [Options] auto next: riding u27  -  Client - Options:97
+  23:45:22.516  [Possess] riding u27 (settlers) at (34,16), moves 1  -  Client - Possess:78
+  23:45:29.215  [Possess] step u27 N  -  Client - Possess:125
+  23:45:29.251  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x7f8cb3a5","ok":true,"t":"cmd","turn":39}  -  Server - GameServer:80
+  23:45:29.282  [Options] auto next: riding u4  -  Client - Options:97
+  23:45:29.282  [Possess] riding u4 (militia) at (24,9), moves 1  -  Client - Possess:78
+  23:45:30.032  [Possess] step u4 E  -  Client - Possess:125
+  23:45:30.069  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x87c36a0f","ok":true,"t":"cmd","turn":39}  -  Server - GameServer:80
+  23:45:31.032  [Possess] step u4 S  -  Client - Possess:125
+  23:45:31.064  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":39}  -  Server - GameServer:80
+  23:45:31.098  [Client] rejected (commandId 216): noMovesLeft  -  Client - ClientState:198
+  23:45:31.099  [Options] auto end turn 39  -  Client - Options:116
+  23:45:31.148  [R4LOG] {"activePlayer":"p1","hash":"0xf23f6ec4","t":"round","turn":40}  -  Server - GameServer:80
+  23:45:31.153  [R4CODE] turn=40 code=17JD-8HBS-3YVP4  -  Server - GameServer:182
+  23:45:32.048  [Possess] step u4 S  -  Client - Possess:125
+  23:45:32.084  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xd59945a3","ok":true,"t":"cmd","turn":40}  -  Server - GameServer:80
+  23:45:32.115  [Options] auto next: riding u21  -  Client - Options:97
+  23:45:32.115  [Possess] riding u21 (militia) at (31,10), moves 1  -  Client - Possess:78
+  23:45:33.115  [Possess] step u21 W  -  Client - Possess:125
+  23:45:33.152  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u21"},"hash":"0x6d4e2d71","ok":true,"t":"cmd","turn":40}  -  Server - GameServer:80
+  23:45:33.181  [Options] auto next: riding u27  -  Client - Options:97
+  23:45:33.181  [Possess] riding u27 (settlers) at (34,15), moves 1  -  Client - Possess:78
+  23:45:33.931  [Possess] step u27 N  -  Client - Possess:125
+  23:45:33.968  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0xd7d21e3f","ok":true,"t":"cmd","turn":40}  -  Server - GameServer:80
+  23:45:34.915  [Possess] step u27 E  -  Client - Possess:125
+  23:45:34.948  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u27"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":40}  -  Server - GameServer:80
+  23:45:34.981  [Client] rejected (commandId 221): noMovesLeft  -  Client - ClientState:198
+  23:45:35.014  [Options] auto end turn 40  -  Client - Options:116
+  23:45:35.064  [R4LOG] {"activePlayer":"p1","hash":"0x6fcd3e3e","t":"round","turn":41}  -  Server - GameServer:80
+  23:45:35.069  [R4CODE] turn=41 code=3BWW-B2SQ-WTFHY  -  Server - GameServer:182
+  23:45:37.548  [Select] tile (30,11) mountains  -  Client - Select:136
+  23:45:38.249  [Select] selected u21 (militia) at (30,10), moves 1  -  Client - Select:110
+  23:45:39.381  [ActionBar] fortify u21  -  Client - ActionBar:166
+  23:45:39.417  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u21"},"hash":"0x6f4e8e00","ok":true,"t":"cmd","turn":41}  -  Server - GameServer:80
+  23:45:40.616   ▶ [Select] open city Colony 1 (c1) (x2)  -  Client - Select:119
+  23:45:42.148  [CityPanel] setProduction c1 -> unit phalanx  -  Client - CityPanel:104
+  23:45:42.186  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"phalanx","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0x21322acc","ok":true,"t":"cmd","turn":41}  -  Server - GameServer:80
+  23:45:45.215  [CityPanel] buy in c1  -  Client - CityPanel:205
+  23:45:45.252  [R4LOG] {"cmd":{"cityId":"c1","playerId":"p1","type":"buy"},"hash":"0xd5851c2e","ok":true,"t":"cmd","turn":41}  -  Server - GameServer:80
+  23:45:49.632  [Select] open city Colony 1 (c1)  -  Client - Select:119
+  23:45:50.915  [Select] selected u27 (settlers) at (34,14), moves 1  -  Client - Select:110
+  23:45:53.597  [Hud] end turn 41  -  Client - Hud:95
+  23:45:53.666  [R4LOG] {"activePlayer":"p1","hash":"0x34a3fb15","t":"round","turn":42}  -  Server - GameServer:80
+  23:45:53.671  [R4CODE] turn=42 code=70ZX-YQ4T-A7YRN  -  Server - GameServer:182
+  23:45:54.798  [Select] tile (34,14) grassland — unit u27 (settlers, p1)  -  Client - Select:136
+  23:45:55.497  [Select] selected u31 (phalanx) at (34,16), moves 1  -  Client - Select:110
+  23:45:56.932  [Possess] step u27 N  -  Client - Possess:125
+  23:45:56.967  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x5ae83609","ok":true,"t":"cmd","turn":42}  -  Server - GameServer:80
+  23:45:56.998  [Options] auto next: riding u31  -  Client - Options:97
+  23:45:56.998  [Possess] riding u31 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:45:58.331  [Possess] step u31 N  -  Client - Possess:125
+  23:45:58.367  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0x89446dcb","ok":true,"t":"cmd","turn":42}  -  Server - GameServer:80
+  23:45:58.398  [Options] auto next: riding u4  -  Client - Options:97
+  23:45:58.399  [Possess] riding u4 (militia) at (25,10), moves 1  -  Client - Possess:78
+  23:45:59.397  [Possess] step u4 S  -  Client - Possess:125
+  23:45:59.434  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x5d71e72b","ok":true,"t":"cmd","turn":42}  -  Server - GameServer:80
+  23:46:00.480  [Options] auto end turn 42  -  Client - Options:116
+  23:46:00.533  [R4LOG] {"activePlayer":"p1","hash":"0xbe7e8e81","t":"round","turn":43}  -  Server - GameServer:80
+  23:46:00.538  [R4CODE] turn=43 code=7BT7-VTPZ-7X3M1  -  Server - GameServer:182
+  23:46:01.015  [Possess] step u4 E  -  Client - Possess:125
+  23:46:01.052  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xc63032fe","ok":true,"t":"cmd","turn":43}  -  Server - GameServer:80
+  23:46:01.081  [Options] auto next: riding u27  -  Client - Options:97
+  23:46:01.081  [Possess] riding u27 (settlers) at (34,13), moves 1  -  Client - Possess:78
+  23:46:02.364  [Possess] step u27 S  -  Client - Possess:125
+  23:46:02.402  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x2d2153f2","ok":true,"t":"cmd","turn":43}  -  Server - GameServer:80
+  23:46:02.431  [Options] auto next: riding u31  -  Client - Options:97
+  23:46:02.431  [Possess] riding u31 (phalanx) at (34,15), moves 1  -  Client - Possess:78
+  23:46:04.447  [Possess] step u31 N  -  Client - Possess:125
+  23:46:04.484  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0x8ed78246","ok":true,"t":"cmd","turn":43}  -  Server - GameServer:80
+  23:46:05.514  [Options] auto end turn 43  -  Client - Options:116
+  23:46:05.566  [R4LOG] {"activePlayer":"p1","hash":"0xc1954585","t":"round","turn":44}  -  Server - GameServer:80
+  23:46:05.571  [R4CODE] turn=44 code=74V7-J770-SAHC5  -  Server - GameServer:182
+  23:46:08.047  [Possess] step u31 N  -  Client - Possess:125
+  23:46:08.084  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0x34e6610b","ok":true,"t":"cmd","turn":44}  -  Server - GameServer:80
+  23:46:08.114  [Options] auto next: riding u27  -  Client - Options:97
+  23:46:08.114  [Possess] riding u27 (settlers) at (34,14), moves 1  -  Client - Possess:78
+  23:46:09.197  [Possess] step u27 N  -  Client - Possess:125
+  23:46:09.234  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x4a153dfb","ok":true,"t":"cmd","turn":44}  -  Server - GameServer:80
+  23:46:09.263  [Options] auto next: riding u4  -  Client - Options:97
+  23:46:09.263  [Possess] riding u4 (militia) at (26,11), moves 1  -  Client - Possess:78
+  23:46:10.014  [Possess] step u4 S  -  Client - Possess:125
+  23:46:10.053  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0xdda202d9","ok":true,"t":"cmd","turn":44}  -  Server - GameServer:80
+  23:46:11.097  [Options] auto end turn 44  -  Client - Options:116
+  23:46:11.149  [R4LOG] {"activePlayer":"p1","hash":"0x720a731d","t":"round","turn":45}  -  Server - GameServer:80
+  23:46:11.154  [R4CODE] turn=45 code=37A5-D1NS-0MWRX  -  Server - GameServer:182
+  23:46:18.147  [Select] tile (11,3) unknown  -  Client - Select:136
+  23:47:12.514  [Possess] step u4 S  -  Client - Possess:125
+  23:47:12.551  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x51487b05","ok":true,"t":"cmd","turn":45}  -  Server - GameServer:80
+  23:47:12.595  [Options] auto next: riding u27  -  Client - Options:97
+  23:47:12.595  [Possess] riding u27 (settlers) at (34,13), moves 1  -  Client - Possess:78
+  23:47:18.246  [Possess] riding u31 (phalanx) at (34,13), moves 1  -  Client - Possess:78
+  23:47:20.796  [Select] move u31 NW -> (33,12)  -  Client - Select:128
+  23:47:20.833  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0xb515e334","ok":true,"t":"cmd","turn":45}  -  Server - GameServer:80
+  23:47:20.878  [Options] auto next: riding u27  -  Client - Options:97
+  23:47:20.879  [Possess] riding u27 (settlers) at (34,13), moves 1  -  Client - Possess:78
+  23:47:22.629  [Select] tile (34,13) jungle — unit u27 (settlers, p1)  -  Client - Select:136
+  23:47:28.729  [Possess] step u27 N  -  Client - Possess:125
+  23:47:28.767  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x3932813a","ok":true,"t":"cmd","turn":45}  -  Server - GameServer:80
+  23:47:28.812  [Options] auto next: riding u37  -  Client - Options:97
+  23:47:28.812  [Possess] riding u37 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:47:31.545  [Possess] step u37 N  -  Client - Possess:125
+  23:47:31.584  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u37"},"hash":"0x2a5d7d84","ok":true,"t":"cmd","turn":45}  -  Server - GameServer:80
+  23:47:32.645  [Options] auto end turn 45  -  Client - Options:116
+  23:47:32.714  [R4LOG] {"activePlayer":"p1","hash":"0x464fe5d7","t":"round","turn":46}  -  Server - GameServer:80
+  23:47:32.720  [R4CODE] turn=46 code=ENJ1-GJX3-4ZSEQ  -  Server - GameServer:182
+  23:47:35.530  [Select] move u37 NW -> (33,14)  -  Client - Select:128
+  23:47:35.568  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u37"},"hash":"0x2af5290c","ok":true,"t":"cmd","turn":46}  -  Server - GameServer:80
+  23:47:35.612  [Options] auto next: riding u27  -  Client - Options:97
+  23:47:35.612  [Possess] riding u27 (settlers) at (34,12), moves 1  -  Client - Possess:78
+  23:47:38.395  [Select] tile (34,12) plains — unit u27 (settlers, p1)  -  Client - Select:136
+  23:47:45.261  [Select] selected u27 (settlers) at (34,12), moves 1  -  Client - Select:110
+  23:47:47.261   ▶ [ActionBar] possession: select an own unit and press P (F dismounts) (x3)  -  Client - ActionBar:205
+  23:47:55.045  [Possess] released (dismount)  -  Client - Possess:62
+  23:47:55.045  [Camera] follow-avatar ON  -  Client - Camera:75
+  23:48:00.061  [Select] selected u31 (phalanx) at (33,12), moves 1  -  Client - Select:110
+  23:48:00.595  [Select] move u31 N -> (33,11)  -  Client - Select:128
+  23:48:00.634  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0x3b58289a","ok":true,"t":"cmd","turn":46}  -  Server - GameServer:80
+  23:48:00.677  [Options] auto next: selected u27  -  Client - Options:100
+  23:48:01.762  [Select] tile (34,12) plains — unit u27 (settlers, p1)  -  Client - Select:136
+  23:49:27.710  [Select] selected u27 (settlers) at (34,12), moves 1  -  Client - Select:110
+  23:49:31.375  [Select] move u27 W -> (33,12)  -  Client - Select:128
+  23:49:31.414  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0x74b86cbc","ok":true,"t":"cmd","turn":46}  -  Server - GameServer:80
+  23:49:31.458  [Options] auto next: selected u4  -  Client - Options:100
+  23:49:32.393  [Select] selected u31 (phalanx) at (33,11), moves 0  -  Client - Select:110
+  23:49:35.209  [Select] selected u27 (settlers) at (33,12), moves 0  -  Client - Select:110
+  23:49:35.787  [Select] move u27 W -> (32,12)  -  Client - Select:128
+  23:49:35.809  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u27"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":46}  -  Server - GameServer:80
+  23:49:35.841  [Client] rejected (commandId 247): noMovesLeft  -  Client - ClientState:198
+  23:49:36.477  [Select] tile (33,12) jungle — unit u27 (settlers, p1)  -  Client - Select:136
+  23:49:38.176  [Possess] riding u4 (militia) at (26,13), moves 1  -  Client - Possess:78
+  23:49:38.909  [Select] move u4 E -> (27,13)  -  Client - Select:128
+  23:49:38.947  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x3ebd96de","ok":true,"t":"cmd","turn":46}  -  Server - GameServer:80
+  23:49:39.342   ▶ [Possess] no units with moves left (x3)  -  Client - Possess:117
+  23:49:40.008  [Options] auto end turn 46  -  Client - Options:116
+  23:49:40.093  [R4LOG] {"activePlayer":"p1","hash":"0x293e1801","t":"round","turn":47}  -  Server - GameServer:80
+  23:49:40.103  [R4CODE] turn=47 code=1Z81-2QMM-KW601  -  Server - GameServer:182
+  23:49:41.593  [ActionBar] possession: select an own unit and press P (F dismounts)  -  Client - ActionBar:205
+  23:49:42.226  [Possess] released (dismount)  -  Client - Possess:62
+  23:49:42.226  [Camera] follow-avatar ON  -  Client - Camera:75
+  23:49:43.542  [ActionBar] wait u4  -  Client - ActionBar:166
+  23:49:43.579  [R4LOG] {"cmd":{"playerId":"p1","type":"wait","unitId":"u4"},"hash":"0xbb9b459e","ok":true,"t":"cmd","turn":47}  -  Server - GameServer:80
+  23:49:43.625  [Options] auto next: selected u27  -  Client - Options:100
+  23:50:34.291  [Select] tile (33,12) jungle — unit u27 (settlers, p1)  -  Client - Select:136
+  23:50:36.640  [Select] tile (32,11) grassland  -  Client - Select:136
+  23:50:37.341  [Select] selected u27 (settlers) at (33,12), moves 1  -  Client - Select:110
+  23:50:38.741  [Select] move u27 W -> (32,12)  -  Client - Select:128
+  23:50:38.777  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u27"},"hash":"0xe6815272","ok":true,"t":"cmd","turn":47}  -  Server - GameServer:80
+  23:50:38.806  [Options] auto next: selected u31  -  Client - Options:100
+  23:50:39.709  [Select] move u31 W -> (32,11)  -  Client - Select:128
+  23:50:39.746  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0xdbdb23ec","ok":true,"t":"cmd","turn":47}  -  Server - GameServer:80
+  23:50:39.790  [Options] auto next: selected u37  -  Client - Options:100
+  23:50:41.492  [Select] selected u27 (settlers) at (32,12), moves 0  -  Client - Select:110
+  23:50:45.624  [Possess] riding u37 (phalanx) at (33,14), moves 1  -  Client - Possess:78
+  23:50:47.106  [Possess] step u37 N  -  Client - Possess:125
+  23:50:47.139  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u37"},"ok":false,"reason":"impassable","t":"cmd","turn":47}  -  Server - GameServer:80
+  23:50:47.172  [Client] rejected (commandId 253): impassable  -  Client - ClientState:198
+  23:50:50.774  [Select] move u37 NW -> (32,13)  -  Client - Select:128
+  23:50:50.812  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u37"},"hash":"0x4ad13cf3","ok":true,"t":"cmd","turn":47}  -  Server - GameServer:80
+  23:50:51.872  [Options] auto end turn 47  -  Client - Options:116
+  23:50:51.954  [R4LOG] {"activePlayer":"p1","hash":"0xc877a28f","t":"round","turn":48}  -  Server - GameServer:80
+  23:50:51.962  [R4CODE] turn=48 code=9VFC-ACZ4-7F8MF  -  Server - GameServer:182
+  23:50:54.057  [Select] selected u27 (settlers) at (32,12), moves 1  -  Client - Select:110
+  23:50:58.206  [Select] tile (32,12) grassland — unit u27 (settlers, p1)  -  Client - Select:136
+  23:50:59.273  [Select] selected u27 (settlers) at (32,12), moves 1  -  Client - Select:110
+  23:51:04.072  [Select] found city 'Colony 2' with u27 at (32,12)  -  Client - Select:195
+  23:51:04.110  [R4LOG] {"cmd":{"name":"Colony 2","playerId":"p1","type":"foundCity","unitId":"u27"},"hash":"0x022014a4","ok":true,"t":"cmd","turn":48}  -  Server - GameServer:80
+  23:51:05.806  [Select] open city Colony 2 (c7)  -  Client - Select:119
+  23:51:12.572  [CityPanel] setProduction c7 -> building granary  -  Client - CityPanel:104
+  23:51:12.611  [R4LOG] {"cmd":{"cityId":"c7","item":{"id":"granary","kind":"building"},"playerId":"p1","type":"setProduction"},"hash":"0x1eda4097","ok":true,"t":"cmd","turn":48}  -  Server - GameServer:80
+  23:51:13.590  [Select] selected u31 (phalanx) at (32,11), moves 1  -  Client - Select:110
+  23:51:15.739  [Select] move u31 N -> (32,10)  -  Client - Select:128
+  23:51:15.775  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0x8795b6af","ok":true,"t":"cmd","turn":48}  -  Server - GameServer:80
+  23:51:16.655  [Select] selected u37 (phalanx) at (32,13), moves 1  -  Client - Select:110
+  23:51:17.122  [Select] open city Colony 2 (c7)  -  Client - Select:119
+  23:51:17.856  [Select] tile (32,13) plains — unit u37 (phalanx, p1)  -  Client - Select:136
+  23:51:18.755  [Select] open city Colony 2 (c7)  -  Client - Select:119
+  23:51:20.939  [Possess] riding u4 (militia) at (27,13), moves 1  -  Client - Possess:78
+  23:51:24.805  [Select] move u4 SE -> (28,14)  -  Client - Select:128
+  23:51:24.843  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x8616e459","ok":true,"t":"cmd","turn":48}  -  Server - GameServer:80
+  23:51:24.888  [Options] auto next: riding u37  -  Client - Options:97
+  23:51:24.889  [Possess] riding u37 (phalanx) at (32,13), moves 1  -  Client - Possess:78
+  23:51:25.238  [Possess] no units with moves left  -  Client - Possess:117
+  23:51:27.355   ▶ [Select] open city Colony 2 (c7) (x2)  -  Client - Select:119
+  23:51:29.739  [Possess] step u37 N  -  Client - Possess:125
+  23:51:29.777  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u37"},"hash":"0x6f85dcc9","ok":true,"t":"cmd","turn":48}  -  Server - GameServer:80
+  23:51:30.837  [Options] auto end turn 48  -  Client - Options:116
+  23:51:30.925  [R4LOG] {"activePlayer":"p1","hash":"0x610e805a","t":"round","turn":49}  -  Server - GameServer:80
+  23:51:30.934  [R4CODE] turn=49 code=7MV5-F2SG-GX02T  -  Server - GameServer:182
+  23:51:37.221  [ActionBar] fortify u37  -  Client - ActionBar:166
+  23:51:37.261  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u37"},"hash":"0xdf9b0c0c","ok":true,"t":"cmd","turn":49}  -  Server - GameServer:80
+  23:51:37.305  [Options] auto next: riding u31  -  Client - Options:97
+  23:51:37.305  [Possess] riding u31 (phalanx) at (32,10), moves 1  -  Client - Possess:78
+  23:51:38.639  [Select] move u31 NW -> (31,9)  -  Client - Select:128
+  23:51:38.676  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0xd22945b0","ok":true,"t":"cmd","turn":49}  -  Server - GameServer:80
+  23:51:38.705  [Options] auto next: riding u4  -  Client - Options:97
+  23:51:38.705  [Possess] riding u4 (militia) at (28,14), moves 1  -  Client - Possess:78
+  23:51:40.356  [Select] move u4 NE -> (29,13)  -  Client - Select:128
+  23:51:40.392  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u4"},"hash":"0x3f244d91","ok":true,"t":"cmd","turn":49}  -  Server - GameServer:80
+  23:51:40.438  [Options] auto next: riding u43  -  Client - Options:97
+  23:51:40.438  [Possess] riding u43 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:51:52.888  [CityPanel] setProduction c7 -> unit settlers  -  Client - CityPanel:104
+  23:51:52.926  [R4LOG] {"cmd":{"cityId":"c7","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0x06b5ee78","ok":true,"t":"cmd","turn":49}  -  Server - GameServer:80
+  23:51:53.988  [Select] open city Colony 1 (c1)  -  Client - Select:119
+  23:51:54.971  [Select] move u43 N -> (34,15)  -  Client - Select:128
+  23:51:55.008  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u43"},"hash":"0x3f7b3f0e","ok":true,"t":"cmd","turn":49}  -  Server - GameServer:80
+  23:51:56.054  [Options] auto end turn 49  -  Client - Options:116
+  23:51:56.127  [R4LOG] {"activePlayer":"p1","hash":"0x1ab49fce","t":"round","turn":50}  -  Server - GameServer:80
+  23:51:56.135  [R4CODE] turn=50 code=6XGR-5ZGD-B97YE  -  Server - GameServer:182
+  23:52:34.103  [ActionBar] fortify u43  -  Client - ActionBar:166
+  23:52:34.140  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u43"},"hash":"0x3fc21b34","ok":true,"t":"cmd","turn":50}  -  Server - GameServer:80
+  23:52:34.186  [Options] auto next: riding u4  -  Client - Options:97
+  23:52:34.186  [Possess] riding u4 (militia) at (29,13), moves 1  -  Client - Possess:78
+  23:52:35.188  [ActionBar] fortify u4  -  Client - ActionBar:166
+  23:52:35.224  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u4"},"hash":"0x077f5354","ok":true,"t":"cmd","turn":50}  -  Server - GameServer:80
+  23:52:35.269  [Options] auto next: riding u31  -  Client - Options:97
+  23:52:35.269  [Possess] riding u31 (phalanx) at (31,9), moves 1  -  Client - Possess:78
+  23:52:36.388  [ActionBar] fortify u31  -  Client - ActionBar:166
+  23:52:36.423  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u31"},"hash":"0x29046284","ok":true,"t":"cmd","turn":50}  -  Server - GameServer:80
+  23:52:37.486  [Options] auto end turn 50  -  Client - Options:116
+  23:52:37.563  [R4LOG] {"activePlayer":"p1","hash":"0x355a0464","t":"round","turn":51}  -  Server - GameServer:80
+  23:52:37.572  [R4CODE] turn=51 code=3JNV-87RT-NM134  -  Server - GameServer:182
+  23:52:38.602  [Options] auto end turn 51  -  Client - Options:116
+  23:52:38.692  [R4LOG] {"activePlayer":"p1","hash":"0x66ddc1d4","t":"round","turn":52}  -  Server - GameServer:80
+  23:52:38.701  [R4CODE] turn=52 code=6JTN-Z3SK-DVGEM  -  Server - GameServer:182
+  23:52:41.853  [Select] move u31 S -> (31,10)  -  Client - Select:128
+  23:52:41.891  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0xf4f66c80","ok":true,"t":"cmd","turn":52}  -  Server - GameServer:80
+  23:52:41.936  [Options] auto next: riding u50  -  Client - Options:97
+  23:52:41.937  [Possess] riding u50 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:52:42.736   ▶ [Odds] Even 50% - Phalanx 100 vs Militia 100 (x2)  -  Client - OddsPreview:173
+  23:52:48.469  [Possess] released (dismount)  -  Client - Possess:62
+  23:52:48.469  [Camera] follow-avatar ON  -  Client - Camera:75
+  23:52:51.053  [Select] selected u43 (phalanx) at (34,15), moves 1  -  Client - Select:110
+  23:52:52.953  [Camera] follow-avatar OFF  -  Client - Camera:75
+  23:52:53.953  [Possess] riding u50 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:52:54.370   ▶ [Possess] no units with moves left (x10)  -  Client - Possess:117
+  23:52:59.919  [ActionBar] fortify u50  -  Client - ActionBar:166
+  23:52:59.958  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u50"},"hash":"0x4ba2cc1c","ok":true,"t":"cmd","turn":52}  -  Server - GameServer:80
+  23:53:01.018  [Options] auto end turn 52  -  Client - Options:116
+  23:53:01.105  [R4LOG] {"activePlayer":"p1","hash":"0x8db46f03","t":"round","turn":53}  -  Server - GameServer:80
+  23:53:01.115  [R4CODE] turn=53 code=CFH7-ZAE6-V8VR3  -  Server - GameServer:182
+  23:53:05.720  [Possess] riding u31 (phalanx) at (31,10), moves 1  -  Client - Possess:78
+  23:53:07.619  [Possess] step u31 W  -  Client - Possess:125
+  23:53:07.658  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u31"},"hash":"0xe5402193","ok":true,"t":"cmd","turn":53}  -  Server - GameServer:80
+  23:53:08.717  [Options] auto end turn 53  -  Client - Options:116
+  23:53:08.805  [R4LOG] {"activePlayer":"p1","hash":"0x7a4e78c4","t":"round","turn":54}  -  Server - GameServer:80
+  23:53:08.813  [R4CODE] turn=54 code=49Q3-699X-4WY64  -  Server - GameServer:182
+  23:53:09.851  [Options] auto end turn 54  -  Client - Options:116
+  23:53:09.949  [R4LOG] {"activePlayer":"p1","hash":"0x47cf00ea","t":"round","turn":55}  -  Server - GameServer:80
+  23:53:09.960  [R4CODE] turn=55 code=5BBT-1793-WY07A  -  Server - GameServer:182
+  23:53:11.001  [Options] auto end turn 55  -  Client - Options:116
+  23:53:11.093  [R4LOG] {"activePlayer":"p1","hash":"0xf0789df9","t":"round","turn":56}  -  Server - GameServer:80
+  23:53:11.100  [R4CODE] turn=56 code=4A9Z-18QR-7H7FS  -  Server - GameServer:182
+  23:53:39.370  [Possess] riding u59 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:53:47.052  [Research] setResearch iron-working  -  Client - ResearchPicker:194
+  23:53:47.090  [R4LOG] {"cmd":{"playerId":"p1","tech":"iron-working","type":"setResearch"},"hash":"0xf0789df9","ok":true,"t":"cmd","turn":56}  -  Server - GameServer:80
+  23:53:47.551  [Research] setResearch iron-working  -  Client - ResearchPicker:194
+  23:53:47.589  [R4LOG] {"cmd":{"playerId":"p1","tech":"iron-working","type":"setResearch"},"hash":"0xf0789df9","ok":true,"t":"cmd","turn":56}  -  Server - GameServer:80
+  23:53:47.734  [Select] tile (39,17) unknown  -  Client - Select:136
+  23:53:49.668   ▶ [Possess] no units with moves left (x2)  -  Client - Possess:117
+  23:53:53.384  [Select] selected u59 (phalanx) at (34,16), moves 1  -  Client - Select:110
+  23:53:54.453  [Select] selected u37 (phalanx) at (32,12), moves 1  -  Client - Select:110
+  23:53:55.134  [Select] open city Colony 2 (c7)  -  Client - Select:119
+  23:53:55.302  [Select] ride to u37 (double-click)  -  Client - Select:100
+  23:53:55.302  [Possess] riding u37 (phalanx) at (32,12), moves 1  -  Client - Possess:78
+  23:54:01.933  [CityPanel] setProduction c7 -> unit phalanx  -  Client - CityPanel:104
+  23:54:01.973  [R4LOG] {"cmd":{"cityId":"c7","item":{"id":"phalanx","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0xf51122d9","ok":true,"t":"cmd","turn":56}  -  Server - GameServer:80
+  23:54:07.291  [Select] selected u59 (phalanx) at (34,16), moves 1  -  Client - Select:110
+  23:54:14.416  [CityPanel] setProduction c7 -> unit phalanx  -  Client - CityPanel:104
+  23:54:14.457  [R4LOG] {"cmd":{"cityId":"c7","item":{"id":"phalanx","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0xf51122d9","ok":true,"t":"cmd","turn":56}  -  Server - GameServer:80
+  23:54:18.300  [Possess] riding u59 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:54:19.585  [ActionBar] fortify u59  -  Client - ActionBar:166
+  23:54:19.621  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u59"},"hash":"0x9bfae511","ok":true,"t":"cmd","turn":56}  -  Server - GameServer:80
+  23:54:20.351  [Hud] end turn 56  -  Client - Hud:95
+  23:54:20.466  [R4LOG] {"activePlayer":"p1","hash":"0x9c75e080","t":"round","turn":57}  -  Server - GameServer:80
+  23:54:20.476  [R4CODE] turn=57 code=6NVZ-KTJE-7BR40  -  Server - GameServer:182
+  23:54:20.682  [Options] auto end turn 57  -  Client - Options:116
+  23:54:20.783  [R4LOG] {"activePlayer":"p1","hash":"0x8cbd5a0c","t":"round","turn":58}  -  Server - GameServer:80
+  23:54:20.792  [R4CODE] turn=58 code=5SAJ-TZ26-BTPGC  -  Server - GameServer:182
+  23:54:21.516  [Options] auto end turn 58  -  Client - Options:116
+  23:54:21.619  [R4LOG] {"activePlayer":"p1","hash":"0xa4224caf","t":"round","turn":59}  -  Server - GameServer:80
+  23:54:21.629  [R4CODE] turn=59 code=DH0Q-BZYJ-24K5F  -  Server - GameServer:182
+  23:54:23.552  [Select] selected u65 (phalanx) at (34,16), moves 1  -  Client - Select:110
+  23:54:23.768  [Select] ride to u65 (double-click)  -  Client - Select:100
+  23:54:23.768  [Possess] riding u65 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:55:27.182  [Possess] no units with moves left  -  Client - Possess:117
+  23:55:28.382  [Hud] end turn 59  -  Client - Hud:95
+  23:55:28.506  [R4LOG] {"activePlayer":"p1","hash":"0xff7e3b45","t":"round","turn":60}  -  Server - GameServer:80
+  23:55:28.513  [R4CODE] turn=60 code=6PWR-DVQZ-QWET5  -  Server - GameServer:182
+  23:55:29.998  [Hud] end turn 60  -  Client - Hud:95
+  23:55:30.129  [R4LOG] {"activePlayer":"p1","hash":"0x73cf55de","t":"round","turn":61}  -  Server - GameServer:80
+  23:55:30.139  [R4CODE] turn=61 code=6XBH-CT9S-WYNEY  -  Server - GameServer:182
+  23:55:31.650   ▶ [Possess] no units with moves left (x4)  -  Client - Possess:117
+  23:55:32.999  [Select] move u65 E -> (35,16)  -  Client - Select:128
+  23:55:33.037  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0x376817c4","ok":true,"t":"cmd","turn":61}  -  Server - GameServer:80
+  23:55:34.096  [Options] auto end turn 61  -  Client - Options:116
+  23:55:34.215  [R4LOG] {"activePlayer":"p1","hash":"0x35534432","t":"round","turn":62}  -  Server - GameServer:80
+  23:55:34.225  [R4CODE] turn=62 code=E1JY-KM0T-N6H1J  -  Server - GameServer:182
+  23:55:34.464  [Select] tile (39,24) unknown  -  Client - Select:136
+  23:55:35.698  [Possess] riding u74 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:55:38.515  [ActionBar] fortify u74  -  Client - ActionBar:166
+  23:55:38.552  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u74"},"hash":"0xdc155f48","ok":true,"t":"cmd","turn":62}  -  Server - GameServer:80
+  23:55:38.598  [Options] auto next: riding u65  -  Client - Options:97
+  23:55:38.598  [Possess] riding u65 (phalanx) at (35,16), moves 1  -  Client - Possess:78
+  23:55:39.815  [Select] move u65 E -> (36,16)  -  Client - Select:128
+  23:55:39.852  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0x6a824dbf","ok":true,"t":"cmd","turn":62}  -  Server - GameServer:80
+  23:55:40.415   ▶ [Possess] no units with moves left (x3)  -  Client - Possess:117
+  23:55:40.915  [Options] auto end turn 62  -  Client - Options:116
+  23:55:41.033  [R4LOG] {"activePlayer":"p1","hash":"0xf6de8b3e","t":"round","turn":63}  -  Server - GameServer:80
+  23:55:41.043  [R4CODE] turn=63 code=FEW9-2SKV-DX2SY  -  Server - GameServer:182
+  23:55:41.865  [Select] move u65 E -> (37,16)  -  Client - Select:128
+  23:55:41.903  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0xa911041f","ok":true,"t":"cmd","turn":63}  -  Server - GameServer:80
+  23:55:42.416   ▶ [Possess] no units with moves left (x2)  -  Client - Possess:117
+  23:55:42.963  [Options] auto end turn 63  -  Client - Options:116
+  23:55:43.074  [R4LOG] {"activePlayer":"p1","hash":"0xe0abfec1","t":"round","turn":64}  -  Server - GameServer:80
+  23:55:43.083  [R4CODE] turn=64 code=6HJV-7CQG-AQZP1  -  Server - GameServer:182
+  23:55:45.831  [Select] move u65 N -> (37,15)  -  Client - Select:128
+  23:55:45.870  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0xd494c9e7","ok":true,"t":"cmd","turn":64}  -  Server - GameServer:80
+  23:55:46.348   ▶ [Possess] no units with moves left (x3)  -  Client - Possess:117
+  23:55:46.914  [Options] auto end turn 64  -  Client - Options:116
+  23:55:47.024  [R4LOG] {"activePlayer":"p1","hash":"0x1798e468","t":"round","turn":65}  -  Server - GameServer:80
+  23:55:47.033  [R4CODE] turn=65 code=0ZBF-PYRB-SHS38  -  Server - GameServer:182
+  23:55:47.299  [Possess] riding u79 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:55:50.014  [ActionBar] fortify u79  -  Client - ActionBar:166
+  23:55:50.052  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u79"},"hash":"0x6d946148","ok":true,"t":"cmd","turn":65}  -  Server - GameServer:80
+  23:55:50.096  [Options] auto next: riding u65  -  Client - Options:97
+  23:55:50.097  [Possess] riding u65 (phalanx) at (37,15), moves 1  -  Client - Possess:78
+  23:55:50.631  [Possess] no units with moves left  -  Client - Possess:117
+  23:55:51.281  [Select] move u65 N -> (37,14)  -  Client - Select:128
+  23:55:51.320  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0x3c6bb7e1","ok":true,"t":"cmd","turn":65}  -  Server - GameServer:80
+  23:55:52.081  [Select] move u65 N -> (37,13)  -  Client - Select:128
+  23:55:52.115  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u65"},"ok":false,"reason":"noMovesLeft","t":"cmd","turn":65}  -  Server - GameServer:80
+  23:55:52.147  [Client] rejected (commandId 301): noMovesLeft  -  Client - ClientState:198
+  23:55:52.381  [Options] auto end turn 65  -  Client - Options:116
+  23:55:52.496  [R4LOG] {"activePlayer":"p1","hash":"0x7575994c","t":"round","turn":66}  -  Server - GameServer:80
+  23:55:52.506  [R4CODE] turn=66 code=6E7J-VCST-QB6AC  -  Server - GameServer:182
+  23:55:52.531  [Possess] no units with moves left  -  Client - Possess:117
+  23:55:53.565  [Select] move u65 W -> (36,14)  -  Client - Select:128
+  23:55:53.603  [R4LOG] {"cmd":{"dir":"W","playerId":"p1","type":"moveUnit","unitId":"u65"},"hash":"0x6083b90e","ok":true,"t":"cmd","turn":66}  -  Server - GameServer:80
+  23:55:54.015   ▶ [Possess] no units with moves left (x3)  -  Client - Possess:117
+  23:55:54.648  [Options] auto end turn 66  -  Client - Options:116
+  23:55:54.776  [R4LOG] {"activePlayer":"p1","hash":"0xe8ddfa88","t":"round","turn":67}  -  Server - GameServer:80
+  23:55:54.785  [R4CODE] turn=67 code=3DQG-HT3M-DVYM8  -  Server - GameServer:182
+  23:55:55.582  [Possess] riding u83 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:55:57.149  [Possess] riding u65 (phalanx) at (36,14), moves 1  -  Client - Possess:78
+  23:55:58.581  [ActionBar] fortify u65  -  Client - ActionBar:166
+  23:55:58.619  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u65"},"hash":"0xccbd2f58","ok":true,"t":"cmd","turn":67}  -  Server - GameServer:80
+  23:55:58.664  [Options] auto next: riding u83  -  Client - Options:97
+  23:55:58.664  [Possess] riding u83 (phalanx) at (34,16), moves 1  -  Client - Possess:78
+  23:56:06.814  [Select] move u83 N -> (34,15)  -  Client - Select:128
+  23:56:06.853  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u83"},"hash":"0xcae3dc52","ok":true,"t":"cmd","turn":67}  -  Server - GameServer:80
+  23:56:07.365   ▶ [Possess] no units with moves left (x2)  -  Client - Possess:117
+  23:56:07.897  [Options] auto end turn 67  -  Client - Options:116
+  23:56:08.024  [R4LOG] {"activePlayer":"p1","hash":"0x88a2b4b4","t":"round","turn":68}  -  Server - GameServer:80
+  23:56:08.035  [R4CODE] turn=68 code=DNQE-0BT4-A5D5M  -  Server - GameServer:182
+  23:56:24.530  [Select] move u83 N -> (34,14)  -  Client - Select:128
+  23:56:24.569  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u83"},"hash":"0x040d6348","ok":true,"t":"cmd","turn":68}  -  Server - GameServer:80
+  23:56:25.629  [Options] auto end turn 68  -  Client - Options:116
+  23:56:25.740  [R4LOG] {"activePlayer":"p1","hash":"0x7c88f84c","t":"round","turn":69}  -  Server - GameServer:80
+  23:56:25.750  [R4CODE] turn=69 code=B6BM-YT9Y-8HY2C  -  Server - GameServer:182
+  23:56:26.015  [Possess] riding u91 (phalanx) at (32,12), moves 1  -  Client - Possess:78
+  23:56:28.296  [ActionBar] fortify u91  -  Client - ActionBar:166
+  23:56:28.334  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u91"},"hash":"0xd7388f32","ok":true,"t":"cmd","turn":69}  -  Server - GameServer:80
+  23:56:28.362  [Options] auto next: riding u83  -  Client - Options:97
+  23:56:28.363  [Possess] riding u83 (phalanx) at (34,14), moves 1  -  Client - Possess:78
