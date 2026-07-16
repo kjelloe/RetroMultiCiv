@@ -3393,6 +3393,15 @@ User numbering kept:
   path) is either absent from the grid or renders invisible (the
   flagged apex caveat may hide, not flip). Find + fix + one grid
   screenshot back to the user.
+- (10, late addition 2026-07-17) BUG — OPENING LOCKOUT: until the
+  first military unit is produced, the player AVATAR is blocked
+  from entering the map area entirely — so the initial SETTLER
+  cannot be mounted/ridden in the opening turns. Suspect: the R7b
+  VoidCover guard walls (or a possession gate) fence the avatar
+  OUT of the board instead of just fencing the void. Repro: fresh
+  game, turn 1, walk toward the map. Fix must allow avatar entry
+  from turn 1 (riding the opening settler is the Roblox-native
+  opening move — user doctrine B23b even builds on it).
 - (1) raises R7c-3 urgency: worked-tile adjustment is ABSENT from
   the city view entirely — the roblox-helper drafts the 3D
   worked-tile proposal (his shape, screenshots) for the user's
