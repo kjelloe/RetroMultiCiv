@@ -3070,11 +3070,31 @@ the sim-runner's challenge/legibility/fairness ranking:
   wonders/upgrades) is the missing branch.
 - N8 (rank 10) LOPSIDED IMPROVEMENT: irrigation reflexive,
   mines 0-6, rails ~0.
-(Ranks 4-5 = the queued B24/B23; 11-13 = known minors.) Proposed
-slicing after B23: N1 government progression FIRST (unlocks N2),
-then N3 naval/air doctrine (the docs/15 templates), then N6+N4
-economic sense, then N7 catch-up dynamics — each lab-measured,
-one window at a time.
+(Ranks 4-5 = the queued B24/B23; 11-13 = known minors.)
+**FIX STRATEGIES ADOPTED (user + ally table, 2026-07-16 night —
+VERBATIM in specs/ai-weakness-fixes.md; supersedes the architect's
+first slicing):** per-weakness designs — naval probe (ocean ratio
+within 6 of cities > threshold → navyPriority; airUnlocked on
+tech), periodic government re-eval every 20 turns + 40-turn
+revolutionCooldown (Republic > Monarchy at cities>6 & peace),
+tech-era urgency multiplier + minimum-science floor (~40% — gold
+deficit before science deficit), wonder opportunity window
+(capital-completes-in-15-turns → queue above buildings +
+wonderAttempted flag; economy/science wonders first — names
+wiki-verified at build), garrison cap (1+ceil(threat/4), abs 3
+interior/5 border; excess disband/redeploy), tiered peacetime gold
+policy (2000 rush-buy-if-saves-10-turns / 4000 science-slider /
+8000 force-wonder), tile yield scorer by city bottleneck + 1-mine-
+per-3-irrigation quota + rails high-weight post-tech, and the
+catch-up rubber-band (below 50% of leader → 1.3× settlers+science,
+reduced war initiation; **AI-vs-AI ONLY, never applied against
+the human** — user/ally ruling). **BUILD ORDER (the cross-fix
+dependency chain, adopted): #1 naval probe → #2 gov re-eval (#3
+rides it) → #8 garrison cap (fastest production-freer) → #9 gold
+policy → #7 wonders → #10 yield scorer → #6 catch-up LAST.** All
+constants rules.json knobs; each slice lab-measured before the
+next; B23 exploration still lands FIRST (it feeds naval probe +
+contact).
 
 ## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)
 
