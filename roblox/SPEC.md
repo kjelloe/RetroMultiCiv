@@ -314,7 +314,10 @@ hash-exact through the Node engine.
 
 Harness self-test: a synthetic Node-generated output round-trips the
 assembler (done 2026-07-15); the expected Studio initial hash for the
-fixed setup is `0x0ca5d97c`.
+fixed setup is `0x0ca5d97c`. The game-code comparison point is the
+state after the LAST ROUND entry — `[R4CODE]` prints per round, so
+commands played after the final print (run2: one trailing move before
+Stop) are hash-verified but must not skew the code check.
 
 ## 6. Status
 
@@ -352,5 +355,14 @@ fixed setup is `0x0ca5d97c`.
   overnight) — §3g: turn-log server half (AI-round event collection)
   + turn log, action bar, research picker + rate steppers, move
   hints; check.sh 26 gates. pathfind/GoTo deferred (flagged to the
-  architect). Acceptance PENDING: a played Studio run exercising the
-  new surfaces, replayed to the R4 bar.
+  architect).
+- R5+R6 played acceptance: **REPLAY BAR GREEN 2026-07-16** —
+  `acceptance/run2.txt`: 88 turns / 579 commands / 87 rounds played
+  in Studio, ALL HASHES MATCH, game code `D5TC-ZFSV-WS8GG` agrees at
+  turn 88; anchors ALL PASS, data gate 8/8, zero errors in ~90 min.
+  Exercised: setProduction x28, buy x4, foundCity x4, fortify x49,
+  wait, disband, startWork x6, setResearch x22, moveUnit x520,
+  possession (ride + steps). The run surfaced the assembler's
+  game-code comparison-point gap (fixed, §5). STILL OPEN to close
+  R5/R6: setRates (steppers never clicked), per-surface screenshots
+  read, and the fog verdict.

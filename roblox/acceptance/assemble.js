@@ -94,11 +94,16 @@ async function main() {
   console.log(`replayed ${report.commands} commands, ${report.rounds} rounds -> turn ${report.turn}, final ${report.finalHash}`);
   for (const p of report.problems) console.log('PROBLEM: ' + p);
 
-  // final game code: re-drive the log locally to hold the final state
-  // (replayDiagnostics returns only the hash), then compare codes
+  // final game code: re-drive the log locally to hold the states
+  // (replayDiagnostics returns only hashes). [R4CODE] prints at each ROUND,
+  // so the comparison point is the state after the LAST ROUND entry —
+  // commands the player made after that print (run2 finding: one trailing
+  // move before stopping) are hash-verified above but must not skew the
+  // code check.
   let verdictOk = report.problems.length === 0;
   if (lastCode) {
     let state = deepClone(initialState);
+    let codeAtLastRound = null;
     for (const entry of log) {
       if (entry.t === 'cmd' && entry.ok) {
         state = engine.applyCommand(state, entry.cmd).state;
@@ -111,13 +116,14 @@ async function main() {
           if (!res.ok) break;
           state = res.state;
         }
+        codeAtLastRound = { turn: state.turn, code: gameCode(state) };
       }
     }
     if (hashState(state) !== report.finalHash) {
       console.log('PROBLEM: local re-drive diverged from replayDiagnostics (harness bug)');
       verdictOk = false;
     }
-    const code = gameCode(state);
+    const code = codeAtLastRound !== null ? codeAtLastRound.code : gameCode(state);
     if (code === lastCode.code) {
       console.log(`game code: ${code} == Studio [R4CODE] (turn ${lastCode.turn})`);
     } else {
