@@ -3047,6 +3047,35 @@ inverts (bo3 should now beat or match one-roll for the attacker).
 AFTER this: B23 exploration (its M9/contact fixes then measure on
 a coherent war baseline).
 
+## AI-QUALITY WAVE 2 — the N-ledger (sim-runner #601, 2026-07-16 night; slice into items AFTER B23 lands, user prioritizes)
+
+Eight NEW measured weaknesses (canonical raw, 25 seeds t401) +
+the sim-runner's challenge/legibility/fairness ranking:
+- **N3 (rank 1) NAVAL+AIR ABSENT**: zero ships/aircraft EVER —
+  root cause of crossWater=0; the AI is trapped on its start
+  continent; two whole unit domains dead. (The docs/15 naval/air
+  doctrine's build trigger.)
+- **N1 (rank 2) GOVERNMENT MONOCULTURE**: 138/138 civs Monarchy
+  at t401 — one revolution then never again; the economy is
+  capped at the Monarchy ceiling. Foundational.
+- **N2 (rank 3) TECH CEILING ~medieval**: median 27 techs; the
+  late tree unreached — largely downstream of N1.
+- N7 (rank 6) LEADER RUNAWAY: M14 spread to ~21× — the oldest
+  finding, still no response.
+- N5 (rank 7) WONDER FAILURE: median civ completes ZERO wonders.
+- N4 (rank 8) DEFENDER BLOAT: 7.9 units/city median, tails to
+  240+ phalanx — production sink.
+- N6 (rank 9) GOLD HOARDER TAIL: rush-buy fires only under
+  threat; safe civs sit on 5-10k. Peaceful spending (buildings/
+  wonders/upgrades) is the missing branch.
+- N8 (rank 10) LOPSIDED IMPROVEMENT: irrigation reflexive,
+  mines 0-6, rails ~0.
+(Ranks 4-5 = the queued B24/B23; 11-13 = known minors.) Proposed
+slicing after B23: N1 government progression FIRST (unlocks N2),
+then N3 naval/air doctrine (the docs/15 templates), then N6+N4
+economic sense, then N7 catch-up dynamics — each lab-measured,
+one window at a time.
+
 ## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)
 
 M9 stuck ~7% of the world through t400; NEITHER exploreMarchRadius
