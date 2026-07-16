@@ -123,6 +123,16 @@ DataStore-vs-envelope question):**
   a new server resumes by entering the code (if the save still
   exists — retention window host/config-defined).
 
+**runC PROGRESS (2026-07-17, live): VOID PICK = FRAME** (user:
+galaxy "underwhelming" — a much richer star field/nebulae needed
+before it competes; art-round-2 material). CONE PICK pending on
+the gallery-grid keybind fix: F9 collided with Roblox's Developer
+Console (headless-uncatchable class) → rebound to K; a platform-
+reserved-keys list + collision check joins check.sh; the full
+client KEYMAP INVENTORY (action bar B/G/Space/X/I/M/R + T/L/P/N/
+F/V/C/J + K gallery) is now the binding authority — consult it
+before assigning any key.
+
 **CLICK-ONLY MOVEMENT PAD (R7c-13/14, DECIDED):** left side shows
 an ARROW-PAD icon toggling pad behavior — but PREFER AUTO-DETECT
 of non-keyboard clients (touch/gamepad → pads on by default). Ride

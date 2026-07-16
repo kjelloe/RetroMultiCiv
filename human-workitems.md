@@ -78,9 +78,9 @@ AFTERNOON LIST below.
 ## THE AFTERNOON LIST (2026-07-16 — after the R7 velocity day)
 
 1. **Merge marker — always the LATEST the architect declares
-   consistent**. Declared at this writing: **marker-0021**
-   (through B24 coordination + Wave-2 adoption; everything since
-   folds into 0022 at the B23 close).
+   consistent**. Declared at this writing: **marker-0022**
+   (through the B23 exploration re-record — the winner-flipping
+   one — + A59 final config + the diplomacy relationship model).
 2. **Studio runC** — one session, THREE deliverables:
    (a) the R7 arc: R7a small UI (auto-next/auto-end defaults,
    nearest next-unit, grey/dead gating, research at top center),
@@ -94,9 +94,11 @@ AFTERNOON LIST below.
    as native Parts, BOTH cone variants (fan | stack) side by side,
    for the cone-fidelity pick. If pyramids render inside-out, say
    so — known one-line apex fix.
-3. **Two art picks from the runC screenshots** (soundboard
-   pattern): void cover (parchment frame vs galaxy) and cone mode
-   (wedge-fan vs disc-stack).
+3. **Art picks**: ✅ void = FRAME (galaxy → art round 2: needs a
+   far richer backdrop). REMAINING: cone mode (wedge-fan vs
+   disc-stack) — gallery grid is on **K** after the F9-console
+   collision fix; say "fan" or "stack" + whether pyramids render
+   inside-out.
 4. **Standing, low-effort**: keep a Shift+D recording from real
    browser games you play, one per difficulty when it happens —
    they seed the HUMAN BENCHMARK row the AI tuning now targets

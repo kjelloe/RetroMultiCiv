@@ -452,6 +452,19 @@ Interim releases keep shipping via the marker cadence (v0.6…).
 > lands. New columns adopted: garrison%, resourceCov% (healthy
 > 85-94%), disorderTurns (tail-capped — B22), river-adjacency.
 >
+> STATUS (2026-07-17, small hours): B23 EXPLORATION LANDED — the
+> five-iteration saga closed with a BFS router through known land
+> + the user's coastline fast-path + garrison-exempt newest
+> scouts: 39.2% explored vs 3% (13×), civs THRIVE, and the
+> deepest re-record yet: turn-100 AND the natural game moved, the
+> natural WINNER FLIPPED — fog-honest civs now meet and contest.
+> Three explore modes ship behind rules.aiExploreMode for the lab
+> (bfs/wallfollow/greedy). A59 leaders FULLY SPECIFIED same night
+> (axes model, final table w/ percentages, all 5 dialogue sets);
+> docs/14 gained the four-value relationship model. The sim-
+> runner's B23-close batch (3-mode A/B + §2e inversion re-test +
+> B24 empire-wide + M-floors) is the next measurement.
+>
 > STATUS (2026-07-16 late night): B24 COORDINATION LANDED (fog-
 > honest close: turn-100 + natural held, only chaos soak moved) —
 > the war-lab doctrine is in the shipped engine awaiting eyes.
