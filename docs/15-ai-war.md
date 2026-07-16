@@ -67,6 +67,35 @@ and A63's obsolescence so armies modernize.
    pillage counts, retreat events — all M-column extensions so the
    doctrine is measurable per stance.
 
+## 2b. FIRST SWEEP RESULTS (sim-runner lab, 2026-07-16 night — default topology, no-chaos, both combat rules)
+
+- **E (engagement) is the entire lever; R (composition) as
+  formulated is INERT above 2** — attrition keeps attacker counts
+  below saturation, so "attackers per own defender" never binds.
+  Reformulate R as ratio-to-KNOWN-ENEMY strength or an absolute
+  army budget (proposal #3).
+- **The user's 3:1 grades WELL: it is the kill-efficiency peak**
+  (k/l: E2 0.61, E3 0.71, E4 0.50, E6 0.50).
+- **But efficiency ≠ conquest**: the disciplined doctrine
+  underperforms the shipped any-odds swarm on raw captures (5 vs 68
+  per 10 games) while costing ~40% of population growth — it trades
+  mass for a 2.3× better kill ratio and a tighter competitive
+  spread (M14 6.8→3.0). Fewer, cleaner, mostly-losing skirmishes.
+- **SIEGE IS THE MISSING GATE TO CONQUEST**: walled/fortified
+  cities defeat even 3:1 stacks because the stack-sum gate
+  mismatches Civ 1's one-shot PER-UNIT combat — each attacker rolls
+  alone. Per-unit odds gating + pillage/wall-reduction are the real
+  levers (the user's siege doctrine, vindicated by measurement).
+- **Exploration blindness is fatal to fog-honest war**: with honest
+  targeting, same-continent civs never find each other (the lab had
+  to relax fog to measure anything). The explore weight is a
+  war-prerequisite knob, not polish.
+- **Eliminations are barbarian-driven**, not doctrine-driven —
+  deadCivs is not a war metric on this topology.
+- Lab identity proof: the control cell reproduces pristine baseline
+  hashes byte-for-byte. Instruments (fog-relaxed targeting, greedy
+  stepper) are lab-only; the shippable AI stays fog-honest.
+
 ## 3. Sequencing
 
 A63 obsolescence (armies must modernize first) → attacker
