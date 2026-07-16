@@ -1,0 +1,16 @@
+# RetroMultiCiv — one container, one port. See docs/how-to-host.md.
+#   docker compose up -d      # build + run, http://localhost:8123/client/?server=1
+# Behind a reverse proxy, bind loopback instead: "127.0.0.1:8123:8123".
+services:
+  multiciv:
+    build: .
+    image: retromulticiv
+    ports:
+      - "8123:8123"
+    volumes:
+      - multiciv-saves:/app/saves     # persist saved games across restarts
+    restart: unless-stopped
+    # extra server flags (defaults are --port 8123 --host 0.0.0.0):
+    # command: ["--civs", "6", "--size", "large"]
+volumes:
+  multiciv-saves:

@@ -1,0 +1,46 @@
+# RetroMultiCiv container image.
+#
+# PUBLISHING IS OFF BY DEFAULT — it needs the repo owner's opt-in. The `build`
+# job always runs and just VALIDATES that the image builds. The `publish` job
+# pushes to GHCR (ghcr.io/<owner>/retromulticiv) only when the repo variable
+# PUBLISH_GHCR is set to "true" (Settings → Secrets and variables → Actions →
+# Variables). Until then nothing is published — a public artifact channel stays
+# a deliberate owner decision (A94).
+name: docker-image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (validation only, no push)
+        run: docker build -t retromulticiv:ci .
+
+  publish:
+    needs: build
+    if: vars.PUBLISH_GHCR == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/retromulticiv:latest
+            ghcr.io/${{ github.repository_owner }}/retromulticiv:${{ github.sha }}

@@ -13,6 +13,24 @@ multiple implementations.
 - One pure, deterministic game engine shared by every phase
 - Default world: 80×50, east–west wrapping (Civ 1 size)
 
+## Host your own server
+
+No build step, one dependency (`ws`), no database. Get Node LTS, clone, and:
+
+```bash
+npm ci && ./run.sh          # → http://localhost:8123/client/?server=1
+```
+
+Or with Docker:
+
+```bash
+docker run --rm -p 8123:8123 $(docker build -q .)
+```
+
+Full guide — systemd, a public Hetzner VM with nginx + Let's Encrypt TLS (incl.
+the `/ws` WebSocket upgrade block), and a Raspberry Pi section — is in
+**[docs/how-to-host.md](docs/how-to-host.md)**.
+
 ## Documentation
 
 | Doc | Contents |
@@ -26,6 +44,7 @@ multiple implementations.
 | [docs/07-game-code.md](docs/07-game-code.md) | The save-tamper verification code (the 5-letter-group game code) |
 | [docs/08-phase4-lan.md](docs/08-phase4-lan.md) | LAN multiplayer: lobby, join codes, skip-vote, kick, seat codes, AI regency |
 | [docs/09-phase5-luau.md](docs/09-phase5-luau.md) | The Luau port: trap ledger, port order and gates, cross-language verification contract |
+| [docs/how-to-host.md](docs/how-to-host.md) | Host your own server: quick start, systemd, Docker, a public Hetzner VM with nginx + TLS, Raspberry Pi |
 | [docs/12-global-host.md](docs/12-global-host.md) | Public hosting design: hosted games + a QuakeWorld-style master index (future) |
 | [docs/13-roblox-ui-parity.md](docs/13-roblox-ui-parity.md) | The Roblox client roadmap: every browser UI element's Roblox representation, in tiers |
 | [docs/14-phase6-diplomacy.md](docs/14-phase6-diplomacy.md) | Phase 6 design: Civ 1-scale treaties, leader audiences, reputation + senate, human treaties in LAN |

@@ -1,0 +1,13 @@
+# keep the image to source + lockfile; everything below is host-only or regenerable
+node_modules
+.git
+.github
+saves
+ops
+debugging/logs
+debugging/sim
+debugging/goldens/actual-*.png
+data/wiki-extract
+*.log
+.agent-mail
+resume.txt

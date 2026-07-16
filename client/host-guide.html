@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host your own RetroMultiCiv server</title>
+<style>
+  :root {
+    --bg: #10131a; --panel: #1a1f2b; --ink: #dfe6f2; --dim: #9aa6bd;
+    --accent: #e8c15a; --line: #2b3346; --code-bg: #0c0f16; --link: #7db4ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.6 -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { color: var(--accent); font-size: 26px; margin: 0 0 4px; }
+  h2 {
+    font-size: 19px; margin: 40px 0 10px; padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 15px; margin: 22px 0 6px; color: var(--accent); }
+  p.lead { color: var(--dim); margin-top: 0; }
+  a { color: var(--link); }
+  code {
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 12px 0;
+  }
+  pre code { background: none; padding: 0; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+  th, td {
+    text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line);
+    font-size: 13.5px; vertical-align: top;
+  }
+  th { color: var(--accent); }
+  .note {
+    background: var(--panel); border-left: 3px solid var(--accent);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; color: var(--dim);
+  }
+  .note strong { color: var(--ink); }
+  .toc { color: var(--dim); font-size: 14px; }
+  footer { margin-top: 48px; color: var(--dim); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Host your own RetroMultiCiv server</h1>
+  <p class="lead">One Node process serves the browser client <em>and</em> runs
+  the authoritative game — no build step, one dependency (<code>ws</code>), no
+  database, no secrets. Get Node, get the repo, run one command.</p>
+
+  <p class="toc"><a href="#quick">Quick start</a> ·
+  <a href="#systemd">Ubuntu + systemd</a> ·
+  <a href="#docker">Docker</a> ·
+  <a href="#public">Public VM with TLS</a> ·
+  <a href="#pi">Raspberry Pi</a> ·
+  <a href="#ref">Flags reference</a></p>
+
+  <div class="note">This is the in-browser summary. The full walkthrough —
+  including the complete nginx/Let's Encrypt VM setup — lives in
+  <code>docs/how-to-host.md</code> in the repository.</div>
+
+  <h2 id="quick">Quick start</h2>
+  <p>Prerequisites: <strong>Node.js LTS</strong> (v18+, v22 recommended) and
+  <code>git</code>.</p>
+  <pre><code>git clone https://github.com/&lt;owner&gt;/multiciv.git
+cd multiciv
+npm ci          # installs ws; no build step
+./run.sh        # http://localhost:8123</code></pre>
+  <p>Open <code>http://localhost:8123/client/?server=1</code> — the client
+  joins the game over <code>/ws</code>. LAN players use
+  <code>http://&lt;your-ip&gt;:8123/client/?server=1</code> and the 5-letter
+  join code from the lobby. On Windows, use <code>.\run.ps1</code>.</p>
+  <div class="note">Without <code>?server=1</code> the client runs a fully
+  local engine (single-player / hotseat) — no server needed.
+  <code>?server=1</code> is what makes it a <strong>hosted</strong> game
+  others can join.</div>
+
+  <h2 id="systemd">Ubuntu + systemd</h2>
+  <p>For a box that keeps running across reboots. Install Node LTS, clone into
+  <code>/opt/multiciv</code>, <code>npm ci</code>, then create
+  <code>/etc/systemd/system/multiciv.service</code>:</p>
+  <pre><code>[Unit]
+Description=RetroMultiCiv server
+After=network.target
+
+[Service]
+Type=simple
+User=multiciv
+WorkingDirectory=/opt/multiciv
+ExecStart=/usr/bin/node server/index.js --port 8123 --host 127.0.0.1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+  <pre><code>sudo systemctl enable --now multiciv
+journalctl -u multiciv -f       # watch it
+# update: cd /opt/multiciv &amp;&amp; git pull &amp;&amp; npm ci &amp;&amp; sudo systemctl restart multiciv</code></pre>
+  <p>Use <code>--host 127.0.0.1</code> behind a reverse proxy; drop it
+  (default <code>0.0.0.0</code>) for direct LAN access. Run as a dedicated
+  non-login user, never root.</p>
+
+  <h2 id="docker">Docker</h2>
+  <p>The repo <em>is</em> the app, so the image just copies source, installs
+  <code>ws</code>, and runs Node. A <code>Dockerfile</code> and
+  <code>compose.yaml</code> ship in the repo root.</p>
+  <pre><code>docker build -t retromulticiv .
+docker run --rm -p 8123:8123 retromulticiv
+# flags reach the server: docker run … retromulticiv --civs 6 --size large
+# persist games: -v multiciv-saves:/app/saves</code></pre>
+  <p>Or <code>docker compose up -d</code>. A GitHub Actions workflow can
+  publish the image to GHCR, but that stays off until the repo owner opts in
+  (it's a public artifact channel).</p>
+
+  <h2 id="public">Public VM with TLS</h2>
+  <p>A single small VM (2 vCPU / 4 GB is ample) serves
+  <code>https://yourdomain</code> with nginx terminating TLS in front of Node
+  on <code>127.0.0.1:8123</code>. Node is never exposed directly; the firewall
+  opens only 80/443 (+ SSH). <strong>The one RetroMultiCiv-specific detail is
+  the nginx WebSocket upgrade block for <code>/ws</code></strong> — without it
+  the game socket never connects:</p>
+  <pre><code>map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+server {
+    listen 80;
+    server_name yourdomain.example;
+
+    location /ws {
+        proxy_pass http://127.0.0.1:8123;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_read_timeout 1h;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:8123;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+  <p>Point an A record at the VM, then
+  <code>sudo certbot --nginx -d yourdomain.example --redirect</code> rewrites
+  the site to HTTPS. The WebSocket becomes WSS automatically — the client uses
+  <code>wss://</code> on an HTTPS page. Full step-by-step (firewall, deploy
+  user, systemd) is in <code>docs/how-to-host.md</code>.</p>
+
+  <h2 id="pi">Raspberry Pi</h2>
+  <p>A Pi hosts a small game fine. Only the deltas from the Ubuntu path:</p>
+  <ul>
+    <li>Node on ARM via NodeSource (<code>setup_22.x</code>) — same command.</li>
+    <li>To bind port 80 without nginx, grant the capability:
+      <code>sudo setcap 'cap_net_bind_service=+ep' "$(command -v node)"</code>
+      (re-run after each Node upgrade).</li>
+    <li>On 1–2 GB models keep the civ count modest — each civ adds AI work per
+      turn. A <code>medium</code> map with ≤ 6 civs is comfortable on a Pi 4.</li>
+  </ul>
+
+  <h2 id="ref">Server flags</h2>
+  <table>
+    <tr><th>Flag</th><th>Default</th><th>Meaning</th></tr>
+    <tr><td><code>--port N</code></td><td>8123</td><td>HTTP + WebSocket port.</td></tr>
+    <tr><td><code>--host IP</code></td><td>0.0.0.0</td><td>Bind address; <code>127.0.0.1</code> behind a proxy.</td></tr>
+    <tr><td><code>--seed N</code></td><td>random</td><td>World seed.</td></tr>
+    <tr><td><code>--civs N</code></td><td>2</td><td>Civilizations (2–14, capped by map size).</td></tr>
+    <tr><td><code>--size S</code></td><td>medium</td><td><code>xsmall</code>…<code>huge</code>.</td></tr>
+    <tr><td><code>--game FILE</code></td><td>—</td><td>Resume a saved server game.</td></tr>
+    <tr><td><code>--no-save</code></td><td>off</td><td>Disable autosave after each command.</td></tr>
+    <tr><td><code>--debug</code></td><td>off</td><td><strong>Dev only</strong> — serves the whole repo.</td></tr>
+  </table>
+  <div class="note"><strong>Keep <code>--debug</code> off in production.</strong>
+  The default is hardened: only <code>/client/</code>, <code>/engine/</code>,
+  <code>/shared/</code>, and <code>/data/</code> are served, so
+  <code>saves/</code> (seat tokens + game codes) never reaches the wire.
+  <code>saves/*.json</code> is the only game state on disk — back that up.</div>
+
+  <footer>RetroMultiCiv — deterministic browser 4X. Full guide:
+  <code>docs/how-to-host.md</code>.</footer>
+</div>
+</body>
+</html>
