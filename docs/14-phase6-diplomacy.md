@@ -8,6 +8,14 @@ criterion predates this doc: the phase-2 verdict scoped "diplomacy
 legibility" here — a player must always understand who they're at
 war with, why, and what a treaty did.
 
+ALLY ROUND-6 REQUIREMENT (2026-07-16, adopted): a PERSISTENT
+diplomatic summary — never state hidden inside audience dialogue
+text alone — carrying per pair: relationship state (peace / war /
+alliance / treaty / ceasefire), start turn+year, the triggering
+event, known reputation consequences, active demands or tribute,
+treaty duration/expiry, and senate restrictions where relevant.
+Audience dialogue is flavor over this mechanical record.
+
 ## 1. Scope (classic Civ 1)
 
 War/peace states per civ pair; AI-initiated audiences (tribute

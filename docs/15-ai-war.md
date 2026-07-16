@@ -65,7 +65,15 @@ and A63's obsolescence so armies modernize.
 7. **Telemetry signatures** (ship with the program): armies formed,
    mean army size, attacks at ≥3:1 vs below, sieges started/won,
    pillage counts, retreat events — all M-column extensions so the
-   doctrine is measurable per stance.
+   doctrine is measurable per stance. ALLY ROUND-6 MATRIX ADDITIONS
+   (2026-07-16, adopted for the naval/air/walls/siege experiments):
+   victory type + winner, game length, average city defense
+   strength, walls built, unit losses BY CLASS, naval engagements,
+   transport losses, aircraft sorties + results, science/production
+   share, stance, combat mode, map size + water percentage. Goal
+   framing (ally, kept verbatim): not "make every strategy equal"
+   but "every major strategic path has conditions where it is
+   coherent, visible to players, and counterable".
 
 ## 2b. FIRST SWEEP RESULTS (sim-runner lab, 2026-07-16 night — default topology, no-chaos, both combat rules)
 

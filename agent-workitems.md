@@ -2884,6 +2884,42 @@ sell path at all. Engine + UI + the A63 hookup:
 Roblox parity: a docs/13 Tier-2 row (city panel action) once the
 browser shape settles.
 
+## A87 — Replay theater round 2 (ally round-6 recommendations, 2026-07-16; helper, queue after A54)
+
+A47's viewer gains: (a) TURN SCRUBBER (jump to round N — sandbox
+re-applies from the start or nearest feed anchor; tempo presets
+already exist); (b) MAP PERSPECTIVE TOGGLE — omniscient (today's
+mode) / per-civ fog (filterView with that civ's eyes) / spectator;
+(c) HUMAN-READABLE VERDICT STRINGS — "✅ Verified" (exists) plus
+"❌ Mismatch at command N" (surface the divergence index the
+verifier already knows) and "Replay format unsupported" (version
+guard) so non-technical players understand verification. Golden-
+safe (client consumer). Roblox theater inherits the same shapes
+later (docs/13 Tier-4).
+
+## ALLY ROUND-6 DISPOSITIONS (2026-07-16 — verbatim in specs/plan-feedback-6.md)
+
+- Phase 5 ACCEPTED + phase-6 priority order adopted → docs/03.
+- Diplomacy persistent-summary fields → docs/14 (D-slices build it).
+- War-lab matrix additions + goal framing → docs/15 §2.7.
+- Possession authority boundary + regent stance visibility →
+  docs/13 standing rules (possession already compliant; regent
+  HUD/log lines land with the browser A40 regency UI and Roblox R6
+  regency twin).
+- GoTo "route is a plan, not a guarantee": A65 already complies
+  (fog-honest, replans per step, greedy fallback) — noted, no work.
+- Sound: the no-sim-influence rule is the house pattern (render-
+  time only); SEPARATE VOLUME CONTROLS (master / music / effects /
+  turn-notification / mute-when-unfocused) join A68's options
+  bundle when it lands.
+- Historian determinism: A75 already rules-data-keyed + stateless-
+  event + both engines; standings are WORLD-PUBLIC by user design
+  ruling (not a fog leak). Replay placement verified by feed ride.
+- Save size (checkpointed replay format + format version +
+  data fingerprint): v2 shelf — revisit if recordings grow.
+- --debug is for trusted local dev, never normal LAN hosting:
+  restated (docs/06 posture, A61 boot log).
+
 ## A50 — Public-host hardening (docs/12 §3 — UN-GATED 2026-07-14; NOTE 2026-07-15: A61 sets the hardened-DEFAULT posture + static whitelist FIRST; A50's items assume it)
 
 Queue normally at the helper tail (after A49). Every piece hardens

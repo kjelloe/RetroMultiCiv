@@ -328,7 +328,7 @@ open acceptance item (see `human-workitems.md`).
 **Acceptance:** you + ally on two machines over LAN complete a game with at
 least one mid-game disconnect/reconnect.
 
-## Phase 5 — Roblox integration (engine port COMPLETE 2026-07-14; wording per ally round-5 required correction)
+## Phase 5 — Roblox integration (ACCEPTED — v0.5; ally round-6 verdict 2026-07-16, specs/plan-feedback-6.md)
 
 > The deterministic Luau rules engine is complete and verified: all
 > replay fixtures, seeded world generation, AI simulations, chaos
@@ -383,6 +383,19 @@ least one mid-game disconnect/reconnect.
 > is closed on every side). R5 (city view, unit possession, fog verification) is
 > the playable-depth pass; multiplayer seats and persistence get
 > scoped in its done-mail.
+
+> **ALLY ROUND-6 VERDICT (2026-07-16): "Phase 5 is accepted. v0.5
+> is a valid release milestone."** The remaining Roblox work is
+> feature enrichment and platform polish (docs/13 tiers, R7+), not
+> foundations. PHASE-6 PRIORITY ORDER (ally proposal, ADOPTED — it
+> matches the working sequence): (1) post-v0.5 regression lock =
+> the cross-runtime replay suite + Roblox reconnect flows + save/
+> replay compatibility (standing, not a project); (2) the AI-
+> quality program (walls, siege, naval, air, stances/leaders — the
+> ACTIVE track below); (3) the diplomacy vertical slice (docs/14
+> D1-D6); (4) late-game systems (wonder effects, pollution,
+> spaceship race, balance); (5) optional presentation enrichment
+> (models, polish, more audio).
 
 > Mapping design: [`09-phase5-luau.md`](09-phase5-luau.md) — the trap list
 > (stored 0-based index VALUES, `%` semantics, truthiness), leaf-first port

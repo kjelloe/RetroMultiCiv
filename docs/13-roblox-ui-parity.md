@@ -145,6 +145,24 @@ chat focus AND maps to map-absolute N/W/S/E (camera-relative would
 make identical inputs produce different commands — recordings read
 better absolute).
 
+POSSESSION AUTHORITY BOUNDARY (ally round-6, adopted as the
+standing rule): avatar movement is an INPUT METHOD and presentation
+layer for issuing legal strategic unit commands — never a second
+real-time simulation. Constraints: avatar moves only along tiles
+the unit can legally enter; consumes the same movement points as
+click-to-move; everything resolves as authoritative unit commands;
+fog/ZOC/combat rules unchanged; the avatar cannot scout beyond the
+unit's legal visibility; rivals see a representation that leaks no
+hidden information; replays record STRATEGIC COMMANDS, never raw
+physics/path input. (Today's Possess implementation already
+satisfies these — the rule pins them against future drift.)
+
+REGENT VISIBILITY (ally round-6, adopted): when an AI regent is
+active its stance is ALWAYS visible — HUD line + turn-log events on
+takeover, stance change, and resumed control (e.g. "Roman regent:
+Defensive" / "You resumed direct control"). Applies to browser AND
+Roblox regency when they land.
+
 ## Process
 
 Tiers become R-items in order (Tier 1 ≈ R6–R8, sized by the
