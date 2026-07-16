@@ -2864,6 +2864,29 @@ ship, wiki-verify that edge). Both engines, scenario pin, golden
 window (likely no golden movement since the AI builds no navy, but
 window discipline anyway).
 
+[done: bugfixer 2026-07-16 — VERIFY-FIRST VERDICT: NO CODE CHANGE
+needed, the engine is already correct (claim @862778e7). movement.js
+runs the hostiles->resolveAttack check BEFORE the domain check, so a
+sea unit moving at an enemy on adjacent coastal land ATTACKS IN PLACE:
+combat resolves normally and the attacker STAYS AT SEA (Civ 1 attacker
+never advances). Probed cross-rng: ironclad/battleship vs coastal
+militia both win and lose correctly with the ship never leaving water.
+NO CAPTURE FROM SEA is already impossible two ways: (1) attacking a
+coastal city's defender only fights the defender — resolveAttack
+returns before moveUnit's capture line, so the city is never taken
+(owner unchanged on a win); (2) an UNDEFENDED coastal city is a land
+tile a sea unit cannot enter (impassable), so it cannot be walked onto/
+captured. Wiki dump is SILENT on the ship-capture edge (no explicit
+Civ1 statement in the extracted pages) — the item + user green-light is
+the authority, and it matches canonical Civ 1 (ships bombard coastal
+units; only land units take cities). PINNED cross-language: scenario
+017-ship-vs-land (0x0f8a49f6) — battleship kills a coastal city's
+fortified defender (ship stays at sea, city not captured), then cannot
+move onto the emptied city (impassable). JS + luau both green (no
+engine edit — the luau twins already matched), in PORTED, setup-count
+15. Golden-neutral (no engine change; sim untouched). Full suite
+316/316.]
+
 ## A83 — Caravan wonder-help (A71's cheap delight; user green-lit 2026-07-16)
 
 Civ 1: a caravan entering a DOMESTIC city building a wonder adds

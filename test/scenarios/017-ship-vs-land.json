@@ -1,0 +1,173 @@
+{
+  "name": "ships attack coastal land in-place; no capture from sea (B20)",
+  "notes": "4x3, ocean cols 0-1, land cols 2-3. A battleship (sea, attack 18) sits at (1,1) next to a coastal city (2,1) defended by a fortified militia. Civ 1: ships bombard adjacent coastal land units but only LAND units take cities. Cmd 1: the battleship attacks the militia — combat resolves (a win at rngState 1), the defender dies, the ATTACKER STAYS AT SEA (never advances onto land), and the city is NOT captured (still p2). Cmd 2: with the city now undefended, the ship tries to move onto it — rejected impassable (a sea unit cannot enter land, so no capture-from-sea). The hostiles check runs before the domain check, which is what makes attack-in-place work without a code change; this scenario pins that behavior in both engines.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 4,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "s1": {
+          "id": "s1",
+          "type": "battleship",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 4,
+          "fortified": false,
+          "veteran": false
+        },
+        "d1": {
+          "id": "d1",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 1,
+          "moves": 0,
+          "fortified": true,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c9": {
+          "id": "c9",
+          "name": "Port",
+          "owner": "p2",
+          "x": 2,
+          "y": 1,
+          "pop": 3,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c9"
+      ],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Sumer",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "s1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.s1.x": 1,
+          "units.s1.y": 1,
+          "cities.c9.owner": "p2"
+        }
+      },
+      "notes": "ship bombards the coastal defender: combat resolves, ship stays at sea, city NOT captured"
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "s1",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "units.s1.x": 1,
+          "cities.c9.owner": "p2"
+        }
+      },
+      "notes": "undefended coastal city: a sea unit cannot enter land — no capture from sea"
+    }
+  ],
+  "final": {
+    "state": {
+      "units.s1.x": 1,
+      "cities.c9.owner": "p2"
+    },
+    "hash": "0x0f8a49f6"
+  }
+}
