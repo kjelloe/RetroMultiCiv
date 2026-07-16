@@ -1,0 +1,207 @@
+{
+  "name": "river fidelity: Bridge Building gates river roads; rivers cannot be mined (B19)",
+  "notes": "5x3. Row y=1 has grassland+river at (0,1) and (2,1), hills at (3,1). p1 knows NO bridge-building. Civ 1 (wiki): roads can be built across rivers only AFTER Bridge Building (River/Bridge Building pages); mining works only on Desert/Hills/Mountain (Mine page) — rivers are not minable. u1 road-on-river is blocked (no bridge); u2 road-on-plain-grassland works (roads need no tech off-river); u3 mine-on-river is blocked (rivers not minable, was wrongly allowed via the grassland mine->forest transform); u4 mine-on-hills works (hills are minable). River roads giving no trade was already correct (cities.js).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 5,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "river": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "river": true
+          },
+          {
+            "t": "hills"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 0,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u3": {
+          "id": "u3",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 2,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u4": {
+          "id": "u4",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 3,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Zulus",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 7
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u1",
+        "work": "road"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "road on a river tile needs Bridge Building (p1 lacks it)"
+    },
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u2",
+        "work": "road"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u2.working": "road"
+        }
+      },
+      "notes": "road on non-river grassland works tech-free"
+    },
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u3",
+        "work": "mine"
+      },
+      "expect": {
+        "ok": false
+      },
+      "notes": "rivers cannot be mined (Civ 1: only desert/hills/mountain)"
+    },
+    {
+      "cmd": {
+        "type": "startWork",
+        "playerId": "p1",
+        "unitId": "u4",
+        "work": "mine"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "units.u4.working": "mine"
+        }
+      },
+      "notes": "hills are minable"
+    }
+  ],
+  "final": {
+    "state": {
+      "units.u2.working": "road",
+      "units.u4.working": "mine"
+    },
+    "hash": "0x17147783"
+  }
+}
