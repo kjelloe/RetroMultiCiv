@@ -182,7 +182,13 @@ default would be treating the symptom.
    reachable): attackerPerCity down, massSize up, combat rule,
    and structurally the phase-6 senate/diminishing-aggression.
    M11 pinning happens against an attackerPerCity × combatRounds
-   × massSize mini-sweep (commissioned).
+   × massSize mini-sweep (commissioned). **SWEEP VERDICT
+   (2026-07-17, #646): NO cell reaches the band — elim stuck ~57%
+   (best apc2/cr3 = 43%). STRUCTURAL: the conquest is done by
+   UN-GATED DEFENDER MARCHES, not the doctrine's attackers;
+   massSize is DORMANT (attackers too scarce to mass — the no-op
+   check's own class). The lever is B26 defender march discipline;
+   the band re-sweeps after it lands.**
 
 ## 3. Sequencing — ADOPTED (user, 2026-07-16 morning, data in hand)
 

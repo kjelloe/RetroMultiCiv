@@ -3126,6 +3126,23 @@ constants rules.json knobs; each slice lab-measured before the
 next; B23 exploration still lands FIRST (it feeds naval probe +
 contact).
 
+## B26 — Defender march discipline (the over-conquest root cause; M11-band prerequisite; bugfixer)
+
+The elim-band mini-sweep (#646) proved the 57% over-conquest is
+driven by UN-GATED DEFENDER MARCHES (militia/phalanx sorties do
+the conquering; the B24 doctrine governs only attack>defense
+units, which are too scarce to even mass — massSize is DORMANT by
+the no-op check). Fix: bring defender sorties under discipline —
+(a) the per-unit odds gate extends to ANY unit initiating an
+attack-move (defenders included), keyed by the same per-combat-
+rule doctrine table; (b) march restraint: defenders march only
+within stance-scaled radius (exists) AND only toward odds-viable
+targets; garrison/fortify otherwise. Both engines, golden window
+(this WILL move goldens — war becomes disciplined), sweep test.
+RE-SWEEP the elim grid after; the M11 pinning session waits for
+that table. massSize's dormancy resolves itself once attackers
+are the conquering force (re-check then).
+
 ## B23 — Exploration is algorithm-bound (post-B21 gap 2; design-first)  [claimed: bugfixer 2026-07-16 night] [done: 2026-07-17 — FIVE-ITERATION saga (pinned scouts → ranging → CONCAVE-COAST ENTRAPMENT root cause → BFS router → self-caught oldest-scout wrong turn). Shipped rules.aiExploreMode bfs(default: coastal fast-path per user doctrine → BFS through explored land)/wallfollow(user literal hand-rule, moveUnit cmd.heading→omit-safe scoutDir)/greedy(identity); newest scout; garrison-exempt if city keeps ≥2 guards. MEASURED: bfs 39.2%/9 cities · wallfollow 20%/8 · greedy 3%/3 — M9 ceiling shattered 13×, civ THRIVES. GOLDEN RE-RECORD incl. turn-100 AND natural (winner FLIPPED p2→p1 — exploration decides games); JS==Luau every value; suite 379/379.]
 
 M9 stuck ~7% of the world through t400; NEITHER exploreMarchRadius
