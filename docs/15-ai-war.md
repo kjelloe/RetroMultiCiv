@@ -118,6 +118,28 @@ and A63's obsolescence so armies modernize.
   rare captures. The next lever is CITY-ASSAULT COORDINATION
   (stack and focus one city) — round 3 tests it.
 
+## 2d. ROUND 3 RESULTS — the campaign's answer (same night)
+
+**COORDINATION CONVERTS WINS INTO CAPTURES, and the combat rule
+picks the whole doctrine** (the user's per-rule prediction, proven
+three ways in one night):
+- **ONE-ROLL → MASS, NOT ODDS**: coordinated pile-in with NO odds
+  filter = 34 captures/10 games (6.8× baseline), 7 eliminations —
+  decisive conquest by volume (724 attacks at 42% each, 944 losses:
+  a meat grinder — yet population ends HIGHER because captured
+  cities replace the dead).
+- **BEST-OF-THREE → ODDS-GATED SURGICAL MASS**: per-unit E=2 +
+  coordination = 14 captures at 23 losses (58–60% win rate) —
+  limited war, quality over quantity, 3 eliminations.
+- **The mass threshold is SMALL**: S=3–5; over-massing (S=8) is
+  strictly worse in both rules — assemble enough to cascade, never
+  idle staging.
+- Ranked next for the program (with the user, data in hand):
+  topology (A82, the master variable), target selection under
+  coordination (focus the M14 runaway?), retreat-on-failed-assault,
+  defensive wall-building AI (so siege becomes live), multi-front
+  waves (one-roll can afford 2 fronts; bo3 cannot).
+
 ## 3. Sequencing
 
 A63 obsolescence (armies must modernize first) → attacker
