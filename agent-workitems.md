@@ -38,7 +38,21 @@ H9. A58 pedia (as far as the night allows).
 **ROBLOX-HELPER:** R12 close → R9 lobby place → R10 save/resume →
 R11 ride pad → R7c-3 worked-tile FULL BUILD (user un-gated
 2026-07-17: "proceed regardless" — pyramid + worked-tile review
-deferred to his later look; note-for-review marks in SPEC). Manifests via sim-runner as usual.
+deferred to his later look; note-for-review marks in SPEC) →
+**NIGHT OVERFLOW (R13-R18, docs/13 parity backlog):**
+R13. SELL-BUTTON parity (A97's browser shape → the city panel
+     buildings list; the docs/13 Tier-2 sell row).
+R14. pathfind.luau (the A65 port, subset-ready per R6's note) +
+     GoTo: target-pick mode + route-as-plan (reroute/cancel per
+     the ally rule) — closes the last deferred Tier-1 row.
+R15. Production picker PLAIN-LANGUAGE EFFECTS (the Tier-2
+     catalog row's second half — effects text from view data).
+R16. OPTIONS PANEL completion (remaining browser options +
+     Roblox-native input prefs; frame/galaxy toggle moves here).
+R17. DEBUG MENU thin client (R7c-17 design: gated + tainted) —
+     STARTS ONLY after A92-engine (N12) lands + pumps.
+R18. REPLAY THEATER viewer twin (A87 shapes; Tier-4 reach goal —
+     scrubber + verdict + per-civ fog through the Roblox UI). Manifests via sim-runner as usual.
 
 **SIM-RUNNER:** B26 elim re-sweep at its close (the M11 table for
 the user session) → per-slice measurement after EACH Wave-2 slice
@@ -3240,7 +3254,7 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
-## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)
+## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)  [claimed: helper 2026-07-17]
 
 tools/soak.js --stats gains a FLOORS check on the canonical
 config: the six pinned targets (docs/05 §12) asserted at t401,
