@@ -141,9 +141,29 @@ local function refresh()
 	for _, b in ipairs(city.buildings or {}) do
 		built[b] = true
 	end
+	-- R7a (1): one-tech-lookahead filter — a tech is "reachable" when every
+	-- prereq is already known (the availableTechs rule, inlined). Entries
+	-- beyond that horizon are HIDDEN, not greyed (accepted divergence from
+	-- the browser's locked-with-reasons: Studio screen space, docs/13)
+	local function techReachable(techId)
+		local def = rs.techs[techId]
+		if def == nil then
+			return false
+		end
+		for _, p in ipairs(def.prereqs or {}) do
+			if not myTechs[p] then
+				return false
+			end
+		end
+		return true
+	end
 	local order = 0
+	local HIDE = "\0hide"
 	local function lockFor(kind, id, def)
 		if def.tech ~= nil and def.tech ~= "" and not myTechs[def.tech] then
+			if not techReachable(def.tech) then
+				return HIDE
+			end
 			local techDef = rs.techs[def.tech]
 			return "needs " .. (techDef and techDef.name or def.tech)
 		end
@@ -157,8 +177,11 @@ local function refresh()
 	end
 	for _, group in ipairs({ { "unit", rs.units }, { "building", rs.buildings }, { "wonder", rs.wonders } }) do
 		for _, id in ipairs(sortedIds(group[2])) do
-			order += 1
-			addRow(order, group[1], id, group[2][id], lockFor(group[1], id, group[2][id]))
+			local lock = lockFor(group[1], id, group[2][id])
+			if lock ~= HIDE then
+				order += 1
+				addRow(order, group[1], id, group[2][id], lock)
+			end
 		end
 	end
 	list.CanvasSize = UDim2.new(0, 0, 0, order * 24)

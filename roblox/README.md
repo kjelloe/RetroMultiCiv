@@ -69,12 +69,17 @@ don't commit it.
    unit (avatar rides it, WASD/arrows step it one tile per press —
    map-absolute, W=N), `N` jumps to the next unit with moves, `F`
    dismounts. R6 surfaces: the bottom action bar (Found `B`, Fortify
-   `G`, Wait `Space`, Disband `X`, Irrigate `I`, Mine `M`, Road `R`,
-   Research `T`), the turn log
+   `G`, Wait `Space`, Disband `X`, Irrigate `I`, Mine `M`, Road `R` —
+   buttons grey AND go dead when the action doesn't apply), Research
+   `T` in the top-center cluster, the turn log
    (`L` toggles, bottom left, counts unseen entries while closed),
    the research picker with tax/lux steppers (`T`; auto-opens when
    research is unset), and green/red move hints around the selected
-   unit (legal steps / attacks). The server prints
+   unit (legal steps / attacks). R7a flow: auto-next-unit and
+   auto-end-turn are ON by default (top-right toggles); `N` and
+   auto-advance pick the NEAREST idle unit and skip fortified/working
+   ones; double-click one of your units while riding to jump the
+   mount to it. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`

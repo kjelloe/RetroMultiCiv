@@ -19,8 +19,8 @@ gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 790, 0, 34)
-bar.Position = UDim2.new(0.5, -395, 1, -42)
+bar.Size = UDim2.new(0, 690, 0, 34)
+bar.Position = UDim2.new(0.5, -345, 1, -42)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -58,7 +58,31 @@ local irrigateBtn = addButton(5, "Irr (I)", 70)
 local mineBtn = addButton(6, "Mine (M)", 70)
 local roadBtn = addButton(7, "Road (R)", 70)
 local possessBtn = addButton(8, "Ride (P)", 80)
-local researchBtn = addButton(9, "Research (T)", 100)
+
+-- R7a (6): research leaves the unit bar for a top-center cluster (slots
+-- reserved for diplomacy + statistics later)
+local cluster = Instance.new("Frame")
+cluster.Size = UDim2.new(0, 220, 0, 30)
+cluster.Position = UDim2.new(0.5, -110, 0, 6)
+cluster.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+cluster.BackgroundTransparency = 0.25
+cluster.BorderSizePixel = 0
+cluster.Parent = gui
+local clusterLayout = Instance.new("UIListLayout")
+clusterLayout.FillDirection = Enum.FillDirection.Horizontal
+clusterLayout.Padding = UDim.new(0, 4)
+clusterLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+clusterLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+clusterLayout.Parent = cluster
+
+local researchBtn = Instance.new("TextButton")
+researchBtn.Size = UDim2.new(0, 110, 0, 24)
+researchBtn.BackgroundColor3 = DISABLED
+researchBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
+researchBtn.Font = Enum.Font.SourceSansBold
+researchBtn.TextSize = 15
+researchBtn.Text = "Research (T)"
+researchBtn.Parent = cluster
 
 local function selectedUnit()
 	local view = ClientState.view
@@ -82,31 +106,75 @@ local function ownCityCount(view)
 	return n
 end
 
--- ---- actions (commands only; the server judges legality) -------------------
-local function doFound()
-	local u = selectedUnit()
-	if u ~= nil and u.type == "settlers" then
-		local name = "Colony " .. (ownCityCount(ClientState.view) + 1)
-		print(("[ActionBar] found city '%s' with %s"):format(name, u.id))
-		ClientState.send({ type = "foundCity", unitId = u.id, name = name })
+-- R7a (4): view-side legality PRECHECK — grey + dead when the action can't
+-- apply to the selected unit (A29 pattern: display-only, the server still
+-- judges the real rules at command time)
+local function onLandTile(u)
+	local view = ClientState.view
+	local tile = view.map.tiles[u.y * view.map.width + u.x + 1]
+	local terr = tile and ClientState.rulesets().terrain.terrains[tile.t]
+	return terr ~= nil and terr.domain == "land"
+end
+
+local function can(action)
+	if not ClientState.myTurn() then
+		return false
 	end
+	local u = selectedUnit()
+	if action == "research" then
+		return true
+	end
+	if u == nil then
+		return false
+	end
+	if action == "disband" then
+		return true
+	end
+	if action == "fortify" or action == "wait" then
+		return u.moves > 0 and u.fortified ~= true
+	end
+	-- settlers jobs: found / irrigate / mine / road / possess-shaped
+	if action == "possess" then
+		return true
+	end
+	if u.type ~= "settlers" or u.moves <= 0 then
+		return false
+	end
+	if action == "found" then
+		return true
+	end
+	return onLandTile(u) -- irrigate / mine / road
+end
+
+-- ---- actions (commands only; the precheck gates the SEND, the server
+-- still judges the real rules) ------------------------------------------------
+local function doFound()
+	if not can("found") then
+		return
+	end
+	local u = selectedUnit()
+	local name = "Colony " .. (ownCityCount(ClientState.view) + 1)
+	print(("[ActionBar] found city '%s' with %s"):format(name, u.id))
+	ClientState.send({ type = "foundCity", unitId = u.id, name = name })
 end
 
 local function doUnitCmd(cmdType)
-	local u = selectedUnit()
-	if u ~= nil then
-		print(("[ActionBar] %s %s"):format(cmdType, u.id))
-		ClientState.send({ type = cmdType, unitId = u.id })
+	if not can(cmdType) then
+		return
 	end
+	local u = selectedUnit()
+	print(("[ActionBar] %s %s"):format(cmdType, u.id))
+	ClientState.send({ type = cmdType, unitId = u.id })
 end
 
 -- settlers job on the stood-on tile; the server judges terrain/tech/dupes
 local function doWork(work)
-	local u = selectedUnit()
-	if u ~= nil and u.type == "settlers" then
-		print(("[ActionBar] startWork %s %s"):format(work, u.id))
-		ClientState.send({ type = "startWork", unitId = u.id, work = work })
+	if not can(work) then
+		return
 	end
+	local u = selectedUnit()
+	print(("[ActionBar] startWork %s %s"):format(work, u.id))
+	ClientState.send({ type = "startWork", unitId = u.id, work = work })
 end
 
 foundBtn.Activated:Connect(doFound)
@@ -137,29 +205,37 @@ possessBtn.Activated:Connect(function()
 	print("[ActionBar] possession: select an own unit and press P (F dismounts)")
 end)
 
--- ---- context refresh (selection isn't evented; cheap per-frame compare) ----
+-- ---- context refresh (selection isn't evented; cheap per-frame compare).
+-- R7b (11): the Research button BLINKS while research is unset on your turn
+-- (the blink phase joins the key so the repaint keeps ticking).
+local BLINK = Color3.fromRGB(90, 160, 235)
 local lastKey = nil
 RunService.Heartbeat:Connect(function()
 	local view = ClientState.view
 	local u = selectedUnit()
+	local me = view and view.players[view.you]
+	local needBlink = ClientState.myTurn() and me ~= nil and me.researching == nil
+	local phase = needBlink and (math.floor(os.clock() * 2) % 2) or 0
 	local key = (view and view.turn or -1) .. "|" .. tostring(u and u.id) .. "|"
 		.. tostring(u and u.moves) .. "|" .. tostring(ClientState.myTurn())
+		.. "|" .. tostring(needBlink) .. phase
 	if key == lastKey then
 		return
 	end
 	lastKey = key
-	local mine = ClientState.myTurn()
-	local unitReady = mine and u ~= nil
-	local settlersReady = unitReady and u.type == "settlers"
-	foundBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
-	irrigateBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
-	mineBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
-	roadBtn.BackgroundColor3 = settlersReady and ENABLED or DISABLED
-	fortifyBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
-	waitBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
-	disbandBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
-	possessBtn.BackgroundColor3 = unitReady and ENABLED or DISABLED
-	researchBtn.BackgroundColor3 = mine and ENABLED or DISABLED
+	foundBtn.BackgroundColor3 = can("found") and ENABLED or DISABLED
+	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
+	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED
+	roadBtn.BackgroundColor3 = can("road") and ENABLED or DISABLED
+	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
+	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
+	disbandBtn.BackgroundColor3 = can("disband") and ENABLED or DISABLED
+	possessBtn.BackgroundColor3 = can("possess") and ENABLED or DISABLED
+	if needBlink then
+		researchBtn.BackgroundColor3 = phase == 0 and BLINK or ENABLED
+	else
+		researchBtn.BackgroundColor3 = can("research") and ENABLED or DISABLED
+	end
 end)
 
 -- ---- hotkeys ----------------------------------------------------------------

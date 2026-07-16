@@ -15,12 +15,16 @@ local M = {
 	possessedUnitId = nil, -- R5: unit the avatar is riding (Possess.client.luau)
 	followAvatar = false,
 	TILE = 4, -- studs per tile edge (must match ViewRenderer)
+	-- R7a (5)(7): Roblox flips both defaults ON for new users (docs/13
+	-- run2 block — accepted divergence from the browser's opt-in)
+	options = { autoNextUnit = true, autoEndTurn = true },
 }
 
 local viewCallbacks = {}
 local cityOpenCallbacks = {}
 local eventCallbacks = {} -- R6: filtered round events riding view pushes
 local researchOpenCallbacks = {} -- R6: research picker open/toggle channel
+local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
 -- lazy client-side ruleset tables (R5 city panel): same baked JSON, same
@@ -50,6 +54,63 @@ end
 
 function M.onEvents(cb)
 	table.insert(eventCallbacks, cb)
+end
+
+function M.onPossessRequest(cb)
+	table.insert(possessCallbacks, cb)
+end
+
+function M.requestPossess(unitId)
+	for _, cb in ipairs(possessCallbacks) do
+		cb(unitId)
+	end
+end
+
+-- wrap-aware Chebyshev tile distance (client-side pick order only)
+function M.wrapDist(x1, y1, x2, y2)
+	local view = M.view
+	local dx = math.abs(x1 - x2)
+	if view ~= nil and view.map.wrapX and dx > view.map.width / 2 then
+		dx = view.map.width - dx
+	end
+	return math.max(dx, math.abs(y1 - y2))
+end
+
+-- R7a (12)(15): next own idle unit — input.js:255 semantics: skip fortified
+-- and working units (they stay reachable by hand-click), NEAREST first from
+-- the anchor unit so the camera glides instead of teleporting
+function M.nextOwnUnit(excludeId)
+	local view = M.view
+	if view == nil then
+		return nil
+	end
+	local movable = {}
+	for id, u in pairs(view.units) do
+		if u.owner == view.you and u.moves > 0 and u.fortified ~= true
+			and u.working == nil and id ~= excludeId then
+			table.insert(movable, u)
+		end
+	end
+	if #movable == 0 then
+		return nil
+	end
+	table.sort(movable, function(a, b)
+		return a.id < b.id
+	end)
+	local anchorId = M.possessedUnitId or M.selectedUnitId
+	local anchor = anchorId and view.units[anchorId]
+	local pick = movable[1]
+	if anchor ~= nil then
+		local best = math.huge
+		for _, u in ipairs(movable) do
+			local d = M.wrapDist(u.x, u.y, anchor.x, anchor.y)
+			if d < best then
+				best = d
+				pick = u
+			end
+		end
+	end
+	return pick.id
 end
 
 function M.onResearchOpen(cb)

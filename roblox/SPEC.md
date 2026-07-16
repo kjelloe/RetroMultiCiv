@@ -275,6 +275,33 @@ touches state or RNG: hashes and the R4 acceptance bar are unchanged.
   Markers are `CanQuery=false` so Select's raycast passes through;
   selection isn't evented, so a per-frame key compare drives refresh.
 
+## 3h. Playtest-B UI sweep (`src/client/`, R7a)
+
+The user's run2 feedback, triaged as R7a (8 corrections, one sweep;
+numbers are Roblox-Playtest-B item numbers):
+
+- (4) The action bar prechecks legality VIEW-SIDE (`can(action)`) —
+  wrong-context buttons grey AND dead (the send is gated too); the
+  server still judges the real rules (A29: display-only precheck).
+  Settlers jobs also require a land tile under the unit.
+- (1) The city panel HIDES catalog entries beyond one-tech lookahead
+  (tech known or all its prereqs known); within the horizon they stay
+  greyed with the reason. Accepted divergence from the browser's
+  show-all-locked (docs/13 run2 block).
+- (12)(15) `ClientState.nextOwnUnit` is the shared next-unit picker:
+  input.js:255 semantics (skip fortified/working unless hand-picked),
+  NEAREST-first by wrap-aware Chebyshev from the current unit.
+  Possess's N and every auto-advance ride it.
+- (9) Double-click an own unit while mounted → the mount rides to it
+  (`ClientState.requestPossess`, the same path N takes).
+- (5)(7) `Options.client.luau`: auto-next-unit and auto-end-turn,
+  both DEFAULT ON (accepted divergence: browser opts in, Roblox opts
+  out) with top-right toggles. Auto-end waits 1 s and revalidates
+  (one per turn number — no runaway); with it off, a center hint
+  points at Return/End Turn.
+- (6) Research moved out of the unit bar to a top-center cluster
+  (slots reserved for diplomacy/statistics).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -357,12 +384,19 @@ Stop) are hash-verified but must not skew the code check.
   hints; check.sh 26 gates. pathfind/GoTo deferred (flagged to the
   architect).
 - R5+R6 played acceptance: **REPLAY BAR GREEN 2026-07-16** —
-  `acceptance/run2.txt`: 88 turns / 579 commands / 87 rounds played
+  `acceptance/runB.txt` (the user's naming scheme: run letters match
+  Roblox-Playtest letters; run1 predates it): 88 turns / 579
+  commands / 87 rounds played
   in Studio, ALL HASHES MATCH, game code `D5TC-ZFSV-WS8GG` agrees at
   turn 88; anchors ALL PASS, data gate 8/8, zero errors in ~90 min.
   Exercised: setProduction x28, buy x4, foundCity x4, fortify x49,
   wait, disband, startWork x6, setResearch x22, moveUnit x520,
   possession (ride + steps). The run surfaced the assembler's
-  game-code comparison-point gap (fixed, §5). STILL OPEN to close
-  R5/R6: setRates (steppers never clicked), per-surface screenshots
-  read, and the fog verdict.
+  game-code comparison-point gap (fixed, §5). The run2 leftovers
+  (setRates exercise, per-surface screenshots, fog verdict) fold
+  into R7a's acceptance run per the architect.
+- R7 (Playtest-B batch): claimed 2026-07-16 @d11b4054. R7a (§3h, the
+  8-item UI sweep): **CODE-COMPLETE 2026-07-16**, check.sh 27 gates.
+  R7b (billboards, site stars, research splash, void cover in two
+  art variants) next; R7c is design-first with the architect — not
+  started by order.

@@ -798,7 +798,7 @@ path replays hash-exact both engines; screenshots read per surface.
 pathfind.luau (the A65 port, subset-ready) may land here if GoTo
 wants it — your call, flag it.
 
-### R7 — Roblox-Playtest-B batch (user's run2 feedback, 2026-07-16; assigned: roblox-helper)
+### R7 — Roblox-Playtest-B batch (user's run2 feedback, 2026-07-16; assigned: roblox-helper) [claimed: roblox-helper 2026-07-16 @d11b4054 — R7a first, R7c design-first untouched]
 
 The user's 16 items from the 88-turn Studio session, triaged by the
 architect. Numbers below are the user's (Roblox-Playtest-B N).

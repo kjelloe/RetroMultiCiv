@@ -78,26 +78,18 @@ local function possess(unitId)
 	print(("[Possess] riding %s (%s) at (%d,%d), moves %d"):format(unitId, u.type, u.x, u.y, u.moves))
 end
 
--- next own unit with moves left, sorted ids, wrapping past the current one
+-- next own idle unit — R7a (12)(15): nearest-first, skips fortified/working
+-- (input.js:255 semantics); the shared picker lives in ClientState
 local function nextUnit()
-	local view = ClientState.view
-	if view == nil then
-		return nil
-	end
-	local ids = {}
-	for id, u in pairs(view.units) do
-		if u.owner == view.you and u.moves > 0 then
-			table.insert(ids, id)
-		end
-	end
-	if #ids == 0 then
-		return nil
-	end
-	table.sort(ids)
 	local current = ClientState.possessedUnitId or ClientState.selectedUnitId
-	local at = current and table.find(ids, current) or 0
-	return ids[at % #ids + 1]
+	return ClientState.nextOwnUnit(current)
 end
+
+-- R7a (9): Select requests a ride (double-click on an own unit while
+-- mounted); auto-next while mounted arrives the same way
+ClientState.onPossessRequest(function(unitId)
+	possess(unitId)
+end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then

@@ -80,6 +80,8 @@ local function ownCityCount(view)
 	return n
 end
 
+local lastOwnPick = nil -- R7a (9): double-click detection on own units
+
 local function handlePick(tx, ty)
 	local view = ClientState.view
 	if view == nil then
@@ -88,6 +90,19 @@ local function handlePick(tx, ty)
 	local tile = view.map.tiles[ty * view.map.width + tx + 1]
 	local own = ClientState.ownUnitAt(tx, ty)
 	local selected = ClientState.selectedUnitId and view.units[ClientState.selectedUnitId]
+
+	-- R7a (9): while mounted, a double-click on an own unit rides to it
+	if own ~= nil then
+		local now = os.clock()
+		if ClientState.possessedUnitId ~= nil and lastOwnPick ~= nil
+			and lastOwnPick.id == own.id and now - lastOwnPick.t < 0.45 then
+			lastOwnPick = nil
+			print(("[Select] ride to %s (double-click)"):format(own.id))
+			ClientState.requestPossess(own.id)
+			return
+		end
+		lastOwnPick = { id = own.id, t = now }
+	end
 
 	if own ~= nil and (selected == nil or own.id ~= selected.id) then
 		ClientState.selectedUnitId = own.id
