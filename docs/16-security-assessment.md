@@ -59,11 +59,15 @@ the deferred resend integration), payments (never).
 - **Spectators**: tokenless and view-only omniscient — they can
   see everything (BY DESIGN, host-controlled via
   `--no-spectators`); they can never vote or command.
-- Residual (→ gap list, = the A50 queue): no per-IP rate limit on
-  join/create/listGames; no global caps (games, connections,
-  creates/IP/hour); no lobby TTL/expiry — a determined abuser can
-  spawn games or hold sockets until memory pressure. THIS IS THE
-  MAIN OPEN RISK for a public host today; acceptable on LAN.
+- Residual (→ gap list, = the A50 queue): per-CONNECTION 1/sec
+  limits already exist on chat, listGames, AND reclaim — but (a)
+  join/create have NO limit at all, and (b) per-connection limits
+  reset with a fresh socket, so they rate-limit politeness, not
+  abuse. Per-IP limits + global caps (games, connections,
+  creates/IP/hour) and lobby TTL/expiry are what is missing — a
+  determined abuser can spawn games or hold sockets until memory
+  pressure. THIS IS THE MAIN OPEN RISK for a public host today;
+  acceptable on LAN. (Review-verified: helper, 2026-07-16.)
 
 ### 2.3 Data at rest
 - `saves/*.json` contain full game state INCLUDING seat tokens —
@@ -72,6 +76,10 @@ the deferred resend integration), payments (never).
   `docs/how-to-host.md`); the systemd unit does this. Docker: the
   named volume inherits container isolation.
 - No secrets in the repo; `ops/` is gitignored personal.
+- Verified safe (review): `gameId` is server-generated (never
+  client input) so the saves path has no client-controlled
+  traversal; the bare-`/` redirect echoes the query but Node
+  rejects CRLF in header values — no header injection.
 
 ### 2.4 Process and platform
 - **No TLS in-process** — deliberate. Public hosts terminate TLS
@@ -108,10 +116,19 @@ a legitimate game.
 2. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist +
    retention, saves/ size budget (A50).
 3. Join-by-id closed for non-public games (A50 §1).
-4. HTTP nicety caps (URL length, header size explicit) — minor.
-5. Scale test: many-connection + hostile-command-stream soak
+4. No Origin check on `/ws` (helper review finding): WebSockets
+   are CORS-exempt, so any web page a victim visits can open a
+   socket to a LAN/public server (DNS-rebinding reaches
+   localhost). Impact bounded — the attacker gets its OWN seat,
+   never the victim's token — but it is a distinct griefing/
+   resource surface that matters once the master index normalizes
+   cross-origin connections. Fix: optional Origin allow-list for
+   public hosts, off by default on LAN; lands with A50.
+5. HTTP nicety caps (URL length, header size explicit) +
+   `X-Content-Type-Options: nosniff` on static responses — minor.
+6. Scale test: many-connection + hostile-command-stream soak
    against a live server (sim-runner candidate job; new).
-6. WS token rotation on reconnect — nice-to-have, not queued.
+7. WS token rotation on reconnect — nice-to-have, not queued.
 
 ## 4. Operator quick-card (mirrors how-to-host.md)
 

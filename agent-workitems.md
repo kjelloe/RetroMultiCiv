@@ -2216,7 +2216,10 @@ lost: MULTI-CLIENT live-socket flows under event-driven waits.
    lane ADDS multi-client coverage, it does not migrate singles.
 Queue: after A48. If the lane proves itself, candidates for later
 specs: resume-from-lobby two-client, replay theater (A47), regency
-handoff (A40).
+handoff (A40), AND the deferred single-client DOM truthy-path shots
+that logic-mirror covered for now: A90 Help-Wonder button (caravan in
+a domestic wonder-building city) + A97 city-view Sell button (a built
+non-palace building, armed→confirm→sold-disabled) — architect #589.
 
 ## A52 — Ally round-5 follow-ups (specs/plan-feedback-5.md; queue after A40-slice-2)  [claimed: coder-helper 2026-07-15] [done: 2026-07-15 — (1) overlay label "Territory"→"City influence" (id stays; working-area not borders, comment records the caution; DOM-confirmed); (2) seat-code acceptance: a=cited existing A46 seatOccupied case, b=fog-shaped reclaim (unknown tiles, no rngState), c=spectator+code stays omniscient tokenless (spectate path ignores code), d=post-rotation old token → badToken (single control path), e=both resume paths (--game keeps codes / lobby resetSeats kills them) + docs/08 §4 nuance documented; (3) chat [HH:MM] timestamps (client render only, XSS-inert; future-chat-prominence note carried to VI.11). Shots read: chat + City-influence tint. Suite 237/237.]
 
@@ -3055,6 +3058,16 @@ A65 pathfind reuse), possibly explore-until-blocked auto-mode.
 Design with the war-lab loop: hypothesis → 10-seed probe → ship.
 Unblocks fog-honest contact (war), M13 crossWater (with A69 ships
 now real), and the M9 target.
+**USER DOCTRINE (2026-07-16 night — the design's spine, like the
+3:1 rule was for war): "the basic strategy is following a COAST
+LINE with a scouting unit, and then have TWO, going in opposite
+directions."** Implementation shape: coast-following = wall-
+following (keep water on a fixed hand side — deterministic, cheap,
+Lua-portable, naturally circumnavigates the landmass); the civ's
+first two scouts take OPPOSITE hands (clockwise/counter-clockwise
+by unit-id parity); inland frontier-seeking only when the coast
+is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
+landmass shape) — the lab probes this hypothesis first.
 
 ## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)
 
