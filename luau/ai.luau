@@ -427,6 +427,59 @@ local function countMilitary(state: any, playerId: string, ruleset: any): number
 	return n
 end
 
+-- B24 twin: the per-combat-rule war doctrine (rules.aiWarDoctrine keyed by
+-- combatRounds as a STRING -- tostring so JSON string keys match). Mass default.
+local function warDoctrineOf(ruleset: any): any
+	local doctrine = ruleset.rules.aiWarDoctrine
+	local cr = if ruleset.rules.combatRounds == nil then 1 else ruleset.rules.combatRounds
+	local d = if doctrine == nil then nil else doctrine[tostring(cr)]
+	if d == nil then
+		return { massSize = 4, oddsGate = 0 }
+	end
+	return d
+end
+
+-- B24 twin: nearest KNOWN enemy city (fog-honest -- explored tiles only). The
+-- army group's shared objective; clustered attackers pick the same nearby city.
+local function nearestKnownEnemyCity(state: any, unit: any, playerId: string): any
+	local me = state.players[playerId]
+	local best = nil
+	local bestDist = 9999
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner ~= playerId and isExplored(me, state.map, c.x, c.y) then
+			local d = chebyshev(state.map, unit.x, unit.y, c.x, c.y)
+			if d < bestDist then
+				best = c
+				bestDist = d
+			end
+		end
+	end
+	return best
+end
+
+-- B24 twin: how many of the civ's OFFENSIVE units sit adjacent to (x, y).
+local function attackersAdjacentTo(state: any, playerId: string, ruleset: any, x: number, y: number): number
+	local n = 0
+	for _, u in pairs(state.units) do
+		local def = ruleset.units[u.type]
+		if u.owner == playerId and def.attack > def.defense
+			and chebyshev(state.map, u.x, u.y, x, y) <= 1 then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- B24 twin: the per-unit odds gate (undefended = capture; else att >= gate*def).
+local function assaultOddsOk(state: any, unit: any, x: number, y: number, ruleset: any, oddsGate: number): boolean
+	local defender = combat.bestDefender(state, x, y, ruleset)
+	if defender == nil then
+		return true
+	end
+	return combat.attackStrength(unit, ruleset) >= oddsGate * combat.defenseStrength(state, defender, ruleset)
+end
+
 -- B21(d) twin: is this unit one of the civ's dedicated SCOUTS? The NEWEST
 -- scoutShare% of the civ's military (highest sorted ids) range the fog instead
 -- of garrisoning/marching. Deterministic. Matches engine/ai.js.
@@ -956,6 +1009,45 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					local sdir = towardUnexplored(state, unit, me)
 					if sdir ~= nil then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
+					end
+				end
+				-- B24: OFFENSIVE units form derived army groups -- converge on the
+				-- nearest known enemy city, HOLD at its edge until massSize attackers
+				-- are massed, then assault together (each strike per-unit odds-gated
+				-- under best-of-three; one-roll masses with no gate). marchR > 0 only.
+				local attDef = ruleset.units[unit.type]
+				if marchR > 0 and attDef.attack > attDef.defense then
+					local targetCity = nearestKnownEnemyCity(state, unit, playerId)
+					if targetCity ~= nil then
+						local D = warDoctrineOf(ruleset)
+						local dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
+						if dist <= 1 then
+							local massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y)
+							if massed >= D.massSize
+								and assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate) then
+								local adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
+								if adir ~= nil then
+									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = adir }
+								end
+							end
+							return { type = "wait", playerId = playerId, unitId = uid }
+						end
+						local cdir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
+						if cdir ~= nil then
+							local v = DIR_VECS[cdir]
+							local nx = ((unit.x + v[1]) % state.map.width + state.map.width) % state.map.width
+							local ny = unit.y + v[2]
+							local blocked = false
+							for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+								if u.owner ~= playerId then
+									blocked = true
+								end
+							end
+							if blocked and not assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate) then
+								return { type = "wait", playerId = playerId, unitId = uid }
+							end
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = cdir }
+						end
 					end
 				end
 				-- A40: defensive never marches out (radius 0), aggressive ranges

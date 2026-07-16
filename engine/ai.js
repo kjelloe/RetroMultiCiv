@@ -15,7 +15,7 @@
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
-import { unitsAt, cityAt, sortIds } from './combat.js';
+import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
 import { workedTiles, citySpacingOk, candidateTiles, unitObsolete } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
@@ -356,6 +356,56 @@ function countMilitary(state, playerId, ruleset) {
     if (u.owner === playerId && ruleset.units[u.type].attack > 0) n = n + 1;
   }
   return n;
+}
+
+// B24: the per-combat-rule war doctrine (rules.aiWarDoctrine keyed by
+// combatRounds — one-roll = mass/no-gate, best-of-three = odds-gated E). The
+// key is a STRING so json2lua and JSON agree; falls back to the mass default.
+function warDoctrineOf(ruleset) {
+  const table = ruleset.rules.aiWarDoctrine;
+  const cr = ruleset.rules.combatRounds === undefined ? 1 : ruleset.rules.combatRounds;
+  const d = table === undefined ? undefined : table['' + cr];
+  if (d === undefined) return { massSize: 4, oddsGate: 0 };
+  return d;
+}
+
+// B24: the nearest KNOWN enemy city to this unit (the army group's shared
+// objective — clustered attackers pick the same nearby city, so groups derive
+// from geography). Deterministic (sortIds walk). null when none is in view.
+function nearestKnownEnemyCity(state, unit, playerId) {
+  const me = state.players[playerId];
+  let best = null, bestDist = 9999;
+  for (const cid of sortIds(state.cityOrder || [])) {
+    const c = state.cities[cid];
+    if (!c || c.owner === playerId) continue;
+    if (!isExplored(me, state.map, c.x, c.y)) continue;
+    const d = chebyshev(state.map, unit.x, unit.y, c.x, c.y);
+    if (d < bestDist) { best = c; bestDist = d; }
+  }
+  return best;
+}
+
+// B24: how many of the civ's OFFENSIVE units sit adjacent to (x, y) — the mass
+// gathered at a target city's edge. Order-independent count.
+function attackersAdjacentTo(state, playerId, ruleset, x, y) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    const def = ruleset.units[u.type];
+    if (u.owner !== playerId || def.attack <= def.defense) continue;
+    if (chebyshev(state.map, u.x, u.y, x, y) <= 1) n = n + 1;
+  }
+  return n;
+}
+
+// B24: the per-unit odds gate. An attacker may strike (x, y) iff it is
+// undefended (a capture) OR its attack strength >= oddsGate × the best
+// defender's defense strength (combat.js strengths: veteran/terrain/
+// fortified/walls-aware). oddsGate 0 (one-roll) always passes — mass, not odds.
+function assaultOddsOk(state, unit, x, y, ruleset, oddsGate) {
+  const defender = bestDefender(state, x, y, ruleset);
+  if (!defender) return true;
+  return attackStrength(unit, ruleset) >= oddsGate * defenseStrength(state, defender, ruleset);
 }
 
 // B21(d): is this unit one of the civ's dedicated SCOUTS? The first `scoutShare`
@@ -816,6 +866,40 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (isScout(state, playerId, ruleset, uid, scoutShare)) {
       const sdir = towardUnexplored(state, unit, me);
       if (sdir) return { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
+    }
+    // B24: OFFENSIVE units form derived army groups — converge on the nearest
+    // known enemy city, HOLD at its edge until `massSize` attackers are massed,
+    // then assault together (each strike per-unit odds-gated under best-of-three;
+    // one-roll masses with no gate). Only when the stance attacks (marchR > 0).
+    // This is the coordination that converts wins into captures (docs/15 §2d).
+    const attDef = ruleset.units[unit.type];
+    if (marchR > 0 && attDef.attack > attDef.defense) {
+      const targetCity = nearestKnownEnemyCity(state, unit, playerId);
+      if (targetCity) {
+        const D = warDoctrineOf(ruleset);
+        const dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
+        if (dist <= 1) {
+          const massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y);
+          if (massed >= D.massSize
+              && assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate)) {
+            const adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
+            if (adir) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
+          }
+          return { type: 'wait', playerId, unitId: uid }; // hold: not massed / bad odds
+        }
+        const cdir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
+        if (cdir) {
+          const v = DIR_VECS[cdir];
+          const nx = ((unit.x + v[0]) % state.map.width + state.map.width) % state.map.width;
+          const ny = unit.y + v[1];
+          let blocked = false;
+          for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) blocked = true;
+          if (blocked && !assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate)) {
+            return { type: 'wait', playerId, unitId: uid }; // don't charge bad odds (bo3)
+          }
+          return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };
+        }
+      }
     }
     // fight what's actually near; distant enemies are not worth a suicide
     // trek across the map (that churn was where armies went to die). A40:

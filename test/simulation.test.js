@@ -35,11 +35,11 @@ const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
     100: '0x71c9ab77',
-    200: '0x45c407c7',
-    300: '0xc1c9d430',
-    400: '0x75ca6afc'
+    200: '0xc89cbf56',
+    300: '0x5370b436',
+    400: '0xfd3a96f0'
   },
-  finalHash: '0x75ca6afc'
+  finalHash: '0xfd3a96f0'
 };
 const GOLDEN_NATURAL = { rounds: 395, winner: 'p2', finalHash: '0xbafdb5cc' };
 

@@ -40,6 +40,10 @@
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiScoutSharePct": 25,
+  "aiWarDoctrine": {
+    "1": { "massSize": 4, "oddsGate": 0 },
+    "3": { "massSize": 4, "oddsGate": 2 }
+  },
   "barbTierThreshold": 30,
   "barbTiers": [
     { "tech": "", "unit": "militia" },
