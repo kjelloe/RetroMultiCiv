@@ -78,9 +78,9 @@ AFTERNOON LIST below.
 ## THE AFTERNOON LIST (2026-07-16 — after the R7 velocity day)
 
 1. **Merge marker — always the LATEST the architect declares
-   consistent** (your ruling). Declared at this writing:
-   **marker-0013** (B13 + B21 golden re-records both acked; the
-   AI now era-scales, fights, buys, scouts, walls).
+   consistent**. Declared at this writing: **marker-0021**
+   (through B24 coordination + Wave-2 adoption; everything since
+   folds into 0022 at the B23 close).
 2. **Studio runC** — one session, THREE deliverables:
    (a) the R7 arc: R7a small UI (auto-next/auto-end defaults,
    nearest next-unit, grey/dead gating, research at top center),

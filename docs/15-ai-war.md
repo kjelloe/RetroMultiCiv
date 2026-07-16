@@ -174,9 +174,12 @@ prerequisites the lab exposed) → the coordination doctrine window →
 siege (live once walls exist). EXECUTED 2026-07-16: B13 landed,
 then the re-baseline exposed the capabilities as DORMANT (docs/03),
 so B21 (build-slot/beeline/rush-buy/scout-share) was inserted and
-landed same day — attackers now exist at t200. COORDINATION waits
-on the post-B21 sweeps; SIEGE waits on coordination + walls-in-play
-(walls ship in B13g, sparse pending tuning). Topology (A82) joins the sweep
+landed same day — attackers now exist at t200. B24 COORDINATION
+SHIPPED same night (per-combat-rule table + derived groups +
+hold-until-massed; fog-honest — awaits B23 exploration for
+empire-wide effect; the §2e inversion re-test runs at B23's
+close). SIEGE remains the arc's last window (walls ship in B13g,
+sparse pending tuning; A79 blockade pairs with it). Topology (A82) joins the sweep
 matrix when it lands; every slice lab-measured no-chaos, both
 combat rules, per-stance signatures.
 

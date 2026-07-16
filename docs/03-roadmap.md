@@ -452,6 +452,19 @@ Interim releases keep shipping via the marker cadence (v0.6…).
 > lands. New columns adopted: garrison%, resourceCov% (healthy
 > 85-94%), disorderTurns (tail-capped — B22), river-adjacency.
 >
+> STATUS (2026-07-16 late night): B24 COORDINATION LANDED (fog-
+> honest close: turn-100 + natural held, only chaos soak moved) —
+> the war-lab doctrine is in the shipped engine awaiting eyes.
+> B23 exploration in flight WITH a model failure honestly caught:
+> the coastline-follow was correct but INERT (scouts pinned as
+> garrisons, no ranging) — the window redirected to scout-
+> exemption + commit-ranging + coastline-as-preference; B23b
+> (user's phased allocation) is the next measured slice. The
+> N-LEDGER (8 new weaknesses) + the user/ally FIX TABLE = Wave 2,
+> build order naval-probe→gov→garrison→gold→wonders→yield→
+> catch-up-last. THE NO-OP CHECK is standing lab doctrine (docs/05
+> §12). B22 validated decisively (p90 387/310 vs <800).
+>
 > STATUS UPDATE (2026-07-16 evening): B21 WAKE-THE-CAPABILITIES
 > LANDED — the sleeping levers are awake (attackers 14-15/civ at
 > t200, was 0 at t400; rush-buy fires under threat; scout share
