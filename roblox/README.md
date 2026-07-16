@@ -79,7 +79,11 @@ don't commit it.
    auto-end-turn are ON by default (top-right toggles); `N` and
    auto-advance pick the NEAREST idle unit and skip fortified/working
    ones; double-click one of your units while riding to jump the
-   mount to it. The server prints
+   mount to it. R7b presentation: unit billboards (name, att/def,
+   move pips; settlers add a 1-3 star site rating), a discovery
+   splash + blinking Research button when a pick is due, and the
+   void cover — `V` cycles the border art (ornate map frame /
+   galaxy / none) so you can screenshot both and pick. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`

@@ -3,11 +3,18 @@
 -- tiles render as the void palette, explored-but-not-visible tiles render
 -- dimmed, and units/cities exist only if the view carries them. Render-only:
 -- no randomness, shade picks stay position-hashed (screenshot-stable).
+-- R7b (8): per-unit billboard (name + att/def + move pips) — fog-respecting
+-- by construction (rivals are only ever in the view while visible, and the
+-- stats shown are ruleset facts by type + the view's own moves field).
+-- R7b (10): own settlers carry a site line — legality via the read-only
+-- luau ai.goodCitySpot on a view shim (fog-approximate like move hints),
+-- stars are a PRESENTATIONAL heuristic (documented in SPEC §3i).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
+local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 
 local TILE = ClientState.TILE
 local HEIGHT = 6 -- studs per 1.0 of TERRAIN base height
@@ -89,6 +96,78 @@ local function renderTerrain(view)
 	end
 end
 
+-- (10) site stars, own settlers only. Legality is the engine's own
+-- goodCitySpot (read-only require, view shim). Stars on a legal spot are
+-- display-only: 1 base, +1 for a strong center tile (grassland/plains/
+-- river), +1 when 3+ neighbors are strong too.
+local STRONG = { grassland = true, plains = true }
+local function siteLine(view, u)
+	local shim = { map = view.map, cityOrder = view.cityOrder, cities = view.cities }
+	local ok, legal = pcall(aiModule.goodCitySpot, shim, u, ClientState.rulesets())
+	if not ok or legal ~= true then
+		return "site: x"
+	end
+	local map = view.map
+	local center = map.tiles[u.y * map.width + u.x + 1]
+	local stars = 1
+	if STRONG[center.t] == true or center.river == true then
+		stars += 1
+	end
+	local strongNear = 0
+	for dy = -1, 1 do
+		for dx = -1, 1 do
+			if dx ~= 0 or dy ~= 0 then
+				local nx, ny = u.x + dx, u.y + dy
+				if map.wrapX then
+					nx = nx % map.width
+				end
+				if nx >= 0 and nx < map.width and ny >= 0 and ny < map.height then
+					local t = map.tiles[ny * map.width + nx + 1]
+					if STRONG[t.t] == true or t.river == true then
+						strongNear += 1
+					end
+				end
+			end
+		end
+	end
+	if strongNear >= 3 then
+		stars += 1
+	end
+	return "site: " .. string.rep("*", stars)
+end
+
+-- (8) the unit billboard: "<Name> a/d" + move pips (own settlers add the
+-- site line). Adornee'd to the base disc so it rides the model.
+local function unitBillboard(model, adornee, view, u)
+	local def = ClientState.rulesets().units[u.type] or {}
+	local mine = u.owner == view.you
+	local lines = { ("%s %d/%d"):format(def.name or u.type, def.attack or 0, def.defense or 0) }
+	if u.moves ~= nil and u.moves > 0 then
+		table.insert(lines, string.rep("|", math.min(u.moves, 9)))
+	else
+		table.insert(lines, "-")
+	end
+	if mine and u.type == "settlers" then
+		table.insert(lines, siteLine(view, u))
+	end
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "Label"
+	bb.Adornee = adornee
+	bb.Size = UDim2.new(0, 100, 0, 12 * #lines)
+	bb.StudsOffset = Vector3.new(0, 3.6 + #lines * 0.3, 0)
+	bb.MaxDistance = 180
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = mine and Color3.fromRGB(235, 235, 235) or Color3.fromRGB(240, 190, 180)
+	text.TextStrokeTransparency = 0.4
+	text.Font = Enum.Font.Code
+	text.TextSize = 11
+	text.Text = table.concat(lines, "\n")
+	text.Parent = bb
+	bb.Parent = model
+end
+
 local function renderUnits(view)
 	unitsFolder:ClearAllChildren()
 	for id, u in pairs(view.units) do
@@ -123,6 +202,7 @@ local function renderUnits(view)
 			block(model, "Rampart", Vector3.new(TILE * 0.8, 0.4, TILE * 0.8),
 				Vector3.new(cx, top + 0.45, cz), Color3.fromRGB(90, 90, 96), Enum.Material.Concrete)
 		end
+		unitBillboard(model, disc, view, u)
 		model.Parent = unitsFolder
 	end
 end

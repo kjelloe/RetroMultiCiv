@@ -302,6 +302,32 @@ numbers are Roblox-Playtest-B item numbers):
 - (6) Research moved out of the unit bar to a top-center cluster
   (slots reserved for diplomacy/statistics).
 
+## 3i. Playtest-B presentation (`src/client/`, R7b)
+
+- (8) Per-unit BILLBOARD on every rendered unit: name + att/def
+  (ruleset facts by type) + move pips from the view's own `moves`.
+  Fog-respecting by construction — a unit is only in the view while
+  visible. Rival labels tint red-ish.
+- (10) Own settlers add a site line to their billboard: legality via
+  the READ-ONLY `ai.goodCitySpot` on a view shim (fog-approximate
+  like move hints — an unseen rival city can still reject the found);
+  `ActionBar.can("found")` uses the same call, so Found greys on
+  illegal spots. Stars on a legal spot are a PRESENTATIONAL heuristic
+  (1 base; +1 strong center tile: grassland/plains/river; +1 when 3+
+  neighbors are strong) — flagged for architect tuning, display-only.
+- (11) Discovery SPLASH (tech name + unlocked units/buildings/wonders
+  — ruleset facts, never wiki prose) for 5 s; the Research button
+  BLINKS while research is unset on your turn (blink phase joins the
+  ActionBar repaint key).
+- (2) `VoidCover.client.luau`: invisible guard walls + catch floor
+  (always on — avatars can't leave the map), plus BOTH art variants
+  built procedurally (own art only, license discipline): "frame" =
+  parchment apron + trim rails + corner medallions (boot default);
+  "galaxy" = deep-black floor + deterministic LCG starfield
+  (position-hashed, screenshot-stable — the R2 rule) + nebula
+  spheres. `V` cycles frame → galaxy → none; the user picks by
+  screenshot (the soundboard pattern).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -397,6 +423,9 @@ Stop) are hash-verified but must not skew the code check.
   into R7a's acceptance run per the architect.
 - R7 (Playtest-B batch): claimed 2026-07-16 @d11b4054. R7a (§3h, the
   8-item UI sweep): **CODE-COMPLETE 2026-07-16**, check.sh 27 gates.
-  R7b (billboards, site stars, research splash, void cover in two
-  art variants) next; R7c is design-first with the architect — not
-  started by order.
+  R7b (§3i, billboards / site stars / discovery splash / void
+  cover): **CODE-COMPLETE 2026-07-16**, check.sh 28 gates; the void
+  art pick (frame vs galaxy) waits on the user's screenshots. R7c
+  is design-first with the architect — not started by order.
+  Acceptance: run3 (run letter C) folds R7a+R7b + the run2 leftovers
+  (setRates, fog verdict, per-surface screenshots).

@@ -241,4 +241,48 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
+-- R7b (11): discovery splash — name + what it unlocks, all from the baked
+-- rulesets (facts only, never wiki prose). The Research button blinking
+-- until the next pick lives in ActionBar (it owns the button).
+local splash = Instance.new("TextLabel")
+splash.Size = UDim2.new(0, 520, 0, 54)
+splash.Position = UDim2.new(0.5, -260, 0.3, 0)
+splash.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+splash.BackgroundTransparency = 0.15
+splash.TextColor3 = Color3.fromRGB(150, 230, 255)
+splash.Font = Enum.Font.SourceSansBold
+splash.TextSize = 20
+splash.TextWrapped = true
+splash.Visible = false
+splash.Parent = gui.Parent:WaitForChild("RMCHud") -- HUD gui stays enabled; this panel's gui toggles
+
+local function unlocksOf(techId, rs)
+	local names = {}
+	for _, group in ipairs({ rs.units, rs.buildings, rs.wonders }) do
+		for _, def in pairs(group) do
+			if def.tech == techId then
+				table.insert(names, def.name)
+			end
+		end
+	end
+	table.sort(names)
+	return names
+end
+
+ClientState.onEvents(function(events, view)
+	for _, e in ipairs(events) do
+		if e.type == "techDiscovered" and e.playerId == view.you then
+			local rs = ClientState.rulesets()
+			local def = rs.techs[e.tech]
+			local unlocks = unlocksOf(e.tech, rs)
+			splash.Text = ("%s discovered!%s"):format(def and def.name or e.tech,
+				#unlocks > 0 and ("  Unlocks: " .. table.concat(unlocks, ", ")) or "")
+			splash.Visible = true
+			task.delay(5, function()
+				splash.Visible = false
+			end)
+		end
+	end
+end)
+
 print("[Research] R6 research picker + rate steppers up (T toggles)")
