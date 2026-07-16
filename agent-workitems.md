@@ -3354,6 +3354,44 @@ try Studio's direct glTF import, Blender only if FBX forced, user
 OK'd occasional manual Studio imports) stays SHELVED until Studio
 screenshots show a silhouette the Part mapping can't carry.
 
+### R12 — Playtest-C batch (user's runC feedback 2026-07-17; roblox-helper; BEFORE R9-R11)
+
+User numbering kept:
+- (2) GOVERNMENT BUTTON in the top-center cluster (next to
+  Research): tax/lux/sci rate steppers move there from the
+  research picker; the panel later hosts government switching.
+- (3) UNIT BILLBOARD FONT: 2× size, ~30% wider font, BOLD.
+- (4) CITY BILLBOARD always-on: name + pop + current production +
+  turns left (fog rules: rivals show what the view knows).
+- (5) RESEARCH STATUS always visible beside the Research button:
+  current tech + turns remaining.
+- (6) RIDE ↔ DISMOUNT: the action-bar label toggles with mount
+  state; same key P toggles.
+- (7) BUG: Next while DISMOUNTED must move only selection+camera,
+  never teleport the avatar (mounted behavior stays).
+- (9) DEBUG BUTTON (left, dev/Studio-only, stripped for publish):
+  hosts the gallery grid (K stays as its hotkey), future A92
+  debug-command menu rides here. INVESTIGATE: the user saw NO
+  PYRAMID in the gallery grid — the city house+roof (4-CornerWedge
+  path) is either absent from the grid or renders invisible (the
+  flagged apex caveat may hide, not flip). Find + fix + one grid
+  screenshot back to the user.
+- (1) raises R7c-3 urgency: worked-tile adjustment is ABSENT from
+  the city view entirely — the roblox-helper drafts the 3D
+  worked-tile proposal (his shape, screenshots) for the user's
+  look rather than waiting further.
+CONE PICK = FAN (user, final): wedge-fan becomes the N-cone mode;
+the stack variant stays code-side for the gallery only.
+
+### B25 — City defense verification (Playtest-C #8; bugfixer, verify-first vs the dump)
+
+User asks: (a) fortified units give their bonus? (engine: ×1.5,
+combat.js — VERIFY a scenario exercises it, pin if not); (b) do
+units defending a CITY get a bonus even without walls in Civ 1
+(auto-fortify-in-city? inherent city bonus?) — WIKI-VERIFY; if
+Civ 1 grants something we lack, fixture-first fix both engines;
+if not, document the no-bonus as authentic in docs/01.
+
 ### R9 — The lobby place: observation deck + pads (Tier-3 slice 1; user design 2026-07-16 — docs/13 Tier-3 block is the spec)
 
 Observation-deck spawn + first-visit greeting + the pad flow
