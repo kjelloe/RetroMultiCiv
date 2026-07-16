@@ -345,6 +345,54 @@ the Ubuntu/Hetzner sections.
 
 ---
 
+## Staying up (optional)
+
+Two dependency-free helpers keep an unattended server healthy. Both use only
+Node/npm and standard shell tools — nothing to install.
+
+### Maintenance page on repeated crashes
+
+`tools/serve-maintenance.js` wraps the server: it spawns
+`node server/index.js`, and if the server exits non-zero several times in a
+row it binds the same port itself and serves a static "down for maintenance"
+page (HTTP 503). It keeps retrying the real server on an interval and hands the
+port back automatically once a retry stays up. Point systemd at the wrapper
+instead of the server directly:
+
+```ini
+ExecStart=/usr/bin/node tools/serve-maintenance.js --port 8123 --host 127.0.0.1
+Environment=MAINTENANCE_CONTACT=you@example.com
+```
+
+Tunables (all optional, via env): `MAINTENANCE_CONTACT` (shown on the page),
+`MULTICIV_MAX_FAILURES` (default 3), `MULTICIV_RETRY_MS` (default 60000),
+`MULTICIV_STABILIZE_MS` (uptime that counts as recovered, default 10000).
+
+### Nightly dependency self-check
+
+`tools/host-selfcheck.sh` runs `npm audit`; if it's clean it does nothing. If
+it finds something, it applies `npm audit fix` **in a throwaway staging copy**,
+runs the **full test suite there**, and only if that's green does it swap the
+verified lockfile into the live tree and restart the service. The live tree is
+never modified before the suite passes — determinism and the one-dependency
+whitelist demand the gate, so nothing is ever "auto-fixed" blindly.
+
+```bash
+# nightly at 04:00, logging to the deploy user's home
+0 4 * * *  cd /opt/multiciv && tools/host-selfcheck.sh >> ~/selfcheck.log 2>&1
+```
+
+Env: `MULTICIV_RESTART` (restart command after a swap, default
+`sudo systemctl restart multiciv`; set empty under Docker), `MULTICIV_DIR`
+(live tree), `MULTICIV_AUDIT_LEVEL` (default `high`). If only a
+major-version upgrade would fix an advisory, the script stops and asks for
+manual review rather than forcing a breaking change.
+
+> A future option (not built): emailing the maintainer on a failed self-check.
+> That needs an outbound-mail dependency, so it waits for an explicit decision.
+
+---
+
 ## Reference
 
 ### Server flags

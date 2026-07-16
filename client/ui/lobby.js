@@ -292,7 +292,7 @@ export function startHostFlow(box, options, flags) {
         seats by name; check the code matches your notes) —</p>
       <div id="lobby-saves"></div>
     </div>
-    <p class="setup-hint"><a href="./">← back</a></p>`;
+    <p class="setup-hint"><a href="./">← back</a> · <a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a></p>`;
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37

@@ -63,6 +63,7 @@ export function showSetupScreen() {
         <button id="setup-host" class="setup-lan-btn">Host LAN game</button>
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
       </div>
+      <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a></p>
     </div>`;
   document.body.appendChild(overlay);
   const setupBox = document.getElementById('setup-box');
