@@ -2970,6 +2970,20 @@ seeds/civs, what breaks the entertainer fallback long-term), then
 a happiness-policy fix; target caps the TAIL (<500 by t400), not
 the median.
 
+**[DIAGNOSED (bugfixer @#548) + RULED (architect @f23c4f71):**
+root cause PROVEN — ai.js happinessCommand's entertainer fallback
+caps at ONE (target = pop-1-specialists fires once; next turn the
+condition is false forever), so despotism/republic cities needing
+2+ entertainers drown permanently (pop-8 witness: stuck at
+unhappy=2 in disorder). FIX PRE-APPROVED: escalate one entertainer
+per turn (target = current_workers - 1 while in disorder;
+auto-revert unchanged = no flap; witness clears in 2 turns).
+SEQUENCED option (ii): WAIT for the post-B21 re-baseline's
+disorderTurns tail — implement only if the tail still exceeds the
+<500 target (B21's rush-buy/build-reorder may have moved it);
+otherwise close measured-no-change with this diagnosis as the
+ledger. Golden window + full re-record when it goes.]**
+
 ## A84 — M9 fix + canonical config (user confirmed 2026-07-16)
 
 Small A64 follow-up: M9's denominator becomes non-polar LAND+COAST
