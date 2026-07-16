@@ -3042,6 +3042,18 @@ median over seeds; a floor breach fails the nightly lane loudly
 data-driven from a table in the script header, values mirror
 docs/05 §12 — one source comment linking both.
 
+## A97 — City-view sell button (A86's client half; helper, small — the A90 pattern)
+
+City view buildings list: each row (except the palace) gains a
+sell affordance — price = def.cost × rules.sellPriceRatio shown,
+confirm on click (the A90 two-step or inline confirm), emits
+sellBuilding{cityId,building}; DISABLED once the city sold this
+turn (mirror the engine's soldThisTurn gate view-side so the
+button and the command never disagree — the A90 shared-gate
+lesson). Keyboard-safe per the INPUT rule; the 'manual'
+buildingSold turn-log line already exists (A86). Roblox parity
+joins the existing docs/13 Tier-2 sell row.
+
 ## A94 — How-to-host guide + Docker image + README links (user package 2026-07-16 evening; helper)  [claimed: helper 2026-07-16] [done: 2026-07-16 — docs/how-to-host.md (source of truth: quick-start run.sh/run.ps1, Ubuntu+systemd, Docker, promoted Hetzner nginx+certbot walkthrough SANITIZED from ops/hosting-recipe.md — DB/secrets stripped since we have neither, the /ws WebSocket upgrade block made explicit as the one RetroMultiCiv delta, Raspberry Pi deltas-only, full flag reference); client/host-guide.html (hand-authored served twin under the hardened /client/ whitelist, self-contained, renders clean); Dockerfile (node:22-slim, npm ci --omit=dev = ws only, ENTRYPOINT node server/index.js so `docker run … --flags` pass through, VOLUME /app/saves) + .dockerignore + compose.yaml; .github/workflows/docker-image.yml (build job validates always; publish job GATED on repo var PUBLISH_GHCR=='true' — owner opt-in for the public GHCR artifact per §2); README.md "Host your own server" section near top + docs-table row. All flags/paths verified against server/index.js (port 8123, /ws, hardened whitelist client/engine/shared/data). GOLDEN-NEUTRAL (docs/infra/static only); suite 359/359 zero-skip; YAML validated; host-guide screenshotted. OPTIONAL FOLLOW-UP: a visible in-client link to /client/host-guide.html from setup/lobby (left out — touches setup.js, a UI-placement call for you/user). A96 (self-check + maintenance page) is the package's second half, still queued.]
 
 1. **docs/how-to-host.md** (source of truth) + **client/host-guide
