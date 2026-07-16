@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 15, 'the fifteen scenarios (017-ship-vs-land added in B20)');
+      assert.strictEqual(files.length, 16, 'the sixteen scenarios (018-caravan-wonder added in A83)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -137,7 +137,8 @@ const PORTED = [
   '014-river.json', // B19: Bridge Building river roads + no river mining
   '015-obsolescence.json', // B13a/A63: units leave the catalog on obsoletedBy tech
   '016-barracks-sell.json', // B13/A63: barracks sold for gold on the obsoleting tech
-  '017-ship-vs-land.json' // B20: ships attack coastal land in-place, no capture from sea
+  '017-ship-vs-land.json', // B20: ships attack coastal land in-place, no capture from sea
+  '018-caravan-wonder.json' // A83: caravan helps build a wonder (helpWonder command)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

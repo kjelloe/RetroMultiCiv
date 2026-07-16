@@ -39,7 +39,8 @@
     "cost": 50,
     "domain": "land",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "helpsWonder": true
   },
   "catapult": {
     "name": "Catapult",

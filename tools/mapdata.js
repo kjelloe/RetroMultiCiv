@@ -189,7 +189,7 @@ function buildTechs() {
 // sail→magnetism, frigate→industrialization, ironclad→combustion.
 const UNIT_OVERLAY = {
   'diplomat': { ignoresZoc: true },
-  'caravan':  { ignoresZoc: true },
+  'caravan':  { ignoresZoc: true, helpsWonder: true },
   'nuclear':  { ignoresZoc: true },
   'phalanx':    { obsoletedBy: 'gunpowder' },
   'militia':    { obsoletedBy: 'gunpowder' },

@@ -383,6 +383,35 @@ function buyProduction(state, cmd, ruleset) {
   return { ok: true, events: [{ type: 'productionBought', cityId: city.id, price, item: prod }] };
 }
 
+// A83: a caravan (units.json helpsWonder) standing in one of the player's own
+// cities that is building a wonder pours its build cost into the shield box and
+// is consumed — Civ 1's "help build wonder?" prompt. The shields only FILL the
+// box; the wonder completes at the turn wrap in processCities, exactly like buy.
+// Human-only: the AI never fields caravans, so the sim goldens are untouched.
+function helpWonder(state, cmd, ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  const def = ruleset.units[unit.type];
+  if (!def || def.helpsWonder !== true) return { ok: false, reason: 'cannotHelpWonder' };
+  let city = null;
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (c && c.x === unit.x && c.y === unit.y) { city = c; break; }
+  }
+  if (!city) return { ok: false, reason: 'noCityHere' };
+  if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
+  if (city.producing.kind !== 'wonder') return { ok: false, reason: 'notBuildingWonder' };
+  const added = def.cost;
+  city.shields = city.shields + added;
+  delete state.units[cmd.unitId];
+  return { ok: true, events: [{
+    type: 'wonderHelped', cityId: city.id, unitId: cmd.unitId,
+    wonder: city.producing.id, shields: added, playerId: cmd.playerId
+  }] };
+}
+
 // Runs once per game turn (when the last player ends): food box + production.
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
@@ -527,7 +556,7 @@ function citySpacingOk(map, x, y, cx, cy, rules) {
 }
 
 export {
-  foundCity, setProduction, setWorkers, buyProduction, processCities,
+  foundCity, setProduction, setWorkers, buyProduction, helpWonder, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
   unitObsolete

@@ -2887,7 +2887,7 @@ engine edit — the luau twins already matched), in PORTED, setup-count
 15. Golden-neutral (no engine change; sim untouched). Full suite
 316/316.]
 
-## A83 — Caravan wonder-help (A71's cheap delight; user green-lit 2026-07-16)
+## A83 — Caravan wonder-help (A71's cheap delight; user green-lit 2026-07-16)  [claimed: bugfixer 2026-07-16 @0b45b04e] [done: 2026-07-16 — explicit helpWonder command (architect-blessed deviation @e395a4e5: command over auto-on-enter), helpsWonder:true via UNIT_OVERLAY (data-driven, amount=def.cost=50, no new number), wonderHelped event + own-seat turnlog line, four rejection reasons; both engines byte-shaped; scenario 018-caravan-wonder=0x342cade9 (PORTED, setup-count 16); GOLDEN-NEUTRAL (AI fields no caravans); suite 324/324 zero-skip, 7 new tests incl. revert-proof; consume stays inline until A89 factors consumeUnit. Client button = A90.]
 
 Civ 1: a caravan entering a DOMESTIC city building a wonder adds
 its 50 shields and is consumed. Small engine command-path (the
@@ -2922,6 +2922,15 @@ data/rules.json (tradeRoute block); both engines one window;
 scenario pins (domestic-choice, foreign-auto, windfall math,
 3-route cap). Turn-log 🐫 line + phase-6 chains design consumes
 this later.
+
+## A90 — Help-Wonder action-bar button (A83's client half; helper, small)
+
+When the selected unit has helpsWonder:true AND stands in a
+DOMESTIC city whose production is a wonder: the action bar shows a
+Help Wonder button (tooltip: +50 shields, consumed) → emits
+helpWonder. Grey/absent otherwise; keyboard-safe per the INPUT
+rule; turn-log line already exists (A83). Roblox parity row rides
+docs/13 Tier-2 later.
 
 ## B21 — Wake the sleeping capabilities (post-B13 re-baseline verdict, sim-runner #534; bugfixer, ONE window, after A83)
 

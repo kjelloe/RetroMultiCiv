@@ -8,7 +8,7 @@
 --   * every array CREATED here (buildings, workers slices) carries
 --     statehash.ARRAY_MT so empty ones serialize as [] not {}
 -- EXPORTS (stable): foundCity, setProduction, setWorkers, buyProduction,
--- processCities, cityYields, workedTiles, candidateTiles, tileYields,
+-- helpWonder, processCities, cityYields, workedTiles, candidateTiles, tileYields,
 -- FAT_CROSS, hasBuilding, wonderActive, wonderInCity, effectPct, itemCost,
 -- civVeteran, citySpacingOk.
 
@@ -545,6 +545,52 @@ local function buyProduction(state: any, cmd: any, ruleset: any): any
 	return { ok = true, events = { { type = "productionBought", cityId = city.id, price = price, item = prod } } }
 end
 
+-- A83: a caravan (units.json helpsWonder) standing in one of the player's own
+-- cities that is building a wonder pours its build cost into the shield box and
+-- is consumed -- Civ 1's "help build wonder?" prompt. The shields only FILL the
+-- box; the wonder completes at the turn wrap in processCities, exactly like buy.
+-- Human-only: the AI never fields caravans, so the sim goldens are untouched.
+local function helpWonder(state: any, cmd: any, ruleset: any): any
+	local unit = state.units[cmd.unitId]
+	if unit == nil then
+		return { ok = false, reason = "unknownUnit" }
+	end
+	if unit.owner ~= cmd.playerId then
+		return { ok = false, reason = "notYourUnit" }
+	end
+	if state.activePlayer ~= cmd.playerId then
+		return { ok = false, reason = "notYourTurn" }
+	end
+	local def = ruleset.units[unit.type]
+	if def == nil or def.helpsWonder ~= true then
+		return { ok = false, reason = "cannotHelpWonder" }
+	end
+	local city = nil
+	for _, cid in ipairs(state.cityOrder) do
+		local c = state.cities[cid]
+		if c ~= nil and c.x == unit.x and c.y == unit.y then
+			city = c
+			break
+		end
+	end
+	if city == nil then
+		return { ok = false, reason = "noCityHere" }
+	end
+	if city.owner ~= cmd.playerId then
+		return { ok = false, reason = "notYourCity" }
+	end
+	if city.producing.kind ~= "wonder" then
+		return { ok = false, reason = "notBuildingWonder" }
+	end
+	local added = def.cost
+	city.shields += added
+	state.units[cmd.unitId] = nil
+	return { ok = true, events = { {
+		type = "wonderHelped", cityId = city.id, unitId = cmd.unitId,
+		wonder = city.producing.id, shields = added, playerId = cmd.playerId,
+	} } }
+end
+
 -- Runs once per game turn (when the last player ends): food box + production.
 local function processCities(state: any, ruleset: any, events: any)
 	local order = state.cityOrder
@@ -698,6 +744,7 @@ return {
 	setProduction = setProduction,
 	setWorkers = setWorkers,
 	buyProduction = buyProduction,
+	helpWonder = helpWonder,
 	processCities = processCities,
 	cityYields = cityYields,
 	workedTiles = workedTiles,

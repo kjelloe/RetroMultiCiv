@@ -215,6 +215,8 @@ local function createEngine(ruleset: any)
 			result = cities.setWorkers(next_, cmd, ruleset)
 		elseif cmd.type == "buy" then
 			result = cities.buyProduction(next_, cmd, ruleset)
+		elseif cmd.type == "helpWonder" then
+			result = cities.helpWonder(next_, cmd, ruleset)
 		elseif cmd.type == "startWork" then
 			result = improvements.startWork(next_, cmd, ruleset)
 		elseif cmd.type == "pillage" then

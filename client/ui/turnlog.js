@@ -233,6 +233,10 @@ export function initTurnLog(ctx) {
         // B13/A63: an obsoleted building auto-sold for gold on the new tech
         const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         put(`💰 ${cityName} sold ${buildings[e.building].name} (+${e.gold}g, obsolete)`, '', cityLoc(state, e.cityId));
+      } else if (e.type === 'wonderHelped' && e.playerId === ctx.HUMAN) {
+        // A83: a caravan poured its shields into a wonder in progress
+        const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
+        put(`🐫 ${cityName} — caravan helped build ${wonders[e.wonder].name} (+${e.shields}⚒)`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'wonderBuilt') {
         // wonders are world news (Civ 1 announces them to everyone)
         const mine = ownCity(state, e.cityId);
