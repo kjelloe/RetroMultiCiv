@@ -28,7 +28,9 @@ UI element's Roblox shape, in tiers), `14-phase6-diplomacy.md`
 senate, human treaties in LAN — slices D1–D6; A59 is the
 prerequisite), `15-ai-war.md` (the AI war doctrine: user's 3:1-both
 ruling with sim-swept ratios per combat rule, army options, siege/
-blockade, era templates).
+blockade, era templates), `16-security-assessment.md` (the hosted
+surface: posture per component, the ranked gap list feeding A50,
+operator quick-card — re-assess at A50/master-index/new-dep/1.0).
 
 ## Hard rules
 

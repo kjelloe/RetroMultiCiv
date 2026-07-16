@@ -3084,6 +3084,14 @@ posture, DoS surface, dependency chain (ws + dev-only deps), TLS
 story (recommend reverse proxy TLS termination — caddy/nginx
 snippets in A94's guide), Pi/Hetzner firewall guidance. Deliverable:
 docs/16-security-assessment.md + a gap list feeding A50's queue.
+[done: 2026-07-16 night — architect draft committed: surface
+enumeration (static whitelist w/ double traversal guard, /ws frame
+cap + validation chokepoint + seat-token model, saves-at-rest,
+supply chain, availability), ranked 6-gap list (A50's rate
+limits/TTLs = the main open public-hosting risk; new: a hostile-
+stream scale-test job), operator quick-card, re-assess triggers
+(A50, master index, new dep, 1.0). HELPER REVIEW PENDING — second
+pair of eyes per the item.]
 
 ## A96 — Nightly self-check + maintenance fallback (user package; helper, server-adjacent)  [claimed: helper 2026-07-16] [done: 2026-07-16 — tools/serve-maintenance.js (dependency-free watchdog, Node built-ins only: spawns node server/index.js, and after MULTICIV_MAX_FAILURES consecutive non-zero exits binds the SAME port and serves a 503 maintenance page with MAINTENANCE_CONTACT; retries every MULTICIV_RETRY_MS and hands the port back once a retry stays up MULTICIV_STABILIZE_MS — BOTH paths tested live: failure→503+contact and recovery→page-torn-down/real-server-retakes-port; MULTICIV_SERVER_ENTRY override added for alt entrypoints+testability); tools/host-selfcheck.sh (npm audit; on findings applies `npm audit fix` in a THROWAWAY rsync staging copy, runs the FULL suite there, and only on green swaps the verified package.json+lock into live + npm ci + MULTICIV_RESTART — NEVER touches live before the gate; stops for manual review if only a major/--force upgrade would fix; clean-audit path verified exit 0); docs/how-to-host.md "Staying up" ops section (systemd ExecStart via the wrapper + the nightly cron line + all env). PLUS the A94 optional follow-up folded in per architect #575: "Hosting guide ↗" link on the SETUP screen (setup.js, renders clean — screenshot) and the LOBBY host-create panel (lobby.js, beside "← back"), both → /client/host-guide.html. node --test suite 365/365 zero-skip; both tools syntax-clean. **VISUAL-GOLDEN FLAG (breaking for the nightly A48 lane): the setup.js link CHANGES the splash frame (?splashstill renders the setup panel) → splash.png golden will go red next nightly; re-record splash from the CI actual (eyeball: only diff = the new link line). gallery.png UNAFFECTED (renders assets, not setup DOM). Resend-mail integration deliberately NOT built (needs an outbound-dep decision).]
 
