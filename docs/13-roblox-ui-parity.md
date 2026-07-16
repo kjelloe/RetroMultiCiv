@@ -42,6 +42,19 @@ per item; the architect cuts R-items from the tiers in order.
 > step case; pathfind.luau ports when GoTo justifies it). Combat
 > odds + city-site preview remain the open Tier-1 rows. Played
 > acceptance folds into the user's run2.
+>
+> RUN2 PLAYED ACCEPTANCE (2026-07-16): 88 turns / 579 commands in
+> Studio, replayed ALL HASHES MATCH, game code agrees at turn 88 —
+> every R5/R6 command path exercised except setRates. The user's
+> 16 feedback items are triaged as R7 (agent-workitems): R7a small
+> UI sweep, R7b presentation (unit labels, site stars, research
+> splash, void-cover art — both variants screenshot, user picks),
+> R7c design-first (3D worked-tile city view, left-side button
+> cluster, debug menu via engine debug commands). ACCEPTED
+> DIVERGENCES from the browser, both for Roblox screen space:
+> production picker HIDES beyond-next-tech entries (browser shows
+> locked-with-reasons); auto end-turn + auto next-unit DEFAULT ON
+> (browser defaults off).
 
 | Browser element | Roblox shape (proposal) | Notes |
 |---|---|---|

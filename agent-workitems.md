@@ -798,6 +798,70 @@ path replays hash-exact both engines; screenshots read per surface.
 pathfind.luau (the A65 port, subset-ready) may land here if GoTo
 wants it — your call, flag it.
 
+### R7 — Roblox-Playtest-B batch (user's run2 feedback, 2026-07-16; assigned: roblox-helper)
+
+The user's 16 items from the 88-turn Studio session, triaged by the
+architect. Numbers below are the user's (Roblox-Playtest-B N).
+View/UI-only unless flagged — nothing here touches engine state.
+
+**R7a — small UI corrections (do first, one sweep):**
+- (4) Action bar: actions unavailable to the selected/mounted unit
+  render grayed + disabled (view-side legality precheck; server
+  still judges — A29 pattern, display-only).
+- (1) Production picker: HIDE entries not buildable with current
+  OR next-reachable tech (one-tech lookahead filter). Browser shows
+  locked-with-reasons instead — divergence ACCEPTED for Roblox
+  (screen space); noted in docs/13.
+- (15) Next-unit skips FORTIFIED units (browser parity —
+  client/ui/input.js:255 semantics: skip fortified/working unless
+  explicitly selected).
+- (12) Next-unit ordering: NEAREST-first from the unit the call
+  was made from (client-side pick order, camera stops jumping).
+- (9) Double-click a friendly unit while mounted → mount rides to
+  it (same path as N-next movement).
+- (5) "Auto next unit" option, DEFAULT ON for new users (advance
+  on unit exhausted; option to disable).
+- (7) Auto end-turn DEFAULT ON when all units moved + a center-
+  screen hint when manual end-turn is still required (browser has
+  the option; Roblox flips the default — noted in docs/13).
+- (6) Research button OUT of the unit action bar → top-center
+  cluster (reserves slots for diplomacy + statistics later).
+**R7b — unit/world presentation:**
+- (8) Per-unit billboard label: unit name + att/def + movement
+  left as short bars at the model base (fog-respecting: rivals
+  show only what the view carries).
+- (10) Found-city: grayed when too close per rules (view precheck)
+  + site rating as a 1–3 star label on the settler model (the
+  Tier-1 site-preview row, now with the user's shape).
+- (11) Research-complete notification: splash with the discovery
+  (name, effects from view data — never wiki prose) + blinking
+  Research button until the next pick is made.
+- (2) VOID COVER: baseplate + backdrop outside the map so avatars
+  never fall into the void (physical guard = invisible walls or
+  kill-plane respawn). ART DIRECTION = the soundboard pattern:
+  build BOTH cheap variants — (i) Dutch-Golden-Age ornate map-
+  border frame, (ii) galaxy skybox (stars/nebulae, earth-map-in-
+  space) — screenshot both, the user picks by eye. Own-art/
+  procedural only (license discipline — no imported textures
+  without clearance).
+**R7c — design-first (architect + user before build):**
+- (3) City-view worked-tile mode: 3D in-world city-limits +
+  worked-tile indication, per-tile resources as hover objects or
+  decals; allocate workers by tapping tiles (the docs/13 Tier-2
+  worked-tile row, promoted with the user's 3D direction).
+- (13)(14) Left-side on-screen button cluster (follow-avatar etc.
+  + ride-mode movement pad) — click-only friendliness, NO keyboard
+  assumed; (14) explicitly design-later per the user.
+- (17) Debug/dev menu (LOCAL DEV ONLY): give gold to any civ,
+  spawn unit at location. NOT view-side — state mutation must be
+  ENGINE COMMANDS (debug-gated command family, recorded in
+  replays so verification survives; server --debug analog).
+  ARCHITECT designs the command surface first (new A-item when
+  scheduled); the Roblox menu is the thin client of it.
+ACCEPTANCE: R4 bar for anything command-adjacent; screenshots per
+surface; run3 folds R7a+R7b. setRates exercise + fog verdict +
+per-surface screenshot READ (the run2 leftovers) close with it.
+
 ## A1 — Standing sync pass: specs, MDs, tests, documentation, memories  [claimed: coder-helper 2026-07-12] [done: 2026-07-12 — 3 AI-batch doc drifts fixed (docs/01 §11 AI bullet, docs/03 step-11 AI-improvements status, README test count 112→124); all other areas checked, no drift; suite 124/124]
 
 The recurring instruction "update use-case specs, MDs, tests, documentation,
