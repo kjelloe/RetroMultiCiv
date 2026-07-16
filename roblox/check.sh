@@ -57,6 +57,14 @@ else
   note SKIP "gate 4: node absent"
 fi
 
+# gate 6 — no client script binds a platform-reserved KeyCode (SPEC §4;
+# F9 = Developer Console collision found live at runC)
+if grep -rnE 'KeyCode\.(F9|F12|Escape)\b' roblox/src/client/ >/dev/null 2>&1; then
+  note FAIL "gate 6: platform-reserved KeyCode bound in src/client (F9/F12/Escape)"
+else
+  note PASS "gate 6: no platform-reserved KeyCodes bound"
+fi
+
 # gate 5 — R8 recipe keys: every units.json id resolves through
 # unitSilhouette to a real recipe (the ally's check-asset-sync idea)
 if command -v node >/dev/null 2>&1; then

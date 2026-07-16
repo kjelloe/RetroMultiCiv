@@ -78,6 +78,59 @@ local function possess(unitId)
 	print(("[Possess] riding %s (%s) at (%d,%d), moves %d"):format(unitId, u.type, u.x, u.y, u.moves))
 end
 
+-- R12 opening-lockout fix: no SpawnLocation + destroyed Baseplate means the
+-- default spawn (world origin) is almost always an UNEXPLORED tile — no
+-- terrain part, so the avatar falls through the fog void onto VoidCover's
+-- catch floor UNDER the map and can't jump back up. Place every character
+-- on an own unit's tile instead (settlers preferred: riding the opening
+-- settler is the Roblox-native first move).
+local function homeSpot()
+	local view = ClientState.view
+	if view == nil then
+		return nil
+	end
+	local best = nil
+	for _, u in pairs(view.units) do
+		if u.owner == view.you and (best == nil or u.type == "settlers") then
+			best = u
+		end
+	end
+	if best ~= nil then
+		return best.x, best.y
+	end
+	for _, c in pairs(view.cities or {}) do
+		if c.owner == view.you then
+			return c.x, c.y
+		end
+	end
+	return nil
+end
+
+local function placeCharacter(character)
+	local root = character:WaitForChild("HumanoidRootPart", 5)
+	if root == nil or ClientState.possessedUnitId ~= nil then
+		return
+	end
+	local x, y = homeSpot()
+	if x ~= nil then
+		root.CFrame = CFrame.new(x * TILE, tileTopY(x, y) + 6, y * TILE)
+	end
+end
+
+Players.LocalPlayer.CharacterAdded:Connect(placeCharacter)
+
+local placedOnce = false
+ClientState.onView(function()
+	-- boot order: the first character usually lands before the first view
+	if not placedOnce and ClientState.view ~= nil then
+		placedOnce = true
+		local character = Players.LocalPlayer.Character
+		if character ~= nil then
+			placeCharacter(character)
+		end
+	end
+end)
+
 -- next own idle unit — R7a (12)(15): nearest-first, skips fortified/working
 -- (input.js:255 semantics); the shared picker lives in ClientState
 local function nextUnit()
@@ -117,7 +170,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			print("[Possess] no units with moves left")
 		end
 	elseif ClientState.possessedUnitId ~= nil then
-		if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.F then
+		-- Esc is platform-reserved (Roblox menu) — F alone dismounts (SPEC §4 gate 6)
+		if input.KeyCode == Enum.KeyCode.F then
 			release("dismount")
 		else
 			local dir = KEY_DIR[input.KeyCode]

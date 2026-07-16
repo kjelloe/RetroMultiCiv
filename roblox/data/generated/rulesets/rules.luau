@@ -38,6 +38,17 @@ return [==[{
   "sellPriceRatio": 1,
   "exploreMarchRadius": 8,
   "threatRadius": 8,
+  "attackerPerCity": 1,
+  "attackerBase": 2,
+  "aiAttackerTechWeight": 1,
+  "aiBuyThreshold": 200,
+  "aiScoutSharePct": 25,
+  "aiExploreMode": "bfs",
+  "aiCoastFollow": true,
+  "aiWarDoctrine": {
+    "1": { "massSize": 4, "oddsGate": 0 },
+    "3": { "massSize": 4, "oddsGate": 2 }
+  },
   "barbTierThreshold": 30,
   "barbTiers": [
     { "tech": "", "unit": "militia" },

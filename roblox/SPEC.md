@@ -386,7 +386,8 @@ renderers compose the SAME primitives from it.
 - `ViewRenderer` builds unit bodies via `AssetFactory.buildUnit`
   (placeholder blocks remain only as the pcall fallback); the owner
   disc / rampart / billboard stay procedural on top.
-- `GalleryGrid.client.luau`: **F9** toggles a floating grid — every
+- `GalleryGrid.client.luau`: **K** toggles a floating grid (F9 is
+  platform-reserved, Developer Console — found live at runC) — every
   unit recipe twice (fan | stack), the city house+roof, every
   propShape, labeled. The Studio screenshot of this grid vs
   `debugging/gallery.html` is the R8 acceptance; the user judges
@@ -410,6 +411,14 @@ architect):
    (drift check — read-only consumption of `test/`).
 4. `node data/build.js --check` — generated Luau data still matches
    its JS/JSON sources (skips if node is absent).
+5. `node data/build.js --keys` — recipe-key coverage (R8, §3k).
+6. Reserved-keys gate: no client script binds a PLATFORM-RESERVED
+   KeyCode. The reserved list (grows as collisions are found):
+   `F9` (Developer Console — bit us live at runC), `F12` (record),
+   `Escape` (Roblox menu, docs/13 standing list). Client keybinds
+   must come from the free pool; the taken pool is every hotkey in
+   README "Controls" (currently B G Space X I M R P N F T L C J V K
+   + camera Q E WASD).
 
 What check.sh cannot cover: Luau execution. The only executable proof
 is Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
@@ -504,7 +513,8 @@ Stop) are hash-verified but must not skew the code check.
 - R8 (§3k, AssetFactory): **CODE-COMPLETE 2026-07-16** (claimed
   @f35fc677) — recipes bake (fnv32 pin 12285661, MATCH verified via
   lune), composer with both cone variants, ViewRenderer bodies from
-  data, gallery grid (F9), check.sh gate 5 (keys); 35 gates.
+  data, gallery grid (K; F9 collided with the platform console),
+  check.sh gate 5 (keys); 35 gates.
   Acceptance PENDING: the Studio gallery-grid screenshot vs the
   browser gallery — the user judges cone fidelity (fan vs stack).
 

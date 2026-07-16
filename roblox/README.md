@@ -90,7 +90,7 @@ don't commit it.
    (selectable); End Turn goes green when everything moved and asks
    twice ("N can move!") if you end early. R8: unit models now build
    from the shared asset recipes (same silhouettes as the browser);
-   `F9` toggles the floating gallery grid — every recipe in BOTH cone
+   `K` toggles the floating gallery grid — every recipe in BOTH cone
    variants (fan | stack) plus city and props — screenshot it for the
    cone-fidelity pick. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —

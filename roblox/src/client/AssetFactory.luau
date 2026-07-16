@@ -13,7 +13,7 @@
 --   cone   -> seg 4 = square pyramid from 4 CornerWedgeParts;
 --             seg N = coneMode "fan" (N WedgeParts, chord-width slabs) or
 --             "stack" (3-disc ziggurat) — the USER'S judgment point, both
---             render in the gallery grid (F9)
+--             render in the gallery grid (K)
 --   dodeca -> squat Ball (rock stand-in, flagged approx)
 --   torus  -> ring of 8 boxes (fortress wall stand-in, flagged approx)
 --   rot [rx,ry,rz] radians -> CFrame.fromEulerAnglesXYZ (single-axis in
@@ -97,15 +97,15 @@ end
 
 -- square pyramid: 4 CornerWedgeParts, apex corners meeting at the axis.
 -- baseCF = base-center CFrame IN THE PRIMITIVE'S ROTATED FRAME (a tilted
--- cone's base shifts along its own axis). If a Studio look shows the apexes
--- pointing outward, the yaw offset flips by 180 — the gallery grid (F9) is
--- the verification surface.
+-- cone's base shifts along its own axis). The +180 yaw is the flip the
+-- user's model-house-fail1.png proved necessary (apexes pointed outward,
+-- a crown) — the gallery grid (K) is the verification surface.
 local function pyramid(model, baseCF, r, h, color)
 	for i = 0, 3 do
 		local piece = basePart("CornerWedgePart")
 		piece.Size = Vector3.new(r, h, r)
 		piece.Color = color
-		piece.CFrame = baseCF * CFrame.Angles(0, math.rad(90 * i), 0) * CFrame.new(r / 2, h / 2, -r / 2)
+		piece.CFrame = baseCF * CFrame.Angles(0, math.rad(90 * i + 180), 0) * CFrame.new(r / 2, h / 2, -r / 2)
 		piece.Parent = model
 	end
 end

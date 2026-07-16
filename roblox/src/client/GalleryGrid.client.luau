@@ -1,4 +1,5 @@
--- R8: the Studio gallery grid (roblox/SPEC.md §3k) — F9 toggles a floating
+-- R8: the Studio gallery grid (roblox/SPEC.md §3k) — K toggles a floating
+-- (F9 is platform-reserved: Roblox Developer Console — see SPEC §3k reserved keys)
 -- grid of EVERY unit recipe built TWICE (cone variant A "fan" on the left,
 -- variant B "stack" on the right — the user's cone-fidelity judgment point),
 -- plus the city house+roof and every propShape. Labels are Billboards.
@@ -72,7 +73,8 @@ local function build()
 	local zC = row * STEP
 	AssetFactory.buildShape(city, data.cityRecipe.house, colors, CFrame.new(0, Y + 0.5, zC))
 	local roof = table.clone(data.cityRecipe.roof)
-	roof.pos = { 0, 1.0 / 4, 0 } -- perch on the unit-cube house (recipe units)
+	-- recipe pos = cone CENTER (three convention): house top 0.5 + h/2 = 1.0
+	roof.pos = { 0, 1.0, 0 }
 	AssetFactory.buildShape(city, roof, colors, CFrame.new(0, Y + 0.5, zC))
 	label(city, "city house+roof", CFrame.new(0, Y, zC))
 	city.Parent = folder
@@ -87,7 +89,13 @@ local function build()
 	for _, key in ipairs(propKeys) do
 		local model = Instance.new("Model")
 		model.Name = "P_" .. key
-		AssetFactory.buildShape(model, data.propShapes[key], colors, CFrame.new(col * STEP, Y + 0.5, zC))
+		local shape = data.propShapes[key]
+		if shape.pos == nil and shape.shape == "cone" then
+			-- pos-less cone recipes center at origin; lift h/2 so the base sits on the anchor
+			shape = table.clone(shape)
+			shape.pos = { 0, shape.size[2] / 2, 0 }
+		end
+		AssetFactory.buildShape(model, shape, colors, CFrame.new(col * STEP, Y + 0.5, zC))
 		label(model, key, CFrame.new(col * STEP, Y, zC))
 		model.Parent = folder
 		col += 1
@@ -105,7 +113,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if UserInputService:GetFocusedTextBox() ~= nil then
 		return
 	end
-	if input.KeyCode == Enum.KeyCode.F9 then
+	if input.KeyCode == Enum.KeyCode.K then
 		if folder ~= nil then
 			folder:Destroy()
 			folder = nil
@@ -123,4 +131,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[Gallery] R8 gallery grid ready (F9 toggles; fly there or zoom out)")
+print("[Gallery] R8 gallery grid ready (K toggles; fly there or zoom out)")

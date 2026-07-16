@@ -42,7 +42,8 @@ return [==[{
     "cost": 50,
     "domain": "land",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "helpsWonder": true
   },
   "catapult": {
     "name": "Catapult",
@@ -191,7 +192,8 @@ return [==[{
     "moves": 5,
     "cost": 160,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "airCapacity": 8
   },
   "cruiser": {
     "name": "Cruiser",
@@ -212,7 +214,8 @@ return [==[{
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "industrialization"
+    "obsoletedBy": "industrialization",
+    "transport": 4
   },
   "ironclad": {
     "name": "Ironclad",
@@ -234,7 +237,8 @@ return [==[{
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "magnetism"
+    "obsoletedBy": "magnetism",
+    "transport": 3
   },
   "submarine": {
     "name": "Submarine",
@@ -254,7 +258,8 @@ return [==[{
     "moves": 4,
     "cost": 50,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "transport": 8
   },
   "trireme": {
     "name": "Trireme",
@@ -265,7 +270,8 @@ return [==[{
     "cost": 40,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "navigation"
+    "obsoletedBy": "navigation",
+    "transport": 2
   },
   "bomber": {
     "name": "Bomber",
@@ -275,7 +281,9 @@ return [==[{
     "moves": 8,
     "cost": 120,
     "domain": "air",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true,
+    "fuel": 2
   },
   "fighter": {
     "name": "Fighter",
@@ -285,7 +293,9 @@ return [==[{
     "moves": 10,
     "cost": 60,
     "domain": "air",
-    "notes": ""
+    "notes": "",
+    "ignoresZoc": true,
+    "fuel": 1
   },
   "nuclear": {
     "name": "Nuclear",
@@ -296,7 +306,9 @@ return [==[{
     "cost": 160,
     "domain": "air",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "oneShot": true,
+    "fuel": 1
   }
 }
 ]==]
