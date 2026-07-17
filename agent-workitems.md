@@ -39,6 +39,33 @@ assembly, parts appearing as built; pairs with N17's engine) →
 H9. ~~A58 pedia~~ STRUCK 2026-07-17 (A58a–d COMPLETE + committed;
 pedia-concepts.js is the ally's editorial draft, not helper work;
 prior-art catch #1068).
+LAN-REFINEMENT BATCH (user playtest 2026-07-18 ~00:00; helper lane,
+all golden-neutral; L3b touches server/lobby.js id-gen only — not the
+hardening lane's connect/cmd):
+L1. LAN HOSTING SCREEN visual cleanup — reorganize to the START PAGE's
+    two-column layout; normalize the game-code input font (currently
+    much larger than the rest); structured pass, screenshot before/after.
+L2. RESUME-GAME BUTTON FLOW — "Resume game" button HIDES the new-game
+    options and shows: game-code input + "Validate and start" button
+    below. Listing existing saves/codes moves behind the server's
+    --debug flag ONLY (today they list openly — an information-leak
+    nit AND clutter; --debug keeps the dev convenience).
+L3a. GAME LOBBY vertical AUTO-FIT to browser height (no page scroll).
+L3b. JOIN-CODE FRESHNESS (root cause confirmed, architect): lobby
+    gameIdFn = 'g'+nextNum++ resets each boot → first game per boot is
+    always 'g1' → joinCode('g1') = the same code across server
+    restarts (user observed). FIX: mix boot entropy into the default
+    gameIdFn ('g<bootSuffix>-<n>'); tests keep injecting their own
+    deterministic gameIdFn; resume-by-code keeps reusing the SAME
+    game's code by design. Server test: two boots → different codes.
+L5. MOBILE DEBUG OVERLAY — ?mlog=1: an on-screen scrollable overlay
+    (client-only, any server) showing capturedErrors, ws frame
+    types in/out, boot-progress marks — so a phone with no console can
+    self-report. THEN use it to diagnose the real bug: mobile joined
+    the lobby + chatted, but game start showed NOTHING (suspect
+    renderer/WebGL init or the started-transition swallow — the
+    overlay tells us which). Pairs with specs/mobile-plan.md T0.
+(L4 = readme screenshot swap — user decision, human-workitems.)
 VISUAL-GOLDEN RIDER QUEUE (architect 2026-07-17 late): veteran-rim
 dark treatment on isLightColor discs (palette P3 finding — pre-existing
 on Egyptian cream; assets.js small change, alters default gallery =
