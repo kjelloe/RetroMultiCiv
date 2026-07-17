@@ -436,15 +436,22 @@ function warDoctrineOf(ruleset) {
   const table = ruleset.rules.aiWarDoctrine;
   const cr = ruleset.rules.combatRounds === undefined ? 1 : ruleset.rules.combatRounds;
   const d = table === undefined ? undefined : table['' + cr];
-  if (d === undefined) return { massSize: 4, oddsGate: 0, defenderGate: 1 };
-  // B26: defenderGate governs DEFENDER-type attack-initiation (militia/phalanx
-  // sorties). A table entry from before B26 lacks it; fall back to the offensive
-  // gate when it bites (best-of-three) or an even-odds floor (one-roll oddsGate 0
-  // -> 1: no suicide charges, but Civ 1 aggression at even odds survives).
-  const oddsGate = d.oddsGate === undefined ? 0 : d.oddsGate;
-  const defenderGate = d.defenderGate !== undefined ? d.defenderGate
-    : (oddsGate > 0 ? oddsGate : 1);
-  return { massSize: d.massSize, oddsGate: oddsGate, defenderGate: defenderGate };
+  if (d === undefined) return { massSize: 4, oddsGatePct: 0, defenderGatePct: 100 };
+  // B26b: the gates are PERCENTS (100 = the old integer 1) so the M11 sweep can
+  // tune FRACTIONAL defender gates without floats (assaultOddsOk: att*100 >= pct*def,
+  // decision-identical at 0/100/200). defenderGatePct governs DEFENDER-type attack-
+  // initiation. A pre-B26b table carries the old integer oddsGate/defenderGate —
+  // resolve them via *100 fallback so external tables/saves/sweeps stay valid
+  // (defenderGate absent -> the offensive gate when it bites, else an even-odds
+  // floor of 100: no suicide charges, Civ 1 aggression at even odds survives).
+  let oddsGatePct = d.oddsGatePct;
+  if (oddsGatePct === undefined) oddsGatePct = (d.oddsGate === undefined ? 0 : d.oddsGate) * 100;
+  let defenderGatePct = d.defenderGatePct;
+  if (defenderGatePct === undefined) {
+    defenderGatePct = d.defenderGate !== undefined ? d.defenderGate * 100
+      : (oddsGatePct > 0 ? oddsGatePct : 100);
+  }
+  return { massSize: d.massSize, oddsGatePct: oddsGatePct, defenderGatePct: defenderGatePct };
 }
 
 // B24: the nearest KNOWN enemy city to this unit (the army group's shared
@@ -477,13 +484,14 @@ function attackersAdjacentTo(state, playerId, ruleset, x, y) {
 }
 
 // B24: the per-unit odds gate. An attacker may strike (x, y) iff it is
-// undefended (a capture) OR its attack strength >= oddsGate × the best
+// undefended (a capture) OR its attack strength × 100 >= gatePct × the best
 // defender's defense strength (combat.js strengths: veteran/terrain/
-// fortified/walls-aware). oddsGate 0 (one-roll) always passes — mass, not odds.
-function assaultOddsOk(state, unit, x, y, ruleset, oddsGate) {
+// fortified/walls-aware). B26b: gatePct is a PERCENT (0 always passes — mass,
+// not odds; 100 = even odds; 200 = 2:1) so fractional gates need no floats.
+function assaultOddsOk(state, unit, x, y, ruleset, gatePct) {
   const defender = bestDefender(state, x, y, ruleset);
   if (!defender) return true;
-  return attackStrength(unit, ruleset) >= oddsGate * defenseStrength(state, defender, ruleset);
+  return attackStrength(unit, ruleset) * 100 >= gatePct * defenseStrength(state, defender, ruleset);
 }
 
 // B26: would stepping `dir` initiate an attack the doctrine gate FORBIDS? True
@@ -1251,10 +1259,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // defenderGate (one-roll 1 = even-or-better odds). Attack-INITIATION is now
     // gated for EVERY unit, closing the un-gated defender sorties (#646, B26).
     const D = warDoctrineOf(ruleset);
-    const engageGate = attDef.attack > attDef.defense ? D.oddsGate : D.defenderGate;
+    const engageGatePct = attDef.attack > attDef.defense ? D.oddsGatePct : D.defenderGatePct;
     // a near enemy UNIT is a march target only when the odds are viable.
     const enemyViable = enemy !== null && enemy !== undefined
-      && assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGate);
+      && assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGatePct);
     if (marchR > 0 && attDef.attack > attDef.defense) {
       const targetCity = nearestKnownEnemyCity(state, unit, playerId);
       if (targetCity) {
@@ -1262,7 +1270,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (dist <= 1) {
           const massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y);
           if (massed >= D.massSize
-              && assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate)) {
+              && assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGatePct)) {
             const adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
             if (adir && !stepEntersSea(state, unit, adir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
           }
@@ -1275,7 +1283,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           const ny = unit.y + v[1];
           let blocked = false;
           for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) blocked = true;
-          if (blocked && !assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate)) {
+          if (blocked && !assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGatePct)) {
             return { type: 'wait', playerId, unitId: uid }; // don't charge bad odds (bo3)
           }
           if (!stepEntersSea(state, unit, cdir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };
@@ -1289,7 +1297,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // and the step itself may not become an un-gated attack.
     if (enemy && enemyViable && marchR > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR) {
       const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
-      if (dir && !stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+      if (dir && !stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGatePct)
           && !stepEntersSea(state, unit, dir, ruleset)) {
         return { type: 'moveUnit', playerId, unitId: uid, dir };
       }
@@ -1318,7 +1326,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     }
     // B26: never let a fallback/explore step become an un-gated attack.
     // N3 guard: nor let a land unit wander onto sea (no auto-board).
-    if (dir !== null && (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+    if (dir !== null && (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGatePct)
         || stepEntersSea(state, unit, dir, ruleset))) {
       dir = null;
     }

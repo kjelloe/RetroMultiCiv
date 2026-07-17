@@ -517,14 +517,25 @@ local function warDoctrineOf(ruleset: any): any
 	local cr = if ruleset.rules.combatRounds == nil then 1 else ruleset.rules.combatRounds
 	local d = if doctrine == nil then nil else doctrine[tostring(cr)]
 	if d == nil then
-		return { massSize = 4, oddsGate = 0, defenderGate = 1 }
+		return { massSize = 4, oddsGatePct = 0, defenderGatePct = 100 }
 	end
-	-- B26: defenderGate governs DEFENDER-type attack-initiation. A pre-B26 table
-	-- lacks it; fall back to the offensive gate when it bites (best-of-three) or
-	-- an even-odds floor (one-roll oddsGate 0 -> 1: no suicide charges).
-	local oddsGate = if d.oddsGate == nil then 0 else d.oddsGate
-	local defenderGate = if d.defenderGate ~= nil then d.defenderGate elseif oddsGate > 0 then oddsGate else 1
-	return { massSize = d.massSize, oddsGate = oddsGate, defenderGate = defenderGate }
+	-- B26b: PERCENT gates (100 = the old integer 1) for fractional M11 sweeps
+	-- without floats (att*100 >= pct*def). Old integer fields resolve via *100.
+	local oddsGatePct = d.oddsGatePct
+	if oddsGatePct == nil then
+		oddsGatePct = (if d.oddsGate == nil then 0 else d.oddsGate) * 100
+	end
+	local defenderGatePct = d.defenderGatePct
+	if defenderGatePct == nil then
+		if d.defenderGate ~= nil then
+			defenderGatePct = d.defenderGate * 100
+		elseif oddsGatePct > 0 then
+			defenderGatePct = oddsGatePct
+		else
+			defenderGatePct = 100
+		end
+	end
+	return { massSize = d.massSize, oddsGatePct = oddsGatePct, defenderGatePct = defenderGatePct }
 end
 
 -- B24 twin: nearest KNOWN enemy city (fog-honest -- explored tiles only). The
@@ -560,12 +571,12 @@ local function attackersAdjacentTo(state: any, playerId: string, ruleset: any, x
 end
 
 -- B24 twin: the per-unit odds gate (undefended = capture; else att >= gate*def).
-local function assaultOddsOk(state: any, unit: any, x: number, y: number, ruleset: any, oddsGate: number): boolean
+local function assaultOddsOk(state: any, unit: any, x: number, y: number, ruleset: any, gatePct: number): boolean
 	local defender = combat.bestDefender(state, x, y, ruleset)
 	if defender == nil then
 		return true
 	end
-	return combat.attackStrength(unit, ruleset) >= oddsGate * combat.defenseStrength(state, defender, ruleset)
+	return combat.attackStrength(unit, ruleset) * 100 >= gatePct * combat.defenseStrength(state, defender, ruleset)
 end
 
 -- B26 twin: would stepping `dir` initiate an attack the doctrine gate FORBIDS?
@@ -1447,9 +1458,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- oddsGate (one-roll 0 = mass); defender-type by defenderGate (one-roll 1 =
 				-- even-or-better). Attack-INITIATION is gated for EVERY unit (#646).
 				local D = warDoctrineOf(ruleset)
-				local engageGate = if attDef.attack > attDef.defense then D.oddsGate else D.defenderGate
+				local engageGatePct = if attDef.attack > attDef.defense then D.oddsGatePct else D.defenderGatePct
 				local enemyViable = enemy ~= nil
-					and assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGate)
+					and assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGatePct)
 				if marchR > 0 and attDef.attack > attDef.defense then
 					local targetCity = nearestKnownEnemyCity(state, unit, playerId)
 					if targetCity ~= nil then
@@ -1457,7 +1468,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						if dist <= 1 then
 							local massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y)
 							if massed >= D.massSize
-								and assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate) then
+								and assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGatePct) then
 								local adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
 								if adir ~= nil and not stepEntersSea(state, unit, adir, ruleset) then
 									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = adir }
@@ -1476,7 +1487,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 									blocked = true
 								end
 							end
-							if blocked and not assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate) then
+							if blocked and not assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGatePct) then
 								return { type = "wait", playerId = playerId, unitId = uid }
 							end
 							if not stepEntersSea(state, unit, cdir, ruleset) then
@@ -1489,7 +1500,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- wider; balanced keeps the historical 8 — byte-identical.
 				if enemy ~= nil and enemyViable and marchR > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR then
 					local dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
-					if dir ~= nil and not stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+					if dir ~= nil and not stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGatePct)
 						and not stepEntersSea(state, unit, dir, ruleset) then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 					end
@@ -1519,7 +1530,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					dir = towardUnexplored(state, unit, me)
 				end
 				-- B26: never let a fallback/explore step become an un-gated attack.
-				if dir ~= nil and (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+				if dir ~= nil and (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGatePct)
 					or stepEntersSea(state, unit, dir, ruleset)) then
 					dir = nil
 				end
