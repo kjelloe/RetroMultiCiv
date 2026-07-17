@@ -108,3 +108,30 @@ jobs:
           name: nightly-canonical
           path: debugging/sim/
           if-no-files-found: ignore
+
+  ui-lane:
+    # A49: the multi-client Playwright UI lane (test-ui/) — real two-context
+    # live-socket flows that raw CDP could not hold. Its OWN job so
+    # `node --test test/` stays playwright-free; the config drives SwiftShader
+    # (no GPU on the runner). Failures upload traces + the HTML report.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Install the Playwright chromium browser
+        run: npx playwright install --with-deps chromium
+      - name: Multi-client UI lane (npx playwright test)
+        run: npx playwright test
+      - name: Upload Playwright traces + report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
