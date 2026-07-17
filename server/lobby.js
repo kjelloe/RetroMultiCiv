@@ -94,6 +94,9 @@ export function createRegistry(deps) {
         allowSpectators: options.allowSpectators === true,
         // A20 starting age (validated against the ruleset; ancient = none)
         age: ((ruleset.rules && ruleset.rules.ages) || []).some(a => a.id === options.age) ? options.age : 'ancient',
+        // A82a map type (validated against rules.mapTypes; unknown = default)
+        maptype: (ruleset.rules && ruleset.rules.mapTypes && ruleset.rules.mapTypes[options.maptype])
+          ? options.maptype : 'continents',
         chat: options.chat !== false, // A37: lobby chat, host-toggleable, default ON
         public: options.public === true // A41: find-a-game listing, OPT-IN
       },
@@ -271,7 +274,8 @@ export function createRegistry(deps) {
           rules: Object.assign({}, ruleset.rules, overridesFor(e.options))
         }));
         const raw = engine.createGame({
-          seed: e.options.seed, options: { width: dims[0], height: dims[1], players: allAi }
+          seed: e.options.seed,
+          options: { width: dims[0], height: dims[1], players: allAi, mapType: e.options.maptype }
         });
         if (raw.ok === false) return { ok: false, reason: raw.reason };
         const r = fastForwardTo(ruleset, raw, ageEntry, humanSeats);
@@ -289,7 +293,7 @@ export function createRegistry(deps) {
       } else {
         game = createGame({
           ruleset, gameId, rulesOverrides: overridesFor(e.options),
-          setup: { seed: e.options.seed, options: { width: dims[0], height: dims[1], players } }
+          setup: { seed: e.options.seed, options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype } }
         });
       }
     } catch (err) {

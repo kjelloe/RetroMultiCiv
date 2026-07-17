@@ -55,9 +55,11 @@ test('PROP_SHAPES covers every tile prop kind the renderer instances', async () 
 
 test('committed data/asset-recipes.json is in sync with the module', async () => {
   const r = await load();
+  const { TYPE_EXTRA } = await import('../client/renderer/three/unit-chrome.js');
   const committed = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'assets', 'asset-recipes.json'), 'utf8'));
   assert.deepStrictEqual(committed.unitRecipes, r.UNIT_RECIPES, 'unitRecipes drift — run tools/export-asset-recipes.js');
   assert.deepStrictEqual(committed.unitSilhouette, r.UNIT_SILHOUETTE, 'unitSilhouette drift');
+  assert.deepStrictEqual(committed.typeExtra, TYPE_EXTRA, 'typeExtra drift — the Roblox bake reads this mapping');
   assert.deepStrictEqual(committed.cityRecipe, r.CITY_RECIPE, 'cityRecipe drift');
   assert.deepStrictEqual(committed.propShapes, r.PROP_SHAPES, 'propShapes drift');
   assert.deepStrictEqual(committed.colorRoles, r.COLOR_ROLES, 'colorRoles drift');

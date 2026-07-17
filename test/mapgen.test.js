@@ -79,3 +79,63 @@ test('createGame output is a legal engine state (settlers can act)', async () =>
   assert.strictEqual(e2.ok, true);
   assert.strictEqual(e2.state.turn, 2);
 });
+
+// A82a: named map-type presets (rules.mapTypes). The crafted table below is
+// the blessed preset set; the committed data/rules.json block carries the same
+// numbers (phase-2 paste — these rows pin the resolve contract either way).
+const MAPTYPES = {
+  continents: { landPercent: 32, continents: 5 },
+  pangaea: { landPercent: 36, continents: 1 },
+  archipelago: { landPercent: 20, continents: 20 },
+  islands: { landPercent: 14, continents: 24 }
+};
+
+async function loadWithPresets() {
+  const { createEngine } = await import('../engine/index.js');
+  const { hashState } = await import('../shared/statehash.js');
+  const ruleset = Object.assign({}, RULESET, {
+    rules: Object.assign({}, RULESET.rules, { mapTypes: MAPTYPES })
+  });
+  return { engine: createEngine(ruleset), hashState };
+}
+
+test('A82a: the continents preset is the identity — byte-identical world', async () => {
+  const { engine: plain, hashState } = await load();
+  const { engine: preset } = await loadWithPresets();
+  const base = hashState(plain.createGame(SETUP));
+  // the mapTypes table being present changes nothing without a mapType…
+  assert.strictEqual(hashState(preset.createGame(SETUP)), base);
+  // …and naming the default preset resolves to the same DEFAULTS values
+  const named = preset.createGame({ seed: 42, options: { ...SETUP.options, mapType: 'continents' } });
+  assert.strictEqual(hashState(named), base);
+});
+
+test('A82a: pangaea/archipelago/islands are deterministic and pairwise distinct', async () => {
+  const { engine, hashState } = await loadWithPresets();
+  const hashes = {};
+  for (const type of ['continents', 'pangaea', 'archipelago', 'islands']) {
+    const mk = () => engine.createGame({ seed: 42, options: { ...SETUP.options, mapType: type } });
+    const h = hashState(mk());
+    assert.strictEqual(hashState(mk()), h, `${type} not deterministic`);
+    hashes[type] = h;
+  }
+  const values = Object.values(hashes);
+  assert.strictEqual(new Set(values).size, values.length, 'preset worlds must differ');
+});
+
+test('A82a: explicit landPercent/continents beat the preset', async () => {
+  const { engine, hashState } = await loadWithPresets();
+  const base = hashState(engine.createGame(SETUP));
+  const forced = engine.createGame({
+    seed: 42,
+    options: { ...SETUP.options, mapType: 'pangaea', landPercent: 32, continents: 5 }
+  });
+  assert.strictEqual(hashState(forced), base, 'explicit overrides must win');
+});
+
+test('A82a: an unknown mapType falls back to the default world', async () => {
+  const { engine, hashState } = await loadWithPresets();
+  const base = hashState(engine.createGame(SETUP));
+  const odd = engine.createGame({ seed: 42, options: { ...SETUP.options, mapType: 'doughnut' } });
+  assert.strictEqual(hashState(odd), base);
+});

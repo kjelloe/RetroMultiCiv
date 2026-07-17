@@ -605,18 +605,31 @@ test('A50 item 3b: an abandoned started game is retired, its save survives (resu
     t += 1e6; s.maintenanceSweep();
   } finally { host.close(); }
 
-  // Let the server process the disconnect, then two sweeps across the window.
-  await new Promise(r => setTimeout(r, 200));
-  s.maintenanceSweep();      // records emptySince
-  t += 6000;                 // past abandonedMs
-  s.maintenanceSweep();      // retires it
+  // Poll until the sweep retires the game (house ~30s budget) — under
+  // parallel-suite load the disconnect lands well after any fixed grace, so
+  // a one-shot sweep pair races it (got 'gameFull' where 'noSuchGame' was
+  // expected). Each pass: sweep (records emptySince once the socket is gone),
+  // advance past abandonedMs, sweep (retires), probe by lobby code.
+  const retireDeadline = Date.now() + 30000;
+  for (;;) {
+    s.maintenanceSweep();
+    t += 6000; // past abandonedMs
+    s.maintenanceSweep();
+    const probe = await connect(s.port);
+    let code;
+    try {
+      probe.send({ t: 'join', joinCode: lobbyCode, name: 'X' });
+      code = (await probe.expect(m => m.t === 'rejected', 'probe rejected')).code;
+    } finally { probe.close(); }
+    if (code === 'noSuchGame') break; // the live entry is gone
+    assert.strictEqual(code, 'gameFull', 'only the not-yet-retired shape may repeat');
+    assert.ok(Date.now() < retireDeadline, 'game never retired within the budget');
+    await new Promise(r => setTimeout(r, 150));
+  }
 
   const c = await connect(s.port);
   try {
-    // The live entry is gone — joining by its lobby code finds nothing…
-    c.send({ t: 'join', joinCode: lobbyCode, name: 'X' });
-    assert.strictEqual((await c.expect(m => m.t === 'rejected', 'entry gone')).code, 'noSuchGame');
-    // …but the SAVE survived, so resume-by-(game)code brings the game back.
+    // The SAVE survived the retire, so resume-by-(game)code brings it back.
     c.send({ t: 'resumeByCode', code: gameCode });
     assert.strictEqual((await c.expect(m => m.t === 'resumed', 'resumable')).code, gameCode);
   } finally { c.close(); await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }

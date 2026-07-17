@@ -229,9 +229,23 @@ local function createGame(setup: any, ruleset: any): any
 		return { ok = false, reason = "noPlayers" }
 	end
 
+	-- A82a: a named map-type preset (rules.mapTypes) supplies landPercent/
+	-- continents when the caller didn't set them explicitly; unknown or absent
+	-- type falls through to DEFAULTS — the 'continents' preset carries the
+	-- DEFAULTS values, so the default world is byte-identical by construction.
+	local presets = ruleset.rules.mapTypes
+	local preset: any = {}
+	if presets ~= nil and options.mapType ~= nil and presets[options.mapType] ~= nil then
+		preset = presets[options.mapType]
+	end
+
 	local r = rng.seedRng(setup.seed)
-	local landPercent = if options.landPercent == nil or options.landPercent == 0 then DEFAULTS.landPercent else options.landPercent
-	local continents = if options.continents == nil or options.continents == 0 then DEFAULTS.continents else options.continents
+	local landPercent = if options.landPercent == nil or options.landPercent == 0
+		then (if preset.landPercent == nil or preset.landPercent == 0 then DEFAULTS.landPercent else preset.landPercent)
+		else options.landPercent
+	local continents = if options.continents == nil or options.continents == 0
+		then (if preset.continents == nil or preset.continents == 0 then DEFAULTS.continents else preset.continents)
+		else options.continents
 	local gen = generateTiles(r, width, height, landPercent, continents)
 	local map = { width = width, height = height, wrapX = true, tiles = gen.tiles }
 

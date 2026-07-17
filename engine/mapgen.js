@@ -171,10 +171,18 @@ function createGame(setup, ruleset) {
     return { ok: false, reason: 'noPlayers' };
   }
 
+  // A82a: a named map-type preset (rules.mapTypes) supplies landPercent/
+  // continents when the caller didn't set them explicitly; unknown or absent
+  // type falls through to DEFAULTS — the 'continents' preset carries the
+  // DEFAULTS values, so the default world is byte-identical by construction.
+  const presets = ruleset.rules.mapTypes;
+  const preset = (presets !== undefined && options.mapType !== undefined
+    && presets[options.mapType] !== undefined) ? presets[options.mapType] : {};
+
   let rng = seedRng(setup.seed);
   const gen = generateTiles(rng, width, height,
-    options.landPercent || DEFAULTS.landPercent,
-    options.continents || DEFAULTS.continents);
+    options.landPercent || preset.landPercent || DEFAULTS.landPercent,
+    options.continents || preset.continents || DEFAULTS.continents);
   const map = { width, height, wrapX: true, tiles: gen.tiles };
 
   const found = findStarts(gen.rngState, map, playerDefs);

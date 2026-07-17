@@ -209,8 +209,12 @@ if (serverParam) {
   }
   const size = sizeParam; // resolved above the civ clamp (A38)
   const dims = MAP_SIZES[size];
+  // A82a: ?maptype= validated against rules.mapTypes (unknown clamps to the
+  // identity default, like ?size); the engine resolves the preset itself
+  const mapType = (rules.mapTypes && rules.mapTypes[params.get('maptype')])
+    ? params.get('maptype') : 'continents';
   initialState = createEngine(ruleset).createGame({
-    seed, options: { width: dims[0], height: dims[1], players: playerDefs }
+    seed, options: { width: dims[0], height: dims[1], players: playerDefs, mapType }
   });
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
 
@@ -259,7 +263,8 @@ if (serverParam) {
     + `${size !== 'medium' ? `&size=${size}` : ''}`
     + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`
     + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`
-    + `${age.turn > 0 ? `&age=${age.id}` : ''}`);
+    + `${age.turn > 0 ? `&age=${age.id}` : ''}`
+    + `${mapType !== 'continents' ? `&maptype=${mapType}` : ''}`); // A82a: canonical URL keeps the world reproducible
 }
 
 // --- wiring ------------------------------------------------------------------

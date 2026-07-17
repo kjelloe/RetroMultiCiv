@@ -38,6 +38,12 @@ export function showSetupScreen() {
           <option value="huge">Huge</option>
         </select>
       </label>
+      <label>Map type
+        <select id="setup-maptype">
+          <option value="continents" selected>Continents</option>
+        </select>
+      </label>
+      <p class="setup-hint" id="setup-maptype-hint"></p>
       <label>Difficulty
         <select id="setup-difficulty">
           <option value="trainer">Trainer</option>
@@ -199,6 +205,26 @@ export function showSetupScreen() {
     };
     ageEl.addEventListener('change', hint);
     hint();
+    // A82a: map types from rules.mapTypes — data-driven like the ages; the
+    // hint line carries the HONEST world description (the label must match
+    // the world the preset actually generates). Absent table = Continents only.
+    const mtEl = document.getElementById('setup-maptype');
+    const mtHint = document.getElementById('setup-maptype-hint');
+    if (mtEl && mtHint && rules.mapTypes) {
+      for (const [id, mt] of Object.entries(rules.mapTypes)) {
+        if (id === 'continents') continue; // already the selected default
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = mt.name || id;
+        mtEl.appendChild(opt);
+      }
+      const mtRefresh = () => {
+        const mt = rules.mapTypes[mtEl.value];
+        mtHint.textContent = (mt && mt.desc) || '';
+      };
+      mtEl.addEventListener('change', mtRefresh);
+      mtRefresh();
+    }
     // A42: the splash's civ count is DATA-DRIVEN — it updates itself when a
     // bigger roster ships (never hardcode the 14). Null guards: demo hooks
     // (?lobbydemo) swap the setup DOM before this async fetch lands.
@@ -316,11 +342,13 @@ export function showSetupScreen() {
     const difficulty = document.getElementById('setup-difficulty').value;
     const combat = document.getElementById('setup-combat').value;
     const age = document.getElementById('setup-age').value;
+    const maptype = document.getElementById('setup-maptype').value;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
       + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '')
-      + (age !== 'ancient' ? `&age=${age}` : '');
+      + (age !== 'ancient' ? `&age=${age}` : '')
+      + (maptype !== 'continents' ? `&maptype=${maptype}` : '');
   });
 
   // --- phase-4 LAN lobby (ui/lobby.js): host with the form's world options,
@@ -334,7 +362,8 @@ export function showSetupScreen() {
       difficulty: document.getElementById('setup-difficulty').value,
       combat: document.getElementById('setup-combat').value,
       seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined,
-      age: document.getElementById('setup-age').value // A20: LAN lobbies inherit it
+      age: document.getElementById('setup-age').value, // A20: LAN lobbies inherit it
+      maptype: document.getElementById('setup-maptype').value // A82a
     };
   }
   document.getElementById('setup-host').addEventListener('click', () => {
