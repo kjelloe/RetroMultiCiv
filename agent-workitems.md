@@ -43,11 +43,19 @@ SWEEP-GAP FILLER (helper, #1069): render-spec typeClasses →
 unitSilhouette rename (reviewer advisory :2441, A88b follow-up)
 + advice→pedia deep-link audit.
 
-**ROBLOX-HELPER:** R12 close → R9 lobby place → R10 save/resume →
+**ROBLOX-HELPER:** LANE COMPLETE 2026-07-17 (#1091) — R12, R9, R10,
+R11, R7c-3, R13-R18, R19+A68+A82 ALL delivered+committed across the
+night-2/run-4 batches. ONLY R17 (debug-menu thin client) remains,
+GATED on A92-engine (N12) landing. Lane is ON-CALL: 2 manifests
+queued for the sim-runner (#1041, #1043), the A92 watch, and the
+user-blocked items (runD.txt save, deck-resident retest). Likely
+NEXT when engine firms: the per-civ STANCE display (the heterogeneous
+-archetype direction, [[this session]]). Historical order below:
+R12 close → R9 lobby place → R10 save/resume →
 R11 ride pad → R7c-3 worked-tile FULL BUILD (user un-gated
 2026-07-17: "proceed regardless" — pyramid + worked-tile review
 deferred to his later look; note-for-review marks in SPEC) →
-**NIGHT OVERFLOW (R13-R18, docs/13 parity backlog):**
+**NIGHT OVERFLOW (R13-R18, docs/13 parity backlog) — ALL DONE:**
 R13. SELL-BUTTON parity (A97's browser shape → the city panel
      buildings list; the docs/13 Tier-2 sell row).
 R14. pathfind.luau (the A65 port, subset-ready per R6's note) +
