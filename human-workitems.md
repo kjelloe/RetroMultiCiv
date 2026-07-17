@@ -8,10 +8,7 @@ the Done log at the bottom.
 ## 2026-07-17 — decisions + fresh verifications
 
 **DECIDE (only you can):**
-- [ ] **Merge marker-0033** (the validated 440/440 merge candidate on
-  dev_night) → dev/main + `npm ci` (new @playwright/test dep). It's
-  pure M11 + all the gamesim-golden-neutral work since (A50 hardening,
-  A49 lane, A58 pedia, A88b, five art rounds, docs, hardening spec).
+- [x] **Merge marker-0033** — DONE 2026-07-17 (merged + `npm ci`).
 - [x] **NEXT MAJOR TRACK — DECIDED 2026-07-17: FINISH AI-QUALITY
   FIRST** (ally's ordering). Engine lane after N4: B23d relaxed-veto
   → N3-build-tune → N1/N2 gov+tech, until the M-floors clear. THEN
@@ -36,9 +33,11 @@ the Done log at the bottom.
   (tank/apc/catapult/diplomat/phalanx/musket/rifle/knight/carrier).
 
 **AUTHOR WITH THE ALLY (v1 drafts marked, awaiting your voice):**
-- [ ] **Pedia concept prose** — 11 entries in `client/ui/pedia-concepts.js`
-  (happiness, corruption, disorder, ZoC, veterancy, the game code…),
-  engine-verified, marked "v1 draft — ally editorial pass pending".
+- [ ] **Pedia concept prose** — HANDOFF READY: `specs/pedia-concepts-draft.md`
+  (the 11 v1 drafts + constraints + per-entry ALLY: edit blocks). Share
+  with the ally like the leader-dialogue specs; he edits in prose, the
+  helper folds his final text verbatim into `client/ui/pedia-concepts.js`
+  (golden-neutral). He may add/cut concepts.
 - [ ] **Art review-table eyeball** — the gallery now renders distinct
   silhouettes for tank/APC/catapult/diplomat/phalanx/musketeers/
   riflemen/knights/carrier; bomber+nuclear are the last two. Screenshot
