@@ -6,7 +6,7 @@ deterministic simulation engine, architected for a mechanical
 module-by-module port to Roblox Luau. "Multi" as in multiplayer — and
 multiple implementations.
 
-![Late-game world at 1958 AD: cities with population badges, roads, units on patrol, the unit-stack panel and action bar](docs/screenshot.png)
+![Late-game world at 1775 AD: an Aztec empire with population badges, roads and irrigation, mountain ranges, units on patrol — and an advice card explaining combat odds](docs/screenshot.png)
 
 - Browser client: three.js low-poly renderer (flat tile boxes + raycast picking) behind a renderer interface — three pinned to r162 so WebGL1-only browsers still render
 - Backend: Node.js (minimal deps), authoritative from phase 3
@@ -106,7 +106,7 @@ per-item build times and unlock reasons, a narrated turn log, map
 overlays (city influence, forces) — in an original low-poly art style
 with animated flags, gliding units, and a living title-screen diorama.
 
-![City view at pop 10: yields, worked-tile assignment grid, the full production catalog, rush-buy — and a civil-disorder warning demanding attention](docs/screenshot-cityview.png)
+![City view at pop 10: yields, manual worked-tile assignment, the building catalog with plain-language effects, rush-buy — the strategic layer in one panel](docs/screenshot-cityview.png)
 
 **Multiplayer, accepted for real.** Hotseat behind an opaque hand-off
 screen; or host a LAN game with `./run.sh` (or `run.ps1`) — friends
