@@ -27,8 +27,17 @@ local DIRS = { -- engine/movement.js DIRS, y-down map space
 	{ dir = "NW", dx = -1, dy = -1, glyph = "\\" },
 }
 
--- AUTO-DETECT (user design): keyboardless clients get the pads by default
-local padEnabled = not UserInputService.KeyboardEnabled
+-- AUTO-DETECT (user design): keyboardless clients get the pads by default.
+-- R16 wire: ClientState.options.ridePad is the pref ("auto"/nil, true, false)
+-- — the Options row and the local toggle both write it; auto = detection.
+local function prefEnabled()
+	local pref = ClientState.options.ridePad
+	if pref == true or pref == false then
+		return pref
+	end
+	return not UserInputService.KeyboardEnabled
+end
+local padEnabled = prefEnabled()
 
 local function tileTopY(x, y)
 	local part = world:WaitForChild("Terrain"):FindFirstChild(("Tile_%d_%d"):format(x, y))
@@ -92,8 +101,21 @@ local function paintToggle()
 end
 paintToggle()
 toggleBtn.Activated:Connect(function()
-	padEnabled = not padEnabled
+	ClientState.options.ridePad = not padEnabled -- explicit pref; Options shows it
+	padEnabled = prefEnabled()
 	paintToggle()
+end)
+
+-- Options-row changes arrive through the shared pref (cheap watcher)
+task.spawn(function()
+	while true do
+		local now = prefEnabled()
+		if now ~= padEnabled then
+			padEnabled = now
+			paintToggle()
+		end
+		task.wait(0.25)
+	end
 end)
 
 -- reposition on any change (Heartbeat key-compare, the MoveHints pattern)

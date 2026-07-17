@@ -40,10 +40,11 @@ local hideFutureBtn = toggleButton(56, "")
 local hideHintBtn = toggleButton(80, "")
 local clockBtn = toggleButton(104, "")
 local voidArtBtn = toggleButton(128, "")
+local ridePadBtn = toggleButton(152, "")
 
 local clockLabel = Instance.new("TextLabel")
 clockLabel.Size = UDim2.new(0, 190, 0, 18)
-clockLabel.Position = UDim2.new(1, -198, 0, 152)
+clockLabel.Position = UDim2.new(1, -198, 0, 176)
 clockLabel.BackgroundTransparency = 1
 clockLabel.TextColor3 = Color3.fromRGB(200, 210, 225)
 clockLabel.Font = Enum.Font.Code
@@ -73,6 +74,8 @@ local function paint()
 	hideHintBtn.Text = ("  hide end-turn hint: %s"):format(o.hideNoMovesHint and "ON" or "off")
 	clockBtn.Text = ("  clock: %s"):format(o.clock)
 	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
+	ridePadBtn.Text = ("  ride pads: %s"):format(
+		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
 end
 paint()
 
@@ -102,6 +105,12 @@ local ARTS = { "frame", "galaxy", "none" }
 voidArtBtn.Activated:Connect(function()
 	local i = table.find(ARTS, ClientState.options.voidArt) or 1
 	ClientState.options.voidArt = ARTS[i % #ARTS + 1] -- VoidCover watches this
+	paint()
+end)
+ridePadBtn.Activated:Connect(function()
+	-- cycle auto -> ON -> off (RidePad watches; auto = keyboard detection)
+	local pref = ClientState.options.ridePad
+	ClientState.options.ridePad = pref == nil and true or (pref == true and false or nil)
 	paint()
 end)
 

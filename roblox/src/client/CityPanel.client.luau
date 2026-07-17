@@ -3,12 +3,17 @@
 -- FILTERED view (own cities arrive whole) plus the baked ruleset tables for
 -- display data (names, costs, tech locks) — browser catalog rules: buildable
 -- shown, locked greyed with the reason. Actions are commands only:
--- setProduction {item} and buy, through the same dispatcher path.
+-- setProduction {item}, buy, and sellBuilding, through the same dispatcher.
+-- R13: built-buildings strip with per-row sell (A97 two-step confirm, one
+-- sale/city/turn, Palace exempt). R15: buildings/wonders carry plain-language
+-- effects sublines (CatalogText = the catalog-text.js twin). R16 wire:
+-- options.hideFuture hides the one-tech-lookahead rows entirely.
 
 local Players = game:GetService("Players")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local WorkedTiles = require(script.Parent:WaitForChild("WorkedTiles")) -- R7c-3
+local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -87,23 +92,82 @@ local function sortedIds(t)
 end
 
 -- one catalog row: buildable = white button that sends setProduction;
--- locked = greyed label carrying the lock reason (browser catalog rule)
-local function addRow(order, kind, id, def, lockReason)
+-- locked = greyed label carrying the lock reason (browser catalog rule).
+-- R15: buildings/wonders grow a plain-language effects subline (CatalogText,
+-- the catalog-text.js twin); wonders without effects show the prestige line.
+local function addRow(order, kind, id, def, lockReason, effects)
+	local twoLine = effects ~= nil and effects ~= ""
 	local row = Instance.new("TextButton")
-	row.Size = UDim2.new(1, -8, 0, 22)
+	row.Size = UDim2.new(1, -8, 0, twoLine and 36 or 22)
 	row.LayoutOrder = order
 	row.BackgroundColor3 = lockReason and Color3.fromRGB(38, 40, 48) or Color3.fromRGB(50, 66, 92)
 	row.TextColor3 = lockReason and Color3.fromRGB(130, 130, 136) or Color3.fromRGB(235, 235, 235)
 	row.Font = Enum.Font.Code
 	row.TextSize = 14
 	row.TextXAlignment = Enum.TextXAlignment.Left
-	row.Text = ("  %s %s (%d)%s"):format(kind, def.name or id, def.cost or 0,
-		lockReason and ("  — " .. lockReason) or "")
+	row.TextYAlignment = Enum.TextYAlignment.Top
+	row.RichText = true
+	row.Text = ("  %s %s (%d)%s%s"):format(kind, def.name or id, def.cost or 0,
+		lockReason and ("  — " .. lockReason) or "",
+		twoLine and ('\n  <font size="12" color="#9db2c8">' .. effects .. "</font>") or "")
 	row.Parent = list
 	if not lockReason then
 		row.Activated:Connect(function()
 			print(("[CityPanel] setProduction %s -> %s %s"):format(openCityId, kind, id))
 			ClientState.send({ type = "setProduction", cityId = openCityId, item = { kind = kind, id = id } })
+		end)
+	end
+	return twoLine and 38 or 24
+end
+
+-- R13 (A97/A86 twin): the built-buildings strip with per-row SELL — price =
+-- cost x sellPriceRatio, two-step confirm (armed 3s), one sale/city/turn
+-- (soldThisTurn greys the strip), the Palace never sells. Server judges all.
+local sellConfirm = { key = nil, until_ = 0 }
+
+local function addBuildingRow(order, id, def, price, sold)
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, -8, 0, 22)
+	row.LayoutOrder = order
+	row.BackgroundColor3 = Color3.fromRGB(32, 38, 50)
+	row.BorderSizePixel = 0
+	row.Parent = list
+	local name = Instance.new("TextLabel")
+	name.Size = UDim2.new(1, -78, 1, 0)
+	name.BackgroundTransparency = 1
+	name.TextColor3 = Color3.fromRGB(210, 218, 230)
+	name.Font = Enum.Font.Code
+	name.TextSize = 14
+	name.TextXAlignment = Enum.TextXAlignment.Left
+	name.Text = "  " .. (def.name or id)
+	name.Parent = row
+	if def.effect ~= nil and def.effect.isPalace == true then
+		return -- the Palace is not sellable (engine rule)
+	end
+	local sell = Instance.new("TextButton")
+	sell.Size = UDim2.new(0, 72, 0, 18)
+	sell.Position = UDim2.new(1, -74, 0, 2)
+	sell.Font = Enum.Font.SourceSansBold
+	sell.TextSize = 13
+	local armed = sellConfirm.key == openCityId .. ":" .. id and os.clock() <= sellConfirm.until_
+	sell.BackgroundColor3 = sold and Color3.fromRGB(38, 40, 48)
+		or (armed and Color3.fromRGB(150, 60, 50) or Color3.fromRGB(90, 62, 42))
+	sell.TextColor3 = sold and Color3.fromRGB(120, 120, 126) or Color3.fromRGB(240, 225, 210)
+	sell.Text = sold and "sold" or (armed and "SURE?" or ("sell +%dg"):format(price))
+	sell.Parent = row
+	if not sold then
+		sell.Activated:Connect(function()
+			local key = openCityId .. ":" .. id
+			if sellConfirm.key == key and os.clock() <= sellConfirm.until_ then
+				sellConfirm.key = nil
+				print(("[CityPanel] sellBuilding %s %s (+%dg)"):format(openCityId, id, price))
+				ClientState.send({ type = "sellBuilding", cityId = openCityId, building = id })
+			else
+				sellConfirm.key = key
+				sellConfirm.until_ = os.clock() + 3
+				sell.Text = "SURE?"
+				sell.BackgroundColor3 = Color3.fromRGB(150, 60, 50)
+			end
 		end)
 	end
 end
@@ -136,7 +200,7 @@ local function refresh()
 		prodDef and prodDef.cost or 0)
 
 	for _, child in ipairs(list:GetChildren()) do
-		if child:IsA("TextButton") then
+		if child:IsA("TextButton") or child:IsA("Frame") then
 			child:Destroy()
 		end
 	end
@@ -144,6 +208,7 @@ local function refresh()
 	for _, b in ipairs(city.buildings or {}) do
 		built[b] = true
 	end
+	local catalogText = CatalogText.make(rs) -- R15
 	-- R7a (1): one-tech-lookahead filter — a tech is "reachable" when every
 	-- prereq is already known (the availableTechs rule, inlined). Entries
 	-- beyond that horizon are HIDDEN, not greyed (accepted divergence from
@@ -161,10 +226,15 @@ local function refresh()
 		return true
 	end
 	local order = 0
+	local canvasY = 0
 	local HIDE = "\0hide"
 	local function lockFor(kind, id, def)
 		if def.tech ~= nil and def.tech ~= "" and not myTechs[def.tech] then
 			if not techReachable(def.tech) then
+				return HIDE
+			end
+			-- R16 wire: hideFuture hides even the one-tech-lookahead rows
+			if ClientState.options.hideFuture then
 				return HIDE
 			end
 			local techDef = rs.techs[def.tech]
@@ -178,16 +248,40 @@ local function refresh()
 		end
 		return nil
 	end
-	for _, group in ipairs({ { "unit", rs.units }, { "building", rs.buildings }, { "wonder", rs.wonders } }) do
-		for _, id in ipairs(sortedIds(group[2])) do
-			local lock = lockFor(group[1], id, group[2][id])
-			if lock ~= HIDE then
+
+	-- R13: the built-buildings strip (sell affordance) sits above the catalog
+	if #(city.buildings or {}) > 0 then
+		local ratio = rs.rules.sellPriceRatio or 1
+		for _, id in ipairs(city.buildings) do
+			local def = rs.buildings[id]
+			if def ~= nil then
 				order += 1
-				addRow(order, group[1], id, group[2][id], lock)
+				addBuildingRow(order, id, def, (def.cost or 0) * ratio, city.soldThisTurn == true)
+				canvasY += 24
 			end
 		end
 	end
-	list.CanvasSize = UDim2.new(0, 0, 0, order * 24)
+
+	for _, group in ipairs({ { "unit", rs.units }, { "building", rs.buildings }, { "wonder", rs.wonders } }) do
+		for _, id in ipairs(sortedIds(group[2])) do
+			local def = group[2][id]
+			local lock = lockFor(group[1], id, def)
+			if lock ~= HIDE then
+				order += 1
+				-- R15: plain-language effects (buildings/wonders; wonders
+				-- without effects show the browser's prestige line)
+				local effects = nil
+				if group[1] == "building" or group[1] == "wonder" then
+					effects = catalogText.effectText(def)
+					if effects == "" and group[1] == "wonder" then
+						effects = ("prestige - score +%d"):format(rs.rules.scorePerWonder or 0)
+					end
+				end
+				canvasY += addRow(order, group[1], id, def, lock, effects)
+			end
+		end
+	end
+	list.CanvasSize = UDim2.new(0, 0, 0, canvasY)
 end
 
 ClientState.onCityOpen(function(cityId)
@@ -212,4 +306,4 @@ buyBtn.Activated:Connect(function()
 	end
 end)
 
-print("[CityPanel] R5 city panel up")
+print("[CityPanel] city panel up (R13 sell strip, R15 effects sublines, hideFuture wired)")

@@ -60,9 +60,17 @@ don't commit it.
    camera down/up, wheel zooms, F toggles follow-avatar; a plain LMB
    click (no drag) picks the logical tile (yellow cursor; clicking
    your own unit selects it — cyan cursor).
-5. Playing (R4/R5): the place IS a live game — seed 42, you are the
-   Romans (p1) vs two AI civs, fog of war on (void = unexplored).
-   Click your settlers, `B` founds a city; click an adjacent tile to
+5. Playing: the place boots GAMELESS (R9) — you spawn on the
+   observation deck in the sky. The START A NEW GAME pad makes you
+   host (60s window: map size / civs / human seats, then START GAME
+   → 30s countdown); JOIN GAME claims a seat while it counts; TAKE
+   OVER AI CIV (during a game) seats you into a random vacant seat.
+   Vacant seats play themselves (regent AI); admins can kick; chat
+   is disabled by design. RESUME: the host's GET RESUME CODE button
+   saves under the game code (DataStore); type a code into the idle
+   lobby panel to resume it — public servers autosave and end 120s
+   after the last human leaves. In a game:
+   click your settlers, `B` founds a city; click an adjacent tile to
    move the selected unit; `Return` or the End Turn button ends your
    turn (the AI round advances visibly). Click an own city for the
    city panel (production picker + Buy). `P` TOGGLES ride/dismount on
@@ -98,7 +106,15 @@ don't commit it.
    (rate steppers live in its panel now, not the research picker) and
    a live research-status line; unit billboards are big and bold;
    city billboards (name, pop, production, ~turns) are always on;
-   the avatar spawns on your settler from turn 1. The server prints
+   the avatar spawns on your settler from turn 1. `O` arms GoTo on
+   the selected unit (click a destination; it marches a real
+   least-cost route, re-planning as fog lifts; purple breadcrumbs
+   show the line). While riding, 8 click-pads around the mount move
+   it (the only 8-direction ride input; auto-on without a keyboard,
+   the PAD button or the options row toggles). The city panel now
+   sells buildings (two-step confirm, one per city per turn, price =
+   cost x ratio; the Palace never sells) and every building/wonder
+   row explains its effect in plain language. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`
