@@ -34,6 +34,30 @@ export const UNIT_RECIPES = {
     { shape: 'cyl', size: [0.015, 0.015, 0.7], seg: 6, pos: [0.15, 0.42, 0], rot: [0, 0, -0.12], color: 'wood' },
     { shape: 'cone', size: [0.05, 0.12], seg: 4, pos: [0.19, 0.8, 0], rot: [0, 0, -0.12], color: 'metal' }
   ],
+  // A67c: infantry differentiated by ARMAMENT (militia/legion stay footSoldier).
+  // phalanx = the foot soldier's spear + a round hoplite shield on the near arm.
+  phalanx: [
+    { shape: 'cone', size: [0.17, 0.42], seg: 8, pos: [0, 0.28, 0], color: 'cloth' },
+    { shape: 'sphere', size: [0.1], seg: [10, 8], pos: [0, 0.56, 0], color: 'skin' },
+    { shape: 'cyl', size: [0.015, 0.015, 0.7], seg: 6, pos: [0.15, 0.42, 0], rot: [0, 0, -0.12], color: 'wood' },
+    { shape: 'cone', size: [0.05, 0.12], seg: 4, pos: [0.19, 0.8, 0], rot: [0, 0, -0.12], color: 'metal' },
+    { shape: 'cyl', size: [0.13, 0.13, 0.03], seg: 12, pos: [-0.13, 0.34, 0.02], rot: [1.5707963267948966, 0, 0], color: 'metal' } // round shield, face-on
+  ],
+  // musketeers = a short thick gunpowder MUSKET + a wooden stock (no spear tip).
+  musketeers: [
+    { shape: 'cone', size: [0.17, 0.42], seg: 8, pos: [0, 0.28, 0], color: 'cloth' },
+    { shape: 'sphere', size: [0.1], seg: [10, 8], pos: [0, 0.56, 0], color: 'skin' },
+    { shape: 'cyl', size: [0.02, 0.02, 0.5], seg: 6, pos: [0.16, 0.44, 0], rot: [0, 0, -0.35], color: 'darkMetal' }, // musket barrel
+    { shape: 'box', size: [1, 1, 1], pos: [0.08, 0.34, 0], scale: [0.13, 0.045, 0.045], rot: [0, 0, -0.35], color: 'wood' } // stock
+  ],
+  // riflemen = a slimmer, longer, near-level RIFLE + a bayonet + a slim stock.
+  riflemen: [
+    { shape: 'cone', size: [0.17, 0.42], seg: 8, pos: [0, 0.28, 0], color: 'cloth' },
+    { shape: 'sphere', size: [0.1], seg: [10, 8], pos: [0, 0.56, 0], color: 'skin' },
+    { shape: 'cyl', size: [0.014, 0.014, 0.62], seg: 6, pos: [0.18, 0.44, 0], rot: [0, 0, -0.2], color: 'darkMetal' }, // rifle barrel
+    { shape: 'cone', size: [0.03, 0.1], seg: 4, pos: [0.36, 0.52, 0], rot: [0, 0, -0.2], color: 'metal' }, // bayonet
+    { shape: 'box', size: [1, 1, 1], pos: [0.08, 0.375, 0], scale: [0.12, 0.04, 0.04], rot: [0, 0, -0.2], color: 'wood' } // stock
+  ],
   wagon: [
     { shape: 'box', size: [0.5, 0.18, 0.3], pos: [0, 0.22, 0], color: 'wood' },
     { shape: 'cyl', size: [0.14, 0.14, 0.44], seg: 10, pos: [0, 0.34, 0], rot: [0, 0, 1.5707963267948966], color: 'canvas' },
@@ -169,8 +193,8 @@ export const PROP_SHAPES = {
 // the composer's caller layers on; the base body is the mapped recipe.
 export const UNIT_SILHOUETTE = {
   settlers: 'wagon', caravan: 'wagon', diplomat: 'diplomat',
-  militia: 'footSoldier', phalanx: 'footSoldier', legion: 'footSoldier',
-  musketeers: 'footSoldier', riflemen: 'footSoldier', 'mech-inf': 'apc',
+  militia: 'footSoldier', legion: 'footSoldier',
+  phalanx: 'phalanx', musketeers: 'musketeers', riflemen: 'riflemen', 'mech-inf': 'apc',
   cavalry: 'mounted', knights: 'mounted', chariot: 'mounted',
   armor: 'tank', catapult: 'catapult', cannon: 'siege', artillery: 'siege',
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',

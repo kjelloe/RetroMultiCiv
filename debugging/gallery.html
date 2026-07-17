@@ -61,7 +61,7 @@
     // legacy rows keep plain p1/p2 colors — they prove the no-civ fallback path.
     // Mixed status on the land row: moved-out (dim), veteran (gold rim),
     // fortified (shield chip) per silhouette.
-    ['settlers', 'militia', 'legion', 'cavalry', 'chariot', 'catapult', 'armor', 'diplomat', 'riflemen', 'mech-inf']
+    ['settlers', 'militia', 'legion', 'cavalry', 'chariot', 'catapult', 'armor', 'diplomat', 'riflemen', 'mech-inf', 'phalanx', 'musketeers']
       .forEach((t, i) => put(t, i, 3, i % 2 ? 'p2' : 'p1',
         i % 3 === 0 ? { moves: 0 } : i % 3 === 1 ? { veteran: true } : { fortified: true }));
     ['trireme', 'sail', 'frigate', 'transport', 'ironclad', 'cruiser', 'battleship', 'submarine', 'carrier']

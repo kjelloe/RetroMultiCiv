@@ -15,6 +15,9 @@
 
 export const RECIPE_CHROME = {
   footSoldier: { pennant: [-0.16, 0.3, 0.7] },
+  phalanx:     { pennant: [-0.16, 0.3, 0.7] }, // A67c: infantry, same pennant as the foot soldier
+  musketeers:  { pennant: [-0.16, 0.3, 0.7] },
+  riflemen:    { pennant: [-0.16, 0.3, 0.7] },
   wagon:       { pennant: [-0.3, 0.32, 0.7] },
   mounted:     { pennant: [-0.28, 0.34, 0.7] },
   siege:       { pennant: [-0.26, 0.3, 0.65] },
