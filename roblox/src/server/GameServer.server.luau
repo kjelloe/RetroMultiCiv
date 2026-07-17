@@ -117,8 +117,14 @@ local state = nil -- the engine state; nil until the lobby starts a game
 local seatOfUser = {} -- UserId -> "pN" (bound at game start / takeover)
 local roundInFlight = false
 
+-- R18: the theater record — the SAME entries the [R4LOG] stream prints, kept
+-- as data so seated players can replay the game's history client-side
+-- (initialState + entries = exactly what assemble.js/replayDiagnostics eat).
+local theater = { initialState = nil, entries = {} }
+
 local function logEntry(entry)
 	print("[R4LOG] " .. statehash.canonicalize(entry))
+	table.insert(theater.entries, entry)
 end
 
 local function seatVacant(pid)
@@ -416,6 +422,8 @@ local function startGame()
 		return
 	end
 	state = created
+	theater.initialState = engineModule.deepClone(state) -- R18
+	theater.entries = {}
 	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d initialHash=%s")
 		:format(seed, size.w, size.h, table.concat(civIds, ","), setup.humans,
 			statehash.hashState(state)))
@@ -521,6 +529,8 @@ local function resumeGame(player, rawCode)
 		return
 	end
 	state = envelope.state
+	theater.initialState = engineModule.deepClone(state) -- R18: history restarts here
+	theater.entries = {}
 	setup.humans = envelope.humans or 1
 	local n = 0
 	for _ in pairs(state.players) do
@@ -661,6 +671,30 @@ remote.OnServerEvent:Connect(function(player, msg)
 
 	if msg.t == "resume" then
 		resumeGame(player, msg.code)
+		return
+	end
+
+	if msg.t == "theater" then
+		-- R18: stream the history in chunks; the client sandbox re-derives.
+		-- THE LAW guard: raw history reveals every civ's whole game, so the
+		-- theater opens ONLY when the game is OVER (the classic Civ replay
+		-- moment) or to admins — a mid-game stream would be a fog wallhack.
+		local seated = seatOfUser[player.UserId] ~= nil
+		local allowed = theater.initialState ~= nil and seated
+			and (state == nil or state.gameOver == true or isAdmin(player))
+		if not allowed then
+			remote:FireClient(player, { t = "rejected", commandId = commandId,
+				code = state ~= nil and state.gameOver ~= true and "gameStillRunning" or "notSeated" })
+			return
+		end
+		remote:FireClient(player, { t = "theaterInit",
+			initialState = theater.initialState, total = #theater.entries })
+		local CHUNK = 120
+		for i = 1, #theater.entries, CHUNK do
+			remote:FireClient(player, { t = "theaterChunk", from = i,
+				entries = table.move(theater.entries, i, math.min(i + CHUNK - 1, #theater.entries), 1, {}) })
+		end
+		remote:FireClient(player, { t = "theaterDone", total = #theater.entries })
 		return
 	end
 
