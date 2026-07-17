@@ -396,6 +396,22 @@ local function attackerTech(ruleset: any): string
 	return if best == nil then "" else best
 end
 
+-- N3 twin: the tech that unlocks the earliest SEA unit (the naval-beeline term).
+local function seaTech(ruleset: any): string
+	local best, bestLevel = nil, 0
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "sea" and def.tech ~= "" then
+			local lvl = if ruleset.techs[def.tech] == nil then 0 else ruleset.techs[def.tech].level
+			if best == nil or lvl < bestLevel or (lvl == bestLevel and def.tech < best) then
+				best = def.tech
+				bestLevel = lvl
+			end
+		end
+	end
+	return if best == nil then "" else best
+end
+
 local function countSettlers(state: any, playerId: string): number
 	local n = 0
 	for _, u in pairs(state.units) do
@@ -425,6 +441,73 @@ local function countMilitary(state: any, playerId: string, ruleset: any): number
 		end
 	end
 	return n
+end
+
+-- N3 twin: land military (the "first N land units" floor) and ships.
+local function countLandMilitary(state: any, playerId: string, ruleset: any): number
+	local n = 0
+	for _, u in pairs(state.units) do
+		local def = ruleset.units[u.type]
+		if u.owner == playerId and def.domain == "land" and def.attack > 0 then
+			n += 1
+		end
+	end
+	return n
+end
+local function countShips(state: any, playerId: string, ruleset: any): number
+	local n = 0
+	for _, u in pairs(state.units) do
+		if u.owner == playerId and ruleset.units[u.type].domain == "sea" then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- N3 twin: is this civ NAVAL? Water ratio in a Chebyshev box (radius
+-- rules.aiNavyRadius) around the civ cities vs rules.aiNavyWaterPct. Derived.
+local function navyPriorityOf(state: any, playerId: string, ruleset: any): boolean
+	local pct = ruleset.rules.aiNavyWaterPct
+	if pct == nil then
+		return false
+	end
+	local radius = if ruleset.rules.aiNavyRadius == nil then 6 else ruleset.rules.aiNavyRadius
+	local map = state.map
+	local seen = {}
+	local water = 0
+	local total = 0
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			for dy = -radius, radius do
+				local ny = c.y + dy
+				if ny >= 0 and ny < map.height then
+					for dx = -radius, radius do
+						local nx = c.x + dx
+						local ok = true
+						if nx < 0 or nx >= map.width then
+							if not map.wrapX then
+								ok = false
+							else
+								nx = ((nx % map.width) + map.width) % map.width
+							end
+						end
+						if ok then
+							local idx = ny * map.width + nx
+							if seen[idx] ~= true then
+								seen[idx] = true
+								total += 1
+								if ruleset.terrain.terrains[map.tiles[idx + 1].t].domain == "sea" then
+									water += 1
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return total > 0 and water * 100 > pct * total
 end
 
 -- B24 twin: the per-combat-rule war doctrine (rules.aiWarDoctrine keyed by
@@ -508,6 +591,24 @@ local function stepAttackBlocked(state: any, unit: any, dir: string, playerId: s
 		return false
 	end
 	return not assaultOddsOk(state, unit, nx, ny, ruleset, gate)
+end
+
+-- N3 (guard, @#741) twin: would stepping `dir` put a LAND unit onto a sea tile?
+-- Decision-layer only; engine legality (A69 auto-load) is untouched. N3b relaxes it.
+local function stepEntersSea(state: any, unit: any, dir: string, ruleset: any): boolean
+	if ruleset.units[unit.type].domain ~= "land" then
+		return false
+	end
+	local v = DIR_VECS[dir]
+	if v == nil then
+		return false
+	end
+	local nx = ((unit.x + v[1]) % state.map.width + state.map.width) % state.map.width
+	local ny = unit.y + v[2]
+	if ny < 0 or ny >= state.map.height then
+		return false
+	end
+	return ruleset.terrain.terrains[state.map.tiles[ny * state.map.width + nx + 1].t].domain == "sea"
 end
 
 -- B23b twin: the nearest OWN city to a unit (deterministic sortIds walk).
@@ -644,6 +745,27 @@ local function bestAttackerUnit(me: any, ruleset: any): string?
 	for _, id in ipairs(sortedKeys(ruleset.units)) do
 		local def = ruleset.units[id]
 		if def.domain == "land" and def.attack > def.defense
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or def.attack > bestDef.attack
+				or (def.attack == bestDef.attack and def.cost < bestDef.cost)
+				or (def.attack == bestDef.attack and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return best
+end
+
+-- N3 twin: the best SEA unit the civ can build now (mirror of bestAttackerUnit;
+-- attack>0 excludes the transport -- naval presence + scouts, not logistics).
+local function bestSeaUnit(me: any, ruleset: any): string?
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "sea" and def.attack > 0
 			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
 			and not cities.unitObsolete(def, me.techs) then
 			if best == nil
@@ -1064,10 +1186,20 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					markTechPath(ruleset, at, atkPath)
 				end
 			end
+			-- N3: naval-tech beeline, AFTER the government beeline (economy first):
+			-- only once monarchy is secured and the civ has no ship. No level discount.
+			local navPath = {}
+			if table.find(me.techs, "monarchy") ~= nil and bestSeaUnit(me, ruleset) == nil
+				and navyPriorityOf(state, playerId, ruleset) then
+				local nt = seaTech(ruleset)
+				if nt ~= "" then
+					markTechPath(ruleset, nt, navPath)
+				end
+			end
 			local pool = avail
 			local onPath = {}
 			for _, id in ipairs(avail) do
-				if monarchyPath[id] == true or atkPath[id] == true then
+				if monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true then
 					table.insert(onPath, id)
 				end
 			end
@@ -1129,6 +1261,28 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		end
 	end
 
+	-- N3: naval doctrine, computed once (empire-wide). Ships in COASTAL cities
+	-- once the civ has a land core, up to 1 per coastal city capped at
+	-- rules.aiNavyTargetCap. The ships range as B23b boat-scouts.
+	local navyPriority = navyPriorityOf(state, playerId, ruleset)
+	local navySeaUnit = bestSeaUnit(me, ruleset)
+	local navyAfterLand = if ruleset.rules.aiNavyAfterLandUnits == nil then 3 else ruleset.rules.aiNavyAfterLandUnits
+	local navyCap = if ruleset.rules.aiNavyTargetCap == nil then 4 else ruleset.rules.aiNavyTargetCap
+	local navyTarget = 0
+	if navyPriority and navySeaUnit ~= nil then
+		local coastal = 0
+		for _, cid in ipairs(state.cityOrder or {}) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner == playerId and isCoastal(state, c.x, c.y, ruleset) then
+				coastal += 1
+			end
+		end
+		navyTarget = if coastal < navyCap then coastal else navyCap
+	end
+	local navyWant = navyPriority and navySeaUnit ~= nil
+		and countLandMilitary(state, playerId, ruleset) >= navyAfterLand
+		and countShips(state, playerId, ruleset) < navyTarget
+
 	for _, cid in ipairs(state.cityOrder or {}) do
 		if done["c:" .. cid] ~= true then
 			local city = state.cities[cid]
@@ -1169,6 +1323,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = { kind = "building", id = "city-walls" }
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
+						elseif navyWant and isCoastal(state, city.x, city.y, ruleset) then
+							want = { kind = "unit", id = navySeaUnit }
 						else
 							local building = stanceBuilding(city, me, ruleset, S)
 							local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
@@ -1247,7 +1403,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
 					-- B23: a scout departs to range only if the city keeps another
 					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
-					local scoutDepart = scouting and exploreMode ~= "greedy"
+					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
 					if guards <= need and not scoutDepart then
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end
@@ -1274,7 +1430,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							end
 						end
 					end
-					if sdir ~= nil then
+					if sdir ~= nil and not stepEntersSea(state, unit, sdir, ruleset) then
 						local cmd = { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
 						if heading ~= nil then
 							cmd.heading = heading
@@ -1303,7 +1459,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							if massed >= D.massSize
 								and assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate) then
 								local adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
-								if adir ~= nil then
+								if adir ~= nil and not stepEntersSea(state, unit, adir, ruleset) then
 									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = adir }
 								end
 							end
@@ -1323,7 +1479,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							if blocked and not assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate) then
 								return { type = "wait", playerId = playerId, unitId = uid }
 							end
-							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = cdir }
+							if not stepEntersSea(state, unit, cdir, ruleset) then
+								return { type = "moveUnit", playerId = playerId, unitId = uid, dir = cdir }
+							end
 						end
 					end
 				end
@@ -1331,7 +1489,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- wider; balanced keeps the historical 8 — byte-identical.
 				if enemy ~= nil and enemyViable and marchR > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR then
 					local dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
-					if dir ~= nil and not stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate) then
+					if dir ~= nil and not stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+						and not stepEntersSea(state, unit, dir, ruleset) then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 					end
 				end
@@ -1341,7 +1500,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						return { type = "wait", playerId = playerId, unitId = uid }
 					end
 					local dir = dirToward(state.map, unit.x, unit.y, ward.x, ward.y)
-					if dir ~= nil then
+					if dir ~= nil and not stepEntersSea(state, unit, dir, ruleset) then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 					end
 				end
@@ -1360,7 +1519,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					dir = towardUnexplored(state, unit, me)
 				end
 				-- B26: never let a fallback/explore step become an un-gated attack.
-				if dir ~= nil and stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate) then
+				if dir ~= nil and (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+					or stepEntersSea(state, unit, dir, ruleset)) then
 					dir = nil
 				end
 				if dir ~= nil then

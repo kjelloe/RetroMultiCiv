@@ -130,7 +130,8 @@ function checkInvariants(state, ruleset) {
     tileOwner[tkey] = u.owner;
     const tileDomain = ruleset.terrain.terrains[tiles[u.y * width + u.x].t].domain;
     const inCity = cityAtTile(state, u.x, u.y);
-    if (def.domain === 'land' && tileDomain !== 'land') bad(`unit ${uid}: land unit (${u.type}) on ${tileDomain}`);
+    // A69: a land unit ABOARD a ship legally sits at the ship's (sea) tile.
+    if (def.domain === 'land' && tileDomain !== 'land' && u.aboard === undefined) bad(`unit ${uid}: land unit (${u.type}) on ${tileDomain}`);
     if (def.domain === 'sea' && tileDomain !== 'sea' && !inCity) bad(`unit ${uid}: sea unit (${u.type}) on ${tileDomain} outside a city`);
     if (u.home !== undefined && !state.cities[u.home]) bad(`unit ${uid}: home city "${u.home}" missing`);
     const m = /^u([0-9]+)$/.exec(uid);

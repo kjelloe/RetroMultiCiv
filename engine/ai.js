@@ -331,6 +331,22 @@ function attackerTech(ruleset) {
   return best === null ? '' : best;
 }
 
+// N3: the tech that unlocks the earliest SEA unit — the naval-beeline term (a
+// coastal AI can't build a ship without it). Lowest tech level among sea-domain
+// units; '' if none needs a tech. Data-driven, mirrors attackerTech.
+function seaTech(ruleset) {
+  let best = null, bestLevel = 0;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'sea' || def.tech === '') continue;
+    const lvl = ruleset.techs[def.tech] === undefined ? 0 : ruleset.techs[def.tech].level;
+    if (best === null || lvl < bestLevel || (lvl === bestLevel && def.tech < best)) {
+      best = def.tech; bestLevel = lvl;
+    }
+  }
+  return best === null ? '' : best;
+}
+
 function countSettlers(state, playerId) {
   let n = 0;
   for (const uid of Object.keys(state.units)) {
@@ -356,6 +372,61 @@ function countMilitary(state, playerId, ruleset) {
     if (u.owner === playerId && ruleset.units[u.type].attack > 0) n = n + 1;
   }
   return n;
+}
+
+// N3: land military (the naval probe's "first N land units" floor) and ships.
+function countLandMilitary(state, playerId, ruleset) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    const def = ruleset.units[u.type];
+    if (u.owner === playerId && def.domain === 'land' && def.attack > 0) n = n + 1;
+  }
+  return n;
+}
+function countShips(state, playerId, ruleset) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId && ruleset.units[u.type].domain === 'sea') n = n + 1;
+  }
+  return n;
+}
+
+// N3: is this civ NAVAL? An empire-wide map read (Civ 1 flavor: the civ decides
+// "we are a naval power", the coastal-city constraint is physical, applied at the
+// build site). Water ratio = sea tiles within a Chebyshev box of radius
+// rules.aiNavyRadius around the civ's cities (deduped across overlapping boxes)
+// over all tiles in that band, vs rules.aiNavyWaterPct. Derived each turn — no
+// state field. False when the knob is absent or the civ holds no city.
+function navyPriorityOf(state, playerId, ruleset) {
+  const pct = ruleset.rules.aiNavyWaterPct;
+  if (pct === undefined) return false;
+  const radius = ruleset.rules.aiNavyRadius === undefined ? 6 : ruleset.rules.aiNavyRadius;
+  const map = state.map;
+  const seen = {};
+  let water = 0, total = 0;
+  for (const cid of sortIds(state.cityOrder || [])) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    for (let dy = -radius; dy <= radius; dy++) {
+      const ny = c.y + dy;
+      if (ny < 0 || ny >= map.height) continue;
+      for (let dx = -radius; dx <= radius; dx++) {
+        let nx = c.x + dx;
+        if (nx < 0 || nx >= map.width) {
+          if (!map.wrapX) continue;
+          nx = ((nx % map.width) + map.width) % map.width;
+        }
+        const idx = ny * map.width + nx;
+        if (seen[idx] === true) continue;
+        seen[idx] = true;
+        total = total + 1;
+        if (ruleset.terrain.terrains[map.tiles[idx].t].domain === 'sea') water = water + 1;
+      }
+    }
+  }
+  return total > 0 && water * 100 > pct * total;
 }
 
 // B24: the per-combat-rule war doctrine (rules.aiWarDoctrine keyed by
@@ -429,6 +500,23 @@ function stepAttackBlocked(state, unit, dir, playerId, ruleset, gate) {
   for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) hostile = true;
   if (!hostile) return false;
   return !assaultOddsOk(state, unit, nx, ny, ruleset, gate);
+}
+
+// N3 (guard, ruling @#741): would stepping `dir` put a LAND unit onto a sea
+// tile? The AI has no load/unload doctrine yet, so a land unit that steps onto
+// sea auto-boards a friendly ship (A69) and — with no unload logic — rides it
+// out of play forever (a silent capability leak). This DECISION-layer guard
+// keeps AI land units off the water; engine legality is untouched (humans still
+// auto-load exactly as before), and N3b can RELAX this deliberately when the AI
+// loading doctrine lands. Sea units and air units are unaffected.
+function stepEntersSea(state, unit, dir, ruleset) {
+  if (ruleset.units[unit.type].domain !== 'land') return false;
+  const v = DIR_VECS[dir];
+  if (v === undefined) return false;
+  const nx = ((unit.x + v[0]) % state.map.width + state.map.width) % state.map.width;
+  const ny = unit.y + v[1];
+  if (ny < 0 || ny >= state.map.height) return false;
+  return ruleset.terrain.terrains[state.map.tiles[ny * state.map.width + nx].t].domain === 'sea';
 }
 
 // B23b: the nearest OWN city to a unit (deterministic sortIds walk). null when
@@ -546,6 +634,28 @@ function bestAttackerUnit(me, ruleset) {
   for (const id of Object.keys(ruleset.units)) {
     const def = ruleset.units[id];
     if (def.domain !== 'land' || def.attack <= def.defense) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.attack > bestDef.attack
+        || (def.attack === bestDef.attack && def.cost < bestDef.cost)
+        || (def.attack === bestDef.attack && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best;
+}
+
+// N3: the best SEA unit the civ can build now — mirror of bestAttackerUnit
+// (strongest attack, then cheapest, then id; skips obsolete), so it upgrades
+// trireme -> ironclad -> ... as naval tech advances. attack>0 EXCLUDES the
+// transport (attack 0): N3 is a naval presence + scouts, not troop logistics
+// (the scope fence — AI loading doctrine is a later slice). null when none.
+function bestSeaUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'sea' || def.attack <= 0) continue;
     if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
     if (unitObsolete(def, me.techs)) continue;
     if (best === null
@@ -870,10 +980,20 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const at = attackerTech(ruleset);
         if (at !== '') markTechPath(ruleset, at, atkPath);
       }
+      // N3: a NAVAL civ beelines the earliest ship tech — but AFTER government
+      // (economy stays foundational): only once monarchy is secured and the civ
+      // has no ship yet. Same mechanism as the attacker beeline, no level discount
+      // (it never preempts monarchy — monarchyPath is empty once monarchy is known).
+      const navPath = {};
+      if (me.techs.indexOf('monarchy') !== -1 && bestSeaUnit(me, ruleset) === null
+          && navyPriorityOf(state, playerId, ruleset)) {
+        const nt = seaTech(ruleset);
+        if (nt !== '') markTechPath(ruleset, nt, navPath);
+      }
       let pool = avail;
       const onPath = [];
       for (const id of avail) {
-        if (monarchyPath[id] === true || atkPath[id] === true) onPath.push(id);
+        if (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true) onPath.push(id);
       }
       if (onPath.length > 0) pool = onPath;
       let best = pool[0];
@@ -923,6 +1043,26 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (cmd) return cmd;
   }
 
+  // N3: naval doctrine, computed once per turn (empire-wide). A naval civ builds
+  // ships in its COASTAL cities once it has a land core, up to 1 per coastal city
+  // capped at rules.aiNavyTargetCap. The ships then range as B23b boat-scouts.
+  const navyPriority = navyPriorityOf(state, playerId, ruleset);
+  const navySeaUnit = bestSeaUnit(me, ruleset);
+  const navyAfterLand = ruleset.rules.aiNavyAfterLandUnits === undefined ? 3 : ruleset.rules.aiNavyAfterLandUnits;
+  const navyCap = ruleset.rules.aiNavyTargetCap === undefined ? 4 : ruleset.rules.aiNavyTargetCap;
+  let navyTarget = 0;
+  if (navyPriority && navySeaUnit !== null) {
+    let coastal = 0;
+    for (const cid of state.cityOrder || []) {
+      const c = state.cities[cid];
+      if (c && c.owner === playerId && isCoastal(state, c.x, c.y, ruleset)) coastal = coastal + 1;
+    }
+    navyTarget = coastal < navyCap ? coastal : navyCap;
+  }
+  const navyWant = navyPriority && navySeaUnit !== null
+    && countLandMilitary(state, playerId, ruleset) >= navyAfterLand
+    && countShips(state, playerId, ruleset) < navyTarget;
+
   for (const cid of state.cityOrder || []) {
     if (done['c:' + cid]) continue;
     const city = state.cities[cid];
@@ -970,6 +1110,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = { kind: 'building', id: 'city-walls' };
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
+        } else if (navyWant && isCoastal(state, city.x, city.y, ruleset)) {
+          // N3: a coastal city of a naval civ, land core secured, fleet under
+          // target -> build a ship (above generic buildings/wonders).
+          want = { kind: 'unit', id: navySeaUnit };
         } else {
           const building = stanceBuilding(city, me, ruleset, S);
           const wonder = building === null ? nextWonder(state, me, ruleset) : null;
@@ -1053,14 +1197,15 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
       }
       const need = enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) ? 2 : 1;
-      // B23b: a scout departs to range the map — the THREAT VETO is now the
-      // safety, not a fixed guard floor. isScout already demotes any scout whose
-      // nearest own city is menaced (so a `scouting` unit stands in an UNthreatened
-      // city), which lets the OPENER explore-before-garrison even as the sole
-      // guard (user doctrine) while a threatened city keeps every defender home.
-      // B23 needed guards>=2 because it had no veto; B23b's local veto supersedes
-      // it. greedy mode stays the pre-B23 identity: no departure.
-      const scoutDepart = scouting && exploreMode !== 'greedy';
+      // B23c: a scout departs to range the map ONLY if the city keeps another
+      // defender (guards >= 2) — the threat veto alone (B23b) was insufficient:
+      // BARBS spawn without warning, so a sole guard that left before a threat
+      // was visible lost its city, and a multi-city civ whose whole militia met
+      // the quota emptied EVERY garrison at once — expansion collapsed to 1 city
+      // (sim-runner #744, the M-floors caught it). The veto still applies on top
+      // (a threatened city keeps everyone); this floor is the hard guarantee that
+      // no city is ever stripped below one defender. greedy mode: no departure.
+      const scoutDepart = scouting && exploreMode !== 'greedy' && guards >= 2;
       if (guards <= need && !scoutDepart) {
         return { type: 'fortify', playerId, unitId: uid };
       }
@@ -1088,7 +1233,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           }
         }
       }
-      if (sdir) {
+      // N3 guard: a land scout never steps onto sea (no auto-board); it holds.
+      if (sdir && !stepEntersSea(state, unit, sdir, ruleset)) {
         const cmd = { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
         if (heading !== undefined) cmd.heading = heading;
         return cmd;
@@ -1118,7 +1264,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           if (massed >= D.massSize
               && assaultOddsOk(state, unit, targetCity.x, targetCity.y, ruleset, D.oddsGate)) {
             const adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
-            if (adir) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
+            if (adir && !stepEntersSea(state, unit, adir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
           }
           return { type: 'wait', playerId, unitId: uid }; // hold: not massed / bad odds
         }
@@ -1132,7 +1278,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           if (blocked && !assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGate)) {
             return { type: 'wait', playerId, unitId: uid }; // don't charge bad odds (bo3)
           }
-          return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };
+          if (!stepEntersSea(state, unit, cdir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };
         }
       }
     }
@@ -1143,7 +1289,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // and the step itself may not become an un-gated attack.
     if (enemy && enemyViable && marchR > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR) {
       const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
-      if (dir && !stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)) {
+      if (dir && !stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+          && !stepEntersSea(state, unit, dir, ruleset)) {
         return { type: 'moveUnit', playerId, unitId: uid, dir };
       }
     }
@@ -1154,7 +1301,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         return { type: 'wait', playerId, unitId: uid }; // stand guard, re-decide next turn
       }
       const dir = dirToward(state.map, unit.x, unit.y, ward.x, ward.y);
-      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+      if (dir && !stepEntersSea(state, unit, dir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
     let dir = null;
     // B26: march on a known enemy only toward an ODDS-VIABLE target; a
@@ -1170,7 +1317,9 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       dir = towardUnexplored(state, unit, me);
     }
     // B26: never let a fallback/explore step become an un-gated attack.
-    if (dir !== null && stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)) {
+    // N3 guard: nor let a land unit wander onto sea (no auto-board).
+    if (dir !== null && (stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)
+        || stepEntersSea(state, unit, dir, ruleset))) {
       dir = null;
     }
     if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
@@ -1202,4 +1351,4 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   return state;
 }
 
-export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout };
+export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit };
