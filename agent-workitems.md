@@ -26,14 +26,22 @@ user rotation spec; join-by-id close — the docs/16 gap list) →
 H3. A49 playwright lane (dep user-approved; DOM backlog
 A87/A90/A97/A98 as its first cases) → H4. A54 off-turn pre-work →
 H5. A67 art pass (visual-golden stream; re-record via
-workflow_dispatch artifacts, the proven flow) → H6. ONBOARDING
-ADVISOR (user go — the designed muteable hint system) → H7. A51
+workflow_dispatch artifacts, the proven flow) → H6. ~~ONBOARDING
+ADVISOR~~ STRUCK 2026-07-17 (already shipped: A78 muteable hint
+system + A99 predicate cards + A58c pedia deep-links; prior-art
+catch #1068; residual = the advice→pedia link audit, folded into
+the helper's render-spec sweep-gap batch) → H7. A51
 MASTER-INDEX CODE (user go — announce protocol + index service +
 in-client server browser, docs/12 §6; deploy waits on the box,
 tests run against a local index) → H8. A76-UI GRAPHICAL ship
 screen (user ruling: graphical FROM THE START — visual ship
 assembly, parts appearing as built; pairs with N17's engine) →
-H9. A58 pedia (as far as the night allows).
+H9. ~~A58 pedia~~ STRUCK 2026-07-17 (A58a–d COMPLETE + committed;
+pedia-concepts.js is the ally's editorial draft, not helper work;
+prior-art catch #1068).
+SWEEP-GAP FILLER (helper, #1069): render-spec typeClasses →
+unitSilhouette rename (reviewer advisory :2441, A88b follow-up)
++ advice→pedia deep-link audit.
 
 **ROBLOX-HELPER:** R12 close → R9 lobby place → R10 save/resume →
 R11 ride pad → R7c-3 worked-tile FULL BUILD (user un-gated
