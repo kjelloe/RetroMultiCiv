@@ -55,6 +55,7 @@ export function createRegistry(deps) {
   let nextNum = 1;
   const gameIdFn = deps.gameIdFn || (() => 'g' + (nextNum++));
   const seedFn = deps.seedFn || (() => Date.now() % 1000000);
+  const nowFn = deps.nowFn || Date.now; // A50 3b: injectable clock for createdAt (lifecycle expiry)
   const ruleset = deps.ruleset;
   const games = {};      // gameId -> entry
   const codeIndex = {};  // joinCode -> gameId
@@ -83,6 +84,7 @@ export function createRegistry(deps) {
     for (let i = 0; i < civs; i++) seats['p' + (i + 1)] = { human: i < humans, name: null, reserved: false };
     const entry = {
       gameId, joinCode: code, status: 'lobby',
+      createdAt: nowFn(), // A50 3b: unstarted-lobby TTL measures from here
       hostSeat: 'p1', // the creator's seat — may use the host skip (docs/08 §6)
       options: {
         civs, humans,
@@ -311,6 +313,7 @@ export function createRegistry(deps) {
     const code = joinCode(gameId);
     const entry = {
       gameId, joinCode: code, status: 'started',
+      createdAt: nowFn(), // A50 3b: lifecycle timestamp (parity with lobby entries)
       options: { allowSpectators: allowSpectators === true }, seats, game,
       hostSeat: Object.keys(seats)[0] || 'p1' // first human seat hosts the boot game
     };
@@ -328,6 +331,17 @@ export function createRegistry(deps) {
 
   function entryOf(gameId) { return games[gameId] || null; }
 
+  // A50 3b: drop a game from the registry (expired lobby / abandoned game). The
+  // caller notifies any live connections first; the on-disk save (if any) is
+  // left untouched — an abandoned game stays resumable by its code.
+  function remove(gameId) {
+    const e = games[gameId];
+    if (!e) return false;
+    delete codeIndex[e.joinCode];
+    delete games[gameId];
+    return true;
+  }
+
   // Open games for the {t:'list'} reply.
   function list() {
     return Object.keys(games).map(id => {
@@ -344,6 +358,6 @@ export function createRegistry(deps) {
 
   return {
     create, reserveSeat, releaseSeat, setSlot, setSlots, start, register,
-    resolveId, entryOf, list, kick, blockIp, setChat // A37
+    resolveId, entryOf, list, kick, blockIp, setChat, remove // A37 / A50 3b
   };
 }

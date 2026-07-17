@@ -546,3 +546,78 @@ test('A50 item 3: saves/ rotation retires oldest completed first, never the acti
     assert.ok(fs.existsSync(path.join(dir, 'notours.json')), 'foreign files untouched');
   } finally { await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('A50 item 3b: an unstarted lobby expires on the sweep; the default game is exempt', async () => {
+  const { startServer } = await import('../server/index.js');
+  let t = 1000;
+  const s = await startServer({
+    ruleset: RULESET, seed: 7, civs: 2, humans: 1, size: 'xsmall', autosave: false,
+    gameId: 'lan-default', now: () => t, lifecycle: { lobbyTtlMs: 1000, abandonedMs: 9e9 }
+  });
+  const host = await connect(s.port);
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 2, humans: 2, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+
+    // Not yet past the TTL → the sweep leaves it.
+    t += 500; s.maintenanceSweep();
+    // Past the TTL → the lobby is retired and its occupant is told.
+    t += 1000; s.maintenanceSweep();
+    assert.strictEqual((await host.expect(m => m.t === 'gameClosed', 'closed')).reason, 'lobbyExpired');
+
+    // The lobby is gone: joining by its code now finds nothing.
+    const late = await connect(s.port);
+    try {
+      late.send({ t: 'join', joinCode: created.joinCode, name: 'Late' });
+      assert.strictEqual((await late.expect(m => m.t === 'rejected', 'gone')).code, 'noSuchGame');
+    } finally { late.close(); }
+
+    // The LAN default game is never swept even long past any TTL.
+    t += 9e9; s.maintenanceSweep(); s.maintenanceSweep();
+    const dj = await connect(s.port);
+    try {
+      dj.send({ t: 'join', name: 'D' }); // no target → default game
+      await dj.expect(m => m.t === 'joined', 'default still joinable');
+    } finally { dj.close(); }
+  } finally { host.close(); await s.close(); }
+});
+
+test('A50 item 3b: an abandoned started game is retired, its save survives (resumable)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-aband-'));
+  let t = 1000;
+  const s = await startServer({
+    ruleset: RULESET, seed: 8, civs: 2, humans: 1, size: 'xsmall',
+    gameId: 'lan-default', savesDir: dir, now: () => t, lifecycle: { lobbyTtlMs: 9e9, abandonedMs: 5000 }
+  });
+  const host = await connect(s.port);
+  let lobbyCode, gameCode;
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    lobbyCode = created.joinCode;
+    host.send({ t: 'start' });
+    const joined = await host.expect(m => m.t === 'joined', 'started+seated'); // host bound to its seat
+    gameCode = joined.code; // the docs/07 game code — the resume passphrase (A98)
+    await host.expect(m => m.t === 'started', 'started ack');
+
+    // Still connected → a sweep must NOT retire it, however much time passes.
+    t += 1e6; s.maintenanceSweep();
+  } finally { host.close(); }
+
+  // Let the server process the disconnect, then two sweeps across the window.
+  await new Promise(r => setTimeout(r, 200));
+  s.maintenanceSweep();      // records emptySince
+  t += 6000;                 // past abandonedMs
+  s.maintenanceSweep();      // retires it
+
+  const c = await connect(s.port);
+  try {
+    // The live entry is gone — joining by its lobby code finds nothing…
+    c.send({ t: 'join', joinCode: lobbyCode, name: 'X' });
+    assert.strictEqual((await c.expect(m => m.t === 'rejected', 'entry gone')).code, 'noSuchGame');
+    // …but the SAVE survived, so resume-by-(game)code brings the game back.
+    c.send({ t: 'resumeByCode', code: gameCode });
+    assert.strictEqual((await c.expect(m => m.t === 'resumed', 'resumable')).code, gameCode);
+  } finally { c.close(); await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});

@@ -445,6 +445,8 @@ everything after the port):
 | `--creates-per-hour N` | `20` | New games created per IP per hour.                 |
 | `--joins-per-min N` | `30`   | Join/reserve attempts per IP per minute.           |
 | `--chat-per-min N` | `60`    | Chat messages per IP per minute.                   |
+| `--lobby-ttl-min N` | `60`   | Retire an unstarted lobby after N idle minutes.    |
+| `--abandoned-hours N` | `24` | Retire a started game after N hours with no players connected (its save survives — resumable by code). |
 | `--debug`        | off       | **Dev only.** Serves the WHOLE repo over HTTP.     |
 
 > The connection/game/rate caps default to **LAN-safe** numbers — a normal LAN

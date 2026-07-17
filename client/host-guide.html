@@ -184,6 +184,8 @@ server {
     <tr><td><code>--creates-per-hour N</code></td><td>20</td><td>New games per IP per hour.</td></tr>
     <tr><td><code>--joins-per-min N</code></td><td>30</td><td>Join attempts per IP per minute.</td></tr>
     <tr><td><code>--chat-per-min N</code></td><td>60</td><td>Chat messages per IP per minute.</td></tr>
+    <tr><td><code>--lobby-ttl-min N</code></td><td>60</td><td>Retire an unstarted lobby after N idle minutes.</td></tr>
+    <tr><td><code>--abandoned-hours N</code></td><td>24</td><td>Retire a started game after N hours with nobody connected (save survives, resumable by code).</td></tr>
     <tr><td><code>--debug</code></td><td>off</td><td><strong>Dev only</strong> — serves the whole repo.</td></tr>
   </table>
   <div class="note">The connection/game/rate caps default to <strong>LAN-safe</strong>

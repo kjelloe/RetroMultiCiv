@@ -68,13 +68,19 @@ export function startServer(opts) {
       throw new Error(`--civs ${opts.civs} needs a bigger map: ${opts.size || 'medium'} seats up to ${maxCivs} civilizations`);
     }
   }
-  const registry = createRegistry({ ruleset });
+  const now = opts.now || Date.now; // A50: one injectable clock (limiter + lifecycle)
+  const registry = createRegistry({ ruleset, nowFn: now });
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
-  const limiter = createLimiter({ now: opts.now, limits: opts.limits });
-  // Bound rate-window memory under connect/disconnect churn; unref'd so it
-  // never holds the process (or a test) open.
-  const sweepTimer = setInterval(() => { limiter.sweep(); rotateSaves(); }, 60000);
+  const limiter = createLimiter({ now, limits: opts.limits });
+  // A50 item 3b: lifecycle expiry — an unstarted lobby with no start, and a
+  // started game with no live connections, both eventually retire. Generous
+  // defaults (LAN never trips them); overridable via opts.lifecycle.
+  const lifecycle = Object.assign({ lobbyTtlMs: 3600000, abandonedMs: 86400000 }, opts.lifecycle || {});
+  const emptySince = {}; // started gameId -> ts it went to zero connections
+  // Bound rate-window memory + run lifecycle/rotation; unref'd so it never
+  // holds the process (or a test) open.
+  const sweepTimer = setInterval(maintenanceSweep, 60000);
   if (sweepTimer.unref) sweepTimer.unref();
   const saveFiles = {};    // gameId -> autosave path
   const autosave = opts.autosave !== false;
@@ -189,6 +195,36 @@ export function startServer(opts) {
     }
     for (const victim of planRotation(files, active, opts.rotation)) {
       try { fs.unlinkSync(victim); } catch (e) { /* already gone */ }
+    }
+  }
+  // A50 item 3b: registry lifecycle expiry, run on the maintenance sweep.
+  function liveConnCount(gameId) {
+    let n = 0;
+    for (const [, i] of conns) if (i.gameId === gameId) n = n + 1;
+    return n;
+  }
+  function closeGame(gameId, reason) {
+    for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'gameClosed', gameId, reason });
+    registry.remove(gameId); // the on-disk save survives — abandoned games stay resumable by code
+    delete emptySince[gameId];
+  }
+  function maintenanceSweep() {
+    limiter.sweep();
+    rotateSaves();
+    const t = now();
+    for (const g of registry.list()) { // list() is a fresh snapshot — safe to remove during iteration
+      if (g.gameId === defaultGameId) continue; // the LAN host's persistent game is exempt
+      const e = registry.entryOf(g.gameId);
+      if (!e) continue;
+      if (e.status === 'lobby') {
+        // an unstarted lobby that has aged past the TTL: nobody is coming
+        if (e.createdAt !== undefined && t - e.createdAt > lifecycle.lobbyTtlMs) closeGame(g.gameId, 'lobbyExpired');
+      } else {
+        // a started game with no live connection for longer than abandonedMs
+        if (liveConnCount(g.gameId) > 0) { delete emptySince[g.gameId]; continue; }
+        if (emptySince[g.gameId] === undefined) emptySince[g.gameId] = t;
+        else if (t - emptySince[g.gameId] > lifecycle.abandonedMs) closeGame(g.gameId, 'gameAbandoned');
+      }
     }
   }
   // A34/A98: load a saves/ envelope into a live game and answer the caller.
@@ -725,6 +761,7 @@ export function startServer(opts) {
         port: httpServer.address().port,
         game: defaultGame,
         rotateSaves, // exposed so tests can trigger rotation deterministically
+        maintenanceSweep, // A50 3b: tests advance opts.now then call this to exercise expiry
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
           for (const ws of conns.keys()) ws.terminate();
@@ -761,6 +798,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--creates-per-hour') (opts.limits = opts.limits || {}).createsPerHour = Number(argv[++i]);
     else if (a === '--joins-per-min') (opts.limits = opts.limits || {}).joinsPerMin = Number(argv[++i]);
     else if (a === '--chat-per-min') (opts.limits = opts.limits || {}).chatPerMin = Number(argv[++i]);
+    // A50 item 3b lifecycle expiry (unstarted lobbies + abandoned started games)
+    else if (a === '--lobby-ttl-min') (opts.lifecycle = opts.lifecycle || {}).lobbyTtlMs = Number(argv[++i]) * 60000;
+    else if (a === '--abandoned-hours') (opts.lifecycle = opts.lifecycle || {}).abandonedMs = Number(argv[++i]) * 3600000;
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
