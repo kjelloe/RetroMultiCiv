@@ -2,16 +2,20 @@
 -- grey nothing, and avatars can't fall off the world.
 --   PHYSICAL GUARD (always on): four invisible walls just outside the map
 --   edge + an invisible catch floor below sea level.
---   ART (the soundboard pattern — BOTH variants built cheap, the user picks
---   by screenshot; V cycles frame -> galaxy -> none):
+--   ART (the soundboard pattern; V cycles frame -> galaxy -> none):
 --     (i)  "frame"  — Dutch-Golden-Age ornate map border: parchment apron
 --          around the map with darker trim rails and corner medallions.
---     (ii) "galaxy" — earth-map-in-space: black deep floor + deterministic
---          starfield + a few translucent nebula spheres.
+--          USER PICK 2026-07-17 (runC): frame is FINAL as the boot default.
+--     (ii) "galaxy" — art ROUND 2 (user direction: "much more interesting
+--          galaxy backdrop"): three star DEPTH layers + a milky-way band,
+--          layered nebulae, and the mode OWNS Lighting while active
+--          (midnight + a Sky with sun/moon shrunk to zero — kills the
+--          default skybox moon; engine-drawn sky stars are procedural).
 --   Own/procedural art ONLY (license discipline — no imported textures).
 --   Star placement is a position-hashed LCG, not math.random: screenshots
 --   stay byte-comparable (the R2 rule).
 
+local Lighting = game:GetService("Lighting")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
@@ -111,34 +115,62 @@ local function build(view)
 		end
 	end
 
-	-- ---- variant (ii): galaxy ----------------------------------------------
-	part(galaxyFolder, "Deep", Vector3.new(w + 900, 1, h + 900),
-		CFrame.new(cx, -30, cz), Color3.fromRGB(8, 8, 14))
+	-- ---- variant (ii): galaxy — art round 2 ---------------------------------
+	part(galaxyFolder, "Deep", Vector3.new(w + 1400, 1, h + 1400),
+		CFrame.new(cx, -80, cz), Color3.fromRGB(5, 5, 10))
 	-- deterministic starfield (LCG, position-hashed — screenshot-stable)
 	local s = 12345
 	local function rnd()
 		s = (s * 1103515245 + 12345) % 2147483648
 		return s / 2147483648
 	end
-	for i = 1, 260 do
-		local sx = cx + (rnd() - 0.5) * (w + 800)
-		local sz = cz + (rnd() - 0.5) * (h + 800)
-		local sy = -26 + rnd() * 14
-		local mag = 0.3 + rnd() * 0.5
-		local warm = rnd() < 0.2
+	local COOL = Color3.fromRGB(225, 235, 255)
+	local WARM = Color3.fromRGB(255, 226, 180)
+	local GIANT = Color3.fromRGB(170, 200, 255)
+	local function star(sx, sy, sz, mag, color)
 		part(galaxyFolder, "Star", Vector3.new(mag, mag, mag),
-			CFrame.new(sx, sy, sz),
-			warm and Color3.fromRGB(255, 226, 180) or Color3.fromRGB(225, 235, 255),
+			CFrame.new(sx, sy, sz), color,
 			{ Material = Enum.Material.Neon, CanQuery = false, CanCollide = false })
 	end
+	-- three depth layers: near/mid/far — parallax sells the depth
+	for _, layer in ipairs({
+		{ n = 220, y0 = -24, spread = 10, magMin = 0.35, magMax = 0.9 },
+		{ n = 260, y0 = -42, spread = 14, magMin = 0.5, magMax = 1.3 },
+		{ n = 220, y0 = -66, spread = 16, magMin = 0.8, magMax = 2.0 },
+	}) do
+		for _ = 1, layer.n do
+			local sx = cx + (rnd() - 0.5) * (w + 1200)
+			local sz = cz + (rnd() - 0.5) * (h + 1200)
+			local sy = layer.y0 + rnd() * layer.spread
+			local mag = layer.magMin + rnd() * (layer.magMax - layer.magMin)
+			local roll = rnd()
+			star(sx, sy, sz, mag, roll < 0.18 and WARM or (roll < 0.26 and GIANT or COOL))
+		end
+	end
+	-- the milky-way band: a dense diagonal ribbon across the deep (two rnd
+	-- draws summed = triangular falloff around the band's spine)
+	for _ = 1, 360 do
+		local t = rnd() * 2 - 1 -- position along the spine
+		local off = (rnd() + rnd() - 1) * (w + h) * 0.09
+		local sx = cx + t * (w + 1000) * 0.5 - off * 0.45
+		local sz = cz + t * (h + 1000) * 0.35 + off
+		local sy = -34 - rnd() * 26
+		star(sx, sy, sz, 0.3 + rnd() * 0.8, rnd() < 0.3 and WARM or COOL)
+	end
+	-- layered nebulae: big dim far shells with brighter cores, colors spread
+	-- along the band for a painted-depth read
 	for _, neb in ipairs({
-		{ 60, Color3.fromRGB(90, 50, 130), -0.35, -0.3 }, -- dx/dz as map fractions
-		{ 44, Color3.fromRGB(40, 80, 130), 0.45, 0.25 },
-		{ 30, Color3.fromRGB(130, 60, 80), 0.1, -0.45 },
+		{ 84, Color3.fromRGB(70, 40, 115), -0.42, -0.34, -58, 0.82 },
+		{ 52, Color3.fromRGB(110, 60, 160), -0.40, -0.32, -50, 0.68 },
+		{ 66, Color3.fromRGB(35, 70, 125), 0.48, 0.28, -54, 0.8 },
+		{ 38, Color3.fromRGB(60, 110, 180), 0.46, 0.26, -46, 0.66 },
+		{ 48, Color3.fromRGB(140, 55, 85), 0.08, -0.5, -52, 0.74 },
+		{ 30, Color3.fromRGB(185, 90, 110), 0.10, -0.48, -44, 0.62 },
+		{ 40, Color3.fromRGB(45, 120, 110), -0.15, 0.46, -48, 0.72 },
 	}) do
 		part(galaxyFolder, "Nebula", Vector3.new(neb[1], neb[1] / 3, neb[1]),
-			CFrame.new(cx + neb[3] * w, -24, cz + neb[4] * h), neb[2],
-			{ Shape = Enum.PartType.Ball, Transparency = 0.75, Material = Enum.Material.Neon,
+			CFrame.new(cx + neb[3] * w, neb[5], cz + neb[4] * h), neb[2],
+			{ Shape = Enum.PartType.Ball, Transparency = neb[6], Material = Enum.Material.Neon,
 				CanQuery = false, CanCollide = false })
 	end
 
@@ -148,7 +180,34 @@ end
 
 ClientState.onView(build)
 
--- V cycles the art for the user's screenshot pick: frame -> galaxy -> none
+-- galaxy OWNS Lighting while active: midnight + a Sky whose sun/moon are
+-- shrunk to zero (kills the default skybox moon — runC triage) while the
+-- engine's own procedural sky stars stay (no imported textures). Restored
+-- exactly on leaving the mode.
+local galaxySky = Instance.new("Sky")
+galaxySky.Name = "GalaxySky"
+galaxySky.SunAngularSize = 0
+galaxySky.MoonAngularSize = 0
+galaxySky.StarCount = 5000
+local savedClockTime = nil
+
+local function applyLighting(galaxyOn)
+	if galaxyOn then
+		if savedClockTime == nil then
+			savedClockTime = Lighting.ClockTime
+		end
+		Lighting.ClockTime = 0
+		galaxySky.Parent = Lighting
+	else
+		galaxySky.Parent = nil
+		if savedClockTime ~= nil then
+			Lighting.ClockTime = savedClockTime
+			savedClockTime = nil
+		end
+	end
+end
+
+-- V cycles the art (dev tool; frame is the USER-FINAL boot default)
 local MODES = { "frame", "galaxy", "none" }
 local mode = 1
 UserInputService.InputBegan:Connect(function(input, processed)
@@ -162,6 +221,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		mode = mode % #MODES + 1
 		frameFolder.Parent = MODES[mode] == "frame" and root or nil
 		galaxyFolder.Parent = MODES[mode] == "galaxy" and root or nil
+		applyLighting(MODES[mode] == "galaxy")
 		print("[VoidCover] art = " .. MODES[mode])
 	end
 end)
