@@ -2433,6 +2433,24 @@ table of every unit whose current model is a generic figure vs one
 Gallery re-shot; A48 visual goldens re-recorded (the process exists
 now); the ally gets the before/after per the acceptance loop.
 
+### A67b — art pass round 2 (from the #729 review table; any free lane)
+The table's top two: (1) CATAPULT — own torsion-throwing-arm recipe
+(ancient engine, stops sharing the barrel+wheels 'siege' body with
+cannon/artillery); (2) DIPLOMAT — a lone figure with a case (a
+PERSON, stops sharing 'wagon' with settlers/caravan). Same
+discipline as A67: recipes.js data + dispatch + regenerated
+artifacts + both-GL gallery shots + CI visual re-record. The rest
+of the ranked table (phalanx shield, musket/rifle firearms, knight
+lance, carrier flat-deck, bomber/nuclear wings) stays queued here.
+
+### A88b — kill the dispatch/UNIT_SILHOUETTE dual source (helper #729 drift note; small)
+createUnitMesh's hardcoded dispatch in assets.js and recipes.js's
+UNIT_SILHOUETTE are two hand-synced sources (A67 had to edit both).
+Data-drive the dispatch from UNIT_SILHOUETTE (recipe name selects
+the builder family) + a gate asserting every silhouette id is
+dispatchable — so they cannot drift. Gallery must stay
+byte-identical (pure refactor).
+
 ## A68 — Wave VIII UI bundle (items 8, 9, 10, 13, 16, 17-verify)
 
 1. (VIII.8) Unit status line must FLOW UP when the action bar wraps
