@@ -38,6 +38,9 @@ export function initEndScreen(ctx) {
     if (victory === 'conquest') {
       return `Conquest — the ${wname} stand alone; every rival has fallen.`;
     }
+    if (victory === 'space') { // H8/A76: first planetfall ends the game
+      return `Space victory — the ${wname} have reached Alpha Centauri, and a new world is theirs.`;
+    }
     return `Score victory — the year ${ageYear(state)} arrived, and the ${wname} had built the greatest civilization.`;
   }
 

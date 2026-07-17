@@ -1605,6 +1605,84 @@ html, body {
   display: none;
 }
 
+/* H8 (A76): the graphical spaceship screen — pedia-precedent overlay */
+#ship-screen {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(6, 9, 16, 0.94);
+  display: flex; align-items: center; justify-content: center;
+}
+#ship-screen.hidden { display: none; }
+#ship-frame {
+  width: min(860px, 94vw); height: min(700px, 92vh);
+  background: rgba(12, 18, 30, 0.98); border: 1px solid #2c4468;
+  border-radius: 10px; display: flex; flex-direction: column;
+  color: #cdd8ea; font-size: 14px; overflow: hidden;
+}
+#ship-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-bottom: 1px solid #24344f;
+}
+#ship-head h2 { margin: 0; font-size: 18px; color: #e8c46a; }
+#ship-close {
+  background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f;
+  border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+}
+#ship-body { display: grid; grid-template-columns: 1fr 300px; flex: 1; min-height: 0; }
+#ship-diagram { position: relative; padding: 10px; border-right: 1px solid #24344f; min-height: 0; }
+#ship-svg { width: 100%; height: 100%; }
+#ship-mock-note {
+  position: absolute; top: 14px; left: 14px; color: #b04a3b;
+  font-size: 11px; letter-spacing: 2px;
+}
+#ship-side { padding: 14px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.ship-part-row, .ship-stat {
+  display: flex; justify-content: space-between;
+  border-bottom: 1px dotted #2c4468; padding: 3px 0;
+}
+.ship-part-row span, .ship-stat span { color: #8ba0c0; }
+.ship-dead-note { color: #c76a5a; font-style: normal; font-size: 11px; }
+#ship-status { color: #9fb3d0; font-size: 12px; min-height: 2.4em; }
+#ship-launch-row.hidden { display: none; }
+#ship-launch {
+  padding: 10px 28px; font-size: 15px; background: #6b3324;
+  border: 1px solid #b04a3b; border-radius: 6px; color: #f0d8cd;
+  font-family: inherit; cursor: pointer;
+}
+#ship-launch:hover { background: #8a4230; }
+#ship-launch.hidden { display: none; }
+#ship-confirm { font-size: 12px; color: #e8b0a8; }
+#ship-confirm.hidden { display: none; }
+#ship-confirm button {
+  margin: 4px 4px 0 0; padding: 5px 12px; font-family: inherit; cursor: pointer;
+  border-radius: 5px; border: 1px solid #3b5d8f; background: #24406b; color: #cdd8ea;
+}
+#ship-confirm #ship-launch-yes { background: #6b3324; border-color: #b04a3b; color: #f0d8cd; }
+#ship-preset { font-size: 12px; color: #8ba0c0; }
+#ship-preset.hidden { display: none; }
+#ship-preset button {
+  margin-left: 6px; padding: 3px 10px; font-family: inherit; cursor: pointer;
+  border-radius: 5px; border: 1px solid #3b5d8f; background: none; color: #8fa8cc;
+}
+#open-ship.hidden { display: none; }
+/* the assembly diagram: every slot always drawn — empty = faint dashed
+   outline, built = solid flat fill, dead = built past structural support
+   (kind fill kept, dimmed + red edge; the dead rule comes LAST so its
+   stroke wins the equal-specificity fill rules) */
+#ship-svg .ss-empty, #ship-svg g.ss-empty rect, #ship-svg g.ss-empty line {
+  fill: none; stroke: #2c4468; stroke-dasharray: 3 3;
+}
+#ship-svg .ss-truss.ss-built { fill: #4a5f80; stroke: #8fa8cc; }
+#ship-svg .ss-engine.ss-built, #ship-svg .ss-engine.ss-dead { fill: #d08a3b; stroke: #7a4c1e; }
+#ship-svg .ss-fuel.ss-built, #ship-svg .ss-fuel.ss-dead { fill: #7d8aa5; stroke: #b9c5da; }
+#ship-svg .ss-hab.ss-built, #ship-svg .ss-hab.ss-dead { fill: #5aa86b; stroke: #2e6b3c; }
+#ship-svg .ss-life.ss-built, #ship-svg .ss-life.ss-dead { fill: #4bb0a8; stroke: #22645f; }
+#ship-svg g.ss-built rect, #ship-svg g.ss-dead rect { fill: #e8c46a; stroke: #8a6f2a; }
+#ship-svg g.ss-built line, #ship-svg g.ss-dead line { stroke: #8a6f2a; }
+#ship-svg .ss-engine.ss-dead, #ship-svg .ss-fuel.ss-dead, #ship-svg .ss-hab.ss-dead,
+#ship-svg .ss-life.ss-dead, #ship-svg g.ss-dead rect {
+  opacity: 0.55; stroke: #b04a3b; stroke-width: 2;
+}
+
 /* A58: Civilopedia — full-screen browsable reference overlay */
 #pedia {
   position: fixed; inset: 0; z-index: 30;
