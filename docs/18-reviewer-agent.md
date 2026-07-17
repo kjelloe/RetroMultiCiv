@@ -1,13 +1,20 @@
-# The reviewer agent — role spec (per-marker review + clean-clone check)
+# The reviewer agent — role spec (per-marker review + clean-clone check + architect-understudy pre-design checks)
 
-A READ-ONLY reviewer/checker that runs on the gaming PC alongside the
-sim-runner, using its spare capacity. It adds a quality/safety layer on the
-engine work: an independent, clean-clone verification and a code review of
-each tagged `marker-NNNN` before the user merges it. It does NOT speed the
-pipeline up (the engine work is serial); it catches the class of problem that
-gate-green work can still carry — the B23b regression shipped green and still
-halved city counts; a reviewer reading that diff could have flagged the
-dropped guards>=2 floor before it burned a golden re-record.
+A READ-ONLY reviewer/checker/understudy that runs on the gaming PC alongside
+the sim-runner, using its spare capacity. Two jobs:
+1. **Per-marker review** (§Per-marker procedure): an independent clean-clone
+   verification + code review of each tagged `marker-NNNN` before merge.
+2. **Architect-understudy pre-design checks** (§Architect-understudy):
+   BEFORE a design is built, fact-check it against the Civ 1 wiki dump for
+   authenticity, and run the prior-art check — backstopping the architect's
+   own pre-design checks.
+
+It does NOT speed the pipeline up (the engine work is serial) and does NOT
+hold design authority; it catches the class of problem that gate-green work
+can still carry — the B23b regression shipped green and still halved city
+counts; a reviewer reading that diff could have flagged the dropped guards>=2
+floor before it burned a golden re-record — and the class of authenticity
+drift a design can carry before it is ever built.
 
 ## What it is / is not
 
@@ -102,9 +109,57 @@ SHA <sha>. Details below.
 The architect folds CONFIRMED findings into a fix (author's lane), and the
 user has a second independent green (or a flagged concern) before merging.
 
+## Architect-understudy pre-design checks (gated on the wiki dump being present)
+
+A second, PRE-BUILD job: when a design proposal or a data-table change is
+posted (a worker's design mail, or a marker that touches `data/*.json`),
+fact-check its Civ 1 authenticity and prior art BEFORE the golden window opens,
+so a design does not get built on a wrong number or a Civ 2 mechanic. This
+understudies the architect's own inline wiki checks — a second reader on the
+facts.
+
+**Prerequisite (user action):** the wikiteam dump at `../wikiteam/civ_articles_only/`
+(a local Civ Fandom XML dump, NOT in the repo) transferred to the gaming PC
+beside this clone. `tools/wiki2data.js` extracts the key Civ 1 pages into
+`data/wiki-extract/` (gitignored, regenerable) — the authority over the spec
+tables; yields are countable `[food]/[shield]/[trade]` tokens via `parseYields`.
+Without the dump, this job is skipped (say so) and only the per-marker review runs.
+
+**What to check (against the wiki as the Civ 1 authority):**
+- Unit stats — attack / defense / moves / cost / domain / prereq tech — match
+  the wiki table; the `units.json` `tech` id resolves and matches.
+- Building / wonder EFFECTS and OBSOLESCENCE — the structured field
+  (e.g. `{defenseMultiplier:3}`, `obsoletedByTechs`) reflects the wiki's
+  described effect; wonders that go obsolete list the right tech.
+- Tech era / level / prereqs; terrain yields + special-resource bonuses;
+  government stat blocks (corruption / maxRate / free units / martial law).
+- **Scope drift — the highest-value catch:** a proposed mechanic or wonder
+  that is Civ 2, not Civ 1 (e.g. Sun Tzu's War Academy; Civ 2 "shield waste"),
+  or a real Civ 1 mechanic that exists in the wiki but is not modeled. Flag
+  both directions.
+- **Naming drift (CLAUDE.md):** watch "The Wheel" vs "Wheel", "(advance)"
+  disambiguation suffixes, mid-word hyphenation — a cross-ref that looks
+  wrong may just be a wiki naming variant; confirm before flagging.
+
+**Prior-art check (the other pre-design job):** grep `client/ engine/ server/`
++ `agent-workitems.md` for existing coverage of a proposed capability, and
+report "prior-art: none / extends X" — backstops the architect's own rule
+(adopted after a spec duplicated already-shipped A78 work).
+
+**License boundary (hard):** verify FACTS ONLY — names and numbers. NEVER
+quote or transcribe wiki SENTENCES anywhere; `data/wiki-extract/` is CC BY-SA
+and must never be committed, and effect prose lives as structured fields
+authored in `tools/mapdata.js` overlays, not copied from the wiki. Findings
+cite the fact ("wiki: Phalanx defense 2"), not the wiki's sentence.
+
+**Output:** an advisory "wiki check" / "pre-design check" mail per proposal or
+data change — ranked findings (CONFIRMED mismatch vs REVIEW concern), same as
+the review verdicts. The architect holds design authority and decides; the
+understudy informs before the build, not after.
+
 ## What it does NOT do
 
-- No pre-commit review (no access to uncommitted work — that is the
+- No pre-commit review of code (no access to uncommitted work — that is the
   architect's pre-commit gate on the dev PC).
 - No writing/committing/locking (read-only; the sim-runner is the git
   operator).

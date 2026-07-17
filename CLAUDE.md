@@ -35,11 +35,14 @@ operator quick-card — re-assess at A50/master-index/new-dep/1.0),
 own clone, exclusive files [server/limits.js + the connect/cmd
 paths in server/index.js], report-only-on-cross-lane, neutral
 operational vocabulary — keeps the game team off the lane),
-`18-reviewer-agent.md` (the READ-ONLY per-marker reviewer/checker:
-own clone on the gaming PC, clean-clone gate + engine-diff code
-review of each tagged marker before merge, mails an advisory
-verdict — a second green next to the architect's; never
-commits/locks, the sim-runner stays git operator).
+`18-reviewer-agent.md` (the READ-ONLY reviewer/checker/understudy:
+own clone on the gaming PC — per-marker clean-clone gate +
+engine-diff code review before merge, AND architect-understudy
+PRE-DESIGN checks [wiki-authenticity fact-check vs the
+../wikiteam dump if transferred + prior-art grep] before a
+golden window opens; mails advisory verdicts, holds no design
+authority, never commits/locks — the sim-runner stays git
+operator).
 
 ## Hard rules
 
