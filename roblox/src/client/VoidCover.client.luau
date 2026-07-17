@@ -207,9 +207,23 @@ local function applyLighting(galaxyOn)
 	end
 end
 
--- V cycles the art (dev tool; frame is the USER-FINAL boot default)
+-- R16: ClientState.options.voidArt is the ONE source (the Options panel's
+-- "map border" row sets it); V stays as the dev shortcut writing the same
+-- option. A light watcher applies changes from either surface.
 local MODES = { "frame", "galaxy", "none" }
-local mode = 1
+local applied = "frame" -- build() boots with the frame parented (user-final)
+
+local function applyArt(mode)
+	if mode == applied or not built then
+		return
+	end
+	applied = mode
+	frameFolder.Parent = mode == "frame" and root or nil
+	galaxyFolder.Parent = mode == "galaxy" and root or nil
+	applyLighting(mode == "galaxy")
+	print("[VoidCover] art = " .. mode)
+end
+
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
 		return
@@ -218,10 +232,16 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		return
 	end
 	if input.KeyCode == Enum.KeyCode.V then
-		mode = mode % #MODES + 1
-		frameFolder.Parent = MODES[mode] == "frame" and root or nil
-		galaxyFolder.Parent = MODES[mode] == "galaxy" and root or nil
-		applyLighting(MODES[mode] == "galaxy")
-		print("[VoidCover] art = " .. MODES[mode])
+		local i = table.find(MODES, ClientState.options.voidArt) or 1
+		ClientState.options.voidArt = MODES[i % #MODES + 1]
+	end
+end)
+
+task.spawn(function()
+	while true do
+		if built then
+			applyArt(ClientState.options.voidArt)
+		end
+		task.wait(0.25)
 	end
 end)

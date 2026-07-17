@@ -35,6 +35,23 @@ end
 
 local autoNextBtn = toggleButton(8, "")
 local autoEndBtn = toggleButton(32, "")
+-- R16: options completion (browser parity where the surface exists)
+local hideFutureBtn = toggleButton(56, "")
+local hideHintBtn = toggleButton(80, "")
+local clockBtn = toggleButton(104, "")
+local voidArtBtn = toggleButton(128, "")
+
+local clockLabel = Instance.new("TextLabel")
+clockLabel.Size = UDim2.new(0, 190, 0, 18)
+clockLabel.Position = UDim2.new(1, -198, 0, 152)
+clockLabel.BackgroundTransparency = 1
+clockLabel.TextColor3 = Color3.fromRGB(200, 210, 225)
+clockLabel.Font = Enum.Font.Code
+clockLabel.TextSize = 13
+clockLabel.TextXAlignment = Enum.TextXAlignment.Left
+clockLabel.Text = ""
+clockLabel.Parent = gui
+local bootClock = os.clock()
 
 local hint = Instance.new("TextLabel")
 hint.Size = UDim2.new(0, 460, 0, 30)
@@ -52,6 +69,10 @@ local function paint()
 	local o = ClientState.options
 	autoNextBtn.Text = ("  auto next unit: %s"):format(o.autoNextUnit and "ON" or "off")
 	autoEndBtn.Text = ("  auto end turn: %s"):format(o.autoEndTurn and "ON" or "off")
+	hideFutureBtn.Text = ("  hide future items: %s"):format(o.hideFuture and "ON" or "off")
+	hideHintBtn.Text = ("  hide end-turn hint: %s"):format(o.hideNoMovesHint and "ON" or "off")
+	clockBtn.Text = ("  clock: %s"):format(o.clock)
+	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
 end
 paint()
 
@@ -62,6 +83,41 @@ end)
 autoEndBtn.Activated:Connect(function()
 	ClientState.options.autoEndTurn = not ClientState.options.autoEndTurn
 	paint()
+end)
+hideFutureBtn.Activated:Connect(function()
+	ClientState.options.hideFuture = not ClientState.options.hideFuture
+	paint()
+end)
+hideHintBtn.Activated:Connect(function()
+	ClientState.options.hideNoMovesHint = not ClientState.options.hideNoMovesHint
+	paint()
+end)
+local CLOCKS = { "off", "elapsed", "time" }
+clockBtn.Activated:Connect(function()
+	local i = table.find(CLOCKS, ClientState.options.clock) or 1
+	ClientState.options.clock = CLOCKS[i % #CLOCKS + 1]
+	paint()
+end)
+local ARTS = { "frame", "galaxy", "none" }
+voidArtBtn.Activated:Connect(function()
+	local i = table.find(ARTS, ClientState.options.voidArt) or 1
+	ClientState.options.voidArt = ARTS[i % #ARTS + 1] -- VoidCover watches this
+	paint()
+end)
+
+-- the clock line (browser parity: minutes played / time of day)
+task.spawn(function()
+	while true do
+		local mode = ClientState.options.clock
+		if mode == "elapsed" then
+			clockLabel.Text = ("  %d min played"):format(math.floor((os.clock() - bootClock) / 60))
+		elseif mode == "time" then
+			clockLabel.Text = "  " .. os.date("%H:%M")
+		else
+			clockLabel.Text = ""
+		end
+		task.wait(5)
+	end
 end)
 
 local lastAutoEndTurn = -1
@@ -124,7 +180,7 @@ ClientState.onView(function(view)
 					end
 				end)
 			end
-		elseif lastHintTurn ~= view.turn then
+		elseif lastHintTurn ~= view.turn and not ClientState.options.hideNoMovesHint then
 			lastHintTurn = view.turn
 			hint.Visible = true
 			task.delay(5, function()
@@ -136,4 +192,4 @@ ClientState.onView(function(view)
 	end
 end)
 
-print("[Options] R7a play-flow options up (auto next unit ON, auto end turn ON)")
+print("[Options] options up (auto-next/auto-end ON; R16: hide-future, hint, clock, map border)")
