@@ -24,6 +24,7 @@ local viewCallbacks = {}
 local cityOpenCallbacks = {}
 local eventCallbacks = {} -- R6: filtered round events riding view pushes
 local researchOpenCallbacks = {} -- R6: research picker open/toggle channel
+local governmentOpenCallbacks = {} -- R12 (2): government panel open/toggle channel
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -131,6 +132,16 @@ end
 
 function M.openResearch()
 	for _, cb in ipairs(researchOpenCallbacks) do
+		cb()
+	end
+end
+
+function M.onGovernmentOpen(cb)
+	table.insert(governmentOpenCallbacks, cb)
+end
+
+function M.openGovernment()
+	for _, cb in ipairs(governmentOpenCallbacks) do
 		cb()
 	end
 end

@@ -65,10 +65,11 @@ don't commit it.
    Click your settlers, `B` founds a city; click an adjacent tile to
    move the selected unit; `Return` or the End Turn button ends your
    turn (the AI round advances visibly). Click an own city for the
-   city panel (production picker + Buy). `P` possesses the selected
-   unit (avatar rides it, WASD/arrows step it one tile per press —
-   map-absolute, W=N), `N` jumps to the next unit with moves, `F`
-   dismounts. R6 surfaces: the bottom action bar (Found `B`, Fortify
+   city panel (production picker + Buy). `P` TOGGLES ride/dismount on
+   the selected unit (avatar rides it, WASD/arrows step it one tile
+   per press — map-absolute, W=N), `N` jumps to the next unit with
+   moves (mounted: jumps the ride; on foot: selection + camera only),
+   `F` dismounts. R6 surfaces: the bottom action bar (Found `B`, Fortify
    `G`, Wait `Space`, Disband `X`, Irrigate `I`, Mine `M`, Road `R` —
    buttons grey AND go dead when the action doesn't apply), Research
    `T` in the top-center cluster, the turn log
@@ -92,7 +93,12 @@ don't commit it.
    from the shared asset recipes (same silhouettes as the browser);
    `K` toggles the floating gallery grid — every recipe in BOTH cone
    variants (fan | stack) plus city and props — screenshot it for the
-   cone-fidelity pick. The server prints
+   cone-fidelity pick (in Studio the left-edge DEBUG button toggles
+   it too). R12: the top-center cluster adds a Government button
+   (rate steppers live in its panel now, not the research picker) and
+   a live research-status line; unit billboards are big and bold;
+   city billboards (name, pop, production, ~turns) are always on;
+   the avatar spawns on your settler from turn 1. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`

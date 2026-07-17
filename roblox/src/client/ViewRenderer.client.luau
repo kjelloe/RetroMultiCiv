@@ -16,6 +16,7 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
+local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
 local TILE = ClientState.TILE
 local HEIGHT = 6 -- studs per 1.0 of TERRAIN base height
@@ -151,19 +152,61 @@ local function unitBillboard(model, adornee, view, u)
 	if mine and u.type == "settlers" then
 		table.insert(lines, siteLine(view, u))
 	end
+	-- R12 (3): 2x size, bold, wider face (SourceSansBold vs the old Code 11)
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "Label"
 	bb.Adornee = adornee
-	bb.Size = UDim2.new(0, 100, 0, 12 * #lines)
-	bb.StudsOffset = Vector3.new(0, 3.6 + #lines * 0.3, 0)
+	bb.Size = UDim2.new(0, 200, 0, 24 * #lines)
+	bb.StudsOffset = Vector3.new(0, 3.6 + #lines * 0.6, 0)
 	bb.MaxDistance = 180
 	local text = Instance.new("TextLabel")
 	text.Size = UDim2.new(1, 0, 1, 0)
 	text.BackgroundTransparency = 1
 	text.TextColor3 = mine and Color3.fromRGB(235, 235, 235) or Color3.fromRGB(240, 190, 180)
 	text.TextStrokeTransparency = 0.4
-	text.Font = Enum.Font.Code
-	text.TextSize = 11
+	text.Font = Enum.Font.SourceSansBold
+	text.TextSize = 22
+	text.Text = table.concat(lines, "\n")
+	text.Parent = bb
+	bb.Parent = model
+end
+
+-- R12 (4): always-on city billboard — name + pop + production + turns left.
+-- Fog-honest by construction: every line reads the view's own city fields
+-- (rival cities carry whatever filterView granted, and lines simply drop
+-- when a field is absent); turns-left is presentational math via the
+-- read-only cities.cityYields on a view shim, pcall'd (own cities have
+-- their whole radius explored; anything less just omits the estimate).
+local function cityBillboard(model, adornee, view, c)
+	local mine = c.owner == view.you
+	local rs = ClientState.rulesets()
+	local lines = { ("%s  (pop %d)"):format(c.name or "city", c.pop or 1) }
+	if c.producing ~= nil then
+		local def = (rs[c.producing.kind .. "s"] or {})[c.producing.id]
+		local cost = def and def.cost or 0
+		local turns = ""
+		local shim = { map = view.map, cities = view.cities, cityOrder = view.cityOrder,
+			units = view.units, players = view.players, wonders = view.wonders }
+		local ok, y = pcall(citiesModule.cityYields, shim, c, rs)
+		if ok and y ~= nil and (y.shields or 0) > 0 then
+			turns = (" ~%d t"):format(math.ceil(math.max(0, cost - (c.shields or 0)) / y.shields))
+		end
+		table.insert(lines, ("%s %d/%d%s"):format(def and def.name or c.producing.id,
+			c.shields or 0, cost, turns))
+	end
+	local bb = Instance.new("BillboardGui")
+	bb.Name = "CityLabel"
+	bb.Adornee = adornee
+	bb.Size = UDim2.new(0, 220, 0, 24 * #lines)
+	bb.StudsOffset = Vector3.new(0, 4.5, 0)
+	bb.MaxDistance = 240
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = mine and Color3.fromRGB(235, 235, 235) or Color3.fromRGB(240, 190, 180)
+	text.TextStrokeTransparency = 0.3
+	text.Font = Enum.Font.SourceSansBold
+	text.TextSize = 20
 	text.Text = table.concat(lines, "\n")
 	text.Parent = bb
 	bb.Parent = model
@@ -241,6 +284,7 @@ local function renderCities(view)
 				Vector3.new(cx + b[1], top + 0.3 + b[4] * scale / 2, cz + b[2]),
 				Color3.fromRGB(214, 205, 188), Enum.Material.Concrete)
 		end
+		cityBillboard(model, plaza, view, c)
 		model.Parent = citiesFolder
 	end
 end

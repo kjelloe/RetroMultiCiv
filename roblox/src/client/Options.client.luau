@@ -97,8 +97,14 @@ ClientState.onView(function(view)
 					print("[Options] auto next: riding " .. nextId)
 					ClientState.requestPossess(nextId)
 				else
+					-- R12 (7): dismounted advance = selection + camera only,
+					-- the avatar never teleports
 					print("[Options] auto next: selected " .. nextId)
 					ClientState.selectedUnitId = nextId
+					local u = view.units[nextId]
+					if u ~= nil then
+						ClientState.focusCamera(u.x, u.y)
+					end
 				end
 			end
 		end
