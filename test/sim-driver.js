@@ -1079,6 +1079,10 @@ async function runSim(opts) {
 
   let prevYear = state.year;
   let rounds = 0;
+  // v1.5 diagnostics (golden-neutral: read-only, never hashed) — elimination
+  // timeline for the outcome row; the per-AI strategic snapshot hook fires below.
+  const elimTimeline = [];
+  const aliveWas = {}; for (const p of players) aliveWas[p.id] = true;
   for (let round = 1; round <= turns; round++) {
     const startTurn = state.turn;
     const chaosLog = [];
@@ -1162,6 +1166,14 @@ async function runSim(opts) {
       checkpoints[round] = hash;
       if (opts.onCheckpoint) opts.onCheckpoint(state, round, hash, tel, contLabels);
     }
+    // v1.5 diagnostics: record newly-eliminated civs + fire the per-AI strategic
+    // snapshot every strategicEvery turns. Read-only; nothing touches the hash.
+    for (const p of players) {
+      if (aliveWas[p.id] && state.players[p.id].alive === false) { aliveWas[p.id] = false; elimTimeline.push({ id: p.id, turn: state.turn }); }
+    }
+    if (opts.onStrategic && round % (opts.strategicEvery === undefined ? 10 : opts.strategicEvery) === 0) {
+      opts.onStrategic(state, round, tel, contLabels);
+    }
     if (state.gameOver) break;
   }
 
@@ -1172,7 +1184,9 @@ async function runSim(opts) {
     // A64: expose the driver-owned telemetry accumulator + continent labels so a
     // DIRECT runSim caller (not going through soak's onCheckpoint) can build a
     // full snapshot: snapshot(result.state, ruleset, mods, result.tel, result.contLabels).
-    tel, contLabels
+    tel, contLabels,
+    // v1.5 diagnostics: outcome data for the soak outcome row (golden-neutral).
+    outcome: { elimTimeline, victoryType: state.gameOver ? (state.winner ? 'conquest' : 'score') : 'timeout', victoryTurn: state.turn }
   };
 }
 

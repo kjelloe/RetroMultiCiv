@@ -242,6 +242,43 @@ function appendStats(file, row) {
   fs.appendFileSync(file, JSON.stringify(row) + '\n'); // O_APPEND: parallel-safe per line
 }
 
+// v1.5 diagnostics (ROW A): per-AI strategic snapshot for one alive civ. Pure
+// read of state; the INFERRED mode (vs the assigned stance) catches label-vs-
+// behavior drift, and the producing histogram is the standing N9 diagnostic.
+function strategicRow(state, pid, ruleset, turn) {
+  const U = ruleset.units;
+  const threatR = ruleset.rules.threatRadius === undefined ? 8 : ruleset.rules.threatRadius;
+  const W = state.map.width;
+  const cheb = (ax, ay, bx, by) => { const dx = Math.min(Math.abs(ax - bx), W - Math.abs(ax - bx)); return Math.max(dx, Math.abs(ay - by)); };
+  let mil = 0, settlers = 0, scouts = 0, naval = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid]; if (u.owner !== pid) continue; const d = U[u.type];
+    if (u.type === 'settlers') settlers++; else if (d.domain === 'sea') naval++; else if (d.attack > 0) { mil++; if (d.moves >= 2) scouts++; }
+  }
+  const prod = { attacker: 0, settler: 0, defender: 0, building: 0, wonder: 0, other: 0 };
+  const myCities = [];
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid]; if (c.owner !== pid) continue; myCities.push(c);
+    const pr = c.producing; if (!pr) { prod.other++; continue; }
+    if (pr.kind === 'building') prod.building++;
+    else if (pr.kind === 'wonder') prod.wonder++;
+    else if (pr.kind === 'unit') { if (pr.id === 'settlers') prod.settler++; else { const d = U[pr.id]; if (d && d.attack > 0 && d.attack >= d.defense) prod.attacker++; else if (d && d.defense > 0) prod.defender++; else prod.other++; } }
+    else prod.other++;
+  }
+  let threat = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid]; if (u.owner === pid) continue;
+    for (const c of myCities) { if (cheb(u.x, u.y, c.x, c.y) <= threatR) { threat++; break; } }
+  }
+  const threatBucket = threat === 0 ? 'none' : threat < 3 ? 'low' : threat < 8 ? 'med' : 'high';
+  const mode = (prod.attacker > 0 && threat >= 3) ? 'warring'
+    : prod.settler >= prod.building + prod.wonder && prod.settler > 0 ? 'expanding'
+    : (prod.building + prod.wonder) > 0 ? 'building' : 'defending';
+  const topGoal = Object.entries(prod).sort((a, b) => b[1] - a[1])[0][0];
+  return { t: 'strategic', turn, id: pid, stance: (state.players[pid].stance || 'balanced'),
+    mode, threat: threatBucket, units: { mil, settlers, scouts, naval }, producing: prod, topGoal };
+}
+
 async function runSeed(seed, opts, checkpoints, mods) {
   const [width, height] = SIZES[opts.size];
   const meta = {
@@ -249,17 +286,47 @@ async function runSeed(seed, opts, checkpoints, mods) {
     chaos: opts.chaos, natural: opts.natural, difficulty: opts.difficulty
   };
   const t0 = Date.now();
+  const rankAt = {}; // v1.5: score-rank at each checkpoint (for comebacks/leadChanges)
   const r = await runSim({
     seed, civs: opts.civs, width, height, turns: opts.turns,
     rulesOverrides: rulesOverridesFor(opts),
     chaos: opts.chaos,
     deepAt: checkpoints,
+    strategicEvery: 10, // v1.5: ROW A cadence
+    onStrategic: (state, round) => {
+      if (!opts.stats) return;
+      for (const pid of state.playerOrder) {
+        if (state.players[pid].alive !== false && state.players[pid].human !== true) {
+          appendStats(opts.stats, Object.assign({}, meta, strategicRow(state, pid, RULESET, state.turn)));
+        }
+      }
+    },
     onCheckpoint: (state, round, hash, tel, contLabels) => {
       console.log(`  ${summarize(state, RULESET, mods)}`);
-      if (opts.stats) appendStats(opts.stats, Object.assign({ t: 'checkpoint' }, meta, snapshot(state, RULESET, mods, tel, contLabels)));
+      const snap = snapshot(state, RULESET, mods, tel, contLabels);
+      rankAt[round] = snap.players.filter(p => p.alive).sort((a, b) => (b.score || 0) - (a.score || 0)).map(p => p.id);
+      if (opts.stats) appendStats(opts.stats, Object.assign({ t: 'checkpoint' }, meta, snap));
     }
   });
   const ms = Date.now() - t0;
+  // v1.5 diagnostics (ROW B): one outcome row per game — victory shape + mobility.
+  if (opts.stats && r.outcome) {
+    const finalSnap = snapshot(r.state, RULESET, mods, r.tel, r.contLabels);
+    const scores = finalSnap.players.filter(p => p.alive).map(p => p.score || 0).sort((a, b) => a - b);
+    const leaders = [100, 200, 300, 400].map(t => rankAt[t] ? rankAt[t][0] : null).filter(Boolean);
+    let leadChanges = 0; for (let i = 1; i < leaders.length; i++) if (leaders[i] !== leaders[i - 1]) leadChanges++;
+    let comebacks = 0;
+    if (rankAt[200] && rankAt[400]) {
+      const n2 = rankAt[200].length, n4 = rankAt[400].length;
+      for (const pid of rankAt[400].slice(0, Math.ceil(n4 / 2))) { const i2 = rankAt[200].indexOf(pid); if (i2 >= Math.ceil(n2 / 2)) comebacks++; }
+    }
+    // TODO(A76): victoryType is conquest/score/timeout from state.winner; add the
+    // 'space' split (Alpha Centauri launch) when the space race lands.
+    appendStats(opts.stats, Object.assign({ t: 'outcome',
+      victoryType: r.outcome.victoryType, victoryTurn: r.outcome.victoryTurn,
+      scoreSpread: scores.length ? Math.round(100 * scores[scores.length - 1] / Math.max(1, scores[0])) / 100 : null,
+      comebacks, leadChanges, elimTimeline: r.outcome.elimTimeline.map(e => e.turn) }, meta));
+  }
   if (opts.natural && r.state.gameOver !== true) {
     throw new Error(`sim seed ${seed}: NO VICTORY by turn ${r.rounds} under natural rules (score victory was due at endYear)`);
   }
