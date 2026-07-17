@@ -155,3 +155,54 @@ test('replaceState announces itself with the stateReplaced marker', async () => 
   assert.strictEqual(markers, 1, 'loads carry the synthetic marker (turn-log re-baseline)');
   assert.strictEqual(session.log.length, 0, 'the recording restarted at the load point');
 });
+
+test('A54: a whitelisted command QUEUES during the round and flushes replay-exact after it', async () => {
+  const { createEngine, deepClone, hashState, createSession } = await load();
+  const engine = createEngine(RULESET);
+  const initial = engine.createGame({
+    seed: 20260714, options: { width: 30, height: 20, players: PLAYERS }
+  });
+  const session = createSession(RULESET, deepClone(initial), {});
+  const roundPromise = session.endTurn(); // in flight
+  const queued = session.apply({ type: 'setRates', playerId: 'p1', tax: 40, sci: 60 });
+  assert.strictEqual(session.pendingOffturn, 1, 'the queued tick is visible');
+  const res = await queued; // resolves when the round flushes
+  assert.strictEqual(res.ok, true, 'the queued command applied for real');
+  await roundPromise;
+  assert.strictEqual(session.state.players.p1.taxRate, 40);
+  assert.strictEqual(session.pendingOffturn, 0);
+  // recording shape: the round entry FIRST, then the flushed cmd entry —
+  // replaying that order reproduces the final state exactly
+  assert.strictEqual(session.log.length, 2);
+  assert.strictEqual(session.log[0].t, 'round');
+  assert.deepStrictEqual(session.log[1].cmd, { type: 'setRates', playerId: 'p1', tax: 40, sci: 60 });
+  let replayed = deepClone(initial);
+  const first = engine.applyCommand(replayed, { type: 'endTurn', playerId: 'p1' });
+  replayed = first.state;
+  const { runAiTurn } = await import('../engine/ai.js');
+  let guard = 10;
+  while (!replayed.gameOver && !replayed.players[replayed.activePlayer].human && guard-- > 0) {
+    replayed = runAiTurn(engine, replayed, replayed.activePlayer, RULESET, []);
+    const r = engine.applyCommand(replayed, { type: 'endTurn', playerId: replayed.activePlayer });
+    if (!r.ok) break;
+    replayed = r.state;
+  }
+  const after = engine.applyCommand(replayed, session.log[1].cmd);
+  assert.strictEqual(hashState(after.state), hashState(session.state),
+    'round-then-flushed-cmd replays to the exact final hash');
+});
+
+test('A54: a NON-whitelisted command still rejects mid-round (the queue is not a bypass)', async () => {
+  const { createEngine, deepClone, createSession } = await load();
+  const engine = createEngine(RULESET);
+  const initial = engine.createGame({
+    seed: 20260714, options: { width: 30, height: 20, players: PLAYERS }
+  });
+  const session = createSession(RULESET, deepClone(initial), {});
+  const settlers = Object.values(session.state.units).find(
+    u => u.owner === 'p1' && u.type === 'settlers');
+  const roundPromise = session.endTurn();
+  const busy = await session.apply({ type: 'foundCity', playerId: 'p1', unitId: settlers.id, name: 'Nope' });
+  assert.strictEqual(busy.reason, 'roundInFlight');
+  await roundPromise;
+});

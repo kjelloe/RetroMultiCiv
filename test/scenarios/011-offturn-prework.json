@@ -1,0 +1,67 @@
+{
+  "name": "off-turn pre-work: the self-scoped whitelist (setRates/setResearch/setProduction/setWorkers) works while a rival moves; everything else keeps notYourTurn",
+  "notes": "A54 (VI.11, user GO). Three players so the off-turn commands land between other players' turns: p1 is active; p2 (waiting) issues the four whitelisted self-scoped commands (all ok) plus a moveUnit (rejected notYourTurn) and a setProduction on P1'S city (rejected notYourCity — self-scope holds even for a whitelisted type); then p1 ends turn and p2 plays normally, proving the pre-work stuck. p2 carries monarchy (30/70 legal under maxRate 70) and bronze-working (phalanx production + a real setResearch pick from the frontier).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2", "p3"],
+      "map": {
+        "width": 4,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland", "special": true }, { "t": "grassland", "special": true }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "u1": { "id": "u1", "type": "militia", "owner": "p2", "x": 3, "y": 2, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {
+        "c1": { "id": "c1", "name": "Alpha", "owner": "p1", "x": 1, "y": 1, "pop": 2, "food": 0, "shields": 0, "producing": { "kind": "unit", "id": "militia" }, "buildings": [] },
+        "c2": { "id": "c2", "name": "Beta", "owner": "p2", "x": 2, "y": 1, "pop": 2, "food": 0, "shields": 0, "producing": { "kind": "unit", "id": "militia" }, "buildings": [] }
+      },
+      "cityOrder": ["c1", "c2"],
+      "wonders": {},
+      "nextUnitId": 2,
+      "nextCityId": 3,
+      "players": {
+        "p1": { "id": "p1", "name": "Romans", "color": "#3b7dd8", "human": true, "gold": 10, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Zulus", "color": "#d84a3b", "human": true, "gold": 10, "techs": ["bronze-working"], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50, "government": "monarchy" },
+        "p3": { "id": "p3", "name": "Egyptians", "color": "#3fae6a", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 11
+    }
+  },
+  "script": [
+    { "cmd": { "type": "setRates", "playerId": "p2", "tax": 30, "sci": 70 },
+      "expect": { "ok": true, "state": { "players.p2.taxRate": 30, "players.p2.sciRate": 70 } },
+      "notes": "whitelisted + self-scoped: legal while p1 moves" },
+    { "cmd": { "type": "setResearch", "playerId": "p2", "tech": "alphabet" },
+      "expect": { "ok": true, "state": { "players.p2.researching": "alphabet" } } },
+    { "cmd": { "type": "setProduction", "playerId": "p2", "cityId": "c2", "item": { "kind": "unit", "id": "phalanx" } },
+      "expect": { "ok": true, "state": { "cities.c2.producing.id": "phalanx" } },
+      "notes": "own city, tech known (bronze-working crafted in)" },
+    { "cmd": { "type": "setWorkers", "playerId": "p2", "cityId": "c2", "auto": true },
+      "expect": { "ok": true } },
+    { "cmd": { "type": "moveUnit", "playerId": "p2", "unitId": "u1", "dir": "W" },
+      "expect": { "ok": false },
+      "notes": "NOT whitelisted: movement keeps notYourTurn" },
+    { "cmd": { "type": "setProduction", "playerId": "p2", "cityId": "c1", "item": { "kind": "unit", "id": "militia" } },
+      "expect": { "ok": false },
+      "notes": "self-scope: p1's city stays untouchable even for a whitelisted type" },
+    { "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true, "state": { "activePlayer": "p2" } } },
+    { "cmd": { "type": "moveUnit", "playerId": "p2", "unitId": "u1", "dir": "W" },
+      "expect": { "ok": true },
+      "notes": "p2's own turn plays normally after the pre-work" }
+  ],
+  "final": {
+    "state": { "players.p2.taxRate": 30, "cities.c2.producing.id": "phalanx" },
+    "hash": "0x37dd1a6c"
+  }
+}

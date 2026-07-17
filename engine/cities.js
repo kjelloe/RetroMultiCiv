@@ -198,7 +198,8 @@ function setWorkers(state, cmd, ruleset) {
   const city = state.cities[cmd.cityId];
   if (!city) return { ok: false, reason: 'unknownCity' };
   if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
-  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  // A54 off-turn pre-work: self-scoped (own city only, zero rng) — legal
+  // while a rival moves; no turn check
 
   if (cmd.auto === true) {
     delete city.workers;
@@ -323,7 +324,8 @@ function setProduction(state, cmd, ruleset) {
   const city = state.cities[cmd.cityId];
   if (!city) return { ok: false, reason: 'unknownCity' };
   if (city.owner !== cmd.playerId) return { ok: false, reason: 'notYourCity' };
-  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  // A54 off-turn pre-work: self-scoped (own city only, zero rng) — legal
+  // while a rival moves; no turn check
   const item = cmd.item;
   if (!item) return { ok: false, reason: 'badItem' };
 

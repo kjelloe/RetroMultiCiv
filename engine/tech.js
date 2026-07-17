@@ -42,7 +42,8 @@ function availableTechs(state, playerId, ruleset) {
 function setResearch(state, cmd, ruleset) {
   const player = state.players[cmd.playerId];
   if (!player) return { ok: false, reason: 'unknownPlayer' };
-  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  // A54 off-turn pre-work: self-scoped (touches only the issuing player's
+  // state, zero rng) — legal while a rival moves; no turn check
   if (!ruleset.techs[cmd.tech]) return { ok: false, reason: 'unknownTech' };
   if (knows(player, cmd.tech)) return { ok: false, reason: 'alreadyKnown' };
   if (!prereqsMet(player, cmd.tech, ruleset)) return { ok: false, reason: 'prereqsMissing' };
@@ -53,7 +54,7 @@ function setResearch(state, cmd, ruleset) {
 function setRates(state, cmd, _ruleset) {
   const player = state.players[cmd.playerId];
   if (!player) return { ok: false, reason: 'unknownPlayer' };
-  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  // A54 off-turn pre-work: self-scoped — legal while a rival moves
   const tax = cmd.tax;
   const sci = cmd.sci;
   const lux = cmd.lux === undefined ? 0 : cmd.lux;

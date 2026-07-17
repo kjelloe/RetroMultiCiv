@@ -677,3 +677,37 @@ test('resume collision: join-by-id after resumeByCode lands on the SAVED world, 
     assert.strictEqual(rejoined.view.turn, savedTurn, 'the saved turn, not a fresh world');
   } finally { c.close(); await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('A54: an off-turn whitelisted command applies over the socket while a rival holds the turn', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 77, civs: 2, humans: 2, size: 'xsmall', autosave: false });
+  const p1 = await connect(s.port);
+  const p2 = await connect(s.port);
+  try {
+    p1.send({ t: 'join', name: 'Active' });
+    const j1 = await p1.expect(m => m.t === 'joined', 'p1 joined');
+    assert.strictEqual(j1.playerId, 'p1');
+    p2.send({ t: 'join', name: 'Waiting' });
+    const j2 = await p2.expect(m => m.t === 'joined', 'p2 joined');
+    assert.strictEqual(j2.playerId, 'p2');
+    assert.strictEqual(j2.view.turn, 1);
+    assert.strictEqual(j1.view.you, 'p1');
+
+    // it is p1's turn; the WAITING seat adjusts its own rates — accepted
+    p2.send({ t: 'cmd', token: j2.token, commandId: 10, cmd: { type: 'setRates', tax: 40, sci: 60 } });
+    const applied = await p2.expect(m => m.t === 'applied' && m.commandId === 10, 'off-turn setRates applied');
+    assert.ok(applied.events.some(e => e.type === 'ratesSet' && e.playerId === 'p2'));
+    const view2 = await p2.expect(m => m.t === 'view', 'p2 view push');
+    assert.strictEqual(view2.view.players.p2.taxRate, 40, 'the pre-work stuck on the waiting seat');
+    // rival internals are fog-hidden in p2's view (by design) — the active
+    // seat's untouchedness is asserted from ITS OWN pushed view
+    const view1 = await p1.expect(m => m.t === 'view', 'p1 view push');
+    assert.strictEqual(view1.view.players.p1.taxRate, 50, 'the active seat is untouched');
+
+    // …but a NON-whitelisted command from the waiting seat still bounces
+    const settlers = Object.values(j2.view.units).find(u => u.owner === 'p2' && u.type === 'settlers');
+    p2.send({ t: 'cmd', token: j2.token, commandId: 11, cmd: { type: 'foundCity', unitId: settlers.id, name: 'Sneaky' } });
+    const rej = await p2.expect(m => m.t === 'rejected' && m.commandId === 11, 'off-turn foundCity rejected');
+    assert.strictEqual(rej.code, 'notYourTurn');
+  } finally { p1.close(); p2.close(); await s.close(); }
+});

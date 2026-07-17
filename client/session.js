@@ -9,7 +9,7 @@
 // the initial-state snapshot REPLAY the whole game — `node tools/replay.js
 // <file>` verifies every hash and pinpoints any divergence. Shift+D
 // downloads it (ui/saves.js).
-import { createEngine, deepClone } from '../engine/index.js';
+import { createEngine, deepClone, OFFTURN_WHITELIST } from '../engine/index.js';
 import { runAiTurn, pickCommand } from '../engine/ai.js';
 import { hashState } from '../shared/statehash.js';
 
@@ -24,6 +24,9 @@ export function createSession(ruleset, initialState, opts) {
   // command may slip into the recording (it would replay in a different
   // order than it ran live) — apply() and endTurn() reject until it lands
   let roundInFlight = false;
+  // A54: [{cmd, resolve}] — whitelisted commands issued during the chunked AI
+  // round, applied + resolved when the round completes (see apply below)
+  const offturnQueue = [];
 
   // A40 slice 2: per-seat regency — pid -> stance string. UI/session state
   // only, NEVER game state (players[pid].human stays true, hashes
@@ -82,6 +85,16 @@ export function createSession(ruleset, initialState, opts) {
     // session.state right after (without awaiting) still see the new state.
     apply(cmd) {
       if (roundInFlight) {
+        // A54: whitelisted self-scoped commands QUEUE during the chunked AI
+        // round and flush when it completes — the caller's promise resolves
+        // with the real result then. DESIGN NOTE (deviation, flagged): the
+        // recording stores the whole round as ONE entry, so a mid-round
+        // application would be invisible to the replayer; the flush lands
+        // AFTER the round entry instead — ordinary cmd entries in actual
+        // application order, replay exact under the unchanged format.
+        if (OFFTURN_WHITELIST.indexOf(cmd.type) !== -1) {
+          return new Promise(resolve => offturnQueue.push({ cmd, resolve }));
+        }
         return Promise.resolve({ ok: false, reason: 'roundInFlight', events: [] });
       }
       const res = engine.applyCommand(state, cmd);
@@ -138,6 +151,25 @@ export function createSession(ruleset, initialState, opts) {
       }
       log.push({ t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) });
       notify(collected.slice(seen));
+      // A54: flush the off-turn queue — ordinary cmd entries AFTER the round
+      // entry, in actual application order (replay-exact, format unchanged)
+      while (offturnQueue.length > 0) {
+        const q = offturnQueue.shift();
+        const res = engine.applyCommand(state, q.cmd);
+        const entry = { t: 'cmd', turn: state.turn, cmd: q.cmd };
+        if (res.ok) {
+          state = res.state;
+          entry.ok = true;
+          if (debug) entry.hash = hashState(state);
+          log.push(entry);
+          notify(res.events);
+        } else {
+          entry.ok = false;
+          entry.reason = res.reason;
+          log.push(entry);
+        }
+        q.resolve(res);
+      }
       return first;
     },
 
@@ -150,6 +182,7 @@ export function createSession(ruleset, initialState, opts) {
     },
     get regents() { return regents; },
     get busy() { return roundInFlight; },
+    get pendingOffturn() { return offturnQueue.length; }, // A54: the UI's "queued" tick
 
     // Play the ACTIVE seat's regent turn (its units, logged), then end it —
     // the round loop carries on through AI and other regent seats. The UI's

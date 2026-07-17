@@ -66,7 +66,10 @@ export function initHud(ctx) {
     const p = state.players[w.waitingFor];
     const name = (p ? p.name : w.waitingFor)
       + (p && p.human === false ? ' (AI)' : ''); // A30 (VI.3)
-    waitLine.textContent = formatWait(name, w.elapsedSec);
+    waitLine.textContent = formatWait(name, w.elapsedSec)
+      // A54: the rare in-flight window — a queued self-scoped command shows
+      // its pending tick until the round completes and flushes it
+      + (session.pendingOffturn > 0 ? ` · ⏳ ${session.pendingOffturn} queued` : '');
     waitLine.classList.remove('hidden');
     if (w.note && ctx.turnlog && ctx.turnlog.note) {
       ctx.turnlog.note(formatSlowNote(name, w.elapsedSec), 'log-wait');

@@ -179,4 +179,11 @@ function createEngine(ruleset) {
   return { applyCommand, createGame };
 }
 
-export { createEngine, deepClone, nextYear, worldAge };
+// A54: the off-turn pre-work whitelist — the SELF-SCOPED commands (touch only
+// the issuing player's state, zero rng, no reads of the active player's
+// in-progress turn) whose per-command validation carries no turn check. The
+// server protocol and the client session consume this as the contract;
+// everything else keeps notYourTurn inside its own validation.
+const OFFTURN_WHITELIST = ['setRates', 'setResearch', 'setProduction', 'setWorkers'];
+
+export { createEngine, deepClone, nextYear, worldAge, OFFTURN_WHITELIST };

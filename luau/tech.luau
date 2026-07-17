@@ -57,9 +57,8 @@ local function setResearch(state: any, cmd: any, ruleset: any): any
 	if player == nil then
 		return { ok = false, reason = "unknownPlayer" }
 	end
-	if state.activePlayer ~= cmd.playerId then
-		return { ok = false, reason = "notYourTurn" }
-	end
+	-- A54 off-turn pre-work: self-scoped (touches only the issuing player's
+	-- state, zero rng) — legal while a rival moves; no turn check
 	if ruleset.techs[cmd.tech] == nil then
 		return { ok = false, reason = "unknownTech" }
 	end
@@ -78,9 +77,7 @@ local function setRates(state: any, cmd: any, ruleset: any): any
 	if player == nil then
 		return { ok = false, reason = "unknownPlayer" }
 	end
-	if state.activePlayer ~= cmd.playerId then
-		return { ok = false, reason = "notYourTurn" }
-	end
+	-- A54 off-turn pre-work: self-scoped — legal while a rival moves
 	local tax = cmd.tax
 	local sci = cmd.sci
 	local lux = if cmd.lux == nil then 0 else cmd.lux

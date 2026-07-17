@@ -263,9 +263,8 @@ local function setWorkers(state: any, cmd: any, ruleset: any): any
 	if city.owner ~= cmd.playerId then
 		return { ok = false, reason = "notYourCity" }
 	end
-	if state.activePlayer ~= cmd.playerId then
-		return { ok = false, reason = "notYourTurn" }
-	end
+	-- A54 off-turn pre-work: self-scoped (own city only, zero rng) — legal
+	-- while a rival moves; no turn check
 
 	if cmd.auto == true then
 		city.workers = nil
@@ -462,9 +461,8 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 	if city.owner ~= cmd.playerId then
 		return { ok = false, reason = "notYourCity" }
 	end
-	if state.activePlayer ~= cmd.playerId then
-		return { ok = false, reason = "notYourTurn" }
-	end
+	-- A54 off-turn pre-work: self-scoped (own city only, zero rng) — legal
+	-- while a rival moves; no turn check
 	local item = cmd.item
 	if item == nil then
 		return { ok = false, reason = "badItem" }

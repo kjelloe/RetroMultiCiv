@@ -256,8 +256,17 @@ local function createEngine(ruleset: any)
 	return { applyCommand = applyCommand, createGame = createGame }
 end
 
+-- A54: the off-turn pre-work whitelist — twin of engine/index.js
+-- OFFTURN_WHITELIST (self-scoped commands whose validation carries no turn
+-- check; everything else keeps notYourTurn inside its own validation).
+local OFFTURN_WHITELIST = setmetatable(
+	{ "setRates", "setResearch", "setProduction", "setWorkers" },
+	statehash.ARRAY_MT
+)
+
 return {
 	createEngine = createEngine,
 	deepClone = deepClone,
 	nextYear = nextYear,
+	OFFTURN_WHITELIST = OFFTURN_WHITELIST,
 }
