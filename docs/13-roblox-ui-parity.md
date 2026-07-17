@@ -93,6 +93,7 @@ per item; the architect cuts R-items from the tiers in order.
 | Game code display | HUD chip + copyable (docs/07 trust loop must stay visible) | |
 | Civilopedia (A58, 📖/?) | full-screen ScrollingFrame: category tabs + entry list + detail; opened from a HUD 📖 button | **PORTABLE SOURCE ALREADY EXISTS**: `client/ui/catalog-text.js` (effectText + tech maps) and `client/ui/pedia-concepts.js` (the CONCEPTS table) are pure data→string (no DOM/THREE, the A58a pin) — the Luau client consumes the SAME two modules; only the panel chrome is re-authored |
 | First-timer advice (A78/A99) | transient corner card, one at a time; "📖 More" deep-links into the pedia | same pure predicates (advice.js `when(state,me)`) + the ADVICE→concept map port; localStorage muting → a Roblox per-player attribute |
+| Tech-discovery card (specs/tech-discovery-card.md) | transient center-top card on techDiscovered: name + era + blurb + unlock buttons that deep-link into the pedia; ~6 s or click-through | consumes `client/ui/tech-blurbs.js` (TECH_BLURBS, pure data — the ally's 68 original lines) + the same rulesets the unlock triples derive from; only the card chrome re-authors; the ⚙ mute → a per-player attribute |
 
 ## Tier 3 — multiplayer/social (needs R6 seats first; **1.0-REQUIRED** — user ruling 2026-07-16: both platforms launch multiplayer-complete)
 

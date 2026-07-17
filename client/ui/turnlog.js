@@ -276,7 +276,10 @@ export function initTurnLog(ctx) {
         const unlocks = techUnlocks[e.tech] || [];
         put(`🔬 ${techs[e.tech].name} discovered`
           + (unlocks.length ? ` — unlocks ${unlocks.join(', ')}` : ''), 'win');
-        if (availableTechs(state, ctx.HUMAN, session.ruleset).length > 0) {
+        // the discovery card carries the research prompt when it's enabled —
+        // the flash only fires as the FALLBACK (no double-flash, per spec)
+        if ((!ctx.discoveryCard || !ctx.discoveryCard.enabled())
+            && availableTechs(state, ctx.HUMAN, session.ruleset).length > 0) {
           flashMessage(`🔬 ${techs[e.tech].name} discovered! Choose new research — press T or click the research bar`);
         }
       }

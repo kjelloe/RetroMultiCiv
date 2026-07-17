@@ -15,7 +15,8 @@ const DEFAULTS = {
   soundEffects: true,     // A77: event sound effects (separate from reduceAnimation)
   soundMusic: true,       // A77: the creation + splash tunes
   firstTimeTips: true,    // A78: contextual first-timer advice (re-enable resets)
-  civPalette: 'default'   // palette pass: display-time civ-color remap (ui/palette.js)
+  civPalette: 'default',  // palette pass: display-time civ-color remap (ui/palette.js)
+  discoveryCards: true    // the tech-discovery card (ui/discovery-card.js)
 };
 
 export function initOptions(ctx) {
@@ -74,6 +75,7 @@ export function initOptions(ctx) {
     <label><input type="checkbox" data-opt="soundEffects"> Sound effects (combat, cities, discoveries, era changes)</label>
     <label><input type="checkbox" data-opt="soundMusic"> Music (world-creation and title themes)</label>
     <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>
+    <label><input type="checkbox" data-opt="discoveryCards"> Show discovery cards when an advance completes</label>
     <label>Civ colors
       <select data-opt="civPalette">
         <option value="default">default</option>

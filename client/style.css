@@ -1211,6 +1211,38 @@ html, body {
   background: #2f5388;
 }
 
+/* the tech-discovery card (specs/tech-discovery-card.md) — a transient
+   center-top card; created/removed, never .hidden-toggled */
+#discovery-card {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 480px;
+  background: rgba(12, 20, 34, 0.96);
+  border: 1px solid #3b5d8f;
+  border-radius: 8px;
+  color: #cdd8ea;
+  font-size: 13px;
+  padding: 10px 14px;
+  z-index: 8;
+  cursor: pointer;
+}
+#discovery-card .dc-head { font-size: 15px; color: #ffe066; }
+#discovery-card .dc-era {
+  font-size: 11px; color: #8fa8cc; border: 1px solid #2c4770;
+  border-radius: 8px; padding: 0 6px; margin-left: 6px; vertical-align: middle;
+}
+#discovery-card .dc-blurb { margin-top: 6px; }
+#discovery-card .dc-unlocks { margin-top: 6px; }
+#discovery-card .dc-link {
+  background: #1b2c48; border: 1px solid #3b5d8f; border-radius: 4px;
+  color: #8fc7ff; font-size: 12px; padding: 1px 6px; cursor: pointer;
+}
+#discovery-card .dc-link:hover { background: #2f5388; }
+#discovery-card .dc-research { margin-top: 6px; color: #ffe066; }
+#discovery-card .dc-hint { margin-top: 6px; font-size: 11px; color: #7284a0; }
+
 /* A68 (VIII.13): civil disorder is LOUD in the city view */
 .disorder-banner {
   margin-top: 6px;
