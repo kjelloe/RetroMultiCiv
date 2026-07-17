@@ -431,8 +431,7 @@
         "phalanx",
         "legion",
         "musketeers",
-        "riflemen",
-        "mech-inf"
+        "riflemen"
       ],
       "mounted": [
         "cavalry",

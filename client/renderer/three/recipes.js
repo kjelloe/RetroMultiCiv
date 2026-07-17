@@ -57,10 +57,24 @@ export const UNIT_RECIPES = {
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.14, 0.11, -0.12], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.14, 0.11, 0.12], rot: [1.5707963267948966, 0, 0], color: 'wheel' }
   ],
-  siegeArmor: [
-    { shape: 'box', size: [1, 1, 1], pos: [0, 0.18, 0], scale: [0.46, 0.16, 0.3], color: 'darkMetal' },
-    { shape: 'box', size: [1, 1, 1], pos: [0, 0.32, 0], scale: [0.2, 0.12, 0.18], color: 'darkMetal' },
-    { shape: 'cyl', size: [0.015, 0.015, 0.7], seg: 6, pos: [0.24, 0.34, 0], rot: [0, 0, 1.4907963267948966], scale: 0.6, color: 'metal' }
+  // A67: a real tracked TANK (was armor→siegeArmor, a generic box). Low wide
+  // hull + two dark treads + a set-back turret + a long forward gun.
+  tank: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.16, 0], scale: [0.5, 0.13, 0.30], color: 'hull' },        // hull
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.08, -0.17], scale: [0.54, 0.1, 0.08], color: 'darkMetal' }, // left tread
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.08, 0.17], scale: [0.54, 0.1, 0.08], color: 'darkMetal' },  // right tread
+    { shape: 'box', size: [1, 1, 1], pos: [-0.03, 0.29, 0], scale: [0.24, 0.12, 0.20], color: 'hull' },     // turret
+    { shape: 'cyl', size: [0.022, 0.022, 0.5], seg: 6, pos: [0.24, 0.30, 0], rot: [0, 0, 1.5707963267948966], color: 'metal' } // gun
+  ],
+  // A67: an APC for mech-inf (was mech-inf→footSoldier). Boxier + taller than the
+  // tank, an angled front glacis, a small cupola + stub MG (not a long gun).
+  apc: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.20, 0], scale: [0.44, 0.22, 0.28], color: 'hull' },        // hull
+    { shape: 'box', size: [1, 1, 1], pos: [0.20, 0.19, 0], scale: [0.12, 0.16, 0.24], rot: [0, 0, 0.4], color: 'hull' }, // sloped front glacis
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.08, -0.15], scale: [0.48, 0.1, 0.07], color: 'darkMetal' }, // left tread
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.08, 0.15], scale: [0.48, 0.1, 0.07], color: 'darkMetal' },  // right tread
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.35, 0], scale: [0.14, 0.1, 0.14], color: 'darkMetal' },  // cupola
+    { shape: 'cyl', size: [0.012, 0.012, 0.16], seg: 6, pos: [0.10, 0.40, 0], rot: [0, 0, 1.2], color: 'metal' } // stub MG
   ],
   siege: [
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.2, 0], scale: [0.4, 0.1, 0.24], color: 'wood' },
@@ -135,9 +149,9 @@ export const PROP_SHAPES = {
 export const UNIT_SILHOUETTE = {
   settlers: 'wagon', caravan: 'wagon', diplomat: 'wagon',
   militia: 'footSoldier', phalanx: 'footSoldier', legion: 'footSoldier',
-  musketeers: 'footSoldier', riflemen: 'footSoldier', 'mech-inf': 'footSoldier',
+  musketeers: 'footSoldier', riflemen: 'footSoldier', 'mech-inf': 'apc',
   cavalry: 'mounted', knights: 'mounted', chariot: 'mounted',
-  armor: 'siegeArmor', catapult: 'siege', cannon: 'siege', artillery: 'siege',
+  armor: 'tank', catapult: 'siege', cannon: 'siege', artillery: 'siege',
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',
   submarine: 'shipSub',
   ironclad: 'shipPowered', cruiser: 'shipPowered', battleship: 'shipPowered', carrier: 'shipPowered',

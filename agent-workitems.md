@@ -2422,7 +2422,7 @@ regent turns, fast-forward, Roblox):
 USER-BLOCKING: the v0.5 README screenshot waits on this. Sequence:
 B11 window closes → A60's window opens (same day intended).
 
-## A67 — Art pass: tank + APC + the refined-models list (wave VIII.7 — ally loop)
+## A67 — Art pass: tank + APC + the refined-models list (wave VIII.7 — ally loop)  [helper renderer done 2026-07-17 (done-mail #729): real `tank` (armor) + `apc` (mech-inf) recipes in recipes.js replacing generic siegeArmor/footSoldier; assets.js dispatch updated (mech-inf out of FOOT_TYPES, armored() builder, siegeArmor removed); asset-recipes.json + render-spec.json regenerated; node 424/424; tank+APC verified in the real renderer WebGL + WebGL1. Ranked review table of remaining generic-model units in the done-mail (catapult/diplomat/phalanx/musketeers... the list "grown"). PENDING: gallery.png visual-golden RE-RECORD via CI actual (A48 discipline — not local) after the architect commits; drift-risk noted (assets.js dispatch ↔ UNIT_SILHOUETTE are hand-synced, A88 follow-up). Cross-lane: roblox re-bake picks up tank/apc.]
 
 Tanks and mech. inf render as generic figures in PLAY (the user saw
 them; reconcile with A44's coverage-guard verdict — the guard proves

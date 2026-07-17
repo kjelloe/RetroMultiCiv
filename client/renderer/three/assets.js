@@ -138,7 +138,7 @@ function composeRecipe(group, recipe, visual) {
 const WAGON_TYPES = { settlers: true, caravan: true, diplomat: true };
 const FOOT_TYPES = {
   militia: true, phalanx: true, legion: true,
-  musketeers: true, riflemen: true, 'mech-inf': true
+  musketeers: true, riflemen: true // A67: mech-inf now rides an APC, not a foot figure
 };
 const MOUNTED_TYPES = { cavalry: true, knights: true, chariot: true };
 const SIEGE_TYPES = { catapult: true, cannon: true, artillery: true };
@@ -203,9 +203,16 @@ function mounted(group, visual, isChariot) {
   pennant(group, visual, -0.28, 0.34, 0.7);
 }
 
-function siege(group, visual, isArmor) {
-  composeRecipe(group, isArmor ? UNIT_RECIPES.siegeArmor : UNIT_RECIPES.siege, visual); // A88
+function siege(group, visual) {
+  composeRecipe(group, UNIT_RECIPES.siege, visual); // A88
   pennant(group, visual, -0.26, 0.3, 0.65);
+}
+
+// A67: tracked armour — armor→tank, mech-inf→apc. The recipe name IS the
+// UNIT_SILHOUETTE mapping, so browser + Roblox render the same body.
+function armored(group, visual, recipeName) {
+  composeRecipe(group, UNIT_RECIPES[recipeName], visual);
+  pennant(group, visual, -0.28, 0.3, 0.62);
 }
 
 function ship(group, visual, kind) {
@@ -240,8 +247,9 @@ export function createUnitMesh(unitType, colorOrVisual, status) {
   if (WAGON_TYPES[unitType]) wagon(group, visual);
   else if (FOOT_TYPES[unitType]) footSoldier(group, visual);
   else if (MOUNTED_TYPES[unitType]) mounted(group, visual, unitType === 'chariot');
-  else if (unitType === 'armor') siege(group, visual, true);
-  else if (SIEGE_TYPES[unitType]) siege(group, visual, false);
+  else if (unitType === 'armor') armored(group, visual, 'tank'); // A67
+  else if (unitType === 'mech-inf') armored(group, visual, 'apc'); // A67
+  else if (SIEGE_TYPES[unitType]) siege(group, visual);
   else if (SAIL_TYPES[unitType]) ship(group, visual, 'sail');
   else if (unitType === 'submarine') ship(group, visual, 'sub');
   else if (POWERED_TYPES[unitType]) ship(group, visual, 'powered');
