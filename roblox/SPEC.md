@@ -427,6 +427,80 @@ renderers compose the SAME primitives from it.
   own unit's tile, settlers preferred (`Possess.client.luau`).
 - Cone pick = FAN (user, final); stack stays gallery-side only.
 
+### 3m. R9 — the lobby place (docs/13 Tier-3 slice 1, user design)
+
+The place boots GAMELESS. `Deck.luau` (server module): observation
+deck in the sky (platform + rim + neutral SpawnLocation + three
+ProximityPrompt pads, phase-gated). `GameServer.server.luau` owns
+the flow: START pad → host + 60s setup window (size/civs/humans
+steppers, maxCivsBySize-capped) → 30s countdown → createGame; JOIN
+pad claims seats 2..H; TAKE OVER pad (running) seats a late joiner
+into a RANDOM vacant human seat. Vacant/ABSENT human seats are
+REGENT-driven — the browser A40 twin exactly: state.human stays
+true, `ai.pickCommand` loop, each command logged as an ordinary cmd
+entry (no hash field), the endTurn covered by its round entry.
+REPLAY-SHAPE PROVEN headlessly (seated + regent + engine-AI, 12
+turns, replayDiagnostics EXACT) before Studio ever ran it.
+Admins-only kick (CreatorId + ADMINS list). NO CHAT asserted at
+boot. Spectator default: unseated clients get lobby messages ONLY —
+no view, no fog leak, structurally. [R4INIT] gains `humans=N`;
+assemble.js parses it (absent = 1, old runs stay valid).
+`Lobby.client.luau` renders greeting/phases/seats/countdowns/setup
+on its own RemoteEvent handler (own `lobbyHello` handshake).
+V1 flags: joiner civ pick is auto-by-seat-order; greeting per-join.
+
+### 3n. R10 — save/resume (Tier-3 slice 2, browser A98 twin)
+
+`SaveStore.luau`: DataStore "rmc_saves", pcall-wrapped. Envelope =
+`statehash.canonicalize({state, savedAt, humans})` KEYED BY THE GAME
+CODE (docs/07 authorization-by-knowledge). Round-trip proven
+identity (node canonicalize → luau parse → same hash; re-canonicalize
+byte-identical). Resume runs the docs/07 TAMPER CHECK: gameCode of
+the parsed state must equal the typed key. Host GET RESUME CODE
+button (running) → selectable code box; resume-by-code TextBox in
+the idle lobby. EPHEMERAL public servers: last seated human out →
+120s grace (task.defer'd — PlayerRemoving still counts the leaver,
+measured trap) → autosave + end to idle; private servers skip.
+[R4RESUME] prints code/turn/humans/hash (resumed-run assembler
+support = future work, flagged).
+
+### 3o. R11 — click-only ride pad (R7c-13/14, user design)
+
+`RidePad.client.luau`: while mounted, 8 BillboardGui click-targets
+over the neighbor tiles (engine DIRS N..NW) send the same moveUnit
+commands as WASD — the ONLY 8-dir ride input (KEY_DIR is 4-dir).
+GUI clicks arrive gameProcessed so Select never double-fires.
+AUTO-DETECT: no keyboard → pads on; left-edge PAD button toggles;
+R16 wire: `options.ridePad` (auto/on/off) is the shared pref.
+
+### 3p. R14 — GoTo + the pathfind twin (the last Tier-1 row)
+
+`luau/pathfind.luau` = shared/pathfind.js twin (A65's done-note
+assigns the port to this lane; client-consumer, NOT gated).
+BYTE-PROVEN: five crafted cases node-vs-lune identical (rail detour
+beats the straight line, fog/ocean null, self-target). Costs ×3
+integer, linear extract-min + idx tie-break, CAP 8000.
+`StepLegality.luau` = the ONE tile-entry verdict (A65 rule) —
+MoveHints' green/red AND the planner's canEnter read it.
+`GoToPlan.luau`: O arms target-pick on the selected unit (Select
+hands the pick over while armed); plan re-plans EVERY step and
+issues one ordinary moveUnit per view push (engine validates,
+replays record plain moves — golden-safe by construction); purple
+breadcrumbs 3s; arrival/route-lost cancel aloud.
+
+### 3q. R13+R15+R16 wires — city panel completion (Tier-2 rows)
+
+R13 (A97/A86 twin): built-buildings strip with per-row SELL — price
+= cost × sellPriceRatio, two-step confirm (armed 3s), soldThisTurn
+greys the strip, the Palace (effect.isPalace) never sells; command
+sellBuilding {cityId, building}, server judges. R15: buildings and
+wonders carry plain-language effects sublines via
+`CatalogText.luau` — the TWIN of client/ui/catalog-text.js (A58a
+extracted it for exactly this consumer); wonders without effects
+show the prestige line. R16 wires: options.hideFuture hides the
+one-tech-lookahead rows; options.ridePad row (auto/ON/off) cycles
+in the options stack.
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -555,6 +629,18 @@ Stop) are hash-verified but must not skew the code check.
 - R12 (§3l, Playtest-C batch): **CODE-COMPLETE 2026-07-17** (claimed
   @bfdb09c0) — items (2)-(7),(9),(10) above; 37 gates. Studio
   verification pending (the user's next session).
+- NIGHT-2 (2026-07-17, all committed via the five-sweep burst
+  9f81669/8bae773/4050c08/0c27d2a/6e63447, sim-runner #877):
+  R9 lobby (§3m, replay-shape proven), R10 save/resume (§3n,
+  round-trip proven), R11 ride pad (§3o), R14 GoTo + pathfind twin
+  (§3p, byte-proven), R7c-3 worked-tile FULL BUILD (user un-gated;
+  note-for-review in module header), R16 options completion,
+  galaxy art round 2 (VoidCover owns Lighting in galaxy mode).
+  All gamesim-golden-neutral. Studio verification rides the user's
+  next session.
+- R13+R15+R16-wires (§3q): **CODE-COMPLETE 2026-07-17** — sell
+  strip, effects sublines (CatalogText twin), hideFuture + ridePad
+  wires; 46 gates. Studio verification pending.
 
 ## 7. Shared-tree workflow (dev_night)
 
