@@ -2433,7 +2433,7 @@ table of every unit whose current model is a generic figure vs one
 Gallery re-shot; A48 visual goldens re-recorded (the process exists
 now); the ally gets the before/after per the acceptance loop.
 
-### A67b — art pass round 2 (from the #729 review table; any free lane)
+### A67b — art pass round 2 (from the #729 review table; any free lane)  [helper renderer done 2026-07-17 (done-mail #809): catapult torsion-arm recipe (was 'siege' barrel) + diplomat figure recipe (was 'wagon'); UNIT_SILHOUETTE remapped + assets.js dispatch (catapult()/diplomat() builders, out of SIEGE/WAGON sets); asset-recipes.json + render-spec.json regenerated; drift gates 12/12; gallery WebGL+WebGL1 verified distinct. gallery.png visual-golden RE-RECORDED (done-mail #820): harvested my CI run 29568556015 (dev_night tip b11d0be incl. A67b; branch verified), verified actual diff = ONLY the catapult+diplomat land-row (matches the architect's independent pixel-diff x486-627; splash unmoved), replaced debugging/goldens/gallery.png with the CI actual (md5 1bf12366) — staged for commit. A67b CLOSED. Then A88b data-drives the dispatch (needs THIS golden committed as its byte-identical baseline; A88b leaves the gallery unchanged = golden-neutral, CI visual-check-PASS is the proof).]
 The table's top two: (1) CATAPULT — own torsion-throwing-arm recipe
 (ancient engine, stops sharing the barrel+wheels 'siege' body with
 cannon/artillery); (2) DIPLOMAT — a lone figure with a case (a
@@ -2443,7 +2443,7 @@ artifacts + both-GL gallery shots + CI visual re-record. The rest
 of the ranked table (phalanx shield, musket/rifle firearms, knight
 lance, carrier flat-deck, bomber/nuclear wings) stays queued here.
 
-### A88b — kill the dispatch/UNIT_SILHOUETTE dual source (helper #729 drift note; small)
+### A88b — kill the dispatch/UNIT_SILHOUETTE dual source (helper #729 drift note; small)  [helper done 2026-07-17 (done-mail #832): createUnitMesh now DATA-DRIVEN — recipe from UNIT_SILHOUETTE + chrome from new pure client/renderer/three/unit-chrome.js (RECIPE_CHROME/TYPE_EXTRA); per-type function ladder + type-class sets DELETED (dual source dead). Coverage gate in asset-recipes.test.js (every recipe has chrome). Drift cascade handled: render-spec.js + mock-state.test.js re-sourced from UNIT_SILHOUETTE (they parsed the deleted sets); render-spec.json regenerated. BYTE-IDENTICAL: gallery WebGL+WebGL1 identical to A67b (WebGL1 PNG same byte size); 13/13 gates; suite 439/440 (the 1 fail = bugfixer's engine-golden witness, not mine). PENDING: CI visual-check-PASS byte-proof post-commit (I trigger + confirm). Roblox chrome is a follow-on (docs/13).]
 createUnitMesh's hardcoded dispatch in assets.js and recipes.js's
 UNIT_SILHOUETTE are two hand-synced sources (A67 had to edit both).
 Data-drive the dispatch from UNIT_SILHOUETTE (recipe name selects
@@ -3284,6 +3284,16 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
+**OPENER-EXCEPTION — MEASURED + REJECTED 2026-07-17 (sim-runner #849,
+user-GO'd experiment marker-0032, reverted 9bad386):** 1-city
+sole-guard scouting FAILED 3/4 gates — exploration flat-to-DOWN
+(14→13, first-contact SLOWER), cities ~halved (10→5.5), floors
+breached (pop -19, impr -11); only no-capital-spike passed. The
+sole guard leaves, its one city is captured, the expansion arc
+dies (= the B23b regression, scoped to openers). DO NOT re-propose;
+the exploration fix is B23d below, not an opener shortcut. Knob +
+code fully removed (tree byte-identical to marker-0031).
+
 **B23d — relax the scout threat-veto (the exploration ceiling is STRUCTURAL; sim-runner #797, queued behind N4):**
 the quota sweep proved no knob point gets both green floors and
 ~22% exploration: veto-ON caps expl at ~9.5% (the veto benches
@@ -3303,6 +3313,30 @@ aiScoutQuotaByCities -> {1:3,2:6,3:10} (veto stays true) rides the
 same window as defenderGatePct 100->30 — best joint point today:
 expl 9.5%, cities 9 green, first contact t75 vs t141 (the real
 gameplay win until B23d lands). One combined small re-record.
+
+**N3-build-tune — naval adoption is weak+late (sim-runner #859; bugfixer window, after N4):**
+naval-loop acceptance (activity-baseline format, docs/05) found the
+loop completes discover-coast (STRONG) → build-warship (WEAK/LATE)
+→ explore (partial) and STOPS. Build is the first lever: on ~68%-
+water maps only ~1 of 6-7 coastal civs ever builds a ship, 30% of
+games build ZERO, median first-ship turn 163 (range 107-237).
+navyPriorityOf / the aiNavyAfterLandUnits(3) gate look too
+conservative for high-water maps; bestSeaUnit adoption is late.
+Tune so coastal civs on watery maps build ships EARLIER and more
+reliably (sweep aiNavyWaterPct / aiNavyAfterLandUnits / aiNavyTarget
+vs the map-type axis — options.landPercent, now confirmed wired).
+Golden window, both engines. Do NOT touch fleet composition/
+blockades/back-half until build→explore is robust (ally ordering,
+docs/03). Prior-art check: extends N3's engine block (data/rules.json
+navy knobs already exist).
+**SHIP-IDLE BUG (B-item, sim-runner #859 flag): seed 43 built 3
+ships that NEVER left port (firstShipOnSea=null).** A built sea unit
+should join the boat-scout pool (aiBoatScoutCount) and range; some
+path leaves it garrisoned in the city. Investigate the sea-unit
+scout assignment / departure; likely interacts with the guards>=2
+floor treating a ship as a garrison, or aiBoatScoutCount=2 not
+selecting it. Verify against the seed; fix in the N3-build-tune
+window or its own small window.
 
 **N4 — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
 garrisonCap(city) = min(1+ceil(threat), border?5:3); threat =
