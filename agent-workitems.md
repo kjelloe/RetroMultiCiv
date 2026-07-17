@@ -3320,11 +3320,18 @@ loop completes discover-coast (STRONG) → build-warship (WEAK/LATE)
 → explore (partial) and STOPS. Build is the first lever: on ~68%-
 water maps only ~1 of 6-7 coastal civs ever builds a ship, 30% of
 games build ZERO, median first-ship turn 163 (range 107-237).
-navyPriorityOf / the aiNavyAfterLandUnits(3) gate look too
-conservative for high-water maps; bestSeaUnit adoption is late.
-Tune so coastal civs on watery maps build ships EARLIER and more
-reliably (sweep aiNavyWaterPct / aiNavyAfterLandUnits / aiNavyTarget
-vs the map-type axis — options.landPercent, now confirmed wired).
+MAP-TYPE SWEEP REFINEMENT (sim-runner #863): the water GATE works
+directionally (off below ~42% water, reliably on at 64%+) — so
+aiNavyWaterPct is NOT the lever. More water grows FLEET SIZE (peak
+5→8) but PARTICIPATION stays stuck at ~2 of 6-7 coastal civs at
+BOTH 64% and 76% water, and TIMING stays LATE (first ship t107-318,
+if anything later on the wettest maps). So the tune target is
+per-civ build PROPENSITY + earlier TIMING (why do 4-5 of 7 coastal
+civs never build?), NOT the water threshold. Look at
+aiNavyAfterLandUnits(3) (does the land-military floor delay/block
+naval start?) and the per-civ navyPriority trigger, not
+aiNavyWaterPct. Sweep participation/timing vs the map-type axis
+(options.landPercent, confirmed wired).
 Golden window, both engines. Do NOT touch fleet composition/
 blockades/back-half until build→explore is robust (ally ordering,
 docs/03). Prior-art check: extends N3's engine block (data/rules.json
