@@ -17,8 +17,52 @@ const ADVICE = {
   'disorder': { title: 'Civil disorder', text: 'A city where unhappy citizens outnumber happy ones (😠) stops making shields and taxes. Raise the luxuries rate, turn citizens into entertainers, or build a Temple.' },
   'tech-choice': { title: 'Choosing research', text: 'When your beakers fill you pick the next advance. Techs unlock units, buildings, and wonders — beeline the ones your strategy needs, or broaden for score.' },
   'save-code': { title: 'Your game code', text: 'That code is this game\'s fingerprint. Anyone who loads the save should see the same code — it proves the game state was not tampered with.' },
-  'regent': { title: 'The AI regent', text: 'You can hand a turn to the AI regent (🤖) — it plays your civ under the same rules. Take back control whenever you like.' }
+  'regent': { title: 'The AI regent', text: 'You can hand a turn to the AI regent (🤖) — it plays your civ under the same rules. Take back control whenever you like.' },
+  // A99: three state-triggered cards (predicates below)
+  'first-contact': { title: 'Meeting your neighbours', text: 'You have spotted another civilization\'s unit. Contact can bring trade or trouble — watch your borders, and keep a defender in the cities nearest them.' },
+  'low-treasury': { title: 'Watch the treasury', text: 'Your gold is running low against your upkeep. Nudge the tax rate up in the tax/science bar — an empty treasury forces your cities to sell off buildings to balance the books.' },
+  'fortify-garrison': { title: 'Defend your cities', text: 'A city with no military unit is easy to capture. Move a defender in and Fortify it (F) — a fortified unit behind city walls is far harder to dislodge.' }
 };
+
+// A99: PURE situation predicates (state, me) — exported so Node unit-tests them
+// on crafted states with no DOM. The client's session.state is already
+// fog-filtered for `me`, so any non-own unit in it is genuinely visible.
+const CIVILIAN = { settlers: true, caravan: true, diplomat: true };
+
+export function firstContactWhen(state, me) {
+  if (!state || !state.players || !state.players[me]) return false;
+  for (const uid of Object.keys(state.units)) {
+    if (state.units[uid].owner !== me) return true; // a visible non-own unit = contact
+  }
+  return false;
+}
+
+export function lowTreasuryWhen(state, me) {
+  const p = state && state.players && state.players[me];
+  if (!p) return false;
+  let cities = 0;
+  for (const cid of Object.keys(state.cities)) if (state.cities[cid].owner === me) cities += 1;
+  if (cities === 0) return false; // no empire to bankrupt yet
+  // upkeep proxy: ~3 gold/city of maintenance. The exact bill needs the ruleset,
+  // which the (state, me) signature deliberately omits — this is a low-gold
+  // NUDGE for a first-timer, not an accountant.
+  return p.gold < cities * 3;
+}
+
+export function fortifyGarrisonWhen(state, me) {
+  if (!firstContactWhen(state, me)) return false; // only nag once an enemy is on the map
+  for (const cid of Object.keys(state.cities)) {
+    const c = state.cities[cid];
+    if (c.owner !== me) continue;
+    let garrisoned = false;
+    for (const uid of Object.keys(state.units)) {
+      const u = state.units[uid];
+      if (u.owner === me && u.x === c.x && u.y === c.y && !CIVILIAN[u.type]) { garrisoned = true; break; }
+    }
+    if (!garrisoned) return true; // an ungarrisoned own city while an enemy is known
+  }
+  return false;
+}
 
 function loadSeen() {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch (e) { return {}; }
@@ -85,6 +129,10 @@ export function initAdvice(ctx) {
         else if (e.type === 'regentTurn') offer('regent');
       }
       if (hasOwnSettler(state)) offer('settler');
+      // A99: state-triggered cards (offer() + adviceGate handle once-only + muting)
+      if (firstContactWhen(state, ctx.HUMAN)) offer('first-contact');
+      if (lowTreasuryWhen(state, ctx.HUMAN)) offer('low-treasury');
+      if (fortifyGarrisonWhen(state, ctx.HUMAN)) offer('fortify-garrison');
     });
   }
   function ownCity(state, cid) { const c = state.cities[cid]; return c && c.owner === ctx.HUMAN; }
