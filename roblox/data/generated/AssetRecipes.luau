@@ -41,10 +41,10 @@ return [==[{
     "ironclad": "shipPowered",
     "cruiser": "shipPowered",
     "battleship": "shipPowered",
-    "carrier": "shipPowered",
+    "carrier": "carrier",
     "fighter": "aircraft",
-    "bomber": "aircraft",
-    "nuclear": "aircraft"
+    "bomber": "bomber",
+    "nuclear": "nuclear"
   },
   "unitRecipes": {
     "footSoldier": [
@@ -1467,6 +1467,211 @@ return [==[{
         "color": "metal"
       }
     ],
+    "bomber": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.32,
+          0
+        ],
+        "scale": [
+          0.5,
+          0.1,
+          0.12
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.02,
+          0.32,
+          0
+        ],
+        "scale": [
+          0.14,
+          0.02,
+          0.6
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.02,
+          0.29,
+          -0.16
+        ],
+        "scale": [
+          0.08,
+          0.05,
+          0.05
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.02,
+          0.29,
+          0.16
+        ],
+        "scale": [
+          0.08,
+          0.05,
+          0.05
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.21,
+          0.39,
+          0
+        ],
+        "scale": [
+          0.08,
+          0.11,
+          0.02
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.21,
+          0.34,
+          0
+        ],
+        "scale": [
+          0.05,
+          0.015,
+          0.2
+        ],
+        "color": "metal"
+      }
+    ],
+    "nuclear": [
+      {
+        "shape": "cyl",
+        "size": [
+          0.05,
+          0.05,
+          0.44
+        ],
+        "seg": 10,
+        "pos": [
+          0,
+          0.36,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -1.2
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.05,
+          0.12
+        ],
+        "seg": 10,
+        "pos": [
+          0.25,
+          0.455,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -1.2
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.19,
+          0.29,
+          0
+        ],
+        "scale": [
+          0.12,
+          0.08,
+          0.02
+        ],
+        "rot": [
+          0,
+          0,
+          -1.2
+        ],
+        "color": "cloth"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.19,
+          0.29,
+          0
+        ],
+        "scale": [
+          0.12,
+          0.02,
+          0.14
+        ],
+        "rot": [
+          0,
+          0,
+          -1.2
+        ],
+        "color": "cloth"
+      }
+    ],
     "fallback": [
       {
         "shape": "cyl",
@@ -1688,6 +1893,89 @@ return [==[{
           0.14,
           0.1,
           0.12
+        ],
+        "color": "hull"
+      }
+    ],
+    "carrier": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.04,
+          0.14,
+          0
+        ],
+        "scale": [
+          0.54,
+          0.12,
+          0.18
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          1,
+          1
+        ],
+        "seg": 4,
+        "pos": [
+          0.28,
+          0.14,
+          0
+        ],
+        "scale": [
+          0.1,
+          0.12,
+          0.1
+        ],
+        "rot": [
+          0,
+          0,
+          -1.5707963267948966
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.23,
+          0
+        ],
+        "scale": [
+          0.62,
+          0.03,
+          0.26
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.08,
+          0.31,
+          0.09
+        ],
+        "scale": [
+          0.1,
+          0.12,
+          0.06
         ],
         "color": "hull"
       }

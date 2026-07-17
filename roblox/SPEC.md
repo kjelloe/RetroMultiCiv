@@ -501,6 +501,21 @@ show the prestige line. R16 wires: options.hideFuture hides the
 one-tech-lookahead rows; options.ridePad row (auto/ON/off) cycles
 in the options stack.
 
+### 3r. R18 — replay theater (Tier-4 reach goal, A47+A87 twin)
+
+`ReplayTheater.client.luau` + a GameServer history record (the same
+entries [R4LOG] prints, kept as data + a deepClone'd initialState).
+THE LAW GUARD: the server streams history ONLY post-gameOver (or to
+admins) — a mid-game stream would be a fog wallhack. The client
+re-derives in a SANDBOX (read-only luau engine, exact
+replayDiagnostics semantics incl. hash checks), renders a MINI-STAGE
+(row-run-merged tile tints + city blocks + unit dots at y=220 —
+deliberately not the live renderer), cycles perspective omniscient →
+per-civ (filterView on sandbox states = historically honest fog),
+and shows A87 verdict strings (VERIFIED / MISMATCH at entry N).
+Controls: |< -1 +1 >|, click-to-jump bar (no drag slider), view
+cycle. Scrubs re-derive from turn 0 (v2: feed-anchor cache).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine

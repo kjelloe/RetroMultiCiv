@@ -10,5 +10,5 @@ return {
 	terrain = "0x0f366ad4",
 	units = "0x09dfd180",
 	wonders = "0xa001ac71",
-	assetRecipes = 856245187,
+	assetRecipes = 2625136494,
 }

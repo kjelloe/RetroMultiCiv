@@ -114,7 +114,10 @@ don't commit it.
    the PAD button or the options row toggles). The city panel now
    sells buildings (two-step confirm, one per city per turn, price =
    cost x ratio; the Palace never sells) and every building/wonder
-   row explains its effect in plain language. The server prints
+   row explains its effect in plain language. After a game ends, the
+   THEATER button (left edge) replays the whole match on a floating
+   mini-stage — scrub rounds, cycle each civ's historical fog, and
+   read the verification verdict. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`
