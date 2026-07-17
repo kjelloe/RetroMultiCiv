@@ -5,6 +5,45 @@ a date; add playtest findings to the bottom section. Agent/coder tasks live
 in `./agent-workitems.md`. Refreshed 2026-07-14 — completed items moved to
 the Done log at the bottom.
 
+## 2026-07-17 — decisions + fresh verifications
+
+**DECIDE (only you can):**
+- [ ] **Merge marker-0033** (the validated 440/440 merge candidate on
+  dev_night) → dev/main + `npm ci` (new @playwright/test dep). It's
+  pure M11 + all the gamesim-golden-neutral work since (A50 hardening,
+  A49 lane, A58 pedia, A88b, five art rounds, docs, hardening spec).
+- [ ] **NEXT MAJOR TRACK** (the real design question — see the
+  architect's asked question): the engine golden lane is serial and
+  currently queued N4 (in flight) → B23d → N3-build-tune → N1/N2
+  gov+tech (all AI-quality). The DESIGNED-and-approved next tracks
+  (A59 leaders → D1-D2 diplomacy; A76 space race; A51 master index)
+  have NOT started — the night went to AI-quality + the B23b
+  regression. Your call on what the engine lane does after N4.
+- [ ] **RESOLVED (no action, FYI):** M11 war-lethality — you PINNED
+  defenderGatePct 30 (elim ~29%). Opener-scout doctrine — MEASURED +
+  REJECTED (halves expansion). Both closed.
+
+**VERIFY IN ROBLOX STUDIO (gaming PC — lots landed):**
+- [ ] Deferred from the morning: **pyramid re-look**, **worked-tile
+  view**, **galaxy round 2** (parallax stars/milky-way/nebulae, moon
+  killed — V twice from boot), the **K** gallery toggle.
+- [ ] New surfaces since: **R12 batch** (government panel, bold unit
+  fonts, city billboards, research status, P ride/dismount), **R9
+  observation-deck lobby** (deck+pads, host/join/takeover), **R11
+  click ride pad**, **R13/R15 city panel** (sell + plain-language
+  effects), **R7c-3 3D worked-tile editing**, **R10 save/resume by
+  game code** (DataStore). Re-bake picked up all the new unit art
+  (tank/apc/catapult/diplomat/phalanx/musket/rifle/knight/carrier).
+
+**AUTHOR WITH THE ALLY (v1 drafts marked, awaiting your voice):**
+- [ ] **Pedia concept prose** — 11 entries in `client/ui/pedia-concepts.js`
+  (happiness, corruption, disorder, ZoC, veterancy, the game code…),
+  engine-verified, marked "v1 draft — ally editorial pass pending".
+- [ ] **Art review-table eyeball** — the gallery now renders distinct
+  silhouettes for tank/APC/catapult/diplomat/phalanx/musketeers/
+  riflemen/knights/carrier; bomber+nuclear are the last two. Screenshot
+  `/debugging/gallery.html` to bless them.
+
 ## Pending — verify in real play
 
 - [ ] **Next LAN session verification list** (everything landed since
