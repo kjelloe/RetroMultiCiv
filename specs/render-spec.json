@@ -423,8 +423,7 @@
     "typeClasses": {
       "wagon": [
         "settlers",
-        "caravan",
-        "diplomat"
+        "caravan"
       ],
       "foot": [
         "militia",
@@ -439,7 +438,6 @@
         "chariot"
       ],
       "siege": [
-        "catapult",
         "cannon",
         "artillery"
       ],

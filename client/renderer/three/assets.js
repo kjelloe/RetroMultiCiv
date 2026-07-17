@@ -135,13 +135,13 @@ function composeRecipe(group, recipe, visual) {
 }
 
 // silhouette classes covering all 28 Civ 1 unit types
-const WAGON_TYPES = { settlers: true, caravan: true, diplomat: true };
+const WAGON_TYPES = { settlers: true, caravan: true }; // A67b: diplomat now a figure
 const FOOT_TYPES = {
   militia: true, phalanx: true, legion: true,
   musketeers: true, riflemen: true // A67: mech-inf now rides an APC, not a foot figure
 };
 const MOUNTED_TYPES = { cavalry: true, knights: true, chariot: true };
-const SIEGE_TYPES = { catapult: true, cannon: true, artillery: true };
+const SIEGE_TYPES = { cannon: true, artillery: true }; // A67b: catapult now a torsion engine
 const SAIL_TYPES = { trireme: true, sail: true, frigate: true, transport: true };
 const POWERED_TYPES = { ironclad: true, cruiser: true, battleship: true, carrier: true };
 const AIR_TYPES = { fighter: true, bomber: true, nuclear: true };
@@ -215,6 +215,16 @@ function armored(group, visual, recipeName) {
   pennant(group, visual, -0.28, 0.3, 0.62);
 }
 
+// A67b: catapult (torsion engine, siege-like footprint) + diplomat (a figure)
+function catapult(group, visual) {
+  composeRecipe(group, UNIT_RECIPES.catapult, visual);
+  pennant(group, visual, -0.26, 0.3, 0.65);
+}
+function diplomat(group, visual) {
+  composeRecipe(group, UNIT_RECIPES.diplomat, visual);
+  pennant(group, visual, -0.16, 0.3, 0.7);
+}
+
 function ship(group, visual, kind) {
   if (kind === 'sail') {
     composeRecipe(group, UNIT_RECIPES.shipSail, visual); // A88 (hull/bow/pole)
@@ -249,6 +259,8 @@ export function createUnitMesh(unitType, colorOrVisual, status) {
   else if (MOUNTED_TYPES[unitType]) mounted(group, visual, unitType === 'chariot');
   else if (unitType === 'armor') armored(group, visual, 'tank'); // A67
   else if (unitType === 'mech-inf') armored(group, visual, 'apc'); // A67
+  else if (unitType === 'catapult') catapult(group, visual); // A67b
+  else if (unitType === 'diplomat') diplomat(group, visual); // A67b
   else if (SIEGE_TYPES[unitType]) siege(group, visual);
   else if (SAIL_TYPES[unitType]) ship(group, visual, 'sail');
   else if (unitType === 'submarine') ship(group, visual, 'sub');

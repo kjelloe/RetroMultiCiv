@@ -16,7 +16,7 @@
   "unitSilhouette": {
     "settlers": "wagon",
     "caravan": "wagon",
-    "diplomat": "wagon",
+    "diplomat": "diplomat",
     "militia": "footSoldier",
     "phalanx": "footSoldier",
     "legion": "footSoldier",
@@ -27,7 +27,7 @@
     "knights": "mounted",
     "chariot": "mounted",
     "armor": "tank",
-    "catapult": "siege",
+    "catapult": "catapult",
     "cannon": "siege",
     "artillery": "siege",
     "trireme": "shipSail",
@@ -734,6 +734,205 @@
           2.2
         ],
         "color": "metal"
+      }
+    ],
+    "catapult": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.16,
+          0
+        ],
+        "scale": [
+          0.42,
+          0.12,
+          0.26
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          -0.12,
+          0.1,
+          -0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          -0.12,
+          0.1,
+          0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          0.14,
+          0.1,
+          -0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          0.14,
+          0.1,
+          0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.06,
+          0.34,
+          0
+        ],
+        "scale": [
+          0.06,
+          0.36,
+          0.05
+        ],
+        "rot": [
+          0,
+          0,
+          0.6
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.07,
+          0.08
+        ],
+        "seg": 8,
+        "pos": [
+          -0.17,
+          0.49,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.5
+        ],
+        "color": "stone"
+      }
+    ],
+    "diplomat": [
+      {
+        "shape": "cone",
+        "size": [
+          0.16,
+          0.46
+        ],
+        "seg": 8,
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "canvas"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.1
+        ],
+        "seg": [
+          10,
+          8
+        ],
+        "pos": [
+          0,
+          0.58,
+          0
+        ],
+        "color": "skin"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.16,
+          0.22,
+          0
+        ],
+        "scale": [
+          0.09,
+          0.11,
+          0.05
+        ],
+        "color": "wood"
       }
     ],
     "aircraft": [

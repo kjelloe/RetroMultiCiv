@@ -82,6 +82,27 @@ export const UNIT_RECIPES = {
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [0, 0.11, 0.14], rot: [1.5707963267948966, 0, 0], scale: 1.2, color: 'wheel' },
     { shape: 'cyl', size: [0.015, 0.015, 0.7], seg: 6, pos: [0.1, 0.38, 0], rot: [0, 0, -0.9], scale: [2.2, 0.6, 2.2], color: 'metal' }
   ],
+  // A67b: the CATAPULT (was catapult→siege, a barrel-on-wheels shared with
+  // cannon/artillery). A torsion engine instead: a heavy wooden frame + a
+  // raised WOODEN throwing arm with a stone in its cup — reads ancient, and
+  // distinct from the gunpowder siege's metal barrel.
+  catapult: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.16, 0], scale: [0.42, 0.12, 0.26], color: 'wood' },        // frame
+    { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.12, 0.1, -0.14], rot: [1.5707963267948966, 0, 0], scale: 1.1, color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.12, 0.1, 0.14], rot: [1.5707963267948966, 0, 0], scale: 1.1, color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [0.14, 0.1, -0.14], rot: [1.5707963267948966, 0, 0], scale: 1.1, color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [0.14, 0.1, 0.14], rot: [1.5707963267948966, 0, 0], scale: 1.1, color: 'wheel' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.06, 0.34, 0], scale: [0.06, 0.36, 0.05], rot: [0, 0, 0.6], color: 'wood' }, // throwing arm (raised, leaning back)
+    { shape: 'cone', size: [0.07, 0.08], seg: 8, pos: [-0.17, 0.49, 0], rot: [0, 0, -0.5], color: 'stone' }   // the stone in the cup
+  ],
+  // A67b: the DIPLOMAT (was diplomat→wagon, a cart shared with settlers/caravan).
+  // A lone robed emissary with a document case — no spear (vs the foot soldier),
+  // no cart.
+  diplomat: [
+    { shape: 'cone', size: [0.16, 0.46], seg: 8, pos: [0, 0.28, 0], color: 'canvas' },   // pale civilian robe
+    { shape: 'sphere', size: [0.1], seg: [10, 8], pos: [0, 0.58, 0], color: 'skin' },     // head
+    { shape: 'box', size: [1, 1, 1], pos: [0.16, 0.22, 0], scale: [0.09, 0.11, 0.05], color: 'wood' } // document case at the side
+  ],
   aircraft: [
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.32, 0], scale: [0.42, 0.08, 0.1], color: 'metal' },
     { shape: 'box', size: [1, 1, 1], pos: [0.04, 0.32, 0], scale: [0.12, 0.02, 0.46], color: 'metal' },
@@ -147,11 +168,11 @@ export const PROP_SHAPES = {
 // `chariotWheels`, sail ships add the procedural plane sail — variant details
 // the composer's caller layers on; the base body is the mapped recipe.
 export const UNIT_SILHOUETTE = {
-  settlers: 'wagon', caravan: 'wagon', diplomat: 'wagon',
+  settlers: 'wagon', caravan: 'wagon', diplomat: 'diplomat',
   militia: 'footSoldier', phalanx: 'footSoldier', legion: 'footSoldier',
   musketeers: 'footSoldier', riflemen: 'footSoldier', 'mech-inf': 'apc',
   cavalry: 'mounted', knights: 'mounted', chariot: 'mounted',
-  armor: 'tank', catapult: 'siege', cannon: 'siege', artillery: 'siege',
+  armor: 'tank', catapult: 'catapult', cannon: 'siege', artillery: 'siege',
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',
   submarine: 'shipSub',
   ironclad: 'shipPowered', cruiser: 'shipPowered', battleship: 'shipPowered', carrier: 'shipPowered',
