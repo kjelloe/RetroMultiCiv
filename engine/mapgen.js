@@ -221,6 +221,32 @@ function createGame(setup, ruleset) {
     };
   }
 
+  // stance-mix v1: seed a fraction of the AI civs as 'builder' (heterogeneous
+  // economy — some civs build wonders). Deterministic + replay-identical: a
+  // Fisher-Yates shuffle through the game rng, threaded into state.rngState.
+  // aiBuilderPct=0 -> zero builders, NO stance field written, NO rng draw, so
+  // rngState stays found.rngState => a game byte-identical to the pre-stance
+  // engine (the dormant-capability identity). Humans keep the regency stance.
+  let rngS = found.rngState;
+  const aiIds = [];
+  for (let i = 0; i < playerDefs.length; i++) {
+    if (playerDefs[i].human !== true) aiIds.push(playerDefs[i].id);
+  }
+  const builderPct = ruleset.rules.aiBuilderPct === undefined ? 0 : ruleset.rules.aiBuilderPct;
+  const nBuilders = (builderPct === 0 || aiIds.length === 0) ? 0 : Math.max(1, idiv(aiIds.length * builderPct, 100));
+  if (nBuilders > 0) {
+    const order = aiIds.slice();
+    for (let i = order.length - 1; i > 0; i--) {
+      const r = rollRange(rngS, i + 1);
+      rngS = r.rngState;
+      const j = r.value;
+      const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    }
+    for (let k = 0; k < nBuilders; k++) {
+      players[order[k]].stance = 'builder';
+    }
+  }
+
   const state = {
     version: 1,
     turn: 1,
@@ -235,7 +261,7 @@ function createGame(setup, ruleset) {
     nextUnitId: playerDefs.length + 1,
     nextCityId: 1,
     players,
-    rngState: found.rngState
+    rngState: rngS
   };
 
   initExplored(state);

@@ -15,6 +15,7 @@ local combat = require("./combat")
 local cities = require("./cities")
 local improvements = require("./improvements")
 local happiness = require("./happiness")
+local government = require("./government")
 
 local DIR_KEYS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local DIR_VECS: { [string]: { number } } = {
@@ -30,11 +31,12 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40 },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150 },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100 },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0 },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0 },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0 },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99 },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99 },
+	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, defendFirst = true },
 }
 local function stanceOf(stance: any): any
 	if stance ~= nil and STANCES[stance] ~= nil then
@@ -1165,7 +1167,8 @@ end
 -- One decision at a time; `done` prevents re-considering an actor this turn.
 local function pickCommand(state: any, playerId: string, ruleset: any, done: any, stance: any): any
 	local me = state.players[playerId]
-	local S = stanceOf(stance) -- balanced (or omitted) = the identity
+	local effStance = if stance ~= nil then stance else me.stance
+	local S = stanceOf(effStance) -- balanced (or omitted/absent) = the identity
 	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
 
 	if done.happiness ~= true then
@@ -1330,20 +1333,26 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						local armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
 							+ attackerBaseOf(ruleset, S)
 						local underArmy = attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget
-						-- N9: economy pick hoisted so a RESERVE slot builds it ABOVE the perpetual
-						-- military slots (underArmy ~always true starved the dead-last economy).
-						-- aiEconReserve = buildings built with priority before the army resumes;
-						-- DEFAULT 0 = identity (#buildings < 0 never true, inert). Matches engine/ai.js.
+						-- N9 / stance-mix v1: the economy pick for the dead-last fallback PLUS the
+						-- defending-builder RESERVE (defBuild). econReserve comes from the STANCE
+						-- (S.econReserve): balanced 0 = inert (identity), the builder stance 99.
+						-- Wonders concentrate in the capital (pop-2+) so they complete. Matches engine/ai.js.
 						local econBuilding = stanceBuilding(city, me, ruleset, S)
 						local econWonder = if econBuilding == nil then nextWonder(state, me, ruleset) else nil
 						local econItem = if econBuilding ~= nil then { kind = "building", id = econBuilding } elseif econWonder ~= nil then { kind = "wonder", id = econWonder } else nil
-						local econReserve = if ruleset.rules.aiEconReserve == nil then 0 else ruleset.rules.aiEconReserve
+						local econReserve = if S.econReserve == nil then 0 else S.econReserve
 						local builtCount = if city.buildings == nil then 0 else #city.buildings
-						local underReserve = econItem ~= nil and builtCount < econReserve
+						local defBuild = nil
+						if S.defendFirst == true and econReserve > 0 and builtCount < econReserve then
+							local cap = government.capitalOf(state, playerId, ruleset)
+							local isCap = cap ~= nil and cap.id == cid
+							local pw = if ((isCap and builtCount >= 2) or econBuilding == nil) then nextWonder(state, me, ruleset) else nil
+							defBuild = if (isCap and builtCount >= 2 and pw ~= nil) then { kind = "wonder", id = pw } elseif econBuilding ~= nil then { kind = "building", id = econBuilding } elseif pw ~= nil then { kind = "wonder", id = pw } else nil
+						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
-						elseif underReserve then
-							want = econItem
+						elseif defBuild ~= nil then
+							want = defBuild
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
 						elseif navyWant and isCoastal(state, city.x, city.y, ruleset) then

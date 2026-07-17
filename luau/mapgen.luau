@@ -290,6 +290,34 @@ local function createGame(setup: any, ruleset: any): any
 		}
 	end
 
+	-- stance-mix v1: seed a fraction of the AI civs as 'builder' (heterogeneous
+	-- economy). Deterministic + replay-identical: a Fisher-Yates shuffle through
+	-- the game rng, threaded into rngState. aiBuilderPct=0 (or no AI) -> zero
+	-- builders, NO stance field, NO rng draw => byte-identical to pre-stance.
+	-- Matches engine/mapgen.js (JS 0-based order[i]/order[j] == luau order[i+1]/order[j+1]).
+	local rngS = found.rngState
+	local aiIds = {}
+	for i = 1, #playerDefs do
+		if playerDefs[i].human ~= true then
+			table.insert(aiIds, playerDefs[i].id)
+		end
+	end
+	local builderPct = if ruleset.rules.aiBuilderPct == nil then 0 else ruleset.rules.aiBuilderPct
+	local nBuilders = if (builderPct == 0 or #aiIds == 0) then 0 else math.max(1, idiv(#aiIds * builderPct, 100))
+	if nBuilders > 0 then
+		local order = {}
+		for i = 1, #aiIds do order[i] = aiIds[i] end
+		for bi = #order, 2, -1 do
+			local r = rng.rollRange(rngS, bi)
+			rngS = r.rngState
+			local j = r.value
+			local tmp = order[bi]; order[bi] = order[j + 1]; order[j + 1] = tmp
+		end
+		for k = 1, nBuilders do
+			players[order[k]].stance = "builder"
+		end
+	end
+
 	local state = {
 		version = 1,
 		turn = 1,
@@ -304,7 +332,7 @@ local function createGame(setup: any, ruleset: any): any
 		nextUnitId = #playerDefs + 1,
 		nextCityId = 1,
 		players = players,
-		rngState = found.rngState,
+		rngState = rngS,
 	}
 
 	visibility.initExplored(state)

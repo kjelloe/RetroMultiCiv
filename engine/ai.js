@@ -19,6 +19,7 @@ import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender
 import { workedTiles, citySpacingOk, candidateTiles, unitObsolete } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
+import { capitalOf } from './government.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
@@ -35,11 +36,17 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // rulesOverrides. Defaults reproduce the B13e resolved per-stance values.
 // Twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40 },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150 },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100 }
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0 },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0 },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0 },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99 },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99 },
+  // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
+  // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
+  // reached after the full garrison), then economy via the high econReserve
+  // (wonder-inclusive, capital-concentrated). defendFirst = the normal-block
+  // reserve placement (not the at-1 preempt). Ported from the sim-runner lab.
+  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, defendFirst: true }
 };
 // B13f: the AI's march-vs-explore radius. The BASE lives in data/rules.json
 // (exploreMarchRadius) so the sim-runner can SWEEP contact behavior via
@@ -961,7 +968,11 @@ function happinessCommand(state, playerId, ruleset) {
 // One decision at a time; `done` prevents re-considering the same actor this turn.
 function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
-  const S = stanceOf(stance); // balanced (or omitted) = the identity
+  // stance-mix v1: an explicit stance argument wins (regent seats); otherwise
+  // an AI civ uses its assigned player.stance field (absent = balanced). This
+  // is what lets createGame's seeded builder assignment drive the AI.
+  const effStance = stance !== undefined ? stance : me.stance;
+  const S = stanceOf(effStance); // balanced (or omitted/absent) = the identity
   const marchR = marchRadiusOf(ruleset, S); // B13f: sweepable via rules.json
 
   if (!done.happiness) {
@@ -1114,27 +1125,33 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
           + attackerBaseOf(ruleset, S);
         const underArmy = attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget;
-        // N9: the economy pick (cheapest missing building, else the cheapest
-        // eligible wonder), hoisted so a RESERVE slot can build it ABOVE the
-        // perpetual military slots. Under constant threat underArmy is ~always
-        // true, which left the dead-last economy branch unreachable (0 buildings,
-        // 0 wonders ever). aiEconReserve = how many buildings a city builds with
-        // priority over the standing army before the army resumes. DEFAULT 0 is
-        // identity: buildings.length < 0 is never true, so the reserve slot is
-        // inert and the build order is unchanged (dormant capability; the
-        // sim-runner sweeps aiEconReserve to activate it). Min-defense + walls
-        // stay ABOVE the reserve, so defense is never abandoned.
+        // N9 / stance-mix v1: the economy pick (cheapest missing building, else
+        // the cheapest eligible wonder) for the dead-last fallback, PLUS the
+        // defending-builder RESERVE (defBuild). econReserve comes from the STANCE
+        // (S.econReserve): balanced 0 = inert (identity), the 'builder' stance 99.
+        // A defendFirst stance builds economy in the NORMAL block (after the full
+        // garrison + walls) — its attackerPct-0 removes the standing-army
+        // treadmill so the reserve is actually reached. Wonders are CONCENTRATED
+        // in the capital (capitalOf, pop-2+) so they complete instead of racing.
         const econBuilding = stanceBuilding(city, me, ruleset, S);
         const econWonder = econBuilding === null ? nextWonder(state, me, ruleset) : null;
         const econItem = econBuilding !== null ? { kind: 'building', id: econBuilding }
           : econWonder !== null ? { kind: 'wonder', id: econWonder } : null;
-        const econReserve = ruleset.rules.aiEconReserve === undefined ? 0 : ruleset.rules.aiEconReserve;
+        const econReserve = S.econReserve === undefined ? 0 : S.econReserve;
         const builtCount = city.buildings === undefined ? 0 : city.buildings.length;
-        const underReserve = econItem !== null && builtCount < econReserve;
+        let defBuild = null;
+        if (S.defendFirst === true && econReserve > 0 && builtCount < econReserve) {
+          const cap = capitalOf(state, playerId, ruleset);
+          const isCap = cap !== null && cap !== undefined && cap.id === cid;
+          const pw = ((isCap && builtCount >= 2) || econBuilding === null) ? nextWonder(state, me, ruleset) : null;
+          defBuild = (isCap && builtCount >= 2 && pw !== null) ? { kind: 'wonder', id: pw }
+            : econBuilding !== null ? { kind: 'building', id: econBuilding }
+            : pw !== null ? { kind: 'wonder', id: pw } : null;
+        }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
-        } else if (underReserve) {
-          want = econItem; // N9: economy reserve — above the standing army, below defense/walls
+        } else if (defBuild !== null) {
+          want = defBuild; // stance-mix: the defending-builder's economy reserve
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
         } else if (navyWant && isCoastal(state, city.x, city.y, ruleset)) {

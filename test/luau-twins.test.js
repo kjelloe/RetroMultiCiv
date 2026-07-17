@@ -210,7 +210,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x021b89c6\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xc66276f2\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -248,8 +248,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '3dc42c9f', pangaea: '1aab7c3b',
-      archipelago: '015d7878', islands: '815aad4e'
+      continents: 'd43ea120', pangaea: '50d0ce8a',
+      archipelago: 'be92b67b', islands: '7f6d5291'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

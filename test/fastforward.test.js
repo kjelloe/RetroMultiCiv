@@ -15,10 +15,10 @@ test.before(async () => {
 });
 
 function freshWorld(seed) {
-  // 56x35 with 4 civs: room enough that seed 7 survives to turn 190
-  // (re-seeded 2026-07-14 for the VI.5 spacing metric — denser cities
-  // rewrote seed 777's history into an early p1 conquest; small worlds
-  // often end in conquest first — that is the abort path)
+  // 56x35 with 4 civs: room enough that the fixture seed survives to turn 190.
+  // Re-pinned to seed 1 on 2026-07-17 for the stance-mix v1 golden move (the
+  // builder assignment reshuffled seed 7 into an early conquest / abort path;
+  // small worlds often end in conquest first — that is the abort path).
   const players = [];
   for (let i = 0; i < 4; i++) {
     players.push({ id: 'p' + (i + 1), name: 'Civ' + (i + 1), color: '#3b7dd8', human: false });
@@ -43,8 +43,8 @@ test('era guard: all 68 techs classified, bucket sizes 22/15/14/17', () => {
 
 test('fast-forward is deterministic: same seed + age → identical state hash', () => {
   const age = ageById('renaissance');
-  const a = fastForwardTo(RULESET, freshWorld(7), age, ['p1']);
-  const b = fastForwardTo(RULESET, freshWorld(7), age, ['p1']);
+  const a = fastForwardTo(RULESET, freshWorld(1), age, ['p1']);
+  const b = fastForwardTo(RULESET, freshWorld(1), age, ['p1']);
   assert.ok(!a.aborted && !b.aborted, 'both runs complete');
   assert.strictEqual(a.state.turn, age.turn, 'stops at the age turn');
   assert.strictEqual(hashState(a.state), hashState(b.state), 'byte-identical worlds');
@@ -54,7 +54,7 @@ test('fast-forward is deterministic: same seed + age → identical state hash', 
 
 test('the grant is the era union for EVERY player, research reset', () => {
   const age = ageById('renaissance'); // grants the 22 ancient techs
-  const r = fastForwardTo(RULESET, freshWorld(7), age, ['p1']);
+  const r = fastForwardTo(RULESET, freshWorld(1), age, ['p1']);
   const ancient = Object.keys(RULESET.techs).filter(t => RULESET.techs[t].era === 'ancient').sort();
   assert.deepStrictEqual(r.grant, ancient);
   for (const pid of r.state.playerOrder) {

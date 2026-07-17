@@ -468,55 +468,75 @@ test('batch 4: a temple calms the city and the tiles go back to auto', async () 
     'reverted to auto (setWorkers auto:true clears manual mode)');
 });
 
-// N9: the production reorder. aiEconReserve gives BUILDINGS/WONDERS a reserved
-// slot ABOVE the perpetual military slots — under constant threat underArmy is
-// ~always true, which left the dead-last economy pick unreachable (0 buildings,
-// 0 wonders). The reserve = how many buildings a city builds with priority over
-// the standing army; DEFAULT 0 is identity (buildings.length < 0 never true).
-// Min-defense + walls stay above the reserve. Empire-wide, wonder-inclusive.
-test('N9: aiEconReserve builds an economy item before the standing army; 0 = identity', async () => {
-  const { ai } = await load();
-  // one defended city (militia), two settlers afield (settler target met), an
-  // attacker unlocked (iron-working -> legion), under the army target, buildings
-  // empty. At reserve 0 the army slot wins; at reserve 1 the reserve slot fires.
-  const mk = () => grassState(9, 9, {
-    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
-    us1: { id: 'us1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
-    us2: { id: 'us2', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
+// stance-mix v1: the 'builder' stance (defendFirst + econReserve 99 + attackerPct
+// 0) builds economy in the NORMAL block after its full garrison — its zero-army
+// removes the treadmill so the reserve is reached; wonders concentrate in the
+// capital (bl>=2). Seeded per-civ assignment at createGame (aiBuilderPct). All
+// dormant at pct=0 (no builder assigned -> balanced identity).
+const DONE_ALL = { happiness: true, research: true, rates: true, government: true, buy: true };
+// a defended, settler-satisfied city; 2 militia (builder wants 2), 4 settlers
+// (builder settlerBase 3 + 1 city met), iron-working (legion attacker unlocked).
+function builderCity(buildings, techs) {
+  return grassState(9, 9, {
+    d1: { id: 'd1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+    d2: { id: 'd2', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+    s1: { id: 's1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
+    s2: { id: 's2', type: 'settlers', owner: 'p1', x: 8, y: 0, moves: 1, fortified: false, veteran: false },
+    s3: { id: 's3', type: 'settlers', owner: 'p1', x: 0, y: 8, moves: 1, fortified: false, veteran: false },
+    s4: { id: 's4', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
   }, {
-    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } }
+    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: buildings, producing: { kind: 'unit', id: 'settlers' } }
   }, { players: {
-    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['bronze-working', 'iron-working'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
     p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
-  const doneAll = { happiness: true, research: true, rates: true, government: true, buy: true };
-  // reserve 0 (identity): economy stays dead-last -> the army slot -> legion
-  const r0 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 0 }), Object.assign({}, doneAll));
-  assert.strictEqual(r0.item.kind, 'unit', 'reserve 0: economy dead-last -> military');
-  assert.strictEqual(r0.item.id, 'legion');
-  // reserve 1: the economy reserve slot fires above the army -> a building
-  const r1 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 1 }), Object.assign({}, doneAll));
-  assert.strictEqual(r1.item.kind, 'building', 'reserve 1: an economy item is built before the 2nd attacker');
+}
+
+test('stance-mix: a builder city builds economy after its garrison; balanced builds the army', async () => {
+  const { ai } = await load();
+  const mk = () => builderCity([], ['bronze-working', 'iron-working']);
+  // balanced: economy is dead-last, the standing-army slot wins -> an attacker
+  const bal = ai.pickCommand(mk(), 'p1', RULESET, Object.assign({}, DONE_ALL), 'balanced');
+  assert.strictEqual(bal.item.kind, 'unit', 'balanced: army above economy');
+  // builder: the defBuild reserve fires after the 2-defender garrison -> a building
+  const bld = ai.pickCommand(mk(), 'p1', RULESET, Object.assign({}, DONE_ALL), 'builder');
+  assert.strictEqual(bld.item.kind, 'building', 'builder: economy reserve after the garrison');
 });
 
-test('N9: a wonder-eligible city reaches the wonder via the reserve slot', async () => {
+test('stance-mix: a builder concentrates the wonder in its capital at pop-2+ buildings', async () => {
   const { ai } = await load();
-  // all buildings already built -> stanceBuilding null -> the economy item is the
-  // eligible wonder; an attacker is unlocked so at reserve 0 the army starves it.
-  const allBuildings = Object.keys(RULESET.buildings);
-  const mk = () => grassState(9, 9, {
-    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
-    us1: { id: 'us1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
-    us2: { id: 'us2', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
-  }, {
-    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: allBuildings, producing: { kind: 'unit', id: 'settlers' } }
-  }, { players: {
-    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['bronze-working', 'iron-working', 'masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
-    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
-  const doneAll = { happiness: true, research: true, rates: true, government: true, buy: true };
-  // reserve 0: the army slot wins -> the wonder is starved
-  const r0 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 0 }), Object.assign({}, doneAll));
-  assert.strictEqual(r0.item.kind, 'unit', 'reserve 0: wonder starved by the army slot');
-  // reserve above builtCount: the reserve slot reaches the wonder
-  const rW = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 99 }), Object.assign({}, doneAll));
-  assert.strictEqual(rW.item.kind, 'wonder', 'reserve: a wonder-eligible city reaches the wonder');
+  // c9 is the civ's only city -> its capital (capitalOf oldest-fallback). With a
+  // missing building AND bl>=2, the capital builds the WONDER (concentration);
+  // with bl<2 it builds the missing building first.
+  const wonderAt = (bl) => {
+    const built = bl === 2 ? ['barracks', 'granary'] : ['barracks'];
+    return ai.pickCommand(builderCity(built, ['bronze-working', 'masonry']), 'p1', RULESET, Object.assign({}, DONE_ALL), 'builder').item;
+  };
+  assert.strictEqual(wonderAt(2).kind, 'wonder', 'capital at bl>=2: the wonder concentrates here');
+  assert.strictEqual(wonderAt(1).kind, 'building', 'capital at bl<2: the missing building first');
+});
+
+test('stance-mix: runAiTurn reads player.stance (no explicit arg -> the assigned field drives)', async () => {
+  const { ai } = await load();
+  const state = builderCity([], ['bronze-working', 'iron-working']);
+  state.players.p1.stance = 'builder';
+  // no explicit stance arg -> the AI uses p1's assigned 'builder' field -> economy
+  const cmd = ai.pickCommand(state, 'p1', RULESET, Object.assign({}, DONE_ALL));
+  assert.strictEqual(cmd.item.kind, 'building', 'player.stance builder drives the economy reserve');
+});
+
+test('stance-mix: seeded assignment — pct 0 writes NO stance (identity); pct 35 is deterministic; humans excluded', async () => {
+  const mapgen = await import('../engine/mapgen.js');
+  const playerDefs = [];
+  for (let i = 1; i <= 7; i++) playerDefs.push({ id: 'p' + i, name: 'C' + i, color: '#00f', human: i === 1 }); // p1 human
+  // pct 0: NO player carries a stance field (absent = balanced back-compat)
+  const g0 = mapgen.createGame({ seed: 424242, options: { width: 40, height: 25, players: playerDefs } }, withRules({ aiBuilderPct: 0 }));
+  assert.ok(Object.values(g0.players).every(p => p.stance === undefined), 'pct 0: no stance field written');
+  // pct 35: some AI civs are builders, the human never, deterministic across runs
+  const a = mapgen.createGame({ seed: 424242, options: { width: 40, height: 25, players: playerDefs } }, withRules({ aiBuilderPct: 35 }));
+  const b = mapgen.createGame({ seed: 424242, options: { width: 40, height: 25, players: playerDefs } }, withRules({ aiBuilderPct: 35 }));
+  const builders = Object.keys(a.players).filter(id => a.players[id].stance === 'builder');
+  assert.strictEqual(builders.length, 2, '6 AI civs * 35% -> 2 builders');
+  assert.ok(a.players.p1.stance === undefined, 'the human seat is never a builder');
+  assert.deepStrictEqual(builders, Object.keys(b.players).filter(id => b.players[id].stance === 'builder'),
+    'the seeded assignment is deterministic (same seed -> same builders)');
 });
