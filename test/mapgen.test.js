@@ -102,12 +102,16 @@ async function loadWithPresets() {
 test('A82a: the continents preset is the identity — byte-identical world', async () => {
   const { engine: plain, hashState } = await load();
   const { engine: preset } = await loadWithPresets();
-  const base = hashState(plain.createGame(SETUP));
-  // the mapTypes table being present changes nothing without a mapType…
-  assert.strictEqual(hashState(preset.createGame(SETUP)), base);
-  // …and naming the default preset resolves to the same DEFAULTS values
+  const mapHash = s => hashState(s.map);
+  // the mapTypes table being present changes nothing about the MAP without a
+  // mapType. (The ruleset-compat pin stamps state.rulesetHash = the ruleset's
+  // statehash, which DOES differ between plain and preset since their mapTypes
+  // tables differ — so compare the generated map, the thing this test is about.)
+  assert.strictEqual(mapHash(preset.createGame(SETUP)), mapHash(plain.createGame(SETUP)));
+  // …and naming the default preset resolves to the same DEFAULTS values — the
+  // whole state matches WITHIN the preset engine (same ruleset -> same pin).
   const named = preset.createGame({ seed: 42, options: { ...SETUP.options, mapType: 'continents' } });
-  assert.strictEqual(hashState(named), base);
+  assert.strictEqual(hashState(named), hashState(preset.createGame(SETUP)));
 });
 
 test('A82a: pangaea/archipelago/islands are deterministic and pairwise distinct', async () => {

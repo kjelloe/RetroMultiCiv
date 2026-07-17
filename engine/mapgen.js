@@ -3,6 +3,10 @@
 // Integer math only; every random draw goes through engine/rng.js.
 import { seedRng, rollRange } from './rng.js';
 import { initExplored, reveal } from './visibility.js';
+// shared/statehash is the ONLY sanctioned engine import from outside engine/
+// (docs/02 §4): the cross-language deterministic hash core, with a co-located
+// luau twin. Used here to pin the ruleset a game was created under.
+import { hashState } from '../shared/statehash.js';
 
 const DEFAULTS = { width: 80, height: 50, landPercent: 32, continents: 5 };
 
@@ -249,6 +253,10 @@ function createGame(setup, ruleset) {
 
   const state = {
     version: 1,
+    // ruleset-compat pin: the statehash of the ruleset this game was created
+    // under, so a save carries the rules that produced it (docs/02 §7). Checked
+    // strictly at LOAD; omit-safe (crafted states without it are exempt).
+    rulesetHash: '0x' + (hashState(ruleset) >>> 0).toString(16).padStart(8, '0'),
     turn: 1,
     year: -4000,
     activePlayer: playerOrder[0],

@@ -1,4 +1,5 @@
 // Saving: F5/F9 quick save via localStorage, Shift+S/L JSON files, drag & drop.
+import { hashState } from '../../shared/statehash.js';
 const SAVE_KEY = 'retromulticiv-save';
 
 // The Shift+S save envelope, DOM-free so it unit-tests (B16). The A47 diag
@@ -145,6 +146,17 @@ export function initSaves(ctx) {
     if (!stateLooksValid(s)) {
       hud.note(`✗ not a RetroMultiCiv save (${sourceLabel})`);
       return;
+    }
+    // ruleset-compat pin (specs/ruleset-compat-policy.md): a save created under a
+    // DIFFERENT ruleset diverges silently — block with a confirm override. Omit-
+    // safe: older saves lack the pin -> loaded without a check.
+    if (s.rulesetHash !== undefined && session.ruleset) {
+      const cur = '0x' + (hashState(session.ruleset) >>> 0).toString(16).padStart(8, '0');
+      if (s.rulesetHash !== cur
+          && !(typeof confirm === 'function' && confirm(`This save was created under a different ruleset (${s.rulesetHash} vs ${cur}); it may diverge mid-game. Load anyway?`))) {
+        hud.note(`✗ ruleset drift (${s.rulesetHash} ≠ ${cur}) — load cancelled`);
+        return;
+      }
     }
     sel.unitId = null;
     sel.cityId = null;

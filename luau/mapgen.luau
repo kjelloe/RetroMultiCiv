@@ -320,6 +320,9 @@ local function createGame(setup: any, ruleset: any): any
 
 	local state = {
 		version = 1,
+		-- ruleset-compat pin: the statehash of the creation ruleset (docs/02 §7),
+		-- so a save carries its rules; strict at LOAD, omit-safe. Matches engine/mapgen.js.
+		rulesetHash = statehash.hashState(ruleset),
 		turn = 1,
 		year = -4000,
 		activePlayer = playerOrder[1],

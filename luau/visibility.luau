@@ -154,6 +154,9 @@ local function filterView(state: any, playerId: string): any
 	for _, pid in sortedKeys(state.players) do
 		local p = state.players[pid]
 		players[pid] = { id = p.id, name = p.name, color = p.color, human = p.human }
+		-- stance-mix v1: a civ AI stance is public (R21 Statistics panel) — passed
+		-- through for ALL players. Views are never hashed = golden-neutral. Matches engine/visibility.js.
+		if p.stance ~= nil then players[pid].stance = p.stance end
 		if pid == playerId then
 			players[pid].gold = p.gold
 			players[pid].techs = p.techs

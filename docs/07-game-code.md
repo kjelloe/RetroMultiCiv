@@ -89,6 +89,16 @@ independence claim. Reverse iteration is authoritative; A11 pins it.)
   player's own browser remembers); weaker on a shared hotseat machine
   (the save holder can also edit localStorage) — the verbal comparison
   remains the hotseat backstop.
+- **Ruleset lineage (`state.rulesetHash`, specs/ruleset-compat-policy.md).**
+  A game is pinned at creation to the statehash of the ruleset that produced
+  it. Server `--game` load and client load REFUSE a mismatched save by
+  default (a mid-game rules upgrade would diverge silently); `--allow-ruleset-
+  drift` (server) or a client confirm overrides. The pin is never rewritten on
+  load, so a drift-overridden game KEEPS its original `rulesetHash` — the pin
+  is itself the honest lineage marker (the game code, which hashes the state
+  including it, and any report show what the game was actually created under,
+  not the running build). Omit-safe: crafted/older saves without the field are
+  exempt. `tools/replay.js` warns (never refuses) on a mismatch.
 
 ## 5. Implementation slices (when green-lit — helper-friendly)
 

@@ -121,6 +121,10 @@ function filterView(state, playerId) {
   for (const pid of playerIds) {
     const p = state.players[pid];
     players[pid] = { id: p.id, name: p.name, color: p.color, human: p.human };
+    // stance-mix v1: a civ's AI stance is public (the R21 Statistics panel shows
+    // who the builders are) — passed through for ALL players, not just the owner.
+    // Views are never hashed, so this is golden-neutral.
+    if (p.stance !== undefined) players[pid].stance = p.stance;
     if (pid === playerId) {
       // everything the owner's own UI needs (and nothing about anyone else)
       players[pid].gold = p.gold;

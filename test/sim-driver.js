@@ -269,7 +269,7 @@ function cityAtTile(state, x, y) {
 }
 
 const CITY_SHELL_KEYS = { id: true, name: true, owner: true, x: true, y: true, pop: true, buildings: true };
-const RIVAL_PLAYER_KEYS = { id: true, name: true, color: true, human: true };
+const RIVAL_PLAYER_KEYS = { id: true, name: true, color: true, human: true, stance: true }; // stance-mix: AI stance is public (R21)
 
 // Deep audit at checkpoints: hashability (rejects any Lua-unsafe value),
 // fog-projection leaks on organic late-game states, mood arithmetic sanity,

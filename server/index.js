@@ -98,7 +98,7 @@ export function startServer(opts) {
         + `player's state${parsed.format === 'retromulticiv-save' ? ' (and in ?server=1 mode only a fog-filtered VIEW)' : ''} `
         + `and cannot boot a server.`);
     }
-    defaultGame = createGame({ ruleset, save: parsed });
+    defaultGame = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
     if (opts.resetSeats) {
       defaultGame.resetSeats();
       console.log('seat bindings cleared (--reset-seats) — first joiners take the seats');
@@ -251,7 +251,7 @@ export function startServer(opts) {
       send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
       return;
     }
-    const game = createGame({ ruleset, save: parsed });
+    const game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
     game.resetSeats();
     registry.register(game, false); // spectators: off for resumed games (v1)
     saveFiles[game.gameId] = file;
@@ -868,6 +868,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--size') opts.size = argv[++i];
     else if (a === '--game') opts.game = argv[++i];
     else if (a === '--reset-seats') opts.resetSeats = true;
+    else if (a === '--allow-ruleset-drift') opts.allowRulesetDrift = true;
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else if (a === '--no-spectators') opts.spectators = false;

@@ -183,7 +183,18 @@ if (require.main === module) {
       console.error(`not a replayable file (format: ${diag.format}) — Shift+D diagnostics, a Shift+S save with its history block, or a server save`);
       process.exit(1);
     }
-    const report = await replayDiagnostics(diag, loadRuleset());
+    const ruleset = loadRuleset();
+    // ruleset-compat pin: WARN-ONLY here (diagnostics never refuse). A pinned
+    // recording replayed under a different build is likely "wrong ruleset", not
+    // a real divergence. Stderr, so the twins verdict-equality (stdout) is unaffected.
+    if (diag.initialState && diag.initialState.rulesetHash !== undefined) {
+      const { hashState } = await import('../shared/statehash.js');
+      const cur = '0x' + (hashState(ruleset) >>> 0).toString(16).padStart(8, '0');
+      if (diag.initialState.rulesetHash !== cur) {
+        console.error(`⚠ ruleset drift: recording pinned ${diag.initialState.rulesetHash}, this build ${cur} — replay may diverge`);
+      }
+    }
+    const report = await replayDiagnostics(diag, ruleset);
     console.log(`replayed ${report.commands} commands + ${report.rounds} rounds -> turn ${report.turn}, final hash ${report.finalHash}`);
     if (report.problems.length === 0) {
       console.log('OK: the recorded game reproduces exactly');

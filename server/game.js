@@ -37,6 +37,17 @@ export function createGame(opts) {
     if (opts.save.format !== SAVE_FORMAT) {
       throw new Error(`not a server save (format: ${opts.save.format})`);
     }
+    // ruleset-compat pin (docs/02 §7, specs/ruleset-compat-policy.md): a save
+    // created under a DIFFERENT ruleset (a server upgrade mid-game) diverges
+    // silently — refuse it. Omit-safe: older saves lack the pin -> exempt.
+    // --allow-ruleset-drift (opts.allowRulesetDrift) loads anyway.
+    const savedHash = opts.save.state !== undefined ? opts.save.state.rulesetHash : undefined;
+    if (savedHash !== undefined && opts.allowRulesetDrift !== true) {
+      const currentHash = '0x' + (hashState(ruleset) >>> 0).toString(16).padStart(8, '0');
+      if (savedHash !== currentHash) {
+        throw new Error(`ruleset drift: save created under ${savedHash}, this server runs ${currentHash} — resume with --allow-ruleset-drift to load anyway`);
+      }
+    }
     gameId = opts.save.gameId;
     seats = opts.save.seats || {};
     seatCodes = opts.save.seatCodes || {}; // A46: envelope-only, older saves lack it

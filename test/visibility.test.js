@@ -238,3 +238,13 @@ test('filterEvents: an actor\'s own-action events pass unchanged (applied-ack be
   const kept = vis.filterEvents(state, own, 'p1');
   assert.deepStrictEqual(kept, own, 'own-unit events pass the party rule untouched');
 });
+
+test('filterView passes player.stance through for ALL players (public, R21 Statistics)', async () => {
+  const { engine, vis } = await load();
+  const state = engine.createGame(SETUP);
+  state.players.p2.stance = 'builder'; // a rival's AI stance is public
+  const view = vis.filterView(state, 'p1');
+  assert.strictEqual(view.players.p2.stance, 'builder', 'a rival stance is visible to the viewer');
+  // absent stance (balanced) never writes the field (omit-safe)
+  assert.strictEqual(view.players.p1.stance, undefined, 'no stance field when the player has none');
+});
