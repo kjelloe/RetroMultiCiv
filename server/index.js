@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
+import { hashState } from '../shared/statehash.js';
 import { createLimiter } from './limits.js';
 import { planRotation } from './rotation.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -145,6 +146,12 @@ export function startServer(opts) {
     if (urlPath === '/' || urlPath === '/client') {
       res.writeHead(302, { Location: '/client/' + parsed.search });
       res.end();
+      return;
+    }
+    // A51b: the cheap liveness answer the master index probes (docs/12 §6)
+    if (urlPath === '/healthz') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end('{"ok":true}');
       return;
     }
     if (!servable(urlPath)) { res.writeHead(404); res.end(); return; } // A61: whitelist
@@ -757,17 +764,89 @@ export function startServer(opts) {
 
   rotateSaves(); // A50 item 3: trim a bloated saves/ dir on boot, before serving
 
+  // ── A51b: the OUTBOUND master-index announce loop (docs/12 §6) ─────────────
+  // REGION NOTE (docs/17 boundary): everything announce-related lives HERE and
+  // in the CLI flags — it never touches the connect/cmd dispatch or limits.
+  // Heartbeats POST to the master every ~60s; the master's listed/reason reply
+  // is surfaced on the console when it changes ("master says: …").
+  let announceTimer = null;
+  const announceState = { listed: null, reason: null, lastError: null };
+  if (opts.announce) {
+    if (!opts.publicAddr) {
+      throw new Error('--announce needs --public-addr <host[:port]> — the address players reach YOU at (the master validates it)');
+    }
+    const [aHost, aPort] = opts.publicAddr.includes(':')
+      ? [opts.publicAddr.slice(0, opts.publicAddr.lastIndexOf(':')), Number(opts.publicAddr.slice(opts.publicAddr.lastIndexOf(':') + 1))]
+      : [opts.publicAddr, null];
+    // the eight canonical ruleset hashes — clients see instantly whether this
+    // server speaks their rules (same hashState both sides of the wire)
+    const dataHashes = {};
+    for (const k of Object.keys(ruleset).sort()) dataHashes[k] = hashState(ruleset[k]);
+    // the A41 "public open games" summary as a COUNT — mirrors the listGames
+    // filters (the dispatch handler is the robustness lane's region, so the
+    // five conditions are twinned here rather than refactored across it)
+    const publicOpenGames = () => {
+      let n = 0;
+      for (const g of registry.list()) {
+        const e = registry.entryOf(g.gameId);
+        if (!e || e.options.public !== true) continue;
+        if (e.game && e.game.state && e.game.state.gameOver === true) continue;
+        const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
+        if (e.status === 'lobby' && open === 0) continue;
+        if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
+        n++;
+      }
+      return n;
+    };
+    const announce = async listenPort => {
+      try {
+        const res = await fetch(String(opts.announce).replace(/\/$/, '') + '/announce', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: opts.publicName || `RetroMultiCiv @ ${opts.publicAddr}`,
+            host: aHost, port: aPort !== null ? aPort : listenPort,
+            protocolVersion: '1',
+            dataHashes,
+            openGames: publicOpenGames()
+          })
+        });
+        const out = await res.json();
+        if (out.listed !== announceState.listed || (out.reason || null) !== announceState.reason) {
+          console.log(out.listed
+            ? `master: listed at ${opts.announce}`
+            : `master says: ${out.reason || `announce rejected (${res.status})`}`);
+        }
+        announceState.listed = out.listed === true;
+        announceState.reason = out.reason || null;
+        announceState.lastError = null;
+      } catch (err) {
+        if (announceState.lastError !== err.message) console.log(`master unreachable: ${err.message}`);
+        announceState.lastError = err.message;
+      }
+    };
+    announceState.start = listenPort => {
+      announce(listenPort);
+      announceTimer = setInterval(() => announce(listenPort), opts.announceIntervalMs || 60000);
+      if (announceTimer.unref) announceTimer.unref();
+    };
+  }
+  // ── end A51b announce region ────────────────────────────────────────────────
+
   return new Promise(resolve => {
     // 0.0.0.0 so LAN machines can reach the game (the CLI default);
     // tests pass host '127.0.0.1' explicitly to stay loopback-only
     httpServer.listen(opts.port || 0, opts.host || '0.0.0.0', () => {
+      if (announceState.start) announceState.start(httpServer.address().port); // A51b
       resolve({
         port: httpServer.address().port,
         game: defaultGame,
         rotateSaves, // exposed so tests can trigger rotation deterministically
         maintenanceSweep, // A50 3b: tests advance opts.now then call this to exercise expiry
+        announceStatus: () => ({ listed: announceState.listed, reason: announceState.reason, lastError: announceState.lastError }), // A51b: test/console visibility
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
+          if (announceTimer) clearInterval(announceTimer); // A51b
           for (const ws of conns.keys()) ws.terminate();
           wss.close(() => httpServer.close(done));
         })
@@ -805,6 +884,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // A50 item 3b lifecycle expiry (unstarted lobbies + abandoned started games)
     else if (a === '--lobby-ttl-min') (opts.lifecycle = opts.lifecycle || {}).lobbyTtlMs = Number(argv[++i]) * 60000;
     else if (a === '--abandoned-hours') (opts.lifecycle = opts.lifecycle || {}).abandonedMs = Number(argv[++i]) * 3600000;
+    // A51b: master-index announce (docs/12 §6) — one flag = listed; stop = gone
+    else if (a === '--announce') opts.announce = argv[++i];
+    else if (a === '--public-name') opts.publicName = argv[++i];
+    else if (a === '--public-addr') opts.publicAddr = argv[++i];
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
