@@ -8,12 +8,23 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
-- [ ] **Merge marker-0043** — the declared-consistent candidate
-  (stance-mix v1: some civs build wonders, dg=30 intact; + the whole
-  A51 find-a-game pipeline, H1 ratchet, pedia editorial, collision
-  fix, map types, v1.5 telemetry, all reports). Biggest merge since
-  0033. (Golden-neutral commits continue to land on top; merge the
-  latest tip I declare, or the tag.)
+- [ ] **Merge marker-0044** (supersedes the 0043 line — 0044 = 0043 +
+  A54 off-turn pre-work, all golden-neutral since): stance-mix v1
+  (some civs build wonders, dg=30 intact), the A51 find-a-game
+  pipeline, off-turn rates/research/production, H1 ratchet, pedia
+  editorial, map types, v1.5 telemetry, all reports. Biggest merge
+  since 0033. (marker-0045, the ruleset-compat pin, is building and
+  may supersede again — merge the latest marker I declare
+  consistent.)
+
+**HAND TO THE DESIGNER ALLY (cover note ready):**
+- [ ] Send `specs/ally-cover-note-2026-07-17-evening.md` — their
+  framework landing (stance-mix v1 shipped on their direction),
+  the civ-mixing ruling applied, and THREE asks: 68 original
+  tech-discovery blurbs (new authoring task, any subset useful),
+  a Civ1 substitute for Sun Tzu's War Academy in their leader
+  table (it's Civ2), and the small pedia flags (movement/regency
+  concepts, the Oracle ×4 stacking question).
 - [ ] **World-look pick (a/b/c)** — Roblox session: Options → world
   look → flip retro/enhanced live → screenshot both → pick
   retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
