@@ -24,6 +24,12 @@ test('spectator: tokenless, omniscient view, no controls', async ({ browser }) =
     await expect(page.locator('canvas')).toBeVisible();
     // controls nothing: the End Turn button never shows for a spectator
     await expect(page.locator('#end-turn')).toBeHidden();
+    // L6 seat-action AUDIT — every command-issuing control absent/inert:
+    await expect(page.locator('#regent-btn')).toHaveCount(0);   // the 🤖 regency button never exists
+    await expect(page.locator('#action-bar')).toBeHidden();     // no unit orders
+    await expect(page.locator('#unit-line')).toBeHidden();      // no seat stat card
+    await page.keyboard.press('t');                             // research stays closed (view-only note instead)
+    await expect(page.locator('#research-panel')).toBeHidden();
   } finally {
     await ctx.close();
   }

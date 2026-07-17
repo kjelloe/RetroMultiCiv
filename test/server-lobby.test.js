@@ -34,7 +34,8 @@ function connect(port) {
 
 test('lobby: create → join-by-code (seat pick) → start → play; unfilled seat is AI', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     // host creates a 3-civ, 3-human game
     const host = await connect(s.port);
@@ -89,7 +90,8 @@ test('lobby: create → join-by-code (seat pick) → start → play; unfilled se
 
 test('A27 host controls: slot modes, civ picks, resize, no-kick, honored at start', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     const host = await connect(s.port);
     host.send({ t: 'create', name: 'Kjell', options: { civs: 4, humans: 3, size: 'xsmall', seed: 99 } });
@@ -138,7 +140,8 @@ test('A27 host controls: slot modes, civ picks, resize, no-kick, honored at star
 
 test('A38 big lobbies: seats-per-size gate, resize clamp, 12 civs start distinct', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     // the measured table gates create: 13 civs never fit a small map
     const host = await connect(s.port);
@@ -169,7 +172,8 @@ test('A38 big lobbies: seats-per-size gate, resize clamp, 12 civs start distinct
 
 test('A37 lobby chat + moderation: cap, rate, toggle, kick frees the seat, block bounces the rejoin', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     const host = await connect(s.port);
     host.send({ t: 'create', name: 'Kjell', options: { civs: 3, humans: 3, size: 'xsmall', seed: 9 } });
@@ -235,7 +239,8 @@ test('A34 resume from the host flow: listSaves inventory, resume loads + seats r
   const saveFile = path.join(__dirname, '..', 'saves', 'a34resume.json');
   game0.saveTo(saveFile);
   const wantCode = game0.code();
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     const host = await connect(s.port);
     // inventory: shape + the docs/07 code so the host can verify BEFORE playing
@@ -277,7 +282,8 @@ test('A34 resume from the host flow: listSaves inventory, resume loads + seats r
 
 test('A41 find-a-game: public-only listing, no codes leaked, joinListed = the reservation path, rate limit', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     // one PRIVATE lobby (default) and one PUBLIC one
     const hostA = await connect(s.port);
@@ -322,7 +328,8 @@ test('A41 find-a-game: public-only listing, no codes leaked, joinListed = the re
 
 test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/08 §4+§6)', async () => {
   const { startServer } = await import('../server/index.js');
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
   try {
     // 3 humans: Kjell hosts p1, Ada takes p2, Bo takes p3; spectators allowed
     const kjell = await connect(s.port);

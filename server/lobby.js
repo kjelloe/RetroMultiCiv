@@ -53,7 +53,13 @@ export function joinCode(gameId) {
 // tests are deterministic; index.js passes the real ruleset and defaults.
 export function createRegistry(deps) {
   let nextNum = 1;
-  const gameIdFn = deps.gameIdFn || (() => 'g' + (nextNum++));
+  // L3b: the default id-gen mixes BOOT entropy — a bare counter reset every
+  // boot, so the first game was always g1 and joinCode('g1') repeated the
+  // SAME join code across server restarts (user-observed). The suffix makes
+  // ids (and so codes) fresh per boot; tests inject a deterministic gameIdFn;
+  // resume-by-code still reuses the SAVED game's own id/code by design.
+  const bootSuffix = (deps.nowFn ? deps.nowFn() : Date.now()).toString(36).slice(-4);
+  const gameIdFn = deps.gameIdFn || (() => `g${bootSuffix}-${nextNum++}`);
   const seedFn = deps.seedFn || (() => Date.now() % 1000000);
   const nowFn = deps.nowFn || Date.now; // A50 3b: injectable clock for createdAt (lifecycle expiry)
   const ruleset = deps.ruleset;

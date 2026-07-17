@@ -3,6 +3,7 @@
 // URL params: ?seed=N fixed world · ?civs=2..7 · ?humans=1..civs (hotseat)
 // · ?mock=1 static state · ?diag=1 · a bare URL opens the setup screen.
 // ctx.HUMAN is the current VIEWPOINT (hotseat hands it between players).
+import { mlog } from './ui/mlog.js'; // L5: FIRST import — the ?mlog buffer arms before anything else
 import { createRenderer } from './renderer/renderer.js';
 import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostics.js';
 import { createSession } from './session.js';
@@ -17,6 +18,7 @@ import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
 import { initLeftStack } from './ui/left-stack.js';
 import { initDiscoveryCard } from './ui/discovery-card.js';
+import { initDpad } from './ui/dpad.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -93,6 +95,7 @@ const [terrain, units, techs, buildings, wonders, governments, civs, rules] = aw
   fetchJson('../data/rules.json')
 ]);
 const ruleset = { terrain, units, techs, buildings, wonders, governments, civs, rules };
+mlog('boot', 'ruleset loaded');
 
 // Difficulty adjusts the content-citizen threshold (a RULESET override, not
 // state — recorded in diagnostics so tools/replay.js applies the same rules).
@@ -153,10 +156,12 @@ if (serverParam) {
     : serverParam;
   const pick = params.get('civ');
   const myName = (pick && civs[pick] && civs[pick].name) || 'Player';
+  mlog('join', `${wsUrl} game=${params.get('game') || '?'} spectate=${params.get('spectate') === '1'}`);
   session = await createRemoteSession({
     ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined,
     spectator: params.get('spectate') === '1' // A17: tokenless omniscient viewer
   });
+  mlog('joined', `seat=${session.playerId} turn=${session.state && session.state.turn}`);
   // A24: server games now carry each player's civ (joined reply) — wire the
   // city-name rosters and faction visuals exactly like local games
   for (const [pid, civId] of Object.entries(session.playerCivs || {})) {
@@ -273,6 +278,7 @@ if (serverParam) {
 // ?debug=1: the diagnostics recorder also hashes after every single command
 // (default: after each end-turn round) — finer replay divergence pinpointing
 if (!session) session = createSession(ruleset, initialState, { debug: params.get('debug') === '1' });
+mlog('boot', `session ready (turn ${session.state && session.state.turn})`);
 // lastMovedBy: pid -> unitId, PER PLAYER (wave III) — a hotseat hand-off lands
 // each incoming player on THEIR last-moved unit, not the previous player's
 const sel = { unitId: null, cityId: null, lastMovedBy: {} };
@@ -383,7 +389,10 @@ ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 initLeftStack(); // A57: one open left-stack panel at a time (after overlays inserts)
 ctx.discoveryCard = initDiscoveryCard(ctx); // the tech-discovery card (turnlog's flash yields to it)
-ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
+initDpad(ctx); // L7b: coarse-pointer d-pad (CSS-gated to touch devices)
+// L6: spectators issue no commands — the 🤖 regency button (and its seat
+// takeover) never exists for the view-only pseudo-seat
+ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)
 ctx.replay = initReplay(ctx);     // A47: post-game replay theater
 ctx.historian = initHistorian(ctx); // A75: the age-change historian's report
 ctx.stats = initStats(ctx);         // A73-STATS: the statistics page

@@ -357,12 +357,31 @@ export function createRenderer(container) {
     return { tile: { x: src.x, y: src.y }, unitId, cityId };
   }
 
-  // --- input: click = pick, drag = pan, wheel = zoom ---
+  // --- input: click/tap = pick, drag = pan, wheel/pinch = zoom ---
+  // L7a (mobile T1): the canvas carries CSS touch-action:none, so touch
+  // swipes reach these POINTER handlers instead of scrolling the page —
+  // one unified path for mouse and finger. Two concurrent pointers = pinch
+  // (the canvas pinch replaces the browser-page zoom touch-action removed).
   const drag = { active: false, moved: false, x: 0, y: 0 };
+  const touches = new Map(); // pointerId -> {x, y} (render-time input, not state)
+  let pinchDist = 0;
   renderer.domElement.addEventListener('pointerdown', e => {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size === 2) {
+      const [a, b] = [...touches.values()];
+      pinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+      drag.active = false; // a second finger ends the pan; pinch owns the gesture
+      return;
+    }
     drag.active = true; drag.moved = false; drag.x = e.clientX; drag.y = e.clientY;
   });
+  const endPointer = e => {
+    touches.delete(e.pointerId);
+    if (touches.size < 2) pinchDist = 0;
+  };
+  window.addEventListener('pointercancel', endPointer);
   window.addEventListener('pointerup', e => {
+    endPointer(e);
     if (drag.active && !drag.moved && pickCb && view) {
       const pick = castAt(e.clientX, e.clientY);
       if (pick) pickCb(pick);
@@ -370,6 +389,17 @@ export function createRenderer(container) {
     drag.active = false;
   });
   window.addEventListener('pointermove', e => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size === 2 && pinchDist > 0) {
+      const [a, b] = [...touches.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d > 0) {
+        cam.dist = Math.min(cam.maxDist, Math.max(cam.minDist, cam.dist * (pinchDist / d)));
+        pinchDist = d;
+        updateCamera();
+      }
+      return;
+    }
     if (drag.active) {
       const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
@@ -550,6 +580,11 @@ export function createRenderer(container) {
     },
     centerOn(x, y) {
       cam.targetX = x; cam.targetZ = y;
+      updateCamera();
+    },
+    // L7b: relative pan in tile units (the d-pad's coarse movement)
+    panBy(dx, dy) {
+      cam.targetX += dx; cam.targetZ += dy;
       updateCamera();
     },
     setZoom(dist) {

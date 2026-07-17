@@ -645,7 +645,8 @@ test('resume collision: join-by-id after resumeByCode lands on the SAVED world, 
 
   // server A (seed 21 → default id g21): the first lobby-created game mints
   // g1 from the counter and autosaves as g1.json
-  let s = await startServer({ ruleset: RULESET, seed: 21, civs: 2, humans: 1, size: 'xsmall', savesDir: dir });
+  let s = await startServer({ ruleset: RULESET, seed: 21, civs: 2, humans: 1, size: 'xsmall', savesDir: dir,
+    lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: pin the g1 collision geometry
   let host = await connect(s.port);
   let gameCode, savedTurn;
   try {
@@ -710,4 +711,22 @@ test('A54: an off-turn whitelisted command applies over the socket while a rival
     const rej = await p2.expect(m => m.t === 'rejected' && m.commandId === 11, 'off-turn foundCity rejected');
     assert.strictEqual(rej.code, 'notYourTurn');
   } finally { p1.close(); p2.close(); await s.close(); }
+});
+
+test('L3b: two server boots mint DIFFERENT first-game join codes (boot entropy)', async () => {
+  // pre-fix, the lobby counter reset every boot: first game = g1 always, so
+  // joinCode('g1') repeated the SAME code across restarts (user-observed)
+  const { startServer } = await import('../server/index.js');
+  const codes = [];
+  for (let boot = 0; boot < 2; boot++) {
+    const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+    const host = await connect(s.port);
+    try {
+      host.send({ t: 'create', name: 'Host', options: { civs: 2, humans: 1, size: 'xsmall' } });
+      const created = await host.expect(m => m.t === 'created', 'created');
+      codes.push(created.joinCode);
+      await new Promise(r => setTimeout(r, 2)); // a fresh now() tick for the next boot's suffix
+    } finally { host.close(); await s.close(); }
+  }
+  assert.notStrictEqual(codes[0], codes[1], 'restarting the server must mint a fresh code');
 });

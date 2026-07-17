@@ -70,7 +70,9 @@ export function startServer(opts) {
     }
   }
   const now = opts.now || Date.now; // A50: one injectable clock (limiter + lifecycle)
-  const registry = createRegistry({ ruleset, nowFn: now });
+  // L3b: opts.lobbyGameIdFn lets tests pin deterministic lobby ids; the
+  // default mixes boot entropy (fresh join codes per restart, lobby.js)
+  const registry = createRegistry({ ruleset, nowFn: now, gameIdFn: opts.lobbyGameIdFn });
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
   const limiter = createLimiter({ now, limits: opts.limits });
@@ -593,6 +595,11 @@ export function startServer(opts) {
         return;
       }
       if (msg.t === 'listSaves') { // A34: the host machine's saves/ inventory
+        // L2: the open listing leaked save codes to anyone who asked (an
+        // information-leak nit + host-screen clutter) — it answers only
+        // under --debug now; resume-by-CODE (knowing it = the permission)
+        // is the production path
+        if (!opts.debug) { send(ws, { t: 'saves', saves: [] }); return; }
         const dir = SAVES;
         const saves = [];
         for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {

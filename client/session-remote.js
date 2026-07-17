@@ -9,6 +9,7 @@
 // Promise resolves on the VIEW, not the ack — session.state is fresh by the
 // time an awaiting caller resumes. A `rejected` has no following view, so it
 // resolves immediately.
+import { mlog } from './ui/mlog.js'; // L5: no-op unless ?mlog=1
 
 export function createRemoteSession(opts) {
   const baseRuleset = opts.ruleset;      // terrain/units/techs/... + base rules
@@ -100,10 +101,14 @@ export function createRemoteSession(opts) {
   }
 
   function send(msg) {
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      mlog('ws→', msg.t); // L5: frame types out (the mobile self-report)
+      ws.send(JSON.stringify(msg));
+    }
   }
 
   function handle(msg) {
+    mlog('ws←', msg.t); // L5: frame types in
     if (msg.t === 'joined') {
       playerId = msg.playerId;
       if (msg.gameId) { // adopt the server's real id BEFORE keying the token by it
