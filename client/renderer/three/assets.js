@@ -7,7 +7,8 @@
 // group from the scene needs no disposal.
 import * as THREE from 'three';
 import { emblemTexture, isLightColor } from './factions.js';
-import { UNIT_RECIPES, CITY_RECIPE } from './recipes.js';
+import { UNIT_RECIPES, UNIT_SILHOUETTE, CITY_RECIPE } from './recipes.js';
+import { RECIPE_CHROME, TYPE_EXTRA } from './unit-chrome.js';
 
 // --- faction visuals (art A1.6a) -----------------------------------------------
 // Factories accept either a plain color string (mock/test states, lobby games
@@ -134,17 +135,10 @@ function composeRecipe(group, recipe, visual) {
   }
 }
 
-// silhouette classes covering all 28 Civ 1 unit types
-const WAGON_TYPES = { settlers: true, caravan: true }; // A67b: diplomat now a figure
-const FOOT_TYPES = {
-  militia: true, phalanx: true, legion: true,
-  musketeers: true, riflemen: true // A67: mech-inf now rides an APC, not a foot figure
-};
-const MOUNTED_TYPES = { cavalry: true, knights: true, chariot: true };
-const SIEGE_TYPES = { cannon: true, artillery: true }; // A67b: catapult now a torsion engine
-const SAIL_TYPES = { trireme: true, sail: true, frigate: true, transport: true };
-const POWERED_TYPES = { ironclad: true, cruiser: true, battleship: true, carrier: true };
-const AIR_TYPES = { fighter: true, bomber: true, nuclear: true };
+// A88b: the type→silhouette mapping is DATA (UNIT_SILHOUETTE in recipes.js) and
+// the per-recipe chrome is DATA (unit-chrome.js) — createUnitMesh reads both, so
+// the old per-class type sets + functions that hardcoded a second copy of the
+// mapping are gone.
 
 // --- unit token layer (art A1.6a): every unit sits on this ---------------------
 // base disc in the faction primary (bright = can move, dim = moved out), a
@@ -187,86 +181,25 @@ function pennant(group, visual, x, y, scale) {
   }
 }
 
-function footSoldier(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.footSoldier, visual); // A88: body is data
-  pennant(group, visual, -0.16, 0.3, 0.7);
-}
-
-function wagon(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.wagon, visual); // A88: body is data
-  pennant(group, visual, -0.3, 0.32, 0.7);
-}
-
-function mounted(group, visual, isChariot) {
-  composeRecipe(group, UNIT_RECIPES.mounted, visual); // A88
-  if (isChariot) composeRecipe(group, UNIT_RECIPES.chariotWheels, visual);
-  pennant(group, visual, -0.28, 0.34, 0.7);
-}
-
-function siege(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.siege, visual); // A88
-  pennant(group, visual, -0.26, 0.3, 0.65);
-}
-
-// A67: tracked armour — armor→tank, mech-inf→apc. The recipe name IS the
-// UNIT_SILHOUETTE mapping, so browser + Roblox render the same body.
-function armored(group, visual, recipeName) {
-  composeRecipe(group, UNIT_RECIPES[recipeName], visual);
-  pennant(group, visual, -0.28, 0.3, 0.62);
-}
-
-// A67b: catapult (torsion engine, siege-like footprint) + diplomat (a figure)
-function catapult(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.catapult, visual);
-  pennant(group, visual, -0.26, 0.3, 0.65);
-}
-function diplomat(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.diplomat, visual);
-  pennant(group, visual, -0.16, 0.3, 0.7);
-}
-
-function ship(group, visual, kind) {
-  if (kind === 'sail') {
-    composeRecipe(group, UNIT_RECIPES.shipSail, visual); // A88 (hull/bow/pole)
-    const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02); // sail is a plane → procedural
-    sail.scale.set(1.3, 2, 1);
-  } else if (kind === 'sub') {
-    composeRecipe(group, UNIT_RECIPES.shipSub, visual);
-  } else {
-    composeRecipe(group, UNIT_RECIPES.shipPowered, visual);
-  }
-  pennant(group, visual, -0.28, 0.14, 0.65);
-}
-
-function aircraft(group, visual) {
-  composeRecipe(group, UNIT_RECIPES.aircraft, visual); // A88
-}
-
-function fallbackToken(group) {
-  composeRecipe(group, UNIT_RECIPES.fallback); // A88 (all-neutral, no visual needed)
-}
-
 // Returns a group with its base at y = 0 (place it on the tile top).
 // colorOrVisual: '#hex' fallback OR a civ visual {primary, secondary, emblem};
 // status: { veteran, fortified, canMove } drives the token-layer markers.
+// A88b: DATA-DRIVEN — the silhouette recipe comes from UNIT_SILHOUETTE and the
+// render chrome (pennant offset / naval base / sail plane / chariot wheels) from
+// unit-chrome.js. No per-type function ladder that hardcoded a second copy of
+// the mapping. Byte-identical to the old path (the mesh child ORDER is
+// preserved: baseToken → body → type-extra → sail → pennant).
 export function createUnitMesh(unitType, colorOrVisual, status) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
-  const naval = SAIL_TYPES[unitType] || POWERED_TYPES[unitType] || unitType === 'submarine';
-  baseToken(group, visual, status, naval ? 0.02 : 0.035);
-  if (WAGON_TYPES[unitType]) wagon(group, visual);
-  else if (FOOT_TYPES[unitType]) footSoldier(group, visual);
-  else if (MOUNTED_TYPES[unitType]) mounted(group, visual, unitType === 'chariot');
-  else if (unitType === 'armor') armored(group, visual, 'tank'); // A67
-  else if (unitType === 'mech-inf') armored(group, visual, 'apc'); // A67
-  else if (unitType === 'catapult') catapult(group, visual); // A67b
-  else if (unitType === 'diplomat') diplomat(group, visual); // A67b
-  else if (SIEGE_TYPES[unitType]) siege(group, visual);
-  else if (SAIL_TYPES[unitType]) ship(group, visual, 'sail');
-  else if (unitType === 'submarine') ship(group, visual, 'sub');
-  else if (POWERED_TYPES[unitType]) ship(group, visual, 'powered');
-  else if (AIR_TYPES[unitType]) aircraft(group, visual);
-  else fallbackToken(group);
+  const recipe = UNIT_SILHOUETTE[unitType] || 'fallback';
+  const chrome = RECIPE_CHROME[recipe] || {};
+  baseToken(group, visual, status, chrome.naval ? 0.02 : 0.035);
+  if (chrome.plain) { composeRecipe(group, UNIT_RECIPES.fallback); return group; } // all-neutral, no visual/pennant
+  composeRecipe(group, UNIT_RECIPES[recipe], visual);
+  if (TYPE_EXTRA[unitType]) composeRecipe(group, UNIT_RECIPES[TYPE_EXTRA[unitType]], visual); // chariot wheels
+  if (chrome.sail) { const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02); sail.scale.set(1.3, 2, 1); } // procedural plane
+  if (chrome.pennant) pennant(group, visual, chrome.pennant[0], chrome.pennant[1], chrome.pennant[2]);
   return group;
 }
 

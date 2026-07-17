@@ -75,25 +75,13 @@ test('renderer city growth tiers cover pop 1..40+ and grow monotonically (assets
 // class table, or one of the explicitly special-cased builders. Nothing may
 // silently ride fallbackToken (the ally's tank/submarine worry: armor and
 // submarine ARE special-cased; this guard keeps it that way as types grow).
-test('renderer silhouette coverage: every data/units.json type has a visual mapping (assets.js)', () => {
+test('renderer silhouette coverage: every data/units.json type maps in UNIT_SILHOUETTE (no fallback)', () => {
   const UNITS = Object.keys(require('../data/units.json'));
-  const src = fs.readFileSync(
-    path.join(__dirname, '..', 'client', 'renderer', 'three', 'assets.js'), 'utf8');
-  const mapped = {};
-  for (const table of ['WAGON_TYPES', 'FOOT_TYPES', 'MOUNTED_TYPES', 'SIEGE_TYPES',
-    'SAIL_TYPES', 'POWERED_TYPES', 'AIR_TYPES']) {
-    const m = src.match(new RegExp(`const ${table} = \\{([^}]*)\\}`));
-    assert.ok(m, `assets.js must define ${table}`);
-    for (const t of [...m[1].matchAll(/'?([\w-]+)'?:\s*true/g)]) {
-      assert.ok(!mapped[t[1]], `${t[1]} appears in two silhouette classes`);
-      mapped[t[1]] = table;
-    }
-  }
-  // the explicit one-off branches in createUnitMesh (not table-driven)
-  for (const explicit of [...src.matchAll(/unitType === '([\w-]+)'/g)]) {
-    mapped[explicit[1]] = 'explicit';
-  }
-  const missing = UNITS.filter(u => !mapped[u]);
+  // A88b: the type→silhouette mapping is DATA now (UNIT_SILHOUETTE, exported to
+  // data/assets/asset-recipes.json); the data-driven createUnitMesh reads it, so
+  // any type absent here would render as the generic fallback token.
+  const { unitSilhouette } = require('../data/assets/asset-recipes.json');
+  const missing = UNITS.filter(u => !unitSilhouette[u]);
   assert.deepStrictEqual(missing, [],
-    `Missing visual mapping (would render as the generic fallback token): ${missing.join(', ')}`);
+    `Missing UNIT_SILHOUETTE mapping (would render as the generic fallback token): ${missing.join(', ')}`);
 });

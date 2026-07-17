@@ -76,21 +76,15 @@ function build() {
   for (const m of assetsSrc.matchAll(/^\s*(\w+): new THREE\.MeshLambertMaterial\(\{ color: 0x([0-9a-f]{6}) \}\)/gm)) {
     neutral[m[1]] = '#' + m[2];
   }
-  const typeClasses = {};
-  for (const name of ['WAGON_TYPES', 'FOOT_TYPES', 'MOUNTED_TYPES', 'SIEGE_TYPES',
-    'SAIL_TYPES', 'POWERED_TYPES', 'AIR_TYPES']) {
-    typeClasses[name.replace('_TYPES', '').toLowerCase()] =
-      Object.keys(sliceTable(assetsSrc, name, '{', '}'));
-  }
-  const builders = { // loops, param scaling, conditionals: honestly procedural
+  // A88b: the type→silhouette-recipe map is DATA (UNIT_SILHOUETTE, generated to
+  // asset-recipes.json). createUnitMesh reads it + unit-chrome.js — no per-type
+  // set to parse out of assets.js.
+  const typeClasses = JSON.parse(read('data/assets/asset-recipes.json')).unitSilhouette;
+  const builders = { // the composer + its procedural chrome (bodies are recipe data)
     baseToken: { procedural: true, description: 'ownership disc (faction primary, dimmed when out of moves) + dark rim for light civs + gold veteran rim + fortified shield chip' },
     pennant: { procedural: true, description: 'pole + primary flag + secondary emblem dot on a sway hinge at the pole top' },
-    wagon: { procedural: true, description: 'settlers/caravan/diplomat: wood body, canvas roof, four wheels, pennant' },
-    footSoldier: { procedural: true, description: 'cone body, sphere head, tilted spear with tip, pennant' },
-    mounted: { procedural: true, description: 'box-built horse (body/neck/head/four legs), cone rider, chariot wheels when chariot, pennant' },
-    siege: { procedural: true, description: 'armor: hull+turret+barrel; catapult/cannon/artillery: wood platform, two wheels, angled barrel, pennant' },
-    ship: { procedural: true, description: 'hull + bow cone; sail: mast+canvas; sub: fin; powered: funnel+bridge; pennant' },
-    aircraft: { procedural: true, description: 'fuselage + wings + tail boxes, no pennant' },
+    createUnitMesh: { procedural: true, description: 'A88b data-driven dispatch: recipe = UNIT_SILHOUETTE[type], render chrome (pennant offset / naval base / sail plane / chariot wheels) = unit-chrome.js RECIPE_CHROME + TYPE_EXTRA; composeRecipe builds the body from the recipe primitives' },
+    ship: { procedural: true, description: 'sail ships add a procedural canvas sail plane on top of the shipSail body' },
     city: { procedural: true, description: 'house ring per CITY_TIERS (angle-spread boxes with roof cones in the faction primary), capital emblem flag or pennant, dark ground ring for light civs, stone wall ring with city-walls' }
   };
   const cityTiers = sliceTable(assetsSrc, 'CITY_TIERS', '[', ']');

@@ -62,3 +62,26 @@ test('committed data/asset-recipes.json is in sync with the module', async () =>
   assert.deepStrictEqual(committed.propShapes, r.PROP_SHAPES, 'propShapes drift');
   assert.deepStrictEqual(committed.colorRoles, r.COLOR_ROLES, 'colorRoles drift');
 });
+
+// A88b coverage gate: createUnitMesh is now data-driven from UNIT_SILHOUETTE +
+// unit-chrome.js. Every recipe a unit maps to MUST have a RECIPE_CHROME entry,
+// or that unit would render with no pennant/naval base (an unstyled path). This
+// gate is what makes deleting the per-type function ladder safe.
+test('every UNIT_SILHOUETTE recipe has a RECIPE_CHROME entry (dispatch coverage)', async () => {
+  const { UNIT_SILHOUETTE, UNIT_RECIPES } = await load();
+  const { RECIPE_CHROME, TYPE_EXTRA } = await import('../client/renderer/three/unit-chrome.js');
+  // the fallback target the dispatch defaults to must be styled
+  assert.ok(RECIPE_CHROME.fallback, 'RECIPE_CHROME.fallback exists (the default dispatch target)');
+  for (const type of Object.keys(UNIT_SILHOUETTE)) {
+    const recipe = UNIT_SILHOUETTE[type];
+    assert.ok(RECIPE_CHROME[recipe], `unit "${type}" → recipe "${recipe}" has no RECIPE_CHROME entry`);
+  }
+  // pennant offsets, where present, are [x,y,scale] triples
+  for (const [recipe, c] of Object.entries(RECIPE_CHROME)) {
+    if (c.pennant !== undefined) assert.strictEqual(c.pennant.length, 3, `${recipe}: pennant must be [x,y,scale]`);
+  }
+  // every type-level extra names a real recipe body
+  for (const [type, extra] of Object.entries(TYPE_EXTRA)) {
+    assert.ok(UNIT_RECIPES[extra], `TYPE_EXTRA "${type}" → "${extra}" is not a UNIT_RECIPES key`);
+  }
+});
