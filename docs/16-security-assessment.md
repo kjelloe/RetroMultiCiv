@@ -148,10 +148,20 @@ a legitimate game.
 6. Scale test: many-connection + hostile-command-stream soak —
    **EXECUTED 2026-07-17 (sim-runner)**: no crash, no leak, no
    integrity breach at N=200 / 32.5k cmd/s; findings folded into
-   §2.4 and gaps 1/4. Residual: re-run against A50's limits when
-   they land (the red case for the fairness budget), plus the
-   joined-game cmd-storm and connect/disconnect-churn variants
-   (harness re-runnable: sim-runner's ~/sim-lab/hostile-scale.mjs).
+   §2.4 and gaps 1/4. **CHURN VARIANTS EXECUTED 2026-07-17 morning
+   (sim-runner #805/#807)**: (a) connect-churn at ~3.5k open/close
+   per sec — server alive, seat-reservation cleanup robust, but the
+   A50 admission cap is a CONCURRENCY cap and churn evades it
+   (refused 0), the canary starves, and RSS peaks higher than the
+   flood case (~217 MB, per-connection object churn/GC pressure) →
+   A50 item 4 also needs a per-IP connect-RATE cap, not only the
+   command budget. (b) POSITIVE verification: the item-2 JOIN
+   limiter empirically WORKS — 120 sequential same-IP joins drew
+   90 rateLimited rejects (the first churn harness simply never
+   read reject frames; corrected probe: join-probe.mjs). Residual:
+   re-run hostile-scale as item 4's red case when it lands (canary
+   must keep getting pongs); joined-game cmd-storm variant still
+   open.
 7. WS token rotation on reconnect — nice-to-have, not queued.
 
 ## 4. Operator quick-card (mirrors how-to-host.md)
