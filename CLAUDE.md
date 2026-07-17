@@ -240,6 +240,21 @@ server-robustness lane (docs/17) is a separate clone with its own
 neutral operational vocabulary and does no game simulation. This
 keeps the two domains' vocabularies from colliding.
 
+**Status & reporting style (user ruling 2026-07-17) — mail, commits,
+done-marks, summaries, log output:** report STATE, not agency — write
+like a build log, not a mission briefing. (1) Report facts and counts;
+never frame the system as an autonomous actor ("knows its orders", "runs
+itself", "you can step away / it won't run dry / unattended" are all out).
+(2) No fleet/military framing for the WORK SYSTEM: avoid "fleet", "swarm",
+"orders", "deploy", "command", "monitor standing watch". Say "task queue",
+"background worker", "N processes active", "review script", "test run".
+(3) Keep game-domain military vocabulary (conquest, aggressive stance,
+Legion…) inside LABELED DATA — tables, config, spec docs — not restated in
+narrative summaries. (4) Prefer the one-line status form
+`<area>: <N done>/<N total>, <blockers>, <next action>`. (5) Neutral verbs
+for data ops: export / regenerate / re-record / sync — NOT "harvest",
+"scrape", "sweep". Same information, mechanical voice.
+
 User handles all git commits and pushes on dev/main. The dev_night
 branch is the STANDING exception (user grant 2026-07-16, widened
 same day): the architect commits accepted gate-green work there and
