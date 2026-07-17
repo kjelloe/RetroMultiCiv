@@ -478,6 +478,25 @@ pipeline that made the progress possible):**
 > lands. New columns adopted: garrison%, resourceCov% (healthy
 > 85-94%), disorderTurns (tail-capped — B22), river-adjacency.
 >
+> STATUS (2026-07-17, morning — the M11 conflict target is PINNED):
+> the night ran B26 (defender-march discipline gates every attack-
+> initiation) → B23b phased scouting, which REGRESSED expansion
+> (cities halved) and was caught the SAME NIGHT by the A93 floors on
+> their first enforcement + the marker A/B → B23c restored the
+> guards>=2 floor → B26b re-shaped the doctrine gates to integer
+> percents (identity refactor, goldens byte-unchanged) → the user
+> PINNED aiWarDoctrine["1"].defenderGatePct=30: elim% ~29 (band
+> centre) AND peak conquest AND best economy, a free win (#795/#841).
+> N3 NAVAL PROBE landed — the AI builds+scouts ships for the first
+> time (naval loop measured #859/#863: discover-coast strong, build-
+> warship weak/late = the next lever, back-half unreached by design).
+> The opener-scout exception (user-GO'd experiment) was MEASURED +
+> REJECTED (#849). resourceCov telemetry closed the last M-floor's
+> PENDING. Markers 0025-0033 on dev_night; 0033 = the validated
+> merge candidate (M11 + all gamesim-golden-neutral art/docs/refactor).
+> NEXT: N4 garrison cap (in flight) → B23d relaxed-veto (the
+> STRUCTURAL exploration fix) → N3-build-tune → N1/N2 gov+tech.
+>
 > STATUS (2026-07-17, small hours): B23 EXPLORATION LANDED — the
 > five-iteration saga closed with a BFS router through known land
 > + the user's coastline fast-path + garrison-exempt newest

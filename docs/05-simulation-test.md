@@ -445,6 +445,23 @@ M2 8.0 MET-borderline · M3 pop 48 MARGINAL (war attrition) · M4
 impr% 70.5 MARGINAL MISS (workers pulled to explore+war — watch)
 · M11 elim% 57 FAR ABOVE the 20-40 band = the OVER-CONQUEST gap,
 the pinning session's #1 item (docs/15 §2f).**
+**POST-M11-PIN STATUS (2026-07-17 morning — the over-conquest gap
+CLOSED): B26 gated defender sorties, B23c restored the guards>=2
+expansion floor (its removal in B23b halved cities — caught same-
+night by these very floors on their first enforcement + the marker
+A/B), B26b re-shaped the doctrine gates to integer percents, and
+the user PINNED `aiWarDoctrine["1"].defenderGatePct = 30` (M11
+session): elim% now ~29 (band CENTRE) with conquest AT ITS PEAK
+and the healthiest economy — a free win, sim-runner #795/#841.
+Also landed: N3 naval probe (AI builds+scouts ships — first time;
+naval loop measured, build-warship is the next weak lever #859/
+#863), resourceCov telemetry (the §12 floor's PENDING now ACTIVE),
+and the opener-scout exception was MEASURED + REJECTED (#849:
+sole-guard scouting halves expansion — the guards>=2 floor is
+load-bearing). Remaining M-gaps: exploration ~8% (STRUCTURAL — the
+veto is too blunt; B23d relaxed-veto is the fix, not a knob),
+defender bloat (N4 garrison cap in flight), N1 government
+monoculture / N2 tech ceiling (the next systemic ceilings).**
 **THE NO-OP CHECK (user standing order, 2026-07-16 night): before
 declaring any strategy/knob INERT ("unchanged vs golden"), assert
 the ACTIVITY DENOMINATOR is nonzero — 0 exploration steps, 0
