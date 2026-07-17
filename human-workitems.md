@@ -85,6 +85,18 @@ the Done log at the bottom.
   the dg40-vs-dg50 pin choice was withdrawn; heterogeneous stances
   deliver wonders at dg=30 UNCHANGED (marker-0043, gate green).
 
+**FROM YOUR 2026-07-18 LAN PLAYTEST (X-batch filed as L1-L5):**
+- [ ] **README screenshot swap (your X.4):** debugging/readme-candidate.png
+  is a strong shot (turn-256 Aztec empire, three cities, advice card
+  visible — the game teaching itself). Say GO and I swap it into
+  docs/screenshot.png / README. NOTE: you mentioned TWO new PNGs but only
+  ONE readme-candidate.png landed in debugging/ (the usergenerated/ pair
+  is from Jul 15) — re-drop the second if it matters.
+- The rest of the batch (hosting-screen cleanup, resume-button flow with
+  --debug-gated listings, lobby auto-fit, join-code-per-boot fix, mobile
+  ?mlog overlay + the seated-start bug your X.6 spectator test narrowed)
+  is FILED to the helper — no action needed from you.
+
 **VERIFY (roblox acceptance, carried):**
 - [ ] Save `roblox/acceptance/runD.txt`; retest the deck-resident
   avatar flow (the two carried items from the run-4 batch).
