@@ -44,3 +44,44 @@ export function canStepTo(state, unit, x, y, ruleset) {
   if (stepDir(state.map, unit, x, y) === null) return false;
   return tileEnterable(state, unit, x, y, ruleset);
 }
+
+// wrap-aware Chebyshev distance (the GoTo distance rule)
+function wrapDist(map, ax, ay, bx, by) {
+  let dx = Math.abs(ax - bx);
+  if (map.wrapX && map.width - dx < dx) dx = map.width - dx;
+  const dy = Math.abs(ay - by);
+  return dx > dy ? dx : dy;
+}
+
+const STEP_VECS = {
+  N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1],
+  S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
+};
+
+// A68 (VIII.17): the GoTo greedy fallback's candidate steps — distance-
+// decreasing, in-bounds, sorted nearest-first, and DOMAIN-checked: a ship's
+// fallback must never even attempt a land step (the old filter let the
+// engine bounce them one by one). UNKNOWN tiles stay candidates — the
+// fallback exists precisely for fogged targets ("GoTo into the dark", server
+// games), and there the engine is the judge. PURE: input.js applies the
+// steps in order until one is accepted; the route preview draws the same walk.
+export function greedySteps(state, unit, target, ruleset) {
+  const here = wrapDist(state.map, unit.x, unit.y, target.x, target.y);
+  const options = [];
+  for (const dir of Object.keys(STEP_VECS)) {
+    const v = STEP_VECS[dir];
+    let nx = unit.x + v[0];
+    if (state.map.wrapX) nx = ((nx % state.map.width) + state.map.width) % state.map.width;
+    const ny = unit.y + v[1];
+    if (ny < 0 || ny >= state.map.height) continue;
+    const d = wrapDist(state.map, nx, ny, target.x, target.y);
+    if (d >= here) continue;
+    const tile = state.map.tiles[ny * state.map.width + nx];
+    const enterable = tile !== undefined && tile.t === 'unknown'
+      ? true // fog: venture toward the target, the engine validates each step
+      : tileEnterable(state, unit, nx, ny, ruleset);
+    if (!enterable) continue;
+    options.push({ dir, nx, ny, d });
+  }
+  return options.sort((a, b) => a.d - b.d);
+}

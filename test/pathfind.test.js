@@ -108,3 +108,57 @@ test('domain is respected: a land unit routes around ocean', async () => {
   assert.ok(p.points.some(pt => pt.y === 2), 'the route dips to the land gap at y=2');
   assert.ok(!p.points.some(pt => map.tiles[pt.y * W + pt.x].t === 'ocean'), 'never steps on ocean');
 });
+
+// A68 (VIII.17-verify): SHIP GoTo through the real injected legality
+// (client tileEnterable). The peninsula case proves domain-aware routing;
+// the city case PINS today's engine truth — sea units cannot enter ANY land
+// tile, own coastal cities included (no docking mechanic exists yet; see the
+// A68 slice-d report). If docking ever lands, that pin flips deliberately.
+const SEA_RULESET = {
+  terrain: { terrains: {
+    grassland: { move: 1, domain: 'land' },
+    ocean: { move: 1, domain: 'sea' }
+  } },
+  units: { frigate: { domain: 'sea' }, settlers: { domain: 'land' } }
+};
+
+test('A68: ship GoTo routes around a peninsula through water only', async () => {
+  const { findPath } = await load();
+  const { tileEnterable } = await import('../client/ui/move-hints.js');
+  // a 7x5 sea with a land finger across the middle row (x 1..5): the direct
+  // lane is blocked, the route must arc over or under the peninsula
+  const W = 7, H = 5;
+  const map = grid(W, H, (x, y) =>
+    (y === 2 && x >= 1 && x <= 5) ? { t: 'grassland' } : { t: 'ocean' });
+  const state = { map, units: {} };
+  const ship = { id: 's1', type: 'frigate', owner: 'p1', x: 0, y: 2, moves: 1 };
+  const canEnter = (x, y) => tileEnterable(state, ship, x, y, SEA_RULESET);
+  const p = findPath(state, SEA_RULESET, ship, { x: 6, y: 2 }, canEnter);
+  assert.ok(p, 'a water route exists around the peninsula');
+  for (const pt of p.points) {
+    assert.strictEqual(map.tiles[pt.y * W + pt.x].t, 'ocean',
+      `the route must stay on water (touched ${pt.x},${pt.y})`);
+  }
+  // 8-directional moves make the arc the same STEP count as the straight
+  // lane — the proof is the detour itself: the route leaves row 2 while
+  // crossing the peninsula's span
+  assert.ok(p.points.some(pt => pt.y !== 2 && pt.x >= 1 && pt.x <= 5),
+    `the route arcs off the blocked lane (points: ${JSON.stringify(p.points)})`);
+});
+
+test('A68 pin: a ship cannot path INTO an own coastal city tile (no docking mechanic)', async () => {
+  const { findPath } = await load();
+  const { tileEnterable } = await import('../client/ui/move-hints.js');
+  const W = 7, H = 5;
+  const map = grid(W, H, (x, y) =>
+    (y === 2 && x >= 1 && x <= 5) ? { t: 'grassland' } : { t: 'ocean' });
+  const state = {
+    map, units: {},
+    cities: { c1: { id: 'c1', name: 'Port', owner: 'p1', x: 5, y: 2, pop: 3 } }
+  };
+  const ship = { id: 's1', type: 'frigate', owner: 'p1', x: 0, y: 2, moves: 1 };
+  const canEnter = (x, y) => tileEnterable(state, ship, x, y, SEA_RULESET);
+  // engine/movement.js line ~103 rejects sea units on ANY land tile — own
+  // city or not — so the planner must refuse the target outright
+  assert.strictEqual(findPath(state, SEA_RULESET, ship, { x: 5, y: 2 }, canEnter), null);
+});

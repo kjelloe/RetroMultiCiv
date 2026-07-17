@@ -80,3 +80,59 @@ test('B12: seam steps show the arrow both directions on a wrapping map', () => {
   assert.strictEqual(stepDir(s.map, s.units.u1, 0, 2), null, 'no wrap on a flat map');
   assert.strictEqual(canStepTo(s, s.units.u1, 0, 2, RULESET), false);
 });
+
+// A68 (VIII.17): greedySteps — the GoTo fallback's candidate rule. Ships must
+// never receive land candidates; fog stays ventureable; enemies stay excluded.
+test('A68 greedySteps: a ship gets water-only candidates, stops when only land decreases distance', async () => {
+  const { greedySteps } = await import('../client/ui/move-hints.js');
+  const RS = {
+    terrain: { terrains: {
+      grassland: { move: 1, domain: 'land' }, ocean: { move: 1, domain: 'sea' }
+    } },
+    units: { frigate: { domain: 'sea' } }
+  };
+  // 3x3: top row land, rest ocean; the frigate sits center
+  const tiles = [
+    { t: 'grassland' }, { t: 'grassland' }, { t: 'grassland' },
+    { t: 'ocean' }, { t: 'ocean' }, { t: 'ocean' },
+    { t: 'ocean' }, { t: 'ocean' }, { t: 'ocean' }
+  ];
+  const state = { map: { width: 3, height: 3, wrapX: false, tiles }, units: {} };
+  const ship = { id: 's1', type: 'frigate', owner: 'p1', x: 1, y: 1, moves: 1 };
+  // toward a WATER tile east: exactly the east options, all ocean
+  const east = greedySteps(state, ship, { x: 2, y: 1 }, RS);
+  assert.ok(east.length > 0 && east.every(o => tiles[o.ny * 3 + o.nx].t === 'ocean'));
+  assert.strictEqual(east[0].nx + ',' + east[0].ny, '2,1', 'nearest water step first');
+  // toward a LAND tile north: every distance-decreasing step is land — the
+  // old filter would offer them for the engine to bounce; now: none at all
+  assert.deepStrictEqual(greedySteps(state, ship, { x: 1, y: 0 }, RS), []);
+});
+
+test('A68 greedySteps: fog tiles stay candidates, enemy tiles never do', async () => {
+  const { greedySteps } = await import('../client/ui/move-hints.js');
+  const RS = {
+    terrain: { terrains: {
+      grassland: { move: 1, domain: 'land' }, ocean: { move: 1, domain: 'sea' },
+      unknown: { move: 1, domain: 'land' }
+    } },
+    units: { frigate: { domain: 'sea' } }
+  };
+  const tiles = [
+    { t: 'ocean' }, { t: 'unknown' }, { t: 'ocean' },
+    { t: 'ocean' }, { t: 'ocean' }, { t: 'ocean' },
+    { t: 'ocean' }, { t: 'ocean' }, { t: 'ocean' }
+  ];
+  const state = {
+    map: { width: 3, height: 3, wrapX: false, tiles },
+    units: { e1: { id: 'e1', type: 'frigate', owner: 'p2', x: 2, y: 1 } }
+  };
+  const ship = { id: 's1', type: 'frigate', owner: 'p1', x: 1, y: 1, moves: 1 };
+  // toward the fogged tile north: the unknown tile IS offered (the engine
+  // will judge it — "GoTo into the dark" must keep working on server views)
+  const fog = greedySteps(state, ship, { x: 1, y: 0 }, RS);
+  assert.ok(fog.some(o => o.nx === 1 && o.ny === 0), 'fog stays ventureable');
+  // toward the enemy-held water tile east: the occupied tile itself is
+  // excluded (never auto-attack)
+  const foe = greedySteps(state, ship, { x: 2, y: 1 }, RS);
+  assert.ok(!foe.some(o => o.nx === 2 && o.ny === 1), 'enemy tile excluded');
+});

@@ -5,7 +5,7 @@ import { capitalOf } from '../../engine/government.js';
 import { hasWaterSource, workFlag } from '../../engine/improvements.js';
 import { computeVisible } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
-import { canStepTo, stepDir, tileEnterable } from './move-hints.js';
+import { canStepTo, stepDir, tileEnterable, greedySteps } from './move-hints.js';
 import { findPath } from '../../shared/pathfind.js';
 
 const MOVE_KEYS = {
@@ -460,10 +460,7 @@ export function initInput(ctx) {
   // each turn the unit greedily steps closer, never initiating an attack.
   const gotoTargets = {}; // unitId -> { x, y }
   let gotoArming = false;
-  const GOTO_VEC = {
-    N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1],
-    S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
-  };
+  // (the step vectors + candidate rule live in move-hints greedySteps — A68)
 
   function wrapDist(ax, ay, bx, by) {
     const map = session.state.map;
@@ -497,16 +494,10 @@ export function initInput(ctx) {
         if (r.ok) return true;
       }
     }
-    const here = wrapDist(unit.x, unit.y, target.x, target.y);
-    const options = Object.keys(GOTO_VEC).map(dir => {
-      const v = GOTO_VEC[dir];
-      let nx = unit.x + v[0];
-      if (state.map.wrapX) nx = ((nx % state.map.width) + state.map.width) % state.map.width;
-      return { dir, nx, ny: unit.y + v[1], d: wrapDist(nx, unit.y + v[1], target.x, target.y) };
-    }).filter(o =>
-      o.d < here && o.ny >= 0 && o.ny < state.map.height
-      && !unitsAt(state, o.nx, o.ny).some(u => u.owner !== unit.owner) // never auto-attack
-    ).sort((a, b) => a.d - b.d);
+    // A68 (VIII.17): the candidates are domain-checked (move-hints
+    // greedySteps) — a ship never even attempts a land step; enemy tiles
+    // stay excluded (never auto-attack), fog tiles stay ventureable
+    const options = greedySteps(state, unit, target, session.ruleset);
     for (const o of options) {
       const r = await session.apply({ type: 'moveUnit', playerId: state.activePlayer, unitId, dir: o.dir });
       if (r.ok) return true;
@@ -545,25 +536,17 @@ export function initInput(ctx) {
     const state = session.state;
     const planned = findPath(state, session.ruleset, unit, target, planCanEnter(state, unit));
     if (planned) return planned.points;
+    // A68 (VIII.17): the drawn greedy walk uses the SAME candidate rule as
+    // the runner (move-hints greedySteps, domain-checked) — the preview must
+    // never show a beach route a ship won't take
     const points = [{ x: unit.x, y: unit.y }];
-    let cx = unit.x, cy = unit.y, guard = 120;
-    while ((cx !== target.x || cy !== target.y) && guard-- > 0) {
-      const here = wrapDist(cx, cy, target.x, target.y);
-      let best = null;
-      for (const dir of Object.keys(GOTO_VEC)) {
-        const v = GOTO_VEC[dir];
-        let nx = cx + v[0];
-        if (state.map.wrapX) nx = ((nx % state.map.width) + state.map.width) % state.map.width;
-        const ny = cy + v[1];
-        if (ny < 0 || ny >= state.map.height) continue;
-        const d = wrapDist(nx, ny, target.x, target.y);
-        if (d >= here) continue;
-        if (unitsAt(state, nx, ny).some(u => u.owner !== unit.owner)) continue;
-        if (!best || d < best.d) best = { nx, ny, d };
-      }
-      if (!best) break; // blocked: the drawn route ends where the unit would stop
-      cx = best.nx; cy = best.ny;
-      points.push({ x: cx, y: cy });
+    let ghost = { ...unit };
+    let guard = 120;
+    while ((ghost.x !== target.x || ghost.y !== target.y) && guard-- > 0) {
+      const options = greedySteps(state, ghost, target, session.ruleset);
+      if (options.length === 0) break; // blocked: the route ends where the unit would stop
+      ghost = { ...ghost, x: options[0].nx, y: options[0].ny };
+      points.push({ x: ghost.x, y: ghost.y });
     }
     return points;
   }
