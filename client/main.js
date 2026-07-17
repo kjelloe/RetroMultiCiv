@@ -25,6 +25,7 @@ import { initAdvice } from './ui/advice.js';
 import { showSetupScreen } from './ui/setup.js';
 import { initHandoff } from './ui/handoff.js';
 import { initOptions } from './ui/options.js';
+import { initPedia } from './ui/pedia.js';
 import { createFfOverlay } from './ui/ff-overlay.js';
 
 const hudStatus = document.getElementById('hud-status');
@@ -361,6 +362,7 @@ ctx.gameCode = () => {
 ctx.lastSaveCode = null; // set by ui/saves.js on save; shown on the hand-off screen
 
 initOptions(ctx);
+ctx.pedia = initPedia(ctx);         // A58: the in-game encyclopedia (📖 / ?)
 ctx.hud = initHud(ctx);
 // server mode: surface disconnect/reconnect notices in the HUD banner, and
 // wire the phase-4 turn flow (your-turn chime, waiting-for-<name>, skip vote)

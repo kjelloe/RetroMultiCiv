@@ -6,8 +6,12 @@
 // byte-identical; makeCatalogText(ruleset) closes over the ruleset tables the
 // renderers reference (techs for names, units/buildings/wonders for the maps).
 
-export function makeCatalogText(ruleset) {
+// opts.wonderMark: the suffix appended to wonder names in techUnlocks (default
+// ' 🏆' for the panels/pedia; turnlog passes '' — its only difference from the
+// panels build, so the map is otherwise byte-identical and shared here).
+export function makeCatalogText(ruleset, opts) {
   const { techs, units, buildings, wonders } = ruleset;
+  const wonderMark = opts && opts.wonderMark !== undefined ? opts.wonderMark : ' 🏆';
 
   // plain-language lines for the structured effect fields (tools/mapdata.js overlays)
   const EFFECT_TEXT = {
@@ -48,7 +52,7 @@ export function makeCatalogText(ruleset) {
     const add = (map, key, name) => { (map[key] = map[key] || []).push(name); };
     for (const id of Object.keys(units)) if (units[id].tech !== '') add(techUnlocks, units[id].tech, units[id].name);
     for (const id of Object.keys(buildings)) if (buildings[id].tech !== '') add(techUnlocks, buildings[id].tech, buildings[id].name);
-    for (const id of Object.keys(wonders)) if (wonders[id].tech !== '') add(techUnlocks, wonders[id].tech, wonders[id].name + ' 🏆');
+    for (const id of Object.keys(wonders)) if (wonders[id].tech !== '') add(techUnlocks, wonders[id].tech, wonders[id].name + wonderMark);
     for (const id of Object.keys(techs)) {
       for (const p of techs[id].prereqs) add(techLeadsTo, p, techs[id].name);
     }

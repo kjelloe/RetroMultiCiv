@@ -5,6 +5,7 @@
 import { filterView, filterEvents } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 import { classifyEvent, LOG_CLASSES } from './turnlog-classes.js';
+import { makeCatalogText } from './catalog-text.js';
 
 export function initTurnLog(ctx) {
   const { session, hud } = ctx;
@@ -60,14 +61,10 @@ export function initTurnLog(ctx) {
   details.insertBefore(filterRow, list);
   applyFilters();
 
-  // tech id -> unit/building/wonder names it unlocks (for discovery entries)
-  const techUnlocks = {};
-  for (const set of [units, buildings, wonders]) {
-    for (const id of Object.keys(set)) {
-      if (set[id].tech === '') continue;
-      (techUnlocks[set[id].tech] = techUnlocks[set[id].tech] || []).push(set[id].name);
-    }
-  }
+  // tech id -> unit/building/wonder names it unlocks (for discovery entries).
+  // A58b: shared catalog-text map; wonderMark '' = plain wonder names (the log's
+  // only difference from the panels build — verified byte-identical otherwise).
+  const { techUnlocks } = makeCatalogText(session.ruleset, { wonderMark: '' });
 
   function playerName(state, pid) {
     return state.players[pid] ? state.players[pid].name : pid;

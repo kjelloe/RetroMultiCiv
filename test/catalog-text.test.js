@@ -56,3 +56,14 @@ test('techUnlocks / techLeadsTo cross-link maps are built from the rulesets', as
     assert.ok((techLeadsTo[child.prereqs[0]] || []).includes(child.name), 'prereq leads to the child tech');
   }
 });
+
+test('wonderMark option controls the wonder suffix (turnlog uses "")', async () => {
+  const { makeCatalogText } = await load();
+  const wonderWithTech = Object.keys(RULESET.wonders).map(id => RULESET.wonders[id]).find(w => w.tech !== '');
+  assert.ok(wonderWithTech, 'the ruleset has a tech-gated wonder');
+  const marked = makeCatalogText(RULESET).techUnlocks; // default ' 🏆'
+  const plain = makeCatalogText(RULESET, { wonderMark: '' }).techUnlocks; // turnlog
+  assert.ok(marked[wonderWithTech.tech].includes(wonderWithTech.name + ' 🏆'), 'default marks 🏆');
+  assert.ok(plain[wonderWithTech.tech].includes(wonderWithTech.name), 'wonderMark "" = plain name');
+  assert.ok(!plain[wonderWithTech.tech].includes(wonderWithTech.name + ' 🏆'), 'no 🏆 with wonderMark ""');
+});

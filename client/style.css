@@ -1474,3 +1474,60 @@ html, body {
 #stack-city.hidden {
   display: none;
 }
+
+/* A58: Civilopedia — full-screen browsable reference overlay */
+#pedia {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(6, 9, 16, 0.94);
+  display: flex; align-items: center; justify-content: center;
+}
+#pedia.hidden { display: none; }
+#pedia-frame {
+  width: min(1000px, 92vw); height: min(760px, 90vh);
+  background: rgba(12, 18, 30, 0.98); border: 1px solid #2c4468;
+  border-radius: 10px; display: flex; flex-direction: column;
+  color: #cdd8ea; font-size: 14px; overflow: hidden;
+}
+#pedia-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-bottom: 1px solid #24344f;
+}
+#pedia-head h2 { margin: 0; font-size: 18px; color: #e8c46a; }
+#pedia-close {
+  background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f;
+  border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: inherit;
+}
+#pedia-body { display: grid; grid-template-columns: 130px 210px 1fr; flex: 1; min-height: 0; }
+#pedia-cats {
+  display: flex; flex-direction: column; gap: 4px; padding: 8px;
+  border-right: 1px solid #24344f; overflow-y: auto;
+}
+.pedia-cat {
+  background: none; color: #9fb3d0; border: none; text-align: left;
+  padding: 8px 10px; border-radius: 5px; cursor: pointer;
+  font-family: inherit; font-size: 14px;
+}
+.pedia-cat:hover { background: rgba(60, 90, 140, 0.25); }
+.pedia-cat.active { background: #24406b; color: #e6eefb; }
+#pedia-list {
+  display: flex; flex-direction: column; gap: 2px; padding: 8px;
+  border-right: 1px solid #24344f; overflow-y: auto;
+}
+.pedia-item {
+  background: none; color: #cdd8ea; border: none; text-align: left;
+  padding: 6px 10px; border-radius: 4px; cursor: pointer;
+  font-family: inherit; font-size: 13px;
+}
+.pedia-item:hover { background: rgba(60, 90, 140, 0.2); }
+#pedia-entry { padding: 18px 24px; overflow-y: auto; }
+#pedia-entry h3 { margin: 0 0 12px; color: #e8c46a; font-size: 20px; }
+.pedia-stats {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px 18px; margin-bottom: 14px;
+}
+.pedia-stat { display: flex; justify-content: space-between; border-bottom: 1px dotted #2c4468; padding: 3px 0; }
+.pedia-stat span { color: #8ba0c0; }
+.pedia-prose { line-height: 1.5; margin: 8px 0; }
+.pedia-req { color: #9fb3d0; margin: 8px 0; }
+.pedia-link { color: #7fb0ff; cursor: pointer; text-decoration: underline dotted; }
+.pedia-link:hover { color: #a8ccff; }
