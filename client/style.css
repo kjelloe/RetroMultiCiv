@@ -709,6 +709,12 @@ html, body {
   background: transparent; color: #8fa3c0; border: 1px solid #3b5d8f;
   border-radius: 5px; padding: 5px 12px; cursor: pointer; font-family: inherit; font-size: 13px;
 }
+/* A58c: deep-links into the pedia (advice card button + ❓ quick-tip anchor) */
+#advice-card .advice-pedia {
+  background: transparent; color: #7fb0ff; border: 1px solid #3b5d8f;
+  border-radius: 5px; padding: 5px 12px; cursor: pointer; font-family: inherit; font-size: 13px;
+}
+#gameplay-help .pedia-deeplink { color: #7fb0ff; cursor: pointer; text-decoration: underline dotted; white-space: nowrap; }
 
 /* A73-STATS: the statistics page — time-series charts + battles + wonders */
 #stats {

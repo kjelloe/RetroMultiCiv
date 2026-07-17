@@ -68,6 +68,13 @@ function loadSeen() {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch (e) { return {}; }
 }
 
+// A58c: advice id → the pedia concept it deepens (a '📖 More' link on the card)
+const ADVICE_PEDIA = {
+  disorder: 'disorder', 'save-code': 'gamecode', 'combat-hover': 'veterancy',
+  'first-contact': 'zoc', 'low-treasury': 'upkeep', 'fortify-garrison': 'garrison',
+  'city-view': 'happiness'
+};
+
 export function initAdvice(ctx) {
   const { session } = ctx;
   const isBot = typeof navigator !== 'undefined' && navigator.webdriver === true;
@@ -100,8 +107,11 @@ export function initAdvice(ctx) {
       <div class="advice-actions">
         <button class="advice-ok">OK, got it</button>
         <button class="advice-no">No thanks</button>
+        ${ADVICE_PEDIA[id] ? '<button class="advice-pedia">📖 More</button>' : ''}
       </div>`;
     document.body.appendChild(card);
+    const pediaBtn = card.querySelector('.advice-pedia');
+    if (pediaBtn) pediaBtn.addEventListener('click', () => { if (ctx.pedia) ctx.pedia.openTo('concepts', ADVICE_PEDIA[id]); });
     card.querySelector('.advice-ok').addEventListener('click', () => { seen[id] = true; persist(); dismiss(); });
     card.querySelector('.advice-no').addEventListener('click', () => {
       for (const k of Object.keys(ADVICE)) seen[k] = true; // silence all present + future

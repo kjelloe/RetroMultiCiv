@@ -6,6 +6,7 @@
 // opens from the 📖 corner button + the '?' key. Client-only + golden-neutral:
 // reads session.ruleset, never game state.
 import { makeCatalogText } from './catalog-text.js';
+import { CONCEPTS } from './pedia-concepts.js';
 
 function esc(s) { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
 
@@ -57,9 +58,11 @@ export function initPedia(ctx) {
         ${statRow('Yields (F/S/T)', (t.yields ? [t.yields.food || 0, t.yields.shields || 0, t.yields.trade || 0].join(' / ') : '0 / 0 / 0'))}
         ${statRow('Defense', t.defenseBonus ? '+' + t.defenseBonus + '%' : 'none')}${statRow('Move cost', t.move)}
       </div>
-      ${t.special && t.special.name ? `<p class="pedia-prose">Special resource: ${esc(t.special.name)}${t.special.yields ? ` (${[t.special.yields.food || 0, t.special.yields.shields || 0, t.special.yields.trade || 0].join('/')})` : ''}</p>` : ''}` }
+      ${t.special && t.special.name ? `<p class="pedia-prose">Special resource: ${esc(t.special.name)}${t.special.yields ? ` (${[t.special.yields.food || 0, t.special.yields.shields || 0, t.special.yields.trade || 0].join('/')})` : ''}</p>` : ''}` },
+    concepts: { label: 'Concepts', list: () => CONCEPTS.map(c => [c.id, c]), render: (id, c) => `<p class="pedia-prose">${esc(c.body)}</p>` }
   };
-  const CAT_ORDER = ['units', 'buildings', 'wonders', 'techs', 'governments', 'terrain'];
+  const CONCEPT_MAP = {}; for (const c of CONCEPTS) CONCEPT_MAP[c.id] = c;
+  const CAT_ORDER = ['units', 'buildings', 'wonders', 'techs', 'governments', 'terrain', 'concepts'];
 
   const overlay = document.createElement('div');
   overlay.id = 'pedia';
@@ -82,7 +85,7 @@ export function initPedia(ctx) {
     listEl.innerHTML = CATS[curCat].list().map(([id, def]) => `<button class="pedia-item" data-id="${esc(id)}">${esc(def.name)}</button>`).join('');
   }
   function showEntry(catId, id) {
-    const def = r[catId][id]; // every catId is its ruleset table key
+    const def = catId === 'concepts' ? CONCEPT_MAP[id] : r[catId][id];
     if (!def) return;
     entryEl.innerHTML = `<h3>${esc(def.name)}</h3>${CATS[catId].render(id, def)}`;
   }
@@ -99,6 +102,9 @@ export function initPedia(ctx) {
   function open() { overlay.classList.remove('hidden'); selectCat(curCat); }
   function close() { overlay.classList.add('hidden'); }
   function toggle() { overlay.classList.contains('hidden') ? open() : close(); }
+  // A58c: deep-link entry point — the ❓ quick-help + advice cards call this to
+  // jump straight to a concept (or any) entry.
+  function openTo(catId, id) { overlay.classList.remove('hidden'); selectCat(catId); showEntry(catId, id); }
   overlay.querySelector('#pedia-close').addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); }); // click the backdrop
 
@@ -117,5 +123,5 @@ export function initPedia(ctx) {
     else if (e.key === 'Escape' && !overlay.classList.contains('hidden')) { close(); }
   });
 
-  return { open, close, toggle };
+  return { open, close, toggle, openTo };
 }

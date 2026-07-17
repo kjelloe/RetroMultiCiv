@@ -32,7 +32,24 @@ test('civilopedia: opens, lists entries from the rulesets, cross-links navigate'
   await firstTech.click();
   await expect(page.locator('#pedia-entry h3')).toBeVisible();
 
+  // Concepts category (A58c) lists prose entries
+  await page.locator('.pedia-cat', { hasText: 'Concepts' }).click();
+  await expect(page.locator('.pedia-item', { hasText: 'Zones of control' })).toBeVisible();
+  await page.locator('.pedia-item', { hasText: 'Zones of control' }).click();
+  await expect(page.locator('#pedia-entry')).toContainText('zone of control');
+
   // Esc closes
   await page.keyboard.press('Escape');
   await expect(pedia).toBeHidden();
+});
+
+test('civilopedia: the ❓ quick-help deep-links into a concept (A58c coexist)', async ({ page }) => {
+  await page.goto(`http://127.0.0.1:${server.port}/client/?seed=12345&civ=romans`);
+  await expect(page.locator('#open-help')).toBeVisible({ timeout: 20000 });
+  await page.locator('#open-help').click();
+  // the disorder tip carries a "📖 more in the pedia" deep-link → jumps to the concept
+  await page.locator('.pedia-deeplink[data-concept="disorder"]').click();
+  await expect(page.locator('#pedia')).toBeVisible();
+  await expect(page.locator('.pedia-cat.active')).toHaveText('Concepts');
+  await expect(page.locator('#pedia-entry h3')).toHaveText('Civil disorder');
 });

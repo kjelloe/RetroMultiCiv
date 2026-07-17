@@ -101,20 +101,24 @@ export function initOptions(ctx) {
   helpPanel.innerHTML = `
     <div class="panel-head"><h3>❓ Gameplay help</h3><button class="panel-close" data-close="gameplay-help">✕</button></div>
     <div class="help-entry"><b>😠 Civil disorder</b> — a city where unhappy citizens outnumber
-      happy ones stops producing shields and taxes (food still grows). Fix it by:
-      raising the luxuries rate (research panel), pulling citizens off the fields
-      to work as entertainers (city view), building a Temple/Colosseum/Cathedral,
-      or garrisoning military units under governments with martial law.</div>
+      happy ones stops producing shields and taxes (food still grows). Raise
+      luxuries, add entertainers, or build a Temple. <a class="pedia-deeplink" data-concept="disorder">📖 more in the pedia</a></div>
     <div class="help-entry"><b>⚡ Revolutions</b> — switching government means a few turns of
-      Anarchy (no taxes or research) unless you own the Pyramids.</div>
+      Anarchy (no taxes or research) unless you own the Pyramids. <a class="pedia-deeplink" data-concept="governments">📖 more in the pedia</a></div>
     <div class="help-entry"><b>🏭 Production</b> — when a city completes a building, pick something
-      new or it defaults to militia. Units repeat (∞) until you change them.</div>
+      new or it defaults to militia. Units repeat (∞) until you change them. <a class="pedia-deeplink" data-concept="upkeep">📖 more in the pedia</a></div>
     <div class="help-entry"><b>🏛 Capital</b> — press <b>C</b> with no city selected to fly to your
       capital (the Palace city, or your oldest). With a city selected, C cycles
-      its buildable improvements instead.</div>
-    <div class="help-entry"><i>More entries will land here as systems grow.</i></div>`;
+      its buildable improvements instead. <a class="pedia-deeplink" data-concept="corruption">📖 more in the pedia</a></div>
+    <div class="help-entry"><i>Full reference in the 📖 Civilopedia (?).</i></div>`;
   document.body.appendChild(helpPanel);
   helpPanel.querySelector('.panel-close').addEventListener('click', () => helpPanel.classList.add('hidden'));
+  // A58c deep-link: jump from a quick tip into the pedia's concept entry
+  helpPanel.addEventListener('click', e => {
+    const a = e.target.closest('.pedia-deeplink'); if (!a) return;
+    helpPanel.classList.add('hidden');
+    if (ctx.pedia) ctx.pedia.openTo('concepts', a.dataset.concept);
+  });
   document.getElementById('open-help').addEventListener('click', () => {
     panel.classList.add('hidden');
     helpPanel.classList.toggle('hidden');
