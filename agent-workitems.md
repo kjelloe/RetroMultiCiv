@@ -3452,7 +3452,7 @@ try Studio's direct glTF import, Blender only if FBX forced, user
 OK'd occasional manual Studio imports) stays SHELVED until Studio
 screenshots show a silhouette the Part mapping can't carry.
 
-### R12 — Playtest-C batch (user's runC feedback 2026-07-17; roblox-helper; BEFORE R9-R11)
+### R12 — Playtest-C batch (user's runC feedback 2026-07-17; roblox-helper; BEFORE R9-R11)  [claimed: roblox-helper 2026-07-17 #659] [done: 2026-07-17 — commit 5cc5a67 (sweep by sim-runner, manifest #660; 11 files — the 12th, its stale agent-workitems copy, was correctly dropped and this mark restored by the architect): (2) GovernmentPanel.client.luau NEW with rate steppers, (3) 2× bold unit fonts, (4) always-on fog-ruled city billboards, (5) research status beside the button, (6) P ride/dismount label toggle, (7) dismounted-Next = selection+camera only, (9) DEBUG button + pyramid fix landed earlier in 4056b0f, (10) opening-lockout spawn fix in 4056b0f. Pending user Studio look: pyramid re-look, K-toggle, R12 surfaces. (1)→R7c-3 in flight.]
 
 User numbering kept:
 - (2) GOVERNMENT BUTTON in the top-center cluster (next to
