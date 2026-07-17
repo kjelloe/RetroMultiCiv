@@ -9,7 +9,7 @@ const assert = require('node:assert');
 const {
   landContinents, netComponents, networkPct, explorationPct, continentsSettled,
   makeTelemetry, absorbEvents, updateLedger, idleCounts,
-  runSim, snapshot, loadModules
+  runSim, snapshot, loadModules, resourceCovPct
 } = require('./sim-driver.js');
 const REAL_RULESET = require('./ruleset.js');
 
@@ -125,6 +125,39 @@ test('absorbEvents: attacks, captures, buys, wonder-attempts (deduped), cross-wa
   assert.strictEqual(t.buys, 1);
   assert.strictEqual(t.wonderTry, 1, 'the duplicate wonder set is deduped');
   assert.strictEqual(t.crossWater, 1, 'the island city was reached across water');
+});
+
+test('resourceCovPct: worked share of the special tiles in a city radius (deduped, null when none)', async () => {
+  const mods = await loadModules();
+  const W = 7, H = 7;
+  const IDX = (x, y) => y * W + x;
+  const base = () => {
+    const tiles = [];
+    for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+    return {
+      map: { width: W, height: H, wrapX: false, tiles },
+      cityOrder: ['c1'],
+      cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 3, y: 3, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      players: { p1: { id: 'p1', government: 'despotism', taxRate: 50, sciRate: 50 } }
+    };
+  };
+  // two specials in the fat cross of the city at (3,3): (2,3) west and (4,3) east
+  const withSpecials = (workers) => {
+    const s = base();
+    s.map.tiles[IDX(2, 3)].special = true;
+    s.map.tiles[IDX(4, 3)].special = true;
+    s.cities.c1.workers = workers;
+    return s;
+  };
+  assert.strictEqual(resourceCovPct(withSpecials([IDX(4, 3)]), 'p1', REAL_RULESET, mods), 50, 'one of two specials worked');
+  assert.strictEqual(resourceCovPct(withSpecials([IDX(2, 3), IDX(4, 3)]), 'p1', REAL_RULESET, mods), 100, 'both worked');
+  assert.strictEqual(resourceCovPct(withSpecials([]), 'p1', REAL_RULESET, mods), 0, 'neither worked (only the non-special centre)');
+  assert.strictEqual(resourceCovPct(base(), 'p1', REAL_RULESET, mods), null, 'no specials in radius -> null');
+  // a special on the AUTO-worked centre always counts as covered
+  const cs = base();
+  cs.map.tiles[IDX(3, 3)].special = true;
+  cs.cities.c1.workers = [];
+  assert.strictEqual(resourceCovPct(cs, 'p1', REAL_RULESET, mods), 100, 'the centre special is auto-worked');
 });
 
 test('idleCounts: idle settlers (not terraforming) and stuck units, over the ledger', () => {

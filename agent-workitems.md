@@ -2265,7 +2265,7 @@ pixel diffs, docs the caveat in the script header).
 Golden-safe (renderer untouched; adds script + workflow step + PNGs).
 Queue: after A47.
 
-## A49 — Playwright multi-client UI lane, nightly-only (user tier-3 GO 2026-07-14 — dev-dep approved)  [helper H3a done 2026-07-17 (done-mail #711): @playwright/test devDep installed + guards dep-whitelist updated; playwright.config.js (SwiftShader/2-workers/trace-on-retry); test-ui/ (type:module, outside test/) with smoke + the FIRST real spec test-ui/lobby-chat.spec.js — two-context host+joiner lobby chat both ways, GREEN (the CDP-defeater); setup.js e2ehumans hook (splash-golden-neutral); .gitignore test-results/report; docs/16 §2.4 supply-chain note. node suite 423/423, lane 2/2. BREAKING: new devDep = npm ci after merge. H3b NEXT: spec(b) reconnect + spec(c) spectator + lobby host-toggle/kick-block assertions + the nightly workflow job.]
+## A49 — Playwright multi-client UI lane, nightly-only (user tier-3 GO 2026-07-14 — dev-dep approved)  [helper H3a done 2026-07-17 (done-mail #711): @playwright/test devDep installed + guards dep-whitelist updated; playwright.config.js (SwiftShader/2-workers/trace-on-retry); test-ui/ (type:module, outside test/) with smoke + the FIRST real spec test-ui/lobby-chat.spec.js — two-context host+joiner lobby chat both ways, GREEN (the CDP-defeater); setup.js e2ehumans hook (splash-golden-neutral); .gitignore test-results/report; docs/16 §2.4 supply-chain note. node suite 423/423, lane 2/2. BREAKING: new devDep = npm ci after merge. H3b done 2026-07-17 (done-mail #720): spectator spec (omniscient/no-controls via ?server=1&spectate=1), reconnect spec (?e2e=8 probe: seat reclaim by token, errors:0), lobby moderation (host chat-toggle + kick two-step), + the nightly `ui-lane` job (npx playwright test, traces-on-failure). A49 COMPLETE — lane + all §2 first specs + nightly. node suite 423/423, lane 5/5. Later-candidate specs (resume-two-client, replay theater, regency, the A90/A97/A98 DOM shots) are future coverage on the proven lane.]
 
 `@playwright/test` enters devDependencies (whitelist updated:
 CLAUDE.md + the guards.test.js dep test — allow `@playwright/*` +
@@ -3174,6 +3174,7 @@ inside worked city radii, or the M-sweep's definition — match
 docs/05 §12); tools/soak.js floors auto-activate the moment the
 column exists, zero further wiring. Telemetry only, no state
 writes.
+**[claimed: bugfixer 2026-07-17] [done: 2026-07-17 — sim-driver.js: resourceCovPct(state,pid,ruleset,mods) = of the SPECIAL-resource tiles (tile.special) inside a civ's fat-cross work radii (centre + candidateTiles), the share actually WORKED (workedTiles), DEDUPED by tile idx across overlapping radii; null when the civ has no special in radius (matches improvementPct's convention + docs/05 §12). Wired as pl.resourceCov in snapshot() beside imprPct; exported for the test. TELEMETRY-ONLY (reads state.map.tiles[].special, no writes) -> GOLDEN-NEUTRAL (simulation goldens untouched, suite 424/424 zero-skip). Unit test in sim-telemetry.test.js (5 asserts: 50/100/0/null + auto-worked centre). A93's PENDING floor now auto-activates. Done-mail #728.]**
 **FIX STRATEGIES ADOPTED (user + ally table, 2026-07-16 night —
 VERBATIM in specs/ai-weakness-fixes.md; supersedes the architect's
 first slicing):** per-weakness designs — naval probe (ocean ratio

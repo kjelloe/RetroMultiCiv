@@ -477,6 +477,33 @@ function improvementPct(state, pid, ruleset, mods) {
   return worked === 0 ? null : Math.round((done * 100) / worked);
 }
 
+// M-support (resourceCov, docs/05 §12): of the SPECIAL-resource tiles inside a
+// civ's city work radii (the fat cross — center + candidateTiles), the share
+// actually WORKED. Deduped by tile index so overlapping radii don't double-count
+// a shared special. null when the civ has no special in any radius. Telemetry
+// only (reads state.map.tiles[].special), never writes — goldens untouched.
+function resourceCovPct(state, pid, ruleset, mods) {
+  const W = state.map.width;
+  const inRadius = {}; // idx -> true : a special tile within some city's radius
+  const worked = {};   // idx -> true : a special tile a city actually works
+  for (const cid of state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== pid) continue;
+    const ci = c.y * W + c.x; // the auto-worked centre
+    if (state.map.tiles[ci].special === true) { inRadius[ci] = true; worked[ci] = true; }
+    for (const cand of mods.candidateTiles(state, c, ruleset)) {
+      if (state.map.tiles[cand.idx].special === true) inRadius[cand.idx] = true;
+    }
+    for (const wt of mods.workedTiles(state, c, ruleset)) {
+      const idx = wt.y * W + wt.x;
+      if (state.map.tiles[idx].special === true) worked[idx] = true;
+    }
+  }
+  let total = 0, cov = 0;
+  for (const idx in inRadius) { total = total + 1; if (worked[idx] === true) cov = cov + 1; }
+  return total === 0 ? null : Math.round((cov * 100) / total);
+}
+
 // M5: of a civ's SAME-CONTINENT city pairs, the share joined by a contiguous
 // road (or rail) network. null when the civ has < 2 same-continent cities.
 function networkPct(state, pid, contLabels, netLabel) {
@@ -698,6 +725,7 @@ function snapshot(state, ruleset, mods, tel, contLabels) {
     const w = wonderStats(state, pid);
     pl.pop = pop;                                        // M3
     pl.imprPct = improvementPct(state, pid, ruleset, mods); // M4
+    pl.resourceCov = resourceCovPct(state, pid, ruleset, mods); // M-support (A93 floor)
     pl.netRoad = networkPct(state, pid, cont, netRoad);  // M5 road
     pl.netRail = networkPct(state, pid, cont, netRail);  // M5 rail
     pl.milPct = militaryPct(state, pid, ruleset);        // M6 (partial)
@@ -1151,5 +1179,5 @@ module.exports = {
   runSim, checkInvariants, checkDeep, snapshot, basicSnapshot, summarize, loadModules, SIM_ROSTER,
   // A64 telemetry internals, exported for test/sim-telemetry.test.js
   landContinents, netComponents, networkPct, explorationPct, continentsSettled,
-  makeTelemetry, absorbEvents, updateLedger, idleCounts
+  makeTelemetry, absorbEvents, updateLedger, idleCounts, resourceCovPct
 };
