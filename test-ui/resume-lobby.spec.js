@@ -68,8 +68,12 @@ test('resume by game code: the pre-save city survives a server swap; a joiner re
     const resume = await resumeCtx.newPage();
     await resume.goto(`http://127.0.0.1:${server.port}/client/`);
     await resume.locator('#setup-host').click();
+    // L2: the code entry lives behind the "Resume game" toggle now (the
+    // new-game options hide; Validate and start submits the code)
+    await resume.locator('#lobby-resume-toggle').click();
+    await expect(resume.locator('#lobby-newgame')).toBeHidden();
     await expect(resume.locator('#lobby-code-btn')).toBeVisible();
-    await resume.locator('#lobby-code').fill(saved.code);
+    await resume.locator('#lobby-code-input').fill(saved.code);
     await resume.locator('#lobby-code-btn').click();
     // the resumed join boots the game at the saved position
     await expect(resume.locator('#hud-status')).toContainText(`turn ${saved.state.turn}`, { timeout: 30000 });

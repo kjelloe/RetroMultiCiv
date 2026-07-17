@@ -286,39 +286,59 @@ export function startHostFlow(box, options, flags) {
   // require the setup-screen detour (they default from whatever it passed)
   const SIZES = ['xsmall', 'small', 'medium', 'large', 'xlarge', 'huge'];
   const AGES = ['ancient', 'renaissance', 'industrial', 'modern', 'space'];
+  // L1: wrapped-label rows — the A53 two-column grid the START PAGE uses
+  // styles them for free; the interleaved hints move below the rows so the
+  // grid scans cleanly. L2: "Resume game" TOGGLES the panel — the new-game
+  // options hide and the code entry takes over (save LISTINGS only ever
+  // arrive under the server's --debug; the server gates listSaves). The code
+  // INPUT is lobby-code-INPUT — #lobby-code is the waiting room's 30px code
+  // display and the shared id was leaking that font onto the input.
   box.innerHTML = `
     <h2>Host a LAN game</h2>
-    <p class="setup-hint">world options — slots and civs come next, in the lobby</p>
-    <label>Your name <input id="lobby-name" type="text" maxlength="24" value="Player 1"></label>
-    <label>Map size
-      <select id="lobby-size">${SIZES.map(s =>
-        `<option value="${s}"${s === options.size ? ' selected' : ''}>${s}</option>`).join('')}</select>
-    </label>
-    <label>Starting age
-      <select id="lobby-age">${AGES.map(a =>
-        `<option value="${a}"${a === options.age ? ' selected' : ''}>${a}</option>`).join('')}</select>
-    </label>
-    <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
-    <p class="setup-hint">spectators see the whole map — admit people you'd
-      let stand behind your chair</p>
-    <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
-    <label>List publicly <input id="lobby-public" type="checkbox"></label>
-    <p class="setup-hint">listed games appear on everyone's Browse screen —
-      no code needed to join (private by default)</p>
-    <button id="setup-start">Create game</button>
-    <div id="lobby-resume" class="hidden">
-      <p class="setup-hint">— or resume a saved game (players re-pick their
-        seats by name; check the code matches your notes) —</p>
-      <div id="lobby-saves"></div>
+    <div id="lobby-newgame">
+      <p class="setup-hint">world options — slots and civs come next, in the lobby</p>
+      <label>Your name <input id="lobby-name" type="text" maxlength="24" value="Player 1"></label>
+      <label>Map size
+        <select id="lobby-size">${SIZES.map(s =>
+          `<option value="${s}"${s === options.size ? ' selected' : ''}>${s}</option>`).join('')}</select>
+      </label>
+      <label>Starting age
+        <select id="lobby-age">${AGES.map(a =>
+          `<option value="${a}"${a === options.age ? ' selected' : ''}>${a}</option>`).join('')}</select>
+      </label>
+      <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
+      <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
+      <label>List publicly <input id="lobby-public" type="checkbox"></label>
+      <p class="setup-hint">spectators see the whole map — admit people you'd
+        let stand behind your chair; listed games appear on everyone's
+        Browse screen, no code needed (both off by default)</p>
+      <button id="setup-start">Create game</button>
+      <button id="lobby-resume-toggle" class="setup-lan-btn">Resume game</button>
     </div>
-    <div id="lobby-resume-code">
-      <p class="setup-hint">— or resume by game code (the code your save shows;
-        knowing it is the permission) —</p>
-      <label>Game code <input id="lobby-code" type="text" maxlength="20"
+    <div id="lobby-resumeview" class="hidden">
+      <p class="setup-hint">resume a saved game by its game code (the code your
+        save shows; knowing it is the permission — players re-pick their
+        seats by name)</p>
+      <label>Game code <input id="lobby-code-input" type="text" maxlength="20"
         placeholder="e.g. ABCD-EFGH-JKLMN"></label>
-      <button id="lobby-code-btn" class="setup-lan-btn">Resume from code</button>
+      <button id="lobby-code-btn">Validate and start</button>
+      <button id="lobby-resume-back" class="setup-lan-btn">← new game</button>
+      <div id="lobby-resume" class="hidden">
+        <p class="setup-hint">— saves on this host (--debug only) —</p>
+        <div id="lobby-saves"></div>
+      </div>
     </div>
     <p class="setup-hint"><a href="./">← back</a> · <a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a></p>`;
+  const newView = document.getElementById('lobby-newgame');
+  const resumeView = document.getElementById('lobby-resumeview');
+  document.getElementById('lobby-resume-toggle').addEventListener('click', () => {
+    newView.classList.add('hidden');
+    resumeView.classList.remove('hidden');
+  });
+  document.getElementById('lobby-resume-back').addEventListener('click', () => {
+    resumeView.classList.add('hidden');
+    newView.classList.remove('hidden');
+  });
   document.getElementById('setup-start').addEventListener('click', () => {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37
@@ -370,7 +390,7 @@ export function startHostFlow(box, options, flags) {
   // {t:'resumed'} reply (shared with the A34 pick-a-save flow above)
   document.getElementById('lobby-code-btn').addEventListener('click', () => {
     if (savesWs.readyState !== WebSocket.OPEN) { fail(box, 'no game server is running to resume from'); return; }
-    const code = document.getElementById('lobby-code').value.trim();
+    const code = document.getElementById('lobby-code-input').value.trim();
     savesWs.send(JSON.stringify({ t: 'resumeByCode', code }));
   });
 }

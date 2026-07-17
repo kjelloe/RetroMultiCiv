@@ -239,9 +239,17 @@ test('A34 resume from the host flow: listSaves inventory, resume loads + seats r
   const saveFile = path.join(__dirname, '..', 'saves', 'a34resume.json');
   game0.saveTo(saveFile);
   const wantCode = game0.code();
-  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false,
+  // L2: the inventory (codes included) answers only under --debug — on a
+  // production server listSaves is an information leak, so it returns empty
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false, debug: true,
     lobbyGameIdFn: (n => () => 'g' + (++n))(0) }); // L3b: deterministic ids for the literal-g1 probe
+  const sPlain = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
   try {
+    const plain = await connect(sPlain.port);
+    plain.send({ t: 'listSaves' });
+    const gated = await plain.expect(m => m.t === 'saves', 'gated inventory');
+    assert.deepStrictEqual(gated.saves, [], 'no --debug: the saves inventory stays closed');
+    plain.close();
     const host = await connect(s.port);
     // inventory: shape + the docs/07 code so the host can verify BEFORE playing
     host.send({ t: 'listSaves' });
@@ -276,6 +284,7 @@ test('A34 resume from the host flow: listSaves inventory, resume loads + seats r
     host.close();
   } finally {
     await s.close();
+    await sPlain.close();
     fs.rmSync(saveFile, { force: true });
   }
 });
