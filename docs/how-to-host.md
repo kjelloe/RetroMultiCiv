@@ -326,10 +326,21 @@ directory as the one thing worth backing up and keeping private.
 
 A host can resume any of these games from the client's lobby — either by
 picking it from the list, or by typing its **game code** (the code shown on
-every save is the resume passphrase: knowing it is the permission). Because a
-save is resumable by code, any future automatic cleanup of `saves/` must
-retire **completed or abandoned** games first and never evict a game a host
-might still resume — a live resumable save is not disk to reclaim.
+every save is the resume passphrase: knowing it is the permission).
+
+Because a save is resumable by code, the server's automatic `saves/` cleanup
+retires games in **priority tiers**, never by age alone: a game currently being
+played is never touched; **completed** games are retired first (oldest first);
+and a **resumable** save (finished-but-not, a game a host could still resume by
+its code) is only retired if the budget still doesn't fit once every completed
+game is gone. The budget is a count **and** a size cap: `--max-saves` (default
+100) and `--max-saves-mb` (default 500). Cleanup runs on boot and roughly once a
+minute; foreign files in `saves/` are ignored.
+
+The budget is nonetheless **hard**: if only resumable saves remain and the
+directory is still over budget, the oldest resumable is dropped. **Size the
+budget generously if you host long-lived resumable games** — resumable saves go
+last, but they are not immortal under a tight cap.
 
 ---
 
@@ -426,7 +437,20 @@ everything after the port):
 | `--size S`       | `medium`  | `xsmall`…`huge`.                                    |
 | `--game FILE`    | —         | Resume a saved server game (e.g. `saves/g42.json`). |
 | `--no-save`      | off       | Disable the autosave after each accepted command.  |
+| `--max-saves N`  | `100`     | `saves/` count budget; oldest completed/abandoned retire first, active never. |
+| `--max-saves-mb N` | `500`   | `saves/` size budget (MB); same rotation policy.   |
+| `--max-conns N`  | `200`     | Global concurrent WebSocket connections.           |
+| `--max-conns-per-ip N` | `16` | Concurrent connections from one IP.                |
+| `--max-games N`  | `50`      | Global concurrent games.                           |
+| `--creates-per-hour N` | `20` | New games created per IP per hour.                 |
+| `--joins-per-min N` | `30`   | Join/reserve attempts per IP per minute.           |
+| `--chat-per-min N` | `60`    | Chat messages per IP per minute.                   |
 | `--debug`        | off       | **Dev only.** Serves the WHOLE repo over HTTP.     |
+
+> The connection/game/rate caps default to **LAN-safe** numbers — a normal LAN
+> party never approaches them. Tighten them before promoting a host to the
+> public internet; they are the first line against enumeration floods,
+> game-spam, and connection exhaustion.
 
 > **Keep `--debug` off in production.** The default is hardened: only
 > `/client/`, `/engine/`, `/shared/`, and `/data/` are served, so `saves/`

@@ -20,6 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { createLimiter } from './limits.js';
+import { planRotation } from './rotation.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -73,7 +74,7 @@ export function startServer(opts) {
   const limiter = createLimiter({ now: opts.now, limits: opts.limits });
   // Bound rate-window memory under connect/disconnect churn; unref'd so it
   // never holds the process (or a test) open.
-  const sweepTimer = setInterval(() => limiter.sweep(), 60000);
+  const sweepTimer = setInterval(() => { limiter.sweep(); rotateSaves(); }, 60000);
   if (sweepTimer.unref) sweepTimer.unref();
   const saveFiles = {};    // gameId -> autosave path
   const autosave = opts.autosave !== false;
@@ -156,6 +157,39 @@ export function startServer(opts) {
   function savePath(gameId) {
     if (!saveFiles[gameId]) saveFiles[gameId] = path.join(SAVES, gameId + '.json');
     return saveFiles[gameId];
+  }
+  // A50 item 3 (USER rotation spec 2026-07-16): keep saves/ under a count AND
+  // size budget by retiring the OLDEST completed/abandoned games first; a game
+  // still LIVE in the registry (and not gameOver) is ACTIVE and never evicted —
+  // a resumable save is not disk to reclaim (docs/how-to-host.md). Ours-only
+  // (the retromulticiv-server-save envelope); foreign files are left alone.
+  // Called at startup and on the maintenance sweep, not per-command.
+  function rotateSaves() {
+    if (!autosave) return;
+    let names;
+    try { names = fs.existsSync(SAVES) ? fs.readdirSync(SAVES) : []; } catch (e) { return; }
+    const files = [];
+    for (const f of names) {
+      if (!f.endsWith('.json')) continue;
+      const p = path.join(SAVES, f);
+      try {
+        const env = JSON.parse(fs.readFileSync(p, 'utf8'));
+        if (env.format !== 'retromulticiv-server-save') continue;
+        files.push({
+          path: p, gameId: env.gameId, savedAt: env.savedAt, sizeBytes: fs.statSync(p).size,
+          over: !!(env.state && env.state.gameOver === true) // completed → tier 1, else resumable → tier 2
+        });
+      } catch (e) { /* foreign/corrupt/mid-write: not ours to rotate */ }
+    }
+    const active = {};
+    for (const g of registry.list()) {
+      const e = registry.entryOf(g.gameId);
+      const over = e && e.game && e.game.state && e.game.state.gameOver === true;
+      if (!over) active[g.gameId] = true; // finished games are rotatable, live ones never
+    }
+    for (const victim of planRotation(files, active, opts.rotation)) {
+      try { fs.unlinkSync(victim); } catch (e) { /* already gone */ }
+    }
   }
   // A34/A98: load a saves/ envelope into a live game and answer the caller.
   // Shared by resume (by filename) and resumeByCode (by the docs/07 code).
@@ -484,6 +518,7 @@ export function startServer(opts) {
         for (const g of registry.list()) {
           const e = registry.entryOf(g.gameId);
           if (!e || e.options.public !== true) continue; // private-by-default
+          if (e.game && e.game.state && e.game.state.gameOver === true) continue; // A50 item 3: finished games unlist
           const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
           const total = Object.values(e.seats).filter(x => x.human).length;
           if (e.status === 'lobby' && open === 0) continue; // full lobbies drop off
@@ -680,6 +715,8 @@ export function startServer(opts) {
     });
   });
 
+  rotateSaves(); // A50 item 3: trim a bloated saves/ dir on boot, before serving
+
   return new Promise(resolve => {
     // 0.0.0.0 so LAN machines can reach the game (the CLI default);
     // tests pass host '127.0.0.1' explicitly to stay loopback-only
@@ -687,6 +724,7 @@ export function startServer(opts) {
       resolve({
         port: httpServer.address().port,
         game: defaultGame,
+        rotateSaves, // exposed so tests can trigger rotation deterministically
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
           for (const ws of conns.keys()) ws.terminate();
@@ -713,6 +751,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else if (a === '--no-spectators') opts.spectators = false;
+    // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
+    else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
+    else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
+    // A50 item 2 rate/cap tuning (LAN-safe defaults otherwise; docs/how-to-host.md)
+    else if (a === '--max-conns') (opts.limits = opts.limits || {}).maxConns = Number(argv[++i]);
+    else if (a === '--max-conns-per-ip') (opts.limits = opts.limits || {}).maxConnsPerIp = Number(argv[++i]);
+    else if (a === '--max-games') (opts.limits = opts.limits || {}).maxGames = Number(argv[++i]);
+    else if (a === '--creates-per-hour') (opts.limits = opts.limits || {}).createsPerHour = Number(argv[++i]);
+    else if (a === '--joins-per-min') (opts.limits = opts.limits || {}).joinsPerMin = Number(argv[++i]);
+    else if (a === '--chat-per-min') (opts.limits = opts.limits || {}).chatPerMin = Number(argv[++i]);
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }

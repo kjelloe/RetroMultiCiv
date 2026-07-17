@@ -176,8 +176,19 @@ server {
     <tr><td><code>--size S</code></td><td>medium</td><td><code>xsmall</code>…<code>huge</code>.</td></tr>
     <tr><td><code>--game FILE</code></td><td>—</td><td>Resume a saved server game.</td></tr>
     <tr><td><code>--no-save</code></td><td>off</td><td>Disable autosave after each command.</td></tr>
+    <tr><td><code>--max-saves N</code></td><td>100</td><td><code>saves/</code> count budget; oldest completed/abandoned retire first, active never.</td></tr>
+    <tr><td><code>--max-saves-mb N</code></td><td>500</td><td><code>saves/</code> size budget (MB); same policy.</td></tr>
+    <tr><td><code>--max-conns N</code></td><td>200</td><td>Global concurrent connections.</td></tr>
+    <tr><td><code>--max-conns-per-ip N</code></td><td>16</td><td>Concurrent connections from one IP.</td></tr>
+    <tr><td><code>--max-games N</code></td><td>50</td><td>Global concurrent games.</td></tr>
+    <tr><td><code>--creates-per-hour N</code></td><td>20</td><td>New games per IP per hour.</td></tr>
+    <tr><td><code>--joins-per-min N</code></td><td>30</td><td>Join attempts per IP per minute.</td></tr>
+    <tr><td><code>--chat-per-min N</code></td><td>60</td><td>Chat messages per IP per minute.</td></tr>
     <tr><td><code>--debug</code></td><td>off</td><td><strong>Dev only</strong> — serves the whole repo.</td></tr>
   </table>
+  <div class="note">The connection/game/rate caps default to <strong>LAN-safe</strong>
+  numbers — tighten them before promoting a host to the public internet
+  (enumeration floods, game-spam, connection exhaustion).</div>
   <div class="note"><strong>Keep <code>--debug</code> off in production.</strong>
   The default is hardened: only <code>/client/</code>, <code>/engine/</code>,
   <code>/shared/</code>, and <code>/data/</code> are served, so

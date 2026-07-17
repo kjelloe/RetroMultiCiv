@@ -510,3 +510,39 @@ test('A50 item 2: per-IP rate limits + global caps reject over the socket', asyn
     c1.close(); c2.close(); c3.close();
   } finally { await s.close(); }
 });
+
+test('A50 item 3: saves/ rotation retires oldest completed first, never the active game', async () => {
+  const { startServer } = await import('../server/index.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-rot-'));
+  const env = (gameId, savedAt, over) => JSON.stringify({
+    format: 'retromulticiv-server-save', gameId, code: 'AAAA-AAAA-AAAAA', savedAt,
+    state: over ? { turn: 200, gameOver: true } : { turn: 1 }
+  });
+  // 'live' is the server's default (registered → ACTIVE) and the OLDEST on disk;
+  // n1..n3 are unrelated RESUMABLE games (newer); done1 is a COMPLETED game and
+  // the NEWEST of all — the tier policy must retire it BEFORE the older resumables.
+  fs.writeFileSync(path.join(dir, 'live.json'), env('live', '2026-07-10T00:00:00.000Z'));
+  fs.writeFileSync(path.join(dir, 'n1.json'), env('n1', '2026-07-11T00:00:00.000Z'));
+  fs.writeFileSync(path.join(dir, 'n2.json'), env('n2', '2026-07-12T00:00:00.000Z'));
+  fs.writeFileSync(path.join(dir, 'n3.json'), env('n3', '2026-07-13T00:00:00.000Z'));
+  fs.writeFileSync(path.join(dir, 'done1.json'), env('done1', '2026-07-14T00:00:00.000Z', true));
+  // Also drop a foreign file — rotation must leave it alone.
+  fs.writeFileSync(path.join(dir, 'notours.json'), JSON.stringify({ format: 'something-else' }));
+
+  const s = await startServer({
+    ruleset: RULESET, seed: 9, civs: 2, humans: 1, size: 'xsmall',
+    savesDir: dir, gameId: 'live', rotation: { maxSaves: 2, maxSavesMb: 9999 }
+  });
+  try {
+    s.rotateSaves(); // idempotent with the startup pass; deterministic
+    // budget 2 over 5 saves: evict done1 (completed, tier 1) FIRST despite being
+    // the newest, then the two oldest resumables (n1, n2). Survivors: the ACTIVE
+    // live game (never evicted, though oldest) + the newest resumable n3.
+    assert.ok(fs.existsSync(path.join(dir, 'live.json')), 'the active game is never evicted');
+    assert.ok(!fs.existsSync(path.join(dir, 'done1.json')), 'the completed game retires first (tier 1), newest though it is');
+    assert.ok(!fs.existsSync(path.join(dir, 'n1.json')), 'oldest resumable retired (tier 2)');
+    assert.ok(!fs.existsSync(path.join(dir, 'n2.json')), 'next-oldest resumable retired');
+    assert.ok(fs.existsSync(path.join(dir, 'n3.json')), 'the newest resumable survives');
+    assert.ok(fs.existsSync(path.join(dir, 'notours.json')), 'foreign files untouched');
+  } finally { await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
