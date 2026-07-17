@@ -32,10 +32,12 @@ wiki-informed) — labeled below.
 1. **State (omit-safe):** `player.spaceship` object ABSENT until the civ
    builds its first part (old hashes stable). Shape:
    `{ structural, propulsion, fuel, habitation, lifeSupport, solar,
-   launched (0|turn), arrivalTurn }` — integer counters only. Global
-   `state.apolloDone` boolean set by the existing wonder-completion path.
+   launched (0|turn), arrivalTurn }` — integer counters only. The Apollo
+   gate is DERIVED, not stored: `wonderActive(state, 'apollo-program',
+   ruleset)` (the Oracle pattern) — no redundant boolean, no
+   disagreement risk (reviewer #1262 REVIEW 2, adopted).
 2. **Production:** producing.kind 'ss-part' with id in the six part ids;
-   gated on apolloDone + the part tech + the per-type max; completion
+   gated on the derived Apollo check + the part tech + the per-type max; completion
    increments the counter (auto-attach — no placement decisions in
    engine). SS buy uses buyGoldPerShieldSS.
 3. **Derived characteristics (pure function, both engines):**
@@ -50,15 +52,21 @@ wiki-informed) — labeled below.
      mass over thrust — `flightYears = max(5, idiv(mass * 10, max(1,
      poweredEngines * 1600)))` — sim-runner SWEEPS the constants for a
      15–40-year typical window before goldens freeze.
-   - successPct = idiv(supportPct + energyPct, 2), floored to 5 if the
-     minimum-viable set is present, 0 otherwise.
-   - STRUCTURAL SUFFICIENCY (simplification, labeled original): rather
-     than the graph-connection red-box model, parts FUNCTION only up to
-     the structurally supported count: supported = idiv(structural * 13,
-     39) part-slots (≈ Civ1's 39-structure-for-13-parts full frame);
-     excess parts count mass but not function. (The full connection graph
-     is presentation-side in Civ1; the counter model keeps engine state
-     flat — the H8 screen may still DRAW the frame graphically.)
+   - successPct = idiv(supportPct + energyPct, 2) - idiv(max(0,
+     flightYears - 15), 2), clamped to [5, 100] when the minimum-viable
+     set is present, 0 otherwise — the flight term adopts the wiki's
+     third qualitative input ("the faster the flight, the higher the
+     expected survival"); its constants join the sim sweep.
+   - STRUCTURAL SUFFICIENCY (simplification, labeled original;
+     reviewer-verified FAITHFUL to the wiki's functional red-box rule —
+     only the connection GEOMETRY is presentation): parts FUNCTION only
+     up to the structurally supported count: supported =
+     idiv(structural * 28, 39) part-slots — 28 non-structural parts
+     (8+8+4+4+4) supported at the full 39 structure, integer-exact at
+     both endpoints (reviewer #1262 corrected the original 13-slot
+     constant, which would have crippled a maxed wiki ship); excess
+     parts count mass but not function. The H8 screen may still DRAW
+     the frame graphically from the counters.
 4. **Commands:** `launchShip` (owner, viable ship, not launched →
    launched = turn, arrivalTurn = turn + idiv(flightYears, yearsPerTurn
    at that era via the existing year table)); no recall. `endTurn` wrap:
