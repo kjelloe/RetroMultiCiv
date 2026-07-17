@@ -1330,23 +1330,29 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						local armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
 							+ attackerBaseOf(ruleset, S)
 						local underArmy = attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget
+						-- N9: economy pick hoisted so a RESERVE slot builds it ABOVE the perpetual
+						-- military slots (underArmy ~always true starved the dead-last economy).
+						-- aiEconReserve = buildings built with priority before the army resumes;
+						-- DEFAULT 0 = identity (#buildings < 0 never true, inert). Matches engine/ai.js.
+						local econBuilding = stanceBuilding(city, me, ruleset, S)
+						local econWonder = if econBuilding == nil then nextWonder(state, me, ruleset) else nil
+						local econItem = if econBuilding ~= nil then { kind = "building", id = econBuilding } elseif econWonder ~= nil then { kind = "wonder", id = econWonder } else nil
+						local econReserve = if ruleset.rules.aiEconReserve == nil then 0 else ruleset.rules.aiEconReserve
+						local builtCount = if city.buildings == nil then 0 else #city.buildings
+						local underReserve = econItem ~= nil and builtCount < econReserve
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
+						elseif underReserve then
+							want = econItem
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
 						elseif navyWant and isCoastal(state, city.x, city.y, ruleset) then
 							want = { kind = "unit", id = navySeaUnit }
-						else
-							local building = stanceBuilding(city, me, ruleset, S)
-							local wonder = if building == nil then nextWonder(state, me, ruleset) else nil
-							if building ~= nil then
-								want = { kind = "building", id = building }
-							elseif wonder ~= nil then
-								want = { kind = "wonder", id = wonder }
-							elseif defenders >= 3
-								or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
-								want = { kind = "unit", id = "settlers" }
-							end
+						elseif econItem ~= nil then
+							want = econItem
+						elseif defenders >= 3
+							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
+							want = { kind = "unit", id = "settlers" }
 						end
 					end
 				end

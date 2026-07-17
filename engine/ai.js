@@ -1114,26 +1114,41 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
           + attackerBaseOf(ruleset, S);
         const underArmy = attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget;
+        // N9: the economy pick (cheapest missing building, else the cheapest
+        // eligible wonder), hoisted so a RESERVE slot can build it ABOVE the
+        // perpetual military slots. Under constant threat underArmy is ~always
+        // true, which left the dead-last economy branch unreachable (0 buildings,
+        // 0 wonders ever). aiEconReserve = how many buildings a city builds with
+        // priority over the standing army before the army resumes. DEFAULT 0 is
+        // identity: buildings.length < 0 is never true, so the reserve slot is
+        // inert and the build order is unchanged (dormant capability; the
+        // sim-runner sweeps aiEconReserve to activate it). Min-defense + walls
+        // stay ABOVE the reserve, so defense is never abandoned.
+        const econBuilding = stanceBuilding(city, me, ruleset, S);
+        const econWonder = econBuilding === null ? nextWonder(state, me, ruleset) : null;
+        const econItem = econBuilding !== null ? { kind: 'building', id: econBuilding }
+          : econWonder !== null ? { kind: 'wonder', id: econWonder } : null;
+        const econReserve = ruleset.rules.aiEconReserve === undefined ? 0 : ruleset.rules.aiEconReserve;
+        const builtCount = city.buildings === undefined ? 0 : city.buildings.length;
+        const underReserve = econItem !== null && builtCount < econReserve;
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
+        } else if (underReserve) {
+          want = econItem; // N9: economy reserve — above the standing army, below defense/walls
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
         } else if (navyWant && isCoastal(state, city.x, city.y, ruleset)) {
           // N3: a coastal city of a naval civ, land core secured, fleet under
           // target -> build a ship (above generic buildings/wonders).
           want = { kind: 'unit', id: navySeaUnit };
-        } else {
-          const building = stanceBuilding(city, me, ruleset, S);
-          const wonder = building === null ? nextWonder(state, me, ruleset) : null;
-          if (building !== null) want = { kind: 'building', id: building };
-          else if (wonder !== null) want = { kind: 'wonder', id: wonder };
-          else if (defenders.length >= 3
-                   || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
-            // enough army empire-wide: garrison surplus now roams (escorts,
-            // explorers), so the LOCAL count alone no longer saturates —
-            // without this cap a tech-starved civ mints militia forever
-            want = { kind: 'unit', id: 'settlers' };
-          }
+        } else if (econItem !== null) {
+          want = econItem;
+        } else if (defenders.length >= 3
+                 || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
+          // enough army empire-wide: garrison surplus now roams (escorts,
+          // explorers), so the LOCAL count alone no longer saturates —
+          // without this cap a tech-starved civ mints militia forever
+          want = { kind: 'unit', id: 'settlers' };
         }
       }
     }

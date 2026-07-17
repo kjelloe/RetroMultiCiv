@@ -467,3 +467,56 @@ test('batch 4: a temple calms the city and the tiles go back to auto', async () 
   assert.strictEqual(after.cities.c9.workers, undefined,
     'reverted to auto (setWorkers auto:true clears manual mode)');
 });
+
+// N9: the production reorder. aiEconReserve gives BUILDINGS/WONDERS a reserved
+// slot ABOVE the perpetual military slots — under constant threat underArmy is
+// ~always true, which left the dead-last economy pick unreachable (0 buildings,
+// 0 wonders). The reserve = how many buildings a city builds with priority over
+// the standing army; DEFAULT 0 is identity (buildings.length < 0 never true).
+// Min-defense + walls stay above the reserve. Empire-wide, wonder-inclusive.
+test('N9: aiEconReserve builds an economy item before the standing army; 0 = identity', async () => {
+  const { ai } = await load();
+  // one defended city (militia), two settlers afield (settler target met), an
+  // attacker unlocked (iron-working -> legion), under the army target, buildings
+  // empty. At reserve 0 the army slot wins; at reserve 1 the reserve slot fires.
+  const mk = () => grassState(9, 9, {
+    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+    us1: { id: 'us1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
+    us2: { id: 'us2', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } }
+  }, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['bronze-working', 'iron-working'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const doneAll = { happiness: true, research: true, rates: true, government: true, buy: true };
+  // reserve 0 (identity): economy stays dead-last -> the army slot -> legion
+  const r0 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 0 }), Object.assign({}, doneAll));
+  assert.strictEqual(r0.item.kind, 'unit', 'reserve 0: economy dead-last -> military');
+  assert.strictEqual(r0.item.id, 'legion');
+  // reserve 1: the economy reserve slot fires above the army -> a building
+  const r1 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 1 }), Object.assign({}, doneAll));
+  assert.strictEqual(r1.item.kind, 'building', 'reserve 1: an economy item is built before the 2nd attacker');
+});
+
+test('N9: a wonder-eligible city reaches the wonder via the reserve slot', async () => {
+  const { ai } = await load();
+  // all buildings already built -> stanceBuilding null -> the economy item is the
+  // eligible wonder; an attacker is unlocked so at reserve 0 the army starves it.
+  const allBuildings = Object.keys(RULESET.buildings);
+  const mk = () => grassState(9, 9, {
+    ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+    us1: { id: 'us1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false },
+    us2: { id: 'us2', type: 'settlers', owner: 'p1', x: 8, y: 8, moves: 1, fortified: false, veteran: false }
+  }, {
+    c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: allBuildings, producing: { kind: 'unit', id: 'settlers' } }
+  }, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['bronze-working', 'iron-working', 'masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const doneAll = { happiness: true, research: true, rates: true, government: true, buy: true };
+  // reserve 0: the army slot wins -> the wonder is starved
+  const r0 = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 0 }), Object.assign({}, doneAll));
+  assert.strictEqual(r0.item.kind, 'unit', 'reserve 0: wonder starved by the army slot');
+  // reserve above builtCount: the reserve slot reaches the wonder
+  const rW = ai.pickCommand(mk(), 'p1', withRules({ aiEconReserve: 99 }), Object.assign({}, doneAll));
+  assert.strictEqual(rW.item.kind, 'wonder', 'reserve: a wonder-eligible city reaches the wonder');
+});

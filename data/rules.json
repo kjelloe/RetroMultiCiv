@@ -50,6 +50,7 @@
   "aiNavyRadius": 6,
   "aiNavyAfterLandUnits": 3,
   "aiNavyTargetCap": 4,
+  "aiEconReserve": 0,
   "aiWarDoctrine": {
     "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
     "3": { "massSize": 4, "oddsGatePct": 200, "defenderGatePct": 200 }
