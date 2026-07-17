@@ -328,19 +328,93 @@ local function renderCities(view)
 	end
 end
 
+-- session-E round 15 (user): DANGER overlay — any visible enemy unit standing
+-- adjacent (king-move) to an own city or own unit gets a transparent red
+-- quad on its tile. Pure view read; fog is respected by construction (only
+-- units the filter shows can threaten).
+local dangerFolder = Instance.new("Folder")
+dangerFolder.Name = "DangerTiles"
+dangerFolder.Parent = world
+
+local function adjacentWrap(map, ax, ay, bx, by)
+	local dx = math.abs(ax - bx)
+	if map.wrapX then
+		dx = math.min(dx, map.width - dx)
+	end
+	return dx <= 1 and math.abs(ay - by) <= 1
+end
+
+local function renderDanger(view)
+	dangerFolder:ClearAllChildren()
+	local own = {} -- own units + cities, the assets a neighbor can threaten
+	for _, u in pairs(view.units) do
+		if u.owner == view.you then
+			table.insert(own, u)
+		end
+	end
+	for _, c in pairs(view.cities) do
+		if c.owner == view.you then
+			table.insert(own, c)
+		end
+	end
+	local marked = {}
+	for _, u in pairs(view.units) do
+		if u.owner ~= view.you then
+			local key = u.y * view.map.width + u.x
+			if marked[key] == nil then
+				for _, a in ipairs(own) do
+					if adjacentWrap(view.map, u.x, u.y, a.x, a.y) then
+						marked[key] = true
+						local quad = Instance.new("Part")
+						quad.Anchored = true
+						quad.CanCollide = false
+						quad.CanQuery = false
+						quad.Size = Vector3.new(TILE * 0.95, 0.15, TILE * 0.95)
+						quad.CFrame = CFrame.new(u.x * TILE,
+							tileTop(view.map.tiles[u.y * view.map.width + u.x + 1].t) + 0.35,
+							u.y * TILE)
+						quad.Color = Color3.fromRGB(220, 50, 40)
+						quad.Material = Enum.Material.Neon
+						quad.Transparency = 0.65
+						quad.Parent = dangerFolder
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
 ClientState.onView(function(view)
 	renderTerrain(view)
 	renderUnits(view)
 	renderCities(view)
+	renderDanger(view)
 end)
 
--- a look change repaints terrain + cities on the next frame (cheap compare)
+-- R20: the enhanced look owns a subtle Atmosphere (depth haze) — removed
+-- cleanly in retro; procedural, no assets
+local Lighting = game:GetService("Lighting")
+local atmosphere = Instance.new("Atmosphere")
+atmosphere.Density = 0.28
+atmosphere.Offset = 0.2
+atmosphere.Haze = 1.4
+atmosphere.Color = Color3.fromRGB(215, 225, 240)
+
+local function applyLookExtras(look)
+	atmosphere.Parent = look == "enhanced" and Lighting or nil
+end
+applyLookExtras(lookOf())
+
+-- a look change repaints terrain + cities + units on the next frame
 local lastLook = nil
 game:GetService("RunService").Heartbeat:Connect(function()
 	local look = lookOf()
 	if lastLook ~= nil and look ~= lastLook and ClientState.view ~= nil then
 		renderTerrain(ClientState.view)
 		renderCities(ClientState.view)
+		renderUnits(ClientState.view) -- unit materials come from AssetFactory's look map
+		applyLookExtras(look)
 	end
 	lastLook = look
 end)

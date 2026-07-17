@@ -23,7 +23,9 @@ local M = {
 	options = { autoNextUnit = true, autoEndTurn = true,
 		hideFuture = false, hideNoMovesHint = false,
 		clock = "off", voidArt = "frame", ridePad = nil,
-		look = "retro" }, -- visual-fidelity toggle (#1100): retro|enhanced
+		look = "retro", -- visual-fidelity toggle (#1100): retro|enhanced
+		-- session-E: pick research after 2 idle turns (Options acts on it)
+		autoResearch = true },
 }
 
 local viewCallbacks = {}
@@ -31,6 +33,8 @@ local cityOpenCallbacks = {}
 local eventCallbacks = {} -- R6: filtered round events riding view pushes
 local researchOpenCallbacks = {} -- R6: research picker open/toggle channel
 local governmentOpenCallbacks = {} -- R12 (2): government panel open/toggle channel
+local cityListToggleCallbacks = {} -- session-E round 18: the Cities button
+local rejectedCallbacks = {} -- round 21: visible reject feedback (Hud)
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -98,6 +102,22 @@ end
 -- R7a (12)(15): next own idle unit — input.js:255 semantics: skip fortified
 -- and working units (they stay reachable by hand-click), NEAREST first from
 -- the anchor unit so the camera glides instead of teleporting
+-- session-E round 19 (user): a unit standing in an OWN CITY is a garrison —
+-- it never auto-cycles (N / auto-next) and never blocks End Turn ("N can
+-- move!"); an explicit click (or ride) still selects it as before.
+function M.isGarrisoned(u)
+	local view = M.view
+	if view == nil or u == nil then
+		return false
+	end
+	for _, c in pairs(view.cities) do
+		if c.owner == M.playerId and c.x == u.x and c.y == u.y then
+			return true
+		end
+	end
+	return false
+end
+
 function M.nextOwnUnit(excludeId)
 	local view = M.view
 	if view == nil then
@@ -106,11 +126,21 @@ function M.nextOwnUnit(excludeId)
 	local movable = {}
 	for id, u in pairs(view.units) do
 		if u.owner == view.you and u.moves > 0 and u.fortified ~= true
-			and u.working == nil and id ~= excludeId then
+			and u.working == nil and id ~= excludeId
+			and not M.isGarrisoned(u) then -- round 19: garrisons sit out
 			table.insert(movable, u)
 		end
 	end
 	if #movable == 0 then
+		-- session-E round 10 (user bug report): if the ONLY movable unit is
+		-- the current one, return it — otherwise N reports "no units with
+		-- moves left" while End Turn correctly warns "1 can move"
+		local cur = excludeId ~= nil and view.units[excludeId] or nil
+		if cur ~= nil and cur.owner == view.you and cur.moves > 0
+			and cur.fortified ~= true and cur.working == nil
+			and not M.isGarrisoned(cur) then
+			return excludeId
+		end
 		return nil
 	end
 	table.sort(movable, function(a, b)
@@ -142,6 +172,20 @@ function M.openResearch()
 	end
 end
 
+function M.onRejected(cb)
+	table.insert(rejectedCallbacks, cb)
+end
+
+function M.onCityListToggle(cb)
+	table.insert(cityListToggleCallbacks, cb)
+end
+
+function M.toggleCityList()
+	for _, cb in ipairs(cityListToggleCallbacks) do
+		cb()
+	end
+end
+
 function M.onGovernmentOpen(cb)
 	table.insert(governmentOpenCallbacks, cb)
 end
@@ -162,8 +206,19 @@ end
 function M.send(cmdTable)
 	local id = nextCommandId
 	nextCommandId += 1
+	M.lastActivity = os.clock() -- R22: any command counts as activity
 	remote:FireServer({ t = "cmd", commandId = id, cmd = cmdTable })
 	return id
+end
+
+-- R22: AI-regency away state. Server-authoritative — M.away flips only on
+-- the server's ack; Hud owns the toggle icon + idle countdown.
+M.away = false
+M.maxIdleMin = 1
+M.lastActivity = os.clock()
+
+function M.setAway(on)
+	remote:FireServer({ t = "away", on = on == true })
 end
 
 function M.myTurn()
@@ -191,11 +246,29 @@ remote.OnClientEvent:Connect(function(msg)
 		M.playerId = msg.playerId
 		print(("[Client] joined as %s (turn %d, %s active)"):format(msg.playerId, msg.turn, msg.activePlayer))
 	end
+	if msg.t == "saved" then
+		-- R23: rolling autosave landed; Hud shows the latest resumable code
+		M.lastSave = { code = msg.code, turn = msg.turn }
+		print(("[Client] autosaved at turn %d - resume code %s"):format(msg.turn, msg.code))
+	end
+	if msg.t == "away" then
+		-- R22: server ack for regency hand-over/reclaim; reset the idle clock
+		-- so a fresh countdown never fires the moment a seat is taken back
+		M.away = msg.on == true
+		M.lastActivity = os.clock()
+		print("[Client] AI regency " .. (M.away and "ON (regent plays your seat)" or "OFF (your seat)"))
+	end
 	if msg.t == "joined" or msg.t == "view" then
 		M.view = msg.view
 		M.gameOver = msg.gameOver == true
 		if msg.code ~= nil then
 			M.code = msg.code -- R7d: the docs/07 game verification code
+		end
+		if msg.maxIdleMin ~= nil then
+			M.maxIdleMin = msg.maxIdleMin -- R22: host knob rides the push
+		end
+		if msg.away ~= nil then
+			M.away = msg.away == true
 		end
 		if M.selectedUnitId ~= nil and M.view.units[M.selectedUnitId] == nil then
 			M.selectedUnitId = nil -- unit died or left our sight
@@ -213,6 +286,9 @@ remote.OnClientEvent:Connect(function(msg)
 		end
 	elseif msg.t == "rejected" then
 		print(("[Client] rejected (commandId %s): %s"):format(tostring(msg.commandId), tostring(msg.code)))
+		for _, cb in ipairs(rejectedCallbacks) do
+			cb(tostring(msg.code)) -- round 21: Hud shows the red banner
+		end
 	end
 end)
 

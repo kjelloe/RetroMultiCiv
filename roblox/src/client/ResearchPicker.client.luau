@@ -14,6 +14,8 @@ local UserInputService = game:GetService("UserInputService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
+local lastRowClick = nil -- session-E round 12: double-click select-and-close
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCResearch"
 gui.ResetOnSpawn = false
@@ -123,6 +125,30 @@ local function refresh()
 		row.Activated:Connect(function()
 			print("[Research] setResearch " .. id)
 			ClientState.send({ type = "setResearch", tech = id })
+			-- session-E round 12 (user): DOUBLE-CLICK selects AND closes
+			local now = os.clock()
+			if lastRowClick ~= nil and lastRowClick.id == id and now - lastRowClick.t < 0.5 then
+				lastRowClick = nil
+				gui.Enabled = false
+				return
+			end
+			lastRowClick = { id = id, t = now }
+		end)
+		-- touch: LONG-PRESS (>=0.5s) selects and closes (the double-click twin)
+		local touchStart = nil
+		row.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				touchStart = os.clock()
+			end
+		end)
+		row.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and touchStart ~= nil then
+				if os.clock() - touchStart >= 0.5 then
+					ClientState.send({ type = "setResearch", tech = id })
+					gui.Enabled = false
+				end
+				touchStart = nil
+			end
 		end)
 	end
 	list.CanvasSize = UDim2.new(0, 0, 0, order * 24)

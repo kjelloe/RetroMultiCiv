@@ -53,7 +53,7 @@ return [==[{
   "aiNavyRadius": 6,
   "aiNavyAfterLandUnits": 3,
   "aiNavyTargetCap": 4,
-  "aiEconReserve": 0,
+  "aiBuilderPct": 35,
   "aiWarDoctrine": {
     "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
     "3": { "massSize": 4, "oddsGatePct": 200, "defenderGatePct": 200 }
@@ -68,6 +68,7 @@ return [==[{
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
   "contentCitizens": 4,
+  "settlerFoodUpkeep": 1,
   "luxPerStep": 2,
   "specialistOutput": 2,
   "revolutionTurns": 2,

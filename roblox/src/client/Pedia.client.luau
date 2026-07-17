@@ -17,15 +17,22 @@ gui.Name = "RMCPedia"
 gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- session-E: top-right button row beside Options (its panel opens below,
+-- so this button must not sit in that column)
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 70, 0, 24)
-openBtn.Position = UDim2.new(1, -78, 0, 60)
+openBtn.Size = UDim2.new(0, 78, 0, 36)
+openBtn.Position = UDim2.new(1, -244, 0, 8)
 openBtn.BackgroundColor3 = Color3.fromRGB(52, 64, 52)
 openBtn.TextColor3 = Color3.fromRGB(220, 240, 220)
 openBtn.Font = Enum.Font.SourceSansBold
-openBtn.TextSize = 14
-openBtn.Text = "PEDIA"
+openBtn.TextSize = 18
+openBtn.Text = "Pedia"
 openBtn.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = openBtn
+end
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 760, 0, 440)

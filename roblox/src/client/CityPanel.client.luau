@@ -10,10 +10,13 @@
 -- options.hideFuture hides the one-tech-lookahead rows entirely.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local WorkedTiles = require(script.Parent:WaitForChild("WorkedTiles")) -- R7c-3
 local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
+-- session-E round 13: read-only engine math for the rush-buy price preview
+local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -68,6 +71,51 @@ buyBtn.TextSize = 16
 buyBtn.Text = "Buy"
 buyBtn.Parent = panel
 
+-- session-E round 13 (user): rush-buy asks first — an inline confirmation
+-- stating the exact engine price (itemCost + buyGoldPerShield math, the
+-- same numbers buyProduction will charge; the server still judges)
+local buyConfirm = Instance.new("Frame")
+buyConfirm.Size = UDim2.new(0, 296, 0, 58)
+buyConfirm.Position = UDim2.new(0, 8, 0, 98)
+buyConfirm.BackgroundColor3 = Color3.fromRGB(46, 38, 22)
+buyConfirm.BorderSizePixel = 0
+buyConfirm.Visible = false
+buyConfirm.ZIndex = 5
+buyConfirm.Parent = panel
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = buyConfirm
+end
+local buyLabel = Instance.new("TextLabel")
+buyLabel.Size = UDim2.new(1, -12, 0, 24)
+buyLabel.Position = UDim2.new(0, 6, 0, 4)
+buyLabel.BackgroundTransparency = 1
+buyLabel.TextColor3 = Color3.fromRGB(245, 225, 180)
+buyLabel.Font = Enum.Font.SourceSansBold
+buyLabel.TextSize = 16
+buyLabel.TextXAlignment = Enum.TextXAlignment.Left
+buyLabel.ZIndex = 5
+buyLabel.Parent = buyConfirm
+local function confirmBtn(x, text, color)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(0, 64, 0, 24)
+	b.Position = UDim2.new(0, x, 0, 30)
+	b.BackgroundColor3 = color
+	b.TextColor3 = Color3.fromRGB(240, 240, 240)
+	b.Font = Enum.Font.SourceSansBold
+	b.TextSize = 15
+	b.Text = text
+	b.ZIndex = 5
+	b.Parent = buyConfirm
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = b
+	return b
+end
+local buyYes = confirmBtn(6, "Yes", Color3.fromRGB(148, 108, 46))
+local buyNo = confirmBtn(78, "No", Color3.fromRGB(60, 60, 66))
+
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -16, 1, -110)
 list.Position = UDim2.new(0, 8, 0, 102)
@@ -81,6 +129,8 @@ layout.Padding = UDim.new(0, 2)
 layout.Parent = list
 
 local openCityId = nil
+local closePanel -- forward-declared: addRow's double-click close needs it
+local lastProdClick = nil -- session-E round 12: double-click select-and-close
 
 local function sortedIds(t)
 	local ids = {}
@@ -112,9 +162,37 @@ local function addRow(order, kind, id, def, lockReason, effects)
 		twoLine and ('\n  <font size="12" color="#9db2c8">' .. effects .. "</font>") or "")
 	row.Parent = list
 	if not lockReason then
-		row.Activated:Connect(function()
+		local function pick()
 			print(("[CityPanel] setProduction %s -> %s %s"):format(openCityId, kind, id))
 			ClientState.send({ type = "setProduction", cityId = openCityId, item = { kind = kind, id = id } })
+		end
+		row.Activated:Connect(function()
+			pick()
+			-- session-E round 12 (user): DOUBLE-CLICK selects AND closes
+			local now = os.clock()
+			local key = kind .. ":" .. id
+			if lastProdClick ~= nil and lastProdClick.key == key and now - lastProdClick.t < 0.5 then
+				lastProdClick = nil
+				closePanel()
+				return
+			end
+			lastProdClick = { key = key, t = now }
+		end)
+		-- touch: LONG-PRESS (>=0.5s) selects and closes (the double-click twin)
+		local touchStart = nil
+		row.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch then
+				touchStart = os.clock()
+			end
+		end)
+		row.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.Touch and touchStart ~= nil then
+				if os.clock() - touchStart >= 0.5 then
+					pick()
+					closePanel()
+				end
+				touchStart = nil
+			end
 		end)
 	end
 	return twoLine and 38 or 24
@@ -173,6 +251,8 @@ local function addBuildingRow(order, id, def, price, sold)
 end
 
 local function refresh()
+	buyConfirm.Visible = false -- any view push may change gold/shields: never
+	-- leave a stale price on screen
 	local view = ClientState.view
 	if openCityId == nil or view == nil then
 		return
@@ -293,7 +373,7 @@ end)
 
 ClientState.onView(refresh)
 
-local function closePanel()
+function closePanel() -- assigns the forward declaration above addRow
 	gui.Enabled = false
 	openCityId = nil
 	WorkedTiles.hide()
@@ -302,10 +382,46 @@ closeBtn.Activated:Connect(closePanel)
 WorkedTiles.onCloseRequest(closePanel) -- the big in-world CLOSE button (run-4)
 
 buyBtn.Activated:Connect(function()
+	local view = ClientState.view
+	local city = view ~= nil and openCityId ~= nil and view.cities[openCityId] or nil
+	local me = view ~= nil and view.players[view.you] or nil
+	if city == nil or me == nil or city.producing == nil then
+		return
+	end
+	local rs = ClientState.rulesets()
+	local prod = city.producing
+	local def = prod.kind == "unit" and rs.units[prod.id]
+		or prod.kind == "building" and rs.buildings[prod.id]
+		or prod.kind == "wonder" and rs.wonders[prod.id]
+	local ok, cost = pcall(function()
+		return citiesModule.itemCost(prod.kind, prod.id, def, me, rs)
+	end)
+	if not ok or def == nil then
+		-- price preview failed: fall back to the old direct send, server judges
+		print("[CityPanel] buy in " .. openCityId)
+		ClientState.send({ type = "buy", cityId = openCityId })
+		return
+	end
+	local missing = cost - (city.shields or 0)
+	if missing <= 0 then
+		print("[CityPanel] nothing to buy - the box is full, completes at the turn wrap")
+		return
+	end
+	local rate = prod.kind == "wonder" and rs.rules.buyGoldPerShieldWonder or rs.rules.buyGoldPerShield
+	local price = missing * rate
+	buyLabel.Text = ("Rush buy %s for %d gold? (you have %d)")
+		:format(def.name or prod.id, price, me.gold or 0)
+	buyConfirm.Visible = true
+end)
+buyYes.Activated:Connect(function()
+	buyConfirm.Visible = false
 	if openCityId ~= nil then
 		print("[CityPanel] buy in " .. openCityId)
 		ClientState.send({ type = "buy", cityId = openCityId })
 	end
+end)
+buyNo.Activated:Connect(function()
+	buyConfirm.Visible = false
 end)
 
 print("[CityPanel] city panel up (R13 sell strip, R15 effects sublines, hideFuture wired)")

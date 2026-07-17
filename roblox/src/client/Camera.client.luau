@@ -24,6 +24,13 @@ local camera = workspace.CurrentCamera
 -- flow (city jumps, possession) breaks follow as before; F toggles it back.
 ClientState.followAvatar = true
 
+-- session-E: death/reset respawns on the deck (the SpawnLocation owns
+-- placement) and the CAMERA resets to following the fresh character
+Players.LocalPlayer.CharacterAdded:Connect(function()
+	ClientState.followAvatar = true
+	print("[Camera] respawn: follow-avatar reset ON")
+end)
+
 local focus = Vector3.new(0, 0, 0)
 -- center on our first unit when the first view arrives
 local centered = false

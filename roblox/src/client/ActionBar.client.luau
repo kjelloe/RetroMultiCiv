@@ -13,6 +13,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
@@ -20,9 +21,10 @@ gui.Name = "RMCActionBar"
 gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- session-E: buttons sized like CLOSE CITY VIEW (big, bold, rounded)
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 690, 0, 34)
-bar.Position = UDim2.new(0.5, -345, 1, -42)
+bar.Size = UDim2.new(0, 1060, 0, 50)
+bar.Position = UDim2.new(0.5, -530, 1, -58)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -40,33 +42,124 @@ local DISABLED = Color3.fromRGB(38, 40, 48)
 local buttons = {}
 local function addButton(order, text, width)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, width, 0, 26)
+	b.Size = UDim2.new(0, math.floor(width * 1.3), 0, 40)
 	b.LayoutOrder = order
 	b.BackgroundColor3 = DISABLED
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
 	b.Font = Enum.Font.SourceSansBold
-	b.TextSize = 15
+	b.TextSize = 18
 	b.Text = text
 	b.Parent = bar
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = b
 	table.insert(buttons, b)
 	return b
 end
 
+-- session-E round 14 (user): the selected tile's friendly units get TAB
+-- CARDS just above the action bar — ALWAYS shown for the selected/ridden
+-- unit (round 17: even alone), name + Attack/Defense/Moves per card,
+-- active unit highlighted; click selects (mounted: rides) it.
+local stackBar = Instance.new("Frame")
+stackBar.Size = UDim2.new(0, 940, 0, 38)
+stackBar.Position = UDim2.new(0.5, -470, 1, -100)
+stackBar.BackgroundTransparency = 1
+stackBar.Parent = gui
+local stackLayout = Instance.new("UIListLayout")
+stackLayout.FillDirection = Enum.FillDirection.Horizontal
+stackLayout.Padding = UDim.new(0, 4)
+stackLayout.SortOrder = Enum.SortOrder.LayoutOrder
+stackLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+stackLayout.Parent = stackBar
+
+local lastStackKey = nil
+RunService.Heartbeat:Connect(function()
+	local view = ClientState.view
+	local sel = view ~= nil and ClientState.selectedUnitId ~= nil
+		and view.units[ClientState.selectedUnitId] or nil
+	local ids = {}
+	if sel ~= nil then
+		for id, u in pairs(view.units) do
+			if u.owner == view.you and u.x == sel.x and u.y == sel.y then
+				table.insert(ids, id)
+			end
+		end
+		table.sort(ids)
+	end
+	local keyParts = {}
+	for _, id in ipairs(ids) do
+		local u = view.units[id]
+		-- moves/fortified join the key so the A/D/M line repaints on change
+		table.insert(keyParts, id .. ":" .. u.moves .. (u.fortified == true and "F" or ""))
+	end
+	local key = table.concat(keyParts, ",") .. "|" .. tostring(ClientState.selectedUnitId)
+		.. "|" .. tostring(ClientState.possessedUnitId)
+	if key == lastStackKey then
+		return
+	end
+	lastStackKey = key
+	for _, child in ipairs(stackBar:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+	if #ids < 1 then
+		return
+	end
+	local rs = ClientState.rulesets()
+	for i, id in ipairs(ids) do
+		local u = view.units[id]
+		local card = Instance.new("TextButton")
+		card.LayoutOrder = i
+		card.Size = UDim2.new(0, 132, 0, 36)
+		local active = id == ClientState.selectedUnitId
+		card.BackgroundColor3 = active and Color3.fromRGB(46, 88, 148) or Color3.fromRGB(34, 40, 54)
+		card.TextColor3 = Color3.fromRGB(235, 235, 235)
+		card.Font = Enum.Font.SourceSansBold
+		card.TextSize = 14
+		card.RichText = true
+		local def = rs.units[u.type]
+		-- round 17 (user): name + Attack/Defense/Moves always visible
+		card.Text = ("%s%s\n<font size=\"12\" color=\"#b8c6d8\">A%d D%d M%d/%d</font>")
+			:format(def and def.name or u.type,
+				u.fortified == true and " [F]" or (u.moves <= 0 and " ·" or ""),
+				def and def.attack or 0, def and def.defense or 0,
+				u.moves, def and def.moves or u.moves)
+		card.Parent = stackBar
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 8)
+		c.Parent = card
+		card.Activated:Connect(function()
+			print("[ActionBar] stack tab: " .. id)
+			if ClientState.possessedUnitId ~= nil then
+				ClientState.requestPossess(id) -- mounted: hop rides
+			else
+				ClientState.selectedUnitId = id
+			end
+		end)
+	end
+end)
+
 local foundBtn = addButton(1, "Found (B)", 90)
 local fortifyBtn = addButton(2, "Fortify (G)", 90)
 local waitBtn = addButton(3, "Wait (Spc)", 90)
-local disbandBtn = addButton(4, "Disband (X)", 100)
-local irrigateBtn = addButton(5, "Irr (I)", 70)
-local mineBtn = addButton(6, "Mine (M)", 70)
-local roadBtn = addButton(7, "Road (R)", 70)
-local possessBtn = addButton(8, "Ride (P)", 80)
+-- session-E round 20 (user): GoTo as a visible action — arms the same
+-- target-pick the O key uses; the plan then marches MULTI-TURN by design
+-- (GoToPlan re-plans and steps every turn until arrival)
+local gotoBtn = addButton(4, "GoTo (O)", 80)
+local disbandBtn = addButton(5, "Disband (X)", 100)
+local irrigateBtn = addButton(6, "Irr (I)", 70)
+local mineBtn = addButton(7, "Mine (M)", 70)
+local roadBtn = addButton(8, "Road (R)", 70)
+local possessBtn = addButton(9, "Ride (P)", 80)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
 -- live research-status line sits beside the Research button.
 local cluster = Instance.new("Frame")
-cluster.Size = UDim2.new(0, 560, 0, 30)
-cluster.Position = UDim2.new(0.5, -280, 0, 6)
+cluster.Size = UDim2.new(0, 760, 0, 46)
+cluster.Position = UDim2.new(0.5, -380, 0, 6)
 cluster.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 cluster.BackgroundTransparency = 0.25
 cluster.BorderSizePixel = 0
@@ -80,37 +173,69 @@ clusterLayout.Parent = cluster
 
 local researchBtn = Instance.new("TextButton")
 researchBtn.LayoutOrder = 1
-researchBtn.Size = UDim2.new(0, 110, 0, 24)
+researchBtn.Size = UDim2.new(0, 140, 0, 38)
 researchBtn.BackgroundColor3 = DISABLED
 researchBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 researchBtn.Font = Enum.Font.SourceSansBold
-researchBtn.TextSize = 15
+researchBtn.TextSize = 18
 researchBtn.Text = "Research (T)"
 researchBtn.Parent = cluster
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = researchBtn
+end
 
 -- R12 (5): always-visible research status (tech + turns remaining)
 local researchStatus = Instance.new("TextLabel")
 researchStatus.LayoutOrder = 2
-researchStatus.Size = UDim2.new(0, 260, 0, 24)
+researchStatus.Size = UDim2.new(0, 300, 0, 38)
 researchStatus.BackgroundTransparency = 1
 researchStatus.TextColor3 = Color3.fromRGB(180, 210, 240)
 researchStatus.Font = Enum.Font.SourceSansBold
-researchStatus.TextSize = 15
+researchStatus.TextSize = 17
 researchStatus.TextXAlignment = Enum.TextXAlignment.Left
 researchStatus.Text = ""
 researchStatus.Parent = cluster
+
+-- session-E round 18 (user): Cities button, LEFT of Government + Research —
+-- the C hotkey's clickable twin (ClientState.toggleCityList channel)
+local citiesBtn = Instance.new("TextButton")
+citiesBtn.LayoutOrder = -1
+citiesBtn.Size = UDim2.new(0, 110, 0, 38)
+citiesBtn.BackgroundColor3 = DISABLED
+citiesBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
+citiesBtn.Font = Enum.Font.SourceSansBold
+citiesBtn.TextSize = 18
+citiesBtn.Text = "Cities (C)"
+citiesBtn.Parent = cluster
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = citiesBtn
+end
+citiesBtn.Activated:Connect(function()
+	if ClientState.view ~= nil then
+		ClientState.toggleCityList()
+	end
+end)
 
 -- R12 (2): government button — panel hosts the rate steppers (and later
 -- the government switch). Run-4 live request: sits LEFT of Research.
 local governmentBtn = Instance.new("TextButton")
 governmentBtn.LayoutOrder = 0
-governmentBtn.Size = UDim2.new(0, 120, 0, 24)
+governmentBtn.Size = UDim2.new(0, 150, 0, 38)
 governmentBtn.BackgroundColor3 = DISABLED
 governmentBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 governmentBtn.Font = Enum.Font.SourceSansBold
-governmentBtn.TextSize = 15
+governmentBtn.TextSize = 18
 governmentBtn.Text = "Government"
 governmentBtn.Parent = cluster
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = governmentBtn
+end
 
 local function selectedUnit()
 	local view = ClientState.view
@@ -225,10 +350,19 @@ roadBtn.Activated:Connect(function()
 	doWork("road")
 end)
 researchBtn.Activated:Connect(function()
-	ClientState.openResearch()
+	if ClientState.view ~= nil then -- session-E: dead on the deck
+		ClientState.openResearch()
+	end
 end)
 governmentBtn.Activated:Connect(function()
-	ClientState.openGovernment()
+	if ClientState.view ~= nil then
+		ClientState.openGovernment()
+	end
+end)
+gotoBtn.Activated:Connect(function()
+	if ClientState.view ~= nil then
+		GoToPlan.arm() -- toggles target-pick; the next map click is the target
+	end
 end)
 possessBtn.Activated:Connect(function()
 	-- R12 (6): the button IS the P toggle now — ride the selected unit or
@@ -246,6 +380,43 @@ end)
 -- R7b (11): the Research button BLINKS while research is unset on your turn
 -- (the blink phase joins the key so the repaint keeps ticking).
 local BLINK = Color3.fromRGB(90, 160, 235)
+researchBtn.BackgroundColor3 = DISABLED -- session-E: grey until a game exists
+governmentBtn.BackgroundColor3 = DISABLED
+
+-- session-E: unset research nudges ONCE PER TURN — a notification + a
+-- bounded 5 s blink burst. Round 7 (user): the note sits slightly ABOVE
+-- CENTER, and the whole surface — note frame+font AND the Research
+-- button frame+font — swaps colour once a second for the burst.
+local researchNote = Instance.new("TextLabel")
+researchNote.Size = UDim2.new(0, 380, 0, 38)
+researchNote.Position = UDim2.new(0.5, -190, 0.5, -130)
+researchNote.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+researchNote.BackgroundTransparency = 0.15
+researchNote.TextColor3 = Color3.fromRGB(140, 200, 255)
+researchNote.Font = Enum.Font.SourceSansBold
+researchNote.TextSize = 22
+researchNote.Text = "Select research (T)"
+researchNote.Visible = false
+researchNote.Parent = gui
+local NOTE_BG = researchNote.BackgroundColor3
+local NOTE_FG = researchNote.TextColor3
+local DARK_FG = Color3.fromRGB(18, 22, 30)
+local PLAIN_FG = Color3.fromRGB(235, 235, 235)
+
+local blinkBurstUntil = 0 -- 5 blinks at the 1 Hz phase = a 5s window
+local lastNudgeTurn = -1
+ClientState.onView(function(view)
+	local me = view.players[view.you]
+	if ClientState.myTurn() and me ~= nil and me.researching == nil
+		and view.turn ~= lastNudgeTurn then
+		lastNudgeTurn = view.turn
+		blinkBurstUntil = os.clock() + 5
+		researchNote.Visible = true
+		task.delay(5, function()
+			researchNote.Visible = false
+		end)
+	end
+end)
 
 -- R12 (5): "researching: <tech> · ~N turns" from the same read-only engine
 -- math as the picker (cost via tech.researchCost, bulbs/turn via
@@ -272,34 +443,54 @@ RunService.Heartbeat:Connect(function()
 	local view = ClientState.view
 	local u = selectedUnit()
 	local me = view and view.players[view.you]
+	-- session-E: the blink is a bounded 5-cycle burst per turn (set above),
+	-- not the old endless flash
 	local needBlink = ClientState.myTurn() and me ~= nil and me.researching == nil
-	local phase = needBlink and (math.floor(os.clock() * 2) % 2) or 0
+		and os.clock() < blinkBurstUntil
+	-- once-a-second colour swap (user spec), not the old 2 Hz flash
+	local phase = needBlink and (math.floor(os.clock()) % 2) or 0
 	local mounted = ClientState.possessedUnitId ~= nil
 	local key = (view and view.turn or -1) .. "|" .. tostring(u and u.id) .. "|"
 		.. tostring(u and u.moves) .. "|" .. tostring(ClientState.myTurn())
 		.. "|" .. tostring(needBlink) .. phase .. "|" .. tostring(mounted)
 		.. "|" .. tostring(me and me.researching) .. "|" .. tostring(me and me.bulbs)
+		.. "|" .. tostring(GoToPlan.armed)
 	if key == lastKey then
 		return
 	end
 	lastKey = key
-	-- R12 (6): the ride button mirrors mount state
+	-- session-E: on the deck (no game) EVERYTHING greys and goes dead —
+	-- the can() gates below already return false with no view, and the
+	-- research/government activations check the view too
 	possessBtn.Text = mounted and "Dismount (P)" or "Ride (P)"
 	if me ~= nil then
 		researchStatus.Text = researchLine(view, me)
+	else
+		researchStatus.Text = ""
 	end
 	governmentBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
+	citiesBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	foundBtn.BackgroundColor3 = can("found") and ENABLED or DISABLED
 	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
 	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED
 	roadBtn.BackgroundColor3 = can("road") and ENABLED or DISABLED
 	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
+	-- armed target-pick shows gold; otherwise enabled like Wait (any movable unit)
+	gotoBtn.BackgroundColor3 = GoToPlan.armed and Color3.fromRGB(230, 185, 60)
+		or (can("wait") and ENABLED or DISABLED)
 	disbandBtn.BackgroundColor3 = can("disband") and ENABLED or DISABLED
 	possessBtn.BackgroundColor3 = can("possess") and ENABLED or DISABLED
 	if needBlink then
-		researchBtn.BackgroundColor3 = phase == 0 and BLINK or ENABLED
+		local hot = phase == 0
+		researchBtn.BackgroundColor3 = hot and BLINK or ENABLED
+		researchBtn.TextColor3 = hot and DARK_FG or PLAIN_FG
+		researchNote.BackgroundColor3 = hot and BLINK or NOTE_BG
+		researchNote.TextColor3 = hot and DARK_FG or NOTE_FG
 	else
+		researchBtn.TextColor3 = PLAIN_FG
+		researchNote.BackgroundColor3 = NOTE_BG
+		researchNote.TextColor3 = NOTE_FG
 		researchBtn.BackgroundColor3 = can("research") and ENABLED or DISABLED
 	end
 end)

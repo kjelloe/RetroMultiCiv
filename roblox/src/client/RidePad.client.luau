@@ -17,15 +17,45 @@ local TILE = ClientState.TILE
 local world = workspace:WaitForChild("ClientWorld")
 
 local DIRS = { -- engine/movement.js DIRS, y-down map space
-	{ dir = "N", dx = 0, dy = -1, glyph = "^" },
-	{ dir = "NE", dx = 1, dy = -1, glyph = "/" },
-	{ dir = "E", dx = 1, dy = 0, glyph = ">" },
-	{ dir = "SE", dx = 1, dy = 1, glyph = "\\" },
-	{ dir = "S", dx = 0, dy = 1, glyph = "v" },
-	{ dir = "SW", dx = -1, dy = 1, glyph = "/" },
-	{ dir = "W", dx = -1, dy = 0, glyph = "<" },
-	{ dir = "NW", dx = -1, dy = -1, glyph = "\\" },
+	{ dir = "N", dx = 0, dy = -1 },
+	{ dir = "NE", dx = 1, dy = -1 },
+	{ dir = "E", dx = 1, dy = 0 },
+	{ dir = "SE", dx = 1, dy = 1 },
+	{ dir = "S", dx = 0, dy = 1 },
+	{ dir = "SW", dx = -1, dy = 1 },
+	{ dir = "W", dx = -1, dy = 0 },
+	{ dir = "NW", dx = -1, dy = -1 },
 }
+
+-- session-E round 11 (user): SHAPED arrows, not ASCII glyphs — a shaft +
+-- chevron head drawn from rotated Frames (procedural, no image assets),
+-- the whole arrow spun to the direction's angle. GUI y grows down like map
+-- y, so the angle is a straight atan2 of the step delta.
+local ARROW_COLOR = Color3.fromRGB(190, 225, 255)
+local function arrowBar(parent, cx, cy, len, rot)
+	local f = Instance.new("Frame")
+	f.AnchorPoint = Vector2.new(0.5, 0.5)
+	f.Position = UDim2.new(0, cx, 0, cy)
+	f.Size = UDim2.new(0, len, 0, 5)
+	f.Rotation = rot
+	f.BorderSizePixel = 0
+	f.BackgroundColor3 = ARROW_COLOR
+	f.Parent = parent
+end
+local function buildArrow(btn, dx, dy)
+	local arrow = Instance.new("Frame")
+	arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+	arrow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	arrow.Size = UDim2.new(1, 0, 1, 0)
+	arrow.BackgroundTransparency = 1
+	arrow.Rotation = math.deg(math.atan2(dy, dx))
+	arrow.Parent = btn
+	-- drawn pointing EAST in a 44x44 box: shaft (10,22)->(30,22), chevron
+	-- arms meeting at the tip (32,22); the container rotation aims it
+	arrowBar(arrow, 20, 22, 20, 0)
+	arrowBar(arrow, 27, 17, 14, 45)
+	arrowBar(arrow, 27, 27, 14, -45)
+end
 
 -- AUTO-DETECT (user design): keyboardless clients get the pads by default.
 -- R16 wire: ClientState.options.ridePad is the pref ("auto"/nil, true, false)
@@ -45,6 +75,12 @@ local function tileTopY(x, y)
 end
 
 -- 8 pooled anchors, each carrying one billboard button
+-- session-E fix: billboard BUTTONS must live under PlayerGui to receive
+-- clicks (workspace-parented billboards render but are input-dead)
+local bbHome = Instance.new("Folder")
+bbHome.Name = "RidePadBB"
+bbHome.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+
 local folder = Instance.new("Folder")
 folder.Name = "RidePads"
 folder.Parent = workspace
@@ -61,18 +97,22 @@ for i, d in ipairs(DIRS) do
 	local bb = Instance.new("BillboardGui")
 	bb.Size = UDim2.new(0, 44, 0, 44)
 	bb.AlwaysOnTop = true
+	bb.Active = true -- session-E round 8: buttons need Active on the billboard
 	bb.Adornee = anchor
 	bb.Enabled = false
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 1, 0)
 	btn.BackgroundColor3 = Color3.fromRGB(30, 40, 56)
 	btn.BackgroundTransparency = 0.35
-	btn.TextColor3 = Color3.fromRGB(180, 220, 255)
-	btn.Font = Enum.Font.SourceSansBold
-	btn.TextSize = 26
-	btn.Text = d.glyph
+	btn.Text = ""
 	btn.Parent = bb
-	bb.Parent = anchor
+	do
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 8)
+		c.Parent = btn
+	end
+	buildArrow(btn, d.dx, d.dy)
+	bb.Parent = bbHome -- session-E: PlayerGui = clickable
 	btn.Activated:Connect(function()
 		local unitId = ClientState.possessedUnitId
 		if unitId ~= nil then

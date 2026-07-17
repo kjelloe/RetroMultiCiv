@@ -92,35 +92,19 @@ function M.build()
 	spawnLoc.Neutral = true -- everyone spawns here, teams or not
 	spawnLoc.Parent = folder
 
-	-- the ACTION STRIP (run-4 item 2, shape per the user's live ruling):
-	-- flush trigger tiles along the south edge; the CLIENT binds Touched and
-	-- fires its own selected unit's commands (ActionPads.client.luau)
-	local actionFolder = Instance.new("Folder")
-	actionFolder.Name = "ActionPads"
-	actionFolder.Parent = folder
-	local STRIP = {
-		{ name = "found", label = "FOUND", w = 4, color = Color3.fromRGB(60, 130, 80) },
-		{ name = "fortify", label = "FORTIFY", w = 4, color = Color3.fromRGB(90, 100, 120) },
-		{ name = "wait", label = "WAIT", w = 4, color = Color3.fromRGB(80, 90, 110) },
-		{ name = "irrigate", label = "IRRIGATE", w = 4, color = Color3.fromRGB(80, 140, 90) },
-		{ name = "mine", label = "MINE", w = 4, color = Color3.fromRGB(120, 100, 70) },
-		{ name = "road", label = "ROAD", w = 4, color = Color3.fromRGB(130, 120, 90) },
-		{ name = "endturn", label = "END TURN", w = 8, color = Color3.fromRGB(46, 88, 148) },
-	}
-	local totalW = 0
-	for _, s in ipairs(STRIP) do
-		totalW += s.w + 1
-	end
-	local x = -totalW / 2
-	for _, s in ipairs(STRIP) do
-		local tile = part(actionFolder, "Pad_" .. s.name, Vector3.new(s.w, 0.12, 4),
-			CFrame.new(DECK_POS + Vector3.new(x + s.w / 2, 1.06, 16)), s.color,
-			{ Material = Enum.Material.Neon, CanCollide = false, Transparency = 0.1 })
+	-- session-E (user ruling): the unit ACTION STRIP is REMOVED from the deck
+	-- (unit actions live with the units/menus). In its place: one GOTO
+	-- CAPITOL pad — flush tile, walk-on; GameServer teleports the toucher to
+	-- their own civ's capital with sparkles.
+	local capitolPad = part(folder, "GotoCapitolPad", Vector3.new(10, 0.12, 4),
+		CFrame.new(DECK_POS + Vector3.new(0, 1.06, 16)), Color3.fromRGB(150, 120, 60),
+		{ Material = Enum.Material.Neon, CanCollide = false, Transparency = 0.1 })
+	do
 		local bb = Instance.new("BillboardGui")
-		bb.Size = UDim2.new(0, 90, 0, 16)
+		bb.Size = UDim2.new(0, 130, 0, 18)
 		bb.StudsOffset = Vector3.new(0, 1.6, 0)
 		bb.AlwaysOnTop = true
-		bb.Adornee = tile
+		bb.Adornee = capitolPad
 		local t = Instance.new("TextLabel")
 		t.Size = UDim2.new(1, 0, 1, 0)
 		t.BackgroundTransparency = 1
@@ -128,10 +112,9 @@ function M.build()
 		t.TextStrokeTransparency = 0.3
 		t.Font = Enum.Font.SourceSansBold
 		t.TextSize = 14
-		t.Text = s.label
+		t.Text = "GOTO CAPITOL"
 		t.Parent = bb
-		bb.Parent = tile
-		x += s.w + 1
+		bb.Parent = capitolPad
 	end
 
 	-- run-4 fix: a PERMANENT catch floor — pre-game there is no other floor
@@ -167,7 +150,7 @@ function M.build()
 		start = startPrompt, join = joinPrompt, takeover = takeoverPrompt,
 	}, padParts = {
 		start = startPad, join = joinPad, takeover = takeoverPad,
-	} }
+	}, capitolPad = capitolPad }
 
 	-- phase DIMS non-applicable pads but never disables them (run-4 live
 	-- ruling: a touched pad that doesn't apply EXPLAINS itself instead of

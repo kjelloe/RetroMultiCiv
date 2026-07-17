@@ -129,6 +129,21 @@ local function handlePick(tx, ty)
 	if selected ~= nil then
 		local dir = dirTo(view, selected, tx, ty)
 		if dir ~= nil then
+			-- session-E log finding: click-to-move gets the same gate as the
+			-- ride keys — swallow KNOWN-hopeless sends (no moves / known
+			-- impassable); fog and enemy tiles still send, the engine judges
+			if selected.moves <= 0 then
+				print("[Select] no moves left this turn")
+				return
+			end
+			local rs = ClientState.rulesets()
+			local domain = rs.units[selected.type] and rs.units[selected.type].domain
+			local ok, why = require(script.Parent:WaitForChild("StepLegality"))
+				.canAttempt(view, rs, domain, tx, ty)
+			if not ok then
+				print(("[Select] can't move there: %s"):format(why))
+				return
+			end
 			print(("[Select] move %s %s -> (%d,%d)"):format(selected.id, dir, tx, ty))
 			ClientState.send({ type = "moveUnit", unitId = selected.id, dir = dir })
 			return

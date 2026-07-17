@@ -10,26 +10,63 @@
 -- Display/commands only: everything reads the view, acting is send().
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCOptions"
 gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- session-E: the option toggles get their own show/hide button (Pedia
+-- pattern, user request) — collapsed by default, the clock readout stays
+-- outside the panel so hiding the menu never hides the clock
+local optionsBtn = Instance.new("TextButton")
+optionsBtn.Name = "OptionsToggle"
+optionsBtn.Size = UDim2.new(0, 150, 0, 36)
+optionsBtn.Position = UDim2.new(1, -158, 0, 8)
+optionsBtn.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+optionsBtn.BackgroundTransparency = 0.25
+optionsBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
+optionsBtn.Font = Enum.Font.SourceSansBold
+optionsBtn.TextSize = 18
+optionsBtn.Text = "Options"
+optionsBtn.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = optionsBtn
+end
+
+local panel = Instance.new("Frame")
+panel.Name = "Panel"
+panel.Size = UDim2.new(0, 200, 0, 228)
+panel.Position = UDim2.new(1, -208, 0, 50)
+panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+panel.BackgroundTransparency = 0.15
+panel.BorderSizePixel = 0
+panel.Visible = false
+panel.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = panel
+end
+
 local function toggleButton(y, text)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, 190, 0, 22)
-	b.Position = UDim2.new(1, -198, 0, y)
-	b.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+	b.Size = UDim2.new(1, -8, 0, 22)
+	b.Position = UDim2.new(0, 4, 0, y - 2)
+	b.BackgroundColor3 = Color3.fromRGB(34, 40, 54)
 	b.BackgroundTransparency = 0.25
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
 	b.Font = Enum.Font.Code
 	b.TextSize = 13
 	b.TextXAlignment = Enum.TextXAlignment.Left
 	b.Text = text
-	b.Parent = gui
+	b.Parent = panel
 	return b
 end
 
@@ -42,15 +79,17 @@ local clockBtn = toggleButton(104, "")
 local voidArtBtn = toggleButton(128, "")
 local ridePadBtn = toggleButton(152, "")
 local lookBtn = toggleButton(176, "")
+local autoResearchBtn = toggleButton(200, "") -- session-E round 7
 
+-- always-visible clock readout, left of the top-right button row
 local clockLabel = Instance.new("TextLabel")
-clockLabel.Size = UDim2.new(0, 190, 0, 18)
-clockLabel.Position = UDim2.new(1, -198, 0, 200)
+clockLabel.Size = UDim2.new(0, 180, 0, 18)
+clockLabel.Position = UDim2.new(1, -428, 0, 17)
+clockLabel.TextXAlignment = Enum.TextXAlignment.Right
 clockLabel.BackgroundTransparency = 1
 clockLabel.TextColor3 = Color3.fromRGB(200, 210, 225)
 clockLabel.Font = Enum.Font.Code
 clockLabel.TextSize = 13
-clockLabel.TextXAlignment = Enum.TextXAlignment.Left
 clockLabel.Text = ""
 clockLabel.Parent = gui
 local bootClock = os.clock()
@@ -67,6 +106,10 @@ hint.Text = "All units moved - press Return or the End Turn button"
 hint.Visible = false
 hint.Parent = gui
 
+optionsBtn.Activated:Connect(function()
+	panel.Visible = not panel.Visible
+end)
+
 local function paint()
 	local o = ClientState.options
 	autoNextBtn.Text = ("  auto next unit: %s"):format(o.autoNextUnit and "ON" or "off")
@@ -78,6 +121,7 @@ local function paint()
 	ridePadBtn.Text = ("  ride pads: %s"):format(
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
 	lookBtn.Text = ("  world look: %s"):format(o.look or "retro")
+	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")
 end
 paint()
 
@@ -121,6 +165,10 @@ lookBtn.Activated:Connect(function()
 	ClientState.options.look = ClientState.options.look == "enhanced" and "retro" or "enhanced"
 	paint()
 end)
+autoResearchBtn.Activated:Connect(function()
+	ClientState.options.autoResearch = not ClientState.options.autoResearch
+	paint()
+end)
 
 -- the clock line (browser parity: minutes played / time of day)
 task.spawn(function()
@@ -137,6 +185,51 @@ task.spawn(function()
 	end
 end)
 
+-- session-E round 7: auto-select research after TWO of the player's turns
+-- pass with nothing being researched. The pick mirrors the engine AI's core
+-- heuristic (beeline Monarchy's prereq closure, then lowest level) through
+-- the read-only shared tech module, and is sent as a normal setResearch
+-- command — the engine still judges it.
+local function pickResearch(view, me)
+	local rs = ClientState.rulesets()
+	local avail = techModule.availableTechs({ players = { [view.you] = me } }, view.you, rs)
+	if #avail == 0 then
+		return nil
+	end
+	local path = {}
+	local function mark(id)
+		if path[id] or rs.techs[id] == nil then
+			return
+		end
+		path[id] = true
+		for _, p in ipairs(rs.techs[id].prereqs or {}) do
+			mark(p)
+		end
+	end
+	if table.find(me.techs, "monarchy") == nil then
+		mark("monarchy")
+	end
+	local pool = {}
+	for _, id in ipairs(avail) do
+		if path[id] then
+			table.insert(pool, id)
+		end
+	end
+	if #pool == 0 then
+		pool = avail
+	end
+	local best = pool[1]
+	for _, id in ipairs(pool) do
+		if rs.techs[id].level < rs.techs[best].level then
+			best = id
+		end
+	end
+	return best
+end
+
+local idleResearchTurns = 0
+local lastIdleTurn = -1
+
 local lastAutoEndTurn = -1
 local lastHintTurn = -1
 
@@ -145,7 +238,8 @@ local function allUnitsDone(view)
 	for _, u in pairs(view.units) do
 		if u.owner == view.you then
 			haveAny = true
-			if u.moves > 0 and u.fortified ~= true and u.working == nil then
+			if u.moves > 0 and u.fortified ~= true and u.working == nil
+				and not ClientState.isGarrisoned(u) then -- round 19
 				return false
 			end
 		end
@@ -157,6 +251,26 @@ ClientState.onView(function(view)
 	if not ClientState.myTurn() or ClientState.gameOver then
 		hint.Visible = false
 		return
+	end
+
+	-- auto-select research: 2 distinct idle turns arms the pick
+	local me = view.players[view.you]
+	if me ~= nil and me.researching ~= nil then
+		idleResearchTurns = 0
+	elseif me ~= nil then
+		if view.turn ~= lastIdleTurn then
+			lastIdleTurn = view.turn
+			idleResearchTurns += 1
+		end
+		if ClientState.options.autoResearch and idleResearchTurns >= 2 then
+			local pick = pickResearch(view, me)
+			if pick ~= nil then
+				idleResearchTurns = 0
+				local rs = ClientState.rulesets()
+				print("[Options] auto-select research: " .. (rs.techs[pick] and rs.techs[pick].name or pick))
+				ClientState.send({ type = "setResearch", tech = pick })
+			end
+		end
 	end
 
 	-- (5) advance on unit exhausted
@@ -209,4 +323,4 @@ ClientState.onView(function(view)
 	end
 end)
 
-print("[Options] options up (auto-next/auto-end ON; R16: hide-future, hint, clock, map border)")
+print("[Options] options up (collapsible panel; auto-next/auto-end/auto-research ON)")

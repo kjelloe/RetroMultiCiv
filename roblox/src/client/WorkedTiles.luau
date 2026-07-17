@@ -10,7 +10,9 @@
 -- (show/hide/refresh) — ClientState is frozen tonight, so no new channels.
 -- NOTE-FOR-REVIEW (night order): built ahead of the user's shape look.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
@@ -24,7 +26,16 @@ local folder = Instance.new("Folder")
 folder.Name = "WorkedTiles"
 folder.Parent = workspace
 
+-- session-E fix: BillboardGui BUTTONS only receive clicks when the gui is
+-- a descendant of PlayerGui (workspace-parented billboards render but are
+-- dead to input — the 'CLOSE does nothing' finding). Adornee still points
+-- at the world part; the gui itself lives here.
+local bbHome = Instance.new("Folder")
+bbHome.Name = "WorkedTilesBB"
+bbHome.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+
 local openCityId = nil
+local lastClick = nil -- session-E: double-click detection for the swap
 
 -- run-4 live request: a PROMINENT close button in the view itself (the
 -- production panel's small X was the only way out). CityPanel registers the
@@ -81,6 +92,8 @@ local function quad(c, worked, isCenter, onClick)
 	bb.Size = UDim2.new(0, 64, 0, 30)
 	bb.StudsOffset = Vector3.new(0, 1.4, 0)
 	bb.AlwaysOnTop = true
+	bb.Active = true -- session-E round 8: WITHOUT this, billboard buttons never
+	-- sink input even from PlayerGui — clicks fell through to Select's raycast
 	bb.Adornee = part
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, 0, 1, 0)
@@ -92,7 +105,7 @@ local function quad(c, worked, isCenter, onClick)
 	btn.TextSize = 13
 	btn.Text = isCenter and "AUTO" or yieldLine(c.yields)
 	btn.Parent = bb
-	bb.Parent = part
+	bb.Parent = bbHome
 	btn.Activated:Connect(onClick)
 end
 
@@ -128,11 +141,12 @@ local function summaryBoard(city, workersPlaced)
 		:format(workersPlaced, pop, pop - workersPlaced,
 			math.max(0, entertainers), taxmen, scientists)
 	t.Parent = bb
-	bb.Parent = anchor
+	bb.Parent = bbHome
 end
 
 local function rebuild()
 	folder:ClearAllChildren()
+	bbHome:ClearAllChildren()
 	local view = ClientState.view
 	if openCityId == nil or view == nil then
 		return
@@ -156,22 +170,61 @@ local function rebuild()
 		end
 	end
 
-	-- the toggle: build the manual workers list from the EFFECTIVE set ± the
-	-- clicked tile (auto mode materializes into manual on first touch, the
-	-- browser's semantics), then let the server judge
-	local function toggle(idx)
+	-- session-E interaction spec (user): click a WORKED tile = remove its
+	-- worker; click an unworked tile = place a worker (when a citizen is
+	-- free); DOUBLE-CLICK an unworked tile = force it by dropping the LEAST
+	-- FAVORABLE currently-worked tile (lowest candidate score). The server
+	-- still judges everything.
+	local workersPlacedNow = 0
+	for _ in pairs(workedIdx) do
+		workersPlacedNow += 1
+	end
+	local budget = (city.pop or 1) - (city.taxmen or 0) - (city.scientists or 0)
+
+	local function sendWorkers(set)
 		local next_ = {}
-		for i in pairs(workedIdx) do
-			if i ~= idx then
-				table.insert(next_, i)
-			end
-		end
-		if workedIdx[idx] ~= true then
-			table.insert(next_, idx)
+		for i in pairs(set) do
+			table.insert(next_, i)
 		end
 		table.sort(next_)
 		print(("[WorkedTiles] setWorkers %s (%d tiles)"):format(openCityId, #next_))
 		ClientState.send({ type = "setWorkers", cityId = openCityId, workers = next_ })
+	end
+
+	local function toggle(idx)
+		if workedIdx[idx] == true then -- one click on an active tile: remove
+			local set = table.clone(workedIdx)
+			set[idx] = nil
+			sendWorkers(set)
+			return
+		end
+		if workersPlacedNow < budget then -- a citizen is free: place them
+			local set = table.clone(workedIdx)
+			set[idx] = true
+			sendWorkers(set)
+			return
+		end
+		-- capped: double-click swaps out the weakest worked tile
+		local now = os.clock()
+		if lastClick ~= nil and lastClick.idx == idx and now - lastClick.t < 0.6 then
+			lastClick = nil
+			local worst, worstScore = nil, math.huge
+			for _, c in ipairs(candidates) do
+				if workedIdx[c.idx] == true and (c.score or 0) < worstScore then
+					worst, worstScore = c.idx, c.score or 0
+				end
+			end
+			if worst ~= nil then
+				local set = table.clone(workedIdx)
+				set[worst] = nil
+				set[idx] = true
+				print("[WorkedTiles] double-click swap: weakest tile released")
+				sendWorkers(set)
+			end
+			return
+		end
+		lastClick = { idx = idx, t = now }
+		print("[WorkedTiles] all citizens busy - double-click to swap with the weakest tile")
 	end
 
 	-- center quad = the AUTO reset (Civ 1: center always works for free)
@@ -201,11 +254,12 @@ local function rebuild()
 	closeAnchor.CanQuery = false
 	closeAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
 	closeAnchor.CFrame = CFrame.new(city.x * TILE,
-		tileTopY(city.x, city.y) + 2, (city.y + 3.2) * TILE)
+		tileTopY(city.x, city.y) + 2, (city.y + 4.2) * TILE) -- session-E: a bit further down
 	closeAnchor.Parent = folder
 	local closeBB = Instance.new("BillboardGui")
 	closeBB.Size = UDim2.new(0, 220, 0, 40)
 	closeBB.AlwaysOnTop = true
+	closeBB.Active = true -- round 8: required for the button to receive clicks
 	closeBB.Adornee = closeAnchor
 	local closeBtn = Instance.new("TextButton")
 	closeBtn.Size = UDim2.new(1, 0, 1, 0)
@@ -216,7 +270,7 @@ local function rebuild()
 	closeBtn.TextSize = 20
 	closeBtn.Text = "CLOSE CITY VIEW"
 	closeBtn.Parent = closeBB
-	closeBB.Parent = closeAnchor
+	closeBB.Parent = bbHome
 	closeBtn.Activated:Connect(function()
 		if closeRequest ~= nil then
 			closeRequest()
@@ -239,6 +293,7 @@ end
 function M.hide()
 	openCityId = nil
 	folder:ClearAllChildren()
+	bbHome:ClearAllChildren()
 end
 
 function M.refresh()
@@ -246,6 +301,72 @@ function M.refresh()
 		rebuild()
 	end
 end
+
+-- session-E: N (next unit) closes the city view first — Possess calls this
+function M.closeIfOpen()
+	if openCityId == nil then
+		return
+	end
+	if closeRequest ~= nil then
+		closeRequest()
+	else
+		M.hide()
+	end
+end
+
+-- session-E: walking OUT of the fat-cross area auto-closes the city view.
+-- Round 8 (user): NOT while mounted and sitting still — a rider parked on a
+-- unit outside the cross must be able to keep assigning workers; only actual
+-- movement (the ridden unit stepping, or walking afoot) can close it.
+-- Round 22 (run-E log): only close on an INSIDE->OUTSIDE transition — a
+-- player opening a city while standing far away (city click across the map,
+-- city-list jump) got the view slammed shut the same frame, 12x in the log.
+local lastRootPos = nil
+local wasInside = false
+local watchedCity = nil
+RunService.Heartbeat:Connect(function()
+	if openCityId == nil then
+		lastRootPos = nil
+		wasInside = false
+		watchedCity = nil
+		return
+	end
+	if openCityId ~= watchedCity then
+		watchedCity = openCityId -- city switched without closing: fresh gate
+		wasInside = false
+	end
+	local view = ClientState.view
+	local city = view ~= nil and view.cities[openCityId] or nil
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if city == nil or root == nil then
+		return
+	end
+	local moved = lastRootPos ~= nil and (root.Position - lastRootPos).Magnitude > 0.5
+	lastRootPos = root.Position
+	if ClientState.possessedUnitId ~= nil and not moved then
+		return -- mounted and stationary: never auto-close
+	end
+	local dx = math.abs(root.Position.X - city.x * TILE)
+	local dz = math.abs(root.Position.Z - city.y * TILE)
+	local inside = math.max(dx, dz) <= TILE * 3.5 and root.Position.Y < 60
+	if inside then
+		wasInside = true
+	end
+	if not wasInside then
+		return -- opened from afar: remote management, never auto-close
+	end
+	-- the cross spans +-2 tiles; half a tile of grace, and only count MAP
+	-- walking (the deck sits high — standing up there never closes the view)
+	if math.max(dx, dz) > TILE * 3.5 and root.Position.Y < 60 then
+		print("[WorkedTiles] walked out of the city area - view closed")
+		if closeRequest ~= nil then
+			closeRequest()
+		else
+			M.hide()
+		end
+	end
+end)
 
 print("[WorkedTiles] R7c-3 worked-tile overlay ready (CityPanel drives it)")
 

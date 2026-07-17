@@ -101,7 +101,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 300, 0, 240)
+setupPanel.Size = UDim2.new(0, 300, 0, 282)
 setupPanel.Position = UDim2.new(0.5, -150, 0.3, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -114,6 +114,7 @@ local sizeLine = label(setupPanel, 34, 18, "")
 local civsLine = label(setupPanel, 76, 18, "")
 local humansLine = label(setupPanel, 118, 18, "")
 local mapTypeLine = label(setupPanel, 160, 18, "")
+local maxIdleLine = label(setupPanel, 202, 18, "") -- R22 idle-regency knob
 
 local function stepButton(x, y, text, onClick)
 	local b = Instance.new("TextButton")
@@ -141,6 +142,8 @@ stepButton(8, 136, "-", function() sendSetup("humans", -1) end)
 stepButton(42, 136, "+", function() sendSetup("humans", 1) end)
 stepButton(8, 178, "-", function() sendSetup("maptype", -1) end)
 stepButton(42, 178, "+", function() sendSetup("maptype", 1) end)
+stepButton(8, 220, "-", function() sendSetup("maxidle", -1) end)
+stepButton(42, 220, "+", function() sendSetup("maxidle", 1) end)
 
 local startBtn = Instance.new("TextButton")
 startBtn.Size = UDim2.new(0, 130, 0, 28)
@@ -268,7 +271,10 @@ local function render(lobby)
 		text.Font = Enum.Font.Code
 		text.TextSize = 14
 		text.TextXAlignment = Enum.TextXAlignment.Left
-		text.Text = ("%s %s - %s"):format(seat.pid, seat.name, seat.who)
+		-- R21: 'Perfectionist' = the authentic Civ1 trait name for the
+		-- engine's 'builder' stance (reviewer-verified); balanced = no tag
+		local stanceTag = seat.stance == "builder" and " [Perfectionist]" or ""
+		text.Text = ("%s %s - %s%s"):format(seat.pid, seat.name, seat.who, stanceTag)
 		text.Parent = row
 		if lobby.youAreAdmin and seat.who ~= "open" and seat.who ~= "AI" and seat.who ~= "regent" then
 			local kick = Instance.new("TextButton")
@@ -293,6 +299,7 @@ local function render(lobby)
 		civsLine.Text = ("civilizations: %d"):format(lobby.options.civs)
 		humansLine.Text = ("human seats: %d (rest are AI)"):format(lobby.options.humans)
 		mapTypeLine.Text = "map type: " .. (lobby.options.mapType or "continents") -- A82a
+		maxIdleLine.Text = ("max idle: %d min (then AI regency)"):format(lobby.options.maxIdleMin or 1)
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game
