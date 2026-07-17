@@ -3284,6 +3284,19 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
+**B23c — B23b expansion-stall regression (URGENT, bugfixer head item; sim-runner #744, architect #746):**
+clean A/B marker-0027→0028 shows expl 11-30%→5-8% and cities
+crashing to 1-5 (seed2: 34→5); A93 floors breach 3×. Evidence-first
+from the sim-runner's seeds; hypothesis: the 1-city OPENER assigns
+the only military unit to scouting, settlers walk unescorted and
+die, the civ locks at 1-2 cities. Candidate fixes in order:
+(a) escort outranks scouting, (b) opener only until first settler,
+(c) quota starts at 2 cities. N3's re-record is HELD; the fix lands
+first, sim-runner confirms recovery (expl 19-30%, cities 7-34,
+floors green), then ONE combined B23c+N3 re-record. marker-0028 is
+STRUCK as a merge candidate. Prior-art check: extends B23b's own
+allocator (this is its repair).
+
 **B26b — percent-shaped doctrine gates (IDENTITY refactor; bugfixer, queue after N3):**
 the M11 sweep needs FRACTIONAL defender gates (sim-runner #731: the
 elim band lies between gate 0 [57%] and gate 1 [~0%]), but the
