@@ -2,6 +2,7 @@
 import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '../../engine/combat.js';
 import { candidateTiles, tileYields, wonderActive, citySpacingOk } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
+import { hasWaterSource, workFlag } from '../../engine/improvements.js';
 import { availableTechs } from '../../engine/tech.js';
 import { canStepTo, stepDir, tileEnterable } from './move-hints.js';
 import { findPath } from '../../shared/pathfind.js';
@@ -20,7 +21,46 @@ export function initInput(ctx) {
   function describeTile(x, y) {
     const tile = session.state.map.tiles[y * session.state.map.width + x];
     const extras = (tile.river ? ' +river' : '') + (tile.special ? ' ★' : '');
-    return `(${x},${y}) ${tile.t}${extras}`;
+    // A68 (VIII.9): the readout names the tile's improvements
+    const imps = [
+      tile.railroad === true ? '🚂 railroad' : tile.road === true ? '🛤 road' : null,
+      tile.irrigation === true ? '💧 irrigation' : null,
+      tile.mine === true ? '⛏ mine' : null,
+      tile.fortress === true ? '🏰 fortress' : null
+    ].filter(i => i !== null);
+    return `(${x},${y}) ${tile.t}${extras}${imps.length > 0 ? ' · ' + imps.join(' · ') : ''}`;
+  }
+
+  // A68 (VIII.9): why a settler job can't run on THIS tile (button gray-out +
+  // tooltip), or null when it can — the tile-local half of the engine's
+  // startWork validation, built on its exported helpers (workFlag,
+  // hasWaterSource), so the rules can't drift apart.
+  function workBlocked(unit, work) {
+    const state = session.state;
+    const ruleset = session.ruleset;
+    const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+    const terrain = ruleset.terrain.terrains[tile.t];
+    const techs = state.players[unit.owner].techs;
+    if (tile[workFlag(work)] === true) return 'already built here';
+    if (tile.river === true) {
+      if (work === 'road' && !techs.includes(ruleset.rules.bridgeTech)) return 'river roads need Bridge Building';
+      if (work === 'mine') return 'rivers cannot be mined';
+    }
+    if (work === 'fortress') {
+      for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+        const c = state.cities[cid];
+        if (c && c.x === unit.x && c.y === unit.y) return 'city tiles need no fortress';
+      }
+    } else if (work === 'railroad') {
+      if (tile.road !== true) return 'needs a road first';
+    } else if (work === 'irrigate' || work === 'mine') {
+      const transform = terrain.transforms !== undefined && terrain.transforms[work] !== undefined;
+      if (terrain[work] === undefined && !transform) return `${tile.t} does not support it`;
+      if (work === 'irrigate' && !transform && !hasWaterSource(state, unit.x, unit.y)) {
+        return 'needs a water source (river or adjacent water/irrigation)';
+      }
+    }
+    return null;
   }
 
   // "⚔ Favorable 67% — Legion 300 vs Militia 150 (mountains +200%, fortified +50%)"
@@ -577,11 +617,17 @@ export function initInput(ctx) {
       const rail = tile0.road === true && tile0.railroad !== true
         && me.techs.includes(session.ruleset.rules.railroadTech);
       actions.push({ label: '🏛 Found city', key: 'B', run: foundCityFlow });
-      actions.push({ label: irrigateLabel, key: 'I', run: () => startWorkFor('irrigate') });
-      actions.push({ label: mineLabel, key: 'M', run: () => startWorkFor('mine') });
-      actions.push({ label: rail ? '🚂 Railroad' : '🛤 Road', key: 'R', run: () => startWorkFor(rail ? 'railroad' : 'road') });
+      // A68 (VIII.9): inapplicable jobs gray out with the why, no error bounce
+      actions.push({ label: irrigateLabel, key: 'I', run: () => startWorkFor('irrigate'),
+        blocked: workBlocked(unit, 'irrigate') });
+      actions.push({ label: mineLabel, key: 'M', run: () => startWorkFor('mine'),
+        blocked: workBlocked(unit, 'mine') });
+      actions.push({ label: rail ? '🚂 Railroad' : '🛤 Road', key: 'R',
+        run: () => startWorkFor(rail ? 'railroad' : 'road'),
+        blocked: workBlocked(unit, rail ? 'railroad' : 'road') });
       if (me.techs.includes(session.ruleset.rules.fortressTech) && tile0.fortress !== true) {
-        actions.push({ label: '🏰 Fortress', key: 'O', run: () => startWorkFor('fortress') });
+        actions.push({ label: '🏰 Fortress', key: 'O', run: () => startWorkFor('fortress'),
+          blocked: workBlocked(unit, 'fortress') });
       }
     }
     if (helpWonderCityFor(unit)) {
@@ -618,7 +664,12 @@ export function initInput(ctx) {
     for (const a of actions) {
       const btn = document.createElement('button');
       btn.innerHTML = a.key ? `${a.label} <span class="key">${a.key}</span>` : a.label;
-      btn.addEventListener('click', a.run);
+      if (a.blocked) {
+        btn.disabled = true;
+        btn.title = a.blocked; // the why, on hover
+      } else {
+        btn.addEventListener('click', a.run);
+      }
       actionBar.appendChild(btn);
     }
     actionBar.classList.remove('hidden');

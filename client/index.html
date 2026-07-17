@@ -28,8 +28,12 @@
 
   <button id="end-turn">End Turn</button>
 
-  <div id="unit-line" class="hidden"></div>
-  <div id="action-bar" class="hidden"></div>
+  <!-- A68: one bottom-center dock — the stat card always rides ABOVE the
+       action bar, even when the bar wraps to 2+ rows (settlers) -->
+  <div id="unit-dock">
+    <div id="unit-line" class="hidden"></div>
+    <div id="action-bar" class="hidden"></div>
+  </div>
 
   <div id="center-banner" class="hidden"></div>
   <div id="flash-banner" class="hidden"></div>

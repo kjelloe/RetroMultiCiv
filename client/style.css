@@ -1137,25 +1137,30 @@ html, body {
 }
 
 /* --- action bar (selected unit's actions, bottom center) --- */
-#action-bar {
+/* A68: the bottom-center dock — a flex column so the stat card always sits
+   above the action bar, whatever row count the bar wraps to */
+#unit-dock {
   position: absolute;
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 6;
+}
+
+#action-bar {
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
   max-width: calc(100vw - 360px); /* never collide with End Turn / logs */
-  z-index: 6;
 }
 
 /* the selected unit's stat card, riding just above its action bar */
 #unit-line {
-  position: absolute;
-  bottom: 56px;
-  left: 50%;
-  transform: translateX(-50%);
   padding: 3px 12px;
   background: rgba(10, 16, 28, 0.85);
   border: 1px solid #2c4770;
@@ -1204,6 +1209,16 @@ html, body {
 
 #action-bar button:hover {
   background: #2f5388;
+}
+
+/* A68 (VIII.9): inapplicable settler jobs stay visible but grayed — the
+   tooltip carries the why (already built / wrong terrain / needs a tech) */
+#action-bar button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+#action-bar button:disabled:hover {
+  background: rgba(22, 35, 58, 0.95);
 }
 
 #action-bar .key {
