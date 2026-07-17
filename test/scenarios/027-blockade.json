@@ -1,0 +1,190 @@
+{
+  "name": "A79 blockade: an enemy unit on the best tile starves the city off it (house rule)",
+  "notes": "5x5 grassland with a special-grassland at (2,1) — the p1 city at (2,2) would work it, but a p2 militia STANDS on it, blockading it (user war-doctrine 2026-07-16; NOT Civ 1 — the wiki says enemy occupation does not block working). The city works a plain grassland instead, so its turn-1 food/shields are lower. Remove the blockade in either engine and the special tile is worked -> a different final hash: this pin fails the instant A79 regresses.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "special": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "z1": {
+          "id": "z1",
+          "type": "militia",
+          "owner": "p2",
+          "x": 2,
+          "y": 1,
+          "moves": 0,
+          "fortified": true,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Port",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "pop": 1,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 2,
+      "nextCityId": 2,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "despotism"
+        },
+        "p2": {
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "despotism"
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 2,
+      "activePlayer": "p1"
+    },
+    "hash": "0x1a1fbe1b"
+  }
+}

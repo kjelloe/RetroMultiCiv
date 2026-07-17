@@ -162,6 +162,15 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
 	local tiles = state.map.tiles
 	local gov = government.governmentOf(state, city.owner, ruleset)
+	-- A79 blockade (house rule, NOT Civ 1 — enemy occupation blocks working;
+	-- user war-doctrine 2026-07-16). An enemy unit on a tile drops it from the
+	-- candidate set. Matches engine/cities.js.
+	local blocked = {}
+	for _, u in pairs(state.units or {}) do
+		if u.owner ~= city.owner then
+			blocked[u.y * width + u.x] = true
+		end
+	end
 	local candidates = {}
 	for order, o in ipairs(FAT_CROSS) do
 		local x = city.x + o.dx
@@ -173,6 +182,9 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 			else
 				x = ((x % width) + width) % width
 			end
+		end
+		if keep and blocked[y * width + x] == true then
+			keep = false
 		end
 		if keep then
 			local y_ = govAdjustYields(tileYields(tiles[y * width + x + 1], ruleset), gov)

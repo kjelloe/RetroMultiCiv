@@ -123,6 +123,17 @@ function govAdjustYields(y, gov) {
 function candidateTiles(state, city, ruleset) {
   const { width, height, wrapX, tiles } = state.map;
   const gov = governmentOf(state, city.owner, ruleset);
+  // A79 blockade (HOUSE RULE — user war-doctrine 2026-07-16, NOT Civ 1: the
+  // wiki states enemy occupation does not block working; Civ 1 ZOC is movement-
+  // only). An ENEMY unit (owner != city.owner, barbarians included) standing on
+  // a tile blockades it — the tile drops from the candidate set, so auto-assign
+  // skips to the next-best and a manually-worked blocked tile yields nothing
+  // that turn (its citizen idles). The blockade lifts when the enemy leaves.
+  const blocked = {};
+  for (const uid of Object.keys(state.units || {})) {
+    const u = state.units[uid];
+    if (u.owner !== city.owner) blocked[u.y * width + u.x] = true;
+  }
   const candidates = [];
   for (const o of FAT_CROSS) {
     let x = city.x + o.dx;
@@ -132,6 +143,7 @@ function candidateTiles(state, city, ruleset) {
       if (!wrapX) continue;
       x = ((x % width) + width) % width;
     }
+    if (blocked[y * width + x] === true) continue;
     const y_ = govAdjustYields(tileYields(tiles[y * width + x], ruleset), gov);
     candidates.push({ idx: y * width + x, x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }

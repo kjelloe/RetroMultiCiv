@@ -348,3 +348,28 @@ test('settler food upkeep: a homed settler eats 1 food/turn; homeless is free; k
   assert.strictEqual(foodAfter(engAt(1), homeless), baseline, 'a homeless settler eats nothing');
   assert.strictEqual(foodAfter(engAt(1), homed), baseline - 1, 'a homed settler eats 1 food/turn');
 });
+
+test('A79 blockade: an enemy unit on a worked tile removes it from the candidates; own unit does not', async () => {
+  const { cities } = await load();
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'grassland' });
+  const mk = (units) => ({
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 5, height: 5, wrapX: false, tiles },
+    units,
+    cities: { c1: { id: 'c1', name: 'C', owner: 'p1', x: 2, y: 2, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 9, nextCityId: 2,
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'despotism' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'despotism' }
+    },
+    rngState: 1
+  });
+  const tileIdx = 1 * 5 + 2; // (2,1), a tile the city at (2,2) works
+  const has = (st) => cities.candidateTiles(st, st.cities.c1, RULESET).some(c => c.idx === tileIdx);
+  assert.ok(has(mk({})), 'no unit: the tile is a candidate');
+  assert.ok(!has(mk({ z1: { id: 'z1', type: 'militia', owner: 'p2', x: 2, y: 1, moves: 0, fortified: false, veteran: false } })),
+    'an enemy unit blockades the tile (dropped from candidates)');
+  assert.ok(has(mk({ u1: { id: 'u1', type: 'militia', owner: 'p1', x: 2, y: 1, moves: 0, fortified: false, veteran: false } })),
+    'an own unit on a tile does NOT blockade it');
+});

@@ -16,8 +16,14 @@ and A63's obsolescence so armies modernize.
   defenders.
 - **Sieges**: besiege cities and PILLAGE surrounding improvements so
   the city falls into low production and disarray.
-- **Blockade rule (engine change, own item A79)**: an enemy unit
-  standing on a city's resource tile BLOCKS working that tile.
+- **Blockade rule (engine change, own item A79 — SHIPPED)**: an enemy
+  unit standing on a city's resource tile BLOCKS working that tile
+  (candidateTiles drops it; auto-assign skips to the next-best, a
+  manually-worked blocked tile idles its citizen). HOUSE RULE, not
+  Civ 1: the wiki states plainly "enemy units occupying a tile does
+  not prevent your Citizens from working it" (Civ 1 ZOC is movement-
+  only); the user wants it regardless (war-doctrine 2026-07-16) — it
+  is the cheap engine primitive sieges/blockades emerge from.
 - **Era templates**: tactics shift with tech — e.g. a carrier group
   with 3:1 cruiser support; 3:1 cruiser-to-transport escort on
   contested routes (unescorted only when the route is safe).
