@@ -16,12 +16,18 @@ the Done log at the bottom.
   visibility, H1 ratchet, palette P1+P2 (deuteranopia mode), pedia
   editorial, map types, v1.5 telemetry, all reports. Biggest merge
   since 0033 — merge the latest marker I declare consistent.
-- [ ] **Settler-upkeep tune (optional, measured):** flat-1 SHIPS and
-  caps expansion (cities −24%) but reads as a broad food tax (pop
-  −34%, impr −13pts) rather than 'fewer better-fed cities'. The
-  sim-runner is A/B-ing a PROGRESSIVE variant (first 2-3 settlers
-  free, tax beyond = spam-targeted). When its numbers land I'll
-  bring you keep-flat-1 vs progressive-N as a one-line knob choice.
+- [ ] **Settler-upkeep — final choice (measured, arc closed):** the
+  progressive variant DOESN'T work — settlers are a PIPELINE (each
+  founds+vanishes; rarely 2-3 alive at once), so free-first-N never
+  bites (≈ baseline, no cap). A per-settler food tax CANNOT deliver
+  'fewer BETTER-fed cities' — flat-1 = fewer+smaller (cities −24%,
+  pop −34%); progressive = no change. Your options:
+  (a) KEEP flat-1 as shipped (expansion cap, accepted economy cost);
+  (b) revert to 0 (no cap, baseline economy);
+  (c) keep flat-1 AND design the real fewer-better-fed lever —
+  Civ4-style rising settler cost by city count (provenance-labeled)
+  or leaning on Civ1-authentic corruption/distance. Default if you
+  don't pick: (a) stands.
 
 **HAND TO THE DESIGNER ALLY (cover note ready):**
 - [ ] Send `specs/ally-cover-note-2026-07-17-evening.md` — their
