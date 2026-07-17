@@ -47,6 +47,19 @@ local function pinCharacter(u)
 	end
 end
 
+-- DECK-RESIDENT model (architect PROVISIONAL ruling @f4b54119, user to
+-- confirm on retest): the avatar LIVES on the observation deck — action
+-- pads there, the map as the diorama below. The R12 spawn-on-settler
+-- teleport is REMOVED (it disconnected the avatar from the deck pads);
+-- possession pins the character to the ridden unit, and dismounting
+-- returns to the deck. The deck SpawnLocation + catch floor own every
+-- other spawn/fall path.
+local function deckSpawnCFrame()
+	local deckFolder = workspace:FindFirstChild("ObservationDeck")
+	local spawnPlate = deckFolder and deckFolder:FindFirstChild("DeckSpawn")
+	return spawnPlate ~= nil and (spawnPlate.CFrame + Vector3.new(0, 4, 0)) or nil
+end
+
 local function release(reason)
 	if ClientState.possessedUnitId == nil then
 		return
@@ -86,18 +99,7 @@ local function possess(unitId)
 	print(("[Possess] riding %s (%s) at (%d,%d), moves %d"):format(unitId, u.type, u.x, u.y, u.moves))
 end
 
--- DECK-RESIDENT model (architect PROVISIONAL ruling @f4b54119, user to
--- confirm on retest): the avatar LIVES on the observation deck — action
--- pads there, the map as the diorama below. The R12 spawn-on-settler
--- teleport is REMOVED (it disconnected the avatar from the deck pads);
--- possession pins the character to the ridden unit, and dismounting
--- returns to the deck (below). The deck SpawnLocation + catch floor own
--- every other spawn/fall path.
-local function deckSpawnCFrame()
-	local deckFolder = workspace:FindFirstChild("ObservationDeck")
-	local spawnPlate = deckFolder and deckFolder:FindFirstChild("DeckSpawn")
-	return spawnPlate ~= nil and (spawnPlate.CFrame + Vector3.new(0, 4, 0)) or nil
-end
+-- (deck-resident helper moved above release — see the ruling note there)
 
 -- next own idle unit — R7a (12)(15): nearest-first, skips fortified/working
 -- (input.js:255 semantics); the shared picker lives in ClientState
