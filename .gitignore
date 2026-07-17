@@ -40,3 +40,8 @@ __pycache__/
 # Roblox test images
 roblox/*.png
 roblox/*.rbxl.lock
+
+# Playwright UI lane (A49) run artifacts — the specs live in test-ui/, but
+# traces/reports/results are regenerated, never committed
+test-results/
+playwright-report/

@@ -92,6 +92,11 @@ the deferred resend integration), payments (never).
   playwright) never install on a host. A96's nightly audit runs
   `npm audit` and gates any fix behind a full-suite pass in a
   staging copy before swap — no silent self-modification.
+  *New-dep cadence (2026-07-17, A49):* `@playwright/test` entered
+  `devDependencies` for the nightly UI lane — dev-only, excluded by
+  `--omit=dev`, so the hosted posture is unchanged; recorded here per
+  the re-assess-on-new-dependency trigger. `npm audit` reported 0
+  vulnerabilities at install.
 - **Availability**: A96 watchdog serves a static 503 maintenance
   page (dependency-free) after N failed starts; systemd restarts
   cover crashes. The engine is synchronous per command — a slow

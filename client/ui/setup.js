@@ -351,7 +351,8 @@ export function showSetupScreen() {
     import('./lobby.js').then(m => m.startHostFlow(setupBox,
       { // A38: ?e2ecivs/?e2esize override the tiny default (12-civ shots)
         civs: parseInt(params.get('e2ecivs') || '2', 10),
-        humans: 1, size: params.get('e2esize') || 'xsmall', seed: 12345
+        humans: parseInt(params.get('e2ehumans') || '1', 10), // A49: 2-human lobby for the multi-client UI lane
+        size: params.get('e2esize') || 'xsmall', seed: 12345
       },
       {
         auto: true, name: 'Kjell', hold: params.get('e2ehold') === '1',

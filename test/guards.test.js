@@ -14,13 +14,18 @@ function git(args) {
 }
 const inGit = git(['rev-parse', '--is-inside-work-tree']) === 'true';
 
-test('dependency whitelist: ws (runtime) and lune (dev) only', () => {
+test('dependency whitelist: ws (runtime); lune + @playwright/* (dev) only', () => {
   const pkg = require('../package.json');
   const deps = Object.keys(pkg.dependencies || {});
   const dev = Object.keys(pkg.devDependencies || {});
   assert.deepStrictEqual(deps.filter(d => d !== 'ws'), [],
     `unapproved runtime dependency: ${deps} — the whitelist is CLAUDE.md's hard rule`);
-  const badDev = dev.filter(d => d !== 'lune' && !d.startsWith('@lune/'));
+  // dev-only whitelist (CLAUDE.md): lune (Luau twins) + @playwright/test /
+  // playwright (A49 nightly UI lane, user-approved 2026-07-14). NOTE: server
+  // hosts install with --omit=dev, so none of these ever reach a public host.
+  const okDev = d => d === 'lune' || d.startsWith('@lune/')
+    || d === 'playwright' || d.startsWith('@playwright/');
+  const badDev = dev.filter(d => !okDev(d));
   assert.deepStrictEqual(badDev, [], `unapproved dev dependency: ${badDev}`);
 });
 
