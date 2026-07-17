@@ -86,12 +86,11 @@ the Done log at the bottom.
   deliver wonders at dg=30 UNCHANGED (marker-0043, gate green).
 
 **FROM YOUR 2026-07-18 LAN PLAYTEST (X-batch filed as L1-L5):**
-- [ ] **README screenshot swap (your X.4):** debugging/readme-candidate.png
-  is a strong shot (turn-256 Aztec empire, three cities, advice card
-  visible — the game teaching itself). Say GO and I swap it into
-  docs/screenshot.png / README. NOTE: you mentioned TWO new PNGs but only
-  ONE readme-candidate.png landed in debugging/ (the usergenerated/ pair
-  is from Jul 15) — re-drop the second if it matters.
+- [x] **README screenshot swap (your X.4) — DONE 2026-07-18** (863ec95):
+  both candidates found (the second was named candidate-cityview.png)
+  and swapped into the README's existing two-shot structure — the
+  turn-256 Aztec world as the hero, the Tenochtitlan city view for the
+  strategic layer; captions refreshed.
 - The rest of the batch (hosting-screen cleanup, resume-button flow with
   --debug-gated listings, lobby auto-fit, join-code-per-boot fix, mobile
   ?mlog overlay + the seated-start bug your X.6 spectator test narrowed)
