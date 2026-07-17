@@ -171,6 +171,9 @@ export function createRenderer(container) {
 
   // population badge: a small round sprite with the city size
   const cityLabels = [];
+  // A68: cityId -> { text, alert } from the UI (hud) — read by buildCities
+  let cityNotes = {};
+  const disorderRings = [];
   function makeCityLabel(text, color) {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
@@ -228,6 +231,35 @@ export function createRenderer(container) {
     return sprite;
   }
 
+  // A68 (VIII.10): a smaller second pill under the name — production + turns
+  // left for OWN cities; alert (civil disorder) flips it red-bordered.
+  function makeNoteLabel(text, alert) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 40;
+    const g = canvas.getContext('2d');
+    g.font = 'bold 18px monospace';
+    const w = Math.min(250, g.measureText(text).width + 18);
+    const x0 = (256 - w) / 2;
+    g.beginPath();
+    g.roundRect(x0, 4, w, 30, 10);
+    g.fillStyle = alert ? 'rgba(64, 12, 4, 0.85)' : 'rgba(8, 12, 20, 0.75)';
+    g.fill();
+    g.lineWidth = 3;
+    g.strokeStyle = alert ? '#ff5533' : '#5a7396';
+    g.stroke();
+    g.fillStyle = alert ? '#ffd9cc' : '#cdd8ea';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, 128, 20);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas), depthTest: false
+    }));
+    sprite.userData.nameScale = { w: 1.2, h: 0.19 }; // rides the same zoom rescale as the name pill
+    sprite.scale.set(1.2, 0.19, 1);
+    return sprite;
+  }
+
   function buildCities() {
     for (const mesh of cityMeshes.values()) worldGroup.remove(mesh);
     cityMeshes.clear();
@@ -239,6 +271,12 @@ export function createRenderer(container) {
       label.material.dispose();
     }
     cityLabels.length = 0;
+    for (const ring of disorderRings) {
+      worldGroup.remove(ring);
+      ring.geometry.dispose();
+      ring.material.dispose();
+    }
+    disorderRings.length = 0;
     for (const city of Object.values(view.cities || {})) {
       const color = view.players[city.owner]?.color || '#ffffff';
       // the capital flies the CanvasTexture emblem flag (own cities carry
@@ -260,6 +298,25 @@ export function createRenderer(container) {
         nameLabel.position.set(city.x, tileTop(city.x, city.y) + 0.62, city.y);
         cityLabels.push(nameLabel); // same lifecycle: removed + disposed on rebuild
         worldGroup.add(nameLabel);
+      }
+      // A68 (VIII.10/13): the production/disorder note pill below the name;
+      // disorder additionally rings the tile red — LOUD on the map
+      const note = cityNotes[city.id];
+      if (note) {
+        const noteLabel = makeNoteLabel(note.text, note.alert === true);
+        noteLabel.position.set(city.x, tileTop(city.x, city.y) + 0.4, city.y);
+        cityLabels.push(noteLabel);
+        worldGroup.add(noteLabel);
+        if (note.alert === true) {
+          const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(0.55, 0.045, 8, 28),
+            new THREE.MeshBasicMaterial({ color: 0xff4433 })
+          );
+          ring.rotation.x = Math.PI / 2;
+          ring.position.set(city.x, tileTop(city.x, city.y) + 0.06, city.y);
+          disorderRings.push(ring);
+          worldGroup.add(ring);
+        }
       }
     }
   }
@@ -392,6 +449,11 @@ export function createRenderer(container) {
     },
     // faction visuals (art A1.6a): pid -> data/civs.json `visual` object;
     // players absent from the map keep their plain color
+    // A68 (VIII.10/13): own-city note pills (production/turns, disorder
+    // alert). Call BEFORE setViewState — buildCities reads the current map.
+    setCityNotes(n) {
+      cityNotes = n || {};
+    },
     setFactions(map) {
       factions = map || {};
       if (view) { buildUnits(); buildCities(); }

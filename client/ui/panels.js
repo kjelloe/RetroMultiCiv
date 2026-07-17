@@ -291,8 +291,8 @@ export function initPanels(ctx) {
         + '<button class="spec-btn" id="spec-scientist" title="entertainer → scientist">🎭→🔬</button>' : '')
       + (mood.taxmen + mood.scientists > 0 ? ' <button class="spec-btn" id="spec-clear" title="all specialists back to entertainers">↺🎭</button>' : '')
       + '</div>'
-      + (city.disorder === true
-        ? '<div class="loss">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
+      + (city.disorder === true // A68 (VIII.13): a loud banner, not a text line
+        ? '<div class="disorder-banner">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
     const buyBtn = document.getElementById('city-buy');
     if (buyBtn) {
       buyBtn.addEventListener('click', () =>

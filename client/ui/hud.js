@@ -1,5 +1,6 @@
 // HUD: status line, research bar, tile/selection text, the center banner.
 import { filterView } from '../../engine/visibility.js';
+import { cityYields, itemCost } from '../../engine/cities.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
@@ -142,8 +143,36 @@ export function initHud(ctx) {
     wasAllMoved = allMoved;
   }
 
+  // A68 (VIII.10/13): own-city map notes — current production + turns left
+  // under the name pill; civil disorder swaps the note for the loud alert
+  // (the renderer adds the red tile ring for alert:true). Rival cities and
+  // spectators get none: the walk only matches ctx.HUMAN-owned cities.
+  function cityNotes(state) {
+    const notes = {};
+    const ruleset = session.ruleset;
+    for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+      const c = state.cities[cid];
+      if (!c || c.owner !== ctx.HUMAN) continue;
+      if (c.disorder === true) {
+        notes[c.id] = { text: '⚠ DISORDER', alert: true }; // the city view carries the full sentence
+        continue;
+      }
+      if (!c.producing) continue;
+      const table = c.producing.kind === 'unit' ? ruleset.units
+        : c.producing.kind === 'wonder' ? ruleset.wonders : ruleset.buildings;
+      const def = table[c.producing.id];
+      if (!def) continue;
+      const cost = itemCost(c.producing.kind, c.producing.id, def, state.players[c.owner], ruleset);
+      const y = cityYields(state, c, ruleset);
+      const turns = y.shields > 0 ? Math.max(1, Math.ceil((cost - c.shields) / y.shields)) : null;
+      notes[c.id] = { text: `⚒ ${def.name}${turns !== null ? ` · ${turns}t` : ''}`, alert: false };
+    }
+    return notes;
+  }
+
   function refresh() {
     const state = session.state;
+    if (renderer.setCityNotes) renderer.setCityNotes(cityNotes(state));
     renderer.setViewState(filterView(state, ctx.HUMAN));
     renderer.setSelection(sel.unitId ? { unitId: sel.unitId } : null);
     const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;

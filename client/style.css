@@ -1211,6 +1211,17 @@ html, body {
   background: #2f5388;
 }
 
+/* A68 (VIII.13): civil disorder is LOUD in the city view */
+.disorder-banner {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #571a08;
+  border: 1px solid #d84a3b;
+  border-radius: 6px;
+  color: #ffd9cc;
+  font-weight: bold;
+}
+
 /* A68 (VIII.9): inapplicable settler jobs stay visible but grayed — the
    tooltip carries the why (already built / wrong terrain / needs a tech) */
 #action-bar button:disabled {
