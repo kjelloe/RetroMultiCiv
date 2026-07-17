@@ -237,3 +237,44 @@ test('luau replay: verdicts are byte-identical with tools/replay.js',
         `${f}: the two replayers must agree verbatim — even about divergence`);
     }
   });
+
+// A82a: map-type preset anchors — each rules.mapTypes preset generates the
+// SAME world in both engines (seed 42, 80x50, the two-player roster; the
+// pinned hex values are the phase-2 contract). The 'continents' preset must
+// equal the presetless default (the identity that keeps every golden still).
+test('luau mapgen: map-type preset worlds match the JS engine and the pins',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const RULESET = require('./ruleset.js');
+    const { createGame } = await import('../engine/mapgen.js');
+    const { hashState } = await import('../shared/statehash.js');
+    const PINS = {
+      continents: '3dc42c9f', pangaea: '1aab7c3b',
+      archipelago: '015d7878', islands: '815aad4e'
+    };
+    const players = [
+      { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
+      { id: 'p2', name: 'Zulus', color: '#d84a3b', human: false }
+    ];
+    const world = mapType => {
+      const options = { width: 80, height: 50, players };
+      if (mapType) options.mapType = mapType;
+      return hashState(createGame({ seed: 42, options }, RULESET));
+    };
+
+    const js = { default: world(null), unknown: world('doughnut') };
+    for (const t of Object.keys(PINS)) {
+      js[t] = world(t);
+      assert.strictEqual((js[t] >>> 0).toString(16).padStart(8, '0'), PINS[t],
+        `${t}: the JS world moved off its pinned anchor`);
+    }
+    assert.strictEqual(js.default, js.continents, 'continents = the identity default');
+    assert.strictEqual(js.unknown, js.continents, 'unknown types clamp to the default');
+
+    const res = spawnSync('lune', ['run', 'luau/maptype-hashes.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 120000 });
+    assert.strictEqual(res.status, 0, `maptype harness failed:\n${res.stdout}\n${res.stderr}`);
+    for (const [t, h] of Object.entries(js)) {
+      assert.ok(res.stdout.includes(`maptype:${t}: ${h}`),
+        `${t}: Luau must hash the world as ${h} — harness said:\n${res.stdout}`);
+    }
+  });
