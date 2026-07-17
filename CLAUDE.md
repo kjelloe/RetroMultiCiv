@@ -108,10 +108,15 @@ lines (each becomes a Luau ModuleScript 1:1; small files = reviewable port),
 client/tools ≤ ~450. If a file needs a full rewrite because targeted edits got
 risky, that IS the signal to split it. One module = one subsystem; keep
 `require`s acyclic. The client is split as: main (bootstrap) / session
-(state owner + AI-drive — the phase-3 socket seam) / diagnostics /
+(state owner + AI-drive — the phase-3 socket seam) / session-remote /
+diagnostics /
 ui/{hud,panels,input,saves,turnlog,turnlog-classes,setup,handoff,
-options,lobby,move-hints,wait-status}. The
-renderer splits renderer/three/{index,assets,props,terrain,factions,anim
+options,lobby,move-hints,wait-status,advice,advice-gate,catalog-text,
+endscreen,ff-overlay,historian,left-stack,overlays,pedia,pedia-concepts,
+regency,regent-driver,replay,replay-events,sound,sound-map,stats,
+stats-data}. The
+renderer splits renderer/three/{index,assets,props,terrain,factions,
+overlays,recipes,unit-chrome,anim
 — anim.js is render-time-only motion: clock+position phases, never
 engine RNG/state}. UI reads session.state
 and calls session.apply()/endTurn(); session.onChange drives refresh.

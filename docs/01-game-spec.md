@@ -368,10 +368,10 @@ below is a known, deliberate deviation to be closed in a later slice:
   2026-07-15, wiki extract as authority): Civ 1's rule carries no land/sea
   exemption — any unit exerts ZOC on all eight neighbors, so land units DO
   bind adjacent sea movement. This matches `engine/movement.js
-  inEnemyZoc`; closed no-change. Known gaps vs the same source, queued
-  separately: enemy *cities* should also exert ZOC, and Diplomat /
-  Caravan / Nuclear should ignore it (all three exist in
-  `data/units.json`; the engine has no exemption path yet).
+  inEnemyZoc`; closed no-change. Both former known-gaps are now SHIPPED
+  (doc-sync 2026-07-17): enemy cities exert ZOC (inEnemyZoc scans rival
+  cities, wrap-aware) and units.json `ignoresZoc` exempts Diplomat /
+  Caravan / Nuclear (B18).
 - **Improvement-terrain matching is the authentic Civ 1 TRANSFORM model**
   (B17 audit 2026-07-16, wiki terrain table as authority, verified
   cell-by-cell): `data/terrain.json` matches all eleven rows — irrigation
@@ -510,8 +510,11 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
   auto-sell (B13) landed the removal+credit machinery; the manual
   one-per-city-per-turn command + city-view affordance remain
   (state-shape flag → own golden window).
-- **Barbarians never era-scale** (A66): militia forever; the tier
-  system + the REBELS rename are designed.
+- **Barbarian era-scaling SHIPPED** (A66 closed): barbarians.js barbTier()
+  picks the spawn unit from rules.barbTiers by tech-threshold across
+  living civs (see the barbTiers reference above); REBELS rename designed.
+  (Doc-sync 2026-07-17 — this row previously contradicted the barbTiers
+  reference 14 lines up.)
 - **Special-unit behaviors unaudited** (A71): submarine
   invisibility, carrier capacity, catapult-vs-walls etc. — audit
   pending; Diplomat/Caravan remain out of scope (§12).
@@ -522,7 +525,7 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
 |---|---|---|---|
 | Submarine | invisible to land units (spotted only adjacent by sea/air); sight 2; cannot attack land | plain ship | MISSING — visibility model extension; with B13 family or own item |
 | Carrier | carries 8 air units (incl. Nuclear); sight 2 | plain ship | A72 dependency (air) + A69 aboard machinery — already designed |
-| Battleship / Cruiser | sight 2; **can bombard/attack units on coastal land squares** | attack = move-into, ships can't enter land ⇒ **ours likely CANNOT attack coastal land at all** — verify, then fix | REAL GAP — attack-in-place vs adjacent land; small engine item, near-term |
+| Battleship / Cruiser | sight 2; **can bombard/attack units on coastal land squares** | SHIPPED — combat.js allows sea-domain attackers to strike land tiles (A72-era; attack-in-place, no disembark) | closed (doc-sync 2026-07-17, reviewer sweep) |
 | Fighter | must return to city/Carrier EVERY turn; the ONLY unit that can attack air units | grounded (A72) | A72 covers fuel; add air-vs-air exclusivity to A72 |
 | Bomber | 2 turns aloft; **ignores City Walls when attacking**; sight 2 | grounded (A72) | A72 + the walls-ignore flag (one combat multiplier guard) |
 | Nuclear | one-shot air attack (A72 design verified) | immobile | A72, designed |
@@ -532,6 +535,25 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
 | Caravan | ignores enemy units moving; no upkeep/unhappiness; **+50 shields to a domestic wonder**; establishes trade routes (top 3 kept); consumed on use | ZOC flag only | wonder-help is small + delightful (near-term candidate); trade routes = the Civ4-chains shelf neighbor, design with phase 6 economy |
 | Catapult / Artillery | nothing special — stats only (no anti-wall behavior in Civ 1) | correct | CLOSED — the walls suspicion was another Civ2+ memory |
 | Sight ranges | subs/carriers/battleships/cruisers/bombers see 2 | all units sight 1 (verify) | audit row: a per-unit sight field, visibility-model extension |
+
+### Ratified deviations & divergences (user rulings 2026-07-17, provenance-labeled)
+
+- **freeUnitsPerCity=3 under Monarchy/Communism is a deliberate Civ2
+  borrow** — RATIFIED (Civ1 charges upkeep on every unit with no 3-free
+  allowance; the wiki Government (Civ1) table is the authority). Kept for
+  playability; labeled Civ2-shape per the mixing ruling.
+- **Anarchy models a maxRate=60 clamp, not Civ1's no-tax/no-science** —
+  KEPT as a playability divergence, documented here (engine
+  government.js clamps during revolution; Civ1 collects nothing).
+- **Settler food upkeep: ADOPTED at a flat 1 food per settler** (user
+  chose the flat model over the wiki's 1-under-Despotism/2-under-later
+  split; original-shape simplification). Engine golden-window item,
+  sequenced after the stance-mix work settles.
+- **Barbarian gold ransom: ADOPTED**, bundled with A4 goody huts (same
+  barbarian/rng surface), not its own window.
+- **PARKED (game-v2): a richer Civ4-shape anarchy/revolution/civics
+  system** — user flags explicit interest for later; recorded beside the
+  other game-v2 items so it isn't lost.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
