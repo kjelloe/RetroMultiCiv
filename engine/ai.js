@@ -1213,7 +1213,15 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // (sim-runner #744, the M-floors caught it). The veto still applies on top
       // (a threatened city keeps everyone); this floor is the hard guarantee that
       // no city is ever stripped below one defender. greedy mode: no departure.
-      const scoutDepart = scouting && exploreMode !== 'greedy' && guards >= 2;
+      // W2 (opener exception, EXPERIMENT rules.aiOpenerScoutException): the user's
+      // founding-stage doctrine — a ONE-city civ's SOLE guard may scout when its
+      // city is unthreatened (need === 1), to find the second site before it
+      // garrisons. Confined to countCities === 1; multi-city keeps the full floor,
+      // and a threatened opener still holds (need === 2). Sim-runner gates it.
+      const openerException = ruleset.rules.aiOpenerScoutException === true
+        && countCities(state, playerId) === 1 && need === 1;
+      const scoutDepart = scouting && exploreMode !== 'greedy'
+        && (guards >= 2 || openerException);
       if (guards <= need && !scoutDepart) {
         return { type: 'fortify', playerId, unitId: uid };
       }

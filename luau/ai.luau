@@ -1414,7 +1414,13 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
 					-- B23: a scout departs to range only if the city keeps another
 					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
-					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
+					-- W2 opener exception (EXPERIMENT rules.aiOpenerScoutException): a ONE-city
+					-- civ's sole guard may scout when unthreatened (need == 1). Multi-city keeps
+					-- the full floor; a threatened opener still holds. Matches engine/ai.js.
+					local openerException = ruleset.rules.aiOpenerScoutException == true
+						and countCities(state, playerId) == 1 and need == 1
+					local scoutDepart = scouting and exploreMode ~= "greedy"
+						and (guards >= 2 or openerException)
 					if guards <= need and not scoutDepart then
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end
