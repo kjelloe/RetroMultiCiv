@@ -231,6 +231,15 @@ or it silently renders as grassland.
 
 ## Workflow
 
+**Naming convention (user ruling 2026-07-17):** a change that does
+not move the deterministic goldens is labelled **`gamesim-golden-neutral`**
+(or plainly `golden-neutral`) in mail, commits, and marks — NEVER
+`sim-golden`. Keep game-simulation language explicit (`gamesim` /
+"game simulation") so it never reads as an ambiguous "sim"; the
+server-robustness lane (docs/17) is a separate clone with its own
+neutral operational vocabulary and does no game simulation. This
+keeps the two domains' vocabularies from colliding.
+
 User handles all git commits and pushes on dev/main. The dev_night
 branch is the STANDING exception (user grant 2026-07-16, widened
 same day): the architect commits accepted gate-green work there and

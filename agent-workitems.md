@@ -2473,7 +2473,7 @@ byte-identical (pure refactor).
    domain check. (The user played pre-A65 — likely already cured.)
 All golden-safe client work. Screenshots read per item.
 
-## A69 — Naval transport: ships carry land units (wave VIII.14 — MISSING Civ 1 mechanic, engine design)  [claimed: bugfixer 2026-07-16 @#550, cross-lane arbitrated @becf5e05] [done: 2026-07-16 — transport:N via UNIT_OVERLAY (trireme 2/sail 3/frigate 4/transport 8, user-confirm pending), aboard:<shipId> OMIT-SAFE (golden-safe), implicit load/unload via moveUnit, cargo moves with ship + drowns with it (cargoLost), NO AMPHIBIOUS ASSAULT (wiki silent + no Civ1 Marine — pinned, user-confirm pending); scenarios 019=0x713c1a30 + 020=0xd2b9aedb both engines; 7 new tests incl. revert-proof; SIM-GOLDEN-NEUTRAL verified; suite 337/337. A72 UNBLOCKED.]
+## A69 — Naval transport: ships carry land units (wave VIII.14 — MISSING Civ 1 mechanic, engine design)  [claimed: bugfixer 2026-07-16 @#550, cross-lane arbitrated @becf5e05] [done: 2026-07-16 — transport:N via UNIT_OVERLAY (trireme 2/sail 3/frigate 4/transport 8, user-confirm pending), aboard:<shipId> OMIT-SAFE (golden-safe), implicit load/unload via moveUnit, cargo moves with ship + drowns with it (cargoLost), NO AMPHIBIOUS ASSAULT (wiki silent + no Civ1 Marine — pinned, user-confirm pending); scenarios 019=0x713c1a30 + 020=0xd2b9aedb both engines; 7 new tests incl. revert-proof; GAMESIM-GOLDEN-NEUTRAL verified; suite 337/337. A72 UNBLOCKED.]
 
 Ships with transport capacity load/unload land units; if the ship
 dies, its cargo dies with it. Design sketch (wiki verifies all
