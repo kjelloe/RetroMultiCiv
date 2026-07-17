@@ -545,10 +545,14 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
 - **Anarchy models a maxRate=60 clamp, not Civ1's no-tax/no-science** —
   KEPT as a playability divergence, documented here (engine
   government.js clamps during revolution; Civ1 collects nothing).
-- **Settler food upkeep: ADOPTED at a flat 1 food per settler** (user
-  chose the flat model over the wiki's 1-under-Despotism/2-under-later
-  split; original-shape simplification). Engine golden-window item,
-  sequenced after the stance-mix work settles.
+- **Settler food upkeep: SHIPPED marker-0046 at a flat 1 food per
+  settler** (user chose the flat model over the wiki's
+  1-under-Despotism/2-under-later split; original-shape
+  simplification). Homed settlers eat 1 food/turn at the home city;
+  deficit starves via the existing path (settler-spam self-cap);
+  homeless settlers free (the shields deviation class);
+  `settlerFoodUpkeep` knob, 0 = off. A progressive variant
+  (first-N-free) is under measurement as a possible tune.
 - **Barbarian gold ransom: ADOPTED**, bundled with A4 goody huts (same
   barbarian/rng surface), not its own window.
 - **PARKED (game-v2): a richer Civ4-shape anarchy/revolution/civics

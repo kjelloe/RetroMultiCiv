@@ -8,14 +8,20 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
-- [ ] **Merge marker-0044** (supersedes the 0043 line — 0044 = 0043 +
-  A54 off-turn pre-work, all golden-neutral since): stance-mix v1
-  (some civs build wonders, dg=30 intact), the A51 find-a-game
-  pipeline, off-turn rates/research/production, H1 ratchet, pedia
+- [ ] **Merge marker-0046** (the current consistent candidate; the
+  evening shipped 0043→0046): stance-mix v1 (some civs build wonders,
+  dg=30 intact), the A51 find-a-game pipeline, A54 off-turn
+  rates/research/production, the ruleset-compat pin (save-vs-rules
+  safety), settler food upkeep (your flat-1 ruling), stance
+  visibility, H1 ratchet, palette P1+P2 (deuteranopia mode), pedia
   editorial, map types, v1.5 telemetry, all reports. Biggest merge
-  since 0033. (marker-0045, the ruleset-compat pin, is building and
-  may supersede again — merge the latest marker I declare
-  consistent.)
+  since 0033 — merge the latest marker I declare consistent.
+- [ ] **Settler-upkeep tune (optional, measured):** flat-1 SHIPS and
+  caps expansion (cities −24%) but reads as a broad food tax (pop
+  −34%, impr −13pts) rather than 'fewer better-fed cities'. The
+  sim-runner is A/B-ing a PROGRESSIVE variant (first 2-3 settlers
+  free, tax beyond = spam-targeted). When its numbers land I'll
+  bring you keep-flat-1 vs progressive-N as a one-line knob choice.
 
 **HAND TO THE DESIGNER ALLY (cover note ready):**
 - [ ] Send `specs/ally-cover-note-2026-07-17-evening.md` — their
