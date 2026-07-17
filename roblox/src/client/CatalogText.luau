@@ -85,7 +85,45 @@ function M.make(ruleset)
 		return table.concat(parts, " - ")
 	end
 
-	return { effectText = effectText, EFFECT_TEXT = EFFECT_TEXT }
+	-- tech id -> what it unlocks / which techs need it (R19 pedia sublines;
+	-- byte-shaped with catalog-text.js — wonderMark omitted: Roblox text
+	-- stays emoji-free, the one flagged divergence)
+	local techUnlocks = {}
+	local techLeadsTo = {}
+	local function add(map, key, name)
+		if map[key] == nil then
+			map[key] = {}
+		end
+		table.insert(map[key], name)
+	end
+	for id, def in pairs(ruleset.units) do
+		if def.tech ~= nil and def.tech ~= "" then
+			add(techUnlocks, def.tech, def.name)
+		end
+	end
+	for id, def in pairs(ruleset.buildings) do
+		if def.tech ~= nil and def.tech ~= "" then
+			add(techUnlocks, def.tech, def.name)
+		end
+	end
+	for id, def in pairs(ruleset.wonders) do
+		if def.tech ~= nil and def.tech ~= "" then
+			add(techUnlocks, def.tech, def.name)
+		end
+	end
+	for id, def in pairs(techs) do
+		for _, p in ipairs(def.prereqs or {}) do
+			add(techLeadsTo, p, def.name)
+		end
+	end
+	for _, map in ipairs({ techUnlocks, techLeadsTo }) do
+		for _, list in pairs(map) do
+			table.sort(list) -- pairs() order is unstable; sorted = stable text
+		end
+	end
+
+	return { effectText = effectText, EFFECT_TEXT = EFFECT_TEXT,
+		techUnlocks = techUnlocks, techLeadsTo = techLeadsTo }
 end
 
 return M
