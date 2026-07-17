@@ -40,12 +40,21 @@ be the wrong one.
 Wonder-racing + economy-at-peace (near-free, likely the two biggest "AI feels
 dumb" levers after N9), then difficulty-fairness (highest user-facing payoff).
 
-## Architect note (systemic tension, 2026-07-17)
-B23d (exploration) and N9 (economy) BOTH fail via the dg=30 warfare cascade —
-the M11 war pin that gives elim 27% also makes the map too dangerous to scout
-AND starves economy. Scenario #2 (economy-at-peace) is the key test: if the AI
-IS economy-competent at dg 70/100, the fixes should gate on war intensity (or
-the dg=30 pin is too aggressive for a well-rounded AI — a user tradeoff). If
-it's economy-incompetent even at peace, the build-priority fix (N9) is
-fundamental regardless of war. Run #2 EARLY — it disambiguates the whole
-exploration/economy cluster.
+## Architect note — RESOLVED by the economy-at-peace disambiguator (sim-runner #1025, 2026-07-17)
+The question was: is the economy/exploration/wonder cluster caused by the
+dg=30 war pin, or fundamental? ANSWER = **FUNDAMENTAL**. Measured across dg
+{30,50,70,100}: bldgPct AND wonders are ZERO at every war level including full
+peace (dg100, elim 0). Lowering war does NOT make the AI economy/wonder
+competent — the build-priority dead-last slot never lets buildings/wonders run,
+war or peace. And relaxing dg is WORSE: at peace exploration halves (15→7),
+cities drop (3→1), pop drops — WAR is what drives the AI's expansion/scout
+activity. CONCLUSIONS: (1) the **dg=30 pin is VINDICATED** — it's the
+war-lethality lever, not the economy culprit; there is NO dg tradeoff to weigh.
+(2) The fix is the **PRODUCTION ORDER directly** (N9-fix: reserve a slot for
+buildings+wonders above the perpetual military slots, empire-wide +
+wonder-inclusive). (3) DOWNSTREAM: a healthier AI wages more effective war, so
+the M11 pin (calibrated for today's economy-starved AI) will over-elim once the
+fix lands → a dg RE-PIN is needed then (a mini-M11, likely a lower dg for the
+same 20-40 band). B23d (exploration) was reverted — its failure was the
+war-cascade symptom; the economy/wonder root is what to fix, and it's
+independent of dg.
