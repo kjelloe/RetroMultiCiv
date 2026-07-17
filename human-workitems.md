@@ -56,6 +56,16 @@ the Done log at the bottom.
   whenever you play; they seed the human-benchmark corpus (the
   PRIMARY AI metric per the ally's framework,
   specs/ai-modes-framework.md §A).
+- [ ] **A50 command-rate budget — HOW to land it** (from your 1.0
+  design-debt question; the design exists, docs/17 item 0): (a) spawn
+  the dedicated hardening lane on its own clone (isolation, docs/17
+  as written — needs your machine-capacity call), or (b) fold item 0
+  into a normal bugfixer server window with lane-boundary care
+  (faster, no new agent). One-word answer works.
+- [x] **Your 1.0 pick, the ruleset pin — ALREADY DONE** (2026-07-17
+  evening, marker-0045): stamped at creation, strict at load with
+  operator override, lineage-honest. Your selection was shipped
+  before the relay arrived.
 - [x] **Authenticity batch — RULED 2026-07-17 (reviewer session):**
   freeUnitsPerCity=3 ratified as a labeled Civ2 borrow; settler food
   upkeep ADOPTED flat-1 (bugfixer window after the ruleset pin);
