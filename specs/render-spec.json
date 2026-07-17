@@ -445,7 +445,7 @@
       "ironclad": "shipPowered",
       "cruiser": "shipPowered",
       "battleship": "shipPowered",
-      "carrier": "shipPowered",
+      "carrier": "carrier",
       "fighter": "aircraft",
       "bomber": "aircraft",
       "nuclear": "aircraft"

@@ -29,6 +29,7 @@ export const RECIPE_CHROME = {
   shipSail:    { pennant: [-0.28, 0.14, 0.65], naval: true, sail: true },
   shipSub:     { pennant: [-0.28, 0.14, 0.65], naval: true },
   shipPowered: { pennant: [-0.28, 0.14, 0.65], naval: true },
+  carrier:     { pennant: [-0.34, 0.14, 0.65], naval: true }, // A67e: pennant aft of the deck overhang
   aircraft:    {},              // no pennant
   fallback:    { plain: true }  // all-neutral token, no visual, no pennant
 };

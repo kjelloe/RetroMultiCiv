@@ -169,6 +169,15 @@ export const UNIT_RECIPES = {
     { shape: 'cone', size: [1, 1], seg: 4, pos: [0.28, 0.14, 0], scale: [0.1, 0.12, 0.1], rot: [0, 0, -1.5707963267948966], color: 'hull' },
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.1, 0.28, 0], scale: [0.6, 2.4, 0.6], color: 'darkMetal' },
     { shape: 'box', size: [1, 1, 1], pos: [0.08, 0.26, 0], scale: [0.14, 0.1, 0.12], color: 'hull' }
+  ],
+  // A67e: the powered hull + bow under a wide FLAT DECK overhanging both ends,
+  // with a small ISLAND superstructure offset to starboard — the carrier reads
+  // as a flattop vs the funnel-and-bridge powered ships.
+  carrier: [
+    { shape: 'box', size: [1, 1, 1], pos: [-0.04, 0.14, 0], scale: [0.54, 0.12, 0.18], color: 'hull' },
+    { shape: 'cone', size: [1, 1], seg: 4, pos: [0.28, 0.14, 0], scale: [0.1, 0.12, 0.1], rot: [0, 0, -1.5707963267948966], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.23, 0], scale: [0.62, 0.03, 0.26], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.08, 0.31, 0.09], scale: [0.1, 0.12, 0.06], color: 'hull' }
   ]
 };
 
@@ -215,6 +224,6 @@ export const UNIT_SILHOUETTE = {
   armor: 'tank', catapult: 'catapult', cannon: 'siege', artillery: 'siege',
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',
   submarine: 'shipSub',
-  ironclad: 'shipPowered', cruiser: 'shipPowered', battleship: 'shipPowered', carrier: 'shipPowered',
+  ironclad: 'shipPowered', cruiser: 'shipPowered', battleship: 'shipPowered', carrier: 'carrier',
   fighter: 'aircraft', bomber: 'aircraft', nuclear: 'aircraft'
 };
