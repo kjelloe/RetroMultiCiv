@@ -26,6 +26,10 @@
 //                   On the CANONICAL config (7-civ medium no-chaos normal,
 //                   ≥400t) also enforces the docs/05 §12 M-target FLOORS at
 //                   t401 (median over seeds); a breach exits 1 (A93)
+//   --enforce-floors id,id  H1 ratchet: only the LISTED floors fail the run
+//                   on breach; unlisted breaches print as ⚠ advisory. No
+//                   flag = every floor enforced (local runs stay strict).
+//                   The nightly adds each floor's id as the N-track earns it.
 //
 // Invariants run every turn; deep audits + a summary line at each checkpoint.
 // Goldens don't apply (seeds vary). Failures leave artifacts in debugging/sim/
@@ -161,16 +165,32 @@ function reportFloors(statsFile, opts, seeds) {
   const report = computeFloorReport(readStatsRows(statsFile), opts, seeds);
   if (!report.applicable) { console.log(`floors: not evaluated — ${report.reason}`); return 0; }
   console.log(`M-target floors @ t${report.finalTurn}, median over ${report.seeds} seed(s):`);
-  let breaches = 0;
+  const { failing, advisory } = splitBreaches(report.results, opts.enforceFloors || null);
   for (const r of report.results) {
     if (r.pending) { console.log(`  ⏳ ${r.key} ${r.label}: PENDING (no telemetry column)`); continue; }
-    const mark = r.ok ? '✅' : '❌';
+    const mark = r.ok ? '✅' : failing.indexOf(r.key) !== -1 ? '❌' : '⚠';
     const shown = Math.round(r.measured * 100) / 100;
-    console.log(`  ${mark} ${r.key} ${r.label}: ${shown} (floor ${r.cmp} ${r.value})`);
-    if (!r.ok) breaches++;
+    console.log(`  ${mark} ${r.key} ${r.label}: ${shown} (floor ${r.cmp} ${r.value})`
+      + (advisory.indexOf(r.key) !== -1 ? ' — advisory, not yet ratcheted' : ''));
   }
-  if (breaches > 0) console.log(`FLOOR BREACH: ${breaches} M-target(s) below floor — regression, failing loudly`);
-  return breaches;
+  if (failing.length > 0) console.log(`FLOOR BREACH: ${failing.length} enforced M-target(s) below floor — regression, failing loudly`);
+  if (advisory.length > 0) console.log(`floor advisories: ${advisory.length} unratcheted target(s) still below floor (the N-track's live chase)`);
+  return failing.length;
+}
+
+// A93 RATCHET: split the measured results' breaches into run-FAILING (the
+// floor's id is on the enforced list — or the list is null, meaning every
+// floor is enforced, the original strict behavior local runs keep) and
+// ADVISORY (below floor but not yet ratcheted — the N-track's live targets).
+function splitBreaches(results, enforced) {
+  const failing = [];
+  const advisory = [];
+  for (const r of results) {
+    if (r.pending || r.ok) continue;
+    if (enforced === null || enforced.indexOf(r.key) !== -1) failing.push(r.key);
+    else advisory.push(r.key);
+  }
+  return { failing, advisory };
 }
 
 function parseArgs(argv) {
@@ -192,6 +212,15 @@ function parseArgs(argv) {
     else if (a === '--civs') opts.civs = Number(argv[++i]);
     else if (a === '--jobs') opts.jobs = Number(argv[++i]);
     else if (a === '--stats') opts.stats = argv[++i];
+    else if (a === '--enforce-floors') {
+      opts.enforceFloors = String(argv[++i] || '').split(',').filter(s => s !== '');
+      for (const k of opts.enforceFloors) {
+        if (!FLOORS.some(f => f.key === k)) {
+          console.error(`unknown floor id in --enforce-floors: ${k} (known: ${FLOORS.map(f => f.key).join(',')})`);
+          process.exit(1);
+        }
+      }
+    }
     else if (a === '--size') opts.size = argv[i + 1] in SIZES ? argv[++i] : opts.size;
     else if (a === '--difficulty') opts.difficulty = argv[i + 1] in DIFFICULTY ? argv[++i] : opts.difficulty;
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
@@ -322,5 +351,5 @@ if (require.main === module) main();
 
 module.exports = {
   FLOORS, FLOOR_CONFIG, FLOOR_MIN_TURNS,
-  isCanonicalFloorRun, computeFloorReport, floorMedian, floorCmp
+  isCanonicalFloorRun, computeFloorReport, floorMedian, floorCmp, splitBreaches
 };

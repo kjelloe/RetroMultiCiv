@@ -72,13 +72,18 @@ jobs:
     # NOT run (they are small + godemperor/natural). This lane runs it and
     # tools/soak.js --stats prints the floor table (A93).
     #
-    # REPORT MODE (architect ruling 2026-07-17, user may override): the step is
-    # continue-on-error, so a floor breach is advisory and never reds the run,
-    # and the floor table is echoed into the job summary — the M11 pinning
-    # session and the Wave-2 N-ledger want this telemetry immediately. A hard-red
-    # lane from day one just teaches everyone to ignore it.
-    # >>> FLIP to ENFORCING (delete `continue-on-error: true`) when the AI B-lane
-    # >>> closes M2 cities + M3 pop (docs/05 §12 M-TARGETS PINNED).
+    # RATCHET ENFORCEMENT (H1, architect ruling 2026-07-17): the floors listed
+    # in --enforce-floors below FAIL this job on breach — they are floors the
+    # AI already clears, locked against silent regression the moment they were
+    # earned. Floors NOT yet listed (the N-track's live targets, e.g. M2/M3/M4
+    # during the Wave-2 chase) print as ⚠ advisory in the summary and never
+    # red the lane — a hard-red lane on known-open targets just teaches
+    # everyone to ignore it.
+    # >>> THE RATCHET RULE: when the N-track clears a floor (the sim-runner
+    # >>> confirms the canonical median over its threshold), ADD its id to
+    # >>> --enforce-floors IN THE SAME COMMIT as that change's golden
+    # >>> re-record — each earned floor becomes permanent immediately, and the
+    # >>> M2-cities + M3-pop adds complete the full A93 enforcement.
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -87,11 +92,11 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - name: Canonical soak — 7-civ medium no-chaos, M-target floors (REPORT mode; A93)
-        continue-on-error: true
+      - name: Canonical soak — 7-civ medium no-chaos, M-target floors (RATCHET enforcing; A93/H1)
         run: |
           set +e
           node tools/soak.js --seeds 25 --turns 400 --civs 7 --size medium --no-chaos \
+            --enforce-floors M10-buys,M10-treasury,M-resourceCov \
             --stats debugging/sim/nightly-canonical.jsonl 2>&1 | tee /tmp/canonical-soak.log
           rc=${PIPESTATUS[0]}
           {

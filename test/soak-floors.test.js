@@ -109,3 +109,35 @@ test('short run (no t401 checkpoint) is not applicable', () => {
   const rep = computeFloorReport(rows, CANON, [1]);
   assert.strictEqual(rep.applicable, false);
 });
+
+// H1 (A93 ratchet): --enforce-floors gates WHICH breaches fail the run.
+test('splitBreaches: enforced list gates failures, the rest go advisory; null = all enforced', () => {
+  const { splitBreaches } = require('../tools/soak.js');
+  const results = [
+    { key: 'M2-cities', ok: false, pending: false },
+    { key: 'M3-pop', ok: false, pending: false },
+    { key: 'M10-buys', ok: false, pending: false },
+    { key: 'M10-treasury', ok: true, pending: false },
+    { key: 'M-resourceCov', ok: false, pending: true } // pending never breaches
+  ];
+  // ratcheted run: only M10-buys is enforced — its breach FAILS, M2/M3 advise
+  const r = splitBreaches(results, ['M10-buys', 'M10-treasury', 'M-resourceCov']);
+  assert.deepStrictEqual(r.failing, ['M10-buys']);
+  assert.deepStrictEqual(r.advisory, ['M2-cities', 'M3-pop']);
+  // no list: the original strict behavior — every measured breach fails
+  const all = splitBreaches(results, null);
+  assert.deepStrictEqual(all.failing, ['M2-cities', 'M3-pop', 'M10-buys']);
+  assert.deepStrictEqual(all.advisory, []);
+  // fully passing world: nothing in either bucket
+  const clean = splitBreaches(results.map(x => Object.assign({}, x, { ok: true })), null);
+  assert.deepStrictEqual(clean, { failing: [], advisory: [] });
+});
+
+test('--enforce-floors rejects unknown floor ids before running anything', () => {
+  const { spawnSync } = require('child_process');
+  const r = spawnSync(process.execPath, ['tools/soak.js', '--enforce-floors', 'M99-bogus'],
+    { cwd: require('path').join(__dirname, '..'), encoding: 'utf8', timeout: 30000 });
+  assert.strictEqual(r.status, 1);
+  assert.match(r.stderr, /unknown floor id .*M99-bogus/);
+  assert.match(r.stderr, /known: /, 'the error names the valid ids');
+});
