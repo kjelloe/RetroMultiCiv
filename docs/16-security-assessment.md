@@ -1,10 +1,15 @@
 # Information-security assessment — hosting a RetroMultiCiv server
 
-Status: A95 first assessment, architect, 2026-07-16. Reviewed
-against `server/` at suite-365 state. Re-assess when A50 lands,
+Status: A95 first assessment, architect, 2026-07-16; gap-6 scale
+sweep executed + folded 2026-07-17. Re-assess when A50 lands,
 when the master index (A51) goes live, and before any 1.0 public
 push. Companion: `docs/how-to-host.md` (operator guidance),
 `docs/12-global-host.md` §3 (the hardening queue this feeds).
+**Open remaining work is enumerated for the infosec ally in
+`reports/infosec-remaining.md` (shareable handoff).** Further
+security analysis is being moved to a dedicated infosec helper
+agent (owner decision 2026-07-17) — this doc records measured
+findings; the ally/agent drives the fixes.
 
 ## 1. Scope and threat model
 
@@ -124,14 +129,31 @@ a legitimate game.
 
 ## 3. Gap list (feeds A50; ranked)
 
+0. **PER-CONNECTION COMMAND BUDGET (A50 item 4) — HIGHEST-SEVERITY
+   availability gap for STARTED games. MEASURED + CONFIRMED
+   2026-07-17 (sim-runner #812).** Authenticated joined-seat
+   cmd-storm: a flooder that has legitimately joined a seat spams
+   valid-token {t:'cmd'} — clears auth, reaches game.apply(),
+   rejected as a bogus move but only AFTER consuming the loop.
+   Dose-response (canary cmd→ack latency): baseline 1 ms; ONE
+   flooder → p50 4.5 s / p99 8.8 s; THREE+ → total starvation
+   (zero acks/10 s). Server never crashes, integrity intact —
+   pure fairness collapse. Per-IP connect/join caps (items 1-2)
+   do NOTHING here: each flooder is one admitted connection under
+   every cap. The ONLY control is a per-connection command-rate/
+   cost budget (token-bucket on cmd/endTurn, cheap-reject over
+   budget with the existing {t:'rejected',code:'rateLimited'}
+   shape). In a public game ANY joined seat can do this to
+   everyone. This is the top hosting risk once games are public.
 1. Per-IP rate limits (join/create/listGames/chat-burst) + global
    caps — the standing A50 items; REQUIRED before promoting
    public hosting beyond supervised weekends. **Measured
-   (2026-07-17 scale test): rate limits alone are NOT enough —
-   also needs a per-CONNECTION command budget (cheap commands
-   like ping/list throttled per socket), because 50 sockets each
-   under a global cap still starve legit users to zero replies.
-   Fairness guard rides A50 item 4.**
+   (2026-07-17): the per-IP JOIN limiter is empirically CONFIRMED
+   WORKING (90/120 same-IP joins correctly rejected). But rate
+   limits alone are NOT enough — also needs the item-4 command
+   budget above; and CONNECTION churn (~3.5k open/close per sec)
+   evades the concurrency cap, so item 4 also wants a per-IP
+   connect-RATE window (code-verified gap: limits.js has none).**
 2. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist +
    retention, saves/ size budget (A50).
 3. Join-by-id closed for non-public games (A50 §1).
@@ -161,10 +183,7 @@ a legitimate game.
    reject frames, see (b).) (b) POSITIVE verification: the item-2 JOIN
    limiter empirically WORKS — 120 sequential same-IP joins drew
    90 rateLimited rejects (the first churn harness simply never
-   read reject frames; corrected probe: join-probe.mjs). Residual:
-   re-run hostile-scale as item 4's red case when it lands (canary
-   must keep getting pongs); joined-game cmd-storm variant still
-   open.
+   read reject frames; corrected probe: join-
 7. WS token rotation on reconnect — nice-to-have, not queued.
 
 ## 4. Operator quick-card (mirrors how-to-host.md)
