@@ -24,8 +24,10 @@ const TARGET_TITLES = [
   // wiki-verification net as units/buildings/wonders. The extraction is the
   // reference the reviewer's dump-holding clone checks against; absent pages
   // land in index.json's `missing` rather than failing the run.
-  'List of governments in Civ1',
-  'List of civilizations in Civ1'
+  // (The 'List of …' forms are REDIRECT STUBS in the dump and wiki2data
+  // follows no redirects — these are the real pages, per the live check.)
+  'Government (Civ1)',
+  'Civilizations (Civ1)'
 ];
 
 function unescapeXml(s) {
