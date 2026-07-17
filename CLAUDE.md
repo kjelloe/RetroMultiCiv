@@ -255,6 +255,16 @@ narrative summaries. (4) Prefer the one-line status form
 for data ops: export / regenerate / re-record / sync — NOT "harvest",
 "scrape", "sweep". Same information, mechanical voice.
 
+**Agent-mail output (user ruling 2026-07-17):** `send` prints a
+RECEIPT ONLY (`queued <tag> #<id> → <to>`) — never echo/re-print the
+body; it lives in the mail file. Put multi-line bodies in a file and
+pass `--body-file PATH` (or stdin `-`) so the body stays out of the
+command line/transcript. Read inboxes with `--headers` (one line per
+message); expand exactly one with `show #<id>`/`@<hash>` when you need
+the body. Never pipe an inbox/log dump and a body echo into one
+output. Detailed plans/specs go in the body or spec files, referenced
+by ID/path in any stdout summary.
+
 User handles all git commits and pushes on dev/main. The dev_night
 branch is the STANDING exception (user grant 2026-07-16, widened
 same day): the architect commits accepted gate-green work there and

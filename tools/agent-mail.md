@@ -8,16 +8,17 @@ for the architect and any number of coder agents. Storage is
 ## Everyday commands (local)
 
 ```bash
-# mail
-python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"
-python3 tools/agent-mail.py send --from helper --to architect --tag done "A11 done"
+# mail — send prints a RECEIPT ONLY ("queued <tag> #<id> → <to>"), never the body
+python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"   # short prose OK inline
+python3 tools/agent-mail.py send --from helper --to architect --tag done --body-file done.md   # multi-line: body in a FILE (keeps it out of the transcript)
+echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # or stdin (hub-safe since 2026-07-16)
 python3 tools/agent-mail.py send --from helper --to all "broadcast"
-echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # stdin (hub-safe since 2026-07-16: the client resolves '-' before proxying)
-python3 tools/agent-mail.py inbox --as helper      # unread for me (marks read)
-python3 tools/agent-mail.py peek  --as helper      # unread, does NOT mark
-python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag
+python3 tools/agent-mail.py peek  --as helper --headers   # DEFAULT read: one line/msg (id/from→to/tag/first line), does NOT mark
+python3 tools/agent-mail.py inbox --as helper --headers    # same, marks read
+python3 tools/agent-mail.py show <hash-prefix>     # expand ONE message's full body by @hash (or #id-prefix)
+python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (add --headers)
 python3 tools/agent-mail.py log [-n 20]            # recent traffic, all parties
-python3 tools/agent-mail.py show <hash-prefix>     # one full message by @hash
+python3 tools/agent-mail.py who                    # known roles + unread counts
 python3 tools/agent-mail.py who                    # known roles + unread counts
 
 # file locks (the claim protocol, made mechanical)
@@ -42,8 +43,19 @@ Conventions:
   not ignored.
 - Forgiving flags: the identity flag is `--from`/`--as`/`--role`/
   `--sender` interchangeably on every command that takes one; the
-  send body may be positional OR `--body`/`--text`/`--message`/`-m`;
-  lock's `--why` also answers to `--reason`.
+  send body may be positional OR `--body`/`--text`/`--message`/`-m`
+  OR `--body-file PATH` OR stdin `-`; lock's `--why` also answers
+  to `--reason`.
+- **Output-style rule (user ruling 2026-07-17 — avoids transcript
+  body-echo):** send prints a receipt only (`queued <tag> #<id> →
+  <to>`) — the body lives in the mail file, never re-print it.
+  Put multi-line bodies in a file and pass `--body-file` (or
+  stdin) so the body stays out of the command line/transcript.
+  Read inboxes with `--headers` by default (one line/msg); expand
+  exactly one with `show #<id>`/`@<hash>` when you need the body.
+  Never pipe an inbox dump and a body echo into one output. Keep
+  detailed plans/specs in the body or spec files, referenced by
+  ID/path in any stdout summary.
 
 ## Across the LAN (or any direct IP): the hub
 

@@ -146,6 +146,16 @@ def fmt(m):
     return f"{head}: {body}" if '\n' not in m['text'] else f"{head}:{body}"
 
 
+def hdr(m):
+    # one-line header: id, from→to, tag, first line only (no body echo).
+    ts = time.strftime('%H:%M', time.localtime(m['ts']))
+    tag = f" [{m['tag']}]" if m.get('tag') else ''
+    first = m['text'].split('\n', 1)[0]
+    if len(first) > 100:
+        first = first[:97] + '...'
+    return f"#{m['id']} @{msg_hash(m)} {ts} {m['from']} → {m['to']}{tag}: {first}"
+
+
 REMOTE_FILE = os.path.join(BOX, 'remote')
 
 
@@ -261,11 +271,15 @@ def dispatch(argv):
                    help="message body, or '-' to read from stdin")
     s.add_argument('--body', '--text', '--message', '-m', dest='body',
                    default=None, help='message body (alias for the positional)')
+    s.add_argument('--body-file', dest='body_file', default=None,
+                   help='read the body from a file (keeps it out of the command line/transcript)')
 
     for name in ('inbox', 'peek'):
         i = sub.add_parser(name)
         i.add_argument('--as', '--from', '--role', dest='role', required=True)
         i.add_argument('--tag', dest='tag', default='')
+        i.add_argument('--headers', action='store_true',
+                       help='one line per message (id/from→to/tag/first line); expand one with `show #id`')
 
     l = sub.add_parser('log')
     l.add_argument('-n', type=int, default=15)
@@ -292,12 +306,17 @@ def dispatch(argv):
     os.makedirs(BOX, exist_ok=True)
 
     if a.cmd == 'send':
-        if a.text is not None and a.body is not None:
-            sys.exit('give the body once: positional OR --body, not both')
-        raw = a.body if a.body is not None else a.text
-        if raw is None:
-            sys.exit('missing message body (positional text or --body "...")')
-        text = sys.stdin.read().strip() if raw == '-' else raw
+        given = [x for x in (a.text, a.body, a.body_file) if x is not None]
+        if len(given) > 1:
+            sys.exit('give the body once: positional, --body, or --body-file')
+        if a.body_file is not None:
+            with open(a.body_file, encoding='utf-8') as f:
+                text = f.read().strip()
+        else:
+            raw = a.body if a.body is not None else a.text
+            if raw is None:
+                sys.exit('missing message body (positional text, --body "...", or --body-file PATH)')
+            text = sys.stdin.read().strip() if raw == '-' else raw
         if not text:
             sys.exit('empty message')
         msgs = read_all()
@@ -307,7 +326,9 @@ def dispatch(argv):
             msg['tag'] = a.tag
         with open(LOG, 'a', encoding='utf-8') as f:
             f.write(json.dumps(msg) + '\n')
-        print(f"sent #{msg['id']} @{msg_hash(msg)} to {a.to}")
+        # receipt only — never echo the body back to stdout/the transcript.
+        tagpart = f"{a.tag} " if a.tag else ''
+        print(f"queued {tagpart}#{msg['id']} → {a.to}")
 
     elif a.cmd in ('inbox', 'peek'):
         msgs = unread_for(a.role)
@@ -317,7 +338,7 @@ def dispatch(argv):
             print(f'({a.role}: no unread)')
             return
         for m in msgs:
-            print(fmt(m))
+            print(hdr(m) if a.headers else fmt(m))
         if a.cmd == 'inbox' and msgs:
             # cursor moves to the newest unread we actually displayed
             set_cursor(a.role, max(m['id'] for m in unread_for(a.role)))
