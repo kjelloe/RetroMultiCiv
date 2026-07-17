@@ -3323,44 +3323,35 @@ lesson). Keyboard-safe per the INPUT rule; the 'manual'
 buildingSold turn-log line already exists (A86). Roblox parity
 joins the existing docs/13 Tier-2 sell row.
 
-## A99 — Onboarding advisor: the muteable hint system (user gate-ruled 2026-07-17 last-call; architect spec 2026-07-17 night; helper H6)
+## A99 — Onboarding advisor round 2 = EXTEND A78's advice.js (user gate-ruled 2026-07-17 last-call; re-scoped 2026-07-17 night after the helper caught the A78 collision — the original A99 spec duplicated a shipped module)
 
-A first-game player should be TAUGHT by the game, not the README.
-v1 = a client-only, situation-triggered, muteable hint panel.
-GOLDEN-NEUTRAL BY CONSTRUCTION: reads session.state, never writes
-state, no engine/data/*.json change; muting lives in localStorage
-(NEVER game state — hotseat/server hashes stay untouched).
+A78 (client/ui/advice.js, done 2026-07-16) already IS the muteable
+one-at-a-time advisor: cards, per-id localStorage seen-flags,
+OK-got-it (per-id mute) + No-thanks (silence all), the
+firstTimeTips ⚙ toggle with reset-on-reenable, webdriver/e2e
+gating, session.onChange triggers — and already covers disorder,
+save-code, tech-choice, combat-hover, city-view, unit-selected.
+A99 v1 therefore adds ONLY the genuinely missing hints, in A78's
+own house style:
+1. Three new cards as PURE exported predicates when(state, me)
+   (testable without DOM): first-contact (enemy unit newly visible
+   in own explored map), low-treasury (gold < upkeep bill),
+   fortify-garrison (own city with no garrison while an enemy is
+   known). Wire them into advice.js's existing card flow — NO new
+   module, NO second toggle, NO duplicate cards.
+2. Unit tests for the three predicates against crafted states.
+3. Skip: ESC/?advisor=0/3-button split — A78's existing gating and
+   OK/No-thanks semantics already cover them (per-id seen IS
+   don't-show-again).
+Roblox parity later (docs/13 tier list — same card content).
 
-1. `client/ui/advisor.js` (new ui module, session.onChange-driven
-   like the HUD): evaluates an ordered HINTS table each refresh for
-   the CURRENT viewpoint (ctx.HUMAN — read live, never cached).
-   Each hint: { id, when(state, me), title, body } — `when` is a
-   PURE predicate over session.state. First unmuted, unseen,
-   true-predicate hint shows; one hint at a time, lowest table
-   index wins (stable priority).
-2. v1 HINTS (~9, this order): welcome/move-found (turn 1, units
-   exist, no city yet), first-city-build (first city founded),
-   first-tech-pick (research chooser first opens), disorder
-   (any own city in disorder), first-contact (enemy unit newly
-   visible in own explored map), combat-basics (first own attack
-   available: adjacent enemy), low-treasury (gold < upkeep bill),
-   fortify-garrison (city with no garrison while enemy known),
-   save-code (first autosave/turnlog code seen — point at Shift+D
-   + the game code's meaning).
-3. DOM: one small dismissible panel (advisor corner, non-modal,
-   never blocks input); buttons: "Got it" (marks id seen, session
-   only), "Don't show again" (mutes id in localStorage),
-   "Mute advisor" (global kill, also a checkbox in ui/options).
-   Keyboard: ESC dismisses; handlers ignore INPUT/TEXTAREA targets
-   per house rule.
-4. Tests: predicates are exported pure functions — unit-test them
-   against crafted states (no DOM); one playwright spec later
-   (?e2e path shows the welcome hint, "Don't show again" persists
-   across reload) can ride the A49 lane as a follow-up spec file.
-5. Muting keys: `advisor.<hintId>` + `advisor.muteAll` in
-   localStorage; ?advisor=0 URL param disables for e2e/screenshot
-   runs (capture at MODULE EVAL per the A45 trap).
-Roblox parity later (docs/13 tier list — same HINTS table shape).
+**PROCESS AUGMENTATION (three-strikes trip, 2026-07-17 night):**
+this was the 3rd stale-fact miss of the same class (B18 re-offer,
+A72 mis-sequence, A99-duplicates-A78). New mechanical rule: before
+writing or assigning ANY new item spec, the architect greps
+client/ engine/ server/ + agent-workitems.md for existing coverage
+of the capability and cites the check in the item text ("prior-art
+check: none / extends X").
 
 ## A98 — LAN resume-by-code: the game code as the host's resume passphrase (user 2026-07-16 night; helper)  [claimed: helper 2026-07-16] [done: 2026-07-16 — server/index.js: new resumeByCode{code} handler — normalizes the code (uppercase, strip non-alphanumerics, so hyphen/case-insensitive), scans SAVES for the retromulticiv-server-save envelope whose code matches (newest wins), delegates to a NEW shared resumeFromFile(ws,file) helper (extracted from the A34 resume handler — one load→resetSeats→register→resumed path, two triggers); friendly rejects noSuchCode / noCode. The file NEVER comes from the client (server scans saves/), so it's traversal-safe by construction; also hardened the A34 resume-by-file with path.basename (defense-in-depth; protocol.js already shape-validates the basename). server/protocol.js: resumeByCode registered in the parse chokepoint (code string ≤40). NEW: savesDir opt on startServer (default REPO/saves) threaded through listSaves/resume/resumeByCode/savePath/default — removes the hardcoded path AND makes the flow ws-testable. client/ui/lobby.js: host-create panel gains a "Resume by game code" input + button next to the A34 pick-a-save list; reuses the SAME savesWs → {t:'resumed'} → join path; no-server readyState guard; noSuchCode/noCode friendly messages. docs/how-to-host.md: saves section documents resume-by-code AND the A50 tie-in (cleanup must retire completed/abandoned first, NEVER evict a resumable save). ws test (server.test.js): full round-trip — play→autosave→capture code, fresh server same savesDir, wrong-code→noSuchCode, empty→noCode, right code (entered lower-case + hyphen-free → normalization) → resumed reports the saved code+turn → join shows the pre-save city. GOLDEN-NEUTRAL (server/lobby/docs); suite 373/373 zero-skip; lobby.js imports clean. Roblox parity later (docs/13 Tier-3). UI verified by clean-import + the full behavioral ws round-trip (host-form live screenshot needs the setup→Host click-through; can add with A49).]
 
