@@ -623,6 +623,22 @@ local function stepEntersSea(state: any, unit: any, dir: string, ruleset: any): 
 end
 
 -- B23b twin: the nearest OWN city to a unit (deterministic sortIds walk).
+local function nearestOwnCity(state: any, unit: any, playerId: string): any
+	local best = nil
+	local bestDist = 9999
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			local d = chebyshev(state.map, unit.x, unit.y, c.x, c.y)
+			if d < bestDist then
+				best = c
+				bestDist = d
+			end
+		end
+	end
+	return best
+end
+
 -- B23b twin: is `uid` among the NEWEST `n` ids of `list`? (1-based len-n+1..len)
 local function inNewestRank(list: { string }, n: number, uid: string): boolean
 	for i = #list - n + 1, #list do
@@ -687,12 +703,8 @@ local function isScout(state: any, playerId: string, ruleset: any, uid: string, 
 		return false
 	end
 	if ruleset.rules.aiScoutThreatVeto == true then
-		-- B23d: veto ONLY when the SCOUT ITSELF is near a visible threat
-		-- (within aiScoutVetoRadius), not its distant home city. The guards>=2
-		-- departure floor keeps the city defended; this decouples scouting from
-		-- garrison-stripping (sim-runner #797). Matches engine/ai.js.
-		local vr = if ruleset.rules.aiScoutVetoRadius == nil then 2 else ruleset.rules.aiScoutVetoRadius
-		if enemyNear(state, state.players[playerId], playerId, u.x, u.y, vr) then
+		local c = nearestOwnCity(state, u, playerId)
+		if c ~= nil and enemyNear(state, state.players[playerId], playerId, c.x, c.y, ruleset.rules.threatRadius) then
 			return false
 		end
 	end

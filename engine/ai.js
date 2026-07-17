@@ -530,6 +530,17 @@ function stepEntersSea(state, unit, dir, ruleset) {
 // B23b: the nearest OWN city to a unit (deterministic sortIds walk). null when
 // the civ holds none. Used by the scout threat-veto (a scout whose nearest home
 // is menaced stays to garrison — the user's LOCAL visible-threat read).
+function nearestOwnCity(state, unit, playerId) {
+  let best = null, bestDist = 9999;
+  for (const cid of sortIds(state.cityOrder || [])) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    const d = chebyshev(state.map, unit.x, unit.y, c.x, c.y);
+    if (d < bestDist) { best = c; bestDist = d; }
+  }
+  return best;
+}
+
 // B23b: is `uid` among the NEWEST `n` ids of `list` (highest sorted ids = the
 // mobile surplus, never a founding garrison — the B21/B23 rank choice)?
 function inNewestRank(list, n, uid) {
@@ -546,10 +557,9 @@ function inNewestRank(list, n, uid) {
 // before it garrisons, finding the second site); (2) up to aiFastScoutCount
 // newest fast (moves>=2) units for large-land ranging; (3) up to aiBoatScoutCount
 // newest SEA units for coastal maps (0-effect until the naval probe teaches ships
-// to cross water). B23d: a scout is VETOED back to garrison when aiScoutThreatVeto
-// and the SCOUT ITSELF is within aiScoutVetoRadius of a visible enemy — the
-// scout's own safety, not its home city's (that stripped exploration whenever a
-// city was pressured). aiScoutQuotaByCities ABSENT -> the
+// to cross water). A scout is VETOED back to garrison when aiScoutThreatVeto and
+// its NEAREST OWN CITY is within rules.threatRadius of a visible enemy (the
+// LOCAL, not global, threat suppression). aiScoutQuotaByCities ABSENT -> the
 // B21/B23 flat aiScoutSharePct share, so old sweeps keep resolving. Deterministic
 // (sorted-id rank). The actual ranging behavior is B23's (coast/wallfollow/bfs).
 function isScout(state, playerId, ruleset, uid, S) {
@@ -584,15 +594,8 @@ function isScout(state, playerId, ruleset, uid, S) {
     return false;
   }
   if (ruleset.rules.aiScoutThreatVeto === true) {
-    // B23d: veto ONLY when the SCOUT ITSELF is near a visible threat (within
-    // aiScoutVetoRadius) — NOT when its distant home city is menaced while the
-    // scout ranges safely. The old city-based veto stripped exploration whenever
-    // any city was pressured (sim-runner #797, the exploration deficit); the
-    // guards>=2 departure floor (garrison block) already keeps the city defended,
-    // so scouting and garrison safety are decoupled. A scout adjacent/near an
-    // enemy still benches (it would otherwise walk into the threat).
-    const vr = ruleset.rules.aiScoutVetoRadius === undefined ? 2 : ruleset.rules.aiScoutVetoRadius;
-    if (enemyNear(state, state.players[playerId], playerId, u.x, u.y, vr)) {
+    const c = nearestOwnCity(state, u, playerId);
+    if (c && enemyNear(state, state.players[playerId], playerId, c.x, c.y, ruleset.rules.threatRadius)) {
       return false;
     }
   }
