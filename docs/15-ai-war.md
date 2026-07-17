@@ -279,3 +279,32 @@ The M11 pin sanity (#841) showed attacks robust (9-16 caps/game,
 elim ~36%), so the gate is NOT currently over-tight — but these
 stay on the war-measurement dashboard as the pin/N4/B23d shift the
 force balance.
+
+## Stance-mix v1 (marker-0043, 2026-07-17) — heterogeneity at the pinned dg
+
+The user's heterogeneous-archetype direction ("some civs must build
+wonders") shipped WITHOUT moving the dg=30 pin: ~35% of AI civs
+(`rules.aiBuilderPct`, seeded Fisher-Yates at createGame, min 1, humans
+excluded) draw the `builder` stance — garrisonAlways2, walls-first,
+attackerPct 0, high econReserve firing after the full garrison,
+capital-only wonders (display name "Perfectionist", the authentic Civ 1
+leader trait). Balanced remains the majority = today's identity war
+policy, which is what holds elim in-band (gate: median 25/29 at 4/7
+civs; 6 wonders completed across the acceptance seeds).
+
+Measured boundaries (sim-runner #1110→#1125→#1175):
+- A fixed stance FRACTION with random assignment is NOT a reliable
+  pin-substitute when the AGGRESSIVE stance is in the mix — elim is
+  hyper-sensitive to which spawns draw it. The aggressive archetype is
+  therefore DEFERRED to spawn-aware placement (FU2, parked: real
+  survival gain, band-unreliable) or D1 diplomacy's non-aggression.
+- Builders die before completing wonders next to any aggressor
+  (wonders need 100+ uninterrupted turns) — survival, not build
+  priority, is the wonder bottleneck under war.
+- 12-civ mixes run over-band from CROWDING (not aggression) — a
+  map-size-aware mix is a later tune.
+- Per-seed elim variance (range 0–57) is the spawn-geography
+  sensitivity; the gate metric is the MEDIAN.
+The strategic-modes framework (specs/ai-modes-framework.md) is the
+dynamic successor: modes over static stances, threat-relative
+garrisons (wave 1) replacing the flat defender targets.

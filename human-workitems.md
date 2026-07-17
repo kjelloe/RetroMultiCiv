@@ -5,7 +5,58 @@ a date; add playtest findings to the bottom section. Agent/coder tasks live
 in `./agent-workitems.md`. Refreshed 2026-07-14 — completed items moved to
 the Done log at the bottom.
 
-## 2026-07-17 — decisions + fresh verifications
+## 2026-07-17 evening — current decisions + verifications
+
+**DECIDE (only you can):**
+- [ ] **Merge marker-0043** — the declared-consistent candidate
+  (stance-mix v1: some civs build wonders, dg=30 intact; + the whole
+  A51 find-a-game pipeline, H1 ratchet, pedia editorial, collision
+  fix, map types, v1.5 telemetry, all reports). Biggest merge since
+  0033. (Golden-neutral commits continue to land on top; merge the
+  latest tip I declare, or the tag.)
+- [ ] **World-look pick (a/b/c)** — Roblox session: Options → world
+  look → flip retro/enhanced live → screenshot both → pick
+  retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
+  today (R20 keeps building behind the toggle) but decides the
+  DEFAULT + orders the bigger-lift backlog (docs/13
+  visual-fidelity section).
+- [ ] **Civ2/4 feature picks** — which of the five client-only items:
+  world minimap / yield+happiness tooltips / per-city build queue /
+  sentry-wake / worker automation (specs/civ24-features-proposal.md;
+  any subset, independent). Feeds the helper's queue after
+  A54 + docs-sync + palette.
+- [ ] **Mobile T0** — user-runnable phone check (~1h: open the LAN
+  client on your phone, note WebGL/fps/first-3-blockers per
+  specs/mobile-plan.md T0), then T1 go/no-go.
+- [ ] **Match-report consent shape** — bless the two-level consent
+  model (operator off-by-default + player seat veto + seat-label
+  anonymization) before the server slice builds
+  (specs/match-report-corpus.md).
+- [ ] **Live strategic overlay** — want the v1.5 per-AI
+  stance/mode/threat snapshot visible in-client during play?
+  (Cheap now the telemetry landed; yes/no.)
+- [ ] **Shift+D recordings of your own play** — a game or two,
+  whenever you play; they seed the human-benchmark corpus (the
+  PRIMARY AI metric per the ally's framework,
+  specs/ai-modes-framework.md §A).
+- [x] **Authenticity batch — RULED 2026-07-17 (reviewer session):**
+  freeUnitsPerCity=3 ratified as a labeled Civ2 borrow; settler food
+  upkeep ADOPTED flat-1 (bugfixer window after the ruleset pin);
+  barbarian gold ransom ADOPTED bundled with A4; anarchy clamp kept +
+  documented; Civ4 civics parked with an interest note. Landed in
+  docs/01 §11-tail (5d776e4).
+- [x] **Civ-mixing ruling — GIVEN 2026-07-17:** Civ1/2/4 mixes OK
+  when they make sense; provenance labels (Civ1-authentic /
+  Civ2-shape / Civ4-shape / original) are the house standard.
+- [x] **Stance-mix dg question — RESOLVED 2026-07-17, no action:**
+  the dg40-vs-dg50 pin choice was withdrawn; heterogeneous stances
+  deliver wonders at dg=30 UNCHANGED (marker-0043, gate green).
+
+**VERIFY (roblox acceptance, carried):**
+- [ ] Save `roblox/acceptance/runD.txt`; retest the deck-resident
+  avatar flow (the two carried items from the run-4 batch).
+
+## Earlier 2026-07-17 — decisions + fresh verifications
 
 **DECIDE (only you can):**
 - [x] **Merge marker-0033** — DONE 2026-07-17 (merged + `npm ci`).
