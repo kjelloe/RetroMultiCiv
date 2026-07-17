@@ -67,12 +67,15 @@ async function main() {
   const { hashState } = await import(path.join(ROOT, 'shared', 'statehash.js'));
   const { gameCode } = await import(path.join(ROOT, 'shared', 'gamecode.js'));
 
+  // R9: humans=N in [R4INIT] (lobby-hosted games); absent = the classic
+  // single-seat run (run1/runB/runC stay parseable)
+  const humans = Number(init.humans || 1);
   const civIds = init.civs.split(',');
   const players = civIds.map((id, i) => ({
     id: 'p' + (i + 1),
     name: ruleset.civs[id].name,
     color: ruleset.civs[id].color,
-    human: i === 0
+    human: i < humans
   }));
   const engine = createEngine(ruleset);
   const initialState = engine.createGame({
