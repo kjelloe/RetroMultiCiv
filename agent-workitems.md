@@ -2422,7 +2422,7 @@ regent turns, fast-forward, Roblox):
 USER-BLOCKING: the v0.5 README screenshot waits on this. Sequence:
 B11 window closes → A60's window opens (same day intended).
 
-## A67 — Art pass: tank + APC + the refined-models list (wave VIII.7 — ally loop)  [helper renderer done 2026-07-17 (done-mail #729): real `tank` (armor) + `apc` (mech-inf) recipes in recipes.js replacing generic siegeArmor/footSoldier; assets.js dispatch updated (mech-inf out of FOOT_TYPES, armored() builder, siegeArmor removed); asset-recipes.json + render-spec.json regenerated; node 424/424; tank+APC verified in the real renderer WebGL + WebGL1. Ranked review table of remaining generic-model units in the done-mail (catapult/diplomat/phalanx/musketeers... the list "grown"). PENDING: gallery.png visual-golden RE-RECORD via CI actual (A48 discipline — not local) after the architect commits; drift-risk noted (assets.js dispatch ↔ UNIT_SILHOUETTE are hand-synced, A88 follow-up). Cross-lane: roblox re-bake picks up tank/apc.]
+## A67 — Art pass: tank + APC + the refined-models list (wave VIII.7 — ally loop)  [helper renderer done 2026-07-17 (done-mail #729): real `tank` (armor) + `apc` (mech-inf) recipes in recipes.js replacing generic siegeArmor/footSoldier; assets.js dispatch updated (mech-inf out of FOOT_TYPES, armored() builder, siegeArmor removed); asset-recipes.json + render-spec.json regenerated; node 424/424; tank+APC verified in the real renderer WebGL + WebGL1. Ranked review table of remaining generic-model units in the done-mail (catapult/diplomat/phalanx/musketeers... the list "grown"). gallery.png visual-golden RE-RECORDED (done-mail #733): triggered CI run 29547961632, verified actual-gallery.png diff = ONLY the tank+APC land-row (no regression, splash unmoved), replaced debugging/goldens/gallery.png with the CI actual (md5 da5ee6d2, byte-identical) — staged for architect commit. A67 CLOSED. drift-risk noted (assets.js dispatch ↔ UNIT_SILHOUETTE hand-synced, A88 follow-up queued by architect). Cross-lane: roblox re-bake picks up tank/apc.]
 
 Tanks and mech. inf render as generic figures in PLAY (the user saw
 them; reconcile with A44's coverage-guard verdict — the guard proves
@@ -3283,6 +3283,22 @@ first two scouts take OPPOSITE hands (clockwise/counter-clockwise
 by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
+
+**B26b — percent-shaped doctrine gates (IDENTITY refactor; bugfixer, queue after N3):**
+the M11 sweep needs FRACTIONAL defender gates (sim-runner #731: the
+elim band lies between gate 0 [57%] and gate 1 [~0%]), but the
+engine is integer-math-only (floats drift JS↔Luau). Re-shape
+aiWarDoctrine to `oddsGatePct`/`defenderGatePct` integers (100 = the
+old 1): assaultOddsOk compares attackStrength*100 >= pct *
+defenseStrength — decision-IDENTICAL at the current values
+(1→100, 2→200), so this is the identity pattern: goldens MUST NOT
+move (that is the proof; if a hash shifts, the refactor is wrong).
+Both engines; keep the old integer fields resolving via fallback
+(defenderGate n → n*100) so existing sweeps/saves stay valid.
+After it lands the sim-runner re-runs the pinning sweep with
+integer pcts {0,30,40,50,60,70,100} and the USER pins the default
+in the M11 morning session (elim 20-40 band, his call — the
+default does NOT flip overnight).
 
 **B23b [claimed: bugfixer 2026-07-17] [done: 2026-07-17 — N2 GOLDEN WINDOW, schema blessed @#688. isScout replaced by a phased allocator: the NEWEST ids across three pools (union) — early-militia QUOTA by city COUNT (rules.aiScoutQuotaByCities {1:1,2:3,3:5}, clamp to max key; "1" = the opener) + aiFastScoutCount newest LAND moves>=2 units + aiBoatScoutCount newest SEA units — with the aiScoutThreatVeto (per-unit by NEAREST OWN CITY within threatRadius, no unit.homeCity per your ruling). aiScoutSharePct RETAINED as the absent-table fallback. scoutDepart now governed by the veto (guards>=2 floor dropped — the opener explores as sole guard when unthreatened; a threatened city keeps every defender). Reuses B23 coast/wallfollow/bfs unchanged. Byte-shaped luau twin; JS==Luau on ALL goldens. GOLDEN RE-RECORD: soak 100=0x7f398c57 200=0x8749611f 300=0x6e2cea81 400=0xcf90f999; natural r395/p2/0x9b87b2e0. luau turn-100 anchor + witness (0xcbecfdca, clean, LOCAL/gitignored) regenerated; B21(d) ai.test updated to the fallback context; fastforward seed re-verified 42 (B23b shift). New sweep test scout-allocation.test.js (6, revert-proof). Suite 421/421 zero-skip. COMMIT GATED on sim-runner B26 elim ALL-CLEAR (coordinated #694/#700). resourceCov telemetry queued next (golden-neutral).]**
 
