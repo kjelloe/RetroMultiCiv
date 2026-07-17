@@ -3,6 +3,7 @@ import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '
 import { candidateTiles, tileYields, wonderActive, citySpacingOk } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
 import { hasWaterSource, workFlag } from '../../engine/improvements.js';
+import { computeVisible } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 import { canStepTo, stepDir, tileEnterable } from './move-hints.js';
 import { findPath } from '../../shared/pathfind.js';
@@ -725,6 +726,16 @@ export function initInput(ctx) {
     specTip.classList.remove('hidden');
   }
 
+  // A68 (VIII.16): the viewer's visibility mask, cached per state change —
+  // the hover handler fog-gates enemy identity through it (raw-state unit
+  // lookups would leak hidden stacks)
+  let visMask = null;
+  session.onChange(() => { visMask = null; });
+  function tileVisible(x, y) {
+    if (visMask === null) visMask = computeVisible(session.state, ctx.HUMAN);
+    return visMask[y * session.state.map.width + x] === 1;
+  }
+
   renderer.onHover(pick => {
     if (ctx.SPECTATOR) {
       spectatorTip(pick);
@@ -732,6 +743,18 @@ export function initInput(ctx) {
       return;
     }
     let text = pick ? describeTile(pick.tile.x, pick.tile.y) : '';
+    // A68 (VIII.16): a VISIBLE enemy under the cursor names itself — civ,
+    // type, stats (stacks are single-owner; the count covers the rest)
+    if (pick && tileVisible(pick.tile.x, pick.tile.y)) {
+      const foes = unitsAt(session.state, pick.tile.x, pick.tile.y)
+        .filter(u => u.owner !== ctx.HUMAN);
+      if (foes.length > 0) {
+        const t = units[foes[0].type];
+        text += `\n${whoName(session.state, foes[0].owner)} · ${t.name}`
+          + `${foes[0].veteran ? ' ★vet' : ''} · ⚔${t.attack} 🛡${t.defense}`
+          + (foes.length > 1 ? ` (+${foes.length - 1} more)` : '');
+      }
+    }
     let attack = false;
     let footprint = null;
     const attacker = sel.unitId ? session.state.units[sel.unitId] : null;
