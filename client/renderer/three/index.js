@@ -582,6 +582,10 @@ export function createRenderer(container) {
       cam.targetX = x; cam.targetZ = y;
       updateCamera();
     },
+    // C1: the minimap's viewport-rectangle read (camera center + zoom dist)
+    getView() {
+      return { x: cam.targetX, y: cam.targetZ, dist: cam.dist };
+    },
     // L7b: relative pan in tile units (the d-pad's coarse movement)
     panBy(dx, dy) {
       cam.targetX += dx; cam.targetZ += dy;

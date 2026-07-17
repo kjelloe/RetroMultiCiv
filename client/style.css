@@ -1605,6 +1605,21 @@ html, body {
   display: none;
 }
 
+/* C1: the world minimap — bottom-right above End Turn; hidden on coarse
+   pointers until the T1 portrait pass decides its mobile home */
+#minimap {
+  position: fixed; right: 16px; bottom: 64px; z-index: 12;
+  border: 1px solid #3b5d8f; border-radius: 4px; overflow: hidden;
+  background: #05070c; line-height: 0; cursor: crosshair;
+  width: 184px;
+}
+#minimap canvas {
+  width: 100%; height: auto; display: block;
+  image-rendering: pixelated;
+}
+#minimap-rect { position: absolute; inset: 0; pointer-events: none; }
+@media (pointer: coarse) { #minimap { display: none; } }
+
 /* H8 (A76): the graphical spaceship screen — pedia-precedent overlay */
 #ship-screen {
   position: fixed; inset: 0; z-index: 30;

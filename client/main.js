@@ -20,6 +20,7 @@ import { initLeftStack } from './ui/left-stack.js';
 import { initDiscoveryCard } from './ui/discovery-card.js';
 import { initDpad } from './ui/dpad.js';
 import { initShip } from './ui/ship.js';
+import { initMinimap } from './ui/minimap.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -392,6 +393,7 @@ initLeftStack(); // A57: one open left-stack panel at a time (after overlays ins
 ctx.discoveryCard = initDiscoveryCard(ctx); // the tech-discovery card (turnlog's flash yields to it)
 initDpad(ctx); // L7b: coarse-pointer d-pad (CSS-gated to touch devices)
 ctx.ship = initShip(ctx); // H8 (A76): the graphical spaceship screen (🚀)
+ctx.minimap = initMinimap(ctx); // C1: world minimap (click-to-jump, fog-honest)
 // L6: spectators issue no commands — the 🤖 regency button (and its seat
 // takeover) never exists for the view-only pseudo-seat
 ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)
