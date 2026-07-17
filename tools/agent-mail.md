@@ -49,13 +49,17 @@ Conventions:
 - **Output-style rule (user ruling 2026-07-17 — avoids transcript
   body-echo):** send prints a receipt only (`queued <tag> #<id> →
   <to>`) — the body lives in the mail file, never re-print it.
-  Put multi-line bodies in a file and pass `--body-file` (or
-  stdin) so the body stays out of the command line/transcript.
-  Read inboxes with `--headers` by default (one line/msg); expand
-  exactly one with `show #<id>`/`@<hash>` when you need the body.
-  Never pipe an inbox dump and a body echo into one output. Keep
-  detailed plans/specs in the body or spec files, referenced by
-  ID/path in any stdout summary.
+  **Write the body as a SEPARATE step with the file-write tool
+  (not a heredoc, not echo/printf, not inline `--body`), THEN send
+  `--body-file PATH` as its own command — two calls. A heredoc or
+  inline body streams the whole body into the transcript and
+  defeats `--body-file`.** A trivial one-line ack may inline
+  `--body`; anything multi-line goes to a file first. Read inboxes
+  with `--headers` by default (one line/msg); expand exactly one
+  with `show #<id>`/`@<hash>` when you need the body. Never pipe an
+  inbox dump and a body echo into one output. Keep detailed plans/
+  specs in the body or spec files, referenced by ID/path in any
+  stdout summary.
 
 ## Across the LAN (or any direct IP): the hub
 
