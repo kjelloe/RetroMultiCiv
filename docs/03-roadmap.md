@@ -446,9 +446,13 @@ Post-1.0 (v2 shelf): mobile UI, Civ4-style culture, novelty map
 shapes, checkpointed save format, Blender/glTF fidelity pass.
 Interim releases keep shipping via the marker cadence (v0.6…).
 
-**RECOMMENDED NEXT ORDERING toward 1.0 (ally, 2026-07-17 — the
-guard is that feature breadth must not dilute the measurement
-pipeline that made the progress possible):**
+**NEXT ORDERING toward 1.0 — USER-CONFIRMED 2026-07-17 (finish
+AI-quality FIRST; ally's ordering adopted). The engine golden lane
+runs 1→4 below before the phase-6 features (5-8); diplomacy, space
+race, and the master index are DESIGNED + READY but DEFERRED until
+the M-floors clear — the AI foundation everything sits on comes
+first. The guard: feature breadth must not dilute the measurement
+pipeline that made the progress possible.**
 1. Finish the NAVAL AI loop — exploration, transport, safe landing,
    overseas settlement/invasion (docs/05 naval acceptance sequence);
    only THEN broad naval sophistication.

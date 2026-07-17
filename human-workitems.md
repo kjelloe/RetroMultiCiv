@@ -12,13 +12,13 @@ the Done log at the bottom.
   dev_night) → dev/main + `npm ci` (new @playwright/test dep). It's
   pure M11 + all the gamesim-golden-neutral work since (A50 hardening,
   A49 lane, A58 pedia, A88b, five art rounds, docs, hardening spec).
-- [ ] **NEXT MAJOR TRACK** (the real design question — see the
-  architect's asked question): the engine golden lane is serial and
-  currently queued N4 (in flight) → B23d → N3-build-tune → N1/N2
-  gov+tech (all AI-quality). The DESIGNED-and-approved next tracks
-  (A59 leaders → D1-D2 diplomacy; A76 space race; A51 master index)
-  have NOT started — the night went to AI-quality + the B23b
-  regression. Your call on what the engine lane does after N4.
+- [x] **NEXT MAJOR TRACK — DECIDED 2026-07-17: FINISH AI-QUALITY
+  FIRST** (ally's ordering). Engine lane after N4: B23d relaxed-veto
+  → N3-build-tune → N1/N2 gov+tech, until the M-floors clear. THEN
+  A59 leaders → D1-D2 diplomacy, A76 space race, A51 master index.
+  Diplomacy/space/master-index are DEFERRED (designed + ready, but
+  the AI foundation comes first). Client lane may do UI polish +
+  the last art (bomber/nuclear) meanwhile.
 - [ ] **RESOLVED (no action, FYI):** M11 war-lethality — you PINNED
   defenderGatePct 30 (elim ~29%). Opener-scout doctrine — MEASURED +
   REJECTED (halves expansion). Both closed.
