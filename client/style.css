@@ -1347,6 +1347,10 @@ html, body {
 #lobby-roster { margin: 0 auto 8px; text-align: left; display: inline-block; }
 #lobby-roster div { padding: 2px 0; }
 .lobby-row { display: flex; align-items: center; gap: 8px; } /* A27 host rows */
+/* A51c: master-index rows — mismatched rulesets grey out, never hide */
+.lobby-global-row { margin: 3px 0; }
+.lobby-global-mismatch { opacity: 0.5; }
+#lobby-global.hidden { display: none; }
 .lobby-row select {
   background: #141d2e; color: #cdd8ea; border: 1px solid #3b5d8f;
   border-radius: 4px; font-family: inherit; padding: 2px 4px;

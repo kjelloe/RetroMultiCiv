@@ -14,8 +14,24 @@
 
 const GAMEID_KEY = 'retromulticiv-gameid';
 
+// A51c: the master-index URL — ?master= captured at MODULE EVAL (the A45
+// trap: main.js canonicalizes the URL after boot, a lazy read would miss it)
+// and persisted, so "configured" survives reloads. Clearable by ?master=off.
+const MASTER_KEY = 'retromulticiv-master';
+const MASTER_PARAM = new URLSearchParams(location.search).get('master');
+if (MASTER_PARAM === 'off') { try { localStorage.removeItem(MASTER_KEY); } catch (e) { /* private mode */ } }
+else if (MASTER_PARAM) { try { localStorage.setItem(MASTER_KEY, MASTER_PARAM); } catch (e) { /* private mode */ } }
+function masterUrl() {
+  if (MASTER_PARAM && MASTER_PARAM !== 'off') return MASTER_PARAM;
+  try { return localStorage.getItem(MASTER_KEY); } catch (e) { return null; }
+}
+// A51c: a picked GLOBAL server's ws base; null = this page's own host. The
+// lobby socket AND the post-join game boot both honor it — main.js already
+// accepts a full ws URL in ?server= (phase-3), so the reload carries it.
+let joinOrigin = null;
+
 function wsUrl() {
-  return `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+  return joinOrigin || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 }
 
 function persistAndBoot(msg) {
@@ -24,7 +40,10 @@ function persistAndBoot(msg) {
     localStorage.setItem(GAMEID_KEY, msg.gameId);
     if (!spectator) localStorage.setItem('retromulticiv-token-' + msg.gameId, msg.token);
   } catch (e) { /* private mode: the reload join will bind a fresh seat */ }
-  location.search = `?server=1&game=${msg.gameId}` + (spectator ? '&spectate=1' : '');
+  // A51c: a global pick boots against THAT host's ws origin (main.js's
+  // ?server=<url> path); a local join keeps the plain server=1 form
+  location.search = `?server=${joinOrigin ? encodeURIComponent(joinOrigin) : '1'}&game=${msg.gameId}`
+    + (spectator ? '&spectate=1' : '');
 }
 
 // One shared little message pump: onMsg returns nothing; onDead runs when the
@@ -494,6 +513,12 @@ export function startJoinFlow(box) {
       <p class="setup-hint">open games on this server:</p>
       <div id="lobby-browse-list"><span class="setup-hint">looking…</span></div>
     </div>
+    <div id="lobby-global" class="hidden">
+      <p class="setup-hint">🌍 global servers (master index):</p>
+      <div id="lobby-global-list"></div>
+      <p class="setup-hint">a listed server is someone's private machine — your
+        name and chat go to it; the index checks reachability, nothing more</p>
+    </div>
     <label>Join code <input id="lobby-code-in" type="text" maxlength="5" placeholder="Q7F2M"></label>
     <label>Seat
       <select id="lobby-seat"><option value="">auto</option>
@@ -601,4 +626,84 @@ export function startJoinFlow(box) {
     }, () => fail(box, 'no game server — start it with: node server/index.js'));
     ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate, seatCode })));
   });
+
+  initGlobalTab(box); // A51c: the master-index browser (shows only when configured)
+}
+
+// ── A51c: the GLOBAL tab (docs/12 §6) ─────────────────────────────────────────
+// The find-a-game panel lists the master index's servers when a master URL is
+// configured (?master=<url>, persisted). Version-MISMATCHED servers show
+// greyed with the checksum hint, never hidden — honesty over curation. A pick
+// re-points the whole join flow (lobby socket + game boot) at that host.
+const DATA_FILES = ['terrain', 'units', 'techs', 'buildings', 'wonders', 'governments', 'civs', 'rules'];
+let myHashesPromise = null;
+function clientDataHashes() {
+  if (!myHashesPromise) {
+    myHashesPromise = import('../../shared/statehash.js').then(async ({ hashState }) => {
+      const out = {};
+      for (const f of DATA_FILES) {
+        out[f] = hashState(await fetch(`../data/${f}.json`).then(r => r.json()));
+      }
+      return out;
+    });
+  }
+  return myHashesPromise;
+}
+
+async function initGlobalTab(box) {
+  const master = masterUrl();
+  const wrap = document.getElementById('lobby-global');
+  const list = document.getElementById('lobby-global-list');
+  if (!master || !wrap || !list) return;
+  wrap.classList.remove('hidden');
+  list.textContent = 'asking the index…';
+  let servers, mine;
+  try {
+    [servers, mine] = await Promise.all([
+      fetch(master.replace(/\/$/, '') + '/servers').then(r => r.json()).then(o => o.servers || []),
+      clientDataHashes()
+    ]);
+  } catch (e) {
+    list.textContent = 'master index unreachable';
+    return;
+  }
+  list.textContent = '';
+  if (joinOrigin) {
+    const note = document.createElement('p');
+    note.className = 'setup-hint';
+    note.id = 'lobby-global-active';
+    note.textContent = `browsing a global server — everything above targets it now `;
+    const back = document.createElement('button');
+    back.className = 'setup-lan-btn';
+    back.textContent = '× back to this server';
+    back.addEventListener('click', () => { joinOrigin = null; startJoinFlow(box); });
+    note.appendChild(back);
+    list.appendChild(note);
+  }
+  if (servers.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'setup-hint';
+    empty.textContent = 'no servers listed right now';
+    list.appendChild(empty);
+    return;
+  }
+  for (const s of servers) {
+    const match = DATA_FILES.every(f => s.dataHashes && s.dataHashes[f] === mine[f]);
+    const row = document.createElement('div');
+    row.className = 'lobby-row lobby-global-row' + (match ? '' : ' lobby-global-mismatch');
+    const label = document.createElement('span');
+    label.textContent = `${s.name} · ${s.openGames} open · ${s.ageSeconds}s ago`
+      + (match ? '' : ' · ⚠ different rules');
+    if (!match) row.title = 'this server runs a different ruleset (data checksums differ) — joining will likely fail';
+    row.appendChild(label);
+    const btn = document.createElement('button');
+    btn.className = 'setup-lan-btn';
+    btn.textContent = 'browse';
+    btn.addEventListener('click', () => {
+      joinOrigin = `ws://${s.host}:${s.port}/ws`;
+      startJoinFlow(box); // re-render: the browse list + joins now target the pick
+    });
+    row.appendChild(btn);
+    list.appendChild(row);
+  }
 }
