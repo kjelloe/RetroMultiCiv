@@ -67,15 +67,29 @@ test('B23b: the quota CLAMPS to the max key (4 cities uses the "3" bucket = 5)',
   for (const id of ['u2', 'u3', 'u4', 'u5', 'u6']) assert.strictEqual(ai.isScout(st, 'p1', r, id, S), true, `${id} within the clamped quota of 5`);
 });
 
-test('B23b: the THREAT VETO demotes a scout whose nearest own city is menaced', async () => {
+test('B23d: the THREAT VETO benches a scout NEAR a threat, not one whose distant city is menaced', async () => {
   const ai = await load();
   const r = withRules({});
   const safe = world(1, [M('u1', 6)]);
   assert.strictEqual(ai.isScout(safe, 'p1', r, 'u1', S), true, 'unthreatened opener scouts');
-  const menaced = world(1, [M('u1', 6)], [3, 2]); // enemy 1 tile from city c1 at (2,2)
-  assert.strictEqual(ai.isScout(menaced, 'p1', r, 'u1', S), false, 'a visible threat near the home city vetoes the scout');
+  // city menaced (enemy at (3,2), 1 tile from city c1 at (2,2)) but the scout u1
+  // at (6,2) is 3 tiles from that enemy -> B23d keeps it ranging: the guards>=2
+  // departure floor defends the city, exploration is not sacrificed to it.
+  const cityMenaced = world(1, [M('u1', 6)], [3, 2]);
+  assert.strictEqual(ai.isScout(cityMenaced, 'p1', r, 'u1', S), true, 'a distant scout ranges while its home city is menaced');
+  // the scout ITSELF near the threat (enemy at (7,2), adjacent to u1 at (6,2)) -> benched.
+  const scoutMenaced = world(1, [M('u1', 6)], [7, 2]);
+  assert.strictEqual(ai.isScout(scoutMenaced, 'p1', r, 'u1', S), false, 'a scout adjacent to a threat is benched');
   const vetoOff = withRules({ aiScoutThreatVeto: false });
-  assert.strictEqual(ai.isScout(menaced, 'p1', vetoOff, 'u1', S), true, 'veto off -> the scout departs regardless (sweepable)');
+  assert.strictEqual(ai.isScout(scoutMenaced, 'p1', vetoOff, 'u1', S), true, 'veto off -> the scout departs regardless (sweepable)');
+});
+
+test('B23d: aiScoutVetoRadius sweeps how near a threat benches a scout', async () => {
+  const ai = await load();
+  // enemy at (9,2), scout u1 at (6,2): chebyshev distance 3.
+  const st = () => world(1, [M('u1', 6)], [9, 2]);
+  assert.strictEqual(ai.isScout(st(), 'p1', withRules({ aiScoutVetoRadius: 2 }), 'u1', S), true, 'radius 2: a threat 3 tiles off -> still scouts');
+  assert.strictEqual(ai.isScout(st(), 'p1', withRules({ aiScoutVetoRadius: 3 }), 'u1', S), false, 'radius 3: a threat 3 tiles off -> benched');
 });
 
 test('B23b: aiFastScoutCount tags fast (moves>=2) units BEYOND the militia quota', async () => {
