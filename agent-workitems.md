@@ -3284,6 +3284,23 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
+**N4 — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
+garrisonCap(city) = min(1+ceil(threat), border?5:3); threat =
+enemies within garrisonThreatRadius(5) / garrisonThreatDiv(4);
+border = enemyNear(rules.threatRadius) — ONE threat semantic, no
+second frontier concept. At-cap cities skip the military
+production branches (defense/attacker/navy) → settlers/buildings/
+wonders (the production-freeing lever). Excess REDEPLOYS to the
+front via existing march logic (garrisonExcessDisband=false
+fallback — never silently delete units). Coexists with the B23c
+guards>=2 floor (cap>=1 always) and B26 gates. Knobs:
+garrisonCapInterior=3, garrisonCapBorder=5, garrisonThreatRadius=5,
+garrisonThreatDiv=4, garrisonExcessDisband=false. Red case: the
+sim-runner's seed-6 unit-bloat tripwire (1002 units → sane band).
+Golden window, both engines, re-record. Prior-art check: extends
+the ai.js production/march blocks; the adopted fix table is
+specs/ai-weakness-fixes.md #8.
+
 **B23c — B23b expansion-stall regression (URGENT, bugfixer head item; sim-runner #744, architect #746):**
 clean A/B marker-0027→0028 shows expl 11-30%→5-8% and cities
 crashing to 1-5 (seed2: 34→5); A93 floors breach 3×. Evidence-first
