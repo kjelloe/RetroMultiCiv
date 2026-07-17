@@ -53,3 +53,54 @@ per-melody PD verification each.
 No engine, no state, no goldens. The work is composition: 14 short
 melodies (iterative with the user's soundboard feedback), a ~40-line
 playback hook, and the phase-6 wiring rides D2 when it lands.
+
+---
+
+# Amendment to specs/civ-themes.md: fetch PD melodies where they exist
+
+User follow-up: fetch the notes/representations of the actual civ anthems.
+Feasible for a subset — amended direction is a HYBRID: real public-domain
+melodies where a clean one exists, original leitmotifs for the rest.
+
+## License rules for fetched melodies (the boundary, precise)
+
+- The COMPOSITION must be public domain (old enough). A bare melody line
+  transcribed from a PD composition is fact-like and safe to encode.
+- ARRANGEMENTS and ENGRAVINGS can carry their own rights: never copy a
+  site's LilyPond/ABC/MIDI file wholesale into the repo — fetch as
+  REFERENCE, hand-transcribe the melody line into the TUNES tuple format,
+  and stamp a provenance comment per entry (title, composer, year, PD
+  basis). Same discipline as the wiki facts-not-prose rule.
+- Modern reconstructions of ancient fragments (Hurrian) are scholarly
+  interpretations — use the widely-documented basic reconstruction and
+  note the caveat in the provenance comment.
+
+## Per-civ source table (PD status from composition dates)
+
+| Civ | Melody | Status |
+|---|---|---|
+| Greeks | Epitaph of Seikilos (1st-2nd c. AD — the oldest COMPLETE song; sheet+MIDI on mfiles.co.uk, Wikipedia) | PD, ideal flavor |
+| Babylonians | Hurrian Hymn no. 6 (~1400 BC, oldest melody) | PD; reconstruction caveat |
+| French | La Marseillaise (1792) | PD |
+| English | God Save the King (c. 1745) | PD |
+| Americans | Star-Spangled Banner melody (To Anacreon in Heaven, c. 1775) | PD |
+| Germans | Deutschlandlied melody (Haydn, 1797) | PD |
+| Russians | NOT the current anthem (Alexandrov 1944 — copyrighted). Use God Save the Tsar! (Lvov, 1833) or Kalinka (1860) | PD alternatives |
+| Chinese | Mo Li Hua / Jasmine Flower (traditional; the classic Chinese musical identity) | PD (traditional) |
+| Indians | traditional raga motif (forms are traditional; avoid specific modern settings) | PD as form; original encoding |
+| Romans, Egyptians, Aztecs, Zulus, Mongols | no usable notated melody survives | ORIGINAL leitmotifs (style-informed), per the adopted spec |
+
+## Pipeline
+
+1. Fetch references (mfiles.co.uk, IMSLP, Mutopia, Wikipedia score markup)
+   — dev-side reference only, nothing fetched lands in the repo.
+2. Hand-transcribe each melody's first ~5-8 s phrase into the TUNES
+   note-list format ([freq, offset, dur], the creation/splash shape), with
+   the provenance comment.
+3. Soundboard audition with the user's per-row comments, as adopted.
+4. Coverage gate unchanged (every civ id themed — source PD or original).
+
+Sources consulted for feasibility: mfiles.co.uk Seikilos page (sheet/MIDI),
+Wikipedia Seikilos epitaph. The 9 original-leitmotif civs and all machinery
+from specs/civ-themes.md are unchanged; this only swaps the melody SOURCE
+for the 8-9 civs where history provides a clean one.
