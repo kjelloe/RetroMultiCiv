@@ -41,10 +41,11 @@ local hideHintBtn = toggleButton(80, "")
 local clockBtn = toggleButton(104, "")
 local voidArtBtn = toggleButton(128, "")
 local ridePadBtn = toggleButton(152, "")
+local lookBtn = toggleButton(176, "")
 
 local clockLabel = Instance.new("TextLabel")
 clockLabel.Size = UDim2.new(0, 190, 0, 18)
-clockLabel.Position = UDim2.new(1, -198, 0, 176)
+clockLabel.Position = UDim2.new(1, -198, 0, 200)
 clockLabel.BackgroundTransparency = 1
 clockLabel.TextColor3 = Color3.fromRGB(200, 210, 225)
 clockLabel.Font = Enum.Font.Code
@@ -76,6 +77,7 @@ local function paint()
 	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
 	ridePadBtn.Text = ("  ride pads: %s"):format(
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
+	lookBtn.Text = ("  world look: %s"):format(o.look or "retro")
 end
 paint()
 
@@ -111,6 +113,12 @@ ridePadBtn.Activated:Connect(function()
 	-- cycle auto -> ON -> off (RidePad watches; auto = keyboard detection)
 	local pref = ClientState.options.ridePad
 	ClientState.options.ridePad = pref == nil and true or (pref == true and false or nil)
+	paint()
+end)
+lookBtn.Activated:Connect(function()
+	-- visual-fidelity side-by-side (#1100): retro (browser-flat) vs enhanced
+	-- (Roblox materials); ViewRenderer repaints on the flip
+	ClientState.options.look = ClientState.options.look == "enhanced" and "retro" or "enhanced"
 	paint()
 end)
 

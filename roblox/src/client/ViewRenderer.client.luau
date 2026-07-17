@@ -67,12 +67,31 @@ end
 -- terrain parts persist and mutate in place (no 1000-part churn per push);
 -- cache what each index last showed so only changes touch instances
 local tileParts = {}
-local tileShown = {} -- [i] = "t|visible"
+local tileShown = {} -- [i] = "t|visible|look"
+
+-- Visual-fidelity workstream (#1100): the ENHANCED look is a PRESENTATION
+-- LAYER only — per-terrain built-in materials over the SAME shared palette
+-- colors and recipe geometry (the source stays unforked; the browser is
+-- WebGL1-locked to flat, Roblox is not). options.look = "retro"|"enhanced";
+-- the soundboard pattern: both looks live, the user picks by screenshot.
+local ENHANCED_MATERIAL = {
+	grassland = Enum.Material.Grass, plains = Enum.Material.Grass,
+	forest = Enum.Material.LeafyGrass, jungle = Enum.Material.LeafyGrass,
+	desert = Enum.Material.Sand, hills = Enum.Material.Ground,
+	mountains = Enum.Material.Slate, tundra = Enum.Material.Ground,
+	arctic = Enum.Material.Snow, swamp = Enum.Material.Mud,
+	ocean = Enum.Material.Glass, river = Enum.Material.Glass,
+}
+
+local function lookOf()
+	return ClientState.options.look == "enhanced" and "enhanced" or "retro"
+end
 
 local function renderTerrain(view)
 	local map = view.map
+	local look = lookOf()
 	for i, tile in ipairs(map.tiles) do
-		local key = tile.t .. "|" .. tostring(tile.visible)
+		local key = tile.t .. "|" .. tostring(tile.visible) .. "|" .. look
 		if tileShown[i] ~= key then
 			tileShown[i] = key
 			local x = (i - 1) % map.width
@@ -94,9 +113,19 @@ local function renderTerrain(view)
 				part.Position = Vector3.new(x * TILE, (top - BASIN) / 2, y * TILE)
 				part.Color = shade
 			end
+			if look == "enhanced" then
+				part.Material = ENHANCED_MATERIAL[tile.t] or Enum.Material.SmoothPlastic
+				part.Transparency = (tile.t == "ocean" and tile.visible == true) and 0.15 or 0
+			else
+				part.Material = Enum.Material.SmoothPlastic
+				part.Transparency = 0
+			end
 		end
 	end
 end
+
+-- (the look-change watcher lives at the file bottom — it needs renderCities
+-- in scope, which is defined below)
 
 -- (10) site stars, own settlers only. Legality is the engine's own
 -- goodCitySpot (read-only require, view shim). Stars on a legal spot are
@@ -281,12 +310,18 @@ local function renderCities(view)
 		plaza.Material = Enum.Material.SmoothPlastic
 		plaza.Parent = model
 
-		-- pop scales the skyline a little so growth is visible
+		-- pop scales the skyline a little so growth is visible; the enhanced
+		-- look upgrades the materials (Brick skyline on a Marble plaza)
+		local enhanced = lookOf() == "enhanced"
+		if enhanced then
+			plaza.Material = Enum.Material.Marble
+		end
 		local scale = 1 + math.min(c.pop or 1, 8) * 0.08
 		for i, b in ipairs(CITY_BLOCKS) do
 			block(model, "Block" .. i, Vector3.new(b[3], b[4] * scale, b[3]),
 				Vector3.new(cx + b[1], top + 0.3 + b[4] * scale / 2, cz + b[2]),
-				Color3.fromRGB(214, 205, 188), Enum.Material.Concrete)
+				Color3.fromRGB(214, 205, 188),
+				enhanced and Enum.Material.Brick or Enum.Material.Concrete)
 		end
 		cityBillboard(model, plaza, view, c)
 		model.Parent = citiesFolder
@@ -297,6 +332,17 @@ ClientState.onView(function(view)
 	renderTerrain(view)
 	renderUnits(view)
 	renderCities(view)
+end)
+
+-- a look change repaints terrain + cities on the next frame (cheap compare)
+local lastLook = nil
+game:GetService("RunService").Heartbeat:Connect(function()
+	local look = lookOf()
+	if lastLook ~= nil and look ~= lastLook and ClientState.view ~= nil then
+		renderTerrain(ClientState.view)
+		renderCities(ClientState.view)
+	end
+	lastLook = look
 end)
 
 print("[ViewRenderer] R4 view renderer up: waiting for the first view push")

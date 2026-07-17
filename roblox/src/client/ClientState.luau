@@ -22,7 +22,8 @@ local M = {
 	-- VoidCover; ridePad nil = auto-detect, RidePad wires post-sweep)
 	options = { autoNextUnit = true, autoEndTurn = true,
 		hideFuture = false, hideNoMovesHint = false,
-		clock = "off", voidArt = "frame", ridePad = nil },
+		clock = "off", voidArt = "frame", ridePad = nil,
+		look = "retro" }, -- visual-fidelity toggle (#1100): retro|enhanced
 }
 
 local viewCallbacks = {}
