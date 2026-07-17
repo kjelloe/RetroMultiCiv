@@ -141,7 +141,11 @@ matches-with-context or a line range (replaces grep|sed|head chains),
 [--webgl1]` serves + screenshots + cleans up in one call (static python
 by default, `--server` boots the node server for `?server=1` pages),
 `debugging/info.sh <save.json>` summarizes any save/recording (turn,
-players, hash, game code — the first look before replaying),
+players, hash, game code — the first look before replaying; wraps
+`debugging/save-info.js`), `node debugging/stats-summary.js <stats.jsonl>`
+prints the AI-quality exit-criteria numbers from a soak --stats log
+(stats.html charts the same rows), `node debugging/probe-lan8.js` drives
+8 live ws clients for LAN-scaling timings (a probe, not a test),
 `debugging/triage.sh [files…]` replays every recording in
 debugging/logs/ with one verdict line each (B0's mechanized form), and
 `debugging/sync-check.sh [count]` flags stale test counts in the pinned
@@ -215,7 +219,7 @@ CDP poll — `dumpDomLive`, since virtual-time `--dump-dom` races the ws join)
 and asserts the HUD reaches "turn 1", the panels carry real content, and no
 error surfaced (self-skips when the browser is absent), and
 `luau-twins.test.js` — the phase-5 cross-language gates (self-skip without
-`lune`): the rng/statehash/gamecode anchors, all ten scenario setups AND
+`lune`): the rng/statehash/gamecode anchors, every scenario setup AND
 runs vs their pinned hashes, the eight data-file checksums, the golden-seed
 turn-100 AI sim (`luau/sim-smoke.luau`; the full goldens run via
 `luau/sim-smoke.luau 400` / `natural`), and replay VERDICT equality between
