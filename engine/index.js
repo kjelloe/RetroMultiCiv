@@ -13,6 +13,7 @@ import * as scoring from './score.js';
 import * as improvements from './improvements.js';
 import * as happiness from './happiness.js';
 import * as government from './government.js';
+import * as spaceship from './spaceship.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -117,6 +118,7 @@ function endTurn(state, cmd, ruleset) {
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
+    spaceship.processSpace(state, ruleset, events); // A76: first launched ship to arrive wins
     scoring.checkGameEnd(state, ruleset, events);
     // A75: research/deaths this wrap may have advanced the world's age — emit a
     // transient world-news event (not hashed, so goldens are untouched)
@@ -166,6 +168,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'setGovernment') result = government.setGovernment(next, cmd, ruleset);
     else if (cmd.type === 'setResearch') result = tech.setResearch(next, cmd, ruleset);
     else if (cmd.type === 'setRates') result = tech.setRates(next, cmd, ruleset);
+    else if (cmd.type === 'launchShip') result = spaceship.launchShip(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };
 
     if (!result.ok) return { ok: false, reason: result.reason, state, events: [] };

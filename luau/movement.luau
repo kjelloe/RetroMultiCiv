@@ -241,7 +241,7 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 		end
 	end
 	if targetCity ~= nil and targetCity.owner ~= unit.owner then
-		combat.captureCity(state, unit, targetCity, events)
+		combat.captureCity(state, unit, targetCity, events, ruleset)
 	end
 	return { ok = true, events = events }
 end

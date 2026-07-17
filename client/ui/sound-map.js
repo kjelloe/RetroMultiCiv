@@ -52,6 +52,11 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'government' : null;
     case 'regentTurn': // synthetic client event (session regency, B11)
       return 'regent';
+    case 'ssPartBuilt': case 'shipLaunched':
+    case 'shipDestroyed': case 'spaceVictory':
+      // A76: deliberate silence for v1 — the accompanying gameOver cue carries
+      // the space victory; dedicated ship cues are the A77/H8 presentation pass.
+      return null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }

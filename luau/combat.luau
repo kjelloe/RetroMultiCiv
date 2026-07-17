@@ -12,6 +12,7 @@ local rng = require("./rng")
 local statehash = require("./statehash")
 local visibility = require("./visibility")
 local cities = require("./cities")
+local government = require("./government")
 
 -- Deterministic id ordering that needs no key order: shorter first, then
 -- lexicographic — so u2 < u10.
@@ -219,8 +220,10 @@ end
 
 -- A unit entering an undefended enemy city: ownership flips, population
 -- drops, a share of the loser's treasury is plundered.
-local function captureCity(state: any, unit: any, city: any, events: any)
+local function captureCity(state: any, unit: any, city: any, events: any, ruleset: any)
 	local loserId = city.owner
+	-- A76: was this the loser's capital? (checked BEFORE reassigning owner)
+	local loserCapital = if ruleset == nil then nil else government.capitalOf(state, loserId, ruleset)
 	city.owner = unit.owner
 	if city.pop > 1 then
 		city.pop = city.pop - 1
@@ -249,6 +252,15 @@ local function captureCity(state: any, unit: any, city: any, events: any)
 
 	visibility.reveal(state, unit.owner, city.x, city.y, 2)
 	table.insert(events, { type = "cityCaptured", cityId = city.id, from = loserId, to = unit.owner, plunder = plunder })
+
+	-- A76: capital lost — the spaceship in flight or under construction is destroyed
+	if loserCapital ~= nil and loserCapital.id == city.id then
+		local loserP = state.players[loserId]
+		if loserP ~= nil and loserP.spaceship ~= nil then
+			loserP.spaceship = nil
+			table.insert(events, { type = "shipDestroyed", playerId = loserId })
+		end
+	end
 end
 
 return {

@@ -10,6 +10,7 @@
 import { rollRange } from './rng.js';
 import { reveal } from './visibility.js';
 import { hasBuilding, wonderActive } from './cities.js';
+import { capitalOf } from './government.js';
 
 // Deterministic id ordering that ports to Lua (no reliance on key order):
 // shorter first, then lexicographic — so u2 < u10.
@@ -176,8 +177,11 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
 // A unit entering an undefended enemy city: ownership flips, population drops,
 // a share of the loser's treasury is plundered.
-function captureCity(state, unit, city, events) {
+function captureCity(state, unit, city, events, ruleset) {
   const loserId = city.owner;
+  // A76: was this the loser's capital? (checked BEFORE reassigning owner — a
+  // captured capital destroys that civ's spaceship; a new one may be rebuilt)
+  const loserCapital = ruleset === undefined ? null : capitalOf(state, loserId, ruleset);
   city.owner = unit.owner;
   if (city.pop > 1) city.pop = city.pop - 1;
   // the new ruler reshuffles the citizenry: manual assignments and
@@ -201,6 +205,15 @@ function captureCity(state, unit, city, events) {
 
   reveal(state, unit.owner, city.x, city.y, 2);
   events.push({ type: 'cityCaptured', cityId: city.id, from: loserId, to: unit.owner, plunder });
+
+  // A76: capital lost — the spaceship in flight or under construction is destroyed
+  if (loserCapital !== null && loserCapital.id === city.id) {
+    const loserP = state.players[loserId];
+    if (loserP && loserP.spaceship !== undefined) {
+      delete loserP.spaceship;
+      events.push({ type: 'shipDestroyed', playerId: loserId });
+    }
+  }
 }
 
 export {

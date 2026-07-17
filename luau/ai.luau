@@ -559,6 +559,49 @@ local function nearestKnownEnemyCity(state: any, unit: any, playerId: string): a
 	return best
 end
 
+-- A76: is the space race OPEN for this civ — Apollo built (derived) and all part
+-- techs known? Gates every AI ship action (dormant until a civ reaches space).
+local function apolloReady(state: any, me: any, ruleset: any): boolean
+	local f = ruleset.rules.ssFlight
+	if f == nil then return false end
+	if not cities.wonderActive(state, f.gateWonder, ruleset) then return false end
+	local parts = ruleset.rules.ssParts
+	for k in pairs(parts) do
+		if table.find(me.techs, parts[k].tech) == nil then return false end
+	end
+	return true
+end
+
+-- A76: the next part to build toward a minimum-viable ship, or nil when ready to
+-- launch. 7 structural supports the 5 non-structural parts (idiv(7*28,39)=5).
+local function nextSsPart(ship: any, ruleset: any): any
+	local target = { structural = 7, propulsion = 1, fuel = 1, habitation = 1, lifeSupport = 1, solar = 1 }
+	local order = { "structural", "propulsion", "fuel", "habitation", "lifeSupport", "solar" }
+	for _, k in ipairs(order) do
+		local have = if ship ~= nil and ship[k] ~= nil then ship[k] else 0
+		if have < target[k] then return k end
+	end
+	return nil
+end
+
+-- A76: a visible rival's launched ship makes THAT civ's capital the top march
+-- target. Returns the capital city if explored, else nil. First launcher by order.
+local function launchRushTarget(state: any, me: any, playerId: string, ruleset: any): any
+	for _, pid in ipairs(state.playerOrder) do
+		if pid ~= playerId then
+			local p = state.players[pid]
+			if p ~= nil and p.alive ~= false and p.spaceship ~= nil then
+				local ship = p.spaceship
+				if ship.launched ~= nil and ship.launched ~= 0 then
+					local cap = government.capitalOf(state, pid, ruleset)
+					if cap ~= nil and isExplored(me, state.map, cap.x, cap.y) then return cap end
+				end
+			end
+		end
+	end
+	return nil
+end
+
 -- B24 twin: how many of the civ's OFFENSIVE units sit adjacent to (x, y).
 local function attackersAdjacentTo(state: any, playerId: string, ruleset: any, x: number, y: number): number
 	local n = 0
@@ -1275,6 +1318,17 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		end
 	end
 
+	-- A76: launch a completed, un-launched ship — the win condition. Gated on the
+	-- race being open (Apollo + techs), so this is dormant until a civ reaches space.
+	if done.launch ~= true and apolloReady(state, me, ruleset) then
+		done.launch = true
+		local ship = me.spaceship
+		local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
+		if ship ~= nil and not launched and nextSsPart(ship, ruleset) == nil then
+			return { type = "launchShip", playerId = playerId }
+		end
+	end
+
 	-- N3: naval doctrine, computed once (empire-wide). Ships in COASTAL cities
 	-- once the civ has a land core, up to 1 per coastal city capped at
 	-- rules.aiNavyTargetCap. The ships range as B23b boat-scouts.
@@ -1349,6 +1403,20 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							local pw = if ((isCap and builtCount >= 2) or econBuilding == nil) then nextWonder(state, me, ruleset) else nil
 							defBuild = if (isCap and builtCount >= 2 and pw ~= nil) then { kind = "wonder", id = pw } elseif econBuilding ~= nil then { kind = "building", id = econBuilding } elseif pw ~= nil then { kind = "wonder", id = pw } else nil
 						end
+						-- A76: the capital builds ship parts once the race is open and its
+						-- building/wonder economy is satisfied (placed after econItem below).
+						local ssBuild = nil
+						if S.defendFirst == true and apolloReady(state, me, ruleset) then
+							local scap = government.capitalOf(state, playerId, ruleset)
+							if scap ~= nil and scap.id == cid then
+								local ship = me.spaceship
+								local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
+								if not launched then
+									local part = nextSsPart(ship, ruleset)
+									if part ~= nil then ssBuild = { kind = "ss-part", id = part } end
+								end
+							end
+						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
 						elseif defBuild ~= nil then
@@ -1359,6 +1427,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = { kind = "unit", id = navySeaUnit }
 						elseif econItem ~= nil then
 							want = econItem
+						elseif ssBuild ~= nil then
+							want = ssBuild -- A76: capital ship parts, after buildings/wonders
 						elseif defenders >= 3
 							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
 							want = { kind = "unit", id = "settlers" }
@@ -1477,7 +1547,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				local enemyViable = enemy ~= nil
 					and assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGatePct)
 				if marchR > 0 and attDef.attack > attDef.defense then
-					local targetCity = nearestKnownEnemyCity(state, unit, playerId)
+					-- A76: a visible rival launch redirects the assault to that civ's
+					-- capital (destroying it kills the ship); else the nearest known city.
+					local rushCity = launchRushTarget(state, me, playerId, ruleset)
+					local targetCity = if rushCity ~= nil then rushCity else nearestKnownEnemyCity(state, unit, playerId)
 					if targetCity ~= nil then
 						local dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
 						if dist <= 1 then

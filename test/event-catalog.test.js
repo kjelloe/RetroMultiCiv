@@ -29,11 +29,13 @@ const EVENT_TYPES = {
   cityDisorder: 'happiness', cityOrderRestored: 'happiness',
   barbariansSpawned: 'barbarians',
   airCrashed: 'air',
-  gameOver: 'score', playerDefeated: 'score'
+  gameOver: 'score', playerDefeated: 'score',
+  ssPartBuilt: 'cities', shipLaunched: 'spaceship',
+  shipDestroyed: 'combat', spaceVictory: 'spaceship'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',
-  'tech', 'government', 'happiness', 'barbarians', 'air', 'score'];
+  'tech', 'government', 'happiness', 'barbarians', 'air', 'score', 'spaceship'];
 
 const src = {};
 for (const m of EMITTING) {

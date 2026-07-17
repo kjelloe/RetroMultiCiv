@@ -16,7 +16,7 @@
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs } from './tech.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles, unitObsolete } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
@@ -475,6 +475,50 @@ function nearestKnownEnemyCity(state, unit, playerId) {
     if (d < bestDist) { best = c; bestDist = d; }
   }
   return best;
+}
+
+// A76: is the space race OPEN for this civ — Apollo Program built (by any civ,
+// derived) and all part techs known? Gates every AI ship action, so the whole
+// A76 AI stays DORMANT (no golden effect) until a civ actually reaches space.
+function apolloReady(state, me, ruleset) {
+  const f = ruleset.rules.ssFlight;
+  if (f === undefined) return false;
+  if (!wonderActive(state, f.gateWonder, ruleset)) return false;
+  const parts = ruleset.rules.ssParts;
+  for (const k of Object.keys(parts)) {
+    if (me.techs.indexOf(parts[k].tech) === -1) return false;
+  }
+  return true;
+}
+
+// A76: the next part to build toward a minimum-viable ship, or null when the
+// ship already meets the target set (ready to launch). 7 structural supports
+// the 5 non-structural parts (idiv(7*28,39)=5); one each of the five functional
+// parts. Honest v1 — a larger, safer ship is the endings wave.
+function nextSsPart(ship, ruleset) {
+  const target = { structural: 7, propulsion: 1, fuel: 1, habitation: 1, lifeSupport: 1, solar: 1 };
+  const order = ['structural', 'propulsion', 'fuel', 'habitation', 'lifeSupport', 'solar'];
+  for (const k of order) {
+    const have = ship !== undefined && ship[k] !== undefined ? ship[k] : 0;
+    if (have < target[k]) return k;
+  }
+  return null;
+}
+
+// A76: a visible rival's launched ship makes THAT civ's capital the top march
+// target (shipLaunched is public). Returns the capital city if explored, else
+// null (fall back to the nearest known enemy city). First launcher by playerOrder.
+function launchRushTarget(state, me, playerId, ruleset) {
+  for (const pid of state.playerOrder) {
+    if (pid === playerId) continue;
+    const p = state.players[pid];
+    if (!p || p.alive === false || p.spaceship === undefined) continue;
+    const ship = p.spaceship;
+    if (ship.launched === undefined || ship.launched === 0) continue;
+    const cap = capitalOf(state, pid, ruleset);
+    if (cap && isExplored(me, state.map, cap.x, cap.y)) return cap;
+  }
+  return null;
 }
 
 // B24: how many of the civ's OFFENSIVE units sit adjacent to (x, y) — the mass
@@ -1062,6 +1106,17 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (cmd) return cmd;
   }
 
+  // A76: launch a completed, un-launched ship — the win condition. Gated on the
+  // race being open (Apollo + techs), so this is dormant until a civ reaches space.
+  if (!done.launch && apolloReady(state, me, ruleset)) {
+    done.launch = true;
+    const ship = me.spaceship;
+    const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
+    if (ship !== undefined && !launched && nextSsPart(ship, ruleset) === null) {
+      return { type: 'launchShip', playerId };
+    }
+  }
+
   // N3: naval doctrine, computed once per turn (empire-wide). A naval civ builds
   // ships in its COASTAL cities once it has a land core, up to 1 per coastal city
   // capped at rules.aiNavyTargetCap. The ships then range as B23b boat-scouts.
@@ -1148,6 +1203,20 @@ function pickCommand(state, playerId, ruleset, done, stance) {
             : econBuilding !== null ? { kind: 'building', id: econBuilding }
             : pw !== null ? { kind: 'wonder', id: pw } : null;
         }
+        // A76: the capital builds ship parts once the race is open and its
+        // building/wonder economy is satisfied (placed after econItem below).
+        let ssBuild = null;
+        if (S.defendFirst === true && apolloReady(state, me, ruleset)) {
+          const scap = capitalOf(state, playerId, ruleset);
+          if (scap !== null && scap !== undefined && scap.id === cid) {
+            const ship = me.spaceship;
+            const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
+            if (!launched) {
+              const part = nextSsPart(ship, ruleset);
+              if (part !== null) ssBuild = { kind: 'ss-part', id: part };
+            }
+          }
+        }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
         } else if (defBuild !== null) {
@@ -1160,6 +1229,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = { kind: 'unit', id: navySeaUnit };
         } else if (econItem !== null) {
           want = econItem;
+        } else if (ssBuild !== null) {
+          want = ssBuild; // A76: capital ship parts, after buildings/wonders
         } else if (defenders.length >= 3
                  || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
           // enough army empire-wide: garrison surplus now roams (escorts,
@@ -1296,7 +1367,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     const enemyViable = enemy !== null && enemy !== undefined
       && assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGatePct);
     if (marchR > 0 && attDef.attack > attDef.defense) {
-      const targetCity = nearestKnownEnemyCity(state, unit, playerId);
+      // A76: a visible rival launch redirects the assault to that civ's capital
+      // (destroying it kills the ship); else the nearest known enemy city.
+      const rushCity = launchRushTarget(state, me, playerId, ruleset);
+      const targetCity = rushCity !== null ? rushCity : nearestKnownEnemyCity(state, unit, playerId);
       if (targetCity) {
         const dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
         if (dist <= 1) {

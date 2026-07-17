@@ -154,7 +154,7 @@ function act(state, unit, ruleset, events) {
   const city = cityAt(state, nx, ny);
   if (city && city.owner !== BARB_ID) {
     ensureBarbPlayer(state);
-    captureCity(state, unit, city, events);
+    captureCity(state, unit, city, events, ruleset);
   }
 }
 

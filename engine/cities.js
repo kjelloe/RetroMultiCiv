@@ -345,10 +345,24 @@ function setProduction(state, cmd, ruleset) {
   if (item.kind === 'unit') def = ruleset.units[item.id];
   else if (item.kind === 'building') def = ruleset.buildings[item.id];
   else if (item.kind === 'wonder') def = ruleset.wonders[item.id];
+  else if (item.kind === 'ss-part') def = ruleset.rules.ssParts === undefined ? null : (ruleset.rules.ssParts[item.id] || null);
   if (!def) return { ok: false, reason: 'badItem' };
 
   if (def.tech !== '' && state.players[cmd.playerId].techs.indexOf(def.tech) === -1) {
     return { ok: false, reason: 'techRequired' };
+  }
+  // A76: spaceship parts need the Apollo Program (derived gate, any civ), and
+  // may not be built once the ship has launched or its per-type max is reached.
+  if (item.kind === 'ss-part') {
+    if (!wonderActive(state, ruleset.rules.ssFlight.gateWonder, ruleset)) {
+      return { ok: false, reason: 'noApollo' };
+    }
+    const ship = state.players[cmd.playerId].spaceship;
+    if (ship && ship.launched !== undefined && ship.launched !== 0) {
+      return { ok: false, reason: 'shipLaunched' };
+    }
+    const have = ship && ship[item.id] !== undefined ? ship[item.id] : 0;
+    if (have >= def.max) return { ok: false, reason: 'partMaxReached' };
   }
   // B13a/A63: a unit obsoleted by a known tech has left the catalog
   if (item.kind === 'unit' && unitObsolete(def, state.players[cmd.playerId].techs)) {
@@ -383,12 +397,14 @@ function buyProduction(state, cmd, ruleset) {
   if (prod.kind === 'unit') def = ruleset.units[prod.id];
   else if (prod.kind === 'building') def = ruleset.buildings[prod.id];
   else if (prod.kind === 'wonder') def = ruleset.wonders[prod.id];
+  else if (prod.kind === 'ss-part') def = ruleset.rules.ssParts[prod.id];
   if (!def) return { ok: false, reason: 'badItem' };
   const cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset);
   const missing = cost - city.shields;
   if (missing <= 0) return { ok: false, reason: 'alreadyComplete' };
-  const rate = prod.kind === 'wonder'
-    ? ruleset.rules.buyGoldPerShieldWonder : ruleset.rules.buyGoldPerShield;
+  const rate = prod.kind === 'wonder' ? ruleset.rules.buyGoldPerShieldWonder
+    : prod.kind === 'ss-part' ? ruleset.rules.buyGoldPerShieldSS
+    : ruleset.rules.buyGoldPerShield;
   const price = missing * rate;
   const player = state.players[cmd.playerId];
   if (player.gold < price) return { ok: false, reason: 'notEnoughGold' };
@@ -595,6 +611,26 @@ function processCities(state, ruleset, events) {
           state.wonders[prod.id] = city.id;
           city.producing = { kind: 'unit', id: 'militia' };
           events.push({ type: 'wonderBuilt', cityId, wonder: prod.id });
+        }
+      }
+    } else if (prod.kind === 'ss-part') {
+      // A76: a completed part auto-attaches to the owner's ship (the counter
+      // increments; player.spaceship is created on the first part — omit-safe).
+      // A launched ship (in flight) or a maxed part keeps the shields and reverts.
+      const def = ruleset.rules.ssParts[prod.id];
+      const cost = itemCost('ss-part', prod.id, def, owner, ruleset);
+      if (city.shields >= cost) {
+        const ship = owner.spaceship;
+        const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
+        const have = ship !== undefined && ship[prod.id] !== undefined ? ship[prod.id] : 0;
+        if (launched || have >= def.max) {
+          city.producing = { kind: 'unit', id: 'militia' };
+        } else {
+          city.shields = city.shields - cost;
+          if (owner.spaceship === undefined) owner.spaceship = {};
+          owner.spaceship[prod.id] = have + 1;
+          city.producing = { kind: 'unit', id: 'militia' };
+          events.push({ type: 'ssPartBuilt', cityId, playerId: city.owner, part: prod.id, count: owner.spaceship[prod.id] });
         }
       }
     }

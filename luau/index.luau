@@ -18,6 +18,7 @@ local government = require("./government") -- batch 4 (P5-6, completed)
 local barbarians = require("./barbarians") -- batch 5 (P5-7)
 local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
+local spaceship = require("./spaceship") -- A76: space race
 local mapgen = require("./mapgen") -- batch 5 (P5-7)
 
 local function isArrayLike(t: any): boolean
@@ -94,6 +95,7 @@ hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
 hooks.processAir = air.processAir -- A72: fuel/crash for airborne units
+hooks.processSpace = spaceship.processSpace -- A76: first launched ship to arrive wins
 hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
 
 -- A75: the world's CURRENT AGE is DERIVED — the highest TECH ERA reached by at
@@ -172,6 +174,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processResearch(state, ruleset, events)
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.processAir(state, ruleset, events)
+		hooks.processSpace(state, ruleset, events) -- A76: first launched ship to arrive wins
 		hooks.checkGameEnd(state, ruleset, events)
 		local ageAfter = worldAge(state, ruleset)
 		if ageAfter ~= ageBefore then
@@ -239,6 +242,8 @@ local function createEngine(ruleset: any)
 			result = tech.setResearch(next_, cmd, ruleset)
 		elseif cmd.type == "setRates" then
 			result = tech.setRates(next_, cmd, ruleset)
+		elseif cmd.type == "launchShip" then
+			result = spaceship.launchShip(next_, cmd, ruleset)
 		else
 			result = { ok = false, reason = "unknownCommand" }
 		end

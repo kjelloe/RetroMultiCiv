@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 27, 'the twenty-seven scenarios (028 zoc-city-capture added in B27)');
+      assert.strictEqual(files.length, 28, 'the twenty-eight scenarios (029 space-race added in A76/N17)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -149,6 +149,7 @@ const PORTED = [
   '026-fortify-defense.json', // B25: the fortify x1.5 bonus is load-bearing (combat already ported)
   '027-blockade.json', // A79: enemy unit on a worked tile blockades it (house rule)
   '028-zoc-city-capture.json', // B27: capture an undefended enemy city by moving in, even in ZOC
+  '029-space-race.json', // A76: launch a viable spaceship and win the space victory on arrival
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
@@ -213,7 +214,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xbf33e7f6\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x8e00f763\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -251,8 +252,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'a6737e84', pangaea: '4fa64fe8',
-      archipelago: '8eda4c07', islands: '9e60bbdd'
+      continents: 'f146eade', pangaea: '826be55a',
+      archipelago: '7e879b89', islands: 'b9644afb'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

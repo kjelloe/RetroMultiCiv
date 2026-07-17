@@ -150,7 +150,7 @@ Courthouse, City Walls (defense ×3 vs land attack), Aqueduct, Bank (+50% on top
 of Marketplace), Cathedral, University (+50% on top of Library), Colosseum,
 Factory (+50% shields), Power Plant / Hydro Plant / Nuclear Plant (boost Factory),
 Manufacturing Plant, Recycling Center, Mass Transit, SDI Defense.
-*(Spaceship parts deferred to the space-race phase.)*
+*(Spaceship parts are their own production kind — see the space-race section under §11.)*
 
 ## 5. Units
 
@@ -291,7 +291,7 @@ Advances (grouped by era, prerequisites in the data file — verify list against
 | Hoover Dam | Electronics | Hydro-plant effect in all cities on continent |
 | Women's Suffrage | Industrialization | Reduces war-weariness unhappiness |
 | Manhattan Project | Nuclear Fission | Enables Nuclear units (all civs) |
-| Apollo Program | Space Flight | Enables spaceship parts (phase 6) |
+| Apollo Program | Space Flight | Opens spaceship construction for all civs (A76 — see §11 space race) |
 | Cure for Cancer | Genetic Engineering | +1 happy citizen in every city |
 | SETI Program | Computers | Major science boost |
 | United Nations | The Corporation | Diplomacy effects (phase 6; score in v1) |
@@ -566,10 +566,37 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
   by user ruling 2026-07-17 ("must be able to attack city if adjacent, even
   in ZOC"). Defended cities already resolved as an attack (pre-ZOC).
 
+### Space race & space victory (A76/N17, engine — spec specs/a76-space-race.md)
+
+Civ1-authentic except the flight-time model (original, wiki-informed;
+sim-runner-calibrated). The **Apollo Program** wonder opens spaceship
+construction for **every** civ holding the part techs (derived gate —
+`wonderActive`, no stored flag). A civ builds parts like city improvements
+(`producing.kind` `ss-part`; they auto-attach — `player.spaceship` counters,
+omit-safe until the first part) in any of its cities, buying at
+`buyGoldPerShieldSS` = 8 gold/shield. The six parts (`rules.ssParts`):
+structural (Space Flight), propulsion + fuel (Plastics), habitation +
+lifeSupport + solar (Robotics), each with a cost/mass/per-type max.
+
+`shipStats` (pure, both engines) derives population (`habitation × 10000`),
+support %, energy %, mass, fuel %, **flightYears** and **successPct** by integer
+math (`rules.ssFlight`). Structural sufficiency: non-structural parts function
+only up to `idiv(structural × 28, 39)` slots (excess adds mass, not function).
+A ship is viable with ≥1 functional propulsion + fuel + one of each module type.
+`launchShip` is irreversible — `arrivalTurn` = launch + flightYears ÷ the era's
+years-per-turn (≥ 1 turn). Capturing a civ's **capital** destroys its ship
+(a new one may be rebuilt). The **first** launched ship to reach its arrival
+turn with the owner alive wins the **space victory** (arrival bonus =
+`idiv(population, 200) × successPct`). Events (public race): `ssPartBuilt`,
+`shipLaunched`, `shipDestroyed`, `spaceVictory`. AI (v1 minimal, honest):
+builder-stance civs build parts in the capital after their economy and launch a
+viable ship; every AI rushes a visible launcher's capital. The graphical ship
+screen is H8 (client lane); fuller AI ship strategy is the endings wave.
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &
-global warming, spaceship construction & space victory, difficulty-level
+global warming, difficulty-level
 modifiers beyond a single global multiplier, palace/throne-room fluff, and
 **random city disasters** (fire, plague, flood, pirates, earthquake — Civ 1 ties
 building effects to these, e.g. Aqueduct prevents fire/plague, Barracks prevents

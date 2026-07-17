@@ -210,7 +210,7 @@ local function act(state: any, unit: any, ruleset: any, events: any)
 	local city = combat.cityAt(state, nx, ny)
 	if city ~= nil and city.owner ~= BARB_ID then
 		ensureBarbPlayer(state)
-		combat.captureCity(state, unit, city, events)
+		combat.captureCity(state, unit, city, events, ruleset)
 	end
 end
 

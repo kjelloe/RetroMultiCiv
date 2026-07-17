@@ -487,6 +487,8 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 		def = ruleset.buildings[item.id]
 	elseif item.kind == "wonder" then
 		def = ruleset.wonders[item.id]
+	elseif item.kind == "ss-part" then
+		def = if ruleset.rules.ssParts == nil then nil else ruleset.rules.ssParts[item.id]
 	end
 	if def == nil then
 		return { ok = false, reason = "badItem" }
@@ -494,6 +496,21 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 
 	if def.tech ~= "" and table.find(state.players[cmd.playerId].techs, def.tech) == nil then
 		return { ok = false, reason = "techRequired" }
+	end
+	-- A76: spaceship parts need the Apollo Program (derived gate), and may not be
+	-- built once the ship has launched or its per-type max is reached.
+	if item.kind == "ss-part" then
+		if not wonderActive(state, ruleset.rules.ssFlight.gateWonder, ruleset) then
+			return { ok = false, reason = "noApollo" }
+		end
+		local ship = state.players[cmd.playerId].spaceship
+		if ship ~= nil and ship.launched ~= nil and ship.launched ~= 0 then
+			return { ok = false, reason = "shipLaunched" }
+		end
+		local have = if ship ~= nil and ship[item.id] ~= nil then ship[item.id] else 0
+		if have >= def.max then
+			return { ok = false, reason = "partMaxReached" }
+		end
 	end
 	-- B13a/A63: a unit obsoleted by a known tech has left the catalog
 	if item.kind == "unit" and unitObsolete(def, state.players[cmd.playerId].techs) then
@@ -534,6 +551,8 @@ local function buyProduction(state: any, cmd: any, ruleset: any): any
 		def = ruleset.buildings[prod.id]
 	elseif prod.kind == "wonder" then
 		def = ruleset.wonders[prod.id]
+	elseif prod.kind == "ss-part" then
+		def = ruleset.rules.ssParts[prod.id]
 	end
 	if def == nil then
 		return { ok = false, reason = "badItem" }
@@ -544,6 +563,7 @@ local function buyProduction(state: any, cmd: any, ruleset: any): any
 		return { ok = false, reason = "alreadyComplete" }
 	end
 	local rate = if prod.kind == "wonder" then ruleset.rules.buyGoldPerShieldWonder
+		elseif prod.kind == "ss-part" then ruleset.rules.buyGoldPerShieldSS
 		else ruleset.rules.buyGoldPerShield
 	local price = missing * rate
 	local player = state.players[cmd.playerId]
@@ -801,6 +821,28 @@ local function processCities(state: any, ruleset: any, events: any)
 					state.wonders[prod.id] = city.id
 					city.producing = { kind = "unit", id = "militia" }
 					table.insert(events, { type = "wonderBuilt", cityId = cityId, wonder = prod.id })
+				end
+			end
+		elseif prod.kind == "ss-part" then
+			-- A76: a completed part auto-attaches to the owner's ship (the counter
+			-- increments; player.spaceship is created on the first part — omit-safe).
+			-- A launched ship or a maxed part keeps the shields and reverts.
+			local def = ruleset.rules.ssParts[prod.id]
+			local cost = itemCost("ss-part", prod.id, def, owner, ruleset)
+			if city.shields >= cost then
+				local ship = owner.spaceship
+				local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
+				local have = if ship ~= nil and ship[prod.id] ~= nil then ship[prod.id] else 0
+				if launched or have >= def.max then
+					city.producing = { kind = "unit", id = "militia" }
+				else
+					city.shields -= cost
+					if owner.spaceship == nil then
+						owner.spaceship = {}
+					end
+					owner.spaceship[prod.id] = have + 1
+					city.producing = { kind = "unit", id = "militia" }
+					table.insert(events, { type = "ssPartBuilt", cityId = cityId, playerId = city.owner, part = prod.id, count = owner.spaceship[prod.id] })
 				end
 			end
 		end

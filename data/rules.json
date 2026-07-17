@@ -64,6 +64,25 @@
   ],
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
+  "buyGoldPerShieldSS": 8,
+  "ssParts": {
+    "structural": { "tech": "space-flight", "cost": 80, "mass": 100, "max": 39 },
+    "propulsion": { "tech": "plastics", "cost": 160, "mass": 400, "max": 8 },
+    "fuel": { "tech": "plastics", "cost": 160, "mass": 400, "max": 8 },
+    "habitation": { "tech": "robotics", "cost": 320, "mass": 1600, "max": 4 },
+    "lifeSupport": { "tech": "robotics", "cost": 320, "mass": 1600, "max": 4 },
+    "solar": { "tech": "robotics", "cost": 320, "mass": 400, "max": 4 }
+  },
+  "ssFlight": {
+    "gateWonder": "apollo-program",
+    "colonistsPerHab": 10000,
+    "arrivalScoreDivisor": 200,
+    "structuralSlotsNum": 28,
+    "structuralSlotsDen": 39,
+    "flightMassPerEngine": 1600,
+    "flightYearsMin": 5,
+    "successFlightFreeYears": 15
+  },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,

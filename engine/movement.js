@@ -191,7 +191,7 @@ function moveUnit(state, cmd, ruleset) {
     if (v.aboard === unit.id) { v.x = nx; v.y = ny; }
   }
   if (targetCity && targetCity.owner !== unit.owner) {
-    captureCity(state, unit, targetCity, events);
+    captureCity(state, unit, targetCity, events, ruleset);
   }
   return { ok: true, events };
 }

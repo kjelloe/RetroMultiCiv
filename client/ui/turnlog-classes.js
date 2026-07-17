@@ -38,8 +38,11 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'techDiscovered':
       // rivals' discoveries never reach a fogged seat (engine filterEvents)
       return e.playerId === viewer ? 'research' : null;
+    case 'ssPartBuilt': // A76: own spaceship part completed (own-seat only)
+      return e.playerId === viewer ? 'cities' : null;
     case 'playerDefeated': case 'wonderBuilt': case 'wonderLost':
     case 'barbariansSpawned': case 'gameOver': case 'ageChanged':
+    case 'shipLaunched': case 'shipDestroyed': case 'spaceVictory': // A76: the space race is public
       return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';
