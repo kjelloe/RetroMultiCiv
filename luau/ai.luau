@@ -434,9 +434,14 @@ local function warDoctrineOf(ruleset: any): any
 	local cr = if ruleset.rules.combatRounds == nil then 1 else ruleset.rules.combatRounds
 	local d = if doctrine == nil then nil else doctrine[tostring(cr)]
 	if d == nil then
-		return { massSize = 4, oddsGate = 0 }
+		return { massSize = 4, oddsGate = 0, defenderGate = 1 }
 	end
-	return d
+	-- B26: defenderGate governs DEFENDER-type attack-initiation. A pre-B26 table
+	-- lacks it; fall back to the offensive gate when it bites (best-of-three) or
+	-- an even-odds floor (one-roll oddsGate 0 -> 1: no suicide charges).
+	local oddsGate = if d.oddsGate == nil then 0 else d.oddsGate
+	local defenderGate = if d.defenderGate ~= nil then d.defenderGate elseif oddsGate > 0 then oddsGate else 1
+	return { massSize = d.massSize, oddsGate = oddsGate, defenderGate = defenderGate }
 end
 
 -- B24 twin: nearest KNOWN enemy city (fog-honest -- explored tiles only). The
@@ -478,6 +483,31 @@ local function assaultOddsOk(state: any, unit: any, x: number, y: number, rulese
 		return true
 	end
 	return combat.attackStrength(unit, ruleset) >= oddsGate * combat.defenseStrength(state, defender, ruleset)
+end
+
+-- B26 twin: would stepping `dir` initiate an attack the doctrine gate FORBIDS?
+-- True only when the step lands on an enemy-occupied tile AND the odds fail
+-- `gate` (attack-INITIATION only; defending in place is never gated).
+local function stepAttackBlocked(state: any, unit: any, dir: string, playerId: string, ruleset: any, gate: number): boolean
+	local v = DIR_VECS[dir]
+	if v == nil then
+		return false
+	end
+	local nx = ((unit.x + v[1]) % state.map.width + state.map.width) % state.map.width
+	local ny = unit.y + v[2]
+	if ny < 0 or ny >= state.map.height then
+		return false
+	end
+	local hostile = false
+	for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+		if u.owner ~= playerId then
+			hostile = true
+		end
+	end
+	if not hostile then
+		return false
+	end
+	return not assaultOddsOk(state, unit, nx, ny, ruleset, gate)
 end
 
 -- B21(d) twin: is this unit one of the civ's dedicated SCOUTS? The NEWEST
@@ -1193,10 +1223,16 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- are massed, then assault together (each strike per-unit odds-gated
 				-- under best-of-three; one-roll masses with no gate). marchR > 0 only.
 				local attDef = ruleset.units[unit.type]
+				-- B26: the doctrine gate for THIS unit -- offensive (attack>defense) by
+				-- oddsGate (one-roll 0 = mass); defender-type by defenderGate (one-roll 1 =
+				-- even-or-better). Attack-INITIATION is gated for EVERY unit (#646).
+				local D = warDoctrineOf(ruleset)
+				local engageGate = if attDef.attack > attDef.defense then D.oddsGate else D.defenderGate
+				local enemyViable = enemy ~= nil
+					and assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGate)
 				if marchR > 0 and attDef.attack > attDef.defense then
 					local targetCity = nearestKnownEnemyCity(state, unit, playerId)
 					if targetCity ~= nil then
-						local D = warDoctrineOf(ruleset)
 						local dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
 						if dist <= 1 then
 							local massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y)
@@ -1229,9 +1265,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				end
 				-- A40: defensive never marches out (radius 0), aggressive ranges
 				-- wider; balanced keeps the historical 8 — byte-identical.
-				if enemy ~= nil and marchR > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR then
+				if enemy ~= nil and enemyViable and marchR > 0 and chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR then
 					local dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
-					if dir ~= nil then
+					if dir ~= nil and not stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate) then
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 					end
 				end
@@ -1246,12 +1282,22 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 				end
 				local dir = nil
-				-- balanced marches toward a known enemy; defensive (radius 0)
-				-- explores instead — never leaves to attack
-				if enemy ~= nil and marchR > 0 then
+				-- B26: march on a known enemy only toward an ODDS-VIABLE target; a
+				-- defender-type unit (attack<=defense) with nothing viable to strike HOLDS
+				-- THE LINE (fortify) instead of a losing sortie. Offensive units keep
+				-- roaming/exploring the fog (defensive stance, radius 0, only explores).
+				if enemy ~= nil and enemyViable and marchR > 0 then
 					dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y)
+				elseif attDef.attack <= attDef.defense then
+					if not unit.fortified then
+						return { type = "fortify", playerId = playerId, unitId = uid }
+					end
 				else
 					dir = towardUnexplored(state, unit, me)
+				end
+				-- B26: never let a fallback/explore step become an un-gated attack.
+				if dir ~= nil and stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate) then
+					dir = nil
 				end
 				if dir ~= nil then
 					return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }

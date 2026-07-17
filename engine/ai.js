@@ -365,8 +365,15 @@ function warDoctrineOf(ruleset) {
   const table = ruleset.rules.aiWarDoctrine;
   const cr = ruleset.rules.combatRounds === undefined ? 1 : ruleset.rules.combatRounds;
   const d = table === undefined ? undefined : table['' + cr];
-  if (d === undefined) return { massSize: 4, oddsGate: 0 };
-  return d;
+  if (d === undefined) return { massSize: 4, oddsGate: 0, defenderGate: 1 };
+  // B26: defenderGate governs DEFENDER-type attack-initiation (militia/phalanx
+  // sorties). A table entry from before B26 lacks it; fall back to the offensive
+  // gate when it bites (best-of-three) or an even-odds floor (one-roll oddsGate 0
+  // -> 1: no suicide charges, but Civ 1 aggression at even odds survives).
+  const oddsGate = d.oddsGate === undefined ? 0 : d.oddsGate;
+  const defenderGate = d.defenderGate !== undefined ? d.defenderGate
+    : (oddsGate > 0 ? oddsGate : 1);
+  return { massSize: d.massSize, oddsGate: oddsGate, defenderGate: defenderGate };
 }
 
 // B24: the nearest KNOWN enemy city to this unit (the army group's shared
@@ -406,6 +413,22 @@ function assaultOddsOk(state, unit, x, y, ruleset, oddsGate) {
   const defender = bestDefender(state, x, y, ruleset);
   if (!defender) return true;
   return attackStrength(unit, ruleset) >= oddsGate * defenseStrength(state, defender, ruleset);
+}
+
+// B26: would stepping `dir` initiate an attack the doctrine gate FORBIDS? True
+// only when the step lands on an enemy-occupied tile AND the odds fail `gate`.
+// The guard that keeps any fallback/explore step from becoming an un-gated
+// sortie (#646) — attack-INITIATION only; defending in place is never gated.
+function stepAttackBlocked(state, unit, dir, playerId, ruleset, gate) {
+  const v = DIR_VECS[dir];
+  if (v === undefined) return false;
+  const nx = ((unit.x + v[0]) % state.map.width + state.map.width) % state.map.width;
+  const ny = unit.y + v[1];
+  if (ny < 0 || ny >= state.map.height) return false;
+  let hostile = false;
+  for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) hostile = true;
+  if (!hostile) return false;
+  return !assaultOddsOk(state, unit, nx, ny, ruleset, gate);
 }
 
 // B21(d): is this unit one of the civ's dedicated SCOUTS? The first `scoutShare`
@@ -1027,10 +1050,18 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // one-roll masses with no gate). Only when the stance attacks (marchR > 0).
     // This is the coordination that converts wins into captures (docs/15 §2d).
     const attDef = ruleset.units[unit.type];
+    // B26: the doctrine gate for THIS unit — offensive units (attack>defense) by
+    // oddsGate (one-roll 0 = mass, authentic Civ 1); defender-type units by
+    // defenderGate (one-roll 1 = even-or-better odds). Attack-INITIATION is now
+    // gated for EVERY unit, closing the un-gated defender sorties (#646, B26).
+    const D = warDoctrineOf(ruleset);
+    const engageGate = attDef.attack > attDef.defense ? D.oddsGate : D.defenderGate;
+    // a near enemy UNIT is a march target only when the odds are viable.
+    const enemyViable = enemy !== null && enemy !== undefined
+      && assaultOddsOk(state, unit, enemy.x, enemy.y, ruleset, engageGate);
     if (marchR > 0 && attDef.attack > attDef.defense) {
       const targetCity = nearestKnownEnemyCity(state, unit, playerId);
       if (targetCity) {
-        const D = warDoctrineOf(ruleset);
         const dist = chebyshev(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
         if (dist <= 1) {
           const massed = attackersAdjacentTo(state, playerId, ruleset, targetCity.x, targetCity.y);
@@ -1058,10 +1089,13 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // fight what's actually near; distant enemies are not worth a suicide
     // trek across the map (that churn was where armies went to die). A40:
     // defensive never marches out (radius 0), aggressive ranges wider;
-    // balanced keeps the historical 8 — byte-identical.
-    if (enemy && marchR > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR) {
+    // balanced keeps the historical 8. B26: only toward an ODDS-VIABLE target,
+    // and the step itself may not become an un-gated attack.
+    if (enemy && enemyViable && marchR > 0 && chebyshev(state.map, unit.x, unit.y, enemy.x, enemy.y) <= marchR) {
       const dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
-      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+      if (dir && !stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)) {
+        return { type: 'moveUnit', playerId, unitId: uid, dir };
+      }
     }
     // escort duty: stand beside a field settler that has no guard yet
     const ward = nearestUnguardedSettler(state, unit, playerId, ruleset, 10);
@@ -1073,10 +1107,22 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
     }
     let dir = null;
-    // balanced (marchRadius 8) marches toward a known enemy as before;
-    // defensive (radius 0) explores instead — never leaves to attack
-    if (enemy && marchR > 0) dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
-    else dir = towardUnexplored(state, unit, me);
+    // B26: march on a known enemy only toward an ODDS-VIABLE target; a
+    // defender-type unit (attack<=defense) with nothing viable to strike HOLDS
+    // THE LINE (fortify) instead of a losing sortie — the un-gated defender
+    // marches were the over-conquest root cause (#646). Offensive units keep
+    // roaming/exploring the fog (defensive stance, radius 0, only ever explores).
+    if (enemy && enemyViable && marchR > 0) {
+      dir = dirToward(state.map, unit.x, unit.y, enemy.x, enemy.y);
+    } else if (attDef.attack <= attDef.defense) {
+      if (!unit.fortified) return { type: 'fortify', playerId, unitId: uid };
+    } else {
+      dir = towardUnexplored(state, unit, me);
+    }
+    // B26: never let a fallback/explore step become an un-gated attack.
+    if (dir !== null && stepAttackBlocked(state, unit, dir, playerId, ruleset, engageGate)) {
+      dir = null;
+    }
     if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
   }
 

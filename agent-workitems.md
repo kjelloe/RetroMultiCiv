@@ -3166,6 +3166,14 @@ the sim-runner's challenge/legibility/fairness ranking:
 - N8 (rank 10) LOPSIDED IMPROVEMENT: irrigation reflexive,
   mines 0-6, rails ~0.
 (Ranks 4-5 = the queued B24/B23; 11-13 = known minors.)
+**N-SUPPORT (small, bugfixer lane, golden-neutral): resourceCov
+telemetry column** — sim-driver.snapshot() emits no resourceCov,
+so A93's pinned ≥80% floor reports PENDING (helper finding
+2026-07-17 #678). Add the column (share of special-resource tiles
+inside worked city radii, or the M-sweep's definition — match
+docs/05 §12); tools/soak.js floors auto-activate the moment the
+column exists, zero further wiring. Telemetry only, no state
+writes.
 **FIX STRATEGIES ADOPTED (user + ally table, 2026-07-16 night —
 VERBATIM in specs/ai-weakness-fixes.md; supersedes the architect's
 first slicing):** per-weakness designs — naval probe (ocean ratio
@@ -3257,7 +3265,7 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
-## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)  [claimed: helper 2026-07-17]
+## A93 — M-target floors in the nightly (the pinning session's enforcement; helper, small)  [claimed: helper 2026-07-17] [done: 2026-07-17 — tools/soak.js --stats gains a canonical-config-gated (7civ/medium/no-chaos/normal, >=400t) M-target FLOORS check at t401, median over seeds; data-driven FLOORS table mirrors docs/05 §12 pinned targets (one source-comment pair); breach prints "FLOOR BREACH" + exits 1 (floors, not aspirations); non-canonical soaks skip. Six floors: M2 cities>=8, M3 pop>=50, M4 impr%>=75, M10 buys>0/civ, M10 treasury climb<50 g/t (=per-civ gold over last 100t /100), resourceCov%>=80. resourceCov has NO telemetry column yet -> reported PENDING, auto-activates when the column lands (a measurement item, flagged). Eliminated civs + sub-t401 seeds (e.g. >1000-unit tripwire) excluded from the median by construction. test/soak-floors.test.js (8 tests) 8/8; full suite 392/392. GOLDEN-NEUTRAL and NO current CI change (both nightly lanes are godemperor/natural-small -> skip). ENFORCEMENT needs a canonical soak lane added to .github/workflows/nightly-soak.yml (a .github claim, NOT done here) + will be red on M2/M3 until the AI B-lane closes them — architect/user call. Done-mail #678.] [H1b done: 2026-07-17 — architect #680 ruled ADD the canonical lane NOW in REPORT mode. .github/workflows/nightly-soak.yml: new `canonical-floors` JOB (own timeout, keeps the two existing lanes untouched) running `soak --seeds 25 --turns 400 --civs 7 --size medium --no-chaos --stats`; the soak step is continue-on-error (advisory), pipes through tee, and echoes the floor table into $GITHUB_STEP_SUMMARY; in-file comment marks FLIP-to-enforcing (drop continue-on-error) when the AI B-lane closes M2/M3. YAML validated; summary grep -A8 capture verified vs a real canonical soak log. No code/test change (CI-config only). Done-mail pending.]
 
 tools/soak.js --stats gains a FLOORS check on the canonical
 config: the six pinned targets (docs/05 §12) asserted at t401,

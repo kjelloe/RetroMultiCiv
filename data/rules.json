@@ -43,8 +43,8 @@
   "aiExploreMode": "bfs",
   "aiCoastFollow": true,
   "aiWarDoctrine": {
-    "1": { "massSize": 4, "oddsGate": 0 },
-    "3": { "massSize": 4, "oddsGate": 2 }
+    "1": { "massSize": 4, "oddsGate": 0, "defenderGate": 1 },
+    "3": { "massSize": 4, "oddsGate": 2, "defenderGate": 2 }
   },
   "barbTierThreshold": 30,
   "barbTiers": [
