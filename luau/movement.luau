@@ -174,7 +174,10 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 		or (targetCity ~= nil and targetCity.owner == unit.owner)
 	-- B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
 	-- ignoresZoc) — they walk between enemy-controlled tiles freely.
-	if not ownAtTarget and unitType.ignoresZoc ~= true
+	-- B27: entering ANY city square is ZOC-exempt (targetCity == nil to reject) —
+	-- an undefended enemy city must be capturable-by-moving even in ZOC. Civ2
+	-- provenance (user ruling 2026-07-17). Matches engine/movement.js.
+	if not ownAtTarget and targetCity == nil and unitType.ignoresZoc ~= true
 		and inEnemyZoc(state, unit.x, unit.y, unit.owner)
 		and inEnemyZoc(state, nx, ny, unit.owner) then
 		return { ok = false, reason = "zoc" }

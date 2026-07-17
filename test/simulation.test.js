@@ -41,7 +41,7 @@ const GOLDEN_SOAK = {
   },
   finalHash: '0x2ba40eef'
 };
-const GOLDEN_NATURAL = { rounds: 395, winner: 'p2', finalHash: '0xdc176228' };
+const GOLDEN_NATURAL = { rounds: 395, winner: 'p2', finalHash: '0x12a6b07c' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

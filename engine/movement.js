@@ -128,7 +128,13 @@ function moveUnit(state, cmd, ruleset) {
     || (targetCity !== null && targetCity.owner === unit.owner);
   // B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
   // ignoresZoc) — they walk between enemy-controlled tiles freely.
-  if (!ownAtTarget && unitType.ignoresZoc !== true
+  // B27: entering ANY city square is ZOC-exempt (targetCity !== null) — an own
+  // city is already covered by ownAtTarget; an UNDEFENDED enemy city reaches
+  // here (defended cities resolve as an attack above, pre-ZOC) and must be
+  // capturable-by-moving even when both squares sit in an enemy ZOC. Civ2-shape
+  // exemption ("into or out of a city, including capturing an enemy city"; Civ 1
+  // wiki silent, C-evo declines) — user ruling 2026-07-17.
+  if (!ownAtTarget && targetCity === null && unitType.ignoresZoc !== true
       && inEnemyZoc(state, unit.x, unit.y, unit.owner)
       && inEnemyZoc(state, nx, ny, unit.owner)) {
     return { ok: false, reason: 'zoc' };

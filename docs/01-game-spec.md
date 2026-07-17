@@ -558,6 +558,13 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
 - **PARKED (game-v2): a richer Civ4-shape anarchy/revolution/civics
   system** — user flags explicit interest for later; recorded beside the
   other game-v2 items so it isn't lost.
+- **ZOC city-capture exemption (B27, Civ2-provenance)**: entering ANY city
+  square is zone-of-control-exempt — an undefended enemy city is capturable
+  by moving into it even when both squares sit in an enemy ZOC. Civ 2 states
+  it explicitly ("into or out of a city, including capturing an enemy city");
+  the Civ 1 wiki is silent and C-evo declines, so the family splits — adopted
+  by user ruling 2026-07-17 ("must be able to attack city if adjacent, even
+  in ZOC"). Defended cities already resolved as an attack (pre-ZOC).
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

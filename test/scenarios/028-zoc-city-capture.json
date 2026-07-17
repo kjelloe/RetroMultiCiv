@@ -1,0 +1,189 @@
+{
+  "name": "B27: capture an undefended enemy city by moving into it while both squares sit in ZOC",
+  "notes": "5x5 grassland. p1 militia (1,1), undefended p2 city (2,2), p2 militia (3,2) so the city TILE and the mover square both sit in ZOC. Moving SE into the city was rejected 'zoc' pre-B27; now entering ANY city square is ZOC-exempt (Civ2 provenance: \"into or out of a city, including capturing an enemy city\"; Civ 1 wiki silent; C-evo declines — user ruling 2026-07-17). Result: the city is captured. Remove the exemption in either engine and the move rejects -> a different final hash: this pin fails the instant B27 regresses.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "m1": {
+          "id": "m1",
+          "type": "militia",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 2,
+          "fortified": false,
+          "veteran": false
+        },
+        "z1": {
+          "id": "z1",
+          "type": "militia",
+          "owner": "p2",
+          "x": 3,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Ur",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "pop": 3,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "m1",
+        "dir": "SE"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 1
+    },
+    "hash": "0xf1f3cfee"
+  }
+}

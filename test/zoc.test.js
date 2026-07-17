@@ -68,3 +68,23 @@ test('B18/A72: diplomat/caravan/nuclear + the air units carry ignoresZoc in unit
   assert.strictEqual(UNITS.militia.ignoresZoc, undefined);
   assert.strictEqual(UNITS.legion.ignoresZoc, undefined);
 });
+
+test('B27: an undefended enemy city is capturable-by-moving even when both squares sit in ZOC', async () => {
+  const engine = await load();
+  // an enemy militia at (3,2) is adjacent to the city (2,2) -> the CITY TILE is
+  // now in the unit's ZOC, and the mover at (1,1) is in the city's ZOC: BOTH
+  // squares in ZOC. Pre-B27 this rejected 'zoc'; now entering ANY city square is
+  // exempt (Civ2-provenance, user ruling 2026-07-17) -> the undefended city is captured.
+  const withGuard = () => {
+    const st = world('militia');
+    st.units.z1 = { id: 'z1', type: 'militia', owner: 'p2', x: 3, y: 2, moves: 1, fortified: false, veteran: false };
+    return st;
+  };
+  const cap = engine.applyCommand(withGuard(), { type: 'moveUnit', playerId: 'p1', unitId: 'm1', dir: 'SE' });
+  assert.strictEqual(cap.ok, true, 'moving SE into the undefended enemy city succeeds');
+  assert.strictEqual(cap.state.cities.c1.owner, 'p1', 'the city is captured (now ours)');
+  // the still-blocked pin: same board, a plain step to an EMPTY ZOC tile stays 'zoc'
+  const blocked = engine.applyCommand(withGuard(), { type: 'moveUnit', playerId: 'p1', unitId: 'm1', dir: 'E' });
+  assert.strictEqual(blocked.ok, false, 'a plain move between two ZOC squares is still blocked');
+  assert.strictEqual(blocked.reason, 'zoc');
+});
