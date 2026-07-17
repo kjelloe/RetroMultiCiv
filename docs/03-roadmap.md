@@ -446,6 +446,25 @@ Post-1.0 (v2 shelf): mobile UI, Civ4-style culture, novelty map
 shapes, checkpointed save format, Blender/glTF fidelity pass.
 Interim releases keep shipping via the marker cadence (v0.6…).
 
+**RECOMMENDED NEXT ORDERING toward 1.0 (ally, 2026-07-17 — the
+guard is that feature breadth must not dilute the measurement
+pipeline that made the progress possible):**
+1. Finish the NAVAL AI loop — exploration, transport, safe landing,
+   overseas settlement/invasion (docs/05 naval acceptance sequence);
+   only THEN broad naval sophistication.
+2. Complete AIR movement, then delay sophisticated air AI until a
+   measurable role exists.
+3. Government re-evaluation + late-tech modernization (N1/N2 — the
+   next systemic ceiling now that exploration and war have woken).
+4. Resolve defender bloat (N4) + gold-hoarding policy in the new
+   strategic environment.
+5. Ship the diplomacy MVP with the §5 legibility acceptance test.
+6. Space-race vertical slice: researched prerequisite → component
+   production → visible assembly screen → launch/win validation.
+7. Onboarding advisor, sourced from the now-accurate in-game pedia.
+8. Public server index — only after the threat-model + dedicated
+   security review outcomes are integrated.
+
 ## The AI-quality program (ACTIVE track, 2026-07-16 — docs/05 §12 + docs/15)
 
 > RE-BASELINE VERDICT (2026-07-16 evening, sim-runner #534, 50

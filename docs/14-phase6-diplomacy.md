@@ -77,6 +77,30 @@ emits events (filtered per B5's coord-or-named-party rule: parties
 hear details, the world hears headlines like "Rome and Egypt sign
 peace").
 
+### 3a. Deterministic diplomacy EVENTS (ally-specified shapes, 2026-07-17)
+
+Every command emits a typed, saved, replayed event — included in
+canonical state where it affects outcomes, and rendered IDENTICALLY on
+browser and Roblox clients. The v1 event set (all fields plain data,
+`turn` stamped by the engine):
+```
+{ type:'FIRST_CONTACT',       fromCivId, toCivId, turn }
+{ type:'WAR_DECLARED',        attackerCivId, defenderCivId, turn, reason }
+{ type:'PEACE_TREATY_SIGNED', civAId, civBId, turn, expiresTurn }
+{ type:'TREATY_BROKEN',       breakerCivId, injuredCivId, turn, penalty }
+```
+`reason` is an enum (e.g. `border_pressure`), `penalty` an enum (e.g.
+`reputation_loss`). These are exactly the events the audience panel and
+turn log read from — see the legibility bar in §5.
+
+**MVP scope confirmed (ally, 2026-07-17): ship the first slice NARROW**
+— first contact; war/peace state; war start turn + reason; fixed-duration
+treaty/ceasefire; betrayal event + remembered reputation cost; tribute
+demand; senate-forced peace where government requires it; the audience
+panel with the five authored stance voices. Do NOT begin with alliances,
+complex trade bundles, espionage, shared maps, or multi-party blocs
+(later slices). The player-facing acceptance test (§5) is the bar.
+
 ## 4. The AI across the table (A59 is the prerequisite)
 
 AI responses are DETERMINISTIC functions of: its leader stance

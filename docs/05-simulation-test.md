@@ -472,6 +472,39 @@ window. M5 rails, M6 reactive modernization, M7 era buildings, and
 M8 wonder targeting are NEW AI capabilities; M1–M4 largely need
 tuning of existing behavior.
 
+**NAVAL LOOP — the acceptance SEQUENCE (ally, 2026-07-17, after N3).**
+N3 made a coastal AI build+scout ships; that is BUILD, not USE. Measure
+the loop in ORDER, and do not optimize fleet composition / blockades /
+naval warfare until the AI reliably completes the whole chain:
+`discover coast → build ship → explore → discover target → build
+transport → load units → cross water → land → support foothold`.
+The ordered questions + metrics (each a SEPARATE measured claim):
+(1) build ships when water matters? — ships by map type, coastal-city
+ratio, first-ship turn; (2) explore useful unknown coast vs circle home?
+— new fog tiles per ship-turn; (3) discover another landmass by sea? —
+`crossWater` rate, first-overseas-contact turn; (4) land an army
+deliberately? — transports built, loaded-cargo turns, successful
+landings; (5) protect cargo? — transport/cargo losses, escort ratio;
+(6) does overseas invasion create value? — overseas cities founded/
+captured, survival after 20/50 turns. (N3b transport-loading doctrine
+is gated behind step 4; the AI has no load/unload doctrine yet — the
+current stepEntersSea guard keeps land units OFF ships until it does.)
+
+**ACTIVITY-BASELINE OUTPUT FORMAT (ally formalization of the no-op
+check, 2026-07-17).** For any mechanic under test, the sim output prints
+these as SEPARATE lines so "capability exists" and "capability produces
+strategic value" can never be conflated:
+```
+Capability available:       yes/no
+Capability triggered:       <count>
+First trigger turn:         <turn or never>
+Strategic outcome produced: <count>
+Outcome quality:            <metric by scenario>
+```
+"the AI can build ships" and "the AI uses sea power to discover/settle/
+invade" are two rows, never one. Zero in the triggered/outcome lines IS
+the finding (dormant capability), never a null result.
+
 **A64 emitted `--stats` fields (landed 2026-07-15).** Each `t:"checkpoint"`
 JSONL row carries per-player entries plus row-level cross-civ figures.
 Per-player: `techs` (M1), `cities` (M2), `pop` (M3), `imprPct` (M4),

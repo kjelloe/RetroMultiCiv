@@ -254,3 +254,28 @@ sim-runner rounds after the era-scaling re-baseline:
 - His experiment structure (control/one-variable/fixed seeds)
   matches the lab process; cell size grows 10→25+ seeds as runs
   get cheaper post-window.
+
+## §2g — Attacker-gate OVERCORRECTION watch-list (ally, 2026-07-17, post-M11)
+
+B26/B26b gate every attack-initiation on odds, and M11 pinned
+`defenderGatePct = 30`. Sound direction, but the ally flags the
+overcorrection failure mode to track on every war measurement from
+here (a too-strict gate is as broken as an ungated one). Standing
+metrics + their healthy signs:
+- **attacks attempted / 100 turns** — nonzero, map-dependent, not
+  wildly high (a gate so tight the AI never attacks is a bug).
+- **average attack odds AT INITIATION** — above the fair-fight
+  threshold but NOT near-certain every time (all-or-nothing means
+  the gate is too conservative).
+- **army idle turns near an enemy border** — should FALL over time
+  (perpetual standoffs = the gate never clears).
+- **cities captured per war** — >0 without every war becoming
+  instant elimination.
+- **attacker : defender production ratio** — varies by threat and
+  map; must NOT collapse into pure garrison bloat (ties to N4).
+- **siege units** — watch they can reach favorable odds (they need
+  escort/support, or they never attack — a distinct starve case).
+The M11 pin sanity (#841) showed attacks robust (9-16 caps/game,
+elim ~36%), so the gate is NOT currently over-tight — but these
+stay on the war-measurement dashboard as the pin/N4/B23d shift the
+force balance.
