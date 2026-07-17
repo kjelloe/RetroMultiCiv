@@ -76,7 +76,7 @@ wiki-informed) — labeled below.
 5. **Events:** ssPartBuilt, shipLaunched (public — the race is visible),
    shipDestroyed, spaceVictory. All into the event-catalog fixture + both
    classifiers (the #1205 gate forces the decision).
-6. **AI (v1 minimal, honest):** builder-stance civs with apolloDone +
+6. **AI (v1 minimal, honest):** builder-stance civs with the Apollo gate satisfied +
    techs add ss-parts to the econ-reserve build set (capital only, after
    buildings); every AI RUSHES the leader's capital when a rival launch
    is visible (shipLaunched is public) — reuse the existing march
