@@ -1,6 +1,7 @@
 // HUD: status line, research bar, tile/selection text, the center banner.
 import { filterView } from '../../engine/visibility.js';
 import { cityYields, itemCost } from '../../engine/cities.js';
+import { corruptionFor } from '../../engine/government.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
@@ -93,6 +94,22 @@ export function initHud(ctx) {
     const income = playerIncome(session.state, ctx.HUMAN, session.ruleset);
     const goldDelta = income.gold - income.maintenance;
     const money = `💰 ${me.gold} (${goldDelta >= 0 ? '+' : ''}${goldDelta})`;
+    // C2: the income breakdown tooltip — per-city trade after corruption, the
+    // totals straight from playerIncome (the engine's own numbers)
+    const cityRows = [];
+    for (const cid of session.state.cityOrder || []) {
+      const c = session.state.cities[cid];
+      if (!c || c.owner !== ctx.HUMAN) continue;
+      if (c.disorder === true) { cityRows.push(`${c.name}: CIVIL DISORDER — collects nothing`); continue; }
+      const trade = cityYields(session.state, c, session.ruleset).trade;
+      const corr = corruptionFor(session.state, c, trade, session.ruleset);
+      cityRows.push(`${c.name}: trade ${trade}${corr > 0 ? ` − ${corr} corruption` : ''}`);
+    }
+    const taxRate = me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate;
+    const sciRate = me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate;
+    researchLabel.title = 'income breakdown:\n' + (cityRows.join('\n') || 'no cities yet')
+      + `\nrates: tax ${taxRate}% / science ${sciRate}% / luxury ${100 - taxRate - sciRate}% (T to change)`
+      + `\ntaxes +${income.gold} · upkeep −${income.maintenance} · research +${income.bulbs} bulbs`;
     if (me.researching) {
       const cost = researchCost(session.state, ctx.HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';

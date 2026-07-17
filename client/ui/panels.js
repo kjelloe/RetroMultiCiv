@@ -1,6 +1,7 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
-import { workedTiles, candidateTiles, tileYields, itemCost } from '../../engine/cities.js';
+import { workedTiles, candidateTiles, tileYields, itemCost, cityYields, effectPct, wonderActive } from '../../engine/cities.js';
+import { governmentOf } from '../../engine/government.js';
 import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
@@ -35,6 +36,15 @@ export function initPanels(ctx) {
   // yields as color-coded food/shields/trade spans
   function yieldsHtml(f, s, t) {
     return `<span class="yf">${f}</span>/<span class="ys">${s}</span>/<span class="yt">${t}</span>`;
+  }
+
+  // C2 (specs/civ24-features-proposal.md §2): breakdown tooltips ride native
+  // title attributes (multi-line via \n; the mobile long-press surrogate is
+  // the T-plan's). attr() escapes a tooltip string into a title="…" chunk.
+  function attr(text) {
+    const s = String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return ` title="${s}"`;
   }
 
   // A58a: the effect renderer + tech cross-link maps live in the pure
@@ -269,23 +279,64 @@ export function initPanels(ctx) {
     const buyHtml = missing > 0
       ? ` <button id="city-buy"${canBuy ? '' : ' disabled'} title="finish it now for gold">💰 Buy ${buyPrice}</button>`
       : '';
+    // C2: breakdown tooltips, built from the SAME engine calls the panel
+    // renders from (display math, not authority — never a re-run pipeline)
+    const rules = session.ruleset.rules;
+    const tileLines = worked.map(w => {
+      const t = state.map.tiles[w.y * state.map.width + w.x];
+      return `(${w.x},${w.y}) ${t.t}${t.special ? '★' : ''}${w.center ? ' — city square' : ''}: `
+        + `${w.yields.food}/${w.yields.shields}/${w.yields.trade}`;
+    });
+    const yieldsTip = 'worked tiles (food/shields/trade):\n' + tileLines.join('\n')
+      + `\ntotal ${totals.food}/${totals.shields}/${totals.trade}`;
+    const foodTip = `each citizen eats 2 food: ${city.pop} × 2 = ${city.pop * 2}`
+      + `\nthe surplus fills the box; the city grows at ${threshold} (10 × (pop + 1))`;
+    const prodTip = `${totals.shields} shields/turn from the worked tiles`
+      + `\ncost ${defCost} shields${buyHtml ? `\nrush-buy at ${buyRate} gold per missing shield` : ''}`;
+    const gov = governmentOf(state, city.owner, session.ruleset);
+    const owner = state.players[city.owner];
+    const luxRate = owner.luxRate === undefined ? 0 : owner.luxRate;
+    let lux = Math.floor(cityYields(state, city, session.ruleset).trade * luxRate / 100);
+    lux += Math.floor(lux * effectPct(city, session.ruleset, 'luxBonus') / 100);
+    lux += mood.entertainers * rules.specialistOutput;
+    const moodBldgs = (city.buildings || [])
+      .filter(b => session.ruleset.buildings[b].effect.contentBonus !== undefined)
+      .map(b => session.ruleset.buildings[b].name);
+    const moodWonders = Object.keys(state.wonders || {})
+      .filter(wid => wonderActive(state, wid, session.ruleset)
+        && state.cities[state.wonders[wid]] && state.cities[state.wonders[wid]].owner === city.owner)
+      .filter(wid => {
+        const e = session.ruleset.wonders[wid].effect || {};
+        return e.happyBonus !== undefined || e.contentBonus !== undefined || e.allContent !== undefined;
+      })
+      .map(wid => session.ruleset.wonders[wid].name);
+    const moodTip = 'mood factors (the engine computes the faces):'
+      + `\nfirst ${rules.contentCitizens} workers are born content, the rest unhappy`
+      + `\nluxuries ${lux} (${luxRate}% of trade + entertainers): one citizen up per ${rules.luxPerStep}`
+      + (moodBldgs.length ? `\ncalming buildings: ${moodBldgs.join(', ')}` : '')
+      + (moodWonders.length ? `\nmood wonders: ${moodWonders.join(', ')}` : '')
+      + (gov.warUnhappiness > 0 ? `\n${gov.name}: each military unit abroad upsets ${gov.warUnhappiness} citizen(s)` : '');
+    const upkeepLines = (city.buildings || [])
+      .map(b => `${buildings[b].name}: ${buildings[b].maintenance} gold/turn`);
+    const upkeepTip = upkeepLines.length
+      ? 'building upkeep:\n' + upkeepLines.join('\n') : 'no buildings, no upkeep';
     const stats = document.getElementById('city-stats');
     stats.innerHTML =
-      `<div>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
+      `<div id="city-yields-row"${attr(yieldsTip)}>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
       + `(<span class="yf">food</span>/<span class="ys">shields</span>/<span class="yt">trade</span>)</div>`
-      + `<div>🌾 eaten ${city.pop * 2} → surplus <span class="yf">${surplus >= 0 ? '+' : ''}${surplus}</span>/turn `
+      + `<div${attr(foodTip)}>🌾 eaten ${city.pop * 2} → surplus <span class="yf">${surplus >= 0 ? '+' : ''}${surplus}</span>/turn `
       + `· box ${city.food}/${threshold}</div>`
       + `<div class="grow">${surplus > 0
         ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns` : 'no growth'}</div>`
-      + `<div>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
+      + `<div${attr(prodTip)}>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
       + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
       + buyHtml
       + '</div>'
-      + `<div class="city-built">${buildBuiltList(city, state)}</div>`
+      + `<div class="city-built"${attr(upkeepTip)}>${buildBuiltList(city, state)}</div>`
       + `<div>${city.workers !== undefined
         ? '👷 manual tile assignment — click tiles below'
         : '👷 automatic tile assignment — click a tile to take over'}</div>`
-      + `<div>mood <span class="yf">😊${mood.happy}</span> 😐${mood.content} <span class="loss">😠${mood.unhappy}</span>`
+      + `<div id="city-mood-row"${attr(moodTip)}>mood <span class="yf">😊${mood.happy}</span> 😐${mood.content} <span class="loss">😠${mood.unhappy}</span>`
       + ` · 🎭${mood.entertainers} 💰${mood.taxmen} 🔬${mood.scientists}`
       + (canSpecialize ? ' <button class="spec-btn" id="spec-taxman" title="entertainer → taxman">🎭→💰</button>'
         + '<button class="spec-btn" id="spec-scientist" title="entertainer → scientist">🎭→🔬</button>' : '')
