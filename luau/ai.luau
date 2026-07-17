@@ -510,28 +510,93 @@ local function stepAttackBlocked(state: any, unit: any, dir: string, playerId: s
 	return not assaultOddsOk(state, unit, nx, ny, ruleset, gate)
 end
 
--- B21(d) twin: is this unit one of the civ's dedicated SCOUTS? The NEWEST
--- scoutShare% of the civ's military (highest sorted ids) range the fog instead
--- of garrisoning/marching. Deterministic. Matches engine/ai.js.
-local function isScout(state: any, playerId: string, ruleset: any, uid: string, scoutShare: number): boolean
-	if scoutShare <= 0 then
-		return false
-	end
-	local mil = {}
-	for _, id in ipairs(combat.sortIds(sortedKeys(state.units))) do
-		local u = state.units[id]
-		if u.owner == playerId and ruleset.units[u.type].attack > 0 then
-			table.insert(mil, id)
+-- B23b twin: the nearest OWN city to a unit (deterministic sortIds walk).
+local function nearestOwnCity(state: any, unit: any, playerId: string): any
+	local best = nil
+	local bestDist = 9999
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			local d = chebyshev(state.map, unit.x, unit.y, c.x, c.y)
+			if d < bestDist then
+				best = c
+				bestDist = d
+			end
 		end
 	end
-	local count = idiv(#mil * scoutShare, 100)
-	-- JS loops i = len-count .. len-1 (0-based); 1-based is len-count+1 .. len
-	for i = #mil - count + 1, #mil do
-		if mil[i] == uid then
+	return best
+end
+
+-- B23b twin: is `uid` among the NEWEST `n` ids of `list`? (1-based len-n+1..len)
+local function inNewestRank(list: { string }, n: number, uid: string): boolean
+	for i = #list - n + 1, #list do
+		if i >= 1 and list[i] == uid then
 			return true
 		end
 	end
 	return false
+end
+
+-- B23b twin: PHASED SCOUT ALLOCATION. Matches engine/ai.js. Quota keys are city
+-- COUNTS (clamped to the max key); "1" is the opener. Fast = LAND moves>=2 units;
+-- boats = sea. Threat veto by nearest own city. Absent table -> flat share.
+local function isScout(state: any, playerId: string, ruleset: any, uid: string, S: any): boolean
+	local u = state.units[uid]
+	if u == nil or u.owner ~= playerId then
+		return false
+	end
+	local mil = {}
+	local fast = {}
+	local sea = {}
+	for _, id in ipairs(combat.sortIds(sortedKeys(state.units))) do
+		local su = state.units[id]
+		if su.owner == playerId then
+			local def = ruleset.units[su.type]
+			if def.attack > 0 then
+				table.insert(mil, id)
+			end
+			if def.attack > 0 and def.moves >= 2 and def.domain == "land" then
+				table.insert(fast, id)
+			end
+			if def.domain == "sea" then
+				table.insert(sea, id)
+			end
+		end
+	end
+	local tableQ = ruleset.rules.aiScoutQuotaByCities
+	local quota
+	if tableQ == nil then
+		quota = idiv(#mil * scoutShareOf(ruleset, S), 100)
+	else
+		local maxKey = 1
+		for k in pairs(tableQ) do
+			local nn = tonumber(k)
+			if nn ~= nil and nn > maxKey then
+				maxKey = nn
+			end
+		end
+		local key = countCities(state, playerId)
+		if key < 1 then
+			key = 1
+		end
+		if key > maxKey then
+			key = maxKey
+		end
+		local q = tableQ[tostring(key)]
+		quota = if q == nil then 0 else q
+	end
+	local fastN = if ruleset.rules.aiFastScoutCount == nil then 0 else ruleset.rules.aiFastScoutCount
+	local boatN = if ruleset.rules.aiBoatScoutCount == nil then 0 else ruleset.rules.aiBoatScoutCount
+	if not (inNewestRank(mil, quota, uid) or inNewestRank(fast, fastN, uid) or inNewestRank(sea, boatN, uid)) then
+		return false
+	end
+	if ruleset.rules.aiScoutThreatVeto == true then
+		local c = nearestOwnCity(state, u, playerId)
+		if c ~= nil and enemyNear(state, state.players[playerId], playerId, c.x, c.y, ruleset.rules.threatRadius) then
+			return false
+		end
+	end
+	return true
 end
 
 -- B21(c) twin: rush-buy a THREATENED own city's defender/walls/attacker when the
@@ -969,7 +1034,6 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	local me = state.players[playerId]
 	local S = stanceOf(stance) -- balanced (or omitted) = the identity
 	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
-	local scoutShare = scoutShareOf(ruleset, S) -- B21(d): sweepable via rules.json
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
@@ -1171,7 +1235,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 
 				local enemy = nearestKnownEnemy(state, unit, playerId)
 				local exploreMode = if ruleset.rules.aiExploreMode == nil then "bfs" else ruleset.rules.aiExploreMode
-				local scouting = isScout(state, playerId, ruleset, uid, scoutShare)
+				local scouting = isScout(state, playerId, ruleset, uid, S)
 				local home = combat.cityAt(state, unit.x, unit.y)
 				if home ~= nil and home.owner == playerId and not unit.fortified then
 					local guards = 0
@@ -1183,7 +1247,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
 					-- B23: a scout departs to range only if the city keeps another
 					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
-					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
+					local scoutDepart = scouting and exploreMode ~= "greedy"
 					if guards <= need and not scoutDepart then
 						return { type = "fortify", playerId = playerId, unitId = uid }
 					end

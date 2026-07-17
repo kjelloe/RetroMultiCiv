@@ -431,30 +431,79 @@ function stepAttackBlocked(state, unit, dir, playerId, ruleset, gate) {
   return !assaultOddsOk(state, unit, nx, ny, ruleset, gate);
 }
 
-// B21(d): is this unit one of the civ's dedicated SCOUTS? The first `scoutShare`
-// percent of the civ's military (by sorted id) range the fog instead of
-// garrisoning/marching — the re-baseline found exploration stuck at 6-7% because
-// the radius knob was inert: too FEW units explored, not too short a reach.
-// Deterministic (sorted-id rank). scoutShare 0 -> no dedicated scouts.
-function isScout(state, playerId, ruleset, uid, scoutShare) {
-  if (scoutShare <= 0) return false;
-  const mil = [];
-  for (const id of sortIds(Object.keys(state.units))) {
-    const u = state.units[id];
-    if (u.owner === playerId && ruleset.units[u.type].attack > 0) mil.push(id);
+// B23b: the nearest OWN city to a unit (deterministic sortIds walk). null when
+// the civ holds none. Used by the scout threat-veto (a scout whose nearest home
+// is menaced stays to garrison — the user's LOCAL visible-threat read).
+function nearestOwnCity(state, unit, playerId) {
+  let best = null, bestDist = 9999;
+  for (const cid of sortIds(state.cityOrder || [])) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    const d = chebyshev(state.map, unit.x, unit.y, c.x, c.y);
+    if (d < bestDist) { best = c; bestDist = d; }
   }
-  // B21/B23: the NEWEST share (highest ids) scout. B21 chose newest so scouts
-  // are the mobile surplus, not dug-in founders; B23 kept it — with the BFS
-  // ROUTER the newest scout ranges effectively (the router commits it around
-  // bays that trapped the greedy step), and newest ids never strip a founding
-  // garrison. Measured: newest + bfs explores ~13x more (768 vs 58 tiles) and
-  // the civ thrives, where an oldest-scout stripped a key defender and the civ
-  // died. Deterministic.
-  const count = idiv(mil.length * scoutShare, 100);
-  for (let i = mil.length - count; i < mil.length; i++) {
-    if (mil[i] === uid) return true;
+  return best;
+}
+
+// B23b: is `uid` among the NEWEST `n` ids of `list` (highest sorted ids = the
+// mobile surplus, never a founding garrison — the B21/B23 rank choice)?
+function inNewestRank(list, n, uid) {
+  for (let i = list.length - n; i < list.length; i++) {
+    if (i >= 0 && list[i] === uid) return true;
   }
   return false;
+}
+
+// B23b: PHASED SCOUT ALLOCATION (user doctrine). A civ's scouts are the NEWEST
+// ids across three pools (union): (1) the early-militia QUOTA by city COUNT —
+// rules.aiScoutQuotaByCities keys are city COUNTS, not city ids, clamped to the
+// largest key; "1" is the OPENER (the first unit of the first city explores
+// before it garrisons, finding the second site); (2) up to aiFastScoutCount
+// newest fast (moves>=2) units for large-land ranging; (3) up to aiBoatScoutCount
+// newest SEA units for coastal maps (0-effect until the naval probe teaches ships
+// to cross water). A scout is VETOED back to garrison when aiScoutThreatVeto and
+// its NEAREST OWN CITY is within rules.threatRadius of a visible enemy (the
+// LOCAL, not global, threat suppression). aiScoutQuotaByCities ABSENT -> the
+// B21/B23 flat aiScoutSharePct share, so old sweeps keep resolving. Deterministic
+// (sorted-id rank). The actual ranging behavior is B23's (coast/wallfollow/bfs).
+function isScout(state, playerId, ruleset, uid, S) {
+  const u = state.units[uid];
+  if (!u || u.owner !== playerId) return false;
+  const mil = [], fast = [], sea = [];
+  for (const id of sortIds(Object.keys(state.units))) {
+    const su = state.units[id];
+    if (su.owner !== playerId) continue;
+    const def = ruleset.units[su.type];
+    if (def.attack > 0) mil.push(id);
+    // fast = LAND ranging (horseback-class); boats are the separate sea pool
+    if (def.attack > 0 && def.moves >= 2 && def.domain === 'land') fast.push(id);
+    if (def.domain === 'sea') sea.push(id);
+  }
+  const table = ruleset.rules.aiScoutQuotaByCities;
+  let quota;
+  if (table === undefined) {
+    quota = idiv(mil.length * scoutShareOf(ruleset, S), 100); // absent-table fallback
+  } else {
+    let maxKey = 1;
+    for (const k of Object.keys(table)) { const n = parseInt(k, 10); if (n > maxKey) maxKey = n; }
+    let key = countCities(state, playerId);
+    if (key < 1) key = 1;
+    if (key > maxKey) key = maxKey;
+    const q = table['' + key];
+    quota = q === undefined ? 0 : q;
+  }
+  const fastN = ruleset.rules.aiFastScoutCount === undefined ? 0 : ruleset.rules.aiFastScoutCount;
+  const boatN = ruleset.rules.aiBoatScoutCount === undefined ? 0 : ruleset.rules.aiBoatScoutCount;
+  if (!(inNewestRank(mil, quota, uid) || inNewestRank(fast, fastN, uid) || inNewestRank(sea, boatN, uid))) {
+    return false;
+  }
+  if (ruleset.rules.aiScoutThreatVeto === true) {
+    const c = nearestOwnCity(state, u, playerId);
+    if (c && enemyNear(state, state.players[playerId], playerId, c.x, c.y, ruleset.rules.threatRadius)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // B21(c): rush-buy — a THREATENED own city finishing a defender/walls/attacker
@@ -796,7 +845,6 @@ function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
   const S = stanceOf(stance); // balanced (or omitted) = the identity
   const marchR = marchRadiusOf(ruleset, S); // B13f: sweepable via rules.json
-  const scoutShare = scoutShareOf(ruleset, S); // B21(d): sweepable via rules.json
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual
@@ -993,7 +1041,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // ruling @aec2b4db). Non-scouts hold the fort: a garrison stays until its
     // city is safely manned (two guards when a known enemy is within 8, else one).
     const exploreMode = ruleset.rules.aiExploreMode === undefined ? 'bfs' : ruleset.rules.aiExploreMode;
-    const scouting = isScout(state, playerId, ruleset, uid, scoutShare);
+    const scouting = isScout(state, playerId, ruleset, uid, S);
     // B23: outside the greedy identity mode, a SCOUT is not a garrison — it
     // departs to range the map even when its city is a guard short (the accepted
     // cost of knowing the map, ruling @aec2b4db). Non-scouts (and greedy-mode
@@ -1005,12 +1053,14 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
       }
       const need = enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) ? 2 : 1;
-      // B23: a scout departs to range the map ONLY if the city keeps another
-      // defender (>= 2 guards here) — "a city one guard short", never one left
-      // UNDEFENDED (a sole guard stays, or the city falls and the civ dies —
-      // measured: unconditional exemption eliminated p1 by t100). greedy mode is
-      // the pre-B23 identity: no departure.
-      const scoutDepart = scouting && exploreMode !== 'greedy' && guards >= 2;
+      // B23b: a scout departs to range the map — the THREAT VETO is now the
+      // safety, not a fixed guard floor. isScout already demotes any scout whose
+      // nearest own city is menaced (so a `scouting` unit stands in an UNthreatened
+      // city), which lets the OPENER explore-before-garrison even as the sole
+      // guard (user doctrine) while a threatened city keeps every defender home.
+      // B23 needed guards>=2 because it had no veto; B23b's local veto supersedes
+      // it. greedy mode stays the pre-B23 identity: no departure.
+      const scoutDepart = scouting && exploreMode !== 'greedy';
       if (guards <= need && !scoutDepart) {
         return { type: 'fortify', playerId, unitId: uid };
       }
@@ -1152,4 +1202,4 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   return state;
 }
 
-export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir };
+export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout };

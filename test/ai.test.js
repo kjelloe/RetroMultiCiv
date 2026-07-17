@@ -194,11 +194,19 @@ test('B21(d): aiScoutSharePct is sweepable — it diverts military to the fog', 
   }, { players: {
     p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, explored },
     p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
-  const none = withRules({ aiScoutSharePct: 0 });
-  const all = withRules({ aiScoutSharePct: 100 });
+  // B23b: aiScoutQuotaByCities is now the primary scout selector; aiScoutSharePct
+  // is retained as the ABSENT-TABLE fallback, so this sweep is exercised with the
+  // quota table removed (the fallback path old sweeps still resolve through).
+  const noTable = (share) => {
+    const r = withRules({ aiScoutSharePct: share });
+    delete r.rules.aiScoutQuotaByCities;
+    return r;
+  };
+  const none = noTable(0);
+  const all = noTable(100);
   const hNone = hashState(ai.runAiTurn(createEngine(none), mk(), 'p1', none));
   const hAll = hashState(ai.runAiTurn(createEngine(all), mk(), 'p1', all));
-  assert.notStrictEqual(hAll, hNone, 'aiScoutSharePct changes where the military goes (fog vs march)');
+  assert.notStrictEqual(hAll, hNone, 'aiScoutSharePct (fallback) changes where the military goes (fog vs march)');
 });
 
 // A40 slice 1: regency stances. The HARD invariant first — balanced (and the

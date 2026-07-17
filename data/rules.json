@@ -40,6 +40,10 @@
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiScoutSharePct": 25,
+  "aiScoutQuotaByCities": { "1": 1, "2": 3, "3": 5 },
+  "aiScoutThreatVeto": true,
+  "aiFastScoutCount": 2,
+  "aiBoatScoutCount": 2,
   "aiExploreMode": "bfs",
   "aiCoastFollow": true,
   "aiWarDoctrine": {

@@ -73,10 +73,11 @@ test('Space Age grants everything except Future Tech', () => {
 });
 
 test('a to-be-human civ dying aborts with its name — never a silent re-roll', () => {
-  // seed re-selected 2026-07-17 for B26 (disciplined defenders let seed 42's p1
-  // survive the fast-forward; seed 23 still conquers Civ1 early — the abort path)
-  const r = fastForwardTo(RULESET, freshWorld(23), ageById('renaissance'), ['p1']);
-  assert.ok(r.aborted, 'seed 23 eliminates p1 early');
+  // seed re-verified 2026-07-17 after B23b (phased scouting reshuffled early
+  // conquest: seed 23's p1 now survives, seed 42 conquers Civ1 early again —
+  // the abort path). The seed is a fixture, re-pinned whenever war/scout goldens move.
+  const r = fastForwardTo(RULESET, freshWorld(42), ageById('renaissance'), ['p1']);
+  assert.ok(r.aborted, 'seed 42 eliminates p1 early');
   assert.strictEqual(r.aborted.reason, 'civEliminated');
   assert.strictEqual(r.aborted.name, 'Civ1', 'the message can name the dead civ');
 });
