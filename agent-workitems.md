@@ -3284,6 +3284,26 @@ by unit-id parity); inland frontier-seeking only when the coast
 is exhausted/blocked. Coast tiles are info-dense (contact, ocean,
 landmass shape) — the lab probes this hypothesis first.
 
+**B23d — relax the scout threat-veto (the exploration ceiling is STRUCTURAL; sim-runner #797, queued behind N4):**
+the quota sweep proved no knob point gets both green floors and
+~22% exploration: veto-ON caps expl at ~9.5% (the veto benches
+scouts whose NEAREST CITY is menaced even when the scout itself is
+far and safe); veto-OFF re-triggers the B23b multi-city strip.
+Fix the MECHANISM: veto a scout only when the SCOUT (or its target
+step) is itself adjacent/near a threat; the guards>=2 floor keeps
+garrisons honest. Decouples "scout ranges the map" from "city gets
+stripped" — the only path to both. Golden window, both engines,
+sweep test (safe far scout keeps ranging while its home city is
+threatened; a scout stepping INTO threat is benched). Sim-runner
+gates it like B23c (targets JOINTLY: expl toward ~22%, cities
+7-34, floors green). Prior-art check: modifies B23b's veto in
+ai.js; the sweep table is ~/sim-lab/qs/.
+**KNOB RIDER for the M11 pin window (tomorrow, rules-only):**
+aiScoutQuotaByCities -> {1:3,2:6,3:10} (veto stays true) rides the
+same window as defenderGatePct 100->30 — best joint point today:
+expl 9.5%, cities 9 green, first contact t75 vs t141 (the real
+gameplay win until B23d lands). One combined small re-record.
+
 **N4 — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
 garrisonCap(city) = min(1+ceil(threat), border?5:3); threat =
 enemies within garrisonThreatRadius(5) / garrisonThreatDiv(4);
