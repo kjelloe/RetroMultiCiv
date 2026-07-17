@@ -101,7 +101,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 300, 0, 190)
+setupPanel.Size = UDim2.new(0, 300, 0, 240)
 setupPanel.Position = UDim2.new(0.5, -150, 0.3, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -113,6 +113,7 @@ label(setupPanel, 6, 22, "New game (you are the host)")
 local sizeLine = label(setupPanel, 34, 18, "")
 local civsLine = label(setupPanel, 76, 18, "")
 local humansLine = label(setupPanel, 118, 18, "")
+local mapTypeLine = label(setupPanel, 160, 18, "")
 
 local function stepButton(x, y, text, onClick)
 	local b = Instance.new("TextButton")
@@ -138,6 +139,8 @@ stepButton(8, 94, "-", function() sendSetup("civs", -1) end)
 stepButton(42, 94, "+", function() sendSetup("civs", 1) end)
 stepButton(8, 136, "-", function() sendSetup("humans", -1) end)
 stepButton(42, 136, "+", function() sendSetup("humans", 1) end)
+stepButton(8, 178, "-", function() sendSetup("maptype", -1) end)
+stepButton(42, 178, "+", function() sendSetup("maptype", 1) end)
 
 local startBtn = Instance.new("TextButton")
 startBtn.Size = UDim2.new(0, 130, 0, 28)
@@ -289,6 +292,7 @@ local function render(lobby)
 		sizeLine.Text = "map size: " .. lobby.options.size
 		civsLine.Text = ("civilizations: %d"):format(lobby.options.civs)
 		humansLine.Text = ("human seats: %d (rest are AI)"):format(lobby.options.humans)
+		mapTypeLine.Text = "map type: " .. (lobby.options.mapType or "continents") -- A82a
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game

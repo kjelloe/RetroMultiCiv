@@ -80,7 +80,9 @@ async function main() {
   const engine = createEngine(ruleset);
   const initialState = engine.createGame({
     seed: Number(init.seed),
-    options: { width: Number(init.width), height: Number(init.height), players }
+    options: { width: Number(init.width), height: Number(init.height), players,
+      // A82a: maptype in [R4INIT] (absent = continents default, old runs fine)
+      mapType: init.maptype || undefined }
   });
   if (initialState.ok === false) {
     console.error('createGame failed: ' + initialState.reason);

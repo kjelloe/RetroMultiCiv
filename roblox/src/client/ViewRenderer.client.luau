@@ -181,6 +181,9 @@ local function cityBillboard(model, adornee, view, c)
 	local mine = c.owner == view.you
 	local rs = ClientState.rulesets()
 	local lines = { ("%s  (pop %d)"):format(c.name or "city", c.pop or 1) }
+	if c.disorder == true then -- A68 parity: the disorder banner
+		table.insert(lines, '<font color="#ff8878"><b>CIVIL DISORDER</b></font>')
+	end
 	if c.producing ~= nil then
 		local def = (rs[c.producing.kind .. "s"] or {})[c.producing.id]
 		local cost = def and def.cost or 0
@@ -203,6 +206,7 @@ local function cityBillboard(model, adornee, view, c)
 	local text = Instance.new("TextLabel")
 	text.Size = UDim2.new(1, 0, 1, 0)
 	text.BackgroundTransparency = 1
+	text.RichText = true -- the A68 disorder banner uses a color tag
 	text.TextColor3 = mine and Color3.fromRGB(235, 235, 235) or Color3.fromRGB(240, 190, 180)
 	text.TextStrokeTransparency = 0.3
 	text.Font = Enum.Font.SourceSansBold

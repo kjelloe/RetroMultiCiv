@@ -184,7 +184,7 @@ remote.Parent = ReplicatedStorage
 
 local phase = "idle" -- idle | setup | starting | running
 local hostUserId = nil
-local setup = { sizeIndex = 1, civs = 3, humans = 1 }
+local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents" }
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 local countdownEnds = nil
 local timerGen = 0
@@ -281,7 +281,8 @@ local function lobbyPayloadFor(player)
 			youAreHost = player.UserId == hostUserId,
 			youAreAdmin = isAdmin(player),
 			countdown = countdownEnds ~= nil and math.max(0, math.ceil(countdownEnds - os.clock())) or 0,
-			options = { size = MAP_SIZES[setup.sizeIndex].name, civs = setup.civs, humans = setup.humans },
+			options = { size = MAP_SIZES[setup.sizeIndex].name, civs = setup.civs,
+				humans = setup.humans, mapType = setup.mapType },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -490,7 +491,8 @@ local function startGame()
 	end
 	local created = engine.createGame({
 		seed = seed,
-		options = { width = size.w, height = size.h, players = playerDefs },
+		options = { width = size.w, height = size.h, players = playerDefs,
+			mapType = setup.mapType }, -- A82a preset (validated by mapgen)
 	})
 	if created.ok == false then
 		print("[GameServer] createGame failed: " .. tostring(created.reason))
@@ -500,9 +502,9 @@ local function startGame()
 	state = created
 	theater.initialState = engineModule.deepClone(state) -- R18
 	theater.entries = {}
-	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d initialHash=%s")
+	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s initialHash=%s")
 		:format(seed, size.w, size.h, table.concat(civIds, ","), setup.humans,
-			statehash.hashState(state)))
+			setup.mapType, statehash.hashState(state)))
 
 	-- bind the pre-start claims: seat 1 = host, 2.. = join-pad order
 	for i = 1, setup.humans do
@@ -644,7 +646,7 @@ local function padStart(player)
 		return
 	end
 	hostUserId = player.UserId
-	setup = { sizeIndex = 1, civs = 3, humans = 1 }
+	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents" }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -775,6 +777,17 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.humans = math.min(setup.humans, setup.civs)
 		elseif msg.key == "humans" then
 			setup.humans = math.clamp(setup.humans + dir, 1, setup.civs)
+		elseif msg.key == "maptype" then
+			-- A82a: cycle the rules.json presets (sorted keys, wrap both ways)
+			local names = {}
+			for name in pairs(ruleset.rules.mapTypes or {}) do
+				table.insert(names, name)
+			end
+			table.sort(names)
+			if #names > 0 then
+				local i = table.find(names, setup.mapType) or 1
+				setup.mapType = names[(i - 1 + dir) % #names + 1]
+			end
 		end
 		broadcastLobby()
 		return
