@@ -4,6 +4,7 @@ import { workedTiles, candidateTiles, tileYields, itemCost } from '../../engine/
 import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
+import { makeCatalogText } from './catalog-text.js';
 
 export function initPanels(ctx) {
   const { session, renderer, sel } = ctx;
@@ -36,49 +37,9 @@ export function initPanels(ctx) {
     return `<span class="yf">${f}</span>/<span class="ys">${s}</span>/<span class="yt">${t}</span>`;
   }
 
-  // plain-language lines for the structured effect fields (tools/mapdata.js overlays)
-  const EFFECT_TEXT = {
-    halvesGrowthFood: () => 'keeps half the food box when the city grows',
-    growthPast10: () => 'lets the city grow beyond population 10',
-    veteranUnits: () => 'new units here start as veterans',
-    defenseMultiplier: v => `defenders ×${v} against attacks`,
-    taxBonus: v => `+${v}% gold in this city`,
-    sciBonus: v => `+${v}% science in this city`,
-    luxBonus: v => `+${v}% luxuries in this city`,
-    contentBonus: v => `calms ${v} unhappy citizen${v > 1 ? 's' : ''}`,
-    contentDoubleTech: v => `doubled once you know ${techs[v].name}`,
-    corruptionReduction: v => `−${v}% corruption in this city`,
-    shieldBonus: v => `+${v}% shields in this city`,
-    boostsFactory: () => 'doubles the Factory bonus here',
-    isPalace: () => 'your capital — no corruption at the seat of power',
-    contentEverywhere: v => `${v} content citizen${v > 1 ? 's' : ''} in every city`,
-    happyEverywhere: v => `${v} happy citizen${v > 1 ? 's' : ''} in every city`,
-    allContentInCity: () => 'everyone in this city stays content',
-    doublesTemple: () => 'your Temples work twice as hard',
-    cityTradeBonus: () => '+1 trade on every trade tile here',
-    wallsEverywhere: () => 'city walls in all your cities'
-  };
-  function effectText(def) {
-    const parts = [];
-    for (const key of Object.keys(def.effect || {})) {
-      if (EFFECT_TEXT[key]) parts.push(EFFECT_TEXT[key](def.effect[key]));
-    }
-    if (def.obsoleteBy) parts.push(`obsolete with ${techs[def.obsoleteBy].name}`);
-    return parts.join(' · ');
-  }
-
-  // tech id -> what it unlocks / which techs need it (research panel sublines)
-  const techUnlocks = {};
-  const techLeadsTo = {};
-  {
-    const add = (map, key, name) => { (map[key] = map[key] || []).push(name); };
-    for (const id of Object.keys(units)) if (units[id].tech !== '') add(techUnlocks, units[id].tech, units[id].name);
-    for (const id of Object.keys(buildings)) if (buildings[id].tech !== '') add(techUnlocks, buildings[id].tech, buildings[id].name);
-    for (const id of Object.keys(wonders)) if (wonders[id].tech !== '') add(techUnlocks, wonders[id].tech, wonders[id].name + ' 🏆');
-    for (const id of Object.keys(techs)) {
-      for (const p of techs[id].prereqs) add(techLeadsTo, p, techs[id].name);
-    }
-  }
+  // A58a: the effect renderer + tech cross-link maps live in the pure
+  // catalog-text module now (shared with the A58b pedia + a Roblox port).
+  const { effectText, techUnlocks, techLeadsTo } = makeCatalogText(session.ruleset);
 
   // --- research panel --------------------------------------------------------
   async function startResearch(techId) {
