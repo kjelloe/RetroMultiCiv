@@ -46,6 +46,9 @@ return [==[{
     "bomber": "bomber",
     "nuclear": "nuclear"
   },
+  "typeExtra": {
+    "chariot": "chariotWheels"
+  },
   "unitRecipes": {
     "footSoldier": [
       {

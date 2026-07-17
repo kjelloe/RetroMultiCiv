@@ -43,4 +43,24 @@ function M.canEnter(view, rs, domain, x, y)
 	return ok and not M.enemyAt(view, nx, y)
 end
 
+-- runD: the mounted-step gate — an attempt is WORTH SENDING unless the view
+-- KNOWS it is hopeless. Unknown tiles pass (Civ 1 explores into fog; the
+-- engine judges the real terrain); enemy tiles pass (attacks); only a
+-- known-wrong-domain tile is a guaranteed reject. Returns ok, reason.
+function M.canAttempt(view, rs, domain, x, y)
+	local nx = M.norm(view.map, x, y)
+	if nx == nil then
+		return false, "edge of the map"
+	end
+	local tile = view.map.tiles[y * view.map.width + nx + 1]
+	if tile == nil or tile.t == "unknown" then
+		return true, nil -- fog: the engine decides
+	end
+	local terr = rs.terrain.terrains[tile.t]
+	if terr ~= nil and terr.domain ~= domain then
+		return false, tile.t -- known impassable for this unit
+	end
+	return true, nil
+end
+
 return M

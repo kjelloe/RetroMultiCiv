@@ -8,7 +8,10 @@
 
 local Players = game:GetService("Players")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local governmentModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("government"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCGovernment"
@@ -123,8 +126,11 @@ local function refresh()
 		return
 	end
 	local rs = ClientState.rulesets()
-	local gov = rs.governments[m.government or ""]
-	govLine.Text = "government: " .. (gov and gov.name or m.government or "?")
+	-- run-4 fix: the ENGINE's default is despotism when the field is unset —
+	-- read it through the real governmentOf (read-only shim), never guess
+	local view = ClientState.view
+	local gov = governmentModule.governmentOf({ players = view.players }, view.you, rs)
+	govLine.Text = "government: " .. (gov and gov.name or "?")
 	local tax, sci, lux = rates()
 	ratesLine.Text = ("rates: tax %d%% sci %d%% lux %d%%%s"):format(tax, sci, lux,
 		gov and (" (cap %d%%)"):format(gov.maxRate) or "")

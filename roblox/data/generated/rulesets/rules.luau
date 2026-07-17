@@ -81,6 +81,12 @@ return [==[{
     "large": 14,
     "xlarge": 14,
     "huge": 14
+  },
+  "mapTypes": {
+    "continents": { "name": "Continents", "desc": "one large landmass", "landPercent": 32, "continents": 5 },
+    "pangaea": { "name": "Pangaea", "desc": "a single, drier continent", "landPercent": 36, "continents": 1 },
+    "archipelago": { "name": "Archipelago", "desc": "many small landmasses", "landPercent": 20, "continents": 20 },
+    "islands": { "name": "Islands", "desc": "scattered small islands", "landPercent": 14, "continents": 24 }
   }
 }
 ]==]

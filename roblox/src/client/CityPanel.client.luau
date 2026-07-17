@@ -293,11 +293,13 @@ end)
 
 ClientState.onView(refresh)
 
-closeBtn.Activated:Connect(function()
+local function closePanel()
 	gui.Enabled = false
 	openCityId = nil
 	WorkedTiles.hide()
-end)
+end
+closeBtn.Activated:Connect(closePanel)
+WorkedTiles.onCloseRequest(closePanel) -- the big in-world CLOSE button (run-4)
 
 buyBtn.Activated:Connect(function()
 	if openCityId ~= nil then

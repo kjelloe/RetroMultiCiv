@@ -15,6 +15,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local StepLegality = require(script.Parent:WaitForChild("StepLegality")) -- runD step gate
 
 local TILE = ClientState.TILE
 local world = workspace:WaitForChild("ClientWorld")
@@ -56,11 +57,17 @@ local function release(reason)
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root then
 		root.Anchored = false
+		-- deck-resident: dismounting returns HOME to the deck (staying on
+		-- the map would strand the avatar on the diorama, off the pads)
+		local home = deckSpawnCFrame()
+		if home ~= nil then
+			root.CFrame = home
+		end
 	end
 	if controls then
 		controls:Enable()
 	end
-	print("[Possess] released (" .. reason .. ")")
+	print("[Possess] released (" .. reason .. ") - back on the deck")
 end
 
 local function possess(unitId)
@@ -79,58 +86,18 @@ local function possess(unitId)
 	print(("[Possess] riding %s (%s) at (%d,%d), moves %d"):format(unitId, u.type, u.x, u.y, u.moves))
 end
 
--- R12 opening-lockout fix: no SpawnLocation + destroyed Baseplate means the
--- default spawn (world origin) is almost always an UNEXPLORED tile — no
--- terrain part, so the avatar falls through the fog void onto VoidCover's
--- catch floor UNDER the map and can't jump back up. Place every character
--- on an own unit's tile instead (settlers preferred: riding the opening
--- settler is the Roblox-native first move).
-local function homeSpot()
-	local view = ClientState.view
-	if view == nil then
-		return nil
-	end
-	local best = nil
-	for _, u in pairs(view.units) do
-		if u.owner == view.you and (best == nil or u.type == "settlers") then
-			best = u
-		end
-	end
-	if best ~= nil then
-		return best.x, best.y
-	end
-	for _, c in pairs(view.cities or {}) do
-		if c.owner == view.you then
-			return c.x, c.y
-		end
-	end
-	return nil
+-- DECK-RESIDENT model (architect PROVISIONAL ruling @f4b54119, user to
+-- confirm on retest): the avatar LIVES on the observation deck — action
+-- pads there, the map as the diorama below. The R12 spawn-on-settler
+-- teleport is REMOVED (it disconnected the avatar from the deck pads);
+-- possession pins the character to the ridden unit, and dismounting
+-- returns to the deck (below). The deck SpawnLocation + catch floor own
+-- every other spawn/fall path.
+local function deckSpawnCFrame()
+	local deckFolder = workspace:FindFirstChild("ObservationDeck")
+	local spawnPlate = deckFolder and deckFolder:FindFirstChild("DeckSpawn")
+	return spawnPlate ~= nil and (spawnPlate.CFrame + Vector3.new(0, 4, 0)) or nil
 end
-
-local function placeCharacter(character)
-	local root = character:WaitForChild("HumanoidRootPart", 5)
-	if root == nil or ClientState.possessedUnitId ~= nil then
-		return
-	end
-	local x, y = homeSpot()
-	if x ~= nil then
-		root.CFrame = CFrame.new(x * TILE, tileTopY(x, y) + 6, y * TILE)
-	end
-end
-
-Players.LocalPlayer.CharacterAdded:Connect(placeCharacter)
-
-local placedOnce = false
-ClientState.onView(function()
-	-- boot order: the first character usually lands before the first view
-	if not placedOnce and ClientState.view ~= nil then
-		placedOnce = true
-		local character = Players.LocalPlayer.Character
-		if character ~= nil then
-			placeCharacter(character)
-		end
-	end
-end)
 
 -- next own idle unit — R7a (12)(15): nearest-first, skips fortified/working
 -- (input.js:255 semantics); the shared picker lives in ClientState
@@ -194,6 +161,26 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		else
 			local dir = KEY_DIR[input.KeyCode]
 			if dir ~= nil then
+				-- runD fix: swallow KNOWN-hopeless steps client-side (the log
+				-- carried hundreds of doomed impassable/noMovesLeft sends).
+				-- Fog and enemy tiles still send — engine judges those.
+				local u = view.units[ClientState.possessedUnitId]
+				if u == nil then
+					return
+				end
+				if u.moves <= 0 then
+					print("[Possess] no moves left this turn (auto-next or End Turn)")
+					return
+				end
+				local rs = ClientState.rulesets()
+				local domain = rs.units[u.type] and rs.units[u.type].domain
+				local DIR_VEC = { N = { 0, -1 }, S = { 0, 1 }, W = { -1, 0 }, E = { 1, 0 } }
+				local v = DIR_VEC[dir]
+				local ok, why = StepLegality.canAttempt(view, rs, domain, u.x + v[1], u.y + v[2])
+				if not ok then
+					print(("[Possess] can't step %s: %s"):format(dir, why))
+					return
+				end
 				print(("[Possess] step %s %s"):format(ClientState.possessedUnitId, dir))
 				ClientState.send({ type = "moveUnit", unitId = ClientState.possessedUnitId, dir = dir })
 			end

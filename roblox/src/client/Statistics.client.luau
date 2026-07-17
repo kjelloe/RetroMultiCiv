@@ -95,7 +95,8 @@ local function refresh()
 			end
 			local text
 			if pid == view.you then
-				local gov = rs.governments[p.government or ""]
+				-- engine default: unset government = despotism (run-4 fix)
+				local gov = rs.governments[p.government or "despotism"]
 				text = ("%s (you) - %d cities, %d units, gold %d, techs %d, %s%s"):format(
 					p.name, cities, units, p.gold or 0, #(p.techs or {}),
 					gov and gov.name or "?",

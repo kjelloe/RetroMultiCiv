@@ -101,9 +101,9 @@ researchStatus.Text = ""
 researchStatus.Parent = cluster
 
 -- R12 (2): government button — panel hosts the rate steppers (and later
--- the government switch)
+-- the government switch). Run-4 live request: sits LEFT of Research.
 local governmentBtn = Instance.new("TextButton")
-governmentBtn.LayoutOrder = 3
+governmentBtn.LayoutOrder = 0
 governmentBtn.Size = UDim2.new(0, 120, 0, 24)
 governmentBtn.BackgroundColor3 = DISABLED
 governmentBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
