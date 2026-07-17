@@ -326,7 +326,7 @@ directory as the one thing worth backing up and keeping private.
 
 A host can resume any of these games from the client's lobby — either by
 picking it from the list, or by typing its **game code** (the code shown on
-every save is the resume passphrase: knowing it is the permission).
+every save is the resume gamecode: it identifies which saved game to resume).
 
 Because a save is resumable by code, the server's automatic `saves/` cleanup
 retires games in **priority tiers**, never by age alone: a game currently being

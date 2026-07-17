@@ -36,12 +36,11 @@ the Done log at the bottom.
 - [x] **Pedia concept prose** — DONE 2026-07-17: ally editorial pass folded
   verbatim (d2200f1). 14 entries now (11 revised + 3 new: cities & worked
   tiles, research & tech tree, buildings & wonders), first-game learning-path
-  order. ONE OPEN CONSISTENCY POINT: the ally corrected the game-code entry to
-  "not a password / does not grant access — a state-match check," which is
-  more accurate, but A98's how-to-host doc + lobby UI still call the game code
-  the "resume passphrase." Small doc/UI language cleanup to align them (queue
-  if you want it) — not a feature change (A98 uses the code to identify which
-  save to resume, i.e. a lookup key, which matches the ally's framing).
+  order. Game-code wording RECONCILED 2026-07-17: the ally corrected the pedia
+  entry to "not a password — a state-match check", and A98's "resume
+  passphrase" language was renamed to "resume gamecode" (user ruling) across
+  docs/how-to-host.md, server/index.js + protocol.js, test/server.test.js, and
+  the A98 item — it identifies which saved game to resume, matching the ally.
 - [ ] **Art review-table eyeball** — the gallery now renders distinct
   silhouettes for tank/APC/catapult/diplomat/phalanx/musketeers/
   riflemen/knights/carrier; bomber+nuclear are the last two. Screenshot

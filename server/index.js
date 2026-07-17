@@ -610,8 +610,8 @@ export function startServer(opts) {
         return;
       }
       if (msg.t === 'resumeByCode') { // A98: the docs/07 game code IS the resume
-        // passphrase (authorization-by-knowledge, docs/12 §3.1). Scan saves/ for
-        // the envelope whose code matches; the file never comes from the client.
+        // gamecode — it identifies which saved game to resume (docs/12 §3.1).
+        // Scan saves/ for the envelope whose code matches; the file never comes from the client.
         const norm = s => String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '');
         const want = norm(msg.code);
         if (want.length === 0) { send(ws, { t: 'rejected', commandId: -1, code: 'noCode' }); return; }

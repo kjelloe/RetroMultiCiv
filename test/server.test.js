@@ -598,7 +598,7 @@ test('A50 item 3b: an abandoned started game is retired, its save survives (resu
     lobbyCode = created.joinCode;
     host.send({ t: 'start' });
     const joined = await host.expect(m => m.t === 'joined', 'started+seated'); // host bound to its seat
-    gameCode = joined.code; // the docs/07 game code — the resume passphrase (A98)
+    gameCode = joined.code; // the docs/07 game code — the resume gamecode (A98)
     await host.expect(m => m.t === 'started', 'started ack');
 
     // Still connected → a sweep must NOT retire it, however much time passes.

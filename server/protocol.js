@@ -104,7 +104,7 @@ export function parseMessage(raw) {
     }
     return { ok: true, msg };
   }
-  if (msg.t === 'resumeByCode') { // A98: code is the passphrase; empty→noCode in the handler
+  if (msg.t === 'resumeByCode') { // A98: code is the resume gamecode; empty→noCode in the handler
     if (typeof msg.code !== 'string' || msg.code.length > 40) return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
