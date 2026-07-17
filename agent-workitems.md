@@ -3406,7 +3406,29 @@ floor treating a ship as a garrison, or aiBoatScoutCount=2 not
 selecting it. Verify against the seed; fix in the N3-build-tune
 window or its own small window.
 
-**N4 — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
+**N4 — DEFERRED + RE-SCOPED 2026-07-17 (built, measured, not shipped).**
+Garrison cap was built + byte-faithful (both engines) but MEASURED as
+the wrong lever: it clears the pacifist unit-tripwire only partially
+(1023→646 disband-on, residual = settler/city churn, not stacking), and
+at the dg=30 warlike default it does NOT deliver its intended interior-
+economy benefit (bldgPct 0.5→0.0, imprPct 69→58, pop down — sim-runner
+#980). Root: at the default the AI is ~82% military and builds ~0
+buildings regardless, so freed interior production just becomes more
+military/settlers. DEFER ruled; code kept in scratchpad. RE-SCOPE: the
+defender-bloat lever becomes a per-empire SOFT unit cap (bugfixer rec —
+the bloat is empire-level city/settler churn, not per-city garrison),
+designed properly later. No goldens moved.
+
+**N9 — AI is economy-STARVED at the warlike default (sim-runner #980 bonus
+finding; measure-first).** At canonical dg=30, HEAD bldgPct ~0.5 +
+milPct ~82% = the AI hardly builds BUILDINGS OR WONDERS at all — a
+bigger economy-quality gap than N4 was. Ties to N5 (wonder failure) +
+N2 (tech ceiling). NEXT (sim-runner, after B23d gate): measure the
+cause — build-priority (AI never queues buildings), a happiness/upkeep
+constraint, or economy-vs-military weighting. Then design the fix.
+Do not guess the lever; measure it.
+
+**N4-original (superseded by the DEFER above; kept for history) — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
 garrisonCap(city) = min(1+ceil(threat), border?5:3); threat =
 enemies within garrisonThreatRadius(5) / garrisonThreatDiv(4);
 border = enemyNear(rules.threatRadius) — ONE threat semantic, no
