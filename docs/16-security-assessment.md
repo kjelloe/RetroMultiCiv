@@ -95,9 +95,18 @@ the deferred resend integration), payments (never).
 - **Availability**: A96 watchdog serves a static 503 maintenance
   page (dependency-free) after N failed starts; systemd restarts
   cover crashes. The engine is synchronous per command — a slow
-  command blocks the loop; frame cap + validation bound this, but
-  a pathological-but-valid command stream is untested at scale
-  (→ gap list, research).
+  command blocks the loop; frame cap + validation bound this.
+  **Scale-tested 2026-07-17 (sim-runner, gap 6 executed)**: under
+  a live hostile flood (20/50/100/200 clients, up to 32.5k cmd/s
+  of forged tokens, malformed JSON, oversized payloads, seat
+  spam) the server NEVER crashes, state integrity holds, and RSS
+  plateaus ~150 MB (per-connection buffers, released on
+  disconnect — no leak). The failure mode is FAIRNESS, not
+  integrity or memory: a legitimate canary client connects but
+  receives ZERO replies once ≥50 hostile clients flood (onset
+  between 20 and 50) — the single-threaded loop services the
+  flood FIFO and starves everyone else. A flood doesn't kill the
+  server; it makes it useless. (→ gap list 1, upgraded.)
 
 ### 2.5 The game protocol as an integrity boundary
 Commands are the ONLY state mutation path; every command is
@@ -112,7 +121,12 @@ a legitimate game.
 
 1. Per-IP rate limits (join/create/listGames/chat-burst) + global
    caps — the standing A50 items; REQUIRED before promoting
-   public hosting beyond supervised weekends.
+   public hosting beyond supervised weekends. **Measured
+   (2026-07-17 scale test): rate limits alone are NOT enough —
+   also needs a per-CONNECTION command budget (cheap commands
+   like ping/list throttled per socket), because 50 sockets each
+   under a global cap still starve legit users to zero replies.
+   Fairness guard rides A50 item 4.**
 2. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist +
    retention, saves/ size budget (A50).
 3. Join-by-id closed for non-public games (A50 §1).
@@ -126,8 +140,13 @@ a legitimate game.
    public hosts, off by default on LAN; lands with A50.
 5. HTTP nicety caps (URL length, header size explicit) +
    `X-Content-Type-Options: nosniff` on static responses — minor.
-6. Scale test: many-connection + hostile-command-stream soak
-   against a live server (sim-runner candidate job; new).
+6. Scale test: many-connection + hostile-command-stream soak —
+   **EXECUTED 2026-07-17 (sim-runner)**: no crash, no leak, no
+   integrity breach at N=200 / 32.5k cmd/s; findings folded into
+   §2.4 and gaps 1/4. Residual: re-run against A50's limits when
+   they land (the red case for the fairness budget), plus the
+   joined-game cmd-storm and connect/disconnect-churn variants
+   (harness re-runnable: sim-runner's ~/sim-lab/hostile-scale.mjs).
 7. WS token rotation on reconnect — nice-to-have, not queued.
 
 ## 4. Operator quick-card (mirrors how-to-host.md)

@@ -3199,7 +3199,7 @@ constants rules.json knobs; each slice lab-measured before the
 next; B23 exploration still lands FIRST (it feeds naval probe +
 contact).
 
-## B26 — Defender march discipline (the over-conquest root cause; M11-band prerequisite; bugfixer)
+## B26 — Defender march discipline (the over-conquest root cause; M11-band prerequisite; bugfixer)  [claimed: bugfixer 2026-07-17] [done: 2026-07-17 — GOLDEN WINDOW. Root confirmed: the B24 odds gate only guarded attack>defense units; defender-type units (militia/phalanx) hit the un-gated fallback marches (ai.js 1062/1078) and did the conquering. Fix (schema OK'd @#652): aiWarDoctrine gains `defenderGate` ("1":+1, "3":+2); warDoctrineOf fallback = table ?? (oddsGate>0?oddsGate:1). (a) engageGate = attack>defense ? oddsGate : defenderGate gates ANY attack-INITIATION (+ stepAttackBlocked guard so no fallback/explore step becomes an un-gated attack); (b) a defender with no odds-viable target + no escort FORTIFIES (holds the line) instead of a losing sortie — offensive units keep massing/roaming. Scope pins honored: attack-INITIATION only (combat.js untouched); barbarians.js untouched. Byte-shaped luau twin; JS==Luau on ALL goldens. GOLDEN RE-RECORD: soak 100=0xb5dff88c 200=0xdbbc1d84 300=0x05a3d1ab 400=0x30629a72; natural r395/p2/0xd9026d00 (winner p1→p2 — war discipline decides games). luau turn-100 anchor + witness (0x0d92ed34, clean replay) regenerated; fastforward seed 42→23 (B26 shift). New sweep test defender-march.test.js (4, revert-proof). Suite 392/392 zero-skip. RE-SWEEP the elim grid next (sim-runner); M11 pinning session sweeps defenderGate.]
 
 The elim-band mini-sweep (#646) proved the 57% over-conquest is
 driven by UN-GATED DEFENDER MARCHES (militia/phalanx sorties do
@@ -3569,6 +3569,13 @@ weekends) is available the moment the user flips the alias.
    log rotation likewise (maxLogDays=10 / maxLogMb=10). Flags +
    how-to-host.md documentation ride the same slice.
 4. General messages/sec/conn limiter (chat's pattern, widened).
+   MEASURED REQUIREMENT (sim-runner scale test 2026-07-17,
+   docs/16 §2.4): must be a per-CONNECTION command budget incl.
+   cheap commands (ping/list/listGames) — ≥50 flooding sockets
+   starve a legit client to ZERO replies even though the server
+   never crashes; global caps alone don't restore fairness. Red
+   case: re-run the hostile-scale harness, canary must keep
+   getting pongs under flood.
 5. `/healthz` endpoint + one-line structured logs (join/create/
    expire).
 6. Invite-code allowlist mode as one server flag (the no-accounts
