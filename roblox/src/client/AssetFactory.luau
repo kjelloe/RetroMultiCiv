@@ -216,15 +216,18 @@ function M.buildRecipe(model, recipeKey, colors, origin, coneMode)
 end
 
 -- the composer contract (assets.js twin): silhouette key by unit type;
--- chariot appends chariotWheels on top of mounted
+-- extras (e.g. chariot -> chariotWheels) come from the JSON's typeExtra
+-- block (2bc97b3 killed the dual source; the old hardcode is gone)
 function M.buildUnit(model, unitTypeId, colors, origin, coneMode)
-	local key = M.data().unitSilhouette[unitTypeId]
+	local data = M.data()
+	local key = data.unitSilhouette[unitTypeId]
 	if key == nil then
 		key = "fallback"
 	end
 	local ok = M.buildRecipe(model, key, colors, origin, coneMode)
-	if unitTypeId == "chariot" then
-		M.buildRecipe(model, "chariotWheels", colors, origin, coneMode)
+	local extra = data.typeExtra ~= nil and data.typeExtra[unitTypeId] or nil
+	if extra ~= nil then
+		M.buildRecipe(model, extra, colors, origin, coneMode)
 	end
 	return ok
 end

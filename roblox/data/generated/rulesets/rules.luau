@@ -45,7 +45,6 @@ return [==[{
   "aiScoutSharePct": 25,
   "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
   "aiScoutThreatVeto": true,
-  "aiScoutVetoRadius": 2,
   "aiFastScoutCount": 2,
   "aiBoatScoutCount": 2,
   "aiExploreMode": "bfs",
@@ -54,6 +53,7 @@ return [==[{
   "aiNavyRadius": 6,
   "aiNavyAfterLandUnits": 3,
   "aiNavyTargetCap": 4,
+  "aiEconReserve": 0,
   "aiWarDoctrine": {
     "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
     "3": { "massSize": 4, "oddsGatePct": 200, "defenderGatePct": 200 }
