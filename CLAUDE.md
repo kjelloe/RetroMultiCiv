@@ -266,6 +266,15 @@ with every tag report) — no waiting on the user for small changes,
 but BREAKING changes (protocol, save format, golden re-records,
 anything a running game or another lane must react to) get an
 explicit alert before the tag. Build → test → stop and report.
+**Per-marker report (user ruling 2026-07-17):** when tagging
+`marker-NNNN`, also write `reports/marker-NNNN.md` — a verbose,
+human-readable explanation of what that marker delivered (the
+commit/tag lines are terse; this is the detail). Cover: the delta
+since the previous marker, each item with what changed and why, any
+golden re-records with the new hashes, breaking notes, and the
+test state. Reporting-style rules still apply (facts, no
+autonomous-actor voice). marker-0025..0030 are covered collectively
+in `reports/night2-morning.md`.
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
 local **coder-helper**; B-items: bug triage/fixes for the local
