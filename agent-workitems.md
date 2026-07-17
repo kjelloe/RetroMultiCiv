@@ -39,6 +39,15 @@ assembly, parts appearing as built; pairs with N17's engine) →
 H9. ~~A58 pedia~~ STRUCK 2026-07-17 (A58a–d COMPLETE + committed;
 pedia-concepts.js is the ally's editorial draft, not helper work;
 prior-art catch #1068).
+H-NEXT (post-A54, architect 2026-07-17): DOCS LONG-TAIL SYNC from the
+reviewer sweep #1180 — server flags (--humans/--reset-seats/--public-*),
+protocol types (ping/pong, fullLog, joinListed, resumeByCode, skipTurn,
+code broadcast, joinedLobby) into docs/06; lobby create options (bestof3,
+maptype); soak flags (--start/--no-chaos/--enforce-floors) in CLAUDE.md;
+master.js operating constants table into docs/12 §6; a consolidated
+command/EVENT catalog into docs/02 §6 (Roblox consumes these shapes);
+debugging tools (save-info/stats-summary/probe-lan8) one-liners.
+Golden-neutral, docs-only. THEN the palette pass (specs/palette-pass.md).
 SWEEP-GAP FILLER (helper, #1069): render-spec typeClasses →
 unitSilhouette rename (reviewer advisory :2441, A88b follow-up)
 + advice→pedia deep-link audit.
