@@ -21,13 +21,20 @@ evolve from).
 2. **Seeded stance assignment at createGame** (engine/mapgen.js or setup
    seam; deterministic, engine-legal):
    - AI civs only (human seats keep the regency stance flow);
-   - `nBuilders = max(1, idiv(nAI * rules.aiBuilderPct, 100))` with
-     `aiBuilderPct = 35` (the measured 30–40 window's center) in
-     data/rules.json;
+   - `nBuilders = aiBuilderPct == 0 ? 0 : max(1, idiv(nAI *
+     rules.aiBuilderPct, 100))` with `aiBuilderPct = 35` (the measured
+     30–40 window's center) in data/rules.json — the explicit 0-guard keeps
+     pct=0 a TRUE identity (no floor-of-1 leak);
    - which civs draw defending-builder = a seeded shuffle through
      engine/rng.js (state-seeded, deterministic, replay-identical);
-   - stored as `player.stance` (printable-ASCII string; statehash-legal).
-     Absent field = balanced (back-compat: old saves/scenarios unchanged).
+   - stored as `player.stance` (printable-ASCII string; statehash-legal)
+     ONLY on the builder civs — balanced civs get NO field written. Absent
+     field = balanced (back-compat: old saves/scenarios unchanged), AND it
+     makes the identity check exact: at aiBuilderPct=0 no field is written,
+     no rng draw is consumed (skip the shuffle entirely when nBuilders=0),
+     so the state is BYTE-IDENTICAL to today and the old goldens REPRODUCE
+     — a true dormant-capability proof, not just a same-policy-stream
+     argument.
 3. **runAiTurn reads `player.stance`** for AI civs (regent seats keep the
    existing explicit-stance path; explicit argument wins over the field).
 4. **NO aggressive stance in the mix.** Balanced remains the majority
@@ -43,12 +50,12 @@ shipped code)
 | 7 | 4bal/3db | ~36 (in band) | same |
 | 12 | 8bal/4db | over-band (~62) | crowding effect, pre-existing class |
 
-Gate: byte-fidelity first (all-balanced assignment must reproduce the old
-goldens? NO — assignment changes state (player.stance) so goldens MOVE; the
-identity check is instead: forcing `aiBuilderPct = 0` yields every-civ-
-balanced behavior identical to today's policy stream), then the FU1 shape
-reproduces (elim in-band at 4/7 civs, builders build, ≥1 wonder completes
-across the seed set), then goldens re-record ONCE.
+Gate: identity first — `aiBuilderPct = 0` writes no stance field and
+consumes no rng draw, so the OLD goldens must reproduce byte-exactly (the
+dormant-capability proof; see the assignment rules above). Then the FU1
+shape reproduces on the shipped code (elim in-band at 4/7 civs, builders
+build, ≥1 wonder completes across the seed set). Then goldens re-record
+ONCE at aiBuilderPct=35.
 
 ## Explicitly deferred (not in this window)
 
