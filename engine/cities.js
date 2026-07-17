@@ -488,7 +488,21 @@ function processCities(state, ruleset, events) {
       }
     }
 
-    city.food = city.food + yields.food - city.pop * 2;
+    // settler food upkeep (user ruling: flat 1 food/settler — an original-shape
+    // simplification, NOT Civ's per-government split). Each settler HOMED at this
+    // city eats settlerFoodUpkeep food/turn, mirroring the shield upkeep above;
+    // homeless settlers (the initial settler, old saves) are free. Over-expansion
+    // then STARVES its home cities via the food<0 path below — a self-cap on
+    // settler spam. Sweepable; undefined/0 = no upkeep (identity/back-compat).
+    const settlerUpkeep = ruleset.rules.settlerFoodUpkeep === undefined ? 0 : ruleset.rules.settlerFoodUpkeep;
+    let settlerFood = 0;
+    if (settlerUpkeep > 0) {
+      for (const uid of Object.keys(state.units)) {
+        const u = state.units[uid];
+        if (u.home === cityId && u.type === 'settlers') settlerFood = settlerFood + settlerUpkeep;
+      }
+    }
+    city.food = city.food + yields.food - city.pop * 2 - settlerFood;
     const threshold = 10 * (city.pop + 1);
     if (city.food >= threshold) {
       if (city.pop >= 10 && !hasBuilding(city, 'aqueduct')) {

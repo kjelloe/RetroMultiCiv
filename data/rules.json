@@ -65,6 +65,7 @@
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
   "contentCitizens": 4,
+  "settlerFoodUpkeep": 1,
   "luxPerStep": 2,
   "specialistOutput": 2,
   "revolutionTurns": 2,

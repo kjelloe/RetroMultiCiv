@@ -326,3 +326,25 @@ test('foundCity rejected on water, on an existing city, and for non-settlers', a
   assert.strictEqual(dupe.ok, false);
   assert.strictEqual(dupe.reason, 'cityExists');
 });
+
+test('settler food upkeep: a homed settler eats 1 food/turn; homeless is free; knob 0 = identity', async () => {
+  const { createEngine } = await import('../engine/index.js');
+  const engAt = (upkeep) => createEngine(Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { settlerFoodUpkeep: upkeep }) }));
+  const tiles = [];
+  for (let i = 0; i < 25; i++) tiles.push({ t: 'grassland', special: true });
+  const mk = (units) => ({
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 5, height: 5, wrapX: false, tiles: tiles.map(t => ({ ...t })) },
+    units,
+    cities: { c1: { id: 'c1', name: 'C', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 9, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'X', color: '#fff', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  });
+  const homed = { u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 0, fortified: false, veteran: false, home: 'c1' } };
+  const homeless = { u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 0, y: 0, moves: 0, fortified: false, veteran: false } };
+  const foodAfter = (eng, units) => eng.applyCommand(mk(units), { type: 'endTurn', playerId: 'p1' }).state.cities.c1.food;
+  const baseline = foodAfter(engAt(0), homed); // upkeep off = identity, even with a homed settler
+  assert.strictEqual(foodAfter(engAt(1), homeless), baseline, 'a homeless settler eats nothing');
+  assert.strictEqual(foodAfter(engAt(1), homed), baseline - 1, 'a homed settler eats 1 food/turn');
+});

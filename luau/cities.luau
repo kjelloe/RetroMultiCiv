@@ -681,7 +681,19 @@ local function processCities(state: any, ruleset: any, events: any)
 			end
 		end
 
-		city.food = city.food + yields.food - city.pop * 2
+		-- settler food upkeep (user ruling: flat 1 food/settler — original-shape
+		-- simplification, NOT Civ per-government). Homed settlers eat it (homeless
+		-- free), over-expansion starves via food<0 below. Matches engine/cities.js.
+		local settlerUpkeep = if ruleset.rules.settlerFoodUpkeep == nil then 0 else ruleset.rules.settlerFoodUpkeep
+		local settlerFood = 0
+		if settlerUpkeep > 0 then
+			for _, u in pairs(state.units) do
+				if u.home == cityId and u.type == "settlers" then
+					settlerFood += settlerUpkeep
+				end
+			end
+		end
+		city.food = city.food + yields.food - city.pop * 2 - settlerFood
 		local threshold = 10 * (city.pop + 1)
 		if city.food >= threshold then
 			if city.pop >= 10 and not hasBuilding(city, "aqueduct") then
