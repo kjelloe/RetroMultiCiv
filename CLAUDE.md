@@ -30,7 +30,11 @@ prerequisite), `15-ai-war.md` (the AI war doctrine: user's 3:1-both
 ruling with sim-swept ratios per combat rule, army options, siege/
 blockade, era templates), `16-security-assessment.md` (the hosted
 surface: posture per component, the ranked gap list feeding A50,
-operator quick-card — re-assess at A50/master-index/new-dep/1.0).
+operator quick-card — re-assess at A50/master-index/new-dep/1.0),
+`17-hardening-agent.md` (the server-robustness lane's role spec:
+own clone, exclusive files [server/limits.js + the connect/cmd
+paths in server/index.js], report-only-on-cross-lane, neutral
+operational vocabulary — keeps the game team off the lane).
 
 ## Hard rules
 
