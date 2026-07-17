@@ -18,6 +18,12 @@ local TILE = ClientState.TILE
 
 local camera = workspace.CurrentCamera
 
+-- run-4 live fix (user): FOLLOW-AVATAR IS THE JOIN DEFAULT — players spawn
+-- on the deck at y~141 and must see themselves + the pads immediately (the
+-- old boot stared at world origin, outside even the focus clamps). The map
+-- flow (city jumps, possession) breaks follow as before; F toggles it back.
+ClientState.followAvatar = true
+
 local focus = Vector3.new(0, 0, 0)
 -- center on our first unit when the first view arrives
 local centered = false
@@ -99,12 +105,14 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	lastMouse = mouse
 
-	-- follow-avatar (R4): the focus rides the character's ground position
+	-- follow-avatar (R4): the focus rides the character's position — height
+	-- INCLUDED (run-4: the deck lives at y~141, far above the map's 0..100
+	-- focus clamp; follow must look where the avatar actually stands)
 	if ClientState.followAvatar then
 		local character = Players.LocalPlayer.Character
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if root then
-			focus = Vector3.new(root.Position.X, focus.Y, root.Position.Z)
+			focus = Vector3.new(root.Position.X, root.Position.Y - 2, root.Position.Z)
 		end
 	end
 

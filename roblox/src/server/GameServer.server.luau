@@ -36,6 +36,46 @@ local gameData = ReplicatedStorage:WaitForChild("GameData")
 local rulesetsFolder = gameData:WaitForChild("rulesets")
 local expectedHashes = require(gameData:WaitForChild("RulesetHashes"))
 
+-- ---- run-4 fix: THE FLOOR COMES FIRST -------------------------------------
+-- The data gate below takes seconds; players can spawn during it. Boot order
+-- used to be gate -> deck -> destroy Baseplate (at the very bottom), so the
+-- player spawned on the Baseplate, it vanished under their feet, and with no
+-- game there was NO floor anywhere (VoidCover builds on the first view) —
+-- an endless fall that read as "lobby broken + no map" (user run-4). Now:
+-- deck + spawn + permanent catch floor exist BEFORE anything slow, and only
+-- then the Baseplate goes (it buries ocean columns, the R4 finding).
+local deck = Deck.build()
+do
+	local baseplate = workspace:FindFirstChild("Baseplate")
+	if baseplate ~= nil then
+		baseplate:Destroy()
+	end
+	-- run-4 live fix (user): the PLACE FILE carries its own template
+	-- SpawnLocation (the lone plate in the F1 shot) and Roblox picks among
+	-- ALL spawns — players could spawn on it in the void. Move every stray
+	-- spawn UP onto the deck floor plane, flush beside the DeckSpawn.
+	local deckSpawn = deck.folder.DeckSpawn
+	local floorTop = deck.folder.Floor.Position.Y + deck.folder.Floor.Size.Y / 2
+	local slot = 1
+	for _, inst in ipairs(workspace:GetDescendants()) do
+		if inst:IsA("SpawnLocation") and inst ~= deckSpawn then
+			-- top face flush with the floor plane (+0.06 reveal, no z-fight)
+			inst.CFrame = CFrame.new(deckSpawn.Position.X + slot * 12,
+				floorTop + 0.06 - inst.Size.Y / 2, deckSpawn.Position.Z)
+			inst.Anchored = true
+			slot += 1
+			print("[GameServer] stray SpawnLocation moved onto the deck plane: " .. inst:GetFullName())
+		end
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+		if rootPart ~= nil then
+			rootPart.CFrame = deckSpawn.CFrame + Vector3.new(0, 4, 0)
+		end
+	end
+end
+
 -- ---- boot: parse rulesets through json2lua and gate on the baked hashes ----
 local RULESET_NAMES = { "buildings", "civs", "governments", "rules",
 	"techs", "terrain", "units", "wonders" }
@@ -44,6 +84,31 @@ for _, name in ipairs(RULESET_NAMES) do
 	local value = json2lua.parse(require(rulesetsFolder:WaitForChild(name)))
 	local h = statehash.hashState(value)
 	if h ~= expectedHashes[name] then
+		-- run-4 F1 lesson: a silent server death leaves an empty void scene.
+		-- Plant a VISIBLE sign on the deck before dying so the failure is
+		-- diagnosable in-world, not just in Output.
+		local sign = Instance.new("Part")
+		sign.Anchored = true
+		sign.Size = Vector3.new(24, 10, 1)
+		sign.Position = Vector3.new(78, 148, 40)
+		sign.Color = Color3.fromRGB(140, 40, 40)
+		sign.Parent = workspace
+		local bb = Instance.new("BillboardGui")
+		bb.Size = UDim2.new(0, 420, 0, 60)
+		bb.AlwaysOnTop = true
+		bb.Adornee = sign
+		local t = Instance.new("TextLabel")
+		t.Size = UDim2.new(1, 0, 1, 0)
+		t.BackgroundTransparency = 0.2
+		t.BackgroundColor3 = Color3.fromRGB(60, 20, 20)
+		t.TextColor3 = Color3.fromRGB(255, 220, 220)
+		t.Font = Enum.Font.SourceSansBold
+		t.TextSize = 16
+		t.TextWrapped = true
+		t.Text = ("DATA GATE FAILED (%s) - stale Rojo sync? Use the NATIVE "
+			.. "Windows rojo serve (README), then restart Play."):format(name)
+		t.Parent = bb
+		bb.Parent = sign
 		error(("[GameServer] DATA GATE FAILED: %s hashed %s, expected %s — "
 			.. "the baked JSON or json2lua diverged from the Node side"):format(name, h, expectedHashes[name]))
 	end
@@ -103,8 +168,6 @@ end)
 local remote = Instance.new("RemoteEvent")
 remote.Name = "RMC"
 remote.Parent = ReplicatedStorage
-
-local deck = Deck.build()
 
 local phase = "idle" -- idle | setup | starting | running
 local hostUserId = nil
@@ -549,14 +612,29 @@ local function resumeGame(player, rawCode)
 	end
 end
 
-deck.prompts.start.Triggered:Connect(function(player)
-	if phase ~= "idle" then
+-- run-4 live ruling: pads are WALK-ON (touch = trigger; the E-prompt stays a
+-- backup), and a pad that does not apply EXPLAINS itself with a toast
+-- instead of silently doing nothing.
+local function toast(player, text)
+	remote:FireClient(player, { t = "toast", text = text })
+end
+
+local function padStart(player)
+	if phase == "setup" or phase == "starting" then
+		toast(player, hostUserId == player.UserId
+			and "You are already hosting - finish the setup panel (or let the 60s window lapse)."
+			or "A game is already being set up - use JOIN GAME to claim a seat.")
+		return
+	end
+	if phase == "running" then
+		toast(player, "A game is already in progress - TAKE OVER AI CIV joins it, or wait for it to end.")
 		return
 	end
 	hostUserId = player.UserId
 	setup = { sizeIndex = 1, civs = 3, humans = 1 }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
+	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
 	-- the 60-SECOND host window (user design): no completion = pad reopens
 	startCountdown(60, function()
 		if phase == "setup" then
@@ -566,35 +644,53 @@ deck.prompts.start.Triggered:Connect(function(player)
 		end
 	end)
 	print(("[GameServer] R9 host window: %s (60s)"):format(player.Name))
-end)
+end
 
-deck.prompts.join.Triggered:Connect(function(player)
-	if phase ~= "setup" and phase ~= "starting" then
+local function padJoin(player)
+	if phase == "idle" then
+		toast(player, "JOIN GAME claims a seat while a host sets up - nobody is hosting yet. "
+			.. "Step on START A NEW GAME to host one yourself.")
+		return
+	end
+	if phase == "running" then
+		toast(player, "The game already started - TAKE OVER AI CIV is the way in now.")
+		return
+	end
+	if hostUserId == player.UserId then
+		toast(player, "You are the host - you already hold seat 1.")
 		return
 	end
 	for i = 1, setup.humans do
 		if seatUserIds[i] == player.UserId then
-			return -- already in
+			toast(player, "You already claimed a seat - the game starts when the host is done.")
+			return
 		end
 	end
 	for i = 2, setup.humans do
 		if seatUserIds[i] == nil then
 			seatUserIds[i] = player.UserId
 			print(("[GameServer] R9 join: %s -> seat %d"):format(player.Name, i))
+			toast(player, ("Seat %d is yours - the game starts when the host is done."):format(i))
 			broadcastLobby()
 			return
 		end
 	end
-	remote:FireClient(player, { t = "rejected", commandId = -1, code = "seatsFull" })
-end)
+	toast(player, ("All %d human seats are taken - ask the host to raise the count."):format(setup.humans))
+end
 
-deck.prompts.takeover.Triggered:Connect(function(player)
-	if phase ~= "running" or state == nil or seatOfUser[player.UserId] ~= nil then
+local function padTakeover(player)
+	if state == nil then
+		toast(player, "TAKE OVER AI CIV joins a RUNNING game as one of its AI civs - "
+			.. "no game is running. START A NEW GAME instead.")
+		return
+	end
+	if seatOfUser[player.UserId] ~= nil then
+		toast(player, "You already hold a seat in this game.")
 		return
 	end
 	local vacant = vacantSeats()
 	if #vacant == 0 then
-		remote:FireClient(player, { t = "rejected", commandId = -1, code = "seatsFull" })
+		toast(player, "No seat is free to take over - every human-capable civ is claimed.")
 		return
 	end
 	-- RANDOM assignment (user lean: no cherry-picking); server-side dice,
@@ -605,7 +701,26 @@ deck.prompts.takeover.Triggered:Connect(function(player)
 	sendJoined(player, pid)
 	checkEphemeral() -- R10: a seated human cancels any pending grace timer
 	setPhase("running") -- refreshes pad availability + lobby lists
-end)
+end
+
+local PAD_HANDLERS = { start = padStart, join = padJoin, takeover = padTakeover }
+local padTouchAt = {} -- player -> os.clock() debounce (touch fires in bursts)
+for name, handler in pairs(PAD_HANDLERS) do
+	deck.prompts[name].Triggered:Connect(handler)
+	deck.padParts[name].Touched:Connect(function(hit)
+		local character = hit.Parent
+		local player = character ~= nil and Players:GetPlayerFromCharacter(character) or nil
+		if player == nil then
+			return
+		end
+		local now = os.clock()
+		if padTouchAt[player.UserId] ~= nil and now - padTouchAt[player.UserId] < 1.5 then
+			return
+		end
+		padTouchAt[player.UserId] = now
+		handler(player)
+	end)
+end
 
 -- ---- remote routing ---------------------------------------------------------
 remote.OnServerEvent:Connect(function(player, msg)
@@ -810,12 +925,5 @@ end)
 Players.PlayerAdded:Connect(function()
 	broadcastLobby()
 end)
-
--- the place template's Baseplate tops at y=0 and buries the ocean columns
--- (top -1.08) — R4 user finding: "ocean had no tile, just baseplate"
-local baseplate = workspace:FindFirstChild("Baseplate")
-if baseplate ~= nil then
-	baseplate:Destroy()
-end
 
 print("[GameServer] R9 lobby up: observation deck live, START pad open")
