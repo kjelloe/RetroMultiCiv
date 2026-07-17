@@ -22,7 +22,10 @@
 //                   the disorder/happiness stress run)
 //   --jobs N        parallel seed processes (default: cores - 1)
 //   --stats F       append one JSONL telemetry row per checkpoint + a final
-//                   row per seed — chart balance drift across engine versions
+//                   row per seed — chart balance drift across engine versions.
+//                   On the CANONICAL config (7-civ medium no-chaos normal,
+//                   ≥400t) also enforces the docs/05 §12 M-target FLOORS at
+//                   t401 (median over seeds); a breach exits 1 (A93)
 //
 // Invariants run every turn; deep audits + a summary line at each checkpoint.
 // Goldens don't apply (seeds vary). Failures leave artifacts in debugging/sim/
@@ -39,6 +42,136 @@ const SIZES = { // matches the client's MAP_SIZES (main.js)
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
 const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+
+// ── M-target regression FLOORS (docs/05-simulation-test.md §12, the
+// "M-TARGETS PINNED (user session 2026-07-16 evening)" line) ────────────────
+// The six user-pinned floors, enforced only on the CANONICAL measurement
+// config (7-civ medium no-chaos normal) at t401, median over seeds. A breach
+// fails the run LOUDLY — these are regression floors, not aspirations. The
+// values below MIRROR docs/05 §12; that line and this table are the one source
+// pair (edit both together). Non-canonical soaks (godemperor/natural/small/
+// chaos) are a different distribution and skip the check.
+const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'medium' };
+const FLOOR_MIN_TURNS = 400; // floors are defined at t401 = a 400-round run
+const FLOORS = [
+  { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 8  },
+  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 50 },
+  { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 75 },
+  { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
+  { key: 'M10-treasury', label: 'treasury climb (g/t)', metric: 'goldRate',    cmp: '<',  value: 50 },
+  // resourceCov% has no telemetry column yet (sim-driver.snapshot emits no
+  // resourceCov) — the check reports it PENDING until that column lands.
+  { key: 'M-resourceCov', label: 'resource coverage %', metric: 'resourceCov', cmp: '>=', value: 80 }
+];
+
+function floorCmp(a, op, b) {
+  if (op === '>=') return a >= b;
+  if (op === '>') return a > b;
+  if (op === '<=') return a <= b;
+  if (op === '<') return a < b;
+  return false;
+}
+
+function floorMedian(nums) {
+  if (nums.length === 0) return null;
+  const s = nums.slice().sort((x, y) => x - y);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+function isCanonicalFloorRun(opts) {
+  return opts.civs === FLOOR_CONFIG.civs && opts.size === FLOOR_CONFIG.size
+    && opts.chaos === FLOOR_CONFIG.chaos && opts.natural === FLOOR_CONFIG.natural
+    && opts.difficulty === FLOOR_CONFIG.difficulty && opts.turns >= FLOOR_MIN_TURNS;
+}
+
+function readStatsRows(file) {
+  let text;
+  try { text = fs.readFileSync(file, 'utf8'); } catch (e) { return []; }
+  const rows = [];
+  for (const line of text.split('\n')) {
+    if (line.length === 0) continue;
+    try { rows.push(JSON.parse(line)); } catch (e) { /* skip a partially-written line */ }
+  }
+  return rows;
+}
+
+// Median over seeds of each floor's metric at the final checkpoint (t401),
+// scoped to THIS run's config + seed set so a re-used stats file can't leak
+// stale rows in. Per-seed value = median across that seed's surviving civs;
+// the reported value = median across seeds. goldRate is the per-civ treasury
+// climb (gold gained over the last 100 turns / 100) — the "sustained climb"
+// M10 caps.
+function computeFloorReport(rows, opts, seeds) {
+  const seedSet = {};
+  for (const s of seeds) seedSet[s] = true;
+  const cp = rows.filter(r => r.t === 'checkpoint' && seedSet[r.seed]
+    && r.civs === opts.civs && r.size === opts.size && r.chaos === opts.chaos
+    && r.natural === opts.natural && r.difficulty === opts.difficulty);
+  if (cp.length === 0) return { applicable: false, reason: 'no matching checkpoint rows' };
+  let finalTurn = 0;
+  for (const r of cp) if (r.turn > finalTurn) finalTurn = r.turn;
+  if (finalTurn < FLOOR_MIN_TURNS) {
+    return { applicable: false, reason: `final checkpoint t${finalTurn} < t${FLOOR_MIN_TURNS}` };
+  }
+  const prevTurn = finalTurn - 100;
+  const goldPrev = {}; // "seed:pid" -> gold at the previous checkpoint (for goldRate)
+  const finalBySeed = {};
+  for (const r of cp) {
+    if (r.turn === prevTurn) for (const pl of r.players) goldPrev[r.seed + ':' + pl.id] = pl.gold;
+    if (r.turn === finalTurn) finalBySeed[r.seed] = r;
+  }
+  const results = FLOORS.map(f => {
+    const perSeed = [];
+    let samples = 0;
+    for (const seed of Object.keys(finalBySeed)) {
+      const r = finalBySeed[seed];
+      const vals = [];
+      for (const pl of r.players) {
+        if (pl.alive !== true) continue; // eliminated civs don't count toward floors
+        let v;
+        if (f.metric === 'goldRate') {
+          const prev = goldPrev[seed + ':' + pl.id];
+          if (prev === undefined) continue;
+          v = (pl.gold - prev) / 100;
+        } else {
+          v = pl[f.metric];
+        }
+        if (v === undefined || v === null) continue;
+        vals.push(v);
+      }
+      const m = floorMedian(vals);
+      if (m !== null) { perSeed.push(m); samples += vals.length; }
+    }
+    if (samples === 0) return Object.assign({}, f, { measured: null, ok: null, pending: true });
+    const measured = floorMedian(perSeed);
+    return Object.assign({}, f, { measured, ok: floorCmp(measured, f.cmp, f.value), pending: false });
+  });
+  return { applicable: true, finalTurn, seeds: Object.keys(finalBySeed).length, results };
+}
+
+// Prints the floor table and returns the breach count (0 unless canonical &
+// applicable & a floor missed). PENDING floors (no telemetry) never breach.
+function reportFloors(statsFile, opts, seeds) {
+  if (!isCanonicalFloorRun(opts)) {
+    console.log(`floors: skipped — not the canonical config `
+      + `(need ${FLOOR_CONFIG.civs}civ ${FLOOR_CONFIG.size} no-chaos normal ≥${FLOOR_MIN_TURNS}t)`);
+    return 0;
+  }
+  const report = computeFloorReport(readStatsRows(statsFile), opts, seeds);
+  if (!report.applicable) { console.log(`floors: not evaluated — ${report.reason}`); return 0; }
+  console.log(`M-target floors @ t${report.finalTurn}, median over ${report.seeds} seed(s):`);
+  let breaches = 0;
+  for (const r of report.results) {
+    if (r.pending) { console.log(`  ⏳ ${r.key} ${r.label}: PENDING (no telemetry column)`); continue; }
+    const mark = r.ok ? '✅' : '❌';
+    const shown = Math.round(r.measured * 100) / 100;
+    console.log(`  ${mark} ${r.key} ${r.label}: ${shown} (floor ${r.cmp} ${r.value})`);
+    if (!r.ok) breaches++;
+  }
+  if (breaches > 0) console.log(`FLOOR BREACH: ${breaches} M-target(s) below floor — regression, failing loudly`);
+  return breaches;
+}
 
 function parseArgs(argv) {
   const opts = {
@@ -173,12 +306,21 @@ async function main() {
     }
   }
 
+  let floorBreaches = 0;
+  if (!opts.worker && opts.stats) floorBreaches = reportFloors(opts.stats, opts, seeds);
+
   if (!opts.worker) {
     console.log(failures === 0
       ? `all ${seeds.length} seed(s) clean`
       : `${failures}/${seeds.length} seed(s) FAILED — artifacts in debugging/sim/`);
+    if (floorBreaches > 0) console.log(`M-target floor check FAILED: ${floorBreaches} breach(es)`);
   }
-  process.exitCode = failures === 0 ? 0 : 1;
+  process.exitCode = (failures === 0 && floorBreaches === 0) ? 0 : 1;
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  FLOORS, FLOOR_CONFIG, FLOOR_MIN_TURNS,
+  isCanonicalFloorRun, computeFloorReport, floorMedian, floorCmp
+};

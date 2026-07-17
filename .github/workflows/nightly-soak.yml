@@ -65,3 +65,46 @@ jobs:
           name: nightly-sim
           path: debugging/sim/
           if-no-files-found: ignore
+
+  canonical-floors:
+    # The user-pinned M-target FLOORS (docs/05 §12) are defined on the CANONICAL
+    # config — 7-civ medium no-chaos normal — which the two soak lanes above do
+    # NOT run (they are small + godemperor/natural). This lane runs it and
+    # tools/soak.js --stats prints the floor table (A93).
+    #
+    # REPORT MODE (architect ruling 2026-07-17, user may override): the step is
+    # continue-on-error, so a floor breach is advisory and never reds the run,
+    # and the floor table is echoed into the job summary — the M11 pinning
+    # session and the Wave-2 N-ledger want this telemetry immediately. A hard-red
+    # lane from day one just teaches everyone to ignore it.
+    # >>> FLIP to ENFORCING (delete `continue-on-error: true`) when the AI B-lane
+    # >>> closes M2 cities + M3 pop (docs/05 §12 M-TARGETS PINNED).
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Canonical soak — 7-civ medium no-chaos, M-target floors (REPORT mode; A93)
+        continue-on-error: true
+        run: |
+          set +e
+          node tools/soak.js --seeds 25 --turns 400 --civs 7 --size medium --no-chaos \
+            --stats debugging/sim/nightly-canonical.jsonl 2>&1 | tee /tmp/canonical-soak.log
+          rc=${PIPESTATUS[0]}
+          {
+            echo '### M-target floors — canonical 7-civ medium no-chaos @ t401 (docs/05 §12)'
+            echo '```'
+            grep -A8 'M-target floors @' /tmp/canonical-soak.log || echo '(no floor block — see the step log)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+      - name: Upload canonical telemetry + failure artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-canonical
+          path: debugging/sim/
+          if-no-files-found: ignore
