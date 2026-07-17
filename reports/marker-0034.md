@@ -5,9 +5,17 @@
   types, A57 left-stack reflow, the N4 defer, the N9 root-cause note).
 - **Type:** engine AI change (golden-moving); both engines + goldens re-recorded.
 - **Tests:** 450/450 zero-skip.
-- **Status:** committed + pushed; PENDING the sim-runner's exploration A/B
-  before the architect declares the marker consistent (tests pass; the
-  behavioral confirm that exploration recovers is the open gate).
+- **Status:** committed + pushed, then **FLAGGED — NOT consistent** (do not
+  merge). The sim-runner's joint A/B (#1004) FAILED: exploration recovers
+  (14→19.5, PASS) but cities crash (10→5.5), pop/impr floors drop, and elim%
+  blows out of the M11 band (27→44). Mechanism: at the warlike dg=30 default,
+  ranging scouts thin garrisons AND cause earlier contact → more war → cities
+  captured (the exploration→contact→war cascade; same class as B23b, milder).
+  marker-0033 remains the consistent merge candidate. B23d is being tuned
+  (aiScoutVetoRadius × guards-floor joint sweep) → a superseding marker-0035
+  if a working config exists, else reverted. SYSTEMIC NOTE: B23d (exploration)
+  and N9 (economy) both fail via the same dg=30 warfare cascade — the M11 war
+  pin may be too aggressive for a well-rounded AI (a user tradeoff to weigh).
 
 ## Delta since marker-0033
 
