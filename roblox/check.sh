@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind ReplayTheater ActionPads Pedia PediaConcepts; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind ReplayTheater Pedia PediaConcepts Legend; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -75,6 +75,31 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 5: node absent"
+fi
+
+# gate 7 — StepLegality pinned verdicts run headlessly (the one-source
+# tile-entry module behind ride keys, click-move, GoTo, MoveHints)
+command -v lune >/dev/null 2>&1 || PATH="$HOME/.local/bin:$PATH"
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/steplegality.luau >/dev/null 2>&1; then
+    note PASS "gate 7: StepLegality pinned verdicts (lune)"
+  else
+    note FAIL "gate 7: StepLegality verdicts drifted — run: lune run roblox/selftest/steplegality.luau"
+  fi
+else
+  note SKIP "gate 7: lune absent"
+fi
+
+# gate 8 — billboard-input lint: a button parented into a BillboardGui must
+# set <bb>.Active = true (the session-E 'CLOSE does nothing' class of bug)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/lint.js >/dev/null 2>&1; then
+    note PASS "gate 8: billboard-button Active lint (lint.js)"
+  else
+    note FAIL "gate 8: billboard-button lint — run: node roblox/lint.js"
+  fi
+else
+  note SKIP "gate 8: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

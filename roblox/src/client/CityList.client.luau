@@ -110,4 +110,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[CityList] R7d city list up (C toggles)")
+-- session-E round 18: the ActionBar "Cities" button drives the same toggle
+ClientState.onCityListToggle(function()
+	setOpen(not gui.Enabled)
+end)
+
+print("[CityList] R7d city list up (C toggles, Cities button)")

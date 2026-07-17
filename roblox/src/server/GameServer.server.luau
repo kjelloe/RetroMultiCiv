@@ -184,8 +184,15 @@ remote.Parent = ReplicatedStorage
 
 local phase = "idle" -- idle | setup | starting | running
 local hostUserId = nil
-local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents" }
+local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
+	maxIdleMin = 1 } -- R22: host-set idle threshold (minutes) before regency
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
+-- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
+-- pid -> true. Treated exactly like an absent seat by advance(); any
+-- command from the seat's player takes it back.
+local awaySeats = {}
+local lastAutosaveTurn = -1 -- R23: rolling autosave marker (declared early:
+-- startGame resets it and is defined above the autosave helper)
 local countdownEnds = nil
 local timerGen = 0
 
@@ -244,7 +251,8 @@ local function playerBySeat(pid)
 end
 
 local function seatedPresent(pid)
-	return playerBySeat(pid) ~= nil
+	-- R22: an away seat counts as absent — the regent drives it
+	return playerBySeat(pid) ~= nil and awaySeats[pid] ~= true
 end
 
 local function lobbyPayloadFor(player)
@@ -257,7 +265,10 @@ local function lobbyPayloadFor(player)
 				local seatedPlayer = playerBySeat(pid)
 				table.insert(seats, { pid = pid, name = def.name,
 					who = seatedPlayer ~= nil and seatedPlayer.Name
-						or (def.human == true and "regent" or "AI") })
+						or (def.human == true and "regent" or "AI"),
+					-- R21: stance is openly visible by design (Civ1 showed
+					-- leader personalities); absent = balanced, no tag
+					stance = def.stance })
 			end
 		end
 	else
@@ -282,7 +293,8 @@ local function lobbyPayloadFor(player)
 			youAreAdmin = isAdmin(player),
 			countdown = countdownEnds ~= nil and math.max(0, math.ceil(countdownEnds - os.clock())) or 0,
 			options = { size = MAP_SIZES[setup.sizeIndex].name, civs = setup.civs,
-				humans = setup.humans, mapType = setup.mapType },
+				humans = setup.humans, mapType = setup.mapType,
+				maxIdleMin = setup.maxIdleMin },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -305,6 +317,8 @@ local function pushSeat(player, pid, rawEvents)
 		year = state.year,
 		gameOver = state.gameOver == true,
 		code = gamecode.gameCode(state),
+		maxIdleMin = setup.maxIdleMin, -- R22: the client idle watcher's knob
+		away = awaySeats[pid] == true,
 	}
 	if rawEvents ~= nil and #rawEvents > 0 then
 		payload.events = visibility.filterEvents(state, rawEvents, pid)
@@ -473,6 +487,8 @@ local function cancelCountdown()
 end
 
 local function startGame()
+	awaySeats = {} -- R22: fresh game, every seat starts human-driven
+	lastAutosaveTurn = -1 -- R23
 	local size = MAP_SIZES[setup.sizeIndex]
 	local seed = os.time() % 1000000 -- server-side pick, PRINTED for replay;
 	-- never engine RNG (the game does not exist yet)
@@ -544,6 +560,27 @@ local function saveGame(why)
 		return code
 	end
 	return nil
+end
+
+-- R23 (session-E round 23, user request): a rolling autosave every 10 turns
+-- so a Studio stop (or crash) never loses more than 10 turns — each save is
+-- keyed by that turn's docs/07 code and every one of them is resumable.
+-- Clients get {t="saved"} so the Hud can show the latest resumable code.
+local function maybeAutosave()
+	if state == nil or state.gameOver == true or state.turn % 10 ~= 0
+		or state.turn == lastAutosaveTurn then
+		return
+	end
+	lastAutosaveTurn = state.turn
+	local code = saveGame("autosave")
+	if code ~= nil then
+		for userId in pairs(seatOfUser) do
+			local player = Players:GetPlayerByUserId(userId)
+			if player ~= nil then
+				remote:FireClient(player, { t = "saved", code = code, turn = state.turn })
+			end
+		end
+	end
 end
 
 -- ephemeral PUBLIC servers (user design): all seated humans gone + 120s
@@ -646,7 +683,8 @@ local function padStart(player)
 		return
 	end
 	hostUserId = player.UserId
-	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents" }
+	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
+		maxIdleMin = 1 }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -718,8 +756,60 @@ local function padTakeover(player)
 	setPhase("running") -- refreshes pad availability + lobby lists
 end
 
-local PAD_HANDLERS = { start = padStart, join = padJoin, takeover = padTakeover }
 local padTouchAt = {} -- player -> os.clock() debounce (touch fires in bursts)
+
+-- session-E: the GOTO CAPITOL pad — teleports the toucher to their own
+-- civ's capital (government.capitalOf; fallback = any own city) with a
+-- Sparkles burst. Walk-on with the same per-player debounce.
+local governmentModule = require(shared:WaitForChild("government"))
+deck.capitolPad.Touched:Connect(function(hit)
+	local character = hit.Parent
+	local player = character ~= nil and Players:GetPlayerFromCharacter(character) or nil
+	if player == nil then
+		return
+	end
+	local now = os.clock()
+	if padTouchAt[player.UserId] ~= nil and now - padTouchAt[player.UserId] < 1.5 then
+		return
+	end
+	padTouchAt[player.UserId] = now
+	local pid = seatOfUser[player.UserId]
+	if state == nil or pid == nil then
+		toast(player, "GOTO CAPITOL flies you to your capital - join a game first.")
+		return
+	end
+	local capital = nil
+	local ok, cap = pcall(governmentModule.capitalOf, state, pid, ruleset)
+	if ok and cap ~= nil then
+		capital = cap
+	else
+		for _, cid in ipairs(state.cityOrder or {}) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner == pid then
+				capital = c
+				break
+			end
+		end
+	end
+	if capital == nil then
+		toast(player, "No capital yet - found a city first (your settlers, B).")
+		return
+	end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if root ~= nil then
+		local TILE = 4 -- shared/const: studs per tile (ClientState.TILE twin)
+		root.CFrame = CFrame.new(capital.x * TILE + TILE, 8, capital.y * TILE + TILE)
+		local sparkles = Instance.new("Sparkles")
+		sparkles.SparkleColor = Color3.fromRGB(255, 220, 140)
+		sparkles.Parent = root
+		task.delay(2.5, function()
+			sparkles:Destroy()
+		end)
+		print(("[GameServer] goto-capitol: %s -> %s"):format(player.Name, capital.id))
+	end
+end)
+
+local PAD_HANDLERS = { start = padStart, join = padJoin, takeover = padTakeover }
 for name, handler in pairs(PAD_HANDLERS) do
 	deck.prompts[name].Triggered:Connect(handler)
 	deck.padParts[name].Touched:Connect(function(hit)
@@ -777,6 +867,9 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.humans = math.min(setup.humans, setup.civs)
 		elseif msg.key == "humans" then
 			setup.humans = math.clamp(setup.humans + dir, 1, setup.civs)
+		elseif msg.key == "maxidle" then
+			-- R22: minutes of inactivity before the regency countdown (1..15)
+			setup.maxIdleMin = math.clamp(setup.maxIdleMin + dir, 1, 15)
 		elseif msg.key == "maptype" then
 			-- A82a: cycle the rules.json presets (sorted keys, wrap both ways)
 			local names = {}
@@ -797,6 +890,22 @@ remote.OnServerEvent:Connect(function(player, msg)
 		setPhase("starting")
 		-- the 30-SECOND game-start countdown (user design)
 		startCountdown(30, startGame)
+		return
+	end
+
+	if msg.t == "away" then
+		-- R22: hand the seat to the AI regent / take it back. Idle timeout
+		-- and the Hud toggle both arrive here; commands auto-reclaim below.
+		local pid = seatOfUser[player.UserId]
+		if pid ~= nil and state ~= nil and state.gameOver ~= true then
+			local on = msg.on == true
+			awaySeats[pid] = on and true or nil
+			remote:FireClient(player, { t = "away", on = on })
+			print(("[R22] %s away=%s (%s)"):format(pid, tostring(on), player.Name))
+			if on and not roundInFlight and state.activePlayer == pid then
+				task.spawn(advance, {}) -- regent finishes the turn (leave-path twin)
+			end
+		end
 		return
 	end
 
@@ -872,6 +981,13 @@ remote.OnServerEvent:Connect(function(player, msg)
 		return
 	end
 
+	-- R22: any real command from an away seat takes it back from the regent
+	if awaySeats[pid] == true then
+		awaySeats[pid] = nil
+		remote:FireClient(player, { t = "away", on = false })
+		print(("[R22] %s reclaimed by command (%s)"):format(pid, player.Name))
+	end
+
 	-- server-authoritative identity: the seat stamps playerId, never the client
 	local cmd = {}
 	for k, v in pairs(msg.cmd) do
@@ -897,6 +1013,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 		end
 		local seen = advance(collected, true)
 		pending = table.move(collected, seen + 1, #collected, 1, {})
+		maybeAutosave() -- R23: every-10-turns autosave after the round wraps
 	else
 		logEntry({ t = "cmd", turn = state.turn, cmd = cmd, ok = true,
 			hash = statehash.hashState(state) })
@@ -936,6 +1053,9 @@ Players.PlayerRemoving:Connect(function(player)
 		return
 	end
 	local pid = seatOfUser[player.UserId]
+	if pid ~= nil then
+		awaySeats[pid] = nil -- R22: presence rules while gone; rejoin starts fresh
+	end
 	if state ~= nil and pid ~= nil and not roundInFlight and state.activePlayer == pid then
 		task.spawn(advance, {})
 	end

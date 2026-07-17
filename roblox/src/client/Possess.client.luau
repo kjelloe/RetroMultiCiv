@@ -60,6 +60,61 @@ local function deckSpawnCFrame()
 	return spawnPlate ~= nil and (spawnPlate.CFrame + Vector3.new(0, 4, 0)) or nil
 end
 
+-- session-E round 16 (user): when the RIDDEN unit dies in battle the avatar
+-- lands by CASCADE — the lost tile itself (if it is known land with no
+-- enemy on it), else the next own unit, else the nearest own city, else
+-- the capital (palace), else the deck. Returns CFrame + a label, or nil
+-- for the deck fallback.
+local function sparkleBurst(root)
+	local sparkles = Instance.new("Sparkles")
+	sparkles.SparkleColor = Color3.fromRGB(180, 220, 255)
+	sparkles.Parent = root
+	task.delay(2.5, function()
+		sparkles:Destroy()
+	end)
+end
+
+local function lostUnitLanding(root)
+	local view = ClientState.view
+	if view == nil then
+		return nil, "deck"
+	end
+	local rs = ClientState.rulesets()
+	local map = view.map
+	local tx = math.floor(root.Position.X / TILE + 0.5)
+	local ty = math.floor(root.Position.Z / TILE + 0.5)
+	if tx >= 0 and tx < map.width and ty >= 0 and ty < map.height then
+		local tile = map.tiles[ty * map.width + tx + 1]
+		local terr = tile ~= nil and rs.terrain.terrains[tile.t]
+		if terr ~= nil and terr.domain == "land" and not StepLegality.enemyAt(view, tx, ty) then
+			return CFrame.new(tx * TILE, tileTopY(tx, ty) + 4, ty * TILE), "the lost tile"
+		end
+	end
+	local nextId = ClientState.nextOwnUnit(nil)
+	local nu = nextId ~= nil and view.units[nextId] or nil
+	if nu ~= nil then
+		return CFrame.new(nu.x * TILE, tileTopY(nu.x, nu.y) + 4, nu.y * TILE), "next unit " .. nextId
+	end
+	local nearest, nearestD, capital = nil, math.huge, nil
+	for _, c in pairs(view.cities) do
+		if c.owner == view.you then
+			local d = ClientState.wrapDist(c.x, c.y, tx, ty)
+			if d < nearestD then
+				nearest, nearestD = c, d
+			end
+			if table.find(c.buildings or {}, "palace") ~= nil then
+				capital = c
+			end
+		end
+	end
+	local target = nearest or capital
+	if target ~= nil then
+		return CFrame.new(target.x * TILE, tileTopY(target.x, target.y) + 4, target.y * TILE),
+			"city " .. (target.name or "?")
+	end
+	return nil, "deck"
+end
+
 local function release(reason)
 	if ClientState.possessedUnitId == nil then
 		return
@@ -70,6 +125,20 @@ local function release(reason)
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if root then
 		root.Anchored = false
+		if reason == "unit lost" then
+			-- battle loss: land on the map per the cascade, camera follows
+			local cf, label = lostUnitLanding(root)
+			if cf ~= nil then
+				root.CFrame = cf
+				ClientState.followAvatar = true
+				sparkleBurst(root)
+				print("[Possess] ride lost - landed at " .. label)
+				if controls then
+					controls:Enable()
+				end
+				return
+			end
+		end
 		-- deck-resident: dismounting returns HOME to the deck (staying on
 		-- the map would strand the avatar on the diorama, off the pads)
 		local home = deckSpawnCFrame()
@@ -99,7 +168,56 @@ local function possess(unitId)
 	print(("[Possess] riding %s (%s) at (%d,%d), moves %d"):format(unitId, u.type, u.x, u.y, u.moves))
 end
 
--- (deck-resident helper moved above release — see the ruling note there)
+-- Session-E (user ruling, supersedes the deck-resident PROVISIONAL's
+-- game-start half): when the game starts, the avatar teleports to a tile
+-- NEXT TO their first settler — with a magic sparkle burst (the built-in
+-- Sparkles instance; procedural, no assets). The deck stays the lobby and
+-- dismount still returns there.
+local hadView = false
+ClientState.onView(function(view)
+	if hadView or view == nil then
+		return
+	end
+	hadView = true
+	local settler = nil
+	for _, u in pairs(view.units) do
+		if u.owner == view.you and (settler == nil or u.type == "settlers") then
+			settler = u
+		end
+	end
+	if settler == nil then
+		return
+	end
+	-- pick an adjacent land tile (fallback: stand on the settler's tile edge)
+	local rs = ClientState.rulesets()
+	local tx, ty = settler.x + 1, settler.y
+	for _, d in ipairs({ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 1, 1 }, { -1, -1 } }) do
+		local nx, ny = settler.x + d[1], settler.y + d[2]
+		if view.map.wrapX then
+			nx = nx % view.map.width
+		end
+		if nx >= 0 and nx < view.map.width and ny >= 0 and ny < view.map.height then
+			local tile = view.map.tiles[ny * view.map.width + nx + 1]
+			local terr = tile ~= nil and rs.terrain.terrains[tile.t]
+			if terr ~= nil and terr.domain == "land" then
+				tx, ty = nx, ny
+				break
+			end
+		end
+	end
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if root ~= nil then
+		root.CFrame = CFrame.new(tx * TILE, tileTopY(tx, ty) + 4, ty * TILE)
+		local sparkles = Instance.new("Sparkles")
+		sparkles.SparkleColor = Color3.fromRGB(180, 220, 255)
+		sparkles.Parent = root
+		task.delay(2.5, function()
+			sparkles:Destroy()
+		end)
+		print("[Possess] game start: beside your settler (sparkle arrival)")
+	end
+end)
 
 -- next own idle unit — R7a (12)(15): nearest-first, skips fortified/working
 -- (input.js:255 semantics); the shared picker lives in ClientState
@@ -107,6 +225,20 @@ local function nextUnit()
 	local current = ClientState.possessedUnitId or ClientState.selectedUnitId
 	return ClientState.nextOwnUnit(current)
 end
+
+-- session-E: dying/resetting while mounted leaves a fresh unanchored
+-- character — clear the possession state so nothing re-pins the corpse's
+-- successor (the deck SpawnLocation + Camera's follow reset own the rest)
+Players.LocalPlayer.CharacterAdded:Connect(function()
+	if ClientState.possessedUnitId ~= nil then
+		ClientState.possessedUnitId = nil
+		ClientState.followAvatar = true
+		if controls then
+			controls:Enable()
+		end
+		print("[Possess] respawn: possession cleared")
+	end
+end)
 
 -- R7a (9): Select requests a ride (double-click on an own unit while
 -- mounted); auto-next while mounted arrives the same way. R12 (6): a nil
@@ -141,6 +273,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			print("[Possess] select one of your units first (or press N)")
 		end
 	elseif input.KeyCode == Enum.KeyCode.N then
+		-- session-E: N closes an open city view before jumping units
+		require(script.Parent:WaitForChild("WorkedTiles")).closeIfOpen()
 		local id = nextUnit()
 		if id == nil then
 			print("[Possess] no units with moves left")

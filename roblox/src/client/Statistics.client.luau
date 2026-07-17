@@ -93,19 +93,23 @@ local function refresh()
 					units += 1
 				end
 			end
+			-- R21 (unblocked by marker-0045: filterView passes stance for ALL
+			-- players — intentionally public, Civ1 showed leader personalities
+			-- openly): same authentic trait name the Lobby seat rows use
+			local stanceTag = p.stance == "builder" and " [Perfectionist]" or ""
 			local text
 			if pid == view.you then
 				-- engine default: unset government = despotism (run-4 fix)
 				local gov = rs.governments[p.government or "despotism"]
-				text = ("%s (you) - %d cities, %d units, gold %d, techs %d, %s%s"):format(
-					p.name, cities, units, p.gold or 0, #(p.techs or {}),
+				text = ("%s (you)%s - %d cities, %d units, gold %d, techs %d, %s%s"):format(
+					p.name, stanceTag, cities, units, p.gold or 0, #(p.techs or {}),
 					gov and gov.name or "?",
 					p.researching ~= nil
 						and (", researching " .. ((rs.techs[p.researching] or {}).name or p.researching))
 						or ", research UNSET")
 			else
-				text = ("%s - %d cities seen, %d units in sight%s"):format(
-					p.name, cities, units, p.human == true and " (human)" or "")
+				text = ("%s%s - %d cities seen, %d units in sight%s"):format(
+					p.name, stanceTag, cities, units, p.human == true and " (human)" or "")
 			end
 			addRow(order, text, hexColor(p.color or "#888888"))
 		end

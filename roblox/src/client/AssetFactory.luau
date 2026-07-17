@@ -62,12 +62,34 @@ local function resolveColor(role, colors)
 	return hex and hexColor(hex) or Color3.fromRGB(200, 200, 200)
 end
 
+-- R20 (visual-fidelity, #1186): the ENHANCED look maps colorRoles to
+-- built-in materials — presentation only, the shared recipes untouched.
+-- Faction slots (primary/secondary) and organics stay SmoothPlastic for
+-- silhouette readability. activeMaterial is set once per primitive in
+-- buildPrimitive; every part (incl. pyramid/fan pieces) inherits it.
+local ROLE_MATERIAL = {
+	wood = Enum.Material.WoodPlanks, hull = Enum.Material.WoodPlanks,
+	wheel = Enum.Material.Wood, canvas = Enum.Material.Fabric,
+	cloth = Enum.Material.Fabric, metal = Enum.Material.Metal,
+	darkMetal = Enum.Material.Metal, stone = Enum.Material.Slate,
+	house = Enum.Material.Brick,
+}
+local activeMaterial = Enum.Material.SmoothPlastic
+
+local function lookMaterial(role)
+	local ClientState = require(script.Parent:WaitForChild("ClientState"))
+	if ClientState.options.look ~= "enhanced" then
+		return Enum.Material.SmoothPlastic
+	end
+	return ROLE_MATERIAL[role] or Enum.Material.SmoothPlastic
+end
+
 local function basePart(className)
 	local p = Instance.new(className or "Part")
 	p.Anchored = true
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
-	p.Material = Enum.Material.SmoothPlastic
+	p.Material = activeMaterial
 	return p
 end
 
@@ -141,6 +163,7 @@ end
 -- BASE-to-apex span is centered at pos in three (ConeGeometry centers on
 -- its half-height) — cones therefore offset down by h/2.
 local function buildPrimitive(model, prim, colors, origin, coneMode)
+	activeMaterial = lookMaterial(prim.color) -- R20: every part below inherits
 	local sx, sy, sz = scaleOf(prim.scale)
 	local shape = prim.shape
 	if shape == "box" then
