@@ -19,6 +19,35 @@ gui.Name = "RMCLobby"
 gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+-- run-4: pad toasts — every pad touch answers with either an action or an
+-- explanation of why it doesn't apply right now (bottom-center, 5s)
+local toastLabel = Instance.new("TextLabel")
+toastLabel.Size = UDim2.new(0, 620, 0, 44)
+toastLabel.Position = UDim2.new(0.5, -310, 1, -170)
+toastLabel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+toastLabel.BackgroundTransparency = 0.12
+toastLabel.TextColor3 = Color3.fromRGB(255, 235, 180)
+toastLabel.Font = Enum.Font.SourceSansBold
+toastLabel.TextSize = 18
+toastLabel.TextWrapped = true
+toastLabel.Visible = false
+toastLabel.Parent = gui
+local toastGen = 0
+
+-- run-4 live request: BIG global game-start countdown — center, ~25% from
+-- the top, unmissable; ticks with the server's 1 Hz lobby broadcast
+local bigCountdown = Instance.new("TextLabel")
+bigCountdown.Size = UDim2.new(0, 640, 0, 80)
+bigCountdown.Position = UDim2.new(0.5, -320, 0.25, -40)
+bigCountdown.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
+bigCountdown.BackgroundTransparency = 0.25
+bigCountdown.TextColor3 = Color3.fromRGB(140, 255, 170)
+bigCountdown.Font = Enum.Font.SourceSansBold
+bigCountdown.TextSize = 52
+bigCountdown.TextStrokeTransparency = 0.4
+bigCountdown.Visible = false
+bigCountdown.Parent = gui
+
 -- greeting banner
 local greeting = Instance.new("TextLabel")
 greeting.Size = UDim2.new(0, 560, 0, 60)
@@ -204,6 +233,20 @@ local function render(lobby)
 	phaseLine.TextWrapped = true
 	countdownLine.Text = lobby.countdown > 0 and ("countdown: %ds"):format(lobby.countdown) or ""
 
+	-- the BIG center countdown: game start is green + loud; the host setup
+	-- window shows amber so nobody mistakes the two
+	if lobby.countdown > 0 and lobby.phase == "starting" then
+		bigCountdown.Text = ("GAME STARTS IN %d"):format(lobby.countdown)
+		bigCountdown.TextColor3 = Color3.fromRGB(140, 255, 170)
+		bigCountdown.Visible = true
+	elseif lobby.countdown > 0 and lobby.phase == "setup" then
+		bigCountdown.Text = ("HOST IS SETTING UP - %d"):format(lobby.countdown)
+		bigCountdown.TextColor3 = Color3.fromRGB(255, 220, 140)
+		bigCountdown.Visible = true
+	else
+		bigCountdown.Visible = false
+	end
+
 	for _, child in ipairs(seatsFrame:GetChildren()) do
 		if child:IsA("Frame") then
 			child:Destroy()
@@ -260,7 +303,17 @@ remote.OnClientEvent:Connect(function(msg)
 	if typeof(msg) ~= "table" then
 		return
 	end
-	if msg.t == "greeting" then
+	if msg.t == "toast" then
+		toastLabel.Text = tostring(msg.text)
+		toastLabel.Visible = true
+		toastGen += 1
+		local gen = toastGen
+		task.delay(5, function()
+			if gen == toastGen then
+				toastLabel.Visible = false
+			end
+		end)
+	elseif msg.t == "greeting" then
 		greeting.Visible = true
 		task.delay(8, function()
 			greeting.Visible = false

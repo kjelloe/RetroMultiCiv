@@ -516,6 +516,38 @@ and shows A87 verdict strings (VERIFIED / MISMATCH at entry N).
 Controls: |< -1 +1 >|, click-to-jump bar (no drag slider), view
 cycle. Scrubs re-derive from turn 0 (v2: feed-anchor cache).
 
+### 3s. Run-4 playability fixes (user live session 2026-07-17)
+
+Root cause of "lobby broken + no map" (F1 witness in
+roblox/debugging/): the server built the deck AFTER the seconds-long
+data gate and destroyed the Baseplate at boot END — players spawned
+on the Baseplate, it vanished under them, and pre-game there is no
+other floor (VoidCover builds on the first view) — an endless fall.
+Fixes, in boot order:
+- deck + SpawnLocation + a PERMANENT touch-teleport catch floor
+  (y=-20, bounces to the deck) build FIRST; Baseplate destroyed
+  only after; pre-existing characters teleported to the deck.
+- STRAY SpawnLocations (the place template carries one — Roblox
+  picks among ALL spawns) are anchored + moved flush onto the deck
+  floor plane at boot.
+- a data-gate failure now plants a RED SIGN over the deck (silent
+  server death read as an empty void scene).
+- camera: follow-avatar is the JOIN DEFAULT and tracks height (the
+  deck lives at y~141, above the old 0..100 focus clamp).
+- ONE COMMON PLANE (user ruling): spawn plate, lobby pads, and the
+  ACTION STRIP are flush tiles in the deck floor (+0.06 reveal).
+- lobby pads are WALK-ON (touch triggers, 1.5s/player debounce;
+  E-hold prompt = backup) and EVERY touch answers: act, or a toast
+  explaining why the pad doesn't apply right now (join-with-no-host,
+  takeover-with-no-game, start-mid-game, seats full, already
+  seated/hosting — all covered).
+- `ActionPads.client.luau` (NEW): binds the shared action-strip
+  tiles; stepping on one fires the action for YOUR selected unit
+  (dims per-client when not applicable; DISBAND deliberately
+  excluded from walk-on).
+OPEN (user pick pending): avatar flow at game start — deck-resident
+(pads reachable, possession rides down) vs on-map (plate follows).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine

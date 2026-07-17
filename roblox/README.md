@@ -61,10 +61,15 @@ don't commit it.
    click (no drag) picks the logical tile (yellow cursor; clicking
    your own unit selects it — cyan cursor).
 5. Playing: the place boots GAMELESS (R9) — you spawn on the
-   observation deck in the sky. The START A NEW GAME pad makes you
-   host (60s window: map size / civs / human seats, then START GAME
+   observation deck in the sky, camera following your avatar. All
+   deck pads are WALK-ON: step onto a tile to trigger it (hold-E
+   works too), and a pad that doesn't apply right now tells you why
+   in a bottom-center message. STEP ON START A NEW GAME to host
+   (60s window: map size / civs / human seats, then START GAME
    → 30s countdown); JOIN GAME claims a seat while it counts; TAKE
    OVER AI CIV (during a game) seats you into a random vacant seat.
+   The action strip on the deck (FOUND/FORTIFY/WAIT/IRRIGATE/MINE/
+   ROAD/END TURN) acts on your selected unit the same way.
    Vacant seats play themselves (regent AI); admins can kick; chat
    is disabled by design. RESUME: the host's GET RESUME CODE button
    saves under the game code (DataStore); type a code into the idle
