@@ -2927,6 +2927,30 @@ Sieges (docs/15 §2.4) emerge from this rule nearly free.
 
 ## A82 — Map types: Continents / Pangaea / Archipelago (user note 2026-07-16, night close)
 
+**A82a IN PROGRESS (helper, blessed #904; measured finding #903):**
+the drunkard-walk generator MERGES walkers whenever land budget is
+meaningful, so parameters ALONE cannot make "Continents" mean SEPARATE
+masses — today's default (landPercent 32/5 walkers) is one supercontinent
++ caps, topologically the same as Pangaea (only water% differs 64 vs 60).
+Designed archipelago/islands numbers (28/24) measured as ~3.7 masses (not
+islands). RULINGS: (1) ship MEASURED-HONEST presets — continents {32,5}
+(identity default, byte-identical), pangaea {36,1}, archipelago {20,20}
+(~7.5 masses), islands {14,24} (~13 masses); honest one-line setup
+descriptions. (2) parameter-only = gamesim-golden-neutral BY IDENTITY
+(default path draws today's exact rng; goldens/scenario-002 untouched).
+(3) plumbing: setup dropdown + ?maptype= (module-eval, A45) + lobby-create
+validation + mapgen preset resolution before DEFAULTS + luau twin +
+per-(seed,type) world-hash anchors + per-size placement probe. A82a data
+block waits behind the bugfixer's engine window (rules.json lock); logic/
+plumbing proceed on disjoint files now.
+**A82b DEFERRED (user decision pending): TRUE multi-mass Continents** (a
+few SEPARATE landmasses = the classic boats-between-continents map = the
+user's actual intent) needs a walker-start-spacing engine change, as a
+NON-default preset (never touching the identity default). Surfaced to the
+user 2026-07-17 as the likely fast-follow; priority is their call. Also
+A82b: Big&Small (sizeSplit walker), sea-level/climate dropdowns, Terra
+(gated on A69).
+
 Civ 1's "Customize World" (land mass / temperature / climate / age
 — wiki verifies the authentic knob set) and the Civ 2-style map
 FORMS the user names: Continents, Pangaea, Archipelago (+ more as
