@@ -62,9 +62,15 @@ L5. MOBILE DEBUG OVERLAY — ?mlog=1: an on-screen scrollable overlay
     (client-only, any server) showing capturedErrors, ws frame
     types in/out, boot-progress marks — so a phone with no console can
     self-report. THEN use it to diagnose the real bug: mobile joined
-    the lobby + chatted, but game start showed NOTHING (suspect
-    renderer/WebGL init or the started-transition swallow — the
-    overlay tells us which). Pairs with specs/mobile-plan.md T0.
+    the lobby + chatted, but game start showed NOTHING. KEY NARROWING
+    (user X.6, 2026-07-18): SPECTATOR join from the same mobile WORKS
+    — the full WebGL view renders on the phone. Renderer EXONERATED;
+    the hang is in the SEATED-player start path: suspect the
+    started-frame handling for a seated client, the token/seat flow,
+    or an overlay/prompt awaiting input mobile never delivers
+    (key-only listener?). Diff the spectator boot path vs the seated
+    boot path — whatever seated does extra is the suspect list.
+    Pairs with specs/mobile-plan.md T0.
 (L4 = readme screenshot swap — user decision, human-workitems.)
 VISUAL-GOLDEN RIDER QUEUE (architect 2026-07-17 late): veteran-rim
 dark treatment on isLightColor discs (palette P3 finding — pre-existing
