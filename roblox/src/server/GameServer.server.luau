@@ -44,6 +44,19 @@ local expectedHashes = require(gameData:WaitForChild("RulesetHashes"))
 -- an endless fall that read as "lobby broken + no map" (user run-4). Now:
 -- deck + spawn + permanent catch floor exist BEFORE anything slow, and only
 -- then the Baseplate goes (it buries ocean columns, the R4 finding).
+-- run-4 (user ruling): the daylight cycle is SUSPENDED — permanent midday.
+-- Time-of-day comes back only as a planned special event ("dark times",
+-- undesigned). VoidCover's galaxy art mode overrides client-locally only.
+do
+	local Lighting = game:GetService("Lighting")
+	Lighting.ClockTime = 12
+	for _, inst in ipairs(Lighting:GetChildren()) do
+		if inst:IsA("Script") or inst:IsA("LocalScript") then
+			inst.Disabled = true -- no cycle drivers survive boot
+		end
+	end
+end
+
 local deck = Deck.build()
 do
 	local baseplate = workspace:FindFirstChild("Baseplate")
