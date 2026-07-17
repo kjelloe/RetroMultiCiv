@@ -159,7 +159,8 @@ screen; `?seed=N` fixed world skips it, `?civs=2..14` (size-capped via rules.max
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
 `?age=ancient..space` starting age (AI fast-forward + era tech grant,
 shared/fastforward.js), `?debug=1` per-command hashes, `?mock=1` static
-state). Play (phase-3
+state, `?mlog=1` on-screen boot/ws/error overlay for console-less
+devices [phones], `?palette=<mode>` display-palette override). Play (phase-3
 authoritative server): `node server/index.js [--port 8123] [--seed N]
 [--civs N] [--size medium] [--game saves/<id>.json] [--no-save]
 [--no-spectators] [--host IP]` hosts the client AND the game; open
