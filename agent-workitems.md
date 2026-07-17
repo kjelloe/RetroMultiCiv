@@ -39,6 +39,11 @@ assembly, parts appearing as built; pairs with N17's engine) →
 H9. ~~A58 pedia~~ STRUCK 2026-07-17 (A58a–d COMPLETE + committed;
 pedia-concepts.js is the ally's editorial draft, not helper work;
 prior-art catch #1068).
+VISUAL-GOLDEN RIDER QUEUE (architect 2026-07-17 late): veteran-rim
+dark treatment on isLightColor discs (palette P3 finding — pre-existing
+on Egyptian cream; assets.js small change, alters default gallery =
+visual-golden re-record; rides the NEXT visual-golden window, never
+opens one alone).
 H-NEXT (post-A54, architect 2026-07-17): DOCS LONG-TAIL SYNC from the
 reviewer sweep #1180 — server flags (--humans/--reset-seats/--public-*),
 protocol types (ping/pong, fullLog, joinListed, resumeByCode, skipTurn,
@@ -108,7 +113,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 473 tests), the item's own verification steps pass, related
+   (currently 484 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
