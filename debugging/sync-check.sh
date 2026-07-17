@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 if [ $# -ge 1 ]; then
   COUNT=$1
 else
-  COUNT=$(node --test test/ 2>&1 | grep -E "^# tests" | grep -oE "[0-9]+")
+  COUNT=$(node --test test/*.test.js 2>&1 | grep -E "^# tests" | grep -oE "[0-9]+")
 fi
 [ -z "$COUNT" ] && { echo "could not determine test count" >&2; exit 2; }
 echo "suite count: $COUNT"

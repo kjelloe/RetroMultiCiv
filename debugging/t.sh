@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 VERBOSE=0
 [ "${1:-}" = "-v" ] && { VERBOSE=1; shift; }
 TARGETS=("$@")
-[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(test/)
+[ ${#TARGETS[@]} -eq 0 ] && TARGETS=(test/*.test.js)
 
 OUT=$(node --test --test-reporter=tap "${TARGETS[@]}" 2>&1)
 STATUS=$?
