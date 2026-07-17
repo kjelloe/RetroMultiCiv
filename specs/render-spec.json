@@ -431,7 +431,7 @@
       "riflemen": "riflemen",
       "mech-inf": "apc",
       "cavalry": "mounted",
-      "knights": "mounted",
+      "knights": "knight",
       "chariot": "mounted",
       "armor": "tank",
       "catapult": "catapult",

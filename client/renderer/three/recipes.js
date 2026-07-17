@@ -81,6 +81,22 @@ export const UNIT_RECIPES = {
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.14, 0.11, -0.12], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
     { shape: 'cyl', size: [0.09, 0.09, 0.04], seg: 10, pos: [-0.14, 0.11, 0.12], rot: [1.5707963267948966, 0, 0], color: 'wheel' }
   ],
+  // A67d: the mounted horse+rider plus a couched lance (near-level wood shaft
+  // + metal tip carried past the horse's head) and a heater shield on the near
+  // side — knights read as armored cavalry vs the plain cavalry rider.
+  knight: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.3, 0], scale: [0.42, 0.16, 0.16], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.18, 0.42, 0], scale: [0.1, 0.2, 0.1], rot: [0, 0, -0.35], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.27, 0.5, 0], scale: [0.14, 0.08, 0.09], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.15, 0.13, -0.05], scale: [0.05, 0.19, 0.05], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.15, 0.13, 0.05], scale: [0.05, 0.19, 0.05], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.15, 0.13, -0.05], scale: [0.05, 0.19, 0.05], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.15, 0.13, 0.05], scale: [0.05, 0.19, 0.05], color: 'horse' },
+    { shape: 'cone', size: [0.17, 0.42], seg: 8, pos: [-0.06, 0.52, 0], scale: 0.7, color: 'cloth' },
+    { shape: 'cyl', size: [0.018, 0.018, 0.6], seg: 8, pos: [0.12, 0.5, 0.07], rot: [0, 0, -1.45], color: 'wood' },
+    { shape: 'cone', size: [0.03, 0.09], seg: 8, pos: [0.45, 0.54, 0.07], rot: [0, 0, -1.45], color: 'metal' },
+    { shape: 'box', size: [0.02, 0.16, 0.11], pos: [-0.04, 0.44, 0.1], color: 'metal' }
+  ],
   // A67: a real tracked TANK (was armor→siegeArmor, a generic box). Low wide
   // hull + two dark treads + a set-back turret + a long forward gun.
   tank: [
@@ -195,7 +211,7 @@ export const UNIT_SILHOUETTE = {
   settlers: 'wagon', caravan: 'wagon', diplomat: 'diplomat',
   militia: 'footSoldier', legion: 'footSoldier',
   phalanx: 'phalanx', musketeers: 'musketeers', riflemen: 'riflemen', 'mech-inf': 'apc',
-  cavalry: 'mounted', knights: 'mounted', chariot: 'mounted',
+  cavalry: 'mounted', knights: 'knight', chariot: 'mounted',
   armor: 'tank', catapult: 'catapult', cannon: 'siege', artillery: 'siege',
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',
   submarine: 'shipSub',

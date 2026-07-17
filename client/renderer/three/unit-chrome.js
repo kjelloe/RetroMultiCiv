@@ -20,6 +20,7 @@ export const RECIPE_CHROME = {
   riflemen:    { pennant: [-0.16, 0.3, 0.7] },
   wagon:       { pennant: [-0.3, 0.32, 0.7] },
   mounted:     { pennant: [-0.28, 0.34, 0.7] },
+  knight:      { pennant: [-0.28, 0.34, 0.7] }, // A67d: cavalry-line pennant
   siege:       { pennant: [-0.26, 0.3, 0.65] },
   tank:        { pennant: [-0.28, 0.3, 0.62] },
   apc:         { pennant: [-0.28, 0.3, 0.62] },
