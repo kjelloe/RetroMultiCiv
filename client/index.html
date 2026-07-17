@@ -34,26 +34,11 @@
   <div id="center-banner" class="hidden"></div>
   <div id="flash-banner" class="hidden"></div>
 
-  <details id="turn-log">
-    <summary>📜 Turn log</summary>
-    <div id="turn-list"></div>
-  </details>
-
-  <div id="name-dialog" class="panel hidden">
-    <div class="panel-head"><h3>🏛 Found city</h3></div>
-    <input id="name-input" type="text" maxlength="24" autocomplete="off">
-    <div class="panel-foot">
-      <button id="name-cancel">Cancel</button>
-      <button id="name-ok">Found city</button>
-    </div>
-  </div>
-
-  <div id="stack-panel" class="hidden">
-    <div class="group-title" id="stack-title">units on this tile</div>
-    <div id="stack-list"></div>
-    <button id="stack-city" class="hidden">Open city view</button>
-  </div>
-
+  <!-- A57: the left stack is a flex COLUMN anchored bottom-left — an expanded
+       panel pushes its neighbors instead of covering them, and ui/left-stack.js
+       keeps at most one open. Order top→bottom: Controls, Map overlays
+       (inserted here by ui/overlays.js), Turn log (the A45 lower-left anchor). -->
+  <div id="left-stack">
   <details id="help">
     <summary>⌨ Controls</summary>
     <ul>
@@ -89,6 +74,26 @@
       <li><b>Esc</b> — close panels</li>
     </ul>
   </details>
+  <details id="turn-log">
+    <summary>📜 Turn log</summary>
+    <div id="turn-list"></div>
+  </details>
+  </div>
+
+  <div id="name-dialog" class="panel hidden">
+    <div class="panel-head"><h3>🏛 Found city</h3></div>
+    <input id="name-input" type="text" maxlength="24" autocomplete="off">
+    <div class="panel-foot">
+      <button id="name-cancel">Cancel</button>
+      <button id="name-ok">Found city</button>
+    </div>
+  </div>
+
+  <div id="stack-panel" class="hidden">
+    <div class="group-title" id="stack-title">units on this tile</div>
+    <div id="stack-list"></div>
+    <button id="stack-city" class="hidden">Open city view</button>
+  </div>
 
   <div id="research-panel" class="panel hidden">
     <div class="panel-head"><h3>🔬 Research</h3><button class="panel-close" data-close="research-panel">✕</button></div>

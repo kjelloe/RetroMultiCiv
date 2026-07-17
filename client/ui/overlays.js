@@ -98,7 +98,12 @@ export function initOverlays(ctx) {
   }
   panel.appendChild(body);
   panel.addEventListener('toggle', persist);
-  document.body.appendChild(panel);
+  // A57: the panel lives in the left-stack flex column, between Controls and
+  // the Turn log (expansion pushes neighbors; ui/left-stack.js adds the
+  // one-open rule). Body fallback keeps stack-less harnesses working.
+  const stack = document.getElementById('left-stack');
+  if (stack) stack.insertBefore(panel, document.getElementById('turn-log'));
+  else document.body.appendChild(panel);
 
   function persist() {
     if (ctx.options) ctx.options.set('overlays', { open: panel.open, active });

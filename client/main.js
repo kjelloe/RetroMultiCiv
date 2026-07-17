@@ -15,6 +15,7 @@ import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
+import { initLeftStack } from './ui/left-stack.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -379,6 +380,7 @@ initInput(ctx);
 initSaves(ctx);
 ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
+initLeftStack(); // A57: one open left-stack panel at a time (after overlays inserts)
 ctx.regency = initRegency(ctx);   // A40: AI regency (🤖 auto turn)
 ctx.replay = initReplay(ctx);     // A47: post-game replay theater
 ctx.historian = initHistorian(ctx); // A75: the age-change historian's report

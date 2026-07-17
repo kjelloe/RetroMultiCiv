@@ -101,11 +101,23 @@ html, body {
   border-color: #3b5d8f;
 }
 
-/* --- collapsible help (bottom left) --- */
-#help {
+/* A57: the left stack — a flex COLUMN anchored bottom-left. Panels are static
+   flex children (order in the DOM: Controls, Map overlays, Turn log — the A45
+   top→bottom order), so an expanded panel PUSHES its neighbors up instead of
+   covering them; ui/left-stack.js keeps at most one open. */
+#left-stack {
   position: absolute;
-  bottom: 92px; /* A45 left-stack order top→bottom: Controls, Overlays, Turn log */
+  bottom: 12px;
   left: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  z-index: 5;
+}
+
+/* --- collapsible help (top of the left stack) --- */
+#help {
   max-height: 70vh;
   overflow-y: auto;
   background: rgba(10, 16, 28, 0.9);
@@ -117,15 +129,8 @@ html, body {
   user-select: none;
 }
 
-#help {
-  z-index: 6; /* above the turn log so every hint is readable when open */
-}
-
 /* A45: the Map overlays panel — middle of the left stack */
 #map-overlays {
-  position: absolute;
-  bottom: 52px;
-  left: 12px;
   background: rgba(10, 16, 28, 0.9);
   border: 1px solid #2a3a55;
   border-radius: 6px;
@@ -133,7 +138,6 @@ html, body {
   font-size: 12px;
   padding: 6px 10px;
   user-select: none;
-  z-index: 5;
 }
 #map-overlays summary {
   cursor: pointer;
@@ -1414,11 +1418,8 @@ html, body {
   display: none;
 }
 
-/* --- turn log (bottom left, above the controls) --- */
+/* --- turn log (bottom of the left stack — the A45 lower-left anchor) --- */
 #turn-log {
-  position: absolute;
-  bottom: 12px; /* A45: the Turn log holds the lower-left anchor */
-  left: 12px;
   max-width: 380px;
   max-height: 45vh;
   overflow-y: auto;
@@ -1429,7 +1430,6 @@ html, body {
   font-size: 12px;
   padding: 6px 10px;
   user-select: none;
-  z-index: 4;
 }
 
 #turn-log summary {
