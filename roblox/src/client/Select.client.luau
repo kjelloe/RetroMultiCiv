@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- R14
 
 local TILE = ClientState.TILE
 local camera = workspace.CurrentCamera
@@ -86,6 +87,9 @@ local function handlePick(tx, ty)
 	local view = ClientState.view
 	if view == nil then
 		return
+	end
+	if GoToPlan.pick(tx, ty) then
+		return -- R14: armed GoTo consumed the pick as its destination
 	end
 	local tile = view.map.tiles[ty * view.map.width + tx + 1]
 	local own = ClientState.ownUnitAt(tx, ty)
@@ -179,10 +183,13 @@ UserInputService.InputEnded:Connect(function(input)
 	handlePick(tx, ty)
 end)
 
--- ---- keys: B found city, Return end turn -----------------------------------
+-- ---- keys: B found city, O GoTo, Return end turn ---------------------------
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
 		return
+	end
+	if UserInputService:GetFocusedTextBox() ~= nil then
+		return -- chat/textbox focus: game keys stay dead (house pattern)
 	end
 	local view = ClientState.view
 	if view == nil then
@@ -197,6 +204,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		else
 			print("[Select] found city: select a settlers unit first")
 		end
+	elseif input.KeyCode == Enum.KeyCode.O then
+		-- R14: O arms GoTo target-pick for the selected unit (O again cancels)
+		GoToPlan.arm()
 	elseif input.KeyCode == Enum.KeyCode.Return then
 		if ClientState.myTurn() then
 			print("[Select] end turn " .. view.turn)
@@ -207,4 +217,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[Select] R4 actions up: click select/move, B found city, Return end turn")
+print("[Select] actions up: click select/move, B found city, O GoTo, Return end turn")
