@@ -9,7 +9,8 @@
 import { adviceGate, SEEN_KEY } from './advice-gate.js';
 
 // id → { title, text }. Kept short — a nudge, not a manual.
-const ADVICE = {
+// exported for the audit gate in test/advice.test.js (cards ↔ pedia links)
+export const ADVICE = {
   'unit-selected': { title: 'Moving units', text: 'Click a unit to select it, then click an adjacent tile to move. The action bar along the bottom holds its orders — fortify, sentry, and GoTo for longer journeys.' },
   'settler': { title: 'Founding a city', text: 'Settlers build your empire. Move one onto good ground — grassland near water is ideal — and use the Found City action (B) to plant a city there.' },
   'city-view': { title: 'Running a city', text: 'Open a city to choose what it builds and where its citizens work. When it finishes, pick something new or it falls back to building militia.' },
@@ -68,11 +69,14 @@ function loadSeen() {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch (e) { return {}; }
 }
 
-// A58c: advice id → the pedia concept it deepens (a '📖 More' link on the card)
-const ADVICE_PEDIA = {
+// A58c: advice id → the pedia concept it deepens (a '📖 More' link on the card).
+// Audit (#1069): settler + tech-choice linked; unit-selected and regent stay
+// UNLINKED on purpose — no concept covers movement basics or regency yet (a
+// future concepts pass adds them; a near-miss link is worse than none).
+export const ADVICE_PEDIA = {
   disorder: 'disorder', 'save-code': 'gamecode', 'combat-hover': 'veterancy',
   'first-contact': 'zoc', 'low-treasury': 'upkeep', 'fortify-garrison': 'garrison',
-  'city-view': 'happiness'
+  'city-view': 'happiness', settler: 'cities', 'tech-choice': 'research'
 };
 
 export function initAdvice(ctx) {

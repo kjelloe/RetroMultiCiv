@@ -37,3 +37,12 @@ test('render spec shape: every section the ally parses is present and sane', () 
   }
   assert.strictEqual(spec.anim.glideMs, 200, 'A28 glide constant');
 });
+
+test('the unitSilhouette key replaced typeClasses (loud break for stale readers)', () => {
+  const spec = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'specs', 'render-spec.json'), 'utf8'));
+  assert.strictEqual(spec.models.typeClasses, undefined,
+    'typeClasses must be GONE — its shape changed during A88b, stale readers must break loudly');
+  const recipes = require('../data/assets/asset-recipes.json');
+  assert.deepStrictEqual(spec.models.unitSilhouette, recipes.unitSilhouette,
+    'unitSilhouette mirrors the generated recipe mapping');
+});

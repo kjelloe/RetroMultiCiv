@@ -18,7 +18,7 @@ every run — the committed file cannot silently lag the code.
 | `terrain.tiles` (heights, jitter, palettes) | `client/renderer/three/terrain.js` `TERRAIN` |
 | `terrain.waterLevel` | `client/renderer/three/props.js` `WATER_LEVEL` |
 | `factions` (visuals, emblem list, light-color rim rule) | `data/civs.json` + `client/renderer/three/factions.js` |
-| `models.geometries` / `neutralColors` / `typeClasses` / `cityTiers` | `client/renderer/three/assets.js` |
+| `models.geometries` / `neutralColors` / `unitSilhouette` / `cityTiers` | `client/renderer/three/assets.js` |
 | `models.builders` (procedural silhouettes, described not faked) | `client/renderer/three/assets.js` builder functions |
 | `props.colors` | `client/renderer/three/props.js` `PROP_COLOR` |
 | `anim` (sway/glide/smoke/flash constants) | `client/renderer/three/anim.js` |

@@ -64,3 +64,18 @@ test('fortifyGarrisonWhen: an ungarrisoned own city while an enemy is known', as
   // no enemy visible → never fires, even ungarrisoned
   assert.strictEqual(fortifyGarrisonWhen(crafted({ cities: cityAt, units: {} }), 'p1'), false, 'no enemy → no nag');
 });
+
+// #1069 audit gate: every pedia link names a real card AND a real concept;
+// the two deliberately-unlinked cards stay documented here.
+test('ADVICE_PEDIA links are valid both ways; unlinked cards are the known two', async () => {
+  const { ADVICE, ADVICE_PEDIA } = await loadAdvice();
+  const { CONCEPTS } = await import('../client/ui/pedia-concepts.js');
+  const conceptIds = CONCEPTS.map(c => c.id);
+  for (const [cardId, conceptId] of Object.entries(ADVICE_PEDIA)) {
+    assert.ok(ADVICE[cardId], `link key "${cardId}" must be a real advice card`);
+    assert.ok(conceptIds.includes(conceptId), `"${cardId}" links to unknown concept "${conceptId}"`);
+  }
+  const unlinked = Object.keys(ADVICE).filter(id => ADVICE_PEDIA[id] === undefined).sort();
+  assert.deepStrictEqual(unlinked, ['regent', 'unit-selected'],
+    'only the two no-matching-concept cards stay unlinked (add the link when the concept lands)');
+});

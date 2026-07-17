@@ -79,7 +79,12 @@ function build() {
   // A88b: the type→silhouette-recipe map is DATA (UNIT_SILHOUETTE, generated to
   // asset-recipes.json). createUnitMesh reads it + unit-chrome.js — no per-type
   // set to parse out of assets.js.
-  const typeClasses = JSON.parse(read('data/assets/asset-recipes.json')).unitSilhouette;
+  // Key renamed typeClasses -> unitSilhouette (reviewer advisory post-A88b):
+  // the value's SHAPE changed under the old name during A88b (class->[types]
+  // arrays became a type->recipe map), so the self-describing name replaces
+  // it — an out-of-repo reader breaks LOUDLY on the missing key instead of
+  // silently misreading the new shape.
+  const unitSilhouette = JSON.parse(read('data/assets/asset-recipes.json')).unitSilhouette;
   const builders = { // the composer + its procedural chrome (bodies are recipe data)
     baseToken: { procedural: true, description: 'ownership disc (faction primary, dimmed when out of moves) + dark rim for light civs + gold veteran rim + fortified shield chip' },
     pennant: { procedural: true, description: 'pole + primary flag + secondary emblem dot on a sway hinge at the pole top' },
@@ -128,7 +133,7 @@ function build() {
       emblems,
       civs: factions
     },
-    models: { geometries: geo, neutralColors: neutral, typeClasses, cityTiers, builders },
+    models: { geometries: geo, neutralColors: neutral, unitSilhouette, cityTiers, builders },
     props: { colors: propColors, placement: { procedural: true, description: 'deterministic visualRand(x, y, salt) hash — identical across clients, never touches game state' } },
     anim
   };

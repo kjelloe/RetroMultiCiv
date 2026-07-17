@@ -420,7 +420,7 @@
       "hull": "#8a8f96",
       "darkMetal": "#5a5f52"
     },
-    "typeClasses": {
+    "unitSilhouette": {
       "settlers": "wagon",
       "caravan": "wagon",
       "diplomat": "diplomat",
