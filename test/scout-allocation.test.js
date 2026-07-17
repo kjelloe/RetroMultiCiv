@@ -50,7 +50,7 @@ const M = (id, x) => ({ id, type: 'militia', x, y: 2 });
 
 test('B23b: the quota picks the NEWEST N militia by city COUNT (1 city -> 1, 2 -> 3)', async () => {
   const ai = await load();
-  const r = withRules({}); // default aiScoutQuotaByCities {1:1,2:3,3:5}
+  const r = withRules({ aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } }); // pin the table under test (mechanism, not the tunable default)
   const one = world(1, [M('u1', 6), M('u2', 7), M('u3', 8)]);
   assert.strictEqual(ai.isScout(one, 'p1', r, 'u3', S), true, '1 city, quota 1: newest militia scouts');
   assert.strictEqual(ai.isScout(one, 'p1', r, 'u2', S), false, 'older militia garrison');
@@ -61,7 +61,7 @@ test('B23b: the quota picks the NEWEST N militia by city COUNT (1 city -> 1, 2 -
 
 test('B23b: the quota CLAMPS to the max key (4 cities uses the "3" bucket = 5)', async () => {
   const ai = await load();
-  const r = withRules({});
+  const r = withRules({ aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } });
   const st = world(4, [M('u1', 6), M('u2', 7), M('u3', 8), M('u4', 9), M('u5', 10), M('u6', 11)]);
   assert.strictEqual(ai.isScout(st, 'p1', r, 'u1', S), false, 'oldest of 6 is outside the newest-5 quota');
   for (const id of ['u2', 'u3', 'u4', 'u5', 'u6']) assert.strictEqual(ai.isScout(st, 'p1', r, id, S), true, `${id} within the clamped quota of 5`);
@@ -83,8 +83,8 @@ test('B23b: aiFastScoutCount tags fast (moves>=2) units BEYOND the militia quota
   // 1 city, quota 1 -> newest militia u3 scouts; the OLD cavalry u1 is outside
   // the militia quota but joins via the fast pool when aiFastScoutCount >= 1.
   const units = [{ id: 'u1', type: 'cavalry', x: 6, y: 2 }, M('u2', 7), M('u3', 8)];
-  const on = withRules({ aiFastScoutCount: 2 });
-  const off = withRules({ aiFastScoutCount: 0 });
+  const on = withRules({ aiFastScoutCount: 2, aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } });
+  const off = withRules({ aiFastScoutCount: 0, aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } });
   assert.strictEqual(ai.isScout(world(1, units), 'p1', on, 'u1', S), true, 'fast unit scouts via the fast pool');
   assert.strictEqual(ai.isScout(world(1, units), 'p1', off, 'u1', S), false, 'count 0 -> the old cavalry is not a scout (only the quota militia)');
 });
@@ -92,8 +92,8 @@ test('B23b: aiFastScoutCount tags fast (moves>=2) units BEYOND the militia quota
 test('B23b: aiBoatScoutCount tags sea units (coastal scouting; naval-probe gated)', async () => {
   const ai = await load();
   const units = [{ id: 'u1', type: 'sail', x: 6, y: 2 }, M('u2', 7)];
-  const on = withRules({ aiBoatScoutCount: 1 });
-  const off = withRules({ aiBoatScoutCount: 0 });
+  const on = withRules({ aiBoatScoutCount: 1, aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } });
+  const off = withRules({ aiBoatScoutCount: 0, aiScoutQuotaByCities: { '1': 1, '2': 3, '3': 5 } });
   assert.strictEqual(ai.isScout(world(1, units), 'p1', on, 'u1', S), true, 'sea unit scouts via the boat pool');
   assert.strictEqual(ai.isScout(world(1, units), 'p1', off, 'u1', S), false, 'count 0 -> no boat scout');
 });
@@ -107,3 +107,4 @@ test('B23b: an ABSENT quota table falls back to the flat aiScoutSharePct share',
   assert.strictEqual(ai.isScout(st, 'p1', r, 'u4', S), true, 'fallback: newest of the flat share scouts');
   assert.strictEqual(ai.isScout(st, 'p1', r, 'u3', S), false, 'fallback share is 1 of 4');
 });
+
