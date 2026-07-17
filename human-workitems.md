@@ -33,11 +33,15 @@ the Done log at the bottom.
   (tank/apc/catapult/diplomat/phalanx/musket/rifle/knight/carrier).
 
 **AUTHOR WITH THE ALLY (v1 drafts marked, awaiting your voice):**
-- [ ] **Pedia concept prose** — HANDOFF READY: `specs/pedia-concepts-draft.md`
-  (the 11 v1 drafts + constraints + per-entry ALLY: edit blocks). Share
-  with the ally like the leader-dialogue specs; he edits in prose, the
-  helper folds his final text verbatim into `client/ui/pedia-concepts.js`
-  (golden-neutral). He may add/cut concepts.
+- [x] **Pedia concept prose** — DONE 2026-07-17: ally editorial pass folded
+  verbatim (d2200f1). 14 entries now (11 revised + 3 new: cities & worked
+  tiles, research & tech tree, buildings & wonders), first-game learning-path
+  order. ONE OPEN CONSISTENCY POINT: the ally corrected the game-code entry to
+  "not a password / does not grant access — a state-match check," which is
+  more accurate, but A98's how-to-host doc + lobby UI still call the game code
+  the "resume passphrase." Small doc/UI language cleanup to align them (queue
+  if you want it) — not a feature change (A98 uses the code to identify which
+  save to resume, i.e. a lookup key, which matches the ally's framing).
 - [ ] **Art review-table eyeball** — the gallery now renders distinct
   silhouettes for tank/APC/catapult/diplomat/phalanx/musketeers/
   riflemen/knights/carrier; bomber+nuclear are the last two. Screenshot
