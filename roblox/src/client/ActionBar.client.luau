@@ -8,10 +8,12 @@
 -- GoTo/pathfind: deferred (flagged @b3084114) — Select's click-move covers it.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCActionBar"
@@ -60,10 +62,11 @@ local roadBtn = addButton(7, "Road (R)", 70)
 local possessBtn = addButton(8, "Ride (P)", 80)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
--- reserved for diplomacy + statistics later)
+-- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
+-- live research-status line sits beside the Research button.
 local cluster = Instance.new("Frame")
-cluster.Size = UDim2.new(0, 220, 0, 30)
-cluster.Position = UDim2.new(0.5, -110, 0, 6)
+cluster.Size = UDim2.new(0, 560, 0, 30)
+cluster.Position = UDim2.new(0.5, -280, 0, 6)
 cluster.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 cluster.BackgroundTransparency = 0.25
 cluster.BorderSizePixel = 0
@@ -76,6 +79,7 @@ clusterLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 clusterLayout.Parent = cluster
 
 local researchBtn = Instance.new("TextButton")
+researchBtn.LayoutOrder = 1
 researchBtn.Size = UDim2.new(0, 110, 0, 24)
 researchBtn.BackgroundColor3 = DISABLED
 researchBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
@@ -83,6 +87,30 @@ researchBtn.Font = Enum.Font.SourceSansBold
 researchBtn.TextSize = 15
 researchBtn.Text = "Research (T)"
 researchBtn.Parent = cluster
+
+-- R12 (5): always-visible research status (tech + turns remaining)
+local researchStatus = Instance.new("TextLabel")
+researchStatus.LayoutOrder = 2
+researchStatus.Size = UDim2.new(0, 260, 0, 24)
+researchStatus.BackgroundTransparency = 1
+researchStatus.TextColor3 = Color3.fromRGB(180, 210, 240)
+researchStatus.Font = Enum.Font.SourceSansBold
+researchStatus.TextSize = 15
+researchStatus.TextXAlignment = Enum.TextXAlignment.Left
+researchStatus.Text = ""
+researchStatus.Parent = cluster
+
+-- R12 (2): government button — panel hosts the rate steppers (and later
+-- the government switch)
+local governmentBtn = Instance.new("TextButton")
+governmentBtn.LayoutOrder = 3
+governmentBtn.Size = UDim2.new(0, 120, 0, 24)
+governmentBtn.BackgroundColor3 = DISABLED
+governmentBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
+governmentBtn.Font = Enum.Font.SourceSansBold
+governmentBtn.TextSize = 15
+governmentBtn.Text = "Government"
+governmentBtn.Parent = cluster
 
 local function selectedUnit()
 	local view = ClientState.view
@@ -199,16 +227,46 @@ end)
 researchBtn.Activated:Connect(function()
 	ClientState.openResearch()
 end)
+governmentBtn.Activated:Connect(function()
+	ClientState.openGovernment()
+end)
 possessBtn.Activated:Connect(function()
-	-- Possess.client.luau owns the mode; the button is a P-key surrogate for
-	-- discoverability, so it only narrates where the real control lives
-	print("[ActionBar] possession: select an own unit and press P (F dismounts)")
+	-- R12 (6): the button IS the P toggle now — ride the selected unit or
+	-- dismount; Possess.client.luau owns the mode (nil request = dismount)
+	if ClientState.possessedUnitId ~= nil then
+		ClientState.requestPossess(nil)
+	elseif ClientState.selectedUnitId ~= nil then
+		ClientState.requestPossess(ClientState.selectedUnitId)
+	else
+		print("[ActionBar] select one of your units first (or press N)")
+	end
 end)
 
 -- ---- context refresh (selection isn't evented; cheap per-frame compare).
 -- R7b (11): the Research button BLINKS while research is unset on your turn
 -- (the blink phase joins the key so the repaint keeps ticking).
 local BLINK = Color3.fromRGB(90, 160, 235)
+
+-- R12 (5): "researching: <tech> · ~N turns" from the same read-only engine
+-- math as the picker (cost via tech.researchCost, bulbs/turn via
+-- tech.playerIncome on a view shim, pcall — presentational only)
+local function researchLine(view, me)
+	if me.researching == nil then
+		return ClientState.myTurn() and "no research set!" or ""
+	end
+	local rs = ClientState.rulesets()
+	local def = rs.techs[me.researching]
+	local line = "researching: " .. (def and def.name or me.researching)
+	local cost = techModule.researchCost({ players = { [view.you] = me } }, view.you, rs)
+	local shim = { players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, map = view.map }
+	local ok, income = pcall(techModule.playerIncome, shim, view.you, rs)
+	if ok and income ~= nil and (income.bulbs or 0) > 0 then
+		line ..= (" - %d turns"):format(math.ceil(math.max(0, cost - (me.bulbs or 0)) / income.bulbs))
+	end
+	return line
+end
+
 local lastKey = nil
 RunService.Heartbeat:Connect(function()
 	local view = ClientState.view
@@ -216,13 +274,21 @@ RunService.Heartbeat:Connect(function()
 	local me = view and view.players[view.you]
 	local needBlink = ClientState.myTurn() and me ~= nil and me.researching == nil
 	local phase = needBlink and (math.floor(os.clock() * 2) % 2) or 0
+	local mounted = ClientState.possessedUnitId ~= nil
 	local key = (view and view.turn or -1) .. "|" .. tostring(u and u.id) .. "|"
 		.. tostring(u and u.moves) .. "|" .. tostring(ClientState.myTurn())
-		.. "|" .. tostring(needBlink) .. phase
+		.. "|" .. tostring(needBlink) .. phase .. "|" .. tostring(mounted)
+		.. "|" .. tostring(me and me.researching) .. "|" .. tostring(me and me.bulbs)
 	if key == lastKey then
 		return
 	end
 	lastKey = key
+	-- R12 (6): the ride button mirrors mount state
+	possessBtn.Text = mounted and "Dismount (P)" or "Ride (P)"
+	if me ~= nil then
+		researchStatus.Text = researchLine(view, me)
+	end
+	governmentBtn.BackgroundColor3 = view ~= nil and ENABLED or DISABLED
 	foundBtn.BackgroundColor3 = can("found") and ENABLED or DISABLED
 	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
 	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED
@@ -261,4 +327,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[ActionBar] R6 action bar up (G fortify, Space wait, X disband, I/M/R work)")
+print("[ActionBar] action bar up (G fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")

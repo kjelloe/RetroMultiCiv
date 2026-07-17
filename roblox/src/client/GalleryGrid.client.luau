@@ -6,6 +6,8 @@
 -- Screenshot of this grid vs the browser's debugging/gallery.html is the
 -- R8 acceptance artifact. Render-only; nothing here touches the game.
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
@@ -106,6 +108,23 @@ local function build()
 		:format(#keys, #propKeys, Y))
 end
 
+local function toggle()
+	if folder ~= nil then
+		folder:Destroy()
+		folder = nil
+		print("[Gallery] grid down")
+	else
+		local ok, err = pcall(build)
+		if not ok then
+			print("[Gallery] build failed: " .. tostring(err))
+			if folder ~= nil then
+				folder:Destroy()
+				folder = nil
+			end
+		end
+	end
+end
+
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or input.UserInputType ~= Enum.UserInputType.Keyboard then
 		return
@@ -114,21 +133,28 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		return
 	end
 	if input.KeyCode == Enum.KeyCode.K then
-		if folder ~= nil then
-			folder:Destroy()
-			folder = nil
-			print("[Gallery] grid down")
-		else
-			local ok, err = pcall(build)
-			if not ok then
-				print("[Gallery] build failed: " .. tostring(err))
-				if folder ~= nil then
-					folder:Destroy()
-					folder = nil
-				end
-			end
-		end
+		toggle()
 	end
 end)
 
-print("[Gallery] R8 gallery grid ready (K toggles; fly there or zoom out)")
+-- R12 (9): dev-only DEBUG button hosting the gallery toggle (K stays its
+-- hotkey); Studio-gated so published places never show it. The future A92
+-- debug-command menu rides this same button.
+if RunService:IsStudio() then
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "RMCDebug"
+	gui.ResetOnSpawn = false
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 70, 0, 24)
+	btn.Position = UDim2.new(0, 8, 0.5, -12)
+	btn.BackgroundColor3 = Color3.fromRGB(70, 46, 46)
+	btn.TextColor3 = Color3.fromRGB(235, 210, 210)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 14
+	btn.Text = "DEBUG"
+	btn.Parent = gui
+	btn.Activated:Connect(toggle)
+end
+
+print("[Gallery] R8 gallery grid ready (K or the Studio DEBUG button toggles)")

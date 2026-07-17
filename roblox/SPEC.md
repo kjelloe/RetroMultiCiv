@@ -396,6 +396,37 @@ renderers compose the SAME primitives from it.
 - check.sh gate 5: `build.js --keys` — every units.json id resolves
   through `unitSilhouette` to a real recipe, both directions.
 
+### 3l. R12 — Playtest-C batch (user's runC feedback, numbering kept)
+
+- (2) `GovernmentPanel.client.luau` (NEW): opened by the ActionBar's
+  top-center **Government** button; hosts the tax/lux/sci steppers
+  (MOVED from the research picker) + the current-government line;
+  government switching lands here later. Same stepper semantics
+  (±10 into science, server judges caps).
+- (3) unit billboards: SourceSansBold 22 (was Code 11), 2× and wider.
+- (4) city billboards ALWAYS-ON: name + pop + production + ~turns
+  left. Fog-honest by construction (view fields only); turns-left is
+  presentational math via read-only `cities.cityYields` on a view
+  shim, pcall'd — the line drops when the view can't support it.
+- (5) live research status beside the Research button: current tech
+  + turns remaining (researchCost + playerIncome shims, pcall'd).
+- (6) Ride ↔ Dismount: the P key AND the action-bar button toggle
+  with mount state (a nil possess-request is the dismount half).
+- (7) Next while DISMOUNTED moves selection + camera only (N key and
+  the auto-next option both); the avatar never teleports. Mounted
+  Next still jumps the ride.
+- (9) dev-only **DEBUG** button (Studio-gated via RunService:IsStudio,
+  left edge) hosting the K-gallery toggle; the A92 debug menu rides
+  this button later. Pyramid saga: the roof was BURIED (gallery
+  perch pos 0.25 → 1.0; recipe pos = cone center, three convention)
+  AND inside-out (CornerWedge apexes outward — fixed with +180 yaw
+  in `pyramid()`, proven by the user's model-house-fail1.png).
+- (10) opening lockout: default spawn = unexplored tile = fall
+  through fog void onto the catch floor UNDER the map. Fix: every
+  CharacterAdded (+ first-view boot case) places the avatar on an
+  own unit's tile, settlers preferred (`Possess.client.luau`).
+- Cone pick = FAN (user, final); stack stays gallery-side only.
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -500,23 +531,30 @@ Stop) are hash-verified but must not skew the code check.
 - R7 (Playtest-B batch): claimed 2026-07-16 @d11b4054. R7a (§3h, the
   8-item UI sweep): **CODE-COMPLETE 2026-07-16**, check.sh 27 gates.
   R7b (§3i, billboards / site stars / discovery splash / void
-  cover): **CODE-COMPLETE 2026-07-16**, check.sh 28 gates; the void
-  art pick (frame vs galaxy) waits on the user's screenshots. R7c
-  is design-first with the architect — not started by order.
+  cover): **CODE-COMPLETE 2026-07-16**, check.sh 28 gates. R7c
+  is design-first with the architect — not started by order;
+  R7c-3 (worked-tile 3D proposal) drafted @e87d97d8, user look
+  pending.
 - R7d (§3j, Tier-1 close-out): **CODE-COMPLETE + ACCEPTED
-  2026-07-16** (@d6294b0c, pending post-push review) — odds preview
+  2026-07-16** (@d6294b0c) — odds preview
   (cross-engine spot-check byte-identical on three setups), game-code
-  chip, city list, fog-structural statistics, three-state End Turn;
-  check.sh 31 gates. Acceptance: runC folds R7a+R7b+R7d + the run2
-  leftovers (setRates, fog verdict, per-surface screenshots incl.
-  both void variants).
+  chip, city list, fog-structural statistics, three-state End Turn.
+- runC ACCEPTANCE (2026-07-17, `acceptance/runC.txt`): 242 commands /
+  68 rounds ALL HASHES MATCH, code `B6BM-YT9Y-8HY2C` agrees; setRates
+  x4 closed the LAST unexercised command path; zero errors. R7a/b/d
+  **ACCEPTED** (architect @af878fe2). VOID PICK = **FRAME** (already
+  the boot default; galaxy goes to art round 2 — denser/deeper, own
+  the sky). Fog verdict still open.
 - R8 (§3k, AssetFactory): **CODE-COMPLETE 2026-07-16** (claimed
   @f35fc677) — recipes bake (fnv32 pin 12285661, MATCH verified via
   lune), composer with both cone variants, ViewRenderer bodies from
   data, gallery grid (K; F9 collided with the platform console),
-  check.sh gate 5 (keys); 35 gates.
-  Acceptance PENDING: the Studio gallery-grid screenshot vs the
-  browser gallery — the user judges cone fidelity (fan vs stack).
+  check.sh gate 5 (keys). CONE PICK = **FAN** (user, final).
+  Pyramid fixed twice (buried perch + inside-out apexes, §3l);
+  user's fresh grid screenshot pending.
+- R12 (§3l, Playtest-C batch): **CODE-COMPLETE 2026-07-17** (claimed
+  @bfdb09c0) — items (2)-(7),(9),(10) above; 37 gates. Studio
+  verification pending (the user's next session).
 
 ## 7. Shared-tree workflow (dev_night)
 

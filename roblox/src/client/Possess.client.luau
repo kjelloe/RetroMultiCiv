@@ -5,10 +5,11 @@
 -- applies, there is no free movement; the avatar is a costume, the engine is
 -- still the only mover. Keys are MAP-ABSOLUTE (W=N always): camera-relative
 -- would make identical recordings depend on where the camera pointed.
---   P            possess the selected own unit
---   N            possess the next own unit with moves left (sorted ids)
+--   P            TOGGLE: possess the selected own unit / dismount (R12 6)
+--   N            next own unit with moves left — mounted: ride it;
+--                dismounted: selection+camera ONLY, never the avatar (R12 7)
 --   WASD/arrows  step N/W/S/E (one engine command per press)
---   Esc / F      release to free cam
+--   F            release to free cam (Esc is menu-reserved)
 
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -139,9 +140,14 @@ local function nextUnit()
 end
 
 -- R7a (9): Select requests a ride (double-click on an own unit while
--- mounted); auto-next while mounted arrives the same way
+-- mounted); auto-next while mounted arrives the same way. R12 (6): a nil
+-- request is the dismount half of the toggle (ActionBar's button surrogate).
 ClientState.onPossessRequest(function(unitId)
-	possess(unitId)
+	if unitId == nil then
+		release("dismount")
+	else
+		possess(unitId)
+	end
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
@@ -157,17 +163,29 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 
 	if input.KeyCode == Enum.KeyCode.P then
-		if ClientState.selectedUnitId ~= nil then
+		-- R12 (6): P is a ride/dismount TOGGLE
+		if ClientState.possessedUnitId ~= nil then
+			release("dismount")
+		elseif ClientState.selectedUnitId ~= nil then
 			possess(ClientState.selectedUnitId)
 		else
 			print("[Possess] select one of your units first (or press N)")
 		end
 	elseif input.KeyCode == Enum.KeyCode.N then
 		local id = nextUnit()
-		if id ~= nil then
-			possess(id)
-		else
+		if id == nil then
 			print("[Possess] no units with moves left")
+		elseif ClientState.possessedUnitId ~= nil then
+			possess(id) -- mounted: jump the ride
+		else
+			-- R12 (7): dismounted Next moves selection + camera ONLY — the
+			-- avatar stays where it stands, never teleports
+			local u = ClientState.view.units[id]
+			ClientState.selectedUnitId = id
+			if u ~= nil then
+				ClientState.focusCamera(u.x, u.y)
+			end
+			print("[Possess] next unit selected: " .. id)
 		end
 	elseif ClientState.possessedUnitId ~= nil then
 		-- Esc is platform-reserved (Roblox menu) — F alone dismounts (SPEC §4 gate 6)
@@ -198,4 +216,4 @@ ClientState.onView(function(view)
 	pinCharacter(view.units[id])
 end)
 
-print("[Possess] R5 possession up: P possess selected, N next unit, WASD/arrows step, Esc/F release")
+print("[Possess] possession up: P ride/dismount toggle, N next unit (select-only afoot), WASD/arrows step, F dismount")
