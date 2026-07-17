@@ -8,6 +8,7 @@ import { createTileProps, WATER_LEVEL } from './props.js';
 import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
 import { createAnimLayer } from './anim.js';
 import { createOverlayLayer } from './overlays.js';
+import { displayColor, displayVisual } from '../../ui/palette.js';
 
 // terrain palette shared with the DOM UI (city view mini-map)
 export function terrainColor(terrainId) {
@@ -142,7 +143,11 @@ export function createRenderer(container) {
   // falls back to their plain player color — mock/test states, lobby games.
   let factions = {};
   function visualOf(pid) {
-    return factions[pid] || view.players[pid]?.color || '#ffffff';
+    // palette pass: every visual/color leaves through the display remap
+    // (identity unless a ⚙ palette mode is on — ui/palette.js)
+    const v = factions[pid];
+    if (v) return typeof v === 'string' ? displayColor(v) : displayVisual(v);
+    return displayColor(view.players[pid]?.color || '#ffffff');
   }
 
   function unitTop(x, y) {
@@ -278,7 +283,7 @@ export function createRenderer(container) {
     }
     disorderRings.length = 0;
     for (const city of Object.values(view.cities || {})) {
-      const color = view.players[city.owner]?.color || '#ffffff';
+      const color = displayColor(view.players[city.owner]?.color || '#ffffff'); // palette pass
       // the capital flies the CanvasTexture emblem flag (own cities carry
       // buildings in the view; rival shells only show walls — pennant then)
       const isCapital = (city.buildings || []).indexOf('palace') !== -1;

@@ -1,4 +1,5 @@
 // A45 Map overlays panel: Civ4-style toggleable data layers over EXPLORED
+import { displayColor } from './palette.js';
 // tiles only — pure view layer. Overlay choice is per-viewer UI state
 // (options store), NEVER game state, never in recordings. Derivations run
 // on the FOG-FILTERED view (filterView), so unknown tiles can never tint
@@ -33,7 +34,7 @@ const OVERLAYS = [
       const best = {};
       for (const cid of Object.keys(view.cities).sort()) {
         const c = view.cities[cid];
-        const color = view.players[c.owner] ? view.players[c.owner].color : '#ffffff';
+        const color = displayColor(view.players[c.owner] ? view.players[c.owner].color : '#ffffff'); // palette pass
         for (const off of [{ dx: 0, dy: 0 }].concat(FAT_CROSS)) {
           let nx = c.x + off.dx;
           if (wrapX) nx = ((nx % width) + width) % width;

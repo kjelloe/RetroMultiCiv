@@ -1,4 +1,5 @@
 // A75: the historian's report — a dismissable interstitial shown when the world
+import { displayColor } from './palette.js';
 // advances into a new age (an `ageChanged` event from the engine's turn wrap).
 // "The world enters the Industrial Age" + a global standings snapshot AT THAT
 // MOMENT: every civ ranked by score, with cities / techs / population. Scores
@@ -16,7 +17,7 @@ export function initHistorian(ctx) {
     return a ? a.name : id;
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
-  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : '#8899aa'; }
+  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? displayColor(c) : '#8899aa'; } // palette pass
 
   // world-public standings from the engine's components (score.js) + plain reads
   function standings(state) {

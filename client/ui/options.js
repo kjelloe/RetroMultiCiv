@@ -1,5 +1,6 @@
 // Player options (⚙, top right) and the gameplay Help panel (❓). Options
 // are client preferences in localStorage — never game state, never hashed.
+import { PALETTES } from './palette.js';
 const KEY = 'retromulticiv-options';
 const DEFAULTS = {
   autoEndTurn: false,     // end the turn as soon as every unit has moved
@@ -13,7 +14,8 @@ const DEFAULTS = {
   soundMaster: '70',      // A77: master volume 0-100 (string: it's a range input)
   soundEffects: true,     // A77: event sound effects (separate from reduceAnimation)
   soundMusic: true,       // A77: the creation + splash tunes
-  firstTimeTips: true     // A78: contextual first-timer advice (re-enable resets)
+  firstTimeTips: true,    // A78: contextual first-timer advice (re-enable resets)
+  civPalette: 'default'   // palette pass: display-time civ-color remap (ui/palette.js)
 };
 
 export function initOptions(ctx) {
@@ -71,7 +73,13 @@ export function initOptions(ctx) {
     </label>
     <label><input type="checkbox" data-opt="soundEffects"> Sound effects (combat, cities, discoveries, era changes)</label>
     <label><input type="checkbox" data-opt="soundMusic"> Music (world-creation and title themes)</label>
-    <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>`;
+    <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>
+    <label>Civ colors
+      <select data-opt="civPalette">
+        <option value="default">default</option>
+        ${Object.keys(PALETTES).map(m => `<option value="${m}">${m}</option>`).join('')}
+      </select>
+    </label>`;
   document.body.appendChild(panel);
 
   function syncPanel() {

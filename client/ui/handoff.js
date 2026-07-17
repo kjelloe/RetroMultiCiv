@@ -1,4 +1,5 @@
 // Hotseat hand-off screen (phase 2): a fully OPAQUE cover between human
+import { displayColor } from './palette.js';
 // turns, so neither player sees the other's fog-filtered map. The incoming
 // player's view is rendered underneath while covered; confirming only lifts
 // the cover. No state here — just the curtain.
@@ -35,7 +36,7 @@ export function initHandoff(ctx) {
   return {
     show(playerName, color, cb) {
       document.getElementById('handoff-title').textContent = `${playerName} — your turn`;
-      document.getElementById('handoff-title').style.color = color;
+      document.getElementById('handoff-title').style.color = displayColor(color); // palette pass
       // docs/07 §3.1: carry the last-save code so the player who wasn't holding
       // the keyboard still sees it.
       const codeEl = document.getElementById('handoff-code');

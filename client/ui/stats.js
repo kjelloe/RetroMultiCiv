@@ -1,4 +1,5 @@
 // A73-STATS: the statistics page — opened from the end screen's "View
+import { displayColor } from './palette.js';
 // statistics". A render-free sandbox replay of the recording (stats-data.js)
 // feeds per-civ TIME-SERIES line charts (score / cities / population / techs),
 // a BATTLES won-lost table, a WONDERS timeline, and AGE MARKERS (A75's
@@ -14,7 +15,7 @@ export function initStats(ctx) {
   const engine = createEngine(ruleset);
 
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
-  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : '#8899aa'; }
+  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? displayColor(c) : '#8899aa'; } // palette pass
   function ageName(id) {
     const a = (ruleset.rules.ages || []).find(x => x.id === id);
     return a ? a.name : id;

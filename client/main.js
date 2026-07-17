@@ -390,6 +390,14 @@ ctx.advice = initAdvice(ctx);       // A78: first-timer contextual advice
 ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
+// palette pass: a civ-palette mode change re-resolves every visual (the
+// renderer maps through ui/palette.js displayVisual) and repaints
+ctx.options.watch(k => {
+  if (k === 'civPalette') {
+    if (renderer.setFactions) renderer.setFactions(factionsByPid);
+    ctx.hud.refresh();
+  }
+});
 // A28: renderer animations honor the ⚙ reduce-animation preference, live
 if (renderer.setReduceAnimation) {
   renderer.setReduceAnimation(ctx.options.get('reduceAnimation') === true);

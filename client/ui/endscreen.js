@@ -1,4 +1,5 @@
 // A73: the end-game scoreboard — a full-screen END SCREEN on gameOver that says
+import { displayColor } from './palette.js';
 // who won, WHY, and by how much. The headline names the victory REASON in plain
 // words (from the gameOver event's `victory` field). The standings table ranks
 // every civ by final SCORE with its COMPONENT breakdown (population / techs /
@@ -16,7 +17,7 @@ export function initEndScreen(ctx) {
 
   function ageYear(state) { return state.year < 0 ? `${-state.year} BC` : `${state.year} AD`; }
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
-  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : '#8899aa'; }
+  function escColor(c) { return /^#[0-9a-fA-F]{3,8}$/.test(c) ? displayColor(c) : '#8899aa'; } // palette pass
 
   function aliveCount(state) {
     let n = 0;
