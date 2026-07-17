@@ -240,3 +240,31 @@ roblox-helper's claims); every item keeps the R4 acceptance bar — a
 recorded run replaying hash-exact both engines whenever an item adds
 COMMANDS, screenshots READ always. The user playtests per tier;
 findings feed the next cut.
+
+## Visual-fidelity workstream (roblox-helper proposal #1103, 2026-07-17)
+
+Presentation layer ONLY — shared recipe/terrain sources untouched; any
+enhancement that would need the recipes to emit new anchors is a
+coordinated cross-lane change, never a solo Roblox edit.
+
+**Quick-win tier (BUILT, behind the Options "world look" toggle,
+retro default):** per-terrain built-in materials in the ENHANCED look
+(Grass/LeafyGrass/Sand/Ground/Slate/Snow/Mud; ocean+river = Glass with
+slight transparency), same shared palette colors + geometry underneath;
+city skyline Concrete→Brick on a Marble plaza. Models part-built:
+material mapping by colorRole (wood→WoodPlanks, metal→Metal,
+cloth→Fabric — one AssetFactory table, recipes untouched).
+
+**Bigger-lift tier (gated on the user's retro-vs-enhanced pick):**
+TILES — Atmosphere+sky tuning, material Variants/SurfaceAppearance PBR,
+coastline transition strips, tile-edge bevels (part-count cost, perf
+check on medium maps first), real Terrain-water prototypes (separate
+system — prototype apart). MODELS — MeshParts for hero pieces (wonders
+first), SurfaceAppearance on unit bodies, two-part trees.
+
+**Decision flow:** the toggle IS the side-by-side (the soundboard house
+pattern — this machine cannot render Roblox, the user's session can):
+Options → world look → flip retro/enhanced live → screenshot both →
+pick (a) retro-faithful, (b) enhanced, or (c) enhanced-with-notes
+(tweaks become the bigger-lift backlog). Quick-win = Tier-2 polish;
+bigger-lift = this workstream's backlog, ordered by the user's pick.
