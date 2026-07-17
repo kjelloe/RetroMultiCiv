@@ -178,3 +178,15 @@ knowledge model (what the AI can SEE informs what it accepts) →
 then D1. The resource-chains shelf item (Civ4-style) gains its
 diplomatic meaning here later: supply lines become things wars are
 ABOUT — deliberately deferred until diplomacy stands.
+
+## D1 forward-flags (reviewer marker-0047 review, 2026-07-17 — decide at D1, not by accident)
+
+- **Blockade × peace state:** the A79 worked-tile blockade triggers on ANY
+  non-owner unit (correct today — no peace state exists). When D1 treaties
+  land, RULE whether blockade becomes war-gated or explicitly stays
+  any-rival. Default expectation: war-gated (an at-peace neighbor's
+  wandering unit should not starve a city), but it is a design decision.
+- **Stance visibility × diplomacy:** player.stance is currently PUBLIC in
+  every view (v1 transparency, the Perfectionist tags). When human-facing
+  diplomacy lands, revisit whether temperament should be DISCOVERABLE
+  (via contact/embassy) rather than free — deliberate choice at D1/D2.
