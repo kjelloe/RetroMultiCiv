@@ -634,3 +634,46 @@ test('A50 item 3b: an abandoned started game is retired, its save survives (resu
     assert.strictEqual((await c.expect(m => m.t === 'resumed', 'resumable')).code, gameCode);
   } finally { c.close(); await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('resume collision: join-by-id after resumeByCode lands on the SAVED world, not the fresh default', async () => {
+  // The A49-ext resume spec surfaced this: a fresh server's default game
+  // auto-numbered to g<seed> — the same id namespace the lobby counter mints
+  // (g1, g2 …) — so joining the resumed game by its id could resolve to the
+  // brand-new default world instead. The default id is namespaced now.
+  const { startServer } = await import('../server/index.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-collide-'));
+
+  // server A (seed 21 → default id g21): the first lobby-created game mints
+  // g1 from the counter and autosaves as g1.json
+  let s = await startServer({ ruleset: RULESET, seed: 21, civs: 2, humans: 1, size: 'xsmall', savesDir: dir });
+  let host = await connect(s.port);
+  let gameCode, savedTurn;
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    assert.strictEqual(created.gameId, 'g1', 'the first lobby game takes g1 (the collision precondition)');
+    host.send({ t: 'start' });
+    const joined = await host.expect(m => m.t === 'joined', 'started+seated');
+    gameCode = joined.code;
+    savedTurn = joined.view.turn;
+    await host.expect(m => m.t === 'started', 'started ack');
+  } finally { host.close(); await s.close(); }
+  assert.ok(fs.existsSync(path.join(dir, 'g1.json')), 'the lobby game autosaved as g1.json');
+
+  // server B (seed 1): pre-fix its default game claimed 'g1' ('g' + seed) —
+  // EXACTLY the resumed save's id — so the join-by-id below resolved to the
+  // fresh default world; the namespaced default id removes the collision
+  s = await startServer({ ruleset: RULESET, seed: 1, civs: 2, humans: 1, size: 'xsmall', savesDir: dir });
+  const c = await connect(s.port);
+  try {
+    c.send({ t: 'resumeByCode', code: gameCode });
+    assert.strictEqual((await c.expect(m => m.t === 'resumed', 'resumed')).gameId, 'g1');
+    // the follow-up join BY ID — the resume UI's exact move (lobby.js sends
+    // joinCode: msg.gameId) — must reach the RESUMED game
+    c.send({ t: 'join', joinCode: 'g1', name: 'Back' });
+    const rejoined = await c.expect(m => m.t === 'joined', 'rejoined');
+    assert.strictEqual(rejoined.gameId, 'g1', 'joined the resumed game, not the default');
+    assert.strictEqual(rejoined.code, gameCode, 'the resumed game reports the SAVED code');
+    assert.strictEqual(rejoined.view.turn, savedTurn, 'the saved turn, not a fresh world');
+  } finally { c.close(); await s.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});

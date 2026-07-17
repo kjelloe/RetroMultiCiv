@@ -106,7 +106,11 @@ export function startServer(opts) {
   } else {
     defaultGame = createGame({
       ruleset,
-      gameId: opts.gameId || ('g' + (opts.seed || 1)),
+      // NAMESPACED default id: the lobby counter mints g1, g2 … and saves are
+      // named by id, so a 'g<seed>' default could collide with a resumed
+      // save's id and steal its join-by-id resolution (the A49-ext resume
+      // spec caught this live). 'default-g<seed>' cannot collide.
+      gameId: opts.gameId || ('default-g' + (opts.seed || 1)),
       rulesOverrides: opts.rulesOverrides,
       setup: setupFromOpts({
         seed: opts.seed || 1, civs: opts.civs || 2,

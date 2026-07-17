@@ -61,11 +61,10 @@ test('resume by game code: the pre-save city survives a server swap; a joiner re
     await server.close();
 
     // --- phase 2: a fresh server on the same saves dir; resume BY CODE ---
-    // NOTE the explicit gameId: server B's default game would otherwise ALSO
-    // be g1 — colliding with the resumed save's id, so the rejoin resolves to
-    // the fresh default world instead of the resumed one (flagged as a real
-    // hosting edge in the A49-ext done-mail; this spec pins the honest flow)
-    server = await startServer({ seed: 1, civs: 2, humans: 1, size: 'xsmall', savesDir: dir, host: '127.0.0.1', gameId: 'default-b' });
+    // no explicit gameId needed: the default game's id is namespaced
+    // ('default-g<seed>') since the collision fix this spec's first honest
+    // failure motivated — server.test.js pins the ws-level red case
+    server = await startServer({ seed: 1, civs: 2, humans: 1, size: 'xsmall', savesDir: dir, host: '127.0.0.1' });
     const resume = await resumeCtx.newPage();
     await resume.goto(`http://127.0.0.1:${server.port}/client/`);
     await resume.locator('#setup-host').click();
