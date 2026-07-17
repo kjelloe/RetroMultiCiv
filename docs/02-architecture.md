@@ -210,6 +210,13 @@ Luau rewrite is mechanical, file-by-file, function-by-function:
 9. **`===`/truthiness care:** treat `0` and `""` explicitly (`x === undefined`
    checks), since Lua's truthiness differs (only `nil`/`false` are falsy).
 10. **One module = one Luau ModuleScript.** Keep `require`s acyclic.
+11. **Imports stay within `engine/`** — nothing from `client/`, `server/`, or
+    Node built-ins. The ONE sanctioned exception is `shared/statehash.js` (the
+    cross-language deterministic hash, with a co-located luau twin
+    `luau/statehash.luau`): `engine/mapgen.js` imports it to stamp the ruleset
+    hash a game was created under (§7 `rulesetHash`). Statehash IS the engine's
+    verification core, and the luau engine already computes it in-engine — so it
+    is engine-adjacent, not a host-layer dependency.
 
 `tools/json2lua.js` converts `data/*.json` into Luau table ModuleScripts so the
 ruleset stays single-sourced.
@@ -278,6 +285,41 @@ server → client:  { t: "state", view }            # full filtered view (resync
   pinned by `test/visibility.test.js`, and this same function runs on the
   Roblox server later.
 - Resync strategy: events normally; full view on join/reconnect/desync.
+
+### The command / event catalog (Roblox consumes these shapes)
+
+**Commands** (the `applyCommand` dispatch in `engine/index.js` — every
+mutation enters here, both engines): `moveUnit`, `fortify`, `wait`,
+`endTurn`, `foundCity`, `setProduction`, `setWorkers`, `startWork`,
+`pillage`, `disband`, `buy`, `helpWonder`, `sellBuilding`,
+`setGovernment`, `setResearch`, `setRates`. The four SELF-SCOPED ones —
+`setRates`, `setResearch`, `setProduction`, `setWorkers` — carry no turn
+check (A54 off-turn pre-work; the exported `OFFTURN_WHITELIST` is the
+cross-layer contract).
+
+**Events** (everything the engine pushes into a result's `events` array,
+by emitting module — the canonical fixture lives in
+`test/event-catalog.test.js` `EVENT_TYPES`, and its gate keeps this list,
+the engine source, and BOTH client classifiers — turnlog-classes
+`classifyEvent`, sound-map `soundForEvent` — in lockstep):
+
+| module | events |
+| --- | --- |
+| movement | unitMoved, unitFortified, unitWaited, unitDisbanded, unitLoaded, unitUnloaded |
+| improvements | workStarted, improvementBuilt, pillaged |
+| index (turn wrap) | turnStarted, turnEnded, ageChanged |
+| cities | cityFounded, productionSet, workersSet, productionBought, unitBuilt, buildingBuilt, buildingSold, wonderBuilt, wonderHelped, wonderLost, cityGrew, cityStarved |
+| combat | combatResolved, promoted, cityCaptured, unitConsumed, cargoLost |
+| tech | researchSet, ratesSet, techDiscovered |
+| government | governmentChanged, revolutionStarted |
+| happiness | cityDisorder, cityOrderRestored |
+| barbarians | barbariansSpawned |
+| air | airCrashed |
+| score | gameOver, playerDefeated |
+
+Two CLIENT-synthetic events exist outside the engine (never recorded,
+never hashed): `stateReplaced` (a load announcing itself) and
+`regentTurn` (B11's regency summary).
 
 ## 7. Save format
 

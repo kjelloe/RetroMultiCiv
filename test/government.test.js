@@ -148,3 +148,42 @@ test('unit upkeep in shields: monarchy pays beyond the free allowance', async ()
   // so upkeep clamps at zero rather than going negative
   assert.strictEqual(before.cities.c1.shields, 0, 'upkeep clamps shields at 0');
 });
+
+// Reviewer #1205 (3): governments.json schema gate — all six governments
+// carry the full required field set, in range (the terrain-coverage
+// precedent: a new government must arrive complete or fail here by name).
+test('governments.json: every government carries the full field set in range', () => {
+  const govs = RULESET.governments;
+  const REQUIRED = ['id', 'name', 'tech', 'maxRate', 'freeUnitsPerCity',
+    'upkeepShields', 'corruptionFactor', 'martialLawMax', 'tilePenalty',
+    'tradeBonus', 'warUnhappiness'];
+  const ids = Object.keys(govs).sort();
+  assert.deepStrictEqual(ids,
+    ['anarchy', 'communism', 'democracy', 'despotism', 'monarchy', 'republic'],
+    'the six Civ 1 governments');
+  for (const id of ids) {
+    const g = govs[id];
+    for (const f of REQUIRED) {
+      assert.ok(g[f] !== undefined, `${id}: missing required field "${f}"`);
+    }
+    assert.strictEqual(g.id, id);
+    assert.ok(g.maxRate >= 0 && g.maxRate <= 100 && g.maxRate % 10 === 0, `${id}: maxRate in range`);
+    assert.ok(Number.isInteger(g.freeUnitsPerCity) && g.freeUnitsPerCity >= 0, `${id}: freeUnitsPerCity`);
+    assert.ok(Number.isInteger(g.upkeepShields) && g.upkeepShields >= 0, `${id}: upkeepShields`);
+    assert.ok(Number.isInteger(g.martialLawMax) && g.martialLawMax >= 0, `${id}: martialLawMax`);
+  }
+});
+
+// Reviewer #1205 (4): the RATIFIED DEVIATION pin (user ruling 2026-07-17) —
+// Monarchy and Communism keep the 3-free-units-per-city upkeep allowance
+// (canonical Civ 1 charges upkeep differently; the ruling chose the
+// allowance). A future "authenticity fix" must flip THIS test consciously,
+// not silently.
+test('ratified deviation: Monarchy/Communism upkeep uses the 3-free allowance', () => {
+  assert.strictEqual(RULESET.governments.monarchy.freeUnitsPerCity, 3,
+    'monarchy: 3 free units per city (2026-07-17 ruling)');
+  assert.strictEqual(RULESET.governments.communism.freeUnitsPerCity, 3,
+    'communism: 3 free units per city (2026-07-17 ruling)');
+  assert.strictEqual(RULESET.governments.monarchy.upkeepShields, 1);
+  assert.strictEqual(RULESET.governments.communism.upkeepShields, 1);
+});

@@ -140,3 +140,17 @@ DIRECTLY to the chosen host's ws origin.
   server, someone else's. The master curates nothing beyond
   reachability + version tags; an abuse-report path is a v2 question
   only if the list outgrows friends-of-friends.
+
+**Operating constants (BUILT — `tools/master.js`, tested in
+`test/master.test.js`; the code is the truth if these drift):**
+
+| constant | value | meaning |
+| --- | --- | --- |
+| heartbeat cadence | ~60 s | `--announce` posts (server/index.js; `announceIntervalMs` test override) |
+| TTL | 3 min | no heartbeat this long → the sweep delists |
+| re-probe | 5 min | a listed entry is revalidated when its last probe is older |
+| probe | GET `/healthz`, 3 s timeout | ANY http response = reachable; connect/timeout failure holds the entry off-list with the reason |
+| address guard | pre-probe | loopback/private/link-local/0/8 literals refused (anti-relay, #1077); DNS names pass in v1 (resolution check = hardening follow-up); `allowPrivate` = local-test escape hatch only |
+| announce rate floor | 5 s/IP | a hammered `/announce` gets 429; the 60 s cadence never trips it |
+| body cap | 4 KB (hard-abort 16×) | an entry is a few hundred bytes; names cap at 80 chars |
+| `/servers` | CORS `*` | the client is a static page from anywhere; game traffic never touches the master |

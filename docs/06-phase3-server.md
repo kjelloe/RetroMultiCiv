@@ -64,6 +64,39 @@ server → client
   { t:"pong" }
 ```
 
+Phase-4+ additions (lobby docs/08, resume docs/07, replay A47, regency
+A40, find-a-game A41/A51 — the live catalog; server/index.js routes,
+server/protocol.js validates):
+
+```
+client → server
+  { t:"create", name, options }        # options: civs, humans, size, difficulty,
+                                       #   combat ("bestof3"?), age, maptype (A82a,
+                                       #   validated vs rules.mapTypes), allowSpectators,
+                                       #   chat, public       → { t:"created", gameId, joinCode }
+  { t:"join", joinCode|gameId, name, seat?, spectator?, seatCode?, token? }
+                                       # pre-start → { t:"joinedLobby", seat, lobby }
+                                       # started   → { t:"joined", …, code, seatCode, gameId }
+  { t:"joinListed", gameId, name, seat? }  # A41: browse join — SAME reservation path as a code
+  { t:"list" } / { t:"listGames" } / { t:"listSaves" }   # listGames: public lobbies, 1/sec/conn
+  { t:"start" } / { t:"setSlot"… } / { t:"setChat", on } / { t:"kick", seat } / { t:"chat", text }
+  { t:"resume", file } / { t:"resumeByCode", code }      → { t:"resumed", gameId }
+  { t:"skipTurn" }                     # host-only; { t:"proposeSkip" } + { t:"vote" } = the >2/3 path
+  { t:"regent", stance|null }          # A40: the SERVER drives regent seats
+  { t:"fullLog" }                      # A47: the whole recording, answered post-gameOver only
+
+server → client (additions)
+  { t:"code", code }                   # docs/07: the authoritative game code after every command
+  { t:"lobby", lobby } / { t:"chat", … } / { t:"kicked" } / { t:"gameClosed", reason }
+  { t:"saves", saves } / { t:"resumed", gameId } / { t:"started" }
+```
+
+CLI flags beyond the boot basics (the parser in server/index.js is the
+truth): `--humans N`, `--reset-seats` (resume with seats cleared),
+`--announce <master-url>` + `--public-name` + `--public-addr` (A51b,
+docs/12 §6), plus the A50 rate/cap/lifecycle/rotation tuning flags
+documented in docs/how-to-host.md.
+
 Rules:
 - **The server stamps `playerId`.** The engine command's `playerId` field
   is overwritten with the seat bound to the connection's token before
