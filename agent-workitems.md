@@ -3419,14 +3419,27 @@ defender-bloat lever becomes a per-empire SOFT unit cap (bugfixer rec —
 the bloat is empire-level city/settler churn, not per-city garrison),
 designed properly later. No goldens moved.
 
-**N9 — AI is economy-STARVED at the warlike default (sim-runner #980 bonus
-finding; measure-first).** At canonical dg=30, HEAD bldgPct ~0.5 +
-milPct ~82% = the AI hardly builds BUILDINGS OR WONDERS at all — a
-bigger economy-quality gap than N4 was. Ties to N5 (wonder failure) +
-N2 (tech ceiling). NEXT (sim-runner, after B23d gate): measure the
-cause — build-priority (AI never queues buildings), a happiness/upkeep
-constraint, or economy-vs-military weighting. Then design the fix.
-Do not guess the lever; measure it.
+**N9 — AI is economy-STARVED: the defender treadmill (ROOT CAUSE CONFIRMED,
+sim-runner #980/#985; high-value; engine window after B23d).** At dg=30 the
+AI builds ~0 buildings all game (bldg/city never exceeds 0.24; most cities
+ZERO). ROOT CAUSE = BUILD-PRIORITY, not happiness/upkeep (cities can afford
+buildings; they never CHOOSE them). Production order is defenders(wantDefenders)
+→ settlers → walls → attacker(underArmy) → navy → BUILDINGS (dead last). At
+the warlike dg=30 default every city is perpetually threatened (enemyNear →
+wantDefenders=2) and loses defenders to combat/capture, so it rebuilds
+defenders FOREVER and never reaches the building branch. KEY TENSION: this is
+DOWNSTREAM of the M11 dg=30 war pin — the same setting that gives elim 27%
+creates the constant-threat treadmill that starves economy. This gap caps N2
+(tech), N5 (wonders), M3 (pop) — likely the single biggest AI-quality lever left.
+FIX DIRECTION (architect blessed, sim-runner A/Bs the candidates when B23d frees):
+(a) RESERVE an economy share under threat — after the 1st defender + walls, build
+1 building before a 2nd defender/attacker; AND (b) WALLS SUBSTITUTE for a 2nd
+garrison (a walled city with 1 fortified defender is defended enough — stop the
+2nd-defender rebuild). Combined, a threatened city does defender→walls→economy
+instead of endless defenders. (c) interior-city economy stance is a weaker
+third option. Sweep the reserve ratio + the walls-substitution as knobs; joint
+target = bldgPct/wonders UP without elim% collapsing (don't undo M11). Golden
+window, both engines, sim-gated.
 
 **N4-original (superseded by the DEFER above; kept for history) — garrison cap (defender bloat; design APPROVED #792/#793, window HELD for after the user's M11 morning pin — do not open before it):**
 garrisonCap(city) = min(1+ceil(threat), border?5:3); threat =
