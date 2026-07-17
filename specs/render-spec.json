@@ -447,8 +447,8 @@
       "battleship": "shipPowered",
       "carrier": "carrier",
       "fighter": "aircraft",
-      "bomber": "aircraft",
-      "nuclear": "aircraft"
+      "bomber": "bomber",
+      "nuclear": "nuclear"
     },
     "cityTiers": [
       {

@@ -31,6 +31,8 @@ export const RECIPE_CHROME = {
   shipPowered: { pennant: [-0.28, 0.14, 0.65], naval: true },
   carrier:     { pennant: [-0.34, 0.14, 0.65], naval: true }, // A67e: pennant aft of the deck overhang
   aircraft:    {},              // no pennant
+  bomber:      {},              // A67f: aircraft family, no pennant
+  nuclear:     {},              // A67f: missile — no pennant (fins carry the faction color)
   fallback:    { plain: true }  // all-neutral token, no visual, no pennant
 };
 

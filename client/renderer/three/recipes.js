@@ -148,6 +148,26 @@ export const UNIT_RECIPES = {
     { shape: 'box', size: [1, 1, 1], pos: [0.04, 0.32, 0], scale: [0.12, 0.02, 0.46], color: 'metal' },
     { shape: 'box', size: [1, 1, 1], pos: [-0.18, 0.38, 0], scale: [0.08, 0.1, 0.02], color: 'metal' }
   ],
+  // A67f: the HEAVY BOMBER — longer fatter fuselage, wider wings carrying two
+  // engine nacelles, tail fin + tailplane; reads as the big brother of the
+  // fighter's slim cross.
+  bomber: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.32, 0], scale: [0.5, 0.1, 0.12], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.32, 0], scale: [0.14, 0.02, 0.6], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.29, -0.16], scale: [0.08, 0.05, 0.05], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.29, 0.16], scale: [0.08, 0.05, 0.05], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.21, 0.39, 0], scale: [0.08, 0.11, 0.02], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.21, 0.34, 0], scale: [0.05, 0.015, 0.2], color: 'metal' }
+  ],
+  // A67f: the NUCLEAR unit is a MISSILE, not a plane — an up-tilted rocket
+  // (cyl body + nose cone) with faction-colored tail fins, the Civ 1 icon
+  // language.
+  nuclear: [
+    { shape: 'cyl', size: [0.05, 0.05, 0.44], seg: 10, pos: [0, 0.36, 0], rot: [0, 0, -1.2], color: 'metal' },
+    { shape: 'cone', size: [0.05, 0.12], seg: 10, pos: [0.25, 0.455, 0], rot: [0, 0, -1.2], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.19, 0.29, 0], scale: [0.12, 0.08, 0.02], rot: [0, 0, -1.2], color: 'cloth' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.19, 0.29, 0], scale: [0.12, 0.02, 0.14], rot: [0, 0, -1.2], color: 'cloth' }
+  ],
   fallback: [
     { shape: 'cyl', size: [0.2, 0.24, 0.5], seg: 8, pos: [0, 0.32, 0], color: 'cloth' }
   ],
@@ -225,5 +245,5 @@ export const UNIT_SILHOUETTE = {
   trireme: 'shipSail', sail: 'shipSail', frigate: 'shipSail', transport: 'shipSail',
   submarine: 'shipSub',
   ironclad: 'shipPowered', cruiser: 'shipPowered', battleship: 'shipPowered', carrier: 'carrier',
-  fighter: 'aircraft', bomber: 'aircraft', nuclear: 'aircraft'
+  fighter: 'aircraft', bomber: 'bomber', nuclear: 'nuclear'
 };
