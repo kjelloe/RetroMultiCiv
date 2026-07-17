@@ -30,6 +30,7 @@ local statehash = require(shared:WaitForChild("statehash"))
 local gamecode = require(shared:WaitForChild("gamecode"))
 local json2lua = require(shared:WaitForChild("json2lua"))
 local Deck = require(script.Parent:WaitForChild("Deck"))
+local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
 
 local gameData = ReplicatedStorage:WaitForChild("GameData")
 local rulesetsFolder = gameData:WaitForChild("rulesets")
@@ -440,6 +441,104 @@ local function startGame()
 	end
 end
 
+-- ---- R10: save/resume (DataStore keyed by the game code, docs/07) ----------
+-- envelope round-trip proven identity (canonicalize -> json2lua.parse ->
+-- hashState stable, re-canonicalize byte-identical) — the resume tamper
+-- check is gameCode(state) == the key the resumer typed.
+local function saveGame(why)
+	if state == nil then
+		return nil
+	end
+	local code = gamecode.gameCode(state)
+	local envelope = statehash.canonicalize({
+		state = state, savedAt = os.time(), humans = setup.humans,
+	})
+	if SaveStore.save(code, envelope) then
+		print(("[GameServer] R10 save (%s): %s at turn %d"):format(why, code, state.turn))
+		return code
+	end
+	return nil
+end
+
+-- ephemeral PUBLIC servers (user design): all seated humans gone + 120s
+-- grace -> autosave + end. Private servers persist (skip). Any event that
+-- seats/returns a human bumps graceGen, which cancels a pending timer.
+local graceGen = 0
+local function anySeatedPresent()
+	for _, pid in pairs(seatOfUser) do
+		if playerBySeat(pid) ~= nil then
+			return true
+		end
+	end
+	return false
+end
+
+local function checkEphemeral()
+	graceGen += 1 -- any call re-arms/cancels; only the newest timer counts
+	if state == nil or game.PrivateServerId ~= "" or anySeatedPresent() then
+		return
+	end
+	local gen = graceGen
+	print("[GameServer] R10 ephemeral: all humans gone — 120s grace, then autosave + end")
+	task.delay(120, function()
+		if gen ~= graceGen or state == nil or anySeatedPresent() then
+			return
+		end
+		local code = saveGame("ephemeral-end")
+		print(("[GameServer] R10 ephemeral end: resume later with code %s"):format(tostring(code)))
+		state = nil
+		seatOfUser = {}
+		seatUserIds = {}
+		hostUserId = nil
+		setPhase("idle")
+	end)
+end
+
+local function resumeGame(player, rawCode)
+	if phase ~= "idle" or state ~= nil then
+		remote:FireClient(player, { t = "rejected", commandId = -1, code = "gameInProgress" })
+		return
+	end
+	local code = tostring(rawCode or ""):upper():gsub("%s", "")
+	if #code < 10 then
+		remote:FireClient(player, { t = "rejected", commandId = -1, code = "badCode" })
+		return
+	end
+	local envelopeJson = SaveStore.load(code)
+	if envelopeJson == nil then
+		remote:FireClient(player, { t = "rejected", commandId = -1, code = "saveNotFound" })
+		return
+	end
+	local ok, envelope = pcall(json2lua.parse, envelopeJson)
+	if not ok or typeof(envelope) ~= "table" or envelope.state == nil then
+		remote:FireClient(player, { t = "rejected", commandId = -1, code = "badSave" })
+		return
+	end
+	-- docs/07 tamper check: the code IS the state's own verification code
+	if gamecode.gameCode(envelope.state) ~= code then
+		print("[GameServer] R10 resume REJECTED: envelope fails the game-code check (tampered?)")
+		remote:FireClient(player, { t = "rejected", commandId = -1, code = "tamperedSave" })
+		return
+	end
+	state = envelope.state
+	setup.humans = envelope.humans or 1
+	local n = 0
+	for _ in pairs(state.players) do
+		n += 1
+	end
+	setup.civs = n
+	hostUserId = player.UserId
+	seatOfUser = { [player.UserId] = "p1" }
+	seatUserIds = { player.UserId }
+	print(("[R4RESUME] code=%s turn=%d humans=%d hash=%s"):format(code, state.turn,
+		setup.humans, statehash.hashState(state)))
+	setPhase("running")
+	sendJoined(player, "p1")
+	if state.players[state.activePlayer].human ~= true or not seatedPresent(state.activePlayer) then
+		task.spawn(advance, {})
+	end
+end
+
 deck.prompts.start.Triggered:Connect(function(player)
 	if phase ~= "idle" then
 		return
@@ -494,6 +593,7 @@ deck.prompts.takeover.Triggered:Connect(function(player)
 	seatOfUser[player.UserId] = pid
 	print(("[GameServer] R9 takeover: %s -> %s (random of %d vacant)"):format(player.Name, pid, #vacant))
 	sendJoined(player, pid)
+	checkEphemeral() -- R10: a seated human cancels any pending grace timer
 	setPhase("running") -- refreshes pad availability + lobby lists
 end)
 
@@ -509,6 +609,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 		local pid = seatOfUser[player.UserId]
 		if state ~= nil and pid ~= nil then
 			sendJoined(player, pid)
+			checkEphemeral() -- R10: a returning human cancels the grace timer
 		else
 			remote:FireClient(player, lobbyPayloadFor(player))
 		end
@@ -545,6 +646,21 @@ remote.OnServerEvent:Connect(function(player, msg)
 		setPhase("starting")
 		-- the 30-SECOND game-start countdown (user design)
 		startCountdown(30, startGame)
+		return
+	end
+
+	if msg.t == "getResumeCode" then
+		-- R10: the HOST's button (user design); the code is the docs/07 chip
+		if phase == "running" and player.UserId == hostUserId then
+			local code = saveGame("host-button")
+			remote:FireClient(player, { t = "resumeCode", ok = code ~= nil,
+				code = code or "" })
+		end
+		return
+	end
+
+	if msg.t == "resume" then
+		resumeGame(player, msg.code)
 		return
 	end
 
@@ -651,6 +767,10 @@ Players.PlayerRemoving:Connect(function(player)
 	if state ~= nil then
 		setPhase(phase) -- refresh lobby lists (who = regent now)
 	end
+	-- R10: last human out starts the 120s public grace. DEFERRED: during
+	-- PlayerRemoving the leaver still counts in GetPlayers(), so the
+	-- presence check must run after removal completes.
+	task.defer(checkEphemeral)
 end)
 
 Players.PlayerAdded:Connect(function()

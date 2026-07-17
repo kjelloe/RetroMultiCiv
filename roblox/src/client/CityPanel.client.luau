@@ -8,6 +8,7 @@
 local Players = game:GetService("Players")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local WorkedTiles = require(script.Parent:WaitForChild("WorkedTiles")) -- R7c-3
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -116,8 +117,10 @@ local function refresh()
 	if city == nil or city.owner ~= view.you or city.pop == nil then
 		gui.Enabled = false -- lost, razed, or only a rival shell in view
 		openCityId = nil
+		WorkedTiles.hide()
 		return
 	end
+	WorkedTiles.refresh() -- R7c-3: the in-world fat cross tracks the panel
 	local rs = ClientState.rulesets()
 	local me = view.players[view.you]
 	local myTechs = {}
@@ -190,6 +193,7 @@ end
 ClientState.onCityOpen(function(cityId)
 	openCityId = cityId
 	gui.Enabled = true
+	WorkedTiles.show(cityId) -- R7c-3: fat cross + camera fly-to
 	refresh()
 end)
 
@@ -198,6 +202,7 @@ ClientState.onView(refresh)
 closeBtn.Activated:Connect(function()
 	gui.Enabled = false
 	openCityId = nil
+	WorkedTiles.hide()
 end)
 
 buyBtn.Activated:Connect(function()

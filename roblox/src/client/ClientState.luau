@@ -17,7 +17,12 @@ local M = {
 	TILE = 4, -- studs per tile edge (must match ViewRenderer)
 	-- R7a (5)(7): Roblox flips both defaults ON for new users (docs/13
 	-- run2 block — accepted divergence from the browser's opt-in)
-	options = { autoNextUnit = true, autoEndTurn = true },
+	-- R16: browser-parity options (hideFuture wires into the city catalog
+	-- when it unfreezes; clock = "off"|"elapsed"|"time"; voidArt drives
+	-- VoidCover; ridePad nil = auto-detect, RidePad wires post-sweep)
+	options = { autoNextUnit = true, autoEndTurn = true,
+		hideFuture = false, hideNoMovesHint = false,
+		clock = "off", voidArt = "frame", ridePad = nil },
 }
 
 local viewCallbacks = {}

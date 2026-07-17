@@ -19,18 +19,18 @@ return [==[{
   "unitSilhouette": {
     "settlers": "wagon",
     "caravan": "wagon",
-    "diplomat": "wagon",
+    "diplomat": "diplomat",
     "militia": "footSoldier",
-    "phalanx": "footSoldier",
     "legion": "footSoldier",
-    "musketeers": "footSoldier",
-    "riflemen": "footSoldier",
-    "mech-inf": "footSoldier",
+    "phalanx": "phalanx",
+    "musketeers": "musketeers",
+    "riflemen": "riflemen",
+    "mech-inf": "apc",
     "cavalry": "mounted",
-    "knights": "mounted",
+    "knights": "knight",
     "chariot": "mounted",
-    "armor": "siegeArmor",
-    "catapult": "siege",
+    "armor": "tank",
+    "catapult": "catapult",
     "cannon": "siege",
     "artillery": "siege",
     "trireme": "shipSail",
@@ -116,6 +116,268 @@ return [==[{
           -0.12
         ],
         "color": "metal"
+      }
+    ],
+    "phalanx": [
+      {
+        "shape": "cone",
+        "size": [
+          0.17,
+          0.42
+        ],
+        "seg": 8,
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "cloth"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.1
+        ],
+        "seg": [
+          10,
+          8
+        ],
+        "pos": [
+          0,
+          0.56,
+          0
+        ],
+        "color": "skin"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.015,
+          0.015,
+          0.7
+        ],
+        "seg": 6,
+        "pos": [
+          0.15,
+          0.42,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.12
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.05,
+          0.12
+        ],
+        "seg": 4,
+        "pos": [
+          0.19,
+          0.8,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.12
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.13,
+          0.13,
+          0.03
+        ],
+        "seg": 12,
+        "pos": [
+          -0.13,
+          0.34,
+          0.02
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "color": "metal"
+      }
+    ],
+    "musketeers": [
+      {
+        "shape": "cone",
+        "size": [
+          0.17,
+          0.42
+        ],
+        "seg": 8,
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "cloth"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.1
+        ],
+        "seg": [
+          10,
+          8
+        ],
+        "pos": [
+          0,
+          0.56,
+          0
+        ],
+        "color": "skin"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.02,
+          0.02,
+          0.5
+        ],
+        "seg": 6,
+        "pos": [
+          0.16,
+          0.44,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.35
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.08,
+          0.34,
+          0
+        ],
+        "scale": [
+          0.13,
+          0.045,
+          0.045
+        ],
+        "rot": [
+          0,
+          0,
+          -0.35
+        ],
+        "color": "wood"
+      }
+    ],
+    "riflemen": [
+      {
+        "shape": "cone",
+        "size": [
+          0.17,
+          0.42
+        ],
+        "seg": 8,
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "cloth"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.1
+        ],
+        "seg": [
+          10,
+          8
+        ],
+        "pos": [
+          0,
+          0.56,
+          0
+        ],
+        "color": "skin"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.014,
+          0.014,
+          0.62
+        ],
+        "seg": 6,
+        "pos": [
+          0.18,
+          0.44,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.2
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.03,
+          0.1
+        ],
+        "seg": 4,
+        "pos": [
+          0.36,
+          0.52,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.2
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.08,
+          0.375,
+          0
+        ],
+        "scale": [
+          0.12,
+          0.04,
+          0.04
+        ],
+        "rot": [
+          0,
+          0,
+          -0.2
+        ],
+        "color": "wood"
       }
     ],
     "wagon": [
@@ -431,7 +693,7 @@ return [==[{
         "color": "wheel"
       }
     ],
-    "siegeArmor": [
+    "knight": [
       {
         "shape": "box",
         "size": [
@@ -441,13 +703,240 @@ return [==[{
         ],
         "pos": [
           0,
-          0.18,
+          0.3,
           0
         ],
         "scale": [
-          0.46,
+          0.42,
           0.16,
+          0.16
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.18,
+          0.42,
+          0
+        ],
+        "scale": [
+          0.1,
+          0.2,
+          0.1
+        ],
+        "rot": [
+          0,
+          0,
+          -0.35
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.27,
+          0.5,
+          0
+        ],
+        "scale": [
+          0.14,
+          0.08,
+          0.09
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.15,
+          0.13,
+          -0.05
+        ],
+        "scale": [
+          0.05,
+          0.19,
+          0.05
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.15,
+          0.13,
+          0.05
+        ],
+        "scale": [
+          0.05,
+          0.19,
+          0.05
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.15,
+          0.13,
+          -0.05
+        ],
+        "scale": [
+          0.05,
+          0.19,
+          0.05
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.15,
+          0.13,
+          0.05
+        ],
+        "scale": [
+          0.05,
+          0.19,
+          0.05
+        ],
+        "color": "horse"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.17,
+          0.42
+        ],
+        "seg": 8,
+        "pos": [
+          -0.06,
+          0.52,
+          0
+        ],
+        "scale": 0.7,
+        "color": "cloth"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.018,
+          0.018,
+          0.6
+        ],
+        "seg": 8,
+        "pos": [
+          0.12,
+          0.5,
+          0.07
+        ],
+        "rot": [
+          0,
+          0,
+          -1.45
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.03,
+          0.09
+        ],
+        "seg": 8,
+        "pos": [
+          0.45,
+          0.54,
+          0.07
+        ],
+        "rot": [
+          0,
+          0,
+          -1.45
+        ],
+        "color": "metal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          0.02,
+          0.16,
+          0.11
+        ],
+        "pos": [
+          -0.04,
+          0.44,
+          0.1
+        ],
+        "color": "metal"
+      }
+    ],
+    "tank": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.16,
+          0
+        ],
+        "scale": [
+          0.5,
+          0.13,
           0.3
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.08,
+          -0.17
+        ],
+        "scale": [
+          0.54,
+          0.1,
+          0.08
         ],
         "color": "darkMetal"
       },
@@ -460,35 +949,175 @@ return [==[{
         ],
         "pos": [
           0,
-          0.32,
+          0.08,
+          0.17
+        ],
+        "scale": [
+          0.54,
+          0.1,
+          0.08
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.03,
+          0.29,
           0
         ],
         "scale": [
-          0.2,
+          0.24,
           0.12,
-          0.18
+          0.2
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.022,
+          0.022,
+          0.5
+        ],
+        "seg": 6,
+        "pos": [
+          0.24,
+          0.3,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          1.5707963267948966
+        ],
+        "color": "metal"
+      }
+    ],
+    "apc": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.2,
+          0
+        ],
+        "scale": [
+          0.44,
+          0.22,
+          0.28
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.2,
+          0.19,
+          0
+        ],
+        "scale": [
+          0.12,
+          0.16,
+          0.24
+        ],
+        "rot": [
+          0,
+          0,
+          0.4
+        ],
+        "color": "hull"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.08,
+          -0.15
+        ],
+        "scale": [
+          0.48,
+          0.1,
+          0.07
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.08,
+          0.15
+        ],
+        "scale": [
+          0.48,
+          0.1,
+          0.07
+        ],
+        "color": "darkMetal"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.02,
+          0.35,
+          0
+        ],
+        "scale": [
+          0.14,
+          0.1,
+          0.14
         ],
         "color": "darkMetal"
       },
       {
         "shape": "cyl",
         "size": [
-          0.015,
-          0.015,
-          0.7
+          0.012,
+          0.012,
+          0.16
         ],
         "seg": 6,
         "pos": [
-          0.24,
-          0.34,
+          0.1,
+          0.4,
           0
         ],
         "rot": [
           0,
           0,
-          1.4907963267948967
+          1.2
         ],
-        "scale": 0.6,
         "color": "metal"
       }
     ],
@@ -578,6 +1207,205 @@ return [==[{
           2.2
         ],
         "color": "metal"
+      }
+    ],
+    "catapult": [
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0,
+          0.16,
+          0
+        ],
+        "scale": [
+          0.42,
+          0.12,
+          0.26
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          -0.12,
+          0.1,
+          -0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          -0.12,
+          0.1,
+          0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          0.14,
+          0.1,
+          -0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "cyl",
+        "size": [
+          0.09,
+          0.09,
+          0.04
+        ],
+        "seg": 10,
+        "pos": [
+          0.14,
+          0.1,
+          0.14
+        ],
+        "rot": [
+          1.5707963267948966,
+          0,
+          0
+        ],
+        "scale": 1.1,
+        "color": "wheel"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          -0.06,
+          0.34,
+          0
+        ],
+        "scale": [
+          0.06,
+          0.36,
+          0.05
+        ],
+        "rot": [
+          0,
+          0,
+          0.6
+        ],
+        "color": "wood"
+      },
+      {
+        "shape": "cone",
+        "size": [
+          0.07,
+          0.08
+        ],
+        "seg": 8,
+        "pos": [
+          -0.17,
+          0.49,
+          0
+        ],
+        "rot": [
+          0,
+          0,
+          -0.5
+        ],
+        "color": "stone"
+      }
+    ],
+    "diplomat": [
+      {
+        "shape": "cone",
+        "size": [
+          0.16,
+          0.46
+        ],
+        "seg": 8,
+        "pos": [
+          0,
+          0.28,
+          0
+        ],
+        "color": "canvas"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.1
+        ],
+        "seg": [
+          10,
+          8
+        ],
+        "pos": [
+          0,
+          0.58,
+          0
+        ],
+        "color": "skin"
+      },
+      {
+        "shape": "box",
+        "size": [
+          1,
+          1,
+          1
+        ],
+        "pos": [
+          0.16,
+          0.22,
+          0
+        ],
+        "scale": [
+          0.09,
+          0.11,
+          0.05
+        ],
+        "color": "wood"
       }
     ],
     "aircraft": [

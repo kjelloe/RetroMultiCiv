@@ -43,11 +43,19 @@ return [==[{
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiScoutSharePct": 25,
+  "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
+  "aiScoutThreatVeto": true,
+  "aiFastScoutCount": 2,
+  "aiBoatScoutCount": 2,
   "aiExploreMode": "bfs",
   "aiCoastFollow": true,
+  "aiNavyWaterPct": 30,
+  "aiNavyRadius": 6,
+  "aiNavyAfterLandUnits": 3,
+  "aiNavyTargetCap": 4,
   "aiWarDoctrine": {
-    "1": { "massSize": 4, "oddsGate": 0 },
-    "3": { "massSize": 4, "oddsGate": 2 }
+    "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
+    "3": { "massSize": 4, "oddsGatePct": 200, "defenderGatePct": 200 }
   },
   "barbTierThreshold": 30,
   "barbTiers": [

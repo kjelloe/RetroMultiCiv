@@ -10,6 +10,7 @@
 local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local StepLegality = require(script.Parent:WaitForChild("StepLegality")) -- R14: ONE verdict source
 
 local TILE = ClientState.TILE
 local world = workspace:WaitForChild("ClientWorld")
@@ -46,15 +47,6 @@ local function tileTopY(x, y)
 	return part and (part.Position.Y + part.Size.Y / 2) or 0
 end
 
-local function enemyAt(view, x, y)
-	for _, u in pairs(view.units) do
-		if u.x == x and u.y == y and u.owner ~= view.you then
-			return true
-		end
-	end
-	return false
-end
-
 local function hideAll()
 	for _, m in ipairs(markers) do
 		m.Position = Vector3.new(0, -50, 0)
@@ -64,22 +56,16 @@ end
 local function showHints(view, unit)
 	local rs = ClientState.rulesets()
 	local domain = rs.units[unit.type] and rs.units[unit.type].domain
-	local map = view.map
 	local n = 0
 	for _, d in ipairs(DELTAS) do
-		local nx, ny = unit.x + d[1], unit.y + d[2]
-		if map.wrapX then
-			nx = nx % map.width
-		end
-		if nx >= 0 and nx < map.width and ny >= 0 and ny < map.height then
-			local tile = map.tiles[ny * map.width + nx + 1]
-			local terr = tile and rs.terrain.terrains[tile.t]
-			if terr ~= nil and terr.domain == domain then -- known + walkable
-				n += 1
-				local m = markers[n]
-				m.Color = enemyAt(view, nx, ny) and RED or GREEN
-				m.Position = Vector3.new(nx * TILE, tileTopY(nx, ny) + 0.15, ny * TILE)
-			end
+		-- R14: StepLegality is the ONE verdict (GoTo's planner reads the same)
+		local ok, nx = StepLegality.terrainOk(view, rs, domain, unit.x + d[1], unit.y + d[2])
+		if ok then
+			local ny = unit.y + d[2]
+			n += 1
+			local m = markers[n]
+			m.Color = StepLegality.enemyAt(view, nx, ny) and RED or GREEN
+			m.Position = Vector3.new(nx * TILE, tileTopY(nx, ny) + 0.15, ny * TILE)
 		end
 	end
 	for i = n + 1, 8 do
