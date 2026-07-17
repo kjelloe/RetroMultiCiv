@@ -18,7 +18,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
-import { createRegistry } from './lobby.js';
+import { createRegistry, joinCode } from './lobby.js';
+import { createLimiter } from './limits.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -67,6 +68,13 @@ export function startServer(opts) {
     }
   }
   const registry = createRegistry({ ruleset });
+  // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
+  // injectable (opts.now) for tests; caps overridable via opts.limits.
+  const limiter = createLimiter({ now: opts.now, limits: opts.limits });
+  // Bound rate-window memory under connect/disconnect churn; unref'd so it
+  // never holds the process (or a test) open.
+  const sweepTimer = setInterval(() => limiter.sweep(), 60000);
+  if (sweepTimer.unref) sweepTimer.unref();
   const saveFiles = {};    // gameId -> autosave path
   const autosave = opts.autosave !== false;
   const SAVES = opts.savesDir || path.join(REPO, 'saves'); // A98: overridable for tests
@@ -332,6 +340,10 @@ export function startServer(opts) {
   }
 
   function handleJoin(ws, info, msg) {
+    // A50 item 2: per-IP join rate (covers join + joinListed + reconnect —
+    // 30/min is generous for legit reconnection, murders enumeration floods).
+    const jrl = limiter.allow(ipOf(ws), 'join');
+    if (!jrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: jrl.reason }); return; }
     const target = msg.gameId || msg.joinCode;
     const gameId = target ? registry.resolveId(target) : defaultGameId;
     const e = gameId ? registry.entryOf(gameId) : null;
@@ -350,6 +362,18 @@ export function startServer(opts) {
       return;
     }
     if (e.status === 'lobby') {
+      // A50 item 1: a PRIVATE lobby is joinable only by its join CODE
+      // (authorization-by-knowledge, docs/12 §3.1) — never by a raw gameId.
+      // gameIds are sequential (g1,g2,…), so id-join would let an enumerator
+      // reserve seats in games they were never invited to. Public lobbies
+      // (find-a-game capability) and the LAN default game stay id-joinable;
+      // started-game joins are token-gated by route() below, not here.
+      const providedCode = msg.joinCode !== undefined ? String(msg.joinCode).toUpperCase() : '';
+      const viaCode = providedCode !== '' && joinCode(gameId) === providedCode;
+      if (!viaCode && e.options.public !== true && gameId !== defaultGameId) {
+        send(ws, { t: 'rejected', commandId: -1, code: 'codeRequired' });
+        return;
+      }
       // A37 kick-and-block: a blocked IP bounces before any reservation
       if (e.blockedIps && e.blockedIps[ipOf(ws)] === true) {
         send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
@@ -421,8 +445,14 @@ export function startServer(opts) {
   }
 
   wss.on('connection', ws => {
+    // A50 item 2: admission control — global + per-IP connection caps. A
+    // rejected socket is told why and closed before it can send anything.
+    const ip = ipOf(ws);
+    const adm = limiter.onConnect(ip);
+    if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
     conns.set(ws, {});
     ws.on('close', () => {
+      limiter.onDisconnect(ip);
       const info = conns.get(ws);
       conns.delete(ws); // first, so presence/eligibility no longer count us
       if (info && info.gameId) {
@@ -529,6 +559,12 @@ export function startServer(opts) {
         return;
       }
       if (msg.t === 'create') {
+        // A50 item 2: per-IP create rate + global game cap before anything is
+        // registered (game-spam / registry exhaustion).
+        const crl = limiter.allow(ipOf(ws), 'create');
+        if (!crl.ok) { send(ws, { t: 'rejected', commandId: -1, code: crl.reason }); return; }
+        const gcap = limiter.canCreateGame(registry.list().length);
+        if (!gcap.ok) { send(ws, { t: 'rejected', commandId: -1, code: gcap.reason }); return; }
         const res = registry.create(msg.options || {}, msg.name);
         if (res.ok === false) { // A38: civ count exceeds what the map seats
           send(ws, { t: 'rejected', commandId: -1, code: res.reason, maxCivs: res.maxCivs, size: res.size });
@@ -568,6 +604,10 @@ export function startServer(opts) {
           send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
           return;
         }
+        // A50 item 2: per-IP chat burst cap across a minute (the 1/sec above is
+        // per-connection; this bounds a many-socket chat flood from one IP).
+        const chrl = limiter.allow(ipOf(ws), 'chat');
+        if (!chrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: chrl.reason }); return; }
         info.lastChatAt = now;
         const name = (e.seats[info.seat] && e.seats[info.seat].name) || info.seat;
         for (const [o, i] of conns) {
@@ -648,6 +688,7 @@ export function startServer(opts) {
         port: httpServer.address().port,
         game: defaultGame,
         close: () => new Promise(done => {
+          clearInterval(sweepTimer);
           for (const ws of conns.keys()) ws.terminate();
           wss.close(() => httpServer.close(done));
         })

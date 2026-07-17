@@ -438,3 +438,75 @@ test('A98 resume-by-code: the docs/07 game code resumes the saved game; wrong/em
       'the resumed game still has the city founded before the save');
   } finally { c2.close(); await s2.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('A50 item 1: a private lobby is joinable only by its code, never by gameId', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false });
+  const host = await connect(s.port);
+  const sneak = await connect(s.port);
+  const ada = await connect(s.port);
+  try {
+    // Host creates a PRIVATE lobby (public omitted → private-by-default).
+    host.send({ t: 'create', name: 'Host', options: { civs: 2, humans: 2, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created', 'created');
+    const gameId = created.gameId, code = created.joinCode;
+    assert.ok(gameId && code, 'created carries gameId + joinCode');
+
+    // RED: enumerating the raw gameId cannot reserve a seat…
+    sneak.send({ t: 'join', gameId, name: 'Sneak' });
+    assert.strictEqual((await sneak.expect(m => m.t === 'rejected', 'id-join reject')).code, 'codeRequired');
+    // …nor by smuggling the gameId into the joinCode field (resolveId dual-lookup).
+    sneak.send({ t: 'join', joinCode: gameId, name: 'Sneak' });
+    assert.strictEqual((await sneak.expect(m => m.t === 'rejected', 'id-as-code reject')).code, 'codeRequired');
+    // A wrong code resolves to nothing at all.
+    sneak.send({ t: 'join', joinCode: 'ZZZZZ', name: 'Sneak' });
+    assert.strictEqual((await sneak.expect(m => m.t === 'rejected', 'wrong-code reject')).code, 'noSuchGame');
+
+    // GREEN: the correct code is the authorization.
+    ada.send({ t: 'join', joinCode: code, name: 'Ada' });
+    const joined = await ada.expect(m => m.t === 'joinedLobby', 'joinedLobby');
+    assert.strictEqual(joined.gameId, gameId);
+    assert.ok(joined.seat, 'Ada got a seat by knowing the code');
+
+    // CONTROL: a PUBLIC lobby stays id-joinable (find-a-game capability).
+    host.send({ t: 'create', name: 'Host2', options: { civs: 2, humans: 2, size: 'xsmall', public: true } });
+    const pub = await host.expect(m => m.t === 'created' && m.gameId !== gameId, 'public created');
+    const pubJoiner = await connect(s.port);
+    try {
+      pubJoiner.send({ t: 'join', gameId: pub.gameId, name: 'Walkup' });
+      assert.strictEqual((await pubJoiner.expect(m => m.t === 'joinedLobby', 'public id-join')).gameId, pub.gameId);
+    } finally { pubJoiner.close(); }
+  } finally { host.close(); sneak.close(); ada.close(); await s.close(); }
+});
+
+test('A50 item 2: per-IP rate limits + global caps reject over the socket', async () => {
+  const { startServer } = await import('../server/index.js');
+  // Tiny caps so the red cases trip immediately (all test conns share 127.0.0.1).
+  const s = await startServer({
+    ruleset: RULESET, seed: 6, civs: 2, humans: 1, size: 'xsmall', autosave: false,
+    limits: { maxConnsPerIp: 2, maxConns: 50, createsPerHour: 1, maxGames: 1, joinsPerMin: 2 }
+  });
+  try {
+    // Global game cap = 1: the default game already exists, so the first create
+    // trips tooManyGames.
+    const c1 = await connect(s.port);
+    c1.send({ t: 'create', name: 'A', options: { civs: 2, humans: 2, size: 'xsmall' } });
+    assert.strictEqual((await c1.expect(m => m.t === 'rejected', 'game cap')).code, 'tooManyGames');
+
+    // Per-IP CONNECTION cap = 2: c1 is one; open a second, the third is refused.
+    const c2 = await connect(s.port);
+    const c3 = await connect(s.port);
+    assert.strictEqual((await c3.expect(m => m.t === 'rejected', 'conn cap')).code, 'tooManyConns');
+
+    // Per-IP JOIN rate = 2/min: two attempts pass the limiter (reach the game
+    // logic), the third is rateLimited by the limiter itself.
+    c2.send({ t: 'join', name: 'J1' });
+    await c2.expect(m => m.t === 'joined' || m.t === 'joinedLobby' || m.t === 'rejected', 'join1');
+    c2.send({ t: 'join', name: 'J2' });
+    await c2.expect(m => m.t === 'joined' || m.t === 'joinedLobby' || m.t === 'rejected', 'join2');
+    c2.send({ t: 'join', name: 'J3' });
+    assert.strictEqual((await c2.expect(m => m.t === 'rejected', 'join rate')).code, 'rateLimited');
+
+    c1.close(); c2.close(); c3.close();
+  } finally { await s.close(); }
+});
