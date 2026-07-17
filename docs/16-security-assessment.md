@@ -151,11 +151,14 @@ a legitimate game.
    §2.4 and gaps 1/4. **CHURN VARIANTS EXECUTED 2026-07-17 morning
    (sim-runner #805/#807)**: (a) connect-churn at ~3.5k open/close
    per sec — server alive, seat-reservation cleanup robust, but the
-   A50 admission cap is a CONCURRENCY cap and churn evades it
-   (refused 0), the canary starves, and RSS peaks higher than the
-   flood case (~217 MB, per-connection object churn/GC pressure) →
-   A50 item 4 also needs a per-IP connect-RATE cap, not only the
-   command budget. (b) POSITIVE verification: the item-2 JOIN
+   A50 admission cap is a CONCURRENCY cap that short-lived churn
+   sockets rarely trip, the canary starves, and RSS peaks higher
+   than the flood case (~217 MB, per-connection object churn/GC
+   pressure) → A50 item 4 also needs a per-IP connect-RATE cap,
+   not only the command budget. (Rate-gap is CODE-VERIFIED —
+   limits.js has no connect-rate window — plus attempt-rate
+   measured; the harness's raw refused=0 was blind to server-side
+   reject frames, see (b).) (b) POSITIVE verification: the item-2 JOIN
    limiter empirically WORKS — 120 sequential same-IP joins drew
    90 rateLimited rejects (the first churn harness simply never
    read reject frames; corrected probe: join-probe.mjs). Residual:
