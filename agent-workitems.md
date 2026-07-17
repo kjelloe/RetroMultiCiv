@@ -2951,6 +2951,29 @@ user 2026-07-17 as the likely fast-follow; priority is their call. Also
 A82b: Big&Small (sizeSplit walker), sea-level/climate dropdowns, Terra
 (gated on A69).
 
+**MAP-TYPE ROADMAP — USER DECISION 2026-07-17 (ally reference:
+specs/map-types-reference.md): GATE NAVAL MAPS, DEFER THE REST.**
+The ally's rule: don't expose naval-dependent maps until the AI
+completes the naval loop (build→explore→TRANSPORT→land→support) —
+today the AI can't cross water (N3 = build+scout only), so on an
+island map AI opponents sit trapped on their start landmass.
+- **A82a-gate (NOW, client-only, helper): mark archipelago +
+  islands ADVANCED in the setup dropdown** — a separate "Advanced —
+  naval AI in progress" group (or a clear note), Continents +
+  Pangaea stay the launch pair. Client-only (setup.js knows which
+  mapType ids are advanced); no rules.json/engine change; golden-
+  neutral. NOT urgent (unreleased), but small.
+- **MAP-PROFILE AI PRIOR: fold into N3-build-tune / the naval-AI
+  program** — map type sets an INITIAL fog-honest planning prior
+  (landConnectivity / overseasExpansionExpected / navalExplorationPriority
+  / etc.), NEVER omniscient knowledge. Standing rule: map-aware
+  strategy good, map-cheating AI bad. Noted on N3-build-tune.
+- **DEFERRED until AFTER the AI-quality track: A82b true multi-mass
+  Continents (walker-start spacing), + new land generators Fractal
+  (with a seed corpus) / Inland Sea / Lakes; then the naval maps
+  (Archipelago/Terra/Islands/Big&Small) unlock as the naval suite
+  goes green.** Full phased set in specs/map-types-reference.md.
+
 Civ 1's "Customize World" (land mass / temperature / climate / age
 — wiki verifies the authentic knob set) and the Civ 2-style map
 FORMS the user names: Continents, Pangaea, Archipelago (+ more as
@@ -3366,6 +3389,14 @@ Golden window, both engines. Do NOT touch fleet composition/
 blockades/back-half until build→explore is robust (ally ordering,
 docs/03). Prior-art check: extends N3's engine block (data/rules.json
 navy knobs already exist).
+**MAP-PROFILE PRIOR (ally 2026-07-17, specs/map-types-reference.md):
+when it lands, map type should set an INITIAL fog-honest planning
+prior for the naval AI (navalExplorationPriority high on watery
+maps raises the value of coastal scouting + Map Making earlier) —
+but NEVER omniscient knowledge (no revealing where an island/rival/
+target is; the AI confirms from its own explored map). Map-aware
+strategy good, map-cheating AI bad. A clean lever for the
+participation/timing fix on watery maps.
 **SHIP-IDLE BUG (B-item, sim-runner #859 flag): seed 43 built 3
 ships that NEVER left port (firstShipOnSea=null).** A built sea unit
 should join the boat-scout pool (aiBoatScoutCount) and range; some
