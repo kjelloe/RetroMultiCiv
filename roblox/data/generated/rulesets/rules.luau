@@ -45,6 +45,7 @@ return [==[{
   "aiScoutSharePct": 25,
   "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
   "aiScoutThreatVeto": true,
+  "aiScoutVetoRadius": 2,
   "aiFastScoutCount": 2,
   "aiBoatScoutCount": 2,
   "aiExploreMode": "bfs",
