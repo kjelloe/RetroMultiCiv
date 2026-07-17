@@ -23,7 +23,7 @@ This keeps the roster distinct while allowing a small number of intentional wond
 
 | Civ | Leader | Recommended favorite wonder | Why |
 |---|---|---|---|
-| Romans | Caesar | **Sun Tzu’s War Academy** | A conquest-oriented empire benefits from promoted, consistently trained armies. |
+| Romans | Caesar | **Sun Tzu’s War Academy** ⚠ | A conquest-oriented empire benefits from promoted, consistently trained armies. ⚠ ARCHITECT NOTE (reviewer #1153, 2026-07-17): Sun Tzu's War Academy is Civ2 — NOT among Civ1's 21 wonders (absent from data/wonders.json). Pick a Civ1 substitute at A59 activation (e.g. Colossus or Great Wall per Caesar's profile); do not implement as written. |
 | Babylonians | Hammurabi | **Great Library** | Clean science identity and a clear reason to prioritize writing/research. |
 | Germans | Frederick | **Great Wall** | Excellent defensive identity; pairs with Masonry and border defense. |
 | Egyptians | Ramesses | **Pyramids** | Strong city-growth and empire-building identity. |
