@@ -123,6 +123,69 @@ startBtn.Activated:Connect(function()
 	remote:FireServer({ t = "setupDone" })
 end)
 
+-- R10: resume-by-code (idle phase) — a selectable TextBox (no clipboard on
+-- Roblox; read/retype is the platform shape) + RESUME sends {t="resume"}
+local resumeBox = Instance.new("TextBox")
+resumeBox.Size = UDim2.new(0, 170, 0, 24)
+resumeBox.Position = UDim2.new(0, 6, 1, -30)
+resumeBox.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
+resumeBox.TextColor3 = Color3.fromRGB(235, 235, 235)
+resumeBox.Font = Enum.Font.Code
+resumeBox.TextSize = 14
+resumeBox.PlaceholderText = "resume code..."
+resumeBox.Text = ""
+resumeBox.ClearTextOnFocus = false
+resumeBox.Visible = false
+resumeBox.Parent = panel
+
+local resumeBtn = Instance.new("TextButton")
+resumeBtn.Size = UDim2.new(0, 70, 0, 24)
+resumeBtn.Position = UDim2.new(1, -76, 1, -30)
+resumeBtn.BackgroundColor3 = Color3.fromRGB(60, 110, 90)
+resumeBtn.TextColor3 = Color3.fromRGB(235, 245, 235)
+resumeBtn.Font = Enum.Font.SourceSansBold
+resumeBtn.TextSize = 15
+resumeBtn.Text = "RESUME"
+resumeBtn.Visible = false
+resumeBtn.Parent = panel
+resumeBtn.Activated:Connect(function()
+	if resumeBox.Text ~= "" then
+		remote:FireServer({ t = "resume", code = resumeBox.Text })
+	end
+end)
+
+-- R10: the HOST's Get-Resume-Code button (visible while seated as host);
+-- the code lands in a selectable box — the docs/07 trust loop, save flavor
+local hostSaveGui = Instance.new("ScreenGui")
+hostSaveGui.Name = "RMCResume"
+hostSaveGui.ResetOnSpawn = false
+hostSaveGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+local saveBtn = Instance.new("TextButton")
+saveBtn.Size = UDim2.new(0, 130, 0, 24)
+saveBtn.Position = UDim2.new(1, -138, 0, 84)
+saveBtn.BackgroundColor3 = Color3.fromRGB(60, 90, 110)
+saveBtn.TextColor3 = Color3.fromRGB(230, 240, 245)
+saveBtn.Font = Enum.Font.SourceSansBold
+saveBtn.TextSize = 14
+saveBtn.Text = "GET RESUME CODE"
+saveBtn.Visible = false
+saveBtn.Parent = hostSaveGui
+local codeOut = Instance.new("TextBox")
+codeOut.Size = UDim2.new(0, 170, 0, 24)
+codeOut.Position = UDim2.new(1, -178, 0, 112)
+codeOut.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
+codeOut.TextColor3 = Color3.fromRGB(180, 235, 200)
+codeOut.Font = Enum.Font.Code
+codeOut.TextSize = 14
+codeOut.TextEditable = false
+codeOut.ClearTextOnFocus = false
+codeOut.Text = ""
+codeOut.Visible = false
+codeOut.Parent = hostSaveGui
+saveBtn.Activated:Connect(function()
+	remote:FireServer({ t = "getResumeCode" })
+end)
+
 local PHASE_TEXT = {
 	idle = "no game - START pad opens hosting",
 	setup = "host is choosing options (JOIN pad claims a seat)",
@@ -130,8 +193,13 @@ local PHASE_TEXT = {
 	running = "game in progress (TAKE OVER pad joins as a civ)",
 }
 
+local youSeated = false
+
 local function render(lobby)
-	panel.Visible = true
+	if lobby.gameRunning ~= true then
+		youSeated = false -- the game ended (ephemeral or otherwise): lobby returns
+	end
+	panel.Visible = not youSeated -- seated players live in the HUD, not here
 	phaseLine.Text = "lobby: " .. (PHASE_TEXT[lobby.phase] or lobby.phase)
 	phaseLine.TextWrapped = true
 	countdownLine.Text = lobby.countdown > 0 and ("countdown: %ds"):format(lobby.countdown) or ""
@@ -179,6 +247,13 @@ local function render(lobby)
 		civsLine.Text = ("civilizations: %d"):format(lobby.options.civs)
 		humansLine.Text = ("human seats: %d (rest are AI)"):format(lobby.options.humans)
 	end
+
+	-- R10 chrome: resume input only while gameless; host save button in-game
+	local idle = lobby.phase == "idle"
+	resumeBox.Visible = idle
+	resumeBtn.Visible = idle
+	saveBtn.Visible = lobby.phase == "running" and lobby.youAreHost
+	codeOut.Visible = saveBtn.Visible and codeOut.Text ~= ""
 end
 
 remote.OnClientEvent:Connect(function(msg)
@@ -192,8 +267,12 @@ remote.OnClientEvent:Connect(function(msg)
 		end)
 	elseif msg.t == "lobby" then
 		render(msg.lobby)
+	elseif msg.t == "resumeCode" then
+		codeOut.Text = msg.ok and msg.code or "save failed - see Output"
+		codeOut.Visible = true
 	elseif msg.t == "joined" then
 		-- seated: the lobby chrome folds away (HUD takes over)
+		youSeated = true
 		panel.Visible = false
 		setupPanel.Visible = false
 	end
