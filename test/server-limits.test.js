@@ -119,3 +119,56 @@ test('defaults are LAN-safe (a normal game never trips them)', async () => {
   // a full 14-seat lobby's worth of joins from one host machine is fine
   for (let i = 0; i < 14; i++) assert.ok(lim.allow('host', 'join').ok);
 });
+
+test('clientIpFrom: XFF trusted ONLY from a private peer + only when opted in (spoof-bypass)', async () => {
+  const { clientIpFrom, isPrivatePeer } = await load();
+  const req = (peer, xff) => ({ socket: { remoteAddress: peer }, headers: xff ? { 'x-forwarded-for': xff } : {} });
+  assert.strictEqual(clientIpFrom(req('127.0.0.1', '9.9.9.9'), 0), '127.0.0.1');        // hops=0: peer, XFF ignored
+  assert.strictEqual(clientIpFrom(req('127.0.0.1', '203.0.113.7'), 1), '203.0.113.7');  // behind a loopback proxy
+  assert.strictEqual(clientIpFrom(req('203.0.113.7', '10.0.0.1'), 1), '203.0.113.7');   // SPOOF-BYPASS: direct client's forged XFF ignored
+  assert.strictEqual(clientIpFrom(req('127.0.0.1', ''), 1), '127.0.0.1');               // no XFF: peer
+  assert.strictEqual(clientIpFrom(req('10.0.0.2', '203.0.113.7, 10.0.0.1'), 2), '203.0.113.7'); // two hops
+  assert.strictEqual(clientIpFrom(req('::ffff:127.0.0.1', '203.0.113.7'), 1), '203.0.113.7');   // v4-mapped loopback = private
+  assert.ok(isPrivatePeer('192.168.1.5') && isPrivatePeer('::1') && isPrivatePeer('10.0.0.1') && !isPrivatePeer('8.8.8.8'));
+});
+
+test('originAllowed: permissive when unset, exact match when set, missing Origin rejected', async () => {
+  const { originAllowed } = await load();
+  assert.ok(originAllowed('https://evil.example', []) && originAllowed(undefined, [])); // no list = permissive
+  const list = ['https://civ.example.com'];
+  assert.ok(originAllowed('https://civ.example.com', list));
+  assert.strictEqual(originAllowed('https://evil.example', list), false);
+  assert.strictEqual(originAllowed('https://civ.example.com.evil.com', list), false);  // no substring match
+  assert.strictEqual(originAllowed(undefined, list), false);                           // missing rejected when set
+});
+
+test('allowConnect: per-IP connect-rate burst then refill', async () => {
+  const { createLimiter } = await load();
+  const c = clock(0);
+  const lim = createLimiter({ now: c.now, limits: { connectBurst: 3, connectsPerSec: 1 } });
+  for (let i = 0; i < 3; i++) assert.ok(lim.allowConnect('1.2.3.4').ok, `burst ${i}`);
+  const r = lim.allowConnect('1.2.3.4');
+  assert.strictEqual(r.ok, false); assert.strictEqual(r.reason, 'connectRateLimited');
+  assert.ok(lim.allowConnect('5.6.7.8').ok, 'a different IP is independent');
+  c.advance(1000);
+  assert.ok(lim.allowConnect('1.2.3.4').ok, 'refilled one token');
+  assert.strictEqual(lim.counters().connectRejected, 1);
+});
+
+test('createBudgets: seat bucket keyed by SEAT (shared, not per-call), endTurn separate, per-conn message, cleanup', async () => {
+  const { createBudgets } = await load();
+  const c = clock(0);
+  const b = createBudgets({ now: c.now, limits: {
+    seatCmdBurst: 3, seatCmdRefillPerSec: 1, endTurnBurst: 2, endTurnRefillPerSec: 1, msgBurst: 2, msgRefillPerSec: 1
+  } });
+  for (let i = 0; i < 3; i++) assert.ok(b.seatCmd('g1', 'p1', 'cmd').ok, `seat burst ${i}`);
+  assert.strictEqual(b.seatCmd('g1', 'p1', 'cmd').ok, false, 'the seat bucket is one bucket (shared) — burst spent');
+  assert.ok(b.seatCmd('g1', 'p2', 'cmd').ok, 'a different seat is independent');
+  assert.ok(b.seatCmd('g1', 'p1', 'endTurn').ok, 'endTurn is a separate bucket for the same seat');
+  assert.ok(b.message('c1').ok && b.message('c1').ok);
+  assert.strictEqual(b.message('c1').ok, false, 'per-connection message burst spent');
+  assert.ok(b.message('c2').ok, 'a different connection is independent');
+  b.dropGame('g1'); b.dropConn('c1');
+  c.advance(60001); b.sweep();
+  assert.ok(b.counters().budgetRejected >= 2, 'aggregate reject counter');
+});
