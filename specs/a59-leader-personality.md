@@ -26,13 +26,18 @@ table) — e.g. Caesar 0.75/0.10/0.10/0.05, Shaka 1.00/0/0/0, Gandhi
 growth-dominant with favoriteWonder michelangelos-chapel, Shaka/Genghis
 favoriteWonder none (conquest personalities capture, don't build).
 
-WHERE: the reviewer confirms the home + checksum status — leaders live
-in data/civs.json (hand-maintained, civs-json-hand-maintained memory),
-but personality is ENGINE data (drives AI). If civs.json is NOT in the
-twins data-checksum set, add a new `data/leaders.json` (engine ruleset,
-checksum-tracked) rather than smuggle behavior into the hand-maintained
-names/colors file. The reviewer's prior-art check settles it before the
-window opens.
+WHERE: **RESOLVED (architect, direct check 2026-07-18):** civs.json
+IS one of the 8 twins-checksum-tracked data/*.json files, so personality
+goes THERE (each civ = one leader in Civ1) — no new file needed. It's
+hand-maintained, and personality axes are hand-authored (the ally's
+values), so the fit is clean. Prior-art VERIFIED clean: civ entries
+today hold name/color/cities/specialty/visual only (no personality/
+favoriteUnit/leader/stance), and NO engine/*.js reads any personality/
+aggression/favoriteUnit field — so the golden-neutral-in-behavior claim
+holds by construction. Adding personality moves civs.json's checksum →
+rulesetHash ripple → A82a/002 re-record (budgeted, the N10/N13 class),
+rounds/winner UNCHANGED (nothing behaves differently). Add `leader`
+(name) + `personality` per civ.
 
 ## 2. The seam (read-only)
 
