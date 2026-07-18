@@ -582,10 +582,13 @@ Server (`GameServer.server.luau`) additions:
   SPECTATE pad + host toggle; spectators get the omniscient
   `filterView` (twin's nil-seat branch), send nothing but the toggle
   and `{t=stats}`.
-- **SO7 endscreen / SO9 historian / SO8 stats**: server frames from
-  full state — `{t=endscreen}` scoreBreakdown rows on gameOver,
-  `{t=historian}` standings on ageChanged, a per-round score series
-  pulled by `{t=stats}` (never pushed).
+- **SO7 endscreen / SO9 historian / SO8 stats / SO17 strategy**:
+  server frames from full state — `{t=endscreen}` scoreBreakdown rows
+  on gameOver, `{t=historian}` standings on ageChanged, a per-round
+  score series pulled by `{t=stats}`, and a per-AI `strategicSnapshot`
+  (`luau/strategic.luau` twin) pulled by `{t=strat}` (all pull-only or
+  event-driven, never blanket-pushed; the last two gated to
+  spectators/Studio-debug).
 - **MP11 marathon**: `endYear=9999` override (lobby toggle).
 - **R17 debug menu**: Studio games set `debug` at createGame; the
   thin-client `DebugMenu` issues ordinary `debug{action}` commands
@@ -599,18 +602,24 @@ golden-safe by construction — the GoTo precedent):
   `AdviceCards.client` (SO5), `Minimap.client` (SO1, flat-Frame grid),
   `Tooltip` (SO2, hover/long-press), `Palette` (SO14, gate 10),
   `Legend.client`, `DebugMenu.client` (R17), `SettlerAuto.client`
-  (CP20 automation) — plus ActionBar rows Cities/GoTo/Fort/Pillage/
-  Trade(CP17)/Upgrade(CP18) and card toggles Zz(sentry)/Au(automate).
+  (CP20 automation), `Strategic.client` (SO17 🧠 overlay,
+  spectator/Studio-gated) — plus ActionBar rows Cities/GoTo/Fort/
+  Pillage/Trade(CP17)/Upgrade(CP18) and card toggles
+  Zz(sentry)/Au(automate).
 - Cross-cutting pattern reused: units that "sleep" out of N-cycling +
   `movableCount` + `allUnitsDone` — garrisons (R19), sentries and
   auto-settlers (CP20). Session-local sets on `ClientState` (no engine
   command); a manual order cancels automation via the `send` hook.
 
-Catalog state after this pass: the parity contract has done a full
-lap — every row PRESENT, PARTIAL-with-plan, DEFERRED-with-reason
-(SO15 audio content, blurb data), or N-A-platform. The one open
-non-gated MISSING is SO17 (strategic overlay), twin APPROVED
-(`luau/strategic.luau`, byte-shaped from `shared/strategic.js`).
+Catalog state after this pass: **FULLY CLOSED** (SO17 landed
+2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
+ViewRenderer `siteLine` already draws the fog-honest settler rating).
+A status-field scan finds ZERO genuine MISSING rows — scoreboard
+32 PRESENT / 11 PARTIAL-with-plan / 5 N-A-platform / 1 DEFERRED
+(SO15 audio content, user-gated). Every browser feature has a Roblox
+counterpart or a recorded reason. The standing process holds: the
+architect adds a catalog row when the browser grows a feature; the
+roblox-helper annotates and builds/requests-a-twin by row id.
 
 ## 4. Self-test (`check.sh`)
 
