@@ -172,8 +172,10 @@ export function startServer(opts) {
     });
   });
 
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  const conns = new Map(); // ws -> { gameId?, seat?, playerId?, isCreator? }
+  // maxPayload rejects an oversized frame at the ws protocol layer before the
+  // whole payload is buffered — matches protocol.js MAX_FRAME (64 KB).
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
+  const conns = new Map(); // ws -> { budget, gameId?, seat?, playerId?, isCreator? }
 
   function send(ws, msg) {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -609,6 +611,11 @@ export function startServer(opts) {
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
     conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }) });
+    // A ws protocol error (oversized frame past maxPayload, malformed framing)
+    // emits 'error'; WITHOUT a listener Node throws and crashes the whole
+    // server — one bad client could take it down. ws closes that socket itself;
+    // swallow so it can't (never logged per event).
+    ws.on('error', () => {});
     ws.on('close', () => {
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
@@ -816,7 +823,10 @@ export function startServer(opts) {
           if (i.gameId === info.gameId && i.seat === msg.seat && o !== ws) {
             if (msg.block === true) registry.blockIp(info.gameId, ipOf(o));
             send(o, { t: 'kicked', gameId: info.gameId });
-            conns.set(o, {}); // no longer in this lobby
+            // preserve the command budget across the kick — replacing the record
+            // wholesale would drop info.budget and wave every subsequent frame
+            // from a kicked-then-flooding socket past the budget (reviewer #1348).
+            conns.set(o, { budget: (conns.get(o) || {}).budget }); // no longer in this lobby
             break;
           }
         }
