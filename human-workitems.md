@@ -20,14 +20,11 @@ the Done log at the bottom.
   fast-forward starts for space scenarios (already exists).
   **Recommendation: A (or A+C).** Default if unanswered: endYear
   stays as-is; space remains reachable in natural mode and age-starts.
-- [ ] **Push gaming-PC dev_night** (now 5 local commits on the
-  marker-0054 lineage: batches 2-5 + the re-bake trio, tip `fc3fc03`
-  — sim-runner #1443, which also asks whether you want an interim
-  push checkpoint as the stack grows). Until this push lands, the
-  roblox lane's code (build queue, ship/discovery/end/historian
-  screens, minimap/tooltips/palette, advice cards, fastforward twin)
-  exists only on that machine, and the bugfixer's ff-parity
-  twins-gate registration stays blocked on it.
+- [x] **Push gaming-PC dev_night — DONE 2026-07-18 ~09:30** (two
+  pushes, 8 commits: roblox batches 2-7 incl. the R17 DebugMenu +
+  re-bakes + the hardening lane's plan doc). Catalog reconciled
+  post-merge (four rows re-added after the layout-translation drop);
+  ff-parity registration unblocked and fired to the bugfixer.
 - [ ] **N11 provenance FYI (default: proceed as labeled)** — the
   reviewer's wiki check reframed the queued upgrades item: Leonardo's
   Workshop is NOT a Civ1 wonder (Civ2 debut; our 21-wonder roster is
