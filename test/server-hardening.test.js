@@ -157,3 +157,46 @@ test('Slice 2.5 A: heartbeat terminates a socket that stops ponging; a live one 
     assert.ok(await live.expect(m => m.t === 'pong'), 'live socket pongs each round -> never reaped, still responds');
   } finally { dead.close(); live.close(); await s.close(); }
 });
+
+test('Slice 2.5 B: a dropped lobby seat is HELD (grace) and reclaimed by its reconnect id', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 'b1', seatGraceMs: 5000 }));
+  const host = await connect(s.port);
+  const ada = await connect(s.port);
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 3, humans: 3, size: 'xsmall', seed: 7 } });
+    const created = await host.expect(m => m.t === 'created');
+    ada.send({ t: 'join', joinCode: created.joinCode, name: 'Ada' });
+    const jl = await ada.expect(m => m.t === 'joinedLobby');
+    assert.ok(typeof jl.reconnectId === 'string' && jl.reconnectId.length > 0, 'joinedLobby carries a reconnect id');
+    const seat = jl.seat;
+    ada.close(); // the phone's socket drops
+    // the seat is HELD disconnected-reclaimable, NOT freed
+    const held = await host.expect(m => m.t === 'lobby' && m.lobby.seats.some(x => x.seat === seat && x.reserved && x.disconnected));
+    assert.ok(held, 'seat held disconnected, not released');
+    // reconnect with the id within the window -> keeps the same seat
+    const ada2 = await connect(s.port);
+    ada2.send({ t: 'join', joinCode: created.joinCode, name: 'Ada', lobbyReconnect: jl.reconnectId });
+    const jl2 = await ada2.expect(m => m.t === 'joinedLobby');
+    assert.strictEqual(jl2.seat, seat, 'reclaimed the same seat');
+    ada2.close();
+  } finally { host.close(); await s.close(); }
+});
+
+test('Slice 2.5 B: an unreclaimed lobby seat is released after the grace window', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 'b2', seatGraceMs: 150 }));
+  const host = await connect(s.port);
+  const ada = await connect(s.port);
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 3, humans: 3, size: 'xsmall', seed: 8 } });
+    const created = await host.expect(m => m.t === 'created');
+    ada.send({ t: 'join', joinCode: created.joinCode, name: 'Ada' });
+    const jl = await ada.expect(m => m.t === 'joinedLobby');
+    const seat = jl.seat;
+    ada.close();
+    // past the grace window the seat frees (roster shows it unreserved)
+    const freed = await host.expect(m => m.t === 'lobby' && m.lobby.seats.some(x => x.seat === seat && x.reserved === false), 2000);
+    assert.ok(freed, 'seat released after grace expiry');
+  } finally { host.close(); await s.close(); }
+});

@@ -32,6 +32,10 @@ export function parseMessage(raw) {
         && !/^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}-[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}$/.test(msg.seatCode)) {
       return { ok: false, code: 'badShape' };
     }
+    // Part B (mobile): lobby-reconnect id to reclaim a grace-held seat
+    if (msg.lobbyReconnect !== undefined && (typeof msg.lobbyReconnect !== 'string' || msg.lobbyReconnect.length > 64)) {
+      return { ok: false, code: 'badShape' };
+    }
     return { ok: true, msg };
   }
   // phase-4 lobby frames (docs/08 §2): create a game, list open games, start.

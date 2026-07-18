@@ -12,6 +12,7 @@
 // become AI. index.js then binds each live human seat in seat order via
 // game.bindSeat (so first-free IS the chart) and pushes the phase-3 joined
 // reply. Reservation names become the player names (killing "Player N").
+import { randomBytes } from 'node:crypto';
 import { createGame } from './game.js';
 import { createEngine } from '../engine/index.js';
 import { fastForwardTo } from '../shared/fastforward.js';
@@ -63,6 +64,10 @@ export function createRegistry(deps) {
   const gameIdFn = deps.gameIdFn || (() => `g${bootSuffix}-${nextNum++}`);
   const seedFn = deps.seedFn || (() => Date.now() % 1000000);
   const nowFn = deps.nowFn || Date.now; // A50 3b: injectable clock for createdAt (lifecycle expiry)
+  // Part B (mobile seat-grace): the lobby-reconnect id a disconnected phone
+  // presents to reclaim its held seat within the grace window. Random, never
+  // game state (registry only — golden-neutral); injectable for tests.
+  const reconnectIdFn = deps.reconnectIdFn || (() => randomBytes(9).toString('hex'));
   const ruleset = deps.ruleset;
   const games = {};      // gameId -> entry
   const codeIndex = {};  // joinCode -> gameId
@@ -132,14 +137,37 @@ export function createRegistry(deps) {
     }
     if (!pid) return { ok: false, reason: 'gameFull' };
     e.seats[pid].reserved = true;
+    e.seats[pid].disconnected = false;
     e.seats[pid].name = opts.name || pid;
-    return { ok: true, seat: pid };
+    e.seats[pid].reconnectId = reconnectIdFn(); // Part B: reclaim secret
+    return { ok: true, seat: pid, reconnectId: e.seats[pid].reconnectId };
+  }
+
+  // Part B: a phone whose socket dropped presents its reconnectId to reclaim the
+  // grace-held seat. Matches ONLY a reserved+disconnected seat (a live seat is
+  // never displaceable); clears the disconnected flag and returns the seat.
+  function reclaimSeat(gameId, reconnectId) {
+    const e = games[gameId];
+    if (!e || e.status !== 'lobby') return { ok: false, reason: 'notReclaimable' };
+    if (typeof reconnectId !== 'string' || reconnectId === '') return { ok: false, reason: 'notReclaimable' };
+    const pid = Object.keys(e.seats).find(p => e.seats[p].reserved && e.seats[p].disconnected && e.seats[p].reconnectId === reconnectId);
+    if (!pid) return { ok: false, reason: 'notReclaimable' };
+    e.seats[pid].disconnected = false;
+    return { ok: true, seat: pid, name: e.seats[pid].name, reconnectId };
+  }
+
+  // Part B: mark a reserved seat disconnected (grace-held) instead of freeing it.
+  function markDisconnected(gameId, seat) {
+    const e = games[gameId];
+    if (e && e.status === 'lobby' && e.seats[seat] && e.seats[seat].reserved) e.seats[seat].disconnected = true;
   }
 
   function releaseSeat(gameId, seat) {
     const e = games[gameId];
     if (e && e.status === 'lobby' && e.seats[seat]) {
       e.seats[seat].reserved = false;
+      e.seats[seat].disconnected = false;
+      delete e.seats[seat].reconnectId; // Part B: the reclaim secret dies with the reservation
       e.seats[seat].name = null;
     }
   }
@@ -373,6 +401,7 @@ export function createRegistry(deps) {
 
   return {
     create, reserveSeat, releaseSeat, setSlot, setSlots, start, register,
-    resolveId, entryOf, list, kick, blockIp, setChat, remove // A37 / A50 3b
+    resolveId, entryOf, list, kick, blockIp, setChat, remove, // A37 / A50 3b
+    reclaimSeat, markDisconnected // Part B: mobile lobby seat-grace
   };
 }
