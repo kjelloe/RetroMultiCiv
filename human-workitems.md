@@ -20,14 +20,23 @@ the Done log at the bottom.
   fast-forward starts for space scenarios (already exists).
   **Recommendation: A (or A+C).** Default if unanswered: endYear
   stays as-is; space remains reachable in natural mode and age-starts.
-- [ ] **Push gaming-PC dev_night** (3 local commits on the
-  marker-0052 lineage: batch-2 `2d54d82` + batch-3 `4258eb2` +
-  batch-4 `492f263`, plus the 0052 re-bake trio pending one more
-  sweep — sim-runner #1425). Until this push lands, the roblox
-  lane's code (build queue, ship+discovery screens, minimap/
-  tooltips/palette, fastforward twin) exists only on that machine,
-  and the bugfixer's ff-parity twins-gate registration stays
-  blocked on it.
+- [ ] **Push gaming-PC dev_night** (now 5 local commits on the
+  marker-0054 lineage: batches 2-5 + the re-bake trio, tip `fc3fc03`
+  — sim-runner #1443, which also asks whether you want an interim
+  push checkpoint as the stack grows). Until this push lands, the
+  roblox lane's code (build queue, ship/discovery/end/historian
+  screens, minimap/tooltips/palette, advice cards, fastforward twin)
+  exists only on that machine, and the bugfixer's ff-parity
+  twins-gate registration stays blocked on it.
+- [ ] **N11 provenance FYI (default: proceed as labeled)** — the
+  reviewer's wiki check reframed the queued upgrades item: Leonardo's
+  Workshop is NOT a Civ1 wonder (Civ2 debut; our 21-wonder roster is
+  verified exactly Civ1's), and manual upgrade-for-gold enters the
+  series at Civ3. Both halves ship as labeled imports under your
+  civ-mixing ruling (specs/n11-upgrades.md: Civ3-shape command,
+  Civ2-authentic Leonardo, original-projection chain rows where Civ1
+  lacks intermediates). Object if you'd rather skip either half;
+  silence = build as specced.
 - [ ] **Merge marker-0054** (supersedes 0053; adds the seam bundle, B28 audit fix + N10 caravan trade
   routes — windfall + live top-3 route bonus, 4 new cross-language
   scenario pins, full-but-behavior-identical golden ripple via the
