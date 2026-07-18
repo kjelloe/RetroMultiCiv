@@ -1,0 +1,538 @@
+{
+  "version": 1,
+  "turn": 40,
+  "year": -2000,
+  "activePlayer": "p1",
+  "playerOrder": [
+    "p1",
+    "p2",
+    "p3"
+  ],
+  "map": {
+    "width": 12,
+    "height": 8,
+    "wrapX": true,
+    "tiles": [
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "ocean"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      },
+      {
+        "t": "grassland"
+      }
+    ]
+  },
+  "units": {
+    "u1": {
+      "id": "u1",
+      "type": "legion",
+      "owner": "p1",
+      "x": 2,
+      "y": 2,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u2": {
+      "id": "u2",
+      "type": "cavalry",
+      "owner": "p1",
+      "x": 3,
+      "y": 2,
+      "moves": 2,
+      "fortified": false,
+      "veteran": false
+    },
+    "u3": {
+      "id": "u3",
+      "type": "trireme",
+      "owner": "p1",
+      "x": 1,
+      "y": 3,
+      "moves": 3,
+      "fortified": false,
+      "veteran": false
+    },
+    "u4": {
+      "id": "u4",
+      "type": "settlers",
+      "owner": "p2",
+      "x": 8,
+      "y": 2,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u5": {
+      "id": "u5",
+      "type": "settlers",
+      "owner": "p2",
+      "x": 9,
+      "y": 2,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u6": {
+      "id": "u6",
+      "type": "militia",
+      "owner": "p2",
+      "x": 8,
+      "y": 3,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u7": {
+      "id": "u7",
+      "type": "phalanx",
+      "owner": "p3",
+      "x": 6,
+      "y": 6,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u8": {
+      "id": "u8",
+      "type": "legion",
+      "owner": "p3",
+      "x": 3,
+      "y": 3,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u9": {
+      "id": "u9",
+      "type": "legion",
+      "owner": "p3",
+      "x": 2,
+      "y": 3,
+      "moves": 1,
+      "fortified": false,
+      "veteran": false
+    },
+    "u10": {
+      "id": "u10",
+      "type": "cavalry",
+      "owner": "p3",
+      "x": 3,
+      "y": 1,
+      "moves": 2,
+      "fortified": false,
+      "veteran": false
+    }
+  },
+  "cities": {
+    "c1": {
+      "id": "c1",
+      "name": "A",
+      "owner": "p1",
+      "x": 2,
+      "y": 2,
+      "pop": 3,
+      "food": 0,
+      "shields": 0,
+      "buildings": [],
+      "producing": {
+        "kind": "unit",
+        "id": "legion"
+      }
+    },
+    "c2": {
+      "id": "c2",
+      "name": "B",
+      "owner": "p2",
+      "x": 8,
+      "y": 2,
+      "pop": 3,
+      "food": 0,
+      "shields": 0,
+      "buildings": [],
+      "producing": {
+        "kind": "unit",
+        "id": "settlers"
+      }
+    },
+    "c3": {
+      "id": "c3",
+      "name": "C",
+      "owner": "p2",
+      "x": 10,
+      "y": 4,
+      "pop": 2,
+      "food": 0,
+      "shields": 0,
+      "buildings": [],
+      "producing": {
+        "kind": "building",
+        "id": "barracks"
+      }
+    },
+    "c4": {
+      "id": "c4",
+      "name": "D",
+      "owner": "p3",
+      "x": 6,
+      "y": 6,
+      "pop": 4,
+      "food": 0,
+      "shields": 0,
+      "buildings": [],
+      "producing": {
+        "kind": "unit",
+        "id": "phalanx"
+      }
+    },
+    "c5": {
+      "id": "c5",
+      "name": "E",
+      "owner": "p3",
+      "x": 5,
+      "y": 5,
+      "pop": 2,
+      "food": 0,
+      "shields": 0,
+      "buildings": [],
+      "producing": {
+        "kind": "wonder",
+        "id": "colossus"
+      }
+    }
+  },
+  "cityOrder": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5"
+  ],
+  "wonders": {},
+  "nextUnitId": 20,
+  "nextCityId": 20,
+  "players": {
+    "p1": {
+      "id": "p1",
+      "name": "Rome",
+      "color": "#00f",
+      "human": false,
+      "gold": 0,
+      "techs": [],
+      "researching": "",
+      "bulbs": 0,
+      "taxRate": 50,
+      "sciRate": 50,
+      "stance": "aggressive",
+      "government": "monarchy"
+    },
+    "p2": {
+      "id": "p2",
+      "name": "Egypt",
+      "color": "#f00",
+      "human": false,
+      "gold": 0,
+      "techs": [],
+      "researching": "",
+      "bulbs": 0,
+      "taxRate": 50,
+      "sciRate": 50,
+      "stance": "builder",
+      "government": "republic"
+    },
+    "p3": {
+      "id": "p3",
+      "name": "Greece",
+      "color": "#0f0",
+      "human": false,
+      "gold": 0,
+      "techs": [],
+      "researching": "",
+      "bulbs": 0,
+      "taxRate": 50,
+      "sciRate": 50
+    }
+  },
+  "rngState": 1
+}

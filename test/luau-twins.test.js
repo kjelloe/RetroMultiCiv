@@ -328,3 +328,26 @@ test('luau fast-forward: the cross-language ff-parity probe matches JS and the p
     assert.strictEqual(jsLine, FF_PARITY_PIN,
       `ff-parity moved off its pin — if a ruleset window moved it, re-record ${FF_PARITY_PIN}`);
   });
+
+// SO17: the strategic snapshot (shared/strategic.js) must port byte-shaped so the
+// Roblox spectator overlay reads the SAME derived read as the browser overlay +
+// soak --stats. A shared crafted state (test/fixtures/strategic-state.json, a
+// builder/aggressive/balanced trio exercising warring/expanding/building modes +
+// mil/settlers/scouts/naval + a topGoal tie) is snapshotted per player in both
+// languages; the per-player snapshot hashes must be identical. Golden-neutral.
+test('luau strategic: strategicSnapshot matches the JS shared/strategic.js per player',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const fs = require('fs');
+    const RULESET = require('./ruleset.js');
+    const { strategicSnapshot } = await import('../shared/strategic.js');
+    const { hashState } = await import('../shared/statehash.js');
+    const state = JSON.parse(fs.readFileSync(path.join(REPO, 'test', 'fixtures', 'strategic-state.json'), 'utf8'));
+    const res = spawnSync('lune', ['run', 'luau/strategic-check.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+    assert.strictEqual(res.status, 0, `strategic harness failed:\n${res.stdout}\n${res.stderr}`);
+    for (const pid of state.playerOrder) {
+      const h = '0x' + (hashState(strategicSnapshot(state, pid, RULESET)) >>> 0).toString(16).padStart(8, '0');
+      assert.ok(res.stdout.includes(`strat:${pid}: ${h}`),
+        `${pid}: luau strategicSnapshot must hash as ${h} — harness said:\n${res.stdout}`);
+    }
+  });
