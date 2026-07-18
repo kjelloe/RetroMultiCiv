@@ -8,6 +8,18 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
+- [ ] **Ending #4 horizon (space victory) — measured decision menu**
+  (sim-runner #1399/#1408/#1410, 2026-07-18): at natural AI pace space
+  is UNREACHABLE in 400 turns (0/25 seeds even reach flight) but the
+  research rate ACCELERATES late-game, landing space-flight ~t650-720
+  with zero engine change. Forcing it into 400t needs ~5× research
+  speed and STILL builds no Apollo (0/8) — impractical. Options:
+  (A) longer horizon: natural/~700-750-turn games reach space with no
+  tuning (cost: game length + a late-game perf note); (B) rate lever:
+  bounded impractical, not recommended standalone; (C) ?age=
+  fast-forward starts for space scenarios (already exists).
+  **Recommendation: A (or A+C).** Default if unanswered: endYear
+  stays as-is; space remains reachable in natural mode and age-starts.
 - [ ] **Push gaming-PC dev_night** (2 local commits: roblox batch-2
   `82e3f6c` + batch-3 `d0e786d`, rebased clean onto origin dc29399 —
   sim-runner #1391). Until this push lands, the roblox lane's code
