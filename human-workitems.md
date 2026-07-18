@@ -52,11 +52,12 @@ _Last synced: 2026-07-18._
   **benchmark corpus #2** (the primary AI metric). Try **Marathon mode**
   (the "play until victory" checkbox) if you want to see the late game.
 
-- [ ] **Mobile T0 — mostly PASSES; one gap.** You confirmed on your phone:
-  map navigation (direct + d-pad), zoom in/out, screensaver-resume, AND AI
-  regency all work. The one untested piece: **moving units + selecting
-  production** on mobile. The helper is verifying + hardening that touch
-  flow (#1736); test it yourself next session too. Closes T0.
+- [x] **Mobile T0 — CLOSED.** You confirmed nav (direct + d-pad), zoom,
+  screensaver-resume, and regency; the helper then verified select / move /
+  production on touch (Pixel-5) and **fixed a real blocker** — the city
+  panel didn't scroll at phone height, so most of the buildable catalog was
+  unreachable (mobile production was broken). Fixed + regression-tested.
+  Worth a confirming pass on your own phone, but no longer an open question.
 
 - [ ] **Mobile seated-start RE-TEST (X.6 follow-up).** The hang you saw
   (phone joined lobby + chatted, but game START showed nothing; spectator

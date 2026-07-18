@@ -117,9 +117,9 @@
       <div class="d">Field-test the systems no human has played: goody huts, caravan routes, unit upgrades, the debug panel (🐞), the spaceship screen, late-game save loading, and now the tech tree + beeline. With Shift+D recordings it seeds benchmark corpus #2. Try Marathon mode to see the late game.</div>
     </div>
 
-    <div class="item"><span class="box"></span>
-      <div class="t">Mobile T0 — mostly PASSES; one gap</div>
-      <div class="d">Confirmed on your phone: map navigation (direct + d-pad), zoom in/out, screensaver-resume, AND AI regency all work. The one untested piece: <strong>moving units + selecting production</strong> on mobile. The helper is verifying + hardening that touch flow (#1736); test it yourself next session too. Closes T0.</div>
+    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
+      <div class="t" style="text-decoration:line-through;opacity:.7">Mobile T0 — CLOSED</div>
+      <div class="d">You confirmed nav (direct + d-pad), zoom, screensaver-resume, and regency; the helper then verified select / move / production on touch (Pixel-5) and <strong>fixed a real blocker</strong> — the city panel didn't scroll at phone height, so most of the buildable catalog was unreachable (mobile production was broken). Fixed + regression-tested. A confirming pass on your own phone is worthwhile, but it's no longer an open question.</div>
     </div>
 
     <div class="item"><span class="box"></span>
