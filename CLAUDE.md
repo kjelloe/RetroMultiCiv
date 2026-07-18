@@ -115,7 +115,7 @@ options,lobby,move-hints,wait-status,advice,advice-gate,catalog-text,
 endscreen,ff-overlay,historian,left-stack,overlays,pedia,pedia-concepts,
 regency,regent-driver,replay,replay-events,sound,sound-map,stats,
 stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
-build-queue,automate,debug-panel,strategic-overlay}. The
+build-queue,automate,debug-panel,strategic-overlay,diplomacy}. The
 renderer splits renderer/three/{index,assets,props,terrain,factions,
 overlays,recipes,unit-chrome,anim
 — anim.js is render-time-only motion: clock+position phases, never
