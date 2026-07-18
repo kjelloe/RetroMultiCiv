@@ -20,7 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
-import { createLimiter, createCommandBudget, createBudgets, clientIpFrom } from './limits.js';
+import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -150,12 +150,15 @@ export function startServer(opts) {
     return STATIC_ROOTS.some(r => urlPath.startsWith(r));
   }
   const httpServer = http.createServer((req, res) => {
+    // Slice 3b: cap absurd URL lengths cheaply, before URL parsing (Node already
+    // caps total header bytes; this is an explicit, earlier guard).
+    if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
     const parsed = new URL(req.url, 'http://x');
     const urlPath = decodeURIComponent(parsed.pathname);
     // A22: friendly entry points — the bare host and /client (no slash) both
     // land on /client/ (302 keeps the query string: join links carry params)
     if (urlPath === '/' || urlPath === '/client') {
-      res.writeHead(302, { Location: '/client/' + parsed.search });
+      res.writeHead(302, { Location: '/client/' + parsed.search, 'X-Content-Type-Options': 'nosniff' });
       res.end();
       return;
     }
@@ -171,7 +174,15 @@ export function startServer(opts) {
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, buf) => {
       if (err) { res.writeHead(404); res.end(); return; }
-      res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+      const ext = path.extname(file);
+      // Slice 3b: nosniff on every asset; the HTML entrypoint revalidates so a
+      // deploy propagates (no stale client), other assets cache briefly (longer
+      // would need content-hashed filenames, none today).
+      res.writeHead(200, {
+        'Content-Type': MIME[ext] || 'application/octet-stream',
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=600'
+      });
       res.end(buf);
     });
   });
@@ -183,11 +194,15 @@ export function startServer(opts) {
   // without this the per-IP limits collapse to one bucket for all clients.
   const trustProxyHops = Number(opts.trustProxyHops) || 0;
   const clientIp = req => clientIpFrom(req, trustProxyHops);
-  // Slice 3a: per-IP connect-rate gate in the WS handshake — refused BEFORE the
-  // socket is allocated, so open/close churn can't pile up ws objects.
+  // Slice 3b: optional WS Origin allow-list (empty = permissive LAN default; set
+  // for a public browser deploy to blunt cross-origin socket abuse — WebSockets
+  // are CORS-exempt). Browser-abuse mitigation, not auth.
+  const originAllowlist = (opts.originAllowlist || []).filter(Boolean);
+  // Handshake gate — rejects BEFORE the socket is allocated: bad Origin first
+  // (cheap compare, no connect token spent), then the per-IP connect-rate (3a).
   const wss = new WebSocketServer({
     server: httpServer, path: '/ws', maxPayload: 64 * 1024,
-    verifyClient: info => limiter.allowConnect(clientIp(info.req)).ok
+    verifyClient: info => originAllowed(info.origin, originAllowlist) && limiter.allowConnect(clientIp(info.req)).ok
   });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
@@ -1088,6 +1103,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--connect-burst') (opts.limits = opts.limits || {}).connectBurst = Number(argv[++i]);
     else if (a === '--trust-proxy') opts.trustProxyHops = 1;
     else if (a === '--trust-proxy-hops') opts.trustProxyHops = Number(argv[++i]);
+    // Slice 3b: WS Origin allow-list (CSV of exact origins; empty = permissive)
+    else if (a === '--origin-allowlist') opts.originAllowlist = String(argv[++i] || '').split(',').map(s => s.trim());
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);

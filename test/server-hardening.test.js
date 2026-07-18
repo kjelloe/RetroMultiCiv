@@ -236,3 +236,37 @@ test('Slice 3a: with --trust-proxy, per-IP limits key off X-Forwarded-For (not t
     for (const r of a.concat(other)) if (r.ws) r.ws.close();
   } finally { await s.close(); }
 });
+
+test('Slice 3b: Origin allow-list refuses a disallowed origin at the handshake; allows a listed one', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3b', originAllowlist: ['https://allowed.example'] }));
+  const dies = origin => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { origin });
+    ws.on('open', () => { ws.close(); res(false); }); ws.on('error', () => res(true));
+  });
+  try {
+    assert.strictEqual(await dies('https://evil.example'), true, 'disallowed origin refused at handshake');
+    const joined = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { origin: 'https://allowed.example' });
+      ws.on('open', () => ws.send(JSON.stringify({ t: 'join', name: 'Kjell' })));
+      ws.on('message', raw => { const m = JSON.parse(raw); if (m.t === 'joined') { ws.close(); resolve(m); } });
+      ws.on('error', reject);
+    });
+    assert.strictEqual(joined.playerId, 'p1', 'allowed origin joins');
+  } finally { await s.close(); }
+});
+
+test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong URL is 414', async () => {
+  const { startServer } = await import('../server/index.js');
+  const http = require('http');
+  const s = await startServer(base({ gameId: '3bh' }));
+  const get = p => new Promise(res => http.get({ host: '127.0.0.1', port: s.port, path: p }, r => { r.resume(); res(r); }));
+  try {
+    const idx = await get('/client/');
+    assert.strictEqual(idx.headers['x-content-type-options'], 'nosniff');
+    assert.match(idx.headers['cache-control'], /no-cache/);
+    const long = await get('/client/' + 'a'.repeat(3000));
+    assert.strictEqual(long.statusCode, 414);
+  } finally { await s.close(); }
+});

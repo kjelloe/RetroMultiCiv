@@ -224,3 +224,13 @@ export function clientIpFrom(req, hops) {
   const idx = chain.length - 1 - h;
   return idx >= 0 ? chain[idx] : chain[0];
 }
+
+// Slice 3b: WS Origin allow-list. Empty/absent list = PERMISSIVE (the LAN
+// default — WebSockets are CORS-exempt, so this is opt-in browser-abuse
+// mitigation, not authentication). When set: EXACT match required (no
+// substring), and a MISSING Origin is rejected (browsers always send one).
+export function originAllowed(origin, allowlist) {
+  if (!allowlist || allowlist.length === 0) return true;
+  if (!origin) return false;
+  return allowlist.indexOf(origin) !== -1;
+}
