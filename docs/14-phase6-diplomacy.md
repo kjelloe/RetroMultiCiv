@@ -179,7 +179,13 @@ then D1. The resource-chains shelf item (Civ4-style) gains its
 diplomatic meaning here later: supply lines become things wars are
 ABOUT — deliberately deferred until diplomacy stands.
 
-## D1 forward-flags (reviewer marker-0047 review, 2026-07-17 — decide at D1, not by accident)
+## D1 forward-flags (reviewer reviews, 2026-07-17/18 — decide at D1, not by accident)
+
+- **Senate applies to REPUBLIC too (wiki fact, reviewer #1349):** Civ 1's
+  "can't declare war, must accept all peace treaties" constraint is a
+  Republic row as well as Democracy. The v1 government re-eval ships
+  Republic without it (labeled simplification, pre-D1 it cannot bite);
+  the D-family senate design must cover BOTH governments.
 
 - **Blockade × peace state:** the A79 worked-tile blockade triggers on ANY
   non-owner unit (correct today — no peace state exists). When D1 treaties

@@ -37,6 +37,12 @@ unreachable by AI choice.
      advances — war machine by design).
 3. **Democracy: DEFERRED to phase 6** (senate/war constraints are D-family
    per docs/14; v1 tops out at Republic). Explicit non-goal line.
+   FORWARD-FLAG (reviewer #1349 wiki fact): in Civ 1 the senate
+   constraint ("can't declare war, must accept all peace treaties")
+   applies to REPUBLIC too, not Democracy-only. It cannot bite before D1
+   (no war/peace state exists); v1 ships Republic without it as a
+   labeled simplification, and docs/14's senate row now lists Republic
+   alongside Democracy so the D-family design inherits the fact.
 4. **Mechanics reused, zero new engine surface:** setGovernment +
    processRevolutions (2-turn anarchy, Pyramids instant) unchanged; the
    only engine edit is ai.js's government policy (+ luau twin). No
@@ -71,7 +77,9 @@ The win is the N9 CLUSTER easing, not any single number:
 
 ## Provenance
 
-Civ1-authentic in substance (the wiki's per-government trade/unhappiness
-facts are already the shipped data; Civ 1's AI famously pursued
-government-appropriate behavior). The stance-linked adoption RULE is
-original (labeled), consistent with the heterogeneous-archetype direction.
+The government VALUES are Civ1-authentic (reviewer-verified against the
+wiki table: tradeBonus 1, warUnhappiness 1, martialLawMax 0, upkeep 1,
+very-low corruption — all match shipped data). The adoption RULE is
+**original, Civ1-consistent** (the wiki is silent on Civ1's actual AI
+government behavior — reviewer #1349), aligned with the
+heterogeneous-archetype direction.
