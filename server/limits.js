@@ -19,7 +19,19 @@ export const DEFAULT_LIMITS = {
   joinsPerMin: 30,      // join/reserve attempts per IP per minute
   chatPerMin: 60,       // chat messages per IP per minute
   cmdBurst: 40,         // per-connection command bucket capacity (a busy turn's burst)
-  cmdRefillPerSec: 20   // per-connection sustained commands/sec (LAN-generous; a flood is orders above)
+  cmdRefillPerSec: 20,  // per-connection sustained commands/sec (LAN-generous; a flood is orders above)
+  // docs/17 layered budget (createBudgets) — the PRIMARY layer over the
+  // per-connection createCommandBudget backstop. The seat bucket is keyed by
+  // SEAT (shared across a seat's sockets), so a second socket/reconnect cannot
+  // buy extra budget. The message bucket bounds EVERY frame (closes a vote/ping
+  // flood the cmd-only budget misses). Candidate defaults; the combined sweep
+  // tunes them (the seat rate is the binding one — 15/s < the 20/s backstop).
+  seatCmdBurst: 40,          // per-seat command burst (shared across the seat's sockets)
+  seatCmdRefillPerSec: 15,   // per-seat sustained commands/sec (the binding rate)
+  endTurnBurst: 4,           // per-seat endTurn burst (endTurn drives the AI chain)
+  endTurnRefillPerSec: 2,    // per-seat sustained endTurns/sec
+  msgBurst: 60,              // per-connection all-message burst (any frame type)
+  msgRefillPerSec: 30        // per-connection sustained messages/sec
 };
 
 // Sliding-window widths + which config field caps each rate-limited action.
@@ -115,4 +127,56 @@ export function createCommandBudget(deps) {
     return { ok: false, reason: 'rateLimited' };
   }
   return { take, stats: () => ({ tokens }) };
+}
+
+// Layered command budget (docs/17 P0 primary layer, on TOP of the shipped
+// per-connection createCommandBudget backstop). Two bucket families in one
+// bounded map:
+//   seatCmd(gameId, pid, kind) — the SEAT bucket (kind 'cmd'|'endTurn'), SHARED
+//     across every socket holding that seat's token, so opening a second socket
+//     or reconnecting cannot buy a seat extra budget (the multi-socket bypass a
+//     per-connection-only guard misses). endTurn has its own tighter bucket.
+//   message(connId) — a per-connection ALL-MESSAGE bucket over EVERY frame type
+//     (ping/list/join/vote/cmd/malformed), so no socket saturates the loop with
+//     cheap non-cmd frames (closes the vote-flood the cmd-only budget misses).
+// take() is O(1); sweep() drops idle-full buckets (a bucket untouched for 60s
+// has fully refilled, so it is indistinguishable from fresh). Clock-injectable.
+export function createBudgets(deps) {
+  const opts = deps || {};
+  const now = opts.now || Date.now;
+  const cfg = Object.assign({}, DEFAULT_LIMITS, opts.limits || {});
+  const buckets = {}; // key -> { tokens, last }
+  let rejected = 0;
+  function take(key, cap, rate) {
+    const t = now();
+    let b = buckets[key];
+    if (b === undefined) b = buckets[key] = { tokens: cap, last: t };
+    b.tokens = Math.min(cap, b.tokens + ((t - b.last) / 1000) * rate);
+    b.last = t;
+    if (b.tokens >= 1) { b.tokens -= 1; return true; }
+    rejected += 1;
+    return false;
+  }
+  function seatCmd(gameId, pid, kind) {
+    const cap = kind === 'endTurn' ? cfg.endTurnBurst : cfg.seatCmdBurst;
+    const rate = kind === 'endTurn' ? cfg.endTurnRefillPerSec : cfg.seatCmdRefillPerSec;
+    return { ok: take('s:' + gameId + '|' + pid + '|' + kind, cap, rate), reason: 'rateLimited' };
+  }
+  function message(connId) {
+    return { ok: take('m:' + connId, cfg.msgBurst, cfg.msgRefillPerSec), reason: 'rateLimited' };
+  }
+  function dropGame(gameId) {
+    const pre = 's:' + gameId + '|';
+    for (const k of Object.keys(buckets)) if (k.startsWith(pre)) delete buckets[k];
+  }
+  function dropConn(connId) { delete buckets['m:' + connId]; }
+  function sweep() {
+    const t = now();
+    for (const k of Object.keys(buckets)) if (t - buckets[k].last > 60000) delete buckets[k];
+  }
+  return {
+    seatCmd, message, dropGame, dropConn, sweep,
+    counters: () => ({ budgetRejected: rejected }),
+    stats: () => ({ buckets: Object.keys(buckets).length })
+  };
 }
