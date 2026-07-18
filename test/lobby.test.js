@@ -78,14 +78,16 @@ test('list: reflects seat occupancy', () => {
 
 test('reserveSeat: first-free, requested pick, full, and release', () => {
   let n = 0;
-  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  // fixed reconnectIdFn so reserveSeat's return (Part B mobile seat-grace adds a
+  // reconnectId) stays deterministic for the exact-match assertions below.
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n), reconnectIdFn: () => 'rc' });
   const { entry } = reg.create({ civs: 4, humans: 3 }, 'Kjell'); // creator p1
-  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Ada' }), { ok: true, seat: 'p2' }, 'first free');
-  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Bo', seat: 'p3' }), { ok: true, seat: 'p3' }, 'honors pick');
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Ada' }), { ok: true, seat: 'p2', reconnectId: 'rc' }, 'first free');
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Bo', seat: 'p3' }), { ok: true, seat: 'p3', reconnectId: 'rc' }, 'honors pick');
   assert.strictEqual(reg.reserveSeat(entry.gameId, { name: 'X' }).reason, 'gameFull', 'no human seats left');
   assert.strictEqual(reg.reserveSeat(entry.gameId, { name: 'X', seat: 'p4' }).reason, 'gameFull', 'p4 is an AI seat');
   reg.releaseSeat(entry.gameId, 'p3');
-  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Cy', seat: 'p3' }), { ok: true, seat: 'p3' }, 'freed seat reusable');
+  assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Cy', seat: 'p3' }), { ok: true, seat: 'p3', reconnectId: 'rc' }, 'freed seat reusable');
 });
 
 test('start: authors the seating chart — picked seat + name, unfilled/dropped → AI', () => {
