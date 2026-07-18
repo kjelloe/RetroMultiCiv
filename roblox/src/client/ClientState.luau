@@ -26,7 +26,8 @@ local M = {
 		look = "retro", -- visual-fidelity toggle (#1100): retro|enhanced
 		-- session-E: pick research after 2 idle turns (Options acts on it)
 		autoResearch = true,
-		discoveryCards = true }, -- SO3: the tech-discovery card toggle
+		discoveryCards = true, -- SO3: the tech-discovery card toggle
+		adviceCards = true }, -- SO5: first-timer advice nudges
 }
 
 local viewCallbacks = {}
@@ -37,6 +38,8 @@ local governmentOpenCallbacks = {} -- R12 (2): government panel open/toggle chan
 local cityListToggleCallbacks = {} -- session-E round 18: the Cities button
 local rejectedCallbacks = {} -- round 21: visible reject feedback (Hud)
 local pediaOpenCallbacks = {} -- SO3: discovery-card deep links into Pedia
+local endscreenCallbacks = {} -- SO7: the server's gameOver scoreboard frame
+local historianCallbacks = {} -- SO9: age-change standings interstitial
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -178,6 +181,17 @@ function M.onRejected(cb)
 	table.insert(rejectedCallbacks, cb)
 end
 
+function M.onHistorian(cb)
+	table.insert(historianCallbacks, cb)
+end
+
+function M.onEndscreen(cb)
+	table.insert(endscreenCallbacks, cb)
+	if M.endscreen ~= nil then
+		cb(M.endscreen)
+	end
+end
+
 function M.onPediaOpen(cb)
 	table.insert(pediaOpenCallbacks, cb)
 end
@@ -257,6 +271,18 @@ remote.OnClientEvent:Connect(function(msg)
 	if msg.t == "joined" then
 		M.playerId = msg.playerId
 		print(("[Client] joined as %s (turn %d, %s active)"):format(msg.playerId, msg.turn, msg.activePlayer))
+	end
+	if msg.t == "historian" then
+		for _, cb in ipairs(historianCallbacks) do
+			cb(msg)
+		end
+	end
+	if msg.t == "endscreen" then
+		-- SO7: server-computed scoreboard (full state; post-game = public)
+		M.endscreen = msg
+		for _, cb in ipairs(endscreenCallbacks) do
+			cb(msg)
+		end
 	end
 	if msg.t == "saved" then
 		-- R23: rolling autosave landed; Hud shows the latest resumable code

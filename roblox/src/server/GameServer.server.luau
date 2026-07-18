@@ -29,6 +29,7 @@ local aiModule = require(shared:WaitForChild("ai"))
 local visibility = require(shared:WaitForChild("visibility"))
 local statehash = require(shared:WaitForChild("statehash"))
 local gamecode = require(shared:WaitForChild("gamecode"))
+local scoreModule = require(shared:WaitForChild("score")) -- SO7 end screen
 local json2lua = require(shared:WaitForChild("json2lua"))
 local Deck = require(script.Parent:WaitForChild("Deck"))
 local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
@@ -426,6 +427,105 @@ end
 -- initiatedByEndTurn: a seated human's ok endTurn preceded this call — its
 -- round entry MUST log even when zero AI turns follow (replay re-derives
 -- the endTurn from the round entry; skipping it would drop the endTurn).
+-- SO7 (catalog row; browser A73 twin): on gameOver the SERVER computes the
+-- scoreboard from FULL state (the seat views stay fog-filtered; post-game
+-- data is public — the R18 theater precedent) and broadcasts one
+-- {t="endscreen"} frame: headline inputs + per-civ score component rows
+-- straight from the shared scoreBreakdown twin, never a parallel formula.
+local endscreenSent = false
+local function sendEndscreen()
+	if endscreenSent or state == nil then
+		return
+	end
+	endscreenSent = true
+	local rows = setmetatable({}, statehash.ARRAY_MT)
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		local bd = scoreModule.scoreBreakdown(state, pid, ruleset)
+		local cities, pop, wonders = 0, 0, 0
+		for _, cid in ipairs(state.cityOrder) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner == pid then
+				cities += 1
+				pop += c.pop
+			end
+		end
+		if state.wonders ~= nil then
+			for _, hostCity in pairs(state.wonders) do
+				local h = state.cities[hostCity]
+				if h ~= nil and h.owner == pid then
+					wonders += 1
+				end
+			end
+		end
+		table.insert(rows, { pid = pid, name = p.name, color = p.color,
+			alive = p.alive ~= false, total = bd.total,
+			popPts = bd.population, techPts = bd.techs, wonderPts = bd.wonders,
+			cities = cities, techs = #p.techs, wonders = wonders })
+	end
+	-- victory type: space when the winner's launched ship has arrived,
+	-- conquest when one civ stands, else the end year settled it on score
+	local victory = "score"
+	local w = state.winner ~= nil and state.players[state.winner] or nil
+	if w ~= nil and w.spaceship ~= nil and w.spaceship.launched ~= nil
+		and w.spaceship.launched ~= 0 and (w.spaceship.arrivalTurn or math.huge) <= state.turn then
+		victory = "space"
+	else
+		local alive = 0
+		for _, pid in ipairs(state.playerOrder) do
+			if state.players[pid].alive ~= false then
+				alive += 1
+			end
+		end
+		if alive <= 1 then
+			victory = "conquest"
+		end
+	end
+	local frame = { t = "endscreen", winner = state.winner, victory = victory,
+		year = state.year, rows = rows }
+	for userId in pairs(seatOfUser) do
+		local player = Players:GetPlayerByUserId(userId)
+		if player ~= nil then
+			remote:FireClient(player, frame)
+		end
+	end
+	print(("[SO7] endscreen sent: %s victory, winner %s"):format(victory, tostring(state.winner)))
+end
+
+-- SO9 (catalog row; browser A75 twin): the historian's report — when the
+-- world enters a new age (ageChanged at the turn wrap), broadcast the
+-- world-public standings AT THAT MOMENT: every civ ranked by the shared
+-- score twin, with cities/techs/pop. Scores are world-public (the browser's
+-- own fog argument), so full-state reads are honest here.
+local function sendHistorian(age)
+	if state == nil then
+		return
+	end
+	local rows = setmetatable({}, statehash.ARRAY_MT)
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		local cities, pop = 0, 0
+		for _, cid in ipairs(state.cityOrder) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner == pid then
+				cities += 1
+				pop += c.pop
+			end
+		end
+		table.insert(rows, { pid = pid, name = p.name, color = p.color,
+			alive = p.alive ~= false, score = scoreModule.score(state, pid, ruleset),
+			cities = cities, techs = #p.techs, pop = pop })
+	end
+	local frame = { t = "historian", age = age, year = state.year, turn = state.turn, rows = rows }
+	for userId in pairs(seatOfUser) do
+		local player = Players:GetPlayerByUserId(userId)
+		if player ~= nil then
+			remote:FireClient(player, frame)
+		end
+	end
+	print("[SO9] historian sent: the world enters " .. tostring(age))
+end
+
 local function advance(collected, initiatedByEndTurn)
 	roundInFlight = true
 	local seen = 0
@@ -464,8 +564,19 @@ local function advance(collected, initiatedByEndTurn)
 		pushProgress()
 	end
 	roundInFlight = false
+	-- SO9: the last ageChanged in this batch of rounds gets the report
+	local newAge = nil
+	for _, e in ipairs(collected) do
+		if e.type == "ageChanged" then
+			newAge = e.age
+		end
+	end
+	if newAge ~= nil then
+		sendHistorian(newAge)
+	end
 	if state.gameOver == true then
 		print("[R4FINAL] hash=" .. statehash.hashState(state))
+		sendEndscreen() -- SO7: the full-state scoreboard (post-game = public)
 	end
 	return seen
 end
@@ -529,6 +640,7 @@ end
 local function startGame()
 	awaySeats = {} -- R22: fresh game, every seat starts human-driven
 	lastAutosaveTurn = -1 -- R23
+	endscreenSent = false -- SO7
 	applyRuleOverrides(setup.difficulty, setup.combat) -- R24b
 	local size = MAP_SIZES[setup.sizeIndex]
 	-- R24b: the host's explicit seed wins; else the server picks. PRINTED
@@ -747,6 +859,7 @@ local function resumeGame(player, rawCode)
 	setup.difficulty = envelope.difficulty or "medium"
 	setup.combat = envelope.combat or "authentic"
 	applyRuleOverrides(setup.difficulty, setup.combat)
+	endscreenSent = false -- SO7: a resumed game can end again
 	local n = 0
 	for _ in pairs(state.players) do
 		n += 1

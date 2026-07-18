@@ -190,9 +190,18 @@ Tooltip.attach(stats, function()
 	if not ok or y == nil then
 		return "yield breakdown unavailable (fog)"
 	end
-	return ("worked-tile totals\n  food %d  shields %d  trade %d\npop %d - specialists: tax %d sci %d\n(city tile always works free)")
+	local routes = ""
+	if city.tradeRoutes ~= nil and #city.tradeRoutes > 0 then -- CP17
+		local names = {}
+		for _, r in ipairs(city.tradeRoutes) do
+			local partner = view.cities[r.partnerCityId]
+			table.insert(names, partner ~= nil and partner.name or r.partnerCityId)
+		end
+		routes = "\ntrade routes: " .. table.concat(names, ", ")
+	end
+	return ("worked-tile totals\n  food %d  shields %d  trade %d\npop %d - specialists: tax %d sci %d%s\n(city tile always works free)")
 		:format(y.food or 0, y.shields or 0, y.trade or 0, city.pop or 1,
-			city.taxmen or 0, city.scientists or 0)
+			city.taxmen or 0, city.scientists or 0, routes)
 end)
 
 local function sortedIds(t)

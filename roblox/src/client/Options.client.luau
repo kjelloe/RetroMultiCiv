@@ -42,7 +42,7 @@ end
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 276)
+panel.Size = UDim2.new(0, 200, 0, 300)
 panel.Position = UDim2.new(1, -208, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
@@ -82,6 +82,7 @@ local lookBtn = toggleButton(176, "")
 local autoResearchBtn = toggleButton(200, "") -- session-E round 7
 local discoveryBtn = toggleButton(224, "") -- SO3 tech-discovery cards
 local paletteBtn = toggleButton(248, "") -- SO14 accessibility palette
+local adviceBtn = toggleButton(272, "") -- SO5 advice nudges
 
 -- always-visible clock readout, left of the top-right button row
 local clockLabel = Instance.new("TextLabel")
@@ -126,6 +127,7 @@ local function paint()
 	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")
 	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")
+	adviceBtn.Text = ("  advice tips: %s"):format(o.adviceCards ~= false and "ON" or "off")
 end
 paint()
 
@@ -180,6 +182,10 @@ end)
 paletteBtn.Activated:Connect(function()
 	ClientState.options.civPalette = ClientState.options.civPalette == "deuteranopia-safe"
 		and "default" or "deuteranopia-safe"
+	paint()
+end)
+adviceBtn.Activated:Connect(function()
+	ClientState.options.adviceCards = ClientState.options.adviceCards == false
 	paint()
 end)
 

@@ -23,8 +23,8 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- session-E: buttons sized like CLOSE CITY VIEW (big, bold, rounded)
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 1240, 0, 50)
-bar.Position = UDim2.new(0.5, -620, 1, -58)
+bar.Size = UDim2.new(0, 1330, 0, 50)
+bar.Position = UDim2.new(0.5, -665, 1, -58)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -157,7 +157,10 @@ local roadBtn = addButton(8, "Road (R)", 70)
 -- judges); pillage strips the stood-on tile's improvement
 local fortBtn = addButton(9, "Fort", 60)
 local pillageBtn = addButton(10, "Pillage", 76)
-local possessBtn = addButton(11, "Ride (P)", 80)
+-- CP17 (marker-0052): caravans establish trade routes standing in a city;
+-- the engine judges the nine rejections (red banners explain)
+local tradeBtn = addButton(11, "Trade", 66)
+local possessBtn = addButton(12, "Ride (P)", 80)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -294,6 +297,10 @@ local function can(action)
 	if action == "pillage" then -- CP3: any unit with moves; server judges the tile
 		return u.moves > 0
 	end
+	if action == "trade" then -- CP17: caravan-flagged types only (rs overlay)
+		local def = ClientState.rulesets().units[u.type]
+		return def ~= nil and def.tradeRoutes == true
+	end
 	-- settlers jobs: found / irrigate / mine / road / possess-shaped
 	if action == "possess" then
 		return true
@@ -356,6 +363,13 @@ mineBtn.Activated:Connect(function()
 end)
 fortBtn.Activated:Connect(function()
 	doWork("fortress")
+end)
+tradeBtn.Activated:Connect(function()
+	if can("trade") then
+		local u = selectedUnit()
+		print("[ActionBar] establishTradeRoute " .. u.id)
+		ClientState.send({ type = "establishTradeRoute", unitId = u.id })
+	end
 end)
 pillageBtn.Activated:Connect(function()
 	if can("pillage") then
@@ -494,6 +508,7 @@ RunService.Heartbeat:Connect(function()
 	roadBtn.BackgroundColor3 = can("road") and ENABLED or DISABLED
 	fortBtn.BackgroundColor3 = can("fortress") and ENABLED or DISABLED
 	pillageBtn.BackgroundColor3 = can("pillage") and ENABLED or DISABLED
+	tradeBtn.BackgroundColor3 = can("trade") and ENABLED or DISABLED
 	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
 	-- armed target-pick shows gold; otherwise enabled like Wait (any movable unit)

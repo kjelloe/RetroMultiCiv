@@ -83,6 +83,13 @@ local REJECT_TEXT = {
 	unknownCity = "Unknown city",
 	notYourCity = "Not your city",
 	gameStillRunning = "The replay theater opens after the game ends",
+	-- CP17 trade rejections
+	notCaravan = "Only caravans establish trade routes",
+	cityRequired = "Move the caravan INTO the destination city first",
+	noHomeCity = "The caravan needs a home city",
+	sameCity = "A route needs a DIFFERENT city than home",
+	duplicateRoute = "That route already exists",
+	ownCityTooClose = "Own cities this close cannot form a route",
 }
 local rejectBanner = Instance.new("TextLabel")
 rejectBanner.Size = UDim2.new(0, 800, 0, 44)
@@ -105,6 +112,38 @@ ClientState.onRejected(function(code)
 			rejectBanner.Visible = false
 		end
 	end)
+end)
+
+-- CP17: the camel windfall banner (green twin of the reject banner)
+local noticeBanner = Instance.new("TextLabel")
+noticeBanner.Size = UDim2.new(0, 800, 0, 40)
+noticeBanner.Position = UDim2.new(0.5, -400, 0.30, 0)
+noticeBanner.BackgroundTransparency = 1
+noticeBanner.TextColor3 = Color3.fromRGB(150, 230, 150)
+noticeBanner.Font = Enum.Font.SourceSansBold
+noticeBanner.TextSize = 26
+noticeBanner.TextStrokeTransparency = 0.3
+noticeBanner.Visible = false
+noticeBanner.Parent = gui
+local noticeGen = 0
+ClientState.onEvents(function(events, view)
+	for _, e in ipairs(events) do
+		if e.type == "tradeRouteEstablished" and view ~= nil and e.playerId == view.you then
+			local home = view.cities[e.homeCityId]
+			local partner = view.cities[e.partnerCityId]
+			noticeGen += 1
+			local gen = noticeGen
+			noticeBanner.Text = ("Trade route: %s - %s. Windfall +%d gold, +%d bulbs!")
+				:format(home ~= nil and home.name or "?", partner ~= nil and partner.name or "?",
+					e.gold or 0, e.bulbs or 0)
+			noticeBanner.Visible = true
+			task.delay(5, function()
+				if gen == noticeGen then
+					noticeBanner.Visible = false
+				end
+			end)
+		end
+	end
 end)
 
 -- R22 (session-E, user design): the AI-regency toggle — left of End Turn.
