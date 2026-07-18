@@ -58,6 +58,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO14 | accessibility civ-color palette | palette.js | PRESENT — Palette.luau (the browser's exact deuteranopia-safe pairs) at all 4 civ-color seams (ViewRenderer, Statistics, Minimap, ReplayTheater) + options row; visual.primary half carried but consumer-less on Roblox |
 | SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |
 | SO16 | mobile: ?mlog overlay, d-pad, touch | mlog.js/dpad.js | N-A-platform CONFIRMED — Roblox native touch + RidePad + long-press already cover it |
+| SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | to annotate — the snapshot twin is shared/strategic.js (soak --stats uses the same fn); Roblox = spectator-gated deck panel candidate |
 
 ## Multiplayer / server
 
@@ -73,6 +74,8 @@ prefixes) are the handles for twin requests and direction questions.
 | MP8 | spectator omniscient view | server | PRESENT — with CP16 (host setup toggle carries the browser server flag) |
 | MP9 | master-index global browse | tools/master.js | N-A-platform CONFIRMED @38e36677 — Roblox public servers/matchmaking are the discovery layer |
 | MP10 | match-report S1 writer | server | N-A v1 CONFIRMED @38e36677 — DataStore writer = post-1.0 candidate |
+| MP11 | Marathon (play-until-victory) host option — setup + LAN lobby checkbox → rulesOverrides.endYear=9999 | setup.js/lobby.js/server + main.js | to annotate — the option flows through createGame like difficulty/combat; Roblox lobby stepper candidate |
+| MP12 | server hardening: cmd budget (marker-0050) + malformed-frame crash guard + 64KB maxPayload + kick-path budget preserve (slice 1) | server/limits.js + index.js (docs/17 lane) | N-A-platform — Roblox server is Roblox-managed; the game-logic budget rides the twin, transport hardening is platform-provided |
 
 ## Engine features with no UI (twins already exist — listed so nothing hides)
 

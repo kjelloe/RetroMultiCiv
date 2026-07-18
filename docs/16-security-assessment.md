@@ -47,11 +47,22 @@ the deferred resend integration), payments (never).
   no per-IP throttle on HTTP (→ gap list, minor — static-only).
 
 ### 2.2 WebSocket `/ws`
-- **Frame cap 64 KB** (`protocol.js MAX_FRAME`), JSON parse
-  guarded, malformed frames rejected without throw. Field-level
-  validation: names ≤ 24 chars, chat ≤ 200 chars, commands routed
-  through one parse/validate chokepoint (`server-protocol.test.js`
-  covers parse/route/seat-auth).
+- **Frame cap 64 KB** enforced at BOTH layers now: `protocol.js
+  MAX_FRAME` (application) AND the ws-server `maxPayload` (protocol,
+  rejects before the payload buffers) — hardening slice 1
+  (marker-0059 era). JSON parse guarded, malformed frames rejected
+  without throw. **Per-socket `error` handler** (slice 1): an
+  oversized/malformed frame emits `'error'`; without a listener Node
+  threw and crashed the whole process — one bad client = full DoS.
+  Now swallowed (ws closes that socket). Field-level validation:
+  names ≤ 24 chars, chat ≤ 200 chars, commands routed through one
+  parse/validate chokepoint (`server-protocol.test.js` covers
+  parse/route/seat-auth; `server-hardening.test.js` covers the
+  malformed-frame battery + kick-path budget preserve).
+- **Command budget** (marker-0050): per-connection O(1) token bucket
+  spent before route(), preserved across kicks (slice 1 fix). The
+  per-SEAT bucket + all-message cap (closes vote-flood) is hardening
+  slice 2, in flight.
 - **Seat auth**: server-issued tokens, sent once on join, held in
   client localStorage; never network-fetchable at rest (A61 —
   `/saves` is outside the whitelist). Reclaim only for EMPTY

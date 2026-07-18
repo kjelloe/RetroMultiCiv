@@ -9,11 +9,13 @@ the Done log at the bottom.
 
 **DECIDE (only you can):**
 - [x] **Ending #4 horizon — RULED 2026-07-18: option A** (longer
-  horizon / natural games). Actions taken: "Marathon (play until
-  victory)" host option queued to the helper (#1517 item 3); the
+  horizon / natural games). SHIPPED: the "Marathon (play until
+  victory)" host option (setup + LAN lobby checkbox / `?marathon=1`
+  → rulesOverrides.endYear=9999, ffd9376) — you can host one now and
+  the space race is reachable at natural AI pace (~t650-720). The
   late-game perf note (state balloon at 45c/400u) parks until
-  marathon games are real. N9b's spec records space as horizon-gated,
-  not broken.
+  marathon games are common. N9b's spec records space as
+  horizon-gated, not broken.
 - [x] **2026-07-18 morning batch (your six answers, all routed):**
   N9b = hybrid lever + builder wonder-drive + mild band shift (15-40)
   → specs/n9b-build-priority.md, reviewer gate next; strategic
@@ -94,7 +96,11 @@ the Done log at the bottom.
   answer) and S1 SHIPPED** (c062d58): off-by-default writer, sticky
   seat veto, anonymization w/ regenerated hashes so reports replay
   clean under their own code.
-- [x] **Live strategic overlay — YES 2026-07-18** (helper #1517, debug/spectator-gated) — ~~want the v1.5 per-AI~~
+- [x] **Live strategic overlay — YES 2026-07-18, SHIPPED** (6598d19,
+  🧠 panel, debug/spectator-gated; reads shared/strategic.js — the
+  same snapshot the soak --stats rows use, byte-identical) — the
+  Egyptians' builder tag beside balanced neighbors makes the
+  stance-mix work visible. ~~want the v1.5 per-AI~~
   stance/mode/threat snapshot visible in-client during play?
   (Cheap now the telemetry landed; yes/no.)
 - [ ] **Shift+D recordings of your own play** — a game or two,
