@@ -314,3 +314,52 @@ Measured boundaries (sim-runner #1110→#1125→#1175):
 The strategic-modes framework (specs/ai-modes-framework.md) is the
 dynamic successor: modes over static stances, threat-relative
 garrisons (wave 1) replacing the flat defender targets.
+
+## Chokepoint defensive-line doctrine (user, 2026-07-18)
+
+The user's defensive strategy, for AI AND regency: **against an
+aggressive neighbour, hold a CHOKEPOINT with a ZOC-locked line on
+defense-bonus terrain — few units, whole empire safe — until seafaring/
+transports change the picture; augment with fortresses.**
+
+WHY IT'S CHEAP (all primitives already shipped):
+- **ZOC lock** (B27/marker-0048): adjacent units project a zone of
+  control that stops enemy passage. A narrow gap needs only enough
+  units to cover its width — a "locked line" from 2-3 units where a
+  wide front would need a dozen.
+- **Terrain defenseBonus** (data/terrain.json — hills 50, mountains
+  higher, forest): the line SITS on the bonus tiles, so each defender
+  fights well above open-ground value.
+- **Fortress** (improvements.js, the defenseMultiplier): stacks on the
+  terrain bonus — a fortress on a hill in a chokepoint is the classic
+  Civ 1 wall.
+- **The horizon**: the line holds "until seafaring/transports" — i.e.
+  it's a TIME-BUY doctrine. Once the civ can go by sea it is no longer
+  hostage to the land approach; the mode can release the line.
+
+WHAT'S NEW (the one real piece of work): **chokepoint DETECTION.** The
+AI must identify the narrow land cut between its territory and the
+threat. The primitive exists — the land-connectivity flood-fill built
+for N10 caravans finds landmass reachability; a chokepoint is a
+low-width cut on that graph (the tiles whose removal disconnects the
+threat from the empire, or the minimal-width band on the approach).
+This is a terrain-graph analysis, deterministic, both engines.
+
+WHERE IT SLOTS (NOT now — the engine is single-stream on N9b):
+- The ally's AI sequence item 2 (**threat-relative garrison + mobile
+  reserve**) and the **Border-Defense mode** (modes framework) are its
+  home — this IS what "Border Defense" executes when the terrain
+  offers a chokepoint: garrison the cut rather than every city.
+- A future golden window (behavioral): the AI's defensive placement
+  gains "if a chokepoint covers the threat, hold it with N units on
+  the best defense tiles (+fortress order) instead of spreading
+  garrisons." Fixture-first (a crafted map with an isthmus), soak
+  metric (garrison efficiency: cities-defended-per-unit up, undefended
+  losses down — the ally's frontier-safety guardrail).
+- **Regency inherits it free**: the armed regent plays the same AI
+  policy, so a regent defending an absent human's empire holds the
+  chokepoint in the seat's stance character.
+
+Provenance: Civ1-authentic play pattern (ZOC + terrain + fortress are
+the game's own tools); the detection heuristic is original,
+Civ1-consistent.
