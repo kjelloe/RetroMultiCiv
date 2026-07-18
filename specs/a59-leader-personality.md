@@ -38,9 +38,10 @@ definition (the axes are). Plus the ally's per-leader fields where not
 already present: `favoriteUnit` (a real unit id), `favoriteWonder` (a
 wonder id or none), `beelineTechs`. Values come from the ally's table
 (specs/leader-attributes.md §"leader personality model" + the wonder
-table) — e.g. Caesar 0.75/0.10/0.10/0.05, Shaka 1.00/0/0/0, Gandhi
-growth-dominant with favoriteWonder michelangelos-chapel, Shaka/Genghis
-favoriteWonder none (conquest personalities capture, don't build).
+table) but CONVERTED to int-100 (the ally's floats × 100) — e.g. Caesar
+75/10/10/5, Shaka 100/0/0/0, Gandhi growth-dominant with favoriteWonder
+michelangelos-chapel, Shaka/Genghis favoriteWonder none (conquest
+personalities capture, don't build).
 
 WHERE: **RESOLVED (architect, direct check 2026-07-18):** civs.json
 IS one of the 8 twins-checksum-tracked data/*.json files, so personality
