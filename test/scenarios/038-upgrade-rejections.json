@@ -1,0 +1,154 @@
+{
+  "name": "N11: notEnoughGold (in-city but broke) and notInCity (not on an owned city tile)",
+  "notes": "p1 has only 5 gold. The militia IN c1 -> notEnoughGold (cost 50 > 5); the militia at (2,2), off any city -> notInCity. Both rejections, state unchanged. Cross-language pin.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "poor": {
+          "id": "poor",
+          "type": "militia",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "field": {
+          "id": "field",
+          "type": "militia",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "A",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "p1",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 5,
+          "techs": [
+            "gunpowder"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "p2",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "upgradeUnit",
+        "playerId": "p1",
+        "unitId": "poor"
+      },
+      "expect": {
+        "ok": false,
+        "reason": "notEnoughGold"
+      }
+    },
+    {
+      "cmd": {
+        "type": "upgradeUnit",
+        "playerId": "p1",
+        "unitId": "field"
+      },
+      "expect": {
+        "ok": false,
+        "reason": "notInCity"
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 5
+    },
+    "hash": "0xcdab717f"
+  }
+}

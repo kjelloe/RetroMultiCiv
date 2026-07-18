@@ -65,6 +65,8 @@ export function soundForEvent(e, viewer, cityOwner) {
     case 'tradeRouteEstablished':
       // A89: own-seat only; a dedicated caravan cue is a later presentation pass
       return e.playerId === viewer ? 'build' : null;
+    case 'unitUpgraded': // N11: own-seat; reuse the build cue (dedicated cue = later pass)
+      return e.playerId === viewer ? 'build' : null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }

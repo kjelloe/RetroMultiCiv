@@ -32,11 +32,12 @@ const EVENT_TYPES = {
   gameOver: 'score', playerDefeated: 'score',
   ssPartBuilt: 'cities', shipLaunched: 'spaceship',
   shipDestroyed: 'combat', spaceVictory: 'spaceship',
-  tradeRouteEstablished: 'trade'
+  tradeRouteEstablished: 'trade',
+  unitUpgraded: 'upgrade'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',
-  'tech', 'government', 'happiness', 'barbarians', 'air', 'score', 'spaceship', 'trade'];
+  'tech', 'government', 'happiness', 'barbarians', 'air', 'score', 'spaceship', 'trade', 'upgrade'];
 
 const src = {};
 for (const m of EMITTING) {

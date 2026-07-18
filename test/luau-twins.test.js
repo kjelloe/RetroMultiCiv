@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 33, 'the thirty-three scenarios (031-034 trade routes added in A89)');
+      assert.strictEqual(files.length, 37, 'the thirty-seven scenarios (035-038 unit upgrades added in N11)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -155,6 +155,10 @@ const PORTED = [
   '032-traderoute-domestic-choice.json', // A89: domestic route needs the min distance
   '033-traderoute-windfall-math.json', // A89: the windfall multiplier stack (1/9 floor)
   '034-traderoute-cap.json', // A89: top-3 route cap + R1 base-arrows exclusion
+  '035-upgrade-in-city.json', // N11: upgradeUnit in-city, veteran-carry, moves-min
+  '036-upgrade-cost.json', // N11: the cost formula
+  '037-upgrade-noupgrade.json', // N11: no successor -> noUpgrade
+  '038-upgrade-rejections.json', // N11: notEnoughGold + notInCity
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
@@ -219,7 +223,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x99243498\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xb626ea6d\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -257,8 +261,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '35e701ba', pangaea: '4564ca52',
-      archipelago: '963a7d45', islands: '8253c18f'
+      continents: 'da6c82dc', pangaea: '6caa4414',
+      archipelago: 'db7b0ca3', islands: '84adf695'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

@@ -493,8 +493,9 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
   their obsoletedBy tech; the AI era-scales its army; barracks are
   SOLD with gold credited at Gunpowder/Combustion (user ruling;
   wiki-says-vanish delta logged); wonder expiry was already data.
-  STILL OPEN from the A63 family: field upgrades / Leonardo's
-  Workshop effect (upgradeUnit, human-golden-safe slice).
+  STILL OPEN from the A63 family: Leonardo's Workshop (N11 window
+  3b — free auto-upgrades). Manual field upgrades (upgradeUnit,
+  N11 window 3a) SHIPPED — see the Unit upgrades section under §11.
 - **SHIPPED — Barbarians era-scale** (A66, rode B13): tiered spawns
   keyed to the obsolescence trigger techs (rules.barbTiers).
 - **SHIPPED — the AI fights** (B21): attacker build slot, attacker-
@@ -629,6 +630,24 @@ on top at the playerIncome seam, killing the cross-city fixpoint. State:
 numbers live in `rules.tradeRoute`; the `notCaravan` gate keys a `tradeRoutes`
 units.json capability. AI fields no caravans (human/replay feature); the Civ2
 +1-food/shield freight stays shelved. Turn-log 🐫 line; client button is a later pass.
+
+### Unit upgrades (N11 window 3a — spec specs/n11-upgrades.md)
+
+A unit standing in an **owned city** upgrades to its `upgradesTo` successor for
+gold (`upgradeUnit { unitId }` — Civ3-shape; manual upgrade-for-gold is a Civ3
+import, labeled). Cost = `rules.upgrade.baseGold + rules.upgrade.goldPerShield ×
+max(0, costNew − costOld)` (10 / 2). The unit is replaced in place (id/position
+kept); **moves = min(remaining, the new type's moves)** so upgrading can't refund
+spent movement, and there is no hp to reset (whole-unit combat). The **paid**
+upgrade **carries veteran** (contrast the free Leonardo path, 3b). The
+`upgradesTo` table (units.json overlay) is the Civ1-roster projection of the Civ2
+upgrade table, labeled per row (Civ2-authentic-by-table vs original-projection);
+its forward-upgrade invariant is *target tech ≥ source tech* (a source may funnel
+into a target enabled before it obsoletes — e.g. legion→musketeers through
+gunpowder). Rejections: `notInCity`, `noUpgrade` (no successor / successor tech
+unknown), `notEnoughGold`. AI never issues it (human/replay feature) — the sim
+goldens move only by the new rulesetHash, not behaviorally. Leonardo's Workshop
+(free automatic upgrades, veteran dropped) is the separate Civ2 window 3b.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

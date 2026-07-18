@@ -1,0 +1,131 @@
+{
+  "name": "N11: a unit with no upgradesTo successor is rejected noUpgrade",
+  "notes": "A settlers (no upgradesTo row) in an owned city with ample gold -> noUpgrade. The state is unchanged (rejection). Cross-language pin.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "z": {
+          "id": "z",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "A",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "p1",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 1000,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "p2",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "upgradeUnit",
+        "playerId": "p1",
+        "unitId": "z"
+      },
+      "expect": {
+        "ok": false,
+        "reason": "noUpgrade"
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 5
+    },
+    "hash": "0xf8c50c3e"
+  }
+}

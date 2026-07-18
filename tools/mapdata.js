@@ -199,23 +199,29 @@ const UNIT_OVERLAY = {
   // turns aloft allowed (fighter 1, bomber 2; canonical, FLAGGED for user).
   'fighter':  { ignoresZoc: true, fuel: 1 },
   'bomber':   { ignoresZoc: true, fuel: 2 },
-  'phalanx':    { obsoletedBy: 'gunpowder' },
-  'militia':    { obsoletedBy: 'gunpowder' },
-  'musketeers': { obsoletedBy: 'conscription' },
-  'cavalry':    { obsoletedBy: 'conscription' },
-  'legion':     { obsoletedBy: 'conscription' },
-  'catapult':   { obsoletedBy: 'metallurgy' },
-  'cannon':     { obsoletedBy: 'robotics' },
-  'chariot':    { obsoletedBy: 'chivalry' },
-  'knights':    { obsoletedBy: 'automobile' },
+  // N11 3a upgradesTo: the Civ1-roster projection of the Civ2 upgrade table
+  // (specs/n11-upgrades.md). Provenance labeled PER ROW. The forward-upgrade
+  // invariant is tgtTech >= srcTech, NOT >= the obsoleting tech — a source can
+  // funnel into a target that arrived BEFORE the source obsoletes (Civ2's own
+  // legion->musketeers: gunpowder precedes conscription). Consistency asserted
+  // data-driven in test/upgrade.test.js.
+  'phalanx':    { obsoletedBy: 'gunpowder', upgradesTo: 'musketeers' },   // Civ2-authentic-by-table
+  'militia':    { obsoletedBy: 'gunpowder', upgradesTo: 'musketeers' },   // Civ2-authentic-by-table
+  'musketeers': { obsoletedBy: 'conscription', upgradesTo: 'riflemen' },  // Civ2-authentic-by-table
+  'cavalry':    { obsoletedBy: 'conscription', upgradesTo: 'knights' },   // original-projection
+  'legion':     { obsoletedBy: 'conscription', upgradesTo: 'musketeers' }, // Civ2-authentic-by-table
+  'catapult':   { obsoletedBy: 'metallurgy', upgradesTo: 'cannon' },      // Civ2-authentic-by-table
+  'cannon':     { obsoletedBy: 'robotics', upgradesTo: 'artillery' },     // Civ2-authentic-by-table
+  'chariot':    { obsoletedBy: 'chivalry', upgradesTo: 'knights' },       // original-projection
+  'knights':    { obsoletedBy: 'automobile' }, // NO knights->armor (Civ2 never extends mounted to Armor)
   // A69: naval cargo capacity (Civ 1 "holds" — canonical, wiki-silent on the
   // exact table so FLAGGED for user verification). Land units aboard ride the
   // ship; ironclad/cruiser/battleship/submarine carry nothing (transport 0 =
   // omitted). Carrier's air capacity waits for A72.
-  'trireme':    { obsoletedBy: 'navigation', transport: 2 },
-  'sail':       { obsoletedBy: 'magnetism', transport: 3 },
-  'frigate':    { obsoletedBy: 'industrialization', transport: 4 },
-  'ironclad':   { obsoletedBy: 'combustion' },
+  'trireme':    { obsoletedBy: 'navigation', transport: 2, upgradesTo: 'sail' },      // original-projection (transport-lineage)
+  'sail':       { obsoletedBy: 'magnetism', transport: 3, upgradesTo: 'frigate' },    // original-projection
+  'frigate':    { obsoletedBy: 'industrialization', transport: 4, upgradesTo: 'transport' }, // original-projection
+  'ironclad':   { obsoletedBy: 'combustion', upgradesTo: 'cruiser' },                 // original-projection (no destroyer in Civ1)
   'transport':  { transport: 8 },
   // A72: a carrier is a mobile airbase — it holds AIR units (airCapacity), not
   // land units (no `transport`), so the A69 load path never boards it. Capacity
