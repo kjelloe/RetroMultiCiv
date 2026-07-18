@@ -27,6 +27,15 @@ _Last synced: 2026-07-18._
   _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window
   (code done, mid re-record); it will be the next candidate when green.
 
+- [ ] **Forward the tech-glyph motif request to the ally** —
+  `specs/ally-glyph-request-2026-07-19.md`. The 68 tech icons are built and
+  live in the new tech-tree; ~32 of them are provisional (money/atomic/civic
+  symbol collisions + abstract techs) and want a one-line motif concept each
+  from the ally (parallel to the blurbs). Not blocking — provisional glyphs
+  ship meanwhile; the ally's concepts refine them + unlock wiring the
+  discovery card + research readout. Review the current set at
+  `debugging/glyph-sheet.html`.
+
 - [ ] **World-look pick (a/b/c)** — a Roblox session: Options → world
   look → flip retro/enhanced live → screenshot both → pick
   retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
