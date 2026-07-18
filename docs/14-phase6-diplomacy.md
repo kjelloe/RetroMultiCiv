@@ -171,8 +171,19 @@ seat's leader character (the regency pattern extends naturally).
 2. **D2 — the audience UI** (modal + inline status; golden-safe
    client) + human treaty UI.
 3. **D3 — AI negotiation policy** (table-driven, personality-aware;
-   window; soak M-columns + signature checks).
-4. **D4 — tribute + tech exchange terms** (window).
+   window; soak M-columns + signature checks). **IN BUILD 2026-07-18**
+   (spec specs/d3-ai-diplomacy.md, pre-open ruled #1680): war/peace-only
+   (tribute deferred to D4), directed trust/grievance on the D1 pair
+   entry, persistent MET-STATE + FIRST_CONTACT (the deferred-from-D1 met
+   signal, riding the pair entry) + a per-turn contact pass, score models
+   (engine/ai-diplomacy.js), the met-gated AI diplomacy step, the
+   space-launch coalition + mix-conditional elim (user 2026-07-18).
+   Provenance: HOUSE/ORIGINAL labeled Civ1-consistent (dump is Civ1-silent
+   on diplomacy, reviewer #1695). Behavioral two-phase close in progress;
+   marker-0063 when phase-2 green. D2's first-contact audience gains its
+   real trigger here (FIRST_CONTACT retires the deferred client derivation).
+4. **D4 — tribute + tech exchange terms** (window; D3 defers tribute here —
+   the decision-to-demand AND the terms; reviewer fact-pack #1691 filed).
 5. **D5 — reputation consequences + the senate** (window; wiki
    verifies senate rules).
 6. **D6 — embassies + intel** (pairs with the Diplomat unit's
