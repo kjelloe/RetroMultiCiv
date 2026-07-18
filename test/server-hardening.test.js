@@ -265,6 +265,7 @@ test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong
   try {
     const idx = await get('/client/');
     assert.strictEqual(idx.headers['x-content-type-options'], 'nosniff');
+    assert.strictEqual(idx.headers['x-frame-options'], 'DENY'); // v2: anti-clickjacking
     assert.match(idx.headers['cache-control'], /no-cache/);
     const long = await get('/client/' + 'a'.repeat(3000));
     assert.strictEqual(long.statusCode, 414);

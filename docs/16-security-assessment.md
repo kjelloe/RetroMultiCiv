@@ -182,8 +182,10 @@ historical record of each; slices merged Slice 1/2/2.5/3):**
   frame otherwise threw and killed the process) + `maxPayload` 64 KB.
 - **C3 `/ws` Origin** (gap 4, cross-origin/DNS-rebind): optional Origin
   allow-list in the handshake (empty = LAN-permissive).
-- **C4 HTTP niceties** (gap 5): nosniff + Cache-Control + URL-length cap
-  (>2048 → 414) + header/request timeouts (slowloris).
+- **C4 HTTP niceties** (gap 5): nosniff + `X-Frame-Options: DENY`
+  (anti-clickjacking — the game page is standalone, never framed) +
+  Cache-Control + URL-length cap (>2048 → 414) + header/request timeouts
+  (slowloris).
 - **C5 outbound backpressure**: `send()` drops a socket over `--max-outbuf-mb`.
 - **C6 half-open / mobile**: heartbeat (terminate on missed pongs — the only
   way a locked phone's half-open socket is detectable) + lobby seat-grace (a
