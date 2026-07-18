@@ -8,6 +8,12 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
+- [ ] **Push gaming-PC dev_night** (2 local commits: roblox batch-2
+  `82e3f6c` + batch-3 `d0e786d`, rebased clean onto origin dc29399 —
+  sim-runner #1391). Until this push lands, the roblox lane's code
+  (build queue, ship screen, discovery card, fastforward twin) exists
+  only on that machine, and the bugfixer's ff-parity twins-gate
+  registration stays blocked on it.
 - [ ] **Merge marker-0051** (the current consistent candidate; the
   night shipped 0043→0051): stance-mix v1 (some civs build wonders,
   dg=30 intact), the A51 find-a-game pipeline, A54 off-turn
