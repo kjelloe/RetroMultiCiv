@@ -45,3 +45,6 @@ roblox/*.rbxl.lock
 # traces/reports/results are regenerated, never committed
 test-results/
 playwright-report/
+
+# Old stuff
+archive/
