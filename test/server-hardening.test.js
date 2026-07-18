@@ -270,3 +270,44 @@ test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong
     assert.strictEqual(long.statusCode, 414);
   } finally { await s.close(); }
 });
+
+test('Slice 3c: a silent squatter is closed; an active socket is spared', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3cs', unauthTimeoutMs: 200, heartbeatMisses: 100000 }));
+  const dies = make => new Promise(res => {
+    const ws = make(new WebSocket(`ws://127.0.0.1:${s.port}/ws`));
+    ws.on('close', () => res(true)); ws.on('error', () => res(true));
+    setTimeout(() => res(false), 2000);
+  });
+  try {
+    assert.strictEqual(await dies(ws => ws), true, 'silent squatter (sent nothing) closed after the window');
+    const spared = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`);
+      ws.on('open', () => ws.send(JSON.stringify({ t: 'list' }))); // any message sets sawMessage
+      ws.on('close', () => reject(new Error('active socket was closed')));
+      ws.on('error', reject);
+      setTimeout(() => { ws.close(); resolve(true); }, 700);
+    });
+    assert.strictEqual(spared, true, 'active (browsing) socket spared');
+  } finally { await s.close(); }
+});
+
+test('Slice 3c: SIGTERM shuts the server down cleanly (exit 0)', async () => {
+  const { spawn } = require('node:child_process');
+  const path = require('path');
+  const child = spawn('node', [path.join(__dirname, '..', 'server', 'index.js'), '--port', '0', '--no-save', '--host', '127.0.0.1'],
+    { stdio: ['ignore', 'pipe', 'pipe'] });
+  child.stderr.on('data', () => {});
+  try {
+    await new Promise((resolve, reject) => {
+      const to = setTimeout(() => reject(new Error('server never booted')), 8000);
+      child.stdout.on('data', d => { if (String(d).includes('WebSocket: ws://')) { clearTimeout(to); resolve(); } });
+      child.on('exit', () => { clearTimeout(to); reject(new Error('exited before boot')); });
+    });
+    const exited = new Promise(resolve => child.on('exit', (code, sig) => resolve({ code, sig })));
+    child.kill('SIGTERM');
+    const res = await Promise.race([exited, new Promise((_, r) => setTimeout(() => r(new Error('did not exit on SIGTERM')), 6000))]);
+    assert.strictEqual(res.code, 0, `clean exit (got code=${res.code} sig=${res.sig})`);
+  } finally { if (child.exitCode === null) child.kill('SIGKILL'); }
+});

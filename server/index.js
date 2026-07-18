@@ -186,6 +186,9 @@ export function startServer(opts) {
       res.end(buf);
     });
   });
+  // Slice 3c: bound slow-header (slowloris) HTTP — Node's defaults are lax.
+  httpServer.headersTimeout = 15000;
+  httpServer.requestTimeout = 30000;
 
   // maxPayload rejects an oversized frame at the ws protocol layer before the
   // whole payload is buffered — matches protocol.js MAX_FRAME (64 KB).
@@ -229,8 +232,19 @@ export function startServer(opts) {
   const heartbeatTimer = setInterval(heartbeatTick, heartbeatMs);
   if (heartbeatTimer.unref) heartbeatTimer.unref();
 
+  // Slice 3c: outbound backpressure. A client that stays connected but stops
+  // reading would grow an unbounded ws send queue (the server broadcasts to
+  // every seat each turn). Over the cap it is a stuck/slow consumer — terminate
+  // it. Cap sits above the largest single legit message (a full view on the
+  // biggest map), so a healthy client is never dropped. --max-outbuf-mb.
+  const maxOutBuffer = opts.maxOutBufferBytes !== undefined ? opts.maxOutBufferBytes : 4 * 1024 * 1024;
+  // Slice 3c: close a socket that connects and sends NOTHING within this window
+  // (the connect-flood residue). Any message spares it (--unauth-timeout-sec).
+  const unauthTimeoutMs = opts.unauthTimeoutMs !== undefined ? opts.unauthTimeoutMs : 30000;
   function send(ws, msg) {
-    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
+    if (ws.readyState !== ws.OPEN) return;
+    if (ws.bufferedAmount > maxOutBuffer) { ws.terminate(); return; }
+    ws.send(JSON.stringify(msg));
   }
   function savePath(gameId) {
     if (!saveFiles[gameId]) saveFiles[gameId] = path.join(SAVES, gameId + '.json');
@@ -684,7 +698,18 @@ export function startServer(opts) {
     // Part A heartbeat liveness: a pong resets the miss counter (see heartbeatTick).
     ws.missedPongs = 0;
     ws.on('pong', () => { ws.missedPongs = 0; });
+    // Slice 3c: close a SILENT squatter — connected, sent nothing within the
+    // window (the connect-flood residue). Any message sets sawMessage + spares it.
+    const unauthTimer = setTimeout(() => {
+      const i = conns.get(ws);
+      if (i && i.gameId === undefined && !i.sawMessage && ws.readyState === ws.OPEN) {
+        send(ws, { t: 'rejected', commandId: -1, code: 'joinTimeout' });
+        ws.close();
+      }
+    }, unauthTimeoutMs);
+    if (unauthTimer.unref) unauthTimer.unref();
     ws.on('close', () => {
+      clearTimeout(unauthTimer);
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
       conns.delete(ws); // first, so presence/eligibility no longer count us
@@ -718,6 +743,7 @@ export function startServer(opts) {
       if (!parsed.ok) { send(ws, { t: 'rejected', commandId: -1, code: parsed.code }); return; }
       const msg = parsed.msg;
       const info = conns.get(ws);
+      if (info) info.sawMessage = true; // Slice 3c: not a silent squatter
       // docs/17 layered budget: a per-connection ALL-MESSAGE cap over EVERY
       // frame type (ping/list/vote/cmd/...) so no socket saturates the loop with
       // cheap non-cmd frames. Over budget -> cheap drop; reply throttled 1/sec.
@@ -1105,6 +1131,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--trust-proxy-hops') opts.trustProxyHops = Number(argv[++i]);
     // Slice 3b: WS Origin allow-list (CSV of exact origins; empty = permissive)
     else if (a === '--origin-allowlist') opts.originAllowlist = String(argv[++i] || '').split(',').map(s => s.trim());
+    // Slice 3c: outbound backpressure + silent-squatter timeout
+    else if (a === '--max-outbuf-mb') opts.maxOutBufferBytes = Number(argv[++i]) * 1024 * 1024;
+    else if (a === '--unauth-timeout-sec') opts.unauthTimeoutMs = Number(argv[++i]) * 1000;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
@@ -1129,9 +1158,26 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
-  Promise.resolve().then(() => startServer(opts)).then(({ port, game }) => {
+  Promise.resolve().then(() => startServer(opts)).then((server) => {
+    const { port, game } = server;
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
+    // Slice 3c: one-line posture summary so an operator sees the active guards.
+    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
+    if (opts.host !== '127.0.0.1' && opts.host !== 'localhost' && !opts.trustProxyHops) {
+      console.log('note: reachable on the network over plain ws:// — for PUBLIC hosting terminate TLS at a reverse proxy (tokens travel the socket); LAN is fine. See docs/how-to-host.md.');
+    }
+    // Slice 3c: graceful shutdown — close sockets + exit (state already durable
+    // via autosave-per-command; 5s hard-exit guard if close hangs).
+    let down = false;
+    const shutdown = sig => {
+      if (down) return; down = true;
+      console.log(`\n${sig} — closing sockets and shutting down…`);
+      setTimeout(() => process.exit(0), 5000).unref();
+      server.close().then(() => process.exit(0));
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
   }).catch(err => {
     console.error(`cannot start: ${err.message}`);
     process.exit(1);
