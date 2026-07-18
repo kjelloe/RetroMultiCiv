@@ -5,6 +5,31 @@ for the architect and any number of coder agents. Storage is
 `.agent-mail/` at the repo root (gitignored): `messages.jsonl`
 (append-only) + one unread-cursor file per reader + `locks.json`.
 
+## Polling discipline (STANDARD — 2026-07-18)
+
+Mail is PULL, not push. An agent only "gets" a message when it runs
+`peek`/`inbox`. Local dev-PC agents may be harness-woken on arrival;
+**remote lanes (own clone / another machine) have NO wake trigger and
+see mail only when they poll.** So every agent MUST poll:
+
+- **At task start and task end** (the long-standing rule), AND
+- **Every ≤5 minutes while active on a long task** — a build, a soak,
+  a sweep. A ruling or a lock-collision warning that sits unread for
+  20 minutes is a stall.
+- **On wake / session resume**, before judging lane state.
+
+Use `peek --as <role> --headers` to poll — it is NON-CONSUMING (does
+not advance your cursor), so polling repeatedly is free and safe;
+expand one with `show @hash`; only `inbox` marks read. `who` prints
+per-role unread counts at a glance.
+
+Multi-recipient routing: a message `--to a,b,c` is unread for EACH of
+a, b, c independently (fixed 2026-07-18 — before that an exact-string
+match meant `--to architect,sim-runner` was invisible to a lane
+polling as just `sim-runner`; if you polled clean but the architect
+insists a message was sent, that was the bug — re-poll after the
+hub restart).
+
 ## Everyday commands (local)
 
 ```bash

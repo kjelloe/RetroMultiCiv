@@ -132,10 +132,17 @@ def set_cursor(role, value):
         f.write(str(value))
 
 
+def recipients(to_field):
+    # a message's `to` may be a comma-joined list ("architect,sim-runner");
+    # split it so each named role matches, not just the exact joined string.
+    return [r.strip() for r in to_field.split(',') if r.strip()]
+
+
 def unread_for(role):
     cur = get_cursor(role)
     return [m for m in read_all()
-            if m['id'] > cur and (m['to'] == role or m['to'] == 'all') and m['from'] != role]
+            if m['id'] > cur and (m['to'] == 'all' or role in recipients(m['to']))
+            and m['from'] != role]
 
 
 def fmt(m):
