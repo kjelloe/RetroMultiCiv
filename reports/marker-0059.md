@@ -65,11 +65,13 @@ Suite 573/573; pins synced.
 ## Acceptance (sim-runner, follow-up validation on shipped code)
 
 The deterministic 573/573 + JS==Luau + begins+persists gate the
-marker. The ally's frontier-safety guardrail ("no rise in
-undefended-city losses") needs a re-measure with the hoist LIVE and
-builders in the roster (the sweep predated the fix) — routed as
-post-marker validation; if the 0-defender-capital drive raises capital
-losses, the scout-away follow-up becomes a real item.
+marker. **Post-marker validation RESOLVED (sim-runner #1597 + the
+barb-heavy probe #1634):** frontier-safety HOLDS and the 0-defender
+exposure is SELF-LIMITING — the wonder-drive's own not-threatened gate
+defers to defense exactly when a threat exists, so under 6× barb
+pressure it fires 1/25 seeds (vs 7/25 normal) and builder survival is
+identical with/without it. The scout-away follow-up is therefore
+DEPRIORITIZED (self-safe by construction — the gate is the guard).
 
 ## Constants
 
