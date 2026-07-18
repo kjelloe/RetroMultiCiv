@@ -144,10 +144,13 @@ export function initSaves(ctx) {
       && Boolean(s.units) && Boolean(s.players) && Array.isArray(s.playerOrder);
   }
 
-  // Accepts a save-file envelope ({ format: 'retromulticiv-save', state }) or a
-  // bare state object (older localStorage saves).
+  // Accepts a CLIENT save envelope ({ format:'retromulticiv-save', state }), a
+  // SERVER save envelope ({ format:'retromulticiv-server-save', state, diag })
+  // — a user's hosted-game save is the latter — or a bare state object (older
+  // localStorage saves).
   function loadStateObject(obj, sourceLabel) {
-    const s = obj && obj.format === 'retromulticiv-save' ? obj.state : obj;
+    const isServerSave = Boolean(obj && obj.format === 'retromulticiv-server-save');
+    const s = obj && (obj.format === 'retromulticiv-save' || isServerSave) ? obj.state : obj;
     if (!stateLooksValid(s)) {
       hud.note(`✗ not a RetroMultiCiv save (${sourceLabel})`);
       return;
@@ -162,6 +165,16 @@ export function initSaves(ctx) {
         hud.note(`✗ ruleset drift (${s.rulesetHash} ≠ ${cur}) — load cancelled`);
         return;
       }
+    }
+    // A SERVER save records EVERY human seat (some now DEAD); loaded LOCALLY it
+    // would hotseat hand off to them. Collapse non-self humans to AI so a solo
+    // "continue my hosted game" plays on against the AIs — self = the first
+    // ALIVE human (else the first human). (A client hotseat save is untouched.)
+    if (isServerSave) {
+      const humanPids = s.playerOrder.filter(pid => s.players[pid] && s.players[pid].human);
+      const self = s.playerOrder.find(pid => s.players[pid] && s.players[pid].human && s.players[pid].alive !== false)
+        || humanPids[0];
+      for (const pid of humanPids) if (pid !== self) s.players[pid].human = false;
     }
     sel.unitId = null;
     sel.cityId = null;
@@ -185,6 +198,13 @@ export function initSaves(ctx) {
       ctx.handoff.show(s.players[viewer].name, s.players[viewer].color, () => {});
       ctx.setHuman(viewer);
     }
+    // recenter the camera on the loaded empire — boot centers on load, but a
+    // mid-session load otherwise leaves the camera on the OLD (now off-map,
+    // blank) position, so the world looks empty until a unit is selected
+    const focusPid = viewer || ctx.HUMAN;
+    const focus = Object.values(s.cities).find(c => c.owner === focusPid)
+      || Object.values(s.units).find(u => u.owner === focusPid);
+    if (focus && ctx.renderer && ctx.renderer.centerOn) ctx.renderer.centerOn(focus.x, focus.y);
     hud.note(`📂 loaded ${sourceLabel} (turn ${s.turn})`);
     // docs/07 §4: show the loaded code and auto-compare with the last code this
     // browser saw for this game (the verbal comparison remains the real backstop).

@@ -12,6 +12,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 ## DECIDE / DO (needs you)
 
 - [ ] **Merge the latest consistent marker.** Current candidate:
+  **marker-0062** (late-game save loading — your hosted-game `retromulticiv-server-save` now loads in the browser client, the map recenters on load instead of rendering blank, and a solo "continue my hosted game" no longer hands off to a dead player; golden-neutral, driven red-first by your real turn-1617 save). Supersedes
   **marker-0061** (A59 leader personality — every civ gets a leader + 4-axis personality, the diplomacy-AI foundation; golden-neutral). Supersedes marker-0060 (D1 diplomacy — war/peace states + declare/offer/
   accept/reject + the combat reframe; golden-neutral, phase 6 opens).
   Supersedes 0059 (N9b build-priority + the builder wonder-drive —
