@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -103,6 +103,19 @@ if command -v node >/dev/null 2>&1 && command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 9: node or lune absent"
+fi
+
+# gate 10 — palette coverage: the deuteranopia table in Palette.luau must
+# map every civs.json color + visual.primary (browser test/palette.test.js
+# twin; a civ recolor / hex typo would silently un-remap a civ)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/palette-coverage.mjs >/dev/null 2>&1; then
+    note PASS "gate 10: palette covers all civ colors"
+  else
+    note FAIL "gate 10: palette coverage — run: node roblox/selftest/palette-coverage.mjs"
+  fi
+else
+  note SKIP "gate 10: node absent"
 fi
 
 # gate 8 — billboard-input lint: a button parented into a BillboardGui must

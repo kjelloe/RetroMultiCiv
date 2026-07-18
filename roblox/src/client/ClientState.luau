@@ -124,6 +124,42 @@ function M.isGarrisoned(u)
 	return false
 end
 
+-- CP20 sentry (ruling @1e2f43eb; browser C4 twin, CLIENT-SIDE like GoTo
+-- plans - no engine command, golden-safe): sentried units sleep out of
+-- N-cycling and end-turn counts until an enemy appears within 2 tiles of
+-- them IN THE VIEW (fog-honest by construction), then wake + select.
+M.sentried = {} -- unitId -> true
+local sentryWakeCallbacks = {}
+
+function M.onSentryWake(cb)
+	table.insert(sentryWakeCallbacks, cb)
+end
+
+function M.toggleSentry(unitId)
+	M.sentried[unitId] = not M.sentried[unitId] and true or nil
+end
+
+local function checkSentries(view)
+	for id in pairs(M.sentried) do
+		local u = view.units[id]
+		if u == nil or u.owner ~= view.you then
+			M.sentried[id] = nil -- died or left the view
+		else
+			for _, e in pairs(view.units) do
+				if e.owner ~= view.you and M.wrapDist(e.x, e.y, u.x, u.y) <= 2 then
+					M.sentried[id] = nil
+					M.selectedUnitId = id
+					M.focusCamera(u.x, u.y)
+					for _, cb in ipairs(sentryWakeCallbacks) do
+						cb(u)
+					end
+					break
+				end
+			end
+		end
+	end
+end
+
 function M.nextOwnUnit(excludeId)
 	local view = M.view
 	if view == nil then
@@ -133,6 +169,7 @@ function M.nextOwnUnit(excludeId)
 	for id, u in pairs(view.units) do
 		if u.owner == view.you and u.moves > 0 and u.fortified ~= true
 			and u.working == nil and id ~= excludeId
+			and M.sentried[id] ~= true and M.autoSettlers[id] ~= true -- CP20: sentries + auto sleep
 			and not M.isGarrisoned(u) then -- round 19: garrisons sit out
 			table.insert(movable, u)
 		end
@@ -144,6 +181,7 @@ function M.nextOwnUnit(excludeId)
 		local cur = excludeId ~= nil and view.units[excludeId] or nil
 		if cur ~= nil and cur.owner == view.you and cur.moves > 0
 			and cur.fortified ~= true and cur.working == nil
+			and M.sentried[excludeId] ~= true and M.autoSettlers[excludeId] ~= true
 			and not M.isGarrisoned(cur) then
 			return excludeId
 		end
@@ -238,10 +276,26 @@ function M.onView(cb)
 	end
 end
 
+-- CP20 automation (ruling @6679e9c0; browser automate.js twin, CLIENT-SIDE
+-- like sentry/GoTo - golden-safe): auto settlers work themselves each view
+-- push. autoDriving marks the driver's own sends so a MANUAL order to an
+-- auto unit CANCELS its automation (per-unit, the browser's cancelAuto).
+M.autoSettlers = {} -- unitId -> true
+M.autoDriving = false
+
+function M.toggleAuto(unitId)
+	M.autoSettlers[unitId] = not M.autoSettlers[unitId] and true or nil
+end
+
 function M.send(cmdTable)
 	local id = nextCommandId
 	nextCommandId += 1
 	M.lastActivity = os.clock() -- R22: any command counts as activity
+	-- CP20: a manual command to an auto settler cancels its automation
+	if not M.autoDriving and cmdTable.unitId ~= nil and M.autoSettlers[cmdTable.unitId] == true then
+		M.autoSettlers[cmdTable.unitId] = nil
+		print("[ClientState] manual order - automation cancelled for " .. cmdTable.unitId)
+	end
 	remote:FireServer({ t = "cmd", commandId = id, cmd = cmdTable })
 	return id
 end
@@ -329,6 +383,7 @@ remote.OnClientEvent:Connect(function(msg)
 		if M.possessedUnitId ~= nil and M.view.units[M.possessedUnitId] == nil then
 			M.possessedUnitId = nil -- ridden unit died; Possess handles the dismount
 		end
+		checkSentries(M.view) -- CP20: fog-honest wake-on-sighted
 		for _, cb in ipairs(viewCallbacks) do
 			cb(M.view)
 		end

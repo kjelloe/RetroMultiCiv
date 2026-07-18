@@ -90,6 +90,10 @@ local REJECT_TEXT = {
 	sameCity = "A route needs a DIFFERENT city than home",
 	duplicateRoute = "That route already exists",
 	ownCityTooClose = "Own cities this close cannot form a route",
+	-- CP18 upgrade rejections
+	notInCity = "Upgrades happen in one of YOUR cities",
+	noUpgrade = "This unit has no successor to upgrade to",
+	techMissing = "You have not discovered the successor's tech yet",
 }
 local rejectBanner = Instance.new("TextLabel")
 rejectBanner.Size = UDim2.new(0, 800, 0, 44)
@@ -128,6 +132,27 @@ noticeBanner.Parent = gui
 local noticeGen = 0
 ClientState.onEvents(function(events, view)
 	for _, e in ipairs(events) do
+		if e.type == "hutEntered" and view ~= nil and e.playerId == view.you then
+			-- CP19: own-seat hut outcome lines (fog keeps rivals' huts silent)
+			local HUT_TEXT = {
+				advance = "The tribe shares ancient knowledge - a free advance!",
+				gold = "The hut holds a cache of gold!",
+				mercs = "Wandering mercenaries join your cause!",
+				ambush = "Ambush! Barbarians pour from the hut!",
+				nothing = "The hut is long abandoned.",
+			}
+			noticeGen += 1
+			local hutGen = noticeGen
+			noticeBanner.Text = HUT_TEXT[e.result] or ("Hut: " .. tostring(e.result))
+			noticeBanner.TextColor3 = e.result == "ambush" and Color3.fromRGB(255, 120, 90)
+				or Color3.fromRGB(150, 230, 150)
+			noticeBanner.Visible = true
+			task.delay(5, function()
+				if hutGen == noticeGen then
+					noticeBanner.Visible = false
+				end
+			end)
+		end
 		if e.type == "tradeRouteEstablished" and view ~= nil and e.playerId == view.you then
 			local home = view.cities[e.cityId] -- marker-0054 final field
 			local partner = view.cities[e.partnerCityId]
@@ -144,6 +169,21 @@ ClientState.onEvents(function(events, view)
 			end)
 		end
 	end
+end)
+
+-- CP20: sentry wake notice (amber, the unit is selected + focused already)
+ClientState.onSentryWake(function(u)
+	noticeGen += 1
+	local gen = noticeGen
+	local def = ClientState.rulesets().units[u.type]
+	noticeBanner.Text = ("SENTRY WAKE - enemy sighted near your %s!"):format(def and def.name or u.type)
+	noticeBanner.TextColor3 = Color3.fromRGB(255, 200, 90)
+	noticeBanner.Visible = true
+	task.delay(5, function()
+		if gen == noticeGen then
+			noticeBanner.Visible = false
+		end
+	end)
 end)
 
 -- R22 (session-E, user design): the AI-regency toggle — left of End Turn.
@@ -308,7 +348,9 @@ local function movableCount()
 	if view ~= nil then
 		for _, u in pairs(view.units) do
 			if u.owner == view.you and u.moves > 0 and u.fortified ~= true
-				and u.working == nil and not ClientState.isGarrisoned(u) then
+				and u.working == nil and not ClientState.isGarrisoned(u)
+				and ClientState.sentried[u.id] ~= true
+				and ClientState.autoSettlers[u.id] ~= true then -- CP20 sentries + auto sleep
 				n += 1 -- round 19: garrisons never trip "N can move!"
 			end
 		end

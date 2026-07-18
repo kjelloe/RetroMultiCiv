@@ -15,6 +15,7 @@ local UserInputService = game:GetService("UserInputService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
+local upgradeModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("upgrade")) -- CP18
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCActionBar"
@@ -23,8 +24,8 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- session-E: buttons sized like CLOSE CITY VIEW (big, bold, rounded)
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 1330, 0, 50)
-bar.Position = UDim2.new(0.5, -665, 1, -58)
+bar.Size = UDim2.new(0, 1436, 0, 50)
+bar.Position = UDim2.new(0.5, -718, 1, -58)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -93,8 +94,17 @@ RunService.Heartbeat:Connect(function()
 		-- moves/fortified join the key so the A/D/M line repaints on change
 		table.insert(keyParts, id .. ":" .. u.moves .. (u.fortified == true and "F" or ""))
 	end
+	local sentryMarks = ""
+	for _, id in ipairs(ids) do
+		if ClientState.sentried[id] == true then
+			sentryMarks ..= "s" .. id
+		end
+		if ClientState.autoSettlers[id] == true then
+			sentryMarks ..= "a" .. id
+		end
+	end
 	local key = table.concat(keyParts, ",") .. "|" .. tostring(ClientState.selectedUnitId)
-		.. "|" .. tostring(ClientState.possessedUnitId)
+		.. "|" .. tostring(ClientState.possessedUnitId) .. "|" .. sentryMarks
 	if key == lastStackKey then
 		return
 	end
@@ -121,12 +131,54 @@ RunService.Heartbeat:Connect(function()
 		card.RichText = true
 		local def = rs.units[u.type]
 		-- round 17 (user): name + Attack/Defense/Moves always visible
-		card.Text = ("%s%s\n<font size=\"12\" color=\"#b8c6d8\">A%d D%d M%d/%d</font>")
+		card.Text = ("%s%s%s\n<font size=\"12\" color=\"#b8c6d8\">A%d D%d M%d/%d</font>")
 			:format(def and def.name or u.type,
 				u.fortified == true and " [F]" or (u.moves <= 0 and " ·" or ""),
+				(ClientState.sentried[id] == true and " [Zz]" or "")
+					.. (ClientState.autoSettlers[id] == true and " [Au]" or ""),
 				def and def.attack or 0, def and def.defense or 0,
 				u.moves, def and def.moves or u.moves)
 		card.Parent = stackBar
+		-- CP20 (ruling @1e2f43eb): the sentry toggle lives ON the card
+		local zz = Instance.new("TextButton")
+		zz.Size = UDim2.new(0, 26, 0, 16)
+		zz.Position = UDim2.new(1, -28, 0, 2)
+		zz.BackgroundColor3 = ClientState.sentried[id] == true
+			and Color3.fromRGB(90, 90, 150) or Color3.fromRGB(40, 44, 58)
+		zz.TextColor3 = Color3.fromRGB(200, 210, 235)
+		zz.Font = Enum.Font.SourceSansBold
+		zz.TextSize = 12
+		zz.Text = "Zz"
+		zz.Parent = card
+		local zc = Instance.new("UICorner")
+		zc.CornerRadius = UDim.new(0, 5)
+		zc.Parent = zz
+		zz.Activated:Connect(function()
+			ClientState.toggleSentry(id)
+			print(("[ActionBar] sentry %s: %s"):format(id,
+				ClientState.sentried[id] == true and "ON" or "off"))
+		end)
+		-- CP20 (ruling @6679e9c0): settlers also get an Au automation toggle
+		if def ~= nil and u.type == "settlers" then
+			local au = Instance.new("TextButton")
+			au.Size = UDim2.new(0, 26, 0, 16)
+			au.Position = UDim2.new(1, -56, 0, 2)
+			au.BackgroundColor3 = ClientState.autoSettlers[id] == true
+				and Color3.fromRGB(70, 130, 90) or Color3.fromRGB(40, 44, 58)
+			au.TextColor3 = Color3.fromRGB(210, 235, 215)
+			au.Font = Enum.Font.SourceSansBold
+			au.TextSize = 12
+			au.Text = "Au"
+			au.Parent = card
+			local ac = Instance.new("UICorner")
+			ac.CornerRadius = UDim.new(0, 5)
+			ac.Parent = au
+			au.Activated:Connect(function()
+				ClientState.toggleAuto(id)
+				print(("[ActionBar] automate %s: %s"):format(id,
+					ClientState.autoSettlers[id] == true and "ON" or "off"))
+			end)
+		end
 		local c = Instance.new("UICorner")
 		c.CornerRadius = UDim.new(0, 8)
 		c.Parent = card
@@ -160,7 +212,10 @@ local pillageBtn = addButton(10, "Pillage", 76)
 -- CP17 (marker-0052): caravans establish trade routes standing in a city;
 -- the engine judges the nine rejections (red banners explain)
 local tradeBtn = addButton(11, "Trade", 66)
-local possessBtn = addButton(12, "Ride (P)", 80)
+-- CP18 (marker-0055/browser 6f30a46): paid unit upgrade IN an own city;
+-- the button carries the live upgradeCost price
+local upgradeBtn = addButton(12, "Upgrade", 82)
+local possessBtn = addButton(13, "Ride (P)", 80)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -301,6 +356,20 @@ local function can(action)
 		local def = ClientState.rulesets().units[u.type]
 		return def ~= nil and def.tradeRoutes == true
 	end
+	if action == "upgrade" then -- CP18: upgradesTo exists + standing in an own city
+		local rs = ClientState.rulesets()
+		local def = rs.units[u.type]
+		if def == nil or def.upgradesTo == nil then
+			return false
+		end
+		local view = ClientState.view
+		for _, c in pairs(view.cities) do
+			if c.owner == view.you and c.x == u.x and c.y == u.y then
+				return true
+			end
+		end
+		return false
+	end
 	-- settlers jobs: found / irrigate / mine / road / possess-shaped
 	if action == "possess" then
 		return true
@@ -369,6 +438,13 @@ tradeBtn.Activated:Connect(function()
 		local u = selectedUnit()
 		print("[ActionBar] establishTradeRoute " .. u.id)
 		ClientState.send({ type = "establishTradeRoute", unitId = u.id })
+	end
+end)
+upgradeBtn.Activated:Connect(function()
+	if can("upgrade") then
+		local u = selectedUnit()
+		print("[ActionBar] upgradeUnit " .. u.id)
+		ClientState.send({ type = "upgradeUnit", unitId = u.id })
 	end
 end)
 pillageBtn.Activated:Connect(function()
@@ -509,6 +585,15 @@ RunService.Heartbeat:Connect(function()
 	fortBtn.BackgroundColor3 = can("fortress") and ENABLED or DISABLED
 	pillageBtn.BackgroundColor3 = can("pillage") and ENABLED or DISABLED
 	tradeBtn.BackgroundColor3 = can("trade") and ENABLED or DISABLED
+	if can("upgrade") then
+		local su = selectedUnit()
+		local cost = upgradeModule.upgradeCost(su, ClientState.rulesets())
+		upgradeBtn.Text = cost ~= nil and ("Upg %dg"):format(cost) or "Upgrade"
+		upgradeBtn.BackgroundColor3 = ENABLED
+	else
+		upgradeBtn.Text = "Upgrade"
+		upgradeBtn.BackgroundColor3 = DISABLED
+	end
 	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
 	-- armed target-pick shows gold; otherwise enabled like Wait (any movable unit)

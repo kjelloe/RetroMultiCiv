@@ -199,7 +199,7 @@ local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
 	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
 	difficulty = "medium", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
-	spectators = true } -- CP16/MP8 (ruling @d1ce4920): host toggle, default ON
+	spectators = true, marathon = false } -- CP16/MP8 (ruling @d1ce4920): host toggle, default ON
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
@@ -316,7 +316,8 @@ local function lobbyPayloadFor(player)
 				humans = setup.humans, mapType = setup.mapType,
 				maxIdleMin = setup.maxIdleMin, age = setup.age,
 				difficulty = setup.difficulty, combat = setup.combat,
-				seed = setup.seedOverride, spectators = setup.spectators == true },
+				seed = setup.seedOverride, spectators = setup.spectators == true,
+				marathon = setup.marathon == true },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -636,13 +637,16 @@ end
 -- swapping a MERGED rules copy in and rebuilding the engine (baseRules stays
 -- pristine for the next game). Saves record the two knobs so resume rebuilds
 -- the same rules (marker-0045 rulesetHash pins would split otherwise).
-local function applyRuleOverrides(difficulty, combat)
+local function applyRuleOverrides(difficulty, combat, marathon)
 	local o = {}
 	if difficulty ~= nil and DIFFICULTY_CONTENT[difficulty] ~= nil and difficulty ~= "medium" then
 		o.contentCitizens = DIFFICULTY_CONTENT[difficulty]
 	end
 	if combat == "bestof3" then
 		o.combatRounds = 3
+	end
+	if marathon == true then
+		o.endYear = 9999 -- MP11: play until a victory (browser rulesOverrides twin)
 	end
 	if next(o) == nil then
 		ruleset.rules = baseRules
@@ -663,7 +667,7 @@ local function startGame()
 	awaySeats = {} -- R22: fresh game, every seat starts human-driven
 	lastAutosaveTurn = -1 -- R23
 	endscreenSent = false -- SO7
-	applyRuleOverrides(setup.difficulty, setup.combat) -- R24b
+	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon) -- R24b/MP11
 	local size = MAP_SIZES[setup.sizeIndex]
 	-- R24b: the host's explicit seed wins; else the server picks. PRINTED
 	-- for replay; never engine RNG (the game does not exist yet)
@@ -744,10 +748,10 @@ local function startGame()
 
 	theater.initialState = engineModule.deepClone(state) -- R18
 	theater.entries = {}
-	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s age=%s difficulty=%s combat=%s initialHash=%s")
+	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s age=%s difficulty=%s combat=%s marathon=%s initialHash=%s")
 		:format(seed, size.w, size.h, table.concat(civIds, ","), setup.humans,
 			setup.mapType, setup.age, setup.difficulty, setup.combat,
-			statehash.hashState(state)))
+			tostring(setup.marathon == true), statehash.hashState(state)))
 
 	-- bind the pre-start claims: seat 1 = host, 2.. = join-pad order
 	for i = 1, setup.humans do
@@ -781,8 +785,9 @@ local function saveGame(why)
 	local code = gamecode.gameCode(state)
 	local envelope = statehash.canonicalize({
 		state = state, savedAt = os.time(), humans = setup.humans,
-		-- R24b: resume must rebuild the same rules overrides
+		-- R24b/MP11: resume must rebuild the same rules overrides
 		difficulty = setup.difficulty, combat = setup.combat,
+		marathon = setup.marathon == true,
 	})
 	if SaveStore.save(code, envelope) then
 		print(("[GameServer] R10 save (%s): %s at turn %d"):format(why, code, state.turn))
@@ -883,7 +888,8 @@ local function resumeGame(player, rawCode)
 	-- marker-0045 rulesetHash pin.
 	setup.difficulty = envelope.difficulty or "medium"
 	setup.combat = envelope.combat or "authentic"
-	applyRuleOverrides(setup.difficulty, setup.combat)
+	setup.marathon = envelope.marathon == true -- MP11
+	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon)
 	endscreenSent = false -- SO7: a resumed game can end again
 	statsSeries = setmetatable({}, statehash.ARRAY_MT) -- SO8: fresh series
 	local n = 0
@@ -925,7 +931,7 @@ local function padStart(player)
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 		maxIdleMin = 1, age = "ancient",
 		difficulty = "medium", combat = "bestof3", seedOverride = 0,
-		spectators = true }
+		spectators = true, marathon = false }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -1147,6 +1153,8 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.combat = setup.combat == "bestof3" and "authentic" or "bestof3"
 		elseif msg.key == "spectators" then
 			setup.spectators = not (setup.spectators == true) -- CP16 toggle
+		elseif msg.key == "marathon" then
+			setup.marathon = not (setup.marathon == true) -- MP11 toggle
 		elseif msg.key == "seed" then
 			-- R24b: explicit world seed from the host's TextBox; 0 = random
 			setup.seedOverride = math.clamp(math.floor(tonumber(msg.value) or 0), 0, 999999)
