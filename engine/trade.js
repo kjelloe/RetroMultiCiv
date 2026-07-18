@@ -164,8 +164,33 @@ function establishTradeRoute(state, cmd, ruleset) {
   delete state.units[cmd.unitId];
   return { ok: true, events: [{
     type: 'tradeRouteEstablished', playerId: home.owner,
-    homeCityId: home.id, partnerCityId: partner.id, gold: amt, bulbs: amt
+    cityId: home.id, partnerCityId: partner.id, gold: amt, bulbs: amt
   }] };
 }
 
-export { establishTradeRoute, routeArrows, tradeArrows, windfall, landConnected, cityAtTile };
+// A derived, engine-authored view of a city's routes for the client panel — so
+// the client never re-derives the R1 base-arrows ranking. Every route in STATE
+// order with its live permanent contribution (`arrows`) and whether it is among
+// the top routeCap that actually count (`counted`). Pure read; golden-neutral.
+function tradeRouteReport(state, city, ruleset) {
+  const out = [];
+  if (city.tradeRoutes === undefined) return out;
+  const tr = ruleset.rules.tradeRoute;
+  const ranked = [];
+  for (const r of city.tradeRoutes) {
+    const partner = state.cities[r.partnerCityId];
+    if (!partner) continue;
+    ranked.push({ pid: r.partnerCityId, c: routeContribution(state, city, partner, ruleset) });
+  }
+  ranked.sort((p, q) => q.c - p.c || (p.pid < q.pid ? -1 : p.pid > q.pid ? 1 : 0));
+  const counted = {};
+  for (let i = 0; i < ranked.length && i < tr.routeCap; i++) counted[ranked[i].pid] = true;
+  for (const r of city.tradeRoutes) {
+    const partner = state.cities[r.partnerCityId];
+    const arrows = partner ? routeContribution(state, city, partner, ruleset) : 0;
+    out.push({ partnerCityId: r.partnerCityId, arrows, counted: counted[r.partnerCityId] === true });
+  }
+  return out;
+}
+
+export { establishTradeRoute, routeArrows, tradeRouteReport, tradeArrows, windfall, landConnected, cityAtTile };

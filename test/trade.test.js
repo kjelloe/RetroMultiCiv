@@ -99,6 +99,23 @@ test('routeArrows: an empty / route-less city contributes 0, and the fill is sta
   assert.strictEqual(a, b);
 });
 
+test('tradeRouteReport: every route in state order with its arrows + counted flag', async () => {
+  const trade = await load();
+  const st = capState();
+  const report = trade.tradeRouteReport(st, st.cities.c1, RULESET);
+  assert.deepStrictEqual(report.map(r => r.partnerCityId), ['pa', 'pb', 'pc', 'pd'], 'STATE order, not ranked');
+  // the top routeCap by contribution are counted; the sum of counted == routeArrows
+  const countedSum = report.filter(r => r.counted).reduce((s, r) => s + r.arrows, 0);
+  assert.strictEqual(countedSum, trade.routeArrows(st, st.cities.c1, RULESET), 'counted arrows == the applied bonus');
+  assert.strictEqual(report.filter(r => r.counted).length, RULESET.rules.tradeRoute.routeCap, 'exactly routeCap counted (4 routes > cap 3)');
+  // the four contributions tie (idiv(·,8) flattens the pop spread), so the
+  // lower-partnerCityId tiebreak keeps pa/pb/pc and leaves pd (highest id) out
+  assert.strictEqual(report.find(r => r.partnerCityId === 'pd').counted, false, 'the tie-broken-out route (highest partnerCityId) is not counted');
+  for (const pid of ['pa', 'pb', 'pc']) assert.strictEqual(report.find(r => r.partnerCityId === pid).counted, true, `${pid} is counted`);
+  // a route-less city reports nothing
+  assert.deepStrictEqual(trade.tradeRouteReport(st, st.cities.pa, RULESET), []);
+});
+
 test('a route to a destroyed partner is skipped (defensive prune)', async () => {
   const trade = await load();
   const st = capState();

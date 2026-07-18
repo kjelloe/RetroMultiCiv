@@ -179,14 +179,46 @@ local function establishTradeRoute(state: any, cmd: any, ruleset: any): any
 	local events = setmetatable({}, statehash.ARRAY_MT)
 	table.insert(events, {
 		type = "tradeRouteEstablished", playerId = home.owner,
-		homeCityId = home.id, partnerCityId = partner.id, gold = amt, bulbs = amt,
+		cityId = home.id, partnerCityId = partner.id, gold = amt, bulbs = amt,
 	})
 	return { ok = true, events = events }
+end
+
+-- Engine-authored per-route view for the client panel (client never re-derives
+-- the R1 ranking). Every route in STATE order with its live contribution (arrows)
+-- and whether it is among the top routeCap that count. Pure read; golden-neutral.
+local function tradeRouteReport(state: any, city: any, ruleset: any): any
+	local out = setmetatable({}, statehash.ARRAY_MT)
+	if city.tradeRoutes == nil then return out end
+	local tr = ruleset.rules.tradeRoute
+	local ranked = {}
+	for _, r in ipairs(city.tradeRoutes) do
+		local partner = state.cities[r.partnerCityId]
+		if partner ~= nil then
+			table.insert(ranked, { pid = r.partnerCityId, c = routeContribution(state, city, partner, ruleset) })
+		end
+	end
+	table.sort(ranked, function(p, q)
+		if p.c ~= q.c then return p.c > q.c end
+		return p.pid < q.pid
+	end)
+	local counted = {}
+	for i = 1, #ranked do
+		if i > tr.routeCap then break end
+		counted[ranked[i].pid] = true
+	end
+	for _, r in ipairs(city.tradeRoutes) do
+		local partner = state.cities[r.partnerCityId]
+		local arrows = if partner ~= nil then routeContribution(state, city, partner, ruleset) else 0
+		table.insert(out, { partnerCityId = r.partnerCityId, arrows = arrows, counted = counted[r.partnerCityId] == true })
+	end
+	return out
 end
 
 return {
 	establishTradeRoute = establishTradeRoute,
 	routeArrows = routeArrows,
+	tradeRouteReport = tradeRouteReport,
 	tradeArrows = tradeArrows,
 	windfall = windfall,
 	landConnected = landConnected,
