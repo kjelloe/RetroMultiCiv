@@ -1689,6 +1689,62 @@ html, body {
 #diplo-note.hidden { display: none; }
 #open-diplo.hidden { display: none; }
 
+/* XII.6: the graphical tech tree — a 🌳 overlay alongside the research list */
+#tech-tree {
+  position: fixed; inset: 24px; z-index: 60;
+  background: rgba(10, 15, 26, 0.98); border: 1px solid #2c4468;
+  border-radius: 10px; display: flex; flex-direction: column; color: #cdd8ea;
+  font-size: 12px;
+}
+#tech-tree.hidden { display: none; }
+#tech-tree-head {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+  border-bottom: 1px solid #24344f; color: #ffe066; font-weight: bold;
+}
+#tech-tree-legend { display: flex; gap: 12px; font-weight: normal; font-size: 11px; color: #9fb3d0; }
+#tech-tree-legend .known { color: #7fd18a; }
+#tech-tree-legend .avail { color: #ffe066; }
+#tech-tree-legend .locked { color: #6d7f9c; }
+#tech-tree-legend .goalk { color: #7fbcff; }
+#tech-tree-head button { margin-left: auto; background: none; border: 1px solid #3b5d8f; border-radius: 4px; color: #cdd8ea; cursor: pointer; }
+#tech-tree-scroll { flex: 1; overflow: auto; position: relative; cursor: grab; touch-action: none; }
+#tech-tree-scroll:active { cursor: grabbing; }
+#tech-tree-canvas { position: relative; }
+#tech-tree-edges { position: absolute; left: 0; top: 0; pointer-events: none; }
+.tt-edge { stroke: #2b3f5e; stroke-width: 1.5; }
+.tt-edge.done { stroke: #38624a; }
+.tt-edge.onpath { stroke: #7fbcff; stroke-width: 2.5; stroke-dasharray: 6 4; }
+.tt-node {
+  position: absolute; width: 132px; height: 40px; box-sizing: border-box;
+  display: flex; align-items: center; gap: 6px; padding: 0 8px;
+  background: rgba(20, 30, 48, 0.96); border: 1px solid #3b5d8f;
+  border-left-width: 4px; border-radius: 6px; color: #cdd8ea;
+  font-family: inherit; font-size: 11px; text-align: left; cursor: pointer;
+}
+.tt-node .tt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tt-node .tt-state { flex: 0 0 auto; font-weight: bold; }
+/* era-colored left rail (the glyph frame color, Part C reuses these) */
+.tt-node.era-ancient { border-left-color: #b9975b; }
+.tt-node.era-renaissance { border-left-color: #6ba368; }
+.tt-node.era-industrial { border-left-color: #6f8bb0; }
+.tt-node.era-modern { border-left-color: #9b7fc9; }
+.tt-node.known { opacity: 0.7; }
+.tt-node.known .tt-state { color: #7fd18a; }
+.tt-node.avail { border-color: #ffe066; }
+.tt-node.avail .tt-state { color: #ffe066; }
+.tt-node.locked { color: #8496b3; background: rgba(16, 23, 38, 0.9); }
+.tt-node.locked .tt-state { color: #6d7f9c; }
+.tt-node.current { box-shadow: 0 0 0 2px #ffe066; }
+.tt-node.goal { box-shadow: 0 0 0 2px #7fbcff; }
+.tt-node.onpath { border-color: #7fbcff; }
+.tt-node:hover { background: rgba(38, 56, 90, 0.98); }
+#open-tech-tree {
+  position: absolute; top: 12px; left: calc(50% + 202px); z-index: 8;
+  background: #1c2a44; border: 1px solid #3b5d8f; border-radius: 6px;
+  color: #cdd8ea; cursor: pointer; font-size: 14px; height: 28px; padding: 0 8px;
+}
+#open-tech-tree:hover { background: #26385a; }
+
 /* A92: the debug panel — thin god-mode form, corner-toggled, state-gated */
 #debug-panel {
   position: fixed; top: 52px; right: 12px; z-index: 25;
