@@ -181,6 +181,23 @@ export function startServer(opts) {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
+  // Part A (specs/mobile-resilience.md): heartbeat sweeper. A locked/backgrounded
+  // phone leaves the socket HALF-OPEN (readyState OPEN, no close event), so it is
+  // seatless at game start. Ping every heartbeatMs; a socket that misses
+  // heartbeatMisses pongs is terminate()d → the close handler fires
+  // DETERMINISTICALLY (the only way a half-open socket becomes detectable — and
+  // the trigger for Part B's seat-grace). heartbeatTick() is exposed for tests.
+  const heartbeatMs = opts.heartbeatMs !== undefined ? opts.heartbeatMs : 15000;
+  const heartbeatMisses = opts.heartbeatMisses !== undefined ? opts.heartbeatMisses : 2;
+  function heartbeatTick() {
+    for (const ws of wss.clients) {
+      if (ws.missedPongs >= heartbeatMisses) { ws.terminate(); continue; }
+      ws.missedPongs = (ws.missedPongs || 0) + 1;
+      try { ws.ping(); } catch (e) { /* socket already dying */ }
+    }
+  }
+  const heartbeatTimer = setInterval(heartbeatTick, heartbeatMs);
+  if (heartbeatTimer.unref) heartbeatTimer.unref();
 
   function send(ws, msg) {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -623,6 +640,9 @@ export function startServer(opts) {
     // server — one bad client could take it down. ws closes that socket itself;
     // swallow so it can't (never logged per event).
     ws.on('error', () => {});
+    // Part A heartbeat liveness: a pong resets the miss counter (see heartbeatTick).
+    ws.missedPongs = 0;
+    ws.on('pong', () => { ws.missedPongs = 0; });
     ws.on('close', () => {
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
@@ -989,9 +1009,11 @@ export function startServer(opts) {
         game: defaultGame,
         rotateSaves, // exposed so tests can trigger rotation deterministically
         maintenanceSweep, // A50 3b: tests advance opts.now then call this to exercise expiry
+        heartbeatTick, // Part A: tests drive heartbeat rounds without waiting heartbeatMs
         announceStatus: () => ({ listed: announceState.listed, reason: announceState.reason, lastError: announceState.lastError }), // A51b: test/console visibility
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
+          clearInterval(heartbeatTimer); // Part A
           if (announceTimer) clearInterval(announceTimer); // A51b
           for (const ws of conns.keys()) ws.terminate();
           wss.close(() => httpServer.close(done));
@@ -1018,6 +1040,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else if (a === '--no-spectators') opts.spectators = false;
+    // Part A (mobile): ws heartbeat — detect half-open sockets (a locked phone)
+    else if (a === '--heartbeat-sec') opts.heartbeatMs = Number(argv[++i]) * 1000;
+    else if (a === '--heartbeat-misses') opts.heartbeatMisses = Number(argv[++i]);
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
