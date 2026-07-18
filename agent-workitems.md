@@ -18,6 +18,13 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**N9b (added 2026-07-18 post-acceptance #1385): government re-eval
+landed half-proven — adoption works but late (~10% Republic by t400;
+tech pace binds) and build priority doesn't yet convert improved
+paybacks into built buildings. Follow-up levers = tech pace toward
+Republic and/or a payback-aware AI build-priority nudge. DESIGN
+PENDING sim hypotheses; slot decided after N10 closes — not an open
+window.**
 
 **HELPER — golden-neutral lane, parallel; order:**
 H1. A93 M-floor nightly enforcement (small) → H2. A50 items 1–3
@@ -183,6 +190,27 @@ the architect the exact file list you intend to touch (bugs have no
 pre-fenced lane) and wait for an ack if any file overlaps an in-flight
 A-item. Fix format: failing test FIRST where feasible, then the fix,
 then the standing checks.
+
+## B28 — Deep-audit invariant stale vs A79 blockade (sim-runner find 2026-07-18 #1385; bugfixer, test-only, golden-neutral)
+
+The soak deep-audit at test/sim-driver.js:347 asserts every MANUAL
+worker tile is in candidateTiles — but marker-0047's blockade
+(engine/cities.js candidateTiles, A79) drops enemy-occupied tiles
+from the candidate set BY DESIGN while the manual assignment persists
+("the citizen idles until the enemy leaves"). An enemy standing on a
+manually-worked tile now trips the invariant falsely. Deterministic
+repro: `node tools/soak.js --civs 7 --size medium --no-chaos` seed 24
+fails @t201 (also seeds 3, 14); present since marker-0047, identical
+before/after gov-reeval. NOTE the #1385 attribution to C4 (990762f)
+is WRONG — C4 is client-only and never loads in a headless soak; the
+grep-verified mechanism is the blockade seam. Fix: the invariant
+allows a manual tile absent from candidates IFF an enemy unit stands
+on it (mirror the blockade condition); keep the message self-
+describing (B9 doctrine) for both the allowed and still-forbidden
+cases; failing-fixture-first (a crafted state with a blockaded manual
+tile passing, a plain non-candidate manual tile still failing).
+Test-only → no golden window needed; restores the floor soak to
+25/25 effective seeds.
 
 ### P5-1 — Phase 5 opens: Luau twins of rng + statehash + gamecode under lune (assigned: bugfixer)  [claimed: bugfixer 2026-07-14] [done: 2026-07-14 — ALL THREE GATES on first run: rng 2714967881,2238813396,1250077441,3820100336 · statehash 0x30db1e29 (canon byte-identical) · codeHi 0xa687b72d + AD1X-Q5MR-DP7H9. luau/{rng,statehash,gamecode,anchors}.luau + test/luau-twins.test.js (self-skips sans lune). NOTE: npm "lune" is a moon-phase lib — official binary v0.10.5 used instead (~/.local/bin). Trap-list addition: empty-array-vs-object needs the ARRAY_MT marker convention. Suite 210/210]
 
