@@ -33,12 +33,12 @@ _Last synced: 2026-07-18._
   the sweep to the sim-runner → **marker-0063**. This is the only gate left
   on D3 (nothing's broken — it's staged).
 
-- [ ] **World-look pick (a/b/c)** — a Roblox session: Options → world
-  look → flip retro/enhanced live → screenshot both → pick
-  retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
-  today (building continues behind the toggle) but sets the DEFAULT
-  and orders the visual-fidelity backlog (docs/13). **This is the one
-  thing gating the roblox lane** (its CP1 art pass waits on it).
+- [ ] **Forward the unit + building pedia-blurb request to the ally**
+  (from your Roblox run-F item 9). Like the 68 tech blurbs, but a short
+  blurb per UNIT and per BUILDING — what it is + a historical backdrop/
+  fact. Original prose, cross-platform (browser pedia + Roblox), data
+  separate from rules. I'll prepare the exact id list for the ally; this
+  line is the reminder to relay it. Not blocking.
 
 ---
 
@@ -86,6 +86,12 @@ _Last synced: 2026-07-18._
   captured in `specs/ally-deliverables-2026-07-18.md`. Also ratified the
   provenance-label table and the "personality supplies a preference; the
   world supplies permission" aggression principle.
+- **World-look = ENHANCED** (your Roblox run-F item 4): resolves the
+  standing world-look pick → enhanced is the default (retro stays a
+  toggle). This UNBLOCKS the roblox lane's CP1 art pass. Your run-F
+  feedback is triaged in `specs/roblox-runF-triage-2026-07-19.md` — most
+  items are Roblox-only (roblox-helper owns them); the cross-platform ones
+  (unit/building blurbs, city-name lists, era-based city looks) are routed.
 - **Tech tree + beeline + glyphs SHIPPED** (XII.6, your request): a
   graphical 🌳 tech-tree (era columns, prerequisite edges, ✓/○/· states) in
   addition to the list, a **beeline** (click a distant tech → it auto-researches
