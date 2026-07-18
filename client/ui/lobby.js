@@ -12,6 +12,8 @@
 // slot — one concurrent server game per browser origin; joining a second game
 // re-points the slot at it.
 
+import { shouldReconnect, reconnectFrame, backoffDelay, wakeIsSuspect } from '../../shared/lobby-reconnect.js';
+
 const GAMEID_KEY = 'retromulticiv-gameid';
 
 // A51c: the master-index URL — ?master= captured at MODULE EVAL (the A45
@@ -96,39 +98,96 @@ function rejectText(code) {
 
 // One shared little message pump: onMsg returns nothing; onDead runs when the
 // socket closes/errors while we still expected it (pre-boot). L8: 'started'
-// without a 'joined' = the missed-seat screen, centrally for every flow; and
-// a visibilitychange/pageshow probe notices a socket the OS killed while the
-// phone slept and routes it through the same onDead.
-function openLobbySocket(onMsg, onDead) {
-  const ws = new WebSocket(wsUrl());
+// without a 'joined' = the missed-seat screen, centrally for every flow.
+//
+// Part C (mobile-resilience.md) — WAKE-RECONNECT: pass `joinFrameFn` (a thunk
+// returning the join/joinListed frame) to make a SEAT-holding socket survive a
+// screen-lock. The pump captures the reconnectId the server issues at
+// joinedLobby (Part B); when the socket drops OR wakes suspect (hidden long,
+// still-OPEN = the half-open shape), it re-establishes and re-sends the frame
+// carrying `lobbyReconnect`, silently reclaiming the grace-held seat. Backoff +
+// cap; past the cap (or with no seat/id) it falls through to the L8 truth
+// screen exactly as before. Query sockets (no joinFrameFn) keep the old
+// behavior: send on their own 'open' handler, wake→dead, no reconnect.
+function openLobbySocket(onMsg, onDead, joinFrameFn) {
+  const canReconnect = typeof joinFrameFn === 'function';
+  let ws = null;
   let booted = false;
   let deadShown = false;
   let everOpened = false;
-  ws.addEventListener('open', () => { everOpened = true; });
+  let reconnectId = null;
+  let attempts = 0;   // reconnect tries since the last healthy reply
+  let pending = false; // a reconnect timer is queued
+  let hiddenAt = 0;    // when the tab last went hidden (0 = visible)
+
   function dead() {
     if (booted || deadShown) return;
     deadShown = true;
     onDead(everOpened);
   }
-  ws.addEventListener('message', ev => {
-    let msg;
-    try { msg = JSON.parse(ev.data); } catch (e) { return; }
-    if (msg.t === 'joined') { booted = true; persistAndBoot(msg); return; }
-    if (msg.t === 'started' && !booted) {
-      booted = true; // stop the dead-socket path from overwriting the message
-      showMissedStart(document.getElementById('setup-box'), msg.gameId);
-      return;
+
+  function drop() {
+    if (booted || deadShown || pending) return;
+    if (shouldReconnect({ canReconnect, reconnectId, booted, deadShown, attempts })) {
+      pending = true;
+      attempts += 1;
+      const delay = backoffDelay(attempts);
+      setTimeout(() => { pending = false; if (!booted && !deadShown) connect(); }, delay);
+    } else {
+      dead();
     }
-    onMsg(msg, ws);
-  });
-  ws.addEventListener('close', dead);
-  ws.addEventListener('error', dead);
+  }
+
+  function connect() {
+    const sock = new WebSocket(wsUrl());
+    ws = sock;
+    sock.addEventListener('open', () => {
+      if (sock !== ws) return; // a superseded socket
+      everOpened = true;
+      if (canReconnect) {
+        const base = joinFrameFn();
+        const frame = reconnectId ? reconnectFrame(base, reconnectId) : base;
+        try { sock.send(JSON.stringify(frame)); } catch (e) { /* races the close */ }
+      }
+    });
+    sock.addEventListener('message', ev => {
+      if (sock !== ws) return;
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch (e) { return; }
+      if (msg.reconnectId) reconnectId = msg.reconnectId; // Part B reclaim secret
+      attempts = 0; // a live reply = a healthy link
+      if (msg.t === 'joined') { booted = true; persistAndBoot(msg); return; }
+      if (msg.t === 'started' && !booted) {
+        booted = true; // stop the dead-socket path from overwriting the message
+        showMissedStart(document.getElementById('setup-box'), msg.gameId);
+        return;
+      }
+      onMsg(msg, sock);
+    });
+    const onClose = () => { if (sock === ws) drop(); };
+    sock.addEventListener('close', onClose);
+    sock.addEventListener('error', onClose);
+    return sock;
+  }
+
   const wake = () => {
-    if (document.visibilityState === 'visible' && ws.readyState >= WebSocket.CLOSING) dead();
+    if (document.visibilityState !== 'visible' || booted || deadShown) return;
+    const suspect = wakeIsSuspect(hiddenAt, Date.now());
+    hiddenAt = 0;
+    if (ws && ws.readyState >= WebSocket.CLOSING) { drop(); return; } // the OS killed it
+    // half-open defense: an OPEN socket that slept long is suspect — tear it
+    // down and reconnect (reclaim is idempotent within the server's grace)
+    if (canReconnect && reconnectId && suspect && ws && ws.readyState === WebSocket.OPEN) {
+      try { ws.close(); } catch (e) { /* ignore */ }
+      drop();
+    }
   };
-  document.addEventListener('visibilitychange', wake);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') hiddenAt = Date.now();
+    else wake();
+  });
   window.addEventListener('pageshow', wake);
-  return ws;
+  return connect();
 }
 
 // civ names for the host's per-slot dropdowns (fetched once, cached)
@@ -610,7 +669,7 @@ export function lobbyDemo(box, kind) {
 // e2e/screenshots: auto-join a lobby by code without the form (?e2ejoin=CODE)
 export function autoJoin(box, code, name) {
   let mySeat = null;
-  const ws = openLobbySocket((msg, sock) => {
+  openLobbySocket((msg, sock) => {
     if (msg.t === 'joinedLobby') {
       mySeat = msg.seat;
       renderWaitingRoom(box, msg, null, null, frame => sock.send(JSON.stringify(frame)));
@@ -624,8 +683,8 @@ export function autoJoin(box, code, name) {
     }
   }, opened => fail(box, opened
     ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
-    : 'no game server'));
-  ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name: name || 'Joiner' })));
+    : 'no game server'),
+    () => ({ t: 'join', joinCode: code, name: name || 'Joiner' }));
 }
 
 // Join: by code, with an optional seat pick (falls back to first free).
@@ -662,7 +721,7 @@ export function startJoinFlow(box) {
   // reservation path as a code (seat/spectate picks from the form apply)
   function joinVia(frame) {
     let mySeat = null;
-    const ws = openLobbySocket((msg, sock) => {
+    openLobbySocket((msg, sock) => {
       if (msg.t === 'joinedLobby') {
         mySeat = msg.seat;
         renderWaitingRoom(box, msg, null, null, f => sock.send(JSON.stringify(f)));
@@ -683,8 +742,8 @@ export function startJoinFlow(box) {
       }
     }, opened => fail(box, opened
       ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
-      : 'no game server — start it with: node server/index.js'));
-    ws.addEventListener('open', () => ws.send(JSON.stringify(frame)));
+      : 'no game server — start it with: node server/index.js'),
+      () => frame); // Part C: re-present this join frame on wake-reconnect
   }
   const browseWs = openLobbySocket((msg) => {
     if (msg.t !== 'openGames') return;
@@ -729,7 +788,7 @@ export function startJoinFlow(box) {
     const seatCode = document.getElementById('lobby-seatcode').value.trim().toUpperCase() || undefined; // A46
     if (code.length !== 5) { fail(box, 'a join code is 5 characters'); return; }
     let mySeat = null;
-    const ws = openLobbySocket((msg, sock) => {
+    openLobbySocket((msg, sock) => {
       if (msg.t === 'joinedLobby') {
         mySeat = msg.seat;
         renderWaitingRoom(box, msg, null, null, frame => sock.send(JSON.stringify(frame)));
@@ -755,8 +814,10 @@ export function startJoinFlow(box) {
       }
     }, opened => fail(box, opened
       ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
-      : 'no game server — start it with: node server/index.js'));
-    ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate, seatCode })));
+      : 'no game server — start it with: node server/index.js'),
+      // Part C: the wake-reconnect re-presents this exact join frame; the pump
+      // adds lobbyReconnect from the id the server issued at joinedLobby
+      () => ({ t: 'join', joinCode: code, name, seat, spectator: spectate, seatCode }));
   });
 
   initGlobalTab(box); // A51c: the master-index browser (shows only when configured)
