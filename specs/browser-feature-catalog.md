@@ -24,7 +24,7 @@ prefixes) are the handles for twin requests and direction questions.
 | CP6 | combat odds preview on hover | input.js sitePreview family | PRESENT — OddsPreview |
 | CP7 | city view: yields, food box, production, buy, sell, workers, specialists | panels.js | PRESENT — CityPanel + WorkedTiles (buy w/ price confirm, roblox extra); food-box progress shape differs (billboard) |
 | CP8 | per-city BUILD QUEUE (C3, tonight) | queue over logged commands | PARTIAL — BuildQueue.luau shipped (#1364, ratified @baf3e1f9): Q+ per row, auto-advance, drop-and-try-next; no per-item reorder/remove yet (v1 divergence, accepted) |
-| CP9 | settler site preview (fog-honest rating) | input.js | MISSING — direction Q: billboard rating over the selected settler's tile? |
+| CP9 | settler site preview (fog-honest rating) | input.js | PRESENT — ViewRenderer siteLine draws a 1-3 star rating on own settlers via the read-only ai.goodCitySpot on a view shim (fog-approximate, the browser's own shape); was mis-annotated MISSING |
 | CP10 | next-unit cycling, needs-orders gate, auto-select | input.js/session | PRESENT — N/auto-next + garrison exclusion |
 | CP11 | off-turn pre-work (A54 whitelist) | engine whitelist + session queue | PRESENT — engine-side; roblox client sends freely, server validates |
 | CP12 | research bar + panel (beelines, sliders) | hud/panels | PRESENT — picker + rate steppers (Government panel) + auto-select option (roblox extra) |
@@ -58,7 +58,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO14 | accessibility civ-color palette | palette.js | PRESENT — Palette.luau (the browser's exact deuteranopia-safe pairs) at all 4 civ-color seams (ViewRenderer, Statistics, Minimap, ReplayTheater) + options row; visual.primary half carried but consumer-less on Roblox |
 | SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |
 | SO16 | mobile: ?mlog overlay, d-pad, touch | mlog.js/dpad.js | N-A-platform CONFIRMED — Roblox native touch + RidePad + long-press already cover it |
-| SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | MISSING — no luau/strategic.luau twin yet (checked); a spectator/Studio-gated overlay panel is a real slice needing the twin first. REQUESTING luau/strategic.luau as a golden-neutral export (soak --stats already uses the fn) if the row is wanted; parked pending that + user interest |
+| SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | PRESENT — Strategic.client.luau (🧠 panel, spectator/Studio-gated) over the SERVER's {t=strat} full-state strategicSnapshot pull (luau/strategic.luau twin @e73d631); mode icons ⚔🌱🏛🛡, colored threat, unit counts, palette chips |
 
 ## Multiplayer / server
 

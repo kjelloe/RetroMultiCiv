@@ -41,6 +41,7 @@ local pediaOpenCallbacks = {} -- SO3: discovery-card deep links into Pedia
 local endscreenCallbacks = {} -- SO7: the server's gameOver scoreboard frame
 local historianCallbacks = {} -- SO9: age-change standings interstitial
 local statsCallbacks = {} -- SO8: pulled score series replies
+local stratCallbacks = {} -- SO17: pulled per-AI strategic snapshot replies
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -228,6 +229,14 @@ function M.requestStats()
 	remote:FireServer({ t = "stats" }) -- SO8: pull-only by ruling
 end
 
+function M.onStrat(cb)
+	table.insert(stratCallbacks, cb)
+end
+
+function M.requestStrat()
+	remote:FireServer({ t = "strat" }) -- SO17: pull-only, server gates to spectator/Studio
+end
+
 function M.onHistorian(cb)
 	table.insert(historianCallbacks, cb)
 end
@@ -338,6 +347,11 @@ remote.OnClientEvent:Connect(function(msg)
 	if msg.t == "stats" then
 		for _, cb in ipairs(statsCallbacks) do
 			cb(msg.series or {})
+		end
+	end
+	if msg.t == "strat" then
+		for _, cb in ipairs(stratCallbacks) do
+			cb(msg.rows or {}, msg.turn)
 		end
 	end
 	if msg.t == "historian" then

@@ -31,6 +31,7 @@ local visibility = require(shared:WaitForChild("visibility"))
 local statehash = require(shared:WaitForChild("statehash"))
 local gamecode = require(shared:WaitForChild("gamecode"))
 local scoreModule = require(shared:WaitForChild("score")) -- SO7 end screen
+local strategicModule = require(shared:WaitForChild("strategic")) -- SO17
 local json2lua = require(shared:WaitForChild("json2lua"))
 local Deck = require(script.Parent:WaitForChild("Deck"))
 local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
@@ -1214,6 +1215,34 @@ remote.OnServerEvent:Connect(function(player, msg)
 		-- SO8: PULL-only series (seated or spectating; world-public data)
 		if state ~= nil and (seatOfUser[player.UserId] ~= nil or spectators[player.UserId] == true) then
 			remote:FireClient(player, { t = "stats", series = statsSeries })
+		end
+		return
+	end
+
+	if msg.t == "strat" then
+		-- SO17 (browser strategic-overlay twin, ruled @d969dd26): the per-AI
+		-- strategic snapshot from FULL state - a DEBUG/spectator surface, never
+		-- a seated player's read. PULL-only (like stats). Gated to spectators
+		-- OR a Studio session (debug game); the snapshot itself needs all
+		-- players' units/cities, which only the server has fog-free.
+		local isStudio = game:GetService("RunService"):IsStudio()
+		if state ~= nil and (spectators[player.UserId] == true or isStudio) then
+			-- every civ's snapshot (the browser overlay shows all; the client
+			-- tags human vs AI). One computation, the shared twin, no fork.
+			local rows = setmetatable({}, statehash.ARRAY_MT)
+			for _, pid in ipairs(state.playerOrder) do
+				local p = state.players[pid]
+				local ok, snap = pcall(strategicModule.strategicSnapshot, state, pid, ruleset)
+				if ok and snap ~= nil then
+					snap.pid = pid
+					snap.name = p.name
+					snap.color = p.color
+					snap.human = p.human == true
+					snap.alive = p.alive ~= false
+					table.insert(rows, snap)
+				end
+			end
+			remote:FireClient(player, { t = "strat", rows = rows, turn = state.turn })
 		end
 		return
 	end
