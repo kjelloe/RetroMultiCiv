@@ -106,6 +106,33 @@ local function setRates(state: any, cmd: any, ruleset: any): any
 	return { ok = true, events = { { type = "ratesSet", playerId = cmd.playerId, tax = tax, sci = sci, lux = lux } } }
 end
 
+-- N9b twin: one city's gold + science CONTRIBUTION (the tax/science split with
+-- the building taxBonus/sciBonus multipliers applied). Extracted verbatim from
+-- playerIncome so the AI build-payback lever values a building by the SAME math
+-- the real income uses. Disordered city contributes nothing; maintenance/anarchy
+-- are player-level. taxmen/scientists cancel in the lever's with/without delta.
+local function cityEconOutput(state: any, city: any, taxRate: number, sciRate: number, perSpecialist: number, ruleset: any)
+	if city.disorder == true then
+		return { gold = 0, bulbs = 0 }
+	end
+	local trade = cities.cityYields(state, city, ruleset).trade
+	trade -= government.corruptionFor(state, city, trade, ruleset)
+	-- A89: the live permanent trade-route bonus adds ON TOP, post-corruption
+	-- (R1). 0 for a city without routes; AI fields no caravans -> goldens untouched.
+	trade += traderoutes.routeArrows(state, city, ruleset)
+	local cityTax = idiv(trade * taxRate, 100)
+	local citySci = idiv(trade * sciRate, 100)
+	local gold = cityTax + idiv(cityTax * cities.effectPct(city, ruleset, "taxBonus"), 100)
+	local bulbs = citySci + idiv(citySci * cities.effectPct(city, ruleset, "sciBonus"), 100)
+	if city.taxmen ~= nil then
+		gold += city.taxmen * perSpecialist
+	end
+	if city.scientists ~= nil then
+		bulbs += city.scientists * perSpecialist
+	end
+	return { gold = gold, bulbs = bulbs }
+end
+
 -- Per-turn income for one player, before it is applied. Pure.
 local function playerIncome(state: any, playerId: string, ruleset: any)
 	local player = state.players[playerId]
@@ -128,21 +155,9 @@ local function playerIncome(state: any, playerId: string, ruleset: any)
 		if anarchy then
 			continue -- anarchy: the state collects nothing
 		end
-		local trade = cities.cityYields(state, city, ruleset).trade
-		trade -= government.corruptionFor(state, city, trade, ruleset)
-		-- A89: the live permanent trade-route bonus adds ON TOP, post-corruption
-		-- (R1). 0 for a city without routes; AI fields no caravans -> goldens untouched.
-		trade += traderoutes.routeArrows(state, city, ruleset)
-		local cityTax = idiv(trade * taxRate, 100)
-		local citySci = idiv(trade * sciRate, 100)
-		gold += cityTax + idiv(cityTax * cities.effectPct(city, ruleset, "taxBonus"), 100)
-		bulbs += citySci + idiv(citySci * cities.effectPct(city, ruleset, "sciBonus"), 100)
-		if city.taxmen ~= nil then
-			gold += city.taxmen * perSpecialist
-		end
-		if city.scientists ~= nil then
-			bulbs += city.scientists * perSpecialist
-		end
+		local eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset)
+		gold += eco.gold
+		bulbs += eco.bulbs
 	end
 	return { gold = gold, bulbs = bulbs, maintenance = maintenance }
 end
@@ -228,6 +243,7 @@ return {
 	setRates = setRates,
 	processResearch = processResearch,
 	playerIncome = playerIncome,
+	cityEconOutput = cityEconOutput,
 	grantTech = grantTech,
 	prereqsMet = prereqsMet,
 }

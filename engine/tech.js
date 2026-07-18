@@ -75,6 +75,32 @@ function setRates(state, cmd, _ruleset) {
 // Per-turn income for one player, before it is applied: per-city trade split
 // so Marketplace/Bank (tax) and Library/University (sci) multiply their own
 // city's share; building maintenance comes out of gold. Pure — also used by
+// N9b: one city's gold + science CONTRIBUTION (the tax/science split with the
+// building taxBonus/sciBonus multipliers applied). Extracted verbatim from
+// playerIncome's inner loop so the AI build-payback lever (engine/ai.js) values
+// a building by the SAME math the real income uses — a building's valued benefit
+// equals its actual benefit by construction (no parallel formula). A disordered
+// city contributes nothing; maintenance/anarchy are player-level and stay in
+// playerIncome. taxmen/scientists are here for byte-fidelity but cancel in the
+// lever's with/without delta (a building never changes specialists).
+function cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset) {
+  if (city.disorder === true) return { gold: 0, bulbs: 0 };
+  let trade = cityYields(state, city, ruleset).trade;
+  trade = trade - corruptionFor(state, city, trade, ruleset);
+  // A89: the live permanent trade-route bonus adds ON TOP, post-corruption
+  // (R1: base arrows exclude routes; route trade is corruption-free). No-op
+  // (0) for a city without routes — the AI fields no caravans, so the sim
+  // goldens are untouched. Lux stays on raw tile trade (existing deviation).
+  trade = trade + routeArrows(state, city, ruleset);
+  const cityTax = idiv(trade * taxRate, 100);
+  const citySci = idiv(trade * sciRate, 100);
+  let gold = cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
+  let bulbs = citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
+  if (city.taxmen !== undefined) gold += city.taxmen * perSpecialist;
+  if (city.scientists !== undefined) bulbs += city.scientists * perSpecialist;
+  return { gold, bulbs };
+}
+
 // the client HUD to show "gold 200 (+5)" forecasts.
 function playerIncome(state, playerId, ruleset) {
   const player = state.players[playerId];
@@ -91,19 +117,9 @@ function playerIncome(state, playerId, ruleset) {
     }
     if (city.disorder === true) continue; // civil disorder: no taxes, no research
     if (anarchy) continue; // anarchy: the state collects nothing
-    let trade = cityYields(state, city, ruleset).trade;
-    trade = trade - corruptionFor(state, city, trade, ruleset);
-    // A89: the live permanent trade-route bonus adds ON TOP, post-corruption
-    // (R1: base arrows exclude routes; route trade is corruption-free). No-op
-    // (0) for a city without routes — the AI fields no caravans, so the sim
-    // goldens are untouched. Lux stays on raw tile trade (existing deviation).
-    trade = trade + routeArrows(state, city, ruleset);
-    const cityTax = idiv(trade * taxRate, 100);
-    const citySci = idiv(trade * sciRate, 100);
-    gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
-    bulbs += citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
-    if (city.taxmen !== undefined) gold += city.taxmen * perSpecialist;
-    if (city.scientists !== undefined) bulbs += city.scientists * perSpecialist;
+    const eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset);
+    gold += eco.gold;
+    bulbs += eco.bulbs;
   }
   return { gold, bulbs, maintenance };
 }
@@ -174,4 +190,4 @@ function processResearch(state, ruleset, events) {
   }
 }
 
-export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, prereqsMet, grantTech };
+export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, cityEconOutput, prereqsMet, grantTech };

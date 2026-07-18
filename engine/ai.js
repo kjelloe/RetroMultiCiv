@@ -14,9 +14,9 @@
 // The AI only issues regular commands through applyCommand — it cannot cheat.
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
-import { availableTechs } from './tech.js';
+import { availableTechs, cityEconOutput } from './tech.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
@@ -35,19 +35,30 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // marchRadiusPct pattern, so the sim-runner sweeps army size + scouting via
 // rulesOverrides. Defaults reproduce the B13e resolved per-stance values.
 // Twin: luau/ai.luau STANCES must match byte-for-byte.
+// N9b: pbMult = the per-stance PB_MAX multiplier (integer percent — builder 150
+// = ×1.5 builds down to weaker paybacks; aggressive 50 = ×0.5), applied to
+// BUILD_LEVER.pbMax. wonderDrive = the builder-only capital wonder commitment
+// (§2). Both provisional (sim-swept, two-phase close); NO rules.json — behavior
+// knobs, twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, govTarget: 'republic-if-safe' },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, govTarget: 'republic' },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, govTarget: 'monarchy' },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, govTarget: 'republic' },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, govTarget: 'republic' },
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, govTarget: 'republic-if-safe' },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, govTarget: 'republic' },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, govTarget: 'monarchy' },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, govTarget: 'republic' },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, govTarget: 'republic' },
   // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
   // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
   // reached after the full garrison), then economy via the high econReserve
   // (wonder-inclusive, capital-concentrated). defendFirst = the normal-block
   // reserve placement (not the at-1 preempt). Ported from the sim-runner lab.
-  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, defendFirst: true, govTarget: 'republic' }
+  // N9b: pbMult 150 + wonderDrive — the archetype "MUST build wonders" civ.
+  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, pbMult: 150, wonderDrive: true, defendFirst: true, govTarget: 'republic' }
 };
+
+// N9b build-priority lever constants (provisional — sim-swept, pinned in the
+// two-phase close; NOT rules.json). pbMax = payback ceiling in turns before the
+// stance pbMult; wonderMinShields = the builder wonder-drive's shields/turn gate.
+const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5 };
 
 // Government re-eval (specs/government-reeval.md): the AI advances government by
 // STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
@@ -830,6 +841,75 @@ function nextWonder(state, me, ruleset) {
   return best;
 }
 
+// N9b: a shallow city copy with one building appended — for valuing a candidate
+// building via cityEconOutput WITHOUT mutating the real city. Buildings don't
+// change worked tiles, so only the effectPct (taxBonus/sciBonus) term differs.
+function withBuilding(city, id) {
+  const clone = {};
+  for (const k of Object.keys(city)) clone[k] = city[k];
+  const b = city.buildings === undefined ? [] : city.buildings;
+  const nb = [];
+  for (let i = 0; i < b.length; i++) nb.push(b[i]);
+  nb.push(id);
+  clone.buildings = nb;
+  return clone;
+}
+
+// N9b: the build-priority lever's chooser — of the buildable buildings
+// (nextBuilding's filter: unbuilt, non-palace, tech known), the one whose PAYBACK
+// (turns for its gold+bulbs benefit to repay its shield cost) is lowest and under
+// pbMax; tie-break lowest cost then catalog order. Payback reuses cityEconOutput
+// (the SAME math playerIncome uses) so a building's valued benefit equals its
+// actual benefit. Zero-delta (non-yield) buildings are skipped — they keep the
+// stanceBuilding/nextBuilding route (R2). Returns a building id or null.
+function bestPaybackBuilding(state, city, me, ruleset, pbMax) {
+  const taxRate = me.taxRate === undefined ? ruleset.rules.defaultTaxRate : me.taxRate;
+  const sciRate = me.sciRate === undefined ? ruleset.rules.defaultSciRate : me.sciRate;
+  const perSpecialist = ruleset.rules.specialistOutput;
+  const base = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset);
+  const baseEcon = base.gold + base.bulbs;
+  let best = null, bestPayback = 0, bestCost = 0;
+  for (const id of Object.keys(ruleset.buildings)) {
+    const def = ruleset.buildings[id];
+    if (city.buildings !== undefined && city.buildings.indexOf(id) !== -1) continue;
+    if (def.effect.isPalace === true) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    const eco = cityEconOutput(state, withBuilding(city, id), taxRate, sciRate, perSpecialist, ruleset);
+    const delta = (eco.gold + eco.bulbs) - baseEcon;
+    if (delta <= 0) continue; // non-yield building: no payback (R2)
+    const payback = idiv(def.cost, delta);
+    if (payback >= pbMax) continue;
+    if (best === null || payback < bestPayback
+      || (payback === bestPayback && def.cost < bestCost)
+      || (payback === bestPayback && def.cost === bestCost && id < best)) {
+      best = id; bestPayback = payback; bestCost = def.cost;
+    }
+  }
+  return best;
+}
+
+// N9b: is the civ already committed to a wonder somewhere (one-in-flight cap)?
+function civWonderInFlight(state, playerId) {
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c && c.owner === playerId && c.producing !== undefined && c.producing.kind === 'wonder') return true;
+  }
+  return false;
+}
+
+// N9b: the builder wonder-drive's target when no palace/capital exists — the
+// highest-shield city, deterministic tie-break by lowest cityId.
+function highestShieldCity(state, playerId, ruleset) {
+  let best = null, bestSh = -1;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    const sh = cityYields(state, c, ruleset).shields;
+    if (sh > bestSh || (sh === bestSh && (best === null || cid < best.id))) { best = c; bestSh = sh; }
+  }
+  return best;
+}
+
 // The nearest own settler in the open (not in a city) with no adjacent
 // military guard other than this unit — escort duty target. Excluding
 // `unit` from the guard check keeps the current escort standing its post.
@@ -1280,6 +1360,41 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           // explorers), so the LOCAL count alone no longer saturates —
           // without this cap a tech-starved civ mints militia forever
           want = { kind: 'unit', id: 'settlers' };
+        }
+
+        // === N9b build-priority (spec a8fe1af) — applies past the garrison floor ===
+        // R1 stickiness: an in-progress, still-legal building/wonder is KEPT — never
+        // re-decided to a unit on payback/threat flutter (the half-shields category
+        // switch makes flutter costly). enemyNear is the only interrupt and it is
+        // garrison-gated: we are already inside defenders.length>=wantDefenders, so a
+        // fully-garrisoned threatened city still keeps its near-done building.
+        const inProgId = city.producing.id;
+        const inProgKept = (city.producing.kind === 'wonder'
+            && (state.wonders === undefined || state.wonders[inProgId] === undefined))
+          || (city.producing.kind === 'building'
+            && (city.buildings === undefined || city.buildings.indexOf(inProgId) === -1));
+        if (inProgKept) {
+          want = city.producing; // persist (R1) — wonder-drive persist is this same keep
+        } else if (S.wonderDrive === true && !threatened && !civWonderInFlight(state, playerId)) {
+          // §2 wonder-drive: the BUILDER capital (fallback highest-shield city)
+          // commits to the cheapest available wonder once it musters the shields,
+          // then persists via the keep above. One wonder in flight per civ.
+          const cap = capitalOf(state, playerId, ruleset);
+          const driveCity = (cap !== null && cap !== undefined) ? cap : highestShieldCity(state, playerId, ruleset);
+          if (driveCity !== null && driveCity !== undefined && driveCity.id === cid) {
+            const w = nextWonder(state, me, ruleset);
+            if (w !== null && cityYields(state, city, ruleset).shields >= BUILD_LEVER.wonderMinShields) {
+              want = { kind: 'wonder', id: w };
+            }
+          }
+        }
+        if (want.kind === 'unit' && !threatened) {
+          // the lever (R3: DEFERS to defBuild — if defBuild fired, want is not a unit
+          // here). A buildable yield building whose payback is under the stance-scaled
+          // ceiling beats the unit; non-yield buildings score no payback (R2).
+          const pbMax = idiv(BUILD_LEVER.pbMax * S.pbMult, 100);
+          const pick = bestPaybackBuilding(state, city, me, ruleset, pbMax);
+          if (pick !== null) want = { kind: 'building', id: pick };
         }
       }
     }
