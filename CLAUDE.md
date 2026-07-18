@@ -293,7 +293,10 @@ referenced by ID/path in any stdout summary.
 
 User handles all git commits and pushes on dev/main. The dev_night
 branch is the STANDING exception (user grant 2026-07-16, widened
-same day): the architect commits accepted gate-green work there and
+same day; widened again 2026-07-18): the architect commits accepted
+gate-green work there, AND the sim-runner pushes dev_night directly
+from the gaming PC after its sweeps/rebases (dev_night only, never
+dev/main; marker tags stay architect-only); the architect
 coordinates the gaming-PC's git operator (sim-runner) by mail; the
 architect TAGS save points as `marker-NNNN` (zero-padded, sequential
 — marker-0001 = 5a93473) and the user merges ONLY the LATEST
