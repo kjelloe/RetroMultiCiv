@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 37, 'the thirty-seven scenarios (035-038 unit upgrades added in N11)');
+      assert.strictEqual(files.length, 38, 'the thirty-eight scenarios (039 Leonardo added in N11 3b)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -159,6 +159,7 @@ const PORTED = [
   '036-upgrade-cost.json', // N11: the cost formula
   '037-upgrade-noupgrade.json', // N11: no successor -> noUpgrade
   '038-upgrade-rejections.json', // N11: notEnoughGold + notInCity
+  '039-leonardo-workshop.json', // N11 3b: Leonardo auto-upgrade on tech acquisition
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
@@ -223,7 +224,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xb626ea6d\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xb7fd4fb3\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -261,8 +262,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'da6c82dc', pangaea: '6caa4414',
-      archipelago: 'db7b0ca3', islands: '84adf695'
+      continents: '0ef902c9', pangaea: '0e158189',
+      archipelago: '0f36cfb4', islands: 'efac114e'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

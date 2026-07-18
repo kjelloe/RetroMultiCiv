@@ -97,7 +97,8 @@
   },
   "upgrade": {
     "baseGold": 10,
-    "goldPerShield": 2
+    "goldPerShield": 2,
+    "leonardoWonder": "leonardo-s-workshop"
   },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,

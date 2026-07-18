@@ -493,9 +493,9 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
   their obsoletedBy tech; the AI era-scales its army; barracks are
   SOLD with gold credited at Gunpowder/Combustion (user ruling;
   wiki-says-vanish delta logged); wonder expiry was already data.
-  STILL OPEN from the A63 family: Leonardo's Workshop (N11 window
-  3b — free auto-upgrades). Manual field upgrades (upgradeUnit,
-  N11 window 3a) SHIPPED — see the Unit upgrades section under §11.
+  The A63 family is now COMPLETE: manual field upgrades (upgradeUnit,
+  N11 3a) and Leonardo's Workshop (N11 3b) both SHIPPED — see the
+  Unit upgrades section under §11.
 - **SHIPPED — Barbarians era-scale** (A66, rode B13): tiered spawns
   keyed to the obsolescence trigger techs (rules.barbTiers).
 - **SHIPPED — the AI fights** (B21): attacker build slot, attacker-
@@ -647,7 +647,15 @@ into a target enabled before it obsoletes — e.g. legion→musketeers through
 gunpowder). Rejections: `notInCity`, `noUpgrade` (no successor / successor tech
 unknown), `notEnoughGold`. AI never issues it (human/replay feature) — the sim
 goldens move only by the new rulesetHash, not behaviorally. Leonardo's Workshop
-(free automatic upgrades, veteran dropped) is the separate Civ2 window 3b.
+(free automatic upgrades, veteran dropped) SHIPPED as Civ2 window 3b: a
+WONDER_OVERLAY-ADDED wonder (`leonardo-s-workshop`, requires Invention, obsolete
+at Automobile, cost 400 — Civ2, not in the Civ1 roster of 21). When its owner
+ACQUIRES a tech, every eligible unit they own upgrades ONE step (`upgradesTo` +
+owner knows the successor tech), free, **veteran dropped** (contrast 3a's paid
+carry), deterministic via `sortIds`. The trigger routes through a single
+`grantTech` acquisition seam (R3) so any grant path (research now; goody huts,
+trades later) fires it. Dormant in the AI soak (no AI completes the 400-cost
+wonder in 400 turns — the honest signature, like the space race).
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

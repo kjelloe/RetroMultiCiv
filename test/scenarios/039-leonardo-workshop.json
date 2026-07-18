@@ -1,0 +1,175 @@
+{
+  "name": "N11 3b: Leonardo's Workshop auto-upgrades all eligible units, one step, on a tech acquisition",
+  "notes": "p1 OWNS Leonardo's Workshop (c1). Pre-existing techs (gunpowder, conscription) stand in for hut/other-source grants; researching chivalry. On the wrap the research completes -> grantTech (the single R3 acquisition seam) fires Leonardo: militia -> musketeers (via known gunpowder, ONE step even though conscription is known -> NOT straight to riflemen; VETERAN DROPPED, Civ2), musketeers -> riflemen (via conscription), chariot -> knights (via the just-acquired chivalry — the 'acquisition' half), settlers unchanged (no upgradesTo). Free (gold 0). Deterministic (sortIds). Cross-language pin. Note: a hut grant firing Leonardo directly awaits goody huts (A4) — the grantTech seam already routes it.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "mil": {
+          "id": "mil",
+          "type": "militia",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": true
+        },
+        "msk": {
+          "id": "msk",
+          "type": "musketeers",
+          "owner": "p1",
+          "x": 1,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "cha": {
+          "id": "cha",
+          "type": "chariot",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "set": {
+          "id": "set",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 2,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Florence",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "pop": 3,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {
+        "leonardo-s-workshop": "c1"
+      },
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": false,
+          "gold": 0,
+          "techs": [
+            "horseback-riding",
+            "feudalism",
+            "gunpowder",
+            "conscription"
+          ],
+          "researching": "chivalry",
+          "bulbs": 100000,
+          "taxRate": 0,
+          "sciRate": 100
+        },
+        "p2": {
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 6
+    },
+    "hash": "0x849ca221"
+  }
+}

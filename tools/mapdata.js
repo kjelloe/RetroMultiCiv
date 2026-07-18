@@ -267,7 +267,12 @@ const WONDER_OVERLAY = {
   'michelangelo-s-chapel': { effect: { contentEverywhere: 4 } },
   'cure-for-cancer':       { effect: { happyEverywhere: 1 } },
   'shakespeare-s-theatre': { effect: { allContentInCity: true } },
-  'oracle':                { effect: { doublesTemple: true } }
+  'oracle':                { effect: { doublesTemple: true } },
+  // N11 3b: Leonardo's Workshop is a Civ2 wonder (NOT in the Civ1 wiki roster of
+  // 21 — verified). An `added` block DEFINES a wonder the extract lacks (labeled
+  // Civ2-authentic per specs/n11-upgrades.md); the engine keys on the wonder being
+  // active (rules.upgrade.leonardoWonder), so its effect field carries no stat.
+  'leonardo-s-workshop':   { added: { name: "Leonardo's Workshop", tech: 'invention', obsoleteBy: 'automobile', cost: 400 }, effect: {} }
 };
 
 function techId(techs, raw, context) {
@@ -316,8 +321,23 @@ function buildWonders(techs) {
       effect: (WONDER_OVERLAY[id] && WONDER_OVERLAY[id].effect) || {}
     };
   }
+  // Overlay-DEFINED additions (wonders not in the Civ1 wiki roster — labeled
+  // imports, e.g. N11 3b Leonardo's Workshop, Civ2). The `added` block carries
+  // the full definition; tech ids are used directly (they are ids, not names).
+  for (const [id, ov] of Object.entries(WONDER_OVERLAY)) {
+    if (!ov.added) continue;
+    if (!techs[ov.added.tech]) throw new Error(`added wonder ${id}: tech "${ov.added.tech}" missing`);
+    if (ov.added.obsoleteBy && !techs[ov.added.obsoleteBy]) throw new Error(`added wonder ${id}: obsoleteBy "${ov.added.obsoleteBy}" missing`);
+    wonders[id] = {
+      name: ov.added.name,
+      tech: ov.added.tech,
+      obsoleteBy: ov.added.obsoleteBy || '',
+      cost: ov.added.cost,
+      effect: ov.effect || {}
+    };
+  }
   const count = Object.keys(wonders).length;
-  if (count !== 21) throw new Error(`expected 21 wonders, got ${count}`);
+  if (count !== 22) throw new Error(`expected 22 wonders (21 Civ1 + Leonardo), got ${count}`);
   return wonders;
 }
 

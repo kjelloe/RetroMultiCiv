@@ -5,6 +5,7 @@
 import { cityYields, effectPct, sellBuildingFrom } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
 import { routeArrows } from './trade.js';
+import { leonardoUpgrade } from './upgrade.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -131,6 +132,20 @@ function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
   }
 }
 
+// R3 (N11 3b): the SINGLE tech-acquisition seam. Every path that grants a player
+// a tech routes here — research now, goody-hut grants and D-family trades later —
+// so the acquisition side effects (techDiscovered, obsolete-sell, and Leonardo's
+// Workshop auto-upgrade) fire exactly once regardless of source. Leonardo is a
+// no-op for a player who does not own an active one (so pre-3b research pins are
+// byte-unchanged).
+function grantTech(state, pid, techId, ruleset, events) {
+  const player = state.players[pid];
+  player.techs.push(techId);
+  events.push({ type: 'techDiscovered', playerId: pid, tech: techId });
+  sellObsoletedBuildings(state, pid, techId, ruleset, events);
+  leonardoUpgrade(state, pid, ruleset, events);
+}
+
 function processResearch(state, ruleset, events) {
   for (const pid of state.playerOrder) {
     const player = state.players[pid];
@@ -147,13 +162,12 @@ function processResearch(state, ruleset, events) {
       const cost = researchCost(state, pid, ruleset);
       if (player.bulbs >= cost) {
         player.bulbs = player.bulbs - cost; // overflow carries into the next advance
-        player.techs.push(player.researching);
-        events.push({ type: 'techDiscovered', playerId: pid, tech: player.researching });
-        sellObsoletedBuildings(state, pid, player.researching, ruleset, events);
+        const got = player.researching;
         player.researching = '';
+        grantTech(state, pid, got, ruleset, events);
       }
     }
   }
 }
 
-export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, prereqsMet };
+export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, prereqsMet, grantTech };

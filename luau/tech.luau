@@ -9,6 +9,7 @@
 local cities = require("./cities")
 local government = require("./government")
 local traderoutes = require("./trade") -- named to avoid shadowing the loop's `trade` local
+local upgrade = require("./upgrade") -- N11 3b: Leonardo hook via the grantTech seam
 
 local function idiv(a: number, b: number): number
 	return math.floor(a / b)
@@ -173,6 +174,16 @@ local function sellObsoletedBuildings(state: any, pid: string, discoveredTech: s
 	end
 end
 
+-- R3 (N11 3b): the single tech-acquisition seam (twin of engine/tech.js grantTech).
+-- Every grant path routes here; Leonardo is a no-op without an owned active one.
+local function grantTech(state: any, pid: string, techId: string, ruleset: any, events: any)
+	local player = state.players[pid]
+	table.insert(player.techs, techId)
+	table.insert(events, { type = "techDiscovered", playerId = pid, tech = techId })
+	sellObsoletedBuildings(state, pid, techId, ruleset, events)
+	upgrade.leonardoUpgrade(state, pid, ruleset, events)
+end
+
 -- Runs once per game turn (turn wrap): collect trade, split, maybe discover.
 local function processResearch(state: any, ruleset: any, events: any)
 	for _, pid in ipairs(state.playerOrder) do
@@ -198,10 +209,9 @@ local function processResearch(state: any, ruleset: any, events: any)
 			local cost = researchCost(state, pid, ruleset)
 			if player.bulbs >= cost then
 				player.bulbs -= cost -- overflow carries into the next advance
-				table.insert(player.techs, player.researching)
-				table.insert(events, { type = "techDiscovered", playerId = pid, tech = player.researching })
-				sellObsoletedBuildings(state, pid, player.researching, ruleset, events)
+				local got = player.researching
 				player.researching = ""
+				grantTech(state, pid, got, ruleset, events)
 			end
 		end
 	end
@@ -214,5 +224,6 @@ return {
 	setRates = setRates,
 	processResearch = processResearch,
 	playerIncome = playerIncome,
+	grantTech = grantTech,
 	prereqsMet = prereqsMet,
 }

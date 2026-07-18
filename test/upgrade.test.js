@@ -46,6 +46,34 @@ test('applyUpgrade: moves = min(remaining, new type moves); veteran per keepVete
   assert.strictEqual(st2.units.u.veteran, false, 'the FREE (Leonardo/3b) upgrade drops veteran');
 });
 
+test('leonardoUpgrade: owner-only, one step per unit, veteran dropped, free', async () => {
+  const up = await load();
+  const mk = () => ({
+    playerOrder: ['p1', 'p2'],
+    wonders: { 'leonardo-s-workshop': 'c1' },
+    cities: { c1: { id: 'c1', owner: 'p1', x: 0, y: 0, buildings: [] } },
+    cityOrder: ['c1'],
+    units: {
+      a: { id: 'a', type: 'militia', owner: 'p1', x: 1, y: 1, moves: 1, veteran: true },
+      b: { id: 'b', type: 'settlers', owner: 'p1', x: 2, y: 2, moves: 1, veteran: false },
+      e: { id: 'e', type: 'militia', owner: 'p2', x: 0, y: 1, moves: 1, veteran: true }
+    },
+    players: { p1: { id: 'p1', techs: ['gunpowder', 'conscription'] }, p2: { id: 'p2', techs: ['gunpowder'] } }
+  });
+  const s = mk(); const events = [];
+  up.leonardoUpgrade(s, 'p1', RULESET, events);
+  assert.strictEqual(s.units.a.type, 'musketeers', 'militia advances ONE step (not straight to riflemen)');
+  assert.strictEqual(s.units.a.veteran, false, 'the free upgrade drops veteran');
+  assert.strictEqual(s.units.b.type, 'settlers', 'no successor -> unchanged');
+  assert.strictEqual(s.units.e.type, 'militia', 'a rival unit is untouched (owner-only)');
+  assert.ok(events.some(ev => ev.type === 'unitUpgraded' && ev.unitId === 'a' && ev.gold === 0), 'a free unitUpgraded event');
+  // a player who does NOT own Leonardo triggers nothing
+  const s2 = mk(); const ev2 = [];
+  up.leonardoUpgrade(s2, 'p2', RULESET, ev2);
+  assert.strictEqual(ev2.length, 0, 'non-owner acquisition is a no-op');
+  assert.strictEqual(s2.units.e.type, 'militia');
+});
+
 test('upgradeCost: baseGold + goldPerShield * max(0, costNew - costOld); null when no successor', async () => {
   const up = await load();
   const r = RULESET.rules.upgrade;
