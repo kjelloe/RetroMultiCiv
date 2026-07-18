@@ -198,6 +198,14 @@ export function initInput(ctx) {
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
     notBuildingWonder: 'this city is not building a wonder',
     cannotHelpWonder: 'this unit cannot help build wonders',
+    // A92 debug commands — the engine's gate + per-action rejections
+    debugDisabled: 'debug commands need a --debug server or a ?debug=1 game',
+    badUnitType: 'no such unit type',
+    outOfBounds: 'that tile is off the map',
+    occupiedByEnemy: 'an enemy holds that tile — even god-mode keeps stacks single-owner',
+    unknownTech: 'no such technology',
+    alreadyKnown: 'that technology is already discovered',
+    unknownDebugAction: 'unknown debug action',
     // A89 caravans (specs/n10-caravans.md §4) — the six establish rejections
     notCaravan: 'this unit cannot establish trade routes',
     cityRequired: 'trade routes are established standing IN the partner city',
@@ -213,7 +221,8 @@ export function initInput(ctx) {
     startWork: true, foundCity: true, fortify: true, wait: true,
     pillage: true, disband: true, buy: true, helpWonder: true, sellBuilding: true,
     setGovernment: true, setRates: true, setWorkers: true,
-    establishTradeRoute: true // A89 (inert until the N10 engine half lands)
+    establishTradeRoute: true, // A89 (inert until the N10 engine half lands)
+    debug: true // A92: the debug panel's commands flash their rejections too
   };
 
   // wave III: after a combat involving the viewer, keep the camera at the

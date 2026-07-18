@@ -281,6 +281,7 @@ export function createRegistry(deps) {
         }));
         const raw = engine.createGame({
           seed: e.options.seed,
+          debug: deps.debug === true ? true : undefined, // A92: --debug host → debug-capable games
           options: { width: dims[0], height: dims[1], players: allAi, mapType: e.options.maptype }
         });
         if (raw.ok === false) return { ok: false, reason: raw.reason };
@@ -299,7 +300,9 @@ export function createRegistry(deps) {
       } else {
         game = createGame({
           ruleset, gameId, rulesOverrides: overridesFor(e.options),
-          setup: { seed: e.options.seed, options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype } }
+          setup: { seed: e.options.seed,
+            debug: deps.debug === true ? true : undefined, // A92
+            options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype } }
         });
       }
     } catch (err) {

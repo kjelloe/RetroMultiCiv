@@ -114,7 +114,12 @@ export function initSaves(ctx) {
       ? `<br><span title="rejoin from another device with this code — close the old tab first">`
         + `your seat code <b>${session.seatCode}</b> (rejoin from another device)</span>`
       : '';
-    showCode(`💾 Saved turn ${turn} — game code <b>${code}</b>. Every player should note it.${seat}`);
+    // A92: a debug-tainted game's code chip carries the PERMANENT watermark
+    // (docs/07 trust loop — the code still verifies, but everyone sees the
+    // game used god-mode commands)
+    const taint = session.state && session.state.debugUsed === true
+      ? ' <b style="color:#e8b0a8">⚠ DEBUG</b>' : '';
+    showCode(`💾 Saved turn ${turn} — game code <b>${code}</b>${taint}. Every player should note it.${seat}`);
   }
 
   // Server mode: the client holds only a filtered view, so it can't compute the

@@ -105,6 +105,9 @@ export function initEndScreen(ctx) {
     panel.innerHTML = `<div id="endscreen-card">
       <div id="endscreen-verdict" class="${humanWon ? 'win' : (ctx.SPECTATOR ? 'neutral' : 'loss')}">${verdict}</div>
       <div id="endscreen-reason">${esc(headline(state, victory))}</div>
+      ${state.debugUsed === true
+        ? '<div id="endscreen-debug">⚠ DEBUG GAME — god-mode commands were used; this result carries the permanent mark (docs/07)</div>'
+        : ''}
       <div id="endscreen-year">Turn ${state.turn} · ${ageYear(state)}</div>
       <table id="endscreen-table">
         <thead><tr><th>#</th><th>Civilization</th><th>Cities</th><th>Techs</th><th>Wonders</th><th>Score</th></tr></thead>

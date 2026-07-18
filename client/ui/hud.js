@@ -223,7 +223,10 @@ export function initHud(ctx) {
           && session.ruleset.civs[civId] ? session.ruleset.civs[civId].name : null;
         who = civName && civName !== me.name ? `${civName} (${me.name})` : civName || me.name;
       }
-      hudStatus.textContent = `turn ${state.turn} · ${year} · ${who} · ${gov}`;
+      // A92: the permanent taint rides the status line once ANY debug
+      // command succeeded (docs/07 — the game code chip carries it too)
+      const taint = state.debugUsed === true ? ' · ⚠ DEBUG' : '';
+      hudStatus.textContent = `turn ${state.turn} · ${year} · ${who} · ${gov}${taint}`;
     }
     updateResearchBar();
     updateBanner();

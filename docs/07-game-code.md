@@ -110,3 +110,15 @@ independence claim. Reverse iteration is authoritative; A11 pins it.)
    line. Client-only, golden-safe.
 3. Server: envelope field, `joined` reply, code broadcast — one small
    addition to game.js/protocol.js + tests. Golden-safe.
+
+## 6. The debug taint (A92, 2026-07-18)
+
+Games created with debug capability (`--debug` server / `?debug=1`
+local) carry `state.debugEnabled`; the FIRST successful `debug`
+command sets `state.debugUsed = true` PERMANENTLY. Both fields are in
+the hash, so the code still verifies — but every code display (the
+save toast, the HUD status line, the endscreen) shows a **⚠ DEBUG**
+watermark when `debugUsed` is set. The trust loop stays honest: a
+tainted game's code proves exactly what happened, god-mode included;
+what it can never do is pass as an untainted result, because the
+taint is hashed into the very code being compared.

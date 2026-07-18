@@ -54,7 +54,9 @@ function setupFromOpts(opts) {
       color: COLORS[i % COLORS.length], human: i < opts.humans
     });
   }
-  return { seed: opts.seed, options: { width: dims[0], height: dims[1], players } };
+  const setup = { seed: opts.seed, options: { width: dims[0], height: dims[1], players } };
+  if (opts.debug === true) setup.debug = true; // A92: --debug games allow debug commands
+  return setup;
 }
 
 // opts: { port?, game?, saveFile?, autosave?, resetSeats? } plus fresh-game
@@ -73,7 +75,8 @@ export function startServer(opts) {
   const now = opts.now || Date.now; // A50: one injectable clock (limiter + lifecycle)
   // L3b: opts.lobbyGameIdFn lets tests pin deterministic lobby ids; the
   // default mixes boot entropy (fresh join codes per restart, lobby.js)
-  const registry = createRegistry({ ruleset, nowFn: now, gameIdFn: opts.lobbyGameIdFn });
+  const registry = createRegistry({ ruleset, nowFn: now, gameIdFn: opts.lobbyGameIdFn,
+    debug: opts.debug === true }); // A92: lobby games on a --debug host allow debug commands
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
   const limiter = createLimiter({ now, limits: opts.limits });
@@ -118,7 +121,8 @@ export function startServer(opts) {
       rulesOverrides: opts.rulesOverrides,
       setup: setupFromOpts({
         seed: opts.seed || 1, civs: opts.civs || 2,
-        humans: opts.humans || 1, size: opts.size || 'medium'
+        humans: opts.humans || 1, size: opts.size || 'medium',
+        debug: opts.debug // A92
       })
     });
     saveFiles[defaultGame.gameId] = opts.saveFile || path.join(SAVES, defaultGame.gameId + '.json');

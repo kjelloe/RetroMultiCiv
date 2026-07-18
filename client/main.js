@@ -23,6 +23,7 @@ import { initShip } from './ui/ship.js';
 import { initMinimap } from './ui/minimap.js';
 import { initBuildQueue } from './ui/build-queue.js';
 import { initAutomate } from './ui/automate.js';
+import { initDebugPanel } from './ui/debug-panel.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -224,9 +225,14 @@ if (serverParam) {
   // identity default, like ?size); the engine resolves the preset itself
   const mapType = (rules.mapTypes && rules.mapTypes[params.get('maptype')])
     ? params.get('maptype') : 'continents';
-  initialState = createEngine(ruleset).createGame({
+  // A92: ?debug=1 (which already means per-command hashes) ALSO enables the
+  // engine's debug-command family for local games — setup.debug reaches
+  // mapgen, which sets state.debugEnabled at creation
+  const setupA92 = {
     seed, options: { width: dims[0], height: dims[1], players: playerDefs, mapType }
-  });
+  };
+  if (params.get('debug') === '1') setupA92.debug = true;
+  initialState = createEngine(ruleset).createGame(setupA92);
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
 
   if (age.turn > 0) {
@@ -398,6 +404,7 @@ ctx.ship = initShip(ctx); // H8 (A76): the graphical spaceship screen (🚀)
 ctx.minimap = initMinimap(ctx); // C1: world minimap (click-to-jump, fog-honest)
 ctx.buildQueue = initBuildQueue(ctx); // C3: per-city build queue (logged commands only)
 ctx.automate = initAutomate(ctx); // C4: sentry-wake + settler automation (view-based)
+ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 // L6: spectators issue no commands — the 🤖 regency button (and its seat
 // takeover) never exists for the view-only pseudo-seat
 ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)
