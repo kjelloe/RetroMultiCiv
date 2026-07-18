@@ -5,6 +5,7 @@
 import { filterView, filterEvents } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 import { classifyEvent, LOG_CLASSES } from './turnlog-classes.js';
+import { diplomacyEventRow } from '../../shared/diplomacy-view.js';
 import { makeCatalogText } from './catalog-text.js';
 import { PART_LABELS } from './ship.js'; // A76: the ship-event lines share the screen's names
 
@@ -69,6 +70,17 @@ export function initTurnLog(ctx) {
 
   function playerName(state, pid) {
     return state.players[pid] ? state.players[pid].name : pid;
+  }
+
+  // D2: the diplomacy events carry civIds; resolve to the owning player's name
+  // (pids are the engine identity, civ is an optional field), falling back to
+  // the ruleset civ name, then the raw id (R3 fallback chain).
+  function civName(state, civId) {
+    for (const pid of state.playerOrder || Object.keys(state.players)) {
+      if (state.players[pid] && state.players[pid].civ === civId) return state.players[pid].name;
+    }
+    const civs = session.ruleset.civs;
+    return civs && civs[civId] && civs[civId].name ? civs[civId].name : String(civId);
   }
 
   // loc {x, y}: entries about a place get a ⌖ that flies the camera there;
@@ -281,6 +293,17 @@ export function initTurnLog(ctx) {
         const partnerName = state.cities[e.partnerCityId] ? state.cities[e.partnerCityId].name : e.partnerCityId;
         const amounts = e.gold !== undefined ? ` (+${e.gold}💰 +${e.bulbs !== undefined ? e.bulbs : e.gold}🔬)` : '';
         put(`🐫 ${homeName} opens a trade route with ${partnerName}${amounts}`, 'win', cityLoc(state, e.cityId));
+      } else if (e.type === 'WAR_DECLARED' || e.type === 'PEACE_TREATY_SIGNED' || e.type === 'TREATY_BROKEN') {
+        // D2 (specs/d1-diplomacy.md) — the three D1 diplomacy events, drafted
+        // INERT (the engine emits none until D1; the tradeRouteEstablished
+        // precedent). Fog per B5: a PARTY hears the reason/penalty/expiry, the
+        // world hears the headline — diplomacyEventRow decides from isMine.
+        const myCiv = state.players[ctx.HUMAN] ? state.players[ctx.HUMAN].civ : undefined;
+        const row = diplomacyEventRow(e, {
+          civName: id => civName(state, id),
+          isMine: id => myCiv !== undefined && id === myCiv
+        });
+        if (row) put(row.text, row.cls);
       } else if (e.type === 'wonderBuilt') {
         // wonders are world news (Civ 1 announces them to everyone)
         const mine = ownCity(state, e.cityId);

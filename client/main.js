@@ -25,6 +25,7 @@ import { initBuildQueue } from './ui/build-queue.js';
 import { initAutomate } from './ui/automate.js';
 import { initDebugPanel } from './ui/debug-panel.js';
 import { initStrategicOverlay } from './ui/strategic-overlay.js';
+import { initDiplomacy } from './ui/diplomacy.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -411,6 +412,7 @@ ctx.buildQueue = initBuildQueue(ctx); // C3: per-city build queue (logged comman
 ctx.automate = initAutomate(ctx); // C4: sentry-wake + settler automation (view-based)
 ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 / spectator only)
+ctx.diplomacy = initDiplomacy(ctx); // D2: Foreign-relations panel (feature-detected; inert until D1)
 // L6: spectators issue no commands — the 🤖 regency button (and its seat
 // takeover) never exists for the view-only pseudo-seat
 ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)

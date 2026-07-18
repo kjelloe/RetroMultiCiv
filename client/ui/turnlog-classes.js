@@ -53,6 +53,9 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'playerDefeated': case 'wonderBuilt': case 'wonderLost':
     case 'barbariansSpawned': case 'gameOver': case 'ageChanged':
     case 'shipLaunched': case 'shipDestroyed': case 'spaceVictory': // A76: the space race is public
+    // D2: war/peace/betrayal are load-bearing world news (the world hears the
+    // headline; the two parties get the detail in the row text) — always shown
+    case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
       return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';

@@ -1629,6 +1629,33 @@ html, body {
 .strat-empty { color: #6d7f9c; }
 #open-strat.hidden { display: none; }
 
+/* D2: the Foreign-relations panel — per-met-civ war/peace status + treaty
+   actions (feature-detected; inert until D1) */
+#diplo-overlay {
+  position: fixed; top: 52px; left: 12px; z-index: 24;
+  background: rgba(12, 18, 30, 0.96); border: 1px solid #2c4468;
+  border-radius: 8px; padding: 8px 12px; color: #cdd8ea;
+  font-size: 12px; max-height: 60vh; overflow-y: auto; max-width: 360px;
+}
+#diplo-overlay.hidden { display: none; }
+#diplo-head { color: #ffe066; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+#diplo-head button { margin-left: auto; background: none; border: 1px solid #3b5d8f; border-radius: 4px; color: #cdd8ea; cursor: pointer; }
+.diplo-row { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 4px 0; border-bottom: 1px dotted #24344f; }
+.diplo-name { font-weight: bold; min-width: 84px; }
+.diplo-status { color: #b9c6dc; }
+.diplo-rep { color: #c9b458; font-size: 11px; }
+.diplo-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.diplo-act {
+  background: #1c2a44; border: 1px solid #3b5d8f; border-radius: 4px;
+  color: #cdd8ea; font-family: inherit; font-size: 11px; cursor: pointer; padding: 2px 8px;
+}
+.diplo-act:hover { background: #26385a; }
+.diplo-pending { color: #8fa3c2; font-size: 11px; font-style: italic; }
+.diplo-empty { color: #6d7f9c; }
+#diplo-note { color: #e0a898; font-size: 11px; margin-top: 6px; }
+#diplo-note.hidden { display: none; }
+#open-diplo.hidden { display: none; }
+
 /* A92: the debug panel — thin god-mode form, corner-toggled, state-gated */
 #debug-panel {
   position: fixed; top: 52px; right: 12px; z-index: 25;
