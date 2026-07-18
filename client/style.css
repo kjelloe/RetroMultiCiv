@@ -1242,12 +1242,19 @@ html, body {
     gap: 2px;
     position: fixed;
     right: 10px;
-    bottom: 96px;
+    /* XII.1: anchored to the vertical CENTER of the right edge — clears the
+       bottom-right End Turn AND the bottom-left panel stack at every viewport.
+       top-anchoring also sidesteps the mobile fixed-`bottom` dynamic-viewport
+       quirk that slid the pad down over End Turn on real phones. */
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 40;
     background: rgba(8, 12, 20, 0.55); /* stands off the buttons behind it */
     border-radius: 12px;
     padding: 4px;
   }
+  /* XII.1: the compass toggle hides the pad for players who want the screen */
+  #dpad.dpad-hidden { display: none; }
   #dpad button {
     background: rgba(34, 52, 82, 0.95);
     border: 1px solid #5a86c2;
@@ -1915,7 +1922,9 @@ html, body {
   #setup-box, #handoff-box { min-width: 0; width: 94vw; padding: 16px 12px; }
   .setup-hint { max-width: none; }
 }
-@media (max-width: 720px) and (pointer: coarse) {
-  /* keep the d-pad clear of the taller strip on phones */
-  #dpad { bottom: 128px; }
+/* XII.1: the compass toggle (🧭) is a touch-only affordance — it shows/hides
+   the d-pad, so it has no meaning on a desktop that never renders the pad */
+#dpad-toggle { display: none; }
+@media (pointer: coarse) {
+  #dpad-toggle { display: inline-block; }
 }
