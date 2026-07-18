@@ -21,7 +21,7 @@ test('spectator: tokenless, omniscient view, no controls', async ({ browser }) =
     // view-only: the selection hint invites watching, never controlling
     await expect(page.locator('#hud-selection')).toContainText('watching');
     // the map rendered (the three.js canvas is present)
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#app canvas')).toBeVisible();
     // controls nothing: the End Turn button never shows for a spectator
     await expect(page.locator('#end-turn')).toBeHidden();
     // L6 seat-action AUDIT — every command-issuing control absent/inert:

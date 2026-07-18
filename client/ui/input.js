@@ -213,6 +213,13 @@ export function initInput(ctx) {
   // player wants to SEE the outcome. Consumed by moveSelected.
   let combatLinger = false;
   async function apply(cmd) {
+    // C4: a MANUAL order on a unit cancels its automation and wakes it (this
+    // path carries only user-initiated commands; the automation driver calls
+    // session.apply directly and never self-cancels)
+    if (cmd.unitId && ctx.automate) {
+      ctx.automate.cancelAuto(cmd.unitId);
+      ctx.automate.wake(cmd.unitId);
+    }
     const res = await session.apply(cmd);
     if (res.ok) {
       confirmEndTurnUntil = 0; // the situation changed — a stale confirmation dies
@@ -307,6 +314,24 @@ export function initInput(ctx) {
     }
   }
 
+  // C4: sentry + automation toggles (ui/automate.js holds the state)
+  function sentrySelected() {
+    if (!sel.unitId || !ctx.automate) return;
+    const on = ctx.automate.toggleSentry(sel.unitId);
+    if (on) nextUnit(); // the point of sentry: move along
+    hud.note(on ? '😴 sentried — skipped by N until an enemy nears' : '⏰ awake');
+    refreshActionBar();
+  }
+  function autoSelected() {
+    if (!sel.unitId || !ctx.automate) return;
+    const unit = session.state.units[sel.unitId];
+    if (!unit || unit.type !== 'settlers') return;
+    const on = ctx.automate.toggleAuto(sel.unitId);
+    hud.note(on ? '🤖 settler automated — improves nearby city tiles; any manual order cancels' : '🤖 automation off');
+    if (on) ctx.automate.drive();
+    refreshActionBar();
+  }
+
   async function moveSelected(dir) {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
     const unitId = sel.unitId;
@@ -328,6 +353,7 @@ export function initInput(ctx) {
   function nextUnit() {
     const movable = Object.values(session.state.units).filter(
       u => u.owner === ctx.HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
+        && !(ctx.automate && ctx.automate.isSentried(u.id)) // C4: asleep units skip cycling
     );
     if (movable.length === 0) {
       hud.note('no units with moves left — E to end turn');
@@ -386,6 +412,7 @@ export function initInput(ctx) {
       const movable = Object.values(state.units).filter(
         u => u.owner === ctx.HUMAN && u.moves > 0 && !u.working && !u.fortified
           && gotoTargets[u.id] === undefined // orders standing = not idle
+          && !(ctx.automate && ctx.automate.isSentried(u.id)) // C4: asleep = not idle
       );
       if (movable.length > 0 && Date.now() > confirmEndTurnUntil) {
         confirmEndTurnUntil = Date.now() + 5000;
@@ -619,6 +646,15 @@ export function initInput(ctx) {
       actions.push({ label: `🏛 Help Wonder (+${added} shields, consumed)`, key: 'H', run: helpWonderSelected });
     }
     if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
+    // C4: sentry (any unit) + settler automation — client-side layers
+    if (ctx.automate) {
+      const asleep = ctx.automate.isSentried(unit.id);
+      actions.push({ label: asleep ? '⏰ Wake' : '😴 Sentry', key: 'V', run: sentrySelected });
+      if (unit.type === 'settlers') {
+        const auto = ctx.automate.isAuto(unit.id);
+        actions.push({ label: auto ? '🤖 Stop auto' : '🤖 Automate', key: 'U', run: autoSelected });
+      }
+    }
     actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });
     const tile = state.map.tiles[unit.y * state.map.width + unit.x];
     if (session.ruleset.units[unit.type].domain === 'land'
@@ -793,6 +829,11 @@ export function initInput(ctx) {
       const clicked = (pick.unitId && state.units[pick.unitId] && state.units[pick.unitId].owner === ctx.HUMAN)
         ? state.units[pick.unitId] : mineHere[0];
       ctx.selectUnit(clicked, { keepStack: true });
+      // C4: clicking a sentried unit wakes it (Civ2 behavior)
+      if (ctx.automate && ctx.automate.isSentried(clicked.id)) {
+        ctx.automate.wake(clicked.id);
+        hud.note('⏰ awake');
+      }
       const cityHere = cityAt(state, pick.tile.x, pick.tile.y);
       // show the list for stacks, and always inside cities (it carries the
       // "Open city view" button there)
@@ -849,6 +890,8 @@ export function initInput(ctx) {
       return;
     }
     if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
+    if (e.key === 'v' && sel.unitId) { sentrySelected(); return; }   // C4 sentry
+    if (e.key === 'u' && sel.unitId) { autoSelected(); return; }     // C4 automate
     if (e.key === 'h' && sel.unitId) { helpWonderSelected(); return; }
     if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
     if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }

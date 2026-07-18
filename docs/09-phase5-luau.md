@@ -3,7 +3,7 @@
 Status: **ENGINE COLUMN COMPLETE (2026-07-14)** — designed 2026-07-12,
 unblocked and executed the same week: §4 steps 1–6 all gated green
 (P5-1..P5-8). Every engine module, mapgen, the AI, the sim driver, and
-the replayer run in Luau with four anchors, the scenario pins (27 at this update), five sim
+the replayer run in Luau with four anchors, the scenario pins (28 at this update), five sim
 goldens, and five replay verdicts agreeing across Node, lune, and
 Studio's VM. The port was mechanical BY CONSTRUCTION — the engine was
 written in a Lua-shaped JS subset from day one — and the trap list
