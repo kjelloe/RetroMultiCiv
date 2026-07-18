@@ -32,6 +32,10 @@ test('regency: hand the seat to the AI, it plays turns, take it back, keep playi
     .poll(() => turnNumber(page), { timeout: 60000, message: 'the regent advances turns' })
     .toBeGreaterThanOrEqual(3);
 
+  // B11: the regent narrates each turn it played into the turn log (🤖 line),
+  // so the seat owner can watch what the AI did with their empire
+  await expect(page.locator('#turn-list')).toContainText('🤖 regent played your turn', { timeout: 10000 });
+
   // take back control (the button is a quick take-back while regency is on)
   await page.locator('#regent-btn').click();
   await expect(page.locator('#regent-btn')).not.toHaveClass(/active/);

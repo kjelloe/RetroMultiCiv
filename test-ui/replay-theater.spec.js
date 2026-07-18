@@ -25,6 +25,10 @@ test('replay theater: recording verifies, theater plays to ✅ Verified, scrubbe
   await expect(theater).toBeVisible();
   await expect(page.locator('#replay-scrub')).toBeAttached();
   await expect(page.locator('#replay-feed')).toBeAttached();
+  // A87 (b): the View-perspective dropdown replays from a chosen civ's fog
+  // (spectator = omniscient, plus each player) — the control renders + is populated
+  await expect(page.locator('#replay-view')).toBeVisible();
+  expect(await page.locator('#replay-view option').count()).toBeGreaterThan(1);
 
   // crank the tempo so the short recording finishes quickly, then the
   // verifier's verdict lands in the turn label (A87 c)
