@@ -1055,6 +1055,8 @@ html, body {
 
 /* A34: the host form's resume-a-save picker */
 #lobby-resume.hidden { display: none; }
+/* S1: the match-report consent notice (scoped .hidden per the house guard) */
+#lobby-reports.hidden { display: none; }
 /* L2: the host form's two views — "Resume game" swaps new-game options for
    the code entry (each gets its scoped rule per the .hidden house guard) */
 #lobby-newgame.hidden { display: none; }

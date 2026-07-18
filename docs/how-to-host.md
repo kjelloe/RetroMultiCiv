@@ -447,6 +447,7 @@ everything after the port):
 | `--chat-per-min N` | `60`    | Chat messages per IP per minute.                   |
 | `--lobby-ttl-min N` | `60`   | Retire an unstarted lobby after N idle minutes.    |
 | `--abandoned-hours N` | `24` | Retire a started game after N hours with no players connected (its save survives — resumable by code). |
+| `--share-reports DIR` | off  | Write one anonymized match report per finished game into DIR (players become seat1..N; the lobby shows the notice and any seat can veto; keeps the newest 200). Local files only — nothing uploads. |
 | `--debug`        | off       | **Dev only.** Serves the WHOLE repo over HTTP.     |
 
 > The connection/game/rate caps default to **LAN-safe** numbers — a normal LAN

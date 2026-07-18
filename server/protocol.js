@@ -108,6 +108,8 @@ export function parseMessage(raw) {
     if (typeof msg.code !== 'string' || msg.code.length > 40) return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  // S1: a seat's match-report veto — no payload beyond the routing gameId
+  if (msg.t === 'reportVeto') return { ok: true, msg };
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {

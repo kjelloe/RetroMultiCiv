@@ -22,6 +22,7 @@ import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget } from './limits.js';
 import { planRotation } from './rotation.js';
+import { buildReport, writeReport, rotateReports } from './report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -221,9 +222,38 @@ export function startServer(opts) {
     registry.remove(gameId); // the on-disk save survives — abandoned games stay resumable by code
     delete emptySince[gameId];
   }
+  // S1 (specs/match-report-corpus.md): one report per finished game, written
+  // on the sweep (lifecycle region — the cmd path is never touched). Veto by
+  // any seat = never written. Failures log and mark done (no retry storms).
+  function writeMatchReports() {
+    if (!opts.shareReports) return;
+    for (const g of registry.list()) {
+      const e = registry.entryOf(g.gameId);
+      if (!e || !e.game || !e.game.state || e.game.state.gameOver !== true) continue;
+      if (e.reportDone === true) continue;
+      e.reportDone = true;
+      if (e.reportVeto === true) {
+        console.log(`match report: ${g.gameId} vetoed by a seat — not written`);
+        continue;
+      }
+      try {
+        const report = buildReport(e.game, ruleset);
+        if (report === null) {
+          console.log(`match report: ${g.gameId} recording did not replay clean — not written`);
+          continue;
+        }
+        const file = writeReport(opts.shareReports, report);
+        console.log(`match report: ${g.gameId} -> ${file} (${report.envelope.endReason}, turn ${report.envelope.turns})`);
+        rotateReports(opts.shareReports, 200);
+      } catch (err) {
+        console.log(`match report: ${g.gameId} write failed — ${err.message}`);
+      }
+    }
+  }
   function maintenanceSweep() {
     limiter.sweep();
     rotateSaves();
+    writeMatchReports();
     const t = now();
     for (const g of registry.list()) { // list() is a fresh snapshot — safe to remove during iteration
       if (g.gameId === defaultGameId) continue; // the LAN host's persistent game is exempt
@@ -261,6 +291,10 @@ export function startServer(opts) {
   }
   function roster(entry) {
     return {
+      // S1: consent notice — joiners see that finished games write shared
+      // match reports (and can veto at their seat)
+      shareReports: opts.shareReports !== undefined && entry.reportVeto !== true,
+      reportVetoed: entry.reportVeto === true,
       options: entry.options,
       seats: Object.keys(entry.seats).map(pid => ({
         seat: pid, human: entry.seats[pid].human,
@@ -680,6 +714,20 @@ export function startServer(opts) {
         broadcastLobby(info.gameId); // joiners see the slot list update live
         return;
       }
+      if (msg.t === 'reportVeto') { // S1: any SEAT may veto the match report — sticky for the game
+        const e = info.gameId ? registry.entryOf(info.gameId) : null;
+        if (!e || !info.seat) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'noSeat' });
+          return;
+        }
+        if (opts.shareReports === undefined) return; // nothing to veto — silently fine
+        if (e.reportVeto !== true) {
+          e.reportVeto = true;
+          console.log(`match report: ${info.gameId} veto by ${info.seat}`);
+          broadcastLobby(info.gameId); // the notice flips to "not shared" for everyone
+        }
+        return;
+      }
       if (msg.t === 'chat') { // A37: transient lobby traffic — never game state
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
         if (!e || e.status !== 'lobby' || !info.seat) {
@@ -909,6 +957,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--announce') opts.announce = argv[++i];
     else if (a === '--public-name') opts.publicName = argv[++i];
     else if (a === '--public-addr') opts.publicAddr = argv[++i];
+    else if (a === '--share-reports') opts.shareReports = argv[++i]; // S1: match-report dir (OFF by default)
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }

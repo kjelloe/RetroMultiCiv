@@ -93,6 +93,10 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
         <button id="lobby-chat-send" class="setup-lan-btn">send</button>
       </div>
     </div>
+    <p class="setup-hint hidden" id="lobby-reports">📊 match reports ON — when this game
+      finishes, its anonymized recording (players become seat1..N) is saved on the
+      host for balance analysis. Any seat may
+      <button id="lobby-report-veto" class="setup-lan-btn">not share this game</button></p>
     <p class="setup-hint" id="lobby-status">${hostCtl
       ? 'start when everyone is seated — open seats become AI'
       : 'waiting for the host to start…'}</p>
@@ -120,12 +124,31 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
     document.getElementById('lobby-chat-send').addEventListener('click', submit);
     text.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
   }
+  // S1: the veto rides the same lobby socket as chat/start
+  const vetoBtn = document.getElementById('lobby-report-veto');
+  if (vetoBtn && sendFn) vetoBtn.addEventListener('click', () => sendFn({ t: 'reportVeto' }));
   syncChatPanel(info.lobby, hostCtl);
   updateRoster(info.lobby, info.seat, hostCtl);
 }
 
-// A37: the chat panel follows the host's live toggle (roster options.chat)
+// S1: the consent notice follows the server's roster flags — shown only when
+// the host runs --share-reports; a veto flips it to "not shared" for everyone
+function syncReportNotice(lobby) {
+  const p = document.getElementById('lobby-reports');
+  if (!p || !lobby) return;
+  if (lobby.reportVetoed === true) {
+    p.classList.remove('hidden');
+    p.textContent = '📊 match report NOT shared — a seat declined for this game';
+    return;
+  }
+  p.classList.toggle('hidden', lobby.shareReports !== true);
+}
+
+// A37: the chat panel follows the host's live toggle (roster options.chat).
+// S1's report notice syncs here too — every lobby-frame site already calls
+// this, so the notice tracks live without touching six call sites.
 function syncChatPanel(lobby, hostCtl) {
+  syncReportNotice(lobby);
   const panel = document.getElementById('lobby-chat');
   if (!panel || !lobby) return;
   const on = !lobby.options || lobby.options.chat !== false;

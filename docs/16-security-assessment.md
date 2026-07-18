@@ -195,6 +195,9 @@ a legitimate game.
   should be private even to viewers.
 - Docker: the image runs hardened defaults; flags pass through
   `docker run IMAGE --flags`.
+- `--share-reports DIR` (off by default) only ever WRITES local
+  files (anonymized recordings, seat-vetoable, rotation-capped);
+  it opens no listener and serves nothing — zero new surface.
 
 ## 5. Review cadence
 
