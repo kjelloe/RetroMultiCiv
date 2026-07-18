@@ -24,6 +24,7 @@ roadmap; THIS is the flat inventory that guarantees nothing is unknown.
 | settler site preview (fog-honest rating) | input.js | |
 | next-unit cycling, needs-orders gate, auto-select | input.js/session | |
 | off-turn pre-work: setRates/setResearch/setProduction/setWorkers from waiting seats (A54) | engine whitelist + session queue | server seats get it free |
+| CP17 caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | luau/trade.luau twin SHIPPED — annotate |
 | research bar + panel (beelines, sliders tax/sci/lux) | hud/panels | |
 | government revolutions UI | panels research tab | |
 | end turn + confirm-with-movable-units, E-flow | hud/input | |
@@ -70,9 +71,10 @@ roadmap; THIS is the flat inventory that guarantees nothing is unknown.
 
 Stance-mix heterogeneous AI (builder/Perfectionist assignment); settler
 food upkeep; worked-tile blockade; ZOC city-capture exemption; barbarians
-era-tiers; goody huts (QUEUED N13); caravans/trade routes (QUEUED N10);
-government re-eval (QUEUED high); diplomacy D1-D2 (QUEUED, pre-ruled);
-space race arrival/victory (marker-0049).
+era-tiers; government re-eval (SHIPPED marker-0051 — AI-only, stays
+no-UI); goody huts (QUEUED N13); diplomacy D1-D2 (QUEUED, pre-ruled);
+space race arrival/victory (marker-0049). Caravan trade routes moved UP
+to Core play row CP17 at marker-0052 (UI landed with the engine).
 
 ## Process rule (standing)
 
