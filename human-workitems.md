@@ -67,7 +67,11 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 - **D1 diplomacy SHIPPED** (marker-0060): war/peace states + the
   combat reframe, golden-neutral — phase 6 has opened. The D2 client
   (foreign-relations panel + treaty actions) auto-activates on the
-  wire-up; D3 (AI negotiation) waits on A59 leader-attributes.
+  wire-up; D3 (AI negotiation) is now UNBLOCKED (A59 shipped marker-0061) —
+  spec specs/d3-ai-diplomacy.md written, pre-open handed to the bugfixer. D3
+  is where the AI actually negotiates AND where your mix-conditional
+  elimination ruling lands (elim rate = f(leader mix); space launch → all-out
+  war on the launcher's capital). Behavioral window — sim-runner sweep first.
 - **N9b wonder-drive SHIPPED + validated** (marker-0059): builder
   capitals now commit to wonders (7/25 seeds, minority, no monopoly),
   frontier-safety holds. This is also the launch half of ending-#4 —

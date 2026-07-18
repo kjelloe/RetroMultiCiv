@@ -18,6 +18,17 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**D3 (added 2026-07-18, spec specs/d3-ai-diplomacy.md, PRE-OPEN sent
+#1677): the next BUGFIXER engine window after A59 (marker-0061). First
+CONSUMER of personalityOf — AI issues the D1 diplomacy command (war/peace/
+tribute) via table-driven score models over personality + a per-pair
+relationship model (trust/fear/grievance/respect, omit-safe). BEHAVIORAL
+golden re-record (two-phase close: byte-shape JS==Luau → sim-runner sweeps
+constants for the elim band → ONE re-record). Headline: the user's
+mix-conditional elimination (2026-07-18) — elim rate = f(leader mix);
+space launch triggers all-out war on the launcher's capital. Author settles
+the four §9 calls at PRE-OPEN before touching engine code.**
+
 **N9b (added 2026-07-18 post-acceptance #1385): government re-eval
 landed half-proven — adoption works but late (~10% Republic by t400;
 tech pace binds) and build priority doesn't yet convert improved
