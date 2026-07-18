@@ -20,13 +20,15 @@ the Done log at the bottom.
   fast-forward starts for space scenarios (already exists).
   **Recommendation: A (or A+C).** Default if unanswered: endYear
   stays as-is; space remains reachable in natural mode and age-starts.
-- [ ] **Push gaming-PC dev_night** (2 local commits: roblox batch-2
-  `82e3f6c` + batch-3 `d0e786d`, rebased clean onto origin dc29399 —
-  sim-runner #1391). Until this push lands, the roblox lane's code
-  (build queue, ship screen, discovery card, fastforward twin) exists
-  only on that machine, and the bugfixer's ff-parity twins-gate
-  registration stays blocked on it.
-- [ ] **Merge marker-0052** (supersedes 0051; adds N10 caravan trade
+- [ ] **Push gaming-PC dev_night** (3 local commits on the
+  marker-0052 lineage: batch-2 `2d54d82` + batch-3 `4258eb2` +
+  batch-4 `492f263`, plus the 0052 re-bake trio pending one more
+  sweep — sim-runner #1425). Until this push lands, the roblox
+  lane's code (build queue, ship+discovery screens, minimap/
+  tooltips/palette, fastforward twin) exists only on that machine,
+  and the bugfixer's ff-parity twins-gate registration stays
+  blocked on it.
+- [ ] **Merge marker-0053** (supersedes 0052; adds B28 audit fix + N10 caravan trade
   routes — windfall + live top-3 route bonus, 4 new cross-language
   scenario pins, full-but-behavior-identical golden ripple via the
   ruleset pin — plus the client half, T1 portrait, L8 lobby
