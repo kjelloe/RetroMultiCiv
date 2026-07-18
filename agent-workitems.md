@@ -18,6 +18,30 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**XII.5 AI/regency late-game victory drive (added 2026-07-18, DESIGN spec
+specs/xii5-ai-victory-drive.md; user long-game feedback): the AI/regent goes
+"nothing to do" in the end-game instead of driving a win. A personality-
+selected victory-drive layer — aggressive→CONQUEST (build army, target the
+weakest/closest rival, mass+assault), science/builder→SPACE (Apollo→ssPart
+techs→build parts→launch→defend capital); fallback: a late-game seat MUST
+never idle if a victory path exists. The regent inherits it free (shared
+policy + A59 personality). Machinery EXISTS in ai.js (apolloReady/nextSsPart/
+launchRushTarget + warDoctrine/assaultOddsOk) — XII.5 adds the COMMIT+drive
+layer. Behavioral window AFTER D3 (same ai.js territory). Sim-runner baseline
+measurement commissioned (#1698) BEFORE the pre-open. The endings-vision
+vehicle.**
+
+**XII.2 Future Tech N (added 2026-07-18, spec specs/xii2-future-tech.md,
+reviewer-fact-checked #1687): the next BUGFIXER engine window AFTER D3 (do
+not interleave two open golden windows). A repeatable Future Tech sink once
+the tree is exhausted — Civ1-authentic (repeatable/Fusion-gated/score-only/
+no-cap). Bounded `player.futureTech` counter (design (b), the "N"), score
+term `scorePerFutureTech` (default = scorePerTech), escalating cost via
+effective-known, tech.js/score.js + luau twins + scenario 014. Golden:
+rulesetHash ripple (A82a/002) but DORMANT-in-soak expected (tree reached
+~t640; VERIFY a fast-tech seed doesn't exhaust by t400). Client "Future
+Tech N" display = HELPER, golden-neutral, AFTER the engine lands.**
+
 **D3 (added 2026-07-18, spec specs/d3-ai-diplomacy.md, PRE-OPEN sent
 #1677): the next BUGFIXER engine window after A59 (marker-0061). First
 CONSUMER of personalityOf — AI issues the D1 diplomacy command (war/peace/
