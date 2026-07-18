@@ -17,6 +17,7 @@ local WorkedTiles = require(script.Parent:WaitForChild("WorkedTiles")) -- R7c-3
 local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
 -- session-E round 13: read-only engine math for the rush-buy price preview
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
+local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -116,6 +117,46 @@ end
 local buyYes = confirmBtn(6, "Yes", Color3.fromRGB(148, 108, 46))
 local buyNo = confirmBtn(78, "No", Color3.fromRGB(60, 60, 66))
 
+-- CP8: the queue strip along the panel bottom — click trims the LAST item
+-- (v1 divergence from the browser: no per-item remove/reorder yet)
+local queueStrip = Instance.new("TextButton")
+queueStrip.Size = UDim2.new(1, -16, 0, 22)
+queueStrip.Position = UDim2.new(0, 8, 1, -26)
+queueStrip.BackgroundColor3 = Color3.fromRGB(30, 40, 32)
+queueStrip.BackgroundTransparency = 0.3
+queueStrip.TextColor3 = Color3.fromRGB(190, 225, 190)
+queueStrip.Font = Enum.Font.Code
+queueStrip.TextSize = 13
+queueStrip.TextXAlignment = Enum.TextXAlignment.Left
+queueStrip.TextTruncate = Enum.TextTruncate.AtEnd
+queueStrip.Visible = false
+queueStrip.Text = ""
+queueStrip.Parent = panel
+
+local function paintQueue()
+	local q = openCityId ~= nil and BuildQueue.get(openCityId) or {}
+	if #q == 0 then
+		queueStrip.Visible = false
+		return
+	end
+	local rs = ClientState.rulesets()
+	local names = {}
+	for _, it in ipairs(q) do
+		local table_ = it.kind == "unit" and rs.units
+			or it.kind == "wonder" and rs.wonders or rs.buildings
+		table.insert(names, (table_[it.id] and table_[it.id].name) or it.id)
+	end
+	queueStrip.Text = ("  queue: %s  (tap trims last)"):format(table.concat(names, " > "))
+	queueStrip.Visible = true
+end
+BuildQueue.onChanged(paintQueue)
+queueStrip.Activated:Connect(function()
+	if openCityId ~= nil then
+		local q = BuildQueue.get(openCityId)
+		BuildQueue.removeAt(openCityId, #q)
+	end
+end)
+
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -16, 1, -110)
 list.Position = UDim2.new(0, 8, 0, 102)
@@ -194,6 +235,23 @@ local function addRow(order, kind, id, def, lockReason, effects)
 				touchStart = nil
 			end
 		end)
+		-- CP8: the Q+ chip enqueues instead of setting (child button sinks
+		-- the click, so the row's set-production never double-fires)
+		local qBtn = Instance.new("TextButton")
+		qBtn.Size = UDim2.new(0, 30, 0, 18)
+		qBtn.Position = UDim2.new(1, -34, 0, 2)
+		qBtn.BackgroundColor3 = Color3.fromRGB(60, 84, 60)
+		qBtn.TextColor3 = Color3.fromRGB(210, 240, 210)
+		qBtn.Font = Enum.Font.SourceSansBold
+		qBtn.TextSize = 13
+		qBtn.Text = "Q+"
+		qBtn.Parent = row
+		qBtn.Activated:Connect(function()
+			if openCityId ~= nil then
+				BuildQueue.add(openCityId, kind, id)
+				print(("[CityPanel] queued %s %s for %s"):format(kind, id, openCityId))
+			end
+		end)
 	end
 	return twoLine and 38 or 24
 end
@@ -253,6 +311,7 @@ end
 local function refresh()
 	buyConfirm.Visible = false -- any view push may change gold/shields: never
 	-- leave a stale price on screen
+	paintQueue() -- CP8: the strip follows the open city
 	local view = ClientState.view
 	if openCityId == nil or view == nil then
 		return

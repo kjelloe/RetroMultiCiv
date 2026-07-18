@@ -42,7 +42,7 @@ end
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
-panel.Size = UDim2.new(0, 200, 0, 228)
+panel.Size = UDim2.new(0, 200, 0, 252)
 panel.Position = UDim2.new(1, -208, 0, 50)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
@@ -80,6 +80,7 @@ local voidArtBtn = toggleButton(128, "")
 local ridePadBtn = toggleButton(152, "")
 local lookBtn = toggleButton(176, "")
 local autoResearchBtn = toggleButton(200, "") -- session-E round 7
+local discoveryBtn = toggleButton(224, "") -- SO3 tech-discovery cards
 
 -- always-visible clock readout, left of the top-right button row
 local clockLabel = Instance.new("TextLabel")
@@ -122,6 +123,7 @@ local function paint()
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
 	lookBtn.Text = ("  world look: %s"):format(o.look or "retro")
 	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")
+	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 end
 paint()
 
@@ -167,6 +169,10 @@ lookBtn.Activated:Connect(function()
 end)
 autoResearchBtn.Activated:Connect(function()
 	ClientState.options.autoResearch = not ClientState.options.autoResearch
+	paint()
+end)
+discoveryBtn.Activated:Connect(function()
+	ClientState.options.discoveryCards = ClientState.options.discoveryCards == false
 	paint()
 end)
 

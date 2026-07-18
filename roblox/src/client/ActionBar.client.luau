@@ -23,8 +23,8 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- session-E: buttons sized like CLOSE CITY VIEW (big, bold, rounded)
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 1060, 0, 50)
-bar.Position = UDim2.new(0.5, -530, 1, -58)
+bar.Size = UDim2.new(0, 1240, 0, 50)
+bar.Position = UDim2.new(0.5, -620, 1, -58)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -152,7 +152,12 @@ local disbandBtn = addButton(5, "Disband (X)", 100)
 local irrigateBtn = addButton(6, "Irr (I)", 70)
 local mineBtn = addButton(7, "Mine (M)", 70)
 local roadBtn = addButton(8, "Road (R)", 70)
-local possessBtn = addButton(9, "Ride (P)", 80)
+-- CP3 (catalog): fortress + pillage complete the browser action set —
+-- fortress is a startWork like irrigate/mine/road (tech-gated, server
+-- judges); pillage strips the stood-on tile's improvement
+local fortBtn = addButton(9, "Fort", 60)
+local pillageBtn = addButton(10, "Pillage", 76)
+local possessBtn = addButton(11, "Ride (P)", 80)
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
@@ -286,6 +291,9 @@ local function can(action)
 	if action == "fortify" or action == "wait" then
 		return u.moves > 0 and u.fortified ~= true
 	end
+	if action == "pillage" then -- CP3: any unit with moves; server judges the tile
+		return u.moves > 0
+	end
 	-- settlers jobs: found / irrigate / mine / road / possess-shaped
 	if action == "possess" then
 		return true
@@ -345,6 +353,16 @@ irrigateBtn.Activated:Connect(function()
 end)
 mineBtn.Activated:Connect(function()
 	doWork("mine")
+end)
+fortBtn.Activated:Connect(function()
+	doWork("fortress")
+end)
+pillageBtn.Activated:Connect(function()
+	if can("pillage") then
+		local u = selectedUnit()
+		print("[ActionBar] pillage " .. u.id)
+		ClientState.send({ type = "pillage", unitId = u.id })
+	end
 end)
 roadBtn.Activated:Connect(function()
 	doWork("road")
@@ -474,6 +492,8 @@ RunService.Heartbeat:Connect(function()
 	irrigateBtn.BackgroundColor3 = can("irrigate") and ENABLED or DISABLED
 	mineBtn.BackgroundColor3 = can("mine") and ENABLED or DISABLED
 	roadBtn.BackgroundColor3 = can("road") and ENABLED or DISABLED
+	fortBtn.BackgroundColor3 = can("fortress") and ENABLED or DISABLED
+	pillageBtn.BackgroundColor3 = can("pillage") and ENABLED or DISABLED
 	fortifyBtn.BackgroundColor3 = can("fortify") and ENABLED or DISABLED
 	waitBtn.BackgroundColor3 = can("wait") and ENABLED or DISABLED
 	-- armed target-pick shows gold; otherwise enabled like Wait (any movable unit)

@@ -297,4 +297,28 @@ closeBtn.Activated:Connect(function()
 	frame.Visible = false
 end)
 
+-- SO3: discovery-card deep link — open straight to a catalog entry
+ClientState.onPediaOpen(function(catKey, id)
+	if cats == nil then
+		local rs = ClientState.rulesets()
+		cats = makeCats(rs, CatalogText.make(rs))
+		buildCatButtons()
+		renderList()
+	end
+	for i, catDef in ipairs(cats) do
+		if string.lower(catDef.label) == string.lower(tostring(catKey)) then
+			curCat = i
+			renderList()
+			for _, pair in ipairs(catDef.list()) do
+				if pair[1] == id then
+					showEntry(catDef, pair[1], pair[2])
+					break
+				end
+			end
+			break
+		end
+	end
+	frame.Visible = true
+end)
+
 print("[Pedia] R19 Civilopedia up (PEDIA button, top right)")

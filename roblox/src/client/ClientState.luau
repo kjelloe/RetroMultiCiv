@@ -25,7 +25,8 @@ local M = {
 		clock = "off", voidArt = "frame", ridePad = nil,
 		look = "retro", -- visual-fidelity toggle (#1100): retro|enhanced
 		-- session-E: pick research after 2 idle turns (Options acts on it)
-		autoResearch = true },
+		autoResearch = true,
+		discoveryCards = true }, -- SO3: the tech-discovery card toggle
 }
 
 local viewCallbacks = {}
@@ -35,6 +36,7 @@ local researchOpenCallbacks = {} -- R6: research picker open/toggle channel
 local governmentOpenCallbacks = {} -- R12 (2): government panel open/toggle channel
 local cityListToggleCallbacks = {} -- session-E round 18: the Cities button
 local rejectedCallbacks = {} -- round 21: visible reject feedback (Hud)
+local pediaOpenCallbacks = {} -- SO3: discovery-card deep links into Pedia
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -176,6 +178,16 @@ function M.onRejected(cb)
 	table.insert(rejectedCallbacks, cb)
 end
 
+function M.onPediaOpen(cb)
+	table.insert(pediaOpenCallbacks, cb)
+end
+
+function M.openPedia(cat, id)
+	for _, cb in ipairs(pediaOpenCallbacks) do
+		cb(cat, id)
+	end
+end
+
 function M.onCityListToggle(cb)
 	table.insert(cityListToggleCallbacks, cb)
 end
@@ -287,7 +299,9 @@ remote.OnClientEvent:Connect(function(msg)
 	elseif msg.t == "rejected" then
 		print(("[Client] rejected (commandId %s): %s"):format(tostring(msg.commandId), tostring(msg.code)))
 		for _, cb in ipairs(rejectedCallbacks) do
-			cb(tostring(msg.code)) -- round 21: Hud shows the red banner
+			-- round 21: Hud shows the red banner; CP8: BuildQueue correlates
+			-- its own pending commandId to try the next queued item
+			cb(tostring(msg.code), msg.commandId)
 		end
 	end
 end)

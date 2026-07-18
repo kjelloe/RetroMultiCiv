@@ -18,12 +18,12 @@ prefixes) are the handles for twin requests and direction questions.
 |---|---|---|---|
 | CP1 | world render (terrain mesh, fog, props, cities, units) | renderer/three | PARTIAL — ViewRenderer covers terrain/fog/cities/units + danger overlay (roblox extra); TILE PROPS not rendered yet (flagged, art pass) |
 | CP2 | unit select / move / attack, stack panel | input.js, panels | PRESENT — Select + stack tab cards w/ A/D/M stats |
-| CP3 | action bar (found/irrigate/mine/road/fortress/pillage/fortify/skip/disband/goto) | input.js | PARTIAL — found/irrigate/mine/road/fortify/wait/disband/goto/ride present; FORTRESS + PILLAGE buttons missing (wire next working session — commands exist engine-side) |
+| CP3 | action bar (found/irrigate/mine/road/fortress/pillage/fortify/skip/disband/goto) | input.js | PRESENT — full set incl. Fort + Pillage (2026-07-18, #1371) |
 | CP4 | GoTo route-preview + multi-turn plans | input.js (client-side plans) | PRESENT — R14 plans + breadcrumb preview + r20 button |
 | CP5 | move hints + step legality | move-hints.js | PRESENT — MoveHints/StepLegality (gate-7 pinned) |
 | CP6 | combat odds preview on hover | input.js sitePreview family | PRESENT — OddsPreview |
 | CP7 | city view: yields, food box, production, buy, sell, workers, specialists | panels.js | PRESENT — CityPanel + WorkedTiles (buy w/ price confirm, roblox extra); food-box progress shape differs (billboard) |
-| CP8 | per-city BUILD QUEUE (C3, tonight) | queue over logged commands | MISSING — client-only port (queue over ordinary setProduction), REQUESTING as next R-item |
+| CP8 | per-city BUILD QUEUE (C3, tonight) | queue over logged commands | PARTIAL — BuildQueue.luau shipped (#1364, ratified @baf3e1f9): Q+ per row, auto-advance, drop-and-try-next; no per-item reorder/remove yet (v1 divergence, accepted) |
 | CP9 | settler site preview (fog-honest rating) | input.js | MISSING — direction Q: billboard rating over the selected settler's tile? |
 | CP10 | next-unit cycling, needs-orders gate, auto-select | input.js/session | PRESENT — N/auto-next + garrison exclusion |
 | CP11 | off-turn pre-work (A54 whitelist) | engine whitelist + session queue | PRESENT — engine-side; roblox client sends freely, server validates |
@@ -40,7 +40,7 @@ prefixes) are the handles for twin requests and direction questions.
 |---|---|---|---|
 | SO1 | world MINIMAP click/drag-to-jump (C1) | minimap.js | MISSING — direction Q: ViewportFrame world-copy vs flat Frame grid; want a ruling on the target shape before building |
 | SO2 | breakdown TOOLTIPS (C2) | title attrs | MISSING — no native tooltips on Roblox; direction Q: hover cards (mouse) + long-press (touch)? |
-| SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | MISSING — blurbs are shared data (portable); center-banner card is a small client slice, queued after CP8 |
+| SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; blurbs empty-tolerant BOTH sides until the ally's lines land (sync flagged) |
 | SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; sync check each pedia change |
 | SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | MISSING — defer candidate (Legend button covers keys; advice content port = later) |
 | SO6 | turn log (classes, filters, jump-to, fog rules) | turnlog.js | PARTIAL — log present (L toggle); classes/filters/jump-to not ported |
@@ -48,7 +48,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO8 | statistics: time-series charts, battles, wonders timeline | stats.js/stats-data.js | PARTIAL — Statistics panel is live counts + stance tags; sandbox-replay charts DEFERRED (heavy client slice) |
 | SO9 | historian interstitials + age markers | historian.js | MISSING — defer candidate |
 | SO10 | replay THEATER | replay.js/replay-events.js | PRESENT — R18 (post-game gate per THE LAW) |
-| SO11 | SPACESHIP screen (H8) | ship.js | MISSING — luau/spaceship.luau twin EXISTS (marker-0049), so this is client-only; REQUESTING as R-item after CP8 |
+| SO11 | SPACESHIP screen (H8) | ship.js | PRESENT — Ship.client.luau (#1370): flat-Frame assembly w/ red-box rule, stats table, two-step launch, rival banners; no-mock + X-close divergences accepted @41a65e71 |
 | SO12 | fast-forward overlay (?age=) | ff-overlay.js + shared/fastforward.js | PARTIAL — function PRESENT (R24 lobby stepper + chunked server ff); progress overlay during the ff wait not built |
 | SO13 | options set | options.js | PARTIAL — autoEnd/autoNext/hideFuture/clock present + roblox extras (look, border art, ride pads, auto-research); tips/discovery-cards/palette rows follow their features |
 | SO14 | accessibility civ-color palette | palette.js | DIRECTION Q (architect marked rule-it): port palette.js tables through hexColor? Roblox colors flow through one map, so the port is cheap once ruled |
