@@ -38,7 +38,20 @@ This shapes D3, XII.5, and any future personality-driven stance ASSIGNMENT.
 
 ---
 
-## B. Client batch → HELPER (golden-neutral, ready now)
+## B. Client batch → HELPER (golden-neutral) — LANDED 2026-07-18 (#1714, commit ffd34e1)
+
+> B1 (68 blurbs — ids 68/68 verified, gate warn→assert), B3 (Movement +
+> Regency concepts), B4 (Recordings entry), and B2 CORE (Oracle card
+> Mysticism-stacking text + the city happiness breakdown reading `Temple +4`)
+> all DONE + committed golden-neutral. 6/6 + 24/24 green.
+> **OPEN — B2b (low-priority polish, deferred):** the Temple CATALOG card
+> "Makes N citizens content" (item 1) and the Mysticism card "doubles Temple"
+> note (item 2) need `effectText(def)` to become PLAYER-AWARE (it is
+> context-free today, called across catalog/pedia/discovery). The CORE
+> confusion is resolved (the `+4` is legible in the breakdown; item 1's info
+> also lives there), so this is polish — prefer a minimal-risk approach
+> (Temple special-case in the card renderer) over a broad effectText refactor;
+> not urgent, available for the helper when it wants a task.
 
 ### B1. 68 tech-discovery-card blurbs (the empty slots on browser + Roblox)
 Wire into `client/ui/tech-blurbs.js` as `id → flavor` DATA (ally's
