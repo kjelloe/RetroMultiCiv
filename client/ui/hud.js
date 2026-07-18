@@ -6,6 +6,7 @@ import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
 import { glyphDataURL } from './tech-glyphs.js';
+import { annotateCityEra } from '../../shared/city-era.js';
 
 export function initHud(ctx) {
   const { session, renderer, sel } = ctx;
@@ -205,7 +206,9 @@ export function initHud(ctx) {
   function refresh() {
     const state = session.state;
     if (renderer.setCityNotes) renderer.setCityNotes(cityNotes(state));
-    renderer.setViewState(filterView(state, ctx.HUMAN));
+    // era-band render hint (specs/city-era-looks.md): derive per city from the
+    // owner's tech era on the fog-filtered view, so the renderer stays rules-blind
+    renderer.setViewState(annotateCityEra(filterView(state, ctx.HUMAN), techs));
     renderer.setSelection(sel.unitId ? { unitId: sel.unitId } : null);
     const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
     if (state.gameOver) {

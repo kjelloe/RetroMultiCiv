@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { emblemTexture, isLightColor } from './factions.js';
 import { UNIT_RECIPES, UNIT_SILHOUETTE, CITY_RECIPE } from './recipes.js';
 import { RECIPE_CHROME, TYPE_EXTRA } from './unit-chrome.js';
+import { CITY_ERA_STYLES } from '../../../shared/city-era.js';
 
 // --- faction visuals (art A1.6a) -----------------------------------------------
 // Factories accept either a plain color string (mock/test states, lobby games
@@ -219,15 +220,84 @@ export function cityTierFor(pop) {
   return tier;
 }
 
+// ERA look (specs/city-era-looks.md §5d): the era band changes SILHOUETTE +
+// ROOFLINE + material + a signature prop — never a plain recolor. CITY_TIERS
+// still owns house count/height/footprint; the era table owns body-geo / roof-
+// geo / material / signature-prop. Owner color lives on the base RING + banner
+// (guardrail: NOT the body or roof), so the era reads at map zoom. The
+// CITY_ERA_STYLES band ids come from shared/city-era.js.
+const ERA_MAT = {
+  mud: new THREE.MeshLambertMaterial({ color: 0xb08a5e }),
+  stone: new THREE.MeshLambertMaterial({ color: 0xb2ab9a }),
+  brick: new THREE.MeshLambertMaterial({ color: 0x9d5a45 }),
+  concrete: new THREE.MeshLambertMaterial({ color: 0xa7bccf }),
+  thatch: new THREE.MeshLambertMaterial({ color: 0xcdb280 }),
+  tile: new THREE.MeshLambertMaterial({ color: 0xb5623e }),
+  tar: new THREE.MeshLambertMaterial({ color: 0x44454d }),
+  glass: new THREE.MeshLambertMaterial({ color: 0x8fb2cf })
+};
+// roof SHAPE per band (peaked ancient/classical vs flat industrial vs slab modern)
+const ROOF_GEO = {
+  peak: GEO.roof,                            // 4-sided peaked cone (thatch/tile)
+  flat: new THREE.BoxGeometry(1, 0.26, 1),   // industrial rectilinear roof
+  slab: new THREE.BoxGeometry(1, 0.16, 1)    // modern flat slab
+};
+const PROP_GEO = {
+  keepBody: new THREE.BoxGeometry(0.2, 0.5, 0.2),                            // classical tower/keep
+  smokestack: new THREE.CylinderGeometry(0.035, 0.05, 0.62, 8),             // industrial stack
+  dome: new THREE.SphereGeometry(0.16, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), // modern dome
+  spire: new THREE.ConeGeometry(0.05, 0.5, 8),                              // modern spire
+  civic: new THREE.BoxGeometry(0.34, 0.44, 0.34)                            // industrial capital block
+};
+const STACK_MAT = new THREE.MeshLambertMaterial({ color: 0x3b3b40 });
+const SPIRE_MAT = new THREE.MeshLambertMaterial({ color: 0xb9c6d6 });
+
+// The band's signature central structure. CITY_TIERS gates the tower to upper
+// tiers; the capital always gets the (larger) band core, so it evolves
+// hall -> keep -> civic -> spire across the ages.
+function addEraSignature(group, style, tier, tierIndex, isCapital) {
+  const s = tier.scale;
+  if (style.prop === 'keep' && (isCapital || tierIndex >= 2)) {
+    const big = isCapital ? 1.3 : 1;
+    const t = add(group, PROP_GEO.keepBody, ERA_MAT.stone, 0, 0.25 * s * big, 0);
+    t.scale.set(s * big, s * big, s * big);
+    const cap = add(group, GEO.roof, ERA_MAT.tile, 0, 0.5 * s * big, 0);
+    cap.scale.set(0.22 * s * big, 0.2 * s * big, 0.22 * s * big); cap.rotation.y = Math.PI / 4;
+  } else if (style.prop === 'smokestack') {
+    if (isCapital) { // industrial capital = a rectilinear civic block + stacks
+      const c = add(group, PROP_GEO.civic, ERA_MAT.brick, 0, 0.22 * s, 0); c.scale.set(s, s, s);
+      const r = add(group, ROOF_GEO.flat, ERA_MAT.tar, 0, 0.45 * s, 0); r.scale.set(0.36 * s, 0.12 * s, 0.36 * s);
+    }
+    const n = isCapital ? 3 : Math.min(3, 1 + tierIndex);
+    const spots = [[-0.14, 0.1], [0.16, -0.04], [0.03, 0.17]];
+    for (let i = 0; i < n; i++) {
+      const st = add(group, PROP_GEO.smokestack, STACK_MAT, spots[i][0], 0.31 * s, spots[i][1]);
+      st.scale.set(s * 0.9, s, s * 0.9);
+    }
+  } else if (style.prop === 'spire') {
+    const big = isCapital ? 1.35 : 1;
+    const dome = add(group, PROP_GEO.dome, ERA_MAT.glass, 0, 0.16 * s, 0); dome.scale.set(s * big, s * big, s * big);
+    const sp = add(group, PROP_GEO.spire, SPIRE_MAT, 0, 0.42 * s * big, 0); sp.scale.set(s * big, s * big * 1.1, s * big);
+  } else if (isCapital) { // ancient capital = a larger central hall
+    const b = add(group, GEO.box, ERA_MAT.mud, 0, 0.2 * s, 0); b.scale.set(0.3 * s, 0.4 * s, 0.3 * s);
+    const r = add(group, GEO.roof, ERA_MAT.thatch, 0, 0.44 * s, 0); r.scale.set(0.34 * s, 0.32 * s, 0.34 * s); r.rotation.y = Math.PI / 4;
+  }
+}
+
 export function createCityMesh(city, colorOrVisual, isCapital) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const tier = cityTierFor(city.pop);
-  // A88: house/roof SHAPES from CITY_RECIPE; the ring placement stays procedural
+  const tierIndex = CITY_TIERS.indexOf(tier);
+  // ERA band (render-only hint from the annotated view; ancient for mock/gallery)
+  const style = CITY_ERA_STYLES[city.eraBand] || CITY_ERA_STYLES.ancient;
+  // A88: house SHAPE from CITY_RECIPE; the era band sets roof SHAPE + body/roof
+  // MATERIAL (not owner color — that's the base ring). The placement is procedural.
   const houseGeo = geometryFor(CITY_RECIPE.house);
-  const roofGeo = geometryFor(CITY_RECIPE.roof);
-  const houseMat = roleMaterial(CITY_RECIPE.house.color, visual);
-  const roofMat = roleMaterial(CITY_RECIPE.roof.color, visual);
+  const roofGeo = ROOF_GEO[style.roofShape] || ROOF_GEO.peak;
+  const bodyMat = ERA_MAT[style.body] || NEUTRAL.house;
+  const roofMat = ERA_MAT[style.roofMat] || NEUTRAL.stone;
+  const peaked = style.roofShape === 'peak';
   for (let i = 0; i < tier.houses; i++) {
     const angle = (i / tier.houses) * Math.PI * 2 + 0.5;
     const dist = 0.16 + (i % 3) * 0.1;
@@ -235,12 +305,23 @@ export function createCityMesh(city, colorOrVisual, isCapital) {
     const h = (0.12 + (i % 4) * 0.03) * tier.scale;
     const x = Math.cos(angle) * dist;
     const z = Math.sin(angle) * dist;
-    const base = add(group, houseGeo, houseMat, x, h / 2, z);
+    const base = add(group, houseGeo, bodyMat, x, h / 2, z);
     base.scale.set(w, h, w);
-    const roof = add(group, roofGeo, roofMat, x, h + h * 0.3, z);
-    roof.scale.set(w * 0.8, h * 0.6, w * 0.8);
-    roof.rotation.y = Math.PI / 4;
+    const roof = add(group, roofGeo, roofMat, x, 0, z);
+    if (peaked) {
+      roof.position.y = h + h * 0.32; roof.scale.set(w * 0.82, h * 0.7, w * 0.82);
+      roof.rotation.y = Math.PI / 4;
+    } else { // flat / slab industrial+modern rooflines sit low on the body
+      roof.position.y = h + h * 0.08; roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+    }
   }
+  // the band's signature central structure (tower / smokestacks / dome+spire /
+  // capital hall), gated by tier + capital
+  addEraSignature(group, style, tier, tierIndex, isCapital);
+  // owner identity: a colored base RING (guardrail — never the body/roof, so the
+  // era reads at map zoom); the banner/flag also carries the owner color
+  const ownerRing = add(group, GEO.baseRim, matFor(visual.primary), 0, 0.035, 0);
+  ownerRing.rotation.x = Math.PI / 2; ownerRing.scale.set(1.3, 1.3, 1.3);
   if (isCapital && visual.emblem) {
     // the capital flies the full CanvasTexture emblem flag (art A1.6a),
     // hinged at the pole top for the A28 sway like the pennants

@@ -25,7 +25,7 @@
 
     // A44: 16 wide — one margin column each side so edge-column name pills
     // (English, Russians…) never crop at the viewport edge
-    const W = 16, H = 14;
+    const W = 16, H = 20;
     const tiles = [];
     for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
     const at = (x, y) => tiles[y * W + x];
@@ -82,7 +82,8 @@
 
     const players = {
       p1: { id: 'p1', name: 'Blue', color: '#3b7dd8' },
-      p2: { id: 'p2', name: 'Red', color: '#d84a3b' }
+      p2: { id: 'p2', name: 'Red', color: '#d84a3b' },
+      pn: { id: 'pn', name: 'Neutral', color: '#9aa0aa' } // era grid: neutral owner
     };
 
     // --- faction grid (art A1.6a acceptance, specs/civ-visuals.md): one civ
@@ -108,6 +109,19 @@
       put('legion', col, 11, pid, { fortified: true });
       put('trireme', col, 12, pid);
       put('militia', col, 13, pid, { veteran: true });
+    });
+
+    // ERA x TIER grid (specs/city-era-looks.md §5d, item 7): 4 band COLUMNS x
+    // tier ROWS on a NEUTRAL owner (so the era material reads, not a faction
+    // color), plus a CAPITAL sample row (romans emblem) to show the capital
+    // evolving hall->keep->civic->spire. Rows 15..18; read it at map zoom.
+    const ERA_GRID = ['ancient', 'classicalMedieval', 'industrial', 'modernSpace'];
+    ERA_GRID.forEach((band, bi) => {
+      const col = 2 + bi * 4;
+      [[15, 1], [16, 8], [17, 28]].forEach(([y, pop]) => {
+        cities['g' + bi + '_' + y] = { id: 'g' + bi + '_' + y, name: y === 15 ? band : '', owner: 'pn', x: col, y, pop, buildings: [], eraBand: band };
+      });
+      cities['gc' + bi] = { id: 'gc' + bi, name: 'capital', owner: 'f1', x: col, y: 18, pop: 16, buildings: ['palace'], eraBand: band };
     });
 
     const view = {
