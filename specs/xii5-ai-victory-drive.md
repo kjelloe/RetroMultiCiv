@@ -8,7 +8,35 @@
 > territory — window discipline), informed by the sim-runner late-game-idle
 > measurement (commissioned). Behavioral golden window.
 
-## 1. The gap (diagnosed, not assumed-final — measurement pending)
+## 0. The measurement (sim-runner #1706 — the gap is confirmed and quantified)
+
+Baseline on the current engine (12 games, 7-civ medium, no chaos; NATURAL =
+endYear 2100 and EXTENDED = endYear 9999 / 800-turn cap):
+
+- **NO DECISIVE VICTORY EVER.** NATURAL: 6/6 score-timeout at t396.
+  EXTENDED: 6/6 TIMEOUT at t801 — even with the score clock removed and 800
+  turns, nobody closes out a win. **0 conquest, 0 space in 12 games.** The
+  four-endings vision is currently unrealized; every game ends on the calendar.
+- **SPACE is dead at step 0.** Apollo is UNBUILT in 12/12 games, so the whole
+  A76 chain (`apolloReady` → `nextSsPart` → launch) never fires. AIs reach the
+  winning STATE (space-flight + all part techs) and never act on it. **0/12
+  launches.** This is the biggest, cheapest win to unlock — the leader already
+  has everything; it just never starts building Apollo.
+- **Idle DEEPENS late.** Fraction of a seat's alive turns with zero applied
+  commands: 46% (t300-400) → **82% median** (t400+); 18/42 seat-games idle the
+  ENTIRE extended band. A teched/built-out AI has no endgame objective.
+- **Conquest TAPERS, never closes.** Built-out AIs mostly stop producing
+  offensive units late (median 0) and taper attacks; early eliminations happen
+  (seed 1: 4/7 dead midgame) but survivors then coexist to the clock — nobody
+  finishes off the rivals.
+
+**Where the drive must intervene (ranked by leverage):** (a) SPACE — once a
+civ holds space-flight + all part techs, BUILD Apollo → parts → launch (fixing
+just this turns every runaway into a space finish); (b) CONQUEST — keep massing
+offensive units + pressing surviving rivals late instead of idling; (c) the
+idle-turn fraction is the raw symptom — give the built-out AI an endgame goal.
+
+## 1. The gap (root-caused above)
 
 The victory MACHINERY already exists in engine/ai.js:
 - **Space:** `apolloReady` (Apollo wonder + all ssPart techs), `nextSsPart`
@@ -94,6 +122,34 @@ victory-outcome + elim-band + "no idle turns late" witnesses) → ONE
 re-record. Likely MOVES the natural/marathon goldens meaningfully (that's
 the point — more decisive endgames). VERIFY the early/mid game is unchanged
 (the drive gates on "late" — a crafted/short scenario must be byte-identical).
+
+## 5b. Acceptance — the baseline to beat (sim-runner #1706)
+
+XII.5 is measured against the #1706 baseline, re-run identically post-change:
+
+| metric | baseline | XII.5 target |
+| --- | --- | --- |
+| decisive victories (space or conquest) | 0% (12/12 timeout) | materially > 0 |
+| space launches | 0 / 12 games | leader builds Apollo + launches once eligible |
+| deep-endgame idle (t400+, median) | 82% | lower |
+| late offensive-unit builds (median/seat) | 0 | higher for civs pursuing conquest |
+
+The PRIMARY, cheapest intervention is the space chain: **"an eligible leader
+(space-flight + all part techs known) builds Apollo, then parts, then
+launches."** That one change alone should convert runaway games into space
+finishes and is the first thing to land + measure. Conquest (keep massing) and
+the idle-fraction reduction follow.
+
+## 5c. Consequence for D3 — its space-launch coalition is currently DORMANT
+
+Because 0/12 games ever launch, **D3's space-launch coalition trigger
+(`launchThreat`/`wLaunch`) never fires organically in the soak** — D3's §8
+"a space launch flips a peaceful table to war" witness CANNOT be shown with
+organic play today. So: (1) the D3 sweep's space-launch witness must use a
+CRAFTED launched-ship state (not an organic soak), and (2) XII.5 is what makes
+the coalition real in ordinary games — once XII.5 lands and leaders actually
+launch, D3's coalition fires for the first time in normal play. Flagged to the
+bugfixer for the D3 §8 witness; note it composes: XII.5 launches, D3 swarms.
 
 ## 6. Provenance
 
