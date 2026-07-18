@@ -200,3 +200,24 @@ test('Slice 2.5 B: an unreclaimed lobby seat is released after the grace window'
     assert.ok(freed, 'seat released after grace expiry');
   } finally { host.close(); await s.close(); }
 });
+
+test('Slice 2.5 B: a LIVE seat cannot be reclaimed even with its id (no hijack of a connected player)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 'b3', seatGraceMs: 5000 }));
+  const host = await connect(s.port), ada = await connect(s.port), mal = await connect(s.port);
+  try {
+    host.send({ t: 'create', name: 'Host', options: { civs: 3, humans: 3, size: 'xsmall', seed: 9 } });
+    const created = await host.expect(m => m.t === 'created');
+    ada.send({ t: 'join', joinCode: created.joinCode, name: 'Ada' });
+    const jl = await ada.expect(m => m.t === 'joinedLobby'); // ada STAYS connected on jl.seat
+    // a third party presents ada's (still-LIVE) reconnectId — reclaim must NOT
+    // match a live seat; it falls through to a fresh reserve (a different seat)
+    mal.send({ t: 'join', joinCode: created.joinCode, name: 'Mal', lobbyReconnect: jl.reconnectId });
+    const mjl = await mal.expect(m => m.t === 'joinedLobby' || m.t === 'rejected');
+    if (mjl.t === 'joinedLobby') {
+      assert.notStrictEqual(mjl.seat, jl.seat, 'a live seat is never handed to a reclaim attempt');
+    } else {
+      assert.strictEqual(mjl.code, 'gameFull', 'or the lobby was full — either way ada keeps her seat');
+    }
+  } finally { host.close(); ada.close(); mal.close(); await s.close(); }
+});

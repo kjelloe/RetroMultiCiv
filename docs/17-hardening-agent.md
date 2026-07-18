@@ -113,3 +113,41 @@ Red test first → fix → red test green → the whole server test group
 green in isolation → a short done-mail (change + the red case) →
 commit on the working branch → unlock. The determinism/replay contract
 is unaffected by construction (server-only), but say so in the mail.
+**Additive-field slices: run the FULL suite (`node --test test/`), not just
+`test/server-*.test.js` — an added return field reds an exact-match
+`deepStrictEqual` outside your file set (`test/lobby.test.js` caught the
+Part-B `reconnectId`); inject a fixed id/token fn there.**
+
+## Shipped (merged to dev_night, 2026-07-18)
+
+Delivered in small branch → push → architect-review → merge slices, each
+`gamesim-golden-neutral` (server-only). Tests in `test/server-hardening.test.js`
++ `test/server-limits.test.js`; the reproducible flood harness in `hardening/`.
+
+- **Slice 1** — malformed-frame CRASH FIX (a per-socket `ws.on('error')`; an
+  unhandled protocol error otherwise throws + kills the server) + `maxPayload`
+  64 KB + kick-path budget preserve.
+- **Slice 2** — LAYERED command budget: `createBudgets()` per-SEAT buckets
+  (shared across a seat's sockets — closes the multi-socket bypass) + a
+  per-connection ALL-MESSAGE cap (closes vote/ping floods), the PRIMARY layer
+  ON TOP of the shipped per-connection `createCommandBudget` backstop (architect
+  ruling: layer, not replace). Combined sweep beat the baseline (278ms vs 834ms
+  p50 at 6 flooders); defaults seat cmd 15/s+40, endTurn 2/s+4, msg 30/s+60.
+- **Slice 2.5A** — server HEARTBEAT: ping every `--heartbeat-sec` (15s), a
+  socket missing `--heartbeat-misses` (2) pongs is `terminate()`d so a locked
+  phone's half-open socket becomes detectable (the load-bearing mobile fix).
+- **Slice 2.5B** — lobby SEAT-GRACE: a dropped lobby seat is held
+  'disconnected, reclaimable' for `--seat-grace-sec` (45s), reclaimed only by a
+  private `reconnectId` and only while DISCONNECTED (never a live seat).
+  Client store+present-on-wake is Part C (helper).
+
+**In flight — Slice 3** (public-hosting hardening, #1552): per-IP connect-rate
+in the handshake + proxy-aware IP (`--trust-proxy`), Origin allow-list, static
+`nosniff`/Cache-Control/URL cap, `send()` backpressure, HTTP timeouts,
+silent-squatter timeout, SIGTERM/SIGINT, boot posture line. Sub-sliced for small
+reviews.
+
+**Cross-lane findings (2026-07-18) — CLOSED by the helper (H-1 a–d):** the
+`listSaves` resume-code disclosure, the `list` private-joinCode leak, the
+unthrottled saves scan (now a 2 s-TTL cached scan), and the resume-crash on a
+corrupt save. Recorded here for the trail; see docs/16 §3.
