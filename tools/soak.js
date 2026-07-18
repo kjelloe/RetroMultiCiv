@@ -276,6 +276,7 @@ function strategicRow(state, pid, ruleset, turn) {
     : (prod.building + prod.wonder) > 0 ? 'building' : 'defending';
   const topGoal = Object.entries(prod).sort((a, b) => b[1] - a[1])[0][0];
   return { t: 'strategic', turn, id: pid, stance: (state.players[pid].stance || 'balanced'),
+    gov: (state.players[pid].government || 'despotism'), // N9b: adoption pace at ROW-A cadence
     mode, threat: threatBucket, units: { mil, settlers, scouts, naval }, producing: prod, topGoal };
 }
 
