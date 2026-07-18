@@ -5,6 +5,7 @@ import { capitalOf } from '../../engine/government.js';
 import { hasWaterSource, workFlag } from '../../engine/improvements.js';
 import { computeVisible } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
+import { upgradeCost } from '../../engine/upgrade.js';
 import { canStepTo, stepDir, tileEnterable, greedySteps } from './move-hints.js';
 import { findPath } from '../../shared/pathfind.js';
 
@@ -198,6 +199,9 @@ export function initInput(ctx) {
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
     notBuildingWonder: 'this city is not building a wonder',
     cannotHelpWonder: 'this unit cannot help build wonders',
+    // N11 unit upgrades (CP18) — the engine's rejections
+    notInCity: 'upgrades happen inside your own cities',
+    noUpgrade: 'no upgrade is available for this unit',
     // A92 debug commands — the engine's gate + per-action rejections
     debugDisabled: 'debug commands need a --debug server or a ?debug=1 game',
     badUnitType: 'no such unit type',
@@ -222,7 +226,8 @@ export function initInput(ctx) {
     pillage: true, disband: true, buy: true, helpWonder: true, sellBuilding: true,
     setGovernment: true, setRates: true, setWorkers: true,
     establishTradeRoute: true, // A89 (inert until the N10 engine half lands)
-    debug: true // A92: the debug panel's commands flash their rejections too
+    debug: true, // A92: the debug panel's commands flash their rejections too
+    upgradeUnit: true // N11 (CP18)
   };
 
   // wave III: after a combat involving the viewer, keep the camera at the
@@ -300,6 +305,42 @@ export function initInput(ctx) {
       }
     }
     return null;
+  }
+
+  // N11 (CP18, the A90 pattern): the upgrade gate — a unit whose upgradesTo
+  // successor's tech is KNOWN shows the button; standing outside an owned
+  // city grays it with the why. Cost comes from the engine's own
+  // upgradeCost export (shared seam — the preview and the charge agree by
+  // construction). Returns null (no successor/tech), { to, cost } (legal),
+  // or { to, cost, blocked } (grayed).
+  function upgradeStateFor(unit) {
+    if (!unit) return null;
+    const def = session.ruleset.units[unit.type];
+    if (!def || def.upgradesTo === undefined) return null;
+    const target = session.ruleset.units[def.upgradesTo];
+    if (!target) return null;
+    const me = session.state.players[ctx.HUMAN];
+    if (target.tech !== '' && (!me || me.techs.indexOf(target.tech) === -1)) return null;
+    const cost = upgradeCost(unit, session.ruleset);
+    let inOwnCity = false;
+    for (const cid of session.state.cityOrder) {
+      const c = session.state.cities[cid];
+      if (c && c.x === unit.x && c.y === unit.y && c.owner === unit.owner) inOwnCity = true;
+    }
+    if (!inOwnCity) return { to: target, cost, blocked: 'notInCity' };
+    if (me.gold < cost) return { to: target, cost, blocked: 'notEnoughGold' };
+    return { to: target, cost };
+  }
+
+  async function upgradeSelected() {
+    if (!sel.unitId) return;
+    const unit = session.state.units[sel.unitId];
+    const gate = upgradeStateFor(unit);
+    if (!gate || gate.blocked) return;
+    const fromName = units[unit.type].name;
+    if (await apply({ type: 'upgradeUnit', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note(`⬆ ${fromName} upgraded to ${gate.to.name} (−${gate.cost}💰, veteran status carried)`);
+    }
   }
 
   // A89 (specs/n10-caravans.md §4): the establish-route gate, MIRRORING the
@@ -707,6 +748,16 @@ export function initInput(ctx) {
       const added = session.ruleset.units[unit.type].cost;
       actions.push({ label: `🏛 Help Wonder (+${added} shields, consumed)`, key: 'H', run: helpWonderSelected });
     }
+    // N11 (CP18): upgrade — shown when the successor's tech is known; label
+    // carries the computed gold cost; veteran-carries in the tooltip
+    const upGate = upgradeStateFor(unit);
+    if (upGate) {
+      actions.push({
+        label: `⬆ Upgrade to ${upGate.to.name} (💰${upGate.cost})`, key: 'K', run: upgradeSelected,
+        blocked: upGate.blocked ? REASON_TEXT[upGate.blocked] : undefined,
+        title: 'pays gold, keeps veteran status, spent moves stay spent'
+      });
+    }
     // A89: establish trade route (feature-detected; grayed with the why when
     // a leg fails — the A68 blocked pattern)
     const trGate = tradeRouteStateFor(unit);
@@ -759,6 +810,7 @@ export function initInput(ctx) {
         btn.disabled = true;
         btn.title = a.blocked; // the why, on hover
       } else {
+        if (a.title) btn.title = a.title; // N11: informational hover (veteran carries)
         btn.addEventListener('click', a.run);
       }
       actionBar.appendChild(btn);
@@ -964,6 +1016,7 @@ export function initInput(ctx) {
     if (e.key === 'v' && sel.unitId) { sentrySelected(); return; }   // C4 sentry
     if (e.key === 'u' && sel.unitId) { autoSelected(); return; }     // C4 automate
     if (e.key === 'y' && sel.unitId) { establishRouteSelected(); return; } // A89 trade route
+    if (e.key === 'k' && sel.unitId) { upgradeSelected(); return; }        // N11 upgrade
     if (e.key === 'h' && sel.unitId) { helpWonderSelected(); return; }
     if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
     if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }

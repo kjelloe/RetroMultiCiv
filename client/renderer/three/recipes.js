@@ -229,7 +229,10 @@ export const PROP_SHAPES = {
   mineDoor: { shape: 'box', size: [0.11, 0.1, 0.02] },
   mineBeam: { shape: 'box', size: [0.15, 0.03, 0.04] },
   fieldPatch: { shape: 'box', size: [0.24, 0.012, 0.16] },
-  foam: { shape: 'box', size: [0.82, 0.01, 0.06] }
+  foam: { shape: 'box', size: [0.82, 0.01, 0.06] },
+  // N13: the goody-hut village — a round wall + thatch roof pair
+  hutBase: { shape: 'cyl', size: [0.13, 0.15, 0.12], seg: 6 },
+  hutRoof: { shape: 'cone', size: [0.18, 0.14], seg: 6 }
 };
 
 // every unit type → its silhouette recipe (the assets.js class tables as data;

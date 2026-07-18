@@ -248,6 +248,31 @@ export function initTurnLog(ctx) {
         // A83: a caravan poured its shields into a wonder in progress
         const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         put(`🐫 ${cityName} — caravan helped build ${wonders[e.wonder].name} (+${e.shields}⚒)`, '', cityLoc(state, e.cityId));
+      } else if (e.type === 'unitUpgraded' && e.playerId === ctx.HUMAN) {
+        // N11 (CP18): the paid upgrade — veteran carried, gold named
+        put(`⬆ ${units[e.from] ? units[e.from].name : e.from} upgraded to `
+          + `${units[e.to] ? units[e.to].name : e.to} (−${e.gold}💰)`, 'win');
+      } else if (e.type === 'hutEntered' && e.playerId === ctx.HUMAN) {
+        // N13 (CP19): own-seat only (the classifier enforces the fog rule);
+        // each result gets its own line + a toast for the notable ones
+        const hutGold = (session.ruleset.rules.hut && session.ruleset.rules.hut.gold) || 50;
+        const HUT_TEXT = {
+          nothing: `🛖 the village at (${e.x},${e.y}) was deserted`,
+          gold: `🛖 the villagers offer tribute (+${hutGold}💰)`,
+          advance: '🛖 the tribe shares their knowledge — an advance!',
+          mercs: '🛖 a mercenary band joins your cause',
+          advancedTribe: '🛖 an advanced tribe joins your civilization — a new city!',
+          ambush: '🛖 barbarians pour out of the village — ambush!'
+        };
+        const cls = e.result === 'ambush' ? 'loss' : e.result === 'nothing' ? '' : 'win';
+        put(HUT_TEXT[e.result] || `🛖 village entered (${e.result})`, cls, { x: e.x, y: e.y });
+        if (e.result === 'ambush') flashMessage('🛖 Ambush! Barbarians pour out of the village!');
+        else if (e.result === 'advancedTribe') flashMessage('🛖 An advanced tribe joins your civilization!');
+        else if (e.result !== 'nothing') flashMessage(HUT_TEXT[e.result]);
+      } else if (e.type === 'ransomPaid' && e.playerId === ctx.HUMAN) {
+        // N13: the lone barbarian leader bought his life
+        put(`👑 barbarian leader captured at (${e.x},${e.y}) — ransom +${e.gold}💰`, 'win', { x: e.x, y: e.y });
+        flashMessage(`👑 Ransom! The barbarian leader pays ${e.gold} gold for his life`);
       } else if (e.type === 'tradeRouteEstablished' && e.playerId === ctx.HUMAN) {
         // A89: own-seat windfall line — amounts + partner (shape CONFIRMED by
         // the N10 window, bugfixer #1417: { playerId, cityId, partnerCityId,

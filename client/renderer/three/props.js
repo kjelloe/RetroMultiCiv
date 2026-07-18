@@ -21,6 +21,7 @@ export function visualRand(x, y, salt) {
 function propGeometry(p) {
   if (p.shape === 'box') return new THREE.BoxGeometry(p.size[0], p.size[1], p.size[2]);
   if (p.shape === 'cone') return new THREE.ConeGeometry(p.size[0], p.size[1], p.seg);
+  if (p.shape === 'cyl') return new THREE.CylinderGeometry(p.size[0], p.size[1], p.size[2], p.seg); // N13 hut wall
   if (p.shape === 'sphere') return new THREE.SphereGeometry(p.size[0], p.seg[0], p.seg[1]);
   if (p.shape === 'dodeca') return new THREE.DodecahedronGeometry(p.size[0], p.seg);
   if (p.shape === 'torus') return new THREE.TorusGeometry(p.size[0], p.size[1], p.seg[0], p.seg[1]);
@@ -35,7 +36,8 @@ const PROP_COLOR = {
   rock: 0x7d7468, peak: 0x63636d, snow: 0xe8eef0,
   grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d,
   tie: 0x2c2620, mineDoor: 0x17130e, mineBeam: 0x6b4a2a,
-  fieldPatch: 0x59a03e, foam: 0xdcecf2
+  fieldPatch: 0x59a03e, foam: 0xdcecf2,
+  hutWall: 0xb08d5a, hutRoof: 0xc9a94c // N13: mud wall + thatch
 };
 // the translucent water plane's height (terrain.js buildWater) — foam strips
 // ride just above it; ocean floor is at -0.18, lowest land at +0.02
@@ -58,7 +60,8 @@ export function createTileProps(map, tileTop, joins) {
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
     rock: [], peak: [], snow: [], special: [], fortress: [],
-    tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: []
+    tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: [],
+    hutBase: [], hutRoof: [] // N13: goody-hut villages
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -178,6 +181,10 @@ export function createTileProps(map, tileTop, joins) {
         }
       }
       if (t.special) items.special.push({ x, y, top, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });
+      if (t.hut === true) { // N13: the village — wall cylinder + thatch cone
+        items.hutBase.push({ x, y, top, dim, color: PROP_COLOR.hutWall, dy: 0.06 });
+        items.hutRoof.push({ x, y, top, dim, color: PROP_COLOR.hutRoof, dy: 0.19 });
+      }
     }
   }
   const dummy = new THREE.Object3D();
