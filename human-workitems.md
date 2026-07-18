@@ -88,7 +88,7 @@ the Done log at the bottom.
   answer) and S1 SHIPPED** (c062d58): off-by-default writer, sticky
   seat veto, anonymization w/ regenerated hashes so reports replay
   clean under their own code.
-- [ ] **Live strategic overlay** — want the v1.5 per-AI
+- [x] **Live strategic overlay — YES 2026-07-18** (helper #1517, debug/spectator-gated) — ~~want the v1.5 per-AI~~
   stance/mode/threat snapshot visible in-client during play?
   (Cheap now the telemetry landed; yes/no.)
 - [ ] **Shift+D recordings of your own play** — a game or two,
