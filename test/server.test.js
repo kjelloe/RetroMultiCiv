@@ -730,3 +730,33 @@ test('L3b: two server boots mint DIFFERENT first-game join codes (boot entropy)'
   }
   assert.notStrictEqual(codes[0], codes[1], 'restarting the server must mint a fresh code');
 });
+
+test('A50 item 0: a per-connection command flood is cheap-rejected (rateLimited), the game path spared', async () => {
+  // docs/17 lane, folded into the game stream. A tiny bucket (burst 1, no refill)
+  // makes the throttle deterministic: the first cmd applies, the next is over
+  // budget and comes back rejected/rateLimited WITHOUT reaching the game. The
+  // full starvation A/B (co-player ack time under load) is the sim-runner's load
+  // harness; this proves the wiring + the reject shape.
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({
+    ruleset: RULESET, seed: 424242, civs: 2, humans: 1, size: 'xsmall',
+    autosave: false, gameId: 'flood', limits: { cmdBurst: 1, cmdRefillPerSec: 0 }
+  });
+  try {
+    const client = await connect(s.port);
+    client.send({ t: 'join', name: 'Kjell' });
+    const joined = await client.expect(m => m.t === 'joined', 'joined');
+    const token = joined.token;
+    const settlers = Object.values(joined.view.units).find(u => u.owner === 'p1' && u.type === 'settlers');
+    // the ONE budgeted command applies normally
+    client.send({ t: 'cmd', token, commandId: 1, cmd: { type: 'foundCity', unitId: settlers.id, name: 'Bucketville' } });
+    await client.expect(m => m.t === 'applied' && m.commandId === 1, 'first command applied');
+    // the next command is over budget → cheap reject, never routed to the game
+    client.send({ t: 'endTurn', token, commandId: 2 });
+    const rej = await client.expect(m => m.t === 'rejected' && m.commandId === 2, 'over-budget reject');
+    assert.strictEqual(rej.code, 'rateLimited', 'the flood is throttled with the rateLimited code');
+    client.close();
+  } finally {
+    await s.close();
+  }
+});

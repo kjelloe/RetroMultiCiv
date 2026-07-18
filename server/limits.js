@@ -5,9 +5,11 @@
 // enumeration floods, game-spam, connection exhaustion). All caps overridable
 // via startServer({ limits: {...} }) / CLI flags (see server/index.js).
 //
-// NOTE: the per-CONNECTION command-budget fairness guard (a legit client must
-// keep getting replies while N sockets flood cheap commands) is A50 item 4 —
-// a MEASURED requirement (docs/16 §2.4), a separate slice, NOT here.
+// The per-CONNECTION command-budget fairness guard lives here too
+// (createCommandBudget) — a MEASURED requirement (docs/16 §2.4, docs/17 item 0):
+// one socket flooding cheap `cmd`/`endTurn` frames must not starve co-players'
+// command→ack time (measured 1 ms → 4.5 s). It is per CONNECTION, not per IP, so
+// it is a small self-contained factory rather than limiter state.
 
 export const DEFAULT_LIMITS = {
   maxConns: 200,        // global concurrent connections (the scale-test plateau)
@@ -15,7 +17,9 @@ export const DEFAULT_LIMITS = {
   maxGames: 50,         // global concurrent registered games
   createsPerHour: 20,   // new games created per IP per hour
   joinsPerMin: 30,      // join/reserve attempts per IP per minute
-  chatPerMin: 60        // chat messages per IP per minute
+  chatPerMin: 60,       // chat messages per IP per minute
+  cmdBurst: 40,         // per-connection command bucket capacity (a busy turn's burst)
+  cmdRefillPerSec: 20   // per-connection sustained commands/sec (LAN-generous; a flood is orders above)
 };
 
 // Sliding-window widths + which config field caps each rate-limited action.
@@ -83,4 +87,32 @@ export function createLimiter(deps) {
     onConnect, onDisconnect, allow, canCreateGame, sweep, cfg,
     stats: () => ({ totalConns, ips: Object.keys(conns).length, windows: Object.keys(windows).length })
   };
+}
+
+// Per-CONNECTION command token-bucket (A50 item 0, docs/17 lane — folded into the
+// game stream while no hardening agent exists; the reviewer is flagged). One
+// bucket per admitted socket (attached to its conn record in server/index.js).
+// take() is O(1) and clock-injectable (deps.now) — no per-command timestamp
+// array, so a flood cannot grow memory. Over budget → { ok:false,
+// reason:'rateLimited' }: the caller cheap-rejects with the existing
+// { t:'rejected', code:'rateLimited' } frame and does NOT route the command, so
+// the flooder's excess never reaches the expensive game path. Tokens refill
+// continuously up to cmdBurst; a legit fast player stays comfortably under.
+export function createCommandBudget(deps) {
+  const opts = deps || {};
+  const now = opts.now || Date.now;
+  const cfg = Object.assign({}, DEFAULT_LIMITS, opts.limits || {});
+  const cap = cfg.cmdBurst;
+  const rate = cfg.cmdRefillPerSec;
+  let tokens = cap;
+  let last = now();
+  function take() {
+    const t = now();
+    tokens = tokens + ((t - last) / 1000) * rate;
+    if (tokens > cap) tokens = cap;
+    last = t;
+    if (tokens >= 1) { tokens = tokens - 1; return { ok: true }; }
+    return { ok: false, reason: 'rateLimited' };
+  }
+  return { take, stats: () => ({ tokens }) };
 }

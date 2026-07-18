@@ -20,7 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
-import { createLimiter } from './limits.js';
+import { createLimiter, createCommandBudget } from './limits.js';
 import { planRotation } from './rotation.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
@@ -533,7 +533,9 @@ export function startServer(opts) {
     const ip = ipOf(ws);
     const adm = limiter.onConnect(ip);
     if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
-    conns.set(ws, {});
+    // A50 item 0 (docs/17 lane): every admitted socket gets its own command
+    // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
+    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }) });
     ws.on('close', () => {
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
@@ -755,7 +757,15 @@ export function startServer(opts) {
       if (msg.t === 'skipTurn' || msg.t === 'proposeSkip' || msg.t === 'vote') {
         handleSkipFrames(ws, info, msg); return;
       }
-      // in-game: cmd / endTurn — route to the game this connection belongs to
+      // in-game: cmd / endTurn — route to the game this connection belongs to.
+      // A50 item 0 (docs/17 lane): spend a command-budget token FIRST. Over
+      // budget → cheap-reject (rateLimited) and DO NOT route, so a socket
+      // flooding cheap commands cannot starve co-players' command→ack time
+      // (measured 1 ms → 4.5 s). O(1) reject; the expensive game path is skipped.
+      if (info.budget !== undefined && !info.budget.take().ok) {
+        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'rateLimited' });
+        return;
+      }
       const gameId = info.gameId || defaultGameId;
       const e = registry.entryOf(gameId);
       if (!e || !e.game) {
@@ -889,6 +899,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--creates-per-hour') (opts.limits = opts.limits || {}).createsPerHour = Number(argv[++i]);
     else if (a === '--joins-per-min') (opts.limits = opts.limits || {}).joinsPerMin = Number(argv[++i]);
     else if (a === '--chat-per-min') (opts.limits = opts.limits || {}).chatPerMin = Number(argv[++i]);
+    // A50 item 0 per-connection command budget (fairness under a cmd flood)
+    else if (a === '--cmd-burst') (opts.limits = opts.limits || {}).cmdBurst = Number(argv[++i]);
+    else if (a === '--cmd-per-sec') (opts.limits = opts.limits || {}).cmdRefillPerSec = Number(argv[++i]);
     // A50 item 3b lifecycle expiry (unstarted lobbies + abandoned started games)
     else if (a === '--lobby-ttl-min') (opts.lifecycle = opts.lifecycle || {}).lobbyTtlMs = Number(argv[++i]) * 60000;
     else if (a === '--abandoned-hours') (opts.lifecycle = opts.lifecycle || {}).abandonedMs = Number(argv[++i]) * 3600000;

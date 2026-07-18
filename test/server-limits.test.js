@@ -87,6 +87,30 @@ test('sweep GCs expired windows so memory stays bounded', async () => {
   assert.strictEqual(lim.stats().windows, 0, 'expired windows dropped');
 });
 
+test('per-connection command budget: token-bucket bursts, cheap-rejects, then refills', async () => {
+  const { createCommandBudget } = await load();
+  const c = clock(0);
+  const b = createCommandBudget({ now: c.now, limits: { cmdBurst: 3, cmdRefillPerSec: 2 } });
+  assert.ok(b.take().ok); assert.ok(b.take().ok); assert.ok(b.take().ok); // the burst
+  assert.strictEqual(b.take().reason, 'rateLimited', 'over budget → cheap reject');
+  c.advance(500); // 0.5s × 2/sec = 1 token back
+  assert.ok(b.take().ok, 'one token refilled');
+  assert.strictEqual(b.take().reason, 'rateLimited', 'only one refilled');
+  c.advance(10000); // a long idle refills to capacity, never beyond
+  assert.ok(b.take().ok); assert.ok(b.take().ok); assert.ok(b.take().ok);
+  assert.strictEqual(b.take().reason, 'rateLimited', 'capacity capped at cmdBurst (no overflow)');
+});
+
+test('command budget defaults are LAN-safe (fast legit play never trips)', async () => {
+  const { createCommandBudget, DEFAULT_LIMITS } = await load();
+  assert.ok(DEFAULT_LIMITS.cmdBurst >= 20, 'a burst covers a busy turn');
+  assert.ok(DEFAULT_LIMITS.cmdRefillPerSec >= 8, 'sustained legit play headroom');
+  const c = clock(0);
+  const b = createCommandBudget({ now: c.now });
+  // a brisk human turn — 25 commands over ~2.5s (moving a full stack, founding) stays ok
+  for (let i = 0; i < 25; i++) { assert.ok(b.take().ok, `legit cmd ${i}`); c.advance(100); }
+});
+
 test('defaults are LAN-safe (a normal game never trips them)', async () => {
   const { createLimiter, DEFAULT_LIMITS } = await load();
   const lim = createLimiter({});
