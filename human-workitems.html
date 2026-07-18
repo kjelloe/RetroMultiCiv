@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human work items — RetroMultiCiv</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+      --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+      --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+    --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+    --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 2rem 1rem 4rem;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.75rem; }
+  h1 { font-size: 1.7rem; margin: 0 0 .3rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: .95rem; }
+  .meta { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  .chip {
+    display: inline-block; background: var(--chip-bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: .2rem .7rem; font-size: .82rem; color: var(--muted);
+  }
+  .chip strong { color: var(--ink); }
+  section { margin: 1.75rem 0; }
+  .sec-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .3rem; }
+  .sec-head h2 { font-size: 1.05rem; margin: 0; text-transform: uppercase; letter-spacing: .06em; }
+  .sec-head .tag { font-size: .78rem; color: var(--muted); }
+  .bar { height: 3px; border-radius: 2px; margin: .35rem 0 1rem; }
+  #do .bar { background: var(--do); }   #do h2 { color: var(--do); }
+  #play .bar { background: var(--play); } #play h2 { color: var(--play); }
+  #fyi .bar { background: var(--fyi); }  #fyi h2 { color: var(--fyi); }
+  #park .bar { background: var(--park); } #park h2 { color: var(--park); }
+  .item {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: .85rem 1rem .85rem 2.6rem; margin: .6rem 0; position: relative;
+  }
+  .item .box {
+    position: absolute; left: .85rem; top: .95rem; width: 1.1rem; height: 1.1rem;
+    border: 2px solid var(--muted); border-radius: 4px; background: transparent;
+  }
+  .item.dot { padding-left: 1.5rem; }
+  .item.dot .box { border: none; left: .95rem; top: 1.15rem; width: .5rem; height: .5rem;
+    border-radius: 50%; background: var(--muted); }
+  .item .t { font-weight: 600; }
+  .item .d { color: var(--muted); font-size: .93rem; margin-top: .25rem; }
+  .item .d code, .item .t code {
+    background: var(--chip-bg); border-radius: 4px; padding: .05rem .35rem;
+    font-size: .85em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .flag { color: var(--do); font-weight: 600; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: .85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Human work items — RetroMultiCiv</h1>
+    <div class="sub">Things only a human (Kjell / friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>.</div>
+    <div class="meta">
+      <span class="chip">Last synced: <strong>2026-07-18</strong></span>
+      <span class="chip">Merge candidate: <strong>marker-0062</strong></span>
+      <span class="chip">In flight: <strong>marker-0063 · D3 diplomacy</strong></span>
+      <span class="chip">Companion of <strong>human-workitems.md</strong></span>
+    </div>
+  </header>
+
+  <section id="do">
+    <div class="sec-head"><h2>Decide / Do</h2><span class="tag">needs you</span></div>
+    <div class="bar"></div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Merge the latest consistent marker — candidate <code>marker-0062</code></div>
+      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load (no blank map), and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, driven red-first by your real turn-1617 save. Supersedes 0061 (A59 leader personality), 0060 (D1 diplomacy), 0059, and everything since. <span class="flag">In flight:</span> marker-0063 (D3 AI diplomacy, behavioral) will be the next candidate when green.</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Send the designer-ally cover note</div>
+      <div class="d"><code>specs/ally-cover-note-2026-07-17-evening.md</code> — three asks: 68 original tech-discovery blurbs (the discovery-card slots sit empty until these land), a Civ1 substitute for Sun Tzu's War Academy in the leader table, and the small pedia flags (movement/regency concepts, the Oracle ×4 stacking question).</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">World-look pick (a / b / c)</div>
+      <div class="d">A Roblox session: Options → world look → flip retro/enhanced live → screenshot both → pick retro-faithful / enhanced / enhanced-with-notes. Sets the DEFAULT and orders the visual-fidelity backlog (docs/13). <span class="flag">This is the one thing gating the roblox lane</span> — its CP1 art pass waits on it.</div>
+    </div>
+  </section>
+
+  <section id="play">
+    <div class="sec-head"><h2>Playtest</h2><span class="tag">high value right now</span></div>
+    <div class="bar"></div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Fresh LAN session on <code>marker-0062+</code></div>
+      <div class="d">Field-test the systems no human has played: goody huts, caravan trade routes, unit upgrades, the debug panel (🐞), the spaceship screen, and late-game save loading. With Shift+D recordings it seeds benchmark corpus #2 (the primary AI metric). Try Marathon mode to see the late game.</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Mobile render check (T0)</div>
+      <div class="d">From your phone: does the world render at all / rough fps while panning / first 2–3 broken things. The only open mobile <em>render</em> question — the network drop-out blocker is fixed. Decides whether single-player mobile needs a perf pass.</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Mobile seated-start RE-TEST (X.6 follow-up)</div>
+      <div class="d">The start-shows-nothing hang did NOT reproduce on an active connection — it's the mobile socket-drop class, and its fixes (heartbeat + seat-grace + wake-reconnect) shipped AFTER your ~00:00 playtest. Re-test on your phone. If it still hangs, <code>&mlog=1</code> (now surviving the lobby→game reload) captures where — send me that. Residual to watch: fully asleep at the instant of Start should show a "you missed the start" screen, not a blank.</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">Roblox acceptance (carried)</div>
+      <div class="d">Save <code>roblox/acceptance/runD.txt</code> and retest the deck-resident avatar flow.</div>
+    </div>
+  </section>
+
+  <section id="fyi">
+    <div class="sec-head"><h2>FYI</h2><span class="tag">recently shipped / resolved — no action</span></div>
+    <div class="bar"></div>
+
+    <div class="item dot"><span class="box"></span>
+      <div class="t">A59 leader personality SHIPPED <span class="d" style="display:inline">(marker-0061)</span></div>
+      <div class="d">Every civ gets a leader + a 4-axis personality (aggression/science/growth/defense) — the data foundation the diplomacy AI reads. Golden-neutral in behaviour.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Late-game save loading SHIPPED <span class="d" style="display:inline">(marker-0062)</span></div>
+      <div class="d">Load a hosted-game save in the client, camera recenters on load, dead human seats collapse to AI. Red-first against your real turn-1617 save.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">D3 AI diplomacy — IN BUILD <span class="d" style="display:inline">(marker-0063 incoming)</span></div>
+      <div class="d">The AI now negotiates (war/peace, met-state + first contact). This is where your <strong>mix-conditional elimination</strong> lands (elim rate = f(leader mix)) plus the <strong>space-launch coalition</strong> (a launch turns the others toward the launcher's capital). Code done, in the two-phase golden re-record + mix-conditional sweep.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Server hardening COMPLETE + hardened further</div>
+      <div class="d">docs/17 plan + the v1 safe-to-expose posture, plus added limits.js unit coverage and an X-Frame-Options anti-clickjacking header. Safe on a small public VM with the docs/16 §4 operator checklist.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Mobile network fix COMPLETE</div>
+      <div class="d">Heartbeat + lobby seat-grace + client wake-reconnect: a briefly screen-locked phone reconnects and keeps its LAN seat. This was the "phone stranded in the lobby" failure.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">N9b wonder-drive SHIPPED + validated <span class="d" style="display:inline">(marker-0059)</span></div>
+      <div class="d">Builder capitals commit to wonders (minority, no monopoly). The launch half of ending-#4.</div>
+    </div>
+  </section>
+
+  <section id="park">
+    <div class="sec-head"><h2>Parked / future</h2><span class="tag">on record, mostly no input needed</span></div>
+    <div class="bar"></div>
+
+    <div class="item dot"><span class="box"></span>
+      <div class="t">XII.5 — AI/regency late-game victory drive <span class="d" style="display:inline">(your long-game feedback)</span></div>
+      <div class="d">The regent going "nothing to do" in the end-game is captured — a personality-selected drive (aggressive→conquest with weakest/closest targeting; science/builder→space) so a late-game seat never idles. Specced (<code>specs/xii5-ai-victory-drive.md</code>), queued after D3; a baseline measurement is running. No input needed unless you want the regent to "win by any means" instead of by its civ's personality.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">XII.2 — Future Tech N <span class="d" style="display:inline">(your refinement)</span></div>
+      <div class="d">A repeatable score sink once the tree is exhausted, Civ1-authentic. Specced, queued after D3.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Phase-6 diplomacy D4–D6</div>
+      <div class="d">D1 shipped, D3 in build; D4 (tribute + tech terms), D5 (reputation + senate), D6 (embassies) follow. Pre-ruled defaults on record (docs/14) — no input until they land.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Global "find a game" + internet hosting (A51 master-index)</div>
+      <div class="d">LAN-local find-a-game works; the public master index is gated on you scheduling DNS / a VM (docs/12).</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">16+ civ roster</div>
+      <div class="d">Cap ships at 14 (A38); going past it is a deliberate future scope decision.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Live strategic overlay (🧠 per-AI stance/mode panel)</div>
+      <div class="d">SHIPPED, debug/spectator-gated — makes the heterogeneous-AI work visible during a spectate.</div>
+    </div>
+  </section>
+
+  <footer>
+    Regenerated from <code>human-workitems.md</code>. Open locally, or serve the repo root
+    (<code>python3 -m http.server 8123</code>) and browse to <code>/human-workitems.html</code>.
+  </footer>
+</div>
+</body>
+</html>
