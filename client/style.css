@@ -1723,6 +1723,7 @@ html, body {
 }
 .tt-node .tt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tt-node .tt-state { flex: 0 0 auto; font-weight: bold; }
+.tt-node .tech-glyph { flex: 0 0 auto; width: 26px; height: 26px; }
 /* era-colored left rail (the glyph frame color, Part C reuses these) */
 .tt-node.era-ancient { border-left-color: #b9975b; }
 .tt-node.era-renaissance { border-left-color: #6ba368; }

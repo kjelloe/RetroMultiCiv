@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tech glyph sheet</title>
+<style>
+  body { background: #0a0e16; color: #cdd8ea; font: 13px system-ui, sans-serif; margin: 20px; }
+  h2 { margin: 22px 0 8px; color: #8fa6c8; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .cell { text-align: center; }
+  .cell canvas { display: block; margin: 0 auto 4px; }
+  .cell .nm { font-size: 12px; }
+  .cell .fl { color: #d9a441; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1 style="font-size:17px">Tech glyphs — procedural house style (XII.6 Part C)</h1>
+<p style="color:#7d8aa0">One era-colored frame + a per-tech motif. <span style="color:#d9a441">◆ amber</span> = provisional motif flagged for the ally's design pass.</p>
+<div id="root"></div>
+<script type="module">
+import { drawGlyph, FLAGGED } from '../client/ui/tech-glyphs.js';
+const ERAS = ['ancient', 'renaissance', 'industrial', 'modern'];
+const flagged = new Set(FLAGGED);
+(async () => {
+  const techs = await (await fetch('../data/techs.json')).json();
+  const byEra = {};
+  for (const id of Object.keys(techs)) (byEra[techs[id].era] = byEra[techs[id].era] || []).push(id);
+  const root = document.getElementById('root');
+  for (const era of ERAS) {
+    const ids = (byEra[era] || []).sort();
+    const h = document.createElement('h2'); h.textContent = era + ' (' + ids.length + ')'; root.appendChild(h);
+    const g = document.createElement('div'); g.className = 'grid'; root.appendChild(g);
+    for (const id of ids) {
+      const cell = document.createElement('div'); cell.className = 'cell';
+      const c = drawGlyph(id, era, 88);
+      cell.appendChild(c);
+      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = techs[id].name; cell.appendChild(nm);
+      if (flagged.has(id)) { const f = document.createElement('div'); f.className = 'fl'; f.textContent = '◆ flagged'; cell.appendChild(f); }
+      g.appendChild(cell);
+    }
+  }
+  document.body.setAttribute('data-ready', '1');
+})();
+</script>
+</body>
+</html>

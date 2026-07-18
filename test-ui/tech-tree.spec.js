@@ -28,8 +28,10 @@ test('tech tree: open, node states, click→research, beeline goal', async ({ pa
   await page.locator('#open-tech-tree').click();
   await expect(page.locator('#tech-tree')).toBeVisible();
 
-  // one node per tech, prereq edges drawn, and a fog-honest split of states
+  // one node per tech, each with a procedural glyph, prereq edges drawn, and a
+  // fog-honest split of states
   await expect(page.locator('.tt-node')).toHaveCount(68);
+  await expect(page.locator('.tt-node .tech-glyph')).toHaveCount(68);
   expect(await page.locator('.tt-edge').count()).toBeGreaterThan(50);
   expect(await page.locator('.tt-node.avail').count()).toBeGreaterThan(0);
   expect(await page.locator('.tt-node.locked').count()).toBeGreaterThan(0);

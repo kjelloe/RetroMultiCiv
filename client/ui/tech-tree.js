@@ -8,6 +8,7 @@
 // goal (Part B). Name labels first; glyphs (Part C) layer in later.
 import { nextBeelineStep, goalReached, prereqClosure } from '../../shared/beeline.js';
 import { TECH_BLURBS } from './tech-blurbs.js';
+import { glyphImg } from './tech-glyphs.js';
 
 const ERA_ORDER = ['ancient', 'renaissance', 'industrial', 'modern'];
 const NODE_W = 132, NODE_H = 40, COL_GAP = 56, ROW_GAP = 14, PAD = 40;
@@ -86,6 +87,7 @@ export function initTechTree(ctx) {
     n.style.left = pos[id].x + 'px'; n.style.top = pos[id].y + 'px';
     n.setAttribute('data-id', id);
     n.innerHTML = `<span class="tt-state"></span><span class="tt-name">${esc(techs[id].name)}</span>`;
+    n.insertBefore(glyphImg(id, techs[id].era, 26), n.querySelector('.tt-name'));
     const blurb = TECH_BLURBS[id] || '';
     const pre = (techs[id].prereqs || []).map(p => techs[p] ? techs[p].name : p).join(', ') || 'none';
     n.title = `${techs[id].name} (${techs[id].era}, level ${techs[id].level})`
