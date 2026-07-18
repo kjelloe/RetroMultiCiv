@@ -8,6 +8,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCStats"
@@ -111,7 +112,7 @@ local function refresh()
 				text = ("%s%s - %d cities seen, %d units in sight%s"):format(
 					p.name, stanceTag, cities, units, p.human == true and " (human)" or "")
 			end
-			addRow(order, text, hexColor(p.color or "#888888"))
+			addRow(order, text, hexColor(Palette.displayColor(p.color or "#888888")))
 		end
 	end
 	panel.Size = UDim2.new(0, 460, 0, 40 + order * 20)

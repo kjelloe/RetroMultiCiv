@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local engineModule = require(shared:WaitForChild("index"))
 local aiModule = require(shared:WaitForChild("ai"))
@@ -165,7 +166,7 @@ local function renderStage(view)
 		p.CanQuery = false
 		p.Size = Vector3.new(CELL * 1.1, 0.8, CELL * 1.1)
 		p.CFrame = CFrame.new(o + Vector3.new(c.x * CELL + CELL / 2, 0.6, c.y * CELL + CELL / 2))
-		p.Color = hexColor(view.players[c.owner].color)
+		p.Color = hexColor(Palette.displayColor(view.players[c.owner].color))
 		p.Material = Enum.Material.Neon
 		p.Parent = stage
 	end

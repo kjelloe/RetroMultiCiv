@@ -30,16 +30,16 @@ prefixes) are the handles for twin requests and direction questions.
 | CP12 | research bar + panel (beelines, sliders) | hud/panels | PRESENT — picker + rate steppers (Government panel) + auto-select option (roblox extra) |
 | CP13 | government revolutions UI | panels research tab | PARTIAL — rates + government display present; the REVOLUTION switch flow needs verify/wire |
 | CP14 | end turn + confirm-with-movable-units, E-flow | hud/input | PRESENT — A29 three-state |
-| CP15 | hotseat (multi-human one screen, handoff cover) | handoff.js | N-A-platform PROPOSED — Roblox is one-client-per-player; LAN seats replace it. Confirm ruling |
+| CP15 | hotseat (multi-human one screen, handoff cover) | handoff.js | N-A-platform CONFIRMED @38e36677 — one client per player; LAN seats replace it |
 | CP16 | spectator mode (view-only) | ?spectate=1 | DEFERRED — no Roblox spectate join path (THE LAW: unseated = lobby only); needs a spectate slice |
-| CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | luau/trade.luau twin SHIPPED — annotate |
+| CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | MISSING (client half) — engine works on Roblox already via the twin (caravans CAN establish through any future command path); the UI slice (Establish button on the action bar for caravans-in-city, windfall banner, city-panel route list) queues into batch 5 alongside SO7-SO9 |
 
 ## Screens & overlays
 
 | id | feature | browser home | parity (roblox) |
 |---|---|---|---|
-| SO1 | world MINIMAP click/drag-to-jump (C1) | minimap.js | MISSING — direction Q: ViewportFrame world-copy vs flat Frame grid; want a ruling on the target shape before building |
-| SO2 | breakdown TOOLTIPS (C2) | title attrs | MISSING — no native tooltips on Roblox; direction Q: hover cards (mouse) + long-press (touch)? |
+| SO1 | world MINIMAP click/drag-to-jump (C1) | minimap.js | PRESENT — Minimap.client.luau (flat Frame grid per ruling @38e36677; fog-honest, diff-painted, downsampling, click/drag jump; ViewportFrame = docs/13 polish tier) |
+| SO2 | breakdown TOOLTIPS (C2) | title attrs | PARTIAL — Tooltip.luau (hover 0.35s / long-press 0.5s per ruling) live on the HUD income ledger + city-yields ledger; more surfaces attach incrementally |
 | SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; blurbs empty-tolerant BOTH sides until the ally's lines land (sync flagged) |
 | SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; sync check each pedia change |
 | SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | MISSING — defer candidate (Legend button covers keys; advice content port = later) |
@@ -51,15 +51,15 @@ prefixes) are the handles for twin requests and direction questions.
 | SO11 | SPACESHIP screen (H8) | ship.js | PRESENT — Ship.client.luau (#1370): flat-Frame assembly w/ red-box rule, stats table, two-step launch, rival banners; no-mock + X-close divergences accepted @41a65e71 |
 | SO12 | fast-forward overlay (?age=) | ff-overlay.js + shared/fastforward.js | PARTIAL — function PRESENT (R24 lobby stepper + chunked server ff); progress overlay during the ff wait not built |
 | SO13 | options set | options.js | PARTIAL — autoEnd/autoNext/hideFuture/clock present + roblox extras (look, border art, ride pads, auto-research); tips/discovery-cards/palette rows follow their features |
-| SO14 | accessibility civ-color palette | palette.js | DIRECTION Q (architect marked rule-it): port palette.js tables through hexColor? Roblox colors flow through one map, so the port is cheap once ruled |
-| SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DIRECTION Q: wait for CIV_THEMES (PD hybrid) or port synth cues to Roblox Sound instances now? |
+| SO14 | accessibility civ-color palette | palette.js | PRESENT — Palette.luau (the browser's exact deuteranopia-safe pairs) at all 4 civ-color seams (ViewRenderer, Statistics, Minimap, ReplayTheater) + options row; visual.primary half carried but consumer-less on Roblox |
+| SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |
 | SO16 | mobile: ?mlog overlay, d-pad, touch | mlog.js/dpad.js | N-A-platform CONFIRMED — Roblox native touch + RidePad + long-press already cover it |
 
 ## Multiplayer / server
 
 | id | feature | browser home | parity (roblox) |
 |---|---|---|---|
-| MP1 | LAN lobby create-options + join + seats + kick + chat + skip-vote | lobby.js + server | PARTIAL — R24b: seed/civs/humans/size/maptype/difficulty/age/combat ALL PRESENT (+maxIdle roblox extra); chat DEFERRED (R9 deck-chat ruling), per-seat civ pick DEFERRED (roster slice), skip-vote MISSING (verify need vs regency), kick PRESENT (admin) |
+| MP1 | LAN lobby create-options + join + seats + kick + chat + skip-vote | lobby.js + server | PARTIAL — R24b: seed/civs/humans/size/maptype/difficulty/age/combat ALL PRESENT (+maxIdle roblox extra); chat DEFERRED (R9 deck-chat ruling), per-seat civ pick DEFERRED (roster slice), skip-vote N-A-superseded @38e36677 (R22 idle-regency covers AFK; a griefer-vote case would be a NEW row), kick PRESENT (admin) |
 | MP2 | join codes (boot-entropy fresh) | server/lobby.js | N-A-platform — walk-on pads join in-server; cross-server join is Roblox matchmaking. Resume codes ARE present (MP3) |
 | MP3 | resume-by-gamecode flow | lobby.js L2 | PRESENT — R10 box + GET RESUME CODE + rolling autosave/saved chip |
 | MP4 | AI regency (armed regent, stance select, narration) | regency.js/regent-driver.js | PARTIAL — disconnect+idle+toggle regency PRESENT (R22); regent STANCE SELECT + narration lines not ported |
@@ -67,8 +67,8 @@ prefixes) are the handles for twin requests and direction questions.
 | MP6 | game code fingerprint chip + saved chips | hud | PRESENT — chip + saved chip |
 | MP7 | ruleset-compat pin | engine+server+saves.js | PRESENT — engine-side (marker-0045); R24b saves record difficulty/combat so resume rebuilds identical rules |
 | MP8 | spectator omniscient view | server | DEFERRED — with CP16 |
-| MP9 | master-index global browse | tools/master.js | N-A-platform PROPOSED — Roblox public servers + matchmaking replace the master index. Confirm ruling |
-| MP10 | match-report S1 writer | server | N-A v1 PROPOSED (architect asked) — no filesystem/consent flow on Roblox; a DataStore report writer is possible later if wanted |
+| MP9 | master-index global browse | tools/master.js | N-A-platform CONFIRMED @38e36677 — Roblox public servers/matchmaking are the discovery layer |
+| MP10 | match-report S1 writer | server | N-A v1 CONFIRMED @38e36677 — DataStore writer = post-1.0 candidate |
 
 ## Engine features with no UI (twins already exist — listed so nothing hides)
 

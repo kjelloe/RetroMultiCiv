@@ -2,8 +2,11 @@
 -- button; the full action bar is R5. Reads ClientState.view only.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
+local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCHud"
@@ -22,6 +25,28 @@ status.TextSize = 16
 status.TextXAlignment = Enum.TextXAlignment.Left
 status.Text = "  joining…"
 status.Parent = gui
+status.Active = true -- SO2: tooltip target
+
+-- SO2 (C2 twin): the income ledger on the status line — hover/long-press
+Tooltip.attach(status, function()
+	local view = ClientState.view
+	local me = view ~= nil and view.players[view.you] or nil
+	if me == nil then
+		return ""
+	end
+	local rs = ClientState.rulesets()
+	local shim = { players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, map = view.map }
+	local ok, inc = pcall(techModule.playerIncome, shim, view.you, rs)
+	if not ok or inc == nil then
+		return "income breakdown unavailable"
+	end
+	local tax = me.taxRate or rs.rules.defaultTaxRate or 0
+	local sci = me.sciRate or rs.rules.defaultSciRate or 0
+	return ("income per turn\n  gold %+d (maintenance -%d)\n  bulbs +%d\nrates: tax %d%% sci %d%% lux %d%%\ntreasury %d gold")
+		:format((inc.gold or 0) - (inc.maintenance or 0), inc.maintenance or 0,
+			inc.bulbs or 0, tax, sci, math.max(0, 100 - tax - sci), me.gold or 0)
+end)
 
 local endTurn = Instance.new("TextButton")
 endTurn.Name = "EndTurn"

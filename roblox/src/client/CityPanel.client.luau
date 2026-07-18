@@ -18,6 +18,7 @@ local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
 -- session-E round 13: read-only engine math for the rush-buy price preview
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
+local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityPanel"
@@ -51,6 +52,7 @@ end
 local title = label("Title", 6, 22, "")
 local stats = label("Stats", 30, 16, "")
 local producing = label("Producing", 50, 16, "")
+stats.Active = true -- SO2: tooltip target (attached below openCityId's decl)
 
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -172,6 +174,26 @@ layout.Parent = list
 local openCityId = nil
 local closePanel -- forward-declared: addRow's double-click close needs it
 local lastProdClick = nil -- session-E round 12: double-click select-and-close
+
+-- SO2 (C2 twin): the city-yields ledger on the stats line — worked-tile
+-- totals from the shared cities module (factors, not pipeline)
+Tooltip.attach(stats, function()
+	local view = ClientState.view
+	local city = view ~= nil and openCityId ~= nil and view.cities[openCityId] or nil
+	if city == nil then
+		return ""
+	end
+	local rs = ClientState.rulesets()
+	local shim = { map = view.map, players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, units = view.units, wonders = view.wonders }
+	local ok, y = pcall(citiesModule.cityYields, shim, city, rs)
+	if not ok or y == nil then
+		return "yield breakdown unavailable (fog)"
+	end
+	return ("worked-tile totals\n  food %d  shields %d  trade %d\npop %d - specialists: tax %d sci %d\n(city tile always works free)")
+		:format(y.food or 0, y.shields or 0, y.trade or 0, city.pop or 1,
+			city.taxmen or 0, city.scientists or 0)
+end)
 
 local function sortedIds(t)
 	local ids = {}

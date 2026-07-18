@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
+local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
@@ -252,7 +253,7 @@ local function renderUnits(view)
 		model.Name = id .. "_" .. u.type
 		local top = tileTop(view.map.tiles[u.y * view.map.width + u.x + 1].t)
 		local cx, cz = u.x * TILE, u.y * TILE
-		local ownerColor = hexColor(view.players[u.owner].color)
+		local ownerColor = hexColor(Palette.displayColor(view.players[u.owner].color))
 
 		local disc = Instance.new("Part")
 		disc.Anchored = true
@@ -306,7 +307,7 @@ local function renderCities(view)
 		plaza.Name = "Plaza"
 		plaza.Size = Vector3.new(0.3, TILE * 0.95, TILE * 0.95)
 		plaza.CFrame = CFrame.new(cx, top + 0.15, cz) * CFrame.Angles(0, 0, math.rad(90))
-		plaza.Color = hexColor(view.players[c.owner].color)
+		plaza.Color = hexColor(Palette.displayColor(view.players[c.owner].color))
 		plaza.Material = Enum.Material.SmoothPlastic
 		plaza.Parent = model
 
@@ -409,7 +410,7 @@ applyLookExtras(lookOf())
 -- a look change repaints terrain + cities + units on the next frame
 local lastLook = nil
 game:GetService("RunService").Heartbeat:Connect(function()
-	local look = lookOf()
+	local look = lookOf() .. "|" .. Palette.mode() -- SO14: palette flips repaint too
 	if lastLook ~= nil and look ~= lastLook and ClientState.view ~= nil then
 		renderTerrain(ClientState.view)
 		renderCities(ClientState.view)
