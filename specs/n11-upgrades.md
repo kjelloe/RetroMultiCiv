@@ -36,9 +36,16 @@ Two windows, in order (bugfixer slicing #1440, adopted):
      overlay comment PER ROW (the blockade/settler-upkeep comment
      pattern) — Civ2-authentic-by-table vs original-projection kept
      separate.
-   - Consistency check: where obsoletedBy chains overlap these rows,
-     the upgrade target's enabling tech must match or postdate the
-     obsoleting tech (unit test, not hand-eyeball).
+   - Consistency check (ruled #1456 after a wording contradiction —
+     bugfixer #1455): the FORWARD-UPGRADE invariant is
+     `tgtTech level >= srcTech level` (the target's enabling tech is
+     no earlier than the source's). ALL 12 rows pass. The earlier
+     "postdates the obsoleting tech" wording was wrong: the Civ2
+     table's own funnel pattern (legion→musketeers, where gunpowder
+     precedes legion's conscription obsoletion) shows a source may
+     legitimately funnel into a target that arrived before the
+     source obsoleted. Unit test pins (A) with the funnel
+     counter-example named.
 2. **Command `upgradeUnit { unitId }`** [Civ3-shape; formula = house
    choice, no wiki formula exists]: unit stands in an OWNED city;
    owner knows the successor's tech; cost
