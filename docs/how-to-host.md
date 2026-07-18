@@ -445,6 +445,9 @@ everything after the port):
 | `--max-saves-mb N` | `500`   | `saves/` size budget (MB); same rotation policy.   |
 | `--max-conns N`  | `200`     | Global concurrent WebSocket connections.           |
 | `--max-conns-per-ip N` | `16` | Concurrent connections from one IP.                |
+| `--heartbeat-sec N` | `15`   | ws heartbeat interval; a socket missing `--heartbeat-misses` pongs is dropped (detects a locked/backgrounded phone). |
+| `--heartbeat-misses N` | `2` | Missed pongs before a half-open socket is terminated. |
+| `--seat-grace-sec N` | `45`  | Hold a dropped lobby seat this long (reclaimable by its private reconnect id) before freeing it — a phone keeps its seat across a brief screen-lock. |
 | `--max-games N`  | `50`      | Global concurrent games.                           |
 | `--creates-per-hour N` | `20` | New games created per IP per hour.                 |
 | `--joins-per-min N` | `30`   | Join/reserve attempts per IP per minute.           |

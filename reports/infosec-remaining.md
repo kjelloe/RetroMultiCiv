@@ -102,3 +102,14 @@ MAINTENANCE_CONTACT set. LAN host: defaults are safe.
 - Coordinate through the same agent-mail hub; claim server files by lock
   before editing (the engine lane never touches server/, so contention is
   low).
+
+## STATUS 2026-07-18 — shipped + findings closed
+MERGED to dev_night (hardening lane, small server-only slices): the malformed-
+frame crash fix + maxPayload; the layered command budget (per-seat + all-message
+cap over createCommandBudget); mobile resilience (server heartbeat + lobby
+seat-grace + reconnect id). IN FLIGHT: Slice 3 (per-IP connect-rate + proxy IP,
+Origin allow-list, static headers, backpressure, HTTP timeouts, silent-squatter
+timeout, SIGTERM, boot posture). CLOSED by the helper (H-1 a–d): the earlier
+2026-07-18 review findings (listSaves resume-code disclosure, list private-
+joinCode leak, unthrottled saves scan → 2s-TTL cached, resume crash on corrupt
+save). See docs/16 §2.6 + §3, docs/17 "Shipped".
