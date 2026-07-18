@@ -27,14 +27,6 @@ _Last synced: 2026-07-18._
   _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window
   (code done, mid re-record); it will be the next candidate when green.
 
-- [ ] **Send the designer-ally cover note** —
-  `specs/ally-cover-note-2026-07-17-evening.md`. THREE asks: 68
-  original tech-discovery blurbs (any subset useful — the
-  discovery-card blurb slots sit empty on BOTH browser and Roblox
-  until these land), a Civ1 substitute for Sun Tzu's War Academy in
-  the leader table (it's Civ2), and the small pedia flags
-  (movement/regency concepts, the Oracle ×4 stacking question).
-
 - [ ] **World-look pick (a/b/c)** — a Roblox session: Options → world
   look → flip retro/enhanced live → screenshot both → pick
   retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
@@ -78,6 +70,16 @@ _Last synced: 2026-07-18._
 
 ## FYI — recently shipped / resolved (no action)
 
+- **Designer-ally cover note ANSWERED** — the ally delivered all of it: the
+  **68 original tech-discovery blurbs** (the empty discovery-card slots on
+  browser + Roblox), the **Movement + Regency + Recordings** pedia concepts,
+  ratified the **Oracle ×4** as Civ1-authentic (with a legibility ask), and
+  chose **The Colossus** as Caesar's favorite wonder (Great Wall stays
+  Frederick's). Now being wired in: client copy → helper (#1711),
+  Caesar→Colossus + a `railroad` name fix → engine lane (#1712). Full copy
+  captured in `specs/ally-deliverables-2026-07-18.md`. Also ratified the
+  provenance-label table and the "personality supplies a preference; the
+  world supplies permission" aggression principle.
 - **A59 leader personality SHIPPED** (marker-0061): every civ gets a
   leader + a 4-axis personality (aggression/science/growth/defense) — the
   data foundation the diplomacy AI reads. Golden-neutral in behaviour.
