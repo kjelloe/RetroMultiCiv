@@ -13,7 +13,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 
 const RULESET = require('./ruleset.js');
-const { runSim, checkInvariants, snapshot, loadModules, SIM_ROSTER } = require('./sim-driver.js');
+const { runSim, checkInvariants, checkDeep, snapshot, loadModules, SIM_ROSTER } = require('./sim-driver.js');
 const { replayDiagnostics } = require('../tools/replay.js');
 
 // A38: the roster grew to 14 for scaling runs, but the goldens above run at
@@ -112,6 +112,39 @@ test('the invariant checker passes a healthy state and names seeded defects', ()
   stacked.nextUnitId = 10;
   const stackProblems = checkInvariants(stacked, RULESET);
   assert.ok(stackProblems.some(p => /mixed-owner stack/.test(p)), `missing stack problem in: ${stackProblems}`);
+});
+
+// B28: A79's blockade drops an enemy-occupied tile from candidateTiles BY DESIGN
+// while the manual assignment persists (the citizen idles until the enemy
+// leaves). The deep-audit must allow a manual tile absent from candidates IFF an
+// enemy stands on it — but still flag a plain non-candidate manual tile.
+function blockadeState() {
+  const tiles = [];
+  for (let i = 0; i < 35; i++) tiles.push({ t: 'grassland' }); // 7x5
+  return {
+    version: 1, turn: 5, year: -3920, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 7, height: 5, wrapX: false, tiles },
+    // p2 militia sits on (3,0) = idx 3, a fat-cross tile of c1 — blockading it
+    units: { ue: { id: 'ue', type: 'militia', owner: 'p2', x: 3, y: 0, moves: 1, fortified: false, veteran: false } },
+    // c1 manually works idx 3 (blockaded) and idx 0 = (0,0), a tile at
+    // Chebyshev 3 from the city — outside any fat cross, and no enemy on it
+    cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 3, y: 2, pop: 3, food: 0, shields: 0, buildings: [], workers: [0, 3], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 9, nextCityId: 2,
+    players: {
+      p1: { id: 'p1', name: 'X', color: '#fff', human: false, gold: 10, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'Y', color: '#000', human: false, gold: 10, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 42
+  };
+}
+
+test('B28: the worker invariant allows a blockaded manual tile but still flags a plain non-candidate', async () => {
+  const mods = await loadModules();
+  const problems = checkDeep(blockadeState(), RULESET, mods);
+  assert.ok(!problems.some(p => /manual worker tile 3 /.test(p)),
+    `a blockaded manual tile (idx 3, enemy on it) must be allowed, got: ${problems}`);
+  assert.ok(problems.some(p => /manual worker tile 0 /.test(p)),
+    `a plain non-candidate manual tile (idx 0, off-cross, no enemy) must still be flagged, got: ${problems}`);
 });
 
 test('snapshot: the structured telemetry row carries per-player stats', async () => {

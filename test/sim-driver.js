@@ -343,8 +343,21 @@ function checkDeep(state, ruleset, mods) {
     if (!city || city.workers === undefined) continue;
     const valid = {};
     for (const c of mods.candidateTiles(state, city, ruleset)) valid[c.idx] = true;
+    // B28: A79's blockade drops an enemy-occupied tile from candidateTiles BY
+    // DESIGN while the manual assignment persists (the citizen idles until the
+    // enemy leaves). So a manual tile absent from candidates is allowed IFF an
+    // enemy unit stands on it (mirror the candidateTiles blockade condition); a
+    // plain non-candidate manual tile is still a real bug.
+    const width = state.map.width;
+    const blockaded = {};
+    for (const uid of Object.keys(state.units)) {
+      const u = state.units[uid];
+      if (u.owner !== city.owner) blockaded[u.y * width + u.x] = true;
+    }
     for (const idx of city.workers) {
-      if (valid[idx] !== true) problems.push(`city ${cid}: manual worker tile ${idx} is not a candidate tile`);
+      if (valid[idx] === true) continue;
+      if (blockaded[idx] === true) continue; // blockaded manual tile: allowed (A79)
+      problems.push(`city ${cid}: manual worker tile ${idx} is not a candidate tile (and no enemy blockades it)`);
     }
   }
   return problems;
