@@ -54,6 +54,18 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
   network drop-out blocker is fully fixed (see FYI). Decides whether
   single-player mobile needs a perf pass.
 
+- [ ] **Mobile seated-start RE-TEST (X.6 follow-up).** The hang you saw
+  (phone joined lobby + chatted, but game START showed nothing; spectator
+  worked) did NOT reproduce on an active connection — it's the mobile
+  socket-drop class, and the fixes for it (heartbeat + lobby seat-grace +
+  wake-reconnect, Part A+B+C) shipped AFTER your ~00:00 playtest. Please
+  re-test on your phone. If it STILL hangs at start, add `&mlog=1` (or the
+  overlay now survives the lobby→game reload on its own) and the on-screen
+  log will capture exactly where — send me that. One known residual to
+  watch: if the phone is fully asleep at the *instant* of Start (past the
+  ~45s reclaim), it should land on the "you missed the start" truth screen,
+  NOT a blank — flag if it's blank.
+
 - [ ] **Roblox acceptance (carried):** save `roblox/acceptance/runD.txt`
   and retest the deck-resident avatar flow.
 
