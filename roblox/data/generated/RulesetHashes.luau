@@ -3,7 +3,7 @@
 -- must reproduce these hashes exactly (data-crossing contract).
 return {
 	buildings = "0x26ecb6e9",
-	civs = "0x3d007f9e",
+	civs = "0x41e7a3d8",
 	governments = "0x63112578",
 	rules = "0xed6ef600",
 	techs = "0x9fd04b61",

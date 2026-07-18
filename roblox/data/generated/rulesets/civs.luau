@@ -6,85 +6,129 @@ return [==[{
     "name": "Romans", "color": "#3b7dd8",
     "cities": ["Rome", "Ostia", "Antium", "Cumae", "Pompeii", "Ravenna", "Neapolis", "Verona"],
     "specialty": { "type": "cheapUnit", "unit": "legion", "pct": 25, "blurb": "Legions cost 25% less" },
-    "visual": { "primary": "#B83C3C", "secondary": "#F2C66D", "emblem": "sun" }
+    "visual": { "primary": "#B83C3C", "secondary": "#F2C66D", "emblem": "sun" },
+    "leader": "Caesar",
+    "personality": { "aggression": 75, "science": 10, "growth": 10, "defense": 5 },
+    "favoriteWonder": "great-wall",
+    "favoriteUnit": "legion",
+    "beelineTechs": ["iron-working", "conscription"]
   },
   "babylonians": {
     "name": "Babylonians", "color": "#b13bd8",
     "cities": ["Babylon", "Sumer", "Uruk", "Nineveh", "Ashur", "Akkad", "Eridu", "Lagash"],
     "specialty": { "type": "startTech", "tech": "alphabet", "blurb": "Begin knowing Alphabet" },
-    "visual": { "primary": "#C9822B", "secondary": "#3F2A16", "emblem": "wheel" }
+    "visual": { "primary": "#C9822B", "secondary": "#3F2A16", "emblem": "wheel" },
+    "leader": "Hammurabi",
+    "personality": { "aggression": 10, "science": 70, "growth": 15, "defense": 5 },
+    "favoriteWonder": "great-library"
   },
   "germans": {
     "name": "Germans", "color": "#8a949e",
     "cities": ["Berlin", "Leipzig", "Hamburg", "Bremen", "Frankfurt", "Bonn", "Nuremberg", "Cologne"],
     "specialty": { "type": "veteranUnit", "unit": "musketeers", "blurb": "Musketeers start as veterans" },
-    "visual": { "primary": "#5F6872", "secondary": "#E8EEF2", "emblem": "mountain" }
+    "visual": { "primary": "#5F6872", "secondary": "#E8EEF2", "emblem": "mountain" },
+    "leader": "Frederick",
+    "personality": { "aggression": 10, "science": 10, "growth": 10, "defense": 70 },
+    "favoriteWonder": "great-wall"
   },
   "egyptians": {
     "name": "Egyptians", "color": "#d8b13b",
     "cities": ["Thebes", "Memphis", "Heliopolis", "Elephantine", "Alexandria", "Byblos", "Giza", "Cairo"],
     "specialty": { "type": "startTech", "tech": "ceremonial-burial", "blurb": "Begin knowing Ceremonial Burial" },
-    "visual": { "primary": "#F0E6C8", "secondary": "#2C2C35", "emblem": "tower" }
+    "visual": { "primary": "#F0E6C8", "secondary": "#2C2C35", "emblem": "tower" },
+    "leader": "Ramesses",
+    "personality": { "aggression": 5, "science": 10, "growth": 70, "defense": 15 },
+    "favoriteWonder": "pyramids"
   },
   "americans": {
     "name": "Americans", "color": "#4b6bd8",
     "cities": ["Washington", "New York", "Boston", "Philadelphia", "Atlanta", "Chicago", "Buffalo", "St. Louis"],
     "specialty": { "type": "cheapBuilding", "building": "marketplace", "pct": 25, "blurb": "Marketplaces cost 25% less" },
-    "visual": { "primary": "#218C8C", "secondary": "#FFE0A3", "emblem": "chevron" }
+    "visual": { "primary": "#218C8C", "secondary": "#FFE0A3", "emblem": "chevron" },
+    "leader": "Lincoln",
+    "personality": { "aggression": 25, "science": 25, "growth": 25, "defense": 25 },
+    "favoriteWonder": "isaac-newton-s-college"
   },
   "greeks": {
     "name": "Greeks", "color": "#3bd875",
     "cities": ["Athens", "Sparta", "Corinth", "Delphi", "Eretria", "Pharsalos", "Argos", "Mycenae"],
     "specialty": { "type": "cheapBuilding", "building": "library", "pct": 25, "blurb": "Libraries cost 25% less" },
-    "visual": { "primary": "#1F4F99", "secondary": "#F5D36C", "emblem": "crescent" }
+    "visual": { "primary": "#1F4F99", "secondary": "#F5D36C", "emblem": "crescent" },
+    "leader": "Alexander",
+    "personality": { "aggression": 15, "science": 35, "growth": 45, "defense": 5 },
+    "favoriteWonder": "colossus"
   },
   "indians": {
     "name": "Indians", "color": "#d88fd8",
     "cities": ["Delhi", "Bombay", "Madras", "Bangalore", "Calcutta", "Lahore", "Karachi", "Kolhapur"],
     "specialty": { "type": "cheapBuilding", "building": "temple", "pct": 50, "blurb": "Temples cost 50% less" },
-    "visual": { "primary": "#758A35", "secondary": "#F4E9C1", "emblem": "spiral" }
+    "visual": { "primary": "#758A35", "secondary": "#F4E9C1", "emblem": "spiral" },
+    "leader": "Gandhi",
+    "personality": { "aggression": 5, "science": 15, "growth": 70, "defense": 10 },
+    "favoriteWonder": "michelangelo-s-chapel"
   },
   "russians": {
     "name": "Russians", "color": "#d84a3b",
     "cities": ["Moscow", "Leningrad", "Kiev", "Minsk", "Smolensk", "Odessa", "Sevastopol", "Tbilisi"],
     "specialty": { "type": "veteranUnit", "unit": "riflemen", "blurb": "Riflemen start as veterans" },
-    "visual": { "primary": "#8E2F45", "secondary": "#FFB36B", "emblem": "flame" }
+    "visual": { "primary": "#8E2F45", "secondary": "#FFB36B", "emblem": "flame" },
+    "leader": "Catherine",
+    "personality": { "aggression": 5, "science": 20, "growth": 30, "defense": 45 },
+    "favoriteWonder": "women-s-suffrage"
   },
   "zulus": {
     "name": "Zulus", "color": "#b0632f",
     "cities": ["Zimbabwe", "Ulundi", "Bapedi", "Hlobane", "Isandhlwana", "Intombe", "Mpondo", "Ngome"],
     "specialty": { "type": "veteranUnit", "unit": "militia", "blurb": "Impi: militia start as veterans" },
-    "visual": { "primary": "#7A4B2A", "secondary": "#F0B85A", "emblem": "hammer" }
+    "visual": { "primary": "#7A4B2A", "secondary": "#F0B85A", "emblem": "hammer" },
+    "leader": "Shaka",
+    "personality": { "aggression": 100, "science": 0, "growth": 0, "defense": 0 },
+    "favoriteWonder": ""
   },
   "french": {
     "name": "French", "color": "#6db3f2",
     "cities": ["Paris", "Orleans", "Lyons", "Tours", "Chartres", "Bordeaux", "Rouen", "Avignon"],
     "specialty": { "type": "cheapUnit", "unit": "knights", "pct": 25, "blurb": "Knights cost 25% less" },
-    "visual": { "primary": "#C24C7A", "secondary": "#FFD6E6", "emblem": "diamond" }
+    "visual": { "primary": "#C24C7A", "secondary": "#FFD6E6", "emblem": "diamond" },
+    "leader": "Napoleon",
+    "personality": { "aggression": 35, "science": 15, "growth": 40, "defense": 10 },
+    "favoriteWonder": "j-s-bach-s-cathedral"
   },
   "aztecs": {
     "name": "Aztecs", "color": "#3bc9d8",
     "cities": ["Tenochtitlan", "Teotihuacan", "Tlatelolco", "Texcoco", "Tlaxcala", "Xochicalco", "Tlacopan"],
     "specialty": { "type": "startGold", "gold": 50, "blurb": "Begin with 50 gold in tribute" },
-    "visual": { "primary": "#3F8F4A", "secondary": "#F0E2B6", "emblem": "oak" }
+    "visual": { "primary": "#3F8F4A", "secondary": "#F0E2B6", "emblem": "oak" },
+    "leader": "Montezuma",
+    "personality": { "aggression": 25, "science": 10, "growth": 50, "defense": 15 },
+    "favoriteWonder": "oracle"
   },
   "chinese": {
     "name": "Chinese", "color": "#d8d83b",
     "cities": ["Peking", "Shanghai", "Canton", "Nanking", "Tsingtao", "Hangchow", "Tientsin", "Tatung"],
     "specialty": { "type": "cheapBuilding", "building": "city-walls", "pct": 25, "blurb": "City Walls cost 25% less" },
-    "visual": { "primary": "#6B4BB3", "secondary": "#E6D7FF", "emblem": "star" }
+    "visual": { "primary": "#6B4BB3", "secondary": "#E6D7FF", "emblem": "star" },
+    "leader": "Qin Shi Huang",
+    "personality": { "aggression": 5, "science": 10, "growth": 15, "defense": 70 },
+    "favoriteWonder": "great-wall"
   },
   "english": {
     "name": "English", "color": "#d83b8a",
     "cities": ["London", "Coventry", "Birmingham", "Dover", "Nottingham", "York", "Liverpool", "Brighton"],
     "specialty": { "type": "cheapUnit", "unit": "frigate", "pct": 25, "blurb": "Frigates cost 25% less" },
-    "visual": { "primary": "#2F6FB3", "secondary": "#D9EEF7", "emblem": "wave" }
+    "visual": { "primary": "#2F6FB3", "secondary": "#D9EEF7", "emblem": "wave" },
+    "leader": "Elizabeth",
+    "personality": { "aggression": 10, "science": 40, "growth": 30, "defense": 20 },
+    "favoriteWonder": "magellan-s-expedition"
   },
   "mongols": {
     "name": "Mongols", "color": "#d8703b",
     "cities": ["Samarkand", "Bokhara", "Nishapur", "Karakorum", "Kashgar", "Tabriz", "Kabul"],
     "specialty": { "type": "cheapUnit", "unit": "cavalry", "pct": 25, "blurb": "Cavalry cost 25% less" },
-    "visual": { "primary": "#66AFC2", "secondary": "#1D3340", "emblem": "rune" }
+    "visual": { "primary": "#66AFC2", "secondary": "#1D3340", "emblem": "rune" },
+    "leader": "Genghis Khan",
+    "personality": { "aggression": 90, "science": 0, "growth": 0, "defense": 10 },
+    "favoriteWonder": ""
   }
 }
 ]==]
