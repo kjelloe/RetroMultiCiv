@@ -554,6 +554,64 @@ Fixes, in boot order:
 OPEN (user pick pending): avatar flow at game start — deck-resident
 (pads reachable, possession rides down) vs on-map (plate follows).
 
+### 3t. Session-E + browser-parity catalog (2026-07-18)
+
+A long live-playtest session (rounds 1-23) plus a full pass against
+`specs/browser-feature-catalog.md` — the flat inventory of every
+browser feature, whose parity column the roblox-helper OWNS (annotate
+PRESENT/PARTIAL/MISSING/N-A-platform/DEFERRED, file twin/direction
+requests by row id CP/SO/MP). Design invariant that recurs below:
+world-public reads (score / standings / stats) are fog-safe by the
+browser's own argument, so the SERVER computes them from full state
+and broadcasts; everything a SEAT sees stays `filterView`-filtered.
+
+Server (`GameServer.server.luau`) additions:
+- **R22 idle + AI regency**: `awaySeats` (voluntary or idle-timeout
+  hand-over) counts as absent so the existing regent machinery drives
+  it; `away` protocol message + auto-reclaim on any real command; a
+  host `maxIdleMin` knob; the Hud runs the idle→60s-countdown.
+- **R23 rolling autosave**: every 10 turns after the round wrap,
+  keyed by the docs/07 code; `{t=saved}` chip so a Studio stop loses
+  ≤10 turns. Resume via the R10 lobby box.
+- **R24 starting ages**: lobby age stepper → chunked create-time
+  fast-forward (`luau/fastforward.luau` twin, gate 9) with honest
+  abort; **R24b host-options parity** (difficulty/combat/seed) via
+  `applyRuleOverrides` (merged rules copy + engine rebuild, save/
+  resume-coherent with the marker-0045 rulesetHash pin).
+- **CP16/MP8 spectate** (THE LAW exception, §3e, ruled @d1ce4920):
+  SPECTATE pad + host toggle; spectators get the omniscient
+  `filterView` (twin's nil-seat branch), send nothing but the toggle
+  and `{t=stats}`.
+- **SO7 endscreen / SO9 historian / SO8 stats**: server frames from
+  full state — `{t=endscreen}` scoreBreakdown rows on gameOver,
+  `{t=historian}` standings on ageChanged, a per-round score series
+  pulled by `{t=stats}` (never pushed).
+- **MP11 marathon**: `endYear=9999` override (lobby toggle).
+- **R17 debug menu**: Studio games set `debug` at createGame; the
+  thin-client `DebugMenu` issues ordinary `debug{action}` commands
+  (`luau/debug.luau` twin); `debugUsed` rides the push envelope → a
+  permanent Hud DEBUG chip (hash-watermark honesty).
+
+Client modules (all read the view, act via ordinary commands, so
+golden-safe by construction — the GoTo precedent):
+- `BuildQueue` (CP8), `Ship.client` (SO11), `DiscoveryCard.client`
+  (SO3), `EndScreen.client` / `Historian.client` (SO7/SO9),
+  `AdviceCards.client` (SO5), `Minimap.client` (SO1, flat-Frame grid),
+  `Tooltip` (SO2, hover/long-press), `Palette` (SO14, gate 10),
+  `Legend.client`, `DebugMenu.client` (R17), `SettlerAuto.client`
+  (CP20 automation) — plus ActionBar rows Cities/GoTo/Fort/Pillage/
+  Trade(CP17)/Upgrade(CP18) and card toggles Zz(sentry)/Au(automate).
+- Cross-cutting pattern reused: units that "sleep" out of N-cycling +
+  `movableCount` + `allUnitsDone` — garrisons (R19), sentries and
+  auto-settlers (CP20). Session-local sets on `ClientState` (no engine
+  command); a manual order cancels automation via the `send` hook.
+
+Catalog state after this pass: the parity contract has done a full
+lap — every row PRESENT, PARTIAL-with-plan, DEFERRED-with-reason
+(SO15 audio content, blurb data), or N-A-platform. The one open
+non-gated MISSING is SO17 (strategic overlay), twin APPROVED
+(`luau/strategic.luau`, byte-shaped from `shared/strategic.js`).
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
@@ -575,12 +633,33 @@ architect):
    `F9` (Developer Console — bit us live at runC), `F12` (record),
    `Escape` (Roblox menu, docs/13 standing list). Client keybinds
    must come from the free pool; the taken pool is every hotkey in
-   README "Controls" (currently B G Space X I M R P N F T L C J V K
+   README "Controls" (currently B G Space X I M R O P N F T L C J V K
    + camera Q E WASD).
+7. StepLegality pinned verdicts (`selftest/steplegality.luau`, lune):
+   the one-source tile-entry module behind ride keys / click-move /
+   GoTo / MoveHints — 17 wrap/domain/enemy/fog verdicts pinned so the
+   four call sites can't drift. Self-skips without lune.
+8. Billboard-input lint (`lint.js`, node): a TextButton/ImageButton
+   parented into a BillboardGui must set `<bb>.Active = true` — the
+   session-E "CLOSE does nothing" bug class (PlayerGui ancestry is
+   necessary but not sufficient; Active is the sink).
+9. Fast-forward twin parity (`selftest/fastforward-parity.{mjs,luau}`,
+   node+lune): JS and Luau fast-forward the same seed+probe-age to a
+   byte-identical state hash (`ff-parity 0x…`) — the golden-neutral
+   proof the architect required for the `luau/fastforward.luau` grant.
+10. Palette coverage (`selftest/palette-coverage.mjs`, node): the
+   `Palette.luau` deuteranopia table maps EVERY `civs.json` color +
+   `visual.primary` — a civ recolor / hex typo can't silently
+   un-remap a civ in accessibility mode (browser `test/palette.test.js`
+   twin, text-scan not execution).
 
-What check.sh cannot cover: Luau execution. The only executable proof
-is Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
-done-note, screenshots read and described.
+What check.sh cannot cover: general Luau execution (only the pinned
+lune gates 7 and 9 run Luau headlessly). The full executable proof is
+Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
+done-note, screenshots read and described. Newer client logic modules
+worth pinning if they grow risk: `SettlerAuto` findJob (view-based
+scoring — engine-guarded today, so untested; extract-and-pin if the
+policy gets tuned).
 
 ## 5. R4 acceptance (`acceptance/assemble.js`)
 
