@@ -12,7 +12,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 ## DECIDE / DO (needs you)
 
 - [ ] **Merge the latest consistent marker.** Current candidate:
-  **marker-0060** (D1 diplomacy — war/peace states + declare/offer/
+  **marker-0061** (A59 leader personality — every civ gets a leader + 4-axis personality, the diplomacy-AI foundation; golden-neutral). Supersedes marker-0060 (D1 diplomacy — war/peace states + declare/offer/
   accept/reject + the combat reframe; golden-neutral, phase 6 opens).
   Supersedes 0059 (N9b build-priority + the builder wonder-drive —
   some civs commit to wonders), 0058 (goody huts + leader ransom, N12
