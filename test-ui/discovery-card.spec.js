@@ -41,6 +41,8 @@ test('discovering an advance shows the card; an unlock link opens the pedia', as
   await expect(card).toBeVisible({ timeout: 5000 });
   await expect(card.locator('.dc-head')).toContainText(/discovered|\w/); // the tech name renders
   await expect(card.locator('.dc-era')).toBeVisible();
+  await expect(card.locator('.dc-glyph-slot .tech-glyph')).toBeVisible(); // Part C glyph
+  await page.screenshot({ path: test.info().outputPath('discovery-card.png') });
 
   // an unlock link (when present) deep-links into the pedia
   if (await card.locator('.dc-link').count() > 0) {

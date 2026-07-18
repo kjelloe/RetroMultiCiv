@@ -42,6 +42,8 @@ test('tech tree: open, node states, click→research, beeline goal', async ({ pa
   await page.evaluate(id => document.querySelector(`.tt-node[data-id="${id}"]`).click(), availId);
   await expect(page.locator('.tt-node.current')).toHaveAttribute('data-id', availId);
   await expect(page.locator('#research-label')).not.toContainText('choose');
+  // the research readout carries the current tech's glyph (Part C surface)
+  await expect(page.locator('#research-glyph')).toBeVisible();
 
   // click a DISTANT (locked) node → beeline goal set + its first step issued
   await page.evaluate(() => document.querySelector('.tt-node[data-id="automobile"]').click());

@@ -5,6 +5,7 @@ import { corruptionFor } from '../../engine/government.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
+import { glyphDataURL } from './tech-glyphs.js';
 
 export function initHud(ctx) {
   const { session, renderer, sel } = ctx;
@@ -14,6 +15,14 @@ export function initHud(ctx) {
   const researchFill = document.getElementById('research-fill');
   const researchLabel = document.getElementById('research-label');
   const techs = session.ruleset.techs;
+
+  // the tech glyph for the current research (Part C, one system across surfaces)
+  const researchGlyph = document.createElement('img');
+  researchGlyph.id = 'research-glyph';
+  researchGlyph.alt = '';
+  researchGlyph.style.display = 'none';
+  const researchBar = document.getElementById('research-bar');
+  if (researchBar) researchBar.appendChild(researchGlyph);
 
   // Center messages are transient: gone after 5 s, dismissed early by any
   // click (left or right, anywhere), re-shown when the action repeats.
@@ -114,9 +123,12 @@ export function initHud(ctx) {
       const cost = researchCost(session.state, ctx.HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';
       researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money}`;
+      researchGlyph.src = glyphDataURL(me.researching, techs[me.researching].era, 22);
+      researchGlyph.style.display = 'block';
     } else {
       researchFill.style.width = '0%';
       researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs (+${income.bulbs}) · ${money}`;
+      researchGlyph.style.display = 'none';
     }
   }
 

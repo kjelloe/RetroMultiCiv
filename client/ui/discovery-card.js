@@ -8,6 +8,7 @@
 // read per event, never cached.
 import { TECH_BLURBS } from './tech-blurbs.js';
 import { availableTechs } from '../../engine/tech.js';
+import { glyphImg } from './tech-glyphs.js';
 
 const AUTO_MS = 6000;
 
@@ -59,12 +60,14 @@ export function initDiscoveryCard(ctx) {
     const wantsResearch = me && me.researching === ''
       && availableTechs(state, ctx.HUMAN, session.ruleset).length > 0;
     card.innerHTML = `
-      <div class="dc-head">🔬 ${esc(def.name)} <span class="dc-era">${esc(def.era)}</span></div>
+      <div class="dc-head"><span class="dc-glyph-slot"></span>${esc(def.name)} <span class="dc-era">${esc(def.era)}</span></div>
       ${blurb ? `<div class="dc-blurb">${esc(blurb)}</div>` : ''}
       ${unlocks.length > 0 ? `<div class="dc-unlocks">unlocks ${unlocks.map(u =>
         `<button class="dc-link" data-cat="${u.cat}" data-id="${u.id}">${esc(u.name)}</button>`).join(' ')}</div>` : ''}
       ${wantsResearch ? '<div class="dc-research">🔬 Choose new research — press T or click the research bar</div>' : ''}
       <div class="dc-hint">click to dismiss</div>`;
+    const slot = card.querySelector('.dc-glyph-slot');
+    if (slot) slot.appendChild(glyphImg(techId, def.era, 30));
     card.addEventListener('click', e => {
       const link = e.target.closest('.dc-link');
       if (link && ctx.pedia) {

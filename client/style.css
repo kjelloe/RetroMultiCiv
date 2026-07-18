@@ -101,6 +101,16 @@ html, body {
   border-color: #3b5d8f;
 }
 
+#research-glyph {
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  z-index: 1;
+  pointer-events: none;
+}
+
 /* A57: the left stack — a flex COLUMN anchored bottom-left. Panels are static
    flex children (order in the DOM: Controls, Map overlays, Turn log — the A45
    top→bottom order), so an expanded panel PUSHES its neighbors up instead of
@@ -1304,6 +1314,8 @@ html, body {
   cursor: pointer;
 }
 #discovery-card .dc-head { font-size: 15px; color: #ffe066; }
+#discovery-card .dc-glyph-slot { display: inline-block; vertical-align: middle; margin-right: 7px; }
+#discovery-card .dc-glyph-slot .tech-glyph { width: 30px; height: 30px; vertical-align: middle; }
 #discovery-card .dc-era {
   font-size: 11px; color: #8fa8cc; border: 1px solid #2c4770;
   border-radius: 8px; padding: 0 6px; margin-left: 6px; vertical-align: middle;
