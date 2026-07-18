@@ -51,11 +51,11 @@ _Last synced: 2026-07-18._
   **benchmark corpus #2** (the primary AI metric). Try **Marathon mode**
   (the "play until victory" checkbox) if you want to see the late game.
 
-- [ ] **Mobile render check (T0) — fold into the playtest.** From your
-  phone: does the world render at all / rough fps while panning /
-  first 2-3 broken things. That's the only open mobile *render* question —
-  the network drop-out blocker is fully fixed (see FYI). Decides whether
-  single-player mobile needs a perf pass.
+- [ ] **Mobile T0 — mostly PASSES; one gap.** You confirmed on your phone:
+  map navigation (direct + d-pad), zoom in/out, screensaver-resume, AND AI
+  regency all work. The one untested piece: **moving units + selecting
+  production** on mobile. The helper is verifying + hardening that touch
+  flow (#1736); test it yourself next session too. Closes T0.
 
 - [ ] **Mobile seated-start RE-TEST (X.6 follow-up).** The hang you saw
   (phone joined lobby + chatted, but game START showed nothing; spectator
