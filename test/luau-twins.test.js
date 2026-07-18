@@ -297,3 +297,33 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
         `${t}: Luau must hash the world as ${h} — harness said:\n${res.stdout}`);
     }
   });
+
+// FF-PARITY (architect grant @0acb4ef4 condition c, registered #1499): the
+// cross-language fast-forward proof. roblox/selftest/fastforward-parity.{mjs,luau}
+// each run a fixed-seed short probe age (25 turns + the ancient grant, the same
+// loop/grant code as any turn count) and print one `ff-parity 0x... turn N grant N`
+// line. The two must be BYTE-IDENTICAL and equal the pin. The pin moved
+// 0x833b415c -> 0x61138a4f in the N13/A4 goody-hut window (rules.json + units.json
+// changed the rulesetHash stamped at createGame — the standard createGame ripple);
+// re-pin here whenever a ruleset window moves it.
+const FF_PARITY_PIN = 'ff-parity 0x61138a4f turn 25 grant 22';
+test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
+    const line = out => {
+      const m = (out || '').match(/ff-parity 0x[0-9a-f]{8} turn \d+ grant \d+/);
+      return m ? m[0] : null;
+    };
+    const js = spawnSync('node', ['roblox/selftest/fastforward-parity.mjs'],
+      { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+    assert.strictEqual(js.status, 0, `JS ff-parity selftest failed:\n${js.stdout}\n${js.stderr}`);
+    const luau = spawnSync('lune', ['run', 'roblox/selftest/fastforward-parity.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 120000 });
+    assert.strictEqual(luau.status, 0, `luau ff-parity selftest failed:\n${luau.stdout}\n${luau.stderr}`);
+
+    const jsLine = line(js.stdout), luauLine = line(luau.stdout);
+    assert.ok(jsLine, `JS selftest printed no ff-parity line:\n${js.stdout}`);
+    assert.strictEqual(luauLine, jsLine,
+      `ff-parity diverged: JS "${jsLine}" != luau "${luauLine}" — the fast-forward twin broke`);
+    assert.strictEqual(jsLine, FF_PARITY_PIN,
+      `ff-parity moved off its pin — if a ruleset window moved it, re-record ${FF_PARITY_PIN}`);
+  });

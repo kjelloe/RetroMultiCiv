@@ -521,7 +521,9 @@
       "mineDoor": "#17130e",
       "mineBeam": "#6b4a2a",
       "fieldPatch": "#59a03e",
-      "foam": "#dcecf2"
+      "foam": "#dcecf2",
+      "hutWall": "#b08d5a",
+      "hutRoof": "#c9a94c"
     },
     "placement": {
       "procedural": true,
