@@ -1767,3 +1767,78 @@ html, body {
 .pedia-req { color: #9fb3d0; margin: 8px 0; }
 .pedia-link { color: #7fb0ff; cursor: pointer; text-decoration: underline dotted; }
 .pedia-link:hover { color: #a8ccff; }
+
+/* ============ portrait layout pass (specs/mobile-plan.md T2 scope) ==========
+   Media-query gated: desktop widths render PIXEL-IDENTICAL (nothing outside
+   this block changes). Phone-portrait comfort: the HUD becomes a top strip,
+   floating panels become full-screen sheets, the bottom dock becomes a
+   horizontally scrollable 44px action strip, the reference overlays go
+   full-screen, and the setup card uses the whole width. */
+@media (max-width: 720px) {
+  /* top row 1: the research bar (left) + corner buttons (right); the HUD
+     strip becomes row 2 — no more center-bar bleed-through */
+  #research-bar {
+    top: 4px; left: 6px; right: 136px;
+    width: auto; transform: none; z-index: 21;
+  }
+  #corner-buttons { top: 4px; right: 8px; z-index: 21; }
+  #hud {
+    top: 36px; left: 0; right: 0;
+    border-radius: 0; border-width: 1px 0;
+    font-size: 12px; line-height: 1.45; padding: 6px 8px;
+  }
+
+  /* the minimap earns its phone home here (C1 deferred it): smaller, above
+     End Turn instead of over it */
+  #minimap { width: 112px; right: 8px; bottom: 118px; }
+
+  /* left stack: clear of the action strip; panels cap to the viewport */
+  #left-stack { bottom: 84px; left: 6px; gap: 4px; }
+  #turn-log { max-width: 92vw; max-height: 38vh; }
+  #help { max-height: 46vh; }
+
+  /* floating panels -> full-screen sheets (the ✕ is the close affordance) */
+  .panel {
+    top: 0; left: 0; right: 0; bottom: 0;
+    transform: none;
+    min-width: 0; max-width: none; max-height: none;
+    border-radius: 0; border: none;
+  }
+  #city-body { flex-direction: column; }
+  #city-left { min-width: 0; }
+  .city-nav { min-width: 44px; min-height: 44px; }
+  .panel-close { min-width: 44px; min-height: 44px; }
+
+  /* the bottom dock: a full-width scrollable strip with 44px targets */
+  #unit-dock {
+    left: 0; right: 0; bottom: 0;
+    transform: none;
+    align-items: stretch; gap: 2px;
+  }
+  #unit-line { align-self: center; }
+  #action-bar {
+    flex-wrap: nowrap; justify-content: flex-start;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    max-width: none;
+    background: rgba(8, 12, 20, 0.78);
+    padding: 4px 6px calc(4px + env(safe-area-inset-bottom));
+  }
+  #action-bar button { flex: 0 0 auto; min-height: 44px; }
+
+  /* End Turn + the d-pad ride above the strip */
+  #end-turn { right: 8px; bottom: 64px; min-height: 44px; z-index: 7; }
+
+  /* reference overlays: full-screen sheets */
+  #pedia-frame, #ship-frame { width: 100vw; height: 100vh; border-radius: 0; }
+  #pedia-body { grid-template-columns: 84px 132px 1fr; font-size: 12px; }
+  #ship-body { grid-template-columns: 1fr; overflow-y: auto; }
+  #ship-diagram { min-height: 46vh; border-right: none; border-bottom: 1px solid #24344f; }
+
+  /* setup/lobby card: the whole width is the card */
+  #setup-box, #handoff-box { min-width: 0; width: 94vw; padding: 16px 12px; }
+  .setup-hint { max-width: none; }
+}
+@media (max-width: 720px) and (pointer: coarse) {
+  /* keep the d-pad clear of the taller strip on phones */
+  #dpad { bottom: 128px; }
+}

@@ -11,3 +11,7 @@
 - Synthetic PointerEvents carry no active pointer id: element handlers that
   call setPointerCapture must guard it (minimap does), and specs dispatching
   pointerdown should not rely on capture semantics.
+- **PNG byte-compare of live client scenes is meaningless**: two shots of the
+  SAME code differ (anim.js clock noise on the canvas — measured, T1
+  2026-07-18). For layout claims assert computed styles / bounding rects;
+  only gallery.html at rest pose is byte-comparable.
