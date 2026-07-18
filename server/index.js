@@ -20,7 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
-import { createLimiter, createCommandBudget } from './limits.js';
+import { createLimiter, createCommandBudget, createBudgets } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -80,6 +80,10 @@ export function startServer(opts) {
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
   const limiter = createLimiter({ now, limits: opts.limits });
+  // docs/17 layered budget (primary layer over the per-connection
+  // createCommandBudget backstop): per-SEAT command buckets + a per-connection
+  // all-message cap. Clock-injectable; swept + cleaned up alongside the limiter.
+  const budgets = createBudgets({ now, limits: opts.limits });
   // A50 item 3b: lifecycle expiry — an unstarted lobby with no start, and a
   // started game with no live connections, both eventually retire. Generous
   // defaults (LAN never trips them); overridable via opts.lifecycle.
@@ -175,7 +179,8 @@ export function startServer(opts) {
   // maxPayload rejects an oversized frame at the ws protocol layer before the
   // whole payload is buffered — matches protocol.js MAX_FRAME (64 KB).
   const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
-  const conns = new Map(); // ws -> { budget, gameId?, seat?, playerId?, isCreator? }
+  const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
+  let connSeq = 0;         // stable per-connection id for the all-message bucket
 
   function send(ws, msg) {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -226,6 +231,7 @@ export function startServer(opts) {
   function closeGame(gameId, reason) {
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'gameClosed', gameId, reason });
     registry.remove(gameId); // the on-disk save survives — abandoned games stay resumable by code
+    budgets.dropGame(gameId); // release this game's per-seat command buckets
     delete emptySince[gameId];
   }
   // S1 (specs/match-report-corpus.md): one report per finished game, written
@@ -278,6 +284,7 @@ export function startServer(opts) {
   }
   function maintenanceSweep() {
     limiter.sweep();
+    budgets.sweep();
     rotateSaves();
     writeMatchReports();
     const t = now();
@@ -610,7 +617,7 @@ export function startServer(opts) {
     if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
-    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }) });
+    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq) });
     // A ws protocol error (oversized frame past maxPayload, malformed framing)
     // emits 'error'; WITHOUT a listener Node throws and crashes the whole
     // server — one bad client could take it down. ws closes that socket itself;
@@ -620,6 +627,7 @@ export function startServer(opts) {
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
       conns.delete(ws); // first, so presence/eligibility no longer count us
+      if (info && info.cid) budgets.dropConn(info.cid); // release the all-message bucket
       if (info && info.gameId) {
         const e = registry.entryOf(info.gameId);
         if (e && e.status === 'lobby' && info.seat) {
@@ -636,6 +644,17 @@ export function startServer(opts) {
       if (!parsed.ok) { send(ws, { t: 'rejected', commandId: -1, code: parsed.code }); return; }
       const msg = parsed.msg;
       const info = conns.get(ws);
+      // docs/17 layered budget: a per-connection ALL-MESSAGE cap over EVERY
+      // frame type (ping/list/vote/cmd/...) so no socket saturates the loop with
+      // cheap non-cmd frames. Over budget -> cheap drop; reply throttled 1/sec.
+      if (info && info.cid && !budgets.message(info.cid).ok) {
+        const nowMs = Date.now();
+        if (info.lastMsgRejectAt === undefined || nowMs - info.lastMsgRejectAt >= 1000) {
+          info.lastMsgRejectAt = nowMs;
+          send(ws, { t: 'rejected', commandId: -1, code: 'rateLimited' });
+        }
+        return;
+      }
       if (msg.t === 'ping') { send(ws, { t: 'pong' }); return; }
       if (msg.t === 'list') {
         // H-1 (b): joinCode enumerates ONLY for public lobbies — handing a
@@ -826,7 +845,7 @@ export function startServer(opts) {
             // preserve the command budget across the kick — replacing the record
             // wholesale would drop info.budget and wave every subsequent frame
             // from a kicked-then-flooding socket past the budget (reviewer #1348).
-            conns.set(o, { budget: (conns.get(o) || {}).budget }); // no longer in this lobby
+            conns.set(o, { budget: (conns.get(o) || {}).budget, cid: (conns.get(o) || {}).cid }); // no longer in this lobby (keep budget + message-bucket id)
             break;
           }
         }
@@ -871,6 +890,15 @@ export function startServer(opts) {
       const e = registry.entryOf(gameId);
       if (!e || !e.game) {
         send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'noGame' });
+        return;
+      }
+      // docs/17 layered budget: the SEAT bucket (PRIMARY) — shared across every
+      // socket holding this seat's token, so a second socket/reconnect cannot
+      // buy extra budget (the multi-socket bypass the per-connection backstop
+      // above misses). endTurn draws its own tighter bucket.
+      const seatPid = e.game.seatOf(msg.token);
+      if (seatPid !== null && !budgets.seatCmd(gameId, seatPid, msg.t === 'endTurn' ? 'endTurn' : 'cmd').ok) {
+        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'rateLimited' });
         return;
       }
       const out = route(e.game, msg);

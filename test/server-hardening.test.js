@@ -1,6 +1,8 @@
-// Hardening lane regression guards (docs/17), over a real socket. Slice 1:
-// the malformed-frame crash fix + the kick-path budget preserve. Later slices
-// add their own rows here.
+// Hardening lane regression guards (docs/17), over a real socket.
+// Slice 1: malformed-frame crash fix + kick-path budget preserve.
+// Slice 2: the layered budget — per-seat command bucket (shared across a seat's
+//   sockets), the per-connection all-message cap, and endTurn's tighter bucket.
+// Later slices add their own rows here.
 const test = require('node:test');
 const assert = require('node:assert');
 const RULESET = require('./ruleset.js');
@@ -81,4 +83,56 @@ test('Slice 1: kick preserves the command budget (a kicked-then-flooding socket 
     const rl = await ada.expect(m => m.t === 'rejected' && m.code === 'rateLimited');
     assert.strictEqual(rl.code, 'rateLimited', 'budget survives the kick');
   } finally { host.close(); ada.close(); await s.close(); }
+});
+
+test('Slice 2: the per-seat command bucket binds and is SHARED across two sockets on one seat', async () => {
+  const { startServer } = await import('../server/index.js');
+  // seat bucket is the binding layer; the per-connection backstop is set high
+  const s = await startServer(base({ gameId: 's2a', limits: {
+    seatCmdBurst: 4, seatCmdRefillPerSec: 1, cmdBurst: 1000, cmdRefillPerSec: 1000, msgBurst: 1000, msgRefillPerSec: 1000
+  } }));
+  const a = await connect(s.port), b = await connect(s.port);
+  try {
+    a.send({ t: 'join', name: 'Seat' });
+    const j = await a.expect(m => m.t === 'joined');
+    // second socket reconnects onto the SAME seat with the same token
+    b.send({ t: 'join', name: 'Seat', token: j.token });
+    const j2 = await b.expect(m => m.t === 'joined');
+    assert.strictEqual(j2.playerId, j.playerId, 'both sockets share the seat');
+    // the two sockets TOGETHER exceed the shared seat burst (4): the per-seat
+    // bucket rate-limits the combined rate, which a per-connection guard misses
+    const cmd = (c, n) => c.send({ t: 'cmd', token: j.token, commandId: n, cmd: { type: 'wait', unitId: 'u', playerId: j.playerId } });
+    for (let i = 0; i < 4; i++) { cmd(a, i); cmd(b, i); }
+    const rl = await Promise.race([
+      a.expect(m => m.t === 'rejected' && m.code === 'rateLimited'),
+      b.expect(m => m.t === 'rejected' && m.code === 'rateLimited')
+    ]);
+    assert.strictEqual(rl.code, 'rateLimited', 'shared seat bucket rate-limits the combined multi-socket flood');
+  } finally { a.close(); b.close(); await s.close(); }
+});
+
+test('Slice 2: the per-connection all-message cap bounds every frame (a ping flood is rate-limited)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 's2b', limits: { msgBurst: 3, msgRefillPerSec: 1 } }));
+  const c = await connect(s.port);
+  try {
+    for (let i = 0; i < 20; i++) c.send({ t: 'ping' }); // ping is not command-budgeted; the all-message cap catches it
+    const rl = await c.expect(m => m.t === 'rejected' && m.code === 'rateLimited');
+    assert.strictEqual(rl.code, 'rateLimited');
+  } finally { c.close(); await s.close(); }
+});
+
+test('Slice 2: endTurn draws its own tighter per-seat bucket', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 's2c', limits: {
+    endTurnBurst: 2, endTurnRefillPerSec: 1, seatCmdBurst: 1000, seatCmdRefillPerSec: 1000, cmdBurst: 1000, cmdRefillPerSec: 1000
+  } }));
+  const c = await connect(s.port);
+  try {
+    c.send({ t: 'join', name: 'Ender' });
+    const j = await c.expect(m => m.t === 'joined');
+    for (let i = 0; i < 10; i++) c.send({ t: 'endTurn', token: j.token, commandId: i });
+    const rl = await c.expect(m => m.t === 'rejected' && m.code === 'rateLimited');
+    assert.strictEqual(rl.code, 'rateLimited', 'endTurn burst is tighter than cmd');
+  } finally { c.close(); await s.close(); }
 });
