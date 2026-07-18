@@ -79,6 +79,7 @@ do
 			inst.CFrame = CFrame.new(deckSpawn.Position.X + slot * 12,
 				floorTop + 0.06 - inst.Size.Y / 2, deckSpawn.Position.Z)
 			inst.Anchored = true
+			inst.Transparency = 1 -- user request: no spawn plate shows (still functional)
 			slot += 1
 			print("[GameServer] stray SpawnLocation moved onto the deck plane: " .. inst:GetFullName())
 		end

@@ -90,6 +90,10 @@ function M.build()
 	spawnLoc.TopSurface = Enum.SurfaceType.Smooth
 	spawnLoc.Duration = 0
 	spawnLoc.Neutral = true -- everyone spawns here, teams or not
+	-- user request: the spawn plate is INVISIBLE (the deck floor shows
+	-- through) but still physical + a working spawn — Transparency only,
+	-- CanCollide stays true so it catches the spawn like before
+	spawnLoc.Transparency = 1
 	spawnLoc.Parent = folder
 
 	-- session-E (user ruling): the unit ACTION STRIP is REMOVED from the deck
