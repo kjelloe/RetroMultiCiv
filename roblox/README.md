@@ -65,13 +65,18 @@ don't commit it.
    deck pads are WALK-ON: step onto a tile to trigger it (hold-E
    works too), and a pad that doesn't apply right now tells you why
    in a bottom-center message. STEP ON START A NEW GAME to host
-   (60s window: map size / civs / human seats, then START GAME
-   → 30s countdown); JOIN GAME claims a seat while it counts; TAKE
-   OVER AI CIV (during a game) seats you into a random vacant seat.
-   The action strip on the deck (FOUND/FORTIFY/WAIT/IRRIGATE/MINE/
-   ROAD/END TURN) acts on your selected unit the same way.
-   Vacant seats play themselves (regent AI); admins can kick; chat
-   is disabled by design. RESUME: the host's GET RESUME CODE button
+   (60s window: map size / civs / human seats / map type / starting
+   age / difficulty / combat / world seed / marathon / spectators,
+   then START GAME → 30s countdown); JOIN GAME claims a seat while it
+   counts; TAKE OVER AI CIV (during a game) seats you into a random
+   vacant seat; SPECTATE (host-toggleable, view-only) watches the
+   whole world without a seat. A GOTO CAPITOL pad teleports your
+   avatar to your capital. (The old deck action-strip was removed
+   session-E — unit orders live on the in-game action bar below.)
+   Vacant/idle seats play themselves (regent AI — the AI button by
+   End Turn hands your seat over or takes it back, and an idle
+   timeout does it automatically after the host's max-idle minutes);
+   admins can kick; chat is disabled by design. RESUME: the host's GET RESUME CODE button
    saves under the game code (DataStore); type a code into the idle
    lobby panel to resume it — public servers autosave and end 120s
    after the last human leaves. In a game:
@@ -122,7 +127,23 @@ don't commit it.
    row explains its effect in plain language. After a game ends, the
    THEATER button (left edge) replays the whole match on a floating
    mini-stage — scrub rounds, cycle each civ's historical fog, and
-   read the verification verdict. The server prints
+   read the verification verdict. Session-E + browser-parity (SPEC.md
+   §3t): the action bar grew Cities `C`, GoTo `O`, Fort, Pillage,
+   Trade (caravans), and a priced Upgrade; stacked units on a tile
+   get tab cards with A/D/M stats and `Zz` (sentry) / `Au` (settler
+   auto) toggles; garrisons, sentries, and auto-settlers sleep out of
+   `N`-cycling. A left-edge **Legend** button lists every shortcut, so
+   you never have to guess. Other surfaces: a corner minimap
+   (click/drag to jump), hover/long-press tooltips (income + city
+   yields), a per-city build queue (`Q+`), the tech-discovery card,
+   first-timer advice cards, an end screen (score breakdown + victory
+   type) and age-change historian standings, a score-over-time chart
+   in Statistics, the spaceship screen (🚀, once the race exists), a
+   Pedia and Options panel (world look, civ palette for deuteranopia,
+   auto-research, and more), and — in Studio only — a Debug menu whose
+   first use stamps a permanent DEBUG watermark on the game. Rolling
+   autosave every 10 turns; resume by typing the saved code into the
+   idle lobby. The server prints
    `[R4INIT]`/`[R4LOG]`/`[R4CODE]` —
    copy the whole Output into `roblox/acceptance/<run>.txt` and
    verify with `node roblox/acceptance/assemble.js <that file>`
