@@ -27,6 +27,12 @@ _Last synced: 2026-07-18._
   _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window
   (code done, mid re-record); it will be the next candidate when green.
 
+- [ ] **Resume the bugfixer session to finish D3.** D3's code and both
+  verification proofs are done; the session was paused mid-re-record at the
+  operator's request. On resume it bakes the ~19-scenario re-record + hands
+  the sweep to the sim-runner → **marker-0063**. This is the only gate left
+  on D3 (nothing's broken — it's staged).
+
 - [ ] **Forward the tech-glyph motif request to the ally** —
   `specs/ally-glyph-request-2026-07-19.md`. The 68 tech icons are built and
   live in the new tech-tree; ~32 of them are provisional (money/atomic/civic
@@ -89,18 +95,28 @@ _Last synced: 2026-07-18._
   captured in `specs/ally-deliverables-2026-07-18.md`. Also ratified the
   provenance-label table and the "personality supplies a preference; the
   world supplies permission" aggression principle.
+- **Tech tree + beeline + glyphs SHIPPED** (XII.6, your request): a
+  graphical 🌳 tech-tree (era columns, prerequisite edges, ✓/○/· states) in
+  addition to the list, a **beeline** (click a distant tech → it auto-researches
+  the path), and a procedural **icon per tech**. All golden-neutral client.
+  ~32 glyphs are provisional pending the ally motif pass (see Decide/Do).
+- **The 68 tech-discovery blurbs SHIPPED** (ally-authored): the empty
+  discovery-card slots are filled on browser AND Roblox (parity self-test
+  green). Plus the Movement/Regency/Recordings pedia concepts and the
+  Oracle ×4 legibility (the happiness breakdown now reads `Temple +4`).
 - **A59 leader personality SHIPPED** (marker-0061): every civ gets a
   leader + a 4-axis personality (aggression/science/growth/defense) — the
   data foundation the diplomacy AI reads. Golden-neutral in behaviour.
 - **Late-game save loading SHIPPED** (marker-0062): load a hosted-game
   save in the client, camera recenters on load, dead human seats collapse
   to AI. Driven red-first by your real turn-1617 save.
-- **D3 AI diplomacy — IN BUILD** (marker-0063 incoming): the AI now
-  negotiates (war/peace, met-state + first contact), and this is where
-  your **mix-conditional elimination** lands (elim rate = f(leader mix))
-  plus the **space-launch coalition** (a launch turns the others toward
-  the launcher's capital). Behavioral window — code done, in the two-phase
-  golden re-record + a mix-conditional sim-runner sweep.
+- **D3 AI diplomacy — CODE DONE, PAUSED** (marker-0063 pending your
+  resume): the AI negotiates (war/peace, met-state + first contact) — where
+  your **mix-conditional elimination** (elim rate = f(leader mix)) and the
+  **space-launch coalition** land. Code + both my required proofs passed;
+  the bugfixer session was paused mid-re-record at the operator's request.
+  Resumes the final re-record + sim-runner sweep → marker-0063 **when you
+  restart that session** (see Decide/Do — the one gate left on D3).
 - **Server hardening COMPLETE + hardened further**: docs/17 plan + the v1
   safe-to-expose posture, plus added limits.js unit coverage and an
   X-Frame-Options anti-clickjacking header. Safe on a small public VM with

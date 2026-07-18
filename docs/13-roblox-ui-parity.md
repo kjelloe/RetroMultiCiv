@@ -73,6 +73,8 @@ per item; the architect cuts R-items from the tiers in order.
 |---|---|---|
 | Action bar (unit orders) | context buttons near selected unit (BillboardGui or bottom bar): fortify, skip, irrigate/mine/road, disband, GoTo | GoTo needs a target-pick mode like the browser's |
 | Research picker | panel: current tech, bulbs/turn, pick-next list (tech-tree text form first) | the browser's one-ring-ahead rule applies |
+| Tech tree (XII.6) | browser SHIPPED a graphical 🌳 tree (era columns, prereq edges, ✓/○/· states, click-to-research + client-side beeline) + procedural per-tech GLYPHS; Roblox tier = the era-GROUPED-LIST shape (the cheaper fork) + the same glyphs (procedural, port like faction emblems/asset-recipes) | beeline is client-only setResearch commands — no engine change; glyph motifs: 36 solid + ~32 provisional pending the ally motif-concept pass |
+| Tech discovery blurbs (68) | browser + Roblox both wired (ally §B1); Roblox parity self-test gate 11 = "68 blurbs match browser source" | flavor is data (tech-blurbs.js / the Luau port); name/era/unlocks from the ruleset |
 | Tax/science slider | panel slider or +/- steppers; despotism caps enforced by rejection, slider snaps back (A29 lesson) | |
 | Turn log | scrolling side frame, filtered events only; major-event classes from turnlog-classes | the B5 fog rules apply verbatim |
 | Combat odds preview | on hover/long-press of an attackable target: odds + multiplier breakdown Billboard | touch = long-press (mobile-relevant later) |

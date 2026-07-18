@@ -115,7 +115,12 @@ options,lobby,move-hints,wait-status,advice,advice-gate,catalog-text,
 endscreen,ff-overlay,historian,left-stack,overlays,pedia,pedia-concepts,
 regency,regent-driver,replay,replay-events,sound,sound-map,stats,
 stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
-build-queue,automate,debug-panel,strategic-overlay,diplomacy,rejoin}. The
+build-queue,automate,debug-panel,strategic-overlay,diplomacy,rejoin,
+tech-tree,tech-glyphs}. tech-tree = the 🌳 graphical tech-tree overlay +
+client-side beeline (research goal in client state, issues normal
+setResearch — golden-neutral; the DAG-walk is pure in shared/beeline.js);
+tech-glyphs = procedural per-tech icons (era frame + motif, factions.js
+idiom). The
 renderer splits renderer/three/{index,assets,props,terrain,factions,
 overlays,recipes,unit-chrome,anim
 — anim.js is render-time-only motion: clock+position phases, never
@@ -153,7 +158,9 @@ debugging/logs/ with one verdict line each (B0's mechanized form), and
 docs, and `debugging/soundboard.html` (served only under the server's
 `--debug`) plays every synth cue + tune with per-row comment boxes —
 the PERMANENT audio-review tool (user ruling 2026-07-16); new
-SOUND_IDS rows appear automatically. Agents: use these scripts, not hand-composed pipe one-liners —
+SOUND_IDS rows appear automatically, and `debugging/glyph-sheet.html`
+renders the 68 procedural tech glyphs in a labeled grid (provisional
+motifs flagged) — the review tool for the tech-glyphs system. Agents: use these scripts, not hand-composed pipe one-liners —
 inline pipes trigger permission prompts for the user. Play (local engine): `python3 -m http.server 8123` from
 the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..14` (size-capped via rules.maxCivsBySize), `?humans=N` hotseat,
