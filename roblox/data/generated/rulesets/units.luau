@@ -43,7 +43,8 @@ return [==[{
     "domain": "land",
     "notes": "",
     "ignoresZoc": true,
-    "helpsWonder": true
+    "helpsWonder": true,
+    "tradeRoutes": true
   },
   "catapult": {
     "name": "Catapult",
