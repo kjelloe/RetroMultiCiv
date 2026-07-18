@@ -249,11 +249,12 @@ export function initTurnLog(ctx) {
         const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         put(`🐫 ${cityName} — caravan helped build ${wonders[e.wonder].name} (+${e.shields}⚒)`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'tradeRouteEstablished' && e.playerId === ctx.HUMAN) {
-        // A89: own-seat windfall line — amounts + partner (field names are the
-        // draft's PROPOSED shape; inert until the N10 engine emits the event)
+        // A89: own-seat windfall line — amounts + partner (shape CONFIRMED by
+        // the N10 window, bugfixer #1417: { playerId, cityId, partnerCityId,
+        // gold, bulbs }; the engine catches up in the trade.js seam bundle)
         const homeName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
         const partnerName = state.cities[e.partnerCityId] ? state.cities[e.partnerCityId].name : e.partnerCityId;
-        const amounts = e.cash !== undefined ? ` (+${e.cash}💰 +${e.bulbs !== undefined ? e.bulbs : e.cash}🔬)` : '';
+        const amounts = e.gold !== undefined ? ` (+${e.gold}💰 +${e.bulbs !== undefined ? e.bulbs : e.gold}🔬)` : '';
         put(`🐫 ${homeName} opens a trade route with ${partnerName}${amounts}`, 'win', cityLoc(state, e.cityId));
       } else if (e.type === 'wonderBuilt') {
         // wonders are world news (Civ 1 announces them to everyone)

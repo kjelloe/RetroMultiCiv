@@ -238,11 +238,13 @@ export function initPanels(ctx) {
   // A89 (specs/n10-caravans.md): the engine's route-report export, probed at
   // init — the per-route arrows + top-3 ranking are ENGINE math (R1 base-arrow
   // exclusion, live recompute, deterministic tiebreak); the client never
-  // re-derives them. Until the N10 engine half ships the export, the panel
-  // shows partners without arrows. PROPOSED seam (mailed to the window):
-  //   tradeRouteReport(state, city, ruleset) -> [{ partnerCityId, arrows, counted }]
+  // re-derives them. Seam CONFIRMED by the N10 window (bugfixer #1417):
+  //   engine/trade.js tradeRouteReport(state, city, ruleset)
+  //     -> [{ partnerCityId, arrows, counted }] (all routes, state order)
+  // The dynamic probe tolerates checkouts where trade.js or the export does
+  // not exist yet — the panel shows partners without arrows until it does.
   let routeMath = null;
-  import('../../engine/cities.js').then(m => { if (m.tradeRouteReport) routeMath = m; }).catch(() => {});
+  import('../../engine/trade.js').then(m => { if (m.tradeRouteReport) routeMath = m; }).catch(() => {});
   function routesHtml(state, city) {
     const routes = city.tradeRoutes;
     if (routes === undefined || routes.length === 0) return '';
