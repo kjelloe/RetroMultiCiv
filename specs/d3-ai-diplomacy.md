@@ -314,6 +314,12 @@ ai-archetype-endings-vision).
   (specs/leader-attributes.md, docs/14). The mix-conditional elimination +
   space-launch-triggers-war are the USER's ruling (2026-07-18). Adapted to
   integers (state bans floats) and to the D1 omit-safe pair shape.
+- **PROVENANCE LABEL (reviewer #1695):** the wiki dump is Civ1-SILENT on
+  diplomacy — there is NO Diplomacy/Senate/Tribute/Reputation (Civ1) page.
+  So D3's model is **house/original, labeled Civ1-consistent** (Civ2-informed
+  only where a Civ2 page exists), NOT Civ1-authentic. This is expected and
+  fine per the civ-mixing ruling — just label it honestly (do not claim
+  Civ1-authenticity for the relationship model / score thresholds).
 - **Feeds D4** (tribute/tech terms negotiate the demands D3 raises) and
   **D5** (senate reads the war decisions; reputation consequences read the
   relationship values D3 maintains).
