@@ -1445,6 +1445,32 @@ html, body {
   cursor: pointer;
 }
 .setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
+
+/* XII.4: the rejoin banner — a left-behind server game surfaced on setup */
+#rejoin-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(46, 107, 64, 0.22);
+  border: 1px solid #4f9a63;
+  border-radius: 8px;
+  color: #d8f0dc;
+  font-size: 13px;
+}
+#rejoin-banner span { flex: 1 1 auto; }
+#rejoin-go {
+  padding: 6px 14px;
+  background: #2e6b40;
+  border: 1px solid #4f9a63;
+  border-radius: 6px;
+  color: #d8f0dc;
+  font-family: inherit;
+  cursor: pointer;
+}
+#rejoin-go:hover { background: #3f8f58; }
 #lobby-code {
   font-size: 30px;
   letter-spacing: 6px;

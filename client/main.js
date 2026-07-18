@@ -10,6 +10,7 @@ import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
 import { victoryOverrides, DEFAULT_VICTORY } from '../shared/victory-presets.js';
+import { armSessionGuard, maybeShowRejoinBanner } from './ui/rejoin.js';
 import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
@@ -90,6 +91,7 @@ const params = new URLSearchParams(location.search);
 // with ?seed=&civs=&humans= filled in
 if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params.has('server')) {
   showSetupScreen();
+  maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
 const [terrain, units, techs, buildings, wonders, governments, civs, rules] = await Promise.all([
@@ -426,6 +428,10 @@ ctx.stats = initStats(ctx);         // A73-STATS: the statistics page
 ctx.sound = initSound(ctx);         // A77: event sound cues (fog-filtered)
 ctx.advice = initAdvice(ctx);       // A78: first-timer contextual advice
 ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
+// XII.4: in a server game, guard against an accidental leave (mobile back-swipe
+// unloads the page — Part C's reconnect can't help) and remember the seat so the
+// setup screen can offer a one-tap rejoin. Spectators/local games are no-ops.
+if (serverParam && !ctx.SPECTATOR) armSessionGuard({ session, serverParam });
 
 if (renderer.setFactions) renderer.setFactions(factionsByPid);
 // palette pass: a civ-palette mode change re-resolves every visual (the
