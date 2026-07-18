@@ -59,6 +59,7 @@ export function showSetupScreen() {
           <option value="bestof3" selected title="best-of-three: fewer heartbreaking upsets">Best-of-three</option>
         </select>
       </label>
+      <label title="removes the year limit — the game runs until someone wins by conquest or the space race, not the calendar">Marathon (play until victory) <input id="setup-marathon" type="checkbox"></label>
       <label>Starting age
         <select id="setup-age"><option value="ancient" selected>Ancient (4000 BC)</option></select>
       </label>
@@ -357,12 +358,14 @@ export function showSetupScreen() {
     const combat = document.getElementById('setup-combat').value;
     const age = document.getElementById('setup-age').value;
     const maptype = document.getElementById('setup-maptype').value;
+    const marathon = document.getElementById('setup-marathon').checked;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
       + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '')
       + (age !== 'ancient' ? `&age=${age}` : '')
-      + (maptype !== 'continents' ? `&maptype=${maptype}` : '');
+      + (maptype !== 'continents' ? `&maptype=${maptype}` : '')
+      + (marathon ? '&marathon=1' : '');
   });
 
   // --- phase-4 LAN lobby (ui/lobby.js): host with the form's world options,
@@ -377,7 +380,8 @@ export function showSetupScreen() {
       combat: document.getElementById('setup-combat').value,
       seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined,
       age: document.getElementById('setup-age').value, // A20: LAN lobbies inherit it
-      maptype: document.getElementById('setup-maptype').value // A82a
+      maptype: document.getElementById('setup-maptype').value, // A82a
+      marathon: document.getElementById('setup-marathon').checked // no year limit
     };
   }
   document.getElementById('setup-host').addEventListener('click', () => {

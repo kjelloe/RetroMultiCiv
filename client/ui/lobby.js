@@ -405,6 +405,7 @@ export function startHostFlow(box, options, flags) {
       <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
       <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
       <label>List publicly <input id="lobby-public" type="checkbox"></label>
+      <label title="removes the year limit — play until conquest or the space race">Marathon (play until victory) <input id="lobby-marathon" type="checkbox"></label>
       <p class="setup-hint">spectators see the whole map — admit people you'd
         let stand behind your chair; listed games appear on everyone's
         Browse screen, no code needed (both off by default)</p>
@@ -439,6 +440,7 @@ export function startHostFlow(box, options, flags) {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37
     options.public = document.getElementById('lobby-public').checked;   // A41
+    options.marathon = document.getElementById('lobby-marathon').checked; // no year limit
     options.size = document.getElementById('lobby-size').value;
     options.age = document.getElementById('lobby-age').value;
     create(document.getElementById('lobby-name').value.trim() || 'Player 1');

@@ -117,6 +117,10 @@ const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
 if (difficulty !== 'medium') rulesOverrides.contentCitizens = DIFFICULTY[difficulty];
 if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
+// marathon (?marathon=1): remove the score-victory year limit — the game runs
+// until conquest or the space race. endYear lives in ruleset.rules (the sim's
+// --natural shape), so it plumbs as a rulesOverride, not a state field.
+if (params.get('marathon') === '1') rulesOverrides.endYear = 9999;
 ruleset.rules = Object.assign({}, rules, rulesOverrides);
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---

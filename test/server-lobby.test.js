@@ -440,3 +440,27 @@ test('H-1 (b/c): private joinCodes never enumerate; a corrupt save rejects clean
     fs.rmSync(corruptFile, { force: true });
   }
 });
+
+test('marathon option: a lobby created with marathon:true runs endYear 9999', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  try {
+    const host = await connect(s.port);
+    host.send({ t: 'create', name: 'Kjell', options: { civs: 2, humans: 1, size: 'xsmall', seed: 5, marathon: true } });
+    await host.expect(m => m.t === 'created', 'created');
+    host.send({ t: 'start' });
+    const hj = await host.expect(m => m.t === 'joined', 'host joined');
+    assert.strictEqual(hj.rulesOverrides.endYear, 9999, 'marathon removes the year limit');
+
+    // a NON-marathon lobby carries no endYear override (default calendar end)
+    const host2 = await connect(s.port);
+    host2.send({ t: 'create', name: 'Ada', options: { civs: 2, humans: 1, size: 'xsmall', seed: 6 } });
+    await host2.expect(m => m.t === 'created', 'created2');
+    host2.send({ t: 'start' });
+    const hj2 = await host2.expect(m => m.t === 'joined', 'host2 joined');
+    assert.strictEqual(hj2.rulesOverrides.endYear, undefined, 'no marathon = standard endYear');
+    host.close(); host2.close();
+  } finally {
+    await s.close();
+  }
+});

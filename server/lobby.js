@@ -37,6 +37,7 @@ function overridesFor(options) {
   const d = options.difficulty;
   if (d && DIFFICULTY[d] !== undefined && d !== 'medium') o.contentCitizens = DIFFICULTY[d];
   if (options.combat === 'bestof3') o.combatRounds = 3;
+  if (options.marathon === true) o.endYear = 9999; // no year limit — play until victory
   return o;
 }
 
@@ -104,7 +105,8 @@ export function createRegistry(deps) {
         maptype: (ruleset.rules && ruleset.rules.mapTypes && ruleset.rules.mapTypes[options.maptype])
           ? options.maptype : 'continents',
         chat: options.chat !== false, // A37: lobby chat, host-toggleable, default ON
-        public: options.public === true // A41: find-a-game listing, OPT-IN
+        public: options.public === true, // A41: find-a-game listing, OPT-IN
+        marathon: options.marathon === true // no year limit — play until victory
       },
       seats, game: null,
       blockedIps: {} // A37 kick-and-block: per-game, dies with the entry
