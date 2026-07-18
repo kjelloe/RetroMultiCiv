@@ -98,8 +98,8 @@
     </div>
 
     <div class="item"><span class="box"></span>
-      <div class="t">Resume the bugfixer session to finish D3</div>
-      <div class="d">D3's code and both verification proofs are done; the session was paused mid-re-record at the operator's request. On resume it bakes the ~19-scenario re-record + hands the sweep to the sim-runner → <strong>marker-0063</strong>. <span class="flag">The only gate left on D3</span> — nothing's broken, it's staged.</div>
+      <div class="t">Bring the gaming PC back online</div>
+      <div class="d"><span class="flag">Gaming PC appears offline</span> — the sim-runner + roblox-helper have been silent ~2h and the sim-runner never picked up the D3 sweep. That STALLS marker-0063 (the bugfixer is holding phase-2 for the sweep's swept constants) and pauses the Roblox run-F work. Restart the box + the two sessions. The dev-PC lanes (helper, bugfixer) are unaffected.</div>
     </div>
 
     <div class="item"><span class="box"></span>
@@ -162,8 +162,12 @@
       <div class="d">Load a hosted-game save in the client, camera recenters on load, dead human seats collapse to AI. Red-first against your real turn-1617 save.</div>
     </div>
     <div class="item dot"><span class="box"></span>
-      <div class="t">D3 AI diplomacy — CODE DONE, PAUSED <span class="d" style="display:inline">(marker-0063 pending resume)</span></div>
-      <div class="d">The AI negotiates (war/peace, met-state + first contact) — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Code + both required proofs passed; the session was paused mid-re-record at the operator's request. Resumes → marker-0063 when you restart it (Decide/Do).</div>
+      <div class="t">D3 AI diplomacy — PHASE-1 DONE, sweeping <span class="d" style="display:inline">(marker-0063 auto-progressing)</span></div>
+      <div class="d">The AI negotiates (war/peace, met-state + first contact) — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Both proofs passed; phase-1 re-recorded (~16 scenarios + audit ledger, JS==Luau). The sim-runner runs the sweep, then phase-2 → marker-0063 (currently blocked by the gaming-PC outage above).</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">City-look-by-era SHIPPED <span class="d" style="display:inline">(your Roblox run-F item 8)</span></div>
+      <div class="d">City visuals now vary by ERA band (ancient thatch → classical stone+keep → industrial brick+smokestacks → modern/space glass+dome) composing with the size tiers, per the ally's editorial verdict (silhouette not recolor; owner color on the base ring). Render-only, fog-honest. Roblox uses the same shared band contract for item-8 parity.</div>
     </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">Server hardening COMPLETE + hardened further</div>

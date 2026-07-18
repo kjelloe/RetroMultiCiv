@@ -24,14 +24,11 @@ _Last synced: 2026-07-18._
   the diplomacy-AI foundation; golden-neutral), 0060 (D1 diplomacy),
   0059 (N9b wonder-drive), 0058, and everything since. Merging is your
   GREEN LIGHT for the mobile + LAN testing round.
-  _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window
-  (code done, mid re-record); it will be the next candidate when green.
-
-- [ ] **Resume the bugfixer session to finish D3.** D3's code and both
-  verification proofs are done; the session was paused mid-re-record at the
-  operator's request. On resume it bakes the ~19-scenario re-record + hands
-  the sweep to the sim-runner → **marker-0063**. This is the only gate left
-  on D3 (nothing's broken — it's staged).
+  _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window,
+  now auto-progressing (phase-1 re-record done + audit-ledger + proofs
+  passed; the sim-runner is running the constant sweep → phase-2 →
+  marker-0063). No user action to get there — it's the next candidate
+  once the sweep + phase-2 land.
 
 - [ ] **Forward the unit + building pedia-blurb request to the ally**
   (from your Roblox run-F item 9). Like the 68 tech blurbs, but a short
@@ -110,13 +107,18 @@ _Last synced: 2026-07-18._
 - **Late-game save loading SHIPPED** (marker-0062): load a hosted-game
   save in the client, camera recenters on load, dead human seats collapse
   to AI. Driven red-first by your real turn-1617 save.
-- **D3 AI diplomacy — CODE DONE, PAUSED** (marker-0063 pending your
-  resume): the AI negotiates (war/peace, met-state + first contact) — where
-  your **mix-conditional elimination** (elim rate = f(leader mix)) and the
-  **space-launch coalition** land. Code + both my required proofs passed;
-  the bugfixer session was paused mid-re-record at the operator's request.
-  Resumes the final re-record + sim-runner sweep → marker-0063 **when you
-  restart that session** (see Decide/Do — the one gate left on D3).
+- **D3 AI diplomacy — PHASE-1 DONE, sweeping** (marker-0063 auto-
+  progressing): the AI negotiates (war/peace, met-state + first contact) —
+  where your **mix-conditional elimination** and the **space-launch
+  coalition** land. Both proofs passed; phase-1 re-recorded (~16 scenarios,
+  audit ledger, JS==Luau). The sim-runner is running the constant sweep;
+  then phase-2 re-record → marker-0063. No user action needed.
+- **City-look-by-era SHIPPED** (your Roblox run-F item 8): city visuals now
+  vary by ERA band (ancient thatch → classical stone+keep → industrial
+  brick+smokestacks → modern/space glass+dome) composing with the size
+  tiers, per the ally's editorial verdict (silhouette not recolor; owner
+  color on the base ring). Render-only, fog-honest. Roblox uses the same
+  shared band contract for its item-8 parity.
 - **Server hardening COMPLETE + hardened further**: docs/17 plan + the v1
   safe-to-expose posture, plus added limits.js unit coverage and an
   X-Frame-Options anti-clickjacking header. Safe on a small public VM with
@@ -151,10 +153,10 @@ _Last synced: 2026-07-18._
   still alive or had exited when it happened.
 - **Roblox run-F items in progress:** most are roblox-helper's (panels,
   tile improvements, debug/DataStore config, the city-name render fix);
-  the shared ones are routed — **city-look-by-era** (your item 8) is now a
-  browser render feature the helper can build (specs/city-era-looks.md),
-  city-name lists get expanded, and the unit/building blurbs await your
-  ally forward (Decide/Do). No input needed beyond that forward.
+  city-look-by-era (item 8) SHIPPED on the browser (see FYI), the shared
+  contract is ready for the Roblox port; city-name lists get expanded (in
+  the queued data window); the unit/building blurbs await your ally forward
+  (Decide/Do). No input needed beyond that forward.
 - **Phase-6 diplomacy D4–D6:** D1 shipped, D3 in build; D4 (tribute + tech
   terms), D5 (reputation + senate), D6 (embassies) follow. Pre-ruled
   defaults on record (docs/14) — no input needed until they land.

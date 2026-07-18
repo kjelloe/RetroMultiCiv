@@ -261,6 +261,15 @@ The renderer's TERRAIN table lives in `client/renderer/three/terrain.js`
 (heights + palettes); `test/mock-state.test.js` asserts it covers every
 `data/terrain.json` id plus `unknown` — a new terrain needs an entry there
 or it silently renders as grassland.
+City visuals compose SIZE × ERA: `CITY_TIERS` (assets.js) owns count/
+density/height by pop; `shared/city-era.js` (pure, Roblox-portable) owns the
+ERA band — renderer-local ids `ancient`/`classicalMedieval`/`industrial`/
+`modernSpace` derived from the owner's most-advanced tech era (no-tech →
+ancient). It's RENDER-ONLY + fog-honest: `hud.js` annotates the ephemeral
+view (never state/hash), so a rival city under fog defaults to ancient (the
+viewer can't read a rival's techs). `test/city-era.test.js` asserts every
+band has a style + assets.js maps every style key (the terrain-coverage
+pattern). Roblox uses the SAME band ids + era map (docs/13, run-F item 8).
 
 ## Workflow
 
