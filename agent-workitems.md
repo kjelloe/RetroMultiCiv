@@ -3208,7 +3208,7 @@ All numbers wiki-extracted to rules.json/overlays; both engines;
 scenario pins (pollution spawn, cleanup, warming, nuke strike);
 MOVES GOLDENS (AI cities pollute) → full golden window.
 
-## A92 — Debug-command surface (designed with user 2026-07-16; unblocks R7c-17)  [ENGINE HALF DONE 2026-07-18 marker-0057: debug{action} family (grantGold/spawnUnit/grantTech-via-seam/revealMap), debugEnabled at create, PERMANENT debugUsed taint in the hash (scenario 040), golden-neutral verified. REMAINING (helper lane): setup.debug client/server plumbing, game-code DEBUG watermark, gameOver/highscore flag, browser --debug panel; docs/07 watermark note rides that slice.]
+## A92 — Debug-command surface (designed with user 2026-07-16; unblocks R7c-17)  [ENGINE HALF DONE 2026-07-18 marker-0057: debug{action} family (grantGold/spawnUnit/grantTech-via-seam/revealMap), debugEnabled at create, PERMANENT debugUsed taint in the hash (scenario 040), golden-neutral verified. CLIENT HALF DONE 2026-07-18 fb6a523 (helper): setup.debug all three creation paths, permanent watermark hud/toast/endscreen, docs/07 §6, state-gated debug panel. A92 COMPLETE both halves.]
 
 debug:* command family — grantGold, spawnUnit, grantTech,
 revealMap — RECORDED like any command (replays verify hash-exact).
