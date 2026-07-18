@@ -1,0 +1,256 @@
+{
+  "name": "D1: war/peace chain — declare, offer, accept, break",
+  "notes": "declare war -> offer timed peace -> p2 accepts (PEACE_TREATY_SIGNED, expiresTurn) -> p1 breaks it (TREATY_BROKEN + reputation-). Pins the relations entry + the reputation int cross-language.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 10,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 7,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "settlers",
+          "owner": "p2",
+          "x": 5,
+          "y": 3,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Rome",
+          "color": "#00f",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "Egypt",
+          "color": "#f00",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "declare",
+        "playerId": "p1",
+        "target": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "offer",
+        "playerId": "p1",
+        "target": "p2",
+        "terms": {
+          "peace": true,
+          "duration": 20
+        }
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "accept",
+        "playerId": "p2",
+        "target": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "declare",
+        "playerId": "p1",
+        "target": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 11
+    },
+    "hash": "0xe5454e3d"
+  }
+}

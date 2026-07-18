@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 43, 'the forty-three scenarios (041-044 goody huts added in N13/A4)');
+      assert.strictEqual(files.length, 44, 'the forty-four scenarios (012 diplomacy added in D1)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -133,6 +133,7 @@ const PORTED = [
   '009-buy-pillage-disband.json', // P5-5 batch 3: cities + tech
   '010-happiness-government.json', // P5-6 batch 4: government proper
   '002-mapgen-determinism.json', // P5-7 batch 5: mapgen — ALL TEN green
+  '012-diplomacy.json', // D1: war/peace chain (declare/offer/accept/break) + reputation cross-language
   '013-zoc.json', // B18: enemy-city ZOC + ignoresZoc (post-port golden window)
   '014-river.json', // B19: Bridge Building river roads + no river mining
   '015-obsolescence.json', // B13a/A63: units leave the catalog on obsoletedBy tech

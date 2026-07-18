@@ -15,6 +15,7 @@
 local statehash = require("./statehash")
 local visibility = require("./visibility")
 local government = require("./government")
+local diplomacy = require("./diplomacy") -- D1: war-gated blockade
 
 -- 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 local FAT_CROSS = {}
@@ -167,7 +168,9 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 	-- candidate set. Matches engine/cities.js.
 	local blocked = {}
 	for _, u in pairs(state.units or {}) do
-		if u.owner ~= city.owner then
+		-- D1: a foreign unit blockades only at WAR (default). At PEACE trade flows.
+		-- Absent relation = war = unchanged (barbarians stay at war, keep blocking).
+		if u.owner ~= city.owner and diplomacy.relationOf(state, city.owner, u.owner) == "war" then
 			blocked[u.y * width + u.x] = true
 		end
 	end

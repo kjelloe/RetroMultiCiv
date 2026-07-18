@@ -5,6 +5,7 @@
 import { reveal } from './visibility.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 import { rollHut } from './huts.js';
+import { relationOf } from './diplomacy.js';
 
 const DIRS = {
   N: { dx: 0, dy: -1 }, NE: { dx: 1, dy: -1 }, E: { dx: 1, dy: 0 },
@@ -89,6 +90,9 @@ function moveUnit(state, cmd, ruleset) {
   // enemy units on the target tile: this move is an attack, not a move
   const hostiles = unitsAt(state, nx, ny).filter(u => u.owner !== unit.owner);
   if (hostiles.length > 0) {
+    // D1: cannot attack a unit of a civ we are at PEACE with (default war =
+    // unchanged; a same-owner stack can't be hostile so hostiles share one owner).
+    if (relationOf(state, unit.owner, hostiles[0].owner) === 'peace') return { ok: false, reason: 'atPeace' };
     // A69: Civ 1 has no Marines — a unit cannot attack straight off a ship
     // (wiki silent on the explicit rule; no amphibious unit exists). Unload to
     // open land first, then attack next turn.
@@ -127,6 +131,12 @@ function moveUnit(state, cmd, ruleset) {
   const targetCity = cityAt(state, nx, ny);
   const ownAtTarget = unitsAt(state, nx, ny).length > 0
     || (targetCity !== null && targetCity.owner === unit.owner);
+  // D1: cannot capture a city of a civ we are at PEACE with (undefended enemy
+  // cities reach here — defended ones resolve as an attack above, already gated).
+  if (targetCity !== null && targetCity.owner !== unit.owner
+      && relationOf(state, unit.owner, targetCity.owner) === 'peace') {
+    return { ok: false, reason: 'atPeace' };
+  }
   // B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
   // ignoresZoc) — they walk between enemy-controlled tiles freely.
   // B27: entering ANY city square is ZOC-exempt (targetCity !== null) — an own

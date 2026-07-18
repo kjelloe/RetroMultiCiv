@@ -10,6 +10,7 @@ local statehash = require("./statehash")
 local visibility = require("./visibility")
 local combat = require("./combat")
 local huts = require("./huts") -- N13: goody-hut roll on move-into-hut
+local diplomacy = require("./diplomacy") -- D1: the atPeace attack/capture gate
 
 local DIRS: { [string]: { dx: number, dy: number } } = {
 	N = { dx = 0, dy = -1 }, NE = { dx = 1, dy = -1 }, E = { dx = 1, dy = 0 },
@@ -118,13 +119,19 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 
 	-- enemy units on the target tile: this move is an attack, not a move
 	local hostile = false
+	local hostileOwner = nil
 	for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
 		if u.owner ~= unit.owner then
 			hostile = true
+			hostileOwner = u.owner
 			break
 		end
 	end
 	if hostile then
+		-- D1: cannot attack a unit of a civ we are at PEACE with (default war unchanged).
+		if diplomacy.relationOf(state, unit.owner, hostileOwner) == "peace" then
+			return { ok = false, reason = "atPeace" }
+		end
 		-- A69: Civ 1 has no Marines -- a unit cannot attack straight off a ship;
 		-- unload to open land first, then attack next turn.
 		if unit.aboard ~= nil then
@@ -173,6 +180,12 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	local targetCity = combat.cityAt(state, nx, ny)
 	local ownAtTarget = #combat.unitsAt(state, nx, ny) > 0
 		or (targetCity ~= nil and targetCity.owner == unit.owner)
+	-- D1: cannot capture a city of a civ we are at PEACE with (undefended enemy
+	-- cities reach here — defended ones resolve as an attack above, already gated).
+	if targetCity ~= nil and targetCity.owner ~= unit.owner
+		and diplomacy.relationOf(state, unit.owner, targetCity.owner) == "peace" then
+		return { ok = false, reason = "atPeace" }
+	end
 	-- B18: Diplomats, Caravans, and nuclear weapons ignore ZOC (units.json
 	-- ignoresZoc) — they walk between enemy-controlled tiles freely.
 	-- B27: entering ANY city square is ZOC-exempt (targetCity == nil to reject) —

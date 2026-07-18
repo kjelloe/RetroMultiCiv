@@ -73,6 +73,10 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'found' : null;
     case 'ransomPaid': // N13: own-seat — a combat-win-flavoured payout
       return e.playerId === viewer ? 'combat-win' : null;
+    case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
+      // D1 is engine-only: the diplomacy audio cues arrive with the treaty UI in
+      // D2's presentation pass. Deliberately silent for now (explicit decision).
+      return null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }

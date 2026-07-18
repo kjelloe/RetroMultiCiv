@@ -1,6 +1,7 @@
 // Cities: founding, worked-tile yields, growth, and shield production.
 import { reveal } from './visibility.js';
 import { governmentOf, capitalOf } from './government.js';
+import { relationOf } from './diplomacy.js';
 
 // 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 const FAT_CROSS = [];
@@ -132,7 +133,12 @@ function candidateTiles(state, city, ruleset) {
   const blocked = {};
   for (const uid of Object.keys(state.units || {})) {
     const u = state.units[uid];
-    if (u.owner !== city.owner) blocked[u.y * width + u.x] = true;
+    // D1: a foreign unit blockades only at WAR (default). At PEACE trade flows —
+    // the tile is not blocked. Absent relation = war = unchanged (barbarians, never
+    // a diplomacy target, stay at war and keep blockading).
+    if (u.owner !== city.owner && relationOf(state, city.owner, u.owner) === 'war') {
+      blocked[u.y * width + u.x] = true;
+    }
   }
   const candidates = [];
   for (const o of FAT_CROSS) {

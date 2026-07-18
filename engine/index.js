@@ -17,6 +17,7 @@ import * as spaceship from './spaceship.js';
 import * as trade from './trade.js';
 import * as upgrade from './upgrade.js';
 import * as debug from './debug.js';
+import * as diplomacy from './diplomacy.js';
 import { createGame as generateGame } from './mapgen.js';
 
 function deepClone(value) {
@@ -175,6 +176,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'establishTradeRoute') result = trade.establishTradeRoute(next, cmd, ruleset);
     else if (cmd.type === 'upgradeUnit') result = upgrade.upgradeUnit(next, cmd, ruleset);
     else if (cmd.type === 'debug') result = debug.debugCommand(next, cmd, ruleset);
+    else if (cmd.type === 'diplomacy') result = diplomacy.diplomacyCommand(next, cmd, ruleset);
     else result = { ok: false, reason: 'unknownCommand' };
 
     if (!result.ok) return { ok: false, reason: result.reason, state, events: [] };

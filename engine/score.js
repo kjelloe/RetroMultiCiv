@@ -7,6 +7,8 @@
 // and the historian's report render the real arithmetic, never a parallel one.
 // score() is the total; the sum + order are unchanged, so state.winner and the
 // goldens are byte-identical (hash-neutral refactor).
+import { pruneDiplomacy } from './diplomacy.js';
+
 function scoreBreakdown(state, playerId, ruleset) {
   const player = state.players[playerId];
   let citizens = 0;
@@ -52,6 +54,7 @@ function checkGameEnd(state, ruleset, events) {
     if (player.alive !== true) continue; // never participated or already out
     if (!hasAssets(state, pid)) {
       player.alive = false;
+      pruneDiplomacy(state, pid); // D1: drop treaties/offers touching the dead civ (omit-safe: no-op when relations is empty, so the soak is unmoved)
       events.push({ type: 'playerDefeated', playerId: pid });
     }
   }

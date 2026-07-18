@@ -153,9 +153,21 @@ seat's leader character (the regency pattern extends naturally).
 
 ## 8. Slices and gates
 
-1. **D1 — states + declare/offer/accept peace** (engine + fixtures
-   first; golden window; scenario 012-diplomacy pins it). Senate
-   NOT yet; reputation field exists but only records.
+1. **D1 — states + declare/offer/accept peace** — **LANDED 2026-07-18**
+   (spec specs/d1-diplomacy.md). Shipped: omit-safe `state.relations`
+   (sorted-pid-pair key, default war, lazy expiry) + `player.reputation`
+   (record-only); the `diplomacy` command (declare/offer/accept/reject
+   with selfTarget/cannotDiplomacyBarbarians/noSuchOffer/alreadyWar/
+   notYourTurn/atPeace rejections); the combat reframe (`relationOf`
+   gates ATTACK + capture with `atPeace`, and war-gates the A79 blockade;
+   ZOC unchanged); `WAR_DECLARED`/`PEACE_TREATY_SIGNED`/`TREATY_BROKEN`
+   events (UPPER_SNAKE per the ally shapes + the committed D2 client);
+   dead-partner prune on elimination. **GOLDEN-NEUTRAL** (soak/natural/
+   turn-100/witness + A82a/002/checksums unchanged — the default-war
+   reframe + omit-safe state = byte-identical). test/diplomacy.test.js
+   (14) + scenario 012-diplomacy (cross-language, 0xe5454e3d); JS==Luau.
+   **notMet DEFERRED to D2** (R1: no engine met-state — spec §7 listed it
+   but §2 defers it; followed §2). Senate NOT yet; reputation only records.
 2. **D2 — the audience UI** (modal + inline status; golden-safe
    client) + human treaty UI.
 3. **D3 — AI negotiation policy** (table-driven, personality-aware;

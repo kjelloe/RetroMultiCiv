@@ -35,11 +35,14 @@ const EVENT_TYPES = {
   tradeRouteEstablished: 'trade',
   unitUpgraded: 'upgrade',
   debugCommand: 'debug',
-  hutEntered: 'huts', ransomPaid: 'combat'
+  hutEntered: 'huts', ransomPaid: 'combat',
+  // D1 diplomacy: UPPER_SNAKE per the ally-specified shapes (spec §3) + the
+  // committed D2 client classifier — a deliberate family exception to camelCase.
+  WAR_DECLARED: 'diplomacy', PEACE_TREATY_SIGNED: 'diplomacy', TREATY_BROKEN: 'diplomacy'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',
-  'tech', 'government', 'happiness', 'barbarians', 'air', 'score', 'spaceship', 'trade', 'upgrade', 'debug', 'huts'];
+  'tech', 'government', 'happiness', 'barbarians', 'air', 'score', 'spaceship', 'trade', 'upgrade', 'debug', 'huts', 'diplomacy'];
 
 const src = {};
 for (const m of EMITTING) {
@@ -55,7 +58,7 @@ test('every catalog row is emitted by its named engine module', () => {
 
 test('every engine event literal is in the catalog (a new event forces a decision)', () => {
   for (const m of EMITTING) {
-    for (const match of src[m].matchAll(/type: '([a-zA-Z]+)'/g)) {
+    for (const match of src[m].matchAll(/type: '([A-Za-z_]+)'/g)) {
       assert.ok(EVENT_TYPES[match[1]] !== undefined,
         `engine/${m}.js emits '${match[1]}' — add it to the EVENT_TYPES catalog `
         + '(and give classifyEvent + soundForEvent their decisions)');

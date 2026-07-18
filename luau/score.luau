@@ -6,6 +6,8 @@
 -- EXPORTS (stable): score(state, playerId, ruleset), checkGameEnd(state,
 -- ruleset, events), hasAssets(state, playerId).
 
+local diplomacy = require("./diplomacy") -- D1: prune treaties on elimination
+
 -- A73: the score by COMPONENT (population / techs / wonders) — score() is the
 -- total; sum + order unchanged, so state.winner and the goldens are byte-
 -- identical (hash-neutral refactor). The end screen renders the real arithmetic.
@@ -63,6 +65,7 @@ local function checkGameEnd(state: any, ruleset: any, events: any)
 		local player = state.players[pid]
 		if player.alive == true and not hasAssets(state, pid) then
 			player.alive = false
+			diplomacy.pruneDiplomacy(state, pid) -- D1: drop dead-civ treaties/offers (omit-safe: no-op when empty)
 			table.insert(events, { type = "playerDefeated", playerId = pid })
 		end
 	end
