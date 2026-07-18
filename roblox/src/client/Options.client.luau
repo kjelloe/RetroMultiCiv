@@ -258,6 +258,8 @@ local function allUnitsDone(view)
 		if u.owner == view.you then
 			haveAny = true
 			if u.moves > 0 and u.fortified ~= true and u.working == nil
+				and ClientState.sentried[u.id] ~= true
+				and ClientState.autoSettlers[u.id] ~= true -- CP20
 				and not ClientState.isGarrisoned(u) then -- round 19
 				return false
 			end

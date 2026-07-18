@@ -33,10 +33,10 @@ prefixes) are the handles for twin requests and direction questions.
 | CP15 | hotseat (multi-human one screen, handoff cover) | handoff.js | N-A-platform CONFIRMED @38e36677 — one client per player; LAN seats replace it |
 | CP16 | spectator mode (view-only) | ?spectate=1 | PRESENT — SPECTATE deck pad (host toggle, default ON); omniscient filterView via the twin's no-player-row path; sends stay notSeated. LAW amended in SPEC.md per @d1ce4920 |
 | CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | PRESENT — Trade button + windfall banner + tooltip ROUTE REPORT (marker-0054 tradeRouteReport: arrows + over-cap marks) + 6 reject texts |
-| CP18 | unit UPGRADE button (N11 3a, marker-0055 engine: cost display, veteran-carries tooltip, reject texts) | engine/upgrade.js + input.js (K key, priced button, veteran tooltip) | SHIPPED browser 6f30a46 — annotate |
-| CP19 | goody-hut entry + leader-ransom presentation (N13, marker-0058 engine: hut prop, barbleader silhouette, own-seat fog toasts/turnlog) | engine/huts.js + props/turnlog/toasts (hut prop, barbleader gallery row, own-seat fog lines) | SHIPPED browser 6f30a46 — annotate |
-| CP20 | sentry (fog-honest wake radius 2) + settler AUTOMATION (view-based policy, manual-order cancel) (C4) | automate.js | to annotate — direction Q welcome (automation shape on Roblox?) |
-| CP21 | debug panel 🐞 + permanent DEBUG watermark (A92 both halves; taint in hash) | debug-panel.js + hud/saves/endscreen | PRESENT (provisional, architect-noted) — DebugMenu.client.luau + Hud DEBUG chip shipped in batch 7 (767ee95); roblox-helper refines |
+| CP18 | unit UPGRADE button (N11 3a, marker-0055 engine: cost display, veteran-carries tooltip, reject texts) | engine/upgrade.js + input.js (K key, priced button, veteran tooltip) | PRESENT — ActionBar priced Upg button (live upgradeCost, own-city gate, ordinary upgradeUnit command) + 3 reject texts; veteran tooltip = SO2 surface add later |
+| CP19 | goody-hut entry + leader-ransom presentation (N13, marker-0058 engine: hut prop, barbleader silhouette, own-seat fog toasts/turnlog) | engine/huts.js + props/turnlog/toasts (hut prop, barbleader gallery row, own-seat fog lines) | PARTIAL — own-seat hutEntered banners live (advance/gold/mercs/ambush/nothing); hut PROP + barbleader silhouette ride the CP1 props/art pass (user look-approval pending); recipes arrive via the shared bake |
+| CP20 | sentry (fog-honest wake radius 2) + settler AUTOMATION (view-based policy, manual-order cancel) (C4) | automate.js | PRESENT — SENTRY (Zz card toggle, fog-honest radius-2 wake) + settler AUTOMATION (Au card toggle, SettlerAuto.client.luau: view-based road/mine/irrigate/railroad policy, per-view re-check, ordinary commands, manual-order cancel) both shipped per rulings @1e2f43eb/@6679e9c0 |
+| CP21 | debug panel 🐞 + permanent DEBUG watermark (A92 both halves; taint in hash) | debug-panel.js + hud/saves/endscreen | PRESENT — DebugMenu.client.luau (Studio-only thin client) + Hud DEBUG chip; endscreen/save watermark echoes = later polish |
 
 ## Screens & overlays
 
@@ -58,7 +58,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO14 | accessibility civ-color palette | palette.js | PRESENT — Palette.luau (the browser's exact deuteranopia-safe pairs) at all 4 civ-color seams (ViewRenderer, Statistics, Minimap, ReplayTheater) + options row; visual.primary half carried but consumer-less on Roblox |
 | SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |
 | SO16 | mobile: ?mlog overlay, d-pad, touch | mlog.js/dpad.js | N-A-platform CONFIRMED — Roblox native touch + RidePad + long-press already cover it |
-| SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | to annotate — the snapshot twin is shared/strategic.js (soak --stats uses the same fn); Roblox = spectator-gated deck panel candidate |
+| SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | MISSING — no luau/strategic.luau twin yet (checked); a spectator/Studio-gated overlay panel is a real slice needing the twin first. REQUESTING luau/strategic.luau as a golden-neutral export (soak --stats already uses the fn) if the row is wanted; parked pending that + user interest |
 
 ## Multiplayer / server
 
@@ -74,8 +74,8 @@ prefixes) are the handles for twin requests and direction questions.
 | MP8 | spectator omniscient view | server | PRESENT — with CP16 (host setup toggle carries the browser server flag) |
 | MP9 | master-index global browse | tools/master.js | N-A-platform CONFIRMED @38e36677 — Roblox public servers/matchmaking are the discovery layer |
 | MP10 | match-report S1 writer | server | N-A v1 CONFIRMED @38e36677 — DataStore writer = post-1.0 candidate |
-| MP11 | Marathon (play-until-victory) host option — setup + LAN lobby checkbox → rulesOverrides.endYear=9999 | setup.js/lobby.js/server + main.js | to annotate — the option flows through createGame like difficulty/combat; Roblox lobby stepper candidate |
-| MP12 | server hardening: cmd budget (marker-0050) + malformed-frame crash guard + 64KB maxPayload + kick-path budget preserve (slice 1) | server/limits.js + index.js (docs/17 lane) | N-A-platform — Roblox server is Roblox-managed; the game-logic budget rides the twin, transport hardening is platform-provided |
+| MP11 | Marathon (play-until-victory) host option — setup + LAN lobby checkbox → rulesOverrides.endYear=9999 | setup.js/lobby.js/server + main.js | PRESENT — lobby marathon toggle → applyRuleOverrides endYear=9999 (same merged-rules path as difficulty/combat; save/resume + R4INIT carry it) |
+| MP12 | server hardening: cmd budget (marker-0050) + malformed-frame crash guard + 64KB maxPayload + kick-path budget preserve (slice 1) | server/limits.js + index.js (docs/17 lane) | N-A-platform CONFIRMED — Roblox transport/framing is engine-managed (no raw ws, no maxPayload to set); game-logic budgets ride the engine twin. The docs/17 hardening lane has no Roblox surface |
 
 ## Engine features with no UI (twins already exist — listed so nothing hides)
 
