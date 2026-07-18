@@ -235,6 +235,28 @@ export function initPanels(ctx) {
     return 'built: ' + rows.join(' ');
   }
 
+  // C3: the city's build queue — client-side list over logged setProduction
+  // commands (ui/build-queue.js owns storage + the advance-on-completion)
+  function renderQueue(city) {
+    const host = document.getElementById('city-queue');
+    if (!host || !ctx.buildQueue) return;
+    const q = ctx.buildQueue.get(city.id);
+    if (q.length === 0) {
+      host.innerHTML = '<span class="queue-hint">⏭ queue: empty — shift-click a production item to queue it</span>';
+      return;
+    }
+    host.innerHTML = '⏭ queue: ' + q.map((it, i) =>
+      `<span class="queue-item">${i + 1}. ${ctx.buildQueue.itemName(it)}`
+      + `<button class="queue-btn" data-qmove="-1" data-qi="${i}" title="earlier">↑</button>`
+      + `<button class="queue-btn" data-qmove="1" data-qi="${i}" title="later">↓</button>`
+      + `<button class="queue-btn" data-qdrop="${i}" title="remove">✕</button></span>`).join(' ');
+    host.querySelectorAll('.queue-btn').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.qdrop !== undefined) ctx.buildQueue.removeAt(city.id, Number(b.dataset.qdrop));
+      else ctx.buildQueue.move(city.id, Number(b.dataset.qi), Number(b.dataset.qmove));
+      renderQueue(city);
+    }));
+  }
+
   function fillCityPanel() {
     const state = session.state;
     const city = state.cities[openCityId];
@@ -349,6 +371,7 @@ export function initPanels(ctx) {
       buyBtn.addEventListener('click', () =>
         ctx.apply({ type: 'buy', playerId: ctx.HUMAN, cityId: city.id }));
     }
+    renderQueue(city); // C3
     // A97: two-step sell — first click arms (button survives the re-render via
     // sellConfirm), second click within the window emits sellBuilding
     for (const btn of stats.querySelectorAll('.sell-btn')) {
@@ -467,9 +490,16 @@ export function initPanels(ctx) {
       btn.className = 'option'
         + (city.producing.kind === item.kind && city.producing.id === item.id ? ' current' : '');
       btn.innerHTML = label + (sub ? `<div class="fx">${sub}</div>` : '');
-      // second click on the same item = set + close (quick change)
-      btn.addEventListener('click', () =>
-        setProduction(city, item, isDoubleClick(`prod:${item.kind}:${item.id}`)));
+      // second click on the same item = set + close (quick change);
+      // C3: shift-click APPENDS to the city's build queue instead
+      btn.addEventListener('click', ev => {
+        if (ev.shiftKey && ctx.buildQueue) {
+          ctx.buildQueue.add(city.id, item);
+          renderQueue(city);
+          return;
+        }
+        setProduction(city, item, isDoubleClick(`prod:${item.kind}:${item.id}`));
+      });
       prodEl.appendChild(btn);
     };
     const addLocked = (label, techId) => {

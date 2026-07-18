@@ -1605,6 +1605,17 @@ html, body {
   display: none;
 }
 
+/* C3: the per-city build queue line in the city panel */
+#city-queue { font-size: 12px; color: #9fb3d0; margin: 4px 0 6px; }
+#city-queue .queue-hint { color: #6d7f9c; }
+#city-queue .queue-item { margin-right: 10px; white-space: nowrap; }
+.queue-btn {
+  background: none; border: 1px solid #2c4468; border-radius: 3px;
+  color: #8fa8cc; cursor: pointer; font-family: inherit; font-size: 10px;
+  padding: 0 4px; margin-left: 2px;
+}
+.queue-btn:hover { background: #1b2c49; color: #cdd8ea; }
+
 /* C1: the world minimap — bottom-right above End Turn; hidden on coarse
    pointers until the T1 portrait pass decides its mobile home */
 #minimap {
