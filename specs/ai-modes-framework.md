@@ -336,3 +336,44 @@ gameplay awake.")
 objectives → coordinate with land/naval → replace losses/obsolete →
 avoid wasting production where air isn't decisive. Air is "awake" only
 from the third rung, not at construction.
+
+## Mix-conditional outcomes + the space-victory war trigger (user, 2026-07-18)
+
+**Elimination rate is a FUNCTION of the leader/civ personality mix,
+NOT a fixed target.** This RESOLVES the N9b sweep's Finding-2 tension
+(sim-runner #1583: high dg=30 building needed pacification below the
+elim-15 guardrail). That is not a failure — it is the point:
+- **All/mostly aggressive mix** → MORE eliminations by war (high elim
+  is CORRECT; the early-conquest ending).
+- **No aggressive mix** → an ECONOMIC / TECH / SPACE contest: low elim,
+  MORE building + wonders (the pacifist-points and space endings). A
+  peaceful game SHOULD show the 43%-building / low-elim regime the
+  sweep found — that regime is the economic ending, not a
+  guardrail violation.
+CONSEQUENCE for acceptance: the elim BAND is per-MIX, not a universal
+15-40. The N9b/soak gate's 15-40 is the expectation for the STANDARD
+tested mix (2agg/2builder/3bal). A builder-heavy/no-aggressor mix is
+ACCEPTED at low elim + high building; an aggressor-heavy mix at high
+elim. The four endings ARE the elim×mix matrix (archetype/endings
+vision): pacifist-points, early-conquest, economic-builder-late-war,
+space-race climax. The lever's "build when safe, defer when
+threatened" behavior is correct across ALL mixes — only the OUTCOME
+distribution shifts with who's in the game.
+
+**The space-victory war trigger (ending #4's climax, user-described).**
+When a civ LAUNCHES for Alpha Centauri, the others should switch to
+ALL-OUT WAR to destroy the launcher's CAPITAL before the ship arrives
+(capturing the capital destroys the ship — SHIPPED marker-0049). The
+primitives all exist: `launchShip` emits a public `shipLaunched` with
+`arrivalTurn` (launch + flight duration, ~15-20 turns for a decent
+build), and capital-capture-destroys-ship is live. What's MISSING is
+the AI TRIGGER: a "DENY-SPACE-VICTORY" mode (a Victory-Push mirror) —
+on a rival's shipLaunched, if reachable before arrivalTurn, redirect
+force at the launcher's capital; else accept the loss. This is the
+one behavior that makes ending #4 dramatic rather than a quiet
+countdown. Slots LATE in the AI sequence (item 7, wonder/space
+completion) — needs the objective-limited-war machinery (item 4)
+first so "rush that capital" is expressible as an objective. Regency
+inherits it (a regent will defend a human's launch, or race to deny a
+rival's). Fixture: a crafted near-arrival launch + a reachable rival
+capital → the deny-mode redirects.
