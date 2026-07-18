@@ -96,9 +96,10 @@ _Last synced: 2026-07-18._
   graphical 🌳 tech-tree (era columns, prerequisite edges, ✓/○/· states) in
   addition to the list, a **beeline** (click a distant tech → it auto-researches
   the path), and a procedural **icon per tech**. All golden-neutral client.
-  The ally delivered all 32 motif concepts for the provisional glyphs — the
-  helper is now finalizing them + wiring glyphs onto all three surfaces
-  (tree, discovery card, research readout); closes XII.6 end-to-end.
+  The ally's 33 motif concepts are implemented and glyphs now show on all
+  three surfaces (tree, discovery card, research readout) — **XII.6 is
+  COMPLETE end-to-end.** (One glyph, horseback-riding, is flagged as an
+  optional later tighten.)
 - **The 68 tech-discovery blurbs SHIPPED** (ally-authored): the empty
   discovery-card slots are filled on browser AND Roblox (parity self-test
   green). Plus the Movement/Regency/Recordings pedia concepts and the

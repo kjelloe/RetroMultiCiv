@@ -60,6 +60,16 @@ land (kept to one surface until then). Sheet to review the current state:
 
 ---
 
+## IMPLEMENTED 2026-07-19 (helper #1729, commit f661ebe)
+
+All 33 motifs below implemented procedurally in client/ui/tech-glyphs.js
+(provisionals replaced) + glyphs wired onto all THREE surfaces (tech tree
+26px, discovery card 30px, research readout 22px badge). FLAGGED[] empty;
+glyph-sheet all-final. XII.6 (tree + beeline + glyphs) closed end-to-end.
+SOFT FLAG (optional, no rush): `horseback-riding`'s procedural horse-head is
+the weakest read — the one candidate if the ally wants to tighten a single
+glyph in a future pass. Everything else reads cleanly at ~26px.
+
 ## ANSWERED — ally motif concepts (2026-07-19)
 
 All 32 delivered. Original design prose (committable). Design grammar to
