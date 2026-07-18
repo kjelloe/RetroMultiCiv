@@ -64,6 +64,12 @@ the Done log at the bottom.
   or leaning on Civ1-authentic corruption/distance. Default if you
   don't pick: (a) stands.
 
+- [ ] **Fresh LAN playtest on marker-0058+ (recommended)** — huts,
+  caravans, upgrades, the debug panel, and the spaceship screen all
+  shipped tonight without any human having played them; a session
+  (with Shift+D recordings) both field-tests five new systems and
+  seeds benchmark corpus #2.
+
 **HAND TO THE DESIGNER ALLY (cover note ready):**
 - [ ] Send `specs/ally-cover-note-2026-07-17-evening.md` — their
   framework landing (stance-mix v1 shipped on their direction),
