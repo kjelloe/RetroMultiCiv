@@ -123,8 +123,15 @@ LOWER-bldgPct one (selectivity over volume).**
 4. PAYBACK LOGIC: low-yield or soon-to-be-lost cities do NOT sit on
    poor-return infra.
 5. WONDER PARTICIPATION: a MINORITY of eligible civs pursue wonders;
-   builder civs complete ≥1 wonder median seed; NO single civ
-   monopolizes every game's wonders (report which civs).
+   NO single civ monopolizes. BAR = a builder capital BEGINS +
+   PERSISTS on a wonder (producing.kind==='wonder' held across turns
+   at t400) — NOT completion by t400 (completion is horizon-gated,
+   the marathon re-run proves it, like Apollo ~t700). The
+   wonder-drive was buried in the garrison/saturation cascade
+   (Finding-3 bug, #1589) — HOISTED to a first-class capital-intent
+   check (capital + not-threatened + min-garrison-1 + shields +
+   wonder-available + none-in-flight) so a SAFE builder capital
+   commits while its garrison holds at 1 and its other cities expand.
 6. WONDER CANCELLATION: a lost race ends PROMPTLY + cleanly, freeing
    the city for an alternative build.
 7. ELIM median 15-40 at dg=30 (user-widened band; below 15 fails —
