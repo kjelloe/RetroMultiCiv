@@ -31,9 +31,22 @@ committed timeline).
 
 At the production-choice site, when a city would currently pick a
 unit: score each BUILDABLE building by PAYBACK — estimated turns for
-its yield effect to repay its shield cost, computed from the city's
-CURRENT yields via the existing cityYields/tradeArrows seams (reuse,
-never a parallel formula; the #1315 method mechanized). If the best
+its yield effect to repay its shield cost.
+**VALUATION SEAM (ruled #1549, correcting the spec — bugfixer
+Finding-1): cityYields returns ONLY worked-tile food/shields/trade;
+the building's actual value (marketplace taxBonus, library sciBonus,
+bank/university) lives in the INLINE income math in tech.js
+playerIncome.** So the payback denominator is NOT cityYields — it is:
+EXTRACT `cityEconOutput(state, city, me, ruleset) -> gold+bulbs` (the
+verbatim playerIncome inline math) into a helper, reuse it in
+playerIncome (BYTE-NEUTRAL — output identical, proven, so the
+refactor moves no golden) AND in the lever:
+`payback = idiv(cost, max(1, econOut(cityWithBuilding) - econOut(city)))`.
+This honors "no parallel formula" (option B's ai.js re-derivation
+would BE the forbidden parallel formula — the C2/drift class).
+Touches ai.js + tech.js + both luau twins; still behavioral-only (no
+rulesetHash, no upkeep term — buildings are upkeep=0 per #1315).
+Weighting: gold+bulbs 1:1, integer idiv, zero-delta buildings skipped. If the best
 building's payback < PB_MAX (provisional 40), the city builds it
 INSTEAD of the unit — gated by a garrison floor (never displace the
 first defender; reuse the existing garrison-count seam) and an
