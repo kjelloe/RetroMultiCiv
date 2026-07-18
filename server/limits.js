@@ -18,6 +18,8 @@ export const DEFAULT_LIMITS = {
   createsPerHour: 20,   // new games created per IP per hour
   joinsPerMin: 30,      // join/reserve attempts per IP per minute
   chatPerMin: 60,       // chat messages per IP per minute
+  connectsPerSec: 10,   // Slice 3a: per-IP new-connection refill rate (handshake, pre-alloc)
+  connectBurst: 30,     // Slice 3a: per-IP connection-attempt burst
   cmdBurst: 40,         // per-connection command bucket capacity (a busy turn's burst)
   cmdRefillPerSec: 20,  // per-connection sustained commands/sec (LAN-generous; a flood is orders above)
   // docs/17 layered budget (createBudgets) — the PRIMARY layer over the
@@ -83,6 +85,22 @@ export function createLimiter(deps) {
     return { ok: true };
   }
 
+  // Slice 3a: per-IP connect-attempt token bucket — enforced in the WS handshake
+  // (verifyClient) BEFORE the socket is allocated, so open/close churn cannot
+  // pile up ws objects (the concurrency cap alone never trips on short-lived
+  // sockets). O(1); idle buckets swept.
+  const connectBuckets = {}; // ip -> { tokens, last }
+  let connectRejected = 0;
+  function allowConnect(ip) {
+    const cap = cfg.connectBurst, rate = cfg.connectsPerSec, t = now();
+    let b = connectBuckets[ip];
+    if (b === undefined) b = connectBuckets[ip] = { tokens: cap, last: t };
+    if (t > b.last) { b.tokens = Math.min(cap, b.tokens + ((t - b.last) / 1000) * rate); b.last = t; }
+    if (b.tokens >= 1) { b.tokens -= 1; return { ok: true }; }
+    connectRejected += 1;
+    return { ok: false, reason: 'connectRateLimited' };
+  }
+
   // Drop expired window entries so memory stays bounded under connect/disconnect
   // churn (a periodic caller in index.js, and cheap to call).
   function sweep() {
@@ -93,11 +111,14 @@ export function createLimiter(deps) {
       const arr = windows[key].filter(ts => t - ts < w);
       if (arr.length === 0) delete windows[key]; else windows[key] = arr;
     }
+    // Slice 3a: an idle connect bucket (60s untouched) has fully refilled — drop it.
+    for (const ip of Object.keys(connectBuckets)) if (t - connectBuckets[ip].last > 60000) delete connectBuckets[ip];
   }
 
   return {
-    onConnect, onDisconnect, allow, canCreateGame, sweep, cfg,
-    stats: () => ({ totalConns, ips: Object.keys(conns).length, windows: Object.keys(windows).length })
+    onConnect, onDisconnect, allow, allowConnect, canCreateGame, sweep, cfg,
+    counters: () => ({ connectRejected }),
+    stats: () => ({ totalConns, ips: Object.keys(conns).length, windows: Object.keys(windows).length, connectBuckets: Object.keys(connectBuckets).length })
   };
 }
 
@@ -179,4 +200,27 @@ export function createBudgets(deps) {
     counters: () => ({ budgetRejected: rejected }),
     stats: () => ({ buckets: Object.keys(buckets).length })
   };
+}
+
+// Slice 3a: proxy-aware client IP. Behind a reverse proxy every socket's TCP
+// peer is the proxy, so per-IP limits need the FORWARDED client IP — but
+// X-Forwarded-For is client-settable, so it is trusted ONLY when hops>0 AND the
+// immediate peer is private/loopback (the same-box proxy). A direct client's
+// forged XFF is always ignored. Pure + exported for deterministic tests.
+export function isPrivatePeer(ip) {
+  const a = String(ip || '').replace(/^::ffff:/, '');
+  return a === '127.0.0.1' || a === '::1' || a.startsWith('127.')
+    || a.startsWith('10.') || a.startsWith('192.168.')
+    || /^172\.(1[6-9]|2\d|3[01])\./.test(a) || a.startsWith('fc') || a.startsWith('fd');
+}
+export function clientIpFrom(req, hops) {
+  const peer = (req && req.socket && req.socket.remoteAddress) || '';
+  const h = Number(hops) || 0;
+  if (h <= 0 || !isPrivatePeer(peer)) return peer; // direct: never trust XFF
+  const xff = String((req.headers && req.headers['x-forwarded-for']) || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  if (xff.length === 0) return peer;
+  const chain = xff.concat(peer);          // [client, ...proxies, peer]
+  const idx = chain.length - 1 - h;
+  return idx >= 0 ? chain[idx] : chain[0];
 }

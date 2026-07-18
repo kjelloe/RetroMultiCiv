@@ -20,7 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
-import { createLimiter, createCommandBudget, createBudgets } from './limits.js';
+import { createLimiter, createCommandBudget, createBudgets, clientIpFrom } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -178,7 +178,17 @@ export function startServer(opts) {
 
   // maxPayload rejects an oversized frame at the ws protocol layer before the
   // whole payload is buffered — matches protocol.js MAX_FRAME (64 KB).
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
+  // Slice 3a: proxy-aware client IP (--trust-proxy[-hops N]; XFF trusted only
+  // from a private/loopback peer). Behind nginx every peer is 127.0.0.1, so
+  // without this the per-IP limits collapse to one bucket for all clients.
+  const trustProxyHops = Number(opts.trustProxyHops) || 0;
+  const clientIp = req => clientIpFrom(req, trustProxyHops);
+  // Slice 3a: per-IP connect-rate gate in the WS handshake — refused BEFORE the
+  // socket is allocated, so open/close churn can't pile up ws objects.
+  const wss = new WebSocketServer({
+    server: httpServer, path: '/ws', maxPayload: 64 * 1024,
+    verifyClient: info => limiter.allowConnect(clientIp(info.req)).ok
+  });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
   // Part B (mobile seat-grace): a dropped lobby seat is held 'disconnected,
@@ -369,9 +379,6 @@ export function startServer(opts) {
       }))
     };
   }
-  function ipOf(ws) {
-    return (ws._socket && ws._socket.remoteAddress) || '';
-  }
   function broadcastLobby(gameId) {
     const e = registry.entryOf(gameId);
     if (!e) return;
@@ -379,7 +386,7 @@ export function startServer(opts) {
     // A37: the HOST's copy carries each seat's remote IP (hover identity) —
     // never broadcast to other joiners or spectators
     const seatIp = {};
-    for (const [o, i] of conns) if (i.gameId === gameId && i.seat) seatIp[i.seat] = ipOf(o);
+    for (const [o, i] of conns) if (i.gameId === gameId && i.seat) seatIp[i.seat] = i.ip || '';
     const hostR = Object.assign({}, r, {
       seats: r.seats.map(s => s.reserved ? Object.assign({}, s, { ip: seatIp[s.seat] || '' }) : s)
     });
@@ -524,7 +531,7 @@ export function startServer(opts) {
   function handleJoin(ws, info, msg) {
     // A50 item 2: per-IP join rate (covers join + joinListed + reconnect —
     // 30/min is generous for legit reconnection, murders enumeration floods).
-    const jrl = limiter.allow(ipOf(ws), 'join');
+    const jrl = limiter.allow(info.ip, 'join');
     if (!jrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: jrl.reason }); return; }
     const target = msg.gameId || msg.joinCode;
     const gameId = target ? registry.resolveId(target) : defaultGameId;
@@ -557,7 +564,7 @@ export function startServer(opts) {
         return;
       }
       // A37 kick-and-block: a blocked IP bounces before any reservation
-      if (e.blockedIps && e.blockedIps[ipOf(ws)] === true) {
+      if (e.blockedIps && e.blockedIps[info.ip] === true) {
         send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
         return;
       }
@@ -645,15 +652,15 @@ export function startServer(opts) {
     if (autosave) res.game.saveTo(savePath(gameId));
   }
 
-  wss.on('connection', ws => {
-    // A50 item 2: admission control — global + per-IP connection caps. A
-    // rejected socket is told why and closed before it can send anything.
-    const ip = ipOf(ws);
+  wss.on('connection', (ws, req) => {
+    // A50 item 2: admission control — global + per-IP concurrency caps (the
+    // per-IP connect-RATE already ran in verifyClient, pre-allocation).
+    const ip = clientIp(req); // proxy-aware; stored so every per-IP check agrees
     const adm = limiter.onConnect(ip);
     if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
-    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq) });
+    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq), ip });
     // A ws protocol error (oversized frame past maxPayload, malformed framing)
     // emits 'error'; WITHOUT a listener Node throws and crashes the whole
     // server — one bad client could take it down. ws closes that socket itself;
@@ -807,7 +814,7 @@ export function startServer(opts) {
       if (msg.t === 'create') {
         // A50 item 2: per-IP create rate + global game cap before anything is
         // registered (game-spam / registry exhaustion).
-        const crl = limiter.allow(ipOf(ws), 'create');
+        const crl = limiter.allow(info.ip, 'create');
         if (!crl.ok) { send(ws, { t: 'rejected', commandId: -1, code: crl.reason }); return; }
         const gcap = limiter.canCreateGame(registry.list().length);
         if (!gcap.ok) { send(ws, { t: 'rejected', commandId: -1, code: gcap.reason }); return; }
@@ -866,7 +873,7 @@ export function startServer(opts) {
         }
         // A50 item 2: per-IP chat burst cap across a minute (the 1/sec above is
         // per-connection; this bounds a many-socket chat flood from one IP).
-        const chrl = limiter.allow(ipOf(ws), 'chat');
+        const chrl = limiter.allow(info.ip, 'chat');
         if (!chrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: chrl.reason }); return; }
         info.lastChatAt = now;
         const name = (e.seats[info.seat] && e.seats[info.seat].name) || info.seat;
@@ -892,7 +899,7 @@ export function startServer(opts) {
         if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
         for (const [o, i] of conns) {
           if (i.gameId === info.gameId && i.seat === msg.seat && o !== ws) {
-            if (msg.block === true) registry.blockIp(info.gameId, ipOf(o));
+            if (msg.block === true) registry.blockIp(info.gameId, i.ip);
             send(o, { t: 'kicked', gameId: info.gameId });
             // preserve the command budget across the kick — replacing the record
             // wholesale would drop info.budget and wave every subsequent frame
@@ -1076,6 +1083,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--heartbeat-sec') opts.heartbeatMs = Number(argv[++i]) * 1000;
     else if (a === '--heartbeat-misses') opts.heartbeatMisses = Number(argv[++i]);
     else if (a === '--seat-grace-sec') opts.seatGraceMs = Number(argv[++i]) * 1000; // Part B lobby seat-grace
+    // Slice 3a: per-IP connect-rate + proxy-aware client IP
+    else if (a === '--connects-per-sec') (opts.limits = opts.limits || {}).connectsPerSec = Number(argv[++i]);
+    else if (a === '--connect-burst') (opts.limits = opts.limits || {}).connectBurst = Number(argv[++i]);
+    else if (a === '--trust-proxy') opts.trustProxyHops = 1;
+    else if (a === '--trust-proxy-hops') opts.trustProxyHops = Number(argv[++i]);
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);

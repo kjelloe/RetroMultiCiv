@@ -200,3 +200,39 @@ test('Slice 2.5 B: an unreclaimed lobby seat is released after the grace window'
     assert.ok(freed, 'seat released after grace expiry');
   } finally { host.close(); await s.close(); }
 });
+
+test('Slice 3a: per-IP connect-rate refuses excess handshakes (pre-allocation)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3a', limits: { connectsPerSec: 1, connectBurst: 3 } }));
+  const tryOpen = () => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`);
+    ws.on('open', () => res({ opened: true, ws })); ws.on('error', () => res({ opened: false }));
+  });
+  try {
+    const rs = [];
+    for (let i = 0; i < 8; i++) rs.push(await tryOpen());
+    const opened = rs.filter(r => r.opened).length;
+    assert.ok(opened >= 1 && opened <= 4, `some allowed, excess refused (opened=${opened})`);
+    assert.ok(rs.some(r => !r.opened), 'at least one handshake refused at the connect-rate gate');
+    for (const r of rs) if (r.ws) r.ws.close();
+  } finally { await s.close(); }
+});
+
+test('Slice 3a: with --trust-proxy, per-IP limits key off X-Forwarded-For (not the shared proxy peer)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3ap', trustProxyHops: 1, limits: { connectsPerSec: 1, connectBurst: 2 } }));
+  const tryOpen = xff => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { headers: { 'x-forwarded-for': xff } });
+    ws.on('open', () => res({ opened: true, ws })); ws.on('error', () => res({ opened: false }));
+  });
+  try {
+    const a = [];
+    for (let i = 0; i < 5; i++) a.push(await tryOpen('9.9.9.9'));
+    assert.ok(a.some(r => !r.opened), 'one forwarded client is rate-limited on its OWN ip (loopback peer is trusted)');
+    const other = await tryOpen('8.8.8.8');
+    assert.strictEqual(other.opened, true, 'a different forwarded IP is independent');
+    for (const r of a.concat(other)) if (r.ws) r.ws.close();
+  } finally { await s.close(); }
+});
