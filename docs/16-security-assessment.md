@@ -1,10 +1,14 @@
 # Information-security assessment — hosting a RetroMultiCiv server
 
 Status: A95 first assessment, architect, 2026-07-16; gap-6 scale
-sweep executed + folded 2026-07-17. Re-assess when A50 lands,
-when the master index (A51) goes live, and before any 1.0 public
-push. Companion: `docs/how-to-host.md` (operator guidance),
-`docs/12-global-host.md` §3 (the hardening queue this feeds).
+sweep executed + folded 2026-07-17; **v1 POSTURE RE-ASSESSMENT
+2026-07-18 (hardening lane) — the full docs/17 plan is on the mainline
+(tip 0f0a52f); §3 refreshed to closed-vs-residual, §4 is the
+safe-public-exposure checklist. Verdict: safe to expose on a small
+public VM with the §4 checklist.** Re-assess when the master index
+(A51) goes live, at any new dependency, and before 1.0. Companion:
+`docs/how-to-host.md` (operator guidance), `docs/12-global-host.md`
+§3 (the hardening queue this feeds).
 **Open remaining work is enumerated for the infosec ally in
 `reports/infosec-remaining.md` (shareable handoff).** Further
 security analysis is being moved to a dedicated infosec helper
@@ -138,11 +142,17 @@ the deferred resend integration), payments (never).
   spam) the server NEVER crashes, state integrity holds, and RSS
   plateaus ~150 MB (per-connection buffers, released on
   disconnect — no leak). The failure mode is FAIRNESS, not
-  integrity or memory: a legitimate canary client connects but
-  receives ZERO replies once ≥50 hostile clients flood (onset
-  between 20 and 50) — the single-threaded loop services the
-  flood FIFO and starves everyone else. A flood doesn't kill the
-  server; it makes it useless. (→ gap list 1, upgraded.)
+  integrity or memory. **RESOLVED (v1, 2026-07-18):** the layered
+  command budget + per-IP connect-rate + per-connection message cap
+  keep a co-player responsive under a flood (measured 278 ms p50 at 6
+  authenticated flooders vs the pre-fix collapse); the earlier "canary
+  gets ZERO replies at ≥50" reading was a SINGLE-IP test artifact (the
+  canary shared the flooders' IP and hit the per-IP concurrency cap —
+  a legit user on its own IP is serviced). Backpressure caps a stuck
+  reader's queue; the heartbeat reaps half-open sockets; SIGTERM shuts
+  down cleanly. Residual: raw volumetric DDoS is firewall/proxy
+  territory, and one huge-map game can slow the single loop (§3). See
+  §2.2 for the shipped controls, §3 for the closed/residual map.
 
 ### 2.5 The game protocol as an integrity boundary
 Commands are the ONLY state mutation path; every command is
@@ -153,7 +163,57 @@ commands (A92, when built) are legality-gated at game creation
 and permanently taint the game code — they cannot masquerade as
 a legitimate game.
 
-## 3. Gap list (feeds A50; ranked)
+## 3. Gap list
+
+### v1 status — 2026-07-18: the docs/17 hardening lane is COMPLETE on the mainline (tip 0f0a52f)
+
+**CLOSED (shipped + regression-tested — the ranked items below are the
+historical record of each; slices merged Slice 1/2/2.5/3):**
+- **C0 authenticated cmd-storm fairness** (was gap 0, the top hosting risk):
+  LAYERED command budget — the per-connection `createCommandBudget` backstop +
+  a per-SEAT bucket (shared across a seat's sockets, closes the multi-socket
+  bypass) + a per-connection all-message cap (closes vote/ping floods). One
+  flooder's co-player held at ~1 ms; combined sweep 278 ms vs 834 ms p50 at 6.
+- **C1 per-IP connect-RATE churn** (gaps 1/6): `allowConnect` token bucket in
+  the WS handshake, pre-allocation (the concurrency cap missed short-lived
+  sockets) + proxy-aware client IP (`--trust-proxy`, XFF from a private peer
+  only) so per-IP limits work behind nginx + the nginx `/ws` XFF forward.
+- **C2 crash class**: a per-socket ws `error` handler (a malformed/oversized
+  frame otherwise threw and killed the process) + `maxPayload` 64 KB.
+- **C3 `/ws` Origin** (gap 4, cross-origin/DNS-rebind): optional Origin
+  allow-list in the handshake (empty = LAN-permissive).
+- **C4 HTTP niceties** (gap 5): nosniff + Cache-Control + URL-length cap
+  (>2048 → 414) + header/request timeouts (slowloris).
+- **C5 outbound backpressure**: `send()` drops a socket over `--max-outbuf-mb`.
+- **C6 half-open / mobile**: heartbeat (terminate on missed pongs — the only
+  way a locked phone's half-open socket is detectable) + lobby seat-grace (a
+  dropped seat held ~45 s, reclaimable by a private `reconnectId`, never a live
+  seat).
+- **C7 silent squatter + graceful shutdown**: connect-and-say-nothing closed
+  after `--unauth-timeout-sec`; SIGTERM/SIGINT close cleanly.
+- **C8 lobby/saves disclosure** (gap 3, helper H-1 a–d): `list` strips private
+  joinCodes; `listSaves` code/name `--debug`-gated; resume try/caught (no crash
+  on a corrupt save); saves scan cached (2 s TTL).
+- **C9 A50 pre-existing** (gap 2): per-IP join/create/chat windows + global
+  caps + lifecycle expiry + tiered saves rotation.
+
+**RESIDUAL (ranked; documented, not v1-blocking for a small host):**
+1. **Volumetric DDoS** — app-layer limits reduce abusive WORKLOAD, not raw
+   packet floods. A public host still needs TLS + firewall + (ideally) a
+   reverse-proxy/CDN rate layer. Operator-owned (quick-card).
+2. **Single-loop head-of-line** — a huge-map AI turn is a multi-second
+   synchronous block that stalls every game on the process. Real availability
+   ceiling; the fix (yield / isolate heavy games) is larger + engine-adjacent.
+3. **P4 WS token rotation on reconnect** (gap 7, low): rotate the seat token per
+   rebind; touches `server/game.js` (helper region) — coordinate. The token is
+   already 96-bit + off-the-wire under TLS + not fetchable at rest.
+4. **P5 master-index trust surface** (future, A51): listings are unauthenticated
+   claims — sanitize/cap/expire, verify liveness; a separate review at A51.
+5. **Client-side inbound hardening** (helper; A51 prereq): the CLIENT socket
+   needs its own `maxPayload` + malformed-frame tolerance before it auto-connects
+   to third-party servers from the index.
+
+--- historical ranked detail (provenance) ---
 
 0. **PER-CONNECTION COMMAND BUDGET (A50 item 4) — HIGHEST-SEVERITY
    availability gap for STARTED games. MEASURED + CONFIRMED
@@ -220,23 +280,53 @@ a legitimate game.
    read reject frames; corrected probe: join-
 7. WS token rotation on reconnect — nice-to-have, not queued.
 
-## 4. Operator quick-card (mirrors how-to-host.md)
+## 4. Operator quick-card — safe public exposure (v1)
 
-- Public host: TLS via reverse proxy, ufw allow 80/443 only,
-  dedicated user, `chmod 700 saves/`, NEVER `--debug`, watchdog +
-  nightly self-check on, `MAINTENANCE_CONTACT` set.
-- LAN host: defaults are safe; `--no-spectators` if the game
-  should be private even to viewers.
+**Is it safe to expose on a public VM?** For a small hobby host: YES, with this
+checklist (all detailed in `docs/how-to-host.md`). A LAN host: the defaults are
+already safe — skip the public-only rows.
+
+**Transport (public — REQUIRED):**
+- TLS at a reverse proxy (nginx/caddy). ws:// sends seat tokens in the clear;
+  wss:// closes that. Node binds `127.0.0.1` behind the proxy; `ufw` allows
+  80/443 (+ SSH) only.
+- nginx `/ws` forwards the `Upgrade`/`Connection` headers AND `X-Forwarded-For`.
+
+**Server flags (public):**
+- `--trust-proxy` — WITHOUT it every client looks like the proxy's IP and the
+  per-IP limits collapse to one shared bucket.
+- `--origin-allowlist https://yourdomain` — a browser-only public host.
+- **NEVER `--debug`** — it serves the whole repo and un-gates `listSaves`.
+- The LAN-safe defaults hold under abuse; tighten if wanted (all CLI-overridable):
+  connect 10/s + 30 burst; seat cmd 15/s + 40, endTurn 2/s + 4, msg 30/s + 60
+  per conn; heartbeat 15 s × 2 misses; seat-grace 45 s; backpressure 4 MB;
+  unauth-timeout 30 s. Boot logs a one-line posture summary + a ws://-reachable
+  warning.
+
+**Host:**
+- Dedicated non-login user, never root; `UMask=0077`; `chmod 700 saves/` (it
+  holds seat tokens + game codes).
+- `systemctl stop` shuts down gracefully (SIGTERM handled — no mid-write kill);
+  watchdog + nightly `npm audit` self-check on; `MAINTENANCE_CONTACT` set.
+- One runtime dependency (`ws`); `npm ci`; Node LTS ≥ 18.
+
+**The operator still owns:** volumetric DDoS (firewall / CDN rate layer — the
+app-layer limits bound WORKLOAD, not raw packet floods) and the fact that one
+very large game can slow every game on that process (single event loop).
+
+- `--share-reports DIR` (off by default) only ever WRITES local files
+  (anonymized recordings, seat-vetoable, rotation-capped); it opens no listener
+  and serves nothing — zero new surface.
 - Docker: the image runs hardened defaults; flags pass through
   `docker run IMAGE --flags`.
-- `--share-reports DIR` (off by default) only ever WRITES local
-  files (anonymized recordings, seat-vetoable, rotation-capped);
-  it opens no listener and serves nothing — zero new surface.
 
 ## 5. Review cadence
 
-Re-run this assessment: (a) when A50 lands (close gaps 1–3 above
-and re-rank), (b) before the master index announces third-party
-servers (new trust surface: the INDEX must never be able to harm
-a listed server, and listings are unauthenticated claims), (c) at
-any new dependency, (d) at 1.0.
+- **v1 re-assessment DONE 2026-07-18** — the docs/17 hardening lane is
+  complete on the mainline (tip 0f0a52f); §3 refreshed to closed-vs-residual,
+  §4 is the safe-public-exposure checklist. For a small hobby host this is
+  **safe to expose** with the §4 checklist.
+- Re-run: (a) before the master index announces third-party servers (new trust
+  surface — the INDEX must never harm a listed server; listings are
+  unauthenticated claims — P5); (b) at any new dependency; (c) at 1.0; (d) if
+  the residual single-loop/volumetric items are acted on.
