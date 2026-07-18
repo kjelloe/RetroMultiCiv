@@ -1611,6 +1611,24 @@ html, body {
   display: none;
 }
 
+/* live strategic overlay (?debug=1 / spectator): per-AI stance/mode/threat */
+#strat-overlay {
+  position: fixed; top: 52px; left: 12px; z-index: 24;
+  background: rgba(12, 18, 30, 0.96); border: 1px solid #2c4468;
+  border-radius: 8px; padding: 8px 12px; color: #cdd8ea;
+  font-size: 12px; max-height: 60vh; overflow-y: auto; max-width: 340px;
+}
+#strat-overlay.hidden { display: none; }
+#strat-head { color: #ffe066; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+#strat-head button { margin-left: auto; background: none; border: 1px solid #3b5d8f; border-radius: 4px; color: #cdd8ea; cursor: pointer; }
+.strat-row { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 3px 0; border-bottom: 1px dotted #24344f; }
+.strat-name { font-weight: bold; min-width: 72px; }
+.strat-tag { color: #8fa3c2; }
+.strat-mode { color: #cdd8ea; }
+.strat-units { color: #7d8aa5; font-size: 11px; }
+.strat-empty { color: #6d7f9c; }
+#open-strat.hidden { display: none; }
+
 /* A92: the debug panel — thin god-mode form, corner-toggled, state-gated */
 #debug-panel {
   position: fixed; top: 52px; right: 12px; z-index: 25;

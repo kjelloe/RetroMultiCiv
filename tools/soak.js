@@ -242,42 +242,16 @@ function appendStats(file, row) {
   fs.appendFileSync(file, JSON.stringify(row) + '\n'); // O_APPEND: parallel-safe per line
 }
 
-// v1.5 diagnostics (ROW A): per-AI strategic snapshot for one alive civ. Pure
-// read of state; the INFERRED mode (vs the assigned stance) catches label-vs-
-// behavior drift, and the producing histogram is the standing N9 diagnostic.
+// v1.5 diagnostics (ROW A): the per-AI strategic snapshot now lives in
+// shared/strategic.js (ESM) so the client live overlay computes it the SAME
+// way — never duplicated. Loaded once in main() via dynamic import (CJS→ESM);
+// strategicRow just wraps it with the JSONL envelope (t/turn/id) the --stats
+// rows carry, so the emitted rows stay byte-identical.
+let strategicSnapshot = null; // set in main()
 function strategicRow(state, pid, ruleset, turn) {
-  const U = ruleset.units;
-  const threatR = ruleset.rules.threatRadius === undefined ? 8 : ruleset.rules.threatRadius;
-  const W = state.map.width;
-  const cheb = (ax, ay, bx, by) => { const dx = Math.min(Math.abs(ax - bx), W - Math.abs(ax - bx)); return Math.max(dx, Math.abs(ay - by)); };
-  let mil = 0, settlers = 0, scouts = 0, naval = 0;
-  for (const uid of Object.keys(state.units)) {
-    const u = state.units[uid]; if (u.owner !== pid) continue; const d = U[u.type];
-    if (u.type === 'settlers') settlers++; else if (d.domain === 'sea') naval++; else if (d.attack > 0) { mil++; if (d.moves >= 2) scouts++; }
-  }
-  const prod = { attacker: 0, settler: 0, defender: 0, building: 0, wonder: 0, other: 0 };
-  const myCities = [];
-  for (const cid of state.cityOrder) {
-    const c = state.cities[cid]; if (c.owner !== pid) continue; myCities.push(c);
-    const pr = c.producing; if (!pr) { prod.other++; continue; }
-    if (pr.kind === 'building') prod.building++;
-    else if (pr.kind === 'wonder') prod.wonder++;
-    else if (pr.kind === 'unit') { if (pr.id === 'settlers') prod.settler++; else { const d = U[pr.id]; if (d && d.attack > 0 && d.attack >= d.defense) prod.attacker++; else if (d && d.defense > 0) prod.defender++; else prod.other++; } }
-    else prod.other++;
-  }
-  let threat = 0;
-  for (const uid of Object.keys(state.units)) {
-    const u = state.units[uid]; if (u.owner === pid) continue;
-    for (const c of myCities) { if (cheb(u.x, u.y, c.x, c.y) <= threatR) { threat++; break; } }
-  }
-  const threatBucket = threat === 0 ? 'none' : threat < 3 ? 'low' : threat < 8 ? 'med' : 'high';
-  const mode = (prod.attacker > 0 && threat >= 3) ? 'warring'
-    : prod.settler >= prod.building + prod.wonder && prod.settler > 0 ? 'expanding'
-    : (prod.building + prod.wonder) > 0 ? 'building' : 'defending';
-  const topGoal = Object.entries(prod).sort((a, b) => b[1] - a[1])[0][0];
-  return { t: 'strategic', turn, id: pid, stance: (state.players[pid].stance || 'balanced'),
-    gov: (state.players[pid].government || 'despotism'), // N9b: adoption pace at ROW-A cadence
-    mode, threat: threatBucket, units: { mil, settlers, scouts, naval }, producing: prod, topGoal };
+  const s = strategicSnapshot(state, pid, ruleset);
+  return { t: 'strategic', turn, id: pid, stance: s.stance, gov: s.gov,
+    mode: s.mode, threat: s.threat, units: s.units, producing: s.producing, topGoal: s.topGoal };
 }
 
 async function runSeed(seed, opts, checkpoints, mods) {
@@ -365,6 +339,7 @@ function runSeedInChild(seed, opts) {
 }
 
 async function main() {
+  strategicSnapshot = (await import('../shared/strategic.js')).strategicSnapshot; // ROW-A seam
   const opts = parseArgs(process.argv);
   const [width, height] = SIZES[opts.size];
   const seeds = opts.seed !== null
