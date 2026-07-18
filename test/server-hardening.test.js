@@ -200,3 +200,114 @@ test('Slice 2.5 B: an unreclaimed lobby seat is released after the grace window'
     assert.ok(freed, 'seat released after grace expiry');
   } finally { host.close(); await s.close(); }
 });
+
+test('Slice 3a: per-IP connect-rate refuses excess handshakes (pre-allocation)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3a', limits: { connectsPerSec: 1, connectBurst: 3 } }));
+  const tryOpen = () => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`);
+    ws.on('open', () => res({ opened: true, ws })); ws.on('error', () => res({ opened: false }));
+  });
+  try {
+    const rs = [];
+    for (let i = 0; i < 8; i++) rs.push(await tryOpen());
+    const opened = rs.filter(r => r.opened).length;
+    assert.ok(opened >= 1 && opened <= 4, `some allowed, excess refused (opened=${opened})`);
+    assert.ok(rs.some(r => !r.opened), 'at least one handshake refused at the connect-rate gate');
+    for (const r of rs) if (r.ws) r.ws.close();
+  } finally { await s.close(); }
+});
+
+test('Slice 3a: with --trust-proxy, per-IP limits key off X-Forwarded-For (not the shared proxy peer)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3ap', trustProxyHops: 1, limits: { connectsPerSec: 1, connectBurst: 2 } }));
+  const tryOpen = xff => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { headers: { 'x-forwarded-for': xff } });
+    ws.on('open', () => res({ opened: true, ws })); ws.on('error', () => res({ opened: false }));
+  });
+  try {
+    const a = [];
+    for (let i = 0; i < 5; i++) a.push(await tryOpen('9.9.9.9'));
+    assert.ok(a.some(r => !r.opened), 'one forwarded client is rate-limited on its OWN ip (loopback peer is trusted)');
+    const other = await tryOpen('8.8.8.8');
+    assert.strictEqual(other.opened, true, 'a different forwarded IP is independent');
+    for (const r of a.concat(other)) if (r.ws) r.ws.close();
+  } finally { await s.close(); }
+});
+
+test('Slice 3b: Origin allow-list refuses a disallowed origin at the handshake; allows a listed one', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3b', originAllowlist: ['https://allowed.example'] }));
+  const dies = origin => new Promise(res => {
+    const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { origin });
+    ws.on('open', () => { ws.close(); res(false); }); ws.on('error', () => res(true));
+  });
+  try {
+    assert.strictEqual(await dies('https://evil.example'), true, 'disallowed origin refused at handshake');
+    const joined = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`, { origin: 'https://allowed.example' });
+      ws.on('open', () => ws.send(JSON.stringify({ t: 'join', name: 'Kjell' })));
+      ws.on('message', raw => { const m = JSON.parse(raw); if (m.t === 'joined') { ws.close(); resolve(m); } });
+      ws.on('error', reject);
+    });
+    assert.strictEqual(joined.playerId, 'p1', 'allowed origin joins');
+  } finally { await s.close(); }
+});
+
+test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong URL is 414', async () => {
+  const { startServer } = await import('../server/index.js');
+  const http = require('http');
+  const s = await startServer(base({ gameId: '3bh' }));
+  const get = p => new Promise(res => http.get({ host: '127.0.0.1', port: s.port, path: p }, r => { r.resume(); res(r); }));
+  try {
+    const idx = await get('/client/');
+    assert.strictEqual(idx.headers['x-content-type-options'], 'nosniff');
+    assert.match(idx.headers['cache-control'], /no-cache/);
+    const long = await get('/client/' + 'a'.repeat(3000));
+    assert.strictEqual(long.statusCode, 414);
+  } finally { await s.close(); }
+});
+
+test('Slice 3c: a silent squatter is closed; an active socket is spared', async () => {
+  const { startServer } = await import('../server/index.js');
+  const WebSocket = require('ws');
+  const s = await startServer(base({ gameId: '3cs', unauthTimeoutMs: 200, heartbeatMisses: 100000 }));
+  const dies = make => new Promise(res => {
+    const ws = make(new WebSocket(`ws://127.0.0.1:${s.port}/ws`));
+    ws.on('close', () => res(true)); ws.on('error', () => res(true));
+    setTimeout(() => res(false), 2000);
+  });
+  try {
+    assert.strictEqual(await dies(ws => ws), true, 'silent squatter (sent nothing) closed after the window');
+    const spared = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${s.port}/ws`);
+      ws.on('open', () => ws.send(JSON.stringify({ t: 'list' }))); // any message sets sawMessage
+      ws.on('close', () => reject(new Error('active socket was closed')));
+      ws.on('error', reject);
+      setTimeout(() => { ws.close(); resolve(true); }, 700);
+    });
+    assert.strictEqual(spared, true, 'active (browsing) socket spared');
+  } finally { await s.close(); }
+});
+
+test('Slice 3c: SIGTERM shuts the server down cleanly (exit 0)', async () => {
+  const { spawn } = require('node:child_process');
+  const path = require('path');
+  const child = spawn('node', [path.join(__dirname, '..', 'server', 'index.js'), '--port', '0', '--no-save', '--host', '127.0.0.1'],
+    { stdio: ['ignore', 'pipe', 'pipe'] });
+  child.stderr.on('data', () => {});
+  try {
+    await new Promise((resolve, reject) => {
+      const to = setTimeout(() => reject(new Error('server never booted')), 8000);
+      child.stdout.on('data', d => { if (String(d).includes('WebSocket: ws://')) { clearTimeout(to); resolve(); } });
+      child.on('exit', () => { clearTimeout(to); reject(new Error('exited before boot')); });
+    });
+    const exited = new Promise(resolve => child.on('exit', (code, sig) => resolve({ code, sig })));
+    child.kill('SIGTERM');
+    const res = await Promise.race([exited, new Promise((_, r) => setTimeout(() => r(new Error('did not exit on SIGTERM')), 6000))]);
+    assert.strictEqual(res.code, 0, `clean exit (got code=${res.code} sig=${res.sig})`);
+  } finally { if (child.exitCode === null) child.kill('SIGKILL'); }
+});

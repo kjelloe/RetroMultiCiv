@@ -257,13 +257,17 @@ server {
     listen 80;
     server_name yourdomain.example;
 
-    # the game WebSocket — MUST forward the Upgrade/Connection headers
+    # the game WebSocket — MUST forward the Upgrade/Connection headers, and
+    # X-Forwarded-For so the server can rate-limit per REAL client IP (with
+    # `--trust-proxy`); without it every client looks like 127.0.0.1 and the
+    # per-IP connect-rate/limits collapse to one shared bucket.
     location /ws {
         proxy_pass http://127.0.0.1:8123;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_read_timeout 1h;      # keep idle game sockets alive
     }
 

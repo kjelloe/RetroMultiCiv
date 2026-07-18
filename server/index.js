@@ -20,7 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
 import { hashState } from '../shared/statehash.js';
-import { createLimiter, createCommandBudget, createBudgets } from './limits.js';
+import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -150,12 +150,15 @@ export function startServer(opts) {
     return STATIC_ROOTS.some(r => urlPath.startsWith(r));
   }
   const httpServer = http.createServer((req, res) => {
+    // Slice 3b: cap absurd URL lengths cheaply, before URL parsing (Node already
+    // caps total header bytes; this is an explicit, earlier guard).
+    if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
     const parsed = new URL(req.url, 'http://x');
     const urlPath = decodeURIComponent(parsed.pathname);
     // A22: friendly entry points — the bare host and /client (no slash) both
     // land on /client/ (302 keeps the query string: join links carry params)
     if (urlPath === '/' || urlPath === '/client') {
-      res.writeHead(302, { Location: '/client/' + parsed.search });
+      res.writeHead(302, { Location: '/client/' + parsed.search, 'X-Content-Type-Options': 'nosniff' });
       res.end();
       return;
     }
@@ -171,14 +174,39 @@ export function startServer(opts) {
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, buf) => {
       if (err) { res.writeHead(404); res.end(); return; }
-      res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+      const ext = path.extname(file);
+      // Slice 3b: nosniff on every asset; the HTML entrypoint revalidates so a
+      // deploy propagates (no stale client), other assets cache briefly (longer
+      // would need content-hashed filenames, none today).
+      res.writeHead(200, {
+        'Content-Type': MIME[ext] || 'application/octet-stream',
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=600'
+      });
       res.end(buf);
     });
   });
+  // Slice 3c: bound slow-header (slowloris) HTTP — Node's defaults are lax.
+  httpServer.headersTimeout = 15000;
+  httpServer.requestTimeout = 30000;
 
   // maxPayload rejects an oversized frame at the ws protocol layer before the
   // whole payload is buffered — matches protocol.js MAX_FRAME (64 KB).
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
+  // Slice 3a: proxy-aware client IP (--trust-proxy[-hops N]; XFF trusted only
+  // from a private/loopback peer). Behind nginx every peer is 127.0.0.1, so
+  // without this the per-IP limits collapse to one bucket for all clients.
+  const trustProxyHops = Number(opts.trustProxyHops) || 0;
+  const clientIp = req => clientIpFrom(req, trustProxyHops);
+  // Slice 3b: optional WS Origin allow-list (empty = permissive LAN default; set
+  // for a public browser deploy to blunt cross-origin socket abuse — WebSockets
+  // are CORS-exempt). Browser-abuse mitigation, not auth.
+  const originAllowlist = (opts.originAllowlist || []).filter(Boolean);
+  // Handshake gate — rejects BEFORE the socket is allocated: bad Origin first
+  // (cheap compare, no connect token spent), then the per-IP connect-rate (3a).
+  const wss = new WebSocketServer({
+    server: httpServer, path: '/ws', maxPayload: 64 * 1024,
+    verifyClient: info => originAllowed(info.origin, originAllowlist) && limiter.allowConnect(clientIp(info.req)).ok
+  });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
   // Part B (mobile seat-grace): a dropped lobby seat is held 'disconnected,
@@ -204,8 +232,19 @@ export function startServer(opts) {
   const heartbeatTimer = setInterval(heartbeatTick, heartbeatMs);
   if (heartbeatTimer.unref) heartbeatTimer.unref();
 
+  // Slice 3c: outbound backpressure. A client that stays connected but stops
+  // reading would grow an unbounded ws send queue (the server broadcasts to
+  // every seat each turn). Over the cap it is a stuck/slow consumer — terminate
+  // it. Cap sits above the largest single legit message (a full view on the
+  // biggest map), so a healthy client is never dropped. --max-outbuf-mb.
+  const maxOutBuffer = opts.maxOutBufferBytes !== undefined ? opts.maxOutBufferBytes : 4 * 1024 * 1024;
+  // Slice 3c: close a socket that connects and sends NOTHING within this window
+  // (the connect-flood residue). Any message spares it (--unauth-timeout-sec).
+  const unauthTimeoutMs = opts.unauthTimeoutMs !== undefined ? opts.unauthTimeoutMs : 30000;
   function send(ws, msg) {
-    if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
+    if (ws.readyState !== ws.OPEN) return;
+    if (ws.bufferedAmount > maxOutBuffer) { ws.terminate(); return; }
+    ws.send(JSON.stringify(msg));
   }
   function savePath(gameId) {
     if (!saveFiles[gameId]) saveFiles[gameId] = path.join(SAVES, gameId + '.json');
@@ -369,9 +408,6 @@ export function startServer(opts) {
       }))
     };
   }
-  function ipOf(ws) {
-    return (ws._socket && ws._socket.remoteAddress) || '';
-  }
   function broadcastLobby(gameId) {
     const e = registry.entryOf(gameId);
     if (!e) return;
@@ -379,7 +415,7 @@ export function startServer(opts) {
     // A37: the HOST's copy carries each seat's remote IP (hover identity) —
     // never broadcast to other joiners or spectators
     const seatIp = {};
-    for (const [o, i] of conns) if (i.gameId === gameId && i.seat) seatIp[i.seat] = ipOf(o);
+    for (const [o, i] of conns) if (i.gameId === gameId && i.seat) seatIp[i.seat] = i.ip || '';
     const hostR = Object.assign({}, r, {
       seats: r.seats.map(s => s.reserved ? Object.assign({}, s, { ip: seatIp[s.seat] || '' }) : s)
     });
@@ -524,7 +560,7 @@ export function startServer(opts) {
   function handleJoin(ws, info, msg) {
     // A50 item 2: per-IP join rate (covers join + joinListed + reconnect —
     // 30/min is generous for legit reconnection, murders enumeration floods).
-    const jrl = limiter.allow(ipOf(ws), 'join');
+    const jrl = limiter.allow(info.ip, 'join');
     if (!jrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: jrl.reason }); return; }
     const target = msg.gameId || msg.joinCode;
     const gameId = target ? registry.resolveId(target) : defaultGameId;
@@ -557,7 +593,7 @@ export function startServer(opts) {
         return;
       }
       // A37 kick-and-block: a blocked IP bounces before any reservation
-      if (e.blockedIps && e.blockedIps[ipOf(ws)] === true) {
+      if (e.blockedIps && e.blockedIps[info.ip] === true) {
         send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
         return;
       }
@@ -645,15 +681,15 @@ export function startServer(opts) {
     if (autosave) res.game.saveTo(savePath(gameId));
   }
 
-  wss.on('connection', ws => {
-    // A50 item 2: admission control — global + per-IP connection caps. A
-    // rejected socket is told why and closed before it can send anything.
-    const ip = ipOf(ws);
+  wss.on('connection', (ws, req) => {
+    // A50 item 2: admission control — global + per-IP concurrency caps (the
+    // per-IP connect-RATE already ran in verifyClient, pre-allocation).
+    const ip = clientIp(req); // proxy-aware; stored so every per-IP check agrees
     const adm = limiter.onConnect(ip);
     if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
-    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq) });
+    conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq), ip });
     // A ws protocol error (oversized frame past maxPayload, malformed framing)
     // emits 'error'; WITHOUT a listener Node throws and crashes the whole
     // server — one bad client could take it down. ws closes that socket itself;
@@ -662,7 +698,18 @@ export function startServer(opts) {
     // Part A heartbeat liveness: a pong resets the miss counter (see heartbeatTick).
     ws.missedPongs = 0;
     ws.on('pong', () => { ws.missedPongs = 0; });
+    // Slice 3c: close a SILENT squatter — connected, sent nothing within the
+    // window (the connect-flood residue). Any message sets sawMessage + spares it.
+    const unauthTimer = setTimeout(() => {
+      const i = conns.get(ws);
+      if (i && i.gameId === undefined && !i.sawMessage && ws.readyState === ws.OPEN) {
+        send(ws, { t: 'rejected', commandId: -1, code: 'joinTimeout' });
+        ws.close();
+      }
+    }, unauthTimeoutMs);
+    if (unauthTimer.unref) unauthTimer.unref();
     ws.on('close', () => {
+      clearTimeout(unauthTimer);
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
       conns.delete(ws); // first, so presence/eligibility no longer count us
@@ -696,6 +743,7 @@ export function startServer(opts) {
       if (!parsed.ok) { send(ws, { t: 'rejected', commandId: -1, code: parsed.code }); return; }
       const msg = parsed.msg;
       const info = conns.get(ws);
+      if (info) info.sawMessage = true; // Slice 3c: not a silent squatter
       // docs/17 layered budget: a per-connection ALL-MESSAGE cap over EVERY
       // frame type (ping/list/vote/cmd/...) so no socket saturates the loop with
       // cheap non-cmd frames. Over budget -> cheap drop; reply throttled 1/sec.
@@ -807,7 +855,7 @@ export function startServer(opts) {
       if (msg.t === 'create') {
         // A50 item 2: per-IP create rate + global game cap before anything is
         // registered (game-spam / registry exhaustion).
-        const crl = limiter.allow(ipOf(ws), 'create');
+        const crl = limiter.allow(info.ip, 'create');
         if (!crl.ok) { send(ws, { t: 'rejected', commandId: -1, code: crl.reason }); return; }
         const gcap = limiter.canCreateGame(registry.list().length);
         if (!gcap.ok) { send(ws, { t: 'rejected', commandId: -1, code: gcap.reason }); return; }
@@ -866,7 +914,7 @@ export function startServer(opts) {
         }
         // A50 item 2: per-IP chat burst cap across a minute (the 1/sec above is
         // per-connection; this bounds a many-socket chat flood from one IP).
-        const chrl = limiter.allow(ipOf(ws), 'chat');
+        const chrl = limiter.allow(info.ip, 'chat');
         if (!chrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: chrl.reason }); return; }
         info.lastChatAt = now;
         const name = (e.seats[info.seat] && e.seats[info.seat].name) || info.seat;
@@ -892,7 +940,7 @@ export function startServer(opts) {
         if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
         for (const [o, i] of conns) {
           if (i.gameId === info.gameId && i.seat === msg.seat && o !== ws) {
-            if (msg.block === true) registry.blockIp(info.gameId, ipOf(o));
+            if (msg.block === true) registry.blockIp(info.gameId, i.ip);
             send(o, { t: 'kicked', gameId: info.gameId });
             // preserve the command budget across the kick — replacing the record
             // wholesale would drop info.budget and wave every subsequent frame
@@ -1076,6 +1124,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--heartbeat-sec') opts.heartbeatMs = Number(argv[++i]) * 1000;
     else if (a === '--heartbeat-misses') opts.heartbeatMisses = Number(argv[++i]);
     else if (a === '--seat-grace-sec') opts.seatGraceMs = Number(argv[++i]) * 1000; // Part B lobby seat-grace
+    // Slice 3a: per-IP connect-rate + proxy-aware client IP
+    else if (a === '--connects-per-sec') (opts.limits = opts.limits || {}).connectsPerSec = Number(argv[++i]);
+    else if (a === '--connect-burst') (opts.limits = opts.limits || {}).connectBurst = Number(argv[++i]);
+    else if (a === '--trust-proxy') opts.trustProxyHops = 1;
+    else if (a === '--trust-proxy-hops') opts.trustProxyHops = Number(argv[++i]);
+    // Slice 3b: WS Origin allow-list (CSV of exact origins; empty = permissive)
+    else if (a === '--origin-allowlist') opts.originAllowlist = String(argv[++i] || '').split(',').map(s => s.trim());
+    // Slice 3c: outbound backpressure + silent-squatter timeout
+    else if (a === '--max-outbuf-mb') opts.maxOutBufferBytes = Number(argv[++i]) * 1024 * 1024;
+    else if (a === '--unauth-timeout-sec') opts.unauthTimeoutMs = Number(argv[++i]) * 1000;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
@@ -1100,9 +1158,26 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
-  Promise.resolve().then(() => startServer(opts)).then(({ port, game }) => {
+  Promise.resolve().then(() => startServer(opts)).then((server) => {
+    const { port, game } = server;
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
+    // Slice 3c: one-line posture summary so an operator sees the active guards.
+    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
+    if (opts.host !== '127.0.0.1' && opts.host !== 'localhost' && !opts.trustProxyHops) {
+      console.log('note: reachable on the network over plain ws:// — for PUBLIC hosting terminate TLS at a reverse proxy (tokens travel the socket); LAN is fine. See docs/how-to-host.md.');
+    }
+    // Slice 3c: graceful shutdown — close sockets + exit (state already durable
+    // via autosave-per-command; 5s hard-exit guard if close hangs).
+    let down = false;
+    const shutdown = sig => {
+      if (down) return; down = true;
+      console.log(`\n${sig} — closing sockets and shutting down…`);
+      setTimeout(() => process.exit(0), 5000).unref();
+      server.close().then(() => process.exit(0));
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
   }).catch(err => {
     console.error(`cannot start: ${err.message}`);
     process.exit(1);
