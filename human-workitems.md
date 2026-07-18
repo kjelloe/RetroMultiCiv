@@ -146,6 +146,15 @@ _Last synced: 2026-07-18._
   "win by any means" instead of by its civ's personality.
 - **XII.2 — Future Tech N** (your refinement): a repeatable score sink once
   the tree is exhausted, Civ1-authentic. Specced, queued after D3.
+- **Server crash resilience — being built** (your request): crashes now
+  get recorded to a `crashdumps/` file + stderr (stack + memory + per-game
+  turn/unit counts), so next time you'll know if it was the node process
+  and whether it was OOM. Plus an OOM memory-watchdog that autosaves +
+  exits gracefully before V8's fatal OOM, and a `run.sh`/`run.ps1` restart
+  loop that auto-restarts on crash (games resume from per-command autosave).
+  This ALSO disambiguates the turn-2623 mystery: an OOM leaves an oom-dump;
+  the event-loop-block (ws-timeout, below) leaves the process alive with no
+  dump. Routed to the server-robustness lane (#1752, spec written).
 - **Late-game ws-timeout (turn 2623) — being triaged:** your very-long
   hosted game dropped the socket. Diagnosed as SERVER-side (the client was
   reconnecting correctly; the server wasn't completing the handshake) — at

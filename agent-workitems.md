@@ -18,6 +18,17 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**SERVER CRASH RESILIENCE (added 2026-07-19, user request; spec
+specs/server-crash-resilience.md; HARDENING #1752): golden-neutral server ops.
+(1) CRASHDUMP: uncaughtException/unhandledRejection → crashdumps/crash-<ISO>.log
+(stack + memoryUsage + v8 heap limit + per-game turn/unit counts) + stderr, exit
+70. (2) OOM watchdog: heapUsed vs heap_size_limit; soft-threshold → oom-dump +
+autosave-all + exit 70 (autosave is per-command → resume-safe). Disambiguates
+crash-vs-block (#1732). (3) run.sh + run.ps1 restart loop w/ backoff + crash-loop
+cap; restart on 70/unexpected, NOT on clean SIGTERM. Tests: crashdump-from-
+synthetic-error + watchdog-at-mocked-heap + wrapper-restart scripted. docs/16 §2
+operator note. Pairs with the ws-timeout below (crash vs event-loop-block).**
+
 **LATE-GAME WS-TIMEOUT (added 2026-07-19, user playtest; HARDENING triage
 #1732): a server-hosted game at turn 2623 (extreme marathon, beyond the
 turn-1617/609-unit validation) dropped the ws — client HAR = 4 reconnect

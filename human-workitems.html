@@ -196,6 +196,10 @@
       <div class="d">A repeatable score sink once the tree is exhausted, Civ1-authentic. Specced, queued after D3.</div>
     </div>
     <div class="item dot"><span class="box"></span>
+      <div class="t">Server crash resilience — being built <span class="d" style="display:inline">(your request)</span></div>
+      <div class="d">Crashes now get recorded to a <code>crashdumps/</code> file + stderr (stack + memory + per-game turn/unit counts), so next time you'll know if it was the node process and whether it was OOM. Plus an OOM memory-watchdog that autosaves + exits gracefully before V8's fatal OOM, and a <code>run.sh</code>/<code>run.ps1</code> restart loop that auto-restarts on crash (games resume from per-command autosave). Also disambiguates the turn-2623 mystery: an OOM leaves an oom-dump; the event-loop-block (below) leaves the process alive with no dump. Routed to the server-robustness lane (#1752, spec written).</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
       <div class="t">Late-game ws-timeout (turn 2623) — being triaged</div>
       <div class="d">Your very-long hosted game dropped the socket. Diagnosed SERVER-side (the client was reconnecting correctly; the server wasn't completing the handshake) — at that extreme scale a single AI turn-chain blocks the server's event loop past the heartbeat window. Routed to the server-robustness lane (#1732); a busy-tolerant heartbeat + yielding within the AI chain are the fixes. Beyond the validated scale (turn-1617), so a real hosting-robustness item, not a regression. If you can, note whether the <code>node</code> process was still alive or had exited.</div>
     </div>
