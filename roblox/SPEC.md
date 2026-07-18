@@ -661,6 +661,11 @@ architect):
    `visual.primary` — a civ recolor / hex typo can't silently
    un-remap a civ in accessibility mode (browser `test/palette.test.js`
    twin, text-scan not execution).
+11. Tech-blurbs parity (`selftest/tech-blurbs-parity.mjs`, node): the
+   `DiscoveryCard.client.luau` `TECH_BLURBS` table is a 1:1 port of the
+   browser `client/ui/tech-blurbs.js` (the one authoring source) — id-set
+   + string equality so a new advance, reworded line, or paste typo on
+   either side can't drift silently (text-scan not execution).
 
 What check.sh cannot cover: general Luau execution (only the pinned
 lune gates 7 and 9 run Luau headlessly). The full executable proof is
