@@ -12,12 +12,13 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 ## DECIDE / DO (needs you)
 
 - [ ] **Merge the latest consistent marker.** Current candidate:
-  **marker-0058** (goody huts + leader ransom, N12 debug commands,
-  N11 upgrades+Leonardo, N10 caravans, the seam bundle, B28). Note:
-  **marker-0059 (N9b build-priority) is imminent** — it's in its
-  two-phase close (constant sweep running); once tagged it will be
-  the merge candidate. Merge whichever marker I last declare
-  consistent.
+  **marker-0059** (N9b: AI build-priority + the builder wonder-drive —
+  the AI now builds infrastructure selectively and SOME CIVS COMMIT TO
+  WONDERS, your ruling; behavioral golden re-record, no rulesetHash).
+  Supersedes 0058 (goody huts + leader ransom, N12 debug, N11 upgrades
+  + Leonardo, N10 caravans, the seam bundle, B28) and everything since
+  (mobile network fix, D1 spec, hardening). Merging 0059 is your GREEN
+  LIGHT for the mobile + LAN testing round.
 
 - [ ] **Send the designer-ally cover note** —
   `specs/ally-cover-note-2026-07-17-evening.md`. THREE asks: 68
