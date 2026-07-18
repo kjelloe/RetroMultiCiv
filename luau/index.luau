@@ -21,6 +21,7 @@ local score = require("./score") -- batch 5 (P5-7)
 local spaceship = require("./spaceship") -- A76: space race
 local trade = require("./trade") -- A89: caravan trade routes
 local upgrade = require("./upgrade") -- N11: unit upgrades
+local debug_ = require("./debug") -- N12: debug commands (debug is a Lua keyword-ish; suffixed)
 local mapgen = require("./mapgen") -- batch 5 (P5-7)
 
 local function isArrayLike(t: any): boolean
@@ -250,6 +251,8 @@ local function createEngine(ruleset: any)
 			result = trade.establishTradeRoute(next_, cmd, ruleset)
 		elseif cmd.type == "upgradeUnit" then
 			result = upgrade.upgradeUnit(next_, cmd, ruleset)
+		elseif cmd.type == "debug" then
+			result = debug_.debugCommand(next_, cmd, ruleset)
 		else
 			result = { ok = false, reason = "unknownCommand" }
 		end

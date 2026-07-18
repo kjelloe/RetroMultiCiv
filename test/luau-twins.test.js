@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 38, 'the thirty-eight scenarios (039 Leonardo added in N11 3b)');
+      assert.strictEqual(files.length, 39, 'the thirty-nine scenarios (040 debug commands added in A92)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -160,6 +160,7 @@ const PORTED = [
   '037-upgrade-noupgrade.json', // N11: no successor -> noUpgrade
   '038-upgrade-rejections.json', // N11: notEnoughGold + notInCity
   '039-leonardo-workshop.json', // N11 3b: Leonardo auto-upgrade on tech acquisition
+  '040-debug-commands.json', // A92: debug commands + the debugUsed taint in the hash
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-

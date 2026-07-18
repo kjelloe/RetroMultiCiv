@@ -1,0 +1,127 @@
+{
+  "name": "A92: debug commands apply in a debugEnabled game and set the PERMANENT debugUsed taint",
+  "notes": "A debugEnabled game. grantGold (+500 -> 510), spawnUnit (a militia at 1,1), grantTech (gunpowder, via the N11 grantTech seam). Each sets state.debugUsed=true PERMANENTLY — the taint rides the final HASH (docs/07 trust loop). No turn/seat check (god-mode). Cross-language pin: remove the taint or a debugEnabled gate in either engine and the hash moves.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 1,
+      "debugEnabled": true,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 10,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "debug",
+        "playerId": "p1",
+        "action": "grantGold",
+        "amount": 500
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "debug",
+        "playerId": "p1",
+        "action": "spawnUnit",
+        "unitType": "militia",
+        "x": 1,
+        "y": 1
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "debug",
+        "playerId": "p1",
+        "action": "grantTech",
+        "tech": "gunpowder"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "debugUsed": true
+    },
+    "hash": "0x678fe1c3"
+  }
+}

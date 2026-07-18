@@ -348,6 +348,10 @@ local function createGame(setup: any, ruleset: any): any
 		local u = units[id]
 		visibility.reveal(state, u.owner, u.x, u.y, 2)
 	end
+	-- A92: debug games carry state.debugEnabled (OMIT-SAFE — normal games untouched).
+	if setup.debug == true then
+		state.debugEnabled = true
+	end
 	return state
 end
 

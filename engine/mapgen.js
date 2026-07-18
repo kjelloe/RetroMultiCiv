@@ -277,6 +277,9 @@ function createGame(setup, ruleset) {
     const u = units[id];
     reveal(state, u.owner, u.x, u.y, 2);
   }
+  // A92: debug games carry state.debugEnabled (server --debug / Studio / ?debug=1).
+  // OMIT-SAFE — a normal game never stamps it, so the goldens are untouched.
+  if (setup.debug === true) state.debugEnabled = true;
   return state;
 }
 

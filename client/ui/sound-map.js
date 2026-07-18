@@ -67,6 +67,8 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'build' : null;
     case 'unitUpgraded': // N11: own-seat; reuse the build cue (dedicated cue = later pass)
       return e.playerId === viewer ? 'build' : null;
+    case 'debugCommand': // A92: silent — a debug action needs no cue
+      return null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }
