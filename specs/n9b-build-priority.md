@@ -104,17 +104,39 @@ gives Leonardo/A76 a real chance of appearing in long games.
 
 ## 3. Acceptance gate (sim-runner, on shipped code, vs the 0058 baseline)
 
-1. bldgPct RISES materially (balanced target ≥25%, builder ≥50% of
-   cities with ≥1 building by t400 — provisional targets, the sweep
-   calibrates).
-2. WONDERS: builder civs complete ≥1 wonder in a median soak seed
-   (vs ~0 today); Leonardo/space observations noted honestly.
-3. Elim median lands in 15-40 at dg=30 (the USER-WIDENED band —
-   mild pacification accepted; below 15 fails).
-4. M2/M3/M4 floors move toward targets; the ratchet's add-on-clear
-   rule fires for any floor that crosses.
-5. Two-phase close: constants pinned only after the sweep; ONE
-   golden re-record.
+**REFINED by the designer ally 2026-07-18 — the test is SELECTIVE +
+PRODUCTIVE building, not "bldgPct went up." The provisional
+8%→45% is a SIGNAL, NOT a target: 45% would be disastrous in a
+threatened/expansion-heavy empire (production starved from defense/
+settlers). Pick constants for "the RIGHT cities build the RIGHT
+infrastructure at the RIGHT time." If two configs tie, prefer the
+LOWER-bldgPct one (selectivity over volume).**
+
+1. Building share RISES MATERIALLY from ~8% but stays SELECTIVE — NOT
+   build-everything. (Report the DISTRIBUTION: are the builders the
+   productive cities?)
+2. CITY-ROLE DIFFERENTIATION: productive cities take wonders/key
+   units; trade-rich cities take economic/science buildings; exposed
+   cities keep defense priority.
+3. FRONTIER SAFETY (hard guardrail): NO rise in undefended-city
+   losses / emergency-garrison failures / barbarian collapses vs 0058.
+4. PAYBACK LOGIC: low-yield or soon-to-be-lost cities do NOT sit on
+   poor-return infra.
+5. WONDER PARTICIPATION: a MINORITY of eligible civs pursue wonders;
+   builder civs complete ≥1 wonder median seed; NO single civ
+   monopolizes every game's wonders (report which civs).
+6. WONDER CANCELLATION: a lost race ends PROMPTLY + cleanly, freeing
+   the city for an alternative build.
+7. ELIM median 15-40 at dg=30 (user-widened band; below 15 fails —
+   the anti-pacification guardrail).
+8. HUMAN-BENCHMARK NO-REGRESSION: city count, research pace, survival,
+   challenge vs the matched replay baseline must not drop.
+9. ENDGAME: in a marathon scenario, an AI that reaches the tech
+   actually BEGINS the Apollo/wonder prerequisite chain (the ending-#4
+   proof).
+10. M2/M3/M4 floors move toward targets.
+11. Two-phase close: constants pinned only after the sweep; ONE
+    golden re-record.
 
 ## Tests
 

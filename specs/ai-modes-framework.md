@@ -275,3 +275,64 @@ what the measurements say:
 STILL OWED TO YOU (user action, human-workitems): the tech-blurb ask
 (68 originals), the Sun Tzu Civ1 substitute, the Oracle ×4 question —
 the cover note is queued to send.
+
+## Ally review 2026-07-18 — adopted refinements
+
+**Modes = INTENT, city-roles + actions = EXECUTION (architecture
+principle, adopted).** A mode says the goal (`Limited War` = "capture
+one worthwhile target safely"); the PRODUCTION system decides which
+city builds siege vs a defender vs continues a library; the TACTICAL
+layer decides whether a unit attacks this turn; the mode re-evaluates
+at checkpoints and can ABORT. Modes never add hidden exceptions in the
+engine — they steer the existing production/research/military/
+settlement evaluators. Keep the mode set SMALL (the 11 already cover
+the arc: Opening→Expansion→Development, branching to Border-Defense/
+Limited-War/Total-War, Naval-Exploration→Overseas-Expansion,
+Modernization→Victory-Push, Recovery); add a mode only when a MEASURED
+behavior cannot be expressed through existing ones.
+
+**Snapshot additions (shared/strategic.js, debug-only, non-
+authoritative — adopted for the v1.5-plus trace):**
+```
+strategicMode, modeSinceTurn, modeExitReason,
+topGoal, goalTargetId, goalConfidence, nextReassessmentTurn
+```
+plus, for Recovery mode, a compact `recoveryCause`
+(city-loss / disorder / deficit / military-collapse). These answer
+what outcome stats can't: stuck-in-mode-too-long, wrong war target,
+attacked-without-confidence, abandoned-a-good-plan, planner-error vs
+execution-error. Land these WITH the dynamic-modes work (they describe
+mode state that doesn't exist until modes do), not before.
+
+**AI programme SEQUENCE (ally-recommended, adopted — resist combining
+naval/space/wonder/government/diplomacy into one sweep):**
+1. Finish + pin N9b (production→infrastructure→wonders→space capacity).
+2. Threat-relative garrison + mobile reserve (defender-bloat remedy
+   without an exploration/expansion regression).
+3. City roles + payback-aware production (intelligent builds, not
+   identical queues).
+4. Objective-based limited war (purposeful campaigns from the improved
+   attacker production).
+5. Government reassessment + modernization (escape the Monarchy/
+   medieval ceiling — note: gov-reeval shipped marker-0051; N9b-adjacent
+   modernization is the deepening).
+6. Naval doctrine (exploration→colonization→escort→invasion, harder
+   scenarios).
+7. Wonder race + space-victory completion (research becomes a
+   recognizable non-conquest win).
+8. Diplomacy-aware mode selection (once D1-D5 land: treaties/reputation/
+   senate influence war/recovery/expansion/victory-push).
+
+**Naval readiness ladder (define "awake" — no overclaiming):**
+L0 no naval in natural games · L1 coastal civs build scouts + reveal
+coast · L2 discover contacts/routes/overseas land · L3 build transports
+with a real cargo plan · L4 settle protected overseas cities · L5 a
+purposeful overseas war/reinforcement · L6 naval investment judged
+correctly across Pangaea/Lakes/Continents/Terra/Archipelago. (Current:
+~L1-2; the honest claim is "ships built + coast explored," not "naval
+gameplay awake.")
+
+**Air readiness ladder:** build → base sensibly → use against visible
+objectives → coordinate with land/naval → replace losses/obsolete →
+avoid wasting production where air isn't decisive. Air is "awake" only
+from the third rung, not at construction.

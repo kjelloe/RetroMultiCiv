@@ -22,12 +22,21 @@ treaty.
 
 ## 1. State model (omit-safe additions)
 
-- `state.relations` — a plain object keyed by the ORDERED-LOW-HIGH
-  civ-pair string (`"aztecs|romans"`, ids sorted so the pair is
-  unordered), value `{ state: 'war'|'peace', treatyTurn, expiresTurn }`.
-  ABSENT pair = war (the default). Empty `state.relations` = today's
-  world exactly (omit-safe: createGame does NOT stamp it; a helper
-  `relationOf(state, a, b)` returns 'war' when absent).
+- `state.relations` — a plain object keyed by the sorted PLAYER-id
+  pair string (`"p1|p6"`, R3: pids not civIds — `civ` is an OPTIONAL
+  player field, absent in scenario/mock/crafted states; p1..pN is the
+  engine identity everywhere. civIds live in the EVENTS with a
+  name/pid fallback). Value `{ state:'war'|'peace', treatyTurn,
+  expiresTurn?, offer? }`. ABSENT pair = war (the default). Empty
+  `state.relations` = today's world exactly (omit-safe: createGame
+  stamps nothing; helper `relationOf(state, a, b)` returns 'war' when
+  absent — AND derives 'war' when `state.turn >= expiresTurn` so a
+  lapsed timed treaty needs no mutation/event to expire, R2/expiry).
+- **The pending offer is IN the relations entry** (R2, not a second
+  map): `offer: { from, duration, turn }`, absent = none. A new offer
+  OVERWRITES a standing one (pinned). Offers + treaties PRUNE when
+  either civ is eliminated (the N10 dead-partner class). Omit-safe,
+  hashed; scenario 012 pins a pending-offer state cross-language.
 - `state.players[pid].reputation` — integer, RECORD-ONLY in D1
   (breaking peace decrements it; nothing READS it until D3). Omit-safe:
   absent = clean (0). A helper `reputationOf` defaults 0.
@@ -48,11 +57,21 @@ treaty.
   peace, stamps treatyTurn + expiresTurn (turn + duration), emits
   PEACE_TREATY_SIGNED. Clears the pending offer.
 - `kind:'reject'` — reject a standing offer: clears it, no state change.
-VALIDATION (rejections, the A83/A90 house shape): `notMet` (you may
-only contact a civ you have MET — first-contact events already exist),
-`selfTarget`, `noSuchOffer` (accept/reject with no pending offer),
+VALIDATION (rejections, the A83/A90 house shape): `selfTarget`,
+`noSuchOffer` (accept/reject with no pending offer),
 `alreadyPeace`/`alreadyWar` (no-op declares), `notYourTurn`. Barbarians
-(BARB_ID) are never a valid target (`cannotDiplomacyBarbarians`).
+(BARB_ID) are never a valid target (`cannotDiplomacyBarbarians`). All
+readable from existing or D1-added state.
+**`notMet` DEFERRED to D2 (R1, reviewer #1580 — CRITICAL):** there is
+NO engine met-state. "First contact" today is a CLIENT-side turnlog
+DERIVATION (turnlog.js from view deltas), not engine state — so
+`notMet` has nothing to read, and adding engine met-tracking would
+write state on every new contact (constant in every soak seed) →
+every hash and golden MOVES → golden-neutrality DIES. So D1 does NOT
+gate on met-state; a real ENGINE `FIRST_CONTACT` event + omit-safe
+met-state is its OWN budgeted BEHAVIORAL window in D2 (goldens move
+once, honestly), and the client turnlog derivation retires onto the
+real event then. D1 stays golden-neutral by not tracking contact.
 
 ## 3. Events (ally-specified shapes §3a, through the #1205 gate)
 
@@ -127,8 +146,15 @@ A59 being built.
 
 ## 9. Provenance
 
-War/peace states, treaty duration, reputation-on-betrayal: Civ1-
-authentic (docs/14 §1). The default-war reframe is a mechanical
-restatement of today's permanent-war rule (no behavior change). The
-war-gated blockade + public stance are the user's pre-ruled D1
-defaults (2026-07-18).
+War/peace-per-pair and reputation-on-betrayal: Civ1-CONSISTENT
+(reviewer #1580 — the dump is SILENT on Civ1 diplomacy: no
+Diplomacy/Peace/Treaty/Reputation (Civ1) pages exist; the series'
+diplomacy pages start at Civ2. Right framings, dump-uncitable). The
+default-war reframe is a mechanical restatement of today's
+permanent-war rule (no behavior change). **TREATY DURATION**: Civ1
+treaties persisted until BROKEN — timed expiry is a later-series
+shape. So `terms.duration` is OPTIONAL: ABSENT = PERPETUAL treaty (no
+expiresTurn — the Civ1-consistent default, which moots the expiry
+derivation for the common case); duration-bearing treaties are
+labeled house/original. The war-gated blockade + public stance are
+the user's pre-ruled D1 defaults (2026-07-18).

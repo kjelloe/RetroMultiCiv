@@ -1,5 +1,16 @@
 # RetroMultiCiv
 
+> **Now:** a playable deterministic 4X on browser AND Roblox, with LAN
+> multiplayer, replay verification, and a shared cross-language rules
+> engine (both runtimes compute byte-identical state).
+> **Proof:** a real Roblox Studio game replayed command-by-command
+> through both runtimes with identical hashes; a two-machine LAN
+> session survived disconnection and a server restart, then replayed
+> identically.
+> **Next:** measured AI quality (build-priority + strategic modes),
+> naval/air doctrine, legible diplomacy, the space race, onboarding,
+> and public-server hosting.
+
 A browser-based, turn-based 4X strategy game implementing classic early-4X
 mechanics (in the tradition of the 1991 original) through an original,
 deterministic simulation engine, architected for a mechanical
