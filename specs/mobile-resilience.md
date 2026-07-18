@@ -30,15 +30,26 @@ hardening plan (L9 / #1377); this spec asks it be its own early slice
 Do NOT release a lobby seat instantly on close. Hold it for
 `seatGraceMs` (~45s) in a "disconnected, reclaimable" state: the seat
 shows as such in the lobby broadcast, does not free up for a new
-joiner, and is reclaimable by the same reconnect token. If the grace
-window expires without reclaim, release as today (AI/open seat). At
-game START with a still-disconnected seat, the existing
-regent/started-without-joined path takes over (unchanged) — but the
-grace window means a phone that reconnects within 45s keeps its seat.
-Reconnect tokens already exist (MP5). Touches releaseSeat timing
-(server/lobby.js) + the close handler (server/index.js:619) — the
-lifecycle region; the heartbeat's terminate is the trigger, so land
-A and B together or A-then-B.
+joiner. If the grace window expires without reclaim, release as today
+(AI/open seat). At game START with a still-disconnected seat, the
+existing regent/started-without-joined path takes over (unchanged) —
+but the grace window means a phone that reconnects within 45s keeps
+its seat. The heartbeat's terminate is the trigger.
+**RECLAIM MECHANISM (ruled #1542, correcting a spec error):** MP5's
+token is the STARTED-game seat token; a pre-start lobby reservation
+is TOKENLESS (lobby.js "tokenless until start"), so there is nothing
+to reclaim with — the spec's "same reconnect token (MP5)" was wrong.
+Fix = OPTION 1: issue a lobby-reconnect id at joinedLobby (in the
+reply, stored on the reservation); reclaim within the grace window
+requires presenting it. NOT the weaker joinCode+seat+name/IP key
+(spoofable on exactly the shared LAN this targets), NOT defer (the
+brief-lock-keeps-seat case IS the user value). This adds one field to
+the lobby join reply + reserveSeat — the HELPER's lobby flow, wider
+than the "releaseSeat timing" first scoped. Hardening builds the
+server mechanism on its branch; the architect reviews the lobby-reply
+field for helper-compat before merge; the client SIDE (store the id,
+present it on wake-reconnect) folds into Part C. Touches releaseSeat
+timing (server/lobby.js) + the close handler (server/index.js:619).
 
 ### Part C — client auto-reconnect on wake (helper lane, client)
 The L8 wake-probe (visibilitychange/pageshow) currently only NOTIFIES
