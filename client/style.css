@@ -1985,6 +1985,11 @@ html, body {
   }
   #city-body { flex-direction: column; }
   #city-left { min-width: 0; }
+  /* the city panel's desktop `overflow: visible` (for the prev/next arrows that
+     hang outside the box) traps its tall content below the fold on a phone —
+     restore vertical scroll on the full-screen sheet so the whole catalog +
+     tile grid + unit list are reachable (#1736) */
+  #city-panel { overflow-y: auto; overflow-x: hidden; }
   .city-nav { min-width: 44px; min-height: 44px; }
   .panel-close { min-width: 44px; min-height: 44px; }
 
