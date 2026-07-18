@@ -5,7 +5,7 @@ return {
 	buildings = "0x26ecb6e9",
 	civs = "0x3d007f9e",
 	governments = "0x63112578",
-	rules = "0x81774806",
+	rules = "0xe77d93ee",
 	techs = "0x9fd04b61",
 	terrain = "0x0f366ad4",
 	units = "0x09dfd180",

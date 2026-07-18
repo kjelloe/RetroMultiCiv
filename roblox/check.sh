@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind ReplayTheater Pedia PediaConcepts Legend; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward ReplayTheater Pedia PediaConcepts Legend; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -88,6 +88,21 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 7: lune absent"
+fi
+
+# gate 9 — fastforward twin parity (architect grant @0acb4ef4 condition c):
+# JS and luau fast-forward the same seed+probe-age; the printed hash lines
+# must be byte-identical
+if command -v node >/dev/null 2>&1 && command -v lune >/dev/null 2>&1; then
+  ffjs=$(node roblox/selftest/fastforward-parity.mjs 2>/dev/null)
+  fflu=$(lune run roblox/selftest/fastforward-parity.luau 2>/dev/null)
+  if [ -n "$ffjs" ] && [ "$ffjs" = "$fflu" ]; then
+    note PASS "gate 9: fastforward JS==luau ($ffjs)"
+  else
+    note FAIL "gate 9: fastforward parity split (js='$ffjs' luau='$fflu')"
+  fi
+else
+  note SKIP "gate 9: node or lune absent"
 fi
 
 # gate 8 — billboard-input lint: a button parented into a BillboardGui must

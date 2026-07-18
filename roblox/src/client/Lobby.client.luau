@@ -101,7 +101,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 300, 0, 282)
+setupPanel.Size = UDim2.new(0, 300, 0, 442)
 setupPanel.Position = UDim2.new(0.5, -150, 0.3, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -115,6 +115,10 @@ local civsLine = label(setupPanel, 76, 18, "")
 local humansLine = label(setupPanel, 118, 18, "")
 local mapTypeLine = label(setupPanel, 160, 18, "")
 local maxIdleLine = label(setupPanel, 202, 18, "") -- R22 idle-regency knob
+local ageLine = label(setupPanel, 244, 18, "") -- R24 starting age
+local difficultyLine = label(setupPanel, 286, 18, "") -- R24b parity audit
+local combatLine = label(setupPanel, 328, 18, "")
+local seedLine = label(setupPanel, 370, 18, "")
 
 local function stepButton(x, y, text, onClick)
 	local b = Instance.new("TextButton")
@@ -144,6 +148,28 @@ stepButton(8, 178, "-", function() sendSetup("maptype", -1) end)
 stepButton(42, 178, "+", function() sendSetup("maptype", 1) end)
 stepButton(8, 220, "-", function() sendSetup("maxidle", -1) end)
 stepButton(42, 220, "+", function() sendSetup("maxidle", 1) end)
+stepButton(8, 262, "-", function() sendSetup("age", -1) end)
+stepButton(42, 262, "+", function() sendSetup("age", 1) end)
+stepButton(8, 304, "-", function() sendSetup("difficulty", -1) end)
+stepButton(42, 304, "+", function() sendSetup("difficulty", 1) end)
+stepButton(8, 346, "~", function() sendSetup("combat", 1) end) -- two-state toggle
+
+-- R24b: explicit world seed (browser parity); empty or 0 = random
+local seedBox = Instance.new("TextBox")
+seedBox.Size = UDim2.new(0, 110, 0, 22)
+seedBox.Position = UDim2.new(0, 8, 0, 388)
+seedBox.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
+seedBox.TextColor3 = Color3.fromRGB(235, 235, 235)
+seedBox.Font = Enum.Font.Code
+seedBox.TextSize = 14
+seedBox.PlaceholderText = "seed (empty=random)"
+seedBox.Text = ""
+seedBox.ClearTextOnFocus = false
+seedBox.Parent = setupPanel
+seedBox.FocusLost:Connect(function()
+	remote:FireServer({ t = "setup", key = "seed",
+		value = tonumber(seedBox.Text) or 0 })
+end)
 
 local startBtn = Instance.new("TextButton")
 startBtn.Size = UDim2.new(0, 130, 0, 28)
@@ -300,6 +326,13 @@ local function render(lobby)
 		humansLine.Text = ("human seats: %d (rest are AI)"):format(lobby.options.humans)
 		mapTypeLine.Text = "map type: " .. (lobby.options.mapType or "continents") -- A82a
 		maxIdleLine.Text = ("max idle: %d min (then AI regency)"):format(lobby.options.maxIdleMin or 1)
+		ageLine.Text = "starting age: " .. (lobby.options.age or "ancient")
+			.. ((lobby.options.age or "ancient") ~= "ancient" and " (AI fast-forward)" or "")
+		difficultyLine.Text = "difficulty: " .. (lobby.options.difficulty or "medium")
+		combatLine.Text = "combat: " .. ((lobby.options.combat or "bestof3") == "bestof3"
+			and "best-of-three" or "authentic (single round)")
+		seedLine.Text = "world seed: " .. ((lobby.options.seed or 0) > 0
+			and tostring(lobby.options.seed) or "random")
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game

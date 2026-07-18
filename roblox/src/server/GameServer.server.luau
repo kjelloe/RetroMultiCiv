@@ -24,6 +24,7 @@ local TextChatService = game:GetService("TextChatService")
 
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local engineModule = require(shared:WaitForChild("index"))
+local fastforward = require(shared:WaitForChild("fastforward")) -- R24 age starts
 local aiModule = require(shared:WaitForChild("ai"))
 local visibility = require(shared:WaitForChild("visibility"))
 local statehash = require(shared:WaitForChild("statehash"))
@@ -184,8 +185,18 @@ remote.Parent = ReplicatedStorage
 
 local phase = "idle" -- idle | setup | starting | running
 local hostUserId = nil
+-- R24b host-options parity (task @2905b966): difficulty + combat map to the
+-- SAME ruleset overrides the browser lobby applies (server/lobby.js is the
+-- authority): difficulty -> rules.contentCitizens, bestof3 -> combatRounds=3.
+-- Browser defaults: medium + best-of-three.
+local DIFFICULTY_LEVELS = { "trainer", "easy", "medium", "hard", "godemperor" }
+local DIFFICULTY_CONTENT = { trainer = 6, easy = 5, medium = 4, hard = 3, godemperor = 2 }
+local baseRules = ruleset.rules -- pristine; per-game overrides swap a merged copy in
+
 local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
-	maxIdleMin = 1 } -- R22: host-set idle threshold (minutes) before regency
+	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
+	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
+	difficulty = "medium", combat = "bestof3", seedOverride = 0 } -- R24b (0 = random)
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
@@ -294,7 +305,9 @@ local function lobbyPayloadFor(player)
 			countdown = countdownEnds ~= nil and math.max(0, math.ceil(countdownEnds - os.clock())) or 0,
 			options = { size = MAP_SIZES[setup.sizeIndex].name, civs = setup.civs,
 				humans = setup.humans, mapType = setup.mapType,
-				maxIdleMin = setup.maxIdleMin },
+				maxIdleMin = setup.maxIdleMin, age = setup.age,
+				difficulty = setup.difficulty, combat = setup.combat,
+				seed = setup.seedOverride },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -486,12 +499,41 @@ local function cancelCountdown()
 	countdownEnds = nil
 end
 
+-- R24b: difficulty/combat -> the browser's ruleset overrides, applied by
+-- swapping a MERGED rules copy in and rebuilding the engine (baseRules stays
+-- pristine for the next game). Saves record the two knobs so resume rebuilds
+-- the same rules (marker-0045 rulesetHash pins would split otherwise).
+local function applyRuleOverrides(difficulty, combat)
+	local o = {}
+	if difficulty ~= nil and DIFFICULTY_CONTENT[difficulty] ~= nil and difficulty ~= "medium" then
+		o.contentCitizens = DIFFICULTY_CONTENT[difficulty]
+	end
+	if combat == "bestof3" then
+		o.combatRounds = 3
+	end
+	if next(o) == nil then
+		ruleset.rules = baseRules
+	else
+		local merged = {}
+		for k, v in pairs(baseRules) do
+			merged[k] = v
+		end
+		for k, v in pairs(o) do
+			merged[k] = v
+		end
+		ruleset.rules = merged
+	end
+	engine = engineModule.createEngine(ruleset)
+end
+
 local function startGame()
 	awaySeats = {} -- R22: fresh game, every seat starts human-driven
 	lastAutosaveTurn = -1 -- R23
+	applyRuleOverrides(setup.difficulty, setup.combat) -- R24b
 	local size = MAP_SIZES[setup.sizeIndex]
-	local seed = os.time() % 1000000 -- server-side pick, PRINTED for replay;
-	-- never engine RNG (the game does not exist yet)
+	-- R24b: the host's explicit seed wins; else the server picks. PRINTED
+	-- for replay; never engine RNG (the game does not exist yet)
+	local seed = setup.seedOverride > 0 and setup.seedOverride or (os.time() % 1000000)
 	local civIds = {}
 	local playerDefs = setmetatable({}, statehash.ARRAY_MT)
 	for i = 1, setup.civs do
@@ -516,11 +558,59 @@ local function startGame()
 		return
 	end
 	state = created
+
+	-- R24 (user request, architect grant @0acb4ef4): later starting ages
+	-- fast-forward the whole world as AI to the age's turn, then grant the
+	-- cumulative era techs — the browser's ?age= twin. CHUNKED through the
+	-- stepper with task.wait() so the server never stalls a heartbeat;
+	-- abort (game over / a human civ died) cancels the start honestly —
+	-- deterministic UX, the host picks another seed/age knowingly.
+	local ageDef = nil
+	for _, a in ipairs(ruleset.rules.ages or {}) do
+		if a.id == setup.age then
+			ageDef = a
+		end
+	end
+	if ageDef ~= nil and ageDef.turn > 0 then
+		local humanSeats = {}
+		for i = 1, setup.humans do
+			table.insert(humanSeats, "p" .. i)
+		end
+		print(("[GameServer] R24 fast-forward to %s (turn %d)..."):format(ageDef.id, ageDef.turn))
+		local ff = fastforward.createFastForward(ruleset, state, { humanSeats = humanSeats })
+		local r = { done = false }
+		while not r.done do
+			r = ff.step(5, ageDef.turn)
+			task.wait()
+		end
+		if ff.aborted() ~= nil then
+			local ab = ff.aborted()
+			print(("[GameServer] R24 fast-forward aborted: %s"):format(tostring(ab.reason)))
+			local host = Players:GetPlayerByUserId(hostUserId or 0)
+			if host ~= nil then
+				-- toast() is a later local (scope order) — send the shape direct
+				remote:FireClient(host, { t = "toast",
+					text = "Fast-forward stopped early (" .. tostring(ab.reason)
+						.. ") - try another seed, age, or civ count." })
+			end
+			state = nil
+			setPhase("idle")
+			return
+		end
+		state = ff.state()
+		local grant = fastforward.applyAgeGrant(state, ageDef, ruleset)
+		for _, pid in ipairs(humanSeats) do
+			state.players[pid].human = true
+		end
+		print(("[GameServer] R24 age start ready: turn %d, %d techs granted"):format(state.turn, #grant))
+	end
+
 	theater.initialState = engineModule.deepClone(state) -- R18
 	theater.entries = {}
-	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s initialHash=%s")
+	print(("[R4INIT] seed=%d width=%d height=%d civs=%s humanSeat=p1 humans=%d maptype=%s age=%s difficulty=%s combat=%s initialHash=%s")
 		:format(seed, size.w, size.h, table.concat(civIds, ","), setup.humans,
-			setup.mapType, statehash.hashState(state)))
+			setup.mapType, setup.age, setup.difficulty, setup.combat,
+			statehash.hashState(state)))
 
 	-- bind the pre-start claims: seat 1 = host, 2.. = join-pad order
 	for i = 1, setup.humans do
@@ -554,6 +644,8 @@ local function saveGame(why)
 	local code = gamecode.gameCode(state)
 	local envelope = statehash.canonicalize({
 		state = state, savedAt = os.time(), humans = setup.humans,
+		-- R24b: resume must rebuild the same rules overrides
+		difficulty = setup.difficulty, combat = setup.combat,
 	})
 	if SaveStore.save(code, envelope) then
 		print(("[GameServer] R10 save (%s): %s at turn %d"):format(why, code, state.turn))
@@ -647,6 +739,14 @@ local function resumeGame(player, rawCode)
 	theater.initialState = engineModule.deepClone(state) -- R18: history restarts here
 	theater.entries = {}
 	setup.humans = envelope.humans or 1
+	-- R24b: rebuild the game's rules overrides from the envelope. Older saves
+	-- carry neither field: they were CREATED under plain baseRules (no knobs
+	-- existed), so the no-override pair is the faithful default — defaulting
+	-- to bestof3 here would change their rules mid-game and split the
+	-- marker-0045 rulesetHash pin.
+	setup.difficulty = envelope.difficulty or "medium"
+	setup.combat = envelope.combat or "authentic"
+	applyRuleOverrides(setup.difficulty, setup.combat)
 	local n = 0
 	for _ in pairs(state.players) do
 		n += 1
@@ -684,7 +784,8 @@ local function padStart(player)
 	end
 	hostUserId = player.UserId
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
-		maxIdleMin = 1 }
+		maxIdleMin = 1, age = "ancient",
+		difficulty = "medium", combat = "bestof3", seedOverride = 0 }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -870,6 +971,28 @@ remote.OnServerEvent:Connect(function(player, msg)
 		elseif msg.key == "maxidle" then
 			-- R22: minutes of inactivity before the regency countdown (1..15)
 			setup.maxIdleMin = math.clamp(setup.maxIdleMin + dir, 1, 15)
+		elseif msg.key == "difficulty" then
+			-- R24b: cycle the browser's five levels
+			local i = table.find(DIFFICULTY_LEVELS, setup.difficulty) or 3
+			setup.difficulty = DIFFICULTY_LEVELS[(i - 1 + dir) % #DIFFICULTY_LEVELS + 1]
+		elseif msg.key == "combat" then
+			-- R24b: two-state toggle (browser default best-of-three)
+			setup.combat = setup.combat == "bestof3" and "authentic" or "bestof3"
+		elseif msg.key == "seed" then
+			-- R24b: explicit world seed from the host's TextBox; 0 = random
+			setup.seedOverride = math.clamp(math.floor(tonumber(msg.value) or 0), 0, 999999)
+		elseif msg.key == "age" then
+			-- R24: cycle rules.ages in array order (wrap both ways)
+			local ages = ruleset.rules.ages or {}
+			local i = 1
+			for k, a in ipairs(ages) do
+				if a.id == setup.age then
+					i = k
+				end
+			end
+			if #ages > 0 then
+				setup.age = ages[(i - 1 + dir) % #ages + 1].id
+			end
 		elseif msg.key == "maptype" then
 			-- A82a: cycle the rules.json presets (sorted keys, wrap both ways)
 			local names = {}
