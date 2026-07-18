@@ -348,6 +348,31 @@ local function createGame(setup: any, ruleset: any): any
 		local u = units[id]
 		visibility.reveal(state, u.owner, u.x, u.y, 2)
 	end
+	-- N13: goody-hut sprinkle — the LAST createGame rng pass. Per-LAND-tile
+	-- 1-in-rules.hut.density over the linear tile index, EXCLUDING every start tile
+	-- + its 8 neighbours. Shifts the rng sequence -> full map/sim golden re-record.
+	local hutExcl = {}
+	for _, s in ipairs(found.starts) do
+		for dy = -1, 1 do
+			local ey = s.y + dy
+			if ey >= 0 and ey < height then
+				for dx = -1, 1 do
+					local ex = (((s.x + dx) % width) + width) % width
+					hutExcl[ey * width + ex] = true
+				end
+			end
+		end
+	end
+	local hutDensity = ruleset.rules.hut.density
+	for i = 0, width * height - 1 do
+		if hutExcl[i] ~= true and ruleset.terrain.terrains[state.map.tiles[i + 1].t].domain == "land" then
+			local roll = rng.rollRange(state.rngState, hutDensity)
+			state.rngState = roll.rngState
+			if roll.value == 0 then
+				state.map.tiles[i + 1].hut = true
+			end
+		end
+	end
 	-- A92: debug games carry state.debugEnabled (OMIT-SAFE — normal games untouched).
 	if setup.debug == true then
 		state.debugEnabled = true

@@ -410,6 +410,43 @@ local function cityName(state: any, cmd: any, ruleset: any, cityId: string, idNu
 	return civ.name .. " Outpost " .. idNum
 end
 
+-- City-founding legality at (x, y): the reject reason, or nil. Shared by the
+-- settler command AND the N13 hut advanced-tribe outcome (twin of engine/cities.js).
+local function foundCityLegality(state: any, x: number, y: number, ruleset: any): string?
+	local terrain = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x + 1].t]
+	if terrain.domain ~= "land" then return "badTerrain" end
+	for _, id in ipairs(state.cityOrder) do
+		local c = state.cities[id]
+		if c.x == x and c.y == y then return "cityExists" end
+		if not citySpacingOk(state.map, x, y, c.x, c.y, ruleset.rules) then return "tooCloseToCity" end
+	end
+	return nil
+end
+
+-- The shared city-creation core: a pop-1 city at (x, y) for playerId. Pushes a
+-- cityFounded event; callers handle any settler consumption. Returns the cityId.
+local function createCityAt(state: any, playerId: string, x: number, y: number, ruleset: any, events: any, name: string?): string
+	local idNum = state.nextCityId
+	local cityId = "c" .. idNum
+	state.nextCityId += 1
+	state.cities[cityId] = {
+		id = cityId,
+		name = cityName(state, { playerId = playerId, name = name }, ruleset, cityId, idNum),
+		owner = playerId,
+		x = x,
+		y = y,
+		pop = 1,
+		food = 0,
+		shields = 0,
+		buildings = setmetatable({}, statehash.ARRAY_MT), -- EMPTY array, marked
+		producing = { kind = "unit", id = "militia" },
+	}
+	table.insert(state.cityOrder, cityId)
+	visibility.reveal(state, playerId, x, y, 2)
+	table.insert(events, { type = "cityFounded", cityId = cityId, x = x, y = y })
+	return cityId
+end
+
 local function foundCity(state: any, cmd: any, ruleset: any): any
 	local unit = state.units[cmd.unitId]
 	if unit == nil then
@@ -427,42 +464,14 @@ local function foundCity(state: any, cmd: any, ruleset: any): any
 	if unit.moves <= 0 then
 		return { ok = false, reason = "noMovesLeft" }
 	end
-
-	local terrain = ruleset.terrain.terrains[state.map.tiles[unit.y * state.map.width + unit.x + 1].t]
-	if terrain.domain ~= "land" then
-		return { ok = false, reason = "badTerrain" }
+	local bad = foundCityLegality(state, unit.x, unit.y, ruleset)
+	if bad ~= nil then
+		return { ok = false, reason = bad }
 	end
-	for _, id in ipairs(state.cityOrder) do
-		local c = state.cities[id]
-		if c.x == unit.x and c.y == unit.y then
-			return { ok = false, reason = "cityExists" }
-		end
-		if not citySpacingOk(state.map, unit.x, unit.y, c.x, c.y, ruleset.rules) then
-			return { ok = false, reason = "tooCloseToCity" }
-		end
-	end
-
-	local idNum = state.nextCityId
-	local cityId = "c" .. idNum
-	state.nextCityId += 1
-	local name = cityName(state, cmd, ruleset, cityId, idNum)
-	state.cities[cityId] = {
-		id = cityId,
-		name = name,
-		owner = cmd.playerId,
-		x = unit.x,
-		y = unit.y,
-		pop = 1,
-		food = 0,
-		shields = 0,
-		buildings = setmetatable({}, statehash.ARRAY_MT), -- EMPTY array, marked
-		producing = { kind = "unit", id = "militia" },
-	}
-	table.insert(state.cityOrder, cityId)
+	local events = setmetatable({}, statehash.ARRAY_MT)
+	createCityAt(state, cmd.playerId, unit.x, unit.y, ruleset, events, cmd.name)
 	state.units[cmd.unitId] = nil
-	visibility.reveal(state, cmd.playerId, state.cities[cityId].x, state.cities[cityId].y, 2)
-
-	return { ok = true, events = { { type = "cityFounded", cityId = cityId, x = state.cities[cityId].x, y = state.cities[cityId].y } } }
+	return { ok = true, events = events }
 end
 
 local function setProduction(state: any, cmd: any, ruleset: any): any
@@ -515,6 +524,10 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 	-- B13a/A63: a unit obsoleted by a known tech has left the catalog
 	if item.kind == "unit" and unitObsolete(def, state.players[cmd.playerId].techs) then
 		return { ok = false, reason = "obsolete" }
+	end
+	-- N13: barb-only units (the barbarian leader) are never buildable by a civ
+	if item.kind == "unit" and def.barbOnly == true then
+		return { ok = false, reason = "notBuildable" }
 	end
 	if item.kind == "building" and hasBuilding(city, item.id) then
 		return { ok = false, reason = "alreadyBuilt" }
@@ -851,6 +864,8 @@ end
 
 return {
 	foundCity = foundCity,
+	foundCityLegality = foundCityLegality,
+	createCityAt = createCityAt,
 	setProduction = setProduction,
 	setWorkers = setWorkers,
 	buyProduction = buyProduction,

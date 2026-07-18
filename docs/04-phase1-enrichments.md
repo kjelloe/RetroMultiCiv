@@ -146,6 +146,13 @@ unit after End Turn.
 
 ## 5. Goody huts + era-based barbarians
 
+> **SUPERSEDED by N13/A4 (shipped 2026-07-18).** The four-outcome sketch below
+> was the design seed; the built system has FIVE eligibility-gated outcomes
+> (advancedTribe / advance / gold / mercs / ambush) via one weighted roll, plus
+> air/barbarian nullifiers and the barbarian-leader ransom. The binding spec is
+> `specs/n13-huts.md`; the landed behaviour is documented in the "Goody huts /
+> minor tribal villages (N13/A4)" section of docs/01 (the landed-slices area, before §12).
+
 - **Huts:** mapgen sprinkles `tile.hut = true` on ~1/40 land tiles (seeded
   — mapgen scenario 002 hash re-records once). Entering unit removes the
   hut and rolls (engine rng): 50 gold / free tech / free militia /

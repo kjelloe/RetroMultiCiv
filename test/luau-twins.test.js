@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 39, 'the thirty-nine scenarios (040 debug commands added in A92)');
+      assert.strictEqual(files.length, 43, 'the forty-three scenarios (041-044 goody huts added in N13/A4)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -161,6 +161,10 @@ const PORTED = [
   '038-upgrade-rejections.json', // N11: notEnoughGold + notInCity
   '039-leonardo-workshop.json', // N11 3b: Leonardo auto-upgrade on tech acquisition
   '040-debug-commands.json', // A92: debug commands + the debugUsed taint in the hash
+  '041-hut-gold.json', // N13/A4: a village grants gold (the simplest weighted-roll outcome)
+  '042-hut-leonardo.json', // N13/A4 x N11: a hut-granted advance fires Leonardo (the marker-0056 promise)
+  '043-leader-ransom.json', // N13/A4 R1: a lone barbarian leader kill pays a ransom (two-attack sequence)
+  '044-hut-nullifier-tribe.json', // N13/A4: air entry nullifies a village; a ground unit founds an advanced tribe
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
@@ -225,7 +229,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xb7fd4fb3\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xd5c51a95\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -263,8 +267,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '0ef902c9', pangaea: '0e158189',
-      archipelago: '0f36cfb4', islands: 'efac114e'
+      continents: '435a5db9', pangaea: '0733cc0e',
+      archipelago: 'b3f5ab45', islands: '46b9d0c8'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

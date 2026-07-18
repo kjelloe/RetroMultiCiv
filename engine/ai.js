@@ -788,6 +788,7 @@ function bestDefenderUnit(me, ruleset) {
   for (const id of Object.keys(ruleset.units)) {
     const def = ruleset.units[id];
     if (def.domain !== 'land' || def.defense <= 0) continue;
+    if (def.barbOnly === true) continue; // N13: the barbarian leader is never buildable
     if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
     if (unitObsolete(def, me.techs)) continue;
     if (best === null

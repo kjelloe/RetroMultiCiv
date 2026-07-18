@@ -238,7 +238,7 @@ export const PROP_SHAPES = {
 // the composer's caller layers on; the base body is the mapped recipe.
 export const UNIT_SILHOUETTE = {
   settlers: 'wagon', caravan: 'wagon', diplomat: 'diplomat',
-  militia: 'footSoldier', legion: 'footSoldier',
+  militia: 'footSoldier', legion: 'footSoldier', barbleader: 'footSoldier',
   phalanx: 'phalanx', musketeers: 'musketeers', riflemen: 'riflemen', 'mech-inf': 'apc',
   cavalry: 'mounted', knights: 'knight', chariot: 'mounted',
   armor: 'tank', catapult: 'catapult', cannon: 'siege', artillery: 'siege',

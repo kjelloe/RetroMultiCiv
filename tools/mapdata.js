@@ -226,7 +226,12 @@ const UNIT_OVERLAY = {
   // A72: a carrier is a mobile airbase — it holds AIR units (airCapacity), not
   // land units (no `transport`), so the A69 load path never boards it. Capacity
   // canonical (8), FLAGGED for user with the other air/naval numbers.
-  'carrier':    { airCapacity: 8 }
+  'carrier':    { airCapacity: 8 },
+  // N13: the barbarian leader is a Civ1-authentic mechanic but NOT a roster unit
+  // (not in the extract) — an `added` block DEFINES it (the WONDER_OVERLAY.added
+  // pattern from N11 3b). barbOnly = never buildable (excluded from build lists);
+  // barbLeader = the combat exemption + ransom carrier. Stats original (labeled).
+  'barbleader': { added: { name: 'Barbarian Leader', tech: '', attack: 0, defense: 1, moves: 1, cost: 10, domain: 'land', notes: '' }, barbOnly: true, barbLeader: true }
 };
 
 const BUILDING_OVERLAY = {
@@ -369,8 +374,17 @@ function buildUnits(techs) {
     }
   });
 
+  // Overlay-DEFINED additions (units not in the Civ1 roster — labeled; N13
+  // barbleader). The `added` block carries the full stats; extra overlay flags
+  // (barbOnly, barbLeader) merge on top.
+  for (const [id, ov] of Object.entries(UNIT_OVERLAY)) {
+    if (!ov.added) continue;
+    const extra = Object.assign({}, ov);
+    delete extra.added;
+    units[id] = Object.assign({}, ov.added, extra);
+  }
   const count = Object.keys(units).length;
-  if (count !== 28) throw new Error(`expected 28 units, got ${count}`);
+  if (count !== 29) throw new Error(`expected 29 units (28 Civ1 + barbleader), got ${count}`);
   if (!units.settlers || units.settlers.attack !== 0) throw new Error('settlers sanity check failed');
   return units;
 }

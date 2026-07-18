@@ -4,6 +4,7 @@
 // to combat.js). Railroads arrive in a later slice.
 import { reveal } from './visibility.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
+import { rollHut } from './huts.js';
 
 const DIRS = {
   N: { dx: 0, dy: -1 }, NE: { dx: 1, dy: -1 }, E: { dx: 1, dy: 0 },
@@ -192,6 +193,18 @@ function moveUnit(state, cmd, ruleset) {
   }
   if (targetCity && targetCity.owner !== unit.owner) {
     captureCity(state, unit, targetCity, events, ruleset);
+  }
+  // N13: a village (goody hut) on the destination tile. A GROUND non-barbarian
+  // unit rolls the outcome; an AIR unit (or a barbarian, defensively — barbarians
+  // move via barbarians.js) is a NULLIFIER: the village is removed with no reward.
+  const landed = tileAt(map, nx, ny);
+  if (landed.hut === true) {
+    if (unitType.domain === 'air' || unit.owner === 'barb') {
+      delete landed.hut;
+      events.push({ type: 'hutEntered', playerId: unit.owner, x: nx, y: ny, result: 'nothing' });
+    } else {
+      rollHut(state, unit, ruleset, events);
+    }
   }
   return { ok: true, events };
 }

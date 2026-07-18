@@ -1,9 +1,12 @@
 // Barbarians: an ownerless menace processed once per game turn (at turn wrap).
 // Deliberately dumb v1: spawn on wild land every few turns, shamble toward the
-// nearest civilization, attack whatever they reach. Goody huts and era-based
-// barbarian units come in a later slice.
-// IMPORTANT for replay stability: no RNG is consumed before FIRST_TURN, so
-// early-game scenario hashes are unaffected by this module.
+// nearest civilization, attack whatever they reach. Units era-scale (A66); a
+// 1-in-rules.barb.leaderChance inland spawn brings a barbarian LEADER under
+// escort (N13 — its lone kill pays a ransom, combat.js R1).
+// IMPORTANT for replay stability: THIS MODULE consumes no RNG before FIRST_TURN
+// (its spawn scheduling). N13 goody-hut entries are a DIFFERENT rng consumer
+// (movement.js) that CAN fire earlier — the turn-16 guarantee is about barbarian
+// spawn scheduling, not identity of the whole rng sequence.
 import { rollRange } from './rng.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 
@@ -95,6 +98,20 @@ function trySpawn(state, ruleset, events) {
       x, y, moves: ruleset.units[barbUnit].moves, fortified: false, veteran: false
     };
     events.push({ type: 'barbariansSpawned', unitId, x, y });
+    // N13: 1-in-rules.barb.leaderChance inland spawns bring a barbarian LEADER
+    // stacked ON the escort's tile ("under escort"). R1 (combat.js) keeps it
+    // behind the escort until it stands alone, when killing it pays the ransom.
+    const leaderRoll = rollRange(state.rngState, ruleset.rules.barb.leaderChance);
+    state.rngState = leaderRoll.rngState;
+    if (leaderRoll.value === 0) {
+      const leaderType = 'barbleader';
+      const lid = 'u' + state.nextUnitId;
+      state.nextUnitId = state.nextUnitId + 1;
+      state.units[lid] = {
+        id: lid, type: leaderType, owner: BARB_ID,
+        x, y, moves: ruleset.units[leaderType].moves, fortified: false, veteran: false
+      };
+    }
     return;
   }
 }
@@ -151,6 +168,13 @@ function act(state, unit, ruleset, events) {
 
   unit.x = nx;
   unit.y = ny;
+  // N13: a barbarian entering a village is a nullifier — the hut is removed with
+  // no reward (barbarians move here, not via movement.moveUnit).
+  const tile = state.map.tiles[ny * width + nx];
+  if (tile.hut === true) {
+    delete tile.hut;
+    events.push({ type: 'hutEntered', playerId: BARB_ID, x: nx, y: ny, result: 'nothing' });
+  }
   const city = cityAt(state, nx, ny);
   if (city && city.owner !== BARB_ID) {
     ensureBarbPlayer(state);
@@ -168,4 +192,4 @@ function process(state, ruleset, events) {
   }
 }
 
-export { process, BARB_ID, FIRST_TURN, barbTier };
+export { process, BARB_ID, FIRST_TURN, barbTier, ensureBarbPlayer };

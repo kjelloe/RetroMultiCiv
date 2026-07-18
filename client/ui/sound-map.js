@@ -69,6 +69,10 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'build' : null;
     case 'debugCommand': // A92: silent — a debug action needs no cue
       return null;
+    case 'hutEntered': // N13: own-seat village discovery cue (reuse 'found')
+      return e.playerId === viewer ? 'found' : null;
+    case 'ransomPaid': // N13: own-seat — a combat-win-flavoured payout
+      return e.playerId === viewer ? 'combat-win' : null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }

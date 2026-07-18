@@ -120,6 +120,19 @@ local function trySpawn(state: any, ruleset: any, events: any)
 				fortified = false, veteran = false,
 			}
 			table.insert(events, { type = "barbariansSpawned", unitId = unitId, x = x, y = y })
+			-- N13: 1-in-rules.barb.leaderChance inland spawns bring a barbarian
+			-- LEADER stacked ON the escort's tile ("under escort").
+			local leaderRoll = rng.rollRange(state.rngState, ruleset.rules.barb.leaderChance)
+			state.rngState = leaderRoll.rngState
+			if leaderRoll.value == 0 then
+				local lid = "u" .. state.nextUnitId
+				state.nextUnitId += 1
+				state.units[lid] = {
+					id = lid, type = "barbleader", owner = BARB_ID,
+					x = x, y = y, moves = ruleset.units.barbleader.moves,
+					fortified = false, veteran = false,
+				}
+			end
 			return
 		end
 	end
@@ -207,6 +220,12 @@ local function act(state: any, unit: any, ruleset: any, events: any)
 
 	unit.x = nx
 	unit.y = ny
+	-- N13: a barbarian entering a village is a nullifier — removed, no reward.
+	local tile = state.map.tiles[ny * width + nx + 1]
+	if tile.hut == true then
+		tile.hut = nil
+		table.insert(events, { type = "hutEntered", playerId = BARB_ID, x = nx, y = ny, result = "nothing" })
+	end
 	local city = combat.cityAt(state, nx, ny)
 	if city ~= nil and city.owner ~= BARB_ID then
 		ensureBarbPlayer(state)
@@ -238,4 +257,6 @@ return {
 	process = process,
 	BARB_ID = BARB_ID,
 	FIRST_TURN = FIRST_TURN,
+	barbTier = barbTier,
+	ensureBarbPlayer = ensureBarbPlayer,
 }

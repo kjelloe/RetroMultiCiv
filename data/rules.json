@@ -100,6 +100,17 @@
     "goldPerShield": 2,
     "leonardoWonder": "leonardo-s-workshop"
   },
+  "hut": {
+    "density": 40,
+    "gold": 50,
+    "ambushCityRadius": 3,
+    "ambushCount": 2,
+    "weights": { "advancedTribe": 2, "advance": 4, "gold": 6, "mercs": 4, "ambush": 4 }
+  },
+  "barb": {
+    "leaderRansom": 100,
+    "leaderChance": 4
+  },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,

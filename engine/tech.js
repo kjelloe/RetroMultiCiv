@@ -141,6 +141,10 @@ function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
 function grantTech(state, pid, techId, ruleset, events) {
   const player = state.players[pid];
   player.techs.push(techId);
+  // acquiring a tech finishes any in-progress research of that same tech, so a
+  // free grant (hut advance, Leonardo, debug) never double-completes it in
+  // processResearch (would push a duplicate). Bulbs carry to the next pick.
+  if (player.researching === techId) player.researching = '';
   events.push({ type: 'techDiscovered', playerId: pid, tech: techId });
   sellObsoletedBuildings(state, pid, techId, ruleset, events);
   leonardoUpgrade(state, pid, ruleset, events);

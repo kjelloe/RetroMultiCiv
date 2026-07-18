@@ -46,6 +46,10 @@ export function classifyEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'cities' : null;
     case 'debugCommand': // A92: a debug command was used (world — the taint is public)
       return 'world';
+    case 'hutEntered': // N13: own unit entered a village (own-seat)
+      return e.playerId === viewer ? 'cities' : null;
+    case 'ransomPaid': // N13: own unit killed a lone barbarian leader (own-seat)
+      return e.playerId === viewer ? 'combat' : null;
     case 'playerDefeated': case 'wonderBuilt': case 'wonderLost':
     case 'barbariansSpawned': case 'gameOver': case 'ageChanged':
     case 'shipLaunched': case 'shipDestroyed': case 'spaceVictory': // A76: the space race is public

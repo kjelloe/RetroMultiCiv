@@ -103,9 +103,15 @@ end
 -- Civ 1: the strongest defender on the tile fights. Strict > keeps the
 -- first of any tie in unitsAt's sorted order, like JS.
 local function bestDefender(state: any, x: number, y: number, ruleset: any): any
+	local here = unitsAt(state, x, y)
 	local best = nil
 	local bestScore = -1
-	for _, u in ipairs(unitsAt(state, x, y)) do
+	for _, u in ipairs(here) do
+		-- R1 (N13): a barbarian leader hides behind its escort — never the chosen
+		-- defender while another unit shares its tile.
+		if #here > 1 and ruleset.units[u.type].barbLeader == true then
+			continue
+		end
 		local score = defenseStrength(state, u, ruleset)
 		if score > bestScore then
 			best = u
@@ -176,6 +182,17 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 		-- stacks die on open ground; cities AND fortresses lose one at a time
 		local sheltered = cityAt(state, tx, ty) ~= nil or fortressAt(state, tx, ty)
 		local casualties = if sheltered then { defender } else unitsAt(state, tx, ty)
+		-- R1 (N13): a barbarian leader survives open-ground annihilation of its
+		-- escort — it dies only as the SOLE defender.
+		if not sheltered and #casualties > 1 then
+			local filtered = {}
+			for _, u in ipairs(casualties) do
+				if ruleset.units[u.type].barbLeader ~= true then
+					table.insert(filtered, u)
+				end
+			end
+			casualties = filtered
+		end
 		for _, u in ipairs(casualties) do
 			state.units[u.id] = nil
 			-- A69: a sunk ship drowns its cargo (deterministic id order)
@@ -189,6 +206,14 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 					state.units[cid] = nil
 					table.insert(events, { type = "cargoLost", unitId = cid, owner = c.owner, shipId = u.id, x = u.x, y = u.y })
 				end
+			end
+			-- N13: killing a LONE barbarian leader pays the killing civ a ransom.
+			if ruleset.units[u.type].barbLeader == true then
+				local killer = state.players[attacker.owner]
+				if killer ~= nil then
+					killer.gold = killer.gold + ruleset.rules.barb.leaderRansom
+				end
+				table.insert(events, { type = "ransomPaid", playerId = attacker.owner, gold = ruleset.rules.barb.leaderRansom, x = tx, y = ty })
 			end
 		end
 		table.insert(events, {

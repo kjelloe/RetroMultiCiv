@@ -1,0 +1,197 @@
+{
+  "name": "A4: a lone barbarian leader kill pays a ransom (R1 two-attack sequence)",
+  "notes": "A barb escort+leader stacked at (2,2). Attack 1 (rngState 2) kills the ESCORT (R1: leader survives open-ground annihilation while escorted). Attack 2 kills the now-LONE leader -> +100 gold + ransomPaid. Cross-language pin of R1 + ransom.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 20,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "barb"
+      ],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "a1": {
+          "id": "a1",
+          "type": "legion",
+          "owner": "p1",
+          "x": 2,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "a2": {
+          "id": "a2",
+          "type": "legion",
+          "owner": "p1",
+          "x": 1,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "esc": {
+          "id": "esc",
+          "type": "militia",
+          "owner": "barb",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "lead": {
+          "id": "lead",
+          "type": "barbleader",
+          "owner": "barb",
+          "x": 2,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "p1",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "barb": {
+          "id": "barb",
+          "name": "B",
+          "color": "#c00",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": ""
+        }
+      },
+      "rngState": 2
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "a1",
+        "dir": "S"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "a2",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {},
+    "hash": "0x64b0118c"
+  }
+}

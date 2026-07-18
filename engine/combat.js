@@ -80,8 +80,13 @@ function defenseStrength(state, unit, ruleset) {
 
 // Civ 1: the strongest defender on the tile fights.
 function bestDefender(state, x, y, ruleset) {
+  const here = unitsAt(state, x, y);
   let best = null, bestScore = -1;
-  for (const u of unitsAt(state, x, y)) {
+  for (const u of here) {
+    // R1 (N13): a barbarian leader hides behind its escort — never the chosen
+    // defender while another unit shares its tile (escorts absorb hits first, so
+    // the leader survives to be killed alone and pay its ransom).
+    if (here.length > 1 && ruleset.units[u.type].barbLeader === true) continue;
     const score = defenseStrength(state, u, ruleset);
     if (score > bestScore) { best = u; bestScore = score; }
   }
@@ -136,7 +141,12 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
   if (attackerWins) {
     // stacks die on open ground; cities AND fortresses lose one unit at a time
     const sheltered = cityAt(state, tx, ty) !== null || fortressAt(state, tx, ty);
-    const casualties = sheltered ? [defender] : unitsAt(state, tx, ty);
+    let casualties = sheltered ? [defender] : unitsAt(state, tx, ty);
+    // R1 (N13): a barbarian leader survives open-ground annihilation of its escort
+    // — it dies only as the SOLE defender. Filter it out while others share the tile.
+    if (!sheltered && casualties.length > 1) {
+      casualties = casualties.filter(u => ruleset.units[u.type].barbLeader !== true);
+    }
     for (const u of casualties) {
       delete state.units[u.id];
       // A69: a sunk ship drowns its cargo (deterministic id order)
@@ -146,6 +156,13 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
           delete state.units[cid];
           events.push({ type: 'cargoLost', unitId: cid, owner: c.owner, shipId: u.id, x: u.x, y: u.y });
         }
+      }
+      // N13: killing a LONE barbarian leader (it reached casualties = it stood
+      // alone) pays the killing civ a gold ransom.
+      if (ruleset.units[u.type].barbLeader === true) {
+        const killer = state.players[attacker.owner];
+        if (killer) killer.gold = killer.gold + ruleset.rules.barb.leaderRansom;
+        events.push({ type: 'ransomPaid', playerId: attacker.owner, gold: ruleset.rules.barb.leaderRansom, x: tx, y: ty });
       }
     }
     events.push({

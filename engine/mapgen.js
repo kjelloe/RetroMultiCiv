@@ -277,6 +277,29 @@ function createGame(setup, ruleset) {
     const u = units[id];
     reveal(state, u.owner, u.x, u.y, 2);
   }
+  // N13: goody-hut sprinkle — the LAST createGame rng pass (no downstream draws).
+  // Per-LAND-tile 1-in-rules.hut.density over the LINEAR tile index (R2),
+  // EXCLUDING every start tile + its 8 neighbours. tile.hut=true (omit-safe on
+  // water/plain tiles). Shifts the rng sequence → full map/sim golden re-record.
+  const hutExcl = {};
+  for (const s of found.starts) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const ey = s.y + dy;
+      if (ey < 0 || ey >= height) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const ex = (((s.x + dx) % width) + width) % width; // maps always wrapX
+        hutExcl[ey * width + ex] = true;
+      }
+    }
+  }
+  const hutDensity = ruleset.rules.hut.density;
+  for (let i = 0; i < width * height; i++) {
+    if (hutExcl[i] === true) continue;
+    if (ruleset.terrain.terrains[state.map.tiles[i].t].domain !== 'land') continue;
+    const roll = rollRange(state.rngState, hutDensity);
+    state.rngState = roll.rngState;
+    if (roll.value === 0) state.map.tiles[i].hut = true;
+  }
   // A92: debug games carry state.debugEnabled (server --debug / Studio / ?debug=1).
   // OMIT-SAFE — a normal game never stamps it, so the goldens are untouched.
   if (setup.debug === true) state.debugEnabled = true;

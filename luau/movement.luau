@@ -9,6 +9,7 @@
 local statehash = require("./statehash")
 local visibility = require("./visibility")
 local combat = require("./combat")
+local huts = require("./huts") -- N13: goody-hut roll on move-into-hut
 
 local DIRS: { [string]: { dx: number, dy: number } } = {
 	N = { dx = 0, dy = -1 }, NE = { dx = 1, dy = -1 }, E = { dx = 1, dy = 0 },
@@ -242,6 +243,17 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	end
 	if targetCity ~= nil and targetCity.owner ~= unit.owner then
 		combat.captureCity(state, unit, targetCity, events, ruleset)
+	end
+	-- N13: a village on the destination tile. A GROUND non-barbarian unit rolls;
+	-- an AIR unit (or barbarian, defensively) is a NULLIFIER (removed, no reward).
+	local landed = tileAt(map, nx, ny)
+	if landed.hut == true then
+		if unitType.domain == "air" or unit.owner == "barb" then
+			landed.hut = nil
+			table.insert(events, { type = "hutEntered", playerId = unit.owner, x = nx, y = ny, result = "nothing" })
+		else
+			huts.rollHut(state, unit, ruleset, events)
+		end
 	end
 	return { ok = true, events = events }
 end

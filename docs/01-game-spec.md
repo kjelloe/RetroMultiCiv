@@ -160,7 +160,10 @@ Every unit type: **Attack / Defense / Movement**, shield cost, prerequisite tech
 obsoleted-by tech, domain (land/sea/air), and flags (e.g. `ignoresWalls`,
 `carriesUnits`, `invisible`).
 
-### 5.2 Unit roster (Civ 1 — 28 types, values to verify)
+### 5.2 Unit roster (Civ 1 — 28 buildable types, values to verify)
+
+> `data/units.json` also carries one **barbOnly** non-buildable unit (`barbleader`,
+> the N13/A4 goody-hut ransom target — 29 entries total, not in this Civ1 roster).
 
 | Unit | A/D/M | Cost | Tech | Notes |
 |---|---|---|---|---|
@@ -656,6 +659,40 @@ carry), deterministic via `sortIds`. The trigger routes through a single
 `grantTech` acquisition seam (R3) so any grant path (research now; goody huts,
 trades later) fires it. Dormant in the AI soak (no AI completes the 400-cost
 wonder in 400 turns — the honest signature, like the space race).
+
+### Goody huts / minor tribal villages (N13/A4 — spec specs/n13-huts.md)
+
+Mapgen sprinkles `tile.hut = true` on ~1/`rules.hut.density` (1/40) land tiles,
+EXCLUDING every starting position and its 8 neighbours (no free adjacent windfall).
+A **ground** unit that enters a hut tile removes it and fires ONE eligibility-gated
+weighted roll (`engine/huts.js`, `rules.hut.weights` summing 20) over five outcomes,
+Civ1-authentic in spirit (Civ2-shape "advanced tribe"):
+
+- **advancedTribe** (2) — a new city is founded on the tile (only when foundCity is
+  legal there); **advance** (4) — a free tech via the `grantTech` seam (so it fires
+  Leonardo, and finishes any in-progress research of that tech — no duplicate);
+  **gold** (6) — `rules.hut.gold` (50); **mercs** (4) — a free legion/cavalry homed
+  to the CLOSEST owned city (foreign-closest → no home; R5 zero-city case → homeless);
+  **ambush** (4) — `rules.hut.ambushCount` (2) era-tier barbarians spawn around the tile.
+
+Gates (skip an outcome, renormalising the roll over what remains): **advance** never
+on turn 1, past year 1000, or with no researchable techs left; **ambush** needs the
+entering civ to own a city and is suppressed within `ambushCityRadius` (3) of any city;
+**advancedTribe** needs a foundCity-legal tile. **Nullifiers:** an **air** unit or a
+**barbarian** entering a hut removes it with no reward (`hutEntered { result: 'nothing' }`).
+Every entry emits `hutEntered { playerId, x, y, result }`.
+
+**Barbarian leaders (R1):** when barbarians spawn (`rules.barb.leaderChance` 1-in-4) a
+`barbleader` (UNIT_OVERLAY-added, barbOnly, attack 0/defence 1) stacks on the escort.
+It is exempt from open-ground stack annihilation while escorted (combat skips it as
+best-defender when the stack has >1 unit, and the multi-unit casualty sweep filters it
+out); killed while **alone** it pays the killer `rules.barb.leaderRansom` (100) gold and
+emits `ransomPaid`. AI never builds `barbleader` (barbOnly guard in setProduction +
+bestDefenderUnit). Honest AI-soak signature: villages ARE consumed and leaders DO spawn
+(behavioural — the 400-turn goldens moved), but rounds/winner converge unchanged (400/p2);
+the free advances never granted a currently-researched tech in the pinned seed, so soak +
+natural stayed byte-identical to the pre-fix record. Cross-language pins: scenarios
+041–044.
 
 ## 12. Out of scope for v1 (specified in roadmap phases)
 

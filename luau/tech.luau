@@ -179,6 +179,10 @@ end
 local function grantTech(state: any, pid: string, techId: string, ruleset: any, events: any)
 	local player = state.players[pid]
 	table.insert(player.techs, techId)
+	-- acquiring a tech finishes any in-progress research of that same tech, so a
+	-- free grant (hut advance, Leonardo, debug) never double-completes it in
+	-- processResearch (would push a duplicate). Bulbs carry to the next pick.
+	if player.researching == techId then player.researching = "" end
 	table.insert(events, { type = "techDiscovered", playerId = pid, tech = techId })
 	sellObsoletedBuildings(state, pid, techId, ruleset, events)
 	upgrade.leonardoUpgrade(state, pid, ruleset, events)

@@ -894,7 +894,7 @@ local function bestDefenderUnit(me: any, ruleset: any): string
 	local best, bestDef = nil, nil
 	for _, id in ipairs(sortedKeys(ruleset.units)) do
 		local def = ruleset.units[id]
-		if def.domain == "land" and def.defense > 0
+		if def.domain == "land" and def.defense > 0 and def.barbOnly ~= true
 			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
 			and not cities.unitObsolete(def, me.techs) then
 			if best == nil

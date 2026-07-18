@@ -290,6 +290,41 @@ function cityName(state, cmd, ruleset, cityId, idNum) {
   return civ.name + ' Outpost ' + idNum;
 }
 
+// City-founding legality at (x, y): the reject reason, or null if legal. The VI.5
+// spacing metric (3 orthogonal / 2 diagonal). Shared by the settler command AND
+// the N13 hut advanced-tribe outcome (which must not found through an illegal tile).
+function foundCityLegality(state, x, y, ruleset) {
+  const terrain = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x].t];
+  if (terrain.domain !== 'land') return 'badTerrain';
+  for (const id of state.cityOrder) {
+    const c = state.cities[id];
+    if (c.x === x && c.y === y) return 'cityExists';
+    if (!citySpacingOk(state.map, x, y, c.x, c.y, ruleset.rules)) return 'tooCloseToCity';
+  }
+  return null;
+}
+
+// The shared city-creation core: a pop-1 city at (x, y) for playerId (name from
+// the civ list unless `name` is given). Pushes a cityFounded event. Callers do
+// any unit/settler handling. Returns the new cityId.
+function createCityAt(state, playerId, x, y, ruleset, events, name) {
+  const idNum = state.nextCityId;
+  const cityId = 'c' + idNum;
+  state.nextCityId = state.nextCityId + 1;
+  state.cities[cityId] = {
+    id: cityId,
+    name: cityName(state, { playerId, name }, ruleset, cityId, idNum),
+    owner: playerId,
+    x, y, pop: 1, food: 0, shields: 0,
+    buildings: [],
+    producing: { kind: 'unit', id: 'militia' }
+  };
+  state.cityOrder.push(cityId);
+  reveal(state, playerId, x, y, 2);
+  events.push({ type: 'cityFounded', cityId, x, y });
+  return cityId;
+}
+
 function foundCity(state, cmd, ruleset) {
   const unit = state.units[cmd.unitId];
   if (!unit) return { ok: false, reason: 'unknownUnit' };
@@ -297,39 +332,12 @@ function foundCity(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   if (unit.type !== 'settlers') return { ok: false, reason: 'notSettlers' };
   if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
-
-  const terrain = ruleset.terrain.terrains[state.map.tiles[unit.y * state.map.width + unit.x].t];
-  if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
-  // cities keep their distance from EVERY city, any civ (VI.5 metric:
-  // 3 orthogonal / 2 diagonal — citySpacingOk below)
-  for (const id of state.cityOrder) {
-    const c = state.cities[id];
-    if (c.x === unit.x && c.y === unit.y) return { ok: false, reason: 'cityExists' };
-    if (!citySpacingOk(state.map, unit.x, unit.y, c.x, c.y, ruleset.rules)) {
-      return { ok: false, reason: 'tooCloseToCity' };
-    }
-  }
-
-  const idNum = state.nextCityId;
-  const cityId = 'c' + idNum;
-  state.nextCityId = state.nextCityId + 1;
-  state.cities[cityId] = {
-    id: cityId,
-    name: cityName(state, cmd, ruleset, cityId, idNum),
-    owner: cmd.playerId,
-    x: unit.x,
-    y: unit.y,
-    pop: 1,
-    food: 0,
-    shields: 0,
-    buildings: [],
-    producing: { kind: 'unit', id: 'militia' }
-  };
-  state.cityOrder.push(cityId);
+  const bad = foundCityLegality(state, unit.x, unit.y, ruleset);
+  if (bad !== null) return { ok: false, reason: bad };
+  const events = [];
+  createCityAt(state, cmd.playerId, unit.x, unit.y, ruleset, events, cmd.name);
   delete state.units[cmd.unitId];
-  reveal(state, cmd.playerId, state.cities[cityId].x, state.cities[cityId].y, 2);
-
-  return { ok: true, events: [{ type: 'cityFounded', cityId, x: state.cities[cityId].x, y: state.cities[cityId].y }] };
+  return { ok: true, events };
 }
 
 function setProduction(state, cmd, ruleset) {
@@ -367,6 +375,10 @@ function setProduction(state, cmd, ruleset) {
   // B13a/A63: a unit obsoleted by a known tech has left the catalog
   if (item.kind === 'unit' && unitObsolete(def, state.players[cmd.playerId].techs)) {
     return { ok: false, reason: 'obsolete' };
+  }
+  // N13: barb-only units (the barbarian leader) are never buildable by a civ
+  if (item.kind === 'unit' && def.barbOnly === true) {
+    return { ok: false, reason: 'notBuildable' };
   }
   if (item.kind === 'building' && hasBuilding(city, item.id)) {
     return { ok: false, reason: 'alreadyBuilt' };
@@ -657,7 +669,7 @@ function citySpacingOk(map, x, y, cx, cy, rules) {
 }
 
 export {
-  foundCity, setProduction, setWorkers, buyProduction, helpWonder,
+  foundCity, foundCityLegality, createCityAt, setProduction, setWorkers, buyProduction, helpWonder,
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
