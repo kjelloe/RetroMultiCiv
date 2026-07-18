@@ -551,6 +551,10 @@ export function initPanels(ctx) {
     const lockedUnits = [];
     for (const id of Object.keys(units).sort()) {
       const u = units[id];
+      // barb-only units (N13 barbleader) are never player-buildable — the
+      // engine's setProduction rejects them; the catalog must not offer them
+      // (they have tech:'' so the tech-lock filter below wouldn't catch them).
+      if (u.barbOnly === true) continue;
       if (u.tech !== '' && !me.techs.includes(u.tech)) {
         if (frontier[u.tech]) lockedUnits.push(id);
         continue;
