@@ -11,6 +11,7 @@ import { rollRange } from './rng.js';
 import { reveal } from './visibility.js';
 import { hasBuilding, wonderActive } from './cities.js';
 import { capitalOf } from './government.js';
+import { bumpRel } from './diplomacy.js';
 
 // Deterministic id ordering that ports to Lua (no reliance on key order):
 // shorter first, then lexicographic — so u2 < u10.
@@ -117,6 +118,11 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const defender = bestDefender(state, tx, ty, ruleset);
   if (!defender) return { ok: false, reason: 'nothingToAttack' };
+  // D3: the DEFENDER's owner gains grievance toward the ATTACKER (directed). Skip
+  // barbarians (never a diplomacy partner). Omit-safe when no diplomacy ruleset.
+  if (attacker.owner !== 'barb' && defender.owner !== 'barb' && ruleset.rules.diplomacy !== undefined) {
+    bumpRel(state, defender.owner, attacker.owner, 'grievance', ruleset.rules.diplomacy.relGrievanceOnAttack);
+  }
 
   const att = attackStrength(attacker, ruleset);
   const def = defenseStrength(state, defender, ruleset);

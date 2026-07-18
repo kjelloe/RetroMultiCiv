@@ -16,6 +16,8 @@ local cities = require("./cities")
 local improvements = require("./improvements")
 local happiness = require("./happiness")
 local government = require("./government")
+local diplomacy = require("./diplomacy") -- D3: met/relation reads
+local aiDiplomacy = require("./ai-diplomacy") -- D3: score models
 
 local DIR_KEYS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local DIR_VECS: { [string]: { number } } = {
@@ -1340,6 +1342,39 @@ local function happinessCommand(state: any, playerId: string, ruleset: any): any
 end
 
 -- One decision at a time; `done` prevents re-considering an actor this turn.
+-- D3: the AI diplomacy step (twin of engine/ai.js). Returns ONE diplomacy command
+-- per call; doneSet tracks processed rivals. Declare only fires peace->war (never
+-- double-issues on the default-war baseline).
+local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet: any): any
+	local d = ruleset.rules.diplomacy
+	if d == nil then return nil end
+	for _, other in ipairs(state.playerOrder) do
+		if other == playerId or doneSet[other] then
+			continue
+		end
+		local op = state.players[other]
+		if op == nil or op.alive == false or other == "barb" or not diplomacy.metOf(state, playerId, other) then
+			doneSet[other] = true
+			continue
+		end
+		doneSet[other] = true
+		local rel = diplomacy.relationOf(state, playerId, other)
+		local entry = if state.relations == nil then nil else state.relations[diplomacy.pairKey(playerId, other)]
+		if entry ~= nil and entry.offer ~= nil and entry.offer.from == other then
+			local accept = aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold
+			return { type = "diplomacy", kind = if accept then "accept" else "reject", playerId = playerId, target = other }
+		end
+		if rel == "peace" and aiDiplomacy.scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold then
+			return { type = "diplomacy", kind = "declare", playerId = playerId, target = other }
+		end
+		if rel == "war" and (entry == nil or entry.offer == nil)
+			and aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold then
+			return { type = "diplomacy", kind = "offer", playerId = playerId, target = other, terms = { peace = true } }
+		end
+	end
+	return nil
+end
+
 local function pickCommand(state: any, playerId: string, ruleset: any, done: any, stance: any): any
 	local me = state.players[playerId]
 	local effStance = if stance ~= nil then stance else me.stance
@@ -1352,6 +1387,15 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		if cmd ~= nil then
 			return cmd
 		end
+	end
+
+	-- D3: the AI diplomacy step — negotiate with met rivals.
+	if done.diplo == nil then
+		done.diplo = {}
+	end
+	local diploCmd = diplomacyStep(state, playerId, ruleset, done.diplo)
+	if diploCmd ~= nil then
+		return diploCmd
 	end
 
 	if (me.researching == "" or me.researching == nil) and done.research ~= true then

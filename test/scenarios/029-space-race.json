@@ -7,60 +7,159 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
         "width": 3,
         "height": 3,
         "wrapX": false,
         "tiles": [
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
         ]
       },
       "units": {},
       "cities": {
         "c1": {
-          "id": "c1", "name": "Cape", "owner": "p1", "x": 0, "y": 0,
-          "pop": 1, "food": 0, "shields": 0, "buildings": [],
-          "producing": { "kind": "unit", "id": "militia" }
+          "id": "c1",
+          "name": "Cape",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "pop": 1,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
         },
         "c2": {
-          "id": "c2", "name": "Ur", "owner": "p2", "x": 2, "y": 2,
-          "pop": 1, "food": 0, "shields": 0, "buildings": [],
-          "producing": { "kind": "unit", "id": "militia" }
+          "id": "c2",
+          "name": "Ur",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "pop": 1,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
         }
       },
-      "cityOrder": ["c1", "c2"],
-      "wonders": { "apollo-program": "c1" },
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
+      "wonders": {
+        "apollo-program": "c1"
+      },
       "nextUnitId": 10,
       "nextCityId": 10,
       "players": {
         "p1": {
-          "id": "p1", "name": "A", "color": "#3b7dd8", "human": true,
-          "gold": 0, "techs": [], "researching": "", "bulbs": 0,
-          "taxRate": 50, "sciRate": 50, "alive": true,
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "alive": true,
           "spaceship": {
-            "structural": 7, "propulsion": 1, "fuel": 1,
-            "habitation": 1, "lifeSupport": 1, "solar": 1
+            "structural": 7,
+            "propulsion": 1,
+            "fuel": 1,
+            "habitation": 1,
+            "lifeSupport": 1,
+            "solar": 1
           }
         },
         "p2": {
-          "id": "p2", "name": "B", "color": "#d84a3b", "human": false,
-          "gold": 0, "techs": [], "researching": "", "bulbs": 0,
-          "taxRate": 50, "sciRate": 50, "alive": true
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "alive": true
         }
       },
       "rngState": 1
     }
   },
   "script": [
-    { "cmd": { "type": "launchShip", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } }
+    {
+      "cmd": {
+        "type": "launchShip",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
   ],
   "final": {
-    "state": { "gameOver": true, "winner": "p1" },
-    "hash": "0x99a23573"
+    "state": {
+      "gameOver": true,
+      "winner": "p1"
+    },
+    "hash": "0xe567f1c4"
   }
 }

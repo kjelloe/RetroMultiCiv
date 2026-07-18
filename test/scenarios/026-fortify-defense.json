@@ -16,18 +16,42 @@
         "height": 3,
         "wrapX": false,
         "tiles": [
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
         ]
       },
       "units": {
@@ -110,6 +134,6 @@
     "state": {
       "units.u2.fortified": true
     },
-    "hash": "0x6dc8d8af"
+    "hash": "0xcc5735ce"
   }
 }

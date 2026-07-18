@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 44, 'the forty-four scenarios (012 diplomacy added in D1)');
+      assert.strictEqual(files.length, 45, 'the forty-five scenarios (045 ai-diplomacy added in D3)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -134,6 +134,7 @@ const PORTED = [
   '010-happiness-government.json', // P5-6 batch 4: government proper
   '002-mapgen-determinism.json', // P5-7 batch 5: mapgen — ALL TEN green
   '012-diplomacy.json', // D1: war/peace chain (declare/offer/accept/break) + reputation cross-language
+  '045-ai-diplomacy.json', // D3: relationship model (grievance/trust bumps + peace decay) cross-language
   '013-zoc.json', // B18: enemy-city ZOC + ignoresZoc (post-port golden window)
   '014-river.json', // B19: Bridge Building river roads + no river mining
   '015-obsolescence.json', // B13a/A63: units leave the catalog on obsoletedBy tech
@@ -268,8 +269,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '16fcbaa5', pangaea: '6cdb3cb6',
-      archipelago: '157b0f89', islands: 'f6232af0'
+      continents: '3dc342c4', pangaea: '295f1c77',
+      archipelago: '69bef17e', islands: 'a5c8c87f'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -307,7 +308,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // ruleset edit (createGame stamps rulesetHash): 0x833b415c -> 0x61138a4f (N13 goody
 // huts) -> 0x0fa110e7 (A59 civs.json personality). Re-pin here whenever a ruleset
 // window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x0fa110e7 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xc43409e0 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {
