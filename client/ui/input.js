@@ -1068,7 +1068,9 @@ export function initInput(ctx) {
       // the oldest city — engine capitalOf); C on a city keeps cycling builds
       const cap = capitalOf(session.state, ctx.HUMAN, session.ruleset); // city object
       if (cap) renderer.centerOn(cap.x, cap.y);
-      else hud.note('no capital yet — found a city first');
+      // spectators have no seat/capital — the "found a city first" prompt is
+      // a seated-player message, irrelevant to a view-only spectator (silent).
+      else if (!ctx.SPECTATOR) hud.note('no capital yet — found a city first');
       return;
     }
     if (PRODUCTION_KEYS[e.key] && sel.cityId) {
