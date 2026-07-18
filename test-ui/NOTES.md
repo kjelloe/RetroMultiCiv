@@ -15,3 +15,9 @@
   SAME code differ (anim.js clock noise on the canvas — measured, T1
   2026-07-18). For layout claims assert computed styles / bounding rects;
   only gallery.html at rest pose is byte-comparable.
+- **A renderer/recipes change's gate set** (CP19 lesson, 2026-07-18): run
+  `test/asset-recipes.test.js` + `test/render-spec.test.js` locally AND
+  regenerate BOTH mirrors — `node tools/export-asset-recipes.js` (data/assets)
+  and `node tools/render-spec.js` (specs/render-spec.json); a new prop kind
+  also needs the hardcoded kinds list in asset-recipes.test.js. Then the
+  gallery golden moves → the CI-actual re-record flow.
