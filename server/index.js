@@ -181,6 +181,11 @@ export function startServer(opts) {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
+  // Part B (mobile seat-grace): a dropped lobby seat is held 'disconnected,
+  // reclaimable' for seatGraceMs instead of freed instantly; graceTimers keys
+  // "gameId|seat" -> the release timer (cancelled on reclaim). golden-neutral.
+  const seatGraceMs = opts.seatGraceMs !== undefined ? opts.seatGraceMs : 45000;
+  const graceTimers = {};
   // Part A (specs/mobile-resilience.md): heartbeat sweeper. A locked/backgrounded
   // phone leaves the socket HALF-OPEN (readyState OPEN, no close event), so it is
   // seatless at game start. Ping every heartbeatMs; a socket that misses
@@ -359,7 +364,8 @@ export function startServer(opts) {
         seat: pid, human: entry.seats[pid].human,
         mode: entry.seats[pid].human ? 'open' : 'ai', // A27: explicit slot mode
         civ: entry.seats[pid].civ, // A27: host's pick (undefined = Random)
-        reserved: entry.seats[pid].reserved === true, name: entry.seats[pid].name
+        reserved: entry.seats[pid].reserved === true, name: entry.seats[pid].name,
+        disconnected: entry.seats[pid].disconnected === true // Part B: grace-held (reclaimable)
       }))
     };
   }
@@ -555,10 +561,23 @@ export function startServer(opts) {
         send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
         return;
       }
+      // Part B: a reconnecting phone reclaims its grace-held seat with its id.
+      if (msg.lobbyReconnect !== undefined) {
+        const rc = registry.reclaimSeat(gameId, String(msg.lobbyReconnect));
+        if (rc.ok) {
+          const key = gameId + '|' + rc.seat;
+          if (graceTimers[key]) { clearTimeout(graceTimers[key]); delete graceTimers[key]; }
+          info.gameId = gameId; info.seat = rc.seat;
+          send(ws, { t: 'joinedLobby', gameId, joinCode: e.joinCode, seat: rc.seat, reconnectId: rc.reconnectId, lobby: roster(e) });
+          broadcastLobby(gameId);
+          return;
+        }
+        // id didn't match (expired/released) — fall through to a fresh reservation
+      }
       const res = registry.reserveSeat(gameId, { name: msg.name, seat: msg.seat });
       if (!res.ok) { send(ws, { t: 'rejected', commandId: -1, code: res.reason }); return; }
       info.gameId = gameId; info.seat = res.seat;
-      send(ws, { t: 'joinedLobby', gameId, joinCode: e.joinCode, seat: res.seat, lobby: roster(e) });
+      send(ws, { t: 'joinedLobby', gameId, joinCode: e.joinCode, seat: res.seat, reconnectId: res.reconnectId, lobby: roster(e) });
       broadcastLobby(gameId);
     } else {
       // A46 seat-code reclaim gates (the route itself is pure): 1/sec/conn
@@ -651,8 +670,21 @@ export function startServer(opts) {
       if (info && info.gameId) {
         const e = registry.entryOf(info.gameId);
         if (e && e.status === 'lobby' && info.seat) {
-          registry.releaseSeat(info.gameId, info.seat);
+          // Part B: hold the seat 'disconnected, reclaimable' for seatGraceMs
+          // instead of freeing it instantly, so a reconnecting phone keeps it.
+          registry.markDisconnected(info.gameId, info.seat);
           broadcastLobby(info.gameId);
+          const gGameId = info.gameId, gSeat = info.seat, key = gGameId + '|' + gSeat;
+          if (graceTimers[key]) clearTimeout(graceTimers[key]);
+          graceTimers[key] = setTimeout(() => {
+            delete graceTimers[key];
+            const ent = registry.entryOf(gGameId);
+            if (ent && ent.status === 'lobby' && ent.seats[gSeat] && ent.seats[gSeat].disconnected) {
+              registry.releaseSeat(gGameId, gSeat); // grace expired unreclaimed → free as today
+              broadcastLobby(gGameId);
+            }
+          }, seatGraceMs);
+          if (graceTimers[key].unref) graceTimers[key].unref();
         } else if (e && e.status === 'started' && info.playerId && !info.spectator) {
           // docs/08 §4: the game learns who dropped ("waiting for <name>")
           broadcastGame(info.gameId, { t: 'presence', playerId: info.playerId, connected: false });
@@ -1043,6 +1075,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // Part A (mobile): ws heartbeat — detect half-open sockets (a locked phone)
     else if (a === '--heartbeat-sec') opts.heartbeatMs = Number(argv[++i]) * 1000;
     else if (a === '--heartbeat-misses') opts.heartbeatMisses = Number(argv[++i]);
+    else if (a === '--seat-grace-sec') opts.seatGraceMs = Number(argv[++i]) * 1000; // Part B lobby seat-grace
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
