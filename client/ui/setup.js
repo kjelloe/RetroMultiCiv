@@ -2,6 +2,8 @@
 // (each has a Civ 1-flavored specialty), how many civs play, how many of the
 // leading slots are human (hotseat), and an optional seed — then reloads
 // with ?seed=&civs=&humans=&civ= so the bootstrap stays one path.
+import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
+
 export function showSetupScreen() {
   const overlay = document.createElement('div');
   overlay.id = 'setup-screen';
@@ -59,7 +61,11 @@ export function showSetupScreen() {
           <option value="bestof3" selected title="best-of-three: fewer heartbreaking upsets">Best-of-three</option>
         </select>
       </label>
-      <label title="removes the year limit — the game runs until someone wins by conquest or the space race, not the calendar">Marathon (play until victory) <input id="setup-marathon" type="checkbox"></label>
+      <label title="how the game can be won and when it ends">Victory conditions
+        <select id="setup-victory">
+          ${victoryOptions().map(o => `<option value="${o.id}"${o.id === DEFAULT_VICTORY ? ' selected' : ''}>${o.label}</option>`).join('')}
+        </select>
+      </label>
       <label>Starting age
         <select id="setup-age"><option value="ancient" selected>Ancient (4000 BC)</option></select>
       </label>
@@ -358,14 +364,14 @@ export function showSetupScreen() {
     const combat = document.getElementById('setup-combat').value;
     const age = document.getElementById('setup-age').value;
     const maptype = document.getElementById('setup-maptype').value;
-    const marathon = document.getElementById('setup-marathon').checked;
+    const victory = document.getElementById('setup-victory').value;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
       + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '')
       + (age !== 'ancient' ? `&age=${age}` : '')
       + (maptype !== 'continents' ? `&maptype=${maptype}` : '')
-      + (marathon ? '&marathon=1' : '');
+      + (victory !== DEFAULT_VICTORY ? `&victory=${victory}` : '');
   });
 
   // --- phase-4 LAN lobby (ui/lobby.js): host with the form's world options,
@@ -381,7 +387,7 @@ export function showSetupScreen() {
       seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined,
       age: document.getElementById('setup-age').value, // A20: LAN lobbies inherit it
       maptype: document.getElementById('setup-maptype').value, // A82a
-      marathon: document.getElementById('setup-marathon').checked // no year limit
+      victory: document.getElementById('setup-victory').value // victory-conditions preset
     };
   }
   document.getElementById('setup-host').addEventListener('click', () => {

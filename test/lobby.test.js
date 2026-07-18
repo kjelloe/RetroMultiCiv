@@ -90,6 +90,18 @@ test('reserveSeat: first-free, requested pick, full, and release', () => {
   assert.deepStrictEqual(reg.reserveSeat(entry.gameId, { name: 'Cy', seat: 'p3' }), { ok: true, seat: 'p3', reconnectId: 'rc' }, 'freed seat reusable');
 });
 
+test('create: the victory-conditions preset is whitelisted (so resume rebuilds the choice)', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n) });
+  // the stored entry.options.victory is what BOTH start and resume read
+  // (overridesFor(e.options)); a dropped whitelist here was marathon's bug.
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, victory: 'marathon' }, 'K').entry.options.victory, 'marathon');
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, victory: 'standard' }, 'K').entry.options.victory, 'standard');
+  assert.strictEqual(reg.create({ civs: 2, humans: 1 }, 'K').entry.options.victory, 'standard', 'omitted → standard');
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, victory: 'bogus' }, 'K').entry.options.victory, 'standard', 'unknown → standard');
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, marathon: true }, 'K').entry.options.victory, 'marathon', 'legacy marathon:true → marathon');
+});
+
 test('start: authors the seating chart — picked seat + name, unfilled/dropped → AI', () => {
   let n = 0;
   const reg = createRegistry({ ruleset: RULESET, gameIdFn: () => 'g' + (++n), seedFn: () => 424242 });

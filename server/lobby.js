@@ -17,6 +17,7 @@ import { createGame } from './game.js';
 import { createEngine } from '../engine/index.js';
 import { fastForwardTo } from '../shared/fastforward.js';
 import { fnv32 } from '../shared/gamecode.js';
+import { victoryOverrides, victoryId } from '../shared/victory-presets.js';
 
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const COLORS = ['#3b7dd8', '#d84a3b', '#3bd87d', '#d8b13b', '#9b59d0', '#d07f3b', '#4fd0c9'];
@@ -38,7 +39,10 @@ function overridesFor(options) {
   const d = options.difficulty;
   if (d && DIFFICULTY[d] !== undefined && d !== 'medium') o.contentCitizens = DIFFICULTY[d];
   if (options.combat === 'bestof3') o.combatRounds = 3;
-  if (options.marathon === true) o.endYear = 9999; // no year limit — play until victory
+  // victory-conditions preset → its rulesOverride patch (e.g. marathon → endYear
+  // 9999). The legacy marathon:true flag stays a back-compat alias for 'marathon'.
+  const victory = options.victory !== undefined ? options.victory : (options.marathon === true ? 'marathon' : undefined);
+  Object.assign(o, victoryOverrides(victory));
   return o;
 }
 
@@ -111,7 +115,10 @@ export function createRegistry(deps) {
           ? options.maptype : 'continents',
         chat: options.chat !== false, // A37: lobby chat, host-toggleable, default ON
         public: options.public === true, // A41: find-a-game listing, OPT-IN
-        marathon: options.marathon === true // no year limit — play until victory
+        // victory-conditions preset (normalized to a known id; legacy
+        // marathon:true maps to 'marathon') — stored so resume rebuilds the choice
+        victory: victoryId(options.victory !== undefined ? options.victory
+          : (options.marathon === true ? 'marathon' : undefined))
       },
       seats, game: null,
       blockedIps: {} // A37 kick-and-block: per-game, dies with the entry

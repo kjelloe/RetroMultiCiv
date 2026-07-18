@@ -441,25 +441,32 @@ test('H-1 (b/c): private joinCodes never enumerate; a corrupt save rejects clean
   }
 });
 
-test('marathon option: a lobby created with marathon:true runs endYear 9999', async () => {
+test('victory-conditions preset: marathon runs endYear 9999, standard does not, legacy alias holds', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const startAndJoin = async (name, options) => {
+    const c = await connect(s.port);
+    c.send({ t: 'create', name, options });
+    await c.expect(m => m.t === 'created', `created ${name}`);
+    c.send({ t: 'start' });
+    const j = await c.expect(m => m.t === 'joined', `${name} joined`);
+    c.close();
+    return j;
+  };
   try {
-    const host = await connect(s.port);
-    host.send({ t: 'create', name: 'Kjell', options: { civs: 2, humans: 1, size: 'xsmall', seed: 5, marathon: true } });
-    await host.expect(m => m.t === 'created', 'created');
-    host.send({ t: 'start' });
-    const hj = await host.expect(m => m.t === 'joined', 'host joined');
-    assert.strictEqual(hj.rulesOverrides.endYear, 9999, 'marathon removes the year limit');
+    // the marathon preset removes the calendar year limit
+    const hj = await startAndJoin('Kjell', { civs: 2, humans: 1, size: 'xsmall', seed: 5, victory: 'marathon' });
+    assert.strictEqual(hj.rulesOverrides.endYear, 9999, 'victory:marathon removes the year limit');
 
-    // a NON-marathon lobby carries no endYear override (default calendar end)
-    const host2 = await connect(s.port);
-    host2.send({ t: 'create', name: 'Ada', options: { civs: 2, humans: 1, size: 'xsmall', seed: 6 } });
-    await host2.expect(m => m.t === 'created', 'created2');
-    host2.send({ t: 'start' });
-    const hj2 = await host2.expect(m => m.t === 'joined', 'host2 joined');
-    assert.strictEqual(hj2.rulesOverrides.endYear, undefined, 'no marathon = standard endYear');
-    host.close(); host2.close();
+    // the standard preset (and an omitted victory) carry no endYear override
+    const hj2 = await startAndJoin('Ada', { civs: 2, humans: 1, size: 'xsmall', seed: 6, victory: 'standard' });
+    assert.strictEqual(hj2.rulesOverrides.endYear, undefined, 'victory:standard = default calendar end');
+    const hj3 = await startAndJoin('Bo', { civs: 2, humans: 1, size: 'xsmall', seed: 6 });
+    assert.strictEqual(hj3.rulesOverrides.endYear, undefined, 'omitted victory = standard');
+
+    // back-compat: the legacy marathon:true flag still maps to the marathon preset
+    const hj4 = await startAndJoin('Cy', { civs: 2, humans: 1, size: 'xsmall', seed: 5, marathon: true });
+    assert.strictEqual(hj4.rulesOverrides.endYear, 9999, 'legacy marathon:true aliases victory:marathon');
   } finally {
     await s.close();
   }

@@ -9,6 +9,7 @@ import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostic
 import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
+import { victoryOverrides, DEFAULT_VICTORY } from '../shared/victory-presets.js';
 import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
@@ -119,10 +120,13 @@ const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
 if (difficulty !== 'medium') rulesOverrides.contentCitizens = DIFFICULTY[difficulty];
 if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
-// marathon (?marathon=1): remove the score-victory year limit — the game runs
-// until conquest or the space race. endYear lives in ruleset.rules (the sim's
-// --natural shape), so it plumbs as a rulesOverride, not a state field.
-if (params.get('marathon') === '1') rulesOverrides.endYear = 9999;
+// victory conditions (?victory=<preset>): the chosen preset's rulesOverride
+// patch (e.g. marathon → endYear 9999, removing the score-victory year limit).
+// endYear lives in ruleset.rules (the sim's --natural shape), so it plumbs as a
+// rulesOverride, not a state field. Absent/unknown = 'standard' = today's game.
+// ?marathon=1 stays a back-compat alias for ?victory=marathon (old URLs/saves).
+const victoryChoice = params.get('victory') || (params.get('marathon') === '1' ? 'marathon' : DEFAULT_VICTORY);
+Object.assign(rulesOverrides, victoryOverrides(victoryChoice));
 ruleset.rules = Object.assign({}, rules, rulesOverrides);
 
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
