@@ -115,7 +115,7 @@ options,lobby,move-hints,wait-status,advice,advice-gate,catalog-text,
 endscreen,ff-overlay,historian,left-stack,overlays,pedia,pedia-concepts,
 regency,regent-driver,replay,replay-events,sound,sound-map,stats,
 stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
-build-queue}. The
+build-queue,automate,debug-panel}. The
 renderer splits renderer/three/{index,assets,props,terrain,factions,
 overlays,recipes,unit-chrome,anim
 — anim.js is render-time-only motion: clock+position phases, never
@@ -159,7 +159,9 @@ the **repo root**, open `http://localhost:8123/client/` (bare URL = setup
 screen; `?seed=N` fixed world skips it, `?civs=2..14` (size-capped via rules.maxCivsBySize), `?humans=N` hotseat,
 `?civ=romans`, `?size=xsmall..huge`, `?difficulty=trainer..godemperor`,
 `?age=ancient..space` starting age (AI fast-forward + era tech grant,
-shared/fastforward.js), `?debug=1` per-command hashes, `?mock=1` static
+shared/fastforward.js), `?debug=1` per-command hashes + the A92
+debug-command family (state.debugEnabled at create; 🐞 panel; first
+use sets the PERMANENT debugUsed hash taint — docs/07 §6), `?mock=1` static
 state, `?mlog=1` on-screen boot/ws/error overlay for console-less
 devices [phones], `?palette=<mode>` display-palette override). Play (phase-3
 authoritative server): `node server/index.js [--port 8123] [--seed N]

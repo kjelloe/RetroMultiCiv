@@ -37,7 +37,7 @@ the Done log at the bottom.
   Civ2-authentic Leonardo, original-projection chain rows where Civ1
   lacks intermediates). Object if you'd rather skip either half;
   silence = build as specced.
-- [ ] **Merge marker-0057** (supersedes 0056; adds N12 debug commands [engine half, taint-flagged] + N11 complete [3a Civ3-shape upgrades + 3b Leonardo, labeled], the seam bundle, B28 audit fix + N10 caravan trade
+- [ ] **Merge marker-0058** (supersedes 0057; adds N13 goody huts + leader ransom [five Civ1 outcomes, behavioral], N12 debug commands [both halves, taint-flagged] + N11 complete [3a Civ3-shape upgrades + 3b Leonardo, labeled], the seam bundle, B28 audit fix + N10 caravan trade
   routes — windfall + live top-3 route bonus, 4 new cross-language
   scenario pins, full-but-behavior-identical golden ripple via the
   ruleset pin — plus the client half, T1 portrait, L8 lobby
@@ -80,18 +80,16 @@ the Done log at the bottom.
   today (R20 keeps building behind the toggle) but decides the
   DEFAULT + orders the bigger-lift backlog (docs/13
   visual-fidelity section).
-- [ ] **Civ2/4 feature picks** — which of the five client-only items:
-  world minimap / yield+happiness tooltips / per-city build queue /
-  sentry-wake / worker automation (specs/civ24-features-proposal.md;
-  any subset, independent). Feeds the helper's queue after
-  A54 + docs-sync + palette.
+- [x] **Civ2/4 feature picks — ANSWERED 2026-07-18 (all four) and
+  ALL SHIPPED same night:** minimap C1, tooltips C2, build queue C3,
+  sentry+automation C4 (markers 0050-era, golden-neutral).
 - [ ] **Mobile T0** — user-runnable phone check (~1h: open the LAN
   client on your phone, note WebGL/fps/first-3-blockers per
   specs/mobile-plan.md T0), then T1 go/no-go.
-- [ ] **Match-report consent shape** — bless the two-level consent
-  model (operator off-by-default + player seat veto + seat-label
-  anonymization) before the server slice builds
-  (specs/match-report-corpus.md).
+- [x] **Match-report consent shape — BLESSED 2026-07-18 (overnight
+  answer) and S1 SHIPPED** (c062d58): off-by-default writer, sticky
+  seat veto, anonymization w/ regenerated hashes so reports replay
+  clean under their own code.
 - [ ] **Live strategic overlay** — want the v1.5 per-AI
   stance/mode/threat snapshot visible in-client during play?
   (Cheap now the telemetry landed; yes/no.)
@@ -99,12 +97,10 @@ the Done log at the bottom.
   whenever you play; they seed the human-benchmark corpus (the
   PRIMARY AI metric per the ally's framework,
   specs/ai-modes-framework.md §A).
-- [ ] **A50 command-rate budget — HOW to land it** (from your 1.0
-  design-debt question; the design exists, docs/17 item 0): (a) spawn
-  the dedicated hardening lane on its own clone (isolation, docs/17
-  as written — needs your machine-capacity call), or (b) fold item 0
-  into a normal bugfixer server window with lane-boundary care
-  (faster, no new agent). One-word answer works.
+- [x] **A50 command-rate budget — ANSWERED 2026-07-18 (fold) and
+  SHIPPED** (marker-0050); the hardening lane went live the same
+  hour and owns the acceptance A/B + tuned defaults (its reply to
+  #1346/#1353 still pending its next session).
 - [x] **Your 1.0 pick, the ruleset pin — ALREADY DONE** (2026-07-17
   evening, marker-0045): stamped at creation, strict at load with
   operator override, lineage-honest. Your selection was shipped

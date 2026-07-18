@@ -20,7 +20,11 @@ roadmap; THIS is the flat inventory that guarantees nothing is unknown.
 | move hints + step legality | move-hints.js | Roblox: MoveHints/StepLegality |
 | combat odds preview on hover | input.js sitePreview family | |
 | city view: yields, food box, production, buy, sell, workers (manual tiles), specialists | panels.js | |
-| per-city BUILD QUEUE (C3, in flight tonight) | queue over logged commands | |
+| per-city BUILD QUEUE (C3) | queue over logged commands | Roblox CP8 PARTIAL (no reorder) |
+| sentry (fog-honest wake radius 2) + settler AUTOMATION (view-based policy, manual-order cancel) (C4) | automate.js | |
+| CP18 unit UPGRADE button (N11 3a marker-0055 engine; client slice QUEUED to helper) | engine/upgrade.js; input.js pending | Roblox: annotate when browser lands |
+| CP19 goody-hut entry + leader-ransom presentation (N13 marker-0058 engine; client slice QUEUED to helper — hut prop, barbleader silhouette shipped, own-seat fog rows) | engine/huts.js; props pending | Roblox: annotate when browser lands |
+| debug panel 🐞 + permanent DEBUG watermark (A92; state-gated, taint in hash) | debug-panel.js + hud/saves/endscreen | Roblox R17 = batch 7 |
 | settler site preview (fog-honest rating) | input.js | |
 | next-unit cycling, needs-orders gate, auto-select | input.js/session | |
 | off-turn pre-work: setRates/setResearch/setProduction/setWorkers from waiting seats (A54) | engine whitelist + session queue | server seats get it free |
@@ -56,7 +60,7 @@ roadmap; THIS is the flat inventory that guarantees nothing is unknown.
 
 | feature | browser home | notes |
 |---|---|---|
-| LAN lobby: create (seed/civs/humans/size/MAPTYPE/difficulty/AGE/combat-bestof3/chat/spectators), join by code, seat picker, kick/block, chat, skip-vote | lobby.js + server | R24 parity audit IN FLIGHT — this row is that task |
+| LAN lobby: create (seed/civs/humans/size/MAPTYPE/difficulty/AGE/combat-bestof3/chat/spectators), join by code, seat picker, kick/block, chat, skip-vote | lobby.js + server | R24 DONE — all options PRESENT (roblox batch-2) |
 | join codes (boot-entropy fresh; resume-by-code stable) | server/lobby.js | |
 | resume-by-gamecode flow (validate+start; --debug-gated listings) | lobby.js L2 | Roblox R10 has resume box |
 | AI regency (armed regent, stance select, 🤖 narration) | regency.js/regent-driver.js | stance display = Perfectionist tags |
@@ -65,16 +69,19 @@ roadmap; THIS is the flat inventory that guarantees nothing is unknown.
 | ruleset-compat pin (stamp at create, strict at load, drift override) | engine+server+saves.js | luau twin shipped marker-0045 |
 | spectator omniscient view (host-controlled) | server | |
 | master-index global browse (announce/list/connect, 8-hash match) | tools/master.js + lobby 🌍 | deploy gated on user's VM |
-| match-report S1 writer (consent, seat-labels) — in flight tonight | server | Roblox: N-A v1? rule it |
+| match-report S1 writer (consent, seat-labels; marker-0051 era) | server/report.js | Roblox: N-A v1 CONFIRMED (#1384); DataStore = post-1.0 |
 
 ## Engine features with no UI (twins already exist — listed so nothing hides)
 
 Stance-mix heterogeneous AI (builder/Perfectionist assignment); settler
 food upkeep; worked-tile blockade; ZOC city-capture exemption; barbarians
 era-tiers; government re-eval (SHIPPED marker-0051 — AI-only, stays
-no-UI); goody huts (QUEUED N13); diplomacy D1-D2 (QUEUED, pre-ruled);
-space race arrival/victory (marker-0049). Caravan trade routes moved UP
-to Core play row CP17 at marker-0052 (UI landed with the engine).
+no-UI); unit upgrades + Leonardo (SHIPPED markers 0055/0056 — client
+row CP18); goody huts + leader ransom (SHIPPED marker-0058 — client
+row CP19); debug commands (SHIPPED marker-0057 — client row above);
+diplomacy D1-D2 (QUEUED, pre-ruled); space race arrival/victory
+(marker-0049). Caravan trade routes moved UP to Core play row CP17
+at marker-0052 (UI landed with the engine).
 
 ## Process rule (standing)
 
