@@ -64,3 +64,13 @@ test('unmapped events are silent; every emitted id is in the SOUND_IDS contract'
     if (id !== null) assert.ok(SOUND_IDS.includes(id), `${e.type} → ${id} must be in SOUND_IDS`);
   }
 });
+
+test('A76 ship cues: own parts clink, launches are public, spaceVictory defers to gameOver', async () => {
+  const { soundForEvent } = await load();
+  assert.strictEqual(soundForEvent({ type: 'ssPartBuilt', playerId: 'p1', part: 'structural' }, 'p1', cityOwner), 'ship-part');
+  assert.strictEqual(soundForEvent({ type: 'ssPartBuilt', playerId: 'p2', part: 'structural' }, 'p1', cityOwner), null);
+  assert.strictEqual(soundForEvent({ type: 'shipLaunched', playerId: 'p2', arrivalTurn: 300 }, 'p1', cityOwner), 'ship-launch');
+  assert.strictEqual(soundForEvent({ type: 'shipDestroyed', playerId: 'p1' }, 'p1', cityOwner), 'ship-down');
+  // the gameOver cue in the same batch carries the victory — no double-fire
+  assert.strictEqual(soundForEvent({ type: 'spaceVictory', playerId: 'p1' }, 'p1', cityOwner), null);
+});

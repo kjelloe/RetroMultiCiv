@@ -49,7 +49,11 @@ const RECIPES = {
   'victory': arp('square', 0.24, [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.G4, NOTE.C5], 0.1, 0.28),
   'gameover': fall('sawtooth', 0.2, NOTE.G3, NOTE.C3, 0.6),
   'government': arp('triangle', 0.14, [NOTE.C4, NOTE.F4, NOTE.A4], 0.07, 0.14),
-  'regent': seq('square', 0.11, [[NOTE.C4, 0, 0.08], [NOTE.G4, 0.08, 0.14]])        // user: a "yes, sir" — a crisp two-note affirmative rising a confident fifth
+  'regent': seq('square', 0.11, [[NOTE.C4, 0, 0.08], [NOTE.G4, 0.08, 0.14]]),       // user: a "yes, sir" — a crisp two-note affirmative rising a confident fifth
+  // A76 space race (H8 presentation pass)
+  'ship-part': seq('square', 0.13, [[NOTE.E4, 0, 0.06], [NOTE.A4, 0.05, 0.11]]),    // an assembly clink — two quick rising taps, metal on metal
+  'ship-launch': arp('sawtooth', 0.18, [NOTE.C3, NOTE.G3, NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.E5], 0.09, 0.2), // a long climb from rumble to bright — the ascent itself
+  'ship-down': seq('sawtooth', 0.17, [[NOTE.E4, 0, 0.16], [NOTE.C4, 0.14, 0.18], [NOTE.G3 * 0.94, 0.3, 0.4]])       // a breaking fall ending detuned — something came apart
 };
 
 // The two TUNES: short looping note lists [freq, dur] on a mellow triangle.

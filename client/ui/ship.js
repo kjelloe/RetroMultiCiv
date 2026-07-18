@@ -7,79 +7,21 @@
 // public). Full-screen overlay on the pedia precedent; 🚀 corner button.
 // Client-only + golden-neutral: reads state, issues only launchShip.
 //
-// ---- MOCK-FIRST SEAM (architect #1292) -------------------------------------
-// The engine half (N17) is in flight, so the §3 math below (functionalCounts /
-// isViable / shipStats) is a LOCAL MIRROR of engine/spaceship.js driven by
-// rules.ssFlight/ssParts with spec-constant fallbacks. When N17 commits, this
-// block DELETES and the three names import from '../../engine/spaceship.js'.
-// ----------------------------------------------------------------------------
+// The §3 math comes from the REAL engine since marker-0049 (the mock mirror
+// this module shipped with is deleted per its in-file mark — the numbers were
+// verified identical against these exports before the swap).
 import { wonderActive } from '../../engine/cities.js';
+import { shipStats, isViable, functionalCounts } from '../../engine/spaceship.js';
 
 // A45: capture at module eval — main.js canonicalizes the URL after boot.
-// ?ship=1 forces the 🚀 button + a mock preview ship (screenshots/dev before
-// the engine half lands; the launch button stays disabled on mock data).
+// ?ship=1 forces the 🚀 button + a mock preview ship (a state-shaped object
+// through the real engine math; the launch button stays hidden on mock data).
 const SHIP_PREVIEW = new URLSearchParams(location.search).get('ship') === '1';
-
-const FALLBACK_FLIGHT = {
-  gateWonder: 'apollo-program', colonistsPerHab: 10000, arrivalScoreDivisor: 200,
-  structuralSlotsNum: 28, structuralSlotsDen: 39, flightMassPerEngine: 1600,
-  flightYearsMin: 5, successFlightFreeYears: 15
-};
-const FALLBACK_PARTS = {
-  structural: { cost: 80, mass: 100, max: 39 },
-  propulsion: { cost: 160, mass: 400, max: 8 },
-  fuel: { cost: 160, mass: 400, max: 8 },
-  habitation: { cost: 320, mass: 1600, max: 4 },
-  lifeSupport: { cost: 320, mass: 1600, max: 4 },
-  solar: { cost: 320, mass: 400, max: 4 }
-};
-const NONSTRUCT = ['propulsion', 'fuel', 'habitation', 'lifeSupport', 'solar'];
 
 function idiv(a, b) { return Math.floor(a / b); }
 function count(ship, key) { return (ship && ship[key] !== undefined) ? ship[key] : 0; }
-function flightRules(ruleset) { return ruleset.rules.ssFlight || FALLBACK_FLIGHT; }
-function partRules(ruleset) { return ruleset.rules.ssParts || FALLBACK_PARTS; }
-
-function functionalCounts(ship, ruleset) {
-  const f = flightRules(ruleset);
-  let supported = idiv(count(ship, 'structural') * f.structuralSlotsNum, f.structuralSlotsDen);
-  const fn = {};
-  for (const k of NONSTRUCT) {
-    const take = Math.min(count(ship, k), supported);
-    fn[k] = take;
-    supported -= take;
-  }
-  return fn;
-}
-
-function isViable(ship, ruleset) {
-  if (!ship) return false;
-  const fn = functionalCounts(ship, ruleset);
-  return fn.propulsion >= 1 && fn.fuel >= 1 && fn.habitation >= 1
-    && fn.lifeSupport >= 1 && fn.solar >= 1;
-}
-
-function shipStats(ship, ruleset) {
-  const f = flightRules(ruleset);
-  const P = partRules(ruleset);
-  const fn = functionalCounts(ship, ruleset);
-  const population = fn.habitation * f.colonistsPerHab;
-  const supportPct = Math.min(100, idiv(fn.lifeSupport * 100, Math.max(1, fn.habitation)));
-  const energyPct = Math.min(100, idiv(fn.solar * 2 * 100, Math.max(1, fn.habitation + fn.lifeSupport)));
-  let mass = 0;
-  for (const k of Object.keys(P)) mass += count(ship, k) * P[k].mass;
-  const poweredEngines = Math.min(fn.propulsion, fn.fuel);
-  const fuelPct = fn.propulsion === 0 ? 0 : idiv(Math.min(fn.fuel, fn.propulsion) * 100, fn.propulsion);
-  const flightYears = Math.max(f.flightYearsMin,
-    idiv(mass * 10, Math.max(1, poweredEngines * f.flightMassPerEngine)));
-  let successPct = 0;
-  if (isViable(ship, ruleset)) {
-    successPct = Math.max(5, Math.min(100,
-      idiv(supportPct + energyPct, 2) - idiv(Math.max(0, flightYears - f.successFlightFreeYears), 2)));
-  }
-  return { population, supportPct, energyPct, mass, fuelPct, flightYears, successPct };
-}
-// ---- end mock mirror -------------------------------------------------------
+function flightRules(ruleset) { return ruleset.rules.ssFlight; }
+function partRules(ruleset) { return ruleset.rules.ssParts; }
 
 // A partial assembly with a structural shortfall: supported = idiv(16*28,39)
 // = 11 slots, consumed by propulsion+fuel in the canonical order, so the
@@ -87,7 +29,7 @@ function shipStats(ship, ruleset) {
 const MOCK_SHIP = { structural: 16, propulsion: 6, fuel: 5, habitation: 3, lifeSupport: 2, solar: 2, launched: 0 };
 const MOCK_FULL = { structural: 39, propulsion: 8, fuel: 8, habitation: 4, lifeSupport: 4, solar: 4, launched: 0 };
 
-const PART_LABELS = {
+export const PART_LABELS = { // shared with the turnlog's ship-event lines
   structural: 'Structural', propulsion: 'Propulsion', fuel: 'Fuel',
   habitation: 'Habitation', lifeSupport: 'Life Support', solar: 'Solar Panel'
 };

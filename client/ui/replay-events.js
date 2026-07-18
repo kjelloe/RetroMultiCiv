@@ -28,6 +28,17 @@ export function majorEvents(events, state, ruleset) {
       case 'playerDefeated':
         out.push({ icon: '💀', text: `${who(e.playerId)} is eliminated` });
         break;
+      // A76: the space race is headline material — launch, loss, planetfall
+      // (parts stay out of the feed: per-part lines are turn-log detail)
+      case 'shipLaunched':
+        out.push({ icon: '🚀', text: `${who(e.playerId)} launches a spaceship — arrival turn ${e.arrivalTurn}` });
+        break;
+      case 'shipDestroyed':
+        out.push({ icon: '☄', text: `the ${who(e.playerId)} spaceship is destroyed with its capital` });
+        break;
+      case 'spaceVictory':
+        out.push({ icon: '🌌', text: `${who(e.playerId)} reaches Alpha Centauri — ${e.successPct}% success` });
+        break;
       case 'barbariansSpawned':
         out.push({ icon: '🏴', text: 'a barbarian uprising' });
         break;

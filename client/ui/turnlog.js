@@ -6,6 +6,7 @@ import { filterView, filterEvents } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 import { classifyEvent, LOG_CLASSES } from './turnlog-classes.js';
 import { makeCatalogText } from './catalog-text.js';
+import { PART_LABELS } from './ship.js'; // A76: the ship-event lines share the screen's names
 
 export function initTurnLog(ctx) {
   const { session, hud } = ctx;
@@ -257,6 +258,26 @@ export function initTurnLog(ctx) {
         if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`);
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
         put(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
+      } else if (e.type === 'ssPartBuilt' && e.playerId === ctx.HUMAN) {
+        // A76 presentation: name the part and the count toward its max
+        const parts = session.ruleset.rules.ssParts;
+        const max = parts && parts[e.part] ? parts[e.part].max : '?';
+        const cityName = state.cities[e.cityId] ? state.cities[e.cityId].name : e.cityId;
+        put(`🚀 ${cityName} completes spaceship ${PART_LABELS[e.part] || e.part} (${e.count}/${max})`, 'win', cityLoc(state, e.cityId));
+      } else if (e.type === 'shipLaunched') {
+        // the race is public (world news, both seats' logs)
+        const mine = e.playerId === ctx.HUMAN;
+        put(`🚀 ${mine ? 'your spaceship is away' : `${playerName(state, e.playerId)} LAUNCHES a spaceship`}`
+          + ` — arrival turn ${e.arrivalTurn} (${e.flightYears} years)`, mine ? 'win' : 'loss');
+      } else if (e.type === 'shipDestroyed') {
+        const mine = e.playerId === ctx.HUMAN;
+        put(`☄ ${mine ? 'your' : `the ${playerName(state, e.playerId)}`} spaceship is destroyed with its capital`,
+          mine ? 'loss' : 'win');
+      } else if (e.type === 'spaceVictory') {
+        const mine = e.playerId === ctx.HUMAN;
+        put(`🌌 ${mine ? 'your colonists reach' : `${playerName(state, e.playerId)} reaches`} Alpha Centauri`
+          + ` — ${e.population.toLocaleString('en-US')} colonists, ${e.successPct}% success`, mine ? 'win' : 'loss');
+        if (mine) flashMessage('🌌 Planetfall — a new world is yours!');
       } else if (e.type === 'improvementBuilt' && e.owner === ctx.HUMAN) {
         const label = e.transformedTo !== undefined
           ? `terrain worked into ${e.transformedTo}`

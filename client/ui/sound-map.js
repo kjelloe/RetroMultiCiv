@@ -52,10 +52,15 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'government' : null;
     case 'regentTurn': // synthetic client event (session regency, B11)
       return 'regent';
-    case 'ssPartBuilt': case 'shipLaunched':
-    case 'shipDestroyed': case 'spaceVictory':
-      // A76: deliberate silence for v1 — the accompanying gameOver cue carries
-      // the space victory; dedicated ship cues are the A77/H8 presentation pass.
+    case 'ssPartBuilt': // A76 presentation pass: own parts get the assembly cue
+      return e.playerId === viewer ? 'ship-part' : null;
+    case 'shipLaunched': // the race is public — everyone hears the launch
+      return 'ship-launch';
+    case 'shipDestroyed':
+      return 'ship-down';
+    case 'spaceVictory':
+      // silent BY DESIGN: the gameOver event in the same batch carries the
+      // victory/gameover cue — a second cue here would double-fire
       return null;
     default:
       return null; // most events (moves, production set, rates) are silent
@@ -70,5 +75,6 @@ export const SOUND_IDS = [
   'capture-win', 'capture-loss', 'capture-distant',
   'found', 'grow', 'starve', 'build', 'disorder', 'order',
   'tech', 'wonder', 'age', 'defeat', 'elimination', 'barbarian',
-  'victory', 'gameover', 'government', 'regent'
+  'victory', 'gameover', 'government', 'regent',
+  'ship-part', 'ship-launch', 'ship-down' // A76: the space-race cues
 ];
