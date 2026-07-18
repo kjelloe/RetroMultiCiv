@@ -254,6 +254,26 @@ export function startServer(opts) {
       }
     }
   }
+  // H-1 (d): ONE cached saves/ scan (2s TTL) — resumeByCode and the debug
+  // inventory otherwise re-parse every envelope PER REQUEST, an unthrottled
+  // disk amplification on a public host. TTL beats invalidation here: saves
+  // change on autosave anyway, and a 2s-stale resume answer is harmless.
+  let savesScanCache = { at: 0, rows: null };
+  function scanSaves() {
+    const t = now();
+    if (savesScanCache.rows !== null && t - savesScanCache.at < 2000) return savesScanCache.rows;
+    const rows = [];
+    for (const f of (fs.existsSync(SAVES) ? fs.readdirSync(SAVES) : [])) {
+      if (!f.endsWith('.json')) continue;
+      try {
+        const p = JSON.parse(fs.readFileSync(path.join(SAVES, f), 'utf8'));
+        if (p.format !== 'retromulticiv-server-save') continue;
+        rows.push({ file: f, envelope: p });
+      } catch (e) { /* foreign/corrupt file: not listable, not an error */ }
+    }
+    savesScanCache = { at: t, rows };
+    return rows;
+  }
   function maintenanceSweep() {
     limiter.sweep();
     rotateSaves();
@@ -287,8 +307,17 @@ export function startServer(opts) {
       send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
       return;
     }
-    const game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
-    game.resetSeats();
+    // H-1 (c): a corrupt-but-right-format save must reject, never crash the
+    // path (createGame throws on ruleset drift and bad shapes)
+    let game;
+    try {
+      game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
+      game.resetSeats();
+    } catch (err) {
+      console.log(`resume rejected: ${path.basename(file)} — ${err.message}`);
+      send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
+      return;
+    }
     registry.register(game, false); // spectators: off for resumed games (v1)
     saveFiles[game.gameId] = file;
     send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
@@ -601,7 +630,18 @@ export function startServer(opts) {
       const msg = parsed.msg;
       const info = conns.get(ws);
       if (msg.t === 'ping') { send(ws, { t: 'pong' }); return; }
-      if (msg.t === 'list') { send(ws, { t: 'games', games: registry.list() }); return; }
+      if (msg.t === 'list') {
+        // H-1 (b): joinCode enumerates ONLY for public lobbies — handing a
+        // private lobby's code to any connection defeats the A50 posture
+        // (existence still lists; the code is the secret, not the game)
+        const games = registry.list().map(g => {
+          const e = registry.entryOf(g.gameId);
+          if (e && e.options && e.options.public === true) return g;
+          return { gameId: g.gameId, started: g.started, turn: g.turn, seats: g.seats };
+        });
+        send(ws, { t: 'games', games });
+        return;
+      }
       if (msg.t === 'listGames') { // A41 find-a-game: public lobbies only
         const now = Date.now(); // 1/sec/conn — the one message crawlers hammer
         if (info.lastListAt !== undefined && now - info.lastListAt < 1000) {
@@ -646,15 +686,12 @@ export function startServer(opts) {
         // under --debug now; resume-by-CODE (knowing it = the permission)
         // is the production path
         if (!opts.debug) { send(ws, { t: 'saves', saves: [] }); return; }
-        const dir = SAVES;
         const saves = [];
-        for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {
-          if (!f.endsWith('.json')) continue;
+        for (const row of scanSaves()) { // H-1 (d): the cached scan
+          const p = row.envelope;
           try {
-            const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-            if (p.format !== 'retromulticiv-server-save') continue;
             saves.push({
-              file: f, gameId: p.gameId, code: p.code, savedAt: p.savedAt,
+              file: row.file, gameId: p.gameId, code: p.code, savedAt: p.savedAt,
               turn: p.state.turn, year: p.state.year,
               players: p.state.playerOrder.map(pid => ({
                 name: p.state.players[pid].name,
@@ -663,7 +700,7 @@ export function startServer(opts) {
               })),
               loaded: registry.entryOf(p.gameId) !== null // already live?
             });
-          } catch (e) { /* foreign/corrupt file: not listable, not an error */ }
+          } catch (e) { /* malformed state shape: not listable */ }
         }
         saves.sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1)); // newest first
         send(ws, { t: 'saves', saves });
@@ -679,18 +716,14 @@ export function startServer(opts) {
         const norm = s => String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '');
         const want = norm(msg.code);
         if (want.length === 0) { send(ws, { t: 'rejected', commandId: -1, code: 'noCode' }); return; }
-        const dir = SAVES;
         let best = null; // newest matching envelope wins
-        for (const f of (fs.existsSync(dir) ? fs.readdirSync(dir) : [])) {
-          if (!f.endsWith('.json')) continue;
-          try {
-            const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-            if (p.format !== 'retromulticiv-server-save' || norm(p.code) !== want) continue;
-            if (best === null || String(p.savedAt || '') > String(best.savedAt || '')) best = { file: f, savedAt: p.savedAt };
-          } catch (e) { /* foreign/corrupt file: skip */ }
+        for (const row of scanSaves()) { // H-1 (d): the cached scan
+          const p = row.envelope;
+          if (norm(p.code) !== want) continue;
+          if (best === null || String(p.savedAt || '') > String(best.savedAt || '')) best = { file: row.file, savedAt: p.savedAt };
         }
         if (best === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchCode' }); return; }
-        resumeFromFile(ws, path.join(dir, best.file));
+        resumeFromFile(ws, path.join(SAVES, best.file));
         return;
       }
       if (msg.t === 'create') {

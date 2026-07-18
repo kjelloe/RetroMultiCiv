@@ -398,3 +398,45 @@ test('turn flow: presence, host skip, propose→vote >2/3, spectator view (docs/
     await s.close();
   }
 });
+
+test('H-1 (b/c): private joinCodes never enumerate; a corrupt save rejects cleanly', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 7, size: 'xsmall', autosave: false });
+  const corruptFile = path.join(__dirname, '..', 'saves', 'h1corrupt.json');
+  try {
+    // (b) one private lobby, one public — the legacy 'list' frame must not
+    // hand the PRIVATE lobby's joinCode to an arbitrary connection
+    const hostA = await connect(s.port);
+    hostA.send({ t: 'create', name: 'Secret', options: { civs: 2, humans: 2, size: 'xsmall', seed: 1 } });
+    const priv = await hostA.expect(m => m.t === 'created', 'private created');
+    const hostB = await connect(s.port);
+    hostB.send({ t: 'create', name: 'Open', options: { civs: 2, humans: 2, size: 'xsmall', seed: 2, public: true } });
+    const pub = await hostB.expect(m => m.t === 'created', 'public created');
+    const stranger = await connect(s.port);
+    stranger.send({ t: 'list' });
+    const listing = await stranger.expect(m => m.t === 'games', 'list');
+    const privRow = listing.games.find(g => g.gameId === priv.gameId);
+    const pubRow = listing.games.find(g => g.gameId === pub.gameId);
+    assert.ok(privRow, 'private lobby still LISTS (existence is not the secret)');
+    assert.strictEqual(privRow.joinCode, undefined, 'private joinCode never enumerates');
+    assert.strictEqual(pubRow.joinCode, pub.joinCode, 'public lobbies keep their code');
+
+    // (c) a corrupt save (right format, garbage state) rejects cleanly
+    // instead of crashing the resume path
+    fs.writeFileSync(corruptFile, JSON.stringify({
+      format: 'retromulticiv-server-save', gameId: 'h1corrupt', state: null, diag: {}
+    }));
+    stranger.send({ t: 'resume', file: 'h1corrupt.json' });
+    const rej = await stranger.expect(m => m.t === 'rejected' && m.code === 'badSave', 'corrupt save rejected');
+    assert.strictEqual(rej.code, 'badSave');
+    // the server survived: a normal frame still answers
+    stranger.send({ t: 'list' });
+    await stranger.expect(m => m.t === 'games' && m.games.length >= 2, 'server alive after the corrupt resume');
+    hostA.close(); hostB.close(); stranger.close();
+  } finally {
+    await s.close();
+    fs.rmSync(corruptFile, { force: true });
+  }
+});

@@ -156,7 +156,15 @@ a legitimate game.
    connect-RATE window (code-verified gap: limits.js has none).**
 2. Lifecycle expiry: unstarted-lobby TTL, gameOver unlist +
    retention, saves/ size budget (A50).
-3. Join-by-id closed for non-public games (A50 §1).
+3. Join-by-id closed for non-public games (A50 §1). **CLOSED
+   2026-07-18 (H-1, helper): the `list` frame now strips joinCode
+   from non-public lobby rows — existence still lists, the code is
+   the secret. Companion H-1 fixes same slice: `listSaves` code/
+   name disclosure was already --debug-gated (L2); `resumeFromFile`
+   → `createGame` now try/caught (a corrupt save rejects `badSave`,
+   never crashes the path); the saves/ dir scan is cached (2s TTL,
+   shared by listSaves + resumeByCode) instead of re-parsed per
+   request. Red-first tests in server-lobby.test.js.**
 4. No Origin check on `/ws` (helper review finding): WebSockets
    are CORS-exempt, so any web page a victim visits can open a
    socket to a LAN/public server (DNS-rebinding reaches
