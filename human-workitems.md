@@ -14,7 +14,12 @@ the Done log at the bottom.
   (build queue, ship screen, discovery card, fastforward twin) exists
   only on that machine, and the bugfixer's ff-parity twins-gate
   registration stays blocked on it.
-- [ ] **Merge marker-0051** (the current consistent candidate; the
+- [ ] **Merge marker-0052** (supersedes 0051; adds N10 caravan trade
+  routes — windfall + live top-3 route bonus, 4 new cross-language
+  scenario pins, full-but-behavior-identical golden ripple via the
+  ruleset pin — plus the client half, T1 portrait, L8 lobby
+  robustness, H8 real-engine ship screen, gov telemetry.)
+- [ ] ~~Merge marker-0051~~ (superseded; the
   night shipped 0043→0051): stance-mix v1 (some civs build wonders,
   dg=30 intact), the A51 find-a-game pipeline, A54 off-turn
   rates/research/production, the ruleset-compat pin, settler food

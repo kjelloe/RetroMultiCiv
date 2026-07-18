@@ -130,7 +130,7 @@ the in-Roblox client (city panels, avatar unit-possession) along the
 [docs/13](docs/13-roblox-ui-parity.md) parity tiers.
 
 **Determinism is the whole architecture.** One pure engine, state as
-plain data, every random draw seeded and ordered. 512 headless tests
+plain data, every random draw seeded and ordered. 523 headless tests
 including hash-locked replay scenarios, an AI-determinism lock, and
 real-browser e2e runs; a nightly CI soak plays 50 full AI games. Every
 game can prove itself: **Shift+D downloads a replayable recording**,
