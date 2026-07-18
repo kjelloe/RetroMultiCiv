@@ -235,6 +235,30 @@ export function initPanels(ctx) {
     return 'built: ' + rows.join(' ');
   }
 
+  // A89 (specs/n10-caravans.md): the engine's route-report export, probed at
+  // init — the per-route arrows + top-3 ranking are ENGINE math (R1 base-arrow
+  // exclusion, live recompute, deterministic tiebreak); the client never
+  // re-derives them. Until the N10 engine half ships the export, the panel
+  // shows partners without arrows. PROPOSED seam (mailed to the window):
+  //   tradeRouteReport(state, city, ruleset) -> [{ partnerCityId, arrows, counted }]
+  let routeMath = null;
+  import('../../engine/cities.js').then(m => { if (m.tradeRouteReport) routeMath = m; }).catch(() => {});
+  function routesHtml(state, city) {
+    const routes = city.tradeRoutes;
+    if (routes === undefined || routes.length === 0) return '';
+    const report = routeMath ? routeMath.tradeRouteReport(state, city, session.ruleset) : null;
+    const rows = routes.map(r => {
+      const p = state.cities[r.partnerCityId];
+      const name = p ? p.name : r.partnerCityId;
+      const foreign = p && p.owner !== city.owner;
+      const rep = report ? report.find(x => x.partnerCityId === r.partnerCityId) : null;
+      const arrows = rep ? ` <span class="yt">+${rep.arrows}</span>` : '';
+      const extra = rep && rep.counted === false ? ' <span class="route-extra">(beyond top 3)</span>' : '';
+      return `${name}${foreign ? ' 🏳' : ''}${arrows}${extra}`;
+    });
+    return `<div id="city-routes">🐫 trade routes: ${rows.join(' · ')}</div>`;
+  }
+
   // C3: the city's build queue — client-side list over logged setProduction
   // commands (ui/build-queue.js owns storage + the advance-on-completion)
   function renderQueue(city) {
@@ -355,6 +379,7 @@ export function initPanels(ctx) {
       + buyHtml
       + '</div>'
       + `<div class="city-built"${attr(upkeepTip)}>${buildBuiltList(city, state)}</div>`
+      + routesHtml(state, city) // A89: empty until routes exist in state
       + `<div>${city.workers !== undefined
         ? '👷 manual tile assignment — click tiles below'
         : '👷 automatic tile assignment — click a tile to take over'}</div>`

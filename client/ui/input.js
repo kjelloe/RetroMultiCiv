@@ -198,6 +198,13 @@ export function initInput(ctx) {
     badSpecialists: 'taxmen and scientists need a city of 5+, and citizens to spare',
     notBuildingWonder: 'this city is not building a wonder',
     cannotHelpWonder: 'this unit cannot help build wonders',
+    // A89 caravans (specs/n10-caravans.md §4) — the six establish rejections
+    notCaravan: 'this unit cannot establish trade routes',
+    cityRequired: 'trade routes are established standing IN the partner city',
+    noHomeCity: 'this unit has no home city to route from',
+    ownCityTooClose: 'a domestic partner must be farther from home — try a more distant city',
+    sameCity: 'a city cannot trade with itself — move to a partner city',
+    duplicateRoute: 'the home city already routes to this partner',
     alreadySoldThisTurn: 'only one building can be sold per city each turn',
     cannotSellPalace: 'the palace cannot be sold',
     tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`
@@ -205,7 +212,8 @@ export function initInput(ctx) {
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
     pillage: true, disband: true, buy: true, helpWonder: true, sellBuilding: true,
-    setGovernment: true, setRates: true, setWorkers: true
+    setGovernment: true, setRates: true, setWorkers: true,
+    establishTradeRoute: true // A89 (inert until the N10 engine half lands)
   };
 
   // wave III: after a combat involving the viewer, keep the camera at the
@@ -283,6 +291,51 @@ export function initInput(ctx) {
       }
     }
     return null;
+  }
+
+  // A89 (specs/n10-caravans.md §4): the establish-route gate, MIRRORING the
+  // engine's legality for the button/key (the engine stays the judge). The
+  // whole feature detects on the units.json tradeRoutes capability — absent
+  // until the N10 engine half lands, so everything here is inert today.
+  // Returns { city } when legal, { blocked } with the rejection id when a
+  // caravan stands in a city that fails a leg, null when no action applies.
+  function tradeRouteStateFor(unit) {
+    if (!unit || session.ruleset.units[unit.type].tradeRoutes !== true) return null;
+    const state = session.state;
+    let partner = null;
+    for (const cid of state.cityOrder) {
+      const c = state.cities[cid];
+      if (c && c.x === unit.x && c.y === unit.y) { partner = c; break; }
+    }
+    if (!partner) return { blocked: 'cityRequired' };
+    const home = unit.home !== undefined ? state.cities[unit.home] : null;
+    if (!home) return { blocked: 'noHomeCity' };
+    if (home.id === partner.id) return { blocked: 'sameCity' };
+    const routes = home.tradeRoutes || [];
+    for (const r of routes) {
+      if (r.partnerCityId === partner.id) return { blocked: 'duplicateRoute' };
+    }
+    if (partner.owner === home.owner) { // domestic: the distance rule applies
+      const tr = session.ruleset.rules.tradeRoute;
+      const minD = tr && tr.minDomesticDistance !== undefined ? tr.minDomesticDistance : 10;
+      const W = state.map.width;
+      let dx = Math.abs(home.x - partner.x);
+      if (state.map.wrapX) dx = Math.min(dx, W - dx);
+      const d = Math.max(dx, Math.abs(home.y - partner.y));
+      if (d < minD) return { blocked: 'ownCityTooClose' };
+    }
+    return { city: partner };
+  }
+
+  async function establishRouteSelected() {
+    if (!sel.unitId) return;
+    const unit = session.state.units[sel.unitId];
+    const gate = tradeRouteStateFor(unit);
+    if (!gate || !gate.city) return;
+    if (await apply({ type: 'establishTradeRoute', playerId: session.state.activePlayer, unitId: sel.unitId })) {
+      hud.note(`🐫 trade route established with ${gate.city.name}`);
+      nextUnit();
+    }
   }
 
   async function helpWonderSelected() {
@@ -645,6 +698,15 @@ export function initInput(ctx) {
       const added = session.ruleset.units[unit.type].cost;
       actions.push({ label: `🏛 Help Wonder (+${added} shields, consumed)`, key: 'H', run: helpWonderSelected });
     }
+    // A89: establish trade route (feature-detected; grayed with the why when
+    // a leg fails — the A68 blocked pattern)
+    const trGate = tradeRouteStateFor(unit);
+    if (trGate) {
+      actions.push({
+        label: '🐫 Trade route (consumed)', key: 'Y', run: establishRouteSelected,
+        blocked: trGate.blocked ? REASON_TEXT[trGate.blocked] : undefined
+      });
+    }
     if (!unit.fortified) actions.push({ label: '🛡 Fortify', key: 'F', run: fortifySelected });
     // C4: sentry (any unit) + settler automation — client-side layers
     if (ctx.automate) {
@@ -892,6 +954,7 @@ export function initInput(ctx) {
     if (e.key === 'f' && sel.unitId) { fortifySelected(); return; }
     if (e.key === 'v' && sel.unitId) { sentrySelected(); return; }   // C4 sentry
     if (e.key === 'u' && sel.unitId) { autoSelected(); return; }     // C4 automate
+    if (e.key === 'y' && sel.unitId) { establishRouteSelected(); return; } // A89 trade route
     if (e.key === 'h' && sel.unitId) { helpWonderSelected(); return; }
     if (e.key === 'p' && sel.unitId) { pillageSelected(); return; }
     if (e.key === 'x' && sel.unitId) { disbandSelected(); return; }

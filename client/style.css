@@ -378,6 +378,9 @@ html, body {
 
 /* A97: per-building sell affordance in the city view */
 .city-built .bldg { display: inline-block; margin: 2px 8px 2px 0; white-space: nowrap; }
+/* A89: the city's trade-route line (inert until N10 lands routes in state) */
+#city-routes { margin: 3px 0; font-size: 12px; color: #cdd8ea; }
+#city-routes .route-extra { color: #7d8aa5; font-size: 11px; }
 .sell-btn {
   margin-left: 4px;
   padding: 1px 7px;
