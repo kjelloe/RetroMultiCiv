@@ -57,3 +57,47 @@ draw anything. Provisional art ships in the tree meanwhile (functional, not
 final), and we wire the discovery card + research readout once your concepts
 land (kept to one surface until then). Sheet to review the current state:
 `debugging/glyph-sheet.html` (a labeled 68-glyph grid, flagged marks amber).
+
+---
+
+## ANSWERED — ally motif concepts (2026-07-19)
+
+All 32 delivered. Original design prose (committable). Design grammar to
+preserve: object/value → exchange → institution; early machine → advanced
+machine; split atom → reactor → stellar union; public offices → ballot
+participation. Implement procedurally in `client/ui/tech-glyphs.js` (replace
+the provisional motifs), keep the ~26px silhouette read.
+
+- `currency` → a single round coin with a centered square hole (standardized value).
+- `trade` → two opposing horizontal arrows through a small central dot (goods both ways).
+- `banking` → a solid vault rectangle containing three stacked small coins.
+- `horseback-riding` → a horse-head profile with short mane + one angled rein line (NOT a horseshoe).
+- `magnetism` → a U-magnet with two contrasting pole tips pulling three small dots inward.
+- `republic` → a semicircle of three equal columns beneath one straight lintel.
+- `democracy` → a ballot rectangle dropping through a slot into a square box.
+- `flight` → a straight-wing propeller-plane silhouette, small nose disc + broad horizontal wings.
+- `advanced-flight` → a sharp swept-wing jet, narrow triangular nose + trailing speed lines.
+- `construction` → three offset stone blocks rising into a simple arch.
+- `engineering` → a bridge truss: two upright supports joined by a bold triangular brace.
+- `invention` → a small lightbulb disc above a short zigzag filament/base.
+- `map-making` → a folded three-panel map (zigzag rectangle) with a tiny route dot.
+- `navigation` → a compass rose: central disc, one long needle, four short cardinal points.
+- `nuclear-fission` → a nucleus split into two separated half-discs, three small particles escaping.
+- `nuclear-power` → a broad cooling-tower silhouette with a glow disc / three rising heat arcs above.
+- `fusion-power` → two small discs converging into one bright center, enclosed by a partial energy ring.
+- `ceremonial-burial` → a low grave mound beneath a tall upright memorial stone, small rising arc above.
+- `chivalry` → a heraldic kite shield split by one bold diagonal band, topped by a tiny crown crest.
+- `metallurgy` → a faceted ingot above a shallow crucible bowl (metal shaped, not a weapon).
+- `physics` → a prism triangle splitting one entering bar into two diverging rays.
+- `theory-of-gravity` → a single solid circle descending along a curved arc toward a baseline (no tree/apple).
+- `combustion` → a vertical piston cylinder with a small flame/burst in its lower chamber.
+- `communism` → a five-point star above a broad bar, two short equal support bars beneath.
+- `conscription` → three upright rifle-like bars behind a small forward-pointing chevron.
+- `corporation` → a tall central tower flanked by two shorter towers, one shared base line.
+- `explosives` → a compact bundle of three parallel bars with a short lit fuse ending in a 4-point spark.
+- `refining` → a vertical distillation column with two side pipes to two small output discs.
+- `electronics` → a square microchip, four short pins each side, one central circuit dot.
+- `future-tech` → an open broken ring curving outward into two horizon-bound arcs (knowledge beyond the frontier).
+- `labor-union` → three raised vertical forearms ending in clenched disc fists, linked at the wrist by one bar.
+- `plastics` → a molded bottle silhouette: rounded rectangle, narrow neck, small cap.
+- `superconductor` → a continuous closed loop encircling a central disc, two opposing arrows flowing, no breaks.

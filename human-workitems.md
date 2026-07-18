@@ -33,15 +33,6 @@ _Last synced: 2026-07-18._
   the sweep to the sim-runner → **marker-0063**. This is the only gate left
   on D3 (nothing's broken — it's staged).
 
-- [ ] **Forward the tech-glyph motif request to the ally** —
-  `specs/ally-glyph-request-2026-07-19.md`. The 68 tech icons are built and
-  live in the new tech-tree; ~32 of them are provisional (money/atomic/civic
-  symbol collisions + abstract techs) and want a one-line motif concept each
-  from the ally (parallel to the blurbs). Not blocking — provisional glyphs
-  ship meanwhile; the ally's concepts refine them + unlock wiring the
-  discovery card + research readout. Review the current set at
-  `debugging/glyph-sheet.html`.
-
 - [ ] **World-look pick (a/b/c)** — a Roblox session: Options → world
   look → flip retro/enhanced live → screenshot both → pick
   retro-faithful / enhanced / enhanced-with-notes. Blocks nothing
@@ -99,7 +90,9 @@ _Last synced: 2026-07-18._
   graphical 🌳 tech-tree (era columns, prerequisite edges, ✓/○/· states) in
   addition to the list, a **beeline** (click a distant tech → it auto-researches
   the path), and a procedural **icon per tech**. All golden-neutral client.
-  ~32 glyphs are provisional pending the ally motif pass (see Decide/Do).
+  The ally delivered all 32 motif concepts for the provisional glyphs — the
+  helper is now finalizing them + wiring glyphs onto all three surfaces
+  (tree, discovery card, research readout); closes XII.6 end-to-end.
 - **The 68 tech-discovery blurbs SHIPPED** (ally-authored): the empty
   discovery-card slots are filled on browser AND Roblox (parity self-test
   green). Plus the Movement/Regency/Recordings pedia concepts and the
