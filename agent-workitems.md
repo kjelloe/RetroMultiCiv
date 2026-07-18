@@ -153,7 +153,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 534 tests), the item's own verification steps pass, related
+   (currently 540 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -3208,7 +3208,7 @@ All numbers wiki-extracted to rules.json/overlays; both engines;
 scenario pins (pollution spawn, cleanup, warming, nuke strike);
 MOVES GOLDENS (AI cities pollute) → full golden window.
 
-## A92 — Debug-command surface (designed with user 2026-07-16; unblocks R7c-17)
+## A92 — Debug-command surface (designed with user 2026-07-16; unblocks R7c-17)  [ENGINE HALF DONE 2026-07-18 marker-0057: debug{action} family (grantGold/spawnUnit/grantTech-via-seam/revealMap), debugEnabled at create, PERMANENT debugUsed taint in the hash (scenario 040), golden-neutral verified. REMAINING (helper lane): setup.debug client/server plumbing, game-code DEBUG watermark, gameOver/highscore flag, browser --debug panel; docs/07 watermark note rides that slice.]
 
 debug:* command family — grantGold, spawnUnit, grantTech,
 revealMap — RECORDED like any command (replays verify hash-exact).
