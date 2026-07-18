@@ -15,9 +15,11 @@ authority chain — not imported).
 
 Hut pass runs at the END of createGame (after starts; no downstream
 createGame draws — cleanest pin point). Per-LAND-tile independent
-roll at 1-in-`rules.hut.density` (40), EXCLUDING every start tile and
-its 8 neighbors (house choice; wiki says only "random distribution at
-map generation"). `tile.hut = true`, present-when-true (omit-safe on
+roll at 1-in-`rules.hut.density` (40), iterating in LINEAR
+TILE-ARRAY INDEX ORDER 0..w*h-1 (the tileAt index space — R2: the
+named order IS the cross-language contract for the sprinkle's RNG
+sequence), EXCLUDING every start tile and its 8 neighbors (house
+choice; wiki says only "random distribution at map generation"). `tile.hut = true`, present-when-true (omit-safe on
 water/normal tiles). No respawn. This shifts every downstream RNG
 draw → full golden re-record budgeted (Q9).
 
@@ -86,9 +88,26 @@ under escort. RANSOM: when a leader is killed while it is the ONLY
 unit on its tile ("by itself" — the wiki's lone-leader condition,
 which our stack-top combat matches naturally: escorts die first),
 the killing civ gains `rules.barb.leaderRansom` = 100 gold
-(wiki-verbatim amount) + a `ransomPaid` event. V1 SIMPLIFICATIONS
-(labeled original): no flee/disband AI — the leader moves with the
-horde per existing barbarian AI; sea raiders carry no leader.
+(wiki-verbatim amount) + a `ransomPaid` event.
+**R1 PIN (reviewer #1484 — without it the ransom is nearly dead
+code): the leader is EXEMPT from open-ground stack annihilation.**
+Our combat.js implements the Civ1 rule that a defender loss on open
+ground kills the WHOLE stack — which would kill the leader inside
+its escort and the lone-leader condition would never fire. Fix,
+labeled Civ1-consistent (the wiki's flee narrative implies the
+leader survives its escort's death): open-ground stack casualties =
+the stack MINUS any barbleader, unless the leader is the sole
+defender (then it dies normally and pays). bestDefender must NEVER
+select the leader while any other unit shares the tile (explicit
+exclusion, not a defense-value tie-break — deterministic by
+construction). Scenario 043 gains the full sequence: attack a
+2-stack on open ground → escort dies, leader SURVIVES on the tile,
+no ransom; second attack → leader dies alone, +100.
+HUT AMBUSHES CARRY NO LEADER (R4 — leaders belong to the roaming
+A66 raiding parties only; keeps 041's ambush case clean).
+V1 SIMPLIFICATIONS (labeled original): no flee/disband AI — the
+leader moves with the horde per existing barbarian AI; sea raiders
+carry no leader.
 
 ## RNG + the turn-16 invariant (Q8)
 
@@ -118,7 +137,21 @@ Leonardo (owner holds the wonder — the marker-0056 promise); 043
 leader ransom (+100 lone-leader kill, no ransom while escorted);
 044 nullifiers (air entry + barb entry consume without reward) +
 advanced tribe founds the city. Unit tests: eligibility gating,
-weight renormalization, placement exclusion, closest-city tie.
+weight renormalization, placement exclusion, closest-city tie AND
+the zero-cities-anywhere case (R5: no candidate → no home, no
+support — same as the foreign-closest branch), bestDefender
+never-the-leader-while-escorted.
+
+## Client half (R3 — the H-item, helper lane, post-window; the N11 pattern)
+
+(a) The hut TILE renders: a hut prop in renderer/three/props + a
+gallery row (nothing forces this mechanically — the mock-state
+coverage test asserts terrain ids, not props — so it is NAMED here);
+(b) barbleader gets a silhouette + gallery presence like any unit
+type; (c) hutEntered toast + turnlog rows through the #1205 gate,
+FOG RULE: own-seat only (another civ's hut result never broadcasts;
+ambush spawns become visible via normal unit visibility); ransomPaid
+= own-seat win-class line.
 
 ## Provenance summary
 
