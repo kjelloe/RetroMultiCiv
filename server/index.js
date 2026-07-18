@@ -554,6 +554,12 @@ export function startServer(opts) {
           view: res.game.view(bound.playerId), rulesOverrides: res.game.rulesOverrides, code: res.game.code(),
           civs: playerCivs(res.game) // A24: city rosters + faction visuals
         });
+      } else {
+        // L8 (reviewer #1328): the skip is no longer silent — the log names
+        // the seat and why; a still-connected socket is told explicitly (its
+        // 'started' handler shows the missed-seat screen either way)
+        console.log(`start ${gameId}: seat ${pid} (${entry.seats[pid] ? entry.seats[pid].name : '?'}) not bound — ${o ? 'seat bind failed' : 'no live connection'}`);
+        if (o) send(o, { t: 'rejected', commandId: -1, code: 'seatNotBound' });
       }
     }
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'started', gameId });

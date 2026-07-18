@@ -1036,6 +1036,7 @@ html, body {
 #lobby-chat-row { display: flex; gap: 6px; margin-top: 6px; }
 #lobby-chat-text { flex: 1; }
 .lobby-kick { border-color: #8f3b3b; color: #e8b0a8; }
+.lobby-notice { color: #e0a458; font-style: italic; } /* L8: in-lobby refusal lines */
 
 /* A42 slice 2: the first-visit diorama behind the setup card — dimmed so
    the card stays readable on top of the animated scene */
@@ -1791,6 +1792,12 @@ html, body {
   /* the minimap earns its phone home here (C1 deferred it): smaller, above
      End Turn instead of over it */
   #minimap { width: 112px; right: 8px; bottom: 118px; }
+
+  /* toasts wrap inside the viewport (nowrap clipped both edges at 412px) */
+  #center-banner, #flash-banner {
+    max-width: 92vw; white-space: normal; text-align: center;
+    font-size: 15px; box-sizing: border-box;
+  }
 
   /* left stack: clear of the action strip; panels cap to the viewport */
   #left-stack { bottom: 84px; left: 6px; gap: 4px; }

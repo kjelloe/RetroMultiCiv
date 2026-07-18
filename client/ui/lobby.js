@@ -46,19 +46,88 @@ function persistAndBoot(msg) {
     + (spectator ? '&spectate=1' : '');
 }
 
+// L8 (the L5 root cause's client half): a lobby connection whose SEAT was
+// released pre-start (phone slept, socket died, the live[pid] rule seated an
+// AI) still receives the {t:'started'} broadcast but never a 'joined' — the
+// old pump ignored 'started' and the lobby DOM went stale forever. Now it
+// gets the truth and its options.
+function showMissedStart(box, gameId) {
+  if (!box) return;
+  box.innerHTML = `<h2>Game lobby</h2>
+    <p class="setup-hint">⚠ the game started WITHOUT your seat — your connection
+      dropped in the lobby (a sleeping phone releases its seat), so an AI took it.</p>
+    <p class="setup-hint">rejoin from the join screen with your seat code (if the
+      game showed you one), or watch as a spectator:</p>
+    <button id="lobby-miss-spectate" class="setup-lan-btn">👁 Spectate</button>
+    <button id="lobby-miss-join" class="setup-lan-btn">↩ Join screen</button>
+    <p class="setup-hint"><a href="./">← back to setup</a></p>`;
+  const spec = document.getElementById('lobby-miss-spectate');
+  if (spec) spec.addEventListener('click', () => {
+    location.search = `?server=${joinOrigin ? encodeURIComponent(joinOrigin) : '1'}&game=${gameId}&spectate=1`;
+  });
+  const join = document.getElementById('lobby-miss-join');
+  if (join) join.addEventListener('click', () => startJoinFlow(box));
+}
+
+// L8: a transient system line in the lobby chat log (falls back to the
+// status line) — chat rejections and other in-lobby refusals surface here
+// instead of nuking the waiting room (the chatting-alone illusion killer).
+function lobbyNotice(text) {
+  const log = document.getElementById('lobby-chat-log');
+  if (log) {
+    const line = document.createElement('div');
+    line.className = 'lobby-notice';
+    line.textContent = `⚠ ${text}`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+    return true;
+  }
+  const st = document.getElementById('lobby-status');
+  if (st) { st.textContent = `⚠ ${text}`; return true; }
+  return false;
+}
+
+function rejectText(code) {
+  return code === 'chatOff' ? 'chat is switched off in this lobby'
+    : code === 'tooFast' ? 'chat rate limit — slow down a little'
+    : code === 'noLobby' ? 'the server no longer sees your lobby seat — your message did not send'
+    : `server rejected: ${code}`;
+}
+
 // One shared little message pump: onMsg returns nothing; onDead runs when the
-// socket closes/errors while we still expected it (pre-boot).
+// socket closes/errors while we still expected it (pre-boot). L8: 'started'
+// without a 'joined' = the missed-seat screen, centrally for every flow; and
+// a visibilitychange/pageshow probe notices a socket the OS killed while the
+// phone slept and routes it through the same onDead.
 function openLobbySocket(onMsg, onDead) {
   const ws = new WebSocket(wsUrl());
   let booted = false;
+  let deadShown = false;
+  let everOpened = false;
+  ws.addEventListener('open', () => { everOpened = true; });
+  function dead() {
+    if (booted || deadShown) return;
+    deadShown = true;
+    onDead(everOpened);
+  }
   ws.addEventListener('message', ev => {
     let msg;
     try { msg = JSON.parse(ev.data); } catch (e) { return; }
     if (msg.t === 'joined') { booted = true; persistAndBoot(msg); return; }
+    if (msg.t === 'started' && !booted) {
+      booted = true; // stop the dead-socket path from overwriting the message
+      showMissedStart(document.getElementById('setup-box'), msg.gameId);
+      return;
+    }
     onMsg(msg, ws);
   });
-  ws.addEventListener('close', () => { if (!booted) onDead(); });
-  ws.addEventListener('error', () => { if (!booted) onDead(); });
+  ws.addEventListener('close', dead);
+  ws.addEventListener('error', dead);
+  const wake = () => {
+    if (document.visibilityState === 'visible' && ws.readyState >= WebSocket.CLOSING) dead();
+  };
+  document.addEventListener('visibilitychange', wake);
+  window.addEventListener('pageshow', wake);
   return ws;
 }
 
@@ -294,6 +363,8 @@ export function startHostFlow(box, options, flags) {
       } else if (msg.t === 'chat') {
         appendChat(msg);
       } else if (msg.t === 'rejected') {
+        if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
+            && lobbyNotice(rejectText(msg.code))) return; // L8: in-lobby refusals land where the user looks
         fail(box, msg.code === 'seatReserved'
           ? 'that seat is taken — they can leave, or pick another slot for the AI'
           : msg.code === 'civTaken' ? 'another slot already has that civilization'
@@ -301,7 +372,9 @@ export function startHostFlow(box, options, flags) {
             ? `a ${msg.size} map seats up to ${msg.maxCivs} civilizations — pick a bigger map or fewer civs`
           : `server rejected: ${msg.code}`);
       }
-    }, () => fail(box, 'no game server — start it with: node server/index.js'));
+    }, opened => fail(box, opened
+      ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
+      : 'no game server — start it with: node server/index.js'));
     ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'create', name, options })));
   }
   if (auto) { create(flags.name || 'Host'); return; }
@@ -542,8 +615,14 @@ export function autoJoin(box, code, name) {
     } else if (msg.t === 'lobby') { syncChatPanel(msg.lobby, null); updateRoster(msg.lobby, mySeat, null); }
     else if (msg.t === 'chat') appendChat(msg);
     else if (msg.t === 'kicked') showKicked(box);
-    else if (msg.t === 'rejected') fail(box, `server rejected: ${msg.code}`);
-  }, () => fail(box, 'no game server'));
+    else if (msg.t === 'rejected') {
+      if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
+          && lobbyNotice(rejectText(msg.code))) return; // L8
+      fail(box, `server rejected: ${msg.code}`);
+    }
+  }, opened => fail(box, opened
+    ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
+    : 'no game server'));
   ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name: name || 'Joiner' })));
 }
 
@@ -589,6 +668,8 @@ export function startJoinFlow(box) {
       else if (msg.t === 'chat') appendChat(msg);
       else if (msg.t === 'kicked') showKicked(box);
       else if (msg.t === 'rejected') {
+        if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
+            && lobbyNotice(rejectText(msg.code))) return; // L8
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
@@ -598,7 +679,9 @@ export function startJoinFlow(box) {
           : msg.code === 'notPublic' ? 'that game is no longer listed' // A41
           : `server rejected: ${msg.code}`);
       }
-    }, () => fail(box, 'no game server — start it with: node server/index.js'));
+    }, opened => fail(box, opened
+      ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
+      : 'no game server — start it with: node server/index.js'));
     ws.addEventListener('open', () => ws.send(JSON.stringify(frame)));
   }
   const browseWs = openLobbySocket((msg) => {
@@ -656,6 +739,8 @@ export function startJoinFlow(box) {
       } else if (msg.t === 'kicked') {
         showKicked(box); // A37: the friendly removal screen
       } else if (msg.t === 'rejected') {
+        if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
+            && lobbyNotice(rejectText(msg.code))) return; // L8
         fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — rejoin with your seat code'
@@ -666,7 +751,9 @@ export function startJoinFlow(box) {
           : msg.code === 'seatOccupied' ? 'that seat is still connected — close its tab first, then retry' // A46
           : `server rejected: ${msg.code}`);
       }
-    }, () => fail(box, 'no game server — start it with: node server/index.js'));
+    }, opened => fail(box, opened
+      ? 'lobby connection lost (a sleeping phone drops its seat) — reload to rejoin'
+      : 'no game server — start it with: node server/index.js'));
     ws.addEventListener('open', () => ws.send(JSON.stringify({ t: 'join', joinCode: code, name, seat, spectator: spectate, seatCode })));
   });
 
