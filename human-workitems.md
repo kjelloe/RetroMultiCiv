@@ -8,18 +8,19 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
-- [ ] **Ending #4 horizon (space victory) — measured decision menu**
-  (sim-runner #1399/#1408/#1410, 2026-07-18): at natural AI pace space
-  is UNREACHABLE in 400 turns (0/25 seeds even reach flight) but the
-  research rate ACCELERATES late-game, landing space-flight ~t650-720
-  with zero engine change. Forcing it into 400t needs ~5× research
-  speed and STILL builds no Apollo (0/8) — impractical. Options:
-  (A) longer horizon: natural/~700-750-turn games reach space with no
-  tuning (cost: game length + a late-game perf note); (B) rate lever:
-  bounded impractical, not recommended standalone; (C) ?age=
-  fast-forward starts for space scenarios (already exists).
-  **Recommendation: A (or A+C).** Default if unanswered: endYear
-  stays as-is; space remains reachable in natural mode and age-starts.
+- [x] **Ending #4 horizon — RULED 2026-07-18: option A** (longer
+  horizon / natural games). Actions taken: "Marathon (play until
+  victory)" host option queued to the helper (#1517 item 3); the
+  late-game perf note (state balloon at 45c/400u) parks until
+  marathon games are real. N9b's spec records space as horizon-gated,
+  not broken.
+- [x] **2026-07-18 morning batch (your six answers, all routed):**
+  N9b = hybrid lever + builder wonder-drive + mild band shift (15-40)
+  → specs/n9b-build-priority.md, reviewer gate next; strategic
+  overlay YES → helper #1517 (debug/spectator-gated); settler-upkeep
+  (a) FINAL — flat-1 stands, arc closed; SO15 manual asset upload
+  approved (waits only on CIV_THEMES content now); Roblox settler
+  automation approved → batch 10.
 - [x] **Push gaming-PC dev_night — DONE 2026-07-18 ~09:30** (two
   pushes, 8 commits: roblox batches 2-7 incl. the R17 DebugMenu +
   re-bakes + the hardening lane's plan doc). Catalog reconciled
@@ -50,7 +51,7 @@ the Done log at the bottom.
   picks (minimap, tooltips, build queue, sentry+automation), S1 match
   reports, the L/X LAN+mobile batch, roblox batch-2. Biggest merge
   since 0033 — merge the latest marker I declare consistent.
-- [ ] **Settler-upkeep — final choice (measured, arc closed):** the
+- [x] **Settler-upkeep — RULED 2026-07-18: (a) keep flat-1. Arc closed.** ~~final choice:~~ the
   progressive variant DOESN'T work — settlers are a PIPELINE (each
   founds+vanishes; rarely 2-3 alive at once), so free-first-N never
   bites (≈ baseline, no cap). A per-settler food tax CANNOT deliver
