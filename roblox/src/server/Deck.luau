@@ -137,6 +137,9 @@ function M.build()
 		Color3.fromRGB(60, 90, 150), "JOIN GAME")
 	local takeoverPad, takeoverPrompt = pad(folder, "TakeoverPad", 20,
 		Color3.fromRGB(150, 110, 50), "TAKE OVER AI CIV")
+	-- CP16/MP8 (spectate slice, ruling @d1ce4920): view-only entry
+	local spectatePad, spectatePrompt = pad(folder, "SpectatePad", 40,
+		Color3.fromRGB(110, 80, 150), "SPECTATE")
 
 	folder.Parent = workspace
 
@@ -144,12 +147,15 @@ function M.build()
 		start = { pad = startPad, prompt = startPrompt },
 		join = { pad = joinPad, prompt = joinPrompt },
 		takeover = { pad = takeoverPad, prompt = takeoverPrompt },
+		spectate = { pad = spectatePad, prompt = spectatePrompt },
 	}
 
 	local deck = { folder = folder, prompts = {
 		start = startPrompt, join = joinPrompt, takeover = takeoverPrompt,
+		spectate = spectatePrompt,
 	}, padParts = {
 		start = startPad, join = joinPad, takeover = takeoverPad,
+		spectate = spectatePad,
 	}, capitolPad = capitolPad }
 
 	-- phase DIMS non-applicable pads but never disables them (run-4 live

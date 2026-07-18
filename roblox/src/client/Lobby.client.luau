@@ -101,7 +101,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 300, 0, 442)
+setupPanel.Size = UDim2.new(0, 300, 0, 470)
 setupPanel.Position = UDim2.new(0.5, -150, 0.3, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -119,6 +119,7 @@ local ageLine = label(setupPanel, 244, 18, "") -- R24 starting age
 local difficultyLine = label(setupPanel, 286, 18, "") -- R24b parity audit
 local combatLine = label(setupPanel, 328, 18, "")
 local seedLine = label(setupPanel, 370, 18, "")
+local spectatorsLine = label(setupPanel, 412, 18, "") -- CP16
 
 local function stepButton(x, y, text, onClick)
 	local b = Instance.new("TextButton")
@@ -170,6 +171,7 @@ seedBox.FocusLost:Connect(function()
 	remote:FireServer({ t = "setup", key = "seed",
 		value = tonumber(seedBox.Text) or 0 })
 end)
+stepButton(8, 430, "~", function() sendSetup("spectators", 1) end) -- CP16 toggle
 
 local startBtn = Instance.new("TextButton")
 startBtn.Size = UDim2.new(0, 130, 0, 28)
@@ -333,6 +335,7 @@ local function render(lobby)
 			and "best-of-three" or "authentic (single round)")
 		seedLine.Text = "world seed: " .. ((lobby.options.seed or 0) > 0
 			and tostring(lobby.options.seed) or "random")
+		spectatorsLine.Text = "spectators: " .. (lobby.options.spectators ~= false and "allowed" or "OFF")
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game

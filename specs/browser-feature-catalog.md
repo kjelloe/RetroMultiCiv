@@ -31,8 +31,8 @@ prefixes) are the handles for twin requests and direction questions.
 | CP13 | government revolutions UI | panels research tab | PARTIAL — rates + government display present; the REVOLUTION switch flow needs verify/wire |
 | CP14 | end turn + confirm-with-movable-units, E-flow | hud/input | PRESENT — A29 three-state |
 | CP15 | hotseat (multi-human one screen, handoff cover) | handoff.js | N-A-platform CONFIRMED @38e36677 — one client per player; LAN seats replace it |
-| CP16 | spectator mode (view-only) | ?spectate=1 | DEFERRED — no Roblox spectate join path (THE LAW: unseated = lobby only); needs a spectate slice |
-| CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | MISSING (client half) — engine works on Roblox already via the twin (caravans CAN establish through any future command path); the UI slice (Establish button on the action bar for caravans-in-city, windfall banner, city-panel route list) queues into batch 5 alongside SO7-SO9 |
+| CP16 | spectator mode (view-only) | ?spectate=1 | PRESENT — SPECTATE deck pad (host toggle, default ON); omniscient filterView via the twin's no-player-row path; sends stay notSeated. LAW amended in SPEC.md per @d1ce4920 |
+| CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | PRESENT — Trade button + windfall banner + tooltip ROUTE REPORT (marker-0054 tradeRouteReport: arrows + over-cap marks) + 6 reject texts |
 
 ## Screens & overlays
 
@@ -42,11 +42,11 @@ prefixes) are the handles for twin requests and direction questions.
 | SO2 | breakdown TOOLTIPS (C2) | title attrs | PARTIAL — Tooltip.luau (hover 0.35s / long-press 0.5s per ruling) live on the HUD income ledger + city-yields ledger; more surfaces attach incrementally |
 | SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; blurbs empty-tolerant BOTH sides until the ally's lines land (sync flagged) |
 | SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; sync check each pedia change |
-| SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | MISSING — defer candidate (Legend button covers keys; advice content port = later) |
+| SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | PRESENT — AdviceCards.client.luau (10 cards, original prose, session-once, options mute; localStorage-less divergence flagged) |
 | SO6 | turn log (classes, filters, jump-to, fog rules) | turnlog.js | PARTIAL — log present (L toggle); classes/filters/jump-to not ported |
-| SO7 | end screen (victory + score breakdown, SPACE branch) | endscreen.js | MISSING — game-over is a HUD line + theater today; end screen = R-item candidate |
-| SO8 | statistics: time-series charts, battles, wonders timeline | stats.js/stats-data.js | PARTIAL — Statistics panel is live counts + stance tags; sandbox-replay charts DEFERRED (heavy client slice) |
-| SO9 | historian interstitials + age markers | historian.js | MISSING — defer candidate |
+| SO7 | end screen (victory + score breakdown, SPACE branch) | endscreen.js | PRESENT — EndScreen.client.luau on the server's full-state {t=endscreen} frame (scoreBreakdown twin; conquest/score/space headlines) |
+| SO8 | statistics: time-series charts, battles, wonders timeline | stats.js/stats-data.js | PARTIAL — score-over-time chart live (per-round world-public series, {t=stats} pull per ruling @d1ce4920); battles/wonders timelines = later adds |
+| SO9 | historian interstitials + age markers | historian.js | PRESENT — Historian.client.luau on the server's ageChanged standings frame (world-public score twin) |
 | SO10 | replay THEATER | replay.js/replay-events.js | PRESENT — R18 (post-game gate per THE LAW) |
 | SO11 | SPACESHIP screen (H8) | ship.js | PRESENT — Ship.client.luau (#1370): flat-Frame assembly w/ red-box rule, stats table, two-step launch, rival banners; no-mock + X-close divergences accepted @41a65e71 |
 | SO12 | fast-forward overlay (?age=) | ff-overlay.js + shared/fastforward.js | PARTIAL — function PRESENT (R24 lobby stepper + chunked server ff); progress overlay during the ff wait not built |
@@ -66,7 +66,7 @@ prefixes) are the handles for twin requests and direction questions.
 | MP5 | reconnect tokens, seat rebind, autosave/restart | server | PRESENT (platform shape) — UserId is the token (seat rebind on rejoin), rolling autosave shipped |
 | MP6 | game code fingerprint chip + saved chips | hud | PRESENT — chip + saved chip |
 | MP7 | ruleset-compat pin | engine+server+saves.js | PRESENT — engine-side (marker-0045); R24b saves record difficulty/combat so resume rebuilds identical rules |
-| MP8 | spectator omniscient view | server | DEFERRED — with CP16 |
+| MP8 | spectator omniscient view | server | PRESENT — with CP16 (host setup toggle carries the browser server flag) |
 | MP9 | master-index global browse | tools/master.js | N-A-platform CONFIRMED @38e36677 — Roblox public servers/matchmaking are the discovery layer |
 | MP10 | match-report S1 writer | server | N-A v1 CONFIRMED @38e36677 — DataStore writer = post-1.0 candidate |
 

@@ -160,9 +160,15 @@ The authoritative loop, single Studio instance (one human seat + AI).
   lesson), `runAiTurn` + `endTurn` each, view pushed after every AI so
   the client watches the round advance. Determinism unchanged: same
   commands, same order.
-- **The visibility law (banked @77b4ae09)**: every push is
-  `filterView(state, seat)`; events ride `filterEvents`. Raw state
-  never leaves the server.
+- **The visibility law (banked @77b4ae09; spectator exception ruled
+  @d1ce4920)**: every push is `filterView(state, seat)`; events ride
+  `filterEvents`. Raw state never leaves the server. EXCEPTION: an
+  unseated SPECTATOR receives the OMNISCIENT `filterView` path (the
+  twin's no-player-row branch — still `filterView` output, never raw
+  state) iff the host's `spectators` setup toggle is ON; spectators
+  can send nothing but the pad-toggle and `{t='stats'}` (commands
+  reject as `notSeated`). This is the browser's host-controlled
+  spectator contract ported faithfully.
 - **Protocol** (docs/06 shapes over one RemoteEvent `RMC`): client
   opens with `{t='join'}` (client-initiated — a PlayerAdded push would
   race the client script load); server replies `{t='joined',

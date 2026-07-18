@@ -17,6 +17,7 @@ local WorkedTiles = require(script.Parent:WaitForChild("WorkedTiles")) -- R7c-3
 local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
 -- session-E round 13: read-only engine math for the rush-buy price preview
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
+local tradeModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("trade")) -- CP17 report
 local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 
@@ -191,13 +192,20 @@ Tooltip.attach(stats, function()
 		return "yield breakdown unavailable (fog)"
 	end
 	local routes = ""
-	if city.tradeRoutes ~= nil and #city.tradeRoutes > 0 then -- CP17
-		local names = {}
-		for _, r in ipairs(city.tradeRoutes) do
-			local partner = view.cities[r.partnerCityId]
-			table.insert(names, partner ~= nil and partner.name or r.partnerCityId)
+	if city.tradeRoutes ~= nil and #city.tradeRoutes > 0 then
+		-- CP17 (marker-0054): the engine's own tradeRouteReport — arrows per
+		-- route, top-cap routes marked (counted); pure derived read
+		local okR, report = pcall(tradeModule.tradeRouteReport, shim, city, rs)
+		if okR and report ~= nil then
+			local lines = {}
+			for _, r in ipairs(report) do
+				local partner = view.cities[r.partnerCityId]
+				table.insert(lines, ("  %s +%d trade%s"):format(
+					partner ~= nil and partner.name or r.partnerCityId,
+					r.arrows or 0, r.counted and "" or " (over cap)"))
+			end
+			routes = "\ntrade routes:\n" .. table.concat(lines, "\n")
 		end
-		routes = "\ntrade routes: " .. table.concat(names, ", ")
 	end
 	return ("worked-tile totals\n  food %d  shields %d  trade %d\npop %d - specialists: tax %d sci %d%s\n(city tile always works free)")
 		:format(y.food or 0, y.shields or 0, y.trade or 0, city.pop or 1,

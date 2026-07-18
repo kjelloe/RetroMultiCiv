@@ -197,7 +197,8 @@ local baseRules = ruleset.rules -- pristine; per-game overrides swap a merged co
 local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
 	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
-	difficulty = "medium", combat = "bestof3", seedOverride = 0 } -- R24b (0 = random)
+	difficulty = "medium", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
+	spectators = true } -- CP16/MP8 (ruling @d1ce4920): host toggle, default ON
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
@@ -210,6 +211,12 @@ local timerGen = 0
 
 local state = nil -- the engine state; nil until the lobby starts a game
 local seatOfUser = {} -- UserId -> "pN" (bound at game start / takeover)
+-- CP16/MP8: view-only watchers (ruling @d1ce4920) — NO seat, omniscient
+-- filterView via the twin's no-player-row path, sends rejected as notSeated
+local spectators = {} -- UserId -> true
+-- SO8: world-public score series, one sample per round (ruling @d1ce4920:
+-- every turn, session-local, {t="stats"} PULL only — never pushed)
+local statsSeries = setmetatable({}, statehash.ARRAY_MT)
 local roundInFlight = false
 
 -- R18: the theater record — the SAME entries the [R4LOG] stream prints, kept
@@ -308,7 +315,7 @@ local function lobbyPayloadFor(player)
 				humans = setup.humans, mapType = setup.mapType,
 				maxIdleMin = setup.maxIdleMin, age = setup.age,
 				difficulty = setup.difficulty, combat = setup.combat,
-				seed = setup.seedOverride },
+				seed = setup.seedOverride, spectators = setup.spectators == true },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -341,6 +348,13 @@ local function pushSeat(player, pid, rawEvents)
 end
 
 local function pushAll(rawEvents)
+	-- CP16: spectators ride every push with the omniscient view
+	for userId in pairs(spectators) do
+		local player = Players:GetPlayerByUserId(userId)
+		if player ~= nil then
+			pushSeat(player, "spectator", rawEvents)
+		end
+	end
 	for userId, pid in pairs(seatOfUser) do
 		local player = playerBySeat(pid)
 		if player ~= nil then
@@ -385,6 +399,12 @@ local function chainAndRound(collected, pushProgress)
 	logEntry({ t = "round", turn = state.turn, activePlayer = state.activePlayer,
 		hash = statehash.hashState(state) })
 	print(("[R4CODE] turn=%d code=%s"):format(state.turn, gamecode.gameCode(state)))
+	-- SO8: sample the world-public standings every round (score twin)
+	local sample = { turn = state.turn, scores = {} }
+	for _, pid in ipairs(state.playerOrder) do
+		sample.scores[pid] = scoreModule.score(state, pid, ruleset)
+	end
+	table.insert(statsSeries, sample)
 end
 
 -- playRegentSeat: the browser A40 twin — the REAL pick logic, each command
@@ -860,6 +880,7 @@ local function resumeGame(player, rawCode)
 	setup.combat = envelope.combat or "authentic"
 	applyRuleOverrides(setup.difficulty, setup.combat)
 	endscreenSent = false -- SO7: a resumed game can end again
+	statsSeries = setmetatable({}, statehash.ARRAY_MT) -- SO8: fresh series
 	local n = 0
 	for _ in pairs(state.players) do
 		n += 1
@@ -898,7 +919,8 @@ local function padStart(player)
 	hostUserId = player.UserId
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 		maxIdleMin = 1, age = "ancient",
-		difficulty = "medium", combat = "bestof3", seedOverride = 0 }
+		difficulty = "medium", combat = "bestof3", seedOverride = 0,
+		spectators = true }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -1023,7 +1045,34 @@ deck.capitolPad.Touched:Connect(function(hit)
 	end
 end)
 
-local PAD_HANDLERS = { start = padStart, join = padJoin, takeover = padTakeover }
+-- CP16/MP8 (ruling @d1ce4920): the SPECTATE pad — view-only entry while a
+-- game runs and the host toggle allows it. No seat is bound; the push loop
+-- sends the omniscient filterView; any command stays rejected (notSeated).
+local function padSpectate(player)
+	if seatOfUser[player.UserId] ~= nil then
+		toast(player, "You are seated in this game - you already see your civ's view.")
+		return
+	end
+	if phase ~= "running" or state == nil then
+		toast(player, "No game running to spectate - START or JOIN instead.")
+		return
+	end
+	if setup.spectators ~= true then
+		toast(player, "The host has disabled spectators for this game.")
+		return
+	end
+	if spectators[player.UserId] == true then
+		spectators[player.UserId] = nil
+		toast(player, "Spectating OFF.")
+		return
+	end
+	spectators[player.UserId] = true
+	toast(player, "Spectating - you see the WHOLE world, but cannot act. Step on the pad again to stop.")
+	pushSeat(player, "spectator", nil)
+	print(("[CP16] spectator on: %s"):format(player.Name))
+end
+
+local PAD_HANDLERS = { start = padStart, join = padJoin, takeover = padTakeover, spectate = padSpectate }
 for name, handler in pairs(PAD_HANDLERS) do
 	deck.prompts[name].Triggered:Connect(handler)
 	deck.padParts[name].Touched:Connect(function(hit)
@@ -1091,6 +1140,8 @@ remote.OnServerEvent:Connect(function(player, msg)
 		elseif msg.key == "combat" then
 			-- R24b: two-state toggle (browser default best-of-three)
 			setup.combat = setup.combat == "bestof3" and "authentic" or "bestof3"
+		elseif msg.key == "spectators" then
+			setup.spectators = not (setup.spectators == true) -- CP16 toggle
 		elseif msg.key == "seed" then
 			-- R24b: explicit world seed from the host's TextBox; 0 = random
 			setup.seedOverride = math.clamp(math.floor(tonumber(msg.value) or 0), 0, 999999)
@@ -1141,6 +1192,14 @@ remote.OnServerEvent:Connect(function(player, msg)
 			if on and not roundInFlight and state.activePlayer == pid then
 				task.spawn(advance, {}) -- regent finishes the turn (leave-path twin)
 			end
+		end
+		return
+	end
+
+	if msg.t == "stats" then
+		-- SO8: PULL-only series (seated or spectating; world-public data)
+		if state ~= nil and (seatOfUser[player.UserId] ~= nil or spectators[player.UserId] == true) then
+			remote:FireClient(player, { t = "stats", series = statsSeries })
 		end
 		return
 	end
@@ -1268,6 +1327,12 @@ remote.OnServerEvent:Connect(function(player, msg)
 		code = gamecode.gameCode(state),
 	})
 	-- fan the state change out to every OTHER seat (their fog, their events)
+	for userId in pairs(spectators) do -- CP16: watchers ride along
+		local watcher = Players:GetPlayerByUserId(userId)
+		if watcher ~= nil then
+			pushSeat(watcher, "spectator", pending)
+		end
+	end
 	for userId, otherPid in pairs(seatOfUser) do
 		if otherPid ~= pid then
 			local other = playerBySeat(otherPid)
@@ -1288,6 +1353,7 @@ Players.PlayerRemoving:Connect(function(player)
 		setPhase("idle")
 		return
 	end
+	spectators[player.UserId] = nil -- CP16
 	local pid = seatOfUser[player.UserId]
 	if pid ~= nil then
 		awaySeats[pid] = nil -- R22: presence rules while gone; rejoin starts fresh

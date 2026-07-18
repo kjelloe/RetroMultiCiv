@@ -129,7 +129,7 @@ local noticeGen = 0
 ClientState.onEvents(function(events, view)
 	for _, e in ipairs(events) do
 		if e.type == "tradeRouteEstablished" and view ~= nil and e.playerId == view.you then
-			local home = view.cities[e.homeCityId]
+			local home = view.cities[e.cityId] -- marker-0054 final field
 			local partner = view.cities[e.partnerCityId]
 			noticeGen += 1
 			local gen = noticeGen

@@ -18,6 +18,16 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local panel = Instance.new("Frame")
 panel.Size = UDim2.new(0, 460, 0, 200)
+-- SO8 (ruling @d1ce4920): score-over-time chart drawn from the PULLED
+-- world-public series ({t="stats"}); flat 3px dots per civ per column,
+-- downsampled to <=88 columns. Requested on every J-expand, never pushed.
+local CHART_H = 110
+local chart = Instance.new("Frame")
+chart.Name = "Chart"
+chart.Size = UDim2.new(1, -16, 0, CHART_H)
+chart.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+chart.BorderSizePixel = 0
+chart.Visible = false
 panel.Position = UDim2.new(0.5, -230, 0, 42)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
@@ -115,8 +125,50 @@ local function refresh()
 			addRow(order, text, hexColor(Palette.displayColor(p.color or "#888888")))
 		end
 	end
-	panel.Size = UDim2.new(0, 460, 0, 40 + order * 20)
+	panel.Size = UDim2.new(0, 460, 0, 40 + order * 20 + (chart.Visible and CHART_H + 12 or 0))
+	chart.Position = UDim2.new(0, 8, 0, 34 + order * 20)
+	chart.Parent = panel
 end
+
+local function drawChart(series)
+	chart:ClearAllChildren()
+	if #series < 2 or ClientState.view == nil then
+		chart.Visible = false
+		return
+	end
+	local view = ClientState.view
+	local maxScore = 1
+	for _, sm in ipairs(series) do
+		for _, sc in pairs(sm.scores) do
+			if sc > maxScore then
+				maxScore = sc
+			end
+		end
+	end
+	local cols = math.min(#series, 88)
+	local stepIdx = #series / cols
+	local w = 444
+	for _, pid in ipairs(view.playerOrder or {}) do
+		local p = view.players[pid]
+		local color = hexColor(Palette.displayColor((p ~= nil and p.color) or "#888888"))
+		for c = 1, cols do
+			local sm = series[math.max(1, math.floor(c * stepIdx))]
+			local sc = sm ~= nil and sm.scores[pid] or nil
+			if sc ~= nil then
+				local dot = Instance.new("Frame")
+				dot.Size = UDim2.new(0, 4, 0, 3)
+				dot.Position = UDim2.new(0, math.floor((c - 1) / cols * w),
+					0, CHART_H - 4 - math.floor(sc / maxScore * (CHART_H - 8)))
+				dot.BorderSizePixel = 0
+				dot.BackgroundColor3 = color
+				dot.Parent = chart
+			end
+		end
+	end
+	chart.Visible = true
+	refresh() -- resize the panel around the chart
+end
+ClientState.onStats(drawChart)
 
 ClientState.onView(function()
 	if gui.Enabled then
@@ -135,6 +187,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		gui.Enabled = not gui.Enabled
 		if gui.Enabled then
 			refresh()
+			ClientState.requestStats() -- SO8: pull the series on expand
+		else
+			chart.Visible = false
 		end
 	end
 end)

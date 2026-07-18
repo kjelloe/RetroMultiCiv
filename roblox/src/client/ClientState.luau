@@ -40,6 +40,7 @@ local rejectedCallbacks = {} -- round 21: visible reject feedback (Hud)
 local pediaOpenCallbacks = {} -- SO3: discovery-card deep links into Pedia
 local endscreenCallbacks = {} -- SO7: the server's gameOver scoreboard frame
 local historianCallbacks = {} -- SO9: age-change standings interstitial
+local statsCallbacks = {} -- SO8: pulled score series replies
 local possessCallbacks = {} -- R7a (9): ride-to-unit requests (Possess mounts)
 local nextCommandId = 1
 
@@ -181,6 +182,14 @@ function M.onRejected(cb)
 	table.insert(rejectedCallbacks, cb)
 end
 
+function M.onStats(cb)
+	table.insert(statsCallbacks, cb)
+end
+
+function M.requestStats()
+	remote:FireServer({ t = "stats" }) -- SO8: pull-only by ruling
+end
+
 function M.onHistorian(cb)
 	table.insert(historianCallbacks, cb)
 end
@@ -271,6 +280,11 @@ remote.OnClientEvent:Connect(function(msg)
 	if msg.t == "joined" then
 		M.playerId = msg.playerId
 		print(("[Client] joined as %s (turn %d, %s active)"):format(msg.playerId, msg.turn, msg.activePlayer))
+	end
+	if msg.t == "stats" then
+		for _, cb in ipairs(statsCallbacks) do
+			cb(msg.series or {})
+		end
 	end
 	if msg.t == "historian" then
 		for _, cb in ipairs(historianCallbacks) do
