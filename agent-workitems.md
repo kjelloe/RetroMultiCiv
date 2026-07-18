@@ -18,6 +18,17 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**XII.6 Tech tree + beeline + glyphs (added 2026-07-18, spec
+specs/xii6-tech-tree.md, forks user-ruled): HELPER lane, golden-neutral,
+engine-independent — buildable NOW (#1716). A graphical tech-tree view
+(era columns, prereq edges, node states ✓/○/·, click-to-research) IN
+ADDITION to the current list, a CLIENT-SIDE beeline (research-goal in
+session state, auto-issues setResearch toward a distant target — no engine
+queue, golden-neutral), and procedural house-style tech GLYPHS (shared
+era frame + per-tech motif, factions.js idiom). Phase 1 = tree + beeline
+(name labels); Phase 2 = the glyph system + obvious motifs (ambiguous ones
+→ ally design pass). Roblox gets the era-grouped-list shape + glyphs later.**
+
 **XII.5 AI/regency late-game victory drive (added 2026-07-18, DESIGN spec
 specs/xii5-ai-victory-drive.md; user long-game feedback): the AI/regent goes
 "nothing to do" in the end-game instead of driving a win. A personality-
