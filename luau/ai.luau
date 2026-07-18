@@ -31,13 +31,16 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, govTarget = "republic-if-safe" },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, govTarget = "republic" },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, govTarget = "monarchy" },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, govTarget = "republic" },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, govTarget = "republic" },
-	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, defendFirst = true, govTarget = "republic" },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, govTarget = "republic-if-safe" },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, govTarget = "republic" },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, govTarget = "monarchy" },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, govTarget = "republic" },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, govTarget = "republic" },
+	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, govTarget = "republic" },
 }
+-- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
+-- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
+local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5 }
 -- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
 -- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
 -- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
@@ -955,6 +958,98 @@ local function nextWonder(state: any, me: any, ruleset: any): string?
 	return best
 end
 
+-- N9b TWIN: a shallow city copy with one building appended — for valuing a
+-- candidate via tech.cityEconOutput WITHOUT mutating the real city.
+local function withBuilding(city: any, id: string): any
+	local clone = {}
+	for k, v in pairs(city) do
+		clone[k] = v
+	end
+	local b = if city.buildings == nil then {} else city.buildings
+	local nb = setmetatable({}, statehash.ARRAY_MT)
+	for i = 1, #b do
+		table.insert(nb, b[i])
+	end
+	table.insert(nb, id)
+	clone.buildings = nb
+	return clone
+end
+
+-- N9b TWIN of ai.js bestPaybackBuilding: the lowest-payback buildable building
+-- under pbMax (tie-break lowest cost then catalog order), payback via the shared
+-- cityEconOutput. Zero-delta (non-yield) buildings skipped (R2). id or nil.
+local function bestPaybackBuilding(state: any, city: any, me: any, ruleset: any, pbMax: number): string?
+	local taxRate = if me.taxRate == nil then ruleset.rules.defaultTaxRate else me.taxRate
+	local sciRate = if me.sciRate == nil then ruleset.rules.defaultSciRate else me.sciRate
+	local perSpecialist = ruleset.rules.specialistOutput
+	local base = tech.cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset)
+	local baseEcon = base.gold + base.bulbs
+	local best = nil
+	local bestPayback = 0
+	local bestCost = 0
+	for _, id in ipairs(sortedKeys(ruleset.buildings)) do
+		local def = ruleset.buildings[id]
+		local skip = false
+		if city.buildings ~= nil and table.find(city.buildings, id) ~= nil then
+			skip = true
+		end
+		if not skip and def.effect.isPalace == true then
+			skip = true
+		end
+		if not skip and def.tech ~= "" and table.find(me.techs, def.tech) == nil then
+			skip = true
+		end
+		if not skip then
+			local eco = tech.cityEconOutput(state, withBuilding(city, id), taxRate, sciRate, perSpecialist, ruleset)
+			local delta = (eco.gold + eco.bulbs) - baseEcon
+			if delta <= 0 then
+				skip = true
+			else
+				local payback = idiv(def.cost, delta)
+				if payback >= pbMax then
+					skip = true
+				elseif best == nil or payback < bestPayback
+					or (payback == bestPayback and def.cost < bestCost)
+					or (payback == bestPayback and def.cost == bestCost and id < best) then
+					best = id
+					bestPayback = payback
+					bestCost = def.cost
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- N9b TWIN: is the civ already committed to a wonder somewhere (one-in-flight)?
+local function civWonderInFlight(state: any, playerId: string): boolean
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and c.producing ~= nil and c.producing.kind == "wonder" then
+			return true
+		end
+	end
+	return false
+end
+
+-- N9b TWIN: the wonder-drive's fallback target when no palace exists — the
+-- highest-shield city, tie-break lowest cityId.
+local function highestShieldCity(state: any, playerId: string, ruleset: any): any
+	local best = nil
+	local bestSh = -1
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			local sh = cities.cityYields(state, c, ruleset).shields
+			if sh > bestSh or (sh == bestSh and (best == nil or cid < best.id)) then
+				best = c
+				bestSh = sh
+			end
+		end
+	end
+	return best
+end
+
 -- A40 stance build preference (TWIN of ai.js stanceBuilding): a specific
 -- building if missing + tech-known, else the historical cheapest. balanced
 -- (buildPriority nil) short-circuits to nextBuilding — byte-identical.
@@ -1411,7 +1506,34 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				local threatened = enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius)
 					local wantDefenders = if (S.garrisonAlways2 or threatened) then 2 else 1
 				local want = { kind = "unit", id = bestDefender }
-				if defenders >= wantDefenders then
+				-- N9b HOIST (Finding-3 fix): the builder wonder-drive is CAPITAL-INTENT, a
+				-- FIRST-CLASS check ABOVE the garrison/saturation cascade. Gate = NOT-THREATENED
+				-- alone (min-garrison-1 never fired: militia scout away -> 0 defenders at the
+				-- wonder window); a menaced capital reverts via the cascade. Persist = keep the id.
+				local wonderDriven = false
+				if S.wonderDrive == true and not threatened then
+					local cap = government.capitalOf(state, playerId, ruleset)
+					local driveCity = if cap ~= nil then cap else highestShieldCity(state, playerId, ruleset)
+					if driveCity ~= nil and driveCity.id == cid
+						and cities.cityYields(state, city, ruleset).shields >= BUILD_LEVER.wonderMinShields then
+						local held = nil
+						if city.producing.kind == "wonder"
+							and (state.wonders == nil or state.wonders[city.producing.id] == nil) then
+							held = city.producing.id
+						end
+						if held ~= nil then
+							want = { kind = "wonder", id = held } -- persist own wonder
+							wonderDriven = true
+						elseif not civWonderInFlight(state, playerId) then
+							local w = nextWonder(state, me, ruleset)
+							if w ~= nil then
+								want = { kind = "wonder", id = w } -- start new
+								wonderDriven = true
+							end
+						end
+					end
+				end
+				if not wonderDriven and defenders >= wantDefenders then
 					if countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else
@@ -1474,6 +1596,27 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						elseif defenders >= 3
 							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
 							want = { kind = "unit", id = "settlers" }
+						end
+
+						-- === N9b build-priority (spec a8fe1af) — past the garrison floor ===
+						-- R1 stickiness: an in-progress, still-legal building/wonder is KEPT (never
+						-- re-decided to a unit on flutter; enemyNear the only interrupt, garrison-gated).
+						-- The builder wonder-drive is hoisted above the cascade (Finding-3 fix).
+						local inProgId = city.producing.id
+						local inProgKept = (city.producing.kind == "wonder"
+								and (state.wonders == nil or state.wonders[inProgId] == nil))
+							or (city.producing.kind == "building"
+								and (city.buildings == nil or table.find(city.buildings, inProgId) == nil))
+						if inProgKept then
+							want = city.producing -- persist (R1)
+						end
+						if want.kind == "unit" and not threatened then
+							-- the lever (R3: defers to defBuild — if defBuild fired, want is not a unit)
+							local pbMax = idiv(BUILD_LEVER.pbMax * S.pbMult, 100)
+							local pick = bestPaybackBuilding(state, city, me, ruleset, pbMax)
+							if pick ~= nil then
+								want = { kind = "building", id = pick }
+							end
 						end
 					end
 				end
