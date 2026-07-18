@@ -1,5 +1,19 @@
 # A59 — leader personality attributes: buildable spec (architect, 2026-07-18)
 
+> **LANDED 2026-07-18.** Shipped: `leader` + `personality` (4 INTEGER axes summing
+> to **100**, not 1.0 — floats break statehash/rulesetHash, ruling #1657) + `favoriteWonder`
+> per civ in data/civs.json (Caesar also carries the ally-sourced `favoriteUnit`/`beelineTechs`;
+> the other 13 leaders' favoriteUnit/beeline are a follow-up — no A59 behavior depends on them).
+> Seam: engine/leaders.js + luau twin — `personalityOf` (civ axes, else the stance's implied
+> STANCE_AXES fallback), `stanceFromPersonality` (dominant axis; a FLAT personality → 'balanced'
+> per the Lincoln label), `favoriteModifier` (inert, 0). GOLDEN RE-RECORD (civs.json rulesetHash
+> ripple): A82a/002/soak/natural/turn-100/ff-parity re-recorded; **rounds/winner UNCHANGED**
+> (400 / r395 p2 — the behaviorally-neutral signature). JS==Luau (seam 0x2dc7981f + full soak).
+> Cross-language via a luau harness (leaders-check.luau in luau-twins), not a command-scenario
+> (the seam is a pure read). Montezuma → `oracle` (Oracle IS a Civ1 wonder — the table's
+> hanging-gardens assumed it absent). test/leaders.test.js. marker-0061.
+
+
 Operationalizes the designer ally's leader-config design
 (specs/leader-attributes.md — the four-axis personality model, per-leader
 configs, favorites-as-modifiers). A59 is the D3 PREREQUISITE: D3's AI
@@ -85,8 +99,8 @@ rounds/winner UNCHANGED (nothing behaves differently). Add `leader`
 
 ## 5. Tests
 
-- Build guard: every leader's personality sums to 1.0 (unit test over
-  the data).
+- Build guard: every leader's personality sums to 100 (integers; unit
+  test over the data).
 - personalityOf returns the axes; the absent-leader default reproduces
   the current stance's axes.
 - stanceFromPersonality dominant-axis + tie-break (unit test).

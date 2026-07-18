@@ -230,7 +230,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xd5c51a95\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x636a7be0\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -268,8 +268,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '435a5db9', pangaea: '0733cc0e',
-      archipelago: 'b3f5ab45', islands: '46b9d0c8'
+      continents: '16fcbaa5', pangaea: '6cdb3cb6',
+      archipelago: '157b0f89', islands: 'f6232af0'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -303,11 +303,11 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // cross-language fast-forward proof. roblox/selftest/fastforward-parity.{mjs,luau}
 // each run a fixed-seed short probe age (25 turns + the ancient grant, the same
 // loop/grant code as any turn count) and print one `ff-parity 0x... turn N grant N`
-// line. The two must be BYTE-IDENTICAL and equal the pin. The pin moved
-// 0x833b415c -> 0x61138a4f in the N13/A4 goody-hut window (rules.json + units.json
-// changed the rulesetHash stamped at createGame — the standard createGame ripple);
-// re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x61138a4f turn 25 grant 22';
+// line. The two must be BYTE-IDENTICAL and equal the pin. The pin moves with every
+// ruleset edit (createGame stamps rulesetHash): 0x833b415c -> 0x61138a4f (N13 goody
+// huts) -> 0x0fa110e7 (A59 civs.json personality). Re-pin here whenever a ruleset
+// window moves it.
+const FF_PARITY_PIN = 'ff-parity 0x0fa110e7 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {
@@ -350,4 +350,25 @@ test('luau strategic: strategicSnapshot matches the JS shared/strategic.js per p
       assert.ok(res.stdout.includes(`strat:${pid}: ${h}`),
         `${pid}: luau strategicSnapshot must hash as ${h} — harness said:\n${res.stdout}`);
     }
+  });
+
+// A59: the leader-personality read seam (engine/leaders.js) must derive stances
+// byte-identically in luau (the roblox client + D3 read it the same way). Hashes
+// { civ:<id> -> stanceFromPersonality(personality) } over all 14 real leaders +
+// { stance:<s> -> stanceFromPersonality(STANCE_AXES[s]) } (the fallback), so the
+// derivation AND the fallback axes are pinned cross-language. Golden-neutral seam.
+test('luau leaders: the A59 personality seam derives stances identically to engine/leaders.js',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const RULESET = require('./ruleset.js');
+    const { stanceFromPersonality, STANCE_AXES } = await import('../engine/leaders.js');
+    const { hashState } = await import('../shared/statehash.js');
+    const r = {};
+    for (const id of Object.keys(RULESET.civs)) r['civ:' + id] = stanceFromPersonality(RULESET.civs[id].personality);
+    for (const s of Object.keys(STANCE_AXES)) r['stance:' + s] = stanceFromPersonality(STANCE_AXES[s]);
+    const h = '0x' + (hashState(r) >>> 0).toString(16).padStart(8, '0');
+    const res = spawnSync('lune', ['run', 'luau/leaders-check.luau'],
+      { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+    assert.strictEqual(res.status, 0, `leaders harness failed:\n${res.stdout}\n${res.stderr}`);
+    assert.ok(res.stdout.includes(`leaders: ${h}`),
+      `luau leaders seam must hash as ${h} — harness said:\n${res.stdout}`);
   });
