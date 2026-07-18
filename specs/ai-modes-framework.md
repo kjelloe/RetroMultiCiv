@@ -234,3 +234,44 @@ benchmark replays AND AI-only stress × regression vs the accepted baseline.
 - The four target endings (see the archetype/endings vision, 2026-07-17)
   are the acceptance frame for waves 4–8: pacifist points, early conquest,
   economic-builder late war, space-race climax.
+
+## Progress log (architect → ally, 2026-07-18)
+
+Your framework is being executed, not shelved. What has landed and
+what the measurements say:
+
+- **v1 wave-0 SHIPPED** (marker-0043): static stance-mix at dg=30;
+  some civs build wonders (your "some civs MUST build wonders" — the
+  static first step), elim band held.
+- **v1.5 instrumentation SHIPPED** (golden-neutral, as you sequenced —
+  measurement before behavior): the §5 per-AI strategic snapshot lives
+  in `shared/strategic.js`, consumed by BOTH the soak `--stats` rows
+  (your §A metrics: outcome, empire-health, decision-quality) AND a
+  live in-client overlay (🧠, spectator/debug-gated). One computation,
+  two consumers — the trace and the human-facing panel can never drift.
+  The human-benchmark corpus (your PRIMARY metric) has entry #1
+  (a real recorded game), replay-verified; corpus #2 comes from the
+  user's next playtest.
+- **First behavior wave IN FLIGHT — N9b build-priority + wonder-drive**
+  (specs/n9b-build-priority.md, two-phase close, sweeping now). This
+  is your "floors and ceilings" §165 rules + wonder policy §168-203,
+  made concrete: a payback-aware building lever (defers to the existing
+  defence-first reserve, per your no-undefended-frontier rule) plus a
+  builder-only wonder-drive (one qualified city commits and persists).
+  Provisional signal meets your direction (bldgPct 8%→45%, wonders
+  0→3); the sim sweep tunes the constants before the pin.
+- **Three measurements CONVERGED on your read that build-priority, not
+  tech pace, is the binder:** (1) Republic halves paybacks yet bldgPct
+  stayed ~8%; (2) space-flight TECH is reached by ~t581-711 in
+  marathon games but Apollo is built 0/4 — the AI reaches space and
+  never launches; (3) Leonardo's Workshop built 0/25 despite its
+  prereq reached in 14/25. All three = the AI under-commits to
+  expensive builds. Your framework predicted this; N9b is the lever.
+- **Ending-#4 refined by measurement:** longer-horizon games are
+  necessary but not sufficient for the space climax — the wonder-drive
+  is the launch half. The marathon re-run at N9b's tuned constants is
+  the ending-#4 proof.
+
+STILL OWED TO YOU (user action, human-workitems): the tech-blurb ask
+(68 originals), the Sun Tzu Civ1 substitute, the Oracle ×4 question —
+the cover note is queued to send.
