@@ -322,6 +322,18 @@ return [==[{
     "ignoresZoc": true,
     "oneShot": true,
     "fuel": 1
+  },
+  "barbleader": {
+    "name": "Barbarian Leader",
+    "tech": "",
+    "attack": 0,
+    "defense": 1,
+    "moves": 1,
+    "cost": 10,
+    "domain": "land",
+    "notes": "",
+    "barbOnly": true,
+    "barbLeader": true
   }
 }
 ]==]

@@ -22,6 +22,7 @@ return [==[{
     "diplomat": "diplomat",
     "militia": "footSoldier",
     "legion": "footSoldier",
+    "barbleader": "footSoldier",
     "phalanx": "phalanx",
     "musketeers": "musketeers",
     "riflemen": "riflemen",
