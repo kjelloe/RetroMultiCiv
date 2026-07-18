@@ -28,7 +28,7 @@ the Done log at the bottom.
   tooltips/palette, fastforward twin) exists only on that machine,
   and the bugfixer's ff-parity twins-gate registration stays
   blocked on it.
-- [ ] **Merge marker-0053** (supersedes 0052; adds B28 audit fix + N10 caravan trade
+- [ ] **Merge marker-0054** (supersedes 0053; adds the seam bundle, B28 audit fix + N10 caravan trade
   routes — windfall + live top-3 route bonus, 4 new cross-language
   scenario pins, full-but-behavior-identical golden ripple via the
   ruleset pin — plus the client half, T1 portrait, L8 lobby
