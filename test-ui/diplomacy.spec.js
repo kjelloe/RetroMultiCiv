@@ -1,9 +1,9 @@
-// D2 (specs/d1-diplomacy.md) — the Foreign-relations panel, drafted INERT: on
-// today's build (no engine diplomacy) it lists every foreign civ at the spec
-// DEFAULT — "at war" — with NO treaty buttons (the command is feature-detected
-// and absent). This pins the legibility half + the inert wiring; the live
-// peace/offer/accept paths + the event rows are unit-tested in
-// test/diplomacy-view.test.js (the engine half is the bugfixer's D1 window).
+// D2 (specs/d1-diplomacy.md) — the Foreign-relations panel, ACTIVATED against
+// the landed D1 engine: it lists every foreign civ with its real war/peace
+// status (default war today) and — the command being present — offers the
+// treaty actions, which dispatch as logged {type:'diplomacy'} commands the
+// engine records. The peace/expiry/event-fog logic is unit-tested in
+// test/diplomacy-view.test.js; this pins the live wiring end to end.
 import { test, expect } from '@playwright/test';
 import { startServer } from '../server/index.js';
 
@@ -13,7 +13,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => { await server.close(); });
 
-test('foreign-relations panel: lists rivals at war, inert until the engine ships diplomacy', async ({ page }) => {
+test('foreign-relations panel: lists rivals at war and dispatches a peace offer', async ({ page }) => {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
   await page.goto(`http://127.0.0.1:${server.port}/client/?seed=2&civs=3`);
@@ -28,8 +28,15 @@ test('foreign-relations panel: lists rivals at war, inert until the engine ships
   const first = page.locator('.diplo-row').first();
   await expect(first.locator('.diplo-status')).toContainText('at war');
 
-  // INERT: the diplomacy command is not shipped, so no treaty actions render
-  await expect(page.locator('.diplo-act')).toHaveCount(0);
+  // D1 is live → the command is present → an "Offer peace" action per rival
+  await expect(page.locator('.diplo-act', { hasText: 'Offer peace' })).toHaveCount(2);
+
+  // dispatching the offer is a real logged command: the engine records it and
+  // the row flips to "offer sent" (a standing offer FROM me)
+  await first.locator('.diplo-act', { hasText: 'Offer peace' }).click();
+  await expect(first.locator('.diplo-pending')).toHaveText('offer sent');
+  // the other rival is untouched — still offerable
+  await expect(page.locator('.diplo-act', { hasText: 'Offer peace' })).toHaveCount(1);
 
   expect(errors).toEqual([]);
 });

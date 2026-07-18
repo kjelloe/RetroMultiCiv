@@ -1,11 +1,11 @@
 // D2 (specs/d1-diplomacy.md) — the Foreign-relations panel: the LEGIBILITY
-// layer that lets a human answer, for every civ they have met, ARE WE AT WAR,
-// SINCE WHEN, WHY — and (once D1 lands) act on it. Drafted the A89 way:
-// draft-live, FEATURE-DETECTED, INERT until the engine ships state.relations +
-// the diplomacy command. Today every foreign civ reads "at war" (the spec
-// DEFAULT — correct and already true), and the treaty buttons stay hidden
-// until the engine advertises the command. No engine writes here; the panel
-// only READS (shared/diplomacy-view.js) and DISPATCHES logged commands.
+// layer that lets a human answer, for every foreign civ, ARE WE AT WAR, SINCE
+// WHEN, WHY — and act on it. Drafted the A89 way (draft-live, FEATURE-DETECTED)
+// and ACTIVATED now that D1 landed: the command probe finds engine/diplomacy.js
+// so the treaty actions render; a world with no treaty still reads "at war"
+// (the spec DEFAULT). The probe keeps the panel graceful in a pre-D1 checkout.
+// No engine writes here; the panel only READS (shared/diplomacy-view.js, which
+// re-exports the engine's own relationOf) and DISPATCHES logged commands.
 import { relationLabel, reputationOf, treatyActions, pendingOfferFor } from '../../shared/diplomacy-view.js';
 import { displayColor } from './palette.js';
 
@@ -19,9 +19,11 @@ const DIPLO_REASON = {
   alreadyPeace: 'you are already at peace with them',
   alreadyWar: 'you are already at war with them',
   noSuchOffer: 'there is no standing offer to answer',
+  noSuchTarget: 'no such civilization',
   atPeace: 'a peace treaty stands — break it first to attack',
   notYourTurn: 'wait for your turn',
   cannotDiplomacyBarbarians: 'barbarians do not negotiate',
+  unknownKind: 'that is not a treaty action',
   notMet: 'you have not met that civilization yet',
   unknownCommand: 'diplomacy is not available in this game yet'
 };
@@ -53,8 +55,8 @@ export function initDiplomacy(ctx) {
   // WIRE-UP: confirm the module/export names when D1 lands (a one-line change).
   let commandReady = false;
   import('../../engine/diplomacy.js')
-    .then(m => { if (m && (m.applyDiplomacy || m.relationOf)) { commandReady = true; render(); } })
-    .catch(() => { /* no diplomacy engine yet — the inert draft state */ });
+    .then(m => { if (m && m.diplomacyCommand) { commandReady = true; render(); } })
+    .catch(() => { /* no diplomacy engine (pre-D1 checkout) — the inert draft state */ });
   const canAct = () => commandReady && !ctx.SPECTATOR;
 
   function flashNote(text) {

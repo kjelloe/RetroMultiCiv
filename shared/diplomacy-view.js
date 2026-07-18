@@ -9,17 +9,14 @@
 // engine identity everywhere; `civ` is an optional player field). The EVENTS
 // carry civIds with a name/pid fallback — resolveCivName supplies the display.
 //
-// WIRE-UP NOTE (D1 lands): the engine will own the authoritative relationOf for
-// combat gating; this client copy implements the SAME spec semantics
-// (absent = war; a lapsed timed treaty derives war at state.turn >= expiresTurn,
-// no mutation). If D1 exports relationOf the client may swap to it for a single
-// source of truth — the semantics are pinned identical here so the display is
-// correct either way.
-
-// Sorted pair key — the same string the engine keys state.relations by.
-export function pairKey(a, b) {
-  return a < b ? a + '|' + b : b + '|' + a;
-}
+// SINGLE SOURCE OF TRUTH (D1 landed, #1606): relationOf/reputationOf/pairKey are
+// the ENGINE's authoritative helpers, re-exported here so the display can never
+// drift from the combat-gating logic (if D3 retunes expiry, the client follows
+// for free). The presentation below (labels, treaty-action mirror, event fog)
+// layers on top. engine/diplomacy.js is a dep-free leaf, so this import is safe
+// in both browser and node.
+import { relationOf, reputationOf, pairKey } from '../engine/diplomacy.js';
+export { relationOf, reputationOf, pairKey };
 
 // The raw relations entry for a pair, or null (defensive: no relations map yet).
 export function relationEntry(state, a, b) {
@@ -27,21 +24,6 @@ export function relationEntry(state, a, b) {
   if (!rel) return null;
   const e = rel[pairKey(a, b)];
   return e || null;
-}
-
-// 'war' | 'peace'. Absent pair = war (the default). A peace treaty whose
-// expiresTurn has arrived derives back to war with no mutation (R2/expiry).
-export function relationOf(state, a, b) {
-  const e = relationEntry(state, a, b);
-  if (!e || e.state !== 'peace') return 'war';
-  if (e.expiresTurn !== undefined && state.turn >= e.expiresTurn) return 'war';
-  return 'peace';
-}
-
-// Integer reputation, default 0 (RECORD-ONLY in D1; nothing gates on it yet).
-export function reputationOf(state, pid) {
-  const p = state && state.players && state.players[pid];
-  return p && p.reputation !== undefined ? p.reputation : 0;
 }
 
 // A standing peace offer on the pair, or null. The offer lives IN the relations
@@ -100,7 +82,9 @@ export function diplomacyEventRow(e, opts) {
   if (e.type === 'PEACE_TREATY_SIGNED') {
     const a = name(e.civAId), b = name(e.civBId);
     const party = mine(e.civAId) || mine(e.civBId);
-    const until = party ? (e.expiresTurn !== undefined ? ` (until turn ${e.expiresTurn})` : ' (perpetual)') : '';
+    // the engine sends expiresTurn:0 for a PERPETUAL treaty (state holds no
+    // undefined — the Civ1 default); a real expiry is always a future turn > 0
+    const until = party ? (e.expiresTurn ? ` (until turn ${e.expiresTurn})` : ' (perpetual)') : '';
     return { text: `🕊 ${a} and ${b} sign peace${until}`, cls: party ? 'win' : '' };
   }
   if (e.type === 'TREATY_BROKEN') {

@@ -27,8 +27,9 @@ test('relationOf: absent = war (today\'s world), explicit peace, lapsed = war', 
 });
 
 test('reputationOf: default 0, reads the int when present', () => {
-  assert.strictEqual(D.reputationOf({}, 'p1'), 0);
-  assert.strictEqual(D.reputationOf({ players: { p1: {} } }, 'p1'), 0);
+  // state.players always exists in engine states (the reputationOf contract)
+  assert.strictEqual(D.reputationOf({ players: {} }, 'p1'), 0, 'no such player → 0');
+  assert.strictEqual(D.reputationOf({ players: { p1: {} } }, 'p1'), 0, 'clean player → 0');
   assert.strictEqual(D.reputationOf({ players: { p1: { reputation: -3 } } }, 'p1'), -3);
 });
 
@@ -79,7 +80,11 @@ test('diplomacyEventRow: party hears detail, world hears the headline (B5 fog)',
     { text: '🕊 Rome and Egypt sign peace (until turn 29)', cls: 'win' }, 'a party sees the expiry');
   const perpetual = { type: 'PEACE_TREATY_SIGNED', civAId: 'rome', civBId: 'egypt', turn: 9 };
   assert.deepStrictEqual(D.diplomacyEventRow(perpetual, asRome),
-    { text: '🕊 Rome and Egypt sign peace (perpetual)', cls: 'win' });
+    { text: '🕊 Rome and Egypt sign peace (perpetual)', cls: 'win' }, 'absent expiresTurn → perpetual');
+  // the engine's REAL perpetual shape: expiresTurn:0 (state holds no undefined)
+  const perpetualZero = { type: 'PEACE_TREATY_SIGNED', civAId: 'rome', civBId: 'egypt', turn: 9, expiresTurn: 0 };
+  assert.deepStrictEqual(D.diplomacyEventRow(perpetualZero, asRome),
+    { text: '🕊 Rome and Egypt sign peace (perpetual)', cls: 'win' }, 'expiresTurn:0 → perpetual, not "until turn 0"');
   assert.deepStrictEqual(D.diplomacyEventRow(peace, asBystander),
     { text: '🕊 Rome and Egypt sign peace', cls: '' }, 'the world hears no expiry');
 
