@@ -31,7 +31,7 @@ export function makeCatalogText(ruleset, opts) {
     contentEverywhere: v => `${v} content citizen${v > 1 ? 's' : ''} in every city`,
     happyEverywhere: v => `${v} happy citizen${v > 1 ? 's' : ''} in every city`,
     allContentInCity: () => 'everyone in this city stays content',
-    doublesTemple: () => 'your Temples work twice as hard',
+    doublesTemple: () => 'doubles the current Temple effect, including Mysticism\'s',
     cityTradeBonus: () => '+1 trade on every trade tile here',
     wallsEverywhere: () => 'city walls in all your cities'
   };

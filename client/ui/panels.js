@@ -347,9 +347,23 @@ export function initPanels(ctx) {
     let lux = Math.floor(cityYields(state, city, session.ruleset).trade * luxRate / 100);
     lux += Math.floor(lux * effectPct(city, session.ruleset, 'luxBonus') / 100);
     lux += mood.entertainers * rules.specialistOutput;
+    // B2 (Oracle×4 legibility): show each calming building's REAL contribution
+    // for this city — base contentBonus, ×2 if its contentDoubleTech is known
+    // (Mysticism), ×2 again if this civ owns the active Oracle (Temple only).
+    // Mirrors engine/happiness.js so "Temple +4" reads exactly what applies.
+    const templeOracle = wonderActive(state, 'oracle', session.ruleset)
+      && state.cities[(state.wonders || {})['oracle']]
+      && state.cities[state.wonders['oracle']].owner === city.owner;
+    const contentOf = b => {
+      const eff = session.ruleset.buildings[b].effect;
+      let v = eff.contentBonus;
+      if (eff.contentDoubleTech !== undefined && owner.techs.indexOf(eff.contentDoubleTech) !== -1) v = v * 2;
+      if (b === 'temple' && templeOracle) v = v * 2;
+      return v;
+    };
     const moodBldgs = (city.buildings || [])
       .filter(b => session.ruleset.buildings[b].effect.contentBonus !== undefined)
-      .map(b => session.ruleset.buildings[b].name);
+      .map(b => `${session.ruleset.buildings[b].name} +${contentOf(b)}`);
     const moodWonders = Object.keys(state.wonders || {})
       .filter(wid => wonderActive(state, wid, session.ruleset)
         && state.cities[state.wonders[wid]] && state.cities[state.wonders[wid]].owner === city.owner)
@@ -361,7 +375,7 @@ export function initPanels(ctx) {
     const moodTip = 'mood factors (the engine computes the faces):'
       + `\nfirst ${rules.contentCitizens} workers are born content, the rest unhappy`
       + `\nluxuries ${lux} (${luxRate}% of trade + entertainers): one citizen up per ${rules.luxPerStep}`
-      + (moodBldgs.length ? `\ncalming buildings: ${moodBldgs.join(', ')}` : '')
+      + (moodBldgs.length ? `\ncontent from buildings: ${moodBldgs.join(', ')}` : '')
       + (moodWonders.length ? `\nmood wonders: ${moodWonders.join(', ')}` : '')
       + (gov.warUnhappiness > 0 ? `\n${gov.name}: each military unit abroad upsets ${gov.warUnhappiness} citizen(s)` : '');
     const upkeepLines = (city.buildings || [])
