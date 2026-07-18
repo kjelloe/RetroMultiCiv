@@ -540,3 +540,52 @@ test('stance-mix: seeded assignment — pct 0 writes NO stance (identity); pct 3
   assert.deepStrictEqual(builders, Object.keys(b.players).filter(id => b.players[id].stance === 'builder'),
     'the seeded assignment is deterministic (same seed -> same builders)');
 });
+
+// Government re-eval (specs/government-reeval.md): stance-linked adoption toward
+// Republic — builder unconditional, balanced only when safe, aggressive holds
+// Monarchy, and the revolt only ever moves UP the rank ladder (no thrash).
+test('government re-eval: stance-linked adoption toward Republic', async () => {
+  const { ai } = await load();
+  const doneEarly = { happiness: true, research: true, rates: true }; // isolate the government decision
+  const mk = (gov, enemy) => grassState(9, 9,
+    Object.assign(
+      { ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+      enemy ? { ue: { id: 'ue', type: 'legion', owner: 'p2', x: 6, y: 4, moves: 1, fortified: false, veteran: false } } : {}),
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    { players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['monarchy', 'republic'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, government: gov },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+
+  // builder adopts Republic unconditionally — even with an enemy adjacent
+  const b = ai.pickCommand(mk('monarchy', true), 'p1', RULESET, Object.assign({}, doneEarly), 'builder');
+  assert.strictEqual(b.type, 'setGovernment');
+  assert.strictEqual(b.government, 'republic', 'builder adopts Republic even under threat');
+
+  // balanced HOLDS Monarchy while an enemy stands within threat range of a city
+  const held = ai.pickCommand(mk('monarchy', true), 'p1', RULESET, Object.assign({}, doneEarly), 'balanced');
+  assert.ok(held === null || !(held.type === 'setGovernment' && held.government === 'republic'), 'balanced holds Monarchy under threat');
+
+  // balanced adopts Republic once the enemy is gone (peace returns)
+  const adopt = ai.pickCommand(mk('monarchy', false), 'p1', RULESET, Object.assign({}, doneEarly), 'balanced');
+  assert.strictEqual(adopt.type, 'setGovernment');
+  assert.strictEqual(adopt.government, 'republic', 'balanced adopts Republic when safe');
+
+  // aggressive tops out at Monarchy (never Republic), from despotism
+  const agg = ai.pickCommand(mk('despotism', false), 'p1', RULESET, Object.assign({}, doneEarly), 'aggressive');
+  assert.strictEqual(agg.type, 'setGovernment');
+  assert.strictEqual(agg.government, 'monarchy', 'aggressive holds Monarchy by design');
+
+  // monotonic: a Republic never revolts backward, even under threat
+  const stay = ai.pickCommand(mk('republic', true), 'p1', RULESET, Object.assign({}, doneEarly), 'balanced');
+  assert.ok(stay === null || stay.type !== 'setGovernment', 'no backward revolt from Republic');
+
+  // back-compat: Republic unknown → the old Monarchy revolt still fires
+  const early = grassState(9, 9,
+    { ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    { players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['monarchy'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, government: 'despotism' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  const bc = ai.pickCommand(early, 'p1', RULESET, Object.assign({}, doneEarly), 'builder');
+  assert.strictEqual(bc.government, 'monarchy', 'Republic unknown: revolt to Monarchy first (back-compat)');
+});

@@ -593,6 +593,23 @@ builder-stance civs build parts in the capital after their economy and launch a
 viable ship; every AI rushes a visible launcher's capital. The graphical ship
 screen is H8 (client lane); fuller AI ship strategy is the endings wave.
 
+### AI government re-eval (spec specs/government-reeval.md)
+
+The AI no longer stops at Monarchy. Each stance carries a `govTarget` (a
+behavior knob in the ai.js STANCES table, the A40 precedent — NOT a rules.json
+fact) and the AI advances Despotism → Monarchy → Republic toward it, **only ever
+up the rank ladder** (no thrash). Builder/defensive/science/growth adopt Republic
+unconditionally; **balanced** adopts it only when no visible enemy stands within
+the threat radius of a city (fog-honest, reuses `enemyNear`), else holds Monarchy
+for martial law; **aggressive** holds Monarchy by design (war machine). This
+eases the measured stagnation (buildings were unviable under Monarchy's thin
+trade; Republic's +1-trade doubles city trade). Mechanics are fully reused
+(`setGovernment`/`processRevolutions`, 2-turn anarchy, Pyramids instant) — the
+only change is the AI policy in both engines. **Democracy is deferred to phase 6**
+(senate/war constraints, docs/14). Civ1-authentic in substance (per-government
+trade/unhappiness are the shipped data); the stance-linked adoption rule is
+original, labeled, consistent with the heterogeneous-archetype direction.
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
 Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &

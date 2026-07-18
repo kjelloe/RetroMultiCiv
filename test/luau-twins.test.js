@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 28, 'the twenty-eight scenarios (029 space-race added in A76/N17)');
+      assert.strictEqual(files.length, 29, 'the twenty-nine scenarios (030 government-reeval added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -150,6 +150,7 @@ const PORTED = [
   '027-blockade.json', // A79: enemy unit on a worked tile blockades it (house rule)
   '028-zoc-city-capture.json', // B27: capture an undefended enemy city by moving in, even in ZOC
   '029-space-race.json', // A76: launch a viable spaceship and win the space victory on arrival
+  '030-government-reeval.json', // gov re-eval: Monarchy -> Republic adoption transition
   '011-offturn-prework.json' // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-

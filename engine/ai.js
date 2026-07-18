@@ -36,18 +36,26 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // rulesOverrides. Defaults reproduce the B13e resolved per-stance values.
 // Twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0 },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0 },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0 },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99 },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99 },
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, govTarget: 'republic-if-safe' },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, govTarget: 'republic' },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, govTarget: 'monarchy' },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, govTarget: 'republic' },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, govTarget: 'republic' },
   // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
   // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
   // reached after the full garrison), then economy via the high econReserve
   // (wonder-inclusive, capital-concentrated). defendFirst = the normal-block
   // reserve placement (not the at-1 preempt). Ported from the sim-runner lab.
-  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, defendFirst: true }
+  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, defendFirst: true, govTarget: 'republic' }
 };
+
+// Government re-eval (specs/government-reeval.md): the AI advances government by
+// STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
+// a behavior knob like STANCES — NOT a ruleset fact): a revolt only ever moves
+// UP this ladder, so there is no republic<->monarchy thrash. Democracy is
+// DEFERRED to phase 6 (senate/war constraints, docs/14) — no stance targets it.
+const GOV_RANK = { despotism: 0, anarchy: 0, monarchy: 1, communism: 1, republic: 2, democracy: 3 };
+function govRank(g) { return GOV_RANK[g] === undefined ? 0 : GOV_RANK[g]; }
 // B13f: the AI's march-vs-explore radius. The BASE lives in data/rules.json
 // (exploreMarchRadius) so the sim-runner can SWEEP contact behavior via
 // rulesOverrides — the war-lab "same-continent civs never meet" knob. Each
@@ -159,6 +167,35 @@ function enemyNear(state, me, playerId, x, y, radius) {
     if (chebyshev(state.map, x, y, u.x, u.y) <= radius) return true;
   }
   return false;
+}
+
+// Government re-eval: is the civ safe to bear Republic's away-only war
+// unhappiness — no VISIBLE enemy unit within the threat radius of any own city
+// (fog-honest, reuses enemyNear). Only consulted for the 'republic-if-safe'
+// stance target when Republic is already known (bounds the per-turn cost).
+function govSafe(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  const radius = ruleset.rules.threatRadius;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c && c.owner === playerId && enemyNear(state, me, playerId, c.x, c.y, radius)) return false;
+  }
+  return true;
+}
+
+// The government this civ should hold now (specs/government-reeval.md): the best
+// government it has the tech for toward its stance's govTarget. 'republic-if-safe'
+// only reaches Republic when govSafe; everything else is unconditional. Returns a
+// government id (never anarchy); the caller applies the monotonic-rank revolt gate.
+function pickGovernment(state, playerId, ruleset, S) {
+  const me = state.players[playerId];
+  const target = S.govTarget === undefined ? 'monarchy' : S.govTarget;
+  const hasMonarchy = me.techs.indexOf('monarchy') !== -1;
+  const hasRepublic = me.techs.indexOf('republic') !== -1;
+  if (target === 'republic' || target === 'republic-if-safe') {
+    if (hasRepublic && (target === 'republic' || govSafe(state, playerId, ruleset))) return 'republic';
+  }
+  return hasMonarchy ? 'monarchy' : 'despotism';
 }
 
 // A step toward (tx, ty) that a lone settler can survive: land only, never
@@ -1088,15 +1125,20 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     }
   }
 
-  // one revolution, to Monarchy, once the advance is known — the stable
-  // government for a garrisoned AI (martial law, no war unhappiness); the
-  // volatile governments stay human territory
-  if (!done.government
-      && (me.government === undefined || me.government === 'despotism')
-      && me.revolutionTurns === undefined
-      && me.techs.indexOf('monarchy') !== -1) {
+  // Government re-eval (specs/government-reeval.md): each turn (outside a
+  // revolution) the AI advances toward its stance's govTarget — Despotism →
+  // Monarchy → Republic — but only ever UP the rank ladder (no thrash). The old
+  // Monarchy-only flow is the early case (Republic unknown, or 'monarchy'
+  // target). Skips once at Republic (nothing higher is targeted in v1).
+  if (!done.government && me.revolutionTurns === undefined) {
     done.government = true;
-    return { type: 'setGovernment', playerId, government: 'monarchy' };
+    const cur = me.government === undefined ? 'despotism' : me.government;
+    if (govRank(cur) < GOV_RANK.republic) {
+      const want = pickGovernment(state, playerId, ruleset, S);
+      if (want !== cur && govRank(want) > govRank(cur)) {
+        return { type: 'setGovernment', playerId, government: want };
+      }
+    }
   }
 
   // B21(c): rush-buy a threatened city's military production (one per turn)

@@ -31,13 +31,20 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0 },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0 },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0 },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99 },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99 },
-	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, defendFirst = true },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, govTarget = "republic-if-safe" },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, govTarget = "republic" },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, govTarget = "monarchy" },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, govTarget = "republic" },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, govTarget = "republic" },
+	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, defendFirst = true, govTarget = "republic" },
 }
+-- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
+-- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
+-- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
+local GOV_RANK: { [string]: number } = { despotism = 0, anarchy = 0, monarchy = 1, communism = 1, republic = 2, democracy = 3 }
+local function govRank(g: string): number
+	return if GOV_RANK[g] == nil then 0 else GOV_RANK[g]
+end
 local function stanceOf(stance: any): any
 	if stance ~= nil and STANCES[stance] ~= nil then
 		return STANCES[stance]
@@ -154,6 +161,36 @@ local function enemyNear(state: any, me: any, playerId: string, x: number, y: nu
 		end
 	end
 	return false
+end
+
+-- Government re-eval (specs/government-reeval.md): is the civ safe to bear
+-- Republic's away-only war unhappiness — no VISIBLE enemy within the threat
+-- radius of any own city (fog-honest). Only consulted for 'republic-if-safe'.
+local function govSafe(state: any, playerId: string, ruleset: any): boolean
+	local me = state.players[playerId]
+	local radius = ruleset.rules.threatRadius
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and enemyNear(state, me, playerId, c.x, c.y, radius) then
+			return false
+		end
+	end
+	return true
+end
+
+-- The government this civ should hold now: the best it has the tech for toward
+-- its stance's govTarget. 'republic-if-safe' reaches Republic only when govSafe.
+local function pickGovernment(state: any, playerId: string, ruleset: any, S: any): string
+	local me = state.players[playerId]
+	local target = if S.govTarget == nil then "monarchy" else S.govTarget
+	local hasMonarchy = table.find(me.techs, "monarchy") ~= nil
+	local hasRepublic = table.find(me.techs, "republic") ~= nil
+	if target == "republic" or target == "republic-if-safe" then
+		if hasRepublic and (target == "republic" or govSafe(state, playerId, ruleset)) then
+			return "republic"
+		end
+	end
+	return if hasMonarchy then "monarchy" else "despotism"
 end
 
 -- A step toward (tx, ty) that a lone settler can survive.
@@ -1300,13 +1337,18 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		end
 	end
 
-	-- one revolution, to Monarchy, once the advance is known
-	if done.government ~= true
-		and (me.government == nil or me.government == "despotism")
-		and me.revolutionTurns == nil
-		and table.find(me.techs, "monarchy") ~= nil then
+	-- Government re-eval (specs/government-reeval.md): advance toward the stance's
+	-- govTarget (Despotism -> Monarchy -> Republic), only ever UP the rank ladder
+	-- (no thrash). Skips once at Republic (nothing higher targeted in v1).
+	if done.government ~= true and me.revolutionTurns == nil then
 		done.government = true
-		return { type = "setGovernment", playerId = playerId, government = "monarchy" }
+		local cur = if me.government == nil then "despotism" else me.government
+		if govRank(cur) < GOV_RANK.republic then
+			local want = pickGovernment(state, playerId, ruleset, S)
+			if want ~= cur and govRank(want) > govRank(cur) then
+				return { type = "setGovernment", playerId = playerId, government = want }
+			end
+		end
 	end
 
 	-- B21(c): rush-buy a threatened city's military production (one per turn)
