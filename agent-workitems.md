@@ -84,6 +84,19 @@ prior-art catch #1068).
 LAN-REFINEMENT BATCH (user playtest 2026-07-18 ~00:00; helper lane,
 all golden-neutral; L3b touches server/lobby.js id-gen only — not the
 hardening lane's connect/cmd):
+[DONE 2026-07-18, helper verify #1699 — the batch was STALE: L1/L2/L3a/
+L3b + the L5 overlay were ALREADY implemented (they predate this queuing;
+verified with screenshots + line refs). L5 DIAGNOSIS: the seated-start
+hang (X.6) does NOT reproduce on an active mobile connection (direct AND
+lobby→start both boot fine) — it's the mobile socket-drop class already
+fixed by Part A+B+C (heartbeat+seat-grace+wake-reconnect, shipped AFTER
+the playtest); spectator worked because it bypasses the lobby. Real fix
+made: ?mlog=1 now survives the persistAndBoot reload (was dropped at
+lobby→game boot, killing phone self-report at the exact X.6 transition);
+test-ui/lobby-start-mobile.spec.js. RESIDUAL EDGE routed to human-
+workitems: user re-test on phone; if still blank at asleep-at-start,
+the L8 showMissedStart truth screen may not fire → bugfixer/hardening
+own the lobby→started+reclaim transition.]
 L1. LAN HOSTING SCREEN visual cleanup — reorganize to the START PAGE's
     two-column layout; normalize the game-code input font (currently
     much larger than the rest); structured pass, screenshot before/after.

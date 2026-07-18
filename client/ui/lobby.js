@@ -44,9 +44,13 @@ function persistAndBoot(msg) {
     if (!spectator) localStorage.setItem('retromulticiv-token-' + msg.gameId, msg.token);
   } catch (e) { /* private mode: the reload join will bind a fresh seat */ }
   // A51c: a global pick boots against THAT host's ws origin (main.js's
-  // ?server=<url> path); a local join keeps the plain server=1 form
+  // ?server=<url> path); a local join keeps the plain server=1 form.
+  // L5: carry ?mlog=1 through the reload — a phone diagnosing the lobby→start
+  // boot needs the on-screen log to survive into the game, not die at the reload.
+  const mlogOn = new URLSearchParams(location.search).get('mlog') === '1';
   location.search = `?server=${joinOrigin ? encodeURIComponent(joinOrigin) : '1'}&game=${msg.gameId}`
-    + (spectator ? '&spectate=1' : '');
+    + (spectator ? '&spectate=1' : '')
+    + (mlogOn ? '&mlog=1' : '');
 }
 
 // L8 (the L5 root cause's client half): a lobby connection whose SEAT was
