@@ -43,6 +43,39 @@ paybacks), balanced ×1.0, defensive/science/growth ×1.25, future
 aggressive ×0.5 (provisional values, sim-swept). Deterministic
 tie-break: lowest building cost, then catalog order.
 
+**R1 PIN (reviewer #1521, REQUIRED — the shield-forfeit thrash):**
+switching production CATEGORY forfeits HALF the accumulated shields
+(cities.js), and the AI re-decides `want` every turn — command
+idempotency (the existing re-emit guard) is NOT decision stickiness,
+and that distinction is load-bearing: without stickiness, a frontier
+city flip-flops unit↔building on enemyNear flutter or
+payback-boundary flutter, burning half its box each swing and
+completing buildings SLOWER than with no lever. Pin, for the lever
+AND the wonder-drive alike: (1) once a city is building a
+still-legal, progressing BUILDING, PREFER it — never re-decide to a
+unit on payback flutter; (2) enemyNear is the ONLY legitimate
+interrupt, and even it is gated on the garrison floor (a
+fully-garrisoned city does not abandon a near-done building for a
+surplus unit); (3) the wonder-drive's persist = keep the WONDER ID
+already in progress — never re-pick "cheapest available" once
+committed (a newly-unlocked cheaper wonder must not flip the drive).
+Fixture: the 2-turn no-thrash case — a city mid-marketplace with an
+enemy arriving adjacent keeps the marketplace while its garrison
+floor is met.
+
+**R2 (scope line):** the lever augments the UNIT-vs-YIELD-BUILDING
+choice only. Non-yield buildings (granary, aqueduct, walls,
+courthouse) have no payback and RETAIN their existing
+stanceBuilding/nextBuilding route — the lever is not the only
+building path.
+
+**R3 (composition):** for defendFirst stances the existing
+defBuild/econReserve machinery already builds economy — the new
+lever DEFERS wherever defBuild fires (layer under, never
+double-count). The measurable lift is therefore on BALANCED (and
+future aggressive), and the sweep's targets read accordingly: the
+builder ×1.5 multiplier matters mainly where defBuild doesn't reach.
+
 ## 2. The builder wonder-drive
 
 BUILDER-stance civs only. Trigger at the same production-choice site
