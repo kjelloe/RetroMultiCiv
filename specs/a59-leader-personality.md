@@ -12,10 +12,12 @@ ally-endorsed "measure the baseline before adding behavior").
 
 ## 1. The data (per leader)
 
-Each leader gains a `personality` object — four NORMALIZED axes summing
-to 1.0 (a build guard asserts the sum per leader at load, in an
-engine-side check, not runtime): `{ aggression, science, growth,
-defense }`. The stance LABEL becomes a PRESENTATION category derived
+Each leader gains a `personality` object — four INTEGER axes summing
+to **100** (NOT 1.0 — floats THROW at the rulesetHash stamp
+[hashState rejects non-integers] and drift cross-language; ruling
+#1657, bugfixer Finding-1 catch). A build guard asserts sum==100 per
+leader. `{ aggression, science, growth, defense }` as 0-100 ints
+(Caesar 75/10/10/5, Shaka 100/0/0/0). D3 compares INTEGER thresholds. The stance LABEL becomes a PRESENTATION category derived
 from the dominant axis (aggression→aggressive, science→science,
 growth→growth/builder, defense→defensive) — NOT the behavioral
 definition (the axes are). Plus the ally's per-leader fields where not
