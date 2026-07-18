@@ -996,6 +996,11 @@ export function initInput(ctx) {
       panels.cycleCity(e.key === 'ArrowLeft' ? -1 : 1);
       return;
     }
+    // A17: a spectator inspects with the mouse (hover/click) and cycles an open
+    // city panel with the arrows above, but issues NO commands — every unit/city/
+    // turn action key below is a seated-player order, a no-op for the seatless
+    // viewer (several also read players[ctx.HUMAN], which a spectator lacks).
+    if (ctx.SPECTATOR) return;
     if (MOVE_KEYS[e.key] && sel.unitId && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       moveSelected(MOVE_KEYS[e.key]);

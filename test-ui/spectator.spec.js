@@ -13,8 +13,10 @@ test.afterAll(async () => { await server.close(); });
 
 test('spectator: tokenless, omniscient view, no controls', async ({ browser }) => {
   const ctx = await browser.newContext();
+  const errors = [];
   try {
     const page = await ctx.newPage();
+    page.on('pageerror', e => errors.push(String(e)));
     await page.goto(`http://127.0.0.1:${server.port}/client/?server=1&spectate=1`);
     // connected as a spectator: the tokenless spectator chip appears
     await expect(page.locator('#spectator-chip')).toBeVisible();
@@ -30,6 +32,18 @@ test('spectator: tokenless, omniscient view, no controls', async ({ browser }) =
     await expect(page.locator('#unit-line')).toBeHidden();      // no seat stat card
     await page.keyboard.press('t');                             // research stays closed (view-only note instead)
     await expect(page.locator('#research-panel')).toBeHidden();
+
+    // spectator MESSAGE AUDIT (#1652): the seated-player action keys are no-ops
+    // for a seatless viewer — no command mis-fires, and no crash from the keys
+    // that read players[ctx.HUMAN] (i/m/r/o/c/production) which a spectator lacks
+    for (const k of ['b', 'f', 'i', 'm', 'r', 'o', 'c', 'n', ' ', '1', '2', '3', 'g', 'k', 'h', 'p', 'x']) {
+      await page.keyboard.press(k === ' ' ? 'Space' : k);
+    }
+    // first-timer ADVICE is a seated-player aid — a spectator gets none
+    await expect(page.locator('#advice-card')).toHaveCount(0);
+    // the action bar stayed hidden and nothing crashed
+    await expect(page.locator('#action-bar')).toBeHidden();
+    expect(errors, 'spectator keys raised no error').toEqual([]);
   } finally {
     await ctx.close();
   }

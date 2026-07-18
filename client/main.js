@@ -426,7 +426,10 @@ ctx.replay = initReplay(ctx);     // A47: post-game replay theater
 ctx.historian = initHistorian(ctx); // A75: the age-change historian's report
 ctx.stats = initStats(ctx);         // A73-STATS: the statistics page
 ctx.sound = initSound(ctx);         // A77: event sound cues (fog-filtered)
-ctx.advice = initAdvice(ctx);       // A78: first-timer contextual advice
+// A78 first-timer advice is a SEATED-PLAYER aid (found-a-city, settler,
+// low-treasury… all read ctx.HUMAN's empire) — a view-only spectator has none,
+// so it's null for them (every caller already guards `if (ctx.advice)`).
+ctx.advice = ctx.SPECTATOR ? null : initAdvice(ctx);
 ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
 // XII.4: in a server game, guard against an accidental leave (mobile back-swipe
 // unloads the page — Part C's reconnect can't help) and remember the seat so the
