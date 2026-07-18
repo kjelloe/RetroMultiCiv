@@ -255,6 +255,24 @@ def main():
         if '-' in argv:
             body = sys.stdin.read().strip()
             argv = [body if a == '-' else a for a in argv]
+        # resolve --body-file BEFORE proxying too — the path is local to
+        # THIS machine; the hub must receive the CONTENT, never the path
+        # (a remote sender's /tmp does not exist on the hub's disk)
+        out, i = [], 0
+        while i < len(argv):
+            a = argv[i]
+            if a == '--body-file' and i + 1 < len(argv):
+                with open(argv[i + 1], encoding='utf-8') as f:
+                    out.extend(['--body', f.read().strip()])
+                i += 2
+            elif a.startswith('--body-file='):
+                with open(a.split('=', 1)[1], encoding='utf-8') as f:
+                    out.extend(['--body', f.read().strip()])
+                i += 1
+            else:
+                out.append(a)
+                i += 1
+        argv = out
         sys.exit(proxy(argv, url))
     dispatch(argv)
 
