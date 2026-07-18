@@ -37,7 +37,7 @@ the Done log at the bottom.
   Civ2-authentic Leonardo, original-projection chain rows where Civ1
   lacks intermediates). Object if you'd rather skip either half;
   silence = build as specced.
-- [ ] **Merge marker-0054** (supersedes 0053; adds the seam bundle, B28 audit fix + N10 caravan trade
+- [ ] **Merge marker-0055** (supersedes 0054; adds N11 3a unit upgrades [Civ3-shape, labeled], the seam bundle, B28 audit fix + N10 caravan trade
   routes — windfall + live top-3 route bonus, 4 new cross-language
   scenario pins, full-but-behavior-identical golden ripple via the
   ruleset pin — plus the client half, T1 portrait, L8 lobby
