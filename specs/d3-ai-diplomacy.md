@@ -10,9 +10,22 @@
 > FIRST → sim-runner constant sweep (elim-band + the mix-conditional
 > witness) → ONE golden re-record. No provisional pin reaches the
 > committed timeline.
+>
+> **PRE-OPEN RULED 2026-07-18 (#1679→#1680) — build to THIS amended spec:**
+> CALL 1 store-2/derive-2 (store trust_lo/hi + grievance_lo/hi, derive fear/
+> respect) CONFIRMED. CALL 2 directionality _lo/_hi on the sorted pair
+> CONFIRMED. CALL 3 **tribute DEFERRED WHOLESALE to D4** — D3 is WAR/PEACE-
+> ONLY (scoreDemandTribute + TRIBUTE_DEMANDED + the demand constants struck;
+> §3/§5 amended). CALL 4 ratio-to-100 scaler CONFIRMED (symmetric weakness/
+> fear, integer, div-guarded). CONTACT SIGNAL — **ruling (c): persistent
+> met-state riding the D1 pair entry** (`met` bool, omit-safe + a
+> FIRST_CONTACT event + a deterministic per-turn contact pass): chosen over
+> proximity because the space-launch COALITION war needs NON-ADJACENT civs to
+> act on the launcher (proximity can't express that) and it pays D2's
+> deferred first-contact debt. See §2/§4.
 
-D3 makes AI civs *negotiate*: declare war, offer/accept peace, and demand
-tribute, driven by leader personality (A59) + a per-pair relationship
+D3 makes AI civs *negotiate*: declare war and offer/accept peace, driven
+by leader personality (A59) + a per-pair relationship
 model + situational inputs — table-driven score models, constants in
 `data/rules.json`. This operationalizes the phase-6 relationship model
 (docs/14 §"RELATIONSHIP MODEL ADOPTED", user ruling 2026-07-17) and the
@@ -24,14 +37,18 @@ more eliminations; no-aggressive → an economic/tech/space contest; a
 ## 1. Scope fence (what D3 IS and IS NOT)
 
 **D3 IS:**
-- The per-pair RELATIONSHIP VALUES (trust/fear/grievance/respect) as
-  omit-safe state, updated by a small fixed rule set.
-- The DECISION score models (`scoreWarIntent`, `scorePeaceAccept`,
-  `scoreDemandTribute`) over personality axes + relationship + situational
-  inputs. Constants in `data/rules.json`.
+- Persistent MET-STATE (`met` on the D1 pair entry) + a FIRST_CONTACT
+  event + a per-turn contact pass — the shared foundation D2 (audiences)
+  and D3 (negotiation gate) both need. §4.
+- The per-pair RELATIONSHIP memory (directed trust/grievance stored;
+  fear/respect derived) as omit-safe state, updated by a small fixed rule
+  set.
+- The DECISION score models (`scoreWarIntent`, `scorePeaceAccept`) over
+  personality axes + relationship + situational inputs. Constants in
+  `data/rules.json`.
 - The AI DIPLOMACY STEP in `runAiTurn`: each AI, on its turn, evaluates
-  each contacted rival and MAY issue a D1 `diplomacy` command (declare /
-  offer / accept / reject) and the D3 tribute demand.
+  each MET rival and MAY issue a D1 `diplomacy` command (declare / offer /
+  accept / reject). WAR/PEACE only — tribute is D4.
 - The **mix-conditional war doctrine**: war intent scales with the
   attacker's aggression axis AND the defender's weakness/grievance, so a
   table full of Gandhis rarely eliminates and a table of Shakas does.
@@ -41,10 +58,9 @@ more eliminations; no-aggressive → an economic/tech/space contest; a
   behavior; the launch is cancelled if the capital falls, existing rule).
 
 **D3 IS NOT (later slices — do not build):**
-- Tribute/tech-exchange TERMS negotiation (which tech, how much gold) —
-  that's **D4**. D3's `scoreDemandTribute` only decides WHETHER to demand
-  and the fixed MVP demand (gold-per-turn tribute or immediate ceasefire);
-  the specific tech-swap terms are D4.
+- Tribute AND tech-exchange — DEFERRED WHOLESALE to **D4** (CALL 3, #1680):
+  both the decision-to-demand AND the terms. No `scoreDemandTribute`, no
+  `TRIBUTE_DEMANDED`, no demand constants in D3.
 - Reputation CONSEQUENCES + the senate (a democracy/republic that cannot
   declare war, must accept peace) — that's **D5**. D3 updates the
   relationship values and the D1 `reputation` int; it does not yet gate
@@ -55,20 +71,24 @@ more eliminations; no-aggressive → an economic/tech/space contest; a
 
 ## 2. State: the relationship values (omit-safe)
 
-Extend the D1 `state.relations[pairKey]` entry with FOUR integer values,
-0–100, per the adopted model (docs/14). **Omit-safe**: an absent value
-reads as its neutral default, so pre-D3 states and the entire pre-D3 soak
-are byte-identical UNTIL the AI first writes one. A pair with no
-interaction still has no entry (default war, no values) — identical to D1.
+Extend the D1 `state.relations[pairKey]` entry with the DIRECTED memory
+values (trust/grievance per direction, 0–100) plus the `met` bool, per the
+adopted model (docs/14) and CALL 1/2. **Omit-safe**: an absent value reads
+as its neutral default, so pre-D3 states and the entire pre-D3 soak are
+byte-identical UNTIL the first contact/interaction writes one. A pair with
+no interaction still has no entry (default war, not met) — identical to D1.
 
 ```
 state.relations["p1|p6"] = {
   state, treatyTurn, expiresTurn?, offer?,   // D1, unchanged
-  trust?,      // 0-100, default 50 — honors commitments → serious offers, fewer pre-emptive wars
-  fear?,       // 0-100, default 0  — military danger → appease / defend
-  grievance?,  // 0-100, default 0  — hostile acts → demands, war likelihood
-  respect?     // 0-100, default 50 — competence/power → takes offers seriously
+  met?,          // bool, default false — the two civs have made contact (§4); FIRST_CONTACT on flip
+  trust_lo?,     // 0-100, default 50 — lo=first sorted pid's trust TOWARD hi (directed)
+  trust_hi?,     // 0-100, default 50 — hi's trust toward lo
+  grievance_lo?, // 0-100, default 0  — lo's grievance toward hi (directed)
+  grievance_hi?  // 0-100, default 0  — hi's grievance toward lo
 }
+// fear + respect are DERIVED per-decision from military balance (CALL 1: store the
+// memory [trust/grievance], derive the situational) — NOT stored, keeps the entry small.
 ```
 
 - **Accessors in `engine/diplomacy.js`** (extend, don't fork): `relValue(state,
@@ -93,7 +113,7 @@ state.relations["p1|p6"] = {
   - `fear` and `respect` are DERIVED each decision from military balance
     (§3), NOT stored-and-decayed, to keep state small — store only
     trust+grievance (the memory values); compute fear/respect on the fly.
-    **CALL 1 (§9):** confirm store-2/derive-2 vs store-4.
+    **CALL 1 RULED: store-2/derive-2** (confirmed #1680).
 
 ### 2a. Grievance directionality
 
@@ -103,7 +123,7 @@ explicit holder tag: `grievance_lo` / `grievance_hi` where `lo`/`hi` follow
 the sorted-pair order (`p1|p6`: lo=p1, hi=p6). `grievanceOf(state, holder,
 toward)` picks the field by comparing ids. This keeps the D1 single-entry-
 per-pair shape (no new key scheme, hashing stable) while carrying
-direction. **CALL 2 (§9):** confirm this vs a directed-key scheme.
+direction. **CALL 2 RULED: _lo/_hi on the sorted pair** (confirmed #1680).
 
 ## 3. The decision score models (`engine/ai-diplomacy.js`, NEW module)
 
@@ -121,14 +141,16 @@ score; a fixed threshold (also a constant) gates the action. Deterministic
   where:
   - `aggression` = `personalityOf(state, me, ruleset).aggression` (A59 —
     the first consumer).
-  - `weakness(other)` = my military strength vs theirs, scaled 0–100
-    (`countMilitary` ratio; a weak neighbor invites attack — the user's
-    "prey on the weak").
+  - `weakness(other)` = my military strength vs theirs, scaled 0–100 via
+    the CALL 4 ratio-to-100 helper (`countMilitary` returns a RAW count, not
+    0–100 — the helper does `clamp(idiv(myMil*100, max(1, myMil+theirMil)))`
+    or equivalent monotonic integer form; pin the exact formula in code). A
+    weak neighbor invites attack — the user's "prey on the weak".
   - `borderPressure` = adjacency of our territories/units (reuse the
     `enemyNear`/city-proximity signal already in ai.js).
-  - `fear` = derived from `militaryBalance` when other >> me (appeasement:
-    high fear SUPPRESSES war intent — a weak civ does not declare on a
-    strong one; it appeases).
+  - `fear` = the SAME ratio helper with operands swapped (theirs vs mine —
+    high when other >> me): appeasement, high fear SUPPRESSES war intent, a
+    weak civ does not declare on a strong one. Derived, not stored.
   - `launchThreat` = `relLaunchWarBonus` if `other` has a launched
     spaceship (§4), else 0 — the space-launch all-out-war trigger.
   If `> warIntentThreshold` AND currently at peace (or no treaty) AND the
@@ -144,24 +166,40 @@ score; a fixed threshold (also a constant) gates the action. Deterministic
   A Gandhi with high fear and low grievance ACCEPTS; a Shaka who is winning
   REJECTS. `> peaceAcceptThreshold` → `diplomacy accept`, else `reject`.
 
-- **`scoreDemandTribute(state, me, other, ruleset, S) -> int`** — MVP: a
-  strong aggressive civ at peace demands tribute from a weak neighbor.
-  `= aggression*wDAgg + weakness(other)*wDWeak + grievanceOf(me→other)*wDGrv`
-  gated by a COOLDOWN (`lastDemandTurn` on the entry — don't demand every
-  turn). Above threshold → push a `TRIBUTE_DEMANDED` event (D4 negotiates
-  the actual payment; D3 only demands + records grievance if refused).
-  **CALL 3 (§9):** is tribute in D3's MVP or deferred wholesale to D4? The
-  slice list puts "tribute + tech exchange TERMS" in D4; I read D3 as
-  owning the DECISION-to-demand and D4 the TERMS. Confirm scope.
+- **Tribute — DEFERRED WHOLESALE TO D4 (CALL 3 RULED, #1680).** No
+  `scoreDemandTribute`, no `TRIBUTE_DEMANDED` event, no `demandCooldown`/
+  `lastDemandTurn`, no `wD*` constants in D3. D3 is WAR/PEACE-only. D4 owns
+  the decision-to-demand together with the terms it already owns — a cleaner,
+  tighter D3 window. (Kept here as a scope marker so the seam is not
+  re-litigated at build.)
 
-## 4. The AI diplomacy step (`runAiTurn` hook) and the declare-vs-attack seam
+## 4. Contact (met-state), the AI diplomacy step, and the declare-vs-attack seam
 
-- A new step in the per-AI turn (after movement/combat resolution, before
-  end-turn), guarded so it only runs when `state.relations !== undefined`
-  is not required (omit-safe: the AI may CREATE the first relation). Only
-  runs vs players the AI has CONTACTED (met) — reuse the visibility/known
-  signal; an AI does not negotiate with a civ it has never seen. This is
-  also the natural home for the deferred-to-D2 `notMet` gate consumer.
+**Contact — met-state (CONTACT SIGNAL RULED (c), #1680).** D1 deferred
+met-tracking (there is NO engine met-state today; the only signal is
+tile-level `me.explored`, which does not say "I have seen rival X"). D3
+adds it, riding the D1 pair entry:
+- `metOf(state, a, b) -> bool` reads `relations[pair].met` (default false,
+  omit-safe). Symmetric by construction (one entry per pair).
+- A **deterministic per-turn contact pass** (`detectContacts` — run for the
+  ACTIVE player each turn, EVERY seat incl. humans, since D2's first-contact
+  audience needs it too): `computeVisible(me)` and if any rival unit/city
+  sits on a visible tile, lazily create the pair entry, set `met = true`,
+  and push a **`FIRST_CONTACT`** event (UPPER_SNAKE, transient/never-hashed)
+  once on the false→true flip. Pure READ of visibility; WRITES only `met` +
+  the event. Behavioral (moves soak/natural — expected; a crafted scenario
+  with no rival-in-sight sees no change).
+- The diplomacy step GATES on `metOf` — an AI negotiates only civs it has
+  MET. Persistent ("once met, always negotiable") so contact is not lost
+  out of sight — this is what lets the space-launch coalition (§3/§8) form
+  across the map. By the space era met-state is near-universal, so no
+  special-case launch bypass is needed; a civ that genuinely never met the
+  launcher does not join (authentic). This is also the real event that
+  RETIRES D2's deferred client-side `notMet` turnlog derivation.
+
+**The AI diplomacy step** — a new step in the per-AI turn (after movement/
+combat resolution, before end-turn), over each MET rival. Omit-safe: the AI
+may CREATE the first relation entry via `bumpRel`/contact.
 - **Declare-vs-attack:** today the AI attacks based on stance WITHOUT a
   formal war declaration (D1 combat is war-gated by `relationOf`, and an
   absent pair = war, so AI attacks "just work" at default war). D3 must
@@ -189,10 +227,10 @@ sim-runner's to SWEEP for the elim-band (§7) — do NOT treat these as final:
   "warIntentThreshold": 60, "peaceAcceptThreshold": 50,
   "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
   "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
-  "wDAgg": 1, "wDWeak": 1, "wDGrv": 1, "demandThreshold": 70, "demandCooldown": 20,
   "relGrievanceOnAttack": 15, "relGrievanceOnBetray": 40, "relTrustOnBetray": 30,
   "relGrievanceDecay": 1, "relLaunchWarBonus": 100
 }
+// tribute (wD*/demandThreshold/demandCooldown) DEFERRED to D4 (CALL 3).
 ```
 
 Weights are deliberately small integers so the score stays in a legible
@@ -209,9 +247,10 @@ large (a launch dominates all other intent — the all-out-war trigger).
   turn-100/400/natural hashes re-record cross-language — the twins gate
   proves JS==Luau over the NEW behavior, not just turn-100.
 - A new scenario `test/scenarios/013-ai-diplomacy.json`: a crafted 2–3
-  player state where one AI's `scoreWarIntent` clears the threshold and
-  breaks a treaty, and another accepts a peace offer — pinned `final.hash`
-  cross-language (the D1 012 pattern). Code-free (runs both engines).
+  player state where a rival unit sits in sight (met flips → FIRST_CONTACT),
+  one AI's `scoreWarIntent` clears the threshold and breaks a treaty, and
+  another accepts a peace offer — pinned `final.hash` cross-language (the D1
+  012 pattern). Code-free (runs both engines).
 
 ## 7. Golden re-record (BEHAVIORAL — the two-phase close)
 
@@ -247,20 +286,22 @@ the marker report. It is also the first data point for the user's
 "elimination rate as a function of leader mix" vision (memory:
 ai-archetype-endings-vision).
 
-## 9. Calls the author settles at PRE-OPEN (request rulings)
+## 9. Pre-open calls — ALL RULED (#1679→#1680, 2026-07-18)
 
-1. **Store-2/derive-2 vs store-4** (§2): I propose storing trust+grievance
-   (the memory) and deriving fear+respect (situational) to keep state
-   small. Confirm, or store all four.
-2. **Grievance directionality** (§2a): `grievance_lo`/`grievance_hi` under
-   the sorted pair vs a directed-key scheme. I propose the former (keeps
-   the D1 one-entry-per-pair shape).
-3. **Tribute scope** (§3): D3 owns the decision-to-demand + a fixed MVP
-   demand; D4 owns the terms. Confirm, or defer tribute wholesale to D4
-   (then D3 ships war/peace only — a cleaner slice; acceptable).
-4. Any weight/threshold in §5 that the data check shows is unit-mismatched
-   (e.g. `countMilitary` returns a raw count, not 0–100 — you may need a
-   `scaleTo100` helper; flag it rather than guessing).
+1. **Store-2/derive-2** — RULED store-2 (trust+grievance stored as
+   directed _lo/_hi; fear+respect derived). §2.
+2. **Grievance directionality** — RULED `_lo`/`_hi` on the sorted pair. §2a.
+3. **Tribute scope** — RULED DEFER WHOLESALE to D4; D3 is war/peace-only.
+   §3/§5 amended (scoreDemandTribute + TRIBUTE_DEMANDED + wD*/demand
+   constants struck).
+4. **Unit mismatch** — CONFIRMED `countMilitary` is a raw count; a
+   ratio-to-100 integer helper (div-guarded, symmetric for weakness/fear)
+   scales it, exact formula pinned in code for the sweep. §3.
+5. **Contact signal** (the load-bearing gap the author found — D1 has NO
+   met-state) — RULED (c) persistent met-state, riding the D1 pair entry
+   (`met` bool + FIRST_CONTACT event + `detectContacts` per-turn pass, all
+   seats). Chosen over proximity because the space-launch coalition needs
+   non-adjacent civs; also pays D2's first-contact debt. §4.
 
 ## 10. Dependencies & provenance
 
