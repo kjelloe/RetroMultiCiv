@@ -192,6 +192,10 @@
       <div class="d">A repeatable score sink once the tree is exhausted, Civ1-authentic. Specced, queued after D3.</div>
     </div>
     <div class="item dot"><span class="box"></span>
+      <div class="t">Late-game ws-timeout (turn 2623) — being triaged</div>
+      <div class="d">Your very-long hosted game dropped the socket. Diagnosed SERVER-side (the client was reconnecting correctly; the server wasn't completing the handshake) — at that extreme scale a single AI turn-chain blocks the server's event loop past the heartbeat window. Routed to the server-robustness lane (#1732); a busy-tolerant heartbeat + yielding within the AI chain are the fixes. Beyond the validated scale (turn-1617), so a real hosting-robustness item, not a regression. If you can, note whether the <code>node</code> process was still alive or had exited.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
       <div class="t">Roblox run-F items in progress</div>
       <div class="d">Most are roblox-helper's (panels, tile improvements, debug/DataStore config, the city-name render fix); the shared ones are routed — <strong>city-look-by-era</strong> (your item 8) is now a browser render feature the helper can build (<code>specs/city-era-looks.md</code>), city-name lists get expanded, and the unit/building blurbs await your ally forward (Decide/Do). No input needed beyond that forward.</div>
     </div>

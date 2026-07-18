@@ -140,6 +140,15 @@ _Last synced: 2026-07-18._
   "win by any means" instead of by its civ's personality.
 - **XII.2 — Future Tech N** (your refinement): a repeatable score sink once
   the tree is exhausted, Civ1-authentic. Specced, queued after D3.
+- **Late-game ws-timeout (turn 2623) — being triaged:** your very-long
+  hosted game dropped the socket. Diagnosed as SERVER-side (the client was
+  reconnecting correctly; the server wasn't completing the handshake) — at
+  that extreme scale a single AI turn-chain blocks the server's event loop
+  past the heartbeat window. Routed to the server-robustness lane (#1732);
+  a busy-tolerant heartbeat + yielding within the AI chain are the fixes.
+  Beyond the validated scale (turn-1617), so it's a real hosting-robustness
+  item, not a regression. If you can, note whether the `node` process was
+  still alive or had exited when it happened.
 - **Roblox run-F items in progress:** most are roblox-helper's (panels,
   tile improvements, debug/DataStore config, the city-name render fix);
   the shared ones are routed — **city-look-by-era** (your item 8) is now a

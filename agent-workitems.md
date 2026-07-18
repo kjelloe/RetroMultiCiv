@@ -18,6 +18,17 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**LATE-GAME WS-TIMEOUT (added 2026-07-19, user playtest; HARDENING triage
+#1732): a server-hosted game at turn 2623 (extreme marathon, beyond the
+turn-1617/609-unit validation) dropped the ws — client HAR = 4 reconnect
+attempts, all status 0 (SERVER not completing the upgrade). Hypothesis: the
+AI chain INSIDE a single endTurn() is synchronous, so at extreme scale it
+blocks the event loop past the ~30s heartbeat window → can't ping / can't
+accept reconnects / may falsely terminate a healthy client. Fixes: (a)
+busy-tolerant heartbeat (loop-lag aware) = hardening lane; (b) yield WITHIN
+the AI chain (server/index.js endTurn + maybe engine) = cross-lane, architect
+routes. Confirm event-loop-block vs crash/OOM first (process alive?).**
+
 **CITY-ERA-LOOKS (added 2026-07-19, spec specs/city-era-looks.md; user
 Roblox run-F item 8): HELPER lane, golden-neutral RENDER (reads owner tech
 era, no engine/save change) — buildable NOW, a ready feature while XII.2 is
