@@ -89,9 +89,17 @@ the Done log at the bottom.
 - [x] **Civ2/4 feature picks — ANSWERED 2026-07-18 (all four) and
   ALL SHIPPED same night:** minimap C1, tooltips C2, build queue C3,
   sentry+automation C4 (markers 0050-era, golden-neutral).
-- [ ] **Mobile T0** — user-runnable phone check (~1h: open the LAN
-  client on your phone, note WebGL/fps/first-3-blockers per
-  specs/mobile-plan.md T0), then T1 go/no-go.
+- [ ] **Mobile T0 — fold into tonight's playtest** (from your phone,
+  note: does the world render at all / rough pan fps / first 2-3
+  broken things — the WebGL-on-your-device question). That IS the T0
+  measurement; single-player mobile is already portrait-laid-out +
+  touch-input'd (T1/T2 shipped), so T0 decides only whether a perf
+  pass is needed. THE NETWORK blocker (phone dropped from the LAN
+  lobby on screen-lock) is now a routed engineering fix, NOT a user
+  item: specs/mobile-resilience.md — server heartbeat + lobby
+  seat-grace (hardening, slice 2.5) + client auto-reconnect-on-wake
+  (helper, follow-on). The half-open-socket root cause is understood
+  and owned.
 - [x] **Match-report consent shape — BLESSED 2026-07-18 (overnight
   answer) and S1 SHIPPED** (c062d58): off-by-default writer, sticky
   seat veto, anonymization w/ regenerated hashes so reports replay
