@@ -8,13 +8,16 @@ the Done log at the bottom.
 ## 2026-07-17 evening — current decisions + verifications
 
 **DECIDE (only you can):**
-- [ ] **Merge marker-0046** (the current consistent candidate; the
-  evening shipped 0043→0046): stance-mix v1 (some civs build wonders,
+- [ ] **Merge marker-0051** (the current consistent candidate; the
+  night shipped 0043→0051): stance-mix v1 (some civs build wonders,
   dg=30 intact), the A51 find-a-game pipeline, A54 off-turn
-  rates/research/production, the ruleset-compat pin (save-vs-rules
-  safety), settler food upkeep (your flat-1 ruling), stance
-  visibility, H1 ratchet, palette P1+P2 (deuteranopia mode), pedia
-  editorial, map types, v1.5 telemetry, all reports. Biggest merge
+  rates/research/production, the ruleset-compat pin, settler food
+  upkeep (your flat-1 ruling), A79 blockade + B27 ZOC fix (your live
+  siege), the A76 SPACE RACE (ending #4), the A50 command budget,
+  government re-eval (AIs now reach Republic — the all-Monarchy
+  economy stall from your LAN save is the target), the four Civ2/4
+  picks (minimap, tooltips, build queue, sentry+automation), S1 match
+  reports, the L/X LAN+mobile batch, roblox batch-2. Biggest merge
   since 0033 — merge the latest marker I declare consistent.
 - [ ] **Settler-upkeep — final choice (measured, arc closed):** the
   progressive variant DOESN'T work — settlers are a PIPELINE (each
