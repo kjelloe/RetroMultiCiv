@@ -1,0 +1,989 @@
+{
+  "name": "A89: only the top-3 routes count toward arrows; a route-holding endpoint uses BASE arrows (R1)",
+  "notes": "Home c1 (p1, Palace) holds 4 foreign routes (pa/pb/pc/pd). Endpoint pb ITSELF holds a route to pe — R1 requires pb's arrows in c1's formula to EXCLUDE that route (no cross-city fixpoint). endTurn realizes only the top-3 contributions (ties -> lower partnerCityId) into p1 gold/bulbs; the 4th route persists in state. Cross-language pin of the cap + R1 exclusion.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 40,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland",
+            "road": true
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "c1",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "pop": 4,
+          "food": 0,
+          "shields": 0,
+          "buildings": [
+            "palace"
+          ],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          },
+          "tradeRoutes": [
+            {
+              "partnerCityId": "pa"
+            },
+            {
+              "partnerCityId": "pb"
+            },
+            {
+              "partnerCityId": "pc"
+            },
+            {
+              "partnerCityId": "pd"
+            }
+          ]
+        },
+        "pa": {
+          "id": "pa",
+          "name": "pa",
+          "owner": "p2",
+          "x": 10,
+          "y": 2,
+          "pop": 6,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "pb": {
+          "id": "pb",
+          "name": "pb",
+          "owner": "p2",
+          "x": 18,
+          "y": 2,
+          "pop": 9,
+          "food": 0,
+          "shields": 0,
+          "buildings": [
+            "palace"
+          ],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          },
+          "tradeRoutes": [
+            {
+              "partnerCityId": "pe"
+            },
+            {
+              "partnerCityId": "pf"
+            },
+            {
+              "partnerCityId": "pg"
+            }
+          ]
+        },
+        "pc": {
+          "id": "pc",
+          "name": "pc",
+          "owner": "p2",
+          "x": 26,
+          "y": 2,
+          "pop": 7,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "pd": {
+          "id": "pd",
+          "name": "pd",
+          "owner": "p2",
+          "x": 34,
+          "y": 2,
+          "pop": 8,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "pe": {
+          "id": "pe",
+          "name": "pe",
+          "owner": "p2",
+          "x": 6,
+          "y": 2,
+          "pop": 9,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "pf": {
+          "id": "pf",
+          "name": "pf",
+          "owner": "p2",
+          "x": 22,
+          "y": 2,
+          "pop": 9,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "pg": {
+          "id": "pg",
+          "name": "pg",
+          "owner": "p2",
+          "x": 30,
+          "y": 2,
+          "pop": 9,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "pa",
+        "pb",
+        "pc",
+        "pd",
+        "pe",
+        "pf",
+        "pg"
+      ],
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "p1",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "p2",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {},
+    "hash": "0xd33e4852"
+  }
+}

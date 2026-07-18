@@ -610,9 +610,29 @@ only change is the AI policy in both engines. **Democracy is deferred to phase 6
 trade/unhappiness are the shipped data); the stance-linked adoption rule is
 original, labeled, consistent with the heterogeneous-archetype direction.
 
+### Caravan trade routes (A89 / N10 — spec specs/n10-caravans.md)
+
+A caravan standing in a city establishes a route from its HOME city to that
+partner (`establishTradeRoute { unitId }` — explicit, both endpoints derived, the
+A83 helpWonder precedent; foreign auto-eligible, a domestic partner must be
+≥ `minDomesticDistance`). Establishing pays a one-time **windfall** to the sender
+— cash AND research bulbs, full amount each — `idiv((chebyshev + 10) × (base
+arrowsₕₒₘₑ + base arrowsₚₐᵣₜₙₑᵣ), 24)` then the fixed multiplier stack ×½
+same-continent (land-connected flood fill) ×½ same-civ ×⅔ railroad ×⅔ flight
+(integer math, order-significant → a 1/9 floor). Each route also grants a **live
+permanent** trade bonus on the home city — `idiv(arrowsₕₒₘₑ + arrowsₚₐᵣₜₙₑᵣ + 4,
+8)` (same-civ halved), the **top 3 routes** counting toward its arrows (ties →
+lower partnerCityId). **R1 (reviewer):** both formulas read BASE arrows (post-
+corruption, pre-split, EXCLUDING route bonuses) at both endpoints — bonuses add
+on top at the playerIncome seam, killing the cross-city fixpoint. State:
+`city.tradeRoutes = [{ partnerCityId }]` (live recompute, nothing cached). All
+numbers live in `rules.tradeRoute`; the `notCaravan` gate keys a `tradeRoutes`
+units.json capability. AI fields no caravans (human/replay feature); the Civ2
++1-food/shield freight stays shelved. Turn-log 🐫 line; client button is a later pass.
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
-Diplomacy & negotiations, Diplomat/Caravan gameplay, trade routes, pollution &
+Diplomacy & negotiations, Diplomat/Caravan combat gameplay, pollution &
 global warming, difficulty-level
 modifiers beyond a single global multiplier, palace/throne-room fluff, and
 **random city disasters** (fire, plague, flood, pirates, earthquake — Civ 1 ties

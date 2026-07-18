@@ -189,7 +189,7 @@ function buildTechs() {
 // sail→magnetism, frigate→industrialization, ironclad→combustion.
 const UNIT_OVERLAY = {
   'diplomat': { ignoresZoc: true },
-  'caravan':  { ignoresZoc: true, helpsWonder: true },
+  'caravan':  { ignoresZoc: true, helpsWonder: true, tradeRoutes: true },
   // A72: the nuclear missile is a one-shot air weapon (Civ 1) — it strikes once
   // and is consumed, and burns fuel like any air unit (area damage/pollution is
   // a deferred follow-up). fuel FLAGGED for user with the other air numbers.

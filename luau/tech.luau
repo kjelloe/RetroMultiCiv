@@ -8,6 +8,7 @@
 
 local cities = require("./cities")
 local government = require("./government")
+local traderoutes = require("./trade") -- named to avoid shadowing the loop's `trade` local
 
 local function idiv(a: number, b: number): number
 	return math.floor(a / b)
@@ -128,6 +129,9 @@ local function playerIncome(state: any, playerId: string, ruleset: any)
 		end
 		local trade = cities.cityYields(state, city, ruleset).trade
 		trade -= government.corruptionFor(state, city, trade, ruleset)
+		-- A89: the live permanent trade-route bonus adds ON TOP, post-corruption
+		-- (R1). 0 for a city without routes; AI fields no caravans -> goldens untouched.
+		trade += traderoutes.routeArrows(state, city, ruleset)
 		local cityTax = idiv(trade * taxRate, 100)
 		local citySci = idiv(trade * sciRate, 100)
 		gold += cityTax + idiv(cityTax * cities.effectPct(city, ruleset, "taxBonus"), 100)

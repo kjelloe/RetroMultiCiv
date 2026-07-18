@@ -62,6 +62,9 @@ export function soundForEvent(e, viewer, cityOwner) {
       // silent BY DESIGN: the gameOver event in the same batch carries the
       // victory/gameover cue — a second cue here would double-fire
       return null;
+    case 'tradeRouteEstablished':
+      // A89: own-seat only; a dedicated caravan cue is a later presentation pass
+      return e.playerId === viewer ? 'build' : null;
     default:
       return null; // most events (moves, production set, rates) are silent
   }

@@ -19,6 +19,7 @@ local barbarians = require("./barbarians") -- batch 5 (P5-7)
 local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
 local spaceship = require("./spaceship") -- A76: space race
+local trade = require("./trade") -- A89: caravan trade routes
 local mapgen = require("./mapgen") -- batch 5 (P5-7)
 
 local function isArrayLike(t: any): boolean
@@ -244,6 +245,8 @@ local function createEngine(ruleset: any)
 			result = tech.setRates(next_, cmd, ruleset)
 		elseif cmd.type == "launchShip" then
 			result = spaceship.launchShip(next_, cmd, ruleset)
+		elseif cmd.type == "establishTradeRoute" then
+			result = trade.establishTradeRoute(next_, cmd, ruleset)
 		else
 			result = { ok = false, reason = "unknownCommand" }
 		end

@@ -40,6 +40,8 @@ export function classifyEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'research' : null;
     case 'ssPartBuilt': // A76: own spaceship part completed (own-seat only)
       return e.playerId === viewer ? 'cities' : null;
+    case 'tradeRouteEstablished': // A89: own caravan established a route (🐫, own-seat)
+      return e.playerId === viewer ? 'cities' : null;
     case 'playerDefeated': case 'wonderBuilt': case 'wonderLost':
     case 'barbariansSpawned': case 'gameOver': case 'ageChanged':
     case 'shipLaunched': case 'shipDestroyed': case 'spaceVictory': // A76: the space race is public

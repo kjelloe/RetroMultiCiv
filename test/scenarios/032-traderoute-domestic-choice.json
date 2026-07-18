@@ -1,0 +1,291 @@
+{
+  "name": "A89: a DOMESTIC route needs >= minDomesticDistance; a nearer own city is rejected",
+  "notes": "Two p1 caravans (home c1 at x0). carNear stands in own cNear at x3 (dist 3 < 10) -> ownCityTooClose. carFar stands in own cFar at x13 (dist 13 >= 10) -> ok, route on c1 + windfall. Same-civ windfall halves; land-connected halves. Cross-language pin.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 15,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "carNear": {
+          "id": "carNear",
+          "type": "caravan",
+          "owner": "p1",
+          "x": 3,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "home": "c1"
+        },
+        "carFar": {
+          "id": "carFar",
+          "type": "caravan",
+          "owner": "p1",
+          "x": 13,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "home": "c1"
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "c1",
+          "owner": "p1",
+          "x": 0,
+          "y": 1,
+          "pop": 5,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "cNear": {
+          "id": "cNear",
+          "name": "cNear",
+          "owner": "p1",
+          "x": 3,
+          "y": 1,
+          "pop": 5,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "cFar": {
+          "id": "cFar",
+          "name": "cFar",
+          "owner": "p1",
+          "x": 13,
+          "y": 1,
+          "pop": 5,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "cNear",
+        "cFar"
+      ],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "p1",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "p2",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "establishTradeRoute",
+        "playerId": "p1",
+        "unitId": "carNear"
+      },
+      "expect": {
+        "ok": false,
+        "reason": "ownCityTooClose"
+      }
+    },
+    {
+      "cmd": {
+        "type": "establishTradeRoute",
+        "playerId": "p1",
+        "unitId": "carFar"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "turn": 5
+    },
+    "hash": "0xa45cf999"
+  }
+}

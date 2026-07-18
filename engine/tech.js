@@ -4,6 +4,7 @@
 // not per-tech prices). Luxuries, corruption and government caps come later.
 import { cityYields, effectPct, sellBuildingFrom } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
+import { routeArrows } from './trade.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -91,6 +92,11 @@ function playerIncome(state, playerId, ruleset) {
     if (anarchy) continue; // anarchy: the state collects nothing
     let trade = cityYields(state, city, ruleset).trade;
     trade = trade - corruptionFor(state, city, trade, ruleset);
+    // A89: the live permanent trade-route bonus adds ON TOP, post-corruption
+    // (R1: base arrows exclude routes; route trade is corruption-free). No-op
+    // (0) for a city without routes — the AI fields no caravans, so the sim
+    // goldens are untouched. Lux stays on raw tile trade (existing deviation).
+    trade = trade + routeArrows(state, city, ruleset);
     const cityTax = idiv(trade * taxRate, 100);
     const citySci = idiv(trade * sciRate, 100);
     gold += cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);

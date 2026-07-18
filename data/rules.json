@@ -83,6 +83,18 @@
     "flightYearsMin": 5,
     "successFlightFreeYears": 15
   },
+  "tradeRoute": {
+    "minDomesticDistance": 10,
+    "windfallDistanceBonus": 10,
+    "windfallDivisor": 24,
+    "permanentDivisor": 8,
+    "permanentPad": 4,
+    "routeCap": 3,
+    "sameContinent": { "num": 1, "den": 2 },
+    "sameCiv": { "num": 1, "den": 2 },
+    "railroad": { "tech": "railroad", "num": 2, "den": 3 },
+    "flight": { "tech": "flight", "num": 2, "den": 3 }
+  },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,
