@@ -45,9 +45,19 @@ Two windows, in order (bugfixer slicing #1440, adopted):
    `gold = rules.upgrade.baseGold + rules.upgrade.goldPerShield *
    max(0, costNew - costOld)` (10 / 2; all numbers in a new
    rules.json `upgrade` block); gold deducted, unit type replaced
-   in place (hp/moves per the new type's fresh values, position and
-   id kept). **Veteran CARRIES on the paid upgrade** (house choice,
-   Civ3-consistent — you paid; contrast 3b). Rejections:
+   in place (position and id kept). **REPLACEMENT RULE (R2 pin,
+   stated ONCE — applyUpgrade owns it for BOTH 3a and 3b, no
+   divergent twins):** `moves = min(remaining moves, new type's
+   moves)` — a spent unit does NOT buy fresh movement (the
+   pay-to-move exploit is closed); units carry NO persistent hp in
+   this engine (bugfixer seam check #1449), so the heal half of the
+   exploit class is structurally moot — state that fact in the module
+   comment. **Veteran CARRIES on the paid upgrade** (house choice,
+   Civ3-consistent — you paid; contrast 3b). Chain-paying is
+   INTENDED (R4): upgradesTo is single-successor, so each step is a
+   separate command priced separately; a player may chain
+   militia→musketeers→riflemen in one turn if the gold and the
+   moves-min rule allow. Rejections:
    `notYourUnit`/`notYourTurn` (standard), `notInCity` (not on an
    owned city tile), `noUpgrade` (no upgradesTo row or successor
    tech unknown), `notEnoughGold`.
@@ -80,8 +90,19 @@ freeciv rule it links; stub-vs-detail doctrine, the N10 precedent):
   if the end tech is already known).
 - COST: free. VETERAN: LOST — the replacement is non-veteran
   (Civ2-article-explicit; contrast 3a's paid carry).
-- DETERMINISM: iterate the owner's units in unitOrder (id ascending);
-  no RNG draws.
+- DETERMINISM (R1 corrected): iterate via
+  `sortIds(Object.keys(state.units))` filtered to the owner — the
+  engine's existing deterministic-iteration idiom (engine/air.js
+  precedent). There is NO unitOrder array in state and none may be
+  added (a new state field = state-shape change outside this
+  window's budget). No RNG draws.
+- TRIGGER SEAM (R3): route the Leonardo hook through ONE shared seam
+  at the tech-grant site so every grant path (research, goody-hut
+  grants, future D-family trades) fires it; the 3b scenario includes
+  a hut-granted tech alongside a researched one to hash-pin the
+  "acquisition" half.
+- Replacement follows the SAME applyUpgrade rule as 3a (moves-min;
+  veteran dropped via the keepVeteran=false flag).
 - Bribery-acquired-city upgrades: D-family note only (no bribery
   pre-diplomacy).
 
