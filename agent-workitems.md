@@ -18,6 +18,25 @@ voices)** → N17. A76-ENGINE space race (parts/ship state/launch/
 arrival per the wiki facts; the GRAPHICAL screen is the helper's
 half) → N18. A91 pollution → N19. A82 map types v1. (W2 #6
 catch-up stays LAST-by-design — not tonight.)
+**CITY-ERA-LOOKS (added 2026-07-19, spec specs/city-era-looks.md; user
+Roblox run-F item 8): HELPER lane, golden-neutral RENDER (reads owner tech
+era, no engine/save change) — buildable NOW, a ready feature while XII.2 is
+D3-gated. City look varies by ERA band (ancient thatch → classical stone →
+industrial brick+smokestack → modern/space glass+dome) composing with the
+existing size tiers (CITY_TIERS). Helper builds the system + obvious bands,
+flags middling ones for an ally/user visual pass. Defines the SHARED shape
+for roblox-helper's run-F item 8 parity. Coverage assert (every band has a
+style) + gallery era row.**
+
+**DATA-LABEL WINDOW add (2026-07-19): fold the run-F item 11b city-name
+expansion into the bugfixer's queued tiny data window (#1712, with Caesar→
+Colossus + railroad): extend each civ's `cities` list in civs.json from 8 to
+~16 real historical names so a >8-city empire stops hitting the "New <name>"/
+"<Civ> Outpost <n>" fallback (browser + Roblox both benefit). Behaviorally
+neutral (names only) → same A82a/002 re-record; VERIFY rounds/winner unchanged.
+Names authored architect-side or via the ally. (11a — Roblox rendering city.id
+not city.name — is roblox-helper's, #1728.)**
+
 **XII.6 Tech tree + beeline + glyphs (added 2026-07-18, spec
 specs/xii6-tech-tree.md, forks user-ruled): HELPER lane, golden-neutral,
 engine-independent — buildable NOW (#1716). A graphical tech-tree view
@@ -27,7 +46,25 @@ session state, auto-issues setResearch toward a distant target — no engine
 queue, golden-neutral), and procedural house-style tech GLYPHS (shared
 era frame + per-tech motif, factions.js idiom). Phase 1 = tree + beeline
 (name labels); Phase 2 = the glyph system + obvious motifs (ambiguous ones
-→ ally design pass). Roblox gets the era-grouped-list shape + glyphs later.**
+→ ally design pass). Roblox gets the era-grouped-list shape + glyphs later.
+[helper 2026-07-18] Phase 1 DONE: shared/beeline.js (pure next-step, node
+test 4/4), client/ui/tech-tree.js (🌳 overlay, era columns, 68 nodes/115
+edges, ✓/○/· states, click available→setResearch, click distant→beeline
+goal + first step, Shift+T), style.css overlay, wired in main.js;
+test-ui/tech-tree.spec.js 2/2 (open/states/click, auto-advance over turns).
+Golden-neutral. [helper 2026-07-19] Phase 2 SYSTEM DONE (#1724): client/ui/
+tech-glyphs.js — era frame + per-tech 2D-primitive motif, pure-data GLYPH
+table (Roblox-portable), cached canvas→dataURL; all 68 drafted, 34 in
+FLAGGED[] for the ally's concept pass. Wired into the tree (26px node
+glyphs, spec asserts 68); debugging/glyph-sheet.html renders the labeled
+sheet. Discovery card + research readout = other two surfaces, ready to
+wire on architect ack. Golden-neutral. [helper 2026-07-19] FOLLOW-WINDOW
+DONE (#1727): 33 ally motif concepts (specs/ally-glyph-request-2026-07-19.md
+ANSWERED) implemented procedurally, replacing provisionals; FLAGGED now
+empty (bronze/iron kept as accepted). Glyphs wired into ALL THREE surfaces
+— tree (26px nodes), discovery card (30px beside name), research readout
+(22px badge). Specs assert glyph presence on each; sheet re-screenshot 0
+amber. XII.6 A+B+C CLOSED end-to-end. Golden-neutral.**
 
 **XII.5 AI/regency late-game victory drive (added 2026-07-18, DESIGN spec
 specs/xii5-ai-victory-drive.md; user long-game feedback): the AI/regent goes

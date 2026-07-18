@@ -140,6 +140,12 @@ _Last synced: 2026-07-18._
   "win by any means" instead of by its civ's personality.
 - **XII.2 — Future Tech N** (your refinement): a repeatable score sink once
   the tree is exhausted, Civ1-authentic. Specced, queued after D3.
+- **Roblox run-F items in progress:** most are roblox-helper's (panels,
+  tile improvements, debug/DataStore config, the city-name render fix);
+  the shared ones are routed — **city-look-by-era** (your item 8) is now a
+  browser render feature the helper can build (specs/city-era-looks.md),
+  city-name lists get expanded, and the unit/building blurbs await your
+  ally forward (Decide/Do). No input needed beyond that forward.
 - **Phase-6 diplomacy D4–D6:** D1 shipped, D3 in build; D4 (tribute + tech
   terms), D5 (reputation + senate), D6 (embassies) follow. Pre-ruled
   defaults on record (docs/14) — no input needed until they land.
