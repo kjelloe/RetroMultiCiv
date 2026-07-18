@@ -30,6 +30,10 @@ _Last synced: 2026-07-18._
   marker-0063). No user action to get there — it's the next candidate
   once the sweep + phase-2 land.
 
+- [x] **Gaming PC back online** — both sim-runner and roblox-helper
+  recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
+  and the Roblox run-F work is pushing again. No further action.
+
 - [ ] **Forward the unit + building pedia-blurb request to the ally**
   (from your Roblox run-F item 9). Like the 68 tech blurbs, but a short
   blurb per UNIT and per BUILDING — what it is + a historical backdrop/
