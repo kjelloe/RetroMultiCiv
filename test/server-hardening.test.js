@@ -136,3 +136,24 @@ test('Slice 2: endTurn draws its own tighter per-seat bucket', async () => {
     assert.strictEqual(rl.code, 'rateLimited', 'endTurn burst is tighter than cmd');
   } finally { c.close(); await s.close(); }
 });
+
+test('Slice 2.5 A: heartbeat terminates a socket that stops ponging; a live one is never reaped', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer(base({ gameId: 'hb', heartbeatMisses: 2 })); // drive ticks manually, no 15s wait
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const dead = await connect(s.port), live = await connect(s.port);
+  try {
+    dead.ws._socket.pause(); // half-open: never receives pings -> never pongs
+    // round1 missed 0->1, round2 1->2, round3 >=2 -> terminate. Spaced so the
+    // LIVE socket's auto-pong lands between rounds and resets its miss counter.
+    for (let i = 0; i < 3; i++) { s.heartbeatTick(); await sleep(60); }
+    dead.ws._socket.resume(); // surface the server-side terminate as a close
+    const deadClosed = await new Promise(res => {
+      if (dead.ws.readyState !== 1) return res(true);
+      dead.ws.on('close', () => res(true)); setTimeout(() => res(dead.ws.readyState !== 1), 800);
+    });
+    assert.strictEqual(deadClosed, true, 'half-open socket terminated by heartbeat');
+    live.send({ t: 'ping' });
+    assert.ok(await live.expect(m => m.t === 'pong'), 'live socket pongs each round -> never reaped, still responds');
+  } finally { dead.close(); live.close(); await s.close(); }
+});
