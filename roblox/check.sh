@@ -130,5 +130,18 @@ else
   note SKIP "gate 8: node absent"
 fi
 
+# gate 11 — tech-blurbs parity: DiscoveryCard.client.luau TECH_BLURBS must be
+# a 1:1 port of the browser client/ui/tech-blurbs.js (ally §B1 authoring
+# source); id-set + string equality so the two can't drift silently
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/tech-blurbs-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 11: tech-blurbs match browser source"
+  else
+    note FAIL "gate 11: tech-blurbs parity — run: node roblox/selftest/tech-blurbs-parity.mjs"
+  fi
+else
+  note SKIP "gate 11: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

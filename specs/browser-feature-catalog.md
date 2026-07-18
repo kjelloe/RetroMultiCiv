@@ -44,7 +44,7 @@ prefixes) are the handles for twin requests and direction questions.
 |---|---|---|---|
 | SO1 | world MINIMAP click/drag-to-jump (C1) | minimap.js | PRESENT — Minimap.client.luau (flat Frame grid per ruling @38e36677; fog-honest, diff-painted, downsampling, click/drag jump; ViewportFrame = docs/13 polish tier) |
 | SO2 | breakdown TOOLTIPS (C2) | title attrs | PARTIAL — Tooltip.luau (hover 0.35s / long-press 0.5s per ruling) live on the HUD income ledger + city-yields ledger; more surfaces attach incrementally |
-| SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; blurbs empty-tolerant BOTH sides until the ally's lines land (sync flagged) |
+| SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; all 68 ally blurbs ported 1:1 from tech-blurbs.js, kept in sync by check.sh gate 11 |
 | SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; sync check each pedia change |
 | SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | PRESENT — AdviceCards.client.luau (10 cards, original prose, session-once, options mute; localStorage-less divergence flagged) |
 | SO6 | turn log (classes, filters, jump-to, fog rules) | turnlog.js | PARTIAL — log present (L toggle); classes/filters/jump-to not ported |
