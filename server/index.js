@@ -177,10 +177,13 @@ export function startServer(opts) {
       const ext = path.extname(file);
       // Slice 3b: nosniff on every asset; the HTML entrypoint revalidates so a
       // deploy propagates (no stale client), other assets cache briefly (longer
-      // would need content-hashed filenames, none today).
+      // would need content-hashed filenames, none today). X-Frame-Options DENY
+      // (v2 nicety) — the game page is standalone, never legitimately framed, so
+      // deny framing outright to close clickjacking.
       res.writeHead(200, {
         'Content-Type': MIME[ext] || 'application/octet-stream',
         'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
         'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=600'
       });
       res.end(buf);
