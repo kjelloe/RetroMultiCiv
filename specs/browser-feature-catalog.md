@@ -33,6 +33,10 @@ prefixes) are the handles for twin requests and direction questions.
 | CP15 | hotseat (multi-human one screen, handoff cover) | handoff.js | N-A-platform CONFIRMED @38e36677 — one client per player; LAN seats replace it |
 | CP16 | spectator mode (view-only) | ?spectate=1 | PRESENT — SPECTATE deck pad (host toggle, default ON); omniscient filterView via the twin's no-player-row path; sends stay notSeated. LAW amended in SPEC.md per @d1ce4920 |
 | CP17 | caravan trade routes (marker-0052): establish button/key Y, 🐫 windfall turnlog line, city-panel route list | engine/trade.js + input/turnlog/panels | PRESENT — Trade button + windfall banner + tooltip ROUTE REPORT (marker-0054 tradeRouteReport: arrows + over-cap marks) + 6 reject texts |
+| CP18 | unit UPGRADE button (N11 3a, marker-0055 engine: cost display, veteran-carries tooltip, reject texts) | engine/upgrade.js; browser slice IN FLIGHT (helper #1493) | annotate when the browser slice lands (engine already FREE via luau/upgrade.luau) |
+| CP19 | goody-hut entry + leader-ransom presentation (N13, marker-0058 engine: hut prop, barbleader silhouette, own-seat fog toasts/turnlog) | engine/huts.js; browser slice IN FLIGHT (helper #1493) | annotate when the browser slice lands (engine FREE via luau/huts.luau) |
+| CP20 | sentry (fog-honest wake radius 2) + settler AUTOMATION (view-based policy, manual-order cancel) (C4) | automate.js | to annotate — direction Q welcome (automation shape on Roblox?) |
+| CP21 | debug panel 🐞 + permanent DEBUG watermark (A92 both halves; taint in hash) | debug-panel.js + hud/saves/endscreen | PRESENT (provisional, architect-noted) — DebugMenu.client.luau + Hud DEBUG chip shipped in batch 7 (767ee95); roblox-helper refines |
 
 ## Screens & overlays
 
@@ -77,7 +81,7 @@ food upkeep; worked-tile blockade; ZOC city-capture exemption; barbarians
 era-tiers; government re-eval (SHIPPED marker-0051 — AI-only, stays
 no-UI); unit upgrades + Leonardo (SHIPPED markers 0055/0056 — client
 row CP18); goody huts + leader ransom (SHIPPED marker-0058 — client
-row CP19); debug commands (SHIPPED marker-0057 — client row above);
+row CP19); debug commands (SHIPPED marker-0057 — client row CP21);
 diplomacy D1-D2 (QUEUED, pre-ruled); space race arrival/victory
 (marker-0049). Caravan trade routes moved UP to Core play row CP17
 at marker-0052 (UI landed with the engine).
