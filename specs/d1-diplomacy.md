@@ -127,9 +127,11 @@ So D1 is GOLDEN-NEUTRAL by construction (the A76/N12 dormancy class).
 
 Fixtures (test/diplomacy.test.js): declare→war+event; offer→accept→
 peace+PEACE_TREATY_SIGNED+expiresTurn; declare-while-peace→TREATY_BROKEN
-+reputation−; the rejections (notMet, atPeace attack under treaty,
-noSuchOffer, barbarian target); the A79 blockade war-gate (enemy on a
-worked tile at WAR blockades, at PEACE does not). Scenario
++reputation−; the rejections (atPeace attack under treaty, noSuchOffer,
+barbarian target, selfTarget, alreadyWar, notYourTurn — NOT notMet,
+deferred to D2 per §2/R1, a §7 leftover corrected at build #1604);
+the A79 blockade war-gate (enemy on a worked tile at WAR blockades, at
+PEACE does not). Scenario
 012-diplomacy pinned cross-language (a declare→offer→accept→break
 chain; the reputation int + relations in the final hash). Golden
 re-record NOT expected (verify unchanged).

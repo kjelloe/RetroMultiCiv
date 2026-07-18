@@ -12,13 +12,13 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 ## DECIDE / DO (needs you)
 
 - [ ] **Merge the latest consistent marker.** Current candidate:
-  **marker-0059** (N9b: AI build-priority + the builder wonder-drive —
-  the AI now builds infrastructure selectively and SOME CIVS COMMIT TO
-  WONDERS, your ruling; behavioral golden re-record, no rulesetHash).
-  Supersedes 0058 (goody huts + leader ransom, N12 debug, N11 upgrades
-  + Leonardo, N10 caravans, the seam bundle, B28) and everything since
-  (mobile network fix, D1 spec, hardening). Merging 0059 is your GREEN
-  LIGHT for the mobile + LAN testing round.
+  **marker-0060** (D1 diplomacy — war/peace states + declare/offer/
+  accept/reject + the combat reframe; golden-neutral, phase 6 opens).
+  Supersedes 0059 (N9b build-priority + the builder wonder-drive —
+  some civs commit to wonders), 0058 (goody huts + leader ransom, N12
+  debug, N11 upgrades + Leonardo, N10 caravans), and everything since
+  (mobile network fix COMPLETE, server hardening COMPLETE). Merging is
+  your GREEN LIGHT for the mobile + LAN testing round.
 
 - [ ] **Send the designer-ally cover note** —
   `specs/ally-cover-note-2026-07-17-evening.md`. THREE asks: 68
@@ -64,20 +64,17 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
   client wake-reconnect): a briefly screen-locked phone now reconnects
   and keeps its LAN seat. This was the "phone stranded in the lobby"
   failure from your last LAN test.
-- **Ending-#4 space victory — corrected framing:** measured at 750
-  turns, longer-horizon games reach space-flight TECH (~t581-711) but
-  the AI never BUILDS Apollo (0/4 seeds). So the space *victory* needs
-  N9b's builder-wonder-drive (in flight, sweeping now) — the
-  longer-horizon ruling stands, the wonder-drive is the launch half.
-  A marathon re-run at N9b's tuned constants is the proof.
-- **N11 provenance:** shipped as labeled imports (Leonardo = Civ2,
-  manual upgrade = Civ3-shape) under your civ-mixing ruling. No
-  objection needed; done.
-- **Server hardening COMPLETE** (the docs/17 plan): command budget,
-  malformed-frame crash guard, per-IP connect-rate, Origin/static
-  headers, backpressure, graceful shutdown. A v1 security posture
-  re-assessment + operator quick-card ("safe to expose publicly?") is
-  the hardening lane's next deliverable.
+- **D1 diplomacy SHIPPED** (marker-0060): war/peace states + the
+  combat reframe, golden-neutral — phase 6 has opened. The D2 client
+  (foreign-relations panel + treaty actions) auto-activates on the
+  wire-up; D3 (AI negotiation) waits on A59 leader-attributes.
+- **N9b wonder-drive SHIPPED + validated** (marker-0059): builder
+  capitals now commit to wonders (7/25 seeds, minority, no monopoly),
+  frontier-safety holds. This is also the launch half of ending-#4 —
+  a marathon at the shipped constants confirms Apollo.
+- **Server hardening COMPLETE + certified** (docs/17 plan + the v1
+  posture re-assessment): the server is **safe to expose on a small
+  public VM** with the docs/16 §4 operator checklist.
 
 ---
 
@@ -88,9 +85,10 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
   on you scheduling DNS / a VM (docs/12).
 - **16+ civ roster:** cap ships at 14 (A38); going past it is a
   deliberate future scope decision.
-- **Phase-6 diplomacy** (D1-D2): war/peace + treaties, pre-ruled
-  defaults on record (docs/14); the architect writes the spec next to
-  keep the engine pipeline fed — no input needed until it lands.
+- **Phase-6 diplomacy D2-D6:** D1 shipped (marker-0060); D2 (audience
+  UI + human treaty UI) is the helper's next on the D1 wire-up; D3 (AI
+  negotiation) needs A59 leader-attributes; D4-D6 follow. Pre-ruled
+  defaults on record (docs/14) — no input needed until D2/D3 land.
 - **Live strategic overlay** (🧠 per-AI stance/mode panel): SHIPPED,
   debug/spectator-gated — makes the heterogeneous-AI work visible if
   you want to watch it during a spectate.
