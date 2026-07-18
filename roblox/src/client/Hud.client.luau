@@ -237,6 +237,24 @@ game:GetService("RunService").Heartbeat:Connect(function()
 	end
 end)
 
+-- R17: the permanent DEBUG taint chip — visible the moment the view's
+-- push envelope says debugUsed (the watermark never comes off the state)
+local debugChip = Instance.new("TextLabel")
+debugChip.Size = UDim2.new(0, 70, 0, 20)
+debugChip.Position = UDim2.new(0, 574, 0, 8)
+debugChip.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+debugChip.TextColor3 = Color3.fromRGB(255, 230, 230)
+debugChip.Font = Enum.Font.SourceSansBold
+debugChip.TextSize = 14
+debugChip.Text = "DEBUG"
+debugChip.Visible = false
+debugChip.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = debugChip
+end
+
 -- R7d (5): the docs/07 trust-loop chip — a read-only TextBox so the code is
 -- SELECTABLE (Roblox has no clipboard API; selecting for manual copy is the
 -- available affordance). Server sends the code with every push.
@@ -338,6 +356,7 @@ local function refresh(view)
 	if ClientState.code ~= nil then
 		codeChip.Text = "  code " .. ClientState.code
 	end
+	debugChip.Visible = ClientState.debugUsed == true -- R17
 	if ClientState.lastSave ~= nil then
 		saveChip.Visible = true
 		saveChip.Text = ("  saved %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)

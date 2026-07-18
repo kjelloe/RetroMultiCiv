@@ -20,6 +20,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
 
 local shared = ReplicatedStorage:WaitForChild("Shared")
@@ -340,6 +341,7 @@ local function pushSeat(player, pid, rawEvents)
 		code = gamecode.gameCode(state),
 		maxIdleMin = setup.maxIdleMin, -- R22: the client idle watcher's knob
 		away = awaySeats[pid] == true,
+		debugUsed = state.debugUsed == true, -- R17: the permanent taint chip
 	}
 	if rawEvents ~= nil and #rawEvents > 0 then
 		payload.events = visibility.filterEvents(state, rawEvents, pid)
@@ -682,7 +684,10 @@ local function startGame()
 	local created = engine.createGame({
 		seed = seed,
 		options = { width = size.w, height = size.h, players = playerDefs,
-			mapType = setup.mapType }, -- A82a preset (validated by mapgen)
+			mapType = setup.mapType, -- A82a preset (validated by mapgen)
+			-- R17 (marker-0057): STUDIO games are debug-enabled; the engine
+			-- taints permanently on first use (debugUsed rides every push)
+			debug = RunService:IsStudio() },
 	})
 	if created.ok == false then
 		print("[GameServer] createGame failed: " .. tostring(created.reason))

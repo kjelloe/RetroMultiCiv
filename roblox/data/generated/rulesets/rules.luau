@@ -98,6 +98,11 @@ return [==[{
     "railroad": { "tech": "railroad", "num": 2, "den": 3 },
     "flight": { "tech": "flight", "num": 2, "den": 3 }
   },
+  "upgrade": {
+    "baseGold": 10,
+    "goldPerShield": 2,
+    "leonardoWonder": "leonardo-s-workshop"
+  },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,

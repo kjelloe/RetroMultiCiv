@@ -164,6 +164,13 @@ return [==[{
     "obsoleteBy": "",
     "cost": 600,
     "effect": {}
+  },
+  "leonardo-s-workshop": {
+    "name": "Leonardo's Workshop",
+    "tech": "invention",
+    "obsoleteBy": "automobile",
+    "cost": 400,
+    "effect": {}
   }
 }
 ]==]

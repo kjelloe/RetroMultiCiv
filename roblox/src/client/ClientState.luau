@@ -322,6 +322,7 @@ remote.OnClientEvent:Connect(function(msg)
 		if msg.away ~= nil then
 			M.away = msg.away == true
 		end
+		M.debugUsed = msg.debugUsed == true -- R17 taint chip
 		if M.selectedUnitId ~= nil and M.view.units[M.selectedUnitId] == nil then
 			M.selectedUnitId = nil -- unit died or left our sight
 		end

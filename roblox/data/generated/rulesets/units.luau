@@ -31,7 +31,8 @@ return [==[{
     "cost": 40,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "robotics"
+    "obsoletedBy": "robotics",
+    "upgradesTo": "artillery"
   },
   "caravan": {
     "name": "Caravan",
@@ -55,7 +56,8 @@ return [==[{
     "cost": 40,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "metallurgy"
+    "obsoletedBy": "metallurgy",
+    "upgradesTo": "cannon"
   },
   "cavalry": {
     "name": "Cavalry",
@@ -66,7 +68,8 @@ return [==[{
     "cost": 20,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "conscription"
+    "obsoletedBy": "conscription",
+    "upgradesTo": "knights"
   },
   "chariot": {
     "name": "Chariot",
@@ -77,7 +80,8 @@ return [==[{
     "cost": 40,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "chivalry"
+    "obsoletedBy": "chivalry",
+    "upgradesTo": "knights"
   },
   "diplomat": {
     "name": "Diplomat",
@@ -110,7 +114,8 @@ return [==[{
     "cost": 20,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "conscription"
+    "obsoletedBy": "conscription",
+    "upgradesTo": "musketeers"
   },
   "mech-inf": {
     "name": "Mech. Inf.",
@@ -131,7 +136,8 @@ return [==[{
     "cost": 30,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "conscription"
+    "obsoletedBy": "conscription",
+    "upgradesTo": "riflemen"
   },
   "phalanx": {
     "name": "Phalanx",
@@ -142,7 +148,8 @@ return [==[{
     "cost": 20,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "gunpowder"
+    "obsoletedBy": "gunpowder",
+    "upgradesTo": "musketeers"
   },
   "riflemen": {
     "name": "Riflemen",
@@ -163,7 +170,8 @@ return [==[{
     "cost": 10,
     "domain": "land",
     "notes": "",
-    "obsoletedBy": "gunpowder"
+    "obsoletedBy": "gunpowder",
+    "upgradesTo": "musketeers"
   },
   "settlers": {
     "name": "Settlers",
@@ -216,7 +224,8 @@ return [==[{
     "domain": "sea",
     "notes": "",
     "obsoletedBy": "industrialization",
-    "transport": 4
+    "transport": 4,
+    "upgradesTo": "transport"
   },
   "ironclad": {
     "name": "Ironclad",
@@ -227,7 +236,8 @@ return [==[{
     "cost": 60,
     "domain": "sea",
     "notes": "",
-    "obsoletedBy": "combustion"
+    "obsoletedBy": "combustion",
+    "upgradesTo": "cruiser"
   },
   "sail": {
     "name": "Sail",
@@ -239,7 +249,8 @@ return [==[{
     "domain": "sea",
     "notes": "",
     "obsoletedBy": "magnetism",
-    "transport": 3
+    "transport": 3,
+    "upgradesTo": "frigate"
   },
   "submarine": {
     "name": "Submarine",
@@ -272,7 +283,8 @@ return [==[{
     "domain": "sea",
     "notes": "",
     "obsoletedBy": "navigation",
-    "transport": 2
+    "transport": 2,
+    "upgradesTo": "sail"
   },
   "bomber": {
     "name": "Bomber",
