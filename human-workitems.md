@@ -95,11 +95,12 @@ the Done log at the bottom.
   measurement; single-player mobile is already portrait-laid-out +
   touch-input'd (T1/T2 shipped), so T0 decides only whether a perf
   pass is needed. THE NETWORK blocker (phone dropped from the LAN
-  lobby on screen-lock) is now a routed engineering fix, NOT a user
-  item: specs/mobile-resilience.md — server heartbeat + lobby
-  seat-grace (hardening, slice 2.5) + client auto-reconnect-on-wake
-  (helper, follow-on). The half-open-socket root cause is understood
-  and owned.
+  lobby on screen-lock) is now SERVER-COMPLETE (specs/mobile-resilience.md):
+  heartbeat + half-open reaping (detection) SHIPPED, lobby seat-grace
+  + private-reconnectId reclaim (seat preservation) SHIPPED — a
+  briefly-locked phone keeps its seat. Only the client wake-reconnect
+  (Part C, helper) remains, then the whole loop closes. So the
+  playtest's only mobile job is the render/perf T0 read above.
 - [x] **Match-report consent shape — BLESSED 2026-07-18 (overnight
   answer) and S1 SHIPPED** (c062d58): off-by-default writer, sticky
   seat veto, anonymization w/ regenerated hashes so reports replay

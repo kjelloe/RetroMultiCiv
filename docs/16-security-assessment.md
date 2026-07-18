@@ -59,10 +59,25 @@ the deferred resend integration), payments (never).
   parse/validate chokepoint (`server-protocol.test.js` covers
   parse/route/seat-auth; `server-hardening.test.js` covers the
   malformed-frame battery + kick-path budget preserve).
-- **Command budget** (marker-0050): per-connection O(1) token bucket
-  spent before route(), preserved across kicks (slice 1 fix). The
-  per-SEAT bucket + all-message cap (closes vote-flood) is hardening
-  slice 2, in flight.
+- **Command budget** (marker-0050 + slice 2, SHIPPED): a LAYERED
+  budget — per-connection O(1) token bucket (backstop, spent before
+  route, preserved across kicks) PLUS a per-SEAT bucket (shared
+  across a seat's sockets — closes the multi-socket/reconnect bypass)
+  PLUS a per-connection all-message cap over every frame type (closes
+  the vote/ping flood the cmd-only budget missed). Swept defaults:
+  seat cmd 15/s+40, endTurn 2/s+4, msg 30/s+60 (combined sweep:
+  co-player p50 278ms under 6 flooders vs ~834ms per-connection-only).
+- **Heartbeat + half-open reaping** (slice 2.5, SHIPPED): ws ping
+  every 15s; a socket missing 2 pongs is `terminate()`d so its close
+  handler fires deterministically — the only way a locked/backgrounded
+  phone's HALF-OPEN socket (readyState OPEN, no close event) becomes
+  detectable. Was the top availability gap for mobile hosting.
+- **Lobby seat-grace** (slice 2.5 Part B, SHIPPED): a dropped lobby
+  seat is held ~45s (not released instantly) and reclaimable ONLY by
+  its private `reconnectId` (issued in the joinedLobby reply, NEVER in
+  the public roster — a live seat is never displaceable). Lets a
+  briefly-locked phone keep its seat. Client wake-reconnect (present
+  the id) is the helper's Part C.
 - **Seat auth**: server-issued tokens, sent once on join, held in
   client localStorage; never network-fetchable at rest (A61 —
   `/saves` is outside the whitelist). Reclaim only for EMPTY

@@ -99,3 +99,14 @@ layout) → T2 (layout, the wide pass) → T3 (polish, opportunistic). Each tier
 ships alone, labelled golden-neutral, and none opens an engine golden window.
 The mobile item stays parked until the architect queues it; T0 requires no
 unparking since it changes nothing.
+
+## Network resilience (separate track — the actual LAN-dropout blocker)
+
+T0-T3 above are the RENDER/INPUT layer. The distinct blocker measured in the
+field (a phone dropping from the LAN lobby on screen-lock — L8 story A) is a
+NETWORK problem, speced separately in `specs/mobile-resilience.md` and largely
+SHIPPED 2026-07-18: server heartbeat + half-open reaping (detection) and the
+lobby seat-grace window with a private reconnectId (seat preservation) are on
+dev_night; the client wake-reconnect that presents the id (Part C) is the
+remaining helper slice. T0's field data (does WebGL run at playable fps) is
+independent of this and gated on a real phone session.
