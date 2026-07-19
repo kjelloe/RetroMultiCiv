@@ -35,11 +35,11 @@ _Last synced: 2026-07-18._
   and the Roblox run-F work is pushing again. No further action.
 
 - [ ] **Forward the unit + building pedia-blurb request to the ally**
-  (from your Roblox run-F item 9). Like the 68 tech blurbs, but a short
-  blurb per UNIT and per BUILDING — what it is + a historical backdrop/
-  fact. Original prose, cross-platform (browser pedia + Roblox), data
-  separate from rules. I'll prepare the exact id list for the ally; this
-  line is the reminder to relay it. Not blocking.
+  (from your Roblox run-F item 9). **Ready to send:**
+  `specs/ally-unit-building-blurb-request-2026-07-19.md` — the full 28-unit
+  + 21-building id list (verified against the data files) + the same
+  writing constraints as the tech blurbs. Just relay it; the helper wires
+  the copy in when it lands (like the 68 tech blurbs). Not blocking.
 
 ---
 
