@@ -15,6 +15,8 @@
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs, cityEconOutput } from './tech.js';
+import { metOf, relationOf, pairKey } from './diplomacy.js';
+import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
 import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields } from './cities.js';
 import { hasWaterSource } from './improvements.js';
@@ -1128,6 +1130,42 @@ function happinessCommand(state, playerId, ruleset) {
 }
 
 // One decision at a time; `done` prevents re-considering the same actor this turn.
+// D3: the AI diplomacy step — for each MET rival (metOf gate), respond to a
+// pending peace offer, declare to BREAK a peace treaty when war intent recovers
+// (at default war the AI just attacks as today — no declare needed), or offer
+// peace when it would itself accept one. Returns ONE diplomacy command per call;
+// doneSet tracks processed rivals so runAiTurn's loop covers them all. Never
+// double-issues on the default-war baseline (declare only fires peace->war).
+function diplomacyStep(state, playerId, ruleset, doneSet) {
+  const d = ruleset.rules.diplomacy;
+  if (d === undefined) return null;
+  for (const other of state.playerOrder) {
+    if (other === playerId || doneSet[other]) continue;
+    const op = state.players[other];
+    if (op === undefined || op.alive === false || other === 'barb' || !metOf(state, playerId, other)) {
+      doneSet[other] = true; continue;
+    }
+    doneSet[other] = true; // one diplomacy action per rival per turn
+    const rel = relationOf(state, playerId, other);
+    const entry = state.relations === undefined ? undefined : state.relations[pairKey(playerId, other)];
+    // 1. a pending peace offer FROM other -> accept/reject by scorePeaceAccept
+    if (entry !== undefined && entry.offer !== undefined && entry.offer.from === other) {
+      const accept = scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold;
+      return { type: 'diplomacy', kind: accept ? 'accept' : 'reject', playerId, target: other };
+    }
+    // 2. at PEACE + war intent recovers -> declare (breaks the treaty, TREATY_BROKEN)
+    if (rel === 'peace' && scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold) {
+      return { type: 'diplomacy', kind: 'declare', playerId, target: other };
+    }
+    // 3. at WAR + would accept peace itself + none pending -> offer peace (perpetual)
+    if (rel === 'war' && (entry === undefined || entry.offer === undefined)
+        && scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold) {
+      return { type: 'diplomacy', kind: 'offer', playerId, target: other, terms: { peace: true } };
+    }
+  }
+  return null;
+}
+
 function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
   // stance-mix v1: an explicit stance argument wins (regent seats); otherwise
@@ -1142,6 +1180,12 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     const cmd = happinessCommand(state, playerId, ruleset);
     if (cmd) return cmd;
   }
+
+  // D3: the AI diplomacy step — negotiate with met rivals (declare/offer/accept/
+  // reject). Omit-safe: does nothing until civs have met + relations exist.
+  if (done.diplo === undefined) done.diplo = {};
+  const diploCmd = diplomacyStep(state, playerId, ruleset, done.diplo);
+  if (diploCmd) return diploCmd;
 
   if ((me.researching === '' || me.researching === undefined) && !done.research) {
     done.research = true;

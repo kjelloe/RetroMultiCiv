@@ -56,6 +56,7 @@ export function classifyEvent(e, viewer, cityOwner) {
     // D2: war/peace/betrayal are load-bearing world news (the world hears the
     // headline; the two parties get the detail in the row text) — always shown
     case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
+    case 'FIRST_CONTACT': // D3: engine first-contact event (D2's audience trigger)
       return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';

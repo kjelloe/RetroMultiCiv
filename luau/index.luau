@@ -179,6 +179,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.processAir(state, ruleset, events)
 		hooks.processSpace(state, ruleset, events) -- A76: first launched ship to arrive wins
+		diplomacy.processDecay(state, ruleset) -- D3: grievance fades each round (replayable)
 		hooks.checkGameEnd(state, ruleset, events)
 		local ageAfter = worldAge(state, ruleset)
 		if ageAfter ~= ageBefore then
@@ -204,6 +205,8 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		state.activePlayer = order[(idx :: number) + 1]
 		table.insert(events, { type = "turnStarted", turn = state.turn, activePlayer = state.activePlayer })
 	end
+	-- D3: first-contact pass for the player whose turn now begins (every seat).
+	diplomacy.contactPass(state, state.activePlayer, events)
 	return { ok = true, events = events }
 end
 

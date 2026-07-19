@@ -13,6 +13,7 @@ local statehash = require("./statehash")
 local visibility = require("./visibility")
 local cities = require("./cities")
 local government = require("./government")
+local diplomacy = require("./diplomacy") -- D3: attack-grievance
 
 -- Deterministic id ordering that needs no key order: shorter first, then
 -- lexicographic — so u2 < u10.
@@ -154,6 +155,11 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 	local defender = bestDefender(state, tx, ty, ruleset)
 	if defender == nil then
 		return { ok = false, reason = "nothingToAttack" }
+	end
+	-- D3: the DEFENDER's owner gains grievance toward the ATTACKER (directed). Skip
+	-- barbarians. Omit-safe when no diplomacy ruleset.
+	if attacker.owner ~= "barb" and defender.owner ~= "barb" and ruleset.rules.diplomacy ~= nil then
+		diplomacy.bumpRel(state, defender.owner, attacker.owner, "grievance", ruleset.rules.diplomacy.relGrievanceOnAttack)
 	end
 
 	local att = attackStrength(attacker, ruleset)

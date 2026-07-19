@@ -38,7 +38,8 @@ const EVENT_TYPES = {
   hutEntered: 'huts', ransomPaid: 'combat',
   // D1 diplomacy: UPPER_SNAKE per the ally-specified shapes (spec §3) + the
   // committed D2 client classifier — a deliberate family exception to camelCase.
-  WAR_DECLARED: 'diplomacy', PEACE_TREATY_SIGNED: 'diplomacy', TREATY_BROKEN: 'diplomacy'
+  WAR_DECLARED: 'diplomacy', PEACE_TREATY_SIGNED: 'diplomacy', TREATY_BROKEN: 'diplomacy',
+  FIRST_CONTACT: 'diplomacy'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',
