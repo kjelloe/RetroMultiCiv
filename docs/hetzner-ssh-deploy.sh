@@ -24,8 +24,11 @@ DEPLOY="<DEPLOY_USER>@<YOUR_DOMAIN>"
 APP="/opt/retromulticiv"
 SSH="ssh -p 2222"    # add -i ~/.ssh/<your-key> if it isn't your default key
 
+echo "==> Ensuring $APP exists and is owned by the deploy user"
+$SSH "$DEPLOY" "sudo mkdir -p $APP/saves $APP/crashdumps && sudo chown -R \$(id -un):\$(id -gn) $APP"
+
 echo "==> Syncing runtime code to $DEPLOY:$APP (allowlist)"
-rsync -av \
+rsync -av --no-owner --no-group \
     --exclude 'data/wiki-extract' \
     --include '/client/***' \
     --include '/engine/***' \
