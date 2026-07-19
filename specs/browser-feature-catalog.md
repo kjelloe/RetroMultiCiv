@@ -59,6 +59,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |
 | SO16 | mobile: ?mlog overlay, d-pad, touch | mlog.js/dpad.js | N-A-platform CONFIRMED — Roblox native touch + RidePad + long-press already cover it |
 | SO17 | 🧠 live strategic overlay (per-AI stance/mode/threat/units; ?debug=1 + spectator only) | strategic-overlay.js + shared/strategic.js | PRESENT — Strategic.client.luau (🧠 panel, spectator/Studio-gated) over the SERVER's {t=strat} full-state strategicSnapshot pull (luau/strategic.luau twin @e73d631); mode icons ⚔🌱🏛🛡, colored threat, unit counts, palette chips |
+| SO18 | 🌳 tech tree (XII.6): graphical DAG + client beeline + procedural glyphs | tech-tree.js + tech-glyphs.js + shared/beeline.js | PARTIAL — Roblox tier = the ERA-GROUPED-LIST fork (docs/13) + client beeline: TechTree.client.luau (🌳/Shift+T, ✓/○/·/◇ states, click avail→setResearch / locked→beeline goal) over Beeline.luau (ported shared/beeline.js, gate-15 lune parity over all 68 techs); golden-neutral (setResearch only, goal = session state). Procedural per-tech GLYPHS = phase 2 (name labels first; motifs ~36 solid + ~32 provisional pending the ally motif pass) |
 
 ## Multiplayer / server
 

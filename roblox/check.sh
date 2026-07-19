@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -181,6 +181,21 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 14: node absent"
+fi
+
+# gate 15 — beeline parity: the Roblox client Beeline.luau (#1726 §2 tech-tree
+# beeline) must produce byte-identical steps to shared/beeline.js over every
+# tech goal from empty-known (node + lune, self-skips without either)
+if command -v node >/dev/null 2>&1 && command -v lune >/dev/null 2>&1; then
+  bjs=$(node roblox/selftest/beeline-parity.mjs 2>/dev/null)
+  blu=$(lune run roblox/selftest/beeline-parity.luau 2>/dev/null)
+  if [ -n "$bjs" ] && [ "$bjs" = "$blu" ]; then
+    note PASS "gate 15: beeline JS==luau ($(printf '%s' "$bjs" | grep -c '=') goals)"
+  else
+    note FAIL "gate 15: beeline parity split — run: diff <(node roblox/selftest/beeline-parity.mjs) <(lune run roblox/selftest/beeline-parity.luau)"
+  fi
+else
+  note SKIP "gate 15: node or lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

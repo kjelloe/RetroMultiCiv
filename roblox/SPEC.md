@@ -647,9 +647,17 @@ Run-F live playtest (2026-07-19) fixes:
 - Pedia (#1726 §1): the ally's `movement` + `regency` concepts ported
   into `PediaConcepts.luau` (recordings already had the richer Roblox
   body) — 16 concepts, gate 14 keeps them in sync.
+- **XII.6 tech-tree tier (#1726 §2, SO18)**: the era-GROUPED-LIST fork
+  (docs/13) — `TechTree.client.luau` (🌳/Shift+T, ✓/○/·/◇ states, click
+  avail→setResearch / locked→beeline goal) + `Beeline.luau` (ported
+  `shared/beeline.js`, gate-15 lune parity over all 68 techs). Golden-
+  neutral (setResearch only; goal = session state). Procedural glyphs
+  (Part C) are phase 2 — name labels ship now, motifs are ~half
+  provisional pending the ally motif pass.
 - Still open: **#9** per-unit/building pedia flavor blurbs (original
-  prose, requested from the ally like tech-blurbs, #1755); the XII.6
-  tech-tree tier (#1726 §2) is the next queued build.
+  prose, requested from the ally like tech-blurbs, #1755); the tech-tree
+  procedural GLYPHS (phase 2, ally motif pass) + the CP1 tile-props art
+  pass (now unblocked by the enhanced-look ruling).
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
 2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
@@ -722,9 +730,14 @@ architect):
    normalized for the em-dash→hyphen transliteration; the `recordings`
    body is a documented platform divergence), so a new concept or a
    reworded line can't drift.
+15. Beeline parity (`selftest/beeline-parity.{mjs,luau}`, node+lune):
+   the tech-tree's `Beeline.luau` (#1726 §2) produces byte-identical
+   next-steps to `shared/beeline.js` over every tech goal from
+   empty-known — a true port-parity check (requires the real
+   `Beeline.luau`, which is pure). Self-skips without lune.
 
 What check.sh cannot cover: general Luau execution (only the pinned
-lune gates 7 and 9 run Luau headlessly). The full executable proof is
+lune gates 7, 9 and 15 run Luau headlessly). The full executable proof is
 Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
 done-note, screenshots read and described. Newer client logic modules
 worth pinning if they grow risk: `SettlerAuto` findJob (view-based
