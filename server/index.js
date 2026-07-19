@@ -20,6 +20,11 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode, yearAtTurn } from './lobby.js';
 import { installCrashHandlers, startMemoryWatchdog } from './crash.js';
+
+// #1870 slice 2: the per-command recording sidecar (saves/<gameId>.log.jsonl)
+// sits next to the .json autosave; deriving one from the other keeps them paired
+// for rotation + resume.
+function sidecarOf(jsonFile) { return jsonFile ? jsonFile.replace(/\.json$/, '.log.jsonl') : null; }
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
@@ -126,28 +131,33 @@ export function startServer(opts) {
         + `player's state${parsed.format === 'retromulticiv-save' ? ' (and in ?server=1 mode only a fog-filtered VIEW)' : ''} `
         + `and cannot boot a server.`);
     }
-    defaultGame = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
+    const defSaveFile = opts.saveFile || opts.game;
+    defaultGame = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift,
+      sidecarFile: autosave ? sidecarOf(defSaveFile) : null });
     if (opts.resetSeats) {
       defaultGame.resetSeats();
       console.log('seat bindings cleared (--reset-seats) — first joiners take the seats');
     }
-    saveFiles[defaultGame.gameId] = opts.saveFile || opts.game;
+    saveFiles[defaultGame.gameId] = defSaveFile;
   } else {
+    // NAMESPACED default id: the lobby counter mints g1, g2 … and saves are
+    // named by id, so a 'g<seed>' default could collide with a resumed
+    // save's id and steal its join-by-id resolution (the A49-ext resume
+    // spec caught this live). 'default-g<seed>' cannot collide.
+    const defGameId = opts.gameId || ('default-g' + (opts.seed || 1));
+    const defSaveFile = opts.saveFile || path.join(SAVES, defGameId + '.json');
     defaultGame = createGame({
       ruleset,
-      // NAMESPACED default id: the lobby counter mints g1, g2 … and saves are
-      // named by id, so a 'g<seed>' default could collide with a resumed
-      // save's id and steal its join-by-id resolution (the A49-ext resume
-      // spec caught this live). 'default-g<seed>' cannot collide.
-      gameId: opts.gameId || ('default-g' + (opts.seed || 1)),
+      gameId: defGameId,
       rulesOverrides: opts.rulesOverrides,
+      sidecarFile: autosave ? sidecarOf(defSaveFile) : null,
       setup: setupFromOpts({
         seed: opts.seed || 1, civs: opts.civs || 2,
         humans: opts.humans || 1, size: opts.size || 'medium',
         debug: opts.debug // A92
       })
     });
-    saveFiles[defaultGame.gameId] = opts.saveFile || path.join(SAVES, defaultGame.gameId + '.json');
+    saveFiles[defaultGame.gameId] = defSaveFile;
   }
   // the boot game allows spectators by default (a local-dev convenience; the
   // CLI host stays in control via --no-spectators — docs/08 §6). Lobby-created
@@ -341,6 +351,9 @@ export function startServer(opts) {
     }
     for (const victim of planRotation(files, active, opts.rotation)) {
       try { fs.unlinkSync(victim); } catch (e) { /* already gone */ }
+      // #1870: sweep the per-command sidecar alongside its save so retired games
+      // don't orphan .log.jsonl files (the exact disk growth rotation prevents)
+      try { fs.unlinkSync(sidecarOf(victim)); } catch (e) { /* no sidecar / already gone */ }
     }
   }
   // A50 item 3b: registry lifecycle expiry, run on the maintenance sweep.
@@ -441,7 +454,8 @@ export function startServer(opts) {
     // path (createGame throws on ruleset drift and bad shapes)
     let game;
     try {
-      game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift });
+      game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift,
+        sidecarFile: autosave ? sidecarOf(file) : null });
       game.resetSeats();
     } catch (err) {
       console.log(`resume rejected: ${path.basename(file)} — ${err.message}`);
@@ -713,6 +727,10 @@ export function startServer(opts) {
     for (const [o, i] of conns) if (i.gameId === gameId && i.seat) { liveSeats.push(i.seat); seatConn[i.seat] = o; }
     const res = registry.start(gameId, liveSeats);
     if (!res.ok) { send(ws, { t: 'rejected', commandId: -1, code: res.reason }); return; }
+    // #1870 slice 2: lobby games are built without a save path; attach the
+    // recording sidecar now (before any command) so their per-command log
+    // streams to disk instead of growing in RAM — the turn-2623 OOM case.
+    if (autosave && res.game.setSidecar) res.game.setSidecar(sidecarOf(savePath(gameId)));
     const entry = registry.entryOf(gameId);
     // bind live human seats IN ORDER: bindSeat's first-free then lands each
     // connection on its charted seat (lobby authored setup to match).
