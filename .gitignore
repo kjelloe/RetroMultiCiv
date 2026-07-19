@@ -20,6 +20,7 @@ debugging/goldens/actual-*.png
 
 # runtime output
 saves/
+crashdumps/
 *.log
 
 # tooling

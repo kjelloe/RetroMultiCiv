@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode } from './lobby.js';
+import { installCrashHandlers, startMemoryWatchdog } from './crash.js';
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
@@ -252,6 +253,28 @@ export function startServer(opts) {
   function savePath(gameId) {
     if (!saveFiles[gameId]) saveFiles[gameId] = path.join(SAVES, gameId + '.json');
     return saveFiles[gameId];
+  }
+  // Crash resilience (server/crash.js): best-effort per-game context for a
+  // crashdump — the biggest-state signal for scale crashes (turn-2623).
+  function gameProbe() {
+    return registry.list().map(g => {
+      const e = registry.entryOf(g.gameId);
+      const st = e && e.game ? e.game.state : null;
+      return {
+        gameId: g.gameId, turn: g.turn,
+        units: st && st.units ? Object.keys(st.units).length : 0,
+        cities: st && st.cities ? Object.keys(st.cities).length : 0
+      };
+    });
+  }
+  // Final best-effort save-all before an OOM graceful-exit; games are already
+  // durable via per-command autosave, so this only narrows the in-flight window.
+  function autosaveAll() {
+    if (!autosave) return;
+    for (const g of registry.list()) {
+      const e = registry.entryOf(g.gameId);
+      if (e && e.game) e.game.saveTo(savePath(g.gameId));
+    }
   }
   // A50 item 3 (USER rotation spec 2026-07-16): keep saves/ under a count AND
   // size budget by retiring the OLDEST completed/abandoned games first; a game
@@ -1093,6 +1116,7 @@ export function startServer(opts) {
         rotateSaves, // exposed so tests can trigger rotation deterministically
         maintenanceSweep, // A50 3b: tests advance opts.now then call this to exercise expiry
         heartbeatTick, // Part A: tests drive heartbeat rounds without waiting heartbeatMs
+        gameProbe, autosaveAll, // crash.js: crashdump context + OOM graceful save-all
         announceStatus: () => ({ listed: announceState.listed, reason: announceState.reason, lastError: announceState.lastError }), // A51b: test/console visibility
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
@@ -1137,6 +1161,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // Slice 3c: outbound backpressure + silent-squatter timeout
     else if (a === '--max-outbuf-mb') opts.maxOutBufferBytes = Number(argv[++i]) * 1024 * 1024;
     else if (a === '--unauth-timeout-sec') opts.unauthTimeoutMs = Number(argv[++i]) * 1000;
+    // Crash resilience (server/crash.js): OOM memory watchdog tuning
+    else if (a === '--mem-soft-pct') opts.memSoftPct = Number(argv[++i]);
+    else if (a === '--mem-check-sec') opts.memCheckMs = Number(argv[++i]) * 1000;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
@@ -1161,8 +1188,20 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
+  // Crash resilience: install fatal-error handlers EARLY (deps filled after boot,
+  // read by reference at crash-time) so even a boot crash writes a crashdump.
+  const crashDeps = {};
+  installCrashHandlers(crashDeps);
   Promise.resolve().then(() => startServer(opts)).then((server) => {
     const { port, game } = server;
+    crashDeps.gameProbe = server.gameProbe;
+    crashDeps.autosaveAll = server.autosaveAll;
+    // OOM graceful-exit watchdog: exit(70) before V8's fatal heap-OOM, after a
+    // final save-all. Games resume from per-command autosave via the wrapper.
+    startMemoryWatchdog({
+      softPct: opts.memSoftPct, checkMs: opts.memCheckMs,
+      gameProbe: server.gameProbe, autosaveAll: server.autosaveAll
+    });
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
     // Slice 3c: one-line posture summary so an operator sees the active guards.

@@ -132,6 +132,19 @@ the deferred resend integration), payments (never).
   `--omit=dev`, so the hosted posture is unchanged; recorded here per
   the re-assess-on-new-dependency trigger. `npm audit` reported 0
   vulnerabilities at install.
+- **Crash resilience (2026-07-19, `server/crash.js`)**: `uncaughtException`
+  /`unhandledRejection` write a structured crashdump to `crashdumps/crash-<ISO>.log`
+  (+ a one-line stderr mirror) then `exit(70)` — the dump carries the stack,
+  `memoryUsage`/V8 heap limit + heapUsed%, uptime/pid/argv, and best-effort
+  per-game turn/unit/city counts (the biggest-state signal for scale crashes
+  like turn-2623). A polling memory watchdog (`--mem-check-sec`, default 20s)
+  exits gracefully at `--mem-soft-pct` (default 85% of the V8 heap limit) BEFORE
+  V8's fatal uncatchable OOM, writing an `oom-<ISO>.log` and a final best-effort
+  autosave-all first. Because autosave is per-command, games resume from disk —
+  at most the in-flight command is lost. `crashdumps/` is gitignored (ops
+  artifacts). A crash-vs-block tell: an `oom-*.log` = memory crash; a live
+  process with no dump = the event-loop block (#1732). The restart wrapper
+  (run.sh/run.ps1, keying on exit 70) auto-restarts; resume is automatic.
 - **Availability**: A96 watchdog serves a static 503 maintenance
   page (dependency-free) after N failed starts; systemd restarts
   cover crashes. The engine is synchronous per command — a slow
