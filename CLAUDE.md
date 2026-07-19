@@ -356,5 +356,9 @@ never reorder someone else's. Agent⇄architect coordination goes through
 per message, per-role unread
 cursors — check your inbox at task start and end); usage incl. the
 LAN hub, flag aliases, and the measured gotchas is documented in
-`tools/agent-mail.md`. `agent-chat.md` is
+`tools/agent-mail.md`. **A blocked lane, or one needing a ruling, mails
+`coordinator` (tag `blocked`) — a read-time role alias for whoever holds
+coordination (currently `architect`, re-pointed in `.agent-mail/roles`);
+silence is never a status, so raise your hand rather than idle
+(design: `specs/coordinator-role-alias.md`).** `agent-chat.md` is
 the long-form archive. The store is gitignored; the md is tracked.

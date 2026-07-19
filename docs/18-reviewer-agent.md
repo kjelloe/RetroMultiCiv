@@ -39,7 +39,10 @@ drift a design can carry before it is ever built.
   working clone (so it never disturbs measurement runs).
 - **Coordination via the agent-mail hub** (`python3 tools/agent-mail.py`).
   Check inbox at task start/end. It SENDS verdict mail; it does not take
-  locks (read-only). Address the architect alone (not comma-compound roles).
+  locks (read-only). Address `coordinator` (the role alias for whoever
+  coordinates — currently the architect) alone, not comma-compound roles;
+  if blocked or needing a ruling, mail `coordinator` (tag `blocked`) rather
+  than going silent.
 - **Branch/tag discipline:** review the exact tagged commit
   (`git checkout marker-NNNN` in its clone, or a detached worktree). Note the
   SHA it reviewed in every verdict.

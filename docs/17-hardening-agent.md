@@ -33,7 +33,9 @@ the framing operational and the words neutral.
   tree.
 - **Coordination via the agent-mail hub + lock registry** (live across
   clones/machines — `python3 tools/agent-mail.py`). Check your inbox at
-  task start and end. Claim any shared file with
+  task start and end. **Blocked or need a ruling? Mail `coordinator` (tag
+  `blocked`) — the role alias for whoever coordinates; do not go silent,
+  silence is not a status.** Claim any shared file with
   `lock <file> --as hardening --why "…"` before editing; `unlock` when
   your done-mail goes out. The registry answers "may I edit this right
   now"; the mail carries the why + the regions.

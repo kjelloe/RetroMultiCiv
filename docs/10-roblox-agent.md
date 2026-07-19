@@ -25,7 +25,10 @@ the hub URL into your clone's `.agent-mail/remote` (one line, e.g.
 `http://192.168.1.112:8970` — ASK THE USER for the dev PC's current
 address; DHCP has moved it before) and every agent-mail command —
 send, inbox, lock, locks — proxies transparently. USE IT: check `locks`
-before edits and mail your claims/dones like the local agents. If the
+before edits and mail your claims/dones like the local agents. **Blocked
+or need a ruling? Mail `coordinator` (tag `blocked`) — the role alias for
+whoever coordinates (currently the architect); do not go silent, silence
+is not a status.** If the
 hub is down (the dev PC sleeps), fall back to the in-file marks below;
 code always travels via git either way. The lane fence stays absolute
 regardless:

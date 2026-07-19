@@ -30,6 +30,26 @@ polling as just `sim-runner`; if you polled clean but the architect
 insists a message was sent, that was the bug — re-poll after the
 hub restart).
 
+## Coordinator alias + escalation (STANDARD — 2026-07-19)
+
+**`coordinator` is a role ALIAS for whoever holds coordination/arbitration
+(currently `architect`).** Address rulings and blockers to `coordinator`, not a
+hardcoded name — if the baton ever moves, one line in `.agent-mail/roles`
+re-points it and no spec changes.
+
+- **Blocked, or need a ruling? Mail `coordinator` (tag `blocked`) — do NOT go
+  quiet.** Silence is not a status: a stuck lane that says nothing is
+  indistinguishable from one making progress. Raise your hand.
+- **Emit a one-line status on task PICKUP and on DONE.** That plus `who` +
+  message timestamps is how staleness is spotted. No per-step heartbeats.
+- The alias is read-time + additive: `send --to coordinator` reaches the
+  canonical inbox; `--to architect` still works; the two share one cursor (no
+  double-reads). `who` shows the map (`(alias) coordinator → architect`).
+- The alias file `.agent-mail/roles` lives on the HUB clone only — remote lanes
+  proxy every command to the hub, which resolves server-side. Re-point: local
+  lanes instant, remote lanes on the next hub restart (like any code change).
+  Format: `alias = canonical` per line, `#` comments. Design: `specs/coordinator-role-alias.md`.
+
 ## Everyday commands (local)
 
 ```bash
@@ -43,8 +63,7 @@ python3 tools/agent-mail.py inbox --as helper --headers    # same, marks read
 python3 tools/agent-mail.py show <hash-prefix>     # expand ONE message's full body by @hash (or #id-prefix)
 python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (add --headers)
 python3 tools/agent-mail.py log [-n 20]            # recent traffic, all parties
-python3 tools/agent-mail.py who                    # known roles + unread counts
-python3 tools/agent-mail.py who                    # known roles + unread counts
+python3 tools/agent-mail.py who                    # canonical roles + unread counts + alias map
 
 # file locks (the claim protocol, made mechanical)
 python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"

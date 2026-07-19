@@ -63,6 +63,55 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BOX = os.path.join(ROOT, '.agent-mail')
 LOG = os.path.join(BOX, 'messages.jsonl')
 LOCKS = os.path.join(BOX, 'locks.json')
+ALIASES = os.path.join(BOX, 'roles')
+
+_ALIAS_CACHE = None
+
+
+def load_aliases():
+    # Role aliases: an editable map so a coordination ROLE can be re-pointed
+    # without touching specs or code. Format: "alias = canonical" per line
+    # ('#' comments; ':' also accepted). Read-time + additive — `--to
+    # coordinator` reaches whoever `coordinator` resolves to; `--to architect`
+    # is unaffected. Cached per process: a local CLI reloads every call (instant
+    # re-point); the long-lived `serve` hub reloads on restart (like any
+    # agent-mail.py change), so remote lanes see a re-point after a hub restart.
+    global _ALIAS_CACHE
+    if _ALIAS_CACHE is not None:
+        return _ALIAS_CACHE
+    out = {}
+    try:
+        with open(ALIASES, encoding='utf-8') as f:
+            for line in f:
+                line = line.split('#', 1)[0].strip()
+                if not line:
+                    continue
+                sep = '=' if '=' in line else (':' if ':' in line else None)
+                if not sep:
+                    continue
+                alias, target = (p.strip() for p in line.split(sep, 1))
+                if alias and target:
+                    out[alias] = target
+    except FileNotFoundError:
+        pass
+    _ALIAS_CACHE = out
+    return out
+
+
+def canon(role):
+    # Resolve an alias to its canonical role (one hop — a canonical must be a
+    # real role, never another alias). Unknown/non-alias roles map to themselves.
+    return load_aliases().get(role, role)
+
+
+def addressed(to_field, role):
+    # Does a message addressed to `to_field` reach `role`? 'all' broadcasts;
+    # otherwise match on the CANONICAL role so aliases deliver into the
+    # canonical inbox (coordinator→architect matches a query as either name).
+    if to_field == 'all':
+        return True
+    c = canon(role)
+    return any(canon(r) == c for r in recipients(to_field))
 
 
 def read_locks():
@@ -116,7 +165,8 @@ def msg_hash(m):
 
 
 def cursor_file(role):
-    return os.path.join(BOX, f'cursor-{role}')
+    # canonical so an alias and its target share ONE cursor (no double-reads)
+    return os.path.join(BOX, f'cursor-{canon(role)}')
 
 
 def get_cursor(role):
@@ -140,9 +190,10 @@ def recipients(to_field):
 
 def unread_for(role):
     cur = get_cursor(role)
+    c = canon(role)
     return [m for m in read_all()
-            if m['id'] > cur and (m['to'] == 'all' or role in recipients(m['to']))
-            and m['from'] != role]
+            if m['id'] > cur and addressed(m['to'], role)
+            and canon(m['from']) != c]
 
 
 def fmt(m):
@@ -382,9 +433,14 @@ def dispatch(argv):
 
     elif a.cmd == 'who':
         msgs = read_all()
-        roles = sorted({m['from'] for m in msgs} | {m['to'] for m in msgs if m['to'] != 'all'})
+        aliases = load_aliases()
+        roles = sorted({canon(m['from']) for m in msgs}
+                       | {canon(r) for m in msgs if m['to'] != 'all'
+                          for r in recipients(m['to'])})
         for r in roles:
             print(f'{r}: {len(unread_for(r))} unread')
+        for alias, target in sorted(aliases.items()):
+            print(f'  (alias) {alias} → {target}')
 
     elif a.cmd == 'lock':
         locks = read_locks()
