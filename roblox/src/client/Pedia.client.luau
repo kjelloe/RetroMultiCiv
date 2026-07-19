@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local CatalogText = require(script.Parent:WaitForChild("CatalogText"))
 local CONCEPTS = require(script.Parent:WaitForChild("PediaConcepts"))
+local PediaBlurbs = require(script.Parent:WaitForChild("PediaBlurbs")) -- run-F #9
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCPedia"
@@ -144,14 +145,19 @@ local function makeCats(rs, cat)
 		{ key = "units", label = "Units", list = function()
 			return sorted(rs.units)
 		end, render = function(id, u)
-			return stat("Attack", u.attack or 0) .. stat("Defense", u.defense or 0)
+			-- run-F #9: the ally flavor blurb leads, then the stats
+			local blurb = PediaBlurbs.UNIT_BLURBS[id]
+			return (blurb ~= nil and blurb .. "\n\n" or "")
+				.. stat("Attack", u.attack or 0) .. stat("Defense", u.defense or 0)
 				.. stat("Moves", u.moves or 0) .. stat("Cost", (u.cost or 0) .. " shields")
 				.. stat("Domain", u.domain or "land") .. reqLine(u)
 		end },
 		{ key = "buildings", label = "Buildings", list = function()
 			return sorted(rs.buildings)
 		end, render = function(id, b)
-			return stat("Cost", (b.cost or 0) .. " shields")
+			local blurb = PediaBlurbs.BUILDING_BLURBS[id] -- run-F #9
+			return (blurb ~= nil and blurb .. "\n\n" or "")
+				.. stat("Cost", (b.cost or 0) .. " shields")
 				.. stat("Upkeep", (b.maintenance or 0) .. " gold/turn")
 				.. "\n" .. (cat.effectText(b) ~= "" and cat.effectText(b) or "a civic improvement")
 				.. reqLine(b)

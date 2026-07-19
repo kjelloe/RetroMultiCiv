@@ -654,10 +654,14 @@ Run-F live playtest (2026-07-19) fixes:
   neutral (setResearch only; goal = session state). Procedural glyphs
   (Part C) are phase 2 — name labels ship now, motifs are ~half
   provisional pending the ally motif pass.
-- Still open: **#9** per-unit/building pedia flavor blurbs (original
-  prose, requested from the ally like tech-blurbs, #1755); the tech-tree
-  procedural GLYPHS (phase 2, ally motif pass) + the CP1 tile-props art
-  pass (now unblocked by the enhanced-look ruling).
+- **#9 pedia unit/building blurbs DONE** (#1778): 28 unit + 21 building
+  ally flavor blurbs ported VERBATIM into `PediaBlurbs.luau` from the
+  committed source (`specs/ally-unit-building-blurb-response-2026-07-19.md`);
+  `Pedia.client` shows them as the entry flavor line; gate 16 pins parity
+  vs the source + ruleset coverage.
+- Still open: the tech-tree procedural GLYPHS (phase 2, ally motif pass)
+  + the CP1 tile-props art pass (now unblocked by the enhanced-look
+  ruling); D3 diplomacy if the architect rows it for Roblox.
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
 2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
@@ -735,6 +739,11 @@ architect):
    next-steps to `shared/beeline.js` over every tech goal from
    empty-known — a true port-parity check (requires the real
    `Beeline.luau`, which is pure). Self-skips without lune.
+16. Pedia-blurbs parity (`selftest/pedia-blurbs-parity.mjs`, node): the
+   `PediaBlurbs.luau` unit/building blurbs (run-F #9) are a verbatim port
+   of the committed ally source md AND cover every ruleset unit (minus
+   barbleader) + building — a reword, paste typo, or a new unit/building
+   without a blurb all fail.
 
 What check.sh cannot cover: general Luau execution (only the pinned
 lune gates 7, 9 and 15 run Luau headlessly). The full executable proof is

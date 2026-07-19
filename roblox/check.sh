@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -196,6 +196,19 @@ if command -v node >/dev/null 2>&1 && command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 15: node or lune absent"
+fi
+
+# gate 16 — pedia-blurbs parity: PediaBlurbs.luau unit/building blurbs are a
+# verbatim port of the committed ally source md AND cover every ruleset unit
+# (minus barbleader) + building (run-F #9)
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/pedia-blurbs-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 16: pedia unit/building blurbs match source + cover rulesets"
+  else
+    note FAIL "gate 16: pedia-blurbs parity — run: node roblox/selftest/pedia-blurbs-parity.mjs"
+  fi
+else
+  note SKIP "gate 16: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
