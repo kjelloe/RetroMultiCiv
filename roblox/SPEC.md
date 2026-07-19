@@ -611,6 +611,46 @@ golden-safe by construction — the GoTo precedent):
   auto-settlers (CP20). Session-local sets on `ClientState` (no engine
   command); a manual order cancels automation via the `send` hook.
 
+Run-F live playtest (2026-07-19) fixes:
+- **#11 city names + specialties**: the `GameServer` playerDef now
+  passes `civ = civId`. Without it `mapgen.js` took the no-civ branch,
+  so cities fell to the `City c<n>` fallback AND every AI lost its civ
+  specialty (startTech/startGold). One field restores real historical
+  names and the specialty grants.
+- **#6 debug on Studio resume**: `state.debugEnabled` is restored from
+  the save, so a Studio resume dropped debug. Resume now re-enables it
+  in Studio (same rule as create, R17).
+- **#7 saves-off surface**: `SaveStore.available()`; the server sends
+  `{t=saveUnavailable}` once when persistence is off (Studio API access)
+  so the Hud saveChip warns instead of the code silently not resuming.
+- **#1 left-stack exclusion**: `ClientState.panelOpened/onPanelOpen` —
+  opening Legend / Debug / Turn log hides the other two.
+- **#3 regency-countdown cancel**: `send()` already reset `lastActivity`
+  on every command; added a `UserInputService.InputBegan` reset so any
+  click/keypress (not just avatar movement) counts as activity.
+- **#4 world-look default enhanced**; **#10** research-status line moved
+  above the Research/Cities button row.
+- **#5 tile improvements** (`ViewRenderer.renderImprovements`): roads/
+  railroads as a strip, irrigation as a channel quad, mine as a cube,
+  fortress as four ramparts — persistent-signature cache, `CanQuery=
+  false`. Gate 13 keeps it in sync with the filterView twin.
+- **#8 progressive city model**: pop-tier sets house count + height; the
+  visual BAND sets the style, from the SHARED `shared/city-era.js`
+  contract (bands ancient/classicalMedieval/industrial/modernSpace,
+  `CITY_ERA_STYLES` body/roof/prop keys, `cityEraBand` per city on the
+  owner's techs — fog-honest, rivals fall to ancient). Deterministic
+  layout hash, no RNG. Gate 12 pins the bands against the contract.
+- **#2 / SO12 fast-forward diorama** (`FastForward.client.luau`): the
+  server streams `{t=ffProgress}` each fast-forward chunk (`ff.turn()`);
+  the client shows an animated growing-skyline diorama + progress bar
+  during the create-time AI fast-forward, cleared on the first view push.
+- Pedia (#1726 §1): the ally's `movement` + `regency` concepts ported
+  into `PediaConcepts.luau` (recordings already had the richer Roblox
+  body) — 16 concepts, gate 14 keeps them in sync.
+- Still open: **#9** per-unit/building pedia flavor blurbs (original
+  prose, requested from the ally like tech-blurbs, #1755); the XII.6
+  tech-tree tier (#1726 §2) is the next queued build.
+
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
 2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
 ViewRenderer `siteLine` already draws the fog-honest settler rating).
@@ -666,6 +706,22 @@ architect):
    browser `client/ui/tech-blurbs.js` (the one authoring source) — id-set
    + string equality so a new advance, reworded line, or paste typo on
    either side can't drift silently (text-scan not execution).
+12. City-era parity (`selftest/city-era-parity.mjs`, node): the
+   `ViewRenderer` progressive city model (run-F #8) uses the SHARED
+   `shared/city-era.js` band contract — `BAND_STYLE` keys ==
+   `CITY_ERA_BANDS` and `ERA_TO_BAND` covers every engine era in
+   `data/techs.json` — so Roblox can't drift from or invent bands.
+13. Improvement render coverage (`selftest/improvement-coverage.mjs`,
+   node): every tile-improvement flag the `luau/visibility.luau` filter
+   emits (`tile.<field> = true`, minus the river/special terrain features)
+   is read by `ViewRenderer` (run-F #5), so a new improvement in the twin
+   can't render invisibly.
+14. Pedia-concepts parity (`selftest/pedia-concepts-parity.mjs`, node):
+   the `PediaConcepts.luau` concept set is a port of the browser
+   `client/ui/pedia-concepts.js` — id-set + body equality (bodies
+   normalized for the em-dash→hyphen transliteration; the `recordings`
+   body is a documented platform divergence), so a new concept or a
+   reworded line can't drift.
 
 What check.sh cannot cover: general Luau execution (only the pinned
 lune gates 7 and 9 run Luau headlessly). The full executable proof is

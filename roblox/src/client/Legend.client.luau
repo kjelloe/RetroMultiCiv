@@ -6,6 +6,8 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
+local ClientState = require(script.Parent:WaitForChild("ClientState"))
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCLegend"
 gui.ResetOnSpawn = false
@@ -94,6 +96,15 @@ end
 
 toggle.Activated:Connect(function()
 	panel.Visible = not panel.Visible
+	if panel.Visible then
+		ClientState.panelOpened("legend") -- run-F #1: hide Debug / Turn log
+	end
+end)
+
+ClientState.onPanelOpen(function(id)
+	if id ~= "legend" then
+		panel.Visible = false
+	end
 end)
 
 print("[Legend] keyboard legend up (left-edge button)")

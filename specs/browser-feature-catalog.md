@@ -16,7 +16,7 @@ prefixes) are the handles for twin requests and direction questions.
 
 | id | feature | browser home | parity (roblox) |
 |---|---|---|---|
-| CP1 | world render (terrain mesh, fog, props, cities, units) | renderer/three | PARTIAL — ViewRenderer covers terrain/fog/cities/units + danger overlay (roblox extra); TILE PROPS not rendered yet (flagged, art pass) |
+| CP1 | world render (terrain mesh, fog, props, cities, units) | renderer/three | PARTIAL — ViewRenderer covers terrain/fog/units + danger overlay (roblox extra); run-F added tile IMPROVEMENTS (road/rail/irrigation/mine/fortress, gate 13) + a PROGRESSIVE city model (pop-tier size + the SHARED shared/city-era.js band styles ancient/classicalMedieval/industrial/modernSpace, gate 12); decorative TILE PROPS (trees/resources) still the pending art pass |
 | CP2 | unit select / move / attack, stack panel | input.js, panels | PRESENT — Select + stack tab cards w/ A/D/M stats |
 | CP3 | action bar (found/irrigate/mine/road/fortress/pillage/fortify/skip/disband/goto) | input.js | PRESENT — full set incl. Fort + Pillage (2026-07-18, #1371) |
 | CP4 | GoTo route-preview + multi-turn plans | input.js (client-side plans) | PRESENT — R14 plans + breadcrumb preview + r20 button |
@@ -45,7 +45,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO1 | world MINIMAP click/drag-to-jump (C1) | minimap.js | PRESENT — Minimap.client.luau (flat Frame grid per ruling @38e36677; fog-honest, diff-painted, downsampling, click/drag jump; ViewportFrame = docs/13 polish tier) |
 | SO2 | breakdown TOOLTIPS (C2) | title attrs | PARTIAL — Tooltip.luau (hover 0.35s / long-press 0.5s per ruling) live on the HUD income ledger + city-yields ledger; more surfaces attach incrementally |
 | SO3 | tech-discovery CARD | discovery-card.js + tech-blurbs.js | PRESENT — DiscoveryCard.client.luau: queued transients, pedia deep links, research prompt, options mute; all 68 ally blurbs ported 1:1 from tech-blurbs.js, kept in sync by check.sh gate 11 |
-| SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; sync check each pedia change |
+| SO4 | Civilopedia | pedia.js/pedia-concepts.js | PRESENT — R19; 16 concept articles ported from pedia-concepts.js (movement/regency added 2026-07-19), kept in sync by check.sh gate 14 (recordings body an allowed platform divergence); per-unit/building flavor blurbs pending ally content (item #9, requested) |
 | SO5 | onboarding ADVICE cards | advice.js/advice-gate.js | PRESENT — AdviceCards.client.luau (10 cards, original prose, session-once, options mute; localStorage-less divergence flagged) |
 | SO6 | turn log (classes, filters, jump-to, fog rules) | turnlog.js | PARTIAL — log present (L toggle); classes/filters/jump-to not ported |
 | SO7 | end screen (victory + score breakdown, SPACE branch) | endscreen.js | PRESENT — EndScreen.client.luau on the server's full-state {t=endscreen} frame (scoreBreakdown twin; conquest/score/space headlines) |
@@ -53,7 +53,7 @@ prefixes) are the handles for twin requests and direction questions.
 | SO9 | historian interstitials + age markers | historian.js | PRESENT — Historian.client.luau on the server's ageChanged standings frame (world-public score twin) |
 | SO10 | replay THEATER | replay.js/replay-events.js | PRESENT — R18 (post-game gate per THE LAW) |
 | SO11 | SPACESHIP screen (H8) | ship.js | PRESENT — Ship.client.luau (#1370): flat-Frame assembly w/ red-box rule, stats table, two-step launch, rival banners; no-mock + X-close divergences accepted @41a65e71 |
-| SO12 | fast-forward overlay (?age=) | ff-overlay.js + shared/fastforward.js | PARTIAL — function PRESENT (R24 lobby stepper + chunked server ff); progress overlay during the ff wait not built |
+| SO12 | fast-forward overlay (?age=) | ff-overlay.js + shared/fastforward.js | PRESENT — R24 lobby stepper + chunked server ff; run-F #2 added the FastForward.client DIORAMA (animated growing skyline + progress bar) on the server's {t=ffProgress} stream during the ff wait |
 | SO13 | options set | options.js | PARTIAL — autoEnd/autoNext/hideFuture/clock present + roblox extras (look, border art, ride pads, auto-research); tips/discovery-cards/palette rows follow their features |
 | SO14 | accessibility civ-color palette | palette.js | PRESENT — Palette.luau (the browser's exact deuteranopia-safe pairs) at all 4 civ-color seams (ViewRenderer, Statistics, Minimap, ReplayTheater) + options row; visual.primary half carried but consumer-less on Roblox |
 | SO15 | sound: synth cues + tunes | sound.js/sound-map.js | DEFERRED @38e36677 — Roblox Sound needs uploaded audio assets (user/account step the browser synth avoids); wait for CIV_THEMES + the user's asset-path decision |

@@ -207,8 +207,15 @@ local function setOpen(open)
 	if open then
 		unseen = 0
 		toggle.Text = "  Turn log (L)"
+		ClientState.panelOpened("turnlog") -- run-F #1: hide Legend / Debug
 	end
 end
+
+ClientState.onPanelOpen(function(id)
+	if id ~= "turnlog" then
+		setOpen(false)
+	end
+end)
 
 toggle.Activated:Connect(function()
 	setOpen(not panel.Visible)

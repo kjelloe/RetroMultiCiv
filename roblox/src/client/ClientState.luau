@@ -23,7 +23,7 @@ local M = {
 	options = { autoNextUnit = true, autoEndTurn = true,
 		hideFuture = false, hideNoMovesHint = false,
 		clock = "off", voidArt = "frame", ridePad = nil,
-		look = "retro", -- visual-fidelity toggle (#1100): retro|enhanced
+		look = "enhanced", -- visual-fidelity toggle (#1100): retro|enhanced; run-F #4 default enhanced
 		-- session-E: pick research after 2 idle turns (Options acts on it)
 		autoResearch = true,
 		discoveryCards = true, -- SO3: the tech-discovery card toggle
@@ -268,6 +268,27 @@ function M.toggleCityList()
 	end
 end
 
+-- run-F #1: the left-stack panels (Legend / Debug / Turn log) are mutually
+-- exclusive so an open one never covers another. A panel calls panelOpened(id)
+-- when it becomes visible; every OTHER panel's listener hides itself.
+local panelOpenCallbacks = {}
+function M.onPanelOpen(cb)
+	table.insert(panelOpenCallbacks, cb)
+end
+
+function M.panelOpened(id)
+	for _, cb in ipairs(panelOpenCallbacks) do
+		cb(id)
+	end
+end
+
+-- run-F #2 / SO12: create-time AI fast-forward progress (later starting ages);
+-- FastForward.client shows the world developing to the target age
+local ffProgressCallbacks = {}
+function M.onFfProgress(cb)
+	table.insert(ffProgressCallbacks, cb)
+end
+
 function M.onGovernmentOpen(cb)
 	table.insert(governmentOpenCallbacks, cb)
 end
@@ -370,6 +391,19 @@ remote.OnClientEvent:Connect(function(msg)
 		-- R23: rolling autosave landed; Hud shows the latest resumable code
 		M.lastSave = { code = msg.code, turn = msg.turn }
 		print(("[Client] autosaved at turn %d - resume code %s"):format(msg.turn, msg.code))
+	end
+	if msg.t == "saveUnavailable" then
+		-- run-F #7: persistence is off (Studio API access) — the game code still
+		-- shows but nothing is stored to resume from; Hud flags it
+		M.saveUnavailable = true
+		print("[Client] saves/resume DISABLED - enable Studio Access to API Services "
+			.. "(Home > Game Settings > Security)")
+	end
+	if msg.t == "ffProgress" then
+		-- run-F #2 / SO12: fast-forward diorama update
+		for _, cb in ipairs(ffProgressCallbacks) do
+			cb(msg)
+		end
 	end
 	if msg.t == "away" then
 		-- R22: server ack for regency hand-over/reclaim; reset the idle clock

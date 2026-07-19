@@ -286,20 +286,80 @@ local function renderUnits(view)
 	end
 end
 
-local CITY_BLOCKS = { -- dx, dz, width, height — the R2 skyline, kept
-	{ -1.0, -0.8, 1.1, 1.6 },
-	{ 0.6, -0.6, 0.9, 2.4 },
-	{ -0.4, 0.8, 1.3, 1.2 },
-	{ 0.9, 0.9, 0.8, 1.8 },
+-- run-F #8 (user) — the city model GROWS with pop AND changes look by ERA.
+-- SIZE (pop tier) sets house count + height; the visual BAND sets the STYLE.
+-- The band contract is the SHARED shared/city-era.js (architect #1742): the
+-- four band ids + the CITY_ERA_STYLES keys (body/roofShape/roofMat/prop) and
+-- the cityEraBand fog rule are ported here 1:1 — check.sh gate 12 pins the
+-- band ids + style keys against that file so Roblox never invents its own.
+-- Fog-honest by construction: filterView carries `techs` only for the VIEWER,
+-- so a rival city (no techs in view) resolves to the base 'ancient' band.
+-- Layout is DETERMINISTIC from the city x,y (a render hash, never engine RNG).
+local ERA_TO_BAND = { ancient = "ancient", renaissance = "classicalMedieval",
+	industrial = "industrial", modern = "modernSpace" }
+local BAND_RANK = { ancient = 0, classicalMedieval = 1, industrial = 2, modernSpace = 3 }
+
+-- CITY_ERA_STYLES (shared/city-era.js) string keys -> Roblox geometry/material.
+-- body -> wall color+material; roofShape -> cap proportions; roofMat -> roof
+-- color+material; prop -> the per-band signature landmark.
+local BAND_STYLE = {
+	ancient = { -- body mud / roof thatch / no prop
+		wall = Color3.fromRGB(198, 178, 146), wallMat = Enum.Material.Ground,
+		roofShape = "peak", roof = Color3.fromRGB(158, 120, 72), roofMat = Enum.Material.Grass,
+		prop = "" },
+	classicalMedieval = { -- body stone / roof tile / keep
+		wall = Color3.fromRGB(188, 186, 178), wallMat = Enum.Material.Slate,
+		roofShape = "peak", roof = Color3.fromRGB(168, 86, 64), roofMat = Enum.Material.Slate,
+		prop = "keep" },
+	industrial = { -- body brick / roof tar / smokestack
+		wall = Color3.fromRGB(168, 104, 86), wallMat = Enum.Material.Brick,
+		roofShape = "flat", roof = Color3.fromRGB(48, 46, 44), roofMat = Enum.Material.Concrete,
+		prop = "smokestack" },
+	modernSpace = { -- body concrete / roof glass / spire
+		wall = Color3.fromRGB(160, 178, 202), wallMat = Enum.Material.Concrete,
+		roofShape = "slab", roof = Color3.fromRGB(120, 180, 215), roofMat = Enum.Material.Glass,
+		prop = "spire" },
 }
+
+-- shared/city-era.js cityEraBand ported 1:1: highest era among the owner's
+-- known techs wins; nil techs (rival under fog) -> 'ancient'
+local function cityEraBand(ownerPlayer, techsTable)
+	if ownerPlayer == nil or ownerPlayer.techs == nil or techsTable == nil then
+		return "ancient"
+	end
+	local best = "ancient"
+	for _, id in ipairs(ownerPlayer.techs) do
+		local t = techsTable[id]
+		if t ~= nil then
+			local band = ERA_TO_BAND[t.era] or "ancient"
+			if BAND_RANK[band] > BAND_RANK[best] then
+				best = band
+			end
+		end
+	end
+	return best
+end
+
+-- pop -> settlement tier (block count grows 3/6/9/12); pop is fog-legal for
+-- every visible city
+local function popTier(pop)
+	pop = pop or 1
+	if pop <= 2 then return 1
+	elseif pop <= 5 then return 2
+	elseif pop <= 9 then return 3
+	else return 4 end
+end
 
 local function renderCities(view)
 	citiesFolder:ClearAllChildren()
+	local retro = lookOf() ~= "enhanced"
+	local techsTable = ClientState.rulesets().techs
 	for id, c in pairs(view.cities) do
 		local model = Instance.new("Model")
 		model.Name = id .. "_" .. c.owner
 		local top = tileTop(view.map.tiles[c.y * view.map.width + c.x + 1].t)
 		local cx, cz = c.x * TILE, c.y * TILE
+		local style = BAND_STYLE[cityEraBand(view.players[c.owner], techsTable)]
 
 		local plaza = Instance.new("Part")
 		plaza.Anchored = true
@@ -308,21 +368,62 @@ local function renderCities(view)
 		plaza.Size = Vector3.new(0.3, TILE * 0.95, TILE * 0.95)
 		plaza.CFrame = CFrame.new(cx, top + 0.15, cz) * CFrame.Angles(0, 0, math.rad(90))
 		plaza.Color = hexColor(Palette.displayColor(view.players[c.owner].color))
-		plaza.Material = Enum.Material.SmoothPlastic
+		plaza.Material = retro and Enum.Material.SmoothPlastic or Enum.Material.Marble
 		plaza.Parent = model
 
-		-- pop scales the skyline a little so growth is visible; the enhanced
-		-- look upgrades the materials (Brick skyline on a Marble plaza)
-		local enhanced = lookOf() == "enhanced"
-		if enhanced then
-			plaza.Material = Enum.Material.Marble
+		local tier = popTier(c.pop)
+		local nblocks = tier * 3
+		for i = 1, nblocks do
+			-- deterministic per-block hash (render-only, no engine RNG)
+			local seed = c.x * 31 + c.y * 17 + i * 101
+			local ang = (seed % 360) * (math.pi / 180)
+			local ring = 0.22 + (i % 3) * 0.15
+			local rad = ring * TILE * (0.45 + tier * 0.12)
+			local bx, bz = math.cos(ang) * rad, math.sin(ang) * rad
+			local w = TILE * (0.13 + (seed % 5) * 0.02)
+			-- SIZE sets height (contract: band sets style, not height)
+			local h = 1.2 * (0.55 + (seed % 7) / 9) * (0.7 + tier * 0.12)
+			block(model, "Block" .. i, Vector3.new(w, h, w),
+				Vector3.new(cx + bx, top + 0.3 + h / 2, cz + bz), style.wall,
+				retro and Enum.Material.SmoothPlastic or style.wallMat)
+			-- roof cap: proportions encode roofShape (peak/flat/slab)
+			local rw, rh
+			if style.roofShape == "peak" then
+				rw, rh = w * 0.96, w * 0.55
+			elseif style.roofShape == "flat" then
+				rw, rh = w * 1.2, 0.18
+			else -- slab
+				rw, rh = w * 1.02, 0.14
+			end
+			block(model, "Roof" .. i, Vector3.new(rw, rh, rw),
+				Vector3.new(cx + bx, top + 0.3 + h + rh / 2, cz + bz), style.roof,
+				retro and Enum.Material.SmoothPlastic or style.roofMat)
 		end
-		local scale = 1 + math.min(c.pop or 1, 8) * 0.08
-		for i, b in ipairs(CITY_BLOCKS) do
-			block(model, "Block" .. i, Vector3.new(b[3], b[4] * scale, b[3]),
-				Vector3.new(cx + b[1], top + 0.3 + b[4] * scale / 2, cz + b[2]),
-				Color3.fromRGB(214, 205, 188),
-				enhanced and Enum.Material.Brick or Enum.Material.Concrete)
+		-- the band's signature landmark (towns+ only, so hamlets read as huts)
+		if tier >= 2 then
+			if style.prop == "keep" then
+				local kh = 2.0 + tier * 0.2
+				block(model, "Keep", Vector3.new(TILE * 0.22, kh, TILE * 0.22),
+					Vector3.new(cx, top + 0.3 + kh / 2, cz), style.wall,
+					retro and Enum.Material.SmoothPlastic or Enum.Material.Slate)
+			elseif style.prop == "smokestack" then
+				local sh = 2.4 + tier * 0.2
+				local st = Instance.new("Part")
+				st.Anchored = true
+				st.Shape = Enum.PartType.Cylinder
+				st.Name = "Smokestack"
+				st.Size = Vector3.new(sh, TILE * 0.12, TILE * 0.12)
+				st.CFrame = CFrame.new(cx + TILE * 0.26, top + 0.3 + sh / 2, cz - TILE * 0.2)
+					* CFrame.Angles(0, 0, math.rad(90))
+				st.Color = Color3.fromRGB(60, 56, 54)
+				st.Material = retro and Enum.Material.SmoothPlastic or Enum.Material.Concrete
+				st.Parent = model
+			elseif style.prop == "spire" then
+				local ph = 2.8 + tier * 0.3
+				block(model, "Spire", Vector3.new(TILE * 0.1, ph, TILE * 0.1),
+					Vector3.new(cx, top + 0.3 + ph / 2, cz), style.wall,
+					retro and Enum.Material.SmoothPlastic or Enum.Material.Metal)
+			end
 		end
 		cityBillboard(model, plaza, view, c)
 		model.Parent = citiesFolder
@@ -386,11 +487,100 @@ local function renderDanger(view)
 	end
 end
 
+-- run-F #5 (user): tile IMPROVEMENTS drawn on the tile — roads/railroads as a
+-- thin strip, irrigation as a glassy channel quad, a mine as a small dark cube,
+-- a fortress as four low ramparts. filterView carries tile.road/railroad/
+-- irrigation/mine/fortress on explored tiles; persistent-signature cache like
+-- renderTerrain so only changed tiles rebuild. All parts CanQuery=false so they
+-- never intercept the tile/unit selection raycast.
+local improvementsFolder = Instance.new("Folder")
+improvementsFolder.Name = "Improvements"
+improvementsFolder.Parent = world
+
+local impShown = {} -- [i] = signature
+local impModels = {} -- [i] = Model
+local ROAD_COLOR = Color3.fromRGB(120, 96, 66)
+local RAIL_COLOR = Color3.fromRGB(96, 96, 108)
+local IRR_COLOR = Color3.fromRGB(90, 170, 210)
+local MINE_COLOR = Color3.fromRGB(70, 66, 62)
+
+local function renderImprovements(view)
+	local map = view.map
+	for i, tile in ipairs(map.tiles) do
+		local road, rail = tile.road == true, tile.railroad == true
+		local irr, mine, fort = tile.irrigation == true, tile.mine == true, tile.fortress == true
+		local sig = ""
+		if road or rail or irr or mine or fort then
+			sig = table.concat({ tostring(road), tostring(rail), tostring(irr),
+				tostring(mine), tostring(fort), tostring(tile.visible) }, "|")
+		end
+		if impShown[i] ~= sig then
+			impShown[i] = sig
+			if impModels[i] ~= nil then
+				impModels[i]:Destroy()
+				impModels[i] = nil
+			end
+			if sig ~= "" then
+				local x = (i - 1) % map.width
+				local y = math.floor((i - 1) / map.width)
+				local top = tileTop(tile.t)
+				local cx, cz = x * TILE, y * TILE
+				local fade = tile.visible == true and 0 or DIM
+				local model = Instance.new("Model")
+				model.Name = ("Imp_%d_%d"):format(x, y)
+				if irr then
+					local p = block(model, "Irrigation",
+						Vector3.new(TILE * 0.82, 0.08, TILE * 0.82),
+						Vector3.new(cx, top + 0.08, cz),
+						IRR_COLOR:Lerp(Color3.new(0, 0, 0), fade), Enum.Material.Glass)
+					p.Transparency = 0.4
+				end
+				if road or rail then
+					block(model, rail and "Railroad" or "Road",
+						Vector3.new(TILE * 0.9, 0.06, TILE * 0.24),
+						Vector3.new(cx, top + 0.12, cz),
+						(rail and RAIL_COLOR or ROAD_COLOR):Lerp(Color3.new(0, 0, 0), fade),
+						rail and Enum.Material.Metal or Enum.Material.Ground)
+				end
+				if mine then
+					block(model, "Mine",
+						Vector3.new(TILE * 0.28, TILE * 0.28, TILE * 0.28),
+						Vector3.new(cx + TILE * 0.22, top + TILE * 0.14, cz - TILE * 0.22),
+						MINE_COLOR:Lerp(Color3.new(0, 0, 0), fade), Enum.Material.Rock)
+				end
+				if fort then
+					local w = TILE * 0.9
+					local walls = {
+						{ Vector3.new(w, 0.6, 0.12), Vector3.new(cx, top + 0.3, cz - w / 2) },
+						{ Vector3.new(w, 0.6, 0.12), Vector3.new(cx, top + 0.3, cz + w / 2) },
+						{ Vector3.new(0.12, 0.6, w), Vector3.new(cx - w / 2, top + 0.3, cz) },
+						{ Vector3.new(0.12, 0.6, w), Vector3.new(cx + w / 2, top + 0.3, cz) },
+					}
+					for wi, ww in ipairs(walls) do
+						block(model, "Wall" .. wi, ww[1], ww[2],
+							Color3.fromRGB(150, 140, 120):Lerp(Color3.new(0, 0, 0), fade),
+							Enum.Material.Concrete)
+					end
+				end
+				for _, p in ipairs(model:GetChildren()) do
+					if p:IsA("BasePart") then
+						p.CanCollide = false
+						p.CanQuery = false
+					end
+				end
+				model.Parent = improvementsFolder
+				impModels[i] = model
+			end
+		end
+	end
+end
+
 ClientState.onView(function(view)
 	renderTerrain(view)
 	renderUnits(view)
 	renderCities(view)
 	renderDanger(view)
+	renderImprovements(view)
 end)
 
 -- R20: the enhanced look owns a subtle Atmosphere (depth haze) — removed

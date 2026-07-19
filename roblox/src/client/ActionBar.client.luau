@@ -222,7 +222,8 @@ local possessBtn = addButton(13, "Ride (P)", 80)
 -- live research-status line sits beside the Research button.
 local cluster = Instance.new("Frame")
 cluster.Size = UDim2.new(0, 760, 0, 46)
-cluster.Position = UDim2.new(0.5, -380, 0, 6)
+cluster.Position = UDim2.new(0.5, -380, 0, 30) -- run-F #10: dropped 24px so the
+-- research-status line sits ABOVE the Research/Cities button row
 cluster.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 cluster.BackgroundTransparency = 0.25
 cluster.BorderSizePixel = 0
@@ -249,17 +250,19 @@ do
 	c.Parent = researchBtn
 end
 
--- R12 (5): always-visible research status (tech + turns remaining)
+-- R12 (5): always-visible research status (tech + turns remaining). run-F #10
+-- (user): moved OUT of the button row to a centered line just ABOVE it, so
+-- "current research" reads clearly over the Research/Cities buttons.
 local researchStatus = Instance.new("TextLabel")
-researchStatus.LayoutOrder = 2
-researchStatus.Size = UDim2.new(0, 300, 0, 38)
+researchStatus.Size = UDim2.new(0, 760, 0, 22)
+researchStatus.Position = UDim2.new(0.5, -380, 0, 6)
 researchStatus.BackgroundTransparency = 1
 researchStatus.TextColor3 = Color3.fromRGB(180, 210, 240)
 researchStatus.Font = Enum.Font.SourceSansBold
 researchStatus.TextSize = 17
-researchStatus.TextXAlignment = Enum.TextXAlignment.Left
+researchStatus.TextXAlignment = Enum.TextXAlignment.Center
 researchStatus.Text = ""
-researchStatus.Parent = cluster
+researchStatus.Parent = gui
 
 -- session-E round 18 (user): Cities button, LEFT of Government + Research —
 -- the C hotkey's clickable twin (ClientState.toggleCityList channel)

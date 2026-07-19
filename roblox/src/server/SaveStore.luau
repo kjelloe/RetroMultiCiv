@@ -22,11 +22,19 @@ local function getStore()
 	return store
 end
 
+-- run-F #7: is persistence usable at all? (Studio needs the API-access toggle;
+-- offline/no-DataStore places return false). Lets the server tell seated
+-- clients ONCE that saves/resume won't work, instead of failing silently.
+function M.available()
+	return getStore() ~= nil
+end
+
 -- returns true on success
 function M.save(code, envelopeJson)
 	local s = getStore()
 	if s == nil then
-		print("[SaveStore] DataStore unavailable (Studio API access off?)")
+		print("[SaveStore] DataStore unavailable — saves/resume disabled. In Studio: "
+			.. "Home > Game Settings > Security > Enable Studio Access to API Services.")
 		return false
 	end
 	local ok, err = pcall(s.SetAsync, s, code, envelopeJson)

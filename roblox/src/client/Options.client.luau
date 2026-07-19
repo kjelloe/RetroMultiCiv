@@ -123,7 +123,7 @@ local function paint()
 	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
 	ridePadBtn.Text = ("  ride pads: %s"):format(
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
-	lookBtn.Text = ("  world look: %s"):format(o.look or "retro")
+	lookBtn.Text = ("  world look: %s"):format(o.look or "enhanced")
 	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")
 	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")

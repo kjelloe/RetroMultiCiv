@@ -3,6 +3,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
@@ -241,6 +242,15 @@ idleBanner.TextStrokeTransparency = 0.4
 idleBanner.Visible = false
 idleBanner.Parent = gui
 
+-- run-F #3: any deliberate interaction (a click, keypress, or touch — which
+-- includes moving a unit, changing a build order, or selecting a tech, all of
+-- which begin with input) counts as activity and cancels the regency
+-- countdown. send() already resets on the command itself; this also stops the
+-- countdown from nagging an actively-clicking player mid-deliberation.
+UserInputService.InputBegan:Connect(function()
+	ClientState.lastActivity = os.clock()
+end)
+
 local sentAway = false
 local lastRootPos = nil
 game:GetService("RunService").Heartbeat:Connect(function()
@@ -399,7 +409,12 @@ local function refresh(view)
 		codeChip.Text = "  code " .. ClientState.code
 	end
 	debugChip.Visible = ClientState.debugUsed == true -- R17
-	if ClientState.lastSave ~= nil then
+	if ClientState.saveUnavailable == true then
+		-- run-F #7: persistence off (Studio API access) — code won't resume
+		saveChip.Visible = true
+		saveChip.Text = "  \226\154\160 saves off - enable Studio API access"
+		saveChip.TextColor3 = Color3.fromRGB(235, 180, 70)
+	elseif ClientState.lastSave ~= nil then
 		saveChip.Visible = true
 		saveChip.Text = ("  saved %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)
 	end

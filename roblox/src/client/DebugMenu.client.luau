@@ -142,6 +142,15 @@ end
 
 toggle.Activated:Connect(function()
 	panel.Visible = not panel.Visible
+	if panel.Visible then
+		ClientState.panelOpened("debug") -- run-F #1: hide Legend / Turn log
+	end
+end)
+
+ClientState.onPanelOpen(function(id)
+	if id ~= "debug" then
+		panel.Visible = false
+	end
 end)
 
 print("[DebugMenu] R17 thin client up (Studio only; commands taint permanently)")

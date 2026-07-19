@@ -682,6 +682,9 @@ local function startGame()
 		local civ = ruleset.civs[civId]
 		table.insert(playerDefs, {
 			id = "p" .. i,
+			civ = civId, -- run-F #11: engine names cities from ruleset.civs[civ].cities
+			-- AND grants the civ specialty (mapgen.js §player build); omitting it
+			-- fell through to the no-civ "City c<n>" fallback + no specialty
 			name = civ.name,
 			color = civ.color,
 			human = i <= setup.humans,
@@ -722,8 +725,18 @@ local function startGame()
 		print(("[GameServer] R24 fast-forward to %s (turn %d)..."):format(ageDef.id, ageDef.turn))
 		local ff = fastforward.createFastForward(ruleset, state, { humanSeats = humanSeats })
 		local r = { done = false }
+		-- run-F #2: stream fast-forward progress so the client can show the
+		-- world developing (FastForward.client diorama) instead of a blank wait
+		local function ffPush(done)
+			for _, pl in ipairs(Players:GetPlayers()) do
+				remote:FireClient(pl, { t = "ffProgress", age = ageDef.id,
+					turn = ff.turn(), target = ageDef.turn, done = done == true })
+			end
+		end
+		ffPush(false)
 		while not r.done do
 			r = ff.step(5, ageDef.turn)
+			ffPush(r.done)
 			task.wait()
 		end
 		if ff.aborted() ~= nil then
@@ -802,12 +815,30 @@ end
 -- so a Studio stop (or crash) never loses more than 10 turns — each save is
 -- keyed by that turn's docs/07 code and every one of them is resumable.
 -- Clients get {t="saved"} so the Hud can show the latest resumable code.
+-- run-F #7: tell seated clients ONCE if persistence is off (Studio API access),
+-- so "get resume code" isn't silently useless — the code shows, but nothing is
+-- stored to resume from. Fires at the first autosave point.
+local saveUnavailableSent = false
+local function warnSaveUnavailableOnce()
+	if saveUnavailableSent or SaveStore.available() then
+		return
+	end
+	saveUnavailableSent = true
+	for userId in pairs(seatOfUser) do
+		local player = Players:GetPlayerByUserId(userId)
+		if player ~= nil then
+			remote:FireClient(player, { t = "saveUnavailable" })
+		end
+	end
+end
+
 local function maybeAutosave()
 	if state == nil or state.gameOver == true or state.turn % 10 ~= 0
 		or state.turn == lastAutosaveTurn then
 		return
 	end
 	lastAutosaveTurn = state.turn
+	warnSaveUnavailableOnce()
 	local code = saveGame("autosave")
 	if code ~= nil then
 		for userId in pairs(seatOfUser) do
@@ -880,6 +911,12 @@ local function resumeGame(player, rawCode)
 		return
 	end
 	state = envelope.state
+	-- run-F #6: a resumed save carries whatever debugEnabled it was created with;
+	-- a Studio session is debug-authorized (same rule as create, R17), so
+	-- re-enable it on resume or debug commands reject debugDisabled in Studio
+	if RunService:IsStudio() then
+		state.debugEnabled = true
+	end
 	theater.initialState = engineModule.deepClone(state) -- R18: history restarts here
 	theater.entries = {}
 	setup.humans = envelope.humans or 1

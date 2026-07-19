@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -141,6 +141,46 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 11: node absent"
+fi
+
+# gate 12 — city-era parity: the ViewRenderer progressive city model (run-F #8)
+# must use the SHARED shared/city-era.js band contract — BAND_STYLE keys ==
+# CITY_ERA_BANDS + ERA_TO_BAND covers every engine era; no Roblox-invented bands
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/city-era-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 12: city-era bands match shared contract"
+  else
+    note FAIL "gate 12: city-era parity — run: node roblox/selftest/city-era-parity.mjs"
+  fi
+else
+  note SKIP "gate 12: node absent"
+fi
+
+# gate 13 — improvement render coverage: every tile improvement flag the
+# filterView twin emits (run-F #5) must be drawn by ViewRenderer, so a new
+# improvement in the twin can't render invisibly
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/improvement-coverage.mjs >/dev/null 2>&1; then
+    note PASS "gate 13: tile improvements all drawn"
+  else
+    note FAIL "gate 13: improvement coverage — run: node roblox/selftest/improvement-coverage.mjs"
+  fi
+else
+  note SKIP "gate 13: node absent"
+fi
+
+# gate 14 — pedia-concepts parity: the PediaConcepts.luau concept set is a port
+# of client/ui/pedia-concepts.js — id-set + body equality (bodies normalized for
+# the em-dash->hyphen transliteration; the recordings body is an allowed
+# platform divergence), so a new concept or a reworded line can't drift
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/pedia-concepts-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 14: pedia concepts match browser source"
+  else
+    note FAIL "gate 14: pedia-concepts parity — run: node roblox/selftest/pedia-concepts-parity.mjs"
+  fi
+else
+  note SKIP "gate 14: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
