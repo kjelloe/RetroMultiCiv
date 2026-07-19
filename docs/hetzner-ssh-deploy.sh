@@ -11,38 +11,47 @@
 #        <YOUR_DOMAIN>  — e.g. multiciv.example.com (or the bare IP)
 #   3. chmod +x ssh-deploy.sh, then run ./ssh-deploy.sh
 #
-# RetroMultiCiv is config-via-systemd-flags + FILE saves — so there is NO .env to
-# copy, and this EXCLUDES the server's runtime state (saves/, crashdumps/) so a
-# deploy never clobbers live games. Auth is SSH key on port 2222 (see the
-# cloud-init template's SSH-hardening block).
+# ALLOWLIST deploy: only what the server RUNS is synced — client/ engine/
+# shared/ data/ server/, the master-index + maintenance tools, and the package
+# files (~120 files). Dev/internal files (docs, specs, tests, screenshots,
+# CI, editor/agent config…) never leave your machine, and the box's runtime
+# state (saves/, crashdumps/) is never touched. RetroMultiCiv is
+# config-via-systemd-flags + FILE saves — there is NO .env to copy.
 # =============================================================================
 set -euo pipefail
 
 DEPLOY="<DEPLOY_USER>@<YOUR_DOMAIN>"
 APP="/opt/retromulticiv"
+SSH="ssh -p 2222"    # add -i ~/.ssh/<your-key> if it isn't your default key
 
-echo "==> Syncing code to $DEPLOY:$APP (excluding runtime state + local/dev files)"
+echo "==> Syncing runtime code to $DEPLOY:$APP (allowlist)"
 rsync -av \
-    --exclude node_modules \
-    --exclude .git \
-    --exclude saves \
-    --exclude crashdumps \
-    --exclude cloud-init.yaml \
-    --exclude ssh-deploy.sh \
-    --exclude .agent-mail \
-    --exclude 'debugging/sim' \
-    --exclude test-results \
-    --exclude playwright-report \
     --exclude 'data/wiki-extract' \
-    --exclude out.jsonl \
-    --exclude resume.txt \
-    -e "ssh -p 2222" \
+    --include '/client/***' \
+    --include '/engine/***' \
+    --include '/shared/***' \
+    --include '/data/***' \
+    --include '/server/***' \
+    --include '/tools/' \
+    --include '/tools/master.js' \
+    --include '/tools/serve-maintenance.js' \
+    --include '/tools/host-selfcheck.sh' \
+    --include '/package.json' \
+    --include '/package-lock.json' \
+    --include '/LICENSE' \
+    --exclude '*' \
+    -e "$SSH" \
     ./ "$DEPLOY:$APP/"
 
 echo "==> Installing deps (ws) + restarting master + game"
-ssh -p 2222 "$DEPLOY" \
-    "cd $APP && (npm ci --omit=dev 2>/dev/null || npm install --omit=dev) && \
+$SSH "$DEPLOY" \
+    "if ! command -v npm >/dev/null 2>&1; then \
+       echo 'ERROR: npm not found on the server — Node is not installed.'; \
+       echo 'Fix (on the server): curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs'; \
+       exit 1; \
+     fi && \
+     cd $APP && (npm ci --omit=dev 2>/dev/null || npm install --omit=dev) && \
      sudo systemctl restart retromulticiv-master retromulticiv-game && \
      systemctl is-active retromulticiv-game retromulticiv-master"
 
-echo "==> Deployed. Logs: ssh -p 2222 $DEPLOY 'journalctl -u retromulticiv-game -f'"
+echo "==> Deployed. Logs: $SSH $DEPLOY 'journalctl -u retromulticiv-game -f'"
