@@ -740,10 +740,12 @@ architect):
    empty-known — a true port-parity check (requires the real
    `Beeline.luau`, which is pure). Self-skips without lune.
 16. Pedia-blurbs parity (`selftest/pedia-blurbs-parity.mjs`, node): the
-   `PediaBlurbs.luau` unit/building blurbs (run-F #9) are a verbatim port
-   of the committed ally source md AND cover every ruleset unit (minus
-   barbleader) + building — a reword, paste typo, or a new unit/building
-   without a blurb all fail.
+   `PediaBlurbs.luau` unit/building blurbs (run-F #9) are a 1:1 port of the
+   browser canonical table `client/ui/unit-building-blurbs.js` (both
+   platforms consume the SAME id→string tables — the tech-blurbs/gate-11
+   precedent) AND cover every ruleset unit (minus barbleader) + building —
+   a reword either side, a paste typo, or a new unit/building without a
+   blurb all fail.
 
 What check.sh cannot cover: general Luau execution (only the pinned
 lune gates 7, 9 and 15 run Luau headlessly). The full executable proof is

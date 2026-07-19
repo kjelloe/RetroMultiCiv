@@ -1,10 +1,11 @@
 -- run-F #9 (#1778): Civilopedia unit + building flavor blurbs — designer-ally
--- ORIGINAL prose, ported VERBATIM from the committed authoring source
--- specs/ally-unit-building-blurb-response-2026-07-19.md (28 units minus
--- barbleader + 21 buildings, id-verified). check.sh gate 16 keeps this in
--- lockstep with that file (and the browser unitBlurbs/buildingBlurbs table
--- authored from the same source). License boundary: original prose only,
--- never wiki sentences. Pedia.client reads these as the entry flavor line.
+-- ORIGINAL prose, ported VERBATIM from the BROWSER canonical table
+-- client/ui/unit-building-blurbs.js (the one authoring source; ASCII-
+-- normalized, authored from specs/ally-unit-building-blurb-response-2026-07-19.md).
+-- 28 units (barbleader excluded) + 21 buildings, id-verified. check.sh gate 16
+-- keeps this 1:1 with that browser table (tech-blurbs.js/gate-11 precedent) +
+-- ruleset coverage. License: original prose only, never wiki sentences.
+-- Pedia.client reads these as the entry flavor line.
 
 local M = {}
 
@@ -19,15 +20,15 @@ M.UNIT_BLURBS = {
 	["catapult"] = "A torsion or counterweight engine that throws heavy projectiles. Siege warfare turns walls from a final answer into a target.",
 	["cavalry"] = "Fast mounted troops able to scout, raid, and exploit an opening. For centuries, the sound of hooves announced sudden danger.",
 	["chariot"] = "A fast fighting platform drawn by horses. Chariots gave early armies speed, prestige, and striking power on open ground.",
-	["cruiser"] = "A versatile long-range warship for patrol, escort, and independent action. Cruisers extend a navy’s reach across the oceans.",
+	["cruiser"] = "A versatile long-range warship for patrol, escort, and independent action. Cruisers extend a navy's reach across the oceans.",
 	["diplomat"] = "An envoy entrusted with messages, negotiation, and delicate observation. A quiet agreement can alter history as surely as a battle.",
 	["fighter"] = "A fast military aircraft built to challenge enemy aircraft. Control of the sky begins with pilots able to seize and hold it.",
 	["frigate"] = "A swift warship combining sails, guns, and long-range endurance. Frigates protected trade and carried power far from home waters.",
 	["ironclad"] = "A steam-driven warship protected by iron armor. Wooden fleets suddenly faced a new and unsettling kind of opponent.",
 	["knights"] = "Armored mounted warriors trained for the shock of close combat. Their charge became a defining image of feudal warfare.",
-	["legion"] = "Professional heavy infantry built for endurance, order, and hard campaigning. A legion carries its civilization’s authority wherever it marches.",
-	["mech-inf"] = "Infantry carried and supported by armored machines. They combine a foot soldier’s presence with the mobility of modern warfare.",
-	["militia"] = "Local citizens called to defend their homes. Their training may be limited, but their resolve can decide a city’s first crisis.",
+	["legion"] = "Professional heavy infantry built for endurance, order, and hard campaigning. A legion carries its civilization's authority wherever it marches.",
+	["mech-inf"] = "Infantry carried and supported by armored machines. They combine a foot soldier's presence with the mobility of modern warfare.",
+	["militia"] = "Local citizens called to defend their homes. Their training may be limited, but their resolve can decide a city's first crisis.",
 	["musketeers"] = "Soldiers armed with early firearms and drilled to fire in ranks. Gunpowder begins to challenge the battlefield dominance of armor.",
 	["nuclear"] = "A weapon drawing terrible force from atomic reactions. Its existence changes strategy long before it is ever used.",
 	["phalanx"] = "Spearmen fighting shoulder to shoulder behind overlapping shields. Discipline and formation make the phalanx hard to break from the front.",
@@ -35,7 +36,7 @@ M.UNIT_BLURBS = {
 	["sail"] = "A wind-powered vessel built for travel and commerce. Sail ships turned coasts and seas into the roads of earlier worlds.",
 	["settlers"] = "Pioneers carrying the tools to establish a new community. Their journey turns empty land into a future city.",
 	["submarine"] = "A vessel that moves beneath the surface, striking from concealment. It makes even familiar waters uncertain and dangerous.",
-	["transport"] = "A large vessel designed to carry people and equipment across water. Amphibious operations depend on ships that can move an army’s weight.",
+	["transport"] = "A large vessel designed to carry people and equipment across water. Amphibious operations depend on ships that can move an army's weight.",
 	["trireme"] = "An oared warship driven by banks of rowers. Its bronze-beaked ram made close naval combat swift and brutal.",
 }
 
