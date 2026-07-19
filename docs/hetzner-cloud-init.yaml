@@ -68,6 +68,10 @@ write_files:
           listen 80;
           server_name <YOUR_DOMAIN>;
 
+          # HSTS — force HTTPS for a year (covers both game + master). certbot
+          # rewrites this block for :443; the header carries over.
+          add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
           # Master index (bulletin board) — plain HTTP, prefix stripped to :8200
           location /master/ {
               proxy_pass       http://127.0.0.1:8200/;
@@ -105,6 +109,17 @@ write_files:
       User=<DEPLOY_USER>
       WorkingDirectory=/opt/retromulticiv
       ExecStart=/usr/bin/node tools/master.js --port 8200
+      NoNewPrivileges=yes
+      ProtectSystem=strict
+      ProtectHome=yes
+      PrivateTmp=yes
+      ProtectControlGroups=yes
+      ProtectKernelTunables=yes
+      ProtectKernelModules=yes
+      RestrictAddressFamilies=AF_INET AF_INET6
+      RestrictNamespaces=yes
+      LockPersonality=yes
+      MemoryMax=256M
       Restart=on-failure
       RestartSec=5
       StandardOutput=journal
@@ -127,14 +142,28 @@ write_files:
       Type=simple
       User=<DEPLOY_USER>
       WorkingDirectory=/opt/retromulticiv
+      # NOTE: --max-turns/--max-civs/--max-size need the operator-caps update
+      # (A101) in your DEPLOYED code. If not yet merged, node exits 1 ->
+      # crash-loop; add them back once A101 is in.
       ExecStart=/usr/bin/node server/index.js \
         --host 127.0.0.1 --port 8123 \
         --trust-proxy-hops 1 --origin-allowlist https://<YOUR_DOMAIN> \
         --public-addr https://<YOUR_DOMAIN> \
         --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
-        --max-turns 500 --max-civs 8 --max-size large \
         --max-games 8 --max-saves-mb 500 \
         --mem-soft-pct 85 --mem-check-sec 15
+      NoNewPrivileges=yes
+      ProtectSystem=strict
+      ProtectHome=yes
+      PrivateTmp=yes
+      ProtectControlGroups=yes
+      ProtectKernelTunables=yes
+      ProtectKernelModules=yes
+      RestrictAddressFamilies=AF_INET AF_INET6
+      RestrictNamespaces=yes
+      LockPersonality=yes
+      ReadWritePaths=/opt/retromulticiv/saves /opt/retromulticiv/crashdumps
+      MemoryMax=2G
       Restart=on-failure
       RestartSec=5
       StandardOutput=journal
@@ -194,8 +223,13 @@ runcmd:
   - printf "[sshd]\nenabled = true\nport = ssh, 2222\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
   - systemctl enable fail2ban
 
+  # Ensure sshd is listening on 2222 BEFORE ufw closes 22 (avoids a lockout window)
+  - systemctl restart ssh
+
   # Host firewall (ufw) — ONLY SSH + HTTP/HTTPS. 8123 (game) and 8200 (master)
   # stay localhost-behind-nginx and are NEVER opened. WebSocket rides 443.
+  # NOTE: the HETZNER CLOUD FIREWALL must also allow 2222 inbound; keep the
+  # Hetzner web console / rescue mode handy for the first login.
   - ufw allow 2222/tcp
   - ufw allow 80/tcp
   - ufw allow 443/tcp
