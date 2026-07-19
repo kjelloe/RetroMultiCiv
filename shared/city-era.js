@@ -48,14 +48,19 @@ export function cityEraBand(ownerPlayer, techsTable) {
   return best;
 }
 
-// Annotate a fog-filtered view's cities with a render-only `eraBand` hint, so
-// the (rules-agnostic) renderer just reads city.eraBand. The view is ephemeral
-// (rebuilt each refresh), so this is never state/hash.
+// Annotate a fog-filtered view with a render-only per-city era band, written to
+// a SIDE MAP (`view.cityEraBands[id]`) the renderer reads — NOT onto the city
+// objects. filterView aliases own/omniscient city objects straight from real
+// state (visibility.js: `cities[id] = c`), so stamping `c.eraBand` would mutate
+// state.cities and taint every hash path; the side map lives only on the fresh
+// top-level view object filterView allocates, so it is truly never state/hash.
 export function annotateCityEra(view, techsTable) {
   if (!view || !view.cities) return view;
+  const bands = {};
   for (const id of Object.keys(view.cities)) {
     const c = view.cities[id];
-    c.eraBand = cityEraBand(view.players && view.players[c.owner], techsTable);
+    bands[id] = cityEraBand(view.players && view.players[c.owner], techsTable);
   }
+  view.cityEraBands = bands;
   return view;
 }

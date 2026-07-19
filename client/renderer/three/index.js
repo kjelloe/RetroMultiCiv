@@ -287,7 +287,10 @@ export function createRenderer(container) {
       // the capital flies the CanvasTexture emblem flag (own cities carry
       // buildings in the view; rival shells only show walls — pennant then)
       const isCapital = (city.buildings || []).indexOf('palace') !== -1;
-      const mesh = createCityMesh(city, visualOf(city.owner), isCapital); // base at y = 0
+      // era band comes from the annotated view's side map (never off the city
+      // object — that would alias into real state); ancient when absent
+      const eraBand = (view.cityEraBands || {})[city.id];
+      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand); // base at y = 0
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
       cityMeshes.set(city.id, mesh);

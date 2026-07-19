@@ -284,13 +284,15 @@ function addEraSignature(group, style, tier, tierIndex, isCapital) {
   }
 }
 
-export function createCityMesh(city, colorOrVisual, isCapital) {
+export function createCityMesh(city, colorOrVisual, isCapital, eraBand) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const tier = cityTierFor(city.pop);
   const tierIndex = CITY_TIERS.indexOf(tier);
-  // ERA band (render-only hint from the annotated view; ancient for mock/gallery)
-  const style = CITY_ERA_STYLES[city.eraBand] || CITY_ERA_STYLES.ancient;
+  // ERA band (render-only hint): the annotated view passes it via a side map
+  // (see index.js buildCities); direct callers (gallery/mock) may set a
+  // `city.eraBand` field instead; no band → ancient.
+  const style = CITY_ERA_STYLES[eraBand || city.eraBand] || CITY_ERA_STYLES.ancient;
   // A88: house SHAPE from CITY_RECIPE; the era band sets roof SHAPE + body/roof
   // MATERIAL (not owner color — that's the base ring). The placement is procedural.
   const houseGeo = geometryFor(CITY_RECIPE.house);

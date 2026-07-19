@@ -7,8 +7,12 @@ const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 
-let CE;
-test.before(async () => { CE = await import('../shared/city-era.js'); });
+let CE, VIS, SH;
+test.before(async () => {
+  CE = await import('../shared/city-era.js');
+  VIS = await import('../engine/visibility.js');
+  SH = await import('../shared/statehash.js');
+});
 
 test('cityEraBand: highest owner tech era wins; fog default is ancient', () => {
   const techs = { a: { era: 'ancient' }, r: { era: 'renaissance' }, i: { era: 'industrial' }, m: { era: 'modern' } };
@@ -22,15 +26,49 @@ test('cityEraBand: highest owner tech era wins; fog default is ancient', () => {
   assert.strictEqual(CE.cityEraBand({ techs: ['a'] }, null), 'ancient', 'no table → ancient');
 });
 
-test('annotateCityEra stamps a band on every viewed city', () => {
+test('annotateCityEra writes a side map (never onto the city objects)', () => {
   const view = {
     players: { p1: { techs: ['m'] }, p2: { techs: ['a'] } },
     cities: { c1: { owner: 'p1' }, c2: { owner: 'p2' }, c3: { owner: 'p3' } }
   };
   CE.annotateCityEra(view, { a: { era: 'ancient' }, m: { era: 'modern' } });
-  assert.strictEqual(view.cities.c1.eraBand, 'modernSpace');
-  assert.strictEqual(view.cities.c2.eraBand, 'ancient');
-  assert.strictEqual(view.cities.c3.eraBand, 'ancient', 'unknown owner → ancient');
+  assert.strictEqual(view.cityEraBands.c1, 'modernSpace');
+  assert.strictEqual(view.cityEraBands.c2, 'ancient');
+  assert.strictEqual(view.cityEraBands.c3, 'ancient', 'unknown owner → ancient');
+  // the city objects themselves stay untouched (they alias real state)
+  assert.strictEqual(view.cities.c1.eraBand, undefined, 'no eraBand stamped on the city');
+  assert.strictEqual(view.cities.c2.eraBand, undefined);
+});
+
+// REGRESSION PIN (#1777 REAL #1): filterView aliases own/omniscient city objects
+// straight from state, so annotateCityEra must not mutate them — the state hash
+// must be byte-identical before and after. This class (render code tainting the
+// hashed state) must never reach a marker again.
+test('annotateCityEra leaves the underlying state hash unchanged', () => {
+  const state = {
+    turn: 3, year: -3000, activePlayer: 'p1', winner: '',
+    playerOrder: ['p1', 'p2'],
+    map: { width: 2, height: 1, wrapX: true, tiles: [{ t: 'grassland' }, { t: 'grassland' }] },
+    units: {},
+    cities: {
+      c1: { id: 'c1', name: 'Rome', owner: 'p1', x: 0, y: 0, pop: 3, buildings: [] },
+      c2: { id: 'c2', name: 'Thebes', owner: 'p2', x: 1, y: 0, pop: 2, buildings: [] }
+    },
+    cityOrder: ['c1', 'c2'],
+    wonders: {},
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#f00', human: true, gold: 0, techs: ['m'], researching: '', bulbs: 0, taxRate: 5, sciRate: 5 },
+      p2: { id: 'p2', name: 'B', color: '#00f', human: false, gold: 0, techs: ['a'], researching: '', bulbs: 0, taxRate: 5, sciRate: 5 }
+    }
+  };
+  const techs = { a: { era: 'ancient' }, m: { era: 'modern' } };
+  const before = SH.hashState(state);
+  // p1 has no explored array → omniscient view → cities aliased from state
+  const view = VIS.filterView(state, 'p1');
+  CE.annotateCityEra(view, techs);
+  assert.strictEqual(view.cityEraBands.c1, 'modernSpace', 'side map populated');
+  const after = SH.hashState(state);
+  assert.strictEqual(after, before, 'annotateCityEra must not mutate the hashed state');
 });
 
 test('every band has a style with roofShape + roofMat + body', () => {

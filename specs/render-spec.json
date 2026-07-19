@@ -405,6 +405,67 @@
           0.3,
           0.3
         ]
+      },
+      "flat": {
+        "shape": "Box",
+        "args": [
+          1,
+          0.26,
+          1
+        ]
+      },
+      "slab": {
+        "shape": "Box",
+        "args": [
+          1,
+          0.16,
+          1
+        ]
+      },
+      "keepBody": {
+        "shape": "Box",
+        "args": [
+          0.2,
+          0.5,
+          0.2
+        ]
+      },
+      "smokestack": {
+        "shape": "Cylinder",
+        "args": [
+          0.035,
+          0.05,
+          0.62,
+          8
+        ]
+      },
+      "dome": {
+        "shape": "Sphere",
+        "args": [
+          0.16,
+          10,
+          6,
+          0,
+          null,
+          0,
+          null
+        ]
+      },
+      "spire": {
+        "shape": "Cone",
+        "args": [
+          0.05,
+          0.5,
+          8
+        ]
+      },
+      "civic": {
+        "shape": "Box",
+        "args": [
+          0.34,
+          0.44,
+          0.34
+        ]
       }
     },
     "neutralColors": {
@@ -414,11 +475,18 @@
       "cloth": "#8b93a5",
       "skin": "#d7a27d",
       "metal": "#b8b8b8",
-      "stone": "#c2ab82",
+      "stone": "#b2ab9a",
       "house": "#e1d0ad",
       "horse": "#7a5230",
       "hull": "#8a8f96",
-      "darkMetal": "#5a5f52"
+      "darkMetal": "#5a5f52",
+      "mud": "#b08a5e",
+      "brick": "#9d5a45",
+      "concrete": "#a7bccf",
+      "thatch": "#cdb280",
+      "tile": "#b5623e",
+      "tar": "#44454d",
+      "glass": "#8fb2cf"
     },
     "unitSilhouette": {
       "settlers": "wagon",
