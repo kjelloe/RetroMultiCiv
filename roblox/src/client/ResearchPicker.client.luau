@@ -192,7 +192,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if UserInputService:GetFocusedTextBox() ~= nil then
 		return
 	end
-	if input.KeyCode == Enum.KeyCode.T then
+	-- plain T = picker; Shift+T = the tech tree (TechTree.client), so ignore the
+	-- shifted chord here
+	if input.KeyCode == Enum.KeyCode.T
+		and not (UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
+			or UserInputService:IsKeyDown(Enum.KeyCode.RightShift)) then
 		setOpen(not gui.Enabled)
 	end
 end)
