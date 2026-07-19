@@ -27,10 +27,17 @@ _Last synced: 2026-07-19._
   _Since 0062:_ a golden-neutral batch has landed on dev_night — the
   Roblox run-F fixes (10/11 + selftest gates 12–14, `ba9ad3f`), city-look-
   by-era, the tech tree / beeline / glyphs (XII.6), the ally content (68
-  tech blurbs + pedia concepts), and the hardening merges. The architect
-  plans to tag it as a new mergeable marker once the reviewer's clean-clone
-  gate confirms it (in progress) — that becomes your next merge candidate,
-  short of D3.
+  tech blurbs + pedia concepts), and the hardening merges. The reviewer's
+  clean-clone gate ran and caught **two real fixes needed before this rides a
+  marker** (good — that's the gate working): (1) the city-look-by-era code
+  quietly writes a render-only field into game state on the browser, which
+  would make your **Shift+D recordings fail replay verification** (gameplay
+  itself is unaffected; the fix is a small render-side change + a regression
+  test); (2) a mechanical renderer-spec regen. Both are routed to the helper.
+  Once they land + the gate re-runs green, the architect tags this batch — it
+  becomes your next merge candidate, short of D3. **Heads-up:** until fix (1)
+  lands, recordings captured from a browser game on current `dev_night` (not
+  marker-0062) may not verify — marker-0062 is unaffected.
   _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window.
   Phase-1 is done (re-record + audit ledger + both proofs passed, JS==Luau).
   The constant sweep is DONE and the architect ruled (#1764):
@@ -43,12 +50,13 @@ _Last synced: 2026-07-19._
   recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
   and the Roblox run-F work is pushing again. No further action.
 
-- [ ] **Forward the unit + building pedia-blurb request to the ally**
-  (from your Roblox run-F item 9). **Ready to send:**
-  `specs/ally-unit-building-blurb-request-2026-07-19.md` — the full 28-unit
-  + 21-building id list (verified against the data files) + the same
-  writing constraints as the tech blurbs. Just relay it; the helper wires
-  the copy in when it lands (like the 68 tech blurbs). Not blocking.
+- [x] **Unit + building pedia blurbs — DELIVERED by your ally** (run-F item
+  9). You relayed the request and the ally's copy is back: 28 units + 21
+  buildings, id-verified 28/28 + 21/21 against the data files, saved verbatim
+  to `specs/ally-unit-building-blurb-response-2026-07-19.md`. Now being wired
+  in as a `unitBlurbs`/`buildingBlurbs` data table (browser pedia + build
+  tooltip → helper; Roblox parity → roblox-helper), exactly like the 68 tech
+  blurbs. No further action.
 
 ---
 

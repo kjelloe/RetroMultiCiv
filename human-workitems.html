@@ -94,7 +94,7 @@
 
     <div class="item"><span class="box"></span>
       <div class="t">Merge the latest consistent marker — candidate <code>marker-0062</code></div>
-      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load, and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, red-first against your real turn-1617 save. Supersedes 0061 (A59), 0060 (D1), 0059, and everything since. A golden-neutral batch (Roblox run-F 10/11 <code>ba9ad3f</code>, city-era, XII.6, ally content, hardening) now sits on dev_night ahead of it — the architect plans to tag it as a new mergeable marker once the reviewer's clean-clone gate confirms it, becoming your next candidate short of D3.</div>
+      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load, and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, red-first against your real turn-1617 save. Supersedes 0061 (A59), 0060 (D1), 0059, and everything since. A golden-neutral batch (Roblox run-F 10/11 <code>ba9ad3f</code>, city-era, XII.6, ally content, hardening) now sits on dev_night ahead of it. The reviewer's clean-clone gate ran and caught <strong>two real fixes needed before this rides a marker</strong> (the gate working as intended): (1) the city-look-by-era code quietly writes a render-only field into game state on the browser, which would make your <strong>Shift+D recordings fail replay verification</strong> — gameplay itself is unaffected, the fix is a small render-side change + a regression test; (2) a mechanical renderer-spec regen. Both routed to the helper; once they land + the gate re-runs green, this batch gets tagged as your next candidate short of D3. <strong>Heads-up:</strong> until fix (1) lands, recordings from a browser game on current <code>dev_night</code> may not verify — marker-0062 is unaffected.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
@@ -102,9 +102,9 @@
       <div class="d">Both sim-runner and roblox-helper recovered; the D3 constant sweep is back with the sim-runner and the Roblox run-F work committed (<code>ba9ad3f</code>). No further action.</div>
     </div>
 
-    <div class="item"><span class="box"></span>
-      <div class="t">Forward the unit + building pedia-blurb request to the ally</div>
-      <div class="d">From your Roblox run-F item 9. <strong>Ready to send:</strong> <code>specs/ally-unit-building-blurb-request-2026-07-19.md</code> — the full 28-unit + 21-building id list (verified against the data files) + the same writing constraints as the tech blurbs. Just relay it; the helper wires the copy in when it lands. Not blocking.</div>
+    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
+      <div class="t" style="text-decoration:line-through;opacity:.7">Unit + building pedia blurbs — DELIVERED by your ally</div>
+      <div class="d">You relayed the request and the ally's copy is back: 28 units + 21 buildings, id-verified 28/28 + 21/21 against the data files, saved verbatim to <code>specs/ally-unit-building-blurb-response-2026-07-19.md</code>. Now being wired in as a <code>unitBlurbs</code>/<code>buildingBlurbs</code> data table (browser pedia + build tooltip → helper; Roblox parity → roblox-helper), like the 68 tech blurbs. No further action.</div>
     </div>
   </section>
 

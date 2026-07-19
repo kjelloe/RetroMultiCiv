@@ -1,6 +1,16 @@
 # D3 — AI diplomacy negotiation policy: buildable spec (architect, 2026-07-18)
 
-> **PRE-OPEN — not yet landed.** Author does a data check + the three
+> **STATUS 2026-07-19 — PHASE-1 ACCEPTED, PHASE-2 (final re-record) PENDING.**
+> Code complete + byte-shaped JS==Luau; phase-1 stable goldens re-recorded +
+> audit ledger + both additive-proofs passed (#1735). Constant sweep DONE +
+> RULED: `peaceAcceptThreshold 50→30` (#1762 sweep, #1764 ruling — §5). Only
+> the phase-2 re-record remains (bugfixer's lane #1704): apply PAT=30,
+> re-record the moved goldens (see §7 for the FULL expanded set — the
+> rulesetHash ripple moves 6 more pins than first named), JS==Luau, Gate-B
+> 400-round Luau parity (sim-runner), then the marker-0063 gate. The
+> pre-open history below is retained for the record.
+>
+> **PRE-OPEN (historical).** Author did a data check + the three
 > flagged calls (§9) BEFORE touching engine code; request rulings if any
 > finding contradicts this spec (the A59 pre-open pattern). D3 is the
 > **first CONSUMER of A59** (`personalityOf`) and the FIRST BEHAVIORAL
@@ -275,6 +285,27 @@ large (a launch dominates all other intent — the all-out-war trigger).
    0x…/natural/turn-100/witness + A82a/002 (rules.json checksum) + the new
    scenario 013 pin. `marker` request when green. No intermediate pin is
    committed (stop-chasing-count rule).
+
+**EXPANDED MOVED SET at PAT=30 (bugfixer Finding 2, #1774) — the phase-2
+audit ledger + marker-0063 gate must expect these 10 reds, not the 4 first
+named.** `peaceAcceptThreshold` lives in `data/rules.json`, so it is part of
+`hashState(ruleset)=state.rulesetHash`, which EVERY createGame-derived final
+hash carries — phase-1 re-recorded these at PAT=50 as "stable" but they are
+PAT-dependent through rulesetHash, so phase-2 re-records them again at PAT=30:
+- **4 behavioral (expected):** soak-400 (528), natural (529), luau turn-100
+  (276), B13 witness (360).
+- **6 rulesetHash ripple (createGame-derived):** scenario-002 JS (363) +
+  luau-checksums/002 (275), luau A82a map-type pins (278), luau ff-parity
+  (279).
+- **NOT D3 — pre-existing on `ba9ad3f`, fix before the batch marker (Finding
+  1):** render-spec drift (342) + browser replay theater (84). These belong to
+  the city-era golden-neutral batch, routed to the helper — see the batch-marker
+  gate, independent of D3.
+VERIFIED PAT-30 values (bugfixer #1772, JS deterministic double-run + turn-100
+JS==Luau): soak {100:0xd4c36480, 200:0xe5c5807c, 300:0x160827ea,
+400:0xc7d89071}; natural r395/p2/0xef761753; twin turn-100 0xd4c36480.
+Scenarios 012/045 do NOT move (short scripts, civs never cross aggression<20).
+The 200/300/400 Luau full-parity is Gate-B (sim-runner, stable-PAT-30 tree).
 
 ## 8. Acceptance — the mix-conditional witness (the user's ruling)
 
