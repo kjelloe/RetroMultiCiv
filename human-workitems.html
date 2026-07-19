@@ -92,9 +92,9 @@
     <div class="sec-head"><h2>Decide / Do</h2><span class="tag">needs you</span></div>
     <div class="bar"></div>
 
-    <div class="item"><span class="box"></span>
-      <div class="t">Merge the latest consistent marker — candidate <code>marker-0062</code></div>
-      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load, and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, red-first against your real turn-1617 save. Supersedes 0061 (A59), 0060 (D1), 0059, and everything since. A golden-neutral batch (Roblox run-F 10/11 <code>ba9ad3f</code>, city-era, XII.6, ally content, hardening) now sits on dev_night ahead of it. The reviewer's clean-clone gate ran and caught <strong>two real fixes needed before this rides a marker</strong> (the gate working as intended): (1) the city-look-by-era code quietly writes a render-only field into game state on the browser, which would make your <strong>Shift+D recordings fail replay verification</strong> — gameplay itself is unaffected, the fix is a small render-side change + a regression test; (2) a mechanical renderer-spec regen. Both routed to the helper; once they land + the gate re-runs green, this batch gets tagged as your next candidate short of D3. <strong>Heads-up:</strong> until fix (1) lands, recordings from a browser game on current <code>dev_night</code> may not verify — marker-0062 is unaffected.</div>
+    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
+      <div class="t" style="text-decoration:line-through;opacity:.7">Markers 0063 + 0064 tagged — MERGED</div>
+      <div class="d">You merged the latest. Two markers shipped 2026-07-19: <strong>marker-0063</strong> (<code>508beab</code>, golden-neutral, safe) — the city-era determinism fix (your browser Shift+D recordings verify against the engine again) + unit/building Civilopedia blurbs, reviewer clean-clone GREEN; and <strong>marker-0064</strong> (<code>87cfe3b</code>, BEHAVIORAL) — <strong>D3 AI diplomacy</strong>: the AI now negotiates war/peace (met-state + first contact + a relationship model) at the swept <code>peaceAcceptThreshold=30</code>, full suite + Gate-B (Luau parity) green, bugfixer-verified (a golden re-record). Everything through marker-0062 sits below these. <strong>Next candidate (in build):</strong> <code>marker-0065</code> (data-label #1712) — Caesar→Colossus (a 3rd wonder-race pair) + the railroad name fix, a small golden re-record; the civs.json 8→~16 city-name expansion is split out pending the historical name lists. No user action to get there.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
@@ -162,8 +162,8 @@
       <div class="d">Load a hosted-game save in the client, camera recenters on load, dead human seats collapse to AI. Red-first against your real turn-1617 save.</div>
     </div>
     <div class="item dot"><span class="box"></span>
-      <div class="t">D3 AI diplomacy — PHASE-1 DONE <span class="d" style="display:inline">(marker-0063 pending phase-2)</span></div>
-      <div class="d">The AI negotiates (war/peace, met-state + first contact) — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Both proofs passed; phase-1 re-recorded (~16 scenarios + audit ledger, JS==Luau). The constant sweep is DONE and ruled (#1764: <code>peaceAcceptThreshold</code> 50→30); the phase-2 re-record is the last gate → marker-0063.</div>
+      <div class="t">D3 AI diplomacy — SHIPPED <span class="d" style="display:inline">(marker-0064, <code>87cfe3b</code>)</span></div>
+      <div class="d">The AI negotiates (war/peace, met-state + first contact) at the swept <code>peaceAcceptThreshold=30</code> — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Two-phase close: byte-shaped JS==Luau → sim-runner sweep → one re-record; Gate-B (Luau full parity) + full suite green, bugfixer-verified. Opens the phase-6 diplomacy line (D4–D6 follow).</div>
     </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">City-look-by-era SHIPPED <span class="d" style="display:inline">(your Roblox run-F item 8)</span></div>

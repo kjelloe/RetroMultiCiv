@@ -1,6 +1,11 @@
 # D3 — AI diplomacy negotiation policy: buildable spec (architect, 2026-07-18)
 
-> **STATUS 2026-07-19 — PHASE-1 ACCEPTED, PHASE-2 (final re-record) PENDING.**
+> **STATUS 2026-07-19 — SHIPPED as marker-0064 (`87cfe3b`).** Two-phase close
+> complete: phase-1 accepted (#1735) → sim-runner sweep ruled PAT=30 (#1764) →
+> phase-2 re-record + Gate-B (Luau full parity) + full suite green,
+> bugfixer-verified (#1837), tagged marker-0064. History below retained.
+>
+> **PHASE-1 ACCEPTED (historical).**
 > Code complete + byte-shaped JS==Luau; phase-1 stable goldens re-recorded +
 > audit ledger + both additive-proofs passed (#1735). Constant sweep DONE +
 > RULED: `peaceAcceptThreshold 50→30` (#1762 sweep, #1764 ruling — §5). Only

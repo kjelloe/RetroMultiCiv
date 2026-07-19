@@ -271,7 +271,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 609 tests), the item's own verification steps pass, related
+   (currently 622 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -4214,3 +4214,5 @@ claims go to the older city. Inside `workedTiles`/`candidateTiles`.
 Audit scenario hashes (crafted cities are spaced; likely no re-records)
 and run a 10-seed soak — this changes yields in dense AI empires, so sim
 goldens WILL re-record.
+
+## A100 — soak.js `--help`/`-h` (architect #1795, user-requested; helper, golden-neutral dev tool)  [claimed: helper 2026-07-19] [done: 2026-07-19 — tools/soak.js parseArgs gained `if (a === '--help' || a === '-h') …` at the top of the loop (probe-scale.js:52 precedent) + a HELP const listing every real flag (--seeds/--start/--seed/--jobs/--turns/--civs/--size/--difficulty/--natural/--no-chaos/--enforce-floors/--stats, --worker noted internal); valid size/difficulty/floor values are read off SIZES/DIFFICULTY/FLOORS so the help can't drift. Verified: `node --check` clean, `--help` + `-h` render, unknown args still exit 1. No engine/data/ruleset touch — no golden re-record.]

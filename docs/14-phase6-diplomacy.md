@@ -171,7 +171,7 @@ seat's leader character (the regency pattern extends naturally).
 2. **D2 — the audience UI** (modal + inline status; golden-safe
    client) + human treaty UI.
 3. **D3 — AI negotiation policy** (table-driven, personality-aware;
-   window; soak M-columns + signature checks). **IN BUILD 2026-07-18**
+   window; soak M-columns + signature checks). **SHIPPED 2026-07-19 — marker-0064 (`87cfe3b`)**
    (spec specs/d3-ai-diplomacy.md, pre-open ruled #1680): war/peace-only
    (tribute deferred to D4), directed trust/grievance on the D1 pair
    entry, persistent MET-STATE + FIRST_CONTACT (the deferred-from-D1 met
@@ -179,8 +179,11 @@ seat's leader character (the regency pattern extends naturally).
    (engine/ai-diplomacy.js), the met-gated AI diplomacy step, the
    space-launch coalition + mix-conditional elim (user 2026-07-18).
    Provenance: HOUSE/ORIGINAL labeled Civ1-consistent (dump is Civ1-silent
-   on diplomacy, reviewer #1695). Behavioral two-phase close in progress;
-   marker-0063 when phase-2 green. D2's first-contact audience gains its
+   on diplomacy, reviewer #1695). Behavioral two-phase close COMPLETE: phase-1
+   goldens accepted (#1735); the sim-runner sweep ruled `peaceAcceptThreshold`
+   50→30 (#1764); phase-2 re-recorded + Gate-B (Luau full parity) green →
+   shipped as marker-0064 (#1810/#1837). D2's
+   first-contact audience gains its
    real trigger here (FIRST_CONTACT retires the deferred client derivation).
 4. **D4 — tribute + tech exchange terms** (window; D3 defers tribute here —
    the decision-to-demand AND the terms; reviewer fact-pack #1691 filed).

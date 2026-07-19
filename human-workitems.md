@@ -14,37 +14,24 @@ _Last synced: 2026-07-19._
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Merge the latest consistent marker.** Current candidate:
-  **marker-0062** (late-game save loading — your hosted-game
-  `retromulticiv-server-save` now loads in the browser client, the map
-  recenters on load instead of rendering blank, and a solo "continue my
-  hosted game" no longer hands off to a dead player; golden-neutral,
-  driven red-first by your real turn-1617 save). Supersedes **marker-0061**
-  (A59 leader personality — every civ gets a leader + 4-axis personality,
-  the diplomacy-AI foundation; golden-neutral), 0060 (D1 diplomacy),
-  0059 (N9b wonder-drive), 0058, and everything since. Merging is your
-  GREEN LIGHT for the mobile + LAN testing round.
-  _Since 0062:_ a golden-neutral batch has landed on dev_night — the
-  Roblox run-F fixes (10/11 + selftest gates 12–14, `ba9ad3f`), city-look-
-  by-era, the tech tree / beeline / glyphs (XII.6), the ally content (68
-  tech blurbs + pedia concepts), and the hardening merges. The reviewer's
-  clean-clone gate ran and caught **two real fixes needed before this rides a
-  marker** (good — that's the gate working): (1) the city-look-by-era code
-  quietly writes a render-only field into game state on the browser, which
-  would make your **Shift+D recordings fail replay verification** (gameplay
-  itself is unaffected; the fix is a small render-side change + a regression
-  test); (2) a mechanical renderer-spec regen. Both are routed to the helper.
-  Once they land + the gate re-runs green, the architect tags this batch — it
-  becomes your next merge candidate, short of D3. **Heads-up:** until fix (1)
-  lands, recordings captured from a browser game on current `dev_night` (not
-  marker-0062) may not verify — marker-0062 is unaffected.
-  _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window.
-  Phase-1 is done (re-record + audit ledger + both proofs passed, JS==Luau).
-  The constant sweep is DONE and the architect ruled (#1764):
-  `peaceAcceptThreshold` 50→30 (the one lever), thresholds/weights unchanged,
-  elim median holds at 3.0. The **phase-2 re-record** (soak/natural/turn-100
-  + the §8 witnesses) is the LAST gate → marker-0063. No user action to get
-  there.
+- [x] **Markers 0063 + 0064 tagged — MERGED.** You merged the latest. Two
+  markers shipped 2026-07-19:
+  - **marker-0063** (`508beab`, golden-neutral, safe): the city-era
+    determinism fix (your browser Shift+D recordings verify against the engine
+    again) + the unit/building Civilopedia blurbs. Reviewer clean-clone GREEN.
+  - **marker-0064** (`87cfe3b`, BEHAVIORAL): **D3 AI diplomacy** — the AI now
+    negotiates war/peace (met-state + first contact + a relationship model) at
+    the swept `peaceAcceptThreshold=30`. Full suite + Gate-B (Luau parity)
+    green, bugfixer-verified. This one is a golden re-record (AI behaviour
+    changes).
+  Everything through marker-0062 (late-game save loading, A59 personality, D1
+  diplomacy, run-F, XII.6 tech-tree/glyphs, city-era-looks, ally content) sits
+  in the history below these.
+  _Next candidate (in build):_ **marker-0065 (data-label window, #1712)** —
+  Caesar→Colossus favorite (making Colossus a 3rd wonder-race pair) + the
+  railroad name fix; a small golden re-record. The civs.json 8→~16 city-name
+  expansion (11b) is split out pending the historical name lists. No user
+  action to get there.
 
 - [x] **Gaming PC back online** — both sim-runner and roblox-helper
   recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
@@ -129,13 +116,12 @@ _Last synced: 2026-07-19._
 - **Late-game save loading SHIPPED** (marker-0062): load a hosted-game
   save in the client, camera recenters on load, dead human seats collapse
   to AI. Driven red-first by your real turn-1617 save.
-- **D3 AI diplomacy — PHASE-1 DONE** (marker-0063 pending phase-2): the
-  AI negotiates (war/peace, met-state + first contact) — where your
-  **mix-conditional elimination** and the **space-launch coalition** land.
-  Both proofs passed; phase-1 re-recorded (~16 scenarios, audit ledger,
-  JS==Luau). The constant sweep is DONE and ruled (#1764: peaceAcceptThreshold
-  50→30); the phase-2 re-record is the last gate → marker-0063. No user action
-  needed.
+- **D3 AI diplomacy — SHIPPED** (marker-0064, `87cfe3b`): the AI negotiates
+  (war/peace, met-state + first contact) at the swept `peaceAcceptThreshold=30`
+  — where your **mix-conditional elimination** and the **space-launch
+  coalition** land. Two-phase close: byte-shaped JS==Luau → sim-runner sweep →
+  one re-record; Gate-B (Luau full parity) + full suite green, bugfixer-verified.
+  D3 opens the phase-6 diplomacy line (D4–D6 follow, docs/14).
 - **City-look-by-era SHIPPED** (your Roblox run-F item 8): city visuals now
   vary by ERA band (ancient thatch → classical stone+keep → industrial
   brick+smokestacks → modern/space glass+dome) composing with the size
