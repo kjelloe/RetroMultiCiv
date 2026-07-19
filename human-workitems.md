@@ -8,11 +8,19 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-19 (markers 0063–0067 merged; XII.5 + OOM-fix + operator-caps in flight)._
+_Last synced: 2026-07-20 (markers 0063–0067 merged; XII.5 on measure-first hold; Hetzner test deploy green-lit)._
 
 ---
 
 ## DECIDE / DO (needs you)
+
+- [ ] **Hetzner test deploy — green-lit, yours to run.** Everything is staged:
+  filled `cloud-init.yaml` (validated; caps flags live, master on loopback,
+  4 GB-tier heap pin), private `ssh-deploy.sh`, DNS `multiciv.kjell.today` →
+  49.12.106.125. Deploy the **local dev_night working tree** (it has A101 +
+  warn-not-fail; the tagged markers don't). After first boot, glance at the
+  `caps:` line in `journalctl -u retromulticiv-game` to confirm the caps took.
+  RAM-tier tuning tables: `docs/how-to-host.md` § "Sizing by RAM".
 
 - [x] **Markers 0063–0067 tagged — MERGED.** You've been merging as they land.
   Shipped 2026-07-19 (each has a `reports/marker-00NN.md`):
@@ -29,16 +37,23 @@ _Last synced: 2026-07-19 (markers 0063–0067 merged; XII.5 + OOM-fix + operator
     heartbeat, no false connection-reap during an event-loop block (turn-2623).
   Everything through marker-0062 sits below these.
   _In flight (no user action) — several markers converging:_
-  - **XII.5 space-drive** (your "regent never idles" feedback) — an eligible
-    leader builds Apollo → parts → launches, fixing the 0/12-launch baseline.
-    Code done + JS==Luau; the #1706 witness sweep is running → then one
-    re-record → behavioral marker.
+  - **XII.5 space-drive** (your "regent never idles" feedback) — witness 1 is
+    in: the core fix is CONFIRMED (Apollo now built vs the 0/42 baseline, 11
+    parts across 3 civs, JS==Luau, zero economic regression) but no LAUNCH
+    within 1200 turns (the 600-shield Apollo build ~t800 is the wall). Your
+    ruling: measure first — a 1800-turn probe is running to tell "just late"
+    from "chain broken"; decision (accept-as-late / fix / tune-parts-only)
+    comes back to you with the data. Ruled out on authenticity: gold-rushing
+    Apollo (a Wonder — Civ 1 forbids it; the real 1991 accelerant was
+    caravans, which the AI deliberately doesn't field).
   - **OOM/write-amp fix** (from your turn-2623 question) — slice 1 (kill the
-    per-command autosave write-amplification) done + landing; slice 2 (bound
-    the in-RAM log via a disk sidecar) building. Golden-neutral server.
+    per-command autosave write-amplification) done + landing; slice 2a (bound
+    the in-RAM log) DELIVERED, landing behind XII.5. Golden-neutral server.
+    Meanwhile `--max-turns` on the test host bounds the same OOM shape.
   - **Operator resource caps** (your host-sizing request) — `--max-turns` /
-    `--max-civs` / `--max-size` so a host bounds per-game resource use. Done
-    (helper A101), landing. Golden-neutral server.
+    `--max-civs` / `--max-size` done (helper A101), plus the warn-not-fail
+    rider (unknown server flags WARN instead of crash-looping + a boot
+    `caps:` line showing the effective caps). Landing. Golden-neutral server.
   - **11b city names** (ally-delivered, verified) + **D3 server-surfacing**
     (a traced gap — AI diplomacy is invisible over the server/LAN path; fix
     queued) — both queued in the engine lane behind XII.5.

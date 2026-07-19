@@ -193,3 +193,42 @@ the root cause of the 0/12-launch baseline and asked two calls; both RULED (#186
   eligible leader builds Apollo → ssParts → launch → garrison capital. Conquest
   (aggressive → mass/assault weakest-closest) is deferred to a follow-on slice.
 - Process: byte-shape JS==Luau → sim-runner sweep (#1706 witnesses) → ONE re-record.
+
+## 8.1 Witness 1 result + current hold (2026-07-20)
+
+Sim-runner witness (#1898, branch b7d09db vs #1706 baseline): apolloReady 4/49
+seat-games (was 0/42), 11 ss-parts across 3 seats (was 0), launches 0 (1200t
+cap), decisive victories 0. M2/M3/M4 floors byte-identical to the pre-drive
+parent (zero economic regression; the floor breach is pre-existing dev_night
+state). Idle-collapse post-t400 is dominated by D3, not this slice. §5b is
+HALF-met: builds-Apollo YES, launches NO — the wall is the 600-shield Apollo
+build (~t800 start), not eligibility (~t750).
+
+**User ruling: MEASURE FIRST (#1897).** A 1800t diagnostic probe distinguishes
+"chain closes late" (authentic late outcome → likely accept core fix) from
+"chain never closes" (structural bug → fix before marker). Bugfixer's rush-buy
+WIP is SHELVED (#1901/#1902) — it rushed Apollo itself, ruled out below. No
+marker until probe + user ruling.
+
+## 9. Apollo-acceleration lever authenticity (2026-07-20 ruling context)
+
+Slice-1 measurement: AI now BUILDS Apollo (0/42 baseline → built) but does not
+LAUNCH within a 1200t cap — eligibility ~t750, Apollo 600-shield build ~t800, parts
+don't finish by t1200. Before proposing an accelerant, the authentic Civ-1 levers:
+
+- **Spaceship PARTS** — gold-rushable. `rules.json buyGoldPerShieldSS: 8` already
+  exists; a legit AI tuning knob for the post-Apollo parts.
+- **Apollo itself is a WONDER** — Civ 1 wonders CANNOT be gold-rushed. The authentic
+  1991 accelerant was caravans (start a building, switch to the wonder eating the
+  shield-loss, then disband caravans into the shield box). That mechanic EXISTS here
+  (`engine/cities.js` `helpWonder`, A83, `units.json helpsWonder`) but is **Human-only
+  by design**: the AI never fields caravans, keeping the sim goldens untouched
+  (`cities.js:438`, `tech.js:92`).
+
+Therefore an **Apollo gold-rush is off the table** (inauthentic AND not how the engine
+models it). The Apollo 600-shield build is the real wall, and the only authentic way to
+speed it for the AI is to teach the AI to field-and-disband caravans for its own
+wonders — a **behavioral** slice that MOVES goldens, not a tuning knob. Decision path
+gated on the 1800t diagnostic probe (#1897): chain-closes-late → accept as authentic
+late outcome; Apollo-build-is-the-wall → either accept late, or a dedicated AI-caravan
+slice. No marker until the probe + user ruling.
