@@ -1,10 +1,10 @@
 {
-  "name": "A72: a nuclear missile strikes once and is consumed",
-  "notes": "A nuclear missile (attack 99, one-shot) at (1,2) strikes an enemy militia at (2,2). rngState 1: the attacker wins, the militia dies, and the missile is CONSUMED (one-shot, does not promote or survive). Final state (both units gone) is the cross-language contract. Area damage/pollution is a deferred follow-up.",
+  "name": "D3: relationship model — break, offer, accept (grievance bumps + peace decay)",
+  "notes": "declare breaks the peace (victim grievance+, trust-, reputation-); offer+accept re-signs peace and HALVES grievance both ways; met preserved. Pins the directed grievance/trust + met cross-language.",
   "setup": {
     "state": {
       "version": 1,
-      "turn": 5,
+      "turn": 10,
       "year": -3000,
       "activePlayer": "p1",
       "playerOrder": [
@@ -12,10 +12,40 @@
         "p2"
       ],
       "map": {
-        "width": 5,
+        "width": 7,
         "height": 5,
         "wrapX": false,
         "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
           {
             "t": "grassland"
           },
@@ -94,23 +124,23 @@
         ]
       },
       "units": {
-        "n1": {
-          "id": "n1",
-          "type": "nuclear",
+        "u1": {
+          "id": "u1",
+          "type": "settlers",
           "owner": "p1",
           "x": 1,
-          "y": 2,
-          "moves": 16,
+          "y": 1,
+          "moves": 1,
           "fortified": false,
           "veteran": false
         },
-        "d1": {
-          "id": "d1",
-          "type": "militia",
+        "u2": {
+          "id": "u2",
+          "type": "settlers",
           "owner": "p2",
-          "x": 2,
-          "y": 2,
-          "moves": 0,
+          "x": 5,
+          "y": 3,
+          "moves": 1,
           "fortified": false,
           "veteran": false
         }
@@ -118,32 +148,43 @@
       "cities": {},
       "cityOrder": [],
       "wonders": {},
-      "nextUnitId": 50,
-      "nextCityId": 10,
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "relations": {
+        "p1|p2": {
+          "state": "peace",
+          "treatyTurn": 5,
+          "met": true,
+          "grievance_lo": 10,
+          "grievance_hi": 20
+        }
+      },
       "players": {
         "p1": {
           "id": "p1",
-          "name": "A",
-          "color": "#3b7dd8",
+          "name": "Rome",
+          "color": "#00f",
           "human": false,
           "gold": 0,
           "techs": [],
           "researching": "",
           "bulbs": 0,
           "taxRate": 50,
-          "sciRate": 50
+          "sciRate": 50,
+          "civ": "romans"
         },
         "p2": {
           "id": "p2",
-          "name": "B",
-          "color": "#d84a3b",
+          "name": "India",
+          "color": "#f00",
           "human": false,
           "gold": 0,
           "techs": [],
           "researching": "",
           "bulbs": 0,
           "taxRate": 50,
-          "sciRate": 50
+          "sciRate": 50,
+          "civ": "indians"
         }
       },
       "rngState": 1
@@ -152,26 +193,55 @@
   "script": [
     {
       "cmd": {
-        "type": "moveUnit",
+        "type": "diplomacy",
+        "kind": "declare",
         "playerId": "p1",
-        "unitId": "n1",
-        "dir": "E"
+        "target": "p2"
       },
       "expect": {
-        "ok": true,
-        "state": {
-          "units.n1": null,
-          "units.d1": null
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "offer",
+        "playerId": "p1",
+        "target": "p2",
+        "terms": {
+          "peace": true,
+          "duration": 20
         }
       },
-      "notes": "the missile strikes, the militia dies, the missile is consumed"
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "diplomacy",
+        "kind": "accept",
+        "playerId": "p2",
+        "target": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
     }
   ],
   "final": {
     "state": {
-      "units.n1": null,
-      "units.d1": null
+      "turn": 10
     },
-    "hash": "0xac9c6250"
+    "hash": "0x315e0593"
   }
 }

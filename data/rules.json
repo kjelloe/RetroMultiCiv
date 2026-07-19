@@ -111,6 +111,17 @@
     "leaderRansom": 100,
     "leaderChance": 4
   },
+  "diplomacy": {
+    "warIntentThreshold": 60,
+    "peaceAcceptThreshold": 30,
+    "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
+    "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
+    "relGrievanceOnAttack": 15,
+    "relGrievanceOnBetray": 40,
+    "relTrustOnBetray": 30,
+    "relGrievanceDecay": 1,
+    "relLaunchWarBonus": 100
+  },
   "contentCitizens": 4,
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,

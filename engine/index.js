@@ -123,6 +123,7 @@ function endTurn(state, cmd, ruleset) {
     barbarians.process(state, ruleset, events);
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
     spaceship.processSpace(state, ruleset, events); // A76: first launched ship to arrive wins
+    diplomacy.processDecay(state, ruleset); // D3: grievance fades each round (replayable)
     scoring.checkGameEnd(state, ruleset, events);
     // A75: research/deaths this wrap may have advanced the world's age — emit a
     // transient world-news event (not hashed, so goldens are untouched)
@@ -148,6 +149,10 @@ function endTurn(state, cmd, ruleset) {
     state.activePlayer = order[idx + 1];
     events.push({ type: 'turnStarted', turn: state.turn, activePlayer: state.activePlayer });
   }
+  // D3: first-contact pass for the player whose turn now begins (every seat, incl.
+  // humans — D2's audience needs human first-contact). Sets met on the pair entry +
+  // pushes FIRST_CONTACT; behavioral (the soak gains relations entries).
+  diplomacy.contactPass(state, state.activePlayer, events);
   return { ok: true, events };
 }
 

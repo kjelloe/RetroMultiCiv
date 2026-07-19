@@ -7,60 +7,188 @@
       "turn": 1,
       "year": -4000,
       "activePlayer": "p1",
-      "playerOrder": ["p1", "p2"],
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
       "map": {
         "width": 3,
         "height": 3,
         "wrapX": false,
         "tiles": [
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
-          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
         ]
       },
       "units": {},
       "cities": {
         "c1": {
-          "id": "c1", "name": "Roma", "owner": "p1", "x": 0, "y": 0,
-          "pop": 2, "food": 0, "shields": 0, "buildings": [],
-          "producing": { "kind": "unit", "id": "militia" }
+          "id": "c1",
+          "name": "Roma",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
         },
         "c2": {
-          "id": "c2", "name": "Ur", "owner": "p2", "x": 2, "y": 2,
-          "pop": 2, "food": 0, "shields": 0, "buildings": [],
-          "producing": { "kind": "unit", "id": "militia" }
+          "id": "c2",
+          "name": "Ur",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
         }
       },
-      "cityOrder": ["c1", "c2"],
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
       "wonders": {},
       "nextUnitId": 10,
       "nextCityId": 10,
       "players": {
         "p1": {
-          "id": "p1", "name": "A", "color": "#3b7dd8", "human": false,
-          "gold": 0, "techs": ["monarchy", "republic"], "researching": "",
-          "bulbs": 0, "taxRate": 50, "sciRate": 50, "government": "monarchy"
+          "id": "p1",
+          "name": "A",
+          "color": "#3b7dd8",
+          "human": false,
+          "gold": 0,
+          "techs": [
+            "monarchy",
+            "republic"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "monarchy"
         },
         "p2": {
-          "id": "p2", "name": "B", "color": "#d84a3b", "human": false,
-          "gold": 0, "techs": [], "researching": "",
-          "bulbs": 0, "taxRate": 50, "sciRate": 50, "government": "monarchy"
+          "id": "p2",
+          "name": "B",
+          "color": "#d84a3b",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "monarchy"
         }
       },
       "rngState": 1
     }
   },
   "script": [
-    { "cmd": { "type": "setGovernment", "playerId": "p1", "government": "republic" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } },
-    { "cmd": { "type": "endTurn", "playerId": "p2" }, "expect": { "ok": true } }
+    {
+      "cmd": {
+        "type": "setGovernment",
+        "playerId": "p1",
+        "government": "republic"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p2"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
   ],
   "final": {
-    "state": { "turn": 4 },
-    "hash": "0xf88bcf48"
+    "state": {
+      "turn": 4
+    },
+    "hash": "0xfc3451c1"
   }
 }

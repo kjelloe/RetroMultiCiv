@@ -9,10 +9,17 @@
 //   peace (signed):  { state:'peace', treatyTurn, expiresTurn? }   (expiresTurn only when a duration was given — absent = PERPETUAL, the Civ1 default)
 //   a pending offer adds:  offer: { from, turn, duration? }        (absent pair -> { state:'war', offer } placeholder)
 
+import { computeVisible } from './visibility.js';
+
 // BARB_ID inlined (not imported from barbarians.js) to avoid the require cycle
 // diplomacy -> barbarians -> combat -> cities -> diplomacy (luau's eager require
 // hangs on it). Must match barbarians.BARB_ID.
 const BARB_ID = 'barb';
+
+// D3 relationship-value defaults (the neutral points — structural, not tunable
+// weights): trust starts at 50 (neither trusting nor wary), grievance at 0.
+const TRUST_DEFAULT = 50;
+const GRIEVANCE_DEFAULT = 0;
 
 // D1 reputation penalty for breaking a treaty. RECORD-ONLY in D1 (nothing READS
 // reputation until D3); the tunable weight moves to data/*.json in D3.
@@ -65,7 +72,11 @@ function pruneDiplomacy(state, pid) {
   }
 }
 
-function diplomacyCommand(state, cmd, _ruleset) {
+function idiv(a, b) {
+  return Math.floor(a / b);
+}
+
+function diplomacyCommand(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const pid = cmd.playerId;
   const target = cmd.target;
@@ -83,10 +94,20 @@ function diplomacyCommand(state, cmd, _ruleset) {
     // a declare from the default (absent) or from peace is meaningful.
     if (entry !== undefined && entry.state === 'war') return { ok: false, reason: 'alreadyWar' };
     const wasPeace = rel === 'peace';
-    state.relations[key] = { state: 'war', treatyTurn: state.turn };
+    // D3: MODIFY in place — preserve met/grievance/trust; only the D1 fields change.
+    const e = entry === undefined ? {} : entry;
+    if (entry === undefined) state.relations[key] = e;
+    e.state = 'war';
+    e.treatyTurn = state.turn;
+    delete e.expiresTurn;
+    delete e.offer;
     events.push({ type: 'WAR_DECLARED', attackerCivId: eventCiv(state, pid), defenderCivId: eventCiv(state, target), turn: state.turn, reason: 'border_pressure' });
     if (wasPeace) {
       state.players[pid].reputation = reputationOf(state, pid) - TREATY_BREAK_PENALTY;
+      // D3: betrayal raises the VICTIM's grievance toward the breaker + cuts its trust.
+      const d = ruleset.rules.diplomacy;
+      bumpRel(state, target, pid, 'grievance', d.relGrievanceOnBetray);
+      bumpRel(state, target, pid, 'trust', -d.relTrustOnBetray);
       events.push({ type: 'TREATY_BROKEN', breakerCivId: eventCiv(state, pid), injuredCivId: eventCiv(state, target), turn: state.turn, penalty: 'reputation_loss' });
     }
     return { ok: true, events };
@@ -104,10 +125,18 @@ function diplomacyCommand(state, cmd, _ruleset) {
   if (cmd.kind === 'accept') {
     if (entry === undefined || entry.offer === undefined) return { ok: false, reason: 'noSuchOffer' };
     const offer = entry.offer;
-    const next = { state: 'peace', treatyTurn: state.turn };
-    if (offer.duration !== undefined) next.expiresTurn = state.turn + offer.duration;
-    state.relations[key] = next; // clears the pending offer
-    events.push({ type: 'PEACE_TREATY_SIGNED', civAId: eventCiv(state, pid), civBId: eventCiv(state, target), turn: state.turn, expiresTurn: next.expiresTurn === undefined ? 0 : next.expiresTurn });
+    // D3: MODIFY in place — preserve met/grievance/trust.
+    entry.state = 'peace';
+    entry.treatyTurn = state.turn;
+    if (offer.duration !== undefined) entry.expiresTurn = state.turn + offer.duration;
+    else delete entry.expiresTurn;
+    delete entry.offer;
+    // D3: peace decays grievance both ways (integer halving).
+    const gp = grievanceOf(state, pid, target);
+    if (gp > 0) bumpRel(state, pid, target, 'grievance', idiv(gp, 2) - gp);
+    const gt = grievanceOf(state, target, pid);
+    if (gt > 0) bumpRel(state, target, pid, 'grievance', idiv(gt, 2) - gt);
+    events.push({ type: 'PEACE_TREATY_SIGNED', civAId: eventCiv(state, pid), civBId: eventCiv(state, target), turn: state.turn, expiresTurn: entry.expiresTurn === undefined ? 0 : entry.expiresTurn });
     return { ok: true, events };
   }
 
@@ -120,4 +149,107 @@ function diplomacyCommand(state, cmd, _ruleset) {
   return { ok: false, reason: 'unknownKind' };
 }
 
-export { relationOf, reputationOf, pruneDiplomacy, diplomacyCommand, pairKey };
+// D3: grievance + trust are DIRECTED (A wronged B != B wronged A). They ride the
+// single sorted-pair entry as <key>_lo / <key>_hi, lo/hi = the sorted-pair order —
+// so the D1 one-entry-per-pair shape (stable hashing) carries direction. This
+// returns the field name for `holder`'s value toward the other side.
+function dirField(key, holder, toward) {
+  const lo = holder < toward ? holder : toward;
+  return holder === lo ? key + '_lo' : key + '_hi';
+}
+
+// holder's grievance toward `toward` (0-100, default 0). Omit-safe.
+function grievanceOf(state, holder, toward) {
+  if (state.relations === undefined) return GRIEVANCE_DEFAULT;
+  const entry = state.relations[pairKey(holder, toward)];
+  if (entry === undefined) return GRIEVANCE_DEFAULT;
+  const v = entry[dirField('grievance', holder, toward)];
+  return v === undefined ? GRIEVANCE_DEFAULT : v;
+}
+
+// holder's trust toward `toward` (0-100, default 50). Omit-safe.
+function trustOf(state, holder, toward) {
+  if (state.relations === undefined) return TRUST_DEFAULT;
+  const entry = state.relations[pairKey(holder, toward)];
+  if (entry === undefined) return TRUST_DEFAULT;
+  const v = entry[dirField('trust', holder, toward)];
+  return v === undefined ? TRUST_DEFAULT : v;
+}
+
+// clamp-and-write the ONE place: bump holder's directed `key` value toward `toward`
+// by delta, clamped 0-100, lazily creating the pair entry (D1 offer-placeholder
+// pattern). Integers only. key is 'grievance' or 'trust'.
+function bumpRel(state, holder, toward, key, delta) {
+  if (state.relations === undefined) state.relations = {};
+  const k = pairKey(holder, toward);
+  if (state.relations[k] === undefined) state.relations[k] = { state: 'war' };
+  const entry = state.relations[k];
+  const f = dirField(key, holder, toward);
+  const def = key === 'trust' ? TRUST_DEFAULT : GRIEVANCE_DEFAULT;
+  const cur = entry[f] === undefined ? def : entry[f];
+  let v = cur + delta;
+  if (v < 0) v = 0;
+  if (v > 100) v = 100;
+  entry[f] = v;
+}
+
+// have a and b MADE CONTACT? A symmetric bool on the pair entry (one flag serves
+// both directions). Omit-safe: absent = false (crafted/pre-D3 states = unmet).
+function metOf(state, a, b) {
+  if (state.relations === undefined) return false;
+  const entry = state.relations[pairKey(a, b)];
+  return entry !== undefined && entry.met === true;
+}
+
+// D3 contact pass (run in the turn loop for the player whose turn begins, EVERY
+// seat incl. humans — D2's audience needs human first-contact too): computeVisible
+// for `pid`; any rival unit/city on a visible tile -> flip met true (both ways, via
+// the symmetric pair flag) and push FIRST_CONTACT once. Pure visibility READ that
+// writes only met (+ the transient event). Behavioral (relations gains entries ->
+// the soak moves, expected in D3). Barbarians are never a diplomacy partner.
+function contactPass(state, pid, events) {
+  const player = state.players[pid];
+  if (player === undefined) return;
+  const mask = computeVisible(state, pid);
+  const width = state.map.width;
+  const seen = {};
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === pid || u.owner === BARB_ID) continue;
+    if (mask[u.y * width + u.x] === 1) seen[u.owner] = true;
+  }
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner === pid || c.owner === BARB_ID) continue;
+    if (mask[c.y * width + c.x] === 1) seen[c.owner] = true;
+  }
+  for (const other of Object.keys(seen)) {
+    const key = pairKey(pid, other);
+    if (state.relations === undefined) state.relations = {};
+    let entry = state.relations[key];
+    if (entry === undefined) { entry = { state: 'war' }; state.relations[key] = entry; }
+    if (entry.met !== true) {
+      entry.met = true;
+      events.push({ type: 'FIRST_CONTACT', aCivId: eventCiv(state, pid), bCivId: eventCiv(state, other), turn: state.turn });
+    }
+  }
+}
+
+// D3 per-turn grievance decay — ENGINE processing (replayable), NOT an AI-step
+// mutation: old slights fade so relations don't stay permanently hostile. Called
+// once per round-wrap (endTurn). Idempotent-safe (floored 0); only touches existing
+// entries (omit-safe — a no-op when relations is empty).
+function processDecay(state, ruleset) {
+  if (state.relations === undefined) return;
+  const d = ruleset.rules.diplomacy;
+  const dec = d === undefined ? 0 : d.relGrievanceDecay;
+  if (dec <= 0) return;
+  for (const key of Object.keys(state.relations)) {
+    const e = state.relations[key];
+    if (e.grievance_lo !== undefined && e.grievance_lo > 0) { e.grievance_lo = e.grievance_lo - dec; if (e.grievance_lo < 0) e.grievance_lo = 0; }
+    if (e.grievance_hi !== undefined && e.grievance_hi > 0) { e.grievance_hi = e.grievance_hi - dec; if (e.grievance_hi < 0) e.grievance_hi = 0; }
+  }
+}
+
+export { relationOf, reputationOf, pruneDiplomacy, diplomacyCommand, pairKey,
+  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay };
