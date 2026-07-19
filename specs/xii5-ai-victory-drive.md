@@ -102,7 +102,7 @@ narration surfaces the victory actions — turnlog byType already exists.)
 
 ## 4. Relationship to D3 and scope fence
 
-- **D3 (in build)** owns the DIPLOMATIC decision (declare war / offer peace /
+- **D3 (SHIPPED, marker-0064)** owns the DIPLOMATIC decision (declare war / offer peace /
   the space-launch coalition intent). XII.5 owns the **victory PURSUIT +
   offensive EXECUTION** — the army buildup, target selection, the space
   commit + part prioritization. They compose: D3 decides *whether at war*;

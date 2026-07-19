@@ -50,14 +50,18 @@ flags middling ones for an ally/user visual pass. Defines the SHARED shape
 for roblox-helper's run-F item 8 parity. Coverage assert (every band has a
 style) + gallery era row.**
 
-**DATA-LABEL WINDOW add (2026-07-19): fold the run-F item 11b city-name
-expansion into the bugfixer's queued tiny data window (#1712, with Caesar→
-Colossus + railroad): extend each civ's `cities` list in civs.json from 8 to
-~16 real historical names so a >8-city empire stops hitting the "New <name>"/
-"<Civ> Outpost <n>" fallback (browser + Roblox both benefit). Behaviorally
-neutral (names only) → same A82a/002 re-record; VERIFY rounds/winner unchanged.
-Names authored architect-side or via the ally. (11a — Roblox rendering city.id
-not city.name — is roblox-helper's, #1728.)**
+**DATA-LABEL WINDOW #1712 — C1+C2 DONE (bugfixer #1843), landing → marker-0065.**
+C1 (Caesar favoriteWonder great-wall→colossus; Alexander stays colossus → Colossus
+becomes a 3rd designated wonder-race pair) + C2 (railroad RailRoad→Railroad) applied,
+behaviorally NEUTRAL (natural rounds/winner unchanged, favoriteWonder not AI-wired
+yet), moved-pin set re-recorded JS==Luau green, branch datalabel-1712=184ddc8 pushed;
+sim-runner landing (#1846) → architect tags marker-0065.
+**11b DEFERRED (split out): the city-name expansion (each civ's `cities` list in
+civs.json 8→~16 real historical names, so a >8-city empire stops hitting the
+"New <name>"/"<Civ> Outpost <n>" fallback; browser + Roblox both benefit; behaviorally
+neutral → same A82a/002 re-record) is BLOCKED on the ~16-name lists for the 14 civs —
+architect to route authoring (ally, tech-blurbs pattern) or author. Its own later
+golden window. (11a — Roblox rendering city.id not city.name — is roblox-helper's, #1728.)**
 
 **XII.6 Tech tree + beeline + glyphs (added 2026-07-18, spec
 specs/xii6-tech-tree.md, forks user-ruled): HELPER lane, golden-neutral,
