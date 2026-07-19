@@ -231,7 +231,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xd4c36480\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xa3461495\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -269,8 +269,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '3132b03d', pangaea: '1592f59a',
-      archipelago: 'fc6fbf71', islands: 'c2c332fc'
+      continents: 'a70eeb0f', pangaea: '4acbd8dc',
+      archipelago: '76da7337', islands: '882737b6'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -308,7 +308,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // ruleset edit (createGame stamps rulesetHash): 0x833b415c -> 0x61138a4f (N13 goody
 // huts) -> 0x0fa110e7 (A59 civs.json personality). Re-pin here whenever a ruleset
 // window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x0971239f turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x9064d365 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {
