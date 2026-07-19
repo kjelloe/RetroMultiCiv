@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-19 (markers 0063–0067 shipped; XII.5 in flight)._
+_Last synced: 2026-07-19 (markers 0063–0067 merged; XII.5 + OOM-fix + operator-caps in flight)._
 
 ---
 
@@ -28,10 +28,20 @@ _Last synced: 2026-07-19 (markers 0063–0067 shipped; XII.5 in flight)._
   - **0067** (golden-neutral server): **ws-timeout fix** — busy-tolerant
     heartbeat, no false connection-reap during an event-loop block (turn-2623).
   Everything through marker-0062 sits below these.
-  _In flight (no user action):_ **XII.5 space-drive** (your "regent never
-  idles" feedback) — an eligible leader builds Apollo → parts → launches, to
-  fix the 0/12-launch baseline. Behavioral golden window → will be marker-0068.
-  Bugfixer building; validating the Apollo-launch witness before the sweep.
+  _In flight (no user action) — several markers converging:_
+  - **XII.5 space-drive** (your "regent never idles" feedback) — an eligible
+    leader builds Apollo → parts → launches, fixing the 0/12-launch baseline.
+    Code done + JS==Luau; the #1706 witness sweep is running → then one
+    re-record → behavioral marker.
+  - **OOM/write-amp fix** (from your turn-2623 question) — slice 1 (kill the
+    per-command autosave write-amplification) done + landing; slice 2 (bound
+    the in-RAM log via a disk sidecar) building. Golden-neutral server.
+  - **Operator resource caps** (your host-sizing request) — `--max-turns` /
+    `--max-civs` / `--max-size` so a host bounds per-game resource use. Done
+    (helper A101), landing. Golden-neutral server.
+  - **11b city names** (ally-delivered, verified) + **D3 server-surfacing**
+    (a traced gap — AI diplomacy is invisible over the server/LAN path; fix
+    queued) — both queued in the engine lane behind XII.5.
 
 - [x] **Gaming PC back online** — both sim-runner and roblox-helper
   recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
@@ -82,6 +92,19 @@ _Last synced: 2026-07-19 (markers 0063–0067 shipped; XII.5 in flight)._
 
 ## FYI — recently shipped / resolved (no action)
 
+- **Hosting Q&A answered** (your sizing/firewall questions): **ports** — game
+  server `8123` (HTTP + WebSocket on the *same* port), master index `8200`
+  (both `--port`-configurable); firewall = open 22/80/443 behind nginx (keep
+  8123/8200 localhost), or 22/8123/8200 direct. **Sizing** — RAM is the driver:
+  ~5–10 games on 2 GB, ~15–25 on 4 GB; 40 GB SSD ample; the master index adds
+  only ~100 MB. The **operator resource caps** (above) let a host bound this; a
+  precise RSS-per-game measurement is queued to the sim-runner to firm up the
+  numbers.
+- **Coordination tooling** (internal, your requests): the agent system now has a
+  `coordinator` role alias, a live **status board** (waiting/working/blocked),
+  and per-lane **work stacks** — so no lane sits idle waiting for direction and
+  blocked lanes raise their hand. Keeps v1 delivery moving without me
+  hand-routing every task.
 - **Crash resilience + ws-timeout SHIPPED** (markers 0066/0067, your requests):
   crashdumps + OOM watchdog + self-restart loop, and a busy-tolerant heartbeat
   that stops false connection-reaps during an event-loop block. Together they

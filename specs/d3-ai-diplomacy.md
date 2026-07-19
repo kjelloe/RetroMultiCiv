@@ -403,3 +403,26 @@ ai-archetype-endings-vision).
 - **Feeds D4** (tribute/tech terms negotiate the demands D3 raises) and
   **D5** (senate reads the war decisions; reputation consequences read the
   relationship values D3 maintains).
+
+## 11. KNOWN GAP — server-surfacing (traced 2026-07-19, roblox-helper #1884; fix queued)
+
+D3 is **invisible over the authoritative (server-filtered) path** — a human playing
+browser `?server=1` OR the Roblox client sees NO AI diplomacy. Only local browser play
+(raw engine events + full `session.state`) surfaces it today. Root cause:
+- The 4 events carry only civId (WAR_DECLARED/PEACE_TREATY_SIGNED/TREATY_BROKEN/
+  FIRST_CONTACT — no pid, no coords). `filterEvents` (engine/visibility.js + luau twin)
+  has `WORLD_NEWS = {wonderBuilt,wonderLost,gameOver,playerDefeated}` — the diplomacy
+  events are NOT in it, and `eventParties()` doesn't resolve civId → so filterEvents
+  **drops all 4 for every seat**.
+- `filterView` exposes no `state.relations`/reputation; the browser Foreign-relations
+  panel reads `session.state` DIRECTLY (full local state), which the server/roblox
+  client never has.
+
+FIX (queued to the bugfixer's engine lane, behind XII.5 + 11b — a byte-shaped
+engine+luau/visibility twin): (A) `filterEvents` surfaces the 4 events under a fog
+policy (WORLD_NEWS-simplest for public war/peace; FIRST_CONTACT maybe party-only) +
+(B) `filterView` exposes `state.relations` (+`player.reputation`) per fog so the client
+renders met/at-war/at-peace. Likely NO state-hash movement (filtering is downstream of
+state) but a twin + visibility/server test updates. The roblox-helper builds the
+consumer side (TurnLog narrator + panel) golden-neutral in parallel, ready to light up
+when the twin lands. Benefits BOTH platforms (browser-over-server + roblox).
