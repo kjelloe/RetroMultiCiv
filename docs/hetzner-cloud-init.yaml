@@ -149,7 +149,10 @@ write_files:
       # node exits 1 -> crash-loop — remove these three lines until it's in. Once
       # the warn-not-fail rider merges, unknown flags only WARN (no hard fail).
       # Tune the values to your box.
-      ExecStart=/usr/bin/node server/index.js \
+      # --max-old-space-size=1536 (4 GB tier): caps the V8 heap so --mem-soft-pct
+      # (a % of the heap limit) fires the graceful watchdog before MemoryMax's
+      # kernel OOM-kill. Scale with the box — see docs/how-to-host.md "Sizing by RAM".
+      ExecStart=/usr/bin/node --max-old-space-size=1536 server/index.js \
         --host 127.0.0.1 --port 8123 \
         --trust-proxy-hops 1 --origin-allowlist https://<YOUR_DOMAIN> \
         --public-addr https://<YOUR_DOMAIN> \

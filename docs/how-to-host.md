@@ -477,6 +477,9 @@ everything after the port):
 | `--heartbeat-misses N` | `2` | Missed pongs before a half-open socket is terminated. |
 | `--seat-grace-sec N` | `45`  | Hold a dropped lobby seat this long (reclaimable by its private reconnect id) before freeing it — a phone keeps its seat across a brief screen-lock. |
 | `--max-games N`  | `50`      | Global concurrent games.                           |
+| `--max-turns N`  | unlimited | Per-game turn cap: clamps each game's end year to the year reached at turn N (marathon's "play until a win" is clamped down to this). The cheapest bound on total game time **and** recording-log growth. |
+| `--max-civs N`   | map limit | Absolute civ ceiling for any game on this host — clamps a client's pick down (the map-size seat limit still applies on top). Bounds per-game state + CPU. |
+| `--max-size S`   | `huge`    | Largest map a client may pick (`xsmall`…`huge`); larger picks clamp down. Bounds per-game state + CPU. |
 | `--creates-per-hour N` | `20` | New games created per IP per hour.                 |
 | `--joins-per-min N` | `30`   | Join/reserve attempts per IP per minute.           |
 | `--chat-per-min N` | `60`    | Chat messages per IP per minute.                   |
@@ -490,11 +493,83 @@ everything after the port):
 > public internet; they are the first line against enumeration floods,
 > game-spam, and connection exhaustion.
 
+> **Resource caps (`--max-turns` / `--max-civs` / `--max-size`)** bound what a
+> single game can cost, so a small VM can size itself. `--max-turns` is the key
+> one for a public host: without it a client can start a marathon (victory-only)
+> game whose per-turn recording log grows unbounded — the exact shape that OOMs a
+> 2–4 GB box (see `specs/server-crash-resilience.md`). All three are enforced at
+> game creation (clamped, not rejected — except an over-the-*map* civ count still
+> gets the friendly "too small" message) and apply to the host's own `--civs` /
+> `--size` boot game too. They compose with `--max-games` (how many games) and the
+> connection/rate caps (who can connect) to form the host's resource budget.
+
 > **Keep `--debug` off in production.** The default is hardened: only
 > `/client/`, `/engine/`, `/shared/`, and `/data/` are served, so `saves/`
 > (seat tokens + codes) and `debugging/` never reach the wire. `--debug`
 > serves the entire repo for the gallery/diagnostics — use it only on a
 > trusted local machine.
+
+### Sizing by RAM
+
+The game holds state in memory (one game ≈ tens of KB of state + a bounded
+per-round log) and CPU comes in short turn-based bursts, so a small box goes a
+long way. The tables below are **conservative starting points** by total box RAM
+— anchored on an observed ~217 MB RSS peak for one busy server under a connection
+flood (GC pressure, not a leak) and the "state is tiny, concurrency is the cost"
+shape. Watch `journalctl -u retromulticiv-game` + `crashdumps/` and adjust; a
+precise per-game RSS-at-scale measurement is still pending.
+
+**Memory guard** — set these together so the *graceful* watchdog wins:
+
+| Box RAM | `--max-old-space-size` (game) | game `MemoryMax` | `--mem-soft-pct` | master `MemoryMax` |
+|--------:|:-----------------------------:|:----------------:|:----------------:|:------------------:|
+| 2 GB    | `768`                         | `1200M`          | `85`             | `200M`             |
+| 4 GB    | `1536`                        | `2G`             | `85`             | `256M`             |
+| 8 GB    | `3072`                        | `4G`             | `85`             | `384M`             |
+| 16 GB   | `6144`                        | `8G`             | `88`             | `512M`             |
+| 32 GB   | `8192` (per process)          | `12G`            | `90`             | `512M`             |
+
+**Game-shape caps** — how big/many games the host allows:
+
+| Box RAM | `--max-games` | `--max-conns` / `-per-ip` | `--max-civs` | `--max-size` | `--max-turns` | `--max-saves-mb` |
+|--------:|:-------------:|:-------------------------:|:------------:|:------------:|:-------------:|:----------------:|
+| 2 GB    | `3`           | `60` / `8`                | `6`          | `medium`     | `300`         | `200`            |
+| 4 GB    | `8`           | `200` / `16`              | `8`          | `large`      | `500`         | `500`            |
+| 8 GB    | `20`          | `400` / `24`              | `12`         | `huge`       | `800`         | `1000`           |
+| 16 GB   | `50`          | `800` / `32`              | `14`         | `huge`       | `1500`        | `2000`           |
+| 32 GB   | `100`         | `1500` / `48`             | `14`         | `huge`       | unlimited     | `4000`           |
+
+Set `--max-old-space-size` in the unit's `ExecStart` (it's a `node` flag, before
+the script): `ExecStart=/usr/bin/node --max-old-space-size=1536 server/index.js …`
+— or `Environment=NODE_OPTIONS=--max-old-space-size=1536`.
+
+Why the two memory numbers matter:
+
+- **`--mem-soft-pct` is a percentage of the V8 heap limit** (`heapUsed /
+  heap_size_limit`), **not** of system RAM or the cgroup. The default heap limit
+  is ~2 GB on *any* box, so without `--max-old-space-size` the watchdog on a 2 GB
+  box would never fire before the kernel kills the process. Set the heap size per
+  tier so the percentage means what you think.
+- Keep systemd **`MemoryMax` a little ABOVE** the heap size (heap + code + socket
+  buffers + external). The watchdog trips first → writes a crashdump, autosaves,
+  and exits 70 → `Restart=on-failure` brings it back **gracefully**. `MemoryMax`
+  is the hard backstop: if RSS ever blows past it the kernel OOM-kills (no
+  crashdump). You want the graceful path to win, so `MemoryMax` > heap size.
+
+Two more realities:
+
+- **Node is single-threaded.** RAM buys more *concurrent games*, but one CPU core
+  caps how many turns can resolve at once. Turn-based bursts make this rarely
+  bite, but past ~8 GB the win is to **scale out** — run several `server/index.js`
+  processes on different ports behind nginx, each with its own `--announce` to the
+  master — rather than one giant heap (GC pauses grow with heap). The 32 GB row
+  assumes this multi-process shape.
+- **Colocating the master?** Subtract its budget (the `master MemoryMax` column)
+  from the game's share; the tables already leave room for it plus the OS.
+
+`--max-turns` stays the single most important public-host cap regardless of tier:
+it bounds both total game time and per-game log growth (the shape that OOMs a
+small box — see `specs/server-crash-resilience.md`).
 
 ### Ports & paths
 
