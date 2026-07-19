@@ -3,10 +3,10 @@
 -- must reproduce these hashes exactly (data-crossing contract).
 return {
 	buildings = "0x26ecb6e9",
-	civs = "0x41e7a3d8",
+	civs = "0xb932ea47",
 	governments = "0x63112578",
 	rules = "0x4c9d980e",
-	techs = "0x9fd04b61",
+	techs = "0x211651c1",
 	terrain = "0x0f366ad4",
 	units = "0x1057dbbb",
 	wonders = "0x952b31f8",

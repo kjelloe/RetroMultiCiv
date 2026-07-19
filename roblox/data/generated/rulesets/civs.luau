@@ -9,7 +9,7 @@ return [==[{
     "visual": { "primary": "#B83C3C", "secondary": "#F2C66D", "emblem": "sun" },
     "leader": "Caesar",
     "personality": { "aggression": 75, "science": 10, "growth": 10, "defense": 5 },
-    "favoriteWonder": "great-wall",
+    "favoriteWonder": "colossus",
     "favoriteUnit": "legion",
     "beelineTechs": ["iron-working", "conscription"]
   },
