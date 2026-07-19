@@ -49,3 +49,6 @@ playwright-report/
 
 # Old stuff
 archive/
+
+# Filled-in hosting config (holds SSH key + email — never commit)
+cloud-init.yaml
