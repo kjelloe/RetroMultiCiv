@@ -614,6 +614,36 @@ local function apolloReady(state: any, me: any, ruleset: any): boolean
 	return true
 end
 
+-- XII.5: the late-game space victory-drive gate. A civ COMMITS to the space path
+-- when its stance is in rules.victoryDrive.spaceStances (DATA-DRIVEN, sweepable) --
+-- science/builder/balanced/defensive per the ruling; aggressive pursues conquest
+-- in a later slice. Omit-safe: no victoryDrive block => off (golden-neutral).
+local function spaceDriveOn(ruleset: any, stance: any): boolean
+	local vd = ruleset.rules.victoryDrive
+	if vd == nil or vd.spaceStances == nil then return false end
+	-- resolve the effective stance NAME the way stanceOf resolves the config:
+	-- an omitted/unknown stance is the 'balanced' identity (so a default civ drives).
+	local st = if stance ~= nil and STANCES[stance] ~= nil then stance else "balanced"
+	return table.find(vd.spaceStances, st) ~= nil
+end
+
+-- XII.5: eligible to DRIVE the space race -- the civ can build Apollo (holds its
+-- tech) AND holds every ssPart tech. This is end-tier, so the drive self-gates to
+-- the late game: no early/mid/crafted civ qualifies, so those games stay
+-- byte-identical (the S5 golden-neutral-for-non-late guard, by construction).
+local function spaceDriveEligible(state: any, me: any, ruleset: any): boolean
+	local f = ruleset.rules.ssFlight
+	if f == nil then return false end
+	local apollo = ruleset.wonders[f.gateWonder]
+	if apollo == nil then return false end
+	if apollo.tech ~= "" and table.find(me.techs, apollo.tech) == nil then return false end
+	local parts = ruleset.rules.ssParts
+	for k in pairs(parts) do
+		if table.find(me.techs, parts[k].tech) == nil then return false end
+	end
+	return true
+end
+
 -- A76: the next part to build toward a minimum-viable ship, or nil when ready to
 -- launch. 7 structural supports the 5 non-structural parts (idiv(7*28,39)=5).
 local function nextSsPart(ship: any, ruleset: any): any
@@ -1577,6 +1607,29 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						end
 					end
 				end
+				-- XII.5: the space victory drive is a FIRST-CLASS capital intent (mirrors the N9b
+				-- wonder-drive hoist above) -- an eligible committed civ builds Apollo, then ship
+				-- parts, in its CAPITAL, ABOVE the garrison/saturation cascade, so it fires even
+				-- when the capital garrison roamed off (the 0/12 gap). not threatened = the
+				-- frontier-safety guard (spec: build Apollo, then defend). End-tier eligibility
+				-- gates it, so early/mid/crafted never reach it.
+				if not wonderDriven and not threatened and spaceDriveOn(ruleset, effStance) and spaceDriveEligible(state, me, ruleset) then
+					local scap = government.capitalOf(state, playerId, ruleset)
+					if scap ~= nil and scap.id == cid then
+						local ship = me.spaceship
+						local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
+						if not launched then
+							local part = nextSsPart(ship, ruleset)
+							if not cities.wonderActive(state, ruleset.rules.ssFlight.gateWonder, ruleset) then
+								want = { kind = "wonder", id = ruleset.rules.ssFlight.gateWonder }
+								wonderDriven = true
+							elseif part ~= nil then
+								want = { kind = "ss-part", id = part }
+								wonderDriven = true
+							end
+						end
+					end
+				end
 				if not wonderDriven and defenders >= wantDefenders then
 					if countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
@@ -1611,20 +1664,6 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							local pw = if ((isCap and builtCount >= 2) or econBuilding == nil) then nextWonder(state, me, ruleset) else nil
 							defBuild = if (isCap and builtCount >= 2 and pw ~= nil) then { kind = "wonder", id = pw } elseif econBuilding ~= nil then { kind = "building", id = econBuilding } elseif pw ~= nil then { kind = "wonder", id = pw } else nil
 						end
-						-- A76: the capital builds ship parts once the race is open and its
-						-- building/wonder economy is satisfied (placed after econItem below).
-						local ssBuild = nil
-						if S.defendFirst == true and apolloReady(state, me, ruleset) then
-							local scap = government.capitalOf(state, playerId, ruleset)
-							if scap ~= nil and scap.id == cid then
-								local ship = me.spaceship
-								local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
-								if not launched then
-									local part = nextSsPart(ship, ruleset)
-									if part ~= nil then ssBuild = { kind = "ss-part", id = part } end
-								end
-							end
-						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
 						elseif defBuild ~= nil then
@@ -1635,8 +1674,6 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = { kind = "unit", id = navySeaUnit }
 						elseif econItem ~= nil then
 							want = econItem
-						elseif ssBuild ~= nil then
-							want = ssBuild -- A76: capital ship parts, after buildings/wonders
 						elseif defenders >= 3
 							or countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase then
 							want = { kind = "unit", id = "settlers" }

@@ -108,7 +108,9 @@ write_files:
       Type=simple
       User=<DEPLOY_USER>
       WorkingDirectory=/opt/retromulticiv
-      ExecStart=/usr/bin/node tools/master.js --port 8200
+      # --host 127.0.0.1: nginx proxies /master/ to it on loopback, so the index
+      # never needs a public interface — defense-in-depth if ufw is ever flushed.
+      ExecStart=/usr/bin/node tools/master.js --port 8200 --host 127.0.0.1
       NoNewPrivileges=yes
       ProtectSystem=strict
       ProtectHome=yes
@@ -142,15 +144,18 @@ write_files:
       Type=simple
       User=<DEPLOY_USER>
       WorkingDirectory=/opt/retromulticiv
-      # NOTE: --max-turns/--max-civs/--max-size need the operator-caps update
-      # (A101) in your DEPLOYED code. If not yet merged, node exits 1 ->
-      # crash-loop; add them back once A101 is in.
+      # Resource caps: --max-turns/--max-civs/--max-size REQUIRE the operator-caps
+      # code (A101) in your DEPLOYED tree. If your deployed code predates A101,
+      # node exits 1 -> crash-loop — remove these three lines until it's in. Once
+      # the warn-not-fail rider merges, unknown flags only WARN (no hard fail).
+      # Tune the values to your box.
       ExecStart=/usr/bin/node server/index.js \
         --host 127.0.0.1 --port 8123 \
         --trust-proxy-hops 1 --origin-allowlist https://<YOUR_DOMAIN> \
         --public-addr https://<YOUR_DOMAIN> \
         --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
         --max-games 8 --max-saves-mb 500 \
+        --max-turns 500 --max-civs 8 --max-size large \
         --mem-soft-pct 85 --mem-check-sec 15
       NoNewPrivileges=yes
       ProtectSystem=strict
