@@ -400,6 +400,34 @@ Tunables (all optional, via env): `MAINTENANCE_CONTACT` (shown on the page),
 `MULTICIV_MAX_FAILURES` (default 3), `MULTICIV_RETRY_MS` (default 60000),
 `MULTICIV_STABILIZE_MS` (uptime that counts as recovered, default 10000).
 
+### Auto-restart wrapper (run.sh / run.ps1) + crashdumps
+
+For a self-hosted box that isn't under systemd — the gaming PC especially
+(Windows, `run.ps1`) — the launch scripts have a built-in supervised mode:
+
+```bash
+MULTICIV_SUPERVISE=1 ./run.sh 8123 --host 0.0.0.0        # WSL/Linux
+```
+```powershell
+$env:MULTICIV_SUPERVISE=1; .\run.ps1 8123 --host 0.0.0.0  # native Windows
+```
+
+The script then runs the server in the foreground inside a restart loop: a
+crash or an OOM graceful-exit (the server exits **70**) or any unexpected death
+**auto-restarts** with backoff; a clean operator stop (Ctrl-C / SIGTERM →
+exit 0) does **not**. A boot-crash loop is capped (`MULTICIV_RESTART_CAP`,
+default 5 restarts within `MULTICIV_RESTART_WINDOW`, default 60s) so a broken
+build can't spin forever. Games resume automatically from the per-command
+autosave, so at most the in-flight command is lost.
+
+Crashes are recorded to `crashdumps/crash-<ISO>.log` (stack + `memoryUsage` +
+V8 heap limit/used% + uptime/pid/argv + per-game turn/unit/city counts); the
+memory watchdog writes `oom-<ISO>.log` and graceful-exits at
+`--mem-soft-pct` (default 85% of the V8 heap limit) BEFORE V8's fatal
+uncatchable OOM — tune the poll with `--mem-check-sec` (default 20). An
+`oom-*.log` means a memory crash; a live process with no dump after a stall
+means the single-loop block, not a crash. `crashdumps/` is gitignored.
+
 ### Nightly dependency self-check
 
 `tools/host-selfcheck.sh` runs `npm audit`; if it's clean it does nothing. If

@@ -80,6 +80,40 @@ Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
 
 $log = Join-Path $env:TEMP 'multiciv-server.log'
 $nodeArgs = @('server/index.js', '--port', "$Port") + $Args
+
+# Supervised mode (opt-in, for the gaming-PC host): run the server in the
+# FOREGROUND inside a restart loop so a crash/OOM (server exits 70) or an
+# unexpected death auto-restarts — a clean operator stop (exit 0, or Ctrl-C)
+# does NOT restart. Backoff + a crash-loop cap so a broken build can't spin
+# forever. Default (unset) keeps the detach-and-report path below unchanged.
+if ($env:MULTICIV_SUPERVISE -eq '1') {
+  $cap = 5; if ($env:MULTICIV_RESTART_CAP -match '^[0-9]+$') { $cap = [int]$env:MULTICIV_RESTART_CAP }
+  $windowS = 60; if ($env:MULTICIV_RESTART_WINDOW -match '^[0-9]+$') { $windowS = [int]$env:MULTICIV_RESTART_WINDOW }
+  $restarts = 0; $windowStart = Get-Date; $backoff = 1
+  Write-Host "supervised: auto-restart ON (cap $cap restarts / ${windowS}s), log $log"
+  while ($true) {
+    $p = Start-Process -FilePath 'node' -ArgumentList $nodeArgs -NoNewWindow -PassThru `
+      -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+    $p.WaitForExit()
+    $code = $p.ExitCode
+    # Exit 0 = the server's own clean SIGTERM/SIGINT handler (operator stop).
+    if ($code -eq 0) {
+      Write-Host "[wrapper] server exited code=$code ($(Get-Date)) - clean stop, not restarting"
+      break
+    }
+    if (((Get-Date) - $windowStart).TotalSeconds -ge $windowS) { $restarts = 0; $windowStart = Get-Date; $backoff = 1 }
+    $restarts++
+    if ($restarts -gt $cap) {
+      Write-Host "[wrapper] server exited code=$code - $restarts restarts in <${windowS}s: boot-crash loop, NOT restarting"
+      exit 1
+    }
+    Write-Host "[wrapper] server exited code=$code ($(Get-Date)) - restart #$restarts in ${backoff}s"
+    Start-Sleep -Seconds $backoff
+    $backoff = [Math]::Min($backoff * 2, 30)
+  }
+  exit 0
+}
+
 $proc = Start-Process -FilePath 'node' -ArgumentList $nodeArgs -NoNewWindow -PassThru `
   -RedirectStandardOutput $log -RedirectStandardError "$log.err"
 # Liveness VERDICT, not a fixed-delay sample (B8, twin of run.sh's B7): poll

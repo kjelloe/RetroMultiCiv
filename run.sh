@@ -73,6 +73,40 @@ if pkill -f "node server/index\.js --port $PORT" 2>/dev/null; then
   sleep 0.5
 fi
 
+# Supervised mode (opt-in, for hosting): run the server in the FOREGROUND inside
+# a restart loop so a crash/OOM (server exits 70) or an unexpected death
+# auto-restarts — a clean operator stop (SIGTERM/SIGINT → the server's own
+# handler exits 0, or the shell reports 130/143) does NOT restart. Backoff + a
+# crash-loop cap so a broken build can't spin forever. Default (unset) keeps the
+# detach-and-report path below unchanged.
+if [ "${MULTICIV_SUPERVISE:-}" = "1" ]; then
+  CAP="${MULTICIV_RESTART_CAP:-5}"          # max restarts within the window…
+  WINDOW_S="${MULTICIV_RESTART_WINDOW:-60}" # …before declaring a boot-crash loop
+  restarts=0; window_start=$SECONDS; backoff=1; stopping=0
+  trap 'stopping=1' INT TERM
+  echo "supervised: auto-restart ON (cap ${CAP} restarts / ${WINDOW_S}s), log /tmp/multiciv-server.log"
+  while true; do
+    node server/index.js --port "$PORT" "$@" >> /tmp/multiciv-server.log 2>&1 &
+    child=$!
+    if wait "$child"; then code=0; else code=$?; fi
+    now=$SECONDS
+    if [ "$stopping" = "1" ] || [ "$code" = "0" ] || [ "$code" = "130" ] || [ "$code" = "143" ]; then
+      echo "[wrapper] server exited code=$code ($(date)) — clean stop, not restarting"
+      break
+    fi
+    if [ $((now - window_start)) -ge "$WINDOW_S" ]; then restarts=0; window_start=$now; backoff=1; fi
+    restarts=$((restarts + 1))
+    if [ "$restarts" -gt "$CAP" ]; then
+      echo "[wrapper] server exited code=$code — $restarts restarts in <${WINDOW_S}s: boot-crash loop, NOT restarting" | tee -a /tmp/multiciv-server.log >&2
+      exit 1
+    fi
+    echo "[wrapper] server exited code=$code ($(date)) — restart #$restarts in ${backoff}s" | tee -a /tmp/multiciv-server.log
+    sleep "$backoff"
+    backoff=$((backoff * 2)); [ "$backoff" -gt 30 ] && backoff=30
+  done
+  exit 0
+fi
+
 nohup node server/index.js --port "$PORT" "$@" > /tmp/multiciv-server.log 2>&1 &
 PID=$!
 # Liveness VERDICT, not a fixed-delay sample (B7): under load a broken server
