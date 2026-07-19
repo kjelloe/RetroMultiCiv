@@ -7,6 +7,7 @@
 // reads session.ruleset, never game state.
 import { makeCatalogText } from './catalog-text.js';
 import { CONCEPTS } from './pedia-concepts.js';
+import { UNIT_BLURBS, BUILDING_BLURBS } from './unit-building-blurbs.js';
 
 function esc(s) { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
 
@@ -27,6 +28,7 @@ export function initPedia(ctx) {
   // per-category: label, the entry list, and the detail renderer
   const CATS = {
     units: { label: 'Units', list: () => sorted(units), render: (id, u) => `
+      ${UNIT_BLURBS[id] ? `<p class="pedia-prose pedia-flavor">${esc(UNIT_BLURBS[id])}</p>` : ''}
       <div class="pedia-stats">
         ${statRow('Attack', u.attack)}${statRow('Defense', u.defense)}${statRow('Moves', u.moves)}
         ${statRow('Cost', u.cost + ' shields')}${statRow('Domain', u.domain)}
@@ -34,6 +36,7 @@ export function initPedia(ctx) {
       ${u.notes ? `<p class="pedia-prose">${esc(u.notes)}</p>` : ''}
       ${u.tech ? `<p class="pedia-req">Requires ${techLink(u.tech)}</p>` : '<p class="pedia-req">Available from the start</p>'}` },
     buildings: { label: 'Buildings', list: () => sorted(buildings), render: (id, b) => `
+      ${BUILDING_BLURBS[id] ? `<p class="pedia-prose pedia-flavor">${esc(BUILDING_BLURBS[id])}</p>` : ''}
       <div class="pedia-stats">${statRow('Cost', b.cost + ' shields')}${statRow('Upkeep', (b.maintenance || 0) + ' gold/turn')}</div>
       <p class="pedia-prose">${esc(cat.effectText(b) || 'a civic improvement')}</p>
       ${b.tech ? `<p class="pedia-req">Requires ${techLink(b.tech)}</p>` : ''}` },

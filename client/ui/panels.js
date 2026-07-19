@@ -6,6 +6,7 @@ import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 import { makeCatalogText } from './catalog-text.js';
+import { UNIT_BLURBS, BUILDING_BLURBS } from './unit-building-blurbs.js';
 
 export function initPanels(ctx) {
   const { session, renderer, sel } = ctx;
@@ -526,11 +527,12 @@ export function initPanels(ctx) {
       h.textContent = title;
       prodEl.appendChild(h);
     };
-    const addOption = (item, label, sub) => {
+    const addOption = (item, label, sub, tip) => {
       const btn = document.createElement('button');
       btn.className = 'option'
         + (city.producing.kind === item.kind && city.producing.id === item.id ? ' current' : '');
       btn.innerHTML = label + (sub ? `<div class="fx">${sub}</div>` : '');
+      if (tip) btn.title = tip; // Civilopedia flavor blurb on hover (P2/run-F #9)
       // second click on the same item = set + close (quick change);
       // C3: shift-click APPENDS to the city's build queue instead
       btn.addEventListener('click', ev => {
@@ -576,7 +578,8 @@ export function initPanels(ctx) {
       const cost = itemCost('unit', id, u, me, session.ruleset);
       addOption({ kind: 'unit', id },
         `${u.name} · <span class="ys">${cost}⚒${eta(cost, 'unit')}</span> · ${u.attack}/${u.defense}/${u.moves}`
-        + (cost < u.cost ? ' <span class="yf">★</span>' : ''));
+        + (cost < u.cost ? ' <span class="yf">★</span>' : ''),
+        undefined, UNIT_BLURBS[id]);
     }
     const hideFuture = ctx.options && ctx.options.get('hideFuture');
     if (!hideFuture) {
@@ -598,7 +601,7 @@ export function initPanels(ctx) {
       addOption({ kind: 'building', id },
         `${b.name} · <span class="ys">${cost}⚒${eta(cost, 'building')}</span> · upkeep ${b.maintenance}`
         + (cost < b.cost ? ' <span class="yf">★</span>' : ''),
-        effectText(b) || 'no effect implemented yet');
+        effectText(b) || 'no effect implemented yet', BUILDING_BLURBS[id]);
     }
     if (!hideFuture) {
       for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {
