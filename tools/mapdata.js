@@ -103,9 +103,14 @@ function buildTerrain() {
 // "Republic (advance) / Republic" (take the display segment), and the wiki
 // table hyphenates long words across lines ("Industri-alization"). No real
 // Civ 1 advance contains a hyphen, so de-hyphenating is safe here.
+// Display-name case corrections applied after normalization (ally #1712 C2):
+// the wiki spelling "RailRoad" is standardized to "Railroad". The id/slug is
+// unchanged (slug lowercases), so no reference drifts; keep TECH_ERAS in sync.
+const NAME_FIXES = { 'RailRoad': 'Railroad' };
 function techName(raw) {
   const parts = raw.split(' / ');
-  return parts[parts.length - 1].replace(/(\w)-(\w)/g, '$1$2').trim();
+  const n = parts[parts.length - 1].replace(/(\w)-(\w)/g, '$1$2').trim();
+  return NAME_FIXES[n] || n;
 }
 
 // A20 era buckets — the user's Civ2-derived table (attested 2026-07-13,
@@ -124,7 +129,7 @@ const TECH_ERAS = {
     'Philosophy', 'Magnetism', 'Theory of Gravity', 'Religion'],
   industrial: ['Atomic Theory', 'Steam Engine', 'Combustion', 'Electricity',
     'Explosives', 'Flight', 'Refining', 'Steel', 'Corporation',
-    'Industrialization', 'RailRoad', 'Conscription', 'Communism', 'Democracy'],
+    'Industrialization', 'Railroad', 'Conscription', 'Communism', 'Democracy'],
   modern: ['Fusion Power', 'Future Tech', 'Genetic Engineering',
     'Nuclear Fission', 'Nuclear Power', 'Space Flight', 'Superconductor',
     'Advanced Flight', 'Automobile', 'Computers', 'Electronics',
