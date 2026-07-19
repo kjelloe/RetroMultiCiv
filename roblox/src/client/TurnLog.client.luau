@@ -113,6 +113,73 @@ local function ownCity(view, cityId)
 	return c ~= nil and c.owner == view.you
 end
 
+-- D3 diplomacy (docs/14, #1878): the four events surface the way the BROWSER
+-- surfaces them (parity target, not the raw engine event set):
+--  * WAR_DECLARED / PEACE_TREATY_SIGNED / TREATY_BROKEN → event-narrated below,
+--    mirroring shared/diplomacy-view.js diplomacyEventRow byte-for-byte. These
+--    carry civIds (never pids); civName resolves via the baked civs ruleset.
+--    They stay DORMANT until the engine/visibility twin surfaces them past the
+--    authoritative fog filter (bugfixer's D3 server-surfacing item, #1884) —
+--    the narrator is correct and lights up the moment they arrive.
+--  * FIRST_CONTACT is NOT the engine event (diplomacyEventRow returns null for
+--    it) — the browser derives it CLIENT-SIDE from the view (turnlog.js
+--    scanContacts): any rival whose unit/city enters your view. That path needs
+--    no twin and works today; see scanContacts below.
+local REASON = { border_pressure = "border pressure" }
+local PENALTY = { reputation_loss = "reputation cost" }
+
+-- civId → display name: mirror client/ui/turnlog.js civName. The event civId is
+-- a civ slug (engine eventCiv returns player.civ); the filtered view strips
+-- player.civ, so the player-scan finds nothing and we fall back to the baked
+-- civs table (romans → "Romans"), then the raw id (R3 fallback chain).
+local function civName(view, rs, civId)
+	for _, p in pairs(view.players) do
+		if p.civ == civId then
+			return p.name
+		end
+	end
+	local civs = rs.civs
+	if civs ~= nil and civs[civId] ~= nil and civs[civId].name ~= nil then
+		return civs[civId].name
+	end
+	return tostring(civId)
+end
+
+-- the three treaty events → (text, cls) or nil, a 1:1 port of
+-- shared/diplomacy-view.js diplomacyEventRow. Fog per B5: a PARTY hears the
+-- reason/penalty/expiry, the world hears the headline. myCiv is the viewer's
+-- civ — the filtered view does not expose own civ yet, so mine() is false and
+-- rows render as the world headline (👀), exactly the browser's undefined-civ
+-- path; it upgrades to party detail when filterView exposes own civ.
+local function diplomacyRow(view, rs, e)
+	local myCiv = view.players[view.you] ~= nil and view.players[view.you].civ or nil
+	local function mine(civId)
+		return myCiv ~= nil and civId == myCiv
+	end
+	local function nm(civId)
+		return civName(view, rs, civId)
+	end
+	if e.type == "WAR_DECLARED" then
+		local party = mine(e.attackerCivId) or mine(e.defenderCivId)
+		local why = (party and e.reason ~= nil) and (" — " .. (REASON[e.reason] or e.reason)) or ""
+		return ("%s %s declares war on %s%s"):format(party and "⚔" or "👀", nm(e.attackerCivId), nm(e.defenderCivId), why),
+			mine(e.defenderCivId) and "loss" or ""
+	elseif e.type == "PEACE_TREATY_SIGNED" then
+		local party = mine(e.civAId) or mine(e.civBId)
+		local untilTxt = ""
+		if party then
+			untilTxt = (e.expiresTurn ~= nil and e.expiresTurn ~= 0) and (" (until turn " .. e.expiresTurn .. ")") or " (perpetual)"
+		end
+		return ("🕊 %s and %s sign peace%s"):format(nm(e.civAId), nm(e.civBId), untilTxt), party and "win" or ""
+	elseif e.type == "TREATY_BROKEN" then
+		local party = mine(e.breakerCivId) or mine(e.injuredCivId)
+		local why = (party and e.penalty ~= nil) and (" — " .. (PENALTY[e.penalty] or e.penalty)) or ""
+		return ("%s %s breaks the treaty with %s%s"):format(party and "⚔" or "👀", nm(e.breakerCivId), nm(e.injuredCivId), why),
+			mine(e.injuredCivId) and "loss" or ""
+	end
+	return nil
+end
+
 -- one event -> zero or one log line (the browser turnlog.js narration,
 -- reduced to the view's vocabulary; nil = not narrated)
 local function narrate(view, e, rs)
@@ -185,8 +252,39 @@ local function narrate(view, e, rs)
 		return ("[gov] new government: %s"):format(g and g.name or e.government), "win"
 	elseif e.type == "techDiscovered" and e.playerId == you then
 		return ("[tech] %s discovered - press T to choose new research"):format(rs.techs[e.tech].name), "win"
+	elseif e.type == "WAR_DECLARED" or e.type == "PEACE_TREATY_SIGNED" or e.type == "TREATY_BROKEN" then
+		return diplomacyRow(view, rs, e) -- D3: dormant until the visibility twin surfaces these under fog
 	end
 	return nil
+end
+
+-- D3 first contact (browser turnlog.js scanContacts): announce any rival whose
+-- unit or city has entered the view. Seeded silently on the first view (so a
+-- mid-game rejoin does not re-announce every already-met civ), announced
+-- thereafter. View-derived (owner pids), so it needs no engine event.
+local met = {}
+local metSeeded = false
+local function scanContacts(view)
+	local seen = {}
+	for _, u in pairs(view.units or {}) do
+		seen[u.owner] = true
+	end
+	for _, c in pairs(view.cities or {}) do
+		seen[c.owner] = true
+	end
+	local ids = {}
+	for pid in pairs(seen) do
+		table.insert(ids, pid)
+	end
+	table.sort(ids)
+	for _, pid in ipairs(ids) do
+		if pid ~= view.you and not met[pid] then
+			met[pid] = true
+			if metSeeded then
+				put(view.turn, ("👁 first contact: %s sighted"):format(playerName(view, pid)), "rival")
+			end
+		end
+	end
 end
 
 ClientState.onEvents(function(events, view)
@@ -200,6 +298,8 @@ ClientState.onEvents(function(events, view)
 			put(view.turn, "[?] " .. tostring(e.type), "rival")
 		end
 	end
+	pcall(scanContacts, view) -- D3 view-derived first contact (never kills the loop)
+	metSeeded = true
 end)
 
 local function setOpen(open)

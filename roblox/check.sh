@@ -211,5 +211,19 @@ else
   note SKIP "gate 16: node absent"
 fi
 
+# gate 17 — diplomacy-turnlog parity (D3, #1878): TurnLog.client.luau diplomacyRow
+# is a 1:1 port of shared/diplomacy-view.js diplomacyEventRow (WAR_DECLARED/
+# PEACE_TREATY_SIGNED/TREATY_BROKEN) + view-derived first-contact mirrors
+# client/ui/turnlog.js scanContacts. A reword on either side fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/diplomacy-turnlog-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 17: diplomacy turnlog matches browser diplomacyEventRow/scanContacts"
+  else
+    note FAIL "gate 17: diplomacy-turnlog parity — run: node roblox/selftest/diplomacy-turnlog-parity.mjs"
+  fi
+else
+  note SKIP "gate 17: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

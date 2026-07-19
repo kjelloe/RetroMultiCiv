@@ -659,9 +659,22 @@ Run-F live playtest (2026-07-19) fixes:
   committed source (`specs/ally-unit-building-blurb-response-2026-07-19.md`);
   `Pedia.client` shows them as the entry flavor line; gate 16 pins parity
   vs the source + ruleset coverage.
+- **D3 diplomacy UI Tier-A DONE** (#1878/#1886): `TurnLog.client.luau`
+  narrates the three treaty events (WAR_DECLARED / PEACE_TREATY_SIGNED /
+  TREATY_BROKEN) via `diplomacyRow`, a 1:1 port of `shared/diplomacy-view.js`
+  `diplomacyEventRow` (civId → baked `civs` name; party hears the
+  reason/penalty/expiry, world hears the headline), plus view-derived
+  first-contact mirroring `client/ui/turnlog.js` `scanContacts` (any rival
+  unit/city entering the view; seeded silent on first view so a rejoin does
+  not re-announce). Gate 17 pins parity. Golden-neutral. NOTE: the three
+  treaty events stay DORMANT until the engine/visibility twin surfaces them
+  past the authoritative fog filter (bugfixer's D3 server-surfacing item,
+  #1884) — the narrator is correct and lights up the moment they arrive;
+  first-contact works today. Tier-B Foreign-relations panel is deferred
+  until `filterView` exposes `state.relations`.
 - Still open: the tech-tree procedural GLYPHS (phase 2, ally motif pass)
   + the CP1 tile-props art pass (now unblocked by the enhanced-look
-  ruling); D3 diplomacy if the architect rows it for Roblox.
+  ruling); D3 Tier-B relations panel (needs the filterView twin).
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
 2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
