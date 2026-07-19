@@ -50,5 +50,7 @@ playwright-report/
 # Old stuff
 archive/
 
-# Filled-in hosting config (holds SSH key + email — never commit)
+# Filled-in hosting config (holds SSH key + email + deploy user/host — never commit)
+# Sanitised templates live in docs/ (hetzner-cloud-init.yaml, hetzner-ssh-deploy.sh)
 cloud-init.yaml
+ssh-deploy.sh
