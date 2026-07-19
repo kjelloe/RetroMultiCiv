@@ -219,12 +219,23 @@ may CREATE the first relation entry via `bumpRel`/contact.
 
 Add a `diplomacy` block to `data/rules.json` (ruleset file → checksum
 moves → part of the golden re-record; that is expected here since D3 is
-behavioral anyway). All INTEGERS. Proposed starting values are the
-sim-runner's to SWEEP for the elim-band (§7) — do NOT treat these as final:
+behavioral anyway). All INTEGERS. Proposed starting values were the
+sim-runner's to SWEEP for the elim-band (§7).
+
+**SWEPT + RULED (architect #1764, sim-runner sweep #1762):**
+`peaceAcceptThreshold: 50 → 30` (the one lever moved); `warIntentThreshold`
+stays 60; all weights stay as-is. Rationale: the score identity
+`scorePeaceAccept = 50 - aggression` at parity makes 30 a clean
+personality boundary — only `aggression < 20` negotiates (peaceful leaders
+YES, balanced/aggressive NO). PAT 30 chosen over 25 (robust n=6 witness vs
+25's thin n=2; both keep the default-roster elim median unmoved at 3.0).
+Weights unchanged because the 50-aggression identity already orders the
+personalities against a single threshold — touching them would blur the
+boundary without adding a witness PAT 30 doesn't already deliver.
 
 ```
 "diplomacy": {
-  "warIntentThreshold": 60, "peaceAcceptThreshold": 50,
+  "warIntentThreshold": 60, "peaceAcceptThreshold": 30,  // PAT ruled 30 (#1764); was 50 provisional
   "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
   "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
   "relGrievanceOnAttack": 15, "relGrievanceOnBetray": 40, "relTrustOnBetray": 30,
@@ -273,6 +284,15 @@ table (`--stats`, a few seeds each):
 
 - **All-aggressive table** (Shaka/Genghis/Caesar-heavy): elimination count
   UP vs the D1 baseline — wars start, capitals fall.
+  **RULED (architect #1764):** the measured aggressive table is D1-INVARIANT
+  — warmongers' `scorePeaceAccept` is too negative to ever sign a treaty, so
+  the declare-to-betray path can't add wars (D3 PAT30 elim median 2.5/36% =
+  D1-off 2.5/36%, IDENTICAL, 8 seeds each). §8.1 reads as **"not pacified"**
+  and PASSES: "wars start, capitals fall" is met (36% elim, conquest wins);
+  strict "UP vs D1" is NOT required of D3 — decisive conquest that CLOSES a
+  game is XII.5's job (the victory drive), and opportunistic
+  short-treaty-then-betray is DEFERRED to D4. D3 correctly neither pacifies
+  nor inflames the warmonger table.
 - **No-aggressive table** (Gandhi/Ramesses/Hammurabi-heavy): FEW or ZERO
   eliminations; the game resolves by score/tech/space — an economic
   contest, as the user described.

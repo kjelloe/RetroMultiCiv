@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-18._
+_Last synced: 2026-07-19._
 
 ---
 
@@ -24,11 +24,20 @@ _Last synced: 2026-07-18._
   the diplomacy-AI foundation; golden-neutral), 0060 (D1 diplomacy),
   0059 (N9b wonder-drive), 0058, and everything since. Merging is your
   GREEN LIGHT for the mobile + LAN testing round.
-  _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window,
-  now auto-progressing (phase-1 re-record done + audit-ledger + proofs
-  passed; the sim-runner is running the constant sweep → phase-2 →
-  marker-0063). No user action to get there — it's the next candidate
-  once the sweep + phase-2 land.
+  _Since 0062:_ a golden-neutral batch has landed on dev_night — the
+  Roblox run-F fixes (10/11 + selftest gates 12–14, `ba9ad3f`), city-look-
+  by-era, the tech tree / beeline / glyphs (XII.6), the ally content (68
+  tech blurbs + pedia concepts), and the hardening merges. The architect
+  plans to tag it as a new mergeable marker once the reviewer's clean-clone
+  gate confirms it (in progress) — that becomes your next merge candidate,
+  short of D3.
+  _In flight:_ **marker-0063 (D3 AI diplomacy)** — a BEHAVIORAL window.
+  Phase-1 is done (re-record + audit ledger + both proofs passed, JS==Luau).
+  The constant sweep is DONE and the architect ruled (#1764):
+  `peaceAcceptThreshold` 50→30 (the one lever), thresholds/weights unchanged,
+  elim median holds at 3.0. The **phase-2 re-record** (soak/natural/turn-100
+  + the §8 witnesses) is the LAST gate → marker-0063. No user action to get
+  there.
 
 - [x] **Gaming PC back online** — both sim-runner and roblox-helper
   recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
@@ -112,12 +121,13 @@ _Last synced: 2026-07-18._
 - **Late-game save loading SHIPPED** (marker-0062): load a hosted-game
   save in the client, camera recenters on load, dead human seats collapse
   to AI. Driven red-first by your real turn-1617 save.
-- **D3 AI diplomacy — PHASE-1 DONE, sweeping** (marker-0063 auto-
-  progressing): the AI negotiates (war/peace, met-state + first contact) —
-  where your **mix-conditional elimination** and the **space-launch
-  coalition** land. Both proofs passed; phase-1 re-recorded (~16 scenarios,
-  audit ledger, JS==Luau). The sim-runner is running the constant sweep;
-  then phase-2 re-record → marker-0063. No user action needed.
+- **D3 AI diplomacy — PHASE-1 DONE** (marker-0063 pending phase-2): the
+  AI negotiates (war/peace, met-state + first contact) — where your
+  **mix-conditional elimination** and the **space-launch coalition** land.
+  Both proofs passed; phase-1 re-recorded (~16 scenarios, audit ledger,
+  JS==Luau). The constant sweep is DONE and ruled (#1764: peaceAcceptThreshold
+  50→30); the phase-2 re-record is the last gate → marker-0063. No user action
+  needed.
 - **City-look-by-era SHIPPED** (your Roblox run-F item 8): city visuals now
   vary by ERA band (ancient thatch → classical stone+keep → industrial
   brick+smokestacks → modern/space glass+dome) composing with the size
@@ -165,8 +175,9 @@ _Last synced: 2026-07-18._
   Beyond the validated scale (turn-1617), so it's a real hosting-robustness
   item, not a regression. If you can, note whether the `node` process was
   still alive or had exited when it happened.
-- **Roblox run-F items in progress:** most are roblox-helper's (panels,
-  tile improvements, debug/DataStore config, the city-name render fix);
+- **Roblox run-F — 10/11 committed** (`ba9ad3f`): the roblox-helper's batch
+  landed (panels, tile improvements, debug/DataStore config, city-name
+  render fix, ff-diorama, pedia movement/regency, selftest gates 12–14);
   city-look-by-era (item 8) SHIPPED on the browser (see FYI), the shared
   contract is ready for the Roblox port; city-name lists get expanded (in
   the queued data window); the unit/building blurbs await your ally forward

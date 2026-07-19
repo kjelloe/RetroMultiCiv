@@ -109,6 +109,13 @@ narration surfaces the victory actions — turnlog byType already exists.)
   XII.5 decides *how to WIN* (and, for conquest, mobilizes to make the war
   decisive). Build XII.5 ON TOP of D3 (after it lands) so the war it wages is
   the war D3 declared.
+- **Inherited from D3's §8.1 ruling (#1764):** D3 is D1-invariant on the
+  all-aggressive table — warmongers never sign a treaty, so D3 neither
+  pacifies nor makes their wars more decisive (elim 2.5/36% = D1). Making the
+  aggressor's war actually CLOSE OUT a game (domination) is XII.5's charge,
+  not D3's. If a stronger aggressor signal than "not pacified" is ever wanted,
+  the candidate mechanism is opportunistic short-treaty-then-betray — parked
+  here / to D4, explicitly OUT of D3 scope.
 - NOT in XII.5: new victory CONDITIONS (the win checks exist — score/
   conquest/space); new units; diplomacy (D3). XII.5 is AI POLICY only.
 

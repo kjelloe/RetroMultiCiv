@@ -83,7 +83,7 @@
     <div class="meta">
       <span class="chip">Last synced: <strong>2026-07-19</strong></span>
       <span class="chip">Merge candidate: <strong>marker-0062</strong></span>
-      <span class="chip">Pending: <strong>marker-0063 · D3 (paused)</strong></span>
+      <span class="chip">Pending: <strong>marker-0063 · D3 (phase-2)</strong></span>
       <span class="chip">Companion of <strong>human-workitems.md</strong></span>
     </div>
   </header>
@@ -94,12 +94,12 @@
 
     <div class="item"><span class="box"></span>
       <div class="t">Merge the latest consistent marker — candidate <code>marker-0062</code></div>
-      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load, and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, red-first against your real turn-1617 save. Supersedes 0061 (A59), 0060 (D1), 0059, and everything since. A stack of golden-neutral work (ally content, XII.6 tech tree) sits on dev_night ahead of it and will fold into marker-0063.</div>
+      <div class="d">Late-game save loading: a hosted-game <code>retromulticiv-server-save</code> now loads in the client, the map recenters on load, and a solo "continue my hosted game" no longer hands off to a dead player. Golden-neutral, red-first against your real turn-1617 save. Supersedes 0061 (A59), 0060 (D1), 0059, and everything since. A golden-neutral batch (Roblox run-F 10/11 <code>ba9ad3f</code>, city-era, XII.6, ally content, hardening) now sits on dev_night ahead of it — the architect plans to tag it as a new mergeable marker once the reviewer's clean-clone gate confirms it, becoming your next candidate short of D3.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
       <div class="t" style="text-decoration:line-through;opacity:.7">Gaming PC back online — resolved</div>
-      <div class="d">Both sim-runner and roblox-helper recovered; the D3 sweep is resuming (marker-0063 auto-progressing again) and the Roblox run-F work is pushing again. No further action.</div>
+      <div class="d">Both sim-runner and roblox-helper recovered; the D3 constant sweep is back with the sim-runner and the Roblox run-F work committed (<code>ba9ad3f</code>). No further action.</div>
     </div>
 
     <div class="item"><span class="box"></span>
@@ -162,8 +162,8 @@
       <div class="d">Load a hosted-game save in the client, camera recenters on load, dead human seats collapse to AI. Red-first against your real turn-1617 save.</div>
     </div>
     <div class="item dot"><span class="box"></span>
-      <div class="t">D3 AI diplomacy — PHASE-1 DONE, sweeping <span class="d" style="display:inline">(marker-0063 auto-progressing)</span></div>
-      <div class="d">The AI negotiates (war/peace, met-state + first contact) — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Both proofs passed; phase-1 re-recorded (~16 scenarios + audit ledger, JS==Luau). The sim-runner runs the sweep, then phase-2 → marker-0063 (currently blocked by the gaming-PC outage above).</div>
+      <div class="t">D3 AI diplomacy — PHASE-1 DONE <span class="d" style="display:inline">(marker-0063 pending phase-2)</span></div>
+      <div class="d">The AI negotiates (war/peace, met-state + first contact) — where your <strong>mix-conditional elimination</strong> and the <strong>space-launch coalition</strong> land. Both proofs passed; phase-1 re-recorded (~16 scenarios + audit ledger, JS==Luau). The constant sweep is DONE and ruled (#1764: <code>peaceAcceptThreshold</code> 50→30); the phase-2 re-record is the last gate → marker-0063.</div>
     </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">City-look-by-era SHIPPED <span class="d" style="display:inline">(your Roblox run-F item 8)</span></div>
@@ -204,8 +204,8 @@
       <div class="d">Your very-long hosted game dropped the socket. Diagnosed SERVER-side (the client was reconnecting correctly; the server wasn't completing the handshake) — at that extreme scale a single AI turn-chain blocks the server's event loop past the heartbeat window. Routed to the server-robustness lane (#1732); a busy-tolerant heartbeat + yielding within the AI chain are the fixes. Beyond the validated scale (turn-1617), so a real hosting-robustness item, not a regression. If you can, note whether the <code>node</code> process was still alive or had exited.</div>
     </div>
     <div class="item dot"><span class="box"></span>
-      <div class="t">Roblox run-F items in progress</div>
-      <div class="d">Most are roblox-helper's (panels, tile improvements, debug/DataStore config, the city-name render fix); the shared ones are routed — <strong>city-look-by-era</strong> (your item 8) is now a browser render feature the helper can build (<code>specs/city-era-looks.md</code>), city-name lists get expanded, and the unit/building blurbs await your ally forward (Decide/Do). No input needed beyond that forward.</div>
+      <div class="t">Roblox run-F — 10/11 committed <span class="d" style="display:inline">(<code>ba9ad3f</code>)</span></div>
+      <div class="d">The roblox-helper's batch landed (panels, tile improvements, debug/DataStore config, city-name render fix, ff-diorama, pedia movement/regency, selftest gates 12–14); the shared ones are routed — <strong>city-look-by-era</strong> (your item 8) shipped on the browser (<code>specs/city-era-looks.md</code>), city-name lists get expanded, and the unit/building blurbs await your ally forward (Decide/Do). No input needed beyond that forward.</div>
     </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">Phase-6 diplomacy D4–D6</div>
