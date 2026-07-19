@@ -41,6 +41,35 @@ export function createGame(opts) {
   // `roundLog` is the small round-hash subset (~62B/round) the file persists
   // instead; kept as its own array so toSave() never has to scan the growing log.
   let roundLog;
+  // #1870 slice 2: per-command entries STREAM to an append-only sidecar
+  // (saves/<gameId>.log.jsonl) so the in-RAM footprint stays bounded to the
+  // round-hash chain (roundLog) — this removes the steady-state log growth that
+  // OOMs a long game. Sidecar mode is ON only when a path is injected (the
+  // server autosave path); crafted-state/scenario games without one keep the
+  // full log in RAM (unchanged). fs IO is injectable for tests.
+  let sidecarFile = opts.sidecarFile || null;
+  // ensure the dir exists up front — per-command appends precede the first
+  // saveTo (which is what otherwise mkdirs saves/).
+  if (sidecarFile && !opts.logAppendFn) { try { fs.mkdirSync(path.dirname(sidecarFile), { recursive: true }); } catch (e) { /* first save retries */ } }
+  const appendLine = opts.logAppendFn || (line => fs.appendFileSync(sidecarFile, line));
+  const readSidecar = opts.logReadFn || (() => { try { return fs.readFileSync(sidecarFile, 'utf8'); } catch (e) { return ''; } });
+  // record ONE entry: stream to the sidecar (bounded RAM) or, with no sidecar,
+  // retain it in the in-RAM `log` (the pre-slice-2 behavior).
+  function recordEntry(entry) {
+    if (sidecarFile) appendLine(JSON.stringify(entry) + '\n');
+    else log.push(entry);
+  }
+  // reconstruct the full ordered recording for the end-of-game report + fullLog
+  // send (read once at game end, not per command).
+  function readFullLog() {
+    if (!sidecarFile) return log;
+    const out = [];
+    for (const line of readSidecar().split('\n')) {
+      if (!line) continue;
+      try { out.push(JSON.parse(line)); } catch (e) { /* torn tail line: skip */ }
+    }
+    return out;
+  }
   if (opts.save) {
     if (opts.save.format !== SAVE_FORMAT) {
       throw new Error(`not a server save (format: ${opts.save.format})`);
@@ -63,13 +92,21 @@ export function createGame(opts) {
     state = opts.save.state;
     log = opts.save.diag.log;
     logStart = opts.save.diag.initialState;
-    // A slice-1+ save persists round entries only; an older save has the full
-    // interleaved log. Either way roundLog is the round subset (one-time scan at
-    // load, never per-command). A resumed round-only recording no longer replays
-    // clean from initialState -> its end-of-game report degrades gracefully to
-    // "did not replay clean — not written" (index.js), which is expected until
-    // slice 2's sidecar restores full-history persistence.
+    // roundLog is the round subset of whatever the .json carried (one-time scan
+    // at load, never per-command) — continues the round-hash chain in the file.
     roundLog = (log || []).filter(e => e.t === 'round');
+    if (sidecarFile) {
+      // Sidecar mode: reattach the existing per-command sidecar and keep
+      // appending; the pre-restart history lives on disk, so fullLog spans the
+      // restart. If the sidecar is empty/absent (a fresh deploy, or the first
+      // resume of a pre-slice-2 save), SEED it from whatever the .json diag
+      // carried so the recording is continuous where we can, truncated (and the
+      // report degrades gracefully) where the per-command history was never kept.
+      if (readSidecar() === '' && Array.isArray(log) && log.length > 0) {
+        appendLine(log.map(e => JSON.stringify(e)).join('\n') + '\n');
+      }
+      log = null; // do not retain the full array in RAM — the sidecar is the source
+    }
   } else if (opts.initialState) {
     // A20: a pre-built state (the lobby's age fast-forward) — treated exactly
     // like a fresh game whose history starts at the takeover point, so the
@@ -82,6 +119,7 @@ export function createGame(opts) {
     log = [];
     roundLog = [];
     logStart = deepClone(state);
+    if (sidecarFile) { try { fs.writeFileSync(sidecarFile, ''); } catch (e) { /* dir appears on first save */ } }
   } else {
     gameId = opts.gameId || 'game1';
     seats = {};
@@ -92,6 +130,7 @@ export function createGame(opts) {
     log = [];
     roundLog = [];
     logStart = deepClone(state);
+    if (sidecarFile) { try { fs.writeFileSync(sidecarFile, ''); } catch (e) { /* dir appears on first save */ } }
   }
 
   function seatOf(token) {
@@ -189,7 +228,7 @@ export function createGame(opts) {
         entry.ok = false;
         entry.reason = res.reason;
       }
-      log.push(entry);
+      recordEntry(entry);
     }
     // B11b: the synthetic regent summary — same shape session.js emits locally,
     // never logged/hashed (not in `log`), so replay stays exact. filterEvents
@@ -214,7 +253,7 @@ export function createGame(opts) {
       entry.ok = false;
       entry.reason = res.reason;
     }
-    log.push(entry);
+    recordEntry(entry);
     return res;
   }
 
@@ -225,7 +264,7 @@ export function createGame(opts) {
     const collected = [];
     const first = engine.applyCommand(state, { type: 'endTurn', playerId });
     if (!first.ok) {
-      log.push({ t: 'cmd', turn: state.turn, cmd: { type: 'endTurn', playerId }, ok: false, reason: first.reason });
+      recordEntry({ t: 'cmd', turn: state.turn, cmd: { type: 'endTurn', playerId }, ok: false, reason: first.reason });
       return first;
     }
     state = first.state;
@@ -239,9 +278,21 @@ export function createGame(opts) {
       for (const e of res.events) collected.push(e);
     }
     const roundEntry = { t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) };
-    log.push(roundEntry);
+    recordEntry(roundEntry);
     roundLog.push(roundEntry); // #1870: the small subset the autosave file persists
     return { ok: true, events: collected };
+  }
+
+  // Attach a sidecar AFTER construction — for lobby games, which the registry
+  // builds without a save path; index.js calls this right after registry.start,
+  // before any command is applied. Any entries already in RAM (defensive; a
+  // freshly-started game has none) are seeded into the sidecar, then dropped.
+  function setSidecar(file) {
+    if (!file || sidecarFile) return;
+    sidecarFile = file;
+    try { fs.mkdirSync(path.dirname(file), { recursive: true }); } catch (e) { /* first save retries */ }
+    try { fs.writeFileSync(file, Array.isArray(log) && log.length ? log.map(e => JSON.stringify(e)).join('\n') + '\n' : ''); } catch (e) { /* first save retries */ }
+    log = null; // the sidecar is now the source of the full recording
   }
 
   function view(playerId) {
@@ -295,6 +346,9 @@ export function createGame(opts) {
         // will restore full-history persistence + offline replay fidelity).
         log: roundLog,
         logTruncated: true,
+        // slice 2: per-command history lives in the sidecar next to this file;
+        // record its basename so a resume/replay tool can find it.
+        sidecar: sidecarFile ? path.basename(sidecarFile) : undefined,
         finalHash: hashState(state),
         finalTurn: state.turn
       }
@@ -318,7 +372,8 @@ export function createGame(opts) {
     seatOf,
     seatOfCode, // A46: index.js's liveness gate resolves the code first
     setRegent, regentOf, playRegentSeat, // A40 slice 2
-    fullLog() { return { initialState: logStart, log, finalHash: hashState(state) }; }, // A47: replay theater source
+    setSidecar, // #1870 slice 2: attach the recording sidecar to a lobby-started game
+    fullLog() { return { initialState: logStart, log: readFullLog(), finalHash: hashState(state) }; }, // A47: replay source (sidecar-backed in slice 2)
     resetSeats,
     apply,
     endTurn,

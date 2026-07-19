@@ -33,6 +33,41 @@ async function freshGame(extra) {
   }, extra || {}));
 }
 
+test('#1870 slice 2: per-command entries stream to the sidecar, in-RAM stays bounded, fullLog reconstructs + replays', async () => {
+  const { hashState } = await import('../shared/statehash.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sidecar-'));
+  const sidecarFile = path.join(dir, 'test1.log.jsonl');
+  try {
+    const game = await freshGame({ sidecarFile });
+    game.bindSeat('Kjell');
+    const settlers = Object.values(game.state.units).find(u => u.owner === 'p1' && u.type === 'settlers');
+    assert.strictEqual(game.apply('p1', { type: 'foundCity', unitId: settlers.id, name: 'Sidecarville' }).ok, true);
+    game.endTurn('p1');
+    game.endTurn('p1');
+
+    // per-command entries went to the sidecar as JSONL, NOT into the .json save
+    const lines = fs.readFileSync(sidecarFile, 'utf8').trim().split('\n').map(l => JSON.parse(l));
+    assert.ok(lines.some(e => e.t === 'cmd' && e.cmd.type === 'foundCity'), 'the foundCity cmd streamed to the sidecar');
+    assert.ok(lines.filter(e => e.t === 'round').length >= 2, 'round entries streamed too');
+
+    const saved = game.toSave().diag;
+    assert.strictEqual(saved.logTruncated, true);
+    assert.ok(saved.log.every(e => e.t === 'round'), 'the .json file carries round-hashes only (bounded)');
+    assert.strictEqual(saved.sidecar, 'test1.log.jsonl', 'the .json points at its sidecar');
+
+    // fullLog reconstructs the WHOLE ordered recording from the sidecar and it
+    // replays hash-exact (the report/fullLog source is intact, now disk-backed)
+    const full = game.fullLog();
+    assert.ok(full.log.some(e => e.t === 'cmd' && e.cmd.type === 'foundCity'), 'fullLog carries the cmd history from disk');
+    const report = await replayDiagnostics(
+      { initialState: full.initialState, log: full.log, finalHash: full.finalHash }, RULESET);
+    assert.deepStrictEqual(report.problems, [], 'the sidecar recording replays hash-exact');
+    assert.strictEqual(full.finalHash, hashState(game.state));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('seats: first join binds the first human seat; tokens reclaim; full is full', async () => {
   const game = await freshGame();
   const a = game.bindSeat('Kjell');
