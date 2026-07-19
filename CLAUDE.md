@@ -360,5 +360,10 @@ LAN hub, flag aliases, and the measured gotchas is documented in
 `coordinator` (tag `blocked`) — a read-time role alias for whoever holds
 coordination (currently `architect`, re-pointed in `.agent-mail/roles`);
 silence is never a status, so raise your hand rather than idle
-(design: `specs/coordinator-role-alias.md`).** `agent-chat.md` is
+(design: `specs/coordinator-role-alias.md`).** **Every lane also keeps a live
+status line — `agent-mail.py status --as <role> "waiting | working X | working X
+(long ~Nm)"` (overwrites a per-role file, never floods the log); update it at
+pickup/done/state-change + before any op that blocks you silent >~10 min (mark it
+`long`); the coordinator reads the board with `status` and pings only
+working-and-stale (>15m, not `long`) lanes.** `agent-chat.md` is
 the long-form archive. The store is gitignored; the md is tracked.

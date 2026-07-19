@@ -196,6 +196,44 @@ def unread_for(role):
             and canon(m['from']) != c]
 
 
+# --- presence board (liveness without flooding the message log) ---
+STATUS_STALE_MIN = 15  # a 'working' status older than this, not marked long-running, is a stall signal
+
+
+def status_file(role):
+    # canonical so an alias (coordinator) shares its target's status
+    return os.path.join(BOX, f'status-{canon(role)}')
+
+
+def set_status(role, state):
+    tmp = status_file(role) + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump({'state': state, 'ts': int(time.time())}, f)
+    os.replace(tmp, status_file(role))
+
+
+def get_status(role):
+    try:
+        with open(status_file(role), encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
+def all_statuses():
+    out = {}
+    try:
+        names = os.listdir(BOX)
+    except FileNotFoundError:
+        return out
+    for fn in names:
+        if fn.startswith('status-') and not fn.endswith('.tmp'):
+            st = get_status(fn[len('status-'):])
+            if st:
+                out[fn[len('status-'):]] = st
+    return out
+
+
 def fmt(m):
     ts = time.strftime('%H:%M', time.localtime(m['ts']))
     tag = f" [{m['tag']}]" if m.get('tag') else ''
@@ -365,6 +403,11 @@ def dispatch(argv):
 
     sub.add_parser('who')
 
+    st = sub.add_parser('status')
+    st.add_argument('--as', '--from', '--role', dest='role', default=None)
+    st.add_argument('text', nargs='?', default=None,
+                    help="set your status (waiting / working X / working X (long ~Nm)); omit to print the board")
+
     lk = sub.add_parser('lock')
     lk.add_argument('path', help='file to lock (repo-relative)')
     lk.add_argument('--as', '--from', '--role', dest='role', required=True)
@@ -441,6 +484,25 @@ def dispatch(argv):
             print(f'{r}: {len(unread_for(r))} unread')
         for alias, target in sorted(aliases.items()):
             print(f'  (alias) {alias} → {target}')
+
+    elif a.cmd == 'status':
+        if a.text is not None:
+            if not a.role:
+                sys.exit('status: --as <role> required to SET a status')
+            set_status(a.role, a.text)
+            print(f'status[{canon(a.role)}] = {a.text}')
+        else:
+            board = all_statuses()
+            if not board:
+                print('(no statuses posted yet)')
+            else:
+                now = int(time.time())
+                # oldest first so a stale lane surfaces at the top
+                for role, stt in sorted(board.items(), key=lambda kv: kv[1]['ts']):
+                    s = stt['state']
+                    mins = (now - stt['ts']) / 60
+                    stale = mins > STATUS_STALE_MIN and 'working' in s.lower() and 'long' not in s.lower()
+                    print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}")
 
     elif a.cmd == 'lock':
         locks = read_locks()

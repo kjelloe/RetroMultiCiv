@@ -81,6 +81,29 @@ Written into the role specs + `tools/agent-mail.md`:
   the identical unread set as `peek --as architect`; shared cursor confirmed;
   `who` shows the alias with no phantom row.
 
+## Part 3 — the status board (2026-07-19, user-requested follow-on)
+
+The user asked for a "waiting" semantic + every lane reporting ≤10 min so no lane is
+silently dead. A literal mail heartbeat was rejected (it floods the log — the
+reporting-style rule warns against that — and is unenforceable for long synchronous
+ops and undriven idle sessions). Instead: a **presence board**.
+
+- `agent-mail.py status --as <role> "<state>"` overwrites a one-line per-role status
+  (`.agent-mail/status-<role>`, JSON `{state, ts}`, canonical role) — NOT a message,
+  so it never appends to the log. `agent-mail.py status` prints the board (each lane's
+  state + age; a `working` status >15m not marked `long` gets a ⚠STALE hint).
+- Three states: **`waiting`** (idle/queue-empty — a request for work, an old one is
+  fine), **`working <X>`**, **`working <X> (long ~Nm)`** (set before a blocking op so
+  silence is expected). Update at pickup/done/state-change + before long ops.
+- The coordinator reads the board each sweep and pings only working-and-stale
+  (>15m, not `long`) lanes — silence becomes legible (waiting / long-op / stale)
+  instead of ambiguous. Blocked lanes still MAIL `coordinator` (board = liveness,
+  mail = the ask).
+- Implementation: `status_file`/`set_status`/`get_status`/`all_statuses` +
+  `STATUS_STALE_MIN=15` + the `status` subcommand in `tools/agent-mail.py` (canonical,
+  proxies over the hub like every command). Verified: set/read, alias-shared status,
+  hub restart.
+
 ## Records updated
 
 `tools/agent-mail.md` (alias + roles file + escalation convention + who

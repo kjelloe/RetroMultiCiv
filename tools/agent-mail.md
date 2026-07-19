@@ -50,6 +50,32 @@ re-points it and no spec changes.
   lanes instant, remote lanes on the next hub restart (like any code change).
   Format: `alias = canonical` per line, `#` comments. Design: `specs/coordinator-role-alias.md`.
 
+## Status board — liveness without flooding the log (STANDARD — 2026-07-19)
+
+Silence is ambiguous (working vs stalled vs offline). The **status board** removes
+that ambiguity WITHOUT adding heartbeat messages: `agent-mail.py status --as <role>
+"<state>"` overwrites a one-line per-role status (`.agent-mail/status-<role>`) — it
+does NOT append to the message log. `agent-mail.py status` prints the whole board
+(each lane's state + age; a `working` status older than ~15m and not marked `long`
+gets a ⚠STALE hint).
+
+**Every lane keeps its status line current.** Three states:
+- `waiting` — idle, queue empty. This is a REQUEST to the coordinator for work, not a
+  failure. An old `waiting` is fine; it means "still idle, still here."
+- `working <X>` — actively on X.
+- `working <X> (long ~Nm)` — set this BEFORE any operation that will block you silent
+  for more than ~10 min (a soak, a re-record, a build). Then your silence is EXPECTED
+  until the ETA — it is not a stall.
+
+**When to update:** at task pickup, at done, on any state change, and before a long op.
+Aim to keep it fresher than ~10 min while active. You do not mail these — you just
+overwrite your status line. The coordinator reads the board each sweep and pings only
+lanes that are `working`, stale (>15m), and NOT marked `long`. Blocked? still mail
+`coordinator` (tag `blocked`) — the board shows liveness, mail carries the ask.
+
+Honest limit: an idle session nobody is driving cannot post — but the board still
+tells the coordinator *waiting* vs *long-op* vs *genuinely-stale*, which is the point.
+
 ## Everyday commands (local)
 
 ```bash
@@ -64,6 +90,8 @@ python3 tools/agent-mail.py show <hash-prefix>     # expand ONE message's full b
 python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (add --headers)
 python3 tools/agent-mail.py log [-n 20]            # recent traffic, all parties
 python3 tools/agent-mail.py who                    # canonical roles + unread counts + alias map
+python3 tools/agent-mail.py status --as helper "working: XII.2 future-tech (long ~20m)"  # overwrite YOUR status line
+python3 tools/agent-mail.py status                 # print the presence board (each lane's state + age; ⚠STALE hint)
 
 # file locks (the claim protocol, made mechanical)
 python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"
