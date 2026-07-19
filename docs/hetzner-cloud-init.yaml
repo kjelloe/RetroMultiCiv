@@ -155,7 +155,7 @@ write_files:
       ExecStart=/usr/bin/node --max-old-space-size=1536 server/index.js \
         --host 127.0.0.1 --port 8123 \
         --trust-proxy-hops 1 --origin-allowlist https://<YOUR_DOMAIN> \
-        --public-addr https://<YOUR_DOMAIN> \
+        --public-addr <YOUR_DOMAIN>:443 \
         --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
         --max-games 8 --max-saves-mb 500 \
         --max-turns 500 --max-civs 8 --max-size large \
