@@ -94,6 +94,34 @@ so the goal is to exit gracefully BEFORE V8 hits it:
   --mem-check-sec flags + "the wrapper auto-restarts on crash/OOM; resume is
   automatic via per-command autosave".
 
+## OOM ROOT CAUSE — the unbounded recording log (traced 2026-07-19, #1870)
+
+The OOM watchdog above is the safety net; this is the actual per-turn leak that
+trips it in a long game. Traced from the user's "could a 2000+ turn game OOM?" ask.
+
+**Finding (`server/game.js`):** the per-game `log` array is built unconditionally at
+game start (`log = []` at init only) and appended on EVERY command, NEVER trimmed:
+- `apply()` + `playRegentSeat()`: one `{t:'cmd', turn, cmd}` per command (~100–230 B
+  retained). **Regent-played human seats log EVERY regent command** (moves/production/
+  research), so a REGENCY game (the turn-2623 case) grows fast: R seats × C cmds/turn,
+  and a late-game unit-spam seat issues dozens–hundreds of move cmds/turn.
+- `endTurn()`: one `{t:'round', turn, activePlayer, hash}` per round (~62 B) — cheap
+  (~260 KB at 2623 turns). The per-command entries dominate.
+- Pure-AI players driven inside `endTurn` are NOT logged per-command (only the round
+  hash). The state itself does NOT accumulate (replaced + GC'd each turn); no full-state
+  snapshots are retained (only hashes) — verified.
+
+**Estimate:** 3 regent seats × ~80 cmd/turn ≈ 110 MB at t2623; 6 × ~150 ≈ 420 MB. Plus
+the large late-game state + V8 overhead → plausibly OOMs a default ~1.5 GB old-space.
+
+**Fix (routed to hardening #1870; server-only → golden-neutral):** PREFERRED = stream
+per-command entries to a disk file incrementally, keep only round-hash entries in RAM,
+and have the end-of-game match-report replay the streamed file (bounds RAM to
+~round-hashes). Alternatives: cap the in-memory log to the last N rounds; opt-out full
+recording for marathon games. CONSTRAINT: the recording is the tamper/replay contract
+(`tools/replay.js` + `server/report.js` match-report + the `fullLog` send at
+`server/index.js`) — any fix must keep replay-from-initialState → finalHash working.
+
 ## Provenance
 
 `original` — operational robustness for self-hosting (docs/12). Driven by the

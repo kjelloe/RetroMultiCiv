@@ -8,30 +8,30 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-19._
+_Last synced: 2026-07-19 (markers 0063–0067 shipped; XII.5 in flight)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [x] **Markers 0063 + 0064 tagged — MERGED.** You merged the latest. Two
-  markers shipped 2026-07-19:
-  - **marker-0063** (`508beab`, golden-neutral, safe): the city-era
-    determinism fix (your browser Shift+D recordings verify against the engine
-    again) + the unit/building Civilopedia blurbs. Reviewer clean-clone GREEN.
-  - **marker-0064** (`87cfe3b`, BEHAVIORAL): **D3 AI diplomacy** — the AI now
-    negotiates war/peace (met-state + first contact + a relationship model) at
-    the swept `peaceAcceptThreshold=30`. Full suite + Gate-B (Luau parity)
-    green, bugfixer-verified. This one is a golden re-record (AI behaviour
-    changes).
-  Everything through marker-0062 (late-game save loading, A59 personality, D1
-  diplomacy, run-F, XII.6 tech-tree/glyphs, city-era-looks, ally content) sits
-  in the history below these.
-  _Next candidate (in build):_ **marker-0065 (data-label window, #1712)** —
-  Caesar→Colossus favorite (making Colossus a 3rd wonder-race pair) + the
-  railroad name fix; a small golden re-record. The civs.json 8→~16 city-name
-  expansion (11b) is split out pending the historical name lists. No user
-  action to get there.
+- [x] **Markers 0063–0067 tagged — MERGED.** You've been merging as they land.
+  Shipped 2026-07-19 (each has a `reports/marker-00NN.md`):
+  - **0063** (golden-neutral): city-era determinism fix (Shift+D recordings
+    verify again) + unit/building Civilopedia blurbs.
+  - **0064** (BEHAVIORAL): **D3 AI diplomacy** — the AI negotiates war/peace at
+    swept `peaceAcceptThreshold=30`. Gate-B (Luau parity) green.
+  - **0065** (behavior-neutral): data-label — Caesar→Colossus (a 3rd
+    wonder-race pair) + railroad rename, regen-durable.
+  - **0066** (golden-neutral server): **crash resilience** (your request) —
+    crashdump on uncaughtException/OOM + memory-watchdog (autosave + graceful
+    exit before fatal OOM) + `MULTICIV_SUPERVISE=1` self-restart loop.
+  - **0067** (golden-neutral server): **ws-timeout fix** — busy-tolerant
+    heartbeat, no false connection-reap during an event-loop block (turn-2623).
+  Everything through marker-0062 sits below these.
+  _In flight (no user action):_ **XII.5 space-drive** (your "regent never
+  idles" feedback) — an eligible leader builds Apollo → parts → launches, to
+  fix the 0/12-launch baseline. Behavioral golden window → will be marker-0068.
+  Bugfixer building; validating the Apollo-launch witness before the sweep.
 
 - [x] **Gaming PC back online** — both sim-runner and roblox-helper
   recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
@@ -82,6 +82,17 @@ _Last synced: 2026-07-19._
 
 ## FYI — recently shipped / resolved (no action)
 
+- **Crash resilience + ws-timeout SHIPPED** (markers 0066/0067, your requests):
+  crashdumps + OOM watchdog + self-restart loop, and a busy-tolerant heartbeat
+  that stops false connection-reaps during an event-loop block. Together they
+  cover the turn-2623 drop (crash vs block). See `specs/server-crash-resilience.md`.
+- **Turn-2623 OOM root-caused** (your memory question) — traced to the server's
+  unbounded recording `log` (`server/game.js`): every human/regent command is
+  logged and never trimmed, so a long regency game grows ~110–420 MB by t2623,
+  which with the large late-game state can OOM. The state itself doesn't leak.
+  Fix routed to hardening (stream per-command entries to disk, keep only the
+  tiny round-hashes in RAM); the OOM watchdog will confirm + auto-recover
+  meanwhile. Recorded in `specs/server-crash-resilience.md`.
 - **Designer-ally cover note ANSWERED** — the ally delivered all of it: the
   **68 original tech-discovery blurbs** (the empty discovery-card slots on
   browser + Roblox), the **Movement + Regency + Recordings** pedia concepts,

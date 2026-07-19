@@ -93,8 +93,8 @@
     <div class="bar"></div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Markers 0063 + 0064 tagged — MERGED</div>
-      <div class="d">You merged the latest. Two markers shipped 2026-07-19: <strong>marker-0063</strong> (<code>508beab</code>, golden-neutral, safe) — the city-era determinism fix (your browser Shift+D recordings verify against the engine again) + unit/building Civilopedia blurbs, reviewer clean-clone GREEN; and <strong>marker-0064</strong> (<code>87cfe3b</code>, BEHAVIORAL) — <strong>D3 AI diplomacy</strong>: the AI now negotiates war/peace (met-state + first contact + a relationship model) at the swept <code>peaceAcceptThreshold=30</code>, full suite + Gate-B (Luau parity) green, bugfixer-verified (a golden re-record). Everything through marker-0062 sits below these. <strong>Next candidate (in build):</strong> <code>marker-0065</code> (data-label #1712) — Caesar→Colossus (a 3rd wonder-race pair) + the railroad name fix, a small golden re-record; the civs.json 8→~16 city-name expansion is split out pending the historical name lists. No user action to get there.</div>
+      <div class="t" style="text-decoration:line-through;opacity:.7">Markers 0063–0067 tagged — MERGED</div>
+      <div class="d">You've been merging as they land. Shipped 2026-07-19 (each has a <code>reports/marker-00NN.md</code>): <strong>0063</strong> (golden-neutral) city-era determinism fix + unit/building blurbs; <strong>0064</strong> (BEHAVIORAL) <strong>D3 AI diplomacy</strong> at swept <code>peaceAcceptThreshold=30</code>, Gate-B green; <strong>0065</strong> (behavior-neutral) data-label — Caesar→Colossus (3rd wonder-race pair) + railroad rename, regen-durable; <strong>0066</strong> (golden-neutral server) <strong>crash resilience</strong> (your request) — crashdump + OOM watchdog + <code>MULTICIV_SUPERVISE=1</code> self-restart loop; <strong>0067</strong> (golden-neutral server) <strong>ws-timeout fix</strong> — busy-tolerant heartbeat, no false connection-reap during an event-loop block. Everything through marker-0062 sits below these. <strong>In flight (no user action):</strong> <strong>XII.5 space-drive</strong> (your "regent never idles" feedback) — an eligible leader builds Apollo → parts → launches, fixing the 0/12-launch baseline; behavioral golden window → marker-0068. Bugfixer building + validating the Apollo-launch witness before the sweep.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
@@ -137,6 +137,14 @@
     <div class="sec-head"><h2>FYI</h2><span class="tag">recently shipped / resolved — no action</span></div>
     <div class="bar"></div>
 
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Crash resilience + ws-timeout SHIPPED (markers 0066/0067, your requests)</div>
+      <div class="d">Crashdumps + OOM watchdog + self-restart loop, and a busy-tolerant heartbeat that stops false connection-reaps during an event-loop block — together they cover the turn-2623 drop (crash vs block). See <code>specs/server-crash-resilience.md</code>.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Turn-2623 OOM root-caused (your memory question)</div>
+      <div class="d">Traced to the server's unbounded recording <code>log</code> (<code>server/game.js</code>): every human/regent command is logged and never trimmed, so a long regency game grows ~110–420 MB by t2623, which with the large late-game state can OOM. The state itself doesn't leak. Fix routed to hardening (stream per-command entries to disk, keep only the tiny round-hashes in RAM); the OOM watchdog confirms + auto-recovers meanwhile.</div>
+    </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">World-look = ENHANCED <span class="d" style="display:inline">(your Roblox run-F item 4)</span></div>
       <div class="d">Resolves the standing world-look pick → enhanced is the default (retro stays a toggle). Unblocks the roblox lane's CP1 art pass. Your run-F feedback is triaged in <code>specs/roblox-runF-triage-2026-07-19.md</code> — most items are Roblox-only (roblox-helper owns them); the cross-platform ones (unit/building blurbs, city-name lists, era-based city looks) are routed.</div>

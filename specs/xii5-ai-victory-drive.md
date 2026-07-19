@@ -167,3 +167,29 @@ with A59 (personality → path), N9b (wonder/Apollo build drive), docs/15 (the
 war/chokepoint doctrine), and D3 (war declaration + space-launch coalition).
 Diplomacy specifics remain house/original (reviewer #1695); the space/
 conquest victory conditions themselves are Civ1-authentic.
+
+## 7. Pre-open RULED + first slice (opened 2026-07-19, D3 having shipped)
+
+Opened after D3 (marker-0064) freed the engine lane. The bugfixer's pre-open found
+the root cause of the 0/12-launch baseline and asked two calls; both RULED (#1867):
+
+- **F1 (root cause):** `apolloReady()` only checks Apollo ALREADY built — nobody ever
+  builds it. Eligibility-to-START = space-flight + all ssPart techs + Apollo unbuilt →
+  the civ must FORCE Apollo as its top wonder, then the existing `nextSsPart`/launch
+  chain fires.
+- **F2:** the ssPart build (ai.js) was gated `S.defendFirst===true` = builder-only, and
+  wonder-pick is cheapest-available → science/balanced never build Apollo/parts even
+  when eligible. XII.5 extends the part-build to all committed civs + forces Apollo top.
+- **Q1 — the "late" gate → RULED eligibility-only** (no separate turn threshold).
+  Eligibility (end-tier techs) self-gates to the endgame AND keeps early/mid
+  BYTE-IDENTICAL by construction (no eligible civ exists early → zero behavior change →
+  §5 golden-neutral-for-non-late guard satisfied automatically). Verify a crafted/short
+  scenario is byte-identical.
+- **Q2 — first-slice personalities → RULED** science/builder/balanced/defensive COMMIT
+  to space; **aggressive UNCHANGED this slice** (conquest is a LATER, separate slice —
+  keep this window bounded to the space drive). New `rules.json victoryDrive` gate is
+  data-driven/sweepable (never hardcode the personality set or weights).
+- **FIRST SLICE = the SPACE DRIVE only** (§5b primary, cheapest highest-leverage):
+  eligible leader builds Apollo → ssParts → launch → garrison capital. Conquest
+  (aggressive → mass/assault weakest-closest) is deferred to a follow-on slice.
+- Process: byte-shape JS==Luau → sim-runner sweep (#1706 witnesses) → ONE re-record.
