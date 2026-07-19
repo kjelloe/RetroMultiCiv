@@ -157,14 +157,21 @@ test('save/resume: state, seats, and the diagnostics recording span a restart', 
     assert.strictEqual(hashState(resumed.state), beforeHash, 'resumed state is bit-identical');
     assert.strictEqual(resumed.seatOf(token), 'p1', 'the old token still owns its seat');
 
-    // the game CONTINUES after the restart, and the one diagnostics
-    // recording covers both lives of the server
+    // the game CONTINUES after the restart (state + seats are durable via
+    // opts.save.state, unaffected by #1870)
     assert.strictEqual(resumed.endTurn('p1').ok, true);
+    // #1870 slice 1: the per-command autosave carries round-hash entries ONLY
+    // (write-amplification kill) — so the FILE is a round-hash chain (3 rounds:
+    // two before the restart + one after), not a standalone-replayable
+    // per-command recording. logTruncated flags it. Full per-command replay
+    // ACROSS a restart returns in slice 2, when the persistent sidecar
+    // (saves/<gameId>.log.jsonl) is reattached on resume.
     const diag = resumed.toSave().diag;
-    const report = await replayDiagnostics(JSON.parse(JSON.stringify(diag)), RULESET);
-    assert.deepStrictEqual(report.problems, [], 'replay verifies across the restart');
-    assert.strictEqual(report.rounds, 3);
-    assert.strictEqual(report.finalHash, hashState(resumed.state));
+    assert.strictEqual(diag.logTruncated, true, 'the autosave file is round-hash-only');
+    assert.ok(diag.log.every(e => e.t === 'round'), 'no per-command entries in the per-command autosave');
+    assert.strictEqual(diag.log.length, 3, 'the round-hash chain spans the restart (2 + 1)');
+    assert.strictEqual(diag.log[diag.log.length - 1].hash, hashState(resumed.state),
+      'the latest round hash matches the live state');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
