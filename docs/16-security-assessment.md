@@ -150,8 +150,16 @@ the deferred resend integration), payments (never).
   canary shared the flooders' IP and hit the per-IP concurrency cap —
   a legit user on its own IP is serviced). Backpressure caps a stuck
   reader's queue; the heartbeat reaps half-open sockets; SIGTERM shuts
-  down cleanly. Residual: raw volumetric DDoS is firewall/proxy
-  territory, and one huge-map game can slow the single loop (§3). See
+  down cleanly. **Busy-tolerant heartbeat (2026-07-19, #1732):** at extreme
+  scale (a turn-2623 marathon) the synchronous AI chain inside one `endTurn`
+  blocks the loop past the whole miss window; the sweeper now detects that via
+  wall-clock lag (a tick that fired >1.5 intervals late) and takes a GRACE round
+  — reset miss counters, ping fresh, reap nobody — so it never false-terminates
+  a healthy client whose pong frames sat unprocessed during the block. This is
+  the connection-side half; the deeper fix (yielding WITHIN the AI chain so
+  pings keep flowing) is engine-adjacent, tracked cross-lane. Residual: raw
+  volumetric DDoS is firewall/proxy territory, and one huge-map game can slow
+  the single loop (§3). See
   §2.2 for the shipped controls, §3 for the closed/residual map.
 
 ### 2.5 The game protocol as an integrity boundary
