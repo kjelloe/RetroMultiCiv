@@ -1,0 +1,219 @@
+#cloud-config
+
+# =============================================================================
+# RetroMultiCiv — Hetzner cloud-init template (CX22/CX23 or similar; 4 GB recommended)
+# =============================================================================
+# Hosts BOTH roles on one box (docs/12): the GAME server + the MASTER index.
+# Sanitised example — to use it:
+#   1. Copy to cloud-init.yaml (gitignored — keep your filled-in copy private)
+#   2. Replace every <PLACEHOLDER>:
+#        <DEPLOY_USER>          — your server username
+#        <YOUR_PUBLIC_SSH_KEY>  — output of: cat ~/.ssh/id_ed25519.pub
+#        <GAME_DOMAIN>          — e.g. play.retromulticiv.example.com  (players connect here)
+#        <MASTER_DOMAIN>        — e.g. master.retromulticiv.example.com (server list)
+#        <SERVER_NAME>          — public listing name, e.g. "Kjell's Friday server"
+#        <YOUR_EMAIL>           — Let's Encrypt registration email
+#   3. Paste into the Hetzner console when creating the server
+#
+# After first login (ssh -p 2222 <DEPLOY_USER>@<ip>):
+#   1. Copy code:  scp -P 2222 -r . <DEPLOY_USER>@<ip>:/opt/retromulticiv/
+#      (No .env / no DB — RetroMultiCiv is stateless config-via-flags + file saves.)
+#   2. Point DNS: A records for <GAME_DOMAIN> AND <MASTER_DOMAIN> → <ip>
+#   3. Run:       ~/first-deploy.sh
+# =============================================================================
+
+users:
+  - name: <DEPLOY_USER>
+    groups: users, admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - <YOUR_PUBLIC_SSH_KEY>
+
+packages:
+  - fail2ban
+  - ufw
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+package_update: true
+package_upgrade: true
+
+write_files:
+
+  # ── SSH hardening ────────────────────────────────────────────────────────
+  - path: /etc/ssh/sshd_config.d/ssh-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      Port 2222
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      MaxAuthTries 2
+      AllowTcpForwarding no
+      X11Forwarding no
+      AllowAgentForwarding no
+      AuthorizedKeysFile .ssh/authorized_keys
+      AllowUsers <DEPLOY_USER>
+
+  # ── nginx: GAME server — the KEY difference vs a plain web app is the
+  #    WebSocket /ws upgrade (Upgrade/Connection headers + HTTP/1.1 + long
+  #    read timeout). One location handles the client HTTP AND the /ws socket
+  #    (both live on port 8123). certbot adds the HTTPS block automatically. ──
+  - path: /etc/nginx/sites-available/retromulticiv-game
+    content: |
+      server {
+          listen 80;
+          server_name <GAME_DOMAIN>;
+
+          location / {
+              proxy_pass         http://127.0.0.1:8123;
+              proxy_http_version 1.1;
+              proxy_set_header   Upgrade           $http_upgrade;
+              proxy_set_header   Connection        "upgrade";
+              proxy_set_header   Host              $host;
+              proxy_set_header   X-Real-IP         $remote_addr;
+              proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+              proxy_set_header   X-Forwarded-Proto $scheme;
+              proxy_read_timeout 3600s;   # long-lived WebSocket
+              proxy_send_timeout 3600s;
+          }
+      }
+
+  # ── nginx: MASTER index — plain HTTP bulletin board (announce + browse),
+  #    no WebSocket needed. ───────────────────────────────────────────────────
+  - path: /etc/nginx/sites-available/retromulticiv-master
+    content: |
+      server {
+          listen 80;
+          server_name <MASTER_DOMAIN>;
+
+          location / {
+              proxy_pass       http://127.0.0.1:8200;
+              proxy_set_header Host              $host;
+              proxy_set_header X-Real-IP         $remote_addr;
+              proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+
+  # ── systemd: GAME server. Restart=on-failure leverages the crash-resilience
+  #    exit-70 (crash/OOM) vs exit-0 (clean stop). Resource caps + OOM watchdog
+  #    keep a small box safe; --public-addr is the PUBLIC url the master probes
+  #    (NOT 127.0.0.1 — the master refuses loopback). Tune the caps to your box. ─
+  - path: /etc/systemd/system/retromulticiv-game.service
+    content: |
+      [Unit]
+      Description=RetroMultiCiv game server
+      After=network.target retromulticiv-master.service
+
+      [Service]
+      Type=simple
+      User=<DEPLOY_USER>
+      WorkingDirectory=/opt/retromulticiv
+      ExecStart=/usr/bin/node server/index.js \
+        --host 127.0.0.1 --port 8123 \
+        --trust-proxy-hops 1 --origin-allowlist https://<GAME_DOMAIN> \
+        --public-addr https://<GAME_DOMAIN> \
+        --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
+        --max-turns 500 --max-civs 8 --max-size large \
+        --max-games 8 --max-saves-mb 500 \
+        --mem-soft-pct 85 --mem-check-sec 15
+      Restart=on-failure
+      RestartSec=5
+      StandardOutput=journal
+      StandardError=journal
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # ── systemd: MASTER index (bulletin board, ~100 MB). ──────────────────────
+  - path: /etc/systemd/system/retromulticiv-master.service
+    content: |
+      [Unit]
+      Description=RetroMultiCiv master index
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=<DEPLOY_USER>
+      WorkingDirectory=/opt/retromulticiv
+      ExecStart=/usr/bin/node tools/master.js --port 8200
+      Restart=on-failure
+      RestartSec=5
+      StandardOutput=journal
+      StandardError=journal
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # ── first-deploy helper — run once after uploading code ───────────────────
+  - path: /home/<DEPLOY_USER>/first-deploy.sh
+    owner: <DEPLOY_USER>:<DEPLOY_USER>
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -e
+      APP=/opt/retromulticiv
+
+      echo "==> Installing dependencies (ws only; no build step)"
+      cd "$APP"
+      npm ci --omit=dev 2>/dev/null || npm install --omit=dev
+
+      echo "==> Ensuring save + crashdump dirs"
+      mkdir -p "$APP/saves" "$APP/crashdumps"
+
+      echo "==> Starting services (master first, then game announces to it)"
+      sudo systemctl daemon-reload
+      sudo systemctl enable --now retromulticiv-master
+      sudo systemctl enable --now retromulticiv-game
+
+      echo "==> Obtaining TLS certificates (both subdomains)"
+      sudo certbot --nginx \
+        -d <GAME_DOMAIN> -d <MASTER_DOMAIN> \
+        --non-interactive --agree-tos -m <YOUR_EMAIL>
+
+      sudo systemctl reload nginx
+
+      echo ""
+      echo "RetroMultiCiv game:   https://<GAME_DOMAIN>/client/?server=1"
+      echo "RetroMultiCiv master: https://<MASTER_DOMAIN>/servers"
+      echo "Logs: journalctl -u retromulticiv-game -f   (or -u retromulticiv-master)"
+      echo "Crash/OOM dumps land in $APP/crashdumps/"
+
+  # ── daily save backup (03:00) — RetroMultiCiv stores games as FILES in
+  #    saves/, not a DB. tar them; keep 30 days. ──────────────────────────────
+  - path: /etc/cron.d/retromulticiv-backup
+    content: |
+      0 3 * * * <DEPLOY_USER> mkdir -p /home/<DEPLOY_USER>/backups && tar czf /home/<DEPLOY_USER>/backups/saves-$(date +\%F).tar.gz -C /opt/retromulticiv saves && find /home/<DEPLOY_USER>/backups -name 'saves-*.tar.gz' -mtime +30 -delete
+
+runcmd:
+  # Node.js 22 LTS via NodeSource
+  - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  - apt-get install -y nodejs
+
+  # App directory — code uploaded by user after boot
+  - mkdir -p /opt/retromulticiv/saves /opt/retromulticiv/crashdumps
+  - chown -R <DEPLOY_USER>:<DEPLOY_USER> /opt/retromulticiv
+
+  # fail2ban — SSH brute-force protection
+  - printf "[sshd]\nenabled = true\nport = ssh, 2222\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
+  - systemctl enable fail2ban
+
+  # Firewall — ONLY SSH + HTTP/HTTPS. 8123 (game) and 8200 (master) stay
+  # localhost-behind-nginx and are NEVER opened. (WebSocket rides 443 via nginx.)
+  - ufw allow 2222/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+
+  # nginx — activate both sites, remove default placeholder
+  - ln -s /etc/nginx/sites-available/retromulticiv-game   /etc/nginx/sites-enabled/retromulticiv-game
+  - ln -s /etc/nginx/sites-available/retromulticiv-master /etc/nginx/sites-enabled/retromulticiv-master
+  - rm -f /etc/nginx/sites-enabled/default
+  - systemctl enable nginx
+
+  - systemctl daemon-reload
+
+  # Reboot: applies kernel updates, new SSH config, starts fail2ban
+  - reboot
