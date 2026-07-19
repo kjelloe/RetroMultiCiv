@@ -307,6 +307,30 @@ JS==Luau): soak {100:0xd4c36480, 200:0xe5c5807c, 300:0x160827ea,
 Scenarios 012/045 do NOT move (short scripts, civs never cross aggression<20).
 The 200/300/400 Luau full-parity is Gate-B (sim-runner, stable-PAT-30 tree).
 
+**PHASE-2 DONE + FINAL PINS (bugfixer #1810, 2026-07-19).** Re-record complete,
+JS==Luau green (suite 627/630; the 3 reds are non-D3: 84 browser-theater + 342
+render-spec = the committed city-era batch [42abf04], 360 B13 = local-only
+gitignored fixture). Final pins: scenario-002 0x8dae6d03 (JS+Luau); A82a
+continents 3132b03d / pangaea 1592f59a / archipelago fc6fbf71 / islands c2c332fc;
+ff-parity 0x0971239f; turn-100 0xd4c36480; soak {100:0xd4c36480, 200:0xe5c5807c,
+300:0x160827ea, 400:0xc7d89071}; natural r395/p2/0xef761753. luau-twins
+275/276/278/279 green (Luau matches every new pin).
+
+**FLOOR RULING (architect #1814):** the M2/M3/M4 floor breach at PAT=30 does NOT
+block marker-0063. The floors are ADVISORY (A93 added the check; H1b put the
+canonical CI lane in continue-on-error REPORT mode until the AI B-lane closes
+M2/M3 — still open). Phase-2 is FLOOR-NEUTRAL: the accepted phase-1 PAT=50
+breaches M2/M3/M4 near-identically (M4 better at PAT=30), and the elim guardrail
+held (median 3.0, PAT 50/30/25 identical) — so the breach is a D3-feature /
+AI-quality property, not a phase-2 regression.
+
+**GATE-B + TAG (architect #1814):** option (a) — the bugfixer pushes a phase-2
+BRANCH (d3-sweep mechanism, D3 footprint only); sim-runner runs Gate-B (Luau
+200/300/400 parity) on it; phase-2 stays OFF dev_night until Gate-B green; then
+the architect commits phase-2 to dev_night + tags marker-0063 + writes
+reports/marker-0063.md with the expanded-moved-set audit ledger. marker-0063 is
+cleared on the floor question; the only remaining gate is Gate-B green.
+
 ## 8. Acceptance — the mix-conditional witness (the user's ruling)
 
 Beyond suite-green + JS==Luau, D3 must demonstrate the mix-conditional
