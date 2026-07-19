@@ -541,6 +541,36 @@ function apolloReady(state, me, ruleset) {
   return true;
 }
 
+// XII.5: the late-game space victory-drive gate. A civ COMMITS to the space path
+// when its stance is in rules.victoryDrive.spaceStances (DATA-DRIVEN, sweepable) —
+// science/builder/balanced/defensive per the ruling; aggressive pursues conquest
+// in a later slice. Omit-safe: no victoryDrive block => off (golden-neutral).
+function spaceDriveOn(ruleset, stance) {
+  const vd = ruleset.rules.victoryDrive;
+  if (vd === undefined || vd.spaceStances === undefined) return false;
+  // resolve the effective stance NAME the way stanceOf resolves the config:
+  // an omitted/unknown stance is the 'balanced' identity (so a default civ drives).
+  const st = (stance !== undefined && STANCES[stance] !== undefined) ? stance : 'balanced';
+  return vd.spaceStances.indexOf(st) !== -1;
+}
+
+// XII.5: eligible to DRIVE the space race — the civ can build Apollo (holds its
+// tech) AND holds every ssPart tech. This is end-tier, so the drive self-gates to
+// the late game: no early/mid/crafted civ qualifies, so those games stay
+// byte-identical (the §5 golden-neutral-for-non-late guard, by construction).
+function spaceDriveEligible(state, me, ruleset) {
+  const f = ruleset.rules.ssFlight;
+  if (f === undefined) return false;
+  const apollo = ruleset.wonders[f.gateWonder];
+  if (apollo === undefined) return false;
+  if (apollo.tech !== '' && me.techs.indexOf(apollo.tech) === -1) return false;
+  const parts = ruleset.rules.ssParts;
+  for (const k of Object.keys(parts)) {
+    if (me.techs.indexOf(parts[k].tech) === -1) return false;
+  }
+  return true;
+}
+
 // A76: the next part to build toward a minimum-viable ship, or null when the
 // ship already meets the target set (ready to launch). 7 structural supports
 // the 5 non-structural parts (idiv(7*28,39)=5); one each of the five functional
@@ -1351,6 +1381,28 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         }
       }
     }
+    // XII.5: the space victory drive is a FIRST-CLASS capital intent (mirrors the N9b
+    // wonder-drive hoist above) — an eligible committed civ builds Apollo, then ship
+    // parts, in its CAPITAL, ABOVE the garrison/saturation cascade, so it fires even
+    // when the capital's garrison roamed off (the 0/12 gap: an eligible civ perpetually
+    // rebuilt a defender instead of Apollo). !threatened is the frontier-safety guard
+    // (a menaced capital reverts to the defense cascade — spec: build Apollo, then defend).
+    // Gated on end-tier eligibility, so early/mid/crafted games never reach it.
+    if (!wonderDriven && !threatened && spaceDriveOn(ruleset, effStance) && spaceDriveEligible(state, me, ruleset)) {
+      const scap = capitalOf(state, playerId, ruleset);
+      if (scap !== null && scap !== undefined && scap.id === cid) {
+        const ship = me.spaceship;
+        const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
+        if (!launched) {
+          const part = nextSsPart(ship, ruleset);
+          if (!wonderActive(state, ruleset.rules.ssFlight.gateWonder, ruleset)) {
+            want = { kind: 'wonder', id: ruleset.rules.ssFlight.gateWonder }; wonderDriven = true;
+          } else if (part !== null) {
+            want = { kind: 'ss-part', id: part }; wonderDriven = true;
+          }
+        }
+      }
+    }
     if (!wonderDriven && defenders.length >= wantDefenders) {
       if (countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };
@@ -1396,20 +1448,6 @@ function pickCommand(state, playerId, ruleset, done, stance) {
             : econBuilding !== null ? { kind: 'building', id: econBuilding }
             : pw !== null ? { kind: 'wonder', id: pw } : null;
         }
-        // A76: the capital builds ship parts once the race is open and its
-        // building/wonder economy is satisfied (placed after econItem below).
-        let ssBuild = null;
-        if (S.defendFirst === true && apolloReady(state, me, ruleset)) {
-          const scap = capitalOf(state, playerId, ruleset);
-          if (scap !== null && scap !== undefined && scap.id === cid) {
-            const ship = me.spaceship;
-            const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
-            if (!launched) {
-              const part = nextSsPart(ship, ruleset);
-              if (part !== null) ssBuild = { kind: 'ss-part', id: part };
-            }
-          }
-        }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
         } else if (defBuild !== null) {
@@ -1422,8 +1460,6 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = { kind: 'unit', id: navySeaUnit };
         } else if (econItem !== null) {
           want = econItem;
-        } else if (ssBuild !== null) {
-          want = ssBuild; // A76: capital ship parts, after buildings/wonders
         } else if (defenders.length >= 3
                  || countMilitary(state, playerId, ruleset) >= countCities(state, playerId) * S.armyCapPerCity + S.armyCapBase) {
           // enough army empire-wide: garrison surplus now roams (escorts,
