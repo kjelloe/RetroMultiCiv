@@ -104,6 +104,26 @@ ops and undriven idle sessions). Instead: a **presence board**.
   proxies over the hub like every command). Verified: set/read, alias-shared status,
   hub restart.
 
+## Part 4 — per-lane work stacks (2026-07-19, user-requested)
+
+The coordinator was hand-routing each task by go-mail *when* a lane went idle → a lane
+could sit idle during any gap where the coordinator wasn't pushing. Fix: a per-lane FIFO
+work queue the coordinator STOCKS and an idle lane PULLS from itself.
+
+- `queue add --for <lane> --tag t --body-file f` (coordinator stocks) / `queue take --as
+  <lane>` (idle lane pops its next FIFO item + posts a `working` status) / `queue list
+  [--for <lane>]` (backlog depths) / `queue drop --for <lane> --id N` (cancel).
+- Files `.agent-mail/queue-<lane>` on the hub; canonical (`--for coordinator` →
+  architect's queue); proxies over the hub; `--body-file` like `send`.
+- Convention: a `waiting` lane with a non-empty queue self-serves; empties → `waiting`
+  (restock signal). Consistency is preserved BY CONSTRUCTION — a lane is a single stream,
+  so its stack serializes (the engine golden lane is pulled one window at a time). The
+  coordinator's job stays curation: order each queue + never queue the same golden files
+  to two lanes. Composes with the board (queue-depth visible) + escalation (blocked item
+  → mail coordinator).
+- Implementation: `queue_file`/`read_queue`/`write_queue`/`all_queues` + the `queue`
+  subcommand in `tools/agent-mail.py`. Verified add/take(FIFO)/list/drop/canon.
+
 ## Records updated
 
 `tools/agent-mail.md` (alias + roles file + escalation convention + who

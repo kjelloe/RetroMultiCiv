@@ -234,6 +234,40 @@ def all_statuses():
     return out
 
 
+# --- per-lane work stacks (front-load routing; an idle lane self-serves) ---
+def queue_file(lane):
+    return os.path.join(BOX, f'queue-{canon(lane)}')
+
+
+def read_queue(lane):
+    try:
+        with open(queue_file(lane), encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def write_queue(lane, items):
+    tmp = queue_file(lane) + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(items, f, indent=1)
+    os.replace(tmp, queue_file(lane))
+
+
+def all_queues():
+    out = {}
+    try:
+        names = os.listdir(BOX)
+    except FileNotFoundError:
+        return out
+    for fn in names:
+        if fn.startswith('queue-') and not fn.endswith('.tmp'):
+            q = read_queue(fn[len('queue-'):])
+            if q:
+                out[fn[len('queue-'):]] = q
+    return out
+
+
 def fmt(m):
     ts = time.strftime('%H:%M', time.localtime(m['ts']))
     tag = f" [{m['tag']}]" if m.get('tag') else ''
@@ -408,6 +442,17 @@ def dispatch(argv):
     st.add_argument('text', nargs='?', default=None,
                     help="set your status (waiting / working X / working X (long ~Nm)); omit to print the board")
 
+    q = sub.add_parser('queue')
+    q.add_argument('action', choices=['add', 'take', 'list', 'drop'],
+                   help="add --for <lane> an item; take --as <lane> your next; list [--for <lane>]; drop --for <lane> --id N")
+    q.add_argument('--for', dest='forlane', default=None)
+    q.add_argument('--as', '--from', '--role', dest='role', default=None)
+    q.add_argument('--tag', dest='tag', default='')
+    q.add_argument('--id', dest='qid', type=int, default=None)
+    q.add_argument('--body', '--text', '-m', dest='body', default=None,
+                   help="item body for `add` (short); use --body-file for substantive; '-' for stdin")
+    q.add_argument('--body-file', dest='body_file', default=None)
+
     lk = sub.add_parser('lock')
     lk.add_argument('path', help='file to lock (repo-relative)')
     lk.add_argument('--as', '--from', '--role', dest='role', required=True)
@@ -503,6 +548,63 @@ def dispatch(argv):
                     mins = (now - stt['ts']) / 60
                     stale = mins > STATUS_STALE_MIN and 'working' in s.lower() and 'long' not in s.lower()
                     print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}")
+
+    elif a.cmd == 'queue':
+        if a.action == 'add':
+            if not a.forlane:
+                sys.exit('queue add: --for <lane> required')
+            if a.body_file:
+                with open(a.body_file, encoding='utf-8') as f:
+                    text = f.read().strip()
+            elif a.body is not None:
+                text = a.body
+            else:
+                text = None
+            if text == '-':
+                text = sys.stdin.read().strip()
+            if not text:
+                sys.exit('queue add: needs an item body (--body, --body-file, or - for stdin)')
+            items = read_queue(a.forlane)
+            nid = max([it.get('id', 0) for it in items], default=0) + 1
+            items.append({'id': nid, 'tag': a.tag, 'text': text, 'ts': int(time.time()),
+                          'by': canon(a.role) if a.role else 'architect'})
+            write_queue(a.forlane, items)
+            print(f'queued item #{nid}{" [" + a.tag + "]" if a.tag else ""} → {canon(a.forlane)} (depth {len(items)})')
+        elif a.action == 'take':
+            if not a.role:
+                sys.exit('queue take: --as <lane> required')
+            items = read_queue(a.role)
+            if not items:
+                print(f'({canon(a.role)} queue empty)')
+            else:
+                it = items.pop(0)
+                write_queue(a.role, items)
+                ts = time.strftime('%H:%M', time.localtime(it.get('ts', 0)))
+                tag = f" [{it['tag']}]" if it.get('tag') else ''
+                print(f"taken #{it.get('id')}{tag} (added {ts} by {it.get('by','?')}, {len(items)} left):")
+                print(it['text'])
+        elif a.action == 'list':
+            board = {canon(a.forlane): read_queue(a.forlane)} if a.forlane else all_queues()
+            if not any(board.values()):
+                print('(all queues empty)')
+            else:
+                for lane, items in sorted(board.items()):
+                    if not items:
+                        continue
+                    print(f'{lane}: {len(items)} queued')
+                    for it in items:
+                        head = it['text'].split('\n')[0][:70]
+                        tag = f"[{it['tag']}] " if it.get('tag') else ''
+                        print(f"  #{it.get('id')} {tag}{head}")
+        elif a.action == 'drop':
+            if not a.forlane or a.qid is None:
+                sys.exit('queue drop: --for <lane> --id <n> required')
+            items = read_queue(a.forlane)
+            n = len(items)
+            items = [it for it in items if it.get('id') != a.qid]
+            write_queue(a.forlane, items)
+            print(f'dropped #{a.qid} from {canon(a.forlane)} ({len(items)} left)' if len(items) < n
+                  else f'#{a.qid} not in {canon(a.forlane)}')
 
     elif a.cmd == 'lock':
         locks = read_locks()

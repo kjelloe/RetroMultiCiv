@@ -365,5 +365,10 @@ status line — `agent-mail.py status --as <role> "waiting | working X | working
 (long ~Nm)"` (overwrites a per-role file, never floods the log); update it at
 pickup/done/state-change + before any op that blocks you silent >~10 min (mark it
 `long`); the coordinator reads the board with `status` and pings only
-working-and-stale (>15m, not `long`) lanes.** `agent-chat.md` is
+working-and-stale (>15m, not `long`) lanes. Per-lane WORK STACKS front-load
+routing — `queue add --for <lane>` (coordinator stocks), `queue take --as
+<lane>` (an idle lane pops its next FIFO item itself + posts `working`),
+`queue list` (backlog depths); a lane's single stream serializes its stack, so
+the coordinator just curates order + never queues the same golden files to two
+lanes.** `agent-chat.md` is
 the long-form archive. The store is gitignored; the md is tracked.

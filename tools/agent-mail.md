@@ -76,6 +76,31 @@ lanes that are `working`, stale (>15m), and NOT marked `long`. Blocked? still ma
 Honest limit: an idle session nobody is driving cannot post — but the board still
 tells the coordinator *waiting* vs *long-op* vs *genuinely-stale*, which is the point.
 
+## Work stacks — front-load routing, idle lanes self-serve (STANDARD — 2026-07-19)
+
+A per-lane FIFO work queue so a lane never sits idle waiting for the coordinator to
+hand-route the next task. The coordinator STOCKS each lane's stack; an idle lane PULLS
+its next item itself.
+
+- `agent-mail.py queue add --for <lane> --tag t --body-file f` — append a ready work
+  item to a lane's stack (short items: `--body "…"`; substantive: `--body-file`, same
+  as `send`). Coordinator-curated.
+- `agent-mail.py queue take --as <lane>` — the lane pops its NEXT item (FIFO), prints
+  it, removes it. The lane then acts on it and posts `status --as <lane> "working: …"`.
+- `agent-mail.py queue list [--for <lane>]` — every lane's backlog depth + items (so the
+  coordinator restocks proactively).
+- `agent-mail.py queue drop --for <lane> --id N` — cancel/remove a queued item.
+
+**Convention:** a `waiting` lane with a non-empty queue **takes its next item itself** —
+no coordinator push needed; when its queue empties it goes `waiting` (the board signal to
+restock). Still claim locks + do the pre-open ritual for a golden window before editing.
+
+**Consistency:** a lane is a single stream, so its own stack **serializes by
+construction** (the engine lane's queue is pulled one window at a time — exactly the
+serialization we need). The coordinator's job stays CURATION: order each queue correctly
+and never queue the SAME golden files to two lanes. Canonical (`--for coordinator` →
+architect's queue). Files: `.agent-mail/queue-<lane>` on the hub.
+
 ## Everyday commands (local)
 
 ```bash
@@ -92,6 +117,9 @@ python3 tools/agent-mail.py log [-n 20]            # recent traffic, all parties
 python3 tools/agent-mail.py who                    # canonical roles + unread counts + alias map
 python3 tools/agent-mail.py status --as helper "working: XII.2 future-tech (long ~20m)"  # overwrite YOUR status line
 python3 tools/agent-mail.py status                 # print the presence board (each lane's state + age; ⚠STALE hint)
+python3 tools/agent-mail.py queue add --for helper --tag xii2 --body-file item.md  # stock a lane's work stack
+python3 tools/agent-mail.py queue take --as helper  # idle lane pops its next item (FIFO)
+python3 tools/agent-mail.py queue list              # every lane's backlog depth + items
 
 # file locks (the claim protocol, made mechanical)
 python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"
