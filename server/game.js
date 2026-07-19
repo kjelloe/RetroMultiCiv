@@ -33,6 +33,14 @@ export function createGame(opts) {
   const tokenFn = opts.tokenFn || (() => randomBytes(12).toString('hex'));
 
   let state, seats, seatCodes, regents, log, logStart, gameId;
+  // #1870 OOM slice 1: `log` (the full per-command recording) stays in RAM for
+  // the end-of-game report + the fullLog send, but the PER-COMMAND autosave must
+  // NOT re-serialize it — at turn-2623 scale that O(n) stringify every command is
+  // O(n^2) disk I/O + a full-log heap spike (the OOM accelerant) + a synchronous
+  // multi-hundred-MB write on the event loop (a #1732 loop-block contributor).
+  // `roundLog` is the small round-hash subset (~62B/round) the file persists
+  // instead; kept as its own array so toSave() never has to scan the growing log.
+  let roundLog;
   if (opts.save) {
     if (opts.save.format !== SAVE_FORMAT) {
       throw new Error(`not a server save (format: ${opts.save.format})`);
@@ -55,6 +63,13 @@ export function createGame(opts) {
     state = opts.save.state;
     log = opts.save.diag.log;
     logStart = opts.save.diag.initialState;
+    // A slice-1+ save persists round entries only; an older save has the full
+    // interleaved log. Either way roundLog is the round subset (one-time scan at
+    // load, never per-command). A resumed round-only recording no longer replays
+    // clean from initialState -> its end-of-game report degrades gracefully to
+    // "did not replay clean — not written" (index.js), which is expected until
+    // slice 2's sidecar restores full-history persistence.
+    roundLog = (log || []).filter(e => e.t === 'round');
   } else if (opts.initialState) {
     // A20: a pre-built state (the lobby's age fast-forward) — treated exactly
     // like a fresh game whose history starts at the takeover point, so the
@@ -65,6 +80,7 @@ export function createGame(opts) {
     regents = {};
     state = opts.initialState;
     log = [];
+    roundLog = [];
     logStart = deepClone(state);
   } else {
     gameId = opts.gameId || 'game1';
@@ -74,6 +90,7 @@ export function createGame(opts) {
     state = engine.createGame(opts.setup);
     if (state.ok === false) throw new Error(`createGame failed: ${state.reason}`);
     log = [];
+    roundLog = [];
     logStart = deepClone(state);
   }
 
@@ -221,7 +238,9 @@ export function createGame(opts) {
       state = res.state;
       for (const e of res.events) collected.push(e);
     }
-    log.push({ t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) });
+    const roundEntry = { t: 'round', turn: state.turn, activePlayer: state.activePlayer, hash: hashState(state) };
+    log.push(roundEntry);
+    roundLog.push(roundEntry); // #1870: the small subset the autosave file persists
     return { ok: true, events: collected };
   }
 
@@ -268,7 +287,14 @@ export function createGame(opts) {
         version: 1,
         rulesOverrides,
         initialState: logStart,
-        log,
+        // #1870 slice 1: persist ONLY round-hash entries here, not the full
+        // per-command log — that keeps the per-command autosave cost O(round-count)
+        // instead of re-stringifying the whole growing recording every command.
+        // logTruncated flags that per-command history is not in the file (the
+        // live game keeps it in RAM for the report/fullLog; slice 2's sidecar
+        // will restore full-history persistence + offline replay fidelity).
+        log: roundLog,
+        logTruncated: true,
         finalHash: hashState(state),
         finalTurn: state.turn
       }

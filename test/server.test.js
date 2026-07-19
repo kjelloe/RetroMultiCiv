@@ -202,15 +202,24 @@ test('A40 regency: a regent seat plays unattended, its commands log, replay is h
     kjell.send({ t: 'regent', stance: null });
     await kjell.expect(m => m.t === 'presence' && (!m.regents || !m.regents.p1), 'control returned');
 
-    // the autosave's diagnostics must replay hash-exact: the regent's own
-    // commands are cmd entries (re-applied), AI chains are round entries
+    // #1870 slice 1: the per-command autosave no longer embeds the full log
+    // (write-amplification kill) — the FILE carries round-hash entries only
+    // (logTruncated), while the LIVE recording lives in RAM (fullLog) for the
+    // end-of-game report + the fullLog send. Both are asserted.
     await new Promise(r => setTimeout(r, 200));
     assert.ok(fs.existsSync(saveFile), 'the game autosaved');
     const saved = JSON.parse(fs.readFileSync(saveFile, 'utf8'));
-    assert.ok(saved.diag.log.some(e => e.t === 'cmd' && e.cmd.playerId === 'p1'),
-      'the regent seat commands landed in the diag as cmd entries');
-    const report = await replayDiagnostics(saved.diag, RULESET);
-    assert.deepStrictEqual(report.problems, [], 'the regent game replayed hash-exact');
+    assert.strictEqual(saved.diag.logTruncated, true, 'the autosave file is round-hash-only (write-amp killed)');
+    assert.ok(saved.diag.log.every(e => e.t === 'round'),
+      'no per-command entries re-serialized into the per-command autosave');
+    // the in-RAM full recording still carries the regent commands AND replays
+    // hash-exact (the report/fullLog source is intact)
+    const full = s.game.fullLog();
+    assert.ok(full.log.some(e => e.t === 'cmd' && e.cmd.playerId === 'p1'),
+      'the regent seat commands are in the in-RAM full recording as cmd entries');
+    const report = await replayDiagnostics(
+      { initialState: full.initialState, log: full.log, finalHash: full.finalHash }, RULESET);
+    assert.deepStrictEqual(report.problems, [], 'the full in-RAM recording replayed hash-exact');
     kjell.close();
   } finally {
     await s.close();
