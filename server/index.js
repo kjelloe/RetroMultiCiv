@@ -226,7 +226,24 @@ export function startServer(opts) {
   // the trigger for Part B's seat-grace). heartbeatTick() is exposed for tests.
   const heartbeatMs = opts.heartbeatMs !== undefined ? opts.heartbeatMs : 15000;
   const heartbeatMisses = opts.heartbeatMisses !== undefined ? opts.heartbeatMisses : 2;
-  function heartbeatTick() {
+  // #1732 busy-tolerant heartbeat: the engine turn is SYNCHRONOUS, so at extreme
+  // scale (turn-2623: the AI chain inside one endTurn) it blocks the event loop
+  // for longer than the whole miss window. While blocked the sweeper can't fire
+  // AND queued pong frames can't be processed — so the one catch-up tick would
+  // otherwise reap HEALTHY clients whose pongs are sitting unprocessed in the
+  // queue. Detect the block via wall-clock lag (this tick fired >1.5 intervals
+  // late) and take a GRACE round: reset miss counters, ping fresh, terminate
+  // nobody — the queued pongs land before the next tick. nowMs is injectable
+  // for tests; setInterval calls with no arg (real clock).
+  let lastHeartbeatAt = null;
+  function heartbeatTick(nowMs) {
+    const t = nowMs !== undefined ? nowMs : Date.now();
+    const blocked = lastHeartbeatAt !== null && (t - lastHeartbeatAt) > heartbeatMs * 1.5;
+    lastHeartbeatAt = t;
+    if (blocked) {
+      for (const ws of wss.clients) { ws.missedPongs = 0; try { ws.ping(); } catch (e) { /* dying */ } }
+      return; // one grace round after a loop-block; do not count misses / reap
+    }
     for (const ws of wss.clients) {
       if (ws.missedPongs >= heartbeatMisses) { ws.terminate(); continue; }
       ws.missedPongs = (ws.missedPongs || 0) + 1;

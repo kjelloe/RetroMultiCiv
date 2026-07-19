@@ -158,6 +158,33 @@ test('Slice 2.5 A: heartbeat terminates a socket that stops ponging; a live one 
   } finally { dead.close(); live.close(); await s.close(); }
 });
 
+test('#1732 busy-tolerant heartbeat: a loop-block round grants grace, does not reap a would-be-missed client', async () => {
+  const { startServer } = await import('../server/index.js');
+  // heartbeatMs 1000 so the block threshold (1.5x = 1500ms) is easy to cross
+  // with injected timestamps; misses 2 so two normal ticks arm a reap.
+  const s = await startServer(base({ gameId: 'hbb', heartbeatMs: 1000, heartbeatMisses: 2 }));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const c = await connect(s.port);
+  try {
+    c.ws._socket.pause(); // stop pongs from being processed — models queued-during-block
+    // Two NORMAL ticks (in-cadence) arm the reap: missedPongs 0->1->2 (== misses).
+    s.heartbeatTick(1000);
+    s.heartbeatTick(2000);
+    // The NEXT tick fires 60s late = the event loop was blocked (a turn-2623
+    // synchronous AI chain). Busy-tolerant: it must take a grace round and NOT
+    // terminate, even though missedPongs is already at the threshold.
+    s.heartbeatTick(62000);
+    await sleep(60);
+    c.ws._socket.resume();
+    const stillOpen = await new Promise(res => {
+      if (c.ws.readyState !== 1) return res(false);
+      c.ws.on('close', () => res(false));
+      setTimeout(() => res(c.ws.readyState === 1), 300);
+    });
+    assert.strictEqual(stillOpen, true, 'blocked-round grace spared the socket the false reap');
+  } finally { c.close(); await s.close(); }
+});
+
 test('Slice 2.5 B: a dropped lobby seat is HELD (grace) and reclaimed by its reconnect id', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer(base({ gameId: 'b1', seatGraceMs: 5000 }));
