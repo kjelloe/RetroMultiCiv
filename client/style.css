@@ -1990,6 +1990,17 @@ html, body {
      restore vertical scroll on the full-screen sheet so the whole catalog +
      tile grid + unit list are reachable (#1736) */
   #city-panel { overflow-y: auto; overflow-x: hidden; }
+  /* the prev/next city arrows hang at left/right:-48px (outside the desktop box)
+     — off-screen on a full-width phone sheet. Pin them to the viewport edges so
+     they stay put while the panel scrolls, and are reachable (#1754). */
+  #city-prev, #city-next { position: fixed; z-index: 11; }
+  #city-prev { left: 2px; }
+  #city-next { right: 2px; }
+  /* the keyboard shortcut hints (B, G, …) are dead weight on a phone with no
+     keyboard, and they widen every action-bar button — drop them on mobile so
+     more of the strip fits before it needs a scroll (#1754). */
+  #action-bar .key { display: none; }
+  #action-bar button { padding: 8px 11px; }
   .city-nav { min-width: 44px; min-height: 44px; }
   .panel-close { min-width: 44px; min-height: 44px; }
 

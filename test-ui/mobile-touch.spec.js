@@ -87,3 +87,38 @@ test('mobile: city panel scrolls so the whole production catalog is reachable', 
   const after = await page.evaluate(() => document.querySelector('#city-panel .option.current')?.textContent || '');
   expect(after).not.toBe(before);
 });
+
+test('mobile: action-bar drops the keyboard hints when a unit is selected (#1754)', async ({ page }) => {
+  await page.goto(`http://127.0.0.1:${server.port}/client/?seed=2&civs=2&zoom=5`);
+  await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
+  await page.waitForTimeout(700);
+
+  // select the auto-centered unit → the action bar populates; its keyboard-shortcut
+  // hints (dead weight on a phone) must be hidden, so the strip is tighter
+  const box = await page.locator('#app canvas').boundingBox();
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(page.locator('#unit-line')).toBeVisible({ timeout: 5000 });
+  const keys = await page.evaluate(() => {
+    const ks = [...document.querySelectorAll('#action-bar .key')];
+    return { count: ks.length, allHidden: ks.length > 0 && ks.every(k => getComputedStyle(k).display === 'none') };
+  });
+  expect(keys.count).toBeGreaterThan(0);
+  expect(keys.allHidden, 'every action-bar .key hint is display:none on mobile').toBe(true);
+});
+
+test('mobile: city nav arrows sit on-screen on the full-width sheet (#1754)', async ({ page }) => {
+  // ?e2e=1 deterministically founds a city and opens its panel (no flaky tap-loop)
+  await page.goto(`http://127.0.0.1:${server.port}/client/?seed=2&civs=2&e2e=1`);
+  await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
+  await expect(page.locator('#city-panel')).toBeVisible({ timeout: 10000 });
+
+  // the prev/next nav arrows (which hang off-box at left/right:-48px on desktop)
+  // must be pinned to the viewport edges, fully on-screen on the phone sheet
+  const arrows = await page.evaluate(() => {
+    const vw = window.innerWidth;
+    const r = id => { const b = document.getElementById(id).getBoundingClientRect(); return { left: Math.round(b.left), right: Math.round(b.right) }; };
+    return { vw, prev: r('city-prev'), next: r('city-next') };
+  });
+  expect(arrows.prev.left, 'prev arrow left edge on-screen').toBeGreaterThanOrEqual(0);
+  expect(arrows.next.right, 'next arrow right edge on-screen').toBeLessThanOrEqual(arrows.vw + 1);
+});

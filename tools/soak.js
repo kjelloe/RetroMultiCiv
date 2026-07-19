@@ -193,6 +193,25 @@ function splitBreaches(results, enforced) {
   return { failing, advisory };
 }
 
+// listed values are read off the real tables so the help never drifts from the
+// flags parseArgs actually accepts (probe-scale.js:52 precedent).
+const HELP = `AI-quality soak — headless all-AI playthroughs, invariants + exit-criteria telemetry.
+usage: node tools/soak.js [options]
+  --seeds N            number of seeds to run (default 5)
+  --start N            first seed (window start; default 1)
+  --seed N             run a single explicit seed (overrides --seeds/--start)
+  --jobs N             parallel workers (default: cpus-1)
+  --turns N            turns per playthrough (default 400)
+  --civs N             civ count per game (default 4)
+  --size <sz>          map size: ${Object.keys(SIZES).join(' | ')} (default medium)
+  --difficulty <d>     ${Object.keys(DIFFICULTY).join(' | ')} (default medium)
+  --natural            play until a victory instead of the fixed end year
+  --no-chaos           disable the chaos-command injection
+  --enforce-floors ids ratchet gates (comma-separated): ${FLOORS.map(f => f.key).join(',')}
+  --stats <file>       write per-AI strategic + outcome telemetry rows to <file>
+  -h, --help           show this help
+(--worker is internal: a child spawned by --jobs.)`;
+
 function parseArgs(argv) {
   const opts = {
     seeds: 5, start: 1, turns: 400, civs: 4, size: 'medium', natural: false,
@@ -202,7 +221,8 @@ function parseArgs(argv) {
   if (process.env.MULTICIV_SIM_SEEDS !== undefined) opts.seeds = Number(process.env.MULTICIV_SIM_SEEDS);
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--natural') opts.natural = true;
+    if (a === '--help' || a === '-h') { console.log(HELP); process.exit(0); }
+    else if (a === '--natural') opts.natural = true;
     else if (a === '--no-chaos') opts.chaos = false;
     else if (a === '--worker') opts.worker = true; // internal: child of --jobs
     else if (a === '--seeds') opts.seeds = Number(argv[++i]);
