@@ -100,3 +100,22 @@ parallel load (all pass isolated). luau-twins 9/9 (JS==Luau bit-exact), year
 3/3, one 545t soak (chaos on) clean + deterministic (final 0xca588d02).
 Gate-B heavy-Luau (200/300/400/natural) is sim-runner's confirm on the
 stabilized tree.
+
+## Gates + consistency (architect, at tag time)
+
+- Gate-B heavy Luau (#1966): GREEN — one harness flag filed (sim-smoke.luau:26
+  carries a stale 399-round cap; follow-up nit, not a marker blocker).
+- Reviewer clean-clone + engine-diff (#1965): GREEN — 665/661, lone red = the
+  known SIGTERM flake (passes isolated); luau turn-400 0x1d462162; natural
+  winner p2 UNCHANGED at 545 rounds; the year-0-vs-1AD flag resolved as the
+  existing boundary convention; the regency rider confirmed golden-neutral.
+- Also under the tag: helper's XIV regency-lifecycle rider (gameOver
+  belt-and-braces + 1 s/round regency pacing) — and its audit CORRECTION:
+  the reported "regency ran past game-end" did NOT reproduce (turn 396 was
+  the natural year-2100 end; the engine already rejected post-end commands).
+
+**MERGE-CONSISTENT — marker-0070 supersedes 0069 and is the latest marker to
+merge.** Probe note for the pending user ruling: at 545 turns research
+leaders reach 38–47/68 techs (vs 26–29) but 0/3 seeds unlock space-flight —
+the residual gap is AI research PATH selection, not pace; options with the
+user (sim-runner's independent probe cross-check running).
