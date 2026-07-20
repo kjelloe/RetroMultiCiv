@@ -205,6 +205,7 @@ export function createGame(opts) {
   // Does NOT end the turn (the caller does, so the following AI chain logs
   // its own round entry). Returns the collected events.
   function playRegentSeat(pid) {
+    if (state.gameOver) return []; // XIV §2: a finished game never advances (belt-and-braces; the engine also rejects every command)
     const done = {};
     const events = [];
     let guard = 500;

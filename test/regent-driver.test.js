@@ -63,6 +63,50 @@ test('B11: an armed regent plays turn after turn without user input', async () =
   assert.ok(!session.state.gameOver, 'the game is still running at turn 5');
 });
 
+test('XIV §2: an armed regent never advances a finished game (turn frozen at gameOver)', async () => {
+  const { session, driver } = await makeGame();
+  session.setRegent('p1', 'balanced');
+  driver.kick(); // arming kick (regency.js setRegent path)
+  // run a few real turns, then settle before ending the game
+  assert.ok(await until(() => session.state.turn >= 3, 8000), 'regency ran a few turns');
+  session.setRegent('p1', null); // stop the loop so no round is mid-flight
+  assert.ok(await until(() => settled(session, driver), 8000), 'in-flight turn settled');
+  session.setRegent('p1', 'balanced'); // re-arm — the game itself is what's over, not the seat
+  session.state.gameOver = true; // session.state is the live ref; mark it finished
+  const frozen = session.state.turn;
+  driver.kick(); // a fresh kick must NOT advance a finished game
+  // regentTurn itself refuses (the direct §2 guard, not just the driver loop)
+  const rt = await session.regentTurn();
+  assert.strictEqual(rt.ok, false, 'regentTurn refuses once the game is over');
+  assert.strictEqual(rt.reason, 'gameOver');
+  await new Promise(resolve => setTimeout(resolve, 150));
+  assert.strictEqual(session.state.turn, frozen, 'the turn number stays frozen after gameOver');
+});
+
+test('XIV §3: paced play takes real wall-clock time vs instant play', async () => {
+  const { createEngine, deepClone, createSession, createRegentDriver } = await load();
+  async function runToTurn(paceMs, target) {
+    const engine = createEngine(RULESET);
+    const initial = engine.createGame({ seed: 40, options: { width: 30, height: 20, players: PLAYERS } });
+    const session = createSession(RULESET, deepClone(initial), {});
+    const driver = createRegentDriver(session, () => 'p1', () => paceMs);
+    session.onChange(() => driver.kick());
+    session.setRegent('p1', 'balanced');
+    const t0 = Date.now();
+    driver.kick();
+    await until(() => session.state.turn >= target || session.state.gameOver, 12000);
+    const elapsed = Date.now() - t0;
+    session.setRegent('p1', null); // stop the loop so the process can settle/exit
+    await until(() => settled(session, driver), 8000);
+    return elapsed;
+  }
+  // reaching turn 3 completes ≥1 full pace interval (the last wait is still
+  // pending when the turn lands), so a 250 ms pace clears 150 ms comfortably
+  // while instant (0 ms) play returns in tens of ms.
+  const paced = await runToTurn(250, 3);
+  assert.ok(paced >= 150, `paced regency must spend real wall-clock time (was ${paced} ms)`);
+});
+
 test('B11: take-back stops the loop and manual commands never auto-end the turn', async () => {
   const { session, driver } = await makeGame();
   session.setRegent('p1', 'balanced');

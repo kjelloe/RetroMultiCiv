@@ -14,6 +14,17 @@ import { createRegentDriver } from './regent-driver.js';
 
 const PARAMS = new URLSearchParams(location.search);
 
+// XIV §3: the TOTAL wall-clock a round of regent turns should take, so a
+// watching player can follow (divided across the armed regents). User ruling
+// 2026-07-20: 1 s total per round. `?regencyMs=N` overrides (0 = instant, the
+// pre-§3 behavior — handy for power users bulk-playing or for tests).
+const REGENCY_MIN_ROUND_MS = (() => {
+  const raw = PARAMS.get('regencyMs');
+  if (raw === null) return 1000;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 1000;
+})();
+
 const STANCES = [
   ['balanced', 'Balanced', 'well-rounded play'],
   ['defensive', 'Defensive', 'garrison and hold'],
@@ -25,8 +36,14 @@ const STANCES = [
 export function initRegency(ctx) {
   const { session } = ctx;
   const local = session.gameId === undefined; // hotseat/solo drive here
-  // B11: the drive loop lives in regent-driver.js (DOM-free, unit-tested)
-  const driver = local ? createRegentDriver(session, () => ctx.HUMAN) : null;
+  // B11: the drive loop lives in regent-driver.js (DOM-free, unit-tested).
+  // XIV §3: pace each regent turn by the per-regent share of the round budget
+  // (total ÷ armed-regent count), read live so a take-back re-divides it.
+  const paceMs = () => {
+    const n = Object.keys(session.regents || {}).length;
+    return n > 0 ? Math.round(REGENCY_MIN_ROUND_MS / n) : 0;
+  };
+  const driver = local ? createRegentDriver(session, () => ctx.HUMAN, paceMs) : null;
 
   // 🤖 button, left of End Turn
   const btn = document.createElement('button');

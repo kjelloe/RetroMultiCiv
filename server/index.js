@@ -608,6 +608,17 @@ export function startServer(opts) {
   // breathes — a solo regent would otherwise run the whole game to gameOver
   // in one synchronous block, starving delivery and blocking take-back. The
   // per-game guard prevents overlapping drives (a re-entrant kick is a no-op).
+  // XIV §3: pace live regent turns so a watching player can follow. The round
+  // budget (--regency-min-turn-ms, default 1000) is divided across the seats
+  // armed for regency THIS round; render-side only (a setTimeout between turns
+  // — never engine state, so replay/goldens are untouched). 0 = instant.
+  const regencyMinTurnMs = Number.isFinite(opts.regencyMinTurnMs) ? Math.max(0, opts.regencyMinTurnMs) : 1000;
+  function regentPaceMs(game) {
+    if (regencyMinTurnMs <= 0) return 0;
+    let n = 0;
+    for (const pid of game.state.playerOrder) if (game.regentOf(pid) !== undefined) n++;
+    return n > 0 ? Math.round(regencyMinTurnMs / n) : 0;
+  }
   const regentDriving = {};
   async function driveRegents(gameId, e) {
     if (!e || !e.game || regentDriving[gameId]) return;
@@ -616,13 +627,13 @@ export function startServer(opts) {
       let guard = 2000;
       while (guard-- > 0) {
         const seat = e.game.state.activePlayer;
-        if (e.game.state.gameOver || e.game.regentOf(seat) === undefined) break;
+        if (e.game.state.gameOver || e.game.regentOf(seat) === undefined) break; // XIV §2: never advance a finished game
         const regentEvents = e.game.playRegentSeat(seat);
         const res = e.game.endTurn(seat);
         if (!res.ok) break;
         const events = regentEvents.concat(res.events || []);
         fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true, events }, e.game);
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, regentPaceMs(e.game)));
         if (!registry.entryOf(gameId)) break; // game gone (shutdown)
       }
     } finally {
@@ -1291,6 +1302,7 @@ Caps and budgets (docs/how-to-host.md § "Sizing by RAM"):
   --heartbeat-sec N     --heartbeat-misses N  --seat-grace-sec N
   --lobby-ttl-min N     --abandoned-hours N
   --mem-soft-pct N      --mem-check-sec N
+  --regency-min-turn-ms N   total ms a regent round takes (÷ regents; default 1000, 0 = instant)
 
 Unknown flags WARN and are ignored; effective caps print on boot.`;
 
@@ -1358,6 +1370,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--public-addr') opts.publicAddr = argv[++i];
     else if (a === '--share-reports') opts.shareReports = argv[++i]; // S1: match-report dir (OFF by default)
     else if (a === '--bug-reports') opts.bugReports = argv[++i]; // #3: in-client bug-report sink (write-only, OFF by default)
+    else if (a === '--regency-min-turn-ms') opts.regencyMinTurnMs = Number(argv[++i]); // XIV §3: total ms per regent round (÷ regents); 0 = instant
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     // A101 rider: WARN, don't fail. A cloud-init unit can then carry a future
     // (not-yet-merged) flag without crash-looping the deploy (the S0 the Hetzner

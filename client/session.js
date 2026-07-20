@@ -189,6 +189,7 @@ export function createSession(ruleset, initialState, opts) {
     // onChange driver re-kicks this while regency stays on.
     async regentTurn() {
       if (roundInFlight) return { ok: false, reason: 'roundInFlight', events: [] };
+      if (state.gameOver) return { ok: false, reason: 'gameOver', events: [] }; // XIV §2: a finished game never advances
       if (regents[state.activePlayer] === undefined) {
         return { ok: false, reason: 'notRegent', events: [] };
       }
