@@ -16,6 +16,7 @@ import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
+import { initBugReport } from './ui/bug-report.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
 import { initLeftStack } from './ui/left-stack.js';
@@ -62,12 +63,15 @@ window.addEventListener('error', e => {
       hudStatus.textContent += ` · state code ${code} (autosaved)`;
     }
   } catch (_) { /* the error handler must not error */ }
+  // surface a one-click "report this problem" affordance (bug-report.js listens)
+  try { window.dispatchEvent(new CustomEvent('rmc-error', { detail: hudStatus.textContent })); } catch (_) { /* never throw here */ }
 });
 window.addEventListener('unhandledrejection', e => {
   if (`${e.reason}`.indexOf('setup') !== -1) return; // deliberate bootstrap stop
   capturedErrors.push(`${e.reason && e.reason.message ? e.reason.message : e.reason}`);
   hudStatus.textContent = `ERROR: ${e.reason && e.reason.message ? e.reason.message : e.reason}`;
   hudStatus.style.color = '#ff7b6b';
+  try { window.dispatchEvent(new CustomEvent('rmc-error', { detail: hudStatus.textContent })); } catch (_) { /* never throw here */ }
 });
 
 async function fetchJson(url) {
@@ -397,6 +401,7 @@ ctx.gameCode = () => {
 };
 ctx.lastSaveCode = null; // set by ui/saves.js on save; shown on the hand-off screen
 
+ctx.bugReport = initBugReport(ctx); // #3: in-client bug report (options + error banner)
 initOptions(ctx);
 ctx.pedia = initPedia(ctx);         // A58: the in-game encyclopedia (📖 / ?)
 ctx.hud = initHud(ctx);
@@ -588,11 +593,25 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
   const toastX = document.getElementById('code-toast-x');
   if (toastX) toastX.click();
+  // #3: the bug-report dialog opens and assembles a payload with the recording
+  // attached (the free-text + Shift+D recording contract), then closes clean.
+  let bugAttached = 'none';
+  if (ctx.bugReport) {
+    ctx.bugReport.open();
+    const bugDialog = document.getElementById('bug-report');
+    const payload = ctx.bugReport.buildPayload('e2e probe');
+    bugAttached = (bugDialog ? 'open' : 'missing')
+      + '/' + (payload && payload.diagnostics && Array.isArray(payload.diagnostics.log) ? 'log' + payload.diagnostics.log.length : 'nolog')
+      + '/' + (payload && payload.text === 'e2e probe' ? 'text' : 'notext');
+    const bugX = document.getElementById('bug-x');
+    if (bugX) bugX.click(); // close it so the screenshot path is unobstructed
+  }
   probe.textContent += ' · toastBodyClickDisplay: ' + bodyClickDisplay
     + ' · toastDisplay: ' + (toastEl ? getComputedStyle(toastEl).display : 'missing')
     + ' · code: ' + (ctx.gameCode() || 'none')
     + ' · gameId: ' + (session.gameId || 'none') // server's real id (404-fix regression guard)
     + ' · diaglog: ' + session.log.length // recorder captured the commands
+    + ' · bugreport: ' + bugAttached // #3: dialog opened + payload assembled with the recording
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }

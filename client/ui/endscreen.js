@@ -8,6 +8,7 @@ import { displayColor } from './palette.js';
 // they fell. Scores are world-public at gameOver, so spectators and every LAN
 // seat see the same board. Golden-safe: render + the pre-existing event payload.
 import { scoreBreakdown } from '../../engine/score.js';
+import { techSafeState, techFogged } from './score-view.js';
 
 export function initEndScreen(ctx) {
   const { session } = ctx;
@@ -46,9 +47,11 @@ export function initEndScreen(ctx) {
 
   function rows(state) {
     const out = [];
+    const sstate = techSafeState(state); // fog-filtered server views lack rival techs
     for (const pid of state.playerOrder) {
       const p = state.players[pid];
-      const bd = scoreBreakdown(state, pid, ruleset);
+      const bd = scoreBreakdown(sstate, pid, ruleset);
+      const fogged = techFogged(p); // a rival under server fog: tech count unknown
       let cities = 0, pop = 0, wonders = 0;
       for (const cid of state.cityOrder) {
         const c = state.cities[cid];
@@ -63,7 +66,7 @@ export function initEndScreen(ctx) {
       out.push({
         pid, name: p.name, color: p.color, alive: p.alive !== false,
         total: bd.total, popPts: bd.population, techPts: bd.techs, wonderPts: bd.wonders,
-        cities, techs: p.techs.length, wonders, death: deathTurn[pid]
+        cities, techs: fogged ? null : p.techs.length, techFogged: fogged, wonders, death: deathTurn[pid]
       });
     }
     out.sort((a, b) => b.total - a.total || (a.name < b.name ? -1 : 1));
@@ -76,7 +79,7 @@ export function initEndScreen(ctx) {
     const pct = v => (max > 0 ? Math.round((v * 100) / max) : 0);
     return `<span class="eb-bar">`
       + `<span class="eb-pop" style="width:${pct(r.popPts)}%"></span>`
-      + `<span class="eb-tech" style="width:${pct(r.techPts)}%"></span>`
+      + `<span class="eb-tech${r.techFogged ? ' fog' : ''}" style="width:${pct(r.techPts)}%"></span>`
       + `<span class="eb-won" style="width:${pct(r.wonderPts)}%"></span></span>`;
   }
 
@@ -98,7 +101,7 @@ export function initEndScreen(ctx) {
       body += `<tr class="${cls}">`
         + `<td class="rank">${i + 1}</td>`
         + `<td class="civ"><span class="swatch" style="background:${escColor(r.color)}"></span>${esc(r.name)}${r.pid === state.winner ? ' 👑' : ''}${fell}</td>`
-        + `<td>${r.cities}</td><td>${r.techs}</td><td>${r.wonders}</td>`
+        + `<td>${r.cities}</td><td>${r.techFogged ? '<span class="fog" title="unknown under fog">—</span>' : r.techs}</td><td>${r.wonders}</td>`
         + `<td class="score">${r.total}${bar(r, max)}</td></tr>`;
     });
 

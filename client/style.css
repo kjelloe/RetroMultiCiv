@@ -832,7 +832,9 @@ html, body {
 .eb-bar > span { display: inline-block; height: 100%; vertical-align: top; }
 .eb-pop { background: #4fae5a; }
 .eb-tech { background: #3ba0d2; }
+.eb-tech.fog { background: repeating-linear-gradient(45deg, #2c4a5c, #2c4a5c 3px, #24406b 3px, #24406b 6px); } /* rival techs unknown under server fog */
 .eb-won { background: #d9b24a; }
+#endscreen-table .fog { color: #6f83a0; } /* fog-limited cell (— = unknown) */
 #endscreen-legend { font-size: 12px; color: #8fa3c0; text-align: center; margin-top: 12px; }
 #endscreen-legend span {
   display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 12px; vertical-align: -1px;
@@ -846,6 +848,48 @@ html, body {
 #endscreen-buttons #es-close { padding: 8px 12px; color: #8fa3c0; }
 #endscreen-stats-note { margin-top: 12px; text-align: center; font-size: 13px; color: #9fb4d6; }
 #endscreen-stats-note.hidden { display: none; }
+
+/* #3: in-client bug report */
+#options-report { margin-top: 12px; padding-top: 10px; border-top: 1px solid #24314c; }
+#open-bug-report {
+  background: #3a2a2f; color: #f0d6d6; border: 1px solid #7a4a52; border-radius: 6px;
+  padding: 7px 14px; font-size: 13px; font-family: inherit; cursor: pointer;
+}
+#bug-report {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 7, 13, 0.85); z-index: 30;
+}
+#bug-report-card {
+  background: #101827; border: 1px solid #2f486f; border-radius: 12px;
+  padding: 20px 24px; max-width: 520px; width: calc(100% - 40px);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7); color: #cdd8ea;
+}
+#bug-report-card label { display: block; margin: 10px 0 4px; font-size: 14px; }
+#bug-text {
+  width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: 14px;
+  background: #0b1220; color: #e5edf8; border: 1px solid #2f486f; border-radius: 6px; padding: 8px;
+}
+#bug-error { margin-top: 10px; font-size: 12px; color: #ffb0a8; word-break: break-word; }
+#bug-error code { color: #ffd0c8; }
+#bug-attached { margin-top: 12px; font-size: 12px; color: #9fb4d6; }
+#bug-attached .bug-attached-title { color: #8fa3c0; }
+#bug-attached ul { margin: 4px 0 0; padding-left: 18px; }
+#bug-report-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+#bug-report-buttons button {
+  background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f; border-radius: 6px;
+  padding: 8px 16px; font-size: 14px; font-family: inherit; cursor: pointer;
+}
+#bug-send { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
+#bug-send:disabled { opacity: 0.6; cursor: default; }
+#bug-cancel { color: #8fa3c0; }
+#bug-report-note { margin-top: 10px; font-size: 13px; color: #9fb4d6; text-align: right; }
+#bug-report-note.hidden { display: none; }
+#bug-report-banner-btn {
+  position: absolute; top: 8px; right: 8px; z-index: 25;
+  background: #3a2a2f; color: #f0d6d6; border: 1px solid #7a4a52; border-radius: 6px;
+  padding: 6px 12px; font-size: 13px; font-family: inherit; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
 
 /* A75: the historian's report — an age-change interstitial with world standings */
 #historian {

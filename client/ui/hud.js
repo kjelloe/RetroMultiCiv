@@ -4,6 +4,7 @@ import { cityYields, itemCost } from '../../engine/cities.js';
 import { corruptionFor } from '../../engine/government.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
+import { techSafeState } from './score-view.js';
 import { createWaitTracker, formatWait, formatSlowNote } from './wait-status.js';
 import { glyphDataURL } from './tech-glyphs.js';
 import { annotateCityEra } from '../../shared/city-era.js';
@@ -214,8 +215,9 @@ export function initHud(ctx) {
     if (state.gameOver) {
       const w = state.players[state.winner];
       const verdict = state.winner === ctx.HUMAN ? '🏆 VICTORY' : '💀 DEFEAT';
+      const sstate = techSafeState(state); // server view omits rival techs under fog
       const scores = state.playerOrder
-        .map(p => `${state.players[p].name} ${score(state, p, session.ruleset)}`).join(' · ');
+        .map(p => `${state.players[p].name} ${score(sstate, p, session.ruleset)}`).join(' · ');
       hudStatus.style.color = state.winner === ctx.HUMAN ? '#ffe066' : '#ff7b6b';
       const code = ctx.gameCode ? ctx.gameCode() : null; // docs/07 §3.3: verified-game stamp
       hudStatus.textContent = `${verdict} — ${w.name} wins (turn ${state.turn}) · scores: ${scores}`

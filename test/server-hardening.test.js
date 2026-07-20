@@ -290,12 +290,30 @@ test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong
   const s = await startServer(base({ gameId: '3bh' }));
   const get = p => new Promise(res => http.get({ host: '127.0.0.1', port: s.port, path: p }, r => { r.resume(); res(r); }));
   try {
-    const idx = await get('/client/');
+    const idx = await get('/client/?server=1'); // bare /client/ now 302s (see below)
     assert.strictEqual(idx.headers['x-content-type-options'], 'nosniff');
     assert.strictEqual(idx.headers['x-frame-options'], 'DENY'); // v2: anti-clickjacking
     assert.match(idx.headers['cache-control'], /no-cache/);
     const long = await get('/client/' + 'a'.repeat(3000));
     assert.strictEqual(long.statusCode, 414);
+  } finally { await s.close(); }
+});
+
+test('a bare /client/ on the server redirects to the server game; any query is served as-is', async () => {
+  const { startServer } = await import('../server/index.js');
+  const http = require('http');
+  const s = await startServer(base({ gameId: 'redir' }));
+  const get = p => new Promise(res => http.get({ host: '127.0.0.1', port: s.port, path: p }, r => { r.resume(); res(r); }));
+  try {
+    const bare = await get('/client/');
+    assert.strictEqual(bare.statusCode, 302, 'bare /client/ redirects');
+    assert.strictEqual(bare.headers.location, '/client/?server=1');
+    assert.strictEqual((await get('/client/?server=1')).statusCode, 200, 'server URL served');
+    assert.strictEqual((await get('/client/?local=1')).statusCode, 200, 'local escape hatch served');
+    assert.strictEqual((await get('/client/?seed=5')).statusCode, 200, 'power-user URL untouched');
+    const noSlash = await get('/client');
+    assert.strictEqual(noSlash.statusCode, 302, '/client still 302s to /client/');
+    assert.strictEqual(noSlash.headers.location, '/client/');
   } finally { await s.close(); }
 });
 

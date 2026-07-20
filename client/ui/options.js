@@ -81,8 +81,15 @@ export function initOptions(ctx) {
         <option value="default">default</option>
         ${Object.keys(PALETTES).map(m => `<option value="${m}">${m}</option>`).join('')}
       </select>
-    </label>`;
+    </label>
+    <div id="options-report"><button id="open-bug-report" type="button">🐞 Report a bug</button></div>`;
   document.body.appendChild(panel);
+
+  const reportBtn = panel.querySelector('#open-bug-report');
+  if (reportBtn) reportBtn.addEventListener('click', () => {
+    panel.classList.add('hidden');
+    if (ctx.bugReport) ctx.bugReport.open();
+  });
 
   function syncPanel() {
     for (const el of panel.querySelectorAll('[data-opt]')) {

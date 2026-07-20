@@ -8,28 +8,20 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-20 late (XIV queued; ally package in; XII.5 probe DONE — ruling reframed to research-pace design, two decisions open)._
+_Last synced: 2026-07-20 late (XIV in build; XII.5 D1+D2 RULED — core-fix marker then calendar-545 marker; probe re-run follows)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [ ] **XII.5 ruling — the probe answered, and the question CHANGED (two
-  decisions now).** Measured on normal 400-turn games (8 seeds): **no civ ever
-  unlocks space-flight at all** — the space chain needs 46 of 68 techs and
-  research leaders finish with 26–29. Research pace vs game length is the real
-  constraint; none of the old options (accept-late / fix chain / parts-rush)
-  is the lever. Full data `specs/xii5-ai-victory-drive.md` §11.
-  **Decision 1 (design, ally input welcome):** speed late-game research
-  (arguably the authentic Civ 1 answer; sweepable bulb-cost slice) vs
-  marathon-only space (contradicts the ally's verdict) vs longer normal games
-  vs a blend. A shareable ally phrasing sits in the architect's 20:13 report.
-  **Decision 2 (cheap, unblocks four queued items):** land the verified XII.5
-  core fix now (re-record + marker — releases the golden window for D3
-  server-surfacing, 11b city names, hardening 2b) with research pacing as its
-  own follow-up slice — architect recommends YES.
-  Meanwhile (no action): bugfixer measures whether godemperor difficulty or a
-  science-stance civ closes the tech gap.
+- [x] **XII.5 + calendar — BOTH RULED (2026-07-20 late).** D1: normal game
+  targets ~550 turns via Civ-1-pace early yearSteps — "Classic 545" table
+  picked (t200=1AD, t350=1500, t545=2100 end; `specs/calendar-545.md`).
+  D2: GO — the verified XII.5 core fix lands FIRST as its own marker, the
+  calendar slice follows as a second marker (two re-records, clean
+  attribution), then the probe re-runs at 545t to measure whether the
+  calendar closes the space gap (bulb tuning only if it does not).
+  Bugfixer instructed (#1930); the six 25h-held locks are moving again.
 
 - [x] **Refinement XIV — 31 playtest items triaged and queued** (2026-07-20
   evening, browser+iPad+phone session). Spec: `specs/refinement-xiv.md`.

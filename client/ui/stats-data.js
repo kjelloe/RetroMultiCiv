@@ -6,6 +6,8 @@
 // so it unit-tests headless; stats.js renders the charts from what this returns.
 // Golden-safe: reads the recording + the events the engine already emits.
 
+import { techSafeState, techFogged } from './score-view.js';
+
 // deps: { engine (createEngine result), runAiTurn, deepClone, score, ruleset }
 export function collectStats(rec, deps) {
   const { engine, runAiTurn, deepClone, score, ruleset } = deps;
@@ -79,10 +81,11 @@ export function collectStats(rec, deps) {
         if (c && c.owner === pid) { cities += 1; pop += c.pop; }
       }
       const s = series[pid];
-      s.score.push(score(state, pid, ruleset));
+      const sstate = techSafeState(state); // a server-view recording omits rival techs (fog)
+      s.score.push(score(sstate, pid, ruleset));
       s.cities.push(cities);
       s.pop.push(pop);
-      s.techs.push(state.players[pid].techs.length);
+      s.techs.push(techFogged(state.players[pid]) ? 0 : state.players[pid].techs.length);
     }
   }
 

@@ -83,3 +83,32 @@ test('A51b: --announce without --public-addr fails loudly at boot', async () => 
     async () => startServer({ ruleset: RULESET, seed: 3, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', announce: 'http://127.0.0.1:1' }),
     /--public-addr/);
 });
+
+// A scheme survives boot silently otherwise: publicAddr is split at the LAST
+// ':', so "https://host" yields host "https://host" (no port) and the master
+// answers badAddress on every heartbeat. Observed on the first live deploy.
+test('A51c: --public-addr with a scheme fails loudly at boot', async () => {
+  const { startServer } = await import('../server/index.js');
+  for (const bad of ['https://example.com', 'http://example.com:443', 'ws://example.com:8123']) {
+    await assert.rejects(
+      async () => startServer({ ruleset: RULESET, seed: 3, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', announce: 'http://127.0.0.1:1', publicAddr: bad }),
+      /no scheme/, `rejected ${bad}`);
+  }
+});
+
+// The unknown-argument WARN points operators at --help, so --help must exist
+// (it didn't when the WARN shipped: `--help` booted a server on 8123 instead).
+test('--help prints usage and does not boot a server', async () => {
+  const { execFileSync } = require('node:child_process');
+  const entry = require('path').join(__dirname, '..', 'server', 'index.js');
+  const out = execFileSync(process.execPath, [entry, '--help'], { encoding: 'utf8', timeout: 20000 });
+  assert.match(out, /RetroMultiCiv server/);
+  for (const flag of ['--public-addr', '--max-games', '--origin-allowlist', '--trust-proxy'])
+    assert.ok(out.includes(flag), `usage documents ${flag}`);
+});
+
+test('A51c: bare host:port still boots past the scheme guard', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 3, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', port: 0, announce: 'http://127.0.0.1:1', publicAddr: 'example.com:443' });
+  try { assert.ok(s, 'booted with a bare host:port'); } finally { await s.close(); }
+});

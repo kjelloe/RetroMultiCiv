@@ -7,6 +7,7 @@ import { displayColor } from './palette.js';
 // the turn log; the replay theater re-surfaces it because the event rides the
 // recording. Reuses the engine's own score arithmetic — never a parallel one.
 import { score } from '../../engine/score.js';
+import { techSafeState, techFogged } from './score-view.js';
 
 export function initHistorian(ctx) {
   const { session } = ctx;
@@ -22,6 +23,7 @@ export function initHistorian(ctx) {
   // world-public standings from the engine's components (score.js) + plain reads
   function standings(state) {
     const rows = [];
+    const sstate = techSafeState(state); // server views omit rival techs (fog)
     for (const pid of state.playerOrder) {
       const p = state.players[pid];
       let cities = 0, pop = 0;
@@ -31,7 +33,8 @@ export function initHistorian(ctx) {
       }
       rows.push({
         name: p.name, color: p.color, alive: p.alive !== false,
-        score: score(state, pid, ruleset), cities, techs: p.techs.length, pop
+        score: score(sstate, pid, ruleset), cities,
+        techs: techFogged(p) ? '—' : p.techs.length, pop
       });
     }
     rows.sort((a, b) => b.score - a.score);

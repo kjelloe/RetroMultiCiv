@@ -138,6 +138,10 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     assert.match(dom, /Despotism \(rates/, 'the government row must show the current government');
     assert.match(dom, /mood /, 'the city panel must show the mood row');
     assert.match(dom, /diaglog: [1-9]/, 'the diagnostics recorder must capture commands');
+    // #3: the bug-report dialog opens and assembles a payload with the Shift+D
+    // recording attached (its free-text + auto-attach contract) and closes clean
+    assert.match(dom, /bugreport: open\/log\d+\/text/,
+      'the bug-report dialog must open and assemble a payload carrying the recording log + free text');
     // docs/07 game verification code: the e2e save shows the persistent toast
     assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
     assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');

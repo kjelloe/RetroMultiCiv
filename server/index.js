@@ -29,6 +29,7 @@ import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
+import { writeBugReport, rotateBugReports } from './bug-report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -177,7 +178,28 @@ export function startServer(opts) {
     if (debugMode) return true; // dev: whole repo (gallery, /debugging/*)
     return STATIC_ROOTS.some(r => urlPath.startsWith(r));
   }
+
+  // Bug-report POST budget — a SELF-CONTAINED per-IP hourly bucket (NOT the
+  // hardening lane's limits.js): a playtester files a handful of reports an
+  // hour at most, so this is a coarse abuse floor, not a fairness system.
+  const BUG_REPORT_PER_HOUR = Number.isInteger(opts.bugReportsPerHour) ? opts.bugReportsPerHour : 20;
+  const BUG_REPORT_MAX_BYTES = 2 * 1024 * 1024; // recordings are small; cap hard
+  const bugReportHits = {}; // ip -> [ms timestamps within the last hour]
+  function bugReportAllowed(ip) {
+    const t = Date.now();
+    const cut = t - 3600 * 1000;
+    if (Object.keys(bugReportHits).length > 5000) { for (const k of Object.keys(bugReportHits)) delete bugReportHits[k]; } // distinct-IP flood guard
+    const arr = (bugReportHits[ip] || []).filter(x => x > cut);
+    bugReportHits[ip] = arr;
+    if (arr.length >= BUG_REPORT_PER_HOUR) return false;
+    arr.push(t);
+    return true;
+  }
+
   const httpServer = http.createServer((req, res) => {
+    // Slice 3b: cap absurd URL lengths cheaply, before URL parsing (Node already
+    // caps total header bytes; this is an explicit, earlier guard).
+    if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
     // Slice 3b: cap absurd URL lengths cheaply, before URL parsing (Node already
     // caps total header bytes; this is an explicit, earlier guard).
     if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
@@ -190,10 +212,54 @@ export function startServer(opts) {
       res.end();
       return;
     }
+    // Hosted default: a bare /client/ on a SERVER means the server game, not the
+    // in-browser engine (a player on the public box opened /client/, played the
+    // local engine, and lost the game with the tab). Only the EMPTY query string
+    // redirects — ?local=1 reaches the local engine, and every power-user URL
+    // (?seed/?civs/?humans/…) is served untouched. The bare-host and /client
+    // 302s above chain into this one.
+    if (urlPath === '/client/' && parsed.search === '') {
+      res.writeHead(302, { Location: '/client/?server=1', 'X-Content-Type-Options': 'nosniff' });
+      res.end();
+      return;
+    }
     // A51b: the cheap liveness answer the master index probes (docs/12 §6)
     if (urlPath === '/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end('{"ok":true}');
+      return;
+    }
+    // In-client BUG REPORT sink (helper queue #3). WRITE-ONLY: a playtester
+    // POSTs the Shift+D recording + free text; we write ONE json file the
+    // operator reads over ssh. Opt-in (--bug-reports DIR, off by default — same
+    // posture as --share-reports); the dir is NEVER served back. Body capped;
+    // per-IP hourly budget. The client falls back to a local download on any
+    // non-2xx, so a 404 (disabled) / 413 / 429 all degrade gracefully.
+    if (req.method === 'POST' && urlPath === '/bug-report') {
+      const J = { 'Content-Type': 'application/json' };
+      if (!opts.bugReports) { res.writeHead(404, J); res.end('{"ok":false,"reason":"disabled"}'); return; }
+      if (!bugReportAllowed(clientIp(req))) { res.writeHead(429, J); res.end('{"ok":false,"reason":"rateLimited"}'); return; }
+      let body = '';
+      let total = 0;
+      let dropped = false;
+      req.on('data', chunk => {
+        total += chunk.length;
+        if (total > 8 * BUG_REPORT_MAX_BYTES) { req.destroy(); return; } // hard abort on a flood
+        if (dropped) return;
+        body += chunk;
+        if (body.length > BUG_REPORT_MAX_BYTES) { dropped = true; body = ''; } // discard, 413 at end
+      });
+      req.on('error', () => { try { res.writeHead(400, J); res.end('{"ok":false,"reason":"badRequest"}'); } catch (_) { /* socket gone */ } });
+      req.on('end', () => {
+        if (dropped) { res.writeHead(413, J); res.end('{"ok":false,"reason":"tooLarge"}'); return; }
+        let payload;
+        try { payload = JSON.parse(body); } catch (e) { res.writeHead(400, J); res.end('{"ok":false,"reason":"badJson"}'); return; }
+        try {
+          writeBugReport(opts.bugReports, payload);
+          rotateBugReports(opts.bugReports, 100); // keep the newest 100
+          res.writeHead(200, J); res.end('{"ok":true}');
+        } catch (e) { res.writeHead(500, J); res.end('{"ok":false,"reason":"writeFailed"}'); }
+      });
       return;
     }
     if (!servable(urlPath)) { res.writeHead(404); res.end(); return; } // A61: whitelist
@@ -1099,6 +1165,12 @@ export function startServer(opts) {
     if (!opts.publicAddr) {
       throw new Error('--announce needs --public-addr <host[:port]> — the address players reach YOU at (the master validates it)');
     }
+    // host:port is split at the LAST ':', so a scheme silently yields a garbage
+    // host and the master rejects every heartbeat with "badAddress". Caught at
+    // boot instead: behind a TLS proxy the right value is <domain>:443.
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(opts.publicAddr)) {
+      throw new Error(`--public-addr must be a bare host[:port] with no scheme — got "${opts.publicAddr}". Behind a TLS proxy use the PUBLIC port, e.g. example.com:443`);
+    }
     const [aHost, aPort] = opts.publicAddr.includes(':')
       ? [opts.publicAddr.slice(0, opts.publicAddr.lastIndexOf(':')), Number(opts.publicAddr.slice(opts.publicAddr.lastIndexOf(':') + 1))]
       : [opts.publicAddr, null];
@@ -1183,12 +1255,52 @@ export function startServer(opts) {
 }
 
 // --- CLI ----------------------------------------------------------------
+// Referenced by the unknown-argument WARN, so it must stay in sync with the
+// parse loop below. Full prose: docs/how-to-host.md § "Server flags".
+const USAGE = `RetroMultiCiv server — node server/index.js [flags]
+
+Game:
+  --port N              listen port (default 8123)
+  --seed N              world seed for the default game
+  --civs N              civilizations in the default game
+  --humans N            human seats in the default game
+  --size NAME           xsmall|small|medium|large|huge (default medium)
+  --game FILE           resume from a save
+  --host ADDR           bind address (use 127.0.0.1 behind a proxy)
+  --no-save             disable autosave
+  --no-spectators       refuse tokenless spectators
+  --debug               dev conveniences — NEVER on a public host
+
+Public hosting (docs/12, docs/16):
+  --trust-proxy         behind one reverse proxy (per-IP limits need this)
+  --trust-proxy-hops N  behind N proxies
+  --origin-allowlist L  CSV of exact allowed browser origins
+  --announce URL        heartbeat to a master index
+  --public-addr HOST:PORT   bare host:port, NO scheme (e.g. example.com:443)
+  --public-name NAME    listing name on the master index
+  --share-reports DIR   write anonymized match reports (off by default)
+  --bug-reports DIR     accept in-client bug reports, write-only to DIR (off by default)
+
+Caps and budgets (docs/how-to-host.md § "Sizing by RAM"):
+  --max-games N         --max-conns N         --max-conns-per-ip N
+  --max-turns N         --max-civs N          --max-size NAME
+  --max-saves N         --max-saves-mb N      --max-outbuf-mb N
+  --creates-per-hour N  --joins-per-min N     --chat-per-min N
+  --cmd-burst N         --cmd-per-sec N       --connects-per-sec N
+  --connect-burst N     --unauth-timeout-sec N
+  --heartbeat-sec N     --heartbeat-misses N  --seat-grace-sec N
+  --lobby-ttl-min N     --abandoned-hours N
+  --mem-soft-pct N      --mem-check-sec N
+
+Unknown flags WARN and are ignored; effective caps print on boot.`;
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const opts = { port: 8123, seed: Date.now() % 1000000, civs: 2, humans: 1, size: 'medium' };
   const argv = process.argv;
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--port') opts.port = Number(argv[++i]);
+    if (a === '--help' || a === '-h') { console.log(USAGE); process.exit(0); }
+    else if (a === '--port') opts.port = Number(argv[++i]);
     else if (a === '--seed') opts.seed = Number(argv[++i]);
     else if (a === '--civs') opts.civs = Number(argv[++i]);
     else if (a === '--humans') opts.humans = Number(argv[++i]);
@@ -1245,6 +1357,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--public-name') opts.publicName = argv[++i];
     else if (a === '--public-addr') opts.publicAddr = argv[++i];
     else if (a === '--share-reports') opts.shareReports = argv[++i]; // S1: match-report dir (OFF by default)
+    else if (a === '--bug-reports') opts.bugReports = argv[++i]; // #3: in-client bug-report sink (write-only, OFF by default)
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     // A101 rider: WARN, don't fail. A cloud-init unit can then carry a future
     // (not-yet-merged) flag without crash-looping the deploy (the S0 the Hetzner
@@ -1268,7 +1381,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
     // Slice 3c: one-line posture summary so an operator sees the active guards.
-    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
+    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — bug-reports ${opts.bugReports ? 'ON(' + opts.bugReports + ')' : 'off'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
     // A101 rider: the EFFECTIVE operator caps. Because unknown args now only WARN,
     // a typo'd cap flag no-ops silently — this line is the operator's confirmation
     // that a cap actually took (a typo shows the value as `unset`).

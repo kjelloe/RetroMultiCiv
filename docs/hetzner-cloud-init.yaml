@@ -178,6 +178,7 @@ write_files:
         --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
         --max-games 8 --max-saves-mb 500 \
         --max-turns 500 --max-civs 8 --max-size large \
+        --bug-reports /opt/retromulticiv/bugreports \
         --mem-soft-pct 85 --mem-check-sec 15
       NoNewPrivileges=yes
       ProtectSystem=strict
@@ -189,7 +190,7 @@ write_files:
       RestrictAddressFamilies=AF_INET AF_INET6
       RestrictNamespaces=yes
       LockPersonality=yes
-      ReadWritePaths=/opt/retromulticiv/saves /opt/retromulticiv/crashdumps
+      ReadWritePaths=/opt/retromulticiv/saves /opt/retromulticiv/crashdumps /opt/retromulticiv/bugreports
       MemoryMax=2G
       Restart=on-failure
       RestartSec=5
@@ -212,8 +213,8 @@ write_files:
       cd "$APP"
       npm ci --omit=dev 2>/dev/null || npm install --omit=dev
 
-      echo "==> Ensuring save + crashdump dirs"
-      mkdir -p "$APP/saves" "$APP/crashdumps"
+      echo "==> Ensuring save + crashdump + bugreport dirs"
+      mkdir -p "$APP/saves" "$APP/crashdumps" "$APP/bugreports"
 
       echo "==> Starting services (master first, then game announces to it)"
       sudo systemctl daemon-reload
@@ -243,7 +244,7 @@ runcmd:
   - apt-get install -y nodejs
 
   # App directory — code uploaded by user after boot
-  - mkdir -p /opt/retromulticiv/saves /opt/retromulticiv/crashdumps
+  - mkdir -p /opt/retromulticiv/saves /opt/retromulticiv/crashdumps /opt/retromulticiv/bugreports
   - chown -R <DEPLOY_USER>:<DEPLOY_USER> /opt/retromulticiv
 
   # fail2ban — SSH brute-force protection

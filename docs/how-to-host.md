@@ -589,6 +589,7 @@ everything after the port):
 | `--lobby-ttl-min N` | `60`   | Retire an unstarted lobby after N idle minutes.    |
 | `--abandoned-hours N` | `24` | Retire a started game after N hours with no players connected (its save survives — resumable by code). |
 | `--share-reports DIR` | off  | Write one anonymized match report per finished game into DIR (players become seat1..N; the lobby shows the notice and any seat can veto; keeps the newest 200). Local files only — nothing uploads. |
+| `--bug-reports DIR` | off    | Accept in-client bug reports (the 🐞 button + the error banner): each is written as one JSON file (the player's note + the game recording, code, turn, URL) into DIR, keeping the newest 100. **Write-only** — the directory is never served back over HTTP; read it over ssh. Off by default; per-IP hourly budget + 2 MB cap. |
 | `--debug`        | off       | **Dev only.** Serves the WHOLE repo over HTTP.     |
 
 > The connection/game/rate caps default to **LAN-safe** numbers — a normal LAN
@@ -605,6 +606,17 @@ everything after the port):
 > gets the friendly "too small" message) and apply to the host's own `--civs` /
 > `--size` boot game too. They compose with `--max-games` (how many games) and the
 > connection/rate caps (who can connect) to form the host's resource budget.
+
+> **Bug reports (`--bug-reports DIR`).** Players get a 🐞 *Report a bug* button
+> in the Options panel, and a one-click *Report this problem* button when an
+> error banner appears. Each report bundles their note with the game recording
+> (moves + state hashes), game code, turn, and URL — enough to replay the bug
+> with `node tools/replay.js <file>`. The server writes one JSON file per report
+> into DIR and never serves the directory back (read it over ssh). It is
+> **off** unless you pass the flag. On the systemd unit, DIR must be inside
+> `ReadWritePaths` (e.g. add `/opt/retromulticiv/bugreports`). With the flag off
+> the button still works via its *Download report* fallback (the player sends
+> you the file), and local (non-server) games always use that download path.
 
 > **Keep `--debug` off in production.** The default is hardened: only
 > `/client/`, `/engine/`, `/shared/`, and `/data/` are served, so `saves/`

@@ -81,7 +81,7 @@
     <h1>Human work items — RetroMultiCiv</h1>
     <div class="sub">Things only a human (Kjell / friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>.</div>
     <div class="meta">
-      <span class="chip">Last synced: <strong>2026-07-20 evening</strong> (XIV queued; ally package in; XII.5 probe DONE — ruling reframed, two decisions open)</span>
+      <span class="chip">Last synced: <strong>2026-07-20 late</strong> (XII.5 D1+D2 RULED — core-fix marker then calendar-545; XIV in build)</span>
       <span class="chip">Merge candidate: <strong>marker-0062</strong></span>
       <span class="chip">Pending: <strong>marker-0063 · D3 (phase-2)</strong></span>
       <span class="chip">Companion of <strong>human-workitems.md</strong></span>
@@ -97,9 +97,9 @@
       <div class="d"><code>multiciv.kjell.today</code> → 49.12.106.125, deployed 2026-07-20 from the local dev_night working tree. Health check green: ufw (2222/80/443 only), fail2ban, nginx, certbot, Node v22.23.1, units active, <code>caps:</code> line accurate. Findings from the run are written up in <code>docs/how-to-host.md</code> § "Deploy troubleshooting" and fixed in the templates.</div>
     </div>
 
-    <div class="item"><span class="box"></span>
-      <div class="t">XII.5 ruling — probe answered, the question CHANGED (two decisions)</div>
-      <div class="d">Measured on normal 400-turn games (8 seeds): <strong>no civ ever unlocks space-flight at all</strong> — the chain needs 46 of 68 techs, research leaders finish with 26–29. Research pace vs game length is the real constraint; none of the old options (accept-late / fix chain / parts-rush) is the lever. Data: <code>specs/xii5-ai-victory-drive.md</code> §11. <strong>Decision 1 (design, ally input welcome):</strong> speed late-game research (arguably the authentic Civ 1 answer; sweepable bulb-cost slice) vs marathon-only space vs longer normal games vs a blend. <strong>Decision 2 (cheap, unblocks four queued items):</strong> land the verified core fix now — releases the golden window (D3 server-surfacing, 11b, hardening 2b); architect recommends YES. Meanwhile: bugfixer measures whether godemperor or a science-stance civ closes the gap.</div>
+    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
+      <div class="t" style="text-decoration:line-through;opacity:.7">XII.5 + calendar — BOTH RULED</div>
+      <div class="d">D1: normal game targets <strong>~550 turns</strong> via Civ-1-pace early yearSteps — "Classic 545" picked (t200=1AD, t350=1500, t545=2100 end; <code>specs/calendar-545.md</code>). D2: GO — the verified XII.5 core fix lands FIRST as its own marker, calendar-545 follows as a second marker (two re-records, clean attribution), then the probe re-runs at 545t. Bugfixer instructed (#1930); the six 25h-held locks are moving again.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
@@ -114,7 +114,7 @@
 
     <div class="item"><span class="box"></span>
       <div class="t">Two server-only bugs found in your first live playtest</div>
-      <div class="d">Both queued to the helper, neither shipped yet: the <strong>endscreen crashes on every server game</strong> at <code>gameOver</code> (<code>player.techs</code> is absent on fog-filtered rival views, so no ending ever renders — this is why your won game showed no victory screen), and bare <code>/client/</code> will <strong>redirect to <code>?server=1</code></strong> so casual players land on the authoritative server. Until the redirect ships, share the <strong><code>?server=1</code> link specifically</strong>, not the bare URL.</div>
+      <div class="d">BOTH NOW FIXED in the working tree (helper): the endscreen crash (shared <code>score-view.js</code> shim — fog-honest "—" rows instead of a crash, wired into all four score callers, tested) and the bare-<code>/client/</code> → <code>?server=1</code> redirect (with <code>?local=1</code> escape). <strong>They reach the live box on your next redeploy</strong> — until then keep sharing the <code>?server=1</code> link.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
