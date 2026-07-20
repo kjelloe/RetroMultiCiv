@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-20 (marker-0068). Source of truth for the 1.0
+Last updated: 2026-07-20 (marker-0069 — XII.5 core fix MERGE-CONSISTENT; calendar-545 = marker N+1 opening). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._
@@ -18,8 +18,8 @@ because they are golden-neutral.
 ```mermaid
 flowchart TD
   subgraph ENGINE["ENGINE golden lane (serialized — one window at a time)"]
-    N["🔨 marker N — XII.5 core-fix re-record\n(bugfixer, ruled #1930)"]
-    N1["📋 marker N+1 — calendar-545\n(545-turn normal game)"]
+    N["✅ marker N = 0069 — XII.5 core fix\n+ re-record (MERGE-CONSISTENT)"]
+    N1["🔨 marker N+1 — calendar-545\n(bugfixer, opening now)"]
     PROBE["📋 probe re-run @545t\n(does research now reach space?)"]
     BULB{"🚪 bulb-cost tuning\nonly if probe still short"}
     X5B["📋 XII.5b — solar-last part order\n(+ launch pacing)"]
@@ -36,9 +36,9 @@ flowchart TD
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
-    LOC["🔨 land operator-caps (sim-runner)"]
-    LOOM["📋 land OOM fix → one marker"]
-    H2B["📋 hardening slice 2b\n(waits ONLY on marker N freeing the luau lock)"]
+    LOC["✅ operator-caps landed (0068/0069)"]
+    LOOM["✅ OOM fix landed (0068/0069)"]
+    H2B["📋 hardening slice 2b\n(UNBLOCKED — luau lock released at 0069)"]
     A50R["🧩 A50 rest — conn-fairness budget ·\n/healthz + structured logs · invite allowlist"]
     SEC["🚪 docs/16 re-assessment\n(pre-master-index gate)"]
     A51D["🚪 A51 master index DEPLOYED\n(user schedules DNS; code is live on test box)"]
@@ -46,7 +46,7 @@ flowchart TD
   end
 
   subgraph CLIENT["CLIENT/UI lane (helper queue, golden-neutral)"]
-    BR["🔨 bug-report feature"]
+    BR["✅ bug-report feature (0069)"]
     XIVQ["📋 XIV queue (13):\nregency lifecycle → mobile save →\nE-hint → civ shuffle → HUD polish →\nterrain relief → front page → hover cards →\ndiscovery overlay → input pacing →\nmobile gestures → auto-takeover → order queue"]
     FG["📋 'Find game' server browser\n(XIV front-page item)"]
     A58["🧩 A58 pedia completion"]
