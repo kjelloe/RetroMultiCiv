@@ -135,6 +135,14 @@ Rules of thumb:
 
 ## Everyday commands (local)
 
+The body rules are MECHANICALLY ENFORCED on the dev PC
+(`.claude/hooks/guard-agent-mail-send.sh`, PreToolUse): heredoc bodies,
+echo/printf pipes into `send`, backticks/`$` or newlines inside an inline
+`--body` (send AND `queue add`) are all denied with the fix in the message —
+plus the older guards (`--tag noop`, self-directed worker sends). If the
+hook blocks you, do what it says: Write the body to a file, then
+`--body-file PATH`.
+
 ```bash
 # mail — send prints a RECEIPT ONLY ("queued <tag> #<id> → <to>"), never the body
 python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"   # short prose OK inline
