@@ -108,12 +108,18 @@ local function brickify(c)
 	return Color3.fromHSV(h, math.min(1, s * 1.35), v)
 end
 local function brickTop(id, top)
-	-- LESS relief (ally): mountains stay tallest + readable; everything else
-	-- quantizes to coarse HEIGHT steps and flattens (hills 2-3 steps, flats flat).
+	-- LESS relief (ally §29), but the flat/hill/mountain HEIGHT hierarchy must
+	-- still separate (desaturation readability invariant). Mountains own the
+	-- skyline (unchanged); hills = a LOW readable plateau — err low initially
+	-- (#1977), kept under the user's "hills ≤25% of mountains" cap; everything
+	-- else flattens to broad plates. (The old coarse quantize collapsed hills'
+	-- top≈1.9 to 0, which erased the hill tier — fixed here.)
 	if id == "mountains" then
 		return top
+	elseif id == "hills" then
+		return top * 0.55 -- ≈1.0 studs vs mountains ≈4.35 (~23%), low but readable
 	end
-	return math.floor(top / HEIGHT + 0.5) * HEIGHT * 0.6
+	return 0 -- flats: flat plates, no relief
 end
 
 local function lookOf()
