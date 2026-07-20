@@ -86,6 +86,9 @@ return [==[{
     "flightYearsMin": 5,
     "successFlightFreeYears": 15
   },
+  "victoryDrive": {
+    "spaceStances": ["science", "builder", "balanced", "defensive"]
+  },
   "tradeRoute": {
     "minDomesticDistance": 10,
     "windfallDistanceBonus": 10,
