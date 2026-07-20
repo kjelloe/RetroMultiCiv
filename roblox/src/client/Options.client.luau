@@ -113,6 +113,8 @@ optionsBtn.Activated:Connect(function()
 	panel.Visible = not panel.Visible
 end)
 
+-- XIV §15: `brick` shows to the player as "Studded" (internal id stays brick).
+local LOOK_LABEL = { enhanced = "enhanced", retro = "retro", brick = "Studded" }
 local function paint()
 	local o = ClientState.options
 	autoNextBtn.Text = ("  auto next unit: %s"):format(o.autoNextUnit and "ON" or "off")
@@ -123,7 +125,7 @@ local function paint()
 	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
 	ridePadBtn.Text = ("  ride pads: %s"):format(
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
-	lookBtn.Text = ("  world look: %s"):format(o.look or "enhanced")
+	lookBtn.Text = ("  world look: %s"):format(LOOK_LABEL[o.look or "enhanced"] or (o.look or "enhanced"))
 	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")
 	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")
@@ -165,10 +167,16 @@ ridePadBtn.Activated:Connect(function()
 	ClientState.options.ridePad = pref == nil and true or (pref == true and false or nil)
 	paint()
 end)
+-- XIV §15: 3-style roster. `brick` renders as the player-facing "Studded"
+-- look (chunky bevelled bricks + studs); internal id stays `brick`. IP care:
+-- no trademarked brick-toy naming anywhere in code/UI/copy (gate 18 enforces).
+local LOOKS = { "enhanced", "retro", "brick" }
 lookBtn.Activated:Connect(function()
-	-- visual-fidelity side-by-side (#1100): retro (browser-flat) vs enhanced
-	-- (Roblox materials); ViewRenderer repaints on the flip
-	ClientState.options.look = ClientState.options.look == "enhanced" and "retro" or "enhanced"
+	-- visual-fidelity roster (#1100 + XIV §15): enhanced (Roblox materials) ->
+	-- retro (browser-flat) -> brick (Studded); ViewRenderer + AssetFactory
+	-- repaint on the flip (the soundboard pattern — user picks by screenshot).
+	local i = table.find(LOOKS, ClientState.options.look) or 1
+	ClientState.options.look = LOOKS[i % #LOOKS + 1]
 	paint()
 end)
 autoResearchBtn.Activated:Connect(function()

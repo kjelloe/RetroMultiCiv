@@ -78,10 +78,16 @@ local activeMaterial = Enum.Material.SmoothPlastic
 
 local function lookMaterial(role)
 	local ClientState = require(script.Parent:WaitForChild("ClientState"))
-	if ClientState.options.look ~= "enhanced" then
-		return Enum.Material.SmoothPlastic
+	local look = ClientState.options.look
+	if look == "enhanced" then
+		return ROLE_MATERIAL[role] or Enum.Material.SmoothPlastic
+	elseif look == "brick" then
+		-- XIV §15 "Studded": chunky bevelled plastic on units/props (flat +
+		-- saturated). NO per-part studs at tactical zoom (ally: no tiny
+		-- decorative parts) — the studded charm reads from terrain tops.
+		return Enum.Material.Plastic
 	end
-	return ROLE_MATERIAL[role] or Enum.Material.SmoothPlastic
+	return Enum.Material.SmoothPlastic
 end
 
 local function basePart(className)

@@ -672,6 +672,21 @@ Run-F live playtest (2026-07-19) fixes:
   #1884) — the narrator is correct and lights up the moment they arrive;
   first-contact works today. Tier-B Foreign-relations panel is deferred
   until `filterView` exposes `state.relations`.
+- **XIV §15 "Studded" world style — first impl DONE** (spec
+  `specs/roblox-studded-style.md`): a THIRD `look` alongside retro/enhanced,
+  player-facing label **Studded**, internal id **brick**. `world look` toggle
+  is now a 3-way cycle (`Options.client.luau`); `lookOf()`/`lookMaterial` carry
+  an explicit `brick` branch (no fall-through to retro). Terrain: `BRICK_MATERIAL`
+  (Plastic bodies, Slate peaks, SmoothPlastic water) + top-face studs on open
+  flats only (punctuation — never water/canopy/peaks) + saturation bump
+  (`brickify`, value kept so categories still separate) + stepped/reduced
+  relief (`brickTop` — hills 2-3 steps, flats flat, mountains tallest). Assets
+  use flat bevelled Plastic (no per-part studs at tactical zoom). Gate 18
+  (`brick-coverage.mjs`) pins terrain parity + explicit branches + the Studded
+  label + an IP guard (no trademarked naming). Renderer-only, golden-neutral,
+  fog-honest. NEXT: user screenshots the 3-way in Studio (soundboard pattern)
+  to review/tune relief + saturation + oversized "toy army" scaling + forest/
+  city prop chunking (ally refinements deferred to post-screenshot).
 - Still open: the tech-tree procedural GLYPHS (phase 2, ally motif pass)
   + the CP1 tile-props art pass (now unblocked by the enhanced-look
   ruling); D3 Tier-B relations panel (needs the filterView twin).

@@ -225,5 +225,19 @@ else
   note SKIP "gate 17: node absent"
 fi
 
+# gate 18 — brick/Studded world style (XIV §15): BRICK_MATERIAL covers every
+# terrain the enhanced style does (parity, no silent fallback), explicit brick
+# branch everywhere `look` is read (no fall-through to retro), player-facing
+# "Studded" label, and no trademarked naming.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/brick-coverage.mjs >/dev/null 2>&1; then
+    note PASS "gate 18: brick/Studded style covers terrain + explicit branches + no trademark"
+  else
+    note FAIL "gate 18: brick-coverage — run: node roblox/selftest/brick-coverage.mjs"
+  fi
+else
+  note SKIP "gate 18: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

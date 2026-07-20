@@ -84,8 +84,46 @@ local ENHANCED_MATERIAL = {
 	ocean = Enum.Material.Glass, river = Enum.Material.Glass,
 }
 
+-- XIV §15 "Studded"/brick: bevelled bricks + studs-as-punctuation, hyper-
+-- saturated flat colors, LESS terrain relief (ally §2). Studs only on open flat
+-- tops (never water — must not compete with ship silhouettes — nor forest/
+-- jungle canopy tiles nor mountains). Same shared palette + geometry: the look
+-- is a material/saturation/relief LAYER, never a source fork.
+local BRICK_MATERIAL = {
+	grassland = Enum.Material.Plastic, plains = Enum.Material.Plastic,
+	forest = Enum.Material.Plastic, jungle = Enum.Material.Plastic,
+	desert = Enum.Material.Plastic, hills = Enum.Material.Plastic,
+	mountains = Enum.Material.Slate, tundra = Enum.Material.Plastic,
+	arctic = Enum.Material.Plastic, swamp = Enum.Material.Plastic,
+	ocean = Enum.Material.SmoothPlastic, river = Enum.Material.SmoothPlastic,
+}
+local BRICK_STUDS = { -- top-face studs (punctuation): open flats only
+	grassland = true, plains = true, desert = true, tundra = true,
+	arctic = true, hills = true, swamp = true,
+}
+local function brickify(c)
+	-- saturation bump; VALUE kept so terrain categories still separate under
+	-- the desaturation acceptance test (ally readability invariant).
+	local h, s, v = c:ToHSV()
+	return Color3.fromHSV(h, math.min(1, s * 1.35), v)
+end
+local function brickTop(id, top)
+	-- LESS relief (ally): mountains stay tallest + readable; everything else
+	-- quantizes to coarse HEIGHT steps and flattens (hills 2-3 steps, flats flat).
+	if id == "mountains" then
+		return top
+	end
+	return math.floor(top / HEIGHT + 0.5) * HEIGHT * 0.6
+end
+
 local function lookOf()
-	return ClientState.options.look == "enhanced" and "enhanced" or "retro"
+	local look = ClientState.options.look
+	if look == "enhanced" then
+		return "enhanced"
+	elseif look == "brick" then
+		return "brick"
+	end
+	return "retro"
 end
 
 local function renderTerrain(view)
@@ -100,6 +138,10 @@ local function renderTerrain(view)
 			local spec = specFor(tile.t)
 			local top = tileTop(tile.t)
 			local shade = spec.palette[(x * 7 + y * 13) % #spec.palette + 1]
+			if look == "brick" then
+				top = brickTop(tile.t, top) -- LESS relief, stepped
+				shade = brickify(shade) -- saturate BEFORE the fog dim
+			end
 			if tile.t ~= "unknown" and tile.visible ~= true then
 				shade = shade:Lerp(Color3.new(0, 0, 0), DIM)
 			end
@@ -117,9 +159,16 @@ local function renderTerrain(view)
 			if look == "enhanced" then
 				part.Material = ENHANCED_MATERIAL[tile.t] or Enum.Material.SmoothPlastic
 				part.Transparency = (tile.t == "ocean" and tile.visible == true) and 0.15 or 0
+				part.TopSurface = Enum.SurfaceType.Smooth
+			elseif look == "brick" then
+				part.Material = BRICK_MATERIAL[tile.t] or Enum.Material.Plastic
+				part.Transparency = (tile.t == "ocean" and tile.visible == true) and 0.15 or 0
+				-- studs as punctuation: open flat tops only, never water/canopy/peaks
+				part.TopSurface = BRICK_STUDS[tile.t] and Enum.SurfaceType.Studs or Enum.SurfaceType.Smooth
 			else
 				part.Material = Enum.Material.SmoothPlastic
 				part.Transparency = 0
+				part.TopSurface = Enum.SurfaceType.Smooth
 			end
 		end
 	end
