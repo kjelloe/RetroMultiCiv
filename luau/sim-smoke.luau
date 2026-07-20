@@ -16,14 +16,14 @@ for _, f in ipairs({ "terrain", "units", "techs", "buildings", "wonders", "gover
 	ruleset[f] = json2lua.parse(fs.readFile("data/" .. f .. ".json"))
 end
 
--- args: [rounds] or "natural" (standard endYear, 399 rounds, CHAOS OFF —
+-- args: [rounds] or "natural" (standard endYear, 545 rounds, CHAOS OFF —
 -- the exact GOLDEN_NATURAL configuration in test/simulation.test.js:
--- expect rounds 395, winner p2, finalHash 0x6d3aaf65)
+-- expect rounds 545, winner p2, finalHash 0xd5a7d301 — Calendar-545)
 local turns = 100
 local natural = false
 if process.args[1] == "natural" then
 	natural = true
-	turns = 399
+	turns = 545
 elseif process.args[1] ~= nil then
 	turns = tonumber(process.args[1]) :: number
 end
