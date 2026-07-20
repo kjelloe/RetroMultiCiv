@@ -166,7 +166,10 @@ function filterView(state, playerId) {
     // wonders are world news (Civ 1 announces completions to everyone);
     // an unseen home city stays a dangling id — every reader guards it
     wonders: state.wonders === undefined ? {} : state.wonders,
-    players
+    players,
+    // D3: diplomacy relations are global/non-secret in Civ 1 (you can always
+    // check who is at war with whom) — passed whole; embassy-gated fog is D6's.
+    relations: state.relations === undefined ? {} : state.relations
   };
 }
 
@@ -185,7 +188,23 @@ function filterView(state, playerId) {
 //                     sight is still YOUR news
 // A viewer without an explored array (spectators, test states) is
 // omniscient and hears everything, matching filterView's convention.
-const WORLD_NEWS = { wonderBuilt: true, wonderLost: true, gameOver: true, playerDefeated: true };
+// D3: war/peace/treaty-break are Civ 1-authentic PUBLIC broadcasts (everyone
+// hears "X declares war on Y"); FIRST_CONTACT is NOT here — a third party
+// learning two strangers met is fog-dishonest, so it is party-scoped below.
+const WORLD_NEWS = {
+  wonderBuilt: true, wonderLost: true, gameOver: true, playerDefeated: true,
+  WAR_DECLARED: true, TREATY_BROKEN: true, PEACE_TREATY_SIGNED: true
+};
+
+// the viewer's civ id, resolved exactly as diplomacy.js eventCiv() builds the
+// event's civ fields (civ -> name -> pid) so FIRST_CONTACT party-matching lines up
+function playerCiv(state, pid) {
+  const p = state.players[pid];
+  if (p === undefined) return pid;
+  if (p.civ !== undefined) return p.civ;
+  if (p.name !== undefined) return p.name;
+  return pid;
+}
 
 function eventParties(e) {
   const out = [];
@@ -223,6 +242,12 @@ function filterEvents(state, events, playerId) {
     if (WORLD_NEWS[e.type] === true) { out.push(e); continue; }
     if (e.type === 'techDiscovered') {
       if (e.playerId === playerId) out.push(e);
+      continue;
+    }
+    if (e.type === 'FIRST_CONTACT') {
+      // party-only: only the two civs that just met hear it (fog-honest)
+      const myCiv = playerCiv(state, playerId);
+      if (myCiv === e.aCivId || myCiv === e.bCivId) out.push(e);
       continue;
     }
     let keep = false;

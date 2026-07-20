@@ -193,14 +193,33 @@ local function filterView(state: any, playerId: string): any
 		cityOrder = cityOrder,
 		wonders = if state.wonders == nil then {} else state.wonders,
 		players = players,
+		-- D3: diplomacy relations are global/non-secret in Civ 1; passed whole
+		-- (embassy-gated fog is D6's business)
+		relations = if state.relations == nil then {} else state.relations,
 	}
 end
 
 -- Fog policy for round EVENTS (B5 twin) — classes pinned @9edac2e9:
 -- world news to everyone, techDiscovered own-only, everything else by
 -- visible-coordinate OR named-party; no-explored viewers hear everything.
+-- D3: war/peace/treaty-break are Civ 1-authentic PUBLIC broadcasts; FIRST_CONTACT
+-- is NOT here -- a third party learning two strangers met is fog-dishonest, so it
+-- is party-scoped in filterEvents below.
 local WORLD_NEWS: { [string]: boolean } =
-	{ wonderBuilt = true, wonderLost = true, gameOver = true, playerDefeated = true }
+	{
+		wonderBuilt = true, wonderLost = true, gameOver = true, playerDefeated = true,
+		WAR_DECLARED = true, TREATY_BROKEN = true, PEACE_TREATY_SIGNED = true,
+	}
+
+-- the viewer's civ id, resolved as diplomacy eventCiv builds the event's civ
+-- fields (civ -> name -> pid) so FIRST_CONTACT party-matching lines up
+local function playerCiv(state: any, pid: string): string
+	local p = state.players[pid]
+	if p == nil then return pid end
+	if p.civ ~= nil then return p.civ end
+	if p.name ~= nil then return p.name end
+	return pid
+end
 
 local function eventParties(e: any): { string }
 	local out = {}
@@ -243,6 +262,10 @@ local function filterEvents(state: any, events: { any }, playerId: string): { an
 			keep = true
 		elseif e.type == "techDiscovered" then
 			keep = e.playerId == playerId
+		elseif e.type == "FIRST_CONTACT" then
+			-- party-only: only the two civs that just met hear it (fog-honest)
+			local myCiv = playerCiv(state, playerId)
+			keep = myCiv == e.aCivId or myCiv == e.bCivId
 		else
 			for _, pid in ipairs(eventParties(e)) do
 				if pid == playerId then

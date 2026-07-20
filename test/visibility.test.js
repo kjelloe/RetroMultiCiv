@@ -239,6 +239,36 @@ test('filterEvents: an actor\'s own-action events pass unchanged (applied-ack be
   assert.deepStrictEqual(kept, own, 'own-unit events pass the party rule untouched');
 });
 
+test('filterEvents: D3 diplomacy — war/peace/treaty-break are public, FIRST_CONTACT is party-only', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  state.players.p1.civ = 'romans';
+  state.players.p2.civ = 'zulus';
+  state.playerOrder = ['p1', 'p2', 'p3'];
+  state.players.p3 = { id: 'p3', name: 'C', color: '#0f0', human: false, gold: 0, techs: [], researching: '', civ: 'greeks', explored: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] };
+  const war = { type: 'WAR_DECLARED', attackerCivId: 'romans', defenderCivId: 'zulus', turn: 5, reason: 'border_pressure' };
+  const peace = { type: 'PEACE_TREATY_SIGNED', civAId: 'romans', civBId: 'zulus', turn: 5, expiresTurn: 0 };
+  const broken = { type: 'TREATY_BROKEN', breakerCivId: 'zulus', injuredCivId: 'romans', turn: 5, penalty: 'reputation_loss' };
+  const contact = { type: 'FIRST_CONTACT', aCivId: 'romans', bCivId: 'zulus', turn: 5 };
+  // war/peace/treaty-break are public broadcasts — an uninvolved third civ hears them
+  for (const e of [war, peace, broken]) {
+    assert.deepStrictEqual(vis.filterEvents(state, [e], 'p3'), [e], `${e.type} is public world news to an uninvolved civ`);
+  }
+  // FIRST_CONTACT is party-only — only the two civs that just met hear it
+  assert.deepStrictEqual(vis.filterEvents(state, [contact], 'p1'), [contact], 'a met party hears first contact');
+  assert.deepStrictEqual(vis.filterEvents(state, [contact], 'p2'), [contact], 'the other met party hears it');
+  assert.deepStrictEqual(vis.filterEvents(state, [contact], 'p3'), [], 'a third party does NOT learn two strangers met');
+});
+
+test('filterView exposes the whole diplomacy relations map (Civ 1 public), empty when absent', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  state.relations = { 'p1|p2': { state: 'peace', treatyTurn: 3 } };
+  assert.deepStrictEqual(vis.filterView(state, 'p1').relations, state.relations, 'own view carries the whole relations map');
+  assert.deepStrictEqual(vis.filterView(state, 'p2').relations, state.relations, 'a rival view carries the same whole map (non-secret)');
+  assert.deepStrictEqual(vis.filterView(eventsState(), 'p1').relations, {}, 'absent relations → empty object, never undefined');
+});
+
 test('filterView passes player.stance through for ALL players (public, R21 Statistics)', async () => {
   const { engine, vis } = await load();
   const state = engine.createGame(SETUP);
