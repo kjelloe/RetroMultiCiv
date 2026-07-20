@@ -176,10 +176,36 @@ end
 
 local ruleset = loadRuleset()
 for _, file in ipairs(process.args) do
-	local diag = json2lua.parse(fs.readFile(file))
-	if diag.format == "retromulticiv-server-save" and diag.diag ~= nil then
-		print("server save (game " .. tostring(diag.gameId) .. ") — replaying its embedded diagnostics")
-		diag = diag.diag
+	local raw = json2lua.parse(fs.readFile(file))
+	local diag = raw
+	if raw.format == "retromulticiv-server-save" and raw.diag ~= nil then
+		diag = raw.diag
+		-- #1870 slice 2: reconstruct the full per-command log from the sidecar
+		-- (<gameId>.log.jsonl next to the save) when the save embeds round-hashes
+		-- only. Byte-for-byte the same note + reconstruction as tools/replay.js.
+		if diag.logTruncated and diag.sidecar ~= nil then
+			local dir = string.match(file, "^(.*)[/\\][^/\\]*$")
+			local scPath = if dir ~= nil then dir .. "/" .. diag.sidecar else diag.sidecar
+			if fs.isFile(scPath) then
+				local entries = {}
+				for _, line in ipairs(string.split(fs.readFile(scPath), "\n")) do
+					if line ~= "" then
+						table.insert(entries, json2lua.parse(line))
+					end
+				end
+				local nd = {}
+				for k, v in pairs(diag) do
+					nd[k] = v
+				end
+				nd.log = entries
+				diag = nd
+				print("server save (game " .. tostring(raw.gameId) .. ") — replaying its per-command sidecar (" .. tostring(diag.sidecar) .. ")")
+			else
+				print("server save (game " .. tostring(raw.gameId) .. ") — sidecar " .. tostring(diag.sidecar) .. " missing; replaying round-hashes only")
+			end
+		else
+			print("server save (game " .. tostring(raw.gameId) .. ") — replaying its embedded diagnostics")
+		end
 	end
 	if diag.format ~= "retromulticiv-diagnostics" then
 		print("not a diagnostics file (format: " .. tostring(diag.format) .. ")")
