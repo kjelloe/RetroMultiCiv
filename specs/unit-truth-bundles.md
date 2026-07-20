@@ -5,7 +5,7 @@ work under axis 1 ("every Civ 1 system faithful"), sliced as THREE bundles.
 Source audit: docs/01 § "Special-units audit (A71)"; engine evidence gathered
 2026-07-20 (this spec's line references). All engine-behavioral → each bundle
 is a golden window in the engine lane, queued behind calendar-545.
-Provenance: `Civ1-authentic` throughout (wiki-verified rows).
+Provenance: `Civ1-authentic` except where a row is explicitly labeled otherwise (the Lighthouse+Magellan STACK is `original` pending sourcing).
 
 ## Bundle 1 — AIR-TRUTH riders (small; can ride any open window)
 
@@ -61,10 +61,18 @@ One theme, one shared surface (the visibility model):
    ends at open sea, in the fixed turn-end unit order — no draw, no stream
    shift, so games without exposed triremes hash identically to today.
    Scenario pins must include one exposed-trireme case to lock the draw
-   ordering. **Activates the Lighthouse wonder**: owner's triremes are
-   exempt — NO ROLL AT ALL for them (`{"triremesSafe": true}` via the
-   mapdata.js WONDER_OVERLAY — currently inert prose), keeping the wonder's
-   value crisp and the RNG stream untouched for Lighthouse owners.
+   ordering.
+   **Lighthouse CORRECTED (reviewer provenance catch #1976 + architect
+   ruling, consistent with the user's authenticity-first trireme call):**
+   "Lighthouse saves triremes" is CIV 2, not Civ 1 — dropped. Civ 1's
+   actual Lighthouse effect (fact-pack 1): **+1 movement for the owner's
+   ships** — that is what this bundle implements, alongside **Magellan's
+   Expedition +1** (same pack). Stacking (Lighthouse+Magellan = +2) is
+   UNSOURCED — implement additive, label the stack `original` pending
+   sourcing. Trireme loss therefore has NO wonder exemption, exactly as
+   1991: you hug the coast or you gamble. (If the user prefers the Civ2
+   safety-net as a deliberate mix, it re-enters as a labeled
+   `Civ2-shape` row — surfaced, not assumed.)
 
 Scenarios: sub invisible to adjacent land unit / visible to adjacent ship;
 sight-2 battleship reveals at range 2; trireme lost at open sea + safe with
