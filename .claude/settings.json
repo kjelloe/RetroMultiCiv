@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(debugging/screenshot.sh *)",
+      "Bash(./debugging/screenshot.sh *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-agent-mail-send.sh\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '\"\\n**\" + (now | strflocaltime(\"%Y-%m-%d %H:%M\")) + \"**\\n\\n> \" + (.prompt | gsub(\"\\n\"; \"\\n> \"))' >> \"$CLAUDE_PROJECT_DIR/dev-prompts.md\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
