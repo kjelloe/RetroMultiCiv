@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-20 (marker-0069; unit-truth bundles ruled into v1 axis 1 — specs/unit-truth-bundles.md). Source of truth for the 1.0
+Last updated: 2026-07-21 (advisor shape + authentic-difficulty ruled; 4 reviewer fact-packs commissioned #1953). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._
@@ -32,10 +32,11 @@ flowchart TD
     A67["🧩 A6a future-tech repeats ·\nA7 remaining wonder effects"]
     ATR["📋 air-truth riders\n(fighter-only vs air · bomber ignores walls ·\ndiplomat/caravan upkeep flags)"]
     NAV2["📋 naval-truth bundle\n(sub invisibility · per-unit sight ·\ntrireme loss ⇒ activates Lighthouse)"]
+    DIFF["📋 authentic difficulty\n(AI bonus · barb intensity · score —\ngated on reviewer fact-pack)"]
     N --> N1 --> PROBE --> BULB
     N1 --> X5B --> AIB --> D3S --> C11B --> D46
     D46 --> A91 --> A8 --> A67
-    C11B --> ATR --> NAV2
+    C11B --> ATR --> NAV2 --> DIFF
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
@@ -53,7 +54,7 @@ flowchart TD
     XIVQ["📋 XIV queue (13):\nregency lifecycle → mobile save →\nE-hint → civ shuffle → HUD polish →\nterrain relief → front page → hover cards →\ndiscovery overlay → input pacing →\nmobile gestures → auto-takeover → order queue"]
     FG["📋 'Find game' server browser\n(XIV front-page item)"]
     A58["🧩 A58 pedia completion"]
-    ADV["🧩 onboarding advisor\n(sourced from pedia)"]
+    ADV["📋 onboarding advisor\n(RULED: event hint cards — 15 triggers;\nafter XIV hover/discovery components)"]
     A49["🧩 A49 playwright nightly lane\n(finish; dep installed)"]
     BR --> XIVQ --> FG
     A58 --> ADV
@@ -113,7 +114,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 3 | AI at M-targets | strong | naval-loop acceptance, air role, N1/N2 gov re-eval, N4 bloat/hoard (→ `xiv-ai-behavior`), M-floor ratchets green |
 | 4 | Roblox Tier 3 multiplayer | Tier 0 ✅ | Tiers 1→2→3 + R6 seats; Studded style in flight |
 | 5 | Public hosting + master index | box ✅, code ✅ | A50 rest, security re-assess, **user DNS gate**, "Find game" client browser |
-| 6 | Maps/sound/pedia/advisor/CI | partial | A58 pedia completion → onboarding advisor; A49 playwright lane finish |
+| 6 | Maps/sound/pedia/advisor/CI | partial | A58 pedia completion; advisor RULED (hint cards, specs/advisor-hint-cards.md, queued); A49 playwright lane finish |
 
 ## Reading the tree — the three facts that matter
 
