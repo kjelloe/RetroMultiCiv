@@ -540,6 +540,14 @@ era-scaling window (2026-07-16) SHIPPED a large slice of this list:
 | Catapult / Artillery | nothing special — stats only (no anti-wall behavior in Civ 1) | correct | CLOSED — the walls suspicion was another Civ2+ memory |
 | Sight ranges | subs/carriers/battleships/cruisers/bombers see 2 | all units sight 1 (verify) | audit row: a per-unit sight field, visibility-model extension |
 
+**Disposition (user ruling 2026-07-20): the open rows above are v1 (axis 1)**,
+sliced as `specs/unit-truth-bundles.md` — Bundle 1 "air-truth riders"
+(fighter-only-vs-air, bomber-ignores-walls, diplomat/caravan upkeep flags;
+queued), Bundle 2 "naval-truth" (per-unit sight, submarine invisibility,
+trireme open-sea loss which ACTIVATES the currently-inert Lighthouse effect;
+queued, own golden window), Bundle 3 diplomat missions (rides docs/14 D6 —
+now ruled IN, no longer conditional). Shipped rows above stay closed.
+
 ### Ratified deviations & divergences (user rulings 2026-07-17, provenance-labeled)
 
 - **freeUnitsPerCity=3 under Monarchy/Communism is a deliberate Civ2

@@ -58,6 +58,6 @@ if [ -n "$bodyflag" ]; then
   printf '%s' "$body" | grep -q '[`$]' && \
     block "backtick or \$ inside an inline body — bash substitutes them (backticks EXECUTE, \$vars mutate the text). Resolve the content and use --body-file, or drop the special characters."
   case "$body" in *$'\n'*) \
-    block "multi-line inline body — inline --body is for a trivial one-line ack only. Write the body to a file with the Write tool, then use --body-file PATH.";; esac
+    block "multi-line inline body — inline --body is for a trivial one-line ack only (NOTE: bundling other commands after a send/queue-add in ONE Bash call also trips this — run mail ops as their own single-command call). Real multi-line bodies: Write tool then --body-file PATH.";; esac
 fi
 exit 0

@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-20 (marker-0069 — XII.5 core fix MERGE-CONSISTENT; calendar-545 = marker N+1 opening). Source of truth for the 1.0
+Last updated: 2026-07-20 (marker-0069; unit-truth bundles ruled into v1 axis 1 — specs/unit-truth-bundles.md). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._
@@ -26,13 +26,16 @@ flowchart TD
     AIB["📋 xiv-ai-behavior batch\nsettler pathing · regency economics ·\ntreasury/rush-buy · unit-bloat"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
-    D46["🧩 Diplomacy D4–D6\n(human LAN treaties · senate · reputation)"]
+    D46["🧩 Diplomacy D4–D6\n(human LAN treaties · senate · reputation ·\nD6 carries the DIPLOMAT MISSIONS)"]
     A91["🧩 A91 pollution / global warming /\nnuclear area effects"]
     A8["🧩 A8 tile contention"]
     A67["🧩 A6a future-tech repeats ·\nA7 remaining wonder effects"]
+    ATR["📋 air-truth riders\n(fighter-only vs air · bomber ignores walls ·\ndiplomat/caravan upkeep flags)"]
+    NAV2["📋 naval-truth bundle\n(sub invisibility · per-unit sight ·\ntrireme loss ⇒ activates Lighthouse)"]
     N --> N1 --> PROBE --> BULB
     N1 --> X5B --> AIB --> D3S --> C11B --> D46
     D46 --> A91 --> A8 --> A67
+    C11B --> ATR --> NAV2
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
@@ -105,7 +108,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~85% | **A91 pollution/warming/nukes**, **A8 tile contention**, A6a future-tech repeats, A7 wonder-effect stragglers |
+| 1 | Every Civ 1 system faithful | ~85% | **A91 pollution/warming/nukes**, **A8 tile contention**, A6a future-tech repeats, A7 wonder-effect stragglers, **unit-truth bundles** (air riders + naval: sub invisibility/sight/trireme — `specs/unit-truth-bundles.md`; diplomat missions ride D6) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅ | **D4–D6** (human LAN treaties, senate, reputation) — after the engine queue drains |
 | 3 | AI at M-targets | strong | naval-loop acceptance, air role, N1/N2 gov re-eval, N4 bloat/hoard (→ `xiv-ai-behavior`), M-floor ratchets green |
 | 4 | Roblox Tier 3 multiplayer | Tier 0 ✅ | Tiers 1→2→3 + R6 seats; Studded style in flight |

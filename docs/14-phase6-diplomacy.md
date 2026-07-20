@@ -190,7 +190,9 @@ seat's leader character (the regency pattern extends naturally).
 5. **D5 — reputation consequences + the senate** (window; wiki
    verifies senate rules).
 6. **D6 — embassies + intel** (pairs with the Diplomat unit's
-   activation from A71 if ruled in).
+   activation from A71 — **RULED IN, user 2026-07-20**: the full mission
+   suite (embassy / investigate / steal tech / sabotage / bribe) lands
+   inside D6; unit-side inventory in `specs/unit-truth-bundles.md` §3).
 ACCEPTANCE (the phase-2 debt): a playtest where the user can answer,
 at any moment and for every civ, "are we at war, since when, and
 why" — plus one full negotiated peace, one betrayal with visible
