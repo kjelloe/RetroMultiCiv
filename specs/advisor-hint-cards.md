@@ -51,3 +51,10 @@ frame is real. Card copy ≤ 40 words each, pedia link carries the depth.
 helper queue (golden-neutral client), sequenced after the XIV hover-info +
 discovery-overlay items (component reuse). Roblox parity: docs/13 Tier-2
 addendum later (same trigger contract, Roblox-native cards).
+
+## Ally readiness (2026-07-21)
+
+The ally confirmed the format and is READY to write the 15 card texts —
+their ask: the finalized event list AND the exact pedia target id per
+trigger. The helper item therefore DELIVERS, alongside the placeholder
+build, a `trigger → pedia-id` table (15 rows) for the ally relay.

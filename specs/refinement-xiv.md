@@ -247,6 +247,10 @@ silhouette alone.
 ally's tiers imply ~31–50%. Not silently resolved — implement inside the
 overlap (hills ≈2, mountains ≈8 → 25%, honoring both the user cap and the
 ally's gap hierarchy) and settle the final ratio at the screenshot review.
+**ALLY CONFIRMED the overlap (2026-07-21)**: hills≈2/mountains≈8 is the
+first screenshot candidate; desaturation check decides. Extra direction for
+the Roblox STUDDED mode: err toward slightly LOWER hills there — stepped
+geometry + studs already create depth (relayed to the roblox lane via §15).
 
 ## §30 Host option: "Auto AI takeover" [helper — server/lobby]
 LAN/multiplayer host option, default **ON**: when a seat's inactivity

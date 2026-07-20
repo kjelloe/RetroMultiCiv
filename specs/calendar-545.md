@@ -68,3 +68,12 @@ yearSteps" per the ruling).
 - One full soak seed at 545 turns (chaos on) green.
 - The §11 probe harness on 3 seeds × 545t: report techs-at-end distribution
   vs the 46 closure (the success metric this slice exists for).
+
+## Permanent boundary (ally caution, 2026-07-21 — adopted)
+
+Turn-year mapping stays DATA-DEFINED and one-directional: simulation reads
+turns/state; UI maps turns to date labels; **displayed dates never feed AI,
+victory, yields, saves, or replay logic**. Clarification of our standing
+design: `state.year` is engine state (derived per-round from yearSteps) and
+`rules.endYear` ends the game — Civ 1-authentic, deterministic, golden-safe.
+The prohibited pattern is label→logic inference, and none exists.
