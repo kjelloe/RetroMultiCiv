@@ -15,13 +15,13 @@ function yearAfter(wraps, rules) {
 }
 
 test('year curve landmarks (data/rules.json yearSteps)', () => {
-  assert.strictEqual(yearAfter(60, RULES), -1000, '60 wraps of 50yr reach 1000 BC');
-  assert.strictEqual(yearAfter(100, RULES), 0, '40 more at 25yr reach the 1 AD boundary');
-  assert.strictEqual(yearAfter(150, RULES), 1000, '50 at 20yr reach 1000 AD');
-  assert.strictEqual(yearAfter(200, RULES), 1500, '50 at 10yr reach 1500');
-  assert.strictEqual(yearAfter(270, RULES), 1850, '70 at 5yr reach 1850');
-  assert.strictEqual(yearAfter(395, RULES), 2100,
-    '125 at 2yr reach the 2100 AD score end — turn 396 with a turn-1 start, under the 400-round sim budget');
+  assert.strictEqual(yearAfter(150, RULES), -1000, '150 wraps of 20yr reach 1000 BC');
+  assert.strictEqual(yearAfter(200, RULES), 0, '50 more at 20yr reach the 1 AD boundary');
+  assert.strictEqual(yearAfter(300, RULES), 1000, '100 at 10yr reach 1000 AD');
+  assert.strictEqual(yearAfter(350, RULES), 1500, '50 more at 10yr reach 1500');
+  assert.strictEqual(yearAfter(420, RULES), 1850, '70 at 5yr reach 1850');
+  assert.strictEqual(yearAfter(545, RULES), 2100,
+    '125 at 2yr reach the 2100 AD score end — turn 546 with a turn-1 start (Calendar-545)');
 });
 
 test('rulesets without yearSteps keep the old flat +20 (crafted-state stability)', () => {

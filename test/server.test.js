@@ -168,7 +168,7 @@ test('A40 regency: a regent seat plays unattended, its commands log, replay is h
   const saveFile = path.join(dir, 'regent.json');
   // 1 human, 1 AI, xsmall — the human hands its seat to the AI and the
   // SERVER must carry the game forward turn after turn with nobody attending
-  const s = await startServer({ ruleset: RULESET, seed: 88, civs: 2, humans: 1, size: 'xsmall', saveFile, gameId: 'a40' });
+  const s = await startServer({ ruleset: RULESET, seed: 88, civs: 2, humans: 1, size: 'xsmall', saveFile, gameId: 'a40', regencyMinTurnMs: 0 });
   try {
     const kjell = await connect(s.port);
     kjell.send({ t: 'join', name: 'Kjell' });
@@ -782,7 +782,7 @@ test('#1875 operator caps clamp the host default game (civs/size/turns)', async 
     const g = s.game;
     assert.strictEqual(g.state.playerOrder.length, 4, '--max-civs clamps the boot civ count');
     assert.strictEqual(g.state.map.width, 60, '--max-size clamps huge → small (60 wide)');
-    assert.strictEqual(g.toSave().rulesOverrides.endYear, -25, '--max-turns clamps the boot endYear (turn-100 year)');
+    assert.strictEqual(g.toSave().rulesOverrides.endYear, -2020, '--max-turns clamps the boot endYear (turn-100 year, Calendar-545)');
   } finally {
     await s.close();
   }

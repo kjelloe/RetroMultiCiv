@@ -34,14 +34,14 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x4d7e2d62',
-    200: '0x58ba829a',
-    300: '0x5037c528',
-    400: '0xc0dc6c9f'
+    100: '0x9b26dc5f',
+    200: '0xf3630524',
+    300: '0x974b9494',
+    400: '0x1d462162'
   },
-  finalHash: '0xc0dc6c9f'
+  finalHash: '0x1d462162'
 };
-const GOLDEN_NATURAL = { rounds: 395, winner: 'p2', finalHash: '0xeaaa4602' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xd5a7d301' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
@@ -62,11 +62,11 @@ test('mechanics soak: 400 turns with chaos, run twice — deterministic and gold
   else assert.deepStrictEqual(result, GOLDEN_SOAK, 'drifted from golden — if the change was intentional, re-record (header)');
 });
 
-test('natural end: standard rules reach a victory by turn 399', async () => {
-  // the A21 year curve lands 2100 AD at wrap 395 (turn 396) — deliberately
-  // under the sim harness's 400-round budget
-  const r = await runSim(Object.assign({}, SIM, { turns: 399 }));
-  assert.strictEqual(r.state.gameOver, true, 'no victory fired by turn 399 (score victory is due at endYear 2100 ≈ turn 396)');
+test('natural end: standard rules reach a victory by turn 550', async () => {
+  // the Calendar-545 year curve lands 2100 AD at wrap 545 (turn 546) — this
+  // budget sits just past it so the score end (or an earlier conquest) fires
+  const r = await runSim(Object.assign({}, SIM, { turns: 550 }));
+  assert.strictEqual(r.state.gameOver, true, 'no victory fired by turn 550 (score victory is due at endYear 2100 ≈ turn 546)');
   assert.ok(r.state.winner !== undefined && r.state.players[r.state.winner] !== undefined,
     'winner must be a real player');
 

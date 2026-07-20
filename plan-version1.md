@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-21 (advisor shape + authentic-difficulty ruled; 4 reviewer fact-packs commissioned #1953). Source of truth for the 1.0
+Last updated: 2026-07-21 (marker-0070 calendar-545 landed [395→545t]; §11 probe short — 0/3 reach space, bulb+AI-space-path follow-up queued; advisor shape + authentic-difficulty ruled; 4 reviewer fact-packs commissioned #1953). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._
@@ -19,9 +19,9 @@ because they are golden-neutral.
 flowchart TD
   subgraph ENGINE["ENGINE golden lane (serialized — one window at a time)"]
     N["✅ marker N = 0069 — XII.5 core fix\n+ re-record (MERGE-CONSISTENT)"]
-    N1["🔨 marker N+1 — calendar-545\n(bugfixer, opening now)"]
-    PROBE["📋 probe re-run @545t\n(does research now reach space?)"]
-    BULB{"🚪 bulb-cost tuning\nonly if probe still short"}
+    N1["✅ marker 0070 — calendar-545\n(normal game 395→545t + re-record)"]
+    PROBE["✅ probe @545t: leaders 38–47/68,\n0/3 reach space-flight — NOT closed"]
+    BULB{"🚪 follow-up (probe came up short):\nbulb tuning + AI space-path prioritisation"}
     X5B["📋 XII.5b — solar-last part order\n(+ launch pacing)"]
     AIB["📋 xiv-ai-behavior batch\nsettler pathing · regency economics ·\ntreasury/rush-buy · unit-bloat"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
@@ -121,8 +121,9 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 1. **The engine spine is the critical path.** Markers N and N+1 are ruled and
    in motion; everything behind them (XII.5b → AI-behavior → D3-surfacing →
    11b → D4–D6 → A91/A8/A6a/A7) inherits their pace. The calendar-545 probe
-   is the one branch point: if 545 turns still doesn't reach space, a
-   bulb-cost ruling re-enters the queue.
+   RESOLVED that branch point: at 545t leaders reach 38–47/68 techs (up from
+   26–29) but 0/3 reach space-flight, so a bulb-cost + AI-space-path ruling
+   re-enters the queue (the calendar helps, does not close it alone).
 2. **Only two hard user gates exist besides marker merges:** scheduling DNS
    for the master index (axis 5), and the conditional bulb-tuning ruling.
    Everything else is agent-executable in order.

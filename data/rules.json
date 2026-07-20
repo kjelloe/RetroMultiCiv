@@ -4,9 +4,7 @@
   "defaultSciRate": 50,
   "endYear": 2100,
   "yearSteps": [
-    { "until": -1000, "step": 50 },
-    { "until": 0, "step": 25 },
-    { "until": 1000, "step": 20 },
+    { "until": 0, "step": 20 },
     { "until": 1500, "step": 10 },
     { "until": 1850, "step": 5 },
     { "until": 2100, "step": 2 }

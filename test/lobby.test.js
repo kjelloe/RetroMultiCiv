@@ -135,7 +135,7 @@ test('start: a reserved seat whose connection dropped becomes AI', () => {
 test('yearAtTurn: turn 1 is -4000 BC and the calendar advances monotonically', () => {
   const rules = RULESET.rules;
   assert.strictEqual(yearAtTurn(rules, 1), -4000, 'games start at 4000 BC');
-  assert.strictEqual(yearAtTurn(rules, 2), -3950, 'first step is +50');
+  assert.strictEqual(yearAtTurn(rules, 2), -3980, 'first step is +20');
   assert.ok(yearAtTurn(rules, 100) > yearAtTurn(rules, 50), 'monotonic increasing');
   assert.ok(yearAtTurn(rules, 200) < rules.endYear, 'turn 200 is still before the default endYear');
 });
