@@ -285,3 +285,57 @@ no-op off-turn, since the feature's premise is parity with them.
 User decisions embedded: §3 = 1 s TOTAL regency budget (divided per regent);
 §18 placement next to "LAN game"; §29 hills ≤25% of mountains. Flag anything
 that contradicts play feel during verification rather than re-asking.
+
+---
+
+# Batch 2 (user playtest, 2026-07-21) — §32–§38
+
+## §32 Unit action-bar width [helper]
+Narrow the action buttons slightly so "Disband" fits on the same row as
+"Fortify" at default width. CSS only; verify at phone width too.
+
+## §33 Diplomacy envoy modal [helper]
+Incoming AI offers (peace etc.) currently surface too passively. On offer
+arrival: a MODAL envoy window — civ leader name/glyph, the offer, explicit
+buttons Accept / Reject / "Consider later" (offer persists in the diplomacy
+panel; no silent expiry). Blocks map input while open (keyboard: Esc =
+later). Client-side presentation of the existing D3 offer state —
+golden-neutral; D4-D6 will reuse the same envoy frame for richer terms.
+
+## §34 City overview panel [helper]
+New button (city icon) LEFT of the research bar → a center panel listing all
+own cities: name, population, food/shields/trade, sci/tax contribution,
+specialist counts, current build + queue. Vertical scroll when the list
+exceeds the panel. Rows click → open that city view. Fog-honest (own cities
+only — no filterView concerns).
+
+## §35 Zoom-to on event messages [helper]
+Transient messages with a map location ("we have contact with the Chinese",
+barbarian raids, disorder, wonder completed…) get a 🔍 zoom-to icon that
+pans the camera to the event tile. Wire an optional {x,y} through the
+message/banner path; messages lacking coords show no icon. 🔍 approved
+("unless better" — 🔍 is the right affordance; keep).
+Also applies to turnlog rows where coords exist.
+
+## §36 Minimap visibility option [helper]
+⚙ Options: "Show minimap", default ON; OFF hides it (layout reflows).
+
+## §37 Road-aware goto [helper — shared/pathfind.js]
+`findPath` must weight road-to-road steps at their real cost (roads
+effectively 3x range via the free-step counters the engine already
+implements in movement.js:155). Today goto paths ignore roads. Golden-
+neutral: findPath only shapes which move commands the CLIENT issues
+(recordings replay the commands themselves); engine AI uses its own bfs.
+Unit test with a road detour beating a shorter roadless path. shared/ is
+Lua-portable — keep the JS subset rules.
+
+## §38 City-view mood block + specialist tooltips + pedia [helper]
+Move the "mood" row up, directly below the city name. Keep the existing
+"mood" tooltip; ADD per-face hover tooltips (happy/content/unhappy citizen,
+entertainer, taxman, scientist — what each one does). Pedia gap confirmed:
+specialists exist only inside concept PROSE — add three concept entries
+(Entertainer, Tax Collector, Scientist) so the tooltips can link somewhere.
+
+## Batch-2 routing
+helper queue, all golden-neutral: quick-UI bundle (§32+§36+§38), city
+overview (§34), envoy modal (§33), event zoom-to (§35), road goto (§37).
