@@ -75,8 +75,9 @@ One theme, one shared surface (the visibility model):
    `Civ2-shape` row — surfaced, not assumed.)
 
 Scenarios: sub invisible to adjacent land unit / visible to adjacent ship;
-sight-2 battleship reveals at range 2; trireme lost at open sea + safe with
-Lighthouse + safe coastal. Re-record expected: visibility changes ripple
+sight-2 battleship reveals at range 2; one exposed-trireme roll pinned
+(seeded loss + seeded survival cases) + safe coastal; Lighthouse/Magellan
++1-move each and the +2 stack. Re-record expected: visibility changes ripple
 into sim goldens (exploration order) — full golden window, JS+Luau twins
 together (visibility.js has a Luau twin).
 
