@@ -8,128 +8,58 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-20 late (XIV in build; XII.5 D1+D2 RULED — core-fix marker then calendar-545 marker; probe re-run follows)._
+_Last synced: 2026-07-21 (marker-0069 = MERGE CANDIDATE; calendar-545 in build as 0070; advisor + difficulty ruled; 4 fact-packs commissioned)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [x] **XII.5 + calendar — BOTH RULED (2026-07-20 late).** D1: normal game
-  targets ~550 turns via Civ-1-pace early yearSteps — "Classic 545" table
-  picked (t200=1AD, t350=1500, t545=2100 end; `specs/calendar-545.md`).
-  D2: GO — the verified XII.5 core fix lands FIRST as its own marker, the
-  calendar slice follows as a second marker (two re-records, clean
-  attribution), then the probe re-runs at 545t to measure whether the
-  calendar closes the space gap (bulb tuning only if it does not).
-  Bugfixer instructed (#1930); the six 25h-held locks are moving again.
+- [ ] **Merge marker-0069** — the new merge candidate (supersedes 0062–0068;
+  first consistent marker since 0067). Contents: the XII.5 space-drive core
+  fix + re-recorded goldens (both gates green), the complete OOM fix, A101
+  operator-caps, the three playtest-bug fixes (redirect / endscreen /
+  bug-report), A102 CLI guards, Studded first impl, skills + hooks.
+  `reports/marker-0069.md` is the full delta. Note: calendar-545 (marker
+  0070) is in build and will supersede it shortly — merge now or wait one
+  marker, your call.
 
-- [x] **Refinement XIV — 31 playtest items triaged and queued** (2026-07-20
-  evening, browser+iPad+phone session). Spec: `specs/refinement-xiv.md`.
-  15 helper items (correctness first: regency-stops-at-gameOver, mobile
-  Save/Load, E-hint bug, civ-shuffle bias — root-caused as LCG low-bit bias),
-  1 parked engine batch (settler pathing, regency economics, AI treasury —
-  behind XII.5), 1 roblox style item. The helper already shipped the first:
-  bare `/client/` now 302s to `?server=1` (redeploy to pick it up). Your
-  playtest artifacts both verified — the 396-turn diagnostics **replays
-  bit-exact** (engine determinism confirmed on a live-box game).
+- [ ] **Studio screenshot review — Studded/Brick world style** (`a2335b0`,
+  18 gates green): roblox-helper is blocked on your in-Studio pass (ally
+  invariants: silhouettes readable, studs sparse, terrain FLATTER than the
+  other styles).
 
-- [x] **Hetzner test deploy — DONE 2026-07-20, box is live and serving.**
-  `multiciv.kjell.today` → 49.12.106.125, deployed from the local dev_night
-  working tree. Health check green: ufw (2222/80/443 only), fail2ban, nginx,
-  certbot, Node v22.23.1, units active, caps line accurate. Findings from the
-  run are written up in `docs/how-to-host.md` § "Deploy troubleshooting" and
-  fixed in the templates.
+- [ ] **Live box: redeploy + three confirmations.** Redeploy from
+  marker-0069 (`./ssh-deploy.sh`) to pick up the redirect/endscreen/
+  bug-report fixes, then: (1) unit's `--public-addr` = bare
+  `multiciv.kjell.today:443` and journal shows `master: listed at …` (a
+  scheme now FAILS AT BOOT — fix the unit before restarting if it still
+  carries `https://…`); (2) apply the 2 GB-tier sizing (heap 768,
+  `MemoryMax=1200M`, `--max-games 3` — box is 2 GB, unit carries 4 GB
+  defaults); (3) a `?server=1` game writes into `/opt/retromulticiv/saves/`.
+  Optional: add `--bug-reports /opt/retromulticiv/bugreports` to enable
+  in-client bug reports.
 
-- [ ] **Confirm three live-box items** (fast; only you can see the box):
-  1. Is the installed unit's `--public-addr` now the bare `multiciv.kjell.today:443`
-     form, and does `journalctl -u retromulticiv-game` show `master: listed at …`
-     rather than `master says: badAddress`? (A scheme is rejected at boot now,
-     so a stale unit will refuse to start rather than mis-announce — see below.)
-  2. The box is the **2 GB** tier (`multiciv-2gb`), but the unit carries the
-     4 GB defaults. Apply the 2 GB row from `docs/how-to-host.md` § "Sizing by
-     RAM": heap 768, `MemoryMax=1200M`, `--max-games 3`.
-  3. Does a `?server=1` game now write into `/opt/retromulticiv/saves/`?
-     (The empty-saves puzzle resolved as play going through the bare `/client/`
-     URL, which runs the in-browser engine — the default-redirect fix is queued.)
-  **Heads-up on 1:** the new boot guard means a unit still carrying
-  `--public-addr https://…` will now **fail to start** instead of running
-  mis-announced. If the box is currently up on a scheme value, fix the unit
-  before the next restart or deploy.
+- [ ] **Ally relay, when convenient**: the space-race pacing loop closed —
+  calendar-545 implements a ~545-turn normal game (their verdict was the
+  deciding input); their Studded art direction is implemented and awaiting
+  your Studio review; the advisor hint-card copy ask comes later (after the
+  XIV components land). No response required, courtesy update.
 
-- [x] **Two server-only playtest bugs — BOTH FIXED + committed** (helper,
-  2026-07-20 late): the endscreen crash (shared `score-view.js` fog-guard —
-  honest "—" rows instead of a crash, all four score callers, tested) and the
-  bare-`/client/` → `?server=1` redirect (`?local=1` escape). Bonus third
-  delivery: the **in-client bug-report feature** (🐞 dialog + auto-attached
-  recording; write-only opt-in `--bug-reports` server route). All reach the
-  live box on your **next redeploy** — until then keep sharing `?server=1`.
-
-- [ ] **Studio screenshot review — Studded/Brick world style** (roblox,
-  `a2335b0`, 18 gates green): the first implementation of the third world
-  style is committed; roblox-helper waits on your in-Studio screenshot pass
-  (ally invariants: silhouettes readable, studs sparse, terrain FLATTER than
-  the other styles) before iterating.
-
-- [ ] **marker-0068 tagged — do NOT merge yet.** OOM fix complete + A101
-  operator-caps verified (`reports/marker-0068.md`). Explicitly NOT
-  merge-consistent: the XII.5 golden window is open (re-record in flight).
-  **Latest merge-consistent marker remains 0067.** The next consistent
-  declaration comes with marker N (XII.5 core fix).
-
-- [x] **v1/v2 plan trees added as living documents** (your request):
-  `plan-version1.md` (the 1.0 dependency tree, updated per marker) +
-  `plan-version2.md` (the loose v2.0-or-later shelf).
-
-- [x] **Markers 0063–0067 tagged — MERGED.** You've been merging as they land.
-  Shipped 2026-07-19 (each has a `reports/marker-00NN.md`):
-  - **0063** (golden-neutral): city-era determinism fix (Shift+D recordings
-    verify again) + unit/building Civilopedia blurbs.
-  - **0064** (BEHAVIORAL): **D3 AI diplomacy** — the AI negotiates war/peace at
-    swept `peaceAcceptThreshold=30`. Gate-B (Luau parity) green.
-  - **0065** (behavior-neutral): data-label — Caesar→Colossus (a 3rd
-    wonder-race pair) + railroad rename, regen-durable.
-  - **0066** (golden-neutral server): **crash resilience** (your request) —
-    crashdump on uncaughtException/OOM + memory-watchdog (autosave + graceful
-    exit before fatal OOM) + `MULTICIV_SUPERVISE=1` self-restart loop.
-  - **0067** (golden-neutral server): **ws-timeout fix** — busy-tolerant
-    heartbeat, no false connection-reap during an event-loop block (turn-2623).
-  Everything through marker-0062 sits below these.
-  _In flight (no user action) — several markers converging:_
-  - **XII.5 space-drive** (your "regent never idles" feedback) — core fix
-    CONFIRMED (witness 1: Apollo now built vs the 0/42 baseline, JS==Luau,
-    zero economic regression). The measure-first probe COMPLETED and reframed
-    the ruling — see the top DECIDE item; spec §11 has the data. Ruled out on
-    authenticity: gold-rushing Apollo (a Wonder — Civ 1 forbids it; the 1991
-    accelerant was caravans, which the AI deliberately doesn't field).
-  - **OOM/write-amp fix** (from your turn-2623 question) — slice 1 (kill the
-    per-command autosave write-amplification) done + landing; slice 2a (bound
-    the in-RAM log) DELIVERED, landing behind XII.5. Golden-neutral server.
-    Meanwhile `--max-turns` on the test host bounds the same OOM shape.
-  - **Operator resource caps** (your host-sizing request) — `--max-turns` /
-    `--max-civs` / `--max-size` done (helper A101), plus the warn-not-fail
-    rider (unknown server flags WARN instead of crash-looping + a boot
-    `caps:` line showing the effective caps). Landing. Golden-neutral server.
-  - **11b city names** (ally-delivered, verified) + **D3 server-surfacing**
-    (a traced gap — AI diplomacy is invisible over the server/LAN path; fix
-    queued) — both queued in the engine lane behind XII.5.
-
-- [x] **Gaming PC back online** — both sim-runner and roblox-helper
-  recovered; the D3 sweep is resuming (marker-0063 auto-progressing again)
-  and the Roblox run-F work is pushing again. No further action.
-
-- [x] **Unit + building pedia blurbs — DELIVERED by your ally** (run-F item
-  9). You relayed the request and the ally's copy is back: 28 units + 21
-  buildings, id-verified 28/28 + 21/21 against the data files, saved verbatim
-  to `specs/ally-unit-building-blurb-response-2026-07-19.md`. Now being wired
-  in as a `unitBlurbs`/`buildingBlurbs` data table (browser pedia + build
-  tooltip → helper; Roblox parity → roblox-helper), exactly like the 68 tech
-  blurbs. No further action.
+_Recently landed (no action — 2026-07-20/21):_ marker-0069 tagged
+MERGE-CONSISTENT (XII.5 core fix + re-record; 0068's OOM+caps folded in);
+Refinement XIV first four deliveries shipped; rulings executed: calendar-545
+(545-turn normal game, marker 0070 in build), unit-truth bundles (air/naval
+queued, diplomat missions ride D6), advisor = event hint cards
+(`specs/advisor-hint-cards.md`), authentic difficulty = v1 (fact-pack-gated);
+4 reviewer fact-packs commissioned (#1953); agent-mail send-guard hardened
+(6 deny rules, 16-case matrix); hub reboot-recovery documented; living plan
+docs `plan-version1.md` / `plan-version2.md` established.
 
 ---
 
 ## PLAYTEST (high value right now)
 
-- [ ] **Fresh LAN session on marker-0062+** — player-facing systems that
+- [ ] **Fresh LAN session on marker-0069+** — player-facing systems that
   no human has played: goody huts, caravan trade routes, unit upgrades,
   the debug panel (🐞), the spaceship screen, and the late-game save
   loading. A session field-tests them AND (with Shift+D recordings) seeds

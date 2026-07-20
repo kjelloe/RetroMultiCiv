@@ -81,9 +81,9 @@
     <h1>Human work items — RetroMultiCiv</h1>
     <div class="sub">Things only a human (Kjell / friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>.</div>
     <div class="meta">
-      <span class="chip">Last synced: <strong>2026-07-20 late</strong> (marker-0068 tagged NOT-consistent; playtest bugs fixed; plan-v1/v2 living docs added)</span>
-      <span class="chip">Merge candidate: <strong>marker-0062</strong></span>
-      <span class="chip">Pending: <strong>marker-0063 · D3 (phase-2)</strong></span>
+      <span class="chip">Last synced: <strong>2026-07-21</strong> (marker-0069 = MERGE CANDIDATE; calendar-545 in build as 0070)</span>
+      <span class="chip">Merge candidate: <strong>marker-0069</strong></span>
+      <span class="chip">In build: <strong>marker-0070 · calendar-545</strong></span>
       <span class="chip">Companion of <strong>human-workitems.md</strong></span>
     </div>
   </header>
@@ -92,54 +92,29 @@
     <div class="sec-head"><h2>Decide / Do</h2><span class="tag">needs you</span></div>
     <div class="bar"></div>
 
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Hetzner test deploy — DONE, box is live and serving</div>
-      <div class="d"><code>multiciv.kjell.today</code> → 49.12.106.125, deployed 2026-07-20 from the local dev_night working tree. Health check green: ufw (2222/80/443 only), fail2ban, nginx, certbot, Node v22.23.1, units active, <code>caps:</code> line accurate. Findings from the run are written up in <code>docs/how-to-host.md</code> § "Deploy troubleshooting" and fixed in the templates.</div>
-    </div>
-
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">XII.5 + calendar — BOTH RULED</div>
-      <div class="d">D1: normal game targets <strong>~550 turns</strong> via Civ-1-pace early yearSteps — "Classic 545" picked (t200=1AD, t350=1500, t545=2100 end; <code>specs/calendar-545.md</code>). D2: GO — the verified XII.5 core fix lands FIRST as its own marker, calendar-545 follows as a second marker (two re-records, clean attribution), then the probe re-runs at 545t. Bugfixer instructed (#1930); the six 25h-held locks are moving again.</div>
-    </div>
-
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Refinement XIV — 31 playtest items triaged and queued</div>
-      <div class="d">From tonight's browser+iPad+phone session. Spec: <code>specs/refinement-xiv.md</code>. 15 helper items (correctness first: regency-stops-at-gameOver, mobile Save/Load, E-hint bug, civ-shuffle bias — root-caused), 1 parked engine batch (behind XII.5), 1 roblox Studded-style item with the ally's full art direction. The helper already shipped the first: bare <code>/client/</code> now 302s to <code>?server=1</code> (redeploy to pick it up). Both playtest artifacts verified — the 396-turn diagnostics <strong>replays bit-exact</strong>.</div>
-    </div>
-
     <div class="item"><span class="box"></span>
-      <div class="t">Confirm three live-box items</div>
-      <div class="d">Fast; only you can see the box. <strong>(1)</strong> Is the installed unit's <code>--public-addr</code> now the bare <code>multiciv.kjell.today:443</code> form, and does the journal show <code>master: listed at …</code> rather than <code>master says: badAddress</code>? <strong>Heads-up:</strong> a scheme is rejected at boot now, so a unit still carrying <code>https://…</code> will <strong>fail to start</strong> instead of running mis-announced — fix it before the next restart or deploy. <strong>(2)</strong> The box is the <strong>2&nbsp;GB</strong> tier (<code>multiciv-2gb</code>) but the unit carries 4&nbsp;GB defaults; apply the 2&nbsp;GB row from <code>docs/how-to-host.md</code> § "Sizing by RAM" (heap 768, <code>MemoryMax=1200M</code>, <code>--max-games 3</code>). <strong>(3)</strong> Does a <code>?server=1</code> game now write into <code>/opt/retromulticiv/saves/</code>? (The empty-saves puzzle resolved as play going through the bare <code>/client/</code> URL, which runs the in-browser engine.)</div>
-    </div>
-
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Two server-only playtest bugs — BOTH FIXED + committed</div>
-      <div class="d">The endscreen crash (shared <code>score-view.js</code> fog-guard, all four score callers, tested) and the bare-<code>/client/</code> → <code>?server=1</code> redirect (<code>?local=1</code> escape). Bonus third delivery: the <strong>in-client bug-report feature</strong> (🐞 dialog + auto-attached recording; write-only opt-in <code>--bug-reports</code> route). All reach the live box on your <strong>next redeploy</strong> — until then share <code>?server=1</code>.</div>
+      <div class="t">Merge marker-0069 — the new merge candidate</div>
+      <div class="d">Supersedes 0062–0068; first consistent marker since 0067. Contents: XII.5 space-drive core fix + re-recorded goldens (both gates green), the complete OOM fix, A101 operator-caps, the three playtest-bug fixes (redirect / endscreen / bug-report), A102 CLI guards, Studded first impl, skills + hooks. Full delta: <code>reports/marker-0069.md</code>. Note: calendar-545 (marker 0070) is in build and will supersede it shortly — merge now or wait one marker, your call.</div>
     </div>
 
     <div class="item"><span class="box"></span>
       <div class="t">Studio screenshot review — Studded/Brick world style</div>
-      <div class="d">First implementation committed (<code>a2335b0</code>, 18 gates green); roblox-helper waits on your in-Studio screenshot pass (ally invariants: silhouettes readable, studs sparse, terrain FLATTER than the other styles) before iterating.</div>
+      <div class="d"><code>a2335b0</code>, 18 gates green; roblox-helper is blocked on your in-Studio pass (ally invariants: silhouettes readable, studs sparse, terrain FLATTER than the other styles).</div>
     </div>
 
     <div class="item"><span class="box"></span>
-      <div class="t">marker-0068 tagged — do NOT merge yet</div>
-      <div class="d">OOM fix complete + A101 operator-caps verified (<code>reports/marker-0068.md</code>). Explicitly NOT merge-consistent: the XII.5 golden window is open (re-record in flight). <strong>Latest merge-consistent marker remains 0067.</strong> The next consistent declaration comes with marker N.</div>
+      <div class="t">Live box: redeploy + three confirmations</div>
+      <div class="d">Redeploy from marker-0069 (<code>./ssh-deploy.sh</code>) to pick up the redirect/endscreen/bug-report fixes, then: <strong>(1)</strong> unit's <code>--public-addr</code> = bare <code>multiciv.kjell.today:443</code> and journal shows <code>master: listed at …</code> (a scheme now <strong>fails at boot</strong> — fix the unit before restarting if it still carries <code>https://…</code>); <strong>(2)</strong> apply the 2&nbsp;GB-tier sizing (heap 768, <code>MemoryMax=1200M</code>, <code>--max-games 3</code>); <strong>(3)</strong> a <code>?server=1</code> game writes into <code>/opt/retromulticiv/saves/</code>. Optional: add <code>--bug-reports /opt/retromulticiv/bugreports</code> to enable in-client bug reports.</div>
     </div>
 
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Markers 0063–0067 tagged — MERGED</div>
-      <div class="d">You've been merging as they land. Shipped 2026-07-19 (each has a <code>reports/marker-00NN.md</code>): <strong>0063</strong> (golden-neutral) city-era determinism fix + unit/building blurbs; <strong>0064</strong> (BEHAVIORAL) <strong>D3 AI diplomacy</strong> at swept <code>peaceAcceptThreshold=30</code>, Gate-B green; <strong>0065</strong> (behavior-neutral) data-label — Caesar→Colossus (3rd wonder-race pair) + railroad rename, regen-durable; <strong>0066</strong> (golden-neutral server) <strong>crash resilience</strong> (your request) — crashdump + OOM watchdog + <code>MULTICIV_SUPERVISE=1</code> self-restart loop; <strong>0067</strong> (golden-neutral server) <strong>ws-timeout fix</strong> — busy-tolerant heartbeat, no false connection-reap during an event-loop block. Everything through marker-0062 sits below these. <strong>In flight (no user action) — several markers converging:</strong> <strong>XII.5 space-drive</strong> (your "regent never idles" feedback — core fix CONFIRMED: Apollo now built vs the 0/42 baseline, JS==Luau, zero economic regression. The measure-first probe COMPLETED and reframed the ruling — see the top DECIDE item; spec §11 has the data. Ruled out on authenticity: gold-rushing Apollo, a Wonder — the real 1991 accelerant was caravans, which the AI deliberately doesn't field); <strong>OOM/write-amp fix</strong> (from your turn-2623 question — slice 1 done+landing, slice 2a in-RAM log bound DELIVERED, landing behind XII.5; meanwhile <code>--max-turns</code> on the test host bounds the same OOM shape); <strong>operator resource caps</strong> (your host-sizing request — <code>--max-turns</code>/<code>--max-civs</code>/<code>--max-size</code> done, plus the warn-not-fail rider: unknown server flags WARN instead of crash-looping + a boot <code>caps:</code> line showing effective caps; landing); and <strong>11b city names</strong> (ally-delivered, verified) + <strong>D3 server-surfacing</strong> (traced gap — AI diplomacy invisible over the server/LAN path; fix queued) — both queued in the engine lane behind XII.5.</div>
+    <div class="item"><span class="box"></span>
+      <div class="t">Ally relay, when convenient</div>
+      <div class="d">The space-race pacing loop closed — calendar-545 implements a ~545-turn normal game (their verdict was the deciding input); their Studded art direction is implemented and awaiting your Studio review; the advisor hint-card copy ask comes later (after the XIV components land). No response required, courtesy update.</div>
     </div>
 
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Gaming PC back online — resolved</div>
-      <div class="d">Both sim-runner and roblox-helper recovered; the D3 constant sweep is back with the sim-runner and the Roblox run-F work committed (<code>ba9ad3f</code>). No further action.</div>
-    </div>
-
-    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">Unit + building pedia blurbs — DELIVERED by your ally</div>
-      <div class="d">You relayed the request and the ally's copy is back: 28 units + 21 buildings, id-verified 28/28 + 21/21 against the data files, saved verbatim to <code>specs/ally-unit-building-blurb-response-2026-07-19.md</code>. Now being wired in as a <code>unitBlurbs</code>/<code>buildingBlurbs</code> data table (browser pedia + build tooltip → helper; Roblox parity → roblox-helper), like the 68 tech blurbs. No further action.</div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Recently landed (no action — 2026-07-20/21)</div>
+      <div class="d">marker-0069 tagged MERGE-CONSISTENT (XII.5 core fix + re-record; 0068's OOM+caps folded in); Refinement XIV first four deliveries shipped; rulings executed: calendar-545 (545-turn normal game, marker 0070 in build), unit-truth bundles (air/naval queued; diplomat missions ride D6), advisor = event hint cards (<code>specs/advisor-hint-cards.md</code>), authentic difficulty = v1 (fact-pack-gated); 4 reviewer fact-packs commissioned; agent-mail send-guard hardened (6 deny rules); living plan docs <code>plan-version1.md</code> / <code>plan-version2.md</code> established.</div>
     </div>
   </section>
 
@@ -148,7 +123,7 @@
     <div class="bar"></div>
 
     <div class="item"><span class="box"></span>
-      <div class="t">Fresh LAN session on <code>marker-0062+</code></div>
+      <div class="t">Fresh LAN session on <code>marker-0069+</code></div>
       <div class="d">Field-test the systems no human has played: goody huts, caravan routes, unit upgrades, the debug panel (🐞), the spaceship screen, late-game save loading, and now the tech tree + beeline. With Shift+D recordings it seeds benchmark corpus #2. Try Marathon mode to see the late game.</div>
     </div>
 
