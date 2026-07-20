@@ -175,6 +175,17 @@ its chosen stance. Toggle: explicit player button
 (host-granted-for-disconnected remains a future option). The same
 stance table is A59's substrate (AI leader personalities).
 
+Two playtest-driven extensions QUEUED 2026-07-20 (specs/refinement-xiv.md):
+**§30 "Auto AI takeover"** promotes host-granted-for-disconnected from
+future option to a HOST OPTION (default ON): a seat whose inactivity
+countdown expires — or that stays disconnected as long — is taken over by
+regency; with the option OFF the seat's turn is auto-skipped instead
+(reuses the seat-grace/skip timers, no third clock). **§2/§3** bound the
+drive loop: regency STOPS at gameOver (no post-game turn advance — a live
+396-turn specimen exists), and regent turns get a minimum wall-clock
+pace (~1 s total per round, server-configurable) so spectating humans
+can follow. All golden-neutral (drive/pacing, never engine state).
+
 ## 8. Scaling (A38 probe, 2026-07-14 — measured on the dev box, WSL2)
 
 Method: `tools/probe-scale.js` (engine-only ms/turn + mapgen fit sweep,

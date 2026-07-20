@@ -44,6 +44,14 @@ Windows (PowerShell), the native twin:
 .\run.ps1 9000 --civs 4      # another port + server args
 ```
 
+A bare `/client/` on a **hosted server** redirects to `/client/?server=1`, so a
+visitor who just types the domain lands in the server game rather than an
+in-browser one that vanishes with the tab. Use **`/client/?local=1`** to reach
+the local engine on a hosted box; any other query (`?seed=`, `?civs=`,
+`?humans=`…) is served untouched. Off a plain static server (`python3 -m
+http.server`) there is no redirect — bare `/client/` is the local engine as
+always.
+
 Without `?server=1` the client runs a fully local engine (no server needed) —
 that's the single-player / hotseat mode. `?server=1` is what makes it a
 *hosted* game other people can join.
@@ -345,6 +353,101 @@ The budget is nonetheless **hard**: if only resumable saves remain and the
 directory is still over budget, the oldest resumable is dropped. **Size the
 budget generously if you host long-lived resumable games** — resumable saves go
 last, but they are not immortal under a tight cap.
+
+### 7. Deploy troubleshooting
+
+Everything below was hit on a real first deploy (2026-07-20, Hetzner CX-class,
+Ubuntu LTS). `docs/hetzner-ssh-deploy.sh` already self-heals items 1–3; they are
+documented anyway because the same symptoms appear if you deploy by hand.
+
+**First, check whether cloud-init actually finished.** Nearly every failure
+below traced back to a single cause: the `runcmd:` phase never ran to
+completion, so Node was never installed and `/opt/retromulticiv` was never
+chowned. Diagnose it before chasing the individual symptoms:
+
+```bash
+cloud-init status --long          # expect: status: done
+cloud-init analyze show | tail -30 # per-stage timings
+sudo tail -50 /var/log/cloud-init-output.log   # runcmd stdout/stderr lives here
+```
+
+The tell is **total runtime**. A cloud-init that reports done in ~10 seconds
+did *not* run `package_update` + `package_upgrade` + a NodeSource install — a
+real run on this template takes minutes. A short runtime plus a missing `npm`
+means `runcmd` was skipped or died early; `cloud-init-output.log` names the
+step. Note also that the template's last `runcmd` line is `reboot`, so a
+truncated log can simply mean the box rebooted mid-phase. To replay the phase
+after fixing the cause:
+
+```bash
+sudo cloud-init clean --logs && sudo cloud-init init && sudo cloud-init modules --mode=final
+```
+
+Individual symptoms and fixes:
+
+1. **`npm: command not found`, and `node --version` says v18.x.**
+   Ubuntu's stock `nodejs` package shipped instead of NodeSource Node 22, and
+   the stock package bundles no npm. Install NodeSource directly:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs
+   ```
+   The deploy script now checks for `npm` up front and prints this hint rather
+   than failing deep inside the install step.
+
+2. **rsync fails with `Permission denied` / `chgrp: Operation not permitted` on
+   `/opt/retromulticiv`.** The directory is still root-owned because the
+   `chown` in `runcmd` never ran. The deploy script fixes this itself with a
+   pre-step (`sudo mkdir -p … && sudo chown -R $(id -un):$(id -gn) $APP`) and
+   passes `--no-owner --no-group` so the unprivileged receiver stops trying to
+   preserve source ownership.
+
+3. **`npm error code EACCES … ~/.npm`.** An earlier privileged `npm` left a
+   root-owned cache. The script self-heals it conditionally. If the manual
+   `chown` then reports *"cannot access '/home/<user>/.npm': No such file or
+   directory"*, the home directory itself is root-owned (same root cause) — fix
+   that first, non-recursively:
+   ```bash
+   sudo chown <user>:<user> /home/<user>
+   ```
+
+4. **`master says: badAddress` in `journalctl -u retromulticiv-game`.**
+   `--public-addr` must be a bare `host:port` — **no scheme**. `server/index.js`
+   splits the value at the last `:` to separate host from port, so
+   `https://example.com` yields a garbage host and `tools/master.js` rejects the
+   announcement. Use the *public* port (443, behind nginx), not the internal
+   8123. A scheme is now **rejected at boot** with a clear message, so this
+   should only bite a server predating that guard:
+   ```
+   --public-addr multiciv.example.com:443     # correct
+   --public-addr https://multiciv.example.com # badAddress
+   ```
+   After editing the installed unit: `sudo systemctl daemon-reload && sudo
+   systemctl restart retromulticiv-game`, then confirm a `master: listed at …`
+   line appears in the journal.
+
+5. **The deploy shipped far more than the runtime.** The original script used an
+   rsync *exclude* list, which leaked `.claude/`, `specs/`, `debugging/`
+   screenshots, `reports/`, `roblox/` (including a binary `.rbxl`), the whole
+   test and `luau/` trees, and the private `ops/` notes — roughly 28 MB of
+   internal-only content onto a public box. It is now an **allowlist**
+   (`--include` for `client/ engine/ shared/ data/ server/` plus three named
+   files in `tools/`, then `--exclude '*'`), which selects ~124 files. Verify
+   any change to it with a dry run before deploying:
+   ```bash
+   # add -n to the script's rsync line, or run the same include/exclude set locally:
+   rsync -avn --include '/client/***' … --exclude '*' ./ /tmp/deploy-preview/
+   ```
+   Prefer allowlists over exclude lists for anything that copies a working tree
+   to a public host — an exclude list fails open.
+
+6. **`saves/` is empty after playing a game.** Usually not a server bug. The
+   in-browser engine saves to browser localStorage; only `/client/?server=1`
+   reaches the authoritative server and writes `saves/*.json`. A current server
+   redirects bare `/client/` there, so this is a deployed tree predating that
+   redirect, or a URL carrying a query (e.g. `?local=1`, which stays local).
+   Confirm by grepping the journal for game/lobby
+   activity — a silent journal between two boot blocks means nothing ever hit
+   the server.
 
 ---
 

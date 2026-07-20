@@ -8,19 +8,68 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-20 (markers 0063–0067 merged; XII.5 on measure-first hold; Hetzner test deploy green-lit)._
+_Last synced: 2026-07-20 late (XIV queued; ally package in; XII.5 probe DONE — ruling reframed to research-pace design, two decisions open)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Hetzner test deploy — green-lit, yours to run.** Everything is staged:
-  filled `cloud-init.yaml` (validated; caps flags live, master on loopback,
-  4 GB-tier heap pin), private `ssh-deploy.sh`, DNS `multiciv.kjell.today` →
-  49.12.106.125. Deploy the **local dev_night working tree** (it has A101 +
-  warn-not-fail; the tagged markers don't). After first boot, glance at the
-  `caps:` line in `journalctl -u retromulticiv-game` to confirm the caps took.
-  RAM-tier tuning tables: `docs/how-to-host.md` § "Sizing by RAM".
+- [ ] **XII.5 ruling — the probe answered, and the question CHANGED (two
+  decisions now).** Measured on normal 400-turn games (8 seeds): **no civ ever
+  unlocks space-flight at all** — the space chain needs 46 of 68 techs and
+  research leaders finish with 26–29. Research pace vs game length is the real
+  constraint; none of the old options (accept-late / fix chain / parts-rush)
+  is the lever. Full data `specs/xii5-ai-victory-drive.md` §11.
+  **Decision 1 (design, ally input welcome):** speed late-game research
+  (arguably the authentic Civ 1 answer; sweepable bulb-cost slice) vs
+  marathon-only space (contradicts the ally's verdict) vs longer normal games
+  vs a blend. A shareable ally phrasing sits in the architect's 20:13 report.
+  **Decision 2 (cheap, unblocks four queued items):** land the verified XII.5
+  core fix now (re-record + marker — releases the golden window for D3
+  server-surfacing, 11b city names, hardening 2b) with research pacing as its
+  own follow-up slice — architect recommends YES.
+  Meanwhile (no action): bugfixer measures whether godemperor difficulty or a
+  science-stance civ closes the tech gap.
+
+- [x] **Refinement XIV — 31 playtest items triaged and queued** (2026-07-20
+  evening, browser+iPad+phone session). Spec: `specs/refinement-xiv.md`.
+  15 helper items (correctness first: regency-stops-at-gameOver, mobile
+  Save/Load, E-hint bug, civ-shuffle bias — root-caused as LCG low-bit bias),
+  1 parked engine batch (settler pathing, regency economics, AI treasury —
+  behind XII.5), 1 roblox style item. The helper already shipped the first:
+  bare `/client/` now 302s to `?server=1` (redeploy to pick it up). Your
+  playtest artifacts both verified — the 396-turn diagnostics **replays
+  bit-exact** (engine determinism confirmed on a live-box game).
+
+- [x] **Hetzner test deploy — DONE 2026-07-20, box is live and serving.**
+  `multiciv.kjell.today` → 49.12.106.125, deployed from the local dev_night
+  working tree. Health check green: ufw (2222/80/443 only), fail2ban, nginx,
+  certbot, Node v22.23.1, units active, caps line accurate. Findings from the
+  run are written up in `docs/how-to-host.md` § "Deploy troubleshooting" and
+  fixed in the templates.
+
+- [ ] **Confirm three live-box items** (fast; only you can see the box):
+  1. Is the installed unit's `--public-addr` now the bare `multiciv.kjell.today:443`
+     form, and does `journalctl -u retromulticiv-game` show `master: listed at …`
+     rather than `master says: badAddress`? (A scheme is rejected at boot now,
+     so a stale unit will refuse to start rather than mis-announce — see below.)
+  2. The box is the **2 GB** tier (`multiciv-2gb`), but the unit carries the
+     4 GB defaults. Apply the 2 GB row from `docs/how-to-host.md` § "Sizing by
+     RAM": heap 768, `MemoryMax=1200M`, `--max-games 3`.
+  3. Does a `?server=1` game now write into `/opt/retromulticiv/saves/`?
+     (The empty-saves puzzle resolved as play going through the bare `/client/`
+     URL, which runs the in-browser engine — the default-redirect fix is queued.)
+  **Heads-up on 1:** the new boot guard means a unit still carrying
+  `--public-addr https://…` will now **fail to start** instead of running
+  mis-announced. If the box is currently up on a scheme value, fix the unit
+  before the next restart or deploy.
+
+- [ ] **Two server-only bugs found in your first live playtest** — both queued
+  to the helper, neither shipped yet: the endscreen crashes on every server
+  game at `gameOver` (`player.techs` is absent on fog-filtered rival views, so
+  no ending ever renders), and bare `/client/` will redirect to `?server=1` so
+  casual players land on the authoritative server. Until the redirect ships,
+  share the **`?server=1` link specifically**, not the bare URL.
 
 - [x] **Markers 0063–0067 tagged — MERGED.** You've been merging as they land.
   Shipped 2026-07-19 (each has a `reports/marker-00NN.md`):
@@ -37,15 +86,12 @@ _Last synced: 2026-07-20 (markers 0063–0067 merged; XII.5 on measure-first hol
     heartbeat, no false connection-reap during an event-loop block (turn-2623).
   Everything through marker-0062 sits below these.
   _In flight (no user action) — several markers converging:_
-  - **XII.5 space-drive** (your "regent never idles" feedback) — witness 1 is
-    in: the core fix is CONFIRMED (Apollo now built vs the 0/42 baseline, 11
-    parts across 3 civs, JS==Luau, zero economic regression) but no LAUNCH
-    within 1200 turns (the 600-shield Apollo build ~t800 is the wall). Your
-    ruling: measure first — a 1800-turn probe is running to tell "just late"
-    from "chain broken"; decision (accept-as-late / fix / tune-parts-only)
-    comes back to you with the data. Ruled out on authenticity: gold-rushing
-    Apollo (a Wonder — Civ 1 forbids it; the real 1991 accelerant was
-    caravans, which the AI deliberately doesn't field).
+  - **XII.5 space-drive** (your "regent never idles" feedback) — core fix
+    CONFIRMED (witness 1: Apollo now built vs the 0/42 baseline, JS==Luau,
+    zero economic regression). The measure-first probe COMPLETED and reframed
+    the ruling — see the top DECIDE item; spec §11 has the data. Ruled out on
+    authenticity: gold-rushing Apollo (a Wonder — Civ 1 forbids it; the 1991
+    accelerant was caravans, which the AI deliberately doesn't field).
   - **OOM/write-amp fix** (from your turn-2623 question) — slice 1 (kill the
     per-command autosave write-amplification) done + landing; slice 2a (bound
     the in-RAM log) DELIVERED, landing behind XII.5. Golden-neutral server.

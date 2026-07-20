@@ -333,6 +333,20 @@ already safe — skip the public-only rows.
   watchdog + nightly `npm audit` self-check on; `MAINTENANCE_CONTACT` set.
 - One runtime dependency (`ws`); `npm ci`; Node LTS ≥ 18.
 
+**Deploy hygiene (the copy step is its own surface):**
+- Sync to a public box with an **allowlist**, never an exclude list. Exclude
+  lists fail open: the first live deploy (2026-07-20) used one and shipped
+  agent config, `specs/`, tests, debugging screenshots, internal reports and a
+  binary `.rbxl` — ~28 MB of non-runtime content — onto a public host. The
+  template `docs/hetzner-ssh-deploy.sh` now allowlists `client/ engine/ shared/
+  data/ server/` plus three named `tools/` files and the package files (~124
+  files). Dry-run (`rsync -avn`) any change to the include set.
+- Nothing in the runtime set is secret, so the leak was disclosure of internal
+  process material rather than credentials — but the same list would have
+  carried a private file the day one existed. Treat it as a standing rule.
+- The private filled copies of the deploy script and cloud-init YAML hold the
+  host, user and domain; both stay gitignored.
+
 **The operator still owns:** volumetric DDoS (firewall / CDN rate layer — the
 app-layer limits bound WORKLOAD, not raw packet floods) and the fact that one
 very large game can slow every game on that process (single event loop).

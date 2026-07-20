@@ -17,6 +17,16 @@
 # CI, editor/agent config…) never leave your machine, and the box's runtime
 # state (saves/, crashdumps/) is never touched. RetroMultiCiv is
 # config-via-systemd-flags + FILE saves — there is NO .env to copy.
+#
+# The allowlist is deliberate: an earlier EXCLUDE-list version leaked agent
+# config, specs, tests, screenshots and a binary .rbxl onto a public box.
+# Exclude lists fail open — keep this an allowlist, and dry-run (rsync -avn)
+# any change to the include set before deploying.
+#
+# The three self-heal steps below (dir ownership, ~/.npm ownership, npm-missing
+# check) exist because Hetzner cloud-init's runcmd phase can silently fail to
+# complete, leaving no Node and a root-owned /opt. See docs/how-to-host.md
+# § "Deploy troubleshooting" for how to confirm that and replay the phase.
 # =============================================================================
 set -euo pipefail
 

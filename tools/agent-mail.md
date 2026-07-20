@@ -101,6 +101,38 @@ serialization we need). The coordinator's job stays CURATION: order each queue c
 and never queue the SAME golden files to two lanes. Canonical (`--for coordinator` →
 architect's queue). Files: `.agent-mail/queue-<lane>` on the hub.
 
+## The first line IS the subject (STANDARD — 2026-07-20)
+
+There is no `--subject` flag and there should not be one: `--headers` renders
+**the message's first line, truncated to 100 chars**, as the subject
+(`hdr()`, agent-mail.py). Since `--headers` is the DEFAULT read, that one line
+is what every recipient sees first, and often all they read before deciding
+whether to `show` the body. Write it deliberately.
+
+**Write line 1 as a subject, not as the opening of a sentence.** It must stand
+alone when severed from line 2 — a prose opener reads as a fragment once cut:
+
+```
+GOOD  XII.5 SPACE-DRIVE — FIRST WITNESS (branch b7d09db) vs #1706 baseline.
+GOOD  #1870 OOM SLICE 2a DELIVERED — in-RAM log growth BOUNDED (turn-2623 root).
+GOOD  LAND #1752 crash resilience → dev_night — DONE, GREEN. Clear to tag marker-0066.
+BAD   Architect/coordinator is back online after another dev-PC reboot. Resuming
+      ^ real header (#1905): written as prose, cut mid-sentence, says nothing
+```
+
+Rules of thumb:
+
+- **≤100 chars**, or it is truncated with `...` — put the payload first.
+- **Lead with the verdict**: DELIVERED / BLOCKED / DONE, GREEN / HELD, plus the
+  item id. A lane triaging 20 headers is scanning for state, not narrative.
+- **Carry the identifiers** a reader needs to act: item number, branch, hash,
+  marker. `#1870`, `b7d09db`, `marker-0066`.
+- **The `--tag` classifies; the subject reports.** `--tag done` says what kind
+  of message it is; line 1 says what actually happened.
+- With `--body-file` you cannot see the header you are producing at send time,
+  so check line 1 before sending — or `peek --headers` afterwards to confirm it
+  reads correctly.
+
 ## Everyday commands (local)
 
 ```bash
@@ -109,7 +141,7 @@ python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"   # 
 python3 tools/agent-mail.py send --from helper --to architect --tag done --body-file done.md   # multi-line: body in a FILE (keeps it out of the transcript)
 echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # or stdin (hub-safe since 2026-07-16)
 python3 tools/agent-mail.py send --from helper --to all "broadcast"
-python3 tools/agent-mail.py peek  --as helper --headers   # DEFAULT read: one line/msg (id/from→to/tag/first line), does NOT mark
+python3 tools/agent-mail.py peek  --as helper --headers   # DEFAULT read: one line/msg (id/from→to/tag/FIRST LINE = the subject, ≤100 chars), does NOT mark
 python3 tools/agent-mail.py inbox --as helper --headers    # same, marks read
 python3 tools/agent-mail.py show <hash-prefix>     # expand ONE message's full body by @hash (or #id-prefix)
 python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (add --headers)
@@ -177,6 +209,15 @@ python3 tools/agent-mail.py serve --port 8970 --host 0.0.0.0
 Run it in the background / a spare terminal; it is a tiny HTTP server
 over the same files, so local commands on this machine keep working
 unchanged alongside it.
+
+**After ANY dev-PC reboot (measured 2026-07-20):** the hub process dies
+with the machine and remote lanes report "hub down" — restart it with the
+command above, then verify BOTH hops: `curl -s http://127.0.0.1:8970/`
+(hub itself) and `curl -s http://<LAN-IP>:8970/` (the Windows portproxy
+path). The portproxy's `connectaddress` must match the CURRENT
+`wsl hostname -I` — WSL's NAT IP can change across reboots; if it did,
+re-run the `netsh` add (delete the old rule first:
+`netsh interface portproxy delete v4tov4 listenport=8970`).
 
 **WSL note (dev PC):** WSL's network is NAT'd — to reach the hub from
 another PC, forward the port and open the firewall once, in an ADMIN

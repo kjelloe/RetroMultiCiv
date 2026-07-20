@@ -232,3 +232,69 @@ wonders — a **behavioral** slice that MOVES goldens, not a tuning knob. Decisi
 gated on the 1800t diagnostic probe (#1897): chain-closes-late → accept as authentic
 late outcome; Apollo-build-is-the-wall → either accept late, or a dedicated AI-caravan
 slice. No marker until the probe + user ruling.
+
+## 10. Designer-ally pacing verdict (2026-07-20 evening — ADVISORY input to the ruling)
+
+Full text: `specs/ally-design-response-2026-07-20-evening.md` § "Space-race
+pacing verdict". Summary: space victory **should be attainable in a normal
+full-length game** — plausible around **turns 300–400** for a strong peaceful
+civ, ~250–300 as the exceptional fastest case, usually pre-empted by conquest/
+diplomacy/score/turn-limit in contested games, and explicitly **NOT
+marathon-only** ("the modern tree and spaceship program become content players
+rarely experience"). Space must demand a visible tradeoff (research/industry/
+territory over military) that leaves the space-runner contestable.
+
+Implication for the decision path in §9: witness-1 measured launch=0 at
+t1200 with Apollo eligibility ~t750 — far outside the ally's 300–400 target.
+If the 1800t probe confirms the chain only closes very late, the ally verdict
+weighs AGAINST plain "accept as authentic late outcome" and toward a
+follow-up slice (XII.5b: AI-caravan behavioral slice per §9, and/or pacing
+work). ADVISORY only — the user holds the ruling, and the probe data arrives
+first.
+
+The ally also specified the probe REPORT fields: first `space-flight` unlock;
+first part begun/completed; all-parts turn; launch turn; victory turn;
+research-leader changes post-industrialization; invasion pressure on the
+space leader; how often a would-be space winner was interrupted/overtaken.
+The running probe (#1906) covers the build-chain fields; the contest-pressure
+fields (leader changes, invasion pressure, interruption rate) extend the
+`--stats` strategic rows — fold into the probe report where cheap, else flag
+as a follow-up measurement.
+
+## 11. The probe answered — and reframed the ruling (2026-07-20, #1908/#1911/#1912)
+
+Marathon probes (endYear=9999) proved 1800t UNREACHABLE through sim-driver —
+5/6 runs hit HARNESS guards (MAX_UNITS=1000 / MAX_GOLD=100000, sim-driver.js
+:112/:221 — harness tripwires, not engine rules; likely also what killed the
+first sim-runner attempt). XII.5 exonerated for the unit tripwire: seed 7
+aborts at the identical t903 drive-ON and drive-OFF. Sleeper finding: an AI
+hoarded 100,103 gold (independently corroborates refinement-xiv §14 treasury
+doctrine — the gold to close the chain exists, it is never converted).
+
+The decisive measurement (#1912) is the NORMAL-length one, per the ally's §10
+fields: **8 seeds × 400t, drive ON — space-flight was NEVER unlocked. All
+eight report fields '-' in all eight games.** Not late; absent. Quantified:
+the space chain's full prerequisite closure is **46 of 68 techs** (max tech
+level 17; an earlier "3 techs" figure was a field-name bug — `requires` vs
+`prereqs` — and is WITHDRAWN); the research leader at t396 holds 26–29. The
+research race is alive (5–15 leader changes/game) — research PACE vs game
+LENGTH is the binding constraint, upstream of everything XII.5 touches.
+Gold cannot buy prerequisites, so parts-rush tuning cannot bridge it either.
+
+Consequences:
+- The §8.1/§9 decision path (accept-late vs fix-chain vs tune-parts) is
+  DISSOLVED — none of the three is the lever. The bugfixer withdrew its
+  "authentically late" framing (marathon-derived, misleading).
+- The open ruling (user, with ally input welcome) is now DESIGN: (a) speed
+  late-game research (bulb-cost curve, data/rules.json, sweepable — its own
+  golden-affecting slice; arguably the AUTHENTIC option, Civ 1 games did
+  finish the tree), (b) accept space as marathon-only (contradicts §10),
+  (c) longer "normal" games, (d) a blend.
+- The CORE FIX stands on its own: correct, verified, closes the scoped 0/12
+  defect (eligible civ builds Apollo instead of idling), Gate-B green — just
+  unobservable in normal games until pacing is settled. Architect
+  recommendation: LAND it (re-record + marker) to release the golden window
+  (D3 server-surfacing, 11b, hardening 2b queue behind it) and open research
+  pacing as its own slice. Held for the user's call.
+- Greenlit meanwhile (#1913, measurement-only): does godemperor difficulty or
+  a science-stance civ close the tech gap in 400t?

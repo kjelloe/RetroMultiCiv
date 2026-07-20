@@ -17,7 +17,22 @@
 #   3. Paste into the Hetzner console when creating the server
 #
 # After first login (ssh -p 2222 <DEPLOY_USER>@<ip>):
-#   1. Copy code:  scp -P 2222 -r . <DEPLOY_USER>@<ip>:/opt/retromulticiv/
+#   0. VERIFY CLOUD-INIT FINISHED — do this FIRST, before anything else:
+#        cloud-init status --long        # expect: status: done
+#        node --version && npm --version # expect: v22.x and an npm version
+#        ls -ld /opt/retromulticiv       # expect: owned by <DEPLOY_USER>
+#      The runcmd phase below can fail silently. The tell is RUNTIME: a
+#      cloud-init reporting done in ~10s did NOT run package_update +
+#      package_upgrade + the NodeSource install (a real run takes minutes).
+#      Stock Ubuntu `nodejs` is v18 and ships NO npm — if you see v18, the
+#      NodeSource step never ran. Details in /var/log/cloud-init-output.log;
+#      replay with:
+#        sudo cloud-init clean --logs && sudo cloud-init init \
+#          && sudo cloud-init modules --mode=final
+#      Note the last runcmd line is `reboot`, so a truncated log may just mean
+#      the box rebooted mid-phase. See docs/how-to-host.md § "Deploy
+#      troubleshooting" for the symptom-by-symptom list.
+#   1. Copy code:  ./ssh-deploy.sh  (see docs/hetzner-ssh-deploy.sh)
 #      (No .env / no DB — RetroMultiCiv is stateless config-via-flags + file saves.)
 #   2. Point DNS: A record for <YOUR_DOMAIN> -> <ip>
 #   3. Run:       ~/first-deploy.sh
@@ -132,8 +147,12 @@ write_files:
 
   # ── systemd: GAME server. Restart=on-failure leverages the crash-resilience
   #    exit-70 (crash/OOM) vs exit-0 (clean stop). Resource caps + OOM watchdog
-  #    keep a small box safe. --public-addr is the PUBLIC url the master probes
-  #    (NOT 127.0.0.1 — the master refuses loopback). Tune caps to your box. ────
+  #    keep a small box safe. --public-addr is the PUBLIC address the master
+  #    probes (NOT 127.0.0.1 — the master refuses loopback), and it must be a
+  #    bare host:port with NO SCHEME: server/index.js splits at the last ':',
+  #    so "https://host" yields a bad host and the master logs "badAddress".
+  #    Use the PUBLIC port 443 (nginx fronts it), not the internal 8123.
+  #    Tune caps to your box. ──────────────────────────────────────────────────
   - path: /etc/systemd/system/retromulticiv-game.service
     content: |
       [Unit]

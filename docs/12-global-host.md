@@ -115,6 +115,12 @@ DIRECTLY to the chosen host's ws origin.
   whether a server speaks their ruleset), open public games count
   (the A41 listGames summary, already computed). No heartbeat for
   ~3 minutes → delisted. One flag = listed; stop the server = gone.
+  `--public-addr` is a bare **`host:port`, never a URL** — the value is
+  split at the last `:`, so a scheme yields a garbage host and the
+  master answers `badAddress` on every heartbeat. Behind a TLS proxy
+  the correct value is the PUBLIC port (`example.com:443`), not the
+  internal 8123. Rejected at boot since the first live deploy
+  (test `A51c`, `test/server-announce.test.js`).
 - **Validate before listing** (the classic master behavior): on
   first announce and periodically, the master probes the advertised
   address with a cheap HTTP GET (`/healthz` from A50) — unreachable
