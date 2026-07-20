@@ -56,12 +56,29 @@ _Last synced: 2026-07-20 late (XIV in build; XII.5 D1+D2 RULED — core-fix mark
   mis-announced. If the box is currently up on a scheme value, fix the unit
   before the next restart or deploy.
 
-- [ ] **Two server-only bugs found in your first live playtest** — both queued
-  to the helper, neither shipped yet: the endscreen crashes on every server
-  game at `gameOver` (`player.techs` is absent on fog-filtered rival views, so
-  no ending ever renders), and bare `/client/` will redirect to `?server=1` so
-  casual players land on the authoritative server. Until the redirect ships,
-  share the **`?server=1` link specifically**, not the bare URL.
+- [x] **Two server-only playtest bugs — BOTH FIXED + committed** (helper,
+  2026-07-20 late): the endscreen crash (shared `score-view.js` fog-guard —
+  honest "—" rows instead of a crash, all four score callers, tested) and the
+  bare-`/client/` → `?server=1` redirect (`?local=1` escape). Bonus third
+  delivery: the **in-client bug-report feature** (🐞 dialog + auto-attached
+  recording; write-only opt-in `--bug-reports` server route). All reach the
+  live box on your **next redeploy** — until then keep sharing `?server=1`.
+
+- [ ] **Studio screenshot review — Studded/Brick world style** (roblox,
+  `a2335b0`, 18 gates green): the first implementation of the third world
+  style is committed; roblox-helper waits on your in-Studio screenshot pass
+  (ally invariants: silhouettes readable, studs sparse, terrain FLATTER than
+  the other styles) before iterating.
+
+- [ ] **marker-0068 tagged — do NOT merge yet.** OOM fix complete + A101
+  operator-caps verified (`reports/marker-0068.md`). Explicitly NOT
+  merge-consistent: the XII.5 golden window is open (re-record in flight).
+  **Latest merge-consistent marker remains 0067.** The next consistent
+  declaration comes with marker N (XII.5 core fix).
+
+- [x] **v1/v2 plan trees added as living documents** (your request):
+  `plan-version1.md` (the 1.0 dependency tree, updated per marker) +
+  `plan-version2.md` (the loose v2.0-or-later shelf).
 
 - [x] **Markers 0063–0067 tagged — MERGED.** You've been merging as they land.
   Shipped 2026-07-19 (each has a `reports/marker-00NN.md`):

@@ -81,7 +81,7 @@
     <h1>Human work items — RetroMultiCiv</h1>
     <div class="sub">Things only a human (Kjell / friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>.</div>
     <div class="meta">
-      <span class="chip">Last synced: <strong>2026-07-20 late</strong> (XII.5 D1+D2 RULED — core-fix marker then calendar-545; XIV in build)</span>
+      <span class="chip">Last synced: <strong>2026-07-20 late</strong> (marker-0068 tagged NOT-consistent; playtest bugs fixed; plan-v1/v2 living docs added)</span>
       <span class="chip">Merge candidate: <strong>marker-0062</strong></span>
       <span class="chip">Pending: <strong>marker-0063 · D3 (phase-2)</strong></span>
       <span class="chip">Companion of <strong>human-workitems.md</strong></span>
@@ -112,9 +112,19 @@
       <div class="d">Fast; only you can see the box. <strong>(1)</strong> Is the installed unit's <code>--public-addr</code> now the bare <code>multiciv.kjell.today:443</code> form, and does the journal show <code>master: listed at …</code> rather than <code>master says: badAddress</code>? <strong>Heads-up:</strong> a scheme is rejected at boot now, so a unit still carrying <code>https://…</code> will <strong>fail to start</strong> instead of running mis-announced — fix it before the next restart or deploy. <strong>(2)</strong> The box is the <strong>2&nbsp;GB</strong> tier (<code>multiciv-2gb</code>) but the unit carries 4&nbsp;GB defaults; apply the 2&nbsp;GB row from <code>docs/how-to-host.md</code> § "Sizing by RAM" (heap 768, <code>MemoryMax=1200M</code>, <code>--max-games 3</code>). <strong>(3)</strong> Does a <code>?server=1</code> game now write into <code>/opt/retromulticiv/saves/</code>? (The empty-saves puzzle resolved as play going through the bare <code>/client/</code> URL, which runs the in-browser engine.)</div>
     </div>
 
+    <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>
+      <div class="t" style="text-decoration:line-through;opacity:.7">Two server-only playtest bugs — BOTH FIXED + committed</div>
+      <div class="d">The endscreen crash (shared <code>score-view.js</code> fog-guard, all four score callers, tested) and the bare-<code>/client/</code> → <code>?server=1</code> redirect (<code>?local=1</code> escape). Bonus third delivery: the <strong>in-client bug-report feature</strong> (🐞 dialog + auto-attached recording; write-only opt-in <code>--bug-reports</code> route). All reach the live box on your <strong>next redeploy</strong> — until then share <code>?server=1</code>.</div>
+    </div>
+
     <div class="item"><span class="box"></span>
-      <div class="t">Two server-only bugs found in your first live playtest</div>
-      <div class="d">BOTH NOW FIXED in the working tree (helper): the endscreen crash (shared <code>score-view.js</code> shim — fog-honest "—" rows instead of a crash, wired into all four score callers, tested) and the bare-<code>/client/</code> → <code>?server=1</code> redirect (with <code>?local=1</code> escape). <strong>They reach the live box on your next redeploy</strong> — until then keep sharing the <code>?server=1</code> link.</div>
+      <div class="t">Studio screenshot review — Studded/Brick world style</div>
+      <div class="d">First implementation committed (<code>a2335b0</code>, 18 gates green); roblox-helper waits on your in-Studio screenshot pass (ally invariants: silhouettes readable, studs sparse, terrain FLATTER than the other styles) before iterating.</div>
+    </div>
+
+    <div class="item"><span class="box"></span>
+      <div class="t">marker-0068 tagged — do NOT merge yet</div>
+      <div class="d">OOM fix complete + A101 operator-caps verified (<code>reports/marker-0068.md</code>). Explicitly NOT merge-consistent: the XII.5 golden window is open (re-record in flight). <strong>Latest merge-consistent marker remains 0067.</strong> The next consistent declaration comes with marker N.</div>
     </div>
 
     <div class="item"><span class="box" style="background:var(--play);border-color:var(--play)"></span>

@@ -334,7 +334,12 @@ since the previous marker, each item with what changed and why, any
 golden re-records with the new hashes, breaking notes, and the
 test state. Reporting-style rules still apply (facts, no
 autonomous-actor voice). marker-0025..0030 are covered collectively
-in `reports/night2-morning.md`.
+in `reports/night2-morning.md`. **A marker report also refreshes the
+LIVING plan docs (user ruling 2026-07-20): `plan-version1.md` (the
+1.0 dependency tree — node statuses + last-updated line; verify an
+axis against the ENGINE, not the workitem files, before flipping it
+done) and, when something is deferred or promoted, `plan-version2.md`
+(the loose v2 shelf; items leave it only by user ruling).**
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
 local **coder-helper**; B-items: bug triage/fixes for the local

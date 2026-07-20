@@ -1,9 +1,13 @@
 # RetroMultiCiv — road to v1.0: remaining work, as a dependency tree
 
-_Snapshot 2026-07-20 late. Source of truth for the 1.0 definition:
-`docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal cut).
-Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner known) ·
-🧩 designed, not started · 🚪 user gate._
+_LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
+update the node statuses + "last updated" line with each marker report, and
+re-verify against the engine (not the workitem files) when an axis flips to
+done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
+Last updated: 2026-07-20 (marker-0068). Source of truth for the 1.0
+definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
+cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
+known) · 🧩 designed, not started · 🚪 user gate._
 
 The single most important structural fact: **every engine/gamesim change
 serializes through ONE golden window** (one lock-holder at a time, JS+Luau

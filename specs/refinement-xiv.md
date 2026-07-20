@@ -1,5 +1,11 @@
 # Refinement XIV — multi-device playtest of the hosted server (2026-07-20)
 
+_Delivery tracker (see agent-workitems for done-marks): §16 redirect ✅,
+§2-adjacent endscreen fog-guard ✅ (score-view.js shim), bug-report feature ✅
+(all three committed f7b52e2), §15 Studded spec + first impl ✅ (a2335b0,
+awaiting user Studio review). Remaining helper queue continues from
+§2/§3 regency lifecycle._
+
 Source: user + friend playtest on https://multiciv.kjell.today across desktop
 browser, iPad (2020), and phone. 29 items, triaged by the architect; each item
 below carries its routing. Queue tags reference these section numbers.
