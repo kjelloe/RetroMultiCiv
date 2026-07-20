@@ -49,14 +49,22 @@ One theme, one shared surface (the visibility model):
    land tiles (one guard, mirror of the sea-bombard allowance).
    AI note: AI target selection reads the same filtered knowledge —
    determinism preserved because visibility is already state-derived.
-3. **Trireme open-sea loss**: at turn end, a trireme not adjacent to a land
-   tile is LOST (removed, logged as an event — the classic gamble).
-   **Activates the Lighthouse wonder**: owner's triremes are exempt
-   (`data/wonders.json` effect field, e.g. `{"triremesSafe": true}` authored
-   in mapdata.js WONDER_OVERLAY — currently inert prose). Deterministic: a
-   rule, not a die roll (Civ 1's actual behavior is probabilistic; we adopt
-   the DETERMINISTIC variant — flag as `original`-shaped simplification,
-   surface to the user if the gamble-feel is wanted instead).
+3. **Trireme open-sea loss — PROBABILISTIC (user re-ruling 2026-07-21,
+   overriding the earlier deterministic draft; fact-pack 4 confirmed Civ 1
+   is probabilistic)**: at turn end, a trireme not adjacent to a land tile
+   rolls for loss via `engine/rng.js` — replay-deterministic (xorshift32,
+   state-seeded), Civ1-authentic in feel. Odds: the dump documents NO
+   number (fact-pack 4), so the chance is a `rules.json` knob —
+   `triremeLossPct`, default **50**, labeled PROVISIONAL pending better
+   sourcing; sweepable like any ruleset number.
+   **RNG-stream discipline**: the draw happens ONLY when a trireme actually
+   ends at open sea, in the fixed turn-end unit order — no draw, no stream
+   shift, so games without exposed triremes hash identically to today.
+   Scenario pins must include one exposed-trireme case to lock the draw
+   ordering. **Activates the Lighthouse wonder**: owner's triremes are
+   exempt — NO ROLL AT ALL for them (`{"triremesSafe": true}` via the
+   mapdata.js WONDER_OVERLAY — currently inert prose), keeping the wonder's
+   value crisp and the RNG stream untouched for Lighthouse owners.
 
 Scenarios: sub invisible to adjacent land unit / visible to adjacent ship;
 sight-2 battleship reveals at range 2; trireme lost at open sea + safe with
