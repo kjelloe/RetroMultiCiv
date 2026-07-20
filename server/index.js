@@ -18,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
-import { createRegistry, joinCode } from './lobby.js';
+import { createRegistry, joinCode, yearAtTurn } from './lobby.js';
 import { installCrashHandlers, startMemoryWatchdog } from './crash.js';
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
@@ -35,6 +35,7 @@ const SIZES = {
   xsmall: [40, 25], small: [60, 38], medium: [80, 50],
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
+const SIZE_ORDER = ['xsmall', 'small', 'medium', 'large', 'xlarge', 'huge']; // #1875 --max-size clamp
 const COLORS = ['#3b7dd8', '#d84a3b', '#3bd87d', '#d8b13b', '#9b59d0', '#d07f3b', '#4fd0c9'];
 
 function loadRuleset() {
@@ -65,6 +66,21 @@ function setupFromOpts(opts) {
 // DEFAULT game (phase-3 compat) used by the integration test and the CLI.
 export function startServer(opts) {
   const ruleset = opts.ruleset || loadRuleset();
+  // #1875 operator resource caps also bound the HOST's own default game (the
+  // --civs/--size/--game-less boot), for consistency with client-created games:
+  // clamp the map size DOWN to --max-size, the civ count DOWN to --max-civs, and
+  // fold --max-turns into the default game's endYear override.
+  if (opts.maxSize && SIZES[opts.maxSize] && opts.size && SIZES[opts.size]
+    && SIZE_ORDER.indexOf(opts.size) > SIZE_ORDER.indexOf(opts.maxSize)) {
+    opts.size = opts.maxSize;
+  }
+  if (opts.maxCivs > 0 && opts.civs !== undefined) opts.civs = Math.min(opts.civs, Math.floor(opts.maxCivs));
+  if (opts.maxTurns > 0) {
+    const base = (opts.rulesOverrides && opts.rulesOverrides.endYear !== undefined)
+      ? opts.rulesOverrides.endYear : ruleset.rules.endYear;
+    const cap = yearAtTurn(ruleset.rules, Math.floor(opts.maxTurns));
+    if (cap < base) opts.rulesOverrides = Object.assign({}, opts.rulesOverrides, { endYear: cap });
+  }
   // A38: the measured seats-per-size table gates --civs (data/rules.json)
   if (opts.civs !== undefined) {
     const table = (ruleset.rules && ruleset.rules.maxCivsBySize) || {};
@@ -77,7 +93,8 @@ export function startServer(opts) {
   // L3b: opts.lobbyGameIdFn lets tests pin deterministic lobby ids; the
   // default mixes boot entropy (fresh join codes per restart, lobby.js)
   const registry = createRegistry({ ruleset, nowFn: now, gameIdFn: opts.lobbyGameIdFn,
-    debug: opts.debug === true }); // A92: lobby games on a --debug host allow debug commands
+    debug: opts.debug === true, // A92: lobby games on a --debug host allow debug commands
+    maxTurns: opts.maxTurns, maxCivs: opts.maxCivs, maxSize: opts.maxSize }); // #1875 operator caps
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
   const limiter = createLimiter({ now, limits: opts.limits });
@@ -1197,13 +1214,24 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // A50 item 3b lifecycle expiry (unstarted lobbies + abandoned started games)
     else if (a === '--lobby-ttl-min') (opts.lifecycle = opts.lifecycle || {}).lobbyTtlMs = Number(argv[++i]) * 60000;
     else if (a === '--abandoned-hours') (opts.lifecycle = opts.lifecycle || {}).abandonedMs = Number(argv[++i]) * 3600000;
+    // #1875 operator resource caps (per-game bounds on log growth / state / CPU)
+    else if (a === '--max-turns') opts.maxTurns = Number(argv[++i]);
+    else if (a === '--max-civs') opts.maxCivs = Number(argv[++i]);
+    else if (a === '--max-size') {
+      const s = argv[++i];
+      if (!SIZES[s]) { console.error(`--max-size must be one of ${SIZE_ORDER.join('/')}`); process.exit(1); }
+      opts.maxSize = s;
+    }
     // A51b: master-index announce (docs/12 §6) — one flag = listed; stop = gone
     else if (a === '--announce') opts.announce = argv[++i];
     else if (a === '--public-name') opts.publicName = argv[++i];
     else if (a === '--public-addr') opts.publicAddr = argv[++i];
     else if (a === '--share-reports') opts.shareReports = argv[++i]; // S1: match-report dir (OFF by default)
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
-    else { console.error(`unknown argument: ${a}`); process.exit(1); }
+    // A101 rider: WARN, don't fail. A cloud-init unit can then carry a future
+    // (not-yet-merged) flag without crash-looping the deploy (the S0 the Hetzner
+    // box hit); a typo'd flag no-ops and shows up on the boot `caps:` line below.
+    else { console.error(`WARN: unknown argument ${a} — ignored; see --help`); }
   }
   // Crash resilience: install fatal-error handlers EARLY (deps filled after boot,
   // read by reference at crash-time) so even a boot crash writes a crashdump.
@@ -1223,6 +1251,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
     // Slice 3c: one-line posture summary so an operator sees the active guards.
     console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
+    // A101 rider: the EFFECTIVE operator caps. Because unknown args now only WARN,
+    // a typo'd cap flag no-ops silently — this line is the operator's confirmation
+    // that a cap actually took (a typo shows the value as `unset`).
+    {
+      const cap = v => (v === undefined || v === null ? 'unset' : v);
+      const lim = opts.limits || {}, rot = opts.rotation || {};
+      console.log(`caps: maxGames=${cap(lim.maxGames)} maxSavesMb=${cap(rot.maxSavesMb)} maxTurns=${cap(opts.maxTurns)} maxCivs=${cap(opts.maxCivs)} maxSize=${cap(opts.maxSize)} memSoftPct=${cap(opts.memSoftPct)}`);
+    }
     if (opts.host !== '127.0.0.1' && opts.host !== 'localhost' && !opts.trustProxyHops) {
       console.log('note: reachable on the network over plain ws:// — for PUBLIC hosting terminate TLS at a reverse proxy (tokens travel the socket); LAN is fine. See docs/how-to-host.md.');
     }

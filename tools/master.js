@@ -4,7 +4,9 @@
 // this process. Plain node, zero dependencies, in-memory registry — a restart
 // just means hosts re-announce within a heartbeat.
 //
-//   node tools/master.js [--port 8200]
+//   node tools/master.js [--port 8200] [--host 0.0.0.0]
+//     --host binds the listener; default 0.0.0.0. Use 127.0.0.1 to keep the
+//     index off the public interface (behind a reverse proxy / firewall).
 //
 // Protocol:
 //   POST /announce  {name, host, port, protocolVersion, dataHashes, openGames}
@@ -192,8 +194,13 @@ function createMaster(opts) {
 if (require.main === module) {
   const portArg = process.argv.indexOf('--port');
   const port = portArg !== -1 ? Number(process.argv[portArg + 1]) : 8200;
-  createMaster().listen(port, '0.0.0.0').then(p =>
-    console.log(`master index listening on :${p} — POST /announce · GET /servers`));
+  // --host binds the listener (default 0.0.0.0, back-compat). Pass 127.0.0.1 to
+  // keep the index off the public interface — defense-in-depth behind a reverse
+  // proxy / firewall (#1894), so a flushed ufw doesn't leave :8200 world-open.
+  const hostArg = process.argv.indexOf('--host');
+  const host = hostArg !== -1 ? process.argv[hostArg + 1] : '0.0.0.0';
+  createMaster().listen(port, host).then(p =>
+    console.log(`master index listening on ${host}:${p} — POST /announce · GET /servers`));
 }
 
 module.exports = { createMaster, isPublicAddress, TTL_MS, REPROBE_MS, MIN_ANNOUNCE_GAP_MS };

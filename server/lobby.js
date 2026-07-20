@@ -14,7 +14,7 @@
 // reply. Reservation names become the player names (killing "Player N").
 import { randomBytes } from 'node:crypto';
 import { createGame } from './game.js';
-import { createEngine } from '../engine/index.js';
+import { createEngine, nextYear } from '../engine/index.js';
 import { fastForwardTo } from '../shared/fastforward.js';
 import { fnv32 } from '../shared/gamecode.js';
 import { victoryOverrides, victoryId } from '../shared/victory-presets.js';
@@ -25,7 +25,22 @@ const SIZES = {
   xsmall: [40, 25], small: [60, 38], medium: [80, 50],
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
+// ascending map-size order — the operator --max-size cap clamps down this list
+const SIZE_ORDER = ['xsmall', 'small', 'medium', 'large', 'xlarge', 'huge'];
 const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+
+// #1875 operator --max-turns: the game ends at rules.endYear (engine/score.js),
+// so a turn cap is expressed as the YEAR reached after N turns on the ruleset's
+// variable calendar. Games start at turn 1 / year -4000 (engine/mapgen.js), and
+// each turn-wrap advances by nextYear(). Returns the year at turn n — capping
+// endYear to it ends the game at ~turn n (the cheapest bound on total turns +
+// the per-turn recording-log growth, specs/server-crash-resilience.md).
+const START_YEAR = -4000;
+export function yearAtTurn(rules, n) {
+  let y = START_YEAR;
+  for (let t = 1; t < n; t++) y = nextYear(y, rules);
+  return y;
+}
 
 function clamp(n, lo, hi) {
   const v = Math.floor(Number(n));
@@ -73,20 +88,57 @@ export function createRegistry(deps) {
   // game state (registry only — golden-neutral); injectable for tests.
   const reconnectIdFn = deps.reconnectIdFn || (() => randomBytes(9).toString('hex'));
   const ruleset = deps.ruleset;
+  // #1875 operator resource caps (host-set; default = no tightening). maxTurns
+  // clamps the effective endYear, maxCivs is an absolute per-game civ ceiling,
+  // maxSize clamps the map size a client may pick. Enforced at game creation.
+  const maxTurns = deps.maxTurns > 0 ? Math.floor(deps.maxTurns) : null;
+  const maxCivs = deps.maxCivs > 0 ? Math.floor(deps.maxCivs) : null;
+  const maxSize = SIZES[deps.maxSize] ? deps.maxSize : null;
   const games = {};      // gameId -> entry
   const codeIndex = {};  // joinCode -> gameId
 
   // A38: how many civs a map size seats reliably (measured fit sweep,
-  // data/rules.json maxCivsBySize); absent table = the 14-identity ceiling
+  // data/rules.json maxCivsBySize); absent table = the 14-identity ceiling.
   function maxCivsFor(size) {
     const table = ruleset.rules && ruleset.rules.maxCivsBySize;
     return (table && table[size]) || 14;
   }
 
+  // #1875: the effective civ ceiling = the map-size seat limit tightened by the
+  // operator --max-civs (a silent clamp; the map-size limit still rejects with a
+  // clear "too small" message when a client asks for more than the MAP holds).
+  function civCeiling(size) {
+    return maxCivs ? Math.min(maxCivsFor(size), maxCivs) : maxCivsFor(size);
+  }
+
+  // #1875: normalize a requested size to a known id, then clamp DOWN to the
+  // operator --max-size ceiling (a client can never exceed the host cap).
+  function clampSize(reqSize) {
+    let size = SIZES[reqSize] ? reqSize : 'medium';
+    if (maxSize && SIZE_ORDER.indexOf(size) > SIZE_ORDER.indexOf(maxSize)) size = maxSize;
+    return size;
+  }
+
+  // #1875: the ruleset overrides for a game, with the operator --max-turns cap
+  // folded into endYear (marathon's endYear 9999 becomes the host cap). All
+  // games created on this host — lobby + resize — resolve length through here.
+  function effectiveOverrides(options) {
+    const o = overridesFor(options);
+    if (maxTurns) {
+      const base = o.endYear !== undefined ? o.endYear : ruleset.rules.endYear;
+      const cap = yearAtTurn(ruleset.rules, maxTurns);
+      if (cap < base) o.endYear = cap; // only when it actually shortens the game
+    }
+    return o;
+  }
+
   // A fresh pre-start lobby, with the creator holding the first human seat.
   function create(options, creatorName) {
-    const size = SIZES[options.size] ? options.size : 'medium';
-    const wanted = clamp(options.civs, 2, 14);
+    const size = clampSize(options.size); // #1875: clamp DOWN to --max-size
+    // #1875: the operator --max-civs silently clamps the request; the map-size
+    // limit still rejects a client asking for more than the MAP can seat.
+    let wanted = clamp(options.civs, 2, 14);
+    if (maxCivs) wanted = Math.min(wanted, maxCivs);
     if (wanted > maxCivsFor(size)) {
       return { ok: false, reason: 'mapTooSmall', maxCivs: maxCivsFor(size), size };
     }
@@ -242,7 +294,7 @@ export function createRegistry(deps) {
     const e = games[gameId];
     if (!e) return { ok: false, reason: 'noSuchGame' };
     if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
-    const n = clamp(civCount, 2, maxCivsFor(e.options.size));
+    const n = clamp(civCount, 2, civCeiling(e.options.size)); // #1875: honor --max-civs
     const pids = Object.keys(e.seats);
     if (n > pids.length) {
       for (let i = pids.length; i < n; i++) {
@@ -314,7 +366,7 @@ export function createRegistry(deps) {
         // human seats take over (fastForwardTo grants techs + flips them)
         const allAi = players.map(p => Object.assign({}, p, { human: false }));
         const engine = createEngine(Object.assign({}, ruleset, {
-          rules: Object.assign({}, ruleset.rules, overridesFor(e.options))
+          rules: Object.assign({}, ruleset.rules, effectiveOverrides(e.options))
         }));
         const raw = engine.createGame({
           seed: e.options.seed,
@@ -332,11 +384,11 @@ export function createRegistry(deps) {
           };
         }
         game = createGame({
-          ruleset, gameId, rulesOverrides: overridesFor(e.options), initialState: r.state
+          ruleset, gameId, rulesOverrides: effectiveOverrides(e.options), initialState: r.state
         });
       } else {
         game = createGame({
-          ruleset, gameId, rulesOverrides: overridesFor(e.options),
+          ruleset, gameId, rulesOverrides: effectiveOverrides(e.options),
           setup: { seed: e.options.seed,
             debug: deps.debug === true ? true : undefined, // A92
             options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype } }

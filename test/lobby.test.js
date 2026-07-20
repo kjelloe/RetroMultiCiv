@@ -5,8 +5,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const RULESET = require('./ruleset.js');
 const lobby = import('../server/lobby.js');
-let joinCode, createRegistry;
-test.before(async () => { ({ joinCode, createRegistry } = await lobby); });
+let joinCode, createRegistry, yearAtTurn;
+test.before(async () => { ({ joinCode, createRegistry, yearAtTurn } = await lobby); });
 
 test('joinCode: 5 Crockford chars, deterministic, alphabet-clean', () => {
   assert.strictEqual(joinCode('g1'), joinCode('g1'), 'deterministic');
@@ -128,4 +128,63 @@ test('start: a reserved seat whose connection dropped becomes AI', () => {
   assert.ok(res.ok, res.reason);
   assert.strictEqual(res.game.state.players.p2.human, false, 'dropped reservation → AI');
   assert.deepStrictEqual(res.humanSeats, ['p1']);
+});
+
+// #1875 operator resource caps -------------------------------------------------
+
+test('yearAtTurn: turn 1 is -4000 BC and the calendar advances monotonically', () => {
+  const rules = RULESET.rules;
+  assert.strictEqual(yearAtTurn(rules, 1), -4000, 'games start at 4000 BC');
+  assert.strictEqual(yearAtTurn(rules, 2), -3950, 'first step is +50');
+  assert.ok(yearAtTurn(rules, 100) > yearAtTurn(rules, 50), 'monotonic increasing');
+  assert.ok(yearAtTurn(rules, 200) < rules.endYear, 'turn 200 is still before the default endYear');
+});
+
+test('create: --max-civs silently clamps the requested civ count', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n), maxCivs: 4 });
+  const { entry } = reg.create({ civs: 10, humans: 8, size: 'huge' }, 'Kjell');
+  assert.strictEqual(Object.keys(entry.seats).length, 4, 'civs clamped to --max-civs');
+  assert.strictEqual(Object.values(entry.seats).filter(s => s.human).length, 4, 'humans re-clamped to civs');
+  // the operator cap tightens the resize ceiling too
+  assert.strictEqual(reg.setSlots(entry.gameId, 9).ok, true);
+  assert.strictEqual(Object.keys(reg.entryOf(entry.gameId).seats).length, 4, 'setSlots honors --max-civs');
+});
+
+test('create: --max-size clamps the map size DOWN to the host ceiling', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: {}, gameIdFn: () => 'g' + (++n), maxSize: 'small' });
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, size: 'huge' }, 'K').entry.options.size, 'small', 'huge clamped to small');
+  assert.strictEqual(reg.create({ civs: 2, humans: 1, size: 'xsmall' }, 'K').entry.options.size, 'xsmall', 'below the cap is untouched');
+});
+
+test('create: the map-size seat limit STILL rejects (operator cap is a separate clamp)', () => {
+  let n = 0;
+  const ruleset = { rules: { maxCivsBySize: { xsmall: 7, small: 12, medium: 14 } } };
+  const reg = createRegistry({ ruleset, gameIdFn: () => 'g' + (++n), maxCivs: 10 });
+  // 13 civs on xsmall: --max-civs clamps to 10, but xsmall only seats 7 → reject
+  const rej = reg.create({ civs: 13, humans: 1, size: 'xsmall' }, 'K');
+  assert.strictEqual(rej.ok, false);
+  assert.strictEqual(rej.reason, 'mapTooSmall');
+  assert.strictEqual(rej.maxCivs, 7, 'reject reports the MAP limit, not the operator cap');
+});
+
+test('start: --max-turns caps the game endYear (marathon 9999 → the host cap)', () => {
+  let n = 0;
+  const reg = createRegistry({ ruleset: RULESET, gameIdFn: () => 'g' + (++n), seedFn: () => 7, maxTurns: 100 });
+  const { entry } = reg.create({ civs: 2, humans: 1, size: 'xsmall', victory: 'marathon' }, 'Kjell');
+  const res = reg.start(entry.gameId, ['p1']);
+  assert.ok(res.ok, res.reason);
+  const capped = yearAtTurn(RULESET.rules, 100); // -25
+  assert.strictEqual(res.game.toSave().rulesOverrides.endYear, capped, 'marathon endYear clamped to the ~100-turn year');
+});
+
+test('start: --max-turns leaves a game that already ends earlier UNCHANGED', () => {
+  let n = 0;
+  // a huge maxTurns never tightens a standard game (endYear 2100 ≈ turn 330)
+  const reg = createRegistry({ ruleset: RULESET, gameIdFn: () => 'g' + (++n), seedFn: () => 7, maxTurns: 9000 });
+  const { entry } = reg.create({ civs: 2, humans: 1, size: 'xsmall' }, 'Kjell'); // standard victory
+  const res = reg.start(entry.gameId, ['p1']);
+  assert.ok(res.ok, res.reason);
+  assert.strictEqual(res.game.toSave().rulesOverrides.endYear, undefined, 'standard game keeps its default endYear (no override)');
 });

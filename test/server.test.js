@@ -760,3 +760,21 @@ test('A50 item 0: a per-connection command flood is cheap-rejected (rateLimited)
     await s.close();
   }
 });
+
+test('#1875 operator caps clamp the host default game (civs/size/turns)', async () => {
+  const { startServer } = await import('../server/index.js');
+  // request 12 civs on a huge marathon; the host caps everything down
+  const s = await startServer({
+    ruleset: RULESET, seed: 9, civs: 12, humans: 1, size: 'huge',
+    rulesOverrides: { endYear: 9999 }, // simulate a marathon-preset boot
+    maxCivs: 4, maxSize: 'small', maxTurns: 100, autosave: false
+  });
+  try {
+    const g = s.game;
+    assert.strictEqual(g.state.playerOrder.length, 4, '--max-civs clamps the boot civ count');
+    assert.strictEqual(g.state.map.width, 60, '--max-size clamps huge → small (60 wide)');
+    assert.strictEqual(g.toSave().rulesOverrides.endYear, -25, '--max-turns clamps the boot endYear (turn-100 year)');
+  } finally {
+    await s.close();
+  }
+});
