@@ -14,7 +14,7 @@ _Last synced: 2026-07-21 (marker-0069 = MERGE CANDIDATE; calendar-545 in build a
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Merge marker-0069** — the new merge candidate (supersedes 0062–0068;
+- [ ] **Merge marker-0070** — the merge candidate (supersedes 0062–0069;
   first consistent marker since 0067). Contents: the XII.5 space-drive core
   fix + re-recorded goldens (both gates green), the complete OOM fix, A101
   operator-caps, the three playtest-bug fixes (redirect / endscreen /
