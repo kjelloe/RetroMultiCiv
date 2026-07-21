@@ -8,49 +8,46 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 post-away (marker-0075 = MERGE CANDIDATE; §50 in build; wake-list + Studio review are the user actions)._
+_Last synced: 2026-07-21 (marker-0076 = MERGE CANDIDATE; air-truth in build; ally relay bundle + domain option are the fresh user items)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-_The one-page away-window catch-up: `reports/away-window-brief.md`._
+_Catch-up: `reports/away-window-brief.md` (the 7h run) + reports/marker-0069..0076._
 
-- [ ] **Redeploy from marker-0075** (0076/§50 may supersede — check the
-  latest report) — seven consistent markers 0069–0075: 545-turn games, the
-  full xiv-ai arc (deficit ladder / treasury / space-project AI / settler
-  pathing), settler pop-cost, all playtest fixes. Then the three live-box
-  checks (bare `--public-addr` host:443 — a scheme now FAILS AT BOOT; 2 GB
-  sizing; `?server=1` writes saves/) + optionally
-  `--bug-reports /opt/retromulticiv/bugreports`.
+- [ ] **Redeploy from marker-0076** — nine consistent markers since your
+  last deploy (0069–0076): 545-turn games, the whole xiv-ai arc, settler
+  pop-cost, city-as-road, A50 server hardening (healthz/invite-code), the
+  helper's client wave. Three live-box checks + optional
+  `--bug-reports` flag as before.
 
-- [ ] **Wake three sessions** (in this order): (1) **sim-runner** — owed
-  Gate-B re-runs on tags 0072–0075, the XII.5b 9-metric sweep, the roblox
-  v3 manifest commit (20 files parked ~6h), the floors RE-BASELINE (25
-  seeds, post-§40); (2) **helper** — 18-item queue + the §40 client warn,
-  next item hover-info is scoped ready; (3) **hardening** — A50-remainder
-  untaken (healthz/logs/invite-code).
+- [ ] **Ally relay bundle** (three files, one message): the branding brief
+  for their specialist (`specs/branding-brief-post-v1.md` — tense assumes
+  post-1.0; adjust one line if sent earlier), the three unasked design
+  questions (`specs/ally-ask-2026-07-21b.md` — victory moment, disasters
+  presentation, difficulty names), and the overnight status note
+  (`specs/ally-status-update-2026-07-21c.md`) if not yet sent.
 
-- [ ] **Studio review** — Studded style + D3 relations panel + the
-  manifest-v3 slices (wait-status, MP4 stance dialog, SO6 filters, SO8
-  timelines). One session covers all; roblox lane iterates on your verdict.
+- [ ] **Domain optionality (from the naming verdict; ~€26/yr, optional but
+  time-sensitive)**: registering founders.eu/.no/(.com) now preserves the
+  post-v1 option cheaply; same for a quick trademark screen. Runbook §8.
 
-- [ ] **`runG.txt`** — save from Studio when convenient (regent-replay
-  reconstruction awaits it).
+- [ ] **Studio session** (one sitting covers all): Studded style review +
+  D3 relations panel + manifest-v3 slices + NEW CP1 tile-props; save
+  `runG.txt` while there.
 
-- [ ] **Terrain §29 desaturation check** (with the ally if you like): the
-  helper's before/after screenshot pair — flats flat, hills 25%, mountains
-  own the skyline. First formal ally-review candidate.
+- [ ] **Terrain §29 desaturation check** — screenshot pair, ally's test.
 
-_Recently landed (2026-07-21, the away window):_ markers 0069–0075 all
-merge-consistent; xiv-ai arc closed; XII.5b space-project AI live with the
-ally's 9-metric witness (first data: a civ eligible at t290 that never
-commits because it is never safe — contestability working); the M-floor
-saga resolved twice (stuck-settler was the breach cause → §40's authentic
-brake reverses it → re-baseline queued, authenticity ruled the winner);
-two silent engine bugs found by discipline (era gate, inlet oscillation);
-roblox Tiers 0–3 parity-complete after its audit-then-build run; D4–D6
-fully spec'd; §50 city-as-road in build.
+_Recently landed (since your redeploy list last refreshed):_ marker-0076
+(city-as-road); Gate-B fallbacks 0072–0075 all UPGRADED to real greens by
+sim-runner; ratchet locked (M2≥6/M3≥28/M4≥50) on the 25-seed authentic
+re-baseline; settler-timing sweep FLIPPED its hypothesis (pop≥2 optimal;
+cap-sweep is the density lever, queued); naval-loop probe running; A50
+remainder landed; disasters ruled IN (authentic-ON + toggle, fact-pack
+build-ready); air-truth in build; hover-cards ⅔ live; CP1 tile-props on
+Roblox; D4–D6 design-complete; release runbook live (severity scale,
+versioning rule, naming §8); branding brief written.
 
 ---
 
