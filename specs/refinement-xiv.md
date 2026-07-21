@@ -3,8 +3,12 @@
 _Delivery tracker (see agent-workitems for done-marks): §16 redirect ✅,
 §2-adjacent endscreen fog-guard ✅ (score-view.js shim), bug-report feature ✅
 (all three committed f7b52e2), §15 Studded spec + first impl ✅ (a2335b0,
-awaiting user Studio review). Remaining helper queue continues from
-§2/§3 regency lifecycle._
+awaiting user Studio review). Engine batch SHIPPED (markers 0071-0082):
+§12 pathing+escort ✅ · §13 deficit ladder ✅ · §14 treasury+parley ✅ ·
+§40 settler pop-cost ✅ · §50 city-as-road ✅ · §46/§45b queued.
+Helper: §24 tile-yield ✅ + §27 tech-tree cards ✅ (hover-info #11 ⅔;
+§22 pedia-links remaining), regency lifecycle ✅, save/load buttons ✅.
+Remaining helper queue continues from §26 discovery-overlay (queue #12+)._
 
 Source: user + friend playtest on https://multiciv.kjell.today across desktop
 browser, iPad (2020), and phone. 29 items, triaged by the architect; each item

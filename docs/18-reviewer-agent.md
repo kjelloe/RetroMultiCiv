@@ -62,6 +62,13 @@ For each `marker-NNNN` the architect declares a merge candidate:
    golden producers and confirm the committed hashes reproduce in the clean
    clone, JS == Luau. A hash that does not reproduce = a determinism or
    packaging defect.
+2b. **Sweep gate for combat/movement/naval markers** (adopted 2026-07-21
+   after the naval-truth miss, #2161): a marker that changes unit
+   movement, combat, or naval turn-wrap behavior gets a MULTI-SEED soak
+   (>= the 4-seed short form; 25-seed on request) in addition to the
+   golden seed — the trireme-on-land regression passed every golden-seed
+   gate and only surfaced in the 25-seed sweep (seed 23, t465). One seed
+   exercises one trajectory; movement/combat edits need the net.
 3. **Code review of the marker delta** (`git diff <prev-marker>..marker-NNNN`),
    against the project's own rules — see the checklist below.
 4. **Mail one verdict** (format below).
