@@ -617,3 +617,58 @@ test('§13: a solvable gold deficit raises the tax rate (balanced/regency, not j
   assert.ok(cmd && cmd.type === 'setRates' && cmd.tax > 20,
     'a solvable deficit (net -1 at tax 20) must raise tax; got ' + JSON.stringify(cmd));
 });
+
+// xiv-ai §14 (treasury): a large treasury rushes a non-defensive build (settler/
+// army) so the AI spends its hoard instead of sitting on gold. rush-current-only.
+test('§14 surplus lever: a large treasury rushes an in-production settler', async () => {
+  const { ai } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9 * 9; i++) tiles.push({ t: 'grassland' });
+  const st = {
+    version: 1, turn: 10, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 9, height: 9, wrapX: false, tiles }, units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: { c9: { id: 'c9', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 5, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
+    cityOrder: ['c9'],
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 5000, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const done = { happiness: true, research: true, rates: true, government: true, diplo: {} };
+  const cmd = ai.pickCommand(st, 'p1', RULESET, done);
+  assert.ok(cmd && cmd.type === 'buy' && cmd.cityId === 'c9',
+    'gold 5000 (> aiSurplusBuyThreshold) rushes the in-production settler; got ' + JSON.stringify(cmd));
+  // control: below the threshold, no surplus buy (the settler is left to build out)
+  st.players.p1.gold = 300;
+  const cmd2 = ai.pickCommand(st, 'p1', RULESET, { happiness: true, research: true, rates: true, government: true, diplo: {} });
+  assert.ok(!cmd2 || cmd2.type !== 'buy', 'gold 300 (< threshold) does NOT surplus-rush; got ' + JSON.stringify(cmd2));
+});
+
+// xiv-ai §14 F2: a unit rejected with reason zoc 3 turns running is DROPPED for
+// the turn (stops the ping-pong burn); it re-plans next turn (runAiTurn clears).
+test('§14 F2: a unit with zocBlocks>=3 is skipped by the move loop', async () => {
+  const { ai } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9 * 9; i++) tiles.push({ t: 'grassland' });
+  const wide = [];
+  for (let i = 0; i < 12 * 5; i++) wide.push({ t: 'grassland' });
+  const mk = (zoc) => ({
+    version: 1, turn: 10, year: -3000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 12, height: 5, wrapX: false, tiles: wide },
+    units: { u1: Object.assign({ id: 'u1', type: 'legion', owner: 'p1', x: 1, y: 2, moves: 1, fortified: false, veteran: false }, zoc !== undefined ? { zocBlocks: zoc } : {}) },
+    cities: { c9: { id: 'c9', name: 'Target', owner: 'p2', x: 9, y: 2, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c9'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  });
+  const done = () => ({ happiness: true, research: true, rates: true, government: true, buy: true, launch: true, diplo: { p2: true } });
+  // control: without zoc blocks the legion marches east toward the enemy city
+  const free = ai.pickCommand(mk(undefined), 'p1', RULESET, done());
+  assert.ok(free && free.type === 'moveUnit' && free.unitId === 'u1',
+    'the legion without zoc blocks DOES march (control); got ' + JSON.stringify(free));
+  // with zocBlocks>=3 the same unit is dropped (no move issued this turn)
+  const blocked = ai.pickCommand(mk(3), 'p1', RULESET, done());
+  assert.ok(!blocked || blocked.type !== 'moveUnit' || blocked.unitId !== 'u1',
+    'a zocBlocks>=3 unit is not moved; got ' + JSON.stringify(blocked));
+});

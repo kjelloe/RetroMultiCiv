@@ -172,7 +172,10 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 
 	if cmd.kind == "reject" then
 		if entry == nil or entry.offer == nil then return { ok = false, reason = "noSuchOffer" } end
-		entry.offer = nil -- no state change beyond clearing the offer
+		entry.offer = nil
+		-- §14 F1: stamp the reject so the offerer does not immediately re-offer
+		-- (rel stays "war"); diplomacyStep gates on rules.diplomacy.offerCooldown.
+		entry.offerRejectedTurn = state.turn
 		return { ok = true, events = events }
 	end
 

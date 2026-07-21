@@ -862,6 +862,31 @@ local function rushBuyCommand(state: any, playerId: string, ruleset: any): any
 			end
 		end
 	end
+	-- §14 surplus lever: with a large treasury (> aiSurplusBuyThreshold), rush a
+	-- non-defensive build -- a settler or an offensive unit -- so the AI spends
+	-- its hoard. kind "unit" only (never wonders/buildings, never ss-parts until
+	-- the xii5b GO; wonders never gold-rushed). cityOrder-deterministic, 1/turn.
+	local surplus = if ruleset.rules.aiSurplusBuyThreshold == nil then -1 else ruleset.rules.aiSurplusBuyThreshold
+	if surplus >= 0 and me.gold > surplus then
+		for _, cid in ipairs(state.cityOrder or {}) do
+			local city = state.cities[cid]
+			if city ~= nil and city.owner == playerId then
+				local prod = city.producing
+				if prod.kind == "unit" then
+					local u = ruleset.units[prod.id]
+					if u ~= nil and (prod.id == "settlers" or u.attack > 0) then
+						local missing = u.cost - city.shields
+						if missing > 0 then
+							local price = missing * ruleset.rules.buyGoldPerShield
+							if me.gold >= price then
+								return { type = "buy", playerId = playerId, cityId = cid }
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 	return nil
 end
 
@@ -1397,7 +1422,12 @@ local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet
 		if rel == "peace" and aiDiplomacy.scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold then
 			return { type = "diplomacy", kind = "declare", playerId = playerId, target = other }
 		end
-		if rel == "war" and (entry == nil or entry.offer == nil)
+		-- §14 F1: the reject cooldown stops the offer/reject spam loop (reject
+		-- clears the offer but keeps war). Gate on rules.diplomacy.offerCooldown.
+		local cooldown = if d.offerCooldown == nil then 0 else d.offerCooldown
+		local offerCooled = entry == nil or entry.offerRejectedTurn == nil
+			or state.turn - entry.offerRejectedTurn >= cooldown
+		if rel == "war" and (entry == nil or entry.offer == nil) and offerCooled
 			and aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold then
 			return { type = "diplomacy", kind = "offer", playerId = playerId, target = other, terms = { peace = true } }
 		end
@@ -1792,7 +1822,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
 		if done["u:" .. uid] ~= true then
 			local unit = state.units[uid]
-			if unit ~= nil and unit.owner == playerId and unit.moves > 0 and unit.working == nil then
+			-- §14 F2: a unit zoc-blocked 3x this turn is dropped (skip; re-plans next turn)
+			if unit ~= nil and unit.owner == playerId and unit.moves > 0 and unit.working == nil
+				and not (unit.zocBlocks ~= nil and unit.zocBlocks >= 3) then
 				done["u:" .. uid] = true
 
 				if unit.type == "settlers" then
@@ -1982,6 +2014,11 @@ end
 -- Rejected commands just retire that actor — the AI can never wedge.
 local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any, eventsOut: any, stance: any): any
 	local done = {}
+	-- §14 F2: a fresh turn = re-plan -- clear last turn's zoc-block tallies.
+	for _, uid in ipairs(sortedKeys(state.units)) do
+		local u = state.units[uid]
+		if u.owner == playerId and u.zocBlocks ~= nil then u.zocBlocks = nil end
+	end
 	local guard = 500
 	while guard > 0 do
 		guard -= 1
@@ -1992,11 +2029,20 @@ local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any
 		local res = engine.applyCommand(state, cmd)
 		if res.ok then
 			state = res.state
+			-- §14 F2: a successful move breaks the consecutive-zoc streak
+			if cmd.type == "moveUnit" then
+				local mu = state.units[cmd.unitId]
+				if mu ~= nil and mu.zocBlocks ~= nil then mu.zocBlocks = nil end
+			end
 			if eventsOut ~= nil then
 				for _, e in ipairs(res.events) do
 					table.insert(eventsOut, e)
 				end
 			end
+		elseif cmd.type == "moveUnit" and res.reason == "zoc" then
+			-- §14 F2: count consecutive zoc rejects; pickCommand drops at 3
+			local bu = state.units[cmd.unitId]
+			if bu ~= nil then bu.zocBlocks = (if bu.zocBlocks == nil then 0 else bu.zocBlocks) + 1 end
 		end
 	end
 	return state

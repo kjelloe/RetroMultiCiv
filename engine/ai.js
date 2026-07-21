@@ -759,6 +759,28 @@ function rushBuyCommand(state, playerId, ruleset) {
     const price = missing * ruleset.rules.buyGoldPerShield;
     if (me.gold >= price) return { type: 'buy', playerId, cityId: cid };
   }
+  // §14 surplus lever: with a large treasury (> aiSurplusBuyThreshold), rush a
+  // non-defensive build — a settler (expansion) or an offensive unit (army) —
+  // so the AI spends its hoard instead of sitting on six figures of gold. Only
+  // units of kind 'unit' (never wonders/buildings, never ss-parts until the
+  // xii5b GO — wonders are never gold-rushed, #1899). cityOrder-deterministic,
+  // one buy/turn; the threatened-defender rush above always takes priority.
+  const surplus = ruleset.rules.aiSurplusBuyThreshold === undefined ? -1 : ruleset.rules.aiSurplusBuyThreshold;
+  if (surplus >= 0 && me.gold > surplus) {
+    for (const cid of state.cityOrder || []) {
+      const city = state.cities[cid];
+      if (!city || city.owner !== playerId) continue;
+      const prod = city.producing;
+      if (prod.kind !== 'unit') continue;
+      const u = ruleset.units[prod.id];
+      if (u === undefined) continue;
+      if (prod.id !== 'settlers' && u.attack <= 0) continue; // settlers or a true attacker only
+      const missing = u.cost - city.shields;
+      if (missing <= 0) continue;
+      const price = missing * ruleset.rules.buyGoldPerShield;
+      if (me.gold >= price) return { type: 'buy', playerId, cityId: cid };
+    }
+  }
   return null;
 }
 
@@ -1187,8 +1209,13 @@ function diplomacyStep(state, playerId, ruleset, doneSet) {
     if (rel === 'peace' && scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold) {
       return { type: 'diplomacy', kind: 'declare', playerId, target: other };
     }
-    // 3. at WAR + would accept peace itself + none pending -> offer peace (perpetual)
-    if (rel === 'war' && (entry === undefined || entry.offer === undefined)
+    // 3. at WAR + would accept peace itself + none pending + not on a reject
+    // cooldown -> offer peace (perpetual). §14 F1: the cooldown stops the
+    // offer/reject spam loop (reject clears the offer but keeps war).
+    const cooldown = d.offerCooldown === undefined ? 0 : d.offerCooldown;
+    const offerCooled = entry === undefined || entry.offerRejectedTurn === undefined
+      || state.turn - entry.offerRejectedTurn >= cooldown;
+    if (rel === 'war' && (entry === undefined || entry.offer === undefined) && offerCooled
         && scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold) {
       return { type: 'diplomacy', kind: 'offer', playerId, target: other, terms: { peace: true } };
     }
@@ -1583,6 +1610,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     const unit = state.units[uid];
     if (!unit || unit.owner !== playerId || unit.moves <= 0) continue;
     if (unit.working !== undefined) continue; // moving would cancel the job
+    // §14 F2: a unit rejected with reason zoc 3 turns-in-a-row is DROPPED for
+    // this turn (stop the ping-pong that burns the turn budget); runAiTurn
+    // clears zocBlocks at the next turn's start so it re-plans then.
+    if (unit.zocBlocks !== undefined && unit.zocBlocks >= 3) { done['u:' + uid] = true; continue; }
     done['u:' + uid] = true;
 
     if (unit.type === 'settlers') {
@@ -1782,6 +1813,12 @@ function pickCommand(state, playerId, ruleset, done, stance) {
 // client's combat log wants to report what the AI did to the player).
 function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   const done = {};
+  // §14 F2: a fresh turn = re-plan — clear last turn's zoc-block tallies so a
+  // unit dropped after 3 consecutive zoc rejects gets a fresh attempt now.
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId && u.zocBlocks !== undefined) delete u.zocBlocks;
+  }
   let guard = 500;
   while (guard > 0) {
     guard--;
@@ -1790,9 +1827,18 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
     const res = engine.applyCommand(state, cmd);
     if (res.ok) {
       state = res.state;
+      // §14 F2: a successful move breaks the consecutive-zoc streak
+      if (cmd.type === 'moveUnit') {
+        const mu = state.units[cmd.unitId];
+        if (mu !== undefined && mu.zocBlocks !== undefined) delete mu.zocBlocks;
+      }
       if (eventsOut) {
         for (const e of res.events) eventsOut.push(e);
       }
+    } else if (cmd.type === 'moveUnit' && res.reason === 'zoc') {
+      // §14 F2: count consecutive zoc rejects; pickCommand drops at 3
+      const bu = state.units[cmd.unitId];
+      if (bu !== undefined) bu.zocBlocks = (bu.zocBlocks === undefined ? 0 : bu.zocBlocks) + 1;
     }
   }
   return state;
