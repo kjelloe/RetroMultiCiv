@@ -468,3 +468,12 @@ DEFENDER the owner can build (defense-first tiebreak cost — militia →
 phalanx → musketeers → riflemen → mech-inf as techs allow); same fallback
 when production completes with an empty queue. Golden-affecting (AI cities
 found with better defaults → sim drift) + twins; engine-lane queue.
+
+## §45a second addendum (user, 2026-07-21): settler eaters INLINE in the food row
+The settler consumption must be visible in the growth calculation LINE
+itself, not tooltip-only. Shape (user's example): the city-view food row
+reads like `🌾 6 · 👥 eat 4 · ⚒👤×4 settlers eat 4 → net −2` — i.e. an
+inline settler icon + count whenever settlerFood > 0, with the existing
+tooltip carrying the long-form explanation ("each settler homed here eats
+1 food/turn; rehome or expend settlers to free food"). When net > 0 keep
+the growth ETA line; when ≤ 0 show the ⚠ starving/stalled note instead.
