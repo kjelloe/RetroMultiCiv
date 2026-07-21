@@ -161,7 +161,16 @@ the deferred resend integration), payments (never).
   authenticated flooders vs the pre-fix collapse); the earlier "canary
   gets ZERO replies at ≥50" reading was a SINGLE-IP test artifact (the
   canary shared the flooders' IP and hit the per-IP concurrency cap —
-  a legit user on its own IP is serviced). Backpressure caps a stuck
+  a legit user on its own IP is serviced). **Re-measured 2026-07-21 at
+  marker-0074 (A50 item 4 confirm — measure-before-build):** the canary is
+  never starved (constant ~235 serviced replies over 12 s) and latency is
+  FLOODER-COUNT-INVARIANT — p50 ≈ 310 ms at 10 flooders vs ≈ 410–445 ms at 6
+  (adding attackers does not degrade the co-player, the signature of a working
+  per-connection budget), max ~1.1 s, RSS bounded 88→~120 MB, no crash. The p50
+  crept from the 278 ms baseline to ~400 ms because each command now does more
+  engine work (marker-0074 AI/pathing), NOT a fairness-mechanism regression;
+  still sub-second and playable. VERDICT: the per-connection command budget is
+  adequate — no new budget built. Backpressure caps a stuck
   reader's queue; the heartbeat reaps half-open sockets; SIGTERM shuts
   down cleanly. **Busy-tolerant heartbeat (2026-07-19, #1732):** at extreme
   scale (a turn-2623 marathon) the synchronous AI chain inside one `endTurn`
