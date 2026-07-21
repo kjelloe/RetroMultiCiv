@@ -182,10 +182,108 @@ function act(state, unit, ruleset, events) {
   }
 }
 
+// barb-sea-raids: an ocean tile adjacent to (x, y), first-found in a fixed
+// neighbor order; null when the tile is not coastal. Deterministic.
+const SEA_NB = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
+function oceanNeighbor(state, x, y, ruleset) {
+  const { width, height, tiles } = state.map;
+  for (const d of SEA_NB) {
+    let nx = x + d[0];
+    if (nx < 0 || nx >= width) { if (!state.map.wrapX) continue; nx = ((nx % width) + width) % width; }
+    const ny = y + d[1];
+    if (ny < 0 || ny >= height) continue;
+    if (ruleset.terrain.terrains[tiles[ny * width + nx].t].domain === 'sea') return { x: nx, y: ny };
+  }
+  return null;
+}
+
+// barb-sea-raids: for a target city, a beach to land on + the sea tile the
+// raiders cross. Landing = a free LAND neighbor of the city that is itself
+// coastal; approach = that beach's ocean neighbor (where the sails show).
+// Deterministic; null when the city has no clear beach.
+function raidApproach(state, city, ruleset) {
+  const { width, height, tiles } = state.map;
+  for (const d of SEA_NB) {
+    let nx = city.x + d[0];
+    if (nx < 0 || nx >= width) { if (!state.map.wrapX) continue; nx = ((nx % width) + width) % width; }
+    const ny = city.y + d[1];
+    if (ny < 1 || ny >= height - 1) continue;
+    if (ruleset.terrain.terrains[tiles[ny * width + nx].t].domain !== 'land') continue;
+    if (unitsAt(state, nx, ny).length > 0 || cityAt(state, nx, ny)) continue;
+    const sea = oceanNeighbor(state, nx, ny, ruleset);
+    if (sea !== null) return { landX: nx, landY: ny, seaX: sea.x, seaY: sea.y };
+  }
+  return null;
+}
+
+// barb-sea-raids (Civ1 pirate landings): a SEPARATE rng sub-roll (the land-spawn
+// stream is untouched — this runs after trySpawn). On a hit, pick a coastal
+// target city and emit the T-1 'sailsSpotted' warning (visibility-gated by
+// filterEvents on the approach sea tile), scheduling the landing for next turn.
+function trySeaRaid(state, ruleset, events) {
+  const chance = ruleset.rules.barb.seaRaidChance;
+  if (chance === undefined) return;
+  const roll = rollRange(state.rngState, chance);
+  state.rngState = roll.rngState;
+  if (roll.value !== 0) return;
+  const targets = [];
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (!c || c.owner === BARB_ID) continue;
+    const ap = raidApproach(state, c, ruleset);
+    if (ap !== null) targets.push({ cid, ap });
+  }
+  if (targets.length === 0) return;
+  const pick = rollRange(state.rngState, targets.length);
+  state.rngState = pick.rngState;
+  const t = targets[pick.value];
+  events.push({ type: 'sailsSpotted', cityId: t.cid, x: t.ap.seaX, y: t.ap.seaY });
+  ensureBarbPlayer(state);
+  if (state.pendingRaids === undefined) state.pendingRaids = [];
+  state.pendingRaids.push({ x: t.ap.landX, y: t.ap.landY, turn: state.turn + 1 });
+}
+
+// barb-sea-raids: land any raids scheduled for THIS turn (raiders + maybe a
+// leader materialize on the beach; then normal act() marches them to CAPTURE
+// the city — sea raiders capture, they do not pillage). A blocked beach fizzles.
+function resolvePendingRaids(state, ruleset, events) {
+  if (state.pendingRaids === undefined) return;
+  const keep = [];
+  for (const r of state.pendingRaids) {
+    if (r.turn !== state.turn) { keep.push(r); continue; }
+    const terrain = ruleset.terrain.terrains[state.map.tiles[r.y * state.map.width + r.x].t];
+    if (terrain.domain !== 'land' || unitsAt(state, r.x, r.y).length > 0 || cityAt(state, r.x, r.y)) continue;
+    ensureBarbPlayer(state);
+    const barbUnit = barbTier(state, ruleset);
+    const unitId = 'u' + state.nextUnitId;
+    state.nextUnitId = state.nextUnitId + 1;
+    state.units[unitId] = {
+      id: unitId, type: barbUnit, owner: BARB_ID,
+      x: r.x, y: r.y, moves: ruleset.units[barbUnit].moves, fortified: false, veteran: false
+    };
+    events.push({ type: 'barbariansLanded', unitId, x: r.x, y: r.y });
+    const leaderRoll = rollRange(state.rngState, ruleset.rules.barb.leaderChance);
+    state.rngState = leaderRoll.rngState;
+    if (leaderRoll.value === 0) {
+      const leaderType = 'barbleader';
+      const lid = 'u' + state.nextUnitId;
+      state.nextUnitId = state.nextUnitId + 1;
+      state.units[lid] = {
+        id: lid, type: leaderType, owner: BARB_ID,
+        x: r.x, y: r.y, moves: ruleset.units[leaderType].moves, fortified: false, veteran: false
+      };
+    }
+  }
+  if (keep.length > 0) state.pendingRaids = keep;
+  else delete state.pendingRaids;
+}
+
 // Called once per game turn from endTurn's wrap.
 function process(state, ruleset, events) {
   if (state.turn < FIRST_TURN) return;
-  if (state.turn % EVERY === 0) trySpawn(state, ruleset, events);
+  if (state.turn % EVERY === 0) trySpawn(state, ruleset, events); // land spawn — stream untouched
+  resolvePendingRaids(state, ruleset, events); // land scheduled sea raids
+  if (state.turn % EVERY === 0) trySeaRaid(state, ruleset, events); // schedule a new sea raid
   for (const id of sortIds(Object.keys(state.units))) {
     const unit = state.units[id];
     if (unit && unit.owner === BARB_ID) act(state, unit, ruleset, events);

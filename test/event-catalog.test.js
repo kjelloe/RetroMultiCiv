@@ -27,7 +27,7 @@ const EVENT_TYPES = {
   researchSet: 'tech', ratesSet: 'tech', techDiscovered: 'tech',
   governmentChanged: 'government', revolutionStarted: 'government',
   cityDisorder: 'happiness', cityOrderRestored: 'happiness',
-  barbariansSpawned: 'barbarians',
+  barbariansSpawned: 'barbarians', sailsSpotted: 'barbarians', barbariansLanded: 'barbarians',
   airCrashed: 'air',
   gameOver: 'score', playerDefeated: 'score',
   ssPartBuilt: 'cities', shipLaunched: 'spaceship',

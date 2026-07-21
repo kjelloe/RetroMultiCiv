@@ -115,7 +115,8 @@
   },
   "barb": {
     "leaderRansom": 100,
-    "leaderChance": 4
+    "leaderChance": 4,
+    "seaRaidChance": 8
   },
   "diplomacy": {
     "warIntentThreshold": 60,
