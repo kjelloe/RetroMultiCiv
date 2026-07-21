@@ -88,10 +88,16 @@ as event cards; discovered-sabotage grievance feeds D5 reputation.
 ACCEPTANCE: each mission once in a scenario pin; embassy intel visibly
 richer than fog; an incite-revolt replays hash-exact.
 
-## Open items (small, non-blocking)
+## Open items — ALL RESOLVED (reviewer #2066, 2026-07-21)
 
-1. Reputation RECOVERY: pack support unclear — resolve at D5 pre-open
-   (reviewer one-liner); if absent, no recovery in 1.0 + a v2 note.
-2. Senate odds vs deterministic: per pack at pre-open.
-3. Mission determinism per mission: per pack at pre-open (replay
-   constraint satisfied either way via engine RNG).
+1. Reputation RECOVERY: RECOVERABLE, not permanent — and a PROVENANCE note:
+   Civ 1 has NO reputation system at all, so D5's reputation is a
+   `Civ2-informed/house` labeled mix (consistent with docs/14's design
+   intent; label it so in data and pedia).
+2. Senate refusal: DETERMINISTIC (cited: Republic/Democracy "must accept
+   all peace treaties") — no roll, no RNG.
+3. Diplomat missions: 2 of 7 ROLL (steal-tech, sabotage — engine RNG,
+   replay-deterministic); the other 5 are CERTAIN.
+D4–D6 are now design-complete end to end: rules (packs), presentation
+(ally verdicts), engine mapping (this spec). Build-ready when the engine
+queue arrives.
