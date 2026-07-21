@@ -25,7 +25,7 @@
       },
       "grassland": {
         "base": 0.05,
-        "jitter": 0.05,
+        "jitter": 0.01,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -36,7 +36,7 @@
       },
       "plains": {
         "base": 0.05,
-        "jitter": 0.05,
+        "jitter": 0.01,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -46,8 +46,8 @@
         ]
       },
       "forest": {
-        "base": 0.08,
-        "jitter": 0.06,
+        "base": 0.06,
+        "jitter": 0.012,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -57,8 +57,8 @@
         ]
       },
       "hills": {
-        "base": 0.26,
-        "jitter": 0.1,
+        "base": 0.2,
+        "jitter": 0.06,
         "peak": 0.1,
         "dunes": false,
         "palette": [
@@ -68,9 +68,9 @@
         ]
       },
       "mountains": {
-        "base": 0.55,
-        "jitter": 0.2,
-        "peak": 0.35,
+        "base": 0.8,
+        "jitter": 0.18,
+        "peak": 0.45,
         "dunes": false,
         "palette": [
           "#8c8c94",
@@ -80,7 +80,7 @@
       },
       "desert": {
         "base": 0.05,
-        "jitter": 0.03,
+        "jitter": 0.015,
         "peak": 0,
         "dunes": true,
         "palette": [
@@ -91,7 +91,7 @@
       },
       "tundra": {
         "base": 0.04,
-        "jitter": 0.04,
+        "jitter": 0.012,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -101,8 +101,8 @@
         ]
       },
       "arctic": {
-        "base": 0.1,
-        "jitter": 0.06,
+        "base": 0.06,
+        "jitter": 0.015,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -113,7 +113,7 @@
       },
       "swamp": {
         "base": 0.02,
-        "jitter": 0.03,
+        "jitter": 0.01,
         "peak": 0,
         "dunes": false,
         "palette": [
@@ -123,8 +123,8 @@
         ]
       },
       "jungle": {
-        "base": 0.08,
-        "jitter": 0.06,
+        "base": 0.06,
+        "jitter": 0.012,
         "peak": 0,
         "dunes": false,
         "palette": [
