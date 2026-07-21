@@ -14,7 +14,7 @@
 // The AI only issues regular commands through applyCommand — it cannot cheat.
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
-import { availableTechs, cityEconOutput } from './tech.js';
+import { availableTechs, cityEconOutput, playerIncome } from './tech.js';
 import { metOf, relationOf, pairKey } from './diplomacy.js';
 import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
@@ -1196,6 +1196,64 @@ function diplomacyStep(state, playerId, ruleset, doneSet) {
   return null;
 }
 
+// xiv-ai §13 (regency economics): the deficit ladder — cheapest-first levers to
+// stop a gold drain (net income < 0) before it bleeds to 0 and disorder. Runs
+// for ALL stances (a balanced/regent seat used to just tolerate the deficit).
+// Step 1 (cheapest): raise the tax rate one step, taking the increase from
+// SCIENCE, never luxury — luxury unchanged means no new disorder, so the
+// "disorder-free cap" is simply the point where science is exhausted.
+function deficitTaxBump(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  const gov = ruleset.governments[me.government === undefined ? 'despotism' : me.government];
+  const cap = gov.maxRate === undefined ? 60 : gov.maxRate;
+  const step = ruleset.rules.taxBumpStep === undefined ? 10 : ruleset.rules.taxBumpStep;
+  const tax = me.taxRate === undefined ? ruleset.rules.defaultTaxRate : me.taxRate;
+  const sci = me.sciRate === undefined ? ruleset.rules.defaultSciRate : me.sciRate;
+  const lux = 100 - tax - sci;
+  let raise = step;
+  if (cap - tax < raise) raise = cap - tax;
+  if (sci < raise) raise = sci; // never cut luxury (would risk disorder)
+  if (raise <= 0) return null; // tax maxed or no science to give -> next lever
+  return { type: 'setRates', playerId, tax: tax + raise, sci: sci - raise, lux };
+}
+
+// Step 2: when the rate lever is spent, pull one worked citizen in a pop>=5 city
+// into a taxman (flat gold). cityOrder scan = deterministic; one city per turn.
+function deficitTaxmen(state, playerId, ruleset) {
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== playerId || city.pop < 5) continue;
+    const cands = candidateTiles(state, city, ruleset);
+    const worked = city.workers !== undefined ? city.workers.length
+      : (city.pop < cands.length ? city.pop : cands.length);
+    const taxmen = city.taxmen === undefined ? 0 : city.taxmen;
+    const scientists = city.scientists === undefined ? 0 : city.scientists;
+    if (worked >= 1 && worked + taxmen + scientists <= city.pop) {
+      const keep = [];
+      for (let i = 0; i < cands.length && keep.length < worked - 1; i++) keep.push(cands[i].idx);
+      return { type: 'setWorkers', playerId, cityId: cid, workers: keep, taxmen: taxmen + 1, scientists };
+    }
+  }
+  return null;
+}
+
+// Step 3: rate + specialists spent — switch to a government with a higher rate
+// cap if one is available and we're not mid-revolution. Reuses the monotonic
+// government picker; only fires when it yields a strictly better cap.
+function deficitGovernment(state, playerId, ruleset, S) {
+  const me = state.players[playerId];
+  if (me.revolutionTurns !== undefined) return null;
+  const cur = me.government === undefined ? 'despotism' : me.government;
+  const curCap = ruleset.governments[cur].maxRate === undefined ? 60 : ruleset.governments[cur].maxRate;
+  const want = pickGovernment(state, playerId, ruleset, S);
+  if (want === cur) return null;
+  const wantCap = ruleset.governments[want].maxRate === undefined ? 60 : ruleset.governments[want].maxRate;
+  if (wantCap > curCap && govRank(want) > govRank(cur)) {
+    return { type: 'setGovernment', playerId, government: want };
+  }
+  return null;
+}
+
 function pickCommand(state, playerId, ruleset, done, stance) {
   const me = state.players[playerId];
   // stance-mix v1: an explicit stance argument wins (regent seats); otherwise
@@ -1258,6 +1316,27 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (eff < bestEff) { best = id; bestEff = eff; }
       }
       return { type: 'setResearch', playerId, tech: best };
+    }
+  }
+
+  // xiv-ai §13: the deficit ladder — BEFORE the science-max branch, for ALL
+  // stances. When the treasury is draining (net income < 0) and can't ride it
+  // out (gold below the cushion), climb tax-bump -> taxmen -> government. Marking
+  // done.rates suppresses the science-max below for a struggling civ. Non-deficit
+  // civs skip this untouched, so only civs in a real deficit change behavior.
+  if (!done.rates) {
+    const inc = playerIncome(state, playerId, ruleset);
+    const net = inc.gold - inc.maintenance;
+    const cushion = ruleset.rules.deficitGoldCushion === undefined ? 3 : ruleset.rules.deficitGoldCushion;
+    if (net < 0 && me.gold < cushion * (-net)) {
+      done.rates = true;
+      const bump = deficitTaxBump(state, playerId, ruleset);
+      if (bump) return bump;
+      const tm = deficitTaxmen(state, playerId, ruleset);
+      if (tm) return tm;
+      const gv = deficitGovernment(state, playerId, ruleset, S);
+      if (gv) return gv;
+      // unsolvable this turn — done.rates stays set, nothing more to do
     }
   }
 

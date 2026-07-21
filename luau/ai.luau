@@ -1405,6 +1405,67 @@ local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet
 	return nil
 end
 
+-- xiv-ai §13 (regency economics): the deficit ladder -- cheapest-first levers to
+-- stop a gold drain (net income < 0) before it bleeds to 0 and disorder. Runs for
+-- ALL stances. Step 1: raise tax one step, taking it from SCIENCE not luxury
+-- (luxury unchanged = no new disorder; the disorder-free cap = science exhausted).
+local function deficitTaxBump(state: any, playerId: string, ruleset: any): any
+	local me = state.players[playerId]
+	local gov = ruleset.governments[if me.government == nil then "despotism" else me.government]
+	local cap = if gov.maxRate == nil then 60 else gov.maxRate
+	local step = if ruleset.rules.taxBumpStep == nil then 10 else ruleset.rules.taxBumpStep
+	local tax = if me.taxRate == nil then ruleset.rules.defaultTaxRate else me.taxRate
+	local sci = if me.sciRate == nil then ruleset.rules.defaultSciRate else me.sciRate
+	local lux = 100 - tax - sci
+	local raise = step
+	if cap - tax < raise then raise = cap - tax end
+	if sci < raise then raise = sci end -- never cut luxury (would risk disorder)
+	if raise <= 0 then return nil end -- tax maxed or no science to give -> next lever
+	return { type = "setRates", playerId = playerId, tax = tax + raise, sci = sci - raise, lux = lux }
+end
+
+-- Step 2: when the rate lever is spent, pull one worked citizen in a pop>=5 city
+-- into a taxman (flat gold). cityOrder scan = deterministic; one city per turn.
+local function deficitTaxmen(state: any, playerId: string, ruleset: any): any
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local city = state.cities[cid]
+		if city ~= nil and city.owner == playerId and city.pop >= 5 then
+			local cands = cities.candidateTiles(state, city, ruleset)
+			local worked = if city.workers ~= nil then #city.workers else (if city.pop < #cands then city.pop else #cands)
+			local taxmen = if city.taxmen == nil then 0 else city.taxmen
+			local scientists = if city.scientists == nil then 0 else city.scientists
+			if worked >= 1 and worked + taxmen + scientists <= city.pop then
+				local keep = setmetatable({}, statehash.ARRAY_MT)
+				for i = 1, #cands do
+					if #keep >= worked - 1 then
+						break
+					end
+					table.insert(keep, cands[i].idx)
+				end
+				return { type = "setWorkers", playerId = playerId, cityId = cid, workers = keep, taxmen = taxmen + 1, scientists = scientists }
+			end
+		end
+	end
+	return nil
+end
+
+-- Step 3: rate + specialists spent -- switch to a government with a higher rate
+-- cap if one is available and we are not mid-revolution. Reuses the monotonic
+-- government picker; only fires when it yields a strictly better cap.
+local function deficitGovernment(state: any, playerId: string, ruleset: any, S: any): any
+	local me = state.players[playerId]
+	if me.revolutionTurns ~= nil then return nil end
+	local cur = if me.government == nil then "despotism" else me.government
+	local curCap = if ruleset.governments[cur].maxRate == nil then 60 else ruleset.governments[cur].maxRate
+	local want = pickGovernment(state, playerId, ruleset, S)
+	if want == cur then return nil end
+	local wantCap = if ruleset.governments[want].maxRate == nil then 60 else ruleset.governments[want].maxRate
+	if wantCap > curCap and govRank(want) > govRank(cur) then
+		return { type = "setGovernment", playerId = playerId, government = want }
+	end
+	return nil
+end
+
 local function pickCommand(state: any, playerId: string, ruleset: any, done: any, stance: any): any
 	local me = state.players[playerId]
 	local effStance = if stance ~= nil then stance else me.stance
@@ -1479,6 +1540,25 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				end
 			end
 			return { type = "setResearch", playerId = playerId, tech = best }
+		end
+	end
+
+	-- xiv-ai §13: the deficit ladder -- BEFORE the science-max branch, for ALL
+	-- stances. Net income < 0 and gold below the cushion -> climb tax-bump ->
+	-- taxmen -> government; mark done.rates to suppress science-max for a
+	-- struggling civ. Non-deficit civs skip this untouched.
+	if done.rates ~= true then
+		local inc = tech.playerIncome(state, playerId, ruleset)
+		local net = inc.gold - inc.maintenance
+		local cushion = if ruleset.rules.deficitGoldCushion == nil then 3 else ruleset.rules.deficitGoldCushion
+		if net < 0 and me.gold < cushion * (-net) then
+			done.rates = true
+			local bump = deficitTaxBump(state, playerId, ruleset)
+			if bump ~= nil then return bump end
+			local tm = deficitTaxmen(state, playerId, ruleset)
+			if tm ~= nil then return tm end
+			local gv = deficitGovernment(state, playerId, ruleset, S)
+			if gv ~= nil then return gv end
 		end
 	end
 

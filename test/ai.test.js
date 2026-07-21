@@ -589,3 +589,31 @@ test('government re-eval: stance-linked adoption toward Republic', async () => {
   const bc = ai.pickCommand(early, 'p1', RULESET, Object.assign({}, doneEarly), 'builder');
   assert.strictEqual(bc.government, 'monarchy', 'Republic unknown: revolt to Monarchy first (back-compat)');
 });
+
+// xiv-ai §13 (regency economics, #1989): a balanced/regency seat running a
+// SOLVABLE gold deficit must climb the deficit ladder (tax-bump first) instead
+// of draining to 0 and disorder. Failing-test-first: today the rate branch is
+// sciRates-stance-only, so balanced never adjusts and this returns non-rates.
+test('§13: a solvable gold deficit raises the tax rate (balanced/regency, not just sciRates)', async () => {
+  const { ai } = await load();
+  // river+road grassland gives the city trade to tax; maint-4 buildings; at
+  // tax 20 playerIncome nets -1 (deficit), and a bump to 30+ clears it (solvable).
+  const tiles = [];
+  for (let i = 0; i < 12 * 12; i++) tiles.push({ t: 'grassland', river: true, road: true });
+  const deficit = {
+    version: 1, turn: 5, year: -3800, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 12, height: 12, wrapX: false, tiles },
+    units: { ud: { id: 'ud', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+    wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: { c9: { id: 'c9', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 8, food: 0, shields: 0, buildings: ['temple', 'library', 'marketplace', 'granary'], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c9'],
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 2, techs: ['pottery', 'ceremonial-burial', 'alphabet', 'writing', 'currency'], researching: 'x', bulbs: 0, taxRate: 20, sciRate: 80, government: 'despotism' } },
+    rngState: 1
+  };
+  // everything but the economy is marked done, so pickCommand reaches the rate
+  // step; default (balanced) stance is the regency shape that carries the bug.
+  const doneEcon = { happiness: true, research: true, government: true, buy: true, launch: true };
+  const cmd = ai.pickCommand(deficit, 'p1', RULESET, Object.assign({}, doneEcon));
+  assert.ok(cmd && cmd.type === 'setRates' && cmd.tax > 20,
+    'a solvable deficit (net -1 at tax 20) must raise tax; got ' + JSON.stringify(cmd));
+});
