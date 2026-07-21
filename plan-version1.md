@@ -23,7 +23,7 @@ flowchart TD
     PROBE["✅ probe @545t: leaders 38–47/68,\n0/3 reach space-flight — NOT closed"]
     BULB{"🚪 follow-up (probe came up short):\nbulb tuning + AI space-path prioritisation"}
     X5B["✅ XII.5b complete (0073) —\nspace-project AI + solar fix + witness"]
-    AIB["🔨 engine spine: §13 ✅ → §14 ✅ → XII.5b ✅ (0073!)\n→ §12 pathing (open) → queued stack"]
+    AIB["✅ xiv-ai ARC COMPLETE (0071-0074):\n§13 economics · §14 treasury · XII.5b space ·\n§12 pathing (M-floors ALL CLEAR)"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
@@ -74,7 +74,7 @@ flowchart TD
     NAV["🧩 naval AI loop finish\n(overseas settle/invade acceptance)"]
     AIR["🧩 air AI role (movement ✅)"]
     GOV["🧩 N1/N2 gov re-eval +\nlate-tech modernization"]
-    MFL["🚪 M-floors hold\n(ratchet gates)"]
+    MFL["🔨 M-floors ALL CLEAR (§12 finding!)\nratchet M2+M3 queued (25-seed confirm)"]
     NAV --> MFL
     GOV --> MFL
   end
