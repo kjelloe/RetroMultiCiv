@@ -53,13 +53,38 @@ Sweeps that must run GREEN before the RC marker, with their knobs:
 6. Post-release: plan-version2 becomes the working shelf; the nightly lanes
    (soak, playwright A49) keep running against v1.0.0 as the new baseline.
 
-## 4. Version + branch mechanics
+## 4. Version + branch mechanics (post-1.0 convention USER-RULED 2026-07-21)
 
 - dev_night remains the working branch; markers continue as-is.
 - v1.0.0 = an annotated tag the USER creates on dev/main after merging the
   RC-final marker (tags on dev/main stay user-owned, marker tags stay
   architect-owned — the standing split).
-- Hotfixes post-1.0: normal marker flow + a v1.0.x tag by the user.
+- **Post-1.0 versioning: x.y.z — breaking changes ONLY on major (x) bumps.**
+  y = non-breaking features; z = patches only.
+
+**What "breaking" MEANS in this project (the definition that makes the
+convention enforceable):**
+1. SAVE/REPLAY compatibility — any change that moves the rulesetHash or
+   state shape invalidates saves and recordings. **Consequence, stated
+   plainly: a GOLDEN RE-RECORD is a breaking change.** Post-1.0,
+   golden-affecting engine work (new mechanics, AI behavior changes,
+   ruleset number changes) ships only in a major (2.0) line; 1.y carries
+   golden-NEUTRAL work only (client/UI, server ops, render, docs, and
+   engine changes proven hash-stable).
+2. Server↔client protocol (frames, commands, seat/token semantics) and the
+   master-index announce protocol — additive fields are non-breaking (y);
+   removals/semantic changes are breaking (x).
+3. Public operator surface — flag REMOVALS or semantic changes = breaking;
+   new flags/defaults that keep old invocations working = y.
+4. Public URLs/entry points (client paths, ?params) — same additive rule.
+
+Practical effect on planning: plan-version2's gameplay items (culture,
+civics, negotiation layer, Civ2-ruleset option, cross-play bridge) are
+naturally the 2.0 line; the 1.y lane stays open for polish, ops, Roblox
+client work, and tooling. The nightly goldens become the 1.x COMPATIBILITY
+GUARD: any red golden on a 1.y candidate = an attempted breaking change,
+rejected by definition.
+- Hotfixes post-1.0: normal marker flow + a v1.0.z tag by the user.
 
 ## 5. Open items feeding this runbook (tracked elsewhere)
 
