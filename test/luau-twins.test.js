@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 46, 'the forty-six scenarios (046 settler-popcost added in §40)');
+      assert.strictEqual(files.length, 48, 'the forty-eight scenarios (047/048 city-as-road added in §50)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -168,7 +168,9 @@ const PORTED = [
   '043-leader-ransom.json', // N13/A4 R1: a lone barbarian leader kill pays a ransom (two-attack sequence)
   '044-hut-nullifier-tribe.json', // N13/A4: air entry nullifies a village; a ground unit founds an advanced tribe
   '011-offturn-prework.json', // A54: the self-scoped whitelist works off-turn; everything else keeps notYourTurn
-  '046-settler-popcost.json' // §40: settler completion costs 1 pop; a size-1 city disbands (cross-language)
+  '046-settler-popcost.json', // §40: settler completion costs 1 pop; a size-1 city disbands (cross-language)
+  '047-city-as-road.json', // §50: a city square chains roads for movement
+  '048-city-road-river.json' // §50: the river caveat breaks the chain until Bridge Building
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

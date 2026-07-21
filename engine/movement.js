@@ -165,13 +165,24 @@ function moveUnit(state, cmd, ruleset) {
     const to = tileAt(map, nx, ny);
     if (from.railroad === true && to.railroad === true) {
       cost = 0;
-    } else if (from.road === true && to.road === true) {
-      const used = unit.roadSteps === undefined ? 0 : unit.roadSteps;
-      if (used < ruleset.units[unit.type].moves * 2) {
-        cost = 0;
-        unit.roadSteps = used + 1;
-      } else {
-        cost = 1;
+    } else {
+      // §50: a city square chains ROADS for movement (Civ 1; a city is NOT rail).
+      // River caveat: a river endpoint breaks the chain until the MOVER'S owner
+      // has Bridge Building — mirrors the road-on-river BUILD gate. Safe for
+      // normal roads (a road and a river only coexist POST-bridge, so the guard
+      // only ever bites a city-on-river). targetCity (the to-tile) is already computed.
+      const fromRoaded = from.road === true || cityAt(state, fromX, fromY) !== null;
+      const toRoaded = to.road === true || targetCity !== null;
+      const riverBreaks = (from.river === true || to.river === true)
+        && state.players[unit.owner].techs.indexOf(ruleset.rules.bridgeTech) === -1;
+      if (fromRoaded && toRoaded && !riverBreaks) {
+        const used = unit.roadSteps === undefined ? 0 : unit.roadSteps;
+        if (used < ruleset.units[unit.type].moves * 2) {
+          cost = 0;
+          unit.roadSteps = used + 1;
+        } else {
+          cost = 1;
+        }
       }
     }
   }

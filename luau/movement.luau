@@ -208,13 +208,23 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 		local to = tileAt(map, nx, ny)
 		if from.railroad == true and to.railroad == true then
 			cost = 0
-		elseif from.road == true and to.road == true then
-			local used = if unit.roadSteps == nil then 0 else unit.roadSteps
-			if used < ruleset.units[unit.type].moves * 2 then
-				cost = 0
-				unit.roadSteps = used + 1
-			else
-				cost = 1
+		else
+			-- §50: a city square chains ROADS for movement (Civ 1; a city is NOT rail).
+			-- River caveat: a river endpoint breaks the chain until the MOVER'S owner has
+			-- Bridge Building — mirrors the road-on-river build gate. Safe for normal roads
+			-- (road+river only coexist post-bridge). targetCity (to-tile) already computed.
+			local fromRoaded = from.road == true or combat.cityAt(state, fromX, fromY) ~= nil
+			local toRoaded = to.road == true or targetCity ~= nil
+			local riverBreaks = (from.river == true or to.river == true)
+				and table.find(state.players[unit.owner].techs, ruleset.rules.bridgeTech) == nil
+			if fromRoaded and toRoaded and not riverBreaks then
+				local used = if unit.roadSteps == nil then 0 else unit.roadSteps
+				if used < ruleset.units[unit.type].moves * 2 then
+					cost = 0
+					unit.roadSteps = used + 1
+				else
+					cost = 1
+				end
 			end
 		end
 	end
