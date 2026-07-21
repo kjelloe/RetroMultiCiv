@@ -306,9 +306,13 @@ export function startServer(opts) {
   // (A50 item 6), then the per-IP connect-rate (3a).
   const wss = new WebSocketServer({
     server: httpServer, path: '/ws', maxPayload: 64 * 1024,
+    // Self-audit (#2143): connect-rate BEFORE the invite check so wrong-invite
+    // attempts spend the per-IP connect budget — bounds invite-code brute force
+    // (codes are low-entropy operator strings). Origin stays first (cheapest,
+    // spends nothing). Per-IP, so legit users on other IPs are unaffected.
     verifyClient: info => originAllowed(info.origin, originAllowlist)
-      && inviteAllowed(info.req && info.req.url, inviteCodes)
       && limiter.allowConnect(clientIp(info.req)).ok
+      && inviteAllowed(info.req && info.req.url, inviteCodes)
   });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
 
@@ -326,15 +330,16 @@ export function startServer(opts) {
     const mem = process.memoryUsage();
     let heapPct = 0;
     try { const lim = v8.getHeapStatistics().heap_size_limit || 0; if (lim) heapPct = Math.round((mem.heapUsed / lim) * 100); } catch (e) { /* v8 stat unavailable */ }
+    // Self-audit (#2143): NO version/pid here — the master + monitors only need
+    // liveness + benign operational counts; leaking node version to anonymous
+    // clients is a fingerprinting / known-CVE targeting aid.
     return {
       ok: true,
       uptime_s: Math.round(process.uptime()),
       games: registry.list().length,
       conns: conns.size,
       rss_mb: Math.round(mem.rss / (1024 * 1024)),
-      heap_pct: heapPct,
-      pid: process.pid,
-      node: process.version
+      heap_pct: heapPct
     };
   }
   let connSeq = 0;         // stable per-connection id for the all-message bucket

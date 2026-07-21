@@ -31,6 +31,23 @@ test('invite gate: refuses a ws upgrade without a valid ?invite= when set; accep
   } finally { await s.close(); }
 });
 
+test('invite gate: wrong-invite attempts spend the connect-rate budget (brute-force throttle, #2143)', async () => {
+  const { startServer } = await import('../server/index.js');
+  // tiny per-IP connect budget so a burst of wrong-invite tries exhausts it:
+  // the invite check runs AFTER allowConnect, so failed guesses are throttled.
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall',
+    autosave: false, host: '127.0.0.1', inviteCodes: ['secret'],
+    limits: { connectsPerSec: 1, connectBurst: 3 } });
+  try {
+    // all refused (wrong code), but the first few consume the connect tokens…
+    for (let i = 0; i < 3; i++) assert.strictEqual(await tryConnect(s.port, '/ws?invite=guess' + i), false);
+    // …so even the CORRECT code is now connect-rate-limited: brute force can't
+    // run free — an attacker's IP is throttled regardless of guessing.
+    assert.strictEqual(await tryConnect(s.port, '/ws?invite=secret'), false,
+      'connect-rate exhausted by the wrong-invite burst — the throttle bit');
+  } finally { await s.close(); }
+});
+
 test('invite gate: OPEN by default (no --invite-code) — a bare /ws connects', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall',
