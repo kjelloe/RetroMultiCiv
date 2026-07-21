@@ -500,12 +500,17 @@ def dispatch(argv):
             msgs = [m for m in msgs if m.get('tag') == a.tag]
         if not msgs:
             print(f'({a.role}: no unread)')
-            return
-        for m in msgs:
-            print(hdr(m) if a.headers else fmt(m))
-        if a.cmd == 'inbox' and msgs:
-            # cursor moves to the newest unread we actually displayed
-            set_cursor(a.role, max(m['id'] for m in unread_for(a.role)))
+        else:
+            for m in msgs:
+                print(hdr(m) if a.headers else fmt(m))
+            if a.cmd == 'inbox':
+                # cursor moves to the newest unread we actually displayed
+                set_cursor(a.role, max(m['id'] for m in unread_for(a.role)))
+        # anti-stale-idle: an empty inbox is NOT an idle verdict — surface the
+        # work stack at the exact moment a lane forms its "nothing to do" belief
+        q = read_queue(a.role)
+        if q:
+            print(f"note: {len(q)} queued item(s) for {canon(a.role)} — `queue take --as {canon(a.role)}` pops the next")
 
     elif a.cmd == 'log':
         for m in read_all()[-a.n:]:
@@ -534,6 +539,17 @@ def dispatch(argv):
         if a.text is not None:
             if not a.role:
                 sys.exit('status: --as <role> required to SET a status')
+            # anti-stale-idle guard (2026-07-21): a lane may not declare itself
+            # plain-"waiting" while its work stack holds items — either take the
+            # next item, or NAME what it is waiting on (await/block/park/hold/
+            # gate/pending in the text passes the guard).
+            low = a.text.strip().lower()
+            if low.startswith('waiting'):
+                q = read_queue(a.role)
+                if q and not any(w in low for w in ('await', 'block', 'park', 'hold', 'gate', 'pending')):
+                    sys.exit(f"status REJECTED: {canon(a.role)} has {len(q)} queued item(s) — "
+                             f"run `queue take --as {canon(a.role)}` and post working, "
+                             f"or say WHAT you are waiting on (awaiting/blocked/parked/holding/gated/pending …).")
             set_status(a.role, a.text)
             print(f'status[{canon(a.role)}] = {a.text}')
         else:
@@ -547,7 +563,9 @@ def dispatch(argv):
                     s = stt['state']
                     mins = (now - stt['ts']) / 60
                     stale = mins > STATUS_STALE_MIN and 'working' in s.lower() and 'long' not in s.lower()
-                    print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}")
+                    qn = len(read_queue(role))
+                    qtag = f' · queue {qn}' if qn else ''
+                    print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}{qtag}")
 
     elif a.cmd == 'queue':
         if a.action == 'add':
