@@ -159,7 +159,7 @@ worked-tile view: user feedback pending.)
 | Browser element | Roblox shape | Notes |
 |---|---|---|
 | Lobby (seats, civs, chat, kick) | Roblox-native: the SERVER is the room; seat claim UI at spawn; Roblox chat exists natively — decide what of A37 carries | kick/block partially platform-provided |
-| Waiting/skip-vote/wait-status | HUD line + vote prompt | |
+| Waiting/skip-vote/wait-status | HUD line + vote prompt | wait-status LANDED 2026-07-21 (WaitStatus, gate 20). **skip-vote SUPERSEDED** by the regency / auto-takeover model (docs/08 §7 + XIV §30): an away/idle seat is regent-driven or auto-skipped, so the round never stalls — no authoritative equivalent to the browser's social skip-vote (a griefer-vote case would be a new row). Certified in specs/roblox-tier1-3-certification.md |
 | Spectators | Roblox visitors = natural spectators; permission surface needed | |
 | Regency | 🤖 equivalent + auto-regent on player leave (platform makes this MORE important: Roblox players drop constantly) | pairs with R6 seats |
 | Seat codes / reconnect | UserId IS identity — reconnect is free; seat codes likely unnecessary in-platform | simplification, not a gap |

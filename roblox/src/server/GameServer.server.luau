@@ -207,6 +207,10 @@ local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- pid -> true. Treated exactly like an absent seat by advance(); any
 -- command from the seat's player takes it back.
 local awaySeats = {}
+-- MP4: the regent STANCE per away seat (pid -> stance id). Parallel to awaySeats
+-- (the house pattern for seat metadata); nil = balanced. Fed to pickCommand so
+-- the regent plays the human's chosen stance. Cleared on take-back/reclaim.
+local regentStance = {}
 local lastAutosaveTurn = -1 -- R23: rolling autosave marker (declared early:
 -- startGame resets it and is defined above the autosave helper)
 local countdownEnds = nil
@@ -220,6 +224,12 @@ local spectators = {} -- UserId -> true
 -- SO8: world-public score series, one sample per round (ruling @d1ce4920:
 -- every turn, session-local, {t="stats"} PULL only — never pushed)
 local statsSeries = setmetatable({}, statehash.ARRAY_MT)
+-- SO8 (battles/wonders timelines, stats-data.js twin): world-public tallies
+-- accumulated from the round's PUBLIC events. battles pid -> {won, lost} from
+-- combatResolved; wonders = [{turn, owner, wonder}] from wonderBuilt. Fog-honest
+-- (both are public), golden-neutral (pushes never hashed). Ride the {t=stats} pull.
+local statsBattles = {}
+local statsWonders = setmetatable({}, statehash.ARRAY_MT)
 local roundInFlight = false
 
 -- R18: the theater record — the SAME entries the [R4LOG] stream prints, kept
@@ -421,7 +431,7 @@ local function playRegentSeat(pid, collected)
 	local applied = 0
 	while guard > 0 do
 		guard = guard - 1
-		local cmd = aiModule.pickCommand(state, pid, ruleset, done, nil)
+		local cmd = aiModule.pickCommand(state, pid, ruleset, done, regentStance[pid]) -- MP4 stance
 		if cmd == nil then
 			break
 		end
@@ -591,9 +601,28 @@ local function advance(collected, initiatedByEndTurn)
 	roundInFlight = false
 	-- SO9: the last ageChanged in this batch of rounds gets the report
 	local newAge = nil
+	-- this loop runs ONCE per advance() over that call's full event batch — the
+	-- safe single-pass point (SO9 ages use it too), so SO8 tallies never double-count
 	for _, e in ipairs(collected) do
 		if e.type == "ageChanged" then
 			newAge = e.age
+		elseif e.type == "combatResolved" then -- SO8: public battle outcomes
+			local winOwner = e.winner == "attacker" and e.attackerOwner or e.defenderOwner
+			local loseOwner = e.winner == "attacker" and e.defenderOwner or e.attackerOwner
+			local function tally(owner, key)
+				if owner == nil then
+					return
+				end
+				if statsBattles[owner] == nil then
+					statsBattles[owner] = { won = 0, lost = 0 }
+				end
+				statsBattles[owner][key] += 1
+			end
+			tally(winOwner, "won")
+			tally(loseOwner, "lost")
+		elseif e.type == "wonderBuilt" then -- SO8: public wonders timeline
+			local home = state.cities[e.cityId]
+			table.insert(statsWonders, { turn = state.turn, owner = home ~= nil and home.owner or nil, wonder = e.wonder })
 		end
 	end
 	if newAge ~= nil then
@@ -931,6 +960,8 @@ local function resumeGame(player, rawCode)
 	applyRuleOverrides(setup.difficulty, setup.combat, setup.marathon)
 	endscreenSent = false -- SO7: a resumed game can end again
 	statsSeries = setmetatable({}, statehash.ARRAY_MT) -- SO8: fresh series
+	statsBattles = {} -- SO8: fresh battles/wonders tallies
+	statsWonders = setmetatable({}, statehash.ARRAY_MT)
 	local n = 0
 	for _ in pairs(state.players) do
 		n += 1
@@ -1239,6 +1270,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 		if pid ~= nil and state ~= nil and state.gameOver ~= true then
 			local on = msg.on == true
 			awaySeats[pid] = on and true or nil
+			regentStance[pid] = on and msg.stance or nil -- MP4: store the picked stance (nil = balanced)
 			remote:FireClient(player, { t = "away", on = on })
 			print(("[R22] %s away=%s (%s)"):format(pid, tostring(on), player.Name))
 			if on and not roundInFlight and state.activePlayer == pid then
@@ -1251,7 +1283,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 	if msg.t == "stats" then
 		-- SO8: PULL-only series (seated or spectating; world-public data)
 		if state ~= nil and (seatOfUser[player.UserId] ~= nil or spectators[player.UserId] == true) then
-			remote:FireClient(player, { t = "stats", series = statsSeries })
+			remote:FireClient(player, { t = "stats", series = statsSeries, battles = statsBattles, wonders = statsWonders })
 		end
 		return
 	end
@@ -1359,6 +1391,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 	-- R22: any real command from an away seat takes it back from the regent
 	if awaySeats[pid] == true then
 		awaySeats[pid] = nil
+		regentStance[pid] = nil -- MP4: clear the stance on take-back
 		remote:FireClient(player, { t = "away", on = false })
 		print(("[R22] %s reclaimed by command (%s)"):format(pid, player.Name))
 	end
@@ -1437,6 +1470,7 @@ Players.PlayerRemoving:Connect(function(player)
 	local pid = seatOfUser[player.UserId]
 	if pid ~= nil then
 		awaySeats[pid] = nil -- R22: presence rules while gone; rejoin starts fresh
+		regentStance[pid] = nil -- MP4: fresh seat, no stance
 	end
 	if state ~= nil and pid ~= nil and not roundInFlight and state.activePlayer == pid then
 		task.spawn(advance, {})

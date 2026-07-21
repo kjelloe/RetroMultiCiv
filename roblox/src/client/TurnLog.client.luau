@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local TurnLogClasses = require(script.Parent:WaitForChild("TurnLogClasses"))
 
 local MAX_ROWS = 150
 
@@ -45,9 +46,29 @@ panel.BorderSizePixel = 0
 panel.Visible = false
 panel.Parent = gui
 
+-- SO6 class-filter strip: one toggle per LOG_CLASS ('world' has no toggle —
+-- always shown). Enabled classes start all-on; toggling re-applies visibility.
+local filterEnabled = {}
+for _, c in ipairs(TurnLogClasses.LOG_CLASSES) do
+	filterEnabled[c.id] = true
+end
+
+local strip = Instance.new("Frame")
+strip.Name = "FilterStrip"
+strip.Size = UDim2.new(1, -8, 0, 22)
+strip.Position = UDim2.new(0, 4, 0, 4)
+strip.BackgroundTransparency = 1
+strip.Parent = panel
+do
+	local lay = Instance.new("UIListLayout")
+	lay.FillDirection = Enum.FillDirection.Horizontal
+	lay.Padding = UDim.new(0, 3)
+	lay.Parent = strip
+end
+
 local list = Instance.new("ScrollingFrame")
-list.Size = UDim2.new(1, -8, 1, -8)
-list.Position = UDim2.new(0, 4, 0, 4)
+list.Size = UDim2.new(1, -8, 1, -32)
+list.Position = UDim2.new(0, 4, 0, 28)
 list.BackgroundTransparency = 1
 list.BorderSizePixel = 0
 list.ScrollBarThickness = 6
@@ -56,6 +77,43 @@ local layout = Instance.new("UIListLayout")
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 1)
 layout.Parent = list
+
+-- a row is visible when its filter class is enabled; 'world' and unclassified
+-- (nil -> stored as "world") rows always show.
+local function rowVisible(fclass)
+	return fclass == "world" or filterEnabled[fclass] == true
+end
+
+local function applyFilter()
+	for _, child in ipairs(list:GetChildren()) do
+		if child:IsA("TextLabel") then
+			child.Visible = rowVisible(child:GetAttribute("fclass"))
+		end
+	end
+end
+
+local function makeFilterButton(cls)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(0, 62, 1, 0)
+	b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
+	b.TextColor3 = Color3.fromRGB(235, 235, 235)
+	b.Font = Enum.Font.Code
+	b.TextSize = 12
+	b.Text = cls.label
+	b.Parent = strip
+	local function paint()
+		b.BackgroundTransparency = filterEnabled[cls.id] and 0.15 or 0.72
+	end
+	paint()
+	b.Activated:Connect(function()
+		filterEnabled[cls.id] = not filterEnabled[cls.id]
+		paint()
+		applyFilter()
+	end)
+end
+for _, c in ipairs(TurnLogClasses.LOG_CLASSES) do
+	makeFilterButton(c)
+end
 
 local COLORS = {
 	win = Color3.fromRGB(150, 230, 150),
@@ -68,8 +126,9 @@ local COLORS = {
 local rowCount = 0
 local unseen = 0
 
-local function put(turn, text, cls)
+local function put(turn, text, cls, fclass)
 	rowCount += 1
+	fclass = fclass or "world"
 	local row = Instance.new("TextLabel")
 	row.Size = UDim2.new(1, -8, 0, 16)
 	row.LayoutOrder = rowCount
@@ -80,6 +139,8 @@ local function put(turn, text, cls)
 	row.TextXAlignment = Enum.TextXAlignment.Left
 	row.TextTruncate = Enum.TextTruncate.AtEnd
 	row.Text = ("T%d %s"):format(turn, text)
+	row:SetAttribute("fclass", fclass) -- SO6: the filter class (hidden when its toggle is off)
+	row.Visible = rowVisible(fclass)
 	row.Parent = list
 	local kids = list:GetChildren()
 	if #kids > MAX_ROWS + 1 then -- +1: the UIListLayout
@@ -281,7 +342,7 @@ local function scanContacts(view)
 		if pid ~= view.you and not met[pid] then
 			met[pid] = true
 			if metSeeded then
-				put(view.turn, ("👁 first contact: %s sighted"):format(playerName(view, pid)), "rival")
+				put(view.turn, ("👁 first contact: %s sighted"):format(playerName(view, pid)), "rival", "rival")
 			end
 		end
 	end
@@ -289,13 +350,19 @@ end
 
 ClientState.onEvents(function(events, view)
 	local rs = ClientState.rulesets()
+	-- SO6: resolve a city's owner from the view for classifyEvent
+	local function cityOwner(cityId)
+		local c = view.cities and view.cities[cityId]
+		return c and c.owner or nil
+	end
 	for _, e in ipairs(events) do
 		local ok, text, cls = pcall(narrate, view, e, rs)
 		if ok and text ~= nil then
-			put(view.turn, text, cls)
+			local okc, fclass = pcall(TurnLogClasses.classifyEvent, e, view.you, cityOwner)
+			put(view.turn, text, cls, okc and fclass or "world")
 		elseif not ok then
 			-- an unexpected event shape must never kill the log loop
-			put(view.turn, "[?] " .. tostring(e.type), "rival")
+			put(view.turn, "[?] " .. tostring(e.type), "rival", "world")
 		end
 	end
 	pcall(scanContacts, view) -- D3 view-derived first contact (never kills the loop)
@@ -333,4 +400,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[TurnLog] R6 turn log up (L toggles)")
+print("[TurnLog] R6 turn log up (L toggles; SO6 class filters)")

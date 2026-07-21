@@ -76,6 +76,11 @@ local function addRow(order, text, color, bold)
 	label.Parent = holder
 end
 
+-- SO8: the last pulled battles/wonders tallies (world-public); refresh() folds
+-- the per-civ battle record into its row + lists the wonders timeline.
+local lastBattles = {}
+local lastWonders = {}
+
 local function refresh()
 	local view = ClientState.view
 	if view == nil then
@@ -122,7 +127,25 @@ local function refresh()
 				text = ("%s%s - %d cities seen, %d units in sight%s"):format(
 					p.name, stanceTag, cities, units, p.human == true and " (human)" or "")
 			end
-			addRow(order, text, hexColor(Palette.displayColor(p.color or "#888888")))
+				local b = lastBattles[pid]
+				if b ~= nil and (b.won ~= 0 or b.lost ~= 0) then
+					text = text .. (" · ⚔ %d-%d"):format(b.won or 0, b.lost or 0)
+				end
+				addRow(order, text, hexColor(Palette.displayColor(p.color or "#888888")))
+		end
+	end
+	-- SO8: the wonders timeline (last few world-public wonderBuilt, newest last)
+	if #lastWonders > 0 then
+		order += 1
+		addRow(order, "🏛 Wonders", nil, true)
+		local startAt = math.max(1, #lastWonders - 7)
+		for i = startAt, #lastWonders do
+			local w = lastWonders[i]
+			order += 1
+			local owner = w.owner ~= nil and view.players[w.owner] or nil
+			local rs2 = ClientState.rulesets()
+			local wname = (rs2.wonders[w.wonder] or {}).name or w.wonder
+			addRow(order, ("  T%d  %s — %s"):format(w.turn or 0, owner and owner.name or "?", wname))
 		end
 	end
 	panel.Size = UDim2.new(0, 460, 0, 40 + order * 20 + (chart.Visible and CHART_H + 12 or 0))
@@ -168,7 +191,11 @@ local function drawChart(series)
 	chart.Visible = true
 	refresh() -- resize the panel around the chart
 end
-ClientState.onStats(drawChart)
+ClientState.onStats(function(series, battles, wonders)
+	lastBattles = battles or {}
+	lastWonders = wonders or {}
+	drawChart(series) -- draws the chart, then refresh() folds in battles/wonders
+end)
 
 ClientState.onView(function()
 	if gui.Enabled then
@@ -194,4 +221,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[Stats] R7d statistics up (J toggles)")
+print("[Stats] R7d statistics up (J toggles; SO8 score chart + battles/wonders)")

@@ -336,8 +336,19 @@ M.away = false
 M.maxIdleMin = 1
 M.lastActivity = os.clock()
 
-function M.setAway(on)
-	remote:FireServer({ t = "away", on = on == true })
+-- MP4: an optional regent STANCE rides the arm message (balanced when nil);
+-- the GameServer stores it per seat and feeds it to pickCommand. openRegent is
+-- a hook the RegentDialog sets so the Hud 🤖 button opens the stance picker.
+M.regentStance = nil
+M.openRegent = nil
+
+function M.setAway(on, stance)
+	if on == true then
+		M.regentStance = stance
+	else
+		M.regentStance = nil
+	end
+	remote:FireServer({ t = "away", on = on == true, stance = stance })
 end
 
 function M.myTurn()
@@ -367,7 +378,7 @@ remote.OnClientEvent:Connect(function(msg)
 	end
 	if msg.t == "stats" then
 		for _, cb in ipairs(statsCallbacks) do
-			cb(msg.series or {})
+			cb(msg.series or {}, msg.battles or {}, msg.wonders or {}) -- SO8: + battles/wonders
 		end
 	end
 	if msg.t == "strat" then
@@ -410,6 +421,9 @@ remote.OnClientEvent:Connect(function(msg)
 		-- so a fresh countdown never fires the moment a seat is taken back
 		M.away = msg.on == true
 		M.lastActivity = os.clock()
+		if not M.away then
+			M.regentStance = nil -- MP4: cleared on take-back / auto-reclaim
+		end
 		print("[Client] AI regency " .. (M.away and "ON (regent plays your seat)" or "OFF (your seat)"))
 	end
 	if msg.t == "joined" or msg.t == "view" then

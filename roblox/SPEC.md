@@ -712,6 +712,93 @@ counterpart or a recorded reason. The standing process holds: the
 architect adds a catalog row when the browser grows a feature; the
 roblox-helper annotates and builds/requests-a-twin by row id.
 
+### 3u. Tier-3 wait-status (docs/13 core-loop, accel item)
+
+`WaitStatus.luau` is a 1:1 port of `client/ui/wait-status.js` (A26):
+`createWaitTracker().update(activePid, viewerPid, nowMs, thresholdSec)`
+→ `{ waitingFor, elapsedSec, note }` (clock resets on turn change; the
+slow-poke note fires once per wait past the threshold) plus
+`formatWait`/`formatSlowNote`. `WaitStatus.client.luau` shows a
+top-center HUD line "⏳ &lt;civ&gt; is moving · Ns" while it is NOT your
+turn, reading only the filtered view (`activePlayer`/`you`/`players[]`)
+and ticking the pure tracker each Heartbeat — presentation only, sends
+nothing (golden-neutral). Gate 20 (`wait-status-parity.mjs`) pins the
+format fragments + tracker semantics against the browser source (reword
+either side fails), the gate-19 pattern. Context: an audit found docs/13
+Tier 1 + Tier 2 already landed via the R-items, so the "Tier-1 core-loop"
+accel item advances the real frontier — the Tier-3 remainder; wait-status
+is slice 1. skip-vote likely folds into R22 regency (away seats are
+auto-driven, so the round never stalls); resume-code + take-over-AI pad
+are the larger remaining Tier-3 slices.
+
+### 3v. CP13 government switching (core-loop gap, module-audit find)
+
+The re-audit found the Roblox client could not CHANGE government (only
+rates + a display line; `GovernmentPanel` said "switching lands here
+later") — a Civ 1 core-loop gap. `GovernmentPanel.client.luau` now hosts
+a switch row: a button per known government (fixed display order, skip
+anarchy + current, tech-gated) issues `setGovernment {government}`; the
+engine judges the revolution (a few turns of Anarchy, or an instant swap
+under the Pyramids). Mid-revolution the gov line shows "⚡ Anarchy — N
+turns until &lt;pending&gt;" and the buttons hide. 1:1 of
+`client/ui/panels.js` gov-row; reads the own-seat view fields
+(`government`/`revolutionTurns`/`pendingGovernment`/`techs` — filterView
+surfaces them for `pid==you`), so ZERO server/protocol change. Golden-
+neutral (logged `setGovernment` only). Gate 21
+(`government-switch-parity.mjs`) pins the client↔panels.js markers + the
+engine reject-reason contract (techRequired/inRevolution/badGovernment/
+alreadyGovernment). Catalog CP13 PARTIAL → PRESENT.
+
+### 3w. SO6 turn-log class filters (catalog PARTIAL find)
+
+`TurnLogClasses.luau` is a 1:1 port of `client/ui/turnlog-classes.js` (A39):
+`LOG_CLASSES` (combat/cities/research/rival/saves/regent) +
+`classifyEvent(e, viewer, cityOwner)` → a class id or nil. `TurnLog.client`
+now has a class-filter strip (a toggle per class; 'world' has no toggle —
+wonders/eliminations/war-peace always show) that tags each narrated row
+with its filter class and hides/shows by toggle. `nil`-classified rows
+render under 'world' so nothing narrated is ever hidden. Pure read-only
+over the pushed events (golden-neutral). Gate 22
+(`turnlog-classes-parity.mjs`) drives the browser `classifyEvent` over a
+representative event per class + pins the Luau + the wiring. Catalog SO6:
+classes + filters DONE; **jump-to** (click a row → focus the camera on the
+event) is a separable follow-up (needs per-event coords).
+
+### 3x. MP4 regent stance-select (docs/13 Tier-3, catalog find)
+
+The 🤖 regency control armed a bare (balanced) regent; MP4 adds the
+browser's stance pick. `RegentDialog.client.luau` is a 1:1 of
+`client/ui/regency.js`'s dialog — the Hud 🤖 button (when arming) opens a
+5-stance picker (Balanced/Defensive/Aggressive/Science/Growth) via the
+`ClientState.openRegent` hook; a pick calls `ClientState.setAway(true,
+stance)`, which rides the stance on the away message. `GameServer` stores
+`regentStance[pid]` (parallel to `awaySeats`, the seat-metadata house
+pattern; cleared on take-back/reclaim/rejoin) and feeds it to
+`pickCommand(...,​ regentStance[pid])` in `playRegentSeat`. **No engine
+change** — both `runAiTurn`/`pickCommand` twins already accept the 5th
+`stance` param (luau `ai.luau:1469/1983`); the Roblox GameServer just
+passes it. Golden-neutral: the sim goldens drive AI on the default
+(balanced) path, and a regent's commands log verbatim + replay re-applies
+them (docs/08 §7) — no re-record. Gate 23 (`regent-stance-parity.mjs`)
+pins the STANCES + the client→GameServer→pickCommand wire. Catalog MP4:
+stance-select DONE (narration lines remain a light follow-up).
+
+### 3y. SO8 battles/wonders timelines (catalog find, architect-approved)
+
+The stats panel had the score-over-time chart only; SO8 adds the
+browser's battles + wonders timelines (`client/ui/stats-data.js` twin).
+The `GameServer` accumulates two world-public tallies from each
+`advance()` batch's PUBLIC events — `statsBattles` (pid → {won, lost} from
+`combatResolved`, winner→owner mirrored from stats-data.js) and
+`statsWonders` (`[{turn, owner, wonder}]` from `wonderBuilt`, owner via
+`state.cities[cityId]`) — at the SINGLE-PASS line-598 loop (once per
+advance, like SO9 ages, so no double-count). Both ride the existing
+`{t=stats}` PULL (never pushed, never hashed → golden-neutral, fog-honest:
+these are public). `Statistics.client` folds each civ's `⚔ won-lost` into
+its row and lists a `🏛 Wonders` timeline (last ~8). Gate 24
+(`stats-timeline-parity.mjs`) pins the accumulation vs stats-data.js + the
+push + the render. Catalog SO8 → PRESENT.
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine

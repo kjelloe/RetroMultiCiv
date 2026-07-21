@@ -224,7 +224,13 @@ end
 paintRegency()
 regencyBtn.Activated:Connect(function()
 	if ClientState.view ~= nil and not ClientState.gameOver then
-		ClientState.setAway(not ClientState.away)
+		if ClientState.away then
+			ClientState.setAway(false) -- take back control
+		elseif ClientState.openRegent ~= nil then
+			ClientState.openRegent() -- MP4: pick a regent stance before handing over
+		else
+			ClientState.setAway(true) -- fallback: no dialog module → balanced regent
+		end
 	end
 end)
 

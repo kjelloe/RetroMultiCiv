@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -251,6 +251,76 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 19: node absent"
+fi
+
+# gate 20 — Tier-3 wait-status: WaitStatus.luau is a 1:1 port of
+# client/ui/wait-status.js (A26 createWaitTracker + formatWait/formatSlowNote) and
+# the HUD line reads the filtered view. Format fragments + tracker semantics are
+# derived from the browser source; a reword on either side fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/wait-status-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 20: wait-status matches client/ui/wait-status.js"
+  else
+    note FAIL "gate 20: wait-status parity — run: node roblox/selftest/wait-status-parity.mjs"
+  fi
+else
+  note SKIP "gate 20: node absent"
+fi
+
+# gate 21 — CP13 government switching: the GovernmentPanel switch row mirrors
+# client/ui/panels.js's gov-row (skip anarchy + current, tech-gate the rest,
+# revolution countdown) + issues setGovernment; the engine reject-reason contract
+# the client relies on stays intact. A reword either side / contract drift fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/government-switch-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 21: government switching mirrors client/ui/panels.js gov-row"
+  else
+    note FAIL "gate 21: government-switch parity — run: node roblox/selftest/government-switch-parity.mjs"
+  fi
+else
+  note SKIP "gate 21: node absent"
+fi
+
+# gate 22 — SO6 turn-log class filters: TurnLogClasses.luau is a 1:1 port of
+# client/ui/turnlog-classes.js (LOG_CLASSES + classifyEvent), and TurnLog.client
+# wires the filter strip. The browser classifyEvent is driven over a
+# representative event per class; a reword either side fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/turnlog-classes-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 22: turn-log classes match client/ui/turnlog-classes.js"
+  else
+    note FAIL "gate 22: turnlog-classes parity — run: node roblox/selftest/turnlog-classes-parity.mjs"
+  fi
+else
+  note SKIP "gate 22: node absent"
+fi
+
+# gate 23 — MP4 regent stance-select: RegentDialog offers the regency.js STANCES,
+# the arm message carries the stance, and the GameServer feeds it to pickCommand
+# (whose 5th stance param both engine twins already accept — no engine change).
+# A reword on either side, or a broken stance-wire, fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/regent-stance-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 23: regent stance-select wired client→GameServer→pickCommand"
+  else
+    note FAIL "gate 23: regent-stance parity — run: node roblox/selftest/regent-stance-parity.mjs"
+  fi
+else
+  note SKIP "gate 23: node absent"
+fi
+
+# gate 24 — SO8 battles/wonders timelines: the GameServer accumulates world-public
+# battles (combatResolved) + wonders (wonderBuilt) the same way client/ui/stats-data.js
+# does, pushes them on {t=stats}, and Statistics.client renders them. Reword either
+# side / broken wire fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/stats-timeline-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 24: stats battles/wonders mirror client/ui/stats-data.js"
+  else
+    note FAIL "gate 24: stats-timeline parity — run: node roblox/selftest/stats-timeline-parity.mjs"
+  fi
+else
+  note SKIP "gate 24: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
