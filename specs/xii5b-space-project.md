@@ -80,10 +80,23 @@ in specs/calendar-545.md as well.
 - Sweep 3: 4 commits, 4/4 STILL abandoned on threat — decisive evidence:
   milAtCommit == milFloorMin in ALL four (zero military losses; the threat
   metric is chronic late-game proximity noise, not danger).
-- OPEN USER FORK (options presented, recommendation (a)):
-  (a) DANGER-BASED abandon — concrete events only (capital threatened/
-      lost, city lost while committed, mode warring); (b) crank the
-      patience ladder further; (c) accept space-as-rare (fails ally
-      acceptance; versioning rule traps it until 2.0).
-  The latch CODE is correct (spike/siege fixtures both pass) — the SIGNAL
-  feeding it is what fails.
+- USER FORK RULED (a) 2026-07-21 (#2138): DANGER-BASED abandon — concrete
+  events only (mode warring / enemy adjacent to capital / city lost while
+  committed); latch field+knob REMOVED entirely (the latch CODE was
+  correct — the SIGNAL feeding it failed). Landed 706b19d; reviewer GREEN
+  #2146; Gate-B GREEN #2150.
+- Sweep 4 (the danger-abandon acceptance, #2159): floors ALL GREEN
+  (M2 15 / M3 54.5 / M4 61 on the re-baselined floors); commits 24 of 25
+  seeds (vs 3 in sweep 3); 5 civs complete the research path; 4 still
+  committed at sweep end — abandon is no longer universal, and abandons
+  now coincide with real military collapse (e.g. 225→126). BUT 0 launches:
+  ssPartStartTurn=0 everywhere, and a failed-seed save shows wonders=={}
+  at t519 — NO wonder is ever built, so the Apollo Program gate
+  (spaceship.js apolloActive) never opens. The abandon slice meets its
+  own criteria; the launch blocker is UPSTREAM: the AI never builds
+  wonders (topGoal 'wonder' = 64/6375 stats rows; ai.js apolloReady
+  exists but build selection never chooses a wonder). → NEW USER FORK:
+  the wonder-building slice (options: committed-civ-builds-Apollo
+  narrow fix / archetype some-civs-build-wonders v1 slice / both staged).
+  Witness rider: soak.js abandonReason still prints pre-slice 'threat'
+  vocabulary — concrete-reason derivation queued.

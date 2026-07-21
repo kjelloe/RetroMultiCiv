@@ -8,7 +8,9 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-22 (marker-0081 = candidate; audit CLOSED; space-arc fork = the one open decision)._
+_Last synced: 2026-07-21 night (marker-0082 = candidate; danger-abandon
+landed + gated green; 4th witness verdict in — the WONDER-BUILDING fork
+below is the one open decision)._
 
 ---
 
@@ -17,21 +19,37 @@ _Last synced: 2026-07-22 (marker-0081 = candidate; audit CLOSED; space-arc fork 
 _Catch-up: `reports/away-window-2-brief.md` (markers 0077-0081, the
 space-arc saga, wake list)._
 
+- [ ] **WONDER-BUILDING FORK (the space arc's last blocker).** The 4th
+  re-witness: danger-abandon WORKS (24 commits, 4 survive to sweep end,
+  floors green) but 0 launches — because in 25 games NO wonder is ever
+  built, so the Apollo Program gate never opens (ship parts require it).
+  This is your archetype vision's ground truth. Options:
+  **(a) narrow fix** — a space-COMMITTED civ builds Apollo itself when
+  eligible (small slice, completes the launch pipeline, 5th witness
+  measures launches) — my recommendation for v1;
+  **(b) archetype slice now** — "some civs MUST build wonders"
+  (stance-keyed wonder priority, your A40 vision) — bigger, richer,
+  also fixes empty-wonders-world generally;
+  **(c) both, staged** — (a) now for the pipeline, (b) as its own
+  v1 item after difficulty.
+  Note: (a) is contained; (c) = (a) plus a queued design pass.
+
 - [x] **SPACE-ARC FORK — RULED (a) danger-based abandon** (#2138):
-  concrete events only, threat-metric + latch field removed, fourth
-  re-witness mandatory; slotted after naval-truth.
+  landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the
+  4th witness (commits survive; abandons concrete-only).
 
-- [ ] **Redeploy from marker-0081** (0082/naval-truth imminent): since
-  your last deploy — sea raids with the sails warning, pollution/warming/
-  meltdown, full nuclear detonation, the 8 disasters (authentic-ON +
-  toggle), air-truth rules, the XII.5b tune+latch.
+- [ ] **Redeploy from marker-0082** (naval-truth: sub stealth, sight-2,
+  probabilistic trireme, Lighthouse/Magellan +1 — plus everything since
+  0081). NOTE: marker-0083 is BLOCKED on a real naval regression
+  (trireme-on-land, seed 23) — 0082 is the safe candidate; the trireme
+  fix lands as 0083.
 
-- [ ] **Wake three sessions**: sim-runner (Gate-B backlog 0078-0081 +
-  roblox re-bake commit), helper (queue 23, §22 mid), hardening
-  (self-audit).
+- [ ] **Wake helper** (queue 23, §22 mid) — the one still-down session.
+  sim-runner + hardening + roblox-helper are all awake and current.
 
 - [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
-  **ally relay** (thanks + routed-endings confirmation) — unchanged.
+  **ally relay** (`specs/ally-status-update-2026-07-22.md` + prior
+  notes) — unchanged.
 
 _Recently landed (away window 2 + since):_ markers 0077-0081, all
 merge-consistent (14 consecutive since 0069); the versioning audit's

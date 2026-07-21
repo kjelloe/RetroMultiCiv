@@ -4227,3 +4227,20 @@ goldens WILL re-record.
 
 ## Refinement XIV — 31-item multi-device playtest batch (2026-07-20 evening; routed via WORK STACKS, not A/B items)
 Triage + full detail: `specs/refinement-xiv.md` (§1–§31); ally design package for §15/§17/§26/§29 + the space-pacing verdict: `specs/ally-design-response-2026-07-20-evening.md`. Routing: 15 helper queue items (client/UI, all golden-neutral; correctness-first order), 1 bugfixer batch `xiv-ai-behavior` (§12+§13+§14, PARKED until XII.5 closes; folds in the shelved #1901 parts-rush), 1 roblox-helper item `xiv-studded-style` (§15). First delivery: `client-server-redirect` (helper, 2026-07-20 — bare `/client/` 302→`?server=1`, `?local=1` escape hatch, +1 test server-hardening.test.js, 1 retargeted; 87/87 server+lobby, browser 16/16, golden-neutral). Queue bodies reference spec §s — the spec is the single source; done-marks land here as items complete.
+
+## Naval-truth regression + 4th-witness follow-ups (2026-07-21 night; stack-routed)
+Full record: `#2159` + `specs/xii5b-space-project.md` status log. Three items:
+(1) **B27 trireme-on-land** (bugfixer, URGENT, blocks marker-0083): sweep seed 23
+invariant "unit u1065: sea unit (trireme) on land outside a city" @t465 —
+naval-truth (e1c69a9) touched exactly these paths (openSeaLoss turn-wrap,
+cargo drowns). Artifacts `debugging/sim/sim-23-t465.save.json` +
+`sim-23.diag.json`; `tools/replay.js` first; fixture-first; resequenced AHEAD
+of the difficulty window. (2) **witness-vocab rider** (soak.js, tools-only,
+not golden): abandonReason still prints pre-slice 'threat' — derive concrete
+reasons (warring / capital-adjacent / city-lost) at the abandon turn.
+(3) **wonder-building slice** — USER FORK OPEN (human-workitems): 0 launches
+because wonders=={} in all 25 games (Apollo gate never opens; ai.js
+apolloReady exists, build selection never picks wonders — topGoal 'wonder'
+64/6375 rows). Options narrow-Apollo / archetype-slice / staged-both;
+build waits on the ruling. Tripwire seeds 9/12/18 (1001/1008/1009 units)
+filed to `xiv-ai-behavior` as further unit-bloat evidence.
