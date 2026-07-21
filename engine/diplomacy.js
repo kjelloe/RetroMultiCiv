@@ -142,7 +142,11 @@ function diplomacyCommand(state, cmd, ruleset) {
 
   if (cmd.kind === 'reject') {
     if (entry === undefined || entry.offer === undefined) return { ok: false, reason: 'noSuchOffer' };
-    delete entry.offer; // no state change beyond clearing the offer
+    delete entry.offer;
+    // §14 F1: stamp the reject so the offerer does not immediately re-offer —
+    // rel stays 'war', so without this the AI would re-offer next turn and spam
+    // an offer/reject loop. diplomacyStep gates on rules.diplomacy.offerCooldown.
+    entry.offerRejectedTurn = state.turn;
     return { ok: true, events: [] };
   }
 

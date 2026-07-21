@@ -39,6 +39,7 @@
   "attackerBase": 2,
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
+  "aiSurplusBuyThreshold": 1000,
   "aiScoutSharePct": 25,
   "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
   "aiScoutThreatVeto": true,
@@ -117,6 +118,7 @@
   "diplomacy": {
     "warIntentThreshold": 60,
     "peaceAcceptThreshold": 30,
+    "offerCooldown": 10,
     "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
     "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
     "relGrievanceOnAttack": 15,
