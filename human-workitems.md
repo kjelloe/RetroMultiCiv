@@ -8,52 +8,52 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 (marker-0069 = MERGE CANDIDATE; calendar-545 in build as 0070; advisor + difficulty ruled; 4 fact-packs commissioned)._
+_Last synced: 2026-07-21 (marker-0071 = MERGE CANDIDATE; §14 treasury open; XII.5b + §39 rulings with you)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Merge marker-0070** — the merge candidate (supersedes 0062–0069;
-  first consistent marker since 0067). Contents: the XII.5 space-drive core
-  fix + re-recorded goldens (both gates green), the complete OOM fix, A101
-  operator-caps, the three playtest-bug fixes (redirect / endscreen /
-  bug-report), A102 CLI guards, Studded first impl, skills + hooks.
-  `reports/marker-0069.md` is the full delta. Note: calendar-545 (marker
-  0070) is in build and will supersede it shortly — merge now or wait one
-  marker, your call.
+- [ ] **Merge marker-0071** — the merge candidate (supersedes 0070; both
+  gates green). Adds on top of 0070: the §13 deficit ladder (AI/regency
+  climbs tax→taxmen→government before civil disorder — your "regent sits at
+  0 gold in disorder" complaint, fixed), D3 diplomacy visible to players in
+  server games, and the anti-stale-idle agent-mail mechanics.
+  `reports/marker-0071.md`.
 
-- [ ] **Studio screenshot review — Studded/Brick world style** (`a2335b0`,
-  18 gates green): roblox-helper is blocked on your in-Studio pass (ally
-  invariants: silhouettes readable, studs sparse, terrain FLATTER than the
-  other styles).
+- [ ] **XII.5b GO / not-yet** — the ally-designed space-project AI slice
+  (`specs/xii5b-space-project.md`): eligibility gate + sim-swept scoring +
+  path-preferring research + legible commit/abandon. The one strategic
+  decision gating the space-victory endgame. It would slot after the
+  xiv-ai windows (§14 → §12) unless you promote it.
 
-- [ ] **Live box: redeploy + three confirmations.** Redeploy from
-  marker-0069 (`./ssh-deploy.sh`) to pick up the redirect/endscreen/
-  bug-report fixes, then: (1) unit's `--public-addr` = bare
-  `multiciv.kjell.today:443` and journal shows `master: listed at …` (a
-  scheme now FAILS AT BOOT — fix the unit before restarting if it still
-  carries `https://…`); (2) apply the 2 GB-tier sizing (heap 768,
-  `MemoryMax=1200M`, `--max-games 3` — box is 2 GB, unit carries 4 GB
-  defaults); (3) a `?server=1` game writes into `/opt/retromulticiv/saves/`.
-  Optional: add `--bug-reports /opt/retromulticiv/bugreports` to enable
-  in-client bug reports.
+- [ ] **§39 conquest disorder: skip or labeled mix** — fact-check verdict:
+  Civ 1 imposes NO disorder on capture (our behavior is authentic; a
+  disorder period is Civ2/3 drift). Skip (stay pure) or adopt as a labeled
+  `Civ2-shape` mix (1–2 turns scaled by size — adds invasion pacing)?
 
-- [ ] **Ally relay, when convenient**: the space-race pacing loop closed —
-  calendar-545 implements a ~545-turn normal game (their verdict was the
-  deciding input); their Studded art direction is implemented and awaiting
-  your Studio review; the advisor hint-card copy ask comes later (after the
-  XIV components land). No response required, courtesy update.
+- [ ] **Studio review (roblox)** — now TWO things in one session: the
+  Studded/Brick world style (`a2335b0` + the lower-hills fix `36e6b1f`)
+  and the new D3 Foreign-relations panel (Tier-B, `4d7e235`). The lane is
+  idle until your screenshots/verdict.
 
-_Recently landed (no action — 2026-07-20/21):_ marker-0069 tagged
-MERGE-CONSISTENT (XII.5 core fix + re-record; 0068's OOM+caps folded in);
-Refinement XIV first four deliveries shipped; rulings executed: calendar-545
-(545-turn normal game, marker 0070 in build), unit-truth bundles (air/naval
-queued, diplomat missions ride D6), advisor = event hint cards
-(`specs/advisor-hint-cards.md`), authentic difficulty = v1 (fact-pack-gated);
-4 reviewer fact-packs commissioned (#1953); agent-mail send-guard hardened
-(6 deny rules, 16-case matrix); hub reboot-recovery documented; living plan
-docs `plan-version1.md` / `plan-version2.md` established.
+- [ ] **Redeploy the test box** (`./ssh-deploy.sh` from marker-0071) — two
+  markers of player-facing fixes waiting: 545-turn games, the endscreen
+  fix, server-default redirect, bug-report route (add
+  `--bug-reports /opt/retromulticiv/bugreports` to enable), regency pacing.
+  The three live-box confirmations from earlier still apply on the same
+  pass (public-addr form, 2 GB sizing, saves/ check).
+
+_Recently landed (no action — 2026-07-21):_ markers 0069/0070/0071 tagged
+consecutively (XII.5 core fix + re-record; calendar-545 = 545-turn normal
+games; §13 deficit economics); D3 server-surfacing (war/peace/contact events
++ relations now player-visible); roblox D3 Tier-B relations panel + Studded
+first impl; XIV batches 2–4 triaged (§32–§46, helper delivering: redirect,
+endscreen, bug-report, regency lifecycle, save-mobile, e-hint in flight,
+food-truth priority in flight); Teotihuacan debug root-caused (UI omitted
+settler food upkeep — fix in flight; rehome command queued); anti-stale-idle
+agent-mail mechanics; 5 reviewer fact-packs; ally space-AI design captured
+as XII.5b spec.
 
 ---
 
