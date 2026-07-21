@@ -108,3 +108,16 @@ palace, senate prerequisites. Found MISSING and now planned:
 3. **Envelope version stamp** (golden-neutral): saves/recordings carry the
    game version so the 1.x/2.x boundary rejects mismatches with a friendly
    message. Queued (helper).
+
+## 7. Finding severity scale (for the playtest week + bug-report triage)
+
+- **S1 — blocks the tag**: crash/hang, data loss (saves/recordings),
+  determinism break (replay divergence on same-version), security issue,
+  a game unwinnable/unlosable by rule error, server unavailability under
+  normal load.
+- **S2 — fix in 1.0.z**: a feature materially broken but with a workaround
+  (wrong numbers displayed, a panel unusable on one device class, an AI
+  behavior clearly outside its spec).
+- **S3 — 1.y polish queue**: cosmetic, wording, feel, minor layout.
+The RC playtest week gates ONLY on S1. Severity is assigned at triage
+(architect), recorded in the bug-report file's disposition.
