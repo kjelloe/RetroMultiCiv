@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -237,6 +237,20 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 18: node absent"
+fi
+
+# gate 19 — D3 Tier-B diplomacy panel: DiplomacyView.luau relationLabel is a 1:1
+# port of shared/diplomacy-view.js relationLabel (peace/war/perpetual/expiry) +
+# the Foreign-relations panel reads the twin-exposed view.relations. A reword on
+# either side fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/diplomacy-panel-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 19: diplomacy panel relationLabel matches shared/diplomacy-view.js"
+  else
+    note FAIL "gate 19: diplomacy-panel parity — run: node roblox/selftest/diplomacy-panel-parity.mjs"
+  fi
+else
+  note SKIP "gate 19: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

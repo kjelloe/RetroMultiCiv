@@ -670,8 +670,18 @@ Run-F live playtest (2026-07-19) fixes:
   treaty events stay DORMANT until the engine/visibility twin surfaces them
   past the authoritative fog filter (bugfixer's D3 server-surfacing item,
   #1884) — the narrator is correct and lights up the moment they arrive;
-  first-contact works today. Tier-B Foreign-relations panel is deferred
-  until `filterView` exposes `state.relations`.
+  first-contact works today.
+- **D3 diplomacy UI Tier-B DONE** (twin landed bb8ce1d, #1981/#1984): the
+  bugfixer's server-surfacing twin now (a) surfaces the 3 treaty events past
+  the fog filter (civId→pid party rule) so the Tier-A TurnLog narration is
+  LIVE over `?server=1`, and (b) exposes `state.relations` whole in
+  `filterView`. On (b): `Diplomacy.client.luau` — the Foreign-relations panel
+  (🤝, Y toggle, left-stack mutual-exclusion) lists every met rival civ with
+  its `relationLabel` (⚔/🕊, since/until/perpetual) + reputation, read from
+  `view.relations`. `DiplomacyView.luau` ports `shared/diplomacy-view.js`
+  `relationOf`/`relationLabel`/`reputationOf` 1:1 (gate 19 pins parity).
+  Read-only legibility (treaty ACTIONS are a later slice); fog-honest,
+  golden-neutral.
 - **XIV §15 "Studded" world style — first impl DONE** (spec
   `specs/roblox-studded-style.md`): a THIRD `look` alongside retro/enhanced,
   player-facing label **Studded**, internal id **brick**. `world look` toggle
@@ -689,7 +699,8 @@ Run-F live playtest (2026-07-19) fixes:
   city prop chunking (ally refinements deferred to post-screenshot).
 - Still open: the tech-tree procedural GLYPHS (phase 2, ally motif pass)
   + the CP1 tile-props art pass (now unblocked by the enhanced-look
-  ruling); D3 Tier-B relations panel (needs the filterView twin).
+  ruling); D3 treaty ACTIONS (declare/offer/accept — a later diplomacy
+  slice beyond Tier-B's read-only legibility).
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
 2026-07-18, marker via `luau/strategic.luau`; CP9 corrected — the
