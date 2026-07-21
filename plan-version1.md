@@ -65,7 +65,7 @@ flowchart TD
     T1["✅ Tier 1 — solo core loop\n(module-audit verified #2020)"]
     T2["✅ Tier 2 — management depth\n(module-audit verified #2020)"]
     R6["🧩 R6 seats/lobby"]
-    T3["🔨 Tier 3 remainder (1.0-REQUIRED):\nwait-status ✅ · skip-vote · resume-code ·\ntake-over-AI pad (R6 spec ready)"]
+    T3["🔨 Tier 3 — NEARLY COMPLETE (#2028):\nwait-status manifested; resume-code/takeover\nALREADY LANDED; skip-vote = folded (regency\nmodel); certification re-audit next"]
     STUD --> T1 --> T2 --> T3
     R6 --> T3
   end
@@ -112,7 +112,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 1 | Every Civ 1 system faithful | ~85% | **A91 pollution/warming/nukes**, **A8 tile contention**, A6a future-tech repeats, A7 wonder-effect stragglers, **unit-truth bundles** (air riders + naval: sub invisibility/sight/trireme — `specs/unit-truth-bundles.md`; diplomat missions ride D6) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅ | **D4–D6** (human LAN treaties, senate, reputation) — after the engine queue drains |
 | 3 | AI at M-targets | strong | naval-loop acceptance, air role, N1/N2 gov re-eval, N4 bloat/hoard (→ `xiv-ai-behavior`), M-floor ratchets green |
-| 4 | Roblox Tier 3 multiplayer | Tiers 0–2 ✅ (audit #2020) | Tier-3 remainder (skip-vote, resume-code, take-over pad) + R6 seats (spec ready); Studded round-2 on user review |
+| 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ (#2020+#2028) | certification re-audit (docs/13-row × module parity) + wait-status landing; Studded round-2 on user review |
 | 5 | Public hosting + master index | box ✅, code ✅ | A50 rest, security re-assess, **user DNS gate**, "Find game" client browser |
 | 6 | Maps/sound/pedia/advisor/CI | partial | A58 pedia completion; advisor RULED (hint cards, specs/advisor-hint-cards.md, queued); A49 playwright lane finish |
 
