@@ -716,8 +716,11 @@ Run-F live playtest (2026-07-19) fixes:
 - Still open: the tech-tree 68 procedural GLYPH MOTIFS (gated on the
   EditableImage Studio spike — the era-FRAMES fallback landed via
   `TechGlyphs.luau`/gate 26); the CP1 tile-props art pass LANDED
-  (`TileProps.luau`/gate 25); SO15 sound cues (curated library-map,
-  next); D3 treaty ACTIONS (declare/offer/accept — a later diplomacy
+  (`TileProps.luau`/gate 25); SO15 sound — the cue DECISION+PLAYER
+  framework LANDED (`SoundMap.luau` = pure sound-map.js twin/gate 27 +
+  `Sound.client` firing off onEvents), SoundIds PROVISIONAL for the user
+  to curate from the Studio Toolbox (bespoke-upload swap = user-gated
+  1.y); D3 treaty ACTIONS (declare/offer/accept — a later diplomacy
   slice beyond Tier-B's read-only legibility).
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed
