@@ -734,3 +734,49 @@ test('XII.5b path-research: a committed civ beelines the space-flight closure', 
   assert.ok(onPath.includes(cmd.tech),
     'a committed civ researches an on-path tech (space-flight closure), not an off-path side tech; got ' + cmd.tech);
 });
+
+// §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep
+// ocean inlet to a frontier site — the greedy chebyshev step (safeDirToward)
+// dead-ends at the inlet mouth and the settler never crosses. A crafted 6-deep
+// vertical inlet (crossing only at y=1) between the settler and the only
+// foundable site (grassland across the water; the near side is unfoundable
+// desert) reproduces it. Replay-fixture-FIRST per #1989: pre-fix this FAILS.
+function inletState() {
+  const W = 13, H = 9, tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let t = 'desert';
+    if (x === 6 && y >= 2 && y <= 7) t = 'ocean'; // 6-deep inlet, land crossing only at y=1
+    if (x >= 9 && x <= 11 && y >= 3 && y <= 5) t = 'grassland'; // the only foundable ground
+    const tile = { t };
+    if (x === 10 && y === 4) tile.river = true; // the clearly-best far site
+    tiles.push(tile);
+  }
+  const explored = [];
+  for (let i = 0; i < W * H; i++) explored.push(1);
+  return {
+    version: 1, turn: 5, year: -3800, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: W, height: H, wrapX: false, tiles },
+    units: { u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 4, y: 4, moves: 1, fortified: false, veteran: false } },
+    cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 2, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, explored } },
+    rngState: 1
+  };
+}
+test('§12: an expander settler routes AROUND a deep ocean inlet to the far site', async () => {
+  const { ai, engine } = await load();
+  let s = inletState();
+  for (let turn = 0; turn < 16; turn++) {
+    s = ai.runAiTurn(engine, s, 'p1', RULESET, []);
+    const res = engine.applyCommand(s, { type: 'endTurn', playerId: 'p1' });
+    if (res.ok) s = res.state;
+  }
+  // success = the settler crossed the inlet (x > 6) or a city was founded on the
+  // far side. Pre-fix the greedy step strands it at x<=5 (near side) forever.
+  const u = s.units.u1;
+  const farCity = Object.keys(s.cities).some(cid => s.cities[cid].owner === 'p1' && s.cities[cid].x > 6);
+  const crossed = (u !== undefined && u.x > 6) || farCity;
+  assert.ok(crossed,
+    '§12: the expander must path around the inlet to the far side; got '
+    + (u ? `settler stuck at ${u.x},${u.y}` : 'settler gone') + `, farCity=${farCity}`);
+});

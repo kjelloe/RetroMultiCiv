@@ -35,6 +35,7 @@
   "sellPriceRatio": 1,
   "exploreMarchRadius": 8,
   "threatRadius": 8,
+  "settlerPathRadius": 12,
   "attackerPerCity": 1,
   "attackerBase": 2,
   "aiAttackerTechWeight": 1,

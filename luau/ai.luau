@@ -34,12 +34,12 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, govTarget = "republic-if-safe" },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, govTarget = "republic" },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, govTarget = "monarchy" },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, govTarget = "republic" },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, govTarget = "republic" },
-	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, govTarget = "republic" },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, escortRadiusPct = 100, govTarget = "republic-if-safe" },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, escortRadiusPct = 150, govTarget = "republic" },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, escortRadiusPct = 150, govTarget = "monarchy" },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic" },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic" },
+	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, escortRadiusPct = 80, govTarget = "republic" },
 }
 -- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
 -- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
@@ -240,6 +240,66 @@ local function safeDirToward(state: any, me: any, playerId: string, unit: any, t
 		end
 	end
 	return best
+end
+
+-- §12: a bounded land-only BFS from the settler to a SPECIFIC target, returning
+-- the first step of the shortest SAFE path — routes AROUND concave coasts / ocean
+-- inlets where safeDirToward greedy-chebyshev dead-ends. Same passability; bounded
+-- by rules.settlerPathRadius. Deterministic (DIR_KEYS order, BFS layer order).
+local function bfsStepToward(state: any, me: any, playerId: string, unit: any, tx: number, ty: number, ruleset: any): string?
+	local map = state.map
+	local width, height, wrapX = map.width, map.height, map.wrapX
+	local maxR = if ruleset.rules.settlerPathRadius == nil then 12 else ruleset.rules.settlerPathRadius
+	local visited = {}
+	visited[unit.y * width + unit.x] = true
+	local queue = { { x = unit.x, y = unit.y, first = nil } }
+	local qi = 1
+	while qi <= #queue do
+		local cur = queue[qi]
+		qi += 1
+		for _, key in ipairs(DIR_KEYS) do
+			local nx = cur.x + DIR_VECS[key][1]
+			if nx < 0 or nx >= width then
+				if not wrapX then
+					continue
+				end
+				nx = ((nx % width) + width) % width
+			end
+			local ny = cur.y + DIR_VECS[key][2]
+			if ny < 1 or ny >= height - 1 then
+				continue
+			end
+			local idx = ny * width + nx
+			if visited[idx] == true then
+				continue
+			end
+			visited[idx] = true
+			if chebyshev(map, unit.x, unit.y, nx, ny) > maxR then
+				continue
+			end
+			local first = if cur.first == nil then key else cur.first
+			if nx == tx and ny == ty then
+				return first
+			end
+			if ruleset.terrain.terrains[map.tiles[idx + 1].t].domain ~= "land" then
+				continue
+			end
+			local hostile = false
+			for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+				if u.owner ~= playerId then
+					hostile = true
+				end
+			end
+			if hostile then
+				continue
+			end
+			if enemyNear(state, me, playerId, nx, ny, 1) then
+				continue
+			end
+			table.insert(queue, { x = nx, y = ny, first = first })
+		end
+	end
+	return nil
 end
 
 -- This settler's rank among the civ's settlers (sorted ids).
@@ -1944,7 +2004,11 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 					local site = bestCitySite(state, unit, playerId, ruleset)
 					if site ~= nil then
-						local dir = safeDirToward(state, me, playerId, unit, site.x, site.y, ruleset)
+						-- §12: BFS around inlets; greedy is the safe floor, then HOLD.
+						local dir = bfsStepToward(state, me, playerId, unit, site.x, site.y, ruleset)
+						if dir == nil then
+							dir = safeDirToward(state, me, playerId, unit, site.x, site.y, ruleset)
+						end
 						if dir ~= nil then
 							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 						end
@@ -2069,7 +2133,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
 					end
 				end
-				local ward = nearestUnguardedSettler(state, unit, playerId, ruleset, 10)
+				local escortR = if S.escortRadiusPct == nil then 100 else S.escortRadiusPct
+				local ward = nearestUnguardedSettler(state, unit, playerId, ruleset, idiv(10 * escortR, 100))
 				if ward ~= nil then
 					if chebyshev(state.map, unit.x, unit.y, ward.x, ward.y) <= 1 then
 						return { type = "wait", playerId = playerId, unitId = uid }

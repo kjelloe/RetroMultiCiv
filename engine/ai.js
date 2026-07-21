@@ -44,18 +44,18 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // (§2). Both provisional (sim-swept, two-phase close); NO rules.json — behavior
 // knobs, twin: luau/ai.luau STANCES must match byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, govTarget: 'republic-if-safe' },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, govTarget: 'republic' },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, govTarget: 'monarchy' },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, govTarget: 'republic' },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, govTarget: 'republic' },
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, escortRadiusPct: 100, govTarget: 'republic-if-safe' },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, escortRadiusPct: 150, govTarget: 'republic' },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, escortRadiusPct: 150, govTarget: 'monarchy' },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic' },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic' },
   // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
   // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
   // reached after the full garrison), then economy via the high econReserve
   // (wonder-inclusive, capital-concentrated). defendFirst = the normal-block
   // reserve placement (not the at-1 preempt). Ported from the sim-runner lab.
   // N9b: pbMult 150 + wonderDrive — the archetype "MUST build wonders" civ.
-  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, pbMult: 150, wonderDrive: true, defendFirst: true, govTarget: 'republic' }
+  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, pbMult: 150, wonderDrive: true, defendFirst: true, escortRadiusPct: 80, govTarget: 'republic' }
 };
 
 // N9b build-priority lever constants (provisional — sim-swept, pinned in the
@@ -236,6 +236,45 @@ function safeDirToward(state, me, playerId, unit, tx, ty, ruleset) {
     if (d < bestD) { bestD = d; best = key; }
   }
   return best;
+}
+
+// §12: a bounded land-only BFS from the settler to a SPECIFIC target (tx, ty),
+// returning the first step of the shortest SAFE path — routes AROUND concave
+// coasts / ocean inlets where safeDirToward's greedy chebyshev dead-ends. Same
+// passability as safeDirToward (land, never onto/adjacent a known enemy);
+// bounded by rules.settlerPathRadius so it is not a full-map search per settler.
+// Deterministic (DIR_KEYS order, first-found shortest = BFS layer order). Null =
+// no safe land path within the bound (caller falls back to greedy, then hold).
+function bfsStepToward(state, me, playerId, unit, tx, ty, ruleset) {
+  const map = state.map;
+  const { width, height, wrapX } = map;
+  const maxR = ruleset.rules.settlerPathRadius === undefined ? 12 : ruleset.rules.settlerPathRadius;
+  const visited = {};
+  visited[unit.y * width + unit.x] = true;
+  const queue = [{ x: unit.x, y: unit.y, first: null }];
+  let qi = 0;
+  while (qi < queue.length) {
+    const cur = queue[qi]; qi = qi + 1;
+    for (const key of DIR_KEYS) {
+      let nx = cur.x + DIR_VECS[key][0];
+      if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
+      const ny = cur.y + DIR_VECS[key][1];
+      if (ny < 1 || ny >= height - 1) continue;
+      const idx = ny * width + nx;
+      if (visited[idx] === true) continue;
+      visited[idx] = true;
+      if (chebyshev(map, unit.x, unit.y, nx, ny) > maxR) continue;
+      const first = cur.first === null ? key : cur.first;
+      if (nx === tx && ny === ty) return first; // reached the target — commit its first step
+      if (ruleset.terrain.terrains[map.tiles[idx].t].domain !== 'land') continue;
+      let hostile = false;
+      for (const u of unitsAt(state, nx, ny)) { if (u.owner !== playerId) hostile = true; }
+      if (hostile) continue;
+      if (enemyNear(state, me, playerId, nx, ny, 1)) continue;
+      queue.push({ x: nx, y: ny, first });
+    }
+  }
+  return null;
 }
 
 // This settler's rank among the civ's settlers (sorted ids): rank 0 is the
@@ -1753,7 +1792,11 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // the danger that blocked it
       const site = bestCitySite(state, unit, playerId, ruleset);
       if (site) {
-        const dir = safeDirToward(state, me, playerId, unit, site.x, site.y, ruleset);
+        // §12: BFS around inlets to the site; greedy is the safe floor (today's
+        // behavior) when no bounded land path exists, then HOLD (never wander
+        // into the danger that blocked it).
+        let dir = bfsStepToward(state, me, playerId, unit, site.x, site.y, ruleset);
+        if (!dir) dir = safeDirToward(state, me, playerId, unit, site.x, site.y, ruleset);
         if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
         continue;
       }
@@ -1886,8 +1929,11 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         return { type: 'moveUnit', playerId, unitId: uid, dir };
       }
     }
-    // escort duty: stand beside a field settler that has no guard yet
-    const ward = nearestUnguardedSettler(state, unit, playerId, ruleset, 10);
+    // escort duty: stand beside a field settler that has no guard yet. §12: the
+    // reach is stance-scaled (aggressive/defensive escort their frontier settlers
+    // from farther; science/growth divert less military) — escortRadiusPct.
+    const escortR = S.escortRadiusPct === undefined ? 100 : S.escortRadiusPct;
+    const ward = nearestUnguardedSettler(state, unit, playerId, ruleset, idiv(10 * escortR, 100));
     if (ward) {
       if (chebyshev(state.map, unit.x, unit.y, ward.x, ward.y) <= 1) {
         return { type: 'wait', playerId, unitId: uid }; // stand guard, re-decide next turn
