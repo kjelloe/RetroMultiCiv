@@ -1,6 +1,8 @@
 # Refinement XIV — multi-device playtest of the hosted server (2026-07-20)
 
-_Delivery tracker (see agent-workitems for done-marks): §16 redirect ✅,
+_Delivery tracker (see agent-workitems for done-marks): §16 redirect ✅
+(REVERSED by user ruling 2026-07-22, b44a344 — bare URLs land LOCAL to
+spare the server; server play = explicit /healthz-gated link),
 §2-adjacent endscreen fog-guard ✅ (score-view.js shim), bug-report feature ✅
 (all three committed f7b52e2), §15 Studded spec + first impl ✅ (a2335b0,
 awaiting user Studio review). Engine batch SHIPPED (markers 0071-0082):
