@@ -477,3 +477,32 @@ inline settler icon + count whenever settlerFood > 0, with the existing
 tooltip carrying the long-form explanation ("each settler homed here eats
 1 food/turn; rehome or expend settlers to free food"). When net > 0 keep
 the growth ETA line; when ≤ 0 show the ⚠ starving/stalled note instead.
+
+---
+
+# Batch 5 (user playtest, 2026-07-21) — §47–§49
+
+## §47 Specific completion messages [helper]
+"City completed its work" becomes concrete: "<City> completed Granary" /
+"<City> trained a Phalanx" / "<City> finished <Wonder>". Turnlog + banner
+paths; carries the §35 🔍 zoom-to (city coords known). Trivial-but-daily.
+
+## §48 Wonder completion splash [helper]
+When the PLAYER completes a wonder: a large splash — wonder art (recipes/
+gallery asset render or glyph), the pedia article below, ~3 s triumphant
+cue (new SOUND_IDS row), buttons "Continue" and "Go to city" (opens that
+city to change production). REUSES the §26 discovery-celebration frame
+(same no-auto-close rule; fanfare distinct from tech cues). Rival wonder
+completions keep the existing modest message (with §47 naming).
+
+## §49 Economic overview panel [helper]
+Click the 💰 gold/turn in the top bar → a breakdown panel answering "why is
+it −4 now when it was +4 last turn?": per-source income (city taxes after
+corruption, trade routes, wonder effects) and per-sink costs (building
+maintenance itemized, unit shield/food upkeep by city, settler upkeep),
+summing EXACTLY to the top-bar figure. Third member of the overview family —
+shares the §34/§41 table component. Fog-free (own empire only).
+
+## Batch-5 routing
+All three → helper queue. §48 sequenced after xiv-discovery-overlay (§26)
+for frame reuse; §49 after §34 (component reuse); §47 anytime.
