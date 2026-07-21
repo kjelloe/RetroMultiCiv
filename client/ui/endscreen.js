@@ -147,16 +147,30 @@ export function initEndScreen(ctx) {
     shownFor = state.winner;
   }
 
+  // XIV §9: a persistent way BACK to the summary once it's been closed — a
+  // "View game summary" button, shown post-game just above "Watch replay".
+  const reopenBtn = document.createElement('button');
+  reopenBtn.id = 'view-summary';
+  reopenBtn.className = 'hidden';
+  reopenBtn.textContent = '📊 View game summary';
+  document.body.appendChild(reopenBtn);
+  function reopen() {
+    if (session.state.gameOver === true) show(session.state, victoryOf(session.state, null));
+  }
+  reopenBtn.addEventListener('click', reopen);
+
   session.onChange((state, events) => {
     for (const e of events || []) {
       if (e.type === 'playerDefeated') deathTurn[e.playerId] = state.turn;
     }
+    reopenBtn.classList.toggle('hidden', state.gameOver !== true); // available whenever the game is over
     for (const e of events || []) {
       if (e.type === 'gameOver') { show(state, victoryOf(state, e.victory)); return; }
     }
     // a game LOADED already-over (no gameOver event replays): show it once
     if (state.gameOver === true && shownFor !== state.winner) show(state, victoryOf(state, null));
   });
+  reopenBtn.classList.toggle('hidden', session.state.gameOver !== true);
 
-  return { show }; // exposed for e2e/screenshot hooks
+  return { show, reopen }; // exposed for e2e/screenshot hooks
 }

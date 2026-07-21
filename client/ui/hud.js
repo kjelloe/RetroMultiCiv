@@ -1,7 +1,7 @@
 // HUD: status line, research bar, tile/selection text, the center banner.
 import { filterView } from '../../engine/visibility.js';
 import { cityYields, itemCost } from '../../engine/cities.js';
-import { corruptionFor } from '../../engine/government.js';
+import { corruptionFor, governmentOf } from '../../engine/government.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { techSafeState } from './score-view.js';
@@ -118,18 +118,24 @@ export function initHud(ctx) {
     }
     const taxRate = me.taxRate === undefined ? session.ruleset.rules.defaultTaxRate : me.taxRate;
     const sciRate = me.sciRate === undefined ? session.ruleset.rules.defaultSciRate : me.sciRate;
+    // XIV §28: surface the tax/sci/lux split + government in the top bar (was
+    // tooltip-only). The bar already opens the rates panel on click (panels.js).
+    const luxRate = 100 - taxRate - sciRate;
+    const govName = governmentOf(session.state, ctx.HUMAN, session.ruleset).name;
+    const ratesGov = `T${taxRate}/S${sciRate}/L${luxRate} · ${govName}`;
     researchLabel.title = 'income breakdown:\n' + (cityRows.join('\n') || 'no cities yet')
-      + `\nrates: tax ${taxRate}% / science ${sciRate}% / luxury ${100 - taxRate - sciRate}% (T to change)`
+      + `\nrates: tax ${taxRate}% / science ${sciRate}% / luxury ${luxRate}% (T to change)`
+      + `\ngovernment: ${govName}`
       + `\ntaxes +${income.gold} · upkeep −${income.maintenance} · research +${income.bulbs} bulbs`;
     if (me.researching) {
       const cost = researchCost(session.state, ctx.HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';
-      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money}`;
+      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money} · ${ratesGov}`;
       researchGlyph.src = glyphDataURL(me.researching, techs[me.researching].era, 22);
       researchGlyph.style.display = 'block';
     } else {
       researchFill.style.width = '0%';
-      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs (+${income.bulbs}) · ${money}`;
+      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs (+${income.bulbs}) · ${money} · ${ratesGov}`;
       researchGlyph.style.display = 'none';
     }
   }
@@ -140,7 +146,14 @@ export function initHud(ctx) {
   const endTurnBtn = document.getElementById('end-turn');
   let wasAllMoved = false;
   let autoEndedTurn = 0;
-  function showNoMovesBanner() {
+  // XIV §20: the SINGLE builder for the "press E to end the turn" hint — always
+  // carries the 🔕 mute button and always honors the hideNoMovesHint option.
+  // Both the auto-detect (updateBanner) and the manual "next unit with nothing
+  // left" path (input.js) route through here so the two can't drift (the old
+  // input.js path showed a bare centerBanner: no 🔕, ignored the mute option).
+  // Returns false when muted (nothing shown), so a caller can fall back.
+  function noMovesHint() {
+    if (ctx.options && ctx.options.get('hideNoMovesHint')) return false;
     centerBanner.show('no units with moves left — press E to end the turn ');
     const mute = document.createElement('button');
     mute.id = 'mute-hint';
@@ -153,6 +166,7 @@ export function initHud(ctx) {
       centerBanner.hide();
     });
     document.getElementById('center-banner').appendChild(mute);
+    return true;
   }
   function updateBanner() {
     const state = session.state;
@@ -168,8 +182,8 @@ export function initHud(ctx) {
       if (ctx.options && ctx.options.get('autoEndTurn') && autoEndedTurn !== state.turn) {
         autoEndedTurn = state.turn;
         setTimeout(() => { if (ctx.endTurn) ctx.endTurn(); }, 350);
-      } else if (!ctx.options || !ctx.options.get('hideNoMovesHint')) {
-        showNoMovesBanner();
+      } else {
+        noMovesHint(); // honors hideNoMovesHint internally
       }
     } else if (!allMoved) {
       centerBanner.hide();
@@ -330,9 +344,15 @@ export function initHud(ctx) {
     const hint = unit.working ? ''
       : unit.type === 'settlers' ? ' · B: found city · I/M/R: improve'
       : unit.fortified ? '' : ' · F: fortify';
+    // XIV §45a: the HOME city was shown nowhere — half of why the settler-
+    // upkeep starvation (the Teotihuacan trap) was invisible. Show it for every
+    // unit (a homed settler eats 1 food/turn THERE); homeless = "unsupported".
+    const homeCity = unit.home !== undefined && session.state.cities[unit.home]
+      ? session.state.cities[unit.home].name : null;
+    const homeStr = homeCity ? ` · 🏠 ${homeCity}` : ' · 🏠 unsupported';
     unitLine.textContent = `${t.name}${unit.veteran ? ' ★vet' : ''}`
       + ` · ⚔${t.attack} 🛡${t.defense} 👟${unit.moves}/${t.moves}`
-      + ` · ${tile.t} (${unit.x},${unit.y}) · ${status}${hint}`;
+      + ` · ${tile.t} (${unit.x},${unit.y}) · ${status}${homeStr}${hint}`;
     unitLine.classList.remove('hidden');
   }
   function clearUnitLine() {
@@ -343,6 +363,7 @@ export function initHud(ctx) {
     refresh,
     flash: flashBanner.show,
     banner: centerBanner.show,
+    noMovesHint, // XIV §20: the unified "press E" hint (mute 🔕 + option honored)
     turnBanner,
     note(text) { hudSelection.textContent = text; },
     unitNote,

@@ -249,6 +249,22 @@ export function initSaves(ctx) {
     fileInput.value = '';
   });
 
+  // XIV §5+§8: the Save/Load actions, named so the ⚙ Options buttons (always
+  // visible — the ONLY save path on a touch device with no keyboard) share the
+  // exact same code as Shift+S / Shift+L. Local games download a save file;
+  // server games download the authoritative server save (Save) or explain that
+  // resume is server-side (Load).
+  function saveGame() {
+    if (isServer()) { fetchServerSave(); return; }
+    const envelope = buildSaveEnvelope(session, ctx);
+    download(envelope, `retromulticiv-turn${session.state.turn}.json`);
+    announceSave(session.state.turn, envelope.code || null);
+  }
+  function loadGame() {
+    if (isServer()) { hud.flash('📂 Server games load server-side — restart with --game <save>'); return; }
+    fileInput.click();
+  }
+
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.key === 'F5') { // quick save (classic)
@@ -271,10 +287,7 @@ export function initSaves(ctx) {
       return;
     }
     if (e.key === 'S') { // Shift+S: download a JSON save file (debugging/sharing)
-      if (isServer()) { fetchServerSave(); return; }
-      const envelope = buildSaveEnvelope(session, ctx);
-      download(envelope, `retromulticiv-turn${session.state.turn}.json`);
-      announceSave(session.state.turn, envelope.code || null);
+      saveGame();
       return;
     }
     if (e.key === 'D') { // Shift+D: diagnostics recording (replayable command log)
@@ -289,8 +302,7 @@ export function initSaves(ctx) {
       return;
     }
     if (e.key === 'L') { // Shift+L: load from a JSON file
-      if (isServer()) { hud.flash('📂 Server games load server-side — restart with --game <save>'); return; }
-      fileInput.click();
+      loadGame();
     }
   });
 
@@ -301,4 +313,8 @@ export function initSaves(ctx) {
     if (isServer()) { hud.flash('📂 Server games load server-side — restart with --game <save>'); return; }
     if (e.dataTransfer.files.length > 0) loadFromFile(e.dataTransfer.files[0]);
   });
+
+  // XIV §5+§8: exposed so ui/options.js can offer always-visible Save/Load
+  // buttons (the touch-device save path); `server` lets the panel adapt copy.
+  return { saveGame, loadGame, isServer: () => isServer() };
 }

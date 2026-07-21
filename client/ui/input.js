@@ -460,7 +460,7 @@ export function initInput(ctx) {
     );
     if (movable.length === 0) {
       hud.note('no units with moves left — E to end turn');
-      hud.banner('no units with moves left — press E to end the turn');
+      hud.noMovesHint(); // XIV §20: the unified hint (adds 🔕, honors the mute option) — was a bare banner
       return;
     }
     const lastId = sel.lastMovedBy[ctx.HUMAN];

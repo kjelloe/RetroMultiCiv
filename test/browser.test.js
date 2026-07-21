@@ -142,6 +142,26 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // recording attached (its free-text + auto-attach contract) and closes clean
     assert.match(dom, /bugreport: open\/log\d+\/text/,
       'the bug-report dialog must open and assemble a payload carrying the recording log + free text');
+    // XIV §5+§8: the ⚙ Options panel must carry always-visible Save/Load buttons
+    // (the only save path on a touch device with no keyboard) wired to the actions
+    assert.match(dom, /saveload: save\/load\/wired/,
+      'Options must offer Save + Load buttons wired to the save/load actions');
+    // XIV §20: the no-moves "press E" hint is one builder — shows with the 🔕
+    // mute button when not muted, and shows NOTHING when hideNoMovesHint is set
+    assert.match(dom, /ehint: shown\/muted/,
+      'the no-moves hint must carry the 🔕 mute and honor the hideNoMovesHint option (both paths unified)');
+    // XIV §45: the city food row itemizes settler upkeep and the net is the
+    // truth the engine applies (2 homed settlers = −2 food vs the citizen figure)
+    assert.match(dom, /foodrow: row\/settlerseg\/nettruth/,
+      'the city food row must show settler upkeep inline and a truthful net (the Teotihuacan starvation trap)');
+    // XIV §1/§9/§21/§28: rates+government in the top bar, the tech-tree button
+    // inside the research panel ("View technology tree"), and the "View game
+    // summary" reopen button all present
+    assert.match(dom, /hudpolish: rates\/ttpanel\/summary/,
+      'the top bar must show rates+government, the tech-tree button must live in the research panel, and the summary reopen must exist');
+    // XIV §45a: the unit info card must surface the home city (🏠) — it was shown nowhere
+    assert.match(dom, /unithome: home\/unsupported/,
+      'the unit info card must show the home city (🏠) and read "unsupported" when homeless');
     // docs/07 game verification code: the e2e save shows the persistent toast
     assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
     assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');

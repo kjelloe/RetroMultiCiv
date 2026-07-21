@@ -307,7 +307,21 @@ export function initPanels(ctx) {
     for (const w of worked) {
       totals.food += w.yields.food; totals.shields += w.yields.shields; totals.trade += w.yields.trade;
     }
-    const surplus = totals.food - city.pop * 2;
+    // XIV §45: settler food upkeep is REAL (engine cities.js:551) but the panel
+    // used to omit it — the Teotihuacan trap ("+2/turn, grows in ~10" while 4
+    // homed settlers starved the city to −2). Count settlers homed HERE and
+    // subtract, so the net the player reads is the truth the engine applies.
+    const settlerUpkeep = session.ruleset.rules.settlerFoodUpkeep === undefined
+      ? 0 : session.ruleset.rules.settlerFoodUpkeep;
+    let settlerCount = 0;
+    if (settlerUpkeep > 0) {
+      for (const uid of Object.keys(state.units)) {
+        const u = state.units[uid];
+        if (u.home === city.id && u.type === 'settlers') settlerCount += 1;
+      }
+    }
+    const settlerFood = settlerCount * settlerUpkeep;
+    const surplus = totals.food - city.pop * 2 - settlerFood;
     const threshold = 10 * (city.pop + 1);
     const def = itemDef(city.producing);
     // the civ-effective cost (specialties discount some units/buildings)
@@ -339,6 +353,11 @@ export function initPanels(ctx) {
     const yieldsTip = 'worked tiles (food/shields/trade):\n' + tileLines.join('\n')
       + `\ntotal ${totals.food}/${totals.shields}/${totals.trade}`;
     const foodTip = `each citizen eats 2 food: ${city.pop} × 2 = ${city.pop * 2}`
+      + (settlerFood > 0
+        ? `\neach settler homed here eats ${settlerUpkeep} food/turn: ${settlerCount} × ${settlerUpkeep} = ${settlerFood}`
+          + `\nrehome or expend settlers to free food`
+        : '')
+      + `\nnet = ${totals.food} − ${city.pop * 2}${settlerFood > 0 ? ` − ${settlerFood}` : ''} = ${surplus}`
       + `\nthe surplus fills the box; the city grows at ${threshold} (10 × (pop + 1))`;
     const prodTip = `${totals.shields} shields/turn from the worked tiles`
       + `\ncost ${defCost} shields${buyHtml ? `\nrush-buy at ${buyRate} gold per missing shield` : ''}`;
@@ -387,10 +406,17 @@ export function initPanels(ctx) {
     stats.innerHTML =
       `<div id="city-yields-row"${attr(yieldsTip)}>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
       + `(<span class="yf">food</span>/<span class="ys">shields</span>/<span class="yt">trade</span>)</div>`
-      + `<div${attr(foodTip)}>🌾 eaten ${city.pop * 2} → surplus <span class="yf">${surplus >= 0 ? '+' : ''}${surplus}</span>/turn `
+      + `<div${attr(foodTip)}>🌾 ${totals.food} · 👥 eat ${city.pop * 2}`
+      + (settlerFood > 0
+        ? ` · <span class="loss" title="settlers homed here each eat ${settlerUpkeep} food/turn">⚒👤×${settlerCount} eat ${settlerFood}</span>`
+        : '')
+      + ` → net <span class="${surplus < 0 ? 'loss' : 'yf'}">${surplus >= 0 ? '+' : ''}${surplus}</span>/turn `
       + `· box ${city.food}/${threshold}</div>`
       + `<div class="grow">${surplus > 0
-        ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns` : 'no growth'}</div>`
+        ? `population grows in ~${Math.max(1, Math.ceil((threshold - city.food) / surplus))} turns`
+        : (surplus < 0
+          ? `⚠ starving (net ${surplus}/turn)${settlerFood > 0 ? ' — rehome or expend settlers to free food' : ''}`
+          : '⚠ stalled — no growth')}</div>`
       + `<div${attr(prodTip)}>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
       + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
       + buyHtml
