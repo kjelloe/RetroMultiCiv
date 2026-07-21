@@ -343,3 +343,50 @@ specialists exist only inside concept PROSE — add three concept entries
 ## Batch-2 routing
 helper queue, all golden-neutral: quick-UI bundle (§32+§36+§38), city
 overview (§34), envoy modal (§33), event zoom-to (§35), road goto (§37).
+
+---
+
+# Batch 3 (user playtest, 2026-07-21) — §39–§42
+
+Artifact: `debugging/logs/retromulticiv-diag-turn137-client.json` — structurally
+valid; hash-verify DIVERGES at turn 5 as expected (recorded on the deployed
+pre-calendar ruleset; yearSteps moved every round hash). Old recordings cannot
+verify across the calendar change — a version-skew property, not a bug.
+
+## §39 Post-conquest disorder [FACT-CHECK → conditional engine]
+User: shouldn't a conquered city suffer 1 turn (2 for larger?) of civil
+disorder? Engine today: capture reduces pop, drops specialists, plunders gold
+(combat.js:203) — NO disorder period. Reviewer fact-checks whether this is
+Civ 1 or a Civ 2+ memory; if Civ 1, a small engine slice (disorder timer on
+capture) joins the queue; if drift, user decides labeled-mix vs skip.
+
+## §40 Settler pop cost + size-1 disband [engine — MISSING CIV1 RULE]
+Premise check found the gap is BIGGER than the ask: settler production costs
+NO population today (Civ 1: settlers deduct 1 pop when completed; a size-1
+city building one is DISBANDED). Slice: engine — completing `settlers`
+deducts 1 pop; at pop 1 the city is removed (units keep home=null? audit
+homing), golden-affecting + twins. Client — pre-warn when queueing a settler
+in a size-1 city ("completing this settler will disband the city"), warn
+badge in build panel + city overview. Civ1-authentic.
+
+## §41 Military overview panel [helper]
+Military-icon button LEFT of the §34 city button → all own units: type,
+att/def/move, upkeep (home city), location (city name or "near <city>" +
+coords) with a §35 🔍 zoom-to per row. Vertical scroll. Companion piece to
+§34 — share the panel/table component.
+
+## §42 Auto-improve settlers [helper — automation]
+Selecting a settler offers "Auto-improve": inline menu for nearest-city
+priority — Balanced / Food / Shield / Trade. The settler then works the
+city's fat cross: improvements per priority, plus roads everywhere (and
+railroad once invented). ENDS when the cross is maximized for the chosen
+priority + fully roaded(/railed) — then the unit wakes for new orders.
+Client-side automation issuing ordinary commands (automate.js precedent) —
+golden-neutral, works over ?server=1 identically. Design notes: never
+replace an existing improvement unless priority demands (mine→irrigation
+only on Food priority); pause+wake if enemy adjacent (safety, matches
+existing automate behavior).
+
+## Batch-3 routing
+§41+§42 → helper queue. §40 → bugfixer queue (engine, after the xiv-ai
+windows). §39 → reviewer fact-check, then conditional.
