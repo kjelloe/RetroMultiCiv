@@ -1,0 +1,176 @@
+{
+  "name": "B27: a trireme docked in a size-1 coastal city is lost when the city disbands (settler pop-cost)",
+  "notes": "The \u00a740 settler pop-cost drops the size-1 city to 0 -> disbandCity. A SEA unit standing on the vanishing city tile would otherwise strand on cityless LAND (the sim-23 t465 invariant break). The fix: disbandCity loses the docked ship (+ any cargo, mirroring naval open-sea loss). u2 (land unit, off-tile) survives untouched. Pinned final.hash = cross-language contract.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 5,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "u1": {
+          "id": "u1",
+          "type": "trireme",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "moves": 3,
+          "fortified": false,
+          "veteran": false
+        },
+        "u2": {
+          "id": "u2",
+          "type": "militia",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "PORT",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "pop": 1,
+          "food": 0,
+          "shields": 60,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "settlers"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 3,
+      "nextCityId": 2,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 42
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1": null,
+          "units.u1": null,
+          "units.u2.type": "militia"
+        }
+      }
+    }
+  ],
+  "final": {
+    "hash": "0x544794da"
+  }
+}

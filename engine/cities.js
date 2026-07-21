@@ -544,9 +544,32 @@ function trimToPop(city) {
 // is destroyed PERMANENTLY (state.wonders entry dropped, so wonderActive→false).
 // Elimination is NOT special-cased: the owner losing its last city routes
 // through the normal checkGameEnd/hasAssets path on the turn wrap.
-function disbandCity(state, cityId, events) {
+function disbandCity(state, cityId, events, ruleset) {
+  const city = state.cities[cityId];
   for (const uid of Object.keys(state.units)) {
     if (state.units[uid].home === cityId) delete state.units[uid].home;
+  }
+  // B27: a SEA unit docked in the vanishing coastal city loses its home port and is
+  // lost with any cargo aboard (mirrors naval.js's open-sea loss) — otherwise it
+  // strands on the now-cityless LAND tile (the sea-unit-on-land invariant break).
+  // Deleting a fixed SET of units => order-independent final state (events aren't
+  // hashed), so the raw Object.keys scan stays cross-language deterministic.
+  if (ruleset !== undefined && city !== undefined) {
+    const cx = city.x, cy = city.y;
+    for (const uid of Object.keys(state.units)) {
+      const u = state.units[uid];
+      if (u === undefined || u.x !== cx || u.y !== cy) continue;
+      if (ruleset.units[u.type].domain !== 'sea') continue;
+      for (const cid of Object.keys(state.units)) {
+        const c = state.units[cid];
+        if (c !== undefined && c.aboard === uid) {
+          delete state.units[cid];
+          events.push({ type: 'cargoLost', unitId: cid, owner: c.owner, shipId: uid, x: cx, y: cy });
+        }
+      }
+      delete state.units[uid];
+      events.push({ type: 'triremeLost', unitId: uid, owner: u.owner, x: cx, y: cy });
+    }
   }
   if (state.wonders !== undefined) {
     for (const wid of Object.keys(state.wonders)) {
@@ -676,7 +699,7 @@ function processCities(state, ruleset, events) {
         if (popCost > 0) {
           city.pop = city.pop - popCost;
           if (city.pop < 1) {
-            disbandCity(state, cityId, events);
+            disbandCity(state, cityId, events, ruleset);
           } else {
             trimToPop(city);
           }

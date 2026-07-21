@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 54, 'the fifty-four scenarios (054 difficulty-asymmetric added)');
+      assert.strictEqual(files.length, 55, 'the fifty-five scenarios (055 trireme-city-disband added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -176,7 +176,8 @@ const PORTED = [
   '051-freesupport-upkeep.json', // air-truth: freeSupport units cost no shield upkeep
   '052-disaster-earthquake.json', // disasters: an earthquake destroys a building (cross-language RNG path)
   '053-trireme-loss.json', // naval-truth: the trireme open-sea gamble (cross-language)
-  '054-difficulty-asymmetric.json' // difficulty #2158: human-gated ASYMMETRIC AI knobs (aiCostPct + aiFoodRows)
+  '054-difficulty-asymmetric.json', // difficulty #2158: human-gated ASYMMETRIC AI knobs (aiCostPct + aiFoodRows)
+  '055-trireme-city-disband.json' // B27: a docked sea unit is lost when its coastal city disbands (not stranded on land)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

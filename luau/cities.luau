@@ -739,10 +739,36 @@ end
 -- Elimination is NOT special-cased: losing the last city routes through the
 -- normal checkGameEnd/hasAssets path on the turn wrap. Value-mutation under pairs
 -- is order-independent (all matching entries clear regardless of order).
-local function disbandCity(state: any, cityId: string, events: any)
+local function disbandCity(state: any, cityId: string, events: any, ruleset: any)
+	local city = state.cities[cityId]
 	for uid in pairs(state.units) do
 		if state.units[uid].home == cityId then
 			state.units[uid].home = nil
+		end
+	end
+	-- B27: a SEA unit docked in the vanishing coastal city loses its home port and is
+	-- lost with any cargo aboard (mirrors naval open-sea loss) -- else it strands on the
+	-- now-cityless LAND tile. Deleting a fixed SET => order-independent final state; the
+	-- key snapshots avoid the pairs()+delete-non-current-key UB (JS Object.keys is a snapshot).
+	if ruleset ~= nil and city ~= nil then
+		local cx, cy = city.x, city.y
+		local ids = {}
+		for uid in pairs(state.units) do ids[#ids + 1] = uid end
+		for _, uid in ipairs(ids) do
+			local u = state.units[uid]
+			if u ~= nil and u.x == cx and u.y == cy and ruleset.units[u.type].domain == "sea" then
+				local cids = {}
+				for cid in pairs(state.units) do cids[#cids + 1] = cid end
+				for _, cid in ipairs(cids) do
+					local c = state.units[cid]
+					if c ~= nil and c.aboard == uid then
+						state.units[cid] = nil
+						table.insert(events, { type = "cargoLost", unitId = cid, owner = c.owner, shipId = uid, x = cx, y = cy })
+					end
+				end
+				state.units[uid] = nil
+				table.insert(events, { type = "triremeLost", unitId = uid, owner = u.owner, x = cx, y = cy })
+			end
 		end
 	end
 	if state.wonders ~= nil then
@@ -889,7 +915,7 @@ local function processCities(state: any, ruleset: any, events: any)
 				if popCost > 0 then
 					city.pop -= popCost
 					if city.pop < 1 then
-						disbandCity(state, cityId, events)
+						disbandCity(state, cityId, events, ruleset)
 					else
 						trimToPop(city)
 					end
