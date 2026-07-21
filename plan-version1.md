@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-21 night (marker-0082 naval-truth LANDED, both gates GREEN; danger-abandon landed 706b19d, both gates GREEN, 4th witness: floors green + abandon-criteria MET but 0 launches — root cause NO WONDERS EVER BUILT [Apollo gate shut; wonder-building slice = NEW user fork]; 1 real naval regression found [trireme-on-land, seed 23 — blocks 0083, bugfixer resequenced]; markers 0075–0082 = the versioning audit's breaking-class gaps ALL closed). Source of truth for the 1.0
+Last updated: 2026-07-21 night (marker-0082 naval-truth LANDED, both gates GREEN; danger-abandon landed 706b19d, both gates GREEN, 4th witness: floors green + abandon-criteria MET but 0 launches — root cause NO WONDERS EVER BUILT; USER RULED staged-both #2160: engine queue = B27 trireme regression [blocks 0083] → apollo-narrow [committed civ builds Apollo; 5th witness = launches] → difficulty [steered #2155/#2158] → archetype wonder slice [new v1 node, spec TBD by architect] → manhattan-gate → naval-loop). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._

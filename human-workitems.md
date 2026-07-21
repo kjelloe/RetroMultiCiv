@@ -19,20 +19,14 @@ below is the one open decision)._
 _Catch-up: `reports/away-window-2-brief.md` (markers 0077-0081, the
 space-arc saga, wake list)._
 
-- [ ] **WONDER-BUILDING FORK (the space arc's last blocker).** The 4th
-  re-witness: danger-abandon WORKS (24 commits, 4 survive to sweep end,
-  floors green) but 0 launches — because in 25 games NO wonder is ever
-  built, so the Apollo Program gate never opens (ship parts require it).
-  This is your archetype vision's ground truth. Options:
-  **(a) narrow fix** — a space-COMMITTED civ builds Apollo itself when
-  eligible (small slice, completes the launch pipeline, 5th witness
-  measures launches) — my recommendation for v1;
-  **(b) archetype slice now** — "some civs MUST build wonders"
-  (stance-keyed wonder priority, your A40 vision) — bigger, richer,
-  also fixes empty-wonders-world generally;
-  **(c) both, staged** — (a) now for the pipeline, (b) as its own
-  v1 item after difficulty.
-  Note: (a) is contained; (c) = (a) plus a queued design pass.
+- [x] **WONDER-BUILDING FORK — RULED (c) staged both** (2026-07-21
+  night, #2160): apollo-narrow slice now (committed civ builds Apollo;
+  5th witness measures launches; sequenced B27 → apollo-narrow →
+  difficulty), archetype slice ("some civs MUST build wonders", the A40
+  vision) as its own v1 item after difficulty — architect drafts its
+  spec, ally input invited on personality→wonder mapping. Background:
+  4th witness showed danger-abandon WORKS but 0 launches — no wonder
+  was ever built in 25 games; the Apollo gate never opened.
 
 - [x] **SPACE-ARC FORK — RULED (a) danger-based abandon** (#2138):
   landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the
