@@ -1526,6 +1526,18 @@ html, body {
 }
 .setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
 
+/* XIV §22/§24/§27: the shared hover-card (tile yields, pedia links, tech nodes) */
+#hover-card {
+  position: fixed; z-index: 45; max-width: 280px; pointer-events: none;
+  background: rgba(10, 16, 28, 0.97); border: 1px solid #3b5d8f; border-radius: 6px;
+  padding: 8px 10px; font-size: 12px; color: #cdd8ea; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+#hover-card.hidden { display: none; }
+#hover-card .hover-yields b { display: block; margin-bottom: 3px; color: #dbe6f6; }
+#hover-card .hover-title { display: block; font-size: 13px; color: #ffe066; margin-bottom: 3px; }
+#hover-card .hover-kind { color: #8fa8cc; font-style: italic; }
+.pedia-link { color: #7fc4ff; border-bottom: 1px dotted #7fc4ff; cursor: help; }
+
 /* XIV §17: the "?" help marker + "New here?" overlay */
 #setup-help {
   font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0;

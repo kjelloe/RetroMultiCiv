@@ -93,6 +93,20 @@ export function initTechTree(ctx) {
     n.title = `${techs[id].name} (${techs[id].era}, level ${techs[id].level})`
       + `\nneeds: ${pre}` + (blurb ? `\n\n${blurb}` : '');
     n.addEventListener('click', () => onNodeClick(id));
+    // XIV §27: hovering a node shows the shared hover-card mini article (name,
+    // era/level, prereqs, blurb) — the same content the native title carries,
+    // richer and instant. Reuses ctx.hoverCard with §22/§24.
+    n.addEventListener('mouseenter', () => {
+      if (!ctx.hoverCard) return;
+      const card = document.createElement('div');
+      const t = document.createElement('span'); t.className = 'hover-title'; t.textContent = techs[id].name;
+      const k = document.createElement('div'); k.className = 'hover-kind';
+      k.textContent = `${techs[id].era} · level ${techs[id].level} · needs: ${pre}`;
+      card.append(t, k);
+      if (blurb) { const bl = document.createElement('div'); bl.style.marginTop = '4px'; bl.textContent = blurb; card.appendChild(bl); }
+      ctx.hoverCard.showAtEl(n, card);
+    });
+    n.addEventListener('mouseleave', () => { if (ctx.hoverCard) ctx.hoverCard.hide(); });
     canvas.appendChild(n);
     nodeEl[id] = n;
   }

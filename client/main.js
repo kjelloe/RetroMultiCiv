@@ -18,6 +18,7 @@ import { initPanels } from './ui/panels.js';
 import { initInput } from './ui/input.js';
 import { initSaves } from './ui/saves.js';
 import { initBugReport } from './ui/bug-report.js';
+import { createHoverCard } from './ui/hover-card.js';
 import { initTurnLog } from './ui/turnlog.js';
 import { initOverlays } from './ui/overlays.js';
 import { initLeftStack } from './ui/left-stack.js';
@@ -399,6 +400,7 @@ ctx.gameCode = () => {
 ctx.lastSaveCode = null; // set by ui/saves.js on save; shown on the hand-off screen
 
 ctx.bugReport = initBugReport(ctx); // #3: in-client bug report (options + error banner)
+ctx.hoverCard = createHoverCard(); // XIV §22/§24/§27: the shared hover-card component
 initOptions(ctx);
 ctx.pedia = initPedia(ctx);         // A58: the in-game encyclopedia (📖 / ?)
 ctx.hud = initHud(ctx);

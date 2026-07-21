@@ -878,7 +878,45 @@ export function initInput(ctx) {
     return visMask[y * session.state.map.width + x] === 1;
   }
 
+  // XIV §24: after 300ms hovering an EMPTY, fog-VISIBLE tile (no unit/city), a
+  // small card shows the tile's food/shields/trade. Shares ctx.hoverCard with
+  // §22/§27. Fog-honest: unexplored/unseen tiles never reveal yields.
+  let yieldTimer = null, yieldKey = null;
+  function cityAtTile(x, y) {
+    for (const cid of session.state.cityOrder || []) {
+      const c = session.state.cities[cid];
+      if (c && c.x === x && c.y === y) return true;
+    }
+    return false;
+  }
+  function clearYieldCard() {
+    if (yieldTimer) { clearTimeout(yieldTimer); yieldTimer = null; }
+    yieldKey = null;
+    if (ctx.hoverCard) ctx.hoverCard.hide();
+  }
+  function maybeYieldCard(pick) {
+    if (!ctx.hoverCard || !pick) { clearYieldCard(); return; }
+    const x = pick.tile.x, y = pick.tile.y;
+    const key = x + ',' + y;
+    if (key === yieldKey) return; // same tile: leave the running timer/card be
+    clearYieldCard();
+    if (!tileVisible(x, y)) return; // fog: no yields for tiles we can't see
+    if (unitsAt(session.state, x, y).length > 0 || cityAtTile(x, y)) return; // empty only
+    yieldKey = key;
+    yieldTimer = setTimeout(() => {
+      const tile = session.state.map.tiles[y * session.state.map.width + x];
+      const yl = tileYields(tile, session.ruleset);
+      const card = document.createElement('div');
+      card.className = 'hover-yields';
+      card.innerHTML = `<b>(${x},${y}) ${tile.t}</b>`
+        + `<span class="yf">🌾${yl.food}</span> <span class="ys">⚒${yl.shields}</span> <span class="yt">💰${yl.trade}</span>`;
+      ctx.hoverCard.showAt(lastPointer.x, lastPointer.y, card);
+    }, 300);
+  }
+  window.addEventListener('pointerdown', clearYieldCard);
+
   renderer.onHover(pick => {
+    maybeYieldCard(pick); // XIV §24 (all viewers, spectators included)
     if (ctx.SPECTATOR) {
       spectatorTip(pick);
       hud.tile(pick ? describeTile(pick.tile.x, pick.tile.y) : '');
