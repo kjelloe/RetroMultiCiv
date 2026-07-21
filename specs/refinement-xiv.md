@@ -506,3 +506,16 @@ shares the §34/§41 table component. Fog-free (own empire only).
 ## Batch-5 routing
 All three → helper queue. §48 sequenced after xiv-discovery-overlay (§26)
 for frame reuse; §49 after §34 (component reuse); §47 anytime.
+
+## §50 City squares count as roads (river caveat) [engine — Civ1-authentic]
+(§49 in the same message was the batch-5 duplicate.) Civ 1: a city square
+acts as a ROAD square for movement chaining. Ours does not — movement.js:168
+chains on the literal road flag only (verified). Slice [engine + twins,
+golden-affecting]: in the road-chain test, a tile counts as roaded when it
+holds ANY city; EXCEPT when either endpoint carries the river flag and the
+MOVER'S owner lacks bridge-building — rivers break the chain until bridges
+(matches the road-on-river build gate; tech id `bridge-building` exists).
+Rail chaining unchanged (city ≠ rail). Scenario pins: city→road chain works;
+city-across-river does NOT pre-bridge, DOES post-bridge. AI/goto pathing
+picks the benefit up automatically (§37's road-aware findPath should mirror
+the same rule — note added for the helper item).
