@@ -138,8 +138,30 @@ async function replayDiagnostics(diag, ruleset) {
 // Pre-B16 envelopes lack diag.rulesOverrides: a game played on a non-default
 // difficulty then replays under the WRONG ruleset and reports phantom
 // divergence (the turn-371 hunt) — warn instead of confusing the triage.
-async function normalizeReplayInput(obj) {
+async function normalizeReplayInput(obj, srcPath) {
   if (obj && obj.format === 'retromulticiv-server-save' && obj.diag) {
+    // #1870 slice 2: a slice-2 save embeds only the round-hash chain; the full
+    // per-command recording lives in a sidecar (<gameId>.log.jsonl) next to the
+    // save. Reconstruct diag.log from it so offline replay verifies the whole
+    // game. srcPath (the save's own path) locates the sidecar; without it (a
+    // programmatic caller) or an older full-log save, the embedded log is used.
+    if (obj.diag.logTruncated && obj.diag.sidecar && srcPath) {
+      const scPath = path.join(path.dirname(srcPath), obj.diag.sidecar);
+      if (fs.existsSync(scPath)) {
+        const entries = [];
+        for (const line of fs.readFileSync(scPath, 'utf8').split('\n')) {
+          if (line) entries.push(JSON.parse(line));
+        }
+        return {
+          note: `server save (game ${obj.gameId}) — replaying its per-command sidecar (${obj.diag.sidecar})`,
+          diag: Object.assign({}, obj.diag, { log: entries })
+        };
+      }
+      return {
+        note: `server save (game ${obj.gameId}) — sidecar ${obj.diag.sidecar} missing; replaying round-hashes only`,
+        diag: obj.diag
+      };
+    }
     return {
       note: `server save (game ${obj.gameId}) — replaying its embedded diagnostics`,
       diag: obj.diag
@@ -177,7 +199,7 @@ if (require.main === module) {
   }
   const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   (async () => {
-    const { note, diag } = await normalizeReplayInput(raw);
+    const { note, diag } = await normalizeReplayInput(raw, file);
     if (note) console.log(note);
     if (diag.format !== 'retromulticiv-diagnostics') {
       console.error(`not a replayable file (format: ${diag.format}) — Shift+D diagnostics, a Shift+S save with its history block, or a server save`);
