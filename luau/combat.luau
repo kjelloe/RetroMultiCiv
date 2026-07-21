@@ -92,6 +92,39 @@ local function fortressAt(state: any, x: number, y: number): boolean
 		and cityAt(state, x, y) == nil
 end
 
+-- A91c: a nuclear detonation fouls the target tile AND its 8 neighbors -- every LAND
+-- tile in the ring gains pollution (deterministic, NO roll; the same tile.polluted flag
+-- as A91 smokestack pollution). Ocean is untouched; already-fouled tiles are skipped.
+local NUKE_RING = {
+	{ dx = 0, dy = 0 }, { dx = 0, dy = -1 }, { dx = 1, dy = -1 }, { dx = 1, dy = 0 }, { dx = 1, dy = 1 },
+	{ dx = 0, dy = 1 }, { dx = -1, dy = 1 }, { dx = -1, dy = 0 }, { dx = -1, dy = -1 },
+}
+local function foulRing(state: any, cx: number, cy: number, ruleset: any, events: any)
+	local W, H = state.map.width, state.map.height
+	for _, o in ipairs(NUKE_RING) do
+		local x = cx + o.dx
+		if x < 0 or x >= W then
+			if state.map.wrapX ~= true then
+				continue
+			end
+			x = ((x % W) + W) % W
+		end
+		local y = cy + o.dy
+		if y < 0 or y >= H then
+			continue
+		end
+		local tile = state.map.tiles[y * W + x + 1]
+		if ruleset.terrain.terrains[tile.t].domain ~= "land" then
+			continue
+		end
+		if tile.polluted == true then
+			continue
+		end
+		tile.polluted = true
+		table.insert(events, { type = "nukeFallout", x = x, y = y })
+	end
+end
+
 -- air-truth: a bomber (ignoresWalls) skips the City Walls / Great Wall 3x
 -- multiplier (but NOT a fortress). No attacker passed = walls count as before.
 local function defenseStrength(state: any, unit: any, ruleset: any, attacker: any?): number
@@ -195,12 +228,15 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 
 	local events = setmetatable({}, statehash.ARRAY_MT)
 	if attackerWins then
+		-- A91c: a nuclear strike DETONATES -- it annihilates EVERY unit on the target
+		-- (even sheltered in a city/fortress), halves the city, and fouls the ring (below).
+		local nuke = atype.nuclearBlast == true
 		-- stacks die on open ground; cities AND fortresses lose one at a time
-		local sheltered = cityAt(state, tx, ty) ~= nil or fortressAt(state, tx, ty)
+		local sheltered = not nuke and (cityAt(state, tx, ty) ~= nil or fortressAt(state, tx, ty))
 		local casualties = if sheltered then { defender } else unitsAt(state, tx, ty)
 		-- R1 (N13): a barbarian leader survives open-ground annihilation of its
 		-- escort — it dies only as the SOLE defender.
-		if not sheltered and #casualties > 1 then
+		if not sheltered and not nuke and #casualties > 1 then
 			local filtered = {}
 			for _, u in ipairs(casualties) do
 				if ruleset.units[u.type].barbLeader ~= true then
@@ -238,6 +274,19 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 			defenderId = defender.id, defenderType = defender.type, defenderOwner = defender.owner,
 			x = tx, y = ty, unitsLost = #casualties,
 		})
+		-- A91c: the detonation's area effects -- halve the target city's population
+		-- (never below 1) and foul the ring. Deterministic, no roll.
+		if nuke then
+			local nc = cityAt(state, tx, ty)
+			if nc ~= nil then
+				nc.pop = math.floor(nc.pop / 2)
+				if nc.pop < 1 then
+					nc.pop = 1
+				end
+				table.insert(events, { type = "cityNuked", cityId = nc.id, x = tx, y = ty })
+			end
+			foulRing(state, tx, ty, ruleset, events)
+		end
 		-- A72: a one-shot attacker (nuclear) is consumed by its strike and does
 		-- not promote; a normal attacker rolls for veteran promotion.
 		if atype.oneShot == true then

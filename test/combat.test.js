@@ -360,3 +360,60 @@ test('barbarians spawn at the gate turn and hunt nearby units', async () => {
   assert.strictEqual(early.rngState, 42, 'no RNG consumption before FIRST_TURN');
   assert.strictEqual(early.players.barb, undefined);
 });
+
+// A91c (nuclear area effects, user-ruled A91 design 2026-07-16): a nuclear strike is
+// the FULL Civ1 detonation — it annihilates EVERY unit on the target tile (even
+// sheltered in a city), halves the target city's population, and fouls the ring (the
+// tile + its 8 neighbours, every land square, deterministic). Consumes A72's one-shot.
+test('A91c nuke: a strike annihilates the whole stack, halves the city, fouls the ring', async () => {
+  const { combat } = await load();
+  const W = 7, H = 7, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const units = {
+    u1: { id: 'u1', type: 'nuclear', owner: 'p1', x: 3, y: 2, moves: 16, fortified: false, veteran: false },
+    u2: { id: 'u2', type: 'phalanx', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false },
+    u3: { id: 'u3', type: 'militia', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false }
+  };
+  const st = miniState(tiles, W, H, units, {
+    cities: { c1: { id: 'c1', name: 'Target', owner: 'p2', x: 3, y: 3, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1']
+  });
+  const res = combat.resolveAttack(st, st.units.u1, 3, 3, RULESET);
+  assert.strictEqual(res.ok, true);
+  assert.ok(res.events.some(e => e.type === 'combatResolved' && e.winner === 'attacker'), 'the nuke wins (attack 99)');
+  assert.strictEqual(st.units.u2, undefined, 'the phalanx is annihilated');
+  assert.strictEqual(st.units.u3, undefined, 'the militia is annihilated too — the WHOLE stack, even in a city');
+  assert.strictEqual(st.units.u1, undefined, 'the one-shot missile is consumed by its strike');
+  assert.strictEqual(st.cities.c1.pop, 3, 'the city population is halved (6 -> 3)');
+  assert.ok(res.events.some(e => e.type === 'cityNuked' && e.cityId === 'c1'), 'cityNuked emitted');
+  const polluted = (x, y) => st.map.tiles[y * W + x].polluted === true;
+  assert.ok(polluted(3, 3), 'the target tile is fouled');
+  assert.ok(polluted(2, 2) && polluted(4, 4) && polluted(3, 2), 'the ring (corners + edges) is fouled');
+  assert.strictEqual(res.events.filter(e => e.type === 'nukeFallout').length, 9, 'all nine ring land tiles fouled');
+});
+
+test('A91c control: a NON-nuclear attacker kills one defender, spares the stack, fouls nothing', async () => {
+  const { combat } = await load();
+  const W = 7, H = 7, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const units = {
+    u1: { id: 'u1', type: 'catapult', owner: 'p1', x: 3, y: 2, moves: 1, fortified: false, veteran: false },
+    u2: { id: 'u2', type: 'militia', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false },
+    u3: { id: 'u3', type: 'militia', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false }
+  };
+  const st = miniState(tiles, W, H, units, {
+    cities: { c1: { id: 'c1', name: 'Target', owner: 'p2', x: 3, y: 3, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1']
+  });
+  const res = combat.resolveAttack(st, st.units.u1, 3, 3, RULESET);
+  assert.strictEqual(res.ok, true);
+  // detonation effects NEVER fire for a non-nuclear attacker (win or lose):
+  assert.strictEqual(st.cities.c1.pop, 6, 'a normal attack does not halve the city');
+  assert.ok(!res.events.some(e => e.type === 'cityNuked' || e.type === 'nukeFallout'), 'no detonation events');
+  assert.notStrictEqual(st.map.tiles[3 * W + 3].polluted, true, 'a normal attack fouls nothing');
+  // and a WIN takes only the best defender (city shelters the rest)
+  if (res.events.some(e => e.type === 'combatResolved' && e.winner === 'attacker')) {
+    const survivors = Object.keys(st.units).filter(id => st.units[id].owner === 'p2').length;
+    assert.strictEqual(survivors, 1, 'a normal attacker kills ONE sheltered defender at a time');
+  }
+});

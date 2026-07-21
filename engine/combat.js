@@ -71,6 +71,31 @@ function fortressAt(state, x, y) {
     && cityAt(state, x, y) === null;
 }
 
+// A91c: a nuclear detonation fouls the target tile AND its 8 neighbors — every LAND
+// tile in the ring gains pollution (deterministic, NO roll; the same tile.polluted
+// flag as A91 smokestack pollution). Ocean is untouched; already-fouled tiles are skipped.
+const NUKE_RING = [
+  { dx: 0, dy: 0 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 }, { dx: 1, dy: 0 }, { dx: 1, dy: 1 },
+  { dx: 0, dy: 1 }, { dx: -1, dy: 1 }, { dx: -1, dy: 0 }, { dx: -1, dy: -1 }
+];
+function foulRing(state, cx, cy, ruleset, events) {
+  const W = state.map.width, H = state.map.height;
+  for (const o of NUKE_RING) {
+    let x = cx + o.dx;
+    if (x < 0 || x >= W) {
+      if (state.map.wrapX !== true) continue;
+      x = ((x % W) + W) % W;
+    }
+    const y = cy + o.dy;
+    if (y < 0 || y >= H) continue;
+    const tile = state.map.tiles[y * W + x];
+    if (ruleset.terrain.terrains[tile.t].domain !== 'land') continue;
+    if (tile.polluted === true) continue;
+    tile.polluted = true;
+    events.push({ type: 'nukeFallout', x, y });
+  }
+}
+
 function defenseStrength(state, unit, ruleset, attacker) {
   // air-truth: a bomber (ignoresWalls) skips the City Walls / Great Wall 3x
   // multiplier — but NOT a fortress (a different structure). No attacker passed
@@ -157,12 +182,16 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const events = [];
   if (attackerWins) {
+    // A91c: a nuclear strike DETONATES — it annihilates EVERY unit on the target tile
+    // (even sheltered in a city/fortress), halves the city, and fouls the ring (below).
+    const nuke = atype.nuclearBlast === true;
     // stacks die on open ground; cities AND fortresses lose one unit at a time
-    const sheltered = cityAt(state, tx, ty) !== null || fortressAt(state, tx, ty);
+    const sheltered = !nuke && (cityAt(state, tx, ty) !== null || fortressAt(state, tx, ty));
     let casualties = sheltered ? [defender] : unitsAt(state, tx, ty);
     // R1 (N13): a barbarian leader survives open-ground annihilation of its escort
     // — it dies only as the SOLE defender. Filter it out while others share the tile.
-    if (!sheltered && casualties.length > 1) {
+    // A nuke spares no one, so the leader-shield does not apply to a detonation.
+    if (!sheltered && !nuke && casualties.length > 1) {
       casualties = casualties.filter(u => ruleset.units[u.type].barbLeader !== true);
     }
     for (const u of casualties) {
@@ -189,6 +218,17 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
       defenderId: defender.id, defenderType: defender.type, defenderOwner: defender.owner,
       x: tx, y: ty, unitsLost: casualties.length
     });
+    // A91c: the detonation's area effects — halve the target city's population
+    // (never below 1) and foul the ring. Deterministic, no roll.
+    if (nuke) {
+      const nc = cityAt(state, tx, ty);
+      if (nc !== null) {
+        nc.pop = Math.floor(nc.pop / 2);
+        if (nc.pop < 1) nc.pop = 1;
+        events.push({ type: 'cityNuked', cityId: nc.id, x: tx, y: ty });
+      }
+      foulRing(state, tx, ty, ruleset, events);
+    }
     // A72: a one-shot attacker (the nuclear missile) is consumed by its strike
     // and does not promote; a normal attacker rolls for veteran promotion.
     if (atype.oneShot) {

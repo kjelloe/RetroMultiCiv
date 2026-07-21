@@ -323,6 +323,7 @@
     "notes": "",
     "ignoresZoc": true,
     "oneShot": true,
+    "nuclearBlast": true,
     "fuel": 1
   },
   "barbleader": {

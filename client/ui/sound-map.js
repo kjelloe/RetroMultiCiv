@@ -75,6 +75,10 @@ export function soundForEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'disorder' : null;
     case 'terrainWarmed': // A91b: global warming — silent (a turnlog world line carries it)
       return null;
+    case 'cityNuked': // A91c: a nuclear strike on a city — reuse the combat-loss alarm for the owner
+      return cityOwner(e.cityId) === viewer ? 'combat-loss' : 'combat-distant';
+    case 'nukeFallout': // A91c: fallout fouling — silent (the cityNuked/strike cue carries it)
+      return null;
     case 'hutEntered': // N13: own-seat village discovery cue (reuse 'found')
       return e.playerId === viewer ? 'found' : null;
     case 'ransomPaid': // N13: own-seat — a combat-win-flavoured payout
