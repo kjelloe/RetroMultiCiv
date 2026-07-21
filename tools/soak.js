@@ -223,6 +223,7 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--help' || a === '-h') { console.log(HELP); process.exit(0); }
     else if (a === '--natural') opts.natural = true;
+    else if (a === '--disasters') opts.disasters = true;
     else if (a === '--no-chaos') opts.chaos = false;
     else if (a === '--worker') opts.worker = true; // internal: child of --jobs
     else if (a === '--seeds') opts.seeds = Number(argv[++i]);
@@ -252,6 +253,9 @@ function rulesOverridesFor(opts) {
   const overrides = {};
   if (!opts.natural) overrides.endYear = 9999;
   if (opts.difficulty !== 'medium') overrides.contentCitizens = DIFFICULTY[opts.difficulty];
+  // disasters default OFF in the sweep harness (the pinned floors + goldens stay stable);
+  // --disasters turns them ON for the mandatory non-degeneracy witness (ship default is ON).
+  overrides.disastersEnabled = opts.disasters === true;
   return overrides;
 }
 

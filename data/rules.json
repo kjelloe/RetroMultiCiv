@@ -132,6 +132,18 @@
     "warmingThreshold": 10,
     "warmingTransforms": { "plains": "desert", "ocean": "swamp" }
   },
+  "disastersEnabled": true,
+  "disasters": {
+    "baseChancePct": 2,
+    "pirateGoldPct": 50,
+    "pirate": { "prevent": "barracks", "terrain": "ocean" },
+    "flood": { "prevent": "city-walls", "river": true, "popPct": 25 },
+    "fire": { "prevent": "aqueduct", "destroyBuilding": true },
+    "plague": { "prevent": "aqueduct", "preventTech": "medicine", "popPct": 25 },
+    "famine": { "prevent": "granary", "popPct": 33 },
+    "volcano": { "prevent": "temple", "terrain": "mountains", "destroyBuilding": true, "popPct": 33 },
+    "earthquake": { "terrain": "hills", "destroyBuilding": true }
+  },
   "diplomacy": {
     "warIntentThreshold": 60,
     "peaceAcceptThreshold": 30,

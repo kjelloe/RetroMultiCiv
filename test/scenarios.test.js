@@ -10,9 +10,13 @@ const { runScenario } = require('./scenario-runner.js');
 const ENGINE_PATH = path.join(__dirname, '..', 'engine', 'index.js');
 const hasEngine = fs.existsSync(ENGINE_PATH);
 
-async function loadEngine() {
+async function loadEngine(rulesOverrides) {
   const { createEngine } = await import('../engine/index.js');
-  return createEngine(require('./ruleset.js'));
+  const RULESET = require('./ruleset.js');
+  // scenarios default disasters OFF — deterministic mechanics tests must not be perturbed
+  // by the random per-turn disaster roll; a disaster scenario opts in via `rulesOverrides`.
+  const rules = Object.assign({}, RULESET.rules, { disastersEnabled: false }, rulesOverrides || {});
+  return createEngine(Object.assign({}, RULESET, { rules }));
 }
 
 const scenarioDir = path.join(__dirname, 'scenarios');
@@ -31,7 +35,7 @@ test('at least one scenario exists and parses', () => {
 for (const f of files) {
   const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
   test(`scenario ${f}: ${scenario.name}`, { skip: !hasEngine && 'engine not built yet (roadmap step 1)' }, async () => {
-    const result = await runScenario(await loadEngine(), scenario);
+    const result = await runScenario(await loadEngine(scenario.rulesOverrides), scenario);
     assert.ok(result.pass, '\n' + result.failures.join('\n'));
   });
 }

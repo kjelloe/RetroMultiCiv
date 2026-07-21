@@ -1,0 +1,35 @@
+{
+  "name": "disasters: an earthquake destroys a building (Civ1, unpreventable)",
+  "notes": "The disaster harness defaults OFF; this scenario opts in via rulesOverrides (baseChancePct 100 = the per-city roll always fires). aqueduct blocks fire+plague, granary blocks famine, no ocean/river/mountain -> only the (unpreventable) earthquake is eligible (a hills neighbour); it destroys one random building. Hash-only cross-language pin (the semantics are asserted in test/disasters.test.js).",
+  "rulesOverrides": { "disastersEnabled": true, "baseChancePct": 100 },
+  "setup": {
+    "state": {
+      "version": 1, "turn": 200, "year": 1000, "activePlayer": "p1", "playerOrder": ["p1"],
+      "map": {
+        "width": 5, "height": 5, "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "hills" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": { "id": "c1", "name": "Quaketon", "owner": "p1", "x": 2, "y": 2, "pop": 5, "food": 20, "shields": 10, "buildings": ["aqueduct", "granary", "temple"], "producing": { "kind": "building", "id": "barracks" } }
+      },
+      "cityOrder": ["c1"],
+      "wonders": {},
+      "nextUnitId": 5, "nextCityId": 2,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#00f", "human": false, "gold": 100, "techs": [], "researching": "pottery", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 72
+    }
+  },
+  "script": [
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } }
+  ],
+  "final": { "hash": "0xe2e39f02" }
+}

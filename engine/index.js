@@ -9,6 +9,7 @@ import * as cities from './cities.js';
 import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
 import * as pollution from './pollution.js';
+import * as disasters from './disasters.js';
 import * as air from './air.js';
 import * as scoring from './score.js';
 import * as improvements from './improvements.js';
@@ -121,6 +122,7 @@ function endTurn(state, cmd, ruleset) {
     happiness.updateDisorder(state, ruleset, events); // one disorder verdict per city for the whole turn
     cities.processCities(state, ruleset, events);
     pollution.process(state, ruleset, events); // A91: smokestack pollution + meltdown (reads gross shields)
+    disasters.process(state, ruleset, events); // CIV1 disasters (authentic-ON; the 7 non-meltdown calamities)
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units

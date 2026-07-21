@@ -19,6 +19,7 @@ local ruleset = {}
 for _, f in ipairs(RULESET_FILES) do
 	ruleset[f] = json2lua.parse(fs.readFile("data/" .. f .. ".json"))
 end
+ruleset.rules.disastersEnabled = false -- scenarios default disasters OFF (opt-in via rulesOverrides)
 local engine = engineModule.createEngine(ruleset)
 
 local names = fs.readDir("test/scenarios")
@@ -29,7 +30,17 @@ for _, name in names do
 		print(name .. ": " .. runner.hashSetup(scenario))
 		-- P5-3: RUN the scenario; pass prints the final hash, failure prints
 		-- the docs/09 first-divergence report block
-		local result = runner.runScenario(engine, scenario, name)
+		local scEngine = engine
+		if scenario.rulesOverrides ~= nil then
+			local mergedRules = table.clone(ruleset.rules)
+			for k, v in pairs(scenario.rulesOverrides) do
+				mergedRules[k] = v
+			end
+			local mergedRuleset = table.clone(ruleset)
+			mergedRuleset.rules = mergedRules
+			scEngine = engineModule.createEngine(mergedRuleset)
+		end
+		local result = runner.runScenario(scEngine, scenario, name)
 		if result.pass then
 			print("run:" .. name .. ": " .. result.finalHash)
 		else

@@ -34,19 +34,22 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0xdc0bf7e7',
-    200: '0x56c50d82',
-    300: '0x407fcfad',
-    400: '0x3962076b'
+    100: '0x3d261b9b',
+    200: '0x4fa5d202',
+    300: '0xde7769e9',
+    400: '0x619184a7'
   },
-  finalHash: '0x3962076b'
+  finalHash: '0x619184a7'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x03c6d365' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x9b87ff71' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
     turns: 400,
-    rulesOverrides: { endYear: 9999 }, // score victory at 2100 AD ~ turn 306 must not cut the soak short
+    // disasters OFF in the pinned goldens (ruled #2133 — an authentic-ON default would
+    // churn every checkpoint + re-invalidate the M-floors; the ON path rides scenarios +
+    // a land-time non-degeneracy soak). The SHIP default stays authentic-ON.
+    rulesOverrides: { endYear: 9999, disastersEnabled: false }, // score victory at 2100 AD ~ turn 306 must not cut the soak short
     chaos: true, // exercise the human-only command surface (buy/rates/workers/volatile governments)
     deepAt: CHECKPOINTS
   });
@@ -65,7 +68,7 @@ test('mechanics soak: 400 turns with chaos, run twice — deterministic and gold
 test('natural end: standard rules reach a victory by turn 550', async () => {
   // the Calendar-545 year curve lands 2100 AD at wrap 545 (turn 546) — this
   // budget sits just past it so the score end (or an earlier conquest) fires
-  const r = await runSim(Object.assign({}, SIM, { turns: 550 }));
+  const r = await runSim(Object.assign({}, SIM, { turns: 550, rulesOverrides: { disastersEnabled: false } }));
   assert.strictEqual(r.state.gameOver, true, 'no victory fired by turn 550 (score victory is due at endYear 2100 ≈ turn 546)');
   assert.ok(r.state.winner !== undefined && r.state.players[r.state.winner] !== undefined,
     'winner must be a real player');

@@ -41,7 +41,9 @@ local result = simDriver.runSim({
 	ruleset = ruleset,
 	seed = 20260712, civs = 4, width = 56, height = 35,
 	turns = turns,
-	rulesOverrides = if natural then nil else { endYear = 9999 },
+	-- disasters OFF in the pinned goldens (ruled #2133) -- must MATCH the JS sim-driver
+	-- override or the twin diverges. Ship default stays authentic-ON.
+	rulesOverrides = if natural then { disastersEnabled = false } else { endYear = 9999, disastersEnabled = false },
 	chaos = not natural, -- the natural golden is a chaos-OFF run (JS SIM defaults)
 	deepAt = deepAt,
 })
