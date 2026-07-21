@@ -239,7 +239,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x22221906\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xdc263883\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -277,8 +277,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '52aa0ca1', pangaea: 'd3008356',
-      archipelago: '6752cd91', islands: '8a82a758'
+      continents: '2ec64357', pangaea: 'f11fda94',
+      archipelago: 'fe39daff', islands: 'd2f526ae'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -321,9 +321,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // 0x7f492828 (§40 settlers popCost) -> 0xe3237208 (air-truth units.json flags) ->
 // 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean) ->
 // 0xb735adcb (XII.5b latch spaceThreatPatience) -> 0x84150295 (A91c nuclearBlast flag) ->
-// 0x3ad8f233 (disasters block) -> 0x27ee037e (naval-truth: sight/trireme/wonder-move + A91c nuclearBlast restore).
+// 0x3ad8f233 (disasters block) -> 0x13fa7076 (danger-abandon: removed spaceThreatPatience).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x27ee037e turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x13fa7076 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

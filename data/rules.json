@@ -88,8 +88,7 @@
   },
   "victoryDrive": {
     "spaceStances": ["science", "builder", "balanced", "defensive"],
-    "spaceCommitTechGap": 3,
-    "spaceThreatPatience": 6
+    "spaceCommitTechGap": 3
   },
   "tradeRoute": {
     "minDomesticDistance": 10,

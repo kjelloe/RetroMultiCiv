@@ -747,9 +747,24 @@ local function spaceCommitEligible(state: any, playerId: string, ruleset: any): 
 	end
 	if #me.techs < lead - gap then return false end
 	local cap = government.capitalOf(state, playerId, ruleset)
-	if cap ~= nil and enemyNear(state, me, playerId, cap.x, cap.y, ruleset.rules.threatRadius) then return false end
+	-- danger-abandon (#2138): CONCRETE capital danger -- an enemy unit ADJACENT (cheb 1),
+	-- NOT the radius-8 threat metric (that signal misfired, #2125).
+	if cap ~= nil and enemyNear(state, me, playerId, cap.x, cap.y, 1) then return false end
 	if ruleset.rules.endYear ~= nil and state.year >= ruleset.rules.endYear then return false end
 	return true
+end
+
+-- danger-abandon (#2138): a player's owned-city count -- the concrete input to the
+-- city-loss abandon trigger. Pure, both engines.
+local function ownedCities(state: any, playerId: string): number
+	local n = 0
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			n += 1
+		end
+	end
+	return n
 end
 
 -- XII.5b (Q2 ruled B): COMMITTED = spaceDriveOn && spaceCommitEligible && the
@@ -761,34 +776,23 @@ local function spaceCommitted(state: any, playerId: string, ruleset: any): boole
 	if not spaceDriveOn(ruleset, me.stance) then return false end
 	if not spaceCommitEligible(state, playerId, ruleset) then return false end
 	local snap = strategic.strategicSnapshot(state, playerId, ruleset)
-	-- XII.5b-tune (#2113/#2117) + LATCH (#2125): the commit MAINTAINS through border
-	-- wars. Capital safety is already the abandon condition (spaceCommitEligible), so
-	-- here we abandon ONLY on an offensive turn (mode "warring", instant) or a SUSTAINED
-	-- siege: a streak (spaceThreatStreak, incremented once/turn in runAiTurn) reaching
-	-- spaceThreatPatience consecutive high-threat turns. Late-game threat oscillates, so
-	-- an instantaneous "high" check killed every ~150-turn project on a 1-turn spike.
+	-- danger-abandon (#2138, user-ruled): MAINTAIN through a border skirmish ANYWHERE;
+	-- abandon ONLY on CONCRETE danger -- mode "warring", an enemy adjacent to the capital
+	-- (spaceCommitEligible cheb-1), or a CITY LOST since last turn (ownedCities < record).
+	-- The threat-metric streak was REMOVED. Recommit possible once danger clears.
 	if snap.mode == "warring" then return false end
-	local patience = if ruleset.rules.victoryDrive.spaceThreatPatience == nil
-		then 6 else ruleset.rules.victoryDrive.spaceThreatPatience
-	local streak = if me.spaceThreatStreak == nil then 0 else me.spaceThreatStreak
-	if streak >= patience then return false end
+	if me.spaceCities ~= nil and ownedCities(state, playerId) < me.spaceCities then return false end
 	return true
 end
 
--- XII.5b LATCH (#2125): update a space-driving civ's consecutive-high-threat streak,
--- ONCE per turn from runAiTurn (mirrors the zocBlocks per-turn tallies -- replay re-runs
--- the AI, so replay-safe). "high" increments; any other turn resets. Stance-gated.
--- omit-when-default: deleted at 0 so a never-besieged civ stays byte-identical.
-local function updateSpaceThreatStreak(state: any, playerId: string, ruleset: any)
+-- danger-abandon (#2138): record a space-driving civ's owned-city count at the END of its
+-- turn (from runAiTurn -- replay-safe). Next turn spaceCommitted abandons if the count
+-- DROPPED (a city captured between turns). Stance-gated; rides only space-driving civs.
+local function updateSpaceCityRecord(state: any, playerId: string, ruleset: any)
 	local me = state.players[playerId]
 	if me == nil then return end
 	if not spaceDriveOn(ruleset, me.stance) then return end
-	local threat = strategic.strategicSnapshot(state, playerId, ruleset).threat
-	if threat == "high" then
-		me.spaceThreatStreak = (if me.spaceThreatStreak == nil then 0 else me.spaceThreatStreak) + 1
-	elseif me.spaceThreatStreak ~= nil then
-		me.spaceThreatStreak = nil
-	end
+	me.spaceCities = ownedCities(state, playerId)
 end
 
 -- A76: the next part to build toward a minimum-viable ship, or nil when ready to
@@ -2210,7 +2214,6 @@ local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any
 		local u = state.units[uid]
 		if u.owner == playerId and u.zocBlocks ~= nil then u.zocBlocks = nil end
 	end
-	updateSpaceThreatStreak(state, playerId, ruleset) -- XII.5b latch: once/turn threat streak
 	local guard = 500
 	while guard > 0 do
 		guard -= 1
@@ -2237,6 +2240,7 @@ local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any
 			if bu ~= nil then bu.zocBlocks = (if bu.zocBlocks == nil then 0 else bu.zocBlocks) + 1 end
 		end
 	end
+	updateSpaceCityRecord(state, playerId, ruleset) -- danger-abandon: record city count for next turn
 	return state
 end
 

@@ -652,8 +652,11 @@ function spaceCommitEligible(state, playerId, ruleset) {
   }
   if (me.techs.length < lead - gap) return false;
   const cap = capitalOf(state, playerId, ruleset);
+  // danger-abandon (#2138, user-ruled): CONCRETE capital danger — an enemy unit ADJACENT
+  // to the capital (chebyshev 1), NOT the radius-8 threat metric (that signal misfired,
+  // #2125). Adjacency is a real attack forming, not distant sabre-rattling.
   if (cap !== null && cap !== undefined
-      && enemyNear(state, me, playerId, cap.x, cap.y, ruleset.rules.threatRadius)) return false;
+      && enemyNear(state, me, playerId, cap.x, cap.y, 1)) return false;
   if (ruleset.rules.endYear !== undefined && state.year >= ruleset.rules.endYear) return false;
   return true;
 }
@@ -673,38 +676,38 @@ function spaceCommitted(state, playerId, ruleset) {
   if (me === undefined) return false;
   if (!spaceDriveOn(ruleset, me.stance)) return false;
   if (!spaceCommitEligible(state, playerId, ruleset)) return false;
-  const snap = strategicSnapshot(state, playerId, ruleset);
-  // XII.5b-tune (#2113/#2117) + LATCH (#2125): the commit MAINTAINS through border
-  // wars. Capital safety is already the abandon condition (spaceCommitEligible,
-  // ai.js:655-656), so here we abandon ONLY when the civ turns offensive (mode
-  // 'warring', instant) or is under a SUSTAINED siege. The re-witness found late-game
-  // threat OSCILLATES, so an instantaneous 'high' check abandoned every ~150-turn
-  // project on a 1-turn spike; instead a streak (spaceThreatStreak, incremented once/
-  // turn in runAiTurn) must reach spaceThreatPatience consecutive high-threat turns.
-  if (snap.mode === 'warring') return false;
-  const patience = ruleset.rules.victoryDrive.spaceThreatPatience === undefined
-    ? 6 : ruleset.rules.victoryDrive.spaceThreatPatience;
-  const streak = me.spaceThreatStreak === undefined ? 0 : me.spaceThreatStreak;
-  if (streak >= patience) return false;
+  // danger-abandon (#2138, user-ruled): the commit MAINTAINS through a border skirmish
+  // ANYWHERE; it abandons ONLY on CONCRETE danger — the civ turns offensive (mode
+  // 'warring'), an enemy is ADJACENT to the capital (spaceCommitEligible's cheb-1 check),
+  // or a CITY WAS LOST since last turn (ownedCities dropped below the record). Recommit
+  // is possible once danger clears and eligibility returns. The threat-metric streak was
+  // REMOVED — #2125's latch was structurally sound but its threat signal misfired.
+  if (strategicSnapshot(state, playerId, ruleset).mode === 'warring') return false;
+  if (me.spaceCities !== undefined && ownedCities(state, playerId) < me.spaceCities) return false;
   return true;
 }
 
-// XII.5b LATCH (#2125): update a space-driving civ's consecutive-high-threat streak,
-// ONCE per turn from runAiTurn (mirrors the §14 zocBlocks per-turn tallies — replay
-// re-runs the AI, so this is replay-safe). A 'high' threat turn increments; any other
-// turn resets. Stance-gated (only a space-driver can commit, so no snapshot cost for a
-// conquest civ). omit-when-default: the field is deleted at 0 so a civ that never faces
-// a sustained siege stays byte-identical.
-function updateSpaceThreatStreak(state, playerId, ruleset) {
+// danger-abandon (#2138): a player's owned-city count — the concrete input to the
+// city-loss abandon trigger. Pure, both engines.
+function ownedCities(state, playerId) {
+  let n = 0;
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (c !== undefined && c.owner === playerId) n = n + 1;
+  }
+  return n;
+}
+
+// danger-abandon (#2138): record a space-driving civ's owned-city count at the END of its
+// turn (from runAiTurn — replay-safe, mirroring the removed latch's per-turn tally). Next
+// turn spaceCommitted abandons if the count DROPPED (a city captured between turns), then
+// this refreshes the record so a single loss abandons for one turn (recommit stays open).
+// Stance-gated; the field rides only space-driving civs.
+function updateSpaceCityRecord(state, playerId, ruleset) {
   const me = state.players[playerId];
   if (me === undefined) return;
   if (!spaceDriveOn(ruleset, me.stance)) return;
-  const threat = strategicSnapshot(state, playerId, ruleset).threat;
-  if (threat === 'high') {
-    me.spaceThreatStreak = (me.spaceThreatStreak === undefined ? 0 : me.spaceThreatStreak) + 1;
-  } else if (me.spaceThreatStreak !== undefined) {
-    delete me.spaceThreatStreak;
-  }
+  me.spaceCities = ownedCities(state, playerId);
 }
 
 // A76: the next part to build toward a minimum-viable ship, or null when the
@@ -2011,7 +2014,6 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
     const u = state.units[uid];
     if (u.owner === playerId && u.zocBlocks !== undefined) delete u.zocBlocks;
   }
-  updateSpaceThreatStreak(state, playerId, ruleset); // XII.5b latch: once/turn threat streak
   let guard = 500;
   while (guard > 0) {
     guard--;
@@ -2034,6 +2036,7 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
       if (bu !== undefined) bu.zocBlocks = (bu.zocBlocks === undefined ? 0 : bu.zocBlocks) + 1;
     }
   }
+  updateSpaceCityRecord(state, playerId, ruleset); // danger-abandon: record city count for next turn's loss check
   return state;
 }
 
@@ -2041,4 +2044,4 @@ export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsSt
 // XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
 // for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
 // measurement, zero engine-decision use, no luau caller. Pure reads.
-export { spaceCommitEligible, spaceCommitted, nextSsPart, updateSpaceThreatStreak };
+export { spaceCommitEligible, spaceCommitted, nextSsPart, updateSpaceCityRecord, ownedCities };

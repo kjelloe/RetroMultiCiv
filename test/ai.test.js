@@ -794,19 +794,17 @@ test('XII.5b-tune: a committed civ keeps its commit through a border skirmish (s
   assert.strictEqual(ai.spaceCommitted(war, 'p1', RULESET), false, 'a WARRING civ abandons the commit');
 });
 
-// XII.5b LATCH (#2125 re-witness verdict + escalation): the predicate-relax alone
-// still lost every committed civ to OSCILLATING late-game threat — a single 1-turn
-// HIGH spike abandoned a ~150-turn project (3/25 committed at pathPct 67-91, all
-// abandoned, 0 parts). The latch counts CONSECUTIVE high-threat turns
-// (players[pid].spaceThreatStreak, updated once/turn in runAiTurn via
-// updateSpaceThreatStreak) and abandons only when the siege is SUSTAINED
-// (streak >= spaceThreatPatience). Fixtures BOTH directions + the streak update.
-test('XII.5b latch: a sustained siege abandons, a spike survives, streak tracks HIGH threat', async () => {
+// DANGER-ABANDON (#2138, user-ruled): the threat-metric latch was REMOVED — its signal
+// misfired three re-witnesses running (the latch STRUCTURE was sound, the threat read was
+// not). A committed civ now MAINTAINS through a border skirmish ANYWHERE and abandons ONLY
+// on CONCRETE danger: mode 'warring', an enemy ADJACENT to the capital (cheb 1), or a CITY
+// LOST since last turn (ownedCities < the record). Recommit is possible once danger clears.
+test('danger-abandon: skirmish-anywhere survives; city-loss + capital-adjacency abandon; recommit works', async () => {
   const { ai } = await load();
   const W = 30, H = 9, tiles = [];
   for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
-  // committed-eligible (space-flight, science, capital c1 far from enemies); c2 is
-  // under a HIGH-threat siege (8 enemies) but builds a DEFENDER -> mode 'defending'.
+  // committed-eligible (space-flight, science); capital c1 at (4,4) FAR from enemies; c2
+  // (border, x=25) under an 8-unit skirmish, building a DEFENDER -> mode 'defending'.
   const base = () => {
     const units = {};
     for (let i = 0; i < 8; i++) units['e' + i] = { id: 'e' + i, type: 'phalanx', owner: 'p2', x: 24, y: (i % 3) + 3, moves: 1 };
@@ -825,23 +823,27 @@ test('XII.5b latch: a sustained siege abandons, a spike survives, streak tracks 
       rngState: 1
     };
   };
-  const patience = RULESET.rules.victoryDrive.spaceThreatPatience;
-  // SPIKE: HIGH threat, streak just below patience -> the commit survives.
-  const spike = base(); spike.players.p1.spaceThreatStreak = patience - 1;
-  assert.strictEqual(ai.spaceCommitted(spike, 'p1', RULESET), true, 'streak below patience -> the commit survives the spike');
-  // SUSTAINED: streak at patience -> the siege abandons the project.
-  const siege = base(); siege.players.p1.spaceThreatStreak = patience;
-  assert.strictEqual(ai.spaceCommitted(siege, 'p1', RULESET), false, 'streak at patience -> a sustained siege abandons');
-  // STREAK UPDATE: HIGH threat increments from absent; consecutive HIGH grows; a
-  // non-HIGH turn resets (deletes) it (omit-when-default).
-  const st = base();
-  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
-  assert.strictEqual(st.players.p1.spaceThreatStreak, 1, 'HIGH threat -> streak increments from absent');
-  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
-  assert.strictEqual(st.players.p1.spaceThreatStreak, 2, 'consecutive HIGH -> streak grows');
-  st.units = {}; // the siege lifts
-  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
-  assert.strictEqual(st.players.p1.spaceThreatStreak, undefined, 'threat clears -> streak resets (field deleted)');
+  // 1) SKIRMISH ANYWHERE survives (a border war far from the capital, no city lost).
+  assert.strictEqual(ai.spaceCommitted(base(), 'p1', RULESET), true, 'a border skirmish away from the capital does NOT abandon');
+  // 2) CITY LOST since last turn -> abandon (recorded 3, now owns 2); no loss -> holds.
+  const lost = base(); lost.players.p1.spaceCities = 3;
+  assert.strictEqual(ai.spaceCommitted(lost, 'p1', RULESET), false, 'a city lost since last turn abandons');
+  const held = base(); held.players.p1.spaceCities = 2;
+  assert.strictEqual(ai.spaceCommitted(held, 'p1', RULESET), true, 'no city lost -> the commit holds');
+  // 3) CAPITAL ADJACENCY -> abandon (an enemy unit next to c1 at (5,4)).
+  const cap = base(); cap.units.eCap = { id: 'eCap', type: 'phalanx', owner: 'p2', x: 5, y: 4, moves: 1 };
+  assert.strictEqual(ai.spaceCommitted(cap, 'p1', RULESET), false, 'an enemy adjacent to the capital abandons');
+  // 4) the city RECORD (updateSpaceCityRecord stamps the owned-city count) + ownedCities.
+  const rec = base();
+  ai.updateSpaceCityRecord(rec, 'p1', RULESET);
+  assert.strictEqual(rec.players.p1.spaceCities, 2, 'records the 2 owned cities');
+  assert.strictEqual(ai.ownedCities(rec, 'p1'), 2, 'ownedCities counts p1 cities');
+  // RECOMMIT after a loss: the turn OF the loss abandons (record 2, now 1); next turn the
+  // record refreshes to 1 and, with the danger gone, the civ recommits.
+  const rc = base(); delete rc.cities.c2; rc.cityOrder = ['c1']; rc.players.p1.spaceCities = 2;
+  assert.strictEqual(ai.spaceCommitted(rc, 'p1', RULESET), false, 'the turn a city is lost: abandons');
+  ai.updateSpaceCityRecord(rc, 'p1', RULESET);
+  assert.strictEqual(ai.spaceCommitted(rc, 'p1', RULESET), true, 'next turn (record refreshed, danger gone): recommits');
 });
 
 // §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep
