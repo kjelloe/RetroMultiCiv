@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- XIV §10: user-scalable=no pins the HUD — a pinch no longer page-zooms the
+       whole layout (bars scaling out of the viewport with no way back). The map
+       still zooms: the renderer's in-canvas pinch handler drives the camera
+       (both directions), and #app canvas has touch-action:none. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>RetroMultiCiv</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>&#127757;</text></svg>">
   <link rel="stylesheet" href="style.css">

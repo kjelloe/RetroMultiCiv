@@ -516,6 +516,7 @@ export function createRenderer(container) {
       overlays.set(entries, view.map.width, tileTop);
     },
     overlayCount() { return overlays.count(); }, // e2e probe
+    get domElement() { return renderer.domElement; }, // XIV §25: input.js attaches contextmenu / right-press listeners
     onPick(cb) { pickCb = cb; },
     onHover(cb) { hoverCb = cb; },
     onDblPick(cb) { dblCb = cb; },

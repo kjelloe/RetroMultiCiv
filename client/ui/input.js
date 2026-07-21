@@ -590,6 +590,7 @@ export function initInput(ctx) {
   // each turn the unit greedily steps closer, never initiating an attack.
   const gotoTargets = {}; // unitId -> { x, y }
   let gotoArming = false;
+  let lastHoverTile = null; // XIV §25: tile under the cursor (for right-long-press goto)
   // (the step vectors + candidate rule live in move-hints greedySteps — A68)
 
   function wrapDist(ax, ay, bx, by) {
@@ -651,10 +652,17 @@ export function initInput(ctx) {
   async function runAllGotos() {
     // hotseat: both players' orders live in this one map — only ever run
     // the CURRENT viewer's routes on their own turn
+    // XIV §23: pace between units (~200ms) so a watcher can follow each unit's
+    // move render fully before the next starts. Render-only (a setTimeout — no
+    // engine state); toggle 'showUnitMove' (default ON) turns it instant.
+    const pace = (!ctx.options || ctx.options.get('showUnitMove') !== false) ? 200 : 0;
+    let first = true;
     for (const unitId of Object.keys(gotoTargets).sort()) {
       const u = session.state.units[unitId];
       if (!u) { delete gotoTargets[unitId]; continue; }
       if (u.owner !== ctx.HUMAN || session.state.activePlayer !== ctx.HUMAN) continue;
+      if (!first && pace > 0) await new Promise(r => setTimeout(r, pace));
+      first = false;
       await runGoto(unitId);
     }
   }
@@ -916,6 +924,7 @@ export function initInput(ctx) {
   window.addEventListener('pointerdown', clearYieldCard);
 
   renderer.onHover(pick => {
+    lastHoverTile = pick ? { x: pick.tile.x, y: pick.tile.y } : null; // XIV §25
     maybeYieldCard(pick); // XIV §24 (all viewers, spectators included)
     if (ctx.SPECTATOR) {
       spectatorTip(pick);
@@ -1021,6 +1030,33 @@ export function initInput(ctx) {
     hud.note(describeTile(pick.tile.x, pick.tile.y));
     renderer.setSelection({ tile: pick.tile });
   });
+
+  // XIV §25: suppress the browser context menu on the map, and treat a RIGHT-
+  // button LONG-press (>300ms) as GoTo for the selected unit to the hovered
+  // tile (touch long-press semantics). A plain right-click does nothing.
+  const mapCanvas = renderer.domElement;
+  if (mapCanvas) {
+    mapCanvas.addEventListener('contextmenu', e => e.preventDefault());
+    let rightHold = null;
+    const clearRightHold = () => { if (rightHold) { clearTimeout(rightHold); rightHold = null; } };
+    mapCanvas.addEventListener('pointerdown', e => {
+      if (e.button !== 2) return; // right button only
+      clearRightHold();
+      rightHold = setTimeout(() => {
+        rightHold = null;
+        const st = session.state;
+        if (sel.unitId && st.units[sel.unitId] && lastHoverTile
+            && st.units[sel.unitId].owner === ctx.HUMAN && st.activePlayer === ctx.HUMAN) {
+          gotoTargets[sel.unitId] = { x: lastHoverTile.x, y: lastHoverTile.y };
+          runGoto(sel.unitId);
+          refreshActionBar();
+        }
+      }, 300);
+    });
+    mapCanvas.addEventListener('pointerup', clearRightHold);
+    mapCanvas.addEventListener('pointercancel', clearRightHold);
+    mapCanvas.addEventListener('pointerleave', clearRightHold);
+  }
 
   // --- keyboard ----------------------------------------------------------------
   const PRODUCTION_KEYS = { 1: 'militia', 2: 'phalanx', 3: 'settlers' };

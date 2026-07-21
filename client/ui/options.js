@@ -5,6 +5,7 @@ const KEY = 'retromulticiv-options';
 const DEFAULTS = {
   autoEndTurn: false,     // end the turn as soon as every unit has moved
   autoNextUnit: true,     // jump to the next idle unit when one is spent
+  showUnitMove: true,     // XIV §23: pace multi-unit GoTo moves (~200ms/unit) so they're followable
   hideFuture: false,      // hide not-yet-buildable items in the city catalog
   hideNoMovesHint: false, // mute the center "press E" hint
   clock: 'off',           // off | elapsed | time
@@ -59,6 +60,7 @@ export function initOptions(ctx) {
     </div>
     <label><input type="checkbox" data-opt="autoEndTurn"> Auto end turn when every unit has moved</label>
     <label><input type="checkbox" data-opt="autoNextUnit"> Auto-select the next unit when one is spent</label>
+    <label><input type="checkbox" data-opt="showUnitMove"> Show unit movement (pace GoTo moves so you can follow them)</label>
     <label><input type="checkbox" data-opt="hideFuture"> Hide future units/buildings in the city catalog</label>
     <label><input type="checkbox" data-opt="hideNoMovesHint"> Hide the "press E to end the turn" hint</label>
     <label><input type="checkbox" data-opt="muteTurnBanner"> Mute the "your turn" banner and chime (LAN games)</label>
