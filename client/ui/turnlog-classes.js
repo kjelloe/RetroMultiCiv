@@ -58,6 +58,12 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
     case 'FIRST_CONTACT': // D3: engine first-contact event (D2's audience trigger)
       return 'world';
+    case 'pollutionSpread': // A91: a tile fouled near a city — ambient, not logged (too frequent)
+      return null;
+    case 'cityMeltdown': // A91: a nuclear meltdown fouled a square — the owner hears it
+      return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
+    case 'terrainWarmed': // A91b: global warming degraded a tile — world news
+      return 'world';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';
     case 'regentTurn': // synthetic client event (session regency, B11)

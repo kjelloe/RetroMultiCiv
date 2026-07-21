@@ -69,6 +69,12 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'build' : null;
     case 'debugCommand': // A92: silent — a debug action needs no cue
       return null;
+    case 'pollutionSpread': // A91: ambient fouling — silent (too frequent for a cue)
+      return null;
+    case 'cityMeltdown': // A91: own-city meltdown — reuse the disorder alarm
+      return cityOwner(e.cityId) === viewer ? 'disorder' : null;
+    case 'terrainWarmed': // A91b: global warming — silent (a turnlog world line carries it)
+      return null;
     case 'hutEntered': // N13: own-seat village discovery cue (reuse 'found')
       return e.playerId === viewer ? 'found' : null;
     case 'ransomPaid': // N13: own-seat — a combat-win-flavoured payout

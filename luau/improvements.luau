@@ -69,7 +69,7 @@ local function startWork(state: any, cmd: any, ruleset: any): any
 	end
 	local work = cmd.work
 	if work ~= "road" and work ~= "irrigate" and work ~= "mine"
-		and work ~= "fortress" and work ~= "railroad" then
+		and work ~= "fortress" and work ~= "railroad" and work ~= "clean" then
 		return { ok = false, reason = "badWork" }
 	end
 
@@ -78,6 +78,10 @@ local function startWork(state: any, cmd: any, ruleset: any): any
 	local techs = state.players[cmd.playerId].techs
 	if terrain.domain ~= "land" then
 		return { ok = false, reason = "badTerrain" }
+	end
+	-- A91 clean: the settler scrubs pollution off its tile (Civ 1) -- survives, repeatable.
+	if work == "clean" and tile.polluted ~= true then
+		return { ok = false, reason = "notPolluted" }
 	end
 	if tile[workFlag(work)] == true then
 		return { ok = false, reason = "alreadyImproved" }
@@ -112,7 +116,7 @@ local function startWork(state: any, cmd: any, ruleset: any): any
 		if tile.road ~= true then
 			return { ok = false, reason = "badTerrain" } -- rails need a road first
 		end
-	elseif work ~= "road" then
+	elseif work ~= "road" and work ~= "clean" then
 		local transform = terrain.transforms ~= nil and terrain.transforms[work] ~= nil
 		if terrain[work] == nil and not transform then
 			return { ok = false, reason = "badTerrain" }
@@ -186,23 +190,28 @@ local function processWork(state: any, ruleset: any, events: any)
 				local work = unit.working
 				local tile = state.map.tiles[unit.y * state.map.width + unit.x + 1]
 				local terrain = ruleset.terrain.terrains[tile.t]
-				local transform = (work == "irrigate" or work == "mine")
-					and terrain[work] == nil
-					and terrain.transforms ~= nil and terrain.transforms[work] ~= nil
 				local event: any = { type = "improvementBuilt", unitId = unit.id, owner = unit.owner, work = work, x = unit.x, y = unit.y }
-				if transform then
-					tile.t = terrain.transforms[work] -- clear/drain/plant: the terrain changes
-					tile.irrigation = nil
-					tile.mine = nil
-					event.transformedTo = tile.t
+				if work == "clean" then
+					-- A91 clean: pollution scrubbed off; the settler survives (order clears, unit stays).
+					tile.polluted = nil
 				else
-					tile[workFlag(work)] = true
-					-- Civ 1: irrigation and mine replace each other on a tile
-					if work == "irrigate" then
-						tile.mine = nil
-					end
-					if work == "mine" then
+					local transform = (work == "irrigate" or work == "mine")
+						and terrain[work] == nil
+						and terrain.transforms ~= nil and terrain.transforms[work] ~= nil
+					if transform then
+						tile.t = terrain.transforms[work] -- clear/drain/plant: the terrain changes
 						tile.irrigation = nil
+						tile.mine = nil
+						event.transformedTo = tile.t
+					else
+						tile[workFlag(work)] = true
+						-- Civ 1: irrigation and mine replace each other on a tile
+						if work == "irrigate" then
+							tile.mine = nil
+						end
+						if work == "mine" then
+							tile.irrigation = nil
+						end
 					end
 				end
 				unit.working = nil

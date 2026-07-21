@@ -16,6 +16,7 @@ local tech = require("./tech") -- batch 3 (P5-5)
 local happiness = require("./happiness") -- batch 3 (P5-5, pin dependency)
 local government = require("./government") -- batch 4 (P5-6, completed)
 local barbarians = require("./barbarians") -- batch 5 (P5-7)
+local pollution = require("./pollution") -- A91
 local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
 local spaceship = require("./spaceship") -- A76: space race
@@ -98,6 +99,7 @@ hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
 hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
+hooks.processPollution = pollution.process -- A91: smokestack pollution + meltdown + warming
 hooks.processAir = air.processAir -- A72: fuel/crash for airborne units
 hooks.processSpace = spaceship.processSpace -- A76: first launched ship to arrive wins
 hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
@@ -175,6 +177,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processRevolutions(state, ruleset, events)
 		hooks.updateDisorder(state, ruleset, events)
 		hooks.processCities(state, ruleset, events)
+		hooks.processPollution(state, ruleset, events) -- A91: reads gross shields (after cities)
 		hooks.processResearch(state, ruleset, events)
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.processAir(state, ruleset, events)

@@ -237,7 +237,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xdaccd9f6\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x947af78f\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -275,8 +275,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '50617072', pangaea: 'a46095a5',
-      archipelago: 'd9d09e50', islands: 'ff0288dd'
+      continents: 'd0d0bad4', pangaea: 'e25997fb',
+      archipelago: '861f34d6', islands: 'e3bebd33'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -316,8 +316,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // gate) -> 0x1192dca7 (Calendar-545 yearSteps) -> 0xdff854f9 (xiv-ai §13 economy
 // knobs) -> 0xbd75915f (xiv-ai §14 treasury/F1 knobs) -> 0x017162d4 (xiv-ai XII.5b
 // space-as-project knobs) -> 0x3765cd25 (xiv-ai §12 settlerPathRadius knob) ->
-// 0x7f492828 (§40 settlers popCost) -> 0xe3237208 (air-truth units.json flags). Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xc2e7c52f turn 25 grant 22';
+// 0x7f492828 (§40 settlers popCost) -> 0xe3237208 (air-truth units.json flags) ->
+// 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean).
+// Re-pin here whenever a ruleset window moves it.
+const FF_PARITY_PIN = 'ff-parity 0x5798799d turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

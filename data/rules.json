@@ -27,7 +27,8 @@
     "irrigate": 5,
     "mine": 10,
     "fortress": 6,
-    "railroad": 6
+    "railroad": 6,
+    "clean": 4
   },
   "fortressTech": "construction",
   "railroadTech": "railroad",
@@ -117,6 +118,18 @@
     "leaderRansom": 100,
     "leaderChance": 4,
     "seaRaidChance": 8
+  },
+  "pollution": {
+    "tolerance": 20,
+    "industrialDivisorPower": 2,
+    "industrialDivisorRecycling": 3,
+    "popModifierPctByTech": { "industrialization": 25, "automobile": 50, "mass-production": 75, "plastics": 100 },
+    "smokestackPctPerPoint": 1,
+    "meltdownChance": 20,
+    "warmingStages": 4,
+    "warmingStageTurns": 5,
+    "warmingThreshold": 10,
+    "warmingTransforms": { "plains": "desert", "ocean": "swamp" }
   },
   "diplomacy": {
     "warIntentThreshold": 60,

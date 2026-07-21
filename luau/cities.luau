@@ -743,6 +743,28 @@ local function disbandCity(state: any, cityId: string, events: any)
 	table.insert(events, { type = "cityDisbanded", cityId = cityId })
 end
 
+-- A91: a city's GROSS shield output this turn -- base worked-tile shields, zeroed by
+-- civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
+-- PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.luau
+-- reads the SAME production number processCities does (no drift). Pure, both engines.
+local function cityShieldOutput(state: any, city: any, ruleset: any): number
+	local shields = cityYields(state, city, ruleset).shields
+	if city.disorder == true then
+		shields = 0
+	end
+	local shieldPct = effectPct(city, ruleset, "shieldBonus")
+	if shieldPct > 0 then
+		for _, b in ipairs(city.buildings or {}) do
+			if ruleset.buildings[b].effect.boostsFactory == true then
+				shieldPct *= 2
+				break
+			end
+		end
+		shields += idiv(shields * shieldPct, 100)
+	end
+	return shields
+end
+
 -- Runs once per game turn (when the last player ends): food box + production.
 local function processCities(state: any, ruleset: any, events: any)
 	local order = state.cityOrder
@@ -755,21 +777,9 @@ local function processCities(state: any, ruleset: any, events: any)
 			continue
 		end
 		local yields = cityYields(state, city, ruleset)
-		if city.disorder == true then
-			yields.shields = 0 -- civil disorder halts production
-		end
-
-		-- Factory chain: +50% shields, doubled by any power source
-		local shieldPct = effectPct(city, ruleset, "shieldBonus")
-		if shieldPct > 0 then
-			for _, b in ipairs(city.buildings or {}) do
-				if ruleset.buildings[b].effect.boostsFactory == true then
-					shieldPct *= 2
-					break
-				end
-			end
-			yields.shields += idiv(yields.shields * shieldPct, 100)
-		end
+		-- A91: gross shields (disorder-zero + Factory chain) via the shared helper, so
+		-- pollution.luau and production read the identical number.
+		yields.shields = cityShieldOutput(state, city, ruleset)
 
 		-- unit upkeep in shields (government-dependent)
 		local gov = government.governmentOf(state, city.owner, ruleset)
@@ -928,6 +938,7 @@ return {
 	sellBuildingFrom = sellBuildingFrom,
 	processCities = processCities,
 	cityYields = cityYields,
+	cityShieldOutput = cityShieldOutput,
 	workedTiles = workedTiles,
 	candidateTiles = candidateTiles,
 	tileYields = tileYields,

@@ -48,7 +48,7 @@ function startWork(state, cmd, ruleset) {
   if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
   const work = cmd.work;
   if (work !== 'road' && work !== 'irrigate' && work !== 'mine'
-      && work !== 'fortress' && work !== 'railroad') {
+      && work !== 'fortress' && work !== 'railroad' && work !== 'clean') {
     return { ok: false, reason: 'badWork' };
   }
 
@@ -56,6 +56,8 @@ function startWork(state, cmd, ruleset) {
   const terrain = ruleset.terrain.terrains[tile.t];
   const techs = state.players[cmd.playerId].techs;
   if (terrain.domain !== 'land') return { ok: false, reason: 'badTerrain' };
+  // A91 clean: the settler scrubs pollution off its tile (Civ 1) — survives, repeatable.
+  if (work === 'clean' && tile.polluted !== true) return { ok: false, reason: 'notPolluted' };
   if (tile[workFlag(work)] === true) return { ok: false, reason: 'alreadyImproved' };
 
   // B19: Civ 1 river rules — roads over rivers need Bridge Building (River +
@@ -78,7 +80,7 @@ function startWork(state, cmd, ruleset) {
   } else if (work === 'railroad') {
     if (techs.indexOf(ruleset.rules.railroadTech) === -1) return { ok: false, reason: 'techRequired' };
     if (tile.road !== true) return { ok: false, reason: 'badTerrain' }; // rails need a road first
-  } else if (work !== 'road') {
+  } else if (work !== 'road' && work !== 'clean') {
     const transform = terrain.transforms !== undefined && terrain.transforms[work] !== undefined;
     if (terrain[work] === undefined && !transform) return { ok: false, reason: 'badTerrain' };
     if (work === 'irrigate' && !transform && !hasWaterSource(state, unit.x, unit.y)) {
@@ -126,6 +128,14 @@ function processWork(state, ruleset, events) {
     const work = unit.working;
     const tile = state.map.tiles[unit.y * state.map.width + unit.x];
     const terrain = ruleset.terrain.terrains[tile.t];
+    // A91 clean: pollution scrubbed off; the settler survives (order clears, unit stays).
+    if (work === 'clean') {
+      delete tile.polluted;
+      delete unit.working;
+      delete unit.workLeft;
+      events.push({ type: 'improvementBuilt', unitId: unit.id, owner: unit.owner, work, x: unit.x, y: unit.y });
+      continue;
+    }
     const transform = (work === 'irrigate' || work === 'mine')
       && terrain[work] === undefined
       && terrain.transforms !== undefined && terrain.transforms[work] !== undefined;

@@ -539,6 +539,26 @@ function disbandCity(state, cityId, events) {
   events.push({ type: 'cityDisbanded', cityId });
 }
 
+// A91: a city's GROSS shield output this turn — base worked-tile shields, zeroed by
+// civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
+// PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.js
+// reads the SAME production number processCities does (no drift). Pure, both engines.
+function cityShieldOutput(state, city, ruleset) {
+  let shields = cityYields(state, city, ruleset).shields;
+  if (city.disorder === true) shields = 0;
+  let shieldPct = effectPct(city, ruleset, 'shieldBonus');
+  if (shieldPct > 0) {
+    for (const b of city.buildings === undefined ? [] : city.buildings) {
+      if (ruleset.buildings[b].effect.boostsFactory === true) {
+        shieldPct = shieldPct * 2;
+        break;
+      }
+    }
+    shields = shields + idiv(shields * shieldPct, 100);
+  }
+  return shields;
+}
+
 // Runs once per game turn (when the last player ends): food box + production.
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
@@ -547,19 +567,9 @@ function processCities(state, ruleset, events) {
     const city = state.cities[cityId];
     if (!city) continue;
     const yields = cityYields(state, city, ruleset);
-    if (city.disorder === true) yields.shields = 0; // civil disorder halts production
-
-    // Factory chain: +50% shields, doubled by any power source (Civ 1)
-    let shieldPct = effectPct(city, ruleset, 'shieldBonus');
-    if (shieldPct > 0) {
-      for (const b of city.buildings === undefined ? [] : city.buildings) {
-        if (ruleset.buildings[b].effect.boostsFactory === true) {
-          shieldPct = shieldPct * 2;
-          break;
-        }
-      }
-      yields.shields = yields.shields + idiv(yields.shields * shieldPct, 100);
-    }
+    // A91: gross shields (disorder-zero + Factory chain) via the shared helper, so
+    // pollution.js and production read the identical number.
+    yields.shields = cityShieldOutput(state, city, ruleset);
 
     // unit upkeep in shields (government-dependent); units without a home
     // city (game start, old saves) are free
@@ -720,7 +730,7 @@ function citySpacingOk(map, x, y, cx, cy, rules) {
 export {
   foundCity, foundCityLegality, createCityAt, setProduction, setWorkers, buyProduction, helpWonder,
   sellBuilding, sellBuildingFrom, processCities,
-  cityYields, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
+  cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
   unitObsolete
 };
