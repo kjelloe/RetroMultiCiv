@@ -390,3 +390,39 @@ existing automate behavior).
 ## Batch-3 routing
 §41+§42 → helper queue. §40 → bugfixer queue (engine, after the xiv-ai
 windows). §39 → reviewer fact-check, then conditional.
+
+---
+
+# Batch 4 (user playtest, 2026-07-21) — §43–§44
+(§39–§42 in the resend were batch-3 duplicates; §39's fact-check verdict is
+with the user: Civ1 has NO conquest disorder — skip vs labeled-Civ2-mix.)
+
+## §43 City-view build line + visible queue + "+" queueing [helper]
+Move the "building …" line UP directly below the Units/Buildings/Wonders
+selection panel so current production is always visible; render the build
+QUEUE (up to 5 items) below it. Add a "+" affordance at the right of every
+catalog row — click = enqueue as item N+1, identical to the existing
+shift-click (which stays). Touch-friendly (the "+" is the mobile path to
+queueing — shift-click has no touch equivalent). build-queue.js exists;
+this is layout + affordance, golden-neutral.
+
+## §44 Palace/capital at founding [helper — UI; engine already authentic]
+FINDING: mechanics are ALREADY Civ1-equivalent — engine/government.js
+capitalOf() = city-with-Palace ELSE the player's OLDEST city, and
+corruption-by-distance flows from it. So the first city IS the capital from
+founding with no build needed, and building a Palace elsewhere MOVES the
+capital — exactly the user's intent. The gap is presentation:
+1. Capital badge (★/Palace icon) on the capital in city view, city overview
+   (§34), and the map label.
+2. HIDE Palace from the CURRENT capital's build catalog (building it there
+   is a 200-shield no-op) — show it elsewhere with tooltip "moves your
+   capital here".
+3. Pedia: Palace article states the rule (first city = capital; Palace
+   relocates it).
+ALTERNATIVE (not chosen, surfaced): literally grant a free Palace building
+in city #1 (engine, golden-affecting) — adds nothing mechanical over the
+fallback; only take it if the user wants the building VISIBLE in the
+capital's building list, in which case queue it to the engine lane.
+
+## Batch-4 routing
+Both → helper queue, golden-neutral.
