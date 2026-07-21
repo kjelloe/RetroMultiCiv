@@ -63,7 +63,8 @@ test('healthy world clears all measurable floors; resourceCov PENDING', () => {
 });
 
 test('breaches: low pop, low cities, zero buys, runaway treasury', () => {
-  const bad = { cities: 5, pop: 40, imprPct: 60, buys: 0 };
+  // below the re-baselined floors (M2>=6 / M3>=28 / M4>=50; #595 rider on air-truth)
+  const bad = { cities: 5, pop: 20, imprPct: 40, buys: 0 };
   const rows = [
     cp(1, 301, [civ('a', Object.assign({ gold: 100 }, bad)), civ('b', Object.assign({ gold: 100 }, bad))]),
     // gold 100 -> 10100 over 100 turns => goldRate 100 (>= 50 breach)
