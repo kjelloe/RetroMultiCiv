@@ -43,6 +43,25 @@ never edit through it. Only the holder (or the architect with --force,
 which logs a broadcast) may unlock. Locks are advisory-but-mandatory
 convention; stale ones (see age) get arbitrated, not ignored.
 
+MAILBOX FLAG (the 10-minute poll, 2026-07-21): one cheap line that answers
+"is there anything for me?" — unread mail, queued work, or a manually
+raised note — like the raised flag on a mailbox:
+
+  python3 tools/agent-mail.py flag --as helper          # check; poll this at least every 10 min
+  python3 tools/agent-mail.py flag raise --for helper --as architect --why "re-read spec X"
+  python3 tools/agent-mail.py flag lower --as helper    # after acting on the note
+
+Discipline: EVERY lane checks its flag at least every 10 minutes — between
+test runs, during long ops, and ESPECIALLY while in a waiting pattern
+(waiting is not exemption; it is the main case). FLAG UP names the next
+command to run (inbox / queue take / flag lower). Unread mail and queue
+depth clear themselves when consumed; only the manual note needs an
+explicit `flag lower`. `flag raise` is for "new work/update" signals that
+have no new mail behind them (a spec changed, a ruling landed in a file, a
+parked lane should resume); a worker that needs the coordinator NOW may
+raise the coordinator's flag (`flag raise --for coordinator --as <role>
+--why "see status board"`) — the one outbound signal workers keep.
+
 LAN HUB (cross-machine mail + locks, 2026-07-14): the dev PC runs
 `agent-mail.py serve [--port 8970] [--host 0.0.0.0]` — a tiny HTTP hub
 over the same .agent-mail/ store. Any other clone on the LAN writes the
@@ -268,6 +287,20 @@ def all_queues():
     return out
 
 
+# --- mailbox flag (raised = "come check": mail, queue, or a manual note) ---
+def flag_file(role):
+    # canonical so an alias (coordinator) shares its target's flag
+    return os.path.join(BOX, f'flag-{canon(role)}')
+
+
+def get_flag(role):
+    try:
+        with open(flag_file(role), encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
 def fmt(m):
     ts = time.strftime('%H:%M', time.localtime(m['ts']))
     tag = f" [{m['tag']}]" if m.get('tag') else ''
@@ -453,6 +486,13 @@ def dispatch(argv):
                    help="item body for `add` (short); use --body-file for substantive; '-' for stdin")
     q.add_argument('--body-file', dest='body_file', default=None)
 
+    fl = sub.add_parser('flag')
+    fl.add_argument('action', nargs='?', default='check', choices=['check', 'raise', 'lower'],
+                    help="check --as <role> (the 10-min poll); raise --for <role> [--why]; lower --as <role>")
+    fl.add_argument('--as', '--from', '--role', dest='role', default=None)
+    fl.add_argument('--for', dest='forlane', default=None)
+    fl.add_argument('--why', '--reason', dest='why', default='')
+
     lk = sub.add_parser('lock')
     lk.add_argument('path', help='file to lock (repo-relative)')
     lk.add_argument('--as', '--from', '--role', dest='role', required=True)
@@ -511,6 +551,10 @@ def dispatch(argv):
         q = read_queue(a.role)
         if q:
             print(f"note: {len(q)} queued item(s) for {canon(a.role)} — `queue take --as {canon(a.role)}` pops the next")
+        note = get_flag(a.role)
+        if note:
+            print(f"note: 🚩 flag note from {note.get('by', '?')}: {note.get('why') or '(no note)'} — "
+                  f"`flag lower --as {canon(a.role)}` once acted on")
 
     elif a.cmd == 'log':
         for m in read_all()[-a.n:]:
@@ -565,7 +609,8 @@ def dispatch(argv):
                     stale = mins > STATUS_STALE_MIN and 'working' in s.lower() and 'long' not in s.lower()
                     qn = len(read_queue(role))
                     qtag = f' · queue {qn}' if qn else ''
-                    print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}{qtag}")
+                    ftag = ' · 🚩flag' if get_flag(role) else ''
+                    print(f"{role}: {s}  ({age_str(stt['ts'])} ago){' ⚠STALE' if stale else ''}{qtag}{ftag}")
 
     elif a.cmd == 'queue':
         if a.action == 'add':
@@ -623,6 +668,47 @@ def dispatch(argv):
             write_queue(a.forlane, items)
             print(f'dropped #{a.qid} from {canon(a.forlane)} ({len(items)} left)' if len(items) < n
                   else f'#{a.qid} not in {canon(a.forlane)}')
+
+    elif a.cmd == 'flag':
+        if a.action == 'check':
+            role = a.role or a.forlane
+            if not role:
+                sys.exit('flag: --as <role> required to check your flag')
+            unread = len(unread_for(role))
+            qn = len(read_queue(role))
+            note = get_flag(role)
+            if not (unread or qn or note):
+                print(f'flag down ({canon(role)}: no unread, queue empty)')
+            else:
+                parts = []
+                if unread:
+                    parts.append(f'{unread} unread → `inbox --as {canon(role)} --headers`')
+                if qn:
+                    parts.append(f'queue {qn} → `queue take --as {canon(role)}`')
+                if note:
+                    parts.append(f"note from {note.get('by', '?')} {age_str(note['ts'])} ago: "
+                                 f"{note.get('why') or '(no note)'} → `flag lower --as {canon(role)}` once acted on")
+                print(f"FLAG UP ({canon(role)}): " + ' · '.join(parts))
+        elif a.action == 'raise':
+            if not a.forlane:
+                sys.exit('flag raise: --for <role> required (whose flag goes up)')
+            tmp = flag_file(a.forlane) + '.tmp'
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump({'why': a.why, 'by': canon(a.role) if a.role else 'architect',
+                           'ts': int(time.time())}, f)
+            os.replace(tmp, flag_file(a.forlane))
+            print(f'flag raised for {canon(a.forlane)}')
+        elif a.action == 'lower':
+            role = a.role or a.forlane
+            if not role:
+                sys.exit('flag lower: --as <role> required')
+            note = get_flag(role)
+            if not note:
+                print(f'({canon(role)}: no manual flag was raised)')
+            else:
+                os.remove(flag_file(role))
+                print(f"flag lowered for {canon(role)} (was from {note.get('by', '?')}: "
+                      f"{note.get('why') or 'no note'})")
 
     elif a.cmd == 'lock':
         locks = read_locks()

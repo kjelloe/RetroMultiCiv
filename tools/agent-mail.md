@@ -101,6 +101,43 @@ serialization we need). The coordinator's job stays CURATION: order each queue c
 and never queue the SAME golden files to two lanes. Canonical (`--for coordinator` →
 architect's queue). Files: `.agent-mail/queue-<lane>` on the hub.
 
+## Mailbox flag — the 10-minute poll (STANDARD — 2026-07-21)
+
+Like the raised flag on an American mailbox: one cheap command that answers
+"is there anything for me?" in a single line, combining THREE signals —
+unread mail, queued work-stack items, and a manually raised note.
+
+```bash
+python3 tools/agent-mail.py flag --as helper     # check — poll at least every 10 min
+# → flag down (helper: no unread, queue empty)
+# → FLAG UP (helper): 2 unread → `inbox …` · queue 3 → `queue take …` · note from architect 4m ago: …
+python3 tools/agent-mail.py flag raise --for helper --as architect --why "spec X changed, re-read"
+python3 tools/agent-mail.py flag lower --as helper   # after acting on the note
+```
+
+**Discipline: EVERY lane checks its flag at least every 10 minutes — in
+every state, including `waiting`.** A waiting pattern is not an exemption;
+it is the main case the flag exists for (the stale-idle incidents were all
+"lane sat waiting while work existed"). Between test runs, during long
+ops, on wake: `flag --as <you>` first. FLAG UP names the exact next
+command to run.
+
+- Mail and queue signals clear themselves when consumed (`inbox` moves the
+  cursor; `queue take` pops). Only the manual note needs an explicit
+  `flag lower --as <you>` — lower it when ACTED ON, not when merely seen.
+- `flag raise` covers "new work/update" signals with no new mail behind
+  them: a spec file changed, a ruling landed, a parked lane should resume.
+  Keep `--why` a one-line pointer (no backticks/`$` — the send guard
+  checks it); anything substantive is a mail, with the flag as the nudge.
+- Workers keep ONE outbound signal: `flag raise --for coordinator --as
+  <role> --why "see status board"` when they need attention NOW (the send
+  guard restricts mail-send; the flag is the doorbell, the status board
+  carries the detail).
+- The board (`status`) marks lanes with a raised note `· 🚩flag`;
+  `inbox`/`peek` also print a pending note so it cannot be missed.
+- This complements (does not replace) the ≤5-min `peek --headers` rule
+  while ACTIVE on a task; the flag is the floor that holds even when idle.
+
 ## The first line IS the subject (STANDARD — 2026-07-20)
 
 There is no `--subject` flag and there should not be one: `--headers` renders
@@ -160,6 +197,9 @@ python3 tools/agent-mail.py status                 # print the presence board (e
 python3 tools/agent-mail.py queue add --for helper --tag xii2 --body-file item.md  # stock a lane's work stack
 python3 tools/agent-mail.py queue take --as helper  # idle lane pops its next item (FIFO)
 python3 tools/agent-mail.py queue list              # every lane's backlog depth + items
+python3 tools/agent-mail.py flag --as helper        # the 10-min poll: unread + queue + raised note, one line
+python3 tools/agent-mail.py flag raise --for helper --as architect --why "spec X changed"
+python3 tools/agent-mail.py flag lower --as helper  # after acting on the note
 
 # file locks (the claim protocol, made mechanical)
 python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"

@@ -375,5 +375,9 @@ routing — `queue add --for <lane>` (coordinator stocks), `queue take --as
 <lane>` (an idle lane pops its next FIFO item itself + posts `working`),
 `queue list` (backlog depths); a lane's single stream serializes its stack, so
 the coordinator just curates order + never queues the same golden files to two
-lanes.** `agent-chat.md` is
+lanes. The MAILBOX FLAG is the poll floor: `flag --as <role>` (one line:
+unread + queue + raised note) at least EVERY 10 MINUTES in every state —
+waiting included; `flag raise --for <role> --why "…"` signals
+new-work/update with no mail behind it (spec changed, resume), lowered by
+the role with `flag lower` once acted on.** `agent-chat.md` is
 the long-form archive. The store is gitignored; the md is tracked.

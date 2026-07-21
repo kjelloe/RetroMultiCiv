@@ -25,10 +25,11 @@
 WORKERS='hardening|sim-runner|helper|bugfixer|roblox-helper|reviewer'
 cmd=$(jq -r '.tool_input.command // ""')
 head=$(printf '%s' "$cmd" | sed -E 's/[[:space:]](--body-file|--body|--text|--message|-m)([[:space:]=]).*//')
-is_send=false; is_queue_add=false
+is_send=false; is_queue_add=false; is_flag_raise=false
 printf '%s' "$head" | grep -q 'agent-mail.py send' && is_send=true
 printf '%s' "$head" | grep -qE 'agent-mail.py[[:space:]]+queue[[:space:]]+add' && is_queue_add=true
-{ $is_send || $is_queue_add; } || exit 0
+printf '%s' "$head" | grep -qE 'agent-mail.py[[:space:]]+flag[[:space:]]+raise' && is_flag_raise=true
+{ $is_send || $is_queue_add || $is_flag_raise; } || exit 0
 block() {
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"BLOCKED: %s"}}' "$1"
   exit 0
@@ -51,10 +52,10 @@ if $is_send; then
   printf '%s' "$cmd" | grep -qE '(echo|printf)[^|]*\|[^|]*agent-mail\.py[[:space:]]+send' && \
     block "echo/printf piped into agent-mail send — the body rides the command line anyway. Write the body to a file with the Write tool, then send --body-file PATH."
 fi
-# (e)+(f) inline-body content checks — send AND queue add
-bodyflag=$(printf '%s' "$cmd" | grep -oE -- '[[:space:]](--body|--text|--message|-m)[[:space:]=]' | head -1)
+# (e)+(f) inline-body content checks — send, queue add, AND flag raise --why
+bodyflag=$(printf '%s' "$cmd" | grep -oE -- '[[:space:]](--body|--text|--message|-m|--why|--reason)[[:space:]=]' | head -1)
 if [ -n "$bodyflag" ]; then
-  body=$(printf '%s' "$cmd" | sed -E "s/.*[[:space:]](--body|--text|--message|-m)[[:space:]=]+//")
+  body=$(printf '%s' "$cmd" | sed -E "s/.*[[:space:]](--body|--text|--message|-m|--why|--reason)[[:space:]=]+//")
   printf '%s' "$body" | grep -q '[`$]' && \
     block "backtick or \$ inside an inline body — bash substitutes them (backticks EXECUTE, \$vars mutate the text). Resolve the content and use --body-file, or drop the special characters."
   case "$body" in *$'\n'*) \
