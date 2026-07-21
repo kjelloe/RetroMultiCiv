@@ -93,3 +93,18 @@ one behavioral slice; A49 playwright scope spec + A58 pedia acceptance spec
 (architect drafts); D4–D6 build (engine lane, specs ready); the client
 polish tail (helper queue); Roblox certification + Studded round-2 (user
 review gates); ally advisor copy (after components).
+
+## 6. Versioning-audit findings (2026-07-21 — breaking-class gaps caught pre-1.0)
+
+The x.y.z rule prompted a "what would we regret not breaking now" audit.
+Verified IN and fine: all six governments (incl. Democracy), terrain
+transforms, fortress+railroad building, barb-leader ransom, corruption/
+palace, senate prerequisites. Found MISSING and now planned:
+1. **Barbarian sea raids** (Civ1 pirate landings) — barbarians are
+   land-only today; island players never meet them. Fact-check #2073 →
+   engine slice (queued). Golden-affecting: MUST land before RC.
+2. **Nuclear-plant meltdown** (disorder + Nuclear Plant) — folds into the
+   A91 pollution window. Same before-RC constraint.
+3. **Envelope version stamp** (golden-neutral): saves/recordings carry the
+   game version so the 1.x/2.x boundary rejects mismatches with a friendly
+   message. Queued (helper).
