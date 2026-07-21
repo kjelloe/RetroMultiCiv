@@ -23,7 +23,7 @@ flowchart TD
     PROBE["✅ probe @545t: leaders 38–47/68,\n0/3 reach space-flight — NOT closed"]
     BULB{"🚪 follow-up (probe came up short):\nbulb tuning + AI space-path prioritisation"}
     X5B["📋 XII.5b — solar-last part order\n(+ launch pacing)"]
-    AIB["📋 xiv-ai-behavior batch\nsettler pathing · regency economics ·\ntreasury/rush-buy · unit-bloat"]
+    AIB["🔨 xiv-ai windows: §13 economics ✅ (0071) →\n§14 treasury (open) → §12 settler pathing"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["🧩 Diplomacy D4–D6\n(human LAN treaties · senate · reputation ·\nD6 carries the DIPLOMAT MISSIONS)"]
