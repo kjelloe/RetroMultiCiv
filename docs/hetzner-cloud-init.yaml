@@ -177,7 +177,7 @@ write_files:
         --public-addr <YOUR_DOMAIN>:443 \
         --announce http://127.0.0.1:8200 --public-name "<SERVER_NAME>" \
         --max-games 8 --max-saves-mb 500 \
-        --max-turns 500 --max-civs 8 --max-size large \
+        --max-turns 700 --max-civs 8 --max-size large \
         --bug-reports /opt/retromulticiv/bugreports \
         --mem-soft-pct 85 --mem-check-sec 15
       NoNewPrivileges=yes
