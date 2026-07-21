@@ -683,6 +683,66 @@ local function sellBuilding(state: any, cmd: any, ruleset: any): any
 	return { ok = true, events = events }
 end
 
+-- §40: trim manual worker/specialist assignments that now exceed a shrunken
+-- pop (starvation and the settler pop-cost both use it).
+local function trimToPop(city: any)
+	if city.workers ~= nil and #city.workers > city.pop then
+		local trimmed = setmetatable({}, statehash.ARRAY_MT)
+		for i = 1, city.pop do
+			trimmed[i] = city.workers[i]
+		end
+		city.workers = trimmed
+	end
+	while (if city.taxmen ~= nil then city.taxmen else 0)
+		+ (if city.scientists ~= nil then city.scientists else 0) > city.pop do
+		if city.scientists ~= nil and city.scientists > 0 then
+			city.scientists -= 1
+			if city.scientists == 0 then
+				city.scientists = nil
+			end
+		else
+			city.taxmen -= 1
+			if city.taxmen == 0 then
+				city.taxmen = nil
+			end
+		end
+	end
+end
+
+-- §40: a size-1 city that completes a settler CEASES TO EXIST. Units homed here
+-- go homeless (home field removed = the home==nil convention). A wonder here is
+-- destroyed PERMANENTLY (state.wonders entry dropped -> wonderActive false).
+-- Elimination is NOT special-cased: losing the last city routes through the
+-- normal checkGameEnd/hasAssets path on the turn wrap. Value-mutation under pairs
+-- is order-independent (all matching entries clear regardless of order).
+local function disbandCity(state: any, cityId: string, events: any)
+	for uid in pairs(state.units) do
+		if state.units[uid].home == cityId then
+			state.units[uid].home = nil
+		end
+	end
+	if state.wonders ~= nil then
+		for wid in pairs(state.wonders) do
+			if state.wonders[wid] == cityId then
+				state.wonders[wid] = nil
+			end
+		end
+	end
+	state.cities[cityId] = nil
+	if state.cityOrder ~= nil then
+		local kept = setmetatable({}, statehash.ARRAY_MT)
+		local k = 0
+		for _, id in ipairs(state.cityOrder) do
+			if id ~= cityId then
+				k += 1
+				kept[k] = id
+			end
+		end
+		state.cityOrder = kept
+	end
+	table.insert(events, { type = "cityDisbanded", cityId = cityId })
+end
+
 -- Runs once per game turn (when the last player ends): food box + production.
 local function processCities(state: any, ruleset: any, events: any)
 	local order = state.cityOrder
@@ -764,28 +824,7 @@ local function processCities(state: any, ruleset: any, events: any)
 			city.food = 0
 			if city.pop > 1 then
 				city.pop -= 1
-				if city.workers ~= nil and #city.workers > city.pop then
-					local trimmed = setmetatable({}, statehash.ARRAY_MT)
-					for i = 1, city.pop do
-						trimmed[i] = city.workers[i]
-					end
-					city.workers = trimmed
-				end
-				-- specialists can't outnumber the shrunken citizenry either
-				while (if city.taxmen ~= nil then city.taxmen else 0)
-					+ (if city.scientists ~= nil then city.scientists else 0) > city.pop do
-					if city.scientists ~= nil and city.scientists > 0 then
-						city.scientists -= 1
-						if city.scientists == 0 then
-							city.scientists = nil
-						end
-					else
-						city.taxmen -= 1
-						if city.taxmen == 0 then
-							city.taxmen = nil
-						end
-					end
-				end
+				trimToPop(city)
 				table.insert(events, { type = "cityStarved", cityId = cityId, pop = city.pop })
 			end
 		end
@@ -809,6 +848,17 @@ local function processCities(state: any, ruleset: any, events: any)
 				}
 				visibility.reveal(state, city.owner, city.x, city.y, 1)
 				table.insert(events, { type = "unitBuilt", cityId = cityId, unitId = unitId, unitType = prod.id })
+				-- §40: a unit with a pop cost (settlers) deducts pop on completion; a city
+				-- dropping below 1 is DISBANDED (it became the unit; unit goes homeless).
+				local popCost = if unitType.popCost == nil then 0 else unitType.popCost
+				if popCost > 0 then
+					city.pop -= popCost
+					if city.pop < 1 then
+						disbandCity(state, cityId, events)
+					else
+						trimToPop(city)
+					end
+				end
 			end
 		elseif prod.kind == "building" then
 			local def = ruleset.buildings[prod.id]

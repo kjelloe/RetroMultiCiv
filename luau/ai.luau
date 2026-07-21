@@ -1899,7 +1899,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 				end
 				if not wonderDriven and defenders >= wantDefenders then
-					if countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
+					-- §40: never queue a settler where completing it self-disbands the city
+					-- (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
+					local settlerPopCost = if ruleset.units["settlers"].popCost == nil then 0 else ruleset.units["settlers"].popCost
+					if city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else
 						-- B13g: a THREATENED city walls up first (masonry known, not

@@ -1663,7 +1663,11 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       }
     }
     if (!wonderDriven && defenders.length >= wantDefenders) {
-      if (countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
+      // §40: never queue a settler where completing it would self-disband the
+      // city (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
+      const settlerPopCost = ruleset.units['settlers'].popCost === undefined ? 0 : ruleset.units['settlers'].popCost;
+      if (city.pop > settlerPopCost
+          && countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
         // B13g: a THREATENED city walls up first (a known enemy within 8),

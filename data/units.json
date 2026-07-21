@@ -178,6 +178,7 @@
     "moves": 1,
     "cost": 40,
     "domain": "land",
+    "popCost": 1,
     "notes": ""
   },
   "battleship": {

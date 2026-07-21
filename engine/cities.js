@@ -497,6 +497,48 @@ function sellBuilding(state, cmd, ruleset) {
   return { ok: true, events };
 }
 
+// §40: trim manual worker/specialist assignments that now exceed a shrunken
+// pop (starvation and the settler pop-cost both use it).
+function trimToPop(city) {
+  if (city.workers !== undefined && city.workers.length > city.pop) {
+    city.workers = city.workers.slice(0, city.pop);
+  }
+  while ((city.taxmen !== undefined ? city.taxmen : 0)
+       + (city.scientists !== undefined ? city.scientists : 0) > city.pop) {
+    if (city.scientists !== undefined && city.scientists > 0) {
+      city.scientists = city.scientists - 1;
+      if (city.scientists === 0) delete city.scientists;
+    } else {
+      city.taxmen = city.taxmen - 1;
+      if (city.taxmen === 0) delete city.taxmen;
+    }
+  }
+}
+
+// §40: a size-1 city that completes a settler CEASES TO EXIST (it "became" the
+// settler). Units homed here go homeless (the home field is removed — the
+// engine's home===undefined convention; NO null in state). A wonder built here
+// is destroyed PERMANENTLY (state.wonders entry dropped, so wonderActive→false).
+// Elimination is NOT special-cased: the owner losing its last city routes
+// through the normal checkGameEnd/hasAssets path on the turn wrap.
+function disbandCity(state, cityId, events) {
+  for (const uid of Object.keys(state.units)) {
+    if (state.units[uid].home === cityId) delete state.units[uid].home;
+  }
+  if (state.wonders !== undefined) {
+    for (const wid of Object.keys(state.wonders)) {
+      if (state.wonders[wid] === cityId) delete state.wonders[wid];
+    }
+  }
+  delete state.cities[cityId];
+  if (state.cityOrder !== undefined) {
+    const next = [];
+    for (const id of state.cityOrder) if (id !== cityId) next.push(id);
+    state.cityOrder = next;
+  }
+  events.push({ type: 'cityDisbanded', cityId });
+}
+
 // Runs once per game turn (when the last player ends): food box + production.
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
@@ -568,20 +610,7 @@ function processCities(state, ruleset, events) {
       city.food = 0;
       if (city.pop > 1) {
         city.pop = city.pop - 1;
-        if (city.workers !== undefined && city.workers.length > city.pop) {
-          city.workers = city.workers.slice(0, city.pop);
-        }
-        // specialists can't outnumber the shrunken citizenry either
-        while ((city.taxmen !== undefined ? city.taxmen : 0)
-             + (city.scientists !== undefined ? city.scientists : 0) > city.pop) {
-          if (city.scientists !== undefined && city.scientists > 0) {
-            city.scientists = city.scientists - 1;
-            if (city.scientists === 0) delete city.scientists;
-          } else {
-            city.taxmen = city.taxmen - 1;
-            if (city.taxmen === 0) delete city.taxmen;
-          }
-        }
+        trimToPop(city);
         events.push({ type: 'cityStarved', cityId, pop: city.pop });
       }
     }
@@ -605,6 +634,18 @@ function processCities(state, ruleset, events) {
         };
         reveal(state, city.owner, city.x, city.y, 1);
         events.push({ type: 'unitBuilt', cityId, unitId, unitType: prod.id });
+        // §40: Civ 1 — a unit with a pop cost (settlers) deducts pop on
+        // completion; a city that drops below 1 is DISBANDED (it became the
+        // unit; the just-built unit goes homeless).
+        const popCost = unitType.popCost === undefined ? 0 : unitType.popCost;
+        if (popCost > 0) {
+          city.pop = city.pop - popCost;
+          if (city.pop < 1) {
+            disbandCity(state, cityId, events);
+          } else {
+            trimToPop(city);
+          }
+        }
       }
     } else if (prod.kind === 'building') {
       const def = ruleset.buildings[prod.id];

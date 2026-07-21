@@ -74,11 +74,12 @@ test('Space Age grants everything except Future Tech', () => {
 });
 
 test('a to-be-human civ dying aborts with its name — never a silent re-roll', () => {
-  // seed re-verified 2026-07-17 after B23b (phased scouting reshuffled early
-  // conquest: seed 23's p1 now survives, seed 42 conquers Civ1 early again —
-  // the abort path). The seed is a fixture, re-pinned whenever war/scout goldens move.
-  const r = fastForwardTo(RULESET, freshWorld(42), ageById('renaissance'), ['p1']);
-  assert.ok(r.aborted, 'seed 42 eliminates p1 early');
+  // seed re-pinned to 14 on 2026-07-21 after §40 (settler pop-cost + size-1
+  // disband reshuffled early expansion/conquest: seed 42's p1 now survives, seed
+  // 14 conquers Civ1 early — the abort path). The seed is a fixture, re-pinned
+  // whenever war/scout/expansion goldens move.
+  const r = fastForwardTo(RULESET, freshWorld(14), ageById('renaissance'), ['p1']);
+  assert.ok(r.aborted, 'seed 14 eliminates p1 early');
   assert.strictEqual(r.aborted.reason, 'civEliminated');
   assert.strictEqual(r.aborted.name, 'Civ1', 'the message can name the dead civ');
 });

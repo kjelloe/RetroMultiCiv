@@ -1,0 +1,244 @@
+{
+  "name": "§40: completing a settler costs 1 pop; a size-1 city disbands (Civ 1)",
+  "notes": "Two cities producing settlers, shields already at cost (40). On the processed turn each settler completes: the pop-3 city drops to pop 2; the pop-1 city hits pop 0 and is DISBANDED (its just-built settler goes homeless, home=null). Food is break-even (0 surplus) so pop changes ONLY via the settler pop-cost. Pre-§40 this fails (no pop cost, no disband).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3800,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 7,
+        "height": 7,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "One",
+          "owner": "p1",
+          "x": 1,
+          "y": 3,
+          "pop": 1,
+          "food": 0,
+          "shields": 40,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "settlers"
+          }
+        },
+        "c2": {
+          "id": "c2",
+          "name": "Two",
+          "owner": "p1",
+          "x": 5,
+          "y": 3,
+          "pop": 3,
+          "food": 0,
+          "shields": 40,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "settlers"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#00f",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "cities.c1": null,
+      "cities.c2.pop": 2,
+      "units.u50.home": null,
+      "units.u51.home": "c2"
+    },
+    "hash": "0x71d67ab2"
+  }
+}
