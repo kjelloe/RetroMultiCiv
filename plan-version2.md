@@ -80,3 +80,11 @@ triremes (the #1976 drift catch), partisans/guerrillas, and whatever later
 audits reject-as-drift. Each entry arrives here already fact-checked and
 labeled — the option becomes buildable almost for free once enough
 accumulate (the engine already supports rulesOverrides presets).
+
+## Cross-play bridge (seeded 2026-07-21, R6 ruling)
+
+1.0 ships per-platform populations; the R6 seat model deliberately keeps a
+hidden browser-compatible `seatCode` beside the Roblox UserId binding
+(specs/r6-roblox-multiplayer.md), so an optional post-1.0 bridge (Roblox
+clients on Node servers, or Roblox instances announcing to the master
+index) is a transport + auth project, not a seat-model redesign.
