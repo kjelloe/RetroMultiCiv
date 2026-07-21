@@ -271,6 +271,18 @@ check on medium maps first), real Terrain-water prototypes (separate
 system — prototype apart). MODELS — MeshParts for hero pieces (wonders
 first), SurfaceAppearance on unit bodies, two-part trees.
 
+**CP1 TILE PROPS — LANDED (gate 25):** `TileProps.luau`, the full
+`client/renderer/three/props.js` twin — the shared `PROP_SHAPES` recipe
+built through `AssetFactory.buildShape` (SCALE=4=TILE), placement scatter
+via a faithful `visualRand` port. Covers roads (segmented + cross-ties),
+irrigation + field patches, mines (door+beam), a torus fortress, and the
+terrain features the run-F #5 improvement blocks never drew: forest/
+jungle trees, hill rocks, mountain peak+snow, scrub tufts, shore foam,
+resource specials, goody huts. Supersedes those blocks; fog-honest,
+render-only, signature-cached. `SurfaceAppearance`/two-part-tree polish
+stays on the bigger-lift backlog above. (tech-glyphs + SO15 sound remain
+open — routed to the architect for a Roblox-asset approach ruling.)
+
 **Decision flow:** the toggle IS the side-by-side (the soundboard house
 pattern — this machine cannot render Roblox, the user's session can):
 Options → world look → flip retro/enhanced live → screenshot both →

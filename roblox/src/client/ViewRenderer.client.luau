@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
+local TileProps = require(script.Parent:WaitForChild("TileProps")) -- CP1 tile props
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
@@ -542,89 +543,25 @@ local function renderDanger(view)
 	end
 end
 
--- run-F #5 (user): tile IMPROVEMENTS drawn on the tile — roads/railroads as a
--- thin strip, irrigation as a glassy channel quad, a mine as a small dark cube,
--- a fortress as four low ramparts. filterView carries tile.road/railroad/
--- irrigation/mine/fortress on explored tiles; persistent-signature cache like
--- renderTerrain so only changed tiles rebuild. All parts CanQuery=false so they
--- never intercept the tile/unit selection raycast.
-local improvementsFolder = Instance.new("Folder")
-improvementsFolder.Name = "Improvements"
-improvementsFolder.Parent = world
-
-local impShown = {} -- [i] = signature
-local impModels = {} -- [i] = Model
-local ROAD_COLOR = Color3.fromRGB(120, 96, 66)
-local RAIL_COLOR = Color3.fromRGB(96, 96, 108)
-local IRR_COLOR = Color3.fromRGB(90, 170, 210)
-local MINE_COLOR = Color3.fromRGB(70, 66, 62)
+-- CP1 (docs/13): tile props — the client/renderer/three/props.js twin, a
+-- richer superset of the old run-F #5 improvement blocks it supersedes:
+-- segmented roads with cross-ties, irrigation channel + field patches, mine
+-- door+beam, a torus fortress, PLUS terrain features the blocks never drew
+-- (forest/jungle trees, hill rocks, mountain peak+snow, scrub tufts, shore
+-- foam, resource specials, goody huts). Shapes are the shared PROP_SHAPES
+-- recipe built via AssetFactory (the R8 composer; gate 25). Fog-honest and
+-- render-only; TileProps signature-caches so only prop-relevant tile changes
+-- rebuild. All parts CanQuery=false so they never intercept the selection ray.
+local propsFolder = Instance.new("Folder")
+propsFolder.Name = "TileProps"
+propsFolder.Parent = world
 
 local function renderImprovements(view)
-	local map = view.map
-	for i, tile in ipairs(map.tiles) do
-		local road, rail = tile.road == true, tile.railroad == true
-		local irr, mine, fort = tile.irrigation == true, tile.mine == true, tile.fortress == true
-		local sig = ""
-		if road or rail or irr or mine or fort then
-			sig = table.concat({ tostring(road), tostring(rail), tostring(irr),
-				tostring(mine), tostring(fort), tostring(tile.visible) }, "|")
-		end
-		if impShown[i] ~= sig then
-			impShown[i] = sig
-			if impModels[i] ~= nil then
-				impModels[i]:Destroy()
-				impModels[i] = nil
-			end
-			if sig ~= "" then
-				local x = (i - 1) % map.width
-				local y = math.floor((i - 1) / map.width)
-				local top = tileTop(tile.t)
-				local cx, cz = x * TILE, y * TILE
-				local fade = tile.visible == true and 0 or DIM
-				local model = Instance.new("Model")
-				model.Name = ("Imp_%d_%d"):format(x, y)
-				if irr then
-					local p = block(model, "Irrigation",
-						Vector3.new(TILE * 0.82, 0.08, TILE * 0.82),
-						Vector3.new(cx, top + 0.08, cz),
-						IRR_COLOR:Lerp(Color3.new(0, 0, 0), fade), Enum.Material.Glass)
-					p.Transparency = 0.4
-				end
-				if road or rail then
-					block(model, rail and "Railroad" or "Road",
-						Vector3.new(TILE * 0.9, 0.06, TILE * 0.24),
-						Vector3.new(cx, top + 0.12, cz),
-						(rail and RAIL_COLOR or ROAD_COLOR):Lerp(Color3.new(0, 0, 0), fade),
-						rail and Enum.Material.Metal or Enum.Material.Ground)
-				end
-				if mine then
-					block(model, "Mine",
-						Vector3.new(TILE * 0.28, TILE * 0.28, TILE * 0.28),
-						Vector3.new(cx + TILE * 0.22, top + TILE * 0.14, cz - TILE * 0.22),
-						MINE_COLOR:Lerp(Color3.new(0, 0, 0), fade), Enum.Material.Rock)
-				end
-				if fort then
-					local w = TILE * 0.9
-					local walls = {
-						{ Vector3.new(w, 0.6, 0.12), Vector3.new(cx, top + 0.3, cz - w / 2) },
-						{ Vector3.new(w, 0.6, 0.12), Vector3.new(cx, top + 0.3, cz + w / 2) },
-						{ Vector3.new(0.12, 0.6, w), Vector3.new(cx - w / 2, top + 0.3, cz) },
-						{ Vector3.new(0.12, 0.6, w), Vector3.new(cx + w / 2, top + 0.3, cz) },
-					}
-					for wi, ww in ipairs(walls) do
-						block(model, "Wall" .. wi, ww[1], ww[2],
-							Color3.fromRGB(150, 140, 120):Lerp(Color3.new(0, 0, 0), fade),
-							Enum.Material.Concrete)
-					end
-				end
-				for _, p in ipairs(model:GetChildren()) do
-					if p:IsA("BasePart") then
-						p.CanCollide = false
-						p.CanQuery = false
-					end
-				end
-				model.Parent = improvementsFolder
-				impModels[i] = model
+	if TileProps.rebuild(propsFolder, view, tileTop, TILE) then
+		for _, p in ipairs(propsFolder:GetDescendants()) do
+			if p:IsA("BasePart") then
+				p.CanCollide = false
+				p.CanQuery = false
 			end
 		end
 	end

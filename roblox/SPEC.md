@@ -200,6 +200,16 @@ The authoritative loop, single Studio instance (one human seat + AI).
   shells render from their filtered fields). Terrain parts mutate in
   place (keyed cache, no 1000-part churn per push); units/cities
   folders rebuild per push. City skylines scale slightly with pop.
+- `TileProps.luau` (CP1) — tile props, the `props.js` twin: the shared
+  `PROP_SHAPES` recipe built through `AssetFactory.buildShape`
+  (SCALE=4=TILE), covering roads (segmented + cross-ties), irrigation
+  channel + field patches, mines (door+beam), a torus fortress, and the
+  terrain features the old improvement blocks never drew — forest/jungle
+  trees, hill rocks, mountain peak+snow, scrub tufts, shore foam,
+  resource specials, goody huts. Placement scatter is `visualRand`
+  (position-hashed, render-only, matches the browser). Fog-honest,
+  signature-cached (only prop-relevant tile changes rebuild), CanQuery
+  off. Supersedes the run-F #5 improvement blocks. Gate 25.
 - `Hud.client.luau` — status line (turn/year/active/GAME OVER) + End
   Turn button; the full action bar is R5.
 - Actions (`Select.client.luau`): click own unit = select (cyan

@@ -16,7 +16,7 @@ prefixes) are the handles for twin requests and direction questions.
 
 | id | feature | browser home | parity (roblox) |
 |---|---|---|---|
-| CP1 | world render (terrain mesh, fog, props, cities, units) | renderer/three | PARTIAL — ViewRenderer covers terrain/fog/units + danger overlay (roblox extra); run-F added tile IMPROVEMENTS (road/rail/irrigation/mine/fortress, gate 13) + a PROGRESSIVE city model (pop-tier size + the SHARED shared/city-era.js band styles ancient/classicalMedieval/industrial/modernSpace, gate 12); decorative TILE PROPS (trees/resources) still the pending art pass |
+| CP1 | world render (terrain mesh, fog, props, cities, units) | renderer/three | PRESENT — ViewRenderer covers terrain/fog/units + danger overlay (roblox extra) + a PROGRESSIVE city model (pop-tier size + the SHARED shared/city-era.js band styles ancient/classicalMedieval/industrial/modernSpace, gate 12); TILE PROPS (CP1) now the full props.js twin via TileProps.luau — the shared PROP_SHAPES recipe through AssetFactory (roads/rail/irrigation/mine/torus-fortress PLUS forest/jungle trees, hill rocks, mountain peak+snow, scrub, shore foam, resource specials, goody huts), visualRand scatter, fog-honest + signature-cached, superseding the run-F #5 improvement blocks; gate 25 (+ gate 13 folded onto it) |
 | CP2 | unit select / move / attack, stack panel | input.js, panels | PRESENT — Select + stack tab cards w/ A/D/M stats |
 | CP3 | action bar (found/irrigate/mine/road/fortress/pillage/fortify/skip/disband/goto) | input.js | PRESENT — full set incl. Fort + Pillage (2026-07-18, #1371) |
 | CP4 | GoTo route-preview + multi-turn plans | input.js (client-side plans) | PRESENT — R14 plans + breadcrumb preview + r20 button |
