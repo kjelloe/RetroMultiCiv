@@ -142,6 +142,20 @@ test('originAllowed: permissive when unset, exact match when set, missing Origin
   assert.strictEqual(originAllowed(undefined, list), false);                           // missing rejected when set
 });
 
+test('inviteAllowed: open when unset, exact code required when set', async () => {
+  const { inviteAllowed } = await load();
+  // no codes = OPEN (a public host is world-joinable by default)
+  assert.ok(inviteAllowed('/ws', []) && inviteAllowed('/ws?invite=anything', []));
+  const codes = ['friday22', 'weekend'];
+  assert.ok(inviteAllowed('/ws?invite=friday22', codes));
+  assert.ok(inviteAllowed('/ws?token=x&invite=weekend', codes), 'finds invite among other params');
+  assert.strictEqual(inviteAllowed('/ws?invite=nope', codes), false); // wrong code
+  assert.strictEqual(inviteAllowed('/ws', codes), false);             // missing code rejected when set
+  assert.strictEqual(inviteAllowed('/ws?invite=', codes), false);     // empty code rejected
+  assert.strictEqual(inviteAllowed(undefined, codes), false);         // no url rejected when set
+  assert.strictEqual(inviteAllowed('/ws?invite=friday22%', codes), false); // malformed URL -> rejected, not a throw
+});
+
 test('allowConnect: per-IP connect-rate burst then refill', async () => {
   const { createLimiter } = await load();
   const c = clock(0);

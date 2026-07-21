@@ -27,7 +27,7 @@ import v8 from 'node:v8';
 // for rotation + resume.
 function sidecarOf(jsonFile) { return jsonFile ? jsonFile.replace(/\.json$/, '.log.jsonl') : null; }
 import { hashState } from '../shared/statehash.js';
-import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed } from './limits.js';
+import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed, inviteAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
@@ -305,11 +305,15 @@ export function startServer(opts) {
   // for a public browser deploy to blunt cross-origin socket abuse — WebSockets
   // are CORS-exempt). Browser-abuse mitigation, not auth.
   const originAllowlist = (opts.originAllowlist || []).filter(Boolean);
+  const inviteCodes = (opts.inviteCodes || []).filter(Boolean); // A50 item 6
   // Handshake gate — rejects BEFORE the socket is allocated: bad Origin first
-  // (cheap compare, no connect token spent), then the per-IP connect-rate (3a).
+  // (cheap compare, no connect token spent), then the closed-group invite gate
+  // (A50 item 6), then the per-IP connect-rate (3a).
   const wss = new WebSocketServer({
     server: httpServer, path: '/ws', maxPayload: 64 * 1024,
-    verifyClient: info => originAllowed(info.origin, originAllowlist) && limiter.allowConnect(clientIp(info.req)).ok
+    verifyClient: info => originAllowed(info.origin, originAllowlist)
+      && inviteAllowed(info.req && info.req.url, inviteCodes)
+      && limiter.allowConnect(clientIp(info.req)).ok
   });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
 
@@ -1380,6 +1384,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--mem-check-sec') opts.memCheckMs = Number(argv[++i]) * 1000;
     // A50 item 5: structured one-line JSON ops logs (default = human output)
     else if (a === '--log-json') opts.logJson = true;
+    // A50 item 6: closed-group invite gate — CSV of accepted ?invite= codes
+    else if (a === '--invite-code') opts.inviteCodes = String(argv[++i] || '').split(',').map(s => s.trim());
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
@@ -1434,7 +1440,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
     // Slice 3c: one-line posture summary so an operator sees the active guards.
-    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — bug-reports ${opts.bugReports ? 'ON(' + opts.bugReports + ')' : 'off'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
+    console.log(`posture: trust-proxy ${opts.trustProxyHops ? 'ON(' + opts.trustProxyHops + ')' : 'off'} — origin-allowlist ${(opts.originAllowlist && opts.originAllowlist.filter(Boolean).length) ? opts.originAllowlist.filter(Boolean).join(',') : 'permissive'} — invite-gate ${(opts.inviteCodes && opts.inviteCodes.filter(Boolean).length) ? 'ON(' + opts.inviteCodes.filter(Boolean).length + ' code' + (opts.inviteCodes.filter(Boolean).length > 1 ? 's' : '') + ')' : 'open'} — bug-reports ${opts.bugReports ? 'ON(' + opts.bugReports + ')' : 'off'} — connect-rate + cmd/seat/msg budgets + heartbeat + backpressure ON`);
     // A101 rider: the EFFECTIVE operator caps. Because unknown args now only WARN,
     // a typo'd cap flag no-ops silently — this line is the operator's confirmation
     // that a cap actually took (a typo shows the value as `unset`).
