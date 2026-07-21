@@ -148,3 +148,13 @@ in the spec. THREE v1-time considerations extracted:
    the future rename provably additive.
 3. The rename-mechanics ruling stands: config+DNS+display event, old
    domain redirects, never breaking.
+
+## 9. Naval-loop probe verdict (2026-07-21, #2090 — feeds §5's open item)
+
+Measured, unanimous across 9 seeds x 7 civs x 545t: the AI builds ZERO sea
+units — the docs/05 sequence occurs zero times. Impact is map-dependent:
+default continents maps yield one dominant landmass (AI reaches ~96 cities
+by land), but ARCHIPELAGO is a shipped map type where the gap is total,
+and post-1.0 naval AI = 2.0 (golden rule). SCOPING FORK WITH THE USER:
+(a) full loop v1 / (b) settlement-only v1 + invasion joins the 2.0
+conquest slice [architect-recommended] / (c) documented limit.

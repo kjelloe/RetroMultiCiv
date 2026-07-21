@@ -34,6 +34,13 @@ _Catch-up: `reports/away-window-brief.md` (the 7h run) + reports/marker-0069..00
   candidates (The Work of Ages leads) BEFORE any registration — post-v1
   unless you fancy running the screen early. Runbook §8 updated.
 
+- [ ] **NAVAL SCOPING (open fork from the probe, #2090)**: the AI naval
+  loop is fully absent (0 sea units in 9x7x545t) but near-costless on
+  default maps — yet Archipelago is a shipped map type, and post-1.0 any
+  naval AI waits for 2.0. Options: (a) full loop in v1; **(b) settlement-
+  only in v1, invasion joins the 2.0 conquest slice — recommended**;
+  (c) document the landlubber limit. One word routes it.
+
 - [ ] **Studio session** (one sitting covers all): Studded style review +
   D3 relations panel + manifest-v3 slices + NEW CP1 tile-props; save
   `runG.txt` while there.
