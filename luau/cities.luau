@@ -16,6 +16,7 @@ local statehash = require("./statehash")
 local visibility = require("./visibility")
 local government = require("./government")
 local diplomacy = require("./diplomacy") -- D1: war-gated blockade
+local difficulty = require("./difficulty")
 
 -- 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 local FAT_CROSS = {}
@@ -97,22 +98,45 @@ local function wonderInCity(state: any, city: any, wonderId: string, ruleset: an
 end
 
 -- The effective shield cost of an item for a player — civ specialties.
-local function itemCost(kind: string, id: string, def: any, player: any, ruleset: any): number
-	if player == nil or player.civ == nil or ruleset.civs == nil then
-		return def.cost
+-- aiCostPct is an ASYMMETRIC difficulty knob: an AI player build cost scales by
+-- difficulties[level].aiCostPct, ONLY when a human seat exists. All-AI + crafted
+-- states (no state) stay neutral. Matches engine/cities.js.
+local function aiCostAdjust(cost: number, player: any, state: any, ruleset: any): number
+	if state == nil or player == nil or player.human == true then
+		return cost
 	end
-	local civ = ruleset.civs[player.civ]
-	local spec = if civ == nil then nil else civ.specialty
-	if spec == nil then
-		return def.cost
+	local d = difficulty.difficultyOf(state, ruleset)
+	if d == nil or not difficulty.hasHumanSeat(state) then
+		return cost
 	end
-	if kind == "unit" and spec.type == "cheapUnit" and spec.unit == id then
-		return def.cost - idiv(def.cost * spec.pct, 100)
+	return idiv(cost * d.aiCostPct, 100)
+end
+
+local function itemCost(kind: string, id: string, def: any, player: any, ruleset: any, state: any): number
+	local cost = def.cost
+	if player ~= nil and player.civ ~= nil and ruleset.civs ~= nil then
+		local civ = ruleset.civs[player.civ]
+		local spec = if civ == nil then nil else civ.specialty
+		if spec ~= nil then
+			if kind == "unit" and spec.type == "cheapUnit" and spec.unit == id then
+				cost = def.cost - idiv(def.cost * spec.pct, 100)
+			elseif kind == "building" and spec.type == "cheapBuilding" and spec.building == id then
+				cost = def.cost - idiv(def.cost * spec.pct, 100)
+			end
+		end
 	end
-	if kind == "building" and spec.type == "cheapBuilding" and spec.building == id then
-		return def.cost - idiv(def.cost * spec.pct, 100)
+	return aiCostAdjust(cost, player, state, ruleset)
+end
+
+-- aiFoodRows is an ASYMMETRIC difficulty knob: an AI city growth food-box is
+-- difficulties[level].aiFoodRows rows tall when a human seat exists; else 10.
+local function growthThreshold(state: any, city: any, ruleset: any): number
+	local rows = 10
+	local d = difficulty.difficultyOf(state, ruleset)
+	if d ~= nil and difficulty.hasHumanSeat(state) and state.players[city.owner].human ~= true then
+		rows = d.aiFoodRows
 	end
-	return def.cost
+	return rows * (city.pop + 1)
 end
 
 local function civVeteran(player: any, unitId: string, ruleset: any): boolean
@@ -573,7 +597,7 @@ local function buyProduction(state: any, cmd: any, ruleset: any): any
 	if def == nil then
 		return { ok = false, reason = "badItem" }
 	end
-	local cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset)
+	local cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset, state)
 	local missing = cost - city.shields
 	if missing <= 0 then
 		return { ok = false, reason = "alreadyComplete" }
@@ -813,7 +837,7 @@ local function processCities(state: any, ruleset: any, events: any)
 			end
 		end
 		city.food = city.food + yields.food - city.pop * 2 - settlerFood
-		local threshold = 10 * (city.pop + 1)
+		local threshold = growthThreshold(state, city, ruleset)
 		if city.food >= threshold then
 			if city.pop >= 10 and not hasBuilding(city, "aqueduct") then
 				city.food = threshold -- growth stalls without an Aqueduct
@@ -845,7 +869,7 @@ local function processCities(state: any, ruleset: any, events: any)
 		local owner = state.players[city.owner]
 		if prod.kind == "unit" then
 			local unitType = ruleset.units[prod.id]
-			local cost = itemCost("unit", prod.id, unitType, owner, ruleset)
+			local cost = itemCost("unit", prod.id, unitType, owner, ruleset, state)
 			if city.shields >= cost then
 				city.shields -= cost
 				local unitId = "u" .. state.nextUnitId
@@ -873,7 +897,7 @@ local function processCities(state: any, ruleset: any, events: any)
 			end
 		elseif prod.kind == "building" then
 			local def = ruleset.buildings[prod.id]
-			local cost = itemCost("building", prod.id, def, owner, ruleset)
+			local cost = itemCost("building", prod.id, def, owner, ruleset, state)
 			if city.shields >= cost then
 				city.shields -= cost
 				if city.buildings == nil then
@@ -905,7 +929,7 @@ local function processCities(state: any, ruleset: any, events: any)
 			-- increments; player.spaceship is created on the first part — omit-safe).
 			-- A launched ship or a maxed part keeps the shields and reverts.
 			local def = ruleset.rules.ssParts[prod.id]
-			local cost = itemCost("ss-part", prod.id, def, owner, ruleset)
+			local cost = itemCost("ss-part", prod.id, def, owner, ruleset, state)
 			if city.shields >= cost then
 				local ship = owner.spaceship
 				local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
@@ -948,6 +972,7 @@ return {
 	wonderInCity = wonderInCity,
 	effectPct = effectPct,
 	itemCost = itemCost,
+	growthThreshold = growthThreshold,
 	civVeteran = civVeteran,
 	citySpacingOk = citySpacingOk,
 	unitObsolete = unitObsolete,

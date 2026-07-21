@@ -74,13 +74,13 @@ test('Space Age grants everything except Future Tech', () => {
 });
 
 test('a to-be-human civ dying aborts with its name — never a silent re-roll', () => {
-  // seed re-pinned to 14 on 2026-07-21 after §40 (settler pop-cost + size-1
-  // disband reshuffled early expansion/conquest: seed 42's p1 now survives, seed
-  // 14 conquers Civ1 early — the abort path). The seed is a fixture, re-pinned
-  // whenever war/scout/expansion goldens move. Disasters OFF for a stable fixture —
-  // the random per-turn calamity would otherwise perturb this deterministic seed.
+  // seed re-pinned to 7 on 2026-07-21 after the difficulty window (#2155/#2158:
+  // the default prince barbAtkPct 75 reshuffled early combat/expansion; seed 14's
+  // p1 now survives, seed 7 conquers Civ1 early — the abort path). The seed is a
+  // fixture, re-pinned whenever war/scout/expansion goldens move. Disasters OFF for
+  // a stable fixture — the random per-turn calamity would otherwise perturb it.
   const noDisasters = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { disastersEnabled: false }) });
-  const r = fastForwardTo(noDisasters, freshWorld(14), ageById('renaissance'), ['p1']);
+  const r = fastForwardTo(noDisasters, freshWorld(7), ageById('renaissance'), ['p1']);
   assert.ok(r.aborted, 'seed 14 eliminates p1 early');
   assert.strictEqual(r.aborted.reason, 'civEliminated');
   assert.strictEqual(r.aborted.name, 'Civ1', 'the message can name the dead civ');

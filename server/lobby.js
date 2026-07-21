@@ -28,7 +28,9 @@ const SIZES = {
 };
 // ascending map-size order — the operator --max-size cap clamps down this list
 const SIZE_ORDER = ['xsmall', 'small', 'medium', 'large', 'xlarge', 'huge'];
-const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+// the 7-level ladder ids (#2155); difficulty flows into createGame as
+// state.difficulty, so this set only VALIDATES the incoming option (see create()).
+const DIFFICULTY = { trainer: 1, chieftain: 1, warlord: 1, prince: 1, king: 1, emperor: 1, godemperor: 1 };
 
 // #1875 operator --max-turns: the game ends at rules.endYear (engine/score.js),
 // so a turn cap is expressed as the YEAR reached after N turns on the ruleset's
@@ -49,11 +51,10 @@ function clamp(n, lo, hi) {
   return v > hi ? hi : v;
 }
 
-// difficulty/combat options → ruleset overrides (same mechanism as the client).
+// combat/victory options → ruleset overrides. Difficulty is NOT here: it flows
+// into createGame as state.difficulty (the engine reads the full difficulties table).
 function overridesFor(options) {
   const o = {};
-  const d = options.difficulty;
-  if (d && DIFFICULTY[d] !== undefined && d !== 'medium') o.contentCitizens = DIFFICULTY[d];
   if (options.combat === 'bestof3') o.combatRounds = 3;
   // victory-conditions preset → its rulesOverride patch (e.g. marathon → endYear
   // 9999). The legacy marathon:true flag stays a back-compat alias for 'marathon'.
@@ -158,7 +159,8 @@ export function createRegistry(deps) {
       options: {
         civs, humans,
         size,
-        difficulty: options.difficulty, combat: options.combat,
+        difficulty: DIFFICULTY[options.difficulty] !== undefined ? options.difficulty : 'prince',
+        combat: options.combat,
         seed: options.seed !== undefined ? options.seed : seedFn(),
         allowSpectators: options.allowSpectators === true,
         // A20 starting age (validated against the ruleset; ancient = none)
@@ -367,7 +369,7 @@ export function createRegistry(deps) {
         const raw = engine.createGame({
           seed: e.options.seed,
           debug: deps.debug === true ? true : undefined, // A92: --debug host → debug-capable games
-          options: { width: dims[0], height: dims[1], players: allAi, mapType: e.options.maptype }
+          options: { width: dims[0], height: dims[1], players: allAi, mapType: e.options.maptype, difficulty: e.options.difficulty }
         });
         if (raw.ok === false) return { ok: false, reason: raw.reason };
         const r = fastForwardTo(ruleset, raw, ageEntry, humanSeats);
@@ -387,7 +389,7 @@ export function createRegistry(deps) {
           ruleset, gameId, rulesOverrides: effectiveOverrides(e.options),
           setup: { seed: e.options.seed,
             debug: deps.debug === true ? true : undefined, // A92
-            options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype } }
+            options: { width: dims[0], height: dims[1], players, mapType: e.options.maptype, difficulty: e.options.difficulty } }
         });
       }
     } catch (err) {

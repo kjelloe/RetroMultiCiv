@@ -117,7 +117,7 @@ function buildReport(game, ruleset) {
       mapSize: `${state.map.width}x${state.map.height}`,
       civCount: state.playerOrder.length,
       humanSeats,
-      difficulty: (game.rulesOverrides && Object.keys(game.rulesOverrides).length > 0) ? 'overridden' : 'default',
+      difficulty: state.difficulty !== undefined ? state.difficulty : 'default',
       turns: state.turn,
       endReason: endReasonOf(state, ruleset),
       ranks,

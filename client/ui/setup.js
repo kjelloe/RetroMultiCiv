@@ -49,9 +49,11 @@ export function showSetupScreen() {
       <label>Difficulty
         <select id="setup-difficulty">
           <option value="trainer">Trainer</option>
-          <option value="easy">Easy</option>
-          <option value="medium" selected>Medium</option>
-          <option value="hard">Hard</option>
+          <option value="chieftain">Chieftain</option>
+          <option value="warlord">Warlord</option>
+          <option value="prince" selected>Prince</option>
+          <option value="king">King</option>
+          <option value="emperor">Emperor</option>
           <option value="godemperor">God-Emperor</option>
         </select>
       </label>
@@ -369,7 +371,7 @@ export function showSetupScreen() {
     const victory = document.getElementById('setup-victory').value;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
-      + (difficulty !== 'medium' ? `&difficulty=${difficulty}` : '')
+      + (difficulty !== 'prince' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '')
       + (age !== 'ancient' ? `&age=${age}` : '')
       + (maptype !== 'continents' ? `&maptype=${maptype}` : '')

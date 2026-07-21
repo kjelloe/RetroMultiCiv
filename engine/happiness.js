@@ -10,6 +10,7 @@
 import { workedTiles, cityYields, effectPct, wonderActive } from './cities.js';
 import { sortIds } from './combat.js';
 import { governmentOf } from './government.js';
+import { difficultyOf } from './difficulty.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -32,7 +33,11 @@ function cityMood(state, city, ruleset) {
   const s = specialistsOf(city, workedCount);
   const workers = city.pop - s.entertainers - s.taxmen - s.scientists;
 
-  let unhappy = workers - rules.contentCitizens;
+  // contentCitizens is a WORLD difficulty knob (applies all-AI too); falls back to
+  // rules.contentCitizens when the game carries no difficulty (crafted scenarios).
+  const dOf = difficultyOf(state, ruleset);
+  const contentCitizens = dOf !== null ? dOf.contentCitizens : rules.contentCitizens;
+  let unhappy = workers - contentCitizens;
   if (unhappy < 0) unhappy = 0;
   let content = workers - unhappy;
   let happy = 0;

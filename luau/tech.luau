@@ -10,14 +10,23 @@ local cities = require("./cities")
 local government = require("./government")
 local traderoutes = require("./trade") -- named to avoid shadowing the loop's `trade` local
 local upgrade = require("./upgrade") -- N11 3b: Leonardo hook via the grantTech seam
+local difficulty = require("./difficulty")
 
 local function idiv(a: number, b: number): number
 	return math.floor(a / b)
 end
 
 local function researchCost(state: any, playerId: string, ruleset: any): number
-	local known = #state.players[playerId].techs
-	return ruleset.rules.techBaseCost * (known + 1)
+	local player = state.players[playerId]
+	local known = #player.techs
+	-- bulb escalation ASYMMETRIC: coefficient splits (AI aiBulbInc / human humanBulbInc)
+	-- when a human seat exists; else techBaseCost. Matches engine/tech.js.
+	local coeff = ruleset.rules.techBaseCost
+	local d = difficulty.difficultyOf(state, ruleset)
+	if d ~= nil and difficulty.hasHumanSeat(state) then
+		coeff = if player.human == true then d.humanBulbInc else d.aiBulbInc
+	end
+	return coeff * (known + 1)
 end
 
 local function knows(player: any, techId: string): boolean

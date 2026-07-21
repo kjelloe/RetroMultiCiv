@@ -10,6 +10,7 @@
 local cities = require("./cities")
 local combat = require("./combat")
 local government = require("./government")
+local difficulty = require("./difficulty")
 
 local function idiv(a: number, b: number): number
 	return math.floor(a / b)
@@ -34,7 +35,11 @@ local function cityMood(state: any, city: any, ruleset: any): any
 	local s = specialistsOf(city, workedCount)
 	local workers = city.pop - s.entertainers - s.taxmen - s.scientists
 
-	local unhappy = workers - rules.contentCitizens
+	-- contentCitizens is a WORLD difficulty knob (applies all-AI too); falls back to
+	-- rules.contentCitizens when the game carries no difficulty (crafted scenarios).
+	local dOf = difficulty.difficultyOf(state, ruleset)
+	local contentCitizens = if dOf ~= nil then dOf.contentCitizens else rules.contentCitizens
+	local unhappy = workers - contentCitizens
 	if unhappy < 0 then
 		unhappy = 0
 	end

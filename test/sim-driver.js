@@ -1055,7 +1055,9 @@ async function runSim(opts) {
   if (players.length < civs) throw new Error(`sim roster supports up to ${SIM_ROSTER.length} civs`);
 
   const engine = mods.createEngine(ruleset);
-  let state = engine.createGame({ seed: opts.seed, options: { width, height, players } });
+  const options = { width, height, players };
+  if (opts.difficulty !== undefined) options.difficulty = opts.difficulty;
+  let state = engine.createGame({ seed: opts.seed, options });
   if (state.ok === false) throw new Error(`createGame failed for seed ${opts.seed}: ${state.reason}`);
   const initialState = mods.deepClone(state);
   const roundLog = [];

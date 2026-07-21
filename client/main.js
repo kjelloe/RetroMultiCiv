@@ -116,18 +116,19 @@ mlog('boot', 'ruleset loaded');
 
 // Difficulty adjusts the content-citizen threshold (a RULESET override, not
 // state — recorded in diagnostics so tools/replay.js applies the same rules).
-const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+// the 7-level ladder ids (#2155); difficulty flows into createGame as
+// state.difficulty (the engine reads the full difficulties table), NOT an override.
+const DIFFICULTY = { trainer: 1, chieftain: 1, warlord: 1, prince: 1, king: 1, emperor: 1, godemperor: 1 };
 const MAP_SIZES = {
   xsmall: [40, 25], small: [60, 38], medium: [80, 50],
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
-const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.get('difficulty') : 'medium';
+const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.get('difficulty') : 'prince';
 // combat calculations: authentic Civ 1 one-shot (rules default) or
 // best-of-three (?combat=bestof3 — the setup screen's default pick);
 // a full hitpoints system is a possible third mode later
 const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
-if (difficulty !== 'medium') rulesOverrides.contentCitizens = DIFFICULTY[difficulty];
 if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
 // victory conditions (?victory=<preset>): the chosen preset's rulesOverride
 // patch (e.g. marathon → endYear 9999, removing the score-victory year limit).
@@ -244,7 +245,7 @@ if (serverParam) {
   // engine's debug-command family for local games — setup.debug reaches
   // mapgen, which sets state.debugEnabled at creation
   const setupA92 = {
-    seed, options: { width: dims[0], height: dims[1], players: playerDefs, mapType }
+    seed, options: { width: dims[0], height: dims[1], players: playerDefs, mapType, difficulty }
   };
   if (params.get('debug') === '1') setupA92.debug = true;
   initialState = createEngine(ruleset).createGame(setupA92);
@@ -293,7 +294,7 @@ if (serverParam) {
     `?seed=${seed}&civs=${civCount}&humans=${humans}`
     + `${picked && civs[picked] ? `&civ=${picked}` : ''}`
     + `${size !== 'medium' ? `&size=${size}` : ''}`
-    + `${difficulty !== 'medium' ? `&difficulty=${difficulty}` : ''}`
+    + `${difficulty !== 'prince' ? `&difficulty=${difficulty}` : ''}`
     + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`
     + `${age.turn > 0 ? `&age=${age.id}` : ''}`
     + `${mapType !== 'continents' ? `&maptype=${mapType}` : ''}`); // A82a: canonical URL keeps the world reproducible

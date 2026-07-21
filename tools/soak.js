@@ -17,7 +17,7 @@
 //   --no-chaos      disable the deterministic chaos-command layer (on by
 //                   default: buy/rates/workers/pillage/disband/volatile
 //                   governments injected from a separate seeded stream)
-//   --difficulty D  trainer|easy|medium|hard|godemperor — contentCitizens
+//   --difficulty D  trainer|chieftain|warlord|prince|king|emperor|godemperor (default prince)
 //                   override, same table as the client (godemperor = 2:
 //                   the disorder/happiness stress run)
 //   --jobs N        parallel seed processes (default: cores - 1)
@@ -45,7 +45,11 @@ const SIZES = { // matches the client's MAP_SIZES (main.js)
   xsmall: [40, 25], small: [60, 38], medium: [80, 50],
   large: [104, 65], xlarge: [128, 80], huge: [160, 100]
 };
-const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
+// The 7-level ladder (#2155): each id maps to its contentCitizens for reference —
+// difficulty now flows into createGame as state.difficulty (the engine reads the
+// full difficulties table), NOT as a contentCitizens rulesOverride. The values here
+// are informational; only the KEYS (valid ids) gate --difficulty.
+const DIFFICULTY = { trainer: 7, chieftain: 6, warlord: 5, prince: 4, king: 3, emperor: 2, godemperor: 1 };
 
 // ── M-target regression FLOORS (docs/05-simulation-test.md §12, the
 // "M-TARGETS PINNED (user session 2026-07-16 evening)" line) ────────────────
@@ -55,11 +59,15 @@ const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
 // values below MIRROR docs/05 §12; that line and this table are the one source
 // pair (edit both together). Non-canonical soaks (godemperor/natural/small/
 // chaos) are a different distribution and skip the check.
-const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'medium' };
+const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'prince' };
 const FLOOR_MIN_TURNS = 400; // floors are defined at t401 = a 400-round run
 const FLOORS = [
   { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 6  },
-  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 28 },
+  // 28->27 re-pin (architect ruling #2164): the difficulty window made 'prince'
+  // the canonical config (was 'medium'); barbAtkPct 75 (the sole default world-knob
+  // move, control-diff verified) re-baselined the median pop 28->27. PROVISIONAL —
+  // a 25-seed confirm (sim-runner, post-land) restores 28 if that median >= 28.
+  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 27 },
   { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 50 },
   { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
   { key: 'M10-treasury', label: 'treasury climb (g/t)', metric: 'goldRate',    cmp: '<',  value: 50 },
@@ -204,7 +212,7 @@ usage: node tools/soak.js [options]
   --turns N            turns per playthrough (default 400)
   --civs N             civ count per game (default 4)
   --size <sz>          map size: ${Object.keys(SIZES).join(' | ')} (default medium)
-  --difficulty <d>     ${Object.keys(DIFFICULTY).join(' | ')} (default medium)
+  --difficulty <d>     ${Object.keys(DIFFICULTY).join(' | ')} (default prince)
   --natural            play until a victory instead of the fixed end year
   --no-chaos           disable the chaos-command injection
   --enforce-floors ids ratchet gates (comma-separated): ${FLOORS.map(f => f.key).join(',')}
@@ -215,7 +223,7 @@ usage: node tools/soak.js [options]
 function parseArgs(argv) {
   const opts = {
     seeds: 5, start: 1, turns: 400, civs: 4, size: 'medium', natural: false,
-    seed: null, chaos: true, difficulty: 'medium', jobs: Math.max(1, os.cpus().length - 1),
+    seed: null, chaos: true, difficulty: 'prince', jobs: Math.max(1, os.cpus().length - 1),
     stats: null, worker: false
   };
   if (process.env.MULTICIV_SIM_SEEDS !== undefined) opts.seeds = Number(process.env.MULTICIV_SIM_SEEDS);
@@ -252,7 +260,8 @@ function parseArgs(argv) {
 function rulesOverridesFor(opts) {
   const overrides = {};
   if (!opts.natural) overrides.endYear = 9999;
-  if (opts.difficulty !== 'medium') overrides.contentCitizens = DIFFICULTY[opts.difficulty];
+  // difficulty flows into createGame as state.difficulty (see runSim opts.difficulty),
+  // NOT a contentCitizens rulesOverride — the engine reads the full difficulties table.
   // disasters default OFF in the sweep harness (the pinned floors + goldens stay stable);
   // --disasters turns them ON for the mandatory non-degeneracy witness (ship default is ON).
   overrides.disastersEnabled = opts.disasters === true;
@@ -363,6 +372,7 @@ async function runSeed(seed, opts, checkpoints, mods) {
   const spaceWit = {}; // XII.5b Q6: per-civ space-project witness accumulators
   const r = await runSim({
     seed, civs: opts.civs, width, height, turns: opts.turns,
+    difficulty: opts.difficulty, // #2155: state.difficulty (all-AI => world knobs only)
     rulesOverrides: rulesOverridesFor(opts),
     chaos: opts.chaos,
     deepAt: checkpoints,

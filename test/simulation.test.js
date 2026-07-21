@@ -34,14 +34,14 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0xdc263883',
-    200: '0xbf1d3a02',
-    300: '0xb3828e4f',
-    400: '0x9011661d'
+    100: '0xb5cd8394',
+    200: '0x3b8fb77f',
+    300: '0x866d9a03',
+    400: '0x56b99cb2'
   },
-  finalHash: '0x9011661d'
+  finalHash: '0x56b99cb2'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x27bcd7a2' };
+const GOLDEN_NATURAL = { rounds: 519, winner: 'p2', finalHash: '0xfe154790' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

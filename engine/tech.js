@@ -6,14 +6,23 @@ import { cityYields, effectPct, sellBuildingFrom } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
 import { routeArrows } from './trade.js';
 import { leonardoUpgrade } from './upgrade.js';
+import { difficultyOf, hasHumanSeat } from './difficulty.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
 }
 
 function researchCost(state, playerId, ruleset) {
-  const known = state.players[playerId].techs.length;
-  return ruleset.rules.techBaseCost * (known + 1);
+  const player = state.players[playerId];
+  const known = player.techs.length;
+  // bulb escalation is an ASYMMETRIC difficulty knob: with a human seat present the
+  // per-advance coefficient splits (AI aiBulbInc / human humanBulbInc); all-AI +
+  // crafted states keep techBaseCost (prince humanBulbInc == techBaseCost, so a
+  // default human game leaves the human unchanged).
+  let coeff = ruleset.rules.techBaseCost;
+  const d = difficultyOf(state, ruleset);
+  if (d !== null && hasHumanSeat(state)) coeff = player.human === true ? d.humanBulbInc : d.aiBulbInc;
+  return coeff * (known + 1);
 }
 
 function knows(player, techId) {

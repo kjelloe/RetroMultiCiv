@@ -3,12 +3,12 @@ const assert = require('node:assert');
 
 const { computeFloorReport, isCanonicalFloorRun, floorMedian, floorCmp } = require('../tools/soak.js');
 
-const CANON = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'medium', turns: 400 };
+const CANON = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'prince', turns: 400 };
 
 // A checkpoint row shaped like tools/soak.js appendStats writes: meta + snapshot.
 function cp(seed, turn, players) {
   return Object.assign(
-    { t: 'checkpoint', seed, civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'medium', turns: 400 },
+    { t: 'checkpoint', seed, civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'prince', turns: 400 },
     { turn, players }
   );
 }
@@ -63,7 +63,7 @@ test('healthy world clears all measurable floors; resourceCov PENDING', () => {
 });
 
 test('breaches: low pop, low cities, zero buys, runaway treasury', () => {
-  // below the re-baselined floors (M2>=6 / M3>=28 / M4>=50; #595 rider on air-truth)
+  // below the re-baselined floors (M2>=6 / M3>=27 / M4>=50; #595 rider on air-truth; M3 28->27 #2164)
   const bad = { cities: 5, pop: 20, imprPct: 40, buys: 0 };
   const rows = [
     cp(1, 301, [civ('a', Object.assign({ gold: 100 }, bad)), civ('b', Object.assign({ gold: 100 }, bad))]),

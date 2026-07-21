@@ -14,6 +14,11 @@ local visibility = require("./visibility")
 local cities = require("./cities")
 local government = require("./government")
 local diplomacy = require("./diplomacy") -- D3: attack-grievance
+local difficulty = require("./difficulty")
+
+local function idiv(a: number, b: number): number
+	return math.floor(a / b)
+end
 
 -- Deterministic id ordering that needs no key order: shorter first, then
 -- lexicographic — so u2 < u10.
@@ -206,6 +211,11 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 	end
 
 	local att = attackStrength(attacker, ruleset)
+	-- barbAtkPct WORLD knob: a barbarian attacker's strength scales (all-AI too).
+	local dOf = difficulty.difficultyOf(state, ruleset)
+	if attacker.owner == "barb" and dOf ~= nil then
+		att = idiv(att * dOf.barbAtkPct, 100)
+	end
 	local def = defenseStrength(state, defender, ruleset, attacker)
 	-- rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll);
 	-- 3 = best-of-three, a setup option

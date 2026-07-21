@@ -12,6 +12,11 @@ import { reveal } from './visibility.js';
 import { hasBuilding, wonderActive } from './cities.js';
 import { capitalOf } from './government.js';
 import { bumpRel } from './diplomacy.js';
+import { difficultyOf } from './difficulty.js';
+
+function idiv(a, b) {
+  return Math.floor(a / b);
+}
 
 // Deterministic id ordering that ports to Lua (no reliance on key order):
 // shorter first, then lexicographic — so u2 < u10.
@@ -163,7 +168,11 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     bumpRel(state, defender.owner, attacker.owner, 'grievance', ruleset.rules.diplomacy.relGrievanceOnAttack);
   }
 
-  const att = attackStrength(attacker, ruleset);
+  let att = attackStrength(attacker, ruleset);
+  // barbAtkPct is a WORLD difficulty knob: a BARBARIAN attacker's strength scales by
+  // difficulties[level].barbAtkPct (applies all-AI too). Neutral 100 => identity.
+  const dOf = difficultyOf(state, ruleset);
+  if (attacker.owner === 'barb' && dOf !== null) att = idiv(att * dOf.barbAtkPct, 100);
   const def = defenseStrength(state, defender, ruleset, attacker);
   // rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll —
   // byte-identical to the original algorithm); 3 = best-of-three, a setup

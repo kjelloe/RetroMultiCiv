@@ -254,6 +254,19 @@ local function createGame(setup: any, ruleset: any): any
 		return { ok = false, reason = "noStartPositions" }
 	end
 
+	-- difficulty ladder: resolve the level (ascii id) from setup, default 'prince';
+	-- startGold is a WORLD knob (every player, all-AI too). Matches engine/mapgen.js.
+	local difficulties = ruleset.rules.difficulties
+	local dlevel: any = nil
+	if difficulties ~= nil then
+		if options.difficulty ~= nil and difficulties[options.difficulty] ~= nil then
+			dlevel = options.difficulty
+		elseif difficulties.prince ~= nil then
+			dlevel = "prince"
+		end
+	end
+	local startGold = if dlevel ~= nil then difficulties[dlevel].startGold else 0
+
 	local players = {}
 	local playerOrder = setmetatable({}, statehash.ARRAY_MT)
 	local units = {}
@@ -261,7 +274,7 @@ local function createGame(setup: any, ruleset: any): any
 		local p = playerDefs[i]
 		players[p.id] = {
 			id = p.id, name = p.name, color = p.color,
-			human = p.human == true, alive = true, gold = 0,
+			human = p.human == true, alive = true, gold = startGold,
 			techs = setmetatable({}, statehash.ARRAY_MT), researching = "",
 			bulbs = 0,
 			taxRate = ruleset.rules.defaultTaxRate,
@@ -337,6 +350,10 @@ local function createGame(setup: any, ruleset: any): any
 		players = players,
 		rngState = rngS,
 	}
+	-- omit-safe: rulesets without a difficulties table carry no difficulty field.
+	if dlevel ~= nil then
+		state.difficulty = dlevel
+	end
 
 	visibility.initExplored(state)
 	local unitIds = {}

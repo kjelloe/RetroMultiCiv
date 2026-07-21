@@ -194,6 +194,15 @@ function createGame(setup, ruleset) {
     return { ok: false, reason: 'noStartPositions' };
   }
 
+  // difficulty: resolve the ladder level (ascii id) from setup, default 'prince'; an
+  // unknown id or a ruleset without the table falls back. startGold is a WORLD knob
+  // (every player, all-AI included) applied to the base gold before civ specialties.
+  const difficulties = ruleset.rules.difficulties;
+  const dlevel = (difficulties !== undefined && options.difficulty !== undefined
+    && difficulties[options.difficulty] !== undefined) ? options.difficulty
+    : (difficulties !== undefined && difficulties.prince !== undefined ? 'prince' : undefined);
+  const startGold = (dlevel !== undefined) ? difficulties[dlevel].startGold : 0;
+
   const players = {};
   const playerOrder = [];
   const units = {};
@@ -201,7 +210,7 @@ function createGame(setup, ruleset) {
     const p = playerDefs[i];
     players[p.id] = {
       id: p.id, name: p.name, color: p.color,
-      human: p.human === true, alive: true, gold: 0, techs: [], researching: '',
+      human: p.human === true, alive: true, gold: startGold, techs: [], researching: '',
       bulbs: 0,
       taxRate: ruleset.rules.defaultTaxRate,
       sciRate: ruleset.rules.defaultSciRate
@@ -271,6 +280,9 @@ function createGame(setup, ruleset) {
     players,
     rngState: rngS
   };
+  // omit-safe: a ruleset without a difficulties table carries no difficulty field
+  // (neutral — every hook falls back to today's value).
+  if (dlevel !== undefined) state.difficulty = dlevel;
 
   initExplored(state);
   for (const id of Object.keys(units)) {

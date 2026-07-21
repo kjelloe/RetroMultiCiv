@@ -2,6 +2,7 @@
 import { reveal } from './visibility.js';
 import { governmentOf, capitalOf } from './government.js';
 import { relationOf } from './diplomacy.js';
+import { difficultyOf, hasHumanSeat } from './difficulty.js';
 
 // 21-tile "fat cross" offsets (5x5 minus corners), excluding the center.
 const FAT_CROSS = [];
@@ -72,18 +73,40 @@ function wonderInCity(state, city, wonderId, ruleset) {
 
 // The effective shield cost of an item for a player — civilization
 // specialties (data/civs.json) discount one unit or building type.
-function itemCost(kind, id, def, player, ruleset) {
-  if (!player || player.civ === undefined || ruleset.civs === undefined) return def.cost;
-  const civ = ruleset.civs[player.civ];
-  const spec = civ === undefined ? undefined : civ.specialty;
-  if (spec === undefined) return def.cost;
-  if (kind === 'unit' && spec.type === 'cheapUnit' && spec.unit === id) {
-    return def.cost - idiv(def.cost * spec.pct, 100);
+// aiCostPct is an ASYMMETRIC difficulty knob: an AI player's build cost scales by
+// difficulties[level].aiCostPct, but ONLY when a human seat exists (the handicap is
+// relative to the human). All-AI games + crafted states (no state) stay neutral.
+function aiCostAdjust(cost, player, state, ruleset) {
+  if (state === undefined || player === undefined || player.human === true) return cost;
+  const d = difficultyOf(state, ruleset);
+  if (d === null || !hasHumanSeat(state)) return cost;
+  return idiv(cost * d.aiCostPct, 100);
+}
+
+function itemCost(kind, id, def, player, ruleset, state) {
+  let cost = def.cost;
+  if (player && player.civ !== undefined && ruleset.civs !== undefined) {
+    const civ = ruleset.civs[player.civ];
+    const spec = civ === undefined ? undefined : civ.specialty;
+    if (spec !== undefined) {
+      if (kind === 'unit' && spec.type === 'cheapUnit' && spec.unit === id) {
+        cost = def.cost - idiv(def.cost * spec.pct, 100);
+      } else if (kind === 'building' && spec.type === 'cheapBuilding' && spec.building === id) {
+        cost = def.cost - idiv(def.cost * spec.pct, 100);
+      }
+    }
   }
-  if (kind === 'building' && spec.type === 'cheapBuilding' && spec.building === id) {
-    return def.cost - idiv(def.cost * spec.pct, 100);
-  }
-  return def.cost;
+  return aiCostAdjust(cost, player, state, ruleset);
+}
+
+// aiFoodRows is an ASYMMETRIC difficulty knob: an AI city's growth food-box is
+// difficulties[level].aiFoodRows rows tall (vs the human's fixed 10) when a human
+// seat exists; all-AI + crafted states use 10 (today's value).
+function growthThreshold(state, city, ruleset) {
+  let rows = 10;
+  const d = difficultyOf(state, ruleset);
+  if (d !== null && hasHumanSeat(state) && state.players[city.owner].human !== true) rows = d.aiFoodRows;
+  return rows * (city.pop + 1);
 }
 
 // Does this player's civilization field veterans of the given unit type?
@@ -417,7 +440,7 @@ function buyProduction(state, cmd, ruleset) {
   else if (prod.kind === 'wonder') def = ruleset.wonders[prod.id];
   else if (prod.kind === 'ss-part') def = ruleset.rules.ssParts[prod.id];
   if (!def) return { ok: false, reason: 'badItem' };
-  const cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset);
+  const cost = itemCost(prod.kind, prod.id, def, state.players[cmd.playerId], ruleset, state);
   const missing = cost - city.shields;
   if (missing <= 0) return { ok: false, reason: 'alreadyComplete' };
   const rate = prod.kind === 'wonder' ? ruleset.rules.buyGoldPerShieldWonder
@@ -603,7 +626,7 @@ function processCities(state, ruleset, events) {
       }
     }
     city.food = city.food + yields.food - city.pop * 2 - settlerFood;
-    const threshold = 10 * (city.pop + 1);
+    const threshold = growthThreshold(state, city, ruleset);
     if (city.food >= threshold) {
       if (city.pop >= 10 && !hasBuilding(city, 'aqueduct')) {
         city.food = threshold; // growth stalls without an Aqueduct
@@ -632,7 +655,7 @@ function processCities(state, ruleset, events) {
     const owner = state.players[city.owner];
     if (prod.kind === 'unit') {
       const unitType = ruleset.units[prod.id];
-      const cost = itemCost('unit', prod.id, unitType, owner, ruleset);
+      const cost = itemCost('unit', prod.id, unitType, owner, ruleset, state);
       if (city.shields >= cost) {
         city.shields = city.shields - cost;
         const unitId = 'u' + state.nextUnitId;
@@ -661,7 +684,7 @@ function processCities(state, ruleset, events) {
       }
     } else if (prod.kind === 'building') {
       const def = ruleset.buildings[prod.id];
-      const cost = itemCost('building', prod.id, def, owner, ruleset);
+      const cost = itemCost('building', prod.id, def, owner, ruleset, state);
       if (city.shields >= cost) {
         city.shields = city.shields - cost;
         if (city.buildings === undefined) city.buildings = [];
@@ -689,7 +712,7 @@ function processCities(state, ruleset, events) {
       // increments; player.spaceship is created on the first part — omit-safe).
       // A launched ship (in flight) or a maxed part keeps the shields and reverts.
       const def = ruleset.rules.ssParts[prod.id];
-      const cost = itemCost('ss-part', prod.id, def, owner, ruleset);
+      const cost = itemCost('ss-part', prod.id, def, owner, ruleset, state);
       if (city.shields >= cost) {
         const ship = owner.spaceship;
         const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
@@ -731,6 +754,6 @@ export {
   foundCity, foundCityLegality, createCityAt, setProduction, setWorkers, buyProduction, helpWonder,
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
-  wonderActive, wonderInCity, effectPct, itemCost, civVeteran, citySpacingOk,
+  wonderActive, wonderInCity, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
   unitObsolete
 };
