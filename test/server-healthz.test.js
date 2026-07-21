@@ -33,8 +33,8 @@ test('/healthz returns a first-class ops snapshot (JSON, no-store, real fields)'
     assert.strictEqual(h.conns, 0, 'no ws clients yet');
     assert.ok(h.rss_mb > 0 && typeof h.rss_mb === 'number');
     assert.ok(h.heap_pct >= 0 && h.heap_pct <= 100);
-    assert.strictEqual(h.node, process.version);
-    // no secrets leak: the snapshot carries counts/stats only
+    // self-audit #2143: NO version/pid disclosure (fingerprinting), no secrets
+    assert.ok(!('node' in h) && !('pid' in h), 'no version/pid fingerprinting');
     assert.ok(!('seats' in h) && !('tokens' in h) && !('saves' in h));
   } finally { await s.close(); }
 });
