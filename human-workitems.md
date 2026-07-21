@@ -14,7 +14,7 @@ _Last synced: 2026-07-21 (marker-0071 = MERGE CANDIDATE; §14 treasury open; XII
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Merge marker-0071** — the merge candidate (supersedes 0070; both
+- [ ] **Merge the latest marker** (0073 at brief-writing — check the last report; §12/0074 may supersede). Supersedes chain 0069-0073, all consistent. See `reports/away-window-brief.md` for the one-page catch-up. (Was: marker-0071; both
   gates green). Adds on top of 0070: the §13 deficit ladder (AI/regency
   climbs tax→taxmen→government before civil disorder — your "regent sits at
   0 gold in disorder" complaint, fixed), D3 diplomacy visible to players in
