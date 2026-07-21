@@ -662,8 +662,14 @@ Run-F live playtest (2026-07-19) fixes:
   avail→setResearch / locked→beeline goal) + `Beeline.luau` (ported
   `shared/beeline.js`, gate-15 lune parity over all 68 techs). Golden-
   neutral (setResearch only; goal = session state). Procedural glyphs
-  (Part C) are phase 2 — name labels ship now, motifs are ~half
-  provisional pending the ally motif pass.
+  (Part C): the Roblox fallback (b) per ruling #2078 item 5 LANDED —
+  `TechGlyphs.luau` ships the 4 ERA FRAMES (a per-era colour badge, the
+  shared era palette 1:1 with `client/ui/tech-glyphs.js`), wired into
+  the research picker (row badge), discovery card (era-coloured frame),
+  and tech tree (dedup'd onto the shared palette); gate 26 pins it. The
+  full 68-MOTIF path stays gated on the EditableImage Studio spike
+  (30-min timebox, user-run — AssetService:CreateEditableImage is a
+  Studio beta-flag question this headless box can't answer).
 - **#9 pedia unit/building blurbs DONE** (#1778): 28 unit + 21 building
   ally flavor blurbs ported VERBATIM into `PediaBlurbs.luau` from the
   committed source (`specs/ally-unit-building-blurb-response-2026-07-19.md`);
@@ -707,9 +713,11 @@ Run-F live playtest (2026-07-19) fixes:
   fog-honest. NEXT: user screenshots the 3-way in Studio (soundboard pattern)
   to review/tune relief + saturation + oversized "toy army" scaling + forest/
   city prop chunking (ally refinements deferred to post-screenshot).
-- Still open: the tech-tree procedural GLYPHS (phase 2, ally motif pass)
-  + the CP1 tile-props art pass (now unblocked by the enhanced-look
-  ruling); D3 treaty ACTIONS (declare/offer/accept — a later diplomacy
+- Still open: the tech-tree 68 procedural GLYPH MOTIFS (gated on the
+  EditableImage Studio spike — the era-FRAMES fallback landed via
+  `TechGlyphs.luau`/gate 26); the CP1 tile-props art pass LANDED
+  (`TileProps.luau`/gate 25); SO15 sound cues (curated library-map,
+  next); D3 treaty ACTIONS (declare/offer/accept — a later diplomacy
   slice beyond Tier-B's read-only legibility).
 
 Catalog state after this pass: **FULLY CLOSED** (SO17 landed

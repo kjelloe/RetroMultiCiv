@@ -15,17 +15,13 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local Beeline = require(script.Parent:WaitForChild("Beeline"))
+local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: shared era palette
 
-local ERA_ORDER = { "ancient", "renaissance", "industrial", "modern" }
-local ERA_NAME = { ancient = "ANCIENT", renaissance = "RENAISSANCE",
-	industrial = "INDUSTRIAL", modern = "MODERN" }
--- era palette 1:1 with the browser tech-glyphs.js ERA table (edge/fill/ink)
-local ERA_COLOR = {
-	ancient = { edge = Color3.fromRGB(185, 151, 91), fill = Color3.fromRGB(36, 29, 17), ink = Color3.fromRGB(236, 220, 180) },
-	renaissance = { edge = Color3.fromRGB(107, 163, 104), fill = Color3.fromRGB(21, 36, 24), ink = Color3.fromRGB(205, 234, 199) },
-	industrial = { edge = Color3.fromRGB(111, 139, 176), fill = Color3.fromRGB(19, 29, 40), ink = Color3.fromRGB(210, 226, 243) },
-	modern = { edge = Color3.fromRGB(155, 127, 201), fill = Color3.fromRGB(29, 24, 48), ink = Color3.fromRGB(226, 212, 245) },
-}
+-- era palette 1:1 with the browser tech-glyphs.js ERA table (edge/fill/ink),
+-- now sourced from the shared TechGlyphs module (dedup; gate 26 pins it).
+local ERA_ORDER = TechGlyphs.ERA_ORDER
+local ERA_NAME = TechGlyphs.ERA_NAME
+local ERA_COLOR = TechGlyphs.ERA
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCTechTree"

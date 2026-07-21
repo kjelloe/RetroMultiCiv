@@ -13,6 +13,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
+local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: era badge
 
 local lastRowClick = nil -- session-E round 12: double-click select-and-close
 
@@ -120,8 +121,12 @@ local function refresh()
 		row.Font = Enum.Font.Code
 		row.TextSize = 14
 		row.TextXAlignment = Enum.TextXAlignment.Left
-		row.Text = "  " .. (rs.techs[id] and rs.techs[id].name or id)
+		row.Text = "       " .. (rs.techs[id] and rs.techs[id].name or id)
 		row.Parent = list
+		-- CP-art (glyphs fallback b): per-era colour badge at the row's left
+		local badge = TechGlyphs.badge(row, TechGlyphs.eraOf(rs.techs, id), 14)
+		badge.AnchorPoint = Vector2.new(0, 0.5)
+		badge.Position = UDim2.new(0, 4, 0.5, 0)
 		row.Activated:Connect(function()
 			print("[Research] setResearch " .. id)
 			ClientState.send({ type = "setResearch", tech = id })

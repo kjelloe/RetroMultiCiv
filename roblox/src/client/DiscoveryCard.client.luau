@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
+local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: era colouring
 
 -- CONTENT RULES (license boundary, CLAUDE.md): original prose only — never
 -- wiki sentences. Ported 1:1 from the browser's client/ui/tech-blurbs.js (the
@@ -160,9 +161,11 @@ local function show(techId)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 10)
 	corner.Parent = card
+	-- CP-art (glyphs fallback b): the card wears its tech's ERA colour
+	local eraCol = TechGlyphs.colorOf(def.era or "ancient")
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(120, 180, 255)
-	stroke.Transparency = 0.5
+	stroke.Color = eraCol.edge
+	stroke.Transparency = 0.4
 	stroke.Thickness = 2
 	stroke.Parent = card
 
@@ -172,7 +175,7 @@ local function show(techId)
 	head.Position = UDim2.new(0, 8, 0, y)
 	head.BackgroundTransparency = 1
 	head.RichText = true
-	head.TextColor3 = Color3.fromRGB(150, 205, 255)
+	head.TextColor3 = eraCol.ink
 	head.Font = Enum.Font.SourceSansBold
 	head.TextSize = 20
 	head.TextXAlignment = Enum.TextXAlignment.Left

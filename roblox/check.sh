@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -334,6 +334,20 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 25: node absent"
+fi
+
+# gate 26 — XII.6 glyphs (fallback b, #2078 item 5): TechGlyphs.luau ships the 4
+# ERA FRAMES only (EditableImage motif path is Studio-runtime-gated); its era
+# palette must match client/ui/tech-glyphs.js hex-for-hex and be wired into the
+# research picker, discovery card, and tech tree. Colour drift / broken wire fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/tech-glyphs-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 26: tech-glyph era palette matches client/ui/tech-glyphs.js"
+  else
+    note FAIL "gate 26: tech-glyphs parity — run: node roblox/selftest/tech-glyphs-parity.mjs"
+  fi
+else
+  note SKIP "gate 26: node absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
