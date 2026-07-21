@@ -5,6 +5,8 @@ return [==[{
   "techBaseCost": 10,
   "defaultTaxRate": 50,
   "defaultSciRate": 50,
+  "deficitGoldCushion": 3,
+  "taxBumpStep": 10,
   "endYear": 2100,
   "yearSteps": [
     { "until": 0, "step": 20 },
