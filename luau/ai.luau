@@ -761,15 +761,34 @@ local function spaceCommitted(state: any, playerId: string, ruleset: any): boole
 	if not spaceDriveOn(ruleset, me.stance) then return false end
 	if not spaceCommitEligible(state, playerId, ruleset) then return false end
 	local snap = strategic.strategicSnapshot(state, playerId, ruleset)
-	-- XII.5b-tune (#2113/#2117): the commit MAINTAINS through border wars. The
-	-- 9-metric sweep found 0/25 launches -- a ~150-turn project cannot survive an
-	-- every-turn none/low-threat + building/expanding-mode peace check, since any
-	-- border skirmish flips the snapshot to defending/med. Capital safety is already
-	-- the abandon condition (spaceCommitEligible), so here we abandon ONLY when the
-	-- civ turns offensive (mode "warring") or the threat is "high".
+	-- XII.5b-tune (#2113/#2117) + LATCH (#2125): the commit MAINTAINS through border
+	-- wars. Capital safety is already the abandon condition (spaceCommitEligible), so
+	-- here we abandon ONLY on an offensive turn (mode "warring", instant) or a SUSTAINED
+	-- siege: a streak (spaceThreatStreak, incremented once/turn in runAiTurn) reaching
+	-- spaceThreatPatience consecutive high-threat turns. Late-game threat oscillates, so
+	-- an instantaneous "high" check killed every ~150-turn project on a 1-turn spike.
 	if snap.mode == "warring" then return false end
-	if snap.threat == "high" then return false end
+	local patience = if ruleset.rules.victoryDrive.spaceThreatPatience == nil
+		then 6 else ruleset.rules.victoryDrive.spaceThreatPatience
+	local streak = if me.spaceThreatStreak == nil then 0 else me.spaceThreatStreak
+	if streak >= patience then return false end
 	return true
+end
+
+-- XII.5b LATCH (#2125): update a space-driving civ's consecutive-high-threat streak,
+-- ONCE per turn from runAiTurn (mirrors the zocBlocks per-turn tallies -- replay re-runs
+-- the AI, so replay-safe). "high" increments; any other turn resets. Stance-gated.
+-- omit-when-default: deleted at 0 so a never-besieged civ stays byte-identical.
+local function updateSpaceThreatStreak(state: any, playerId: string, ruleset: any)
+	local me = state.players[playerId]
+	if me == nil then return end
+	if not spaceDriveOn(ruleset, me.stance) then return end
+	local threat = strategic.strategicSnapshot(state, playerId, ruleset).threat
+	if threat == "high" then
+		me.spaceThreatStreak = (if me.spaceThreatStreak == nil then 0 else me.spaceThreatStreak) + 1
+	elseif me.spaceThreatStreak ~= nil then
+		me.spaceThreatStreak = nil
+	end
 end
 
 -- A76: the next part to build toward a minimum-viable ship, or nil when ready to
@@ -2191,6 +2210,7 @@ local function runAiTurn(engine: any, state: any, playerId: string, ruleset: any
 		local u = state.units[uid]
 		if u.owner == playerId and u.zocBlocks ~= nil then u.zocBlocks = nil end
 	end
+	updateSpaceThreatStreak(state, playerId, ruleset) -- XII.5b latch: once/turn threat streak
 	local guard = 500
 	while guard > 0 do
 		guard -= 1

@@ -237,7 +237,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x947af78f\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x3928387c\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -275,8 +275,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'd0d0bad4', pangaea: 'e25997fb',
-      archipelago: '861f34d6', islands: 'e3bebd33'
+      continents: '3482bc7a', pangaea: '402c7b31',
+      archipelago: '7a30fba4', islands: 'c8ec7f51'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -317,9 +317,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // knobs) -> 0xbd75915f (xiv-ai §14 treasury/F1 knobs) -> 0x017162d4 (xiv-ai XII.5b
 // space-as-project knobs) -> 0x3765cd25 (xiv-ai §12 settlerPathRadius knob) ->
 // 0x7f492828 (§40 settlers popCost) -> 0xe3237208 (air-truth units.json flags) ->
-// 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean).
-// Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x5798799d turn 25 grant 22';
+// 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean) ->
+// 0xb735adcb (XII.5b latch spaceThreatPatience). Re-pin here whenever a ruleset window moves it.
+const FF_PARITY_PIN = 'ff-parity 0xb735adcb turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

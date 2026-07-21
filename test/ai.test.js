@@ -781,16 +781,67 @@ test('XII.5b-tune: a committed civ keeps its commit through a border skirmish (s
   // post-fix the commit survives the skirmish.
   assert.strictEqual(ai.spaceCommitted(st, 'p1', RULESET), true,
     'a committed civ with a SAFE CAPITAL keeps its commit through a border skirmish (defending mode, med threat)');
-  // control HIGH threat: many enemies at c2 -> threat 'high' -> commit abandoned.
+  // XII.5b latch (#2125): a HIGH-threat SPIKE with no accumulated streak SURVIVES —
+  // only a SUSTAINED siege abandons (see the latch test below). Pre-latch this abandoned.
   const hi = base();
   for (let i = 0; i < 8; i++) hi.units['h' + i] = { id: 'h' + i, type: 'phalanx', owner: 'p2', x: 24, y: (i % 3) + 3, moves: 1 };
   assert.strictEqual(strategicSnapshot(hi, 'p1', RULESET).threat, 'high', 'control: many enemies -> high threat');
-  assert.strictEqual(ai.spaceCommitted(hi, 'p1', RULESET), false, 'a HIGH-threat civ abandons the commit');
+  assert.strictEqual(ai.spaceCommitted(hi, 'p1', RULESET), true, 'a HIGH-threat SPIKE survives (streak still below patience)');
   // control WARRING: c2 builds an ATTACKER while threatened -> mode 'warring' -> abandoned.
   const war = base();
   war.cities.c2.producing = { kind: 'unit', id: 'catapult' };
   assert.strictEqual(strategicSnapshot(war, 'p1', RULESET).mode, 'warring', 'control: attacker+threat -> warring mode');
   assert.strictEqual(ai.spaceCommitted(war, 'p1', RULESET), false, 'a WARRING civ abandons the commit');
+});
+
+// XII.5b LATCH (#2125 re-witness verdict + escalation): the predicate-relax alone
+// still lost every committed civ to OSCILLATING late-game threat — a single 1-turn
+// HIGH spike abandoned a ~150-turn project (3/25 committed at pathPct 67-91, all
+// abandoned, 0 parts). The latch counts CONSECUTIVE high-threat turns
+// (players[pid].spaceThreatStreak, updated once/turn in runAiTurn via
+// updateSpaceThreatStreak) and abandons only when the siege is SUSTAINED
+// (streak >= spaceThreatPatience). Fixtures BOTH directions + the streak update.
+test('XII.5b latch: a sustained siege abandons, a spike survives, streak tracks HIGH threat', async () => {
+  const { ai } = await load();
+  const W = 30, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  // committed-eligible (space-flight, science, capital c1 far from enemies); c2 is
+  // under a HIGH-threat siege (8 enemies) but builds a DEFENDER -> mode 'defending'.
+  const base = () => {
+    const units = {};
+    for (let i = 0; i < 8; i++) units['e' + i] = { id: 'e' + i, type: 'phalanx', owner: 'p2', x: 24, y: (i % 3) + 3, moves: 1 };
+    return {
+      version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+      map: { width: W, height: H, wrapX: false, tiles }, wonders: {}, nextUnitId: 50, nextCityId: 10,
+      cities: {
+        c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'ss-part', id: 'structural' } },
+        c2: { id: 'c2', name: 'Front', owner: 'p1', x: 25, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'phalanx' } }
+      },
+      cityOrder: ['c1', 'c2'], units,
+      players: {
+        p1: { id: 'p1', name: 'A', color: '#00f', human: false, alive: true, gold: 20, techs: ['space-flight'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' },
+        p2: { id: 'p2', name: 'B', color: '#f00', human: false, alive: true, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+      },
+      rngState: 1
+    };
+  };
+  const patience = RULESET.rules.victoryDrive.spaceThreatPatience;
+  // SPIKE: HIGH threat, streak just below patience -> the commit survives.
+  const spike = base(); spike.players.p1.spaceThreatStreak = patience - 1;
+  assert.strictEqual(ai.spaceCommitted(spike, 'p1', RULESET), true, 'streak below patience -> the commit survives the spike');
+  // SUSTAINED: streak at patience -> the siege abandons the project.
+  const siege = base(); siege.players.p1.spaceThreatStreak = patience;
+  assert.strictEqual(ai.spaceCommitted(siege, 'p1', RULESET), false, 'streak at patience -> a sustained siege abandons');
+  // STREAK UPDATE: HIGH threat increments from absent; consecutive HIGH grows; a
+  // non-HIGH turn resets (deletes) it (omit-when-default).
+  const st = base();
+  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
+  assert.strictEqual(st.players.p1.spaceThreatStreak, 1, 'HIGH threat -> streak increments from absent');
+  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
+  assert.strictEqual(st.players.p1.spaceThreatStreak, 2, 'consecutive HIGH -> streak grows');
+  st.units = {}; // the siege lifts
+  ai.updateSpaceThreatStreak(st, 'p1', RULESET);
+  assert.strictEqual(st.players.p1.spaceThreatStreak, undefined, 'threat clears -> streak resets (field deleted)');
 });
 
 // §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep

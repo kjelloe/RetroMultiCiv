@@ -674,15 +674,37 @@ function spaceCommitted(state, playerId, ruleset) {
   if (!spaceDriveOn(ruleset, me.stance)) return false;
   if (!spaceCommitEligible(state, playerId, ruleset)) return false;
   const snap = strategicSnapshot(state, playerId, ruleset);
-  // XII.5b-tune (#2113/#2117): the commit MAINTAINS through border wars. The
-  // 9-metric sweep found 0/25 launches — a ~150-turn project cannot survive an
-  // every-turn none/low-threat + building/expanding-mode peace check, since any
-  // border skirmish flips the snapshot to defending/med. Capital safety is already
-  // the abandon condition (spaceCommitEligible, ai.js:655-656), so here we abandon
-  // ONLY when the civ turns offensive (mode 'warring') or the threat is 'high'.
+  // XII.5b-tune (#2113/#2117) + LATCH (#2125): the commit MAINTAINS through border
+  // wars. Capital safety is already the abandon condition (spaceCommitEligible,
+  // ai.js:655-656), so here we abandon ONLY when the civ turns offensive (mode
+  // 'warring', instant) or is under a SUSTAINED siege. The re-witness found late-game
+  // threat OSCILLATES, so an instantaneous 'high' check abandoned every ~150-turn
+  // project on a 1-turn spike; instead a streak (spaceThreatStreak, incremented once/
+  // turn in runAiTurn) must reach spaceThreatPatience consecutive high-threat turns.
   if (snap.mode === 'warring') return false;
-  if (snap.threat === 'high') return false;
+  const patience = ruleset.rules.victoryDrive.spaceThreatPatience === undefined
+    ? 6 : ruleset.rules.victoryDrive.spaceThreatPatience;
+  const streak = me.spaceThreatStreak === undefined ? 0 : me.spaceThreatStreak;
+  if (streak >= patience) return false;
   return true;
+}
+
+// XII.5b LATCH (#2125): update a space-driving civ's consecutive-high-threat streak,
+// ONCE per turn from runAiTurn (mirrors the §14 zocBlocks per-turn tallies — replay
+// re-runs the AI, so this is replay-safe). A 'high' threat turn increments; any other
+// turn resets. Stance-gated (only a space-driver can commit, so no snapshot cost for a
+// conquest civ). omit-when-default: the field is deleted at 0 so a civ that never faces
+// a sustained siege stays byte-identical.
+function updateSpaceThreatStreak(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  if (me === undefined) return;
+  if (!spaceDriveOn(ruleset, me.stance)) return;
+  const threat = strategicSnapshot(state, playerId, ruleset).threat;
+  if (threat === 'high') {
+    me.spaceThreatStreak = (me.spaceThreatStreak === undefined ? 0 : me.spaceThreatStreak) + 1;
+  } else if (me.spaceThreatStreak !== undefined) {
+    delete me.spaceThreatStreak;
+  }
 }
 
 // A76: the next part to build toward a minimum-viable ship, or null when the
@@ -1989,6 +2011,7 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
     const u = state.units[uid];
     if (u.owner === playerId && u.zocBlocks !== undefined) delete u.zocBlocks;
   }
+  updateSpaceThreatStreak(state, playerId, ruleset); // XII.5b latch: once/turn threat streak
   let guard = 500;
   while (guard > 0) {
     guard--;
@@ -2018,4 +2041,4 @@ export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsSt
 // XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
 // for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
 // measurement, zero engine-decision use, no luau caller. Pure reads.
-export { spaceCommitEligible, spaceCommitted, nextSsPart };
+export { spaceCommitEligible, spaceCommitted, nextSsPart, updateSpaceThreatStreak };
