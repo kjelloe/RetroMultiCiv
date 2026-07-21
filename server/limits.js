@@ -234,3 +234,16 @@ export function originAllowed(origin, allowlist) {
   if (!origin) return false;
   return allowlist.indexOf(origin) !== -1;
 }
+
+// A50 item 6: closed-group invite gate. Empty/absent list = OPEN (the default —
+// a public host is world-joinable). When set: the ws upgrade URL must carry
+// ?invite=<code> matching one entry, else the handshake is refused before the
+// socket is allocated. reqUrl is the upgrade request path (info.req.url), e.g.
+// "/ws?invite=abc". This is a lightweight access gate (share the code with
+// friends), NOT cryptographic auth — pair it with TLS + --origin-allowlist.
+export function inviteAllowed(reqUrl, codes) {
+  if (!codes || codes.length === 0) return true;
+  let code = null;
+  try { code = new URL(reqUrl || '', 'http://x').searchParams.get('invite'); } catch (e) { return false; }
+  return code !== null && codes.indexOf(code) !== -1;
+}
