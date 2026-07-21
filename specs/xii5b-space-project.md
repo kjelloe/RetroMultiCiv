@@ -1,6 +1,6 @@
 # XII.5b — the space-race as a strategic PROJECT (ally design 2026-07-21)
 
-**STATUS: PENDING USER GO.** This is the follow-up to the calendar-545 probe
+**STATUS: GO (user ruling 2026-07-21) — FULL ally design in one window, sequenced AFTER §14 treasury and BEFORE §12 settler pathing.** Parts-rush (shelved #1901) unlocks inside this window; the 9-metric sweep is the witness contract. This is the follow-up to the calendar-545 probe
 finding (xii5 spec §11 + marker-0070: leaders reach 38–47/68 techs but miss
 the space PATH — selection, not pace). The ally's slice design
 (`specs/ally-design-response-2026-07-21-space-ai.md`, provenance `original`)
