@@ -27,9 +27,9 @@ flowchart TD
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
-    A91["🧩 A91 pollution / global warming /\nnuclear area effects"]
+    A91["📋 A91 pollution/warming/nukes\n(BUILD-READY — fact-pack numbers in)"]
     A8["🧩 A8 tile contention"]
-    A67["🧩 A6a future-tech repeats ·\nA7 remaining wonder effects"]
+    A67["📋 A6a future-tech (pack ready) ·\nA7 wonder effects (pack ready)"]
     ATR["📋 air-truth riders\n(fighter-only vs air · bomber ignores walls ·\ndiplomat/caravan upkeep flags)"]
     NAV2["📋 naval-truth bundle\n(sub invisibility · per-unit sight ·\ntrireme loss ⇒ activates Lighthouse)"]
     DIFF["📋 authentic difficulty\n(AI bonus · barb intensity · score —\ngated on reviewer fact-pack)"]
@@ -74,7 +74,7 @@ flowchart TD
     NAV["🧩 naval AI loop finish\n(overseas settle/invade acceptance)"]
     AIR["🧩 air AI role (movement ✅)"]
     GOV["🧩 N1/N2 gov re-eval +\nlate-tech modernization"]
-    MFL["🔨 M-floors ALL CLEAR (§12 finding!)\nratchet M2+M3 queued (25-seed confirm)"]
+    MFL["🔨 M-floors: §12 cleared → §40 authentic\nbrake reversed advisory floors — RE-BASELINE\nqueued (ratchet canceled, authenticity ruled)"]
     NAV --> MFL
     GOV --> MFL
   end

@@ -8,52 +8,49 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 (marker-0071 = MERGE CANDIDATE; §14 treasury open; XII.5b + §39 rulings with you)._
+_Last synced: 2026-07-21 post-away (marker-0075 = MERGE CANDIDATE; §50 in build; wake-list + Studio review are the user actions)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Merge the latest marker** (0073 at brief-writing — check the last report; §12/0074 may supersede). Supersedes chain 0069-0073, all consistent. See `reports/away-window-brief.md` for the one-page catch-up. (Was: marker-0071; both
-  gates green). Adds on top of 0070: the §13 deficit ladder (AI/regency
-  climbs tax→taxmen→government before civil disorder — your "regent sits at
-  0 gold in disorder" complaint, fixed), D3 diplomacy visible to players in
-  server games, and the anti-stale-idle agent-mail mechanics.
-  `reports/marker-0071.md`.
+_The one-page away-window catch-up: `reports/away-window-brief.md`._
 
-- [ ] **XII.5b GO / not-yet** — the ally-designed space-project AI slice
-  (`specs/xii5b-space-project.md`): eligibility gate + sim-swept scoring +
-  path-preferring research + legible commit/abandon. The one strategic
-  decision gating the space-victory endgame. It would slot after the
-  xiv-ai windows (§14 → §12) unless you promote it.
+- [ ] **Redeploy from marker-0075** (0076/§50 may supersede — check the
+  latest report) — seven consistent markers 0069–0075: 545-turn games, the
+  full xiv-ai arc (deficit ladder / treasury / space-project AI / settler
+  pathing), settler pop-cost, all playtest fixes. Then the three live-box
+  checks (bare `--public-addr` host:443 — a scheme now FAILS AT BOOT; 2 GB
+  sizing; `?server=1` writes saves/) + optionally
+  `--bug-reports /opt/retromulticiv/bugreports`.
 
-- [ ] **§39 conquest disorder: skip or labeled mix** — fact-check verdict:
-  Civ 1 imposes NO disorder on capture (our behavior is authentic; a
-  disorder period is Civ2/3 drift). Skip (stay pure) or adopt as a labeled
-  `Civ2-shape` mix (1–2 turns scaled by size — adds invasion pacing)?
+- [ ] **Wake three sessions** (in this order): (1) **sim-runner** — owed
+  Gate-B re-runs on tags 0072–0075, the XII.5b 9-metric sweep, the roblox
+  v3 manifest commit (20 files parked ~6h), the floors RE-BASELINE (25
+  seeds, post-§40); (2) **helper** — 18-item queue + the §40 client warn,
+  next item hover-info is scoped ready; (3) **hardening** — A50-remainder
+  untaken (healthz/logs/invite-code).
 
-- [ ] **Studio review (roblox)** — now TWO things in one session: the
-  Studded/Brick world style (`a2335b0` + the lower-hills fix `36e6b1f`)
-  and the new D3 Foreign-relations panel (Tier-B, `4d7e235`). The lane is
-  idle until your screenshots/verdict.
+- [ ] **Studio review** — Studded style + D3 relations panel + the
+  manifest-v3 slices (wait-status, MP4 stance dialog, SO6 filters, SO8
+  timelines). One session covers all; roblox lane iterates on your verdict.
 
-- [ ] **Redeploy the test box** (`./ssh-deploy.sh` from marker-0071) — two
-  markers of player-facing fixes waiting: 545-turn games, the endscreen
-  fix, server-default redirect, bug-report route (add
-  `--bug-reports /opt/retromulticiv/bugreports` to enable), regency pacing.
-  The three live-box confirmations from earlier still apply on the same
-  pass (public-addr form, 2 GB sizing, saves/ check).
+- [ ] **`runG.txt`** — save from Studio when convenient (regent-replay
+  reconstruction awaits it).
 
-_Recently landed (no action — 2026-07-21):_ markers 0069/0070/0071 tagged
-consecutively (XII.5 core fix + re-record; calendar-545 = 545-turn normal
-games; §13 deficit economics); D3 server-surfacing (war/peace/contact events
-+ relations now player-visible); roblox D3 Tier-B relations panel + Studded
-first impl; XIV batches 2–4 triaged (§32–§46, helper delivering: redirect,
-endscreen, bug-report, regency lifecycle, save-mobile, e-hint in flight,
-food-truth priority in flight); Teotihuacan debug root-caused (UI omitted
-settler food upkeep — fix in flight; rehome command queued); anti-stale-idle
-agent-mail mechanics; 5 reviewer fact-packs; ally space-AI design captured
-as XII.5b spec.
+- [ ] **Terrain §29 desaturation check** (with the ally if you like): the
+  helper's before/after screenshot pair — flats flat, hills 25%, mountains
+  own the skyline. First formal ally-review candidate.
+
+_Recently landed (2026-07-21, the away window):_ markers 0069–0075 all
+merge-consistent; xiv-ai arc closed; XII.5b space-project AI live with the
+ally's 9-metric witness (first data: a civ eligible at t290 that never
+commits because it is never safe — contestability working); the M-floor
+saga resolved twice (stuck-settler was the breach cause → §40's authentic
+brake reverses it → re-baseline queued, authenticity ruled the winner);
+two silent engine bugs found by discipline (era gate, inlet oscillation);
+roblox Tiers 0–3 parity-complete after its audit-then-build run; D4–D6
+fully spec'd; §50 city-as-road in build.
 
 ---
 
