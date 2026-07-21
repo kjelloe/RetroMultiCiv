@@ -17,13 +17,9 @@ _Last synced: 2026-07-22 (marker-0081 = candidate; audit CLOSED; space-arc fork 
 _Catch-up: `reports/away-window-2-brief.md` (markers 0077-0081, the
 space-arc saga, wake list)._
 
-- [ ] **SPACE-ARC FORK (the one open decision)**: three sweeps in, the
-  latch is correct but its SIGNAL is broken — all abandoning civs had
-  ZERO military losses (milAtCommit == milFloorMin, 4/4). Options:
-  **(a) danger-based abandon — recommended** (abandon only on capital
-  threatened/lost, city lost while committed, or warring); (b) crank
-  patience further; (c) accept space-as-rare (fails the ally acceptance
-  and freezes until 2.0 under your versioning rule). One word.
+- [x] **SPACE-ARC FORK — RULED (a) danger-based abandon** (#2138):
+  concrete events only, threat-metric + latch field removed, fourth
+  re-witness mandatory; slotted after naval-truth.
 
 - [ ] **Redeploy from marker-0081** (0082/naval-truth imminent): since
   your last deploy — sea raids with the sails warning, pollution/warming/
