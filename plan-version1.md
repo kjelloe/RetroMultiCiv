@@ -26,7 +26,7 @@ flowchart TD
     AIB["🔨 engine spine: §13 ✅ (0071) → §14 treasury (open) →\nXII.5b SPACE PROJECT (GO, full design) → §12 pathing"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
-    D46["🧩 Diplomacy D4–D6\n(human LAN treaties · senate · reputation ·\nD6 carries the DIPLOMAT MISSIONS)"]
+    D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
     A91["🧩 A91 pollution / global warming /\nnuclear area effects"]
     A8["🧩 A8 tile contention"]
     A67["🧩 A6a future-tech repeats ·\nA7 remaining wonder effects"]
