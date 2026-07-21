@@ -318,3 +318,150 @@ To go back to a purely local mailbox: delete the `remote` file.
 - **Code still travels by git.** The hub carries mail and locks
   ONLY. The user pumps commits between machines; a claim mail can
   reference files the other machine won't see until the next push.
+
+## Deployment topologies — which setup for which situation
+
+Three ways to run a multi-agent team, in increasing order of reach. All
+three use the SAME commands; only the store location and the hub differ.
+
+### Topology A — multiple agents, ONE PC, ONE shared repo clone
+
+The simplest and the dev-PC default (architect + helper + bugfixer as
+separate Claude/terminal sessions in the same checkout).
+
+- **Setup: none.** `.agent-mail/` lives in the clone; every session reads
+  and writes the same files directly. No hub, no `remote` file.
+- **What matters most here: LOCKS.** A shared working tree means two
+  agents editing one file is immediate corruption (not merely a later
+  merge conflict) — `lock <file> --as <role>` before touching any shared
+  file is non-negotiable. Also: uncommitted work is visible to every
+  session, so no agent runs destructive git ops (checkout/stash/reset)
+  — one designated session (here: the architect) commits.
+- Only ONE golden window can be open at a time (one tree = one test
+  state); the lock registry is what enforces whose window it is.
+
+### Topology B — multiple agents, one PC, SEPARATE clones
+
+A lane that must not share a working tree (e.g. a robustness lane that
+runs divergent builds, or a read-only reviewer) gets its own clone on
+the same machine.
+
+- **Setup:** run the hub in the PRIMARY clone (the one whose
+  `.agent-mail/` is canonical): `python3 tools/agent-mail.py serve`.
+  In each SECONDARY clone: `echo http://localhost:8970 > .agent-mail/remote`.
+  Every command in the secondary clone now proxies to the primary store.
+- Locks here protect against divergent EDITS (merge conflicts), not tree
+  corruption — code moves between clones via git branches, mail/locks/
+  status/queues/flags move via the hub instantly.
+- Watch the **absolute-paths gotcha** above: a shell sitting in the wrong
+  clone with no `remote` file reads that clone's empty store and reports
+  "no unread".
+
+### Topology C — multiple PCs, multiple agents, multiple clones per PC
+
+The full current setup (dev PC: hub + shared-clone lanes; second PC:
+sim-runner + reviewer + roblox-helper, each in their own clone).
+
+- **Setup:** hub on the PC that owns the canonical store (see "Across
+  the LAN" above, including the WSL portproxy/firewall steps). Every
+  clone on every OTHER machine gets the one-line `remote` file with the
+  hub's LAN URL. One mailbox, one lock registry, one status board, one
+  set of queues and flags — LIVE across all machines.
+- **Code still travels by git** — each machine needs a git operator
+  (a human, or one designated agent with an explicit push/pull grant).
+  A mail can reference a commit the other machine hasn't pulled yet;
+  the receiving lane pulls before acting.
+- Remote lanes have NO wake trigger — this topology is WHY the polling
+  discipline and the 10-minute flag floor exist. A remote lane that
+  doesn't poll is deaf.
+- After editing agent-mail.py itself: restart the hub, or remote lanes
+  keep the old command set.
+
+## Coordinator setup — checklist
+
+One session holds coordination (role `coordinator`, an alias — see
+above). To stand a team up from scratch:
+
+1. **Pick the canonical clone** (where `.agent-mail/` lives) and, for
+   topologies B/C, start the hub there and distribute `remote` files.
+2. **Point the alias:** `.agent-mail/roles` → `coordinator = architect`
+   (or whichever role holds the baton).
+3. **Name the lanes** (see naming rules below) and write each lane's
+   role name into its onboarding prompt.
+4. **Stock the queues** (`queue add --for <lane> …`) BEFORE waking the
+   lanes — a lane that wakes to a stocked queue starts working; one that
+   wakes to silence starts waiting.
+5. **Post your own status** and start your review cadence: read the
+   board (`status`), re-ping only working-and-stale lanes, keep queues
+   from running dry, raise flags for no-mail updates.
+
+### Suggested coordinator prompt (template)
+
+> You are the coordinator for <project> (mail role `coordinator`, alias
+> for `<architect>`). Repo: <path>. Mail tool:
+> `python3 tools/agent-mail.py` — read `tools/agent-mail.md` first.
+> Cadence: every ~20 min read the status board (`status`), the queue
+> depths (`queue list`), and your inbox (`peek --as coordinator
+> --headers`); check your own flag every ≤10 min (`flag --as
+> coordinator`). Your job is CURATION: keep every lane's queue stocked
+> and correctly ordered, never queue the same contested files to two
+> lanes, arbitrate lock collisions, answer `blocked` mail first. Workers
+> cannot mail — their doorbell is your flag plus their status line, so
+> a raised flag means "read the board now". Report state, not agency.
+
+## Onboarding a NEW agent session
+
+### Naming rules
+
+- **One role name per lane, kebab-case, named for the FUNCTION** —
+  `helper`, `bugfixer`, `reviewer`, `sim-runner` — not for the model or
+  the machine. A second lane of the same function: `helper2`.
+- **The name must stay stable across that lane's sessions**: cursors,
+  status, queue, and flag files all key on it
+  (`.agent-mail/cursor-<role>` etc.). A restarted session that picks a
+  NEW name orphans its predecessor's unread cursor and queue.
+- **Never run two concurrent sessions under one name** — they will
+  consume each other's inbox (the cursor is shared) and take each
+  other's queue items.
+- The coordinator assigns names; a session never invents its own. If a
+  session doesn't know its name, it asks (or reads its onboarding
+  prompt) — it does NOT guess.
+
+### The startup ritual (every new/resumed session, any topology)
+
+```bash
+python3 tools/agent-mail.py flag --as <role>       # anything for me?
+python3 tools/agent-mail.py peek --as <role> --headers   # read subjects; `show @hash` to expand
+python3 tools/agent-mail.py status --as <role> "working: <task>"  # or take from queue first
+python3 tools/agent-mail.py queue take --as <role> # if idle — pull, don't wait
+```
+
+Separate-clone lanes (topologies B/C): `git pull` BEFORE judging any
+lane state — mail may reference commits you don't have yet. Shared-clone
+lanes (topology A): do NOT pull/checkout — the tree belongs to the
+designated committer.
+
+### Suggested new-agent prompt (template)
+
+> You are `<role>` for <project>, one lane of a multi-agent team
+> coordinated by mail. Repo clone: <path>. Your mailbox role name is
+> `<role>` — use it as `--as <role>` on EVERY agent-mail command; never
+> use another name. Read `tools/agent-mail.md` (the STANDARD sections)
+> and CLAUDE.md before working. On start and every ≤10 min: `python3
+> tools/agent-mail.py flag --as <role>` — FLAG UP names your next
+> command. When idle, `queue take --as <role>` — pull work, don't wait.
+> Keep your status line current (`status --as <role> "…"`; mark long ops
+> `(long ~Nm)`). Lock files before editing (`lock <file> --as <role>
+> --why "…"`), unlock when your work lands. Blocked or need a ruling:
+> raise the coordinator's flag and put the detail in your status line.
+> [Topology B/C add: your clone talks to the hub via `.agent-mail/remote`
+> — if commands fail with "hub unreachable", report it in your status,
+> don't delete the file. `git pull` at session start.]
+> [Topology A add: shared working tree — never git checkout/stash/reset;
+> the architect commits.]
+
+The templates are STARTING POINTS — a real onboarding prompt also
+carries the lane's role spec (its files, its authority, its
+verification duties; see `docs/10-roblox-agent.md`,
+`docs/17-hardening-agent.md`, `docs/18-reviewer-agent.md` for worked
+examples).
