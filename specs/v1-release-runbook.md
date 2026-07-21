@@ -105,7 +105,11 @@ palace, senate prerequisites. Found MISSING and now planned:
    engine slice (queued). Golden-affecting: MUST land before RC.
 2. **Nuclear-plant meltdown** (disorder + Nuclear Plant) — folds into the
    A91 pollution window. Same before-RC constraint.
-3. **Envelope version stamp** (golden-neutral): saves/recordings carry the
+3. **Civ 1 disasters** (user-ruled IN 2026-07-21: authentic-ON + setup
+   toggle, the A91 pattern) — the 8-disaster system was entirely absent
+   and never listed. Reviewer pack #2082 → engine slice (queued after
+   barb-sea-raids). Before-RC constraint.
+4. **Envelope version stamp** (golden-neutral): saves/recordings carry the
    game version so the 1.x/2.x boundary rejects mismatches with a friendly
    message. Queued (helper).
 

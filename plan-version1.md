@@ -109,7 +109,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~85% | **A91 pollution/warming/nukes**, **A8 tile contention**, A6a future-tech repeats, A7 wonder-effect stragglers, **unit-truth bundles** (air riders + naval: sub invisibility/sight/trireme — `specs/unit-truth-bundles.md`; diplomat missions ride D6) |
+| 1 | Every Civ 1 system faithful | ~85% | **A91 pollution/warming/nukes**, **A8 tile contention**, A6a future-tech repeats, A7 wonder-effect stragglers, **unit-truth bundles** (air/naval — `specs/unit-truth-bundles.md`), **barb sea raids + Civ1 disasters** (audit finds, fact-packed, queued) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅ | **D4–D6** (human LAN treaties, senate, reputation) — after the engine queue drains |
 | 3 | AI at M-targets | strong | naval-loop acceptance, air role, N1/N2 gov re-eval, N4 bloat/hoard (→ `xiv-ai-behavior`), M-floor ratchets green |
 | 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ (#2020+#2028) | certification re-audit (docs/13-row × module parity) + wait-status landing; Studded round-2 on user review |
