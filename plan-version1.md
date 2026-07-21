@@ -27,11 +27,11 @@ flowchart TD
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
-    A91["📋 A91 pollution/warming/nukes\n(BUILD-READY — fact-pack numbers in)"]
+    A91["✅ A91 complete (0079+0080):\npollution·warming·meltdown·full detonation"]
     A8["🧩 A8 tile contention"]
     A67["📋 A6a future-tech (pack ready) ·\nA7 wonder effects (pack ready)"]
-    ATR["✅ air-truth landed (0077 in gate)"]
-    NAV2["📋 naval-truth bundle\n(sub invisibility · per-unit sight ·\ntrireme loss ⇒ activates Lighthouse)"]
+    ATR["✅ air-truth (0077)"]
+    NAV2["🔨 naval-truth IN BUILD (twins phase)\n— sub stealth · sight-2 · probabilistic\ntrireme · Lighthouse/Magellan +1"]
     DIFF["📋 authentic difficulty\n(AI bonus · barb intensity · score —\ngated on reviewer fact-pack)"]
     N --> N1 --> PROBE --> BULB
     N1 --> X5B --> AIB --> D3S --> C11B --> D46

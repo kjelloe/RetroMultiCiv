@@ -8,52 +8,41 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 (marker-0076 = candidate, 0077/air-truth in gate; naval ruled FULL-loop; ally endings package routed)._
+_Last synced: 2026-07-22 (marker-0081 = candidate; audit CLOSED; space-arc fork = the one open decision)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-_Catch-up: `reports/away-window-brief.md` (the 7h run) + reports/marker-0069..0076._
+_Catch-up: `reports/away-window-2-brief.md` (markers 0077-0081, the
+space-arc saga, wake list)._
 
-- [ ] **Redeploy from marker-0076** — nine consistent markers since your
-  last deploy (0069–0076): 545-turn games, the whole xiv-ai arc, settler
-  pop-cost, city-as-road, A50 server hardening (healthz/invite-code), the
-  helper's client wave. Three live-box checks + optional
-  `--bug-reports` flag as before.
+- [ ] **SPACE-ARC FORK (the one open decision)**: three sweeps in, the
+  latch is correct but its SIGNAL is broken — all abandoning civs had
+  ZERO military losses (milAtCommit == milFloorMin, 4/4). Options:
+  **(a) danger-based abandon — recommended** (abandon only on capital
+  threatened/lost, city lost while committed, or warring); (b) crank
+  patience further; (c) accept space-as-rare (fails the ally acceptance
+  and freezes until 2.0 under your versioning rule). One word.
 
-- [ ] **Ally relay: thanks + routed confirmation.** Their endings/
-  disasters/difficulty package is fully routed (engine couplings reached
-  the builder BEFORE the affected slices; endgame moments queued;
-  7-step ladder rides the difficulty slice). Worth telling them: the
-  "replay as witnessing history as a ghost" defeat idea and the naming
-  revision are both in the record verbatim. Their advisor-copy table
-  arrives with the component build as promised.
+- [ ] **Redeploy from marker-0081** (0082/naval-truth imminent): since
+  your last deploy — sea raids with the sails warning, pollution/warming/
+  meltdown, full nuclear detonation, the 8 disasters (authentic-ON +
+  toggle), air-truth rules, the XII.5b tune+latch.
 
-- [x] ~~Domain: founders.eu~~ **RETRACTED — Founders withdrawn (Steam
-  collision, specialist round).** New flow: clearance checks on the five
-  candidates (The Work of Ages leads) BEFORE any registration — post-v1
-  unless you fancy running the screen early. Runbook §8 updated.
+- [ ] **Wake three sessions**: sim-runner (Gate-B backlog 0078-0081 +
+  roblox re-bake commit), helper (queue 23, §22 mid), hardening
+  (self-audit).
 
-- [x] **NAVAL — RULED (a) full loop in v1** (five steps + basic escort;
-  war-committed invasion w/ 3:1; sequenced after naval-truth).
-  `specs/naval-loop-v1.md`; queued.
+- [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
+  **ally relay** (thanks + routed-endings confirmation) — unchanged.
 
-- [ ] **Studio session** (one sitting covers all): Studded style review +
-  D3 relations panel + manifest-v3 slices + NEW CP1 tile-props; save
-  `runG.txt` while there.
-
-- [ ] **Terrain §29 desaturation check** — screenshot pair, ally's test.
-
-_Recently landed (since your redeploy list last refreshed):_ marker-0076
-(city-as-road); Gate-B fallbacks 0072–0075 all UPGRADED to real greens by
-sim-runner; ratchet locked (M2≥6/M3≥28/M4≥50) on the 25-seed authentic
-re-baseline; settler-timing sweep FLIPPED its hypothesis (pop≥2 optimal;
-cap-sweep is the density lever, queued); naval-loop probe running; A50
-remainder landed; disasters ruled IN (authentic-ON + toggle, fact-pack
-build-ready); air-truth in build; hover-cards ⅔ live; CP1 tile-props on
-Roblox; D4–D6 design-complete; release runbook live (severity scale,
-versioning rule, naming §8); branding brief written.
+_Recently landed (away window 2 + since):_ markers 0077-0081, all
+merge-consistent (14 consecutive since 0069); the versioning audit's
+three breaking-class gaps ALL closed; the space arc ran
+measure→tune→measure→latch→measure with the fork above as its honest
+residue; seaRaidChance degeneracy caught pre-ship; Manhattan gate found
+missing and queued; naval-truth mid-build.
 
 ---
 
