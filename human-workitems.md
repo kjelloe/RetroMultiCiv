@@ -29,9 +29,10 @@ _Catch-up: `reports/away-window-brief.md` (the 7h run) + reports/marker-0069..00
   presentation, difficulty names), and the overnight status note
   (`specs/ally-status-update-2026-07-21c.md`) if not yet sent.
 
-- [ ] **Domain optionality (from the naming verdict; ~€26/yr, optional but
-  time-sensitive)**: registering founders.eu/.no/(.com) now preserves the
-  post-v1 option cheaply; same for a quick trademark screen. Runbook §8.
+- [x] ~~Domain: founders.eu~~ **RETRACTED — Founders withdrawn (Steam
+  collision, specialist round).** New flow: clearance checks on the five
+  candidates (The Work of Ages leads) BEFORE any registration — post-v1
+  unless you fancy running the screen early. Runbook §8 updated.
 
 - [ ] **Studio session** (one sitting covers all): Studded style review +
   D3 relations panel + manifest-v3 slices + NEW CP1 tile-props; save

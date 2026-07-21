@@ -133,11 +133,12 @@ v1.0 ships on **multiciv.kjell.today** as RetroMultiCiv — the rename
 question is POST-V1 (user disposition). The ally's verdict: **Founders** as
 front-runner, [title].eu-first domain bundle (~€26/yr), full decision path
 in the spec. THREE v1-time considerations extracted:
-1. **Domain optionality is time-sensitive (USER, optional, ~€26/yr)**:
-   registering founders.eu/.no/(.com) NOW preserves the option cheaply —
-   availability will not wait for post-v1 discussions. Same logic for a
-   quick trademark/platform screen: doing it early costs little and its
-   result may re-rank the reserve list before attachment forms.
+1. **REVISED (specialist round): Founders is WITHDRAWN (Steam collision)**
+   — do NOT register founders.*. The flow is now clearance-FIRST on the
+   five-candidate family (The Work of Ages leads), then register the
+   winner's .eu/.no/.com. The only v1-time nugget: the proof line
+   **"Every history can be replayed."** is title-independent and usable
+   NOW in the front page/blurb (queued as optional copy polish).
 2. **FORMAT-IDENTIFIER BOUNDARY (documented here, binding)**: internal
    format strings — 'retromulticiv-save', 'retromulticiv-diagnostics',
    'rmc_*' DataStore keys, protocol constants — are CODENAMES and NEVER

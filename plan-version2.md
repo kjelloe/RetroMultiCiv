@@ -99,9 +99,7 @@ specs/ally-design-response-2026-07-21-diplomacy.md §1).
 
 ## Public identity / rename (seeded 2026-07-21, ally verdict on file)
 
-Post-v1 program per the user's disposition: evaluate **Founders** (ally
-front-runner; reserves Firstlight/Worldmakers/Commonwealth/Civil Dawn)
-via the screen → adopt [title].eu canonical + .no/.com redirects → rename
+Post-v1 program: Founders WITHDRAWN (Steam collision); clearance-first five — **The Work of Ages** (lead) / The Long Founding / The Long Design / The Shape of History / The Living Record — via the screen → adopt [title].eu canonical + .no/.com redirects → rename
 as a 1.y display/config/DNS event (format identifiers never rename —
 runbook §8 boundary). Verdict verbatim:
 specs/ally-design-response-2026-07-21-naming.md.
