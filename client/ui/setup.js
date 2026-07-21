@@ -80,9 +80,17 @@ export function showSetupScreen() {
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
       </div>
       <div id="setup-find-list" class="hidden"></div>
+      <p class="setup-hint hidden" id="setup-server-link">🌐 <a href="?server=1">Play on this server</a> — multiplayer, game resumable after closing the tab (a local game lives only in this tab)</p>
       <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a> · <a href="https://github.com/kjelloe/RetroMultiCiv/issues" target="_blank" rel="noopener">Report issue ↗</a></p>
     </div>`;
   document.body.appendChild(overlay);
+  // Entry-default ruling (2026-07-22): the bare URL is the LOCAL game; server
+  // play is an explicit labeled choice. The link only appears when this page
+  // is actually served by a game server (a /healthz answer) — a static host
+  // (python -m http.server, file mirrors) never shows a dead link.
+  fetch('/healthz').then(r => (r.ok ? r.json() : null)).then(h => {
+    if (h) document.getElementById('setup-server-link').classList.remove('hidden');
+  }).catch(() => {});
   const setupBox = document.getElementById('setup-box');
 
   // A42/A62: an animated diorama BEHIND the setup card — the renderer +

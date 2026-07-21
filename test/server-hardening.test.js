@@ -299,25 +299,24 @@ test('Slice 3b: static responses carry nosniff + revalidating cache; an overlong
   } finally { await s.close(); }
 });
 
-test('a bare /client/ on the server redirects to the server game; any query is served as-is', async () => {
+test('entry defaults: bare / and /client land on the LOCAL setup screen; queries served as-is', async () => {
   const { startServer } = await import('../server/index.js');
   const http = require('http');
   const s = await startServer(base({ gameId: 'redir' }));
   const get = p => new Promise(res => http.get({ host: '127.0.0.1', port: s.port, path: p }, r => { r.resume(); res(r); }));
   try {
     const bare = await get('/client/');
-    assert.strictEqual(bare.statusCode, 302, 'bare /client/ redirects');
-    assert.strictEqual(bare.headers.location, '/client/?server=1');
-    assert.strictEqual((await get('/client/?server=1')).statusCode, 200, 'server URL served');
-    assert.strictEqual((await get('/client/?local=1')).statusCode, 200, 'local escape hatch served');
+    assert.strictEqual(bare.statusCode, 200, '§16ext REVERSED (user 2026-07-22): bare /client/ IS the local setup screen, no redirect');
+    assert.strictEqual((await get('/client/?server=1')).statusCode, 200, 'server URL served (the explicit choice)');
+    assert.strictEqual((await get('/client/?local=1')).statusCode, 200, 'local escape hatch still served');
     assert.strictEqual((await get('/client/?seed=5')).statusCode, 200, 'power-user URL untouched');
     const noSlash = await get('/client');
     assert.strictEqual(noSlash.statusCode, 302, '/client 302s');
-    assert.strictEqual(noSlash.headers.location, '/client/?server=1', 'XIV §16ext: /client lands in the server game in one hop');
-    // XIV §16ext: the domain ROOT also lands in the server game directly
+    assert.strictEqual(noSlash.headers.location, '/client/', '/client → the local setup screen');
+    // the domain ROOT also lands on the local setup screen (server costs nothing)
     const root = await get('/');
     assert.strictEqual(root.statusCode, 302, 'root / redirects');
-    assert.strictEqual(root.headers.location, '/client/?server=1', 'root / → server game in one hop');
+    assert.strictEqual(root.headers.location, '/client/', 'root / → local setup screen');
     const rootLocal = await get('/?local=1');
     assert.strictEqual(rootLocal.headers.location, '/client/?local=1', 'root query is preserved (?local=1 escape hatch)');
   } finally { await s.close(); }

@@ -355,8 +355,9 @@ test('server: static hosting serves the client files', async () => {
     // A22: friendly entry points redirect to /client/ keeping the query
     const root = await fetch(`http://127.0.0.1:${s.port}/`, { redirect: 'manual' });
     assert.strictEqual(root.status, 302);
-    // XIV §16ext: a bare root lands in the SERVER game (query-less → ?server=1)
-    assert.strictEqual(root.headers.get('location'), '/client/?server=1');
+    // §16ext REVERSED (user ruling 2026-07-22): a bare root lands on the LOCAL
+    // setup screen — server play is an explicit ?server=1 choice
+    assert.strictEqual(root.headers.get('location'), '/client/');
     const noSlash = await fetch(`http://127.0.0.1:${s.port}/client?server=1&game=g7`, { redirect: 'manual' });
     assert.strictEqual(noSlash.status, 302);
     assert.strictEqual(noSlash.headers.get('location'), '/client/?server=1&game=g7', 'query string preserved');

@@ -206,24 +206,19 @@ export function startServer(opts) {
     if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
     const parsed = new URL(req.url, 'http://x');
     const urlPath = decodeURIComponent(parsed.pathname);
-    // A22 + XIV §16ext: friendly entry points — the bare host `/` and `/client`
-    // land in the SERVER GAME directly (302 → /client/?server=1) so the domain
-    // alone ("multiciv.example") is playable in one hop. A query string is
-    // preserved (join links carry params; ?local=1 reaches the local engine).
+    // A22 + XIV §16ext, REVERSED by user ruling 2026-07-22: friendly entry
+    // points — the bare host `/` and `/client` land on the LOCAL setup screen
+    // (302 → /client/), so a new player's default game runs in their browser
+    // and costs the server nothing (a server game holds engine state + ws +
+    // saves per seat; the local engine is a static-file serve). Server play is
+    // an explicit choice: ?server=1 joins the hosted game (the setup screen
+    // offers it as a labeled link when a game server answers /healthz — the
+    // §16 lost-game-with-tab lesson is kept by LABELING the resumable mode,
+    // not by defaulting into it). A query string is always preserved (join
+    // links carry params).
     if (urlPath === '/' || urlPath === '/client') {
-      const dest = parsed.search === '' ? '/client/?server=1' : '/client/' + parsed.search;
+      const dest = parsed.search === '' ? '/client/' : '/client/' + parsed.search;
       res.writeHead(302, { Location: dest, 'X-Content-Type-Options': 'nosniff' });
-      res.end();
-      return;
-    }
-    // Hosted default: a bare /client/ on a SERVER means the server game, not the
-    // in-browser engine (a player on the public box opened /client/, played the
-    // local engine, and lost the game with the tab). Only the EMPTY query string
-    // redirects — ?local=1 reaches the local engine, and every power-user URL
-    // (?seed/?civs/?humans/…) is served untouched. The bare-host and /client
-    // 302s above chain into this one.
-    if (urlPath === '/client/' && parsed.search === '') {
-      res.writeHead(302, { Location: '/client/?server=1', 'X-Content-Type-Options': 'nosniff' });
       res.end();
       return;
     }
