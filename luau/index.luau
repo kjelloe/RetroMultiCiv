@@ -18,6 +18,7 @@ local government = require("./government") -- batch 4 (P5-6, completed)
 local barbarians = require("./barbarians") -- batch 5 (P5-7)
 local pollution = require("./pollution") -- A91
 local disasters = require("./disasters") -- CIV1 disasters
+local naval = require("./naval") -- naval-truth (Bundle 2)
 local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
 local spaceship = require("./spaceship") -- A76: space race
@@ -102,6 +103,7 @@ hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
 hooks.processPollution = pollution.process -- A91: smokestack pollution + meltdown + warming
 hooks.processDisasters = disasters.process -- CIV1 disasters (authentic-ON)
+hooks.processNaval = naval.process -- naval-truth: the trireme open-sea gamble
 hooks.processAir = air.processAir -- A72: fuel/crash for airborne units
 hooks.processSpace = spaceship.processSpace -- A76: first launched ship to arrive wins
 hooks.checkGameEnd = score.checkGameEnd -- batch 5: guard deleted — endTurn runs UNGUARDED
@@ -157,6 +159,23 @@ local function worldAge(state: any, ruleset: any): string
 	return order[hi + 1]
 end
 
+-- naval-truth (Bundle 2): total ship-movement bonus from active owned wonders (Lighthouse
+-- + Magellan each +1, additive). Sea-domain units only (caller gates). Matches engine/index.js.
+local function shipMoveBonus(state: any, ownerId: string, ruleset: any): number
+	local bonus = 0
+	local wonders = state.wonders or {}
+	for wid in pairs(wonders) do
+		local eff = ruleset.wonders[wid].effect
+		if eff ~= nil and eff.shipMoveBonus ~= nil and cities.wonderActive(state, wid, ruleset) then
+			local city = state.cities[wonders[wid]]
+			if city ~= nil and city.owner == ownerId then
+				bonus = bonus + eff.shipMoveBonus
+			end
+		end
+	end
+	return bonus
+end
+
 local function endTurn(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then
 		return { ok = false, reason = "notYourTurn" }
@@ -181,6 +200,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processCities(state, ruleset, events)
 		hooks.processPollution(state, ruleset, events) -- A91: reads gross shields (after cities)
 		hooks.processDisasters(state, ruleset, events) -- CIV1 disasters (the 7 non-meltdown)
+		hooks.processNaval(state, ruleset, events) -- naval-truth: the trireme open-sea gamble
 		hooks.processResearch(state, ruleset, events)
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.processAir(state, ruleset, events)
@@ -196,7 +216,12 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		end
 		for _, id in sortedKeys(state.units) do
 			local unit = state.units[id]
-			unit.moves = ruleset.units[unit.type].moves
+			local m = ruleset.units[unit.type].moves
+			-- naval-truth: Lighthouse/Magellan grant the owner's SHIPS +1 move each (additive)
+			if ruleset.units[unit.type].domain == "sea" then
+				m = m + shipMoveBonus(state, unit.owner, ruleset)
+			end
+			unit.moves = m
 			unit.roadSteps = nil -- free road allowance resets with the turn
 		end
 		-- A86: the one-sale-per-turn flag resets with the game turn (omit-safe)
@@ -212,7 +237,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		table.insert(events, { type = "turnStarted", turn = state.turn, activePlayer = state.activePlayer })
 	end
 	-- D3: first-contact pass for the player whose turn now begins (every seat).
-	diplomacy.contactPass(state, state.activePlayer, events)
+	diplomacy.contactPass(state, state.activePlayer, events, ruleset)
 	return { ok = true, events = events }
 end
 

@@ -211,10 +211,10 @@ function metOf(state, a, b) {
 // the symmetric pair flag) and push FIRST_CONTACT once. Pure visibility READ that
 // writes only met (+ the transient event). Behavioral (relations gains entries ->
 // the soak moves, expected in D3). Barbarians are never a diplomacy partner.
-function contactPass(state, pid, events) {
+function contactPass(state, pid, events, ruleset) {
   const player = state.players[pid];
   if (player === undefined) return;
-  const mask = computeVisible(state, pid);
+  const mask = computeVisible(state, pid, ruleset);
   const width = state.map.width;
   const seen = {};
   for (const uid of Object.keys(state.units)) {

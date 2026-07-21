@@ -51,13 +51,22 @@ function markCircle(mask, map, x, y, radius) {
   }
 }
 
-function computeVisible(state, playerId) {
+// naval-truth (Bundle 2): a unit's sight radius — units.json `sight` (default 1; 2 for
+// the A71 set: submarine/carrier/battleship/cruiser/bomber). ruleset optional so old
+// callers keep the radius-1 default (back-compat / crafted-state safety).
+function unitSight(unit, ruleset) {
+  if (ruleset === undefined) return 1;
+  const s = ruleset.units[unit.type].sight;
+  return s === undefined ? 1 : s;
+}
+
+function computeVisible(state, playerId, ruleset) {
   const size = state.map.width * state.map.height;
   const mask = [];
   for (let i = 0; i < size; i++) mask.push(0);
   for (const id of Object.keys(state.units)) {
     const u = state.units[id];
-    if (u.owner === playerId) markCircle(mask, state.map, u.x, u.y, 1);
+    if (u.owner === playerId) markCircle(mask, state.map, u.x, u.y, unitSight(u, ruleset));
   }
   for (const id of Object.keys(state.cities)) {
     const c = state.cities[id];
@@ -66,10 +75,28 @@ function computeVisible(state, playerId) {
   return mask;
 }
 
-function filterView(state, playerId) {
+// naval-truth (Bundle 2): is `sub` (a stealth unit) within range 1 of a SEA or AIR unit
+// owned by viewerId? Land units never spot a submarine; a ship/plane spots it only when
+// adjacent. Wrap-aware chebyshev.
+function spottedByShipOrAir(state, viewerId, sub, ruleset) {
+  const { width, wrapX } = state.map;
+  for (const id of Object.keys(state.units)) {
+    const v = state.units[id];
+    if (v.owner !== viewerId) continue;
+    const dom = ruleset.units[v.type].domain;
+    if (dom !== 'sea' && dom !== 'air') continue;
+    let dx = v.x - sub.x; if (dx < 0) dx = -dx;
+    if (wrapX && dx > width - dx) dx = width - dx;
+    let dy = v.y - sub.y; if (dy < 0) dy = -dy;
+    if (dx <= 1 && dy <= 1) return true;
+  }
+  return false;
+}
+
+function filterView(state, playerId, ruleset) {
   const me = state.players[playerId];
   const omniscient = !me || !me.explored;
-  const visible = computeVisible(state, playerId);
+  const visible = computeVisible(state, playerId, ruleset);
   const { width, height, wrapX } = state.map;
 
   const tiles = [];
@@ -94,7 +121,13 @@ function filterView(state, playerId) {
   const units = {};
   for (const id of Object.keys(state.units)) {
     const u = state.units[id];
-    if (omniscient || visible[u.y * width + u.x] === 1) units[id] = u;
+    if (!(omniscient || visible[u.y * width + u.x] === 1)) continue;
+    // naval-truth: a rival submarine (stealth) is hidden unless a viewer ship/plane is adjacent
+    if (!omniscient && u.owner !== playerId && ruleset !== undefined
+        && ruleset.units[u.type].stealth === true && !spottedByShipOrAir(state, playerId, u, ruleset)) {
+      continue;
+    }
+    units[id] = u;
   }
 
   // Own cities come through whole; a rival city on explored ground is only
@@ -232,10 +265,10 @@ function eventCoords(state, e) {
   return out;
 }
 
-function filterEvents(state, events, playerId) {
+function filterEvents(state, events, playerId, ruleset) {
   const me = state.players[playerId];
   if (!me || !me.explored) return events.slice(); // omniscient: spectators, tests
-  const visible = computeVisible(state, playerId);
+  const visible = computeVisible(state, playerId, ruleset);
   const width = state.map.width;
   const out = [];
   for (const e of events) {
@@ -264,4 +297,4 @@ function filterEvents(state, events, playerId) {
   return out;
 }
 
-export { initExplored, reveal, computeVisible, filterView, filterEvents };
+export { initExplored, reveal, computeVisible, filterView, filterEvents, unitSight };

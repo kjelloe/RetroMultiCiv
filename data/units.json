@@ -180,8 +180,8 @@
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "popCost": 1,
-    "notes": ""
+    "notes": "",
+    "popCost": 1
   },
   "battleship": {
     "name": "Battleship",
@@ -191,7 +191,8 @@
     "moves": 4,
     "cost": 160,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2
   },
   "carrier": {
     "name": "Carrier",
@@ -202,7 +203,8 @@
     "cost": 160,
     "domain": "sea",
     "notes": "",
-    "airCapacity": 8
+    "airCapacity": 8,
+    "sight": 2
   },
   "cruiser": {
     "name": "Cruiser",
@@ -212,7 +214,8 @@
     "moves": 6,
     "cost": 80,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2
   },
   "frigate": {
     "name": "Frigate",
@@ -260,7 +263,9 @@
     "moves": 3,
     "cost": 50,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2,
+    "stealth": true
   },
   "transport": {
     "name": "Transport",
@@ -284,7 +289,8 @@
     "notes": "",
     "obsoletedBy": "navigation",
     "transport": 2,
-    "upgradesTo": "sail"
+    "upgradesTo": "sail",
+    "openSeaLoss": true
   },
   "bomber": {
     "name": "Bomber",
@@ -297,6 +303,7 @@
     "notes": "",
     "ignoresZoc": true,
     "fuel": 2,
+    "sight": 2,
     "ignoresWalls": true
   },
   "fighter": {
@@ -323,8 +330,8 @@
     "notes": "",
     "ignoresZoc": true,
     "oneShot": true,
-    "nuclearBlast": true,
-    "fuel": 1
+    "fuel": 1,
+    "nuclearBlast": true
   },
   "barbleader": {
     "name": "Barbarian Leader",

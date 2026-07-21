@@ -65,7 +65,17 @@ local function markCircle(mask: { number }, map: any, x: number, y: number, radi
 	end
 end
 
-local function computeVisible(state: any, playerId: string): { number }
+-- naval-truth (Bundle 2): a unit's sight radius (units.json sight; default 1, 2 for the
+-- A71 set). ruleset optional -> radius-1 default. Matches engine/visibility.js.
+local function unitSight(unit: any, ruleset: any): number
+	if ruleset == nil then
+		return 1
+	end
+	local s = ruleset.units[unit.type].sight
+	return if s == nil then 1 else s
+end
+
+local function computeVisible(state: any, playerId: string, ruleset: any): { number }
 	local size = state.map.width * state.map.height
 	local mask = {}
 	for i = 1, size do
@@ -73,7 +83,7 @@ local function computeVisible(state: any, playerId: string): { number }
 	end
 	for _, u in pairs(state.units) do
 		if u.owner == playerId then
-			markCircle(mask, state.map, u.x, u.y, 1)
+			markCircle(mask, state.map, u.x, u.y, unitSight(u, ruleset))
 		end
 	end
 	for _, c in pairs(state.cities) do
@@ -95,10 +105,34 @@ local function sortedKeys(t: any): { string }
 	return keys
 end
 
-local function filterView(state: any, playerId: string): any
+-- naval-truth: is `sub` within range 1 of a SEA or AIR unit owned by viewerId? Land units
+-- never spot a submarine. Wrap-aware chebyshev. Matches engine/visibility.js.
+local function spottedByShipOrAir(state: any, viewerId: string, sub: any, ruleset: any): boolean
+	local width, wrapX = state.map.width, state.map.wrapX
+	for _, v in pairs(state.units) do
+		if v.owner ~= viewerId then
+			continue
+		end
+		local dom = ruleset.units[v.type].domain
+		if dom ~= "sea" and dom ~= "air" then
+			continue
+		end
+		local dx = v.x - sub.x
+		if dx < 0 then dx = -dx end
+		if wrapX and dx > width - dx then dx = width - dx end
+		local dy = v.y - sub.y
+		if dy < 0 then dy = -dy end
+		if dx <= 1 and dy <= 1 then
+			return true
+		end
+	end
+	return false
+end
+
+local function filterView(state: any, playerId: string, ruleset: any): any
 	local me = state.players[playerId]
 	local omniscient = me == nil or me.explored == nil
-	local visible = computeVisible(state, playerId)
+	local visible = computeVisible(state, playerId, ruleset)
 	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
 
 	local tiles = setmetatable({}, statehash.ARRAY_MT)
@@ -123,9 +157,15 @@ local function filterView(state: any, playerId: string): any
 	local units = {}
 	for _, id in sortedKeys(state.units) do
 		local u = state.units[id]
-		if omniscient or visible[u.y * width + u.x + 1] == 1 then
-			units[id] = u
+		if not (omniscient or visible[u.y * width + u.x + 1] == 1) then
+			continue
 		end
+		-- naval-truth: a rival submarine (stealth) is hidden unless a viewer ship/plane is adjacent
+		if not omniscient and u.owner ~= playerId and ruleset ~= nil
+			and ruleset.units[u.type].stealth == true and not spottedByShipOrAir(state, playerId, u, ruleset) then
+			continue
+		end
+		units[id] = u
 	end
 
 	-- Own cities come through whole; a rival city on explored ground is only
@@ -248,12 +288,12 @@ local function eventCoords(state: any, e: any): { { number } }
 	return out
 end
 
-local function filterEvents(state: any, events: { any }, playerId: string): { any }
+local function filterEvents(state: any, events: { any }, playerId: string, ruleset: any): { any }
 	local me = state.players[playerId]
 	if me == nil or me.explored == nil then
 		return table.clone(events)
 	end
-	local visible = computeVisible(state, playerId)
+	local visible = computeVisible(state, playerId, ruleset)
 	local width = state.map.width
 	local out = setmetatable({}, statehash.ARRAY_MT)
 	for _, e in ipairs(events) do
@@ -293,6 +333,7 @@ return {
 	initExplored = initExplored,
 	reveal = reveal,
 	computeVisible = computeVisible,
+	unitSight = unitSight,
 	filterView = filterView,
 	filterEvents = filterEvents,
 }

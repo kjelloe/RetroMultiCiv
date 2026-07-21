@@ -297,13 +297,13 @@ export function createGame(opts) {
   }
 
   function view(playerId) {
-    return filterView(state, playerId);
+    return filterView(state, playerId, ruleset);
   }
 
   // Fog policy for round events (B5): what this seat may hear about.
   // Spectators and unknown ids fall through to omniscient, like filterView.
   function eventsFor(playerId, events) {
-    return filterEvents(state, events || [], playerId);
+    return filterEvents(state, events || [], playerId, ruleset);
   }
 
   // docs/07: the 64-bit verification code of the authoritative state. The

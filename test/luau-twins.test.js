@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 52, 'the fifty-two scenarios (052 disasters added)');
+      assert.strictEqual(files.length, 53, 'the fifty-three scenarios (053 trireme-loss added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -174,7 +174,8 @@ const PORTED = [
   '049-air-fighter-only.json', // air-truth: only a Fighter attacks a bomber in flight
   '050-bomber-ignores-walls.json', // air-truth: a bomber skips the City Walls multiplier
   '051-freesupport-upkeep.json', // air-truth: freeSupport units cost no shield upkeep
-  '052-disaster-earthquake.json' // disasters: an earthquake destroys a building (cross-language RNG path)
+  '052-disaster-earthquake.json', // disasters: an earthquake destroys a building (cross-language RNG path)
+  '053-trireme-loss.json' // naval-truth: the trireme open-sea gamble (cross-language)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
@@ -238,7 +239,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x3d261b9b\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x22221906\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -276,8 +277,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '5940cb90', pangaea: '07b97feb',
-      archipelago: '7335500a', islands: '42b0ec9b'
+      continents: '52aa0ca1', pangaea: 'd3008356',
+      archipelago: '6752cd91', islands: '8a82a758'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -320,8 +321,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // 0x7f492828 (§40 settlers popCost) -> 0xe3237208 (air-truth units.json flags) ->
 // 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean) ->
 // 0xb735adcb (XII.5b latch spaceThreatPatience) -> 0x84150295 (A91c nuclearBlast flag) ->
-// 0x3ad8f233 (disasters block). Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x3ad8f233 turn 25 grant 22';
+// 0x3ad8f233 (disasters block) -> 0x27ee037e (naval-truth: sight/trireme/wonder-move + A91c nuclearBlast restore).
+// Re-pin here whenever a ruleset window moves it.
+const FF_PARITY_PIN = 'ff-parity 0x27ee037e turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

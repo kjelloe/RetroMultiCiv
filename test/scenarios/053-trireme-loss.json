@@ -1,0 +1,36 @@
+{
+  "name": "naval-truth: an open-sea trireme is lost at the turn wrap (Civ1)",
+  "notes": "The trireme at (3,3) is surrounded by ocean (land only at row y=0), so it is NOT adjacent to land -> the turn-wrap gamble rolls. rulesOverrides forces lossChancePct 100 (deterministic loss); a coast-hugging trireme's safety + zero-rng discipline is covered in test/naval.test.js. Cross-language pin.",
+  "rulesOverrides": { "lossChancePct": 100 },
+  "setup": {
+    "state": {
+      "version": 1, "turn": 200, "year": 1000, "activePlayer": "p1", "playerOrder": ["p1"],
+      "map": {
+        "width": 6, "height": 6, "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" },
+          { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }, { "t": "ocean" }
+        ]
+      },
+      "units": {
+        "u1": { "id": "u1", "type": "trireme", "owner": "p1", "x": 3, "y": 3, "moves": 3 }
+      },
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 50, "nextCityId": 5,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#00f", "human": false, "gold": 0, "techs": [], "researching": "pottery", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } }
+  ],
+  "final": { "hash": "0xa84cdbb2" }
+}

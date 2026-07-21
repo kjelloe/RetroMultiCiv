@@ -2,7 +2,7 @@
 // Civ 1 partial-move rule (a unit may enter any passable tile as long as it
 // has ANY movement left), zone of control, and attack-by-moving (delegated
 // to combat.js). Railroads arrive in a later slice.
-import { reveal } from './visibility.js';
+import { reveal, unitSight } from './visibility.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 import { rollHut } from './huts.js';
 import { relationOf } from './diplomacy.js';
@@ -121,7 +121,7 @@ function moveUnit(state, cmd, ruleset) {
         delete unit.workLeft;
         unit.moves = unit.moves - 1;
         if (unit.moves < 0) unit.moves = 0;
-        reveal(state, unit.owner, nx, ny, 1);
+        reveal(state, unit.owner, nx, ny, unitSight(unit, ruleset));
         return { ok: true, events: [{ type: 'unitLoaded', unitId: unit.id, owner: unit.owner, shipId: ship.id, x: nx, y: ny }] };
       }
     }
@@ -199,7 +199,7 @@ function moveUnit(state, cmd, ruleset) {
   // hand-rule facing here; a plain move without a heading clears it).
   if (cmd.heading !== undefined) unit.scoutDir = cmd.heading;
   else if (unit.scoutDir !== undefined) delete unit.scoutDir;
-  reveal(state, unit.owner, nx, ny, 1);
+  reveal(state, unit.owner, nx, ny, unitSight(unit, ruleset));
 
   const events = [{ type: 'unitMoved', unitId: unit.id, fromX, fromY, toX: nx, toY: ny }];
   // A69: a unit that was aboard and has stepped onto land has disembarked

@@ -184,7 +184,7 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 	local tileDomain = ruleset.terrain.terrains[state.map.tiles[ty * state.map.width + tx + 1].t].domain
 	-- A72: air units strike targets on any tile; sea units bombard coastal land.
 	local canReach = atype.domain == "air" or tileDomain == atype.domain
-		or (atype.domain == "sea" and tileDomain == "land")
+		or (atype.domain == "sea" and tileDomain == "land" and atype.stealth ~= true)
 	if not canReach then
 		return { ok = false, reason = "cannotAttackThere" } -- e.g. land unit vs ships at sea
 	end

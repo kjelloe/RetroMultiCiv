@@ -144,6 +144,11 @@
     "volcano": { "prevent": "temple", "terrain": "mountains", "destroyBuilding": true, "popPct": 33 },
     "earthquake": { "terrain": "hills", "destroyBuilding": true }
   },
+  "trireme": {
+    "lossChancePct": 50,
+    "adjacentLandSafe": true,
+    "appliesToAI": true
+  },
   "diplomacy": {
     "warIntentThreshold": 60,
     "peaceAcceptThreshold": 30,

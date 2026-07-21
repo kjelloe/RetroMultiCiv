@@ -10,6 +10,7 @@ import * as tech from './tech.js';
 import * as barbarians from './barbarians.js';
 import * as pollution from './pollution.js';
 import * as disasters from './disasters.js';
+import * as naval from './naval.js';
 import * as air from './air.js';
 import * as scoring from './score.js';
 import * as improvements from './improvements.js';
@@ -102,6 +103,22 @@ function worldAge(state, ruleset) {
   return order[hi];
 }
 
+// naval-truth (Bundle 2): total ship-movement bonus a player draws from its active,
+// owned wonders — Lighthouse + Magellan each +1, ADDITIVE (original-pending-sourcing).
+// Sea-domain units only (the caller gates on domain). Zero when no such wonder is held.
+function shipMoveBonus(state, ownerId, ruleset) {
+  let bonus = 0;
+  const wonders = state.wonders === undefined ? {} : state.wonders;
+  for (const wid of Object.keys(wonders)) {
+    const eff = ruleset.wonders[wid].effect;
+    if (eff !== undefined && eff.shipMoveBonus !== undefined && cities.wonderActive(state, wid, ruleset)) {
+      const city = state.cities[wonders[wid]];
+      if (city !== undefined && city.owner === ownerId) bonus = bonus + eff.shipMoveBonus;
+    }
+  }
+  return bonus;
+}
+
 // End the active player's turn. When the last player in playerOrder ends,
 // the game turn advances and every unit's movement refreshes.
 function endTurn(state, cmd, ruleset) {
@@ -123,6 +140,7 @@ function endTurn(state, cmd, ruleset) {
     cities.processCities(state, ruleset, events);
     pollution.process(state, ruleset, events); // A91: smokestack pollution + meltdown (reads gross shields)
     disasters.process(state, ruleset, events); // CIV1 disasters (authentic-ON; the 7 non-meltdown calamities)
+    naval.process(state, ruleset, events); // naval-truth: the trireme open-sea gamble (turn-wrap)
     tech.processResearch(state, ruleset, events);
     barbarians.process(state, ruleset, events);
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
@@ -140,7 +158,10 @@ function endTurn(state, cmd, ruleset) {
     }
     for (const id of Object.keys(state.units)) {
       const unit = state.units[id];
-      unit.moves = ruleset.units[unit.type].moves;
+      let m = ruleset.units[unit.type].moves;
+      // naval-truth: Lighthouse/Magellan grant the owner's SHIPS +1 move each (additive)
+      if (ruleset.units[unit.type].domain === 'sea') m = m + shipMoveBonus(state, unit.owner, ruleset);
+      unit.moves = m;
       delete unit.roadSteps; // free road allowance resets with the turn
     }
     // A86: the one-sale-per-turn flag resets with the game turn (omit-safe)
@@ -156,7 +177,7 @@ function endTurn(state, cmd, ruleset) {
   // D3: first-contact pass for the player whose turn now begins (every seat, incl.
   // humans — D2's audience needs human first-contact). Sets met on the pair entry +
   // pushes FIRST_CONTACT; behavioral (the soak gains relations entries).
-  diplomacy.contactPass(state, state.activePlayer, events);
+  diplomacy.contactPass(state, state.activePlayer, events, ruleset);
   return { ok: true, events };
 }
 

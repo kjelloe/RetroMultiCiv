@@ -193,17 +193,17 @@ function buildTechs() {
 // cannon→robotics, chariot→chivalry, knights→automobile, trireme→navigation,
 // sail→magnetism, frigate→industrialization, ironclad→combustion.
 const UNIT_OVERLAY = {
-  'diplomat': { ignoresZoc: true },
-  'caravan':  { ignoresZoc: true, helpsWonder: true, tradeRoutes: true },
+  'diplomat': { ignoresZoc: true, freeSupport: true },  // air-truth: no shield upkeep
+  'caravan':  { ignoresZoc: true, helpsWonder: true, tradeRoutes: true, freeSupport: true },  // air-truth: no shield upkeep
   // A72: the nuclear missile is a one-shot air weapon (Civ 1) — it strikes once
   // and is consumed, and burns fuel like any air unit (area damage/pollution is
   // a deferred follow-up). fuel FLAGGED for user with the other air numbers.
-  'nuclear':  { ignoresZoc: true, oneShot: true, fuel: 1 },
+  'nuclear':  { ignoresZoc: true, oneShot: true, fuel: 1, nuclearBlast: true },  // A91c: full detonation
   // A72: air units fly over zones of control (Civ 1 — ZOC is a ground concept)
   // and burn fuel — they must end the turn on a friendly base or crash. fuel =
   // turns aloft allowed (fighter 1, bomber 2; canonical, FLAGGED for user).
-  'fighter':  { ignoresZoc: true, fuel: 1 },
-  'bomber':   { ignoresZoc: true, fuel: 2 },
+  'fighter':  { ignoresZoc: true, fuel: 1, attacksAir: true },  // air-truth: intercepts flying units
+  'bomber':   { ignoresZoc: true, fuel: 2, sight: 2, ignoresWalls: true },  // air-truth: skips City Walls
   // N11 3a upgradesTo: the Civ1-roster projection of the Civ2 upgrade table
   // (specs/n11-upgrades.md). Provenance labeled PER ROW. The forward-upgrade
   // invariant is tgtTech >= srcTech, NOT >= the obsoleting tech — a source can
@@ -223,15 +223,21 @@ const UNIT_OVERLAY = {
   // exact table so FLAGGED for user verification). Land units aboard ride the
   // ship; ironclad/cruiser/battleship/submarine carry nothing (transport 0 =
   // omitted). Carrier's air capacity waits for A72.
-  'trireme':    { obsoletedBy: 'navigation', transport: 2, upgradesTo: 'sail' },      // original-projection (transport-lineage)
+  'trireme':    { obsoletedBy: 'navigation', transport: 2, upgradesTo: 'sail', openSeaLoss: true },  // original-projection (transport-lineage); naval-truth open-sea gamble
   'sail':       { obsoletedBy: 'magnetism', transport: 3, upgradesTo: 'frigate' },    // original-projection
   'frigate':    { obsoletedBy: 'industrialization', transport: 4, upgradesTo: 'transport' }, // original-projection
   'ironclad':   { obsoletedBy: 'combustion', upgradesTo: 'cruiser' },                 // original-projection (no destroyer in Civ1)
   'transport':  { transport: 8 },
+  'settlers':   { popCost: 1 },  // §40: founding a settler costs 1 city pop
+  // naval-truth (Bundle 2): per-unit SIGHT (A71 wiki-verified sight-2 set) + the
+  // submarine's stealth (invisible to land units; visible to sea/air only adjacent).
+  'submarine':  { sight: 2, stealth: true },
+  'battleship': { sight: 2 },
+  'cruiser':    { sight: 2 },
   // A72: a carrier is a mobile airbase — it holds AIR units (airCapacity), not
   // land units (no `transport`), so the A69 load path never boards it. Capacity
   // canonical (8), FLAGGED for user with the other air/naval numbers.
-  'carrier':    { airCapacity: 8 },
+  'carrier':    { airCapacity: 8, sight: 2 },
   // N13: the barbarian leader is a Civ1-authentic mechanic but NOT a roster unit
   // (not in the extract) — an `added` block DEFINES it (the WONDER_OVERLAY.added
   // pattern from N11 3b). barbOnly = never buildable (excluded from build lists);
@@ -278,6 +284,11 @@ const WONDER_OVERLAY = {
   'cure-for-cancer':       { effect: { happyEverywhere: 1 } },
   'shakespeare-s-theatre': { effect: { allContentInCity: true } },
   'oracle':                { effect: { doublesTemple: true } },
+  // naval-truth (Bundle 2): Civ1 Lighthouse = +1 movement for the owner's ships (the
+  // "saves triremes" belief is CIV2 — dropped). Magellan's Expedition = +1 too; the
+  // stack is additive (+2), labeled original-pending-sourcing (reviewer #1976 + spec §2).
+  'lighthouse':            { effect: { shipMoveBonus: 1 } },
+  'magellan-s-expedition': { effect: { shipMoveBonus: 1 } },
   // N11 3b: Leonardo's Workshop is a Civ2 wonder (NOT in the Civ1 wiki roster of
   // 21 — verified). An `added` block DEFINES a wonder the extract lacks (labeled
   // Civ2-authentic per specs/n11-upgrades.md); the engine keys on the wonder being

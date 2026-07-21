@@ -184,10 +184,10 @@ end
 
 -- D3 contact pass (turn loop, every seat): computeVisible for pid; any rival
 -- unit/city on a visible tile -> flip met (symmetric pair flag) + push FIRST_CONTACT.
-local function contactPass(state: any, pid: string, events: any)
+local function contactPass(state: any, pid: string, events: any, ruleset: any)
 	local player = state.players[pid]
 	if player == nil then return end
-	local mask = visibility.computeVisible(state, pid)
+	local mask = visibility.computeVisible(state, pid, ruleset)
 	local width = state.map.width
 	local seen = {}
 	for _, u in pairs(state.units) do

@@ -142,8 +142,10 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const tileDomain = ruleset.terrain.terrains[state.map.tiles[ty * state.map.width + tx].t].domain;
   // A72: air units strike targets on any tile; sea units bombard coastal land.
+  // naval-truth: a SUBMARINE (stealth) may NOT attack land tiles — the one guard that
+  // mirrors the sea-bombard allowance (a submerged raider has no shore bombardment).
   const canReach = atype.domain === 'air' || tileDomain === atype.domain
-    || (atype.domain === 'sea' && tileDomain === 'land');
+    || (atype.domain === 'sea' && tileDomain === 'land' && atype.stealth !== true);
   if (!canReach) return { ok: false, reason: 'cannotAttackThere' }; // e.g. land unit vs ships at sea
 
   const defender = bestDefender(state, tx, ty, ruleset);

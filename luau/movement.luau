@@ -168,7 +168,7 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 				if unit.moves < 0 then
 					unit.moves = 0
 				end
-				visibility.reveal(state, unit.owner, nx, ny, 1)
+				visibility.reveal(state, unit.owner, nx, ny, visibility.unitSight(unit, ruleset))
 				local ev = setmetatable({}, statehash.ARRAY_MT)
 				table.insert(ev, { type = "unitLoaded", unitId = unit.id, owner = unit.owner, shipId = ship.id, x = nx, y = ny })
 				return { ok = true, events = ev }
@@ -248,7 +248,7 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	elseif unit.scoutDir ~= nil then
 		unit.scoutDir = nil
 	end
-	visibility.reveal(state, unit.owner, nx, ny, 1)
+	visibility.reveal(state, unit.owner, nx, ny, visibility.unitSight(unit, ruleset))
 
 	local events = setmetatable({}, statehash.ARRAY_MT)
 	table.insert(events, { type = "unitMoved", unitId = unit.id, fromX = fromX, fromY = fromY, toX = nx, toY = ny })

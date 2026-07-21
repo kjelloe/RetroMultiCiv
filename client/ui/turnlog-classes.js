@@ -66,6 +66,8 @@ export function classifyEvent(e, viewer, cityOwner) {
       return 'world';
     case 'disasterStruck': // disasters: a calamity hit a city — the owner hears it, rivals see it
       return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
+    case 'triremeLost': // naval-truth: an open-sea trireme drowned — the owner's loss (rivals never saw it)
+      return e.owner === viewer ? 'combat' : null;
     case 'cityNuked': // A91c: a nuclear strike halved a city — the owner hears it, rivals see it
       return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
     case 'nukeFallout': // A91c: fallout fouled a ring tile — ambient (the strike row carries it)
