@@ -196,6 +196,10 @@ test('browser setup: a bare URL shows the setup screen instead of booting a game
       assert.match(dom, /hotseat/, 'and the human-players picker');
       assert.match(dom, /id="setup-difficulty"/, 'and the difficulty picker');
       assert.match(dom, /id="setup-combat"/, 'and the combat-calculations picker');
+      // XIV §17/§18/§19: the front-page affordances
+      assert.match(dom, /id="setup-help"/, '§17: the "New here?" help marker');
+      assert.match(dom, /id="setup-find"/, '§18: the "Find game" master-browser button');
+      assert.match(dom, /github\.com\/kjelloe\/RetroMultiCiv\/issues/, '§19: the Report issue link');
       assert.ok(!/<canvas/.test(dom), 'no renderer starts before the setup choices');
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
     } finally {

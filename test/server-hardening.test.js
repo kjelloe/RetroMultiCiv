@@ -312,8 +312,14 @@ test('a bare /client/ on the server redirects to the server game; any query is s
     assert.strictEqual((await get('/client/?local=1')).statusCode, 200, 'local escape hatch served');
     assert.strictEqual((await get('/client/?seed=5')).statusCode, 200, 'power-user URL untouched');
     const noSlash = await get('/client');
-    assert.strictEqual(noSlash.statusCode, 302, '/client still 302s to /client/');
-    assert.strictEqual(noSlash.headers.location, '/client/');
+    assert.strictEqual(noSlash.statusCode, 302, '/client 302s');
+    assert.strictEqual(noSlash.headers.location, '/client/?server=1', 'XIV §16ext: /client lands in the server game in one hop');
+    // XIV §16ext: the domain ROOT also lands in the server game directly
+    const root = await get('/');
+    assert.strictEqual(root.statusCode, 302, 'root / redirects');
+    assert.strictEqual(root.headers.location, '/client/?server=1', 'root / → server game in one hop');
+    const rootLocal = await get('/?local=1');
+    assert.strictEqual(rootLocal.headers.location, '/client/?local=1', 'root query is preserved (?local=1 escape hatch)');
   } finally { await s.close(); }
 });
 

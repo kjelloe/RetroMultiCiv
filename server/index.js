@@ -205,10 +205,13 @@ export function startServer(opts) {
     if (req.url && req.url.length > 2048) { res.writeHead(414); res.end(); return; }
     const parsed = new URL(req.url, 'http://x');
     const urlPath = decodeURIComponent(parsed.pathname);
-    // A22: friendly entry points — the bare host and /client (no slash) both
-    // land on /client/ (302 keeps the query string: join links carry params)
+    // A22 + XIV §16ext: friendly entry points — the bare host `/` and `/client`
+    // land in the SERVER GAME directly (302 → /client/?server=1) so the domain
+    // alone ("multiciv.example") is playable in one hop. A query string is
+    // preserved (join links carry params; ?local=1 reaches the local engine).
     if (urlPath === '/' || urlPath === '/client') {
-      res.writeHead(302, { Location: '/client/' + parsed.search, 'X-Content-Type-Options': 'nosniff' });
+      const dest = parsed.search === '' ? '/client/?server=1' : '/client/' + parsed.search;
+      res.writeHead(302, { Location: dest, 'X-Content-Type-Options': 'nosniff' });
       res.end();
       return;
     }

@@ -9,7 +9,7 @@ export function showSetupScreen() {
   overlay.id = 'setup-screen';
   overlay.innerHTML = `
     <div id="setup-box">
-      <h2>RetroMultiCiv</h2>
+      <h2>RetroMultiCiv <button id="setup-help" type="button" title="new here?" aria-label="new here?">?</button></h2>
       <p class="setup-hint">One deterministic engine, one world, 4000 BC — or any age you pick.
         Play solo against the AI, pass the keyboard in hotseat, or host a LAN game
         friends join with a 5-letter code.<span id="setup-maxciv-line"></span></p>
@@ -74,9 +74,11 @@ export function showSetupScreen() {
       <button id="setup-start">Start game</button>
       <div id="setup-lan">
         <button id="setup-host" class="setup-lan-btn">Host LAN game</button>
+        <button id="setup-find" class="setup-lan-btn">Find game</button>
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
       </div>
-      <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a></p>
+      <div id="setup-find-list" class="hidden"></div>
+      <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a> · <a href="https://github.com/kjelloe/RetroMultiCiv/issues" target="_blank" rel="noopener">Report issue ↗</a></p>
     </div>`;
   document.body.appendChild(overlay);
   const setupBox = document.getElementById('setup-box');
@@ -395,6 +397,72 @@ export function showSetupScreen() {
   });
   document.getElementById('setup-join').addEventListener('click', () => {
     import('./lobby.js').then(m => m.startJoinFlow(setupBox));
+  });
+
+  // XIV §17: the "New here?" hint overlay — the ally's verbatim copy, one
+  // obvious "Got it" dismiss (also tap-outside / Esc). Cards sized for mobile.
+  document.getElementById('setup-help').addEventListener('click', () => {
+    if (document.getElementById('setup-help-overlay')) return;
+    const o = document.createElement('div');
+    o.id = 'setup-help-overlay';
+    const rows = [
+      ['Start Game', 'Begin a new single-player world. Choose your civilization, map, and opponents, then lead your people from their first settlement onward.'],
+      ['LAN Game', 'Host a multiplayer game for people on your network. Create a lobby, choose the settings, and share the join code when you are ready.'],
+      ['Find game', 'Browse the public games other people are hosting right now and jump straight into one.'],
+      ['Join Game', 'Enter a five-letter join code to meet friends in an existing multiplayer lobby. You can join before the host starts the game.']
+    ];
+    const card = document.createElement('div');
+    card.id = 'setup-help-card';
+    const h = document.createElement('h3'); h.textContent = 'New here?';
+    card.appendChild(h);
+    for (const [name, body] of rows) {
+      const r = document.createElement('div'); r.className = 'setup-help-row';
+      const b = document.createElement('b'); b.textContent = name;
+      const s = document.createElement('span'); s.textContent = body;
+      r.append(b, s); card.appendChild(r);
+    }
+    const got = document.createElement('button');
+    got.id = 'setup-help-got'; got.type = 'button'; got.textContent = 'Got it';
+    card.appendChild(got);
+    o.appendChild(card);
+    document.body.appendChild(o);
+    const close = () => { o.remove(); window.removeEventListener('keydown', esc); };
+    const esc = e => { if (e.key === 'Escape') close(); };
+    got.addEventListener('click', close);
+    o.addEventListener('click', e => { if (e.target === o) close(); });
+    window.addEventListener('keydown', esc);
+  });
+
+  // XIV §18: "Find game" — the in-client master-index browser (docs/12 §6).
+  // Fetches /master/servers (same-origin on the hosted box; ?master=URL for
+  // self-hosters), lists public servers, tap to open that host's game. Server
+  // names are UNTRUSTED (from the master) — built with textContent, never HTML.
+  document.getElementById('setup-find').addEventListener('click', () => {
+    const list = document.getElementById('setup-find-list');
+    if (!list.classList.contains('hidden')) { list.classList.add('hidden'); return; }
+    list.classList.remove('hidden');
+    list.textContent = 'Loading games…';
+    const masterUrl = new URLSearchParams(location.search).get('master') || '/master/servers';
+    fetch(masterUrl).then(r => r.json()).then(data => {
+      const servers = (data && Array.isArray(data.servers)) ? data.servers : [];
+      list.textContent = '';
+      if (servers.length === 0) {
+        list.textContent = 'No public games right now — host one, or ask a friend for a join code.';
+        return;
+      }
+      for (const s of servers) {
+        const row = document.createElement('button');
+        row.className = 'setup-find-row'; row.type = 'button';
+        const nm = document.createElement('b'); nm.textContent = s.name || '(unnamed server)';
+        const meta = document.createElement('span');
+        meta.textContent = `${Number.isInteger(s.openGames) ? s.openGames : 0} open · ${s.protocolVersion || 'v?'}`;
+        row.append(nm, meta);
+        if (typeof s.host === 'string' && Number.isInteger(s.port)) {
+          row.addEventListener('click', () => { location.href = `//${s.host}:${s.port}/client/?server=1`; });
+        } else { row.disabled = true; }
+        list.appendChild(row);
+      }
+    }).catch(() => { list.textContent = 'Could not reach the game list — check your connection or the master URL.'; });
   });
 
   // e2e: ?e2ehost=1 auto-hosts a tiny 1-human game and starts it (the browser

@@ -1526,6 +1526,43 @@ html, body {
 }
 .setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
 
+/* XIV §17: the "?" help marker + "New here?" overlay */
+#setup-help {
+  font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0;
+  vertical-align: 3px; border-radius: 50%; border: 1px solid #3b5d8f; background: #1b2c49;
+  color: #cdd8ea; cursor: pointer;
+}
+#setup-help:hover { background: #24406b; }
+#setup-help-overlay {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 7, 13, 0.86); padding: 16px; box-sizing: border-box;
+}
+#setup-help-card {
+  background: #101827; border: 1px solid #2f486f; border-radius: 12px; padding: 20px 22px;
+  max-width: 460px; width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; color: #cdd8ea;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
+}
+#setup-help-card h3 { margin: 0 0 12px; }
+.setup-help-row { margin: 10px 0; }
+.setup-help-row b { display: block; color: #ffe066; margin-bottom: 2px; }
+.setup-help-row span { font-size: 13px; color: #b6c6de; }
+#setup-help-got {
+  margin-top: 14px; width: 100%; min-height: 44px; padding: 10px; font: inherit; font-size: 15px;
+  background: #2e6b40; color: #d8f0dc; border: 1px solid #4f9a63; border-radius: 6px; cursor: pointer;
+}
+
+/* XIV §18: the "Find game" master-index browser list */
+#setup-find-list { margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #b6c6de; }
+#setup-find-list.hidden { display: none; }
+.setup-find-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left;
+  padding: 9px 12px; min-height: 40px; background: #16233c; border: 1px solid #3b5d8f; border-radius: 6px;
+  color: #cdd8ea; font: inherit; font-size: 13px; cursor: pointer;
+}
+.setup-find-row:hover { background: #1f3557; }
+.setup-find-row:disabled { opacity: 0.6; cursor: default; }
+.setup-find-row span { color: #8fa8cc; }
+
 /* XII.4: the rejoin banner — a left-behind server game surfaced on setup */
 #rejoin-banner {
   display: flex;
