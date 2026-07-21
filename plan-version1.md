@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-21 (marker-0070 calendar-545 landed [395→545t]; §11 probe short — 0/3 reach space, bulb+AI-space-path follow-up queued; advisor shape + authentic-difficulty ruled; 4 reviewer fact-packs commissioned #1953). Source of truth for the 1.0
+Last updated: 2026-07-21 late (marker-0082 naval-truth LANDED + reviewer GREEN — sub stealth, sight-2, probabilistic trireme, Lighthouse/Magellan +1; danger-based abandon slice built per user ruling #2138, landing + 4th re-witness in flight; markers 0075–0082 span barb-sea-raids, A91 full nuclear family, disasters — the versioning audit's breaking-class gaps ALL closed). Source of truth for the 1.0
 definition: `docs/03-roadmap.md` § "The 1.0 definition" (user-ruled, maximal
 cut). Status legend: ✅ done · 🔨 in flight right now · 📋 queued (owner
 known) · 🧩 designed, not started · 🚪 user gate._
@@ -31,7 +31,7 @@ flowchart TD
     A8["🧩 A8 tile contention"]
     A67["📋 A6a future-tech (pack ready) ·\nA7 wonder effects (pack ready)"]
     ATR["✅ air-truth (0077)"]
-    NAV2["🔨 naval-truth IN BUILD (twins phase)\n— sub stealth · sight-2 · probabilistic\ntrireme · Lighthouse/Magellan +1"]
+    NAV2["✅ naval-truth LANDED (0082)\n— sub stealth · sight-2 · probabilistic\ntrireme · Lighthouse/Magellan +1"]
     DIFF["📋 authentic difficulty\n(AI bonus · barb intensity · score —\ngated on reviewer fact-pack)"]
     N --> N1 --> PROBE --> BULB
     N1 --> X5B --> AIB --> D3S --> C11B --> D46
