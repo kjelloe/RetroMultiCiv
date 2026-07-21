@@ -735,6 +735,64 @@ test('XII.5b path-research: a committed civ beelines the space-flight closure', 
     'a committed civ researches an on-path tech (space-flight closure), not an off-path side tech; got ' + cmd.tech);
 });
 
+// XII.5b-tune (#2113 sweep / #2117 ruling): a space-COMMITTED civ must SURVIVE a
+// transient border skirmish. The 9-metric witness sweep found 0/25 launches, 100%
+// abandon — spaceCommitted re-evaluated an every-turn global-peace gate, so any
+// border war (mode -> defending, threat -> med) broke the ~150-turn project before
+// it could build a single part. The RULED fix (predicate-relax-first, my lean):
+// tolerate defending mode + med threat; abandon ONLY at mode 'warring' or threat
+// 'high'. The capital-safety abandon condition already lives in spaceCommitEligible
+// (ai.js:655-656), so the commit persists through border wars while the core is
+// safe. Replay-fixture-FIRST (#1989): pre-fix the skirmish case FAILS.
+test('XII.5b-tune: a committed civ keeps its commit through a border skirmish (safe capital)', async () => {
+  const { ai } = await load();
+  const { strategicSnapshot } = await import('../shared/strategic.js');
+  const W = 30, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  // c1 (capital, far from any enemy) builds an ss-part; c2 (border) builds a
+  // DEFENDER; three p2 units sit next to c2 -> threat 'med', mode 'defending'. The
+  // capital stays clear (enemyNear(cap)=false) so spaceCommitEligible holds.
+  const base = () => ({
+    version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: W, height: H, wrapX: false, tiles }, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: {
+      c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'ss-part', id: 'structural' } },
+      c2: { id: 'c2', name: 'Front', owner: 'p1', x: 25, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'phalanx' } }
+    },
+    cityOrder: ['c1', 'c2'],
+    units: {
+      e1: { id: 'e1', type: 'phalanx', owner: 'p2', x: 24, y: 4, moves: 1 },
+      e2: { id: 'e2', type: 'phalanx', owner: 'p2', x: 26, y: 4, moves: 1 },
+      e3: { id: 'e3', type: 'phalanx', owner: 'p2', x: 25, y: 5, moves: 1 }
+    },
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, alive: true, gold: 20, techs: ['space-flight'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, alive: true, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  });
+  const st = base();
+  // the scenario reads exactly as #2113 describes: defending + med, capital safe.
+  const snap = strategicSnapshot(st, 'p1', RULESET);
+  assert.strictEqual(snap.mode, 'defending', 'fixture: border skirmish -> defending mode; got ' + snap.mode);
+  assert.strictEqual(snap.threat, 'med', 'fixture: three near-c2 enemies -> med threat; got ' + snap.threat);
+  assert.strictEqual(ai.spaceCommitEligible(st, 'p1', RULESET), true, 'capital is safe -> commit-eligible');
+  // THE FIX: pre-fix this is false (defending/med break the every-turn peace gate);
+  // post-fix the commit survives the skirmish.
+  assert.strictEqual(ai.spaceCommitted(st, 'p1', RULESET), true,
+    'a committed civ with a SAFE CAPITAL keeps its commit through a border skirmish (defending mode, med threat)');
+  // control HIGH threat: many enemies at c2 -> threat 'high' -> commit abandoned.
+  const hi = base();
+  for (let i = 0; i < 8; i++) hi.units['h' + i] = { id: 'h' + i, type: 'phalanx', owner: 'p2', x: 24, y: (i % 3) + 3, moves: 1 };
+  assert.strictEqual(strategicSnapshot(hi, 'p1', RULESET).threat, 'high', 'control: many enemies -> high threat');
+  assert.strictEqual(ai.spaceCommitted(hi, 'p1', RULESET), false, 'a HIGH-threat civ abandons the commit');
+  // control WARRING: c2 builds an ATTACKER while threatened -> mode 'warring' -> abandoned.
+  const war = base();
+  war.cities.c2.producing = { kind: 'unit', id: 'catapult' };
+  assert.strictEqual(strategicSnapshot(war, 'p1', RULESET).mode, 'warring', 'control: attacker+threat -> warring mode');
+  assert.strictEqual(ai.spaceCommitted(war, 'p1', RULESET), false, 'a WARRING civ abandons the commit');
+});
+
 // §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep
 // ocean inlet to a frontier site — the greedy chebyshev step (safeDirToward)
 // dead-ends at the inlet mouth and the settler never crosses. A crafted 6-deep

@@ -674,8 +674,14 @@ function spaceCommitted(state, playerId, ruleset) {
   if (!spaceDriveOn(ruleset, me.stance)) return false;
   if (!spaceCommitEligible(state, playerId, ruleset)) return false;
   const snap = strategicSnapshot(state, playerId, ruleset);
-  if (snap.mode !== 'building' && snap.mode !== 'expanding') return false;
-  if (snap.threat !== 'none' && snap.threat !== 'low') return false;
+  // XII.5b-tune (#2113/#2117): the commit MAINTAINS through border wars. The
+  // 9-metric sweep found 0/25 launches — a ~150-turn project cannot survive an
+  // every-turn none/low-threat + building/expanding-mode peace check, since any
+  // border skirmish flips the snapshot to defending/med. Capital safety is already
+  // the abandon condition (spaceCommitEligible, ai.js:655-656), so here we abandon
+  // ONLY when the civ turns offensive (mode 'warring') or the threat is 'high'.
+  if (snap.mode === 'warring') return false;
+  if (snap.threat === 'high') return false;
   return true;
 }
 

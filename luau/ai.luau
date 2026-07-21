@@ -753,16 +753,22 @@ local function spaceCommitEligible(state: any, playerId: string, ruleset: any): 
 end
 
 -- XII.5b (Q2 ruled B): COMMITTED = spaceDriveOn && spaceCommitEligible && the
--- strategic snapshot reads peaceful (building/expanding mode, none/low threat).
--- Snapshot runs only past the cheap eligibility gates. Pure, both engines.
+-- strategic snapshot is not offensive/besieged (XII.5b-tune #2117: not warring
+-- mode, not high threat). Snapshot runs past the cheap eligibility gates. Pure.
 local function spaceCommitted(state: any, playerId: string, ruleset: any): boolean
 	local me = state.players[playerId]
 	if me == nil then return false end
 	if not spaceDriveOn(ruleset, me.stance) then return false end
 	if not spaceCommitEligible(state, playerId, ruleset) then return false end
 	local snap = strategic.strategicSnapshot(state, playerId, ruleset)
-	if snap.mode ~= "building" and snap.mode ~= "expanding" then return false end
-	if snap.threat ~= "none" and snap.threat ~= "low" then return false end
+	-- XII.5b-tune (#2113/#2117): the commit MAINTAINS through border wars. The
+	-- 9-metric sweep found 0/25 launches -- a ~150-turn project cannot survive an
+	-- every-turn none/low-threat + building/expanding-mode peace check, since any
+	-- border skirmish flips the snapshot to defending/med. Capital safety is already
+	-- the abandon condition (spaceCommitEligible), so here we abandon ONLY when the
+	-- civ turns offensive (mode "warring") or the threat is "high".
+	if snap.mode == "warring" then return false end
+	if snap.threat == "high" then return false end
 	return true
 end
 
