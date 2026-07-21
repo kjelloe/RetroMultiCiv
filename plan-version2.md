@@ -81,6 +81,21 @@ audits reject-as-drift. Each entry arrives here already fact-checked and
 labeled — the option becomes buildable almost for free once enough
 accumulate (the engine already supports rulesOverrides presets).
 
+## Auto-explore unit action (seeded 2026-07-22, USER-RULED into v2)
+
+`Civ2-shape` (auto-explore arrived with Civ2's unit-order set). A unit
+action — for exploration-suited units (scout-role land units; possibly
+ships) — that keeps the unit exploring unknown territory until fog is
+gone, it is interrupted, or an enemy appears. Build lean: the CLIENT-
+DRIVER pattern (like tech-beeline and the automate module — the client
+walks a pure shared/ path-choice and issues NORMAL move commands), which
+keeps it golden-neutral and Roblox-portable; the engine's own
+`aiExploreMode: bfs` router (B23) is the obvious brain to share. Engine-
+command variant only if the driver proves insufficient (that would be a
+golden move). Interaction notes for the design pass: stop-on-hut vs
+collect-huts choice, respect ZOC/trireme open-sea risk, d-pad/mobile
+affordance, and the §31 off-turn order-queue composes with it.
+
 ## Cross-play bridge (seeded 2026-07-21, R6 ruling)
 
 1.0 ships per-platform populations; the R6 seat model deliberately keeps a
