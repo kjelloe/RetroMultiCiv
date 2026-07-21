@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 (marker-0076 = MERGE CANDIDATE; air-truth in build; ally relay bundle + domain option are the fresh user items)._
+_Last synced: 2026-07-21 (marker-0076 = candidate, 0077/air-truth in gate; naval ruled FULL-loop; ally endings package routed)._
 
 ---
 
@@ -22,24 +22,22 @@ _Catch-up: `reports/away-window-brief.md` (the 7h run) + reports/marker-0069..00
   helper's client wave. Three live-box checks + optional
   `--bug-reports` flag as before.
 
-- [ ] **Ally relay bundle** (three files, one message): the branding brief
-  for their specialist (`specs/branding-brief-post-v1.md` — tense assumes
-  post-1.0; adjust one line if sent earlier), the three unasked design
-  questions (`specs/ally-ask-2026-07-21b.md` — victory moment, disasters
-  presentation, difficulty names), and the overnight status note
-  (`specs/ally-status-update-2026-07-21c.md`) if not yet sent.
+- [ ] **Ally relay: thanks + routed confirmation.** Their endings/
+  disasters/difficulty package is fully routed (engine couplings reached
+  the builder BEFORE the affected slices; endgame moments queued;
+  7-step ladder rides the difficulty slice). Worth telling them: the
+  "replay as witnessing history as a ghost" defeat idea and the naming
+  revision are both in the record verbatim. Their advisor-copy table
+  arrives with the component build as promised.
 
 - [x] ~~Domain: founders.eu~~ **RETRACTED — Founders withdrawn (Steam
   collision, specialist round).** New flow: clearance checks on the five
   candidates (The Work of Ages leads) BEFORE any registration — post-v1
   unless you fancy running the screen early. Runbook §8 updated.
 
-- [ ] **NAVAL SCOPING (open fork from the probe, #2090)**: the AI naval
-  loop is fully absent (0 sea units in 9x7x545t) but near-costless on
-  default maps — yet Archipelago is a shipped map type, and post-1.0 any
-  naval AI waits for 2.0. Options: (a) full loop in v1; **(b) settlement-
-  only in v1, invasion joins the 2.0 conquest slice — recommended**;
-  (c) document the landlubber limit. One word routes it.
+- [x] **NAVAL — RULED (a) full loop in v1** (five steps + basic escort;
+  war-committed invasion w/ 3:1; sequenced after naval-truth).
+  `specs/naval-loop-v1.md`; queued.
 
 - [ ] **Studio session** (one sitting covers all): Studded style review +
   D3 relations panel + manifest-v3 slices + NEW CP1 tile-props; save

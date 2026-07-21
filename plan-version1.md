@@ -30,7 +30,7 @@ flowchart TD
     A91["📋 A91 pollution/warming/nukes\n(BUILD-READY — fact-pack numbers in)"]
     A8["🧩 A8 tile contention"]
     A67["📋 A6a future-tech (pack ready) ·\nA7 wonder effects (pack ready)"]
-    ATR["📋 air-truth riders\n(fighter-only vs air · bomber ignores walls ·\ndiplomat/caravan upkeep flags)"]
+    ATR["✅ air-truth landed (0077 in gate)"]
     NAV2["📋 naval-truth bundle\n(sub invisibility · per-unit sight ·\ntrireme loss ⇒ activates Lighthouse)"]
     DIFF["📋 authentic difficulty\n(AI bonus · barb intensity · score —\ngated on reviewer fact-pack)"]
     N --> N1 --> PROBE --> BULB
@@ -71,7 +71,7 @@ flowchart TD
   end
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
-    NAV["🧩 naval AI loop finish\n(overseas settle/invade acceptance)"]
+    NAV["📋 NAVAL LOOP v1 — RULED full five-step\n+ escort (probe: loop was absent);\nafter naval-truth (naval-loop-v1.md)"]
     AIR["🧩 air AI role (movement ✅)"]
     GOV["🧩 N1/N2 gov re-eval +\nlate-tech modernization"]
     MFL["🔨 M-floors: §12 cleared → §40 authentic\nbrake reversed advisory floors — RE-BASELINE\nqueued (ratchet canceled, authenticity ruled)"]
