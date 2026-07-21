@@ -672,3 +672,65 @@ test('§14 F2: a unit with zocBlocks>=3 is skipped by the move loop', async () =
   assert.ok(!blocked || blocked.type !== 'moveUnit' || blocked.unitId !== 'u1',
     'a zocBlocks>=3 unit is not moved; got ' + JSON.stringify(blocked));
 });
+
+// xiv-ai XII.5b (space-as-project, #1899/#1901/#1916): a space-COMMITTED civ
+// gold-rushes its in-production spaceship PART with a surplus treasury (Apollo,
+// a WONDER, is never rushed). The commit gate = spaceDriveOn(stance) +
+// eligibility (own tech era >= industrial, research-leader, secure core, game
+// has time) + a peaceful snapshot (building/expanding mode, none/low threat).
+test('XII.5b parts-rush: a committed civ rushes its in-production ss-part', async () => {
+  const { ai } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9 * 9; i++) tiles.push({ t: 'grassland' });
+  // c1 builds an ss-part (kind ss-part reads as 'other' in the snapshot); c2
+  // builds infrastructure so the empire-wide mode stays 'building' (a single
+  // ss-part city alone reads as 'defending' and would fail the commit gate).
+  const mk = (techs, stance) => ({
+    version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 9, height: 9, wrapX: false, tiles }, units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: {
+      c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'ss-part', id: 'structural' } },
+      c2: { id: 'c2', name: 'Two', owner: 'p1', x: 7, y: 7, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'building', id: 'temple' } }
+    },
+    cityOrder: ['c1', 'c2'],
+    players: { p1: Object.assign({ id: 'p1', name: 'A', color: '#00f', human: false, gold: 5000, techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }, stance ? { stance } : {}) },
+    rngState: 1
+  });
+  const done = { happiness: true, research: true, rates: true, government: true, diplo: {} };
+  // committed: science stance + space-flight (era modern >= industrial), secure
+  // single-player core, year < endYear, peaceful mode -> rushes the ss-part.
+  const cmd = ai.pickCommand(mk(['space-flight'], 'science'), 'p1', RULESET, Object.assign({}, done));
+  assert.ok(cmd && cmd.type === 'buy' && cmd.cityId === 'c1',
+    'a committed civ with a surplus treasury rushes its ss-part; got ' + JSON.stringify(cmd));
+  // control A: ancient era (no industrial+ tech) fails the eligibility gate.
+  const anc = ai.pickCommand(mk([], 'science'), 'p1', RULESET, Object.assign({}, done));
+  assert.ok(!anc || anc.type !== 'buy', 'an ancient-era civ is not commit-eligible; got ' + JSON.stringify(anc));
+  // control B: a conquest stance fails spaceDriveOn (not in victoryDrive.spaceStances).
+  const agg = ai.pickCommand(mk(['space-flight'], 'aggressive'), 'p1', RULESET, Object.assign({}, done));
+  assert.ok(!agg || agg.type !== 'buy', 'a conquest-stance civ does not commit; got ' + JSON.stringify(agg));
+});
+
+// xiv-ai XII.5b Q3 (path-preferring research): a committed civ restricts its
+// beeline to the space-flight prereq closure (space-flight + each ss-part tech),
+// superseding the monarchy/attacker/nav paths. With the full computers-prereq
+// chain in hand, the on-path researchable set is a known 5 techs; the off-path
+// modern/renaissance side techs (monarchy, democracy, religion, ...) are excluded.
+test('XII.5b path-research: a committed civ beelines the space-flight closure', async () => {
+  const { ai } = await load();
+  const tiles = [];
+  for (let i = 0; i < 9 * 9; i++) tiles.push({ t: 'grassland' });
+  const chain = ['electronics', 'mathematics', 'engineering', 'electricity', 'alphabet', 'masonry', 'wheel', 'construction', 'metallurgy', 'magnetism', 'currency', 'gunpowder', 'university', 'navigation', 'physics', 'bronze-working', 'iron-working', 'invention', 'philosophy', 'astronomy', 'map-making', 'literacy', 'mysticism', 'code-of-laws', 'writing', 'ceremonial-burial'];
+  const st = {
+    version: 1, turn: 260, year: 1900, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 9, height: 9, wrapX: false, tiles }, units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'building', id: 'temple' } } },
+    cityOrder: ['c1'],
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: chain, researching: '', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' } },
+    rngState: 1
+  };
+  const onPath = ['bridge-building', 'computers', 'republic', 'steam-engine', 'trade'];
+  const cmd = ai.pickCommand(st, 'p1', RULESET, { happiness: true });
+  assert.strictEqual(cmd && cmd.type, 'setResearch', 'the research phase picks a tech; got ' + JSON.stringify(cmd));
+  assert.ok(onPath.includes(cmd.tech),
+    'a committed civ researches an on-path tech (space-flight closure), not an off-path side tech; got ' + cmd.tech);
+});

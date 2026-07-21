@@ -22,6 +22,7 @@ import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive,
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
+import { strategicSnapshot } from '../shared/strategic.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
@@ -571,17 +572,97 @@ function spaceDriveEligible(state, me, ruleset) {
   return true;
 }
 
+// XII.5b: a tech's era rank = its index in ruleset.rules.ages (ancient<renaissance<
+// industrial<modern<space). Pure, both engines.
+function techEraRank(ruleset, era) {
+  const ages = ruleset.rules.ages;
+  if (ages === undefined) return 0;
+  for (let i = 0; i < ages.length; i++) if (ages[i].id === era) return i;
+  return 0;
+}
+// the civ's OWN most-advanced tech era rank (city-era pattern — reads its own
+// techs, never the world age). 0 (ancient) when it has no era techs.
+function ownTechEraRank(state, me, ruleset) {
+  let best = 0;
+  for (const t of me.techs) {
+    const def = ruleset.techs[t];
+    if (def === undefined) continue;
+    const r = techEraRank(ruleset, def.era);
+    if (r > best) best = r;
+  }
+  return best;
+}
+// XII.5b: an alive civ is eligible to COMMIT to the space PROJECT (before it has
+// the space techs) — the EARLY gate that turns on path-preferring research —
+// when it is advanced (own tech era >= industrial), a research leader or within
+// spaceCommitTechGap of the leader, its core is secure (no enemy at the capital),
+// and the game still has time (year < endYear). The stance gate (not conquest-
+// committed) is spaceDriveOn's spaceStances check, applied by the caller.
+function spaceCommitEligible(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  if (me === undefined || me.alive === false) return false;
+  const vd = ruleset.rules.victoryDrive;
+  if (vd === undefined) return false;
+  if (ownTechEraRank(state, me, ruleset) < techEraRank(ruleset, 'industrial')) return false;
+  const gap = vd.spaceCommitTechGap === undefined ? 3 : vd.spaceCommitTechGap;
+  let lead = 0;
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid];
+    if (p === undefined || p.alive === false) continue;
+    if (p.techs.length > lead) lead = p.techs.length;
+  }
+  if (me.techs.length < lead - gap) return false;
+  const cap = capitalOf(state, playerId, ruleset);
+  if (cap !== null && cap !== undefined
+      && enemyNear(state, me, playerId, cap.x, cap.y, ruleset.rules.threatRadius)) return false;
+  if (ruleset.rules.endYear !== undefined && state.year >= ruleset.rules.endYear) return false;
+  return true;
+}
+
+// XII.5b (Q2 ruled B, #2051): a civ is COMMITTED to the space project when its
+// stance drives space (spaceDriveOn), it is commit-eligible (Q1: advanced + within
+// the tech gap + secure core + game has time), AND its strategic snapshot reads
+// peaceful (a building/expanding mode, none/low threat). The ally's numeric
+// spaceProjectScore collapses into this: coreSafety/turn-feasibility/tech-gap live
+// in spaceCommitEligible, militaryEmergency in the threat read, science/production
+// capacity are implied by the research-leader eligibility, and opponentSpaceLead is
+// omitted in v1 (multiple committed civs = a race; Q4 pause keeps it contestable).
+// The snapshot runs only past the cheap eligibility gates, so no per-turn cost for
+// the field. Pure, both engines.
+function spaceCommitted(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  if (me === undefined) return false;
+  if (!spaceDriveOn(ruleset, me.stance)) return false;
+  if (!spaceCommitEligible(state, playerId, ruleset)) return false;
+  const snap = strategicSnapshot(state, playerId, ruleset);
+  if (snap.mode !== 'building' && snap.mode !== 'expanding') return false;
+  if (snap.threat !== 'none' && snap.threat !== 'low') return false;
+  return true;
+}
+
 // A76: the next part to build toward a minimum-viable ship, or null when the
 // ship already meets the target set (ready to launch). 7 structural supports
 // the 5 non-structural parts (idiv(7*28,39)=5); one each of the five functional
 // parts. Honest v1 — a larger, safer ship is the endings wave.
 function nextSsPart(ship, ruleset) {
-  const target = { structural: 7, propulsion: 1, fuel: 1, habitation: 1, lifeSupport: 1, solar: 1 };
-  const order = ['structural', 'propulsion', 'fuel', 'habitation', 'lifeSupport', 'solar'];
-  for (const k of order) {
-    const have = ship !== undefined && ship[k] !== undefined ? ship[k] : 0;
-    if (have < target[k]) return k;
-  }
+  // XII.5b (#2047, folds #1916): build the 5 functional parts — SOLAR FIRST —
+  // as soon as the hull supports each, adding structural just-in-time; the
+  // beyond-what's-supported structurals fill in behind. The old order built all
+  // 7 structural then the 5 functional with solar dead-LAST (part 12), which the
+  // probe found a pointless ~t1860 bottleneck. Minimum viable is still 7
+  // structural + 5 functional (supported = idiv(structural*28,39) >= 5).
+  const funcOrder = ['solar', 'propulsion', 'fuel', 'habitation', 'lifeSupport'];
+  const have = k => (ship !== undefined && ship[k] !== undefined ? ship[k] : 0);
+  const structural = have('structural');
+  const supported = idiv(structural * 28, 39); // functional slots the hull carries
+  let funcBuilt = 0;
+  for (const k of funcOrder) if (have(k) >= 1) funcBuilt++;
+  // the next functional part needs a support slot it doesn't have yet -> structural
+  if (funcBuilt < funcOrder.length && supported <= funcBuilt) return 'structural';
+  // otherwise lay the next missing functional part (solar first)
+  for (const k of funcOrder) if (have(k) < 1) return k;
+  // all five functional laid + supported; top structural to the viable 7 if short
+  if (structural < 7) return 'structural';
   return null;
 }
 
@@ -767,10 +848,29 @@ function rushBuyCommand(state, playerId, ruleset) {
   // one buy/turn; the threatened-defender rush above always takes priority.
   const surplus = ruleset.rules.aiSurplusBuyThreshold === undefined ? -1 : ruleset.rules.aiSurplusBuyThreshold;
   if (surplus >= 0 && me.gold > surplus) {
+    let committed = undefined; // XII.5b Q5: lazily computed (per player) — only
+    // when a city is actually laying an ss-part, so no snapshot cost otherwise.
     for (const cid of state.cityOrder || []) {
       const city = state.cities[cid];
       if (!city || city.owner !== playerId) continue;
       const prod = city.producing;
+      // XII.5b Q5: a space-COMMITTED civ rushes its CURRENT spaceship PART (the
+      // shelved #1901 parts-rush unlocks here). Apollo is a WONDER — NEVER
+      // gold-rushed (#1899); this only ever touches kind 'ss-part'.
+      if (prod.kind === 'ss-part') {
+        if (committed === undefined) committed = spaceCommitted(state, playerId, ruleset);
+        if (committed) {
+          const part = ruleset.rules.ssParts[prod.id];
+          if (part !== undefined) {
+            const missing = part.cost - city.shields;
+            if (missing > 0) {
+              const rate = ruleset.rules.buyGoldPerShieldSS === undefined ? ruleset.rules.buyGoldPerShield : ruleset.rules.buyGoldPerShieldSS;
+              if (me.gold >= missing * rate) return { type: 'buy', playerId, cityId: cid };
+            }
+          }
+        }
+        continue;
+      }
       if (prod.kind !== 'unit') continue;
       const u = ruleset.units[prod.id];
       if (u === undefined) continue;
@@ -1330,10 +1430,24 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const nt = seaTech(ruleset);
         if (nt !== '') markTechPath(ruleset, nt, navPath);
       }
+      // XII.5b Q3: a space-COMMITTED civ prefers the space-flight prerequisite
+      // closure — Apollo's tech + every ssPart tech — and SUPERSEDES the monarchy/
+      // attacker/naval paths (a committed civ is past early-game). If no space-path
+      // tech is researchable the pool falls back to everything (the off-path escape).
+      // markTechPath is the engine-side DAG walk — no shared/beeline import.
+      const spacePath = {};
+      if (spaceCommitted(state, playerId, ruleset)) {
+        const apolloTech = ruleset.wonders[ruleset.rules.ssFlight.gateWonder].tech;
+        if (apolloTech !== undefined && apolloTech !== '') markTechPath(ruleset, apolloTech, spacePath);
+        const parts = ruleset.rules.ssParts;
+        for (const k of Object.keys(parts)) markTechPath(ruleset, parts[k].tech, spacePath);
+      }
+      const committedSpace = Object.keys(spacePath).length > 0;
       let pool = avail;
       const onPath = [];
       for (const id of avail) {
-        if (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true) onPath.push(id);
+        if (spacePath[id] === true) onPath.push(id);
+        else if (!committedSpace && (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true)) onPath.push(id);
       }
       if (onPath.length > 0) pool = onPath;
       let best = pool[0];

@@ -14,9 +14,20 @@ the fleshed-out form of "option (a) AI space-path prioritization".
    research-leader-or-within-gap + secure core (no capital emergency /
    invasion / garrison deficit — reuses the docs/15 threat inputs) +
    turn-feasibility vs rules.endYear + not conquest-committed.
-2. **Project scoring**: the ally's `spaceProjectScore` terms map to
-   existing strategic snapshot inputs (shared/strategic.js rows). Weights =
-   rules.json knobs, sim-swept — never hand-picked.
+2. **Project scoring — COLLAPSED (Q2 ruled B, #2051):** the ally's numeric
+   `spaceProjectScore` is NOT computed; the commit gate is a 4-predicate
+   boolean (`spaceDriveOn(stance)` + `spaceCommitEligible` + snapshot mode in
+   {building,expanding} + snapshot threat in {none,low}). Where each of the 7
+   ally score terms lives: coreSafety / remainingTurnFeasibility / tech-lead-gap
+   live in `spaceCommitEligible` (engine/ai.js); militaryEmergency is the
+   snapshot `threat` read; scienceCapacity + productionCapacity are implied by
+   the research-leader eligibility; opponentSpaceLead is omitted in v1 (multiple
+   committed civs = a race, kept contestable by the Q4 pause). No
+   `spaceCommitScoreThreshold` knob (dropped — the twins count-check house rule
+   would flag a dormant data key). Rationale: the eligibility predicate already
+   encodes coreSafety/turn-feasibility/tech-gap, so a numeric score with guessed
+   weights duplicated it and invited sim-sweep churn; the ally itself flagged the
+   score as secondary to the path-research core.
 3. **The behavioral core**: a committed civ's research choice PREFERS
    techs on the space-flight prerequisite closure (the 46-tech path —
    `shared/beeline.js` already walks the DAG; the engine side gets its own

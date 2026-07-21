@@ -18,6 +18,7 @@ local happiness = require("./happiness")
 local government = require("./government")
 local diplomacy = require("./diplomacy") -- D3: met/relation reads
 local aiDiplomacy = require("./ai-diplomacy") -- D3: score models
+local strategic = require("./strategic") -- XII.5b: commit snapshot
 
 local DIR_KEYS = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
 local DIR_VECS: { [string]: { number } } = {
@@ -644,15 +645,85 @@ local function spaceDriveEligible(state: any, me: any, ruleset: any): boolean
 	return true
 end
 
+-- XII.5b: a tech era rank = its index in ruleset.rules.ages (0-based, matching JS).
+local function techEraRank(ruleset: any, era: string): number
+	local ages = ruleset.rules.ages
+	if ages == nil then return 0 end
+	for i = 1, #ages do
+		if ages[i].id == era then return i - 1 end
+	end
+	return 0
+end
+
+-- the civ's OWN most-advanced tech era rank (reads its own techs, never world age).
+local function ownTechEraRank(state: any, me: any, ruleset: any): number
+	local best = 0
+	for _, tid in ipairs(me.techs) do
+		local def = ruleset.techs[tid]
+		if def ~= nil then
+			local r = techEraRank(ruleset, def.era)
+			if r > best then best = r end
+		end
+	end
+	return best
+end
+
+-- XII.5b: eligible to COMMIT to the space PROJECT (early gate for path-research):
+-- own tech era >= industrial + research-leader-or-within-gap + secure core + game
+-- has time. Stance gate (not conquest) is spaceDriveOn, applied by the caller.
+local function spaceCommitEligible(state: any, playerId: string, ruleset: any): boolean
+	local me = state.players[playerId]
+	if me == nil or me.alive == false then return false end
+	local vd = ruleset.rules.victoryDrive
+	if vd == nil then return false end
+	if ownTechEraRank(state, me, ruleset) < techEraRank(ruleset, "industrial") then return false end
+	local gap = if vd.spaceCommitTechGap == nil then 3 else vd.spaceCommitTechGap
+	local lead = 0
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		if p ~= nil and p.alive ~= false then
+			if #p.techs > lead then lead = #p.techs end
+		end
+	end
+	if #me.techs < lead - gap then return false end
+	local cap = government.capitalOf(state, playerId, ruleset)
+	if cap ~= nil and enemyNear(state, me, playerId, cap.x, cap.y, ruleset.rules.threatRadius) then return false end
+	if ruleset.rules.endYear ~= nil and state.year >= ruleset.rules.endYear then return false end
+	return true
+end
+
+-- XII.5b (Q2 ruled B): COMMITTED = spaceDriveOn && spaceCommitEligible && the
+-- strategic snapshot reads peaceful (building/expanding mode, none/low threat).
+-- Snapshot runs only past the cheap eligibility gates. Pure, both engines.
+local function spaceCommitted(state: any, playerId: string, ruleset: any): boolean
+	local me = state.players[playerId]
+	if me == nil then return false end
+	if not spaceDriveOn(ruleset, me.stance) then return false end
+	if not spaceCommitEligible(state, playerId, ruleset) then return false end
+	local snap = strategic.strategicSnapshot(state, playerId, ruleset)
+	if snap.mode ~= "building" and snap.mode ~= "expanding" then return false end
+	if snap.threat ~= "none" and snap.threat ~= "low" then return false end
+	return true
+end
+
 -- A76: the next part to build toward a minimum-viable ship, or nil when ready to
 -- launch. 7 structural supports the 5 non-structural parts (idiv(7*28,39)=5).
 local function nextSsPart(ship: any, ruleset: any): any
-	local target = { structural = 7, propulsion = 1, fuel = 1, habitation = 1, lifeSupport = 1, solar = 1 }
-	local order = { "structural", "propulsion", "fuel", "habitation", "lifeSupport", "solar" }
-	for _, k in ipairs(order) do
-		local have = if ship ~= nil and ship[k] ~= nil then ship[k] else 0
-		if have < target[k] then return k end
+	-- XII.5b: build the 5 functional parts SOLAR FIRST as the hull supports each
+	-- (supported = idiv(structural*28,39)), structural just-in-time; fixes #1916.
+	local funcOrder = { "solar", "propulsion", "fuel", "habitation", "lifeSupport" }
+	local function have(k: string): number return if ship ~= nil and ship[k] ~= nil then ship[k] else 0 end
+	local structural = have("structural")
+	local supported = idiv(structural * 28, 39)
+	local funcBuilt = 0
+	for _, k in ipairs(funcOrder) do
+		if have(k) >= 1 then funcBuilt = funcBuilt + 1 end
 	end
+	if funcBuilt < #funcOrder and supported <= funcBuilt then return "structural" end
+	for _, k in ipairs(funcOrder) do
+		if have(k) < 1 then return k end
+	end
+	if structural < 7 then return "structural" end
 	return nil
 end
 
@@ -868,11 +939,26 @@ local function rushBuyCommand(state: any, playerId: string, ruleset: any): any
 	-- the xii5b GO; wonders never gold-rushed). cityOrder-deterministic, 1/turn.
 	local surplus = if ruleset.rules.aiSurplusBuyThreshold == nil then -1 else ruleset.rules.aiSurplusBuyThreshold
 	if surplus >= 0 and me.gold > surplus then
+		local committed = nil -- XII.5b Q5: lazily computed (per player)
 		for _, cid in ipairs(state.cityOrder or {}) do
 			local city = state.cities[cid]
 			if city ~= nil and city.owner == playerId then
 				local prod = city.producing
-				if prod.kind == "unit" then
+				if prod.kind == "ss-part" then
+					-- XII.5b Q5: a space-COMMITTED civ rushes its CURRENT ss-part (#1901
+					-- unlocks here). Apollo is a WONDER -- NEVER gold-rushed (#1899).
+					if committed == nil then committed = spaceCommitted(state, playerId, ruleset) end
+					if committed then
+						local part = ruleset.rules.ssParts[prod.id]
+						if part ~= nil then
+							local missing = part.cost - city.shields
+							if missing > 0 then
+								local rate = if ruleset.rules.buyGoldPerShieldSS == nil then ruleset.rules.buyGoldPerShield else ruleset.rules.buyGoldPerShieldSS
+								if me.gold >= missing * rate then return { type = "buy", playerId = playerId, cityId = cid } end
+							end
+						end
+					end
+				elseif prod.kind == "unit" then
 					local u = ruleset.units[prod.id]
 					if u ~= nil and (prod.id == "settlers" or u.attack > 0) then
 						local missing = u.cost - city.shields
@@ -1550,10 +1636,22 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					markTechPath(ruleset, nt, navPath)
 				end
 			end
+			-- XII.5b Q3: a committed civ prefers the space-flight prereq closure and
+			-- SUPERSEDES monarchy/attacker/nav; empty-onPath falls back to all (escape).
+			local spacePath = {}
+			if spaceCommitted(state, playerId, ruleset) then
+				local apolloTech = ruleset.wonders[ruleset.rules.ssFlight.gateWonder].tech
+				if apolloTech ~= nil and apolloTech ~= "" then markTechPath(ruleset, apolloTech, spacePath) end
+				local parts = ruleset.rules.ssParts
+				for k in pairs(parts) do markTechPath(ruleset, parts[k].tech, spacePath) end
+			end
+			local committedSpace = next(spacePath) ~= nil
 			local pool = avail
 			local onPath = {}
 			for _, id in ipairs(avail) do
-				if monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true then
+				if spacePath[id] == true then
+					table.insert(onPath, id)
+				elseif not committedSpace and (monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true) then
 					table.insert(onPath, id)
 				end
 			end

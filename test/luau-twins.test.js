@@ -231,7 +231,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x7179770c\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x868bcfa6\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -269,8 +269,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '9f4b045d', pangaea: 'a304f5ee',
-      archipelago: '17695919', islands: '65bd20b8'
+      continents: 'abd9c410', pangaea: '0ea1f6ab',
+      archipelago: '50ee981e', islands: '4fb9da9b'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -308,9 +308,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // ruleset edit (createGame stamps rulesetHash): 0x833b415c -> 0x61138a4f (N13 goody
 // huts) -> 0x0fa110e7 (A59 civs.json personality) -> 0xfbf31566 (XII.5 victoryDrive
 // gate) -> 0x1192dca7 (Calendar-545 yearSteps) -> 0xdff854f9 (xiv-ai §13 economy
-// knobs) -> 0xbd75915f (xiv-ai §14 treasury/F1 knobs). Re-pin here whenever a ruleset
-// window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xbd75915f turn 25 grant 22';
+// knobs) -> 0xbd75915f (xiv-ai §14 treasury/F1 knobs) -> 0x017162d4 (xiv-ai XII.5b
+// space-as-project knobs). Re-pin here whenever a ruleset window moves it.
+const FF_PARITY_PIN = 'ff-parity 0x017162d4 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {
