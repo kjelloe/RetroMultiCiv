@@ -71,12 +71,17 @@ function fortressAt(state, x, y) {
     && cityAt(state, x, y) === null;
 }
 
-function defenseStrength(state, unit, ruleset) {
+function defenseStrength(state, unit, ruleset, attacker) {
+  // air-truth: a bomber (ignoresWalls) skips the City Walls / Great Wall 3x
+  // multiplier — but NOT a fortress (a different structure). No attacker passed
+  // (defender selection) = walls count as before.
+  const ignoresWalls = attacker !== undefined && ruleset.units[attacker.type].ignoresWalls === true;
+  const mult = (!ignoresWalls && cityWallsAt(state, unit.x, unit.y, ruleset)) ? 3
+    : fortressAt(state, unit.x, unit.y) ? 2 : 1;
   return ruleset.units[unit.type].defense
     * tileDefensePct(state, unit.x, unit.y, ruleset)
     * (unit.fortified ? 150 : 100)
-    * (cityWallsAt(state, unit.x, unit.y, ruleset) ? 3
-      : fortressAt(state, unit.x, unit.y) ? 2 : 1);
+    * mult;
 }
 
 // Civ 1: the strongest defender on the tile fights.
@@ -118,6 +123,13 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
 
   const defender = bestDefender(state, tx, ty, ruleset);
   if (!defender) return { ok: false, reason: 'nothingToAttack' };
+  // air-truth: an air-domain unit IN FLIGHT (not standing in a city, not aboard a
+  // carrier) may be attacked ONLY by a Fighter (attacksAir). No defensive ground
+  // fire in Civ 1 — a non-fighter simply cannot reach it.
+  if (ruleset.units[defender.type].domain === 'air' && defender.aboard === undefined
+      && cityAt(state, defender.x, defender.y) === null && atype.attacksAir !== true) {
+    return { ok: false, reason: 'needsFighter' };
+  }
   // D3: the DEFENDER's owner gains grievance toward the ATTACKER (directed). Skip
   // barbarians (never a diplomacy partner). Omit-safe when no diplomacy ruleset.
   if (attacker.owner !== 'barb' && defender.owner !== 'barb' && ruleset.rules.diplomacy !== undefined) {
@@ -125,7 +137,7 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
   }
 
   const att = attackStrength(attacker, ruleset);
-  const def = defenseStrength(state, defender, ruleset);
+  const def = defenseStrength(state, defender, ruleset, attacker);
   // rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll —
   // byte-identical to the original algorithm); 3 = best-of-three, a setup
   // option that softens upsets (80% odds become ~90%) without removing them

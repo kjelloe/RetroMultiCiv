@@ -567,7 +567,9 @@ function processCities(state, ruleset, events) {
     if (gov.upkeepShields > 0) {
       let supported = 0;
       for (const uid of Object.keys(state.units)) {
-        if (state.units[uid].home === cityId) supported = supported + 1;
+        // air-truth: freeSupport units (diplomat, caravan) never cost shield upkeep
+        if (state.units[uid].home === cityId
+            && ruleset.units[state.units[uid].type].freeSupport !== true) supported = supported + 1;
       }
       const owed = (supported - gov.freeUnitsPerCity) * gov.upkeepShields;
       if (owed > 0) {

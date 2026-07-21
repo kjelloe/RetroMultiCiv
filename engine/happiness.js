@@ -44,7 +44,10 @@ function cityMood(state, city, ruleset) {
     let abroad = 0;
     for (const uid of sortIds(Object.keys(state.units))) {
       const u = state.units[uid];
-      if (u.home !== city.id || ruleset.units[u.type].attack <= 0) continue;
+      // air-truth: freeSupport units (diplomat, caravan) never cause away-from-home
+      // war unhappiness — the same predicate the shield-upkeep count uses.
+      if (u.home !== city.id || ruleset.units[u.type].attack <= 0
+          || ruleset.units[u.type].freeSupport === true) continue;
       let atHome = false;
       for (const cid of state.cityOrder) {
         const c = state.cities[cid];

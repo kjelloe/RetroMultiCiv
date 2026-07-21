@@ -92,13 +92,17 @@ local function fortressAt(state: any, x: number, y: number): boolean
 		and cityAt(state, x, y) == nil
 end
 
-local function defenseStrength(state: any, unit: any, ruleset: any): number
+-- air-truth: a bomber (ignoresWalls) skips the City Walls / Great Wall 3x
+-- multiplier (but NOT a fortress). No attacker passed = walls count as before.
+local function defenseStrength(state: any, unit: any, ruleset: any, attacker: any?): number
+	local ignoresWalls = attacker ~= nil and ruleset.units[attacker.type].ignoresWalls == true
+	local mult = if not ignoresWalls and cityWallsAt(state, unit.x, unit.y, ruleset) then 3
+		elseif fortressAt(state, unit.x, unit.y) then 2
+		else 1
 	return ruleset.units[unit.type].defense
 		* tileDefensePct(state, unit.x, unit.y, ruleset)
 		* (if unit.fortified then 150 else 100)
-		* (if cityWallsAt(state, unit.x, unit.y, ruleset) then 3
-			elseif fortressAt(state, unit.x, unit.y) then 2
-			else 1)
+		* mult
 end
 
 -- Civ 1: the strongest defender on the tile fights. Strict > keeps the
@@ -156,6 +160,12 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 	if defender == nil then
 		return { ok = false, reason = "nothingToAttack" }
 	end
+	-- air-truth: an air-domain unit IN FLIGHT (not in a city, not aboard a carrier)
+	-- may be attacked ONLY by a Fighter (attacksAir). No defensive ground fire.
+	if ruleset.units[defender.type].domain == "air" and defender.aboard == nil
+		and cityAt(state, defender.x, defender.y) == nil and atype.attacksAir ~= true then
+		return { ok = false, reason = "needsFighter" }
+	end
 	-- D3: the DEFENDER's owner gains grievance toward the ATTACKER (directed). Skip
 	-- barbarians. Omit-safe when no diplomacy ruleset.
 	if attacker.owner ~= "barb" and defender.owner ~= "barb" and ruleset.rules.diplomacy ~= nil then
@@ -163,7 +173,7 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 	end
 
 	local att = attackStrength(attacker, ruleset)
-	local def = defenseStrength(state, defender, ruleset)
+	local def = defenseStrength(state, defender, ruleset, attacker)
 	-- rules.combatRounds 1 = authentic Civ 1 one-shot (exactly one roll);
 	-- 3 = best-of-three, a setup option
 	local rounds = if ruleset.rules.combatRounds == nil then 1 else ruleset.rules.combatRounds

@@ -52,7 +52,9 @@ local function cityMood(state: any, city: any, ruleset: any): any
 		end
 		for _, uid in ipairs(combat.sortIds(unitKeys)) do
 			local u = state.units[uid]
-			if u.home == city.id and ruleset.units[u.type].attack > 0 then
+			-- air-truth: freeSupport units (diplomat, caravan) never cause away war-unhappiness
+			if u.home == city.id and ruleset.units[u.type].attack > 0
+				and ruleset.units[u.type].freeSupport ~= true then
 				local atHome = false
 				for _, cid in ipairs(state.cityOrder) do
 					local c = state.cities[cid]

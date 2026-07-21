@@ -42,7 +42,8 @@
     "notes": "",
     "ignoresZoc": true,
     "helpsWonder": true,
-    "tradeRoutes": true
+    "tradeRoutes": true,
+    "freeSupport": true
   },
   "catapult": {
     "name": "Catapult",
@@ -89,7 +90,8 @@
     "cost": 30,
     "domain": "land",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "freeSupport": true
   },
   "knights": {
     "name": "Knights",
@@ -294,7 +296,8 @@
     "domain": "air",
     "notes": "",
     "ignoresZoc": true,
-    "fuel": 2
+    "fuel": 2,
+    "ignoresWalls": true
   },
   "fighter": {
     "name": "Fighter",
@@ -306,7 +309,8 @@
     "domain": "air",
     "notes": "",
     "ignoresZoc": true,
-    "fuel": 1
+    "fuel": 1,
+    "attacksAir": true
   },
   "nuclear": {
     "name": "Nuclear",

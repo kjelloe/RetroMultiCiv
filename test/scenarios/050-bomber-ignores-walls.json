@@ -1,0 +1,293 @@
+{
+  "name": "air-truth: a bomber (ignoresWalls) skips the City Walls multiplier",
+  "notes": "Two lanes, identical fortified mech-inf in walled cities. The bomber (attack 12, ignoresWalls) KILLS its target (walls skipped); the artillery (attack 12, walls apply) FAILS against its identical target — isolating the walls-skip (same attack). Pre-fix the bomber faces the 3x walls too and does NOT kill → RED.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3800,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1",
+        "p2"
+      ],
+      "map": {
+        "width": 6,
+        "height": 7,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {
+        "bo": {
+          "id": "bo",
+          "type": "bomber",
+          "owner": "p1",
+          "x": 1,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "fuel": 2
+        },
+        "ar": {
+          "id": "ar",
+          "type": "artillery",
+          "owner": "p1",
+          "x": 1,
+          "y": 4,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false
+        },
+        "d1": {
+          "id": "d1",
+          "type": "mech-inf",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "moves": 0,
+          "fortified": true,
+          "veteran": false
+        },
+        "d2": {
+          "id": "d2",
+          "type": "mech-inf",
+          "owner": "p2",
+          "x": 2,
+          "y": 4,
+          "moves": 0,
+          "fortified": true,
+          "veteran": false
+        }
+      },
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "W1",
+          "owner": "p2",
+          "x": 2,
+          "y": 2,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [
+            "city-walls"
+          ],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "c2": {
+          "id": "c2",
+          "name": "W2",
+          "owner": "p2",
+          "x": 2,
+          "y": 4,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [
+            "city-walls"
+          ],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#00f",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "B",
+          "color": "#f00",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 4
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "bo",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "cmd": {
+        "type": "moveUnit",
+        "playerId": "p1",
+        "unitId": "ar",
+        "dir": "E"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "units.d1": null,
+      "units.d2.id": "d2"
+    },
+    "hash": "0x79c6f4dc"
+  }
+}

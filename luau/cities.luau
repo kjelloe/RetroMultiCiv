@@ -776,7 +776,8 @@ local function processCities(state: any, ruleset: any, events: any)
 		if gov.upkeepShields > 0 then
 			local supported = 0
 			for _, u in pairs(state.units) do
-				if u.home == cityId then
+				-- air-truth: freeSupport units (diplomat, caravan) never cost shield upkeep
+				if u.home == cityId and ruleset.units[u.type].freeSupport ~= true then
 					supported += 1
 				end
 			end

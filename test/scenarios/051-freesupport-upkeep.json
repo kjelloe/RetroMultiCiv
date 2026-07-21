@@ -1,0 +1,387 @@
+{
+  "name": "air-truth: freeSupport units (caravan/diplomat) cost no shield upkeep",
+  "notes": "Monarchy (upkeepShields 1, freeUnitsPerCity 3, no war-unhappiness). cA has 3 militia + 1 CARAVAN homed; cB has 4 militia homed. With freeSupport the caravan is not counted → cA supported 3 (owed 0), cB supported 4 (owed 1) → cA keeps 1 more shield (26 vs 25). Pre-fix the caravan counts → both 25 → RED. pop-1 cities avoid disorder/growth confounds.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": -3800,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 10,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          },
+          {
+            "t": "hills",
+            "mine": true
+          }
+        ]
+      },
+      "units": {
+        "a1": {
+          "id": "a1",
+          "type": "militia",
+          "owner": "p1",
+          "x": 0,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cA"
+        },
+        "a2": {
+          "id": "a2",
+          "type": "militia",
+          "owner": "p1",
+          "x": 0,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cA"
+        },
+        "a3": {
+          "id": "a3",
+          "type": "militia",
+          "owner": "p1",
+          "x": 0,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cA"
+        },
+        "a4": {
+          "id": "a4",
+          "type": "caravan",
+          "owner": "p1",
+          "x": 0,
+          "y": 3,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cA"
+        },
+        "b1": {
+          "id": "b1",
+          "type": "militia",
+          "owner": "p1",
+          "x": 8,
+          "y": 0,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cB"
+        },
+        "b2": {
+          "id": "b2",
+          "type": "militia",
+          "owner": "p1",
+          "x": 8,
+          "y": 1,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cB"
+        },
+        "b3": {
+          "id": "b3",
+          "type": "militia",
+          "owner": "p1",
+          "x": 8,
+          "y": 2,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cB"
+        },
+        "b4": {
+          "id": "b4",
+          "type": "militia",
+          "owner": "p1",
+          "x": 8,
+          "y": 3,
+          "moves": 1,
+          "fortified": false,
+          "veteran": false,
+          "home": "cB"
+        }
+      },
+      "cities": {
+        "cA": {
+          "id": "cA",
+          "name": "A",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "pop": 1,
+          "food": 0,
+          "shields": 20,
+          "buildings": [],
+          "producing": {
+            "kind": "wonder",
+            "id": "pyramids"
+          }
+        },
+        "cB": {
+          "id": "cB",
+          "name": "B",
+          "owner": "p1",
+          "x": 7,
+          "y": 2,
+          "pop": 1,
+          "food": 0,
+          "shields": 20,
+          "buildings": [],
+          "producing": {
+            "kind": "wonder",
+            "id": "pyramids"
+          }
+        }
+      },
+      "cityOrder": [
+        "cA",
+        "cB"
+      ],
+      "wonders": {},
+      "nextUnitId": 50,
+      "nextCityId": 10,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#00f",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "monarchy"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "monarchy"
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "cities.cA.shields": 26,
+      "cities.cB.shields": 25
+    },
+    "hash": "0x742c704f"
+  }
+}
