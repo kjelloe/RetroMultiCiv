@@ -200,14 +200,18 @@ export function initTechTree(ctx) {
     }
   }
 
-  // --- entry: 🌳 button by the research readout + Shift+T --------------------
+  // --- entry: 🌳 button + Shift+T. XIV §21: it lives in the research panel's
+  // LOWER section, labelled "View technology tree" (was a bare 🌳 by the bar).
+  // fillResearchPanel only clears #research-list, so a direct child persists.
   const btn = document.createElement('button');
   btn.id = 'open-tech-tree';
-  btn.textContent = '🌳';
-  btn.title = 'technology tree (Shift+T)';
+  btn.textContent = '🌳 View technology tree';
+  btn.title = 'the whole tech tree (Shift+T)';
   btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+  const rp = document.getElementById('research-panel');
   const bar = document.getElementById('research-bar');
-  if (bar && bar.parentNode) bar.parentNode.insertBefore(btn, bar.nextSibling);
+  if (rp) rp.appendChild(btn);
+  else if (bar && bar.parentNode) bar.parentNode.insertBefore(btn, bar.nextSibling); // fallback
 
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;

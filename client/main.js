@@ -10,6 +10,7 @@ import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
 import { victoryOverrides, DEFAULT_VICTORY } from '../shared/victory-presets.js';
+import { shuffleRoster } from '../shared/civ-shuffle.js';
 import { armSessionGuard, maybeShowRejoinBanner } from './ui/rejoin.js';
 import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
@@ -206,14 +207,10 @@ if (serverParam) {
   // Which civilizations play: player 1's pick (?civ=romans) first, the rest
   // drawn from data/civs.json in a seed-shuffled order — same seed, same
   // opponents, so games stay reproducible from the URL alone.
+  // §11: xorshift32-driven shuffle (shared/civ-shuffle.js) — the old raw-LCG
+  // shuffle biased shuffled[0] by seed parity (the "always Aztec" start).
   const roster = Object.keys(civs).sort();
-  let shuffleRng = seed;
-  const shuffled = roster.slice();
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    shuffleRng = (shuffleRng * 1103515245 + 12345) % 2147483648;
-    const j = shuffleRng % (i + 1);
-    const tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
-  }
+  const shuffled = shuffleRoster(roster, seed);
   const picked = params.get('civ');
   const lineup = picked && civs[picked]
     ? [picked].concat(shuffled.filter(id => id !== picked))
@@ -412,7 +409,7 @@ if (serverParam) import('./ui/lobby.js').then(m => m.initMultiplayerFlow(ctx));
 ctx.panels = initPanels(ctx);
 ctx.handoff = initHandoff(ctx);
 initInput(ctx);
-initSaves(ctx);
+ctx.saves = initSaves(ctx); // XIV §5+§8: Save/Load actions for the ⚙ Options buttons
 ctx.turnlog = initTurnLog(ctx);
 ctx.overlays = initOverlays(ctx); // A45: data layers over explored tiles
 initLeftStack(); // A57: one open left-stack panel at a time (after overlays inserts)
@@ -576,11 +573,59 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   document.body.appendChild(probe);
   await session.apply({ type: 'foundCity', playerId: ctx.HUMAN, unitId: firstUnit.id, name: 'Testopolis' });
   ctx.panels.toggleResearchPanel();
+  // XIV §1/§9/§21/§28 hud-polish: rates+government in the top bar, the tech-tree
+  // button inside the research panel labelled "View technology tree", and the
+  // persistent "View game summary" reopen button all present.
+  let hudpolish = 'unchecked';
+  {
+    const rl = document.getElementById('research-label');
+    const ratesOk = rl && /T\d+\/S\d+\/L\d+ · \S/.test(rl.textContent);
+    const tt = document.getElementById('open-tech-tree');
+    const ttInPanel = tt && tt.closest && tt.closest('#research-panel') && /View technology tree/.test(tt.textContent);
+    const vs = document.getElementById('view-summary');
+    hudpolish = (ratesOk ? 'rates' : 'norates')
+      + '/' + (ttInPanel ? 'ttpanel' : 'nott')
+      + '/' + (vs ? 'summary' : 'nosummary');
+  }
+  let foodrow = 'nocity';
   if (session.state.cityOrder.length > 0) {
-    ctx.panels.openCityPanel(session.state.cityOrder[0]);
+    const cid = session.state.cityOrder[0];
+    ctx.panels.openCityPanel(cid);
     // click a worked mini-map tile: unassigns it and switches to manual mode
     const workedCell = document.querySelector('#city-map .ctile.assignable.worked');
     if (workedCell) workedCell.click();
+    // XIV §45: the food row must tell the truth about settler upkeep. Inject two
+    // settlers HOMED to this city (a probe, not a command — no hash impact) and
+    // re-render: the row must show the settler-eat segment + a net that dropped
+    // by settlerFoodUpkeep×2 vs the citizen-only figure (the Teotihuacan trap).
+    const before = (document.getElementById('city-stats') || {}).textContent || '';
+    const netBefore = (before.match(/net ([+-]\d+)/) || [])[1] || '?';
+    session.state.units.__probeS1 = { id: '__probeS1', type: 'settlers', owner: ctx.HUMAN, x: 0, y: 0, moves: 1, home: cid };
+    session.state.units.__probeS2 = { id: '__probeS2', type: 'settlers', owner: ctx.HUMAN, x: 0, y: 0, moves: 1, home: cid };
+    ctx.panels.openCityPanel(cid);
+    const after = (document.getElementById('city-stats') || {}).textContent || '';
+    const netAfter = (after.match(/net ([+-]\d+)/) || [])[1] || '?';
+    foodrow = (/🌾 \d+ · 👥 eat \d+/.test(before) ? 'row' : 'norow')
+      + '/' + (/settlers? eat|×2 eat/.test(after) || /⚒👤×2/.test(after) ? 'settlerseg' : 'noseg')
+      + '/' + (Number(netAfter) === Number(netBefore) - 2 ? 'nettruth' : `netbad(${netBefore}->${netAfter})`);
+    delete session.state.units.__probeS1;
+    delete session.state.units.__probeS2;
+    ctx.panels.openCityPanel(cid); // restore the honest panel
+  }
+  // XIV §45a: the unit info card must show the home city (or "unsupported").
+  // The founding settler is consumed, so inject a probe unit at the city and
+  // render the card directly for both the homed and homeless cases.
+  let unithome = 'norender';
+  if (ctx.hud && ctx.hud.unitNote && session.state.cityOrder.length > 0) {
+    const cid0 = session.state.cityOrder[0];
+    const c0 = session.state.cities[cid0];
+    const base = { id: '__probeU', type: 'militia', owner: ctx.HUMAN, x: c0.x, y: c0.y, moves: 1 };
+    ctx.hud.unitNote(Object.assign({}, base, { home: cid0 }));
+    const homedLine = (document.getElementById('unit-line') || {}).textContent || '';
+    ctx.hud.unitNote(Object.assign({}, base, { home: undefined }));
+    const bareLine = (document.getElementById('unit-line') || {}).textContent || '';
+    unithome = (homedLine.indexOf('🏠') !== -1 && homedLine.indexOf(c0.name) !== -1 ? 'home' : 'nohome')
+      + '/' + (/unsupported/.test(bareLine) ? 'unsupported' : 'nounsup');
   }
   // docs/07: exercise the save path so the persistent game-code toast renders
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
@@ -606,12 +651,41 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const bugX = document.getElementById('bug-x');
     if (bugX) bugX.click(); // close it so the screenshot path is unobstructed
   }
+  // XIV §20: the "press E" no-moves hint is ONE builder honoring the mute
+  // option + carrying the 🔕. Not muted → the center banner shows with #mute-hint;
+  // muted → nothing shows (returns false). Both the auto path and input.js's N
+  // path route through ctx.hud.noMovesHint.
+  let ehint = 'none';
+  if (ctx.hud && ctx.hud.noMovesHint && ctx.options) {
+    ctx.options.set('hideNoMovesHint', false);
+    const shownRet = ctx.hud.noMovesHint();
+    const muteBtn = document.getElementById('mute-hint');
+    ctx.options.set('hideNoMovesHint', true);
+    if (ctx.hud.banner) document.getElementById('center-banner').textContent = '';
+    const mutedRet = ctx.hud.noMovesHint();
+    const muteBtn2 = document.getElementById('mute-hint');
+    ehint = (shownRet && muteBtn ? 'shown' : 'noshow')
+      + '/' + (!mutedRet && !muteBtn2 ? 'muted' : 'notmuted');
+    ctx.options.set('hideNoMovesHint', false); // restore
+    document.getElementById('center-banner').textContent = '';
+  }
+  // XIV §5+§8: the ⚙ Options panel carries always-visible Save/Load buttons
+  // (the touch-device save path) wired to the same actions as Shift+S/L.
+  const optSave = document.getElementById('opt-save');
+  const optLoad = document.getElementById('opt-load');
+  const saveLoad = (optSave ? 'save' : 'nosave') + '/' + (optLoad ? 'load' : 'noload')
+    + '/' + (ctx.saves && ctx.saves.saveGame && ctx.saves.loadGame ? 'wired' : 'unwired');
   probe.textContent += ' · toastBodyClickDisplay: ' + bodyClickDisplay
     + ' · toastDisplay: ' + (toastEl ? getComputedStyle(toastEl).display : 'missing')
     + ' · code: ' + (ctx.gameCode() || 'none')
     + ' · gameId: ' + (session.gameId || 'none') // server's real id (404-fix regression guard)
     + ' · diaglog: ' + session.log.length // recorder captured the commands
     + ' · bugreport: ' + bugAttached // #3: dialog opened + payload assembled with the recording
+    + ' · saveload: ' + saveLoad // XIV §5+§8: Options Save/Load buttons present + wired
+    + ' · ehint: ' + ehint // XIV §20: unified no-moves hint (🔕 shown / muted honored)
+    + ' · foodrow: ' + foodrow // XIV §45: settler upkeep truth in the city food row
+    + ' · hudpolish: ' + hudpolish // XIV §1/§9/§21/§28: rates+gov, tech-tree in panel, summary reopen
+    + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }

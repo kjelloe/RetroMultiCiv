@@ -18,6 +18,7 @@ import { createEngine, nextYear } from '../engine/index.js';
 import { fastForwardTo } from '../shared/fastforward.js';
 import { fnv32 } from '../shared/gamecode.js';
 import { victoryOverrides, victoryId } from '../shared/victory-presets.js';
+import { shuffleRoster } from '../shared/civ-shuffle.js';
 
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const COLORS = ['#3b7dd8', '#d84a3b', '#3bd87d', '#d8b13b', '#9b59d0', '#d07f3b', '#4fd0c9'];
@@ -322,21 +323,16 @@ export function createRegistry(deps) {
     const live = {};
     for (const s of (liveSeats || [])) live[s] = true;
     // A24: every lobby seat gets a DISTINCT civilization — seed-shuffled with
-    // the same LCG client/main.js uses for local games, so a seed reproduces
-    // the same lineup. A27: host civ PICKS take precedence; the shuffle only
-    // fills the Random slots (skipping every picked civ). Humans keep their
-    // chosen names; AI seats take the civ name; colors come from the civ.
+    // the SAME xorshift32 shuffle client/main.js uses for local games (XIV §11:
+    // was a raw LCG whose low-bit modulo biased the pick by seed parity), so a
+    // seed reproduces the same lineup. A27: host civ PICKS take precedence; the
+    // shuffle only fills the Random slots (skipping every picked civ). Humans
+    // keep their chosen names; AI seats take the civ name; colors come from it.
     const picked = {};
     for (const pid of Object.keys(e.seats)) {
       if (e.seats[pid].civ !== undefined) picked[e.seats[pid].civ] = true;
     }
-    const roster = Object.keys(ruleset.civs || {}).sort();
-    let shuffleRng = e.options.seed;
-    for (let i = roster.length - 1; i > 0; i--) {
-      shuffleRng = (shuffleRng * 1103515245 + 12345) % 2147483648;
-      const j = shuffleRng % (i + 1);
-      const tmp = roster[i]; roster[i] = roster[j]; roster[j] = tmp;
-    }
+    const roster = shuffleRoster(Object.keys(ruleset.civs || {}).sort(), e.options.seed);
     const pool = roster.filter(id => picked[id] !== true);
     let poolAt = 0;
     const players = [];

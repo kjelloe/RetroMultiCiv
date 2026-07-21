@@ -656,6 +656,21 @@ html, body {
   z-index: 7;
 }
 #replay-btn.hidden { display: none; }
+
+/* XIV §9: "View game summary" — persistent post-game, just above Watch replay */
+#view-summary {
+  position: absolute; right: 16px; bottom: 104px; padding: 8px 18px; font-size: 14px;
+  background: #24406b; color: #dbe6f6; border: 1px solid #3b5d8f; border-radius: 6px;
+  cursor: pointer; z-index: 7;
+}
+#view-summary.hidden { display: none; }
+
+/* XIV §21: the tech-tree button sits in the research panel's lower section */
+#research-panel #open-tech-tree {
+  display: block; width: 100%; margin-top: 10px; padding: 9px 12px; box-sizing: border-box;
+  background: #223a5e; color: #cfe0f5; border: 1px solid #3b5d8f; border-radius: 6px;
+  font-size: 14px; font-family: inherit; cursor: pointer;
+}
 #replay-theater {
   position: absolute;
   inset: 0;
@@ -848,6 +863,15 @@ html, body {
 #endscreen-buttons #es-close { padding: 8px 12px; color: #8fa3c0; }
 #endscreen-stats-note { margin-top: 12px; text-align: center; font-size: 13px; color: #9fb4d6; }
 #endscreen-stats-note.hidden { display: none; }
+
+/* XIV §5+§8: always-visible Save/Load under ⚙ Options (the touch-device save
+   path — Shift+S/L need a keyboard). Prominent, at the top of the panel. */
+#options-saverow { display: flex; gap: 8px; margin: 4px 0 12px; padding-bottom: 12px; border-bottom: 1px solid #24314c; }
+#options-saverow button {
+  flex: 1; background: #24406b; color: #dbe6f6; border: 1px solid #3b5d8f; border-radius: 6px;
+  padding: 10px 12px; font-size: 14px; font-family: inherit; cursor: pointer; min-height: 44px;
+}
+#opt-save { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
 
 /* #3: in-client bug report */
 #options-report { margin-top: 12px; padding-top: 10px; border-top: 1px solid #24314c; }
@@ -1835,10 +1859,11 @@ html, body {
 }
 .queue-btn:hover { background: #1b2c49; color: #cdd8ea; }
 
-/* C1: the world minimap — bottom-right above End Turn; hidden on coarse
-   pointers until the T1 portrait pass decides its mobile home */
+/* C1: the world minimap. XIV §1: top-right, directly below the ⚙ options field
+   (#corner-buttons at top:12px) instead of bottom-right — hidden on coarse
+   pointers (the phone block re-homes it lower). */
 #minimap {
-  position: fixed; right: 16px; bottom: 64px; z-index: 12;
+  position: fixed; right: 16px; top: 52px; z-index: 12;
   border: 1px solid #3b5d8f; border-radius: 4px; overflow: hidden;
   background: #05070c; line-height: 0; cursor: crosshair;
   width: 184px;

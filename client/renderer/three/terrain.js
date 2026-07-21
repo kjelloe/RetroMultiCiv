@@ -37,18 +37,27 @@ const SEGS = 2; // grid cells per tile edge — tile centers land on vertices
 // base: ground level; jitter: vertex wobble amplitude; peak: extra center
 // height (mountains read as ridges, hills as mounds); palette: 3 shades
 // picked per face so no two neighboring facets read as a flat sheet
+// XIV §29 (ally art direction, user-confirmed overlap 2026-07-21): three height
+// tiers with clear GAPS — water 0 / flats near-level / hills / mountains own the
+// skyline. Flats carry NO per-tile vertical jitter (their variety is COLOR via
+// the per-face palette, not elevation), so grassland/plains no longer read as
+// hilly with no hill/mountain neighbor. Hills ≈ 25% of mountain height (the
+// user cap: hills 0.20 base, mountains 0.80 → 25%); the boundary curving is
+// preserved automatically — heightAt bilinearly blends neighbor tile bases, so a
+// flat tile bordering a hill/mountain still curves up toward it. First
+// screenshot candidate; the desaturation review settles the final ratio.
 const TERRAIN = {
   ocean:     { base: -0.18, jitter: 0.01, peak: 0, palette: [0x1d4e79, 0x1a4870, 0x225a86] },
-  grassland: { base: 0.05, jitter: 0.05, peak: 0, palette: [0x4c9a3f, 0x57a848, 0x428a37] },
-  plains:    { base: 0.05, jitter: 0.05, peak: 0, palette: [0xc2b46b, 0xcbbd76, 0xb7a960] },
-  forest:    { base: 0.08, jitter: 0.06, peak: 0, palette: [0x2d6a35, 0x33743c, 0x27602f] },
-  hills:     { base: 0.26, jitter: 0.10, peak: 0.10, palette: [0x96854f, 0xa08f58, 0x8a7a47] },
-  mountains: { base: 0.55, jitter: 0.20, peak: 0.35, palette: [0x8c8c94, 0x7f7f86, 0x9a9aa2] },
-  desert:    { base: 0.05, jitter: 0.03, peak: 0, dunes: true, palette: [0xd9c27e, 0xe2cd8a, 0xcdb671] },
-  tundra:    { base: 0.04, jitter: 0.04, peak: 0, palette: [0xb0b8a8, 0xa5ad9d, 0xbbc3b3] },
-  arctic:    { base: 0.10, jitter: 0.06, peak: 0, palette: [0xe8eef0, 0xdde4e7, 0xf2f7f8] },
-  swamp:     { base: 0.02, jitter: 0.03, peak: 0, palette: [0x5d7a5a, 0x546f52, 0x668563] },
-  jungle:    { base: 0.08, jitter: 0.06, peak: 0, palette: [0x3f7d46, 0x46884e, 0x38723f] },
+  grassland: { base: 0.05, jitter: 0.01, peak: 0, palette: [0x4c9a3f, 0x57a848, 0x428a37] },
+  plains:    { base: 0.05, jitter: 0.01, peak: 0, palette: [0xc2b46b, 0xcbbd76, 0xb7a960] },
+  forest:    { base: 0.06, jitter: 0.012, peak: 0, palette: [0x2d6a35, 0x33743c, 0x27602f] },
+  hills:     { base: 0.20, jitter: 0.06, peak: 0.10, palette: [0x96854f, 0xa08f58, 0x8a7a47] },
+  mountains: { base: 0.80, jitter: 0.18, peak: 0.45, palette: [0x8c8c94, 0x7f7f86, 0x9a9aa2] },
+  desert:    { base: 0.05, jitter: 0.015, peak: 0, dunes: true, palette: [0xd9c27e, 0xe2cd8a, 0xcdb671] },
+  tundra:    { base: 0.04, jitter: 0.012, peak: 0, palette: [0xb0b8a8, 0xa5ad9d, 0xbbc3b3] },
+  arctic:    { base: 0.06, jitter: 0.015, peak: 0, palette: [0xe8eef0, 0xdde4e7, 0xf2f7f8] },
+  swamp:     { base: 0.02, jitter: 0.01, peak: 0, palette: [0x5d7a5a, 0x546f52, 0x668563] },
+  jungle:    { base: 0.06, jitter: 0.012, peak: 0, palette: [0x3f7d46, 0x46884e, 0x38723f] },
   unknown:   { base: 0.0, jitter: 0, peak: 0, palette: [0x0a0e16] }
 };
 const RIVER_TINT = new THREE.Color(0x3a7ac8);

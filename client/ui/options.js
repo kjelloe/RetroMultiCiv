@@ -53,6 +53,10 @@ export function initOptions(ctx) {
   panel.className = 'panel hidden';
   panel.innerHTML = `
     <div class="panel-head"><h3>⚙ Options</h3><button class="panel-close" data-close="options-panel">✕</button></div>
+    <div id="options-saverow">
+      <button id="opt-save" type="button">💾 Save game</button>
+      <button id="opt-load" type="button">📂 Load game</button>
+    </div>
     <label><input type="checkbox" data-opt="autoEndTurn"> Auto end turn when every unit has moved</label>
     <label><input type="checkbox" data-opt="autoNextUnit"> Auto-select the next unit when one is spent</label>
     <label><input type="checkbox" data-opt="hideFuture"> Hide future units/buildings in the city catalog</label>
@@ -89,6 +93,20 @@ export function initOptions(ctx) {
   if (reportBtn) reportBtn.addEventListener('click', () => {
     panel.classList.add('hidden');
     if (ctx.bugReport) ctx.bugReport.open();
+  });
+
+  // XIV §5+§8: always-visible Save/Load — the only save path on a touch device
+  // with no keyboard (Shift+S/L unreachable). Close the panel first so a save
+  // dialog / file picker isn't hidden behind it.
+  const saveBtn = panel.querySelector('#opt-save');
+  const loadBtn = panel.querySelector('#opt-load');
+  if (saveBtn) saveBtn.addEventListener('click', () => {
+    panel.classList.add('hidden');
+    if (ctx.saves) ctx.saves.saveGame();
+  });
+  if (loadBtn) loadBtn.addEventListener('click', () => {
+    panel.classList.add('hidden');
+    if (ctx.saves) ctx.saves.loadGame();
   });
 
   function syncPanel() {
