@@ -52,6 +52,44 @@ export function initPanels(ctx) {
   // catalog-text module now (shared with the A58b pedia + a Roblox port).
   const { effectText, techUnlocks, techLeadsTo } = makeCatalogText(session.ruleset);
 
+  // XIV §22: resolve a unit/building/wonder NAME (as techUnlocks lists them) back
+  // to its def + kind, so the research panel can linkify each unlock name to a
+  // shared hover-card pedia summary. Built once from the ruleset.
+  const entityByName = {};
+  for (const id of Object.keys(units)) entityByName[units[id].name] = { def: units[id], kind: 'unit', id };
+  for (const id of Object.keys(buildings)) entityByName[buildings[id].name] = { def: buildings[id], kind: 'building', id };
+  for (const id of Object.keys(wonders)) entityByName[wonders[id].name] = { def: wonders[id], kind: 'wonder', id };
+  function entitySummaryCard(ent) {
+    const { def, kind, id } = ent;
+    const card = document.createElement('div');
+    const t = document.createElement('span'); t.className = 'hover-title'; t.textContent = def.name;
+    const k = document.createElement('div'); k.className = 'hover-kind'; k.textContent = kind;
+    card.append(t, k);
+    const stats = document.createElement('div');
+    stats.textContent = kind === 'unit'
+      ? `⚔${def.attack} 🛡${def.defense} 👟${def.moves} · ${def.cost} shields`
+      : ((effectText(def) ? effectText(def) + ' · ' : '') + `${def.cost} shields`);
+    card.appendChild(stats);
+    const blurb = kind === 'unit' ? UNIT_BLURBS[id] : kind === 'building' ? BUILDING_BLURBS[id] : null;
+    if (blurb) { const bl = document.createElement('div'); bl.style.marginTop = '4px'; bl.textContent = blurb; card.appendChild(bl); }
+    return card;
+  }
+  // append `unlocks A, B` to a .fx line with each entity name a pedia hover-link
+  function appendUnlocks(fx, unlocks) {
+    fx.appendChild(document.createTextNode('unlocks '));
+    unlocks.forEach((name, i) => {
+      if (i > 0) fx.appendChild(document.createTextNode(', '));
+      const ent = entityByName[name.replace(/\s*🏆\s*$/, '')]; // wonders carry a 🏆 mark
+      if (!ent) { fx.appendChild(document.createTextNode(name)); return; }
+      const link = document.createElement('span');
+      link.className = 'pedia-link';
+      link.textContent = name;
+      link.addEventListener('mouseenter', () => { if (ctx.hoverCard) ctx.hoverCard.showAtEl(link, entitySummaryCard(ent)); });
+      link.addEventListener('mouseleave', () => { if (ctx.hoverCard) ctx.hoverCard.hide(); });
+      fx.appendChild(link);
+    });
+  }
+
   // --- research panel --------------------------------------------------------
   async function startResearch(techId) {
     if (!techId) return;
@@ -131,13 +169,15 @@ export function initPanels(ctx) {
       btn.textContent = techs[id].name;
       const unlocks = techUnlocks[id] || [];
       const leads = techLeadsTo[id] || [];
-      const bits = [];
-      if (unlocks.length) bits.push(`unlocks ${unlocks.join(', ')}`);
-      if (leads.length) bits.push(`→ ${leads.slice(0, 3).join(', ')}${leads.length > 3 ? '…' : ''}`);
-      if (bits.length) {
+      if (unlocks.length || leads.length) {
         const fx = document.createElement('div');
         fx.className = 'fx';
-        fx.textContent = bits.join(' · ');
+        // XIV §22: each unlocked unit/building/wonder name is a pedia hover-link
+        if (unlocks.length) appendUnlocks(fx, unlocks);
+        if (leads.length) {
+          fx.appendChild(document.createTextNode((unlocks.length ? ' · ' : '')
+            + `→ ${leads.slice(0, 3).join(', ')}${leads.length > 3 ? '…' : ''}`));
+        }
         btn.appendChild(fx);
       }
       btn.addEventListener('click', () => {

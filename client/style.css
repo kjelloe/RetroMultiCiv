@@ -1366,37 +1366,45 @@ html, body {
 
 /* the tech-discovery card (specs/tech-discovery-card.md) — a transient
    center-top card; created/removed, never .hidden-toggled */
-#discovery-card {
-  position: absolute;
-  top: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 480px;
-  background: rgba(12, 20, 34, 0.96);
-  border: 1px solid #3b5d8f;
-  border-radius: 8px;
-  color: #cdd8ea;
-  font-size: 13px;
-  padding: 10px 14px;
-  z-index: 8;
-  cursor: pointer;
+/* XIV §26: the tech-discovery CELEBRATION overlay (ally design). Soft world-dim
+   behind a centered card — the map recedes but stays visible. NO auto-close. */
+#discovery-overlay {
+  position: fixed; inset: 0; z-index: 46; display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 10, 18, 0.55); padding: 20px; box-sizing: border-box;
 }
-#discovery-card .dc-head { font-size: 15px; color: #ffe066; }
-#discovery-card .dc-glyph-slot { display: inline-block; vertical-align: middle; margin-right: 7px; }
-#discovery-card .dc-glyph-slot .tech-glyph { width: 30px; height: 30px; vertical-align: middle; }
+#discovery-card {
+  background: rgba(12, 20, 34, 0.98); border: 1px solid #3b5d8f; border-radius: 12px;
+  color: #cdd8ea; padding: 26px 30px 22px; max-width: 460px; width: 100%; text-align: center;
+  max-height: calc(100vh - 40px); overflow-y: auto; box-shadow: 0 18px 60px rgba(0, 0, 0, 0.75);
+}
+#discovery-card .dc-glyph { margin-bottom: 10px; }
+#discovery-card .dc-glyph .tech-glyph { width: 88px; height: 88px; }
+#discovery-card.reveal .dc-glyph { animation: dc-glyph-in 520ms ease-out both; }
+@keyframes dc-glyph-in { from { transform: scale(0.4) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+#discovery-card .dc-kicker { font-size: 12px; letter-spacing: 2px; color: #8fa8cc; }
+#discovery-card .dc-name { font-size: 22px; color: #ffe066; margin: 2px 0 4px; }
 #discovery-card .dc-era {
   font-size: 11px; color: #8fa8cc; border: 1px solid #2c4770;
-  border-radius: 8px; padding: 0 6px; margin-left: 6px; vertical-align: middle;
+  border-radius: 8px; padding: 0 6px; vertical-align: middle; letter-spacing: 0;
 }
-#discovery-card .dc-blurb { margin-top: 6px; }
-#discovery-card .dc-unlocks { margin-top: 6px; }
+#discovery-card .dc-blurb { margin: 8px 0; font-size: 13px; color: #b6c6de; font-style: italic; }
+#discovery-card .dc-unlocked {
+  margin: 14px 0 6px; padding-top: 12px; border-top: 1px solid #24314c; text-align: left;
+}
+#discovery-card .dc-unlocked-h { font-size: 11px; letter-spacing: 2px; color: #8fa8cc; margin-bottom: 6px; text-align: center; }
+#discovery-card .dc-unlocked-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 #discovery-card .dc-link {
   background: #1b2c48; border: 1px solid #3b5d8f; border-radius: 4px;
-  color: #8fc7ff; font-size: 12px; padding: 1px 6px; cursor: pointer;
+  color: #8fc7ff; font-size: 12px; padding: 3px 8px; cursor: pointer; font-family: inherit;
 }
 #discovery-card .dc-link:hover { background: #2f5388; }
-#discovery-card .dc-research { margin-top: 6px; color: #ffe066; }
-#discovery-card .dc-hint { margin-top: 6px; font-size: 11px; color: #7284a0; }
+#discovery-card .dc-actions { display: flex; gap: 10px; justify-content: center; margin-top: 18px; }
+#discovery-card .dc-actions button {
+  min-height: 44px; padding: 10px 18px; font: inherit; font-size: 14px; border-radius: 6px; cursor: pointer;
+  background: #24406b; color: #dbe6f6; border: 1px solid #3b5d8f;
+}
+#discovery-card .dc-continue { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
+#discovery-card .dc-choose:disabled { opacity: 0.5; cursor: default; }
 
 /* A68 (VIII.13): civil disorder is LOUD in the city view */
 .disorder-banner {

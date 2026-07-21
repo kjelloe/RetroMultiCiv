@@ -10,13 +10,11 @@ import { TECH_BLURBS } from './tech-blurbs.js';
 import { availableTechs } from '../../engine/tech.js';
 import { glyphImg } from './tech-glyphs.js';
 
-const AUTO_MS = 6000;
-
 export function initDiscoveryCard(ctx) {
   const { session } = ctx;
   const { techs, units, buildings, wonders } = session.ruleset;
-  let card = null;
-  let timer = 0;
+  let overlay = null;      // XIV §26: the full celebration overlay (world-dim + card)
+  let escHandler = null;
   const queue = [];
 
   function enabled() {
@@ -42,49 +40,70 @@ export function initDiscoveryCard(ctx) {
   }
 
   function close() {
-    clearTimeout(timer);
-    if (card) card.remove();
-    card = null;
+    if (escHandler) { window.removeEventListener('keydown', escHandler); escHandler = null; }
+    if (overlay) overlay.remove();
+    overlay = null;
     pump();
   }
 
+  // XIV §26 (ally design): the tech-discovery CELEBRATION — a soft world-dim
+  // behind a centered card: large era-glyph → "ADVANCE DISCOVERED" → name →
+  // blurb → a separate UNLOCKED consequence panel → two deliberate exits
+  // ("Continue" / "Choose Research"). NO auto-close — the player decides (phone
+  // players must not race the UI). The era fanfare is played by sound.js off
+  // the same techDiscovered event.
   function show(techId) {
     const def = techs[techId];
     if (!def) { pump(); return; }
-    card = document.createElement('div');
-    card.id = 'discovery-card';
     const blurb = TECH_BLURBS[techId];
     const unlocks = unlocksOf(techId);
     const state = session.state;
-    const me = state.players[ctx.HUMAN];
-    const wantsResearch = me && me.researching === ''
+    const canResearch = state.players[ctx.HUMAN]
       && availableTechs(state, ctx.HUMAN, session.ruleset).length > 0;
+
+    overlay = document.createElement('div');
+    overlay.id = 'discovery-overlay';
+    const card = document.createElement('div');
+    card.id = 'discovery-card';
+    card.className = 'reveal';
     card.innerHTML = `
-      <div class="dc-head"><span class="dc-glyph-slot"></span>${esc(def.name)} <span class="dc-era">${esc(def.era)}</span></div>
+      <div class="dc-glyph"></div>
+      <div class="dc-kicker">ADVANCE DISCOVERED</div>
+      <div class="dc-name">${esc(def.name)} <span class="dc-era">${esc(def.era)}</span></div>
       ${blurb ? `<div class="dc-blurb">${esc(blurb)}</div>` : ''}
-      ${unlocks.length > 0 ? `<div class="dc-unlocks">unlocks ${unlocks.map(u =>
-        `<button class="dc-link" data-cat="${u.cat}" data-id="${u.id}">${esc(u.name)}</button>`).join(' ')}</div>` : ''}
-      ${wantsResearch ? '<div class="dc-research">🔬 Choose new research — press T or click the research bar</div>' : ''}
-      <div class="dc-hint">click to dismiss</div>`;
-    const slot = card.querySelector('.dc-glyph-slot');
-    if (slot) slot.appendChild(glyphImg(techId, def.era, 30));
+      ${unlocks.length > 0 ? `<div class="dc-unlocked"><div class="dc-unlocked-h">UNLOCKED</div>`
+        + `<div class="dc-unlocked-list">${unlocks.map(u =>
+          `<button class="dc-link" data-cat="${u.cat}" data-id="${u.id}">${esc(u.name)}</button>`).join('')}</div></div>` : ''}
+      <div class="dc-actions">
+        <button class="dc-continue">Continue</button>
+        <button class="dc-choose"${canResearch ? '' : ' disabled'}>Choose Research</button>
+      </div>`;
+    const slot = card.querySelector('.dc-glyph');
+    if (slot) slot.appendChild(glyphImg(techId, def.era, 88));
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    card.querySelector('.dc-continue').addEventListener('click', close);
+    const choose = card.querySelector('.dc-choose');
+    if (choose && canResearch) {
+      choose.addEventListener('click', () => {
+        close();
+        if (ctx.panels && ctx.panels.toggleResearchPanel) ctx.panels.toggleResearchPanel();
+      });
+    }
+    // an unlock name opens its civilopedia entry
     card.addEventListener('click', e => {
       const link = e.target.closest('.dc-link');
-      if (link && ctx.pedia) {
-        const cat = link.dataset.cat;
-        const id = link.dataset.id;
-        close();
-        ctx.pedia.openTo(cat, id);
-        return;
-      }
-      close();
+      if (link && ctx.pedia) { const cat = link.dataset.cat, id = link.dataset.id; close(); ctx.pedia.openTo(cat, id); }
     });
-    document.body.appendChild(card);
-    timer = setTimeout(close, AUTO_MS);
+    // backdrop click / Esc = Continue; NEVER an auto-timer
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    escHandler = e => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', escHandler);
   }
 
   function pump() {
-    if (card || queue.length === 0) return;
+    if (overlay || queue.length === 0) return;
     show(queue.shift());
   }
 
@@ -96,5 +115,5 @@ export function initDiscoveryCard(ctx) {
     pump();
   });
 
-  return { enabled };
+  return { enabled, show }; // show exposed for e2e/screenshot hooks
 }

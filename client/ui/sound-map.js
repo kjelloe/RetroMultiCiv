@@ -106,5 +106,8 @@ export const SOUND_IDS = [
   'found', 'grow', 'starve', 'build', 'disorder', 'order',
   'tech', 'wonder', 'age', 'defeat', 'elimination', 'barbarian',
   'victory', 'gameover', 'government', 'regent',
-  'ship-part', 'ship-launch', 'ship-down' // A76: the space-race cues
+  'ship-part', 'ship-launch', 'ship-down', // A76: the space-race cues
+  // XIV §26: era-specific tech-discovery fanfares (played by the celebration
+  // overlay via sound.js's era upgrade; listed here so soundboard.html shows them)
+  'discovery-ancient', 'discovery-classical', 'discovery-industrial', 'discovery-modern'
 ];

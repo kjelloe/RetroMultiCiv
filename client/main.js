@@ -552,6 +552,15 @@ if (params.get('hoverdemo') === '1' && firstUnit) {
   }
 }
 
+// XIV §26: ?discoverydemo=<techId|1> shows the discovery celebration and leaves
+// it open (screenshot review / manual look — the real trigger is techDiscovered).
+if (params.get('discoverydemo') && ctx.discoveryCard && ctx.discoveryCard.show) {
+  const p = params.get('discoverydemo');
+  const t = session.ruleset.techs[p] ? p
+    : (Object.keys(session.ruleset.techs).find(id => session.ruleset.techs[id].era) || 'writing');
+  ctx.discoveryCard.show(t);
+}
+
 // ?e2e=1: scripted sequence for the headless browser test — found a city with
 // the starting settlers and fill both panels, so their code paths execute
 // (hidden panel content stays in the DOM for --dump-dom to assert on).
@@ -589,6 +598,49 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     hudpolish = (ratesOk ? 'rates' : 'norates')
       + '/' + (ttInPanel ? 'ttpanel' : 'nott')
       + '/' + (vs ? 'summary' : 'nosummary');
+  }
+  // XIV §26: the tech-discovery celebration overlay — large glyph, ADVANCE
+  // DISCOVERED / name / blurb, an UNLOCKED consequence panel, and the two
+  // deliberate exits (Continue / Choose Research); NO auto-close.
+  let discovery = 'unchecked';
+  if (ctx.discoveryCard && ctx.discoveryCard.show) {
+    const someTech = Object.keys(session.ruleset.techs).find(t => session.ruleset.techs[t].era) || 'writing';
+    ctx.discoveryCard.show(someTech);
+    const ov = document.getElementById('discovery-overlay');
+    const card = document.getElementById('discovery-card');
+    discovery = (ov ? 'overlay' : 'noverlay')
+      + '/' + (card && /ADVANCE DISCOVERED/.test(card.textContent) ? 'kicker' : 'nokicker')
+      + '/' + (card && card.querySelector('.dc-continue') && card.querySelector('.dc-choose') ? 'exits' : 'noexits');
+    const cont = card && card.querySelector('.dc-continue');
+    if (cont) cont.click(); // Continue closes it (no auto-timer)
+    discovery += '/' + (document.getElementById('discovery-overlay') ? 'stuck' : 'closed');
+  }
+  // XIV §25/§23: the map suppresses the browser context menu; the 'Show unit
+  // move' pacing option exists (default ON).
+  let inputpacing = 'unchecked';
+  {
+    const canvas = document.querySelector('canvas');
+    let ctxmenu = 'nocanvas';
+    if (canvas) {
+      const cm = new MouseEvent('contextmenu', { cancelable: true, bubbles: true });
+      canvas.dispatchEvent(cm);
+      ctxmenu = cm.defaultPrevented ? 'suppressed' : 'notsuppressed';
+    }
+    const opt = document.querySelector('[data-opt="showUnitMove"]');
+    inputpacing = ctxmenu + '/' + (opt ? 'showmove' : 'noshowmove');
+  }
+  // XIV §22: the research-panel unlock names are pedia hover-links that show the
+  // shared hover-card entity summary (the research panel is open in ?e2e=1).
+  let hoverinfo = 'unchecked';
+  {
+    const link = document.querySelector('#research-list .pedia-link');
+    if (link && ctx.hoverCard) {
+      link.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      const h = document.getElementById('hover-card');
+      hoverinfo = (link ? 'link' : 'nolink')
+        + '/' + (h && !h.classList.contains('hidden') && h.querySelector('.hover-title') ? 'carded' : 'nocard');
+      if (ctx.hoverCard) ctx.hoverCard.hide();
+    } else { hoverinfo = link ? 'link/nohover' : 'nolink'; }
   }
   let foodrow = 'nocity';
   if (session.state.cityOrder.length > 0) {
@@ -688,6 +740,9 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · ehint: ' + ehint // XIV §20: unified no-moves hint (🔕 shown / muted honored)
     + ' · foodrow: ' + foodrow // XIV §45: settler upkeep truth in the city food row
     + ' · hudpolish: ' + hudpolish // XIV §1/§9/§21/§28: rates+gov, tech-tree in panel, summary reopen
+    + ' · hoverinfo: ' + hoverinfo // XIV §22: research-panel pedia hover-links + shared card
+    + ' · discovery: ' + discovery // XIV §26: celebration overlay (kicker + two exits, no auto-close)
+    + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots

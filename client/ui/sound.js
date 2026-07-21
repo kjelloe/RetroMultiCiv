@@ -52,6 +52,13 @@ const RECIPES = {
   'regent': seq('square', 0.11, [[NOTE.C4, 0, 0.08], [NOTE.G4, 0.08, 0.14]]),       // user: a "yes, sir" — a crisp two-note affirmative rising a confident fifth
   // A76 space race (H8 presentation pass)
   'ship-part': seq('square', 0.13, [[NOTE.E4, 0, 0.06], [NOTE.A4, 0.05, 0.11]]),    // an assembly clink — two quick rising taps, metal on metal
+  // XIV §26: era-specific tech-discovery fanfares (~2 s, held open by the
+  // celebration overlay — not auto-dismissed). Four characters per the ally
+  // design; reviewable/tunable in debugging/soundboard.html.
+  'discovery-ancient': seq('sawtooth', 0.16, [[NOTE.C3, 0, 0.4], [NOTE.G3, 0.34, 0.4], [NOTE.C4, 0.68, 0.5], [NOTE.E4, 1.1, 0.8]]),      // struck bronze / low reed
+  'discovery-classical': seq('triangle', 0.16, [[NOTE.C5, 0, 0.55], [NOTE.E5, 0.3, 0.55], [NOTE.G5, 0.6, 0.5], [NOTE.C6, 0.95, 0.9]]),   // bell-like / strings
+  'discovery-industrial': seq('square', 0.15, [[NOTE.C4, 0, 0.24], [NOTE.C4, 0.3, 0.24], [NOTE.G4, 0.6, 0.3], [NOTE.C5, 0.98, 0.7]]),    // measured brass / mechanical rhythm
+  'discovery-modern': seq('sawtooth', 0.13, [[NOTE.C4, 0, 0.4], [NOTE.G4, 0.3, 0.4], [NOTE.C5, 0.6, 0.4], [NOTE.E5, 0.9, 0.4], [NOTE.G5, 1.2, 0.9]]), // rising electronic sweep
   'ship-launch': arp('sawtooth', 0.18, [NOTE.C3, NOTE.G3, NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.E5], 0.09, 0.2), // a long climb from rumble to bright — the ascent itself
   'ship-down': seq('sawtooth', 0.17, [[NOTE.E4, 0, 0.16], [NOTE.C4, 0.14, 0.18], [NOTE.G3 * 0.94, 0.3, 0.4]])       // a breaking fall ending detuned — something came apart
 };
@@ -140,6 +147,19 @@ export function initSound(ctx) {
   }
   function stopTune() { if (tuneTimer) { clearInterval(tuneTimer); tuneTimer = null; } }
 
+  // XIV §26: tech era → discovery fanfare id (4 characters; unknown era falls
+  // back to the generic 'tech' sparkle). tech eras are ancient/renaissance/
+  // industrial/modern (data/techs.json).
+  const DISCOVERY_FANFARE = {
+    ancient: 'discovery-ancient', renaissance: 'discovery-classical',
+    industrial: 'discovery-industrial', modern: 'discovery-modern'
+  };
+  function discoveryFanfare(techId) {
+    const t = ctx.session && ctx.session.ruleset && ctx.session.ruleset.techs
+      ? ctx.session.ruleset.techs[techId] : null;
+    return (t && DISCOVERY_FANFARE[t.era]) || 'tech';
+  }
+
   // --- cue wiring: fog-filtered events → cues -------------------------------
   // (session-optional: the setup screen and the soundboard use tunes-only)
   const cityOwner = (state) => (cid) => (state.cities[cid] ? state.cities[cid].owner : null);
@@ -151,7 +171,11 @@ export function initSound(ctx) {
       const seen = filterEvents(state, events, ctx.HUMAN);
       const owner = cityOwner(state);
       for (const e of seen) {
-        const id = soundForEvent(e, ctx.HUMAN, owner);
+        let id = soundForEvent(e, ctx.HUMAN, owner);
+        // XIV §26: a viewer's OWN discovery earns the era-specific celebration
+        // fanfare (sound-map stays pure/ruleset-free, so the era lookup — which
+        // needs the ruleset — happens here).
+        if (id === 'tech' && e.type === 'techDiscovered') id = discoveryFanfare(e.tech);
         if (id) play(id);
       }
     });

@@ -159,6 +159,18 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // summary" reopen button all present
     assert.match(dom, /hudpolish: rates\/ttpanel\/summary/,
       'the top bar must show rates+government, the tech-tree button must live in the research panel, and the summary reopen must exist');
+    // XIV §22: the research-panel unlock names are pedia hover-links that pop the
+    // shared hover-card entity summary
+    assert.match(dom, /hoverinfo: link\/carded/,
+      'research-panel unlock names must be pedia hover-links that show the shared hover-card');
+    // XIV §26: the tech-discovery celebration overlay opens with the kicker + the
+    // two deliberate exits, and Continue closes it (no auto-timer)
+    assert.match(dom, /discovery: overlay\/kicker\/exits\/closed/,
+      'the discovery celebration must show ADVANCE DISCOVERED + Continue/Choose Research and close on Continue');
+    // XIV §25/§23: the map canvas suppresses the browser context menu; the
+    // 'Show unit move' pacing option is present
+    assert.match(dom, /inputpacing: suppressed\/showmove/,
+      'the map must suppress the context menu and offer the Show unit move option');
     // XIV §45a: the unit info card must surface the home city (🏠) — it was shown nowhere
     assert.match(dom, /unithome: home\/unsupported/,
       'the unit info card must show the home city (🏠) and read "unsupported" when homeless');
