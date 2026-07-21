@@ -121,3 +121,14 @@ palace, senate prerequisites. Found MISSING and now planned:
 - **S3 — 1.y polish queue**: cosmetic, wording, feel, minor layout.
 The RC playtest week gates ONLY on S1. Severity is assigned at triage
 (architect), recorded in the bug-report file's disposition.
+
+## 8. Branding/domain (user-ruled 2026-07-21)
+
+v1.0 ships on **multiciv.kjell.today** — no separate name/domain unless the
+project attracts wider attention warranting one (user judgment call, ally
+consulted on naming). Practical consequences: the README/how-to-host 1.0
+edits keep the domain as-is and drop only the "test server" framing; the
+master index announce/public-name strings stay configurable (they already
+are), so a later rename is a config+DNS event, not a code event. If a name
+ever lands, it arrives as a 1.y change (additive: new domain alongside,
+redirect from old) — never a breaking one.
