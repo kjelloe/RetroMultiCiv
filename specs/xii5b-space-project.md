@@ -69,3 +69,21 @@ it is deterministic and golden-safe. The ally's real rule holds as stated:
 **nothing infers behavior from DISPLAYED dates** — UI maps state→label,
 never label→logic; AI/victory/yields read state and rules only. Recorded
 in specs/calendar-545.md as well.
+
+## Status log (the measure-tune-measure record)
+
+- Sweep 1 (#2113): PATHOLOGICAL — 0/25 launches, 100% abandon (every-turn
+  peace check). → TUNE (abandon only warring/high) landed 3f2b6b5.
+- Sweep 2: improved (commits reach 67-91% path) but 3/3 still abandoned on
+  threat; seed-5 committed at threat NONE, died to a later spike. → LATCH
+  (sustained-K hysteresis, spaceThreatPatience=6) landed 2349456.
+- Sweep 3: 4 commits, 4/4 STILL abandoned on threat — decisive evidence:
+  milAtCommit == milFloorMin in ALL four (zero military losses; the threat
+  metric is chronic late-game proximity noise, not danger).
+- OPEN USER FORK (options presented, recommendation (a)):
+  (a) DANGER-BASED abandon — concrete events only (capital threatened/
+      lost, city lost while committed, mode warring); (b) crank the
+      patience ladder further; (c) accept space-as-rare (fails ally
+      acceptance; versioning rule traps it until 2.0).
+  The latch CODE is correct (spike/siege fixtures both pass) — the SIGNAL
+  feeding it is what fails.
