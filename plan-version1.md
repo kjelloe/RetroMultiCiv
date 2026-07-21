@@ -22,8 +22,8 @@ flowchart TD
     N1["✅ marker 0070 — calendar-545\n(normal game 395→545t + re-record)"]
     PROBE["✅ probe @545t: leaders 38–47/68,\n0/3 reach space-flight — NOT closed"]
     BULB{"🚪 follow-up (probe came up short):\nbulb tuning + AI space-path prioritisation"}
-    X5B["📋 XII.5b — solar-last part order\n(+ launch pacing)"]
-    AIB["🔨 engine spine: §13 ✅ → §14 ✅ (0072) →\nXII.5b SPACE PROJECT (window OPEN) → §12 pathing"]
+    X5B["✅ XII.5b complete (0073) —\nspace-project AI + solar fix + witness"]
+    AIB["🔨 engine spine: §13 ✅ → §14 ✅ → XII.5b ✅ (0073!)\n→ §12 pathing (open) → queued stack"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
