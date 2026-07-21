@@ -353,7 +353,10 @@ valid; hash-verify DIVERGES at turn 5 as expected (recorded on the deployed
 pre-calendar ruleset; yearSteps moved every round hash). Old recordings cannot
 verify across the calendar change — a version-skew property, not a bug.
 
-## §39 Post-conquest disorder [FACT-CHECK → conditional engine]
+## §39 Post-conquest disorder [RULED 2026-07-21: shelved to the Civ2-ruleset option]
+User disposition: NOT in the Civ1 default (fact-check: Civ1 imposes no
+capture disorder — current behavior authentic); NOTED for the future
+"Civ 2 ruleset" game option (plan-version2.md). No queue item.
 User: shouldn't a conquered city suffer 1 turn (2 for larger?) of civil
 disorder? Engine today: capture reduces pop, drops specialists, plunders gold
 (combat.js:203) — NO disorder period. Reviewer fact-checks whether this is

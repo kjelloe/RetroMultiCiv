@@ -69,3 +69,14 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 
 _Everything else that looks "missing" is either in `plan-version1.md` (the
 1.0 tree) or already shipped — check the engine before re-adding here._
+
+## Civ 2 ruleset option (seeded 2026-07-21, user disposition of XIV §39)
+
+A future GAME OPTION collecting the deliberately-rejected `Civ2-shape`
+mixes into a selectable ruleset variant (setup toggle / rulesOverrides
+preset), rather than losing them: post-conquest civil disorder (§39 —
+fact-checked as Civ2+, ruled out of the Civ1 default), Lighthouse-saves-
+triremes (the #1976 drift catch), partisans/guerrillas, and whatever later
+audits reject-as-drift. Each entry arrives here already fact-checked and
+labeled — the option becomes buildable almost for free once enough
+accumulate (the engine already supports rulesOverrides presets).
