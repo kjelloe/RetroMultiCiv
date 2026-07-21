@@ -444,3 +444,27 @@ flat-1 settler food rule; the UI lies and the player has no repair tool.
     helpWonder — resolve (Civ1 precedent favors h=Home; helpWonder can move
     to 'w' or stay caravan-context-only) — small user-facing keybind choice,
     helper decides with the client half.
+
+## §45a addendum (user follow-up): unit HOME CITY display
+Verified: the home city is shown NOWHERE in the client (no hud/panels hit).
+Fold into §45a scope: the unit info panel shows "home: <city name>" for every
+homed unit (settlers prominently — their upkeep is the Teotihuacan trap);
+units with no home show "unsupported". Golden-neutral.
+
+## §42 note (user follow-up): tech-gated improvements
+Confirmed non-issue by construction: the automation issues ordinary commands
+and the ENGINE rejects undiscovered improvements (railroad needs Railroad
+etc.); Civ 1 gives irrigation/mine/road from the start. The §42 item needs
+no extra gate — the priority menu simply never offers what the engine would
+refuse.
+
+## §46 Era-relevant default production (user item "45", renumbered)
+Founding hardcodes `producing: militia` (cities.js:326) regardless of era —
+a Gunpowder-age city defaults to an obsolete unit. FACTS: militia
+obsoletedBy=gunpowder (data, Civ1-authentic — Civ 1 obsoletes Militia at
+Gunpowder; "guerrillas appearing later" is Civ 2's Partisans, drift).
+Slice [engine, small]: the founding default becomes the BEST AVAILABLE
+DEFENDER the owner can build (defense-first tiebreak cost — militia →
+phalanx → musketeers → riflemen → mech-inf as techs allow); same fallback
+when production completes with an empty queue. Golden-affecting (AI cities
+found with better defaults → sim drift) + twins; engine-lane queue.
