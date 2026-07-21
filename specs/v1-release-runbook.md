@@ -126,13 +126,24 @@ palace, senate prerequisites. Found MISSING and now planned:
 The RC playtest week gates ONLY on S1. Severity is assigned at triage
 (architect), recorded in the bug-report file's disposition.
 
-## 8. Branding/domain (user-ruled 2026-07-21)
+## 8. Branding/domain (user-ruled 2026-07-21; ally verdict received — see
+specs/ally-design-response-2026-07-21-naming.md)
 
-v1.0 ships on **multiciv.kjell.today** — no separate name/domain unless the
-project attracts wider attention warranting one (user judgment call, ally
-consulted on naming). Practical consequences: the README/how-to-host 1.0
-edits keep the domain as-is and drop only the "test server" framing; the
-master index announce/public-name strings stay configurable (they already
-are), so a later rename is a config+DNS event, not a code event. If a name
-ever lands, it arrives as a 1.y change (additive: new domain alongside,
-redirect from old) — never a breaking one.
+v1.0 ships on **multiciv.kjell.today** as RetroMultiCiv — the rename
+question is POST-V1 (user disposition). The ally's verdict: **Founders** as
+front-runner, [title].eu-first domain bundle (~€26/yr), full decision path
+in the spec. THREE v1-time considerations extracted:
+1. **Domain optionality is time-sensitive (USER, optional, ~€26/yr)**:
+   registering founders.eu/.no/(.com) NOW preserves the option cheaply —
+   availability will not wait for post-v1 discussions. Same logic for a
+   quick trademark/platform screen: doing it early costs little and its
+   result may re-rank the reserve list before attachment forms.
+2. **FORMAT-IDENTIFIER BOUNDARY (documented here, binding)**: internal
+   format strings — 'retromulticiv-save', 'retromulticiv-diagnostics',
+   'rmc_*' DataStore keys, protocol constants — are CODENAMES and NEVER
+   rename with the public title. A rename touches display strings, docs,
+   and domains only (golden-neutral 1.y); renaming format identifiers
+   would be a breaking change with zero user value. This boundary makes
+   the future rename provably additive.
+3. The rename-mechanics ruling stands: config+DNS+display event, old
+   domain redirects, never breaking.

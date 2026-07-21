@@ -96,3 +96,12 @@ A future `original` negotiation layer may add counter-offer rounds ONLY
 with: full AI valuation transparency, multiplayer timing rules, and a
 clear player reason to counter (ally conditions, verbatim in
 specs/ally-design-response-2026-07-21-diplomacy.md §1).
+
+## Public identity / rename (seeded 2026-07-21, ally verdict on file)
+
+Post-v1 program per the user's disposition: evaluate **Founders** (ally
+front-runner; reserves Firstlight/Worldmakers/Commonwealth/Civil Dawn)
+via the screen → adopt [title].eu canonical + .no/.com redirects → rename
+as a 1.y display/config/DNS event (format identifiers never rename —
+runbook §8 boundary). Verdict verbatim:
+specs/ally-design-response-2026-07-21-naming.md.
