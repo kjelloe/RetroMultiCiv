@@ -426,3 +426,21 @@ capital's building list, in which case queue it to the engine lane.
 
 ## Batch-4 routing
 Both → helper queue, golden-neutral.
+
+## §45 Settler-starvation legibility + rehome (DEBUG find, 2026-07-21; save g52yt-2 Teotihuacan)
+ROOT CAUSE (verified in-save): 4 settlers homed to a pop-2 city eat 4
+food/turn (engine cities.js:551, settlerFoodUpkeep) — but the CITY PANEL
+surplus (panels.js:310) omits settler upkeep entirely: showed "+2/turn,
+grows in ~10" while the true net was −2. The city starved to size 1 and
+pinned at 0/20 "without explanation". Engine is CORRECT per the user-ruled
+flat-1 settler food rule; the UI lies and the player has no repair tool.
+(a) [helper — PRIORITY, truth-in-UI] panels.js surplus subtracts settler
+    upkeep; the food tooltip itemizes it ("2 citizens eat 4 · 4 settlers eat
+    4 → net −2"); a ⚠ starving indicator when net < 0; same fix in the §34
+    city-overview food column. Golden-neutral.
+(b) [engine] REHOME command (Civ1-authentic 'h' Home): rehomes a unit to the
+    city it stands in (shifts upkeep there). New engine command + twins +
+    scenario; golden-affecting, engine-lane queue. KEYBIND note: our 'h' =
+    helpWonder — resolve (Civ1 precedent favors h=Home; helpWonder can move
+    to 'w' or stay caravan-context-only) — small user-facing keybind choice,
+    helper decides with the client half.
