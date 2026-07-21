@@ -198,3 +198,17 @@ test('runSim return exposes tel + contLabels; a snapshot from them carries the c
       `every player row has a numeric ${key} (cumulative column reached the snapshot)`);
   }
 });
+
+// XII.5b Q6: the space-flight prereq closure is the path-completion denominator
+// for the witness rows. It must include space-flight + its deep prereqs and the
+// ss-part techs, and exclude clearly off-path side techs.
+test('spaceFlightClosure: the path denominator covers the space chain, not off-path', () => {
+  const { spaceFlightClosure } = require('../tools/soak.js');
+  const closure = spaceFlightClosure(REAL_RULESET);
+  for (const t of ['space-flight', 'computers', 'rocketry', 'plastics', 'robotics']) {
+    assert.strictEqual(closure[t], true, `${t} is on the space closure`);
+  }
+  for (const t of ['monarchy', 'religion', 'horseback-riding']) {
+    assert.ok(closure[t] === undefined, `${t} is OFF the space closure`);
+  }
+});

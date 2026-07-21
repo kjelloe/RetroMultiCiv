@@ -1959,3 +1959,7 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
 }
 
 export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit };
+// XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
+// for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
+// measurement, zero engine-decision use, no luau caller. Pure reads.
+export { spaceCommitEligible, spaceCommitted, nextSsPart };

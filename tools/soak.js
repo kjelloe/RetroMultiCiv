@@ -274,6 +274,79 @@ function strategicRow(state, pid, ruleset, turn) {
     mode: s.mode, threat: s.threat, units: s.units, producing: s.producing, topGoal: s.topGoal };
 }
 
+// XII.5b Q6 (witness, A-ruled #2052): the space-project measurement. The engine
+// predicates (spaceCommitEligible/spaceCommitted/nextSsPart) are read here for a
+// Node-only witness — zero engine-decision use, no luau twin. Loaded in main().
+let spaceCommitEligible = null, spaceCommitted = null, nextSsPart = null;
+// the space-flight prereq closure (apollo tech + each ss-part tech, prereqs
+// walked) = the path-completion denominator. Harness-local BFS (mirrors the
+// engine markTechPath semantics; measurement only, never a golden input).
+function spaceFlightClosure(ruleset) {
+  const out = {};
+  const gate = ruleset.rules.ssFlight === undefined ? undefined : ruleset.rules.ssFlight.gateWonder;
+  const apolloTech = gate !== undefined && ruleset.wonders[gate] !== undefined ? ruleset.wonders[gate].tech : '';
+  const stack = [];
+  if (apolloTech !== '') stack.push(apolloTech);
+  const parts = ruleset.rules.ssParts === undefined ? {} : ruleset.rules.ssParts;
+  for (const k of Object.keys(parts)) if (parts[k].tech !== undefined && parts[k].tech !== '') stack.push(parts[k].tech);
+  while (stack.length > 0) {
+    const id = stack.pop();
+    if (id === '' || out[id] === true) continue;
+    out[id] = true;
+    const def = ruleset.techs[id];
+    const pre = def !== undefined && def.prereqs !== undefined ? def.prereqs : [];
+    for (const p of pre) stack.push(p);
+  }
+  return out;
+}
+// per-civ accumulators, updated each strategic tick (every 10 turns; event turns
+// like launch are read exact from ship.launched). Zero = not-yet / never.
+function updateSpaceWitness(wit, state, round, closure) {
+  const closureSize = Math.max(1, Object.keys(closure).length);
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid];
+    if (p === undefined || p.human === true) continue;
+    let w = wit[pid];
+    if (w === undefined) {
+      w = wit[pid] = { eligibleTurn: 0, commitTurn: 0, abandonTurn: 0, abandonReason: '',
+        wasCommitted: false, pathPct: 0, committedSamples: 0, offPathSamples: 0,
+        ssPartStartTurn: 0, shipDoneTurn: 0, launchTurn: 0,
+        threatAtCommit: '', threatAtLaunch: '', milAtCommit: 0, milFloorMin: 0 };
+    }
+    if (p.alive === false) continue; // dead civs freeze their record
+    let known = 0; for (const t of p.techs) if (closure[t] === true) known++;
+    w.pathPct = Math.round(100 * known / closureSize);
+    const eligible = spaceCommitEligible(state, pid, RULESET);
+    const committed = spaceCommitted(state, pid, RULESET);
+    const snap = strategicSnapshot(state, pid, RULESET);
+    const mil = snap.units.mil;
+    if (eligible && w.eligibleTurn === 0) w.eligibleTurn = round;
+    if (committed) {
+      if (w.commitTurn === 0) { w.commitTurn = round; w.threatAtCommit = snap.threat; w.milAtCommit = mil; w.milFloorMin = mil; }
+      w.committedSamples++;
+      if (mil < w.milFloorMin) w.milFloorMin = mil;
+      if (p.researching !== undefined && p.researching !== '' && closure[p.researching] !== true) w.offPathSamples++;
+      w.wasCommitted = true;
+    } else if (w.wasCommitted && w.abandonTurn === 0) {
+      w.abandonTurn = round;
+      w.abandonReason = !eligible ? 'ineligible'
+        : (snap.threat !== 'none' && snap.threat !== 'low') ? 'threat'
+        : (snap.mode !== 'building' && snap.mode !== 'expanding') ? 'warring' : 'other';
+    }
+    if (w.ssPartStartTurn === 0) {
+      for (const cid of state.cityOrder) {
+        const c = state.cities[cid];
+        if (c !== undefined && c.owner === pid && c.producing !== undefined && c.producing.kind === 'ss-part') { w.ssPartStartTurn = round; break; }
+      }
+    }
+    const ship = p.spaceship;
+    if (ship !== undefined) {
+      if (w.shipDoneTurn === 0 && nextSsPart(ship, RULESET) === null) w.shipDoneTurn = round;
+      if (w.launchTurn === 0 && ship.launched) { w.launchTurn = ship.launched; w.threatAtLaunch = snap.threat; }
+    }
+  }
+}
+
 async function runSeed(seed, opts, checkpoints, mods) {
   const [width, height] = SIZES[opts.size];
   const meta = {
@@ -282,6 +355,8 @@ async function runSeed(seed, opts, checkpoints, mods) {
   };
   const t0 = Date.now();
   const rankAt = {}; // v1.5: score-rank at each checkpoint (for comebacks/leadChanges)
+  const closure = spaceFlightClosure(RULESET); // XII.5b Q6: path-completion denominator
+  const spaceWit = {}; // XII.5b Q6: per-civ space-project witness accumulators
   const r = await runSim({
     seed, civs: opts.civs, width, height, turns: opts.turns,
     rulesOverrides: rulesOverridesFor(opts),
@@ -295,6 +370,7 @@ async function runSeed(seed, opts, checkpoints, mods) {
           appendStats(opts.stats, Object.assign({}, meta, strategicRow(state, pid, RULESET, state.turn)));
         }
       }
+      updateSpaceWitness(spaceWit, state, round, closure); // XII.5b Q6
     },
     onCheckpoint: (state, round, hash, tel, contLabels) => {
       console.log(`  ${summarize(state, RULESET, mods)}`);
@@ -315,12 +391,27 @@ async function runSeed(seed, opts, checkpoints, mods) {
       const n2 = rankAt[200].length, n4 = rankAt[400].length;
       for (const pid of rankAt[400].slice(0, Math.ceil(n4 / 2))) { const i2 = rankAt[200].indexOf(pid); if (i2 >= Math.ceil(n2 / 2)) comebacks++; }
     }
-    // TODO(A76): victoryType is conquest/score/timeout from state.winner; add the
-    // 'space' split (Alpha Centauri launch) when the space race lands.
+    // victoryType is conquest/score/timeout/space from state.winner; the XII.5b
+    // 'space' witness rows below carry the per-civ space-race detail (A76/Q6).
     appendStats(opts.stats, Object.assign({ t: 'outcome',
       victoryType: r.outcome.victoryType, victoryTurn: r.outcome.victoryTurn,
       scoreSpread: scores.length ? Math.round(100 * scores[scores.length - 1] / Math.max(1, scores[0])) / 100 : null,
       comebacks, leadChanges, elimTimeline: r.outcome.elimTimeline.map(e => e.turn) }, meta));
+    // XII.5b Q6 (witness contract): one 'space' row per civ that ever became
+    // commit-eligible — the ally's 9-metric table for the sim-runner's sweep.
+    const spaceWon = r.state.winner !== undefined && r.outcome.victoryType === 'space' ? r.state.winner : null;
+    for (const pid of Object.keys(spaceWit)) {
+      const w = spaceWit[pid];
+      if (w.eligibleTurn === 0) continue; // only civs that reached the eligibility gate
+      appendStats(opts.stats, Object.assign({ t: 'space', id: pid,
+        eligibleTurn: w.eligibleTurn, commitTurn: w.commitTurn,
+        abandonTurn: w.abandonTurn, abandonReason: w.abandonReason,
+        pathPct: w.pathPct, offPathSamples: w.offPathSamples, committedSamples: w.committedSamples,
+        ssPartStartTurn: w.ssPartStartTurn, shipDoneTurn: w.shipDoneTurn,
+        launchTurn: w.launchTurn, victoryTurn: pid === spaceWon ? r.outcome.victoryTurn : 0,
+        threatAtCommit: w.threatAtCommit, threatAtLaunch: w.threatAtLaunch,
+        milAtCommit: w.milAtCommit, milFloorMin: w.milFloorMin }, meta));
+    }
   }
   if (opts.natural && r.state.gameOver !== true) {
     throw new Error(`sim seed ${seed}: NO VICTORY by turn ${r.rounds} under natural rules (score victory was due at endYear)`);
@@ -360,6 +451,10 @@ function runSeedInChild(seed, opts) {
 
 async function main() {
   strategicSnapshot = (await import('../shared/strategic.js')).strategicSnapshot; // ROW-A seam
+  const aiMod = await import('../engine/ai.js'); // XII.5b Q6: space-project witness predicates
+  spaceCommitEligible = aiMod.spaceCommitEligible;
+  spaceCommitted = aiMod.spaceCommitted;
+  nextSsPart = aiMod.nextSsPart;
   const opts = parseArgs(process.argv);
   const [width, height] = SIZES[opts.size];
   const seeds = opts.seed !== null
@@ -414,5 +509,6 @@ if (require.main === module) main();
 
 module.exports = {
   FLOORS, FLOOR_CONFIG, FLOOR_MIN_TURNS,
-  isCanonicalFloorRun, computeFloorReport, floorMedian, floorCmp, splitBreaches
+  isCanonicalFloorRun, computeFloorReport, floorMedian, floorCmp, splitBreaches,
+  spaceFlightClosure // XII.5b Q6: path-completion denominator (test guard)
 };
