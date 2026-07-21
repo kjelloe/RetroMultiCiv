@@ -429,6 +429,13 @@ local function playRegentSeat(pid, collected)
 	local done = {}
 	local guard = 500
 	local applied = 0
+	-- MP4 narration: tally what the regent did so the seat owner's turn log can
+	-- narrate it (the browser session.js regentTurn tally twin — byType counts +
+	-- the research/production it set). The regentTurn event stays synthetic:
+	-- never logged to the recording, never hashed.
+	local byType = {}
+	local research = ""
+	local production = {}
 	while guard > 0 do
 		guard = guard - 1
 		local cmd = aiModule.pickCommand(state, pid, ruleset, done, regentStance[pid]) -- MP4 stance
@@ -444,6 +451,12 @@ local function playRegentSeat(pid, collected)
 				table.insert(collected, e)
 			end
 			applied = applied + 1
+			byType[cmd.type] = (byType[cmd.type] or 0) + 1
+			if cmd.type == "setResearch" then
+				research = cmd.tech
+			elseif cmd.type == "setProduction" and cmd.item ~= nil then
+				table.insert(production, cmd.item.id)
+			end
 		else
 			entry.ok = false
 			entry.reason = res.reason
@@ -453,7 +466,8 @@ local function playRegentSeat(pid, collected)
 			task.wait() -- breathe (A30)
 		end
 	end
-	table.insert(collected, { type = "regentTurn", playerId = pid, applied = applied })
+	table.insert(collected, { type = "regentTurn", playerId = pid, applied = applied,
+		byType = byType, research = research, production = production })
 end
 
 -- advance: drive regent seats (vacant OR absent humans) until a seated,

@@ -364,5 +364,32 @@ else
   note SKIP "gate 27: node absent"
 fi
 
+# gate 28 — SO6 jump-to: a located turn-log entry earns a ⌖ button that centres
+# the camera on its tile (the browser turnlog.js centerOn twin — locOf resolves
+# e.x/e.y or the city, ClientState.focusCamera does the centring). Broken wire fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/turnlog-jumpto-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 28: turn-log jump-to mirrors client/ui/turnlog.js centerOn"
+  else
+    note FAIL "gate 28: turnlog jump-to parity — run: node roblox/selftest/turnlog-jumpto-parity.mjs"
+  fi
+else
+  note SKIP "gate 28: node absent"
+fi
+
+# gate 29 — MP4 regent narration: the seat owner's turn log narrates what the
+# armed regent did (the browser turnlog.js regentTurn audit line). GameServer
+# emits the tally (byType/research/production) on the synthetic regentTurn event
+# and TurnLog narrates the same bits, own-seat only. Dropped bit / tally fails.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/regent-narration-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 29: regent narration mirrors client/ui/turnlog.js regentTurn"
+  else
+    note FAIL "gate 29: regent-narration parity — run: node roblox/selftest/regent-narration-parity.mjs"
+  fi
+else
+  note SKIP "gate 29: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

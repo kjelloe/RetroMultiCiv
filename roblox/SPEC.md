@@ -782,8 +782,11 @@ render under 'world' so nothing narrated is ever hidden. Pure read-only
 over the pushed events (golden-neutral). Gate 22
 (`turnlog-classes-parity.mjs`) drives the browser `classifyEvent` over a
 representative event per class + pins the Luau + the wiring. Catalog SO6:
-classes + filters DONE; **jump-to** (click a row → focus the camera on the
-event) is a separable follow-up (needs per-event coords).
+classes + filters DONE. **jump-to DONE**: a located entry earns a ⌖ button —
+`locOf(view, e)` reads a direct `e.x/e.y` or resolves a city event through
+the view, and `ClientState.focusCamera` centres the map (the browser
+`turnlog.js` `centerOn` twin). Kept a child of the row (a TextLabel) so the
+filter/cache scan is unaffected; rides the row's fclass visibility. Gate 28.
 
 ### 3x. MP4 regent stance-select (docs/13 Tier-3, catalog find)
 
@@ -802,7 +805,12 @@ passes it. Golden-neutral: the sim goldens drive AI on the default
 (balanced) path, and a regent's commands log verbatim + replay re-applies
 them (docs/08 §7) — no re-record. Gate 23 (`regent-stance-parity.mjs`)
 pins the STANCES + the client→GameServer→pickCommand wire. Catalog MP4:
-stance-select DONE (narration lines remain a light follow-up).
+stance-select DONE. **Narration DONE**: `playRegentSeat` tallies the
+regent's turn (`byType`/`research`/`production` — the browser `session.js`
+tally twin) onto the synthetic `regentTurn` event (still never-hashed,
+never-recorded), and `TurnLog` narrates the seat-owner audit line
+"🤖 regent played your turn: N moves · research → …" (own seat only,
+1:1 of `turnlog.js`). Gate 29 (`regent-narration-parity.mjs`).
 
 ### 3y. SO8 battles/wonders timelines (catalog find, architect-approved)
 

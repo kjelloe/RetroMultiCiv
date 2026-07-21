@@ -126,7 +126,7 @@ local COLORS = {
 local rowCount = 0
 local unseen = 0
 
-local function put(turn, text, cls, fclass)
+local function put(turn, text, cls, fclass, loc)
 	rowCount += 1
 	fclass = fclass or "world"
 	local row = Instance.new("TextLabel")
@@ -142,6 +142,28 @@ local function put(turn, text, cls, fclass)
 	row:SetAttribute("fclass", fclass) -- SO6: the filter class (hidden when its toggle is off)
 	row.Visible = rowVisible(fclass)
 	row.Parent = list
+	-- SO6 jump-to: a located event earns a ⌖ button that centres the camera on
+	-- its tile (the browser turnlog.js `⌖` twin — renderer.centerOn → focusCamera).
+	-- Kept a CHILD of the row (a TextLabel) so the filter/cache TextLabel scan is
+	-- unaffected; the button rides the row's fclass visibility.
+	if loc ~= nil and loc.x ~= nil and loc.y ~= nil then
+		local jump = Instance.new("TextButton")
+		jump.Name = "Jump"
+		jump.AnchorPoint = Vector2.new(1, 0.5)
+		jump.Position = UDim2.new(1, -2, 0.5, 0)
+		jump.Size = UDim2.fromOffset(16, 14)
+		jump.BackgroundTransparency = 0.4
+		jump.BackgroundColor3 = Color3.fromRGB(40, 52, 70)
+		jump.TextColor3 = Color3.fromRGB(210, 226, 243)
+		jump.Font = Enum.Font.Code
+		jump.TextSize = 12
+		jump.Text = "⌖"
+		jump.AutoButtonColor = true
+		jump.Parent = row
+		jump.Activated:Connect(function()
+			ClientState.focusCamera(loc.x, loc.y)
+		end)
+	end
 	local kids = list:GetChildren()
 	if #kids > MAX_ROWS + 1 then -- +1: the UIListLayout
 		for _, child in ipairs(kids) do
@@ -172,6 +194,22 @@ end
 local function ownCity(view, cityId)
 	local c = view.cities[cityId]
 	return c ~= nil and c.owner == view.you
+end
+
+-- SO6 jump-to: the tile an event points at (browser turnlog.js loc), or nil.
+-- A direct e.x/e.y wins (combat, transport, hut…); else resolve a city event
+-- through the view (cityLoc twin). Fog-honest: the event is already in the log.
+local function locOf(view, e)
+	if e.x ~= nil and e.y ~= nil then
+		return { x = e.x, y = e.y }
+	end
+	if e.cityId ~= nil and view.cities ~= nil then
+		local c = view.cities[e.cityId]
+		if c ~= nil and c.x ~= nil and c.y ~= nil then
+			return { x = c.x, y = c.y }
+		end
+	end
+	return nil
 end
 
 -- D3 diplomacy (docs/14, #1878): the four events surface the way the BROWSER
@@ -245,7 +283,31 @@ end
 -- reduced to the view's vocabulary; nil = not narrated)
 local function narrate(view, e, rs)
 	local you = view.you
-	if e.type == "combatResolved" then
+	if e.type == "regentTurn" then
+		-- MP4 narration (browser turnlog.js twin): the seat owner's per-turn audit
+		-- line — what the armed regent did with their empire. Own seat only.
+		if e.playerId ~= you then
+			return nil
+		end
+		local byType = e.byType or {}
+		local bits = {}
+		local n = function(t) return byType[t] or 0 end
+		local plural = function(k, one, many) return n(k) == 1 and one or many end
+		if n("moveUnit") > 0 then table.insert(bits, ("%d %s"):format(n("moveUnit"), plural("moveUnit", "move", "moves"))) end
+		if n("fortify") > 0 then table.insert(bits, ("%d fortified"):format(n("fortify"))) end
+		if n("startWork") > 0 then table.insert(bits, ("%d %s started"):format(n("startWork"), plural("startWork", "work", "works"))) end
+		if (e.research or "") ~= "" and rs.techs[e.research] ~= nil then
+			table.insert(bits, "research → " .. rs.techs[e.research].name)
+		end
+		for _, id in ipairs(e.production or {}) do
+			local def = rs.units[id] or rs.buildings[id] or rs.wonders[id]
+			table.insert(bits, "production → " .. (def and def.name or id))
+		end
+		if n("setWorkers") > 0 then table.insert(bits, "citizens reassigned") end
+		if n("foundCity") > 0 then table.insert(bits, ("%d %s founded"):format(n("foundCity"), plural("foundCity", "city", "cities"))) end
+		local tail = #bits > 0 and (": " .. table.concat(bits, " · ")) or " (nothing to do)"
+		return "🤖 regent played your turn" .. tail, "world"
+	elseif e.type == "combatResolved" then
 		local att = ("%s %s"):format(playerName(view, e.attackerOwner), rs.units[e.attackerType].name)
 		local def = ("%s %s"):format(playerName(view, e.defenderOwner), rs.units[e.defenderType].name)
 		local mine = e.attackerOwner == you or e.defenderOwner == you
@@ -359,7 +421,7 @@ ClientState.onEvents(function(events, view)
 		local ok, text, cls = pcall(narrate, view, e, rs)
 		if ok and text ~= nil then
 			local okc, fclass = pcall(TurnLogClasses.classifyEvent, e, view.you, cityOwner)
-			put(view.turn, text, cls, okc and fclass or "world")
+			put(view.turn, text, cls, okc and fclass or "world", locOf(view, e))
 		elseif not ok then
 			-- an unexpected event shape must never kill the log loop
 			put(view.turn, "[?] " .. tostring(e.type), "rival", "world")
