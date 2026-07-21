@@ -94,14 +94,18 @@ return [==[{
     "tech": "map-making",
     "obsoleteBy": "magnetism",
     "cost": 200,
-    "effect": {}
+    "effect": {
+      "shipMoveBonus": 1
+    }
   },
   "magellan-s-expedition": {
     "name": "Magellan's Expedition",
     "tech": "navigation",
     "obsoleteBy": "",
     "cost": 400,
-    "effect": {}
+    "effect": {
+      "shipMoveBonus": 1
+    }
   },
   "manhattan-project": {
     "name": "Manhattan Project",

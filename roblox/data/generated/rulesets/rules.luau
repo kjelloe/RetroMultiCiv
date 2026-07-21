@@ -30,7 +30,8 @@ return [==[{
     "irrigate": 5,
     "mine": 10,
     "fortress": 6,
-    "railroad": 6
+    "railroad": 6,
+    "clean": 4
   },
   "fortressTech": "construction",
   "railroadTech": "railroad",
@@ -38,10 +39,12 @@ return [==[{
   "sellPriceRatio": 1,
   "exploreMarchRadius": 8,
   "threatRadius": 8,
+  "settlerPathRadius": 12,
   "attackerPerCity": 1,
   "attackerBase": 2,
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
+  "aiSurplusBuyThreshold": 1000,
   "aiScoutSharePct": 25,
   "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
   "aiScoutThreatVeto": true,
@@ -87,7 +90,8 @@ return [==[{
     "successFlightFreeYears": 15
   },
   "victoryDrive": {
-    "spaceStances": ["science", "builder", "balanced", "defensive"]
+    "spaceStances": ["science", "builder", "balanced", "defensive"],
+    "spaceCommitTechGap": 3
   },
   "tradeRoute": {
     "minDomesticDistance": 10,
@@ -115,11 +119,42 @@ return [==[{
   },
   "barb": {
     "leaderRansom": 100,
-    "leaderChance": 4
+    "leaderChance": 4,
+    "seaRaidChance": 8
+  },
+  "pollution": {
+    "tolerance": 20,
+    "industrialDivisorPower": 2,
+    "industrialDivisorRecycling": 3,
+    "popModifierPctByTech": { "industrialization": 25, "automobile": 50, "mass-production": 75, "plastics": 100 },
+    "smokestackPctPerPoint": 1,
+    "meltdownChance": 20,
+    "warmingStages": 4,
+    "warmingStageTurns": 5,
+    "warmingThreshold": 10,
+    "warmingTransforms": { "plains": "desert", "ocean": "swamp" }
+  },
+  "disastersEnabled": true,
+  "disasters": {
+    "baseChancePct": 2,
+    "pirateGoldPct": 50,
+    "pirate": { "prevent": "barracks", "terrain": "ocean" },
+    "flood": { "prevent": "city-walls", "river": true, "popPct": 25 },
+    "fire": { "prevent": "aqueduct", "destroyBuilding": true },
+    "plague": { "prevent": "aqueduct", "preventTech": "medicine", "popPct": 25 },
+    "famine": { "prevent": "granary", "popPct": 33 },
+    "volcano": { "prevent": "temple", "terrain": "mountains", "destroyBuilding": true, "popPct": 33 },
+    "earthquake": { "terrain": "hills", "destroyBuilding": true }
+  },
+  "trireme": {
+    "lossChancePct": 50,
+    "adjacentLandSafe": true,
+    "appliesToAI": true
   },
   "diplomacy": {
     "warIntentThreshold": 60,
     "peaceAcceptThreshold": 30,
+    "offerCooldown": 10,
     "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
     "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
     "relGrievanceOnAttack": 15,

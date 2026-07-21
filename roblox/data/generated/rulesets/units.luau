@@ -45,7 +45,8 @@ return [==[{
     "notes": "",
     "ignoresZoc": true,
     "helpsWonder": true,
-    "tradeRoutes": true
+    "tradeRoutes": true,
+    "freeSupport": true
   },
   "catapult": {
     "name": "Catapult",
@@ -92,7 +93,8 @@ return [==[{
     "cost": 30,
     "domain": "land",
     "notes": "",
-    "ignoresZoc": true
+    "ignoresZoc": true,
+    "freeSupport": true
   },
   "knights": {
     "name": "Knights",
@@ -181,7 +183,8 @@ return [==[{
     "moves": 1,
     "cost": 40,
     "domain": "land",
-    "notes": ""
+    "notes": "",
+    "popCost": 1
   },
   "battleship": {
     "name": "Battleship",
@@ -191,7 +194,8 @@ return [==[{
     "moves": 4,
     "cost": 160,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2
   },
   "carrier": {
     "name": "Carrier",
@@ -202,7 +206,8 @@ return [==[{
     "cost": 160,
     "domain": "sea",
     "notes": "",
-    "airCapacity": 8
+    "airCapacity": 8,
+    "sight": 2
   },
   "cruiser": {
     "name": "Cruiser",
@@ -212,7 +217,8 @@ return [==[{
     "moves": 6,
     "cost": 80,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2
   },
   "frigate": {
     "name": "Frigate",
@@ -260,7 +266,9 @@ return [==[{
     "moves": 3,
     "cost": 50,
     "domain": "sea",
-    "notes": ""
+    "notes": "",
+    "sight": 2,
+    "stealth": true
   },
   "transport": {
     "name": "Transport",
@@ -284,7 +292,8 @@ return [==[{
     "notes": "",
     "obsoletedBy": "navigation",
     "transport": 2,
-    "upgradesTo": "sail"
+    "upgradesTo": "sail",
+    "openSeaLoss": true
   },
   "bomber": {
     "name": "Bomber",
@@ -296,7 +305,9 @@ return [==[{
     "domain": "air",
     "notes": "",
     "ignoresZoc": true,
-    "fuel": 2
+    "fuel": 2,
+    "sight": 2,
+    "ignoresWalls": true
   },
   "fighter": {
     "name": "Fighter",
@@ -308,7 +319,8 @@ return [==[{
     "domain": "air",
     "notes": "",
     "ignoresZoc": true,
-    "fuel": 1
+    "fuel": 1,
+    "attacksAir": true
   },
   "nuclear": {
     "name": "Nuclear",
@@ -321,7 +333,8 @@ return [==[{
     "notes": "",
     "ignoresZoc": true,
     "oneShot": true,
-    "fuel": 1
+    "fuel": 1,
+    "nuclearBlast": true
   },
   "barbleader": {
     "name": "Barbarian Leader",
