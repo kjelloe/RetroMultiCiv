@@ -96,7 +96,7 @@ jobs:
         run: |
           set +e
           node tools/soak.js --seeds 25 --turns 400 --civs 7 --size medium --no-chaos \
-            --enforce-floors M10-buys,M10-treasury,M-resourceCov \
+            --enforce-floors M2-cities,M3-pop,M4-impr,M10-buys,M10-treasury,M-resourceCov \
             --stats debugging/sim/nightly-canonical.jsonl 2>&1 | tee /tmp/canonical-soak.log
           rc=${PIPESTATUS[0]}
           {

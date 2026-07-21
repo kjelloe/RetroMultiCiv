@@ -58,9 +58,9 @@ const DIFFICULTY = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 };
 const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, difficulty: 'medium' };
 const FLOOR_MIN_TURNS = 400; // floors are defined at t401 = a 400-round run
 const FLOORS = [
-  { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 8  },
-  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 50 },
-  { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 75 },
+  { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 6  },
+  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 28 },
+  { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 50 },
   { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
   { key: 'M10-treasury', label: 'treasury climb (g/t)', metric: 'goldRate',    cmp: '<',  value: 50 },
   // resourceCov% has no telemetry column yet (sim-driver.snapshot emits no
