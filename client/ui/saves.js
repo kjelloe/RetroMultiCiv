@@ -314,6 +314,50 @@ export function initSaves(ctx) {
     if (e.dataTransfer.files.length > 0) loadFromFile(e.dataTransfer.files[0]);
   });
 
+  // Entry-default ruling (2026-07-22): a LOCAL game persists itself. An
+  // autosave lands in localStorage at every turn boundary and on tab-hide,
+  // so closing the tab no longer loses the game — the setup screen offers
+  // resume (main.js ?resume=local boots from this record). Server games are
+  // server-saved and skip all of this. rmc_* keys are permanent codenames.
+  const AUTO_KEY = 'rmc_local_autosave';
+  const isMock = new URLSearchParams(location.search).has('mock');
+  let quotaNoted = false;
+  function writeAutosave() {
+    if (isServer() || isMock) return;
+    try {
+      const p = session.state.players[ctx.HUMAN] || {};
+      localStorage.setItem(AUTO_KEY, JSON.stringify({
+        format: 'retromulticiv-local-autosave', savedAt: Date.now(),
+        turn: session.state.turn, civName: p.name || p.civ || '',
+        rulesOverrides: ctx.rulesOverrides || {},
+        state: session.state
+      }));
+    } catch (err) {
+      // quota or serialization — the game keeps running; say it once
+      if (!quotaNoted) { quotaNoted = true; hud.note(`autosave unavailable: ${err.name || 'error'} — use 💾 to save to a file`); }
+    }
+  }
+  let lastAutoTurn = -1;
+  session.onChange(() => {
+    if (isServer() || isMock) return;
+    if (session.state.turn !== lastAutoTurn) { lastAutoTurn = session.state.turn; writeAutosave(); }
+  });
+  window.addEventListener('pagehide', writeAutosave);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') writeAutosave();
+  });
+
+  // 💾 corner button — upper right, LEFT of the 📖 civilopedia icon (saves
+  // initializes after pedia, so firstChild lands left of it). Same action as
+  // Shift+S / the ⚙ Options Save button: download the full save file.
+  const corner = document.getElementById('corner-buttons');
+  if (corner) {
+    const b = document.createElement('button');
+    b.id = 'save-game-btn'; b.title = 'save game (Shift+S)'; b.textContent = '💾';
+    corner.insertBefore(b, corner.firstChild);
+    b.addEventListener('click', saveGame);
+  }
+
   // XIV §5+§8: exposed so ui/options.js can offer always-visible Save/Load
   // buttons (the touch-device save path); `server` lets the panel adapt copy.
   return { saveGame, loadGame, isServer: () => isServer() };

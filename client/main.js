@@ -96,10 +96,23 @@ function storedOptions() {
 const params = new URLSearchParams(location.search);
 // a bare URL (no world parameters) gets the game-setup screen; it reloads
 // with ?seed=&civs=&humans= filled in
-if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params.has('server')) {
+if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params.has('server')
+    && !params.has('resume')) {
   showSetupScreen();
   maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
+}
+// Tab-loss fix (user ruling 2026-07-22): ?resume=local boots straight from the
+// localStorage autosave (saves.js writes it every turn + on tab-hide; the setup
+// screen offers the link). Read the record NOW — its rulesOverrides must merge
+// before the ruleset is assembled. Missing/corrupt record → the setup screen.
+let resumeRec = null;
+if (params.get('resume') === 'local') {
+  try { resumeRec = JSON.parse(localStorage.getItem('rmc_local_autosave') || 'null'); } catch (e) { resumeRec = null; }
+  if (!resumeRec || !resumeRec.state) {
+    showSetupScreen();
+    throw new Error('setup'); // nothing to resume — fall back to a fresh start
+  }
 }
 const [terrain, units, techs, buildings, wonders, governments, civs, rules] = await Promise.all([
   fetchJson('../data/terrain.json'),
@@ -130,6 +143,9 @@ const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.g
 const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
 if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
+// a resumed game replays the overrides it was SAVED with (difficulty table
+// values ride in state; combat/victory/marathon shapes ride here)
+if (resumeRec) Object.assign(rulesOverrides, resumeRec.rulesOverrides || {});
 // victory conditions (?victory=<preset>): the chosen preset's rulesOverride
 // patch (e.g. marathon → endYear 9999, removing the score-victory year limit).
 // endYear lives in ruleset.rules (the sim's --natural shape), so it plumbs as a
@@ -248,6 +264,10 @@ if (serverParam) {
     seed, options: { width: dims[0], height: dims[1], players: playerDefs, mapType, difficulty }
   };
   if (params.get('debug') === '1') setupA92.debug = true;
+  if (resumeRec) {
+    // resume boots the SAVED state — no world creation, no fast-forward
+    initialState = resumeRec.state;
+  } else {
   initialState = createEngine(ruleset).createGame(setupA92);
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
 
@@ -289,7 +309,13 @@ if (serverParam) {
     for (const pid of humanSeats) initialState.players[pid].human = true;
     hudStatus.textContent = '';
   }
+  } // end fresh-start branch (a resume skips creation + fast-forward)
 
+  // a resumed game canonicalizes to ?resume=local — a refresh then re-resumes
+  // from the LATEST autosave; a ?seed URL here would silently restart turn 1
+  if (resumeRec) {
+    history.replaceState(null, '', '?resume=local');
+  } else {
   history.replaceState(null, '',
     `?seed=${seed}&civs=${civCount}&humans=${humans}`
     + `${picked && civs[picked] ? `&civ=${picked}` : ''}`
@@ -298,6 +324,7 @@ if (serverParam) {
     + `${combat !== 'authentic' ? `&combat=${combat}` : ''}`
     + `${age.turn > 0 ? `&age=${age.id}` : ''}`
     + `${mapType !== 'continents' ? `&maptype=${mapType}` : ''}`); // A82a: canonical URL keeps the world reproducible
+  }
 }
 
 // --- wiring ------------------------------------------------------------------

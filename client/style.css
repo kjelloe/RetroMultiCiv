@@ -2165,3 +2165,12 @@ html, body {
 @media (pointer: coarse) {
   #dpad-toggle { display: inline-block; }
 }
+
+/* Tab-loss fix: the setup screen's resume card (user ruling 2026-07-22) */
+#setup-resume {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  margin: 0 0 12px; padding: 9px 12px;
+  background: #16261a; border: 1px solid #2f6f4f; border-radius: 8px;
+  font-size: 13px; color: #cde8d4;
+}
+#setup-resume button { margin-left: 6px; }

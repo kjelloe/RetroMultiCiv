@@ -210,12 +210,12 @@ export function startServer(opts) {
     // points — the bare host `/` and `/client` land on the LOCAL setup screen
     // (302 → /client/), so a new player's default game runs in their browser
     // and costs the server nothing (a server game holds engine state + ws +
-    // saves per seat; the local engine is a static-file serve). Server play is
-    // an explicit choice: ?server=1 joins the hosted game (the setup screen
-    // offers it as a labeled link when a game server answers /healthz — the
-    // §16 lost-game-with-tab lesson is kept by LABELING the resumable mode,
-    // not by defaulting into it). A query string is always preserved (join
-    // links carry params).
+    // saves per seat; the local engine is a static-file serve). The server is
+    // used only when NEEDED: the setup screen's Host/Join LAN and Find-game
+    // buttons (?server=1 direct joins keep working). The §16
+    // lost-game-with-tab lesson is answered by the localStorage autosave +
+    // resume card (saves.js/setup.js), not by defaulting into server games.
+    // A query string is always preserved (join links carry params).
     if (urlPath === '/' || urlPath === '/client') {
       const dest = parsed.search === '' ? '/client/' : '/client/' + parsed.search;
       res.writeHead(302, { Location: dest, 'X-Content-Type-Options': 'nosniff' });

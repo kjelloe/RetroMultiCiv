@@ -80,17 +80,33 @@ export function showSetupScreen() {
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
       </div>
       <div id="setup-find-list" class="hidden"></div>
-      <p class="setup-hint hidden" id="setup-server-link">🌐 <a href="?server=1">Play on this server</a> — multiplayer, game resumable after closing the tab (a local game lives only in this tab)</p>
       <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a> · <a href="https://github.com/kjelloe/RetroMultiCiv/issues" target="_blank" rel="noopener">Report issue ↗</a></p>
     </div>`;
   document.body.appendChild(overlay);
-  // Entry-default ruling (2026-07-22): the bare URL is the LOCAL game; server
-  // play is an explicit labeled choice. The link only appears when this page
-  // is actually served by a game server (a /healthz answer) — a static host
-  // (python -m http.server, file mirrors) never shows a dead link.
-  fetch('/healthz').then(r => (r.ok ? r.json() : null)).then(h => {
-    if (h) document.getElementById('setup-server-link').classList.remove('hidden');
-  }).catch(() => {});
+  // Tab-loss fix (user ruling 2026-07-22): a local game autosaves to
+  // localStorage every turn (saves.js); returning to the bare page offers an
+  // inline resume. Server use stays limited to the LAN buttons (Host/Join/
+  // Find) — single-player and hotseat never touch the server.
+  try {
+    const rec = JSON.parse(localStorage.getItem('rmc_local_autosave') || 'null');
+    if (rec && rec.state && rec.turn !== undefined) {
+      const card = document.createElement('div');
+      card.id = 'setup-resume';
+      card.innerHTML = `<span>▶ <b>Resume your local game?</b> turn ${rec.turn}`
+        + `${rec.civName ? ' · ' + rec.civName : ''}</span>`
+        + `<span><button id="setup-resume-yes">Resume</button>`
+        + `<button id="setup-resume-no" title="discard the autosave">🗑 Discard</button></span>`;
+      const panel = overlay.firstElementChild;
+      panel.insertBefore(card, panel.firstChild);
+      document.getElementById('setup-resume-yes').addEventListener('click', () => {
+        location.href = location.pathname + '?resume=local';
+      });
+      document.getElementById('setup-resume-no').addEventListener('click', () => {
+        localStorage.removeItem('rmc_local_autosave');
+        card.remove();
+      });
+    }
+  } catch (e) { /* corrupt record — the card just doesn't show */ }
   const setupBox = document.getElementById('setup-box');
 
   // A42/A62: an animated diorama BEHIND the setup card — the renderer +
