@@ -88,3 +88,11 @@ hidden browser-compatible `seatCode` beside the Roblox UserId binding
 (specs/r6-roblox-multiplayer.md), so an optional post-1.0 bridge (Roblox
 clients on Node servers, or Roblox instances announcing to the master
 index) is a transport + auth project, not a seat-model redesign.
+
+## Negotiation layer — counter-offers (seeded 2026-07-21, ally D4 verdict)
+
+1.0 diplomacy audiences are take-it-or-leave-it (Civ1-shaped, decisive).
+A future `original` negotiation layer may add counter-offer rounds ONLY
+with: full AI valuation transparency, multiplayer timing rules, and a
+clear player reason to counter (ally conditions, verbatim in
+specs/ally-design-response-2026-07-21-diplomacy.md §1).
