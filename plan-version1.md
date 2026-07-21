@@ -23,7 +23,7 @@ flowchart TD
     PROBE["✅ probe @545t: leaders 38–47/68,\n0/3 reach space-flight — NOT closed"]
     BULB{"🚪 follow-up (probe came up short):\nbulb tuning + AI space-path prioritisation"}
     X5B["📋 XII.5b — solar-last part order\n(+ launch pacing)"]
-    AIB["🔨 engine spine: §13 ✅ (0071) → §14 treasury (open) →\nXII.5b SPACE PROJECT (GO, full design) → §12 pathing"]
+    AIB["🔨 engine spine: §13 ✅ → §14 ✅ (0072) →\nXII.5b SPACE PROJECT (window OPEN) → §12 pathing"]
     D3S["📋 D3 server-surfacing\n(AI diplomacy visible over LAN)"]
     C11B["📋 11b city names (ally set)"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md: rules+presentation\nassembled; D6 carries diplomat missions)"]
