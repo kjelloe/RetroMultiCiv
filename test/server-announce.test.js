@@ -39,10 +39,13 @@ test('A51b: the server announces, the master lists it with hashes + open-games c
     publicName: 'Announce Test Server', announceIntervalMs: 500
   });
   try {
-    // the /healthz the master probes answers on the game server
+    // the /healthz the master probes answers on the game server. A50 item 5
+    // enriched it into a first-class ops snapshot; liveness is still ok:true.
     const hz = await getJson(s.port, '/healthz');
     assert.strictEqual(hz.status, 200);
-    assert.deepStrictEqual(hz.body, { ok: true });
+    assert.strictEqual(hz.body.ok, true);
+    assert.strictEqual(typeof hz.body.uptime_s, 'number'); // carries the ops snapshot now
+    assert.ok(hz.body.games >= 1);
 
     const listed = await until(async () => {
       const l = await getJson(masterPort, '/servers');

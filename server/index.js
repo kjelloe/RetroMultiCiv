@@ -20,6 +20,7 @@ import { WebSocketServer } from 'ws';
 import { createGame } from './game.js';
 import { createRegistry, joinCode, yearAtTurn } from './lobby.js';
 import { installCrashHandlers, startMemoryWatchdog } from './crash.js';
+import v8 from 'node:v8';
 
 // #1870 slice 2: the per-command recording sidecar (saves/<gameId>.log.jsonl)
 // sits next to the .json autosave; deriving one from the other keeps them paired
@@ -226,10 +227,13 @@ export function startServer(opts) {
       res.end();
       return;
     }
-    // A51b: the cheap liveness answer the master index probes (docs/12 §6)
+    // A51b + A50 item 5: the master index probes this; make it a first-class ops
+    // endpoint — liveness AND the operational snapshot (games/conns/memory) a
+    // monitor or `curl` reads over the wire. No auth needed (no secrets: counts
+    // and process stats only), no fog concern (no game state).
     if (urlPath === '/healthz') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end('{"ok":true}');
+      res.writeHead(200, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify(healthSnapshot()));
       return;
     }
     // In-client BUG REPORT sink (helper queue #3). WRITE-ONLY: a playtester
@@ -308,6 +312,32 @@ export function startServer(opts) {
     verifyClient: info => originAllowed(info.origin, originAllowlist) && limiter.allowConnect(clientIp(info.req)).ok
   });
   const conns = new Map(); // ws -> { budget, cid, gameId?, seat?, playerId?, isCreator? }
+
+  // A50 item 5: structured one-line JSON ops logs, opt-in via --log-json (default
+  // keeps the human-readable console output). One event per line so `journalctl`
+  // / a log shipper can parse the lifecycle without regexing prose. Neutral,
+  // low-cardinality fields only — never game state, never tokens/IPs-as-secrets.
+  function olog(ev, fields) {
+    if (!opts.logJson) return;
+    try { console.log(JSON.stringify(Object.assign({ ts: new Date().toISOString(), ev }, fields))); } catch (e) { /* never let logging throw */ }
+  }
+  // A50 item 5: the /healthz body — liveness + the operational snapshot an ops
+  // probe wants. Counts + process stats only (no secrets, no game state).
+  function healthSnapshot() {
+    const mem = process.memoryUsage();
+    let heapPct = 0;
+    try { const lim = v8.getHeapStatistics().heap_size_limit || 0; if (lim) heapPct = Math.round((mem.heapUsed / lim) * 100); } catch (e) { /* v8 stat unavailable */ }
+    return {
+      ok: true,
+      uptime_s: Math.round(process.uptime()),
+      games: registry.list().length,
+      conns: conns.size,
+      rss_mb: Math.round(mem.rss / (1024 * 1024)),
+      heap_pct: heapPct,
+      pid: process.pid,
+      node: process.version
+    };
+  }
   let connSeq = 0;         // stable per-connection id for the all-message bucket
   // Part B (mobile seat-grace): a dropped lobby seat is held 'disconnected,
   // reclaimable' for seatGraceMs instead of freed instantly; graceTimers keys
@@ -811,6 +841,7 @@ export function startServer(opts) {
     // recording sidecar now (before any command) so their per-command log
     // streams to disk instead of growing in RAM — the turn-2623 OOM case.
     if (autosave && res.game.setSidecar) res.game.setSidecar(sidecarOf(savePath(gameId)));
+    olog('game_start', { gameId, seats: liveSeats.length, turn: res.game.state.turn });
     const entry = registry.entryOf(gameId);
     // bind live human seats IN ORDER: bindSeat's first-free then lands each
     // connection on its charted seat (lobby authored setup to match).
@@ -848,6 +879,7 @@ export function startServer(opts) {
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
     conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq), ip });
+    olog('conn_open', { conns: conns.size });
     // A ws protocol error (oversized frame past maxPayload, malformed framing)
     // emits 'error'; WITHOUT a listener Node throws and crashes the whole
     // server — one bad client could take it down. ws closes that socket itself;
@@ -871,6 +903,7 @@ export function startServer(opts) {
       limiter.onDisconnect(ip);
       const info = conns.get(ws);
       conns.delete(ws); // first, so presence/eligibility no longer count us
+      olog('conn_close', { conns: conns.size, gameId: info && info.gameId });
       if (info && info.cid) budgets.dropConn(info.cid); // release the all-message bucket
       if (info && info.gameId) {
         const e = registry.entryOf(info.gameId);
@@ -1248,6 +1281,7 @@ export function startServer(opts) {
     // tests pass host '127.0.0.1' explicitly to stay loopback-only
     httpServer.listen(opts.port || 0, opts.host || '0.0.0.0', () => {
       if (announceState.start) announceState.start(httpServer.address().port); // A51b
+      olog('boot', { port: httpServer.address().port, host: opts.host || '0.0.0.0', autosave: opts.autosave !== false, trustProxyHops: opts.trustProxyHops || 0 });
       resolve({
         port: httpServer.address().port,
         game: defaultGame,
@@ -1255,6 +1289,7 @@ export function startServer(opts) {
         maintenanceSweep, // A50 3b: tests advance opts.now then call this to exercise expiry
         heartbeatTick, // Part A: tests drive heartbeat rounds without waiting heartbeatMs
         gameProbe, autosaveAll, // crash.js: crashdump context + OOM graceful save-all
+        healthSnapshot, // A50 item 5: /healthz body (test/ops visibility)
         announceStatus: () => ({ listed: announceState.listed, reason: announceState.reason, lastError: announceState.lastError }), // A51b: test/console visibility
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
@@ -1343,6 +1378,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // Crash resilience (server/crash.js): OOM memory watchdog tuning
     else if (a === '--mem-soft-pct') opts.memSoftPct = Number(argv[++i]);
     else if (a === '--mem-check-sec') opts.memCheckMs = Number(argv[++i]) * 1000;
+    // A50 item 5: structured one-line JSON ops logs (default = human output)
+    else if (a === '--log-json') opts.logJson = true;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
