@@ -2304,3 +2304,18 @@ html, body {
 #envoy-acts button:hover { background: #2f5388; }
 #envoy-accept { border-color: #3d7a4a; }
 #envoy-reject { border-color: #7a3d3d; }
+
+/* XIV §7: the touch attack-confirm overlay (odds + Attack/Cancel), above the action bar */
+#attack-confirm {
+  position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%);
+  z-index: 40; text-align: center; color: #cdd8ea;
+  background: rgba(12, 18, 32, 0.98); border: 1px solid #7a3d3d;
+  border-radius: 8px; padding: 10px 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+#attack-confirm .ac-odds { font-size: 13px; margin-bottom: 8px; max-width: 260px; }
+#attack-confirm .ac-actions { display: flex; gap: 8px; justify-content: center; }
+#attack-confirm button {
+  padding: 8px 16px; border-radius: 6px; font-family: inherit; font-size: 14px; cursor: pointer;
+  border: 1px solid #3b5d8f; background: rgba(22, 35, 58, 0.95); color: #cdd8ea;
+}
+#attack-confirm .ac-attack { border-color: #a24; background: #6b2530; }

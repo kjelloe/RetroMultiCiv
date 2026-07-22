@@ -15,6 +15,8 @@ const MOVE_KEYS = {
   s: 'S', ArrowDown: 'S',
   a: 'W', ArrowLeft: 'W'
 };
+// XIV §7: the client's touch heuristic (the same the d-pad + CSS use)
+const isCoarse = () => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
 export function initInput(ctx) {
   const { session, renderer, sel, panels, hud } = ctx;
@@ -461,6 +463,52 @@ export function initInput(ctx) {
     }
   }
 
+  // XIV §7: a touch STEP — like moveSelected, but if the target tile holds an
+  // enemy it shows an explicit Attack/Cancel overlay with the odds first (touch
+  // has no hover to preview a fight before committing).
+  const DIR_VEC = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
+  let attackConfirm = null;
+  function closeAttackConfirm() { if (attackConfirm) { attackConfirm.remove(); attackConfirm = null; } }
+  function stepTarget(unit, dir) {
+    const d = DIR_VEC[dir];
+    if (!d) return null;
+    const map = session.state.map;
+    let x = unit.x + d[0];
+    if (map.wrapX) x = ((x % map.width) + map.width) % map.width;
+    const y = unit.y + d[1];
+    if (y < 0 || y >= map.height || x < 0 || x >= map.width) return null;
+    return { x, y };
+  }
+  function touchStep(dir) {
+    const unit = sel.unitId && session.state.units[sel.unitId];
+    if (!unit) return;
+    const t = stepTarget(unit, dir);
+    if (t && unitsAt(session.state, t.x, t.y).some(u => u.owner !== ctx.HUMAN)) {
+      showAttackConfirm(dir, unit, t.x, t.y);
+      return;
+    }
+    moveSelected(dir);
+  }
+  function showAttackConfirm(dir, attacker, x, y) {
+    closeAttackConfirm();
+    const odds = combatPreview(attacker, x, y) || 'attack this unit?';
+    const box = document.createElement('div');
+    box.id = 'attack-confirm';
+    const oddsDiv = document.createElement('div');
+    oddsDiv.className = 'ac-odds';
+    oddsDiv.textContent = '⚔ ' + odds;
+    const acts = document.createElement('div');
+    acts.className = 'ac-actions';
+    const atk = document.createElement('button'); atk.className = 'ac-attack'; atk.textContent = 'Attack';
+    const cnc = document.createElement('button'); cnc.className = 'ac-cancel'; cnc.textContent = 'Cancel';
+    acts.appendChild(atk); acts.appendChild(cnc);
+    box.appendChild(oddsDiv); box.appendChild(acts);
+    document.body.appendChild(box);
+    attackConfirm = box;
+    atk.addEventListener('click', () => { closeAttackConfirm(); moveSelected(dir); });
+    cnc.addEventListener('click', closeAttackConfirm);
+  }
+
   // next idle unit — skips fortified and working units unless selected by
   // hand; NEAREST first, so the camera glides instead of teleporting
   function nextUnit() {
@@ -745,6 +793,15 @@ export function initInput(ctx) {
       return;
     }
     const actions = [];
+    // XIV §7: on touch, the selected unit gets on-screen STEP arrows (keyboard
+    // WASD/arrows have no touch equivalent). moveSelected resolves an attack if
+    // the step lands on an enemy — the combat overlay shows the odds first.
+    if (isCoarse() && unit.moves > 0 && !unit.working) {
+      actions.push({ label: '▲', title: 'step north', run: () => touchStep('N') });
+      actions.push({ label: '◀', title: 'step west', run: () => touchStep('W') });
+      actions.push({ label: '▶', title: 'step east', run: () => touchStep('E') });
+      actions.push({ label: '▼', title: 'step south', run: () => touchStep('S') });
+    }
     if (unit.type === 'settlers') {
       const tile0 = state.map.tiles[unit.y * state.map.width + unit.x];
       const terrain = session.ruleset.terrain.terrains[tile0.t];
@@ -1007,7 +1064,21 @@ export function initInput(ctx) {
   // double-click a city: open the city view even when units share the tile
   renderer.onDblPick(pick => {
     const city = cityAt(session.state, pick.tile.x, pick.tile.y);
-    if (city && city.owner === ctx.HUMAN) panels.openCityPanel(city.id);
+    if (city && city.owner === ctx.HUMAN) { panels.openCityPanel(city.id); return; }
+    // XIV §7: on touch, double-tap an open tile = move the selected unit there —
+    // one adjacent step (attacks an enemy on it), or a GoTo route if farther.
+    if (isCoarse() && sel.unitId && session.state.units[sel.unitId]) {
+      const u = session.state.units[sel.unitId];
+      const dx = pick.tile.x - u.x, dy = pick.tile.y - u.y;
+      if (dx === 0 && dy === 0) return;
+      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+        touchStep((dy < 0 ? 'N' : dy > 0 ? 'S' : '') + (dx > 0 ? 'E' : dx < 0 ? 'W' : ''));
+      } else {
+        gotoTargets[sel.unitId] = { x: pick.tile.x, y: pick.tile.y };
+        runGoto(sel.unitId);
+        refreshActionBar();
+      }
+    }
   });
 
   renderer.onPick(pick => {

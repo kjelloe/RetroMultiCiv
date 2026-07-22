@@ -42,7 +42,8 @@ test('#29 wonder-straggler + naval effects render (RIDER: lighthouse/magellan)',
   assert.strictEqual(effectText({ effect: { powerSameContinent: true } }), 'powers your cities on this continent (doubles their Factory bonus)');
   assert.strictEqual(effectText({ effect: { warUnhappyReduce: 1 } }), '−1 unhappy citizen from military units abroad, in every city');
   assert.strictEqual(effectText({ effect: { libraryCatchUp: true } }), 'grants any advance known by 2 other civilizations');
-  assert.strictEqual(effectText({ effect: { freeTechsOnBuild: 2 } }), '2 free advances the moment it is built');
+  assert.strictEqual(effectText({ effect: { freeTechsOnBuild: 2 } }),
+    'grants 2 free advances the moment it is built — the lowest-level available, chosen deterministically (Civ 1 let you pick them)');
 });
 
 test('effectText appends obsoleteBy with the tech name', async () => {

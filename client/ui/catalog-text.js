@@ -45,7 +45,7 @@ export function makeCatalogText(ruleset, opts) {
     powerSameContinent: () => 'powers your cities on this continent (doubles their Factory bonus)',
     warUnhappyReduce: v => `−${v} unhappy citizen from military units abroad, in every city`,
     libraryCatchUp: () => 'grants any advance known by 2 other civilizations',
-    freeTechsOnBuild: v => `${v} free advances the moment it is built`,
+    freeTechsOnBuild: v => `grants ${v} free advances the moment it is built — the lowest-level available, chosen deterministically (Civ 1 let you pick them)`,
     // #35 pyramids government wonder
     revolutionAnarchyTurns: v => `revolutions last only ${v} turn${v > 1 ? 's' : ''} of anarchy`,
     unlockAnyGov: () => 'lets you adopt any government, even without its advance'

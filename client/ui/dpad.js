@@ -64,4 +64,29 @@ export function initDpad(ctx) {
   const corner = document.getElementById('corner-buttons');
   if (corner) corner.appendChild(toggle);
   applyHidden();
+
+  // XIV §6: on touch the Controls help must list GESTURES, not keyboard
+  // shortcuts (the same pointer:coarse gate as the d-pad). Documents exactly the
+  // §7 touch moves + the long-press GoTo (§25) / pinch (§10) already shipped.
+  if (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) {
+    const help = document.getElementById('help');
+    if (help) {
+      const sum = help.querySelector('summary');
+      if (sum) sum.textContent = '👆 Controls';
+      const ul = help.querySelector('ul');
+      if (ul) {
+        ul.innerHTML = [
+          ['tap a unit', 'select it (a stack shows a unit list)'],
+          ['▲ ◀ ▶ ▼ on the action bar', 'step the selected unit (attacks an enemy on that tile)'],
+          ['double-tap a tile', 'move the unit there — a route over turns if far'],
+          ['long-press a tile', 'GoTo: the unit travels there over turns'],
+          ['drag', 'pan the map'],
+          ['pinch', 'zoom the map in and out'],
+          ['🧭 / the ⌂ d-pad', 'pan the map, and show/hide the compass'],
+          ['tap a city', 'open the city view'],
+          ['💾 / 📂 / ⚙ / 📖', 'save · load · options · Civilopedia']
+        ].map(([g, d]) => `<li><b>${g}</b> — ${d}</li>`).join('');
+      }
+    }
+  }
 }
