@@ -189,6 +189,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §41: the military overview lists own units with the A/D/M column and a 🔍 zoom-to
     assert.match(dom, /military: table\/rows\d+\/zoom\/adm/,
       'the military overview must list units with an A/D/M column and a 🔍 zoom-to');
+    // XIV §49: the economic overview's line items must sum exactly to its NET total
+    assert.match(dom, /econ: panel\/sums/,
+      'the economic overview rows must sum exactly to the NET gold/turn total');
     // XIV §33: an incoming offer pops the envoy modal; Consider-later dismisses but the offer persists
     assert.match(dom, /envoy: shown\/btns\/named\/later\/persists/,
       'an incoming diplomacy offer must pop the envoy modal and persist after "Consider later"');

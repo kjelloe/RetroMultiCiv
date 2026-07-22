@@ -29,6 +29,7 @@ import { initMinimap } from './ui/minimap.js';
 import { initBuildQueue } from './ui/build-queue.js';
 import { initCityOverview } from './ui/city-overview.js';
 import { initMilitaryOverview } from './ui/military-overview.js';
+import { initEconOverview } from './ui/econ-overview.js';
 import { initAutomate } from './ui/automate.js';
 import { initDebugPanel } from './ui/debug-panel.js';
 import { initStrategicOverlay } from './ui/strategic-overlay.js';
@@ -455,6 +456,7 @@ ctx.minimap = initMinimap(ctx); // C1: world minimap (click-to-jump, fog-honest)
 ctx.buildQueue = initBuildQueue(ctx); // C3: per-city build queue (logged commands only)
 ctx.cityOverview = initCityOverview(ctx); // XIV §34: all-cities overview panel (needs panels + buildQueue)
 ctx.militaryOverview = initMilitaryOverview(ctx); // XIV §41: all-units overview (sits left of 🏙; needs city-overview button present)
+ctx.econOverview = initEconOverview(ctx); // XIV §49: economic overview (sits left of ⚔; needs military-overview button present)
 ctx.automate = initAutomate(ctx); // C4: sentry-wake + settler automation (view-based)
 ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 / spectator only)
@@ -784,6 +786,22 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     ctx.militaryOverview.close();
     delete session.state.units.__probeM;
   }
+  // XIV §49: the economic overview's itemized rows must sum EXACTLY to its NET
+  // total (the same invariant that keeps it equal to the top-bar (+N)).
+  let econ = 'unchecked';
+  if (ctx.econOverview && ctx.econOverview.open) {
+    ctx.econOverview.open();
+    const table = document.getElementById('econ-overview-table');
+    if (table) {
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const num = t => { const m = String(t).replace(/−/g, '-').match(/-?\d+/); return m ? Number(m[0]) : 0; };
+      const total = rows.length ? num(rows[rows.length - 1].children[1].textContent) : 0;
+      let sum = 0;
+      for (let i = 0; i < rows.length - 1; i++) sum += num(rows[i].children[1].textContent);
+      econ = 'panel/' + (sum === total ? 'sums' : `mismatch(${sum}!=${total})`);
+    } else econ = 'notable';
+    ctx.econOverview.close();
+  }
   // XIV §43: the "+" affordance on a catalog row enqueues (the touch path), and
   // the "building …" line now lives in the catalog column (#city-build-line).
   let buildqueue = 'unchecked';
@@ -911,6 +929,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city
     + ' · military: ' + military // XIV §41: military overview lists units with A/D/M + 🔍 zoom-to
+    + ' · econ: ' + econ // XIV §49: economic overview rows sum exactly to the NET total
     + ' · buildqueue: ' + buildqueue // XIV §43: catalog "+" enqueues + the build line moved to the catalog
     + ' · capital: ' + capital // XIV §44: capital ★ in the title + Palace hidden from the capital's catalog
     + ' · envoy: ' + envoy // XIV §33: incoming-offer modal (Accept/Reject/Consider-later, persists)

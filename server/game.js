@@ -10,6 +10,7 @@ import { createEngine, deepClone } from '../engine/index.js';
 import { runAiTurn, pickCommand } from '../engine/ai.js';
 import { filterView, filterEvents } from '../engine/visibility.js';
 import { hashState } from '../shared/statehash.js';
+import { GAME_VERSION, versionMismatch } from '../shared/version.js';
 import { gameCode } from '../shared/gamecode.js';
 
 const SAVE_FORMAT = 'retromulticiv-server-save';
@@ -78,6 +79,10 @@ export function createGame(opts) {
     // created under a DIFFERENT ruleset (a server upgrade mid-game) diverges
     // silently — refuse it. Omit-safe: older saves lack the pin -> exempt.
     // --allow-ruleset-drift (opts.allowRulesetDrift) loads anyway.
+    // envelope version stamp: refuse a MAJOR-version mismatch with a friendly
+    // line (a version-less/legacy save is exempt — forward-compat). Envelope-only.
+    const verMsg = versionMismatch(opts.save.gameVersion);
+    if (verMsg) throw new Error(verMsg + ' — resume with a matching build.');
     const savedHash = opts.save.state !== undefined ? opts.save.state.rulesetHash : undefined;
     if (savedHash !== undefined && opts.allowRulesetDrift !== true) {
       const currentHash = '0x' + (hashState(ruleset) >>> 0).toString(16).padStart(8, '0');
@@ -326,6 +331,7 @@ export function createGame(opts) {
     return {
       format: SAVE_FORMAT,
       version: 1,
+      gameVersion: GAME_VERSION, // XIV §30 envelope stamp — never hashed
       gameId,
       savedAt: new Date().toISOString(),
       rulesOverrides,
@@ -337,6 +343,7 @@ export function createGame(opts) {
       diag: {
         format: 'retromulticiv-diagnostics',
         version: 1,
+        gameVersion: GAME_VERSION,
         rulesOverrides,
         initialState: logStart,
         // #1870 slice 1: persist ONLY round-hash entries here, not the full

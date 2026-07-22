@@ -1,5 +1,6 @@
 // Saving: F5/F9 quick save via localStorage, Shift+S/L JSON files, drag & drop.
 import { hashState } from '../../shared/statehash.js';
+import { GAME_VERSION, versionMismatch } from '../../shared/version.js';
 const SAVE_KEY = 'retromulticiv-save';
 
 // The Shift+S save envelope, DOM-free so it unit-tests (B16). The A47 diag
@@ -9,6 +10,7 @@ export function buildSaveEnvelope(session, ctx) {
   const code = ctx.gameCode ? ctx.gameCode() : null;
   const envelope = {
     format: 'retromulticiv-save',
+    gameVersion: GAME_VERSION, // §30 envelope stamp — never hashed; loaders gate the major
     savedAt: new Date().toISOString(),
     turn: session.state.turn,
     state: session.state
@@ -25,6 +27,7 @@ export function buildSaveEnvelope(session, ctx) {
       // phantom divergence (the turn-371 hunt). {} means "default rules,
       // recorded"; absence means a pre-B16 save (replay warns).
       envelope.diag = {
+        gameVersion: GAME_VERSION,
         initialState: d.initialState,
         log: d.log,
         rulesOverrides: ctx.rulesOverrides || {}
@@ -149,6 +152,10 @@ export function initSaves(ctx) {
   // — a user's hosted-game save is the latter — or a bare state object (older
   // localStorage saves).
   function loadStateObject(obj, sourceLabel) {
+    // §30 envelope version gate: refuse a MAJOR-version mismatch with a friendly
+    // line instead of a hash surprise (legacy/version-less saves are exempt).
+    const verMsg = versionMismatch(obj && obj.gameVersion);
+    if (verMsg) { hud.note(`✗ ${verMsg} (${sourceLabel})`); return; }
     const isServerSave = Boolean(obj && obj.format === 'retromulticiv-server-save');
     const s = obj && (obj.format === 'retromulticiv-save' || isServerSave) ? obj.state : obj;
     if (!stateLooksValid(s)) {

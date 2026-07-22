@@ -13,6 +13,7 @@ export function showSetupScreen() {
       <p class="setup-hint">One deterministic engine, one world, 4000 BC — or any age you pick.
         Play solo against the AI, pass the keyboard in hotseat, or host a LAN game
         friends join with a 5-letter code.<span id="setup-maxciv-line"></span></p>
+      <p class="setup-hint setup-proof">Every history can be replayed.</p>
       <label>Your civilization
         <select id="setup-civ"><option value="">Random</option></select>
       </label>

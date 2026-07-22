@@ -1494,6 +1494,13 @@ html, body {
   max-width: 340px;
 }
 
+/* the determinism proof line — a quiet, italic tagline under the intro */
+.setup-proof {
+  color: #a7c6e6;
+  font-style: italic;
+  margin-top: 2px;
+}
+
 /* A53: two-column form — label text right-aligned in the left column, the
    control in a fixed-width right column so the rows scan as a clean grid.
    The panel stays centered at its width; the splash diorama layering is
@@ -2217,7 +2224,7 @@ html, body {
 
 /* XIV §34/§41: the shared overview panels — top-bar toggle buttons (left of the
    research bar) + the shared scrollable table. 🏙 city overview, ⚔ military. */
-#open-city-overview, #open-military-overview {
+#open-city-overview, #open-military-overview, #open-econ-overview {
   position: absolute;
   top: 12px;
   height: 26px;
@@ -2234,7 +2241,12 @@ html, body {
 }
 #open-city-overview { left: calc(50% - 226px); }
 #open-military-overview { left: calc(50% - 262px); } /* left of the 🏙 button */
-#open-city-overview:hover, #open-military-overview:hover { background: #2f5388; }
+#open-econ-overview { left: calc(50% - 298px); }     /* left of the ⚔ button */
+#open-city-overview:hover, #open-military-overview:hover, #open-econ-overview:hover { background: #2f5388; }
+.overview-table .eco-in { color: #cde8d4; }
+.overview-table .eco-out { color: #cdd8ea; }
+.overview-table .eco-note { color: #ffd479; }
+.overview-table .eco-total { color: #e6eefc; }
 
 .overview-table { border-collapse: collapse; width: 100%; font-size: 12px; }
 .overview-table th {
@@ -2254,9 +2266,10 @@ html, body {
 
 @media (max-width: 720px) {
   /* row 1 gets the overview buttons on the far left; shove the research bar over */
-  #open-military-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
-  #open-city-overview { top: 4px; left: 40px; height: 28px; line-height: 26px; z-index: 22; }
-  #research-bar { left: 78px; }
+  #open-econ-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-military-overview { top: 4px; left: 40px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-city-overview { top: 4px; left: 74px; height: 28px; line-height: 26px; z-index: 22; }
+  #research-bar { left: 112px; }
 }
 
 /* XIV §33: the incoming-offer envoy modal — blocks the map while it is up */
