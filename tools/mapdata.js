@@ -297,7 +297,28 @@ const WONDER_OVERLAY = {
   // 21 — verified). An `added` block DEFINES a wonder the extract lacks (labeled
   // Civ2-authentic per specs/n11-upgrades.md); the engine keys on the wonder being
   // active (rules.upgrade.leonardoWonder), so its effect field carries no stat.
-  'leonardo-s-workshop':   { added: { name: "Leonardo's Workshop", tech: 'invention', obsoleteBy: 'automobile', cost: 400 }, effect: {} }
+  'leonardo-s-workshop':   { added: { name: "Leonardo's Workshop", tech: 'invention', obsoleteBy: 'automobile', cost: 400 }, effect: {} },
+  // #29 A7 wonder-stragglers (ruled #2243; effect SHAPES corrected to the reviewer wiki fact-check
+  // #2245 vs the ../wikiteam Civ1 pages). Structured fields wired in engine/*.js.
+  // SCIENCE trio: copernicus/isaac-newton OWNER-CITY-ONLY, seti EMPIRE-WIDE.
+  // copernicus: Civ1-manual obsolescence (obsoleteBy=automobile in wonders.json) — NOT the Civ1 bug that
+  // kept it working past Automobile (ruled #2247 R2: honor the manual).
+  'copernicus-observatory':  { effect: { cityScienceBonusPct: 100 } },  // +100% science in its city (Civ1)
+  'isaac-newton-s-college':  { effect: { sciBldgBonusPct: 66 } },       // +66% of library+univ science; NON-cumulative w/ seti
+  'seti-program':            { effect: { scienceEverywherePct: 50 } },  // +50% science every city (Civ1)
+  // PRODUCTION: hoover-dam SAME-CONTINENT (Civ1 Hydro Plant on the wonder-city's continent). pyramids
+  // is a GOVERNMENT wonder in Civ1 (1-turn-anarchy + unlock-any-gov), NOT production — RULING PENDING
+  // (#2245 trap d), left inert until the architect rules implement-vs-defer.
+  'pyramids':                { effect: {} },
+  'hoover-dam':              { effect: { powerSameContinent: true } },
+  // HAPPINESS: women's-suffrage reduces military-unit war unhappiness BY 1 per unit (Republic 1->0,
+  // Democracy 2->1) — NOT a full cancel (#2245).
+  'women-s-suffrage':        { effect: { warUnhappyReduce: 1 } },
+  // TECH: great-library EMPIRE-WIDE (free any tech >=2 OTHER civs know; obsolete@university already
+  // in wonders.json); darwin ONE-SHOT (2 free techs at the cities.js:749 wonderBuilt hook).
+  'great-library':           { effect: { libraryCatchUp: true } },
+  'darwin-s-voyage':         { effect: { freeTechsOnBuild: 2 } }
+  // DEFERRED (#2243 Q1): united-nations -> D4-D6 window (its home is D5 reputation/senate).
 };
 
 function techId(techs, raw, context) {

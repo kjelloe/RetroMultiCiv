@@ -33,7 +33,19 @@ export function makeCatalogText(ruleset, opts) {
     allContentInCity: () => 'everyone in this city stays content',
     doublesTemple: () => 'doubles the current Temple effect, including Mysticism\'s',
     cityTradeBonus: () => '+1 trade on every trade tile here',
-    wallsEverywhere: () => 'city walls in all your cities'
+    wallsEverywhere: () => 'city walls in all your cities',
+    // manhattan-gate #16 (pre-existing gap the #29 coverage test surfaced)
+    nukesEnabled: () => 'unlocks nuclear weapons for every civilization',
+    // naval-truth: Lighthouse / Magellan's Expedition (RIDER #2247 — text-only fill)
+    shipMoveBonus: v => `+${v} movement for all your ships`,
+    // #29 A7 wonder-stragglers
+    cityScienceBonusPct: v => `+${v}% science in this city`,
+    sciBldgBonusPct: v => `+${v}% of this city's Library and University science`,
+    scienceEverywherePct: v => `+${v}% science in every city`,
+    powerSameContinent: () => 'powers your cities on this continent (doubles their Factory bonus)',
+    warUnhappyReduce: v => `−${v} unhappy citizen from military units abroad, in every city`,
+    libraryCatchUp: () => 'grants any advance known by 2 other civilizations',
+    freeTechsOnBuild: v => `${v} free advances the moment it is built`
   };
 
   function effectText(def) {

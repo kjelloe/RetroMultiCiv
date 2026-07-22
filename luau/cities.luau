@@ -815,6 +815,79 @@ local function disbandCity(state: any, cityId: string, events: any, ruleset: any
 	table.insert(events, { type = "cityDisbanded", cityId = cityId })
 end
 
+-- #29 hoover: are (ax,ay) and (bx,by) on the same contiguous LAND continent? A flood-fill
+-- from (ax,ay) over 8-adjacent land tiles (wrapX honored) -- the same "contiguous land = one
+-- continent" definition the naval AI uses (ai.luau landComponent); kept local so cities.luau
+-- stays free of an ai cycle. The boolean result is fill-order-independent. (idx is 0-based for
+-- the x/y math; tiles are 1-indexed, so tile access adds +1.)
+local function sameContinent(state: any, ax: number, ay: number, bx: number, by: number, ruleset: any): boolean
+	local W = state.map.width
+	local H = state.map.height
+	local startIdx = ay * W + ax
+	local targetIdx = by * W + bx
+	if startIdx == targetIdx then
+		return true
+	end
+	if ruleset.terrain.terrains[state.map.tiles[startIdx + 1].t].domain ~= "land" then
+		return false
+	end
+	local seen = {}
+	seen[startIdx] = true
+	local stack = { startIdx }
+	while #stack > 0 do
+		local idx = table.remove(stack)
+		local x = idx % W
+		local y = idiv(idx, W)
+		for dy = -1, 1 do
+			for dx = -1, 1 do
+				if not (dx == 0 and dy == 0) then
+					local ny = y + dy
+					if ny >= 0 and ny < H then
+						local nx = x + dx
+						local skip = false
+						if nx < 0 or nx >= W then
+							if state.map.wrapX ~= true then
+								skip = true
+							else
+								nx = ((nx % W) + W) % W
+							end
+						end
+						if not skip then
+							local nidx = ny * W + nx
+							if seen[nidx] ~= true
+								and ruleset.terrain.terrains[state.map.tiles[nidx + 1].t].domain == "land" then
+								if nidx == targetIdx then
+									return true
+								end
+								seen[nidx] = true
+								table.insert(stack, nidx)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- #29 hoover-dam: does an active powerSameContinent wonder (Hydro Plant) power this city --
+-- owned by the same player and on the wonder-city's continent? Boolean, so wonder-iteration
+-- order does not matter (there is normally one such wonder in a game).
+local function hooverPowersCity(state: any, city: any, ruleset: any): boolean
+	for wid in pairs(state.wonders or {}) do
+		if ruleset.wonders[wid].effect.powerSameContinent == true and wonderActive(state, wid, ruleset) then
+			local home = state.cities[state.wonders[wid]]
+			if home ~= nil and home.owner == city.owner then
+				if sameContinent(state, home.x, home.y, city.x, city.y, ruleset) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
 -- A91: a city's GROSS shield output this turn -- base worked-tile shields, zeroed by
 -- civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
 -- PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.luau
@@ -826,11 +899,19 @@ local function cityShieldOutput(state: any, city: any, ruleset: any): number
 	end
 	local shieldPct = effectPct(city, ruleset, "shieldBonus")
 	if shieldPct > 0 then
+		local powered = false
 		for _, b in ipairs(city.buildings or {}) do
 			if ruleset.buildings[b].effect.boostsFactory == true then
-				shieldPct *= 2
+				powered = true
 				break
 			end
+		end
+		-- #29 hoover-dam: a same-continent Hydro Plant powers the city, doubling the factory bonus.
+		if not powered and hooverPowersCity(state, city, ruleset) then
+			powered = true
+		end
+		if powered then
+			shieldPct *= 2
 		end
 		shields += idiv(shields * shieldPct, 100)
 	end

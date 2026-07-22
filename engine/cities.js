@@ -606,6 +606,57 @@ function disbandCity(state, cityId, events, ruleset) {
   events.push({ type: 'cityDisbanded', cityId });
 }
 
+// #29 hoover: are (ax,ay) and (bx,by) on the same contiguous LAND continent? A flood-fill
+// from (ax,ay) over 8-adjacent land tiles (wrapX honored) — the same "contiguous land = one
+// continent" definition the naval AI uses (engine/ai.js landComponent); kept local here so
+// cities.js stays free of an ai.js import cycle. The boolean result is fill-order-independent.
+function sameContinent(state, ax, ay, bx, by, ruleset) {
+  const W = state.map.width, H = state.map.height;
+  const startIdx = ay * W + ax, targetIdx = by * W + bx;
+  if (startIdx === targetIdx) return true;
+  if (ruleset.terrain.terrains[state.map.tiles[startIdx].t].domain !== 'land') return false;
+  const seen = {};
+  seen[startIdx] = true;
+  const stack = [startIdx];
+  while (stack.length > 0) {
+    const idx = stack.pop();
+    const x = idx % W, y = idiv(idx, W);
+    for (let dy = -1; dy <= 1; dy = dy + 1) {
+      for (let dx = -1; dx <= 1; dx = dx + 1) {
+        if (dx === 0 && dy === 0) continue;
+        const ny = y + dy;
+        if (ny < 0 || ny >= H) continue;
+        let nx = x + dx;
+        if (nx < 0 || nx >= W) {
+          if (state.map.wrapX !== true) continue;
+          nx = ((nx % W) + W) % W;
+        }
+        const nidx = ny * W + nx;
+        if (seen[nidx] === true) continue;
+        if (ruleset.terrain.terrains[state.map.tiles[nidx].t].domain !== 'land') continue;
+        if (nidx === targetIdx) return true;
+        seen[nidx] = true;
+        stack.push(nidx);
+      }
+    }
+  }
+  return false;
+}
+
+// #29 hoover-dam: does an active powerSameContinent wonder (Hydro Plant) power this city —
+// owned by the same player and on the wonder-city's continent? Boolean, so wonder-iteration
+// order does not matter (there is normally one such wonder in a game).
+function hooverPowersCity(state, city, ruleset) {
+  for (const wid of Object.keys(state.wonders === undefined ? {} : state.wonders)) {
+    if (ruleset.wonders[wid].effect.powerSameContinent !== true) continue;
+    if (!wonderActive(state, wid, ruleset)) continue;
+    const home = state.cities[state.wonders[wid]];
+    if (!home || home.owner !== city.owner) continue;
+    if (sameContinent(state, home.x, home.y, city.x, city.y, ruleset)) return true;
+  }
+  return false;
+}
+
 // A91: a city's GROSS shield output this turn — base worked-tile shields, zeroed by
 // civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
 // PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.js
@@ -615,12 +666,16 @@ function cityShieldOutput(state, city, ruleset) {
   if (city.disorder === true) shields = 0;
   let shieldPct = effectPct(city, ruleset, 'shieldBonus');
   if (shieldPct > 0) {
+    let powered = false;
     for (const b of city.buildings === undefined ? [] : city.buildings) {
       if (ruleset.buildings[b].effect.boostsFactory === true) {
-        shieldPct = shieldPct * 2;
+        powered = true;
         break;
       }
     }
+    // #29 hoover-dam: a same-continent Hydro Plant powers the city, doubling the factory bonus.
+    if (!powered && hooverPowersCity(state, city, ruleset)) powered = true;
+    if (powered) shieldPct = shieldPct * 2;
     shields = shields + idiv(shields * shieldPct, 100);
   }
   return shields;

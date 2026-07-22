@@ -49,7 +49,29 @@ local function cityMood(state: any, city: any, ruleset: any): any
 	-- war unhappiness (Republic/Democracy): each military unit from this
 	-- city that is away from any of the player's city tiles upsets citizens
 	local gov = government.governmentOf(state, city.owner, ruleset)
-	if gov.warUnhappiness > 0 then
+	-- #29 women's-suffrage: reduce the per-unit war unhappiness by 1 for its owner's cities
+	-- (Republic 1->0, Democracy 2->1), floored at 0. NOT a full cancel.
+	local warReduce = 0
+	local wsKeys = {}
+	for id in pairs(state.wonders or {}) do
+		table.insert(wsKeys, id)
+	end
+	for _, wid in ipairs(combat.sortIds(wsKeys)) do
+		if cities.wonderActive(state, wid, ruleset) then
+			local wh = state.cities[state.wonders[wid]]
+			if wh ~= nil and wh.owner == city.owner then
+				local wr = ruleset.wonders[wid].effect.warUnhappyReduce
+				if wr ~= nil then
+					warReduce += wr
+				end
+			end
+		end
+	end
+	local warPerUnit = gov.warUnhappiness - warReduce
+	if warPerUnit < 0 then
+		warPerUnit = 0
+	end
+	if warPerUnit > 0 then
 		local abroad = 0
 		local unitKeys = {}
 		for id in pairs(state.units) do
@@ -72,7 +94,7 @@ local function cityMood(state: any, city: any, ruleset: any): any
 				end
 			end
 		end
-		local war = abroad * gov.warUnhappiness
+		local war = abroad * warPerUnit
 		while war > 0 and content > 0 do
 			content -= 1
 			unhappy += 1

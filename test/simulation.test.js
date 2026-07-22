@@ -31,17 +31,22 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
+// #29 A7 wonder effects re-record. The #28 discriminator classified this move: the 400-turn
+// chaos SOAK is STAMP-ONLY (BEHAVIOR_SOAK below is byte-identical — no A7 wonder fires in the
+// capped chaos game, only the rulesetHash stamp shifted GOLDEN_SOAK), while NATURAL is
+// BEHAVIORAL (the science/great-library/hoover/darwin effects fire in the longer play-to-
+// victory game and end it sooner: 431 -> 405 rounds, same winner). JS==Luau at every hash.
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x511b3190',
-    200: '0x2d82bbd5',
-    300: '0xecb6f194',
-    400: '0xfdc2688e'
+    100: '0x087c2c81',
+    200: '0x023df660',
+    300: '0x54307fc1',
+    400: '0xd8222d53'
   },
-  finalHash: '0xfdc2688e'
+  finalHash: '0xd8222d53'
 };
-const GOLDEN_NATURAL = { rounds: 431, winner: 'p2', finalHash: '0x840026ac' };
+const GOLDEN_NATURAL = { rounds: 405, winner: 'p2', finalHash: '0x13320ab7' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
@@ -51,7 +56,7 @@ const BEHAVIOR_SOAK = {
   checkpoints: { 100: '0x79e75d14', 200: '0xa030c263', 300: '0x5b9dc94a', 400: '0x982df3e2' },
   finalHash: '0x982df3e2'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x573e082d' };
+const BEHAVIOR_NATURAL = { finalHash: '0x9f586655' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

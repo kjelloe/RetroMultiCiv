@@ -2,9 +2,10 @@
 // science bulbs (sci) by per-player rates; bulbs buy advances whose cost
 // escalates with the number of techs already known (Civ 1 global escalation,
 // not per-tech prices). Luxuries, corruption and government caps come later.
-import { cityYields, effectPct, sellBuildingFrom } from './cities.js';
+import { cityYields, effectPct, sellBuildingFrom, wonderActive } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
 import { routeArrows } from './trade.js';
+import { sortIds } from './combat.js';
 import { leonardoUpgrade } from './upgrade.js';
 import { difficultyOf, hasHumanSeat } from './difficulty.js';
 
@@ -104,7 +105,23 @@ function cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset) {
   const cityTax = idiv(trade * taxRate, 100);
   const citySci = idiv(trade * sciRate, 100);
   let gold = cityTax + idiv(cityTax * effectPct(city, ruleset, 'taxBonus'), 100);
-  let bulbs = citySci + idiv(citySci * effectPct(city, ruleset, 'sciBonus'), 100);
+  // #29 science wonders (owner's active), additive % on the city's science on top of the
+  // building sciBonus: copernicus +100% in its own city; seti +50% every city; isaac-newton
+  // +66% OF the building science, owner's cities — but SUPPRESSED while seti is active (R3
+  // non-cumulative, seti supersedes).
+  let sciPct = effectPct(city, ruleset, 'sciBonus');
+  let wSci = 0, setiActive = false, newtonPct = 0;
+  for (const wid of sortIds(Object.keys(state.wonders === undefined ? {} : state.wonders))) {
+    if (!wonderActive(state, wid, ruleset)) continue;
+    const wh = state.cities[state.wonders[wid]];
+    if (!wh || wh.owner !== city.owner) continue;
+    const eff = ruleset.wonders[wid].effect;
+    if (eff.cityScienceBonusPct !== undefined && wh.id === city.id) wSci = wSci + eff.cityScienceBonusPct;
+    if (eff.scienceEverywherePct !== undefined) { wSci = wSci + eff.scienceEverywherePct; setiActive = true; }
+    if (eff.sciBldgBonusPct !== undefined) newtonPct = eff.sciBldgBonusPct;
+  }
+  if (newtonPct > 0 && !setiActive) wSci = wSci + idiv(sciPct * newtonPct, 100);
+  let bulbs = citySci + idiv(citySci * (sciPct + wSci), 100);
   if (city.taxmen !== undefined) gold += city.taxmen * perSpecialist;
   if (city.scientists !== undefined) bulbs += city.scientists * perSpecialist;
   return { gold, bulbs };
@@ -199,4 +216,58 @@ function processResearch(state, ruleset, events) {
   }
 }
 
-export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, cityEconOutput, prereqsMet, grantTech };
+// #29 great-library grant: the lowest sorted tech id a player LACKS that >=2 OTHER
+// civilizations know (Civ1 catch-up — prereq-free, one per turn). '' if none.
+function libraryCatchUpTech(state, pid, ruleset) {
+  const player = state.players[pid];
+  for (const tid of sortIds(Object.keys(ruleset.techs))) {
+    if (knows(player, tid)) continue;
+    let others = 0;
+    for (const oid of state.playerOrder) {
+      if (oid === pid) continue;
+      if (knows(state.players[oid], tid)) others = others + 1;
+    }
+    if (others >= 2) return tid;
+  }
+  return '';
+}
+
+// #29 darwin grant: the lowest-LEVEL researchable tech a player lacks (prereqs met,
+// sorted-id tie-break). '' if none.
+function lowestAvailableTech(state, pid, ruleset) {
+  const player = state.players[pid];
+  let best = '';
+  for (const tid of sortIds(Object.keys(ruleset.techs))) {
+    if (knows(player, tid) || !prereqsMet(player, tid, ruleset)) continue;
+    if (best === '' || ruleset.techs[tid].level < ruleset.techs[best].level) best = tid;
+  }
+  return best;
+}
+
+// #29 wonder tech grants (after research resolves): darwin's one-shot on THIS turn's
+// wonderBuilt event, then great-library's per-turn catch-up. Both go through grantTech
+// so obsolete-building sales + Leonardo upgrades + the techDiscovered event fire.
+function processWonderTechs(state, ruleset, events) {
+  for (const ev of events) {
+    if (ev.type !== 'wonderBuilt') continue;
+    const n = ruleset.wonders[ev.wonder].effect.freeTechsOnBuild;
+    if (n === undefined || n <= 0) continue;
+    const city = state.cities[ev.cityId];
+    if (!city) continue;
+    for (let k = 0; k < n; k++) {
+      const tid = lowestAvailableTech(state, city.owner, ruleset);
+      if (tid === '') break;
+      grantTech(state, city.owner, tid, ruleset, events);
+    }
+  }
+  for (const wid of sortIds(Object.keys(state.wonders === undefined ? {} : state.wonders))) {
+    if (ruleset.wonders[wid].effect.libraryCatchUp !== true) continue;
+    if (!wonderActive(state, wid, ruleset)) continue;
+    const home = state.cities[state.wonders[wid]];
+    if (!home) continue;
+    const tid = libraryCatchUpTech(state, home.owner, ruleset);
+    if (tid !== '') grantTech(state, home.owner, tid, ruleset, events);
+  }
+}
+
+export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, cityEconOutput, prereqsMet, grantTech, processWonderTechs };

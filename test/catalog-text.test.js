@@ -19,6 +19,32 @@ test('effectText renders structured effect fields to human strings', async () =>
   assert.strictEqual(effectText({}), '');
 });
 
+test('#29 EFFECT_TEXT covers every building AND wonder effect field (pedia completeness)', async () => {
+  const { makeCatalogText } = await load();
+  const { EFFECT_TEXT } = makeCatalogText(RULESET);
+  const missing = [];
+  for (const table of [RULESET.buildings, RULESET.wonders]) {
+    for (const id of Object.keys(table)) {
+      for (const key of Object.keys(table[id].effect || {})) {
+        if (!EFFECT_TEXT[key]) missing.push(`${id}.${key}`);
+      }
+    }
+  }
+  assert.deepStrictEqual(missing, [], `every effect field needs a pedia string — missing: ${missing.join(', ')}`);
+});
+
+test('#29 wonder-straggler + naval effects render (RIDER: lighthouse/magellan)', async () => {
+  const { makeCatalogText } = await load();
+  const { effectText } = makeCatalogText(RULESET);
+  assert.strictEqual(effectText({ effect: { shipMoveBonus: 1 } }), '+1 movement for all your ships');
+  assert.strictEqual(effectText({ effect: { cityScienceBonusPct: 100 } }), '+100% science in this city');
+  assert.strictEqual(effectText({ effect: { scienceEverywherePct: 50 } }), '+50% science in every city');
+  assert.strictEqual(effectText({ effect: { powerSameContinent: true } }), 'powers your cities on this continent (doubles their Factory bonus)');
+  assert.strictEqual(effectText({ effect: { warUnhappyReduce: 1 } }), '−1 unhappy citizen from military units abroad, in every city');
+  assert.strictEqual(effectText({ effect: { libraryCatchUp: true } }), 'grants any advance known by 2 other civilizations');
+  assert.strictEqual(effectText({ effect: { freeTechsOnBuild: 2 } }), '2 free advances the moment it is built');
+});
+
 test('effectText appends obsoleteBy with the tech name', async () => {
   const { makeCatalogText } = await load();
   const { effectText } = makeCatalogText(RULESET);

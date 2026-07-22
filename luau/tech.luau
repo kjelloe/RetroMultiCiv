@@ -7,6 +7,7 @@
 -- processResearch, playerIncome, prereqsMet.
 
 local cities = require("./cities")
+local combat = require("./combat") -- #29 sortIds for the science-wonder scan
 local government = require("./government")
 local traderoutes = require("./trade") -- named to avoid shadowing the loop's `trade` local
 local upgrade = require("./upgrade") -- N11 3b: Leonardo hook via the grantTech seam
@@ -132,7 +133,40 @@ local function cityEconOutput(state: any, city: any, taxRate: number, sciRate: n
 	local cityTax = idiv(trade * taxRate, 100)
 	local citySci = idiv(trade * sciRate, 100)
 	local gold = cityTax + idiv(cityTax * cities.effectPct(city, ruleset, "taxBonus"), 100)
-	local bulbs = citySci + idiv(citySci * cities.effectPct(city, ruleset, "sciBonus"), 100)
+	-- #29 science wonders (owner's active), additive % on the city's science on top of the
+	-- building sciBonus: copernicus +100% in its own city; seti +50% every city; isaac-newton
+	-- +66% OF the building science, owner's cities — but SUPPRESSED while seti is active (R3
+	-- non-cumulative, seti supersedes).
+	local sciPct = cities.effectPct(city, ruleset, "sciBonus")
+	local wSci = 0
+	local setiActive = false
+	local newtonPct = 0
+	local sciKeys = {}
+	for id in pairs(state.wonders or {}) do
+		table.insert(sciKeys, id)
+	end
+	for _, wid in ipairs(combat.sortIds(sciKeys)) do
+		if cities.wonderActive(state, wid, ruleset) then
+			local wh = state.cities[state.wonders[wid]]
+			if wh ~= nil and wh.owner == city.owner then
+				local eff = ruleset.wonders[wid].effect
+				if eff.cityScienceBonusPct ~= nil and wh.id == city.id then
+					wSci += eff.cityScienceBonusPct
+				end
+				if eff.scienceEverywherePct ~= nil then
+					wSci += eff.scienceEverywherePct
+					setiActive = true
+				end
+				if eff.sciBldgBonusPct ~= nil then
+					newtonPct = eff.sciBldgBonusPct
+				end
+			end
+		end
+	end
+	if newtonPct > 0 and not setiActive then
+		wSci += idiv(sciPct * newtonPct, 100)
+	end
+	local bulbs = citySci + idiv(citySci * (sciPct + wSci), 100)
 	if city.taxmen ~= nil then
 		gold += city.taxmen * perSpecialist
 	end
@@ -245,6 +279,87 @@ local function processResearch(state: any, ruleset: any, events: any)
 	end
 end
 
+-- #29 great-library grant: the lowest sorted tech id a player LACKS that >=2 OTHER
+-- civilizations know (Civ1 catch-up — prereq-free, one per turn). '' if none.
+local function libraryCatchUpTech(state: any, pid: string, ruleset: any): string
+	local player = state.players[pid]
+	local techKeys = {}
+	for id in pairs(ruleset.techs) do
+		table.insert(techKeys, id)
+	end
+	for _, tid in ipairs(combat.sortIds(techKeys)) do
+		if not knows(player, tid) then
+			local others = 0
+			for _, oid in ipairs(state.playerOrder) do
+				if oid ~= pid and knows(state.players[oid], tid) then
+					others += 1
+				end
+			end
+			if others >= 2 then
+				return tid
+			end
+		end
+	end
+	return ""
+end
+
+-- #29 darwin grant: the lowest-LEVEL researchable tech a player lacks (prereqs met,
+-- sorted-id tie-break). '' if none.
+local function lowestAvailableTech(state: any, pid: string, ruleset: any): string
+	local player = state.players[pid]
+	local best = ""
+	local techKeys = {}
+	for id in pairs(ruleset.techs) do
+		table.insert(techKeys, id)
+	end
+	for _, tid in ipairs(combat.sortIds(techKeys)) do
+		if not knows(player, tid) and prereqsMet(player, tid, ruleset) then
+			if best == "" or ruleset.techs[tid].level < ruleset.techs[best].level then
+				best = tid
+			end
+		end
+	end
+	return best
+end
+
+-- #29 wonder tech grants (after research resolves): darwin's one-shot on THIS turn's
+-- wonderBuilt event, then great-library's per-turn catch-up. Both go through grantTech
+-- so obsolete-building sales + Leonardo upgrades + the techDiscovered event fire.
+local function processWonderTechs(state: any, ruleset: any, events: any)
+	for _, ev in ipairs(events) do
+		if ev.type == "wonderBuilt" then
+			local n = ruleset.wonders[ev.wonder].effect.freeTechsOnBuild
+			if n ~= nil and n > 0 then
+				local city = state.cities[ev.cityId]
+				if city ~= nil then
+					for _ = 1, n do
+						local tid = lowestAvailableTech(state, city.owner, ruleset)
+						if tid == "" then
+							break
+						end
+						grantTech(state, city.owner, tid, ruleset, events)
+					end
+				end
+			end
+		end
+	end
+	local wonderKeys = {}
+	for id in pairs(state.wonders or {}) do
+		table.insert(wonderKeys, id)
+	end
+	for _, wid in ipairs(combat.sortIds(wonderKeys)) do
+		if ruleset.wonders[wid].effect.libraryCatchUp == true and cities.wonderActive(state, wid, ruleset) then
+			local home = state.cities[state.wonders[wid]]
+			if home ~= nil then
+				local tid = libraryCatchUpTech(state, home.owner, ruleset)
+				if tid ~= "" then
+					grantTech(state, home.owner, tid, ruleset, events)
+				end
+			end
+		end
+	end
+end
+
 return {
 	researchCost = researchCost,
 	availableTechs = availableTechs,
@@ -255,4 +370,5 @@ return {
 	cityEconOutput = cityEconOutput,
 	grantTech = grantTech,
 	prereqsMet = prereqsMet,
+	processWonderTechs = processWonderTechs,
 }

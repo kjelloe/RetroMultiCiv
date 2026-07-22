@@ -76,6 +76,57 @@ test('setResearch validates prereqs and duplicates', async () => {
   assert.strictEqual(ok.state.players.p1.researching, 'alphabet');
 });
 
+test('#29 science wonders compose on the city science (copernicus/seti/newton, R3 non-cumulative)', async () => {
+  const { tech } = await load();
+  const ps = RULESET.rules.specialistOutput;
+  const bulbs = (buildings, wonders) => {
+    const s = labState();
+    s.cities.c1.buildings = buildings;
+    s.wonders = wonders;
+    return tech.cityEconOutput(s, s.cities.c1, 0, 100, ps, RULESET).bulbs;
+  };
+  assert.strictEqual(bulbs([], {}), 4, 'base: 4 trade x 100% sci');
+  assert.strictEqual(bulbs([], { 'copernicus-observatory': 'c1' }), 8, 'copernicus +100% in its city');
+  assert.strictEqual(bulbs([], { 'seti-program': 'c1' }), 6, 'seti +50% every city');
+  assert.strictEqual(bulbs(['library'], {}), 6, 'library +50% sciBonus');
+  assert.strictEqual(bulbs(['library'], { 'isaac-newton-s-college': 'c1' }), 7, 'newton +66% of the library science');
+  assert.strictEqual(bulbs(['library'], { 'isaac-newton-s-college': 'c1', 'seti-program': 'c1' }), 8,
+    'R3: seti supersedes newton — newton +66% suppressed (8 = seti-only, not 7+seti)');
+});
+
+test('#29 darwin: 2 free advances on completion (lowest-level, sortIds tie-break, one-time)', async () => {
+  const { tech } = await load();
+  const s = labState();
+  s.wonders = {};
+  s.players.p1.techs = [];
+  // the build emits wonderBuilt; processWonderTechs grants the 2 lowest-LEVEL researchable
+  // techs (all 7 roots are level 1, so the sortIds tie-break — length then alpha — decides).
+  const events = [{ type: 'wonderBuilt', cityId: 'c1', wonder: 'darwin-s-voyage' }];
+  tech.processWonderTechs(s, RULESET, events);
+  assert.strictEqual(s.players.p1.techs.length, 2, 'darwin grants exactly 2');
+  assert.deepStrictEqual(s.players.p1.techs, ['wheel', 'masonry'], 'the 2 lowest by level then sortIds');
+  for (const t of s.players.p1.techs) assert.strictEqual(RULESET.techs[t].level, 1, 'both level-1 roots');
+  // one-time: re-running with no fresh wonderBuilt event grants nothing more
+  tech.processWonderTechs(s, RULESET, []);
+  assert.strictEqual(s.players.p1.techs.length, 2, 'no wonderBuilt event -> no further grant');
+});
+
+test('#29 great-library: lowest sorted tech id known by >=2 OTHER civs, one per turn', async () => {
+  const { tech } = await load();
+  const s = labState();
+  s.playerOrder = ['p1', 'p2', 'p3'];
+  s.players.p1.techs = [];
+  s.players.p2 = { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: ['alphabet', 'pottery'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 };
+  s.players.p3 = { id: 'p3', name: 'C', color: '#0f0', human: false, gold: 0, techs: ['alphabet', 'writing'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 };
+  s.wonders = { 'great-library': 'c1' }; // owner p1, active (no one has university)
+  tech.processWonderTechs(s, RULESET, []);
+  // alphabet is known by p2 AND p3 (>=2 others); pottery/writing only one each.
+  assert.deepStrictEqual(s.players.p1.techs, ['alphabet'], 'grants alphabet (>=2 others), one per turn');
+  // once p1 has alphabet, the next turn finds no new >=2-other tech -> no grant
+  tech.processWonderTechs(s, RULESET, []);
+  assert.deepStrictEqual(s.players.p1.techs, ['alphabet'], 'no further catch-up available');
+});
+
 test('trade converts to bulbs and discovers techs with overflow carry', async () => {
   const { engine } = await load();
   let state = labState({ researching: 'bronze-working' });

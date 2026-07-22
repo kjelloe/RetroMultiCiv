@@ -142,6 +142,7 @@ function endTurn(state, cmd, ruleset) {
     disasters.process(state, ruleset, events); // CIV1 disasters (authentic-ON; the 7 non-meltdown calamities)
     naval.process(state, ruleset, events); // naval-truth: the trireme open-sea gamble (turn-wrap)
     tech.processResearch(state, ruleset, events);
+    tech.processWonderTechs(state, ruleset, events); // #29 darwin one-shot + great-library catch-up
     barbarians.process(state, ruleset, events);
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
     spaceship.processSpace(state, ruleset, events); // A76: first launched ship to arrive wins

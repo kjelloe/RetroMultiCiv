@@ -100,6 +100,7 @@ hooks.processRevolutions = government.processRevolutions -- batch 4: guard delet
 hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
 hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
+hooks.processWonderTechs = tech.processWonderTechs -- #29 darwin one-shot + great-library catch-up
 hooks.processBarbarians = barbarians.process -- batch 5: guard deleted
 hooks.processPollution = pollution.process -- A91: smokestack pollution + meltdown + warming
 hooks.processDisasters = disasters.process -- CIV1 disasters (authentic-ON)
@@ -202,6 +203,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processDisasters(state, ruleset, events) -- CIV1 disasters (the 7 non-meltdown)
 		hooks.processNaval(state, ruleset, events) -- naval-truth: the trireme open-sea gamble
 		hooks.processResearch(state, ruleset, events)
+		hooks.processWonderTechs(state, ruleset, events) -- #29 darwin one-shot + great-library catch-up
 		hooks.processBarbarians(state, ruleset, events)
 		hooks.processAir(state, ruleset, events)
 		hooks.processSpace(state, ruleset, events) -- A76: first launched ship to arrive wins

@@ -102,3 +102,21 @@ test('war unhappiness: a republic pays for military units abroad', async () => {
   const home = happiness.cityMood(state, state.cities.c1, RULESET);
   assert.strictEqual(home.unhappy, 0);
 });
+
+test('#29 women-s-suffrage: -1 per-unit war unhappiness (Republic 1->0, Democracy 2->1)', async () => {
+  const { happiness } = await load();
+  // Republic (warUnhappiness 1): one legion abroad = one unhappy; suffrage -> 0.
+  const rep = moodState(4, {}, { government: 'republic' });
+  rep.units.u1 = { id: 'u1', type: 'legion', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false, home: 'c1' };
+  assert.strictEqual(happiness.cityMood(rep, rep.cities.c1, RULESET).unhappy, 1, 'republic baseline: 1');
+  rep.wonders['women-s-suffrage'] = 'c1';
+  assert.strictEqual(happiness.cityMood(rep, rep.cities.c1, RULESET).unhappy, 0, 'republic + suffrage: 1->0');
+
+  // Democracy (warUnhappiness 2): one legion abroad = two unhappy; suffrage -> one (per unit -1).
+  const dem = moodState(6, {}, { government: 'democracy' });
+  dem.units.u1 = { id: 'u1', type: 'legion', owner: 'p1', x: 0, y: 0, moves: 1, fortified: false, veteran: false, home: 'c1' };
+  const demBase = happiness.cityMood(dem, dem.cities.c1, RULESET).unhappy;
+  dem.wonders['women-s-suffrage'] = 'c1';
+  const demSuff = happiness.cityMood(dem, dem.cities.c1, RULESET).unhappy;
+  assert.strictEqual(demBase - demSuff, 1, 'democracy + suffrage: one legion 2 unhappy -> 1 (per-unit -1)');
+});

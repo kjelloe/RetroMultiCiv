@@ -45,7 +45,19 @@ function cityMood(state, city, ruleset) {
   // war unhappiness (Republic/Democracy): each military unit from this city
   // that is away from any of the player's city tiles upsets citizens
   const gov = governmentOf(state, city.owner, ruleset);
-  if (gov.warUnhappiness > 0) {
+  // #29 women's-suffrage: reduce the per-unit war unhappiness by 1 for its owner's cities
+  // (Republic 1->0, Democracy 2->1), floored at 0. NOT a full cancel.
+  let warReduce = 0;
+  for (const wid of sortIds(Object.keys(state.wonders === undefined ? {} : state.wonders))) {
+    if (!wonderActive(state, wid, ruleset)) continue;
+    const wh = state.cities[state.wonders[wid]];
+    if (!wh || wh.owner !== city.owner) continue;
+    const wr = ruleset.wonders[wid].effect.warUnhappyReduce;
+    if (wr !== undefined) warReduce = warReduce + wr;
+  }
+  let warPerUnit = gov.warUnhappiness - warReduce;
+  if (warPerUnit < 0) warPerUnit = 0;
+  if (warPerUnit > 0) {
     let abroad = 0;
     for (const uid of sortIds(Object.keys(state.units))) {
       const u = state.units[uid];
@@ -60,7 +72,7 @@ function cityMood(state, city, ruleset) {
       }
       if (!atHome) abroad = abroad + 1;
     }
-    let war = abroad * gov.warUnhappiness;
+    let war = abroad * warPerUnit;
     while (war > 0 && content > 0) { content = content - 1; unhappy = unhappy + 1; war = war - 1; }
     while (war > 0 && happy > 0) { happy = happy - 1; unhappy = unhappy + 1; war = war - 1; }
   }
