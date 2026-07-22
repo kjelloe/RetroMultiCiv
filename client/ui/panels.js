@@ -1,7 +1,7 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
 import { workedTiles, candidateTiles, tileYields, itemCost, cityYields, effectPct, wonderActive } from '../../engine/cities.js';
-import { governmentOf } from '../../engine/government.js';
+import { governmentOf, capitalOf } from '../../engine/government.js';
 import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
@@ -331,8 +331,12 @@ export function initPanels(ctx) {
     const state = session.state;
     const city = state.cities[openCityId];
     if (!city || city.owner !== ctx.HUMAN) { closeCityPanel(); return; }
+    // XIV §44: mark the capital with a ★ (capitalOf = palace-city, else oldest)
+    const capital = capitalOf(state, city.owner, session.ruleset);
+    const isCapital = capital && capital.id === city.id;
     const title = document.getElementById('city-title');
-    title.textContent = `🏛 ${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
+    title.textContent = `🏛 ${isCapital ? '★ ' : ''}${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
+    if (isCapital) title.title = 'your capital — corruption grows with distance from here';
     // faction emblem chip (art A1.6a): the owner's flag from data/civs.json
     const ownerCiv = state.players[city.owner].civ;
     const visual = ownerCiv && session.ruleset.civs[ownerCiv] && session.ruleset.civs[ownerCiv].visual;
@@ -679,6 +683,10 @@ export function initPanels(ctx) {
     for (const id of Object.keys(buildings).sort()) {
       const b = buildings[id];
       if ((city.buildings || []).includes(id)) continue;
+      // XIV §44: the Palace is hidden in the CURRENT capital (it already is the
+      // capital); elsewhere it shows with a "moves your capital here" tooltip.
+      const isPalace = b.effect && b.effect.isPalace === true;
+      if (isPalace && isCapital) continue;
       if (b.tech !== '' && !me.techs.includes(b.tech)) {
         if (frontier[b.tech]) lockedBuildings.push(id); // A18 frontier filter
         continue;
@@ -687,7 +695,8 @@ export function initPanels(ctx) {
       addOption({ kind: 'building', id },
         `${b.name} · <span class="ys">${cost}⚒${eta(cost, 'building')}</span> · upkeep ${b.maintenance}`
         + (cost < b.cost ? ' <span class="yf">★</span>' : ''),
-        effectText(b) || 'no effect implemented yet', BUILDING_BLURBS[id]);
+        isPalace ? 'Moves your capital here.' : (effectText(b) || 'no effect implemented yet'),
+        isPalace ? 'Moves your capital here — corruption grows with distance from the capital.' : BUILDING_BLURBS[id]);
     }
     if (!hideFuture) {
       for (const id of lockedBuildings.sort((a, b) => byTechLevel(a, b, buildings))) {

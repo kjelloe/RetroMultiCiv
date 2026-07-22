@@ -7,6 +7,7 @@
 import { cityYields, itemCost } from '../../engine/cities.js';
 import { cityMood } from '../../engine/happiness.js';
 import { cityEconOutput } from '../../engine/tech.js';
+import { capitalOf } from '../../engine/government.js';
 import { makeOverviewPanel } from './overview-panel.js';
 
 export function initCityOverview(ctx) {
@@ -30,6 +31,7 @@ export function initCityOverview(ctx) {
       return { name: def ? def.name : pd.id, cost: def ? itemCost(pd.kind, pd.id, def, p, ruleset) : 0 };
     };
 
+    const capital = capitalOf(state, me, ruleset); // XIV §44: ★ the capital row
     const ids = (state.cityOrder || Object.keys(state.cities)).filter(cid => {
       const c = state.cities[cid]; return c && c.owner === me;
     });
@@ -45,7 +47,7 @@ export function initCityOverview(ctx) {
         title: 'open ' + c.name,
         onClick: () => { if (ctx.panels && ctx.panels.openCityPanel) ctx.panels.openCityPanel(cid); },
         cells: [
-          `<span class="co-name">${esc(c.name)}</span>${disorder}`,
+          `<span class="co-name">${capital && capital.id === cid ? '★ ' : ''}${esc(c.name)}</span>${disorder}`,
           String(c.pop),
           `<span class="co-yft"><span class="yf">🌾${y.food}</span> <span class="ys">⚒${y.shields}</span> <span class="yt">➡${y.trade}</span></span>`,
           `💰${eco.gold} 🔬${eco.bulbs}`,

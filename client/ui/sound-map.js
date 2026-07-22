@@ -104,7 +104,7 @@ export const SOUND_IDS = [
   'combat-win', 'combat-loss', 'combat-distant',
   'capture-win', 'capture-loss', 'capture-distant',
   'found', 'grow', 'starve', 'build', 'disorder', 'order',
-  'tech', 'wonder', 'age', 'defeat', 'elimination', 'barbarian',
+  'tech', 'wonder', 'wonder-triumph', 'age', 'defeat', 'elimination', 'barbarian',
   'victory', 'gameover', 'government', 'regent',
   'ship-part', 'ship-launch', 'ship-down', // A76: the space-race cues
   // XIV §26: era-specific tech-discovery fanfares (played by the celebration

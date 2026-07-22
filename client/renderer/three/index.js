@@ -179,7 +179,7 @@ export function createRenderer(container) {
   // A68: cityId -> { text, alert } from the UI (hud) — read by buildCities
   let cityNotes = {};
   const disorderRings = [];
-  function makeCityLabel(text, color) {
+  function makeCityLabel(text, color, isCapital) {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -196,6 +196,13 @@ export function createRenderer(container) {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.fillText(text, 32, 35);
+    // XIV §44: a small gold ★ accent marks the viewer's own capital (the pop
+    // number stays centered — an inline prefix would overflow the badge).
+    if (isCapital === true) {
+      g.font = 'bold 22px monospace';
+      g.fillStyle = '#ffd479';
+      g.fillText('★', 51, 15);
+    }
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: new THREE.CanvasTexture(canvas), depthTest: false
     }));
@@ -297,7 +304,7 @@ export function createRenderer(container) {
       worldGroup.add(mesh);
       anim.collectSway('city', mesh, city.x, city.y);
       anim.addSmoke(city.x, city.y, tileTop(city.x, city.y), city.pop);
-      const label = makeCityLabel(String(city.pop), color);
+      const label = makeCityLabel(String(city.pop), color, view.capitalId === city.id); // XIV §44: ★ the viewer's capital (side field, never off the city object)
       label.position.set(city.x, tileTop(city.x, city.y) + 1.05, city.y);
       cityLabels.push(label);
       worldGroup.add(label);

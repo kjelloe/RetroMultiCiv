@@ -42,6 +42,13 @@ const RECIPES = {
   'order': arp('triangle', 0.12, [NOTE.E4, NOTE.G4, NOTE.C5], 0.05, 0.1),
   'tech': arp('square', 0.12, [NOTE.G4, NOTE.C5, NOTE.E5, NOTE.G5], 0.045, 0.09),   // a sparkle
   'wonder': arp('square', 0.2, [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.C5, NOTE.E5], 0.08, 0.2), // fanfare
+  // XIV §48: the viewer's OWN wonder — a grander ~2.5s triumph (rising run into a
+  // held major chord), played under the completion splash (the sound handler swaps
+  // to this for own wonders; rivals keep the modest 'wonder' fanfare above).
+  'wonder-triumph': seq('square', 0.2, [
+    [NOTE.C4, 0, 0.18], [NOTE.E4, 0.14, 0.18], [NOTE.G4, 0.28, 0.18], [NOTE.C5, 0.42, 0.2],
+    [NOTE.E5, 0.6, 0.2], [NOTE.G5, 0.78, 0.24], [NOTE.C6, 1.0, 0.4],
+    [NOTE.C5, 1.5, 0.9], [NOTE.E5, 1.5, 0.9], [NOTE.G5, 1.5, 0.9], [NOTE.C6, 1.5, 0.9]]),
   'age': arp('square', 0.22, [NOTE.C4, NOTE.G4, NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6], 0.09, 0.26), // the historian's fanfare
   'defeat': fall('sawtooth', 0.2, NOTE.A3, NOTE.C3, 0.5),
   'elimination': seq('triangle', 0.14, [[NOTE.E4, 0, 0.24], [NOTE.C4, 0.22, 0.24], [NOTE.A3, 0.44, 0.28], [NOTE.E3, 0.66, 0.44]]), // user: longer + sadder — a slow descending minor line settling on a held low E
@@ -176,6 +183,9 @@ export function initSound(ctx) {
         // fanfare (sound-map stays pure/ruleset-free, so the era lookup — which
         // needs the ruleset — happens here).
         if (id === 'tech' && e.type === 'techDiscovered') id = discoveryFanfare(e.tech);
+        // XIV §48: the viewer's OWN wonder earns the grander triumph (under the
+        // completion splash); rivals keep the modest 'wonder' fanfare.
+        if (id === 'wonder' && e.type === 'wonderBuilt' && owner(e.cityId) === ctx.HUMAN) id = 'wonder-triumph';
         if (id) play(id);
       }
     });

@@ -248,7 +248,8 @@ export function initTurnLog(ctx) {
       } else if (e.type === 'cityStarved' && ownCity(state, e.cityId)) {
         put(`🍂 famine in ${state.cities[e.cityId].name} — population ${e.pop}`, 'loss', cityLoc(state, e.cityId));
       } else if (e.type === 'unitBuilt' && ownCity(state, e.cityId)) {
-        put(`⚒ ${state.cities[e.cityId].name} completed ${units[e.unitType].name}`, '', cityLoc(state, e.cityId));
+        // XIV §47: units are "trained"; the turnlog row carries the ⌖ zoom already
+        put(`⚒ ${state.cities[e.cityId].name} trained ${units[e.unitType].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'buildingBuilt' && ownCity(state, e.cityId)) {
         put(`🏠 ${state.cities[e.cityId].name} completed ${buildings[e.building].name}`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'buildingSold' && e.playerId === ctx.HUMAN) {

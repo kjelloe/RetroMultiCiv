@@ -102,18 +102,69 @@ export function initDiscoveryCard(ctx) {
     window.addEventListener('keydown', escHandler);
   }
 
-  function pump() {
-    if (overlay || queue.length === 0) return;
-    show(queue.shift());
+  // XIV §48: the WONDER-COMPLETE splash — the SAME discovery frame (world-dim +
+  // centered card, NO auto-close): the wonder's era glyph (🏆 fallback), "WONDER
+  // COMPLETE", its name, a Civilopedia deep-link, and two deliberate exits
+  // (Go to the city / Continue). The triumphant cue is played by sound.js off the
+  // same wonderBuilt event (own → 'wonder-triumph').
+  function showWonder(wonderId, cityId) {
+    const def = wonders[wonderId];
+    if (!def) { pump(); return; }
+    const city = session.state.cities[cityId];
+    const cityName = city ? city.name : '';
+    overlay = document.createElement('div');
+    overlay.id = 'discovery-overlay';
+    const card = document.createElement('div');
+    card.id = 'discovery-card';
+    card.className = 'reveal';
+    card.innerHTML = `
+      <div class="dc-glyph"></div>
+      <div class="dc-kicker">WONDER COMPLETE</div>
+      <div class="dc-name">${esc(def.name)}</div>
+      <div class="dc-blurb">A Wonder of the World${cityName ? ` — built in ${esc(cityName)}` : ''}. Only one civilization can hold it.</div>
+      <div class="dc-actions">
+        <button class="dc-pedia">📖 Civilopedia</button>
+        ${city ? '<button class="dc-goto">Go to ' + esc(cityName) + '</button>' : ''}
+        <button class="dc-continue">Continue</button>
+      </div>`;
+    const slot = card.querySelector('.dc-glyph');
+    if (slot) {
+      const eraOf = def.tech && techs[def.tech] ? techs[def.tech].era : null;
+      if (def.tech && eraOf) slot.appendChild(glyphImg(def.tech, eraOf, 88));
+      else slot.innerHTML = '<div class="dc-trophy">🏆</div>';
+    }
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    card.querySelector('.dc-continue').addEventListener('click', close);
+    const pediaBtn = card.querySelector('.dc-pedia');
+    if (pediaBtn) pediaBtn.addEventListener('click', () => { close(); if (ctx.pedia) ctx.pedia.openTo('wonders', wonderId); });
+    const gotoBtn = card.querySelector('.dc-goto');
+    if (gotoBtn) gotoBtn.addEventListener('click', () => { close(); if (ctx.panels && ctx.panels.openCityPanel) ctx.panels.openCityPanel(cityId); });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    escHandler = e => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', escHandler);
   }
 
-  session.onChange((_state, events) => {
+  function pump() {
+    if (overlay || queue.length === 0) return;
+    const item = queue.shift();
+    if (item.kind === 'wonder') showWonder(item.id, item.cityId);
+    else show(item.id);
+  }
+
+  session.onChange((state, events) => {
     if (!enabled()) return;
     for (const e of events) {
-      if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) queue.push(e.tech);
+      if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) queue.push({ kind: 'tech', id: e.tech });
+      // XIV §48: the viewer's OWN wonder gets the celebration splash; a rival's
+      // wonder keeps the modest §47-named turnlog line (no splash).
+      else if (e.type === 'wonderBuilt' && state.cities[e.cityId] && state.cities[e.cityId].owner === ctx.HUMAN) {
+        queue.push({ kind: 'wonder', id: e.wonder, cityId: e.cityId });
+      }
     }
     pump();
   });
 
-  return { enabled, show }; // show exposed for e2e/screenshot hooks
+  return { enabled, show, showWonder }; // show/showWonder exposed for e2e/screenshot hooks
 }

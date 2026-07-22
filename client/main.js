@@ -595,6 +595,15 @@ if (params.get('discoverydemo') && ctx.discoveryCard && ctx.discoveryCard.show) 
   ctx.discoveryCard.show(t);
 }
 
+// XIV §48: ?wonderdemo=<wonderId|1> shows the wonder-complete splash and leaves it
+// open (screenshot review / manual look — the real trigger is an own wonderBuilt).
+if (params.get('wonderdemo') && ctx.discoveryCard && ctx.discoveryCard.showWonder) {
+  const w = params.get('wonderdemo');
+  const wid = session.ruleset.wonders[w] ? w : Object.keys(session.ruleset.wonders)[0];
+  const cid = session.state.cityOrder && session.state.cityOrder[0];
+  ctx.discoveryCard.showWonder(wid, cid);
+}
+
 // XIV §33: ?envoydemo=1 injects a sample incoming peace offer and pops the envoy
 // modal, leaving it up (screenshot review / manual look — the real trigger is a
 // rival's offer landing on your turn). Local engine only (fog-view has no
@@ -664,6 +673,20 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const cont = card && card.querySelector('.dc-continue');
     if (cont) cont.click(); // Continue closes it (no auto-timer)
     discovery += '/' + (document.getElementById('discovery-overlay') ? 'stuck' : 'closed');
+  }
+  // XIV §48: the own-wonder completion splash reuses the discovery frame — the
+  // WONDER COMPLETE card with Go-to-city + Continue exits, no auto-close.
+  let wondersplash = 'unchecked';
+  if (ctx.discoveryCard && ctx.discoveryCard.showWonder && session.state.cityOrder.length > 0) {
+    const wid = Object.keys(session.ruleset.wonders)[0];
+    ctx.discoveryCard.showWonder(wid, session.state.cityOrder[0]);
+    const card = document.getElementById('discovery-card');
+    wondersplash = (document.getElementById('discovery-overlay') ? 'overlay' : 'noverlay')
+      + '/' + (card && /WONDER COMPLETE/.test(card.textContent) ? 'kicker' : 'nokicker')
+      + '/' + (card && card.querySelector('.dc-continue') && card.querySelector('.dc-goto') ? 'exits' : 'noexits');
+    const cont2 = card && card.querySelector('.dc-continue');
+    if (cont2) cont2.click();
+    wondersplash += '/' + (document.getElementById('discovery-overlay') ? 'stuck' : 'closed');
   }
   // XIV §25/§23: the map suppresses the browser context menu; the 'Show unit
   // move' pacing option exists (default ON).
@@ -764,6 +787,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   // XIV §43: the "+" affordance on a catalog row enqueues (the touch path), and
   // the "building …" line now lives in the catalog column (#city-build-line).
   let buildqueue = 'unchecked';
+  let capital = 'unchecked';
   if (session.state.cityOrder.length > 0) {
     const cid = session.state.cityOrder[0];
     ctx.panels.openCityPanel(cid);
@@ -775,6 +799,11 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     buildqueue = (add ? 'plus' : 'noplus')
       + '/' + (after === before + 1 ? 'enqueued' : `noq(${before}->${after})`)
       + '/' + (buildLine && /building:/.test(buildLine.textContent) ? 'line' : 'noline');
+    // XIV §44: the sole city is the capital → ★ in the title, Palace hidden here.
+    const title = document.getElementById('city-title');
+    const catalog = document.getElementById('city-catalog');
+    capital = (title && /★/.test(title.textContent) ? 'star' : 'nostar')
+      + '/' + (catalog && !/Palace/.test(catalog.textContent) ? 'palace-hidden' : 'palace-shown');
   }
   // XIV §33: an incoming diplomacy offer pops the envoy modal (leader + Accept /
   // Reject / Consider-later). Inject a rival's standing offer (a probe, not a
@@ -877,11 +906,13 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · hudpolish: ' + hudpolish // XIV §1/§9/§21/§28: rates+gov, tech-tree in panel, summary reopen
     + ' · hoverinfo: ' + hoverinfo // XIV §22: research-panel pedia hover-links + shared card
     + ' · discovery: ' + discovery // XIV §26: celebration overlay (kicker + two exits, no auto-close)
+    + ' · wondersplash: ' + wondersplash // XIV §48: own-wonder completion splash (reuses the discovery frame)
     + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city
     + ' · military: ' + military // XIV §41: military overview lists units with A/D/M + 🔍 zoom-to
     + ' · buildqueue: ' + buildqueue // XIV §43: catalog "+" enqueues + the build line moved to the catalog
+    + ' · capital: ' + capital // XIV §44: capital ★ in the title + Palace hidden from the capital's catalog
     + ' · envoy: ' + envoy // XIV §33: incoming-offer modal (Accept/Reject/Consider-later, persists)
     + ' · zoomto: ' + zoomto // XIV §35: 🔍 zoom-to on coord-bearing transient messages
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean

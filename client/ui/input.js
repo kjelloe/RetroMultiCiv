@@ -538,8 +538,12 @@ export function initInput(ctx) {
         .filter(id => state.cities[id] && state.cities[id].owner === ctx.HUMAN).sort();
       if (pending.length > 0 && Date.now() > confirmOrdersUntil) {
         confirmOrdersUntil = Date.now() + 5000;
+        const pc = state.cities[pending[0]];
         panels.openCityPanel(pending[0]);
-        hud.banner(`🏭 ${state.cities[pending[0]].name} completed its work — choose production, or E again to continue`);
+        // XIV §47: name the specific thing + carry a §35 🔍 zoom to the city
+        const done = needsOrders[pending[0]];
+        const what = done && done.verb && done.name ? `${done.verb} ${done.name}` : 'completed its work';
+        hud.banner(`🏭 ${pc.name} ${what} — choose production, or E again to continue`, { x: pc.x, y: pc.y });
         return;
       }
       for (const id of Object.keys(needsOrders)) delete needsOrders[id]; // ignored once
@@ -713,7 +717,12 @@ export function initInput(ctx) {
     for (const e of events) {
       if ((e.type === 'buildingBuilt' || e.type === 'wonderBuilt' || e.type === 'wonderLost')
           && state.cities[e.cityId] && state.cities[e.cityId].owner === ctx.HUMAN) {
-        needsOrders[e.cityId] = true;
+        // XIV §47: remember WHAT was completed so the prompt can name it
+        needsOrders[e.cityId] = e.type === 'buildingBuilt'
+          ? { verb: 'completed', name: (session.ruleset.buildings[e.building] || {}).name }
+          : e.type === 'wonderBuilt'
+            ? { verb: 'finished', name: (session.ruleset.wonders[e.wonder] || {}).name }
+            : { verb: null }; // wonderLost: kept shields, but no completion to name
       } else if (e.type === 'productionSet' || e.type === 'cityCaptured') {
         delete needsOrders[e.cityId];
       }

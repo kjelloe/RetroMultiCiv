@@ -1403,6 +1403,7 @@ html, body {
 }
 #discovery-card .dc-glyph { margin-bottom: 10px; }
 #discovery-card .dc-glyph .tech-glyph { width: 88px; height: 88px; }
+#discovery-card .dc-trophy { font-size: 72px; line-height: 88px; } /* XIV §48: wonder art fallback */
 #discovery-card.reveal .dc-glyph { animation: dc-glyph-in 520ms ease-out both; }
 @keyframes dc-glyph-in { from { transform: scale(0.4) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
 #discovery-card .dc-kicker { font-size: 12px; letter-spacing: 2px; color: #8fa8cc; }

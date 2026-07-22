@@ -180,6 +180,12 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §43: the catalog "+" enqueues (touch path) + the build line moved into the catalog column
     assert.match(dom, /buildqueue: plus\/enqueued\/line/,
       'the catalog "+" must enqueue and the "building:" line must render in #city-build-line');
+    // XIV §44: the capital gets a ★ in its title and the Palace is hidden from its own catalog
+    assert.match(dom, /capital: star\/palace-hidden/,
+      'the capital must show a ★ and never offer the Palace in its own catalog');
+    // XIV §48: the own-wonder completion splash reuses the discovery frame (kicker + Go-to-city/Continue, no auto-close)
+    assert.match(dom, /wondersplash: overlay\/kicker\/exits\/closed/,
+      'an own wonder completion must pop the WONDER COMPLETE splash with Go-to-city + Continue exits');
     // XIV §41: the military overview lists own units with the A/D/M column and a 🔍 zoom-to
     assert.match(dom, /military: table\/rows\d+\/zoom\/adm/,
       'the military overview must list units with an A/D/M column and a 🔍 zoom-to');

@@ -1,7 +1,7 @@
 // HUD: status line, research bar, tile/selection text, the center banner.
 import { filterView } from '../../engine/visibility.js';
 import { cityYields, itemCost } from '../../engine/cities.js';
-import { corruptionFor, governmentOf } from '../../engine/government.js';
+import { corruptionFor, governmentOf, capitalOf } from '../../engine/government.js';
 import { researchCost, playerIncome } from '../../engine/tech.js';
 import { score } from '../../engine/score.js';
 import { techSafeState } from './score-view.js';
@@ -234,7 +234,14 @@ export function initHud(ctx) {
     if (renderer.setCityNotes) renderer.setCityNotes(cityNotes(state));
     // era-band render hint (specs/city-era-looks.md): derive per city from the
     // owner's tech era on the fog-filtered view, so the renderer stays rules-blind
-    renderer.setViewState(annotateCityEra(filterView(state, ctx.HUMAN), techs));
+    const view = annotateCityEra(filterView(state, ctx.HUMAN), techs);
+    // XIV §44: flag the VIEWER's own capital so the map label carries a ★ (fog-
+    // honest — a rival's capital needs data the viewer can't see). Render-only:
+    // the id rides a SIDE FIELD of the fresh view, NEVER stamped on the aliased
+    // city objects (the city-era.js trap — that would taint the state hash).
+    const cap = capitalOf(state, ctx.HUMAN, session.ruleset);
+    if (cap) view.capitalId = cap.id;
+    renderer.setViewState(view);
     renderer.setSelection(sel.unitId ? { unitId: sel.unitId } : null);
     const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
     if (state.gameOver) {
