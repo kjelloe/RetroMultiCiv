@@ -31,34 +31,35 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
-// #26 archetype-wonders re-record. BEHAVIORAL (the #28 discriminator confirms BEHAVIOR_* below
-// moved too, not just the full hashes): stance-keyed wonderAppetite makes AI civs build wonders,
-// so the trajectory diverges from t200 on (wonders appear after t100 — t100 is unchanged) and the
-// NATURAL game runs LONGER (405 -> 545 rounds, same winner p2 — great-library catch-up et al.
-// reshape the endgame). #26 touches only engine/ai.js behaviour (no ruleset change) so the
-// rulesetHash STAMP is unmoved: mapgen/ff-parity/scenario-002/checkpoint-100 pins are untouched.
-// JS==Luau at every hash (lune soak-400 0xca0df133, natural 545/0xbbac8607).
+// #30 xiv-ai-behavior STRENGTHEN re-record (#2289). BEHAVIORAL (the #28 discriminator confirms
+// BEHAVIOR_* below moved too): the disband valve, now CAP-gated instead of obsolescence-gated,
+// FIRES on the canonical soak (civs exceed their garrison cap with current-gen units and disband
+// down to it) — so the trajectory diverges from t100 and the NATURAL game ends much SOONER
+// (545 -> 260 rounds, same winner p2 — leaner armies resolve faster). #30 touches only engine/
+// ai.js behaviour (no ruleset change) so the rulesetHash STAMP is unmoved: mapgen/ff-parity/
+// scenario-002 pins are untouched; only checkpoint-100 (the sim trajectory) moves with these.
+// JS==Luau at every hash (lune soak-400 0x6c222877, natural 260/0xe32b53ab).
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x75668d61',
-    200: '0xa6f90fc6',
-    300: '0xf26a4654',
-    400: '0xca0df133'
+    100: '0x2c9bfc0a',
+    200: '0x188c1465',
+    300: '0x50f9b503',
+    400: '0x6c222877'
   },
-  finalHash: '0xca0df133'
+  finalHash: '0x6c222877'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xbbac8607' };
+const GOLDEN_NATURAL = { rounds: 260, winner: 'p2', finalHash: '0xe32b53ab' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x79e75d14', 200: '0x7b5d1a6b', 300: '0x89c4708b', 400: '0x6bc31c40' },
-  finalHash: '0x6bc31c40'
+  checkpoints: { 100: '0xc962fc35', 200: '0x0b700a98', 300: '0x52228918', 400: '0xab86c2a4' },
+  finalHash: '0xab86c2a4'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xe95c3a45' };
+const BEHAVIOR_NATURAL = { finalHash: '0x235776a5' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

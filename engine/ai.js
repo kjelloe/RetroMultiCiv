@@ -2159,7 +2159,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         if (u.owner !== playerId || u.aboard !== undefined) continue;
         const def = ruleset.units[u.type];
         if (def.domain !== 'land' || def.attack <= 0) continue; // land combat unit (never a civilian)
-        if (!unitObsolete(def, me.techs)) continue;             // obsolete only
+        // #30 STRENGTHEN (#2289): CAP-gated, NOT obsolescence-gated. The endemic-war seeds are
+        // LOW-TECH (units never obsolete, gateTechTurn t400-500) so the old unitObsolete gate left
+        // the valve dormant on exactly the most-bloated seeds. Over-cap SAFE units drain regardless
+        // of obsolescence — the cap+garrisonCap keep a full garrison; the safe-filter protects fronts.
         if (enemyNear(state, me, playerId, u.x, u.y, 2)) continue; // safe front only
         const isAttacker = def.attack > def.defense;
         if (isAttacker ? !attOver : !defOver) continue;         // only the class over its own cap

@@ -2497,8 +2497,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				local u = state.units[uid]
 				if u.owner == playerId and u.aboard == nil then
 					local def = ruleset.units[u.type]
+					-- #30 STRENGTHEN (#2289): CAP-gated, NOT obsolescence-gated (low-tech seeds never obsolete). TWIN.
 					if def.domain == "land" and def.attack > 0
-						and cities.unitObsolete(def, me.techs)
 						and not enemyNear(state, me, playerId, u.x, u.y, 2) then
 						local isAttacker = def.attack > def.defense
 						local classOver = if isAttacker then attOver else defOver

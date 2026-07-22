@@ -122,32 +122,34 @@ test('#30 disband valve: an over-cap at-peace civ disbands one obsolete attacker
   assert.ok(!few || few.type !== 'disband', 'within target+hysteresis civ keeps its army; got ' + JSON.stringify(few));
 });
 
-// #30 the MEASURED bloat is obsolete DEFENDERS (phalanx piling up under the garrison build), so
-// the valve drains them too: over the garrison cap (armyCapPerCity*cities), at peace, one/turn.
-test('#30 disband valve: an over-garrison-cap civ disbands one obsolete defender (the phalanx pile-up)', async () => {
+// #30 STRENGTHEN (#2289): the valve is CAP-gated, NOT obsolescence-gated — the endemic-war seeds
+// are low-tech (units never obsolete), so it must drain OVER-CAP CURRENT-GEN units too. Here the
+// phalanx are NOT obsolete (no gunpowder) yet the over-garrison-cap civ still disbands them.
+test('#30 disband valve: an over-garrison-cap civ disbands a CURRENT-gen defender (cap-gated, not obsolescence-gated)', async () => {
   const { ai } = await load();
   const W = 9, H = 9, tiles = [];
   for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
   const mk = (n) => {
     const units = {};
-    // phalanx = a DEFENDER (atk 1 < def 2), obsoleted by gunpowder.
+    // phalanx = a DEFENDER (atk 1 < def 2); with NO gunpowder it is CURRENT-GEN (not obsolete).
     for (let i = 0; i < n; i++) units['u' + i] = { id: 'u' + i, type: 'phalanx', owner: 'p1', x: i % 9, y: (Math.floor(i / 9)) % 9, moves: 1, fortified: false, veteran: false };
     return {
       version: 1, turn: 200, year: 1, activePlayer: 'p1', playerOrder: ['p1'],
       map: { width: W, height: H, wrapX: false, tiles }, units, wonders: {}, nextUnitId: 999, nextCityId: 10,
       cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
       cityOrder: ['c1'],
-      // gunpowder obsoletes the phalanx; balanced armyCapPerCity=4 -> garrison cap = 1*4 = 4.
-      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['gunpowder'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'republic' } },
+      // techs=[] -> phalanx NOT obsolete (the pre-strengthen valve would NOT fire); balanced
+      // armyCapPerCity=4 -> garrison cap = 1*4 = 4.
+      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'republic' } },
       rngState: 1
     };
   };
   const doneFlags = { happiness: true, research: true, rates: true, government: true, diplo: {} };
-  // 60 obsolete phalanx, 1 city -> garrison cap 4; 60 > 4 + disbandOverBy(4) -> disband a phalanx.
+  // 60 current-gen phalanx, 1 city -> garrison cap 4; 60 > 4 + disbandOverBy(4) -> disband regardless of obsolescence.
   const big = mk(60);
   const cmd = ai.pickCommand(big, 'p1', RULESET, Object.assign({}, doneFlags));
-  assert.strictEqual(cmd.type, 'disband', 'over garrison cap at-peace -> disband a defender; got ' + JSON.stringify(cmd));
-  assert.strictEqual(big.units[cmd.unitId].type, 'phalanx', 'the disbanded unit is the obsolete phalanx defender');
+  assert.strictEqual(cmd.type, 'disband', 'over garrison cap at-peace -> disband a defender even when not obsolete; got ' + JSON.stringify(cmd));
+  assert.strictEqual(big.units[cmd.unitId].type, 'phalanx', 'the disbanded unit is the over-cap phalanx defender');
   // within the garrison cap + hysteresis (5 <= 4 + 4): no disband.
   const few = ai.pickCommand(mk(5), 'p1', RULESET, Object.assign({}, doneFlags));
   assert.ok(!few || few.type !== 'disband', 'within garrison cap civ keeps its defenders; got ' + JSON.stringify(few));
