@@ -10,11 +10,25 @@ import { displayColor } from './palette.js';
 import { scoreBreakdown } from '../../engine/score.js';
 import { techSafeState, techFogged } from './score-view.js';
 
+// XV §12: the winner's display label — name, else the id, else a safe generic.
+// NEVER undefined (the fog-filtered ?server=1 view lacks state.winner, and a
+// rival stub could lack a name). Pure + exported for the regression test.
+export function winnerLabel(players, wid) {
+  const w = players && players[wid];
+  return (w && w.name) || wid || 'leading civilization';
+}
+
 export function initEndScreen(ctx) {
   const { session } = ctx;
   const ruleset = session.ruleset;
   const deathTurn = {}; // pid -> turn it fell (client ledger from playerDefeated; never state)
   let shownFor = null;  // the winner we've already shown, so we open exactly once
+  // XV §12: the fog-filtered ?server=1 view OMITS state.winner (visibility.js
+  // filterView), so state.players[undefined] was undefined → "the undefined had
+  // built…". The gameOver EVENT carries the winner; fall back to it, then to a
+  // safe label — NEVER print undefined.
+  let eventWinner = null;
+  const winnerId = state => (state && state.winner !== undefined ? state.winner : eventWinner);
 
   function ageYear(state) { return state.year < 0 ? `${-state.year} BC` : `${state.year} AD`; }
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
@@ -34,8 +48,7 @@ export function initEndScreen(ctx) {
   }
 
   function headline(state, victory) {
-    const w = state.players[state.winner];
-    const wname = w ? w.name : state.winner;
+    const wname = winnerLabel(state.players, winnerId(state));
     if (victory === 'conquest') {
       return `Conquest — the ${wname} stand alone; every rival has fallen.`;
     }
@@ -88,7 +101,8 @@ export function initEndScreen(ctx) {
     if (panel) panel.remove();
     const list = rows(state);
     const max = list.length ? list[0].total : 0;
-    const humanWon = state.winner === ctx.HUMAN;
+    const wid = winnerId(state);
+    const humanWon = wid === ctx.HUMAN;
     const verdict = ctx.SPECTATOR ? '🏁 THE GAME IS OVER'
       : (humanWon ? '🏆 VICTORY' : '💀 DEFEAT');
 
@@ -96,11 +110,11 @@ export function initEndScreen(ctx) {
     panel.id = 'endscreen';
     let body = '';
     list.forEach((r, i) => {
-      const cls = [r.alive ? '' : 'dead', r.pid === state.winner ? 'winner' : ''].join(' ').trim();
+      const cls = [r.alive ? '' : 'dead', r.pid === wid ? 'winner' : ''].join(' ').trim();
       const fell = r.alive ? '' : ` <span class="fell">— fell turn ${r.death !== undefined ? r.death : '?'}</span>`;
       body += `<tr class="${cls}">`
         + `<td class="rank">${i + 1}</td>`
-        + `<td class="civ"><span class="swatch" style="background:${escColor(r.color)}"></span>${esc(r.name)}${r.pid === state.winner ? ' 👑' : ''}${fell}</td>`
+        + `<td class="civ"><span class="swatch" style="background:${escColor(r.color)}"></span>${esc(r.name)}${r.pid === wid ? ' 👑' : ''}${fell}</td>`
         + `<td>${r.cities}</td><td>${r.techFogged ? '<span class="fog" title="unknown under fog">—</span>' : r.techs}</td><td>${r.wonders}</td>`
         + `<td class="score">${r.total}${bar(r, max)}</td></tr>`;
     });
@@ -144,7 +158,7 @@ export function initEndScreen(ctx) {
       close();
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'L', shiftKey: true })); // reuse saves.js Shift+L
     });
-    shownFor = state.winner;
+    shownFor = wid;
   }
 
   // XIV §9: a persistent way BACK to the summary once it's been closed — a
@@ -165,7 +179,7 @@ export function initEndScreen(ctx) {
     }
     reopenBtn.classList.toggle('hidden', state.gameOver !== true); // available whenever the game is over
     for (const e of events || []) {
-      if (e.type === 'gameOver') { show(state, victoryOf(state, e.victory)); return; }
+      if (e.type === 'gameOver') { eventWinner = e.winner; show(state, victoryOf(state, e.victory)); return; }
     }
     // a game LOADED already-over (no gameOver event replays): show it once
     if (state.gameOver === true && shownFor !== state.winner) show(state, victoryOf(state, null));
