@@ -76,8 +76,8 @@ test('ADVICE_PEDIA links are valid both ways; unlinked cards are the known two',
     assert.ok(conceptIds.includes(conceptId), `"${cardId}" links to unknown concept "${conceptId}"`);
   }
   const unlinked = Object.keys(ADVICE).filter(id => ADVICE_PEDIA[id] === undefined).sort();
-  assert.deepStrictEqual(unlinked, ['diplo-audience', 'endgame', 'goody-hut', 'pollution', 'regent', 'unit-selected'],
-    'only the no-matching-concept cards stay unlinked (add the link when the exploration/victory/diplomacy/pollution concepts land)');
+  assert.deepStrictEqual(unlinked, ['regent', 'unit-selected'],
+    'only the two no-matching-concept cards stay unlinked (movement basics / regency have no concept yet)');
 });
 
 // advisor-hint-cards.md: the enumerated trigger contract — every listed event
@@ -89,6 +89,15 @@ test('advisor covers the 15-trigger contract; dormant triggers ship as cards', a
     'new-government', 'diplo-audience', 'pollution', 'endgame'];
   for (const id of required) assert.ok(ADVICE[id] && ADVICE[id].title && ADVICE[id].text, `trigger "${id}" has a card`);
   for (const id of required) assert.ok(ADVICE[id].text.split(/\s+/).length <= 40, `"${id}" copy is ≤ 40 words`);
+});
+
+// advisor-hint-cards.md: [City] placeholders (ally #6/#7) are substituted at
+// offer() time — guard that no OTHER card ships an unresolved [placeholder].
+test('[City] placeholder is confined to the two runtime-substituted cards', async () => {
+  const { ADVICE } = await loadAdvice();
+  const withPlaceholder = Object.keys(ADVICE).filter(id => /\[\w+\]/.test(ADVICE[id].title + ADVICE[id].text)).sort();
+  assert.deepStrictEqual(withPlaceholder, ['disorder', 'growth-stall'],
+    'only disorder + growth-stall carry a [City] placeholder (offer() substitutes it at show time)');
 });
 
 // advisor-hint-cards.md: the new PURE predicates (DOM-free, fog-view input).

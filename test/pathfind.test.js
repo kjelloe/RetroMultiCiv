@@ -58,6 +58,24 @@ test('road detour beats the short rough path', async () => {
   assert.ok(p.cost < 39, `the cost-aware route (${p.cost}) beats punching through the hills (39)`);
 });
 
+// XIV §37: road-aware goto. The A65 costing (road-to-road = 1 = 1/3 of a plain
+// step) already gives roads ~3x range over NORMAL terrain; the detour test above
+// uses rough HILLS, so this pins the plains case the spec's "3x range" names.
+test('road detour beats a shorter roadless PLAINS path (3x range over normal terrain)', async () => {
+  const { findPath } = await load();
+  // the direct lane (row 0) is plain grassland, roadless; a road spans row 1.
+  // Reaching the road and returning to the goal is off the straight line, yet
+  // the road-to-road steps (cost 1) make it cheaper than the plain lane.
+  const W = 8, H = 3;
+  const map = grid(W, H, (x, y) => y === 1 ? { t: 'grassland', road: true } : { t: 'grassland' });
+  const state = { map, units: {} };
+  const p = findPath(state, RULESET, unit(0, 0), { x: 7, y: 0 }, allExplored);
+  assert.ok(p, 'a path exists');
+  // the straight roadless lane across row 0 is 7 grassland steps × 3 = cost 21
+  assert.ok(p.points.some(pt => pt.y === 1), `the route drops to the road row (points: ${JSON.stringify(p.points)})`);
+  assert.ok(p.cost < 21, `the road route (${p.cost}) beats the straight roadless plains lane (21)`);
+});
+
 test('a rail corridor is chosen (free movement between railed tiles)', async () => {
   const { findPath } = await load();
   // a straight rail line row 0; everything else grassland. The rail path is

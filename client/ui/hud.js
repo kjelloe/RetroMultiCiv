@@ -30,8 +30,19 @@ export function initHud(ctx) {
   // click (left or right, anywhere), re-shown when the action repeats.
   function makeBanner(el) {
     let timer = 0;
-    function show(text) {
+    // XIV §35: an optional loc {x,y} adds a 🔍 zoom-to that pans to the event
+    // tile (the turnlog ⌖ twin); a message without coords shows no icon.
+    function show(text, loc) {
       el.textContent = text;
+      if (loc && ctx.renderer && ctx.renderer.centerOn
+          && Number.isInteger(loc.x) && Number.isInteger(loc.y)) {
+        const zoom = document.createElement('button');
+        zoom.className = 'banner-zoom';
+        zoom.textContent = '🔍';
+        zoom.title = `zoom to (${loc.x},${loc.y})`;
+        zoom.addEventListener('click', e => { e.stopPropagation(); ctx.renderer.centerOn(loc.x, loc.y); });
+        el.appendChild(zoom);
+      }
       el.classList.remove('hidden');
       clearTimeout(timer);
       timer = setTimeout(hide, 5000);

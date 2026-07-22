@@ -278,13 +278,13 @@ export function initTurnLog(ctx) {
         };
         const cls = e.result === 'ambush' ? 'loss' : e.result === 'nothing' ? '' : 'win';
         put(HUT_TEXT[e.result] || `🛖 village entered (${e.result})`, cls, { x: e.x, y: e.y });
-        if (e.result === 'ambush') flashMessage('🛖 Ambush! Barbarians pour out of the village!');
-        else if (e.result === 'advancedTribe') flashMessage('🛖 An advanced tribe joins your civilization!');
-        else if (e.result !== 'nothing') flashMessage(HUT_TEXT[e.result]);
+        if (e.result === 'ambush') flashMessage('🛖 Ambush! Barbarians pour out of the village!', { x: e.x, y: e.y });
+        else if (e.result === 'advancedTribe') flashMessage('🛖 An advanced tribe joins your civilization!', { x: e.x, y: e.y });
+        else if (e.result !== 'nothing') flashMessage(HUT_TEXT[e.result], { x: e.x, y: e.y });
       } else if (e.type === 'ransomPaid' && e.playerId === ctx.HUMAN) {
         // N13: the lone barbarian leader bought his life
         put(`👑 barbarian leader captured at (${e.x},${e.y}) — ransom +${e.gold}💰`, 'win', { x: e.x, y: e.y });
-        flashMessage(`👑 Ransom! The barbarian leader pays ${e.gold} gold for his life`);
+        flashMessage(`👑 Ransom! The barbarian leader pays ${e.gold} gold for his life`, { x: e.x, y: e.y });
       } else if (e.type === 'tradeRouteEstablished' && e.playerId === ctx.HUMAN) {
         // A89: own-seat windfall line — amounts + partner (shape CONFIRMED by
         // the N10 window, bugfixer #1417: { playerId, cityId, partnerCityId,
@@ -311,7 +311,7 @@ export function initTurnLog(ctx) {
           ? state.cities[e.cityId].name
           : `a ${playerName(state, state.cities[e.cityId].owner)} city`;
         put(`🏆 ${wonders[e.wonder].name} completed in ${where}`, mine ? 'win' : 'loss', mine ? cityLoc(state, e.cityId) : null);
-        if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`);
+        if (mine) flashMessage(`🏆 ${state.cities[e.cityId].name} completes the ${wonders[e.wonder].name}!`, cityLoc(state, e.cityId));
       } else if (e.type === 'wonderLost' && ownCity(state, e.cityId)) {
         put(`🏆 ${state.cities[e.cityId].name} lost the race for ${wonders[e.wonder].name} (shields kept)`, 'loss');
       } else if (e.type === 'ssPartBuilt' && e.playerId === ctx.HUMAN) {
@@ -341,7 +341,7 @@ export function initTurnLog(ctx) {
         put(`🛠 ${label} at (${e.x},${e.y})`, 'win', { x: e.x, y: e.y });
       } else if (e.type === 'cityDisorder' && ownCity(state, e.cityId)) {
         put(`😠 civil disorder in ${state.cities[e.cityId].name}!`, 'loss', cityLoc(state, e.cityId));
-        flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`);
+        flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`, cityLoc(state, e.cityId));
       } else if (e.type === 'cityOrderRestored' && ownCity(state, e.cityId)) {
         put(`😊 order restored in ${state.cities[e.cityId].name}`, 'win', cityLoc(state, e.cityId));
       } else if (e.type === 'revolutionStarted' && e.playerId === ctx.HUMAN) {

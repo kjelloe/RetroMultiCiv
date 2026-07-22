@@ -88,7 +88,7 @@ export function initAutomate(ctx) {
           wake(uid);
           const etype = session.ruleset.units[e.type] ? session.ruleset.units[e.type].name : e.type;
           const mtype = session.ruleset.units[u.type] ? session.ruleset.units[u.type].name : u.type;
-          hud.banner(`⏰ ${mtype} at (${u.x},${u.y}) wakes — enemy ${etype} sighted`);
+          hud.banner(`⏰ ${mtype} at (${u.x},${u.y}) wakes — enemy ${etype} sighted`, { x: u.x, y: u.y }); // XIV §35: 🔍 to the sighting
           break;
         }
       }

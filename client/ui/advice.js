@@ -17,30 +17,32 @@ export const ADVICE = {
   'settler': { title: 'Founding a city', text: 'Settlers build your empire. Move one onto good ground — grassland near water is ideal — and use the Found City action (B) to plant a city there.' },
   'city-view': { title: 'Running a city', text: 'Open a city to choose what it builds and where its citizens work. When it finishes, pick something new or it falls back to building militia.' },
   'combat-hover': { title: 'Picking your fights', text: 'Hovering a visible enemy shows the attack odds. A fight is never certain — terrain, fortification, and veteran units all tilt the result.' },
-  'disorder': { title: 'Civil disorder', text: 'A city where unhappy citizens outnumber happy ones (😠) stops making shields and taxes. Raise the luxuries rate, turn citizens into entertainers, or build a Temple.' },
-  'tech-choice': { title: 'Choosing research', text: 'When your beakers fill you pick the next advance. Techs unlock units, buildings, and wonders — beeline the ones your strategy needs, or broaden for score.' },
+  'disorder': { title: 'Civil disorder in [City]', text: 'An unhappy city produces nothing. Build temples or colosseums, reduce taxes, or change your government. Disorder left unaddressed spreads.' },
+  'tech-choice': { title: 'Research is idle', text: 'Your civilization is not advancing. Choose a technology now — every turn without research is a turn your rivals are pulling ahead.' },
   'save-code': { title: 'Your game code', text: 'That code is this game\'s fingerprint. Anyone who loads the save should see the same code — it proves the game state was not tampered with.' },
   'regent': { title: 'The AI regent', text: 'You can hand a turn to the AI regent (🤖) — it plays your civ under the same rules. Take back control whenever you like.' },
   // A99: three state-triggered cards (predicates below)
-  'first-contact': { title: 'Meeting your neighbours', text: 'You have spotted another civilization\'s unit. Contact can bring trade or trouble — watch your borders, and keep a defender in the cities nearest them.' },
+  'first-contact': { title: 'Another civilization', text: 'You are not alone. Rivals expand, compete for land, and remember how you treat them. Zones of control affect movement near their units.' },
   'low-treasury': { title: 'Watch the treasury', text: 'Your gold is running low against your upkeep. Nudge the tax rate up in the tax/science bar — an empty treasury forces your cities to sell off buildings to balance the books.' },
   'fortify-garrison': { title: 'Defend your cities', text: 'A city with no military unit is easy to capture. Move a defender in and Fortify it (F) — a fortified unit behind city walls is far harder to dislodge.' },
-  // specs/advisor-hint-cards.md: the onboarding-advisor first-time triggers.
-  // PROVISIONAL COPY (ally rewrites once the trigger→pedia table lands, 2026-07-22);
-  // each ≤ 40 words, the pedia link (ADVICE_PEDIA below) carries the depth.
-  'first-city': { title: 'Your first city', text: 'A city works the tiles around it for food, shields, and trade. Keep a defender inside before you send your next settler out — an empty city is easily taken.' },
-  'first-unit': { title: 'Building units', text: 'Cities turn shields into units and improvements. Every unit beyond your government\'s free support costs a shield a turn from its home city, so build what you can afford to keep.' },
-  'first-war': { title: 'At war', text: 'You are at war. Move defenders into your border cities and fortify them (F). Attacking is a gamble — terrain, walls, and veterans all sway the odds, so pick your fights.' },
-  'growth-stall': { title: 'A hungry city', text: 'This city has run short of food and cannot grow — or is starving. Work more food tiles, build a Granary, or ease unhappiness so citizens return to the fields.' },
-  'first-naval': { title: 'Taking to the sea', text: 'Naval units ferry land units across water and scout the coast. Early ships are fragile on the open ocean, so keep them near land until you have sturdier hulls.' },
-  'goody-hut': { title: 'A tribal hut', text: 'That hut may hold gold, a friendly tribe, a free unit, or a new advance — but it can also hide raiders. Send a unit you can spare to investigate it.' },
-  'barbarian': { title: 'Barbarians', text: 'Barbarians raid cities and pillage the land. They answer to no one and cannot be bargained with. Keep a fortified defender in exposed cities and they will usually look elsewhere.' },
-  'wonder-available': { title: 'A Wonder within reach', text: 'You can now begin a Wonder of the World. Each is unique — once a rival finishes it, no one else can. A wonder is a heavy investment, so weigh it against the units and buildings you need.' },
-  'new-government': { title: 'A new government', text: 'Your new government changes taxes, corruption, unit support, and how your people view war. Revisit your tax and science rates now — the old settings may no longer serve you best.' },
-  'endgame': { title: 'The final stretch', text: 'The end of the age is near. Whoever leads when time runs out — or reaches Alpha Centauri, or conquers the world — wins. Press your strongest path to victory now.' },
-  // DORMANT: shipped so the copy exists, but no live trigger yet (see initAdvice).
-  'diplo-audience': { title: 'A royal audience', text: 'A rival leader wishes to speak. You can bargain for peace, trade knowledge, or refuse. Weigh their strength and your borders before you answer.' },
-  'pollution': { title: 'Pollution', text: 'Industry and crowded cities foul the land, cutting a tile\'s output and risking global warming. Build cleaner improvements and send Settlers to clear polluted tiles.' }
+  // specs/advisor-hint-cards.md onboarding triggers — FINAL ally copy wired from
+  // specs/ally-deliverables-2026-07-22-advisor.md (2026-07-22, each ≤ 40 words);
+  // the pedia link (ADVICE_PEDIA below) carries the depth. [City] resolves to the
+  // real city name at offer time (#6 disorder, #7 growth-stall).
+  'first-city': { title: 'Your first city', text: 'This is where your civilization begins. Cities grow, produce units and buildings, and generate research. Everything you build starts here.' },
+  'first-unit': { title: 'Units cost upkeep', text: 'Every unit you build draws from your treasury each turn. A large army on an empty budget causes disorder. Build what you can sustain.' },
+  'first-war': { title: 'War has begun', text: 'Undefended cities fall. Station at least one military unit in every city you want to keep — an empty city is an open invitation.' },
+  'growth-stall': { title: '[City] is starving', text: 'A city that cannot feed itself stops growing and eventually shrinks. Improve surrounding farmland or redirect production to food-generating buildings.' },
+  'first-naval': { title: 'Your first ship', text: 'Naval units move differently from land forces and open coastlines, rivers, and eventually ocean crossings. Movement rules at sea reward planning.' },
+  'goody-hut': { title: 'A tribal village', text: 'Sending a unit into that hut may bring gold, a technology, a new unit, or nothing at all. It may also disturb the locals. Worth the risk.' },
+  'barbarian': { title: 'Barbarians spotted', text: 'Barbarians attack undefended cities and settlers. Keep military units close to your frontier — a garrisoned city is rarely their first target.' },
+  'wonder-available': { title: 'A wonder is within reach', text: 'Wonders are built once in the world — whoever finishes first claims it. If a rival completes it first, your production is lost. Decide quickly.' },
+  'new-government': { title: 'A new government', text: 'Each government form changes how your civilization works — corruption, unit upkeep, happiness, and war-making all shift. There is no universally correct choice.' },
+  'endgame': { title: 'The end of the age approaches', text: 'Roughly thirty turns remain. Your final score reflects every city, technology, and wonder your civilization achieved. The history is nearly complete.' },
+  // #14 pollution is LIVE (A91 pollutionSpread fires since marker-0079); #13
+  // diplo-audience stays DORMANT until the D-line audience UI surfaces.
+  'diplo-audience': { title: 'A rival seeks an audience', text: 'Another civilization has sent terms. What you accept, reject, or demand will be remembered. Reputation is slow to build and fast to lose.' },
+  'pollution': { title: 'Pollution has appeared', text: 'Industrial output leaves a mark. Pollution spreads, degrades tiles, and — if ignored long enough — begins to warm the planet. Mass Transit and recycling help.' }
 };
 
 // A99: PURE situation predicates (state, me) — exported so Node unit-tests them
@@ -151,12 +153,13 @@ export const ADVICE_PEDIA = {
   disorder: 'disorder', 'save-code': 'gamecode', 'combat-hover': 'veterancy',
   'first-contact': 'zoc', 'low-treasury': 'upkeep', 'fortify-garrison': 'garrison',
   'city-view': 'happiness', settler: 'cities', 'tech-choice': 'research',
-  // advisor-hint-cards.md links. goody-hut / endgame / diplo-audience / pollution
-  // stay UNLINKED on purpose — no exploration / victory / diplomacy / pollution
-  // concept exists yet (a near-miss link is worse than none; the table flags them).
+  // advisor-hint-cards.md links (ally copy 2026-07-22). The four new concepts
+  // (exploration/diplomacy/pollution/victory) now exist in pedia-concepts.js.
   'first-city': 'cities', 'first-unit': 'upkeep', 'first-war': 'garrison',
   'growth-stall': 'cities', 'first-naval': 'movement', 'barbarian': 'garrison',
-  'wonder-available': 'buildings', 'new-government': 'governments'
+  'wonder-available': 'buildings', 'new-government': 'governments',
+  'goody-hut': 'exploration', 'diplo-audience': 'diplomacy',
+  'pollution': 'pollution', 'endgame': 'victory'
 };
 
 export function initAdvice(ctx) {
@@ -172,25 +175,30 @@ export function initAdvice(ctx) {
   function enabled() { return !ctx.options || ctx.options.get('firstTimeTips') !== false; }
   function persist() { try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* private mode */ } }
 
+  // [City] etc. → the real name at show time (ally #6/#7 carry a placeholder)
+  function subst(text, subs) {
+    return subs ? text.replace(/\[(\w+)\]/g, (m, k) => (subs[k] !== undefined ? subs[k] : m)) : text;
+  }
+
   // show the next queued, still-unseen advice (one card at a time; non-blocking)
   function pump() {
     if (card) return;
     while (queue.length > 0) {
-      const id = queue.shift();
+      const { id, subs } = queue.shift();
       if (!adviceGate(id, seen, enabled(), isBot) || !ADVICE[id]) continue;
-      render(id);
+      render(id, subs);
       return;
     }
   }
 
-  function render(id) {
+  function render(id, subs) {
     const a = ADVICE[id];
     card = document.createElement('div');
     card.id = 'advice-card';
     card.dataset.advice = id;
     card.innerHTML = `
-      <div class="advice-head">💡 ${escapeHtml(a.title)}</div>
-      <div class="advice-body">${escapeHtml(a.text)}</div>
+      <div class="advice-head">💡 ${escapeHtml(subst(a.title, subs))}</div>
+      <div class="advice-body">${escapeHtml(subst(a.text, subs))}</div>
       <div class="advice-actions">
         <button class="advice-ok">OK, got it</button>
         <button class="advice-no">No thanks</button>
@@ -208,10 +216,10 @@ export function initAdvice(ctx) {
 
   function dismiss() { if (card) { card.remove(); card = null; } pump(); }
 
-  // the public trigger: modules call ctx.advice.offer('id') at the moment
-  function offer(id) {
+  // the public trigger: modules call ctx.advice.offer('id'[, subs]) at the moment
+  function offer(id, subs) {
     if (!adviceGate(id, seen, enabled(), isBot)) return;
-    queue.push(id);
+    queue.push({ id, subs });
     pump();
   }
 
@@ -223,7 +231,7 @@ export function initAdvice(ctx) {
       const me = ctx.HUMAN;
       const ruleset = session.ruleset;
       for (const e of events || []) {
-        if (e.type === 'cityDisorder' && ownCity(state, e.cityId)) offer('disorder');
+        if (e.type === 'cityDisorder' && ownCity(state, e.cityId)) offer('disorder', { City: (state.cities[e.cityId] || {}).name || 'your city' });
         else if (e.type === 'saveCode') offer('save-code');
         else if (e.type === 'regentTurn') offer('regent');
       }
@@ -237,7 +245,7 @@ export function initAdvice(ctx) {
       // ones read the fog-FILTERED event stream (filterEvents) so the player only
       // gets nudges about things they can perceive — the sound.js precedent.
       for (const e of filterEvents(state, events || [], me)) {
-        if (e.type === 'cityStarved' && ownCity(state, e.cityId)) offer('growth-stall');
+        if (e.type === 'cityStarved' && ownCity(state, e.cityId)) offer('growth-stall', { City: (state.cities[e.cityId] || {}).name || 'your city' });
         else if (e.type === 'governmentChanged' && e.playerId === me
           && e.government !== 'despotism' && e.government !== 'anarchy') offer('new-government');
         else if (e.type === 'diplomacy' && e.kind === 'declare' && (e.playerId === me || e.target === me)) offer('first-war');

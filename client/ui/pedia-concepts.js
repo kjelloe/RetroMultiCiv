@@ -53,5 +53,17 @@ export const CONCEPTS = [
   { id: 'recordings', name: 'Recordings', body:
     'A recording preserves the commands that shaped a game. You can replay it from the beginning, review important moments, and verify that the recorded history reaches the same final game state. Browser: Shift+D downloads a diagnostics recording of the current session. Roblox: use the Theater controls to review recordings; save/resume uses the game\'s resume code where supported.' },
   { id: 'gamecode', name: 'The game code', body:
-    'Every save shows a short game code, a fingerprint of its exact game state. If two people load the same unaltered save, they should see the same code. This gives you a quick way to compare saves after loading, reconnecting, finishing a game, or sharing a bug report. The game code is not a password and does not grant access to a game; it is a check that two game states match.' }
+    'Every save shows a short game code, a fingerprint of its exact game state. If two people load the same unaltered save, they should see the same code. This gives you a quick way to compare saves after loading, reconnecting, finishing a game, or sharing a bug report. The game code is not a password and does not grant access to a game; it is a check that two game states match.' },
+  // The 4 advisor concepts (ally prose, specs/ally-deliverables-2026-07-22-advisor.md).
+  // victory AMENDED (no game title — Founders withdrawn in the branding round).
+  // diplomacy names tribute/tech-exchange/counter forward-looking (D4-D6): the
+  // diplo-audience card that links here stays DORMANT until the D-line surfaces.
+  { id: 'exploration', name: 'Exploration and tribal villages', body:
+    'The world beyond your borders contains tribal villages — remnants of earlier peoples. A unit that enters one may receive gold, a technology advance, a military unit, or nothing. Occasionally the village is hostile. The outcome is not predictable, but the risk is usually worth taking early in the game, when any advantage compounds. Villages do not reappear once visited.' },
+  { id: 'diplomacy', name: 'Diplomacy and audiences', body:
+    'When a rival civilization wishes to negotiate, their envoy requests an audience. You will be shown their terms — a peace offer, a tribute demand, a technology exchange, or a declaration of war — and asked to respond. You may accept, reject, or, where available, propose a counter. Your reputation affects what rivals offer and whether they trust your word. A civilization known to break agreements will find future negotiations harder.' },
+  { id: 'pollution', name: 'Pollution and global warming', body:
+    'Industrial and nuclear production generates pollution on nearby tiles. A polluted tile produces less food and resources until cleaned by a worker. If pollution accumulates across the world without remedy, global temperatures rise — coastlines and fertile land may convert to desert or flood. Mass Transit reduces city pollution; recycling centers help further. Nuclear detonations cause immediate, severe local contamination. The effects are cumulative and shared across all civilizations.' },
+  { id: 'victory', name: 'Victory conditions', body:
+    'A game ends in one of four ways. Space victory: the first civilization to launch a colony ship to Alpha Centauri wins outright. Conquest victory: the last civilization to hold a city on the map wins. Score victory: if the year 2100 is reached without a space launch or total conquest, the civilization with the highest score wins. Defeat: if your last city falls, your civilization\'s history ends — but the world continues, and the full record remains available to replay.' }
 ];
