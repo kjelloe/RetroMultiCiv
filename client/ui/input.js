@@ -675,6 +675,22 @@ export function initInput(ctx) {
     const target = gotoTargets[unitId];
     if (!unit || !target) { delete gotoTargets[unitId]; return false; }
     if (unit.x === target.x && unit.y === target.y) { delete gotoTargets[unitId]; return false; }
+    // XV §10: if an enemy unit sits on the DIRECT step toward the target, STOP at
+    // the block and hand control back — no silent re-route around it, no repeated
+    // bump. (Terrain still re-routes normally via findPath below; this is enemies.)
+    const toward = stepDir(state.map, unit, target.x, target.y);
+    if (toward) {
+      const v = DIR_VEC[toward];
+      let ex = unit.x + v[0];
+      if (state.map.wrapX) ex = ((ex % state.map.width) + state.map.width) % state.map.width;
+      const ey = unit.y + v[1];
+      if (ey >= 0 && ey < state.map.height && ex >= 0 && ex < state.map.width
+          && unitsAt(state, ex, ey).some(u => u.owner !== ctx.HUMAN)) {
+        delete gotoTargets[unitId];
+        hud.note('🎯 an enemy blocks the route — GoTo stopped');
+        return false;
+      }
+    }
     // A65: least-cost route over roads/rails — replanned each step so fog
     // lifting and terrain revise the path. The engine still validates every
     // move; a fog/enemy target the planner can't reach falls back to greedy.

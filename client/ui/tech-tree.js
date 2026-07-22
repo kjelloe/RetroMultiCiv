@@ -19,10 +19,12 @@ export function initTechTree(ctx) {
 
   const GOAL_KEY = () => 'retromulticiv-researchgoal-' + (session.gameId || 'local');
   let researchGoal = null;
+  let interruptTech = null; // XV §8: a manual pick to research BEFORE the beeline resumes
   try { researchGoal = localStorage.getItem(GOAL_KEY()) || null; } catch (e) { /* private mode */ }
   if (researchGoal && !techs[researchGoal]) researchGoal = null;
   function setGoal(id) {
     researchGoal = id;
+    interruptTech = null; // a new or cleared goal has no pending interrupt
     try { id ? localStorage.setItem(GOAL_KEY(), id) : localStorage.removeItem(GOAL_KEY()); } catch (e) { /* */ }
   }
 
@@ -153,8 +155,14 @@ export function initTechTree(ctx) {
     const known = knownSet();
     if (known[id]) return; // already researched — nothing to do
     const s = stateOf(id, known);
-    if (s === 'avail') { setGoal(null); await issueResearch(id); }
-    else { setGoal(id); await advance(); } // locked/distant → beeline goal
+    if (s === 'avail') {
+      // XV §8: with an active beeline, an OFF-PATH manual pick INTERRUPTS — research
+      // it now and keep the goal, so the beeline resumes once the pick completes.
+      const me = session.state.players[ctx.HUMAN];
+      const step = researchGoal ? nextBeelineStep(techs, (me && me.techs) || [], researchGoal) : null;
+      if (researchGoal && step && id !== step) { interruptTech = id; await issueResearch(id); }
+      else { setGoal(null); await issueResearch(id); } // no goal, or the pick IS the beeline step
+    } else { setGoal(id); await advance(); } // locked/distant → beeline goal
     render();
   }
 
@@ -170,6 +178,13 @@ export function initTechTree(ctx) {
     if (!researchGoal || ctx.SPECTATOR) return;
     const me = session.state.players[ctx.HUMAN];
     if (!me) return;
+    // XV §8: honor an active interrupt — research it first, resume the beeline only
+    // once it has completed (don't override mid-research).
+    if (interruptTech) {
+      if ((me.techs || []).indexOf(interruptTech) !== -1) interruptTech = null; // completed → resume
+      else if (me.researching === interruptTech) return; // still on the interrupt → hold the beeline
+      else interruptTech = null; // research changed away → the interrupt lapsed
+    }
     if (goalReached(me.techs || [], researchGoal)) {
       const name = techs[researchGoal].name;
       setGoal(null);

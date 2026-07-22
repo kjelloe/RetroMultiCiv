@@ -96,6 +96,17 @@ export function initDiscoveryCard(ctx) {
       const link = e.target.closest('.dc-link');
       if (link && ctx.pedia) { const cat = link.dataset.cat, id = link.dataset.id; close(); ctx.pedia.openTo(cat, id); }
     });
+    // XV §6: each unlock also gets the §22 hover-card pedia summary — REUSE the
+    // panels builder (ctx.panels.entitySummary), never a forked resolver.
+    for (const link of card.querySelectorAll('.dc-link')) {
+      link.addEventListener('mouseenter', () => {
+        if (ctx.panels && ctx.panels.entitySummary && ctx.hoverCard) {
+          const sum = ctx.panels.entitySummary(link.dataset.cat, link.dataset.id);
+          if (sum) ctx.hoverCard.showAtEl(link, sum);
+        }
+      });
+      link.addEventListener('mouseleave', () => { if (ctx.hoverCard) ctx.hoverCard.hide(); });
+    }
     // backdrop click / Esc = Continue; NEVER an auto-timer
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     escHandler = e => { if (e.key === 'Escape') close(); };
