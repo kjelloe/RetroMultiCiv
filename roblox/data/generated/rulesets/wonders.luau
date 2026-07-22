@@ -112,7 +112,9 @@ return [==[{
     "tech": "nuclear-fission",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "nukesEnabled": true
+    }
   },
   "michelangelo-s-chapel": {
     "name": "Michelangelo's Chapel",

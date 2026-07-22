@@ -56,6 +56,7 @@ return [==[{
   "aiNavyRadius": 6,
   "aiNavyAfterLandUnits": 3,
   "aiNavyTargetCap": 4,
+  "seaPathRadius": 30,
   "aiBuilderPct": 35,
   "aiWarDoctrine": {
     "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
