@@ -20,20 +20,31 @@ fresh helper session are the open items)._
 _Catch-up: `reports/marker-0086.md` (the current candidate);
 `reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
 
-- [ ] **Redeploy from marker-0088** (`d977072`, doubly gated):
+- [ ] **Redeploy from marker-0089** (`13271d2`, doubly gated):
   everything through 0086 PLUS the sail-era (AI crosses open ocean,
   overseas settlement ~2x), the space war-hold (drives persist through
-  war), and 8 real Civ1 wonder effects (science trio, Hoover,
-  women's-suffrage, Great Library, Darwin) — all dump-fact-checked.
-  WITH the one-time box unit edit: `--max-turns 700` (+ optional
-  `--bug-reports` + ReadWritePaths). Browsers may need a hard refresh.
+  war), 8 real Civ1 wonder effects (science trio, Hoover,
+  women's-suffrage, Great Library, Darwin — all dump-fact-checked),
+  and Pyramids as the authentic government wonder. WITH the one-time
+  box unit edit: `--max-turns 700` (+ optional `--bug-reports` +
+  ReadWritePaths). Browsers may need a hard refresh.
 
-- [ ] **Start a fresh helper session when convenient** — the client
-  lane is the current bottleneck: parked ~6h at a clean boundary with
-  22 queued items (capital-ui resume plan on file, then A58 pedia,
-  A49 playwright, the XV UX set, Darwin label + gov-picker). The
-  engine lane tagged three markers today while this queue sat. One
-  session start unblocks it; it self-resumes from its memory + queue.
+- [ ] **Nudge the HARDENING session** (the one lane needing you):
+  idle 5h+ on its own clone, predating the flag-wait rollout, with one
+  queued item (the XV §13 server-save 404 fix, re-routed to it).
+  Nudge text: _git pull origin dev_night (expect tip fd6fb7a or
+  newer), read mail #2216 + #2224, take your queue item, and when
+  idle run `python3 tools/agent-mail.py flag wait --as hardening` —
+  never end your turn while waiting._ (The helper lane resolved
+  itself — it self-resumed under the flag-wait standard and shipped
+  4 more items; no action needed there.)
+
+- [ ] **Optional ally FYI-relay** (no reply needed): "Your
+  Explorer/Diplomat nuance is carried by per-stance affinity flags
+  (naval / happiness-global / late-science) biasing the wonder pick —
+  the A59 axes measured too coarse to express it, exactly the case
+  your 'if possible' anticipated." (The archetype build's Q4
+  grounding; the wonder-mapping table itself is unchanged.)
 
 - [ ] **One-time box commands for the public index** (DNS record is in
   and propagated by now): append the `servers.` nginx server block

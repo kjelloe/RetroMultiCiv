@@ -65,7 +65,7 @@ flowchart TD
 
   subgraph CLIENT["CLIENT/UI lane (helper queue 23, golden-neutral)"]
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
-    XIVQ["📋 queue 22: build-queue UX (parked scoped) →\nmobile §6+§7 → auto-takeover → order queue →\nbatch-4/5 → XV set → envelope stamp → proof line.\nBatch-2 CLOSED + §41/§42 + ally copy LIVE ✅"]
+    XIVQ["📋 queue 19: §49 econ-overview (in build) →\nmobile §6+§7 → auto-takeover → order queue →\nXV set → darwin-label + gov-picker.\nBatches 2-5 SHIPPED ✅ (§32-§48: 13 items this\nwindow incl. capital ★ + wonder splash)"]
     A58["📋 A58 pedia completion (queued #32)"]
     A49["📋 A49 playwright five flows (queued #33)"]
     END["📋 endgame moments (ally 'Final Record'\npackage; queued #34)"]
