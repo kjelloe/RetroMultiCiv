@@ -690,6 +690,21 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     if (cont2) cont2.click();
     wondersplash += '/' + (document.getElementById('discovery-overlay') ? 'stuck' : 'closed');
   }
+  // A58 item 4: the Civilopedia search finds an entry by name across categories.
+  let pediasearch = 'unchecked';
+  if (ctx.pedia && ctx.pedia.open) {
+    ctx.pedia.open();
+    const input = document.getElementById('pedia-search');
+    if (input) {
+      input.value = 'Palace';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const items = Array.from(document.querySelectorAll('#pedia-list .pedia-item'));
+      pediasearch = 'input/' + (items.some(b => /Palace/.test(b.textContent)) ? 'found' : 'notfound');
+      if (items[0]) items[0].click(); // opens the matched article
+      input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true }));
+    } else pediasearch = 'noinput';
+    ctx.pedia.close();
+  }
   // XIV §25/§23: the map suppresses the browser context menu; the 'Show unit
   // move' pacing option exists (default ON).
   let inputpacing = 'unchecked';
@@ -925,6 +940,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · hoverinfo: ' + hoverinfo // XIV §22: research-panel pedia hover-links + shared card
     + ' · discovery: ' + discovery // XIV §26: celebration overlay (kicker + two exits, no auto-close)
     + ' · wondersplash: ' + wondersplash // XIV §48: own-wonder completion splash (reuses the discovery frame)
+    + ' · pediasearch: ' + pediasearch // A58 item 4: Civilopedia search finds an entry by name
     + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city

@@ -72,7 +72,7 @@ export function initPedia(ctx) {
   overlay.className = 'hidden';
   overlay.innerHTML = `
     <div id="pedia-frame">
-      <div id="pedia-head"><h2>📖 Civilopedia</h2><button id="pedia-close" title="close (Esc)">✕</button></div>
+      <div id="pedia-head"><h2>📖 Civilopedia</h2><input id="pedia-search" type="search" placeholder="search by name…" autocomplete="off"><button id="pedia-close" title="close (Esc)">✕</button></div>
       <div id="pedia-body"><div id="pedia-cats"></div><div id="pedia-list"></div><div id="pedia-entry"></div></div>
     </div>`;
   document.body.appendChild(overlay);
@@ -87,6 +87,21 @@ export function initPedia(ctx) {
   function renderList() {
     listEl.innerHTML = CATS[curCat].list().map(([id, def]) => `<button class="pedia-item" data-id="${esc(id)}">${esc(def.name)}</button>`).join('');
   }
+  // A58 item 4: search finds every entry by name across ALL categories; a match
+  // carries its category so a click opens the right article.
+  function doSearch(q) {
+    const query = String(q || '').trim().toLowerCase();
+    if (!query) { renderList(); return; }
+    const hits = [];
+    for (const c of CAT_ORDER) {
+      for (const [id, def] of CATS[c].list()) {
+        if (String(def.name).toLowerCase().includes(query)) hits.push({ c, id, name: def.name });
+      }
+    }
+    listEl.innerHTML = hits.length
+      ? hits.map(h => `<button class="pedia-item" data-cat="${h.c}" data-id="${esc(h.id)}">${esc(h.name)} <span class="pedia-item-cat">${esc(CATS[h.c].label)}</span></button>`).join('')
+      : '<div class="pedia-empty">no matches</div>';
+  }
   function showEntry(catId, id) {
     const def = catId === 'concepts' ? CONCEPT_MAP[id] : r[catId][id];
     if (!def) return;
@@ -95,7 +110,8 @@ export function initPedia(ctx) {
   function selectCat(c) { curCat = c; renderCats(); renderList(); const first = CATS[c].list()[0]; if (first) showEntry(c, first[0]); }
 
   catsEl.addEventListener('click', e => { const b = e.target.closest('.pedia-cat'); if (b) selectCat(b.dataset.cat); });
-  listEl.addEventListener('click', e => { const b = e.target.closest('.pedia-item'); if (b) showEntry(curCat, b.dataset.id); });
+  listEl.addEventListener('click', e => { const b = e.target.closest('.pedia-item'); if (b) showEntry(b.dataset.cat || curCat, b.dataset.id); });
+  overlay.querySelector('#pedia-search').addEventListener('input', e => doSearch(e.target.value));
   entryEl.addEventListener('click', e => {
     const a = e.target.closest('.pedia-link'); if (!a) return;
     const [c, id] = a.dataset.goto.split(':'); selectCat(c); showEntry(c, id);

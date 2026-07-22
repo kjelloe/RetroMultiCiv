@@ -2075,6 +2075,13 @@ html, body {
   padding: 12px 18px; border-bottom: 1px solid #24344f;
 }
 #pedia-head h2 { margin: 0; font-size: 18px; color: #e8c46a; }
+#pedia-search {
+  flex: 0 1 220px; margin: 0 12px; padding: 5px 9px;
+  background: rgba(10, 16, 28, 0.9); border: 1px solid #3b5d8f;
+  border-radius: 5px; color: #cdd8ea; font-family: inherit; font-size: 13px;
+}
+.pedia-item .pedia-item-cat { float: right; color: #6d7f9c; font-size: 11px; }
+.pedia-empty { padding: 10px; color: #6d7f9c; }
 #pedia-close {
   background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f;
   border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: inherit;

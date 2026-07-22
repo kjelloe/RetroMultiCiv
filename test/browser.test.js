@@ -183,6 +183,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §44: the capital gets a ★ in its title and the Palace is hidden from its own catalog
     assert.match(dom, /capital: star\/palace-hidden/,
       'the capital must show a ★ and never offer the Palace in its own catalog');
+    // A58 item 4: the Civilopedia search finds an entry (Palace) by name
+    assert.match(dom, /pediasearch: input\/found/,
+      'the Civilopedia search must find an entry by name');
     // XIV §48: the own-wonder completion splash reuses the discovery frame (kicker + Go-to-city/Continue, no auto-close)
     assert.match(dom, /wondersplash: overlay\/kicker\/exits\/closed/,
       'an own wonder completion must pop the WONDER COMPLETE splash with Go-to-city + Continue exits');
