@@ -423,18 +423,30 @@ test('luau apollo-narrow: runAiTurn on a committed civ builds Apollo identically
       },
       rngState: 1
     };
-    const jsResult = ai.runAiTurn(createEngine(RULESET), JSON.parse(JSON.stringify(state)), 'p1', RULESET);
-    assert.deepStrictEqual(jsResult.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'JS: a committed civ builds Apollo');
-    const h = '0x' + (hashState(jsResult) >>> 0).toString(16).padStart(8, '0');
+    // radius-mismatch fix (#2187): a committed capital with a DISTANT enemy (cheb-3) also
+    // builds Apollo — the fix's cross-language witness (pre-fix it would build a defender).
+    const radius = JSON.parse(JSON.stringify(state));
+    radius.units.e1 = { id: 'e1', type: 'phalanx', owner: 'p2', x: 7, y: 4, moves: 1, fortified: false, veteran: false };
+    radius.players.p1.explored = Array.from({ length: W * H }, () => 1);
+    const cases = [
+      { name: 'no enemy', st: state },
+      { name: 'distant (cheb-3) enemy', st: radius }
+    ];
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-apollo-'));
-    const statePath = path.join(dir, 'apollo-state.json');
-    fs.writeFileSync(statePath, JSON.stringify(state));
     try {
-      const res = spawnSync('lune', ['run', 'luau/apollo-check.luau', statePath],
-        { cwd: REPO, encoding: 'utf8', timeout: 60000 });
-      assert.strictEqual(res.status, 0, `apollo harness failed:\n${res.stdout}\n${res.stderr}`);
-      assert.ok(res.stdout.includes(`apollo: ${h}`),
-        `luau apollo build must hash as ${h} — harness said:\n${res.stdout}`);
+      for (const c of cases) {
+        const jsResult = ai.runAiTurn(createEngine(RULESET), JSON.parse(JSON.stringify(c.st)), 'p1', RULESET);
+        assert.deepStrictEqual(jsResult.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' },
+          `JS: a committed civ builds Apollo (${c.name})`);
+        const h = '0x' + (hashState(jsResult) >>> 0).toString(16).padStart(8, '0');
+        const statePath = path.join(dir, 'apollo-state.json');
+        fs.writeFileSync(statePath, JSON.stringify(c.st));
+        const res = spawnSync('lune', ['run', 'luau/apollo-check.luau', statePath],
+          { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+        assert.strictEqual(res.status, 0, `apollo harness failed (${c.name}):\n${res.stdout}\n${res.stderr}`);
+        assert.ok(res.stdout.includes(`apollo: ${h}`),
+          `luau apollo build must hash as ${h} (${c.name}) — harness said:\n${res.stdout}`);
+      }
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

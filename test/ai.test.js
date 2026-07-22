@@ -887,6 +887,42 @@ test('apollo-narrow: committed+tech+unbuilt builds apollo-program top; uncommitt
   assert.strictEqual(s3.cities.c1.producing.kind, 'ss-part', 'Apollo active -> the capital builds a ship part, never a second Apollo');
 });
 
+// radius-mismatch fix (#2186/#2187): the space BUILD guards used !threatened (enemyNear
+// cap, threatRadius=8) while the COMMIT side gates on concrete cheb-1 adjacency (#2138).
+// So a committed capital (no cheb-1 enemy) with a DISTANT enemy (cheb 2..8) stayed
+// committed but never built Apollo — the endemic-war 0-launches blocker. The fix migrates
+// both space guards (apollo-narrow + XII.5 parts) to cheb-1. Fixture-FIRST: (a) FAILS pre-fix.
+test('radius-mismatch: a committed capital with a DISTANT (cheb 2..8) enemy builds Apollo; a cheb-1 enemy reverts', async () => {
+  const { ai, engine } = await load();
+  const W = 30, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const base = (enemyX) => ({
+    version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: W, height: H, wrapX: false, tiles }, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'],
+    units: {
+      d1: { id: 'd1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false },
+      e1: { id: 'e1', type: 'phalanx', owner: 'p2', x: enemyX, y: 4, moves: 1, fortified: false, veteran: false }
+    },
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, alive: true, gold: 20, techs: ['space-flight'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science', explored: Array.from({ length: W * H }, () => 1) },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, alive: true, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  });
+  // (a) enemy at (7,4) = cheb-3 from the capital (4,4): within radius-8 but not adjacent.
+  const distant = base(7);
+  assert.strictEqual(ai.spaceCommitted(distant, 'p1', RULESET), true, 'a cheb-3 enemy leaves the civ committed');
+  const sa = ai.runAiTurn(engine, distant, 'p1', RULESET);
+  assert.deepStrictEqual(sa.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'committed + distant enemy -> builds Apollo (the fix)');
+  // (b) enemy at (5,4) = cheb-1 (adjacent): concrete danger -> NOT committed -> reverts to defense.
+  const adjacent = base(5);
+  assert.strictEqual(ai.spaceCommitted(adjacent, 'p1', RULESET), false, 'a cheb-1 (adjacent) enemy abandons the commit');
+  const sb = ai.runAiTurn(engine, adjacent, 'p1', RULESET);
+  assert.notDeepStrictEqual(sb.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'committed-broken by adjacency -> reverts to defense, not Apollo');
+});
+
 // §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep
 // ocean inlet to a frontier site — the greedy chebyshev step (safeDirToward)
 // dead-ends at the inlet mouth and the settler never crosses. A crafted 6-deep

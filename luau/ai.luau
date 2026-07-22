@@ -1886,10 +1886,11 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- Apollo unbuilt builds apollo-program in its CAPITAL as its TOP choice -- opening the
 				-- ss-part gate earlier than spaceDriveEligible (all part techs). Committed civs ONLY
 				-- (uncommitted byte-identical); the spaceDriveEligible parts path below is unchanged.
-				if not wonderDriven and not threatened then
+				if not wonderDriven then
 					local f = ruleset.rules.ssFlight
 					local acap = government.capitalOf(state, playerId, ruleset)
-					if f ~= nil and acap ~= nil and acap.id == cid and not cities.wonderActive(state, f.gateWonder, ruleset) then
+					-- radius-mismatch fix (#2187): CONCRETE cheb-1 capital danger (mirrors spaceCommitEligible), not radius-8 threatened.
+					if f ~= nil and acap ~= nil and acap.id == cid and not enemyNear(state, me, playerId, city.x, city.y, 1) and not cities.wonderActive(state, f.gateWonder, ruleset) then
 						local apollo = ruleset.wonders[f.gateWonder]
 						if apollo ~= nil and (apollo.tech == "" or table.find(me.techs, apollo.tech) ~= nil) and spaceCommitted(state, playerId, ruleset) then
 							want = { kind = "wonder", id = f.gateWonder }
@@ -1922,12 +1923,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- XII.5: the space victory drive is a FIRST-CLASS capital intent (mirrors the N9b
 				-- wonder-drive hoist above) -- an eligible committed civ builds Apollo, then ship
 				-- parts, in its CAPITAL, ABOVE the garrison/saturation cascade, so it fires even
-				-- when the capital garrison roamed off (the 0/12 gap). not threatened = the
-				-- frontier-safety guard (spec: build Apollo, then defend). End-tier eligibility
-				-- gates it, so early/mid/crafted never reach it.
-				if not wonderDriven and not threatened and spaceDriveOn(ruleset, effStance) and spaceDriveEligible(state, me, ruleset) then
+				-- when the capital garrison roamed off (the 0/12 gap). The frontier-safety guard is
+				-- CONCRETE cheb-1 capital adjacency (#2187 migration -- a distant enemy no longer stalls
+				-- the parts path). End-tier eligibility gates it, so early/mid/crafted never reach it.
+				if not wonderDriven and spaceDriveOn(ruleset, effStance) and spaceDriveEligible(state, me, ruleset) then
 					local scap = government.capitalOf(state, playerId, ruleset)
-					if scap ~= nil and scap.id == cid then
+					if scap ~= nil and scap.id == cid and not enemyNear(state, me, playerId, city.x, city.y, 1) then
 						local ship = me.spaceship
 						local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
 						if not launched then
