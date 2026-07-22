@@ -4,7 +4,7 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 midday (marker-0085 = candidate + BOTH markers
+Last updated: 2026-07-22 afternoon (marker-0086 TAGGED @f836d4e = candidate — presence-1 ARMS the overseas loop, advisor speaks the ally copy, master index public. Next: measure-first harness -> King portfolio -> presence-2 -> invade B -> archetype. Prior: 0085 + BOTH markers
 0084/0085 now REAL-Gate-B verified (#2205). DNS GATE CLEARED: servers.
 multiciv.kjell.today live as the baked Find-game default; docs/16
 re-assessed (alias, safe-exposed); one box step remains (user). Advisor
