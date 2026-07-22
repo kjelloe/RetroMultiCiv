@@ -56,14 +56,14 @@ Two parts:
   player ends the turn and a size-1 city would complete a settler, the
   modal fires BEFORE the endTurn command is sent (the engine stays
   untouched by the modal path).
-- **Engine rule** (bugfixer half, GOLDEN MOVE + provenance): the CAPITAL
-  can never disband — a size-1 capital completing a settler creates the
-  settler and the city REMAINS (architect lean: pop stays 1, no pop
-  deduction — the capital absorbs the cost; flag if the fact-check
-  says Civ1 handled this differently). Label: needs reviewer
-  fact-check vs the dump — likely `original` or `Civ2-shape`; the §40
-  authentic rule stays the default for non-capitals. Fixture-first,
-  twins, scenario update if 040-family pins move.
+- **Engine rule — USER RULED 2026-07-22: Civ2-shape REFUSE** (after the
+  reviewer fact-check #2183/#2184 found create-without-disband
+  attestable to no Civ game and no-pop-cost contradicting Civ1's
+  settler=−1-pop): a size-1 CAPITAL refuses to COMPLETE the settler —
+  production holds (banked), the completion is blocked until the build
+  changes or the city grows. Provenance label `Civ2-shape`. Non-capitals
+  keep the authentic §40 disband (with the client warn-modal above).
+  Fixture-first, twins, scenario update if 040-family pins move.
 
 ## §8 Beeline interrupt: manual pick first, then resume [helper — xv-beeline-interrupt]
 
