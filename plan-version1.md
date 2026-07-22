@@ -4,23 +4,19 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 afternoon (marker-0086 TAGGED @f836d4e = candidate — presence-1 ARMS the overseas loop, advisor speaks the ally copy, master index public. Next: measure-first harness -> King portfolio -> presence-2 -> invade B -> archetype. Prior: 0085 + BOTH markers
-0084/0085 now REAL-Gate-B verified (#2205). DNS GATE CLEARED: servers.
-multiciv.kjell.today live as the baked Find-game default; docs/16
-re-assessed (alias, safe-exposed); one box step remains (user). Advisor
-#17 SHIPPED (axis 6). presence-1 mid-build: witness 1/5 - FIRST overseas
-city in soak. Prior header (17
-consecutive consistent. 0084: apollo-narrow + manhattan-gate/no-nukes +
-radius-mismatch fix + M3 floor 28-restored + XV triage. 0085: naval
-slice A — the settle-overseas core, dormant + 2-continent
-fixture-proven, golden-neutral both engines. SPACE ARC: witnesses 5+6
-both 0-launch; every mechanical layer individually verified
-(commit/abandon/wire/guards/instrument); sole blocker = RESEARCH DEPTH
-vs game length — fork WITH USER (measure-first: force-enabled
-difficulty-asymmetry sweep). Engine order: naval presence-1 [M1+M2+M3,
-ruled #2201] → presence-2 [M4 sail-era] → invade slice B → archetype
-wonder slice [spec DRAFTED specs/archetype-wonders.md] → smalls →
-disorder playbook → D4–D6.)
+Last updated: 2026-07-22 afternoon sync (marker-0086 TAGGED @f836d4e =
+candidate, 18 consecutive consistent — presence-1 ARMS the overseas loop,
+advisor speaks the ally copy, master index PUBLIC with the baked
+Find-game default + server-browser panel verified end-to-end. All four
+release forks RULED: space = measure-first · scope = maximal ·
+§7 = Civ2-refuse · DNS = servers.multiciv.kjell.today (record in; one
+box step remains, user). SPACE ARC mechanically closed (witnesses 1–6 +
+dig + radius migration all verified); sole blocker = RESEARCH DEPTH —
+the measure-first harness (#27) is in build, the 3-arm
+King/prince/long-horizon portfolio armed on sim-runner. Archetype design
+CLOSED: the ally's 22-wonder mapping is the build spec. Engine order:
+measure-first harness → presence-2 [M4] → invade B → A7 stragglers →
+archetype → smalls → xiv-ai-behavior → D3-surfacing → D4–D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -41,21 +37,21 @@ flowchart TD
     DIFF["✅ authentic difficulty (0083):\n7-level Civ1 ladder; M3 floor RESTORED 28\n(25-seed evidence #2181)"]
     B27["✅ B27 fixed (0083): disbandCity\nstranded docked ships (§40 interaction)"]
     APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
-    ARCH["🧩 archetype wonder slice — 'some civs\nMUST build wonders' (A40 vision; spec =\narchitect's ONE open design; A59 feeds it)"]
-    MAN["📋 manhattan-gate + no-nukes toggle\n(A91 remainder)"]
-    NAVL["✅ naval slice A (0085): settle core\ndormant+fixture-proven → 📋 presence-1\n(ruled #2201) → presence-2 → invade B"]
-    SMALL["📋 tail smalls: A6a future-tech ·\nA7 wonder stragglers · §45b rehome ·\n§46 default-defender · A8 tile contention"]
+    ARCH["📋 archetype wonder slice — 'some civs\nMUST build wonders' (design CLOSED: ally's\n22-wonder mapping = the build spec; queued #26)"]
+    MAN["✅ manhattan-gate + no-nukes toggle\n(landed in the 0084 window; verified\nin engine/cities.js)"]
+    NAVL["✅ naval slice A (0085) + presence-1\n(0086): overseas loop ARMED, archipelago\nwitness in gate → 📋 presence-2 → invade B"]
+    SMALL["📋 tail smalls: A6a future-tech ·\nA7 wonder stragglers (before ARCH — the\nappetite reads effects) · §45b rehome ·\n§46 default-defender · A8 tile contention"]
     XAB["📋 xiv-ai-behavior batch\n(unit bloat >1000 ×3 seeds · gold hoard —\nevidence filed)"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; D6 carries diplomat\nmissions; parleyDemandPct data landed)"]
-    HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> ARCH
-    ARCH --> MAN --> NAVL --> SMALL --> XAB --> D3S --> D46
+    HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
+    NAVL --> ARCH --> SMALL --> XAB --> D3S --> D46
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
     A50R["🔨 A50 remainder: a50-healthz MERGED\n(healthz + invite throttle + limits, 1812acf);\noom-slice2b + heartbeat = reviewer gate queued"]
     SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
-    A51D["🔨 A51 master index PUBLIC:\nDNS ✅ servers.multiciv.kjell.today ·\nbaked client default ✅ · box nginx/cert\nstep = user one-time"]
+    A51D["🚪 A51 master index PUBLIC:\nDNS ✅ · baked client default ✅ ·\nserver-browser panel ✅ · remaining =\nthe one-time box nginx/cert step (user)"]
     A50R --> SEC --> A51D
   end
 
@@ -65,7 +61,7 @@ flowchart TD
     A58["📋 A58 pedia completion (queued #32)"]
     A49["📋 A49 playwright five flows (queued #33)"]
     END["📋 endgame moments (ally 'Final Record'\npackage; queued #34)"]
-    FG["📋 'Find game' server browser"]
+    FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
     XIVQ --> FG
   end
@@ -80,7 +76,7 @@ flowchart TD
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
-    W5["🚪 7th witness = launches>0\n(runs after the user's research-depth\nruling; 5+6 both failed on depth)"]
+    W5["🔨 launches>0 acceptance: measure-first\nRULED — harness #27 in build; 3-arm\nKing/prince/long-horizon portfolio armed"]
     GOV["🧩 N1/N2 gov re-eval + late-tech\nmodernization (post-naval-loop)"]
     W5 --> MFL
     GOV --> MFL
@@ -118,28 +114,30 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~92% | **B27 regression fix**, manhattan-gate + no-nukes toggle, A6a future-tech repeats, A7 wonder stragglers, A8 tile contention, §45b rehome, §46 default-defender |
+| 1 | Every Civ 1 system faithful | ~94% (manhattan-gate ✅, B27 ✅) | A6a future-tech repeats, A7 wonder stragglers, A8 tile contention, §45b rehome, §46 default-defender |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, after the engine queue drains |
-| 3 | AI at M-targets | floors ratcheted green | **apollo-narrow + 5th witness (launches)**, archetype wonder slice, naval-loop acceptance, xiv-ai-behavior (bloat/hoard), gov re-eval |
-| 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ | certification re-audit; difficulty rules re-bake; Studded round-2 on user review; R6 build |
-| 5 | Public hosting + master index | box ✅, code ✅, A50 nearly ✅ | oom-slice2b + heartbeat merges, docs/16 re-assess, **user DNS gate**, "Find game" browser |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅ | ally hint-card copy (asked), A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued) |
+| 3 | AI at M-targets | floors green, overseas loop ARMED | **King-portfolio verdict (launches — the space acceptance)**, presence-2 + invade B, archetype wonder slice, xiv-ai-behavior (bloat/hoard), gov re-eval |
+| 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ | certification re-audit; difficulty rules re-bake commit; Studded round-2 on user review; R6 build |
+| 5 | Public hosting + master index | DNS ✅, baked default ✅, browser ✅ | **user one-time box nginx/cert step**, oom-slice2b + heartbeat merges |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅ with ally copy | A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued #33) |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine is the critical path and its order is fully ruled**
-   (#2160/#2164): land difficulty → B27 → apollo-narrow → archetype →
-   manhattan-gate → naval-loop → smalls → D4–D6. The space arc's research
-   question is CLOSED (eligibility reached in 24/25 seeds at 545t); the
-   wonder-building blocker has a ruled two-stage fix; the 5th witness is
-   the arc's acceptance measurement.
-2. **Only one hard user gate remains besides marker merges/redeploys:**
-   scheduling DNS for the master index (axis 5). The bulb-tuning gate
-   dissolved (calendar-545 + XII.5b path-research closed it). Everything
-   else is agent-executable in order.
-3. **The one open design is the archetype wonder spec** (architect,
-   before its window; A59 personality work feeds it, ally input invited).
-   Client/server/roblox lanes are fully specced and queue-fed.
+1. **The engine spine is the critical path and its order is fully ruled**:
+   measure-first harness (#27, in build) → presence-2 → invade B → A7
+   stragglers → archetype → smalls → xiv-ai-behavior → D3-surfacing →
+   D4–D6. The space arc is mechanically CLOSED (six witnesses + dig +
+   radius migration); the King-portfolio verdict is the acceptance
+   measurement and runs in PARALLEL on the gaming PC — it does not block
+   the spine.
+2. **Only two hard user gates remain besides marker merges/redeploys:**
+   the one-time box nginx/cert step (axis 5) and the Roblox Studio
+   round-2 review (axis 4). Everything else is agent-executable in
+   order, and every lane's queue is stocked to v1.
+3. **No open designs remain.** The archetype spec closed with the
+   ally's 22-wonder mapping; D4–D6 spec is ready
+   (d456-diplomacy-impl.md); client/server/roblox lanes are fully
+   specced and queue-fed.
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the

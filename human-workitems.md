@@ -8,64 +8,52 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-22 morning (marker-0085 = candidate, 17 consecutive
-consistent; naval slice A landed dormant+proven; wake list + two rulings
-below are the open items)._
+_Last synced: 2026-07-22 afternoon (marker-0086 = candidate, 18 consecutive
+consistent; the AI settles overseas + the advisor speaks the ally's copy +
+the master index is public; redeploy + one-time box commands are the open
+items)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-_Catch-up: `reports/away-window-2-brief.md` (markers 0077-0081, the
-space-arc saga, wake list)._
+_Catch-up: `reports/marker-0086.md` (the current candidate);
+`reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
 
-- [x] **WONDER-BUILDING FORK — RULED (c) staged both** (2026-07-21
-  night, #2160): apollo-narrow slice now (committed civ builds Apollo;
-  5th witness measures launches; sequenced B27 → apollo-narrow →
-  difficulty), archetype slice ("some civs MUST build wonders", the A40
-  vision) as its own v1 item after difficulty — architect drafts its
-  spec, ally input invited on personality→wonder mapping. Background:
-  4th witness showed danger-abandon WORKS but 0 launches — no wonder
-  was ever built in 25 games; the Apollo gate never opened.
+- [ ] **Redeploy from marker-0086** (`f836d4e`): everything through
+  marker-0085 PLUS naval presence-1 (the AI settles overseas on
+  archipelago maps), the onboarding advisor with the ally's real card
+  copy + 4 pedia concepts, and the PUBLIC master index (the client now
+  defaults Find game to `servers.multiciv.kjell.today`). WITH the
+  one-time box unit edit: `--max-turns 700` (+ optional `--bug-reports`
+  + ReadWritePaths) — see the ssh-deploy review. Browsers may need a
+  hard refresh.
 
-- [x] **SPACE-ARC FORK — RULED (a) danger-based abandon** (#2138):
-  landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the
-  4th witness (commits survive; abandons concrete-only).
-
-- [ ] **Redeploy from marker-0085** (`68035ea`): everything through the
-  difficulty ladder, danger-abandon, A50 arc, B27, entry-default-LOCAL +
-  tab-loss autosave/resume, manhattan-gate/no-nukes, the space-pipeline
-  repairs, naval slice A. WITH the one-time box unit edit: `--max-turns
-  700` (+ optional `--bug-reports` + ReadWritePaths) — see the
-  ssh-deploy review. Browsers may need a hard refresh.
-
-- [x] **Sessions: all cycling healthily** — bugfixer (presence-1
-  closing), helper (9-item window closed cleanly, #25 parked scoped),
-  sim-runner/reviewer/roblox-helper awake earlier and current. No
-  wake action needed; lanes self-boundary and self-resume from queues.
-
-- [x] **All four release forks RULED** (2026-07-22): space =
-  measure-first (queued engine-front); scope = maximal cut; §7 =
-  Civ2-shape refuse; DNS = `servers.multiciv.kjell.today` (record
-  ADDED — thank you).
-
-- [ ] **One-time box commands for the public index** (after the DNS
-  hour propagates — see the report for the exact three commands:
-  nginx block + certbot -d extension + reload). Rides the next
+- [ ] **One-time box commands for the public index** (DNS record is in
+  and propagated by now): append the `servers.` nginx server block
+  (from `cloud-init.yaml` ~lines 92–108), extend the cert —
+  `sudo certbot --nginx -d multiciv.kjell.today -d
+  servers.multiciv.kjell.today` — then reload nginx and curl-check
+  `https://servers.multiciv.kjell.today/servers`. Rides the next
   ssh-deploy naturally via cloud-init on a rebuild, but the LIVE box
-  needs the manual step once.
+  needs the manual step once. Until this runs, the baked Find-game
+  default shows "master index unreachable" (harmless).
 
-- [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
-  **ally relay — COMPLETE**: both asks answered (advisor copy WIRED
-  and live in-game; wonder mapping captured + adopted into the build
-  spec). Nothing is pending with the ally.
+- [ ] **Studio session + runG.txt** (Roblox round-2 review) ·
+  **terrain desaturation check** — both carried; nothing is pending
+  with the designer ally (advisor copy WIRED live; wonder mapping
+  captured + adopted into the build spec).
 
-_Recently landed (away window 2 + since):_ markers 0077-0081, all
-merge-consistent (14 consecutive since 0069); the versioning audit's
-three breaking-class gaps ALL closed; the space arc ran
-measure→tune→measure→latch→measure with the fork above as its honest
-residue; seaRaidChance degeneracy caught pre-ship; Manhattan gate found
-missing and queued; naval-truth mid-build.
+_Recently ruled (2026-07-22, all four release forks):_ space =
+measure-first (the harness is in build; a 3-arm King/prince/long-horizon
+sweep runs on the gaming PC when it lands); scope = maximal cut; XV §7
+settler-modal = Civ2-shape refuse; DNS = `servers.multiciv.kjell.today`
+(record added — thank you). _Recently landed:_ markers 0082-0086, all
+merge-consistent (18 consecutive since 0069) — naval-truth, authentic
+7-level difficulty, danger-based abandon, the space-pipeline repairs
+(apollo-narrow + manhattan-gate + radius fix), naval slice A + presence-1
+(overseas settlement ARMED), the ally-voiced advisor, and the public
+master index with the baked client default.
 
 ---
 
@@ -104,6 +92,26 @@ missing and queued; naval-truth mid-build.
 
 ## FYI — recently shipped / resolved (no action)
 
+- **The AI settles overseas** (naval presence-1, marker-0086): an
+  island-saturated coastal city now builds its own first carrier, sea
+  units explore unexplored ocean, and trireme-class hulls route
+  coastal-only (the authentic open-sea risk honored — sail-era ships
+  cross open ocean). Overseas cities emerge on archipelago seeds where
+  the baseline was 0/5; a new archipelago witness guards it in the
+  cross-language twins gate.
+- **The advisor speaks the ally's words**: all 15 onboarding hint cards
+  now carry the designer ally's copy verbatim, plus 4 new pedia
+  concepts (exploration / diplomacy / pollution / victory —
+  title-neutral per the branding amendment).
+- **Master index is PUBLIC**: `servers.multiciv.kjell.today` is the
+  baked Find-game default (out-of-the-box server discovery; `?master=off`
+  opts out), with the security re-assessment recorded in docs/16 §6 and
+  the operator "list your server" section in how-to-host. Only the
+  one-time box step above remains.
+- **Entry default + tab-loss resume**: bare URLs start a LOCAL client
+  game (server only for Host LAN / Join LAN / Find game); local games
+  autosave to browser storage every turn, the setup screen offers
+  Resume, and a 💾 icon sits left of the 📖.
 - **Hosting Q&A answered** (your sizing/firewall questions): **ports** — game
   server `8123` (HTTP + WebSocket on the *same* port), master index `8200`
   (both `--port`-configurable); firewall = open 22/80/443 behind nginx (keep

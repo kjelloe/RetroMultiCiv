@@ -81,9 +81,9 @@
     <h1>Human work items — RetroMultiCiv</h1>
     <div class="sub">Things only a human (Kjell / friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>.</div>
     <div class="meta">
-      <span class="chip">Last synced: <strong>2026-07-22</strong> (marker-0083 = MERGE CANDIDATE, both gates real; 5th witness running)</span>
-      <span class="chip">Merge candidate: <strong>marker-0083</strong></span>
-      <span class="chip">Landed: <strong>difficulty ladder · danger-abandon · A50 arc · entry-flow rulings · apollo-narrow</strong></span>
+      <span class="chip">Last synced: <strong>2026-07-22</strong> afternoon (marker-0086 = MERGE CANDIDATE, 18 consecutive consistent)</span>
+      <span class="chip">Merge candidate: <strong>marker-0086</strong></span>
+      <span class="chip">Landed: <strong>overseas AI (presence-1) · ally-voiced advisor · PUBLIC master index · all four release forks ruled</strong></span>
       <span class="chip">Companion of <strong>human-workitems.md</strong></span>
     </div>
   </header>
@@ -93,33 +93,23 @@
     <div class="bar"></div>
 
     <div class="item"><span class="box"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">WONDER-BUILDING FORK — RULED (c) staged both</div>
-      <div class="d">Apollo-narrow slice now (committed civ builds Apollo; 5th witness measures launches; after the B27 trireme fix), archetype slice ("some civs MUST build wonders") as its own v1 item after difficulty. #2159/#2160.</div>
+      <div class="t">Redeploy from marker-0086 (f836d4e)</div>
+      <div class="d">Everything through marker-0085 PLUS naval presence-1 (the AI settles overseas), the advisor with the ally's real card copy, and the PUBLIC master index (Find game defaults to servers.multiciv.kjell.today). WITH the one-time box unit edit: --max-turns 700 (+ optional --bug-reports + ReadWritePaths). Hard refresh after.</div>
     </div>
 
     <div class="item"><span class="box"></span>
-      <div class="t" style="text-decoration:line-through;opacity:.7">SPACE-ARC FORK — RULED: (a) danger-based abandon</div>
-      <div class="d">Landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the 4th witness (commits survive; abandons concrete-only). #2138.</div>
+      <div class="t">One-time box commands for the public index</div>
+      <div class="d">Append the <code>servers.</code> nginx server block (cloud-init.yaml ~lines 92–108), extend the cert: <code>sudo certbot --nginx -d multiciv.kjell.today -d servers.multiciv.kjell.today</code>, reload nginx, then curl-check <code>https://servers.multiciv.kjell.today/servers</code>. Until this runs, the baked Find-game default shows "master index unreachable" (harmless).</div>
     </div>
 
     <div class="item"><span class="box"></span>
-      <div class="t">Redeploy from marker-0083 (c746298)</div>
-      <div class="d">Difficulty ladder, danger-abandon, A50 hardening arc, B27, entry-default-LOCAL + tab-loss autosave/resume, plus the 0075–0082 span. WITH the one-time box unit edit: --max-turns 700 (+ optional --bug-reports + ReadWritePaths). Hard refresh after.</div>
-    </div>
-
-    <div class="item"><span class="box"></span>
-      <div class="t">Fresh helper session when convenient</div>
-      <div class="d">14-item run closed at a context boundary; queue 22 stocked with pick-up plans in its memory. All other lanes awake and current.</div>
-    </div>
-
-    <div class="item"><span class="box"></span>
-      <div class="t">Studio session + runG.txt · terrain check · ally relay</div>
-      <div class="d">Unchanged from the last list; the away-window-2 brief has the details.</div>
+      <div class="t">Studio session + runG.txt · terrain desaturation check</div>
+      <div class="d">Both carried. Nothing is pending with the designer ally — advisor copy is wired live and the wonder mapping is adopted into the build spec.</div>
     </div>
 
     <div class="item dot"><span class="box"></span>
-      <div class="t">Away window 2 digest</div>
-      <div class="d">Markers 0077–0081 (14 consecutive merge-consistent since 0069); the versioning audit's three breaking-class gaps ALL closed; naval-truth mid-build; <code>reports/away-window-2-brief.md</code>.</div>
+      <div class="t">All four release forks RULED (2026-07-22)</div>
+      <div class="d">Space = measure-first (harness in build; 3-arm King/prince/long-horizon sweep runs on the gaming PC when it lands) · scope = maximal cut · XV §7 = Civ2-shape refuse · DNS = servers.multiciv.kjell.today (record added). Catch-up: <code>reports/marker-0086.md</code>.</div>
     </div>
   </section>
 
@@ -152,6 +142,14 @@
     <div class="sec-head"><h2>FYI</h2><span class="tag">recently shipped / resolved — no action</span></div>
     <div class="bar"></div>
 
+    <div class="item dot"><span class="box"></span>
+      <div class="t">The AI settles overseas (naval presence-1, marker-0086)</div>
+      <div class="d">Island-saturated coastal cities build their own first carrier, sea units explore unexplored ocean, trireme-class hulls route coastal-only (the authentic open-sea risk — sail-era crosses open ocean). Overseas cities emerge on archipelago seeds vs the 0/5 baseline; a new archipelago witness guards it in the twins gate.</div>
+    </div>
+    <div class="item dot"><span class="box"></span>
+      <div class="t">Advisor speaks the ally's words · master index PUBLIC · tab-loss resume</div>
+      <div class="d">All 15 hint cards carry the ally's copy verbatim (+4 pedia concepts, victory text title-neutral). Find game defaults to the public index out of the box (?master=off opts out; docs/16 §6 re-assessed safe). Bare URLs start a LOCAL game; local games autosave to browser storage with a Resume card on return and a 💾 icon left of the 📖.</div>
+    </div>
     <div class="item dot"><span class="box"></span>
       <div class="t">Hosting Q&amp;A answered (your sizing / firewall questions)</div>
       <div class="d"><strong>Ports:</strong> game server <code>8123</code> (HTTP + WebSocket on the same port), master index <code>8200</code> (both <code>--port</code>-configurable); firewall = open 22/80/443 behind nginx (keep 8123/8200 localhost), or 22/8123/8200 direct. <strong>Sizing:</strong> RAM is the driver — ~5–10 games on 2 GB, ~15–25 on 4 GB; 40 GB SSD ample; the master index adds only ~100 MB. The operator resource caps let a host bound this; a precise RSS-per-game measurement is queued to the sim-runner to firm up the numbers.</div>
