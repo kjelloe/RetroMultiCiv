@@ -34,16 +34,27 @@ end
 -- omitted default) is the IDENTITY — its values equal the historical literals,
 -- so every substitution is unchanged. Must match ai.js exactly (the twins).
 local STANCES: { [string]: any } = {
-	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, escortRadiusPct = 100, govTarget = "republic-if-safe" },
-	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, escortRadiusPct = 150, govTarget = "republic" },
-	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, escortRadiusPct = 150, govTarget = "monarchy" },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic" },
-	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic" },
-	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, escortRadiusPct = 80, govTarget = "republic" },
+	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, escortRadiusPct = 100, govTarget = "republic-if-safe", wonderAppetite = "low", navalAffinity = true },
+	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, escortRadiusPct = 150, govTarget = "republic", wonderAppetite = "low" },
+	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, escortRadiusPct = 150, govTarget = "monarchy", wonderAppetite = "none" },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic", wonderAppetite = "med", lateScienceBias = true },
+	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic", wonderAppetite = "low", happyGlobalAffinity = true },
+	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, escortRadiusPct = 80, govTarget = "republic", wonderAppetite = "high" },
 }
+-- #26 archetype-wonders TWIN: stance -> preferred wonder ids (ally 22-wonder table via the bridge)
+-- + the global-unlock exclusion. Behavior knob, byte-exact with engine/ai.js.
+local WONDER_AFFINITY: { [string]: { string } } = {
+	builder = { "pyramids", "shakespeare-s-theatre", "hoover-dam", "leonardo-s-workshop" },
+	growth = { "hanging-gardens", "michelangelo-s-chapel", "women-s-suffrage", "cure-for-cancer", "oracle", "j-s-bach-s-cathedral" },
+	science = { "great-library", "copernicus-observatory", "isaac-newton-s-college", "darwin-s-voyage", "seti-program" },
+	balanced = { "colossus", "lighthouse", "magellan-s-expedition" },
+	aggressive = { "great-wall" },
+	defensive = { "great-wall" },
+}
+local GLOBAL_UNLOCK_WONDERS: { [string]: boolean } = { ["apollo-program"] = true, ["manhattan-project"] = true }
 -- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
 -- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
-local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5 }
+local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6 }
 -- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
 -- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
 -- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
@@ -1666,6 +1677,100 @@ local function nextWonder(state: any, me: any, ruleset: any): string?
 	return best
 end
 
+-- #26 obsolescence-aware appetite decay TWIN: a fresh wonder build is "too late" once its
+-- obsoleteBy tech is known OR researchable-next (every prereq met). Never-obsolete never decays.
+local function wonderObsoleteSoon(me: any, ruleset: any, id: string): boolean
+	local ob = ruleset.wonders[id].obsoleteBy
+	if ob == nil or ob == "" then
+		return false
+	end
+	if table.find(me.techs, ob) ~= nil then
+		return true
+	end
+	local t = ruleset.techs[ob]
+	if t == nil then
+		return false
+	end
+	for _, p in ipairs(t.prereqs) do
+		if table.find(me.techs, p) == nil then
+			return false
+		end
+	end
+	return true
+end
+
+-- #26 does the appetite START a new wonder at the EAGER cascade position? HIGH always; MED once
+-- the drive city has >= wonderMedBuildings; LOW/NONE do not here. TWIN of engine/ai.js.
+-- #26 should the appetite START a new wonder in the drive city NOW? Tier-scaled gates so no tier
+-- starves its project: HIGH at wonderMinShields; MED also needs core buildings; LOW needs the
+-- higher shield bar AND an established many-city empire (a wide civ cannot reach a settler-count
+-- target). NONE never. TWIN of engine/ai.js appetiteStart. Deterministic.
+local function appetiteStart(S: any, driveCity: any, state: any, playerId: string, ruleset: any): boolean
+	local sh = cities.cityYields(state, driveCity, ruleset).shields
+	local a = S.wonderAppetite
+	if a == "high" then
+		return sh >= BUILD_LEVER.wonderMinShields
+	end
+	if a == "med" then
+		local built = if driveCity.buildings == nil then 0 else #driveCity.buildings
+		return sh >= BUILD_LEVER.wonderMinShields and built >= BUILD_LEVER.wonderMedBuildings
+	end
+	if a == "low" then
+		return sh >= BUILD_LEVER.wonderLowShields
+			and countCities(state, playerId) >= BUILD_LEVER.wonderLowCities
+	end
+	return false
+end
+
+-- #26 the stance-keyed wonder pick TWIN: first available preferred wonder (unbuilt, tech-known,
+-- not global-unlock, not obsolescing) in the stance's affinity list; else cheapest available.
+local function nextWonderFor(state: any, me: any, ruleset: any, stanceName: string): string?
+	local built = if state.wonders == nil then {} else state.wonders
+	local pref = WONDER_AFFINITY[stanceName]
+	if pref ~= nil then
+		for _, id in ipairs(pref) do
+			local def = ruleset.wonders[id]
+			local skip = false
+			if def == nil or built[id] ~= nil then
+				skip = true
+			end
+			if not skip and def.tech ~= "" and table.find(me.techs, def.tech) == nil then
+				skip = true
+			end
+			if not skip and GLOBAL_UNLOCK_WONDERS[id] == true then
+				skip = true
+			end
+			if not skip and wonderObsoleteSoon(me, ruleset, id) then
+				skip = true
+			end
+			if not skip then
+				return id
+			end
+		end
+	end
+	local best = nil
+	for _, id in ipairs(sortedKeys(ruleset.wonders)) do
+		local def = ruleset.wonders[id]
+		local skip = false
+		if built[id] ~= nil then
+			skip = true
+		end
+		if not skip and def.tech ~= "" and table.find(me.techs, def.tech) == nil then
+			skip = true
+		end
+		if not skip and GLOBAL_UNLOCK_WONDERS[id] == true then
+			skip = true
+		end
+		if not skip then
+			if best == nil or def.cost < ruleset.wonders[best].cost
+				or (def.cost == ruleset.wonders[best].cost and id < best) then
+				best = id
+			end
+		end
+	end
+	return best
+end
+
 -- N9b TWIN: a shallow city copy with one building appended — for valuing a
 -- candidate via tech.cityEconOutput WITHOUT mutating the real city.
 local function withBuilding(city: any, id: string): any
@@ -2433,23 +2538,25 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						end
 					end
 				end
-				if S.wonderDrive == true and not threatened then
-					local cap = government.capitalOf(state, playerId, ruleset)
-					local driveCity = if cap ~= nil then cap else highestShieldCity(state, playerId, ruleset)
-					if driveCity ~= nil and driveCity.id == cid
-						and cities.cityYields(state, city, ruleset).shields >= BUILD_LEVER.wonderMinShields then
+				-- #26 archetype-wonders TWIN: the appetite wonder-drive generalizes the builder-only
+				-- wonderDrive. Non-NONE appetite persists its in-flight wonder in the drive city (any
+				-- tier); the EAGER tier (HIGH always / MED after core buildings) STARTS a stance wonder.
+				if S.wonderAppetite ~= nil and S.wonderAppetite ~= "none" and not threatened then
+					local driveCity = highestShieldCity(state, playerId, ruleset)
+					if driveCity ~= nil and driveCity.id == cid then
 						local held = nil
 						if city.producing.kind == "wonder"
 							and (state.wonders == nil or state.wonders[city.producing.id] == nil) then
 							held = city.producing.id
 						end
 						if held ~= nil then
-							want = { kind = "wonder", id = held } -- persist own wonder
+							want = { kind = "wonder", id = held } -- persist own wonder (any appetite)
 							wonderDriven = true
-						elseif not civWonderInFlight(state, playerId) then
-							local w = nextWonder(state, me, ruleset)
+						elseif appetiteStart(S, driveCity, state, playerId, ruleset)
+							and not civWonderInFlight(state, playerId) then
+							local w = nextWonderFor(state, me, ruleset, effStance)
 							if w ~= nil then
-								want = { kind = "wonder", id = w } -- start new
+								want = { kind = "wonder", id = w } -- start new (tier-gated)
 								wonderDriven = true
 							end
 						end

@@ -60,6 +60,35 @@ test('AI keeps a defender: undefended city switches production to a unit', async
   assert.strictEqual(after2.cities.c9.producing.id, 'settlers');
 });
 
+// #26 archetype-wonders: a HIGH-appetite (builder) civ with a shield-rich, defended,
+// unthreatened capital builds a STANCE-appropriate wonder (pyramids = builder affinity #1,
+// masonry known); a NONE-appetite (aggressive) control never does. The cross-language
+// acceptance fixture (deterministic — no RNG in the pick).
+test('#26 wonderAppetite: builder capital picks a wonder, aggressive control does not', async () => {
+  const { ai, engine } = await load();
+  const forest = (stance) => {
+    const W = 9, H = 9, tiles = [];
+    for (let i = 0; i < W * H; i++) tiles.push({ t: 'forest' });
+    return {
+      version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+      map: { width: W, height: H, wrapX: false, tiles },
+      units: { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+      cities: { c9: { id: 'c9', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      cityOrder: ['c9'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+      players: {
+        p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['masonry'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, stance },
+        p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }
+      },
+      rngState: 1
+    };
+  };
+  const builder = ai.runAiTurn(engine, forest('builder'), 'p1', RULESET);
+  assert.strictEqual(builder.cities.c9.producing.kind, 'wonder', 'builder (HIGH appetite): a wonder');
+  assert.strictEqual(builder.cities.c9.producing.id, 'pyramids', 'the stance affinity #1 (masonry-available)');
+  const aggressive = ai.runAiTurn(engine, forest('aggressive'), 'p1', RULESET);
+  assert.notStrictEqual(aggressive.cities.c9.producing.kind, 'wonder', 'aggressive (NONE appetite): never a wonder');
+});
+
 // B13a/B13e: the AI's defender choice era-scales past obsolete units — once a
 // tech obsoletes phalanx/militia (gunpowder), the AI builds the successor
 // instead of an obsolete unit setProduction now rejects.

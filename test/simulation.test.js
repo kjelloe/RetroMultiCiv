@@ -31,33 +31,34 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
-// #35 pyramids-gov re-record. The #28 discriminator classified this move as STAMP-ONLY: every
-// BEHAVIOR_* hash below is byte-identical to the #29 A7 base — the pyramids 1-turn-anarchy +
-// unlock-any-gov change never alters the golden soak/natural trajectory (no pyramids-owning AI
-// revolts in a trajectory-changing way on these seeds; the witnesses cover the mechanic), so
-// only the rulesetHash stamp (new pyramids effect fields) shifted the full GOLDEN_* hashes.
-// (History: #29 A7 shifted NATURAL to 405 rounds/p2 — behavioral there; #35 keeps it.) JS==Luau.
+// #26 archetype-wonders re-record. BEHAVIORAL (the #28 discriminator confirms BEHAVIOR_* below
+// moved too, not just the full hashes): stance-keyed wonderAppetite makes AI civs build wonders,
+// so the trajectory diverges from t200 on (wonders appear after t100 — t100 is unchanged) and the
+// NATURAL game runs LONGER (405 -> 545 rounds, same winner p2 — great-library catch-up et al.
+// reshape the endgame). #26 touches only engine/ai.js behaviour (no ruleset change) so the
+// rulesetHash STAMP is unmoved: mapgen/ff-parity/scenario-002/checkpoint-100 pins are untouched.
+// JS==Luau at every hash (lune soak-400 0xca0df133, natural 545/0xbbac8607).
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
     100: '0x75668d61',
-    200: '0x4728cdf8',
-    300: '0xd9844d29',
-    400: '0x39c02c63'
+    200: '0xa6f90fc6',
+    300: '0xf26a4654',
+    400: '0xca0df133'
   },
-  finalHash: '0x39c02c63'
+  finalHash: '0xca0df133'
 };
-const GOLDEN_NATURAL = { rounds: 405, winner: 'p2', finalHash: '0x123c049d' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xbbac8607' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x79e75d14', 200: '0xa030c263', 300: '0x5b9dc94a', 400: '0x982df3e2' },
-  finalHash: '0x982df3e2'
+  checkpoints: { 100: '0x79e75d14', 200: '0x7b5d1a6b', 300: '0x89c4708b', 400: '0x6bc31c40' },
+  finalHash: '0x6bc31c40'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x9f586655' };
+const BEHAVIOR_NATURAL = { finalHash: '0xe95c3a45' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

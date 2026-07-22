@@ -43,25 +43,49 @@ const DIR_VECS = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW
 // BUILD_LEVER.pbMax. wonderDrive = the builder-only capital wonder commitment
 // (§2). Both provisional (sim-swept, two-phase close); NO rules.json — behavior
 // knobs, twin: luau/ai.luau STANCES must match byte-for-byte.
+// #26 archetype-wonders (ruled #2262): wonderAppetite = the standing wonder-build eagerness tier
+// (none/low/med/high), keyed to the cascade position in runAiTurn; affinity flags carry the ally's
+// Explorer/Diplomat/Visionary nuance the 4-axis leader model can't express (navalAffinity /
+// happyGlobalAffinity / lateScienceBias). Behavior knobs, twin: luau/ai.luau STANCES byte-for-byte.
 const STANCES = {
-  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, escortRadiusPct: 100, govTarget: 'republic-if-safe' },
-  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, escortRadiusPct: 150, govTarget: 'republic' },
-  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, escortRadiusPct: 150, govTarget: 'monarchy' },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic' },
-  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic' },
+  balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, escortRadiusPct: 100, govTarget: 'republic-if-safe', wonderAppetite: 'low', navalAffinity: true },
+  defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, escortRadiusPct: 150, govTarget: 'republic', wonderAppetite: 'low' },
+  aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, escortRadiusPct: 150, govTarget: 'monarchy', wonderAppetite: 'none' },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic', wonderAppetite: 'med', lateScienceBias: true },
+  growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic', wonderAppetite: 'low', happyGlobalAffinity: true },
   // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
   // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
   // reached after the full garrison), then economy via the high econReserve
   // (wonder-inclusive, capital-concentrated). defendFirst = the normal-block
   // reserve placement (not the at-1 preempt). Ported from the sim-runner lab.
-  // N9b: pbMult 150 + wonderDrive — the archetype "MUST build wonders" civ.
-  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, pbMult: 150, wonderDrive: true, defendFirst: true, escortRadiusPct: 80, govTarget: 'republic' }
+  // N9b: pbMult 150 + wonderDrive — the archetype "MUST build wonders" civ (HIGH appetite).
+  builder:    { marchRadiusPct: 80, garrisonAlways2: true, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: null, improveFirst: 'irrigate', sciRates: true, attackerPerCityPct: 0, attackerBasePct: 0, scoutSharePct: 80, econReserve: 99, pbMult: 150, wonderDrive: true, defendFirst: true, escortRadiusPct: 80, govTarget: 'republic', wonderAppetite: 'high' }
 };
+
+// #26 stance -> preferred wonder ids, translated from the ally 22-wonder personality table
+// (specs/ally-deliverables-2026-07-22-wonders.md) via the stance bridge (Builder+Industrialist->
+// builder, Steward+Diplomat->growth, Scientist+Visionary->science, Explorer->balanced,
+// Conqueror->aggressive). Global-unlock wonders (apollo/manhattan) are NEVER standing targets —
+// they keep their own never-unless gates. Behavior knob, twin byte-exact.
+const WONDER_AFFINITY = {
+  builder:    ['pyramids', 'shakespeare-s-theatre', 'hoover-dam', 'leonardo-s-workshop'],
+  growth:     ['hanging-gardens', 'michelangelo-s-chapel', 'women-s-suffrage', 'cure-for-cancer', 'oracle', 'j-s-bach-s-cathedral'],
+  science:    ['great-library', 'copernicus-observatory', 'isaac-newton-s-college', 'darwin-s-voyage', 'seti-program'],
+  balanced:   ['colossus', 'lighthouse', 'magellan-s-expedition'],
+  aggressive: ['great-wall'],
+  defensive:  ['great-wall']
+};
+// global-unlock wonders: excluded from standing appetite (a premature Apollo/Manhattan gifts the
+// path/nukes to rivals) — Apollo via the committed-space override, Manhattan via its own gate.
+const GLOBAL_UNLOCK_WONDERS = { 'apollo-program': true, 'manhattan-project': true };
 
 // N9b build-priority lever constants (provisional — sim-swept, pinned in the
 // two-phase close; NOT rules.json). pbMax = payback ceiling in turns before the
 // stance pbMult; wonderMinShields = the builder wonder-drive's shields/turn gate.
-const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5 };
+// #26 wonderMedBuildings = core buildings a MED-appetite (science) drive city builds before it
+// starts wonders; wonderLowShields = the appetite-scaled SHIELD THRESHOLD a LOW-appetite drive
+// city needs to start a wonder at the econ position (ruled #2262: threshold, not a chance roll).
+const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6 };
 
 // Government re-eval (specs/government-reeval.md): the AI advances government by
 // STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
@@ -1449,6 +1473,74 @@ function nextWonder(state, me, ruleset) {
   return best;
 }
 
+// #26 obsolescence-aware appetite decay: a fresh wonder build is "too late" once its obsoleteBy
+// tech is already known OR researchable-next (every prereq met) — the ally's "a Builder racing
+// Pyramids early is rational; starting at Renaissance is not." Never-obsolete wonders never decay.
+function wonderObsoleteSoon(me, ruleset, id) {
+  const ob = ruleset.wonders[id].obsoleteBy;
+  if (ob === undefined || ob === '') return false;
+  if (me.techs.indexOf(ob) !== -1) return true;
+  const t = ruleset.techs[ob];
+  if (t === undefined) return false;
+  for (let i = 0; i < t.prereqs.length; i++) {
+    if (me.techs.indexOf(t.prereqs[i]) === -1) return false;
+  }
+  return true; // all prereqs met -> obsoletes imminently -> decay
+}
+
+// #26 should the appetite START a new wonder in the drive city NOW? All tiers evaluate here (the
+// eager branch, above the settler/army treadmill) with tier-scaled gates so no tier starves its
+// own project: HIGH once the city clears wonderMinShields; MED also needs its core buildings
+// (>= wonderMedBuildings); LOW needs the HIGHER wonderLowShields bar AND the civ's settler target
+// already met (expansion first — never starves growth). NONE never. (Persisting an in-flight
+// wonder is handled separately for any non-NONE appetite.) Deterministic — no RNG.
+function appetiteStart(S, driveCity, state, playerId, ruleset) {
+  const sh = cityYields(state, driveCity, ruleset).shields;
+  const a = S.wonderAppetite;
+  if (a === 'high') return sh >= BUILD_LEVER.wonderMinShields;
+  if (a === 'med') {
+    const built = driveCity.buildings === undefined ? 0 : driveCity.buildings.length;
+    return sh >= BUILD_LEVER.wonderMinShields && built >= BUILD_LEVER.wonderMedBuildings;
+  }
+  if (a === 'low') {
+    // an ESTABLISHED civ (many cities) is done with early expansion — a wide, saturated civ
+    // cannot reach a settler-count target (no room to found), so ncities is the honest signal.
+    return sh >= BUILD_LEVER.wonderLowShields
+      && countCities(state, playerId) >= BUILD_LEVER.wonderLowCities;
+  }
+  return false;
+}
+
+// #26 the stance-keyed wonder pick: the FIRST available (unbuilt, tech-known, not global-unlock,
+// not obsolescing) wonder in the stance's WONDER_AFFINITY list — a civ's wonders reinforce its
+// project; else the cheapest available (the historical nextWonder fallback, global-unlock still
+// excluded). Deterministic (affinity list order, then cost/id).
+function nextWonderFor(state, me, ruleset, stanceName) {
+  const built = state.wonders === undefined ? {} : state.wonders;
+  const pref = WONDER_AFFINITY[stanceName];
+  if (pref !== undefined) {
+    for (let i = 0; i < pref.length; i++) {
+      const id = pref[i];
+      const def = ruleset.wonders[id];
+      if (def === undefined || built[id] !== undefined) continue;
+      if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+      if (GLOBAL_UNLOCK_WONDERS[id] === true) continue;
+      if (wonderObsoleteSoon(me, ruleset, id)) continue;
+      return id;
+    }
+  }
+  let best = null;
+  for (const id of Object.keys(ruleset.wonders)) {
+    const def = ruleset.wonders[id];
+    if (built[id] !== undefined) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (GLOBAL_UNLOCK_WONDERS[id] === true) continue;
+    if (best === null || def.cost < ruleset.wonders[best].cost
+      || (def.cost === ruleset.wonders[best].cost && id < best)) best = id;
+  }
+  return best;
+}
+
 // N9b: a shallow city copy with one building appended — for valuing a candidate
 // building via cityEconOutput WITHOUT mutating the real city. Buildings don't
 // change worked tiles, so only the effectPct (taxBonus/sciBonus) term differs.
@@ -2111,19 +2203,24 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         }
       }
     }
-    if (S.wonderDrive === true && !threatened) {
-      const cap = capitalOf(state, playerId, ruleset);
-      const driveCity = (cap !== null && cap !== undefined) ? cap : highestShieldCity(state, playerId, ruleset);
-      if (driveCity !== null && driveCity !== undefined && driveCity.id === cid
-          && cityYields(state, city, ruleset).shields >= BUILD_LEVER.wonderMinShields) {
+    // #26 archetype-wonders: the appetite wonder-drive generalizes the builder-only wonderDrive.
+    // A non-NONE-appetite civ persists its in-flight wonder in the drive city (any tier) and, when
+    // its tier gate opens (appetiteStart: HIGH at wonderMinShields; MED also needs core buildings;
+    // LOW needs the higher shield bar AND an established, many-city empire), STARTS a stance-
+    // appropriate wonder there. Wonders concentrate in the civ's HIGHEST-SHIELD city (one in flight
+    // per civ) so they complete fastest — a wide civ's capital is often not its strongest city.
+    if (S.wonderAppetite !== undefined && S.wonderAppetite !== 'none' && !threatened) {
+      const driveCity = highestShieldCity(state, playerId, ruleset);
+      if (driveCity !== null && driveCity !== undefined && driveCity.id === cid) {
         const held = (city.producing.kind === 'wonder'
           && (state.wonders === undefined || state.wonders[city.producing.id] === undefined))
           ? city.producing.id : null;
         if (held !== null) {
-          want = { kind: 'wonder', id: held }; wonderDriven = true; // persist own wonder
-        } else if (!civWonderInFlight(state, playerId)) {
-          const w = nextWonder(state, me, ruleset);
-          if (w !== null) { want = { kind: 'wonder', id: w }; wonderDriven = true; } // start new
+          want = { kind: 'wonder', id: held }; wonderDriven = true; // persist own wonder (any appetite)
+        } else if (appetiteStart(S, driveCity, state, playerId, ruleset)
+            && !civWonderInFlight(state, playerId)) {
+          const w = nextWonderFor(state, me, ruleset, effStance);
+          if (w !== null) { want = { kind: 'wonder', id: w }; wonderDriven = true; } // start new (tier-gated)
         }
       }
     }
