@@ -414,8 +414,13 @@ def flag_wait(argv):
     def counts():
         if url:
             raw, _ = proxy_raw(['flag', '--as', a.role, '--raw'], url)
-            u, q, n = raw.split()
-            return int(u.split('=')[1]), int(q.split('=')[1]), int(n.split('=')[1])
+            try:
+                u, q, n = raw.split()
+                return int(u.split('=')[1]), int(q.split('=')[1]), int(n.split('=')[1])
+            except ValueError:
+                # malformed/empty hub reply (the #2235 race, hub-side fixed by
+                # DISPATCH_LOCK) — treat as "no change this poll", never crash
+                return None
         return flag_counts(a.role)
 
     def line():
@@ -424,14 +429,17 @@ def flag_wait(argv):
             return out.strip()
         return flag_check_line(a.role)
 
-    _, base_qn, _ = counts()
+    first = counts()
+    base_qn = first[1] if first else 0
     deadline = time.time() + max(a.timeout, a.interval)
     while True:
-        unread, qn, note_ts = counts()
-        if unread or note_ts or qn > base_qn:
-            print(line())
-            return
-        base_qn = qn  # a shrinking queue lowers the baseline
+        c = counts()
+        if c is not None:
+            unread, qn, note_ts = c
+            if unread or note_ts or qn > base_qn:
+                print(line())
+                return
+            base_qn = qn  # a shrinking queue lowers the baseline
         if time.time() >= deadline:
             print(f'{line()} — nothing new after {a.timeout}s; run `flag wait` again to keep listening')
             return
@@ -441,7 +449,9 @@ def flag_wait(argv):
 def serve(host, port):
     import io
     import contextlib
+    import threading
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    DISPATCH_LOCK = threading.Lock()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *a):  # quiet; the hub prints its own line on start
@@ -465,7 +475,11 @@ def serve(host, port):
                 self.send_response(400); self.end_headers(); return
             buf = io.StringIO()
             code = 0
-            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            # SERIALIZED: redirect_stdout swaps the PROCESS-global stdout, so
+            # concurrent requests under ThreadingHTTPServer raced and one got
+            # an empty reply (the #2235 flag-wait bug). Dispatch is cheap file
+            # ops; one at a time is correct and also guards the store writes.
+            with DISPATCH_LOCK, contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
                 try:
                     dispatch([str(a) for a in argv])
                 except SystemExit as e:
