@@ -85,7 +85,12 @@ const GLOBAL_UNLOCK_WONDERS = { 'apollo-program': true, 'manhattan-project': tru
 // #26 wonderMedBuildings = core buildings a MED-appetite (science) drive city builds before it
 // starts wonders; wonderLowShields = the appetite-scaled SHIELD THRESHOLD a LOW-appetite drive
 // city needs to start a wonder at the econ position (ruled #2262: threshold, not a chance roll).
-const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6 };
+// #30 armyTargetCap = the ABSOLUTE ceiling on the standing-attacker target (behavior knob, not
+// rules.json — no rulesetHash stamp). armyTarget = cities*attackerPerCity+base scaled unbounded
+// with empire size (seed-6 1002 units); the cap bounds new growth. Sweepable (the 25-seed judge
+// tunes it). disbandOverBy = how far OVER the cap a civ must be before the at-peace disband valve
+// drains one obsolete attacker/turn (hysteresis so it doesn't fight the build at the boundary).
+const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6, armyTargetCap: 50, disbandOverBy: 4 };
 
 // Government re-eval (specs/government-reeval.md): the AI advances government by
 // STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
@@ -1327,6 +1332,20 @@ function rushBuyCommand(state, playerId, ruleset) {
         }
         continue;
       }
+      // #30 widen the hoard sink: rush the city's current BUILDING. A city produces a WONDER as
+      // kind 'wonder' (never rushed — #1899) and a plain improvement as kind 'building', so this
+      // touches only improvements. A late saturated/army-capped/at-peace civ builds buildings, so
+      // this is the branch that finally spends the six-figure hoard the unit-only lever never reached.
+      if (prod.kind === 'building') {
+        const b = ruleset.buildings[prod.id];
+        if (b !== undefined) {
+          const missing = b.cost - city.shields;
+          if (missing > 0 && me.gold >= missing * ruleset.rules.buyGoldPerShield) {
+            return { type: 'buy', playerId, cityId: cid };
+          }
+        }
+        continue;
+      }
       if (prod.kind !== 'unit') continue;
       const u = ruleset.units[prod.id];
       if (u === undefined) continue;
@@ -2116,6 +2135,39 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (cmd) return cmd;
   }
 
+
+  // #30 unit-bloat DRAIN valve: a civ well OVER its capped attacker target disbands ONE obsolete
+  // attacker/turn — but only a SAFE one (no enemy within 2, so it never disbands a unit holding a
+  // front). The armyTarget cap stops NEW growth; this DRAINS the legacy bloat the cap alone can't
+  // recover (seed-6 1002 units; witness-7 saves start bloated), freeing upkeep for research (the
+  // space runway). Deterministic (sorted unitId); disbandOverBy hysteresis vs the build boundary.
+  if (!done.disband) {
+    done.disband = true;
+    // #30 the measured bloat is OBSOLETE DEFENDERS (phalanx piling up under the garrison build),
+    // not just attackers — drain BOTH classes, each vs ITS OWN cap: attackers vs the capped
+    // armyTarget, defenders vs the garrison cap (armyCapPerCity*cities). Obsolete + safe only.
+    let armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S) + attackerBaseOf(ruleset, S);
+    if (armyTarget > BUILD_LEVER.armyTargetCap) armyTarget = BUILD_LEVER.armyTargetCap;
+    const garrisonCap = countCities(state, playerId) * S.armyCapPerCity;
+    const nAtt = countAttackers(state, playerId, ruleset);
+    const nDef = countMilitary(state, playerId, ruleset) - nAtt;
+    const attOver = nAtt > armyTarget + BUILD_LEVER.disbandOverBy;
+    const defOver = nDef > garrisonCap + BUILD_LEVER.disbandOverBy;
+    if (attOver || defOver) {
+      for (const uid of sortIds(Object.keys(state.units))) {
+        const u = state.units[uid];
+        if (u.owner !== playerId || u.aboard !== undefined) continue;
+        const def = ruleset.units[u.type];
+        if (def.domain !== 'land' || def.attack <= 0) continue; // land combat unit (never a civilian)
+        if (!unitObsolete(def, me.techs)) continue;             // obsolete only
+        if (enemyNear(state, me, playerId, u.x, u.y, 2)) continue; // safe front only
+        const isAttacker = def.attack > def.defense;
+        if (isAttacker ? !attOver : !defOver) continue;         // only the class over its own cap
+        return { type: 'disband', playerId, unitId: uid };
+      }
+    }
+  }
+
   // A76: launch a completed, un-launched ship — the win condition. Gated on the
   // race being open (Apollo + techs), so this is dormant until a civ reaches space.
   if (!done.launch && apolloReady(state, me, ruleset)) {
@@ -2272,8 +2324,12 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         // wide target so it is a standing army, not a per-city stack. Sweepable
         // via rules.attackerPerCity/attackerBase (stance pct passthrough).
         const attacker = bestAttackerUnit(me, ruleset);
-        const armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
+        // #30 unit-bloat cap: the per-city*cities target is UNBOUNDED (seed-6 1002 units); clamp it
+        // to armyTargetCap so a wide empire stops piling on attackers and spends the shields on
+        // buildings/research instead (the space runway). BUILD_LEVER knob, sweepable.
+        let armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
           + attackerBaseOf(ruleset, S);
+        if (armyTarget > BUILD_LEVER.armyTargetCap) armyTarget = BUILD_LEVER.armyTargetCap;
         const underArmy = attacker !== null && countAttackers(state, playerId, ruleset) < armyTarget;
         // N9 / stance-mix v1: the economy pick (cheapest missing building, else
         // the cheapest eligible wonder) for the dead-last fallback, PLUS the

@@ -54,7 +54,7 @@ local WONDER_AFFINITY: { [string]: { string } } = {
 local GLOBAL_UNLOCK_WONDERS: { [string]: boolean } = { ["apollo-program"] = true, ["manhattan-project"] = true }
 -- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
 -- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
-local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6 }
+local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6, armyTargetCap = 50, disbandOverBy = 4 }
 -- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
 -- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
 -- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
@@ -1511,6 +1511,17 @@ local function rushBuyCommand(state: any, playerId: string, ruleset: any): any
 							end
 						end
 					end
+				elseif prod.kind == "building" then
+					-- #30 widen the hoard sink: rush the current BUILDING (a WONDER is kind 'wonder',
+					-- never rushed #1899; kind 'building' is a plain improvement). The branch a late
+					-- saturated/army-capped civ needs to finally spend the hoard. TWIN.
+					local b = ruleset.buildings[prod.id]
+					if b ~= nil then
+						local missing = b.cost - city.shields
+						if missing > 0 and me.gold >= missing * ruleset.rules.buyGoldPerShield then
+							return { type = "buy", playerId = playerId, cityId = cid }
+						end
+					end
 				elseif prod.kind == "unit" then
 					local u = ruleset.units[prod.id]
 					if u ~= nil and (prod.id == "settlers" or u.attack > 0) then
@@ -2466,6 +2477,40 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 		end
 	end
 
+	-- #30 unit-bloat DRAIN valve TWIN: a civ well OVER its capped attacker target disbands ONE safe
+	-- (no enemy within 2) obsolete attacker/turn via the existing disband command — drains the legacy
+	-- bloat the cap alone can't recover. Deterministic (sorted unitId); disbandOverBy hysteresis.
+	if done.disband ~= true then
+		done.disband = true
+		local armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S) + attackerBaseOf(ruleset, S)
+		if armyTarget > BUILD_LEVER.armyTargetCap then
+			armyTarget = BUILD_LEVER.armyTargetCap
+		end
+		-- #30 drain BOTH classes vs their own cap (measured: the bloat is obsolete DEFENDERS). TWIN.
+		local garrisonCap = countCities(state, playerId) * S.armyCapPerCity
+		local nAtt = countAttackers(state, playerId, ruleset)
+		local nDef = countMilitary(state, playerId, ruleset) - nAtt
+		local attOver = nAtt > armyTarget + BUILD_LEVER.disbandOverBy
+		local defOver = nDef > garrisonCap + BUILD_LEVER.disbandOverBy
+		if attOver or defOver then
+			for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+				local u = state.units[uid]
+				if u.owner == playerId and u.aboard == nil then
+					local def = ruleset.units[u.type]
+					if def.domain == "land" and def.attack > 0
+						and cities.unitObsolete(def, me.techs)
+						and not enemyNear(state, me, playerId, u.x, u.y, 2) then
+						local isAttacker = def.attack > def.defense
+						local classOver = if isAttacker then attOver else defOver
+						if classOver then
+							return { type = "disband", playerId = playerId, unitId = uid }
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- A76: launch a completed, un-launched ship — the win condition. Gated on the
 	-- race being open (Apollo + techs), so this is dormant until a civ reaches space.
 	if done.launch ~= true and apolloReady(state, me, ruleset) then
@@ -2603,8 +2648,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						-- because the old branch sat behind them, which never run dry). Empire-
 						-- wide target = a standing army; sweepable via rules.attackerPerCity/Base.
 						local attacker = bestAttackerUnit(me, ruleset)
+						-- #30 unit-bloat cap: clamp the unbounded per-city*cities target to armyTargetCap. TWIN.
 						local armyTarget = countCities(state, playerId) * attackerPerCityOf(ruleset, S)
 							+ attackerBaseOf(ruleset, S)
+						if armyTarget > BUILD_LEVER.armyTargetCap then
+							armyTarget = BUILD_LEVER.armyTargetCap
+						end
 						local underArmy = attacker ~= nil and countAttackers(state, playerId, ruleset) < armyTarget
 						-- N9 / stance-mix v1: the economy pick for the dead-last fallback PLUS the
 						-- defending-builder RESERVE (defBuild). econReserve comes from the STANCE

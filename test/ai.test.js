@@ -89,6 +89,70 @@ test('#26 wonderAppetite: builder capital picks a wonder, aggressive control doe
   assert.notStrictEqual(aggressive.cities.c9.producing.kind, 'wonder', 'aggressive (NONE appetite): never a wonder');
 });
 
+// #30 unit-bloat drain: a civ well OVER its capped attacker target, at peace, disbands ONE
+// obsolete attacker per turn (reusing the existing disband command). The cap stops new growth;
+// this valve recovers the legacy 1002-unit bloat. Deterministic; a safe (no enemy near) obsolete
+// unit only. An under-cap civ never disbands.
+test('#30 disband valve: an over-cap at-peace civ disbands one obsolete attacker', async () => {
+  const { ai } = await load();
+  const W = 9, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const mk = (n) => {
+    const units = {};
+    for (let i = 0; i < n; i++) units['u' + i] = { id: 'u' + i, type: 'legion', owner: 'p1', x: i % 9, y: (Math.floor(i / 9)) % 9, moves: 1, fortified: false, veteran: false };
+    return {
+      version: 1, turn: 200, year: 1, activePlayer: 'p1', playerOrder: ['p1'],
+      map: { width: W, height: H, wrapX: false, tiles }, units, wonders: {}, nextUnitId: 999, nextCityId: 10,
+      cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      cityOrder: ['c1'],
+      // conscription obsoletes the legion; republic (no gov advance), 0 gold (no rush) so the
+      // empire cascade reaches the disband valve.
+      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['conscription'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'republic' } },
+      rngState: 1
+    };
+  };
+  const doneFlags = { happiness: true, research: true, rates: true, government: true, diplo: {} };
+  // 60 obsolete legions, 1 city -> armyTarget = 1 (capped at 50 is moot here); 60 >> target +
+  // disbandOverBy(4) -> disband. (For a WIDE empire the cap bounds the target; the valve drains
+  // whatever is over the capped target.)
+  const cmd = ai.pickCommand(mk(60), 'p1', RULESET, Object.assign({}, doneFlags));
+  assert.strictEqual(cmd.type, 'disband', 'over-target at-peace -> disband; got ' + JSON.stringify(cmd));
+  // within target + hysteresis (3 <= 1 + 4): no disband.
+  const few = ai.pickCommand(mk(3), 'p1', RULESET, Object.assign({}, doneFlags));
+  assert.ok(!few || few.type !== 'disband', 'within target+hysteresis civ keeps its army; got ' + JSON.stringify(few));
+});
+
+// #30 the MEASURED bloat is obsolete DEFENDERS (phalanx piling up under the garrison build), so
+// the valve drains them too: over the garrison cap (armyCapPerCity*cities), at peace, one/turn.
+test('#30 disband valve: an over-garrison-cap civ disbands one obsolete defender (the phalanx pile-up)', async () => {
+  const { ai } = await load();
+  const W = 9, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const mk = (n) => {
+    const units = {};
+    // phalanx = a DEFENDER (atk 1 < def 2), obsoleted by gunpowder.
+    for (let i = 0; i < n; i++) units['u' + i] = { id: 'u' + i, type: 'phalanx', owner: 'p1', x: i % 9, y: (Math.floor(i / 9)) % 9, moves: 1, fortified: false, veteran: false };
+    return {
+      version: 1, turn: 200, year: 1, activePlayer: 'p1', playerOrder: ['p1'],
+      map: { width: W, height: H, wrapX: false, tiles }, units, wonders: {}, nextUnitId: 999, nextCityId: 10,
+      cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 4, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      cityOrder: ['c1'],
+      // gunpowder obsoletes the phalanx; balanced armyCapPerCity=4 -> garrison cap = 1*4 = 4.
+      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['gunpowder'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50, government: 'republic' } },
+      rngState: 1
+    };
+  };
+  const doneFlags = { happiness: true, research: true, rates: true, government: true, diplo: {} };
+  // 60 obsolete phalanx, 1 city -> garrison cap 4; 60 > 4 + disbandOverBy(4) -> disband a phalanx.
+  const big = mk(60);
+  const cmd = ai.pickCommand(big, 'p1', RULESET, Object.assign({}, doneFlags));
+  assert.strictEqual(cmd.type, 'disband', 'over garrison cap at-peace -> disband a defender; got ' + JSON.stringify(cmd));
+  assert.strictEqual(big.units[cmd.unitId].type, 'phalanx', 'the disbanded unit is the obsolete phalanx defender');
+  // within the garrison cap + hysteresis (5 <= 4 + 4): no disband.
+  const few = ai.pickCommand(mk(5), 'p1', RULESET, Object.assign({}, doneFlags));
+  assert.ok(!few || few.type !== 'disband', 'within garrison cap civ keeps its defenders; got ' + JSON.stringify(few));
+});
+
 // B13a/B13e: the AI's defender choice era-scales past obsolete units — once a
 // tech obsoletes phalanx/militia (gunpowder), the AI builds the successor
 // instead of an obsolete unit setProduction now rejects.
@@ -731,12 +795,14 @@ test('XII.5b parts-rush: a committed civ rushes its in-production ss-part', asyn
   const cmd = ai.pickCommand(mk(['space-flight'], 'science'), 'p1', RULESET, Object.assign({}, done));
   assert.ok(cmd && cmd.type === 'buy' && cmd.cityId === 'c1',
     'a committed civ with a surplus treasury rushes its ss-part; got ' + JSON.stringify(cmd));
-  // control A: ancient era (no industrial+ tech) fails the eligibility gate.
+  // control A: ancient era (no industrial+ tech) fails the eligibility gate — never rushes the
+  // SS-PART (c1). #30: the widened surplus lever may rush a plain BUILDING (c2 temple) instead, so
+  // the commit check is "does not rush c1", not "does not buy at all".
   const anc = ai.pickCommand(mk([], 'science'), 'p1', RULESET, Object.assign({}, done));
-  assert.ok(!anc || anc.type !== 'buy', 'an ancient-era civ is not commit-eligible; got ' + JSON.stringify(anc));
-  // control B: a conquest stance fails spaceDriveOn (not in victoryDrive.spaceStances).
+  assert.ok(!anc || anc.cityId !== 'c1', 'an ancient-era civ never rushes the ss-part; got ' + JSON.stringify(anc));
+  // control B: a conquest stance fails spaceDriveOn — never rushes the ss-part (may rush a building).
   const agg = ai.pickCommand(mk(['space-flight'], 'aggressive'), 'p1', RULESET, Object.assign({}, done));
-  assert.ok(!agg || agg.type !== 'buy', 'a conquest-stance civ does not commit; got ' + JSON.stringify(agg));
+  assert.ok(!agg || agg.cityId !== 'c1', 'a conquest-stance civ never rushes the ss-part; got ' + JSON.stringify(agg));
 });
 
 // xiv-ai XII.5b Q3 (path-preferring research): a committed civ restricts its
