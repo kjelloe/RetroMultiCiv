@@ -309,14 +309,17 @@ export function initPanels(ctx) {
     if (!host || !ctx.buildQueue) return;
     const q = ctx.buildQueue.get(city.id);
     if (q.length === 0) {
-      host.innerHTML = '<span class="queue-hint">⏭ queue: empty — shift-click a production item to queue it</span>';
+      host.innerHTML = '<span class="queue-hint">⏭ queue: empty — tap + on a production item (or shift-click) to queue it</span>';
       return;
     }
-    host.innerHTML = '⏭ queue: ' + q.map((it, i) =>
+    // XIV §43: show up to 5 queued items; note any beyond
+    const shown = q.slice(0, 5);
+    host.innerHTML = '⏭ queue: ' + shown.map((it, i) =>
       `<span class="queue-item">${i + 1}. ${ctx.buildQueue.itemName(it)}`
       + `<button class="queue-btn" data-qmove="-1" data-qi="${i}" title="earlier">↑</button>`
       + `<button class="queue-btn" data-qmove="1" data-qi="${i}" title="later">↓</button>`
-      + `<button class="queue-btn" data-qdrop="${i}" title="remove">✕</button></span>`).join(' ');
+      + `<button class="queue-btn" data-qdrop="${i}" title="remove">✕</button></span>`).join(' ')
+      + (q.length > 5 ? ` <span class="queue-more">+${q.length - 5} more</span>` : '');
     host.querySelectorAll('.queue-btn').forEach(b => b.addEventListener('click', () => {
       if (b.dataset.qdrop !== undefined) ctx.buildQueue.removeAt(city.id, Number(b.dataset.qdrop));
       else ctx.buildQueue.move(city.id, Number(b.dataset.qi), Number(b.dataset.qmove));
@@ -473,10 +476,6 @@ export function initPanels(ctx) {
         : (surplus < 0
           ? `⚠ starving (net ${surplus}/turn)${settlerFood > 0 ? ' — rehome or expend settlers to free food' : ''}`
           : '⚠ stalled — no growth')}</div>`
-      + `<div${attr(prodTip)}>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
-      + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
-      + buyHtml
-      + '</div>'
       + `<div class="city-built"${attr(upkeepTip)}>${buildBuiltList(city, state)}</div>`
       + routesHtml(state, city) // A89: empty until routes exist in state
       + `<div>${city.workers !== undefined
@@ -484,6 +483,14 @@ export function initPanels(ctx) {
         : '👷 automatic tile assignment — click a tile to take over'}</div>`
       + (city.disorder === true // A68 (VIII.13): a loud banner, not a text line
         ? '<div class="disorder-banner">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
+    // XIV §43: the "building …" line lives at the TOP of the catalog column now
+    // (always visible under the Units/Buildings/Wonders selection), the queue
+    // renders directly below it — no longer buried in the left stats block.
+    document.getElementById('city-build-line').innerHTML =
+      `<div${attr(prodTip)}>building: ${def.name}${city.producing.kind === 'unit' ? ' <span title="units repeat until you change production">∞</span>' : ''} <span class="ys">${city.shields}/${defCost}</span>`
+      + (totals.shields > 0 ? ` (~${Math.max(1, Math.ceil((defCost - city.shields) / totals.shields))} turns)` : '')
+      + buyHtml
+      + '</div>';
     const buyBtn = document.getElementById('city-buy');
     if (buyBtn) {
       buyBtn.addEventListener('click', () =>
@@ -588,7 +595,7 @@ export function initPanels(ctx) {
 
     // production choices — click selects, double-click selects and closes;
     // tech-locked items are shown greyed with their prerequisite
-    const prodEl = document.getElementById('city-production');
+    const prodEl = document.getElementById('city-catalog'); // XIV §43: the scrollable catalog BODY (build line + queue sit above it, unwiped)
     prodEl.textContent = '';
     const me = state.players[ctx.HUMAN];
     // switching category forfeits half the shields (Civ 1), so the ETA differs
@@ -607,12 +614,15 @@ export function initPanels(ctx) {
       const btn = document.createElement('button');
       btn.className = 'option'
         + (city.producing.kind === item.kind && city.producing.id === item.id ? ' current' : '');
-      btn.innerHTML = label + (sub ? `<div class="fx">${sub}</div>` : '');
+      // XIV §43: a "+" affordance on every row enqueues (the touch path — the
+      // shift-click below has no touch equivalent, and stays for the desktop).
+      btn.innerHTML = '<span class="opt-add" title="add to the build queue">+</span>'
+        + label + (sub ? `<div class="fx">${sub}</div>` : '');
       if (tip) btn.title = tip; // Civilopedia flavor blurb on hover (P2/run-F #9)
       // second click on the same item = set + close (quick change);
-      // C3: shift-click APPENDS to the city's build queue instead
+      // C3: shift-click (or the "+") APPENDS to the city's build queue instead
       btn.addEventListener('click', ev => {
-        if (ev.shiftKey && ctx.buildQueue) {
+        if ((ev.target.classList.contains('opt-add') || ev.shiftKey) && ctx.buildQueue) {
           ctx.buildQueue.add(city.id, item);
           renderQueue(city);
           return;

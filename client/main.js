@@ -761,6 +761,21 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     ctx.militaryOverview.close();
     delete session.state.units.__probeM;
   }
+  // XIV §43: the "+" affordance on a catalog row enqueues (the touch path), and
+  // the "building …" line now lives in the catalog column (#city-build-line).
+  let buildqueue = 'unchecked';
+  if (session.state.cityOrder.length > 0) {
+    const cid = session.state.cityOrder[0];
+    ctx.panels.openCityPanel(cid);
+    const before = ctx.buildQueue ? ctx.buildQueue.get(cid).length : -1;
+    const add = document.querySelector('#city-catalog .option .opt-add');
+    if (add) add.click();
+    const after = ctx.buildQueue ? ctx.buildQueue.get(cid).length : -1;
+    const buildLine = document.getElementById('city-build-line');
+    buildqueue = (add ? 'plus' : 'noplus')
+      + '/' + (after === before + 1 ? 'enqueued' : `noq(${before}->${after})`)
+      + '/' + (buildLine && /building:/.test(buildLine.textContent) ? 'line' : 'noline');
+  }
   // XIV §33: an incoming diplomacy offer pops the envoy modal (leader + Accept /
   // Reject / Consider-later). Inject a rival's standing offer (a probe, not a
   // command — no hash impact), scan, and assert the modal shows; "Consider
@@ -866,6 +881,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city
     + ' · military: ' + military // XIV §41: military overview lists units with A/D/M + 🔍 zoom-to
+    + ' · buildqueue: ' + buildqueue // XIV §43: catalog "+" enqueues + the build line moved to the catalog
     + ' · envoy: ' + envoy // XIV §33: incoming-offer modal (Accept/Reject/Consider-later, persists)
     + ' · zoomto: ' + zoomto // XIV §35: 🔍 zoom-to on coord-bearing transient messages
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean

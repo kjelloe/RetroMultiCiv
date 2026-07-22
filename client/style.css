@@ -428,8 +428,32 @@ html, body {
   min-width: 200px;
   max-width: 280px;
   max-height: 340px;
-  overflow-y: auto;
+  display: flex;          /* XIV §43: build line + queue fixed on top, catalog scrolls */
+  flex-direction: column;
+  overflow: hidden;
 }
+#city-build-line {
+  font-size: 13px;
+  line-height: 1.6;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #2a3a55;
+}
+#city-catalog {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.panel button.option .opt-add {
+  float: right;
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid #46587c;
+  border-radius: 4px;
+  color: #8fc7ff;
+  font-weight: bold;
+}
+.panel button.option .opt-add:hover { background: #2f5388; color: #cde8ff; }
 
 #city-stats {
   line-height: 1.7;
@@ -1923,6 +1947,7 @@ html, body {
 #city-queue { font-size: 12px; color: #9fb3d0; margin: 4px 0 6px; }
 #city-queue .queue-hint { color: #6d7f9c; }
 #city-queue .queue-item { margin-right: 10px; white-space: nowrap; }
+#city-queue .queue-more { color: #6d7f9c; margin-left: 6px; }
 .queue-btn {
   background: none; border: 1px solid #2c4468; border-radius: 3px;
   color: #8fa8cc; cursor: pointer; font-family: inherit; font-size: 10px;

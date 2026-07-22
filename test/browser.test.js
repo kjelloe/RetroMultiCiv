@@ -177,6 +177,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §34: the city overview panel lists own cities (named row) and a row click opens that city
     assert.match(dom, /cityoverview: table\/rows\d+\/named\/opens/,
       'the city overview must show a named city row and open that city on row click');
+    // XIV §43: the catalog "+" enqueues (touch path) + the build line moved into the catalog column
+    assert.match(dom, /buildqueue: plus\/enqueued\/line/,
+      'the catalog "+" must enqueue and the "building:" line must render in #city-build-line');
     // XIV §41: the military overview lists own units with the A/D/M column and a 🔍 zoom-to
     assert.match(dom, /military: table\/rows\d+\/zoom\/adm/,
       'the military overview must list units with an A/D/M column and a 🔍 zoom-to');
