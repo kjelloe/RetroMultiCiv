@@ -61,3 +61,20 @@ landscape for human players to walk over, and the endings vision
 - Q4 ally input: personality→wonder mapping flavor (the reviewer's A59
   work + the ally's civ-identity writing) — invite before the window
   opens; not blocking (the effect-class default stands without it).
+
+## Ally framework ADOPTED (2026-07-22 reply — supersedes the 3-class default)
+
+Identity-first principle (verbatim): "A personality should favor a
+wonder because it advances that civilization's chosen story, not merely
+because its numeric effect scores highly." Appetite keys on STRATEGIC
+IDENTITY with effects as supporting evidence. Two guardrails, adopted
+as acceptance criteria: (1) NO universal wonder-hoarding personality —
+choices must reveal character; (2) PROJECT COHERENCE beats local value
+— a committed civ's wonder picks reinforce its project (space /
+conquest / naval / diplomatic) unless a real setback changes its
+circumstances. The ally's 8-personality table (Builders / Scientists /
+Explorers / Diplomats / Conquerors / Stewards / Industrialists /
+Visionary) maps onto our stance+leader-personality system via the
+bridge in specs/ally-ask-wonder-list.md; the per-wonder
+primary/secondary/never-unless mapping arrives from the ally against
+that list (our 3-class default ships only if it doesn't).
