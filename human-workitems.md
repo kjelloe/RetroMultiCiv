@@ -50,15 +50,13 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   Nothing pending either direction; it awaits witness-7 + the Final
   Record window.
 
-- [ ] **One-time box commands for the public index** (DNS record is in
-  and propagated by now): append the `servers.` nginx server block
-  (from `cloud-init.yaml` ~lines 92–108), extend the cert —
-  `sudo certbot --nginx -d multiciv.kjell.today -d
-  servers.multiciv.kjell.today` — then reload nginx and curl-check
-  `https://servers.multiciv.kjell.today/servers`. Rides the next
-  ssh-deploy naturally via cloud-init on a rebuild, but the LIVE box
-  needs the manual step once. Until this runs, the baked Find-game
-  default shows "master index unreachable" (harmless).
+- [x] **One-time box commands — DONE** (2026-07-23): cert expanded to
+  both names, `servers.` block installed, index answering. **The
+  public master index is LIVE end-to-end** — axis 5 is fully closed.
+  The ordering trap hit on the way (certbot before the block) is now
+  documented as how-to-host troubleshooting entry 7. Your server
+  lists itself in Find game after the next redeploy (the `--announce`
+  flag is already in the unit template).
 
 - [ ] **Studio session + runG.txt** (Roblox Studded round-2 review) —
   now the ONLY gate on the Roblox axis: **Tier-3 certification

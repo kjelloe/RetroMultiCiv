@@ -449,6 +449,26 @@ Individual symptoms and fixes:
    activity — a silent journal between two boot blocks means nothing ever hit
    the server.
 
+7. **certbot: `Could not automatically find a matching server block for
+   servers.<domain>`** (hit on the real live-box upgrade, 2026-07-23). You ran
+   `certbot --nginx -d <domain> -d servers.<domain>` before adding the
+   `servers.` nginx block, so the certificate was EXPANDED and saved (both
+   names — nothing lost) but the installer had nowhere to wire the new name.
+   On a fresh cloud-init this cannot happen (write_files lays the block down
+   before runcmd runs certbot); it is a live-box ordering trap only. Fix:
+   append the `servers.` server block (cloud-init template ~line 118) with the
+   real domain in `server_name`, then let certbot finish exactly as its error
+   suggests:
+   ```bash
+   sudo nginx -t
+   sudo certbot install --cert-name <domain>
+   sudo systemctl reload nginx
+   curl https://servers.<domain>/servers   # {"servers":[...]} once the game announces
+   ```
+   When asked Expand vs anything else during the original run: **Expand** —
+   one cert lineage covering both names, same file paths, no other nginx
+   edits.
+
 ---
 
 ## Listing your server in "Find game" (the public master index)

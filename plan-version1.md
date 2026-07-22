@@ -60,7 +60,7 @@ flowchart TD
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
     A50R["✅ A50 COMPLETE (reviewer-verified #2225):\naudit-fixes f0e03b1; oom-slice2b 579ba2e +\nheartbeat b4b9dcd merged since 0083, gated #2165"]
     SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
-    A51D["🚪 A51 master index PUBLIC:\nDNS ✅ · baked client default ✅ ·\nserver-browser panel ✅ · remaining =\nthe one-time box nginx/cert step (user)"]
+    A51D["✅ A51 master index PUBLIC + LIVE\n(2026-07-23: cert expanded, servers. block\ninstalled, index answering — axis 5 CLOSED)"]
     A50R --> SEC --> A51D
   end
 
@@ -127,7 +127,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
 | 3 | AI at M-targets | archetype ✅ ACCEPT (0090), #30 ✅ landed | **witness-7 verdict (running — the launch acceptance)**, invade B, gov re-eval #36, XV §11 disorder playbook |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 agent-complete + SO18 glyphs | **Studded round-2 (user)** — the only gate |
-| 5 | Public hosting + master index | CODE-COMPLETE (A50 ✅ verified) | **user one-time box nginx/cert step** — the only gate |
+| 5 | Public hosting + master index | ✅ COMPLETE + LIVE (box step done 07-23) | — (server self-lists on next redeploy) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
 
 ## Reading the tree — the three facts that matter
