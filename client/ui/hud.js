@@ -133,7 +133,9 @@ export function initHud(ctx) {
     // tooltip-only). The bar already opens the rates panel on click (panels.js).
     const luxRate = 100 - taxRate - sciRate;
     const govName = governmentOf(session.state, ctx.HUMAN, session.ruleset).name;
-    const ratesGov = `T${taxRate}/S${sciRate}/L${luxRate} · ${govName}`;
+    // XV §1: the top-bar rates use the research panel's icon vocabulary (💰 tax /
+    // 🔬 science / 🎭 luxury) instead of the cryptic T/S/L.
+    const ratesGov = `💰${taxRate}% 🔬${sciRate}% 🎭${luxRate}% · ${govName}`;
     researchLabel.title = 'income breakdown:\n' + (cityRows.join('\n') || 'no cities yet')
       + `\nrates: tax ${taxRate}% / science ${sciRate}% / luxury ${luxRate}% (T to change)`
       + `\ngovernment: ${govName}`

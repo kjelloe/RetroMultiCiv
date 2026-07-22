@@ -74,6 +74,14 @@ export function initPanels(ctx) {
     if (blurb) { const bl = document.createElement('div'); bl.style.marginTop = '4px'; bl.textContent = blurb; card.appendChild(bl); }
     return card;
   }
+  // XV §6: resolve a (pedia category, id) to the shared §22 hover-card summary —
+  // exposed so the discovery popup reuses this exact builder, never forks it.
+  function entitySummary(cat, id) {
+    const table = cat === 'units' ? units : cat === 'buildings' ? buildings : cat === 'wonders' ? wonders : null;
+    const kind = cat === 'units' ? 'unit' : cat === 'buildings' ? 'building' : cat === 'wonders' ? 'wonder' : null;
+    const def = table && table[id];
+    return def ? entitySummaryCard({ def, kind, id }) : null;
+  }
   // append `unlocks A, B` to a .fx line with each entity name a pedia hover-link
   function appendUnlocks(fx, unlocks) {
     fx.appendChild(document.createTextNode('unlocks '));
@@ -864,6 +872,7 @@ export function initPanels(ctx) {
   return {
     openCityPanel, closeCityPanel, toggleResearchPanel, cycleCity,
     openStackPanel, closeStackPanel, openNameDialog, closeAll, refresh,
+    entitySummary, // XV §6: the §22 hover-card summary builder, reused by the discovery popup
     isCityOpen: () => openCityId !== null
   };
 }

@@ -110,6 +110,67 @@ function dumpDomLive(chromium, url, ready, timeoutMs) {
   });
 }
 
+// #37: the tab-loss RESUME flow needs TWO navigations in the SAME context so
+// localStorage (rmc_local_autosave) persists — a single CDP session (one
+// profile) that navigates via location.href, polling the DOM like dumpDomLive.
+// `action` = 'resume' (click Resume) | 'discard' (click Discard).
+function resumeSession(chromium, base, action) {
+  return new Promise((resolve, reject) => {
+    const WebSocket = require('ws');
+    const port = 9222 + Math.floor(Math.random() * 4000);
+    const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-resume-'));
+    const proc = spawn(chromium, [
+      '--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+      '--window-size=800,600', '--user-data-dir=' + prof,
+      `--remote-debugging-port=${port}`, `${base}/client/?e2e=1&seed=12345`
+    ], { stdio: ['ignore', 'ignore', 'ignore'] });
+    const deadline = Date.now() + 35000;
+    let done = false;
+    const finish = (err, val) => {
+      if (done) return; done = true;
+      try { proc.kill('SIGKILL'); } catch (e) { /* gone */ }
+      fs.rm(prof, { recursive: true, force: true }, () => {});
+      err ? reject(err) : resolve(val);
+    };
+    proc.on('error', finish);
+    async function connect() {
+      let targets;
+      try { targets = await fetch(`http://127.0.0.1:${port}/json`).then(r => r.json()); }
+      catch (e) { return Date.now() > deadline ? finish(new Error('devtools never came up')) : setTimeout(connect, 200); }
+      const pg = targets.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+      if (!pg) return Date.now() > deadline ? finish(new Error('no CDP page target')) : setTimeout(connect, 200);
+      const ws = new WebSocket(pg.webSocketDebuggerUrl, { maxPayload: 64 * 1024 * 1024 });
+      let id = 0; const waiters = {};
+      const cmd = (m, p) => new Promise(r => { const i = ++id; waiters[i] = r; ws.send(JSON.stringify({ id: i, method: m, params: p })); });
+      const evalJS = async expr => { const r = await cmd('Runtime.evaluate', { expression: expr, returnByValue: true }); return r.result && r.result.result && r.result.result.value; };
+      const waitFor = async expr => { while (Date.now() < deadline && !done) { if (await evalJS(expr)) return true; await new Promise(s => setTimeout(s, 250)); } return false; };
+      ws.on('message', d => { const m = JSON.parse(d); if (m.id && waiters[m.id]) { waiters[m.id](m); delete waiters[m.id]; } });
+      ws.on('error', () => finish(new Error('CDP socket error')));
+      ws.on('open', async () => {
+        try {
+          const out = {};
+          out.autosaved = await waitFor(`localStorage.getItem('rmc_local_autosave') !== null`);
+          out.savedTurn = await evalJS(`(JSON.parse(localStorage.getItem('rmc_local_autosave')||'{}').turn)`);
+          await evalJS(`location.href = location.pathname`); // bare page, same context
+          out.cardShown = await waitFor(`!!document.getElementById('setup-resume')`);
+          out.cardText = await evalJS(`((document.getElementById('setup-resume')||{}).textContent||'')`);
+          if (action === 'resume') {
+            await evalJS(`document.getElementById('setup-resume-yes').click()`);
+            out.canonicalUrl = await waitFor(`location.search.indexOf('resume=local') !== -1`);
+            out.bootedTurn = await waitFor(`/turn ${out.savedTurn}\\b/.test((document.getElementById('hud-status')||{}).textContent||'')`);
+          } else {
+            await evalJS(`document.getElementById('setup-resume-no').click()`);
+            out.cleared = await waitFor(`localStorage.getItem('rmc_local_autosave') === null && !document.getElementById('setup-resume')`);
+          }
+          try { ws.close(); } catch (e) { /* closing */ }
+          finish(null, out);
+        } catch (e) { finish(e); }
+      });
+    }
+    connect();
+  });
+}
+
 const chromium = findChromium();
 
 test('browser smoke: client boots to a playable state', { skip: !chromium && 'headless chromium not cached' }, async () => {
@@ -165,7 +226,7 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
       'research-panel unlock names must be pedia hover-links that show the shared hover-card');
     // XIV §26: the tech-discovery celebration overlay opens with the kicker + the
     // two deliberate exits, and Continue closes it (no auto-timer)
-    assert.match(dom, /discovery: overlay\/kicker\/exits\/closed/,
+    assert.match(dom, /discovery: overlay\/kicker\/exits\/unlockcard\/closed/,
       'the discovery celebration must show ADVANCE DISCOVERED + Continue/Choose Research and close on Continue');
     // XIV §25/§23: the map canvas suppresses the browser context menu; the
     // 'Show unit move' pacing option is present
@@ -186,6 +247,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // A58 item 4: the Civilopedia search finds an entry (Palace) by name
     assert.match(dom, /pediasearch: input\/found/,
       'the Civilopedia search must find an entry by name');
+    // XV §3/§4: the research panel's View-Tech-Tree opens a tree with a Back/Close-research footer; Back leaves the panel open
+    assert.match(dom, /techtreeux: inpanel\/footer\/backok/,
+      'the tech tree opens from the research panel and its footer Back returns to the list');
     // XIV §48: the own-wonder completion splash reuses the discovery frame (kicker + Go-to-city/Continue, no auto-close)
     assert.match(dom, /wondersplash: overlay\/kicker\/exits\/closed/,
       'an own wonder completion must pop the WONDER COMPLETE splash with Go-to-city + Continue exits');
@@ -586,4 +650,32 @@ test('browser LAN wait: rival at turn shows the waiting line, not the your-turn 
     } finally {
       await gs.close();
     }
+  });
+
+// #37: the tab-loss RESUME flow (c746298) — coverage browser.test.js could not
+// reach before (two navigations, shared localStorage). ?e2e=1 autosaves, the
+// bare page offers Resume/Discard, Resume boots at the saved turn.
+test('browser resume: autosave → #setup-resume card → Resume boots at the saved turn',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const base = `http://127.0.0.1:${server.address().port}`;
+      const out = await resumeSession(chromium, base, 'resume');
+      assert.ok(out.autosaved, 'the first ?e2e=1 turn writes rmc_local_autosave');
+      assert.ok(out.cardShown, 'the bare page shows the #setup-resume card');
+      assert.match(out.cardText, /turn 1/, 'the resume card names the saved turn');
+      assert.ok(out.canonicalUrl, 'Resume canonicalizes the URL to ?resume=local');
+      assert.ok(out.bootedTurn, 'the resumed game boots at the saved turn');
+    } finally { server.close(); }
+  });
+
+test('browser resume: Discard removes the autosave and the card',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const base = `http://127.0.0.1:${server.address().port}`;
+      const out = await resumeSession(chromium, base, 'discard');
+      assert.ok(out.autosaved && out.cardShown, 'the autosave + card appear first');
+      assert.ok(out.cleared, 'Discard removes rmc_local_autosave and the card');
+    } finally { server.close(); }
   });

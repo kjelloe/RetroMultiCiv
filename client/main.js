@@ -652,7 +652,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   let hudpolish = 'unchecked';
   {
     const rl = document.getElementById('research-label');
-    const ratesOk = rl && /T\d+\/S\d+\/L\d+ · \S/.test(rl.textContent);
+    const ratesOk = rl && /💰\d+% 🔬\d+% 🎭\d+% · \S/.test(rl.textContent); // XV §1: icon rate vocabulary
     const tt = document.getElementById('open-tech-tree');
     const ttInPanel = tt && tt.closest && tt.closest('#research-panel') && /View technology tree/.test(tt.textContent);
     const vs = document.getElementById('view-summary');
@@ -665,16 +665,47 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
   // deliberate exits (Continue / Choose Research); NO auto-close.
   let discovery = 'unchecked';
   if (ctx.discoveryCard && ctx.discoveryCard.show) {
-    const someTech = Object.keys(session.ruleset.techs).find(t => session.ruleset.techs[t].era) || 'writing';
+    const R = session.ruleset;
+    const hasUnlock = t => Object.values(R.units).concat(Object.values(R.buildings), Object.values(R.wonders)).some(d => d.tech === t);
+    const someTech = Object.keys(R.techs).find(t => R.techs[t].era && hasUnlock(t))
+      || Object.keys(R.techs).find(t => R.techs[t].era) || 'writing';
     ctx.discoveryCard.show(someTech);
     const ov = document.getElementById('discovery-overlay');
     const card = document.getElementById('discovery-card');
     discovery = (ov ? 'overlay' : 'noverlay')
       + '/' + (card && /ADVANCE DISCOVERED/.test(card.textContent) ? 'kicker' : 'nokicker')
       + '/' + (card && card.querySelector('.dc-continue') && card.querySelector('.dc-choose') ? 'exits' : 'noexits');
+    // XV §6: an unlock link's hover shows the §22 shared hover-card summary
+    const dcLink = card && card.querySelector('.dc-link');
+    if (dcLink && ctx.hoverCard) {
+      dcLink.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      const h = document.getElementById('hover-card');
+      discovery += '/' + (h && !h.classList.contains('hidden') && h.querySelector('.hover-title') ? 'unlockcard' : 'nounlockcard');
+      ctx.hoverCard.hide();
+    } else { discovery += '/nolink'; }
     const cont = card && card.querySelector('.dc-continue');
     if (cont) cont.click(); // Continue closes it (no auto-timer)
     discovery += '/' + (document.getElementById('discovery-overlay') ? 'stuck' : 'closed');
+  }
+  // XV §3/§4: the research panel's View-Tech-Tree (lower-left) opens the tree,
+  // which has a Back-to-list + Close-research footer; Back leaves the panel open.
+  let techtreeux = 'unchecked';
+  {
+    const rp = document.getElementById('research-panel');
+    if (rp && rp.classList.contains('hidden') && ctx.panels) ctx.panels.toggleResearchPanel();
+    const ttBtn = document.getElementById('open-tech-tree');
+    if (ttBtn) {
+      ttBtn.click(); // open the tree
+      const back = document.getElementById('tt-back');
+      const closeR = document.getElementById('tt-close-research');
+      techtreeux = (ttBtn.closest('#research-panel') ? 'inpanel' : 'notinpanel')
+        + '/' + (back && closeR ? 'footer' : 'nofooter');
+      if (back) back.click(); // Back closes the tree, research panel stays
+      const treeHidden = (document.getElementById('tech-tree') || {}).classList
+        ? document.getElementById('tech-tree').classList.contains('hidden') : true;
+      const rpOpen = rp && !rp.classList.contains('hidden');
+      techtreeux += '/' + (treeHidden && rpOpen ? 'backok' : 'backbad');
+    }
   }
   // XIV §48: the own-wonder completion splash reuses the discovery frame — the
   // WONDER COMPLETE card with Go-to-city + Continue exits, no auto-close.
@@ -939,6 +970,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · hudpolish: ' + hudpolish // XIV §1/§9/§21/§28: rates+gov, tech-tree in panel, summary reopen
     + ' · hoverinfo: ' + hoverinfo // XIV §22: research-panel pedia hover-links + shared card
     + ' · discovery: ' + discovery // XIV §26: celebration overlay (kicker + two exits, no auto-close)
+    + ' · techtreeux: ' + techtreeux // XV §3/§4: View-Tech-Tree in panel + tree Back/Close-research footer
     + ' · wondersplash: ' + wondersplash // XIV §48: own-wonder completion splash (reuses the discovery frame)
     + ' · pediasearch: ' + pediasearch // A58 item 4: Civilopedia search finds an entry by name
     + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option

@@ -36,12 +36,23 @@ export function initTechTree(ctx) {
     + '<span class="tt-k avail">○ available</span><span class="tt-k locked">· locked</span>'
     + '<span class="tt-k goalk">◇ beeline goal</span></span>'
     + '<button id="tech-tree-close" title="close">✕</button></div>'
-    + '<div id="tech-tree-scroll"><div id="tech-tree-canvas"><svg id="tech-tree-edges"></svg></div></div>';
+    + '<div id="tech-tree-scroll"><div id="tech-tree-canvas"><svg id="tech-tree-edges"></svg></div></div>'
+    // XV §4: a footer — Back returns to the research LIST (panel stays open behind);
+    // Close research shuts BOTH the tree and the research panel.
+    + '<div id="tech-tree-foot">'
+    + '<button id="tt-back">← Back to technology list</button>'
+    + '<button id="tt-close-research">Close research ✕</button></div>';
   document.body.appendChild(overlay);
   const scroll = overlay.querySelector('#tech-tree-scroll');
   const canvas = overlay.querySelector('#tech-tree-canvas');
   const svg = overlay.querySelector('#tech-tree-edges');
   overlay.querySelector('#tech-tree-close').addEventListener('click', () => toggle(false));
+  overlay.querySelector('#tt-back').addEventListener('click', () => toggle(false));
+  overlay.querySelector('#tt-close-research').addEventListener('click', () => {
+    toggle(false);
+    const rp = document.getElementById('research-panel');
+    if (rp && !rp.classList.contains('hidden') && ctx.panels && ctx.panels.toggleResearchPanel) ctx.panels.toggleResearchPanel();
+  });
 
   // --- layout (built once — the DAG shape never changes) ---------------------
   const pos = {};   // id -> { x, y }

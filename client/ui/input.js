@@ -1006,6 +1006,14 @@ export function initInput(ctx) {
   window.addEventListener('pointerdown', clearYieldCard);
 
   renderer.onHover(pick => {
+    // XV §2: suspend the tile-hover readout while the research panel is open — it
+    // otherwise flickers over the panel and distracts from picking research.
+    const rp = document.getElementById('research-panel');
+    if (rp && !rp.classList.contains('hidden')) {
+      hud.tile('');
+      if (ctx.hoverCard) ctx.hoverCard.hide();
+      return;
+    }
     lastHoverTile = pick ? { x: pick.tile.x, y: pick.tile.y } : null; // XIV §25
     maybeYieldCard(pick); // XIV §24 (all viewers, spectators included)
     if (ctx.SPECTATOR) {

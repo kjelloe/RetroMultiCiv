@@ -65,9 +65,11 @@ html, body {
 #research-bar {
   position: absolute;
   top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 380px;
+  /* XV §1: +8ch wider for the icon rates — widen RIGHTWARD (left edge pinned at
+     its old centered position) so the 💰/⚔/🏙 overview buttons keep their gap */
+  left: calc(50% - 190px);
+  transform: none;
+  width: calc(380px + 8ch);
   height: 26px;
   background: rgba(10, 16, 28, 0.85);
   border: 1px solid #2a3a55;
@@ -691,9 +693,9 @@ html, body {
 
 /* XIV §21: the tech-tree button sits in the research panel's lower section */
 #research-panel #open-tech-tree {
-  display: block; width: 100%; margin-top: 10px; padding: 9px 12px; box-sizing: border-box;
+  display: inline-block; width: auto; margin-top: 12px; padding: 9px 12px; box-sizing: border-box;
   background: #223a5e; color: #cfe0f5; border: 1px solid #3b5d8f; border-radius: 6px;
-  font-size: 14px; font-family: inherit; cursor: pointer;
+  font-size: 14px; font-family: inherit; cursor: pointer; /* XV §3: lower-left, not full-width */
 }
 #replay-theater {
   position: absolute;
@@ -1891,6 +1893,16 @@ html, body {
 #tech-tree-legend .goalk { color: #7fbcff; }
 #tech-tree-head button { margin-left: auto; background: none; border: 1px solid #3b5d8f; border-radius: 4px; color: #cdd8ea; cursor: pointer; }
 #tech-tree-scroll { flex: 1; overflow: auto; position: relative; cursor: grab; touch-action: none; }
+/* XV §4: the tree footer — Back (left) / Close research (right) */
+#tech-tree-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px; border-top: 1px solid #24344f;
+}
+#tech-tree-foot button {
+  background: #223a5e; color: #cfe0f5; border: 1px solid #3b5d8f;
+  border-radius: 6px; padding: 8px 14px; font-family: inherit; font-size: 13px; cursor: pointer;
+}
+#tech-tree-foot button:hover { background: #2f5388; }
 #tech-tree-scroll:active { cursor: grabbing; }
 #tech-tree-canvas { position: relative; }
 #tech-tree-edges { position: absolute; left: 0; top: 0; pointer-events: none; }
