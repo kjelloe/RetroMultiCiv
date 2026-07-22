@@ -8,9 +8,9 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-21 night (marker-0082 = candidate; danger-abandon
-landed + gated green; 4th witness verdict in — the WONDER-BUILDING fork
-below is the one open decision)._
+_Last synced: 2026-07-22 morning (marker-0085 = candidate, 17 consecutive
+consistent; naval slice A landed dormant+proven; wake list + two rulings
+below are the open items)._
 
 ---
 
@@ -32,13 +32,12 @@ space-arc saga, wake list)._
   landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the
   4th witness (commits survive; abandons concrete-only).
 
-- [ ] **Redeploy from marker-0083** (`c746298`, both gates real, 15th
-  consecutive consistent): the 7-level difficulty ladder, danger-abandon,
-  the full A50 hardening arc, B27, entry-default-LOCAL + the tab-loss
-  autosave/resume, sea-raids→disasters→nuclear from the 0075-0082 span.
-  WITH the one-time box unit edit from the deploy review: `--max-turns
-  700` (+ optional `--bug-reports` + its ReadWritePaths line) — see the
-  ssh-deploy review notes. Browsers may need a hard refresh.
+- [ ] **Redeploy from marker-0085** (`68035ea`): everything through the
+  difficulty ladder, danger-abandon, A50 arc, B27, entry-default-LOCAL +
+  tab-loss autosave/resume, manhattan-gate/no-nukes, the space-pipeline
+  repairs, naval slice A. WITH the one-time box unit edit: `--max-turns
+  700` (+ optional `--bug-reports` + ReadWritePaths) — see the
+  ssh-deploy review. Browsers may need a hard refresh.
 
 - [ ] **Fresh sessions: bugfixer + helper** (both closed/idle at
   boundaries). bugfixer: queue 9, next = naval presence-1 (ruling
