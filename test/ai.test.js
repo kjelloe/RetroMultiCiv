@@ -1109,3 +1109,23 @@ test('naval-presence M4: oceanTech = navigation; needsOcean distinguishes wide o
   const wide = mk(8, [2, 3, 4, 5]);
   assert.strictEqual(ai.needsOcean(wide, 'p1', wide.players.p1, RULESET), true, 'wide ocean: no coast-hug path -> ocean hull needed');
 });
+
+// #35 space-war-hold: spacePathPct = the % of the space-flight tech closure (Apollo + ss-parts)
+// a civ has researched — the pure engine twin of soak.js's telemetry pathPct. It drives the
+// pathPct-conditional 'warring' abandon (a committed civ with pathPct >= holdPathPct holds).
+test('#35 spacePathPct: 0 with no closure tech, 100 with the full closure, monotone between', async () => {
+  const { ai } = await load();
+  const st = techs => ({ players: { p1: { id: 'p1', techs } } });
+  // gather the closure = Apollo's tech + every ss-part tech
+  const closure = {};
+  const apollo = RULESET.wonders[RULESET.rules.ssFlight.gateWonder].tech;
+  const markAll = (id) => { const stack = [id]; while (stack.length) { const t = stack.pop(); if (closure[t]) continue; closure[t] = true; for (const r of RULESET.techs[t].prereqs) stack.push(r); } };
+  if (apollo) markAll(apollo);
+  for (const k of Object.keys(RULESET.rules.ssParts)) markAll(RULESET.rules.ssParts[k].tech);
+  const all = Object.keys(closure);
+  assert.strictEqual(ai.spacePathPct(st([]), 'p1', RULESET), 0, 'no closure tech -> 0%');
+  assert.strictEqual(ai.spacePathPct(st(all), 'p1', RULESET), 100, 'full closure -> 100%');
+  const half = all.slice(0, Math.floor(all.length / 2));
+  const pct = ai.spacePathPct(st(half), 'p1', RULESET);
+  assert.ok(pct > 0 && pct < 100, `partial closure -> between 0 and 100 (got ${pct})`);
+});

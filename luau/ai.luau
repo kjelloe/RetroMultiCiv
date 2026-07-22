@@ -973,6 +973,35 @@ local function ownedCities(state: any, playerId: string): number
 	return n
 end
 
+-- #35 space-war-hold (b, ruled #2220): the % of the space-flight tech CLOSURE a civ has
+-- researched -- pure engine twin of soak.js pathPct telemetry. idiv (floor) for determinism.
+local function spacePathPct(state: any, playerId: string, ruleset: any): number
+	local closure = {}
+	local apolloTech = ruleset.wonders[ruleset.rules.ssFlight.gateWonder].tech
+	if apolloTech ~= nil and apolloTech ~= "" then
+		markTechPath(ruleset, apolloTech, closure)
+	end
+	local parts = ruleset.rules.ssParts
+	for k in pairs(parts) do
+		markTechPath(ruleset, parts[k].tech, closure)
+	end
+	local closureSize = 0
+	for _ in pairs(closure) do
+		closureSize += 1
+	end
+	if closureSize == 0 then
+		return 100
+	end
+	local me = state.players[playerId]
+	local known = 0
+	for t in pairs(closure) do
+		if table.find(me.techs, t) ~= nil then
+			known += 1
+		end
+	end
+	return idiv(100 * known, closureSize)
+end
+
 -- XII.5b (Q2 ruled B): COMMITTED = spaceDriveOn && spaceCommitEligible && the
 -- strategic snapshot is not offensive/besieged (XII.5b-tune #2117: not warring
 -- mode, not high threat). Snapshot runs past the cheap eligibility gates. Pure.
@@ -986,7 +1015,14 @@ local function spaceCommitted(state: any, playerId: string, ruleset: any): boole
 	-- abandon ONLY on CONCRETE danger -- mode "warring", an enemy adjacent to the capital
 	-- (spaceCommitEligible cheb-1), or a CITY LOST since last turn (ownedCities < record).
 	-- The threat-metric streak was REMOVED. Recommit possible once danger clears.
-	if snap.mode == "warring" then return false end
+	-- #35 space-war-hold (b): the 'warring' abandon is CONDITIONAL -- a committed civ with
+	-- pathPct >= victoryDrive.holdPathPct HOLDS through ORDINARY war. Hard triggers stay uncond.
+	if snap.mode == "warring" then
+		local holdPct = ruleset.rules.victoryDrive.holdPathPct
+		if holdPct == nil or spacePathPct(state, playerId, ruleset) < holdPct then
+			return false
+		end
+	end
 	if me.spaceCities ~= nil and ownedCities(state, playerId) < me.spaceCities then return false end
 	return true
 end

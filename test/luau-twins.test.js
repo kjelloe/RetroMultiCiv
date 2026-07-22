@@ -243,7 +243,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x989819e2\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x511b3190\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -302,8 +302,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '9ad90edc', pangaea: 'bb12df03',
-      archipelago: 'da654d72', islands: '8278bd33'
+      continents: 'f6c4fc1b', pangaea: '698cfefc',
+      archipelago: '046f31bf', islands: '8a6bfefe'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -350,8 +350,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // 0xb8965a25 (difficulty block #2155/#2158: difficulties table + createGame stamps state.difficulty) ->
 // 0x9f2d8558 (manhattan-gate #16: manhattan-project effect {nukesEnabled} in wonders.json) ->
 // 0x56d17745 (naval-presence presence-1 #2201: seaPathRadius knob in rules.json).
+// -> 0xac983686 (space-war-hold #35: victoryDrive.holdPathPct knob in rules.json).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x56d17745 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xac983686 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

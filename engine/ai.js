@@ -963,6 +963,23 @@ function spaceCommitEligible(state, playerId, ruleset) {
 // omitted in v1 (multiple committed civs = a race; Q4 pause keeps it contestable).
 // The snapshot runs only past the cheap eligibility gates, so no per-turn cost for
 // the field. Pure, both engines.
+// #35 space-war-hold (b, ruled #2220): the % of the space-flight tech CLOSURE (Apollo's tech +
+// every ssPart tech) a civ has researched — the pure engine twin of soak.js's telemetry pathPct.
+// Integer (idiv floor) for determinism; soak's Math.round is a <=1pt display-only difference.
+function spacePathPct(state, playerId, ruleset) {
+  const closure = {};
+  const apolloTech = ruleset.wonders[ruleset.rules.ssFlight.gateWonder].tech;
+  if (apolloTech !== undefined && apolloTech !== '') markTechPath(ruleset, apolloTech, closure);
+  const parts = ruleset.rules.ssParts;
+  for (const k of Object.keys(parts)) markTechPath(ruleset, parts[k].tech, closure);
+  const closureSize = Object.keys(closure).length;
+  if (closureSize === 0) return 100;
+  const me = state.players[playerId];
+  let known = 0;
+  for (const t of Object.keys(closure)) { if (me.techs.indexOf(t) !== -1) known = known + 1; }
+  return idiv(100 * known, closureSize);
+}
+
 function spaceCommitted(state, playerId, ruleset) {
   const me = state.players[playerId];
   if (me === undefined) return false;
@@ -974,7 +991,15 @@ function spaceCommitted(state, playerId, ruleset) {
   // or a CITY WAS LOST since last turn (ownedCities dropped below the record). Recommit
   // is possible once danger clears and eligibility returns. The threat-metric streak was
   // REMOVED — #2125's latch was structurally sound but its threat signal misfired.
-  if (strategicSnapshot(state, playerId, ruleset).mode === 'warring') return false;
+  // #35 space-war-hold (b, ruled #2220): the 'warring' abandon is now CONDITIONAL — a committed
+  // civ with pathPct >= victoryDrive.holdPathPct HOLDS the drive through ORDINARY war (Civ 1-
+  // authentic: the AI beelined space while fighting; the King sweep showed a 100%-path civ
+  // war-abandoned a COMPLETE drive). The two HARD triggers stay UNCONDITIONAL: the capital cheb-1
+  // check (spaceCommitEligible, above) and city-loss (below).
+  if (strategicSnapshot(state, playerId, ruleset).mode === 'warring') {
+    const holdPct = ruleset.rules.victoryDrive.holdPathPct;
+    if (holdPct === undefined || spacePathPct(state, playerId, ruleset) < holdPct) return false;
+  }
   if (me.spaceCities !== undefined && ownedCities(state, playerId) < me.spaceCities) return false;
   return true;
 }
@@ -2558,4 +2583,4 @@ export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsSt
 // XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
 // for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
 // measurement, zero engine-decision use, no luau caller. Pure reads.
-export { spaceCommitEligible, spaceCommitted, nextSsPart, updateSpaceCityRecord, ownedCities };
+export { spaceCommitEligible, spaceCommitted, nextSsPart, updateSpaceCityRecord, ownedCities, spacePathPct };
