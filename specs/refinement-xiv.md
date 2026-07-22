@@ -10,9 +10,13 @@ concern is answered by the localStorage autosave + setup resume card +
 awaiting user Studio review). Engine batch SHIPPED (markers 0071-0082):
 §12 pathing+escort ✅ · §13 deficit ladder ✅ · §14 treasury+parley ✅ ·
 §40 settler pop-cost ✅ · §50 city-as-road ✅ · §46/§45b queued.
-Helper: §24 tile-yield ✅ + §27 tech-tree cards ✅ (hover-info #11 ⅔;
-§22 pedia-links remaining), regency lifecycle ✅, save/load buttons ✅.
-Remaining helper queue continues from §26 discovery-overlay (queue #12+)._
+Helper sprint through 2026-07-22: §22+§24+§27 hover-info ✅ ·
+§26 discovery celebration ✅ · §23+§25 input pacing + right-click goto ✅
+· §10 mobile item ✅ · advisor hint cards ✅ (ally copy wiring queued) ·
+§32+§36+§38 quick-UI ✅ · §34 city overview ✅ · §33 envoy modal ✅ ·
+regency lifecycle ✅ · save/load ✅. In flight: §35 zoom-to. Remaining
+helper queue: mobile §6+§7, auto-takeover §30, order-queue §31, road
+goto §37, batches 3-5, then the XV set._
 
 Source: user + friend playtest on https://multiciv.kjell.today across desktop
 browser, iPad (2020), and phone. 29 items, triaged by the architect; each item

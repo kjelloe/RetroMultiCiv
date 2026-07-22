@@ -57,11 +57,10 @@ space-arc saga, wake list)._
   needs the manual step once.
 
 - [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
-  **ally relay — USE THE NEW NOTE**: `specs/ally-status-update-2026-07-22b.md`
-  (supersedes the earlier one: the space saga's research-depth ending,
-  the servers.multiciv milestone, and TWO concrete asks — advisor
-  hint-card copy vs specs/advisor-trigger-pedia-table.md, and the
-  wonder-personality table).
+  **ally relay — ONE item left**: `specs/ally-ask-wonder-list.md` (the
+  22-wonder table for their personality mapping — their advisor copy is
+  already delivered and being wired; mention the one branding amendment:
+  the victory stub ships without the withdrawn 'Founders' name).
 
 _Recently landed (away window 2 + since):_ markers 0077-0081, all
 merge-consistent (14 consecutive since 0069); the versioning audit's
