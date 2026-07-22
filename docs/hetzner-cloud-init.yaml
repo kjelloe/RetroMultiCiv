@@ -111,6 +111,23 @@ write_files:
           }
       }
 
+      # Public master index (servers.<YOUR_DOMAIN>, DNS added
+      # 2026-07-22) — the well-known name baked into clients + third-party
+      # --announce URLs. Same upstream as /master/ (which stays as the
+      # same-origin alias); certbot extends the cert with -d servers....
+      server {
+          listen 80;
+          server_name servers.<YOUR_DOMAIN>;
+          add_header Strict-Transport-Security "max-age=31536000" always;
+          location / {
+              proxy_pass       http://127.0.0.1:8200/;
+              proxy_set_header Host              $host;
+              proxy_set_header X-Real-IP         $remote_addr;
+              proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+          }
+      }
+
   # ── systemd: MASTER index (bulletin board, ~100 MB). Started first so the
   #    game can announce to it. ────────────────────────────────────────────────
   - path: /etc/systemd/system/retromulticiv-master.service
@@ -222,7 +239,7 @@ write_files:
       sudo systemctl enable --now retromulticiv-game
 
       echo "==> Obtaining TLS certificate"
-      sudo certbot --nginx -d <YOUR_DOMAIN> \
+      sudo certbot --nginx -d <YOUR_DOMAIN> -d servers.<YOUR_DOMAIN> \
         --non-interactive --agree-tos -m <YOUR_EMAIL>
 
       sudo systemctl reload nginx

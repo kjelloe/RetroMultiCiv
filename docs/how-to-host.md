@@ -451,6 +451,27 @@ Individual symptoms and fixes:
 
 ---
 
+## Listing your server in "Find game" (the public master index)
+
+The official master index lives at **`https://servers.multiciv.kjell.today`**
+— every client's Find-game button queries it by default (override with
+`?master=<url>`, silence with `?master=off`). To list your server there,
+add two flags to your game server:
+
+```
+--announce https://servers.multiciv.kjell.today \
+--public-addr your.domain.example:443 \
+--public-name "My server (EU) 8 civ"
+```
+
+- `--public-addr` is the address PLAYERS reach you at: bare `host:port`,
+  no scheme; the public port (443 behind nginx), never the internal 8123.
+- The index probes your `/healthz` before listing you and drops you ~3
+  missed heartbeats after you stop announcing. Version-mismatched servers
+  are shown greyed with a checksum hint, never hidden.
+- Nothing else is shared: the index stores what you announce (name,
+  address, counts) — no game state, no tokens.
+
 ## Raspberry Pi
 
 A Pi (3/4/5, or Zero 2 W) hosts a small game fine. Only the deltas from the

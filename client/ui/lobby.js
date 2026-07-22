@@ -21,12 +21,18 @@ const GAMEID_KEY = 'retromulticiv-gameid';
 // trap: main.js canonicalizes the URL after boot, a lazy read would miss it)
 // and persisted, so "configured" survives reloads. Clearable by ?master=off.
 const MASTER_KEY = 'retromulticiv-master';
+// The well-known public master index (user DNS record 2026-07-22) — the
+// QuakeWorld pattern's whole point: Find game works out of the box. ?master=
+// overrides it (persisted), ?master=off disables it (persisted as 'off' so
+// the default does not resurrect on reload).
+const DEFAULT_MASTER = 'https://servers.multiciv.kjell.today';
 const MASTER_PARAM = new URLSearchParams(location.search).get('master');
-if (MASTER_PARAM === 'off') { try { localStorage.removeItem(MASTER_KEY); } catch (e) { /* private mode */ } }
-else if (MASTER_PARAM) { try { localStorage.setItem(MASTER_KEY, MASTER_PARAM); } catch (e) { /* private mode */ } }
+if (MASTER_PARAM) { try { localStorage.setItem(MASTER_KEY, MASTER_PARAM); } catch (e) { /* private mode */ } }
 function masterUrl() {
-  if (MASTER_PARAM && MASTER_PARAM !== 'off') return MASTER_PARAM;
-  try { return localStorage.getItem(MASTER_KEY); } catch (e) { return null; }
+  let v = MASTER_PARAM;
+  if (!v) { try { v = localStorage.getItem(MASTER_KEY); } catch (e) { v = null; } }
+  if (v === 'off') return null;
+  return v || DEFAULT_MASTER;
 }
 // A51c: a picked GLOBAL server's ws base; null = this page's own host. The
 // lobby socket AND the post-join game boot both honor it — main.js already
