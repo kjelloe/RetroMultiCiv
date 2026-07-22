@@ -55,8 +55,12 @@ local elapsed = os.clock() - t0
 
 for _, cp in ipairs(deepAt) do
 	print("checkpoint " .. cp .. ": " .. tostring(result.checkpoints[cp]))
+	-- #28: the stamp-excluded behaviorHash alongside — a re-record reads both to tell a
+	-- cosmetic rulesetHash-stamp move (behavior unchanged) from a real behavioral one.
+	print("behavior " .. cp .. ": " .. tostring(result.behaviorCheckpoints[cp]))
 end
 print("rounds: " .. result.rounds .. " finalHash: " .. result.finalHash)
+print("behaviorFinalHash: " .. tostring(result.behaviorFinalHash))
 if natural then
 	print("winner: " .. tostring(result.state.winner))
 end

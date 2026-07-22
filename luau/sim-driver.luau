@@ -326,6 +326,7 @@ local function runSim(opts: any): any
 	end
 
 	local checkpoints = {}
+	local behaviorCheckpoints = {} -- #28: behaviorHash (stamp-excluded) parallel to checkpoints
 	local rounds = 0
 	for round = 1, turns do
 		local startTurn = state.turn
@@ -359,6 +360,7 @@ local function runSim(opts: any): any
 
 		if table.find(deepAt, round) ~= nil then
 			checkpoints[round] = statehash.hashState(state)
+			behaviorCheckpoints[round] = statehash.behaviorHash(state) -- #28: stamp-excluded
 		end
 		if state.gameOver then
 			break
@@ -369,7 +371,9 @@ local function runSim(opts: any): any
 		state = state,
 		rounds = rounds,
 		checkpoints = checkpoints,
+		behaviorCheckpoints = behaviorCheckpoints,
 		finalHash = statehash.hashState(state),
+		behaviorFinalHash = statehash.behaviorHash(state),
 	}
 end
 

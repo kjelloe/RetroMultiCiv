@@ -43,6 +43,16 @@ const GOLDEN_SOAK = {
 };
 const GOLDEN_NATURAL = { rounds: 431, winner: 'p2', finalHash: '0x840026ac' };
 
+// #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
+// checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
+// rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
+// it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
+const BEHAVIOR_SOAK = {
+  checkpoints: { 100: '0x79e75d14', 200: '0xa030c263', 300: '0x5b9dc94a', 400: '0x982df3e2' },
+  finalHash: '0x982df3e2'
+};
+const BEHAVIOR_NATURAL = { finalHash: '0x573e082d' };
+
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
     turns: 400,
@@ -63,6 +73,12 @@ test('mechanics soak: 400 turns with chaos, run twice — deterministic and gold
   const result = { rounds: a.rounds, checkpoints: a.checkpoints, finalHash: a.finalHash };
   if (GOLDEN_SOAK === null) console.log(`golden soak: ${JSON.stringify(result)}`);
   else assert.deepStrictEqual(result, GOLDEN_SOAK, 'drifted from golden — if the change was intentional, re-record (header)');
+
+  // #28: the stamp-excluded behavior hashes (deterministic across the double run too).
+  assert.deepStrictEqual(b.behaviorCheckpoints, a.behaviorCheckpoints, 'behaviorHash nondeterminism');
+  const behavior = { checkpoints: a.behaviorCheckpoints, finalHash: a.behaviorFinalHash };
+  if (BEHAVIOR_SOAK === null) console.log(`behavior soak: ${JSON.stringify(behavior)}`);
+  else assert.deepStrictEqual(behavior, BEHAVIOR_SOAK, 'behaviorHash drifted — a REAL behavior change (not a stamp move)');
 });
 
 test('natural end: standard rules reach a victory by turn 550', async () => {
@@ -76,6 +92,11 @@ test('natural end: standard rules reach a victory by turn 550', async () => {
   const result = { rounds: r.rounds, winner: r.state.winner, finalHash: r.finalHash };
   if (GOLDEN_NATURAL === null) console.log(`golden natural: ${JSON.stringify(result)}`);
   else assert.deepStrictEqual(result, GOLDEN_NATURAL, 'drifted from golden — if the change was intentional, re-record (header)');
+
+  // #28: the stamp-excluded behavior hash for natural.
+  const behavior = { finalHash: r.behaviorFinalHash };
+  if (BEHAVIOR_NATURAL === null) console.log(`behavior natural: ${JSON.stringify(behavior)}`);
+  else assert.deepStrictEqual(behavior, BEHAVIOR_NATURAL, 'behaviorHash drifted — a REAL behavior change (not a stamp move)');
 });
 
 // The checker itself: a healthy crafted state passes, seeded defects are named.

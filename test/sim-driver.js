@@ -71,6 +71,8 @@ async function loadModules() {
     deepClone: engineMod.deepClone,
     runAiTurn: aiMod.runAiTurn,
     hashState: hashMod.hashState,
+    behaviorHash: hashMod.behaviorHash, // #28: the stamp-excluded trajectory hash
+
     filterView: visMod.filterView,
     cityMood: happyMod.cityMood,
     capitalOf: govMod.capitalOf,
@@ -1070,6 +1072,7 @@ async function runSim(opts) {
   const initialState = mods.deepClone(state);
   const roundLog = [];
   const checkpoints = {};
+  const behaviorCheckpoints = {}; // #28: behaviorHash (stamp-excluded) parallel to checkpoints
   // A64: driver-owned telemetry — the cumulative accumulator + the once-labelled
   // continents (land↔water never changes under any work order). Never in state.
   const tel = makeTelemetry(state);
@@ -1187,6 +1190,7 @@ async function runSim(opts) {
     }
     if (isCheckpoint) {
       checkpoints[round] = hash;
+      behaviorCheckpoints[round] = mods.behaviorHash(state); // #28: stamp-excluded trajectory
       if (opts.onCheckpoint) opts.onCheckpoint(state, round, hash, tel, contLabels);
     }
     // v1.5 diagnostics: record newly-eliminated civs + fire the per-AI strategic
@@ -1204,6 +1208,8 @@ async function runSim(opts) {
   return {
     state, rounds, checkpoints, roundLog, initialState,
     finalHash: last === undefined ? mods.hashState(state) : last,
+    behaviorCheckpoints, behaviorFinalHash: mods.behaviorHash(state), // #28 discriminator pins
+
     // A64: expose the driver-owned telemetry accumulator + continent labels so a
     // DIRECT runSim caller (not going through soak's onCheckpoint) can build a
     // full snapshot: snapshot(result.state, ruleset, mods, result.tel, result.contLabels).

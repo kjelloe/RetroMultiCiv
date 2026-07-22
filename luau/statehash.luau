@@ -100,9 +100,25 @@ local function hashState(state: any): string
 	return string.format("0x%08x", hash)
 end
 
+-- #28 behavior-hash discriminator (twin of shared/statehash.js): hashState EXCLUDING the
+-- rulesetHash STAMP field -- the BEHAVIORAL trajectory hash, independent of the ruleset stamp.
+local function behaviorHash(state: any): string
+	if state.rulesetHash == nil then
+		return hashState(state)
+	end
+	local copy = {}
+	for k, v in pairs(state) do
+		if k ~= "rulesetHash" then
+			copy[k] = v
+		end
+	end
+	return hashState(copy)
+end
+
 return {
 	canonicalize = canonicalize,
 	hashState = hashState,
+	behaviorHash = behaviorHash,
 	mul32 = mul32,
 	ARRAY_MT = ARRAY_MT,
 }

@@ -74,4 +74,18 @@ function hashState(state) {
   return '0x' + hash.toString(16).padStart(8, '0');
 }
 
-export { canonicalize, hashState, mul32 };
+// #28 behavior-hash discriminator: the state hash EXCLUDING the rulesetHash STAMP — the
+// BEHAVIORAL trajectory hash, independent of the ruleset stamp createGame writes into state
+// (mapgen.js). When a golden hash moves, compare behaviorHash: UNCHANGED = a COSMETIC
+// rulesetHash-stamp move (a data/rules.json knob added, behavior byte-identical — safe to re-pin
+// without a behavior review); CHANGED = a REAL behavior change (needs the witness/review). Kills
+// the misattribution class where a knob addition looks identical to a behavior change by the full
+// hash (the seaPathRadius/holdPathPct re-records). Pure; a rulesetHash-less state falls through.
+function behaviorHash(state) {
+  if (state.rulesetHash === undefined) return hashState(state);
+  const copy = {};
+  for (const k in state) { if (k !== 'rulesetHash') copy[k] = state[k]; }
+  return hashState(copy);
+}
+
+export { canonicalize, hashState, mul32, behaviorHash };
