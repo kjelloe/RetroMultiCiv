@@ -131,3 +131,12 @@ report.js path; golden-neutral; server tests extend.
   impl-confirm).
 - **reviewer**: fact-check ask — Civ1 behavior for a size-1 CAPITAL
   completing a settler (§7); feeds the provenance label.
+
+## Status (2026-07-23 sync)
+
+All 13 items CLOSED or routed: §1-§10 + §12 SHIPPED (helper, markers
+0089-0090 windows); §5 jungle SHIPPED; §7 client-half SHIPPED +
+engine-half queued (bugfixer #21, user-ruled Civ2-shape refuse);
+§11 AI-disorder playbook queued (bugfixer #22, design pass);
+§13 server-save 404 queued (hardening #1, re-routed). Nothing
+unrouted.

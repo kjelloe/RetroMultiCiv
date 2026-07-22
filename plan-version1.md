@@ -123,12 +123,12 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~97% (A7 ✅ 8-of-9, pyramids-gov ✅) | A6a future-tech repeats, A8 tile contention, §45b rehome, §46 default-defender |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, after the engine queue drains |
-| 3 | AI at M-targets | sail-era ✅ (~2x overseas), war-hold ✅ (9/9 hold) | **archetype (in build)**, xiv-ai-behavior #30 (= the (c) half; witness-7 re-fires on it — the launch acceptance), invade B, gov re-eval |
-| 4 | Roblox Tier 3 multiplayer | Tier 3 CERTIFIED (PASS #2222, re-bake in-tree) | **Studded round-2 (user)**; R6 build (queued roblox #1) |
-| 5 | Public hosting + master index | DNS ✅, baked default ✅, browser ✅ | **user one-time box nginx/cert step**, oom-slice2b + heartbeat merges |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅ with ally copy | A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued #33) |
+| 1 | Every Civ 1 system faithful | ~98% (A7 ✅, pyramids-gov ✅, §7 client ✅) | A6a future-tech, A8 tile contention, §45b rehome, §46 default-defender, §7 engine-half (#21) |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
+| 3 | AI at M-targets | archetype ✅ ACCEPT (0090), #30 ✅ landed | **witness-7 verdict (running — the launch acceptance)**, invade B, gov re-eval #36, XV §11 disorder playbook |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 agent-complete + SO18 glyphs | **Studded round-2 (user)** — the only gate |
+| 5 | Public hosting + master index | CODE-COMPLETE (A50 ✅ verified) | **user one-time box nginx/cert step** — the only gate |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
 
 ## Reading the tree — the three facts that matter
 

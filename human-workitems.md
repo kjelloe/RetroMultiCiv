@@ -20,24 +20,25 @@ fresh helper session are the open items)._
 _Catch-up: `reports/marker-0086.md` (the current candidate);
 `reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
 
-- [ ] **Redeploy from marker-0089** (`13271d2`, doubly gated):
-  everything through 0086 PLUS the sail-era (AI crosses open ocean,
-  overseas settlement ~2x), the space war-hold (drives persist through
-  war), 8 real Civ1 wonder effects (science trio, Hoover,
-  women's-suffrage, Great Library, Darwin — all dump-fact-checked),
-  and Pyramids as the authentic government wonder. WITH the one-time
-  box unit edit: `--max-turns 700` (+ optional `--bug-reports` +
-  ReadWritePaths). Browsers may need a hard refresh.
+- [ ] **Redeploy from marker-0090** (`8ff258d`, both gates banked):
+  everything through 0089 PLUS the archetype AI (civs build the
+  wonders their personality says — non-builder wonders 0→20 in the
+  judge sweep) and the helper's complete 30-item client window (A58
+  pedia, the XV UX set, mobile slice, off-turn orders over server,
+  endscreen-name fix). WITH the one-time box unit edit: `--max-turns
+  700` (+ optional `--bug-reports` + ReadWritePaths). Hard refresh
+  after.
 
-- [ ] **Nudge the HARDENING session** (the one lane needing you):
-  idle 5h+ on its own clone, predating the flag-wait rollout, with one
-  queued item (the XV §13 server-save 404 fix, re-routed to it).
-  Nudge text: _git pull origin dev_night (expect tip fd6fb7a or
-  newer), read mail #2216 + #2224, take your queue item, and when
-  idle run `python3 tools/agent-mail.py flag wait --as hardening` —
-  never end your turn while waiting._ (The helper lane resolved
-  itself — it self-resumed under the flag-wait standard and shipped
-  4 more items; no action needed there.)
+- [ ] **Two session nudges needed** (your direct ask, kept current):
+  1. **HARDENING** — idle 8h+, one queued item (XV §13 server-save
+     404). Nudge: _git pull origin dev_night, read mail #2216 +
+     #2224, take your queue item; when idle run `python3
+     tools/agent-mail.py flag wait --as hardening`._
+  2. **HELPER (fresh session)** — its 30-item window closed clean and
+     it scoped #33 A49-playwright + #34 endgame-moments explicitly
+     for a FRESH session (context boundary). Start one when
+     convenient; it self-resumes from its memory + queue. These are
+     the last two axis-6 items.
 
 - [ ] **Optional ally FYI-relay** (no reply needed): "Your
   Explorer/Diplomat nuance is carried by per-stance affinity flags
