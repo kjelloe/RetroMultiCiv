@@ -406,5 +406,19 @@ else
   note FAIL "gate 30: R6 seatMeta/newSeatCode/seatCode hook missing from GameServer"
 fi
 
+# gate 31 — SO18 tech glyphs: GlyphData.luau GLYPH is a 1:1 port of the browser
+# client/ui/tech-glyphs.js GLYPH (all 68 tech ids match) AND every primitive kind
+# GlyphData uses is handled by EditableGlyph.luau. Render fidelity is the Studio
+# step (SPEC.md §4); this pins the headless data/coverage contract.
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/glyph-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 31: tech glyphs match browser GLYPH (68) + primitive coverage"
+  else
+    note FAIL "gate 31: glyph parity — run: node roblox/selftest/glyph-parity.mjs"
+  fi
+else
+  note SKIP "gate 31: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail
