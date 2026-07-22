@@ -4,10 +4,11 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 late night (marker-0089 TAGGED @13271d2 =
-candidate, 21st consecutive — pyramids-gov authentic + STAMP-ONLY
-double-confirmed; archetype IN BUILD (Q1/Q3 ruled, 25-seed judge
-pre-registered); docs/15 fact-check banked for invade-B. Prior 0088 — A7 COMPLETE: 8-of-9 wonder effects live
+Last updated: 2026-07-23 night (marker-0090 TAGGED @8ff258d =
+candidate, 22nd consecutive — ARCHETYPE SHIPPED: non-builder wonders
+0->20, judge 3/4 ACCEPT ruled; the helper 30-item window closed (A58 +
+XV set + off-turn-over-server); #30 defender-drain valve in build ->
+its sweep -> WITNESS-7 = the launch acceptance. Prior 0088 — A7 COMPLETE: 8-of-9 wonder effects live
 + dump-fact-checked, doubly gated in 40min, the #28 discriminator's
 first classification confirmed by both gate lanes. Axis-1 remaining =
 pyramids-gov #35 (in build) + A6a/A8/rehome/default-defender. Prior
@@ -45,11 +46,11 @@ flowchart TD
     DIFF["✅ authentic difficulty (0083):\n7-level Civ1 ladder; M3 floor RESTORED 28\n(25-seed evidence #2181)"]
     B27["✅ B27 fixed (0083): disbandCity\nstranded docked ships (§40 interaction)"]
     APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
-    ARCH["🔨 archetype wonder slice — 'some civs\nMUST build wonders' (IN BUILD: ally's 22-wonder\nmapping over the now-REAL A7 effects)"]
+    ARCH["✅ archetype wonders (0090): stance-keyed\nappetite + ally 22-wonder map; judge ACCEPT\n(non-builder wonders 0->20, floors green)"]
     MAN["✅ manhattan-gate + no-nukes toggle\n(landed in the 0084 window; verified\nin engine/cities.js)"]
     NAVL["✅ naval A (0085) + presence-1 (0086) +\npresence-2 sail-era (0087, judge PASS ~2x) ·\n📋 invade slice B (queued, docs/15 fact-check\nbanked with reviewer)"]
     SMALL["✅ A7 wonder effects (0088, 8-of-9\ndump-checked) + pyramids-gov (landed 13271d2)\n· 📋 remaining smalls: A6a future-tech · §45b\nrehome · §46 default-defender · A8 tile contention"]
-    XAB["📋 xiv-ai-behavior batch\n(unit bloat >1000 ×3 seeds · gold hoard —\nevidence filed)"]
+    XAB["🔨 xiv-ai-behavior #30 (IN BUILD):\nobsolete-DEFENDER drain valve (the real bloat,\ndiscriminator-caught) + hoard->buildings;\nsweep -> witness-7 = launch acceptance"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; D6 carries diplomat\nmissions; parleyDemandPct data landed)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -65,10 +66,10 @@ flowchart TD
 
   subgraph CLIENT["CLIENT/UI lane (helper queue 23, golden-neutral)"]
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
-    XIVQ["📋 queue 19: §49 econ-overview (in build) →\nmobile §6+§7 → auto-takeover → order queue →\nXV set → darwin-label + gov-picker.\nBatches 2-5 SHIPPED ✅ (§32-§48: 13 items this\nwindow incl. capital ★ + wonder splash)"]
-    A58["📋 A58 pedia completion (queued #32)"]
-    A49["📋 A49 playwright five flows (queued #33)"]
-    END["📋 endgame moments (ally 'Final Record'\npackage; queued #34)"]
+    XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
+    A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
+    A49["📋 A49 playwright five flows\n(scoped, FRESH helper session)"]
+    END["📋 endgame moments (scoped,\nFRESH helper session)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
     XIVQ --> FG
@@ -77,15 +78,15 @@ flowchart TD
   subgraph ROBLOX["ROBLOX lane (second PC)"]
     T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
     STUD["🚪 Studded round-2 (user Studio review —\nreads the cert artifact; only user gate left)"]
-    R6["📋 R6 seats/lobby (spec ready, QUEUED\nroblox #1: per-platform + bridge-compatible\nseatCode)"]
+    R6["✅ R6 agent-complete (slice-1 de8a977 +\nslices 2-3 in-tree; 30 gates green)"]
     STUD --> T3
     R6 --> T3
   end
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
-    W5["📋 launches>0 acceptance (7th witness):\n#27 verdict = King space-CAPABLE, war-abandon\nis the blocker; RULED (b)+(c) staged — war-hold\nslice #35 after presence-2, then King re-sweep"]
-    GOV["🧩 N1/N2 gov re-eval + late-tech\nmodernization (post-naval-loop)"]
+    W5["📋 launches>0 acceptance (7th witness):\nwar-hold SHIPPED (0087, 9/9 hold); re-fires\non #30 landing (the (c) half)"]
+    GOV["📋 N1/N2 gov re-eval (queued #36;\nN2 may close inside #30)"]
     W5 --> MFL
     GOV --> MFL
   end
