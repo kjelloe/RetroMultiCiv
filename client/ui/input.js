@@ -1,6 +1,6 @@
 // Input: renderer picks (select / move / attack / stacks) and the keyboard.
 import { unitsAt, cityAt, attackStrength, defenseStrength, bestDefender } from '../../engine/combat.js';
-import { candidateTiles, tileYields, wonderActive, citySpacingOk } from '../../engine/cities.js';
+import { candidateTiles, tileYields, wonderActive, citySpacingOk, cityShieldOutput, itemCost } from '../../engine/cities.js';
 import { capitalOf } from '../../engine/government.js';
 import { hasWaterSource, workFlag } from '../../engine/improvements.js';
 import { computeVisible } from '../../engine/visibility.js';
@@ -554,6 +554,28 @@ export function initInput(ctx) {
   // Ending the turn with units still to move needs a second E (or End Turn
   // click) within the warning banner's 5-second lifetime.
   let confirmEndTurnUntil = 0;
+  // XV §7: the size-1-city Settler-disband warn (client half; engine untouched)
+  let settlerDisbandOk = false; // Go-ahead lets one wrap through
+  let settlerWarnEl = null;
+  function closeSettlerWarn() { if (settlerWarnEl) { settlerWarnEl.remove(); settlerWarnEl = null; } }
+  function showSettlerWarn(city, onGo) {
+    closeSettlerWarn();
+    const box = document.createElement('div');
+    box.id = 'settler-warn';
+    const body = document.createElement('div');
+    body.className = 'sw-body';
+    body.textContent = `⚠ Building a Settler in ${city.name} will DISBAND it — its last citizen becomes the Settler. Its shields are kept if you change the build.`;
+    const acts = document.createElement('div');
+    acts.className = 'sw-actions';
+    const go = document.createElement('button'); go.className = 'sw-go'; go.textContent = 'Go ahead';
+    const ch = document.createElement('button'); ch.className = 'sw-change'; ch.textContent = 'Change build';
+    acts.append(go, ch);
+    box.append(body, acts);
+    document.body.appendChild(box);
+    settlerWarnEl = box;
+    go.addEventListener('click', () => { closeSettlerWarn(); onGo(); });
+    ch.addEventListener('click', () => { closeSettlerWarn(); panels.openCityPanel(city.id); });
+  }
   async function endTurn() {
     if (ctx.SPECTATOR) return; // A17: view-only — nothing to end
     if (!session.state.gameOver && session.state.activePlayer !== ctx.HUMAN) {
@@ -581,6 +603,30 @@ export function initInput(ctx) {
         hud.banner(`⚠ ${movable.length} unit${plural ? 's' : ''} still ${plural ? 'have' : 'has'} moves — E / End Turn again to confirm`);
         return;
       }
+      // XV §7: a size-1 city about to COMPLETE a Settler this turn will disband
+      // (its last citizen becomes the unit). Warn before the wrap; the CAPITAL
+      // can't disband (the engine refuses, bugfixer #21) — surface a hint instead.
+      const cap = capitalOf(state, ctx.HUMAN, session.ruleset);
+      const disbandCities = [];
+      let capitalStuck = null;
+      for (const cid of state.cityOrder || []) {
+        const c = state.cities[cid];
+        if (!c || c.owner !== ctx.HUMAN || c.pop !== 1) continue;
+        const prod = c.producing;
+        const def = prod && prod.kind === 'unit' ? session.ruleset.units[prod.id] : null;
+        if (!def || !(def.popCost > 0)) continue; // only pop-consuming units (Settlers)
+        const cost = itemCost('unit', prod.id, def, state.players[ctx.HUMAN], session.ruleset);
+        if (c.shields + cityShieldOutput(state, c, session.ruleset) < cost) continue; // won't complete this turn
+        if (cap && cap.id === cid) capitalStuck = c; else disbandCities.push(c);
+      }
+      if (capitalStuck) {
+        hud.banner(`⚠ ${capitalStuck.name} (capital) can't disband — its Settler won't complete; change its build or grow it first`, { x: capitalStuck.x, y: capitalStuck.y });
+      }
+      if (disbandCities.length > 0 && !settlerDisbandOk) {
+        showSettlerWarn(disbandCities[0], () => { settlerDisbandOk = true; endTurn(); });
+        return;
+      }
+      settlerDisbandOk = false; // consumed — re-warn next turn
       // a city finished its work and nobody chose what's next: open it
       const pending = Object.keys(needsOrders)
         .filter(id => state.cities[id] && state.cities[id].owner === ctx.HUMAN).sort();
