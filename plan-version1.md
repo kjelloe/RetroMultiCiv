@@ -4,8 +4,10 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 night (marker-0088 TAGGED @d977072 =
-candidate, 20th consecutive — A7 COMPLETE: 8-of-9 wonder effects live
+Last updated: 2026-07-22 late night (marker-0089 TAGGED @13271d2 =
+candidate, 21st consecutive — pyramids-gov authentic + STAMP-ONLY
+double-confirmed; archetype IN BUILD (Q1/Q3 ruled, 25-seed judge
+pre-registered); docs/15 fact-check banked for invade-B. Prior 0088 — A7 COMPLETE: 8-of-9 wonder effects live
 + dump-fact-checked, doubly gated in 40min, the #28 discriminator's
 first classification confirmed by both gate lanes. Axis-1 remaining =
 pyramids-gov #35 (in build) + A6a/A8/rehome/default-defender. Prior
