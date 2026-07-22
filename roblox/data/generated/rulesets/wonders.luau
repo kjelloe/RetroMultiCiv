@@ -149,7 +149,10 @@ return [==[{
     "tech": "masonry",
     "obsoleteBy": "communism",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "revolutionAnarchyTurns": 1,
+      "unlockAnyGov": true
+    }
   },
   "seti-program": {
     "name": "SETI Program",
