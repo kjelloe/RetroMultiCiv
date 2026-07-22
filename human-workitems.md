@@ -8,10 +8,10 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-22 afternoon (marker-0086 = candidate, 18 consecutive
-consistent; the AI settles overseas + the advisor speaks the ally's copy +
-the master index is public; redeploy + one-time box commands are the open
-items)._
+_Last synced: 2026-07-22 late night (marker-0088 = candidate, 20
+consecutive consistent; three markers tagged today — the sail-era, the
+space war-hold, and real wonder effects; redeploy + box commands + a
+fresh helper session are the open items)._
 
 ---
 
@@ -20,15 +20,20 @@ items)._
 _Catch-up: `reports/marker-0086.md` (the current candidate);
 `reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
 
-- [ ] **Redeploy from marker-0086** (`f836d4e`, now REAL double-gated:
-  reviewer clean-clone + sim-runner Gate-B 11/11 byte-exact):
-  everything through marker-0085 PLUS naval presence-1 (the AI settles
-  overseas on archipelago maps), the onboarding advisor with the
-  ally's real card copy + 4 pedia concepts, and the PUBLIC master
-  index (the client now defaults Find game to
-  `servers.multiciv.kjell.today`). WITH the one-time box unit edit:
-  `--max-turns 700` (+ optional `--bug-reports` + ReadWritePaths) —
-  see the ssh-deploy review. Browsers may need a hard refresh.
+- [ ] **Redeploy from marker-0088** (`d977072`, doubly gated):
+  everything through 0086 PLUS the sail-era (AI crosses open ocean,
+  overseas settlement ~2x), the space war-hold (drives persist through
+  war), and 8 real Civ1 wonder effects (science trio, Hoover,
+  women's-suffrage, Great Library, Darwin) — all dump-fact-checked.
+  WITH the one-time box unit edit: `--max-turns 700` (+ optional
+  `--bug-reports` + ReadWritePaths). Browsers may need a hard refresh.
+
+- [ ] **Start a fresh helper session when convenient** — the client
+  lane is the current bottleneck: parked ~6h at a clean boundary with
+  22 queued items (capital-ui resume plan on file, then A58 pedia,
+  A49 playwright, the XV UX set, Darwin label + gov-picker). The
+  engine lane tagged three markers today while this queue sat. One
+  session start unblocks it; it self-resumes from its memory + queue.
 
 - [ ] **One-time box commands for the public index** (DNS record is in
   and propagated by now): append the `servers.` nginx server block
@@ -55,12 +60,16 @@ near-complete space drive holds through ordinary war) + the
 endemic-war/unit-bloat fix, with a King re-sweep as the acceptance
 after each. Earlier same day: scope = maximal cut; XV §7 settler-modal
 = Civ2-shape refuse; DNS = `servers.multiciv.kjell.today` (record
-added — thank you). _Recently landed:_ markers 0082-0086, all
-merge-consistent (18 consecutive since 0069) — naval-truth, authentic
-7-level difficulty, danger-based abandon, the space-pipeline repairs
-(apollo-narrow + manhattan-gate + radius fix), naval slice A + presence-1
-(overseas settlement ARMED), the ally-voiced advisor, and the public
-master index with the baked client default.
+added — thank you). _Recently landed:_ markers 0087 + 0088
+same-evening (20 consecutive since 0069) — presence-2 (the sail-era:
+judge-sweep PASS, overseas settlement ~2x), the space war-hold (9/9
+committed drives now survive war; launches await the endemic-war fix,
+staged per your ruling), the behavior-hash discriminator (already
+classifying re-records mechanically), A7 (8 of 9 wonder effects live,
+every shape wiki-dump-verified), and pyramids as the authentic Civ1
+government wonder (landed, gates in flight). Roblox: Tier-3 CERTIFIED
++ R6 agent-complete + a clean runH autoplay — your Studded round-2 is
+the only axis-4 gate.
 
 ---
 

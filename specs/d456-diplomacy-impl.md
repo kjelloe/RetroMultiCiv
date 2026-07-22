@@ -101,3 +101,14 @@ richer than fog; an incite-revolt replays hash-exact.
 D4–D6 are now design-complete end to end: rules (packs), presentation
 (ally verdicts), engine mapping (this spec). Build-ready when the engine
 queue arrives.
+
+## United Nations wonder effect (A7 deferral, ruled #2243/#2247 — 2026-07-22)
+
+The one wonder effect NOT built in the A7 window lands HERE: United
+Nations = "rivals more willing to negotiate/peace". Its authentic home
+is the D5 reputation/senate layer — encode it as a structured modifier
+on the peace-accept/audience-grant path (e.g. a peaceAcceptBonus or
+always-grants-audience flag on the owner), NOT a free-text effect.
+Author the field in WONDER_OVERLAY (tools/mapdata.js) like the A7
+batch; wire it in the D5 slice; witness = a crafted accept-threshold
+scenario. wonders.json currently carries effect {} for it by design.

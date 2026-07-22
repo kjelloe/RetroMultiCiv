@@ -43,10 +43,10 @@ flowchart TD
     DIFF["✅ authentic difficulty (0083):\n7-level Civ1 ladder; M3 floor RESTORED 28\n(25-seed evidence #2181)"]
     B27["✅ B27 fixed (0083): disbandCity\nstranded docked ships (§40 interaction)"]
     APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
-    ARCH["📋 archetype wonder slice — 'some civs\nMUST build wonders' (design CLOSED: ally's\n22-wonder mapping = the build spec; queued #26)"]
+    ARCH["🔨 archetype wonder slice — 'some civs\nMUST build wonders' (IN BUILD: ally's 22-wonder\nmapping over the now-REAL A7 effects)"]
     MAN["✅ manhattan-gate + no-nukes toggle\n(landed in the 0084 window; verified\nin engine/cities.js)"]
-    NAVL["✅ naval slice A (0085) + presence-1\n(0086): overseas loop ARMED, archipelago\nwitness in gate → 📋 presence-2 → invade B"]
-    SMALL["📋 tail smalls: A6a future-tech ·\nA7 wonder stragglers (before ARCH — the\nappetite reads effects) · §45b rehome ·\n§46 default-defender · A8 tile contention"]
+    NAVL["✅ naval A (0085) + presence-1 (0086) +\npresence-2 sail-era (0087, judge PASS ~2x) ·\n📋 invade slice B (queued, docs/15 fact-check\nbanked with reviewer)"]
+    SMALL["✅ A7 wonder effects (0088, 8-of-9\ndump-checked) + pyramids-gov (landed 13271d2)\n· 📋 remaining smalls: A6a future-tech · §45b\nrehome · §46 default-defender · A8 tile contention"]
     XAB["📋 xiv-ai-behavior batch\n(unit bloat >1000 ×3 seeds · gold hoard —\nevidence filed)"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; D6 carries diplomat\nmissions; parleyDemandPct data landed)"]
@@ -120,9 +120,9 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~94% (manhattan-gate ✅, B27 ✅) | A6a future-tech repeats, A7 wonder stragglers, A8 tile contention, §45b rehome, §46 default-defender |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, after the engine queue drains |
-| 3 | AI at M-targets | floors green, overseas loop ARMED | **King-portfolio verdict (launches — the space acceptance)**, presence-2 + invade B, archetype wonder slice, xiv-ai-behavior (bloat/hoard), gov re-eval |
+| 1 | Every Civ 1 system faithful | ~97% (A7 ✅ 8-of-9, pyramids-gov ✅) | A6a future-tech repeats, A8 tile contention, §45b rehome, §46 default-defender |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, after the engine queue drains |
+| 3 | AI at M-targets | sail-era ✅ (~2x overseas), war-hold ✅ (9/9 hold) | **archetype (in build)**, xiv-ai-behavior #30 (= the (c) half; witness-7 re-fires on it — the launch acceptance), invade B, gov re-eval |
 | 4 | Roblox Tier 3 multiplayer | Tier 3 CERTIFIED (PASS #2222, re-bake in-tree) | **Studded round-2 (user)**; R6 build (queued roblox #1) |
 | 5 | Public hosting + master index | DNS ✅, baked default ✅, browser ✅ | **user one-time box nginx/cert step**, oom-slice2b + heartbeat merges |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅ with ally copy | A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued #33) |
