@@ -29,11 +29,16 @@ M.PROP_SHAPES = {
 	foam = { shape = "box", size = { 0.82, 0.01, 0.06 } },
 	hutBase = { shape = "cyl", size = { 0.13, 0.15, 0.12 }, seg = 6 },
 	hutRoof = { shape = "cone", size = { 0.18, 0.14 }, seg = 6 },
+	-- XV §5: tropical rainforest — buttress base + slender trunk + broad dome canopy
+	jungleTrunk = { shape = "cyl", size = { 0.028, 0.042, 0.46 }, seg = 6 },
+	jungleCanopy = { shape = "sphere", size = { 0.21 }, seg = { 8, 5 } },
+	jungleButtress = { shape = "cone", size = { 0.085, 0.16 }, seg = 6 },
 }
 
 M.PROP_COLOR = {
 	irrigation = "#5db8e8", road = "#8a6f4d", railroad = "#3c3c46", mine = "#8a8494",
 	forest = "#1e6b2f", jungle = "#2f8d3f", special = "#ffd75e", fortress = "#b8ab8e",
+	jungleTrunk = "#6a5236", jungleButtress = "#5c472f", jungleCanopy = "#2f8d3f", -- XV §5
 	rock = "#7d7468", peak = "#63636d", snow = "#e8eef0",
 	tie = "#2c2620", mineDoor = "#17130e", mineBeam = "#6b4a2a",
 	fieldPatch = "#59a03e", foam = "#dcecf2",
@@ -190,8 +195,9 @@ function M.rebuild(folder, view, tileTop, TILE)
 					put("fortress", { color = M.PROP_COLOR.fortress, rotX = math.pi / 2, dy = 0.05 })
 				end
 
-				if t.t == "forest" or t.t == "jungle" then
-					local color = M.PROP_COLOR[t.t]
+				if t.t == "forest" then
+					-- spruce cones (temperate forest)
+					local color = M.PROP_COLOR.forest
 					local count = 3 + math.floor(M.visualRand(x, y, 1) * 3)
 					for i = 0, count - 1 do
 						local s = 0.75 + M.visualRand(x, y, 10 + i) * 0.55
@@ -199,6 +205,18 @@ function M.rebuild(folder, view, tileTop, TILE)
 							dx = (M.visualRand(x, y, 20 + i) - 0.5) * 0.62,
 							dz = (M.visualRand(x, y, 30 + i) - 0.5) * 0.62,
 							dy = 0.14 * s, sx = s, sy = s, sz = s })
+					end
+				elseif t.t == "jungle" then
+					-- XV §5: tropical rainforest — fewer, TALLER trees, each a buttress
+					-- base + a slender trunk + a broad flat dome canopy; no cones.
+					local count = 3 + math.floor(M.visualRand(x, y, 1) * 2) -- 3-4
+					for i = 0, count - 1 do
+						local s = 0.8 + M.visualRand(x, y, 10 + i) * 0.45
+						local dx = (M.visualRand(x, y, 20 + i) - 0.5) * 0.5
+						local dz = (M.visualRand(x, y, 30 + i) - 0.5) * 0.5
+						put("jungleButtress", { color = M.PROP_COLOR.jungleButtress, dx = dx, dz = dz, dy = 0.075 * s, sx = s, sy = s, sz = s })
+						put("jungleTrunk", { color = M.PROP_COLOR.jungleTrunk, dx = dx, dz = dz, dy = 0.24 * s, sx = s, sy = s, sz = s })
+						put("jungleCanopy", { color = M.PROP_COLOR.jungleCanopy, dx = dx, dz = dz, dy = 0.52 * s, sx = 1.05 * s, sy = 0.42 * s, sz = 1.05 * s })
 					end
 				elseif t.t == "hills" then
 					local count = 1 + (M.visualRand(x, y, 2) > 0.55 and 1 or 0)

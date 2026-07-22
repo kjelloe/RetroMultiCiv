@@ -2038,6 +2038,33 @@ return [==[{
       ],
       "seg": 6
     },
+    "jungleTrunk": {
+      "shape": "cyl",
+      "size": [
+        0.028,
+        0.042,
+        0.46
+      ],
+      "seg": 6
+    },
+    "jungleCanopy": {
+      "shape": "sphere",
+      "size": [
+        0.21
+      ],
+      "seg": [
+        8,
+        5
+      ]
+    },
+    "jungleButtress": {
+      "shape": "cone",
+      "size": [
+        0.085,
+        0.16
+      ],
+      "seg": 6
+    },
     "scrub": {
       "shape": "cone",
       "size": [
