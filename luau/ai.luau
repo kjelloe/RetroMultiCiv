@@ -326,13 +326,14 @@ local function adjacentToLand(state: any, x: number, y: number, ruleset: any): b
 	return false
 end
 
-local function seaStepToward(state: any, ship: any, tx: number, ty: number, ruleset: any): string?
+local function seaStepToward(state: any, ship: any, tx: number, ty: number, ruleset: any, forceCoastal: boolean?): string?
 	local map = state.map
 	local width, height, wrapX = map.width, map.height, map.wrapX
 	local maxR = if ruleset.rules.seaPathRadius == nil then 30 else ruleset.rules.seaPathRadius
 	-- M3 (#2201 Q3): a coastal-restricted hull (openSeaLoss = trireme) may only traverse
-	-- LAND-ADJACENT sea; ocean-capable hulls (sail+) cross open water freely.
-	local coastal = ruleset.units[ship.type].openSeaLoss == true
+	-- LAND-ADJACENT sea; ocean-capable hulls (sail+) cross open water freely. forceCoastal
+	-- (M4 needsOcean probe) simulates a trireme from a bare position — ship.type not read.
+	local coastal = forceCoastal == true or ruleset.units[ship.type].openSeaLoss == true
 	local visited = {}
 	visited[ship.y * width + ship.x] = true
 	local queue = { { x = ship.x, y = ship.y, first = nil } }
@@ -695,6 +696,23 @@ local function seaTech(ruleset: any): string
 	for _, id in ipairs(sortedKeys(ruleset.units)) do
 		local def = ruleset.units[id]
 		if def.domain == "sea" and def.tech ~= "" then
+			local lvl = if ruleset.techs[def.tech] == nil then 0 else ruleset.techs[def.tech].level
+			if best == nil or lvl < bestLevel or (lvl == bestLevel and def.tech < best) then
+				best = def.tech
+				bestLevel = lvl
+			end
+		end
+	end
+	return if best == nil then "" else best
+end
+
+-- naval-presence M4 (#2201 Q4): the earliest OCEAN-CAPABLE carrier tech (transport>0 AND NOT
+-- openSeaLoss = sail@navigation). Mirrors seaTech.
+local function oceanTech(ruleset: any): string
+	local best, bestLevel = nil, 0
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "sea" and def.tech ~= "" and def.transport ~= nil and def.transport > 0 and def.openSeaLoss ~= true then
 			local lvl = if ruleset.techs[def.tech] == nil then 0 else ruleset.techs[def.tech].level
 			if best == nil or lvl < bestLevel or (lvl == bestLevel and def.tech < best) then
 				best = def.tech
@@ -1168,7 +1186,93 @@ end
 -- naval-presence perf memo (#2201): the civ-level naval facts, computed ONCE per turn
 -- (bestCitySite is expensive) and cached in `done`. sat = has an island-saturated settler
 -- (M1 gate); wards = overseas-blocked settlers a carrier ferries (M2b).
+-- naval-presence M1-gate (#2209b): does this civ have a real overseas OPPORTUNITY — a sea
+-- FRONTIER (unexplored sea to find), else an EXPLORED overseas foundable site? Frontier first
+-- (no home flood-fill), early-out. On a fully-charted single continent both false -> M1 silent.
+local function hasNavalOpportunity(state: any, playerId: string, me: any, ruleset: any): boolean
+	local map = state.map
+	for y = 0, map.height - 1 do
+		for x = 0, map.width - 1 do
+			if isExplored(me, map, x, y) and ruleset.terrain.terrains[map.tiles[y * map.width + x + 1].t].domain == "sea" then
+				for _, key in ipairs(DIR_KEYS) do
+					local nx = x + DIR_VECS[key][1]
+					local ny = y + DIR_VECS[key][2]
+					if ny >= 0 and ny < map.height then
+						if nx < 0 or nx >= map.width then
+							if map.wrapX == true then
+								nx = ((nx % map.width) + map.width) % map.width
+								if not isExplored(me, map, nx, ny) then
+									return true
+								end
+							end
+						elseif not isExplored(me, map, nx, ny) then
+							return true
+						end
+					end
+				end
+			end
+		end
+	end
+	local home = homeContinents(state, playerId, ruleset)
+	for y = 0, map.height - 1 do
+		for x = 0, map.width - 1 do
+			local idx = y * map.width + x
+			if isExplored(me, map, x, y) and ruleset.terrain.terrains[map.tiles[idx + 1].t].domain == "land" then
+				if home[idx] ~= true and canFoundAt(state, x, y, ruleset) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- naval-presence M4 (#2201 Q4): does this civ's overseas opportunity need an OCEAN hull — the
+-- nearest KNOWN overseas site has no coastal-hug path (wide ocean); else no site known but there
+-- is unexplored sea to cross. Lazy (M4-trigger only). Deterministic.
+local function needsOcean(state: any, playerId: string, me: any, ruleset: any): boolean
+	local map = state.map
+	local seaX, seaY = -1, -1
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			for _, key in ipairs(DIR_KEYS) do
+				local nx = c.x + DIR_VECS[key][1]
+				if nx < 0 or nx >= map.width then
+					if map.wrapX ~= true then
+						continue
+					end
+					nx = ((nx % map.width) + map.width) % map.width
+				end
+				local ny = c.y + DIR_VECS[key][2]
+				if ny < 0 or ny >= map.height then
+					continue
+				end
+				if ruleset.terrain.terrains[map.tiles[ny * map.width + nx + 1].t].domain == "sea" then
+					seaX = nx
+					seaY = ny
+					break
+				end
+			end
+			if seaX ~= -1 then
+				break
+			end
+		end
+	end
+	if seaX == -1 then
+		return false
+	end
+	local home = homeContinents(state, playerId, ruleset)
+	local site = nearestOverseasSite(state, seaX, seaY, home, me, ruleset)
+	if site ~= nil then
+		local proxy = { owner = playerId, x = seaX, y = seaY }
+		return seaStepToward(state, proxy, site.x, site.y, ruleset, true) == nil
+	end
+	return hasNavalOpportunity(state, playerId, me, ruleset)
+end
+
 local function computeNavalFacts(state: any, playerId: string, ruleset: any): any
+	local me = state.players[playerId]
 	local sat = false
 	local wards = {}
 	for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
@@ -1183,7 +1287,11 @@ local function computeNavalFacts(state: any, playerId: string, ruleset: any): an
 			end
 		end
 	end
-	return { sat = sat, wards = wards }
+	local opportunity = #wards > 0
+	if sat and not opportunity then
+		opportunity = hasNavalOpportunity(state, playerId, me, ruleset)
+	end
+	return { sat = sat, wards = wards, opportunity = opportunity }
 end
 
 -- memoized accessor: compute once per turn, reuse for every city/ship of the civ.
@@ -2106,6 +2214,16 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					markTechPath(ruleset, nt, navPath)
 				end
 			end
+			-- naval-presence M4 (#2201 Q4): a saturated naval civ with NO narrow-strait site
+			-- (needsOcean) beelines the ocean-capable carrier tech (sail@navigation).
+			local oceanPath = {}
+			local ot = oceanTech(ruleset)
+			if table.find(me.techs, "monarchy") ~= nil and ot ~= "" and table.find(me.techs, ot) == nil
+				and navyPriorityOf(state, playerId, ruleset)
+				and navalFacts(done, state, playerId, ruleset).sat
+				and needsOcean(state, playerId, me, ruleset) then
+				markTechPath(ruleset, ot, oceanPath)
+			end
 			-- XII.5b Q3: a committed civ prefers the space-flight prereq closure and
 			-- SUPERSEDES monarchy/attacker/nav; empty-onPath falls back to all (escape).
 			local spacePath = {}
@@ -2121,7 +2239,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 			for _, id in ipairs(avail) do
 				if spacePath[id] == true then
 					table.insert(onPath, id)
-				elseif not committedSpace and (monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true) then
+				elseif not committedSpace and (monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true or oceanPath[id] == true) then
 					table.insert(onPath, id)
 				end
 			end
@@ -2370,7 +2488,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						elseif isCoastal(state, city.x, city.y, ruleset)
 							and bestCarrierUnit(me, ruleset) ~= nil
 							and not hasFreeCarrier(state, playerId, ruleset)
-							and navalFacts(done, state, playerId, ruleset).sat then
+							and navalFacts(done, state, playerId, ruleset).sat
+							and navalFacts(done, state, playerId, ruleset).opportunity then
 							-- naval-presence M1 (#2201 Q1): a saturated island + no ferry -> build a carrier.
 							want = { kind = "unit", id = bestCarrierUnit(me, ruleset) }
 						elseif navyWant and isCoastal(state, city.x, city.y, ruleset) then

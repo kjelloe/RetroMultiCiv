@@ -1076,3 +1076,36 @@ test('naval-loop slice A: the AI settles an OVERSEAS city (crafted 2-continent f
   assert.ok(overseas, 'the AI founded a city on continent B (overseas)');
   assert.ok(overseas.x >= 4, `the overseas city is on continent B (x=${overseas.x} >= 4)`);
 });
+
+// naval-presence M4 (#2201 Q4 / #2230 option A): oceanTech = the earliest ocean-capable
+// carrier tech (sail@navigation); needsOcean = true ONLY when the nearest overseas site has
+// no coastal-hug (trireme) path (wide ocean) — a close-island civ across a narrow strait keeps
+// its trireme (needsOcean false). This is the ruled "no narrow-strait site" gate for the beeline.
+test('naval-presence M4: oceanTech = navigation; needsOcean distinguishes wide ocean from narrow strait', async () => {
+  const { ai } = await load();
+  assert.strictEqual(ai.oceanTech(RULESET), 'navigation', 'earliest ocean-capable carrier tech');
+
+  // helper: a 1-row-tall band map, p1 with a coastal city on continent A, foundable land on B.
+  const mk = (W, seaCols) => {
+    const H = 3, tiles = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: seaCols.includes(x) ? 'ocean' : 'grassland' });
+    return {
+      version: 1, turn: 5, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+      map: { width: W, height: H, wrapX: false, tiles },
+      units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
+      cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 1, y: 1, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'warriors' } } },
+      cityOrder: ['c1'],
+      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['map-making'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+      rngState: 1
+    };
+  };
+  // NARROW strait: 6 wide, ocean cols 2-3 (every crossing step stays land-adjacent) -> trireme
+  // reaches B -> needsOcean FALSE (keep the trireme).
+  const narrow = mk(6, [2, 3]);
+  const me = narrow.players.p1;
+  assert.strictEqual(ai.needsOcean(narrow, 'p1', me, RULESET), false, 'narrow strait: a trireme reaches -> no ocean hull needed');
+  // WIDE ocean: 8 wide, ocean cols 2-5 (4-wide, the middle is not land-adjacent) -> no coast-hug
+  // path -> needsOcean TRUE (beeline the sail).
+  const wide = mk(8, [2, 3, 4, 5]);
+  assert.strictEqual(ai.needsOcean(wide, 'p1', wide.players.p1, RULESET), true, 'wide ocean: no coast-hug path -> ocean hull needed');
+});

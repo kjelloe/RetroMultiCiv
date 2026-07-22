@@ -297,14 +297,15 @@ function adjacentToLand(state, x, y, ruleset) {
   return false;
 }
 
-function seaStepToward(state, ship, tx, ty, ruleset) {
+function seaStepToward(state, ship, tx, ty, ruleset, forceCoastal) {
   const map = state.map;
   const { width, height, wrapX } = map;
   const maxR = ruleset.rules.seaPathRadius === undefined ? 30 : ruleset.rules.seaPathRadius;
   // M3 (#2201 Q3): a coastal-restricted hull (openSeaLoss = the trireme) may only traverse
   // LAND-ADJACENT sea — it never routes into open ocean where the loss rule would sink it.
-  // Ocean-capable hulls (sail+) cross open water freely.
-  const coastal = ruleset.units[ship.type].openSeaLoss === true;
+  // Ocean-capable hulls (sail+) cross open water freely. forceCoastal (M4 needsOcean probe)
+  // simulates a trireme from a bare position — then ship.type is not read.
+  const coastal = forceCoastal === true || ruleset.units[ship.type].openSeaLoss === true;
   const visited = {};
   visited[ship.y * width + ship.x] = true;
   const queue = [{ x: ship.x, y: ship.y, first: null }];
@@ -433,7 +434,76 @@ function disembarkDir(state, unit, playerId, ruleset) {
 // the M1 gate (Q1) and fires WITHOUT prior exploration, breaking the ships->explore->see->
 // board cycle at its first link. `wards` = the OVERSEAS-BLOCKED settlers (site across water)
 // a carrier ferries (M2b). Deterministic (sorted ids; wards keep that order for tie-breaks).
+// naval-presence M1-gate (#2209b): does this civ have a real overseas OPPORTUNITY — an
+// unexplored-SEA FRONTIER (more map to find by water), else an EXPLORED overseas foundable
+// site? Only then is a bootstrap carrier worth building; on a fully-charted single continent
+// both are false -> M1 stays silent (no useless carrier). Frontier checked FIRST (no home
+// flood-fill), early-out on the first hit — cheap on archipelago. Deterministic.
+function hasNavalOpportunity(state, playerId, me, ruleset) {
+  const map = state.map;
+  for (let y = 0; y < map.height; y = y + 1) {
+    for (let x = 0; x < map.width; x = x + 1) {
+      if (!isExplored(me, map, x, y)) continue;
+      if (ruleset.terrain.terrains[map.tiles[y * map.width + x].t].domain !== 'sea') continue;
+      for (const key of DIR_KEYS) {
+        let nx = x + DIR_VECS[key][0];
+        const ny = y + DIR_VECS[key][1];
+        if (ny < 0 || ny >= map.height) continue;
+        if (nx < 0 || nx >= map.width) { if (map.wrapX !== true) continue; nx = ((nx % map.width) + map.width) % map.width; }
+        if (!isExplored(me, map, nx, ny)) return true; // a sea frontier
+      }
+    }
+  }
+  const home = homeContinents(state, playerId, ruleset); // no frontier -> pay the flood-fill once
+  for (let y = 0; y < map.height; y = y + 1) {
+    for (let x = 0; x < map.width; x = x + 1) {
+      const idx = y * map.width + x;
+      if (!isExplored(me, map, x, y)) continue;
+      if (ruleset.terrain.terrains[map.tiles[idx].t].domain !== 'land') continue;
+      if (home[idx] !== true && canFoundAt(state, x, y, ruleset)) return true; // an overseas site
+    }
+  }
+  return false;
+}
+
+// naval-presence M4 (#2201 Q4): does this civ's overseas opportunity need an OCEAN hull —
+// i.e. the nearest known overseas site has NO coastal-hug (trireme) path from the civ's coast
+// (it is across WIDE ocean, a "no narrow-strait site")? This is the ruled precise gate for the
+// navigation beeline: fire it only when a trireme cannot reach — a close-island civ keeps its
+// trireme. Lazy: called only inside the M4 trigger for a saturated naval civ lacking the ocean
+// tech (a small set), once per turn via the research block. Deterministic.
+function needsOcean(state, playerId, me, ruleset) {
+  const map = state.map;
+  let seaX = -1, seaY = -1;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner !== playerId) continue;
+    for (const key of DIR_KEYS) {
+      let nx = c.x + DIR_VECS[key][0];
+      if (nx < 0 || nx >= map.width) { if (map.wrapX !== true) continue; nx = ((nx % map.width) + map.width) % map.width; }
+      const ny = c.y + DIR_VECS[key][1];
+      if (ny < 0 || ny >= map.height) continue;
+      if (ruleset.terrain.terrains[map.tiles[ny * map.width + nx].t].domain === 'sea') { seaX = nx; seaY = ny; break; }
+    }
+    if (seaX !== -1) break; // the civ's first coastal city's launch point
+  }
+  if (seaX === -1) return false; // no coastal city — not a naval-expansion case
+  const home = homeContinents(state, playerId, ruleset);
+  const site = nearestOverseasSite(state, seaX, seaY, home, me, ruleset);
+  if (site !== null) {
+    // a KNOWN overseas site: need an ocean hull only if NO coastal-hug (trireme) path reaches it
+    // (it is across wide ocean). A close-island civ with a reachable near site keeps its trireme.
+    const proxy = { owner: playerId, x: seaX, y: seaY }; // a trireme at the launch point
+    return seaStepToward(state, proxy, site.x, site.y, ruleset, true) === null;
+  }
+  // NO known overseas site (the wide-gap bootstrap — the far island is unexplored because a
+  // coast-hugging trireme can't cross to reveal it): an ocean hull is worth it iff there is
+  // unexplored SEA to cross (a sail explores open ocean and finds the far land a trireme cannot).
+  return hasNavalOpportunity(state, playerId, me, ruleset);
+}
+
 function computeNavalFacts(state, playerId, ruleset) {
+  const me = state.players[playerId];
   let sat = false;
   const wards = [];
   for (const uid of sortIds(Object.keys(state.units))) {
@@ -443,7 +513,11 @@ function computeNavalFacts(state, playerId, ruleset) {
     if (site === null) { sat = true; continue; }
     if (isOverseasSite(state, u.x, u.y, site.x, site.y, ruleset)) { sat = true; wards.push({ x: u.x, y: u.y }); }
   }
-  return { sat, wards };
+  // opportunity gates M1: computed only for a SATURATED civ (M1's precondition). wards already
+  // imply an opportunity; else scan (frontier-first).
+  let opportunity = wards.length > 0;
+  if (sat && !opportunity) opportunity = hasNavalOpportunity(state, playerId, me, ruleset);
+  return { sat, wards, opportunity };
 }
 
 // memoized accessor: compute once per turn, reuse for every city/ship of the civ.
@@ -634,6 +708,26 @@ function seaTech(ruleset) {
   for (const id of Object.keys(ruleset.units)) {
     const def = ruleset.units[id];
     if (def.domain !== 'sea' || def.tech === '') continue;
+    const lvl = ruleset.techs[def.tech] === undefined ? 0 : ruleset.techs[def.tech].level;
+    if (best === null || lvl < bestLevel || (lvl === bestLevel && def.tech < best)) {
+      best = def.tech; bestLevel = lvl;
+    }
+  }
+  return best === null ? '' : best;
+}
+
+// naval-presence M4 (#2201 Q4): the tech that unlocks the earliest OCEAN-CAPABLE carrier —
+// a sea unit that can CARRY (transport>0) AND is NOT coastal-restricted (openSeaLoss !== true),
+// i.e. sail@navigation. An island-locked civ across WIDE ocean beelines this so a hull can
+// cross open water (M3 confines the trireme to the coast). Lowest tech level; '' if none.
+// Data-driven, mirrors seaTech.
+function oceanTech(ruleset) {
+  let best = null, bestLevel = 0;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'sea' || def.tech === '') continue;
+    if (def.transport === undefined || def.transport <= 0) continue; // must carry cargo
+    if (def.openSeaLoss === true) continue; // must be ocean-capable (not the trireme)
     const lvl = ruleset.techs[def.tech] === undefined ? 0 : ruleset.techs[def.tech].level;
     if (best === null || lvl < bestLevel || (lvl === bestLevel && def.tech < best)) {
       best = def.tech; bestLevel = lvl;
@@ -1797,6 +1891,21 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const nt = seaTech(ruleset);
         if (nt !== '') markTechPath(ruleset, nt, navPath);
       }
+      // naval-presence M4 (#2201 Q4): an island-SATURATED naval civ beelines the earliest
+      // OCEAN-CAPABLE carrier tech (sail@navigation). A coastal (trireme) hull is confined to
+      // the shore by M3, so a stranded island civ needs the ocean hull to cross open water to
+      // far islands. Deterministic (markTechPath DAG walk, no discount); navigation's prereqs
+      // pull in map-making first, so this sequences the trireme tech then the sail tech. (v1
+      // trigger: saturated + naval + lacks the ocean tech — see preopen; a needsOcean "no
+      // narrow-strait" refinement is deferred pending witness measurement.)
+      const oceanPath = {};
+      const ot = oceanTech(ruleset);
+      if (me.techs.indexOf('monarchy') !== -1 && ot !== '' && me.techs.indexOf(ot) === -1
+          && navyPriorityOf(state, playerId, ruleset)
+          && navalFacts(done, state, playerId, ruleset).sat
+          && needsOcean(state, playerId, me, ruleset)) {
+        markTechPath(ruleset, ot, oceanPath);
+      }
       // XII.5b Q3: a space-COMMITTED civ prefers the space-flight prerequisite
       // closure — Apollo's tech + every ssPart tech — and SUPERSEDES the monarchy/
       // attacker/naval paths (a committed civ is past early-game). If no space-path
@@ -1814,7 +1923,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       const onPath = [];
       for (const id of avail) {
         if (spacePath[id] === true) onPath.push(id);
-        else if (!committedSpace && (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true)) onPath.push(id);
+        else if (!committedSpace && (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true || oceanPath[id] === true)) onPath.push(id);
       }
       if (onPath.length > 0) pool = onPath;
       let best = pool[0];
@@ -2076,7 +2185,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         } else if (isCoastal(state, city.x, city.y, ruleset)
                    && bestCarrierUnit(me, ruleset) !== null
                    && !hasFreeCarrier(state, playerId, ruleset)
-                   && navalFacts(done, state, playerId, ruleset).sat) {
+                   && navalFacts(done, state, playerId, ruleset).sat
+                   && navalFacts(done, state, playerId, ruleset).opportunity) {
           // naval-presence M1 (#2201 Q1): the civ has a settler stranded on a SATURATED
           // island (no reachable land site) and no carrier to ferry it -> a coastal city
           // builds the best available carrier. STRICT saturation gate; cheap guards first
@@ -2444,7 +2554,7 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   return state;
 }
 
-export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit, bestCarrierUnit, landComponent, isOverseasSite, seaStepToward, nearestOwnCarrier, carrierFreeSlots };
+export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit, bestCarrierUnit, landComponent, isOverseasSite, seaStepToward, nearestOwnCarrier, carrierFreeSlots, oceanTech, adjacentToLand, needsOcean, hasNavalOpportunity };
 // XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
 // for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
 // measurement, zero engine-decision use, no luau caller. Pure reads.
