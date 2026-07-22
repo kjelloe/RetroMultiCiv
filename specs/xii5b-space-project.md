@@ -112,3 +112,22 @@ in specs/calendar-545.md as well.
   civs MUST build wonders") = its own v1 item after manhattan-gate/
   naval-loop; architect drafts the spec. 5TH WITNESS = the acceptance
   measurement (25-seed, launches>0) — verdict appends here.
+- ARC CONCLUSION (2026-07-22, witnesses 5+6 + the dig + the radius arc):
+  BOTH acceptance sweeps 0-launch. The verification cascade: witness-5
+  (0 launches, 15/18 abandons 'warring') → seed-21 dig (apollo WIRE
+  exonerated — the civ never researched space-flight, hasApolloTech=0
+  all game) → reviewer radius lead (wrong for seed-21, corrected on
+  record #2190; RIGHT in general — both space BUILD guards still used
+  the deleted radius-8 doctrine) → radius fix ad5da20 (cheb-1
+  migration, marker-0084) → witness-6 STILL 0 launches. The pathPct
+  instrument audited mathematically correct; gateTechTurn added to
+  disambiguate gate-blocked from near-launch. VERDICT: every
+  mechanical layer is now individually verified (commit / abandon /
+  wire / guards / instrument); the sole remaining blocker is RESEARCH
+  DEPTH vs GAME LENGTH — the #1912 conclusion, returned with all the
+  machinery in place. FORK WITH THE USER: (a) measure-first — a
+  witness sweep with the authentic per-difficulty AI research knobs
+  (aiBulbInc, king/emperor rows) force-enabled in all-AI, answering
+  whether real King+ games already launch; (b) bulb-cost tuning at
+  prince; (c) peace-seeking committed civs. No further space work
+  until ruled.

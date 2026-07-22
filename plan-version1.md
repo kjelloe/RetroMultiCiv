@@ -4,16 +4,18 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 early (marker-0083 TAGGED @c746298 — BOTH gates
-REAL, 15th consecutive consistent, THE merge candidate. In it:
-danger-abandon ✅ · 7-level difficulty ✅ [M3 27 provisional, 25-seed
-confirm running] · full A50 hardening arc ✅ [+ gap-fix f0e03b1] · B27 ✅
-[disbandCity docked-ship, §40 interaction] · entry-default LOCAL +
-tab-loss autosave/resume [user rulings] · 2 helper client batches.
-Post-0083: apollo-narrow LANDED 52754ca [Apollo build-gate root cause
-fixed; twins 10/10] — 5TH WITNESS RUNNING [launches>0 = the space arc's
-acceptance]. Engine order: manhattan-gate → naval-loop → archetype
-wonder slice [spec = architect's one open design] → smalls → D4–D6.)
+Last updated: 2026-07-22 mid-morning (marker-0085 = candidate, 17
+consecutive consistent. 0084: apollo-narrow + manhattan-gate/no-nukes +
+radius-mismatch fix + M3 floor 28-restored + XV triage. 0085: naval
+slice A — the settle-overseas core, dormant + 2-continent
+fixture-proven, golden-neutral both engines. SPACE ARC: witnesses 5+6
+both 0-launch; every mechanical layer individually verified
+(commit/abandon/wire/guards/instrument); sole blocker = RESEARCH DEPTH
+vs game length — fork WITH USER (measure-first: force-enabled
+difficulty-asymmetry sweep). Engine order: naval presence-1 [M1+M2+M3,
+ruled #2201] → presence-2 [M4 sail-era] → invade slice B → archetype
+wonder slice [spec DRAFTED specs/archetype-wonders.md] → smalls →
+disorder playbook → D4–D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -31,12 +33,12 @@ flowchart TD
     HIST["✅ markers 0069–0081: XII.5 core ·\ncalendar-545 · xiv-ai arc (§12/§13/§14) ·\n§40 pop-cost · §50 city-as-road · air-truth ·\nbarb sea raids · A91 nuclear family · disasters"]
     NAV2["✅ naval-truth (marker-0082):\nsub stealth · sight-2 · probabilistic\ntrireme · Lighthouse/Magellan +1"]
     DAB["✅ danger-based abandon (706b19d,\nboth gates green; 4th witness: commits\nsurvive, abandons concrete, floors hold)"]
-    DIFF["🔨 authentic difficulty — DONE+VERIFIED,\nLANDING (7-level Civ1 ladder, #2158 knob\nsplit, M3 re-pin 27 provisional) → marker-0083"]
-    B27["📋 B27 trireme-on-land regression\n(seed-23 sweep find; blocks a clean marker;\nreviewer pre-narrowed to naval.js/+2-move/loss)"]
-    APN["📋 apollo-narrow (ruled #2160):\ncommitted civ BUILDS Apollo →\n5th witness must show launches>0"]
+    DIFF["✅ authentic difficulty (0083):\n7-level Civ1 ladder; M3 floor RESTORED 28\n(25-seed evidence #2181)"]
+    B27["✅ B27 fixed (0083): disbandCity\nstranded docked ships (§40 interaction)"]
+    APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
     ARCH["🧩 archetype wonder slice — 'some civs\nMUST build wonders' (A40 vision; spec =\narchitect's ONE open design; A59 feeds it)"]
     MAN["📋 manhattan-gate + no-nukes toggle\n(A91 remainder)"]
-    NAVL["📋 NAVAL LOOP v1 — RULED full five-step\n+ escort, war-committed invasion\n(naval-loop-v1.md)"]
+    NAVL["✅ naval slice A (0085): settle core\ndormant+fixture-proven → 📋 presence-1\n(ruled #2201) → presence-2 → invade B"]
     SMALL["📋 tail smalls: A6a future-tech ·\nA7 wonder stragglers · §45b rehome ·\n§46 default-defender · A8 tile contention"]
     XAB["📋 xiv-ai-behavior batch\n(unit bloat >1000 ×3 seeds · gold hoard —\nevidence filed)"]
     D3S["📋 D3 server-surfacing · 11b city names"]
@@ -72,8 +74,8 @@ flowchart TD
   end
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
-    MFL["🔨 M-floors: re-baselined post-§40 +\nratcheted (M2≥6 · M3≥27 provisional #2164 ·\nM4≥50); sim-runner 25-seed confirm queued"]
-    W5["📋 5th witness = launches>0\n(sim-runner queue; the space arc's\nacceptance measurement)"]
+    MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
+    W5["🚪 7th witness = launches>0\n(runs after the user's research-depth\nruling; 5+6 both failed on depth)"]
     GOV["🧩 N1/N2 gov re-eval + late-tech\nmodernization (post-naval-loop)"]
     W5 --> MFL
     GOV --> MFL
