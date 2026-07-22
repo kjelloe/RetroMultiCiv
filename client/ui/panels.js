@@ -141,16 +141,31 @@ export function initPanels(ctx) {
       ? `⚡ Anarchy — ${me.revolutionTurns} turn${me.revolutionTurns > 1 ? 's' : ''} until ${governments[me.pendingGovernment].name}`
       : `🏛 ${governments[current].name} (rates ≤ ${governments[current].maxRate}%)`)
       + specialty + ' · ';
+    // #35 client: an active government wonder the human OWNS (Pyramids —
+    // effect.unlockAnyGov) lets them revolt to ANY government without its
+    // advance, matching engine setGovernment. Read-only (wonderActive + owner
+    // check), never state-mutate; the effect text is the pedia's own line.
+    const anyGovWonder = Object.keys(session.ruleset.wonders).some(wid => {
+      const eff = session.ruleset.wonders[wid].effect;
+      if (!eff || eff.unlockAnyGov !== true) return false;
+      if (!wonderActive(state, wid, session.ruleset)) return false;
+      const home = state.wonders && state.cities[state.wonders[wid]];
+      return home !== undefined && home.owner === ctx.HUMAN;
+    });
+    if (anyGovWonder) label.textContent += '🔺 any government · ';
     govRow.appendChild(label);
     if (me.revolutionTurns === undefined) {
       for (const id of Object.keys(governments)) {
         if (id === 'anarchy' || id === current) continue;
         const gov = governments[id];
-        if (gov.tech !== '' && !me.techs.includes(gov.tech)) continue;
+        const needsTech = gov.tech !== '' && !me.techs.includes(gov.tech);
+        if (needsTech && !anyGovWonder) continue;
         const btn = document.createElement('button');
         btn.className = 'gov-btn';
         btn.textContent = `→ ${gov.name}`;
-        btn.title = 'start a revolution (a few turns of Anarchy first)';
+        btn.title = needsTech
+          ? '🔺 the Pyramids let you adopt this government without its advance'
+          : 'start a revolution (a few turns of Anarchy first)';
         btn.addEventListener('click', () =>
           ctx.apply({ type: 'setGovernment', playerId: ctx.HUMAN, government: id }));
         govRow.appendChild(btn);
