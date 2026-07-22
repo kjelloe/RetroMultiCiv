@@ -40,12 +40,12 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
      convenient; it self-resumes from its memory + queue. These are
      the last two axis-6 items.
 
-- [ ] **Optional ally FYI-relay** (no reply needed): "Your
-  Explorer/Diplomat nuance is carried by per-stance affinity flags
-  (naval / happiness-global / late-science) biasing the wonder pick —
-  the A59 axes measured too coarse to express it, exactly the case
-  your 'if possible' anticipated." (The archetype build's Q4
-  grounding; the wonder-mapping table itself is unchanged.)
+- [ ] **Optional ally relay** (no reply needed): a full shareable
+  status note is ready at `specs/ally-status-update-2026-07-23.md` —
+  their 22-wonder mapping shipped + measured (non-builder wonders
+  0→20), the affinity-flag grounding, the advisor copy live, and the
+  witness-7 launch measurement running. Forward whenever convenient;
+  nothing is pending from them.
 
 - [ ] **One-time box commands for the public index** (DNS record is in
   and propagated by now): append the `servers.` nginx server block
