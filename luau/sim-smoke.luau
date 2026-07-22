@@ -16,9 +16,9 @@ for _, f in ipairs({ "terrain", "units", "techs", "buildings", "wonders", "gover
 	ruleset[f] = json2lua.parse(fs.readFile("data/" .. f .. ".json"))
 end
 
--- args: [rounds] or "natural" (standard endYear, 545 rounds, CHAOS OFF —
--- the exact GOLDEN_NATURAL configuration in test/simulation.test.js:
--- expect rounds 545, winner p2, finalHash 0xd5a7d301 — Calendar-545)
+-- args: [rounds] or "natural" (standard endYear, CHAOS OFF — the exact
+-- GOLDEN_NATURAL configuration in test/simulation.test.js:
+-- expect rounds 519, winner p2, finalHash 0xa17099f5 — Calendar-545 curve)
 local turns = 100
 local natural = false
 if process.args[1] == "natural" then
@@ -27,6 +27,9 @@ if process.args[1] == "natural" then
 elseif process.args[1] ~= nil then
 	turns = tonumber(process.args[1]) :: number
 end
+-- naval witness: an optional 2nd arg selects the map type (e.g. "archipelago") so the
+-- twins gate can exercise the naval code paths cross-language on a seed where they FIRE.
+local mapType = process.args[2]
 local deepAt = {}
 if not natural then -- soak checkpoints are the chaos-on trajectory only
 	for _, cp in ipairs({ 100, 200, 300, 400 }) do
@@ -46,6 +49,7 @@ local result = simDriver.runSim({
 	rulesOverrides = if natural then { disastersEnabled = false } else { endYear = 9999, disastersEnabled = false },
 	chaos = not natural, -- the natural golden is a chaos-OFF run (JS SIM defaults)
 	deepAt = deepAt,
+	mapType = mapType, -- nil = default (continents); "archipelago" = the naval witness
 })
 local elapsed = os.clock() - t0
 

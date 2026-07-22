@@ -1002,11 +1002,12 @@ test('naval-loop S2: bestCarrierUnit picks the best available carrier', async ()
   assert.strictEqual(ai.bestCarrierUnit(mk(['map-making', 'navigation', 'magnetism', 'industrialization']), RULESET), 'transport', 'industrialization -> transport (cap 8)');
 });
 
-// naval-loop S3 helpers: seaStepToward (bounded sea-BFS to a landfall adjacent the target
-// land) + nearestOwnCarrier/carrierFreeSlots (the boardable carrier a settler routes to).
-test('naval-loop S3: seaStepToward sails toward landfall; nearestOwnCarrier finds a free carrier', async () => {
+// naval-loop S3 + naval-presence M3: seaStepToward (bounded sea-BFS to a landfall adjacent
+// the target land) is CARRIER-SAFE — a coastal (openSeaLoss) hull only routes through land-
+// adjacent sea, an ocean-capable hull crosses open water. + nearestOwnCarrier/carrierFreeSlots.
+test('naval-loop S3 / M3: seaStepToward is carrier-safe; nearestOwnCarrier finds a free carrier', async () => {
   const { ai } = await load();
-  // 7x3: land col x0..2 (continent A) | sea x3..5 | land x6 (continent B target).
+  // 7x3: land col x0..2 (continent A) | sea x3..5 (3-wide OPEN OCEAN) | land x6 (continent B).
   const W = 7, H = 3, tiles = [];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: (x >= 3 && x <= 5) ? 'ocean' : 'grassland' });
   const state = {
@@ -1016,10 +1017,21 @@ test('naval-loop S3: seaStepToward sails toward landfall; nearestOwnCarrier find
       st: { id: 'st', type: 'settlers', owner: 'p1', x: 1, y: 1, moves: 1, fortified: false, veteran: false, aboard: 'sh' }
     }
   };
-  // the trireme at (3,1) sails toward continent B land at (6,1): landfall = the sea tile
-  // adjacent to (6,1) = (5,1); first step is east.
-  const dir = ai.seaStepToward(state, state.units.sh, 6, 1, RULESET);
-  assert.ok(dir === 'E' || dir === 'NE' || dir === 'SE', `sails east toward landfall (got ${dir})`);
+  // M3: a TRIREME (openSeaLoss) may NOT cross the 3-wide open ocean — the middle tile (4,1)
+  // is not land-adjacent, so it would sink; seaStepToward refuses (null, it holds coast).
+  assert.strictEqual(ai.seaStepToward(state, state.units.sh, 6, 1, RULESET), null,
+    'M3: a trireme refuses the open-ocean crossing (would sink)');
+  // an OCEAN-CAPABLE hull (sail, no openSeaLoss) crosses the same ocean toward landfall (5,1).
+  const sail = { id: 'sl', type: 'sail', owner: 'p1', x: 3, y: 1, moves: 3 };
+  const sdir = ai.seaStepToward(Object.assign({}, state, { units: { sl: sail } }), sail, 6, 1, RULESET);
+  assert.ok(sdir === 'E' || sdir === 'NE' || sdir === 'SE', `M3: a sail crosses open ocean east (got ${sdir})`);
+  // a TRIREME crosses a NARROW strait (every step land-adjacent): 6x3, ocean cols 2-3,
+  // land A cols 0-1, land B cols 4-5. From (2,1) the step to (3,1) stays land-adjacent (to B).
+  const nW = 6, nTiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < nW; x++) nTiles.push({ t: (x === 2 || x === 3) ? 'ocean' : 'grassland' });
+  const strait = { map: { width: nW, height: H, wrapX: false, tiles: nTiles }, units: { t2: { id: 't2', type: 'trireme', owner: 'p1', x: 2, y: 1, moves: 3 } } };
+  const tdir = ai.seaStepToward(strait, strait.units.t2, 4, 1, RULESET);
+  assert.ok(tdir === 'E' || tdir === 'NE' || tdir === 'SE', `M3: a trireme crosses a 2-wide strait (land-adjacent throughout, got ${tdir})`);
   // free-slot accounting: trireme cap 2, one settler aboard -> 1 free.
   assert.strictEqual(ai.carrierFreeSlots(state, state.units.sh, RULESET), 1, 'trireme cap2 minus 1 cargo = 1 free');
   // nearestOwnCarrier from a land settler at (2,1) -> the trireme (has a free slot).

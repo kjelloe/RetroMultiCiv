@@ -303,10 +303,36 @@ local function bfsStepToward(state: any, me: any, playerId: string, unit: any, t
 end
 
 -- naval-loop S3 (#2195 Q3) twin: bounded SEA BFS to a landfall adjacent the target land.
+-- naval-presence M3 (#2201 Q3): is (x,y) adjacent to LAND — a safe harbour for a coastal
+-- (openSeaLoss) hull? Mirrors engine/naval.js so pathing agrees with the loss rule.
+local function adjacentToLand(state: any, x: number, y: number, ruleset: any): boolean
+	local W, H = state.map.width, state.map.height
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = x + DIR_VECS[key][1]
+		if nx < 0 or nx >= W then
+			if state.map.wrapX ~= true then
+				continue
+			end
+			nx = ((nx % W) + W) % W
+		end
+		local ny = y + DIR_VECS[key][2]
+		if ny < 0 or ny >= H then
+			continue
+		end
+		if ruleset.terrain.terrains[state.map.tiles[ny * W + nx + 1].t].domain == "land" then
+			return true
+		end
+	end
+	return false
+end
+
 local function seaStepToward(state: any, ship: any, tx: number, ty: number, ruleset: any): string?
 	local map = state.map
 	local width, height, wrapX = map.width, map.height, map.wrapX
 	local maxR = if ruleset.rules.seaPathRadius == nil then 30 else ruleset.rules.seaPathRadius
+	-- M3 (#2201 Q3): a coastal-restricted hull (openSeaLoss = trireme) may only traverse
+	-- LAND-ADJACENT sea; ocean-capable hulls (sail+) cross open water freely.
+	local coastal = ruleset.units[ship.type].openSeaLoss == true
 	local visited = {}
 	visited[ship.y * width + ship.x] = true
 	local queue = { { x = ship.x, y = ship.y, first = nil } }
@@ -340,6 +366,9 @@ local function seaStepToward(state: any, ship: any, tx: number, ty: number, rule
 			local first = if cur.first == nil then key else cur.first
 			if chebyshev(map, nx, ny, tx, ty) <= 1 then
 				return first
+			end
+			if coastal and not adjacentToLand(state, nx, ny, ruleset) then
+				continue
 			end
 			local hostile = false
 			for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
@@ -1124,6 +1153,61 @@ local function homeContinents(state: any, playerId: string, ruleset: any): any
 	return home
 end
 
+-- naval-presence M1: does the civ field a carrier with a free cargo slot?
+local function hasFreeCarrier(state: any, playerId: string, ruleset: any): boolean
+	for uid in pairs(state.units) do
+		local u = state.units[uid]
+		if u.owner == playerId and u.aboard == nil and ruleset.units[u.type].domain == "sea"
+			and carrierFreeSlots(state, u, ruleset) > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- naval-presence perf memo (#2201): the civ-level naval facts, computed ONCE per turn
+-- (bestCitySite is expensive) and cached in `done`. sat = has an island-saturated settler
+-- (M1 gate); wards = overseas-blocked settlers a carrier ferries (M2b).
+local function computeNavalFacts(state: any, playerId: string, ruleset: any): any
+	local sat = false
+	local wards = {}
+	for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+		local u = state.units[uid]
+		if u.owner == playerId and u.type == "settlers" and u.aboard == nil then
+			local site = bestCitySite(state, u, playerId, ruleset)
+			if site == nil then
+				sat = true
+			elseif isOverseasSite(state, u.x, u.y, site.x, site.y, ruleset) then
+				sat = true
+				table.insert(wards, { x = u.x, y = u.y })
+			end
+		end
+	end
+	return { sat = sat, wards = wards }
+end
+
+-- memoized accessor: compute once per turn, reuse for every city/ship of the civ.
+local function navalFacts(done: any, state: any, playerId: string, ruleset: any): any
+	if done.naval == nil then
+		done.naval = computeNavalFacts(state, playerId, ruleset)
+	end
+	return done.naval
+end
+
+-- M2b: the nearest overseas-blocked settler (from the memoized ward list) to a ferry.
+local function nearestWard(wards: any, state: any, ship: any): any
+	local best = nil
+	local bestD = -1
+	for _, w in ipairs(wards) do
+		local d = chebyshev(state.map, ship.x, ship.y, w.x, w.y)
+		if best == nil or d < bestD then
+			best = w
+			bestD = d
+		end
+	end
+	return best
+end
+
 -- B23b twin: the nearest OWN city to a unit (deterministic sortIds walk).
 local function nearestOwnCity(state: any, unit: any, playerId: string): any
 	local best = nil
@@ -1613,6 +1697,55 @@ local function towardUnexplored(state: any, unit: any, me: any): string?
 				if d < bestDist then
 					best = { x = x, y = y }
 					bestDist = d
+				end
+			end
+		end
+	end
+	if best == nil then
+		return nil
+	end
+	return dirToward(state.map, unit.x, unit.y, best.x, best.y)
+end
+
+-- naval-presence M2 (#2201 Q2): a SEA scout's open-water heading — nearest EXPLORED sea
+-- tile bordering unexplored space (the known-water frontier). Fog-honest; reveals other
+-- islands so the settle-loop arms. Sea-only, additive. Deterministic (nearest, idx tie).
+local function towardUnexploredSea(state: any, unit: any, me: any, ruleset: any): string?
+	if me.explored == nil then
+		return nil
+	end
+	local width, height = state.map.width, state.map.height
+	local best = nil
+	local bestDist = 9999
+	local bestIdx = -1
+	for y = 0, height - 1 do
+		for x = 0, width - 1 do
+			local idx = y * width + x
+			if me.explored[idx + 1] == 1 and ruleset.terrain.terrains[state.map.tiles[idx + 1].t].domain == "sea" then
+				local frontier = false
+				for _, key in ipairs(DIR_KEYS) do
+					local nx = x + DIR_VECS[key][1]
+					local ny = y + DIR_VECS[key][2]
+					if ny >= 0 and ny < height then
+						if nx < 0 or nx >= width then
+							if state.map.wrapX == true then
+								nx = ((nx % width) + width) % width
+								if me.explored[ny * width + nx + 1] ~= 1 then
+									frontier = true
+								end
+							end
+						elseif me.explored[ny * width + nx + 1] ~= 1 then
+							frontier = true
+						end
+					end
+				end
+				if frontier then
+					local d = chebyshev(state.map, unit.x, unit.y, x, y)
+					if d < bestDist or (d == bestDist and idx < bestIdx) then
+						best = { x = x, y = y }
+						bestDist = d
+						bestIdx = idx
+					end
 				end
 			end
 		end
@@ -2234,6 +2367,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = defBuild
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
+						elseif isCoastal(state, city.x, city.y, ruleset)
+							and bestCarrierUnit(me, ruleset) ~= nil
+							and not hasFreeCarrier(state, playerId, ruleset)
+							and navalFacts(done, state, playerId, ruleset).sat then
+							-- naval-presence M1 (#2201 Q1): a saturated island + no ferry -> build a carrier.
+							want = { kind = "unit", id = bestCarrierUnit(me, ruleset) }
 						elseif navyWant and isCoastal(state, city.x, city.y, ruleset) then
 							want = { kind = "unit", id = navySeaUnit }
 						elseif econItem ~= nil then
@@ -2372,6 +2511,21 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						return { type = "wait", playerId = playerId, unitId = uid }
 					end
 				end
+				-- naval-presence M2b (#2201): an EMPTY carrier ferries — steer to an overseas-blocked
+				-- settler and HOLD beside it (pickup) instead of scouting away (the rendezvous fix).
+				if ruleset.units[unit.type].domain == "sea" and carrierCargo(state, unit.id) == 0
+					and carrierFreeSlots(state, unit, ruleset) > 0 then
+					local ward = nearestWard(navalFacts(done, state, playerId, ruleset).wards, state, unit)
+					if ward ~= nil then
+						if chebyshev(state.map, unit.x, unit.y, ward.x, ward.y) <= 1 then
+							return { type = "wait", playerId = playerId, unitId = uid }
+						end
+						local pdir = seaStepToward(state, unit, ward.x, ward.y, ruleset)
+						if pdir ~= nil then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = pdir }
+						end
+					end
+				end
 				local enemy = nearestKnownEnemy(state, unit, playerId)
 				local exploreMode = if ruleset.rules.aiExploreMode == nil then "bfs" else ruleset.rules.aiExploreMode
 				local scouting = isScout(state, playerId, ruleset, uid, S)
@@ -2404,7 +2558,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							sdir = coastalScoutDir(state, unit, me, ruleset)
 						end
 						if sdir == nil then
-							if exploreMode == "wallfollow" then
+							if ruleset.units[unit.type].domain == "sea" then
+								-- naval-presence M2 (#2201 Q2): sea scouts cross open water to the frontier.
+								sdir = towardUnexploredSea(state, unit, me, ruleset)
+							elseif exploreMode == "wallfollow" then
 								local wf = wallFollowDir(state, unit, me, ruleset)
 								sdir = wf.dir
 								heading = wf.heading

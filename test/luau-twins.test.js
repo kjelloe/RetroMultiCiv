@@ -243,8 +243,29 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x55856b03\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x989819e2\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
+  });
+
+// naval-presence presence-1 (#2201 Q5): the ARCHIPELAGO naval witness — the EXECUTING
+// cross-language proof that the naval code paths (M1 saturation-build / M2 sea-explore /
+// M3 coastal-hug pathing / M2b pickup) fire IDENTICALLY in both engines on a seed where
+// they engage. The continents soak above is a single landmass, so naval stays dormant there
+// (its hash moved via the seaPathRadius rulesetHash stamp, not naval firing). This runs the
+// SAME config on an archipelago and asserts JS == Luau bit-for-bit (computed live, no static
+// pin — self-maintaining across future re-records).
+test('luau ai: the archipelago naval witness reaches the turn-100 checkpoint bit-exact (JS==Luau)',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const { runSim } = require('./sim-driver.js');
+    const js = await runSim({ seed: 20260712, civs: 4, width: 56, height: 35, turns: 100,
+      rulesOverrides: { endYear: 9999, disastersEnabled: false }, chaos: true,
+      mapType: 'archipelago', deepAt: [100], artifactsDir: false });
+    const jsHash = js.checkpoints[100];
+    const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau', '100', 'archipelago'],
+      { cwd: REPO, encoding: 'utf8', timeout: 180000 });
+    assert.strictEqual(res.status, 0, `archipelago sim smoke failed:\n${res.stdout}\n${res.stderr}`);
+    assert.match(res.stdout, new RegExp(`checkpoint 100: ${jsHash}\\n`),
+      `the Luau naval AI diverged from JS on an archipelago (naval-active) seed — JS=${jsHash}, luau said:\n${res.stdout}`);
   });
 
 // P5-8 Gate C: VERDICT EQUALITY — the JS and Luau replayers must produce
@@ -281,8 +302,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'bbfcb4a1', pangaea: '76b059be',
-      archipelago: '9fd0d2dd', islands: 'cff99688'
+      continents: '9ad90edc', pangaea: 'bb12df03',
+      archipelago: 'da654d72', islands: '8278bd33'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -327,9 +348,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // 0xb735adcb (XII.5b latch spaceThreatPatience) -> 0x84150295 (A91c nuclearBlast flag) ->
 // 0x3ad8f233 (disasters block) -> 0x13fa7076 (danger-abandon: removed spaceThreatPatience) ->
 // 0xb8965a25 (difficulty block #2155/#2158: difficulties table + createGame stamps state.difficulty) ->
-// 0x9f2d8558 (manhattan-gate #16: manhattan-project effect {nukesEnabled} in wonders.json).
+// 0x9f2d8558 (manhattan-gate #16: manhattan-project effect {nukesEnabled} in wonders.json) ->
+// 0x56d17745 (naval-presence presence-1 #2201: seaPathRadius knob in rules.json).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x9f2d8558 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x56d17745 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

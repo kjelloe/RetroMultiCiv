@@ -282,10 +282,29 @@ function bfsStepToward(state, me, playerId, unit, tx, ty, ruleset) {
 // through sea, skips hostile-occupied tiles, bounded by rules.seaPathRadius (omit-safe
 // default 30 until the knob lands). Sea units use the full height (no y in 1..H-2 clamp,
 // unlike land settlers). null when no bounded sea path reaches the landfall. Both engines.
+// naval-presence M3 (#2201 Q3): is (x,y) adjacent to a LAND tile — a safe harbour for a
+// coastal-restricted (openSeaLoss) hull? Mirrors engine/naval.js adjacentToLand exactly,
+// so the AI's pathing agrees with the loss rule (a trireme never routes where it would sink).
+function adjacentToLand(state, x, y, ruleset) {
+  const W = state.map.width, H = state.map.height;
+  for (const key of DIR_KEYS) {
+    let nx = x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= W) { if (state.map.wrapX !== true) continue; nx = ((nx % W) + W) % W; }
+    const ny = y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= H) continue;
+    if (ruleset.terrain.terrains[state.map.tiles[ny * W + nx].t].domain === 'land') return true;
+  }
+  return false;
+}
+
 function seaStepToward(state, ship, tx, ty, ruleset) {
   const map = state.map;
   const { width, height, wrapX } = map;
   const maxR = ruleset.rules.seaPathRadius === undefined ? 30 : ruleset.rules.seaPathRadius;
+  // M3 (#2201 Q3): a coastal-restricted hull (openSeaLoss = the trireme) may only traverse
+  // LAND-ADJACENT sea — it never routes into open ocean where the loss rule would sink it.
+  // Ocean-capable hulls (sail+) cross open water freely.
+  const coastal = ruleset.units[ship.type].openSeaLoss === true;
   const visited = {};
   visited[ship.y * width + ship.x] = true;
   const queue = [{ x: ship.x, y: ship.y, first: null }];
@@ -304,6 +323,7 @@ function seaStepToward(state, ship, tx, ty, ruleset) {
       if (ruleset.terrain.terrains[map.tiles[idx].t].domain !== 'sea') continue; // sail through sea only
       const first = cur.first === null ? key : cur.first;
       if (chebyshev(map, nx, ny, tx, ty) <= 1) return first; // a sea tile adjacent to the target = landfall
+      if (coastal && !adjacentToLand(state, nx, ny, ruleset)) continue; // M3: hug the coast
       let hostile = false;
       for (const u of unitsAt(state, nx, ny)) { if (u.owner !== ship.owner) hostile = true; }
       if (hostile) continue;
@@ -403,6 +423,56 @@ function disembarkDir(state, unit, playerId, ruleset) {
     if (landDir === null) landDir = key;
   }
   return landDir;
+}
+
+// naval-presence perf memo (#2201): bestCitySite (siteScan) is expensive, and the M1 build
+// gate + M2b ferry both need per-settler site facts. Compute them ONCE per AI turn over the
+// civ's settlers and cache in `done` (persists across the turn's pickCommand calls). `sat` =
+// the civ has an ISLAND-SATURATED settler — no reachable land site (bestCitySite null: own
+// continent full, no overseas site known yet) OR the best site is already overseas; this is
+// the M1 gate (Q1) and fires WITHOUT prior exploration, breaking the ships->explore->see->
+// board cycle at its first link. `wards` = the OVERSEAS-BLOCKED settlers (site across water)
+// a carrier ferries (M2b). Deterministic (sorted ids; wards keep that order for tie-breaks).
+function computeNavalFacts(state, playerId, ruleset) {
+  let sat = false;
+  const wards = [];
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const u = state.units[uid];
+    if (u.owner !== playerId || u.type !== 'settlers' || u.aboard !== undefined) continue;
+    const site = bestCitySite(state, u, playerId, ruleset);
+    if (site === null) { sat = true; continue; }
+    if (isOverseasSite(state, u.x, u.y, site.x, site.y, ruleset)) { sat = true; wards.push({ x: u.x, y: u.y }); }
+  }
+  return { sat, wards };
+}
+
+// memoized accessor: compute once per turn, reuse for every city/ship of the civ.
+function navalFacts(done, state, playerId, ruleset) {
+  if (done.naval === undefined) done.naval = computeNavalFacts(state, playerId, ruleset);
+  return done.naval;
+}
+
+// M2b: the nearest overseas-blocked settler (from the memoized ward list) to a ferry —
+// chebyshev nearest, list order (sorted ids) breaks ties. null when the civ has no ferry job.
+function nearestWard(wards, state, ship) {
+  let best = null, bestD = -1;
+  for (const w of wards) {
+    const d = chebyshev(state.map, ship.x, ship.y, w.x, w.y);
+    if (best === null || d < bestD) { best = w; bestD = d; }
+  }
+  return best;
+}
+
+// naval-presence M1: does the civ already field a carrier with a free cargo slot? When
+// it does, the saturated settler boards that instead of a city building another.
+function hasFreeCarrier(state, playerId, ruleset) {
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner !== playerId || u.aboard !== undefined) continue;
+    if (ruleset.units[u.type].domain !== 'sea') continue;
+    if (carrierFreeSlots(state, u, ruleset) > 0) return true;
+  }
+  return false;
 }
 
 // This settler's rank among the civ's settlers (sorted ids): rank 0 is the
@@ -1387,6 +1457,38 @@ function towardUnexplored(state, unit, me) {
   return dirToward(state.map, unit.x, unit.y, best.x, best.y);
 }
 
+// naval-presence M2 (#2201 Q2): a SEA scout's open-water heading — steer toward the
+// nearest EXPLORED SEA tile that borders unexplored space (the known-water frontier).
+// Fog-honest (reads only explored tiles); sailing to the ocean's known edge reveals
+// beyond it, so boat-scouts cross to OTHER landmasses instead of circling their own
+// island (whose inland fog traps towardUnexplored near home). Sea-only, additive — land
+// scouts are untouched. Deterministic: nearest chebyshev, tile-index tie-break.
+function towardUnexploredSea(state, unit, me, ruleset) {
+  if (!me.explored) return null;
+  const { width, height } = state.map;
+  let best = null, bestDist = 9999, bestIdx = -1;
+  for (let y = 0; y < height; y = y + 1) {
+    for (let x = 0; x < width; x = x + 1) {
+      const idx = y * width + x;
+      if (me.explored[idx] !== 1) continue; // the frontier tile must itself be explored
+      if (ruleset.terrain.terrains[state.map.tiles[idx].t].domain !== 'sea') continue;
+      let frontier = false;
+      for (const key of DIR_KEYS) {
+        let nx = x + DIR_VECS[key][0];
+        const ny = y + DIR_VECS[key][1];
+        if (ny < 0 || ny >= height) continue;
+        if (nx < 0 || nx >= width) { if (state.map.wrapX !== true) continue; nx = ((nx % width) + width) % width; }
+        if (me.explored[ny * width + nx] !== 1) { frontier = true; break; }
+      }
+      if (!frontier) continue;
+      const d = chebyshev(state.map, unit.x, unit.y, x, y);
+      if (d < bestDist || (d === bestDist && idx < bestIdx)) { best = { x, y }; bestDist = d; bestIdx = idx; }
+    }
+  }
+  if (!best) return null;
+  return dirToward(state.map, unit.x, unit.y, best.x, best.y);
+}
+
 // B23: the BFS ROUTER — the real "commit to the trip" (docs/15 §item, the A65
 // pathfind). Breadth-first over PASSABLE LAND from the scout, returning the
 // first-step direction of the shortest land path to the nearest UNEXPLORED land
@@ -1971,6 +2073,16 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = defBuild; // stance-mix: the defending-builder's economy reserve
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
+        } else if (isCoastal(state, city.x, city.y, ruleset)
+                   && bestCarrierUnit(me, ruleset) !== null
+                   && !hasFreeCarrier(state, playerId, ruleset)
+                   && navalFacts(done, state, playerId, ruleset).sat) {
+          // naval-presence M1 (#2201 Q1): the civ has a settler stranded on a SATURATED
+          // island (no reachable land site) and no carrier to ferry it -> a coastal city
+          // builds the best available carrier. STRICT saturation gate; cheap guards first
+          // so the settler scan short-circuits. The carrier then scouts open water (M2)
+          // and, once loaded, sails coast-safe (M3).
+          want = { kind: 'unit', id: bestCarrierUnit(me, ruleset) };
         } else if (navyWant && isCoastal(state, city.x, city.y, ruleset)) {
           // N3: a coastal city of a naval civ, land core secured, fleet under
           // target -> build a ship (above generic buildings/wonders).
@@ -2116,6 +2228,23 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       }
     }
 
+    // naval-presence M2b (#2201): an EMPTY carrier ferries — it steers to an own overseas-
+    // blocked settler and HOLDS beside it (pickup) instead of scouting away, so the two
+    // rendezvous (a roaming scout-carrier never meets a chasing settler). Coast-safe (M3).
+    // Only when the civ actually has a ferry job; else the carrier falls through to scout.
+    if (ruleset.units[unit.type].domain === 'sea' && carrierCargo(state, unit.id) === 0
+        && carrierFreeSlots(state, unit, ruleset) > 0) {
+      const ward = nearestWard(navalFacts(done, state, playerId, ruleset).wards, state, unit);
+      if (ward) {
+        if (chebyshev(state.map, unit.x, unit.y, ward.x, ward.y) <= 1) {
+          return { type: 'wait', playerId, unitId: uid }; // beside the settler: hold for it to board
+        }
+        const pdir = seaStepToward(state, unit, ward.x, ward.y, ruleset);
+        if (pdir) return { type: 'moveUnit', playerId, unitId: uid, dir: pdir };
+        // no coast-safe path to the settler: fall through to scout (M2)
+      }
+    }
+
     const enemy = nearestKnownEnemy(state, unit, playerId);
     // B23: a SCOUT is not a garrison — it departs to range the map even when its
     // city is a guard short (the accepted cost of knowing the map, architect
@@ -2162,7 +2291,12 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           sdir = coastalScoutDir(state, unit, me, ruleset);
         }
         if (!sdir) {
-          if (exploreMode === 'wallfollow') {
+          if (ruleset.units[unit.type].domain === 'sea') {
+            // naval-presence M2 (#2201 Q2): a sea scout crosses open water to the known-
+            // ocean frontier (land BFS is useless from a sea tile). This reveals OTHER
+            // islands so the overseas settle-loop can arm. Land scouts fall through.
+            sdir = towardUnexploredSea(state, unit, me, ruleset);
+          } else if (exploreMode === 'wallfollow') {
             const wf = wallFollowDir(state, unit, me, ruleset);
             sdir = wf.dir; heading = wf.heading;
           } else {

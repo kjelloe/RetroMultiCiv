@@ -306,7 +306,14 @@ local function runSim(opts: any): any
 	end
 
 	local engine = engineModule.createEngine(ruleset)
-	local state = engine.createGame({ seed = opts.seed, options = { width = width, height = height, players = players } })
+	local options = { width = width, height = height, players = players }
+	if opts.difficulty ~= nil then
+		options.difficulty = opts.difficulty
+	end
+	if opts.mapType ~= nil then
+		options.mapType = opts.mapType -- naval witness: archipelago seeds
+	end
+	local state = engine.createGame({ seed = opts.seed, options = options })
 	if state.ok == false then
 		error("createGame failed for seed " .. tostring(opts.seed) .. ": " .. tostring(state.reason))
 	end
