@@ -438,13 +438,29 @@ export function initPanels(ctx) {
       + (moodBldgs.length ? `\ncontent from buildings: ${moodBldgs.join(', ')}` : '')
       + (moodWonders.length ? `\nmood wonders: ${moodWonders.join(', ')}` : '')
       + (gov.warUnhappiness > 0 ? `\n${gov.name}: each military unit abroad upsets ${gov.warUnhappiness} citizen(s)` : '');
+    // XIV §38: the mood row moves directly below the city name (first in the
+    // body) and each face carries its own hover tooltip. Specialist faces link
+    // to the new pedia concepts (entertainer/taxman/scientist).
+    const moodRowHtml =
+      `<div id="city-mood-row"${attr(moodTip)}>mood `
+      + `<span class="yf"${attr('Happy citizen — a city stays orderly while happy citizens are at least as many as unhappy ones.')}>😊${mood.happy}</span> `
+      + `<span${attr('Content citizen — neither happy nor unhappy; keeps the peace but does not offset an unhappy citizen.')}>😐${mood.content}</span> `
+      + `<span class="loss"${attr('Unhappy citizen — if unhappy citizens outnumber happy ones the city falls into civil disorder.')}>😠${mood.unhappy}</span>`
+      + ` · <span${attr('Entertainer — a citizen making luxuries instead of working a tile, raising happiness.')}>🎭${mood.entertainers}</span> `
+      + `<span${attr('Tax collector — a citizen producing gold for your treasury instead of working a tile.')}>💰${mood.taxmen}</span> `
+      + `<span${attr('Scientist — a citizen producing research instead of working a tile.')}>🔬${mood.scientists}</span>`
+      + (canSpecialize ? ' <button class="spec-btn" id="spec-taxman" title="entertainer → taxman">🎭→💰</button>'
+        + '<button class="spec-btn" id="spec-scientist" title="entertainer → scientist">🎭→🔬</button>' : '')
+      + (mood.taxmen + mood.scientists > 0 ? ' <button class="spec-btn" id="spec-clear" title="all specialists back to entertainers">↺🎭</button>' : '')
+      + '</div>';
     const upkeepLines = (city.buildings || [])
       .map(b => `${buildings[b].name}: ${buildings[b].maintenance} gold/turn`);
     const upkeepTip = upkeepLines.length
       ? 'building upkeep:\n' + upkeepLines.join('\n') : 'no buildings, no upkeep';
     const stats = document.getElementById('city-stats');
     stats.innerHTML =
-      `<div id="city-yields-row"${attr(yieldsTip)}>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
+      moodRowHtml
+      + `<div id="city-yields-row"${attr(yieldsTip)}>yields ${yieldsHtml(totals.food, totals.shields, totals.trade)} `
       + `(<span class="yf">food</span>/<span class="ys">shields</span>/<span class="yt">trade</span>)</div>`
       + `<div${attr(foodTip)}>🌾 ${totals.food} · 👥 eat ${city.pop * 2}`
       + (settlerFood > 0
@@ -466,12 +482,6 @@ export function initPanels(ctx) {
       + `<div>${city.workers !== undefined
         ? '👷 manual tile assignment — click tiles below'
         : '👷 automatic tile assignment — click a tile to take over'}</div>`
-      + `<div id="city-mood-row"${attr(moodTip)}>mood <span class="yf">😊${mood.happy}</span> 😐${mood.content} <span class="loss">😠${mood.unhappy}</span>`
-      + ` · 🎭${mood.entertainers} 💰${mood.taxmen} 🔬${mood.scientists}`
-      + (canSpecialize ? ' <button class="spec-btn" id="spec-taxman" title="entertainer → taxman">🎭→💰</button>'
-        + '<button class="spec-btn" id="spec-scientist" title="entertainer → scientist">🎭→🔬</button>' : '')
-      + (mood.taxmen + mood.scientists > 0 ? ' <button class="spec-btn" id="spec-clear" title="all specialists back to entertainers">↺🎭</button>' : '')
-      + '</div>'
       + (city.disorder === true // A68 (VIII.13): a loud banner, not a text line
         ? '<div class="disorder-banner">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
     const buyBtn = document.getElementById('city-buy');

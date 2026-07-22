@@ -25,6 +25,15 @@ export function initMinimap(ctx) {
   box.appendChild(rectCanvas);
   document.body.appendChild(box);
 
+  // XIV §36: ⚙ "Show minimap" (default ON). display:'' reverts to the stylesheet
+  // so the pointer:coarse media-query hide still wins on touch; 'none' when OFF.
+  function applyVisibility() {
+    const show = !ctx.options || ctx.options.get('showMinimap') !== false;
+    box.style.display = show ? '' : 'none';
+  }
+  applyVisibility();
+  if (ctx.options && ctx.options.watch) ctx.options.watch((k) => { if (k === 'showMinimap') applyVisibility(); });
+
   function dims() { return session.state.map; }
 
   function paint() {

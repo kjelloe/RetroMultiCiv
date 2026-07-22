@@ -17,7 +17,8 @@ const DEFAULTS = {
   soundMusic: true,       // A77: the creation + splash tunes
   firstTimeTips: true,    // A78: contextual first-timer advice (re-enable resets)
   civPalette: 'default',  // palette pass: display-time civ-color remap (ui/palette.js)
-  discoveryCards: true    // the tech-discovery card (ui/discovery-card.js)
+  discoveryCards: true,   // the tech-discovery card (ui/discovery-card.js)
+  showMinimap: true       // XIV §36: show the world minimap (OFF hides it; layout reflows)
 };
 
 export function initOptions(ctx) {
@@ -82,6 +83,7 @@ export function initOptions(ctx) {
     <label><input type="checkbox" data-opt="soundMusic"> Music (world-creation and title themes)</label>
     <label><input type="checkbox" data-opt="firstTimeTips"> Show first-time tips (re-check to see them again)</label>
     <label><input type="checkbox" data-opt="discoveryCards"> Show discovery cards when an advance completes</label>
+    <label><input type="checkbox" data-opt="showMinimap"> Show minimap</label>
     <label>Civ colors
       <select data-opt="civPalette">
         <option value="default">default</option>

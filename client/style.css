@@ -1250,7 +1250,7 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   max-width: calc(100vw - 360px); /* never collide with End Turn / logs */
 }
 
@@ -1291,7 +1291,7 @@ html, body {
 }
 
 #action-bar button {
-  padding: 8px 14px;
+  padding: 8px 10px; /* XIV §32: narrower so Disband fits the Fortify row at default width */
   background: rgba(22, 35, 58, 0.95);
   border: 1px solid #3b5d8f;
   border-radius: 6px;
@@ -1674,6 +1674,20 @@ html, body {
   padding: 1px 7px;
 }
 .banner-btn:hover { color: #cdd8ea; border-color: #8fa8cc; }
+
+.banner-zoom { /* XIV §35: 🔍 zoom-to a transient message's event tile */
+  margin-left: 8px;
+  background: none;
+  border: 1px solid #46587c;
+  border-radius: 4px;
+  color: #8fc7ff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9em;
+  padding: 1px 6px;
+  vertical-align: 1px;
+}
+.banner-zoom:hover { color: #cde8ff; border-color: #8fc7ff; }
 
 /* --- flash banner (transient center message) --- */
 #flash-banner {
@@ -2174,3 +2188,67 @@ html, body {
   font-size: 13px; color: #cde8d4;
 }
 #setup-resume button { margin-left: 6px; }
+
+/* XIV §34: city overview — the 🏙 button (left of the research bar) + its table */
+#open-city-overview {
+  position: absolute;
+  top: 12px;
+  left: calc(50% - 226px);
+  height: 26px;
+  padding: 0 8px;
+  background: rgba(10, 16, 28, 0.85);
+  border: 1px solid #2a3a55;
+  border-radius: 6px;
+  color: #cdd8ea;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 24px;
+  cursor: pointer;
+  z-index: 6;
+}
+#open-city-overview:hover { background: #2f5388; }
+#city-overview-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+#city-overview-table th {
+  text-align: left; padding: 3px 8px; color: #8fa9cf;
+  border-bottom: 1px solid #2a3a55;
+  position: sticky; top: 0; background: rgba(10, 16, 28, 0.98);
+}
+#city-overview-table td { padding: 3px 8px; border-bottom: 1px solid #1a2740; white-space: nowrap; }
+#city-overview-table .co-row { cursor: pointer; }
+#city-overview-table .co-row:hover td { background: #1b2c48; }
+#city-overview-table .co-name { font-weight: bold; color: #e6eefc; }
+#city-overview-table .co-prog { color: #8fa9cf; }
+#city-overview-table .co-q { color: #9fd0ff; }
+.co-empty { padding: 10px; color: #8fa9cf; }
+
+@media (max-width: 720px) {
+  /* row 1 gets the 🏙 button on the far left; shove the research bar over */
+  #open-city-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
+  #research-bar { left: 44px; }
+}
+
+/* XIV §33: the incoming-offer envoy modal — blocks the map while it is up */
+#envoy-modal {
+  position: fixed; inset: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 10, 18, 0.6);
+}
+#envoy-modal.hidden { display: none; }
+#envoy-card {
+  min-width: 300px; max-width: 420px;
+  background: rgba(12, 18, 32, 0.98);
+  border: 1px solid #3b5d8f; border-radius: 10px;
+  padding: 16px 18px; color: #cdd8ea;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+#envoy-head { display: flex; align-items: center; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+#envoy-body { font-size: 14px; line-height: 1.5; margin-bottom: 16px; }
+#envoy-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+#envoy-acts button {
+  padding: 8px 14px; background: rgba(22, 35, 58, 0.95);
+  border: 1px solid #3b5d8f; border-radius: 6px; color: #cdd8ea;
+  font-family: inherit; font-size: 13px; cursor: pointer;
+}
+#envoy-acts button:hover { background: #2f5388; }
+#envoy-accept { border-color: #3d7a4a; }
+#envoy-reject { border-color: #7a3d3d; }

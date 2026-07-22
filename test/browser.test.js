@@ -174,6 +174,15 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §45a: the unit info card must surface the home city (🏠) — it was shown nowhere
     assert.match(dom, /unithome: home\/unsupported/,
       'the unit info card must show the home city (🏠) and read "unsupported" when homeless');
+    // XIV §34: the city overview panel lists own cities (named row) and a row click opens that city
+    assert.match(dom, /cityoverview: table\/rows\d+\/named\/opens/,
+      'the city overview must show a named city row and open that city on row click');
+    // XIV §33: an incoming offer pops the envoy modal; Consider-later dismisses but the offer persists
+    assert.match(dom, /envoy: shown\/btns\/named\/later\/persists/,
+      'an incoming diplomacy offer must pop the envoy modal and persist after "Consider later"');
+    // XIV §35: a coord-bearing transient message gets a 🔍 zoom-to; a plain one does not
+    assert.match(dom, /zoomto: icon\/clean/,
+      'a transient message with coords must carry a 🔍 zoom-to icon, and one without coords must not');
     // docs/07 game verification code: the e2e save shows the persistent toast
     assert.match(dom, /code: [0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{5}/, 'the e2e probe must carry the game code');
     assert.match(dom, /Saved turn 1 — game code/, 'saving must show the persistent game-code toast');

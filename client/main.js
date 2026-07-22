@@ -27,6 +27,7 @@ import { initDpad } from './ui/dpad.js';
 import { initShip } from './ui/ship.js';
 import { initMinimap } from './ui/minimap.js';
 import { initBuildQueue } from './ui/build-queue.js';
+import { initCityOverview } from './ui/city-overview.js';
 import { initAutomate } from './ui/automate.js';
 import { initDebugPanel } from './ui/debug-panel.js';
 import { initStrategicOverlay } from './ui/strategic-overlay.js';
@@ -451,6 +452,7 @@ initDpad(ctx); // L7b: coarse-pointer d-pad (CSS-gated to touch devices)
 ctx.ship = initShip(ctx); // H8 (A76): the graphical spaceship screen (🚀)
 ctx.minimap = initMinimap(ctx); // C1: world minimap (click-to-jump, fog-honest)
 ctx.buildQueue = initBuildQueue(ctx); // C3: per-city build queue (logged commands only)
+ctx.cityOverview = initCityOverview(ctx); // XIV §34: all-cities overview panel (needs panels + buildQueue)
 ctx.automate = initAutomate(ctx); // C4: sentry-wake + settler automation (view-based)
 ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 / spectator only)
@@ -591,6 +593,22 @@ if (params.get('discoverydemo') && ctx.discoveryCard && ctx.discoveryCard.show) 
   ctx.discoveryCard.show(t);
 }
 
+// XIV §33: ?envoydemo=1 injects a sample incoming peace offer and pops the envoy
+// modal, leaving it up (screenshot review / manual look — the real trigger is a
+// rival's offer landing on your turn). Local engine only (fog-view has no
+// writable relations).
+if (params.get('envoydemo') === '1' && params.get('server') !== '1' && ctx.diplomacy && ctx.diplomacy.scanOffers) {
+  const rival = (session.state.playerOrder || Object.keys(session.state.players))
+    .find(pid => pid !== ctx.HUMAN && pid !== 'barb' && session.state.players[pid] && session.state.players[pid].alive !== false);
+  if (rival) {
+    const { pairKey } = await import('../shared/diplomacy-view.js');
+    await Promise.resolve(); // let initDiplomacy's command probe flip commandReady
+    if (!session.state.relations) session.state.relations = {};
+    session.state.relations[pairKey(ctx.HUMAN, rival)] = { state: 'war', offer: { from: rival, turn: session.state.turn } };
+    ctx.diplomacy.scanOffers();
+  }
+}
+
 // ?e2e=1: scripted sequence for the headless browser test — found a city with
 // the starting settlers and fill both panels, so their code paths execute
 // (hidden panel content stays in the DOM for --dump-dom to assert on).
@@ -712,6 +730,60 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     unithome = (homedLine.indexOf('🏠') !== -1 && homedLine.indexOf(c0.name) !== -1 ? 'home' : 'nohome')
       + '/' + (/unsupported/.test(bareLine) ? 'unsupported' : 'nounsup');
   }
+  // XIV §34: the city overview panel lists every own city with yield/econ
+  // columns; opening it must show a named row, and a row click opens that city.
+  let cityoverview = 'unchecked';
+  if (ctx.cityOverview && ctx.cityOverview.open) {
+    ctx.cityOverview.open();
+    const table = document.getElementById('city-overview-table');
+    const rows = table ? table.querySelectorAll('tbody .co-row') : [];
+    cityoverview = (table ? 'table' : 'notable')
+      + '/' + (rows.length >= 1 ? 'rows' + rows.length : 'norows')
+      + '/' + (table && /Testopolis/.test(table.textContent) ? 'named' : 'noname');
+    if (rows.length) { rows[0].click(); cityoverview += '/' + (ctx.panels.isCityOpen() ? 'opens' : 'noopen'); }
+    ctx.cityOverview.close();
+  }
+  // XIV §33: an incoming diplomacy offer pops the envoy modal (leader + Accept /
+  // Reject / Consider-later). Inject a rival's standing offer (a probe, not a
+  // command — no hash impact), scan, and assert the modal shows; "Consider
+  // later" must dismiss it while the offer PERSISTS in state. Local engine only:
+  // ?server=1 fog-filters the view (no writable relations), and this presentation
+  // is transport-agnostic, so the local pass covers it.
+  let envoy = params.get('server') === '1' ? 'server-skip' : 'unchecked';
+  if (envoy === 'unchecked' && ctx.diplomacy && ctx.diplomacy.scanOffers) {
+    const rival = (session.state.playerOrder || Object.keys(session.state.players))
+      .find(pid => pid !== ctx.HUMAN && pid !== 'barb' && session.state.players[pid] && session.state.players[pid].alive !== false);
+    if (rival) {
+      const { pairKey } = await import('../shared/diplomacy-view.js');
+      const key = pairKey(ctx.HUMAN, rival);
+      if (!session.state.relations) session.state.relations = {};
+      session.state.relations[key] = { state: 'war', offer: { from: rival, turn: session.state.turn } };
+      ctx.diplomacy.scanOffers();
+      const m = document.getElementById('envoy-modal');
+      const shown = m && !m.classList.contains('hidden');
+      const hasBtns = !!(m && m.querySelector('#envoy-accept') && m.querySelector('#envoy-reject') && m.querySelector('#envoy-later'));
+      const named = !!(m && m.textContent.indexOf(session.state.players[rival].name) !== -1);
+      if (m && m.querySelector('#envoy-later')) m.querySelector('#envoy-later').click();
+      const dismissed = !!(m && m.classList.contains('hidden'));
+      const persists = !!(session.state.relations[key] && session.state.relations[key].offer);
+      envoy = (shown ? 'shown' : 'noshow') + '/' + (hasBtns ? 'btns' : 'nobtns')
+        + '/' + (named ? 'named' : 'noname') + '/' + (dismissed ? 'later' : 'nolater')
+        + '/' + (persists ? 'persists' : 'gone');
+      delete session.state.relations[key];
+    }
+  }
+  // XIV §35: a transient message carrying coords gets a 🔍 zoom-to (panning via
+  // renderer.centerOn); a message without coords shows no icon.
+  let zoomto = 'unchecked';
+  if (ctx.hud && ctx.hud.flash) {
+    ctx.hud.flash('probe with loc', { x: 3, y: 4 });
+    const fb = document.getElementById('flash-banner');
+    const zb = fb && fb.querySelector('.banner-zoom');
+    if (zb) zb.click(); // pans via renderer.centerOn — must not throw
+    ctx.hud.flash('probe no loc');
+    const withoutIcon = !!(fb && fb.querySelector('.banner-zoom'));
+    zoomto = (zb ? 'icon' : 'noicon') + '/' + (withoutIcon ? 'stuck' : 'clean');
+  }
   // docs/07: exercise the save path so the persistent game-code toast renders
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F5', bubbles: true }));
   // B15: clicking ANYWHERE on the toast must hide it (the unmissable dismiss)
@@ -774,6 +846,9 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · discovery: ' + discovery // XIV §26: celebration overlay (kicker + two exits, no auto-close)
     + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
+    + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city
+    + ' · envoy: ' + envoy // XIV §33: incoming-offer modal (Accept/Reject/Consider-later, persists)
+    + ' · zoomto: ' + zoomto // XIV §35: 🔍 zoom-to on coord-bearing transient messages
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
   if (params.get('e2eclose') === '1') ctx.panels.closeAll(); // unobstructed screenshots
 }

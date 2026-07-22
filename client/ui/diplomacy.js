@@ -118,8 +118,92 @@ export function initDiplomacy(ctx) {
     }
   }
 
-  session.onChange(render);
-  return { render, open: () => { box.classList.remove('hidden'); render(); } };
+  // --- XIV §33: the incoming-offer ENVOY MODAL ----------------------------
+  // When a rival's offer stands and it is the human's turn, a blocking modal
+  // presents it (leader emblem + name, the offer, Accept / Reject / Consider
+  // later). "Consider later" just dismisses — the offer PERSISTS in state and
+  // the foreign-relations panel (no silent expiry). Pure presentation of the
+  // D3 offer state; dispatches the same accept/reject commands as the panel.
+  const modal = document.createElement('div');
+  modal.id = 'envoy-modal';
+  modal.className = 'hidden';
+  document.body.appendChild(modal);
+  const deferred = {};   // 'pid|turn' → true: dismissed via "later", don't re-pop
+  let envoyPid = null;   // the civ whose offer is currently shown (one at a time)
+
+  const offerKey = (pid, offer) => pid + '|' + (offer ? offer.turn : '?');
+
+  function incomingOffers(state) {
+    const out = [];
+    const order = state.playerOrder || Object.keys(state.players);
+    for (const pid of order) {
+      if (pid === ctx.HUMAN || pid === BARB_ID) continue;
+      const p = state.players[pid];
+      if (!p || p.alive === false || p.barbarian === true) continue;
+      const offer = pendingOfferFor(state, ctx.HUMAN, pid);
+      if (offer && offer.from === pid) out.push({ pid, offer }); // an offer THEY made to me
+    }
+    return out;
+  }
+
+  function scanOffers() {
+    if (!canAct() || envoyPid !== null) return;
+    const state = session.state;
+    if (state.activePlayer !== ctx.HUMAN) return; // answerable only on my turn
+    for (const { pid, offer } of incomingOffers(state)) {
+      if (deferred[offerKey(pid, offer)]) continue;
+      showEnvoy(pid, offer);
+      return;
+    }
+  }
+
+  function showEnvoy(pid, offer) {
+    const p = session.state.players[pid];
+    envoyPid = pid;
+    const dur = offer && offer.duration;
+    const offerText = `${esc(p.name)} proposes a ${dur ? esc(dur) + '-turn' : 'lasting'} peace treaty.`;
+    modal.innerHTML = '<div id="envoy-card" role="dialog" aria-modal="true">'
+      + `<div id="envoy-head"><span id="envoy-glyph"></span>`
+      + `<span class="envoy-leader" style="color:${displayColor(p.color)}">${esc(p.name)}</span></div>`
+      + `<div id="envoy-body">${offerText}</div>`
+      + '<div id="envoy-acts">'
+      + '<button id="envoy-accept">✔ Accept</button>'
+      + '<button id="envoy-reject">✗ Reject</button>'
+      + '<button id="envoy-later">Consider later</button></div></div>';
+    modal.classList.remove('hidden');
+    const civ = p.civ;
+    const visual = civ && session.ruleset.civs[civ] && session.ruleset.civs[civ].visual;
+    if (visual) import('../renderer/three/factions.js').then(m => {
+      const g = modal.querySelector('#envoy-glyph');
+      if (!g) return;
+      const img = document.createElement('img');
+      img.src = m.emblemDataUrl(visual);
+      img.style.cssText = 'width:22px;height:22px;vertical-align:-4px;margin-right:8px;border-radius:3px;';
+      g.appendChild(img);
+    }).catch(() => { /* no renderer (headless) — the name still carries it */ });
+    modal.querySelector('#envoy-accept').addEventListener('click', () => { const t = envoyPid; closeEnvoy(); dispatch('accept', t); });
+    modal.querySelector('#envoy-reject').addEventListener('click', () => { const t = envoyPid; closeEnvoy(); dispatch('reject', t); });
+    modal.querySelector('#envoy-later').addEventListener('click', later);
+  }
+
+  function later() {
+    if (envoyPid === null) return;
+    const offer = pendingOfferFor(session.state, ctx.HUMAN, envoyPid);
+    if (offer) deferred[offerKey(envoyPid, offer)] = true; // persists in state; just don't re-pop
+    closeEnvoy();
+  }
+
+  function closeEnvoy() { envoyPid = null; modal.classList.add('hidden'); modal.innerHTML = ''; scanOffers(); }
+
+  // block map hotkeys while the envoy is up; Esc = Consider later
+  window.addEventListener('keydown', e => {
+    if (envoyPid === null) return;
+    if (e.key === 'Escape') { e.preventDefault(); later(); return; }
+    e.stopPropagation();
+  }, true);
+
+  session.onChange(() => { render(); scanOffers(); });
+  return { render, open: () => { box.classList.remove('hidden'); render(); }, scanOffers, envoyOpen: () => envoyPid !== null };
 }
 
 function esc(s) { const d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
