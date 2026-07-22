@@ -40,10 +40,17 @@ space-arc saga, wake list)._
   700` (+ optional `--bug-reports` + its ReadWritePaths line) — see the
   ssh-deploy review notes. Browsers may need a hard refresh.
 
-- [ ] **Fresh helper session when convenient** — the lane closed a
-  14-item run at a deep-context boundary; queue 22 is stocked (mobile
-  §6+§7 and auto-takeover re-queued fresh with pick-up plans in its
-  memory). All other lanes are awake and current.
+- [ ] **Fresh sessions: bugfixer + helper** (both closed/idle at
+  boundaries). bugfixer: queue 9, next = naval presence-1 (ruling
+  #2201 ready, reviewer gate pre-staged). helper: queue 30 with
+  pick-up plans in its memory (16-item run closed). sim-runner also
+  down ~7h (Gate-B upgrade invites pending, fallbacks documented).
+
+- [ ] **Two design rulings when ready**: (1) SPACE research-depth fork
+  — measure-first recommended (a witness sweep with the authentic
+  per-difficulty AI research knobs force-enabled answers whether King+
+  play already launches); (2) XV §7 capital-settler provenance — your
+  shape labeled `original` (default) vs Civ2-shape refuse.
 
 - [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
   **ally relay** (`specs/ally-status-update-2026-07-22.md` + prior
