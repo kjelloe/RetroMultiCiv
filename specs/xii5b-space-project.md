@@ -131,3 +131,26 @@ in specs/calendar-545.md as well.
   whether real King+ games already launch; (b) bulb-cost tuning at
   prince; (c) peace-seeking committed civs. No further space work
   until ruled.
+- MEASURE-FIRST RESULT + FINAL RULING (2026-07-22, #27 harness +
+  user ruling "SPACE_FORK go with recommended (b)+(c) staged"): the
+  King sweep (simulatedHumanSeat, 22/25 seeds) = 0 launches BUT King
+  is space-CAPABLE — seed-13 committed t300, reached pathPct 100% +
+  gateTech t400, then the 'warring' abandon dropped a COMPLETE space
+  drive at t370; late commits (t480-510) lack ss-part runway. Research
+  depth is EXONERATED; the endemic late-war is the blocker, twice
+  (abandon + delay). RULED (b)+(c) staged:
+  (b) WAR-HOLD slice (next engine window after presence-2): the
+      'warring' abandon trigger becomes CONDITIONAL — a committed civ
+      with pathPct >= rules.json victoryDrive.holdPathPct (start 80,
+      sweepable) HOLDS the drive through ordinary war; the two hard
+      triggers (enemy cheb-1 adjacent to capital, city lost while
+      committed) stay UNCONDITIONAL. Civ1-authentic: the original AI
+      beelined space while fighting. Golden-affecting: twins + full
+      re-record + a seed-13-class witness (the civ that had 100% and
+      was war-abandoned should now hold and launch).
+  (c) the endemic-war/unit-bloat batch = queued bugfixer #30
+      (xiv-ai-behavior), unchanged order — the upstream fix that
+      gives late commits runway.
+  ACCEPTANCE (7th witness): after (b) lands, re-run the #27 King
+  sweep (same harness flags) — launches>0 expected; the sweep re-runs
+  again after (c) for the runway effect.

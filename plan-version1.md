@@ -12,11 +12,13 @@ release forks RULED: space = measure-first · scope = maximal ·
 §7 = Civ2-refuse · DNS = servers.multiciv.kjell.today (record in; one
 box step remains, user). SPACE ARC mechanically closed (witnesses 1–6 +
 dig + radius migration all verified); sole blocker = RESEARCH DEPTH —
-the measure-first harness (#27) is in build, the 3-arm
-King/prince/long-horizon portfolio armed on sim-runner. Archetype design
-CLOSED: the ally's 22-wonder mapping is the build spec. Engine order:
-measure-first harness → presence-2 [M4] → invade B → A7 stragglers →
-archetype → smalls → xiv-ai-behavior → D3-surfacing → D4–D6.)
+the #27 measure landed its verdict — King 0/22 launches but
+space-CAPABLE (seed-13 100% closure, war-abandoned t370); USER RULED
+(b)+(c) staged: war-hold slice + the endemic-war batch, 7th witness =
+King re-sweep after each. Archetype design CLOSED: the ally's 22-wonder
+mapping is the build spec. Engine order: presence-2 [M4, in flight] →
+war-hold #35 → behavior-hash → A7 stragglers → archetype →
+xiv-ai-behavior → bugs/smalls → D3-surfacing → D4–D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -76,7 +78,7 @@ flowchart TD
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
-    W5["🔨 launches>0 acceptance: measure-first\nRULED — harness #27 in build; 3-arm\nKing/prince/long-horizon portfolio armed"]
+    W5["📋 launches>0 acceptance (7th witness):\n#27 verdict = King space-CAPABLE, war-abandon\nis the blocker; RULED (b)+(c) staged — war-hold\nslice #35 after presence-2, then King re-sweep"]
     GOV["🧩 N1/N2 gov re-eval + late-tech\nmodernization (post-naval-loop)"]
     W5 --> MFL
     GOV --> MFL

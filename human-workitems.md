@@ -44,11 +44,14 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   with the designer ally (advisor copy WIRED live; wonder mapping
   captured + adopted into the build spec).
 
-_Recently ruled (2026-07-22, all four release forks):_ space =
-measure-first (the harness is in build; a 3-arm King/prince/long-horizon
-sweep runs on the gaming PC when it lands); scope = maximal cut; XV §7
-settler-modal = Civ2-shape refuse; DNS = `servers.multiciv.kjell.today`
-(record added — thank you). _Recently landed:_ markers 0082-0086, all
+_Recently ruled (2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
+measure-first King sweep proved King space-capable (one civ reached
+100% tech closure) but war-abandoned; ruling = war-hold slice (a
+near-complete space drive holds through ordinary war) + the
+endemic-war/unit-bloat fix, with a King re-sweep as the acceptance
+after each. Earlier same day: scope = maximal cut; XV §7 settler-modal
+= Civ2-shape refuse; DNS = `servers.multiciv.kjell.today` (record
+added — thank you). _Recently landed:_ markers 0082-0086, all
 merge-consistent (18 consecutive since 0069) — naval-truth, authentic
 7-level difficulty, danger-based abandon, the space-pipeline repairs
 (apollo-narrow + manhattan-gate + radius fix), naval slice A + presence-1
