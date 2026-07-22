@@ -39,11 +39,10 @@ space-arc saga, wake list)._
   700` (+ optional `--bug-reports` + ReadWritePaths) — see the
   ssh-deploy review. Browsers may need a hard refresh.
 
-- [ ] **Fresh sessions: bugfixer + helper** (both closed/idle at
-  boundaries). bugfixer: queue 9, next = naval presence-1 (ruling
-  #2201 ready, reviewer gate pre-staged). helper: queue 30 with
-  pick-up plans in its memory (16-item run closed). sim-runner also
-  down ~7h (Gate-B upgrade invites pending, fallbacks documented).
+- [x] **Sessions: all cycling healthily** — bugfixer (presence-1
+  closing), helper (9-item window closed cleanly, #25 parked scoped),
+  sim-runner/reviewer/roblox-helper awake earlier and current. No
+  wake action needed; lanes self-boundary and self-resume from queues.
 
 - [x] **All four release forks RULED** (2026-07-22): space =
   measure-first (queued engine-front); scope = maximal cut; §7 =
