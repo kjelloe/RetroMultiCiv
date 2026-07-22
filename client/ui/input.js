@@ -434,6 +434,16 @@ export function initInput(ctx) {
     if (on) ctx.automate.drive();
     refreshActionBar();
   }
+  // XIV §42: the inline auto-improve priority menu — one button cycling
+  // Balanced → Food → Shield → Trade (shown only while a settler is automated).
+  function cyclePrioritySelected() {
+    if (!ctx.automate || !ctx.automate.cyclePriority) return;
+    const next = ctx.automate.cyclePriority();
+    const LABELS = { balanced: 'Balanced', food: 'Food', shield: 'Shield', trade: 'Trade' };
+    hud.note(`🤖 auto-improve priority: ${LABELS[next] || next}`);
+    ctx.automate.drive();
+    refreshActionBar();
+  }
 
   async function moveSelected(dir) {
     if (!sel.unitId || !session.state.units[sel.unitId]) return;
@@ -783,6 +793,12 @@ export function initInput(ctx) {
       if (unit.type === 'settlers') {
         const auto = ctx.automate.isAuto(unit.id);
         actions.push({ label: auto ? '🤖 Stop auto' : '🤖 Automate', key: 'U', run: autoSelected });
+        if (auto && ctx.automate.getPriority) {
+          const LABELS = { balanced: '⚖ Balanced', food: '🌾 Food', shield: '⚒ Shield', trade: '➡ Trade' };
+          actions.push({ label: LABELS[ctx.automate.getPriority()] || '⚖ Balanced',
+            title: 'auto-improve priority — click to cycle Balanced / Food / Shield / Trade',
+            run: cyclePrioritySelected });
+        }
       }
     }
     actions.push({ label: '⏭ Skip', key: 'Space', run: waitSelected });

@@ -8,6 +8,43 @@
 import { filterView } from '../../engine/visibility.js';
 
 const WAKE_RADIUS = 2; // spec §4's suggested N
+export const IMPROVE_PRIORITIES = ['balanced', 'food', 'shield', 'trade']; // XIV §42
+
+// XIV §42: PURE per-tile improvement chooser — which work (or null) a settler
+// should start on this tile, given tech + the improvement PRIORITY. Road first
+// (universal: movement + the +1 trade), then the terrain improvement the
+// priority prefers, then rail. No-downgrade is default (only improve an
+// UNIMPROVED tile); a priority may REPLACE the other improvement ("never
+// downgrade unless the priority demands"). Exported for unit tests.
+//   opts: { water, knowsRail, knowsBridge, priority }
+export function chooseWork(tile, terrain, opts) {
+  const pri = IMPROVE_PRIORITIES.indexOf(opts.priority) !== -1 ? opts.priority : 'balanced';
+  const water = opts.water === true;
+  const roadNeedsBridge = tile.river === true && opts.knowsBridge !== true;
+  if (tile.road !== true && !roadNeedsBridge) return 'road'; // the "+ roads" pass
+
+  const terrIrr = terrain.irrigate !== undefined && water;
+  const terrMine = terrain.mine !== undefined && tile.river !== true;
+  const isIrr = tile.irrigation === true, isMine = tile.mine === true;
+  // default: never touch an already-improved tile
+  let canIrr = terrIrr && !isIrr && !isMine;
+  let canMine = terrMine && !isIrr && !isMine;
+  // priority DEMANDS may replace the other improvement
+  if (pri === 'food') canIrr = terrIrr && !isIrr;      // irrigate even a mined tile
+  if (pri === 'shield') canMine = terrMine && !isMine; // mine even an irrigated tile
+
+  let work = null;
+  if (pri === 'food') work = canIrr ? 'irrigate' : (canMine ? 'mine' : null);
+  else if (pri === 'shield') work = canMine ? 'mine' : (canIrr ? 'irrigate' : null);
+  else if (pri === 'trade') work = null; // trade wants roads + rails only (road done above)
+  else { // balanced: mine when it out-yields irrigation
+    const mineBetter = canMine && (!canIrr || terrain.mine.shields > terrain.irrigate.food);
+    work = mineBetter ? 'mine' : (canIrr ? 'irrigate' : null);
+  }
+  if (work !== null) return work;
+  if (opts.knowsRail && tile.road === true && tile.railroad !== true) return 'railroad'; // rail last
+  return null;
+}
 
 export function initAutomate(ctx) {
   const { session, hud } = ctx;
@@ -42,6 +79,21 @@ export function initAutomate(ctx) {
     const d = load();
     const i = d.sentry.indexOf(uid);
     if (i !== -1) { d.sentry.splice(i, 1); save(d); }
+  }
+  // XIV §42: the (global) auto-improve priority — Balanced/Food/Shield/Trade.
+  function getPriority() {
+    const p = load().priority;
+    return IMPROVE_PRIORITIES.indexOf(p) !== -1 ? p : 'balanced';
+  }
+  function setPriority(p) {
+    const d = load();
+    d.priority = IMPROVE_PRIORITIES.indexOf(p) !== -1 ? p : 'balanced';
+    save(d);
+  }
+  function cyclePriority() {
+    const next = IMPROVE_PRIORITIES[(IMPROVE_PRIORITIES.indexOf(getPriority()) + 1) % IMPROVE_PRIORITIES.length];
+    setPriority(next);
+    return next;
   }
   function cancelAuto(uid) {
     const d = load();
@@ -89,6 +141,28 @@ export function initAutomate(ctx) {
           const etype = session.ruleset.units[e.type] ? session.ruleset.units[e.type].name : e.type;
           const mtype = session.ruleset.units[u.type] ? session.ruleset.units[u.type].name : u.type;
           hud.banner(`⏰ ${mtype} at (${u.x},${u.y}) wakes — enemy ${etype} sighted`, { x: u.x, y: u.y }); // XIV §35: 🔍 to the sighting
+          break;
+        }
+      }
+    }
+  }
+
+  // --- XIV §42: an auto settler PAUSES (wakes) when an enemy is adjacent, so
+  // it never wanders under a threat; fog-honest (the view is the truth).
+  function checkAutoPause(state) {
+    const d = load();
+    if (d.auto.length === 0) return;
+    const view = filterView(state, ctx.HUMAN);
+    for (const uid of d.auto.slice()) {
+      const u = state.units[uid];
+      if (!u) continue;
+      for (const vid of Object.keys(view.units)) {
+        const e = view.units[vid];
+        if (e.owner === ctx.HUMAN) continue;
+        if (dist(view.map, u.x, u.y, e.x, e.y) <= 1) { // adjacent enemy
+          cancelAuto(uid);
+          const mtype = session.ruleset.units[u.type] ? session.ruleset.units[u.type].name : u.type;
+          hud.banner(`⏰ ${mtype} at (${u.x},${u.y}) pauses — enemy nearby`, { x: u.x, y: u.y });
           break;
         }
       }
@@ -157,19 +231,9 @@ export function initAutomate(ctx) {
             }
             return false;
           })();
-          const canIrrigate = tile.irrigation !== true && tile.mine !== true
-            && terrain.irrigate !== undefined && water;
-          const canMine = tile.irrigation !== true && tile.mine !== true
-            && terrain.mine !== undefined && tile.river !== true;
-          const mineBetter = canMine && (!canIrrigate || terrain.mine.shields > terrain.irrigate.food);
-          const canRail = knowsRail && tile.road === true && tile.railroad !== true;
-          const roadNeedsBridge = tile.river === true
-            && (me.techs === undefined || me.techs.indexOf(session.ruleset.rules.bridgeTech) === -1);
-          let work = null;
-          if (tile.road !== true && !roadNeedsBridge) work = 'road';
-          else if (mineBetter) work = 'mine';
-          else if (canIrrigate) work = 'irrigate';
-          else if (canRail) work = 'railroad';
+          const knowsBridge = me.techs !== undefined
+            && me.techs.indexOf(session.ruleset.rules.bridgeTech) !== -1;
+          const work = chooseWork(tile, terrain, { water, knowsRail, knowsBridge, priority: getPriority() });
           if (work === null) continue;
           const dd = dist(map, unit.x, unit.y, x, y);
           if (dd < bestD) { bestD = dd; best = { x, y, work }; }
@@ -205,7 +269,12 @@ export function initAutomate(ctx) {
           if (unit.moves <= 0 || unit.working) break;
           const view = filterView(state, ctx.HUMAN);
           const job = findJob(view, view.units[uid] || unit);
-          if (!job) break;
+          if (!job) {
+            // XIV §42: nothing left to improve in range — wake it (don't idle auto)
+            cancelAuto(uid);
+            if (ctx.turnlog && ctx.turnlog.note) ctx.turnlog.note(`🤖 settler finished improving at (${unit.x},${unit.y})`, 'log-cities');
+            break;
+          }
           if (unit.x === job.x && unit.y === job.y) {
             const res = await session.apply({
               type: 'startWork', playerId: ctx.HUMAN, unitId: uid, work: job.work
@@ -229,8 +298,10 @@ export function initAutomate(ctx) {
   session.onChange(state => {
     prune(state);
     checkWakes(state);
+    checkAutoPause(state); // XIV §42: pause auto settlers under an adjacent threat
     if (state.activePlayer === ctx.HUMAN && !ctx.SPECTATOR) drive();
   });
 
-  return { isSentried, isAuto, toggleSentry, toggleAuto, wake, cancelAuto, drive };
+  return { isSentried, isAuto, toggleSentry, toggleAuto, wake, cancelAuto, drive,
+    getPriority, setPriority, cyclePriority };
 }
