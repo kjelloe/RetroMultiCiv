@@ -1655,6 +1655,26 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // capital falls through to the defense cascade, reverting even mid-wonder).
     // Persist (R1(3)): keep the in-progress wonder ID, never re-pick cheapest.
     let wonderDriven = false;
+    // apollo-narrow (#2160, user-ruled STAGED-BOTH slice 1): a space-COMMITTED civ that
+    // holds Apollo's tech and has Apollo unbuilt builds apollo-program in its CAPITAL as its
+    // TOP choice — opening the ss-part gate EARLIER than spaceDriveEligible (which waits for
+    // EVERY part tech). Committed civs ONLY (uncommitted stay byte-identical); the
+    // spaceDriveEligible parts path below is UNCHANGED (fires once Apollo is active).
+    // !threatened is the frontier-safety guard (a menaced capital reverts to the defense
+    // cascade). spaceCommitted is the LAST, most-expensive check so it runs only for the
+    // capital of a tech-holding civ with Apollo unbuilt. Gold-rush stays forbidden (#1899).
+    if (!wonderDriven && !threatened) {
+      const f = ruleset.rules.ssFlight;
+      const acap = capitalOf(state, playerId, ruleset);
+      if (f !== undefined && acap !== null && acap !== undefined && acap.id === cid
+          && !wonderActive(state, f.gateWonder, ruleset)) {
+        const apollo = ruleset.wonders[f.gateWonder];
+        if (apollo !== undefined && (apollo.tech === '' || me.techs.indexOf(apollo.tech) !== -1)
+            && spaceCommitted(state, playerId, ruleset)) {
+          want = { kind: 'wonder', id: f.gateWonder }; wonderDriven = true;
+        }
+      }
+    }
     if (S.wonderDrive === true && !threatened) {
       const cap = capitalOf(state, playerId, ruleset);
       const driveCity = (cap !== null && cap !== undefined) ? cap : highestShieldCity(state, playerId, ruleset);

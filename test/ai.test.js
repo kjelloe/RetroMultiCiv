@@ -846,6 +846,47 @@ test('danger-abandon: skirmish-anywhere survives; city-loss + capital-adjacency 
   assert.strictEqual(ai.spaceCommitted(rc, 'p1', RULESET), true, 'next turn (record refreshed, danger gone): recommits');
 });
 
+// apollo-narrow (#2160, user-ruled STAGED-BOTH slice 1): a space-COMMITTED civ that
+// holds Apollo's tech and has Apollo unbuilt builds apollo-program in its CAPITAL as its
+// TOP choice — opening the ss-part gate EARLIER than spaceDriveEligible (which waits for
+// EVERY part tech). space-flight is Apollo's tech + the 'structural' part tech, but NOT
+// plastics/robotics, so a space-flight-only civ is committed yet NOT spaceDriveEligible.
+// Fixture-FIRST (#1989): pre-fix the committed capital builds a defender, not Apollo.
+test('apollo-narrow: committed+tech+unbuilt builds apollo-program top; uncommitted unchanged; Apollo-active -> parts', async () => {
+  const { ai, engine } = await load();
+  const W = 30, H = 9, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const base = () => ({
+    version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: W, height: H, wrapX: false, tiles }, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: {
+      c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1'],
+    units: { d1: { id: 'd1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, alive: true, gold: 20, techs: ['space-flight'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, alive: true, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  });
+  assert.strictEqual(ai.spaceCommitted(base(), 'p1', RULESET), true, 'base() is space-committed (has Apollo tech, secure, peaceful)');
+  // 1) COMMITTED + Apollo tech + Apollo unbuilt -> the capital builds apollo-program.
+  const s1 = ai.runAiTurn(engine, base(), 'p1', RULESET);
+  assert.deepStrictEqual(s1.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'a committed civ builds Apollo as its top choice');
+  // 2) UNCOMMITTED control (aggressive = not a spaceStance) -> NOT Apollo.
+  const unc = base(); unc.players.p1.stance = 'aggressive';
+  assert.strictEqual(ai.spaceCommitted(unc, 'p1', RULESET), false, 'aggressive stance is not space-committed');
+  const s2 = ai.runAiTurn(engine, unc, 'p1', RULESET);
+  assert.notDeepStrictEqual(s2.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'an uncommitted civ does NOT build Apollo (byte-identical path)');
+  // 3) Apollo ALREADY ACTIVE + all part techs -> the capital builds a ship PART, not a second Apollo.
+  const act = base();
+  act.wonders = { 'apollo-program': 'c1' };
+  act.players.p1.techs = ['space-flight', 'plastics', 'robotics'];
+  const s3 = ai.runAiTurn(engine, act, 'p1', RULESET);
+  assert.strictEqual(s3.cities.c1.producing.kind, 'ss-part', 'Apollo active -> the capital builds a ship part, never a second Apollo');
+});
+
 // §12 (settler inlet-pathing, #2056): the expander must navigate AROUND a deep
 // ocean inlet to a frontier site — the greedy chebyshev step (safeDirToward)
 // dead-ends at the inlet mouth and the settler never crosses. A crafted 6-deep

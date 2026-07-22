@@ -1882,6 +1882,21 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- alone (min-garrison-1 never fired: militia scout away -> 0 defenders at the
 				-- wonder window); a menaced capital reverts via the cascade. Persist = keep the id.
 				local wonderDriven = false
+				-- apollo-narrow (#2160): a space-COMMITTED civ that holds Apollo's tech and has
+				-- Apollo unbuilt builds apollo-program in its CAPITAL as its TOP choice -- opening the
+				-- ss-part gate earlier than spaceDriveEligible (all part techs). Committed civs ONLY
+				-- (uncommitted byte-identical); the spaceDriveEligible parts path below is unchanged.
+				if not wonderDriven and not threatened then
+					local f = ruleset.rules.ssFlight
+					local acap = government.capitalOf(state, playerId, ruleset)
+					if f ~= nil and acap ~= nil and acap.id == cid and not cities.wonderActive(state, f.gateWonder, ruleset) then
+						local apollo = ruleset.wonders[f.gateWonder]
+						if apollo ~= nil and (apollo.tech == "" or table.find(me.techs, apollo.tech) ~= nil) and spaceCommitted(state, playerId, ruleset) then
+							want = { kind = "wonder", id = f.gateWonder }
+							wonderDriven = true
+						end
+					end
+				end
 				if S.wonderDrive == true and not threatened then
 					local cap = government.capitalOf(state, playerId, ruleset)
 					local driveCity = if cap ~= nil then cap else highestShieldCity(state, playerId, ruleset)

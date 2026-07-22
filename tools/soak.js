@@ -290,7 +290,7 @@ function strategicRow(state, pid, ruleset, turn) {
 // XII.5b Q6 (witness, A-ruled #2052): the space-project measurement. The engine
 // predicates (spaceCommitEligible/spaceCommitted/nextSsPart) are read here for a
 // Node-only witness — zero engine-decision use, no luau twin. Loaded in main().
-let spaceCommitEligible = null, spaceCommitted = null, nextSsPart = null;
+let spaceCommitEligible = null, spaceCommitted = null, nextSsPart = null, ownedCities = null;
 // the space-flight prereq closure (apollo tech + each ss-part tech, prereqs
 // walked) = the path-completion denominator. Harness-local BFS (mirrors the
 // engine markTechPath semantics; measurement only, never a golden input).
@@ -342,9 +342,15 @@ function updateSpaceWitness(wit, state, round, closure) {
       w.wasCommitted = true;
     } else if (w.wasCommitted && w.abandonTurn === 0) {
       w.abandonTurn = round;
-      w.abandonReason = !eligible ? 'ineligible'
-        : (snap.threat !== 'none' && snap.threat !== 'low') ? 'threat'
-        : (snap.mode !== 'building' && snap.mode !== 'expanding') ? 'warring' : 'other';
+      // apollo-narrow rider (#2160): concrete danger-abandon vocabulary matching the
+      // ai.js spaceCommitted precedence (spaceCommitEligible -> mode-warring -> city-lost).
+      // The stale 'threat' bucket is gone (the threat-metric abandon was removed with the
+      // danger-abandon slice). !eligible mid-game is dominantly capital-adjacency (era/
+      // tech/time are monotonic), so it labels 'capital-adjacent'.
+      w.abandonReason = !eligible ? 'capital-adjacent'
+        : (snap.mode === 'warring') ? 'warring'
+        : (p.spaceCities !== undefined && ownedCities(state, pid) < p.spaceCities) ? 'city-lost'
+        : 'other';
     }
     if (w.ssPartStartTurn === 0) {
       for (const cid of state.cityOrder) {
@@ -469,6 +475,7 @@ async function main() {
   spaceCommitEligible = aiMod.spaceCommitEligible;
   spaceCommitted = aiMod.spaceCommitted;
   nextSsPart = aiMod.nextSsPart;
+  ownedCities = aiMod.ownedCities; // apollo-narrow rider: concrete city-lost abandon reason
   const opts = parseArgs(process.argv);
   const [width, height] = SIZES[opts.size];
   const seeds = opts.seed !== null

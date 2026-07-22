@@ -391,3 +391,48 @@ test('luau leaders: the A59 personality seam derives stances identically to engi
     assert.ok(res.stdout.includes(`leaders: ${h}`),
       `luau leaders seam must hash as ${h} — harness said:\n${res.stdout}`);
   });
+
+// apollo-narrow (#2160): the positive cross-language witness for the Apollo build
+// branch. The soak goldens never reach a space-COMMITTED civ (space-flight tech) in
+// 400/519 turns, so runAiTurn on a crafted committed state is the ONLY check that the
+// luau apollo twin picks apollo-program identically to the JS engine.
+test('luau apollo-narrow: runAiTurn on a committed civ builds Apollo identically to JS',
+  { skip: !lune && 'lune not installed (dev-only toolchain)' }, async () => {
+    const RULESET = require('./ruleset.js');
+    const fs = require('fs');
+    const os = require('os');
+    const ai = await import('../engine/ai.js');
+    const { createEngine } = await import('../engine/index.js');
+    const { hashState } = await import('../shared/statehash.js');
+    const W = 30, H = 9, tiles = [];
+    for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+    // space-flight = Apollo's tech (+ the 'structural' part tech) but NOT plastics/
+    // robotics: committed yet NOT spaceDriveEligible — the apollo-narrow target.
+    const state = {
+      version: 1, turn: 260, year: 1990, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+      map: { width: W, height: H, wrapX: false, tiles }, wonders: {}, nextUnitId: 50, nextCityId: 10,
+      cities: { c1: { id: 'c1', name: 'Cap', owner: 'p1', x: 4, y: 4, pop: 6, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      cityOrder: ['c1'],
+      units: { d1: { id: 'd1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+      players: {
+        p1: { id: 'p1', name: 'A', color: '#00f', human: false, alive: true, gold: 20, techs: ['space-flight'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' },
+        p2: { id: 'p2', name: 'B', color: '#f00', human: false, alive: true, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }
+      },
+      rngState: 1
+    };
+    const jsResult = ai.runAiTurn(createEngine(RULESET), JSON.parse(JSON.stringify(state)), 'p1', RULESET);
+    assert.deepStrictEqual(jsResult.cities.c1.producing, { kind: 'wonder', id: 'apollo-program' }, 'JS: a committed civ builds Apollo');
+    const h = '0x' + (hashState(jsResult) >>> 0).toString(16).padStart(8, '0');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-apollo-'));
+    const statePath = path.join(dir, 'apollo-state.json');
+    fs.writeFileSync(statePath, JSON.stringify(state));
+    try {
+      const res = spawnSync('lune', ['run', 'luau/apollo-check.luau', statePath],
+        { cwd: REPO, encoding: 'utf8', timeout: 60000 });
+      assert.strictEqual(res.status, 0, `apollo harness failed:\n${res.stdout}\n${res.stderr}`);
+      assert.ok(res.stdout.includes(`apollo: ${h}`),
+        `luau apollo build must hash as ${h} — harness said:\n${res.stdout}`);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
