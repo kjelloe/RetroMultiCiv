@@ -316,19 +316,27 @@ function spaceFlightClosure(ruleset) {
 // like launch are read exact from ship.launched). Zero = not-yet / never.
 function updateSpaceWitness(wit, state, round, closure) {
   const closureSize = Math.max(1, Object.keys(closure).length);
+  const gate = RULESET.rules.ssFlight === undefined ? undefined : RULESET.rules.ssFlight.gateWonder;
+  const apolloTech = gate !== undefined && RULESET.wonders[gate] !== undefined ? RULESET.wonders[gate].tech : '';
   for (const pid of state.playerOrder) {
     const p = state.players[pid];
     if (p === undefined || p.human === true) continue;
     let w = wit[pid];
     if (w === undefined) {
       w = wit[pid] = { eligibleTurn: 0, commitTurn: 0, abandonTurn: 0, abandonReason: '',
-        wasCommitted: false, pathPct: 0, committedSamples: 0, offPathSamples: 0,
+        wasCommitted: false, pathPct: 0, gateTechTurn: 0, committedSamples: 0, offPathSamples: 0,
         ssPartStartTurn: 0, shipDoneTurn: 0, launchTurn: 0,
         threatAtCommit: '', threatAtLaunch: '', milAtCommit: 0, milFloorMin: 0 };
     }
     if (p.alive === false) continue; // dead civs freeze their record
     let known = 0; for (const t of p.techs) if (closure[t] === true) known++;
     w.pathPct = Math.round(100 * known / closureSize);
+    // pathPct audit (#23): pathPct treats every closure tech equally, but Apollo's GATE
+    // tech (space-flight) is uniquely load-bearing — a civ holding all 45 prereqs but not
+    // the gate reads pathPct=98, NOT 100 (verified: Math.round(45/46)=98). gateTechTurn (first
+    // turn the civ HOLDS space-flight, 0=never) disambiguates "98% but can't build Apollo"
+    // from "near launch" — the #2185 pathPct=100-vs-hasApolloTech=0 confusion was that mis-read.
+    if (w.gateTechTurn === 0 && apolloTech !== '' && p.techs.indexOf(apolloTech) !== -1) w.gateTechTurn = round;
     const eligible = spaceCommitEligible(state, pid, RULESET);
     const committed = spaceCommitted(state, pid, RULESET);
     const snap = strategicSnapshot(state, pid, RULESET);
@@ -426,7 +434,7 @@ async function runSeed(seed, opts, checkpoints, mods) {
       appendStats(opts.stats, Object.assign({ t: 'space', id: pid,
         eligibleTurn: w.eligibleTurn, commitTurn: w.commitTurn,
         abandonTurn: w.abandonTurn, abandonReason: w.abandonReason,
-        pathPct: w.pathPct, offPathSamples: w.offPathSamples, committedSamples: w.committedSamples,
+        pathPct: w.pathPct, gateTechTurn: w.gateTechTurn, offPathSamples: w.offPathSamples, committedSamples: w.committedSamples,
         ssPartStartTurn: w.ssPartStartTurn, shipDoneTurn: w.shipDoneTurn,
         launchTurn: w.launchTurn, victoryTurn: pid === spaceWon ? r.outcome.victoryTurn : 0,
         threatAtCommit: w.threatAtCommit, threatAtLaunch: w.threatAtLaunch,
