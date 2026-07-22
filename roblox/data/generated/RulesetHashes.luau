@@ -9,6 +9,6 @@ return {
 	techs = "0x211651c1",
 	terrain = "0x0f366ad4",
 	units = "0x1ed16afd",
-	wonders = "0x3fddc425",
+	wonders = "0x8bc28f47",
 	assetRecipes = 197540259,
 }

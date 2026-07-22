@@ -23,7 +23,9 @@ return [==[{
     "tech": "astronomy",
     "obsoleteBy": "automobile",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "cityScienceBonusPct": 100
+    }
   },
   "cure-for-cancer": {
     "name": "Cure for Cancer",
@@ -39,14 +41,18 @@ return [==[{
     "tech": "railroad",
     "obsoleteBy": "",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "freeTechsOnBuild": 2
+    }
   },
   "great-library": {
     "name": "Great Library",
     "tech": "literacy",
     "obsoleteBy": "university",
     "cost": 300,
-    "effect": {}
+    "effect": {
+      "libraryCatchUp": true
+    }
   },
   "great-wall": {
     "name": "Great Wall",
@@ -71,14 +77,18 @@ return [==[{
     "tech": "electronics",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "powerSameContinent": true
+    }
   },
   "isaac-newton-s-college": {
     "name": "Isaac Newton's College",
     "tech": "theory-of-gravity",
     "obsoleteBy": "nuclear-fission",
     "cost": 400,
-    "effect": {}
+    "effect": {
+      "sciBldgBonusPct": 66
+    }
   },
   "j-s-bach-s-cathedral": {
     "name": "J.S. Bach's Cathedral",
@@ -146,7 +156,9 @@ return [==[{
     "tech": "computers",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "scienceEverywherePct": 50
+    }
   },
   "shakespeare-s-theatre": {
     "name": "Shakespeare's Theatre",
@@ -169,7 +181,9 @@ return [==[{
     "tech": "industrialization",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "warUnhappyReduce": 1
+    }
   },
   "leonardo-s-workshop": {
     "name": "Leonardo's Workshop",
