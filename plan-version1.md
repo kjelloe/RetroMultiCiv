@@ -4,7 +4,12 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 mid-morning (marker-0085 = candidate, 17
+Last updated: 2026-07-22 midday (marker-0085 = candidate + BOTH markers
+0084/0085 now REAL-Gate-B verified (#2205). DNS GATE CLEARED: servers.
+multiciv.kjell.today live as the baked Find-game default; docs/16
+re-assessed (alias, safe-exposed); one box step remains (user). Advisor
+#17 SHIPPED (axis 6). presence-1 mid-build: witness 1/5 - FIRST overseas
+city in soak. Prior header (17
 consecutive consistent. 0084: apollo-narrow + manhattan-gate/no-nukes +
 radius-mismatch fix + M3 floor 28-restored + XV triage. 0085: naval
 slice A — the settle-overseas core, dormant + 2-continent
@@ -49,8 +54,8 @@ flowchart TD
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
     A50R["🔨 A50 remainder: a50-healthz MERGED\n(healthz + invite throttle + limits, 1812acf);\noom-slice2b + heartbeat = reviewer gate queued"]
-    SEC["🚪 docs/16 re-assessment (architect;\nhardening self-audit delta rows ready #2143)"]
-    A51D["🚪 A51 master index DEPLOYED\n(user schedules DNS; code live on test box)"]
+    SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
+    A51D["🔨 A51 master index PUBLIC:\nDNS ✅ servers.multiciv.kjell.today ·\nbaked client default ✅ · box nginx/cert\nstep = user one-time"]
     A50R --> SEC --> A51D
   end
 
@@ -118,7 +123,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 3 | AI at M-targets | floors ratcheted green | **apollo-narrow + 5th witness (launches)**, archetype wonder slice, naval-loop acceptance, xiv-ai-behavior (bloat/hoard), gov re-eval |
 | 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ | certification re-audit; difficulty rules re-bake; Studded round-2 on user review; R6 build |
 | 5 | Public hosting + master index | box ✅, code ✅, A50 nearly ✅ | oom-slice2b + heartbeat merges, docs/16 re-assess, **user DNS gate**, "Find game" browser |
-| 6 | Maps/sound/pedia/advisor/CI | partial | advisor hint cards (queued), A58 pedia completion (queued), A49 playwright lane (queued) |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅ | ally hint-card copy (asked), A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued) |
 
 ## Reading the tree — the three facts that matter
 
