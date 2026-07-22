@@ -74,6 +74,34 @@ function clampRates(player, gov, rules) {
   if (lux > 0) player.luxRate = lux; else delete player.luxRate;
 }
 
+// #35 the government wonder active for a player: scans their ACTIVE, non-obsolete wonders for
+// the government-effect fields (unlockAnyGov / revolutionAnarchyTurns) and returns the merged
+// effect, or null. Inlined active-check (government.js can't import cities.wonderActive — cities
+// imports this module). Result is wonder-order-independent (one government wonder in Civ 1).
+function pyramidsGov(state, pid, ruleset) {
+  if (state.wonders === undefined) return null;
+  let out = null;
+  for (const wid of Object.keys(state.wonders)) {
+    const eff = ruleset.wonders[wid].effect;
+    if (eff.unlockAnyGov === undefined && eff.revolutionAnarchyTurns === undefined) continue;
+    const home = state.cities[state.wonders[wid]];
+    if (!home || home.owner !== pid) continue;
+    const obsoleteBy = ruleset.wonders[wid].obsoleteBy;
+    let active = true;
+    if (obsoleteBy !== '') {
+      for (const p of state.playerOrder) {
+        const techs = state.players[p].techs === undefined ? [] : state.players[p].techs;
+        if (techs.indexOf(obsoleteBy) !== -1) active = false;
+      }
+    }
+    if (!active) continue;
+    if (out === null) out = {};
+    if (eff.unlockAnyGov !== undefined) out.unlockAnyGov = eff.unlockAnyGov;
+    if (eff.revolutionAnarchyTurns !== undefined) out.revolutionAnarchyTurns = eff.revolutionAnarchyTurns;
+  }
+  return out;
+}
+
 // Command: start a revolution toward a known government.
 function setGovernment(state, cmd, ruleset) {
   const player = state.players[cmd.playerId];
@@ -81,35 +109,28 @@ function setGovernment(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const gov = ruleset.governments[cmd.government];
   if (!gov || cmd.government === 'anarchy') return { ok: false, reason: 'badGovernment' };
-  if (gov.tech !== '' && player.techs.indexOf(gov.tech) === -1) {
+  // #35 the Pyramids government wonder (effect fields on its owner's active wonder):
+  // unlockAnyGov bypasses the tech requirement; revolutionAnarchyTurns shortens the anarchy.
+  const pyr = pyramidsGov(state, cmd.playerId, ruleset);
+  if (gov.tech !== '' && player.techs.indexOf(gov.tech) === -1
+      && !(pyr !== null && pyr.unlockAnyGov === true)) {
     return { ok: false, reason: 'techRequired' };
   }
   const current = player.government === undefined ? 'despotism' : player.government;
   if (current === cmd.government) return { ok: false, reason: 'alreadyGovernment' };
   if (player.revolutionTurns !== undefined) return { ok: false, reason: 'inRevolution' };
 
-  // the Pyramids: switch instantly, no anarchy (Civ 1)
-  let instant = false;
-  if (state.wonders !== undefined && state.wonders['pyramids'] !== undefined) {
-    const home = state.cities[state.wonders['pyramids']];
-    const obsoleteBy = ruleset.wonders['pyramids'].obsoleteBy;
-    let active = true;
-    if (obsoleteBy !== '') {
-      for (const pid of state.playerOrder) {
-        const techs = state.players[pid].techs === undefined ? [] : state.players[pid].techs;
-        if (techs.indexOf(obsoleteBy) !== -1) active = false;
-      }
-    }
-    if (active && home && home.owner === cmd.playerId) instant = true;
-  }
-  if (instant) {
+  // the Pyramids caps the interregnum at revolutionAnarchyTurns (Civ 1: one turn); 0 = instant.
+  let anarchyTurns = ruleset.rules.revolutionTurns;
+  if (pyr !== null && pyr.revolutionAnarchyTurns !== undefined) anarchyTurns = pyr.revolutionAnarchyTurns;
+  if (anarchyTurns <= 0) {
     player.government = cmd.government;
     clampRates(player, gov, ruleset.rules);
     return { ok: true, events: [{ type: 'governmentChanged', playerId: cmd.playerId, government: cmd.government }] };
   }
   player.government = 'anarchy';
   player.pendingGovernment = cmd.government;
-  player.revolutionTurns = ruleset.rules.revolutionTurns;
+  player.revolutionTurns = anarchyTurns;
   // anarchy caps rates too — a Monarchy running 70% science must drop to
   // the interregnum's 60 immediately (found organically by the sim net)
   clampRates(player, ruleset.governments.anarchy, ruleset.rules);

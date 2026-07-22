@@ -31,22 +31,23 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
-// #29 A7 wonder effects re-record. The #28 discriminator classified this move: the 400-turn
-// chaos SOAK is STAMP-ONLY (BEHAVIOR_SOAK below is byte-identical — no A7 wonder fires in the
-// capped chaos game, only the rulesetHash stamp shifted GOLDEN_SOAK), while NATURAL is
-// BEHAVIORAL (the science/great-library/hoover/darwin effects fire in the longer play-to-
-// victory game and end it sooner: 431 -> 405 rounds, same winner). JS==Luau at every hash.
+// #35 pyramids-gov re-record. The #28 discriminator classified this move as STAMP-ONLY: every
+// BEHAVIOR_* hash below is byte-identical to the #29 A7 base — the pyramids 1-turn-anarchy +
+// unlock-any-gov change never alters the golden soak/natural trajectory (no pyramids-owning AI
+// revolts in a trajectory-changing way on these seeds; the witnesses cover the mechanic), so
+// only the rulesetHash stamp (new pyramids effect fields) shifted the full GOLDEN_* hashes.
+// (History: #29 A7 shifted NATURAL to 405 rounds/p2 — behavioral there; #35 keeps it.) JS==Luau.
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x087c2c81',
-    200: '0x023df660',
-    300: '0x54307fc1',
-    400: '0xd8222d53'
+    100: '0x75668d61',
+    200: '0x4728cdf8',
+    300: '0xd9844d29',
+    400: '0x39c02c63'
   },
-  finalHash: '0xd8222d53'
+  finalHash: '0x39c02c63'
 };
-const GOLDEN_NATURAL = { rounds: 405, winner: 'p2', finalHash: '0x13320ab7' };
+const GOLDEN_NATURAL = { rounds: 405, winner: 'p2', finalHash: '0x123c049d' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

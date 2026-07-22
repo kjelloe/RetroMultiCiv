@@ -69,14 +69,36 @@ test('entering a revolution clamps rates to the anarchy cap immediately', async 
   assert.strictEqual(p.taxRate + p.sciRate + (p.luxRate || 0), 100, 'rates still sum to 100');
 });
 
-test('the Pyramids skip anarchy entirely', async () => {
+test('#35 the Pyramids shorten the revolution to one turn of anarchy (Civ 1)', async () => {
   const { engine } = await load();
+  // base (no wonder): revolutionTurns = 2
+  const base = engine.applyCommand(govState(), { type: 'setGovernment', playerId: 'p1', government: 'monarchy' });
+  assert.strictEqual(base.state.players.p1.revolutionTurns, 2, 'no wonder: the base 2-turn anarchy');
+
   const state = govState();
   state.wonders = { pyramids: 'c1' };
   const res = engine.applyCommand(state, { type: 'setGovernment', playerId: 'p1', government: 'monarchy' });
   assert.strictEqual(res.ok, true);
-  assert.strictEqual(res.state.players.p1.government, 'monarchy', 'instant switch');
-  assert.strictEqual(res.state.players.p1.revolutionTurns, undefined);
+  assert.strictEqual(res.state.players.p1.government, 'anarchy', 'one turn of anarchy — NOT instant');
+  assert.strictEqual(res.state.players.p1.revolutionTurns, 1, 'Pyramids: one turn only');
+  assert.strictEqual(res.state.players.p1.pendingGovernment, 'monarchy');
+  // the new government arrives after the single anarchy turn
+  const after = engine.applyCommand(res.state, { type: 'endTurn', playerId: 'p1' }).state;
+  assert.strictEqual(after.players.p1.government, 'monarchy', 'monarchy after one anarchy turn');
+});
+
+test('#35 the Pyramids unlock any government regardless of tech', async () => {
+  const { engine } = await load();
+  // p1 lacks the Republic tech: normally rejected
+  assert.strictEqual(engine.applyCommand(govState(), { type: 'setGovernment', playerId: 'p1', government: 'republic' }).reason,
+    'techRequired', 'no wonder: the tech gate holds');
+  // with the Pyramids: the revolution is allowed
+  const state = govState();
+  state.wonders = { pyramids: 'c1' };
+  const res = engine.applyCommand(state, { type: 'setGovernment', playerId: 'p1', government: 'republic' });
+  assert.strictEqual(res.ok, true, 'Pyramids owner may adopt Republic without its tech');
+  assert.strictEqual(res.state.players.p1.pendingGovernment, 'republic');
+  assert.strictEqual(res.state.players.p1.revolutionTurns, 1, 'still one turn of anarchy');
 });
 
 test('rate caps: despotism rejects >60; anarchy collects nothing', async () => {

@@ -103,6 +103,46 @@ local function clampRates(player: any, gov: any, rules: any)
 	end
 end
 
+-- #35 the government wonder active for a player: scans their ACTIVE, non-obsolete wonders for
+-- the government-effect fields (unlockAnyGov / revolutionAnarchyTurns) and returns the merged
+-- effect, or nil. Inlined active-check (twin of the JS; not routed through cities.wonderActive).
+local function pyramidsGov(state: any, pid: string, ruleset: any): any
+	if state.wonders == nil then
+		return nil
+	end
+	local out = nil
+	for wid in pairs(state.wonders) do
+		local eff = ruleset.wonders[wid].effect
+		if eff.unlockAnyGov ~= nil or eff.revolutionAnarchyTurns ~= nil then
+			local home = state.cities[state.wonders[wid]]
+			if home ~= nil and home.owner == pid then
+				local obsoleteBy = ruleset.wonders[wid].obsoleteBy
+				local active = true
+				if obsoleteBy ~= "" then
+					for _, p in ipairs(state.playerOrder) do
+						local techs = state.players[p].techs
+						if techs ~= nil and table.find(techs, obsoleteBy) ~= nil then
+							active = false
+						end
+					end
+				end
+				if active then
+					if out == nil then
+						out = {}
+					end
+					if eff.unlockAnyGov ~= nil then
+						out.unlockAnyGov = eff.unlockAnyGov
+					end
+					if eff.revolutionAnarchyTurns ~= nil then
+						out.revolutionAnarchyTurns = eff.revolutionAnarchyTurns
+					end
+				end
+			end
+		end
+	end
+	return out
+end
+
 -- Command: start a revolution toward a known government.
 local function setGovernment(state: any, cmd: any, ruleset: any): any
 	local player = state.players[cmd.playerId]
@@ -116,7 +156,11 @@ local function setGovernment(state: any, cmd: any, ruleset: any): any
 	if gov == nil or cmd.government == "anarchy" then
 		return { ok = false, reason = "badGovernment" }
 	end
-	if gov.tech ~= "" and table.find(player.techs, gov.tech) == nil then
+	-- #35 the Pyramids government wonder (effect fields on its owner's active wonder):
+	-- unlockAnyGov bypasses the tech requirement; revolutionAnarchyTurns shortens the anarchy.
+	local pyr = pyramidsGov(state, cmd.playerId, ruleset)
+	if gov.tech ~= "" and table.find(player.techs, gov.tech) == nil
+		and not (pyr ~= nil and pyr.unlockAnyGov == true) then
 		return { ok = false, reason = "techRequired" }
 	end
 	local current = if player.government == nil then "despotism" else player.government
@@ -127,33 +171,19 @@ local function setGovernment(state: any, cmd: any, ruleset: any): any
 		return { ok = false, reason = "inRevolution" }
 	end
 
-	-- the Pyramids: switch instantly, no anarchy (Civ 1) — transcribed from
-	-- the JS inline check, not routed through wonderActive (twin fidelity)
-	local instant = false
-	if state.wonders ~= nil and state.wonders["pyramids"] ~= nil then
-		local home = state.cities[state.wonders["pyramids"]]
-		local obsoleteBy = ruleset.wonders["pyramids"].obsoleteBy
-		local active = true
-		if obsoleteBy ~= "" then
-			for _, pid in ipairs(state.playerOrder) do
-				local techs = state.players[pid].techs
-				if techs ~= nil and table.find(techs, obsoleteBy) ~= nil then
-					active = false
-				end
-			end
-		end
-		if active and home ~= nil and home.owner == cmd.playerId then
-			instant = true
-		end
+	-- the Pyramids caps the interregnum at revolutionAnarchyTurns (Civ 1: one turn); 0 = instant.
+	local anarchyTurns = ruleset.rules.revolutionTurns
+	if pyr ~= nil and pyr.revolutionAnarchyTurns ~= nil then
+		anarchyTurns = pyr.revolutionAnarchyTurns
 	end
-	if instant then
+	if anarchyTurns <= 0 then
 		player.government = cmd.government
 		clampRates(player, gov, ruleset.rules)
 		return { ok = true, events = { { type = "governmentChanged", playerId = cmd.playerId, government = cmd.government } } }
 	end
 	player.government = "anarchy"
 	player.pendingGovernment = cmd.government
-	player.revolutionTurns = ruleset.rules.revolutionTurns
+	player.revolutionTurns = anarchyTurns
 	-- anarchy caps rates too — a Monarchy running 70% science must drop to
 	-- the interregnum's 60 immediately (found organically by the sim net)
 	clampRates(player, ruleset.governments.anarchy, ruleset.rules)

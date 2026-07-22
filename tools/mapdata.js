@@ -306,10 +306,11 @@ const WONDER_OVERLAY = {
   'copernicus-observatory':  { effect: { cityScienceBonusPct: 100 } },  // +100% science in its city (Civ1)
   'isaac-newton-s-college':  { effect: { sciBldgBonusPct: 66 } },       // +66% of library+univ science; NON-cumulative w/ seti
   'seti-program':            { effect: { scienceEverywherePct: 50 } },  // +50% science every city (Civ1)
-  // PRODUCTION: hoover-dam SAME-CONTINENT (Civ1 Hydro Plant on the wonder-city's continent). pyramids
-  // is a GOVERNMENT wonder in Civ1 (1-turn-anarchy + unlock-any-gov), NOT production — RULING PENDING
-  // (#2245 trap d), left inert until the architect rules implement-vs-defer.
-  'pyramids':                { effect: {} },
+  // PRODUCTION: hoover-dam SAME-CONTINENT (Civ1 Hydro Plant on the wonder-city's continent).
+  // GOVERNMENT: pyramids is a Civ1 GOVERNMENT wonder (#35, ruled #2250) — a revolution lasts only
+  // ONE turn of anarchy (vs the base revolutionTurns), and its owner may adopt ANY government
+  // regardless of the required tech. Wired in engine/government.js setGovernment.
+  'pyramids':                { effect: { revolutionAnarchyTurns: 1, unlockAnyGov: true } },
   'hoover-dam':              { effect: { powerSameContinent: true } },
   // HAPPINESS: women's-suffrage reduces military-unit war unhappiness BY 1 per unit (Republic 1->0,
   // Democracy 2->1) — NOT a full cancel (#2245).
