@@ -63,7 +63,7 @@ test('healthy world clears all measurable floors; resourceCov PENDING', () => {
 });
 
 test('breaches: low pop, low cities, zero buys, runaway treasury', () => {
-  // below the re-baselined floors (M2>=6 / M3>=27 / M4>=50; #595 rider on air-truth; M3 28->27 #2164)
+  // below the floors (M2>=6 / M3>=28 / M4>=50; #595 rider on air-truth; M3 27->28 RESTORED #2181, 25-seed median 47)
   const bad = { cities: 5, pop: 20, imprPct: 40, buys: 0 };
   const rows = [
     cp(1, 301, [civ('a', Object.assign({ gold: 100 }, bad)), civ('b', Object.assign({ gold: 100 }, bad))]),

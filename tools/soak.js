@@ -63,11 +63,11 @@ const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, di
 const FLOOR_MIN_TURNS = 400; // floors are defined at t401 = a 400-round run
 const FLOORS = [
   { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 6  },
-  // 28->27 re-pin (architect ruling #2164): the difficulty window made 'prince'
-  // the canonical config (was 'medium'); barbAtkPct 75 (the sole default world-knob
-  // move, control-diff verified) re-baselined the median pop 28->27. PROVISIONAL —
-  // a 25-seed confirm (sim-runner, post-land) restores 28 if that median >= 28.
-  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 27 },
+  // RESTORED to 28 (#2181): the provisional 27 re-pin (#2164, from a thin 7-seed median
+  // during the difficulty window) is reverted — the sim-runner's 25-seed t401 confirm on
+  // the prince canonical config found M3-pop median = 47 (19-pt margin over 28). The
+  // barbAtkPct-75 re-baseline did NOT lower the population floor; 7 seeds was just unlucky.
+  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 28 },
   { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 50 },
   { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
   { key: 'M10-treasury', label: 'treasury climb (g/t)', metric: 'goldRate',    cmp: '<',  value: 50 },
