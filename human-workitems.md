@@ -40,12 +40,15 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
      convenient; it self-resumes from its memory + queue. These are
      the last two axis-6 items.
 
-- [ ] **Optional ally relay** (no reply needed): a full shareable
-  status note is ready at `specs/ally-status-update-2026-07-23.md` —
-  their 22-wonder mapping shipped + measured (non-builder wonders
-  0→20), the affinity-flag grounding, the advisor copy live, and the
-  witness-7 launch measurement running. Forward whenever convenient;
-  nothing is pending from them.
+- [x] **Ally relay — DONE, response captured**
+  (`specs/ally-response-2026-07-23-archetype.md`): full endorsement —
+  the 0→20 number "confirms identity-first is working mechanically",
+  the affinity fallback ratified, the Pyramids correction praised as
+  "a genuine decision, not just a monument", and the gallery/animation
+  screenshots reviewed as visually sound (A1.6a). Its ONE watch item
+  (aircraft-vs-props legibility at map scale) is queued to the helper.
+  Nothing pending either direction; it awaits witness-7 + the Final
+  Record window.
 
 - [ ] **One-time box commands for the public index** (DNS record is in
   and propagated by now): append the `servers.` nginx server block
