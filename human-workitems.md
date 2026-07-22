@@ -20,14 +20,15 @@ items)._
 _Catch-up: `reports/marker-0086.md` (the current candidate);
 `reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
 
-- [ ] **Redeploy from marker-0086** (`f836d4e`): everything through
-  marker-0085 PLUS naval presence-1 (the AI settles overseas on
-  archipelago maps), the onboarding advisor with the ally's real card
-  copy + 4 pedia concepts, and the PUBLIC master index (the client now
-  defaults Find game to `servers.multiciv.kjell.today`). WITH the
-  one-time box unit edit: `--max-turns 700` (+ optional `--bug-reports`
-  + ReadWritePaths) — see the ssh-deploy review. Browsers may need a
-  hard refresh.
+- [ ] **Redeploy from marker-0086** (`f836d4e`, now REAL double-gated:
+  reviewer clean-clone + sim-runner Gate-B 11/11 byte-exact):
+  everything through marker-0085 PLUS naval presence-1 (the AI settles
+  overseas on archipelago maps), the onboarding advisor with the
+  ally's real card copy + 4 pedia concepts, and the PUBLIC master
+  index (the client now defaults Find game to
+  `servers.multiciv.kjell.today`). WITH the one-time box unit edit:
+  `--max-turns 700` (+ optional `--bug-reports` + ReadWritePaths) —
+  see the ssh-deploy review. Browsers may need a hard refresh.
 
 - [ ] **One-time box commands for the public index** (DNS record is in
   and propagated by now): append the `servers.` nginx server block
@@ -39,10 +40,13 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   needs the manual step once. Until this runs, the baked Find-game
   default shows "master index unreachable" (harmless).
 
-- [ ] **Studio session + runG.txt** (Roblox round-2 review) ·
-  **terrain desaturation check** — both carried; nothing is pending
-  with the designer ally (advisor copy WIRED live; wonder mapping
-  captured + adopted into the build spec).
+- [ ] **Studio session + runG.txt** (Roblox Studded round-2 review) —
+  now the ONLY gate on the Roblox axis: **Tier-3 certification
+  re-audit PASSED** (29 gates green; verdict artifact
+  `roblox/acceptance/tier3-cert.md` on the gaming PC is your review
+  checklist). R6 seats/lobby build is queued behind it agent-side. ·
+  **terrain desaturation check** — carried. Nothing is pending with
+  the designer ally.
 
 _Recently ruled (2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
 measure-first King sweep proved King space-capable (one civ reached

@@ -4,8 +4,10 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 afternoon sync (marker-0086 TAGGED @f836d4e =
-candidate, 18 consecutive consistent — presence-1 ARMS the overseas loop,
+Last updated: 2026-07-22 evening sync (marker-0086 @f836d4e = candidate,
+18 consecutive consistent, now REAL DOUBLE-GATED — reviewer #2213 +
+Gate-B 11/11 @06448dd #2223 byte-exact incl. the archipelago witness.
+Tier-3 CERTIFIED (PASS #2222). presence-1 ARMS the overseas loop,
 advisor speaks the ally copy, master index PUBLIC with the baked
 Find-game default + server-browser panel verified end-to-end. All four
 release forks RULED: space = measure-first · scope = maximal ·
@@ -51,7 +53,7 @@ flowchart TD
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
-    A50R["🔨 A50 remainder: a50-healthz MERGED\n(healthz + invite throttle + limits, 1812acf);\noom-slice2b + heartbeat = reviewer gate queued"]
+    A50R["🔨 A50 remainder: audit-fixes MERGED\n(f0e03b1); oom-slice2b + heartbeat = reviewer\nqueue #1 (double-gate) → architect merges on green"]
     SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
     A51D["🚪 A51 master index PUBLIC:\nDNS ✅ · baked client default ✅ ·\nserver-browser panel ✅ · remaining =\nthe one-time box nginx/cert step (user)"]
     A50R --> SEC --> A51D
@@ -69,9 +71,9 @@ flowchart TD
   end
 
   subgraph ROBLOX["ROBLOX lane (second PC)"]
-    T3["🔨 Tier 3 NEARLY COMPLETE (#2028):\ncertification re-audit next; re-bake reflex\nlive (difficulty rules.luau re-bake pending)"]
-    STUD["🚪 Studded round-2 (user Studio review)"]
-    R6["🧩 R6 seats/lobby (spec ready:\nper-platform + bridge-compatible seatCode)"]
+    T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
+    STUD["🚪 Studded round-2 (user Studio review —\nreads the cert artifact; only user gate left)"]
+    R6["📋 R6 seats/lobby (spec ready, QUEUED\nroblox #1: per-platform + bridge-compatible\nseatCode)"]
     STUD --> T3
     R6 --> T3
   end
@@ -119,7 +121,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 1 | Every Civ 1 system faithful | ~94% (manhattan-gate ✅, B27 ✅) | A6a future-tech repeats, A7 wonder stragglers, A8 tile contention, §45b rehome, §46 default-defender |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, after the engine queue drains |
 | 3 | AI at M-targets | floors green, overseas loop ARMED | **King-portfolio verdict (launches — the space acceptance)**, presence-2 + invade B, archetype wonder slice, xiv-ai-behavior (bloat/hoard), gov re-eval |
-| 4 | Roblox Tier 3 multiplayer | Tiers 0–3 effectively ✅ | certification re-audit; difficulty rules re-bake commit; Studded round-2 on user review; R6 build |
+| 4 | Roblox Tier 3 multiplayer | Tier 3 CERTIFIED (PASS #2222, re-bake in-tree) | **Studded round-2 (user)**; R6 build (queued roblox #1) |
 | 5 | Public hosting + master index | DNS ✅, baked default ✅, browser ✅ | **user one-time box nginx/cert step**, oom-slice2b + heartbeat merges |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅ with ally copy | A58 pedia completion (+4 flagged gaps), A49 playwright lane (queued #33) |
 
