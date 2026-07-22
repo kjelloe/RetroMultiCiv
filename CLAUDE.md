@@ -379,5 +379,10 @@ lanes. The MAILBOX FLAG is the poll floor: `flag --as <role>` (one line:
 unread + queue + raised note) at least EVERY 10 MINUTES in every state —
 waiting included; `flag raise --for <role> --why "…"` signals
 new-work/update with no mail behind it (spec changed, resume), lowered by
-the role with `flag lower` once acted on.** `agent-chat.md` is
+the role with `flag lower` once acted on. **An idle lane NEVER ends its
+turn silent (2026-07-22): when waiting/holding/blocked, run `flag wait
+--as <role>` — a BLOCKING check (returns on new mail/note/queue-increase,
+else 540s); act on FLAG UP, rerun on timeout; long ops go to the
+background so the lane stays reachable (agent-mail.md "idle-lane
+listening loop").** `agent-chat.md` is
 the long-form archive. The store is gitignored; the md is tracked.
