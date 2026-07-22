@@ -277,6 +277,134 @@ function bfsStepToward(state, me, playerId, unit, tx, ty, ruleset) {
   return null;
 }
 
+// naval-loop S3 (#2195 Q3): a bounded SEA BFS for a carrier — the first step (DIR key)
+// toward a SEA tile ADJACENT to the target LAND (tx,ty) = the landfall. Expands only
+// through sea, skips hostile-occupied tiles, bounded by rules.seaPathRadius (omit-safe
+// default 30 until the knob lands). Sea units use the full height (no y in 1..H-2 clamp,
+// unlike land settlers). null when no bounded sea path reaches the landfall. Both engines.
+function seaStepToward(state, ship, tx, ty, ruleset) {
+  const map = state.map;
+  const { width, height, wrapX } = map;
+  const maxR = ruleset.rules.seaPathRadius === undefined ? 30 : ruleset.rules.seaPathRadius;
+  const visited = {};
+  visited[ship.y * width + ship.x] = true;
+  const queue = [{ x: ship.x, y: ship.y, first: null }];
+  let qi = 0;
+  while (qi < queue.length) {
+    const cur = queue[qi]; qi = qi + 1;
+    for (const key of DIR_KEYS) {
+      let nx = cur.x + DIR_VECS[key][0];
+      if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
+      const ny = cur.y + DIR_VECS[key][1];
+      if (ny < 0 || ny >= height) continue;
+      const idx = ny * width + nx;
+      if (visited[idx] === true) continue;
+      visited[idx] = true;
+      if (chebyshev(map, ship.x, ship.y, nx, ny) > maxR) continue;
+      if (ruleset.terrain.terrains[map.tiles[idx].t].domain !== 'sea') continue; // sail through sea only
+      const first = cur.first === null ? key : cur.first;
+      if (chebyshev(map, nx, ny, tx, ty) <= 1) return first; // a sea tile adjacent to the target = landfall
+      let hostile = false;
+      for (const u of unitsAt(state, nx, ny)) { if (u.owner !== ship.owner) hostile = true; }
+      if (hostile) continue;
+      queue.push({ x: nx, y: ny, first });
+    }
+  }
+  return null;
+}
+
+// naval-loop S2: the nearest own CARRIER (sea unit with `transport` capacity + a FREE
+// cargo slot) to a unit — chebyshev-nearest, id tie-break (deterministic). The carrier a
+// waiting settler routes to and boards. null when the civ fields no boardable carrier.
+function carrierFreeSlots(state, ship, ruleset) {
+  const cap = ruleset.units[ship.type].transport;
+  if (cap === undefined || cap <= 0) return 0;
+  let load = 0;
+  for (const uid of Object.keys(state.units)) { if (state.units[uid].aboard === ship.id) load = load + 1; }
+  return cap - load;
+}
+function nearestOwnCarrier(state, unit, playerId, ruleset) {
+  let best = null, bestD = -1;
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const s = state.units[uid];
+    if (s.owner !== playerId || s.aboard !== undefined) continue;
+    if (ruleset.units[s.type].domain !== 'sea') continue;
+    if (carrierFreeSlots(state, s, ruleset) <= 0) continue;
+    const d = chebyshev(state.map, unit.x, unit.y, s.x, s.y);
+    if (best === null || d < bestD) { best = s; bestD = d; }
+  }
+  return best;
+}
+
+// naval-loop S3: how many units are aboard a ship (its USED cargo slots). >0 = the
+// carrier is loaded and should sail its cargo (not scout). Count is order-independent.
+function carrierCargo(state, shipId) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) { if (state.units[uid].aboard === shipId) n = n + 1; }
+  return n;
+}
+
+// naval-loop S3: the union of every land-component the civ already holds a city on —
+// the "home" the overseas drive sails AWAY from (a site inside it is land-reachable,
+// never a crossing). Deterministic set of tile indices; a city on an already-flooded
+// continent is skipped (union is order-free).
+function homeContinents(state, playerId, ruleset) {
+  const W = state.map.width;
+  const home = {};
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner !== playerId) continue;
+    if (home[c.y * W + c.x] === true) continue;
+    const comp = landComponent(state, c.x, c.y, ruleset);
+    for (const k of Object.keys(comp)) home[k] = true;
+  }
+  return home;
+}
+
+// naval-loop S3: the nearest EXPLORED foundable land tile that is NOT on any home
+// continent — the overseas settlement target a loaded carrier sails toward and its
+// cargo founds. Deterministic: nearest chebyshev, tile-index tie-break. null = none known.
+function nearestOverseasSite(state, sx, sy, home, me, ruleset) {
+  const map = state.map;
+  let best = null, bestD = -1, bestIdx = -1;
+  for (let y = 0; y < map.height; y = y + 1) {
+    for (let x = 0; x < map.width; x = x + 1) {
+      const idx = y * map.width + x;
+      if (home[idx] === true) continue;
+      if (!isExplored(me, map, x, y)) continue;
+      if (!canFoundAt(state, x, y, ruleset)) continue;
+      const d = chebyshev(map, sx, sy, x, y);
+      if (best === null || d < bestD || (d === bestD && idx < bestIdx)) {
+        best = { x, y }; bestD = d; bestIdx = idx;
+      }
+    }
+  }
+  return best;
+}
+
+// naval-loop S3: for an EMBARKED settler, the DIR to step ashore onto (disembark) —
+// the first DIR_KEY hitting land not held by a rival (prefer a foundable tile, else any
+// safe land). null = no adjacent land, keep sailing. Deterministic DIR_KEYS order.
+function disembarkDir(state, unit, playerId, ruleset) {
+  const map = state.map;
+  let landDir = null;
+  for (const key of DIR_KEYS) {
+    let nx = unit.x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= map.width) { if (map.wrapX !== true) continue; nx = ((nx % map.width) + map.width) % map.width; }
+    const ny = unit.y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= map.height) continue;
+    if (ruleset.terrain.terrains[map.tiles[ny * map.width + nx].t].domain !== 'land') continue;
+    const c = cityAt(state, nx, ny);
+    if (c && c.owner !== playerId) continue;
+    let enemy = false;
+    for (const u of unitsAt(state, nx, ny)) { if (u.owner !== playerId) enemy = true; }
+    if (enemy) continue;
+    if (canFoundAt(state, nx, ny, ruleset)) return key;
+    if (landDir === null) landDir = key;
+  }
+  return landDir;
+}
+
 // This settler's rank among the civ's settlers (sorted ids): rank 0 is the
 // EXPANDER, the rest are homeland IMPROVERS first. Deterministic.
 function settlerRank(state, playerId, uid) {
@@ -809,6 +937,51 @@ function stepEntersSea(state, unit, dir, ruleset) {
   return ruleset.terrain.terrains[state.map.tiles[ny * state.map.width + nx].t].domain === 'sea';
 }
 
+// naval-loop S1 (#2195 Q4): the CONTINENT of (sx,sy) — the connected component of
+// contiguous LAND tiles reachable by land (unbounded 8-neighbour flood-fill, fixed
+// order, wrapX honoured). Civ-SERIES concept (reviewer #2196): a continent is a
+// contiguous-land grouping; here each landmass is its own continent (islands separate).
+// Deterministic, both engines. Returns a { tileIndex: true } set; a water/absent start
+// tile yields the empty set. Used by isOverseasSite to decide a settler must sail.
+const NL_ADJ8 = [
+  { dx: 0, dy: -1 }, { dx: 1, dy: -1 }, { dx: 1, dy: 0 }, { dx: 1, dy: 1 },
+  { dx: 0, dy: 1 }, { dx: -1, dy: 1 }, { dx: -1, dy: 0 }, { dx: -1, dy: -1 }
+];
+function landComponent(state, sx, sy, ruleset) {
+  const W = state.map.width, H = state.map.height;
+  const seen = {};
+  if (ruleset.terrain.terrains[state.map.tiles[sy * W + sx].t].domain !== 'land') return seen;
+  const stack = [sy * W + sx];
+  seen[sy * W + sx] = true;
+  while (stack.length > 0) {
+    const idx = stack.pop();
+    const x = idx % W, y = idiv(idx, W);
+    for (const o of NL_ADJ8) {
+      let nx = x + o.dx;
+      const ny = y + o.dy;
+      if (ny < 0 || ny >= H) continue;
+      if (nx < 0 || nx >= W) {
+        if (state.map.wrapX !== true) continue;
+        nx = ((nx % W) + W) % W;
+      }
+      const nidx = ny * W + nx;
+      if (seen[nidx] === true) continue;
+      if (ruleset.terrain.terrains[state.map.tiles[nidx].t].domain !== 'land') continue;
+      seen[nidx] = true;
+      stack.push(nidx);
+    }
+  }
+  return seen;
+}
+
+// naval-loop S1: is (tx,ty) OVERSEAS relative to (sx,sy) — on a different landmass
+// (not in the start tile's continent). The signal that a settler must sail to reach a
+// site rather than walk. Both engines; unbounded so it never conflates far-by-land.
+function isOverseasSite(state, sx, sy, tx, ty, ruleset) {
+  const comp = landComponent(state, sx, sy, ruleset);
+  return comp[ty * state.map.width + tx] !== true;
+}
+
 // B23b: the nearest OWN city to a unit (deterministic sortIds walk). null when
 // the civ holds none. Used by the scout threat-veto (a scout whose nearest home
 // is menaced stays to garrison — the user's LOCAL visible-threat read).
@@ -994,6 +1167,28 @@ function bestSeaUnit(me, ruleset) {
         || (def.attack === bestDef.attack && def.cost < bestDef.cost)
         || (def.attack === bestDef.attack && def.cost === bestDef.cost && id < best)) {
       best = id; bestDef = def;
+    }
+  }
+  return best;
+}
+
+// naval-loop S2 (#2195 Q1): the best available CARRIER — a sea unit with cargo capacity
+// (units.json `transport` field). Ranked highest capacity, then cheapest, then id
+// (deterministic; the Luau twin must match). trireme (cap 2, map-making) onward, so
+// overseas logistics is NOT industrialization-gated. null when no carrier is buildable yet.
+function bestCarrierUnit(me, ruleset) {
+  let best = null, bestCap = 0, bestCost = 0;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    const cap = def.transport === undefined ? 0 : def.transport;
+    if (def.domain !== 'sea' || cap <= 0) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || cap > bestCap
+        || (cap === bestCap && def.cost < bestCost)
+        || (cap === bestCap && def.cost === bestCost && id < best)) {
+      best = id; bestCap = cap; bestCost = def.cost;
     }
   }
   return best;
@@ -1833,6 +2028,14 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     done['u:' + uid] = true;
 
     if (unit.type === 'settlers') {
+      // naval-loop S3 DISEMBARK: an embarked settler is cargo. Step ashore when the
+      // carrier has reached a coast (a landward tile is adjacent); else ride — the
+      // carrier sails it in the ship block below. It never self-moves at sea.
+      if (unit.aboard !== undefined) {
+        const dd = disembarkDir(state, unit, playerId, ruleset);
+        if (dd) return { type: 'moveUnit', playerId, unitId: uid, dir: dd };
+        continue;
+      }
       if (goodCitySpot(state, unit, ruleset)
           && !enemyNear(state, me, playerId, unit.x, unit.y, 2)) {
         return { type: 'foundCity', playerId, unitId: uid };
@@ -1855,6 +2058,29 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // the danger that blocked it
       const site = bestCitySite(state, unit, playerId, ruleset);
       if (site) {
+        // naval-loop S2 EMBARK (reactive): an OVERSEAS best site (across water from
+        // this settler's continent) -> route to a friendly carrier and board. The
+        // deliberate board is the ONE land-unit-onto-sea step slice A allows (a
+        // moveUnit onto the carrier's tile; movement.js sets aboard) — it never uses
+        // the N3 stepEntersSea-guarded fallbacks below.
+        if (isOverseasSite(state, unit.x, unit.y, site.x, site.y, ruleset)) {
+          const carrier = nearestOwnCarrier(state, unit, playerId, ruleset);
+          if (carrier) {
+            if (chebyshev(state.map, unit.x, unit.y, carrier.x, carrier.y) <= 1) {
+              const b = dirToward(state.map, unit.x, unit.y, carrier.x, carrier.y);
+              if (b) return { type: 'moveUnit', playerId, unitId: uid, dir: b };
+            }
+            let m = bfsStepToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset);
+            if (!m) m = safeDirToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset);
+            if (m) return { type: 'moveUnit', playerId, unitId: uid, dir: m };
+          }
+          // no boardable carrier yet: pave in place while a coastal city builds one
+          const t0 = state.map.tiles[unit.y * state.map.width + unit.x];
+          if (ruleset.terrain.terrains[t0.t].domain === 'land' && t0.road !== true) {
+            return { type: 'startWork', playerId, unitId: uid, work: 'road' };
+          }
+          continue;
+        }
         // §12: BFS around inlets to the site; greedy is the safe floor (today's
         // behavior) when no bounded land path exists, then HOLD (never wander
         // into the danger that blocked it).
@@ -1872,6 +2098,22 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       const dir = towardBetterLand(state, unit, ruleset);
       if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
       continue;
+    }
+
+    // naval-loop S3 SAIL: a carrier WITH cargo aboard sails to the coast adjacent to
+    // the nearest overseas settlement site, then HOLDS there while the cargo disembarks
+    // (handled in the settler block). Empty carriers fall through to N3 scout/patrol.
+    if (ruleset.units[unit.type].domain === 'sea' && carrierCargo(state, unit.id) > 0) {
+      const homeSet = homeContinents(state, playerId, ruleset);
+      const dest = nearestOverseasSite(state, unit.x, unit.y, homeSet, me, ruleset);
+      if (dest) {
+        if (chebyshev(state.map, unit.x, unit.y, dest.x, dest.y) <= 1) {
+          return { type: 'wait', playerId, unitId: uid }; // at landfall: hold for disembark
+        }
+        const sdir = seaStepToward(state, unit, dest.x, dest.y, ruleset);
+        if (sdir) return { type: 'moveUnit', playerId, unitId: uid, dir: sdir };
+        return { type: 'wait', playerId, unitId: uid }; // no sea path in range: hold
+      }
     }
 
     const enemy = nearestKnownEnemy(state, unit, playerId);
@@ -2068,7 +2310,7 @@ function runAiTurn(engine, state, playerId, ruleset, eventsOut, stance) {
   return state;
 }
 
-export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit };
+export { runAiTurn, pickCommand, goodCitySpot, isCoastal, coastalScoutDir, bfsStepToNearestUnexplored, wallFollowDir, isScout, navyPriorityOf, bestSeaUnit, bestCarrierUnit, landComponent, isOverseasSite, seaStepToward, nearestOwnCarrier, carrierFreeSlots };
 // XII.5b Q6 (witness, A-ruled #2052): the space-project predicates are exported
 // for the SOAK harness's 9-metric --stats witness (tools/soak.js) ONLY — Node-side
 // measurement, zero engine-decision use, no luau caller. Pure reads.

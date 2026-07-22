@@ -302,6 +302,165 @@ local function bfsStepToward(state: any, me: any, playerId: string, unit: any, t
 	return nil
 end
 
+-- naval-loop S3 (#2195 Q3) twin: bounded SEA BFS to a landfall adjacent the target land.
+local function seaStepToward(state: any, ship: any, tx: number, ty: number, ruleset: any): string?
+	local map = state.map
+	local width, height, wrapX = map.width, map.height, map.wrapX
+	local maxR = if ruleset.rules.seaPathRadius == nil then 30 else ruleset.rules.seaPathRadius
+	local visited = {}
+	visited[ship.y * width + ship.x] = true
+	local queue = { { x = ship.x, y = ship.y, first = nil } }
+	local qi = 1
+	while qi <= #queue do
+		local cur = queue[qi]
+		qi += 1
+		for _, key in ipairs(DIR_KEYS) do
+			local nx = cur.x + DIR_VECS[key][1]
+			if nx < 0 or nx >= width then
+				if not wrapX then
+					continue
+				end
+				nx = ((nx % width) + width) % width
+			end
+			local ny = cur.y + DIR_VECS[key][2]
+			if ny < 0 or ny >= height then
+				continue
+			end
+			local idx = ny * width + nx
+			if visited[idx] == true then
+				continue
+			end
+			visited[idx] = true
+			if chebyshev(map, ship.x, ship.y, nx, ny) > maxR then
+				continue
+			end
+			if ruleset.terrain.terrains[map.tiles[idx + 1].t].domain ~= "sea" then
+				continue
+			end
+			local first = if cur.first == nil then key else cur.first
+			if chebyshev(map, nx, ny, tx, ty) <= 1 then
+				return first
+			end
+			local hostile = false
+			for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+				if u.owner ~= ship.owner then
+					hostile = true
+				end
+			end
+			if hostile then
+				continue
+			end
+			table.insert(queue, { x = nx, y = ny, first = first })
+		end
+	end
+	return nil
+end
+
+-- naval-loop S2 twin: free cargo slots on a carrier (capacity minus aboard count).
+local function carrierFreeSlots(state: any, ship: any, ruleset: any): number
+	local cap = ruleset.units[ship.type].transport
+	if cap == nil or cap <= 0 then
+		return 0
+	end
+	local load = 0
+	for uid in pairs(state.units) do
+		if state.units[uid].aboard == ship.id then
+			load += 1
+		end
+	end
+	return cap - load
+end
+
+-- naval-loop S2 twin: the nearest own boardable CARRIER (sea, transport>0, free slot).
+local function nearestOwnCarrier(state: any, unit: any, playerId: string, ruleset: any): any
+	local best, bestD = nil, -1
+	for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+		local s = state.units[uid]
+		if s.owner == playerId and s.aboard == nil and ruleset.units[s.type].domain == "sea"
+			and carrierFreeSlots(state, s, ruleset) > 0 then
+			local d = chebyshev(state.map, unit.x, unit.y, s.x, s.y)
+			if best == nil or d < bestD then
+				best = s
+				bestD = d
+			end
+		end
+	end
+	return best
+end
+
+-- naval-loop S3: how many units are aboard a ship (its USED cargo slots). >0 = loaded.
+local function carrierCargo(state: any, shipId: string): number
+	local n = 0
+	for uid in pairs(state.units) do
+		if state.units[uid].aboard == shipId then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- naval-loop S3: the nearest EXPLORED foundable land tile NOT on any home continent.
+local function nearestOverseasSite(state: any, sx: number, sy: number, home: any, me: any, ruleset: any): any
+	local map = state.map
+	local best, bestD, bestIdx = nil, -1, -1
+	for y = 0, map.height - 1 do
+		for x = 0, map.width - 1 do
+			local idx = y * map.width + x
+			if home[idx] ~= true and isExplored(me, map, x, y) and canFoundAt(state, x, y, ruleset) then
+				local d = chebyshev(map, sx, sy, x, y)
+				if best == nil or d < bestD or (d == bestD and idx < bestIdx) then
+					best = { x = x, y = y }
+					bestD = d
+					bestIdx = idx
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- naval-loop S3: for an EMBARKED settler, the DIR to step ashore onto (disembark).
+local function disembarkDir(state: any, unit: any, playerId: string, ruleset: any): string?
+	local map = state.map
+	local landDir = nil
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = unit.x + DIR_VECS[key][1]
+		if nx < 0 or nx >= map.width then
+			if map.wrapX ~= true then
+				continue
+			end
+			nx = ((nx % map.width) + map.width) % map.width
+		end
+		local ny = unit.y + DIR_VECS[key][2]
+		if ny < 0 or ny >= map.height then
+			continue
+		end
+		if ruleset.terrain.terrains[map.tiles[ny * map.width + nx + 1].t].domain ~= "land" then
+			continue
+		end
+		local c = combat.cityAt(state, nx, ny)
+		if c ~= nil and c.owner ~= playerId then
+			continue
+		end
+		local enemy = false
+		for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+			if u.owner ~= playerId then
+				enemy = true
+			end
+		end
+		if enemy then
+			continue
+		end
+		if canFoundAt(state, nx, ny, ruleset) then
+			return key
+		end
+		if landDir == nil then
+			landDir = key
+		end
+	end
+	return landDir
+end
+
 -- This settler's rank among the civ's settlers (sorted ids).
 local function settlerRank(state: any, playerId: string, uid: string): number
 	local rank = 0
@@ -899,6 +1058,72 @@ local function stepEntersSea(state: any, unit: any, dir: string, ruleset: any): 
 	return ruleset.terrain.terrains[state.map.tiles[ny * state.map.width + nx + 1].t].domain == "sea"
 end
 
+-- naval-loop S1 (#2195 Q4) twin: the CONTINENT of (sx,sy) — the connected component of
+-- contiguous LAND (unbounded 8-neighbour flood-fill, fixed order, wrapX). seen keyed by the
+-- 0-based tile index (matches engine/ai.js; internal, not hashed). tiles[] is 1-indexed (+1).
+local NL_ADJ8 = {
+	{ dx = 0, dy = -1 }, { dx = 1, dy = -1 }, { dx = 1, dy = 0 }, { dx = 1, dy = 1 },
+	{ dx = 0, dy = 1 }, { dx = -1, dy = 1 }, { dx = -1, dy = 0 }, { dx = -1, dy = -1 },
+}
+local function landComponent(state: any, sx: number, sy: number, ruleset: any): any
+	local W = state.map.width
+	local H = state.map.height
+	local seen = {}
+	if ruleset.terrain.terrains[state.map.tiles[sy * W + sx + 1].t].domain ~= "land" then
+		return seen
+	end
+	local stack = { sy * W + sx }
+	seen[sy * W + sx] = true
+	while #stack > 0 do
+		local idx = stack[#stack]
+		stack[#stack] = nil
+		local x = idx % W
+		local y = idiv(idx, W)
+		for _, o in ipairs(NL_ADJ8) do
+			local nx = x + o.dx
+			local ny = y + o.dy
+			if ny >= 0 and ny < H then
+				local skip = false
+				if nx < 0 or nx >= W then
+					if state.map.wrapX ~= true then
+						skip = true
+					else
+						nx = ((nx % W) + W) % W
+					end
+				end
+				if not skip then
+					local nidx = ny * W + nx
+					if seen[nidx] ~= true and ruleset.terrain.terrains[state.map.tiles[nidx + 1].t].domain == "land" then
+						seen[nidx] = true
+						stack[#stack + 1] = nidx
+					end
+				end
+			end
+		end
+	end
+	return seen
+end
+local function isOverseasSite(state: any, sx: number, sy: number, tx: number, ty: number, ruleset: any): boolean
+	local comp = landComponent(state, sx, sy, ruleset)
+	return comp[ty * state.map.width + tx] ~= true
+end
+
+-- naval-loop S3: union of every land-component the civ holds a city on (home).
+local function homeContinents(state: any, playerId: string, ruleset: any): any
+	local W = state.map.width
+	local home = {}
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and home[c.y * W + c.x] ~= true then
+			local comp = landComponent(state, c.x, c.y, ruleset)
+			for k in pairs(comp) do
+				home[k] = true
+			end
+		end
+	end
+	return home
+end
+
 -- B23b twin: the nearest OWN city to a unit (deterministic sortIds walk).
 local function nearestOwnCity(state: any, unit: any, playerId: string): any
 	local best = nil
@@ -1102,6 +1327,29 @@ local function bestSeaUnit(me: any, ruleset: any): string?
 				or (def.attack == bestDef.attack and def.cost == bestDef.cost and id < best) then
 				best = id
 				bestDef = def
+			end
+		end
+	end
+	return best
+end
+
+-- naval-loop S2 (#2195 Q1) twin: the best available CARRIER (sea unit with `transport`
+-- capacity), ranked highest capacity, then cheapest, then id. Matches engine/ai.js.
+local function bestCarrierUnit(me: any, ruleset: any): string?
+	local best, bestCap, bestCost = nil, 0, 0
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		local cap = if def.transport == nil then 0 else def.transport
+		if def.domain == "sea" and cap > 0
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or cap > bestCap
+				or (cap == bestCap and def.cost < bestCost)
+				or (cap == bestCap and def.cost == bestCost and id < best) then
+				best = id
+				bestCap = cap
+				bestCost = def.cost
 			end
 		end
 	end
@@ -2034,6 +2282,15 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				done["u:" .. uid] = true
 
 				if unit.type == "settlers" then
+					-- naval-loop S3 DISEMBARK: an embarked settler is cargo -- step ashore when the
+					-- carrier reached a coast; else ride (the carrier sails it in the ship block).
+					if unit.aboard ~= nil then
+						local dd = disembarkDir(state, unit, playerId, ruleset)
+						if dd ~= nil then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dd }
+						end
+						continue
+					end
 					if goodCitySpot(state, unit, ruleset)
 						and not enemyNear(state, me, playerId, unit.x, unit.y, 2) then
 						return { type = "foundCity", playerId = playerId, unitId = uid }
@@ -2052,6 +2309,31 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 					local site = bestCitySite(state, unit, playerId, ruleset)
 					if site ~= nil then
+						-- naval-loop S2 EMBARK (reactive): an OVERSEAS best site -> route to a friendly
+						-- carrier and board (the one deliberate land-onto-sea step slice A allows).
+						if isOverseasSite(state, unit.x, unit.y, site.x, site.y, ruleset) then
+							local carrier = nearestOwnCarrier(state, unit, playerId, ruleset)
+							if carrier ~= nil then
+								if chebyshev(state.map, unit.x, unit.y, carrier.x, carrier.y) <= 1 then
+									local b = dirToward(state.map, unit.x, unit.y, carrier.x, carrier.y)
+									if b ~= nil then
+										return { type = "moveUnit", playerId = playerId, unitId = uid, dir = b }
+									end
+								end
+								local m = bfsStepToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset)
+								if m == nil then
+									m = safeDirToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset)
+								end
+								if m ~= nil then
+									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = m }
+								end
+							end
+							local t0 = state.map.tiles[unit.y * state.map.width + unit.x + 1]
+							if ruleset.terrain.terrains[t0.t].domain == "land" and t0.road ~= true then
+								return { type = "startWork", playerId = playerId, unitId = uid, work = "road" }
+							end
+							continue
+						end
 						-- §12: BFS around inlets; greedy is the safe floor, then HOLD.
 						local dir = bfsStepToward(state, me, playerId, unit, site.x, site.y, ruleset)
 						if dir == nil then
@@ -2073,6 +2355,23 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					continue
 				end
 
+				-- naval-loop S3 SAIL: a carrier WITH cargo sails to the coast adjacent to the
+				-- nearest overseas site, then HOLDS while its cargo disembarks. Empty carriers
+				-- fall through to N3 scout/patrol.
+				if ruleset.units[unit.type].domain == "sea" and carrierCargo(state, unit.id) > 0 then
+					local homeSet = homeContinents(state, playerId, ruleset)
+					local dest = nearestOverseasSite(state, unit.x, unit.y, homeSet, me, ruleset)
+					if dest ~= nil then
+						if chebyshev(state.map, unit.x, unit.y, dest.x, dest.y) <= 1 then
+							return { type = "wait", playerId = playerId, unitId = uid }
+						end
+						local sdir = seaStepToward(state, unit, dest.x, dest.y, ruleset)
+						if sdir ~= nil then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = sdir }
+						end
+						return { type = "wait", playerId = playerId, unitId = uid }
+					end
+				end
 				local enemy = nearestKnownEnemy(state, unit, playerId)
 				local exploreMode = if ruleset.rules.aiExploreMode == nil then "bfs" else ruleset.rules.aiExploreMode
 				local scouting = isScout(state, playerId, ruleset, uid, S)

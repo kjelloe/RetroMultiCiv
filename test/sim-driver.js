@@ -1057,6 +1057,7 @@ async function runSim(opts) {
   const engine = mods.createEngine(ruleset);
   const options = { width, height, players };
   if (opts.difficulty !== undefined) options.difficulty = opts.difficulty;
+  if (opts.mapType !== undefined) options.mapType = opts.mapType; // naval-loop witness: archipelago seeds
   let state = engine.createGame({ seed: opts.seed, options });
   if (state.ok === false) throw new Error(`createGame failed for seed ${opts.seed}: ${state.reason}`);
   const initialState = mods.deepClone(state);

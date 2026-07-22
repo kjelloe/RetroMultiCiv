@@ -968,3 +968,99 @@ test('§12: an expander settler routes AROUND a deep ocean inlet to the far site
     '§12: the expander must path around the inlet to the far side; got '
     + (u ? `settler stuck at ${u.x},${u.y}` : 'settler gone') + `, farCity=${farCity}`);
 });
+
+// naval-loop S1 (#2195 Q4): landComponent = the connected component of contiguous LAND
+// (a continent; islands separate); isOverseasSite = the target is on a different landmass.
+test('naval-loop S1: landComponent + isOverseasSite (continent flood-fill)', async () => {
+  const { ai } = await load();
+  // 7x3: continent A (x0..2) | sea column (x3) | continent B (x4..6), all land else.
+  const W = 7, H = 3, tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: x === 3 ? 'ocean' : 'grassland' });
+  const state = { map: { width: W, height: H, wrapX: false, tiles } };
+  const compA = ai.landComponent(state, 1, 1, RULESET);
+  assert.strictEqual(compA[1 * W + 0] === true && compA[1 * W + 2] === true, true, 'continent A tiles in the component');
+  assert.strictEqual(compA[1 * W + 4] === true, false, 'continent B is NOT in A (sea separates them)');
+  assert.strictEqual(compA[1 * W + 3] === true, false, 'the sea tile is not land');
+  assert.strictEqual(ai.isOverseasSite(state, 1, 1, 5, 1, RULESET), true, 'B is overseas from A');
+  assert.strictEqual(ai.isOverseasSite(state, 1, 1, 2, 1, RULESET), false, 'a same-continent tile is not overseas');
+  // wrapX: with wrap, the two sides join through the seam ONLY if the seam is land.
+  const wrap = { map: { width: W, height: H, wrapX: true, tiles } };
+  assert.strictEqual(ai.isOverseasSite(wrap, 1, 1, 5, 1, RULESET), false, 'wrapX: x6-x0 land seam joins A and B into one continent');
+  // a water start tile -> empty component
+  assert.deepStrictEqual(ai.landComponent(state, 3, 1, RULESET), {}, 'a sea start tile has no land component');
+});
+
+// naval-loop S2 (#2195 Q1): bestCarrierUnit = best available sea unit with `transport`
+// capacity (trireme from map-making; the dedicated transport once industrialization is in).
+test('naval-loop S2: bestCarrierUnit picks the best available carrier', async () => {
+  const { ai } = await load();
+  const mk = techs => ({ techs });
+  assert.strictEqual(ai.bestCarrierUnit(mk([]), RULESET), null, 'no carrier tech -> null');
+  assert.strictEqual(ai.bestCarrierUnit(mk(['map-making']), RULESET), 'trireme', 'map-making -> trireme (cap 2)');
+  assert.strictEqual(ai.bestCarrierUnit(mk(['map-making', 'navigation']), RULESET), 'sail', 'navigation -> sail (cap 3 > trireme 2)');
+  assert.strictEqual(ai.bestCarrierUnit(mk(['map-making', 'navigation', 'magnetism']), RULESET), 'frigate', 'magnetism -> frigate (cap 4)');
+  assert.strictEqual(ai.bestCarrierUnit(mk(['map-making', 'navigation', 'magnetism', 'industrialization']), RULESET), 'transport', 'industrialization -> transport (cap 8)');
+});
+
+// naval-loop S3 helpers: seaStepToward (bounded sea-BFS to a landfall adjacent the target
+// land) + nearestOwnCarrier/carrierFreeSlots (the boardable carrier a settler routes to).
+test('naval-loop S3: seaStepToward sails toward landfall; nearestOwnCarrier finds a free carrier', async () => {
+  const { ai } = await load();
+  // 7x3: land col x0..2 (continent A) | sea x3..5 | land x6 (continent B target).
+  const W = 7, H = 3, tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: (x >= 3 && x <= 5) ? 'ocean' : 'grassland' });
+  const state = {
+    map: { width: W, height: H, wrapX: false, tiles },
+    units: {
+      sh: { id: 'sh', type: 'trireme', owner: 'p1', x: 3, y: 1, moves: 3, fortified: false, veteran: false },
+      st: { id: 'st', type: 'settlers', owner: 'p1', x: 1, y: 1, moves: 1, fortified: false, veteran: false, aboard: 'sh' }
+    }
+  };
+  // the trireme at (3,1) sails toward continent B land at (6,1): landfall = the sea tile
+  // adjacent to (6,1) = (5,1); first step is east.
+  const dir = ai.seaStepToward(state, state.units.sh, 6, 1, RULESET);
+  assert.ok(dir === 'E' || dir === 'NE' || dir === 'SE', `sails east toward landfall (got ${dir})`);
+  // free-slot accounting: trireme cap 2, one settler aboard -> 1 free.
+  assert.strictEqual(ai.carrierFreeSlots(state, state.units.sh, RULESET), 1, 'trireme cap2 minus 1 cargo = 1 free');
+  // nearestOwnCarrier from a land settler at (2,1) -> the trireme (has a free slot).
+  const land = { id: 'st2', type: 'settlers', owner: 'p1', x: 2, y: 1 };
+  assert.strictEqual(ai.nearestOwnCarrier(state, land, 'p1', RULESET).id, 'sh', 'finds the free-slot carrier');
+  // a full carrier is not returned.
+  state.units.st3 = { id: 'st3', type: 'militia', owner: 'p1', x: 3, y: 1, aboard: 'sh' };
+  assert.strictEqual(ai.nearestOwnCarrier(state, land, 'p1', RULESET), null, 'a FULL carrier (cap2, 2 aboard) is not boardable');
+});
+
+// naval-loop slice A (#2195/#2198 B): the CRAFTED 2-continent acceptance gate — a
+// settler on a SATURATED island (its own continent has no foundable spot) with a best
+// city site OVERSEAS, and a carrier adjacent, is driven UNAIDED through runAiTurn to
+// board -> sail the strait -> disembark -> found an OVERSEAS city. Proves the settle-
+// loop CORE fires end to end (the soak-emergent arming is the separate naval-presence
+// slice). 6x5: A=cols0-1, strait cols2-3 (trireme-crossable), B=cols4-5.
+test('naval-loop slice A: the AI settles an OVERSEAS city (crafted 2-continent fixture)', async () => {
+  const { ai, engine } = await load();
+  const W = 6, H = 5, tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: (x <= 1 || x >= 4) ? 'grassland' : 'ocean' });
+  let st = {
+    version: 1, turn: 5, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: W, height: H, wrapX: false, tiles },
+    units: {
+      u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 1, y: 2, moves: 1, fortified: false, veteran: false },
+      s1: { id: 's1', type: 'trireme', owner: 'p1', x: 2, y: 2, moves: 3, fortified: false, veteran: false }
+    },
+    cities: { c1: { id: 'c1', name: 'Alpha', owner: 'p1', x: 0, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'warriors' } } },
+    cityOrder: ['c1'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['map-making'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  };
+  const homeA = ai.landComponent(st, 0, 2, RULESET); // continent A (the capital's landmass)
+  let overseas = null;
+  for (let turn = 1; turn <= 8 && !overseas; turn++) {
+    st = ai.runAiTurn(engine, st, 'p1', RULESET);
+    const res = engine.applyCommand(st, { type: 'endTurn', playerId: 'p1' });
+    assert.ok(res.ok, `endTurn ${turn}: ${res.reason}`);
+    st = res.state;
+    for (const cid of st.cityOrder) { const c = st.cities[cid]; if (homeA[c.y * W + c.x] !== true) overseas = c; }
+  }
+  assert.ok(overseas, 'the AI founded a city on continent B (overseas)');
+  assert.ok(overseas.x >= 4, `the overseas city is on continent B (x=${overseas.x} >= 4)`);
+});
