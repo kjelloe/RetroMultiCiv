@@ -2189,11 +2189,11 @@ html, body {
 }
 #setup-resume button { margin-left: 6px; }
 
-/* XIV §34: city overview — the 🏙 button (left of the research bar) + its table */
-#open-city-overview {
+/* XIV §34/§41: the shared overview panels — top-bar toggle buttons (left of the
+   research bar) + the shared scrollable table. 🏙 city overview, ⚔ military. */
+#open-city-overview, #open-military-overview {
   position: absolute;
   top: 12px;
-  left: calc(50% - 226px);
   height: 26px;
   padding: 0 8px;
   background: rgba(10, 16, 28, 0.85);
@@ -2206,25 +2206,31 @@ html, body {
   cursor: pointer;
   z-index: 6;
 }
-#open-city-overview:hover { background: #2f5388; }
-#city-overview-table { border-collapse: collapse; width: 100%; font-size: 12px; }
-#city-overview-table th {
+#open-city-overview { left: calc(50% - 226px); }
+#open-military-overview { left: calc(50% - 262px); } /* left of the 🏙 button */
+#open-city-overview:hover, #open-military-overview:hover { background: #2f5388; }
+
+.overview-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.overview-table th {
   text-align: left; padding: 3px 8px; color: #8fa9cf;
   border-bottom: 1px solid #2a3a55;
   position: sticky; top: 0; background: rgba(10, 16, 28, 0.98);
 }
-#city-overview-table td { padding: 3px 8px; border-bottom: 1px solid #1a2740; white-space: nowrap; }
-#city-overview-table .co-row { cursor: pointer; }
-#city-overview-table .co-row:hover td { background: #1b2c48; }
-#city-overview-table .co-name { font-weight: bold; color: #e6eefc; }
-#city-overview-table .co-prog { color: #8fa9cf; }
-#city-overview-table .co-q { color: #9fd0ff; }
-.co-empty { padding: 10px; color: #8fa9cf; }
+.overview-table td { padding: 3px 8px; border-bottom: 1px solid #1a2740; white-space: nowrap; }
+.overview-table .overview-row { cursor: pointer; }
+.overview-table .overview-row:hover td { background: #1b2c48; }
+.overview-table .co-name, .overview-table .mo-name { font-weight: bold; color: #e6eefc; }
+.overview-table .co-prog, .overview-table .mo-loc { color: #8fa9cf; }
+.overview-table .co-q { color: #9fd0ff; }
+.overview-table .mo-vet { color: #ffd479; }
+.overview-table .mo-zoom { color: #8fc7ff; cursor: pointer; }
+.overview-empty { padding: 10px; color: #8fa9cf; }
 
 @media (max-width: 720px) {
-  /* row 1 gets the 🏙 button on the far left; shove the research bar over */
-  #open-city-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
-  #research-bar { left: 44px; }
+  /* row 1 gets the overview buttons on the far left; shove the research bar over */
+  #open-military-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-city-overview { top: 4px; left: 40px; height: 28px; line-height: 26px; z-index: 22; }
+  #research-bar { left: 78px; }
 }
 
 /* XIV §33: the incoming-offer envoy modal — blocks the map while it is up */

@@ -177,6 +177,9 @@ test('browser smoke: client boots to a playable state', { skip: !chromium && 'he
     // XIV §34: the city overview panel lists own cities (named row) and a row click opens that city
     assert.match(dom, /cityoverview: table\/rows\d+\/named\/opens/,
       'the city overview must show a named city row and open that city on row click');
+    // XIV §41: the military overview lists own units with the A/D/M column and a 🔍 zoom-to
+    assert.match(dom, /military: table\/rows\d+\/zoom\/adm/,
+      'the military overview must list units with an A/D/M column and a 🔍 zoom-to');
     // XIV §33: an incoming offer pops the envoy modal; Consider-later dismisses but the offer persists
     assert.match(dom, /envoy: shown\/btns\/named\/later\/persists/,
       'an incoming diplomacy offer must pop the envoy modal and persist after "Consider later"');

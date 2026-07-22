@@ -28,6 +28,7 @@ import { initShip } from './ui/ship.js';
 import { initMinimap } from './ui/minimap.js';
 import { initBuildQueue } from './ui/build-queue.js';
 import { initCityOverview } from './ui/city-overview.js';
+import { initMilitaryOverview } from './ui/military-overview.js';
 import { initAutomate } from './ui/automate.js';
 import { initDebugPanel } from './ui/debug-panel.js';
 import { initStrategicOverlay } from './ui/strategic-overlay.js';
@@ -453,6 +454,7 @@ ctx.ship = initShip(ctx); // H8 (A76): the graphical spaceship screen (🚀)
 ctx.minimap = initMinimap(ctx); // C1: world minimap (click-to-jump, fog-honest)
 ctx.buildQueue = initBuildQueue(ctx); // C3: per-city build queue (logged commands only)
 ctx.cityOverview = initCityOverview(ctx); // XIV §34: all-cities overview panel (needs panels + buildQueue)
+ctx.militaryOverview = initMilitaryOverview(ctx); // XIV §41: all-units overview (sits left of 🏙; needs city-overview button present)
 ctx.automate = initAutomate(ctx); // C4: sentry-wake + settler automation (view-based)
 ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 / spectator only)
@@ -743,6 +745,22 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     if (rows.length) { rows[0].click(); cityoverview += '/' + (ctx.panels.isCityOpen() ? 'opens' : 'noopen'); }
     ctx.cityOverview.close();
   }
+  // XIV §41: the military overview lists own units with A/D/M + a 🔍 zoom-to.
+  // Inject a probe unit (no hash impact) so a row exists at turn 1.
+  let military = 'unchecked';
+  if (ctx.militaryOverview && ctx.militaryOverview.open && session.state.cityOrder.length > 0) {
+    const cid0 = session.state.cityOrder[0];
+    const c0 = session.state.cities[cid0];
+    session.state.units.__probeM = { id: '__probeM', type: 'militia', owner: ctx.HUMAN, x: c0.x, y: c0.y, moves: 1, home: cid0 };
+    ctx.militaryOverview.open();
+    const table = document.getElementById('military-overview-table');
+    const rows = table ? table.querySelectorAll('tbody .mo-row') : [];
+    military = (table ? 'table' : 'notable') + '/' + (rows.length >= 1 ? 'rows' + rows.length : 'norows')
+      + '/' + (table && table.querySelector('.mo-zoom') ? 'zoom' : 'nozoom')
+      + '/' + (table && /\d+\/\d+\/\d+/.test(table.textContent) ? 'adm' : 'noadm');
+    ctx.militaryOverview.close();
+    delete session.state.units.__probeM;
+  }
   // XIV §33: an incoming diplomacy offer pops the envoy modal (leader + Accept /
   // Reject / Consider-later). Inject a rival's standing offer (a probe, not a
   // command — no hash impact), scan, and assert the modal shows; "Consider
@@ -847,6 +865,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     + ' · inputpacing: ' + inputpacing // XIV §25/§23: contextmenu suppressed + Show unit move option
     + ' · unithome: ' + unithome // XIV §45a: unit card shows the home city
     + ' · cityoverview: ' + cityoverview // XIV §34: overview panel lists cities + row opens the city
+    + ' · military: ' + military // XIV §41: military overview lists units with A/D/M + 🔍 zoom-to
     + ' · envoy: ' + envoy // XIV §33: incoming-offer modal (Accept/Reject/Consider-later, persists)
     + ' · zoomto: ' + zoomto // XIV §35: 🔍 zoom-to on coord-bearing transient messages
     + ' · errors: ' + capturedErrors.length; // hover sweep etc. must stay clean
