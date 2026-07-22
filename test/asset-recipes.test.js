@@ -49,7 +49,8 @@ test('PROP_SHAPES covers every tile prop kind the renderer instances', async () 
   // the prop kinds props.js builds InstancedMeshes for (its `items` buckets)
   const kinds = ['strip', 'roadSeg', 'mine', 'tree', 'scrub', 'rock', 'peak', 'snow',
     'special', 'fortress', 'tie', 'mineDoor', 'mineBeam', 'fieldPatch', 'foam',
-    'hutBase', 'hutRoof']; // N13 villages (CP19, 6f30a46)
+    'hutBase', 'hutRoof', // N13 villages (CP19, 6f30a46)
+    'jungleTrunk', 'jungleCanopy', 'jungleButtress']; // XV §5 tropical jungle
   for (const k of kinds) assert.ok(PROP_SHAPES[k], `prop kind "${k}" missing from PROP_SHAPES`);
   assert.strictEqual(Object.keys(PROP_SHAPES).length, kinds.length, 'no stray/unused prop shapes');
 });

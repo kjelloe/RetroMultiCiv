@@ -2331,3 +2331,18 @@ html, body {
   border: 1px solid #3b5d8f; background: rgba(22, 35, 58, 0.95); color: #cdd8ea;
 }
 #attack-confirm .ac-attack { border-color: #a24; background: #6b2530; }
+
+/* XV §7: the size-1-city Settler-disband warn modal */
+#settler-warn {
+  position: fixed; left: 50%; bottom: 130px; transform: translateX(-50%);
+  z-index: 42; max-width: 430px; text-align: center; color: #cdd8ea;
+  background: rgba(12, 18, 32, 0.98); border: 1px solid #a2603d;
+  border-radius: 8px; padding: 14px 18px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+#settler-warn .sw-body { font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+#settler-warn .sw-actions { display: flex; gap: 8px; justify-content: center; }
+#settler-warn button {
+  padding: 8px 16px; border-radius: 6px; font-family: inherit; font-size: 14px; cursor: pointer;
+  border: 1px solid #3b5d8f; background: rgba(22, 35, 58, 0.95); color: #cdd8ea;
+}
+#settler-warn .sw-go { border-color: #a24; background: #6b2530; }

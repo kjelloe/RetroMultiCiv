@@ -33,6 +33,7 @@ const PROP_MAT = new THREE.MeshLambertMaterial({ color: 0xffffff }); // × insta
 const PROP_COLOR = {
   irrigation: 0x5db8e8, road: 0x8a6f4d, railroad: 0x3c3c46, mine: 0x8a8494,
   forest: 0x1e6b2f, jungle: 0x2f8d3f, special: 0xffd75e, fortress: 0xb8ab8e,
+  jungleTrunk: 0x6a5236, jungleButtress: 0x5c472f, jungleCanopy: 0x2f8d3f, // XV §5
   rock: 0x7d7468, peak: 0x63636d, snow: 0xe8eef0,
   grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d,
   tie: 0x2c2620, mineDoor: 0x17130e, mineBeam: 0x6b4a2a,
@@ -59,6 +60,7 @@ const ROAD_DIRS = [
 export function createTileProps(map, tileTop, joins) {
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
+    jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5
     rock: [], peak: [], snow: [], special: [], fortress: [],
     tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: [],
     hutBase: [], hutRoof: [] // N13: goody-hut villages
@@ -127,9 +129,9 @@ export function createTileProps(map, tileTop, joins) {
         items.mineBeam.push({ x, y, top, dim, color: PROP_COLOR.mineBeam, dx: 0.18, dz: -0.055, dy: 0.1 });
       }
       if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
-      if (t.t === 'forest' || t.t === 'jungle') {
-        // 3–5 trees, deterministically scattered and sized per tile
-        const color = PROP_COLOR[t.t];
+      if (t.t === 'forest') {
+        // 3–5 spruce cones, deterministically scattered and sized per tile
+        const color = PROP_COLOR.forest;
         const count = 3 + Math.floor(visualRand(x, y, 1) * 3);
         for (let i = 0; i < count; i++) {
           const s = 0.75 + visualRand(x, y, 10 + i) * 0.55;
@@ -139,6 +141,18 @@ export function createTileProps(map, tileTop, joins) {
             dz: (visualRand(x, y, 30 + i) - 0.5) * 0.62,
             dy: 0.14 * s, sx: s, sy: s, sz: s
           });
+        }
+      } else if (t.t === 'jungle') {
+        // XV §5: tropical rainforest — fewer, TALLER trees, each a buttress base +
+        // a slender trunk (above forest height) + a broad flat dome canopy; no cones.
+        const count = 3 + Math.floor(visualRand(x, y, 1) * 2); // 3–4 (broad canopies overlap)
+        for (let i = 0; i < count; i++) {
+          const s = 0.8 + visualRand(x, y, 10 + i) * 0.45;
+          const dx = (visualRand(x, y, 20 + i) - 0.5) * 0.5;
+          const dz = (visualRand(x, y, 30 + i) - 0.5) * 0.5;
+          items.jungleButtress.push({ x, y, top, dim, color: PROP_COLOR.jungleButtress, dx, dz, dy: 0.075 * s, sx: s, sy: s, sz: s });
+          items.jungleTrunk.push({ x, y, top, dim, color: PROP_COLOR.jungleTrunk, dx, dz, dy: 0.24 * s, sx: s, sy: s, sz: s });
+          items.jungleCanopy.push({ x, y, top, dim, color: PROP_COLOR.jungleCanopy, dx, dz, dy: 0.52 * s, sx: 1.05 * s, sy: 0.42 * s, sz: 1.05 * s });
         }
       } else if (t.t === 'hills') {
         const count = 1 + (visualRand(x, y, 2) > 0.55 ? 1 : 0);

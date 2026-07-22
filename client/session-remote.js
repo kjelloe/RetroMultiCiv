@@ -10,6 +10,7 @@
 // time an awaiting caller resumes. A `rejected` has no following view, so it
 // resolves immediately.
 import { mlog } from './ui/mlog.js'; // L5: no-op unless ?mlog=1
+import { OFFTURN_WHITELIST } from '../engine/index.js'; // XIV §31: the A54 whitelist
 
 export function createRemoteSession(opts) {
   const baseRuleset = opts.ruleset;      // terrain/units/techs/... + base rules
@@ -53,6 +54,13 @@ export function createRemoteSession(opts) {
   // here for the view that resolves the caller's Promise.
   let awaiting = null;                    // { commandId, resolve }
   let awaitingEvents = null;
+  // XIV §31: mirror the LOCAL A54 off-turn queue (session.js) over the server —
+  // whitelisted self-scoped cmds issued when it is NOT my turn are held here
+  // (the engine would silently reject them off-turn) and flushed, in order, the
+  // moment my turn starts. `prevActive` detects that flip on the view push.
+  const offturnQueue = [];
+  let prevActive = null;
+  let flushing = false;
 
   function tokenKey(id) { return 'retromulticiv-token-' + id; }
   function notify(events) { for (const cb of listeners) cb(state, events || []); }
@@ -127,6 +135,7 @@ export function createRemoteSession(opts) {
       if (msg.civs !== undefined) playerCivsMap = msg.civs;
       const wasJoined = joined;
       joined = true;
+      if (state) prevActive = state.activePlayer; // XIV §31: baseline for the turn-flip flush
       // reconnect: a wholesale view replacement — the stateReplaced marker
       // re-baselines subscribers (turn-log contacts), same as a local load
       if (wasJoined) notify([{ type: 'stateReplaced' }]);
@@ -156,6 +165,9 @@ export function createRemoteSession(opts) {
       awaitingEvents = null;
       notify(forNotify);                  // ui refreshes on the new state first
       if (awaiting) { const w = awaiting; awaiting = null; w.resolve({ ok: true, events: forPromise }); }
+      // XIV §31: my turn just started (activePlayer flipped TO me) → flush the queue
+      if (state && prevActive !== playerId && state.activePlayer === playerId) flushOffturn();
+      if (state) prevActive = state.activePlayer;
       return {};
     }
     if (msg.t === 'gameOver') {
@@ -246,6 +258,21 @@ export function createRemoteSession(opts) {
     ws.addEventListener('error', () => { if (rejectJoin) { const f = rejectJoin; rejectJoin = null; f(new Error('socket error')); } });
   }
 
+  // XIV §31: flush the off-turn queue sequentially — the single `awaiting` slot
+  // means one request in flight, so send each queued cmd and await its result
+  // before the next; each caller's Promise resolves with the real server result.
+  async function flushOffturn() {
+    if (flushing || offturnQueue.length === 0) return;
+    flushing = true;
+    try {
+      while (offturnQueue.length > 0) {
+        const q = offturnQueue.shift();
+        try { q.resolve(await request({ t: 'cmd', cmd: q.cmd })); }
+        catch (e) { q.resolve({ ok: false, reason: 'flushFailed', events: [] }); }
+      }
+    } finally { flushing = false; }
+  }
+
   const session = {
     get state() { return state; },
     get log() { return sent; },
@@ -275,7 +302,16 @@ export function createRemoteSession(opts) {
     // commandId, no waiter; the server answers with broadcasts.
     sendMeta(frame) { send(Object.assign({ gameId }, frame)); },
 
-    apply(cmd) { return request({ t: 'cmd', cmd }); },
+    apply(cmd) {
+      // XIV §31: a whitelisted self-scoped cmd issued OFF-TURN queues here (the
+      // engine would silently reject it) and flushes when my turn starts.
+      if (state && playerId !== null && state.activePlayer !== playerId
+          && OFFTURN_WHITELIST.indexOf(cmd.type) !== -1) {
+        return new Promise(resolve => { offturnQueue.push({ cmd, resolve }); });
+      }
+      return request({ t: 'cmd', cmd });
+    },
+    get pendingOffturn() { return offturnQueue.length; }, // XIV §31: the HUD's ⏳ queued tick
     endTurn() { return request({ t: 'endTurn' }); },
 
     // Server owns persistence (autosave + --game resume); local save/load and

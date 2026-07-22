@@ -116,17 +116,19 @@ export function initTurnLog(ctx) {
   function scanContacts(state, announce) {
     const view = filterView(state, ctx.HUMAN);
     const seen = {};
-    for (const u of Object.values(view.units || {})) seen[u.owner] = true;
-    for (const c of Object.values(view.cities || {})) seen[c.owner] = true;
+    const seenLoc = {}; // XV §9: where each owner was FIRST sighted (for the ⌖ zoom-to)
+    for (const u of Object.values(view.units || {})) { seen[u.owner] = true; if (!seenLoc[u.owner]) seenLoc[u.owner] = { x: u.x, y: u.y }; }
+    for (const c of Object.values(view.cities || {})) { seen[c.owner] = true; if (!seenLoc[c.owner]) seenLoc[c.owner] = { x: c.x, y: c.y }; }
     for (const pid of Object.keys(seen).sort()) {
       if (pid === ctx.HUMAN || met[pid]) continue;
       met[pid] = true;
       if (!announce) continue;
       const name = playerName(state, pid);
-      add(`👁 first contact: ${name} sighted`, 'loss', null, 'rival');
+      // XV §9: the first-contact entry gets the ⌖ zoom-to; the banner the §35 🔍
+      add(`👁 first contact: ${name} sighted`, 'loss', seenLoc[pid] || null, 'rival');
       flashMessage(pid === 'barb'
         ? '🏴 Barbarians sighted!'
-        : `👁 You have made contact with the ${name}!`);
+        : `👁 You have made contact with the ${name}!`, seenLoc[pid]);
     }
   }
   scanContacts(session.state, false); // whoever is visible at start is already known

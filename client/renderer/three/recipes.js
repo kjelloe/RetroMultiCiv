@@ -219,6 +219,12 @@ export const PROP_SHAPES = {
   roadSeg: { shape: 'box', size: [0.5, 0.02, 0.12] },
   mine: { shape: 'cone', size: [0.13, 0.2], seg: 4 },
   tree: { shape: 'cone', size: [0.11, 0.28], seg: 6 },
+  // XV §5: tropical-rainforest jungle — a tall slender TRUNK, a broad flat dome
+  // CANOPY (a sphere flattened by instance scale), and a buttress-flared BASE.
+  // Deliberately NOT a spruce cone (that stays 'tree' for temperate forest).
+  jungleTrunk: { shape: 'cyl', size: [0.028, 0.042, 0.46], seg: 6 },
+  jungleCanopy: { shape: 'sphere', size: [0.21], seg: [8, 5] },
+  jungleButtress: { shape: 'cone', size: [0.085, 0.16], seg: 6 },
   scrub: { shape: 'cone', size: [0.055, 0.11], seg: 5 },
   rock: { shape: 'dodeca', size: [0.14], seg: 0 },
   peak: { shape: 'cone', size: [0.26, 0.5], seg: 5 },
