@@ -32,14 +32,18 @@ space-arc saga, wake list)._
   landed 706b19d, reviewer + Gate-B GREEN; abandon criteria MET in the
   4th witness (commits survive; abandons concrete-only).
 
-- [ ] **Redeploy from marker-0082** (naval-truth: sub stealth, sight-2,
-  probabilistic trireme, Lighthouse/Magellan +1 — plus everything since
-  0081). NOTE: marker-0083 is BLOCKED on a real naval regression
-  (trireme-on-land, seed 23) — 0082 is the safe candidate; the trireme
-  fix lands as 0083.
+- [ ] **Redeploy from marker-0083** (`c746298`, both gates real, 15th
+  consecutive consistent): the 7-level difficulty ladder, danger-abandon,
+  the full A50 hardening arc, B27, entry-default-LOCAL + the tab-loss
+  autosave/resume, sea-raids→disasters→nuclear from the 0075-0082 span.
+  WITH the one-time box unit edit from the deploy review: `--max-turns
+  700` (+ optional `--bug-reports` + its ReadWritePaths line) — see the
+  ssh-deploy review notes. Browsers may need a hard refresh.
 
-- [ ] **Wake helper** (queue 23, §22 mid) — the one still-down session.
-  sim-runner + hardening + roblox-helper are all awake and current.
+- [ ] **Fresh helper session when convenient** — the lane closed a
+  14-item run at a deep-context boundary; queue 22 is stocked (mobile
+  §6+§7 and auto-takeover re-queued fresh with pick-up plans in its
+  memory). All other lanes are awake and current.
 
 - [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
   **ally relay** (`specs/ally-status-update-2026-07-22.md` + prior

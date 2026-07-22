@@ -4,14 +4,16 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 (currency pass. marker-0082 = merge candidate;
-0083 assembles: danger-abandon ✅ + hardening a50-healthz merge ✅ +
-difficulty DONE+VERIFIED landing now [M3 floor 28→27 provisional #2164].
-Engine order ruled #2160: difficulty-land → B27 trireme regression →
-apollo-narrow → 5th witness [launches] → archetype wonder slice [spec =
-architect's one open design] → manhattan-gate → naval-loop → smalls →
-D4–D6. Space arc: danger-abandon criteria MET in the 4th witness; sole
-remaining blocker = wonders never built [Apollo gate], staged-both ruled.)
+Last updated: 2026-07-22 early (marker-0083 TAGGED @c746298 — BOTH gates
+REAL, 15th consecutive consistent, THE merge candidate. In it:
+danger-abandon ✅ · 7-level difficulty ✅ [M3 27 provisional, 25-seed
+confirm running] · full A50 hardening arc ✅ [+ gap-fix f0e03b1] · B27 ✅
+[disbandCity docked-ship, §40 interaction] · entry-default LOCAL +
+tab-loss autosave/resume [user rulings] · 2 helper client batches.
+Post-0083: apollo-narrow LANDED 52754ca [Apollo build-gate root cause
+fixed; twins 10/10] — 5TH WITNESS RUNNING [launches>0 = the space arc's
+acceptance]. Engine order: manhattan-gate → naval-loop → archetype
+wonder slice [spec = architect's one open design] → smalls → D4–D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·

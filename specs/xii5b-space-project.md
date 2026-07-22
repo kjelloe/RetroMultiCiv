@@ -100,3 +100,15 @@ in specs/calendar-545.md as well.
   narrow fix / archetype some-civs-build-wonders v1 slice / both staged).
   Witness rider: soak.js abandonReason still prints pre-slice 'threat'
   vocabulary — concrete-reason derivation queued.
+- WONDER FORK RULED staged-both (#2160, 2026-07-22): (1) APOLLO-NARROW
+  landed 52754ca — the ACTUAL root cause of 0-launches was the build
+  path gating Apollo on spaceDriveEligible (ALL part techs), so a
+  committed civ holding only Apollo's tech never built it. Fix: a
+  spaceCommitted civ with the Apollo tech + Apollo unbuilt builds
+  apollo-program TOP in its capital; uncommitted byte-identical;
+  gold-rush still forbidden for wonders. NEW positive cross-language
+  witness luau/apollo-check.luau (0x5fac5db2); abandonReason rider
+  shipped (concrete vocabulary). (2) Archetype wonder slice ("some
+  civs MUST build wonders") = its own v1 item after manhattan-gate/
+  naval-loop; architect drafts the spec. 5TH WITNESS = the acceptance
+  measurement (25-seed, launches>0) — verdict appends here.
