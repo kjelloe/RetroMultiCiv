@@ -252,6 +252,7 @@ function parseArgs(argv) {
     }
     else if (a === '--size') opts.size = argv[i + 1] in SIZES ? argv[++i] : opts.size;
     else if (a === '--difficulty') opts.difficulty = argv[i + 1] in DIFFICULTY ? argv[++i] : opts.difficulty;
+    else if (a === '--simulatedHumanSeat') opts.simulatedHumanSeat = true; // #27: p1 human:true (asymmetry on), still AI-driven
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
   return opts;
@@ -387,6 +388,7 @@ async function runSeed(seed, opts, checkpoints, mods) {
   const r = await runSim({
     seed, civs: opts.civs, width, height, turns: opts.turns,
     difficulty: opts.difficulty, // #2155: state.difficulty (all-AI => world knobs only)
+    simulatedHumanSeat: opts.simulatedHumanSeat, // #27: activate the difficulty asymmetry via a driven human p1
     rulesOverrides: rulesOverridesFor(opts),
     chaos: opts.chaos,
     deepAt: checkpoints,
@@ -465,6 +467,7 @@ function runSeedInChild(seed, opts) {
       '--size', opts.size, '--difficulty', opts.difficulty, '--jobs', '1'];
     if (opts.natural) args.push('--natural');
     if (!opts.chaos) args.push('--no-chaos');
+    if (opts.simulatedHumanSeat) args.push('--simulatedHumanSeat');
     if (opts.stats) args.push('--stats', opts.stats);
     const proc = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';

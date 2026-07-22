@@ -1049,8 +1049,15 @@ async function runSim(opts) {
   if (overrides !== undefined && Object.keys(overrides).length > 0) {
     ruleset = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, overrides) });
   }
-  const players = SIM_ROSTER.slice(0, civs).map(p => (
-    { id: p.id, name: p.name, color: p.color, human: false, civ: p.civ }
+  // #27 measure-first: simulatedHumanSeat marks the FIRST seat (p1) human:true while the
+  // driver still runAiTurn-drives it — this ACTIVATES the difficulty asymmetry (hasHumanSeat:
+  // p1 gets d.humanBulbInc, the AI seats get d.aiBulbInc; p1 pays full cost, AI get discounts),
+  // measuring whether an authentic King+ human-vs-AI game produces space launches. Game-end is
+  // human-INDEPENDENT (score.js checkGameEnd uses only alive/assets/score/endYear), so this does
+  // NOT change gameOver/victory; p1 is stance-excluded (plays balanced), deterministic. Default off.
+  const humanSeat = opts.simulatedHumanSeat === true;
+  const players = SIM_ROSTER.slice(0, civs).map((p, i) => (
+    { id: p.id, name: p.name, color: p.color, human: humanSeat && i === 0, civ: p.civ }
   ));
   if (players.length < civs) throw new Error(`sim roster supports up to ${SIM_ROSTER.length} civs`);
 
