@@ -58,13 +58,20 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   lists itself in Find game after the next redeploy (the `--announce`
   flag is already in the unit template).
 
-- [ ] **Studio session + runG.txt** (Roblox Studded round-2 review) —
-  now the ONLY gate on the Roblox axis: **Tier-3 certification
-  re-audit PASSED** (29 gates green; verdict artifact
-  `roblox/acceptance/tier3-cert.md` on the gaming PC is your review
-  checklist). R6 seats/lobby build is queued behind it agent-side. ·
-  **terrain desaturation check** — carried. Nothing is pending with
-  the designer ally.
+- [ ] **Studio session — IN PROGRESS (2026-07-23). The checklist:**
+  1. **Studded round-2 review** — `roblox/acceptance/tier3-cert.md`
+     is the pass/fail checklist (29 gates green agent-side; runH
+     autoplay was clean to score-victory, zero errors).
+  2. **SO18 glyphs render-verify** — the 68 EditableImage tech glyphs
+     are built headless but need a Studio render check + screenshots
+     (the agent-side half is done; this is the Studio-gated half).
+  3. **SoundId curation** — the worksheet is in roblox/acceptance/;
+     picking actual SoundIds is the Studio step (sound is provisional).
+  4. **DataStore note from runH**: SaveStore was off — enable Studio
+     API Services if you want save-flow testing this session.
+  5. Save the acceptance log as **runI.txt** when done; the
+     roblox-helper is flagged responsive for live findings.
+  · **terrain desaturation check** — carried, fits this session.
 
 _Recently ruled (2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
 measure-first King sweep proved King space-capable (one civ reached
