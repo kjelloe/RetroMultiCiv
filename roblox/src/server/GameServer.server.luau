@@ -221,6 +221,31 @@ local seatOfUser = {} -- UserId -> "pN" (bound at game start / takeover)
 -- CP16/MP8: view-only watchers (ruling @d1ce4920) — NO seat, omniscient
 -- filterView via the twin's no-player-row path, sends rejected as notSeated
 local spectators = {} -- UserId -> true
+-- R6 (specs/r6-roblox-multiplayer.md): the seat REGISTRY + bridge-compat hook.
+-- seatMeta[pid] = { userId, name, seatCode, joinedAt } — the UserId plays the
+-- role docs/06 seat TOKENS play; seatCode is the INTERNAL bridge field (a
+-- future cross-play bridge exports it as a browser seat token). It is a 24-hex
+-- session token in the browser randomBytes(12).hex SHAPE, generated server-side
+-- (math.random, NOT engine RNG — the seat map is not game state, same rule as
+-- the takeover dice) and NEVER surfaced in 1.0: no client push, filterView, or
+-- UI ever carries it (gate 30 pins that). Zero UI cost now.
+local seatMeta = {} -- pid -> { userId, name, seatCode, joinedAt }
+local function newSeatCode()
+	local hex = table.create(24)
+	for i = 1, 24 do
+		hex[i] = ("%x"):format(math.random(0, 15))
+	end
+	return table.concat(hex)
+end
+local function bindSeatMeta(pid, userId, name)
+	local existing = seatMeta[pid]
+	if existing ~= nil and existing.userId == userId then
+		existing.name = name -- reconnect (same UserId): keep seatCode + joinedAt
+		return
+	end
+	seatMeta[pid] = { userId = userId, name = name or "",
+		seatCode = newSeatCode(), joinedAt = os.time() }
+end
 -- SO8: world-public score series, one sample per round (ruling @d1ce4920:
 -- every turn, session-local, {t="stats"} PULL only — never pushed)
 local statsSeries = setmetatable({}, statehash.ARRAY_MT)
@@ -812,10 +837,13 @@ local function startGame()
 			tostring(setup.marathon == true), statehash.hashState(state)))
 
 	-- bind the pre-start claims: seat 1 = host, 2.. = join-pad order
+	seatMeta = {} -- R6: rebuild the seat registry fresh for this game
 	for i = 1, setup.humans do
 		local userId = seatUserIds[i]
 		if userId ~= nil then
 			seatOfUser[userId] = "p" .. i
+			local p = Players:GetPlayerByUserId(userId)
+			bindSeatMeta("p" .. i, userId, p ~= nil and p.Name or "")
 		end
 	end
 	setPhase("running")
@@ -922,6 +950,7 @@ local function checkEphemeral()
 		state = nil
 		seatOfUser = {}
 		seatUserIds = {}
+		seatMeta = {} -- R6
 		hostUserId = nil
 		setPhase("idle")
 	end)
@@ -984,6 +1013,8 @@ local function resumeGame(player, rawCode)
 	hostUserId = player.UserId
 	seatOfUser = { [player.UserId] = "p1" }
 	seatUserIds = { player.UserId }
+	seatMeta = {} -- R6
+	bindSeatMeta("p1", player.UserId, player.Name)
 	print(("[R4RESUME] code=%s turn=%d humans=%d hash=%s"):format(code, state.turn,
 		setup.humans, statehash.hashState(state)))
 	setPhase("running")
@@ -1081,6 +1112,7 @@ local function padTakeover(player)
 	-- never engine RNG — the seat map is not game state
 	local pid = vacant[math.random(#vacant)]
 	seatOfUser[player.UserId] = pid
+	bindSeatMeta(pid, player.UserId, player.Name) -- R6: register the new occupant
 	print(("[GameServer] R9 takeover: %s -> %s (random of %d vacant)"):format(player.Name, pid, #vacant))
 	sendJoined(player, pid)
 	checkEphemeral() -- R10: a seated human cancels any pending grace timer

@@ -391,5 +391,20 @@ else
   note SKIP "gate 29: node absent"
 fi
 
+# gate 30 — R6 seat registry bridge-compat hook (specs/r6-roblox-multiplayer.md):
+# GameServer keeps an internal seatMeta[pid].seatCode (24-hex, browser
+# randomBytes(12).hex shape) as the future cross-play bridge token. It must be
+# GENERATED server-side and NEVER surfaced — no client module may reference it.
+gs="roblox/src/server/GameServer.server.luau"
+if grep -q "seatMeta" "$gs" && grep -q "newSeatCode" "$gs" && grep -q "seatCode" "$gs"; then
+  if grep -rq "seatCode" roblox/src/client/ 2>/dev/null; then
+    note FAIL "gate 30: seatCode LEAKED to a client module (must stay server-internal)"
+  else
+    note PASS "gate 30: R6 seat registry bridge-hook present + never client-surfaced"
+  fi
+else
+  note FAIL "gate 30: R6 seatMeta/newSeatCode/seatCode hook missing from GameServer"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail
