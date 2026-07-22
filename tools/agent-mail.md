@@ -394,6 +394,12 @@ above). To stand a team up from scratch:
 5. **Post your own status** and start your review cadence: read the
    board (`status`), re-ping only working-and-stale lanes, keep queues
    from running dry, raise flags for no-mail updates.
+6. **Separate-clone task mails NAME the expected git tip** (user
+   directive 2026-07-22): every task routed to a lane on its own clone
+   (sim-runner, roblox-helper, …) starts with "git pull origin
+   <branch> first — expect tip <sha>". Remote lanes forget the pull;
+   a measurement or re-bake on a stale tree looks green and is wrong.
+   The lane reports a tip mismatch before running, never around it.
 
 ### Suggested coordinator prompt (template)
 
