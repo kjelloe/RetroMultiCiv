@@ -83,6 +83,9 @@ M.SOUND_IDS = {
 	"tech", "wonder", "age", "defeat", "elimination", "barbarian",
 	"victory", "gameover", "government", "regent",
 	"ship-part", "ship-launch", "ship-down",
+	-- XIV §26: era-specific tech-discovery fanfares (played by the celebration
+	-- overlay via the era upgrade, not soundForEvent; catalogued for parity)
+	"discovery-ancient", "discovery-classical", "discovery-industrial", "discovery-modern",
 }
 
 return M

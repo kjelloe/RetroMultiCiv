@@ -164,6 +164,15 @@ return [==[{
     "relLaunchWarBonus": 100
   },
   "contentCitizens": 4,
+  "difficulties": {
+    "trainer":    { "contentCitizens": 7, "startGold": 100, "aiFoodRows": 18, "aiCostPct": 180, "aiBulbInc": 15, "humanBulbInc": 4,  "barbAtkPct": 10,  "parleyDemandPct": 10 },
+    "chieftain":  { "contentCitizens": 6, "startGold": 50,  "aiFoodRows": 16, "aiCostPct": 160, "aiBulbInc": 14, "humanBulbInc": 6,  "barbAtkPct": 25,  "parleyDemandPct": 25 },
+    "warlord":    { "contentCitizens": 5, "startGold": 0,   "aiFoodRows": 14, "aiCostPct": 140, "aiBulbInc": 13, "humanBulbInc": 8,  "barbAtkPct": 50,  "parleyDemandPct": 50 },
+    "prince":     { "contentCitizens": 4, "startGold": 0,   "aiFoodRows": 12, "aiCostPct": 120, "aiBulbInc": 12, "humanBulbInc": 10, "barbAtkPct": 75,  "parleyDemandPct": 75 },
+    "king":       { "contentCitizens": 3, "startGold": 0,   "aiFoodRows": 10, "aiCostPct": 100, "aiBulbInc": 11, "humanBulbInc": 12, "barbAtkPct": 100, "parleyDemandPct": 100 },
+    "emperor":    { "contentCitizens": 2, "startGold": 0,   "aiFoodRows": 8,  "aiCostPct": 80,  "aiBulbInc": 10, "humanBulbInc": 14, "barbAtkPct": 125, "parleyDemandPct": 125 },
+    "godemperor": { "contentCitizens": 1, "startGold": 0,   "aiFoodRows": 6,  "aiCostPct": 60,  "aiBulbInc": 9,  "humanBulbInc": 16, "barbAtkPct": 150, "parleyDemandPct": 150 }
+  },
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,
   "specialistOutput": 2,
