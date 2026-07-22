@@ -48,6 +48,7 @@ MAILBOX FLAG (the 10-minute poll, 2026-07-21): one cheap line that answers
 raised note — like the raised flag on a mailbox:
 
   python3 tools/agent-mail.py flag --as helper          # check; poll this at least every 10 min
+  python3 tools/agent-mail.py flag wait --as helper     # BLOCKING check — the idle-lane loop (below)
   python3 tools/agent-mail.py flag raise --for helper --as architect --why "re-read spec X"
   python3 tools/agent-mail.py flag lower --as helper    # after acting on the note
 
@@ -61,6 +62,18 @@ have no new mail behind them (a spec changed, a ruling landed in a file, a
 parked lane should resume); a worker that needs the coordinator NOW may
 raise the coordinator's flag (`flag raise --for coordinator --as <role>
 --why "see status board"`) — the one outbound signal workers keep.
+
+THE IDLE-LANE LISTENING LOOP (`flag wait`, 2026-07-22): an agent session
+only executes while it has a live turn — a lane that ends its turn
+"waiting" cannot poll anything, which is why updates sat unseen until a
+human nudge. `flag wait --as <role>` fixes that mechanically: it BLOCKS
+until the flag is up (mail/queue/note), else returns after --timeout
+(default 540s, sized under a 600s shell-tool cap). The waiting ritual:
+instead of ending your turn, run `flag wait`; on FLAG UP act on what it
+names; on "still down" run `flag wait` again. Long ops: run them in the
+background and `flag wait` in the foreground. The loop runs client-side
+(one cheap check per --interval, default 15s), so it is hub-safe and
+identical on remote clones.
 
 LAN HUB (cross-machine mail + locks, 2026-07-14): the dev PC runs
 `agent-mail.py serve [--port 8970] [--host 0.0.0.0]` — a tiny HTTP hub
@@ -301,6 +314,31 @@ def get_flag(role):
         return None
 
 
+def flag_counts(role):
+    # machine form (also `flag --as X --raw`): unread count, queue depth,
+    # note timestamp (0 = none). `flag wait` polls THIS, local or via hub.
+    note = get_flag(role)
+    return len(unread_for(role)), len(read_queue(role)), (note or {}).get('ts', 0)
+
+
+def flag_check_line(role):
+    # the one-line poll answer; shared by `flag` (check) and `flag wait`
+    unread = len(unread_for(role))
+    qn = len(read_queue(role))
+    note = get_flag(role)
+    if not (unread or qn or note):
+        return f'flag down ({canon(role)}: no unread, queue empty)'
+    parts = []
+    if unread:
+        parts.append(f'{unread} unread → `inbox --as {canon(role)} --headers`')
+    if qn:
+        parts.append(f'queue {qn} → `queue take --as {canon(role)}`')
+    if note:
+        parts.append(f"note from {note.get('by', '?')} {age_str(note['ts'])} ago: "
+                     f"{note.get('why') or '(no note)'} → `flag lower --as {canon(role)}` once acted on")
+    return f"FLAG UP ({canon(role)}): " + ' · '.join(parts)
+
+
 def fmt(m):
     ts = time.strftime('%H:%M', time.localtime(m['ts']))
     tag = f" [{m['tag']}]" if m.get('tag') else ''
@@ -334,7 +372,7 @@ def remote_url():
         return None
 
 
-def proxy(argv, url):
+def proxy_raw(argv, url):
     import urllib.request
     req = urllib.request.Request(url + '/rpc',
         data=json.dumps({'argv': argv}).encode('utf-8'),
@@ -344,10 +382,60 @@ def proxy(argv, url):
             reply = json.loads(r.read().decode('utf-8'))
     except Exception as e:
         sys.exit(f'mail hub unreachable at {url}: {e} — fix or delete .agent-mail/remote')
-    out = reply.get('out', '')
+    return reply.get('out', ''), int(reply.get('code', 0))
+
+
+def proxy(argv, url):
+    out, code = proxy_raw(argv, url)
     if out:
         print(out, end='' if out.endswith('\n') else '\n')
-    return int(reply.get('code', 0))
+    return code
+
+
+def flag_wait(argv):
+    # `flag wait --as <role> [--timeout S] [--interval S]` — a BLOCKING check:
+    # returns the moment there is something NEW for the role, else after
+    # --timeout. Unread mail or a raised note return immediately; standing
+    # QUEUE depth does not (a holding lane may have a stocked queue it cannot
+    # take yet) — queue triggers only on an INCREASE over the loop's baseline.
+    # Runs CLIENT-side (one cheap poll per interval), so it works identically
+    # local and through the hub (whose per-request timeout is 10s and whose
+    # threads must never block). This is the idle-lane listening loop: a
+    # waiting lane's last action is `flag wait`; on FLAG UP act, on timeout
+    # run it again — the lane stays reachable without a human nudge.
+    wp = argparse.ArgumentParser(prog='agent-mail.py flag wait')
+    wp.add_argument('--as', '--from', '--role', dest='role', required=True)
+    wp.add_argument('--timeout', type=int, default=540,
+                    help='max seconds to listen before returning (default 540; keep under your shell tool timeout)')
+    wp.add_argument('--interval', type=int, default=15)
+    a = wp.parse_args(argv)
+    url = remote_url()
+
+    def counts():
+        if url:
+            raw, _ = proxy_raw(['flag', '--as', a.role, '--raw'], url)
+            u, q, n = raw.split()
+            return int(u.split('=')[1]), int(q.split('=')[1]), int(n.split('=')[1])
+        return flag_counts(a.role)
+
+    def line():
+        if url:
+            out, _ = proxy_raw(['flag', '--as', a.role], url)
+            return out.strip()
+        return flag_check_line(a.role)
+
+    _, base_qn, _ = counts()
+    deadline = time.time() + max(a.timeout, a.interval)
+    while True:
+        unread, qn, note_ts = counts()
+        if unread or note_ts or qn > base_qn:
+            print(line())
+            return
+        base_qn = qn  # a shrinking queue lowers the baseline
+        if time.time() >= deadline:
+            print(f'{line()} — nothing new after {a.timeout}s; run `flag wait` again to keep listening')
+            return
+        time.sleep(min(a.interval, max(1, int(deadline - time.time()))))
 
 
 def serve(host, port):
@@ -410,6 +498,10 @@ def main():
         a = sp.parse_args(argv)
         os.makedirs(BOX, exist_ok=True)
         serve(a.host, a.port)
+        return
+    if argv[:2] == ['flag', 'wait']:
+        # client-side always — the blocking loop must never reach the hub
+        flag_wait(argv[2:])
         return
     url = remote_url()
     if url:
@@ -488,10 +580,13 @@ def dispatch(argv):
 
     fl = sub.add_parser('flag')
     fl.add_argument('action', nargs='?', default='check', choices=['check', 'raise', 'lower'],
-                    help="check --as <role> (the 10-min poll); raise --for <role> [--why]; lower --as <role>")
+                    help="check --as <role> (the 10-min poll); raise --for <role> [--why]; lower --as <role>; "
+                         "`flag wait --as <role>` = the blocking idle-lane loop (client-side, see docstring)")
     fl.add_argument('--as', '--from', '--role', dest='role', default=None)
     fl.add_argument('--for', dest='forlane', default=None)
     fl.add_argument('--why', '--reason', dest='why', default='')
+    fl.add_argument('--raw', action='store_true',
+                    help='machine form for check: "unread=N queue=N note=TS" (flag wait polls this)')
 
     lk = sub.add_parser('lock')
     lk.add_argument('path', help='file to lock (repo-relative)')
@@ -674,21 +769,11 @@ def dispatch(argv):
             role = a.role or a.forlane
             if not role:
                 sys.exit('flag: --as <role> required to check your flag')
-            unread = len(unread_for(role))
-            qn = len(read_queue(role))
-            note = get_flag(role)
-            if not (unread or qn or note):
-                print(f'flag down ({canon(role)}: no unread, queue empty)')
+            if a.raw:
+                u, q, n = flag_counts(role)
+                print(f'unread={u} queue={q} note={n}')
             else:
-                parts = []
-                if unread:
-                    parts.append(f'{unread} unread → `inbox --as {canon(role)} --headers`')
-                if qn:
-                    parts.append(f'queue {qn} → `queue take --as {canon(role)}`')
-                if note:
-                    parts.append(f"note from {note.get('by', '?')} {age_str(note['ts'])} ago: "
-                                 f"{note.get('why') or '(no note)'} → `flag lower --as {canon(role)}` once acted on")
-                print(f"FLAG UP ({canon(role)}): " + ' · '.join(parts))
+                print(flag_check_line(role))
         elif a.action == 'raise':
             if not a.forlane:
                 sys.exit('flag raise: --for <role> required (whose flag goes up)')

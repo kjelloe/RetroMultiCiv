@@ -138,6 +138,46 @@ command to run.
 - This complements (does not replace) the ≤5-min `peek --headers` rule
   while ACTIVE on a task; the flag is the floor that holds even when idle.
 
+## The idle-lane listening loop — `flag wait` (STANDARD — 2026-07-22)
+
+**Why this exists (the root cause of the nudge problem):** an agent
+session only executes while it has a live turn. A lane that ends its
+turn "waiting" runs NOTHING afterward — the 10-minute poll promise
+cannot be kept from an ended turn, which is why raised flags and
+queued items sat unseen until a human nudged the session. The failure
+was scheduling, not visibility: every signal was in the store; no code
+was running to look.
+
+`flag wait` closes the gap mechanically — a BLOCKING check that
+returns the moment there is something NEW, else after `--timeout`
+(default 540 s, sized under a 600 s shell-tool cap):
+
+```bash
+python3 tools/agent-mail.py flag wait --as helper          # blocks up to 9 min
+# → FLAG UP (helper): 1 unread → `inbox …`                 (returned early: act on it)
+# → flag down … — nothing new after 540s; run `flag wait` again to keep listening
+```
+
+**The ritual — never end a turn silent:** when you would otherwise go
+idle (waiting, holding, blocked on another lane), do NOT end your
+turn. Run `flag wait --as <you>` as your next action. When it returns
+FLAG UP, act on what it names in the same turn. When it returns
+"nothing new", run `flag wait` again. Repeat until there is work or
+the human closes the session.
+
+- Semantics: unread mail or a raised note return IMMEDIATELY; standing
+  queue depth does NOT (a holding lane may have a stocked queue it
+  cannot take mid-pipeline) — queue triggers only on an INCREASE while
+  waiting. An idle-with-queue lane should `queue take`, not wait.
+- Long ops: run sweeps/builds in the BACKGROUND and `flag wait` in the
+  foreground — the lane stays reachable during its longest work.
+- The loop runs client-side (one cheap poll per `--interval`, default
+  15 s), so it is identical on hub-remote clones and never blocks a
+  hub thread. Requires hub restart on upgrade (hubs run loaded code).
+- This SUPERSEDES "check at least every 10 minutes" as the waiting
+  mechanism: the 10-min floor remains the rule while ACTIVE between
+  tool calls; `flag wait` is how a lane keeps the promise while idle.
+
 ## The first line IS the subject (STANDARD — 2026-07-20)
 
 There is no `--subject` flag and there should not be one: `--headers` renders
@@ -198,6 +238,7 @@ python3 tools/agent-mail.py queue add --for helper --tag xii2 --body-file item.m
 python3 tools/agent-mail.py queue take --as helper  # idle lane pops its next item (FIFO)
 python3 tools/agent-mail.py queue list              # every lane's backlog depth + items
 python3 tools/agent-mail.py flag --as helper        # the 10-min poll: unread + queue + raised note, one line
+python3 tools/agent-mail.py flag wait --as helper   # BLOCKING poll — the idle-lane loop (returns on new signal or 540s)
 python3 tools/agent-mail.py flag raise --for helper --as architect --why "spec X changed"
 python3 tools/agent-mail.py flag lower --as helper  # after acting on the note
 
@@ -440,6 +481,7 @@ python3 tools/agent-mail.py flag --as <role>       # anything for me?
 python3 tools/agent-mail.py peek --as <role> --headers   # read subjects; `show @hash` to expand
 python3 tools/agent-mail.py status --as <role> "working: <task>"  # or take from queue first
 python3 tools/agent-mail.py queue take --as <role> # if idle — pull, don't wait
+python3 tools/agent-mail.py flag wait --as <role>  # NOTHING to do? — listen, never end the turn silent
 ```
 
 Separate-clone lanes (topologies B/C): `git pull` BEFORE judging any
@@ -453,9 +495,13 @@ designated committer.
 > coordinated by mail. Repo clone: <path>. Your mailbox role name is
 > `<role>` — use it as `--as <role>` on EVERY agent-mail command; never
 > use another name. Read `tools/agent-mail.md` (the STANDARD sections)
-> and CLAUDE.md before working. On start and every ≤10 min: `python3
-> tools/agent-mail.py flag --as <role>` — FLAG UP names your next
-> command. When idle, `queue take --as <role>` — pull work, don't wait.
+> and CLAUDE.md before working. On start and every ≤10 min while active:
+> `python3 tools/agent-mail.py flag --as <role>` — FLAG UP names your
+> next command. When idle, `queue take --as <role>` — pull work, don't
+> wait. When there is truly nothing to do (waiting/holding/blocked),
+> NEVER end your turn: run `flag wait --as <role>` — it blocks until a
+> signal arrives (or 9 min); act on FLAG UP, on "nothing new" run it
+> again. Run long commands in the background so you can keep listening.
 > Keep your status line current (`status --as <role> "…"`; mark long ops
 > `(long ~Nm)`). Lock files before editing (`lock <file> --as <role>
 > --why "…"`), unlock when your work lands. Blocked or need a ruling:
