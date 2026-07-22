@@ -76,6 +76,48 @@ test('ADVICE_PEDIA links are valid both ways; unlinked cards are the known two',
     assert.ok(conceptIds.includes(conceptId), `"${cardId}" links to unknown concept "${conceptId}"`);
   }
   const unlinked = Object.keys(ADVICE).filter(id => ADVICE_PEDIA[id] === undefined).sort();
-  assert.deepStrictEqual(unlinked, ['regent', 'unit-selected'],
-    'only the two no-matching-concept cards stay unlinked (add the link when the concept lands)');
+  assert.deepStrictEqual(unlinked, ['diplo-audience', 'endgame', 'goody-hut', 'pollution', 'regent', 'unit-selected'],
+    'only the no-matching-concept cards stay unlinked (add the link when the exploration/victory/diplomacy/pollution concepts land)');
+});
+
+// advisor-hint-cards.md: the enumerated trigger contract — every listed event
+// has a card (placeholder copy ok), and the two dormant ones are documented.
+test('advisor covers the 15-trigger contract; dormant triggers ship as cards', async () => {
+  const { ADVICE } = await loadAdvice();
+  const required = ['first-city', 'first-unit', 'tech-choice', 'first-contact', 'first-war',
+    'disorder', 'growth-stall', 'first-naval', 'goody-hut', 'barbarian', 'wonder-available',
+    'new-government', 'diplo-audience', 'pollution', 'endgame'];
+  for (const id of required) assert.ok(ADVICE[id] && ADVICE[id].title && ADVICE[id].text, `trigger "${id}" has a card`);
+  for (const id of required) assert.ok(ADVICE[id].text.split(/\s+/).length <= 40, `"${id}" copy is ≤ 40 words`);
+});
+
+// advisor-hint-cards.md: the new PURE predicates (DOM-free, fog-view input).
+test('hasOwnCityWhen / barbarianSightedWhen / hutSightedWhen', async () => {
+  const { hasOwnCityWhen, barbarianSightedWhen, hutSightedWhen } = await loadAdvice();
+  assert.strictEqual(hasOwnCityWhen(crafted({ cities: { c1: { owner: 'p1', x: 0, y: 0 } } }), 'p1'), true);
+  assert.strictEqual(hasOwnCityWhen(crafted({ cities: { c1: { owner: 'p2', x: 0, y: 0 } } }), 'p1'), false, 'a rival city is not yours');
+  assert.strictEqual(barbarianSightedWhen(crafted({ units: { u: { owner: 'barb', type: 'legion', x: 1, y: 1 } } }), 'p1'), true);
+  assert.strictEqual(barbarianSightedWhen(crafted({ units: { u: { owner: 'p2', type: 'legion', x: 1, y: 1 } } }), 'p1'), false, 'a rival is not a barbarian');
+  const withHut = crafted({ map: { width: 2, tiles: [{ terrain: 'grassland' }, { terrain: 'plains', hut: true }] } });
+  assert.strictEqual(hutSightedWhen(withHut, 'p1'), true);
+  assert.strictEqual(hutSightedWhen(crafted({ map: { width: 1, tiles: [{ terrain: 'grassland' }] } }), 'p1'), false, 'no hut in the view');
+});
+
+test('wonderAvailableWhen: a wonder whose tech is met and is unbuilt', async () => {
+  const { wonderAvailableWhen } = await loadAdvice();
+  const ruleset = { wonders: { pyramids: { tech: 'masonry' }, colossus: { tech: 'bronze' } } };
+  const st = tech => crafted({ players: { p1: { gold: 0, techs: tech } }, wonders: {} });
+  assert.strictEqual(wonderAvailableWhen(st(['masonry']), 'p1', ruleset), true, 'has masonry → Pyramids available');
+  assert.strictEqual(wonderAvailableWhen(st([]), 'p1', ruleset), false, 'no prereq tech → nothing available');
+  const built = crafted({ players: { p1: { gold: 0, techs: ['masonry'] } }, wonders: { pyramids: 'c1' } });
+  assert.strictEqual(wonderAvailableWhen(built, 'p1', ruleset), false, 'already built somewhere → not available');
+});
+
+test('turnsToEndYear / endgameApproachingWhen: within ~30 turns of endYear', async () => {
+  const { turnsToEndYear, endgameApproachingWhen } = await loadAdvice();
+  const rules = { endYear: 2100, yearSteps: [{ until: 1000, step: 20 }, { until: 1900, step: 10 }, { until: 2100, step: 2 }] };
+  assert.ok(turnsToEndYear(2090, rules) <= 30, 'a few turns from the end');
+  assert.ok(turnsToEndYear(-4000, rules) > 30, 'the opening is far from the end');
+  assert.strictEqual(endgameApproachingWhen(crafted({ year: 2090 }), { rules }), true);
+  assert.strictEqual(endgameApproachingWhen(crafted({ year: -4000 }), { rules }), false);
 });
