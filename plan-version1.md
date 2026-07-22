@@ -4,14 +4,14 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-22 night (marker-0087 TAGGED @3a0744a =
-candidate, 19th consecutive — presence-2 sail-era judge-PASS (~2x
-overseas), war-hold (b) holds 9/9 through war (launches await (c)/#30,
-witness-7 re-fires on its landing), behavior-hash discriminator live.
-Tier-3 CERTIFIED + R6 agent-complete: Studded round-2 = the only
-roblox gate. A7 window OPEN (8-of-9 ruled, fact-checked; pyramids →
-own gov slice #35). Prior: 0086 double-gated (#2213+#2223);
-presence-1; advisor ally copy; master index PUBLIC. All four
+Last updated: 2026-07-22 night (marker-0088 TAGGED @d977072 =
+candidate, 20th consecutive — A7 COMPLETE: 8-of-9 wonder effects live
++ dump-fact-checked, doubly gated in 40min, the #28 discriminator's
+first classification confirmed by both gate lanes. Axis-1 remaining =
+pyramids-gov #35 (in build) + A6a/A8/rehome/default-defender. Prior
+0087: sail-era ~2x overseas + war-hold 9/9 (launches await (c)/#30,
+witness-7 armed) + discriminator. Tier-3 CERTIFIED + R6
+agent-complete: Studded round-2 = the only roblox gate. All four
 release forks RULED: space = measure-first · scope = maximal ·
 §7 = Civ2-refuse · DNS = servers.multiciv.kjell.today (record in; one
 box step remains, user). SPACE ARC mechanically closed (witnesses 1–6 +
