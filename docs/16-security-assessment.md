@@ -376,3 +376,36 @@ very large game can slow every game on that process (single event loop).
   surface — the INDEX must never harm a listed server; listings are
   unauthenticated claims — P5); (b) at any new dependency; (c) at 1.0; (d) if
   the residual single-loop/volumetric items are acted on.
+
+## 6. Master-index-public re-assessment (2026-07-22 — trigger 5(a) fired)
+
+The `servers.<domain>` DNS record exists; the index is now the baked
+client default. Delta assessment (no new process, no new port — the
+subdomain is an nginx alias for the same loopback :8200 upstream that
+`/master/` has proxied since first deploy):
+
+- **New trust surface = third-party LISTINGS, as designed (P5).** A
+  listing is an unauthenticated claim; the index probes the announcer's
+  `/healthz` before listing and prunes on missed heartbeats. Version
+  mismatch is shown, never hidden. Residual: a malicious host can list
+  a hostile server; the client mitigations are the checksum grey-out +
+  the join flow's existing tamper/format guards. Accepted for v1;
+  the abuse-report path stays on the v2 shelf (plan-version2).
+- **Client-side privacy note (new since the baked default):** opening
+  Find game now queries the public index by default — the index
+  operator (the project) sees client IPs + timing, nothing else (no
+  identity, no game state). `?master=off` persists an opt-out.
+  Documented in how-to-host §Listing.
+- **Probe posture:** the index's outbound `/healthz` probes go to
+  announced addresses — a listing cannot point the probe at internal
+  addresses of the INDEX's own host beyond loopback-guard rules already
+  in tools/master.js (badAddress rejects scheme/garbage; probe is GET
+  /healthz with a short timeout). Re-verified unchanged.
+- **Hardening lane deltas folded (#2143/#2144, merged):** /healthz
+  fingerprint minimization (node/pid dropped), invite-code brute-force
+  throttle, OOM guard 2b, connection heartbeat. §2 rows updated by
+  those merges' tests (server suites green at each).
+
+**Verdict: safe to keep exposed with the §4 checklist; the public name
+adds an alias + a designed listing surface, not a new attack class.**
+Next re-run triggers: new dependency · 1.0 RC · residual items acted on.
