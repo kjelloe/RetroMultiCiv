@@ -371,6 +371,16 @@ export function createGame(opts) {
     fs.renameSync(tmp, file);
   }
 
+  // XV §13: a TOKEN-SAFE snapshot of the current authoritative save, for the
+  // on-demand /saves/<id>.json download (?server=1 Shift+S/Shift+D). Identical to
+  // the autosave envelope EXCEPT seat tokens + reclaim codes are stripped —
+  // serving those over an unauthenticated HTTP GET is the A61 hijack-by-URL
+  // vector. A downloaded save re-binds seats fresh on re-host (tokens are
+  // per-origin and never travel anyway), so this loses nothing legitimate.
+  function toDownload() {
+    return Object.assign({}, toSave(), { seats: {}, seatCodes: {} });
+  }
+
   return {
     get state() { return state; },
     gameId,
@@ -389,6 +399,7 @@ export function createGame(opts) {
     eventsFor,
     code,
     toSave,
+    toDownload, // XV §13: token-safe on-demand snapshot for the /saves download
     saveTo
   };
 }
