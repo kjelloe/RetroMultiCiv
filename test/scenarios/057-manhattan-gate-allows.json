@@ -1,0 +1,115 @@
+{
+  "name": "manhattan-gate: a nuclear unit IS buildable once the Manhattan Project is active",
+  "notes": "#16: with the Manhattan Project active (wonders carry manhattan-project, effect nukesEnabled), nukesEnabled is true globally, so setProduction 'nuclear' succeeds and the city switches to it. Exercises the nukesEnabled true-branch (the active-wonder scan) cross-language.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": 1990,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "C",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "pop": 5,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {
+        "manhattan-project": "c1"
+      },
+      "nextUnitId": 2,
+      "nextCityId": 2,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "rocketry",
+            "nuclear-fission"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c1",
+        "item": {
+          "kind": "unit",
+          "id": "nuclear"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.producing.id": "nuclear"
+        }
+      }
+    }
+  ],
+  "final": {
+    "hash": "0x777a8c7e"
+  }
+}

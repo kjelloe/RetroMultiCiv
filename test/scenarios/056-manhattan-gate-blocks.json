@@ -1,0 +1,113 @@
+{
+  "name": "manhattan-gate: a nuclear unit is NOT buildable before the Manhattan Project is built",
+  "notes": "#16: the nuclear unit (nuclearBlast) gates on nukesEnabled \u2014 the Manhattan Project built ANYWHERE. With no Manhattan (wonders empty), setProduction 'nuclear' is rejected 'noNukes' and the city keeps building militia. The player holds rocketry (nuclear's tech) so ONLY the wonder-gate blocks it.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 5,
+      "year": 1990,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "C",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "pop": 5,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "wonders": {},
+      "nextUnitId": 2,
+      "nextCityId": 2,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "rocketry",
+            "nuclear-fission"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 1
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c1",
+        "item": {
+          "kind": "unit",
+          "id": "nuclear"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "cities.c1.producing.id": "militia"
+        }
+      }
+    }
+  ],
+  "final": {
+    "hash": "0x81419939"
+  }
+}

@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 55, 'the fifty-five scenarios (055 trireme-city-disband added)');
+      assert.strictEqual(files.length, 57, 'the fifty-seven scenarios (056/057 manhattan-gate added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -177,7 +177,9 @@ const PORTED = [
   '052-disaster-earthquake.json', // disasters: an earthquake destroys a building (cross-language RNG path)
   '053-trireme-loss.json', // naval-truth: the trireme open-sea gamble (cross-language)
   '054-difficulty-asymmetric.json', // difficulty #2158: human-gated ASYMMETRIC AI knobs (aiCostPct + aiFoodRows)
-  '055-trireme-city-disband.json' // B27: a docked sea unit is lost when its coastal city disbands (not stranded on land)
+  '055-trireme-city-disband.json', // B27: a docked sea unit is lost when its coastal city disbands (not stranded on land)
+  '056-manhattan-gate-blocks.json', // manhattan-gate #16: nuclear NOT buildable before the Manhattan Project
+  '057-manhattan-gate-allows.json' // manhattan-gate #16: nuclear buildable once Manhattan is active
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
@@ -241,7 +243,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xb5cd8394\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x55856b03\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -279,8 +281,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'f4e34074', pangaea: 'fe7d75f7',
-      archipelago: '38e57216', islands: 'fe1640d7'
+      continents: 'bbfcb4a1', pangaea: '76b059be',
+      archipelago: '9fd0d2dd', islands: 'cff99688'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -324,9 +326,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // 0xc2e7c52f (barb-sea seaRaidChance) -> 0x5798799d (A91 pollution block + workTurns.clean) ->
 // 0xb735adcb (XII.5b latch spaceThreatPatience) -> 0x84150295 (A91c nuclearBlast flag) ->
 // 0x3ad8f233 (disasters block) -> 0x13fa7076 (danger-abandon: removed spaceThreatPatience) ->
-// 0xb8965a25 (difficulty block #2155/#2158: difficulties table + createGame stamps state.difficulty).
+// 0xb8965a25 (difficulty block #2155/#2158: difficulties table + createGame stamps state.difficulty) ->
+// 0x9f2d8558 (manhattan-gate #16: manhattan-project effect {nukesEnabled} in wonders.json).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xb8965a25 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x9f2d8558 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

@@ -56,6 +56,9 @@ function clamp(n, lo, hi) {
 function overridesFor(options) {
   const o = {};
   if (options.combat === 'bestof3') o.combatRounds = 3;
+  // manhattan-gate (#16): the host no-nukes toggle disables nuclear units entirely
+  // (even after the Manhattan Project) — a rulesOverride like marathon's endYear.
+  if (options.nukes === false) o.nukesDisabled = true;
   // victory-conditions preset → its rulesOverride patch (e.g. marathon → endYear
   // 9999). The legacy marathon:true flag stays a back-compat alias for 'marathon'.
   const victory = options.victory !== undefined ? options.victory : (options.marathon === true ? 'marathon' : undefined);
@@ -161,6 +164,8 @@ export function createRegistry(deps) {
         size,
         difficulty: DIFFICULTY[options.difficulty] !== undefined ? options.difficulty : 'prince',
         combat: options.combat,
+        nukes: options.nukes !== false, // manhattan-gate: nukes allowed by default; host can disable
+
         seed: options.seed !== undefined ? options.seed : seedFn(),
         allowSpectators: options.allowSpectators === true,
         // A20 starting age (validated against the ruleset; ancient = none)
@@ -170,6 +175,12 @@ export function createRegistry(deps) {
           ? options.maptype : 'continents',
         chat: options.chat !== false, // A37: lobby chat, host-toggleable, default ON
         public: options.public === true, // A41: find-a-game listing, OPT-IN
+        // XIV §30: Auto AI takeover — a dropped/idle seat is handed to the AI
+        // (regency) after the seat-grace window, or auto-skipped when OFF. Host-
+        // toggleable, defaults to the server default (deps.autoTakeoverDefault,
+        // itself defaulting ON).
+        autoTakeover: options.autoTakeover !== undefined ? options.autoTakeover !== false
+          : (deps.autoTakeoverDefault !== false),
         // victory-conditions preset (normalized to a known id; legacy
         // marathon:true maps to 'marathon') — stored so resume rebuilds the choice
         victory: victoryId(options.victory !== undefined ? options.victory

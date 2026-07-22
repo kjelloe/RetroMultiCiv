@@ -143,6 +143,9 @@ const difficulty = DIFFICULTY[params.get('difficulty')] !== undefined ? params.g
 const combat = params.get('combat') === 'bestof3' ? 'bestof3' : 'authentic';
 const rulesOverrides = {};
 if (combat === 'bestof3') rulesOverrides.combatRounds = 3;
+// manhattan-gate (#16): ?nonukes=1 disables nuclear units entirely (the local-game
+// mirror of the lobby host no-nukes toggle) — a rulesOverride, so tools/replay.js applies it.
+if (params.get('nonukes') === '1') rulesOverrides.nukesDisabled = true;
 // a resumed game replays the overrides it was SAVED with (difficulty table
 // values ride in state; combat/victory/marathon shapes ride here)
 if (resumeRec) Object.assign(rulesOverrides, resumeRec.rulesOverrides || {});

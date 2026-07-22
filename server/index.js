@@ -99,8 +99,10 @@ export function startServer(opts) {
   const now = opts.now || Date.now; // A50: one injectable clock (limiter + lifecycle)
   // L3b: opts.lobbyGameIdFn lets tests pin deterministic lobby ids; the
   // default mixes boot entropy (fresh join codes per restart, lobby.js)
+  const autoTakeoverDefault = opts.autoTakeover !== false; // XIV §30: default ON
   const registry = createRegistry({ ruleset, nowFn: now, gameIdFn: opts.lobbyGameIdFn,
     debug: opts.debug === true, // A92: lobby games on a --debug host allow debug commands
+    autoTakeoverDefault, // XIV §30: the per-game host option defaults to this
     maxTurns: opts.maxTurns, maxCivs: opts.maxCivs, maxSize: opts.maxSize }); // #1875 operator caps
   // A50 item 2: per-IP rate limits + global caps (docs/16 gap 1). Clock
   // injectable (opts.now) for tests; caps overridable via opts.limits.
@@ -670,7 +672,10 @@ export function startServer(opts) {
         if (!res.ok) break;
         const events = regentEvents.concat(res.events || []);
         fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true, events }, e.game);
-        await new Promise(resolve => setTimeout(resolve, regentPaceMs(e.game)));
+        // the pace timer is unref'd: it must never keep the process alive on its
+        // own (e.g. an all-regent game orphaned after server close). A live
+        // server stays up on its other handles; the loop still checks entryOf.
+        await new Promise(resolve => { const t = setTimeout(resolve, regentPaceMs(e.game)); if (t.unref) t.unref(); });
         if (!registry.entryOf(gameId)) break; // game gone (shutdown)
       }
     } finally {
@@ -686,6 +691,51 @@ export function startServer(opts) {
     broadcastGame(gameId, { t: 'turnSkipped', playerId: seat });
     fanout(gameId, { broadcast: turnBroadcasts(e.game), viewsChanged: true, events: res.events || [] }, e.game);
   }
+  // XIV §30: Auto AI takeover. A started-game seat that stays disconnected for
+  // the seat-grace window is handed to the AI (regency, option ON) or has its
+  // turn auto-skipped (option OFF), so a dropped player never stalls the game.
+  // Reuses seatGraceMs (no third clock). This is TURN POLICY — it only calls the
+  // game's own setRegent/endTurn (via driveRegents/doSkip); it never touches the
+  // connect/cmd dispatch (docs/17 boundary).
+  const takeoverTimers = {}; // "gameId|pid" -> timer
+  const takeoverSeats = {};  // "gameId|pid" -> true while the AI holds it via §30
+  function takeoverOn(e) {
+    return e.options && e.options.autoTakeover !== undefined
+      ? e.options.autoTakeover !== false : autoTakeoverDefault;
+  }
+  function scheduleTakeover(gameId, pid) {
+    const key = gameId + '|' + pid;
+    if (takeoverTimers[key]) clearTimeout(takeoverTimers[key]);
+    takeoverTimers[key] = setTimeout(() => {
+      delete takeoverTimers[key];
+      const e = registry.entryOf(gameId);
+      if (!e || !e.game || e.status !== 'started' || e.game.state.gameOver) return;
+      if (presenceMap(gameId)[pid] === true) return; // reconnected within the window
+      if (takeoverOn(e)) {
+        e.game.setRegent(pid, 'balanced'); // the AI drives the seat
+        takeoverSeats[key] = true;
+        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+        driveRegents(gameId, e); // play it now if it's their turn
+      } else if (e.game.state.activePlayer === pid) {
+        doSkip(gameId, e); // OFF: skip the stalled seat's turn so the round advances
+      }
+    }, seatGraceMs);
+    if (takeoverTimers[key].unref) takeoverTimers[key].unref();
+  }
+  function cancelTakeover(gameId, pid) {
+    const key = gameId + '|' + pid;
+    if (takeoverTimers[key]) { clearTimeout(takeoverTimers[key]); delete takeoverTimers[key]; }
+    // the AI grabbed it via §30 → hand the seat back when the player returns
+    if (takeoverSeats[key]) {
+      delete takeoverSeats[key];
+      const e = registry.entryOf(gameId);
+      if (e && e.game && e.game.regentOf && e.game.regentOf(pid) !== undefined) {
+        e.game.setRegent(pid, null);
+        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+      }
+    }
+  }
+
   function skipVoteState(e, gameId) {
     const eligible = eligibleVoters(gameId, e.skipVote.target);
     const yes = eligible.filter(p => e.skipVote.votes[p] === true).length;
@@ -828,6 +878,7 @@ export function startServer(opts) {
       const out = route(e.game, msg);
       for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
+        cancelTakeover(gameId, info.playerId); // XIV §30: the player is back — stop/undo any auto-takeover
         broadcastGame(gameId, { t: 'presence', playerId: info.playerId, connected: true });
         send(ws, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
       }
@@ -930,6 +981,7 @@ export function startServer(opts) {
         } else if (e && e.status === 'started' && info.playerId && !info.spectator) {
           // docs/08 §4: the game learns who dropped ("waiting for <name>")
           broadcastGame(info.gameId, { t: 'presence', playerId: info.playerId, connected: false });
+          scheduleTakeover(info.gameId, info.playerId); // XIV §30: AI takes over / auto-skip after the grace window
         }
       }
     });
@@ -1299,6 +1351,8 @@ export function startServer(opts) {
           clearInterval(sweepTimer);
           clearInterval(heartbeatTimer); // Part A
           if (announceTimer) clearInterval(announceTimer); // A51b
+          for (const k of Object.keys(graceTimers)) clearTimeout(graceTimers[k]); // Part B seat-grace
+          for (const k of Object.keys(takeoverTimers)) clearTimeout(takeoverTimers[k]); // XIV §30
           for (const ws of conns.keys()) ws.terminate();
           wss.close(() => httpServer.close(done));
         })
@@ -1322,6 +1376,7 @@ Game:
   --host ADDR           bind address (use 127.0.0.1 behind a proxy)
   --no-save             disable autosave
   --no-spectators       refuse tokenless spectators
+  --no-auto-takeover    new games default OFF: a dropped seat is auto-SKIPPED, not AI-driven (host can still opt in per-game; default is ON = AI takeover)
   --debug               dev conveniences — NEVER on a public host
 
 Public hosting (docs/12, docs/16):
@@ -1365,6 +1420,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--host') opts.host = argv[++i];
     else if (a === '--no-save') opts.autosave = false;
     else if (a === '--no-spectators') opts.spectators = false;
+    else if (a === '--no-auto-takeover') opts.autoTakeover = false; // XIV §30: default OFF for new games (host can still opt in per-game)
     // Part A (mobile): ws heartbeat — detect half-open sockets (a locked phone)
     else if (a === '--heartbeat-sec') opts.heartbeatMs = Number(argv[++i]) * 1000;
     else if (a === '--heartbeat-misses') opts.heartbeatMisses = Number(argv[++i]);

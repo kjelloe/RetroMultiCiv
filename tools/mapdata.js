@@ -289,6 +289,10 @@ const WONDER_OVERLAY = {
   // stack is additive (+2), labeled original-pending-sourcing (reviewer #1976 + spec §2).
   'lighthouse':            { effect: { shipMoveBonus: 1 } },
   'magellan-s-expedition': { effect: { shipMoveBonus: 1 } },
+  // manhattan-gate (#16, A91 design remainder): the Manhattan Project is a GLOBAL
+  // gate — once ANY civ builds it, nuclear units become buildable everywhere. The
+  // A7 empty effect fills with nukesEnabled; engine/cities.js setProduction reads it.
+  'manhattan-project':     { effect: { nukesEnabled: true } },
   // N11 3b: Leonardo's Workshop is a Civ2 wonder (NOT in the Civ1 wiki roster of
   // 21 — verified). An `added` block DEFINES a wonder the extract lacks (labeled
   // Civ2-authentic per specs/n11-upgrades.md); the engine keys on the wonder being

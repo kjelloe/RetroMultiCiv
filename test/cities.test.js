@@ -373,3 +373,30 @@ test('A79 blockade: an enemy unit on a worked tile removes it from the candidate
   assert.ok(has(mk({ u1: { id: 'u1', type: 'militia', owner: 'p1', x: 2, y: 1, moves: 0, fortified: false, veteran: false } })),
     'an own unit on a tile does NOT blockade it');
 });
+
+// manhattan-gate (#16): the nuclear unit is buildable only once nukes are ENABLED —
+// the Manhattan Project (nukesEnabled effect) built anywhere, and not host-disabled.
+// The 056/057 scenarios pin the reject/allow cross-language; this covers the
+// nukesDisabled host TOGGLE (a rulesOverride, no scenario) + the nukesEnabled predicate.
+test('manhattan-gate: nuclear gates on the Manhattan Project + the no-nukes toggle', async () => {
+  const { cities } = await load();
+  const { createEngine } = await import('../engine/index.js');
+  const mkState = (wonders) => ({
+    version: 1, turn: 5, year: 1990, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 3, height: 3, wrapX: false, tiles: Array.from({ length: 9 }, () => ({ t: 'grassland' })) },
+    units: {}, cities: { c1: { id: 'c1', name: 'C', owner: 'p1', x: 1, y: 1, pop: 5, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'], wonders, nextUnitId: 2, nextCityId: 2,
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: true, alive: true, gold: 0, techs: ['rocketry', 'nuclear-fission'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  });
+  const setNuke = (rs, wonders) => createEngine(rs).applyCommand(mkState(wonders), { type: 'setProduction', playerId: 'p1', cityId: 'c1', item: { kind: 'unit', id: 'nuclear' } });
+  const noNukesRules = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { nukesDisabled: true }) });
+  // predicate
+  assert.strictEqual(cities.nukesEnabled(mkState({}), RULESET), false, 'no Manhattan -> nukes off');
+  assert.strictEqual(cities.nukesEnabled(mkState({ 'manhattan-project': 'c1' }), RULESET), true, 'Manhattan active -> nukes on');
+  assert.strictEqual(cities.nukesEnabled(mkState({ 'manhattan-project': 'c1' }), noNukesRules), false, 'host-disabled -> nukes off even with Manhattan');
+  // setProduction gate
+  assert.strictEqual(setNuke(RULESET, {}).reason, 'noNukes', 'no Manhattan -> setProduction rejected');
+  assert.strictEqual(setNuke(RULESET, { 'manhattan-project': 'c1' }).ok, true, 'Manhattan built -> setProduction ok');
+  assert.strictEqual(setNuke(noNukesRules, { 'manhattan-project': 'c1' }).reason, 'noNukes', 'host no-nukes toggle -> rejected');
+});

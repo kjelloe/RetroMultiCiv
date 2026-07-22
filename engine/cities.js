@@ -71,6 +71,22 @@ function wonderInCity(state, city, wonderId, ruleset) {
   return wonderActive(state, wonderId, ruleset) && state.wonders[wonderId] === city.id;
 }
 
+// manhattan-gate (#16): nukes become buildable once ANY active wonder grants the
+// nukesEnabled effect (the Manhattan Project) — a GLOBAL gate (Civ 1: anyone's
+// Manhattan Project opens nukes for everyone). A host may force them OFF entirely
+// via the nukesDisabled rulesOverride (the no-nukes lobby toggle, marathon pattern).
+// Data-driven (any wonder carrying the effect) + omit-safe; pure, both engines.
+function nukesEnabled(state, ruleset) {
+  if (ruleset.rules.nukesDisabled === true) return false;
+  if (state.wonders === undefined) return false;
+  for (const wid of Object.keys(state.wonders)) {
+    const w = ruleset.wonders[wid];
+    if (w !== undefined && w.effect !== undefined && w.effect.nukesEnabled === true
+        && wonderActive(state, wid, ruleset)) return true;
+  }
+  return false;
+}
+
 // The effective shield cost of an item for a player — civilization
 // specialties (data/civs.json) discount one unit or building type.
 // aiCostPct is an ASYMMETRIC difficulty knob: an AI player's build cost scales by
@@ -387,6 +403,11 @@ function setProduction(state, cmd, ruleset) {
 
   if (def.tech !== '' && state.players[cmd.playerId].techs.indexOf(def.tech) === -1) {
     return { ok: false, reason: 'techRequired' };
+  }
+  // manhattan-gate (#16): a nuclear unit (nuclearBlast) also needs nukes ENABLED —
+  // the Manhattan Project built anywhere (global gate) and not host-disabled.
+  if (item.kind === 'unit' && def.nuclearBlast === true && !nukesEnabled(state, ruleset)) {
+    return { ok: false, reason: 'noNukes' };
   }
   // A76: spaceship parts need the Apollo Program (derived gate, any civ), and
   // may not be built once the ship has launched or its per-type max is reached.
@@ -777,6 +798,6 @@ export {
   foundCity, foundCityLegality, createCityAt, setProduction, setWorkers, buyProduction, helpWonder,
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
-  wonderActive, wonderInCity, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
+  wonderActive, wonderInCity, nukesEnabled, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
   unitObsolete
 };

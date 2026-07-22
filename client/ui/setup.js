@@ -63,6 +63,9 @@ export function showSetupScreen() {
           <option value="bestof3" selected title="best-of-three: fewer heartbreaking upsets">Best-of-three</option>
         </select>
       </label>
+      <label title="the Manhattan Project wonder unlocks nuclear weapons for everyone; uncheck to ban nukes entirely">Nuclear weapons
+        <input id="setup-nukes" type="checkbox" checked>
+      </label>
       <label title="how the game can be won and when it ends">Victory conditions
         <select id="setup-victory">
           ${victoryOptions().map(o => `<option value="${o.id}"${o.id === DEFAULT_VICTORY ? ' selected' : ''}>${o.label}</option>`).join('')}
@@ -393,12 +396,14 @@ export function showSetupScreen() {
     const age = document.getElementById('setup-age').value;
     const maptype = document.getElementById('setup-maptype').value;
     const victory = document.getElementById('setup-victory').value;
+    const nukes = document.getElementById('setup-nukes').checked;
     location.search = `?seed=${seed}&civs=${civs}&humans=${humans}${civ}`
       + (size !== 'medium' ? `&size=${size}` : '')
       + (difficulty !== 'prince' ? `&difficulty=${difficulty}` : '')
       + (combat !== 'authentic' ? `&combat=${combat}` : '')
       + (age !== 'ancient' ? `&age=${age}` : '')
       + (maptype !== 'continents' ? `&maptype=${maptype}` : '')
+      + (!nukes ? '&nonukes=1' : '')
       + (victory !== DEFAULT_VICTORY ? `&victory=${victory}` : '');
   });
 
@@ -412,6 +417,7 @@ export function showSetupScreen() {
       size: document.getElementById('setup-size').value,
       difficulty: document.getElementById('setup-difficulty').value,
       combat: document.getElementById('setup-combat').value,
+      nukes: document.getElementById('setup-nukes').checked, // manhattan-gate: host no-nukes toggle
       seed: parseInt(document.getElementById('setup-seed').value, 10) || undefined,
       age: document.getElementById('setup-age').value, // A20: LAN lobbies inherit it
       maptype: document.getElementById('setup-maptype').value, // A82a

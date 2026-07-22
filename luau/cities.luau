@@ -97,6 +97,24 @@ local function wonderInCity(state: any, city: any, wonderId: string, ruleset: an
 	return wonderActive(state, wonderId, ruleset) and state.wonders[wonderId] == city.id
 end
 
+-- manhattan-gate (#16): nukes buildable once ANY active wonder grants nukesEnabled (the
+-- Manhattan Project, GLOBAL gate) unless host-disabled (nukesDisabled). Matches engine/cities.js.
+local function nukesEnabled(state: any, ruleset: any): boolean
+	if ruleset.rules.nukesDisabled == true then
+		return false
+	end
+	if state.wonders == nil then
+		return false
+	end
+	for wid in pairs(state.wonders) do
+		local w = ruleset.wonders[wid]
+		if w ~= nil and w.effect ~= nil and w.effect.nukesEnabled == true and wonderActive(state, wid, ruleset) then
+			return true
+		end
+	end
+	return false
+end
+
 -- The effective shield cost of an item for a player — civ specialties.
 -- aiCostPct is an ASYMMETRIC difficulty knob: an AI player build cost scales by
 -- difficulties[level].aiCostPct, ONLY when a human seat exists. All-AI + crafted
@@ -532,6 +550,10 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 
 	if def.tech ~= "" and table.find(state.players[cmd.playerId].techs, def.tech) == nil then
 		return { ok = false, reason = "techRequired" }
+	end
+	-- manhattan-gate (#16): a nuclear unit (nuclearBlast) needs nukes ENABLED.
+	if item.kind == "unit" and def.nuclearBlast == true and not nukesEnabled(state, ruleset) then
+		return { ok = false, reason = "noNukes" }
 	end
 	-- A76: spaceship parts need the Apollo Program (derived gate), and may not be
 	-- built once the ship has launched or its per-type max is reached.
@@ -996,6 +1018,7 @@ return {
 	hasBuilding = hasBuilding,
 	wonderActive = wonderActive,
 	wonderInCity = wonderInCity,
+	nukesEnabled = nukesEnabled,
 	effectPct = effectPct,
 	itemCost = itemCost,
 	growthThreshold = growthThreshold,

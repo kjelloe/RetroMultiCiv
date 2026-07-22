@@ -469,6 +469,7 @@ export function startHostFlow(box, options, flags) {
       <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
       <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
       <label>List publicly <input id="lobby-public" type="checkbox"></label>
+      <label title="a dropped or idle player's seat is handed to the AI so the game never stalls; off = their turn is auto-skipped instead">Auto AI takeover <input id="lobby-auto-takeover" type="checkbox" checked></label>
       <label title="how the game can be won and when it ends">Victory conditions
         <select id="lobby-victory">
           ${victoryOptions().map(o => `<option value="${o.id}"${o.id === DEFAULT_VICTORY ? ' selected' : ''}>${o.label}</option>`).join('')}
@@ -508,6 +509,7 @@ export function startHostFlow(box, options, flags) {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37
     options.public = document.getElementById('lobby-public').checked;   // A41
+    options.autoTakeover = document.getElementById('lobby-auto-takeover').checked; // XIV §30
     options.victory = document.getElementById('lobby-victory').value; // victory-conditions preset
     options.size = document.getElementById('lobby-size').value;
     options.age = document.getElementById('lobby-age').value;
