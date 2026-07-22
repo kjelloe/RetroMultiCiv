@@ -57,10 +57,9 @@ space-arc saga, wake list)._
   needs the manual step once.
 
 - [ ] **Studio session + runG.txt** · **terrain desaturation check** ·
-  **ally relay — ONE item left**: `specs/ally-ask-wonder-list.md` (the
-  22-wonder table for their personality mapping — their advisor copy is
-  already delivered and being wired; mention the one branding amendment:
-  the victory stub ships without the withdrawn 'Founders' name).
+  **ally relay — COMPLETE**: both asks answered (advisor copy WIRED
+  and live in-game; wonder mapping captured + adopted into the build
+  spec). Nothing is pending with the ally.
 
 _Recently landed (away window 2 + since):_ markers 0077-0081, all
 merge-consistent (14 consecutive since 0069); the versioning audit's

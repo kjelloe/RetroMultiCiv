@@ -78,3 +78,16 @@ Visionary) maps onto our stance+leader-personality system via the
 bridge in specs/ally-ask-wonder-list.md; the per-wonder
 primary/secondary/never-unless mapping arrives from the ally against
 that list (our 3-class default ships only if it doesn't).
+
+## MAPPING DELIVERED (2026-07-22 second ally reply) — build from it
+
+The full 22-wonder primary/secondary/never-unless table is captured in
+specs/ally-deliverables-2026-07-22-wonders.md and REPLACES the 3-class
+default (Q2 resolved: per-wonder, data-driven from the table). New build
+constraints from the same reply: global-unlock clause primary for
+Manhattan/Apollo; obsolescence-aware appetite decay; effect-driven
+stability across the A7 landings. Q4 resolved: Explorer/Diplomat nuance
+preferably rides A59 leader-personality biases (ally's stated cleaner
+solution) — pre-open grounds feasibility, affinity flags are the
+fallback. Open impl-confirm now reduces to Q1 (selector insertion
+point) + Q3 (witness thresholds from probe).
