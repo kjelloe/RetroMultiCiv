@@ -92,7 +92,8 @@ return [==[{
   },
   "victoryDrive": {
     "spaceStances": ["science", "builder", "balanced", "defensive"],
-    "spaceCommitTechGap": 3
+    "spaceCommitTechGap": 3,
+    "holdPathPct": 80
   },
   "tradeRoute": {
     "minDomesticDistance": 10,
