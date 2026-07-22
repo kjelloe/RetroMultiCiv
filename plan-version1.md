@@ -53,7 +53,7 @@ flowchart TD
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
-    A50R["🔨 A50 remainder: audit-fixes MERGED\n(f0e03b1); oom-slice2b + heartbeat = reviewer\nqueue #1 (double-gate) → architect merges on green"]
+    A50R["✅ A50 COMPLETE (reviewer-verified #2225):\naudit-fixes f0e03b1; oom-slice2b 579ba2e +\nheartbeat b4b9dcd merged since 0083, gated #2165"]
     SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
     A51D["🚪 A51 master index PUBLIC:\nDNS ✅ · baked client default ✅ ·\nserver-browser panel ✅ · remaining =\nthe one-time box nginx/cert step (user)"]
     A50R --> SEC --> A51D

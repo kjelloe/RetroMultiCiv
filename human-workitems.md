@@ -122,11 +122,13 @@ master index with the baked client default.
 - **Hosting Q&A answered** (your sizing/firewall questions): **ports** — game
   server `8123` (HTTP + WebSocket on the *same* port), master index `8200`
   (both `--port`-configurable); firewall = open 22/80/443 behind nginx (keep
-  8123/8200 localhost), or 22/8123/8200 direct. **Sizing** — RAM is the driver:
-  ~5–10 games on 2 GB, ~15–25 on 4 GB; 40 GB SSD ample; the master index adds
-  only ~100 MB. The **operator resource caps** (above) let a host bound this; a
-  precise RSS-per-game measurement is queued to the sim-runner to firm up the
-  numbers.
+  8123/8200 localhost), or 22/8123/8200 direct. **Sizing — MEASURED
+  (2026-07-22, #2228)**: RAM is NOT the driver — ~245 MB fixed cost, then only
+  ~1 MB live heap (~2.2 MB RSS conservative) per concurrent mid-game game, so
+  even 2 GB fits ~800 games by RSS. The real ceilings are the admission caps
+  (`--max-games`, default 50; maxConns 200) and CPU (the synchronous engine
+  turn) — size by those, not RAM; 40 GB SSD ample; the master index adds only
+  ~100 MB.
 - **Coordination tooling** (internal, your requests): the agent system now has a
   `coordinator` role alias, a live **status board** (waiting/working/blocked),
   and per-lane **work stacks** — so no lane sits idle waiting for direction and
