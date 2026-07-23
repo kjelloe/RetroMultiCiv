@@ -1645,6 +1645,63 @@ html, body {
   border-color: #9a854f;
   color: #f0e8d8;
 }
+
+/* first-timer onboarding overlay — a floating layer ABOVE everything, cartoony
+   hand-drawn arrows to the main controls; dismiss on any click / Esc. */
+#onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  cursor: pointer;
+  background: rgba(6, 10, 18, 0.42);
+}
+#onboarding-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.ob-arrow {
+  fill: none;
+  stroke: #ffe066;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
+}
+.ob-arrow.ob-big { stroke-width: 4.5; stroke: #ffd23b; }
+.ob-label {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: #101828;
+  border: 2px solid #ffe066;
+  color: #ffe9a6;
+  font: 13px/1.25 ui-monospace, monospace;
+  text-align: center;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.ob-label.ob-label-big {
+  font-size: 14px;
+  font-weight: bold;
+  border-color: #ffd23b;
+  color: #fff4cf;
+  transform: rotate(1.5deg);
+}
+#onboarding-hint {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #cdd8ea;
+  font: 13px ui-monospace, monospace;
+  text-shadow: 0 1px 3px #000;
+  pointer-events: none;
+}
 #rejoin-banner span { flex: 1 1 auto; }
 #rejoin-go {
   padding: 6px 14px;

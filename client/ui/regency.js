@@ -11,6 +11,7 @@
 // (history.replaceState drops unknown params), so a live location.search read
 // would miss ?regentdemo (the A45 overlays trap).
 import { createRegentDriver } from './regent-driver.js';
+import { REGENCY_HELP } from './onboarding.js';
 
 const PARAMS = new URLSearchParams(location.search);
 
@@ -49,7 +50,7 @@ export function initRegency(ctx) {
   const btn = document.createElement('button');
   btn.id = 'regent-btn';
   btn.textContent = '🤖';
-  btn.title = 'let the AI play this seat (auto turn)';
+  btn.title = REGENCY_HELP; // the same one-line explanation as the onboarding caption
   document.body.appendChild(btn);
 
   const dialog = document.createElement('div');

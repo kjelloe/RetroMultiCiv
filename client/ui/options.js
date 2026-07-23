@@ -90,9 +90,14 @@ export function initOptions(ctx) {
         ${Object.keys(PALETTES).map(m => `<option value="${m}">${m}</option>`).join('')}
       </select>
     </label>
-    <div id="options-report"><button id="open-bug-report" type="button">🐞 Report a bug</button></div>`;
+    <div id="options-report"><button id="open-onboarding" type="button">🧭 Show controls guide</button><button id="open-bug-report" type="button">🐞 Report a bug</button></div>`;
   document.body.appendChild(panel);
 
+  const onboardBtn = panel.querySelector('#open-onboarding');
+  if (onboardBtn) onboardBtn.addEventListener('click', () => {
+    panel.classList.add('hidden'); // close Options so the arrows aren't over it
+    if (ctx.onboarding) ctx.onboarding.show('game');
+  });
   const reportBtn = panel.querySelector('#open-bug-report');
   if (reportBtn) reportBtn.addEventListener('click', () => {
     panel.classList.add('hidden');

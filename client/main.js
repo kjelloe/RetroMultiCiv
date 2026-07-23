@@ -14,6 +14,7 @@ import { shuffleRoster } from '../shared/civ-shuffle.js';
 import { matchSnapshot, snapshotUsable } from '../shared/age-snapshots.js';
 import { hashState } from '../shared/statehash.js';
 import { armSessionGuard, maybeShowRejoinBanner, renderRejoinFailure } from './ui/rejoin.js';
+import { maybeShowSetupOnboarding, maybeShowGameOnboarding, showOnboarding } from './ui/onboarding.js';
 import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
@@ -120,6 +121,7 @@ if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params
     && !params.has('resume')) {
   showSetupScreen();
   maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
+  maybeShowSetupOnboarding(); // first-timer arrows to the setup choices (once/browser)
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
 // Tab-loss fix (user ruling 2026-07-22): ?resume=local boots straight from the
@@ -231,7 +233,12 @@ if (serverParam) {
     // graceful setup-screen card — never the raw "ERROR: join rejected" banner.
     if (err && err.joinRejected) {
       showSetupScreen();
-      if (renderRejoinFailure(document.getElementById('setup-box'), err.code, { save: err.save, endscreen: err.endscreen })) {
+      // the "View final result" button fetches /saves/<gameId>.json from the
+      // server's HTTP origin (same host as the ws): /ws → same origin, else
+      // ws[s]://host → http[s]://host.
+      const serverBase = wsUrl.startsWith('/') ? location.origin
+        : wsUrl.replace(/^ws/, 'http').replace(/\/ws$/, '');
+      if (renderRejoinFailure(document.getElementById('setup-box'), err.code, { gameId: err.gameId, gameCode: err.gameCode, serverBase })) {
         try { history.replaceState({}, '', location.pathname); } catch (_) { /* about: URLs */ }
         throw new Error('setup'); // clean stop; the error handler ignores 'setup'
       }
@@ -525,6 +532,8 @@ ctx.sound = initSound(ctx);         // A77: event sound cues (fog-filtered)
 // so it's null for them (every caller already guards `if (ctx.advice)`).
 ctx.advice = ctx.SPECTATOR ? null : initAdvice(ctx);
 ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
+// first-timer WHERE-things-are arrows (once/browser); the '?' in Options re-shows
+ctx.onboarding = { show: showOnboarding };
 // XII.4: in a server game, guard against an accidental leave (mobile back-swipe
 // unloads the page — Part C's reconnect can't help) and remember the seat so the
 // setup screen can offer a one-tap rejoin. Spectators/local games are no-ops.
@@ -549,6 +558,9 @@ if (renderer.setReduceAnimation) {
     }
   });
 }
+// first in-game screen: one-time arrows to the controls (a real seated game,
+// not a spectator view and not a finished game booted just to show its endscreen)
+if (!ctx.SPECTATOR && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
 session.onChange((_state, events) => {
   ctx.hud.refresh();
   ctx.panels.refresh();

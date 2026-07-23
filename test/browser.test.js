@@ -171,6 +171,58 @@ function resumeSession(chromium, base, action) {
   });
 }
 
+// onboarding overlay: fresh profile shows the first-timer arrows on the setup
+// screen; a reload in the SAME profile is suppressed (rmc_onboarding_seen).
+function onboardingSession(chromium, base) {
+  return new Promise((resolve, reject) => {
+    const WebSocket = require('ws');
+    const port = 9222 + Math.floor(Math.random() * 4000);
+    const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-onboard-'));
+    const proc = spawn(chromium, [
+      '--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+      '--window-size=800,600', '--user-data-dir=' + prof,
+      `--remote-debugging-port=${port}`, `${base}/client/`
+    ], { stdio: ['ignore', 'ignore', 'ignore'] });
+    const deadline = Date.now() + 35000;
+    let done = false;
+    const finish = (err, val) => {
+      if (done) return; done = true;
+      try { proc.kill('SIGKILL'); } catch (e) { /* gone */ }
+      fs.rm(prof, { recursive: true, force: true }, () => {});
+      err ? reject(err) : resolve(val);
+    };
+    proc.on('error', finish);
+    async function connect() {
+      let targets;
+      try { targets = await fetch(`http://127.0.0.1:${port}/json`).then(r => r.json()); }
+      catch (e) { return Date.now() > deadline ? finish(new Error('devtools never came up')) : setTimeout(connect, 200); }
+      const pg = targets.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+      if (!pg) return Date.now() > deadline ? finish(new Error('no CDP page target')) : setTimeout(connect, 200);
+      const ws = new WebSocket(pg.webSocketDebuggerUrl, { maxPayload: 64 * 1024 * 1024 });
+      let id = 0; const waiters = {};
+      const cmd = (m, p) => new Promise(r => { const i = ++id; waiters[i] = r; ws.send(JSON.stringify({ id: i, method: m, params: p })); });
+      const evalJS = async expr => { const r = await cmd('Runtime.evaluate', { expression: expr, returnByValue: true }); return r.result && r.result.result && r.result.result.value; };
+      const waitFor = async expr => { while (Date.now() < deadline && !done) { if (await evalJS(expr)) return true; await new Promise(s => setTimeout(s, 250)); } return false; };
+      ws.on('message', d => { const m = JSON.parse(d); if (m.id && waiters[m.id]) { waiters[m.id](m); delete waiters[m.id]; } });
+      ws.on('error', () => finish(new Error('CDP socket error')));
+      ws.on('open', async () => {
+        try {
+          const out = {};
+          out.firstShown = await waitFor(`!!document.getElementById('onboarding-overlay')`);
+          out.seenFlag = await evalJS(`JSON.parse(localStorage.getItem('rmc_onboarding_seen')||'{}').setup === true`);
+          await evalJS(`location.href = location.pathname`); // reload, same profile → localStorage persists
+          await waitFor(`!!document.getElementById('setup-box')`); // setup re-rendered
+          await new Promise(s => setTimeout(s, 700)); // give the rAF a chance to (not) show the overlay
+          out.secondOverlay = await evalJS(`!!document.getElementById('onboarding-overlay')`);
+          try { ws.close(); } catch (e) { /* closing */ }
+          finish(null, out);
+        } catch (e) { finish(e); }
+      });
+    }
+    connect();
+  });
+}
+
 const chromium = findChromium();
 
 test('browser smoke: client boots to a playable state', { skip: !chromium && 'headless chromium not cached' }, async () => {
@@ -677,5 +729,17 @@ test('browser resume: Discard removes the autosave and the card',
       const out = await resumeSession(chromium, base, 'discard');
       assert.ok(out.autosaved && out.cardShown, 'the autosave + card appear first');
       assert.ok(out.cleared, 'Discard removes rmc_local_autosave and the card');
+    } finally { server.close(); }
+  });
+
+test('browser onboarding: first-timer overlay shows on a fresh profile, suppressed on reload',
+  { skip: !chromium && 'headless chromium not cached' }, async () => {
+    const server = await startServer();
+    try {
+      const base = `http://127.0.0.1:${server.address().port}`;
+      const out = await onboardingSession(chromium, base);
+      assert.ok(out.firstShown, 'the onboarding overlay renders on a fresh profile');
+      assert.ok(out.seenFlag, 'rmc_onboarding_seen.setup is marked after the first show');
+      assert.strictEqual(out.secondOverlay, false, 'a reload in the same profile is suppressed');
     } finally { server.close(); }
   });
