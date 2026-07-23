@@ -421,7 +421,12 @@ end
 -- engine-AI (human=false) turns, then log the round entry + [R4CODE] — the
 -- exact unit tools/replay.js re-derives from one round entry.
 local function chainAndRound(collected, pushProgress)
-	local guard = 20
+	-- #37 regent-stall (mirrors engine ec0ade2 session.js/server game.js): the
+	-- AI-round traversal guard must cover a FULL round of AI seats. A fixed cap
+	-- stranded activePlayer on an AI seat in >=12-civ games (the round never
+	-- wrapped back to the human/regent). Scale with the seat count (+2 slack;
+	-- playerOrder length >= live seats, so a round always completes).
+	local guard = #state.playerOrder + 2
 	while state.gameOver ~= true and state.players[state.activePlayer].human ~= true and guard > 0 do
 		guard = guard - 1
 		task.wait() -- A30: yield a frame per AI player; no frozen frames
