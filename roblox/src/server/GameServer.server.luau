@@ -33,6 +33,7 @@ local gamecode = require(shared:WaitForChild("gamecode"))
 local scoreModule = require(shared:WaitForChild("score")) -- SO7 end screen
 local strategicModule = require(shared:WaitForChild("strategic")) -- SO17
 local json2lua = require(shared:WaitForChild("json2lua"))
+local ageSnapshots = require(shared:WaitForChild("age-snapshots")) -- instant later-age starts (browser main.js twin)
 local Deck = require(script.Parent:WaitForChild("Deck"))
 local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
 
@@ -804,43 +805,80 @@ local function startGame()
 		for i = 1, setup.humans do
 			table.insert(humanSeats, "p" .. i)
 		end
-		print(("[GameServer] R24 fast-forward to %s (turn %d)..."):format(ageDef.id, ageDef.turn))
-		local ff = fastforward.createFastForward(ruleset, state, { humanSeats = humanSeats })
-		local r = { done = false }
-		-- run-F #2: stream fast-forward progress so the client can show the
-		-- world developing (FastForward.client diorama) instead of a blank wait
-		local function ffPush(done)
-			for _, pl in ipairs(Players:GetPlayers()) do
-				remote:FireClient(pl, { t = "ffProgress", age = ageDef.id,
-					turn = ff.turn(), target = ageDef.turn, done = done == true })
+
+		-- helper ruling 2: try a pre-baked snapshot for this EXACT config BEFORE
+		-- the live fast-forward (the browser main.js tryAgeSnapshot twin). The
+		-- generated modules are gitignored + deploy-baked, so ABSENT on a clean
+		-- clone -> the live ff below runs unchanged. snapshotUsable's statehash
+		-- check guarantees correctness: a config that would not reproduce the
+		-- baked world (different roster/difficulty/maptype) simply falls through.
+		local snapshotLoaded = false
+		local manifestModule = gameData:FindFirstChild("AgeSnapshotManifest")
+		local snapFolder = gameData:FindFirstChild("age-snapshots")
+		if manifestModule ~= nil and snapFolder ~= nil then
+			local okM, manifest = pcall(function()
+				return json2lua.parse(require(manifestModule))
+			end)
+			local cfg = { age = setup.age, size = MAP_SIZES[setup.sizeIndex].name,
+				seed = seed, civs = setup.civs, mapType = setup.mapType,
+				difficulty = state.difficulty }
+			local preset = (okM and manifest ~= nil) and ageSnapshots.matchSnapshot(manifest, cfg) or nil
+			local stateModule = preset ~= nil and snapFolder:FindFirstChild(preset.name) or nil
+			if stateModule ~= nil then
+				local okS, loaded = pcall(function()
+					return json2lua.parse(require(stateModule))
+				end)
+				if okS and loaded ~= nil
+					and ageSnapshots.snapshotUsable(loaded, preset, humanSeats, statehash.hashState) then
+					state = loaded
+					for _, pid in ipairs(humanSeats) do
+						state.players[pid].human = true
+					end
+					snapshotLoaded = true
+					print(("[GameServer] age start: loaded pre-baked snapshot %s (turn %d) — skipped live fast-forward"):format(preset.name, state.turn))
+				end
 			end
 		end
-		ffPush(false)
-		while not r.done do
-			r = ff.step(5, ageDef.turn)
-			ffPush(r.done)
-			task.wait()
-		end
-		if ff.aborted() ~= nil then
-			local ab = ff.aborted()
-			print(("[GameServer] R24 fast-forward aborted: %s"):format(tostring(ab.reason)))
-			local host = Players:GetPlayerByUserId(hostUserId or 0)
-			if host ~= nil then
-				-- toast() is a later local (scope order) — send the shape direct
-				remote:FireClient(host, { t = "toast",
-					text = "Fast-forward stopped early (" .. tostring(ab.reason)
-						.. ") - try another seed, age, or civ count." })
+
+		if not snapshotLoaded then
+			print(("[GameServer] R24 fast-forward to %s (turn %d)..."):format(ageDef.id, ageDef.turn))
+			local ff = fastforward.createFastForward(ruleset, state, { humanSeats = humanSeats })
+			local r = { done = false }
+			-- run-F #2: stream fast-forward progress so the client can show the
+			-- world developing (FastForward.client diorama) instead of a blank wait
+			local function ffPush(done)
+				for _, pl in ipairs(Players:GetPlayers()) do
+					remote:FireClient(pl, { t = "ffProgress", age = ageDef.id,
+						turn = ff.turn(), target = ageDef.turn, done = done == true })
+				end
 			end
-			state = nil
-			setPhase("idle")
-			return
+			ffPush(false)
+			while not r.done do
+				r = ff.step(5, ageDef.turn)
+				ffPush(r.done)
+				task.wait()
+			end
+			if ff.aborted() ~= nil then
+				local ab = ff.aborted()
+				print(("[GameServer] R24 fast-forward aborted: %s"):format(tostring(ab.reason)))
+				local host = Players:GetPlayerByUserId(hostUserId or 0)
+				if host ~= nil then
+					-- toast() is a later local (scope order) — send the shape direct
+					remote:FireClient(host, { t = "toast",
+						text = "Fast-forward stopped early (" .. tostring(ab.reason)
+							.. ") - try another seed, age, or civ count." })
+				end
+				state = nil
+				setPhase("idle")
+				return
+			end
+			state = ff.state()
+			local grant = fastforward.applyAgeGrant(state, ageDef, ruleset)
+			for _, pid in ipairs(humanSeats) do
+				state.players[pid].human = true
+			end
+			print(("[GameServer] R24 age start ready: turn %d, %d techs granted"):format(state.turn, #grant))
 		end
-		state = ff.state()
-		local grant = fastforward.applyAgeGrant(state, ageDef, ruleset)
-		for _, pid in ipairs(humanSeats) do
-			state.players[pid].human = true
-		end
-		print(("[GameServer] R24 age start ready: turn %d, %d techs granted"):format(state.turn, #grant))
 	end
 
 	theater.initialState = engineModule.deepClone(state) -- R18
