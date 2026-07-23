@@ -79,7 +79,7 @@ function M.make(ruleset)
 			end
 		end
 		table.sort(parts) -- pairs() order is unstable; sorted = repaint-stable
-		if def.obsoleteBy ~= nil then
+		if def.obsoleteBy ~= nil and def.obsoleteBy ~= "" then
 			table.insert(parts, ("obsolete with %s"):format(techs[def.obsoleteBy].name))
 		end
 		return table.concat(parts, " - ")
