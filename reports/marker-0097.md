@@ -1,10 +1,16 @@
-# marker-0097 — DRAFT (not tagged; gates pending on the gaming PC)
+# marker-0097 — three engine sets + the late-join family (MERGE-CONSISTENT)
 
-Prepared during the 2026-07-24 away window at tip `072d922`-era; the
-tag lands at the verified sha once the reviewer engine-diff (three
-sets, one pass) + Gate-B/sweep come back green. GATE STATUS AT DRAFT
-TIME: requested (#2393/#2399/#2405), gaming-PC lanes idle pending a
-session nudge.
+Tagged at `9f12dba` (2026-07-24). **MERGE-CONSISTENT — supersedes
+0096. Current merge candidate** (29th consecutive, 0069–0097).
+Double-green at the tagged sha: reviewer BATCH engine-diff #2412 (3
+sets, one pass — refactor no-cycle + determinism confirmed, all pins
+verified) + sim-runner #2414 (Gate-B on the new pins, lune byte-exact;
+the #8 pre-registered 25-seed sweep PASS — 25/25 invariants clean,
+all floors green vs 0096, founding-default drift present-as-expected;
+marathon witness t701 no-stall). The goldens moved as a STAMP only
+(scorePerFutureTech in rules.json → soak 0xd4151d33 / natural
+0x8f3aaace); behaviorhash unchanged, verified. `c49d075` (agent-mail
+client resilience, tooling-only) sits one commit above the tag.
 
 ## Delta since marker-0096 (8047f0b)
 
@@ -76,9 +82,18 @@ docs/10 shared-twin grant (#2375) · test counts 747→852 synced.
 Suite 857/857 at `072d922` (bugfixer full run); twins 11/11;
 scenarios 63 files; the known SIGTERM flake green this run.
 
-## For the tag (fill at green)
+## Gate verdicts (filled at green)
 
-- [ ] reviewer engine-diff verdict (three sets)
-- [ ] Gate-B + #8 25-seed sweep verdict
-- [ ] sim-runner re-baseline done (rulesetHash stamp)
-- [ ] final sha + consistency declaration
+- Reviewer #2412: ALL GREEN, 3 sets one pass — #8 refactor no-cycle +
+  deterministic, claimSeat legality-gated fixture-first (061
+  0xeffb984b), a6a stamp-only confirmed. Suite 857 clean; engine-set
+  195/195; luau-400 0xd4151d33.
+- Sim-runner #2414: Gate-B green on the new pins (twins 11/11);
+  #8 sweep PASS (25/25 clean, floors M2 8 · M3 34 · M4 61.5 ·
+  M10-buys 31.75 · treasury −0.04 · resourceCov 87 — no regression);
+  marathon witness: t701 no-stall, tree not exhausted at 43/68 techs
+  (the sink stays dormant in normal play, exactly as classified);
+  baselines re-banked for the rulesetHash stamp.
+- Landed after the gates, riding the NEXT marker: hardening's
+  late-join SERVER half complete on its branch (#2415, reviewer gate
+  pending) — the full feature closes there.

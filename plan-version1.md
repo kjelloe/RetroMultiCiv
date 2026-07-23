@@ -4,27 +4,25 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 evening (tip c38b914; marker-0096 = merge
-candidate, marker-0097 PENDING the #8 double-green. Landed since 0096:
+Last updated: 2026-07-24 night (marker-0097 TAGGED @9f12dba =
+MERGE-CONSISTENT candidate, 29th consecutive — supersedes 0096;
+reviewer #2412 + sim-runner #2414 double-green; REDEPLOY FROM 0097.
+Landed in it:
 #8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
 requested #2393) · agent-mail at-least-once upgrade · fish/specials
 motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
 ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
 + onboarding-e2e fix · A49 flow-2 (flow-4 rides Founder's Record).
-NEW v1 feature in flight: late-join+pause+eviction
-(specs/late-join-pause.md) — hardening server half building
-(pure core + flag/CLI done on branch); claimSeat LANDED a75fc2b.
-Away-window additions landed: a6a Future Tech @072d922 (stamp-only
-re-record, rulesetHash stamp — gaming-PC re-baseline on pull) +
-qr-overlay + test-count sync + reaper cooldown. Engine queue (after
-0097 GREEN — golden-stream hold): A8 -> #19 view-contract ->
-D3-surfacing -> D4-D6 (witness-8 + treaty-UI ride D4). Client
-remaining: Founder's Record (#34, fresh-window) + the post-join
-reveal banner (server-integration). Roblox: runI design batch RULED
-(specs/runI-design-rulings.md) + seat-preview align + gate-4 re-bake
-on pull; publish gate after. USER: nudge the gaming-PC sessions (3
-engine gates pending → 0097), redeploy from 0096 (0097 imminent),
-trademark search + domains, Studio items 4b/4c.)
+Late-join+pause+eviction: SERVER half COMPLETE on branch (#2415,
+reviewer gate pending — the feature closes in the next marker; the
+serverFull rename note + assignedCiv contract relayed to the helper's
+reveal-banner follow-up). Engine queue UNBLOCKED by the tag: #32 A8
+(fresh bugfixer session) -> #19 view-contract -> D3-surfacing ->
+D4-D6 (witness-8 + treaty-UI ride D4). Client remaining: Founder's
+Record #34 (fresh helper session) + the post-join reveal banner (now
+buildable — server contract live). Roblox: runI design batch part 1
+built, continuing (long); publish gate after. USER: REDEPLOY FROM
+0097, trademark search + domains, Studio items 4b/4c.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·

@@ -36,17 +36,18 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Redeploy from marker-0096** (`8047f0b` — NOW is the moment):
-  every fix you personally hit this week (regent hang, rejoin, ff
-  hangs) PLUS the engine at ~half its former cost (COW+fix1) and the
-  onboarding arrows. Supersedes the 0090 note below:
-  everything through 0089 PLUS the archetype AI (civs build the
-  wonders their personality says — non-builder wonders 0→20 in the
-  judge sweep) and the helper's complete 30-item client window (A58
-  pedia, the XV UX set, mobile slice, off-turn orders over server,
-  endscreen-name fix). WITH the one-time box unit edit: `--max-turns
-  700` (+ optional `--bug-reports` + ReadWritePaths). Hard refresh
-  after.
+- [ ] **Redeploy from marker-0097** (`9f12dba` — supersedes the 0096
+  note): everything 0096 carried (every fix you personally hit —
+  regent hang, rejoin, ff hangs — plus the engine at ~half cost and
+  the onboarding arrows) PLUS: the fish/specials icons your friend's
+  report triggered, boot fade-in, the lobby join-share (copy-URL +
+  QR + `?join=CODE`), the late-join CLIENT half (Find-game beside
+  Start; the server half lands next marker), era-relevant default
+  defenders, Future Tech (dormant until a marathon exhausts the
+  tree), and A49 flow-2 in the nightly. Remember the deploy bake
+  step is already in your ssh-deploy.sh. WITH the one-time box unit
+  edit if not yet done: `--max-turns 700` (+ optional `--bug-reports`
+  + ReadWritePaths). Hard refresh after.
 
 - [ ] **Two session nudges needed** (your direct ask, kept current):
   1. **HARDENING** — idle 8h+, one queued item (XV §13 server-save
