@@ -60,8 +60,14 @@ do not improvise a state write server-side (docs/07 tamper rules).
   the two read as equivalent entries (setup.js; the current
   setup-lan-btn styling splits them).
 - Find-game rows show state: "in progress · turn N · era" and
-  "paused · turn N" with a Join affordance; joining a running game
-  shows "you take over <civ>" before confirm (the server names it).
+  "paused · turn N" with a Join affordance. RULED 2026-07-24 (the
+  helper's #2381 flag): the pre-join confirm stays GENERIC ("you'll
+  take over one of its AI civilizations") — a named pre-confirm would
+  need a reservation handshake and races (two joiners / score drift
+  between preview and join). The JOIN ANSWER carries the assigned civ
+  (§3); the client shows a prominent post-join reveal banner naming
+  it. The reveal is a small client follow-up riding the
+  server-integration check.
 - Lobby full-server message (contract reason `serverFull`): "This
   server is full of active games — wait for a slot, find another
   server, or join an ongoing game from Find game." (the three user
