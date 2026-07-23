@@ -102,12 +102,20 @@ scratch copy, install with one atomic `cp`, then restart the hub.
    revisited: bind the WSL eth0 address explicitly, or move the
    machines onto Tailscale and bind that interface. The serve banner
    now warns about `0.0.0.0` on every start.
-4. **Stop-hook enforcement** of "never end a turn idle" (turns the
-   flag-wait convention into an invariant). Per-lane
-   `.claude/settings` + `stop_hook_active` guard so sessions can
-   still end; architect exempt (this lane SHOULD stop and wait for
-   the user). Weigh subscription burn: a lane that cannot stop keeps
-   consuming budget.
+4. **Stop-hook enforcement** of "never end a turn idle" — LARGELY
+   SUPERSEDED 2026-07-24 by `tools/lane-watcher.py` (the cheaper
+   inversion, user-prompted "could a cheap/local model poll?" — the
+   answer is no model at all): a zero-token watcher script per
+   machine polls the hub (`flag --raw`, one HTTP call) and starts ONE
+   headless `claude -p` turn in a lane's clone when its flag goes UP,
+   with a per-lane cooldown. Idle costs nothing; tokens are spent
+   exactly when work exists; ended-turn sessions stop being a stall.
+   Machine-local `lanes.json` (never committed) maps lane → clone
+   dir; run under cron/systemd-user/tmux. The Stop hook remains an
+   option for lanes that must never drop mid-task, but the watcher
+   covers the observed failure mode (dark sessions with queued
+   work). An Ollama triage layer (summarize-before-wake) is a v2
+   nicety, not needed for correctness.
 5. **Lane-topology review** (reference `roles-advice.md`): mostly-
    idle lanes (reviewer/hardening) as on-demand roles instead of
    standing sessions — real subscription savings, but the reviewer
