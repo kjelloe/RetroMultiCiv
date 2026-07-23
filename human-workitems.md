@@ -72,6 +72,12 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   5. Save the acceptance log as **runI.txt** when done; the
      roblox-helper is flagged responsive for live findings.
   · **terrain desaturation check** — carried, fits this session.
+  · **Session progress so far:** your 26-item runH/runI feedback is
+    TRIAGED and routed (`specs/roblox-runI-triage-2026-07-23.md`) —
+    24 items to the roblox batch (blockers first), the lux-rate
+    disorder playbook to the engine as your design ruling, the yield
+    icons answered (browser §24 pattern); one live crash fix already
+    landed (`11fd7d0`). Sound/saving remain your test-publish gate.
 
 _Recently ruled (2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
 measure-first King sweep proved King space-capable (one civ reached

@@ -77,7 +77,7 @@ flowchart TD
 
   subgraph ROBLOX["ROBLOX lane (second PC)"]
     T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
-    STUD["🚪 Studded round-2 (user Studio review —\nreads the cert artifact; only user gate left)"]
+    STUD["🔨 Studded round-2 IN PROGRESS (2026-07-23):\nrunH/runI played; 26-item feedback batch\nTRIAGED (specs/roblox-runI-triage); first\ncrash fix landed live (11fd7d0)"]
     R6["✅ R6 agent-complete (slice-1 de8a977 +\nslices 2-3 in-tree; 30 gates green)"]
     STUD --> T3
     R6 --> T3
@@ -126,7 +126,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 1 | Every Civ 1 system faithful | ~98% (A7 ✅, pyramids-gov ✅, §7 client ✅) | A6a future-tech, A8 tile contention, §45b rehome, §46 default-defender, §7 engine-half (#21) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
 | 3 | AI at M-targets | archetype ✅ ACCEPT (0090), #30 ✅ landed | **witness-7 verdict (running — the launch acceptance)**, invade B, gov re-eval #36, XV §11 disorder playbook |
-| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 agent-complete + SO18 glyphs | **Studded round-2 (user)** — the only gate |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + SO18; round-2 IN PROGRESS | **runI 26-item batch** (roblox-helper, blockers first) + sound/saving (test-publish gate) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE (box step done 07-23) | — (server self-lists on next redeploy) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
 
