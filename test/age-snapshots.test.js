@@ -62,6 +62,23 @@ test('baker genesis == browser genesis (snapshot load reproduces the live ff)', 
   assert.strictEqual(hashState(baked.state), hashState(r.state), 'the snapshot equals the browser live ff');
 });
 
+// GOLDEN PIN (re-record rider, docs/05 §4): one canonical preset's baked
+// statehash is COMMITTED here so a BEHAVIORAL engine change breaks THIS test —
+// the mechanical forcing function behind "every behavioral re-record also
+// re-runs `node tools/bake-age-snapshots.js`". The snapshot files are
+// gitignored, so this pin is the only thing that goes red; move it ONLY on an
+// intentional behavioral re-record (re-bake, then paste the new hash), same
+// ritual as the simulation.test.js checkpoints.
+const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0x1400e90b' };
+test('canonical snapshot statehash pin — moves only on a behavioral re-record', async () => {
+  const { createEngine, fastForwardTo, hashState, shuffleRoster } = await deps();
+  const p = CANONICAL_PIN;
+  const r = await baker.bakeOne(createEngine, fastForwardTo, hashState, shuffleRoster, p.seed, p.size, p.age, p.civs);
+  assert.ok(!r.aborted, 'the canonical preset must not abort');
+  assert.strictEqual(r.hash, p.statehash,
+    'baked statehash moved — if this was an intentional behavioral re-record, run `node tools/bake-age-snapshots.js` and paste the new hash into CANONICAL_PIN');
+});
+
 test('matchSnapshot: exact config matches; a pick / wrong map type / arbitrary seed do not', async () => {
   const { matchSnapshot } = await import('../shared/age-snapshots.js');
   const manifest = { mapType: 'continents', difficulty: 'prince', presets: [
