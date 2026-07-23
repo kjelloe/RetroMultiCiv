@@ -33,6 +33,16 @@ M.PROP_SHAPES = {
 	jungleTrunk = { shape = "cyl", size = { 0.028, 0.042, 0.46 }, seg = 6 },
 	jungleCanopy = { shape = "sphere", size = { 0.21 }, seg = { 8, 5 } },
 	jungleButtress = { shape = "cone", size = { 0.085, 0.16 }, seg = 6 },
+	-- specials-icons: per-resource Civ-1 special motifs (recipes.js twin)
+	resFish = { shape = "sphere", size = { 0.09 }, seg = { 8, 6 } },
+	resFishTail = { shape = "cone", size = { 0.06, 0.09 }, seg = 4 },
+	resCrystal = { shape = "dodeca", size = { 0.075 }, seg = 0 },
+	resWater = { shape = "cyl", size = { 0.16, 0.16, 0.015 }, seg = 12 },
+	resPalm = { shape = "cone", size = { 0.11, 0.14 }, seg = 6 },
+	resDerrick = { shape = "cone", size = { 0.06, 0.34 }, seg = 4 },
+	resShield = { shape = "box", size = { 0.14, 0.16, 0.03 } },
+	resBeast = { shape = "sphere", size = { 0.1 }, seg = { 8, 6 } },
+	resBeastHead = { shape = "sphere", size = { 0.06 }, seg = { 8, 6 } },
 }
 
 M.PROP_COLOR = {
@@ -46,6 +56,40 @@ M.PROP_COLOR = {
 }
 
 local SCRUB_COLOR = { grassland = "#3f8f3f", plains = "#9d8f55", desert = "#9d8f55", tundra = "#9fae9d" }
+-- specials-icons (props.js SPECIAL_MOTIF twin): the Civ-1 terrain-keyed special
+-- resource -> its map motif (prop primitives with per-instance color/scale/offset).
+-- An ocean special (fish) rides the water surface (see the special handler below).
+local SPECIAL_MOTIF = {
+	ocean = {
+		{ k = "resFish", color = "#d2e6f5", sx = 1.7, sy = 0.55, sz = 0.95, dy = 0.03 }, -- Fish
+		{ k = "resFishTail", color = "#bcd2e4", dx = 0.14, dy = 0.03, rotY = math.pi / 2, sx = 0.8, sy = 0.7 },
+	},
+	grassland = { { k = "resShield", color = "#e0c14e", dy = 0.1 } }, -- Shield
+	plains = { -- Horse
+		{ k = "resBeast", color = "#9a6b3f", sx = 1.5, sy = 0.8, sz = 0.8, dy = 0.05 },
+		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.12, dy = 0.11 },
+	},
+	forest = { -- Game (deer)
+		{ k = "resBeast", color = "#7a5a35", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
+		{ k = "resBeastHead", color = "#7a5a35", dx = -0.11, dy = 0.12 },
+	},
+	tundra = { -- Game
+		{ k = "resBeast", color = "#8a6a45", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
+		{ k = "resBeastHead", color = "#8a6a45", dx = -0.11, dy = 0.12 },
+	},
+	arctic = { -- Seal
+		{ k = "resBeast", color = "#c4cbd4", sx = 1.8, sy = 0.6, sz = 0.75, dy = 0.04 },
+		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.15, dy = 0.06 },
+	},
+	desert = { -- Oasis
+		{ k = "resWater", color = "#2f7fc0", dy = 0.02 },
+		{ k = "resPalm", color = "#2f8d3f", dy = 0.17 },
+	},
+	hills = { { k = "resCrystal", color = "#2b2b30", dy = 0.09 } }, -- Coal
+	mountains = { { k = "resCrystal", color = "#ffcf3b", dy = 0.09 } }, -- Gold
+	jungle = { { k = "resCrystal", color = "#5ad0c9", dy = 0.09 } }, -- Gem
+	swamp = { { k = "resDerrick", color = "#2a2622", dy = 0.17 } }, -- Oil
+}
 local WATER_LEVEL = -0.02
 local FOG = Color3.fromRGB(10, 14, 22) -- 0x0a0e16
 -- eight neighbor directions for road connectivity (rotY aligns the segment)
@@ -254,7 +298,19 @@ function M.rebuild(folder, view, tileTop, TILE)
 					end
 				end
 				if t.special then
-					put("special", { color = M.PROP_COLOR.special, dx = -0.2, dz = 0.2, dy = 0.08 })
+					-- per-resource motif by terrain (Civ 1 showed the resource itself).
+					-- An OCEAN special (fish) rides the WATER SURFACE, not the
+					-- submerged floor (top) where it would render underwater.
+					local motif = SPECIAL_MOTIF[t.t]
+					if motif ~= nil then
+						local base = t.t == "ocean" and (tileTop("ocean") + WATER_LEVEL) or nil
+						for _, m in ipairs(motif) do
+							put(m.k, { color = m.color, dx = m.dx, dz = m.dz, dy = m.dy,
+								sx = m.sx, sy = m.sy, sz = m.sz, rotY = m.rotY, top = base })
+						end
+					else -- any terrain without a motif keeps the generic marker
+						put("special", { color = M.PROP_COLOR.special, dx = -0.2, dz = 0.2, dy = 0.08 })
+					end
 				end
 				if t.hut == true then
 					put("hutBase", { color = M.PROP_COLOR.hutWall, dy = 0.06 })
