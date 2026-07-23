@@ -236,6 +236,28 @@ export function startServer(opts) {
       res.end(JSON.stringify(healthSnapshot()));
       return;
     }
+    // master-proxy (reviewer #2446): a self-hosted box that ANNOUNCES to a master
+    // has no same-origin server list — /master/servers only exists on the hosted
+    // deployment's reverse proxy. Proxy it here so Find-game works self-hosted,
+    // zero client change, no CORS. SSRF-safe: the target is ONLY the operator-
+    // configured master (--announce), never a caller-supplied URL.
+    if (req.method === 'GET' && urlPath === '/master/servers') {
+      const J = { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' };
+      if (!opts.announce) { res.writeHead(404, J); res.end('{"ok":false,"reason":"masterNotConfigured"}'); return; }
+      const target = String(opts.announce).replace(/\/$/, '') + '/servers';
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000); // don't hang on a dead master
+      fetch(target, { signal: controller.signal }).then(async r => {
+        clearTimeout(timer);
+        const body = await r.text();
+        if (r.ok) { res.writeHead(200, J); res.end(body); } // pass the master's JSON through
+        else { res.writeHead(502, J); res.end(JSON.stringify({ ok: false, reason: 'masterError', status: r.status })); }
+      }).catch(() => {
+        clearTimeout(timer);
+        try { res.writeHead(502, J); res.end('{"ok":false,"reason":"masterUnreachable"}'); } catch (_) { /* socket gone */ }
+      });
+      return;
+    }
     // In-client BUG REPORT sink (helper queue #3). WRITE-ONLY: a playtester
     // POSTs the Shift+D recording + free text; we write ONE json file the
     // operator reads over ssh. Opt-in (--bug-reports DIR, off by default — same
