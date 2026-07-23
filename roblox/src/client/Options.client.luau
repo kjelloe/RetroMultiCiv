@@ -111,6 +111,9 @@ hint.Parent = gui
 
 optionsBtn.Activated:Connect(function()
 	panel.Visible = not panel.Visible
+	if panel.Visible then
+		ClientState.panelOpened("options") -- runI item 18: closes the city view
+	end
 end)
 
 -- XIV §15: `brick` shows to the player as "Studded" (internal id stays brick).

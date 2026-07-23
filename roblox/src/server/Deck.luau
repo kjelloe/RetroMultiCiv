@@ -30,10 +30,10 @@ local function part(parent, name, size, cframe, color, props)
 	return p
 end
 
-local function pad(parent, name, offsetX, color, promptText)
+local function pad(parent, name, offsetX, color, promptText, zOffset)
 	-- flush with the floor plane (the user's one-common-plate ruling)
 	local base = part(parent, name, Vector3.new(8, 1, 8),
-		CFrame.new(DECK_POS + Vector3.new(offsetX, 0.56, -10)), color,
+		CFrame.new(DECK_POS + Vector3.new(offsetX, 0.56, zOffset or -10)), color,
 		{ Material = Enum.Material.Neon })
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Prompt"
@@ -141,9 +141,12 @@ function M.build()
 		Color3.fromRGB(60, 90, 150), "JOIN GAME")
 	local takeoverPad, takeoverPrompt = pad(folder, "TakeoverPad", 20,
 		Color3.fromRGB(150, 110, 50), "TAKE OVER AI CIV")
-	-- CP16/MP8 (spectate slice, ruling @d1ce4920): view-only entry
-	local spectatePad, spectatePrompt = pad(folder, "SpectatePad", 40,
-		Color3.fromRGB(110, 80, 150), "SPECTATE")
+	-- CP16/MP8 (spectate slice, ruling @d1ce4920): view-only entry.
+	-- runI item 1: moved INSIDE the deck (offsetX 40 sat past the 30-half-width
+	-- floor edge) — now on StartPad's X column (-20) and the capitol pad's front
+	-- row (z+16), so it reads left of "goto capitol".
+	local spectatePad, spectatePrompt = pad(folder, "SpectatePad", -20,
+		Color3.fromRGB(110, 80, 150), "SPECTATE", 16)
 
 	folder.Parent = workspace
 

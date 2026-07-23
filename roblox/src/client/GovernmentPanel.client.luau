@@ -218,6 +218,7 @@ end
 local function setOpen(open)
 	gui.Enabled = open
 	if open then
+		ClientState.panelOpened("government") -- runI item 18: closes the city view
 		refresh()
 	end
 end

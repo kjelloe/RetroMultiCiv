@@ -191,40 +191,55 @@ local function rebuild()
 		ClientState.send({ type = "setWorkers", cityId = openCityId, workers = next_ })
 	end
 
+	local function applySwap(idx)
+		local worst, worstScore = nil, math.huge
+		for _, c in ipairs(candidates) do
+			if workedIdx[c.idx] == true and (c.score or 0) < worstScore then
+				worst, worstScore = c.idx, c.score or 0
+			end
+		end
+		if worst == nil then
+			return
+		end
+		local set = table.clone(workedIdx)
+		set[worst] = nil
+		set[idx] = true
+		print("[WorkedTiles] double-click swap: weakest tile released")
+		sendWorkers(set)
+	end
+
+	-- runI item 20: EVERY worker change is a DOUBLE-CLICK; a single click only
+	-- arms it + prints the hint. A single click used to fire immediately, so a
+	-- double-click on a worked tile removed then re-placed it (net nothing) and
+	-- a double-click on an unworked tile placed then removed it — both read as
+	-- dead. Double-click a worked tile = remove; an unworked tile = place when
+	-- a citizen is free, else swap out the weakest worked tile.
 	local function toggle(idx)
-		if workedIdx[idx] == true then -- one click on an active tile: remove
+		local now = os.clock()
+		local isDouble = lastClick ~= nil and lastClick.idx == idx and now - lastClick.t < 0.6
+		if not isDouble then
+			lastClick = { idx = idx, t = now }
+			if workedIdx[idx] == true then
+				print("[WorkedTiles] double-click to remove this worker")
+			elseif workersPlacedNow < budget then
+				print("[WorkedTiles] double-click to work this tile")
+			else
+				print("[WorkedTiles] all citizens busy - double-click to swap with the weakest tile")
+			end
+			return
+		end
+		lastClick = nil
+		if workedIdx[idx] == true then -- double-click an active tile: remove
 			local set = table.clone(workedIdx)
 			set[idx] = nil
 			sendWorkers(set)
-			return
-		end
-		if workersPlacedNow < budget then -- a citizen is free: place them
+		elseif workersPlacedNow < budget then -- a citizen is free: place them
 			local set = table.clone(workedIdx)
 			set[idx] = true
 			sendWorkers(set)
-			return
+		else -- capped: swap out the weakest worked tile
+			applySwap(idx)
 		end
-		-- capped: double-click swaps out the weakest worked tile
-		local now = os.clock()
-		if lastClick ~= nil and lastClick.idx == idx and now - lastClick.t < 0.6 then
-			lastClick = nil
-			local worst, worstScore = nil, math.huge
-			for _, c in ipairs(candidates) do
-				if workedIdx[c.idx] == true and (c.score or 0) < worstScore then
-					worst, worstScore = c.idx, c.score or 0
-				end
-			end
-			if worst ~= nil then
-				local set = table.clone(workedIdx)
-				set[worst] = nil
-				set[idx] = true
-				print("[WorkedTiles] double-click swap: weakest tile released")
-				sendWorkers(set)
-			end
-			return
-		end
-		lastClick = { idx = idx, t = now }
-		print("[WorkedTiles] all citizens busy - double-click to swap with the weakest tile")
 	end
 
 	-- center quad = the AUTO reset (Civ 1: center always works for free)

@@ -613,7 +613,15 @@ local function advance(collected, initiatedByEndTurn)
 		chainAndRound(collected, pushProgress)
 		pushProgress()
 	end
-	local guard = 30
+	-- runI item 10 (regent stall): the browser server drives regent seats up to
+	-- guard=2000 and YIELDS between turns (server/index.js driveRegents). The
+	-- old guard=30 froze a fully-AFK seat after ~30 rounds with nothing to
+	-- re-kick it; a synchronous drive that big would also trip Roblox's
+	-- execution-time budget. Match the browser: high guard + a frame yield per
+	-- regent turn. The yield also lets the Hud regent-OFF toggle (msg.t="away",
+	-- which returns before the roundInFlight command gate) land mid-drive —
+	-- seatedPresent then breaks the loop for a clean take-back.
+	local guard = 2000
 	while state.gameOver ~= true and guard > 0 do
 		guard = guard - 1
 		local active = state.activePlayer
@@ -636,6 +644,7 @@ local function advance(collected, initiatedByEndTurn)
 		end
 		chainAndRound(collected, pushProgress)
 		pushProgress()
+		task.wait() -- yield a frame: flush delivery, honor mid-drive take-back
 	end
 	roundInFlight = false
 	-- SO9: the last ageChanged in this batch of rounds gets the report

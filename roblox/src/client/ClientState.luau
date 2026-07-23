@@ -193,18 +193,33 @@ function M.nextOwnUnit(excludeId)
 	end)
 	local anchorId = M.possessedUnitId or M.selectedUnitId
 	local anchor = anchorId and view.units[anchorId]
-	local pick = movable[1]
 	if anchor ~= nil then
-		local best = math.huge
+		-- runI item 25: finish every movable unit stacked on the anchor's tile
+		-- (in id order) before gliding to the NEAREST OTHER tile. The plain
+		-- nearest pick treated a co-located unit as distance 0 forever, so two
+		-- units on one tile ping-ponged instead of the cycle moving on.
 		for _, u in ipairs(movable) do
-			local d = M.wrapDist(u.x, u.y, anchor.x, anchor.y)
-			if d < best then
-				best = d
-				pick = u
+			if u.x == anchor.x and u.y == anchor.y and u.id > anchorId then
+				return u.id
 			end
 		end
+		local pick, best = nil, math.huge
+		for _, u in ipairs(movable) do
+			if not (u.x == anchor.x and u.y == anchor.y) then
+				local d = M.wrapDist(u.x, u.y, anchor.x, anchor.y)
+				if d < best then
+					best = d
+					pick = u
+				end
+			end
+		end
+		if pick ~= nil then
+			return pick.id
+		end
+		-- only lower-id units on the anchor's own tile remain (nowhere else to
+		-- go): fall through and cycle within the tile
 	end
-	return pick.id
+	return movable[1].id
 end
 
 function M.onResearchOpen(cb)

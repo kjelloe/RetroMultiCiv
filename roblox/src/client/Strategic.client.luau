@@ -22,7 +22,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 -- will work: a Studio debug game or a spectator seat
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 44, 0, 36)
-openBtn.Position = UDim2.new(1, -418, 0, 8)
+openBtn.Position = UDim2.new(1, -458, 0, 8)
 openBtn.BackgroundColor3 = Color3.fromRGB(48, 44, 66)
 openBtn.TextColor3 = Color3.fromRGB(225, 220, 245)
 openBtn.Font = Enum.Font.SourceSansBold
@@ -163,6 +163,7 @@ end)
 openBtn.Activated:Connect(function()
 	frame.Visible = not frame.Visible
 	if frame.Visible then
+		ClientState.panelOpened("strategic") -- runI item 18: closes the city view
 		ClientState.requestStrat()
 	end
 end)

@@ -269,7 +269,16 @@ openBtn.Activated:Connect(function()
 	record = nil
 	verdictLabel.Text = "requesting history..."
 	bar.Visible = true
+	ClientState.panelOpened("theater") -- runI item 14: hide the other left-stack panels
 	remote:FireServer({ t = "theater" })
+end)
+
+-- runI item 14: another left-stack panel opening closes the theater so they
+-- never overlap
+ClientState.onPanelOpen(function(id)
+	if id ~= "theater" and bar.Visible then
+		close()
+	end
 end)
 
 closeBtn.Activated:Connect(close)

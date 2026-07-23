@@ -21,13 +21,13 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 -- session-E: top-right button row beside Options (its panel opens below,
 -- so this button must not sit in that column)
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 78, 0, 36)
-openBtn.Position = UDim2.new(1, -244, 0, 8)
+openBtn.Size = UDim2.new(0, 118, 0, 36)
+openBtn.Position = UDim2.new(1, -284, 0, 8)
 openBtn.BackgroundColor3 = Color3.fromRGB(52, 64, 52)
 openBtn.TextColor3 = Color3.fromRGB(220, 240, 220)
 openBtn.Font = Enum.Font.SourceSansBold
 openBtn.TextSize = 18
-openBtn.Text = "Pedia"
+openBtn.Text = "Civilopedia"
 openBtn.Parent = gui
 do
 	local c = Instance.new("UICorner")
@@ -293,6 +293,7 @@ local function toggle()
 			renderList()
 		end
 		frame.Visible = true
+		ClientState.panelOpened("pedia") -- runI item 18: closes the city view
 	else
 		frame.Visible = false
 	end

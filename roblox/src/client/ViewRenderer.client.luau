@@ -63,6 +63,15 @@ end
 
 local function tileTop(id)
 	local spec = specFor(id)
+	-- runI item 7: mountains should be only 2x as tall as hills (was ~4x). The
+	-- generated TerrainPalette mirrors the browser terrain.js source and is
+	-- gate-4 locked, so the ratio is corrected render-side: hills sit at half
+	-- the mountain top. tileTop also seats units/cities/props, so raising it
+	-- here keeps everything on the taller hills.
+	if id == "hills" then
+		local m = specFor("mountains")
+		return (m.base + m.peak * 0.5) * HEIGHT * 0.5
+	end
 	return (spec.base + spec.peak * 0.5) * HEIGHT
 end
 
@@ -118,7 +127,7 @@ local function brickTop(id, top)
 	if id == "mountains" then
 		return top
 	elseif id == "hills" then
-		return top * 0.55 -- ≈1.0 studs vs mountains ≈4.35 (~23%), low but readable
+		return top -- runI item 7: tileTop already sets hills to half the mountain top (2x)
 	end
 	return 0 -- flats: flat plates, no relief
 end
@@ -266,7 +275,11 @@ end
 local function cityBillboard(model, adornee, view, c)
 	local mine = c.owner == view.you
 	local rs = ClientState.rulesets()
-	local lines = { ("%s  (pop %d)"):format(c.name or "city", c.pop or 1) }
+	-- runI item 13: the city NAME reads 20% larger than unit names (unit label
+	-- is size 22, so 26), bold and UPPERCASE for a stronger civic look; the
+	-- pop/production lines stay at the base label size.
+	local lines = { ('<b><font size="26">%s</font></b>  (pop %d)')
+		:format((c.name or "city"):upper(), c.pop or 1) }
 	if c.disorder == true then -- A68 parity: the disorder banner
 		table.insert(lines, '<font color="#ff8878"><b>CIVIL DISORDER</b></font>')
 	end
@@ -286,7 +299,7 @@ local function cityBillboard(model, adornee, view, c)
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "CityLabel"
 	bb.Adornee = adornee
-	bb.Size = UDim2.new(0, 220, 0, 24 * #lines)
+	bb.Size = UDim2.new(0, 240, 0, 28 * #lines) -- runI item 13: taller for the size-26 name line
 	bb.StudsOffset = Vector3.new(0, 4.5, 0)
 	bb.MaxDistance = 240
 	local text = Instance.new("TextLabel")

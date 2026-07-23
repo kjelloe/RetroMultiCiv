@@ -31,7 +31,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 44, 0, 36)
-openBtn.Position = UDim2.new(1, -506, 0, 8) -- left of 🧠 (Strategic -418)
+openBtn.Position = UDim2.new(1, -546, 0, 8) -- left of 🧠 (Strategic -458)
 openBtn.BackgroundColor3 = Color3.fromRGB(38, 46, 40)
 openBtn.TextColor3 = Color3.fromRGB(220, 235, 210)
 openBtn.Font = Enum.Font.SourceSansBold
@@ -300,6 +300,7 @@ local function toggle(force)
 	end
 	frame.Visible = show
 	if show then
+		ClientState.panelOpened("techtree") -- runI item 18: closes the city view
 		render()
 	end
 end

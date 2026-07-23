@@ -219,8 +219,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		else
 			print("[Select] found city: select a settlers unit first")
 		end
-	elseif input.KeyCode == Enum.KeyCode.O then
-		-- R14: O arms GoTo target-pick for the selected unit (O again cancels)
+	elseif input.KeyCode == Enum.KeyCode.G then
+		-- runI item 23: G arms GoTo target-pick for the selected unit (G again
+		-- cancels) — moved off O so GoTo matches the Civ shortcut
 		GoToPlan.arm()
 	elseif input.KeyCode == Enum.KeyCode.Return then
 		if ClientState.myTurn() then

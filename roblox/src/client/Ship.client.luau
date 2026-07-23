@@ -22,7 +22,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 -- top-right row: Ship sits left of Pedia; hidden until the race exists
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 78, 0, 36)
-openBtn.Position = UDim2.new(1, -330, 0, 8)
+openBtn.Position = UDim2.new(1, -370, 0, 8) -- shifted for the wider Civilopedia button
 openBtn.BackgroundColor3 = Color3.fromRGB(64, 52, 76)
 openBtn.TextColor3 = Color3.fromRGB(230, 215, 245)
 openBtn.Font = Enum.Font.SourceSansBold
@@ -336,6 +336,7 @@ end)
 openBtn.Activated:Connect(function()
 	frame.Visible = not frame.Visible
 	if frame.Visible then
+		ClientState.panelOpened("ship") -- runI item 18: closes the city view
 		render()
 	end
 end)

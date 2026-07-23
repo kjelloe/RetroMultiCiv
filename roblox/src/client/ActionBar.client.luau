@@ -37,8 +37,11 @@ layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.VerticalAlignment = Enum.VerticalAlignment.Center
 layout.Parent = bar
 
-local ENABLED = Color3.fromRGB(50, 66, 92)
-local DISABLED = Color3.fromRGB(38, 40, 48)
+-- runI item 22: widen the enabled/disabled contrast so an inapplicable action
+-- reads clearly as grayed-out (a live action is a lit blue; disabled is a flat,
+-- near-black gray). The can()-gate already blocks the send + colors every button.
+local ENABLED = Color3.fromRGB(58, 82, 118)
+local DISABLED = Color3.fromRGB(28, 30, 35)
 
 local buttons = {}
 local function addButton(order, text, width)
@@ -194,12 +197,12 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local foundBtn = addButton(1, "Found (B)", 90)
-local fortifyBtn = addButton(2, "Fortify (G)", 90)
+local fortifyBtn = addButton(2, "Fortify (O)", 90)
 local waitBtn = addButton(3, "Wait (Spc)", 90)
 -- session-E round 20 (user): GoTo as a visible action — arms the same
--- target-pick the O key uses; the plan then marches MULTI-TURN by design
+-- target-pick the G key uses; the plan then marches MULTI-TURN by design
 -- (GoToPlan re-plans and steps every turn until arrival)
-local gotoBtn = addButton(4, "GoTo (O)", 80)
+local gotoBtn = addButton(4, "GoTo (G)", 80)
 local disbandBtn = addButton(5, "Disband (X)", 100)
 local irrigateBtn = addButton(6, "Irr (I)", 70)
 local mineBtn = addButton(7, "Mine (M)", 70)
@@ -626,7 +629,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if UserInputService:GetFocusedTextBox() ~= nil then
 		return
 	end
-	if input.KeyCode == Enum.KeyCode.G then
+	if input.KeyCode == Enum.KeyCode.O then -- runI item 23: fortify moved G->O (G is now GoTo)
 		doUnitCmd("fortify")
 	elseif input.KeyCode == Enum.KeyCode.Space then
 		doUnitCmd("wait")
@@ -641,4 +644,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-print("[ActionBar] action bar up (G fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")
+print("[ActionBar] action bar up (O fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)")

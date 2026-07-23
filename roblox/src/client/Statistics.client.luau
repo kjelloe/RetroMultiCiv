@@ -213,6 +213,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == Enum.KeyCode.J then
 		gui.Enabled = not gui.Enabled
 		if gui.Enabled then
+			ClientState.panelOpened("stats") -- runI item 18: closes the city view
 			refresh()
 			ClientState.requestStats() -- SO8: pull the series on expand
 		else

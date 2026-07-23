@@ -465,8 +465,17 @@ end
 ClientState.onCityOpen(function(cityId)
 	openCityId = cityId
 	gui.Enabled = true
+	ClientState.panelOpened("city") -- runI item 18: opening a city closes other panels
 	WorkedTiles.show(cityId) -- R7c-3: fat cross + camera fly-to
 	refresh()
+end)
+
+-- runI item 18: any OTHER panel opening (a menu button, the left stack) closes
+-- the whole city view so it never sits under another panel
+ClientState.onPanelOpen(function(id)
+	if id ~= "city" and gui.Enabled then
+		closePanel()
+	end
 end)
 
 ClientState.onView(refresh)
