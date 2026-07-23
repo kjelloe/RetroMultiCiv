@@ -16,9 +16,16 @@ ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
 Late-join+pause+eviction: FEATURE-COMPLETE — server half MERGED
 @205bbfe on reviewer green #2419 (both halves in-tree; only the
 cosmetic reveal banner remains, next helper session, live dispatch).
-Speed pass live: #19 re-routed to hardening (picked up), witness-8
-BEFORE-half queued, D4 treaty SHELL un-gated (helper holds it behind
-Founder's Record). Engine queue UNBLOCKED by the tag: #32 A8
+Speed pass live: #19 DONE by hardening same evening (branch, gate
+queued to reviewer) → hardening now on the docs/16 SECURITY
+RE-ASSESSMENT (its own trigger: new dep + 1.0 proximity — the RC bar
+wants docs/16 current); witness-8 BEFORE-half queued (sim-runner,
+untaken pending its wake); D4 treaty SHELL un-gated (helper holds it
+behind Founder's Record). Fleet fully stocked — the rate limiter is
+the serialized engine spine + the two fresh-session starts + the
+gaming-PC session wakes (turn-based sessions cannot self-start a
+turn; see the Stop-hook item in specs/agent-mail-hub-upgrade.md
+phase 1). Engine queue UNBLOCKED by the tag: #32 A8
 (fresh bugfixer session) -> #19 view-contract -> D3-surfacing ->
 D4-D6 (witness-8 + treaty-UI ride D4). Client remaining: Founder's
 Record #34 (fresh helper session) + the post-join reveal banner (now
