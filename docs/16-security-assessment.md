@@ -244,6 +244,10 @@ historical record of each; slices merged Slice 1/2/2.5/3):**
 5. **Client-side inbound hardening** (helper; A51 prereq): the CLIENT socket
    needs its own `maxPayload` + malformed-frame tolerance before it auto-connects
    to third-party servers from the index.
+6. **Late-join civ-squat grief** (LOW, new 2026-07-24, §7): no per-IP-per-game
+   takeover cap — a rate-limited (joins-per-min) attacker can slowly claim
+   several AI civs in one public game. Idle squatters fall to auto-regency
+   (no stall). Fix = a per-game takeover cap if public grief proves real; v2.
 
 --- historical ranked detail (provenance) ---
 
@@ -408,4 +412,51 @@ subdomain is an nginx alias for the same loopback :8200 upstream that
 
 **Verdict: safe to keep exposed with the §4 checklist; the public name
 adds an alias + a designed listing surface, not a new attack class.**
+Next re-run triggers: new dependency · 1.0 RC · residual items acted on.
+
+## 7. New-dependency + approaching-1.0 re-assessment (2026-07-24 — triggers new-dep + RC)
+
+Delta since §6: the late-join/pause/eviction feature merged, one new
+vendored client lib (qrcode-generator), and the `?join=CODE` deep-link.
+Five surfaces evaluated; **NO RC-blocker found.**
+
+- **Late-join takeover + server-issued `claimSeat` (new join path).** A
+  tokenless join to a public+lateJoining running game claims an AI civ.
+  RATE-LIMITED as designed: the takeover branch sits INSIDE `handleJoin`
+  AFTER the per-IP `joins-per-min` gate (30/min) and behind the handshake
+  connect-rate — a takeover is not a cheaper path than a normal join. The
+  `claimSeat` flip is an ENGINE command (recorded + replayed, deterministic,
+  validates dead/already-human/game-over) — no server-side state write, no
+  tamper surface. Grief vector: an attacker can *squat* AI civs (one per
+  join), bounded by `joins-per-min` + the game's civ count; an idle squatter
+  falls to XIV §30 auto-regency (the game keeps advancing as AI, no stall).
+  RESIDUAL (LOW, not RC-blocking): no per-IP-per-game takeover cap — a
+  determined attacker could rate-limited-slowly claim several civs in one
+  public game. Recommend a per-game takeover cap (e.g. 1/IP/game) IF public
+  grief proves real; shelved to plan-version2 otherwise.
+- **qrcode-generator (new vendored client lib).** CONFIRMED CLEAN: purely
+  vendored (`client/vendor/qrcode.min.js`, 21 KB) — NOT an npm dependency,
+  so zero supply-chain install surface. No network (no `fetch(`/XHR/
+  WebSocket/sendBeacon), no `eval`/`new Function`/dynamic import. Pure
+  client-side QR pixel generation for the join-share card. No hosted-surface
+  impact.
+- **`?join=CODE` deep-link.** PREFILLS the Join form only (setup.js) — the
+  join itself runs the normal path (per-IP `joins-per-min` + code validation
+  + game-must-exist). No new enumeration exposure: the 5-char Crockford
+  join code (32^5 ≈ 33.5M) under 30/min/IP is infeasible to brute per-IP
+  (~years), and only LIVE games answer. Same surface as the existing join,
+  now more shareable. LOW.
+- **Agent-mail hub allowlist change.** DEV-LAN coordination infra, not part
+  of the deployed game-server surface — OUT OF SCOPE for the hosted posture.
+  Note-only.
+- **Paused-game accumulation (resource vector).** BOUNDED — cap math
+  verified: paused games count toward `--max-games` (`registry.list()`
+  includes them), and Create-at-cap EVICTS one paused game (evict-or-
+  serverFull), so live games ≤ maxGames always; never evicts an active game.
+  An evicted paused game's save survives (rejoinable by code) but is
+  abandoned → rotatable under `--max-saves-mb`, so disk stays bounded. No
+  unbounded accumulation.
+
+**Verdict: safe for continued exposure with the §4 checklist; no new attack
+class, no RC-blocker. One LOW residual (per-game takeover cap) noted for v2.**
 Next re-run triggers: new dependency · 1.0 RC · residual items acted on.
