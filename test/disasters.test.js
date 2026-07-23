@@ -66,6 +66,20 @@ test('famine: a Granary prevents it (no eligible disaster -> no rng, no strike)'
   assert.strictEqual(st.rngState, before, 'zero rng drawn when nothing is eligible');
 });
 
+test('workers>pop: a pop-losing disaster trims the workers array to the new pop', async () => {
+  const { process } = await load();
+  // pop 9 with a FULL manual worker assignment; aqueduct -> famine is the only eligible
+  // disaster -> pop 9 - idiv(9*33,100)=2 -> 7. The workers array MUST trim to the new pop
+  // (starvation + settler pop-cost already do; disasters were the gap — reviewer #2314, the
+  // "workers array longer than pop" invariant that aborted archipelago sims).
+  const st = craft(board('grassland'), { pop: 9, buildings: ['aqueduct'], workers: [0, 1, 2, 3, 4, 5, 6, 7, 8] });
+  process(st, always(), []);
+  assert.strictEqual(st.cities.c1.pop, 7, 'famine 9 -> 7');
+  assert.ok(Array.isArray(st.cities.c1.workers) && st.cities.c1.workers.length <= st.cities.c1.pop,
+    `the sim-driver invariant (workers.length <= pop) must hold — got ${st.cities.c1.workers && st.cities.c1.workers.length} > ${st.cities.c1.pop}`);
+  assert.strictEqual(st.cities.c1.workers.length, 7, 'workers trimmed to exactly the new pop');
+});
+
 test('fire: destroys one random building (Aqueduct absent)', async () => {
   const { process } = await load();
   // granary prevents famine; Medicine tech prevents plague (NOT aqueduct, which would

@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 57, 'the fifty-seven scenarios (056/057 manhattan-gate added)');
+      assert.strictEqual(files.length, 58, 'the fifty-eight scenarios (058 disaster-worker-trim added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -179,7 +179,8 @@ const PORTED = [
   '054-difficulty-asymmetric.json', // difficulty #2158: human-gated ASYMMETRIC AI knobs (aiCostPct + aiFoodRows)
   '055-trireme-city-disband.json', // B27: a docked sea unit is lost when its coastal city disbands (not stranded on land)
   '056-manhattan-gate-blocks.json', // manhattan-gate #16: nuclear NOT buildable before the Manhattan Project
-  '057-manhattan-gate-allows.json' // manhattan-gate #16: nuclear buildable once Manhattan is active
+  '057-manhattan-gate-allows.json', // manhattan-gate #16: nuclear buildable once Manhattan is active
+  '058-disaster-worker-trim.json' // workers>pop: a pop-losing disaster trims workers/specialists to pop (cross-language)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

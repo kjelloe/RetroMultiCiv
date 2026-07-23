@@ -854,5 +854,5 @@ export {
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, nukesEnabled, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
-  unitObsolete
+  unitObsolete, trimToPop
 };

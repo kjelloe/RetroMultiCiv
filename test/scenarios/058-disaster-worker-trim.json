@@ -1,0 +1,238 @@
+{
+  "name": "disasters: a pop-losing disaster trims the workers array to the new pop",
+  "notes": "workers>pop fix (reviewer #2314): a FAMINE (33% pop loss) on a fully-worked city must trim its workers array to the reduced pop — starvation + settler pop-cost already do, disasters were the gap, breaking the workers.length<=pop invariant and aborting archipelago sims. Grassland-only + aqueduct (blocks fire+plague) + no granary => famine is the only eligible disaster; the food buffer prevents starvation so the ONLY pop change is the famine. disastersEnabled + rngState 72 fire it deterministically. Hash-only cross-language pin; semantics asserted in test/disasters.test.js.",
+  "rulesOverrides": {
+    "disastersEnabled": true
+  },
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 200,
+      "year": 1000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 7,
+        "height": 7,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "wonders": {},
+      "nextUnitId": 10,
+      "nextCityId": 5,
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Faminia",
+          "owner": "p1",
+          "x": 3,
+          "y": 3,
+          "pop": 9,
+          "food": 50,
+          "shields": 0,
+          "buildings": [
+            "aqueduct"
+          ],
+          "workers": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1"
+      ],
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#00f",
+          "human": false,
+          "gold": 100,
+          "techs": [],
+          "researching": "pottery",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 72
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true
+      }
+    }
+  ],
+  "final": {
+    "hash": "0x61665f95"
+  }
+}

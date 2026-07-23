@@ -1097,6 +1097,7 @@ return {
 	tileYields = tileYields,
 	FAT_CROSS = FAT_CROSS,
 	hasBuilding = hasBuilding,
+	trimToPop = trimToPop,
 	wonderActive = wonderActive,
 	wonderInCity = wonderInCity,
 	nukesEnabled = nukesEnabled,

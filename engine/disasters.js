@@ -6,7 +6,7 @@
 // triremeLossPct discipline) — so a fully-protected empire AND disastersEnabled=false
 // both draw ZERO rng and stay byte-identical. Lua-portable subset (no class/this/Map/Set).
 import { rollRange } from './rng.js';
-import { hasBuilding } from './cities.js';
+import { hasBuilding, trimToPop } from './cities.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -63,7 +63,12 @@ function strike(state, city, kind, ruleset, events) {
   let buildingLost = '';
   if (d.popPct !== undefined) {
     popLost = idiv(city.pop * d.popPct, 100);
-    if (popLost > 0) city.pop = city.pop - popLost;
+    if (popLost > 0) {
+      city.pop = city.pop - popLost;
+      trimToPop(city); // workers>pop fix: a pop-drop must trim its workers/specialists (starvation
+      // and the settler pop-cost already do — disasters were the gap; broke the invariant on
+      // full-worked cities, aborting archipelago sims: reviewer #2314)
+    }
   }
   if (d.destroyBuilding === true && city.buildings !== undefined && city.buildings.length > 0) {
     const bi = rollRange(state.rngState, city.buildings.length);

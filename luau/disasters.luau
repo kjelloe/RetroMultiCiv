@@ -79,6 +79,7 @@ local function strike(state: any, city: any, kind: string, ruleset: any, events:
 		popLost = idiv(city.pop * d.popPct, 100)
 		if popLost > 0 then
 			city.pop = city.pop - popLost
+			cities.trimToPop(city) -- workers>pop fix: a pop-drop trims its workers/specialists (twin)
 		end
 	end
 	if d.destroyBuilding == true and city.buildings ~= nil and #city.buildings > 0 then
