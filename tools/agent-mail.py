@@ -8,7 +8,8 @@ reader (no shared writes, so parallel agents can't clobber each other).
 
   python3 tools/agent-mail.py send --from architect --to helper "A11 is a go"
   python3 tools/agent-mail.py send --from helper --to architect "A11 done" --tag done
-  python3 tools/agent-mail.py inbox --as helper          # unread for me (marks read)
+  python3 tools/agent-mail.py inbox --as helper          # unread for me (DELIVERS; ack after)
+  python3 tools/agent-mail.py ack @a1b2c3d4 --as helper  # settle it (else it comes back in 15m)
   python3 tools/agent-mail.py peek --as helper           # unread, without marking
   python3 tools/agent-mail.py log [-n 20]                # recent traffic, all parties
   python3 tools/agent-mail.py who                        # known roles + unread counts
@@ -86,6 +87,7 @@ same stance as the game server); delete the remote file to go local.
 """
 import argparse
 import hashlib
+import hmac
 import json
 import os
 import sys
@@ -161,6 +163,18 @@ def write_locks(locks):
     os.replace(tmp, LOCKS)
 
 
+# A lock is a LEASE, not a deed. A lane whose PC sleeps, whose session is
+# cleared, or who simply forgets its done-mail step used to hold a file
+# forever and only a human with --force could free it. A lease expires on
+# its own; the holder keeps it alive by re-running `lock` (which renews).
+LOCK_TTL_MIN = 45
+
+
+def lock_expired(held, now=None):
+    now = now or int(time.time())
+    return (now - held['ts']) > held.get('ttl', LOCK_TTL_MIN) * 60
+
+
 def norm_path(path):
     # registry keys are repo-relative with forward slashes — the same file
     # must hash to the same key no matter how the caller spelled it
@@ -214,18 +228,113 @@ def set_cursor(role, value):
         f.write(str(value))
 
 
+# --- delivery state: at-least-once mail ---------------------------------
+# The cursor alone was AT-MOST-once: `inbox` advanced it past everything
+# unread, so (a) a --tag filtered read silently buried the messages it did
+# not print, and (b) a lane that read its mail and then lost its turn --
+# context compaction, crash, human interrupt -- never saw that mail again.
+# Now: `inbox` DELIVERS (marks pending, prints); `ack` SETTLES. The cursor
+# advances only over a contiguous run of settled ids, so nothing is ever
+# stepped over. A delivered-but-unacked message returns to the inbox after
+# REDELIVER_SEC -- the lane gets a second chance without a human nudge.
+REDELIVER_SEC = 900
+
+
+def pending_file(role):
+    return os.path.join(BOX, f'pending-{canon(role)}')
+
+
+def acked_file(role):
+    return os.path.join(BOX, f'acked-{canon(role)}')
+
+
+def _read_json(path, empty):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return empty
+
+
+def _write_json(path, data):
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=1)
+    os.replace(tmp, path)
+
+
+def read_pending(role):
+    return _read_json(pending_file(role), {})
+
+
+def read_acked(role):
+    return set(_read_json(acked_file(role), []))
+
+
+def deliver(role, msgs):
+    # mark printed messages as in-flight; redelivery timer starts now
+    pend = read_pending(role)
+    now = int(time.time())
+    for m in msgs:
+        pend[str(m['id'])] = now
+    _write_json(pending_file(role), pend)
+
+
+def settle(role, ids):
+    # ack: drop from pending, add to acked, then slide the cursor over the
+    # contiguous settled run and prune everything below it.
+    pend = read_pending(role)
+    acked = read_acked(role)
+    for i in ids:
+        pend.pop(str(i), None)
+        acked.add(int(i))
+    cur = get_cursor(role)
+    c = canon(role)
+    mine = sorted(m['id'] for m in read_all()
+                  if m['id'] > cur and addressed(m['to'], role) and canon(m['from']) != c)
+    for mid in mine:
+        if mid in acked:
+            cur = mid
+        else:
+            break
+    acked = {i for i in acked if i > cur}
+    pend = {k: v for k, v in pend.items() if int(k) > cur}
+    set_cursor(role, cur)
+    _write_json(acked_file(role), sorted(acked))
+    _write_json(pending_file(role), pend)
+    return cur
+
+
 def recipients(to_field):
     # a message's `to` may be a comma-joined list ("architect,sim-runner");
     # split it so each named role matches, not just the exact joined string.
     return [r.strip() for r in to_field.split(',') if r.strip()]
 
 
-def unread_for(role):
+def unread_for(role, include_inflight=False):
     cur = get_cursor(role)
     c = canon(role)
-    return [m for m in read_all()
-            if m['id'] > cur and addressed(m['to'], role)
-            and canon(m['from']) != c]
+    pend = read_pending(role)
+    acked = read_acked(role)
+    now = int(time.time())
+    out = []
+    for m in read_all():
+        if m['id'] <= cur or not addressed(m['to'], role) or canon(m['from']) == c:
+            continue
+        if m['id'] in acked:
+            continue
+        sent = pend.get(str(m['id']))
+        if sent is not None and not include_inflight and now - sent < REDELIVER_SEC:
+            continue  # delivered, still inside its ack window
+        out.append(m)
+    return out
+
+
+def inflight_for(role):
+    # delivered but not yet acked, and not yet due for redelivery
+    pend = read_pending(role)
+    now = int(time.time())
+    return {int(k): v for k, v in pend.items() if now - v < REDELIVER_SEC}
 
 
 # --- presence board (liveness without flooding the message log) ---
@@ -318,7 +427,8 @@ def flag_counts(role):
     # machine form (also `flag --as X --raw`): unread count, queue depth,
     # note timestamp (0 = none). `flag wait` polls THIS, local or via hub.
     note = get_flag(role)
-    return len(unread_for(role)), len(read_queue(role)), (note or {}).get('ts', 0)
+    return (len(unread_for(role)), len(read_queue(role)),
+            (note or {}).get('ts', 0), len(inflight_for(role)))
 
 
 def flag_check_line(role):
@@ -326,7 +436,11 @@ def flag_check_line(role):
     unread = len(unread_for(role))
     qn = len(read_queue(role))
     note = get_flag(role)
+    infl = inflight_for(role)
     if not (unread or qn or note):
+        if infl:
+            return (f'flag down ({canon(role)}: no unread, queue empty) — but {len(infl)} message(s) '
+                    f'delivered and UNACKED; ack them or they return to your inbox')
         return f'flag down ({canon(role)}: no unread, queue empty)'
     parts = []
     if unread:
@@ -337,6 +451,15 @@ def flag_check_line(role):
         parts.append(f"note from {note.get('by', '?')} {age_str(note['ts'])} ago: "
                      f"{note.get('why') or '(no note)'} → `flag lower --as {canon(role)}` once acted on")
     return f"FLAG UP ({canon(role)}): " + ' · '.join(parts)
+
+
+def broadcast(sender, text, tag='fyi'):
+    msgs = read_all()
+    msg = {'id': (msgs[-1]['id'] + 1) if msgs else 1, 'ts': int(time.time()),
+           'from': sender, 'to': 'all', 'tag': tag, 'text': text}
+    with open(LOG, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(msg) + '\n')
+    return msg
 
 
 def fmt(m):
@@ -372,14 +495,36 @@ def remote_url():
         return None
 
 
+def my_token():
+    tok = os.environ.get('AGENT_MAIL_TOKEN', '').strip()
+    if tok:
+        return tok
+    try:
+        with open(os.path.join(BOX, 'token'), encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return ''
+
+
 def proxy_raw(argv, url):
+    import urllib.error
     import urllib.request
+    headers = {'Content-Type': 'application/json'}
+    tok = my_token()
+    if tok:
+        headers['Authorization'] = 'Bearer ' + tok
     req = urllib.request.Request(url + '/rpc',
         data=json.dumps({'argv': argv}).encode('utf-8'),
-        headers={'Content-Type': 'application/json'}, method='POST')
+        headers=headers, method='POST')
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
             reply = json.loads(r.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        # the hub answers refusals (400/401) with a JSON body naming the reason
+        try:
+            reply = json.loads(e.read().decode('utf-8'))
+        except Exception:
+            sys.exit(f'mail hub rejected the request ({e.code}) at {url}')
     except Exception as e:
         sys.exit(f'mail hub unreachable at {url}: {e} — fix or delete .agent-mail/remote')
     return reply.get('out', ''), int(reply.get('code', 0))
@@ -415,9 +560,10 @@ def flag_wait(argv):
         if url:
             raw, _ = proxy_raw(['flag', '--as', a.role, '--raw'], url)
             try:
-                u, q, n = raw.split()
-                return int(u.split('=')[1]), int(q.split('=')[1]), int(n.split('=')[1])
-            except ValueError:
+                kv = dict(tok.split('=', 1) for tok in raw.split())
+                return (int(kv['unread']), int(kv['queue']),
+                        int(kv['note']), int(kv.get('inflight', 0)))
+            except (ValueError, KeyError):
                 # malformed/empty hub reply (the #2235 race, hub-side fixed by
                 # DISPATCH_LOCK) — treat as "no change this poll", never crash
                 return None
@@ -435,7 +581,7 @@ def flag_wait(argv):
     while True:
         c = counts()
         if c is not None:
-            unread, qn, note_ts = c
+            unread, qn, note_ts = c[0], c[1], c[2]
             if unread or note_ts or qn > base_qn:
                 print(line())
                 return
@@ -444,6 +590,121 @@ def flag_wait(argv):
             print(f'{line()} — nothing new after {a.timeout}s; run `flag wait` again to keep listening')
             return
         time.sleep(min(a.interval, max(1, int(deadline - time.time()))))
+
+
+# --- hub boundary: allowlist, not blocklist ------------------------------
+# The hub used to take raw argv and hand it to dispatch(). That made every
+# argparse flag reachable from the network, including --body-file, which
+# opens a path on the HUB's disk -- an unauthenticated read of anything the
+# process can see, published into the shared mail log. Refusing --body-file
+# by name would be a blocklist, and blocklists rot: the next path-bearing
+# flag anyone adds reopens the hole silently.
+#
+# So: an explicit per-command allowlist. A flag that is not listed does not
+# cross the wire. --body-file is excluded by OMISSION rather than by name,
+# which is the property that survives future edits to the CLI. (Clients
+# resolve --body-file locally and proxy the CONTENT as --body.)
+RPC_SCHEMA = {
+    #          flags allowed over the wire                 max positionals
+    'send':    ({'--as', '--to', '--tag', '--body'}, 1),
+    'inbox':   ({'--as', '--tag', '--headers', '--ack'}, 0),
+    'peek':    ({'--as', '--tag', '--headers'}, 0),
+    'ack':     ({'--as'}, None),            # None = any number of positionals
+    'log':     ({'-n'}, 0),
+    'show':    (set(), 1),
+    'who':     (set(), 0),
+    'status':  ({'--as'}, 1),
+    'queue':   ({'--for', '--as', '--tag', '--id', '--body'}, 1),
+    'flag':    ({'--as', '--for', '--why', '--raw'}, 1),
+    'lock':    ({'--as', '--why', '--ttl'}, 1),
+    'unlock':  ({'--as', '--force'}, 1),
+    'locks':   (set(), 0),
+}
+# flags that take no value, so the validator knows not to consume the next token
+RPC_BOOL = {'--headers', '--ack', '--raw', '--force'}
+# every accepted alias spelling, normalised to one canonical flag
+RPC_ALIAS = {'--from': '--as', '--role': '--as', '--sender': '--as',
+             '--reason': '--why', '--text': '--body', '--message': '--body',
+             '-m': '--body'}
+# commands whose positional argument is a repo path used as a registry key
+PATH_CMDS = {'lock', 'unlock'}
+
+
+class RpcError(Exception):
+    pass
+
+
+def rpc_normalise(payload):
+    """Validate a wire payload into a safe argv. Raises RpcError."""
+    raw = payload.get('argv')
+    if not isinstance(raw, list) or not raw:
+        raise RpcError('argv must be a non-empty list')
+    argv = [str(x) for x in raw]
+
+    cmd = argv[0]
+    if cmd not in RPC_SCHEMA:
+        raise RpcError(f'unknown or non-remote command: {cmd}')
+    allowed, npos = RPC_SCHEMA[cmd]
+
+    out, pos, i = [cmd], [], 1
+    while i < len(argv):
+        tok = argv[i]
+        if tok.startswith('-') and tok != '-':
+            name, inline = (tok.split('=', 1) + [None])[:2]
+            canon_flag = RPC_ALIAS.get(name, name)
+            if canon_flag not in allowed:
+                raise RpcError(f'flag not permitted over the wire for {cmd}: {name}')
+            out.append(canon_flag)
+            if canon_flag not in RPC_BOOL:
+                if inline is not None:
+                    out.append(inline)
+                elif i + 1 < len(argv):
+                    i += 1
+                    out.append(argv[i])
+                else:
+                    raise RpcError(f'{name} expects a value')
+        else:
+            pos.append(tok)
+        i += 1
+
+    if npos is not None and len(pos) > npos:
+        raise RpcError(f'{cmd} takes at most {npos} positional argument(s)')
+    if cmd in PATH_CMDS and pos:
+        # a registry key, never opened -- but keep it inside the repo so it
+        # cannot masquerade as something outside the project
+        p = pos[0].replace(os.sep, '/')
+        if p.startswith('/') or '..' in p.split('/'):
+            raise RpcError(f'path must be repo-relative: {pos[0]}')
+    return out + pos
+
+
+def load_tokens():
+    """token -> (lane, is_admin). Absent file means auth disabled (LAN posture)."""
+    out = {}
+    try:
+        with open(os.path.join(BOX, 'tokens'), encoding='utf-8') as f:
+            for line in f:
+                line = line.split('#', 1)[0].strip()
+                if '=' not in line:
+                    continue
+                tok, rest = (x.strip() for x in line.split('=', 1))
+                parts = rest.split()
+                if tok and parts:
+                    out[tok] = (canon(parts[0]), 'admin' in parts[1:])
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def rpc_authorise(argv, lane, is_admin):
+    """Bind the caller's asserted identity to their token."""
+    for i, tok in enumerate(argv):
+        if tok == '--as' and i + 1 < len(argv):
+            claimed = canon(argv[i + 1])
+            if claimed != lane and not is_admin:
+                raise RpcError(f'token is for {lane}, cannot act as {claimed}')
+    if '--force' in argv and not is_admin:
+        raise RpcError('--force is arbitration and requires an admin token')
 
 
 def serve(host, port):
@@ -464,13 +725,41 @@ def serve(host, port):
             self.end_headers()
             self.wfile.write(body)
 
+        def _refuse(self, http_code, text):
+            self.send_response(http_code)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'out': text, 'code': 1}).encode())
+
         def do_POST(self):
             if self.path != '/rpc':
                 self.send_response(404); self.end_headers(); return
+            tokens = load_tokens()
             try:
                 length = int(self.headers.get('Content-Length', 0))
-                argv = json.loads(self.rfile.read(length).decode('utf-8'))['argv']
-                assert isinstance(argv, list) and argv and argv[0] != 'serve'
+                payload = json.loads(self.rfile.read(length).decode('utf-8'))
+                if not isinstance(payload, dict):
+                    raise RpcError('body must be a JSON object')
+                lane, is_admin = None, True
+                if tokens:
+                    supplied = (self.headers.get('Authorization', '')
+                                .removeprefix('Bearer ').strip())
+                    match = None
+                    for known, meta in tokens.items():
+                        # compare every entry so timing does not leak which
+                        # prefix was right
+                        if hmac.compare_digest(supplied, known):
+                            match = meta
+                    if match is None:
+                        self._refuse(401, 'unauthorised: bad or missing token')
+                        return
+                    lane, is_admin = match
+                argv = rpc_normalise(payload)
+                if lane is not None:
+                    rpc_authorise(argv, lane, is_admin)
+            except RpcError as e:
+                self._refuse(400, f'refused: {e}')
+                return
             except Exception:
                 self.send_response(400); self.end_headers(); return
             buf = io.StringIO()
@@ -497,8 +786,58 @@ def serve(host, port):
             self.end_headers()
             self.wfile.write(body)
 
+    def reaper():
+        # THE PIECE NOTHING ELSE PROVIDES. Every agent-mail action is driven
+        # by an agent taking a turn; when a lane goes dark, nothing notices.
+        # The hub is the one long-lived process in the system, so it is the
+        # only place a watchdog can live. It runs no model and costs no
+        # tokens -- it frees expired leases and raises the coordinator's flag
+        # so a stall surfaces without a human going lane to lane.
+        SILENT_MIN = 25  # a WORKING lane whose status has not moved in this long
+        while True:
+            time.sleep(60)
+            try:
+                with DISPATCH_LOCK:
+                    now = int(time.time())
+
+                    # 1. expired leases: free them and say so, once
+                    locks = read_locks()
+                    freed = [k for k, h in locks.items() if lock_expired(h, now)]
+                    for k in freed:
+                        h = locks.pop(k)
+                        broadcast('hub', f"LEASE EXPIRED: {k} released (was {h['by']}'s, "
+                                         f"held {age_str(h['ts'])}: {h.get('why') or 'no reason'})")
+                    if freed:
+                        write_locks(locks)
+
+                    # 2. a WORKING lane gone quiet: raise the coordinator's
+                    #    flag. Only working-and-not-long states count — a
+                    #    waiting lane sits in flag-wait for hours legitimately
+                    #    (same rule as the status board's ⚠STALE mark).
+                    for role, stt in all_statuses().items():
+                        state = stt.get('state', '').lower()
+                        mins = (now - stt['ts']) / 60
+                        if (mins < SILENT_MIN or canon(role) == canon('coordinator')
+                                or 'working' not in state or 'long' in state):
+                            continue
+                        seen = get_flag('coordinator') or {}
+                        if seen.get('why', '').startswith(f'{role} silent'):
+                            continue  # already flagged; do not spam
+                        _write_json(flag_file('coordinator'),
+                                    {'why': f'{role} silent {int(mins)}m (last: {stt["state"]}) '
+                                            f'— check the lane or requeue its work',
+                                     'by': 'hub', 'ts': now})
+            except Exception as e:  # a reaper must never take the hub down
+                print(f'reaper error: {e}')
+
+    threading.Thread(target=reaper, daemon=True).start()
     srv = ThreadingHTTPServer((host, port), Handler)
-    print(f'agent-mail hub listening on {host}:{port} (store: {BOX})')
+    auth = load_tokens()
+    print(f'agent-mail hub listening on {host}:{port} (store: {BOX}) · reaper active · '
+          + (f'auth ON ({len(auth)} tokens)' if auth else 'auth OFF (trusted-LAN posture)'))
+    if host == '0.0.0.0':
+        print('  note: bound to 0.0.0.0 — reachable from every interface on this box; '
+              'bind a specific LAN address if that is broader than intended')
     srv.serve_forever()
 
 
@@ -567,6 +906,13 @@ def dispatch(argv):
         i.add_argument('--tag', dest='tag', default='')
         i.add_argument('--headers', action='store_true',
                        help='one line per message (id/from→to/tag/first line); expand one with `show #id`')
+        if name == 'inbox':
+            i.add_argument('--ack', action='store_true',
+                           help='settle the displayed messages immediately (for reads where seeing IS acting)')
+
+    ak = sub.add_parser('ack', help='settle delivered messages so they stop being redelivered')
+    ak.add_argument('refs', nargs='+', help='message hashes (@abc12345) or #ids')
+    ak.add_argument('--as', '--from', '--role', dest='role', required=True)
 
     l = sub.add_parser('log')
     l.add_argument('-n', type=int, default=15)
@@ -606,6 +952,9 @@ def dispatch(argv):
     lk.add_argument('path', help='file to lock (repo-relative)')
     lk.add_argument('--as', '--from', '--role', dest='role', required=True)
     lk.add_argument('--why', '--reason', dest='why', default='')
+    lk.add_argument('--ttl', type=int, default=None,
+                    help=f'lease minutes before the lock expires on its own (default {LOCK_TTL_MIN}); '
+                         're-run `lock` to renew')
 
     ul = sub.add_parser('unlock')
     ul.add_argument('path')
@@ -653,8 +1002,15 @@ def dispatch(argv):
             for m in msgs:
                 print(hdr(m) if a.headers else fmt(m))
             if a.cmd == 'inbox':
-                # cursor moves to the newest unread we actually displayed
-                set_cursor(a.role, max(m['id'] for m in unread_for(a.role)))
+                if a.ack:
+                    # reading IS acting for this read: settle immediately, but
+                    # ONLY what we displayed -- never what --tag filtered out
+                    settle(a.role, [m['id'] for m in msgs])
+                else:
+                    deliver(a.role, msgs)
+                    hashes = ' '.join('@' + msg_hash(m) for m in msgs)
+                    print(f"-- ACK REQUIRED: `ack {hashes} --as {canon(a.role)}` when acted on "
+                          f"(unacked mail returns to this inbox in {REDELIVER_SEC // 60}m)")
         # anti-stale-idle: an empty inbox is NOT an idle verdict — surface the
         # work stack at the exact moment a lane forms its "nothing to do" belief
         q = read_queue(a.role)
@@ -664,6 +1020,22 @@ def dispatch(argv):
         if note:
             print(f"note: 🚩 flag note from {note.get('by', '?')}: {note.get('why') or '(no note)'} — "
                   f"`flag lower --as {canon(a.role)}` once acted on")
+
+    elif a.cmd == 'ack':
+        msgs = read_all()
+        want = []
+        for ref in a.refs:
+            r = ref.lstrip('@#')
+            if r.isdigit():
+                want.append(int(r))
+                continue
+            hits = [m for m in msgs if msg_hash(m).startswith(r)]
+            if len(hits) != 1:
+                sys.exit(f'ack: {ref} matches {len(hits)} messages — use a longer hash or #id')
+            want.append(hits[0]['id'])
+        cur = settle(a.role, want)
+        print(f'acked {len(want)} for {canon(a.role)} · cursor #{cur} · '
+              f'{len(unread_for(a.role))} unread · {len(inflight_for(a.role))} in flight')
 
     elif a.cmd == 'log':
         for m in read_all()[-a.n:]:
@@ -784,7 +1156,12 @@ def dispatch(argv):
             if not role:
                 sys.exit('flag: --as <role> required to check your flag')
             if a.raw:
-                u, q, n = flag_counts(role)
+                # WIRE FORMAT — three fields, frozen. An old lane parses this
+                # with `u, q, n = raw.split()`, so a fourth field makes that
+                # raise, flag_wait's counts() return None, and the lane stops
+                # waking on mail — silently, the exact bug class this upgrade
+                # kills. Ack debt is surfaced in the human-readable line only.
+                u, q, n, _ = flag_counts(role)
                 print(f'unread={u} queue={q} note={n}')
             else:
                 print(flag_check_line(role))
@@ -813,12 +1190,23 @@ def dispatch(argv):
         locks = read_locks()
         key = norm_path(a.path)
         held = locks.get(key)
-        if held and held['by'] != a.role:
+        if held and held['by'] != a.role and not lock_expired(held):
+            mins = held.get('ttl', LOCK_TTL_MIN) - int((time.time() - held['ts']) / 60)
             sys.exit(f"DENIED: {key} locked by {held['by']} {age_str(held['ts'])} ago"
-                     f" ({held.get('why') or 'no reason given'}) — mail them or the architect")
-        locks[key] = {'by': a.role, 'ts': int(time.time()), 'why': a.why}
+                     f" ({held.get('why') or 'no reason given'}) — lease expires in ~{mins}m;"
+                     f" mail them or the architect")
+        stolen = held if (held and held['by'] != a.role) else None
+        locks[key] = {'by': a.role, 'ts': int(time.time()), 'why': a.why,
+                      'ttl': a.ttl or LOCK_TTL_MIN}
         write_locks(locks)
-        print(f'locked {key} for {a.role}' + (' (renewed)' if held else ''))
+        print(f'locked {key} for {a.role} ({locks[key]["ttl"]}m lease)'
+              + (' (renewed)' if held and not stolen else ''))
+        if stolen:
+            # a takeover is arbitration — everyone hears about it, same as --force
+            print(f"  took over EXPIRED lease from {stolen['by']} "
+                  f"(held {age_str(stolen['ts'])}, {stolen.get('why') or 'no reason'})")
+            broadcast(a.role, f"LEASE EXPIRED: {key} taken over from {stolen['by']} "
+                              f"(held {age_str(stolen['ts'])}: {stolen.get('why') or 'no reason'})")
 
     elif a.cmd == 'unlock':
         locks = read_locks()
@@ -834,12 +1222,8 @@ def dispatch(argv):
         print(f'unlocked {key}')
         if held['by'] != a.role:
             # forced release is arbitration — everyone hears about it
-            msgs = read_all()
-            msg = {'id': (msgs[-1]['id'] + 1) if msgs else 1, 'ts': int(time.time()),
-                   'from': a.role, 'to': 'all', 'tag': 'fyi',
-                   'text': f"FORCED UNLOCK: {key} (was {held['by']}'s: {held.get('why') or 'no reason'})"}
-            with open(LOG, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(msg) + '\n')
+            msg = broadcast(a.role, f"FORCED UNLOCK: {key} (was {held['by']}'s: "
+                                    f"{held.get('why') or 'no reason'})")
             print(f"broadcast #{msg['id']} @{msg_hash(msg)}")
 
     elif a.cmd == 'locks':
@@ -847,9 +1231,13 @@ def dispatch(argv):
         if not locks:
             print('(no locks held)')
             return
+        now = int(time.time())
         for key in sorted(locks):
             h = locks[key]
-            print(f"{key}  ·  {h['by']}  ·  {age_str(h['ts'])}  ·  {h.get('why') or '-'}")
+            ttl = h.get('ttl', LOCK_TTL_MIN)
+            left = ttl - int((now - h['ts']) / 60)
+            state = 'EXPIRED — free to take' if left <= 0 else f'{left}m left'
+            print(f"{key}  ·  {h['by']}  ·  held {age_str(h['ts'])}  ·  {state}  ·  {h.get('why') or '-'}")
 
 
 if __name__ == '__main__':

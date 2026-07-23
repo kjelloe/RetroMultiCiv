@@ -351,9 +351,16 @@ fixed lane, so the bugfixer MUST claim the exact files by mail before
 editing and the architect arbitrates collisions; only ONE agent holds the
 golden lock at a time. File claims are MECHANICAL as well as by mail:
 `agent-mail.py lock <file> --as <role> --why "…"` before editing any
-shared file, `locks` to check holders (age shown — stale locks get
-arbitrated, never edited through), `unlock` when your done-mail goes out;
-only the holder or the architect (`--force`, which broadcasts) releases.
+shared file, `locks` to check holders (locks are 45-min LEASES since
+2026-07-24 — time remaining shown, re-run `lock` to renew a long hold
+[`--ttl N` for longer], EXPIRED leases are takeable and the hub reaper
+frees them; a LIVE lock is never edited through), `unlock` when your
+done-mail goes out; only the holder or the architect (`--force`, which
+broadcasts) releases. **Mail is at-least-once since 2026-07-24: `inbox`
+DELIVERS (15-min ack window), `ack @hash --as <role>` SETTLES; unacked
+mail returns to the inbox — ack what you have acted on, expect
+redelivery of what you haven't (`tools/agent-mail.md` "Delivery
+guarantees").**
 The mail claim still carries the WHY and the regions; the registry
 answers "may I edit this RIGHT NOW". Claim items in-file, mark them done,
 never reorder someone else's. Agent⇄architect coordination goes through

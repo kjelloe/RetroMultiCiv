@@ -3,7 +3,32 @@
 `tools/agent-mail.py` is a tiny file-backed mailbox and lock registry
 for the architect and any number of coder agents. Storage is
 `.agent-mail/` at the repo root (gitignored): `messages.jsonl`
-(append-only) + one unread-cursor file per reader + `locks.json`.
+(append-only) + per-reader `cursor-`/`pending-`/`acked-` files +
+`locks.json`.
+
+## Delivery guarantees: inbox DELIVERS, ack SETTLES (STANDARD — 2026-07-24)
+
+Mail is AT-LEAST-once since 2026-07-24. `inbox` no longer marks
+messages read — it DELIVERS them (prints + starts a 15-minute ack
+window) and names the required `ack` command. A delivered message you
+never ack RETURNS to your inbox after 15 minutes, so a lost turn
+(context compaction, crash, interrupt) can no longer swallow an
+instruction — that was the old at-most-once leak that made lanes look
+deaf until a human nudged them. The rules:
+
+- **Ack what you have acted on**: `ack @hash [@hash …] --as <role>`
+  (also accepts `#id`s). Ack when the instruction is DONE or safely
+  captured in your own notes/queue — not merely glanced at.
+- `inbox --ack` settles what it displays in one call — for reads where
+  seeing genuinely IS acting (status catch-ups, fyi sweeps).
+- A `--tag`-filtered `inbox` touches ONLY the displayed messages — the
+  old tool advanced the cursor past everything unread (silent mail
+  loss, the worst of the fixed bugs); now non-matching mail stays
+  unread.
+- Expect redelivery: seeing a message twice means you did not ack it —
+  act or ack, never ignore. Design for idempotence.
+- `flag`'s human-readable line reports unacked debt; the `--raw` wire
+  form stays EXACTLY three fields (old clients parse it positionally).
 
 ## Polling discipline (STANDARD — 2026-07-18)
 
@@ -19,9 +44,9 @@ see mail only when they poll.** So every agent MUST poll:
 - **On wake / session resume**, before judging lane state.
 
 Use `peek --as <role> --headers` to poll — it is NON-CONSUMING (does
-not advance your cursor), so polling repeatedly is free and safe;
-expand one with `show @hash`; only `inbox` marks read. `who` prints
-per-role unread counts at a glance.
+not deliver), so polling repeatedly is free and safe; expand one with
+`show @hash`; `inbox` delivers (then `ack` settles — see the delivery
+section above). `who` prints per-role unread counts at a glance.
 
 Multi-recipient routing: a message `--to a,b,c` is unread for EACH of
 a, b, c independently (fixed 2026-07-18 — before that an exact-string
@@ -122,8 +147,8 @@ it is the main case the flag exists for (the stale-idle incidents were all
 ops, on wake: `flag --as <you>` first. FLAG UP names the exact next
 command to run.
 
-- Mail and queue signals clear themselves when consumed (`inbox` moves the
-  cursor; `queue take` pops). Only the manual note needs an explicit
+- Mail and queue signals clear themselves when consumed (`inbox` +
+  `ack` settle; `queue take` pops). Only the manual note needs an explicit
   `flag lower --as <you>` — lower it when ACTED ON, not when merely seen.
 - `flag raise` covers "new work/update" signals with no new mail behind
   them: a spec file changed, a ruling landed, a parked lane should resume.
@@ -227,9 +252,11 @@ python3 tools/agent-mail.py send --from helper --to architect --tag done --body-
 echo "long body" | python3 tools/agent-mail.py send --from x --to y -   # or stdin (hub-safe since 2026-07-16)
 python3 tools/agent-mail.py send --from helper --to all "broadcast"
 python3 tools/agent-mail.py peek  --as helper --headers   # DEFAULT read: one line/msg (id/from→to/tag/FIRST LINE = the subject, ≤100 chars), does NOT mark
-python3 tools/agent-mail.py inbox --as helper --headers    # same, marks read
+python3 tools/agent-mail.py inbox --as helper --headers    # DELIVERS (15m ack window; prints the ack line)
+python3 tools/agent-mail.py ack @a1b2c3d4 @e5f6a7b8 --as helper   # SETTLE what you acted on (or #ids)
+python3 tools/agent-mail.py inbox --as helper --ack        # deliver + settle in one (reading IS acting)
 python3 tools/agent-mail.py show <hash-prefix>     # expand ONE message's full body by @hash (or #id-prefix)
-python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (add --headers)
+python3 tools/agent-mail.py inbox --as architect --tag done   # filter by tag (touches ONLY displayed msgs)
 python3 tools/agent-mail.py log [-n 20]            # recent traffic, all parties
 python3 tools/agent-mail.py who                    # canonical roles + unread counts + alias map
 python3 tools/agent-mail.py status --as helper "working: XII.2 future-tech (long ~20m)"  # overwrite YOUR status line
@@ -242,9 +269,11 @@ python3 tools/agent-mail.py flag wait --as helper   # BLOCKING poll — the idle
 python3 tools/agent-mail.py flag raise --for helper --as architect --why "spec X changed"
 python3 tools/agent-mail.py flag lower --as helper  # after acting on the note
 
-# file locks (the claim protocol, made mechanical)
-python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"
-python3 tools/agent-mail.py locks                  # who holds what, with age
+# file locks — LEASES since 2026-07-24 (45m default; expire on their own)
+python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"   # 45m lease
+python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e" --ttl 90  # longer op
+python3 tools/agent-mail.py lock client/main.js --as helper --why "A28 e2e"   # re-run = RENEW
+python3 tools/agent-mail.py locks                  # who holds what, with time REMAINING / EXPIRED
 python3 tools/agent-mail.py unlock client/main.js --as helper
 python3 tools/agent-mail.py unlock client/main.js --as architect --force
 ```
@@ -259,9 +288,12 @@ Conventions:
 - Check `locks` BEFORE editing any shared file; lock what you edit;
   unlock when your done-mail goes out. Only the holder (or the
   architect with `--force`, which logs a broadcast) may unlock.
-  A lock held by someone else = mail them or the architect — never
-  edit through it. Stale locks (see the age column) get arbitrated,
-  not ignored.
+  A LIVE lock held by someone else = mail them or the architect —
+  never edit through it. Locks are LEASES (45 min default, `--ttl N`
+  for longer ops): re-run `lock` to renew a long hold; an EXPIRED
+  lease is free to take (the takeover broadcasts, same as `--force`),
+  and the hub's reaper also frees expired leases on its own — so a
+  crashed lane can no longer wedge a file until a human intervenes.
 - Forgiving flags: the identity flag is `--from`/`--as`/`--role`/
   `--sender` interchangeably on every command that takes one; the
   send body may be positional OR `--body`/`--text`/`--message`/`-m`
