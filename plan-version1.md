@@ -4,10 +4,14 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 night (marker-0097 TAGGED @9f12dba =
-MERGE-CONSISTENT candidate, 29th consecutive — supersedes 0096;
-reviewer #2412 + sim-runner #2414 double-green; REDEPLOY FROM 0097.
-Landed in it:
+Last updated: 2026-07-25 (marker-0098 TAGGED @bb0bcc8 =
+MERGE-CONSISTENT candidate, 30th consecutive — supersedes 0097;
+golden-neutral bundle, every branch reviewer-gated; REDEPLOY FROM
+0098: late-join feature-complete + join-share QR + self-host
+find-a-game fix + the play-lane sweep + runI/runJ Studio-verified
+batch. Remaining v1: A8 threading (fresh bugfixer session, kit
+banked) -> D3-surfacing -> D4-D6; Founder's Record (fresh helper
+session); the Studio publish/acceptance session. 0097 carried:
 #8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
 requested #2393) · agent-mail at-least-once upgrade · fish/specials
 motifs + roblox mirror · roster-shuffle (age-snapshot instant starts

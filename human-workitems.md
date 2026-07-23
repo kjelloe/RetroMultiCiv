@@ -36,7 +36,12 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Redeploy from marker-0097** (`9f12dba` — supersedes the 0096
+- [ ] **Redeploy from marker-0098** (`bb0bcc8` — supersedes 0097 below;
+  ADDS: late-join/pause/eviction live on your box + join-share QR +
+  the self-host find-a-game fix + all the runI/runJ Roblox polish):
+  same procedure, bake step already in your ssh-deploy.sh.
+
+- [x] ~~Redeploy from marker-0097~~ (`9f12dba` — supersedes the 0096
   note): everything 0096 carried (every fix you personally hit —
   regent hang, rejoin, ff hangs — plus the engine at ~half cost and
   the onboarding arrows) PLUS: the fish/specials icons your friend's
