@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Road to v1.0 — RetroMultiCiv</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+      --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+      --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+    --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+    --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 2rem 1rem 4rem; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.75rem; }
+  h1 { font-size: 1.7rem; margin: 0 0 .3rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: .95rem; }
+  .meta { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip { display: inline-block; background: var(--chip-bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: .2rem .7rem; font-size: .82rem; color: var(--muted); }
+  .chip strong { color: var(--ink); }
+  section { margin: 1.75rem 0; }
+  .sec-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .3rem; }
+  .sec-head h2 { font-size: 1.05rem; margin: 0; text-transform: uppercase; letter-spacing: .06em; }
+  .sec-head .tag { font-size: .78rem; color: var(--muted); }
+  .bar { height: 3px; border-radius: 2px; margin: .35rem 0 1rem; }
+  #spine .bar { background: var(--do); }   #spine h2 { color: var(--do); }
+  #lanes .bar { background: var(--play); } #lanes h2 { color: var(--play); }
+  #axes .bar { background: var(--fyi); }   #axes h2 { color: var(--fyi); }
+  #gates .bar { background: var(--accent); } #gates h2 { color: var(--accent); }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: .85rem 1rem; margin: .6rem 0; }
+  .item .t { font-weight: 600; }
+  .item .d { color: var(--muted); font-size: .92rem; margin-top: .25rem; }
+  .st { display: inline-block; border-radius: 999px; padding: .05rem .55rem;
+    font-size: .78rem; border: 1px solid var(--line); margin-right: .4rem; white-space: nowrap; }
+  .done { color: var(--play); }  .now { color: var(--do); font-weight: 700; }
+  .qd { color: var(--fyi); }     .gate { color: var(--accent); font-weight: 700; }
+  ol.spine { list-style: none; padding: 0; margin: 0; counter-reset: n; }
+  ol.spine li { position: relative; padding: .35rem 0 .35rem 1.6rem; }
+  ol.spine li::before { content: "↓"; position: absolute; left: .35rem; color: var(--muted); }
+  ol.spine li:first-child::before { content: "▸"; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+  .tablewrap { overflow-x: auto; }
+  th, td { border: 1px solid var(--line); padding: .5rem .65rem; text-align: left; vertical-align: top; }
+  th { background: var(--chip-bg); }
+  footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem;
+    border-top: 1px solid var(--line); padding-top: 1rem; }
+</style>
+</head>
+<body><div class="wrap">
+
+<header>
+  <h1>Road to v1.0 — the remaining work</h1>
+  <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
+  <div class="meta">
+    <span class="chip">Last updated: <strong>2026-07-24 night</strong></span>
+    <span class="chip">Merge candidate: <strong>marker-0097</strong> @ 9f12dba (29th consecutive)</span>
+    <span class="chip">Suite: <strong>~865 tests</strong>, twins 11/11</span>
+  </div>
+</header>
+
+<section id="spine">
+  <div class="sec-head"><h2>The engine spine</h2><span class="tag">serialized — one golden window at a time; this queue IS the critical path</span></div>
+  <div class="bar"></div>
+  <div class="item">
+    <div class="d">Everything through marker-0097 is done and gated: the XII.5/xiv-ai/naval/difficulty/space arcs,
+    archetype wonders, the gov arc, COW perf (~½ engine cost), all the smalls (A7 · A6a Future Tech ·
+    §46 era-defaults · rehome · settler-refuse · disorder playbook), and claimSeat. What remains:</div>
+    <ol class="spine">
+      <li><span class="st now">NOW</span><strong>A8 tile contention</strong> — window OPEN (bugfixer; 10-seed pre-soak before pins, honest re-record)</li>
+      <li><span class="st qd">queued</span><strong>D3 server-surfacing + 11b city names</strong></li>
+      <li><span class="st qd">queued</span><strong>Diplomacy D4–D6</strong> — spec ready; the witness-8 AFTER-half and the treaty-UI rename pass ride the D4 landing</li>
+    </ol>
+  </div>
+</section>
+
+<section id="lanes">
+  <div class="sec-head"><h2>Parallel lanes</h2><span class="tag">golden-neutral — run beside the spine</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t"><span class="st done">✅ mostly done</span>Server</div>
+    <div class="d">A50 hardening + master index LIVE (axis 5 closed) + <strong>late-join / pause-on-empty / eviction
+    FEATURE-COMPLETE</strong> (designed and merged 2026-07-24; <code>--no-late-join</code> documented) + docs/16 §7
+    re-assessed (no RC-blocker). Open: the #19 view-contract test awaits its reviewer gate (merge-on-green).</div></div>
+  <div class="item"><div class="t"><span class="st now">🔨 active</span>Client / UI</div>
+    <div class="d">The 30-item window, A58 pedia, A49 flow-2, late-join client half, join-share QR, boot-fade,
+    fish/specials motifs — all shipped. Active now: the post-join <strong>reveal banner</strong>, then the
+    <strong>D4 treaty-UI shell</strong> (provisional wire names). Remaining after: <strong>#34 Founder's Record</strong>
+    endgame package (fresh session; A49 flow-4 bundled with it).</div></div>
+  <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC)</div>
+    <div class="d">Tier 3 certified, R6 done, <strong>instant age-starts ACTIVE</strong> (roster-shuffle + baked snapshots),
+    specials mirrored. Active now: the ruled <strong>runI design batch</strong> (items 12/6/5/2 built) + seat-preview align.
+    Then the user's publish gate (below).</div></div>
+  <div class="item"><div class="t"><span class="st done">✅ closed</span>AI-quality program</div>
+    <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED (contested ending accepted
+    for v1). Witness-8 BEFORE-half queued; the AFTER-half rides D4 for free.</div></div>
+</section>
+
+<section id="axes">
+  <div class="sec-head"><h2>The six 1.0 axes</h2><span class="tag">user-ruled definition; scored</span></div>
+  <div class="bar"></div>
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
+    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~99%</td><td><strong>A8 tile contention</strong> (window open)</td></tr>
+    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · shell un-gated</td><td><strong>D3-surfacing → D4–D6</strong> (spec ready)</td></tr>
+    <tr><td>3</td><td>AI at M-targets</td><td>✅ complete for v1</td><td>witness-8 AFTER-half rides D4</td></tr>
+    <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified; instant starts active; batch in build</td><td>runI batch finish + 🚪 the ONE publish/acceptance session</td></tr>
+    <tr><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE</td><td>— (late-join goes live on the 0097 redeploy)</td></tr>
+    <tr><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · flow-2 ✅</td><td><strong>#34 Founder's Record</strong> (flow-4 bundled)</td></tr>
+  </table></div>
+</section>
+
+<section id="gates">
+  <div class="sec-head"><h2>User gates</h2><span class="tag">only you can open these</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 now</span>Redeploy from marker-0097</div>
+    <div class="d">Late-join + every fix and feature from 2026-07-24 goes live. The bake step is already in your ssh-deploy.sh.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 after the batch</span>Roblox publish + acceptance session</div>
+    <div class="d">One Studio/live session: publish, then sound + saving + the runI batch accepted together (ruled sequencing).</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 standing</span>Trademark search + domains</div>
+    <div class="d">"A World Begun" (lead) / "The Work of Ages" (backup); reserve aworldbegun.eu/.com/.no during clearance.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 at RC</span>The release checklist</div>
+    <div class="d">specs/v1-release-checklist.md: RC marker → your main merge → v1.0.0 tag → redeploy from main → README on the ally's three blocks → announce.</div></div>
+</section>
+
+<footer>
+  Not in v1 (the ruled v2 shelf): dedicated mobile UI · Civ4 culture · novelty maps · checkpointed saves ·
+  Blender pass · Civ2-ruleset option · cross-play bridge · negotiation layer · rename program · Civ2+ water
+  features · per-game takeover cap. Sibling page: <code>human-workitems.html</code>.
+</footer>
+
+</div></body>
+</html>

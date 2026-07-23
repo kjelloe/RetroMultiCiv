@@ -54,39 +54,47 @@ flowchart TD
     APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
     ARCH["✅ archetype wonders (0090): stance-keyed\nappetite + ally 22-wonder map; judge ACCEPT\n(non-builder wonders 0->20, floors green)"]
     MAN["✅ manhattan-gate + no-nukes toggle\n(landed in the 0084 window; verified\nin engine/cities.js)"]
-    NAVL["✅ naval A + presence-1 + presence-2\n(0085-0087, judge PASS ~2x) · 🔨 invade\nslice B WINDOW OPEN (ruled #2294; fact-check\nbanked; invadeRatioPct=300 stamp)"]
-    SMALL["✅ A7 wonder effects (0088, 8-of-9\ndump-checked) + pyramids-gov (landed 13271d2)\n· 📋 remaining smalls: A6a future-tech · §45b\nrehome · §46 default-defender · A8 tile contention"]
-    XAB["✅ xiv-ai-behavior #30 (0091, TWO iterations):\ntripwire GONE + hoards bounded + upkeep->research\n+ wonder bar self-closed 64%; witness-7 = 0\nlaunches -> the research-depth USER fork"]
+    NAVL["✅ naval arc COMPLETE (0085-0092):\npresence-1/2 judge PASS ~2x + invade-B +\nformal acceptance 25/25 archipelago seeds"]
+    SMALL["✅ smalls CLOSED (0088-0097): A7 wonders ·\npyramids-gov · settler-refuse + rehome (0095) ·\ndisorder-lux playbook · §46 default-defender ·\nA6a future-tech (0097)"]
+    XAB["✅ xiv-ai-behavior #30 (0091) + gov arc\n(0094, bloat halved) + workers>pop + COW\nmap-sharing (0096, ~38% perf byte-identical)"]
+    CLM["✅ claimSeat command (0097):\nAI seat -> human via the stamped command\npath; fixture 061; unblocked late-join §3"]
+    A8N["🔨 A8 tile contention — WINDOW OPEN\n(bugfixer, GO ruled #2426; 10-seed pre-soak\nbefore pins; honest re-record)"]
     D3S["📋 D3 server-surfacing · 11b city names"]
-    D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; D6 carries diplomat\nmissions; parleyDemandPct data landed)"]
+    D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; witness-8 AFTER-half\n+ treaty-UI rename pass ride the D4 landing)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
-    NAVL --> ARCH --> SMALL --> XAB --> D3S --> D46
+    NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> D3S --> D46
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
     A50R["✅ A50 COMPLETE (reviewer-verified #2225):\naudit-fixes f0e03b1; oom-slice2b 579ba2e +\nheartbeat b4b9dcd merged since 0083, gated #2165"]
-    SEC["✅ docs/16 re-assessed (§6, 2026-07-22:\nalias not new surface; safe-exposed)"]
     A51D["✅ A51 master index PUBLIC + LIVE\n(2026-07-23: cert expanded, servers. block\ninstalled, index answering — axis 5 CLOSED)"]
-    A50R --> SEC --> A51D
+    LJS["✅ late-join+pause+eviction FEATURE-COMPLETE\n(user design 2026-07-24 -> merged @205bbfe\nsame day; --no-late-join documented)"]
+    SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
+    VCT["📋 #19 view-contract test DONE on branch\n(gate queued to reviewer; merge-on-green)"]
+    A50R --> A51D --> LJS --> SEC2 --> VCT
   end
 
   subgraph CLIENT["CLIENT/UI lane (golden-neutral)"]
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
-    A49["📋 A49 playwright five flows\n(scoped, FRESH helper session)"]
-    END["📋 endgame moments (scoped,\nFRESH helper session)"]
+    A49["✅ A49 flow-2 SHIPPED (0097; per-seat\nfog guards) · 📋 flow-4 rides Founder's Record"]
+    LJC["✅ late-join client + join-share QR +\nboot-fade + fish/specials motifs (0097)\n· 🔨 reveal banner + d4-treaty-shell\n(helper active, ruled #2427)"]
+    END["📋 #34 Founder's Record endgame package\n(FRESH helper session; flow-4 bundled)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
     XIVQ --> FG
+    FG --> LJC
   end
 
   subgraph ROBLOX["ROBLOX lane (second PC)"]
     T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
-    STUD["🔨 Studded round-2 IN PROGRESS (2026-07-23):\nrunH/runI played; 26-item feedback batch\nTRIAGED (specs/roblox-runI-triage); first\ncrash fix landed live (11fd7d0)"]
+    SNAP["✅ age-snapshot instant starts ACTIVE\n(matcher twin + loader + roster-shuffle\n8f0e982) · specials mirror 577086c"]
+    STUD["🔨 runI batch IN BUILD (design rulings\nspecs/runI-design-rulings.md; items 12/6/5/2\nbuilt; seat-preview align queued) ·\n🚪 publish gate after (sound+saving+batch\nin ONE Studio acceptance session)"]
     R6["✅ R6 agent-complete (slice-1 de8a977 +\nslices 2-3 in-tree; 30 gates green)"]
     STUD --> T3
     R6 --> T3
+    SNAP --> STUD
   end
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
@@ -129,33 +137,29 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~98% (A7 ✅, pyramids-gov ✅, §7 client ✅) | A6a future-tech, A8 tile contention, §45b rehome, §46 default-defender, §7 engine-half (#21) |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
-| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept; floors/archetype/#30/gov-arc/disorder all shipped+measured) | witness-8 re-measure rides D4 (free) |
-| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + SO18; round-2 IN PROGRESS | **runI 26-item batch** (roblox-helper, blockers first) + sound/saving (test-publish gate) |
-| 5 | Public hosting + master index | ✅ COMPLETE + LIVE (box step done 07-23) | — (server self-lists on next redeploy) |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
+| 1 | Every Civ 1 system faithful | ~99% (A7 ✅, A6a ✅, §46 ✅, rehome ✅, settler-refuse ✅) | **A8 tile contention** (window OPEN) |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, treaty-UI shell un-gated | **D3-surfacing → D4–D6** (the engine-queue tail; spec ready) |
+| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept; floors/archetype/#30/gov-arc/disorder shipped+measured) | witness-8 AFTER-half rides D4 (BEFORE-half queued) |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + instant age-starts ACTIVE; runI batch in build | **runI batch finish** + 🚪 the ONE publish/acceptance Studio session (sound+saving+batch) |
+| 5 | Public hosting + master index | ✅ COMPLETE + LIVE (+ late-join/pause/eviction feature-complete server-side) | — (self-lists + late-join go live on the 0097 redeploy) |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, A49 flow-2 ✅ | **#34 Founder's Record** (fresh helper session; flow-4 bundled) |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine is the critical path**: invade-B (window OPEN) →
-   regent-stall #37 (HIGH — the runI hang, likely shared) →
-   pollution-perf #15 (promoted — the Roblox industrial-age suspect;
-   both platforms gain) → gov-reeval → §7-engine + §11-disorder (user's
-   lux playbook) → smalls (A6a/A8/rehome/default-defender) →
-   D3-surfacing → D4–D6. The whole AI-quality program is otherwise
-   DONE: floors green, archetype accepted, #30 succeeded.
-2. **One design fork + two user gates remain:** the research-depth
-   fork (accept vs bulb-tune — data incoming from the 3-arm
-   pre-measure), the redeploy (0091 = the candidate; the server
-   self-lists in Find game on it), and finishing the Roblox round-2
-   loop (the 26-item batch is agent-side; sound/saving await your
-   test-publish). Plus the fresh helper session for the last two
-   axis-6 items.
-3. **No open designs remain agent-side.** D4–D6 spec ready; the runI
-   batch fully ruled (#2304); speed-up machinery live: baseline
-   banking (halves every judge), rulesOverrides pre-measurement (forks
-   arrive with data), and the age-snapshot baker (Roblox fast starts).
+1. **The engine spine is short now**: A8 (window OPEN) →
+   D3-surfacing → D4–D6, and that's the whole serialized remainder.
+   Everything else on the spine through marker-0097 is done and
+   gated; the AI-quality program is closed (floors green, archetype
+   accepted, fork ruled).
+2. **Three user gates remain:** the 0097 redeploy (late-join + all of
+   today's UI goes live on it), the ONE Roblox publish/acceptance
+   Studio session (after the runI batch), and the fresh helper
+   session for Founder's Record. Plus the standing trademark search.
+3. **No open designs remain agent-side.** D4–D6 spec ready with the
+   treaty-UI shell un-gated against provisional names; the runI batch
+   fully ruled; speed machinery live: baseline banking, the witness-8
+   BEFORE-half, per-dir-serialized lane-watcher for dark sessions,
+   and the at-least-once mail layer under it all.
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the
