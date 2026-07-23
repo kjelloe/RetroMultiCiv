@@ -126,6 +126,13 @@ the run short of 400.
   invariants still guard the change itself. NOTE (B10): committed scenario
   `final.hash` values may never be null — guards.test.js fails the suite on
   an unpasted re-record, so the null step is loudly temporary by design.
+  **Re-record rider (2026-07-24, user-ruled build-step policy): every
+  BEHAVIORAL re-record also re-runs `node tools/bake-age-snapshots.js`** —
+  the gitignored `data/age-snapshots/` embed fast-forward states whose
+  statehash pins break on any behavioral change (`age-snapshots.test.js`
+  goes red and forces this visibly). Snapshots are a dev-side build
+  artifact: never committed, never baked on the host (the deploy template
+  bakes pre-rsync).
 
 ## 5. Failure artifacts
 

@@ -329,6 +329,7 @@ Done: **https://yourdomain.example/client/?server=1** is a public game.
 | Tail logs       | `journalctl -u multiciv -f`                     |
 | Restart         | `sudo systemctl restart multiciv`               |
 | Update          | `cd /opt/multiciv && git pull && npm ci && sudo systemctl restart multiciv` |
+| Instant `?age=` starts | `node tools/bake-age-snapshots.js` on your DEV machine before deploying (a build step — the snapshots are gitignored and ship via rsync; without them `?age=` falls back to live fast-forward, which is correct but slower) |
 | Back up games   | `cp -a /opt/multiciv/saves ~/multiciv-saves-$(date +%F)` |
 | Renew cert test | `sudo certbot renew --dry-run`                  |
 
