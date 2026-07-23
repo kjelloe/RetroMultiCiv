@@ -1,0 +1,71 @@
+// specs/late-join-pause.md §3: a NEW joiner to a running public+lateJoining game
+// takes over an eligible AI civ (claimSeat engine command flips human=true,
+// recorded+replayed) and the join answer names the assigned civ.
+const test = require('node:test');
+const assert = require('node:assert');
+const WebSocket = require('ws');
+
+const RULESET = require('./ruleset.js');
+
+function client(port) {
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+  const inbox = [], waiters = [];
+  ws.on('message', raw => {
+    const m = JSON.parse(raw.toString());
+    const i = waiters.findIndex(w => w.match(m));
+    if (i !== -1) waiters.splice(i, 1)[0].resolve(m); else inbox.push(m);
+  });
+  function expect(match, ms) {
+    const hit = inbox.findIndex(match);
+    if (hit !== -1) return Promise.resolve(inbox.splice(hit, 1)[0]);
+    return new Promise((res, rej) => {
+      const t = setTimeout(() => rej(new Error('timeout')), ms || 3000);
+      waiters.push({ match, resolve: m => { clearTimeout(t); res(m); } });
+    });
+  }
+  return new Promise((resolve, reject) => {
+    ws.on('open', () => resolve({ ws, send: m => ws.send(JSON.stringify(m)), expect, close: () => ws.close() }));
+    ws.on('error', reject);
+  });
+}
+
+test('§3 late-join: a new joiner takes over an AI civ on a running public+lateJoining game', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1' });
+  try {
+    // host creates a PUBLIC game (lateJoining defaults ON) and starts it
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined');
+
+    // a NEW client late-joins by the game's code (tokenless) -> takeover
+    const late = await client(s.port);
+    late.send({ t: 'join', name: 'Latecomer', joinCode: created.joinCode });
+    const j = await late.expect(m => m.t === 'joined' || m.t === 'rejected');
+    assert.strictEqual(j.t, 'joined', 'the late joiner took over an AI civ');
+    assert.ok(j.playerId && j.playerId !== 'p1', 'assigned an AI seat (not the host seat)');
+    assert.ok(typeof j.token === 'string' && j.token.length > 0, 'issued a fresh seat token');
+    assert.ok('assignedCiv' in j, 'the answer names the assigned civ (client reveal)');
+    assert.ok(j.view && j.view.turn >= 1, 'served the taken-over civ view');
+    host.close(); late.close();
+  } finally { await s.close(); }
+});
+
+test('§3 late-join: --no-late-join / non-public game refuses the tokenless takeover', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', noLateJoin: true });
+  try {
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined');
+    const late = await client(s.port);
+    late.send({ t: 'join', name: 'Latecomer', joinCode: created.joinCode });
+    const j = await late.expect(m => m.t === 'joined' || m.t === 'rejected');
+    assert.strictEqual(j.t, 'rejected', '--no-late-join host-wide off-switch blocks the takeover');
+    host.close(); late.close();
+  } finally { await s.close(); }
+});

@@ -29,6 +29,8 @@ function sidecarOf(jsonFile) { return jsonFile ? jsonFile.replace(/\.json$/, '.l
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed, inviteAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
+import { score } from '../engine/score.js';
+import { selectTakeoverSeat } from './late-join.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -948,6 +950,31 @@ export function startServer(opts) {
         }
       }
       info.gameId = gameId; // started game: phase-3 join / reconnect via route
+      // §3 late-join takeover: a NEW joiner (no reconnect token / seat code) to a
+      // running/paused game with (public AND lateJoining) takes over an eligible
+      // AI civ. selectTakeoverSeat = second-strongest of the alive-&&-AI pool;
+      // the claimSeat ENGINE command flips human=true through the normal command
+      // path so it records + replays (a75fc2b). Seat + fresh token then bind the
+      // now-human pid. The join answer names the assigned civ (client reveal, §4).
+      if (!msg.token && !msg.seatCode && e.options.public === true && e.options.lateJoining === true) {
+        const pid = selectTakeoverSeat(e.game.state, p => score(e.game.state, p, ruleset));
+        if (pid === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        const claimed = e.game.apply(pid, { type: 'claimSeat', player: pid });
+        if (!claimed.ok) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        const bound = e.game.bindSeat(msg.name || 'Player'); // the now-only untokened human seat = pid
+        if (bound.error || bound.playerId !== pid) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        e.seats[pid] = { human: true, reserved: true, name: msg.name || 'Player' }; // registry tracks the seat
+        info.playerId = pid; info.seat = pid;
+        send(ws, {
+          t: 'joined', playerId: pid, gameId, token: bound.token, seatCode: bound.seatCode,
+          assignedCiv: e.game.state.players[pid].civ, // §4: client shows a post-join reveal banner
+          view: e.game.view(pid), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
+          civs: playerCivs(e.game)
+        });
+        if (autosave) e.game.saveTo(savePath(gameId)); // claimSeat changed state — persist
+        broadcastGame(gameId, { t: 'presence', playerId: pid, connected: true });
+        return;
+      }
       const out = route(e.game, msg);
       for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
