@@ -540,7 +540,7 @@ export function startHostFlow(box, options, flags) {
           : msg.code === 'civTaken' ? 'another slot already has that civilization'
           : msg.code === 'mapTooSmall' // A38: measured seats-per-size table
             ? `a ${msg.size} map seats up to ${msg.maxCivs} civilizations — pick a bigger map or fewer civs`
-          : msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4/§6
+          : (msg.code === 'serverFull' || msg.code === 'tooManyGames') ? SERVER_FULL_MSG // late-join §4/§6
           : `server rejected: ${msg.code}`);
       }
     }, opened => fail(box, opened
@@ -851,7 +851,7 @@ export function startJoinFlow(box) {
       else if (msg.t === 'rejected') {
         if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
             && lobbyNotice(rejectText(msg.code))) return; // L8
-        fail(box, msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4
+        fail(box, (msg.code === 'serverFull' || msg.code === 'tooManyGames') ? SERVER_FULL_MSG // late-join §4
           : msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
@@ -929,7 +929,7 @@ export function startJoinFlow(box) {
       } else if (msg.t === 'rejected') {
         if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
             && lobbyNotice(rejectText(msg.code))) return; // L8
-        fail(box, msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4
+        fail(box, (msg.code === 'serverFull' || msg.code === 'tooManyGames') ? SERVER_FULL_MSG // late-join §4
           : msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — rejoin with your seat code'
