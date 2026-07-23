@@ -42,7 +42,7 @@ export const UNIT_BLURBS = {
 };
 
 export const BUILDING_BLURBS = {
-  palace: "The seat of your government and the heart of your realm. Your Palace marks your CAPITAL — corruption and waste grow with a city's distance from it, so a central capital keeps more of your empire's trade. Building a Palace in another city moves the capital there; if you hold no Palace at all, your oldest city serves as the capital.",
+  palace: "Your CAPITAL and seat of government. Corruption and waste rise with distance from it, so a central capital keeps more trade. Build one elsewhere to move it; with none, your oldest city serves.",
   barracks: "Permanent quarters where soldiers live, train, and organize. A standing force depends on routine as much as courage.",
   granary: "A storehouse that protects food against poor harvests and hard seasons. Surplus grain gives a city resilience and room to grow.",
   temple: "A shared place of worship and ceremony. Its presence gives spiritual life a permanent home within the city.",
