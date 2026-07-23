@@ -13,10 +13,12 @@ requested #2393) · agent-mail at-least-once upgrade · fish/specials
 motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
 ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
 + onboarding-e2e fix · A49 flow-2 (flow-4 rides Founder's Record).
-Late-join+pause+eviction: SERVER half COMPLETE on branch (#2415,
-reviewer gate pending — the feature closes in the next marker; the
-serverFull rename note + assignedCiv contract relayed to the helper's
-reveal-banner follow-up). Engine queue UNBLOCKED by the tag: #32 A8
+Late-join+pause+eviction: FEATURE-COMPLETE — server half MERGED
+@205bbfe on reviewer green #2419 (both halves in-tree; only the
+cosmetic reveal banner remains, next helper session, live dispatch).
+Speed pass live: #19 re-routed to hardening (picked up), witness-8
+BEFORE-half queued, D4 treaty SHELL un-gated (helper holds it behind
+Founder's Record). Engine queue UNBLOCKED by the tag: #32 A8
 (fresh bugfixer session) -> #19 view-contract -> D3-surfacing ->
 D4-D6 (witness-8 + treaty-UI ride D4). Client remaining: Founder's
 Record #34 (fresh helper session) + the post-join reveal banner (now
