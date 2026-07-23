@@ -37,7 +37,7 @@ local STANCES: { [string]: any } = {
 	balanced = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 0, pbMult = 100, escortRadiusPct = 100, govTarget = "republic-if-safe", wonderAppetite = "low", navalAffinity = true },
 	defensive = { marchRadiusPct = 0, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "city-walls", improveFirst = nil, sciRates = false, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 40, econReserve = 0, pbMult = 125, escortRadiusPct = 150, govTarget = "republic", wonderAppetite = "low" },
 	aggressive = { marchRadiusPct = 175, garrisonAlways2 = false, armyCapPerCity = 6, armyCapBase = 8, settlerBase = 2, settlerDiv = 2, buildPriority = nil, improveFirst = nil, sciRates = false, attackerPerCityPct = 200, attackerBasePct = 100, scoutSharePct = 150, econReserve = 0, pbMult = 50, escortRadiusPct = 150, govTarget = "monarchy", wonderAppetite = "none" },
-	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic", wonderAppetite = "med", lateScienceBias = true },
+	science = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 2, settlerDiv = 2, buildPriority = "library", improveFirst = nil, sciRates = true, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "democracy", wonderAppetite = "med", lateScienceBias = true },
 	growth = { marchRadiusPct = 100, garrisonAlways2 = false, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = "granary", improveFirst = "irrigate", sciRates = false, attackerPerCityPct = 100, attackerBasePct = 0, scoutSharePct = 100, econReserve = 99, pbMult = 125, escortRadiusPct = 60, govTarget = "republic", wonderAppetite = "low", happyGlobalAffinity = true },
 	builder = { marchRadiusPct = 80, garrisonAlways2 = true, armyCapPerCity = 4, armyCapBase = 4, settlerBase = 3, settlerDiv = 1, buildPriority = nil, improveFirst = "irrigate", sciRates = true, attackerPerCityPct = 0, attackerBasePct = 0, scoutSharePct = 80, econReserve = 99, pbMult = 150, wonderDrive = true, defendFirst = true, escortRadiusPct = 80, govTarget = "republic", wonderAppetite = "high" },
 }
@@ -202,8 +202,14 @@ local function pickGovernment(state: any, playerId: string, ruleset: any, S: any
 	local target = if S.govTarget == nil then "monarchy" else S.govTarget
 	local hasMonarchy = table.find(me.techs, "monarchy") ~= nil
 	local hasRepublic = table.find(me.techs, "republic") ~= nil
-	if target == "republic" or target == "republic-if-safe" then
-		if hasRepublic and (target == "republic" or govSafe(state, playerId, ruleset)) then
+	-- #36 N1b: democracy only when SAFE (govSafe war-state proxy; warUnhappy 2); else republic cascade.
+	if target == "democracy" then
+		if table.find(me.techs, "democracy") ~= nil and govSafe(state, playerId, ruleset) then
+			return "democracy"
+		end
+	end
+	if target == "republic" or target == "republic-if-safe" or target == "democracy" then
+		if hasRepublic and (target == "republic" or target == "democracy" or govSafe(state, playerId, ruleset)) then
 			return "republic"
 		end
 	end
@@ -2667,7 +2673,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	if done.government ~= true and me.revolutionTurns == nil then
 		done.government = true
 		local cur = if me.government == nil then "despotism" else me.government
-		if govRank(cur) < GOV_RANK.republic then
+		if govRank(cur) < GOV_RANK.democracy then
 			local want = pickGovernment(state, playerId, ruleset, S)
 			if want ~= cur and govRank(want) > govRank(cur) then
 				return { type = "setGovernment", playerId = playerId, government = want }

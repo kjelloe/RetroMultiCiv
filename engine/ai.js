@@ -51,7 +51,7 @@ const STANCES = {
   balanced:   { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 0, pbMult: 100, escortRadiusPct: 100, govTarget: 'republic-if-safe', wonderAppetite: 'low', navalAffinity: true },
   defensive:  { marchRadiusPct: 0, garrisonAlways2: true,  armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'city-walls', improveFirst: null, sciRates: false, attackerPerCityPct: 0,   attackerBasePct: 0,   scoutSharePct: 40, econReserve: 0, pbMult: 125, escortRadiusPct: 150, govTarget: 'republic', wonderAppetite: 'low' },
   aggressive: { marchRadiusPct: 175, garrisonAlways2: false, armyCapPerCity: 6, armyCapBase: 8, settlerBase: 2, settlerDiv: 2, buildPriority: null, improveFirst: null, sciRates: false, attackerPerCityPct: 200, attackerBasePct: 100, scoutSharePct: 150, econReserve: 0, pbMult: 50, escortRadiusPct: 150, govTarget: 'monarchy', wonderAppetite: 'none' },
-  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic', wonderAppetite: 'med', lateScienceBias: true },
+  science:    { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 2, settlerDiv: 2, buildPriority: 'library', improveFirst: null, sciRates: true, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'democracy', wonderAppetite: 'med', lateScienceBias: true },
   growth:     { marchRadiusPct: 100, garrisonAlways2: false, armyCapPerCity: 4, armyCapBase: 4, settlerBase: 3, settlerDiv: 1, buildPriority: 'granary', improveFirst: 'irrigate', sciRates: false, attackerPerCityPct: 100, attackerBasePct: 0,   scoutSharePct: 100, econReserve: 99, pbMult: 125, escortRadiusPct: 60, govTarget: 'republic', wonderAppetite: 'low', happyGlobalAffinity: true },
   // stance-mix v1: the defending-builder — survival first (garrisonAlways2 +
   // walls), zero offense (attackerPct 0 removes the treadmill so the reserve is
@@ -235,8 +235,16 @@ function pickGovernment(state, playerId, ruleset, S) {
   const target = S.govTarget === undefined ? 'monarchy' : S.govTarget;
   const hasMonarchy = me.techs.indexOf('monarchy') !== -1;
   const hasRepublic = me.techs.indexOf('republic') !== -1;
-  if (target === 'republic' || target === 'republic-if-safe') {
-    if (hasRepublic && (target === 'republic' || govSafe(state, playerId, ruleset))) return 'republic';
+  // #36 N1b: DEMOCRACY is the peacetime science/economy peak (rate cap 100) but warUnhappy 2 wrecks a
+  // threatened empire (Civ-authentic). A 'democracy' target adopts it ONLY when SAFE (no enemy near a
+  // city — govSafe, the war-state proxy the no-diplomacy soak needs; formal relationOf defaults to war
+  // so it can't gate here); otherwise it falls through to the republic cascade (still an upgrade). Era
+  // is implicit — democracy's tech is late, so N1a's beeline only reaches it in the later eras.
+  if (target === 'democracy') {
+    if (me.techs.indexOf('democracy') !== -1 && govSafe(state, playerId, ruleset)) return 'democracy';
+  }
+  if (target === 'republic' || target === 'republic-if-safe' || target === 'democracy') {
+    if (hasRepublic && (target === 'republic' || target === 'democracy' || govSafe(state, playerId, ruleset))) return 'republic';
   }
   return hasMonarchy ? 'monarchy' : 'despotism';
 }
@@ -2291,13 +2299,16 @@ function pickCommand(state, playerId, ruleset, done, stance) {
 
   // Government re-eval (specs/government-reeval.md): each turn (outside a
   // revolution) the AI advances toward its stance's govTarget — Despotism →
-  // Monarchy → Republic — but only ever UP the rank ladder (no thrash). The old
-  // Monarchy-only flow is the early case (Republic unknown, or 'monarchy'
-  // target). Skips once at Republic (nothing higher is targeted in v1).
+  // Monarchy → Republic → Democracy — but only ever UP the rank ladder (the
+  // monotone govRank guard = no thrash, so a democracy civ never downgrades in
+  // war; the war-state gate is applied at ADOPTION via govSafe in pickGovernment).
+  // #36 N1b raised the cap from Republic to Democracy so republic civs whose
+  // stance targets democracy can take the final step (republic-targeters re-pick
+  // their own gov = no change). Era is implicit via N1a's tech beeline.
   if (!done.government && me.revolutionTurns === undefined) {
     done.government = true;
     const cur = me.government === undefined ? 'despotism' : me.government;
-    if (govRank(cur) < GOV_RANK.republic) {
+    if (govRank(cur) < GOV_RANK.democracy) {
       const want = pickGovernment(state, playerId, ruleset, S);
       if (want !== cur && govRank(want) > govRank(cur)) {
         return { type: 'setGovernment', playerId, government: want };

@@ -280,6 +280,37 @@ test('#36 N1a: after Monarchy the gov-beeline heads for the govTarget tech (repu
     `pre-monarchy the beeline heads for monarchy first — picked ${noMon.tech}, not on monarchy's path`);
 });
 
+// #36 N1b: a democracy-targeting stance (science) upgrades Republic -> Democracy when SAFE, but the
+// war-state gate (govSafe: an enemy near a city) holds it at Republic — democracy's warUnhappy 2
+// wrecks a threatened empire. No democracy tech -> stays Republic. The monotone govRank guard means
+// a democracy civ never downgrades in war (the gate is at adoption).
+test('#36 N1b: a science civ adopts Democracy when safe, holds Republic when threatened', async () => {
+  const { ai } = await load();
+  const tiles = []; for (let i = 0; i < 81; i++) tiles.push({ t: 'grassland' });
+  const mk = (techs, enemyNear) => ({
+    version: 1, turn: 200, year: 1000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 9, height: 9, wrapX: false, tiles },
+    units: enemyNear ? { e1: { id: 'e1', type: 'legion', owner: 'p2', x: 4, y: 4, moves: 1, fortified: false, veteran: false } } : {},
+    wonders: {}, nextUnitId: 10, nextCityId: 5,
+    cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 3, y: 3, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' }, workers: [] } },
+    cityOrder: ['c1'],
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 50, techs, researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, government: 'republic', stance: 'science' },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  });
+  const skip = () => ({ happiness: true, research: true, disband: true, launch: true, rates: true, buy: true });
+  const govOf = (c) => (c && c.type === 'setGovernment') ? c.government : (c ? c.type : 'none');
+  const dem = ['monarchy', 'republic', 'democracy'];
+  assert.strictEqual(govOf(ai.pickCommand(mk(dem, false), 'p1', RULESET, skip())), 'democracy',
+    'a SAFE science civ with democracy tech upgrades Republic -> Democracy');
+  assert.notStrictEqual(govOf(ai.pickCommand(mk(dem, true), 'p1', RULESET, skip())), 'democracy',
+    'an enemy near a city holds the science civ at Republic (democracy warUnhappy 2)');
+  assert.notStrictEqual(govOf(ai.pickCommand(mk(['monarchy', 'republic'], false), 'p1', RULESET, skip())), 'democracy',
+    'no democracy tech -> stays Republic');
+});
+
 // B21(c): rush-buy a threatened city's military production above the gold floor
 // (rules.aiBuyThreshold). "no buys ever" dies here.
 test('B21(c): aiBuyThreshold is sweepable — a flush, threatened city rush-buys', async () => {
