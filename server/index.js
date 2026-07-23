@@ -266,6 +266,22 @@ export function startServer(opts) {
       });
       return;
     }
+    // XV §13: on-demand server-save download for ?server=1 Shift+S/Shift+D. The
+    // client fetches /saves/<gameId>.json; the autosave FILE may not exist yet
+    // (before the first command, or --no-save) and saves/ is off the static
+    // whitelist (A61), so snapshot the LIVE game's authoritative state here —
+    // write-then-serve, always current, TOKEN-SAFE (toDownload strips seat
+    // tokens/codes). Unknown/finished ids fall through to the static handler
+    // (the on-disk file under --debug, else 404).
+    if (req.method === 'GET' && urlPath.startsWith('/saves/') && urlPath.endsWith('.json') && urlPath.indexOf('..') === -1) {
+      const gid = urlPath.slice('/saves/'.length, -('.json'.length));
+      const e = gid ? registry.entryOf(gid) : null;
+      if (e && e.game) {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify(e.game.toDownload()));
+        return;
+      }
+    }
     if (!servable(urlPath)) { res.writeHead(404); res.end(); return; } // A61: whitelist
     let file = path.normalize(path.join(REPO, urlPath));
     if (!file.startsWith(REPO)) { res.writeHead(403); res.end(); return; }
