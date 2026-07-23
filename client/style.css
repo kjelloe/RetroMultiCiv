@@ -1618,11 +1618,19 @@ html, body {
 .setup-find-row span { color: #8fa8cc; }
 
 /* XII.4: the rejoin banner — a left-behind server game surfaced on setup */
+/* the rejoin banner renders ABOVE the menu panel as its own element (rejoin.js
+   mountAbove adds .has-rejoin to #setup-screen) — the screen stacks in a column
+   so the banner sits over the centered panel without reflowing the menu box. */
+#setup-screen.has-rejoin { flex-direction: column; }
 #rejoin-banner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  box-sizing: border-box;
+  min-width: 320px;
+  max-width: 420px;
   margin-bottom: 14px;
   padding: 10px 12px;
   background: rgba(46, 107, 64, 0.22);
@@ -1630,6 +1638,12 @@ html, body {
   border-radius: 8px;
   color: #d8f0dc;
   font-size: 13px;
+}
+/* a failed rejoin (game ended / gone) reads as a neutral notice, not alarm */
+#rejoin-banner.rejoin-failed {
+  background: rgba(107, 84, 46, 0.22);
+  border-color: #9a854f;
+  color: #f0e8d8;
 }
 #rejoin-banner span { flex: 1 1 auto; }
 #rejoin-go {

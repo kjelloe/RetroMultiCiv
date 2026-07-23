@@ -55,6 +55,16 @@ export function armSessionGuard(opts) {
   refresh();
 }
 
+// Mount a rejoin banner ABOVE the menu panel as its OWN element (a sibling in
+// #setup-screen), never inside #setup-box — inside the box it reflows/distorts
+// the menu. The parent gets .has-rejoin so the screen stacks (column) with the
+// banner over the centered panel. Falls back to in-box if there is no parent.
+function mountAbove(host, banner) {
+  const parent = host.parentNode;
+  if (parent) { parent.classList.add('has-rejoin'); parent.insertBefore(banner, host); }
+  else host.insertBefore(banner, host.firstChild);
+}
+
 // Setup screen: surface a left-behind server game as a one-tap rejoin. Standalone
 // (runs before ctx exists) — reads localStorage only, no-op when there's nothing
 // stored (so a local game, which never writes the entry, never shows it).
@@ -69,7 +79,9 @@ export function maybeShowRejoinBanner(box) {
   const label = e.code ? `game ${e.code}` : 'your game';
   const when = e.turn !== undefined ? ` · turn ${e.turn}` : '';
   const line = document.createElement('span');
-  line.textContent = `⏳ You left ${label}${when} — still in progress.`;
+  // HONEST claim: this is the LAST-SEEN snapshot, not the server's live truth —
+  // the game may have moved on or ended since (surfaced on rejoin, below).
+  line.textContent = `⏳ You left ${label} — as of your last visit${when}.`;
   banner.appendChild(line);
 
   const go = document.createElement('button');
@@ -87,6 +99,60 @@ export function maybeShowRejoinBanner(box) {
 
   banner.appendChild(go);
   banner.appendChild(dismiss);
-  host.insertBefore(banner, host.firstChild);
+  mountAbove(host, banner);
   return banner;
+}
+
+// PURE: map a server join-reject code to its graceful card treatment. Only a
+// DEFINITIVE server answer (the game is gone / ended) is `definitive: true` —
+// those clear the stored record. A network failure (socket error/close) is NOT
+// definitive, so a still-valid game is never wiped by a transient hiccup.
+const REJOIN_FAIL = {
+  gameEnded: { label: 'This game has ENDED.', offerEnd: true },
+  gameOver: { label: 'This game has ENDED.', offerEnd: true },   // code alias tolerance
+  noSuchGame: { label: 'That game is no longer on the server.', offerEnd: false }
+};
+export function classifyRejoinReject(code) {
+  const f = REJOIN_FAIL[code];
+  return f ? { definitive: true, label: f.label, offerEnd: f.offerEnd } : { definitive: false };
+}
+
+// After a failed rejoin, downgrade the card GRACEFULLY on the setup screen —
+// never a raw error banner. Returns true when it handled a definitive reject
+// (record cleared + card shown); false for a non-definitive code so the caller
+// keeps its normal error path. `opts.save`/`opts.endscreen` (server-provided on
+// gameEnded) get a "View final result" affordance when present.
+export function renderRejoinFailure(box, code, opts) {
+  const c = classifyRejoinReject(code);
+  if (!c.definitive) return false;
+  clearActiveGame(); // conservative: only on a definitive server answer
+  const host = box || document.getElementById('setup-box');
+  if (!host) return true; // record cleared even if there is nowhere to render
+
+  const banner = document.createElement('div');
+  banner.id = 'rejoin-banner';
+  banner.classList.add('rejoin-failed');
+  const line = document.createElement('span');
+  line.textContent = `⏳ ${c.label}`;
+  banner.appendChild(line);
+
+  const end = opts && (opts.endscreen || opts.save);
+  if (c.offerEnd && end) {
+    const view = document.createElement('button');
+    view.id = 'rejoin-go';
+    view.textContent = '🏁 View final result';
+    view.addEventListener('click', () => {
+      try { window.dispatchEvent(new CustomEvent('rmc-rejoin-final', { detail: end })); } catch (_) { /* no-op */ }
+    });
+    banner.appendChild(view);
+  }
+  const dismiss = document.createElement('button');
+  dismiss.id = 'rejoin-dismiss';
+  dismiss.className = 'setup-lan-btn';
+  dismiss.textContent = '✕ Dismiss';
+  dismiss.addEventListener('click', () => banner.remove());
+  banner.appendChild(dismiss);
+
+  mountAbove(host, banner);
+  return true;
 }

@@ -11,7 +11,9 @@ import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
 import { victoryOverrides, DEFAULT_VICTORY } from '../shared/victory-presets.js';
 import { shuffleRoster } from '../shared/civ-shuffle.js';
-import { armSessionGuard, maybeShowRejoinBanner } from './ui/rejoin.js';
+import { matchSnapshot, snapshotUsable } from '../shared/age-snapshots.js';
+import { hashState } from '../shared/statehash.js';
+import { armSessionGuard, maybeShowRejoinBanner, renderRejoinFailure } from './ui/rejoin.js';
 import { capitalOf } from '../engine/government.js';
 import { initHud } from './ui/hud.js';
 import { initPanels } from './ui/panels.js';
@@ -83,6 +85,21 @@ async function fetchJson(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   return r.json();
+}
+
+// #2305: try a pre-baked starting-age snapshot for this EXACT config before the
+// live fast-forward. Returns the (neutral, grant-applied) state to adopt, or
+// null on ANY miss — no manifest, no config match, a corrupt file, a failed
+// statehash pin, or a dead human seat — so arbitrary seeds run the live ff
+// unchanged (shared/age-snapshots.js is the pure matcher/guard).
+async function tryAgeSnapshot(cfg, humanSeats) {
+  try {
+    const manifest = await fetchJson('../data/age-snapshots/manifest.json');
+    const preset = matchSnapshot(manifest, cfg);
+    if (!preset) return null;
+    const state = await fetchJson('../data/age-snapshots/' + preset.file);
+    return snapshotUsable(state, preset, humanSeats, hashState) ? state : null;
+  } catch (_) { return null; }
 }
 
 // A77: an options-like reader over localStorage for the bootstrap tunes (the
@@ -204,10 +221,23 @@ if (serverParam) {
   const pick = params.get('civ');
   const myName = (pick && civs[pick] && civs[pick].name) || 'Player';
   mlog('join', `${wsUrl} game=${params.get('game') || '?'} spectate=${params.get('spectate') === '1'}`);
-  session = await createRemoteSession({
-    ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined,
-    spectator: params.get('spectate') === '1' // A17: tokenless omniscient viewer
-  });
+  try {
+    session = await createRemoteSession({
+      ruleset, baseRules: rules, wsUrl, name: myName, gameId: params.get('game') || undefined,
+      spectator: params.get('spectate') === '1' // A17: tokenless omniscient viewer
+    });
+  } catch (err) {
+    // A definitive join-reject (the game ended / is gone) downgrades to a
+    // graceful setup-screen card — never the raw "ERROR: join rejected" banner.
+    if (err && err.joinRejected) {
+      showSetupScreen();
+      if (renderRejoinFailure(document.getElementById('setup-box'), err.code, { save: err.save, endscreen: err.endscreen })) {
+        try { history.replaceState({}, '', location.pathname); } catch (_) { /* about: URLs */ }
+        throw new Error('setup'); // clean stop; the error handler ignores 'setup'
+      }
+    }
+    throw err; // anything else keeps the normal error path
+  }
   mlog('joined', `seat=${session.playerId} turn=${session.state && session.state.turn}`);
   // A24: server games now carry each player's civ (joined reply) — wire the
   // city-name rosters and faction visuals exactly like local games
@@ -278,9 +308,20 @@ if (serverParam) {
   if (initialState.ok === false) throw new Error(`createGame failed: ${initialState.reason}`);
 
   if (age.turn > 0) {
-    const { createFastForward, applyAgeGrant } = await import('../shared/fastforward.js');
     const humanSeats = [];
     for (let i = 0; i < humans; i++) humanSeats.push('p' + (i + 1));
+    // #2305: a pre-baked snapshot for this EXACT config (default lineup, same
+    // seed/size/civs/age/maptype/difficulty) loads INSTANTLY — no live walk.
+    // The grant is already baked in; just flip the human seats. Any miss
+    // (arbitrary seed, a ?civ pick, no snapshot) → the live ff below.
+    const snapState = await tryAgeSnapshot(
+      { age: age.id, size, seed, civs: civCount, mapType, difficulty, picked }, humanSeats);
+    if (snapState) {
+      for (const pid of humanSeats) snapState.players[pid].human = true;
+      initialState = snapState;
+      hudStatus.textContent = '';
+    } else {
+    const { createFastForward, applyAgeGrant } = await import('../shared/fastforward.js');
     const fwd = createFastForward(ruleset, initialState, { humanSeats });
     // A56(a): a center-screen year counter sweeping 4000 BC → the start year,
     // era names fading through, driven by the REAL simulated turn; honors
@@ -293,9 +334,18 @@ if (serverParam) {
     // yet at bootstrap — a tune-only instance reading the stored sound prefs)
     const ffSound = initSound({ options: storedOptions(), session: null });
     ffSound.playTune('creation');
+    // FF FIX #3: at high civ counts ONE round is many heavy AI turns, so a fixed
+    // 5-round slice can block the main thread for seconds (Firefox "unresponsive
+    // page" on 14 civs / medium / Space). Bound each synchronous burst by a TIME
+    // budget instead — run single rounds until ~30ms elapse, then yield to the
+    // event loop. Same command sequence, just finer batching (determinism
+    // unaffected — verified in test/fastforward.test.js); the overlay updates
+    // every slice, so the user keeps seeing motion.
+    const SLICE_MS = 30;
     let r = { done: false };
     while (!r.done) {
-      r = fwd.step(5, age.turn); // 5 rounds per slice keeps the tab responsive
+      const sliceStart = Date.now();
+      do { r = fwd.step(1, age.turn); } while (!r.done && Date.now() - sliceStart < SLICE_MS);
       ffOverlay.update(fwd.turn, age.turn, fwd.state.year);
       await new Promise(resolve => setTimeout(resolve, 0));
     }
@@ -314,6 +364,7 @@ if (serverParam) {
     applyAgeGrant(initialState, age, ruleset);
     for (const pid of humanSeats) initialState.players[pid].human = true;
     hudStatus.textContent = '';
+    } // end live-ff branch (no matching snapshot)
   }
   } // end fresh-start branch (a resume skips creation + fast-forward)
 

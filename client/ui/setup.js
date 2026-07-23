@@ -3,6 +3,7 @@
 // leading slots are human (hotseat), and an optional seed — then reloads
 // with ?seed=&civs=&humans=&civ= so the bootstrap stays one path.
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
+import { matchSnapshot } from '../../shared/age-snapshots.js';
 
 export function showSetupScreen() {
   const overlay = document.createElement('div');
@@ -238,11 +239,31 @@ export function showSetupScreen() {
       opt.textContent = `${age.name} (turn ${age.turn})`;
       ageEl.appendChild(opt);
     }
+    // #2305: when the current config EXACTLY matches a pre-baked snapshot, the
+    // later-age start loads instantly (no live walk) — surface it as a hint.
+    let snapManifest = null;
+    const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+    const instantHit = () => {
+      if (!snapManifest || ageEl.value === 'ancient') return false;
+      const seed = parseInt((val('setup-seed') || '').trim(), 10);
+      if (!Number.isFinite(seed)) return false; // a random (blank) seed is never pre-baked
+      return matchSnapshot(snapManifest, {
+        age: ageEl.value, size: val('setup-size'), seed, civs: parseInt(val('setup-civs'), 10),
+        mapType: val('setup-maptype'), difficulty: val('setup-difficulty'), picked: val('setup-civ') || null
+      }) !== null;
+    };
     const hint = () => {
-      ageHint.textContent = ageEl.value === 'ancient' ? ''
+      const base = ageEl.value === 'ancient' ? ''
         : 'the AI plays history first — worlds arrive with cities and roads';
+      ageHint.textContent = base + (instantHit() ? ' · ⚡ instant (pre-baked)' : '');
     };
     ageEl.addEventListener('change', hint);
+    // re-evaluate the instant hint when any config axis it depends on changes
+    for (const id of ['setup-seed', 'setup-size', 'setup-civs', 'setup-maptype', 'setup-difficulty', 'setup-civ']) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', hint);
+    }
+    fetch('../data/age-snapshots/manifest.json').then(r => (r.ok ? r.json() : null)).then(m => { snapManifest = m; hint(); }).catch(() => { /* no snapshots → no hint */ });
     hint();
     // A82a: map types from rules.mapTypes — data-driven like the ages; the
     // hint line carries the HONEST world description (the label must match

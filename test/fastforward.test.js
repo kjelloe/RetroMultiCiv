@@ -7,9 +7,9 @@ const RULESET = require('./ruleset.js');
 const ff = import('../shared/fastforward.js');
 const eng = import('../engine/index.js');
 const sh = import('../shared/statehash.js');
-let fastForwardTo, applyAgeGrant, createEngine, hashState;
+let fastForwardTo, applyAgeGrant, createFastForward, createEngine, hashState;
 test.before(async () => {
-  ({ fastForwardTo, applyAgeGrant } = await ff);
+  ({ fastForwardTo, applyAgeGrant, createFastForward } = await ff);
   ({ createEngine } = await eng);
   ({ hashState } = await sh);
 });
@@ -30,6 +30,22 @@ function freshWorld(seed) {
 function ageById(id) {
   return RULESET.rules.ages.find(a => a.id === id);
 }
+
+// FF FIX #3: the browser chunks the fast-forward by a TIME budget (many small
+// step(1) calls yielding to the event loop) so it stays responsive at high civ
+// counts. The batch SIZE must not change the result — stepping one round at a
+// time to a target must reach the SAME statehash as stepping in one big batch.
+test('ff chunk granularity is determinism-neutral: step(1) loop == step(big)', () => {
+  const target = 40; // a low target keeps the test quick; the property is size-independent
+  const fine = createFastForward(RULESET, freshWorld(2), { humanSeats: [] });
+  let a = { done: false }; while (!a.done) a = fine.step(1, target);
+  const coarse = createFastForward(RULESET, freshWorld(2), { humanSeats: [] });
+  let b = { done: false }; while (!b.done) b = coarse.step(1000, target);
+  assert.strictEqual(fine.aborted, null, 'seed 2 to turn 40 does not abort');
+  assert.strictEqual(hashState(fine.state), hashState(coarse.state),
+    'fine and coarse batching reach the identical state');
+  assert.strictEqual(fine.turn, coarse.turn, 'both reach the same turn');
+});
 
 test('era guard: all 68 techs classified, bucket sizes 22/15/14/17', () => {
   const sizes = {};

@@ -245,7 +245,16 @@ export function createRemoteSession(opts) {
           try { localStorage.removeItem(tokenKey(gameId)); } catch (e) { /* private mode */ }
           send({ t: 'join', gameId: gameIdKnown ? gameId : undefined, name });
         } else if (rejectJoin) {
-          const f = rejectJoin; rejectJoin = null; f(new Error('join rejected: ' + msg.code));
+          // carry the server's reason CODE (+ any final-record payload) on the
+          // error so the boot can downgrade the rejoin card gracefully instead
+          // of surfacing a raw error banner (rejoin.js classifyRejoinReject).
+          const f = rejectJoin; rejectJoin = null;
+          const err = new Error('join rejected: ' + msg.code);
+          err.joinRejected = true;
+          err.code = msg.code;
+          if (msg.save !== undefined) err.save = msg.save;             // gameEnded: server may attach the final save
+          if (msg.endscreen !== undefined) err.endscreen = msg.endscreen;
+          f(err);
         }
       }
     });

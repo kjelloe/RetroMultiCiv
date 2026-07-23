@@ -55,3 +55,4 @@ archive/
 cloud-init.yaml
 ssh-deploy.sh
 resume.txt
+data/age-snapshots/
