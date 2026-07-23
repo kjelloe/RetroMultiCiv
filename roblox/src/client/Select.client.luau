@@ -10,8 +10,10 @@
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- R14
+local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities")) -- runI item 16: tileYields
 
 local TILE = ClientState.TILE
 local camera = workspace.CurrentCamera
@@ -32,6 +34,109 @@ cursor.Material = Enum.Material.Neon
 cursor.Color = Color3.fromRGB(255, 220, 60)
 cursor.Transparency = 0.45
 cursor.Parent = world
+
+-- runI item 16: the tile info card — clicking a KNOWN tile shows a small card
+-- ABOVE the unit action bar with terrain, yields as ICONS (item 17 vocabulary),
+-- improvements, and the special's name; ENEMY units on the tile stack ABOVE it
+-- as unit cards with a RED background. Fog-honest (reads only the filtered
+-- view). One card at a time; any other pick, or the ×, dismisses it.
+local SPECIAL_NAME = { ocean = "Fish", grassland = "Shield", plains = "Horse",
+	forest = "Game", tundra = "Game", arctic = "Seal", desert = "Oasis",
+	hills = "Coal", mountains = "Gold", jungle = "Gems", swamp = "Oil" }
+local cardGui = Instance.new("ScreenGui")
+cardGui.Name = "RMCTileCard"
+cardGui.ResetOnSpawn = false
+cardGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+local cardRoot = Instance.new("Frame")
+cardRoot.Size = UDim2.new(0, 330, 0, 0)
+cardRoot.AutomaticSize = Enum.AutomaticSize.Y
+cardRoot.AnchorPoint = Vector2.new(0.5, 1)
+cardRoot.Position = UDim2.new(0.5, 0, 1, -86) -- above the action bar
+cardRoot.BackgroundTransparency = 1
+cardRoot.Visible = false
+cardRoot.Parent = cardGui
+do
+	local l = Instance.new("UIListLayout")
+	l.SortOrder = Enum.SortOrder.LayoutOrder
+	l.Padding = UDim.new(0, 4)
+	l.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	l.Parent = cardRoot
+end
+local function cardIconRun(n, glyph, color)
+	if n == nil or n <= 0 then return "" end
+	return ('<font color="%s">%s</font>'):format(color, string.rep(glyph, n))
+end
+local function hideTileCard()
+	cardRoot.Visible = false
+	for _, c in ipairs(cardRoot:GetChildren()) do
+		if c:IsA("GuiObject") then
+			c:Destroy()
+		end
+	end
+end
+local function cardPanel(order, height, bg)
+	local f = Instance.new("Frame")
+	f.Size = UDim2.new(1, 0, 0, height)
+	f.BackgroundColor3 = bg
+	f.BackgroundTransparency = 0.08
+	f.BorderSizePixel = 0
+	f.LayoutOrder = order
+	f.Parent = cardRoot
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = f
+	local t = Instance.new("TextLabel")
+	t.Size = UDim2.new(1, -18, 1, 0)
+	t.Position = UDim2.new(0, 10, 0, 0)
+	t.BackgroundTransparency = 1
+	t.RichText = true
+	t.Font = Enum.Font.SourceSansBold
+	t.TextSize = 17
+	t.TextColor3 = Color3.fromRGB(238, 238, 238)
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.Parent = f
+	return t
+end
+local function showTileCard(view, tx, ty, tile)
+	hideTileCard()
+	if tile == nil or tile.t == "unknown" then
+		return
+	end
+	local rs = ClientState.rulesets()
+	local order = 0
+	-- enemy unit cards (red) — only what fog reveals, never unseen stack counts
+	for _, u in pairs(view.units) do
+		if u.x == tx and u.y == ty and u.owner ~= view.you then
+			order += 1
+			local vet = u.veteran == true and "  \u{2605}vet" or ""
+			local hp = u.hp ~= nil and ("  hp %d"):format(u.hp) or ""
+			cardPanel(order, 26, Color3.fromRGB(122, 42, 40)).Text =
+				("<b>%s</b>  <font color=\"#ffd0c8\">%s</font>%s%s"):format(u.type, u.owner, vet, hp)
+		end
+	end
+	order += 1
+	local ok, y = pcall(citiesModule.tileYields, tile, rs)
+	local yields = ok and y ~= nil and (
+		cardIconRun(y.food, "\u{25CF}", "#7fd08a") .. " "
+		.. cardIconRun(y.shields, "\u{25AE}", "#c8c8c8") .. " "
+		.. cardIconRun(y.trade, "\u{25C6}", "#e0c060")) or ""
+	local imps = {}
+	if tile.road then table.insert(imps, "road") end
+	if tile.railroad then table.insert(imps, "rail") end
+	if tile.irrigation then table.insert(imps, "irrigation") end
+	if tile.mine then table.insert(imps, "mine") end
+	if tile.fortress then table.insert(imps, "fortress") end
+	local head = tile.t
+	if tile.special then
+		head = head .. "  \u{00B7} " .. (SPECIAL_NAME[tile.t] or "special")
+	end
+	local sub = yields
+	if #imps > 0 then
+		sub = sub .. '   <font color="#9db2c8">' .. table.concat(imps, ", ") .. "</font>"
+	end
+	cardPanel(order, 50, Color3.fromRGB(28, 34, 46)).Text = ("<b>%s</b>\n%s"):format(head, sub)
+	cardRoot.Visible = true
+end
 
 local function tileTopY(x, y)
 	local part = world.Terrain:FindFirstChild(("Tile_%d_%d"):format(x, y))
@@ -88,6 +193,7 @@ local function handlePick(tx, ty)
 	if view == nil then
 		return
 	end
+	hideTileCard() -- runI item 16: any new pick dismisses the tile card first
 	if GoToPlan.pick(tx, ty) then
 		return -- R14: armed GoTo consumed the pick as its destination
 	end
@@ -153,6 +259,7 @@ local function handlePick(tx, ty)
 	ClientState.selectedUnitId = nil
 	moveCursor(tx, ty, false)
 	print(("[Select] tile (%d,%d) %s%s"):format(tx, ty, tile.t, contentsAt(view, tx, ty)))
+	showTileCard(view, tx, ty, tile) -- runI item 16
 end
 
 -- ---- raycast pick (A28 logical-tile rule, unchanged from R3) ---------------

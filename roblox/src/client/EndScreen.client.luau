@@ -55,20 +55,39 @@ list.BorderSizePixel = 0
 list.ScrollBarThickness = 6
 list.Parent = frame
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 160, 0, 36)
-closeBtn.Position = UDim2.new(0.5, -80, 1, -46)
-closeBtn.BackgroundColor3 = Color3.fromRGB(60, 66, 80)
-closeBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
-closeBtn.Font = Enum.Font.SourceSansBold
-closeBtn.TextSize = 18
-closeBtn.Text = "Back to the world"
-closeBtn.Parent = frame
-do
+-- runJ item 6: after the score display, offer a NEW GAME (fresh server) and a
+-- WATCH REPLAY (opens the Replay Theater), alongside the plain close.
+local function endButton(x, w, text, bg)
+	local b = Instance.new("TextButton")
+	b.Size = UDim2.new(0, w, 0, 36)
+	b.Position = UDim2.new(0.5, x, 1, -46)
+	b.BackgroundColor3 = bg
+	b.TextColor3 = Color3.fromRGB(235, 235, 235)
+	b.Font = Enum.Font.SourceSansBold
+	b.TextSize = 17
+	b.Text = text
+	b.Parent = frame
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)
-	c.Parent = closeBtn
+	c.Parent = b
+	return b
 end
+local newGameBtn = endButton(-250, 156, "New game", Color3.fromRGB(58, 118, 74))
+local replayBtn = endButton(-86, 156, "Watch replay", Color3.fromRGB(58, 66, 110))
+local closeBtn = endButton(96, 156, "Back to the world", Color3.fromRGB(60, 66, 80))
+newGameBtn.Activated:Connect(function()
+	-- go to a fresh server of this place (live only; a no-op in Studio play)
+	local ok = pcall(function()
+		game:GetService("TeleportService"):Teleport(game.PlaceId, Players.LocalPlayer)
+	end)
+	if not ok then
+		frame.Visible = false -- Studio / teleport blocked: just drop back to the deck
+	end
+end)
+replayBtn.Activated:Connect(function()
+	frame.Visible = false
+	ClientState.openTheater() -- runJ item 6 + item 7 camera fix
+end)
 closeBtn.Activated:Connect(function()
 	frame.Visible = false
 end)

@@ -607,6 +607,7 @@ local function sendHistorian(age)
 	print("[SO9] historian sent: the world enters " .. tostring(age))
 end
 
+local checkDefeats -- runJ item 5: forward decl (defined after setPhase/deck)
 local function advance(collected, initiatedByEndTurn)
 	roundInFlight = true
 	local seen = 0
@@ -687,6 +688,9 @@ local function advance(collected, initiatedByEndTurn)
 		print("[R4FINAL] hash=" .. statehash.hashState(state))
 		sendEndscreen() -- SO7: the full-state scoreboard (post-game = public)
 	end
+	if checkDefeats ~= nil then
+		checkDefeats() -- runJ item 5: a seated human at 0 cities -> deck
+	end
 	return seen
 end
 
@@ -695,6 +699,59 @@ local function setPhase(newPhase)
 	phase = newPhase
 	deck.setPhase(phase, state ~= nil and #vacantSeats() > 0)
 	broadcastLobby()
+end
+
+-- runJ item 5: a seated HUMAN whose civ holds 0 cities is defeated. Confirm it
+-- lasted a full turn (guards a transient mid-capture), then a 10s countdown and
+-- the player returns to the observation deck SEATLESS — as if joining anew (the
+-- AI regent keeps the now-cityless seat; the game continues to its own end).
+local defeatPending = {} -- userId -> turn first seen at 0 cities
+local defeatingSeats = {} -- userId -> true while the 10s countdown runs
+local function defeatSeat(userId)
+	if defeatingSeats[userId] then
+		return
+	end
+	defeatingSeats[userId] = true
+	local player = Players:GetPlayerByUserId(userId)
+	if player ~= nil then
+		remote:FireClient(player, { t = "defeated", seconds = 10 })
+	end
+	print(("[GameServer] seat %s defeated (0 cities) -> deck in 10s"):format(tostring(seatOfUser[userId])))
+	task.delay(10, function()
+		defeatingSeats[userId] = nil
+		if seatOfUser[userId] ~= nil then
+			seatOfUser[userId] = nil -- unseat: the regent keeps the cityless seat
+			setPhase(phase) -- rebroadcast the lobby; the player is now seatless
+			local p = Players:GetPlayerByUserId(userId)
+			if p ~= nil then
+				p:LoadCharacter() -- respawn on the observation deck (fresh visitor)
+			end
+		end
+	end)
+end
+function checkDefeats()
+	if state == nil or state.gameOver == true then
+		return
+	end
+	local cityCount = {}
+	for _, cid in ipairs(state.cityOrder) do
+		local c = state.cities[cid]
+		if c ~= nil then
+			cityCount[c.owner] = (cityCount[c.owner] or 0) + 1
+		end
+	end
+	for userId, pid in pairs(seatOfUser) do
+		if (cityCount[pid] or 0) == 0 and not defeatingSeats[userId] then
+			if defeatPending[userId] == nil then
+				defeatPending[userId] = state.turn -- first sighting; confirm next turn
+			elseif state.turn > defeatPending[userId] then
+				defeatPending[userId] = nil
+				defeatSeat(userId)
+			end
+		else
+			defeatPending[userId] = nil -- has a city (or already defeating): clear
+		end
+	end
 end
 
 local function startCountdown(seconds, onExpire)

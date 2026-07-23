@@ -313,6 +313,52 @@ local function rebuild()
 			M.hide()
 		end
 	end)
+
+	-- runJ item 4: a FLOATING "VIEW NEXT CITY" button (twin of CLOSE CITY VIEW,
+	-- sitting just above it) that cycles the view through every city this civ
+	-- holds in cityOrder, opening + flying the camera to each (openCity focuses).
+	local nextAnchor = Instance.new("Part")
+	nextAnchor.Anchored = true
+	nextAnchor.Transparency = 1
+	nextAnchor.CanCollide = false
+	nextAnchor.CanQuery = false
+	nextAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
+	nextAnchor.CFrame = CFrame.new(city.x * TILE,
+		tileTopY(city.x, city.y) + 2, (city.y + 3.25) * TILE)
+	nextAnchor.Parent = folder
+	local nextBB = Instance.new("BillboardGui")
+	nextBB.Size = UDim2.new(0, 220, 0, 40)
+	nextBB.AlwaysOnTop = true
+	nextBB.Active = true
+	nextBB.Adornee = nextAnchor
+	local nextBtn = Instance.new("TextButton")
+	nextBtn.Size = UDim2.new(1, 0, 1, 0)
+	nextBtn.BackgroundColor3 = Color3.fromRGB(48, 80, 120)
+	nextBtn.BackgroundTransparency = 0.1
+	nextBtn.TextColor3 = Color3.fromRGB(230, 240, 255)
+	nextBtn.Font = Enum.Font.SourceSansBold
+	nextBtn.TextSize = 20
+	nextBtn.Text = "VIEW NEXT CITY \u{25B6}"
+	nextBtn.Parent = nextBB
+	nextBB.Parent = bbHome
+	nextBtn.Activated:Connect(function()
+		local v = ClientState.view
+		if v == nil or openCityId == nil then
+			return
+		end
+		local own = {}
+		for _, id in ipairs(v.cityOrder or {}) do
+			local c2 = v.cities[id]
+			if c2 ~= nil and c2.owner == v.you then
+				table.insert(own, id)
+			end
+		end
+		if #own == 0 then
+			return
+		end
+		local idx = table.find(own, openCityId) or 0
+		ClientState.openCity(own[(idx % #own) + 1])
+	end)
 end
 
 function M.show(cityId)

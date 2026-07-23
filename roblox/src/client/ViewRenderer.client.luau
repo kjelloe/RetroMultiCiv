@@ -11,6 +11,7 @@
 -- stars are a PRESENTATIONAL heuristic (documented in SPEC §3i).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
@@ -315,6 +316,31 @@ local function cityBillboard(model, adornee, view, c)
 	bb.Parent = model
 end
 
+-- runI item 9: label LOD by camera distance — CHEAP (one distance read; the
+-- band is applied only when it CHANGES + to freshly-rendered labels, never per
+-- label per frame). The ruling's "when labels start to overlap" is approximated
+-- by zoom distance, not pairwise overlap tests. Near = full labels; zoomed out,
+-- unit labels hide so they stop cluttering the map (city labels stay — item 13
+-- keeps those uppercase/readable, and the item-8 influence tints are unaffected).
+local LOD_HIDE_UNITS = 95 -- studs (camera dist 15..220); tune in Studio
+local lodUnitsHidden = false
+local function applyUnitLabelLOD()
+	for _, m in ipairs(unitsFolder:GetChildren()) do
+		local bb = m:FindFirstChild("Label")
+		if bb ~= nil then
+			bb.Enabled = not lodUnitsHidden
+		end
+	end
+end
+RunService.Heartbeat:Connect(function()
+	local hide = (ClientState.cameraDist or 60) >= LOD_HIDE_UNITS
+		or ClientState.hideUnitLabels == true -- runI item 8: the overlay hide-labels toggle
+	if hide ~= lodUnitsHidden then
+		lodUnitsHidden = hide
+		applyUnitLabelLOD()
+	end
+end)
+
 local function renderUnits(view)
 	unitsFolder:ClearAllChildren()
 	-- runI item 12: fortified units on a CITY tile show no earthworks (the city
@@ -387,6 +413,7 @@ local function renderUnits(view)
 		unitBillboard(model, disc, view, u)
 		model.Parent = unitsFolder
 	end
+	applyUnitLabelLOD() -- runI item 9: freshly-rendered labels honor the current zoom band
 end
 
 -- run-F #8 (user) — the city model GROWS with pop AND changes look by ERA.

@@ -228,6 +228,21 @@ local function deriveTo(roundN)
 	return st, mismatchAt
 end
 
+-- runJ item 7: point the camera AT the mini-stage. The stage is built at
+-- STAGE_Y=220 near the world origin; without this it renders but stays
+-- off-screen (the reported "nothing happens in the world"). The map camera is
+-- suppressed while the theater is open (ClientState.theaterActive), so this
+-- fixed frame holds. Diagnosis: NOT the defeated/spectator gate (perspective is
+-- omniscient + the player was still seated) — a general camera-framing bug.
+local theaterCamera = workspace.CurrentCamera
+local function frameStage(map)
+	local o = stageOrigin(map)
+	local center = o + Vector3.new(map.width * CELL / 2, 0, map.height * CELL / 2)
+	local span = math.max(map.width, map.height) * CELL
+	theaterCamera.CameraType = Enum.CameraType.Scriptable
+	theaterCamera.CFrame = CFrame.lookAt(center + Vector3.new(0, span * 0.75, span * 0.85), center)
+end
+
 local function repaint()
 	if record == nil then
 		return
@@ -255,15 +270,15 @@ end
 -- ---- wiring -----------------------------------------------------------------
 local function close()
 	bar.Visible = false
+	ClientState.theaterActive = false -- runJ item 7: the map camera resumes control
 	if stage ~= nil then
 		stage:Destroy()
 		stage = nil
 	end
 end
 
-openBtn.Activated:Connect(function()
+local function openTheater()
 	if bar.Visible then
-		close()
 		return
 	end
 	record = nil
@@ -271,7 +286,15 @@ openBtn.Activated:Connect(function()
 	bar.Visible = true
 	ClientState.panelOpened("theater") -- runI item 14: hide the other left-stack panels
 	remote:FireServer({ t = "theater" })
+end
+openBtn.Activated:Connect(function()
+	if bar.Visible then
+		close()
+	else
+		openTheater()
+	end
 end)
+ClientState.onOpenTheater(openTheater) -- runJ item 6: the end screen's "Watch replay"
 
 -- runI item 14: another left-stack panel opening closes the theater so they
 -- never overlap
@@ -353,6 +376,8 @@ remote.OnClientEvent:Connect(function(msg)
 			end
 		end
 		atRound = #rounds
+		ClientState.theaterActive = true -- runJ item 7: suppress the map camera
+		frameStage(record.initialState.map)
 		repaint()
 	elseif msg.t == "rejected" and bar.Visible and record == nil then
 		if msg.code == "gameStillRunning" then

@@ -90,6 +90,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 RunService.RenderStepped:Connect(function(dt)
+	if ClientState.theaterActive then
+		return -- runJ item 7: the replay theater owns the camera while it is open
+	end
 	camera.CameraType = Enum.CameraType.Scriptable
 
 	local mouse = UserInputService:GetMouseLocation()
@@ -139,6 +142,7 @@ RunService.RenderStepped:Connect(function(dt)
 
 	local offset = CFrame.fromEulerAnglesYXZ(pitch, yaw, 0):VectorToWorldSpace(Vector3.new(0, 0, dist))
 	camera.CFrame = CFrame.lookAt(focus + offset, focus)
+	ClientState.cameraDist = dist -- runI item 9: the LOD signal ViewRenderer reads
 end)
 
 print(("[Camera] R4 map camera up: dist %d — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar"):format(dist))

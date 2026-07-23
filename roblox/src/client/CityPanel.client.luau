@@ -465,6 +465,7 @@ end
 ClientState.onCityOpen(function(cityId)
 	openCityId = cityId
 	gui.Enabled = true
+	ClientState.cityViewOpen = true -- runJ item 3: suppress the map-influence overlay
 	ClientState.panelOpened("city") -- runI item 18: opening a city closes other panels
 	WorkedTiles.show(cityId) -- R7c-3: fat cross + camera fly-to
 	refresh()
@@ -483,6 +484,7 @@ ClientState.onView(refresh)
 function closePanel() -- assigns the forward declaration above addRow
 	gui.Enabled = false
 	openCityId = nil
+	ClientState.cityViewOpen = false -- runJ item 3: influence overlay may return
 	WorkedTiles.hide()
 end
 closeBtn.Activated:Connect(closePanel)

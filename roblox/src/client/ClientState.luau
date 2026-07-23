@@ -321,6 +321,18 @@ function M.onView(cb)
 	end
 end
 
+-- runJ item 6: the end screen's "Watch replay" opens the theater. A decoupled
+-- signal (ReplayTheater registers) avoids a require cycle between the two.
+local openTheaterCallbacks = {}
+function M.onOpenTheater(cb)
+	table.insert(openTheaterCallbacks, cb)
+end
+function M.openTheater()
+	for _, cb in ipairs(openTheaterCallbacks) do
+		cb()
+	end
+end
+
 -- CP20 automation (ruling @6679e9c0; browser automate.js twin, CLIENT-SIDE
 -- like sentry/GoTo - golden-safe): auto settlers work themselves each view
 -- push. autoDriving marks the driver's own sends so a MANUAL order to an

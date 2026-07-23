@@ -145,26 +145,113 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 300, 0, 498)
-setupPanel.Position = UDim2.new(0.5, -150, 0.3, 0)
+setupPanel.Size = UDim2.new(0, 510, 0, 520) -- runI/runJ item 1: 50% wider so the bars fit any step count
+setupPanel.Position = UDim2.new(0.5, -255, 0.28, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
 setupPanel.BorderSizePixel = 0
 setupPanel.Visible = false
 setupPanel.Parent = gui
 
-label(setupPanel, 6, 22, "New game (you are the host)")
-local sizeLine = label(setupPanel, 34, 18, "")
-local civsLine = label(setupPanel, 76, 18, "")
-local humansLine = label(setupPanel, 118, 18, "")
-local mapTypeLine = label(setupPanel, 160, 18, "")
-local maxIdleLine = label(setupPanel, 202, 18, "") -- R22 idle-regency knob
-local ageLine = label(setupPanel, 244, 18, "") -- R24 starting age
-local difficultyLine = label(setupPanel, 286, 18, "") -- R24b parity audit
-local combatLine = label(setupPanel, 328, 18, "")
-local seedLine = label(setupPanel, 370, 18, "")
-local spectatorsLine = label(setupPanel, 412, 18, "") -- CP16
-local marathonLine = label(setupPanel, 454, 18, "") -- MP11
+label(setupPanel, 6, 33, "New game (you are the host)") -- runI item 5: +50% title
+
+local function sendSetup(key, dir)
+	remote:FireServer({ t = "setup", key = key, dir = dir })
+end
+
+-- runI item 3: ranged options are SEGMENTED BARS — one segment per legal value,
+-- filled to the current value in the UI accent (NOT meaning-loaded); tapping a
+-- segment sets it via |target-current| dir steps over the EXISTING setup protocol
+-- (no server change). The legal-value lists MIRROR the server (GameServer
+-- MAP_SIZES / DIFFICULTY_LEVELS / rules.mapTypes / rules.ages / maxCivsBySize) —
+-- browser-parity, no contract touch.
+local SETUP_SIZES = { "xsmall", "small", "medium" }
+local SETUP_MAPTYPES = { "archipelago", "continents", "islands", "pangaea" }
+local SETUP_AGES = { "ancient", "renaissance", "industrial", "modern", "space" }
+local SETUP_DIFFICULTY = { "trainer", "easy", "medium", "hard", "godemperor" }
+local SETUP_COMBAT = { "bestof3", "authentic" }
+local MAXCIV_BY_SIZE = { xsmall = 7, small = 12, medium = 14 }
+local UIACCENT = Color3.fromRGB(70, 120, 190)
+
+local barsHost = Instance.new("ScrollingFrame")
+barsHost.Size = UDim2.new(1, -16, 0, 286)
+barsHost.Position = UDim2.new(0, 8, 0, 48)
+barsHost.BackgroundTransparency = 1
+barsHost.BorderSizePixel = 0
+barsHost.ScrollBarThickness = 6
+barsHost.AutomaticCanvasSize = Enum.AutomaticSize.Y
+barsHost.CanvasSize = UDim2.new(0, 0, 0, 0)
+barsHost.Parent = setupPanel
+do
+	local l = Instance.new("UIListLayout")
+	l.SortOrder = Enum.SortOrder.LayoutOrder
+	l.Padding = UDim.new(0, 8)
+	l.Parent = barsHost
+end
+
+-- one segmented-bar row: a +50%-font header "name: value" + a strip of segments
+-- filled to the current index. display maps a value to its shown label.
+local function buildBar(order, name, values, current, key, display)
+	local curIdx = table.find(values, current) or 1
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, -4, 0, 48)
+	row.BackgroundTransparency = 1
+	row.LayoutOrder = order
+	row.Parent = barsHost
+	local head = Instance.new("TextLabel")
+	head.Size = UDim2.new(1, 0, 0, 24)
+	head.BackgroundTransparency = 1
+	head.TextColor3 = Color3.fromRGB(235, 235, 235)
+	head.Font = Enum.Font.Code
+	head.TextSize = 20 -- runI item 5: +50% setup text (was 16)
+	head.TextXAlignment = Enum.TextXAlignment.Left
+	head.Text = ("%s: %s"):format(name, display and display(current) or tostring(current))
+	head.Parent = row
+	local w = 1 / #values
+	for i, v in ipairs(values) do
+		local seg = Instance.new("TextButton")
+		seg.Size = UDim2.new(w, -2, 0, 18)
+		seg.Position = UDim2.new(w * (i - 1), 1, 0, 26)
+		seg.BackgroundColor3 = i <= curIdx and UIACCENT or Color3.fromRGB(44, 50, 64)
+		seg.BorderSizePixel = 0
+		seg.AutoButtonColor = true
+		seg.Text = ""
+		seg.Parent = row
+		local target = i
+		seg.Activated:Connect(function()
+			local steps = target - curIdx
+			local dir = steps >= 0 and 1 or -1
+			for _ = 1, math.abs(steps) do
+				sendSetup(key, dir)
+			end
+		end)
+	end
+end
+
+-- rebuild every ranged bar from the current options (civs cap is size-dynamic,
+-- so the strip must be regenerated each render)
+local function rebuildBars(opts)
+	for _, c in ipairs(barsHost:GetChildren()) do
+		if c:IsA("Frame") then
+			c:Destroy()
+		end
+	end
+	local cap = MAXCIV_BY_SIZE[opts.size] or 14
+	local civVals, humanVals, idleVals = {}, {}, {}
+	for n = 2, cap do table.insert(civVals, n) end
+	for n = 1, opts.civs or 2 do table.insert(humanVals, n) end
+	for n = 1, 15 do table.insert(idleVals, n) end
+	buildBar(1, "map size", SETUP_SIZES, opts.size, "size")
+	buildBar(2, "civilizations", civVals, opts.civs, "civs")
+	buildBar(3, "human seats", humanVals, opts.humans, "humans")
+	buildBar(4, "map type", SETUP_MAPTYPES, opts.mapType or "continents", "maptype")
+	buildBar(5, "max idle (min)", idleVals, opts.maxIdleMin or 1, "maxidle")
+	buildBar(6, "starting age", SETUP_AGES, opts.age or "ancient", "age",
+		function(v) return v ~= "ancient" and (v .. " (fast-forward)") or v end)
+	buildBar(7, "difficulty", SETUP_DIFFICULTY, opts.difficulty or "medium", "difficulty")
+	buildBar(8, "combat", SETUP_COMBAT, opts.combat or "bestof3", "combat",
+		function(v) return v == "bestof3" and "best of 3" or "authentic (single)" end)
+end
 
 local function stepButton(x, y, text, onClick)
 	local b = Instance.new("TextButton")
@@ -180,30 +267,11 @@ local function stepButton(x, y, text, onClick)
 	return b
 end
 
-local function sendSetup(key, dir)
-	remote:FireServer({ t = "setup", key = key, dir = dir })
-end
-
-stepButton(8, 52, "-", function() sendSetup("size", -1) end)
-stepButton(42, 52, "+", function() sendSetup("size", 1) end)
-stepButton(8, 94, "-", function() sendSetup("civs", -1) end)
-stepButton(42, 94, "+", function() sendSetup("civs", 1) end)
-stepButton(8, 136, "-", function() sendSetup("humans", -1) end)
-stepButton(42, 136, "+", function() sendSetup("humans", 1) end)
-stepButton(8, 178, "-", function() sendSetup("maptype", -1) end)
-stepButton(42, 178, "+", function() sendSetup("maptype", 1) end)
-stepButton(8, 220, "-", function() sendSetup("maxidle", -1) end)
-stepButton(42, 220, "+", function() sendSetup("maxidle", 1) end)
-stepButton(8, 262, "-", function() sendSetup("age", -1) end)
-stepButton(42, 262, "+", function() sendSetup("age", 1) end)
-stepButton(8, 304, "-", function() sendSetup("difficulty", -1) end)
-stepButton(42, 304, "+", function() sendSetup("difficulty", 1) end)
-stepButton(8, 346, "~", function() sendSetup("combat", 1) end) -- two-state toggle
-
 -- R24b: explicit world seed (browser parity); empty or 0 = random
+local seedLbl = label(setupPanel, 344, 20, "world seed (empty = random):") -- item 5 font
 local seedBox = Instance.new("TextBox")
-seedBox.Size = UDim2.new(0, 110, 0, 22)
-seedBox.Position = UDim2.new(0, 8, 0, 388)
+seedBox.Size = UDim2.new(0, 150, 0, 26)
+seedBox.Position = UDim2.new(0, 8, 0, 370)
 seedBox.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
 seedBox.TextColor3 = Color3.fromRGB(235, 235, 235)
 seedBox.Font = Enum.Font.Code
@@ -218,10 +286,12 @@ seedBox.FocusLost:Connect(function()
 end)
 -- runI item 3: boolean options are a single green "On" / red "Off" button
 -- (recolored per state in render), not a "~" stepper.
-local spectatorsToggle = stepButton(8, 430, "", function() sendSetup("spectators", 1) end) -- CP16 toggle
-local marathonToggle = stepButton(8, 472, "", function() sendSetup("marathon", 1) end) -- MP11 toggle
-spectatorsToggle.Size = UDim2.new(0, 54, 0, 22)
-marathonToggle.Size = UDim2.new(0, 54, 0, 22)
+local spectatorsToggle = stepButton(8, 406, "", function() sendSetup("spectators", 1) end) -- CP16 toggle
+local marathonToggle = stepButton(8, 440, "", function() sendSetup("marathon", 1) end) -- MP11 toggle
+spectatorsToggle.Size = UDim2.new(0, 58, 0, 26)
+marathonToggle.Size = UDim2.new(0, 58, 0, 26)
+label(setupPanel, 406, 20, "        spectators").Position = UDim2.new(0, 74, 0, 406)
+label(setupPanel, 440, 20, "        marathon (play to victory)").Position = UDim2.new(0, 74, 0, 440)
 
 local startBtn = Instance.new("TextButton")
 -- runI item 5: +50% Start button, anchored bottom-center, full width minus margins
@@ -376,20 +446,8 @@ local function render(lobby)
 	local isHostSetup = lobby.youAreHost and lobby.phase == "setup"
 	setupPanel.Visible = isHostSetup
 	if isHostSetup then
-		sizeLine.Text = "map size: " .. lobby.options.size
-		civsLine.Text = ("civilizations: %d"):format(lobby.options.civs)
-		humansLine.Text = ("human seats: %d (rest are AI)"):format(lobby.options.humans)
-		mapTypeLine.Text = "map type: " .. (lobby.options.mapType or "continents") -- A82a
-		maxIdleLine.Text = ("max idle: %d min (then AI regency)"):format(lobby.options.maxIdleMin or 1)
-		ageLine.Text = "starting age: " .. (lobby.options.age or "ancient")
-			.. ((lobby.options.age or "ancient") ~= "ancient" and " (AI fast-forward)" or "")
-		difficultyLine.Text = "difficulty: " .. (lobby.options.difficulty or "medium")
-		combatLine.Text = "combat: " .. ((lobby.options.combat or "bestof3") == "bestof3"
-			and "best-of-three" or "authentic (single round)")
-		seedLine.Text = "world seed: " .. ((lobby.options.seed or 0) > 0
-			and tostring(lobby.options.seed) or "random")
-		spectatorsLine.Text = "spectators:"
-		marathonLine.Text = "marathon (play to victory):"
+		-- runI item 3: rebuild the ranged segmented bars from the current options
+		rebuildBars(lobby.options)
 		-- runI item 3: green On / red Off two-state buttons
 		local ON, OFF = Color3.fromRGB(56, 138, 74), Color3.fromRGB(150, 58, 52)
 		local specOn = lobby.options.spectators ~= false
@@ -406,6 +464,38 @@ local function render(lobby)
 	resumeBtn.Visible = idle
 	saveBtn.Visible = lobby.phase == "running" and lobby.youAreHost
 	codeOut.Visible = saveBtn.Visible and codeOut.Text ~= ""
+end
+
+-- runJ item 5: the defeat overlay — a seated player who loses their last city
+-- gets this full-screen notice + countdown; the server then returns them to the
+-- observation deck seatless (the game continues without them).
+local defeatOverlay = Instance.new("TextLabel")
+defeatOverlay.Size = UDim2.new(1, 0, 1, 0)
+defeatOverlay.BackgroundColor3 = Color3.fromRGB(12, 10, 14)
+defeatOverlay.BackgroundTransparency = 0.22
+defeatOverlay.TextColor3 = Color3.fromRGB(255, 210, 200)
+defeatOverlay.Font = Enum.Font.SourceSansBold
+defeatOverlay.TextSize = 34
+defeatOverlay.TextWrapped = true
+defeatOverlay.Visible = false
+defeatOverlay.ZIndex = 50
+defeatOverlay.Text = ""
+defeatOverlay.Parent = gui
+local defeatGen = 0
+local function showDefeatOverlay(seconds)
+	defeatGen += 1
+	local gen = defeatGen
+	defeatOverlay.Visible = true
+	for s = seconds, 1, -1 do
+		if gen ~= defeatGen then
+			return
+		end
+		defeatOverlay.Text = ("DEFEATED\n\nYour last city has fallen.\n\nReturning to the observation deck in %d\u{2026}"):format(s)
+		task.wait(1)
+	end
+	if gen == defeatGen then
+		defeatOverlay.Visible = false
+	end
 end
 
 remote.OnClientEvent:Connect(function(msg)
@@ -438,6 +528,10 @@ remote.OnClientEvent:Connect(function(msg)
 		youSeated = true
 		panel.Visible = false
 		setupPanel.Visible = false
+	elseif msg.t == "defeated" then
+		-- runJ item 5: last city fell — countdown, then the server decks us
+		youSeated = false
+		task.spawn(showDefeatOverlay, msg.seconds or 10)
 	end
 end)
 
