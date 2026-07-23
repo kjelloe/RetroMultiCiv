@@ -17,6 +17,14 @@ fresh helper session are the open items)._
 
 ## DECIDE / DO (needs you)
 
+- [ ] **Title clearance (ally naming ruling, 2026-07-24):** commission
+  the PROFESSIONAL trademark search for "A World Begun" (lead) +
+  "The Work of Ages" (backup), and quietly reserve `aworldbegun.eu` /
+  `.com` / `.no` (~€26/yr, no commitment until the search clears).
+  "Founders" is retired as a title; Founding Age / Founder's Record
+  live on in-product. Release copy is in hand (three blocks,
+  title-swappable).
+
 - [ ] **Review the v1 release checklist** —
   `specs/v1-release-checklist.md` (designed together this morning):
   RC marker → your main merge → v1.0.0 tag → redeploy from main →

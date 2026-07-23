@@ -30,10 +30,15 @@ v1 tree is done (all six axes; see plan-version1.md). Order matters.
    civs, marathon opt-in, --max-turns 700, --bug-reports on,
    --announce to the public index. Documented as the v1 baseline in
    how-to-host (no changes needed).
-5. **README + release notes** (architect drafts, user reviews): the
-   what-is-this + feature summary + how-to-play/host; the DESIGNER
-   ALLY is invited to contribute release-note flavor copy (optional,
-   non-blocking).
+5. **README + release notes**: the ally's three-block copy is IN
+   HAND (specs/ally-response-2026-07-24-naming-release.md) —
+   title-swappable. NAMING (ally-ruled): "A World Begun" lead /
+   "The Work of Ages" backup, pending PROFESSIONAL trademark search
+   (user gate); "Founders" retired as title but sanctioned in-product
+   (Founding Age era label, Founder's Record = the replay/history
+   interface). RetroMultiCiv stays the technical name; the domain
+   stays. Architect assembles README around the ally blocks; user
+   reviews.
 6. **Roblox**: v1 ships browser-first the moment 1–5 complete. The
    Roblox test-publish happens AFTER the runI batch lands (ruled):
    one publish, then sound + saving + batch accepted together in one
