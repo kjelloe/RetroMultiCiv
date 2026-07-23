@@ -210,6 +210,16 @@ local function pickGovernment(state: any, playerId: string, ruleset: any, S: any
 	return if hasMonarchy then "monarchy" else "despotism"
 end
 
+-- #36 N1a: the tech that unlocks the stance's TARGET government (the gov-beeline goal). '' when the
+-- target is despotism/monarchy or the ruleset omits it. Twin of engine/ai.js govTargetTech.
+local function govTargetTech(ruleset: any, S: any): string
+	local target = if S.govTarget == nil then "monarchy" else S.govTarget
+	if target == "republic-if-safe" then target = "republic" end
+	local gov = ruleset.governments[target]
+	if gov == nil or gov.tech == nil then return "" end
+	return gov.tech
+end
+
 -- A step toward (tx, ty) that a lone settler can survive.
 local function safeDirToward(state: any, me: any, playerId: string, unit: any, tx: number, ty: number, ruleset: any): string?
 	local map = state.map
@@ -2560,6 +2570,14 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				and needsOcean(state, playerId, me, ruleset) then
 				markTechPath(ruleset, ot, oceanPath)
 			end
+			-- #36 N1a: after Monarchy, beeline the stance's TARGET GOVERNMENT tech (republic/democracy)
+			-- so the AI reaches its govTarget instead of stalling at monarchy. Subordinate to spacePath
+			-- (committed civ supersedes); a peer of attacker/nav. Only while the target tech is unheld.
+			local govPath = {}
+			local govTech = govTargetTech(ruleset, S)
+			if table.find(me.techs, "monarchy") ~= nil and govTech ~= "" and table.find(me.techs, govTech) == nil then
+				markTechPath(ruleset, govTech, govPath)
+			end
 			-- XII.5b Q3: a committed civ prefers the space-flight prereq closure and
 			-- SUPERSEDES monarchy/attacker/nav; empty-onPath falls back to all (escape).
 			local spacePath = {}
@@ -2570,12 +2588,17 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				for k in pairs(parts) do markTechPath(ruleset, parts[k].tech, spacePath) end
 			end
 			local committedSpace = next(spacePath) ~= nil
+			local funcBeelineActive = next(monarchyPath) ~= nil or next(atkPath) ~= nil
+				or next(navPath) ~= nil or next(oceanPath) ~= nil
 			local pool = avail
 			local onPath = {}
 			for _, id in ipairs(avail) do
 				if spacePath[id] == true then
 					table.insert(onPath, id)
 				elseif not committedSpace and (monarchyPath[id] == true or atkPath[id] == true or navPath[id] == true or oceanPath[id] == true) then
+					table.insert(onPath, id)
+				-- #36 N1a: gov beeline is LOWEST priority — only when no functional beeline is active.
+				elseif not committedSpace and govPath[id] == true and not funcBeelineActive then
 					table.insert(onPath, id)
 				end
 			end

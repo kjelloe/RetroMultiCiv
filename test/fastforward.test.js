@@ -60,8 +60,11 @@ test('era guard: all 68 techs classified, bucket sizes 22/15/14/17', () => {
 
 test('fast-forward is deterministic: same seed + age → identical state hash', () => {
   const age = ageById('renaissance');
-  const a = fastForwardTo(RULESET, freshWorld(2), age, ['p1']);
-  const b = fastForwardTo(RULESET, freshWorld(2), age, ['p1']);
+  // #36 N1a re-pin (seed 2 -> 3): the gov-tech beeline reshuffled trajectories, and seed 2's small
+  // world now conquers out before Renaissance (the abort path). Seed 3 survives (12/19 seeds do —
+  // not a regression). Same re-pin discipline as the 2026-07-18 (seed 1 -> 2) goody-hut move.
+  const a = fastForwardTo(RULESET, freshWorld(3), age, ['p1']);
+  const b = fastForwardTo(RULESET, freshWorld(3), age, ['p1']);
   assert.ok(!a.aborted && !b.aborted, 'both runs complete');
   assert.strictEqual(a.state.turn, age.turn, 'stops at the age turn');
   assert.strictEqual(hashState(a.state), hashState(b.state), 'byte-identical worlds');
@@ -71,7 +74,7 @@ test('fast-forward is deterministic: same seed + age → identical state hash', 
 
 test('the grant is the era union for EVERY player, research reset', () => {
   const age = ageById('renaissance'); // grants the 22 ancient techs
-  const r = fastForwardTo(RULESET, freshWorld(2), age, ['p1']);
+  const r = fastForwardTo(RULESET, freshWorld(3), age, ['p1']); // #36 N1a re-pin (seed 2 conquers out pre-Renaissance)
   const ancient = Object.keys(RULESET.techs).filter(t => RULESET.techs[t].era === 'ancient').sort();
   assert.deepStrictEqual(r.grant, ancient);
   for (const pid of r.state.playerOrder) {

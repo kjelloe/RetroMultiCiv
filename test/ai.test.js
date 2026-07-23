@@ -251,6 +251,35 @@ test('B21(b): aiAttackerTechWeight is sweepable — it steers the beeline', asyn
   assert.notStrictEqual(on.tech, off.tech, 'a heavy attacker-tech weight steers the beeline off the monarchy-only path');
 });
 
+// #36 N1a: after Monarchy, the gov-tech beeline researches TOWARD the stance's govTarget government
+// (republic/democracy) instead of stalling at monarchy forever (the measured pathology: 0/N civs ever
+// reached republic tech). Gated on holding Monarchy first (economy foundation); subordinate to the
+// space beeline (a committed civ's spacePath supersedes — not exercised here).
+test('#36 N1a: after Monarchy the gov-beeline heads for the govTarget tech (republic), monarchy first', async () => {
+  const { ai } = await load();
+  // republic's prereq closure (the beeline path): republic + every ancestor tech
+  const closureOf = (goal) => { const c = {}; const stack = [goal]; while (stack.length) { const t = stack.pop(); if (c[t]) continue; c[t] = true; for (const r of RULESET.techs[t].prereqs) stack.push(r); } return c; };
+  const repClosure = closureOf('republic');
+  const monClosure = closureOf('monarchy');
+  const mk = (techs) => grassState(9, 9, {}, {}, { players: {
+    p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs, researching: '', bulbs: 0, taxRate: 50, sciRate: 50, stance: 'science' },
+    p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  // aiAttackerTechWeight 0 isolates the gov beeline from the B21(b) attacker beeline (which, when a
+  // civ has no attacker yet, legitimately competes ahead of it — attacker-then-gov; the soak still
+  // reaches republic once civs field attackers). Here we prove the GOV beeline's own direction.
+  const rules = withRules({ aiAttackerTechWeight: 0 });
+  // WITH monarchy: the science civ (govTarget republic) beelines a tech on republic's path.
+  const withMon = ai.pickCommand(mk(['monarchy']), 'p1', rules, { happiness: true });
+  assert.strictEqual(withMon.type, 'setResearch', 'research phase picks a tech; got ' + JSON.stringify(withMon));
+  assert.ok(repClosure[withMon.tech] === true && withMon.tech !== 'republic',
+    `post-monarchy the gov-beeline must head toward republic — picked ${withMon.tech}, not on republic's path`);
+  // CONTROL: WITHOUT monarchy the beeline is monarchy FIRST (economy foundation), not republic.
+  const noMon = ai.pickCommand(mk([]), 'p1', rules, { happiness: true });
+  assert.strictEqual(noMon.type, 'setResearch');
+  assert.ok(monClosure[noMon.tech] === true,
+    `pre-monarchy the beeline heads for monarchy first — picked ${noMon.tech}, not on monarchy's path`);
+});
+
 // B21(c): rush-buy a threatened city's military production above the gold floor
 // (rules.aiBuyThreshold). "no buys ever" dies here.
 test('B21(c): aiBuyThreshold is sweepable — a flush, threatened city rush-buys', async () => {

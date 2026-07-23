@@ -241,6 +241,19 @@ function pickGovernment(state, playerId, ruleset, S) {
   return hasMonarchy ? 'monarchy' : 'despotism';
 }
 
+// #36 N1a: the tech that unlocks the stance's TARGET government — the gov-beeline goal so the AI
+// actually researches its way to republic/democracy instead of stalling at monarchy (0/N ever
+// reached republic — the measured pathology). 'republic-if-safe' targets republic's tech (the
+// safety gate is applied at ADOPTION by pickGovernment, not at research). '' when the target is
+// despotism/monarchy (no higher tech to chase) or the ruleset omits it.
+function govTargetTech(ruleset, S) {
+  let target = S.govTarget === undefined ? 'monarchy' : S.govTarget;
+  if (target === 'republic-if-safe') target = 'republic';
+  const gov = ruleset.governments[target];
+  if (gov === undefined || gov.tech === undefined) return '';
+  return gov.tech;
+}
+
 // A step toward (tx, ty) that a lone settler can survive: land only, never
 // onto or adjacent to a known enemy. Null = no safe step (hold position).
 function safeDirToward(state, me, playerId, unit, tx, ty, ruleset) {
@@ -2186,6 +2199,17 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           && needsOcean(state, playerId, me, ruleset)) {
         markTechPath(ruleset, ot, oceanPath);
       }
+      // #36 N1a: after Monarchy, beeline the stance's TARGET GOVERNMENT tech (republic/democracy)
+      // so the AI reaches its govTarget instead of stalling at monarchy forever (the measured
+      // pathology: pickGovernment is correct but starved of tech). SUBORDINATE to spacePath (a
+      // committed civ's space beeline supersedes — XII.5b precedent, so the two never fight); a
+      // PEER of the attacker/naval paths (picked by level, so republic's prereqs walk in first).
+      // Only while the civ lacks the target tech; aggressive (govTarget monarchy) leaves it empty.
+      const govPath = {};
+      const govTech = govTargetTech(ruleset, S);
+      if (me.techs.indexOf('monarchy') !== -1 && govTech !== '' && me.techs.indexOf(govTech) === -1) {
+        markTechPath(ruleset, govTech, govPath);
+      }
       // XII.5b Q3: a space-COMMITTED civ prefers the space-flight prerequisite
       // closure — Apollo's tech + every ssPart tech — and SUPERSEDES the monarchy/
       // attacker/naval paths (a committed civ is past early-game). If no space-path
@@ -2199,11 +2223,20 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         for (const k of Object.keys(parts)) markTechPath(ruleset, parts[k].tech, spacePath);
       }
       const committedSpace = Object.keys(spacePath).length > 0;
+      // #36 N1a: is any FUNCTIONAL beeline still active (economy/military/navy not yet secured)?
+      // The gov beeline defers to these — it only fires once they are satisfied.
+      const funcBeelineActive = Object.keys(monarchyPath).length > 0 || Object.keys(atkPath).length > 0
+        || Object.keys(navPath).length > 0 || Object.keys(oceanPath).length > 0;
       let pool = avail;
       const onPath = [];
       for (const id of avail) {
         if (spacePath[id] === true) onPath.push(id);
         else if (!committedSpace && (monarchyPath[id] === true || atkPath[id] === true || navPath[id] === true || oceanPath[id] === true)) onPath.push(id);
+        // #36 N1a: the gov beeline is the LOWEST priority — it contributes ONLY when no functional
+        // beeline (monarchy/attacker/naval/ocean) is still active, so a civ secures its economy +
+        // basic military/navy FIRST, then heads for its target government (attacker-then-gov; the
+        // naval beeline stays load-bearing). Subordinate to space via !committedSpace.
+        else if (!committedSpace && govPath[id] === true && !funcBeelineActive) onPath.push(id);
       }
       if (onPath.length > 0) pool = onPath;
       let best = pool[0];
