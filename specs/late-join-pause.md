@@ -47,12 +47,26 @@ Rank by current score (engine score.js values, fog-free server-side):
 - 2: assign the weaker. 1: assign it.
 The join answer returns the assigned civ + a fresh seat token; the
 seat becomes human from the next round (mid-turn AI actions of that
-civ complete first). IMPLEMENTATION FLAG for the lanes: prefer a
-PURE SERVER-SIDE seat-mapping flip (AI-drive stops issuing for that
-player index). If anything in ENGINE STATE must flip (a per-player
-human flag read by engine logic), that is an engine command + golden
-window + fixture — escalate to the architect before touching it;
-do not improvise a state write server-side (docs/07 tamper rules).
+civ complete first).
+
+RESOLVED 2026-07-24 (hardening #2383 escalated per the flag —
+correctly): `players[i].human` IS engine state and replayed, so the
+flip is a new ENGINE COMMAND, built by the BUGFIXER (engine lane) in
+its next window after #8 — never server-side state writing:
+- `{ t: 'claimSeat', player: <idx> }`, server-issued at assignment
+  through the NORMAL command path (stamped + logged like any command,
+  so tools/replay.js reproduces the flip).
+- Engine semantics: sets `players[player].human = true`. Rejects:
+  player dead, already human, or game over. Deterministic, no RNG,
+  no other state touched. The REVERSE flip is deliberately NOT
+  needed (regency already drives absent human seats without a state
+  flip; pause-on-empty needs none either).
+- Doctrine: replay fixture FIRST, engine/*.js + luau twin in ONE
+  golden window (existing goldens don't move — old logs never
+  contain the new command — but the window discipline applies).
+- Hardening builds §3's SELECTION + join answer now, gated on the
+  command's existence; §1/§2/§5/§6/§7 are pure server and proceed
+  in parallel (no file collision with the engine window).
 
 ## 4. Client UI (helper)
 
