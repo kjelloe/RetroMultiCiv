@@ -17,8 +17,9 @@ fresh helper session are the open items)._
 
 ## DECIDE / DO (needs you)
 
-_Catch-up: `reports/marker-0086.md` (the current candidate);
-`reports/away-window-2-brief.md` covers the earlier 0077-0081 arc._
+_Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
+markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
+list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
 - [ ] **Redeploy from marker-0090** (`8ff258d`, both gates banked):
   everything through 0089 PLUS the archetype AI (civs build the
