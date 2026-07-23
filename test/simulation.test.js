@@ -31,34 +31,33 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
-// #36 N2 upgrade-in-city re-record. BEHAVIORAL (#28: BEHAVIOR_SOAK 400 + BEHAVIOR_NATURAL MOVED): the
-// AI now issues upgradeUnit — a solvent civ modernizes an OBSOLETE garrison toward its upgradesTo
-// successor. Fires LATE (checkpoint-100/200/300 UNCHANGED from N1a/N1b; only 400 moves) — units only
-// become obsolete + gold accumulates in the late game. NATURAL 437 -> 545 rounds (modernized armies
-// defend better -> slower conquest -> longer games). ai.js-only -> rulesetHash STAMP UNMOVED. JS==Luau
-// at every hash (lune 400 0x104e6527, natural 545/0x59c331e5). (Prior N1a moved 200-400; N1b golden-
-// neutral on the 4-civ roster which has no science civ.)
+// #22 XV §11 disorder-lux re-record. BEHAVIORAL (#28: BEHAVIOR_SOAK 200-400 + BEHAVIOR_NATURAL MOVED):
+// on MULTI-city disorder the AI now raises the empire LUXURY rate (gated on a K=10 treasury window)
+// BEFORE the per-city entertainer. Fires after t100 (checkpoint-100 UNCHANGED — cities grow into
+// disorder mid-game); 200-400 + natural move. NATURAL stays 545 rounds (winner p2). ai.js-only ->
+// rulesetHash STAMP UNMOVED (K is an ai.js constant, not a rules knob). JS==Luau at every hash (lune
+// 400 0x4088da66, natural 545/0xce24dd0d). (Prior N2 moved only 400+natural; N1a moved 200-400.)
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
     100: '0x681e9457',
-    200: '0x2d7d671d',
-    300: '0xb15f92f9',
-    400: '0x104e6527'
+    200: '0xc48f0cdf',
+    300: '0x05fe29d7',
+    400: '0x4088da66'
   },
-  finalHash: '0x104e6527'
+  finalHash: '0x4088da66'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x59c331e5' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xce24dd0d' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xc962fc35', 200: '0x16533df1', 300: '0x1c72de07', 400: '0x0b8366cf' },
-  finalHash: '0x0b8366cf'
+  checkpoints: { 100: '0xc962fc35', 200: '0x5061ffad', 300: '0x9d09511f', 400: '0x439545aa' },
+  finalHash: '0x439545aa'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x065450e1' };
+const BEHAVIOR_NATURAL = { finalHash: '0x2ffd28b5' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

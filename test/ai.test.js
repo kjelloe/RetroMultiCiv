@@ -344,6 +344,38 @@ test('#36 N2: a solvent civ upgrades an obsolete garrison in a city; a poor civ 
   assert.notStrictEqual(poor.type, 'upgradeUnit', 'a civ below the gold reserve holds, not drains the treasury');
 });
 
+// #22 XV §11 (§19 ruling): MULTI-CITY (>=2) disorder pulls the empire LUXURY lever FIRST — gated on
+// the K-turn treasury-sustainability window. A single-city disorder stays entertainer-first (Q1). An
+// unsustainable raise is refused (the combo: the entertainer mops up instead of draining the treasury).
+test('#22 disorder: multi-city raises luxury when the treasury sustains it; else holds; single-city entertains', async () => {
+  const { ai } = await load();
+  // grassland + river + road -> trade exists so luxury can calm (grassland alone is 0 trade). Non-
+  // happiness buildings (aqueduct/factory/bank/city-walls = 11 gold upkeep each) create the deficit
+  // that the sustainability gate weighs — WITHOUT adding happiness (the cities stay in disorder).
+  const tiles = []; for (let i = 0; i < 81; i++) tiles.push({ t: 'grassland', river: true, road: true });
+  const bld = ['aqueduct', 'factory', 'bank', 'city-walls'];
+  const city = (id, x, y) => ({ id, name: id, owner: 'p1', x, y, pop: 6, food: 20, shields: 0, buildings: bld.slice(), producing: { kind: 'unit', id: 'militia' } });
+  const mk = (cities, gold) => ({
+    version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1', 'p2'],
+    map: { width: 9, height: 9, wrapX: false, tiles }, units: {}, cities, cityOrder: Object.keys(cities),
+    wonders: {}, nextUnitId: 50, nextCityId: 10,
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold, techs: [], researching: 'pottery', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }
+    }, rngState: 1
+  });
+  const isLux = (c) => c && c.type === 'setRates' && c.lux > 0;
+  // 2 disordered cities + ample treasury -> raise luxury (empire lever, before the entertainer)
+  const sustain = ai.pickCommand(mk({ c1: city('c1', 2, 2), c2: city('c2', 6, 6) }, 500), 'p1', RULESET, {});
+  assert.ok(isLux(sustain), 'multi-city disorder + treasury raises luxury; got ' + JSON.stringify(sustain));
+  // 2 disordered cities + almost no treasury -> the raise is UNSUSTAINABLE -> hold (entertainer)
+  const broke = ai.pickCommand(mk({ c1: city('c1', 2, 2), c2: city('c2', 6, 6) }, 5), 'p1', RULESET, {});
+  assert.ok(!isLux(broke), 'an unsustainable luxury raise is refused (the entertainer mops up); got ' + JSON.stringify(broke));
+  // single disordered city -> entertainer-first, no empire luxury lever (Q1)
+  const single = ai.pickCommand(mk({ c1: city('c1', 2, 2) }, 500), 'p1', RULESET, {});
+  assert.ok(!isLux(single), 'single-city disorder stays entertainer-first (no empire luxury); got ' + JSON.stringify(single));
+});
+
 // B21(c): rush-buy a threatened city's military production above the gold floor
 // (rules.aiBuyThreshold). "no buys ever" dies here.
 test('B21(c): aiBuyThreshold is sweepable — a flush, threatened city rush-buys', async () => {

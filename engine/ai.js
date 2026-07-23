@@ -1995,6 +1995,84 @@ function coastalScoutDir(state, unit, me, ruleset) {
   return (num % 2) === 0 ? cands[0] : cands[cands.length - 1];
 }
 
+// #22 XV §11 disorder playbook: the K-turn sustainability window for a bounded gold deficit — an
+// ai.js CONSTANT, NOT a rules.json knob (keeps the rulesetHash stamp unmoved; ruled #2334). A rate
+// set is sustainable if it loses no gold, OR the treasury funds the loss for >= this many turns.
+const DISORDER_LUX_WINDOW = 10;
+const DISORDER_SCI_FLOOR = 10;
+
+// #22: count this civ's cities in disorder — optionally at a PROBE luxRate (simulate a rate change
+// without mutating state; cityMood reads player.luxRate, which setRates stores).
+function countDisorderAt(state, playerId, ruleset, luxOverride) {
+  const me = state.players[playerId];
+  let probeState = state;
+  if (luxOverride !== null) {
+    const probe = {}; for (const k of Object.keys(me)) probe[k] = me[k];
+    if (luxOverride > 0) probe.luxRate = luxOverride; else delete probe.luxRate;
+    const players = {}; for (const k of Object.keys(state.players)) players[k] = state.players[k];
+    players[playerId] = probe;
+    probeState = {}; for (const k of Object.keys(state)) probeState[k] = state[k];
+    probeState.players = players;
+  }
+  let n = 0;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c && c.owner === playerId && cityMood(probeState, c, ruleset).disorder) n = n + 1;
+  }
+  return n;
+}
+
+// #22: is a (tax, sci) rate set sustainable — net gold >= 0, or the treasury funds the deficit for
+// >= DISORDER_LUX_WINDOW turns? Probes playerIncome at the candidate rates (no mutation).
+function ratesSustainable(state, playerId, ruleset, tax, sci) {
+  const me = state.players[playerId];
+  const probe = {}; for (const k of Object.keys(me)) probe[k] = me[k];
+  probe.taxRate = tax; probe.sciRate = sci;
+  const players = {}; for (const k of Object.keys(state.players)) players[k] = state.players[k];
+  players[playerId] = probe;
+  const probeState = {}; for (const k of Object.keys(state)) probeState[k] = state[k];
+  probeState.players = players;
+  const inc = playerIncome(probeState, playerId, ruleset);
+  const net = inc.gold - inc.maintenance;
+  if (net >= 0) return true;
+  const treasury = me.gold === undefined ? 0 : me.gold;
+  return idiv(treasury, -net) >= DISORDER_LUX_WINDOW;
+}
+
+// #22 XV §11 (§19 ruling "build to THIS"): MULTI-CITY (>=2) disorder → the empire LUXURY playbook,
+// BEFORE the per-city entertainer. Steps luxury up (taxBumpStep 10s, funded from TAX then science with
+// a sci floor, capped at the government's rate headroom) and picks the raise that best reduces disorder
+// AND stays sustainable (the K-window): a FULL clear at the minimum sustainable lux, else the largest
+// sustainable step that still reduces disorder (the COMBO — the entertainer mops up the residual).
+// null = single-city (entertainer-first), or no sustainable improving raise. Deterministic, no RNG.
+function disorderLuxCommand(state, playerId, ruleset) {
+  const me = state.players[playerId];
+  const base = countDisorderAt(state, playerId, ruleset, null);
+  if (base < 2) return null; // Q1: single-city stays entertainer-first
+  const step = ruleset.rules.taxBumpStep === undefined ? 10 : ruleset.rules.taxBumpStep;
+  const gov = ruleset.governments[me.government === undefined ? 'despotism' : me.government];
+  const cap = gov.maxRate === undefined ? 60 : gov.maxRate;
+  const tax0 = me.taxRate === undefined ? ruleset.rules.defaultTaxRate : me.taxRate;
+  const sci0 = me.sciRate === undefined ? ruleset.rules.defaultSciRate : me.sciRate;
+  const lux0 = 100 - tax0 - sci0;
+  let best = null; // { tax, sci, lux }
+  for (let lux = lux0 + step; lux <= cap; lux = lux + step) {
+    // fund the raise from TAX first, then science (floor DISORDER_SCI_FLOOR)
+    let tax = tax0, sci = sci0, need = lux - lux0;
+    const takeTax = tax < need ? tax : need; tax = tax - takeTax; need = need - takeTax;
+    if (need > 0) { const room = sci - DISORDER_SCI_FLOOR; const takeSci = room < need ? room : need; if (takeSci > 0) { sci = sci - takeSci; need = need - takeSci; } }
+    if (need > 0) break; // floors block this lux (and any higher)
+    const d = countDisorderAt(state, playerId, ruleset, lux);
+    if (d >= base) continue; // no reduction — a wasted raise
+    if (!ratesSustainable(state, playerId, ruleset, tax, sci)) continue; // over the deficit window
+    best = { tax, sci, lux };
+    if (d === 0) break; // minimum sustainable FULL clear
+  }
+  if (best === null) return null; // no sustainable improving lux → the entertainer handles it
+  if (best.tax === tax0 && best.sci === sci0) return null; // no-op guard
+  return { type: 'setRates', playerId, tax: best.tax, sci: best.sci, lux: best.lux };
+}
+
 // Batch 4, iteration 3 (docs/04 ledger — the WINNER: GE stagnant 39%->7%):
 // entertainers-local. A disordered city converts its worst worked tile to an
 // entertainer — the cost is one tile's yields IN THAT CITY, so production
@@ -2151,6 +2229,15 @@ function pickCommand(state, playerId, ruleset, done, stance) {
   // #35 naval-invade-B: the launch heuristic ratio (stackAttackSum >= ratio% x KNOWN defense).
   // A rules.json knob (omit-safe 300 = the 3:1 opening bid); moves rulesetHash (stamp).
   const invadeRatioPct = ruleset.rules.invadeRatioPct === undefined ? 300 : ruleset.rules.invadeRatioPct;
+
+  // #22 XV §11 (§19): MULTI-CITY disorder → the empire LUXURY playbook FIRST (before the per-city
+  // entertainer, per the operative user ruling). It is a rate change, so it claims done.rates (one
+  // rate change/turn; the §13 deficit ladder defers this turn). The entertainer below mops up any
+  // residual + single-city disorder (§11's entertainer-first order applies to the single-city case).
+  if (!done.rates) {
+    const luxCmd = disorderLuxCommand(state, playerId, ruleset);
+    if (luxCmd !== null) { done.rates = true; return luxCmd; }
+  }
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual

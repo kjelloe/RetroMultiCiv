@@ -2365,6 +2365,96 @@ local function wallFollowDir(state: any, unit: any, me: any, ruleset: any): any
 	return { dir = nil, heading = nil }
 end
 
+-- #22 XV §11 disorder playbook: the K-turn sustainability window (ai.js CONSTANT, no rules knob).
+local DISORDER_LUX_WINDOW = 10
+local DISORDER_SCI_FLOOR = 10
+
+-- #22: count disordered cities, optionally at a PROBE luxRate (no mutation). Twin of ai.js.
+local function countDisorderAt(state: any, playerId: string, ruleset: any, luxOverride: number?): number
+	local me = state.players[playerId]
+	local probeState = state
+	if luxOverride ~= nil then
+		local probe = {}
+		for k, v in pairs(me) do probe[k] = v end
+		if luxOverride > 0 then probe.luxRate = luxOverride else probe.luxRate = nil end
+		local players = {}
+		for k, v in pairs(state.players) do players[k] = v end
+		players[playerId] = probe
+		probeState = {}
+		for k, v in pairs(state) do probeState[k] = v end
+		probeState.players = players
+	end
+	local n = 0
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and happiness.cityMood(probeState, c, ruleset).disorder then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+-- #22: is a (tax, sci) rate set sustainable — net >= 0, or treasury funds the deficit for >= K turns?
+local function ratesSustainable(state: any, playerId: string, ruleset: any, tax: number, sci: number): boolean
+	local me = state.players[playerId]
+	local probe = {}
+	for k, v in pairs(me) do probe[k] = v end
+	probe.taxRate = tax
+	probe.sciRate = sci
+	local players = {}
+	for k, v in pairs(state.players) do players[k] = v end
+	players[playerId] = probe
+	local probeState = {}
+	for k, v in pairs(state) do probeState[k] = v end
+	probeState.players = players
+	local inc = tech.playerIncome(probeState, playerId, ruleset)
+	local net = inc.gold - inc.maintenance
+	if net >= 0 then return true end
+	local treasury = if me.gold == nil then 0 else me.gold
+	return idiv(treasury, -net) >= DISORDER_LUX_WINDOW
+end
+
+-- #22 XV §11 (§19): MULTI-CITY (>=2) disorder -> the empire LUXURY playbook (twin of ai.js).
+local function disorderLuxCommand(state: any, playerId: string, ruleset: any): any
+	local me = state.players[playerId]
+	local base = countDisorderAt(state, playerId, ruleset, nil)
+	if base < 2 then return nil end
+	local step = if ruleset.rules.taxBumpStep == nil then 10 else ruleset.rules.taxBumpStep
+	local gov = ruleset.governments[if me.government == nil then "despotism" else me.government]
+	local cap = if gov.maxRate == nil then 60 else gov.maxRate
+	local tax0 = if me.taxRate == nil then ruleset.rules.defaultTaxRate else me.taxRate
+	local sci0 = if me.sciRate == nil then ruleset.rules.defaultSciRate else me.sciRate
+	local lux0 = 100 - tax0 - sci0
+	local best = nil
+	local lux = lux0 + step
+	while lux <= cap do
+		local tax = tax0
+		local sci = sci0
+		local need = lux - lux0
+		local takeTax = if tax < need then tax else need
+		tax = tax - takeTax
+		need = need - takeTax
+		if need > 0 then
+			local room = sci - DISORDER_SCI_FLOOR
+			local takeSci = if room < need then room else need
+			if takeSci > 0 then
+				sci = sci - takeSci
+				need = need - takeSci
+			end
+		end
+		if need > 0 then break end
+		local d = countDisorderAt(state, playerId, ruleset, lux)
+		if d < base and ratesSustainable(state, playerId, ruleset, tax, sci) then
+			best = { tax = tax, sci = sci, lux = lux }
+			if d == 0 then break end
+		end
+		lux = lux + step
+	end
+	if best == nil then return nil end
+	if best.tax == tax0 and best.sci == sci0 then return nil end
+	return { type = "setRates", playerId = playerId, tax = best.tax, sci = best.sci, lux = best.lux }
+end
+
 -- Batch 4, iteration 3 (docs/04 ledger): entertainers-local disorder fix.
 -- Revert only when a HYPOTHETICAL mood without manual assignment (a shallow
 -- copy minus `workers` — cityMood then scores the auto layout) is
@@ -2517,6 +2607,15 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
 	-- #35 naval-invade-B twin: the launch heuristic ratio (rules.json knob, omit-safe 300).
 	local invadeRatioPct = if ruleset.rules.invadeRatioPct == nil then 300 else ruleset.rules.invadeRatioPct
+
+	-- #22 XV §11 (§19): MULTI-CITY disorder -> the empire LUXURY playbook FIRST (twin). Claims done.rates.
+	if done.rates ~= true then
+		local luxCmd = disorderLuxCommand(state, playerId, ruleset)
+		if luxCmd ~= nil then
+			done.rates = true
+			return luxCmd
+		end
+	end
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
