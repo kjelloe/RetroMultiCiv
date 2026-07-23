@@ -74,6 +74,37 @@ local function unitObsolete(def: any, techs: { string }): boolean
 		and table.find(techs, def.obsoletedBy) ~= nil
 end
 
+-- §46 twin: best LAND defender the player can build now — highest defense, then
+-- cheapest, then id (deterministic tie-breaks; matches engine/cities.js). Skips
+-- obsolete units so the choice era-scales; also the founding/empty-queue default.
+local function sortedKeys(t: any): { string }
+	local keys = {}
+	for k in pairs(t) do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+	return keys
+end
+
+local function bestDefenderUnit(me: any, ruleset: any): string
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "land" and def.defense > 0 and def.barbOnly ~= true
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not unitObsolete(def, me.techs) then
+			if best == nil
+				or def.defense > bestDef.defense
+				or (def.defense == bestDef.defense and def.cost < bestDef.cost)
+				or (def.defense == bestDef.defense and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return if best == nil then "militia" else best
+end
+
 -- A wonder is active while built and its obsoleting tech is unknown to ALL
 -- players (Civ 1: anyone's discovery retires it).
 local function wonderActive(state: any, wonderId: string, ruleset: any): boolean
@@ -484,6 +515,8 @@ local function createCityAt(state: any, playerId: string, x: number, y: number, 
 	local idNum = state.nextCityId
 	local cityId = "c" .. idNum
 	state.nextCityId += 1
+	-- §46: default to the best defender the owner can build (era-relevant).
+	local defender = bestDefenderUnit(state.players[playerId], ruleset)
 	state.cities[cityId] = {
 		id = cityId,
 		name = cityName(state, { playerId = playerId, name = name }, ruleset, cityId, idNum),
@@ -494,7 +527,7 @@ local function createCityAt(state: any, playerId: string, x: number, y: number, 
 		food = 0,
 		shields = 0,
 		buildings = setmetatable({}, statehash.ARRAY_MT), -- EMPTY array, marked
-		producing = { kind = "unit", id = "militia" },
+		producing = { kind = "unit", id = defender },
 	}
 	table.insert(state.cityOrder, cityId)
 	visibility.reveal(state, playerId, x, y, 2)
@@ -1059,7 +1092,7 @@ local function processCities(state: any, ruleset: any, events: any)
 					city.buildings = setmetatable({}, statehash.ARRAY_MT)
 				end
 				table.insert(city.buildings, prod.id)
-				city.producing = { kind = "unit", id = "militia" }
+				city.producing = { kind = "unit", id = bestDefenderUnit(owner, ruleset) }
 				table.insert(events, { type = "buildingBuilt", cityId = cityId, building = prod.id })
 			end
 		elseif prod.kind == "wonder" then
@@ -1067,7 +1100,7 @@ local function processCities(state: any, ruleset: any, events: any)
 			if city.shields >= def.cost then
 				if state.wonders ~= nil and state.wonders[prod.id] ~= nil then
 					-- another civilization finished it first — shields kept
-					city.producing = { kind = "unit", id = "militia" }
+					city.producing = { kind = "unit", id = bestDefenderUnit(owner, ruleset) }
 					table.insert(events, { type = "wonderLost", cityId = cityId, wonder = prod.id })
 				else
 					city.shields -= def.cost
@@ -1075,7 +1108,7 @@ local function processCities(state: any, ruleset: any, events: any)
 						state.wonders = {}
 					end
 					state.wonders[prod.id] = city.id
-					city.producing = { kind = "unit", id = "militia" }
+					city.producing = { kind = "unit", id = bestDefenderUnit(owner, ruleset) }
 					table.insert(events, { type = "wonderBuilt", cityId = cityId, wonder = prod.id })
 				end
 			end
@@ -1090,14 +1123,14 @@ local function processCities(state: any, ruleset: any, events: any)
 				local launched = ship ~= nil and ship.launched ~= nil and ship.launched ~= 0
 				local have = if ship ~= nil and ship[prod.id] ~= nil then ship[prod.id] else 0
 				if launched or have >= def.max then
-					city.producing = { kind = "unit", id = "militia" }
+					city.producing = { kind = "unit", id = bestDefenderUnit(owner, ruleset) }
 				else
 					city.shields -= cost
 					if owner.spaceship == nil then
 						owner.spaceship = {}
 					end
 					owner.spaceship[prod.id] = have + 1
-					city.producing = { kind = "unit", id = "militia" }
+					city.producing = { kind = "unit", id = bestDefenderUnit(owner, ruleset) }
 					table.insert(events, { type = "ssPartBuilt", cityId = cityId, playerId = city.owner, part = prod.id, count = owner.spaceship[prod.id] })
 				end
 			end
@@ -1133,4 +1166,5 @@ return {
 	civVeteran = civVeteran,
 	citySpacingOk = citySpacingOk,
 	unitObsolete = unitObsolete,
+	bestDefenderUnit = bestDefenderUnit,
 }

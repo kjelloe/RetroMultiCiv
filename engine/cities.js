@@ -52,6 +52,31 @@ function unitObsolete(def, techs) {
     && techs.indexOf(def.obsoletedBy) !== -1;
 }
 
+// B13a/B13e + §46: the best LAND defender the player can actually build now —
+// highest defense, then cheapest, then id (deterministic tie-breaks; the Luau
+// twin must match). Skips units whose obsoletedBy tech is known, so the choice
+// era-scales (militia -> phalanx -> musketeers -> riflemen -> mech-inf) instead
+// of jamming on an obsolete unit setProduction now rejects. Comparison-select =
+// key-order-independent. Falls back to militia (tech-free base) if somehow
+// nothing qualifies. §46: also the founding + empty-queue production default.
+function bestDefenderUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'land' || def.defense <= 0) continue;
+    if (def.barbOnly === true) continue; // N13: the barbarian leader is never buildable
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.defense > bestDef.defense
+        || (def.defense === bestDef.defense && def.cost < bestDef.cost)
+        || (def.defense === bestDef.defense && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best === null ? 'militia' : best;
+}
+
 // A wonder is active while built and its obsoleting tech is unknown to ALL
 // players (Civ 1: anyone's discovery retires it).
 function wonderActive(state, wonderId, ruleset) {
@@ -365,13 +390,16 @@ function createCityAt(state, playerId, x, y, ruleset, events, name) {
   const idNum = state.nextCityId;
   const cityId = 'c' + idNum;
   state.nextCityId = state.nextCityId + 1;
+  // §46: a new city defaults to the best defender its owner can build (era-relevant),
+  // not a hardcoded militia that an advanced civ has long since obsoleted.
+  const defender = bestDefenderUnit(state.players[playerId], ruleset);
   state.cities[cityId] = {
     id: cityId,
     name: cityName(state, { playerId, name }, ruleset, cityId, idNum),
     owner: playerId,
     x, y, pop: 1, food: 0, shields: 0,
     buildings: [],
-    producing: { kind: 'unit', id: 'militia' }
+    producing: { kind: 'unit', id: defender }
   };
   state.cityOrder.push(cityId);
   reveal(state, playerId, x, y, 2);
@@ -813,7 +841,7 @@ function processCities(state, ruleset, events) {
         city.shields = city.shields - cost;
         if (city.buildings === undefined) city.buildings = [];
         city.buildings.push(prod.id);
-        city.producing = { kind: 'unit', id: 'militia' };
+        city.producing = { kind: 'unit', id: bestDefenderUnit(owner, ruleset) };
         events.push({ type: 'buildingBuilt', cityId, building: prod.id });
       }
     } else if (prod.kind === 'wonder') {
@@ -821,13 +849,13 @@ function processCities(state, ruleset, events) {
       if (city.shields >= def.cost) {
         if (state.wonders !== undefined && state.wonders[prod.id] !== undefined) {
           // another civilization finished it first — shields are kept
-          city.producing = { kind: 'unit', id: 'militia' };
+          city.producing = { kind: 'unit', id: bestDefenderUnit(owner, ruleset) };
           events.push({ type: 'wonderLost', cityId, wonder: prod.id });
         } else {
           city.shields = city.shields - def.cost;
           if (state.wonders === undefined) state.wonders = {};
           state.wonders[prod.id] = city.id;
-          city.producing = { kind: 'unit', id: 'militia' };
+          city.producing = { kind: 'unit', id: bestDefenderUnit(owner, ruleset) };
           events.push({ type: 'wonderBuilt', cityId, wonder: prod.id });
         }
       }
@@ -842,12 +870,12 @@ function processCities(state, ruleset, events) {
         const launched = ship !== undefined && ship.launched !== undefined && ship.launched !== 0;
         const have = ship !== undefined && ship[prod.id] !== undefined ? ship[prod.id] : 0;
         if (launched || have >= def.max) {
-          city.producing = { kind: 'unit', id: 'militia' };
+          city.producing = { kind: 'unit', id: bestDefenderUnit(owner, ruleset) };
         } else {
           city.shields = city.shields - cost;
           if (owner.spaceship === undefined) owner.spaceship = {};
           owner.spaceship[prod.id] = have + 1;
-          city.producing = { kind: 'unit', id: 'militia' };
+          city.producing = { kind: 'unit', id: bestDefenderUnit(owner, ruleset) };
           events.push({ type: 'ssPartBuilt', cityId, playerId: city.owner, part: prod.id, count: owner.spaceship[prod.id] });
         }
       }
@@ -879,5 +907,5 @@ export {
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, nukesEnabled, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
-  unitObsolete, trimToPop
+  unitObsolete, bestDefenderUnit, trimToPop
 };

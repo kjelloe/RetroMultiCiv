@@ -1816,30 +1816,11 @@ local function countAttackers(state: any, playerId: string, ruleset: any): numbe
 	return n
 end
 
+-- bestDefenderUnit moved to cities.luau (§46: shared by the AI choice AND the
+-- founding/empty-queue production default) — call via cities.bestDefenderUnit.
+
 -- Cheapest building the city lacks (never a Palace). Comparison-select with
 -- an explicit id tie-break — independent of key iteration order.
--- B13a/B13e twin: best LAND defender the player can build now — highest
--- defense, then cheapest, then id (deterministic tie-breaks; matches
--- engine/ai.js). Skips obsolete units so the choice era-scales.
-local function bestDefenderUnit(me: any, ruleset: any): string
-	local best, bestDef = nil, nil
-	for _, id in ipairs(sortedKeys(ruleset.units)) do
-		local def = ruleset.units[id]
-		if def.domain == "land" and def.defense > 0 and def.barbOnly ~= true
-			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
-			and not cities.unitObsolete(def, me.techs) then
-			if best == nil
-				or def.defense > bestDef.defense
-				or (def.defense == bestDef.defense and def.cost < bestDef.cost)
-				or (def.defense == bestDef.defense and def.cost == bestDef.cost and id < best) then
-				best = id
-				bestDef = def
-			end
-		end
-	end
-	return if best == nil then "militia" else best
-end
-
 local function nextBuilding(city: any, me: any, ruleset: any): string?
 	local best = nil
 	for _, id in ipairs(sortedKeys(ruleset.buildings)) do
@@ -2897,7 +2878,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						defenders += 1
 					end
 				end
-				local bestDefender = bestDefenderUnit(me, ruleset)
+				local bestDefender = cities.bestDefenderUnit(me, ruleset)
 				-- A40 stance knobs (balanced = the historical literals): defensive
 				-- always wants 2 guards; growth wants more settlers; aggressive
 				-- raises the empire army cap.

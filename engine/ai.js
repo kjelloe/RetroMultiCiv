@@ -18,7 +18,7 @@ import { availableTechs, cityEconOutput, playerIncome } from './tech.js';
 import { metOf, relationOf, pairKey } from './diplomacy.js';
 import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
@@ -1600,30 +1600,8 @@ function countAttackers(state, playerId, ruleset) {
   return n;
 }
 
-// B13a/B13e: the best LAND defender the player can actually build now —
-// highest defense, then cheapest, then id (deterministic tie-breaks; the Luau
-// twin must match). Skips units whose obsoletedBy tech is known, so the choice
-// era-scales (phalanx -> musketeers -> riflemen -> mech-inf) instead of
-// jamming on an obsolete unit setProduction now rejects. Comparison-select =
-// key-order-independent. Falls back to militia (tech-free base) if somehow
-// nothing qualifies.
-function bestDefenderUnit(me, ruleset) {
-  let best = null, bestDef = null;
-  for (const id of Object.keys(ruleset.units)) {
-    const def = ruleset.units[id];
-    if (def.domain !== 'land' || def.defense <= 0) continue;
-    if (def.barbOnly === true) continue; // N13: the barbarian leader is never buildable
-    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
-    if (unitObsolete(def, me.techs)) continue;
-    if (best === null
-        || def.defense > bestDef.defense
-        || (def.defense === bestDef.defense && def.cost < bestDef.cost)
-        || (def.defense === bestDef.defense && def.cost === bestDef.cost && id < best)) {
-      best = id; bestDef = def;
-    }
-  }
-  return best === null ? 'militia' : best;
-}
+// bestDefenderUnit moved to cities.js (§46: shared by the AI choice AND the
+// founding/empty-queue production default) — imported above.
 
 // Cheapest building the city lacks and the player can build (never a Palace —
 // capitalOf falls back to the oldest city, extra palaces would corrupt it).
