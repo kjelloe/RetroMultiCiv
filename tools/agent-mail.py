@@ -794,6 +794,8 @@ def serve(host, port):
         # tokens -- it frees expired leases and raises the coordinator's flag
         # so a stall surfaces without a human going lane to lane.
         SILENT_MIN = 25  # a WORKING lane whose status has not moved in this long
+        RERAISE_SEC = 1800  # per-lane cooldown: one raise per half hour, not per minute
+        raised = {}  # lane -> ts of the last raise (in-memory; resets with the hub)
         while True:
             time.sleep(60)
             try:
@@ -820,9 +822,13 @@ def serve(host, port):
                         if (mins < SILENT_MIN or canon(role) == canon('coordinator')
                                 or 'working' not in state or 'long' in state):
                             continue
+                        if now - raised.get(role, 0) < RERAISE_SEC:
+                            continue  # recently raised for this lane; cooldown
                         seen = get_flag('coordinator') or {}
-                        if seen.get('why', '').startswith(f'{role} silent'):
-                            continue  # already flagged; do not spam
+                        if seen.get('why'):
+                            continue  # a note is already up (this lane's or any
+                            # other's) — never clobber, retry next minute
+                        raised[role] = now
                         _write_json(flag_file('coordinator'),
                                     {'why': f'{role} silent {int(mins)}m (last: {stt["state"]}) '
                                             f'— check the lane or requeue its work',
