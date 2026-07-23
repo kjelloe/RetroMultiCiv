@@ -12,7 +12,9 @@ authoritative-server design — protocol, seats, persistence, slices),
 `09-phase5-luau.md` (port mapping: the trap list, port order with
 anchor/scenario/golden gates, harness plan), `10-roblox-agent.md` (the
 SECOND-PC roblox-helper's role spec: owns `roblox/` exclusively,
-consumes `luau/` read-only; mail + locks cross machines LIVE via the
+consumes `luau/` read-only, amended #2375: it may author
+`shared/*.js` twins there [never `engine/` twins], lune-verified +
+reviewer-gated; mail + locks cross machines LIVE via the
 agent-mail hub — `agent-mail.py serve` on the dev PC, a one-line
 `.agent-mail/remote` URL file on the other clone — with tracked
 in-file marks as the durable record and hub-down fallback; code

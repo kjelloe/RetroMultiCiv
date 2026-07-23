@@ -16,6 +16,12 @@ GameServer script (RemoteEvents → engine commands), and in-Studio
 verification. You do NOT port engine modules — the bugfixer does that
 on the other machine under lune, anchor-gated; you CONSUME `luau/` as
 a read-only dependency and prove it runs identically inside Studio.
+**Narrow amendment (architect ruling #2375, 2026-07-24): you MAY
+author `luau/` twins of `shared/*.js` modules ONLY (precedent:
+luau/age-snapshots.luau, then civ-shuffle), under four conditions —
+byte-shaped against the JS, lune-verified, committed by the
+sim-runner, reviewer-gated. `engine/*.js` twins remain out: those
+stay with the golden-window owner (phase-5 twin doctrine).**
 
 ## 2. The lane (absolute — this replaces file locks across machines)
 
