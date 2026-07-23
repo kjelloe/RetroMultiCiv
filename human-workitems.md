@@ -88,6 +88,14 @@ list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
      picking actual SoundIds is the Studio step (sound is provisional).
   4. **DataStore note from runH**: SaveStore was off — enable Studio
      API Services if you want save-flow testing this session.
+  4b. **Special-motif screenshot review** (new, 2026-07-24): the 11
+     Civ1 resource motifs are mirrored to Roblox (577086c) — eyeball
+     them on the map + vs the browser gallery shots in
+     debugging/usergenerated/ (first-pass art; say if any motif needs
+     a refinement pass).
+  4c. **Instant age-starts check** (new): roster-shuffle (8f0e982)
+     activated the baked age snapshots — start an industrial/space
+     game and confirm it boots near-instantly (no long fast-forward).
   5. Save the acceptance log as **runI.txt** when done; the
      roblox-helper is flagged responsive for live findings.
   · **terrain desaturation check** — carried, fits this session.

@@ -4,17 +4,22 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 (marker-0096 TAGGED @8047f0b = candidate,
-28th consecutive — COW ~38% perf byte-identical + onboarding overlay +
-rejoin arc fully closed + the roblox regent-stall mirror; reference
-workload now ~HALF its former cost both platforms. Fork RULED accept;
-axis 3+5 CLOSED; naming ruled (A World Begun pending search) + release
-copy in hand. Engine remaining (fresh bugfixer session): #8 default-
-defender -> A6a -> A8 -> #19 view-contract -> D3-surfacing -> D4-D6
-(witness-8 + treaty-UI ride D4). Client remaining (fresh helper
-session): A49 + Founder's Record. Roblox: runI batch continuing +
-snapshot twin in build; publish gate after. USER: redeploy from 0096,
-trademark search + domains.)
+Last updated: 2026-07-24 evening (tip c38b914; marker-0096 = merge
+candidate, marker-0097 PENDING the #8 double-green. Landed since 0096:
+#8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
+requested #2393) · agent-mail at-least-once upgrade · fish/specials
+motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
+ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
++ onboarding-e2e fix · A49 flow-2 (flow-4 rides Founder's Record).
+NEW v1 feature in flight: late-join+pause+eviction
+(specs/late-join-pause.md) — hardening server half building, claimSeat
+engine command = bugfixer's NEXT window. Engine queue after claimSeat:
+A6a -> A8 -> #19 view-contract -> D3-surfacing -> D4-D6 (witness-8 +
+treaty-UI ride D4). Client remaining: qr-overlay follow-up + Founder's
+Record (#34, fresh-window). Roblox: runI design batch RULED
+(specs/runI-design-rulings.md) + seat-preview align; publish gate
+after. USER: redeploy from 0096 (0097 imminent), trademark search +
+domains, Studio items 4b/4c.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
