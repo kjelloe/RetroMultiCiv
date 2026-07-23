@@ -1,5 +1,16 @@
 # D4 human-treaty UI (client half) — envoy-modal reuse (ruled 2026-07-24)
 
+**SHELL UN-GATED (speed pass, 2026-07-24 night):** the UI SHELL —
+the Propose… chooser, the term buttons + steppers/pickers, the
+inbound-modal rendering, and their tests against LOCAL MOCK payloads
+— may be built BEFORE the D4 engine window, using PROVISIONAL wire
+names (command `parley`, events `parleyOffer`/`parleyResolved`,
+fields term/gold/giveTech/wantTech). The engine window remains the
+authority: at D4 landing, one rename/reshape pass aligns the shell
+to the frozen shapes (budget for it; the envoy-modal reuse keeps it
+small). What stays gated: issuing REAL commands end-to-end and the
+integration test.
+
 The client shape for HUMAN treaties in LAN games, settled before the
 D4 engine window opens so the helper window is turnkey. RULED: reuse
 the shipped envoy-modal pattern — no new negotiation screen in v1
