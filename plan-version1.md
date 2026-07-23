@@ -17,8 +17,9 @@ pre-measure runs on sim-runner so the ruling lands on data. Axis 5
 CLOSED (index LIVE). Studded round-2 played (runI, full 2100AD game,
 tiers 1-3 accepted; sound/saving = publish gate) -> 26-item batch
 triaged + rulings delivered. Engine order: invade-B [WINDOW OPEN] ->
-regent-stall HIGH bug #37 -> pollution-perf #15 [promoted, roblox
-industrial suspect] -> gov-reeval -> XV-engine + smalls ->
+regent-stall HIGH bug #37 -> perf profile #15 [WIDENED: browser ff
+3min-to-150AD @14civ + roblox industrial —
+chunking + baker land client-side in parallel] -> gov-reeval -> XV-engine + smalls ->
 D3-surfacing -> D4-D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in

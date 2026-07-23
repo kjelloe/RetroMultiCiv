@@ -58,7 +58,7 @@ _Catch-up: `reports/marker-0086.md` (the current candidate);
   lists itself in Find game after the next redeploy (the `--announce`
   flag is already in the unit template).
 
-- [ ] **Studio session — IN PROGRESS (2026-07-23). The checklist:**
+- [ ] **Studio session — PLAYED (runI: full 2100AD game, tiers 1-3 accepted); remaining from it:**
   1. **Studded round-2 review** — `roblox/acceptance/tier3-cert.md`
      is the pass/fail checklist (29 gates green agent-side; runH
      autoplay was clean to score-victory, zero errors).
