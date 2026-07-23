@@ -23,6 +23,7 @@ return [==[{
   ],
   "scorePerCitizen": 2,
   "scorePerTech": 5,
+  "scorePerFutureTech": 5,
   "scorePerWonder": 20,
   "worldAgeThreshold": 30,
   "workTurns": {
