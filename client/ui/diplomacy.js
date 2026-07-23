@@ -11,6 +11,13 @@ import { displayColor } from './palette.js';
 
 const BARB_ID = 'barb'; // never a diplomacy target (spec §2)
 
+// ?parleydemo=1 forces the D4 shell visible for screenshots (=chooser pops the
+// outbound chooser instead of the inbound offer). Captured at MODULE EVAL —
+// main.js canonicalizes the URL after boot (strips unknown params), so a LAZY
+// read inside initDiplomacy sees the already-stripped search (A45 trap). Guarded
+// for Node (the unit test imports this module; `location` is undefined there).
+const PARLEY_DEMO = typeof location !== 'undefined' ? (new URLSearchParams(location.search).get('parleydemo') || '') : '';
+
 // The diplomacy-command rejections worth a plain-language line (the A83/A90
 // house shape; input.js's REASON_TEXT is unit-action-scoped, so this is the
 // diplomacy-family twin).
@@ -27,6 +34,37 @@ const DIPLO_REASON = {
   notMet: 'you have not met that civilization yet',
   unknownCommand: 'diplomacy is not available in this game yet'
 };
+
+// D4 human-treaty SHELL (specs/d4-treaty-ui.md, un-gated speed pass). PROVISIONAL
+// wire names — command `parley`, events `parleyOffer`/`parleyResolved`, fields
+// term/gold/giveTech/wantTech; ONE rename/reshape pass expected when the D4 engine
+// window freezes the real shapes. The command builder + the term-describer are
+// PURE (unit-tested without a DOM); the chooser/modal reuse the envoy frame.
+export const PARLEY_TERMS = ['peace', 'ceasefire', 'tribute', 'techswap'];
+const PARLEY_LABEL = { peace: '🕊 Peace', ceasefire: '✋ Ceasefire', tribute: '💰 Tribute', techswap: '🔬 Tech swap' };
+
+// build the `parley` command payload for a chosen term. PURE.
+export function parleyCommand(playerId, target, term, opts = {}) {
+  const cmd = { type: 'parley', playerId, target, term };
+  if (term === 'tribute') cmd.gold = Math.max(0, opts.gold | 0);
+  if (term === 'techswap') { cmd.giveTech = opts.giveTech || ''; cmd.wantTech = opts.wantTech || ''; }
+  return cmd;
+}
+
+// human-readable text for an INCOMING parley offer payload (envoy-modal body).
+// `name` = the proposer; `techName(id)` resolves a tech id → its display name.
+// PURE (plain text; the modal escapes it).
+export function describeParley(payload, opts = {}) {
+  const name = opts.name || 'They';
+  const tn = id => (opts.techName ? opts.techName(id) : id) || 'a technology';
+  switch (payload && payload.term) {
+    case 'peace': return `${name} propose a lasting peace treaty.`;
+    case 'ceasefire': return `${name} propose a ceasefire.`;
+    case 'tribute': return `${name} propose a tribute of ${payload.gold | 0} gold.`;
+    case 'techswap': return `${name} offer ${tn(payload.giveTech)} in exchange for your ${tn(payload.wantTech)}.`;
+    default: return `${name} propose terms.`;
+  }
+}
 
 export function initDiplomacy(ctx) {
   const { session } = ctx;
@@ -74,9 +112,11 @@ export function initDiplomacy(ctx) {
   }
 
   function rowButtons(state, pid) {
-    if (!canAct()) return '';
-    const a = treatyActions(state, ctx.HUMAN, pid);
+    if (!canAct() && !parleyReady) return '';
     const btns = [];
+    if (parleyReady && !ctx.SPECTATOR) btns.push(`<button class="diplo-act" data-kind="propose" data-pid="${pid}">🤝 Propose…</button>`); // D4 shell
+    if (!canAct()) return btns.join(' ');
+    const a = treatyActions(state, ctx.HUMAN, pid);
     if (a.canAccept) btns.push(`<button class="diplo-act" data-kind="accept" data-pid="${pid}">✔ Accept peace</button>`);
     if (a.canOffer) {
       const mine = pendingOfferFor(state, ctx.HUMAN, pid);
@@ -114,7 +154,9 @@ export function initDiplomacy(ctx) {
       ? rows.join('')
       : '<div class="diplo-row diplo-empty">no other civilizations</div>';
     for (const b of rowsEl.querySelectorAll('.diplo-act')) {
-      b.addEventListener('click', () => dispatch(b.dataset.kind, b.dataset.pid));
+      b.addEventListener('click', () => b.dataset.kind === 'propose'
+        ? openParleyChooser(b.dataset.pid)          // D4 shell chooser
+        : dispatch(b.dataset.kind, b.dataset.pid));
     }
   }
 
@@ -194,6 +236,85 @@ export function initDiplomacy(ctx) {
   }
 
   function closeEnvoy() { envoyPid = null; modal.classList.add('hidden'); modal.innerHTML = ''; scanOffers(); }
+
+  // --- D4 human-treaty SHELL: OUTBOUND chooser + INBOUND parley modal ---------
+  // PROVISIONAL wire (parley / parleyOffer). The chooser sends a `parley` command
+  // (the engine rejects it until D4 — surfaced via the standard reject toast);
+  // an inbound parleyOffer reuses the envoy modal. Gated on a D4 command probe so
+  // Propose… stays hidden until the engine lands; ?parleydemo=1 forces it for shots.
+  let parleyReady = !!PARLEY_DEMO;
+  import('../../engine/diplomacy.js').then(m => { if (m && m.parleyCommand) { parleyReady = true; render(); } }).catch(() => {});
+  const techName = id => (session.ruleset.techs && session.ruleset.techs[id] && session.ruleset.techs[id].name) || id;
+
+  function openParleyChooser(pid) {
+    const p = session.state.players[pid];
+    const myTechs = (session.state.players[ctx.HUMAN] && session.state.players[ctx.HUMAN].techs) || [];
+    const allTechs = Object.keys(session.ruleset.techs || {});
+    const give = myTechs.map(t => `<option value="${esc(t)}">${esc(techName(t))}</option>`).join('') || '<option value="">(no advances yet)</option>';
+    const want = allTechs.filter(t => myTechs.indexOf(t) === -1).map(t => `<option value="${esc(t)}">${esc(techName(t))}</option>`).join('');
+    const layer = document.createElement('div');
+    layer.id = 'parley-chooser';
+    layer.innerHTML = `<div id="parley-card" role="dialog" aria-modal="true">
+      <div id="parley-head">Propose to ${esc(p ? p.name : pid)}</div>
+      <div id="parley-terms">${PARLEY_TERMS.map(t => `<button class="parley-term" data-term="${t}">${PARLEY_LABEL[t]}</button>`).join('')}</div>
+      <div id="parley-detail" class="hidden">
+        <label class="parley-gold hidden">Tribute gold <input id="parley-gold" type="number" min="0" step="10" value="50" style="width:70px"></label>
+        <div class="parley-swap hidden"><label>Give <select id="parley-give">${give}</select></label>
+        <label>Want <select id="parley-want">${want}</select></label></div>
+        <button id="parley-send">Send offer</button>
+      </div>
+      <div id="parley-foot"><button id="parley-cancel">Cancel</button></div></div>`;
+    document.body.appendChild(layer);
+    let term = null;
+    const detail = layer.querySelector('#parley-detail');
+    const goldWrap = layer.querySelector('.parley-gold');
+    const swapWrap = layer.querySelector('.parley-swap');
+    function close() { layer.remove(); }
+    layer.addEventListener('click', e => { if (e.target === layer) close(); });
+    layer.querySelector('#parley-cancel').addEventListener('click', close);
+    for (const b of layer.querySelectorAll('.parley-term')) b.addEventListener('click', () => {
+      term = b.dataset.term;
+      for (const x of layer.querySelectorAll('.parley-term')) x.classList.toggle('sel', x === b);
+      detail.classList.remove('hidden');
+      goldWrap.classList.toggle('hidden', term !== 'tribute');
+      swapWrap.classList.toggle('hidden', term !== 'techswap');
+    });
+    layer.querySelector('#parley-send').addEventListener('click', async () => {
+      if (!term) return;
+      const opts = { gold: parseInt(layer.querySelector('#parley-gold').value, 10) || 0,
+        giveTech: layer.querySelector('#parley-give').value, wantTech: layer.querySelector('#parley-want').value };
+      close();
+      const res = await session.apply(parleyCommand(ctx.HUMAN, pid, term, opts));
+      if (res && !res.ok) flashNote(`✗ ${DIPLO_REASON[res.reason] || res.reason}`);
+    });
+  }
+
+  // INBOUND parley offer → the shipped envoy modal, terms from the event payload.
+  function showParleyOffer(payload) {
+    const pid = payload.from;
+    const p = session.state.players[pid] || { name: pid, color: '#8899aa' };
+    envoyPid = pid;
+    const body = describeParley(payload, { name: p.name, techName });
+    modal.innerHTML = '<div id="envoy-card" role="dialog" aria-modal="true">'
+      + `<div id="envoy-head"><span id="envoy-glyph"></span>`
+      + `<span class="envoy-leader" style="color:${displayColor(p.color)}">${esc(p.name)}</span></div>`
+      + `<div id="envoy-body">${esc(body)}</div>`
+      + '<div id="envoy-acts"><button id="envoy-accept">✔ Accept</button>'
+      + '<button id="envoy-reject">✗ Reject</button>'
+      + '<button id="envoy-later">Consider later</button></div></div>';
+    modal.classList.remove('hidden');
+    modal.querySelector('#envoy-accept').addEventListener('click', async () => { closeEnvoy(); await session.apply(parleyCommand(ctx.HUMAN, pid, 'accept')); });
+    modal.querySelector('#envoy-reject').addEventListener('click', async () => { closeEnvoy(); await session.apply(parleyCommand(ctx.HUMAN, pid, 'reject')); });
+    modal.querySelector('#envoy-later').addEventListener('click', () => { closeEnvoy(); });
+  }
+  // event hook (inert until the D4 engine emits parleyOffer): the meta/event stream
+  ctx.parley = { chooser: openParleyChooser, offer: showParleyOffer }; // e2e/test/demo hook
+  if (PARLEY_DEMO) {
+    const other = (session.state.playerOrder || []).find(x => x !== ctx.HUMAN && x !== BARB_ID);
+    setTimeout(() => PARLEY_DEMO === 'chooser'
+      ? openParleyChooser(other)
+      : showParleyOffer({ from: other, term: 'techswap', giveTech: Object.keys(session.ruleset.techs || {})[2], wantTech: Object.keys(session.ruleset.techs || {})[5] }), 300);
+  }
 
   // block map hotkeys while the envoy is up; Esc = Consider later
   window.addEventListener('keydown', e => {

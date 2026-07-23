@@ -115,6 +115,12 @@ function storedOptions() {
 }
 
 const params = new URLSearchParams(location.search);
+// e2e/demo flows drive the UI without a human dismissing overlays, so BOTH the
+// setup and in-game onboarding overlays must stay down under them — a full-screen
+// click-to-dismiss layer otherwise sits over the buttons a spec clicks and
+// swallows them (the e2ehost-boot bug; the game-onboarding twin blocked every
+// play-mode spec). Captured at module eval (A45: the URL is canonicalized later).
+const AUTOMATION = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo' || k === 'envoydemo' || k === 'parleydemo');
 // a bare URL (no world parameters) gets the game-setup screen; it reloads
 // boot fade-in: ease the #boot-fade layer (opaque from the first paint) out once
 // the finished scene / setup screen is up. A rAF lets the reveal ride the next
@@ -132,11 +138,8 @@ if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params
   revealApp(); // fade in the setup screen
   maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
   // first-timer arrows to the setup choices (once/browser) — but NOT under an
-  // e2e/demo flow: those auto-open the host/join/find sub-flows without clicking
-  // (so nothing dismisses the overlay), and the full-screen layer would then sit
-  // over the lobby's own buttons and swallow their clicks (the e2ehost-boot bug).
-  const automation = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo' || k === 'envoydemo' || k === 'parleydemo');
-  if (!automation) maybeShowSetupOnboarding();
+  // e2e/demo flow (see AUTOMATION above).
+  if (!AUTOMATION) maybeShowSetupOnboarding();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
 // Tab-loss fix (user ruling 2026-07-22): ?resume=local boots straight from the
@@ -575,8 +578,7 @@ if (renderer.setReduceAnimation) {
 }
 // first in-game screen: one-time arrows to the controls (a real seated game,
 // not a spectator view and not a finished game booted just to show its endscreen)
-const demoParam = params.get('envoydemo') === '1' || params.get('parleydemo') === '1';
-if (!ctx.SPECTATOR && !demoParam && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
+if (!ctx.SPECTATOR && !AUTOMATION && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
 session.onChange((_state, events) => {
   ctx.hud.refresh();
   ctx.panels.refresh();

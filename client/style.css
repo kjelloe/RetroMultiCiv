@@ -1690,6 +1690,21 @@ html, body {
 #qr-url { margin: 12px auto 4px; max-width: 340px; word-break: break-all; font: 12px ui-monospace, monospace; color: #b6c6de; }
 #qr-btnrow { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
 
+/* D4 treaty shell: the Propose… chooser overlay */
+#parley-chooser { position: fixed; inset: 0; z-index: 11000; display: flex; align-items: center; justify-content: center; background: rgba(6, 10, 18, 0.8); }
+#parley-card { background: #101828; border: 1px solid #3b5d8f; border-radius: 10px; padding: 18px 20px; min-width: 300px; max-width: 92vw; color: #cdd8ea; font-size: 14px; }
+#parley-head { font-weight: bold; margin-bottom: 12px; color: #ffe066; }
+#parley-terms { display: flex; flex-wrap: wrap; gap: 8px; }
+.parley-term { padding: 8px 12px; background: #1b2c49; border: 1px solid #3b5d8f; border-radius: 6px; color: #cdd8ea; font-family: inherit; cursor: pointer; }
+.parley-term.sel { background: #24406b; border-color: #ffe066; }
+#parley-detail { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.parley-swap { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#parley-detail.hidden, .parley-gold.hidden, .parley-swap.hidden { display: none; } /* beat the ID/class display rules above */
+#parley-detail select, #parley-detail input { background: #0e1626; border: 1px solid #2b3f5f; border-radius: 4px; color: #cdd8ea; padding: 4px 6px; }
+#parley-send { align-self: flex-start; padding: 8px 14px; background: #2e6b40; border: 1px solid #4f9a63; border-radius: 6px; color: #d8f0dc; cursor: pointer; }
+#parley-foot { margin-top: 12px; }
+#parley-cancel { padding: 6px 12px; background: #1b2c49; border: 1px solid #3b5d8f; border-radius: 6px; color: #cdd8ea; cursor: pointer; }
+
 /* first-timer onboarding overlay — a floating layer ABOVE everything, cartoony
    hand-drawn arrows to the main controls; dismiss on any click / Esc. */
 #onboarding-overlay {
