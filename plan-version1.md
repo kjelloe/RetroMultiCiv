@@ -10,7 +10,7 @@ COMPLETE for v1. marker-0095 = candidate (27th consecutive; six
 markers 0090-0095 in the away window). Engine queue 6: default-
 defender -> A6a -> A8 -> pollution-perf remainder -> view-contract ->
 D3-surfacing -> D4-D6 (witness-8 rides D4). Fresh-session windows:
-deepClone COW (IN BUILD, user-directed), A49 playwright + endgame-moments. Remaining
+deepClone COW LANDED 68196b7 (~38%, byte-identical; marker-0096 on the reviewer aliasing gate). Fresh-session remaining: A49 + Founder's Record. Also
 user gates: redeploy(0095), roblox restart, publish gates.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
