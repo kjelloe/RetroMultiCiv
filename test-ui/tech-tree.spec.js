@@ -24,8 +24,8 @@ test('tech tree: open, node states, click→research, beeline goal', async ({ pa
   await page.goto(`http://127.0.0.1:${server.port}/client/?seed=2&civs=2`);
   await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
 
-  // open the tree via the 🌳 button
-  await page.locator('#open-tech-tree').click();
+  // open the tree via its keyboard shortcut
+  await page.keyboard.press('Shift+T'); // #open-tech-tree now lives inside the research panel (XIV §21); Shift+T opens the overlay directly
   await expect(page.locator('#tech-tree')).toBeVisible();
 
   // one node per tech, each with a procedural glyph, prereq edges drawn, and a
@@ -67,7 +67,7 @@ test('beeline: auto-advances to the next step when a tech completes', async ({ p
   await page.setInputFiles('input[type=file][accept*="json"]', FIXTURE);
   await page.waitForTimeout(1000);
 
-  await page.locator('#open-tech-tree').click();
+  await page.keyboard.press('Shift+T'); // #open-tech-tree now lives inside the research panel (XIV §21); Shift+T opens the overlay directly
   await expect(page.locator('#tech-tree')).toBeVisible();
 
   // beeline to a deep goal; capture the first step it picks
@@ -95,7 +95,7 @@ test('beeline: auto-advances to the next step when a tech completes', async ({ p
   expect(advanced).toBe(true);
 
   // reopen: the first step is now known, the goal is still tracked
-  await page.locator('#open-tech-tree').click();
+  await page.keyboard.press('Shift+T'); // #open-tech-tree now lives inside the research panel (XIV §21); Shift+T opens the overlay directly
   await expect(page.locator('#tech-tree')).toBeVisible();
   await expect(page.locator(`.tt-node[data-id="${firstStep}"]`)).toHaveClass(/known/);
   await expect(page.locator('.tt-node.goal')).toHaveAttribute('data-id', 'automobile');

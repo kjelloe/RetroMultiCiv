@@ -119,8 +119,11 @@ const params = new URLSearchParams(location.search);
 // setup and in-game onboarding overlays must stay down under them — a full-screen
 // click-to-dismiss layer otherwise sits over the buttons a spec clicks and
 // swallows them (the e2ehost-boot bug; the game-onboarding twin blocked every
-// play-mode spec). Captured at module eval (A45: the URL is canonicalized later).
-const AUTOMATION = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo' || k === 'envoydemo' || k === 'parleydemo');
+// play-mode spec). `navigator.webdriver` covers EVERY automated browser (real
+// users never have it) so bare-URL specs need no param; the param list keeps the
+// non-webdriver demo hooks. Captured at module eval (A45: the URL is canonicalized later).
+const AUTOMATION = (typeof navigator !== 'undefined' && navigator.webdriver)
+  || [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo' || k === 'envoydemo' || k === 'parleydemo');
 // a bare URL (no world parameters) gets the game-setup screen; it reloads
 // boot fade-in: ease the #boot-fade layer (opaque from the first paint) out once
 // the finished scene / setup screen is up. A rAF lets the reveal ride the next
@@ -947,6 +950,10 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     const add = document.querySelector('#city-catalog .option .opt-add');
     if (add) add.click();
     const after = ctx.buildQueue ? ctx.buildQueue.get(cid).length : -1;
+    // undo the enqueue: this is a diagnostic click, so leave NO persistent queue
+    // artifact in localStorage (it would pollute every other e2e=1 spec's queue);
+    // refresh so the panel DOM reflects the cleaned queue, not the stale render.
+    if (ctx.buildQueue && after === before + 1) { ctx.buildQueue.removeAt(cid, after - 1); ctx.panels.refresh(); }
     const buildLine = document.getElementById('city-build-line');
     buildqueue = (add ? 'plus' : 'noplus')
       + '/' + (after === before + 1 ? 'enqueued' : `noq(${before}->${after})`)
@@ -970,6 +977,10 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
     if (rival) {
       const { pairKey } = await import('../shared/diplomacy-view.js');
       const key = pairKey(ctx.HUMAN, rival);
+      // restore the EXACT prior shape on cleanup: if `relations` was absent, an
+      // empty {} left behind would re-shape the state and diverge every replay
+      // hash (this probe must be truly no-hash-impact, per its comment above).
+      const hadRelations = Object.prototype.hasOwnProperty.call(session.state, 'relations');
       if (!session.state.relations) session.state.relations = {};
       session.state.relations[key] = { state: 'war', offer: { from: rival, turn: session.state.turn } };
       ctx.diplomacy.scanOffers();
@@ -984,6 +995,7 @@ if (params.get('e2e') === '1' && firstUnit && firstUnit.type === 'settlers') {
         + '/' + (named ? 'named' : 'noname') + '/' + (dismissed ? 'later' : 'nolater')
         + '/' + (persists ? 'persists' : 'gone');
       delete session.state.relations[key];
+      if (!hadRelations) delete session.state.relations; // undo the shape change
     }
   }
   // XIV §35: a transient message carrying coords gets a 🔍 zoom-to (panning via

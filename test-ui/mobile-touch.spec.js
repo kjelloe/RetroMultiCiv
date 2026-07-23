@@ -29,17 +29,19 @@ test('mobile: tap selects a unit and tap-to-move moves it', async ({ page }) => 
   const box = await page.locator('#app canvas').boundingBox();
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
 
-  // tap the auto-centered unit → selected (its stat card appears)
-  await page.touchscreen.tap(cx, cy);
+  // the unit is auto-selected at boot (its stat card is already up); no select-tap
+  // (tapping the already-selected unit re-arms the bar — the old pass only worked
+  // because onboarding absorbed that first tap)
   await expect(page.locator('#unit-line')).toBeVisible({ timeout: 5000 });
   const c0 = coords(await page.locator('#unit-line').textContent());
   expect(c0).not.toBe('?');
 
-  // tap-to-move: tap a tile a couple over; try directions until one is passable
+  // tap-to-move on touch is a DOUBLE-tap of the target tile (XIV §7 — one adjacent
+  // step, or a GoTo if farther); try directions until one is passable
   let moved = false;
   for (const [dx, dy] of [[130, 0], [-130, 0], [0, 110], [0, -110], [130, 110]]) {
-    await page.touchscreen.tap(cx, cy); await page.waitForTimeout(200);           // reselect
-    await page.touchscreen.tap(cx + dx, cy + dy); await page.waitForTimeout(450);
+    await page.touchscreen.tap(cx + dx, cy + dy); await page.waitForTimeout(120);
+    await page.touchscreen.tap(cx + dx, cy + dy); await page.waitForTimeout(500); // double-tap = move
     if (coords(await page.locator('#unit-line').textContent()) !== c0) { moved = true; break; }
   }
   expect(moved, 'tap-to-move changed the unit tile').toBe(true);
@@ -93,10 +95,10 @@ test('mobile: action-bar drops the keyboard hints when a unit is selected (#1754
   await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
   await page.waitForTimeout(700);
 
-  // select the auto-centered unit → the action bar populates; its keyboard-shortcut
-  // hints (dead weight on a phone) must be hidden, so the strip is tighter
-  const box = await page.locator('#app canvas').boundingBox();
-  await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  // the starting unit is auto-selected at boot, so the action bar is already
+  // populated; its keyboard-shortcut hints (dead weight on a phone) must be hidden.
+  // (No select-tap: tapping the already-selected unit re-arms the bar and clears
+  // the hints — the old pass only worked because onboarding absorbed that tap.)
   await expect(page.locator('#unit-line')).toBeVisible({ timeout: 5000 });
   const keys = await page.evaluate(() => {
     const ks = [...document.querySelectorAll('#action-bar .key')];

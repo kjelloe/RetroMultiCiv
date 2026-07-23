@@ -27,6 +27,10 @@ test('upgrade: militia → musketeers for 50 gold, veteran-carrying label', asyn
     await page.locator('#debug-grant-gold').click();
     await page.locator('#debug-tech').selectOption('gunpowder');
     await page.locator('#debug-grant-tech').click();
+    // granting a tech fires the discovery-card celebration; its overlay covers the
+    // debug panel, so dismiss it before the spawn click (Continue = the card's exit)
+    const card = page.locator('#discovery-card .dc-continue');
+    if (await card.count()) await card.click();
     await page.locator('#debug-unit').selectOption('militia');
     await page.locator('#debug-spawn').click();
     await page.locator('#debug-close').click();

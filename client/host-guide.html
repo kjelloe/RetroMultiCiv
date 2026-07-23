@@ -197,6 +197,14 @@ server {
   <code>saves/</code> (seat tokens + game codes) never reaches the wire.
   <code>saves/*.json</code> is the only game state on disk — back that up.</div>
 
+  <h2 id="findgame">Find a game (the master index)</h2>
+  <p><strong>Find game</strong> browses a master index of public servers. On a hosted
+  box the client reads the same-origin master proxy; a self-hoster points it at any
+  master by adding <code>?master=&lt;url&gt;</code> to the client page URL (for example
+  <code>https://yourdomain/client/?master=https://servers.example</code>). Running your
+  own master index, and announcing this server to one, is covered in
+  <code>docs/12-global-host.md</code>.</p>
+
   <footer>RetroMultiCiv — deterministic browser 4X. Full guide:
   <code>docs/how-to-host.md</code>.</footer>
 </div>

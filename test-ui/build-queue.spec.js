@@ -45,8 +45,9 @@ test('build queue: shift-click add, advance on completion, replay-clean', async 
       if (!q.includes('2.')) advanced = true;
     }
     expect(advanced, 'the queue advanced within 25 rounds').toBe(true);
-    // the head became CURRENT production (the panel's building row names it)
-    await expect(page.locator('#city-stats')).toContainText(`building: ${first}`);
+    // the head became CURRENT production (the building row names it — XIV §43
+    // moved that line from #city-stats into the catalog column's #city-build-line)
+    await expect(page.locator('#city-build-line')).toContainText(`building: ${first}`);
 
     // the recording replays clean — queue commands are ordinary logged clicks
     const downloadP = page.waitForEvent('download');

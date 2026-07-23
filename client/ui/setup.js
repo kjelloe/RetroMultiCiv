@@ -508,8 +508,19 @@ export function showSetupScreen() {
     if (!list.classList.contains('hidden')) { list.classList.add('hidden'); return; }
     list.classList.remove('hidden');
     list.textContent = 'Loading games…';
+    // Same-origin proxy on a hosted box; ?master=URL for a self-hoster. No fallback
+    // to the public DEFAULT_MASTER: it serves no CORS header (verified 2026-07-23),
+    // so a cross-origin fetch would just dead-end worse — rely on the proxy + the
+    // actionable text below (reviewer #2446 #2: skip the fallback when CORS is absent).
     const masterUrl = new URLSearchParams(location.search).get('master') || '/master/servers';
+    // the self-hoster's way out, shared by the not-configured + unreachable cases
+    const selfHostHint = 'Self-hosting? Run the server with --master <url> (also announces you), or add ?master=<url> to this page URL.';
     fetch(masterUrl).then(r => r.json()).then(data => {
+      // the master-proxy answers masterNotConfigured when the host set no --master
+      if (data && data.reason === 'masterNotConfigured') {
+        list.textContent = `This server has no game list configured. ${selfHostHint}`;
+        return;
+      }
       const servers = (data && Array.isArray(data.servers)) ? data.servers : [];
       list.textContent = '';
       if (servers.length === 0) {
@@ -528,7 +539,7 @@ export function showSetupScreen() {
         } else { row.disabled = true; }
         list.appendChild(row);
       }
-    }).catch(() => { list.textContent = 'Could not reach the game list — check your connection or the master URL.'; });
+    }).catch(() => { list.textContent = `Could not reach the game list. ${selfHostHint}`; });
   });
 
   // e2e: ?e2ehost=1 auto-hosts a tiny 1-human game and starts it (the browser

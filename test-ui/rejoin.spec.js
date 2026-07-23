@@ -31,7 +31,7 @@ test('rejoin: a left-behind server game surfaces on setup and one-tap rejoins', 
     await page.goto(base);
     await expect(page.locator('#setup-box')).toBeVisible();
     await expect(page.locator('#rejoin-banner')).toBeVisible();
-    await expect(page.locator('#rejoin-banner')).toContainText('still in progress');
+    await expect(page.locator('#rejoin-banner')).toContainText('as of your last visit'); // honest last-visit label (rejoin-card-graceful) replaced the old "still in progress" copy
 
     // one-tap Rejoin reopens the game and reclaims the seat (via the stored token)
     await page.locator('#rejoin-go').click();
