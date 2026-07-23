@@ -29,6 +29,9 @@ function sidecarOf(jsonFile) { return jsonFile ? jsonFile.replace(/\.json$/, '.l
 import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed, inviteAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
+import { score } from '../engine/score.js';
+import { selectTakeoverSeat, takeoverPool, selectEviction } from './late-join.js';
+import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -432,6 +435,50 @@ export function startServer(opts) {
       };
     });
   }
+  // late-join §2/§7: the game's era band = the MOST-ADVANCED alive civ's
+  // city-era band (shared/city-era.js, pure). rank = its ordinal in
+  // CITY_ERA_BANDS (ancient=0 … modernSpace=3) — §7 eviction sorts by it.
+  function gameEraBand(state) {
+    let rank = 0;
+    for (const pid of state.playerOrder) {
+      const p = state.players[pid];
+      if (!p || p.alive === false) continue;
+      const r = CITY_ERA_BANDS.indexOf(cityEraBand(p, ruleset.techs));
+      if (r > rank) rank = r;
+    }
+    return { band: CITY_ERA_BANDS[rank] || CITY_ERA_BANDS[0], rank };
+  }
+  // late-join §2: a STARTED game is late-join listable/joinable when it is public
+  // AND lateJoining AND has ≥1 eligible (alive, AI, never-human) civ to take over.
+  function lateJoinable(e) {
+    return e.status !== 'lobby'
+      && e.options.public === true && e.options.lateJoining === true
+      && e.game && e.game.state && e.game.state.gameOver !== true
+      && takeoverPool(e.game.state).length > 0;
+  }
+  // late-join §6-7: at the game cap, evict ONE paused game to make room. Rank
+  // (selectEviction): earliest era → fewer original humans → longest-paused.
+  // Never touches an ACTIVE game. Evicted = final autosave (the save SURVIVES, so
+  // the code revives it via the on-demand reload) + unlist + drop from the live
+  // registry. Returns true if a game was evicted, false if none is paused.
+  function evictOnePaused() {
+    const paused = [];
+    for (const g of registry.list()) {
+      const e = registry.entryOf(g.gameId);
+      if (!e || e.status === 'lobby' || e.paused !== true || !e.game) continue;
+      paused.push({
+        gameId: g.gameId,
+        eraRank: gameEraBand(e.game.state).rank,
+        originalHumans: Object.values(e.seats).filter(x => x.human).length,
+        pausedAt: e.pausedAt || 0
+      });
+    }
+    const victim = selectEviction(paused);
+    if (!victim) return false;
+    if (autosave) { const ve = registry.entryOf(victim); if (ve && ve.game) ve.game.saveTo(savePath(victim)); }
+    closeGame(victim, 'evicted'); // unlist + drop; the on-disk save stays rejoinable by code
+    return true;
+  }
   // Final best-effort save-all before an OOM graceful-exit; games are already
   // durable via per-command autosave, so this only narrows the in-flight window.
   function autosaveAll() {
@@ -481,6 +528,13 @@ export function startServer(opts) {
   function liveConnCount(gameId) {
     let n = 0;
     for (const [, i] of conns) if (i.gameId === gameId) n = n + 1;
+    return n;
+  }
+  // late-join §5: connected SEATED humans (not spectators) — the count that
+  // decides pause-on-empty.
+  function humanConnCount(gameId) {
+    let n = 0;
+    for (const [, i] of conns) if (i.gameId === gameId && i.playerId && i.playerId !== 'spectator') n = n + 1;
     return n;
   }
   function closeGame(gameId, reason) {
@@ -583,6 +637,11 @@ export function startServer(opts) {
       send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
       return;
     }
+    // §6 revival-at-cap: reviving a code when the server is full may itself evict
+    // ONE paused game; if none is paused, serverFull (never evict an active game).
+    if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) {
+      send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return;
+    }
     registry.register(game, false); // spectators: off for resumed games (v1)
     saveFiles[game.gameId] = file;
     send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
@@ -604,6 +663,8 @@ export function startServer(opts) {
         sidecarFile: autosave ? sidecarOf(file) : null });
       game.resetSeats();
     } catch (err) { console.log(`join reload rejected: ${path.basename(file)} — ${err.message}`); return null; }
+    // §6 revival-at-cap: make room by evicting a paused game, else refuse (null).
+    if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) return null;
     registry.register(game, false);
     saveFiles[game.gameId] = file;
     return game;
@@ -712,6 +773,7 @@ export function startServer(opts) {
   const regentDriving = {};
   async function driveRegents(gameId, e) {
     if (!e || !e.game || regentDriving[gameId]) return;
+    if (e.paused) return; // §5 pause-on-empty: no AI/regency turns while zero humans connected
     regentDriving[gameId] = true;
     try {
       let guard = 2000;
@@ -948,6 +1010,31 @@ export function startServer(opts) {
         }
       }
       info.gameId = gameId; // started game: phase-3 join / reconnect via route
+      // §3 late-join takeover: a NEW joiner (no reconnect token / seat code) to a
+      // running/paused game with (public AND lateJoining) takes over an eligible
+      // AI civ. selectTakeoverSeat = second-strongest of the alive-&&-AI pool;
+      // the claimSeat ENGINE command flips human=true through the normal command
+      // path so it records + replays (a75fc2b). Seat + fresh token then bind the
+      // now-human pid. The join answer names the assigned civ (client reveal, §4).
+      if (!msg.token && !msg.seatCode && e.options.public === true && e.options.lateJoining === true) {
+        const pid = selectTakeoverSeat(e.game.state, p => score(e.game.state, p, ruleset));
+        if (pid === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        const claimed = e.game.apply(pid, { type: 'claimSeat', player: pid });
+        if (!claimed.ok) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        const bound = e.game.bindSeat(msg.name || 'Player'); // the now-only untokened human seat = pid
+        if (bound.error || bound.playerId !== pid) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        e.seats[pid] = { human: true, reserved: true, name: msg.name || 'Player' }; // registry tracks the seat
+        info.playerId = pid; info.seat = pid;
+        send(ws, {
+          t: 'joined', playerId: pid, gameId, token: bound.token, seatCode: bound.seatCode,
+          assignedCiv: e.game.state.players[pid].civ, // §4: client shows a post-join reveal banner
+          view: e.game.view(pid), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
+          civs: playerCivs(e.game)
+        });
+        if (autosave) e.game.saveTo(savePath(gameId)); // claimSeat changed state — persist
+        broadcastGame(gameId, { t: 'presence', playerId: pid, connected: true });
+        return;
+      }
       const out = route(e.game, msg);
       for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
@@ -1055,6 +1142,14 @@ export function startServer(opts) {
           // docs/08 §4: the game learns who dropped ("waiting for <name>")
           broadcastGame(info.gameId, { t: 'presence', playerId: info.playerId, connected: false });
           scheduleTakeover(info.gameId, info.playerId); // XIV §30: AI takes over / auto-skip after the grace window
+          // §5 pause-on-empty: when the LAST connected human leaves a public+
+          // lateJoining game, PAUSE — no AI/regency turns, no clock (driveRegents
+          // early-returns on e.paused). It stays listed as 'paused', a late-join
+          // or token rejoin + a human action resumes it.
+          if (e.options.public === true && e.options.lateJoining === true && humanConnCount(info.gameId) === 0) {
+            e.paused = true;
+            e.pausedAt = Date.now(); // §7: eviction breaks ties by longest-paused
+          }
         }
       }
     });
@@ -1102,17 +1197,28 @@ export function startServer(opts) {
           if (e.game && e.game.state && e.game.state.gameOver === true) continue; // A50 item 3: finished games unlist
           const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
           const total = Object.values(e.seats).filter(x => x.human).length;
-          if (e.status === 'lobby' && open === 0) continue; // full lobbies drop off
-          if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
-          // NEVER the join code, NEVER seated players' IPs
-          games.push({
-            gameId: g.gameId, // capability-by-listing: public lobbies are joinable
+          const started = e.status !== 'lobby';
+          const lj = lateJoinable(e); // §2: started + public + lateJoining + eligible pool
+          if (!started) {
+            if (open === 0) continue; // full lobbies drop off
+          } else if (!lj && e.options.allowSpectators !== true) {
+            continue; // a started game nobody can take over or spectate is unlisted
+          }
+          // §2 additive row fields (state/turn/era/joinable) — the shared contract
+          // with the helper's client half. NEVER the join code, NEVER seated IPs.
+          const paused = started && e.paused === true; // §5 sets e.paused
+          const row = {
+            gameId: g.gameId, // capability-by-listing: public games are joinable
             hostName: (e.seats[e.hostSeat] && e.seats[e.hostSeat].name) || 'host',
             openSeats: open, totalSeats: total,
             size: e.options.size, age: e.options.age,
             spectators: e.options.allowSpectators === true,
-            status: e.status
-          });
+            status: e.status,
+            state: started ? (paused ? 'paused' : 'running') : 'open',
+            joinable: started ? lj : open > 0
+          };
+          if (started) { row.turn = e.game.state.turn; row.era = gameEraBand(e.game.state).band; }
+          games.push(row);
         }
         send(ws, { t: 'openGames', games });
         return;
@@ -1178,13 +1284,23 @@ export function startServer(opts) {
         const crl = limiter.allow(info.ip, 'create');
         if (!crl.ok) { send(ws, { t: 'rejected', commandId: -1, code: crl.reason }); return; }
         const gcap = limiter.canCreateGame(registry.list().length);
-        if (!gcap.ok) { send(ws, { t: 'rejected', commandId: -1, code: gcap.reason }); return; }
+        if (!gcap.ok) {
+          // §6-7: at the cap — evict ONE paused game (never an active one) to make
+          // room; the evicted game's code stays rejoinable. No paused game to
+          // reclaim -> serverFull (the client shows the three-option message, §4).
+          if (!evictOnePaused()) { send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return; }
+        }
         const res = registry.create(msg.options || {}, msg.name);
         if (res.ok === false) { // A38: civ count exceeds what the map seats
           send(ws, { t: 'rejected', commandId: -1, code: res.reason, maxCivs: res.maxCivs, size: res.size });
           return;
         }
         const { entry, seat } = res;
+        // §1 late-join: per-game flag, default ON, disabled host-wide by
+        // --no-late-join. Only EFFECTIVE with listPublicly (options.public) —
+        // §2 listing + §3 takeover check the (public AND lateJoining) pair.
+        entry.options.lateJoining = opts.noLateJoin !== true
+          && (msg.options && msg.options.lateJoining) !== false;
         info.gameId = entry.gameId; info.seat = seat; info.isCreator = true;
         send(ws, { t: 'created', gameId: entry.gameId, joinCode: entry.joinCode, seat, lobby: roster(entry) });
         return;
@@ -1290,6 +1406,7 @@ export function startServer(opts) {
           return;
         }
         e.game.setRegent(info.playerId, msg.stance);
+        if (e.paused) e.paused = false; // §5: re-enabling regency resumes a paused game
         broadcastGame(info.gameId, { t: 'presence', all: presenceMap(info.gameId), regents: regentMap(info.gameId) });
         driveRegents(info.gameId, e); // if it's their turn now, start playing
         return;
@@ -1324,6 +1441,7 @@ export function startServer(opts) {
       const out = route(e.game, msg);
       for (const m of out.reply) send(ws, m);
       fanout(gameId, out, e.game);
+      if (e.paused && seatPid !== null) e.paused = false; // §5: a seated human's command resumes a paused game
       driveRegents(gameId, e); // A40: if the turn landed on a regent, play it
     });
   });
@@ -1357,6 +1475,10 @@ export function startServer(opts) {
     // the A41 "public open games" summary as a COUNT — mirrors the listGames
     // filters (the dispatch handler is the robustness lane's region, so the
     // five conditions are twinned here rather than refactored across it)
+    // late-join §2: this TWINS the listGames filter (noted duplication — keep the
+    // two in sync). The public count is the "can I play on this server" number,
+    // so it INCLUDES late-join-joinable running games (spec §2 recommendation),
+    // not just open lobbies.
     const publicOpenGames = () => {
       let n = 0;
       for (const g of registry.list()) {
@@ -1364,8 +1486,8 @@ export function startServer(opts) {
         if (!e || e.options.public !== true) continue;
         if (e.game && e.game.state && e.game.state.gameOver === true) continue;
         const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
-        if (e.status === 'lobby' && open === 0) continue;
-        if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
+        if (e.status === 'lobby') { if (open === 0) continue; }
+        else if (!lateJoinable(e) && e.options.allowSpectators !== true) continue;
         n++;
       }
       return n;
@@ -1515,6 +1637,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--log-json') opts.logJson = true;
     // A50 item 6: closed-group invite gate — CSV of accepted ?invite= codes
     else if (a === '--invite-code') opts.inviteCodes = String(argv[++i] || '').split(',').map(s => s.trim());
+    // late-join §1: host-wide off-switch for late-join takeover (default ON per-game)
+    else if (a === '--no-late-join') opts.noLateJoin = true;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
