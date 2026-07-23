@@ -317,6 +317,12 @@ end
 
 local function renderUnits(view)
 	unitsFolder:ClearAllChildren()
+	-- runI item 12: fortified units on a CITY tile show no earthworks (the city
+	-- visual already implies walls/garrison) — build the own-tile city lookup once.
+	local cityAt = {}
+	for _, c in pairs(view.cities) do
+		cityAt[c.y * view.map.width + c.x] = true
+	end
 	for id, u in pairs(view.units) do
 		local model = Instance.new("Model")
 		model.Name = id .. "_" .. u.type
@@ -346,9 +352,37 @@ local function renderUnits(view)
 			block(model, "Head", Vector3.new(0.6, 0.5, 0.6),
 				Vector3.new(cx, top + 2.15, cz), Color3.fromRGB(199, 172, 140))
 		end
-		if u.fortified == true then
-			block(model, "Rampart", Vector3.new(TILE * 0.8, 0.4, TILE * 0.8),
-				Vector3.new(cx, top + 0.45, cz), Color3.fromRGB(90, 90, 96), Enum.Material.Concrete)
+		if u.fortified == true and cityAt[u.y * view.map.width + u.x] ~= true then
+			-- runI item 12: a DUG-IN reading — a low earthen mound + angled pikes
+			-- on the front (camera-facing at the default orbit) edge, replacing the
+			-- old rampart slab. Owner-neutral earth tones; the unit chrome carries
+			-- the faction. Static rest pose (Studio tunes the exact edge/angle).
+			local edgeZ = cz - TILE * 0.34
+			local mound = Instance.new("Part")
+			mound.Anchored = true
+			mound.CanCollide = false
+			mound.CanQuery = false
+			mound.Shape = Enum.PartType.Cylinder
+			mound.Name = "Earthwork"
+			mound.Size = Vector3.new(TILE * 0.5, 0.5, 0.5) -- a low ridge along the X edge
+			mound.CFrame = CFrame.new(cx, top + 0.12, edgeZ)
+			mound.Color = Color3.fromRGB(112, 84, 56)
+			mound.Material = Enum.Material.Ground
+			mound.Parent = model
+			for i = -1, 1 do -- three angled pikes rising toward the camera
+				local pike = Instance.new("Part")
+				pike.Anchored = true
+				pike.CanCollide = false
+				pike.CanQuery = false
+				pike.Shape = Enum.PartType.Cylinder
+				pike.Name = "Pike"
+				pike.Size = Vector3.new(1.0, 0.08, 0.08)
+				pike.CFrame = CFrame.new(cx + i * TILE * 0.16, top + 0.42, edgeZ)
+					* CFrame.Angles(0, 0, math.rad(90)) * CFrame.Angles(math.rad(38), 0, 0)
+				pike.Color = Color3.fromRGB(122, 92, 60)
+				pike.Material = Enum.Material.Wood
+				pike.Parent = model
+			end
 		end
 		unitBillboard(model, disc, view, u)
 		model.Parent = unitsFolder
