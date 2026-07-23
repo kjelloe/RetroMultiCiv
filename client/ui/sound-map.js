@@ -31,6 +31,8 @@ export function soundForEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'starve' : null;
     case 'settlerRefused': // XV §7: the capital banked a settler — turnlog-only (the warn-modal already alerted); deliberate silence
       return null;
+    case 'unitRehomed': // XIV §45b: a minor upkeep action — turnlog-only, deliberate silence
+      return null;
     case 'buildingBuilt':
       return cityOwner(e.cityId) === viewer ? 'build' : null;
     case 'cityDisorder':

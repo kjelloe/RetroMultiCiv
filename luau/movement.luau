@@ -296,6 +296,30 @@ local function disband(state: any, cmd: any, _ruleset: any): any
 	return { ok = true, events = { { type = "unitDisbanded", unitId = cmd.unitId, x = unit.x, y = unit.y } } }
 end
 
+-- XIV §45b: REHOME (Civ 1 "Home") — a unit in an OWNED city re-homes to it; upkeep shifts (twin).
+local function rehome(state: any, cmd: any, _ruleset: any): any
+	local unit = state.units[cmd.unitId]
+	if unit == nil then
+		return { ok = false, reason = "unknownUnit" }
+	end
+	if unit.owner ~= cmd.playerId then
+		return { ok = false, reason = "notYourUnit" }
+	end
+	if state.activePlayer ~= cmd.playerId then
+		return { ok = false, reason = "notYourTurn" }
+	end
+	local city = combat.cityAt(state, unit.x, unit.y)
+	if city == nil or city.owner ~= cmd.playerId then
+		return { ok = false, reason = "notInOwnCity" }
+	end
+	if unit.home == city.id then
+		return { ok = false, reason = "alreadyHomed" }
+	end
+	local from = if unit.home == nil then "" else unit.home
+	unit.home = city.id
+	return { ok = true, events = { { type = "unitRehomed", unitId = cmd.unitId, cityId = city.id, from = from } } }
+end
+
 local function wait(state: any, cmd: any, _ruleset: any): any
 	local unit = state.units[cmd.unitId]
 	if unit == nil then
@@ -340,6 +364,7 @@ return {
 	fortify = fortify,
 	wait = wait,
 	disband = disband,
+	rehome = rehome,
 	tileAt = tileAt,
 	wrapX = wrapX,
 	DIRS = DIRS,

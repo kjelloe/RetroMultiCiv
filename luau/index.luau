@@ -260,6 +260,8 @@ local function createEngine(ruleset: any)
 			result = movement.wait(next_, cmd, ruleset)
 		elseif cmd.type == "disband" then
 			result = movement.disband(next_, cmd, ruleset)
+		elseif cmd.type == "rehome" then
+			result = movement.rehome(next_, cmd, ruleset)
 		elseif cmd.type == "foundCity" then
 			result = cities.foundCity(next_, cmd, ruleset)
 		elseif cmd.type == "setProduction" then

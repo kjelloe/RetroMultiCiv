@@ -197,6 +197,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'startWork') result = improvements.startWork(next, cmd, ruleset);
     else if (cmd.type === 'pillage') result = improvements.pillage(next, cmd, ruleset);
     else if (cmd.type === 'disband') result = movement.disband(next, cmd, ruleset);
+    else if (cmd.type === 'rehome') result = movement.rehome(next, cmd, ruleset);
     else if (cmd.type === 'buy') result = cities.buyProduction(next, cmd, ruleset);
     else if (cmd.type === 'helpWonder') result = cities.helpWonder(next, cmd, ruleset);
     else if (cmd.type === 'sellBuilding') result = cities.sellBuilding(next, cmd, ruleset);

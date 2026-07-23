@@ -16,6 +16,7 @@ const path = require('path');
 const EVENT_TYPES = {
   unitMoved: 'movement', unitFortified: 'movement', unitWaited: 'movement',
   unitDisbanded: 'movement', unitLoaded: 'movement', unitUnloaded: 'movement',
+  unitRehomed: 'movement',
   workStarted: 'improvements', improvementBuilt: 'improvements', pillaged: 'improvements',
   turnStarted: 'index', turnEnded: 'index', ageChanged: 'index',
   cityFounded: 'cities', productionSet: 'cities', workersSet: 'cities',

@@ -241,6 +241,23 @@ function disband(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'unitDisbanded', unitId: cmd.unitId, x: unit.x, y: unit.y }] };
 }
 
+// XIV §45b: REHOME (Civ 1 "Home" command) — a unit standing in an OWNED city re-homes to it. Upkeep
+// SHIFTS: from the next processCities the new city supports it (shield/food upkeep reads unit.home),
+// and the old home stops paying. This is the repair path for a settler-starved city whose garrison
+// is homed elsewhere. Rejects when the unit is not in an owned city, or is already homed there (no-op).
+function rehome(state, cmd, _ruleset) {
+  const unit = state.units[cmd.unitId];
+  if (!unit) return { ok: false, reason: 'unknownUnit' };
+  if (unit.owner !== cmd.playerId) return { ok: false, reason: 'notYourUnit' };
+  if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
+  const city = cityAt(state, unit.x, unit.y);
+  if (city === null || city.owner !== cmd.playerId) return { ok: false, reason: 'notInOwnCity' };
+  if (unit.home === city.id) return { ok: false, reason: 'alreadyHomed' };
+  const from = unit.home === undefined ? '' : unit.home;
+  unit.home = city.id;
+  return { ok: true, events: [{ type: 'unitRehomed', unitId: cmd.unitId, cityId: city.id, from }] };
+}
+
 // Wait/skip: the unit stays put and is done for this turn (Civ 1 space bar).
 function wait(state, cmd, _ruleset) {
   const unit = state.units[cmd.unitId];
@@ -266,4 +283,4 @@ function fortify(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'unitFortified', unitId: unit.id }] };
 }
 
-export { moveUnit, fortify, wait, disband, tileAt, wrapX, DIRS };
+export { moveUnit, fortify, wait, disband, rehome, tileAt, wrapX, DIRS };
