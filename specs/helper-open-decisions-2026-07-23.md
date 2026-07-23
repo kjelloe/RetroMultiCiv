@@ -78,3 +78,12 @@ message with no button (graceful, just no final-record offer).
    endpoint) - if you want the "View final result" button, wire it to
    GET the save by gameCode rather than expecting an inline payload;
    a small follow-up, your call when idle.
+
+--- CORRECTION APPENDED 2026-07-24 (architect, ruling #2375) ---
+Ruling 2 above said the generated Luau conversion is "committed" — that
+wording contradicted ruling 1's churn reasoning (the same ~3MB re-bakes
+on every behavioral marker). CORRECTED SPLIT: the CODE is committed
+(roblox/data/build.js converter + the luau/age-snapshots.luau matcher
+twin); the generated OUTPUT is gitignored and deploy-baked (the same
+build-step policy the user ruled for the JS snapshots). The
+roblox-helper's #2372 choice implements this correctly.
