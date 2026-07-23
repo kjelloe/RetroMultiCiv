@@ -216,8 +216,12 @@ seedBox.FocusLost:Connect(function()
 	remote:FireServer({ t = "setup", key = "seed",
 		value = tonumber(seedBox.Text) or 0 })
 end)
-stepButton(8, 430, "~", function() sendSetup("spectators", 1) end) -- CP16 toggle
-stepButton(8, 472, "~", function() sendSetup("marathon", 1) end) -- MP11 toggle
+-- runI item 3: boolean options are a single green "On" / red "Off" button
+-- (recolored per state in render), not a "~" stepper.
+local spectatorsToggle = stepButton(8, 430, "", function() sendSetup("spectators", 1) end) -- CP16 toggle
+local marathonToggle = stepButton(8, 472, "", function() sendSetup("marathon", 1) end) -- MP11 toggle
+spectatorsToggle.Size = UDim2.new(0, 54, 0, 22)
+marathonToggle.Size = UDim2.new(0, 54, 0, 22)
 
 local startBtn = Instance.new("TextButton")
 -- runI item 5: +50% Start button, anchored bottom-center, full width minus margins
@@ -384,8 +388,16 @@ local function render(lobby)
 			and "best-of-three" or "authentic (single round)")
 		seedLine.Text = "world seed: " .. ((lobby.options.seed or 0) > 0
 			and tostring(lobby.options.seed) or "random")
-		spectatorsLine.Text = "spectators: " .. (lobby.options.spectators ~= false and "allowed" or "OFF")
-		marathonLine.Text = "marathon: " .. (lobby.options.marathon == true and "ON (play to victory)" or "off")
+		spectatorsLine.Text = "spectators:"
+		marathonLine.Text = "marathon (play to victory):"
+		-- runI item 3: green On / red Off two-state buttons
+		local ON, OFF = Color3.fromRGB(56, 138, 74), Color3.fromRGB(150, 58, 52)
+		local specOn = lobby.options.spectators ~= false
+		spectatorsToggle.Text = specOn and "On" or "Off"
+		spectatorsToggle.BackgroundColor3 = specOn and ON or OFF
+		local marOn = lobby.options.marathon == true
+		marathonToggle.Text = marOn and "On" or "Off"
+		marathonToggle.BackgroundColor3 = marOn and ON or OFF
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game
