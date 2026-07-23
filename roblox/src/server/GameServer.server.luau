@@ -34,6 +34,7 @@ local scoreModule = require(shared:WaitForChild("score")) -- SO7 end screen
 local strategicModule = require(shared:WaitForChild("strategic")) -- SO17
 local json2lua = require(shared:WaitForChild("json2lua"))
 local ageSnapshots = require(shared:WaitForChild("age-snapshots")) -- instant later-age starts (browser main.js twin)
+local civShuffle = require(shared:WaitForChild("civ-shuffle")) -- roster-shuffle: seed-shuffled default lineup (browser parity)
 local Deck = require(script.Parent:WaitForChild("Deck"))
 local SaveStore = require(script.Parent:WaitForChild("SaveStore")) -- R10
 
@@ -757,10 +758,21 @@ local function startGame()
 	-- R24b: the host's explicit seed wins; else the server picks. PRINTED
 	-- for replay; never engine RNG (the game does not exist yet)
 	local seed = setup.seedOverride > 0 and setup.seedOverride or (os.time() % 1000000)
+	-- roster-shuffle (Q2 activation): the DEFAULT lineup is the browser's
+	-- seed-shuffle (shared/civ-shuffle.js twin) over the SORTED civ ids —
+	-- matching client boot + tools/bake-age-snapshots.js, which is what lets
+	-- the pre-baked age snapshots load. The old fixed CIV_ORDER gave every
+	-- Roblox game the same civs and never matched a baked roster.
+	local sortedCivIds = {}
+	for id in pairs(ruleset.civs) do
+		table.insert(sortedCivIds, id)
+	end
+	table.sort(sortedCivIds)
+	local roster = civShuffle.shuffleRoster(sortedCivIds, seed)
 	local civIds = {}
 	local playerDefs = setmetatable({}, statehash.ARRAY_MT)
 	for i = 1, setup.civs do
-		local civId = civPool[i]
+		local civId = roster[i]
 		table.insert(civIds, civId)
 		local civ = ruleset.civs[civId]
 		table.insert(playerDefs, {
