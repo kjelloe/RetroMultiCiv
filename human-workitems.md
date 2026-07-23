@@ -36,7 +36,10 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Redeploy from marker-0090** (`8ff258d`, both gates banked):
+- [ ] **Redeploy from marker-0096** (`8047f0b` — NOW is the moment):
+  every fix you personally hit this week (regent hang, rejoin, ff
+  hangs) PLUS the engine at ~half its former cost (COW+fix1) and the
+  onboarding arrows. Supersedes the 0090 note below:
   everything through 0089 PLUS the archetype AI (civs build the
   wonders their personality says — non-builder wonders 0→20 in the
   judge sweep) and the helper's complete 30-item client window (A58

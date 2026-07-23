@@ -4,14 +4,17 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 morning (user returned; FORK RULED: ACCEPT
-for v1 + witness-8 re-measure after D4 — the AI-quality program is
-COMPLETE for v1. marker-0095 = candidate (27th consecutive; six
-markers 0090-0095 in the away window). Engine queue 6: default-
-defender -> A6a -> A8 -> pollution-perf remainder -> view-contract ->
-D3-surfacing -> D4-D6 (witness-8 rides D4). Fresh-session windows:
-deepClone COW LANDED 68196b7 (~38%, byte-identical; marker-0096 on the reviewer aliasing gate). Fresh-session remaining: A49 + Founder's Record. Also
-user gates: redeploy(0095), roblox restart, publish gates.)
+Last updated: 2026-07-24 (marker-0096 TAGGED @8047f0b = candidate,
+28th consecutive — COW ~38% perf byte-identical + onboarding overlay +
+rejoin arc fully closed + the roblox regent-stall mirror; reference
+workload now ~HALF its former cost both platforms. Fork RULED accept;
+axis 3+5 CLOSED; naming ruled (A World Begun pending search) + release
+copy in hand. Engine remaining (fresh bugfixer session): #8 default-
+defender -> A6a -> A8 -> #19 view-contract -> D3-surfacing -> D4-D6
+(witness-8 + treaty-UI ride D4). Client remaining (fresh helper
+session): A49 + Founder's Record. Roblox: runI batch continuing +
+snapshot twin in build; publish gate after. USER: redeploy from 0096,
+trademark search + domains.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
