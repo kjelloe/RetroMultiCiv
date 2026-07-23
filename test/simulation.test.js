@@ -31,25 +31,25 @@ test('SIM_ROSTER head is frozen: the golden games are built from these bytes', (
 const SIM = { seed: 20260712, civs: 4, width: 56, height: 35 };
 const CHECKPOINTS = [100, 200, 300, 400];
 
-// #30 xiv-ai-behavior STRENGTHEN re-record (#2289). BEHAVIORAL (the #28 discriminator confirms
-// BEHAVIOR_* below moved too): the disband valve, now CAP-gated instead of obsolescence-gated,
-// FIRES on the canonical soak (civs exceed their garrison cap with current-gen units and disband
-// down to it) — so the trajectory diverges from t100 and the NATURAL game ends much SOONER
-// (545 -> 260 rounds, same winner p2 — leaner armies resolve faster). #30 touches only engine/
-// ai.js behaviour (no ruleset change) so the rulesetHash STAMP is unmoved: mapgen/ff-parity/
-// scenario-002 pins are untouched; only checkpoint-100 (the sim trajectory) moves with these.
-// JS==Luau at every hash (lune soak-400 0x6c222877, natural 260/0xe32b53ab).
+// #35 naval-invade-B re-record (#2294). STAMP-ONLY on the canonical soak: the #28 discriminator
+// confirms BEHAVIOR_SOAK / BEHAVIOR_NATURAL below are BYTE-UNCHANGED (natural still 260 rounds,
+// winner p2) — the overseas-invasion AI is DORMANT in the 4-civ golden game (no civ lines up a
+// free carrier + safe attacker + overseas war target there; the mechanic is proven by the crafted
+// 2-continent fixtures in test/ai.test.js). GOLDEN_SOAK / GOLDEN_NATURAL move ONLY because the new
+// data/rules.json `invadeRatioPct` knob shifts the rulesetHash STAMP — so ALL stamp pins re-record
+// too: mapgen (x4 sizes), ff-parity, scenario-002, luau-twins checkpoint-100. JS==Luau at every
+// hash. (Prior #30 STRENGTHEN was behavioral: BEHAVIOR_* moved with the cap-gated disband valve.)
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x2c9bfc0a',
-    200: '0x188c1465',
-    300: '0x50f9b503',
-    400: '0x6c222877'
+    100: '0x681e9457',
+    200: '0x382bd7f4',
+    300: '0x2de20076',
+    400: '0x64b9c808'
   },
-  finalHash: '0x6c222877'
+  finalHash: '0x64b9c808'
 };
-const GOLDEN_NATURAL = { rounds: 260, winner: 'p2', finalHash: '0xe32b53ab' };
+const GOLDEN_NATURAL = { rounds: 260, winner: 'p2', finalHash: '0x8692c31f' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

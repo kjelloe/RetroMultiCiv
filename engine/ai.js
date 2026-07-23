@@ -90,7 +90,7 @@ const GLOBAL_UNLOCK_WONDERS = { 'apollo-program': true, 'manhattan-project': tru
 // with empire size (seed-6 1002 units); the cap bounds new growth. Sweepable (the 25-seed judge
 // tunes it). disbandOverBy = how far OVER the cap a civ must be before the at-peace disband valve
 // drains one obsolete attacker/turn (hysteresis so it doesn't fight the build at the boundary).
-const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6, armyTargetCap: 50, disbandOverBy: 4 };
+const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6, armyTargetCap: 50, disbandOverBy: 4, invasionStageRadius: 6 };
 
 // Government re-eval (specs/government-reeval.md): the AI advances government by
 // STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
@@ -576,6 +576,147 @@ function hasFreeCarrier(state, playerId, ruleset) {
     if (carrierFreeSlots(state, u, ruleset) > 0) return true;
   }
   return false;
+}
+
+// #35 naval-invade-B: the nearest OVERSEAS enemy city this civ is at WAR with and has
+// EXPLORED — the invasion target. Overseas = on a landmass none of the civ's own cities sit
+// on (homeContinents). Fog-honest (explored cities only), existing-war only (relationOf
+// defaults to 'war', so a peace treaty opts a rival out — the at-peace control). Deterministic:
+// nearest chebyshev to the civ's capital, city-id tie-break. null = no overseas war target.
+function invasionTargetCity(state, playerId, me, ruleset, home) {
+  const cap = capitalOf(state, playerId, ruleset);
+  if (cap === null || cap === undefined) return null; // no city -> no invasion base
+  const W = state.map.width;
+  let best = null, bestD = -1, bestId = '';
+  for (const cid of sortIds(state.cityOrder || [])) {
+    const c = state.cities[cid];
+    if (!c || c.owner === playerId || c.owner === 'barb') continue;
+    if (!isExplored(me, state.map, c.x, c.y)) continue;
+    if (relationOf(state, playerId, c.owner) !== 'war') continue;
+    if (home[c.y * W + c.x] === true) continue; // on a home continent = a land march, not an invasion
+    const d = chebyshev(state.map, cap.x, cap.y, c.x, c.y);
+    if (best === null || d < bestD || (d === bestD && cid < bestId)) { best = c; bestD = d; bestId = cid; }
+  }
+  return best;
+}
+
+// #35: the summed DEFENSE strength of the enemy garrison the invader can SEE on the target
+// city tile (fog-honest: the city is explored, so its current occupants are "known" — the
+// nearestKnownEnemy convention). Walls/terrain/fortify-aware (defenseStrength), so the launch
+// heuristic already respects City-Walls (the §2b over-succeed guard). 0 for an undefended city
+// (a walk-in capture: 3:1 vs 0 always passes). Order-free.
+function knownDefenseSum(state, city, ruleset) {
+  let sum = 0;
+  for (const u of unitsAt(state, city.x, city.y)) {
+    if (u.owner === city.owner && ruleset.units[u.type].defense > 0) sum = sum + defenseStrength(state, u, ruleset);
+  }
+  return sum;
+}
+
+// #35: how many MILITARY units (attack>0) are aboard a ship — >0 marks an invasion carrier
+// (routes to the target city, not a settlement site). Order-free.
+function militaryCargo(state, shipId, ruleset) {
+  let n = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.aboard === shipId && ruleset.units[u.type].attack > 0) n = n + 1;
+  }
+  return n;
+}
+
+// #35: the summed ATTACK strength of a carrier's military cargo — the launch-heuristic
+// numerator (stackAttackSum). Order-free.
+function cargoAttackSum(state, shipId, ruleset) {
+  let sum = 0;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.aboard === shipId && ruleset.units[u.type].attack > 0) sum = sum + attackStrength(u, ruleset);
+  }
+  return sum;
+}
+
+// #35: the nearest own SAFE land ATTACKER (attack>defense, no enemy within 2, not aboard) to a
+// ship, within `radius` — the invasion payload an empty carrier stages beside (a military mirror
+// of the settler ward). Deterministic (sorted ids). null = no boardable invader nearby.
+function nearestBoardableAttacker(state, ship, playerId, ruleset, radius) {
+  const me = state.players[playerId];
+  let best = null, bestD = -1;
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const u = state.units[uid];
+    if (u.owner !== playerId || u.aboard !== undefined) continue;
+    const def = ruleset.units[u.type];
+    if (def.domain !== 'land' || def.attack <= def.defense) continue;
+    if (enemyNear(state, me, playerId, u.x, u.y, 2)) continue;
+    const d = chebyshev(state.map, ship.x, ship.y, u.x, u.y);
+    if (d > radius) continue;
+    if (best === null || d < bestD) { best = u; bestD = d; }
+  }
+  return best;
+}
+
+// #35: is any enemy unit adjacent to (x,y)? A tile with an adjacent enemy is ZOC-locked FROM a
+// ship (an adjacent->adjacent step the engine rejects); a "clear" tile can always be disembarked
+// onto (adjacent->non-adjacent). Uses true positions (ZOC is not fog-gated). DIR_KEYS scan.
+function enemyAdjacentTile(state, x, y, playerId) {
+  const map = state.map;
+  for (const key of DIR_KEYS) {
+    let nx = x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= map.width) { if (map.wrapX !== true) continue; nx = ((nx % map.width) + map.width) % map.width; }
+    const ny = y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= map.height) continue;
+    for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) return true;
+  }
+  return false;
+}
+
+// #35: for a disembarking invader, the DIR onto the target's CONTINENT (comp) — a reachable land
+// tile, not a rival city, not enemy-occupied. PREFERS a ZOC-clear tile (no adjacent enemy) so the
+// ship->land step is legal (a garrison-adjacent tile is ZOC-locked from the ship; the engine
+// forbids amphibious assault, so the invader lands on open ground and marches in). Tie-break:
+// clear-first, then nearest to the target. null = no landfall (keep riding). Deterministic.
+function invadeDisembarkDir(state, unit, playerId, target, comp, ruleset) {
+  const map = state.map;
+  let bestKey = null, bestClear = false, bestD = 9999;
+  for (const key of DIR_KEYS) {
+    let nx = unit.x + DIR_VECS[key][0];
+    if (nx < 0 || nx >= map.width) { if (map.wrapX !== true) continue; nx = ((nx % map.width) + map.width) % map.width; }
+    const ny = unit.y + DIR_VECS[key][1];
+    if (ny < 0 || ny >= map.height) continue;
+    if (comp[ny * map.width + nx] !== true) continue; // the target's continent only
+    const c = cityAt(state, nx, ny);
+    if (c && c.owner !== playerId) continue; // never "disembark" onto a rival city (the on-land assault handles it)
+    let enemy = false;
+    for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) enemy = true;
+    if (enemy) continue;
+    const clear = !enemyAdjacentTile(state, nx, ny, playerId);
+    const d = chebyshev(map, nx, ny, target.x, target.y);
+    if (bestKey === null || (clear && !bestClear) || (clear === bestClear && d < bestD)) {
+      bestKey = key; bestClear = clear; bestD = d;
+    }
+  }
+  return bestKey;
+}
+
+// #35: the memoized per-turn invasion plan for a civ — the target city, its continent tile-set,
+// and the KNOWN defense sum (the launch-gate denominator). Cheap early-out (no sea unit -> no
+// invasion) so landlocked civs never pay the flood-fills. Computed once per turn (done cache).
+function computeInvasion(state, playerId, ruleset) {
+  let hasSea = false;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u.owner === playerId && ruleset.units[u.type].domain === 'sea') { hasSea = true; break; }
+  }
+  if (!hasSea) return { target: null, targetComp: {}, defSum: 0 };
+  const me = state.players[playerId];
+  const home = homeContinents(state, playerId, ruleset);
+  const target = invasionTargetCity(state, playerId, me, ruleset, home);
+  if (target === null) return { target: null, targetComp: {}, defSum: 0 };
+  const targetComp = landComponent(state, target.x, target.y, ruleset);
+  return { target, targetComp, defSum: knownDefenseSum(state, target, ruleset) };
+}
+function invasionFacts(done, state, playerId, ruleset) {
+  if (done.invasion === undefined) done.invasion = computeInvasion(state, playerId, ruleset);
+  return done.invasion;
 }
 
 // This settler's rank among the civ's settlers (sorted ids): rank 0 is the
@@ -1986,6 +2127,9 @@ function pickCommand(state, playerId, ruleset, done, stance) {
   const effStance = stance !== undefined ? stance : me.stance;
   const S = stanceOf(effStance); // balanced (or omitted/absent) = the identity
   const marchR = marchRadiusOf(ruleset, S); // B13f: sweepable via rules.json
+  // #35 naval-invade-B: the launch heuristic ratio (stackAttackSum >= ratio% x KNOWN defense).
+  // A rules.json knob (omit-safe 300 = the 3:1 opening bid); moves rulesetHash (stamp).
+  const invadeRatioPct = ruleset.rules.invadeRatioPct === undefined ? 300 : ruleset.rules.invadeRatioPct;
 
   if (!done.happiness) {
     done.happiness = true; // one assignment change per turn — gradual
@@ -2430,6 +2574,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     if (unit.zocBlocks !== undefined && unit.zocBlocks >= 3) { done['u:' + uid] = true; continue; }
     done['u:' + uid] = true;
 
+    // #35 naval-invade-B: the memoized invasion plan (target overseas war city + its continent +
+    // KNOWN defense sum). Cheap after the first call this turn; null target = invasion dormant.
+    const invasion = invasionFacts(done, state, playerId, ruleset);
+
     if (unit.type === 'settlers') {
       // naval-loop S3 DISEMBARK: an embarked settler is cargo. Step ashore when the
       // carrier has reached a coast (a landward tile is adjacent); else ride — the
@@ -2503,6 +2651,25 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       continue;
     }
 
+    // #35 naval-invade-B SAIL: a carrier carrying an INVASION force (military cargo) sails to
+    // the target city's coast — but ONLY once the launch heuristic passes (stackAttackSum >=
+    // ratio% x the KNOWN, walls-aware defense). Until then it HOLDS at its launch coast
+    // accumulating force (the "inferior stack never launches" control). Checked BEFORE the
+    // settler-sail so a military carrier never mistakes an invasion for a settlement run.
+    if (ruleset.units[unit.type].domain === 'sea' && invasion.target !== null
+        && militaryCargo(state, unit.id, ruleset) > 0) {
+      const t = invasion.target;
+      if (cargoAttackSum(state, unit.id, ruleset) * 100 < invadeRatioPct * invasion.defSum) {
+        return { type: 'wait', playerId, unitId: uid }; // force below the ratio: hold and gather
+      }
+      if (chebyshev(state.map, unit.x, unit.y, t.x, t.y) <= 1) {
+        return { type: 'wait', playerId, unitId: uid }; // at the city's coast: hold for the disembark
+      }
+      const idir = seaStepToward(state, unit, t.x, t.y, ruleset);
+      if (idir) return { type: 'moveUnit', playerId, unitId: uid, dir: idir };
+      return { type: 'wait', playerId, unitId: uid }; // no sea path in range: hold
+    }
+
     // naval-loop S3 SAIL: a carrier WITH cargo aboard sails to the coast adjacent to
     // the nearest overseas settlement site, then HOLDS there while the cargo disembarks
     // (handled in the settler block). Empty carriers fall through to N3 scout/patrol.
@@ -2533,6 +2700,69 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const pdir = seaStepToward(state, unit, ward.x, ward.y, ruleset);
         if (pdir) return { type: 'moveUnit', playerId, unitId: uid, dir: pdir };
         // no coast-safe path to the settler: fall through to scout (M2)
+      }
+    }
+
+    // #35 naval-invade-B PICKUP: an empty carrier with a boardable safe attacker nearby (and
+    // no settler ferry taking priority) HOLDS beside it so the attacker can board, instead of
+    // scouting away — the military mirror of the settler M2b rendezvous. Only with a live target.
+    if (ruleset.units[unit.type].domain === 'sea' && invasion.target !== null
+        && carrierCargo(state, unit.id) === 0 && carrierFreeSlots(state, unit, ruleset) > 0) {
+      const inv = nearestBoardableAttacker(state, unit, playerId, ruleset, BUILD_LEVER.invasionStageRadius);
+      if (inv) {
+        if (chebyshev(state.map, unit.x, unit.y, inv.x, inv.y) <= 1) {
+          return { type: 'wait', playerId, unitId: uid }; // beside the attacker: hold for it to board
+        }
+        const idir = seaStepToward(state, unit, inv.x, inv.y, ruleset);
+        if (idir) return { type: 'moveUnit', playerId, unitId: uid, dir: idir };
+        // no coast-safe path: fall through to scout
+      }
+    }
+
+    // #35 naval-invade-B (land attacker): the overseas-invasion behavior — RIDE/DISEMBARK on the
+    // target continent, ASSAULT once landed (odds-gated per-unit, NOT massSize-gated: a landing
+    // party is small and the launch heuristic already vetted the force), else STAGE (a safe
+    // attacker near a free carrier boards it). Placed before the generic land logic so invaders
+    // aren't blocked by the massSize march gate; a non-staging attacker falls through unchanged.
+    if (invasion.target !== null && ruleset.units[unit.type].domain === 'land'
+        && ruleset.units[unit.type].attack > ruleset.units[unit.type].defense) {
+      const t = invasion.target, comp = invasion.targetComp, map = state.map;
+      if (unit.aboard !== undefined) {
+        const dd = invadeDisembarkDir(state, unit, playerId, t, comp, ruleset);
+        if (dd) return { type: 'moveUnit', playerId, unitId: uid, dir: dd };
+        continue; // no landfall yet: ride the carrier
+      }
+      if (comp[unit.y * map.width + unit.x] === true) {
+        // landed on the target continent: march to the city and assault per-unit (odds-gated).
+        const D = warDoctrineOf(ruleset);
+        if (chebyshev(map, unit.x, unit.y, t.x, t.y) <= 1) {
+          if (assaultOddsOk(state, unit, t.x, t.y, ruleset, D.oddsGatePct)) {
+            const adir = dirToward(map, unit.x, unit.y, t.x, t.y);
+            if (adir && !stepEntersSea(state, unit, adir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
+          }
+          return { type: 'wait', playerId, unitId: uid }; // adjacent but bad odds: hold the beachhead
+        }
+        const cdir = dirToward(map, unit.x, unit.y, t.x, t.y);
+        if (cdir && !stepAttackBlocked(state, unit, cdir, playerId, ruleset, D.oddsGatePct)
+            && !stepEntersSea(state, unit, cdir, ruleset)) {
+          return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };
+        }
+        return { type: 'wait', playerId, unitId: uid }; // blocked: hold on the beachhead
+      }
+      // on a home continent: STAGE — a safe attacker near a free carrier boards it (the one
+      // deliberate land->sea step, like the settler embark). Bounded by carrier capacity + the
+      // stage radius; a front-line attacker (enemy within 2) never diverts. Else fall through.
+      if (!enemyNear(state, me, playerId, unit.x, unit.y, 2)) {
+        const carrier = nearestOwnCarrier(state, unit, playerId, ruleset);
+        if (carrier && chebyshev(map, unit.x, unit.y, carrier.x, carrier.y) <= BUILD_LEVER.invasionStageRadius) {
+          if (chebyshev(map, unit.x, unit.y, carrier.x, carrier.y) <= 1) {
+            const b = dirToward(map, unit.x, unit.y, carrier.x, carrier.y);
+            if (b) return { type: 'moveUnit', playerId, unitId: uid, dir: b }; // board
+          }
+          let m = bfsStepToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset);
+          if (!m) m = safeDirToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset);
+          if (m && !stepEntersSea(state, unit, m, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: m };
+        }
       }
     }
 

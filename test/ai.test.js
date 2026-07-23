@@ -1156,7 +1156,7 @@ test('naval-loop slice A: the AI settles an OVERSEAS city (crafted 2-continent f
       u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 1, y: 2, moves: 1, fortified: false, veteran: false },
       s1: { id: 's1', type: 'trireme', owner: 'p1', x: 2, y: 2, moves: 3, fortified: false, veteran: false }
     },
-    cities: { c1: { id: 'c1', name: 'Alpha', owner: 'p1', x: 0, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'warriors' } } },
+    cities: { c1: { id: 'c1', name: 'Alpha', owner: 'p1', x: 0, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
     cityOrder: ['c1'], wonders: {}, nextUnitId: 50, nextCityId: 10,
     players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['map-making'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
     rngState: 1
@@ -1190,7 +1190,7 @@ test('naval-presence M4: oceanTech = navigation; needsOcean distinguishes wide o
       version: 1, turn: 5, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
       map: { width: W, height: H, wrapX: false, tiles },
       units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
-      cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 1, y: 1, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'warriors' } } },
+      cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 1, y: 1, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
       cityOrder: ['c1'],
       players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['map-making'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
       rngState: 1
@@ -1225,4 +1225,94 @@ test('#35 spacePathPct: 0 with no closure tech, 100 with the full closure, monot
   const half = all.slice(0, Math.floor(all.length / 2));
   const pct = ai.spacePathPct(st(half), 'p1', RULESET);
   assert.ok(pct > 0 && pct < 100, `partial closure -> between 0 and 100 (got ${pct})`);
+});
+
+// #35 naval-invade-B: the CRAFTED 2-continent WAR fixture. A SUPERIOR attacker stack (2 legions)
+// + a carrier on continent A, a weakly-held enemy city on continent B, at war (the default
+// relation). Driven UNAIDED through runAiTurn: the attackers BOARD -> the carrier SAILS the strait
+// -> the attackers DISEMBARK on B -> ASSAULT the city per-unit (existing combat). Proves the
+// invade loop fires end to end. 6x5: A=cols0-1, strait cols2-3 (trireme-crossable), B=cols4-5.
+function invadeFixture(stack, garrison, relations) {
+  const W = 6, H = 5, tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: (x <= 1 || x >= 4) ? 'grassland' : 'ocean' });
+  const units = {
+    s1: { id: 's1', type: 'trireme', owner: 'p1', x: 2, y: 2, moves: 3, fortified: false, veteran: false }
+  };
+  const seats = [[1, 2], [1, 1]];
+  for (let i = 0; i < stack.length; i++) {
+    units['l' + i] = { id: 'l' + i, type: stack[i], owner: 'p1', x: seats[i][0], y: seats[i][1], moves: 1, fortified: false, veteran: false };
+  }
+  for (let i = 0; i < garrison.length; i++) {
+    units['g' + i] = { id: 'g' + i, type: garrison[i], owner: 'p2', x: 4, y: 2, moves: 1, fortified: false, veteran: false };
+  }
+  const st = {
+    version: 1, turn: 5, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: W, height: H, wrapX: false, tiles },
+    units,
+    cities: {
+      c1: { id: 'c1', name: 'Alpha', owner: 'p1', x: 0, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } },
+      c2: { id: 'c2', name: 'Beta', owner: 'p2', x: 4, y: 2, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } }
+    },
+    cityOrder: ['c1', 'c2'], wonders: {}, nextUnitId: 50, nextCityId: 10,
+    players: {
+      p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['map-making', 'iron-working'], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 },
+      p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 }
+    },
+    rngState: 1
+  };
+  if (relations !== undefined) st.relations = relations;
+  return st;
+}
+
+function driveInvade(ai, engine, st, W) {
+  const homeA = ai.landComponent(st, 0, 2, RULESET);
+  let boarded = false, landedOnB = false;
+  for (let turn = 1; turn <= 16; turn++) {
+    st = ai.runAiTurn(engine, st, 'p1', RULESET);
+    for (const uid of Object.keys(st.units)) {
+      const u = st.units[uid];
+      if (u.owner !== 'p1' || RULESET.units[u.type].domain !== 'land') continue;
+      if (u.aboard !== undefined) boarded = true;
+      else if (homeA[u.y * W + u.x] !== true
+        && RULESET.terrain.terrains[st.map.tiles[u.y * W + u.x].t].domain === 'land') landedOnB = true;
+    }
+    const res = engine.applyCommand(st, { type: 'endTurn', playerId: 'p1' });
+    assert.ok(res.ok, `endTurn ${turn}: ${res.reason}`);
+    st = res.state;
+    if (st.cities.c2 === undefined || st.cities.c2.owner === 'p1') break; // captured
+  }
+  return { st, boarded, landedOnB };
+}
+
+test('#35 naval-invade-B: the AI invades an OVERSEAS enemy city (load->sail->disembark->assault)', async () => {
+  const { ai, engine } = await load();
+  const st0 = invadeFixture(['legion', 'legion'], ['militia']);
+  const { st, boarded, landedOnB } = driveInvade(ai, engine, st0, 6);
+  assert.ok(boarded, 'an attacker boarded the carrier (load)');
+  assert.ok(landedOnB, 'an attacker disembarked onto continent B (sail + disembark)');
+  const captured = st.cities.c2 === undefined || st.cities.c2.owner === 'p1';
+  const defendersGone = !Object.keys(st.units).some(uid => st.units[uid].owner === 'p2' && RULESET.units[st.units[uid].type].attack >= 0 && st.units[uid].x === 4 && st.units[uid].y === 2);
+  assert.ok(captured || defendersGone, 'the overseas city was assaulted (captured or its garrison destroyed)');
+});
+
+// CONTROL 1 — an AT-PEACE rival is never invaded: a peace treaty makes relationOf 'peace', so the
+// target selection skips c2 -> no attacker ever boards for an invasion, none reaches continent B.
+test('#35 naval-invade-B control: an at-PEACE overseas city is never invaded', async () => {
+  const { ai, engine } = await load();
+  const st0 = invadeFixture(['legion', 'legion'], ['militia'], { 'p1|p2': { state: 'peace', met: true } });
+  const { st, landedOnB } = driveInvade(ai, engine, st0, 6);
+  assert.strictEqual(landedOnB, false, 'no attacker crossed to continent B at peace');
+  assert.strictEqual(st.cities.c2 !== undefined && st.cities.c2.owner, 'p2', 'the peace-held city is untouched');
+});
+
+// CONTROL 2 — an INFERIOR stack never launches: 1 legion vs 2 phalanx fails the 3:1 launch gate,
+// so the loaded carrier HOLDS at its coast (never sails). The attacker still BOARDS (embark is
+// upstream of the launch gate) but no unit reaches continent B.
+test('#35 naval-invade-B control: an inferior stack boards but never launches', async () => {
+  const { ai, engine } = await load();
+  const st0 = invadeFixture(['legion'], ['phalanx', 'phalanx']);
+  const { st, boarded, landedOnB } = driveInvade(ai, engine, st0, 6);
+  assert.ok(boarded, 'the attacker boarded the carrier (staging)');
+  assert.strictEqual(landedOnB, false, 'the inferior stack never crossed (launch gate held it)');
+  assert.strictEqual(st.cities.c2 !== undefined && st.cities.c2.owner, 'p2', 'the enemy city is untouched');
 });

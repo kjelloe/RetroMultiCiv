@@ -54,7 +54,7 @@ local WONDER_AFFINITY: { [string]: { string } } = {
 local GLOBAL_UNLOCK_WONDERS: { [string]: boolean } = { ["apollo-program"] = true, ["manhattan-project"] = true }
 -- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
 -- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
-local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6, armyTargetCap = 50, disbandOverBy = 4 }
+local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6, armyTargetCap = 50, disbandOverBy = 4, invasionStageRadius = 6 }
 -- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
 -- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
 -- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
@@ -1230,6 +1230,188 @@ local function hasFreeCarrier(state: any, playerId: string, ruleset: any): boole
 	return false
 end
 
+-- #35 naval-invade-B twin: the nearest OVERSEAS enemy city this civ is at WAR with and has
+-- EXPLORED. Overseas = not on a home continent; fog-honest; existing-war only (relationOf
+-- defaults to "war"). Deterministic: nearest to capital, city-id tie-break.
+local function invasionTargetCity(state: any, playerId: string, me: any, ruleset: any, home: any): any
+	local cap = government.capitalOf(state, playerId, ruleset)
+	if cap == nil then
+		return nil
+	end
+	local W = state.map.width
+	local best = nil
+	local bestD = -1
+	local bestId = ""
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner ~= playerId and c.owner ~= "barb"
+			and isExplored(me, state.map, c.x, c.y)
+			and diplomacy.relationOf(state, playerId, c.owner) == "war"
+			and home[c.y * W + c.x] ~= true then
+			local d = chebyshev(state.map, cap.x, cap.y, c.x, c.y)
+			if best == nil or d < bestD or (d == bestD and cid < bestId) then
+				best = c
+				bestD = d
+				bestId = cid
+			end
+		end
+	end
+	return best
+end
+
+-- #35 twin: the summed DEFENSE strength of the enemy garrison on the target city tile.
+local function knownDefenseSum(state: any, city: any, ruleset: any): number
+	local sum = 0
+	for _, u in ipairs(combat.unitsAt(state, city.x, city.y)) do
+		if u.owner == city.owner and ruleset.units[u.type].defense > 0 then
+			sum = sum + combat.defenseStrength(state, u, ruleset)
+		end
+	end
+	return sum
+end
+
+-- #35 twin: how many MILITARY units (attack>0) are aboard a ship.
+local function militaryCargo(state: any, shipId: string, ruleset: any): number
+	local n = 0
+	for uid in pairs(state.units) do
+		local u = state.units[uid]
+		if u.aboard == shipId and ruleset.units[u.type].attack > 0 then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+-- #35 twin: the summed ATTACK strength of a carrier's military cargo.
+local function cargoAttackSum(state: any, shipId: string, ruleset: any): number
+	local sum = 0
+	for uid in pairs(state.units) do
+		local u = state.units[uid]
+		if u.aboard == shipId and ruleset.units[u.type].attack > 0 then
+			sum = sum + combat.attackStrength(u, ruleset)
+		end
+	end
+	return sum
+end
+
+-- #35 twin: the nearest own SAFE land ATTACKER (no enemy within 2, not aboard) to a ship, within radius.
+local function nearestBoardableAttacker(state: any, ship: any, playerId: string, ruleset: any, radius: number): any
+	local me = state.players[playerId]
+	local best = nil
+	local bestD = -1
+	for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+		local u = state.units[uid]
+		if u.owner == playerId and u.aboard == nil then
+			local def = ruleset.units[u.type]
+			if def.domain == "land" and def.attack > def.defense
+				and not enemyNear(state, me, playerId, u.x, u.y, 2) then
+				local d = chebyshev(state.map, ship.x, ship.y, u.x, u.y)
+				if d <= radius and (best == nil or d < bestD) then
+					best = u
+					bestD = d
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- #35 twin: is any enemy unit adjacent to (x,y)? (ZOC-lock check for the ship->land disembark.)
+local function enemyAdjacentTile(state: any, x: number, y: number, playerId: string): boolean
+	local map = state.map
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = x + DIR_VECS[key][1]
+		local skip = false
+		if nx < 0 or nx >= map.width then
+			if map.wrapX ~= true then
+				skip = true
+			else
+				nx = ((nx % map.width) + map.width) % map.width
+			end
+		end
+		local ny = y + DIR_VECS[key][2]
+		if not skip and ny >= 0 and ny < map.height then
+			for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+				if u.owner ~= playerId then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- #35 twin: for a disembarking invader, the DIR onto the target's continent — prefers a ZOC-clear tile.
+local function invadeDisembarkDir(state: any, unit: any, playerId: string, target: any, comp: any, ruleset: any): string?
+	local map = state.map
+	local bestKey = nil
+	local bestClear = false
+	local bestD = 9999
+	for _, key in ipairs(DIR_KEYS) do
+		local nx = unit.x + DIR_VECS[key][1]
+		local skip = false
+		if nx < 0 or nx >= map.width then
+			if map.wrapX ~= true then
+				skip = true
+			else
+				nx = ((nx % map.width) + map.width) % map.width
+			end
+		end
+		local ny = unit.y + DIR_VECS[key][2]
+		if not skip and ny >= 0 and ny < map.height and comp[ny * map.width + nx] == true then
+			local c = combat.cityAt(state, nx, ny)
+			local cityBlocked = c ~= nil and c.owner ~= playerId
+			if not cityBlocked then
+				local enemy = false
+				for _, u in ipairs(combat.unitsAt(state, nx, ny)) do
+					if u.owner ~= playerId then
+						enemy = true
+					end
+				end
+				if not enemy then
+					local clear = not enemyAdjacentTile(state, nx, ny, playerId)
+					local d = chebyshev(map, nx, ny, target.x, target.y)
+					if bestKey == nil or (clear and not bestClear) or (clear == bestClear and d < bestD) then
+						bestKey = key
+						bestClear = clear
+						bestD = d
+					end
+				end
+			end
+		end
+	end
+	return bestKey
+end
+
+-- #35 twin: the memoized per-turn invasion plan.
+local function computeInvasion(state: any, playerId: string, ruleset: any): any
+	local hasSea = false
+	for uid in pairs(state.units) do
+		local u = state.units[uid]
+		if u.owner == playerId and ruleset.units[u.type].domain == "sea" then
+			hasSea = true
+			break
+		end
+	end
+	if not hasSea then
+		return { target = nil, targetComp = {}, defSum = 0 }
+	end
+	local me = state.players[playerId]
+	local home = homeContinents(state, playerId, ruleset)
+	local target = invasionTargetCity(state, playerId, me, ruleset, home)
+	if target == nil then
+		return { target = nil, targetComp = {}, defSum = 0 }
+	end
+	local targetComp = landComponent(state, target.x, target.y, ruleset)
+	return { target = target, targetComp = targetComp, defSum = knownDefenseSum(state, target, ruleset) }
+end
+local function invasionFacts(done: any, state: any, playerId: string, ruleset: any): any
+	if done.invasion == nil then
+		done.invasion = computeInvasion(state, playerId, ruleset)
+	end
+	return done.invasion
+end
+
 -- naval-presence perf memo (#2201): the civ-level naval facts, computed ONCE per turn
 -- (bestCitySite is expensive) and cached in `done`. sat = has an island-saturated settler
 -- (M1 gate); wards = overseas-blocked settlers a carrier ferries (M2b).
@@ -2317,6 +2499,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	local effStance = if stance ~= nil then stance else me.stance
 	local S = stanceOf(effStance) -- balanced (or omitted/absent) = the identity
 	local marchR = marchRadiusOf(ruleset, S) -- B13f: sweepable via rules.json
+	-- #35 naval-invade-B twin: the launch heuristic ratio (rules.json knob, omit-safe 300).
+	local invadeRatioPct = if ruleset.rules.invadeRatioPct == nil then 300 else ruleset.rules.invadeRatioPct
 
 	if done.happiness ~= true then
 		done.happiness = true -- one assignment change per turn — gradual
@@ -2731,6 +2915,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				and not (unit.zocBlocks ~= nil and unit.zocBlocks >= 3) then
 				done["u:" .. uid] = true
 
+				-- #35 naval-invade-B twin: the memoized invasion plan (target + continent + KNOWN defense).
+				local invasion = invasionFacts(done, state, playerId, ruleset)
+
 				if unit.type == "settlers" then
 					-- naval-loop S3 DISEMBARK: an embarked settler is cargo -- step ashore when the
 					-- carrier reached a coast; else ride (the carrier sails it in the ship block).
@@ -2805,6 +2992,25 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					continue
 				end
 
+				-- #35 naval-invade-B SAIL: a carrier carrying an INVASION force sails to the target
+				-- city's coast, but ONLY once the launch heuristic passes (KNOWN, walls-aware defense).
+				-- Else it HOLDS at its launch coast (the "inferior stack never launches" control).
+				if ruleset.units[unit.type].domain == "sea" and invasion.target ~= nil
+					and militaryCargo(state, unit.id, ruleset) > 0 then
+					local t = invasion.target
+					if cargoAttackSum(state, unit.id, ruleset) * 100 < invadeRatioPct * invasion.defSum then
+						return { type = "wait", playerId = playerId, unitId = uid }
+					end
+					if chebyshev(state.map, unit.x, unit.y, t.x, t.y) <= 1 then
+						return { type = "wait", playerId = playerId, unitId = uid }
+					end
+					local idir = seaStepToward(state, unit, t.x, t.y, ruleset)
+					if idir ~= nil then
+						return { type = "moveUnit", playerId = playerId, unitId = uid, dir = idir }
+					end
+					return { type = "wait", playerId = playerId, unitId = uid }
+				end
+
 				-- naval-loop S3 SAIL: a carrier WITH cargo sails to the coast adjacent to the
 				-- nearest overseas site, then HOLDS while its cargo disembarks. Empty carriers
 				-- fall through to N3 scout/patrol.
@@ -2834,6 +3040,71 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						local pdir = seaStepToward(state, unit, ward.x, ward.y, ruleset)
 						if pdir ~= nil then
 							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = pdir }
+						end
+					end
+				end
+				-- #35 naval-invade-B PICKUP: an empty carrier with a boardable safe attacker nearby (no
+				-- settler ferry taking priority) HOLDS beside it so the attacker can board (military M2b).
+				if ruleset.units[unit.type].domain == "sea" and invasion.target ~= nil
+					and carrierCargo(state, unit.id) == 0 and carrierFreeSlots(state, unit, ruleset) > 0 then
+					local inv = nearestBoardableAttacker(state, unit, playerId, ruleset, BUILD_LEVER.invasionStageRadius)
+					if inv ~= nil then
+						if chebyshev(state.map, unit.x, unit.y, inv.x, inv.y) <= 1 then
+							return { type = "wait", playerId = playerId, unitId = uid }
+						end
+						local idir = seaStepToward(state, unit, inv.x, inv.y, ruleset)
+						if idir ~= nil then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = idir }
+						end
+					end
+				end
+				-- #35 naval-invade-B (land attacker): RIDE/DISEMBARK on the target continent, ASSAULT once
+				-- landed (odds-gated, NOT massSize-gated), else STAGE (board a free carrier). Before the
+				-- generic land logic; a non-staging attacker falls through unchanged.
+				if invasion.target ~= nil and ruleset.units[unit.type].domain == "land"
+					and ruleset.units[unit.type].attack > ruleset.units[unit.type].defense then
+					local t = invasion.target
+					local comp = invasion.targetComp
+					local map = state.map
+					if unit.aboard ~= nil then
+						local dd = invadeDisembarkDir(state, unit, playerId, t, comp, ruleset)
+						if dd ~= nil then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dd }
+						end
+						continue
+					elseif comp[unit.y * map.width + unit.x] == true then
+						local D = warDoctrineOf(ruleset)
+						if chebyshev(map, unit.x, unit.y, t.x, t.y) <= 1 then
+							if assaultOddsOk(state, unit, t.x, t.y, ruleset, D.oddsGatePct) then
+								local adir = dirToward(map, unit.x, unit.y, t.x, t.y)
+								if adir ~= nil and not stepEntersSea(state, unit, adir, ruleset) then
+									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = adir }
+								end
+							end
+							return { type = "wait", playerId = playerId, unitId = uid }
+						end
+						local cdir = dirToward(map, unit.x, unit.y, t.x, t.y)
+						if cdir ~= nil and not stepAttackBlocked(state, unit, cdir, playerId, ruleset, D.oddsGatePct)
+							and not stepEntersSea(state, unit, cdir, ruleset) then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = cdir }
+						end
+						return { type = "wait", playerId = playerId, unitId = uid }
+					elseif not enemyNear(state, me, playerId, unit.x, unit.y, 2) then
+						local carrier = nearestOwnCarrier(state, unit, playerId, ruleset)
+						if carrier ~= nil and chebyshev(map, unit.x, unit.y, carrier.x, carrier.y) <= BUILD_LEVER.invasionStageRadius then
+							if chebyshev(map, unit.x, unit.y, carrier.x, carrier.y) <= 1 then
+								local b = dirToward(map, unit.x, unit.y, carrier.x, carrier.y)
+								if b ~= nil then
+									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = b }
+								end
+							end
+							local m = bfsStepToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset)
+							if m == nil then
+								m = safeDirToward(state, me, playerId, unit, carrier.x, carrier.y, ruleset)
+							end
+							if m ~= nil and not stepEntersSea(state, unit, m, ruleset) then
+								return { type = "moveUnit", playerId = playerId, unitId = uid, dir = m }
+							end
 						end
 					end
 				end

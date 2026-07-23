@@ -243,7 +243,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x2c9bfc0a\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x681e9457\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -302,8 +302,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'ac21a830', pangaea: 'c64cf24b',
-      archipelago: 'e065b0f2', islands: '4ad5e353'
+      continents: '93e0a4bd', pangaea: '901db8e2',
+      archipelago: '40691d5d', islands: '5e772274'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -353,8 +353,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // -> 0xac983686 (space-war-hold #35: victoryDrive.holdPathPct knob in rules.json).
 // -> 0x46a31622 (#29 A7 wonder-stragglers: 8 effect fields added to wonders.json — a stamp move).
 // -> 0x33de2eb1 (#35 pyramids-gov: pyramids effect fields {revolutionAnarchyTurns,unlockAnyGov} — a stamp move).
+// -> 0x45f8a844 (#35 naval-invade-B: invadeRatioPct knob in rules.json — a stamp move).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x33de2eb1 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x45f8a844 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {
