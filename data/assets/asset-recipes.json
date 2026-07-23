@@ -2103,6 +2103,84 @@
         6
       ]
     },
+    "resFish": {
+      "shape": "sphere",
+      "size": [
+        0.09
+      ],
+      "seg": [
+        8,
+        6
+      ]
+    },
+    "resFishTail": {
+      "shape": "cone",
+      "size": [
+        0.06,
+        0.09
+      ],
+      "seg": 4
+    },
+    "resCrystal": {
+      "shape": "dodeca",
+      "size": [
+        0.075
+      ],
+      "seg": 0
+    },
+    "resWater": {
+      "shape": "cyl",
+      "size": [
+        0.16,
+        0.16,
+        0.015
+      ],
+      "seg": 12
+    },
+    "resPalm": {
+      "shape": "cone",
+      "size": [
+        0.11,
+        0.14
+      ],
+      "seg": 6
+    },
+    "resDerrick": {
+      "shape": "cone",
+      "size": [
+        0.06,
+        0.34
+      ],
+      "seg": 4
+    },
+    "resShield": {
+      "shape": "box",
+      "size": [
+        0.14,
+        0.16,
+        0.03
+      ]
+    },
+    "resBeast": {
+      "shape": "sphere",
+      "size": [
+        0.1
+      ],
+      "seg": [
+        8,
+        6
+      ]
+    },
+    "resBeastHead": {
+      "shape": "sphere",
+      "size": [
+        0.06
+      ],
+      "seg": [
+        8,
+        6
+      ]
+    },
     "fortress": {
       "shape": "torus",
       "size": [

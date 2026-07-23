@@ -229,7 +229,19 @@ export const PROP_SHAPES = {
   rock: { shape: 'dodeca', size: [0.14], seg: 0 },
   peak: { shape: 'cone', size: [0.26, 0.5], seg: 5 },
   snow: { shape: 'cone', size: [0.12, 0.2], seg: 5 },
-  special: { shape: 'sphere', size: [0.07], seg: [8, 6] },
+  special: { shape: 'sphere', size: [0.07], seg: [8, 6] }, // generic fallback
+  // specials-icons: per-resource map motifs (Civ 1 showed the resource itself,
+  // not one yellow ball). Terrain-keyed (each terrain has ONE special), composed
+  // from these primitives + a per-resource COLOR in props.js SPECIAL_MOTIF.
+  resFish: { shape: 'sphere', size: [0.09], seg: [8, 6] },      // fish body (scaled flat/long)
+  resFishTail: { shape: 'cone', size: [0.06, 0.09], seg: 4 },   // tail fin
+  resCrystal: { shape: 'dodeca', size: [0.075], seg: 0 },       // coal/gold/gem faceted nugget
+  resWater: { shape: 'cyl', size: [0.16, 0.16, 0.015], seg: 12 }, // oasis pool
+  resPalm: { shape: 'cone', size: [0.11, 0.14], seg: 6 },       // oasis palm crown
+  resDerrick: { shape: 'cone', size: [0.06, 0.34], seg: 4 },    // oil rig (dark tapered tower)
+  resShield: { shape: 'box', size: [0.14, 0.16, 0.03] },        // grassland shield
+  resBeast: { shape: 'sphere', size: [0.1], seg: [8, 6] },      // game/horse/seal body (scaled)
+  resBeastHead: { shape: 'sphere', size: [0.06], seg: [8, 6] }, // its head
   fortress: { shape: 'torus', size: [0.34, 0.05], seg: [6, 12] },
   tie: { shape: 'box', size: [0.03, 0.024, 0.17] },
   mineDoor: { shape: 'box', size: [0.11, 0.1, 0.02] },

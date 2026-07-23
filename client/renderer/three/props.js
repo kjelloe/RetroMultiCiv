@@ -45,6 +45,29 @@ const PROP_COLOR = {
 export const WATER_LEVEL = -0.02;
 const PROP_FOG = new THREE.Color(0x0a0e16);
 const SCRUB_COLOR = { grassland: 0x3f8f3f, plains: 0x9d8f55, desert: 0x9d8f55, tundra: 0x9fae9d };
+// specials-icons: the Civ-1 terrain-keyed special resource → its MAP MOTIF (a
+// list of prop primitives with per-instance color/scale/offset). Render-only;
+// the resource is DERIVED from the tile's terrain (each terrain has exactly one
+// special — data/terrain.json). ocean rides the water surface (see the handler).
+const SPECIAL_MOTIF = {
+  ocean:     [{ k: 'resFish', color: 0xd2e6f5, sx: 1.7, sy: 0.55, sz: 0.95, dy: 0.03 },        // Fish
+              { k: 'resFishTail', color: 0xbcd2e4, dx: 0.14, dy: 0.03, rotY: Math.PI / 2, sx: 0.8, sy: 0.7 }],
+  grassland: [{ k: 'resShield', color: 0xe0c14e, dy: 0.1 }],                                   // Shield
+  plains:    [{ k: 'resBeast', color: 0x9a6b3f, sx: 1.5, sy: 0.8, sz: 0.8, dy: 0.05 },         // Horse
+              { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.12, dy: 0.11 }],
+  forest:    [{ k: 'resBeast', color: 0x7a5a35, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },       // Game (deer)
+              { k: 'resBeastHead', color: 0x7a5a35, dx: -0.11, dy: 0.12 }],
+  tundra:    [{ k: 'resBeast', color: 0x8a6a45, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },        // Game
+              { k: 'resBeastHead', color: 0x8a6a45, dx: -0.11, dy: 0.12 }],
+  arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.8, sy: 0.6, sz: 0.75, dy: 0.04 },         // Seal
+              { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.15, dy: 0.06 }],
+  desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02 },                                      // Oasis
+              { k: 'resPalm', color: 0x2f8d3f, dy: 0.17 }],
+  hills:     [{ k: 'resCrystal', color: 0x2b2b30, dy: 0.09 }],                                   // Coal
+  mountains: [{ k: 'resCrystal', color: 0xffcf3b, dy: 0.09 }],                                   // Gold
+  jungle:    [{ k: 'resCrystal', color: 0x5ad0c9, dy: 0.09 }],                                   // Gem
+  swamp:     [{ k: 'resDerrick', color: 0x2a2622, dy: 0.17 }]                                    // Oil
+};
 // eight neighbor directions for road connectivity (rotY aligns the segment)
 const ROAD_DIRS = [
   { dx: 1, dy: 0, rot: 0, diag: false }, { dx: -1, dy: 0, rot: 0, diag: false },
@@ -63,7 +86,10 @@ export function createTileProps(map, tileTop, joins) {
     jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5
     rock: [], peak: [], snow: [], special: [], fortress: [],
     tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: [],
-    hutBase: [], hutRoof: [] // N13: goody-hut villages
+    hutBase: [], hutRoof: [], // N13: goody-hut villages
+    // specials-icons: per-resource motif primitives
+    resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
+    resDerrick: [], resShield: [], resBeast: [], resBeastHead: []
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -194,7 +220,22 @@ export function createTileProps(map, tileTop, joins) {
           });
         }
       }
-      if (t.special) items.special.push({ x, y, top, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });
+      if (t.special) {
+        // per-resource motif by terrain (Civ 1 showed the resource itself). An
+        // OCEAN special (fish) rides the WATER SURFACE, not the submerged floor
+        // (`top`) — at `top` it renders underwater, invisible (friend playtest).
+        const base = t.t === 'ocean' ? WATER_LEVEL : top;
+        const motif = SPECIAL_MOTIF[t.t];
+        if (motif) {
+          for (const m of motif) {
+            items[m.k].push({ x, y, top: base, dim, color: m.color,
+              dx: m.dx || 0, dz: m.dz || 0, dy: m.dy || 0,
+              sx: m.sx, sy: m.sy, sz: m.sz, rotY: m.rotY || 0 });
+          }
+        } else { // any terrain without a motif keeps the generic marker
+          items.special.push({ x, y, top: base, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });
+        }
+      }
       if (t.hut === true) { // N13: the village — wall cylinder + thatch cone
         items.hutBase.push({ x, y, top, dim, color: PROP_COLOR.hutWall, dy: 0.06 });
         items.hutRoof.push({ x, y, top, dim, color: PROP_COLOR.hutRoof, dy: 0.19 });
