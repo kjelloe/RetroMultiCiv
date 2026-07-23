@@ -6,6 +6,7 @@
 -- EXPORTS (stable): process(state, ruleset, events), BARB_ID, FIRST_TURN.
 
 local rng = require("./rng")
+local cow = require("./cow")
 local statehash = require("./statehash")
 local combat = require("./combat")
 
@@ -223,7 +224,7 @@ local function act(state: any, unit: any, ruleset: any, events: any)
 	-- N13: a barbarian entering a village is a nullifier — removed, no reward.
 	local tile = state.map.tiles[ny * width + nx + 1]
 	if tile.hut == true then
-		tile.hut = nil
+		cow.cowTile(state, ny * width + nx).hut = nil
 		table.insert(events, { type = "hutEntered", playerId = BARB_ID, x = nx, y = ny, result = "nothing" })
 	end
 	local city = combat.cityAt(state, nx, ny)

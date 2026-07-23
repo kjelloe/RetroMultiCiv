@@ -9,6 +9,7 @@
 -- cityAt, attackStrength, defenseStrength, tileDefensePct, sortIds.
 
 local rng = require("./rng")
+local cow = require("./cow")
 local statehash = require("./statehash")
 local visibility = require("./visibility")
 local cities = require("./cities")
@@ -125,7 +126,7 @@ local function foulRing(state: any, cx: number, cy: number, ruleset: any, events
 		if tile.polluted == true then
 			continue
 		end
-		tile.polluted = true
+		cow.cowTile(state, y * W + x).polluted = true
 		table.insert(events, { type = "nukeFallout", x = x, y = y })
 	end
 end

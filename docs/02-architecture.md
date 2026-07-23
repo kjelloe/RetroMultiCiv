@@ -207,6 +207,17 @@ Luau rewrite is mechanical, file-by-file, function-by-function:
 8. **No closures capturing mutable engine state across calls.** All state flows
    through the `state` argument. (Closures per se are fine in Lua, but stateless
    modules are what make the reducer testable and the port diff-able.)
+   - **SANCTIONED EXCEPTION — the `cow` transient** (`engine/cow.js` / `luau/cow.luau`, ruled
+     #2320). `applyCommand` structurally SHARES `state.map` by reference (`cloneStateShareMap`)
+     instead of deep-cloning its 1960 tile objects every command — a tile-write diverges the map
+     lazily through the ONE legal path `cowTile` (clone-on-write). `cow.js` holds a module-level
+     `owned` boolean, which would violate this rule — EXCEPT it is a per-command transient RESET at
+     `applyCommand` ENTRY (`resetCow`), making it an *implicit per-command argument* that never
+     survives across calls. The determinism-guard test (`test/cow-aliasing.test.js`) proves identical
+     `(state, command)` → identical result regardless of prior calls, and the freeze aliasing test in
+     the same file proves no writer skips `cowTile` (it deep-freezes the input tiles; an in-place
+     write throws). This is the same shape as `idiv` (§6): a tiny, verified, twinned primitive that
+     buys correctness/perf without leaking the model. Any new tile-write MUST go through `cowTile`.
 9. **`===`/truthiness care:** treat `0` and `""` explicitly (`x === undefined`
    checks), since Lua's truthiness differs (only `nil`/`false` are falsy).
 10. **One module = one Luau ModuleScript.** Keep `require`s acyclic.

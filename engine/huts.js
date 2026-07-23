@@ -9,6 +9,7 @@ import { foundCityLegality, createCityAt } from './cities.js';
 import { grantTech, availableTechs } from './tech.js';
 import { barbTier, ensureBarbPlayer, BARB_ID } from './barbarians.js';
 import { unitsAt, cityAt } from './combat.js';
+import { cowTile } from './cow.js';
 
 // 8 neighbours in a FIXED row-major order — the deterministic "sorted neighbor
 // order" the ambush placement walks (both engines identical).
@@ -154,7 +155,7 @@ function rollHut(state, unit, ruleset, events) {
     spawnAmbush(state, x, y, ruleset);
   }
 
-  delete state.map.tiles[y * state.map.width + x].hut;
+  delete cowTile(state, y * state.map.width + x).hut;
   events.push({ type: 'hutEntered', playerId, x, y, result });
 }
 

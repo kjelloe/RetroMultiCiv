@@ -4,6 +4,7 @@
 // data/rules.json workTurns. Civ 1 terrain transforms (clear/plant/drain),
 // railroads, fortresses, and pillage are later slices.
 import { sortIds } from './combat.js';
+import { cowTile } from './cow.js';
 
 // tile flag written by each kind of work
 function workFlag(work) {
@@ -103,13 +104,15 @@ function pillage(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   if (unit.moves <= 0) return { ok: false, reason: 'noMovesLeft' };
   if (ruleset.units[unit.type].domain !== 'land') return { ok: false, reason: 'badTerrain' };
-  const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+  const pidx = unit.y * state.map.width + unit.x;
+  const rtile = state.map.tiles[pidx]; // read-only: decide what to pillage before cow'ing
   let destroyed = '';
-  if (tile.irrigation === true) { delete tile.irrigation; destroyed = 'irrigation'; }
-  else if (tile.mine === true) { delete tile.mine; destroyed = 'mine'; }
-  else if (tile.railroad === true) { delete tile.railroad; destroyed = 'railroad'; }
-  else if (tile.road === true) { delete tile.road; destroyed = 'road'; }
+  if (rtile.irrigation === true) destroyed = 'irrigation';
+  else if (rtile.mine === true) destroyed = 'mine';
+  else if (rtile.railroad === true) destroyed = 'railroad';
+  else if (rtile.road === true) destroyed = 'road';
   else return { ok: false, reason: 'nothingToPillage' };
+  delete cowTile(state, pidx)[destroyed]; // #2320: cow only when actually pillaging
   unit.moves = 0;
   return {
     ok: true,
@@ -126,7 +129,7 @@ function processWork(state, ruleset, events) {
     unit.workLeft = unit.workLeft - 1;
     if (unit.workLeft > 0) continue;
     const work = unit.working;
-    const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+    const tile = cowTile(state, unit.y * state.map.width + unit.x); // #2320: the completing tile-write path
     const terrain = ruleset.terrain.terrains[tile.t];
     // A91 clean: pollution scrubbed off; the settler survives (order clears, unit stays).
     if (work === 'clean') {

@@ -22,6 +22,7 @@ import * as upgrade from './upgrade.js';
 import * as debug from './debug.js';
 import * as diplomacy from './diplomacy.js';
 import { createGame as generateGame } from './mapgen.js';
+import { resetCow } from './cow.js';
 
 function deepClone(value) {
   if (Array.isArray(value)) {
@@ -43,6 +44,16 @@ function deepClone(value) {
     return out;
   }
   return value;
+}
+
+// deepClone map-sharing (#2320): clone the state but SHARE state.map by reference — the map (1960
+// tile objects) rarely changes, so most commands touch none of it. A tile-writer diverges it lazily
+// via cowTile (engine/cow.js). Byte-identical to a full deepClone: the shared map is the same content,
+// and cowTile leaves the pre-command map untouched. The immutability contract is unchanged.
+function cloneStateShareMap(state) {
+  const out = {};
+  for (const k of Object.keys(state)) out[k] = k === 'map' ? state.map : deepClone(state[k]);
+  return out;
 }
 
 // Civ-1-style variable calendar (data/rules.json `yearSteps`): the FIRST
@@ -185,7 +196,8 @@ function endTurn(state, cmd, ruleset) {
 function createEngine(ruleset) {
   function applyCommand(state, cmd) {
     if (state.gameOver === true) return { ok: false, reason: 'gameOver', state, events: [] };
-    const next = deepClone(state);
+    resetCow(); // #2320: the per-command cow transient (owned=false) — an implicit per-command arg
+    const next = cloneStateShareMap(state); // shares next.map with state.map until a tile-write cow's it
     let result;
     if (cmd.type === 'moveUnit') result = movement.moveUnit(next, cmd, ruleset);
     else if (cmd.type === 'fortify') result = movement.fortify(next, cmd, ruleset);

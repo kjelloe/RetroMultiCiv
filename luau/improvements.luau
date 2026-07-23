@@ -7,6 +7,7 @@
 -- workFlag.
 
 local combat = require("./combat")
+local cow = require("./cow")
 local statehash = require("./statehash")
 
 -- tile flag written by each kind of work
@@ -151,23 +152,21 @@ local function pillage(state: any, cmd: any, ruleset: any): any
 	if ruleset.units[unit.type].domain ~= "land" then
 		return { ok = false, reason = "badTerrain" }
 	end
-	local tile = state.map.tiles[unit.y * state.map.width + unit.x + 1]
+	local pidx = unit.y * state.map.width + unit.x
+	local rtile = state.map.tiles[pidx + 1] -- read-only: decide before cow'ing
 	local destroyed = ""
-	if tile.irrigation == true then
-		tile.irrigation = nil
+	if rtile.irrigation == true then
 		destroyed = "irrigation"
-	elseif tile.mine == true then
-		tile.mine = nil
+	elseif rtile.mine == true then
 		destroyed = "mine"
-	elseif tile.railroad == true then
-		tile.railroad = nil
+	elseif rtile.railroad == true then
 		destroyed = "railroad"
-	elseif tile.road == true then
-		tile.road = nil
+	elseif rtile.road == true then
 		destroyed = "road"
 	else
 		return { ok = false, reason = "nothingToPillage" }
 	end
+	cow.cowTile(state, pidx)[destroyed] = nil -- #2320: cow only when actually pillaging
 	unit.moves = 0
 	return {
 		ok = true,
@@ -188,7 +187,7 @@ local function processWork(state: any, ruleset: any, events: any)
 			unit.workLeft = unit.workLeft - 1
 			if unit.workLeft <= 0 then
 				local work = unit.working
-				local tile = state.map.tiles[unit.y * state.map.width + unit.x + 1]
+				local tile = cow.cowTile(state, unit.y * state.map.width + unit.x) -- #2320 completing tile-write
 				local terrain = ruleset.terrain.terrains[tile.t]
 				local event: any = { type = "improvementBuilt", unitId = unit.id, owner = unit.owner, work = work, x = unit.x, y = unit.y }
 				if work == "clean" then

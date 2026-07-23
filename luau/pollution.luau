@@ -7,6 +7,7 @@
 -- engine/pollution.js. EXPORTS (stable): process(state, ruleset, events).
 
 local rng = require("./rng")
+local cow = require("./cow")
 local cities = require("./cities")
 
 local function idiv(a: number, b: number): number
@@ -74,7 +75,7 @@ local function foulOne(state: any, cands: any): any
 	local roll = rng.rollRange(state.rngState, #cands)
 	state.rngState = roll.rngState
 	local t = cands[roll.value + 1]
-	state.map.tiles[t.y * state.map.width + t.x + 1].polluted = true
+	cow.cowTile(state, t.y * state.map.width + t.x).polluted = true
 	return t
 end
 
@@ -84,7 +85,6 @@ end
 local function greenhouse(state: any, ruleset: any, polluted: any, events: any)
 	local poll = ruleset.rules.pollution
 	local W, H = state.map.width, state.map.height
-	local tiles = state.map.tiles
 	for _, idx in ipairs(polluted) do
 		local ex = idx % W
 		local ey = idiv(idx, W)
@@ -101,7 +101,7 @@ local function greenhouse(state: any, ruleset: any, polluted: any, events: any)
 			if y < 0 or y >= H then
 				continue
 			end
-			if poll.warmingTransforms[tiles[y * W + x + 1].t] ~= nil then
+			if poll.warmingTransforms[state.map.tiles[y * W + x + 1].t] ~= nil then
 				table.insert(cands, { x = x, y = y })
 			end
 		end
@@ -109,14 +109,14 @@ local function greenhouse(state: any, ruleset: any, polluted: any, events: any)
 			local pick = rng.rollRange(state.rngState, #cands)
 			state.rngState = pick.rngState
 			local c = cands[pick.value + 1]
-			local tt = tiles[c.y * W + c.x + 1]
+			local tt = cow.cowTile(state, c.y * W + c.x)
 			tt.t = poll.warmingTransforms[tt.t]
 			if tt.polluted == true then
 				tt.polluted = nil
 			end
 			table.insert(events, { type = "terrainWarmed", x = c.x, y = c.y })
 		end
-		tiles[idx + 1].polluted = nil
+		cow.cowTile(state, idx).polluted = nil
 	end
 end
 

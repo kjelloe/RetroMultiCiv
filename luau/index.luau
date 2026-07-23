@@ -18,6 +18,7 @@ local government = require("./government") -- batch 4 (P5-6, completed)
 local barbarians = require("./barbarians") -- batch 5 (P5-7)
 local pollution = require("./pollution") -- A91
 local disasters = require("./disasters") -- CIV1 disasters
+local cow = require("./cow") -- #2320 deepClone map-sharing
 local naval = require("./naval") -- naval-truth (Bundle 2)
 local air = require("./air") -- A72: air fuel/crash
 local score = require("./score") -- batch 5 (P5-7)
@@ -67,6 +68,20 @@ local function deepClone(value: any): any
 	local out = {}
 	for _, k in sortedKeys(value) do
 		out[k] = deepClone(value[k])
+	end
+	return out
+end
+
+-- #2320 deepClone map-sharing: clone the state but SHARE state.map by reference (byte-identical to a
+-- full deepClone; a tile-write diverges it lazily via cowTile). Twin of engine/index.js.
+local function cloneStateShareMap(state: any): any
+	local out = {}
+	for _, k in sortedKeys(state) do
+		if k == "map" then
+			out[k] = state.map
+		else
+			out[k] = deepClone(state[k])
+		end
 	end
 	return out
 end
@@ -248,7 +263,8 @@ local function createEngine(ruleset: any)
 		if state.gameOver == true then
 			return { ok = false, reason = "gameOver", state = state, events = {} }
 		end
-		local next_ = deepClone(state)
+		cow.resetCow() -- #2320: reset the per-command cow transient (owned=false)
+		local next_ = cloneStateShareMap(state) -- shares next_.map with state.map until a tile-write cow's it
 		local result
 		if cmd.type == "endTurn" then
 			result = endTurn(next_, cmd, ruleset)

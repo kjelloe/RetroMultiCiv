@@ -5,6 +5,7 @@
 import { reveal, unitSight } from './visibility.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 import { rollHut } from './huts.js';
+import { cowTile } from './cow.js';
 import { relationOf } from './diplomacy.js';
 
 const DIRS = {
@@ -221,7 +222,7 @@ function moveUnit(state, cmd, ruleset) {
   const landed = tileAt(map, nx, ny);
   if (landed.hut === true) {
     if (unitType.domain === 'air' || unit.owner === 'barb') {
-      delete landed.hut;
+      delete cowTile(state, ny * map.width + nx).hut;
       events.push({ type: 'hutEntered', playerId: unit.owner, x: nx, y: ny, result: 'nothing' });
     } else {
       rollHut(state, unit, ruleset, events);

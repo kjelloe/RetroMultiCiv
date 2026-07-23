@@ -8,6 +8,7 @@
 // (movement.js) that CAN fire earlier — the turn-16 guarantee is about barbarian
 // spawn scheduling, not identity of the whole rng sequence.
 import { rollRange } from './rng.js';
+import { cowTile } from './cow.js';
 import { resolveAttack, captureCity, unitsAt, cityAt, sortIds } from './combat.js';
 
 const BARB_ID = 'barb';
@@ -172,7 +173,7 @@ function act(state, unit, ruleset, events) {
   // no reward (barbarians move here, not via movement.moveUnit).
   const tile = state.map.tiles[ny * width + nx];
   if (tile.hut === true) {
-    delete tile.hut;
+    delete cowTile(state, ny * width + nx).hut;
     events.push({ type: 'hutEntered', playerId: BARB_ID, x: nx, y: ny, result: 'nothing' });
   }
   const city = cityAt(state, nx, ny);

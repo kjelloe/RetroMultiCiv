@@ -9,7 +9,8 @@
 local statehash = require("./statehash")
 local visibility = require("./visibility")
 local combat = require("./combat")
-local huts = require("./huts") -- N13: goody-hut roll on move-into-hut
+local huts = require("./huts")
+local cow = require("./cow") -- N13: goody-hut roll on move-into-hut
 local diplomacy = require("./diplomacy") -- D1: the atPeace attack/capture gate
 
 local DIRS: { [string]: { dx: number, dy: number } } = {
@@ -272,7 +273,7 @@ local function moveUnit(state: any, cmd: any, ruleset: any): any
 	local landed = tileAt(map, nx, ny)
 	if landed.hut == true then
 		if unitType.domain == "air" or unit.owner == "barb" then
-			landed.hut = nil
+			cow.cowTile(state, ny * map.width + nx).hut = nil
 			table.insert(events, { type = "hutEntered", playerId = unit.owner, x = nx, y = ny, result = "nothing" })
 		else
 			huts.rollHut(state, unit, ruleset, events)

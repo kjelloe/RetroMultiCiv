@@ -8,6 +8,7 @@
 // Lua-portable subset (no class/this/Map/Set).
 import { rollRange } from './rng.js';
 import { FAT_CROSS, cityShieldOutput, hasBuilding } from './cities.js';
+import { cowTile } from './cow.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
@@ -65,7 +66,7 @@ function foulOne(state, cands) {
   const roll = rollRange(state.rngState, cands.length);
   state.rngState = roll.rngState;
   const t = cands[roll.value];
-  state.map.tiles[t.y * state.map.width + t.x].polluted = true;
+  cowTile(state, t.y * state.map.width + t.x).polluted = true;
   return t;
 }
 
@@ -151,7 +152,7 @@ function processWarming(state, ruleset, events) {
 function greenhouse(state, ruleset, polluted, events) {
   const poll = ruleset.rules.pollution;
   const W = state.map.width, H = state.map.height;
-  const tiles = state.map.tiles;
+  // #2320: reads go through state.map.tiles (the current, possibly-cow'd array), writes through cowTile
   for (const idx of polluted) {
     const ex = idx % W, ey = idiv(idx, W);
     const cands = [];
@@ -163,18 +164,19 @@ function greenhouse(state, ruleset, polluted, events) {
       }
       const y = ey + o.dy;
       if (y < 0 || y >= H) continue;
-      if (poll.warmingTransforms[tiles[y * W + x].t] !== undefined) cands.push({ x, y });
+      if (poll.warmingTransforms[state.map.tiles[y * W + x].t] !== undefined) cands.push({ x, y });
     }
     if (cands.length > 0) {
       const pick = rollRange(state.rngState, cands.length);
       state.rngState = pick.rngState;
       const c = cands[pick.value];
-      const tt = tiles[c.y * W + c.x];
+      const tt = cowTile(state, c.y * W + c.x);
       tt.t = poll.warmingTransforms[tt.t];
       if (tt.polluted === true) delete tt.polluted;
       events.push({ type: 'terrainWarmed', x: c.x, y: c.y });
     }
-    delete tiles[idx].polluted; // this square's pollution is consumed by the warming
+    const src = cowTile(state, idx);
+    delete src.polluted; // this square's pollution is consumed by the warming
   }
 }
 

@@ -12,6 +12,7 @@ import { reveal } from './visibility.js';
 import { hasBuilding, wonderActive } from './cities.js';
 import { capitalOf } from './government.js';
 import { bumpRel } from './diplomacy.js';
+import { cowTile } from './cow.js';
 import { difficultyOf } from './difficulty.js';
 
 function idiv(a, b) {
@@ -96,7 +97,7 @@ function foulRing(state, cx, cy, ruleset, events) {
     const tile = state.map.tiles[y * W + x];
     if (ruleset.terrain.terrains[tile.t].domain !== 'land') continue;
     if (tile.polluted === true) continue;
-    tile.polluted = true;
+    cowTile(state, y * W + x).polluted = true;
     events.push({ type: 'nukeFallout', x, y });
   }
 }

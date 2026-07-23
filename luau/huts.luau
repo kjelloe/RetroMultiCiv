@@ -4,6 +4,7 @@
 -- gold, mercs, ambush] (weights rules.hut.weights); the village then leaves the
 -- map. Air/barbarian entry is a nullifier handled by the caller (movement.luau).
 local rng = require("./rng")
+local cow = require("./cow")
 local cities = require("./cities")
 local tech = require("./tech")
 local barbarians = require("./barbarians")
@@ -158,7 +159,7 @@ local function rollHut(state: any, unit: any, ruleset: any, events: any)
 		spawnAmbush(state, x, y, ruleset)
 	end
 
-	state.map.tiles[y * state.map.width + x + 1].hut = nil
+	cow.cowTile(state, y * state.map.width + x).hut = nil
 	table.insert(events, { type = "hutEntered", playerId = playerId, x = x, y = y, result = result })
 end
 
