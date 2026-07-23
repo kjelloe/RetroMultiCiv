@@ -53,6 +53,29 @@ test('§3 late-join: a new joiner takes over an AI civ on a running public+lateJ
   } finally { await s.close(); }
 });
 
+test('§2 listGames: a running public+lateJoining game lists with state/turn/era/joinable', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1' });
+  try {
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined');
+
+    const browser = await client(s.port);
+    browser.send({ t: 'listGames' });
+    const list = await browser.expect(m => m.t === 'openGames');
+    const row = list.games.find(r => r.gameId === created.gameId);
+    assert.ok(row, 'the running game is listed for late-join');
+    assert.strictEqual(row.state, 'running');
+    assert.strictEqual(row.joinable, true, 'a takeover seat is available');
+    assert.strictEqual(typeof row.turn, 'number');
+    assert.ok(['ancient', 'classicalMedieval', 'industrial', 'modernSpace'].includes(row.era), 'a valid era band');
+    host.close(); browser.close();
+  } finally { await s.close(); }
+});
+
 test('§3 late-join: --no-late-join / non-public game refuses the tokenless takeover', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', noLateJoin: true });

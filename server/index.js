@@ -30,7 +30,8 @@ import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed, inviteAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { score } from '../engine/score.js';
-import { selectTakeoverSeat } from './late-join.js';
+import { selectTakeoverSeat, takeoverPool } from './late-join.js';
+import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
@@ -433,6 +434,27 @@ export function startServer(opts) {
         cities: st && st.cities ? Object.keys(st.cities).length : 0
       };
     });
+  }
+  // late-join §2/§7: the game's era band = the MOST-ADVANCED alive civ's
+  // city-era band (shared/city-era.js, pure). rank = its ordinal in
+  // CITY_ERA_BANDS (ancient=0 … modernSpace=3) — §7 eviction sorts by it.
+  function gameEraBand(state) {
+    let rank = 0;
+    for (const pid of state.playerOrder) {
+      const p = state.players[pid];
+      if (!p || p.alive === false) continue;
+      const r = CITY_ERA_BANDS.indexOf(cityEraBand(p, ruleset.techs));
+      if (r > rank) rank = r;
+    }
+    return { band: CITY_ERA_BANDS[rank] || CITY_ERA_BANDS[0], rank };
+  }
+  // late-join §2: a STARTED game is late-join listable/joinable when it is public
+  // AND lateJoining AND has ≥1 eligible (alive, AI, never-human) civ to take over.
+  function lateJoinable(e) {
+    return e.status !== 'lobby'
+      && e.options.public === true && e.options.lateJoining === true
+      && e.game && e.game.state && e.game.state.gameOver !== true
+      && takeoverPool(e.game.state).length > 0;
   }
   // Final best-effort save-all before an OOM graceful-exit; games are already
   // durable via per-command autosave, so this only narrows the in-flight window.
@@ -1129,17 +1151,28 @@ export function startServer(opts) {
           if (e.game && e.game.state && e.game.state.gameOver === true) continue; // A50 item 3: finished games unlist
           const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
           const total = Object.values(e.seats).filter(x => x.human).length;
-          if (e.status === 'lobby' && open === 0) continue; // full lobbies drop off
-          if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
-          // NEVER the join code, NEVER seated players' IPs
-          games.push({
-            gameId: g.gameId, // capability-by-listing: public lobbies are joinable
+          const started = e.status !== 'lobby';
+          const lj = lateJoinable(e); // §2: started + public + lateJoining + eligible pool
+          if (!started) {
+            if (open === 0) continue; // full lobbies drop off
+          } else if (!lj && e.options.allowSpectators !== true) {
+            continue; // a started game nobody can take over or spectate is unlisted
+          }
+          // §2 additive row fields (state/turn/era/joinable) — the shared contract
+          // with the helper's client half. NEVER the join code, NEVER seated IPs.
+          const paused = started && e.paused === true; // §5 sets e.paused
+          const row = {
+            gameId: g.gameId, // capability-by-listing: public games are joinable
             hostName: (e.seats[e.hostSeat] && e.seats[e.hostSeat].name) || 'host',
             openSeats: open, totalSeats: total,
             size: e.options.size, age: e.options.age,
             spectators: e.options.allowSpectators === true,
-            status: e.status
-          });
+            status: e.status,
+            state: started ? (paused ? 'paused' : 'running') : 'open',
+            joinable: started ? lj : open > 0
+          };
+          if (started) { row.turn = e.game.state.turn; row.era = gameEraBand(e.game.state).band; }
+          games.push(row);
         }
         send(ws, { t: 'openGames', games });
         return;
@@ -1389,6 +1422,10 @@ export function startServer(opts) {
     // the A41 "public open games" summary as a COUNT — mirrors the listGames
     // filters (the dispatch handler is the robustness lane's region, so the
     // five conditions are twinned here rather than refactored across it)
+    // late-join §2: this TWINS the listGames filter (noted duplication — keep the
+    // two in sync). The public count is the "can I play on this server" number,
+    // so it INCLUDES late-join-joinable running games (spec §2 recommendation),
+    // not just open lobbies.
     const publicOpenGames = () => {
       let n = 0;
       for (const g of registry.list()) {
@@ -1396,8 +1433,8 @@ export function startServer(opts) {
         if (!e || e.options.public !== true) continue;
         if (e.game && e.game.state && e.game.state.gameOver === true) continue;
         const open = Object.values(e.seats).filter(x => x.human && !x.reserved).length;
-        if (e.status === 'lobby' && open === 0) continue;
-        if (e.status !== 'lobby' && e.options.allowSpectators !== true) continue;
+        if (e.status === 'lobby') { if (open === 0) continue; }
+        else if (!lateJoinable(e) && e.options.allowSpectators !== true) continue;
         n++;
       }
       return n;
