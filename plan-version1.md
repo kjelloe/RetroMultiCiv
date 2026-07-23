@@ -4,28 +4,22 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-23 night (marker-0090 TAGGED @8ff258d =
-candidate, 22nd consecutive — ARCHETYPE SHIPPED: non-builder wonders
-0->20, judge 3/4 ACCEPT ruled; the helper 30-item window closed (A58 +
-XV set + off-turn-over-server); #30 defender-drain valve in build ->
-its sweep -> WITNESS-7 = the launch acceptance. Prior 0088 — A7 COMPLETE: 8-of-9 wonder effects live
-+ dump-fact-checked, doubly gated in 40min, the #28 discriminator's
-first classification confirmed by both gate lanes. Axis-1 remaining =
-pyramids-gov #35 (in build) + A6a/A8/rehome/default-defender. Prior
-0087: sail-era ~2x overseas + war-hold 9/9 (launches await (c)/#30,
-witness-7 armed) + discriminator. Tier-3 CERTIFIED + R6
-agent-complete: Studded round-2 = the only roblox gate. All four
-release forks RULED: space = measure-first · scope = maximal ·
-§7 = Civ2-refuse · DNS = servers.multiciv.kjell.today (record in; one
-box step remains, user). SPACE ARC mechanically closed (witnesses 1–6 +
-dig + radius migration all verified); sole blocker = RESEARCH DEPTH —
-the #27 measure landed its verdict — King 0/22 launches but
-space-CAPABLE (seed-13 100% closure, war-abandoned t370); USER RULED
-(b)+(c) staged: war-hold slice + the endemic-war batch, 7th witness =
-King re-sweep after each. Archetype design CLOSED: the ally's 22-wonder
-mapping is the build spec. Engine order: presence-2 [M4, in flight] →
-war-hold #35 → behavior-hash → A7 stragglers → archetype →
-xiv-ai-behavior → bugs/smalls → D3-surfacing → D4–D6.)
+Last updated: 2026-07-23 late night (marker-0091 TAGGED @03a8732 =
+candidate, 23rd consecutive — #30 SUCCESS: unit tripwire GONE, hoards
+bounded, freed upkeep -> research, and the archetype wonder bar
+SELF-CLOSED 44%->64%. Also in 0091: the shared/version.js integrity
+fix + tracked-imports guard (hardening catch — clean-clone server
+boot was broken 5 markers, ~96 fails re-attributed) + XV fully closed
+(server-save merge). THE ONE OPEN FORK (user): witness-7 = 0 launches
+with everything else green — residual is RESEARCH DEPTH alone; accept
+authentically-contested space vs bulb-tune; a 3-arm rulesOverrides
+pre-measure runs on sim-runner so the ruling lands on data. Axis 5
+CLOSED (index LIVE). Studded round-2 played (runI, full 2100AD game,
+tiers 1-3 accepted; sound/saving = publish gate) -> 26-item batch
+triaged + rulings delivered. Engine order: invade-B [WINDOW OPEN] ->
+regent-stall HIGH bug #37 -> pollution-perf #15 [promoted, roblox
+industrial suspect] -> gov-reeval -> XV-engine + smalls ->
+D3-surfacing -> D4-D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -48,9 +42,9 @@ flowchart TD
     APN["✅ space pipeline repairs (0084):\napollo-narrow · manhattan/no-nukes ·\nradius fix — witnesses 5+6 still 0-launch;\n🚪 RESEARCH-DEPTH fork with user"]
     ARCH["✅ archetype wonders (0090): stance-keyed\nappetite + ally 22-wonder map; judge ACCEPT\n(non-builder wonders 0->20, floors green)"]
     MAN["✅ manhattan-gate + no-nukes toggle\n(landed in the 0084 window; verified\nin engine/cities.js)"]
-    NAVL["✅ naval A (0085) + presence-1 (0086) +\npresence-2 sail-era (0087, judge PASS ~2x) ·\n📋 invade slice B (queued, docs/15 fact-check\nbanked with reviewer)"]
+    NAVL["✅ naval A + presence-1 + presence-2\n(0085-0087, judge PASS ~2x) · 🔨 invade\nslice B WINDOW OPEN (ruled #2294; fact-check\nbanked; invadeRatioPct=300 stamp)"]
     SMALL["✅ A7 wonder effects (0088, 8-of-9\ndump-checked) + pyramids-gov (landed 13271d2)\n· 📋 remaining smalls: A6a future-tech · §45b\nrehome · §46 default-defender · A8 tile contention"]
-    XAB["🔨 xiv-ai-behavior #30 (IN BUILD):\nobsolete-DEFENDER drain valve (the real bloat,\ndiscriminator-caught) + hoard->buildings;\nsweep -> witness-7 = launch acceptance"]
+    XAB["✅ xiv-ai-behavior #30 (0091, TWO iterations):\ntripwire GONE + hoards bounded + upkeep->research\n+ wonder bar self-closed 64%; witness-7 = 0\nlaunches -> the research-depth USER fork"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; D6 carries diplomat\nmissions; parleyDemandPct data landed)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -64,7 +58,7 @@ flowchart TD
     A50R --> SEC --> A51D
   end
 
-  subgraph CLIENT["CLIENT/UI lane (helper queue 23, golden-neutral)"]
+  subgraph CLIENT["CLIENT/UI lane (golden-neutral)"]
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
@@ -85,7 +79,7 @@ flowchart TD
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
-    W5["📋 launches>0 acceptance (7th witness):\nwar-hold SHIPPED (0087, 9/9 hold); re-fires\non #30 landing (the (c) half)"]
+    W5["🚪 witness-7 RAN: 0 launches, all else\ngreen — RESEARCH-DEPTH fork WITH USER\n(accept vs bulb-tune; 3-arm pre-measure\nrunning, rulesOverrides-only)"]
     GOV["📋 N1/N2 gov re-eval (queued #36;\nN2 may close inside #30)"]
     W5 --> MFL
     GOV --> MFL
@@ -125,28 +119,31 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | ~98% (A7 ✅, pyramids-gov ✅, §7 client ✅) | A6a future-tech, A8 tile contention, §45b rehome, §46 default-defender, §7 engine-half (#21) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
-| 3 | AI at M-targets | archetype ✅ ACCEPT (0090), #30 ✅ landed | **witness-7 verdict (running — the launch acceptance)**, invade B, gov re-eval #36, XV §11 disorder playbook |
+| 3 | AI at M-targets | archetype ✅ (bar self-closed 64%), #30 ✅ SUCCESS | **the research-depth fork (user, data incoming)**, invade B (in build), regent-stall #37, gov re-eval, §11 disorder |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + SO18; round-2 IN PROGRESS | **runI 26-item batch** (roblox-helper, blockers first) + sound/saving (test-publish gate) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE (box step done 07-23) | — (server self-lists on next redeploy) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine is the critical path and its order is fully ruled**:
-   measure-first harness (#27, in build) → presence-2 → invade B → A7
-   stragglers → archetype → smalls → xiv-ai-behavior → D3-surfacing →
-   D4–D6. The space arc is mechanically CLOSED (six witnesses + dig +
-   radius migration); the King-portfolio verdict is the acceptance
-   measurement and runs in PARALLEL on the gaming PC — it does not block
-   the spine.
-2. **Only two hard user gates remain besides marker merges/redeploys:**
-   the one-time box nginx/cert step (axis 5) and the Roblox Studio
-   round-2 review (axis 4). Everything else is agent-executable in
-   order, and every lane's queue is stocked to v1.
-3. **No open designs remain.** The archetype spec closed with the
-   ally's 22-wonder mapping; D4–D6 spec is ready
-   (d456-diplomacy-impl.md); client/server/roblox lanes are fully
-   specced and queue-fed.
+1. **The engine spine is the critical path**: invade-B (window OPEN) →
+   regent-stall #37 (HIGH — the runI hang, likely shared) →
+   pollution-perf #15 (promoted — the Roblox industrial-age suspect;
+   both platforms gain) → gov-reeval → §7-engine + §11-disorder (user's
+   lux playbook) → smalls (A6a/A8/rehome/default-defender) →
+   D3-surfacing → D4–D6. The whole AI-quality program is otherwise
+   DONE: floors green, archetype accepted, #30 succeeded.
+2. **One design fork + two user gates remain:** the research-depth
+   fork (accept vs bulb-tune — data incoming from the 3-arm
+   pre-measure), the redeploy (0091 = the candidate; the server
+   self-lists in Find game on it), and finishing the Roblox round-2
+   loop (the 26-item batch is agent-side; sound/saving await your
+   test-publish). Plus the fresh helper session for the last two
+   axis-6 items.
+3. **No open designs remain agent-side.** D4–D6 spec ready; the runI
+   batch fully ruled (#2304); speed-up machinery live: baseline
+   banking (halves every judge), rulesOverrides pre-measurement (forks
+   arrive with data), and the age-snapshot baker (Roblox fast starts).
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the
