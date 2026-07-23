@@ -193,6 +193,21 @@ function endTurn(state, cmd, ruleset) {
   return { ok: true, events };
 }
 
+// late-join §3 (specs/late-join-pause.md): the server issues this through the
+// normal command path when a late joiner is assigned an AI seat, so the flip is
+// stamped + logged and tools/replay.js reproduces it. Sets players[player].human
+// = true; deterministic, no RNG, touches nothing else. gameOver is already
+// rejected at applyCommand entry. There is deliberately NO reverse flip (regency
+// drives absent human seats without a state change).
+function claimSeat(state, cmd) {
+  const player = state.players[cmd.player];
+  if (player === undefined) return { ok: false, reason: 'unknownPlayer' };
+  if (player.alive === false) return { ok: false, reason: 'playerDead' };
+  if (player.human === true) return { ok: false, reason: 'alreadyHuman' };
+  player.human = true;
+  return { ok: true, events: [{ type: 'seatClaimed', player: cmd.player }] };
+}
+
 function createEngine(ruleset) {
   function applyCommand(state, cmd) {
     if (state.gameOver === true) return { ok: false, reason: 'gameOver', state, events: [] };
@@ -221,6 +236,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'upgradeUnit') result = upgrade.upgradeUnit(next, cmd, ruleset);
     else if (cmd.type === 'debug') result = debug.debugCommand(next, cmd, ruleset);
     else if (cmd.type === 'diplomacy') result = diplomacy.diplomacyCommand(next, cmd, ruleset);
+    else if (cmd.type === 'claimSeat') result = claimSeat(next, cmd);
     else result = { ok: false, reason: 'unknownCommand' };
 
     if (!result.ok) return { ok: false, reason: result.reason, state, events: [] };

@@ -258,6 +258,25 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 	return { ok = true, events = events }
 end
 
+-- late-join §3 twin: the server issues claimSeat through the normal command path
+-- (stamped + logged; replay reproduces the flip). Sets players[player].human =
+-- true; deterministic, no RNG, touches nothing else. gameOver is already rejected
+-- at applyCommand entry. No reverse flip.
+local function claimSeat(state: any, cmd: any): any
+	local player = state.players[cmd.player]
+	if player == nil then
+		return { ok = false, reason = "unknownPlayer" }
+	end
+	if player.alive == false then
+		return { ok = false, reason = "playerDead" }
+	end
+	if player.human == true then
+		return { ok = false, reason = "alreadyHuman" }
+	end
+	player.human = true
+	return { ok = true, events = { { type = "seatClaimed", player = cmd.player } } }
+end
+
 local function createEngine(ruleset: any)
 	local function applyCommand(state: any, cmd: any): any
 		if state.gameOver == true then
@@ -310,6 +329,8 @@ local function createEngine(ruleset: any)
 			result = debug_.debugCommand(next_, cmd, ruleset)
 		elseif cmd.type == "diplomacy" then
 			result = diplomacy.diplomacyCommand(next_, cmd, ruleset)
+		elseif cmd.type == "claimSeat" then
+			result = claimSeat(next_, cmd)
 		else
 			result = { ok = false, reason = "unknownCommand" }
 		end

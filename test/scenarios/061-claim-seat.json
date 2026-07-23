@@ -1,0 +1,171 @@
+{
+  "name": "late-join \u00a73: claimSeat flips an AI seat to human; the claimed seat can then act",
+  "notes": "New engine command {type:'claimSeat', player:<id>} sets players[player].human=true. Server-issued at late-join assignment through the normal command path (stamped+logged; tools/replay.js reproduces the flip). Rejects: unknown player, dead (alive:false), already human. gameOver is guarded at applyCommand entry. No reverse flip. Reject steps leave state untouched (same cross-language hash). Reason-specific rejections asserted in test/claim-seat.test.js. Post-claim: p2 (now human, active) issues setResearch \u2014 proves the claimed seat acts.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 10,
+      "year": -3000,
+      "activePlayer": "p2",
+      "playerOrder": [
+        "p1",
+        "p2",
+        "p3"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 1,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Human",
+          "color": "#00f",
+          "human": true,
+          "gold": 0,
+          "techs": [],
+          "researching": "pottery",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p2": {
+          "id": "p2",
+          "name": "AI-Two",
+          "color": "#f00",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "pottery",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        },
+        "p3": {
+          "id": "p3",
+          "name": "Dead",
+          "color": "#0f0",
+          "human": false,
+          "gold": 0,
+          "techs": [],
+          "researching": "pottery",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "alive": false
+        }
+      },
+      "rngState": 123456789
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "claimSeat",
+        "player": "p9"
+      },
+      "expect": {
+        "ok": false
+      }
+    },
+    {
+      "cmd": {
+        "type": "claimSeat",
+        "player": "p3"
+      },
+      "expect": {
+        "ok": false
+      }
+    },
+    {
+      "cmd": {
+        "type": "claimSeat",
+        "player": "p1"
+      },
+      "expect": {
+        "ok": false
+      }
+    },
+    {
+      "cmd": {
+        "type": "claimSeat",
+        "player": "p2"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p2.human": true
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "claimSeat",
+        "player": "p2"
+      },
+      "expect": {
+        "ok": false,
+        "state": {
+          "players.p2.human": true
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "setResearch",
+        "playerId": "p2",
+        "tech": "alphabet"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p2.researching": "alphabet"
+        }
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "players.p2.human": true,
+      "players.p1.human": true,
+      "players.p3.human": false
+    },
+    "hash": "0xeffb984b"
+  }
+}

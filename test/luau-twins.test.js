@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 60, 'the sixty scenarios (060 rehome added)');
+      assert.strictEqual(files.length, 61, 'the scenarios (061 claim-seat added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -182,7 +182,8 @@ const PORTED = [
   '057-manhattan-gate-allows.json', // manhattan-gate #16: nuclear buildable once Manhattan is active
   '058-disaster-worker-trim.json', // workers>pop: a pop-losing disaster trims workers/specialists to pop (cross-language)
   '059-capital-settler-refuse.json', // XV §7: a size-1 capital refuses a settler (banks); a non-capital disbands (cross-language)
-  '060-rehome.json' // XIV §45b: REHOME re-homes a unit to the city it stands in (cross-language)
+  '060-rehome.json', // XIV §45b: REHOME re-homes a unit to the city it stands in (cross-language)
+  '061-claim-seat.json' // late-join §3: claimSeat flips an AI seat to human; the claimed seat then acts (cross-language)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
