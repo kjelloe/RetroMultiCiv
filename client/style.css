@@ -1676,6 +1676,19 @@ html, body {
   font: 12px ui-monospace, monospace; padding: 6px 8px;
   background: #0e1626; border: 1px solid #2b3f5f; border-radius: 4px; color: #b6c6de;
 }
+/* join-share "show QR code" overlay — a big scan target over the whole menu */
+#qr-overlay {
+  position: fixed; inset: 0; z-index: 11000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 10, 18, 0.85); cursor: zoom-out;
+}
+#qr-card {
+  background: #101828; border: 1px solid #3b5d8f; border-radius: 10px;
+  padding: 20px 22px; text-align: center; cursor: default; max-width: 92vw;
+}
+#qr-big { width: min(70vmin, 340px); height: min(70vmin, 340px); image-rendering: pixelated; background: #fff; border: 8px solid #fff; border-radius: 6px; }
+#qr-url { margin: 12px auto 4px; max-width: 340px; word-break: break-all; font: 12px ui-monospace, monospace; color: #b6c6de; }
+#qr-btnrow { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
 
 /* first-timer onboarding overlay — a floating layer ABOVE everything, cartoony
    hand-drawn arrows to the main controls; dismiss on any click / Esc. */

@@ -22,10 +22,10 @@ export function inviteUrl(code) {
   return `${location.origin}/client/?join=${encodeURIComponent(code)}`;
 }
 // render `text` as a QR into `canvas` (crisp black/white modules, quiet border).
-function renderQR(canvas, text) {
+function renderQR(canvas, text, scale = 4) {
   try {
     const qr = qrcode(0, 'M'); qr.addData(text); qr.make();
-    const n = qr.getModuleCount(), quiet = 2, scale = 4, size = (n + quiet * 2) * scale;
+    const n = qr.getModuleCount(), quiet = 2, size = (n + quiet * 2) * scale;
     canvas.width = size; canvas.height = size;
     const g = canvas.getContext('2d');
     g.fillStyle = '#fff'; g.fillRect(0, 0, size, size);
@@ -35,6 +35,36 @@ function renderQR(canvas, text) {
     }
     return true;
   } catch (e) { return false; }
+}
+
+// join-share "show QR code": a top overlay over the whole menu with a BIG scan
+// target, the URL text, close (× / click-outside / Esc), and "open QR in new
+// tab" — a same-origin BLOB url (NEVER data: in window.open, a popup/security
+// trap). User-TRIGGERED (not auto-shown), so it never sits over the setup/lobby
+// during an e2e flow the way the onboarding overlay did.
+function showQrOverlay(url) {
+  const layer = document.createElement('div');
+  layer.id = 'qr-overlay';
+  layer.innerHTML = `<div id="qr-card">
+    <canvas id="qr-big" aria-label="scan to join this game"></canvas>
+    <div id="qr-url"></div>
+    <div id="qr-btnrow">
+      <button id="qr-open" class="setup-lan-btn">↗ Open QR in new tab</button>
+      <button id="qr-close" class="setup-lan-btn">✕ Close</button>
+    </div></div>`;
+  document.body.appendChild(layer);
+  layer.querySelector('#qr-url').textContent = url;
+  renderQR(layer.querySelector('#qr-big'), url, 8); // big scan target
+  function close() { document.removeEventListener('keydown', onKey, true); layer.remove(); }
+  function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); close(); } }
+  layer.addEventListener('click', e => { if (e.target === layer) close(); }); // click OUTSIDE the card
+  layer.querySelector('#qr-close').addEventListener('click', close);
+  document.addEventListener('keydown', onKey, true);
+  layer.querySelector('#qr-open').addEventListener('click', () => {
+    layer.querySelector('#qr-big').toBlob(blob => {
+      if (blob) window.open(URL.createObjectURL(blob), '_blank'); // same-origin blob, not data:
+    });
+  });
 }
 
 const GAMEID_KEY = 'retromulticiv-gameid';
@@ -271,7 +301,7 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
         <input id="lobby-invite" type="text" readonly value="${inviteUrl(info.joinCode)}">
         <button id="lobby-copy" class="setup-lan-btn">📋 Copy</button>
       </div>
-      <p class="setup-hint">scan the code, or copy the link — friends on your network join straight in</p>
+      <p class="setup-hint">scan the code (tap it to enlarge), or copy the link — friends on your network join straight in</p>
     </div>
     ${hostCtl ? `<p class="setup-hint">slots: <button id="slot-minus" class="setup-lan-btn">−</button>
       <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button>
@@ -296,7 +326,12 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
   { // join-share: QR + copy-link (everyone in the room can invite)
     const url = inviteUrl(info.joinCode);
     const qrEl = document.getElementById('lobby-qr');
-    if (qrEl) renderQR(qrEl, url);
+    if (qrEl) {
+      renderQR(qrEl, url); // inline thumbnail — click to enlarge (the "show QR code" overlay)
+      qrEl.style.cursor = 'zoom-in';
+      qrEl.title = 'show a bigger QR code';
+      qrEl.addEventListener('click', () => showQrOverlay(url));
+    }
     const copyEl = document.getElementById('lobby-copy');
     const invEl = document.getElementById('lobby-invite');
     if (copyEl) copyEl.addEventListener('click', async () => {
