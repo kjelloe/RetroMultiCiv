@@ -12,14 +12,19 @@ motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
 ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
 + onboarding-e2e fix · A49 flow-2 (flow-4 rides Founder's Record).
 NEW v1 feature in flight: late-join+pause+eviction
-(specs/late-join-pause.md) — hardening server half building, claimSeat
-engine command = bugfixer's NEXT window. Engine queue after claimSeat:
-A6a -> A8 -> #19 view-contract -> D3-surfacing -> D4-D6 (witness-8 +
-treaty-UI ride D4). Client remaining: qr-overlay follow-up + Founder's
-Record (#34, fresh-window). Roblox: runI design batch RULED
-(specs/runI-design-rulings.md) + seat-preview align; publish gate
-after. USER: redeploy from 0096 (0097 imminent), trademark search +
-domains, Studio items 4b/4c.)
+(specs/late-join-pause.md) — hardening server half building
+(pure core + flag/CLI done on branch); claimSeat LANDED a75fc2b.
+Away-window additions landed: a6a Future Tech @072d922 (stamp-only
+re-record, rulesetHash stamp — gaming-PC re-baseline on pull) +
+qr-overlay + test-count sync + reaper cooldown. Engine queue (after
+0097 GREEN — golden-stream hold): A8 -> #19 view-contract ->
+D3-surfacing -> D4-D6 (witness-8 + treaty-UI ride D4). Client
+remaining: Founder's Record (#34, fresh-window) + the post-join
+reveal banner (server-integration). Roblox: runI design batch RULED
+(specs/runI-design-rulings.md) + seat-preview align + gate-4 re-bake
+on pull; publish gate after. USER: nudge the gaming-PC sessions (3
+engine gates pending → 0097), redeploy from 0096 (0097 imminent),
+trademark search + domains, Studio items 4b/4c.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
