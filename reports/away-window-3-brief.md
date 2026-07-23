@@ -1,9 +1,8 @@
 # Away-window 3 brief (2026-07-24, ~7h) — three markers, two arcs closed, one fork for you
 
 Catch-up order: this file → the fork brief below → `reports/marker-0092/0093.md`.
-Redeploy candidate at writing: **marker-0093** (`5b2d905`); marker-0094
-(the gov arc) tags on its sweep, likely before you read this — check
-`git tag | tail -1`.
+Redeploy candidate: **marker-0094** (`a823613`) — tagged before your
+return; the gov arc HALVED unit bloat (77.5->36/civ).
 
 ## The window in one paragraph
 
@@ -33,10 +32,10 @@ State of evidence, all measured:
   everything mechanical is proven (commits, holds, drains, builds).
 - **Bulb-tune is RULED OUT** (#2309): 0 launches even at −30% research
   costs, no floor damage — cost-tuning does not close it.
-- The gov arc lengthened games to the full calendar (260→545) and the
-  arc sweep re-measures the King wonder/space columns — check
-  sim-runner's final #2330-response mail; at the N1a interim it was
-  still 0 launches.
+- FINAL DATUM (#2332): the gov arc lengthened games to the full 545
+  calendar AND halved unit bloat — and launches are STILL 0. Research
+  depth is definitively the sole blocker; the fork is fully
+  characterized.
 - OPTIONS: **(a) ACCEPT** — space is an authentically-contested ending
   humans win and the AI rarely completes emergently; every mechanical
   system ships proven. **(b) further war-taming** — the residual

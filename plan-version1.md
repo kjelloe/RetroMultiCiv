@@ -4,20 +4,17 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 away-window (marker-0093 TAGGED @5b2d905 =
-candidate, 25th consecutive — REGENT-STALL FIXED (the user's 14-civ
-hang, guard now seats-derived) + workers>pop disasters fix (archipelago
-wall 0/12 -> 12/12) + perf fix 1 (~20%, profile-first: real costs =
-deepClone 23% + blockade scan 22%, all guessed suspects cleared) +
-FORMAL NAVAL ACCEPTANCE PASS (25/25, invasions active). deepClone COW
-signed off w/ 5 conditions -> FRESH bugfixer session (user-return).
-gov-reeval reshaped: N1a gov-tech beeline IN BUILD (the AI never
-researches republic/democracy - a research gap not gov logic); N2 =
-the AI never issues upgradeUnit (missing behavior). Engine order:
-N1a -> N1b -> N2 -> XV-engine (#21 settler-refuse, #22 disorder w/
-user lux playbook) -> smalls (A6a/A8/rehome/default-defender) ->
-D3-surfacing -> D4-D6. USER-RETURN: fork brief (bulb-tune RULED OUT),
-redeploy=0093, roblox restart, deepClone fresh session, publish gates.)
+Last updated: 2026-07-24 away-window end (marker-0094 TAGGED @a823613
+= candidate, 26th consecutive — GOV ARC COMPLETE: beeline + democracy-
+if-safe + upgrade-in-city; UNIT BLOAT HALVED 77.5->36/civ, floors
+green; natural = full 545 calendar. Plus 0092 invade-B + 0093 both
+user bugs + perf. FORK FULLY CHARACTERIZED: 0 launches on longest
+games + bulb-tune ruled out -> accept vs war-taming, rec = accept +
+re-measure after D4 (reports/away-window-3-brief.md = the return
+brief). AIQ program: floors/archetype/#30/gov-arc ALL DONE. Engine
+order: XV #22 disorder (user lux playbook) -> smalls (A6a/A8/rehome/
+default-defender) -> D3-surfacing -> D4-D6. deepClone COW + A49 +
+endgame-moments = fresh-session items.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -78,7 +75,7 @@ flowchart TD
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
     W5["🚪 witness-7 RAN: 0 launches, all else\ngreen — RESEARCH-DEPTH fork WITH USER\n(accept vs bulb-tune; 3-arm pre-measure\nrunning, rulesOverrides-only)"]
-    GOV["📋 N1/N2 gov re-eval (queued #36;\nN2 may close inside #30)"]
+    GOV["✅ gov arc (0094): beeline + democracy-\nif-safe + upgrade-in-city; bloat HALVED"]
     W5 --> MFL
     GOV --> MFL
   end
