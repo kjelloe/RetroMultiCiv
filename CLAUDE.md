@@ -342,7 +342,9 @@ in `reports/night2-morning.md`. **A marker report also refreshes the
 LIVING plan docs (user ruling 2026-07-20): `plan-version1.md` (the
 1.0 dependency tree — node statuses + last-updated line; verify an
 axis against the ENGINE, not the workitem files, before flipping it
-done) and, when something is deferred or promoted, `plan-version2.md`
+done) AND its `plan-version1.html` twin (same content, card markup —
+the human-workitems twin pattern; added 2026-07-24), and, when
+something is deferred or promoted, `plan-version2.md`
 (the loose v2 shelf; items leave it only by user ruling).**
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
