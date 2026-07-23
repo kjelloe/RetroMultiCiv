@@ -4,17 +4,16 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 away-window end (marker-0094 TAGGED @a823613
-= candidate, 26th consecutive — GOV ARC COMPLETE: beeline + democracy-
-if-safe + upgrade-in-city; UNIT BLOAT HALVED 77.5->36/civ, floors
-green; natural = full 545 calendar. Plus 0092 invade-B + 0093 both
-user bugs + perf. FORK FULLY CHARACTERIZED: 0 launches on longest
-games + bulb-tune ruled out -> accept vs war-taming, rec = accept +
-re-measure after D4 (reports/away-window-3-brief.md = the return
-brief). AIQ program: floors/archetype/#30/gov-arc ALL DONE. Engine
-order: XV #22 disorder (user lux playbook) -> smalls (A6a/A8/rehome/
-default-defender) -> D3-surfacing -> D4-D6. deepClone COW + A49 +
-endgame-moments = fresh-session items.)
+Last updated: 2026-07-24 away-window close (marker-0095 TAGGED
+@f854fd6 = candidate, 27th consecutive — AI DISORDER PLAYBOOK (user
+lux recipe, 26% disorder reduction) + rehome. The away window tagged
+SIX markers 0090-0095: archetype, invade-B, both user bugs + perf,
+gov arc (bloat halved), disorder+rehome. FORK fully characterized ->
+reports/away-window-3-brief.md (rec: accept, re-measure after D4).
+Engine queue 6: default-defender -> A6a -> A8 -> pollution-perf
+remainder -> view-contract -> D3-surfacing -> D4-D6. Fresh-session
+windows ready: deepClone COW (23% perf, turnkey), A49 playwright +
+endgame-moments.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·

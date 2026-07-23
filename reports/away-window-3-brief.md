@@ -92,3 +92,7 @@ first, K=10 treasury window, entertainer residual) - its gates run
 now; marker-0095 = both on greens. The engine queue is down to 6
 (default-defender, A6a, A8, pollution-perf remainder, view-contract,
 D3-surfacing, D4-D6 tail).
+
+FINAL: marker-0095 also tagged (disorder playbook PASS - 26% disorder
+reduction - + rehome). Six markers this window, 0090-0095. Redeploy
+from marker-0095.
