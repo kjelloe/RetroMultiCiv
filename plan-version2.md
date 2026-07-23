@@ -123,6 +123,15 @@ the replay/history interface). Reserve aworldbegun.eu/.com/.no during
 clearance; rename lands as a 1.y display/config/DNS event (format
 identifiers never rename — runbook §8 boundary).
 
+## Per-game takeover cap (seeded 2026-07-24, sec-reassess §7 residual — LOW)
+
+`original`. Late-join takeover is rate-limited per IP globally, but no
+per-IP-PER-GAME cap exists: a patient attacker could claim several AI
+civs in ONE public game (civ-squatting; idle squatters degrade to
+auto-regency, so no stall — grief only). Fix if grief proves real on
+the live box: a small per-game takeover cap per IP. docs/16 §3
+residual list carries the detail.
+
 ## Civ2+ water features — Whales, Coast terrain, ocean-travel gating (seeded 2026-07-24, friend-playtest wiki thread — DISCUSSION NOTES)
 
 Surfaced when a wiki search mixed eras into the fish-resource report;
