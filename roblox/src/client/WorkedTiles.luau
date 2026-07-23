@@ -55,9 +55,29 @@ local function shim(view)
 		cityOrder = view.cityOrder, units = view.units, wonders = view.wonders }
 end
 
+-- runI item 17: tile yields as ICON-PER-POINT rows (the browser §24 pattern; a
+-- 3/2/3 tile reads as 3 food + 2 shield + 3 trade glyphs). Roblox stays
+-- emoji-free (the flagged divergence), so the shared token vocabulary maps to
+-- three DISTINCT colored geometric glyphs — food ● green, shield ▮ gray,
+-- trade ◆ gold — the same color roles the numeric line used.
+local function iconRun(n, glyph, color)
+	if n == nil or n <= 0 then
+		return ""
+	end
+	return ('<font color="%s">%s</font>'):format(color, string.rep(glyph, n))
+end
 local function yieldLine(y)
-	return ('<font color="#7fd08a">%d</font> <font color="#c8c8c8">%d</font> <font color="#e0c060">%d</font>')
-		:format(y.food or 0, y.shields or 0, y.trade or 0)
+	local runs = {}
+	for _, r in ipairs({
+		iconRun(y.food, "\u{25CF}", "#7fd08a"),   -- ● food
+		iconRun(y.shields, "\u{25AE}", "#c8c8c8"), -- ▮ shield
+		iconRun(y.trade, "\u{25C6}", "#e0c060"),   -- ◆ trade
+	}) do
+		if r ~= "" then
+			table.insert(runs, r)
+		end
+	end
+	return table.concat(runs, " ")
 end
 
 -- run-4 live request: WORKED must read unmistakably — bright solid green
