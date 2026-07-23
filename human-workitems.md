@@ -17,6 +17,13 @@ fresh helper session are the open items)._
 
 ## DECIDE / DO (needs you)
 
+- [ ] **Review the v1 release checklist** —
+  `specs/v1-release-checklist.md` (designed together this morning):
+  RC marker → your main merge → v1.0.0 tag → redeploy from main →
+  README/notes (ally flavor invited) → announce; Roblox publish
+  sequenced AFTER the runI batch as one acceptance session; defaults
+  = current settings. A read-and-confirm, no action until RC.
+
 _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
