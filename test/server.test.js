@@ -499,10 +499,11 @@ test('A50 item 2: per-IP rate limits + global caps reject over the socket', asyn
   });
   try {
     // Global game cap = 1: the default game already exists, so the first create
-    // trips tooManyGames.
+    // trips the cap. late-join §6: at the cap with no PAUSED game to evict, the
+    // reason is now serverFull (the client contract) — the default game is active.
     const c1 = await connect(s.port);
     c1.send({ t: 'create', name: 'A', options: { civs: 2, humans: 2, size: 'xsmall' } });
-    assert.strictEqual((await c1.expect(m => m.t === 'rejected', 'game cap')).code, 'tooManyGames');
+    assert.strictEqual((await c1.expect(m => m.t === 'rejected', 'game cap')).code, 'serverFull');
 
     // Per-IP CONNECTION cap = 2: c1 is one; open a second, the third is refused.
     const c2 = await connect(s.port);

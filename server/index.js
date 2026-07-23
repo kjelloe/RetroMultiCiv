@@ -30,7 +30,7 @@ import { hashState } from '../shared/statehash.js';
 import { createLimiter, createCommandBudget, createBudgets, clientIpFrom, originAllowed, inviteAllowed } from './limits.js';
 import { planRotation } from './rotation.js';
 import { score } from '../engine/score.js';
-import { selectTakeoverSeat, takeoverPool } from './late-join.js';
+import { selectTakeoverSeat, takeoverPool, selectEviction } from './late-join.js';
 import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
@@ -456,6 +456,29 @@ export function startServer(opts) {
       && e.game && e.game.state && e.game.state.gameOver !== true
       && takeoverPool(e.game.state).length > 0;
   }
+  // late-join §6-7: at the game cap, evict ONE paused game to make room. Rank
+  // (selectEviction): earliest era → fewer original humans → longest-paused.
+  // Never touches an ACTIVE game. Evicted = final autosave (the save SURVIVES, so
+  // the code revives it via the on-demand reload) + unlist + drop from the live
+  // registry. Returns true if a game was evicted, false if none is paused.
+  function evictOnePaused() {
+    const paused = [];
+    for (const g of registry.list()) {
+      const e = registry.entryOf(g.gameId);
+      if (!e || e.status === 'lobby' || e.paused !== true || !e.game) continue;
+      paused.push({
+        gameId: g.gameId,
+        eraRank: gameEraBand(e.game.state).rank,
+        originalHumans: Object.values(e.seats).filter(x => x.human).length,
+        pausedAt: e.pausedAt || 0
+      });
+    }
+    const victim = selectEviction(paused);
+    if (!victim) return false;
+    if (autosave) { const ve = registry.entryOf(victim); if (ve && ve.game) ve.game.saveTo(savePath(victim)); }
+    closeGame(victim, 'evicted'); // unlist + drop; the on-disk save stays rejoinable by code
+    return true;
+  }
   // Final best-effort save-all before an OOM graceful-exit; games are already
   // durable via per-command autosave, so this only narrows the in-flight window.
   function autosaveAll() {
@@ -614,6 +637,11 @@ export function startServer(opts) {
       send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
       return;
     }
+    // §6 revival-at-cap: reviving a code when the server is full may itself evict
+    // ONE paused game; if none is paused, serverFull (never evict an active game).
+    if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) {
+      send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return;
+    }
     registry.register(game, false); // spectators: off for resumed games (v1)
     saveFiles[game.gameId] = file;
     send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
@@ -635,6 +663,8 @@ export function startServer(opts) {
         sidecarFile: autosave ? sidecarOf(file) : null });
       game.resetSeats();
     } catch (err) { console.log(`join reload rejected: ${path.basename(file)} — ${err.message}`); return null; }
+    // §6 revival-at-cap: make room by evicting a paused game, else refuse (null).
+    if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) return null;
     registry.register(game, false);
     saveFiles[game.gameId] = file;
     return game;
@@ -1118,6 +1148,7 @@ export function startServer(opts) {
           // or token rejoin + a human action resumes it.
           if (e.options.public === true && e.options.lateJoining === true && humanConnCount(info.gameId) === 0) {
             e.paused = true;
+            e.pausedAt = Date.now(); // §7: eviction breaks ties by longest-paused
           }
         }
       }
@@ -1253,7 +1284,12 @@ export function startServer(opts) {
         const crl = limiter.allow(info.ip, 'create');
         if (!crl.ok) { send(ws, { t: 'rejected', commandId: -1, code: crl.reason }); return; }
         const gcap = limiter.canCreateGame(registry.list().length);
-        if (!gcap.ok) { send(ws, { t: 'rejected', commandId: -1, code: gcap.reason }); return; }
+        if (!gcap.ok) {
+          // §6-7: at the cap — evict ONE paused game (never an active one) to make
+          // room; the evicted game's code stays rejoinable. No paused game to
+          // reclaim -> serverFull (the client shows the three-option message, §4).
+          if (!evictOnePaused()) { send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return; }
+        }
         const res = registry.create(msg.options || {}, msg.name);
         if (res.ok === false) { // A38: civ count exceeds what the map seats
           send(ws, { t: 'rejected', commandId: -1, code: res.reason, maxCivs: res.maxCivs, size: res.size });

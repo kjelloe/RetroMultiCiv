@@ -101,6 +101,52 @@ test('§5 pause-on-empty: a public+lateJoining game pauses when its last human l
   } finally { await s.close(); }
 });
 
+test('§6-7 eviction: Create at the cap evicts a PAUSED game to make room', async () => {
+  const { startServer } = await import('../server/index.js');
+  // maxGames 2: the boot game (1) + one created game = the cap.
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', limits: { maxGames: 2 } });
+  try {
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const a = await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined');
+    host.close(); // game A empties -> pauses
+    await new Promise(r => setTimeout(r, 150));
+
+    // now at the cap (boot + paused A); a new Create must EVICT the paused game
+    const host2 = await client(s.port);
+    host2.send({ t: 'create', name: 'Host2', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const j = await host2.expect(m => m.t === 'created' || m.t === 'rejected');
+    assert.strictEqual(j.t, 'created', 'the paused game was evicted to make room');
+    // A is gone from the live listing
+    const browser = await client(s.port);
+    browser.send({ t: 'listGames' });
+    const list = await browser.expect(m => m.t === 'openGames');
+    assert.ok(!list.games.find(r => r.gameId === a.gameId), 'the evicted game is unlisted');
+    host2.close(); browser.close();
+  } finally { await s.close(); }
+});
+
+test('§6-7 eviction: Create at the cap with only ACTIVE games -> serverFull (never evict active)', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', limits: { maxGames: 2 } });
+  try {
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined'); // A stays ACTIVE (host connected)
+
+    const host2 = await client(s.port);
+    host2.send({ t: 'create', name: 'Host2', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const j = await host2.expect(m => m.t === 'created' || m.t === 'rejected');
+    assert.strictEqual(j.t, 'rejected');
+    assert.strictEqual(j.code, 'serverFull', 'no paused game to reclaim -> serverFull, active game spared');
+    host.close(); host2.close();
+  } finally { await s.close(); }
+});
+
 test('§3 late-join: --no-late-join / non-public game refuses the tokenless takeover', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', noLateJoin: true });
