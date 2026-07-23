@@ -587,6 +587,41 @@ export function startServer(opts) {
     saveFiles[game.gameId] = file;
     send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
   }
+  // rejoin-nosuchgame: load a save envelope into the live registry for an
+  // on-demand JOIN reload (server restarted; the save is on disk, the game is
+  // not live and not ended). Returns the registered game, or null on a corrupt/
+  // incompatible save. No ws reply — the caller continues the join flow. Mirrors
+  // resumeFromFile's load (seats reset; autosave continues into the same file).
+  function reloadSaveEntry(file) {
+    let parsed;
+    try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return null; }
+    if (parsed.format !== 'retromulticiv-server-save') return null;
+    const existing = registry.entryOf(parsed.gameId);
+    if (existing) return existing.game;
+    let game;
+    try {
+      game = createGame({ ruleset, save: parsed, allowRulesetDrift: opts.allowRulesetDrift,
+        sidecarFile: autosave ? sidecarOf(file) : null });
+      game.resetSeats();
+    } catch (err) { console.log(`join reload rejected: ${path.basename(file)} — ${err.message}`); return null; }
+    registry.register(game, false);
+    saveFiles[game.gameId] = file;
+    return game;
+  }
+  // rejoin-nosuchgame: find the newest save whose gameId OR docs/07 code matches
+  // a rejoin target (the playtest rejoined by code). Returns {file, envelope} or null.
+  function findSaveForTarget(target) {
+    const norm = s => String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '');
+    const want = norm(target);
+    if (want.length === 0) return null;
+    let best = null;
+    for (const row of scanSaves()) {
+      const p = row.envelope;
+      if (norm(p.gameId) !== want && norm(p.code) !== want) continue;
+      if (best === null || String(p.savedAt || '') > String(best.envelope.savedAt || '')) best = row;
+    }
+    return best;
+  }
   function roster(entry) {
     return {
       // S1: consent notice — joiners see that finished games write shared
@@ -817,9 +852,31 @@ export function startServer(opts) {
     const jrl = limiter.allow(info.ip, 'join');
     if (!jrl.ok) { send(ws, { t: 'rejected', commandId: -1, code: jrl.reason }); return; }
     const target = msg.gameId || msg.joinCode;
-    const gameId = target ? registry.resolveId(target) : defaultGameId;
-    const e = gameId ? registry.entryOf(gameId) : null;
+    let gameId = target ? registry.resolveId(target) : defaultGameId;
+    let e = gameId ? registry.entryOf(gameId) : null;
+    // rejoin-nosuchgame: a game that is NOT live gets a distinct answer instead of
+    // the generic noSuchGame, so the client can show the right card (helper's half):
+    //   ended (the save shows gameOver)  -> gameEnded (+ code for endscreen access)
+    //   save on disk, not ended (restart) -> reload on demand + continue the join
+    //   no save anywhere                  -> noSuchGame
+    // Reason contract (for the helper's client half): { code:'gameEnded',
+    // gameId, gameCode } — gameCode lets the client reach the final summary.
+    if (!e && target) {
+      const best = findSaveForTarget(target);
+      if (best) {
+        if (best.envelope.state && best.envelope.state.gameOver === true) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'gameEnded', gameId: best.envelope.gameId, gameCode: best.envelope.code });
+          return;
+        }
+        const game = reloadSaveEntry(path.join(SAVES, best.file));
+        if (game) { gameId = game.gameId; e = registry.entryOf(gameId); }
+      }
+    }
     if (!e) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchGame' }); return; }
+    // NB: a finished game that is STILL in the registry stays JOINABLE — that is
+    // how the A47 fullLog / endscreen access works (join the finished game, then
+    // fetch its recording). gameEnded is only for a game GONE from the registry
+    // whose save shows gameOver (handled in the !e branch above).
     // view-only pseudo-seat (docs/08 §6): omniscient, tokenless, never votes —
     // trust-based, host-enabled at create (allowSpectators)
     if (msg.spectator === true) {
