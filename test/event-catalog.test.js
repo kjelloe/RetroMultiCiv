@@ -18,7 +18,7 @@ const EVENT_TYPES = {
   unitDisbanded: 'movement', unitLoaded: 'movement', unitUnloaded: 'movement',
   unitRehomed: 'movement',
   workStarted: 'improvements', improvementBuilt: 'improvements', pillaged: 'improvements',
-  turnStarted: 'index', turnEnded: 'index', ageChanged: 'index',
+  turnStarted: 'index', turnEnded: 'index', ageChanged: 'index', seatClaimed: 'index',
   cityFounded: 'cities', productionSet: 'cities', workersSet: 'cities',
   productionBought: 'cities', unitBuilt: 'cities', buildingBuilt: 'cities',
   buildingSold: 'cities', wonderBuilt: 'cities', wonderHelped: 'cities',

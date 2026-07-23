@@ -33,6 +33,8 @@ export function soundForEvent(e, viewer, cityOwner) {
       return null;
     case 'unitRehomed': // XIV §45b: a minor upkeep action — turnlog-only, deliberate silence
       return null;
+    case 'seatClaimed': // late-join §3: a seat takeover — the join-reveal banner handles it (spec §4); deliberate silence
+      return null;
     case 'buildingBuilt':
       return cityOwner(e.cityId) === viewer ? 'build' : null;
     case 'cityDisorder':

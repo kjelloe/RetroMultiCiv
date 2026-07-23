@@ -28,6 +28,8 @@ export function classifyEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'cities' : null;
     case 'unitRehomed': // XIV §45b: a unit re-homed to its city (own-seat upkeep shift)
       return cityOwner(e.cityId) === viewer ? 'cities' : null;
+    case 'seatClaimed': // late-join §3: a late joiner took over an AI seat — surfaced by the join-reveal banner (spec §4), not the turnlog; deliberate silence
+      return null;
     case 'improvementBuilt':
       return e.owner === viewer ? 'cities' : 'rival';
     case 'buildingSold': // B13/A63: obsolete building auto-sold (own-seat only)
