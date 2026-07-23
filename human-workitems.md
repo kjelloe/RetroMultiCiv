@@ -80,7 +80,10 @@ list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
     icons answered (browser §24 pattern); one live crash fix already
     landed (`11fd7d0`). Sound/saving remain your test-publish gate.
 
-_Recently ruled (2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
+_Recently ruled (2026-07-24):_ **SPACE = ACCEPT for v1** (your morning
+ruling) — authentically-contested ending, all mechanics proven;
+witness-8 re-measures free after D4 (queued durable). Earlier
+(2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
 measure-first King sweep proved King space-capable (one civ reached
 100% tech closure) but war-abandoned; ruling = war-hold slice (a
 near-complete space drive holds through ordinary war) + the

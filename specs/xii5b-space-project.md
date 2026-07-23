@@ -154,3 +154,15 @@ in specs/calendar-545.md as well.
   ACCEPTANCE (7th witness): after (b) lands, re-run the #27 King
   sweep (same harness flags) — launches>0 expected; the sweep re-runs
   again after (c) for the runway effect.
+- FINAL RULING (2026-07-24, user): ACCEPT for v1 — space ships as an
+  authentically-contested ending (humans win it; the AI rarely
+  completes it emergently at current research pacing). Every
+  mechanical layer is proven (commit/hold/drain/build/launch-chain);
+  the sole limiter is research depth vs game length, with bulb-tuning
+  measured out (#2309) and war-taming measured insufficient (#2332:
+  longest games + halved bloat, still 0 launches). RE-MEASURE HOOK:
+  witness-8 = the same King sweep re-fires AFTER D4 lands (AI treaties
+  ending wars may open the research window for free) — queued durable
+  on the sim-runner; if launches appear, the arc closes measured-
+  emergent; if not, v1 ships as ruled and bulb-pacing goes to the v2
+  shelf as a design knob.

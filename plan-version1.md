@@ -4,16 +4,14 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 away-window close (marker-0095 TAGGED
-@f854fd6 = candidate, 27th consecutive — AI DISORDER PLAYBOOK (user
-lux recipe, 26% disorder reduction) + rehome. The away window tagged
-SIX markers 0090-0095: archetype, invade-B, both user bugs + perf,
-gov arc (bloat halved), disorder+rehome. FORK fully characterized ->
-reports/away-window-3-brief.md (rec: accept, re-measure after D4).
-Engine queue 6: default-defender -> A6a -> A8 -> pollution-perf
-remainder -> view-contract -> D3-surfacing -> D4-D6. Fresh-session
-windows ready: deepClone COW (23% perf, turnkey), A49 playwright +
-endgame-moments.)
+Last updated: 2026-07-24 morning (user returned; FORK RULED: ACCEPT
+for v1 + witness-8 re-measure after D4 — the AI-quality program is
+COMPLETE for v1. marker-0095 = candidate (27th consecutive; six
+markers 0090-0095 in the away window). Engine queue 6: default-
+defender -> A6a -> A8 -> pollution-perf remainder -> view-contract ->
+D3-surfacing -> D4-D6 (witness-8 rides D4). Fresh-session windows:
+deepClone COW (turnkey), A49 playwright + endgame-moments. Remaining
+user gates: redeploy(0095), roblox restart, publish gates.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -73,7 +71,7 @@ flowchart TD
 
   subgraph AIQ["AI-QUALITY program (feeds the engine lane)"]
     MFL["✅ M-floors ratcheted green\n(M2≥6 · M3≥28 restored · M4≥50)"]
-    W5["🚪 witness-7 RAN: 0 launches, all else\ngreen — RESEARCH-DEPTH fork WITH USER\n(accept vs bulb-tune; 3-arm pre-measure\nrunning, rulesOverrides-only)"]
+    W5["✅ FORK RULED (2026-07-24): ACCEPT for v1\n— space = authentically-contested ending;\nwitness-8 re-measure queued post-D4\n(sim-runner, durable)"]
     GOV["✅ gov arc (0094): beeline + democracy-\nif-safe + upgrade-in-city; bloat HALVED"]
     W5 --> MFL
     GOV --> MFL
@@ -113,7 +111,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | ~98% (A7 ✅, pyramids-gov ✅, §7 client ✅) | A6a future-tech, A8 tile contention, §45b rehome, §46 default-defender, §7 engine-half (#21) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, parley data landed, UN effect spec'd into D5 | **D4–D6** (human LAN treaties, senate, reputation) — spec ready, the engine-queue tail |
-| 3 | AI at M-targets | archetype ✅ (bar self-closed 64%), #30 ✅ SUCCESS | **the research-depth fork (user, data incoming)**, invade B (in build), regent-stall #37, gov re-eval, §11 disorder |
+| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept; floors/archetype/#30/gov-arc/disorder all shipped+measured) | witness-8 re-measure rides D4 (free) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + SO18; round-2 IN PROGRESS | **runI 26-item batch** (roblox-helper, blockers first) + sound/saving (test-publish gate) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE (box step done 07-23) | — (server self-lists on next redeploy) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅ (0 gaps, cross-checked) | A49 playwright lane (scoped, needs a FRESH helper session), endgame-moments (same) |
