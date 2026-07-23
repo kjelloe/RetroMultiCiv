@@ -78,10 +78,12 @@ export function showSetupScreen() {
       </label>
       <p class="setup-hint" id="setup-age-hint"></p>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
-      <button id="setup-start">Start game</button>
+      <div id="setup-primary">
+        <button id="setup-start">Start game</button>
+        <button id="setup-find">Find game</button>
+      </div>
       <div id="setup-lan">
         <button id="setup-host" class="setup-lan-btn">Host LAN game</button>
-        <button id="setup-find" class="setup-lan-btn">Find game</button>
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
       </div>
       <div id="setup-find-list" class="hidden"></div>

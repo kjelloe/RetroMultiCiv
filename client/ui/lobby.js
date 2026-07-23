@@ -26,6 +26,28 @@ const MASTER_KEY = 'retromulticiv-master';
 // overrides it (persisted), ?master=off disables it (persisted as 'off' so
 // the default does not resurrect on reload).
 const DEFAULT_MASTER = 'https://servers.multiciv.kjell.today';
+
+// late-join §2: describe a listed game row from the server's contract fields
+// (state/turn/era/joinable — additive over the old `status`). PURE + exported so
+// the row rendering is unit-tested without a live server; falls back to the old
+// status shape when a pre-late-join server omits the new fields.
+const ERA_NAME = { ancient: 'Ancient', classicalMedieval: 'Medieval', industrial: 'Industrial', modernSpace: 'Modern' };
+// late-join §4: the contract `serverFull` message — the user's three options.
+const SERVER_FULL_MSG = 'This server is full of active games — wait for a slot, find another server, or join an ongoing game from Find game.';
+export function describeGameRow(g) {
+  const state = g.state || (g.status === 'lobby' ? 'open' : 'running');
+  const who = `${g.hostName}'s game`;
+  if (state === 'open') {
+    return { text: `${who} · ${g.openSeats}/${g.totalSeats} seats open · ${g.size} · ${g.age}`, action: 'join' };
+  }
+  const turn = g.turn !== undefined ? ` · turn ${g.turn}` : '';
+  if (state === 'paused') {
+    return { text: `${who} · paused${turn}`, action: g.joinable ? 'takeover' : 'spectate' };
+  }
+  const era = g.era ? ` · ${ERA_NAME[g.era] || g.era}` : ''; // running / in progress
+  return { text: `${who} · in progress${turn}${era}`, action: g.joinable ? 'takeover' : 'spectate' };
+}
+
 const MASTER_PARAM = new URLSearchParams(location.search).get('master');
 if (MASTER_PARAM) { try { localStorage.setItem(MASTER_KEY, MASTER_PARAM); } catch (e) { /* private mode */ } }
 function masterUrl() {
@@ -440,6 +462,7 @@ export function startHostFlow(box, options, flags) {
           : msg.code === 'civTaken' ? 'another slot already has that civilization'
           : msg.code === 'mapTooSmall' // A38: measured seats-per-size table
             ? `a ${msg.size} map seats up to ${msg.maxCivs} civilizations — pick a bigger map or fewer civs`
+          : msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4/§6
           : `server rejected: ${msg.code}`);
       }
     }, opened => fail(box, opened
@@ -475,6 +498,7 @@ export function startHostFlow(box, options, flags) {
       <label>Allow spectators <input id="lobby-allow-spec" type="checkbox"></label>
       <label>Enable lobby chat <input id="lobby-allow-chat" type="checkbox" checked></label>
       <label>List publicly <input id="lobby-public" type="checkbox"></label>
+      <label title="when listed publicly, newcomers can join a game already in progress by taking over an AI civilization (only when this AND List publicly are on)">Late joining <input id="lobby-late-join" type="checkbox" checked></label>
       <label title="a dropped or idle player's seat is handed to the AI so the game never stalls; off = their turn is auto-skipped instead">Auto AI takeover <input id="lobby-auto-takeover" type="checkbox" checked></label>
       <label title="how the game can be won and when it ends">Victory conditions
         <select id="lobby-victory">
@@ -515,6 +539,7 @@ export function startHostFlow(box, options, flags) {
     options.allowSpectators = document.getElementById('lobby-allow-spec').checked;
     options.chat = document.getElementById('lobby-allow-chat').checked; // A37
     options.public = document.getElementById('lobby-public').checked;   // A41
+    options.lateJoining = document.getElementById('lobby-late-join').checked; // late-join §1 (pairs with public)
     options.autoTakeover = document.getElementById('lobby-auto-takeover').checked; // XIV §30
     options.victory = document.getElementById('lobby-victory').value; // victory-conditions preset
     options.size = document.getElementById('lobby-size').value;
@@ -748,7 +773,8 @@ export function startJoinFlow(box) {
       else if (msg.t === 'rejected') {
         if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
             && lobbyNotice(rejectText(msg.code))) return; // L8
-        fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
+        fail(box, msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4
+          : msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
@@ -775,22 +801,28 @@ export function startJoinFlow(box) {
       return;
     }
     for (const g of msg.games) {
+      const d = describeGameRow(g);
       const row = document.createElement('div');
       row.className = 'lobby-row lobby-save';
       const label = document.createElement('span');
-      label.textContent = g.status === 'lobby'
-        ? `${g.hostName}'s game · ${g.openSeats}/${g.totalSeats} seats open · ${g.size} · ${g.age}`
-        : `${g.hostName}'s game · in progress · spectators welcome`;
+      label.textContent = d.text;
       row.appendChild(label);
       const btn = document.createElement('button');
       btn.className = 'setup-lan-btn';
-      btn.textContent = g.status === 'lobby' ? 'join' : 'spectate';
-      btn.addEventListener('click', () => joinVia({
+      btn.textContent = d.action === 'join' ? 'join' : d.action === 'takeover' ? 'Join' : 'spectate';
+      const doJoin = () => joinVia({
         t: 'joinListed', gameId: g.gameId,
         name: document.getElementById('lobby-name').value.trim() || 'Player',
-        seat: g.status === 'lobby' ? (document.getElementById('lobby-seat').value || undefined) : undefined,
-        spectator: g.status === 'lobby' ? undefined : true
-      }));
+        seat: d.action === 'join' ? (document.getElementById('lobby-seat').value || undefined) : undefined,
+        spectator: d.action === 'spectate' ? true : undefined
+      });
+      btn.addEventListener('click', () => {
+        if (d.action !== 'takeover') { doJoin(); return; }
+        // late-join §4: joining a game IN PROGRESS takes over one of its AI
+        // civilizations — confirm first (the server assigns + names the civ
+        // deterministically in its join answer; the in-game turnlog shows it).
+        if (window.confirm(`Join "${g.hostName}'s game" in progress? You'll take over one of its AI civilizations for the rest of the game.`)) doJoin();
+      });
       row.appendChild(btn);
       list.appendChild(row);
     }
@@ -819,7 +851,8 @@ export function startJoinFlow(box) {
       } else if (msg.t === 'rejected') {
         if ((msg.code === 'chatOff' || msg.code === 'tooFast' || msg.code === 'noLobby')
             && lobbyNotice(rejectText(msg.code))) return; // L8
-        fail(box, msg.code === 'noSuchGame' ? 'no game with that code'
+        fail(box, msg.code === 'serverFull' ? SERVER_FULL_MSG // late-join §4
+          : msg.code === 'noSuchGame' ? 'no game with that code'
           : msg.code === 'gameFull' ? 'that game is full'
           : msg.code === 'alreadyStarted' ? 'that game already started — rejoin with your seat code'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'

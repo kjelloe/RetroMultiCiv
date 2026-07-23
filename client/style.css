@@ -1536,7 +1536,7 @@ html, body {
   margin: 2px 0;
 }
 
-#setup-start, #handoff-go, #lobby-code-btn {
+#setup-start, #setup-find, #handoff-go, #lobby-code-btn {
   margin-top: 14px;
   padding: 10px 28px;
   font-size: 15px;
@@ -1547,8 +1547,11 @@ html, body {
   font-family: inherit;
   cursor: pointer;
 }
+/* late-join §1: Find game reads as an equivalent primary entry beside Start */
+#setup-primary { display: flex; gap: 10px; justify-content: center; }
+#setup-primary > button { flex: 1 1 0; margin-top: 14px; }
 
-#setup-start:hover, #handoff-go:hover, #lobby-code-btn:hover {
+#setup-start:hover, #setup-find:hover, #handoff-go:hover, #lobby-code-btn:hover {
   background: #2f5388;
 }
 
