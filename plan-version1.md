@@ -4,19 +4,20 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-24 away-window (marker-0092 TAGGED @0d265b4 =
-candidate, 24th consecutive — INVADE-B SHIPPED (war-committed overseas
-invasion, stamp-only, double-green) + rejoin bug closed both halves +
-the perf triple (ff chunking / age-snapshot instant-load incl. the
-user's 14-civ preset). Fork pre-measure: BULB-TUNE RULED OUT (0
-launches thru -30%) — the user fork narrows to accept vs
-endemic-war-taming-only. TWO root causes in build: regent-stall
-(guard=10 strands >=12-civ games — the user's hang, both platforms;
-golden-neutral) + workers>pop (disasters skip trimToPop — the
-pre-existing archipelago wall; its fix re-opens the naval sweep
-acceptance). Engine order: regent-stall fix -> workers>pop window ->
-naval-sweep re-run -> perf profile #15 -> gov-reeval -> XV-engine +
-smalls -> D3-surfacing -> D4-D6.)
+Last updated: 2026-07-24 away-window (marker-0093 TAGGED @5b2d905 =
+candidate, 25th consecutive — REGENT-STALL FIXED (the user's 14-civ
+hang, guard now seats-derived) + workers>pop disasters fix (archipelago
+wall 0/12 -> 12/12) + perf fix 1 (~20%, profile-first: real costs =
+deepClone 23% + blockade scan 22%, all guessed suspects cleared) +
+FORMAL NAVAL ACCEPTANCE PASS (25/25, invasions active). deepClone COW
+signed off w/ 5 conditions -> FRESH bugfixer session (user-return).
+gov-reeval reshaped: N1a gov-tech beeline IN BUILD (the AI never
+researches republic/democracy - a research gap not gov logic); N2 =
+the AI never issues upgradeUnit (missing behavior). Engine order:
+N1a -> N1b -> N2 -> XV-engine (#21 settler-refuse, #22 disorder w/
+user lux playbook) -> smalls (A6a/A8/rehome/default-defender) ->
+D3-surfacing -> D4-D6. USER-RETURN: fork brief (bulb-tune RULED OUT),
+redeploy=0093, roblox restart, deepClone fresh session, publish gates.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
