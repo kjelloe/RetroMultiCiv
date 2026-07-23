@@ -42,6 +42,7 @@ export function createRemoteSession(opts) {
   let myRegent;   // A40: 'on' when the server reports my seat on regency
   let fullLogWaiter = null; // A47: pending requestFullLog resolver
   let playerCivsMap = {}; // A24: pid -> civ id from the joined reply
+  let assignedCiv = null; // late-join §4: the civ a takeover joiner was handed (post-join reveal)
   let token = tokenKey(gameId) && localStorage.getItem(tokenKey(gameId)) || null;
   let commandId = 0;
   let joined = false;
@@ -133,6 +134,7 @@ export function createRemoteSession(opts) {
       if (msg.code !== undefined) serverCode = msg.code;
       if (msg.seatCode !== undefined) mySeatCode = msg.seatCode; // A46: this seat's recovery code
       if (msg.civs !== undefined) playerCivsMap = msg.civs;
+      if (msg.assignedCiv !== undefined) assignedCiv = msg.assignedCiv; // late-join §4: takeover civ → post-join reveal
       const wasJoined = joined;
       joined = true;
       if (state) prevActive = state.activePlayer; // XIV §31: baseline for the turn-flip flush
@@ -305,6 +307,7 @@ export function createRemoteSession(opts) {
     },
     dropSocket() { if (ws) ws.close(); },    // A46 e2e: sever the live socket (retry loop takes over)
     get playerCivs() { return playerCivsMap; }, // A24: pid -> civ id (public identity)
+    get assignedCiv() { return assignedCiv; }, // late-join §4: takeover civ, else null
 
     onChange(cb) { listeners.push(cb); },
     setStatusHandler(fn) { statusHandler = fn; },

@@ -135,7 +135,7 @@ if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params
   // e2e/demo flow: those auto-open the host/join/find sub-flows without clicking
   // (so nothing dismisses the overlay), and the full-screen layer would then sit
   // over the lobby's own buttons and swallow their clicks (the e2ehost-boot bug).
-  const automation = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo');
+  const automation = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo' || k === 'envoydemo' || k === 'parleydemo');
   if (!automation) maybeShowSetupOnboarding();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
@@ -575,7 +575,8 @@ if (renderer.setReduceAnimation) {
 }
 // first in-game screen: one-time arrows to the controls (a real seated game,
 // not a spectator view and not a finished game booted just to show its endscreen)
-if (!ctx.SPECTATOR && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
+const demoParam = params.get('envoydemo') === '1' || params.get('parleydemo') === '1';
+if (!ctx.SPECTATOR && !demoParam && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
 session.onChange((_state, events) => {
   ctx.hud.refresh();
   ctx.panels.refresh();
@@ -599,6 +600,12 @@ if (firstUnit) {
 const zoom = parseInt(params.get('zoom') || '', 10);
 if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
 revealApp(); // scene positioned + HUD up — fade in the finished world
+// late-join §4: a takeover joiner boots with assignedCiv on its join answer —
+// a prominent reveal names the AI civilization they were handed (server names it,
+// §3 deterministic). Local/non-takeover boots have no assignedCiv → nothing.
+if (serverParam && session.assignedCiv && civs[session.assignedCiv]) {
+  ctx.hud.banner(`🏛 You've taken over the ${civs[session.assignedCiv].name} — their empire is yours for the rest of the game!`);
+}
 
 // ?bannerdemo=1 (A25 screenshots): render the your-turn banner with its
 // dismiss/mute controls deterministically — re-fired so the 5s transient
