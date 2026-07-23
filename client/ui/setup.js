@@ -377,6 +377,16 @@ export function showSetupScreen() {
   const joinCode = new URLSearchParams(location.search).get('e2ejoin');
   if (joinCode) import('./lobby.js').then(m => m.autoJoin(setupBox, joinCode.toUpperCase(), 'Ada'));
 
+  // join-share deep link: ?join=CODE opens the Join form with the code prefilled
+  // (the QR/invite link a host shares from the lobby) — the friend just enters a
+  // name and joins. Distinct from the e2e auto-join above (this waits for input).
+  const inviteCode = new URLSearchParams(location.search).get('join');
+  if (inviteCode && !joinCode) import('./lobby.js').then(m => {
+    m.startJoinFlow(setupBox);
+    const el = document.getElementById('lobby-code-in');
+    if (el) el.value = inviteCode.toUpperCase().slice(0, 5);
+  });
+
   // ?lobbydemo=host|joiner|blocked|kicked — A37 waiting-room UI states
   const lobbyDemoKind = new URLSearchParams(location.search).get('lobbydemo');
   if (lobbyDemoKind) {

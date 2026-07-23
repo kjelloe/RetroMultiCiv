@@ -1649,6 +1649,34 @@ html, body {
   color: #f0e8d8;
 }
 
+/* boot fade-in: the page starts on this near-black layer (opaque from the first
+   paint, above everything) and main.js fades it out once the finished scene /
+   setup screen is up — so the world eases in instead of popping. */
+#boot-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  background: #05070c;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+#boot-fade.gone { opacity: 0; }
+
+/* join-share: QR + copy-link in the lobby waiting room */
+#lobby-share { margin: 4px 0 12px; }
+#lobby-qr {
+  width: 148px; height: 148px;
+  image-rendering: pixelated; /* crisp QR modules, no blur */
+  background: #fff; border: 5px solid #fff; border-radius: 5px;
+}
+#lobby-share-row { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+#lobby-invite {
+  flex: 1 1 auto; max-width: 250px;
+  font: 12px ui-monospace, monospace; padding: 6px 8px;
+  background: #0e1626; border: 1px solid #2b3f5f; border-radius: 4px; color: #b6c6de;
+}
+
 /* first-timer onboarding overlay — a floating layer ABOVE everything, cartoony
    hand-drawn arrows to the main controls; dismiss on any click / Esc. */
 #onboarding-overlay {

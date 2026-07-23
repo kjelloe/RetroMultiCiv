@@ -116,12 +116,27 @@ function storedOptions() {
 
 const params = new URLSearchParams(location.search);
 // a bare URL (no world parameters) gets the game-setup screen; it reloads
+// boot fade-in: ease the #boot-fade layer (opaque from the first paint) out once
+// the finished scene / setup screen is up. A rAF lets the reveal ride the next
+// paint; a failsafe guarantees the page never stays black on any boot path.
+function revealApp() {
+  const f = document.getElementById('boot-fade');
+  if (f) requestAnimationFrame(() => f.classList.add('gone'));
+}
+setTimeout(revealApp, 4000); // failsafe: never leave a black screen
+
 // with ?seed=&civs=&humans= filled in
 if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params.has('server')
     && !params.has('resume')) {
   showSetupScreen();
+  revealApp(); // fade in the setup screen
   maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
-  maybeShowSetupOnboarding(); // first-timer arrows to the setup choices (once/browser)
+  // first-timer arrows to the setup choices (once/browser) — but NOT under an
+  // e2e/demo flow: those auto-open the host/join/find sub-flows without clicking
+  // (so nothing dismisses the overlay), and the full-screen layer would then sit
+  // over the lobby's own buttons and swallow their clicks (the e2ehost-boot bug).
+  const automation = [...params.keys()].some(k => k.startsWith('e2e') || k === 'lobbydemo' || k === 'setupdemo');
+  if (!automation) maybeShowSetupOnboarding();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
 // Tab-loss fix (user ruling 2026-07-22): ?resume=local boots straight from the
@@ -583,6 +598,7 @@ if (firstUnit) {
 }
 const zoom = parseInt(params.get('zoom') || '', 10);
 if (zoom) renderer.setZoom(zoom); // handy for close-up screenshots
+revealApp(); // scene positioned + HUD up — fade in the finished world
 
 // ?bannerdemo=1 (A25 screenshots): render the your-turn banner with its
 // dismiss/mute controls deterministically — re-fired so the 5s transient

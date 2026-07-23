@@ -14,6 +14,28 @@
 
 import { shouldReconnect, reconnectFrame, backoffDelay, wakeIsSuspect } from '../../shared/lobby-reconnect.js';
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
+import qrcode from '../vendor/qrcode.min.js';
+
+// join-share: the invite URL a host shares from the lobby — the friend's client
+// opens the Join form with the code prefilled (setup.js ?join=).
+export function inviteUrl(code) {
+  return `${location.origin}/client/?join=${encodeURIComponent(code)}`;
+}
+// render `text` as a QR into `canvas` (crisp black/white modules, quiet border).
+function renderQR(canvas, text) {
+  try {
+    const qr = qrcode(0, 'M'); qr.addData(text); qr.make();
+    const n = qr.getModuleCount(), quiet = 2, scale = 4, size = (n + quiet * 2) * scale;
+    canvas.width = size; canvas.height = size;
+    const g = canvas.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, size, size);
+    g.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+      if (qr.isDark(r, c)) g.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+    }
+    return true;
+  } catch (e) { return false; }
+}
 
 const GAMEID_KEY = 'retromulticiv-gameid';
 
@@ -243,6 +265,14 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
     <h2>Game lobby</h2>
     <p class="setup-hint">join code — tell your friends:</p>
     <p id="lobby-code">${info.joinCode}</p>
+    <div id="lobby-share">
+      <canvas id="lobby-qr" aria-label="scan to join this game"></canvas>
+      <div id="lobby-share-row">
+        <input id="lobby-invite" type="text" readonly value="${inviteUrl(info.joinCode)}">
+        <button id="lobby-copy" class="setup-lan-btn">📋 Copy</button>
+      </div>
+      <p class="setup-hint">scan the code, or copy the link — friends on your network join straight in</p>
+    </div>
     ${hostCtl ? `<p class="setup-hint">slots: <button id="slot-minus" class="setup-lan-btn">−</button>
       <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button>
       · <label id="lobby-chat-toggle">chat <input id="lobby-chat-on" type="checkbox"></label></p>` : ''}
@@ -263,6 +293,19 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
       : 'waiting for the host to start…'}</p>
     ${hostCtl ? '<button id="setup-start">Start game</button>' : ''}
     <p class="setup-hint"><a href="./">← back (leaves your seat)</a></p>`;
+  { // join-share: QR + copy-link (everyone in the room can invite)
+    const url = inviteUrl(info.joinCode);
+    const qrEl = document.getElementById('lobby-qr');
+    if (qrEl) renderQR(qrEl, url);
+    const copyEl = document.getElementById('lobby-copy');
+    const invEl = document.getElementById('lobby-invite');
+    if (copyEl) copyEl.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(url); } // https/localhost only
+      catch (e) { if (invEl) { invEl.focus(); invEl.select(); } } // http LAN fallback: select for manual copy
+      copyEl.textContent = '✓ Copied';
+      setTimeout(() => { copyEl.textContent = '📋 Copy'; }, 1500);
+    });
+  }
   if (hostCtl) {
     document.getElementById('setup-start').addEventListener('click', onStart);
     document.getElementById('slot-minus').addEventListener('click',

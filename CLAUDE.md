@@ -74,7 +74,9 @@ operator).
   only). r162 auto-falls back to WebGL1. Verify any renderer change with the
   headless screenshot loop below, including once with `--disable-es3-gl-context`
   (emulates the WebGL1-only environment).
-- Minimal dependencies: `ws` (server), vendored three.js, `lune`
+- Minimal dependencies: `ws` (server), vendored three.js, vendored
+  qrcode-generator (client/vendor/qrcode.min.js, MIT, Kazuhiko Arase
+  v1.4.4 — the lobby join-QR; user-approved 2026-07-24), `lune`
   (dev-only, phase-5 Luau CI twins — user-approved 2026-07-12), and
   `@playwright/test` (dev-only, the nightly multi-client UI lane in
   `test-ui/` — user-approved 2026-07-14, arrives with A49; `node
