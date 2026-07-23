@@ -172,10 +172,19 @@ function candidateTiles(state, city, ruleset) {
   const blocked = {};
   for (const uid of Object.keys(state.units || {})) {
     const u = state.units[uid];
+    if (u.owner === city.owner) continue;
+    // #15 perf: only a unit INSIDE the fat cross (cheb <= 2) can blockade a worked tile — blocked[]
+    // is consulted ONLY for fat-cross tiles, so gating the per-unit work on that bounding box BEFORE
+    // the relationOf lookup is HASH-NEUTRAL (a far unit's blocked entry is never read) and skips the
+    // O(units) relationOf cost that dominated candidateTiles late-game (#15 profile: 16.5% + 6.1%).
+    let adx = u.x - city.x; if (adx < 0) adx = -adx;
+    if (wrapX && adx > width - adx) adx = width - adx;
+    let ady = u.y - city.y; if (ady < 0) ady = -ady;
+    if (adx > 2 || ady > 2) continue;
     // D1: a foreign unit blockades only at WAR (default). At PEACE trade flows —
     // the tile is not blocked. Absent relation = war = unchanged (barbarians, never
     // a diplomacy target, stay at war and keep blockading).
-    if (u.owner !== city.owner && relationOf(state, city.owner, u.owner) === 'war') {
+    if (relationOf(state, city.owner, u.owner) === 'war') {
       blocked[u.y * width + u.x] = true;
     }
   }

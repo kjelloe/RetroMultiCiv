@@ -210,10 +210,20 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 	-- candidate set. Matches engine/cities.js.
 	local blocked = {}
 	for _, u in pairs(state.units or {}) do
-		-- D1: a foreign unit blockades only at WAR (default). At PEACE trade flows.
-		-- Absent relation = war = unchanged (barbarians stay at war, keep blocking).
-		if u.owner ~= city.owner and diplomacy.relationOf(state, city.owner, u.owner) == "war" then
-			blocked[u.y * width + u.x] = true
+		if u.owner ~= city.owner then
+			-- #15 perf twin: only a unit inside the fat cross (cheb<=2) can blockade a worked tile —
+			-- blocked[] is read only for fat-cross tiles, so this bounding-box gate is hash-neutral.
+			local adx = u.x - city.x
+			if adx < 0 then adx = -adx end
+			if wrapX and adx > width - adx then adx = width - adx end
+			local ady = u.y - city.y
+			if ady < 0 then ady = -ady end
+			if not (adx > 2 or ady > 2) then
+				-- D1: a foreign unit blockades only at WAR (default). At PEACE trade flows.
+				if diplomacy.relationOf(state, city.owner, u.owner) == "war" then
+					blocked[u.y * width + u.x] = true
+				end
+			end
 		end
 	end
 	local candidates = {}
