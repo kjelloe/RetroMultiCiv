@@ -178,10 +178,16 @@ function onboardingSession(chromium, base) {
     const WebSocket = require('ws');
     const port = 9222 + Math.floor(Math.random() * 4000);
     const prof = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-onboard-'));
+    // launch to about:blank, not the client: the onboarding gate reads
+    // navigator.webdriver at module-eval, and raw CDP/headless sets it TRUE — so
+    // we must install a webdriver→false spoof (a real, non-automated user) BEFORE
+    // the client's scripts run. Register it via addScriptToEvaluateOnNewDocument,
+    // THEN Page.navigate to /client/. The script persists across the in-test
+    // reload too (that suppression is rmc_onboarding_seen, not webdriver).
     const proc = spawn(chromium, [
       '--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
       '--window-size=800,600', '--user-data-dir=' + prof,
-      `--remote-debugging-port=${port}`, `${base}/client/`
+      `--remote-debugging-port=${port}`, 'about:blank'
     ], { stdio: ['ignore', 'ignore', 'ignore'] });
     const deadline = Date.now() + 35000;
     let done = false;
@@ -208,6 +214,12 @@ function onboardingSession(chromium, base) {
       ws.on('open', async () => {
         try {
           const out = {};
+          // spoof a real (non-automated) user before any document loads, then go
+          await cmd('Page.enable');
+          await cmd('Page.addScriptToEvaluateOnNewDocument', {
+            source: `Object.defineProperty(navigator, 'webdriver', { get: () => false });`
+          });
+          await cmd('Page.navigate', { url: `${base}/client/` });
           out.firstShown = await waitFor(`!!document.getElementById('onboarding-overlay')`);
           out.seenFlag = await evalJS(`JSON.parse(localStorage.getItem('rmc_onboarding_seen')||'{}').setup === true`);
           await evalJS(`location.href = location.pathname`); // reload, same profile → localStorage persists
