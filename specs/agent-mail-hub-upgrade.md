@@ -71,6 +71,12 @@ Watch item for the first days: a lane accumulating unacked mail
 (redelivery noise = the safety net working, but persistent debt means
 its instructions need fixing, not the tool).
 
+Rollout lesson (2026-07-24, helper #2367): the upgrade was edited into
+the live shared file in place, and a lane executed a half-edited state
+(`flag wait` ValueError in the minutes between the flag_counts change
+and its callers' fix). Future edits to live shared tooling: stage in a
+scratch copy, install with one atomic `cp`, then restart the hub.
+
 ## Phase 1 — LATER (each item its own decision; rough order)
 
 1. **Territory ownership** (`tools/owners` manifest + `owner`/
