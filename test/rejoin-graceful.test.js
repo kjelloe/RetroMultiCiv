@@ -52,16 +52,45 @@ test('a join reject carries the CODE on the error (not a raw string)', async () 
   });
 });
 
-test('a gameEnded reject carries an attached final-record payload when the server provides one', async () => {
+test('a gameEnded reject carries the gameId + gameCode (for the final-result fetch)', async () => {
   global.WebSocket = MockWS;
   global.localStorage = memLocal();
   const { createRemoteSession } = await import('../client/session-remote.js');
   const p = createRemoteSession({ ruleset: RULESET, wsUrl: 'ws://mock', name: 'B', gameId: 'g1' });
   await tick();
-  MockWS.last.recv({ t: 'rejected', commandId: -1, code: 'gameEnded', save: { turn: 42 } });
+  // the exact server contract (server/index.js:868)
+  MockWS.last.recv({ t: 'rejected', commandId: -1, code: 'gameEnded', gameId: 'g1', gameCode: 'ABCDE' });
   await assert.rejects(p, err => {
     assert.strictEqual(err.code, 'gameEnded');
-    assert.deepStrictEqual(err.save, { turn: 42 });
+    assert.strictEqual(err.gameId, 'g1');
+    assert.strictEqual(err.gameCode, 'ABCDE');
     return true;
   });
+});
+
+test('loadFinalResult: fetches the ended save by gameId, stashes it, and boots ?resume=local', async () => {
+  const { loadFinalResult } = await import('../client/ui/rejoin.js');
+  const calls = { stored: {}, nav: null, fetched: null };
+  const io = {
+    fetchJson: url => { calls.fetched = url; return Promise.resolve({ format: 'retromulticiv-server-save', state: { gameOver: true, turn: 42, winner: 'p1' } }); },
+    setItem: (k, v) => { calls.stored[k] = v; },
+    navigate: s => { calls.nav = s; }
+  };
+  const ok = await loadFinalResult('g1', 'http://host:8123', io);
+  assert.strictEqual(ok, true);
+  assert.strictEqual(calls.fetched, 'http://host:8123/saves/g1.json');
+  assert.ok(calls.stored.rmc_local_autosave, 'the final state is stashed for the resume boot');
+  assert.strictEqual(JSON.parse(calls.stored.rmc_local_autosave).state.winner, 'p1');
+  assert.strictEqual(calls.nav, '?resume=local');
+});
+
+test('loadFinalResult: a non-finished / missing save does NOT navigate (graceful)', async () => {
+  const { loadFinalResult } = await import('../client/ui/rejoin.js');
+  let navd = false;
+  const io = { fetchJson: () => Promise.resolve(null), setItem: () => {}, navigate: () => { navd = true; } };
+  assert.strictEqual(await loadFinalResult('g1', '', io), false, 'missing save → false');
+  assert.strictEqual(navd, false, 'never navigates on a missing save');
+  const io2 = { fetchJson: () => Promise.resolve({ state: { gameOver: false } }), setItem: () => {}, navigate: () => { navd = true; } };
+  assert.strictEqual(await loadFinalResult('g1', '', io2), false, 'a still-running game → false');
+  assert.strictEqual(navd, false);
 });

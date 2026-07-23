@@ -117,11 +117,29 @@ export function classifyRejoinReject(code) {
   return f ? { definitive: true, label: f.label, offerEnd: f.offerEnd } : { definitive: false };
 }
 
+// Fetch an ENDED game's final save from the server and boot it locally so the
+// endscreen shows its result. The final save persists at /saves/<gameId>.json
+// after the game leaves the registry (server on-demand snapshot); loading it as
+// a local resume triggers the endscreen (endscreen.js shows on a gameOver boot).
+// PURE-ish (fetch + localStorage + navigate injected as `io` for testing).
+export async function loadFinalResult(gameId, serverBase, io) {
+  const nav = (io && io.navigate) || (s => { location.search = s; });
+  const fetchJson = (io && io.fetchJson) || (u => fetch(u).then(r => (r.ok ? r.json() : null)));
+  const store = (io && io.setItem) || ((k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } });
+  const base = serverBase || '';
+  const save = await fetchJson(`${base}/saves/${encodeURIComponent(gameId)}.json`);
+  const state = save && (save.state || save);       // server-save envelope or raw state
+  if (!state || state.gameOver !== true) return false; // not a finished game → nothing to show
+  store('rmc_local_autosave', JSON.stringify({ state }));
+  nav('?resume=local');                              // boots the state; endscreen.js fires on gameOver
+  return true;
+}
+
 // After a failed rejoin, downgrade the card GRACEFULLY on the setup screen —
 // never a raw error banner. Returns true when it handled a definitive reject
 // (record cleared + card shown); false for a non-definitive code so the caller
-// keeps its normal error path. `opts.save`/`opts.endscreen` (server-provided on
-// gameEnded) get a "View final result" affordance when present.
+// keeps its normal error path. On gameEnded, `opts.gameId` (+ `opts.serverBase`)
+// give a "View final result" button that loads the ended game's endscreen.
 export function renderRejoinFailure(box, code, opts) {
   const c = classifyRejoinReject(code);
   if (!c.definitive) return false;
@@ -136,13 +154,15 @@ export function renderRejoinFailure(box, code, opts) {
   line.textContent = `⏳ ${c.label}`;
   banner.appendChild(line);
 
-  const end = opts && (opts.endscreen || opts.save);
-  if (c.offerEnd && end) {
+  if (c.offerEnd && opts && opts.gameId) {
     const view = document.createElement('button');
     view.id = 'rejoin-go';
     view.textContent = '🏁 View final result';
-    view.addEventListener('click', () => {
-      try { window.dispatchEvent(new CustomEvent('rmc-rejoin-final', { detail: end })); } catch (_) { /* no-op */ }
+    view.addEventListener('click', async () => {
+      view.disabled = true;
+      view.textContent = '⏳ loading…';
+      const ok = await loadFinalResult(opts.gameId, opts.serverBase).catch(() => false);
+      if (!ok) { view.disabled = false; view.textContent = '✕ result unavailable'; }
     });
     banner.appendChild(view);
   }

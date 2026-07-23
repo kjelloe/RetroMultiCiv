@@ -252,8 +252,10 @@ export function createRemoteSession(opts) {
           const err = new Error('join rejected: ' + msg.code);
           err.joinRejected = true;
           err.code = msg.code;
-          if (msg.save !== undefined) err.save = msg.save;             // gameEnded: server may attach the final save
-          if (msg.endscreen !== undefined) err.endscreen = msg.endscreen;
+          // gameEnded carries the ended game's id + docs/07 code so the client
+          // can fetch its final save (/saves/<gameId>.json) and show the endscreen.
+          if (msg.gameId !== undefined) err.gameId = msg.gameId;
+          if (msg.gameCode !== undefined) err.gameCode = msg.gameCode;
           f(err);
         }
       }
