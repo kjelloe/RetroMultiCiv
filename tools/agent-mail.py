@@ -558,8 +558,8 @@ def flag_wait(argv):
 
     def counts():
         if url:
-            raw, _ = proxy_raw(['flag', '--as', a.role, '--raw'], url)
             try:
+                raw, _ = proxy_raw(['flag', '--as', a.role, '--raw'], url)
                 kv = dict(tok.split('=', 1) for tok in raw.split())
                 return (int(kv['unread']), int(kv['queue']),
                         int(kv['note']), int(kv.get('inflight', 0)))
@@ -567,13 +567,27 @@ def flag_wait(argv):
                 # malformed/empty hub reply (the #2235 race, hub-side fixed by
                 # DISPATCH_LOCK) — treat as "no change this poll", never crash
                 return None
+            except SystemExit:
+                # hub briefly unreachable (restart/upgrade) — the 2026-07-24
+                # fleet stall: proxy_raw's exit killed every remote lane's
+                # blocking wait mid-loop and the lanes never resumed. A
+                # transient outage is a no-change poll; the --timeout still
+                # bounds the wait, and a dead-forever hub surfaces on the
+                # timeout line's LOCAL fallback marker.
+                return None
         return flag_counts(a.role)
 
     def line():
+        # the store-origin marker makes "I see nothing" self-diagnosing: a
+        # clone that lost .agent-mail/remote reads its EMPTY LOCAL store and
+        # otherwise reports a convincing "no unread, queue empty".
         if url:
-            out, _ = proxy_raw(['flag', '--as', a.role], url)
-            return out.strip()
-        return flag_check_line(a.role)
+            try:
+                out, _ = proxy_raw(['flag', '--as', a.role], url)
+                return out.strip() + f' · via hub {url}'
+            except SystemExit:
+                return f'(hub {url} unreachable this instant — transient during restarts; rerun flag wait)'
+        return flag_check_line(a.role) + ' · LOCAL STORE (no .agent-mail/remote — is that intended on this clone?)'
 
     first = counts()
     base_qn = first[1] if first else 0
