@@ -38,6 +38,9 @@ echo "==> Ensuring $APP exists and is owned by the deploy user"
 $SSH "$DEPLOY" "sudo mkdir -p $APP/saves $APP/crashdumps && sudo chown -R \$(id -un):\$(id -gn) $APP && \
   if [ -d ~/.npm ]; then sudo chown -R \$(id -u):\$(id -g) ~/.npm; fi"
 
+echo "==> Freshening age snapshots (gitignored, regenerable — the box never bakes)"
+node tools/bake-age-snapshots.js || echo "WARN: snapshot bake failed — hosted ?age= falls back to live fast-forward (correct, not instant)"
+
 echo "==> Syncing runtime code to $DEPLOY:$APP (allowlist)"
 rsync -av --no-owner --no-group \
     --exclude 'data/wiki-extract' \
