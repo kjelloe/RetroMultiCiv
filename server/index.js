@@ -1570,7 +1570,21 @@ export function startServer(opts) {
           if (announceTimer) clearInterval(announceTimer); // A51b
           for (const k of Object.keys(graceTimers)) clearTimeout(graceTimers[k]); // Part B seat-grace
           for (const k of Object.keys(takeoverTimers)) clearTimeout(takeoverTimers[k]); // XIV §30
-          for (const ws of conns.keys()) ws.terminate();
+          // lobby-drop-surface (#2448): a lobby client reconnects on a raw drop
+          // (Part C), which SWALLOWS a server-going-away close and leaves the room
+          // stale. Close lobby sockets with a DETERMINISTIC reason (code 1001 +
+          // 'lobbyConnectionLost') so the client can distinguish "server gone,
+          // surface it + stop reconnecting" from a transient drop. Others keep the
+          // abrupt terminate.
+          for (const ws of conns.keys()) {
+            const ci = conns.get(ws);
+            const e = ci && ci.gameId ? registry.entryOf(ci.gameId) : null;
+            if (e && e.status === 'lobby' && ci.seat && !ci.playerId) {
+              try { ws.close(1001, 'lobbyConnectionLost'); } catch (err) { ws.terminate(); }
+            } else {
+              ws.terminate();
+            }
+          }
           wss.close(() => httpServer.close(done));
         })
       });
