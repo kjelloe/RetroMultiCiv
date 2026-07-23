@@ -82,3 +82,13 @@ State of evidence, all measured:
    last axis-6 items).
 6. Carried: publish gates (Roblox sound/saving), /mnt/c pump to
    f701d4a+ (lets the reviewer switch to flag-wait), terrain check.
+
+## Post-brief addendum (the window kept landing)
+
+marker-0094 tagged as predicted. ALSO landed after the brief: #7
+rehome (gate-green) + #22 the AI disorder playbook (YOUR lux recipe,
+built exactly to it: multi-city -> minimum sustainable lux raise
+first, K=10 treasury window, entertainer residual) - its gates run
+now; marker-0095 = both on greens. The engine queue is down to 6
+(default-defender, A6a, A8, pollution-perf remainder, view-contract,
+D3-surfacing, D4-D6 tail).
