@@ -14,7 +14,7 @@
 // The AI only issues regular commands through applyCommand — it cannot cheat.
 // It reads its own `explored` map, so it honors fog of war like a human.
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
-import { availableTechs, cityEconOutput, playerIncome } from './tech.js';
+import { availableTechs, cityEconOutput, playerIncome, FUTURE_TECH_ID } from './tech.js';
 import { metOf, relationOf, pairKey } from './diplomacy.js';
 import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
@@ -2232,6 +2232,13 @@ function pickCommand(state, playerId, ruleset, done, stance) {
   if ((me.researching === '' || me.researching === undefined) && !done.research) {
     done.research = true;
     const avail = availableTechs(state, playerId, ruleset);
+    // XII.2: an exhausted real tree offers exactly the Future Tech sentinel (no
+    // level/prereqs) — research it directly; the level-order pick below would
+    // dereference ruleset.techs[sentinel] (undefined). availableTechs never mixes
+    // the sentinel with real techs, so this is the only place it can appear.
+    if (avail.length === 1 && avail[0] === FUTURE_TECH_ID) {
+      return { type: 'setResearch', playerId, tech: FUTURE_TECH_ID };
+    }
     if (avail.length > 0) {
       // beeline Monarchy first (Civ 1 AIs rush a government); breadth-first
       // level-order research would otherwise not reach it in 400 turns.

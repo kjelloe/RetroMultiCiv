@@ -17,9 +17,15 @@ local function idiv(a: number, b: number): number
 	return math.floor(a / b)
 end
 
+-- XII.2 twin (specs/xii2-future-tech.md): the repeatable end-of-tree science sink.
+-- A synthetic sentinel research target (never a real tech id / never in player.techs).
+local FUTURE_TECH_ID = "future-tech"
+
 local function researchCost(state: any, playerId: string, ruleset: any): number
 	local player = state.players[playerId]
-	local known = #player.techs
+	-- XII.2: the escalation count includes futureTech levels (0 until the tree empties,
+	-- so every real-tech cost is byte-identical). Lua nil -> 0.
+	local known = #player.techs + (if player.futureTech == nil then 0 else player.futureTech)
 	-- bulb escalation ASYMMETRIC: coefficient splits (AI aiBulbInc / human humanBulbInc)
 	-- when a human seat exists; else techBaseCost. Matches engine/tech.js.
 	local coeff = ruleset.rules.techBaseCost
@@ -61,6 +67,11 @@ local function availableTechs(state: any, playerId: string, ruleset: any): { str
 			table.insert(out, id)
 		end
 	end
+	-- XII.2: an exhausted real tree offers exactly the Future Tech sentinel (fires ONLY
+	-- on empty, so a live tree returns the identical real list).
+	if #out == 0 then
+		table.insert(out, FUTURE_TECH_ID)
+	end
 	return out
 end
 
@@ -71,6 +82,14 @@ local function setResearch(state: any, cmd: any, ruleset: any): any
 	end
 	-- A54 off-turn pre-work: self-scoped (touches only the issuing player's
 	-- state, zero rng) — legal while a rival moves; no turn check
+	-- XII.2: the Future Tech sentinel is valid ONLY once the real tree is exhausted.
+	if cmd.tech == FUTURE_TECH_ID then
+		if table.find(availableTechs(state, cmd.playerId, ruleset), FUTURE_TECH_ID) == nil then
+			return { ok = false, reason = "treeNotExhausted" }
+		end
+		player.researching = FUTURE_TECH_ID
+		return { ok = true, events = { { type = "researchSet", playerId = cmd.playerId, tech = FUTURE_TECH_ID } } }
+	end
 	if ruleset.techs[cmd.tech] == nil then
 		return { ok = false, reason = "unknownTech" }
 	end
@@ -272,8 +291,16 @@ local function processResearch(state: any, ruleset: any, events: any)
 			if player.bulbs >= cost then
 				player.bulbs -= cost -- overflow carries into the next advance
 				local got = player.researching
-				player.researching = ""
-				grantTech(state, pid, got, ruleset, events)
+				if got == FUTURE_TECH_ID then
+					-- XII.2: a Future Tech level — bump the counter (score-only), keep the
+					-- sentinel (repeatable, no cap). Never enters techs.
+					player.futureTech = (if player.futureTech == nil then 0 else player.futureTech) + 1
+					player.researching = FUTURE_TECH_ID
+					table.insert(events, { type = "futureTechResearched", playerId = pid, n = player.futureTech })
+				else
+					player.researching = ""
+					grantTech(state, pid, got, ruleset, events)
+				end
 			end
 		end
 	end
@@ -366,6 +393,7 @@ return {
 	setResearch = setResearch,
 	setRates = setRates,
 	processResearch = processResearch,
+	FUTURE_TECH_ID = FUTURE_TECH_ID,
 	playerIncome = playerIncome,
 	cityEconOutput = cityEconOutput,
 	grantTech = grantTech,

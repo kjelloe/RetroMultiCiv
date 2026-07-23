@@ -42,9 +42,20 @@ test('A73: scoreBreakdown components sum to score() (hash-neutral contract)', as
   const { scoring } = await load();
   const state = duelState();
   const bd = scoring.scoreBreakdown(state, 'p1', RULESET);
-  assert.deepStrictEqual(bd, { population: 8, techs: 10, wonders: 20, total: 38 }); // 4*2 / 2*5 / 1*20
-  assert.strictEqual(bd.population + bd.techs + bd.wonders, bd.total, 'components sum to the total');
+  assert.deepStrictEqual(bd, { population: 8, techs: 10, futureTech: 0, wonders: 20, total: 38 }); // 4*2 / 2*5 / 0 / 1*20
+  assert.strictEqual(bd.population + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components sum to the total');
   assert.strictEqual(bd.total, scoring.score(state, 'p1', RULESET), 'score() equals the breakdown total');
+});
+
+test('XII.2: futureTech levels add scorePerFutureTech to the breakdown', async () => {
+  const { scoring } = await load();
+  const state = duelState();
+  state.players.p1.futureTech = 3; // 3 Future Tech levels
+  const bd = scoring.scoreBreakdown(state, 'p1', RULESET);
+  // 4*2 + 2*5 + 3*scorePerFutureTech(5) + 1*20 = 8 + 10 + 15 + 20 = 53
+  assert.strictEqual(bd.futureTech, 3 * RULESET.rules.scorePerFutureTech, 'the futureTech term = N * scorePerFutureTech');
+  assert.strictEqual(bd.total, 53, 'futureTech folds into the total');
+  assert.strictEqual(bd.population + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components still sum');
 });
 
 test('conquest: last civilization standing wins at turn wrap', async () => {

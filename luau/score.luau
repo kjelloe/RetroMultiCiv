@@ -32,8 +32,11 @@ local function scoreBreakdown(state: any, playerId: string, ruleset: any): any
 	local rules = ruleset.rules
 	local population = citizens * rules.scorePerCitizen
 	local techs = #player.techs * rules.scorePerTech
+	-- XII.2: each Future Tech level scores like a normal advance (0 until the tree
+	-- is exhausted, so byte-identical for every non-marathon game). Lua nil -> 0.
+	local futureTechScore = (if player.futureTech == nil then 0 else player.futureTech) * rules.scorePerFutureTech
 	local wonderScore = wonders * rules.scorePerWonder
-	return { population = population, techs = techs, wonders = wonderScore, total = population + techs + wonderScore }
+	return { population = population, techs = techs, futureTech = futureTechScore, wonders = wonderScore, total = population + techs + futureTechScore + wonderScore }
 end
 
 local function score(state: any, playerId: string, ruleset: any): number

@@ -26,7 +26,7 @@ const EVENT_TYPES = {
   settlerRefused: 'cities',
   combatResolved: 'combat', promoted: 'combat', cityCaptured: 'combat',
   unitConsumed: 'combat', cargoLost: 'combat', cityNuked: 'combat', nukeFallout: 'combat',
-  researchSet: 'tech', ratesSet: 'tech', techDiscovered: 'tech',
+  researchSet: 'tech', ratesSet: 'tech', techDiscovered: 'tech', futureTechResearched: 'tech',
   governmentChanged: 'government', revolutionStarted: 'government',
   cityDisorder: 'happiness', cityOrderRestored: 'happiness',
   barbariansSpawned: 'barbarians', sailsSpotted: 'barbarians', barbariansLanded: 'barbarians',

@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 61, 'the scenarios (061 claim-seat added)');
+      assert.strictEqual(files.length, 62, 'the scenarios (062 future-tech added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -183,7 +183,8 @@ const PORTED = [
   '058-disaster-worker-trim.json', // workers>pop: a pop-losing disaster trims workers/specialists to pop (cross-language)
   '059-capital-settler-refuse.json', // XV §7: a size-1 capital refuses a settler (banks); a non-capital disbands (cross-language)
   '060-rehome.json', // XIV §45b: REHOME re-homes a unit to the city it stands in (cross-language)
-  '061-claim-seat.json' // late-join §3: claimSeat flips an AI seat to human; the claimed seat then acts (cross-language)
+  '061-claim-seat.json', // late-join §3: claimSeat flips an AI seat to human; the claimed seat then acts (cross-language)
+  '062-future-tech.json' // XII.2: an exhausted tree researches the repeatable Future Tech sentinel; futureTech + score accrue (cross-language)
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
@@ -247,7 +248,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x681e9457\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x36bd0e42\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -306,8 +307,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '93e0a4bd', pangaea: '901db8e2',
-      archipelago: '40691d5d', islands: '5e772274'
+      continents: '312daf95', pangaea: 'c23a50da',
+      archipelago: '7c0b1391', islands: '74cdd124'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -358,8 +359,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // -> 0x46a31622 (#29 A7 wonder-stragglers: 8 effect fields added to wonders.json — a stamp move).
 // -> 0x33de2eb1 (#35 pyramids-gov: pyramids effect fields {revolutionAnarchyTurns,unlockAnyGov} — a stamp move).
 // -> 0x45f8a844 (#35 naval-invade-B: invadeRatioPct knob in rules.json — a stamp move).
+// -> 0xe9bbde04 (#31 XII.2 future-tech: scorePerFutureTech knob in rules.json — a stamp move).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x45f8a844 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xe9bbde04 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

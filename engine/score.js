@@ -26,8 +26,12 @@ function scoreBreakdown(state, playerId, ruleset) {
   const rules = ruleset.rules;
   const population = citizens * rules.scorePerCitizen;
   const techs = player.techs.length * rules.scorePerTech;
+  // XII.2: each Future Tech level scores like a normal advance (house value,
+  // defaulted to scorePerTech). futureTech is 0 until the tree is exhausted, so
+  // this term is 0 for every non-marathon game (byte-identical breakdown).
+  const futureTechScore = (player.futureTech === undefined ? 0 : player.futureTech) * rules.scorePerFutureTech;
   const wonderScore = wonders * rules.scorePerWonder;
-  return { population, techs, wonders: wonderScore, total: population + techs + wonderScore };
+  return { population, techs, futureTech: futureTechScore, wonders: wonderScore, total: population + techs + futureTechScore + wonderScore };
 }
 
 function score(state, playerId, ruleset) {

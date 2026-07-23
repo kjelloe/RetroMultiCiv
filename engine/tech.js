@@ -13,9 +13,20 @@ function idiv(a, b) {
   return Math.floor(a / b);
 }
 
+// XII.2 Future Tech (specs/xii2-future-tech.md): the repeatable end-of-tree
+// science sink. A synthetic sentinel research target (NOT a real tech id — never
+// pushed to player.techs); once the tree is exhausted, researching it accrues
+// player.futureTech (the "N"), which scores like a normal advance and escalates
+// cost. Civ1-authentic: repeatable, score-only, no cap. Already referenced as the
+// age-grant `except` id in data/rules.json.
+const FUTURE_TECH_ID = 'future-tech';
+
 function researchCost(state, playerId, ruleset) {
   const player = state.players[playerId];
-  const known = player.techs.length;
+  // XII.2: the escalation count includes futureTech levels, so each Future Tech
+  // costs more than the last (Civ1 feel, no new formula). futureTech is 0 until
+  // the tree empties, so every real-tech cost is byte-identical.
+  const known = player.techs.length + (player.futureTech === undefined ? 0 : player.futureTech);
   // bulb escalation is an ASYMMETRIC difficulty knob: with a human seat present the
   // per-advance coefficient splits (AI aiBulbInc / human humanBulbInc); all-AI +
   // crafted states keep techBaseCost (prince humanBulbInc == techBaseCost, so a
@@ -48,6 +59,11 @@ function availableTechs(state, playerId, ruleset) {
   for (const id of ids) {
     if (!knows(player, id) && prereqsMet(player, id, ruleset)) out.push(id);
   }
+  // XII.2: once the REAL tree is exhausted, the only remaining target is the
+  // repeatable Future Tech sentinel (tree-exhaustion subsumes the wiki's
+  // "Fusion Power + rest of tree" gate — Fusion is in the tree). This fires
+  // ONLY on empty, so every non-exhausted game returns the identical real list.
+  if (out.length === 0) out.push(FUTURE_TECH_ID);
   return out;
 }
 
@@ -56,6 +72,15 @@ function setResearch(state, cmd, ruleset) {
   if (!player) return { ok: false, reason: 'unknownPlayer' };
   // A54 off-turn pre-work: self-scoped (touches only the issuing player's
   // state, zero rng) — legal while a rival moves; no turn check
+  // XII.2: the Future Tech sentinel is a valid target ONLY once the real tree is
+  // exhausted (availableTechs then offers exactly it); reject it otherwise.
+  if (cmd.tech === FUTURE_TECH_ID) {
+    if (availableTechs(state, cmd.playerId, ruleset).indexOf(FUTURE_TECH_ID) === -1) {
+      return { ok: false, reason: 'treeNotExhausted' };
+    }
+    player.researching = FUTURE_TECH_ID;
+    return { ok: true, events: [{ type: 'researchSet', playerId: cmd.playerId, tech: FUTURE_TECH_ID }] };
+  }
   if (!ruleset.techs[cmd.tech]) return { ok: false, reason: 'unknownTech' };
   if (knows(player, cmd.tech)) return { ok: false, reason: 'alreadyKnown' };
   if (!prereqsMet(player, cmd.tech, ruleset)) return { ok: false, reason: 'prereqsMissing' };
@@ -209,8 +234,16 @@ function processResearch(state, ruleset, events) {
       if (player.bulbs >= cost) {
         player.bulbs = player.bulbs - cost; // overflow carries into the next advance
         const got = player.researching;
-        player.researching = '';
-        grantTech(state, pid, got, ruleset, events);
+        if (got === FUTURE_TECH_ID) {
+          // XII.2: a Future Tech level — bump the counter (score-only) and keep
+          // researching the sentinel (repeatable, no cap). Never enters techs.
+          player.futureTech = (player.futureTech === undefined ? 0 : player.futureTech) + 1;
+          player.researching = FUTURE_TECH_ID;
+          events.push({ type: 'futureTechResearched', playerId: pid, n: player.futureTech });
+        } else {
+          player.researching = '';
+          grantTech(state, pid, got, ruleset, events);
+        }
       }
     }
   }
@@ -270,4 +303,4 @@ function processWonderTechs(state, ruleset, events) {
   }
 }
 
-export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, cityEconOutput, prereqsMet, grantTech, processWonderTechs };
+export { researchCost, availableTechs, setResearch, setRates, processResearch, playerIncome, cityEconOutput, prereqsMet, grantTech, processWonderTechs, FUTURE_TECH_ID };

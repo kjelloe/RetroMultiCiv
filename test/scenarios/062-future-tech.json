@@ -1,0 +1,173 @@
+{
+  "name": "XII.2 Future Tech: an exhausted tree researches the repeatable sentinel; futureTech + score accrue",
+  "notes": "p1 knows the WHOLE tree (availableTechs \u2192 ['future-tech']). setResearch accepts the sentinel; endTurn runs processResearch which increments player.futureTech (NOT player.techs) and re-arms the sentinel (repeatable, no cap). scorePerFutureTech folds into score. Cross-language hash pin (the 060/061 pattern); semantics + escalating cost in test/tech.test.js, scoring in test/score.test.js. Player has no `alive` flag \u2192 game-end-exempt (single-seat crafted state).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 20,
+      "year": -2000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 3,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 1,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Endgame",
+          "color": "#00f",
+          "human": false,
+          "gold": 0,
+          "techs": [
+            "advanced-flight",
+            "alphabet",
+            "astronomy",
+            "atomic-theory",
+            "automobile",
+            "banking",
+            "bridge-building",
+            "bronze-working",
+            "ceremonial-burial",
+            "chemistry",
+            "chivalry",
+            "code-of-laws",
+            "combustion",
+            "communism",
+            "computers",
+            "conscription",
+            "construction",
+            "corporation",
+            "currency",
+            "democracy",
+            "electricity",
+            "electronics",
+            "engineering",
+            "explosives",
+            "feudalism",
+            "flight",
+            "fusion-power",
+            "future-tech",
+            "genetic-engineering",
+            "gunpowder",
+            "horseback-riding",
+            "industrialization",
+            "invention",
+            "iron-working",
+            "labor-union",
+            "literacy",
+            "magnetism",
+            "map-making",
+            "masonry",
+            "mass-production",
+            "mathematics",
+            "medicine",
+            "metallurgy",
+            "monarchy",
+            "mysticism",
+            "navigation",
+            "nuclear-fission",
+            "nuclear-power",
+            "philosophy",
+            "physics",
+            "plastics",
+            "pottery",
+            "railroad",
+            "recycling",
+            "refining",
+            "religion",
+            "republic",
+            "robotics",
+            "rocketry",
+            "space-flight",
+            "steam-engine",
+            "steel",
+            "superconductor",
+            "theory-of-gravity",
+            "trade",
+            "university",
+            "wheel",
+            "writing"
+          ],
+          "researching": "",
+          "bulbs": 100000,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 987654321
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setResearch",
+        "playerId": "p1",
+        "tech": "future-tech"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.researching": "future-tech"
+        }
+      }
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "players.p1.futureTech": 1,
+          "players.p1.researching": "future-tech"
+        }
+      }
+    }
+  ],
+  "final": {
+    "state": {
+      "players.p1.futureTech": 1
+    },
+    "hash": "0x3c44deda"
+  }
+}

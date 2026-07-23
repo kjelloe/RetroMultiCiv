@@ -193,3 +193,41 @@ test('production is tech-gated', async () => {
   const allowed = engine.applyCommand(state, { type: 'setProduction', playerId: 'p1', cityId: 'c1', item: { kind: 'unit', id: 'phalanx' } });
   assert.strictEqual(allowed.ok, true);
 });
+
+// XII.2 Future Tech (specs/xii2-future-tech.md): the repeatable end-of-tree science sink.
+function exhaustedState() {
+  return labState({ techs: Object.keys(RULESET.techs).slice(), researching: '', bulbs: 0, taxRate: 0, sciRate: 100 });
+}
+
+test('XII.2: an exhausted tree offers ONLY the Future Tech sentinel; a live tree never does', async () => {
+  const { tech } = await load();
+  assert.deepStrictEqual(tech.availableTechs(exhaustedState(), 'p1', RULESET), [tech.FUTURE_TECH_ID]);
+  const avail = tech.availableTechs(labState({ techs: [] }), 'p1', RULESET);
+  assert.ok(avail.length > 1 && avail.indexOf(tech.FUTURE_TECH_ID) === -1, 'a live tree returns real techs, no sentinel');
+});
+
+test('XII.2: setResearch accepts the sentinel only when the tree is exhausted', async () => {
+  const { tech, engine } = await load();
+  const ok = engine.applyCommand(exhaustedState(), { type: 'setResearch', playerId: 'p1', tech: tech.FUTURE_TECH_ID });
+  assert.ok(ok.ok, `sentinel accepted when exhausted: ${ok.reason}`);
+  assert.strictEqual(ok.state.players.p1.researching, tech.FUTURE_TECH_ID);
+  const no = engine.applyCommand(labState({ techs: [] }), { type: 'setResearch', playerId: 'p1', tech: tech.FUTURE_TECH_ID });
+  assert.strictEqual(no.reason, 'treeNotExhausted', 'the sentinel is rejected while real techs remain');
+});
+
+test('XII.2: completing Future Tech increments the counter, repeats, and escalates cost — never enters techs', async () => {
+  const { tech } = await load();
+  const s = exhaustedState();
+  s.players.p1.researching = tech.FUTURE_TECH_ID;
+  const known = s.players.p1.techs.length;
+  const cost1 = tech.researchCost(s, 'p1', RULESET);
+  assert.strictEqual(cost1, RULESET.rules.techBaseCost * (known + 1), 'first Future Tech costs techBaseCost*(known+1)');
+  s.players.p1.bulbs = cost1;
+  const events = [];
+  tech.processResearch(s, RULESET, events);
+  assert.strictEqual(s.players.p1.futureTech, 1, 'the counter increments');
+  assert.strictEqual(s.players.p1.researching, tech.FUTURE_TECH_ID, 'the sink repeats immediately');
+  assert.strictEqual(s.players.p1.techs.length, known, 'no synthetic id enters player.techs');
+  assert.ok(events.some(e => e.type === 'futureTechResearched' && e.playerId === 'p1' && e.n === 1), 'a futureTechResearched event carries N');
+  assert.strictEqual(tech.researchCost(s, 'p1', RULESET), RULESET.rules.techBaseCost * (known + 2), 'the next level costs one step more');
+});

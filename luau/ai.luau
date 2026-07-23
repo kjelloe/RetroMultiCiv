@@ -2618,6 +2618,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 	if (me.researching == "" or me.researching == nil) and done.research ~= true then
 		done.research = true
 		local avail = tech.availableTechs(state, playerId, ruleset)
+		-- XII.2: an exhausted real tree offers exactly the Future Tech sentinel (no
+		-- level/prereqs) — research it directly; the level-order pick below would index
+		-- ruleset.techs[sentinel] (nil). availableTechs never mixes it with real techs.
+		if #avail == 1 and avail[1] == tech.FUTURE_TECH_ID then
+			return { type = "setResearch", playerId = playerId, tech = tech.FUTURE_TECH_ID }
+		end
 		if #avail > 0 then
 			-- beeline Monarchy first (Civ 1 AIs rush a government)
 			local monarchyPath = {}

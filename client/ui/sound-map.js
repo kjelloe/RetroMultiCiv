@@ -44,6 +44,8 @@ export function soundForEvent(e, viewer, cityOwner) {
     case 'techDiscovered':
       // rivals' discoveries never reach a fogged seat (engine filterEvents)
       return e.playerId === viewer ? 'tech' : null;
+    case 'futureTechResearched': // XII.2: own-seat Future Tech N completed — reuse the research cue
+      return e.playerId === viewer ? 'tech' : null;
     case 'wonderBuilt':
       return 'wonder'; // world news — Civ 1 announces wonders to everyone
     case 'ageChanged':

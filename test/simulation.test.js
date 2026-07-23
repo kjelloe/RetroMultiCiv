@@ -37,17 +37,22 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // disorder mid-game); 200-400 + natural move. NATURAL stays 545 rounds (winner p2). ai.js-only ->
 // rulesetHash STAMP UNMOVED (K is an ai.js constant, not a rules knob). JS==Luau at every hash (lune
 // 400 0x4088da66, natural 545/0xce24dd0d). (Prior N2 moved only 400+natural; N1a moved 200-400.)
+// #31 XII.2 future-tech re-record: STAMP-ONLY (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL UNMOVED —
+// verified). Adding data/rules.json scorePerFutureTech ripples the rulesetHash stamp into every
+// createGame golden; the soak is DORMANT (no AI exhausts the 68-tech tree in 400/545 turns, so
+// futureTech stays 0). GOLDEN_SOAK 400 -> 0xd4151d33, GOLDEN_NATURAL -> 0x8f3aaace (rounds 400/545
+// + winner p2 unchanged). A paste-back, not a trajectory change.
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x681e9457',
-    200: '0xc48f0cdf',
-    300: '0x05fe29d7',
-    400: '0x4088da66'
+    100: '0x36bd0e42',
+    200: '0x8caf9a3a',
+    300: '0xcd6d8838',
+    400: '0xd4151d33'
   },
-  finalHash: '0x4088da66'
+  finalHash: '0xd4151d33'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xce24dd0d' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x8f3aaace' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

@@ -44,6 +44,8 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'techDiscovered':
       // rivals' discoveries never reach a fogged seat (engine filterEvents)
       return e.playerId === viewer ? 'research' : null;
+    case 'futureTechResearched': // XII.2: own-seat Future Tech N completed (repeatable end-of-tree sink)
+      return e.playerId === viewer ? 'research' : null;
     case 'ssPartBuilt': // A76: own spaceship part completed (own-seat only)
       return e.playerId === viewer ? 'cities' : null;
     case 'tradeRouteEstablished': // A89: own caravan established a route (🐫, own-seat)

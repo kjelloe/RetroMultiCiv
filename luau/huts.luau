@@ -115,11 +115,20 @@ local function rollHut(state: any, unit: any, ruleset: any, events: any)
 	local hut = ruleset.rules.hut
 	local w = hut.weights
 
+	-- XII.2: a goody hut grants a free REAL advance — never the Future Tech sentinel
+	-- (availableTechs returns it once the tree is exhausted); an exhausted tree keeps
+	-- the authentic "no free tech" behaviour.
+	local realTree = {}
+	for _, id in ipairs(tech.availableTechs(state, playerId, ruleset)) do
+		if id ~= tech.FUTURE_TECH_ID then
+			table.insert(realTree, id)
+		end
+	end
 	local outcomes = {}
 	if cities.foundCityLegality(state, x, y, ruleset) == nil then
 		table.insert(outcomes, { "advancedTribe", w.advancedTribe })
 	end
-	if state.turn > 1 and state.year <= 1000 and #tech.availableTechs(state, playerId, ruleset) > 0 then
+	if state.turn > 1 and state.year <= 1000 and #realTree > 0 then
 		table.insert(outcomes, { "advance", w.advance })
 	end
 	table.insert(outcomes, { "gold", w.gold })
@@ -147,10 +156,9 @@ local function rollHut(state: any, unit: any, ruleset: any, events: any)
 	if result == "advancedTribe" then
 		cities.createCityAt(state, playerId, x, y, ruleset, events)
 	elseif result == "advance" then
-		local avail = tech.availableTechs(state, playerId, ruleset)
-		local pick = rng.rollRange(state.rngState, #avail)
+		local pick = rng.rollRange(state.rngState, #realTree) -- sorted real techs (sentinel excluded)
 		state.rngState = pick.rngState
-		tech.grantTech(state, playerId, avail[pick.value + 1], ruleset, events)
+		tech.grantTech(state, playerId, realTree[pick.value + 1], ruleset, events)
 	elseif result == "gold" then
 		state.players[playerId].gold = state.players[playerId].gold + hut.gold
 	elseif result == "mercs" then

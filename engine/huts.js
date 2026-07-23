@@ -6,7 +6,7 @@
 // Lua-portable subset.
 import { rollRange } from './rng.js';
 import { foundCityLegality, createCityAt } from './cities.js';
-import { grantTech, availableTechs } from './tech.js';
+import { grantTech, availableTechs, FUTURE_TECH_ID } from './tech.js';
 import { barbTier, ensureBarbPlayer, BARB_ID } from './barbarians.js';
 import { unitsAt, cityAt } from './combat.js';
 import { cowTile } from './cow.js';
@@ -117,9 +117,13 @@ function rollHut(state, unit, ruleset, events) {
   const w = hut.weights;
 
   // Build the ELIGIBLE outcomes in the fixed order, dropping gated ones.
+  // XII.2: a goody hut grants a free REAL advance — never the Future Tech sentinel
+  // (availableTechs returns it once the tree is exhausted), so filter it out here;
+  // an exhausted tree keeps the authentic "no free tech" behaviour.
+  const realTree = availableTechs(state, playerId, ruleset).filter(id => id !== FUTURE_TECH_ID);
   const outcomes = [];
   if (foundCityLegality(state, x, y, ruleset) === null) outcomes.push(['advancedTribe', w.advancedTribe]);
-  if (state.turn > 1 && state.year <= 1000 && availableTechs(state, playerId, ruleset).length > 0) {
+  if (state.turn > 1 && state.year <= 1000 && realTree.length > 0) {
     outcomes.push(['advance', w.advance]);
   }
   outcomes.push(['gold', w.gold]);
@@ -143,10 +147,9 @@ function rollHut(state, unit, ruleset, events) {
   if (result === 'advancedTribe') {
     createCityAt(state, playerId, x, y, ruleset, events);
   } else if (result === 'advance') {
-    const avail = availableTechs(state, playerId, ruleset); // sorted
-    const pick = rollRange(state.rngState, avail.length);
+    const pick = rollRange(state.rngState, realTree.length); // sorted real techs (sentinel excluded)
     state.rngState = pick.rngState;
-    grantTech(state, playerId, avail[pick.value], ruleset, events); // fires Leonardo
+    grantTech(state, playerId, realTree[pick.value], ruleset, events); // fires Leonardo
   } else if (result === 'gold') {
     state.players[playerId].gold = state.players[playerId].gold + hut.gold;
   } else if (result === 'mercs') {
