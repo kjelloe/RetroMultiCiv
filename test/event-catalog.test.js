@@ -22,6 +22,7 @@ const EVENT_TYPES = {
   productionBought: 'cities', unitBuilt: 'cities', buildingBuilt: 'cities',
   buildingSold: 'cities', wonderBuilt: 'cities', wonderHelped: 'cities',
   wonderLost: 'cities', cityGrew: 'cities', cityStarved: 'cities', cityDisbanded: 'cities',
+  settlerRefused: 'cities',
   combatResolved: 'combat', promoted: 'combat', cityCaptured: 'combat',
   unitConsumed: 'combat', cargoLost: 'combat', cityNuked: 'combat', nukeFallout: 'combat',
   researchSet: 'tech', ratesSet: 'tech', techDiscovered: 'tech',

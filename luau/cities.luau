@@ -1010,27 +1010,43 @@ local function processCities(state: any, ruleset: any, events: any)
 			local unitType = ruleset.units[prod.id]
 			local cost = itemCost("unit", prod.id, unitType, owner, ruleset, state)
 			if city.shields >= cost then
-				city.shields -= cost
-				local unitId = "u" .. state.nextUnitId
-				state.nextUnitId += 1
-				state.units[unitId] = {
-					id = unitId, type = prod.id, owner = city.owner,
-					x = city.x, y = city.y, moves = unitType.moves,
-					fortified = false,
-					veteran = hasBuilding(city, "barracks") or civVeteran(owner, prod.id, ruleset),
-					home = cityId,
-				}
-				visibility.reveal(state, city.owner, city.x, city.y, 1)
-				table.insert(events, { type = "unitBuilt", cityId = cityId, unitId = unitId, unitType = prod.id })
-				-- §40: a unit with a pop cost (settlers) deducts pop on completion; a city
-				-- dropping below 1 is DISBANDED (it became the unit; unit goes homeless).
 				local popCost = if unitType.popCost == nil then 0 else unitType.popCost
-				if popCost > 0 then
-					city.pop -= popCost
-					if city.pop < 1 then
-						disbandCity(state, cityId, events, ruleset)
-					else
-						trimToPop(city)
+				-- XV §7 (Civ2-shape REFUSE): the CAPITAL (the Palace city) will NOT self-disband to build a
+				-- pop-cost unit — shields BANK at cost (blocked) until it grows or changes production. A
+				-- palace-less city keeps the §40 disband. Checked by the Palace building (unique), not capitalOf.
+				local cityIsCapital = false
+				for _, b in ipairs(city.buildings or {}) do
+					local eff = ruleset.buildings[b].effect
+					if eff ~= nil and eff.isPalace == true then
+						cityIsCapital = true
+						break
+					end
+				end
+				if popCost > 0 and city.pop - popCost < 1 and cityIsCapital then
+					if city.shields > cost then city.shields = cost end
+					table.insert(events, { type = "settlerRefused", cityId = cityId, unitType = prod.id })
+				else
+					city.shields -= cost
+					local unitId = "u" .. state.nextUnitId
+					state.nextUnitId += 1
+					state.units[unitId] = {
+						id = unitId, type = prod.id, owner = city.owner,
+						x = city.x, y = city.y, moves = unitType.moves,
+						fortified = false,
+						veteran = hasBuilding(city, "barracks") or civVeteran(owner, prod.id, ruleset),
+						home = cityId,
+					}
+					visibility.reveal(state, city.owner, city.x, city.y, 1)
+					table.insert(events, { type = "unitBuilt", cityId = cityId, unitId = unitId, unitType = prod.id })
+					-- §40: a unit with a pop cost (settlers) deducts pop on completion; a city
+					-- dropping below 1 is DISBANDED (it became the unit; unit goes homeless).
+					if popCost > 0 then
+						city.pop -= popCost
+						if city.pop < 1 then
+							disbandCity(state, cityId, events, ruleset)
+						else
+							trimToPop(city)
+						end
 					end
 				end
 			end

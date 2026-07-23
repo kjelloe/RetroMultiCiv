@@ -765,28 +765,44 @@ function processCities(state, ruleset, events) {
       const unitType = ruleset.units[prod.id];
       const cost = itemCost('unit', prod.id, unitType, owner, ruleset, state);
       if (city.shields >= cost) {
-        city.shields = city.shields - cost;
-        const unitId = 'u' + state.nextUnitId;
-        state.nextUnitId = state.nextUnitId + 1;
-        state.units[unitId] = {
-          id: unitId, type: prod.id, owner: city.owner,
-          x: city.x, y: city.y, moves: unitType.moves,
-          fortified: false,
-          veteran: hasBuilding(city, 'barracks') || civVeteran(owner, prod.id, ruleset),
-          home: cityId
-        };
-        reveal(state, city.owner, city.x, city.y, 1);
-        events.push({ type: 'unitBuilt', cityId, unitId, unitType: prod.id });
-        // §40: Civ 1 — a unit with a pop cost (settlers) deducts pop on
-        // completion; a city that drops below 1 is DISBANDED (it became the
-        // unit; the just-built unit goes homeless).
         const popCost = unitType.popCost === undefined ? 0 : unitType.popCost;
-        if (popCost > 0) {
-          city.pop = city.pop - popCost;
-          if (city.pop < 1) {
-            disbandCity(state, cityId, events, ruleset);
-          } else {
-            trimToPop(city);
+        // XV §7 (Civ2-shape REFUSE, user ruling): the CAPITAL (the city holding the Palace) will NOT
+        // self-disband to complete a pop-cost unit (a settler from a size-1 capital). Its production is
+        // BANKED — shields held AT cost, blocked — until the city grows past the pop cost or the player
+        // changes production. Non-capitals keep the authentic §40 disband below (a size-1 town "becomes"
+        // the settler). Checked by the Palace building itself (unique per civ), NOT capitalOf — a
+        // palace-less civ's fallback "capital" still disbands authentically (046-family unchanged).
+        let cityIsCapital = false;
+        for (const b of city.buildings === undefined ? [] : city.buildings) {
+          if (ruleset.buildings[b].effect !== undefined && ruleset.buildings[b].effect.isPalace === true) { cityIsCapital = true; break; }
+        }
+        const refuseCapital = popCost > 0 && city.pop - popCost < 1 && cityIsCapital;
+        if (refuseCapital) {
+          if (city.shields > cost) city.shields = cost; // bank at cost; no overflow while refused
+          events.push({ type: 'settlerRefused', cityId, unitType: prod.id });
+        } else {
+          city.shields = city.shields - cost;
+          const unitId = 'u' + state.nextUnitId;
+          state.nextUnitId = state.nextUnitId + 1;
+          state.units[unitId] = {
+            id: unitId, type: prod.id, owner: city.owner,
+            x: city.x, y: city.y, moves: unitType.moves,
+            fortified: false,
+            veteran: hasBuilding(city, 'barracks') || civVeteran(owner, prod.id, ruleset),
+            home: cityId
+          };
+          reveal(state, city.owner, city.x, city.y, 1);
+          events.push({ type: 'unitBuilt', cityId, unitId, unitType: prod.id });
+          // §40: Civ 1 — a unit with a pop cost (settlers) deducts pop on
+          // completion; a city that drops below 1 is DISBANDED (it became the
+          // unit; the just-built unit goes homeless).
+          if (popCost > 0) {
+            city.pop = city.pop - popCost;
+            if (city.pop < 1) {
+              disbandCity(state, cityId, events, ruleset);
+            } else {
+              trimToPop(city);
+            }
           }
         }
       }

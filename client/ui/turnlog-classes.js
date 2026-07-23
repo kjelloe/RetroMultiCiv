@@ -24,6 +24,8 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'unitBuilt': case 'buildingBuilt':
     case 'cityDisorder': case 'cityOrderRestored':
       return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
+    case 'settlerRefused': // XV §7: the capital banked a settler (own-seat only — an internal decision)
+      return cityOwner(e.cityId) === viewer ? 'cities' : null;
     case 'improvementBuilt':
       return e.owner === viewer ? 'cities' : 'rival';
     case 'buildingSold': // B13/A63: obsolete building auto-sold (own-seat only)

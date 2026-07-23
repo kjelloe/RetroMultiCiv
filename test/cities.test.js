@@ -372,6 +372,39 @@ test('settler food upkeep: a homed settler eats 1 food/turn; homeless is free; k
   assert.strictEqual(foodAfter(engAt(1), homed), baseline - 1, 'a homed settler eats 1 food/turn');
 });
 
+// XV §7 (Civ2-shape REFUSE, user ruling): a size-1 CAPITAL (Palace city) refuses to complete a
+// settler — it will NOT self-disband; the shields BANK at cost (blocked) until it grows or changes
+// production. A palace-LESS size-1 city keeps the authentic Civ1 §40 disband (it becomes the settler).
+test('XV §7: a size-1 capital refuses a settler (banks it); a non-capital disbands (§40)', async () => {
+  const { cities } = await load();
+  const tiles = []; for (let i = 0; i < 81; i++) tiles.push({ t: 'grassland' });
+  const cost = RULESET.units.settlers.cost;
+  const mk = () => ({
+    version: 1, turn: 50, year: -2000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 9, height: 9, wrapX: false, tiles }, units: {}, wonders: {}, nextUnitId: 50, nextCityId: 10,
+    cities: {
+      cap: { id: 'cap', name: 'Capital', owner: 'p1', x: 2, y: 2, pop: 1, food: 0, shields: cost + 20, buildings: ['palace'], producing: { kind: 'unit', id: 'settlers' }, workers: [] },
+      town: { id: 'town', name: 'Town', owner: 'p1', x: 6, y: 6, pop: 1, food: 0, shields: cost + 20, buildings: [], producing: { kind: 'unit', id: 'settlers' }, workers: [] }
+    },
+    cityOrder: ['cap', 'town'],
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } },
+    rngState: 1
+  });
+  const st = mk(); const events = [];
+  cities.processCities(st, RULESET, events);
+  // the CAPITAL refused: still alive, still size 1, shields banked AT cost, no settler from it
+  assert.ok(st.cities.cap !== undefined, 'the capital is NOT disbanded');
+  assert.strictEqual(st.cities.cap.pop, 1, 'the capital stays size 1');
+  assert.strictEqual(st.cities.cap.shields, cost, 'the capital banks its shields at cost (blocked)');
+  assert.ok(events.some(e => e.type === 'settlerRefused' && e.cityId === 'cap'), 'a settlerRefused event fired for the capital');
+  // the non-capital TOWN kept the §40 disband
+  assert.strictEqual(st.cities.town, undefined, 'the non-capital town disbanded (§40)');
+  assert.ok(events.some(e => e.type === 'cityDisbanded'), 'the town emitted cityDisbanded');
+  // exactly ONE settler was built (the town became it; the capital built none)
+  const settlers = Object.keys(st.units).filter(uid => st.units[uid].type === 'settlers');
+  assert.strictEqual(settlers.length, 1, 'only the non-capital produced a settler');
+});
+
 test('A79 blockade: an enemy unit on a worked tile removes it from the candidates; own unit does not', async () => {
   const { cities } = await load();
   const tiles = [];
