@@ -4,23 +4,19 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-23 late night (marker-0091 TAGGED @03a8732 =
-candidate, 23rd consecutive — #30 SUCCESS: unit tripwire GONE, hoards
-bounded, freed upkeep -> research, and the archetype wonder bar
-SELF-CLOSED 44%->64%. Also in 0091: the shared/version.js integrity
-fix + tracked-imports guard (hardening catch — clean-clone server
-boot was broken 5 markers, ~96 fails re-attributed) + XV fully closed
-(server-save merge). THE ONE OPEN FORK (user): witness-7 = 0 launches
-with everything else green — residual is RESEARCH DEPTH alone; accept
-authentically-contested space vs bulb-tune; a 3-arm rulesOverrides
-pre-measure runs on sim-runner so the ruling lands on data. Axis 5
-CLOSED (index LIVE). Studded round-2 played (runI, full 2100AD game,
-tiers 1-3 accepted; sound/saving = publish gate) -> 26-item batch
-triaged + rulings delivered. Engine order: invade-B [WINDOW OPEN] ->
-regent-stall HIGH bug #37 -> perf profile #15 [WIDENED: browser ff
-3min-to-150AD @14civ + roblox industrial —
-chunking + baker land client-side in parallel] -> gov-reeval -> XV-engine + smalls ->
-D3-surfacing -> D4-D6.)
+Last updated: 2026-07-24 away-window (marker-0092 TAGGED @0d265b4 =
+candidate, 24th consecutive — INVADE-B SHIPPED (war-committed overseas
+invasion, stamp-only, double-green) + rejoin bug closed both halves +
+the perf triple (ff chunking / age-snapshot instant-load incl. the
+user's 14-civ preset). Fork pre-measure: BULB-TUNE RULED OUT (0
+launches thru -30%) — the user fork narrows to accept vs
+endemic-war-taming-only. TWO root causes in build: regent-stall
+(guard=10 strands >=12-civ games — the user's hang, both platforms;
+golden-neutral) + workers>pop (disasters skip trimToPop — the
+pre-existing archipelago wall; its fix re-opens the naval sweep
+acceptance). Engine order: regent-stall fix -> workers>pop window ->
+naval-sweep re-run -> perf profile #15 -> gov-reeval -> XV-engine +
+smalls -> D3-surfacing -> D4-D6.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
