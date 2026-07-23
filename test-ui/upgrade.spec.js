@@ -20,8 +20,15 @@ test('upgrade: militia → musketeers for 50 gold, veteran-carrying label', asyn
     await expect(page.locator('#city-stats')).toBeVisible({ timeout: 30000 });
     await page.keyboard.press('Escape'); // close the e2e panels
 
-    // A92 setup: gold + gunpowder + a militia spawned at the capital
-    await page.keyboard.press('c'); // camera exactly on the capital
+    // The debug spawn targets the camera-view centre, so centre it on the capital by
+    // opening the capital's own city panel (openCityPanel → renderer.centerOn) — the
+    // militia then lands ON the capital tile, inside the city, where the upgrade is
+    // enabled. ('c' won't do this here: a city is still selected after the e2e boot,
+    // so 'c' cycles production instead of flying to the capital.)
+    await page.locator('#open-city-overview').click();
+    await page.locator('#city-overview-table .co-row').first().click(); // opens + centres on the capital
+
+    // A92 setup: gold + gunpowder + a militia at the capital
     await page.locator('#open-debug').click();
     await page.locator('#debug-gold').fill('500');
     await page.locator('#debug-grant-gold').click();
@@ -34,8 +41,9 @@ test('upgrade: militia → musketeers for 50 gold, veteran-carrying label', asyn
     await page.locator('#debug-unit').selectOption('militia');
     await page.locator('#debug-spawn').click();
     await page.locator('#debug-close').click();
+    await page.keyboard.press('Escape'); // close the city panel
 
-    // select the spawned militia; the bar offers the priced upgrade
+    // select the militia (inside the capital); the bar offers the priced, enabled upgrade
     await page.keyboard.press('n');
     const upBtn = page.locator('#action-bar button', { hasText: 'Upgrade to Musketeers' });
     await expect(upBtn).toBeVisible();

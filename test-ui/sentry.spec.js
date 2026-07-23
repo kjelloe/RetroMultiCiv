@@ -30,10 +30,14 @@ test('sentry: V sleeps, N skips, End Turn quiet, click wakes', async ({ browser 
     await page.keyboard.press('e');
     await expect(page.locator('#hud-status')).toContainText('turn 2', { timeout: 15000 });
 
-    // clicking the unit wakes it (camera booted centered on it)
-    const canvas = page.locator('#app canvas');
-    const box = await canvas.boundingBox();
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    // wake the sentried unit — on turn 2 it isn't under the canvas centre, so reach it
+    // through the military overview (the unit LIST) instead of a blind centre-click
+    // (architect ruling: target the unit's REAL position; no product camera call for a
+    // sleeping unit — its hiding until relevant is Civ-normal). The row selects it; V
+    // toggles sentry back off → awake.
+    await page.locator('#open-military-overview').click();
+    await page.locator('#military-overview-table .mo-row').first().click(); // selects the unit (+ closes the panel)
+    await page.keyboard.press('v');
     await expect(page.locator('#hud-selection')).toContainText('awake');
   } finally {
     await ctx.close();
