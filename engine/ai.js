@@ -90,7 +90,7 @@ const GLOBAL_UNLOCK_WONDERS = { 'apollo-program': true, 'manhattan-project': tru
 // with empire size (seed-6 1002 units); the cap bounds new growth. Sweepable (the 25-seed judge
 // tunes it). disbandOverBy = how far OVER the cap a civ must be before the at-peace disband valve
 // drains one obsolete attacker/turn (hysteresis so it doesn't fight the build at the boundary).
-const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6, armyTargetCap: 50, disbandOverBy: 4, invasionStageRadius: 6 };
+const BUILD_LEVER = { pbMax: 40, wonderMinShields: 5, wonderMedBuildings: 3, wonderLowShields: 8, wonderLowCities: 6, armyTargetCap: 50, disbandOverBy: 4, invasionStageRadius: 6, upgradeGoldReserve: 40 };
 
 // Government re-eval (specs/government-reeval.md): the AI advances government by
 // STANCE instead of stopping at Monarchy. Adoption rank (AI preference ordering,
@@ -2355,6 +2355,36 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         const isAttacker = def.attack > def.defense;
         if (isAttacker ? !attOver : !defOver) continue;         // only the class over its own cap
         return { type: 'disband', playerId, unitId: uid };
+      }
+    }
+  }
+
+  // #36 N2: a SOLVENT civ MODERNIZES an obsolete garrison. The AI never issued upgradeUnit, so late
+  // armies kept the ancient units built early (obsolete units mixed with modern new-builds). A unit
+  // standing in an OWNED city whose type is OBSOLETE (obsoletedBy known) and has an affordable
+  // upgradesTo successor (its tech known) upgrades ONE step per turn (deterministic, sorted id).
+  // Gold-gated with a reserve so it never drains the treasury. AFTER the disband valve, so an
+  // over-cap civ sheds bloat FIRST, then modernizes what it keeps.
+  if (!done.upgrade) {
+    done.upgrade = true;
+    const up = ruleset.rules.upgrade;
+    if (up !== undefined) {
+      for (const uid of sortIds(Object.keys(state.units))) {
+        const u = state.units[uid];
+        if (u.owner !== playerId || u.aboard !== undefined) continue;
+        const def = ruleset.units[u.type];
+        if (!unitObsolete(def, me.techs)) continue; // modernize OBSOLETE units only
+        const targetId = def.upgradesTo;
+        if (targetId === undefined) continue;
+        const newDef = ruleset.units[targetId];
+        if (newDef === undefined) continue;
+        if (newDef.tech !== '' && me.techs.indexOf(newDef.tech) === -1) continue; // successor tech known
+        const city = cityAt(state, u.x, u.y);
+        if (!city || city.owner !== playerId) continue; // must stand in an owned city (upgrade rule)
+        const diff = newDef.cost - def.cost;
+        const cost = up.baseGold + up.goldPerShield * (diff > 0 ? diff : 0); // mirrors upgrade.js upgradeCost
+        if (me.gold < cost + BUILD_LEVER.upgradeGoldReserve) continue; // affordable AND keep the reserve
+        return { type: 'upgradeUnit', playerId, unitId: uid };
       }
     }
   }

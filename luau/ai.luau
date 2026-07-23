@@ -54,7 +54,7 @@ local WONDER_AFFINITY: { [string]: { string } } = {
 local GLOBAL_UNLOCK_WONDERS: { [string]: boolean } = { ["apollo-program"] = true, ["manhattan-project"] = true }
 -- N9b build-priority lever constants (provisional — sim-swept, two-phase close;
 -- NOT rules.json). Twin of engine/ai.js BUILD_LEVER.
-local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6, armyTargetCap = 50, disbandOverBy = 4, invasionStageRadius = 6 }
+local BUILD_LEVER = { pbMax = 40, wonderMinShields = 5, wonderMedBuildings = 3, wonderLowShields = 8, wonderLowCities = 6, armyTargetCap = 50, disbandOverBy = 4, invasionStageRadius = 6, upgradeGoldReserve = 40 }
 -- Government re-eval adoption rank (behavior knob, matches engine/ai.js GOV_RANK):
 -- a revolt only ever moves UP this ladder, so there is no republic<->monarchy
 -- thrash. Democracy is DEFERRED to phase 6; no stance targets it.
@@ -2717,6 +2717,36 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						local classOver = if isAttacker then attOver else defOver
 						if classOver then
 							return { type = "disband", playerId = playerId, unitId = uid }
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- #36 N2: a SOLVENT civ MODERNIZES an obsolete garrison (the AI never issued upgradeUnit, so
+	-- late armies stayed ancient). An obsolete unit in an owned city with an affordable upgradesTo
+	-- successor (tech known) upgrades ONE step/turn (sorted id). Gold-gated with a reserve. After disband.
+	if done.upgrade ~= true then
+		done.upgrade = true
+		local up = ruleset.rules.upgrade
+		if up ~= nil then
+			for _, uid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+				local u = state.units[uid]
+				if u.owner == playerId and u.aboard == nil then
+					local def = ruleset.units[u.type]
+					local targetId = def.upgradesTo
+					if cities.unitObsolete(def, me.techs) and targetId ~= nil then
+						local newDef = ruleset.units[targetId]
+						if newDef ~= nil and (newDef.tech == "" or table.find(me.techs, newDef.tech) ~= nil) then
+							local city = combat.cityAt(state, u.x, u.y)
+							if city ~= nil and city.owner == playerId then
+								local diff = newDef.cost - def.cost
+								local cost = up.baseGold + up.goldPerShield * (if diff > 0 then diff else 0)
+								if me.gold >= cost + BUILD_LEVER.upgradeGoldReserve then
+									return { type = "upgradeUnit", playerId = playerId, unitId = uid }
+								end
+							end
 						end
 					end
 				end

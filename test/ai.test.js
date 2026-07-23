@@ -311,6 +311,39 @@ test('#36 N1b: a science civ adopts Democracy when safe, holds Republic when thr
     'no democracy tech -> stays Republic');
 });
 
+// #36 N2: a SOLVENT civ modernizes an OBSOLETE garrison — the AI never issued upgradeUnit before, so
+// late armies kept the ancient units built early. A phalanx (obsoletedBy gunpowder) standing in an
+// owned city, with the successor's tech (musketeers@gunpowder) and enough gold above the reserve,
+// upgrades in place. Below the reserve it holds (never drains the treasury).
+test('#36 N2: a solvent civ upgrades an obsolete garrison in a city; a poor civ holds', async () => {
+  const { ai, engine } = await load();
+  const eng = engine;
+  const tiles = []; for (let i = 0; i < 81; i++) tiles.push({ t: 'grassland' });
+  const mk = (gold) => ({
+    version: 1, turn: 200, year: 1000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 9, height: 9, wrapX: false, tiles },
+    units: { ph: { id: 'ph', type: 'phalanx', owner: 'p1', x: 3, y: 3, moves: 1, fortified: false, veteran: false } },
+    wonders: {}, nextUnitId: 10, nextCityId: 5,
+    cities: { c1: { id: 'c1', name: 'A', owner: 'p1', x: 3, y: 3, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' }, workers: [] } },
+    cityOrder: ['c1'],
+    players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold, techs: ['gunpowder'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, government: 'monarchy', stance: 'balanced' } },
+    rngState: 1
+  });
+  const skip = () => ({ happiness: true, research: true, disband: true, launch: true, rates: true, buy: true, naval: true, government: true });
+  // phalanx (cost 20) -> musketeers (cost 30): cost = baseGold 10 + goldPerShield 2 * 10 = 30; reserve 40.
+  const rich = ai.pickCommand(mk(100), 'p1', RULESET, skip());
+  assert.strictEqual(rich.type, 'upgradeUnit', 'a solvent civ upgrades the obsolete garrison; got ' + JSON.stringify(rich));
+  assert.strictEqual(rich.unitId, 'ph');
+  // it applies: phalanx -> musketeers, gold 100 - 30 = 70
+  const r = eng.applyCommand(mk(100), rich);
+  assert.ok(r.ok, `upgrade applies: ${r.reason || 'ok'}`);
+  assert.strictEqual(r.state.units.ph.type, 'musketeers', 'the phalanx modernized to its successor');
+  assert.strictEqual(r.state.players.p1.gold, 70, 'the upgrade cost 30 gold');
+  // below the reserve (gold 50 < cost 30 + reserve 40 = 70) it must NOT upgrade
+  const poor = ai.pickCommand(mk(50), 'p1', RULESET, skip());
+  assert.notStrictEqual(poor.type, 'upgradeUnit', 'a civ below the gold reserve holds, not drains the treasury');
+});
+
 // B21(c): rush-buy a threatened city's military production above the gold floor
 // (rules.aiBuyThreshold). "no buys ever" dies here.
 test('B21(c): aiBuyThreshold is sweepable — a flush, threatened city rush-buys', async () => {
