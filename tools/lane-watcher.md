@@ -109,8 +109,17 @@ real doctrine; the prompt only points at the mailbox.
   default) bounds the worst case at ~2 turns/lane/hour, and only
   while work actually sits unclaimed. A woken lane that finishes and
   acks stops triggering.
-- Wakes are fire-and-forget: the watcher never waits on a turn, so
-  one lane's long work never delays another lane's wake.
+- Wakes are fire-and-forget ACROSS clones — one lane's long turn
+  never delays a wake in a different directory — but SERIALIZED
+  within one directory: **two lanes sharing a clone** (sim-runner +
+  roblox-helper on the gaming PC — intentional: sim-runner commits
+  the roblox-helper's working-tree bytes) never get simultaneous
+  turns in the same working tree. While one wake turn runs there,
+  the other lane simply stays flagged and is woken on a later round
+  after the first turn exits. List both lanes with the same `dir`;
+  the watcher handles the rest. Order tip: list the WORKER
+  (roblox-helper) before the COMMITTER (sim-runner) in lanes.json —
+  round order gives the producer first crack at a fresh tree.
 - The watcher COMPOSES with flag-wait, it does not replace it: a
   live session still uses `flag wait` inside its turns; the watcher
   only matters once the session has gone dark.

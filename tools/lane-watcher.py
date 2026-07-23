@@ -71,15 +71,20 @@ def poll(lane, cwd):
         return None  # unreachable/malformed = no wake this round
 
 
-def wake(entry, prompt, dry):
+def wake(entry, prompt, dry, procs):
     cmd = entry.get('cmd', 'claude -p {prompt!r}').format(prompt=prompt)
     print(f"[{time.strftime('%H:%M:%S')}] WAKE {entry['lane']}: {cmd[:80]}...")
     if dry:
         return
-    # fire-and-forget: the turn runs in the lane's clone; the watcher
-    # never waits on it (a long work turn must not block other lanes)
-    subprocess.Popen(cmd, shell=True, cwd=entry['dir'],
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # fire-and-forget ACROSS dirs (a long turn never blocks other lanes'
+    # wakes) but SERIALIZED within one dir via the procs registry the
+    # caller checks: two lanes sharing a clone (sim-runner commits the
+    # roblox-helper's working-tree bytes by design) must never get
+    # simultaneous turns in one working tree — a rebase under a
+    # mid-edit tree is the mixed-tree failure class.
+    procs[entry['dir']] = subprocess.Popen(
+        cmd, shell=True, cwd=entry['dir'],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def main():
@@ -93,12 +98,19 @@ def main():
     a = ap.parse_args()
     lanes = json.load(open(a.config))
     last_wake = {}
+    procs = {}  # dir -> the running wake process (one turn per working tree)
     print(f'lane-watcher: {len(lanes)} lane(s), poll {a.interval}s, cooldown {a.cooldown}s'
           + (' [DRY RUN]' if a.dry_run else ''))
     while True:
         now = time.time()
         for entry in lanes:
             lane = entry['lane']
+            p = procs.get(entry['dir'])
+            if p is not None and p.poll() is None:
+                # a wake turn is still running in this working tree —
+                # never start a second one there (shared-clone rule);
+                # the lane stays flagged and is picked up next round
+                continue
             c = poll(lane, entry['dir'])
             if c is None:
                 continue
@@ -109,7 +121,7 @@ def main():
             if now - last_wake.get(lane, 0) < cool:
                 continue
             last_wake[lane] = now
-            wake(entry, WAKE_PROMPT.format(lane=lane), a.dry_run)
+            wake(entry, WAKE_PROMPT.format(lane=lane), a.dry_run, procs)
         if a.once:
             return
         time.sleep(a.interval)
