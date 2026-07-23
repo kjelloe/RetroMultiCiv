@@ -876,7 +876,7 @@ local function startGame()
 				local host = Players:GetPlayerByUserId(hostUserId or 0)
 				if host ~= nil then
 					-- toast() is a later local (scope order) — send the shape direct
-					remote:FireClient(host, { t = "toast",
+					remote:FireClient(host, { t = "toast", kind = "error", -- runI item 2: red edge
 						text = "Fast-forward stopped early (" .. tostring(ab.reason)
 							.. ") - try another seed, age, or civ count." })
 				end
@@ -1091,8 +1091,10 @@ end
 -- run-4 live ruling: pads are WALK-ON (touch = trigger; the E-prompt stays a
 -- backup), and a pad that does not apply EXPLAINS itself with a toast
 -- instead of silently doing nothing.
-local function toast(player, text)
-	remote:FireClient(player, { t = "toast", text = text })
+-- runI item 2: kind="error" makes the client banner show its red left edge
+-- (rejects/errors); nil/omitted = neutral info, no edge.
+local function toast(player, text, kind)
+	remote:FireClient(player, { t = "toast", text = text, kind = kind })
 end
 
 local function padStart(player)
@@ -1103,7 +1105,7 @@ local function padStart(player)
 		return
 	end
 	if phase == "running" then
-		toast(player, "A game is already in progress - TAKE OVER AI CIV joins it, or wait for it to end.")
+		toast(player, "A game is already in progress - TAKE OVER AI CIV joins it, or wait for it to end.", "error")
 		return
 	end
 	hostUserId = player.UserId
@@ -1132,7 +1134,7 @@ local function padJoin(player)
 		return
 	end
 	if phase == "running" then
-		toast(player, "The game already started - TAKE OVER AI CIV is the way in now.")
+		toast(player, "The game already started - TAKE OVER AI CIV is the way in now.", "error")
 		return
 	end
 	if hostUserId == player.UserId then

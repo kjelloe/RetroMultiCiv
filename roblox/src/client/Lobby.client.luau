@@ -20,19 +20,59 @@ gui.ResetOnSpawn = false
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- run-4: pad toasts — every pad touch answers with either an action or an
--- explanation of why it doesn't apply right now (bottom-center, 5s)
+-- runI item 2: user-message banner — top-center over the deck, 2x the old font,
+-- a dark rounded panel auto-sized to the text, a RED left edge for rejects/errors
+-- (msg.kind=="error"), ~6s auto-dismiss + tap-to-dismiss, one at a time.
+local toastPanel = Instance.new("TextButton") -- a button so tapping dismisses it
+toastPanel.AutomaticSize = Enum.AutomaticSize.XY
+toastPanel.Size = UDim2.new(0, 0, 0, 0)
+toastPanel.AnchorPoint = Vector2.new(0.5, 0)
+toastPanel.Position = UDim2.new(0.5, 0, 0, 70)
+toastPanel.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
+toastPanel.BackgroundTransparency = 0.1
+toastPanel.AutoButtonColor = false
+toastPanel.Text = ""
+toastPanel.Visible = false
+toastPanel.ZIndex = 20
+toastPanel.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 10)
+	c.Parent = toastPanel
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 22)
+	pad.PaddingRight = UDim.new(0, 18)
+	pad.PaddingTop = UDim.new(0, 12)
+	pad.PaddingBottom = UDim.new(0, 12)
+	pad.Parent = toastPanel
+end
+local toastEdge = Instance.new("Frame") -- the reject-only red left edge
+toastEdge.Size = UDim2.new(0, 6, 1, 0)
+toastEdge.Position = UDim2.new(0, 0, 0, 0)
+toastEdge.BackgroundColor3 = Color3.fromRGB(200, 70, 60)
+toastEdge.BorderSizePixel = 0
+toastEdge.ZIndex = 21
+toastEdge.Visible = false
+toastEdge.Parent = toastPanel
 local toastLabel = Instance.new("TextLabel")
-toastLabel.Size = UDim2.new(0, 620, 0, 44)
-toastLabel.Position = UDim2.new(0.5, -310, 1, -170)
-toastLabel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-toastLabel.BackgroundTransparency = 0.12
-toastLabel.TextColor3 = Color3.fromRGB(255, 235, 180)
+toastLabel.AutomaticSize = Enum.AutomaticSize.XY
+toastLabel.Size = UDim2.new(0, 0, 0, 0)
+toastLabel.BackgroundTransparency = 1
+toastLabel.TextColor3 = Color3.fromRGB(255, 240, 200)
 toastLabel.Font = Enum.Font.SourceSansBold
-toastLabel.TextSize = 18
+toastLabel.TextSize = 36 -- 2x the old 18 (the user's spec)
 toastLabel.TextWrapped = true
-toastLabel.Visible = false
-toastLabel.Parent = gui
+toastLabel.ZIndex = 20
+toastLabel.Parent = toastPanel
+do -- cap the width so long messages wrap instead of stretching off-screen
+	local sc = Instance.new("UISizeConstraint")
+	sc.MaxSize = Vector2.new(760, math.huge)
+	sc.Parent = toastLabel
+end
 local toastGen = 0
+toastPanel.Activated:Connect(function()
+	toastPanel.Visible = false
+end)
 
 -- run-4 live request: BIG global game-start countdown — center, ~25% from
 -- the top, unmissable; ticks with the server's 1 Hz lobby broadcast
@@ -65,8 +105,8 @@ greeting.Parent = gui
 
 -- lobby panel (phase + seats + countdown)
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 260, 0, 210)
-panel.Position = UDim2.new(1, -268, 0, 120)
+panel.Size = UDim2.new(0, 330, 0, 430) -- runI item 6: wider + taller for the +50% seat font
+panel.Position = UDim2.new(1, -338, 0, 120)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0
@@ -89,14 +129,18 @@ end
 
 local phaseLine = label(panel, 6, 18, "")
 local countdownLine = label(panel, 26, 18, "")
-local seatsFrame = Instance.new("Frame")
+local seatsFrame = Instance.new("ScrollingFrame") -- runI item 6: scroll so ALL N seats show at the +50% font
 seatsFrame.Size = UDim2.new(1, -12, 1, -52)
 seatsFrame.Position = UDim2.new(0, 6, 0, 48)
 seatsFrame.BackgroundTransparency = 1
+seatsFrame.BorderSizePixel = 0
+seatsFrame.ScrollBarThickness = 6
+seatsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+seatsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 seatsFrame.Parent = panel
 local seatsLayout = Instance.new("UIListLayout")
 seatsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-seatsLayout.Padding = UDim.new(0, 2)
+seatsLayout.Padding = UDim.new(0, 3)
 seatsLayout.Parent = seatsFrame
 
 -- host setup panel
@@ -176,12 +220,13 @@ stepButton(8, 430, "~", function() sendSetup("spectators", 1) end) -- CP16 toggl
 stepButton(8, 472, "~", function() sendSetup("marathon", 1) end) -- MP11 toggle
 
 local startBtn = Instance.new("TextButton")
-startBtn.Size = UDim2.new(0, 130, 0, 28)
-startBtn.Position = UDim2.new(1, -138, 1, -36)
+-- runI item 5: +50% Start button, anchored bottom-center, full width minus margins
+startBtn.Size = UDim2.new(1, -16, 0, 42)
+startBtn.Position = UDim2.new(0, 8, 1, -50)
 startBtn.BackgroundColor3 = Color3.fromRGB(60, 130, 80)
 startBtn.TextColor3 = Color3.fromRGB(235, 245, 235)
 startBtn.Font = Enum.Font.SourceSansBold
-startBtn.TextSize = 17
+startBtn.TextSize = 26
 startBtn.Text = "START GAME"
 startBtn.Parent = setupPanel
 startBtn.Activated:Connect(function()
@@ -290,7 +335,7 @@ local function render(lobby)
 	end
 	for i, seat in ipairs(lobby.seats or {}) do
 		local row = Instance.new("Frame")
-		row.Size = UDim2.new(1, 0, 0, 20)
+		row.Size = UDim2.new(1, 0, 0, 30) -- runI item 6: taller for the +50% font
 		row.LayoutOrder = i
 		row.BackgroundTransparency = 1
 		row.Parent = seatsFrame
@@ -299,12 +344,14 @@ local function render(lobby)
 		text.BackgroundTransparency = 1
 		text.TextColor3 = Color3.fromRGB(220, 220, 225)
 		text.Font = Enum.Font.Code
-		text.TextSize = 14
+		text.TextSize = 21 -- runI item 6: +50% font
 		text.TextXAlignment = Enum.TextXAlignment.Left
 		-- R21: 'Perfectionist' = the authentic Civ1 trait name for the
 		-- engine's 'builder' stance (reviewer-verified); balanced = no tag
 		local stanceTag = seat.stance == "builder" and " [Perfectionist]" or ""
-		text.Text = ("%s %s - %s%s"):format(seat.pid, seat.name, seat.who, stanceTag)
+		-- runI item 6: the host's own row carries the same ★ idiom the capital uses
+		local star = seat.who == Players.LocalPlayer.Name and "★ " or ""
+		text.Text = ("%s%s %s - %s%s"):format(star, seat.pid, seat.name, seat.who, stanceTag)
 		text.Parent = row
 		if lobby.youAreAdmin and seat.who ~= "open" and seat.who ~= "AI" and seat.who ~= "regent" then
 			local kick = Instance.new("TextButton")
@@ -355,12 +402,13 @@ remote.OnClientEvent:Connect(function(msg)
 	end
 	if msg.t == "toast" then
 		toastLabel.Text = tostring(msg.text)
-		toastLabel.Visible = true
+		toastEdge.Visible = msg.kind == "error" -- rejects/errors get the red edge
+		toastPanel.Visible = true -- newest replaces (one at a time)
 		toastGen += 1
 		local gen = toastGen
-		task.delay(5, function()
+		task.delay(6, function()
 			if gen == toastGen then
-				toastLabel.Visible = false
+				toastPanel.Visible = false
 			end
 		end)
 	elseif msg.t == "greeting" then
