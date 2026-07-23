@@ -1185,6 +1185,11 @@ export function startServer(opts) {
           return;
         }
         const { entry, seat } = res;
+        // §1 late-join: per-game flag, default ON, disabled host-wide by
+        // --no-late-join. Only EFFECTIVE with listPublicly (options.public) —
+        // §2 listing + §3 takeover check the (public AND lateJoining) pair.
+        entry.options.lateJoining = opts.noLateJoin !== true
+          && (msg.options && msg.options.lateJoining) !== false;
         info.gameId = entry.gameId; info.seat = seat; info.isCreator = true;
         send(ws, { t: 'created', gameId: entry.gameId, joinCode: entry.joinCode, seat, lobby: roster(entry) });
         return;
@@ -1515,6 +1520,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--log-json') opts.logJson = true;
     // A50 item 6: closed-group invite gate — CSV of accepted ?invite= codes
     else if (a === '--invite-code') opts.inviteCodes = String(argv[++i] || '').split(',').map(s => s.trim());
+    // late-join §1: host-wide off-switch for late-join takeover (default ON per-game)
+    else if (a === '--no-late-join') opts.noLateJoin = true;
     // A50 item 3 rotation caps (saves/ budget; oldest completed/abandoned first)
     else if (a === '--max-saves') (opts.rotation = opts.rotation || {}).maxSaves = Number(argv[++i]);
     else if (a === '--max-saves-mb') (opts.rotation = opts.rotation || {}).maxSavesMb = Number(argv[++i]);
