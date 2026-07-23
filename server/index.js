@@ -507,6 +507,13 @@ export function startServer(opts) {
     for (const [, i] of conns) if (i.gameId === gameId) n = n + 1;
     return n;
   }
+  // late-join §5: connected SEATED humans (not spectators) — the count that
+  // decides pause-on-empty.
+  function humanConnCount(gameId) {
+    let n = 0;
+    for (const [, i] of conns) if (i.gameId === gameId && i.playerId && i.playerId !== 'spectator') n = n + 1;
+    return n;
+  }
   function closeGame(gameId, reason) {
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'gameClosed', gameId, reason });
     registry.remove(gameId); // the on-disk save survives — abandoned games stay resumable by code
@@ -736,6 +743,7 @@ export function startServer(opts) {
   const regentDriving = {};
   async function driveRegents(gameId, e) {
     if (!e || !e.game || regentDriving[gameId]) return;
+    if (e.paused) return; // §5 pause-on-empty: no AI/regency turns while zero humans connected
     regentDriving[gameId] = true;
     try {
       let guard = 2000;
@@ -1104,6 +1112,13 @@ export function startServer(opts) {
           // docs/08 §4: the game learns who dropped ("waiting for <name>")
           broadcastGame(info.gameId, { t: 'presence', playerId: info.playerId, connected: false });
           scheduleTakeover(info.gameId, info.playerId); // XIV §30: AI takes over / auto-skip after the grace window
+          // §5 pause-on-empty: when the LAST connected human leaves a public+
+          // lateJoining game, PAUSE — no AI/regency turns, no clock (driveRegents
+          // early-returns on e.paused). It stays listed as 'paused', a late-join
+          // or token rejoin + a human action resumes it.
+          if (e.options.public === true && e.options.lateJoining === true && humanConnCount(info.gameId) === 0) {
+            e.paused = true;
+          }
         }
       }
     });
@@ -1355,6 +1370,7 @@ export function startServer(opts) {
           return;
         }
         e.game.setRegent(info.playerId, msg.stance);
+        if (e.paused) e.paused = false; // §5: re-enabling regency resumes a paused game
         broadcastGame(info.gameId, { t: 'presence', all: presenceMap(info.gameId), regents: regentMap(info.gameId) });
         driveRegents(info.gameId, e); // if it's their turn now, start playing
         return;
@@ -1389,6 +1405,7 @@ export function startServer(opts) {
       const out = route(e.game, msg);
       for (const m of out.reply) send(ws, m);
       fanout(gameId, out, e.game);
+      if (e.paused && seatPid !== null) e.paused = false; // §5: a seated human's command resumes a paused game
       driveRegents(gameId, e); // A40: if the turn landed on a regent, play it
     });
   });

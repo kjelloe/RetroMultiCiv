@@ -76,6 +76,31 @@ test('§2 listGames: a running public+lateJoining game lists with state/turn/era
   } finally { await s.close(); }
 });
 
+test('§5 pause-on-empty: a public+lateJoining game pauses when its last human leaves', async () => {
+  const { startServer } = await import('../server/index.js');
+  const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1' });
+  try {
+    const host = await client(s.port);
+    host.send({ t: 'create', name: 'Host', options: { public: true, civs: 2, humans: 1, size: 'xsmall' } });
+    const created = await host.expect(m => m.t === 'created');
+    host.send({ t: 'start' });
+    await host.expect(m => m.t === 'joined');
+
+    // the only human leaves -> the game must PAUSE (no AI/regency advance)
+    host.close();
+    await new Promise(r => setTimeout(r, 150)); // let the close handler run
+
+    const browser = await client(s.port);
+    browser.send({ t: 'listGames' });
+    const list = await browser.expect(m => m.t === 'openGames');
+    const row = list.games.find(r => r.gameId === created.gameId);
+    assert.ok(row, 'the emptied game is still listed');
+    assert.strictEqual(row.state, 'paused', 'it paused when the last human left');
+    assert.strictEqual(row.joinable, true, 'a late-joiner can revive it');
+    browser.close();
+  } finally { await s.close(); }
+});
+
 test('§3 late-join: --no-late-join / non-public game refuses the tokenless takeover', async () => {
   const { startServer } = await import('../server/index.js');
   const s = await startServer({ ruleset: RULESET, seed: 5, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1', noLateJoin: true });
