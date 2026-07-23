@@ -136,3 +136,23 @@ test('B11: take-back stops the loop and manual commands never auto-end the turn'
   assert.ok(logTail.every(e => e.turn <= turnAfterTakeBack),
     'no regent round entries appended after take-back');
 });
+
+// #37 regent-stall: the AI-round traversal guard must cover a FULL round of AI seats. With the
+// old fixed guard of 10, a game with > 10 AI seats (≥ 12 civs; medium/large default to 14) left
+// the round loop exiting with activePlayer STUCK on an AI seat and the turn not advanced — the
+// game froze (the regent driver breaks since activePlayer ≠ human, and no driver advances an AI
+// seat). This drives a 14-civ regent round and asserts it returns to the human seat.
+test('#37 regent-stall: a 14-civ round completes without stranding activePlayer on an AI seat', async () => {
+  const { createEngine, deepClone, createSession } = await load();
+  const engine = createEngine(RULESET);
+  const players = [];
+  for (let i = 1; i <= 14; i++) players.push({ id: 'p' + i, name: 'Civ' + i, color: '#3b7dd8', human: i === 1 });
+  const initial = engine.createGame({ seed: 40, options: { width: 56, height: 35, players } });
+  assert.ok(initial.playerOrder.length >= 12, `needs ≥12 seats to exercise the guard (got ${initial.playerOrder.length})`);
+  const session = createSession(RULESET, deepClone(initial), {});
+  session.setRegent('p1', 'balanced');
+  await session.regentTurn();
+  assert.ok(session.state.gameOver || session.state.players[session.state.activePlayer].human,
+    `the round stranded activePlayer on AI seat ${session.state.activePlayer} (turn ${session.state.turn}) — the guard did not cover a full round`);
+  assert.strictEqual(session.state.turn, 2, 'the round advanced to turn 2 (back to the human/regent seat)');
+});

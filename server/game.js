@@ -275,7 +275,10 @@ export function createGame(opts) {
     }
     state = first.state;
     for (const e of first.events) collected.push(e);
-    let guard = 10;
+    // #37 regent-stall: cover a FULL round of AI seats — a fixed 10 stranded activePlayer
+    // on an AI seat in ≥12-civ games (the round never wrapped back to the human/regent),
+    // freezing the live server's large-civ games. Scale with the seat count (+2 slack).
+    let guard = state.playerOrder.length + 2;
     while (!state.gameOver && !state.players[state.activePlayer].human && guard-- > 0) {
       state = runAiTurn(engine, state, state.activePlayer, ruleset, collected);
       const res = engine.applyCommand(state, { type: 'endTurn', playerId: state.activePlayer });

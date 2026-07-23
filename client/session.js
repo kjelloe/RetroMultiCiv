@@ -132,7 +132,11 @@ export function createSession(ruleset, initialState, opts) {
       }
       state = first.state;
       for (const e of first.events) collected.push(e);
-      let guard = 10;
+      // #37 regent-stall: the guard must cover a FULL round of AI seats — a fixed 10
+      // stranded activePlayer on an AI seat in ≥12-civ games (the round couldn't wrap
+      // back to the human/regent), freezing the game. Scale with the seat count (+2 slack;
+      // still a runaway net). playerOrder length ≥ live seats, so a round always completes.
+      let guard = state.playerOrder.length + 2;
       let seen = 0;
       roundInFlight = true;
       try {
