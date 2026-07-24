@@ -16,13 +16,12 @@ XIX + regression-guards queued; RC drafts banked)._
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Ally round-trip: send the gallery strip** — the update was
-  forwarded and the ally answered all three invitations (captured +
-  routed: `specs/ally-response-2026-07-25-iteration.md` — tone
-  doctrine, DEFEAT own-glyph, intro timing, silhouette principle).
-  Its one ask back: the specials GALLERY STRIP
-  (`debugging/usergenerated/xvii-specials-*`) for specific art
-  notes — attach with your next message to them.
+- [x] **Ally round-trip COMPLETE** (2026-07-25): update forwarded,
+  all three invitations answered, gallery strip reviewed — **specials
+  visual language ACCEPTED** ("iterate only beast/game silhouette;
+  preserve crystal-vs-stone"). Everything captured + routed
+  (`specs/ally-response-2026-07-25-iteration.md`). Nothing pending
+  either direction until the next screenshot round.
 
 - [ ] **Title clearance (standing):** commission the PROFESSIONAL
   trademark search for "A World Begun" (lead) + "The Work of Ages"
