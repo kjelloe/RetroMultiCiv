@@ -25,12 +25,16 @@ them in the published text and note back to the ally:
 4. **"Founding Record" → "Founder's Record"** — the ally's own
    sanctioned in-product name (naming ruling 2026-07-24).
 
-DEPENDENCY FLAG: "Join any game, any time … your seat will be held"
-promises LATE-JOIN on Roblox — that parity is post-v1-browser (the
-Node server has it; the Roblox experience inherits it via the
-cross-play/R6 path later). Either confirm the Roblox join story
-before publish or soften to "join games in progress" phrasing that
-matches what the experience actually does at publish time.
+JOIN-STORY VERIFIED (user challenge, architect confirmed in
+GameServer.server.luau — the earlier dependency flag was WRONG):
+the Roblox experience ALREADY delivers the copy's promise natively —
+Roblox servers are drop-in, the TAKE OVER pad seats a mid-game
+joiner into a vacant regent-driven seat ("TAKE OVER AI CIV joins
+it"), and the R22 regent-hold is exactly "your seat will be held"
+(leave → the regent plays your stance → reclaim). Mechanism differs
+from the Node late-join feature (random vacant human seat vs
+second-strongest AI civ) but the player-facing promise is true
+as written. No copy change needed on this point.
 
 ## 500-character version (verbatim)
 
