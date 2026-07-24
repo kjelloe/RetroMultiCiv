@@ -4,20 +4,21 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 (marker-0099 TAGGED @7d08d41 =
-MERGE-CONSISTENT candidate, clean-clone-gated — supersedes 0097/0098
-[0098's declaration was withdrawn on the reviewer's clean-clone RED,
-fixed same hour; declarations now WAIT for that gate]. REDEPLOY FROM
-0099: late-join feature-complete + join-share QR + self-host
-find-a-game fix + play-lane sweep (zero unexplained reds) + runI/runJ
-batch. NEW since: refinement-XVII 22-item batch routed (helper
-mid-batch, 8/18 done) + RIVER TERRAIN user-ruled INTO v1
-(specs/river-terrain.md — the 12th Civ1 terrain; spine slot after
-coastal-build) + the coastal-build engine bug + join-toggle two-lane +
-the roblox intro animation. Engine spine now: A8 threading (kit
-banked, fresh session) -> coastal-build -> RIVER -> D3-surfacing ->
-D4-D6 (+ workturns-terrain/transforms after river, fact-check
-banked #2465). 0097 carried:
+Last updated: 2026-07-25 morning (marker-0101 TAGGED @c51dceb =
+MERGE-CONSISTENT + REDEPLOY candidate, clean-clone --full GREEN
+886/0-fail, supersedes 0097–0100; luau pin 0xd4151d33 unchanged
+across FOUR markers — everything since 0097 is engine-golden-neutral.
+0101 closes **refinement-XVII COMPLETE** (all 22 items: 18-item
+client batch + join-toggle both halves) + runK roblox batch +
+tooling fixes (ack-parser hash bug, reaper cooldown, watcher
+deployed+verified). RC PREP BANKED: reports/v1-rc-draft.md (axes
+pre-filled) + specs/readme-v1-draft.md (ally blocks framed,
+title-swappable). Remaining v1 = the engine spine (A8 threading
+[kit banked] -> coastal-build -> RIVER -> D3-surfacing -> D4-D6,
++ workturns/transforms companion, fact-check #2465 banked) +
+Founder's Record (fresh helper session) + the Studio
+publish/acceptance session. USER: redeploy 0101, two fresh sessions,
+roblox Write approval, Studio, trademark. 0097 carried:
 #8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
 requested #2393) · agent-mail at-least-once upgrade · fish/specials
 motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
@@ -83,7 +84,8 @@ flowchart TD
     LJS["✅ late-join+pause+eviction FEATURE-COMPLETE\n(user design 2026-07-24 -> merged @205bbfe\nsame day; --no-late-join documented)"]
     SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
     VCT["✅ #19 view-contract test MERGED (012d04b)\n+ master-proxy + lobby-drop (reviewer green)"]
-    A50R --> A51D --> LJS --> SEC2 --> VCT
+    JTG["✅ XVII §3 join-toggle merged @e00be57\n(host open/closed, AI-seat auto-fill,\nreconnect-reclaim verified) — server lane\nqueue EMPTY, all delivered"]
+    A50R --> A51D --> LJS --> SEC2 --> VCT --> JTG
   end
 
   subgraph CLIENT["CLIENT/UI lane (golden-neutral)"]
@@ -91,7 +93,7 @@ flowchart TD
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
     A49["✅ A49 flow-2 SHIPPED (0097; per-seat\nfog guards) · 📋 flow-4 rides Founder's Record"]
-    LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + the play-lane sweep\n(zero unexplained reds) · 🔨 XVII batch 8/18"]
+    LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + play-lane sweep +\nrefinement-XVII COMPLETE (all 22, 0101)"]
     END["📋 #34 Founder's Record endgame package\n(FRESH helper session; flow-4 bundled)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
@@ -130,7 +132,7 @@ flowchart TD
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
   class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM done
-  class A50R,A51D,LJS,SEC2,VCT done
+  class A50R,A51D,LJS,SEC2,VCT,JTG done
   class XIVD,XIVQ,A58,A49,LJC,FG done
   class T3,SNAP,R6 done
   class MFL,W5,GOV done
