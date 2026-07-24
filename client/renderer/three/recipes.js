@@ -242,6 +242,7 @@ export const PROP_SHAPES = {
   resStraw: { shape: 'cone', size: [0.035, 0.4], seg: 4 },      // grassland shield → a wheat stalk (a sheaf of these)
   resBeast: { shape: 'sphere', size: [0.1], seg: [8, 6] },      // game/horse/seal body (scaled)
   resBeastHead: { shape: 'sphere', size: [0.06], seg: [8, 6] }, // its head
+  resAntler: { shape: 'cone', size: [0.022, 0.2], seg: 4 },     // stag-antler tine: the Game silhouette feature (one tall asymmetric fork reads at tile scale)
   pond: { shape: 'cyl', size: [0.11, 0.11, 0.012], seg: 10 },   // swamp: a scattered small water disc
   fortress: { shape: 'torus', size: [0.34, 0.05], seg: [6, 12] },
   tie: { shape: 'box', size: [0.03, 0.024, 0.17] },
