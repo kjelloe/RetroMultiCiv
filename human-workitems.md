@@ -17,12 +17,11 @@ merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
 
 ### A. At the desk now (~15 min, unblocks everything)
 
-- [ ] **A1. One ruling left:**
-  - [x] **PEDIA_NAME** — RULED 2026-07-25: **"Encyclopedia"**
-    (applied in `client/ui/pedia-name.js`; Roblox swap relayed).
-  - [ ] **City rosters**: say "go" or "veto" on the full authentic
-    replace (16 names/civ in Civ1 founding order; a small golden
-    re-record). Silence = go once marker-0103 tags.
+- [x] **A1. Both rulings DONE (2026-07-25):**
+  - **PEDIA_NAME** = **"Encyclopedia"** (applied; Roblox swap
+    queued).
+  - **City rosters** = **GO, full authentic replace** (explicit
+    option-A pick; the 11b window opens when marker-0103 tags).
 - [ ] **A2. Grant roblox writes (the one active blocker):** in the
   ROBLOX PC's Claude session run `/permissions` and allow Edit/Write
   for the clone's `roblox/**` — or add it to that clone's
