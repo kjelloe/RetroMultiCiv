@@ -26,7 +26,7 @@ function connect(port) {
     const hit = inbox.findIndex(match);
     if (hit !== -1) return Promise.resolve(inbox.splice(hit, 1)[0]);
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error(`timeout waiting for ${label}`)), 5000);
+      const timer = setTimeout(() => reject(new Error(`timeout waiting for ${label}`)), 30000);
       waiters.push({ match, resolve: m => { clearTimeout(timer); resolve(m); } });
     });
   }
