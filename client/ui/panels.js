@@ -1,6 +1,6 @@
 // Overlay panels: research, city view, and the tile-stack unit list.
 import { availableTechs, researchCost } from '../../engine/tech.js';
-import { workedTiles, candidateTiles, tileYields, itemCost, cityYields, effectPct, wonderActive } from '../../engine/cities.js';
+import { workedTiles, candidateTiles, tileYields, itemCost, cityYields, effectPct, wonderActive, cityIsCoastal } from '../../engine/cities.js';
 import { governmentOf, capitalOf } from '../../engine/government.js';
 import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
@@ -686,6 +686,16 @@ export function initPanels(ctx) {
       if (u.barbOnly === true) continue;
       if (u.tech !== '' && !me.techs.includes(u.tech)) {
         if (frontier[u.tech]) lockedUnits.push(id);
+        continue;
+      }
+      // XVII §5: a sea unit in a landlocked city is greyed with the reason (the
+      // engine's setProduction returns needsCoast) — same cityIsCoastal check.
+      if (u.domain === 'sea' && !cityIsCoastal(session.state, city, session.ruleset)) {
+        const btn = document.createElement('button');
+        btn.className = 'option locked';
+        btn.disabled = true;
+        btn.innerHTML = `⚓ ${u.name}<div class="fx">needs a coastal city</div>`;
+        prodEl.appendChild(btn);
         continue;
       }
       const cost = itemCost('unit', id, u, me, session.ruleset);

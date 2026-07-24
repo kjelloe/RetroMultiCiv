@@ -8,7 +8,7 @@ import { displayColor } from './palette.js';
 import { createEngine, deepClone } from '../../engine/index.js';
 import { runAiTurn } from '../../engine/ai.js';
 import { score } from '../../engine/score.js';
-import { collectStats } from './stats-data.js';
+import { collectStatsAsync } from './stats-data.js';
 
 export function initStats(ctx) {
   const ruleset = ctx.session.ruleset;
@@ -60,9 +60,27 @@ export function initStats(ctx) {
   }
 
   let panel = null;
-  function open(rec) {
+  async function open(rec) {
     if (panel) panel.remove();
-    const data = collectStats(rec, { engine, runAiTurn, deepClone, score, ruleset });
+    // XIX #3: the sandbox replay behind these charts re-runs the whole AI (~55 s on a
+    // long game) — a single sync block that hangs the tab. Show a placeholder with a
+    // live %, then compute in ~30 ms slices so the tab stays responsive.
+    panel = document.createElement('div');
+    panel.id = 'stats';
+    const close = () => { if (panel) { panel.remove(); panel = null; document.removeEventListener('keydown', onKey); } };
+    function onKey(e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+    }
+    panel.innerHTML = '<div id="stats-card"><div id="stats-head">📊 Game statistics <button id="stats-close">✕</button></div>'
+      + '<div id="stats-computing">Assembling the chronicle… <span id="stats-progress">0%</span></div></div>';
+    document.body.appendChild(panel);
+    panel.querySelector('#stats-close').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    const mine = panel; // guard: don't clobber if closed/reopened mid-compute
+    const data = await collectStatsAsync(rec, { engine, runAiTurn, deepClone, score, ruleset },
+      f => { const p = mine.querySelector('#stats-progress'); if (p) p.textContent = Math.round(f * 100) + '%'; });
+    if (panel !== mine) return; // closed or reopened while computing
 
     // legend
     let legend = '';
@@ -84,8 +102,7 @@ export function initStats(ctx) {
     }
     if (!won) won = `<tr><td colspan="3" class="empty">no wonders were completed</td></tr>`;
 
-    panel = document.createElement('div');
-    panel.id = 'stats';
+    // fill the placeholder panel (reused — the keydown listener already lives)
     panel.innerHTML = `<div id="stats-card">
       <div id="stats-head">📊 Game statistics <button id="stats-close">✕</button></div>
       <div id="stats-legend">${legend}</div>
@@ -104,16 +121,8 @@ export function initStats(ctx) {
         </div>
       </div>
     </div>`;
-    document.body.appendChild(panel);
-
-    const close = () => { if (panel) { panel.remove(); panel = null; document.removeEventListener('keydown', onKey); } };
-    function onKey(e) {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (e.key === 'Escape') { e.preventDefault(); close(); }
-    }
     panel.querySelector('#stats-close').addEventListener('click', close);
     panel.addEventListener('click', e => { if (e.target === panel) close(); });
-    document.addEventListener('keydown', onKey);
   }
 
   return { open };

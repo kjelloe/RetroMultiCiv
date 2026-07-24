@@ -822,6 +822,9 @@ html, body {
   background: #24406b; color: #8fa3c0; border: 1px solid #3b5d8f;
   border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 14px;
 }
+/* XIX #3: the "computing…" placeholder while the sandbox replay chunks along */
+#stats-computing { padding: 40px 10px; text-align: center; color: #9fb0cc; font-size: 15px; }
+#stats-progress { color: #e6d59a; font-variant-numeric: tabular-nums; }
 #stats-legend { font-size: 12px; color: #9db0cc; margin-bottom: 6px; }
 .sl-item { margin-right: 14px; white-space: nowrap; }
 #stats-legend .swatch, .stats-table .swatch {
@@ -1202,6 +1205,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   z-index: 6;
 }
 #regent-btn.active { background: #2e6b40; border-color: #4f9a63; }
+#regent-btn.hidden { display: none; } /* XIX #4: hidden once the game is over */
 #regent-dialog {
   position: absolute;
   /* XVII #4: anchor it LOWER-right, beside the 🤖 button it explains — override

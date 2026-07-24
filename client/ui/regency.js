@@ -87,6 +87,11 @@ export function initRegency(ctx) {
   }
 
   function refresh() {
+    // XIX #4: no regency once the game is OVER — a hand-the-seat toggle makes no
+    // sense over the endscreen/replay of a finished game; hide the 🤖 button
+    const over = session.state && session.state.gameOver === true;
+    btn.classList.toggle('hidden', over);
+    if (over) { dialog.classList.add('hidden'); return; }
     const on = myRegent() !== undefined;
     btn.classList.toggle('active', on);
     btn.title = on ? 'AI is playing this seat — click to take back control'

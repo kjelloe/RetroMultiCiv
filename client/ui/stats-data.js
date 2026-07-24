@@ -9,7 +9,38 @@
 import { techSafeState, techFogged } from './score-view.js';
 
 // deps: { engine (createEngine result), runAiTurn, deepClone, score, ruleset }
+// Sync (unit tests + any caller that wants it in one go).
 export function collectStats(rec, deps) {
+  const run = makeStatsRun(rec, deps);
+  run.begin();
+  for (const entry of rec.log) run.step(entry);
+  return run.result();
+}
+
+// XIX #3: the game-end "View statistics" replay re-runs the WHOLE AI chain
+// (measured ~55 s on a 265-round diag game) — a single synchronous block that
+// trips the browser's tab-hang warning. This async twin does the identical work
+// in ~30 ms slices, yielding to the event loop between them so the tab stays
+// alive; onProgress(fraction) drives a "computing…" indicator. Same result as
+// collectStats (shared makeStatsRun). golden-neutral (render-free sandbox replay).
+export async function collectStatsAsync(rec, deps, onProgress) {
+  const run = makeStatsRun(rec, deps);
+  run.begin();
+  const total = rec.log.length || 1;
+  let sliceStart = Date.now();
+  for (let i = 0; i < rec.log.length; i++) {
+    run.step(rec.log[i]);
+    if (Date.now() - sliceStart > 30) { // ~30 ms slice — the fastforward.js precedent
+      if (onProgress) onProgress(i / total);
+      await new Promise(r => setTimeout(r)); // yield: the tab breathes, no hang warning
+      sliceStart = Date.now();
+    }
+  }
+  if (onProgress) onProgress(1);
+  return run.result();
+}
+
+function makeStatsRun(rec, deps) {
   const { engine, runAiTurn, deepClone, score, ruleset } = deps;
   let state = deepClone(rec.initialState);
   const order = state.playerOrder;
@@ -89,10 +120,9 @@ export function collectStats(rec, deps) {
     }
   }
 
-  snapshot(); // the opening position
-  for (const entry of rec.log) {
-    absorb(stepEntry(entry));
-    if (entry.t === 'round') snapshot();
-  }
-  return { rounds, series, battles, wonders, ages, playerOrder: order.slice() };
+  return {
+    begin() { snapshot(); }, // the opening position
+    step(entry) { absorb(stepEntry(entry)); if (entry.t === 'round') snapshot(); },
+    result() { return { rounds, series, battles, wonders, ages, playerOrder: order.slice() }; }
+  };
 }

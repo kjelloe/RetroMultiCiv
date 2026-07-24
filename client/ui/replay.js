@@ -10,6 +10,7 @@ import { runAiTurn } from '../../engine/ai.js';
 import { hashState } from '../../shared/statehash.js';
 import { filterView } from '../../engine/visibility.js';
 import { majorEvents } from './replay-events.js';
+import { influenceEntries } from './overlays.js';
 
 export function initReplay(ctx) {
   const { session, renderer } = ctx;
@@ -132,6 +133,7 @@ export function initReplay(ctx) {
         <label>Speed <input id="replay-tempo" type="range" min="1" max="50" value="4"> <span id="replay-tempo-n">4</span>/s</label>
         <label>Jump <input id="replay-scrub" type="range" min="0" max="${totalRounds}" value="0" title="jump to a turn"></label>
         <label>View <select id="replay-view" title="whose eyes"></select></label>
+        <label title="tint each city's working area in its owner's color — watch empires wax and wane"><input type="checkbox" id="replay-influence" checked> 🏛 Influence</label>
         <span id="replay-turn"></span>
         <button id="replay-close">✕ Close</button>
       </div>
@@ -146,10 +148,18 @@ export function initReplay(ctx) {
     let perspective = 'spectator'; // A87 (b): 'spectator' (omniscient) | a playerId
     let playing = true;
     let tempo = 4;
+    let influenceOn = true; // XIX #7: the City-influence layer defaults ON for history playback
+    let scrubToken = 0;     // XIX #6: a newer jump cancels an in-flight one
     const feed = panel.querySelector('#replay-feed');
     const turnLabel = panel.querySelector('#replay-turn');
     const scrubEl = panel.querySelector('#replay-scrub');
     const viewFor = s => filterView(s, perspective);
+    // XIX #7: render the stepped view PLUS the influence overlay (when toggled on)
+    function paint(s) {
+      const v = viewFor(s);
+      renderer.setViewState(v);
+      if (renderer.setOverlays) renderer.setOverlays(influenceOn ? influenceEntries(v) : null);
+    }
 
     // A87 (b): the view dropdown — omniscient plus each civ in the game
     const viewEl = panel.querySelector('#replay-view');
@@ -160,7 +170,7 @@ export function initReplay(ctx) {
         return `<option value="${pid}">👁 ${civ}</option>`;
       }).join('');
 
-    renderer.setViewState(viewFor(state));
+    paint(state);
     renderer.centerOn(Math.floor(state.map.width / 2), Math.floor(state.map.height / 2));
 
     function addFeed(m) {
@@ -200,7 +210,7 @@ export function initReplay(ctx) {
         acc += dt * tempo;
         let budget = 200; // apply-throttle: batch turns per frame above ~5/s, render once
         while (acc >= 1 && idx < rec.log.length && budget-- > 0) { stepTurn(); acc -= 1; }
-        renderer.setViewState(viewFor(state));
+        paint(state);
         scrubEl.value = String(roundsDone); // A87 (a): the scrubber tracks playback
         const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
         turnLabel.textContent = `turn ${state.turn} · ${year}`;
@@ -228,6 +238,7 @@ export function initReplay(ctx) {
     // re-seed the sandbox from turn 0 — the machinery already rebuilds from
     // initialState, so this is a re-invoke, not new plumbing (⏮ + auto-loop)
     function restart() {
+      scrubToken++; // XIX #6: cancel any in-flight jump
       state = deepClone(rec.initialState);
       idx = 0;
       applied = 0; divergedAt = null; roundsDone = 0;
@@ -237,18 +248,32 @@ export function initReplay(ctx) {
       playing = true;
       panel.querySelector('#replay-playpause').textContent = '⏸ Pause';
       delete panel.dataset.verified;
-      renderer.setViewState(viewFor(state));
+      paint(state);
       turnLabel.textContent = `turn ${state.turn}`;
     }
 
     // A87 (a): jump to round N — re-apply from turn 0 to that boundary (the
     // sandbox rebuilds from initialState; no per-step render, one at the end).
-    function scrubTo(target) {
+    // XIX #6: re-applying a whole game re-runs the AI (~0.5 s PER round) — a jump to
+    // a late turn is minutes of synchronous work that hangs the tab. Time-budget it:
+    // step in ~30 ms slices, yielding between (with a "jumping…" progress line); a
+    // newer jump supersedes this one via scrubToken.
+    async function scrubTo(target) {
+      const token = ++scrubToken;
       state = deepClone(rec.initialState);
       idx = 0; applied = 0; divergedAt = null; roundsDone = 0;
       feed.textContent = '';
-      while (idx < rec.log.length && roundsDone < target) stepTurn();
-      renderer.setViewState(viewFor(state));
+      let sliceStart = Date.now();
+      while (idx < rec.log.length && roundsDone < target) {
+        stepTurn();
+        if (Date.now() - sliceStart > 30) {
+          turnLabel.textContent = `jumping… turn ${state.turn} (${roundsDone}/${target})`;
+          await new Promise(r => setTimeout(r)); // yield: the tab breathes
+          if (token !== scrubToken || !theater) return; // superseded / theater closed
+          sliceStart = Date.now();
+        }
+      }
+      paint(state);
       const year = state.year < 0 ? `${-state.year} BC` : `${state.year} AD`;
       turnLabel.textContent = `turn ${state.turn} · ${year}`;
       delete panel.dataset.verified;
@@ -257,6 +282,7 @@ export function initReplay(ctx) {
     panel.querySelector('#replay-restart').addEventListener('click', restart);
     panel.querySelector('#replay-playpause').addEventListener('click', e => {
       if (idx >= rec.log.length) { restart(); return; } // ⏵ at the end replays
+      scrubToken++; // XIX #6: play/pause cancels an in-flight jump so they don't fight over state
       playing = !playing;
       e.target.textContent = playing ? '⏸ Pause' : '⏵ Play';
     });
@@ -274,7 +300,11 @@ export function initReplay(ctx) {
     // A87 (b): switch whose eyes we watch through — re-render the current state
     viewEl.addEventListener('change', () => {
       perspective = viewEl.value;
-      renderer.setViewState(viewFor(state));
+      paint(state);
+    });
+    panel.querySelector('#replay-influence').addEventListener('change', e => { // XIX #7
+      influenceOn = e.target.checked;
+      paint(state);
     });
     panel.querySelector('#replay-close').addEventListener('click', close);
 
@@ -287,6 +317,9 @@ export function initReplay(ctx) {
       theater = null;
       if (renderer.setReduceAnimation) renderer.setReduceAnimation(priorReduce === true);
       renderer.setViewState(filterView(session.state, ctx.HUMAN)); // back to the final game view
+      // XIX #7: drop the replay influence layer and restore the game's own overlay state
+      if (ctx.overlays && ctx.overlays.recompute) ctx.overlays.recompute();
+      else if (renderer.setOverlays) renderer.setOverlays(null);
     }
     theater.close = close;
   }

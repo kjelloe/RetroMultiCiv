@@ -67,6 +67,13 @@ const OVERLAYS = [
   }
 ];
 
+// XIX #7: the replay theater reuses the City-influence layer for history playback
+// (compute it against the replay's stepped, perspective-filtered view).
+export function influenceEntries(view) {
+  const o = OVERLAYS.find(x => x.id === 'territory');
+  return o ? o.computeTiles(view) : [];
+}
+
 export function initOverlays(ctx) {
   const { session, renderer } = ctx;
   const stored = (ctx.options && ctx.options.get('overlays')) || {};
