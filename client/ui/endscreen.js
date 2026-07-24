@@ -102,6 +102,11 @@ export function initEndScreen(ctx) {
   // gets the DEFEAT moment; the win/spectate victory-perspective moments (CONQUEST /
   // SCORE / SPACE) land in later slices — until then those select NO stages, so the
   // scoreboard shows immediately (zero regression).
+  // TONE DOCTRINE (specs/ally-response-2026-07-25-iteration.md): the Chronicle exists
+  // REGARDLESS of outcome — every ending is an entry in the same record, not a
+  // win/loss reaction. Space = departure, not triumph. Conquest = grave, complete
+  // (world brightens SLOW — a record, not a fanfare). Score = closing a book. Defeat =
+  // dignified, final, and DELIBERATELY silent (no music sting — see defeatStages).
   function bestMetric(state, pid) {
     const bd = scoreBreakdown(techSafeState(state), pid, ruleset);
     const parts = [
@@ -112,9 +117,12 @@ export function initEndScreen(ctx) {
     return parts.length ? parts[0].word : 'the age they lived through';
   }
 
-  // a stylized last look at the fallen seat (procedural — no asset)
+  // The fallen capital's own glyph, its civ color drained (Founder's Record tone
+  // ruling, specs/ally-response-2026-07-25-iteration.md): desaturated + reduced
+  // opacity — recognition is the emotional weight. NO ruin iconography (absence
+  // reads as loss); this is the sanctioned DOM/emoji fallback of "the same glyph".
   function capitalGlyph(color) {
-    return `<div class="moment-capital" style="--civ:${escColor(color)}">🏛</div>`;
+    return `<div class="moment-capital defeated" style="--civ:${escColor(color)}">🏛</div>`;
   }
 
   function defeatStages(state) {
@@ -128,6 +136,7 @@ export function initEndScreen(ctx) {
           + '<div class="moment-sub">The banners come down over the last of your cities.</div>',
         continueLabel: 'Continue' },
       { cls: 'moment-fall moment-mourning',
+        // no sound — the DEFEAT moment plays in silence; the Chronicle needs no sting (tone doctrine)
         onEnter: () => document.body.classList.add('endgame-mourning'), // grayscale carries into the scoreboard
         html: '<div class="moment-title">The story continues without you.</div>'
           + `<div class="moment-log">Your people will remember you for ${esc(bestMetric(state, ctx.HUMAN))}, but the story of the world continues without you.</div>`,
@@ -172,10 +181,10 @@ export function initEndScreen(ctx) {
     const w = state.players[wid];
     const civName = (w && w.name) || 'the victors';
     return [
-      { cls: 'moment-peace', overlayCls: 'moment-reveal-bg', // transparent overlay: behold the map
+      { cls: 'moment-peace', overlayCls: 'moment-reveal-bg', // overlay clears SLOWLY: the world brightens in (tone doctrine — a record, not a fanfare)
         onEnter: () => { if (ctx.renderer && ctx.renderer.setEndReveal) ctx.renderer.setEndReveal(true); },
-        html: '<div class="moment-title">The world is at peace.</div>'
-          + `<div class="moment-sub">The colors of the ${esc(civName)} span the horizon.</div>`,
+        html: '<div class="moment-title">The last war is over.</div>'
+          + `<div class="moment-sub">The colors of the ${esc(civName)} span the horizon, unopposed.</div>`,
         continueLabel: 'Behold the world' }
     ];
   }
@@ -200,9 +209,9 @@ export function initEndScreen(ctx) {
           if (ctx.sound && ctx.sound.play) ctx.sound.play('ship-launch');
         },
         html: '<div class="moment-kicker">Aspiration</div>'
-          + `<div class="moment-title">The ${esc(civName)} launch for the stars.</div>`
+          + `<div class="moment-title">The ${esc(civName)} set out for the stars.</div>`
           + '<div class="moment-ship">🚀</div>'
-          + '<div class="moment-sub">Assembled in orbit, the great ship fires its engines.</div>',
+          + '<div class="moment-sub">Assembled in orbit, the great ship lights its engines and leaves the world behind.</div>',
         continueLabel: 'Follow the voyage' },
       { cls: 'moment-space', overlayCls: 'moment-star-bg',
         html: '<div class="moment-title">The voyage of the starship continues…</div>'

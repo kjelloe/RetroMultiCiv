@@ -912,6 +912,10 @@ html, body {
 #moment-continue:hover { background: #2f5388; }
 /* DEFEAT mood: somber, and the grayscale that carries into the scoreboard */
 .moment-fall .moment-title { color: #e6d2c4; }
+/* DEFEAT (ruled): the fallen capital's OWN glyph, its civ color drained — desaturated
+   + reduced opacity, no ruin iconography (absence reads as loss). Overrides the base
+   .moment-capital colored glow. */
+.moment-capital.defeated { filter: grayscale(1) opacity(0.5); }
 .moment-mourning { filter: grayscale(0.85); }
 body.endgame-mourning #app,
 body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
@@ -936,8 +940,14 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 /* CONQUEST — the "Total Map" reveal: the overlay goes transparent so the brightened
    world shows through, the caption rides low with a shadow for legibility */
 #endscreen-moment.moment-reveal-bg {
-  background: radial-gradient(ellipse at center, rgba(3, 5, 10, 0) 34%, rgba(3, 5, 10, 0.6) 100%);
+  background-image: radial-gradient(ellipse at center, rgba(3, 5, 10, 0) 34%, rgba(3, 5, 10, 0.6) 100%);
+  background-color: rgba(3, 5, 10, 0);
   align-items: flex-end;
+  animation: moment-brighten 2.6s ease-out both; /* world-brighten SLOW — grave, complete, a record not a fanfare */
+}
+@keyframes moment-brighten {
+  from { background-color: rgba(3, 5, 10, 0.94); } /* the reveal is held back... */
+  to { background-color: rgba(3, 5, 10, 0); }      /* ...then the world brightens in */
 }
 .moment-peace {
   padding-bottom: 80px;
