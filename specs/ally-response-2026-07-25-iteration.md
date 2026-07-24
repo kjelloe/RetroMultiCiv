@@ -59,6 +59,27 @@ no such specials. The Shield→anvil suggestion is moot: the user's
 XVII §8 ruling already replaced the shield look with the wheat
 sheaf the ally praises. Grassland stays sheaf.
 
-NEXT: send the ally the gallery strip
-(debugging/usergenerated/xvii-specials-*) for specific notes —
-rides the user's next forward.
+## Gallery-strip review (same day, second reply) — VERDICT: ACCEPT
+
+**"Accept the visual language; iterate only on beast/game silhouette
+clarity and preserve the crystal-versus-stone distinction."** Six of
+seven motifs rated Strong-to-Excellent (sheaf, oasis, derrick, fish,
+coal, gem); density judged "especially well judged" — specials stay
+small discoveries, not decorations. The information hierarchy called
+correct: outline-before-color, strategic fact without a tooltip.
+
+Iteration scope (NARROWED from the earlier silhouette table):
+1. **Beast/game (the one real change)**: one exaggerated directional
+   feature — a clear ANTLER/HORN FORK pointing up/back for Game; "a
+   single antler is worth more than an anatomically complete animal."
+   (The ivory/tusk row is again Civ2 — filtered.)
+2. **Gem (guard, not change)**: protect the angular cut-facet
+   profile — one dominant diamond + optionally one offset shard, NO
+   rounded edges (the stone-vs-gem distinction is load-bearing).
+3. **Coal (guard, not change)**: keep the outline irregular — never
+   regularize into a neat pile.
+4. **Density (guard)**: do not grow any prop; the restraint is the
+   compliment.
+
+The earlier rearing-horse note stands for Plains Horse (not visible
+in the reviewed strip; same one-feature rule).
