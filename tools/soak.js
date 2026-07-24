@@ -63,11 +63,15 @@ const FLOOR_CONFIG = { civs: 7, size: 'medium', chaos: false, natural: false, di
 const FLOOR_MIN_TURNS = 400; // floors are defined at t401 = a 400-round run
 const FLOORS = [
   { key: 'M2-cities',    label: 'cities founded',       metric: 'cities',      cmp: '>=', value: 6  },
-  // RESTORED to 28 (#2181): the provisional 27 re-pin (#2164, from a thin 7-seed median
-  // during the difficulty window) is reverted — the sim-runner's 25-seed t401 confirm on
-  // the prince canonical config found M3-pop median = 47 (19-pt margin over 28). The
-  // barbAtkPct-75 re-baseline did NOT lower the population floor; 7 seeds was just unlucky.
-  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 28 },
+  // RE-PINNED 28 -> 22 (user ruling 2026-07-25, the river re-baseline): river worlds
+  // cost ~25% median AI pop via flood exposure (47.6% of AI cities on/adjacent river,
+  // flood popPct 25) amplified by the AI building no city walls. Mechanism traced
+  // end-to-end (#2551 breach -> #2570 audit -> fix-A mine-lock removal -> #2615
+  // post-fix confirm at 23.25); NOT seed variance. EXPECTED TO RE-RATCHET UPWARD when
+  // the XX §3 build-doctrine window lands walls/granaries in flood-exposed cities.
+  // (History: restored to 28 at #2181 after the thin-7-seed 27 re-pin; pre-river
+  // median was 47 on that config era.)
+  { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 22 },
   { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 50 },
   { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
   { key: 'M10-treasury', label: 'treasury climb (g/t)', metric: 'goldRate',    cmp: '<',  value: 50 },
