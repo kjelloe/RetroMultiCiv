@@ -15,7 +15,7 @@
 </head>
 <body>
   <div id="app"></div>
-  <div id="label">asset gallery — row 1: props · row 3: land units (moves/vet/fort mixed) ·
+  <div id="label">asset gallery — row 19: specials showcase (XVII) · row 1: props · row 3: land units (moves/vet/fort mixed) ·
     row 5: ships · row 6: aircraft · row 7: city growth tiers (pop 1 / 5 walled / 8 / 16 / 28) ·
     rows 9–13: FACTION GRID (A1.6a acceptance) — all 14 civs on grassland /
     desert (mounted) / forest (fortified) / ocean (ships) / tundra (veteran);
@@ -44,6 +44,24 @@
     at(10, 1).hut = true; // N13: the goody-hut village prop
     Object.assign(at(0, 6), { fortress: true });
     Object.assign(at(1, 6), { road: true, railroad: true });
+    // row 19 (frontmost, unoccluded): specials showcase (XVII #8/#12/#14) — each
+    // terrain's special motif, then bare swamp/forest/jungle so the density passes
+    // read. Frame the halves with ?cx=2.5&cy=19&zoom=4 (left) / ?cx=10&cy=19&zoom=4
+    // (right), or the whole strip with ?cx=6&cy=18&zoom=6.5.
+    Object.assign(at(0, 19), { t: 'grassland', special: true }); // wheat sheaf (#8)
+    Object.assign(at(1, 19), { t: 'plains', special: true });    // horse
+    Object.assign(at(2, 19), { t: 'forest', special: true });    // game
+    Object.assign(at(3, 19), { t: 'desert', special: true });    // oasis (#14)
+    Object.assign(at(4, 19), { t: 'hills', special: true });     // coal
+    Object.assign(at(5, 19), { t: 'mountains', special: true }); // gold (#14)
+    Object.assign(at(6, 19), { t: 'jungle', special: true });    // gem
+    Object.assign(at(7, 19), { t: 'swamp', special: true });     // oil (+ ponds)
+    Object.assign(at(8, 19), { t: 'tundra', special: true });    // game
+    Object.assign(at(9, 19), { t: 'ocean', special: true });     // fish
+    Object.assign(at(10, 19), { t: 'arctic', special: true });   // seal
+    at(11, 19).t = 'swamp';   // bare swamp: pond discs (#12)
+    at(12, 19).t = 'forest';  // bare forest: doubled density (#10)
+    at(13, 19).t = 'jungle';  // bare jungle: doubled, lower canopy (#11)
     // row 5: water for the fleet; rows 9–13: the faction-grid terrains
     for (let x = 0; x < W; x++) at(x, 5).t = 'ocean';
     for (let x = 0; x < W; x++) {
