@@ -36,13 +36,14 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Roblox-helper Write approval** (the one remaining session
-  permission): the authored intro-animation file
-  (roblox/src/client/IntroAnimation.client.luau) is Write-blocked in
-  that session. (The REVIEWER half of this item resolved itself — a
-  later wake carried full permissions and ran the 0100/0101 gates;
-  if its permission set is per-wake-inconsistent, a standing grant
-  in that clone's settings still helps.)
+- [x] **Roblox intro — RESOLVED with a twist** (2026-07-25): the file
+  already existed on disk — a PRIOR session had landed it as
+  `Intro.client.luau`; the blocked session was retrying a phantom
+  variant name. Commit queued to sim-runner; Studio beat-screencaps
+  ride your next acceptance session. Residual (low): that session's
+  Write mode is still broken — `/permissions` it or let it retire;
+  a standing `roblox/**` allowlist in the clone's settings prevents
+  the class.
 
 - [x] **Redeploy from marker-0101 — DONE 2026-07-25** (live + verified:
   healthz ok, 1 game restored). The deploy surfaced the dormant
