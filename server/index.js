@@ -34,7 +34,7 @@ import { selectTakeoverSeat, takeoverPool, selectEviction } from './late-join.js
 import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
-import { parseMessage, route, turnBroadcasts, playerCivs } from './protocol.js';
+import { parseMessage, route, turnBroadcasts, playerCivs, REJECT_REASONS } from './protocol.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MIME = {
@@ -639,10 +639,10 @@ export function startServer(opts) {
   // Seats ALWAYS reset — resumed lobby games re-pick by name (tokens are
   // per-origin/per-machine); autosaves continue into the same file.
   function resumeFromFile(ws, file) {
-    if (!fs.existsSync(file)) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchSave' }); return; }
+    if (!fs.existsSync(file)) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSuchSave }); return; }
     let parsed;
     try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { parsed = {}; }
-    if (parsed.format !== 'retromulticiv-server-save') { send(ws, { t: 'rejected', commandId: -1, code: 'badSave' }); return; }
+    if (parsed.format !== 'retromulticiv-server-save') { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.badSave }); return; }
     if (registry.entryOf(parsed.gameId)) { // already live — point the caller at it
       send(ws, { t: 'resumed', gameId: parsed.gameId, code: parsed.code, turn: parsed.state.turn });
       return;
@@ -656,13 +656,13 @@ export function startServer(opts) {
       game.resetSeats();
     } catch (err) {
       console.log(`resume rejected: ${path.basename(file)} — ${err.message}`);
-      send(ws, { t: 'rejected', commandId: -1, code: 'badSave' });
+      send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.badSave });
       return;
     }
     // §6 revival-at-cap: reviving a code when the server is full may itself evict
     // ONE paused game; if none is paused, serverFull (never evict an active game).
     if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) {
-      send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return;
+      send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.serverFull }); return;
     }
     registry.register(game, false); // spectators: off for resumed games (v1)
     saveFiles[game.gameId] = file;
@@ -882,10 +882,10 @@ export function startServer(opts) {
   function handleSkipFrames(ws, info, msg) {
     const e = info.gameId ? registry.entryOf(info.gameId) : null;
     if (!e || e.status !== 'started' || !info.playerId || info.spectator) {
-      send(ws, { t: 'rejected', commandId: -1, code: 'notInGame' }); return;
+      send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notInGame }); return;
     }
     if (msg.t === 'skipTurn') { // the host's pressure valve
-      if (info.playerId !== e.hostSeat) { send(ws, { t: 'rejected', commandId: -1, code: 'notHost' }); return; }
+      if (info.playerId !== e.hostSeat) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notHost }); return; }
       doSkip(info.gameId, e);
       return;
     }
@@ -898,8 +898,8 @@ export function startServer(opts) {
       return;
     }
     // vote
-    if (!e.skipVote) { send(ws, { t: 'rejected', commandId: -1, code: 'noVoteOpen' }); return; }
-    if (info.playerId === e.skipVote.target) { send(ws, { t: 'rejected', commandId: -1, code: 'targetCannotVote' }); return; }
+    if (!e.skipVote) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noVoteOpen }); return; }
+    if (info.playerId === e.skipVote.target) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.targetCannotVote }); return; }
     e.skipVote.votes[info.playerId] = msg.yes;
     const s = skipVoteState(e, info.gameId);
     if (s.yes >= s.needed) { doSkip(info.gameId, e); return; }
@@ -950,14 +950,14 @@ export function startServer(opts) {
       const best = findSaveForTarget(target);
       if (best) {
         if (best.envelope.state && best.envelope.state.gameOver === true) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'gameEnded', gameId: best.envelope.gameId, gameCode: best.envelope.code });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.gameEnded, gameId: best.envelope.gameId, gameCode: best.envelope.code });
           return;
         }
         const game = reloadSaveEntry(path.join(SAVES, best.file));
         if (game) { gameId = game.gameId; e = registry.entryOf(gameId); }
       }
     }
-    if (!e) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchGame' }); return; }
+    if (!e) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSuchGame }); return; }
     // NB: a finished game that is STILL in the registry stays JOINABLE — that is
     // how the A47 fullLog / endscreen access works (join the finished game, then
     // fetch its recording). gameEnded is only for a game GONE from the registry
@@ -965,8 +965,8 @@ export function startServer(opts) {
     // view-only pseudo-seat (docs/08 §6): omniscient, tokenless, never votes —
     // trust-based, host-enabled at create (allowSpectators)
     if (msg.spectator === true) {
-      if (e.status !== 'started') { send(ws, { t: 'rejected', commandId: -1, code: 'notStarted' }); return; }
-      if (e.options.allowSpectators !== true) { send(ws, { t: 'rejected', commandId: -1, code: 'spectatorsOff' }); return; }
+      if (e.status !== 'started') { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notStarted }); return; }
+      if (e.options.allowSpectators !== true) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.spectatorsOff }); return; }
       info.gameId = gameId; info.playerId = 'spectator'; info.spectator = true;
       send(ws, {
         t: 'joined', playerId: 'spectator', gameId,
@@ -985,12 +985,12 @@ export function startServer(opts) {
       const providedCode = msg.joinCode !== undefined ? String(msg.joinCode).toUpperCase() : '';
       const viaCode = providedCode !== '' && joinCode(gameId) === providedCode;
       if (!viaCode && e.options.public !== true && gameId !== defaultGameId) {
-        send(ws, { t: 'rejected', commandId: -1, code: 'codeRequired' });
+        send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.codeRequired });
         return;
       }
       // A37 kick-and-block: a blocked IP bounces before any reservation
       if (e.blockedIps && e.blockedIps[info.ip] === true) {
-        send(ws, { t: 'rejected', commandId: -1, code: 'blocked' });
+        send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.blocked });
         return;
       }
       // Part B: a reconnecting phone reclaims its grace-held seat with its id.
@@ -1011,7 +1011,7 @@ export function startServer(opts) {
       // so a dropped seat-holder still reclaims its own seat). While OPEN, a
       // joiner overflowing the human seats flips a free AI seat (allowAiFill).
       if (e.options.joiningOpen === false) {
-        send(ws, { t: 'rejected', commandId: -1, code: 'joiningClosed' });
+        send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.joiningClosed });
         return;
       }
       const res = registry.reserveSeat(gameId, { name: msg.name, seat: msg.seat, allowAiFill: true });
@@ -1026,7 +1026,7 @@ export function startServer(opts) {
       if (msg.seatCode !== undefined) {
         const now = Date.now();
         if (info.lastReclaimAt !== undefined && now - info.lastReclaimAt < 1000) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.tooFast });
           return;
         }
         info.lastReclaimAt = now;
@@ -1034,7 +1034,7 @@ export function startServer(opts) {
         if (pid) {
           for (const [, i] of conns) {
             if (i.gameId === gameId && i.playerId === pid) {
-              send(ws, { t: 'rejected', commandId: -1, code: 'seatOccupied' });
+              send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.seatOccupied });
               return;
             }
           }
@@ -1049,11 +1049,11 @@ export function startServer(opts) {
       // now-human pid. The join answer names the assigned civ (client reveal, §4).
       if (!msg.token && !msg.seatCode && e.options.public === true && e.options.lateJoining === true) {
         const pid = selectTakeoverSeat(e.game.state, p => score(e.game.state, p, ruleset));
-        if (pid === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        if (pid === null) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeatAvailable }); return; }
         const claimed = e.game.apply(pid, { type: 'claimSeat', player: pid });
-        if (!claimed.ok) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        if (!claimed.ok) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeatAvailable }); return; }
         const bound = e.game.bindSeat(msg.name || 'Player'); // the now-only untokened human seat = pid
-        if (bound.error || bound.playerId !== pid) { send(ws, { t: 'rejected', commandId: -1, code: 'noSeatAvailable' }); return; }
+        if (bound.error || bound.playerId !== pid) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeatAvailable }); return; }
         e.seats[pid] = { human: true, reserved: true, name: msg.name || 'Player' }; // registry tracks the seat
         info.playerId = pid; info.seat = pid;
         send(ws, {
@@ -1077,7 +1077,7 @@ export function startServer(opts) {
   }
 
   function handleStart(ws, info) {
-    if (!info.gameId || !info.isCreator) { send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' }); return; }
+    if (!info.gameId || !info.isCreator) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notCreator }); return; }
     const gameId = info.gameId;
     const seatConn = {}; const liveSeats = [];
     for (const [o, i] of conns) if (i.gameId === gameId && i.seat) { liveSeats.push(i.seat); seatConn[i.seat] = o; }
@@ -1108,7 +1108,7 @@ export function startServer(opts) {
         // the seat and why; a still-connected socket is told explicitly (its
         // 'started' handler shows the missed-seat screen either way)
         console.log(`start ${gameId}: seat ${pid} (${entry.seats[pid] ? entry.seats[pid].name : '?'}) not bound — ${o ? 'seat bind failed' : 'no live connection'}`);
-        if (o) send(o, { t: 'rejected', commandId: -1, code: 'seatNotBound' });
+        if (o) send(o, { t: 'rejected', commandId: -1, code: REJECT_REASONS.seatNotBound });
       }
     }
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'started', gameId });
@@ -1139,7 +1139,7 @@ export function startServer(opts) {
     const unauthTimer = setTimeout(() => {
       const i = conns.get(ws);
       if (i && i.gameId === undefined && !i.sawMessage && ws.readyState === ws.OPEN) {
-        send(ws, { t: 'rejected', commandId: -1, code: 'joinTimeout' });
+        send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.joinTimeout });
         ws.close();
       }
     }, unauthTimeoutMs);
@@ -1197,7 +1197,7 @@ export function startServer(opts) {
         const nowMs = Date.now();
         if (info.lastMsgRejectAt === undefined || nowMs - info.lastMsgRejectAt >= 1000) {
           info.lastMsgRejectAt = nowMs;
-          send(ws, { t: 'rejected', commandId: -1, code: 'rateLimited' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.rateLimited });
         }
         return;
       }
@@ -1217,7 +1217,7 @@ export function startServer(opts) {
       if (msg.t === 'listGames') { // A41 find-a-game: public lobbies only
         const now = Date.now(); // 1/sec/conn — the one message crawlers hammer
         if (info.lastListAt !== undefined && now - info.lastListAt < 1000) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.tooFast });
           return;
         }
         info.lastListAt = now;
@@ -1257,7 +1257,7 @@ export function startServer(opts) {
       if (msg.t === 'joinListed') { // A41: the SAME reservation path, gated
         const e = registry.entryOf(msg.gameId);
         if (!e || e.options.public !== true) { // private lobbies are not listed-joinable
-          send(ws, { t: 'rejected', commandId: -1, code: 'notPublic' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notPublic });
           return;
         }
         handleJoin(ws, info, { joinCode: msg.gameId, name: msg.name, seat: msg.seat, spectator: msg.spectator });
@@ -1298,14 +1298,14 @@ export function startServer(opts) {
         // Scan saves/ for the envelope whose code matches; the file never comes from the client.
         const norm = s => String(s == null ? '' : s).toUpperCase().replace(/[^0-9A-Z]/g, '');
         const want = norm(msg.code);
-        if (want.length === 0) { send(ws, { t: 'rejected', commandId: -1, code: 'noCode' }); return; }
+        if (want.length === 0) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noCode }); return; }
         let best = null; // newest matching envelope wins
         for (const row of scanSaves()) { // H-1 (d): the cached scan
           const p = row.envelope;
           if (norm(p.code) !== want) continue;
           if (best === null || String(p.savedAt || '') > String(best.savedAt || '')) best = { file: row.file, savedAt: p.savedAt };
         }
-        if (best === null) { send(ws, { t: 'rejected', commandId: -1, code: 'noSuchCode' }); return; }
+        if (best === null) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSuchCode }); return; }
         resumeFromFile(ws, path.join(SAVES, best.file));
         return;
       }
@@ -1319,7 +1319,7 @@ export function startServer(opts) {
           // §6-7: at the cap — evict ONE paused game (never an active one) to make
           // room; the evicted game's code stays rejoinable. No paused game to
           // reclaim -> serverFull (the client shows the three-option message, §4).
-          if (!evictOnePaused()) { send(ws, { t: 'rejected', commandId: -1, code: 'serverFull' }); return; }
+          if (!evictOnePaused()) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.serverFull }); return; }
         }
         const res = registry.create(msg.options || {}, msg.name);
         if (res.ok === false) { // A38: civ count exceeds what the map seats
@@ -1342,7 +1342,7 @@ export function startServer(opts) {
       if (msg.t === 'start') { handleStart(ws, info); return; }
       if (msg.t === 'setSlot' || msg.t === 'setSlots') { // A27: host-only lobby edits
         if (!info.gameId || !info.isCreator) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notCreator });
           return;
         }
         const r = msg.t === 'setSlot'
@@ -1355,7 +1355,7 @@ export function startServer(opts) {
       if (msg.t === 'reportVeto') { // S1: any SEAT may veto the match report — sticky for the game
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
         if (!e || !info.seat) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'noSeat' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeat });
           return;
         }
         if (opts.shareReports === undefined) return; // nothing to veto — silently fine
@@ -1369,16 +1369,16 @@ export function startServer(opts) {
       if (msg.t === 'chat') { // A37: transient lobby traffic — never game state
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
         if (!e || e.status !== 'lobby' || !info.seat) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'noLobby' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noLobby });
           return;
         }
         if (e.options.chat !== true) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'chatOff' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.chatOff });
           return;
         }
         const now = Date.now(); // rate limit: 1/sec per connection
         if (info.lastChatAt !== undefined && now - info.lastChatAt < 1000) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'tooFast' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.tooFast });
           return;
         }
         // A50 item 2: per-IP chat burst cap across a minute (the 1/sec above is
@@ -1394,7 +1394,7 @@ export function startServer(opts) {
       }
       if (msg.t === 'setJoining') { // XVII §3: host-only open/closed toggle
         if (!info.gameId || !info.isCreator) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notCreator });
           return;
         }
         const r = registry.setJoining(info.gameId, msg.open);
@@ -1404,7 +1404,7 @@ export function startServer(opts) {
       }
       if (msg.t === 'setChat' || msg.t === 'kick') { // A37: host-only moderation
         if (!info.gameId || !info.isCreator) {
-          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notCreator });
           return;
         }
         if (msg.t === 'setChat') {
@@ -1433,9 +1433,9 @@ export function startServer(opts) {
       }
       if (msg.t === 'fullLog') { // A47: replay source — post-gameOver only
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
-        if (!e || !e.game) { send(ws, { t: 'rejected', commandId: -1, code: 'noGame' }); return; }
+        if (!e || !e.game) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noGame }); return; }
         if (e.game.state.gameOver !== true) { // before the end it would leak fog
-          send(ws, { t: 'rejected', commandId: -1, code: 'notOver' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notOver });
           return;
         }
         const rec = e.game.fullLog();
@@ -1445,7 +1445,7 @@ export function startServer(opts) {
       if (msg.t === 'regent') { // A40: seat-owner-only auto-play toggle
         const e = info.gameId ? registry.entryOf(info.gameId) : null;
         if (!e || !e.game || !info.playerId || info.playerId === 'spectator') {
-          send(ws, { t: 'rejected', commandId: -1, code: 'noSeat' });
+          send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeat });
           return;
         }
         e.game.setRegent(info.playerId, msg.stance);
@@ -1463,13 +1463,13 @@ export function startServer(opts) {
       // flooding cheap commands cannot starve co-players' command→ack time
       // (measured 1 ms → 4.5 s). O(1) reject; the expensive game path is skipped.
       if (info.budget !== undefined && !info.budget.take().ok) {
-        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'rateLimited' });
+        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: REJECT_REASONS.rateLimited });
         return;
       }
       const gameId = info.gameId || defaultGameId;
       const e = registry.entryOf(gameId);
       if (!e || !e.game) {
-        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'noGame' });
+        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: REJECT_REASONS.noGame });
         return;
       }
       // docs/17 layered budget: the SEAT bucket (PRIMARY) — shared across every
@@ -1478,7 +1478,7 @@ export function startServer(opts) {
       // above misses). endTurn draws its own tighter bucket.
       const seatPid = e.game.seatOf(msg.token);
       if (seatPid !== null && !budgets.seatCmd(gameId, seatPid, msg.t === 'endTurn' ? 'endTurn' : 'cmd').ok) {
-        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: 'rateLimited' });
+        send(ws, { t: 'rejected', commandId: Number.isInteger(msg.commandId) ? msg.commandId : -1, code: REJECT_REASONS.rateLimited });
         return;
       }
       const out = route(e.game, msg);
