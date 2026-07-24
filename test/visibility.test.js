@@ -278,3 +278,32 @@ test('filterView passes player.stance through for ALL players (public, R21 Stati
   // absent stance (balanced) never writes the field (omit-safe)
   assert.strictEqual(view.players.p1.stance, undefined, 'no stance field when the player has none');
 });
+
+// D3 (#2591/#2592): at gameOver the winner is world-public (the gameOver-fog-lapse
+// ruling). filterView must carry BOTH state.gameOver and state.winner so a
+// fog-filtered ?server=1 rejoin/resume/reopen can trigger the endscreen and name the
+// winner (session-remote augment(view) REPLACES client state, dropping any fields the
+// view omits). Strict gameOver===true; keys added only when defined (no-null rule).
+test('filterView surfaces gameOver + winner to a fog player at gameOver (world-public)', async () => {
+  const { engine, vis } = await load();
+  const state = engine.createGame(SETUP);
+  state.gameOver = true;
+  state.winner = 'p1';
+  const view = vis.filterView(state, 'p2'); // p2 is a fog player (has explored), and LOST
+  assert.strictEqual(view.gameOver, true, 'a finished game reports gameOver in every seat view');
+  assert.strictEqual(view.winner, 'p1', 'the winner is world-public at gameOver (even to the loser)');
+});
+
+test('filterView omits gameOver/winner mid-game and never writes a null winner', async () => {
+  const { engine, vis } = await load();
+  const live = engine.createGame(SETUP);
+  const v1 = vis.filterView(live, 'p2');
+  assert.ok(!('gameOver' in v1), 'a live game view carries no gameOver flag');
+  assert.ok(!('winner' in v1), 'a live game view carries no winner');
+  // gameOver with no winner recorded yet → the key is OMITTED, never null (no-null rule)
+  const over = engine.createGame(SETUP);
+  over.gameOver = true; // winner unset
+  const v2 = vis.filterView(over, 'p2');
+  assert.strictEqual(v2.gameOver, true, 'gameOver still reported');
+  assert.ok(!('winner' in v2), 'winner key is omitted when undefined (never null)');
+});

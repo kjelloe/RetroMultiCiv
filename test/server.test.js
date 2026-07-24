@@ -790,3 +790,40 @@ test('#1875 operator caps clamp the host default game (civs/size/turns)', async 
     await s.close();
   }
 });
+
+// D3 (#2591/#2592): a client joining a FINISHED ?server=1 game must receive
+// gameOver + winner in its view (world-public at gameOver) so the endscreen
+// triggers + names the winner on rejoin/resume — the fog-filtered view used to
+// omit both, so a joining client saw neither. Deterministic ws-level guard for the
+// filterView change (the browser DOM verdict-class assertion rides test-ui/flow-4).
+test('server: a client joining a finished game receives gameOver + winner in its view', async () => {
+  const { startServer } = await import('../server/index.js');
+  const { createGame } = await import('../server/game.js');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multiciv-over-'));
+  const file = path.join(dir, 'over.json');
+  const players = [
+    { id: 'p1', name: 'Kjell', color: '#3b7dd8', human: true },
+    { id: 'p2', name: 'AI', color: '#d84a3b', human: false }
+  ];
+  // build a real server save, then mark it finished (winner p1) — the loader
+  // validates format/version/rulesetHash, not the code, so a patched state loads.
+  const g = createGame({ ruleset: RULESET, setup: { seed: 7, options: { width: 20, height: 15, players } }, gameId: 'overtest' });
+  g.saveTo(file);
+  const env = JSON.parse(fs.readFileSync(file, 'utf8'));
+  env.state.gameOver = true;
+  env.state.winner = 'p1';
+  fs.writeFileSync(file, JSON.stringify(env));
+
+  const s = await startServer({ ruleset: RULESET, game: file, autosave: false });
+  const client = await connect(s.port);
+  try {
+    client.send({ t: 'join', name: 'Kjell' });
+    const joined = await client.expect(m => m.t === 'joined', 'joined');
+    assert.strictEqual(joined.view.gameOver, true, 'the joined view of a finished game reports gameOver');
+    assert.strictEqual(joined.view.winner, 'p1', 'the winner is world-public in the joined view');
+  } finally {
+    client.close();
+    await s.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

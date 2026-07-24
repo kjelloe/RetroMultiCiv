@@ -186,7 +186,7 @@ function filterView(state, playerId, ruleset) {
     if (cities[cid] !== undefined) cityOrder.push(cid);
   }
 
-  return {
+  const view = {
     you: playerId,
     turn: state.turn,
     year: state.year,
@@ -204,6 +204,16 @@ function filterView(state, playerId, ruleset) {
     // check who is at war with whom) — passed whole; embassy-gated fog is D6's.
     relations: state.relations === undefined ? {} : state.relations
   };
+  // D3 (#2591/#2592): at gameOver the result is world-public (the gameOver-fog-lapse
+  // ruling). Surface gameOver + winner in every seat view so a fog-filtered
+  // ?server=1 rejoin/resume/reopen can trigger the endscreen + name the winner
+  // (session-remote augment(view) REPLACES client state, so an omitted field is lost).
+  // Keys added only when defined (no-null rule); never on the hash path (view-only).
+  if (state.gameOver === true) {
+    view.gameOver = true;
+    if (state.winner !== undefined) view.winner = state.winner;
+  }
+  return view;
 }
 
 // Fog policy for round EVENTS (B5, shape @9edac2e9): which of a round's

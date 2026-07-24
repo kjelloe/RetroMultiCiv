@@ -221,7 +221,7 @@ local function filterView(state: any, playerId: string, ruleset: any): any
 		end
 	end
 
-	return {
+	local view = {
 		you = playerId,
 		turn = state.turn,
 		year = state.year,
@@ -237,6 +237,14 @@ local function filterView(state: any, playerId: string, ruleset: any): any
 		-- (embassy-gated fog is D6's business)
 		relations = if state.relations == nil then {} else state.relations,
 	}
+	-- D3 (#2591/#2592): at gameOver the result is world-public — surface gameOver +
+	-- winner in every seat view (twin of engine/visibility.js). Keys added only when
+	-- defined (no-null rule); view-only, never on the hash path.
+	if state.gameOver == true then
+		view.gameOver = true
+		if state.winner ~= nil then view.winner = state.winner end
+	end
+	return view
 end
 
 -- Fog policy for round EVENTS (B5 twin) — classes pinned @9edac2e9:
