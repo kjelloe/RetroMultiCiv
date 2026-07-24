@@ -14,6 +14,7 @@
 
 import { shouldReconnect, reconnectFrame, backoffDelay, wakeIsSuspect } from '../../shared/lobby-reconnect.js';
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
+import { rejectText } from './reject-copy.js';
 import qrcode from '../vendor/qrcode.min.js';
 
 // join-share: the invite URL a host shares from the lobby — the friend's client
@@ -172,13 +173,6 @@ function lobbyNotice(text) {
   const st = document.getElementById('lobby-status');
   if (st) { st.textContent = `⚠ ${text}`; return true; }
   return false;
-}
-
-function rejectText(code) {
-  return code === 'chatOff' ? 'chat is switched off in this lobby'
-    : code === 'tooFast' ? 'chat rate limit — slow down a little'
-    : code === 'noLobby' ? 'the server no longer sees your lobby seat — your message did not send'
-    : `server rejected: ${code}`;
 }
 
 // One shared little message pump: onMsg returns nothing; onDead runs when the
