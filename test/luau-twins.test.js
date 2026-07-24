@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 63, 'the scenarios (063 tile-contention added)');
+      assert.strictEqual(files.length, 64, 'the scenarios (064 coastal-build added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -185,7 +185,8 @@ const PORTED = [
   '060-rehome.json', // XIV §45b: REHOME re-homes a unit to the city it stands in (cross-language)
   '061-claim-seat.json', // late-join §3: claimSeat flips an AI seat to human; the claimed seat then acts (cross-language)
   '062-future-tech.json', // XII.2: an exhausted tree researches the repeatable Future Tech sentinel; futureTech + score accrue (cross-language)
-  '063-tile-contention.json' // A8: two-phase tile contention in the real game (manual-wins + disorder-transient); cross-language
+  '063-tile-contention.json', // A8: two-phase tile contention in the real game (manual-wins + disorder-transient); cross-language
+  '064-coastal-build.json' // XVII §5: sea units need a coastal city (cityIsCoastal); cross-language
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

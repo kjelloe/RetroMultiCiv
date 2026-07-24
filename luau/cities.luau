@@ -28,6 +28,39 @@ for dy = -2, 2 do
 	end
 end
 
+-- the 8 orthogonal + diagonal neighbour offsets (the coastal-adjacency test).
+local ADJ8 = {
+	{ dx = 0, dy = -1 }, { dx = 1, dy = -1 }, { dx = 1, dy = 0 }, { dx = 1, dy = 1 },
+	{ dx = 0, dy = 1 }, { dx = -1, dy = 1 }, { dx = -1, dy = 0 }, { dx = -1, dy = -1 },
+}
+
+-- XVII §5 twin: a city is COASTAL iff its CENTRE tile is land AND 8-adjacent to a
+-- domain:'sea' tile (workable-radius water does NOT qualify). The ONE shared helper
+-- for setProduction legality + the AI navy build gate (no drift). Pure, byte-shaped.
+local function cityIsCoastal(state: any, city: any, ruleset: any): boolean
+	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
+	if ruleset.terrain.terrains[state.map.tiles[city.y * width + city.x + 1].t].domain ~= "land" then
+		return false
+	end
+	for _, o in ipairs(ADJ8) do
+		local nx = city.x + o.dx
+		if nx < 0 or nx >= width then
+			if wrapX ~= true then
+				continue
+			end
+			nx = ((nx % width) + width) % width
+		end
+		local ny = city.y + o.dy
+		if ny < 0 or ny >= height then
+			continue
+		end
+		if ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t].domain == "sea" then
+			return true
+		end
+	end
+	return false
+end
+
 local function idiv(a: number, b: number): number
 	return math.floor(a / b)
 end
@@ -688,6 +721,10 @@ local function setProduction(state: any, cmd: any, ruleset: any): any
 	if item.kind == "unit" and def.barbOnly == true then
 		return { ok = false, reason = "notBuildable" }
 	end
+	-- XVII §5: sea units buildable only in a COASTAL city.
+	if item.kind == "unit" and def.domain == "sea" and not cityIsCoastal(state, city, ruleset) then
+		return { ok = false, reason = "needsCoast" }
+	end
 	if item.kind == "building" and hasBuilding(city, item.id) then
 		return { ok = false, reason = "alreadyBuilt" }
 	end
@@ -1236,5 +1273,6 @@ return {
 	civVeteran = civVeteran,
 	citySpacingOk = citySpacingOk,
 	unitObsolete = unitObsolete,
+	cityIsCoastal = cityIsCoastal,
 	bestDefenderUnit = bestDefenderUnit,
 }

@@ -14,6 +14,30 @@ for (let dy = -2; dy <= 2; dy++) {
   }
 }
 
+// the 8 orthogonal + diagonal neighbour offsets (the coastal-adjacency test).
+const ADJ8 = [
+  { dx: 0, dy: -1 }, { dx: 1, dy: -1 }, { dx: 1, dy: 0 }, { dx: 1, dy: 1 },
+  { dx: 0, dy: 1 }, { dx: -1, dy: 1 }, { dx: -1, dy: 0 }, { dx: -1, dy: -1 }
+];
+
+// XVII §5 (Civ1-authentic): a city is COASTAL iff its CENTRE tile is land AND
+// orthogonally or diagonally adjacent (8-neighbourhood) to a domain:'sea' tile —
+// workable-radius water does NOT qualify. The single shared helper for BOTH
+// setProduction sea-unit build legality (→ needsCoast) and the AI's navy build
+// choice (no drift). Pure, both engines. Order-independent (boolean any-sea).
+function cityIsCoastal(state, city, ruleset) {
+  const { width, height, wrapX, tiles } = state.map;
+  if (ruleset.terrain.terrains[tiles[city.y * width + city.x].t].domain !== 'land') return false;
+  for (const o of ADJ8) {
+    let nx = city.x + o.dx;
+    if (nx < 0 || nx >= width) { if (wrapX !== true) continue; nx = ((nx % width) + width) % width; }
+    const ny = city.y + o.dy;
+    if (ny < 0 || ny >= height) continue;
+    if (ruleset.terrain.terrains[tiles[ny * width + nx].t].domain === 'sea') return true;
+  }
+  return false;
+}
+
 function tileYields(tile, ruleset) {
   const terrain = ruleset.terrain.terrains[tile.t];
   const base = tile.special ? terrain.special.yields : terrain.yields;
@@ -533,6 +557,11 @@ function setProduction(state, cmd, ruleset) {
   if (item.kind === 'unit' && def.barbOnly === true) {
     return { ok: false, reason: 'notBuildable' };
   }
+  // XVII §5: sea units are buildable only in a COASTAL city (centre adjacent to
+  // ocean) — a landlocked city cannot launch a Trireme it could never move.
+  if (item.kind === 'unit' && def.domain === 'sea' && !cityIsCoastal(state, city, ruleset)) {
+    return { ok: false, reason: 'needsCoast' };
+  }
   if (item.kind === 'building' && hasBuilding(city, item.id)) {
     return { ok: false, reason: 'alreadyBuilt' };
   }
@@ -977,5 +1006,5 @@ export {
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, nukesEnabled, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
-  unitObsolete, bestDefenderUnit, resolveAllWorked, trimToPop
+  unitObsolete, bestDefenderUnit, resolveAllWorked, cityIsCoastal, trimToPop
 };

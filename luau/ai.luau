@@ -2196,28 +2196,11 @@ local function towardUnexploredSea(state: any, unit: any, me: any, ruleset: any)
 end
 
 -- B23 twin: a LAND tile with at least one SEA neighbour (8-dir).
+-- coastal-build (XVII §5) twin: delegates to the ONE shared cities.cityIsCoastal so
+-- the AI navy build gate + coastal scouting share setProduction's legality test — no
+-- drift. Byte-identical to the old inline form.
 local function isCoastal(state: any, x: number, y: number, ruleset: any): boolean
-	local width, height, wrapX = state.map.width, state.map.height, state.map.wrapX
-	if ruleset.terrain.terrains[state.map.tiles[y * width + x + 1].t].domain ~= "land" then
-		return false
-	end
-	for _, key in ipairs(DIR_KEYS) do
-		local nx = x + DIR_VECS[key][1]
-		if nx < 0 or nx >= width then
-			if not wrapX then
-				continue
-			end
-			nx = ((nx % width) + width) % width
-		end
-		local ny = y + DIR_VECS[key][2]
-		if ny < 0 or ny >= height then
-			continue
-		end
-		if ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t].domain == "sea" then
-			return true
-		end
-	end
-	return false
+	return cities.cityIsCoastal(state, { x = x, y = y }, ruleset)
 end
 
 -- B23 twin: memoryless coastal step-preference (unexplored coastal land; hand by

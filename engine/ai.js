@@ -18,7 +18,7 @@ import { availableTechs, cityEconOutput, playerIncome, FUTURE_TECH_ID } from './
 import { metOf, relationOf, pairKey } from './diplomacy.js';
 import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit, cityIsCoastal } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
@@ -1945,17 +1945,11 @@ function wallFollowDir(state, unit, me, ruleset) {
 
 // B23: a LAND tile with at least one SEA neighbour (8-dir) — the coastline the
 // scouts trace. Pure ruleset/terrain read.
+// coastal-build (XVII §5): delegates to the ONE shared cities.cityIsCoastal so the
+// AI's navy build gate + coastal scouting use the SAME centre-8-adjacency-to-sea
+// test as setProduction's legality — no drift. Byte-identical to the old inline form.
 function isCoastal(state, x, y, ruleset) {
-  const { width, height, wrapX } = state.map;
-  if (ruleset.terrain.terrains[state.map.tiles[y * width + x].t].domain !== 'land') return false;
-  for (const key of DIR_KEYS) {
-    let nx = x + DIR_VECS[key][0];
-    if (nx < 0 || nx >= width) { if (!wrapX) continue; nx = ((nx % width) + width) % width; }
-    const ny = y + DIR_VECS[key][1];
-    if (ny < 0 || ny >= height) continue;
-    if (ruleset.terrain.terrains[state.map.tiles[ny * width + nx].t].domain === 'sea') return true;
-  }
-  return false;
+  return cityIsCoastal(state, { x, y }, ruleset);
 }
 
 // B23: memoryless coastline-following. A coastal scout steps to an adjacent

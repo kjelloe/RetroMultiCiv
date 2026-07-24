@@ -1,0 +1,307 @@
+{
+  "name": "XVII \u00a75 coastal-build: sea units need a coastal city (cross-language)",
+  "notes": "c1 (Port) is 8-adjacent to ocean \u2192 coastal; c2 (Inland) is landlocked. setProduction of a trireme is REJECTED (needsCoast) at c2 and ACCEPTED at c1 \u2014 cityIsCoastal gates both engines identically. The accept changes c1.producing (hashed); the reject leaves state untouched. Semantics + radius-water-no are unit-tested in test/coastal-build.test.js.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 20,
+      "year": -2000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 8,
+        "height": 8,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Port",
+          "owner": "p1",
+          "x": 2,
+          "y": 2,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "c2": {
+          "id": "c2",
+          "name": "Inland",
+          "owner": "p1",
+          "x": 5,
+          "y": 5,
+          "pop": 2,
+          "food": 0,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 1,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "A",
+          "color": "#00f",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "map-making"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50
+        }
+      },
+      "rngState": 7777
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c2",
+        "item": {
+          "kind": "unit",
+          "id": "trireme"
+        }
+      },
+      "expect": {
+        "ok": false
+      }
+    },
+    {
+      "cmd": {
+        "type": "setProduction",
+        "playerId": "p1",
+        "cityId": "c1",
+        "item": {
+          "kind": "unit",
+          "id": "trireme"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.producing.id": "trireme"
+        }
+      }
+    }
+  ],
+  "final": {
+    "hash": "0x24d29e68"
+  }
+}
