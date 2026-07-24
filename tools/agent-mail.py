@@ -1046,7 +1046,12 @@ def dispatch(argv):
         want = []
         for ref in a.refs:
             r = ref.lstrip('@#')
-            if r.isdigit():
+            # '@…' is ALWAYS a hash — an 8-hex hash can be all-decimal
+            # (the @39246604 bug: isdigit() swallowed it as a bogus id and
+            # the real message kept redelivering). Only bare/'#' refs that
+            # ALSO match a real id are ids; otherwise fall through to hash.
+            if not ref.startswith('@') and r.isdigit() \
+                    and any(m['id'] == int(r) for m in msgs):
                 want.append(int(r))
                 continue
             hits = [m for m in msgs if msg_hash(m).startswith(r)]
