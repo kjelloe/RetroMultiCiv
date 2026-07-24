@@ -40,7 +40,8 @@ M.PROP_SHAPES = {
 	resWater = { shape = "cyl", size = { 0.16, 0.16, 0.015 }, seg = 12 },
 	resPalm = { shape = "cone", size = { 0.11, 0.14 }, seg = 6 },
 	resDerrick = { shape = "cone", size = { 0.06, 0.34 }, seg = 4 },
-	resShield = { shape = "box", size = { 0.14, 0.16, 0.03 } },
+	resStraw = { shape = "cone", size = { 0.035, 0.4 }, seg = 4 },
+	pond = { shape = "cyl", size = { 0.11, 0.11, 0.012 }, seg = 10 },
 	resBeast = { shape = "sphere", size = { 0.1 }, seg = { 8, 6 } },
 	resBeastHead = { shape = "sphere", size = { 0.06 }, seg = { 8, 6 } },
 }
@@ -64,7 +65,15 @@ local SPECIAL_MOTIF = {
 		{ k = "resFish", color = "#d2e6f5", sx = 1.7, sy = 0.55, sz = 0.95, dy = 0.03 }, -- Fish
 		{ k = "resFishTail", color = "#bcd2e4", dx = 0.14, dy = 0.03, rotY = math.pi / 2, sx = 0.8, sy = 0.7 },
 	},
-	grassland = { { k = "resShield", color = "#e0c14e", dy = 0.1 } }, -- Shield
+	grassland = { -- Shield -> wheat sheaf (XVII #8/#14): a cluster of golden stalks
+		{ k = "resStraw", color = "#f2d84e", dy = 0.2 },
+		{ k = "resStraw", color = "#f6e264", dx = 0.11, dz = 0.03, dy = 0.19, rotX = 0.3, rotY = 0.4 },
+		{ k = "resStraw", color = "#e8c840", dx = -0.09, dz = 0.09, dy = 0.19, rotX = 0.3, rotY = 2.1 },
+		{ k = "resStraw", color = "#fced7a", dx = 0.05, dz = -0.11, dy = 0.19, rotX = 0.3, rotY = 3.7 },
+		{ k = "resStraw", color = "#e2be3a", dx = -0.08, dz = -0.06, dy = 0.19, rotX = 0.3, rotY = 5.1 },
+		{ k = "resStraw", color = "#f2d84e", dx = 0.08, dz = -0.04, dy = 0.19, rotX = 0.26, rotY = 1.2 },
+		{ k = "resStraw", color = "#f6e264", dx = -0.02, dz = 0.1, dy = 0.19, rotX = 0.26, rotY = 4.4 },
+	},
 	plains = { -- Horse
 		{ k = "resBeast", color = "#9a6b3f", sx = 1.5, sy = 0.8, sz = 0.8, dy = 0.05 },
 		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.12, dy = 0.11 },
@@ -81,13 +90,13 @@ local SPECIAL_MOTIF = {
 		{ k = "resBeast", color = "#c4cbd4", sx = 1.8, sy = 0.6, sz = 0.75, dy = 0.04 },
 		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.15, dy = 0.06 },
 	},
-	desert = { -- Oasis
-		{ k = "resWater", color = "#2f7fc0", dy = 0.02 },
-		{ k = "resPalm", color = "#2f8d3f", dy = 0.17 },
+	desert = { -- Oasis (XVII #14: larger pool + taller palm)
+		{ k = "resWater", color = "#2f7fc0", dy = 0.02, sx = 1.3, sz = 1.3 },
+		{ k = "resPalm", color = "#2f8d3f", dy = 0.22, sx = 1.25, sy = 1.35, sz = 1.25 },
 	},
-	hills = { { k = "resCrystal", color = "#2b2b30", dy = 0.09 } }, -- Coal
-	mountains = { { k = "resCrystal", color = "#ffcf3b", dy = 0.09 } }, -- Gold
-	jungle = { { k = "resCrystal", color = "#5ad0c9", dy = 0.09 } }, -- Gem
+	hills = { { k = "resCrystal", color = "#2b2b30", dy = 0.11, sx = 1.3, sy = 1.3, sz = 1.3 } }, -- Coal
+	mountains = { { k = "resCrystal", color = "#ffd23b", dy = 0.24, sx = 1.9, sy = 1.9, sz = 1.9 } }, -- Gold
+	jungle = { { k = "resCrystal", color = "#5ad0c9", dy = 0.14, sx = 1.4, sy = 1.4, sz = 1.4 } }, -- Gem
 	swamp = { { k = "resDerrick", color = "#2a2622", dy = 0.17 } }, -- Oil
 }
 local WATER_LEVEL = -0.02
@@ -306,7 +315,7 @@ function M.rebuild(folder, view, tileTop, TILE)
 						local base = t.t == "ocean" and (tileTop("ocean") + WATER_LEVEL) or nil
 						for _, m in ipairs(motif) do
 							put(m.k, { color = m.color, dx = m.dx, dz = m.dz, dy = m.dy,
-								sx = m.sx, sy = m.sy, sz = m.sz, rotY = m.rotY, top = base })
+								sx = m.sx, sy = m.sy, sz = m.sz, rotX = m.rotX, rotY = m.rotY, top = base })
 						end
 					else -- any terrain without a motif keeps the generic marker
 						put("special", { color = M.PROP_COLOR.special, dx = -0.2, dz = 0.2, dy = 0.08 })

@@ -378,6 +378,10 @@ endTurn.Activated:Connect(function()
 	if ClientState.view == nil then
 		return -- session-E: dead on the deck, no game yet
 	end
+	if ClientState.view.gameOver == true then
+		ClientState.reshowEndScreen() -- runK item 5: the victory menu returns
+		return
+	end
 	if not ClientState.myTurn() then
 		return
 	end

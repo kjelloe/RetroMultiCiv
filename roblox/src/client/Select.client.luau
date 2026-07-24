@@ -331,7 +331,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		-- cancels) — moved off O so GoTo matches the Civ shortcut
 		GoToPlan.arm()
 	elseif input.KeyCode == Enum.KeyCode.Return then
-		if ClientState.myTurn() then
+		if view.gameOver == true then
+			ClientState.reshowEndScreen() -- runK item 5: the victory menu returns
+		elseif ClientState.myTurn() then
 			print("[Select] end turn " .. view.turn)
 			ClientState.send({ type = "endTurn" })
 		else

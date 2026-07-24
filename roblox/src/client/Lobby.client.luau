@@ -498,6 +498,27 @@ local function showDefeatOverlay(seconds)
 	end
 end
 
+-- runK item 6: the server-reset countdown banner (shown to everyone when the
+-- post-game theater has had no watchers for 30s).
+local resetLabel = Instance.new("TextLabel")
+resetLabel.Size = UDim2.new(0, 520, 0, 40)
+resetLabel.AnchorPoint = Vector2.new(0.5, 0)
+resetLabel.Position = UDim2.new(0.5, 0, 0, 120)
+resetLabel.BackgroundColor3 = Color3.fromRGB(84, 30, 30)
+resetLabel.BackgroundTransparency = 0.15
+resetLabel.TextColor3 = Color3.fromRGB(255, 230, 220)
+resetLabel.Font = Enum.Font.SourceSansBold
+resetLabel.TextSize = 20
+resetLabel.Visible = false
+resetLabel.ZIndex = 30
+resetLabel.Text = ""
+resetLabel.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = resetLabel
+end
+
 remote.OnClientEvent:Connect(function(msg)
 	if typeof(msg) ~= "table" then
 		return
@@ -532,6 +553,15 @@ remote.OnClientEvent:Connect(function(msg)
 		-- runJ item 5: last city fell — countdown, then the server decks us
 		youSeated = false
 		task.spawn(showDefeatOverlay, msg.seconds or 10)
+	elseif msg.t == "resetCountdown" then
+		-- runK item 6: the server resets for a new game once nobody is watching
+		resetLabel.Text = ("Server resets for a new game in %d\u{2026}"):format(msg.seconds or 0)
+		resetLabel.Visible = true
+		if (msg.seconds or 0) <= 1 then
+			task.delay(1.5, function()
+				resetLabel.Visible = false
+			end)
+		end
 	end
 end)
 

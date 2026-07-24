@@ -2156,13 +2156,13 @@ return [==[{
       ],
       "seg": 4
     },
-    "resShield": {
-      "shape": "box",
+    "resStraw": {
+      "shape": "cone",
       "size": [
-        0.14,
-        0.16,
-        0.03
-      ]
+        0.035,
+        0.4
+      ],
+      "seg": 4
     },
     "resBeast": {
       "shape": "sphere",
@@ -2183,6 +2183,15 @@ return [==[{
         8,
         6
       ]
+    },
+    "pond": {
+      "shape": "cyl",
+      "size": [
+        0.11,
+        0.11,
+        0.012
+      ],
+      "seg": 10
     },
     "fortress": {
       "shape": "torus",

@@ -333,6 +333,18 @@ function M.openTheater()
 	end
 end
 
+-- runK item 4/5: re-show the post-victory end screen (on theater exit, or when a
+-- game-over player clicks End Turn). EndScreen registers + re-renders its cache.
+local reshowEndCallbacks = {}
+function M.onReshowEndScreen(cb)
+	table.insert(reshowEndCallbacks, cb)
+end
+function M.reshowEndScreen()
+	for _, cb in ipairs(reshowEndCallbacks) do
+		cb()
+	end
+end
+
 -- CP20 automation (ruling @6679e9c0; browser automate.js twin, CLIENT-SIDE
 -- like sentry/GoTo - golden-safe): auto settlers work themselves each view
 -- push. autoDriving marks the driver's own sends so a MANUAL order to an

@@ -52,8 +52,8 @@ openBtn.Text = "THEATER"
 openBtn.Parent = gui
 
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 520, 0, 58)
-bar.Position = UDim2.new(0.5, -260, 1, -110)
+bar.Size = UDim2.new(0, 780, 0, 116) -- runK item 3: 50% wider + 2x taller
+bar.Position = UDim2.new(0.5, -390, 1, -150)
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.1
 bar.BorderSizePixel = 0
@@ -61,45 +61,54 @@ bar.Visible = false
 bar.Parent = gui
 
 local verdictLabel = Instance.new("TextLabel")
-verdictLabel.Size = UDim2.new(1, -12, 0, 18)
-verdictLabel.Position = UDim2.new(0, 6, 0, 2)
+verdictLabel.Size = UDim2.new(1, -16, 0, 30)
+verdictLabel.Position = UDim2.new(0, 12, 0, 8)
 verdictLabel.BackgroundTransparency = 1
 verdictLabel.TextColor3 = Color3.fromRGB(220, 230, 240)
 verdictLabel.Font = Enum.Font.Code
-verdictLabel.TextSize = 14
+verdictLabel.TextSize = 18
 verdictLabel.TextXAlignment = Enum.TextXAlignment.Left
 verdictLabel.Parent = bar
 
 local function barButton(x, w, text)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, w, 0, 24)
-	b.Position = UDim2.new(0, x, 0, 26)
+	b.Size = UDim2.new(0, w, 0, 48) -- runK item 3: taller controls
+	b.Position = UDim2.new(0, x, 0, 56)
 	b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
 	b.Font = Enum.Font.SourceSansBold
-	b.TextSize = 14
+	b.TextSize = 22
 	b.Text = text
 	b.Parent = bar
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = b
 	return b
 end
 
-local firstBtn = barButton(6, 34, "|<")
-local backBtn = barButton(44, 34, "-1")
-local fwdBtn = barButton(82, 34, "+1")
-local lastBtn = barButton(120, 34, ">|")
+-- runK item 3: proper back-to-start / prev / next / to-end glyph buttons
+local firstBtn = barButton(8, 56, "\u{23EE}") -- back to start
+local backBtn = barButton(70, 56, "\u{25C0}") -- prev
+local fwdBtn = barButton(132, 56, "\u{25B6}") -- next
+local lastBtn = barButton(194, 56, "\u{23ED}") -- to end
 local jumpBar = Instance.new("TextButton") -- click-to-jump (no drag slider)
-jumpBar.Size = UDim2.new(0, 220, 0, 24)
-jumpBar.Position = UDim2.new(0, 160, 0, 26)
+jumpBar.Size = UDim2.new(0, 320, 0, 48)
+jumpBar.Position = UDim2.new(0, 260, 0, 56)
 jumpBar.BackgroundColor3 = Color3.fromRGB(38, 44, 58)
 jumpBar.Text = ""
 jumpBar.Parent = bar
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = jumpBar
+end
 local jumpFill = Instance.new("Frame")
 jumpFill.BackgroundColor3 = Color3.fromRGB(120, 100, 180)
 jumpFill.BorderSizePixel = 0
 jumpFill.Size = UDim2.new(0, 0, 1, 0)
 jumpFill.Parent = jumpBar
-local viewBtn = barButton(386, 92, "view: all")
-local closeBtn = barButton(482, 32, "X")
+local viewBtn = barButton(590, 140, "view: all \u{25BE}") -- runK item 3: dropdown trigger
+local closeBtn = barButton(736, 40, "X")
 
 -- ---- the mini-stage ---------------------------------------------------------
 local stage = nil
@@ -186,46 +195,85 @@ local function renderStage(view)
 end
 
 -- ---- sandbox re-derivation (replayDiagnostics semantics) --------------------
-local function deriveTo(roundN)
-	local rs = ClientState.rulesets()
-	local st = engineModule.deepClone(record.initialState)
-	local mismatchAt = nil
-	local upto = roundN == 0 and 0 or rounds[roundN]
-	for i = 1, upto do
-		local entry = record.entries[i]
-		if entry.t == "cmd" and entry.ok == true then
-			local res = engine.applyCommand(st, entry.cmd)
-			if res.ok then
-				st = res.state
-				if entry.hash ~= nil and statehash.hashState(st) ~= entry.hash and mismatchAt == nil then
-					mismatchAt = i
-				end
-			elseif mismatchAt == nil then
-				mismatchAt = i
+-- replay ONE recorded entry onto st; returns the new state + the entry index if
+-- its re-derived hash diverges from the recording (nil otherwise). The round
+-- entry re-runs the AI chain with a seats-derived guard (runK MISMATCH fix: a
+-- fixed 10 stranded >=12-civ games, mirroring the ec0ade2 / chainAndRound fix).
+local function applyEntry(st, i, rs)
+	local entry = record.entries[i]
+	if entry.t == "cmd" and entry.ok == true then
+		local res = engine.applyCommand(st, entry.cmd)
+		if not res.ok then
+			return st, i
+		end
+		st = res.state
+		if entry.hash ~= nil and statehash.hashState(st) ~= entry.hash then
+			return st, i
+		end
+	elseif entry.t == "round" then
+		local first = engine.applyCommand(st, { type = "endTurn", playerId = st.activePlayer })
+		if not first.ok then
+			return st, i
+		end
+		st = first.state
+		local guard = #st.playerOrder + 2
+		while st.gameOver ~= true and st.players[st.activePlayer].human ~= true and guard > 0 do
+			guard = guard - 1
+			st = aiModule.runAiTurn(engine, st, st.activePlayer, rs, {})
+			local res = engine.applyCommand(st, { type = "endTurn", playerId = st.activePlayer })
+			if not res.ok then
+				break
 			end
-		elseif entry.t == "round" then
-			local first = engine.applyCommand(st, { type = "endTurn", playerId = st.activePlayer })
-			if first.ok then
-				st = first.state
-				local guard = 10
-				while st.gameOver ~= true and st.players[st.activePlayer].human ~= true and guard > 0 do
-					guard = guard - 1
-					st = aiModule.runAiTurn(engine, st, st.activePlayer, rs, {})
-					local res = engine.applyCommand(st, { type = "endTurn", playerId = st.activePlayer })
-					if not res.ok then
-						break
-					end
-					st = res.state
-				end
-				if entry.hash ~= nil and statehash.hashState(st) ~= entry.hash and mismatchAt == nil then
-					mismatchAt = i
-				end
-			elseif mismatchAt == nil then
-				mismatchAt = i
-			end
+			st = res.state
+		end
+		if entry.hash ~= nil and statehash.hashState(st) ~= entry.hash then
+			return st, i
 		end
 	end
-	return st, mismatchAt
+	return st, nil
+end
+
+-- runK timeout fix: derive INCREMENTALLY. Re-deriving the whole game from the
+-- initial state on every scrub blew the Luau execution budget on a long game.
+-- Cache the last derived state + round: scrubbing FORWARD replays only the new
+-- entries from the (deep-cloned) cache; a backward/first derive re-runs from the
+-- initial state. Longer derives yield periodically so they never time out.
+local derivedState = nil
+local derivedRound = -1
+local derivedMismatch = nil
+local function resetDerivation()
+	derivedState = nil
+	derivedRound = -1
+	derivedMismatch = nil
+end
+local function deriveTo(roundN)
+	local rs = ClientState.rulesets()
+	local upto = roundN == 0 and 0 or rounds[roundN]
+	local st, from
+	if derivedState ~= nil and derivedRound >= 0 and roundN >= derivedRound then
+		st = engineModule.deepClone(derivedState) -- protect the cache from mutation
+		from = (derivedRound == 0 and 0 or rounds[derivedRound]) + 1
+	else
+		st = engineModule.deepClone(record.initialState)
+		from = 1
+		derivedMismatch = nil
+	end
+	local yielded = 0
+	for i = from, upto do
+		local mism
+		st, mism = applyEntry(st, i, rs)
+		if mism ~= nil and derivedMismatch == nil then
+			derivedMismatch = mism
+		end
+		yielded += 1
+		if yielded >= 30 then
+			yielded = 0
+			task.wait() -- keep the derive under the execution budget
+		end
+	end
+	derivedState = st
+	derivedRound = roundN
+	return st, derivedMismatch
 end
 
 -- runJ item 7: point the camera AT the mini-stage. The stage is built at
@@ -243,11 +291,14 @@ local function frameStage(map)
 	theaterCamera.CFrame = CFrame.lookAt(center + Vector3.new(0, span * 0.75, span * 0.85), center)
 end
 
+local repainting = false
 local function repaint()
-	if record == nil then
-		return
+	if record == nil or repainting then
+		return -- runK: deriveTo now yields; ignore overlapping scrubs mid-derive
 	end
+	repainting = true
 	local ok, st, mismatchAt = pcall(deriveTo, atRound)
+	repainting = false
 	if not ok then
 		verdictLabel.Text = "theater derivation failed: " .. tostring(st)
 		return
@@ -275,6 +326,7 @@ local function close()
 		stage:Destroy()
 		stage = nil
 	end
+	ClientState.reshowEndScreen() -- runK item 4: the victory menu returns on exit
 end
 
 local function openTheater()
@@ -335,24 +387,78 @@ jumpBar.Activated:Connect(function(input)
 	atRound = math.clamp(math.floor(rel * #rounds + 0.5), 0, #rounds)
 	repaint()
 end)
+-- runK item 3: a proper DROPDOWN for the view perspective (omniscient + each
+-- civ by name), replacing the cycle button.
+local viewList = Instance.new("Frame")
+viewList.Size = UDim2.new(0, 200, 0, 0)
+viewList.AutomaticSize = Enum.AutomaticSize.Y
+viewList.AnchorPoint = Vector2.new(0, 1)
+viewList.Position = UDim2.new(0, 590, 0, 52) -- rises above the view button
+viewList.BackgroundColor3 = Color3.fromRGB(30, 36, 50)
+viewList.BorderSizePixel = 0
+viewList.Visible = false
+viewList.ZIndex = 6
+viewList.Parent = bar
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = viewList
+	local l = Instance.new("UIListLayout")
+	l.SortOrder = Enum.SortOrder.LayoutOrder
+	l.Parent = viewList
+end
+local function setPerspective(p, label)
+	perspective = p
+	viewBtn.Text = ("view: %s \u{25BE}"):format(label)
+	viewList.Visible = false
+	repaint()
+end
+local function buildViewList()
+	for _, c in ipairs(viewList:GetChildren()) do
+		if c:IsA("TextButton") then
+			c:Destroy()
+		end
+	end
+	local function option(order, p, label)
+		local b = Instance.new("TextButton")
+		b.Size = UDim2.new(1, 0, 0, 30)
+		b.LayoutOrder = order
+		b.BackgroundColor3 = Color3.fromRGB(42, 50, 68)
+		b.BorderSizePixel = 0
+		b.TextColor3 = Color3.fromRGB(235, 235, 235)
+		b.Font = Enum.Font.SourceSansBold
+		b.TextSize = 18
+		b.ZIndex = 7
+		b.Text = "  " .. label
+		b.TextXAlignment = Enum.TextXAlignment.Left
+		b.Parent = viewList
+		b.Activated:Connect(function()
+			setPerspective(p, label)
+		end)
+	end
+	option(1, "spectator", "all (omniscient)")
+	local ids = {}
+	if record ~= nil then
+		for pid in pairs(record.initialState.players) do
+			table.insert(ids, pid)
+		end
+		table.sort(ids)
+	end
+	for i, pid in ipairs(ids) do
+		local pl = record.initialState.players[pid]
+		option(i + 1, pid, (pl and pl.name) or pid)
+	end
+end
 viewBtn.Activated:Connect(function()
 	if record == nil then
 		return
 	end
-	-- cycle omniscient -> each civ (sorted) -> back
-	local ids = {}
-	for pid in pairs(record.initialState.players) do
-		table.insert(ids, pid)
-	end
-	table.sort(ids)
-	if perspective == "spectator" then
-		perspective = ids[1]
+	if viewList.Visible then
+		viewList.Visible = false
 	else
-		local i = table.find(ids, perspective)
-		perspective = (i ~= nil and i < #ids) and ids[i + 1] or "spectator"
+		buildViewList()
+		viewList.Visible = true
 	end
-	viewBtn.Text = perspective == "spectator" and "view: all" or ("view: " .. perspective)
-	repaint()
 end)
 
 remote.OnClientEvent:Connect(function(msg)
@@ -362,6 +468,7 @@ remote.OnClientEvent:Connect(function(msg)
 	if msg.t == "theaterInit" then
 		record = { initialState = msg.initialState, entries = {}, total = msg.total }
 		engine = engineModule.createEngine(ClientState.rulesets())
+		resetDerivation() -- runK: fresh incremental cache per game
 		verdictLabel.Text = ("history: 0/%d entries..."):format(msg.total)
 	elseif msg.t == "theaterChunk" and record ~= nil then
 		for i, e in ipairs(msg.entries) do
@@ -375,7 +482,9 @@ remote.OnClientEvent:Connect(function(msg)
 				table.insert(rounds, i)
 			end
 		end
-		atRound = #rounds
+		atRound = #rounds > 0 and 1 or 0 -- runK: start at turn 1 (instant) — the
+		-- full-game derive at #rounds is what timed out on load; forward scrubbing
+		-- is now incremental + cheap
 		ClientState.theaterActive = true -- runJ item 7: suppress the map camera
 		frameStage(record.initialState.map)
 		repaint()
@@ -384,6 +493,17 @@ remote.OnClientEvent:Connect(function(msg)
 			verdictLabel.Text = "theater opens when the game ends (fog rule)"
 		elseif msg.code == "notSeated" then
 			verdictLabel.Text = "no finished game to replay yet"
+		end
+	end
+end)
+
+-- runK item 6: while the theater is open, tell the server it is being WATCHED
+-- (keeps the no-watchers reset timer from firing).
+task.spawn(function()
+	while true do
+		task.wait(10)
+		if bar.Visible then
+			remote:FireServer({ t = "theaterAlive" })
 		end
 	end
 end)

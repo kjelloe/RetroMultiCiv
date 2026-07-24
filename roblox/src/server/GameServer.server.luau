@@ -223,6 +223,11 @@ local seatOfUser = {} -- UserId -> "pN" (bound at game start / takeover)
 -- CP16/MP8: view-only watchers (ruling @d1ce4920) — NO seat, omniscient
 -- filterView via the twin's no-player-row path, sends rejected as notSeated
 local spectators = {} -- UserId -> true
+-- runK item 6: post-game server-reset scheduler state (defs after setPhase)
+local lastTheaterWatch = 0 -- os.clock() of the last theater open/keep-alive
+local resetGen = 0
+local resetScheduled = false
+local scheduleReset -- forward decl
 -- R6 (specs/r6-roblox-multiplayer.md): the seat REGISTRY + bridge-compat hook.
 -- seatMeta[pid] = { userId, name, seatCode, joinedAt } — the UserId plays the
 -- role docs/06 seat TOKENS play; seatCode is the INTERNAL bridge field (a
@@ -687,6 +692,10 @@ local function advance(collected, initiatedByEndTurn)
 	if state.gameOver == true then
 		print("[R4FINAL] hash=" .. statehash.hashState(state))
 		sendEndscreen() -- SO7: the full-state scoreboard (post-game = public)
+		if scheduleReset ~= nil and not resetScheduled then
+			resetScheduled = true
+			scheduleReset() -- runK item 6: begin the no-watchers reset timer
+		end
 	end
 	if checkDefeats ~= nil then
 		checkDefeats() -- runJ item 5: a seated human at 0 cities -> deck
@@ -752,6 +761,77 @@ function checkDefeats()
 			defeatPending[userId] = nil -- has a city (or already defeating): clear
 		end
 	end
+end
+
+-- runK item 6: reset the server to a fresh gameless state (deck lobby) so a new
+-- game can start. Soft reset: clear the game state + seats, back to idle, and
+-- respawn everyone on the observation deck.
+local function resetServer()
+	resetScheduled = false
+	state = nil
+	hostUserId = nil
+	endscreenSent = false
+	roundInFlight = false
+	for k in pairs(seatOfUser) do
+		seatOfUser[k] = nil
+	end
+	for k in pairs(spectators) do
+		spectators[k] = nil
+	end
+	for k in pairs(awaySeats) do
+		awaySeats[k] = nil
+	end
+	for k in pairs(regentStance) do
+		regentStance[k] = nil
+	end
+	theater.initialState = nil
+	theater.entries = {}
+	setPhase("idle")
+	for _, pl in ipairs(Players:GetPlayers()) do
+		pcall(function()
+			pl:LoadCharacter() -- back to the observation deck (fresh visitor)
+		end)
+	end
+	print("[GameServer] runK item 6: server reset for a new game")
+end
+
+-- once the game is over: if nobody watches the replay theater for 30s, run a 60s
+-- countdown then reset. "Watching" = a theater open + the client keep-alive
+-- (theaterAlive) refreshing lastTheaterWatch; a returning watcher cancels it.
+function scheduleReset()
+	resetGen += 1
+	local gen = resetGen
+	lastTheaterWatch = os.clock() -- watchers get the first 30s from game end
+	task.spawn(function()
+		while gen == resetGen do -- (a) 30s with nobody watching
+			if state == nil or state.gameOver ~= true then
+				return
+			end
+			if os.clock() - lastTheaterWatch >= 30 then
+				break
+			end
+			task.wait(2)
+		end
+		if gen ~= resetGen then
+			return
+		end
+		for s = 60, 1, -1 do -- (b) the 60s countdown, cancelled if a watcher returns
+			if gen ~= resetGen or state == nil then
+				return
+			end
+			if os.clock() - lastTheaterWatch < 5 then
+				scheduleReset() -- a watcher resumed: restart the idle wait
+				return
+			end
+			for _, pl in ipairs(Players:GetPlayers()) do
+				remote:FireClient(pl, { t = "resetCountdown", seconds = s })
+			end
+			task.wait(1)
+		end
+		if gen == resetGen then
+			resetServer()
+		end
+	end)
 end
 
 local function startCountdown(seconds, onExpire)
@@ -1500,7 +1580,12 @@ remote.OnServerEvent:Connect(function(player, msg)
 		return
 	end
 
+	if msg.t == "theaterAlive" then
+		lastTheaterWatch = os.clock() -- runK item 6: a watcher keep-alive
+		return
+	end
 	if msg.t == "theater" then
+		lastTheaterWatch = os.clock() -- runK item 6: someone opened the theater
 		-- R18: stream the history in chunks; the client sandbox re-derives.
 		-- THE LAW guard: raw history reveals every civ's whole game, so the
 		-- theater opens ONLY when the game is OVER (the classic Civ replay

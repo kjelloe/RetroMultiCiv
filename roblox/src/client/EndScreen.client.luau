@@ -113,7 +113,9 @@ local function headlineOf(msg)
 	return ("Score victory - the year %s arrived, and the %s had built the greatest civilization."):format(year, wname)
 end
 
+local lastEndscreen = nil -- runK item 4/5: cached for re-show
 local function show(msg)
+	lastEndscreen = msg
 	headline.Text = headlineOf(msg)
 	for _, child in ipairs(list:GetChildren()) do
 		child:Destroy()
@@ -161,5 +163,11 @@ local function show(msg)
 end
 
 ClientState.onEndscreen(show)
+-- runK item 4/5: re-open the victory menu on theater exit / a game-over End Turn
+ClientState.onReshowEndScreen(function()
+	if lastEndscreen ~= nil then
+		show(lastEndscreen)
+	end
+end)
 
 print("[EndScreen] SO7 end screen up (opens on the server's gameOver frame)")
