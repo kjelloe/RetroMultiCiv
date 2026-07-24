@@ -2407,6 +2407,16 @@ html, body {
 #open-econ-overview { left: calc(50% - 334px); }     /* left of the ⚔ button */
 #open-diplo { left: calc(50% - 370px); }             /* left of the 💰 economy button (XVII #18) */
 #open-city-overview:hover, #open-military-overview:hover, #open-econ-overview:hover, #open-diplo:hover { background: #2f5388; }
+/* XVII 1280-safe (architect ruling): on mid-width screens the left-shifted cluster
+   would overlap the top-left HUD (everything is 50%-anchored). Wrap it to a SECOND
+   row, centered under the research bar, so it clears the HUD. Above the breakpoint
+   there's room to keep the inline layout; the ≤720px phone block below still wins. */
+@media (min-width: 721px) and (max-width: 1439px) {
+  #open-diplo { top: 44px; left: calc(50% - 74px); }
+  #open-econ-overview { top: 44px; left: calc(50% - 38px); }
+  #open-military-overview { top: 44px; left: calc(50% - 2px); }
+  #open-city-overview { top: 44px; left: calc(50% + 34px); }
+}
 .overview-table .eco-in { color: #cde8d4; }
 .overview-table .eco-out { color: #cdd8ea; }
 .overview-table .eco-note { color: #ffd479; }
