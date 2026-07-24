@@ -367,6 +367,10 @@ very large game can slow every game on that process (single event loop).
 - `--share-reports DIR` (off by default) only ever WRITES local files
   (anonymized recordings, seat-vetoable, rotation-capped); it opens no listener
   and serves nothing — zero new surface.
+- `--bug-reports DIR` (off by default) accepts a capped, rate-limited POST and
+  WRITES only (sanitized filenames, atomic, rotation-capped ≤ 100 files).
+  Keep DIR OUTSIDE the served tree (`client/ engine/ shared/ data/`) and off
+  any `--debug` host — the dir must never be reachable over HTTP (§8).
 - Docker: the image runs hardened defaults; flags pass through
   `docker run IMAGE --flags`.
 
@@ -380,6 +384,8 @@ very large game can slow every game on that process (single event loop).
   surface — the INDEX must never harm a listed server; listings are
   unauthenticated claims — P5); (b) at any new dependency; (c) at 1.0; (d) if
   the residual single-loop/volumetric items are acted on.
+- Fired so far: 5(a) → §6 (2026-07-22); new-dep + RC → §7 (2026-07-24);
+  new-surfaces/1.0 → §8 (2026-07-25).
 
 ## 6. Master-index-public re-assessment (2026-07-22 — trigger 5(a) fired)
 
@@ -459,4 +465,76 @@ Five surfaces evaluated; **NO RC-blocker found.**
 
 **Verdict: safe for continued exposure with the §4 checklist; no new attack
 class, no RC-blocker. One LOW residual (per-game takeover cap) noted for v2.**
+
+## 8. v1/RC delta re-assessment (2026-07-25 — trigger: new surfaces since §7)
+
+Five surfaces landed after the §7 pass (all reviewer-gated at merge). Each
+gets a posture row; **NO RC-blocker found.**
+
+- **Late-join family completion (listGames rows, join-toggle; extends §7's
+  takeover row).** The `openGames` listing carries ONLY
+  `gameId/hostName/openSeats/totalSeats/size/age/spectators/status/state/
+  joinable` (+ `turn`/`era` on started rows) — NEVER the join code, NEVER
+  seated IPs (in-code contract comment at the row builder); private games
+  (`options.public !== true`) never list, finished games unlist, and `list`
+  is per-connection rate-limited. Enumeration exposure is therefore the
+  DESIGNED capability: public games are joinable-by-listing; gameIds are
+  sequential but a raw-id join into a private LOBBY is code-gated (A50
+  item 1) and started-game joins are token-gated. Takeover TOKEN behavior:
+  the claimed seat was AI-configured, so no prior token exists for the pid —
+  `bindSeat` mints a fresh token + seat code; no displacement of a live
+  seat is possible through this path (guarded by tests). The XVII §3
+  join-toggle (`setJoining`) is HOST-only (`notCreator` otherwise),
+  protocol-validated to a strict boolean, lobby-status-gated, and CLOSING a
+  lobby cannot strand a dropped joiner (the reconnect-reclaim path returns
+  before the closed-gate — reviewer-verified ordering, #2475). Repeat-
+  takeover churn stays bounded as §7 recorded (joins/min + civ count); the
+  §7 LOW residual (per-IP-per-game takeover cap) is UNCHANGED, still on the
+  v2 shelf.
+- **gameover-reveal (information-disclosure change, reviewed as such,
+  #2537).** The unfiltered map rides the view push ONLY under a STRICT
+  `state.gameOver === true` gate (never truthy coercion); pre-gameOver the
+  field is absent — locked by a dedicated test (reveal ABSENT before /
+  PRESENT at gameOver). The recipient set of the view fan-out is UNCHANGED
+  (same loop condition), so spectator/seat gating is untouched. Civ1-
+  authentic by ruling #2496: at gameOver no competitive information
+  remains, so this is a POLICY reveal, not a leak. No residual.
+- **REJECT_REASONS export (contract centralization).** The registry is a
+  frozen value===key map of short camelCase identifiers (`serverFull`,
+  `joiningClosed`, …) — byte-identical to the previously scattered
+  literals, so ZERO new wire content. Audited for internals: no reason
+  string carries tokens, paths, seat codes, or state. The route() reject
+  HINTS (gameFull/badToken guidance mentioning localStorage/`--reset-seats`)
+  predate this change and describe client-side recovery, not server
+  internals — unchanged posture. Net effect is POSITIVE for the surface:
+  one auditable vocabulary, client-superset contract-testable. No residual.
+- **Bug-report POST sink (`--bug-reports DIR`, opt-in, OFF by default).**
+  Write-only (the dir is never HTTP-served; the A61 static whitelist
+  covers only `/client/ /engine/ /shared/ /data/`), so served-back exposure
+  requires the operator to point DIR inside a whitelisted tree or run
+  `--debug` — quick-card line added. Path traversal: the filename is
+  timestamp + gameId SANITIZED to `[A-Za-z0-9-]` (40-char cap) via
+  atomic tmp+rename inside the fixed DIR; the payload never influences the
+  directory. Caps: 2 MB body (413 over), 8× hard-abort on floods, per-IP
+  20/hour budget, rotation keeps the newest 100 files (disk bounded
+  ≤ ~200 MB worst-case). Residual (LOW): the distinct-IP flood guard
+  clears ALL hourly buckets past 5000 tracked IPs — a mass-IP flood can
+  reset budgets early; bounded by the 2 MB × rotation disk math, so
+  accepted (note-only).
+- **Lobby-robustness fixes folded into the covered set (#2549 merged).**
+  The four adverse-sequencing windows are now guarded: join-code race
+  (synchronous handler → distinct seats or clean `gameFull`), lobby-drop
+  windows (Part-B grace: held → reclaimable → freed, never wedged), stale
+  post-restart token (clean `badToken` echoing commandId), and the
+  skip-vote wedge (FIXED: voter disconnect re-tallies the vote and
+  resolves or re-broadcasts — a stalled turn can no longer survive a
+  departure). All four hold as socket tests in
+  `test/server-lobby-robustness.test.js`.
+
+**Verdict: safe for continued exposure with the §4 checklist. No new attack
+class; the one carried residual (per-game takeover cap, LOW) and one new
+note-only residual (bug-report bucket reset past 5000 IPs) both sit below
+RC-blocking. This satisfies the §5 "re-assess at 1.0" trigger for the
+current surface set.** Next re-run triggers: new dependency · residuals
+acted on · any new listener/POST sink.
 Next re-run triggers: new dependency · 1.0 RC · residual items acted on.
