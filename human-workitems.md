@@ -46,7 +46,12 @@ list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
   Until the reviewer grant: 0100 stays declaration-pending, 0099 is
   the redeploy candidate.
 
-- [ ] **Redeploy from marker-0099** (`7d08d41` — the corrected 0098
+- [ ] **Redeploy from marker-0101** (`c51dceb` — XVII COMPLETE: all 22
+  playtest items + join-toggle + runK, clean-clone-gated 886/0-fail;
+  supersedes the 0099 note below): same procedure, bake step already
+  in ssh-deploy.sh, hard refresh after.
+
+- [x] ~~Redeploy from marker-0099~~ (`7d08d41` — the corrected 0098
   bundle, reviewer clean-clone --full GREEN): late-join complete +
   join-share QR + self-host find-a-game fix + runI/runJ polish +
   the play-lane sweep. Same procedure; bake step already in your
