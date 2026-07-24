@@ -44,10 +44,15 @@ list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
   if its permission set is per-wake-inconsistent, a standing grant
   in that clone's settings still helps.)
 
-- [ ] **Redeploy from marker-0101** (`c51dceb` — XVII COMPLETE: all 22
-  playtest items + join-toggle + runK, clean-clone-gated 886/0-fail;
-  supersedes the 0099 note below): same procedure, bake step already
-  in ssh-deploy.sh, hard refresh after.
+- [x] **Redeploy from marker-0101 — DONE 2026-07-25** (live + verified:
+  healthz ok, 1 game restored). The deploy surfaced the dormant
+  --public-addr unit-flag crash-loop (fixed on the box: bare
+  host:443; how-to-host troubleshooting #8) and BOTH one-time unit
+  edits landed in the same session: `--max-turns 700` +
+  `--bug-reports /opt/retromulticiv/bug-reports` (+ ReadWritePaths).
+  The deploy scripts now carry the healthz DEPLOY GUARD + a
+  bug-reports ls hint. Check reports occasionally:
+  `ls -t /opt/retromulticiv/bug-reports | head`.
 
 - [x] ~~Redeploy from marker-0099~~ (`7d08d41` — the corrected 0098
   bundle, reviewer clean-clone --full GREEN): late-join complete +

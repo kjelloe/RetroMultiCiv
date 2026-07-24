@@ -69,6 +69,16 @@ $SSH "$DEPLOY" \
      fi && \
      cd $APP && (npm ci --omit=dev 2>/dev/null || npm install --omit=dev) && \
      sudo systemctl restart retromulticiv-master retromulticiv-game && \
-     systemctl is-active retromulticiv-game retromulticiv-master"
+     sleep 3 && \
+     systemctl is-active retromulticiv-game retromulticiv-master && \
+     curl -fsS http://127.0.0.1:8123/healthz && echo ' <- game answering' && \
+     curl -fsS http://127.0.0.1:8970/servers >/dev/null && echo 'master answering'"
+# The sleep+healthz tail is the DEPLOY GUARD (2026-07-25 lesson, how-to-host
+# troubleshooting #8): `restart` + an immediate is-active can report success
+# while the unit crash-loops — boot-time validations (e.g. the --public-addr
+# format check) lie dormant on a long-running process until the NEXT restart,
+# i.e. this deploy. A dead listener now fails the deploy loudly.
 
-echo "==> Deployed. Logs: $SSH $DEPLOY 'journalctl -u retromulticiv-game -f'"
+echo "==> Deployed + verified serving."
+echo "    Logs:        $SSH $DEPLOY 'journalctl -u retromulticiv-game -f'"
+echo "    Bug reports: $SSH $DEPLOY 'ls -t /opt/retromulticiv/bug-reports | head'   # newest player 🐞 reports"

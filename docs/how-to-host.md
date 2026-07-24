@@ -470,6 +470,29 @@ Individual symptoms and fixes:
    one cert lineage covering both names, same file paths, no other nginx
    edits.
 
+8. **502 after a deploy, and the deploy script SAID success** (hit
+   2026-07-25, the real 0101 redeploy). Two stacked causes worth
+   knowing separately:
+   - **Boot-time validations lie dormant on a long-running process.**
+     The box's unit still carried the pre-validation
+     `--public-addr https://…` (scheme-prefixed); the server had
+     rejected that format at BOOT for weeks, but the old process
+     predated the check — the deploy's restart was the first boot
+     through it, so the unit crash-looped (`journalctl -u
+     retromulticiv-game -n 50` names it; the error text contains the
+     exact fix: bare `host:443`, no scheme). When a release adds a
+     boot-time validation, re-check the UNIT FILE flags against the
+     current flag table — templates get fixed, deployed units drift.
+   - **`systemctl restart` + an immediate `is-active` races the
+     crash.** The start job completes, `is-active` prints `active`,
+     the process dies a second later, systemd re-spawns forever. The
+     deploy scripts now sleep 3 s and curl `/healthz` (game) +
+     `/servers` (master) — a dead listener fails the deploy loudly.
+   Also from the same session: `journalctl -u multiciv` returning
+   "No entries" means the wrong UNIT NAME (they are
+   `retromulticiv-game` / `retromulticiv-master`), and a polkit
+   password prompt from `systemctl restart` means you forgot `sudo`.
+
 ---
 
 ## Listing your server in "Find game" (the public master index)
