@@ -99,3 +99,37 @@ WHAT SHIPPED:
   strips give it shape.
 - **Goldens**: FULL honest re-record (every generated map moved) + CANONICAL_PIN
   re-bake + 25-seed sweep.
+
+## FOLLOW-UP: FIX (A) — HILLS EXCLUDED FROM FLAGGING (architect #2573, built by bugfixer 2026-07-24)
+
+The post-#36 25-seed sweep breached the M3-pop floor (23.5 < 28) with M2-cities
+at-floor. Investigate-first ruling #2553: the reviewer's yields gate was GREEN, so
+the driver was DISTRIBUTION, not per-tile yield. The bugfixer's distribution audit
+(#2570, `debugging/river-dist-audit.mjs`, 25 canonical worlds) found the mechanism,
+code-backed:
+- **Coverage** is a hard ~10.9% of land every seed (~2-3x the old effective rate).
+- **~38% of every river strip landed on HILLS** (median ~55/world). Hills are 0 base
+  shields / **mine +3**, and B19 forbids mining a river tile → each river-hill was a
+  3-shield mine pinned at 0 (only +1 trade back): ~165 potential shields/world locked,
+  concentrated in prime early-production hill country. This is the shield-starvation
+  path behind the M3-pop + M2-cities drop. An inauthentic world-tax (Civ1 rivers are
+  prime land, not a penalty).
+- **~48% of AI cities** sat on/adjacent to river (the +6 founding score pulls sites on;
+  flood popPct 25 then taxed ~half the empire's growth). Left AS-IS — flood is a
+  Civ1-authentic disaster and city-walls are the authentic answer.
+
+**FIX (A), surgical:** the spring still STARTS in hills/mountains, but the river FLAG is
+never SET on a hills tile (mountains were already excluded) — the strip walks through
+hill country unflagged and flags the first non-hills tile downstream. One guard clause
+in the flag step of `engine/mapgen.js` + its byte-shaped `luau/mapgen.luau` twin. Zero
+effect-table change; coverage + ribbon feel preserved (the loop consumes more steps/
+springs to reach the same land-share target). NO `RIVER_PCT` change this pass.
+
+**Goldens (honest behavioral re-record — every generated map reshapes):** simulation
+GOLDEN_SOAK 0x4ad2ff18/0x56c109f8/0x4b2598b2/0xe39fa9a8, GOLDEN_NATURAL 0x634ee751
+(545/p2), BEHAVIOR_SOAK 0xd2693e81/0x29b5ab0f/0xa1d22931/0x17f1b937, BEHAVIOR_NATURAL
+0x193a7466; scenario 002 0x4979add6; luau-twins map anchors 0x3ea8ca4d/0xa2e4615e/
+0x23f99df3/0x989b4077 + turn-100 0x4ad2ff18 + FF_PARITY 0xdf8dce5c; age-snapshots
+CANONICAL_PIN 0x7fa058f2 (+ 21-snapshot re-bake). JS==Luau map hashes verified identical
+on all 4 map types. Seed re-pins: build-priority 3→6 (wonder-drive fires t71, persists
+52); fastforward unchanged. The post-fix 25-seed sweep is the marker-0103 gate.

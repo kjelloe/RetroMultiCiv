@@ -20,13 +20,15 @@ const riverPct = (map) => {
   return { land, river, pct: 100 * river / land };
 };
 
-test('river mapgen: ~10-12% of land is flagged, and never ocean/arctic/mountains', async () => {
+test('river mapgen: ~10-12% of land is flagged, and never ocean/arctic/mountains/hills', async () => {
   const map = await gen(7);
   const { pct } = riverPct(map);
   assert.ok(pct >= 8 && pct <= 13, `river coverage ~11% of land, saw ${pct.toFixed(1)}%`);
   for (const t of map.tiles) {
-    if (t.river === true) assert.ok(t.t !== 'ocean' && t.t !== 'arctic' && t.t !== 'mountains',
-      `river never flags ocean/arctic/mountains (saw ${t.t})`);
+    // fix (A) #2573: hills are excluded from FLAGGING (spring still starts there) — B19
+    // forbids mining a river tile, so flagging a hill would strand its +3 mine at 0 shields.
+    if (t.river === true) assert.ok(t.t !== 'ocean' && t.t !== 'arctic' && t.t !== 'mountains' && t.t !== 'hills',
+      `river never flags ocean/arctic/mountains/hills (saw ${t.t})`);
   }
 });
 

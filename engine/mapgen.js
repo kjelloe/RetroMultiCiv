@@ -115,6 +115,13 @@ function generateTiles(rng, width, height, landPercent, continents) {
   // field toward the sea with a MEANDER_PCT free-wiggle chance. All draws in a fixed
   // order (spring pick, then per step: meander roll, and on a wiggle a neighbour
   // roll) — the luau twin mirrors the exact sequence. Knobs are OURS (documented).
+  // Fix (A) #2573: the spring still STARTS in hills/mountains, but the FLAG is never
+  // SET on a hills tile (mountains already excluded) — B19 forbids mining a river
+  // tile, so flagging hills would strand their mine (+3 shields) at 0 (the audit's
+  // ~165 mine-locked shields/world, an inauthentic world-tax). The strip walks
+  // through hill country unflagged and flags the first non-hills tile downstream;
+  // coverage + ribbon feel preserved (the loop consumes more steps/springs to reach
+  // the same land-share target). Distribution-only change; effect tables untouched.
   let landCount = 0;
   for (const t of tiles) { if (t.t !== 'ocean' && t.t !== 'arctic') landCount++; }
   const target = idiv(landCount * RIVER_PCT, 100);
@@ -149,7 +156,7 @@ function generateTiles(rng, width, height, landPercent, continents) {
     while (steps < maxSteps && flagged < target) {
       const tile = tiles[y * width + x];
       if (tile.t === 'ocean') break; // reached the sea
-      if (tile.t !== 'arctic' && tile.t !== 'mountains' && tile.river !== true) { tile.river = true; flagged++; }
+      if (tile.t !== 'arctic' && tile.t !== 'mountains' && tile.t !== 'hills' && tile.river !== true) { tile.river = true; flagged++; }
       const cand = [];
       for (const d of N4) {
         const nx = wrap(x + d.dx, width);

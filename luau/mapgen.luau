@@ -131,6 +131,9 @@ local function generateTiles(r0: number, width: number, height: number, landPerc
 	-- springs in hills/mountains gradient-descend a distance-to-ocean field to the coast,
 	-- ~RIVER_PCT% of land flagged, MEANDER_PCT free-wiggle. Byte-shaped twin of mapgen.js
 	-- (fixed N4 order, ocean-index queue order, single rng sequence, order-based ties).
+	-- Fix (A) #2573: FLAG never SET on hills (mountains already excluded) — B19 bans
+	-- mining a river tile, so a river-hill would strand its +3 mine at 0 shields; the
+	-- strip walks through hills unflagged, flags the first non-hills tile downstream.
 	local landCount = 0
 	for _, t in ipairs(tiles) do
 		if t.t ~= "ocean" and t.t ~= "arctic" then
@@ -189,7 +192,7 @@ local function generateTiles(r0: number, width: number, height: number, landPerc
 			if tile.t == "ocean" then
 				break
 			end
-			if tile.t ~= "arctic" and tile.t ~= "mountains" and tile.river ~= true then
+			if tile.t ~= "arctic" and tile.t ~= "mountains" and tile.t ~= "hills" and tile.river ~= true then
 				tile.river = true
 				flagged += 1
 			end

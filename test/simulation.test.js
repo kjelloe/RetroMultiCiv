@@ -41,6 +41,13 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // strip river mapgen (ruling A #2522) changes EVERY generated map -> different worlds -> every sim
 // hash moves (rounds 400/545 + winner p2 UNCHANGED). GOLDEN_SOAK 0x72eef2da.. / GOLDEN_NATURAL
 // 0x9224ff7d / BEHAVIOR_SOAK 0x311339cf.. / BEHAVIOR_NATURAL 0xf5ab66b2. Honest re-record.
+// #36 fix (A) river hills-exclude re-record: BEHAVIORAL (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL MOVED).
+// Ruling #2573 (audit #2570: 38% of strips landed on hills, ~165 shields/world mine-locked via B19):
+// river strips no longer FLAG hills (spring still starts there; flag begins first non-hills tile
+// downstream) -> removes the inauthentic shield-starvation world-tax -> every generated map reshapes ->
+// every sim hash moves (rounds 400/545 + winner p2 UNCHANGED). GOLDEN_SOAK 0x4ad2ff18.. / GOLDEN_NATURAL
+// 0x634ee751 / BEHAVIOR_SOAK 0xd2693e81.. / BEHAVIOR_NATURAL 0x193a7466. Distribution-only; effects
+// untouched. Honest re-record.
 // #32 A8 tile-contention re-record: BEHAVIORAL (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL MOVED too —
 // a real trajectory change). Two adjacent cities no longer double-work the same tile (resolveAllWorked,
 // contended in the REAL game paths; AI plans on the non-contended fallback per §b/#2495), so dense
@@ -55,24 +62,24 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x72eef2da',
-    200: '0x39abc154',
-    300: '0x842b4393',
-    400: '0xaedef2e4'
+    100: '0x4ad2ff18',
+    200: '0x56c109f8',
+    300: '0x4b2598b2',
+    400: '0xe39fa9a8'
   },
-  finalHash: '0xaedef2e4'
+  finalHash: '0xe39fa9a8'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x9224ff7d' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x634ee751' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x311339cf', 200: '0xcf96f983', 300: '0x3a621068', 400: '0x6ea1a009' },
-  finalHash: '0x6ea1a009'
+  checkpoints: { 100: '0xd2693e81', 200: '0x29b5ab0f', 300: '0xa1d22931', 400: '0x17f1b937' },
+  finalHash: '0x17f1b937'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xf5ab66b2' };
+const BEHAVIOR_NATURAL = { finalHash: '0x193a7466' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
