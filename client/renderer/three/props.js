@@ -60,14 +60,19 @@ const SPECIAL_MOTIF = {
               { k: 'resStraw', color: 0xe2be3a, dx: -0.08, dz: -0.06, dy: 0.19, rotX: 0.3, rotY: 5.1 },
               { k: 'resStraw', color: 0xf2d84e, dx: 0.08, dz: -0.04, dy: 0.19, rotX: 0.26, rotY: 1.2 },
               { k: 'resStraw', color: 0xf6e264, dx: -0.02, dz: 0.1, dy: 0.19, rotX: 0.26, rotY: 4.4 }],
-  plains:    [{ k: 'resBeast', color: 0x9a6b3f, sx: 1.5, sy: 0.8, sz: 0.8, dy: 0.05 },         // Horse
-              { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.12, dy: 0.11 }],
+  plains:    [{ k: 'resBeast', color: 0x9a6b3f, sx: 1.65, sy: 0.6, sz: 0.6, dy: 0.15, rotZ: -0.9 }, // Horse — REARING profile: reared up on hindquarters, head high (not a horizontal blob)
+              { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.09, dy: 0.31 }],                     // head held high at the top of the rear
   forest:    [{ k: 'resBeast', color: 0x7a5a35, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },       // Game (deer)
-              { k: 'resBeastHead', color: 0x7a5a35, dx: -0.11, dy: 0.12 }],
+              { k: 'resBeastHead', color: 0x7a5a35, dx: -0.11, dy: 0.12 },
+              { k: 'resAntler', color: 0x533c22, dx: -0.12, dy: 0.26, rotZ: 0.62 },             // stag antlers — a tall V fork above the head; the load-bearing Game silhouette
+              { k: 'resAntler', color: 0x533c22, dx: -0.07, dy: 0.26, rotZ: -0.62 }],
   tundra:    [{ k: 'resBeast', color: 0x8a6a45, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },        // Game
-              { k: 'resBeastHead', color: 0x8a6a45, dx: -0.11, dy: 0.12 }],
-  arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.8, sy: 0.6, sz: 0.75, dy: 0.04 },         // Seal
-              { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.15, dy: 0.06 }],
+              { k: 'resBeastHead', color: 0x8a6a45, dx: -0.11, dy: 0.12 },
+              { k: 'resAntler', color: 0x5f4728, dx: -0.12, dy: 0.26, rotZ: 0.62 },
+              { k: 'resAntler', color: 0x5f4728, dx: -0.07, dy: 0.26, rotZ: -0.62 }],
+  arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.85, sy: 0.55, sz: 0.72, dy: 0.04 },        // Seal — low flat body
+              { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.16, dy: 0.06 },
+              { k: 'resFishTail', color: 0xb4bcc6, dx: 0.17, dy: 0.09, rotZ: -0.95, sx: 1.1, sy: 1.3 }], // upturned tail flipper — the asymmetric feature vs the low head
   desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02, sx: 1.3, sz: 1.3 },                    // Oasis (XVII #14: larger pool + taller palm)
               { k: 'resPalm', color: 0x2f8d3f, dy: 0.22, sx: 1.25, sy: 1.35, sz: 1.25 }],
   hills:     [{ k: 'resCrystal', color: 0x2b2b30, dy: 0.11, sx: 1.3, sy: 1.3, sz: 1.3 }],         // Coal
@@ -96,7 +101,7 @@ export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2
     hutBase: [], hutRoof: [], // N13: goody-hut villages
     // specials-icons: per-resource motif primitives
     resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
-    resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], pond: []
+    resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [], pond: []
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -251,7 +256,7 @@ export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2
           for (const m of motif) {
             items[m.k].push({ x, y, top: base, dim, color: m.color,
               dx: m.dx || 0, dz: m.dz || 0, dy: m.dy || 0,
-              sx: m.sx, sy: m.sy, sz: m.sz, rotX: m.rotX || 0, rotY: m.rotY || 0 });
+              sx: m.sx, sy: m.sy, sz: m.sz, rotX: m.rotX || 0, rotY: m.rotY || 0, rotZ: m.rotZ || 0 });
           }
         } else { // any terrain without a motif keeps the generic marker
           items.special.push({ x, y, top: base, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });
@@ -272,7 +277,7 @@ export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2
     const mesh = new THREE.InstancedMesh(PROP_GEO[kind], PROP_MAT, list.length);
     list.forEach((it, i) => {
       dummy.position.set(it.x + (it.dx || 0), it.top + (it.dy || 0), it.y + (it.dz || 0));
-      dummy.rotation.set(it.rotX || 0, it.rotY || 0, 0);
+      dummy.rotation.set(it.rotX || 0, it.rotY || 0, it.rotZ || 0);
       dummy.scale.set(it.sx || 1, it.sy || 1, it.sz || 1);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
