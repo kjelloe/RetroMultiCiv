@@ -36,6 +36,16 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
+- [ ] **Grant the gaming-PC lane sessions their routine permissions**
+  (new, 2026-07-25 — the watcher's one remaining friction): the
+  REVIEWER's watcher wakes allowlist only agent-mail.py, so the
+  marker-0100 clean-clone gate can't run (git + ~/reviewer-lab need
+  a standing grant in that clone's .claude/settings.json, or run one
+  interactive reviewer session and approve-always); same for the
+  ROBLOX-HELPER's pending Write approval (the intro-animation file).
+  Until the reviewer grant: 0100 stays declaration-pending, 0099 is
+  the redeploy candidate.
+
 - [ ] **Redeploy from marker-0099** (`7d08d41` — the corrected 0098
   bundle, reviewer clean-clone --full GREEN): late-join complete +
   join-share QR + self-host find-a-game fix + runI/runJ polish +
