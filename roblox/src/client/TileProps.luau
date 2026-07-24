@@ -38,7 +38,7 @@ M.PROP_SHAPES = {
 	resFishTail = { shape = "cone", size = { 0.06, 0.09 }, seg = 4 },
 	resCrystal = { shape = "dodeca", size = { 0.075 }, seg = 0 },
 	resWater = { shape = "cyl", size = { 0.16, 0.16, 0.015 }, seg = 12 },
-	resPalm = { shape = "cone", size = { 0.11, 0.14 }, seg = 6 },
+	resPalm = { shape = "cone", size = { 0.034, 0.36 }, seg = 3 }, -- palm FROND blade (a ring = the crown)
 	resDerrick = { shape = "cone", size = { 0.06, 0.34 }, seg = 4 },
 	resStraw = { shape = "cone", size = { 0.035, 0.4 }, seg = 4 },
 	pond = { shape = "cyl", size = { 0.11, 0.11, 0.012 }, seg = 10 },
@@ -96,9 +96,17 @@ local SPECIAL_MOTIF = {
 		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.16, dy = 0.06 },
 		{ k = "resFishTail", color = "#b4bcc6", dx = 0.17, dy = 0.09, rotZ = -0.95, sx = 1.1, sy = 1.3 },
 	},
-	desert = { -- Oasis (XVII #14: larger pool + taller palm)
+	desert = { -- Oasis (f92b088): pool + slender trunk + a 6-frond ring crown
+		-- (position-offset splay, the wheat-sheaf idiom — rotY alone gimbal-
+		-- collapses at this tilt; a palm spray, never a fir cone)
 		{ k = "resWater", color = "#2f7fc0", dy = 0.02, sx = 1.3, sz = 1.3 },
-		{ k = "resPalm", color = "#2f8d3f", dy = 0.22, sx = 1.25, sy = 1.35, sz = 1.25 },
+		{ k = "jungleTrunk", color = "#8a6a3d", dy = 0.18, sx = 1.05, sy = 0.8, sz = 1.05 },
+		{ k = "resPalm", color = "#3fae4f", dx = 0.07, dz = 0.0, dy = 0.33, rotX = 0.86, rotY = 0.0, sz = 0.55 },
+		{ k = "resPalm", color = "#4cbf5c", dx = 0.035, dz = 0.061, dy = 0.33, rotX = 0.86, rotY = 1.05, sz = 0.55 },
+		{ k = "resPalm", color = "#3fae4f", dx = -0.035, dz = 0.061, dy = 0.33, rotX = 0.86, rotY = 2.09, sz = 0.55 },
+		{ k = "resPalm", color = "#4cbf5c", dx = -0.07, dz = 0.0, dy = 0.33, rotX = 0.86, rotY = 3.14, sz = 0.55 },
+		{ k = "resPalm", color = "#3fae4f", dx = -0.035, dz = -0.061, dy = 0.33, rotX = 0.86, rotY = 4.19, sz = 0.55 },
+		{ k = "resPalm", color = "#4cbf5c", dx = 0.035, dz = -0.061, dy = 0.33, rotX = 0.86, rotY = 5.24, sz = 0.55 },
 	},
 	hills = { { k = "resCrystal", color = "#2b2b30", dy = 0.11, sx = 1.3, sy = 1.3, sz = 1.3 } }, -- Coal
 	mountains = { { k = "resCrystal", color = "#ffd23b", dy = 0.24, sx = 1.9, sy = 1.9, sz = 1.9 } }, -- Gold

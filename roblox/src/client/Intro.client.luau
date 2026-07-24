@@ -410,9 +410,12 @@ task.spawn(function()
 	if skipping then return end
 
 	-- beat 3: the arc — one slow orbit while the town advances the four eras
-	-- beside the silo, the era skirmish escalates, a wonder rises
-	fade(title, "TextTransparency", 1, 0.8)
-	fade(subtitle, "TextTransparency", 1, 0.8)
+	-- beside the silo, the era skirmish escalates, a wonder rises. runN r2
+	-- (user): the title + sub-heading HOLD 5s INTO the arc before fading.
+	task.delay(5, function()
+		fade(title, "TextTransparency", 1, 0.8)
+		fade(subtitle, "TextTransparency", 1, 0.8)
+	end)
 	fade(wonder, "Transparency", 0, 1.5)
 	TweenService:Create(wonder, TweenInfo.new(BEAT_ARC * 0.5, Enum.EasingStyle.Quad),
 		{ Size = Vector3.new(4, 14, 4), Position = ORIGIN + Vector3.new(-14, 7, -8) }):Play()
