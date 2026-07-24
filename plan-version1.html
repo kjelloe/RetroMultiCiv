@@ -50,6 +50,14 @@
   #gates .bar { background: var(--accent); } #gates h2 { color: var(--accent); }
   .item { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
     padding: .85rem 1rem; margin: .6rem 0; }
+  .item.g, tr.g td { background: #e2f3e8; border-color: #a3d6b4; }
+  @media (prefers-color-scheme: dark) { .item.g, tr.g td { background: #1d3226; border-color: #35604a; } }
+  :root[data-theme="dark"] .item.g, :root[data-theme="dark"] tr.g td { background: #1d3226; border-color: #35604a; }
+  :root[data-theme="light"] .item.g, :root[data-theme="light"] tr.g td { background: #e2f3e8; border-color: #a3d6b4; }
+  ol.spine li.g { background: #e2f3e8; border-radius: 8px; }
+  @media (prefers-color-scheme: dark) { ol.spine li.g { background: #1d3226; } }
+  :root[data-theme="dark"] ol.spine li.g { background: #1d3226; }
+  :root[data-theme="light"] ol.spine li.g { background: #e2f3e8; }
   .item .t { font-weight: 600; }
   .item .d { color: var(--muted); font-size: .92rem; margin-top: .25rem; }
   .st { display: inline-block; border-radius: 999px; padding: .05rem .55rem;
@@ -84,11 +92,14 @@
   <div class="sec-head"><h2>The engine spine</h2><span class="tag">serialized — one golden window at a time; this queue IS the critical path</span></div>
   <div class="bar"></div>
   <div class="item">
-    <div class="d">Everything through marker-0097 is done and gated: the XII.5/xiv-ai/naval/difficulty/space arcs,
+    <div class="item g" style="margin:.2rem 0 .8rem; padding:.6rem .8rem;">
+    <div class="d">✅ Everything through marker-0097 is done and gated: the XII.5/xiv-ai/naval/difficulty/space arcs,
     archetype wonders, the gov arc, COW perf (~½ engine cost), all the smalls (A7 · A6a Future Tech ·
-    §46 era-defaults · rehome · settler-refuse · disorder playbook), and claimSeat. What remains:</div>
+    §46 era-defaults · rehome · settler-refuse · disorder playbook), and claimSeat.</div></div>
     <ol class="spine">
-      <li><span class="st now">NOW</span><strong>A8 tile contention</strong> — window OPEN (bugfixer; 10-seed pre-soak before pins, honest re-record)</li>
+      <li><span class="st now">NEXT</span><strong>A8 tile contention</strong> — correctness proven, parked at the perf ramp; the fresh session threads the once-per-turn assignment (kit banked)</li>
+      <li><span class="st qd">queued</span><strong>coastal-build</strong> — XVII §5 verified bug: sea units need a center-adjacent coast</li>
+      <li><span class="st qd">queued</span><strong>RIVER terrain</strong> — user-ruled in 2026-07-25: the 12th Civ 1 terrain, meandering strips ~10–12% of land (+ workturns/transforms companion after)</li>
       <li><span class="st qd">queued</span><strong>D3 server-surfacing + 11b city names</strong></li>
       <li><span class="st qd">queued</span><strong>Diplomacy D4–D6</strong> — spec ready; the witness-8 AFTER-half and the treaty-UI rename pass ride the D4 landing</li>
     </ol>
@@ -98,20 +109,17 @@
 <section id="lanes">
   <div class="sec-head"><h2>Parallel lanes</h2><span class="tag">golden-neutral — run beside the spine</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t"><span class="st done">✅ mostly done</span>Server</div>
+  <div class="item g"><div class="t"><span class="st done">✅ done</span>Server</div>
     <div class="d">A50 hardening + master index LIVE (axis 5 closed) + <strong>late-join / pause-on-empty / eviction
     FEATURE-COMPLETE</strong> (designed and merged 2026-07-24; <code>--no-late-join</code> documented) + docs/16 §7
-    re-assessed (no RC-blocker). Open: the #19 view-contract test awaits its reviewer gate (merge-on-green).</div></div>
+    re-assessed (no RC-blocker). The #19 view-contract test + master-proxy + lobby-drop all merged on reviewer green; join-toggle (XVII §3) queued.</div></div>
   <div class="item"><div class="t"><span class="st now">🔨 active</span>Client / UI</div>
     <div class="d">The 30-item window, A58 pedia, A49 flow-2, late-join client half, join-share QR, boot-fade,
-    fish/specials motifs — all shipped. Active now: the post-join <strong>reveal banner</strong>, then the
-    <strong>D4 treaty-UI shell</strong> (provisional wire names). Remaining after: <strong>#34 Founder's Record</strong>
-    endgame package (fresh session; A49 flow-4 bundled with it).</div></div>
+    fish/specials motifs — all shipped. Reveal banner + treaty shell + the play-lane sweep (zero unexplained reds) shipped. Active now: the <strong>XVII 22-item batch</strong> (8/18 done). Remaining after: <strong>#34 Founder's Record</strong> (fresh session; A49 flow-4 bundled).</div></div>
   <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC)</div>
     <div class="d">Tier 3 certified, R6 done, <strong>instant age-starts ACTIVE</strong> (roster-shuffle + baked snapshots),
-    specials mirrored. Active now: the ruled <strong>runI design batch</strong> (items 12/6/5/2 built) + seat-preview align.
-    Then the user's publish gate (below).</div></div>
-  <div class="item"><div class="t"><span class="st done">✅ closed</span>AI-quality program</div>
+    specials mirrored. runI/runJ batch landed Studio-verified. Active now: the <strong>intro animation</strong> (One City Through Time) + the Studio-gated item-3 remainder. Then the publish gate (below).</div></div>
+  <div class="item g"><div class="t"><span class="st done">✅ closed</span>AI-quality program</div>
     <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED (contested ending accepted
     for v1). Witness-8 BEFORE-half queued; the AFTER-half rides D4 for free.</div></div>
 </section>
@@ -121,11 +129,11 @@
   <div class="bar"></div>
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
-    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~99%</td><td><strong>A8 tile contention</strong> (window open)</td></tr>
+    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~97% (river ruled IN grew the axis)</td><td><strong>A8 threading → coastal-build → RIVER</strong> (+ workturns/transforms)</td></tr>
     <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · shell un-gated</td><td><strong>D3-surfacing → D4–D6</strong> (spec ready)</td></tr>
-    <tr><td>3</td><td>AI at M-targets</td><td>✅ complete for v1</td><td>witness-8 AFTER-half rides D4</td></tr>
+    <tr class="g"><td>3</td><td>AI at M-targets</td><td>✅ complete for v1</td><td>witness-8 AFTER-half rides D4</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified; instant starts active; batch in build</td><td>runI batch finish + 🚪 the ONE publish/acceptance session</td></tr>
-    <tr><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE</td><td>— (late-join goes live on the 0097 redeploy)</td></tr>
+    <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE</td><td>— (late-join goes live on the 0097 redeploy)</td></tr>
     <tr><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · flow-2 ✅</td><td><strong>#34 Founder's Record</strong> (flow-4 bundled)</td></tr>
   </table></div>
 </section>

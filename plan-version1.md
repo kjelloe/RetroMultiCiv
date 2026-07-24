@@ -4,14 +4,20 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 (marker-0098 TAGGED @bb0bcc8 =
-MERGE-CONSISTENT candidate, 30th consecutive — supersedes 0097;
-golden-neutral bundle, every branch reviewer-gated; REDEPLOY FROM
-0098: late-join feature-complete + join-share QR + self-host
-find-a-game fix + the play-lane sweep + runI/runJ Studio-verified
-batch. Remaining v1: A8 threading (fresh bugfixer session, kit
-banked) -> D3-surfacing -> D4-D6; Founder's Record (fresh helper
-session); the Studio publish/acceptance session. 0097 carried:
+Last updated: 2026-07-25 (marker-0099 TAGGED @7d08d41 =
+MERGE-CONSISTENT candidate, clean-clone-gated — supersedes 0097/0098
+[0098's declaration was withdrawn on the reviewer's clean-clone RED,
+fixed same hour; declarations now WAIT for that gate]. REDEPLOY FROM
+0099: late-join feature-complete + join-share QR + self-host
+find-a-game fix + play-lane sweep (zero unexplained reds) + runI/runJ
+batch. NEW since: refinement-XVII 22-item batch routed (helper
+mid-batch, 8/18 done) + RIVER TERRAIN user-ruled INTO v1
+(specs/river-terrain.md — the 12th Civ1 terrain; spine slot after
+coastal-build) + the coastal-build engine bug + join-toggle two-lane +
+the roblox intro animation. Engine spine now: A8 threading (kit
+banked, fresh session) -> coastal-build -> RIVER -> D3-surfacing ->
+D4-D6 (+ workturns-terrain/transforms after river, fact-check
+banked #2465). 0097 carried:
 #8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
 requested #2393) · agent-mail at-least-once upgrade · fish/specials
 motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
@@ -62,11 +68,13 @@ flowchart TD
     SMALL["✅ smalls CLOSED (0088-0097): A7 wonders ·\npyramids-gov · settler-refuse + rehome (0095) ·\ndisorder-lux playbook · §46 default-defender ·\nA6a future-tech (0097)"]
     XAB["✅ xiv-ai-behavior #30 (0091) + gov arc\n(0094, bloat halved) + workers>pop + COW\nmap-sharing (0096, ~38% perf byte-identical)"]
     CLM["✅ claimSeat command (0097):\nAI seat -> human via the stamped command\npath; fixture 061; unblocked late-join §3"]
-    A8N["🔨 A8 tile contention — WINDOW OPEN\n(bugfixer, GO ruled #2426; 10-seed pre-soak\nbefore pins; honest re-record)"]
+    A8N["🔨 A8 tile contention — correctness PROVEN,\nparked at the perf ramp; fresh session THREADS\nthe once-per-turn assignment (kit banked)"]
+    CST["📋 coastal-build (XVII §5, verified bug:\nsea units need a CENTER-adjacent coast;\ncityIsCoastal shared with the AI paths)"]
+    RIV["📋 RIVER terrain (user-ruled 2026-07-25):\nthe 12th Civ1 terrain — meandering strips\n~10-12% land; specs/river-terrain.md;\nworkturns/transforms companion after"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; witness-8 AFTER-half\n+ treaty-UI rename pass ride the D4 landing)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
-    NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> D3S --> D46
+    NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D3S --> D46
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
@@ -74,7 +82,7 @@ flowchart TD
     A51D["✅ A51 master index PUBLIC + LIVE\n(2026-07-23: cert expanded, servers. block\ninstalled, index answering — axis 5 CLOSED)"]
     LJS["✅ late-join+pause+eviction FEATURE-COMPLETE\n(user design 2026-07-24 -> merged @205bbfe\nsame day; --no-late-join documented)"]
     SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
-    VCT["📋 #19 view-contract test DONE on branch\n(gate queued to reviewer; merge-on-green)"]
+    VCT["✅ #19 view-contract test MERGED (012d04b)\n+ master-proxy + lobby-drop (reviewer green)"]
     A50R --> A51D --> LJS --> SEC2 --> VCT
   end
 
@@ -83,7 +91,7 @@ flowchart TD
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
     A49["✅ A49 flow-2 SHIPPED (0097; per-seat\nfog guards) · 📋 flow-4 rides Founder's Record"]
-    LJC["✅ late-join client + join-share QR +\nboot-fade + fish/specials motifs (0097)\n· 🔨 reveal banner + d4-treaty-shell\n(helper active, ruled #2427)"]
+    LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + the play-lane sweep\n(zero unexplained reds) · 🔨 XVII batch 8/18"]
     END["📋 #34 Founder's Record endgame package\n(FRESH helper session; flow-4 bundled)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
@@ -120,6 +128,12 @@ flowchart TD
   V1(("v1.0")):::goal
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
+  classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM done
+  class A50R,A51D,LJS,SEC2,VCT done
+  class XIVD,XIVQ,A58,A49,LJC,FG done
+  class T3,SNAP,R6 done
+  class MFL,W5,GOV done
 ```
 
 ## What "done" already covers (no v1 work left)
@@ -141,7 +155,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~99% (A7 ✅, A6a ✅, §46 ✅, rehome ✅, settler-refuse ✅) | **A8 tile contention** (window OPEN) |
+| 1 | Every Civ 1 system faithful | ~97% (all smalls ✅; river ruled IN grew the axis) | **A8 threading → coastal-build → RIVER terrain** (+ workturns/transforms companion) |
 | 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, treaty-UI shell un-gated | **D3-surfacing → D4–D6** (the engine-queue tail; spec ready) |
 | 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept; floors/archetype/#30/gov-arc/disorder shipped+measured) | witness-8 AFTER-half rides D4 (BEFORE-half queued) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + instant age-starts ACTIVE; runI batch in build | **runI batch finish** + 🚪 the ONE publish/acceptance Studio session (sound+saving+batch) |
