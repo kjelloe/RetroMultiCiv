@@ -78,7 +78,7 @@ flowchart TD
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
-    A49["✅ A49 all five flows CLOSED (flow-2 in 0097;\nflow-4 endscreen rode Founder's Record in 0102)"]
+    A49["✅ A49 flows 1-3 + flow-2 nightly ·\n📋 flow-4 endscreen SPEC still open (did NOT\nride #34 — reviewer tree-check #2565)"]
     LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + play-lane sweep +\nrefinement-XVII (0101) + XIX 8/8 (0102)"]
     END["✅ #34 Founder's Record COMPLETE (0102,\n68fac99: all four endings + Continue-gate +\n?ending= preview) · 📋 founders-tone pass +\nguards 3/4 etc. on the helper stack (5 items)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
