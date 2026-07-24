@@ -89,6 +89,14 @@ mid-gate → 0103. The box still runs 0101)._
   8. Terrain desaturation check (carried).
   9. Save the acceptance log (`runM.txt` next); the roblox-helper is
      flag-responsive for live findings.
+  10. **NEW — midgame-join verify** (built 2026-07-25, files held
+      not-ready): two clients, all human seats filled → the TAKE
+      OVER pad offers the AI-civ path; "Mid-game join" toggle OFF
+      restores rejoin-only.
+  11. **NEW — after publish: activate the browser button** — set
+      `ROBLOX_EXPERIENCE_URL` in `client/ui/roblox-link.js` to the
+      experience URL (one line; the "🎮 Play on Roblox" button ships
+      hidden until then).
 
 ---
 
