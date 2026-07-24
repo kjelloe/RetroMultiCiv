@@ -36,15 +36,13 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Grant the gaming-PC lane sessions their routine permissions**
-  (new, 2026-07-25 — the watcher's one remaining friction): the
-  REVIEWER's watcher wakes allowlist only agent-mail.py, so the
-  marker-0100 clean-clone gate can't run (git + ~/reviewer-lab need
-  a standing grant in that clone's .claude/settings.json, or run one
-  interactive reviewer session and approve-always); same for the
-  ROBLOX-HELPER's pending Write approval (the intro-animation file).
-  Until the reviewer grant: 0100 stays declaration-pending, 0099 is
-  the redeploy candidate.
+- [ ] **Roblox-helper Write approval** (the one remaining session
+  permission): the authored intro-animation file
+  (roblox/src/client/IntroAnimation.client.luau) is Write-blocked in
+  that session. (The REVIEWER half of this item resolved itself — a
+  later wake carried full permissions and ran the 0100/0101 gates;
+  if its permission set is per-wake-inconsistent, a standing grant
+  in that clone's settings still helps.)
 
 - [ ] **Redeploy from marker-0101** (`c51dceb` — XVII COMPLETE: all 22
   playtest items + join-toggle + runK, clean-clone-gated 886/0-fail;
