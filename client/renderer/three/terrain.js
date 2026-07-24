@@ -118,7 +118,7 @@ function heightAt(map, fx, fy, vi, vj) {
 // per-face (each face belongs to exactly one tile), never per shared vertex.
 // The determinism half is mechanically checked in the browser suite
 // (gallery.html?vertexcheck=1 builds this mesh twice, byte-compares buffers).
-export function buildTerrain(map) {
+export function buildTerrain(map, reveal) { // reveal (#34 S2): un-dim explored tiles
   const { width, height } = map;
   const gw = width * SEGS, gh = height * SEGS;
 
@@ -158,7 +158,7 @@ export function buildTerrain(map) {
       for (let tri = 0; tri < 2; tri++) {
         color.setHex(spec.palette[Math.floor(visualRand(vi, vj, 11 + tri) * spec.palette.length)]);
         if (tile.river) color.lerp(RIVER_TINT, 0.35);
-        if (tile.visible === false) color.lerp(FOG_TINT, 0.45); // explored, out of sight
+        if (tile.visible === false && reveal !== true) color.lerp(FOG_TINT, 0.45); // explored, out of sight (#34: reveal un-dims)
         const v0 = quad[tri * 3], v1 = quad[tri * 3 + 1], v2 = quad[tri * 3 + 2];
         a.set(v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]);
         b.set(v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]);

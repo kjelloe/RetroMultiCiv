@@ -557,6 +557,11 @@ ctx.sound = initSound(ctx);         // A77: event sound cues (fog-filtered)
 // so it's null for them (every caller already guards `if (ctx.advice)`).
 ctx.advice = ctx.SPECTATOR ? null : initAdvice(ctx);
 ctx.endscreen = initEndScreen(ctx); // A73: the end-game scoreboard
+// #34 dev/screenshot hook: ?ending=defeat|conquest|score|space previews the
+// end-game MOMENT over the live state (no real gameOver needed). Dev-only surface.
+if (params.get('ending') && ctx.endscreen.previewEnding) {
+  setTimeout(() => ctx.endscreen.previewEnding(params.get('ending')), 400);
+}
 // first-timer WHERE-things-are arrows (once/browser); the '?' in Options re-shows
 ctx.onboarding = { show: showOnboarding };
 // XII.4: in a server game, guard against an accidental leave (mobile back-swipe

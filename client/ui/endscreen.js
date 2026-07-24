@@ -96,6 +96,173 @@ export function initEndScreen(ctx) {
       + `<span class="eb-won" style="width:${pct(r.wonderPts)}%"></span></span>`;
   }
 
+  // --- #34 Founder's Record: per-ending "MOMENTS" that play BEFORE the scoreboard.
+  // Client-only, golden-neutral (DOM/CSS/sound over the gameOver event). A moment is
+  // a Continue-gated stage machine; its final stage reveals show(). A human who LOST
+  // gets the DEFEAT moment; the win/spectate victory-perspective moments (CONQUEST /
+  // SCORE / SPACE) land in later slices — until then those select NO stages, so the
+  // scoreboard shows immediately (zero regression).
+  function bestMetric(state, pid) {
+    const bd = scoreBreakdown(techSafeState(state), pid, ruleset);
+    const parts = [
+      { pts: bd.wonders, word: 'the wonders they raised' },
+      { pts: bd.techs, word: 'the knowledge they gathered' },
+      { pts: bd.population, word: 'the people they shepherded' }
+    ].filter(p => p.pts > 0).sort((a, b) => b.pts - a.pts);
+    return parts.length ? parts[0].word : 'the age they lived through';
+  }
+
+  // a stylized last look at the fallen seat (procedural — no asset)
+  function capitalGlyph(color) {
+    return `<div class="moment-capital" style="--civ:${escColor(color)}">🏛</div>`;
+  }
+
+  function defeatStages(state) {
+    const civ = state.players[ctx.HUMAN];
+    const civName = (civ && civ.name) || 'your people';
+    const color = (civ && civ.color) || '#8899aa';
+    return [
+      { cls: 'moment-fall',
+        html: `<div class="moment-title">The Fall of the ${esc(civName)}</div>`
+          + capitalGlyph(color)
+          + '<div class="moment-sub">The banners come down over the last of your cities.</div>',
+        continueLabel: 'Continue' },
+      { cls: 'moment-fall moment-mourning',
+        onEnter: () => document.body.classList.add('endgame-mourning'), // grayscale carries into the scoreboard
+        html: '<div class="moment-title">The story continues without you.</div>'
+          + `<div class="moment-log">Your people will remember you for ${esc(bestMetric(state, ctx.HUMAN))}, but the story of the world continues without you.</div>`,
+        continueLabel: 'Witness the record' }
+    ];
+  }
+
+  // SCORE (Retirement) — the Historian's Ending; the SCORE chronicle + the record it
+  // opens carry the "Founder's Record" name (architect #2355). The score band → a
+  // civ-fitting title (thresholds provisional — for the ally's iteration).
+  function scoreTitle(total) {
+    if (total >= 300) return 'an immortal people, their name outliving the ages';
+    if (total >= 150) return 'a great and enduring civilization';
+    if (total >= 60) return 'a capable and steady people';
+    return 'a modest people — a quiet chapter in the world\'s long story';
+  }
+  function scoreStages(state) {
+    const wid = winnerId(state);
+    const w = state.players[wid];
+    const civName = (w && w.name) || 'the leading people';
+    const bd = scoreBreakdown(techSafeState(state), wid, ruleset);
+    return [
+      { cls: 'moment-chronicle',
+        html: '<div class="moment-kicker">The Founder\'s Record</div>'
+          + '<div class="moment-title">Chronicle of the World</div>'
+          + '<div class="moment-book">📖</div>'
+          + `<div class="moment-sub">The year ${esc(ageYear(state))} closes the age, and the historians take up their pens.</div>`,
+        continueLabel: 'Read the verdict' },
+      { cls: 'moment-chronicle',
+        html: '<div class="moment-book">📖</div>'
+          + `<div class="moment-title">Historians will remember the ${esc(civName)}</div>`
+          + `<div class="moment-log">as ${esc(scoreTitle(bd.total))}.</div>`,
+        continueLabel: 'Open the record' }
+    ];
+  }
+
+  // CONQUEST — the "Total Map" reveal: the fog pulls back over the world we've seen
+  // (render-only, fog-honest — unexplored tiles stay unknown; the server-map-at-gameOver
+  // upgrade feeds a full map through the same setEndReveal path later). No "WINNER" text.
+  function conquestStages(state) {
+    const wid = winnerId(state);
+    const w = state.players[wid];
+    const civName = (w && w.name) || 'the victors';
+    return [
+      { cls: 'moment-peace', overlayCls: 'moment-reveal-bg', // transparent overlay: behold the map
+        onEnter: () => { if (ctx.renderer && ctx.renderer.setEndReveal) ctx.renderer.setEndReveal(true); },
+        html: '<div class="moment-title">The world is at peace.</div>'
+          + `<div class="moment-sub">The colors of the ${esc(civName)} span the horizon.</div>`,
+        continueLabel: 'Behold the world' }
+    ];
+  }
+
+  // SPACE (Aspiration) — the launch → 15-year voyage → planetfall sequence. Uses the
+  // spaceVictory event payload (population) + the launched ship's arrivalTurn where
+  // present; graceful defaults otherwise (e.g. the ?ending preview). Largest moment.
+  let spaceInfo = null; // captured spaceVictory event
+  function spaceStages(state) {
+    const wid = winnerId(state);
+    const w = state.players[wid];
+    const civName = (w && w.name) || 'the pioneers';
+    const ship = w && w.spaceship;
+    const pop = (spaceInfo && spaceInfo.population) || (ship && ship.population) || 0;
+    // arrival year ~ 1yr/turn near the space age; default the design's 15-year skip
+    const arriveYear = ship && ship.arrivalTurn ? state.year + (ship.arrivalTurn - state.turn) : state.year + 15;
+    const arriveStr = arriveYear < 0 ? `${-arriveYear} BC` : `${arriveYear} AD`;
+    return [
+      { cls: 'moment-space',
+        onEnter: () => {
+          console.log('Launch in 3… 2… 1…'); // the design's console countdown
+          if (ctx.sound && ctx.sound.play) ctx.sound.play('ship-launch');
+        },
+        html: '<div class="moment-kicker">Aspiration</div>'
+          + `<div class="moment-title">The ${esc(civName)} launch for the stars.</div>`
+          + '<div class="moment-ship">🚀</div>'
+          + '<div class="moment-sub">Assembled in orbit, the great ship fires its engines.</div>',
+        continueLabel: 'Follow the voyage' },
+      { cls: 'moment-space', overlayCls: 'moment-star-bg',
+        html: '<div class="moment-title">The voyage of the starship continues…</div>'
+          + '<div class="moment-sub">Across the dark between the suns, a generation carries the hopes of a world.</div>',
+        continueLabel: 'Arrive' },
+      { cls: 'moment-space', overlayCls: 'moment-star-bg',
+        html: '<div class="moment-title">Arrival at Alpha Centauri</div>'
+          + `<div class="moment-log">Year: ${esc(arriveStr)}. A second home for humanity has been founded${pop > 0 ? `, ${pop} souls at its dawn` : ''}.</div>`,
+        continueLabel: 'Open the record' }
+    ];
+  }
+
+  // choose the moment for this ending; [] = go straight to the scoreboard
+  function selectMoment(state, victory) {
+    const wid = winnerId(state);
+    if (wid !== undefined && !ctx.SPECTATOR && wid !== ctx.HUMAN) return defeatStages(state); // S1
+    if (victory === 'conquest') return conquestStages(state); // S2
+    if (victory === 'score') return scoreStages(state); // S3
+    if (victory === 'space') return spaceStages(state); // S4
+    return [];
+  }
+
+  let momentEl = null;
+  function playMoment(state, victory, onDone) {
+    if (momentEl) { momentEl.remove(); momentEl = null; }
+    const stages = selectMoment(state, victory);
+    shownFor = winnerId(state); // claim it now so a re-entrant onChange doesn't double-open
+    if (stages.length === 0) { onDone(); return; }
+    momentEl = document.createElement('div');
+    momentEl.id = 'endscreen-moment';
+    document.body.appendChild(momentEl);
+    let i = 0;
+    const advance = () => {
+      i += 1;
+      if (i >= stages.length) { if (momentEl) { momentEl.remove(); momentEl = null; } onDone(); return; }
+      renderStage();
+    };
+    function renderStage() {
+      const st = stages[i];
+      momentEl.className = st.overlayCls || ''; // per-stage overlay treatment (e.g. transparent for the map reveal)
+      momentEl.innerHTML = `<div id="moment-card" class="${st.cls || ''}">${st.html}`
+        + `<button id="moment-continue">${esc(st.continueLabel || 'Continue')} ▸</button></div>`;
+      if (st.onEnter) st.onEnter(momentEl, state);
+      momentEl.querySelector('#moment-continue').addEventListener('click', advance);
+    }
+    renderStage();
+  }
+
+  // dev/screenshot hook (main.js ?ending=): preview a moment over the live state
+  // without a real gameOver — sets the module-local eventWinner only (never state).
+  function previewEnding(kind) {
+    const state = session.state;
+    let wid = ctx.HUMAN;
+    if (kind === 'defeat') wid = (state.playerOrder || []).find(p => p !== ctx.HUMAN) || ctx.HUMAN;
+    eventWinner = wid;
+    shownFor = null;
+    const victory = kind === 'defeat' ? 'conquest' : kind; // defeat rides any victory type
+    playMoment(state, victory, () => show(state, victory));
+  }
+
   let panel = null;
   function show(state, victory) {
     if (panel) panel.remove();
@@ -119,7 +286,7 @@ export function initEndScreen(ctx) {
         + `<td class="score">${r.total}${bar(r, max)}</td></tr>`;
     });
 
-    panel.innerHTML = `<div id="endscreen-card">
+    panel.innerHTML = `<div id="endscreen-card" class="${victory === 'space' ? 'stellar' : ''}">
       <div id="endscreen-verdict" class="${humanWon ? 'win' : (ctx.SPECTATOR ? 'neutral' : 'loss')}">${verdict}</div>
       <div id="endscreen-reason">${esc(headline(state, victory))}</div>
       ${state.debugUsed === true
@@ -142,7 +309,11 @@ export function initEndScreen(ctx) {
     </div>`;
     document.body.appendChild(panel);
 
-    const close = () => { if (panel) { panel.remove(); panel = null; } };
+    const close = () => {
+      if (panel) { panel.remove(); panel = null; }
+      document.body.classList.remove('endgame-mourning'); // #34: lift the DEFEAT grayscale
+      if (ctx.renderer && ctx.renderer.setEndReveal) ctx.renderer.setEndReveal(false); // #34: restore fog
+    };
     panel.querySelector('#es-close').addEventListener('click', close);
     panel.querySelector('#es-replay').addEventListener('click', () => { close(); if (ctx.replay) ctx.replay.open(); });
     panel.querySelector('#es-stats').addEventListener('click', async () => {
@@ -176,15 +347,25 @@ export function initEndScreen(ctx) {
   session.onChange((state, events) => {
     for (const e of events || []) {
       if (e.type === 'playerDefeated') deathTurn[e.playerId] = state.turn;
+      if (e.type === 'spaceVictory') spaceInfo = e; // #34 S4: carry population into the moment
     }
     reopenBtn.classList.toggle('hidden', state.gameOver !== true); // available whenever the game is over
     for (const e of events || []) {
-      if (e.type === 'gameOver') { eventWinner = e.winner; show(state, victoryOf(state, e.victory)); return; }
+      // #34: the per-ending MOMENT plays first, then reveals the scoreboard
+      if (e.type === 'gameOver') {
+        eventWinner = e.winner;
+        const v = victoryOf(state, e.victory);
+        playMoment(state, v, () => show(state, v));
+        return;
+      }
     }
     // a game LOADED already-over (no gameOver event replays): show it once
-    if (state.gameOver === true && shownFor !== state.winner) show(state, victoryOf(state, null));
+    if (state.gameOver === true && shownFor !== state.winner) {
+      const v = victoryOf(state, null);
+      playMoment(state, v, () => show(state, v));
+    }
   });
   reopenBtn.classList.toggle('hidden', session.state.gameOver !== true);
 
-  return { show, reopen }; // exposed for e2e/screenshot hooks
+  return { show, reopen, playMoment, previewEnding }; // exposed for e2e/screenshot hooks
 }

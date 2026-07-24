@@ -120,11 +120,12 @@ export function createRenderer(container) {
   }
 
   let propMeshes = [];
+  let endReveal = false; // #34 S2: at gameOver, un-dim EXPLORED tiles (unexplored stay unknown)
   function buildTiles() {
     if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
     // the continuous surface: heights, palette facets, river tint, fog dim
-    terrain = buildTerrain(view.map);
+    terrain = buildTerrain(view.map, endReveal);
     worldGroup.add(terrain.mesh);
     if (water) { worldGroup.remove(water.mesh); water.dispose(); }
     water = buildWater(view.map);
@@ -134,7 +135,7 @@ export function createRenderer(container) {
     for (const city of Object.values(view.cities || {})) {
       joins[city.y * view.map.width + city.x] = true;
     }
-    propMeshes = createTileProps(view.map, tileTop, joins);
+    propMeshes = createTileProps(view.map, tileTop, joins, endReveal);
     for (const m of propMeshes) worldGroup.add(m);
   }
 
@@ -516,6 +517,11 @@ export function createRenderer(container) {
     // A28 accessibility: ⚙ "reduce animation" — no sway/smoke/flashes,
     // movement lands instantly
     setReduceAnimation(flag) { animReduced = flag === true; anim.setEnabled(flag !== true); },
+    // #34 S2 (CONQUEST end reveal): un-dim every EXPLORED tile for the endgame view
+    // — render-only, never state; unexplored tiles stay 'unknown' (fog-honest). The
+    // server-map-at-gameOver upgrade (hardening) later feeds a full map through the
+    // same path. Rebuilds the tile meshes at the current view.
+    setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTiles(); },
     animBusy() { return anim.busy(); }, // e2e: is a glide in flight?
     // A45: replace the data-overlay quads ([{idx,color,alpha,lift?}] | null)
     setOverlays(entries) {

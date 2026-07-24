@@ -87,7 +87,7 @@ const ROAD_DIRS = [
 // the tile is explored but not visible). Rebuilt wholesale with the tiles;
 // geometries/material are shared, so only the instance buffers need disposal.
 // `joins` marks tile indices that roads visually connect to (own cities).
-export function createTileProps(map, tileTop, joins) {
+export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2): un-dim explored tiles
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
     jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5
@@ -122,7 +122,7 @@ export function createTileProps(map, tileTop, joins) {
     for (let x = 0; x < map.width; x++) {
       const t = map.tiles[y * map.width + x];
       if (t.t === 'unknown') continue;
-      const dim = t.visible === false;
+      const dim = t.visible === false && reveal !== true; // #34: end-reveal un-dims explored tiles
       const top = tileTop(x, y);
       if (t.irrigation) {
         // thin channel + two cultivated field patches (art A1.6b)
