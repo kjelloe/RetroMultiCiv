@@ -52,10 +52,13 @@ mid-gate → 0103. The box still runs 0101)._
   action until RC. The RC evidence digest is pre-filled at
   `reports/v1-rc-draft.md`.
 
-- [ ] **Roblox session Write-mode residual (low):** that session still
-  can't Write anything (`/tmp` probe denied). Nothing is blocked now,
-  but before its next real task: `/permissions` in the session, or a
-  standing `roblox/**` allowlist in the clone's settings.
+- [ ] **Roblox session Write grant — NOW AN ACTIVE BLOCKER**
+  (upgraded 2026-07-25 evening, #2559): the midgame-join survey +
+  design are done but every Edit/Write in that session sits at
+  "requested permissions, not granted" — zero edits can land.
+  `/permissions` in the session, or a standing `roblox/**` allowlist
+  in the clone's settings. The lane holds on flag-wait; work resumes
+  on the grant.
 
 - [ ] **Mobile seated-start re-test (carried):** the historical hang
   (phone seated in lobby, START showed nothing) never reproduced
