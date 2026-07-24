@@ -711,6 +711,7 @@ export function startServer(opts) {
       // match reports (and can veto at their seat)
       shareReports: opts.shareReports !== undefined && entry.reportVeto !== true,
       reportVetoed: entry.reportVeto === true,
+      joiningOpen: entry.options.joiningOpen !== false, // XVII §3: client renders the host toggle + reject copy
       options: entry.options,
       seats: Object.keys(entry.seats).map(pid => ({
         seat: pid, human: entry.seats[pid].human,
@@ -1005,7 +1006,15 @@ export function startServer(opts) {
         }
         // id didn't match (expired/released) — fall through to a fresh reservation
       }
-      const res = registry.reserveSeat(gameId, { name: msg.name, seat: msg.seat });
+      // XVII §3: a host may CLOSE joining on the pre-start lobby. A closed lobby
+      // refuses fresh reservations (the reconnect-reclaim above already returned,
+      // so a dropped seat-holder still reclaims its own seat). While OPEN, a
+      // joiner overflowing the human seats flips a free AI seat (allowAiFill).
+      if (e.options.joiningOpen === false) {
+        send(ws, { t: 'rejected', commandId: -1, code: 'joiningClosed' });
+        return;
+      }
+      const res = registry.reserveSeat(gameId, { name: msg.name, seat: msg.seat, allowAiFill: true });
       if (!res.ok) { send(ws, { t: 'rejected', commandId: -1, code: res.reason }); return; }
       info.gameId = gameId; info.seat = res.seat;
       send(ws, { t: 'joinedLobby', gameId, joinCode: e.joinCode, seat: res.seat, reconnectId: res.reconnectId, lobby: roster(e) });
@@ -1323,6 +1332,8 @@ export function startServer(opts) {
         // §2 listing + §3 takeover check the (public AND lateJoining) pair.
         entry.options.lateJoining = opts.noLateJoin !== true
           && (msg.options && msg.options.lateJoining) !== false;
+        // XVII §3: pre-start lobby joining toggle, host-only, default OPEN.
+        entry.options.joiningOpen = (msg.options && msg.options.joiningOpen) !== false;
         info.gameId = entry.gameId; info.seat = seat; info.isCreator = true;
         send(ws, { t: 'created', gameId: entry.gameId, joinCode: entry.joinCode, seat, lobby: roster(entry) });
         return;
@@ -1379,6 +1390,16 @@ export function startServer(opts) {
         for (const [o, i] of conns) {
           if (i.gameId === info.gameId) send(o, { t: 'chat', seat: info.seat, name, text: msg.text });
         }
+        return;
+      }
+      if (msg.t === 'setJoining') { // XVII §3: host-only open/closed toggle
+        if (!info.gameId || !info.isCreator) {
+          send(ws, { t: 'rejected', commandId: -1, code: 'notCreator' });
+          return;
+        }
+        const r = registry.setJoining(info.gameId, msg.open);
+        if (!r.ok) { send(ws, { t: 'rejected', commandId: -1, code: r.reason }); return; }
+        broadcastLobby(info.gameId); // the roster's joiningOpen flips for everyone
         return;
       }
       if (msg.t === 'setChat' || msg.t === 'kick') { // A37: host-only moderation

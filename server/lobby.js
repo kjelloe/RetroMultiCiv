@@ -208,6 +208,13 @@ export function createRegistry(deps) {
     } else {
       pid = Object.keys(e.seats).find(p => e.seats[p].human && !e.seats[p].reserved) || null;
     }
+    // XVII §3: while joining is OPEN a joiner overflowing the human seats takes
+    // the first free AI-configured seat instead, flipping it human (pre-start
+    // only; the host's "closed" toggle gates this at the index.js join path).
+    if (!pid && opts.allowAiFill) {
+      pid = Object.keys(e.seats).find(p => !e.seats[p].human && !e.seats[p].reserved) || null;
+      if (pid) e.seats[pid].human = true;
+    }
     if (!pid) return { ok: false, reason: 'gameFull' };
     e.seats[pid].reserved = true;
     e.seats[pid].disconnected = false;
@@ -298,6 +305,14 @@ export function createRegistry(deps) {
     const e = games[gameId];
     if (!e) return { ok: false, reason: 'noSuchGame' };
     e.options.chat = on === true;
+    return { ok: true };
+  }
+  // XVII §3: host-only joining toggle. Lobby only; default OPEN (set at create).
+  function setJoining(gameId, open) {
+    const e = games[gameId];
+    if (!e) return { ok: false, reason: 'noSuchGame' };
+    if (e.status !== 'lobby') return { ok: false, reason: 'alreadyStarted' };
+    e.options.joiningOpen = open === true;
     return { ok: true };
   }
 
@@ -469,7 +484,7 @@ export function createRegistry(deps) {
 
   return {
     create, reserveSeat, releaseSeat, setSlot, setSlots, start, register,
-    resolveId, entryOf, list, kick, blockIp, setChat, remove, // A37 / A50 3b
+    resolveId, entryOf, list, kick, blockIp, setChat, setJoining, remove, // A37 / A50 3b / XVII §3
     reclaimSeat, markDisconnected // Part B: mobile lobby seat-grace
   };
 }
