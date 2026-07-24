@@ -140,11 +140,11 @@ end
 -- playerIncome so the AI build-payback lever values a building by the SAME math
 -- the real income uses. Disordered city contributes nothing; maintenance/anarchy
 -- are player-level. taxmen/scientists cancel in the lever's with/without delta.
-local function cityEconOutput(state: any, city: any, taxRate: number, sciRate: number, perSpecialist: number, ruleset: any)
+local function cityEconOutput(state: any, city: any, taxRate: number, sciRate: number, perSpecialist: number, ruleset: any, workedIdx: any)
 	if city.disorder == true then
 		return { gold = 0, bulbs = 0 }
 	end
-	local trade = cities.cityYields(state, city, ruleset).trade
+	local trade = cities.cityYields(state, city, ruleset, workedIdx).trade
 	trade -= government.corruptionFor(state, city, trade, ruleset)
 	-- A89: the live permanent trade-route bonus adds ON TOP, post-corruption
 	-- (R1). 0 for a city without routes; AI fields no caravans -> goldens untouched.
@@ -202,6 +202,7 @@ local function playerIncome(state: any, playerId: string, ruleset: any)
 	local sciRate = if player.sciRate == nil then ruleset.rules.defaultSciRate else player.sciRate
 	local perSpecialist = ruleset.rules.specialistOutput
 	local anarchy = government.governmentOf(state, playerId, ruleset).id == "anarchy"
+	local workedMap = cities.resolveAllWorked(state, ruleset) -- A8: one snapshot for the loop
 	local gold, bulbs, maintenance = 0, 0, 0
 	for _, cid in ipairs(state.cityOrder or {}) do
 		local city = state.cities[cid]
@@ -217,7 +218,7 @@ local function playerIncome(state: any, playerId: string, ruleset: any)
 		if anarchy then
 			continue -- anarchy: the state collects nothing
 		end
-		local eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset)
+		local eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset, workedMap[cid])
 		gold += eco.gold
 		bulbs += eco.bulbs
 	end

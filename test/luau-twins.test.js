@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 62, 'the scenarios (062 future-tech added)');
+      assert.strictEqual(files.length, 63, 'the scenarios (063 tile-contention added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -184,7 +184,8 @@ const PORTED = [
   '059-capital-settler-refuse.json', // XV §7: a size-1 capital refuses a settler (banks); a non-capital disbands (cross-language)
   '060-rehome.json', // XIV §45b: REHOME re-homes a unit to the city it stands in (cross-language)
   '061-claim-seat.json', // late-join §3: claimSeat flips an AI seat to human; the claimed seat then acts (cross-language)
-  '062-future-tech.json' // XII.2: an exhausted tree researches the repeatable Future Tech sentinel; futureTech + score accrue (cross-language)
+  '062-future-tech.json', // XII.2: an exhausted tree researches the repeatable Future Tech sentinel; futureTech + score accrue (cross-language)
+  '063-tile-contention.json' // A8: two-phase tile contention in the real game (manual-wins + disorder-transient); cross-language
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
@@ -248,7 +249,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x36bd0e42\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x84feaa76\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 

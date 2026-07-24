@@ -186,7 +186,17 @@ unit after End Turn.
   (`city.workers`) win over greedy neighbors; conflicting manual claims go
   to the older city. **This changes yields in dense empires** — audit
   scenarios (city spacing in crafted states is generous; likely no
-  re-records) and playtest AI games.
+  re-records) and playtest AI games. **§b modelling choice (architect-ruled
+  #2495):** the resolution is a global pass computed ONCE per turn
+  (`resolveAllWorked`) and threaded into the REAL game-state paths
+  (processCities/playerIncome/updateDisorder/pollution) so actual yields are
+  contention-correct; but `engine/ai.js`'s hypothetical evaluations use the
+  NON-CONTENDED `workedTiles` fallback (the pre-A8 single-city greedy) — a
+  deliberate speed + twin-simplicity choice, and a benign human-like planning
+  error (a civ slightly over-estimates tiles it will lose to a neighbour),
+  consistent with the engine's fog-honest AI doctrine. Per-call contention in
+  AI planning was measured at 5–18× (the call-count multiplier), hence the
+  split.
 - **AI improvements:** FIRST SLICE DONE (2026-07-12, forced by the
   simulation test — docs/05 §10): a settler with no city spot paves a road
   where it stands (rng-free), the AI skips units mid-job, settlers are

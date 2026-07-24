@@ -7,7 +7,7 @@
 // Global warming (A91b) rides the same tile.polluted flag — see processWarming.
 // Lua-portable subset (no class/this/Map/Set).
 import { rollRange } from './rng.js';
-import { FAT_CROSS, cityShieldOutput, hasBuilding } from './cities.js';
+import { FAT_CROSS, cityShieldOutput, hasBuilding, resolveAllWorked } from './cities.js';
 import { cowTile } from './cow.js';
 
 function idiv(a, b) {
@@ -75,6 +75,7 @@ function process(state, ruleset, events) {
   const poll = ruleset.rules.pollution;
   if (poll === undefined) return;
   const order = state.cityOrder === undefined ? [] : state.cityOrder;
+  const workedMap = resolveAllWorked(state, ruleset); // A8: one contention snapshot for the loop
   for (const cityId of order) {
     const city = state.cities[cityId];
     if (city === undefined) continue;
@@ -84,7 +85,7 @@ function process(state, ruleset, events) {
     let divisor = 1;
     if (hasBuilding(city, 'recycling-center')) divisor = poll.industrialDivisorRecycling;
     else if (hasBuilding(city, 'hydro-plant') || hasBuilding(city, 'nuclear-plant')) divisor = poll.industrialDivisorPower;
-    const industrial = idiv(cityShieldOutput(state, city, ruleset), divisor);
+    const industrial = idiv(cityShieldOutput(state, city, ruleset, workedMap[cityId]), divisor);
     // population pollution: citySize * the tech modifier %, zeroed by Mass Transit.
     let popPoll = 0;
     if (!hasBuilding(city, 'mass-transit')) {

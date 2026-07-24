@@ -28,10 +28,10 @@ local function specialistsOf(city: any, workedCount: number)
 	return { entertainers = entertainers, taxmen = taxmen, scientists = scientists }
 end
 
-local function cityMood(state: any, city: any, ruleset: any): any
+local function cityMood(state: any, city: any, ruleset: any, workedIdx: any): any
 	local rules = ruleset.rules
 	local player = state.players[city.owner]
-	local workedCount = #cities.workedTiles(state, city, ruleset) - 1 -- minus center
+	local workedCount = #cities.workedTiles(state, city, ruleset, workedIdx) - 1 -- minus center
 	local s = specialistsOf(city, workedCount)
 	local workers = city.pop - s.entertainers - s.taxmen - s.scientists
 
@@ -109,7 +109,7 @@ local function cityMood(state: any, city: any, ruleset: any): any
 
 	-- luxuries: every luxPerStep upgrades one citizen one step, worst first
 	local luxRate = if player.luxRate == nil then 0 else player.luxRate
-	local lux = idiv(cities.cityYields(state, city, ruleset).trade * luxRate, 100)
+	local lux = idiv(cities.cityYields(state, city, ruleset, workedIdx).trade * luxRate, 100)
 	lux += idiv(lux * cities.effectPct(city, ruleset, "luxBonus"), 100)
 	lux += s.entertainers * rules.specialistOutput
 	local steps = idiv(lux, rules.luxPerStep)
@@ -205,10 +205,11 @@ end
 -- Turn wrap (before cities harvest): store/refresh each city's disorder flag
 -- so processCities and playerIncome read one consistent verdict all turn.
 local function updateDisorder(state: any, ruleset: any, events: any)
+	local workedMap = cities.resolveAllWorked(state, ruleset) -- A8: one snapshot for the loop
 	for _, cityId in ipairs(state.cityOrder or {}) do
 		local city = state.cities[cityId]
 		if city ~= nil then
-			local disorder = cityMood(state, city, ruleset).disorder
+			local disorder = cityMood(state, city, ruleset, workedMap[cityId]).disorder
 			if disorder and city.disorder ~= true then
 				city.disorder = true
 				table.insert(events, { type = "cityDisorder", cityId = cityId })

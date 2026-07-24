@@ -2,7 +2,7 @@
 // science bulbs (sci) by per-player rates; bulbs buy advances whose cost
 // escalates with the number of techs already known (Civ 1 global escalation,
 // not per-tech prices). Luxuries, corruption and government caps come later.
-import { cityYields, effectPct, sellBuildingFrom, wonderActive } from './cities.js';
+import { cityYields, effectPct, sellBuildingFrom, wonderActive, resolveAllWorked } from './cities.js';
 import { governmentOf, corruptionFor } from './government.js';
 import { routeArrows } from './trade.js';
 import { sortIds } from './combat.js';
@@ -118,9 +118,9 @@ function setRates(state, cmd, _ruleset) {
 // city contributes nothing; maintenance/anarchy are player-level and stay in
 // playerIncome. taxmen/scientists are here for byte-fidelity but cancel in the
 // lever's with/without delta (a building never changes specialists).
-function cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset) {
+function cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset, workedIdx) {
   if (city.disorder === true) return { gold: 0, bulbs: 0 };
-  let trade = cityYields(state, city, ruleset).trade;
+  let trade = cityYields(state, city, ruleset, workedIdx).trade;
   trade = trade - corruptionFor(state, city, trade, ruleset);
   // A89: the live permanent trade-route bonus adds ON TOP, post-corruption
   // (R1: base arrows exclude routes; route trade is corruption-free). No-op
@@ -159,6 +159,7 @@ function playerIncome(state, playerId, ruleset) {
   const sciRate = player.sciRate === undefined ? ruleset.rules.defaultSciRate : player.sciRate;
   const perSpecialist = ruleset.rules.specialistOutput;
   const anarchy = governmentOf(state, playerId, ruleset).id === 'anarchy';
+  const workedMap = resolveAllWorked(state, ruleset); // A8: one contention snapshot for the loop
   let gold = 0, bulbs = 0, maintenance = 0;
   for (const cid of state.cityOrder || []) {
     const city = state.cities[cid];
@@ -168,7 +169,7 @@ function playerIncome(state, playerId, ruleset) {
     }
     if (city.disorder === true) continue; // civil disorder: no taxes, no research
     if (anarchy) continue; // anarchy: the state collects nothing
-    const eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset);
+    const eco = cityEconOutput(state, city, taxRate, sciRate, perSpecialist, ruleset, workedMap[cid]);
     gold += eco.gold;
     bulbs += eco.bulbs;
   }

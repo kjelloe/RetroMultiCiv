@@ -230,10 +230,83 @@ function candidateTiles(state, city, ruleset) {
   return candidates;
 }
 
+// A8 tile contention: the fat-cross tile indices `city` actually works (center
+// excluded), skipping any idx in `claimed`. Manual (city.workers) tiles are taken
+// in workers-order; an auto city takes the greedy best. Caps at pop. Pure.
+function pickWorkedIdx(state, city, ruleset, claimed, candidates) {
+  if (candidates === undefined) candidates = candidateTiles(state, city, ruleset);
+  const out = [];
+  if (city.workers !== undefined) {
+    const valid = {};
+    for (const c of candidates) valid[c.idx] = true;
+    for (const idx of city.workers) {
+      if (out.length >= city.pop) break;
+      if (valid[idx] !== true) continue;
+      if (claimed[idx] === true) continue;
+      out.push(idx);
+    }
+  } else {
+    for (let i = 0; i < candidates.length && out.length < city.pop; i++) {
+      if (claimed[candidates[i].idx] === true) continue;
+      out.push(candidates[i].idx);
+    }
+  }
+  return out;
+}
+
+// A8: the deterministic global contention pass — two adjacent cities never work
+// the same tile. Priority: MANUAL cities (city.workers set) outrank AUTO cities;
+// within a tier, cityOrder (older wins). Every city's CENTRE is pre-claimed (no
+// city works another city's centre). The greedy fallback cascades through
+// overlapping cities, so the pass spans ALL cities in priority order, not just
+// neighbours. Returns the tile-idx list `city` works. Portable (no module state).
+// A8 perf (#2432 B): the ENTIRE contention resolution in ONE pass — returns a
+// read-only { cityId: [idx...] } map. Each city's candidateTiles (its O(units)
+// blockade scan) is touched exactly ONCE here, vs once-per-city-per-workedTiles-
+// call in the naive form (the 5-18x hot-path blowup). Callers that loop over
+// cities compute this ONCE and thread each city's list into workedTiles/cityYields;
+// a one-off caller may omit it and workedTiles falls back to a single-city lookup.
+// Deterministic + portable (no module state); the greedy fallback cascades so the
+// pass spans ALL cities in priority order (MANUAL tier then AUTO, cityOrder within).
+function resolveAllWorked(state, ruleset) {
+  const order = state.cityOrder === undefined ? [] : state.cityOrder;
+  const width = state.map.width;
+  const claimed = {};
+  const manual = [], auto = [];
+  for (const cid of order) {
+    const c = state.cities[cid];
+    if (c === undefined) continue;
+    claimed[c.y * width + c.x] = true; // centres are never worked by another city
+    if (c.workers !== undefined) manual.push(cid); else auto.push(cid);
+  }
+  const out = {};
+  for (const cid of manual) {
+    const takes = pickWorkedIdx(state, state.cities[cid], ruleset, claimed);
+    out[cid] = takes;
+    for (const idx of takes) claimed[idx] = true;
+  }
+  for (const cid of auto) {
+    const takes = pickWorkedIdx(state, state.cities[cid], ruleset, claimed);
+    out[cid] = takes;
+    for (const idx of takes) claimed[idx] = true;
+  }
+  return out;
+}
+
 // Center tile (always worked, free) + up to pop worked tiles: the player's
 // manual assignment (city.workers, tile indices) when present, otherwise the
-// greedy best. Returns the actual worked tiles (center first).
-function workedTiles(state, city, ruleset) {
+// greedy best. `workedIdx` is this city's precomputed idx list from a threaded
+// resolveAllWorked map (A8 cross-city contention) — the REAL game state paths
+// (processCities/playerIncome/updateDisorder/pollution) pass it, so the actual
+// yields are contention-correct.
+// A8 §b MODELLING CHOICE (architect-ruled #2495): with workedIdx OMITTED, the
+// fallback is the NON-CONTENDED single-city pick (pickWorkedIdx vs an empty
+// claimed set = the pre-A8 greedy). engine/ai.js's evaluation path deliberately
+// takes this fallback so AI PLANNING stays fast + byte-identical to pre-A8 — a
+// civ over-estimating tiles it will lose to a neighbour is a benign, human-like
+// planning error (planning-on-approximation matches the engine's fog-honest AI
+// doctrine). Contention shapes the REAL game, not the AI's private forecast.
+function workedTiles(state, city, ruleset, workedIdx) {
   const { width, tiles } = state.map;
   const gov = governmentOf(state, city.owner, ruleset);
   // Civ 1 (wiki, Terrain page): the city tile automatically produces as if
@@ -261,21 +334,14 @@ function workedTiles(state, city, ruleset) {
     yields: centerYields
   }];
   const candidates = candidateTiles(state, city, ruleset);
-  if (city.workers !== undefined) {
-    const byIdx = {};
-    for (const c of candidates) byIdx[c.idx] = c;
-    let count = 0;
-    for (const idx of city.workers) {
-      if (count >= city.pop) break;
-      const c = byIdx[idx];
-      if (!c) continue;
-      worked.push({ x: c.x, y: c.y, center: false, yields: c.yields });
-      count++;
-    }
-    return worked;
-  }
-  for (let i = 0; i < city.pop && i < candidates.length; i++) {
-    worked.push({ x: candidates[i].x, y: candidates[i].y, center: false, yields: candidates[i].yields });
+  const idxs = workedIdx !== undefined ? workedIdx
+    : pickWorkedIdx(state, city, ruleset, {}, candidates); // A8 §b: non-contended (AI planning / one-off), reuse candidates
+  const byIdx = {};
+  for (const c of candidates) byIdx[c.idx] = c;
+  for (const idx of idxs) {
+    const c = byIdx[idx];
+    if (c === undefined) continue;
+    worked.push({ x: c.x, y: c.y, center: false, yields: c.yields });
   }
   return worked;
 }
@@ -328,8 +394,8 @@ function setWorkers(state, cmd, ruleset) {
   return { ok: true, events: [{ type: 'workersSet', cityId: city.id, auto: false }] };
 }
 
-function cityYields(state, city, ruleset) {
-  const worked = workedTiles(state, city, ruleset);
+function cityYields(state, city, ruleset, workedIdx) {
+  const worked = workedTiles(state, city, ruleset, workedIdx);
   const total = { food: 0, shields: 0, trade: 0 };
   let tradeTiles = 0;
   for (const w of worked) {
@@ -698,8 +764,8 @@ function hooverPowersCity(state, city, ruleset) {
 // civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
 // PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.js
 // reads the SAME production number processCities does (no drift). Pure, both engines.
-function cityShieldOutput(state, city, ruleset) {
-  let shields = cityYields(state, city, ruleset).shields;
+function cityShieldOutput(state, city, ruleset, workedIdx) {
+  let shields = cityYields(state, city, ruleset, workedIdx).shields;
   if (city.disorder === true) shields = 0;
   let shieldPct = effectPct(city, ruleset, 'shieldBonus');
   if (shieldPct > 0) {
@@ -722,13 +788,17 @@ function cityShieldOutput(state, city, ruleset) {
 function processCities(state, ruleset, events) {
   const order = state.cityOrder;
   if (!order) return;
+  // A8 perf: one contention snapshot for the whole turn's processing (threaded so
+  // no per-city recompute); taken at turn-start pops (this turn's growth applies
+  // next turn — deterministic).
+  const workedMap = resolveAllWorked(state, ruleset);
   for (const cityId of order) {
     const city = state.cities[cityId];
     if (!city) continue;
-    const yields = cityYields(state, city, ruleset);
+    const yields = cityYields(state, city, ruleset, workedMap[cityId]);
     // A91: gross shields (disorder-zero + Factory chain) via the shared helper, so
     // pollution.js and production read the identical number.
-    yields.shields = cityShieldOutput(state, city, ruleset);
+    yields.shields = cityShieldOutput(state, city, ruleset, workedMap[cityId]);
 
     // unit upkeep in shields (government-dependent); units without a home
     // city (game start, old saves) are free
@@ -907,5 +977,5 @@ export {
   sellBuilding, sellBuildingFrom, processCities,
   cityYields, cityShieldOutput, workedTiles, candidateTiles, tileYields, FAT_CROSS, hasBuilding,
   wonderActive, wonderInCity, nukesEnabled, effectPct, itemCost, growthThreshold, civVeteran, citySpacingOk,
-  unitObsolete, bestDefenderUnit, trimToPop
+  unitObsolete, bestDefenderUnit, resolveAllWorked, trimToPop
 };

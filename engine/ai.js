@@ -1721,6 +1721,15 @@ function withBuilding(city, id) {
 // (the SAME math playerIncome uses) so a building's valued benefit equals its
 // actual benefit. Zero-delta (non-yield) buildings are skipped — they keep the
 // stanceBuilding/nextBuilding route (R2). Returns a building id or null.
+// A8 §b (architect-ruled #2495): every AI yield/mood evaluation here — this
+// build-payback lever, the disorder/shield reads elsewhere in ai.js — calls
+// cityYields/cityMood/cityEconOutput WITHOUT a threaded worked-map, so it takes
+// workedTiles's NON-CONTENDED fallback (the pre-A8 single-city greedy). This keeps
+// AI planning fast + byte-identical to pre-A8 (per-call cross-city contention was
+// measured at 5–18×, the call-count multiplier); the AI slightly over-estimates
+// tiles a neighbour will take — a benign, fog-honest-style planning approximation.
+// The REAL game state (processCities/playerIncome/updateDisorder/pollution) threads
+// the contended resolveAllWorked map, so actual yields ARE contention-correct.
 function bestPaybackBuilding(state, city, me, ruleset, pbMax) {
   const taxRate = me.taxRate === undefined ? ruleset.rules.defaultTaxRate : me.taxRate;
   const sciRate = me.sciRate === undefined ? ruleset.rules.defaultSciRate : me.sciRate;

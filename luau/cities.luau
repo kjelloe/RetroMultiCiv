@@ -290,8 +290,85 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 	return candidates
 end
 
--- Center tile (always worked, free) + up to pop worked tiles.
-local function workedTiles(state: any, city: any, ruleset: any): { any }
+-- A8 tile contention: the fat-cross tile idxs `city` works (centre excluded),
+-- skipping any idx in `claimed`. Manual (city.workers) in workers-order; an auto
+-- city takes the greedy best. Caps at pop. Pure. (idx = y*width+x, 0-based logical id.)
+local function pickWorkedIdx(state: any, city: any, ruleset: any, claimed: any, candidates: any): { number }
+	if candidates == nil then
+		candidates = candidateTiles(state, city, ruleset)
+	end
+	local out = {}
+	if city.workers ~= nil then
+		local valid = {}
+		for _, c in ipairs(candidates) do
+			valid[c.idx] = true
+		end
+		for _, idx in ipairs(city.workers) do
+			if #out >= city.pop then
+				break
+			end
+			if valid[idx] == true and claimed[idx] ~= true then
+				table.insert(out, idx)
+			end
+		end
+	else
+		for i = 1, #candidates do
+			if #out >= city.pop then
+				break
+			end
+			if claimed[candidates[i].idx] ~= true then
+				table.insert(out, candidates[i].idx)
+			end
+		end
+	end
+	return out
+end
+
+-- A8 perf (#2432 B): the ENTIRE contention resolution in ONE pass — a read-only
+-- { cityId = { idx } } map (each candidateTiles touched once). MANUAL cities outrank
+-- AUTO; within a tier cityOrder (older wins); each centre pre-claimed. The greedy
+-- fallback cascades, so the pass spans ALL cities in priority order. Portable.
+local function resolveAllWorked(state: any, ruleset: any): any
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	local width = state.map.width
+	local claimed = {}
+	local manual = {}
+	local auto = {}
+	for _, cid in ipairs(order) do
+		local c = state.cities[cid]
+		if c ~= nil then
+			claimed[c.y * width + c.x] = true
+			if c.workers ~= nil then
+				table.insert(manual, cid)
+			else
+				table.insert(auto, cid)
+			end
+		end
+	end
+	local out = {}
+	for _, cid in ipairs(manual) do
+		local takes = pickWorkedIdx(state, state.cities[cid], ruleset, claimed)
+		out[cid] = takes
+		for _, idx in ipairs(takes) do
+			claimed[idx] = true
+		end
+	end
+	for _, cid in ipairs(auto) do
+		local takes = pickWorkedIdx(state, state.cities[cid], ruleset, claimed)
+		out[cid] = takes
+		for _, idx in ipairs(takes) do
+			claimed[idx] = true
+		end
+	end
+	return out
+end
+
+-- Center tile (always worked, free) + up to pop worked tiles. `workedIdx` is this
+-- city's precomputed idx list from a threaded resolveAllWorked map (A8) — the REAL
+-- game paths pass it (contention-correct). A8 §b (#2495): with workedIdx OMITTED the
+-- fallback is the NON-CONTENDED single-city pick (pre-A8 greedy); engine/ai.luau's
+-- eval path takes it so AI planning stays fast + pre-A8-identical. Byte-shaped twin.
+local function workedTiles(state: any, city: any, ruleset: any, workedIdx: any): { any }
 	local width = state.map.width
 	local tiles = state.map.tiles
 	local gov = government.governmentOf(state, city.owner, ruleset)
@@ -327,26 +404,16 @@ local function workedTiles(state: any, city: any, ruleset: any): { any }
 	end
 	local worked = { { x = city.x, y = city.y, center = true, yields = centerYields } }
 	local candidates = candidateTiles(state, city, ruleset)
-	if city.workers ~= nil then
-		local byIdx = {}
-		for _, c in ipairs(candidates) do
-			byIdx[c.idx] = c
-		end
-		local count = 0
-		for _, idx in ipairs(city.workers) do
-			if count >= city.pop then
-				break
-			end
-			local c = byIdx[idx]
-			if c ~= nil then
-				table.insert(worked, { x = c.x, y = c.y, center = false, yields = c.yields })
-				count += 1
-			end
-		end
-		return worked
+	local idxs = if workedIdx ~= nil then workedIdx else pickWorkedIdx(state, city, ruleset, {}, candidates)
+	local byIdx = {}
+	for _, c in ipairs(candidates) do
+		byIdx[c.idx] = c
 	end
-	for i = 1, math.min(city.pop, #candidates) do
-		table.insert(worked, { x = candidates[i].x, y = candidates[i].y, center = false, yields = candidates[i].yields })
+	for _, idx in ipairs(idxs) do
+		local c = byIdx[idx]
+		if c ~= nil then
+			table.insert(worked, { x = c.x, y = c.y, center = false, yields = c.yields })
+		end
 	end
 	return worked
 end
@@ -413,8 +480,8 @@ local function setWorkers(state: any, cmd: any, ruleset: any): any
 	return { ok = true, events = { { type = "workersSet", cityId = city.id, auto = false } } }
 end
 
-local function cityYields(state: any, city: any, ruleset: any)
-	local worked = workedTiles(state, city, ruleset)
+local function cityYields(state: any, city: any, ruleset: any, workedIdx: any)
+	local worked = workedTiles(state, city, ruleset, workedIdx)
 	local total = { food = 0, shields = 0, trade = 0 }
 	local tradeTiles = 0
 	for _, w in ipairs(worked) do
@@ -935,8 +1002,8 @@ end
 -- civil disorder, then the Factory chain (+shieldBonus%, doubled by a power source).
 -- PRE-upkeep (upkeep is a separate deduction in processCities). Shared so pollution.luau
 -- reads the SAME production number processCities does (no drift). Pure, both engines.
-local function cityShieldOutput(state: any, city: any, ruleset: any): number
-	local shields = cityYields(state, city, ruleset).shields
+local function cityShieldOutput(state: any, city: any, ruleset: any, workedIdx: any): number
+	local shields = cityYields(state, city, ruleset, workedIdx).shields
 	if city.disorder == true then
 		shields = 0
 	end
@@ -967,15 +1034,17 @@ local function processCities(state: any, ruleset: any, events: any)
 	if order == nil then
 		return
 	end
+	-- A8 perf: one contention snapshot for the whole turn's processing (threaded).
+	local workedMap = resolveAllWorked(state, ruleset)
 	for _, cityId in ipairs(order) do
 		local city = state.cities[cityId]
 		if city == nil then
 			continue
 		end
-		local yields = cityYields(state, city, ruleset)
+		local yields = cityYields(state, city, ruleset, workedMap[cityId])
 		-- A91: gross shields (disorder-zero + Factory chain) via the shared helper, so
 		-- pollution.luau and production read the identical number.
-		yields.shields = cityShieldOutput(state, city, ruleset)
+		yields.shields = cityShieldOutput(state, city, ruleset, workedMap[cityId])
 
 		-- unit upkeep in shields (government-dependent)
 		local gov = government.governmentOf(state, city.owner, ruleset)
@@ -1152,6 +1221,7 @@ return {
 	cityYields = cityYields,
 	cityShieldOutput = cityShieldOutput,
 	workedTiles = workedTiles,
+	resolveAllWorked = resolveAllWorked,
 	candidateTiles = candidateTiles,
 	tileYields = tileYields,
 	FAT_CROSS = FAT_CROSS,

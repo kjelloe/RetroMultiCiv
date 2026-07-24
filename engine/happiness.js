@@ -7,7 +7,7 @@
 // Entertainers make luxuries, Taxmen gold, Scientists bulbs (pop >= 5 for
 // the latter two). Deviation from Civ 1: luxuries are computed from the
 // city's raw trade even during disorder, so disorder cannot lock itself in.
-import { workedTiles, cityYields, effectPct, wonderActive } from './cities.js';
+import { workedTiles, cityYields, effectPct, wonderActive, resolveAllWorked } from './cities.js';
 import { sortIds } from './combat.js';
 import { governmentOf } from './government.js';
 import { difficultyOf } from './difficulty.js';
@@ -26,10 +26,10 @@ function specialistsOf(city, workedCount) {
   return { entertainers, taxmen, scientists };
 }
 
-function cityMood(state, city, ruleset) {
+function cityMood(state, city, ruleset, workedIdx) {
   const rules = ruleset.rules;
   const player = state.players[city.owner];
-  const workedCount = workedTiles(state, city, ruleset).length - 1; // minus center
+  const workedCount = workedTiles(state, city, ruleset, workedIdx).length - 1; // minus center
   const s = specialistsOf(city, workedCount);
   const workers = city.pop - s.entertainers - s.taxmen - s.scientists;
 
@@ -79,7 +79,7 @@ function cityMood(state, city, ruleset) {
 
   // luxuries: every luxPerStep upgrades one citizen one step, worst first
   const luxRate = player.luxRate === undefined ? 0 : player.luxRate;
-  let lux = idiv(cityYields(state, city, ruleset).trade * luxRate, 100);
+  let lux = idiv(cityYields(state, city, ruleset, workedIdx).trade * luxRate, 100);
   lux = lux + idiv(lux * effectPct(city, ruleset, 'luxBonus'), 100);
   lux = lux + s.entertainers * rules.specialistOutput;
   let steps = idiv(lux, rules.luxPerStep);
@@ -138,10 +138,11 @@ function cityMood(state, city, ruleset) {
 // Turn wrap (before cities harvest): store/refresh each city's disorder flag
 // so processCities and playerIncome read one consistent verdict all turn.
 function updateDisorder(state, ruleset, events) {
+  const workedMap = resolveAllWorked(state, ruleset); // A8: one contention snapshot for the loop
   for (const cityId of state.cityOrder === undefined ? [] : state.cityOrder) {
     const city = state.cities[cityId];
     if (!city) continue;
-    const disorder = cityMood(state, city, ruleset).disorder;
+    const disorder = cityMood(state, city, ruleset, workedMap[cityId]).disorder;
     if (disorder && city.disorder !== true) {
       city.disorder = true;
       events.push({ type: 'cityDisorder', cityId });

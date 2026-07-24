@@ -160,6 +160,7 @@ local function process(state: any, ruleset: any, events: any)
 		return
 	end
 	local order = if state.cityOrder == nil then {} else state.cityOrder
+	local workedMap = cities.resolveAllWorked(state, ruleset) -- A8: one snapshot for the loop
 	for _, cityId in ipairs(order) do
 		local city = state.cities[cityId]
 		if city == nil then
@@ -174,7 +175,7 @@ local function process(state: any, ruleset: any, events: any)
 		elseif cities.hasBuilding(city, "hydro-plant") or cities.hasBuilding(city, "nuclear-plant") then
 			divisor = poll.industrialDivisorPower
 		end
-		local industrial = idiv(cities.cityShieldOutput(state, city, ruleset), divisor)
+		local industrial = idiv(cities.cityShieldOutput(state, city, ruleset, workedMap[cityId]), divisor)
 		-- population pollution: citySize * the tech modifier %, zeroed by Mass Transit.
 		local popPoll = 0
 		if not cities.hasBuilding(city, "mass-transit") then
