@@ -252,6 +252,19 @@ function M.requestStrat()
 	remote:FireServer({ t = "strat" }) -- SO17: pull-only, server gates to spectator/Studio
 end
 
+-- runN: the post-game keep-alive — the endscreen AND the theater both count as
+-- "still watching", holding off the runK no-watchers server reset (the runN bug:
+-- reading the scoreboard for 90s cost the replay).
+function M.postgameAlive()
+	remote:FireServer({ t = "theaterAlive" })
+end
+
+-- runN: Studio soft-reset — subscribers wipe their world caches
+local serverResetCallbacks = {}
+function M.onServerReset(cb)
+	table.insert(serverResetCallbacks, cb)
+end
+
 function M.onHistorian(cb)
 	table.insert(historianCallbacks, cb)
 end
@@ -499,6 +512,17 @@ remote.OnClientEvent:Connect(function(msg)
 			-- round 21: Hud shows the red banner; CP8: BuildQueue correlates
 			-- its own pending commandId to try the next queued item
 			cb(tostring(msg.code), msg.commandId)
+		end
+	elseif msg.t == "serverReset" then
+		-- runN (Studio soft-reset path): the game is gone — drop the old view and
+		-- let subscribers (ViewRenderer) wipe their world caches so the NEXT game
+		-- starts from a black map (the runN fog-residue bug)
+		M.view = nil
+		M.selectedUnitId = nil
+		M.possessedUnitId = nil
+		print("[Client] server reset - world caches cleared")
+		for _, cb in ipairs(serverResetCallbacks) do
+			cb()
 		end
 	end
 end)

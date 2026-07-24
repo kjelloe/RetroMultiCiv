@@ -649,6 +649,23 @@ ClientState.onView(function(view)
 	renderImprovements(view)
 end)
 
+-- runN (Studio soft-reset): wipe EVERY world cache so the next game starts from
+-- a black map — the runN fog residue was tileParts/tileShown surviving the reset
+ClientState.onServerReset(function()
+	for i in pairs(tileParts) do
+		tileParts[i] = nil
+	end
+	for i in pairs(tileShown) do
+		tileShown[i] = nil
+	end
+	terrainFolder:ClearAllChildren()
+	unitsFolder:ClearAllChildren()
+	citiesFolder:ClearAllChildren()
+	dangerFolder:ClearAllChildren()
+	propsFolder:ClearAllChildren()
+	TileProps.resetCache()
+end)
+
 -- R20: the enhanced look owns a subtle Atmosphere (depth haze) — removed
 -- cleanly in retro; procedural, no assets
 local Lighting = game:GetService("Lighting")
