@@ -68,3 +68,16 @@ window opens measure-first; (b) the engine window queues AFTER the
 D4–D6 spine (axis-2 critical path holds priority) unless the user
 promotes it; (c) the ally gets the doctrine FYI in the next update
 (city personality is their territory too).
+
+BASELINE DELIVERED (sim-runner #2547, 25 canonical seeds @1ff9e5a):
+the AI builds ~0 city buildings of EVERY type at EVERY era (only
+barracks/walls at 0.01/city); happiness-building coverage 0%
+everywhere (disorder is held entirely by the lux-first playbook);
+avgPop stuck ~3.1; era attrition 705 ancient → 75 industrial → 0
+modernSpace cities. Build queues are effectively
+{settler, defender, attacker}. Implication: the role-assignment
+slice starts from an EMPTY baseline — highest leverage is
+library/university (science role — attacks the research-depth
+ceiling directly) and granary/temple (growth/happiness roles).
+Harness: gaming-PC ~/sim-lab/build-doctrine-probe.mjs; the
+river-world --stats sample is banked as a second reference world.
