@@ -74,12 +74,32 @@ local function restoreUi()
 	end
 end
 
--- ---- claim the camera on frame one (behind the black cover) ------------------
+-- ---- the camera DRIVER (runM round 3) -----------------------------------------
+-- The character can spawn LATE and REPLACE workspace.CurrentCamera — a claim or
+-- tween bound to the old instance dies, and the fresh camera pans to the avatar
+-- on the deck (the runM screenshot: deck pads visible through the fade). So the
+-- intro drives the camera PER FRAME: re-grab CurrentCamera every RenderStepped,
+-- hold Scriptable, and lerp our own choreographed CFrame (easeInOutSine).
+local RunService = game:GetService("RunService")
 local ORIGIN = Vector3.new(3000, 40, 3000)
-local camera = workspace.CurrentCamera
-ClientState.introActive = true -- Camera.client holds Scriptable, skips its CFrame
-camera.CameraType = Enum.CameraType.Scriptable
-camera.CFrame = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
+ClientState.introActive = true -- Camera.client skips its own CFrame while set
+local camFrom = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
+local camTo = camFrom
+local camT, camDur = 1, 1
+local function easedCF()
+	local a = math.min(camT, 1)
+	a = -(math.cos(math.pi * a) - 1) / 2
+	return camFrom:Lerp(camTo, a)
+end
+local camConn = RunService.RenderStepped:Connect(function(dt)
+	local cam = workspace.CurrentCamera
+	if cam == nil then
+		return
+	end
+	cam.CameraType = Enum.CameraType.Scriptable
+	camT += dt / camDur
+	cam.CFrame = easedCF()
+end)
 
 -- ---- the scene ----------------------------------------------------------------
 local scene = Instance.new("Folder")
@@ -266,13 +286,13 @@ end
 
 -- ---- title / subtitle / SKIP (runM refinement 4: +50% fonts) -------------------
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 130)
-title.Position = UDim2.new(0, 0, 0.58, 0)
+title.Size = UDim2.new(1, 0, 0, 190)
+title.Position = UDim2.new(0, 0, 0.58, -135) -- runM r3: up one line height
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBlack
 title.TextColor3 = Color3.fromRGB(245, 232, 190)
 title.TextStrokeTransparency = 0.5
-title.TextSize = 90 -- was 60 (+50%)
+title.TextSize = 135 -- runM r3: +50% again (60 -> 90 -> 135)
 title.TextTransparency = 1
 title.Text = INTRO_TITLE
 title.ZIndex = 101
@@ -280,7 +300,7 @@ title.Parent = gui
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Size = UDim2.new(1, 0, 0, 50)
-subtitle.Position = UDim2.new(0, 0, 0.58, 126)
+subtitle.Position = UDim2.new(0, 0, 0.58, 62) -- sits under the raised title block
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
 subtitle.TextColor3 = Color3.fromRGB(215, 222, 235)
@@ -312,8 +332,11 @@ end
 
 -- ---- helpers -------------------------------------------------------------------
 local function look(from, at, dur)
-	TweenService:Create(camera, TweenInfo.new(dur, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-		{ CFrame = CFrame.lookAt(ORIGIN + from, ORIGIN + at) }):Play()
+	-- feed the per-frame driver (never a tween on a camera instance — it can be
+	-- replaced mid-flight by a late character spawn)
+	camFrom = easedCF()
+	camTo = CFrame.lookAt(ORIGIN + from, ORIGIN + at)
+	camT, camDur = 0, math.max(dur, 0.01)
 end
 local function fade(inst, prop, to, dur)
 	TweenService:Create(inst, TweenInfo.new(dur, Enum.EasingStyle.Quad), { [prop] = to }):Play()
@@ -337,7 +360,8 @@ local function finish()
 	fade(cover, "BackgroundTransparency", 0, skipping and 0.25 or 0.4)
 	task.delay(skipping and 0.3 or 0.5, function()
 		scene:Destroy()
-		ClientState.introActive = false -- the deck camera (Camera.client) resumes
+		camConn:Disconnect() -- stop the intro camera driver...
+		ClientState.introActive = false -- ...and the deck camera (Camera.client) resumes
 		restoreUi() -- runM: the regular UI returns exactly at the deck reveal
 		task.wait(0.15)
 		fade(cover, "BackgroundTransparency", 1, BEAT_FADE * 0.6)
