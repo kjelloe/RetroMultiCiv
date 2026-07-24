@@ -2184,6 +2184,14 @@ return [==[{
         6
       ]
     },
+    "resAntler": {
+      "shape": "cone",
+      "size": [
+        0.022,
+        0.2
+      ],
+      "seg": 4
+    },
     "pond": {
       "shape": "cyl",
       "size": [

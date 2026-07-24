@@ -44,6 +44,7 @@ M.PROP_SHAPES = {
 	pond = { shape = "cyl", size = { 0.11, 0.11, 0.012 }, seg = 10 },
 	resBeast = { shape = "sphere", size = { 0.1 }, seg = { 8, 6 } },
 	resBeastHead = { shape = "sphere", size = { 0.06 }, seg = { 8, 6 } },
+	resAntler = { shape = "cone", size = { 0.022, 0.2 }, seg = 4 },
 }
 
 M.PROP_COLOR = {
@@ -74,21 +75,26 @@ local SPECIAL_MOTIF = {
 		{ k = "resStraw", color = "#f2d84e", dx = 0.08, dz = -0.04, dy = 0.19, rotX = 0.26, rotY = 1.2 },
 		{ k = "resStraw", color = "#f6e264", dx = -0.02, dz = 0.1, dy = 0.19, rotX = 0.26, rotY = 4.4 },
 	},
-	plains = { -- Horse
-		{ k = "resBeast", color = "#9a6b3f", sx = 1.5, sy = 0.8, sz = 0.8, dy = 0.05 },
-		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.12, dy = 0.11 },
+	plains = { -- Horse — REARING profile (specials-silhouettes #4)
+		{ k = "resBeast", color = "#9a6b3f", sx = 1.65, sy = 0.6, sz = 0.6, dy = 0.15, rotZ = -0.9 },
+		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.09, dy = 0.31 },
 	},
-	forest = { -- Game (deer)
+	forest = { -- Game (deer) + stag-antler V fork
 		{ k = "resBeast", color = "#7a5a35", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
 		{ k = "resBeastHead", color = "#7a5a35", dx = -0.11, dy = 0.12 },
+		{ k = "resAntler", color = "#533c22", dx = -0.12, dy = 0.26, rotZ = 0.62 },
+		{ k = "resAntler", color = "#533c22", dx = -0.07, dy = 0.26, rotZ = -0.62 },
 	},
-	tundra = { -- Game
+	tundra = { -- Game + antlers
 		{ k = "resBeast", color = "#8a6a45", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
 		{ k = "resBeastHead", color = "#8a6a45", dx = -0.11, dy = 0.12 },
+		{ k = "resAntler", color = "#5f4728", dx = -0.12, dy = 0.26, rotZ = 0.62 },
+		{ k = "resAntler", color = "#5f4728", dx = -0.07, dy = 0.26, rotZ = -0.62 },
 	},
-	arctic = { -- Seal
-		{ k = "resBeast", color = "#c4cbd4", sx = 1.8, sy = 0.6, sz = 0.75, dy = 0.04 },
-		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.15, dy = 0.06 },
+	arctic = { -- Seal — low flat body + the upturned tail flipper
+		{ k = "resBeast", color = "#c4cbd4", sx = 1.85, sy = 0.55, sz = 0.72, dy = 0.04 },
+		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.16, dy = 0.06 },
+		{ k = "resFishTail", color = "#b4bcc6", dx = 0.17, dy = 0.09, rotZ = -0.95, sx = 1.1, sy = 1.3 },
 	},
 	desert = { -- Oasis (XVII #14: larger pool + taller palm)
 		{ k = "resWater", color = "#2f7fc0", dy = 0.02, sx = 1.3, sz = 1.3 },
@@ -144,7 +150,7 @@ local function placeProp(folder, kind, x, y, top, tile, o)
 		shape = shape.shape, size = shape.size, seg = shape.seg,
 		scale = { o.sx or 1, o.sy or 1, o.sz or 1 },
 		pos = { o.dx or 0, o.dy or 0, o.dz or 0 },
-		rot = { o.rotX or 0, o.rotY or 0, 0 },
+		rot = { o.rotX or 0, o.rotY or 0, o.rotZ or 0 },
 		color = "primary",
 	}
 	AssetFactory.buildShape(folder, prim, { primary = col }, CFrame.new(x * o.TILE, top, y * o.TILE))
@@ -315,7 +321,8 @@ function M.rebuild(folder, view, tileTop, TILE)
 						local base = t.t == "ocean" and (tileTop("ocean") + WATER_LEVEL) or nil
 						for _, m in ipairs(motif) do
 							put(m.k, { color = m.color, dx = m.dx, dz = m.dz, dy = m.dy,
-								sx = m.sx, sy = m.sy, sz = m.sz, rotX = m.rotX, rotY = m.rotY, top = base })
+								sx = m.sx, sy = m.sy, sz = m.sz,
+								rotX = m.rotX, rotY = m.rotY, rotZ = m.rotZ, top = base })
 						end
 					else -- any terrain without a motif keeps the generic marker
 						put("special", { color = M.PROP_COLOR.special, dx = -0.2, dz = 0.2, dy = 0.08 })
