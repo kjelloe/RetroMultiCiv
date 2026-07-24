@@ -81,3 +81,7 @@ library/university (science role — attacks the research-depth
 ceiling directly) and granary/temple (growth/happiness roles).
 Harness: gaming-PC ~/sim-lab/build-doctrine-probe.mjs; the
 river-world --stats sample is banked as a second reference world.
+
+§1 RESOLVED (user, 2026-07-25): PEDIA_NAME = "Encyclopedia" —
+generic, no brand collision. Applied @91fb9ee; Roblox swap queued
+(#2612). The constant machinery stays (swappable discipline).
