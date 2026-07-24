@@ -74,6 +74,10 @@ export function parseMessage(raw) {
     if (typeof msg.on !== 'boolean') return { ok: false, code: 'badShape' };
     return { ok: true, msg };
   }
+  if (msg.t === 'setJoining') { // XVII §3: host-only lobby open/closed toggle
+    if (typeof msg.open !== 'boolean') return { ok: false, code: 'badShape' };
+    return { ok: true, msg };
+  }
   if (msg.t === 'kick') {
     if (typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
     if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
