@@ -784,6 +784,27 @@ end
 -- respawn everyone on the observation deck.
 local function resetServer()
 	resetScheduled = false
+	-- runN (the user's is-it-worth-it question, ruled in practice): a LIVE
+	-- server restarts the INSTANCE — teleport everyone together to a fresh
+	-- reserved server of this place. An in-place reset can never be airtight:
+	-- every client caches the world (the runN fog residue was ViewRenderer's
+	-- tileParts/tileShown surviving into the next game). The soft path below
+	-- remains ONLY for Studio/unpublished (PlaceId 0 cannot teleport).
+	if game.PlaceId ~= 0 then
+		local players = Players:GetPlayers()
+		if #players > 0 then
+			local ok, err = pcall(function()
+				local opts = Instance.new("TeleportOptions")
+				opts.ShouldReserveServer = true -- everyone lands TOGETHER in a fresh instance
+				game:GetService("TeleportService"):TeleportAsync(game.PlaceId, players, opts)
+			end)
+			if ok then
+				print("[GameServer] runN: instance reset — players teleported to a fresh server")
+				return
+			end
+			warn("[GameServer] runN: teleport reset failed (" .. tostring(err) .. ") — soft-reset fallback")
+		end
+	end
 	state = nil
 	hostUserId = nil
 	endscreenSent = false
@@ -802,13 +823,14 @@ local function resetServer()
 	end
 	theater.initialState = nil
 	theater.entries = {}
+	remote:FireAllClients({ t = "serverReset" }) -- runN: clients wipe world caches
 	setPhase("idle")
 	for _, pl in ipairs(Players:GetPlayers()) do
 		pcall(function()
 			pl:LoadCharacter() -- back to the observation deck (fresh visitor)
 		end)
 	end
-	print("[GameServer] runK item 6: server reset for a new game")
+	print("[GameServer] runK item 6: server reset for a new game (soft/Studio path)")
 end
 
 -- once the game is over: if nobody watches the replay theater for 30s, run a 60s

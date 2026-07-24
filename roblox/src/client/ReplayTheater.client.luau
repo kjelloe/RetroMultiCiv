@@ -338,6 +338,11 @@ local function openTheater()
 	bar.Visible = true
 	ClientState.panelOpened("theater") -- runI item 14: hide the other left-stack panels
 	remote:FireServer({ t = "theater" })
+	task.delay(12, function() -- runN: never hang on "requesting history..."
+		if bar.Visible and record == nil and verdictLabel.Text == "requesting history..." then
+			verdictLabel.Text = "history did not arrive - X closes (reopen to retry)"
+		end
+	end)
 end
 openBtn.Activated:Connect(function()
 	if bar.Visible then
@@ -491,8 +496,12 @@ remote.OnClientEvent:Connect(function(msg)
 	elseif msg.t == "rejected" and bar.Visible and record == nil then
 		if msg.code == "gameStillRunning" then
 			verdictLabel.Text = "theater opens when the game ends (fog rule)"
-		elseif msg.code == "notSeated" then
-			verdictLabel.Text = "no finished game to replay yet"
+		elseif msg.code == "noReplayYet" or msg.code == "notSeated" then
+			-- runN: the server has no replay (e.g. it already reset for a new
+			-- game) — say so instead of hanging on "requesting history..."
+			verdictLabel.Text = "no replay on this server (it may have reset) - X closes"
+		else
+			verdictLabel.Text = "replay request rejected: " .. tostring(msg.code) .. " - X closes"
 		end
 	end
 end)

@@ -176,6 +176,12 @@ local lastSig = nil
 
 -- Rebuild the whole props folder from the view (wholesale, guarded by the
 -- content signature). tileTop maps a terrain id -> its top-surface stud height.
+-- runN: the Studio soft-reset wipes the world — drop the signature so the next
+-- game's first view rebuilds from scratch
+function M.resetCache()
+	lastSig = nil
+end
+
 function M.rebuild(folder, view, tileTop, TILE)
 	local map = view.map
 	local sig = signature(map)

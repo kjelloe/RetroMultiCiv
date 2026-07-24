@@ -169,6 +169,18 @@ local function show(msg)
 end
 
 ClientState.onEndscreen(show)
+
+-- runN: while the end screen is open the player is still ENGAGED post-game —
+-- ping the keep-alive so the no-watchers server reset holds off (the runN bug:
+-- reading the scoreboard let the reset wipe the replay record).
+task.spawn(function()
+	while true do
+		task.wait(10)
+		if frame.Visible then
+			pcall(ClientState.postgameAlive)
+		end
+	end
+end)
 -- runK item 4/5: re-open the victory menu on theater exit / a game-over End Turn
 ClientState.onReshowEndScreen(function()
 	if lastEndscreen ~= nil then
