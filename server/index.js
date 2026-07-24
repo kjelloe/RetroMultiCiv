@@ -742,10 +742,18 @@ export function startServer(opts) {
   function fanout(gameId, out, game) {
     for (const m of out.broadcast) for (const [o, i] of conns) if (i.gameId === gameId) send(o, m);
     if (out.viewsChanged) {
+      // gameover-reveal (XVII ruling #2496): at gameOver the fog rules lapse —
+      // Civ1 shows the whole world once no competitive info remains. Compute the
+      // unfiltered map ONCE and ride it on this fan-out (the gameOver broadcast).
+      // Additive field; old clients ignore it (helper's Founder's Record S2
+      // upgrades to true full-globe, fog-honest brighten stays the fallback).
+      const reveal = game.state.gameOver === true ? game.view('spectator').map : undefined;
       for (const [o, i] of conns) if (i.gameId === gameId && i.playerId) {
         // per-seat fog-filtered round events ride the view push (B5) —
         // spectators hit filterEvents' omniscient fallback like filterView
-        send(o, { t: 'view', view: game.view(i.playerId), events: game.eventsFor(i.playerId, out.events) });
+        const m = { t: 'view', view: game.view(i.playerId), events: game.eventsFor(i.playerId, out.events) };
+        if (reveal !== undefined) m.reveal = reveal;
+        send(o, m);
       }
       if (autosave) game.saveTo(savePath(gameId));
       // a stale skip vote dies the moment the turn moves off its target
