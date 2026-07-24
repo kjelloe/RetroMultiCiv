@@ -133,6 +133,7 @@ real doctrine; the prompt only points at the mailbox.
 | dry-run silent, but work exists | that clone's `.agent-mail/remote` is missing/wrong — the poll read an empty LOCAL store. Restore the hub URL. |
 | `WAKE` printed but no session ran | the `cmd` template failed in that dir — run it by hand there; usually a PATH or permissions-flag issue with headless `claude -p`. |
 | the same lane wakes repeatedly | it is not ACKING its mail (or not taking its queue item) — the at-least-once layer redelivers. Fix the lane's protocol, not the watcher. |
+| the woken turn STALLS on a permission prompt ("need git pull approved", "Write perm denied") | headless turns cannot answer harness prompts. Pre-approve the lane's routine surface in that clone's `.claude/settings.json` allowlist (its own tree + git pull), or use a per-lane `cmd` with your accepted permissions flag. Observed live 2026-07-25: two consecutive roblox-helper wakes stalled (pull, then a new-file Write) until the human approved. |
 | wakes feel too chatty | raise `--cooldown` (or per-lane `cooldown`). |
 | hub restarts mid-poll | skipped silently by design; the next round retries. |
 
