@@ -73,8 +73,18 @@ const SPECIAL_MOTIF = {
   arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.85, sy: 0.55, sz: 0.72, dy: 0.04 },        // Seal — low flat body
               { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.16, dy: 0.06 },
               { k: 'resFishTail', color: 0xb4bcc6, dx: 0.17, dy: 0.09, rotZ: -0.95, sx: 1.1, sy: 1.3 }], // upturned tail flipper — the asymmetric feature vs the low head
-  desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02, sx: 1.3, sz: 1.3 },                    // Oasis (XVII #14: larger pool + taller palm)
-              { k: 'resPalm', color: 0x2f8d3f, dy: 0.22, sx: 1.25, sy: 1.35, sz: 1.25 }],
+  desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02, sx: 1.3, sz: 1.3 },                    // Oasis: the pool
+              { k: 'jungleTrunk', color: 0x8a6a3d, dy: 0.18, sx: 1.05, sy: 0.8, sz: 1.05 },         // brown palm trunk (jungleTrunk reused, scaled down)
+              // frond crown: blades PLANTED around a small ring at the trunk top, each
+              // leaning outward (dx/dz ring gives the azimuthal spread — the proven wheat-
+              // sheaf idiom; rotY alone gimbal-collapses at this tilt). A palm spray, never
+              // a fir cone.
+              { k: 'resPalm', color: 0x3fae4f, dx: 0.07,  dz: 0.0,   dy: 0.33, rotX: 0.86, rotY: 0.0,  sz: 0.55 },
+              { k: 'resPalm', color: 0x4cbf5c, dx: 0.035, dz: 0.061, dy: 0.33, rotX: 0.86, rotY: 1.05, sz: 0.55 },
+              { k: 'resPalm', color: 0x3fae4f, dx: -0.035, dz: 0.061, dy: 0.33, rotX: 0.86, rotY: 2.09, sz: 0.55 },
+              { k: 'resPalm', color: 0x4cbf5c, dx: -0.07, dz: 0.0,   dy: 0.33, rotX: 0.86, rotY: 3.14, sz: 0.55 },
+              { k: 'resPalm', color: 0x3fae4f, dx: -0.035, dz: -0.061, dy: 0.33, rotX: 0.86, rotY: 4.19, sz: 0.55 },
+              { k: 'resPalm', color: 0x4cbf5c, dx: 0.035, dz: -0.061, dy: 0.33, rotX: 0.86, rotY: 5.24, sz: 0.55 }],
   hills:     [{ k: 'resCrystal', color: 0x2b2b30, dy: 0.11, sx: 1.3, sy: 1.3, sz: 1.3 }],         // Coal
   mountains: [{ k: 'resCrystal', color: 0xffd23b, dy: 0.24, sx: 1.9, sy: 1.9, sz: 1.9 }],         // Gold (XVII #14: bright, raised above the peak, enlarged)
   jungle:    [{ k: 'resCrystal', color: 0x5ad0c9, dy: 0.14, sx: 1.4, sy: 1.4, sz: 1.4 }],         // Gem (XVII #14: raised above the lowered canopy, enlarged)

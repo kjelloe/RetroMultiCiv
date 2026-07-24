@@ -237,7 +237,7 @@ export const PROP_SHAPES = {
   resFishTail: { shape: 'cone', size: [0.06, 0.09], seg: 4 },   // tail fin
   resCrystal: { shape: 'dodeca', size: [0.075], seg: 0 },       // coal/gold/gem faceted nugget
   resWater: { shape: 'cyl', size: [0.16, 0.16, 0.015], seg: 12 }, // oasis pool
-  resPalm: { shape: 'cone', size: [0.11, 0.14], seg: 6 },       // oasis palm crown
+  resPalm: { shape: 'cone', size: [0.034, 0.36], seg: 3 },      // oasis palm FROND blade (long+thin, flattened by instance sz; a ring of these sprays out = the palm crown, NOT a fir cone)
   resDerrick: { shape: 'cone', size: [0.06, 0.34], seg: 4 },    // oil rig (dark tapered tower)
   resStraw: { shape: 'cone', size: [0.035, 0.4], seg: 4 },      // grassland shield → a wheat stalk (a sheaf of these)
   resBeast: { shape: 'sphere', size: [0.1], seg: [8, 6] },      // game/horse/seal body (scaled)
