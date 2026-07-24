@@ -69,7 +69,7 @@ test('baker genesis == browser genesis (snapshot load reproduces the live ff)', 
 // gitignored, so this pin is the only thing that goes red; move it ONLY on an
 // intentional behavioral re-record (re-bake, then paste the new hash), same
 // ritual as the simulation.test.js checkpoints.
-const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0x7fa058f2' };
+const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0xae5d75d9' };
 test('canonical snapshot statehash pin — moves only on a behavioral re-record', async () => {
   const { createEngine, fastForwardTo, hashState, shuffleRoster } = await deps();
   const p = CANONICAL_PIN;

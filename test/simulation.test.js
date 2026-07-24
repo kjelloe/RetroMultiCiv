@@ -48,6 +48,11 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // every sim hash moves (rounds 400/545 + winner p2 UNCHANGED). GOLDEN_SOAK 0x4ad2ff18.. / GOLDEN_NATURAL
 // 0x634ee751 / BEHAVIOR_SOAK 0xd2693e81.. / BEHAVIOR_NATURAL 0x193a7466. Distribution-only; effects
 // untouched. Honest re-record.
+// 11b authentic city rosters re-record: BEHAVIORAL (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL MOVED — the
+// sim founds cities with the new authentic names, so trajectory state moves; civs.json is also in the
+// rulesetHash so the stamp ripples to every createGame golden). User-ruled A (full authentic 16/civ
+// Civ1 founding order). GOLDEN_SOAK 0x0bba709a.. / GOLDEN_NATURAL 0x011bb894 / BEHAVIOR_SOAK 0xd8efb74f.. /
+// BEHAVIOR_NATURAL 0xf57ad8de (rounds 400/545 + winner p2 UNCHANGED). Names-only data; honest re-record.
 // #32 A8 tile-contention re-record: BEHAVIORAL (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL MOVED too —
 // a real trajectory change). Two adjacent cities no longer double-work the same tile (resolveAllWorked,
 // contended in the REAL game paths; AI plans on the non-contended fallback per §b/#2495), so dense
@@ -62,24 +67,24 @@ const CHECKPOINTS = [100, 200, 300, 400];
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x4ad2ff18',
-    200: '0x56c109f8',
-    300: '0x4b2598b2',
-    400: '0xe39fa9a8'
+    100: '0x0bba709a',
+    200: '0x6c621057',
+    300: '0x595167ea',
+    400: '0x79862fb8'
   },
-  finalHash: '0xe39fa9a8'
+  finalHash: '0x79862fb8'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x634ee751' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x011bb894' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xd2693e81', 200: '0x29b5ab0f', 300: '0xa1d22931', 400: '0x17f1b937' },
-  finalHash: '0x17f1b937'
+  checkpoints: { 100: '0xd8efb74f', 200: '0xe043f072', 300: '0x53b4bdf5', 400: '0x3cb11b87' },
+  finalHash: '0x3cb11b87'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x193a7466' };
+const BEHAVIOR_NATURAL = { finalHash: '0xf57ad8de' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
