@@ -69,3 +69,13 @@ scene must be lightweight — one city, ~8 units, one rocket).
 Browser/mobile intro (v2 shelf if ever); narrative voice-over; any
 destruction finale (explicitly ruled out — the nuke reading conflicts
 with the title identity and the Roblox audience posture).
+
+## VERSION 1 APPROVED (user, live session 2026-07-25 evening)
+
+The user attended the iteration live: v3 (UI-hide + naming + pcall
+hardening) → v4 (fade-from-black, era buildings by silo, era
+skirmish+flee, +50% titles) → v5 (camera-travel root-cause fix from
+the user's first-seconds screenshot) → v5b (titles +50% again,
+TextSize 135, label block 190). VERDICT: intro animation VERSION 1
+APPROVED — frozen at v5b (#2574); further tweaks only on new user
+feedback. The publish-gate Studio item drops to a re-confirm.

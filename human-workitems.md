@@ -83,10 +83,9 @@ mid-gate → 0103. The box still runs 0101)._
      in `debugging/usergenerated/`).
   6. Instant age-starts check (industrial/space boot should be
      near-instant).
-  7. **NEW — the boot intro** (`Intro.client.luau`, landed
-     `d32f99a`): eyeball all five beats + SKIP + the auto-skip;
-     say if any beat's timing feels off (the ally gets the
-     storyboard for opinion too).
+  7. ~~The boot intro~~ **DONE early (2026-07-25 live session):
+     intro v1 APPROVED at v5b** — the Studio sitting only
+     re-confirms it in the published build.
   8. Terrain desaturation check (carried).
   9. Save the acceptance log (`runM.txt` next); the roblox-helper is
      flag-responsive for live findings.
