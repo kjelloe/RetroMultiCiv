@@ -1,122 +1,129 @@
 # Human work items — RetroMultiCiv
 
 Things only a human (Kjell / friends) can decide or verify. The old,
-cluttered version is in `archive/human-workitems.md`. This is a clean
-slate — done items are dropped, not struck through.
+cluttered version is in `archive/human-workitems.md`. Done items are
+dropped, not struck through.
 
 Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-25 evening (marker-0102 TAGGED @17b4fb8,
-merge-consistent: A8 + coastal-build + Founder's Record + XIX +
-gameover-reveal + reject-reasons. River landed after the tag,
-mid-gate → 0103. The box still runs 0101)._
+_Last synced: 2026-07-25 late evening (tip 7aa6e34; marker-0102
+merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
 
 ---
 
-## DECIDE / DO (needs you)
+## STEP LIST — in this order
 
-- [ ] **Merge marker-0102** (@17b4fb8, declared merge-consistent —
-  `reports/marker-0102.md`): A8 tile contention + coastal-build +
-  Founder's Record (all four endings) + XIX 8/8 + guards 2/5 + the
-  two hardening merges. A redeploy after it brings the gameOver
-  full-map reveal + reject-reasons live.
+### A. At the desk now (~15 min, unblocks everything)
 
-- [ ] **Two strings to rule:** (1) **PEDIA_NAME** — "Gamepedia"
-  collides with the Fandom wiki brand; alternatives on the table:
-  "Founder's Guide" (pairs with Founder's Record) or plain
-  "Encyclopedia" (one-constant swap either way). (2) The **city-list
-  recommendation** (full Civ1-exact lists + extend to 16 names +
-  territorial pool) awaits your veto before 11b lands it.
+- [ ] **A1. Two rulings, one chat reply:**
+  - **PEDIA_NAME**: the client ships defaulted to "Gamepedia"
+    (flagged: it's a Fandom brand). Pick: keep "Gamepedia" /
+    "Founder's Guide" / "Encyclopedia" / your own. One-line swap in
+    `client/ui/pedia-name.js`.
+  - **City rosters**: say "go" or "veto" on the full authentic
+    replace (16 names/civ in Civ1 founding order; a small golden
+    re-record). Silence = go once marker-0103 tags.
+- [ ] **A2. Grant roblox writes (the one active blocker):** in the
+  ROBLOX PC's Claude session run `/permissions` and allow Edit/Write
+  for the clone's `roblox/**` — or add it to that clone's
+  `.claude/settings.local.json` allowlist so it survives session
+  restarts (this is the third per-session re-block tonight).
+- [ ] **A3. Merge the save point:** either merge **marker-0102 now**:
+  `git fetch origin --tags && git checkout main && git merge
+  marker-0102 && git push` — or wait ~an hour for **marker-0103**
+  (river + tonight's batch) and merge that instead. 0103 supersedes;
+  merging 0102 now is only worth it if you want the box current
+  tonight.
+- [ ] **A4. Redeploy the box** after whichever merge:
+  `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
+  gameOver reveal, endscreen verdict fix, civ splash, pedia rename,
+  founders-tone, silhouettes, late-join UI polish.
+- [ ] **A5. Eyeball two screenshots** (say good/bad in chat):
+  - `debugging/usergenerated/river-ribbon-gallery.png` (+ the
+    `-webgl1` twin) — the river ribbon acceptance shot.
+  - optional: the civ-start splash live at
+    `http://localhost:8123/client/?seed=1&civintro`.
 
-- [x] **Ally round-trip COMPLETE** (2026-07-25): update forwarded,
-  all three invitations answered, gallery strip reviewed — **specials
-  visual language ACCEPTED** ("iterate only beast/game silhouette;
-  preserve crystal-vs-stone"). Everything captured + routed
-  (`specs/ally-response-2026-07-25-iteration.md`). Nothing pending
-  either direction until the next screenshot round.
+### B. Ally correspondence (whenever you next write)
 
-- [ ] **Title clearance (standing):** commission the PROFESSIONAL
-  trademark search for "A World Begun" (lead) + "The Work of Ages"
-  (backup); quietly reserve `aworldbegun.eu`/`.com`/`.no` (~€26/yr).
-  UPDATE 2026-07-25: you ruled the ROBLOX experience displays
-  "A World Begun" (+ the ally subtitle) now, via swappable
-  constants — the search now mainly gates the browser/README/
-  store-wide commitment.
+- [ ] **B1. Forward the screenshot round** to the designer ally:
+  `debugging/tone-defeat/conquest/score/space.png` (the Founder's
+  Record tone pass — their doctrine applied),
+  `debugging/usergenerated/specials-row/beasts/seal.png` (the
+  silhouette iteration: game antler, rearing horse, seal flipper),
+  and the river ribbon shot. Suggested note: "Your tone guidance and
+  silhouette notes are in — say if any ending's weight or beast
+  outline feels off. Rivers now render as ribbons; one look wanted."
+  One open offer to them: the conquest world-brighten is CSS-layer;
+  a renderer-level map brighten is available if they want it.
 
-- [ ] **Review the v1 release checklist** —
-  `specs/v1-release-checklist.md`: RC marker → your main merge →
-  v1.0.0 tag → redeploy from main → README (drafted:
-  `specs/readme-v1-draft.md`) → announce. A read-and-confirm; no
-  action until RC. The RC evidence digest is pre-filled at
-  `reports/v1-rc-draft.md`.
+### C. Phone test (~10 min, carried)
 
-- [ ] **Roblox session Write grant — NOW AN ACTIVE BLOCKER**
-  (upgraded 2026-07-25 evening, #2559): the midgame-join survey +
-  design are done but every Edit/Write in that session sits at
-  "requested permissions, not granted" — zero edits can land.
-  `/permissions` in the session, or a standing `roblox/**` allowlist
-  in the clone's settings. The lane holds on flag-wait; work resumes
-  on the grant.
+- [ ] **C1. Mobile seated-start re-test:** phone seated in lobby →
+  host presses START. The historical hang never reproduced after the
+  heartbeat/seat-grace fixes — one confirming pass closes it. If it
+  hangs: add `&mlog=1` and send the overlay log.
 
-- [ ] **Mobile seated-start re-test (carried):** the historical hang
-  (phone seated in lobby, START showed nothing) never reproduced
-  after the heartbeat/seat-grace/wake-reconnect fixes — one
-  confirming pass on your phone closes it. If it still hangs, add
-  `&mlog=1` and send the overlay log.
+### D. The ONE Studio sitting (publish gate — ruled sequencing)
 
----
-
-## STUDIO SESSION (one sitting collects all of these)
-
-- [ ] **The publish gate** (ruled sequencing): publish once, then
-  sound + saving + the accumulated batches accepted together in ONE
-  Studio/live session. Roblox pass = a v1.x point release, not a
-  v1.0 gate. Items for that sitting:
-  1. Studded round-2 review — `roblox/acceptance/tier3-cert.md`.
+- [ ] Publish once, then accept everything together (a v1.x point
+  release, not a v1.0 gate):
+  1. Studded round-2 review — `roblox/acceptance/tier3-cert.md`
+     (also: commit the cert artifact — it's untracked on the gaming
+     PC; the RC digest cites commits meanwhile).
   2. SO18 tech-glyphs render-verify (+ screenshots).
   3. SoundId curation (worksheet in `roblox/acceptance/`; an intro
      cue row is welcome).
   4. DataStore: enable Studio API Services for save-flow testing.
-  5. Specials-motif review on the map (vs the browser gallery shots
-     in `debugging/usergenerated/`).
-  6. Instant age-starts check (industrial/space boot should be
-     near-instant).
-  7. ~~The boot intro~~ **DONE early (2026-07-25 live session):
-     intro v1 APPROVED at v5b** — the Studio sitting only
-     re-confirms it in the published build.
+  5. Specials-motif review on the map — now incl. the antler/
+     rearing/flipper re-mirror (vs the browser gallery shots).
+  6. Instant age-starts check (industrial/space boot near-instant).
+  7. Intro re-confirm only (v1 APPROVED at v5b, 2026-07-25).
   8. Terrain desaturation check (carried).
-  9. Save the acceptance log (`runM.txt` next); the roblox-helper is
-     flag-responsive for live findings.
-  10. **NEW — midgame-join verify** (built 2026-07-25, files held
-      not-ready): two clients, all human seats filled → the TAKE
-      OVER pad offers the AI-civ path; "Mid-game join" toggle OFF
-      restores rejoin-only.
-  11. **NEW — after publish: activate the browser button** — set
-      `ROBLOX_EXPERIENCE_URL` in `client/ui/roblox-link.js` to the
-      experience URL (one line; the "🎮 Play on Roblox" button ships
-      hidden until then).
-  12. **NEW — decide reserved-vs-public teleport** for the post-game
-      LIVE reset (runN ships RESERVED — right for friends-testing,
-      but a public experience wants drop-in joiners, which is what
-      midgame-join exists for; interim ruling #2608).
+  9. **Midgame-join verify:** two clients, all human seats filled →
+     the TAKE OVER pad offers the AI-civ path; toggle OFF restores
+     rejoin-only.
+  10. **runN reset verify:** finish a game, read the scoreboard
+      slowly (replay must survive), watch a replay, then LIVE reset
+      → the teleport lands everyone in a fresh instance, black map.
+  11. **Decide reserved-vs-public teleport** for that reset (ships
+      RESERVED — right for friends-testing; public experiences want
+      drop-in joiners = midgame-join's purpose; interim #2608).
+  12. **After publish:** set `ROBLOX_EXPERIENCE_URL` in
+      `client/ui/roblox-link.js` (one line — activates the hidden
+      "🎮 Play on Roblox" button), and record the URL for the store
+      description's Play link rule.
+  13. Save the acceptance log (`runO.txt` next); the roblox-helper
+      is flag-responsive for live findings.
+
+### E. Standing / background
+
+- [ ] **E1. Title clearance:** commission the professional trademark
+  search — "A World Begun" (lead) / "The Work of Ages" (backup);
+  quietly reserve `aworldbegun.eu`/`.com`/`.no` (~€26/yr). Roblox
+  already displays the name by your ruling; the search gates the
+  browser/README/store-wide commitment.
+- [ ] **E2. Read the release checklist** —
+  `specs/v1-release-checklist.md` (RC marker → main merge → v1.0.0
+  tag → redeploy → README → announce). Read-and-confirm; no action
+  until RC.
+- [ ] **E3. Occasionally skim player bug reports:**
+  `ssh … 'ls -t /opt/retromulticiv/bug-reports | head'`.
 
 ---
 
 ## FYI — current state (no action)
 
-- **Live on the box:** marker-0101 — XVII complete (all 22 playtest
-  items), late-join/pause/eviction, join-share QR, the specials art,
-  self-host find-a-game. Deploys now self-verify (healthz guard);
-  skim player bug reports occasionally:
-  `ssh … 'ls -t /opt/retromulticiv/bug-reports | head'`.
-- **In gate:** RIVER (@8da9029 — meandering strips on the existing
-  tile.river flag, ~11% of land, twin-identical): reviewer engine-diff
-  + 25-seed sweep queued; marker-0103 tags on green. Then the spine
-  tail: D3-surfacing + 11b city names → D4–D6 → the AI build-doctrine
-  window (your XX §3 ruling; baseline measuring first). All six lanes
-  stocked — nothing is idle.
+- **Live on the box:** marker-0101. Merge-consistent candidate:
+  marker-0102 @17b4fb8; marker-0103 tags on the sweep rerun (~6
+  seeds out).
+- **Tonight's engine loop:** river landed → sweep breached a pop
+  floor → audit found the mine-lock mechanism → fix-A (hills never
+  flagged) → reviewer GREEN → sweep rerunning. Then: 11b rosters →
+  D3-surfacing → D4–D6 → the AI build-doctrine window (baseline
+  measured: the AI builds ~0 buildings — maximal headroom).
 - **Sizing/ops answers on record:** ~1 MB heap per live game — caps
   and CPU are the ceilings, not RAM; ports 8123/8200 behind nginx;
   the full hosting Q&A lives in how-to-host.

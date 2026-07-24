@@ -45,7 +45,9 @@
   .sec-head .tag { font-size: .78rem; color: var(--muted); }
   .bar { height: 3px; border-radius: 2px; margin: .35rem 0 1rem; }
   #do .bar { background: var(--do); }   #do h2 { color: var(--do); }
+  #ally .bar { background: var(--accent); } #ally h2 { color: var(--accent); }
   #play .bar { background: var(--play); } #play h2 { color: var(--play); }
+  #standing .bar { background: var(--park); } #standing h2 { color: var(--park); }
   #fyi .bar { background: var(--fyi); }  #fyi h2 { color: var(--fyi); }
   .item { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
     padding: .85rem 1rem .85rem 2.6rem; margin: .6rem 0; position: relative; }
@@ -55,6 +57,7 @@
   .item .d { color: var(--muted); font-size: .92rem; margin-top: .25rem; }
   .item ol { margin: .4rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .92rem; }
   .item ol li { margin: .15rem 0; }
+  .item ul { margin: .4rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .92rem; }
   code { background: var(--chip-bg); border-radius: 4px; padding: .05rem .3rem; font-size: .88em; }
 </style>
 </head>
@@ -62,92 +65,109 @@
 
 <header>
   <h1>Human work items</h1>
-  <div class="sub">Things only you (or friends) can decide or verify. Agent tasks live in <code>agent-workitems.md</code>. Twin of <code>human-workitems.md</code>.</div>
+  <div class="sub">Step-ordered list of what only you can do. Agent tasks live in <code>agent-workitems.md</code>. Twin of <code>human-workitems.md</code>.</div>
   <div class="meta">
-    <span class="chip">Synced: <strong>2026-07-25 evening</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0102</strong> @ 17b4fb8 (merge-consistent)</span>
-    <span class="chip">In gate: RIVER @8da9029 → marker-0103</span>
+    <span class="chip">Synced: <strong>2026-07-25 late evening</strong> (tip 7aa6e34)</span>
+    <span class="chip">Merge candidate: <strong>marker-0102</strong> · 0103 on the sweep rerun</span>
+    <span class="chip">Box runs: marker-0101</span>
   </div>
 </header>
 
 <section id="do">
-  <div class="sec-head"><h2>Decide / Do</h2><span class="tag">needs you</span></div>
+  <div class="sec-head"><h2>A. At the desk now</h2><span class="tag">~15 min — unblocks everything</span></div>
   <div class="bar"></div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">Merge marker-0102 (@17b4fb8, merge-consistent)</div>
-    <div class="d">A8 tile contention + coastal-build + Founder's Record (all four endings) + XIX 8/8 + guards 2/5 + the gameover-reveal and reject-reasons merges — <code>reports/marker-0102.md</code>. A redeploy after it brings the gameOver full-map reveal live.</div>
+    <div class="t">A1. Two rulings, one chat reply</div>
+    <div class="d"><strong>PEDIA_NAME</strong>: ships defaulted to "Gamepedia" (flagged Fandom brand) — pick keep / "Founder's Guide" / "Encyclopedia" / your own (one-line swap in <code>client/ui/pedia-name.js</code>). <strong>City rosters</strong>: "go" or "veto" on the full authentic 16-name replace (small golden re-record). Silence = go once marker-0103 tags.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">Two strings to rule: PEDIA_NAME + the city-list call</div>
-    <div class="d">(1) "Gamepedia" collides with the Fandom wiki brand — alternatives: "Founder's Guide" (pairs with Founder's Record) or plain "Encyclopedia"; one-constant swap either way. (2) The city-list recommendation (full Civ1-exact + extend to 16 names + territorial pool) awaits your veto before 11b lands it.</div>
+    <div class="t">A2. Grant roblox writes — the one active blocker</div>
+    <div class="d">In the ROBLOX PC's Claude session: <code>/permissions</code> → allow Edit/Write for <code>roblox/**</code> — or add it to that clone's <code>.claude/settings.local.json</code> allowlist so it survives restarts (third per-session re-block tonight).</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">Ally round-trip COMPLETE — specials language ACCEPTED</div>
-    <div class="d">Update forwarded, three invitations answered, gallery strip reviewed — "accept the visual language; iterate only beast/game silhouette; preserve crystal-vs-stone." All captured + routed. Nothing pending either direction until the next screenshot round.</div>
+    <div class="t">A3. Merge the save point</div>
+    <div class="d">Either merge <strong>marker-0102 now</strong> — <code>git fetch origin --tags && git checkout main && git merge marker-0102 && git push</code> — or wait ~an hour for <strong>marker-0103</strong> (river + tonight's batch) and merge that. 0103 supersedes; 0102-now only if you want the box current tonight.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">Title clearance (standing)</div>
-    <div class="d">Commission the professional trademark search — "A World Begun" (lead) / "The Work of Ages" (backup); quietly reserve aworldbegun.eu / .com / .no (~€26/yr). All public copy stays title-swappable until it clears.</div>
+    <div class="t">A4. Redeploy the box</div>
+    <div class="d"><code>./ssh-deploy.sh</code> after whichever merge (self-verifies via healthz). Goes live: gameOver reveal, endscreen verdict fix, civ splash, pedia rename, founders-tone, silhouettes, late-join UI polish.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">Review the v1 release checklist</div>
-    <div class="d"><code>specs/v1-release-checklist.md</code>: RC marker → your main merge → v1.0.0 tag → redeploy from main → README (drafted: <code>specs/readme-v1-draft.md</code>) → announce. Read-and-confirm; no action until RC. Evidence digest pre-filled at <code>reports/v1-rc-draft.md</code>.</div>
+    <div class="t">A5. Eyeball two screenshots, say good/bad</div>
+    <div class="d"><code>debugging/usergenerated/river-ribbon-gallery.png</code> (+ <code>-webgl1</code> twin) — the river ribbon. Optional: the civ splash live at <code>http://localhost:8123/client/?seed=1&amp;civintro</code>.</div>
   </div>
+</section>
 
+<section id="ally">
+  <div class="sec-head"><h2>B. Ally correspondence</h2><span class="tag">whenever you next write</span></div>
+  <div class="bar"></div>
   <div class="item"><span class="box"></span>
-    <div class="t">Roblox session Write grant — NOW AN ACTIVE BLOCKER</div>
-    <div class="d">Upgraded 2026-07-25 evening (#2559): the midgame-join survey + design are done but every Edit/Write in that session sits at "requested permissions, not granted" — zero edits can land. <code>/permissions</code> in the session, or a standing <code>roblox/**</code> allowlist. The lane holds on flag-wait; work resumes on the grant.</div>
+    <div class="t">B1. Forward the screenshot round to the designer ally</div>
+    <div class="d">Attach: <code>debugging/tone-defeat/conquest/score/space.png</code> (their tone doctrine applied), <code>debugging/usergenerated/specials-row/beasts/seal.png</code> (antler / rearing horse / seal flipper), the river ribbon shot. Suggested note: "Your tone guidance and silhouette notes are in — say if any ending's weight or beast outline feels off. Rivers now render as ribbons; one look wanted." Open offer: a renderer-level conquest map-brighten is available if they want more than the CSS fade.</div>
   </div>
+</section>
 
+<section id="do2">
+  <div class="sec-head"><h2>C. Phone test</h2><span class="tag">~10 min, carried</span></div>
+  <div class="bar" style="background: var(--do);"></div>
   <div class="item"><span class="box"></span>
-    <div class="t">Mobile seated-start re-test (carried)</div>
-    <div class="d">The historical hang never reproduced after the heartbeat/seat-grace/wake-reconnect fixes — one confirming pass on your phone closes it. If it still hangs, add <code>&amp;mlog=1</code> and send the overlay log.</div>
+    <div class="t">C1. Mobile seated-start re-test</div>
+    <div class="d">Phone seated in lobby → host presses START. Never reproduced since the heartbeat/seat-grace fixes — one confirming pass closes it. If it hangs: add <code>&amp;mlog=1</code> and send the overlay log.</div>
   </div>
 </section>
 
 <section id="play">
-  <div class="sec-head"><h2>Studio session</h2><span class="tag">one sitting collects all of these</span></div>
+  <div class="sec-head"><h2>D. The ONE Studio sitting</h2><span class="tag">publish gate — ruled sequencing; a v1.x point release</span></div>
   <div class="bar"></div>
-
   <div class="item"><span class="box"></span>
-    <div class="t">The publish gate — publish once, then accept everything together</div>
-    <div class="d">Ruled sequencing: sound + saving + the accumulated batches in ONE Studio/live session; Roblox pass = a v1.x point release, not a v1.0 gate.</div>
+    <div class="t">Publish once, then accept everything together</div>
     <ol>
-      <li>Studded round-2 review — <code>roblox/acceptance/tier3-cert.md</code></li>
+      <li>Studded round-2 review — <code>roblox/acceptance/tier3-cert.md</code> (+ commit the cert artifact, untracked on the gaming PC)</li>
       <li>SO18 tech-glyphs render-verify (+ screenshots)</li>
-      <li>SoundId curation (worksheet in roblox/acceptance/; an intro cue row welcome)</li>
+      <li>SoundId curation (worksheet in roblox/acceptance/; intro cue row welcome)</li>
       <li>DataStore: enable Studio API Services for save-flow testing</li>
-      <li>Specials-motif review on the map (vs the browser gallery shots)</li>
+      <li>Specials-motif review on the map — incl. the antler/rearing/flipper re-mirror</li>
       <li>Instant age-starts check (industrial/space boots near-instantly)</li>
-      <li><strong>The boot intro — DONE early (2026-07-25 live): v1 APPROVED at v5b</strong>; the sitting only re-confirms it in the published build</li>
+      <li>Intro re-confirm only (v1 APPROVED at v5b, 2026-07-25)</li>
       <li>Terrain desaturation check (carried)</li>
-      <li>Save the acceptance log (runM.txt next); roblox-helper is flag-responsive live</li>
-      <li><strong>NEW — midgame-join verify</strong> (built, held not-ready): all human seats filled → TAKE OVER pad offers the AI-civ path; toggle OFF restores rejoin-only</li>
-      <li><strong>NEW — after publish:</strong> set <code>ROBLOX_EXPERIENCE_URL</code> in <code>client/ui/roblox-link.js</code> (one line) — activates the hidden "🎮 Play on Roblox" button</li>
-      <li><strong>NEW — decide reserved-vs-public teleport</strong> for the post-game LIVE reset (runN ships RESERVED — right for friends-testing; a public experience wants drop-in joiners = midgame-join's purpose; interim ruling #2608)</li>
+      <li><strong>Midgame-join verify</strong>: two clients, seats full → TAKE OVER pad offers the AI-civ path; toggle OFF restores rejoin-only</li>
+      <li><strong>runN reset verify</strong>: finish a game, read the scoreboard slowly (replay must survive), watch a replay, LIVE reset → teleport to a fresh instance, black map</li>
+      <li><strong>Decide reserved-vs-public teleport</strong> for that reset (ships RESERVED; public wants drop-ins = midgame-join's purpose; interim #2608)</li>
+      <li><strong>After publish:</strong> set <code>ROBLOX_EXPERIENCE_URL</code> in <code>client/ui/roblox-link.js</code> (activates the hidden "🎮 Play on Roblox" button) + record the URL for the store description's Play-link rule</li>
+      <li>Save the acceptance log (runO.txt next); roblox-helper is flag-responsive live</li>
     </ol>
+  </div>
+</section>
+
+<section id="standing">
+  <div class="sec-head"><h2>E. Standing / background</h2><span class="tag">no deadline</span></div>
+  <div class="bar"></div>
+  <div class="item"><span class="box"></span>
+    <div class="t">E1. Title clearance</div>
+    <div class="d">Commission the professional trademark search — "A World Begun" (lead) / "The Work of Ages" (backup); quietly reserve aworldbegun.eu / .com / .no (~€26/yr). Roblox already displays the name by your ruling; the search gates the browser/README/store-wide commitment.</div>
+  </div>
+  <div class="item"><span class="box"></span>
+    <div class="t">E2. Read the release checklist</div>
+    <div class="d"><code>specs/v1-release-checklist.md</code>: RC marker → main merge → v1.0.0 tag → redeploy → README → announce. Read-and-confirm; no action until RC.</div>
+  </div>
+  <div class="item"><span class="box"></span>
+    <div class="t">E3. Skim player bug reports occasionally</div>
+    <div class="d"><code>ls -t /opt/retromulticiv/bug-reports | head</code> (over ssh).</div>
   </div>
 </section>
 
 <section id="fyi">
   <div class="sec-head"><h2>FYI — current state</h2><span class="tag">no action</span></div>
   <div class="bar"></div>
-
   <div class="item"><span class="box" style="border-style:dashed"></span>
-    <div class="t">Live on the box: marker-0101</div>
-    <div class="d">XVII complete (all 22 playtest items), late-join/pause/eviction, join-share QR, the specials art, self-host find-a-game. Deploys self-verify (healthz guard). Skim player bug reports occasionally: <code>ls -t /opt/retromulticiv/bug-reports | head</code> (over ssh).</div>
+    <div class="t">Tonight's engine loop + what's next</div>
+    <div class="d">River landed → sweep breached a pop floor → audit found the mine-lock mechanism → fix-A (hills never flagged) → reviewer GREEN → sweep rerunning (6 seeds) → <strong>marker-0103</strong>. Then: 11b rosters → D3-surfacing → D4–D6 → the AI build-doctrine window (baseline: the AI builds ~0 buildings — maximal headroom). Guards G1–G5 all built; A49 flows 5/5 specced.</div>
   </div>
-
-  <div class="item"><span class="box" style="border-style:dashed"></span>
-    <div class="t">In gate / queued</div>
-    <div class="d">RIVER @8da9029 (meandering strips on the existing tile.river flag, ~11% of land, twin-identical) — reviewer engine-diff + 25-seed sweep queued; marker-0103 tags on green. Then: D3-surfacing + 11b city names → D4–D6 → the AI build-doctrine window (your XX §3 ruling, baseline measuring first). All six lanes stocked.</div>
-  </div>
-
   <div class="item"><span class="box" style="border-style:dashed"></span>
     <div class="t">Sizing / ops answers on record</div>
     <div class="d">~1 MB heap per live game — admission caps and CPU are the ceilings, not RAM; ports 8123/8200 behind nginx; the full hosting Q&amp;A lives in <code>docs/how-to-host.md</code>.</div>
