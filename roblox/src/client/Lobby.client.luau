@@ -145,7 +145,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 510, 0, 520) -- runI/runJ item 1: 50% wider so the bars fit any step count
+setupPanel.Size = UDim2.new(0, 510, 0, 560) -- runI/runJ item 1 width; taller for the #2543 toggle row
 setupPanel.Position = UDim2.new(0.5, -255, 0.28, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -288,10 +288,13 @@ end)
 -- (recolored per state in render), not a "~" stepper.
 local spectatorsToggle = stepButton(8, 406, "", function() sendSetup("spectators", 1) end) -- CP16 toggle
 local marathonToggle = stepButton(8, 440, "", function() sendSetup("marathon", 1) end) -- MP11 toggle
+local midgameJoinToggle = stepButton(8, 474, "", function() sendSetup("midgamejoin", 1) end) -- #2543 toggle
 spectatorsToggle.Size = UDim2.new(0, 58, 0, 26)
 marathonToggle.Size = UDim2.new(0, 58, 0, 26)
+midgameJoinToggle.Size = UDim2.new(0, 58, 0, 26)
 label(setupPanel, 406, 20, "        spectators").Position = UDim2.new(0, 74, 0, 406)
 label(setupPanel, 440, 20, "        marathon (play to victory)").Position = UDim2.new(0, 74, 0, 440)
+label(setupPanel, 474, 20, "        mid-game join (AI-civ takeover)").Position = UDim2.new(0, 74, 0, 474)
 
 local startBtn = Instance.new("TextButton")
 -- runI item 5: +50% Start button, anchored bottom-center, full width minus margins
@@ -456,6 +459,9 @@ local function render(lobby)
 		local marOn = lobby.options.marathon == true
 		marathonToggle.Text = marOn and "On" or "Off"
 		marathonToggle.BackgroundColor3 = marOn and ON or OFF
+		local mgjOn = lobby.options.midgameJoin ~= false -- #2543 (default ON)
+		midgameJoinToggle.Text = mgjOn and "On" or "Off"
+		midgameJoinToggle.BackgroundColor3 = mgjOn and ON or OFF
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game
