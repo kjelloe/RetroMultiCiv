@@ -90,10 +90,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 RunService.RenderStepped:Connect(function(dt)
-	if ClientState.theaterActive or ClientState.introActive then
-		return -- the replay theater (runJ) / boot intro (runL) own the camera while active
-	end
+	-- ALWAYS hold Scriptable every frame — else Roblox's default character
+	-- camera reverts CameraType to Custom and fights whoever owns the view
+	-- (the runL intro-bounce bug). We only skip the deck CFrame below.
 	camera.CameraType = Enum.CameraType.Scriptable
+	if ClientState.theaterActive or ClientState.introActive then
+		return -- the replay theater (runJ) / boot intro (runL) own the CFrame while active
+	end
 
 	local mouse = UserInputService:GetMouseLocation()
 	if lastMouse then

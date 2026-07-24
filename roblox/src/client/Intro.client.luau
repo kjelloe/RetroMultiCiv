@@ -17,7 +17,8 @@ local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 -- ---- config -----------------------------------------------------------------
 -- TITLE is behind ONE constant (naming pending the trademark search); "" = no
 -- text, just the founding beat. Swap to "A World Begun" later = one string.
-local INTRO_TITLE = "RETROMULTICIV"
+local INTRO_TITLE = "A World Begun" -- user-ruled #2541 (still one-line swappable)
+local INTRO_SUBTITLE = "Start with one city. Build a civilization that lasts."
 -- beat seconds (ally timing ruling: founding 5, launch white-out 4) — total 25
 local BEAT_EMPTY, BEAT_FOUND, BEAT_ARC, BEAT_LAUNCH, BEAT_FADE = 4, 5, 10, 4, 2
 
@@ -30,10 +31,56 @@ if player:GetAttribute("seenIntro") then
 end
 player:SetAttribute("seenIntro", true)
 
+-- CLAIM THE CAMERA ON FRAME ONE. Set introActive + Scriptable + an initial
+-- CFrame BEFORE building anything, else Camera.client's map camera and Roblox's
+-- default character camera fight our tweens the whole time (the "bouncing"
+-- symptom — the staged scene never got framed). ORIGIN is far from the deck so
+-- the two never share the view.
+local ORIGIN = Vector3.new(3000, 40, 3000)
 local camera = workspace.CurrentCamera
+ClientState.introActive = true
+camera.CameraType = Enum.CameraType.Scriptable
+camera.CFrame = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
+
+-- the intro's OWN ScreenGui, created FIRST so the UI-hide below can exclude it
+local gui = Instance.new("ScreenGui")
+gui.Name = "RMCIntro"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 100
+gui.IgnoreGuiInset = true
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- runM (user): HIDE the whole regular UI while the intro plays — every OTHER
+-- ScreenGui in PlayerGui is disabled, including ones that boot DURING the intro
+-- (client scripts load in parallel, see the boot log), and restored at the deck
+-- reveal (fade-to-white done, or SKIP). Deliberately does NOT touch CoreGui —
+-- the runM log showed Roblox's own CoreGui modules (EmotesMenu/TopBar) failing
+-- on their own; we stay clear of that machinery.
+local playerGui = player:WaitForChild("PlayerGui")
+local hiddenGuis = {}
+local function hideGui(g)
+	if g ~= gui and g:IsA("ScreenGui") and g.Enabled then
+		g.Enabled = false
+		table.insert(hiddenGuis, g)
+	end
+end
+for _, g in ipairs(playerGui:GetChildren()) do
+	hideGui(g)
+end
+local hideWatch = playerGui.ChildAdded:Connect(function(g)
+	task.defer(hideGui, g) -- let the newcomer initialize, then fold it away
+end)
+local function restoreUi()
+	hideWatch:Disconnect()
+	for _, g in ipairs(hiddenGuis) do
+		if g.Parent ~= nil then
+			g.Enabled = true
+		end
+	end
+end
 
 -- ---- the scene: its own little world, far from the deck (y~141) --------------
-local ORIGIN = Vector3.new(3000, 40, 3000)
+local scene = Instance.new("Folder")
 local scene = Instance.new("Folder")
 scene.Name = "IntroScene"
 scene.Parent = workspace
@@ -118,14 +165,7 @@ rocket.CFrame = CFrame.new(ORIGIN + Vector3.new(0, 4, 0)) * CFrame.Angles(0, 0, 
 rocket.Transparency = 1
 rocket.Parent = scene
 
--- ---- the white-out + title + skip overlay -----------------------------------
-local gui = Instance.new("ScreenGui")
-gui.Name = "RMCIntro"
-gui.ResetOnSpawn = false
-gui.DisplayOrder = 100
-gui.IgnoreGuiInset = true
-gui.Parent = player:WaitForChild("PlayerGui")
-
+-- ---- the white-out + title + skip overlay (gui created above the UI-hide) ----
 local whiteout = Instance.new("Frame")
 whiteout.Size = UDim2.new(1, 0, 1, 0)
 whiteout.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -146,17 +186,31 @@ title.Text = INTRO_TITLE
 title.ZIndex = 101
 title.Parent = gui
 
+-- runM #2541: the ruled sub-heading, smaller, under the title
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, 0, 0, 34)
+subtitle.Position = UDim2.new(0, 0, 0.62, 92)
+subtitle.BackgroundTransparency = 1
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextColor3 = Color3.fromRGB(215, 222, 235)
+subtitle.TextStrokeTransparency = 0.6
+subtitle.TextSize = 26
+subtitle.TextTransparency = 1
+subtitle.Text = INTRO_SUBTITLE
+subtitle.ZIndex = 101
+subtitle.Parent = gui
+
 local skipping = false
 local skipBtn = Instance.new("TextButton")
-skipBtn.Size = UDim2.new(0, 96, 0, 34)
+skipBtn.Size = UDim2.new(0, 220, 0, 72) -- runM: LARGE (the only UI during the intro)
 skipBtn.AnchorPoint = Vector2.new(1, 1)
-skipBtn.Position = UDim2.new(1, -24, 1, -24) -- lower-right (user-specified)
+skipBtn.Position = UDim2.new(1, -28, 1, -28) -- lower-right (user-specified)
 skipBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
-skipBtn.BackgroundTransparency = 0.25
-skipBtn.TextColor3 = Color3.fromRGB(230, 230, 230)
+skipBtn.BackgroundTransparency = 0.2
+skipBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 skipBtn.Font = Enum.Font.GothamBold
-skipBtn.TextSize = 18
-skipBtn.Text = "Skip \u{25B8}"
+skipBtn.TextSize = 34
+skipBtn.Text = "SKIP \u{25B8}"
 skipBtn.ZIndex = 101
 skipBtn.Parent = gui
 do
@@ -221,9 +275,11 @@ local function finish()
 	task.delay(skipping and 0.3 or 0.5, function()
 		scene:Destroy()
 		ClientState.introActive = false -- the deck camera (Camera.client) resumes
+		restoreUi() -- runM: the regular UI returns exactly at the deck reveal
 		task.wait(0.15)
 		fade(whiteout, "BackgroundTransparency", 1, BEAT_FADE * 0.6)
 		fade(title, "TextTransparency", 1, 0.3)
+		fade(subtitle, "TextTransparency", 1, 0.3)
 		task.delay(BEAT_FADE, function()
 			gui:Destroy()
 		end)
@@ -235,17 +291,17 @@ skipBtn.Activated:Connect(function()
 	finish()
 end)
 
--- ---- the choreography -------------------------------------------------------
-ClientState.introActive = true
+-- ---- the choreography (camera already claimed above) ------------------------
 buildCity(1) -- ancient, but hidden until the founding beat
 for _, h in ipairs(houses) do
 	h.Transparency = 1
 end
 
 task.spawn(function()
+	-- the whole choreography is pcall-guarded: with the regular UI hidden, ANY
+	-- beat error must still reach finish() (which restores the UI + camera)
+	local ok, err = pcall(function()
 	-- beat 1: the empty world — a slow drift over the terrain, no city yet, no UI
-	camera.CameraType = Enum.CameraType.Scriptable
-	camera.CFrame = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
 	look(Vector3.new(-20, 18, 40), Vector3.new(0, 1, 0), BEAT_EMPTY)
 	beat(BEAT_EMPTY)
 	if skipping then return end
@@ -260,6 +316,7 @@ task.spawn(function()
 	fade(puff, "Transparency", 1, 0.7)
 	if INTRO_TITLE ~= "" then
 		fade(title, "TextTransparency", 0, 1.2)
+		fade(subtitle, "TextTransparency", 0, 1.5) -- the ruled sub-heading rides in
 	end
 	beat(BEAT_FOUND)
 	if skipping then return end
@@ -267,6 +324,7 @@ task.spawn(function()
 	-- beat 3: the arc — one slow orbit while the city advances the four eras,
 	-- units march past, a wonder rises, and one battle beat mid-arc
 	fade(title, "TextTransparency", 1, 0.8)
+	fade(subtitle, "TextTransparency", 1, 0.8)
 	fade(wonder, "Transparency", 0, 1.5)
 	TweenService:Create(wonder, TweenInfo.new(BEAT_ARC * 0.5, Enum.EasingStyle.Quad),
 		{ Size = Vector3.new(5, 16, 5), Position = ORIGIN + Vector3.new(12, 8, -4) }):Play()
@@ -302,8 +360,11 @@ task.spawn(function()
 		{ Position = ORIGIN + Vector3.new(0, 60, 0), Transparency = 1 }):Play()
 	fade(whiteout, "BackgroundTransparency", 0, BEAT_LAUNCH) -- brighten to white
 	beat(BEAT_LAUNCH)
-
-	-- beat 5: white → the deck
+	end) -- pcall
+	if not ok then
+		warn("[Intro] beat error (cutting to the deck): " .. tostring(err))
+	end
+	-- beat 5: white → the deck (ALWAYS runs — restores UI + camera)
 	finish()
 end)
 

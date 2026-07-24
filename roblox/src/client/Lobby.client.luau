@@ -99,7 +99,7 @@ greeting.Font = Enum.Font.SourceSansBold
 greeting.TextSize = 20
 greeting.TextWrapped = true
 greeting.Visible = false
-greeting.Text = "Welcome to RetroMultiCiv! You are on the observation deck - "
+greeting.Text = "Welcome to A World Begun! You are on the observation deck - " -- name ruled #2541
 	.. "spectate from the sky, or use the pads below to start or join a game."
 greeting.Parent = gui
 

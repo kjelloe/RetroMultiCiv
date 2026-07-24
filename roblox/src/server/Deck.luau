@@ -39,7 +39,7 @@ local function pad(parent, name, offsetX, color, promptText, zOffset)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Prompt"
 	prompt.ActionText = promptText
-	prompt.ObjectText = "RetroMultiCiv"
+	prompt.ObjectText = "A World Begun" -- name ruled #2541
 	prompt.HoldDuration = 0.3
 	prompt.RequiresLineOfSight = false
 	prompt.MaxActivationDistance = 12
