@@ -203,7 +203,7 @@ local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
 	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
 	difficulty = "medium", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
-	spectators = true, marathon = false } -- CP16/MP8 (ruling @d1ce4920): host toggle, default ON
+	spectators = true, marathon = false, midgameJoin = true } -- CP16/MP8 + #2543 mid-game join (default ON)
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
@@ -361,7 +361,8 @@ local function lobbyPayloadFor(player)
 				maxIdleMin = setup.maxIdleMin, age = setup.age,
 				difficulty = setup.difficulty, combat = setup.combat,
 				seed = setup.seedOverride, spectators = setup.spectators == true,
-				marathon = setup.marathon == true },
+				marathon = setup.marathon == true,
+				midgameJoin = setup.midgameJoin ~= false }, -- #2543 (default ON)
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -706,7 +707,22 @@ end
 -- ---- the lobby flow --------------------------------------------------------
 local function setPhase(newPhase)
 	phase = newPhase
-	deck.setPhase(phase, state ~= nil and #vacantSeats() > 0)
+	-- the TAKE OVER pad lights when a vacant human seat exists OR (#2543) the
+	-- mid-game-join toggle is ON and an alive AI civ could be claimed
+	local takeoverAvailable = false
+	if state ~= nil then
+		takeoverAvailable = #vacantSeats() > 0
+		if not takeoverAvailable and setup.midgameJoin ~= false and state.gameOver ~= true then
+			for _, pid in ipairs(state.playerOrder) do
+				local p = state.players[pid]
+				if p ~= nil and p.alive ~= false and p.human ~= true then
+					takeoverAvailable = true
+					break
+				end
+			end
+		end
+	end
+	deck.setPhase(phase, takeoverAvailable)
 	broadcastLobby()
 end
 
@@ -1249,7 +1265,7 @@ local function padStart(player)
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 		maxIdleMin = 1, age = "ancient",
 		difficulty = "medium", combat = "bestof3", seedOverride = 0,
-		spectators = true, marathon = false }
+		spectators = true, marathon = false, midgameJoin = true }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -1296,6 +1312,39 @@ local function padJoin(player)
 	toast(player, ("All %d human seats are taken - ask the host to raise the count."):format(setup.humans))
 end
 
+-- MIDGAME-JOIN (#2543; mirrors server/late-join.js §3 — the browser's selection
+-- ORDER, not new policy): eligible pool = alive AND never-human AI civs (an
+-- abandoned human seat keeps human==true, so it is rejoin-only); rank by the
+-- shared score twin (fog-free server-side), ties broken by playerOrder position;
+-- >=3 candidates -> the SECOND-strongest (never hand the leader to a late
+-- joiner); 2 -> the weaker; 1 -> that one; 0 -> nil.
+local function selectTakeoverSeat()
+	local orderOf = {}
+	for i, pid in ipairs(state.playerOrder) do
+		orderOf[pid] = i
+	end
+	local ranked = {}
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		if p ~= nil and p.alive ~= false and p.human ~= true then
+			table.insert(ranked, { pid = pid, s = scoreModule.score(state, pid, ruleset) })
+		end
+	end
+	if #ranked == 0 then
+		return nil
+	end
+	table.sort(ranked, function(a, b)
+		if a.s ~= b.s then
+			return a.s > b.s
+		end
+		return orderOf[a.pid] < orderOf[b.pid]
+	end)
+	if #ranked >= 3 then
+		return ranked[2].pid -- second-strongest
+	end
+	return ranked[#ranked].pid -- 2 -> the weaker; 1 -> that one
+end
+
 local function padTakeover(player)
 	if state == nil then
 		toast(player, "TAKE OVER AI CIV joins a RUNNING game as one of its AI civs - "
@@ -1308,7 +1357,45 @@ local function padTakeover(player)
 	end
 	local vacant = vacantSeats()
 	if #vacant == 0 then
-		toast(player, "No seat is free to take over - every human-capable civ is claimed.")
+		-- #2543 (user-ruled): no vacant human seat — when the host toggle allows
+		-- it, take over an AI civ instead (the browser late-join §3 flow). OFF
+		-- gates ONLY this path; vacant-human-seat rejoin above always works.
+		if setup.midgameJoin == false or state.gameOver == true then
+			toast(player, "No seat is free to take over - every human-capable civ is claimed.", "error")
+			return
+		end
+		if roundInFlight then
+			toast(player, "The round is resolving - step on the pad again in a moment.")
+			return
+		end
+		local pid = selectTakeoverSeat()
+		if pid == nil then
+			toast(player, "No AI civ is available to take over.", "error")
+			return
+		end
+		-- claimSeat flows through the NORMAL command path (engine a75fc2b,
+		-- scenario 061) so it records + replays hash-exact
+		local cmd = { type = "claimSeat", player = pid, playerId = pid }
+		local res = engine.applyCommand(state, cmd)
+		if not res.ok then
+			logEntry({ t = "cmd", turn = state.turn, cmd = cmd, ok = false, reason = res.reason })
+			toast(player, "That civ can no longer be claimed (" .. tostring(res.reason) .. ").", "error")
+			return
+		end
+		state = res.state
+		logEntry({ t = "cmd", turn = state.turn, cmd = cmd, ok = true,
+			hash = statehash.hashState(state) })
+		seatOfUser[player.UserId] = pid
+		bindSeatMeta(pid, player.UserId, player.Name) -- R6: register the new occupant
+		print(("[GameServer] #2543 midgame-join: %s -> %s (second-strongest AI takeover)"):format(player.Name, pid))
+		sendJoined(player, pid)
+		pushAll(res.events) -- human=true changed every seat's world view
+		-- late-join §4 reveal: the NAMED banner comes AFTER seating (the pad
+		-- wording stays generic — fog-honesty of the pick)
+		local civDef = ruleset.civs[state.players[pid].civ]
+		toast(player, ("You now lead the %s!"):format(civDef ~= nil and civDef.name or tostring(state.players[pid].civ)))
+		checkEphemeral() -- R10: a seated human cancels any pending grace timer
+		setPhase("running") -- refreshes pad availability + lobby lists
 		return
 	end
 	-- RANDOM assignment (user lean: no cherry-picking); server-side dice,
@@ -1474,6 +1561,8 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.spectators = not (setup.spectators == true) -- CP16 toggle
 		elseif msg.key == "marathon" then
 			setup.marathon = not (setup.marathon == true) -- MP11 toggle
+		elseif msg.key == "midgamejoin" then
+			setup.midgameJoin = setup.midgameJoin == false -- #2543 toggle (default ON)
 		elseif msg.key == "seed" then
 			-- R24b: explicit world seed from the host's TextBox; 0 = random
 			setup.seedOverride = math.clamp(math.floor(tonumber(msg.value) or 0), 0, 999999)
