@@ -4,6 +4,7 @@
 // with ?seed=&civs=&humans=&civ= so the bootstrap stays one path.
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
 import { matchSnapshot } from '../../shared/age-snapshots.js';
+import { robloxLinkHtml } from './roblox-link.js';
 
 export function showSetupScreen() {
   const overlay = document.createElement('div');
@@ -85,6 +86,7 @@ export function showSetupScreen() {
       <div id="setup-lan">
         <button id="setup-host" class="setup-lan-btn">Host LAN game</button>
         <button id="setup-join" class="setup-lan-btn">Join LAN game</button>
+        ${robloxLinkHtml()}
       </div>
       <div id="setup-find-list" class="hidden"></div>
       <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a> · <a href="https://github.com/kjelloe/RetroMultiCiv/issues" target="_blank" rel="noopener">Report issue ↗</a></p>

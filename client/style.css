@@ -1733,6 +1733,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   cursor: pointer;
 }
 .setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
+a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on-Roblox anchor styled as a LAN button */
 
 /* XIV §22/§24/§27: the shared hover-card (tile yields, pedia links, tech nodes) */
 #hover-card {
