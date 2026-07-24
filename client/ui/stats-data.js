@@ -23,14 +23,15 @@ export function collectStats(rec, deps) {
 // in ~30 ms slices, yielding to the event loop between them so the tab stays
 // alive; onProgress(fraction) drives a "computing…" indicator. Same result as
 // collectStats (shared makeStatsRun). golden-neutral (render-free sandbox replay).
-export async function collectStatsAsync(rec, deps, onProgress) {
+export async function collectStatsAsync(rec, deps, onProgress, budgetMs) {
+  const budget = budgetMs === undefined ? 30 : budgetMs; // ms/slice (tests pass 0 to force yields)
   const run = makeStatsRun(rec, deps);
   run.begin();
   const total = rec.log.length || 1;
   let sliceStart = Date.now();
   for (let i = 0; i < rec.log.length; i++) {
     run.step(rec.log[i]);
-    if (Date.now() - sliceStart > 30) { // ~30 ms slice — the fastforward.js precedent
+    if (Date.now() - sliceStart > budget) { // ~30 ms slice — the fastforward.js precedent
       if (onProgress) onProgress(i / total);
       await new Promise(r => setTimeout(r)); // yield: the tab breathes, no hang warning
       sliceStart = Date.now();

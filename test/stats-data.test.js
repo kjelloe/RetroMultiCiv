@@ -60,3 +60,22 @@ test('collectStats: a determinstic recording collects the same series twice', as
   assert.deepStrictEqual(a.series, b.series, 'the sandbox replay is deterministic');
   assert.deepStrictEqual(a.rounds, b.rounds);
 });
+
+// GUARD 5 (regression-guards): the XIX #3 chunker must actually YIELD with work
+// remaining (not block to completion) AND produce the byte-identical result to the
+// sync collector — so the game-end stats page can never regress back to one long
+// synchronous block that hangs the tab. budgetMs=0 forces a yield per entry, making
+// the yield contract machine-speed-independent.
+test('perf-budget: collectStatsAsync yields mid-run and matches the sync result', async () => {
+  const d = await deps();
+  const { collectStatsAsync } = await import('../client/ui/stats-data.js');
+  const rec = recording(d.engine, 7, 4, 12);
+  let yields = 0, sawMidProgress = false;
+  const sync = d.collectStats(rec, d);
+  const chunked = await collectStatsAsync(rec, d,
+    f => { yields += 1; if (f > 0 && f < 1) sawMidProgress = true; }, 0);
+  assert.ok(yields >= 2, `the chunker yielded repeatedly (did not block to completion) — got ${yields}`);
+  assert.ok(sawMidProgress, 'onProgress reported mid-run progress (0<f<1): work remained across a yield');
+  assert.deepStrictEqual(chunked.series, sync.series, 'chunked result is byte-identical to the sync collector');
+  assert.deepStrictEqual(chunked.rounds, sync.rounds, 'chunked rounds match the sync collector');
+});
