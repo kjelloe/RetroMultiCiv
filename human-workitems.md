@@ -8,336 +8,83 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-22 late night (marker-0088 = candidate, 20
-consecutive consistent; three markers tagged today — the sail-era, the
-space war-hold, and real wonder effects; redeploy + box commands + a
-fresh helper session are the open items)._
+_Last synced: 2026-07-25 (clean pass at marker-0101-live; the box runs
+XVII-complete; A8-(b) + Founder's Record + gameover-reveal in build;
+XIX + regression-guards queued; RC drafts banked)._
 
 ---
 
 ## DECIDE / DO (needs you)
 
-- [ ] **Title clearance (ally naming ruling, 2026-07-24):** commission
-  the PROFESSIONAL trademark search for "A World Begun" (lead) +
-  "The Work of Ages" (backup), and quietly reserve `aworldbegun.eu` /
-  `.com` / `.no` (~€26/yr, no commitment until the search clears).
-  "Founders" is retired as a title; Founding Age / Founder's Record
-  live on in-product. Release copy is in hand (three blocks,
-  title-swappable).
+- [ ] **Forward the ally update** — `specs/ally-status-update-2026-07-25.md`
+  (shareable as-is): five markers, late-join, the fidelity push
+  (river ruled in), Founder's Record in build, the Roblox intro.
+  Ends with THREE iteration invitations for the ally: the Founder's
+  Record moment screenshots, the intro storyboard beats, and the
+  specials-motif second pass. Nothing urgent either direction.
+
+- [ ] **Title clearance (standing):** commission the PROFESSIONAL
+  trademark search for "A World Begun" (lead) + "The Work of Ages"
+  (backup); quietly reserve `aworldbegun.eu`/`.com`/`.no` (~€26/yr).
+  All public copy stays title-swappable until it clears.
 
 - [ ] **Review the v1 release checklist** —
-  `specs/v1-release-checklist.md` (designed together this morning):
-  RC marker → your main merge → v1.0.0 tag → redeploy from main →
-  README/notes (ally flavor invited) → announce; Roblox publish
-  sequenced AFTER the runI batch as one acceptance session; defaults
-  = current settings. A read-and-confirm, no action until RC.
+  `specs/v1-release-checklist.md`: RC marker → your main merge →
+  v1.0.0 tag → redeploy from main → README (drafted:
+  `specs/readme-v1-draft.md`) → announce. A read-and-confirm; no
+  action until RC. The RC evidence digest is pre-filled at
+  `reports/v1-rc-draft.md`.
 
-_Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
-markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
-list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
+- [ ] **Roblox session Write-mode residual (low):** that session still
+  can't Write anything (`/tmp` probe denied). Nothing is blocked now,
+  but before its next real task: `/permissions` in the session, or a
+  standing `roblox/**` allowlist in the clone's settings.
 
-- [x] **Roblox intro — RESOLVED with a twist** (2026-07-25): the file
-  already existed on disk — a PRIOR session had landed it as
-  `Intro.client.luau`; the blocked session was retrying a phantom
-  variant name. Commit queued to sim-runner; Studio beat-screencaps
-  ride your next acceptance session. Residual (low): that session's
-  Write mode is still broken — `/permissions` it or let it retire;
-  a standing `roblox/**` allowlist in the clone's settings prevents
-  the class.
-
-- [x] **Redeploy from marker-0101 — DONE 2026-07-25** (live + verified:
-  healthz ok, 1 game restored). The deploy surfaced the dormant
-  --public-addr unit-flag crash-loop (fixed on the box: bare
-  host:443; how-to-host troubleshooting #8) and BOTH one-time unit
-  edits landed in the same session: `--max-turns 700` +
-  `--bug-reports /opt/retromulticiv/bug-reports` (+ ReadWritePaths).
-  The deploy scripts now carry the healthz DEPLOY GUARD + a
-  bug-reports ls hint. Check reports occasionally:
-  `ls -t /opt/retromulticiv/bug-reports | head`.
-
-- [x] ~~Redeploy from marker-0099~~ (`7d08d41` — the corrected 0098
-  bundle, reviewer clean-clone --full GREEN): late-join complete +
-  join-share QR + self-host find-a-game fix + runI/runJ polish +
-  the play-lane sweep. Same procedure; bake step already in your
-  ssh-deploy.sh. Hard refresh after.
-
-- [x] ~~Redeploy from marker-0097~~ (`9f12dba` — supersedes the 0096
-  note): everything 0096 carried (every fix you personally hit —
-  regent hang, rejoin, ff hangs — plus the engine at ~half cost and
-  the onboarding arrows) PLUS: the fish/specials icons your friend's
-  report triggered, boot fade-in, the lobby join-share (copy-URL +
-  QR + `?join=CODE`), the late-join CLIENT half (Find-game beside
-  Start; the server half lands next marker), era-relevant default
-  defenders, Future Tech (dormant until a marathon exhausts the
-  tree), and A49 flow-2 in the nightly. Remember the deploy bake
-  step is already in your ssh-deploy.sh. WITH the one-time box unit
-  edit if not yet done: `--max-turns 700` (+ optional `--bug-reports`
-  + ReadWritePaths). Hard refresh after.
-
-- [ ] **Two session nudges needed** (your direct ask, kept current):
-  1. **HARDENING** — idle 8h+, one queued item (XV §13 server-save
-     404). Nudge: _git pull origin dev_night, read mail #2216 +
-     #2224, take your queue item; when idle run `python3
-     tools/agent-mail.py flag wait --as hardening`._
-  2. **HELPER (fresh session)** — its 30-item window closed clean and
-     it scoped #33 A49-playwright + #34 endgame-moments explicitly
-     for a FRESH session (context boundary). Start one when
-     convenient; it self-resumes from its memory + queue. These are
-     the last two axis-6 items.
-
-- [x] **Ally relay — DONE, response captured**
-  (`specs/ally-response-2026-07-23-archetype.md`): full endorsement —
-  the 0→20 number "confirms identity-first is working mechanically",
-  the affinity fallback ratified, the Pyramids correction praised as
-  "a genuine decision, not just a monument", and the gallery/animation
-  screenshots reviewed as visually sound (A1.6a). Its ONE watch item
-  (aircraft-vs-props legibility at map scale) is queued to the helper.
-  Nothing pending either direction; it awaits witness-7 + the Final
-  Record window.
-
-- [x] **One-time box commands — DONE** (2026-07-23): cert expanded to
-  both names, `servers.` block installed, index answering. **The
-  public master index is LIVE end-to-end** — axis 5 is fully closed.
-  The ordering trap hit on the way (certbot before the block) is now
-  documented as how-to-host troubleshooting entry 7. Your server
-  lists itself in Find game after the next redeploy (the `--announce`
-  flag is already in the unit template).
-
-- [ ] **Studio session — PLAYED (runI: full 2100AD game, tiers 1-3 accepted); remaining from it:**
-  1. **Studded round-2 review** — `roblox/acceptance/tier3-cert.md`
-     is the pass/fail checklist (29 gates green agent-side; runH
-     autoplay was clean to score-victory, zero errors).
-  2. **SO18 glyphs render-verify** — the 68 EditableImage tech glyphs
-     are built headless but need a Studio render check + screenshots
-     (the agent-side half is done; this is the Studio-gated half).
-  3. **SoundId curation** — the worksheet is in roblox/acceptance/;
-     picking actual SoundIds is the Studio step (sound is provisional).
-  4. **DataStore note from runH**: SaveStore was off — enable Studio
-     API Services if you want save-flow testing this session.
-  4b. **Special-motif screenshot review** (new, 2026-07-24): the 11
-     Civ1 resource motifs are mirrored to Roblox (577086c) — eyeball
-     them on the map + vs the browser gallery shots in
-     debugging/usergenerated/ (first-pass art; say if any motif needs
-     a refinement pass).
-  4c. **Instant age-starts check** (new): roster-shuffle (8f0e982)
-     activated the baked age snapshots — start an industrial/space
-     game and confirm it boots near-instantly (no long fast-forward).
-  5. Save the acceptance log as **runI.txt** when done; the
-     roblox-helper is flagged responsive for live findings.
-  · **terrain desaturation check** — carried, fits this session.
-  · **Session progress so far:** your 26-item runH/runI feedback is
-    TRIAGED and routed (`specs/roblox-runI-triage-2026-07-23.md`) —
-    24 items to the roblox batch (blockers first), the lux-rate
-    disorder playbook to the engine as your design ruling, the yield
-    icons answered (browser §24 pattern); one live crash fix already
-    landed (`11fd7d0`). Sound/saving remain your test-publish gate.
-
-_Recently ruled (2026-07-24):_ **SPACE = ACCEPT for v1** (your morning
-ruling) — authentically-contested ending, all mechanics proven;
-witness-8 re-measures free after D4 (queued durable). Earlier
-(2026-07-22):_ **SPACE FORK = (b)+(c) staged** — the
-measure-first King sweep proved King space-capable (one civ reached
-100% tech closure) but war-abandoned; ruling = war-hold slice (a
-near-complete space drive holds through ordinary war) + the
-endemic-war/unit-bloat fix, with a King re-sweep as the acceptance
-after each. Earlier same day: scope = maximal cut; XV §7 settler-modal
-= Civ2-shape refuse; DNS = `servers.multiciv.kjell.today` (record
-added — thank you). _Recently landed:_ markers 0087 + 0088
-same-evening (20 consecutive since 0069) — presence-2 (the sail-era:
-judge-sweep PASS, overseas settlement ~2x), the space war-hold (9/9
-committed drives now survive war; launches await the endemic-war fix,
-staged per your ruling), the behavior-hash discriminator (already
-classifying re-records mechanically), A7 (8 of 9 wonder effects live,
-every shape wiki-dump-verified), and pyramids as the authentic Civ1
-government wonder (landed, gates in flight). Roblox: Tier-3 CERTIFIED
-+ R6 agent-complete + a clean runH autoplay — your Studded round-2 is
-the only axis-4 gate.
+- [ ] **Mobile seated-start re-test (carried):** the historical hang
+  (phone seated in lobby, START showed nothing) never reproduced
+  after the heartbeat/seat-grace/wake-reconnect fixes — one
+  confirming pass on your phone closes it. If it still hangs, add
+  `&mlog=1` and send the overlay log.
 
 ---
 
-## PLAYTEST (high value right now)
+## STUDIO SESSION (one sitting collects all of these)
 
-- [ ] **Fresh LAN session on marker-0069+** — player-facing systems that
-  no human has played: goody huts, caravan trade routes, unit upgrades,
-  the debug panel (🐞), the spaceship screen, and the late-game save
-  loading. A session field-tests them AND (with Shift+D recordings) seeds
-  **benchmark corpus #2** (the primary AI metric). Try **Marathon mode**
-  (the "play until victory" checkbox) if you want to see the late game.
-
-- [x] **Mobile T0 — CLOSED.** You confirmed nav (direct + d-pad), zoom,
-  screensaver-resume, and regency; the helper then verified select / move /
-  production on touch (Pixel-5) and **fixed a real blocker** — the city
-  panel didn't scroll at phone height, so most of the buildable catalog was
-  unreachable (mobile production was broken). Fixed + regression-tested.
-  Worth a confirming pass on your own phone, but no longer an open question.
-
-- [ ] **Mobile seated-start RE-TEST (X.6 follow-up).** The hang you saw
-  (phone joined lobby + chatted, but game START showed nothing; spectator
-  worked) did NOT reproduce on an active connection — it's the mobile
-  socket-drop class, and the fixes for it (heartbeat + lobby seat-grace +
-  wake-reconnect, Part A+B+C) shipped AFTER your ~00:00 playtest. Please
-  re-test on your phone. If it STILL hangs at start, add `&mlog=1` (the
-  overlay now survives the lobby→game reload on its own) and the on-screen
-  log will capture exactly where — send me that. One known residual to
-  watch: if the phone is fully asleep at the *instant* of Start (past the
-  ~45s reclaim), it should land on the "you missed the start" truth screen,
-  NOT a blank — flag if it's blank.
-
-- [ ] **Roblox acceptance (carried):** save `roblox/acceptance/runD.txt`
-  and retest the deck-resident avatar flow.
+- [ ] **The publish gate** (ruled sequencing): publish once, then
+  sound + saving + the accumulated batches accepted together in ONE
+  Studio/live session. Roblox pass = a v1.x point release, not a
+  v1.0 gate. Items for that sitting:
+  1. Studded round-2 review — `roblox/acceptance/tier3-cert.md`.
+  2. SO18 tech-glyphs render-verify (+ screenshots).
+  3. SoundId curation (worksheet in `roblox/acceptance/`; an intro
+     cue row is welcome).
+  4. DataStore: enable Studio API Services for save-flow testing.
+  5. Specials-motif review on the map (vs the browser gallery shots
+     in `debugging/usergenerated/`).
+  6. Instant age-starts check (industrial/space boot should be
+     near-instant).
+  7. **NEW — the boot intro** (`Intro.client.luau`, landed
+     `d32f99a`): eyeball all five beats + SKIP + the auto-skip;
+     say if any beat's timing feels off (the ally gets the
+     storyboard for opinion too).
+  8. Terrain desaturation check (carried).
+  9. Save the acceptance log (`runM.txt` next); the roblox-helper is
+     flag-responsive for live findings.
 
 ---
 
-## FYI — recently shipped / resolved (no action)
+## FYI — current state (no action)
 
-- **The AI settles overseas** (naval presence-1, marker-0086): an
-  island-saturated coastal city now builds its own first carrier, sea
-  units explore unexplored ocean, and trireme-class hulls route
-  coastal-only (the authentic open-sea risk honored — sail-era ships
-  cross open ocean). Overseas cities emerge on archipelago seeds where
-  the baseline was 0/5; a new archipelago witness guards it in the
-  cross-language twins gate.
-- **The advisor speaks the ally's words**: all 15 onboarding hint cards
-  now carry the designer ally's copy verbatim, plus 4 new pedia
-  concepts (exploration / diplomacy / pollution / victory —
-  title-neutral per the branding amendment).
-- **Master index is PUBLIC**: `servers.multiciv.kjell.today` is the
-  baked Find-game default (out-of-the-box server discovery; `?master=off`
-  opts out), with the security re-assessment recorded in docs/16 §6 and
-  the operator "list your server" section in how-to-host. Only the
-  one-time box step above remains.
-- **Entry default + tab-loss resume**: bare URLs start a LOCAL client
-  game (server only for Host LAN / Join LAN / Find game); local games
-  autosave to browser storage every turn, the setup screen offers
-  Resume, and a 💾 icon sits left of the 📖.
-- **Hosting Q&A answered** (your sizing/firewall questions): **ports** — game
-  server `8123` (HTTP + WebSocket on the *same* port), master index `8200`
-  (both `--port`-configurable); firewall = open 22/80/443 behind nginx (keep
-  8123/8200 localhost), or 22/8123/8200 direct. **Sizing — MEASURED
-  (2026-07-22, #2228)**: RAM is NOT the driver — ~245 MB fixed cost, then only
-  ~1 MB live heap (~2.2 MB RSS conservative) per concurrent mid-game game, so
-  even 2 GB fits ~800 games by RSS. The real ceilings are the admission caps
-  (`--max-games`, default 50; maxConns 200) and CPU (the synchronous engine
-  turn) — size by those, not RAM; 40 GB SSD ample; the master index adds only
-  ~100 MB.
-- **Coordination tooling** (internal, your requests): the agent system now has a
-  `coordinator` role alias, a live **status board** (waiting/working/blocked),
-  and per-lane **work stacks** — so no lane sits idle waiting for direction and
-  blocked lanes raise their hand. Keeps v1 delivery moving without me
-  hand-routing every task.
-- **Crash resilience + ws-timeout SHIPPED** (markers 0066/0067, your requests):
-  crashdumps + OOM watchdog + self-restart loop, and a busy-tolerant heartbeat
-  that stops false connection-reaps during an event-loop block. Together they
-  cover the turn-2623 drop (crash vs block). See `specs/server-crash-resilience.md`.
-- **Turn-2623 OOM root-caused** (your memory question) — traced to the server's
-  unbounded recording `log` (`server/game.js`): every human/regent command is
-  logged and never trimmed, so a long regency game grows ~110–420 MB by t2623,
-  which with the large late-game state can OOM. The state itself doesn't leak.
-  Fix routed to hardening (stream per-command entries to disk, keep only the
-  tiny round-hashes in RAM); the OOM watchdog will confirm + auto-recover
-  meanwhile. Recorded in `specs/server-crash-resilience.md`.
-- **Designer-ally cover note ANSWERED** — the ally delivered all of it: the
-  **68 original tech-discovery blurbs** (the empty discovery-card slots on
-  browser + Roblox), the **Movement + Regency + Recordings** pedia concepts,
-  ratified the **Oracle ×4** as Civ1-authentic (with a legibility ask), and
-  chose **The Colossus** as Caesar's favorite wonder (Great Wall stays
-  Frederick's). Now being wired in: client copy → helper (#1711),
-  Caesar→Colossus + a `railroad` name fix → engine lane (#1712). Full copy
-  captured in `specs/ally-deliverables-2026-07-18.md`. Also ratified the
-  provenance-label table and the "personality supplies a preference; the
-  world supplies permission" aggression principle.
-- **World-look = ENHANCED** (your Roblox run-F item 4): resolves the
-  standing world-look pick → enhanced is the default (retro stays a
-  toggle). This UNBLOCKS the roblox lane's CP1 art pass. Your run-F
-  feedback is triaged in `specs/roblox-runF-triage-2026-07-19.md` — most
-  items are Roblox-only (roblox-helper owns them); the cross-platform ones
-  (unit/building blurbs, city-name lists, era-based city looks) are routed.
-- **Tech tree + beeline + glyphs SHIPPED** (XII.6, your request): a
-  graphical 🌳 tech-tree (era columns, prerequisite edges, ✓/○/· states) in
-  addition to the list, a **beeline** (click a distant tech → it auto-researches
-  the path), and a procedural **icon per tech**. All golden-neutral client.
-  The ally's 33 motif concepts are implemented and glyphs now show on all
-  three surfaces (tree, discovery card, research readout) — **XII.6 is
-  COMPLETE end-to-end.** (One glyph, horseback-riding, is flagged as an
-  optional later tighten.)
-- **The 68 tech-discovery blurbs SHIPPED** (ally-authored): the empty
-  discovery-card slots are filled on browser AND Roblox (parity self-test
-  green). Plus the Movement/Regency/Recordings pedia concepts and the
-  Oracle ×4 legibility (the happiness breakdown now reads `Temple +4`).
-- **A59 leader personality SHIPPED** (marker-0061): every civ gets a
-  leader + a 4-axis personality (aggression/science/growth/defense) — the
-  data foundation the diplomacy AI reads. Golden-neutral in behaviour.
-- **Late-game save loading SHIPPED** (marker-0062): load a hosted-game
-  save in the client, camera recenters on load, dead human seats collapse
-  to AI. Driven red-first by your real turn-1617 save.
-- **D3 AI diplomacy — SHIPPED** (marker-0064, `87cfe3b`): the AI negotiates
-  (war/peace, met-state + first contact) at the swept `peaceAcceptThreshold=30`
-  — where your **mix-conditional elimination** and the **space-launch
-  coalition** land. Two-phase close: byte-shaped JS==Luau → sim-runner sweep →
-  one re-record; Gate-B (Luau full parity) + full suite green, bugfixer-verified.
-  D3 opens the phase-6 diplomacy line (D4–D6 follow, docs/14).
-- **City-look-by-era SHIPPED** (your Roblox run-F item 8): city visuals now
-  vary by ERA band (ancient thatch → classical stone+keep → industrial
-  brick+smokestacks → modern/space glass+dome) composing with the size
-  tiers, per the ally's editorial verdict (silhouette not recolor; owner
-  color on the base ring). Render-only, fog-honest. Roblox uses the same
-  shared band contract for its item-8 parity.
-- **Server hardening COMPLETE + hardened further**: docs/17 plan + the v1
-  safe-to-expose posture, plus added limits.js unit coverage and an
-  X-Frame-Options anti-clickjacking header. Safe on a small public VM with
-  the docs/16 §4 operator checklist.
-- **Mobile network fix COMPLETE** (heartbeat + lobby seat-grace + client
-  wake-reconnect): a briefly screen-locked phone reconnects and keeps its
-  LAN seat. This was the "phone stranded in the lobby" failure.
-- **N9b wonder-drive SHIPPED + validated** (marker-0059): builder capitals
-  commit to wonders (minority, no monopoly). The launch half of ending-#4.
-
----
-
-## Parked / future (on record, mostly no input needed)
-
-- **XII.5 — AI/regency late-game victory drive** (your long-game feedback):
-  the regent going "nothing to do" in the end-game is captured — a
-  personality-selected drive (aggressive→conquest with weakest/closest
-  targeting; science/builder→space) so a late-game seat never idles.
-  Specced (specs/xii5-ai-victory-drive.md), queued after D3; a baseline
-  measurement is running. No input needed unless you want the regent to
-  "win by any means" instead of by its civ's personality.
-- **XII.2 — Future Tech N** (your refinement): a repeatable score sink once
-  the tree is exhausted, Civ1-authentic. Specced, queued after D3.
-- **Server crash resilience — being built** (your request): crashes now
-  get recorded to a `crashdumps/` file + stderr (stack + memory + per-game
-  turn/unit counts), so next time you'll know if it was the node process
-  and whether it was OOM. Plus an OOM memory-watchdog that autosaves +
-  exits gracefully before V8's fatal OOM, and a `run.sh`/`run.ps1` restart
-  loop that auto-restarts on crash (games resume from per-command autosave).
-  This ALSO disambiguates the turn-2623 mystery: an OOM leaves an oom-dump;
-  the event-loop-block (ws-timeout, below) leaves the process alive with no
-  dump. Routed to the server-robustness lane (#1752, spec written).
-- **Late-game ws-timeout (turn 2623) — being triaged:** your very-long
-  hosted game dropped the socket. Diagnosed as SERVER-side (the client was
-  reconnecting correctly; the server wasn't completing the handshake) — at
-  that extreme scale a single AI turn-chain blocks the server's event loop
-  past the heartbeat window. Routed to the server-robustness lane (#1732);
-  a busy-tolerant heartbeat + yielding within the AI chain are the fixes.
-  Beyond the validated scale (turn-1617), so it's a real hosting-robustness
-  item, not a regression. If you can, note whether the `node` process was
-  still alive or had exited when it happened.
-- **Roblox run-F — 10/11 committed** (`ba9ad3f`): the roblox-helper's batch
-  landed (panels, tile improvements, debug/DataStore config, city-name
-  render fix, ff-diorama, pedia movement/regency, selftest gates 12–14);
-  city-look-by-era (item 8) SHIPPED on the browser (see FYI), the shared
-  contract is ready for the Roblox port; city-name lists get expanded (in
-  the queued data window); the unit/building blurbs await your ally forward
-  (Decide/Do). No input needed beyond that forward.
-- **Phase-6 diplomacy D4–D6:** D1 shipped, D3 in build; D4 (tribute + tech
-  terms), D5 (reputation + senate), D6 (embassies) follow. Pre-ruled
-  defaults on record (docs/14) — no input needed until they land.
-- **Global "find a game" + internet hosting** (A51 master-index): the
-  LAN-local find-a-game works; the public master index is gated on you
-  scheduling DNS / a VM (docs/12).
-- **16+ civ roster:** cap ships at 14 (A38); going past it is a deliberate
-  future scope decision.
-- **Live strategic overlay** (🧠 per-AI stance/mode panel): SHIPPED,
-  debug/spectator-gated — makes the heterogeneous-AI work visible during a
-  spectate.
+- **Live on the box:** marker-0101 — XVII complete (all 22 playtest
+  items), late-join/pause/eviction, join-share QR, the specials art,
+  self-host find-a-game. Deploys now self-verify (healthz guard);
+  skim player bug reports occasionally:
+  `ssh … 'ls -t /opt/retromulticiv/bug-reports | head'`.
+- **In build:** A8 tile-contention fork-(b) (perf acceptance PASSED,
+  re-record in progress) · Founder's Record (S1/S3 done, S2/S4 in
+  flight) · the gameOver full-map reveal (hardening). Queued: XIX
+  (your 8 live-box items) → regression-guards; then the engine spine
+  tail (coastal-build → RIVER → D3-surfacing → D4–D6).
+- **Sizing/ops answers on record:** ~1 MB heap per live game — caps
+  and CPU are the ceilings, not RAM; ports 8123/8200 behind nginx;
+  the full hosting Q&A lives in how-to-host.
