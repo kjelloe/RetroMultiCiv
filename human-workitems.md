@@ -36,13 +36,11 @@ _Catch-up: **`reports/away-window-3-brief.md`** (the 7h window: three
 markers, both your bugs fixed, the gov arc, THE FORK brief + needs-you
 list). Earlier: `reports/marker-0093.md`, `away-window-2-brief.md`._
 
-- [ ] **Redeploy: HOLD one beat — marker-0099 is minting.** 0098's
-  merge recommendation was withdrawn (the reviewer's clean-clone gate
-  caught a test-only red, fixed same hour); the corrected candidate
-  tags as marker-0099 on the re-gate green with the identical
-  feature set (late-join complete + join-share QR + find-a-game fix
-  + runI/runJ polish). Until then the latest consistent marker is
-  0097.
+- [ ] **Redeploy from marker-0099** (`7d08d41` — the corrected 0098
+  bundle, reviewer clean-clone --full GREEN): late-join complete +
+  join-share QR + self-host find-a-game fix + runI/runJ polish +
+  the play-lane sweep. Same procedure; bake step already in your
+  ssh-deploy.sh. Hard refresh after.
 
 - [x] ~~Redeploy from marker-0097~~ (`9f12dba` — supersedes the 0096
   note): everything 0096 carried (every fix you personally hit —
