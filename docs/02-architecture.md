@@ -80,11 +80,25 @@ multiciv/
 │   ├── visibility.js      # fog of war, per-player state filtering
 │   ├── barbarians.js      # turn-gated spawns + hunt behavior (wrap processing)
 │   ├── ai.js              # heuristic AI (emits commands only)
+│   ├── ai-diplomacy.js    # D3: AI war/peace intent scoring
+│   ├── diplomacy.js       # D1–D3 treaties/audiences (D4–D6 land here)
+│   ├── naval.js           # open-sea loss, carrier rules, coastal adjacency
+│   ├── cow.js             # the sanctioned COW tile-write transient (§4)
+│   ├── …                  # plus: difficulty, disasters, huts, leaders,
+│   │                      #   pollution, spaceship, trade, upgrade, air,
+│   │                      #   debug, movement helpers — one subsystem each
 │   └── score.js
 ├── shared/                # browser+Node ESM: hashing, codes, setup helpers
 │   ├── statehash.js       # canonical serialization + FNV-1a hash (Lua-portable)
 │   ├── gamecode.js        # 64-bit save-verification code (docs/07)
-│   └── fastforward.js     # starting-age AI fast-forward + era tech grant (A20)
+│   ├── fastforward.js     # starting-age AI fast-forward + era tech grant (A20)
+│   ├── city-era.js        # render-only era band (browser + Roblox share it)
+│   ├── beeline.js         # pure tech-DAG walk (client beeline)
+│   ├── strategic.js       # the soak/overlay strategic snapshot
+│   ├── age-snapshots.js   # baked age-start matcher (build-step artifacts)
+│   ├── civ-shuffle.js     # seeded default-roster shuffle (both platforms)
+│   └── …                  # diplomacy-view, lobby-reconnect, victory-presets,
+│                          #   version — small pure helpers
 ├── client/
 │   ├── index.html
 │   ├── mock-state.json    # step-0 static world (schema-checked by tests)

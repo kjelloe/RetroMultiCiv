@@ -120,7 +120,9 @@ endscreen,ff-overlay,historian,left-stack,overlays,pedia,pedia-concepts,
 regency,regent-driver,replay,replay-events,sound,sound-map,stats,
 stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
 build-queue,automate,debug-panel,strategic-overlay,diplomacy,rejoin,
-tech-tree,tech-glyphs}. tech-tree = the 🌳 graphical tech-tree overlay +
+tech-tree,tech-glyphs,bug-report,city-overview,econ-overview,
+hover-card,military-overview,onboarding,overview-panel,score-view,
+top-panels,unit-building-blurbs,upkeep}. tech-tree = the 🌳 graphical tech-tree overlay +
 client-side beeline (research goal in client state, issues normal
 setResearch — golden-neutral; the DAG-walk is pure in shared/beeline.js);
 tech-glyphs = procedural per-tech icons (era frame + motif, factions.js

@@ -347,8 +347,19 @@ below is a known, deliberate deviation to be closed in a later slice:
 - **Worked tiles**: auto-assigned greedily by default; manual per-tile
   assignment is implemented (`setWorkers`, city-view clicks) with growth
   auto-assigning the new citizen; specialists work (Entertainer implicit for
-  idle citizens, Taxman/Scientist via `setWorkers` at pop ≥ 5). Still
-  missing: tile contention between cities.
+  idle citizens, Taxman/Scientist via `setWorkers` at pop ≥ 5). Tile
+  contention between cities is IN (A8, marker-0102 line): two cities never
+  double-work a tile — a once-per-turn two-phase resolution (manual beats
+  auto, older city wins, centres pre-claimed) threads the REAL-game yield
+  paths; the AI's hypothetical planning deliberately uses non-contended
+  yields (a documented modelling choice — planning-on-approximation).
+  Multiplayer LATE-JOIN is also in (marker-0097..0101): public running/
+  paused games are listable and joinable — a joiner takes over the
+  second-strongest never-human AI civ via the `claimSeat` engine command
+  (recorded + replayed); games pause at zero cost when the last human
+  leaves; full servers evict paused games (era → original humans →
+  pause-age; saves survive, rejoinable by code); the lobby has a host
+  Joining-open/closed toggle.
 - **Happiness is in** (contentCitizens, luxuries worst-first, Temple chain,
   martial law, war unhappiness, disorder halting shields/taxes) with
   deviations: luxuries are computed from the city's *raw* trade even during

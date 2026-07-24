@@ -105,7 +105,12 @@ per item; the architect cuts R-items from the tiers in order.
 - **The place is a classical Roblox lobby**: players spawn on an
   OBSERVATION DECK high above the world when a game is in progress
   (or none started) — spectating from the sky IS the lobby.
-- **First visit**: an introduction/greeting welcome message.
+- **First visit**: an introduction/greeting welcome message. LANDED
+  beyond the original ask (2026-07-25): the full "One City Through
+  Time" staged intro (specs/roblox-intro-animation.md — 5 beats,
+  skip, auto-skip, ally-ruled timings) shipped as
+  `Intro.client.luau`; Studio beat-acceptance rides the publish
+  session.
 - **Ground pads drive everything**: "START A NEW GAME" pad → first
   player becomes HOST, selects map type / player count / options —
   selections must complete within a 60-SECOND COUNTDOWN or the
