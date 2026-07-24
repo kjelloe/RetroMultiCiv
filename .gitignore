@@ -1,4 +1,4 @@
-# Raw wiki extraction: contains CC BY-SA 3.0 prose from civilization.fandom.com
+# Raw wiki extraction: contains CC BY-SA 3.0 prose from the reference wiki dump
 # — regenerate locally with `node tools/wiki2data.js` against the wikiteam dump
 data/wiki-extract/
 

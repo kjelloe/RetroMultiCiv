@@ -8,8 +8,8 @@ phases (see `03-roadmap.md`).
 
 > **Data fidelity note:** Numeric tables in this document are Civ 1 defaults;
 > they live in JSON data files (`data/`), not in code. `tools/wiki2data.js` has
-> extracted the authoritative tables from the local wikiteam dump of the
-> Civilization Fandom wiki into `data/wiki-extract/` (7/7 key pages: 28 units,
+> extracted the authoritative tables from the local wikiteam reference-wiki
+> dump into `data/wiki-extract/` (7/7 key pages: 28 units,
 > 74 advance rows, 21 wonders, 21 buildings, terrain with yields). Extraction
 > **confirmed** this spec's terrain yields/defense multipliers and unit roster.
 > When authoring the final `data/*.json`, the wiki extraction wins over any
@@ -239,7 +239,7 @@ defender in a city fights at exactly its open-ground strength (base × terrain
 it. The city's sole extra protection without walls is the *stack* rule: in a
 city (or Fortress) defenders die **one at a time**, and each defender lost
 also costs the city one population point *unless* it has City Walls (Combat
-(Civ 1) / City Walls (Civ 1) fandom pages). Scenario `026-fortify-defense`
+(Civ 1) / City Walls (Civ 1) reference pages). Scenario `026-fortify-defense`
 pins that the fortify ×1.5 is load-bearing in both engines.
 
 ## 6. Technology

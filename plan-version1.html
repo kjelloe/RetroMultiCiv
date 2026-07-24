@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Last updated: <strong>2026-07-25 evening</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0102</strong> @ 17b4fb8 (A8 + coastal + Founder's Record + hardening merges; merge-consistent)</span>
-    <span class="chip">Suite: <strong>~897 tests</strong>, twins 11/11; river landed after the tag, mid-gate</span>
+    <span class="chip">Last updated: <strong>2026-07-25 late evening</strong></span>
+    <span class="chip">Merge candidate: <strong>marker-0102</strong> @ 17b4fb8 (merge-consistent)</span>
+    <span class="chip">In gate: river fix-A reviewer-GREEN, <strong>post-fix sweep running</strong> → marker-0103</span>
   </div>
 </header>
 
@@ -97,8 +97,8 @@
     archetype wonders, the gov arc, COW perf, all the smalls, claimSeat, and now <strong>A8 tile contention</strong>
     (fork-b: once-per-turn resolution, perf 0.53× baseline, 25-seed sweep GREEN) + <strong>coastal-build</strong> (scenario 064).</div></div>
     <ol class="spine">
-      <li><span class="st now">🔨 mid-gate</span><strong>RIVER</strong> — landed @8da9029 (ruling A: meandering strips on the existing tile.river flag, ~11% of land, byte-shaped Luau twin, honest behavioral re-record); reviewer engine-diff + 25-seed sweep queued — marker-0103 tags on green (+ workturns/transforms companion after)</li>
-      <li><span class="st qd">queued</span><strong>D3 server-surfacing + 11b city names</strong> — bugfixer's next FIFO; city-list fact-check digest banked (your call on the full-Civ1-exact recommendation pending)</li>
+      <li><span class="st now">🔨 sweep running</span><strong>RIVER + fix-A</strong> — the full loop ran tonight: landed @8da9029 → sweep breached M3-pop → audit found the mine-lock mechanism (38% of strips on hills) → fix-A @ea6c2a3 (hills never flagged, 2nd honest re-record) → reviewer GREEN (117/117) → the post-fix 25-seed sweep is 0103's last gate; escalation to you only if M3 still misses</li>
+      <li><span class="st qd">approved, veto open</span><strong>11b authentic city rosters</strong> — full 16-name Civ1-founding-order replace (a small re-record; current positions 1–8 are inauthentic); starts only after 0103 tags AND if you haven't vetoed · then <strong>D3 server-surfacing</strong> (the endscreen-winner half is in build now, golden-neutral)</li>
       <li><span class="st qd">queued</span><strong>Diplomacy D4–D6</strong> — spec ready; the witness-8 AFTER-half and the treaty-UI rename pass ride the D4 landing</li>
       <li><span class="st qd">queued</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; measure-first baseline running on the gaming PC, the engine window queues after D4–D6 unless you promote it</li>
     </ol>
@@ -111,14 +111,13 @@
   <div class="item g"><div class="t"><span class="st done">✅ done</span>Server</div>
     <div class="d">A50 hardening + master index LIVE (axis 5 closed) + <strong>late-join / pause-on-empty / eviction
     FEATURE-COMPLETE</strong> (designed and merged 2026-07-24; <code>--no-late-join</code> documented) + docs/16 §7
-    re-assessed (no RC-blocker). View-contract + master-proxy + lobby-drop + join-toggle + <strong>gameover-reveal</strong> (fog lapses at game over) + <strong>reject-reasons export</strong> (guard-1 server half) ALL merged on reviewer green. Queued: lobby-robustness polish (join-code races, drop windows, stale tokens).</div></div>
+    re-assessed (no RC-blocker). View-contract + master-proxy + lobby-drop + join-toggle + gameover-reveal + reject-reasons + <strong>lobby-robustness</strong> (fd30245) ALL merged on reviewer green. In build: the endscreen-winner view-contract fix. Queued: the docs/16 delta re-assessment (five new surfaces since its last pass).</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ v1-complete</span>Client / UI</div>
     <div class="d">The 30-item window, A58 pedia, A49 flows 1–3 (flow-4 endscreen spec still open — reviewer tree-check), late-join client half, join-share QR,
     fish/specials motifs, refinement-XVII (all 22) and XIX (8/8), regression guards 2+5, and <strong>#34 Founder's Record COMPLETE</strong>
     (all four endings + the Continue-gated scaffold) — every v1 client item shipped. Helper stack (polish, golden-neutral): founders-tone, specials-silhouettes, play-on-roblox button, xx-pedia-splash, guards 3+4.</div></div>
   <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC)</div>
-    <div class="d">Tier 3 certified, R6 done, <strong>instant age-starts ACTIVE</strong>, specials mirrored,
-    runI–runL batches landed, <strong>intro "One City Through Time" landed and NAMED</strong> ("A World Begun" + subtitle, your ruling, swappable constants). Queued: <strong>midgame-join</strong> (browser late-join parity, claimSeat-based, host toggle default on). Then the publish gate (below).</div></div>
+    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). In build: the endscreen-winner view mirror. Then the publish gate (below).</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ closed — bar reopened</span>AI-quality program</div>
     <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED. Your XX §3 build doctrine
     (city roles: production/science/frontline/spawner) REOPENS the axis — baseline measurement first, the engine window after D4–D6 unless promoted.</div></div>
@@ -129,12 +128,12 @@
   <div class="bar"></div>
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
-    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~99% (A8 ✅ + coastal ✅ in 0102; river landed)</td><td><strong>river gates → marker-0103</strong>, then workturns/transforms</td></tr>
-    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · shell un-gated</td><td><strong>D3-surfacing + 11b → D4–D6</strong> (spec + digests banked)</td></tr>
-    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 targets met — bar REOPENED (XX §3 doctrine)</td><td>baseline → doctrine window after D4–D6</td></tr>
-    <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified; instant starts; intro landed + named</td><td>midgame-join + 🚪 the ONE publish/acceptance session</td></tr>
-    <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE (box at 0101)</td><td>lobby-robustness polish queued</td></tr>
-    <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · all flows ✅ · <strong>Founder's Record ✅</strong></td><td>helper polish stack (🚪 PEDIA_NAME string)</td></tr>
+    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~99% (A8 ✅ · coastal ✅ · river fix-A reviewer-GREEN)</td><td><strong>the post-fix sweep</strong> (running → 0103), then workturns/transforms</td></tr>
+    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · endscreen-winner fix in build</td><td><strong>11b rosters (approved, veto open) + D3-surfacing → D4–D6</strong></td></tr>
+    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline: ~0 buildings)</td><td>doctrine window after D4–D6</td></tr>
+    <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
+    <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness merged</td><td>docs/16 delta (queued)</td></tr>
+    <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · Founder's Record + tone ✅ · silhouettes ✅</td><td>xx-pedia-splash in build (🚪 PEDIA_NAME) · guards · flow-4</td></tr>
   </table></div>
 </section>
 

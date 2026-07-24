@@ -129,7 +129,7 @@ understudies the architect's own inline wiki checks — a second reader on the
 facts.
 
 **Prerequisite (user action):** the wikiteam dump at `../wikiteam/civ_articles_only/`
-(a local Civ Fandom XML dump, NOT in the repo) transferred to the gaming PC
+(a local reference-wiki XML dump, NOT in the repo) transferred to the gaming PC
 beside this clone. `tools/wiki2data.js` extracts the key Civ 1 pages into
 `data/wiki-extract/` (gitignored, regenerable) — the authority over the spec
 tables; yields are countable `[food]/[shield]/[trade]` tokens via `parseYields`.

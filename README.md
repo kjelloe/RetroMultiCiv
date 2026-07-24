@@ -91,7 +91,7 @@ node tools/wiki2data.js ../wikiteam/civ_articles_only/*-current.xml data/wiki-ex
 ## Data source
 
 Ruleset numbers (unit stats, tech tree, wonders, terrain yields) are verified
-against a local wikiteam XML dump of the Civilization Fandom wiki, expected at
+against a local wikiteam XML dump of a Civ 1 reference wiki, expected at
 `../wikiteam/civ_articles_only/` (sibling of this repo, not committed).
 `tools/wiki2data.js` extracts the key Civ 1 pages into `data/wiki-extract/`,
 which is **gitignored**: the raw extraction contains CC BY-SA 3.0 prose from

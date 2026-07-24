@@ -86,7 +86,7 @@ operator).
 
 ## Data source
 
-Stat tables come from a local wikiteam XML dump of the Civilization Fandom wiki
+Stat tables come from a local wikiteam XML dump of a Civ 1 reference wiki
 at `../wikiteam/civ_articles_only/` (not part of this repo; complete).
 `tools/wiki2data.js` extracts the key Civ 1 pages into `data/wiki-extract/`
 (gitignored, regenerable — treat as the authority over spec tables; yields are

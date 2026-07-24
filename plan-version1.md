@@ -4,30 +4,29 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 evening (marker-0102 TAGGED @17b4fb8 =
-MERGE-CONSISTENT, supersedes 0101. 0102 lands the LAST TWO axis-1
-engine items before river: **A8 tile contention** (fork-b, once-per-
-turn resolution, AI evals keep the pre-A8 model by ruling; perf
-INVERTED to 0.53×; 25-seed sweep GREEN #2540) + **coastal-build**
-(XVII §5, scenario 064) — plus **#34 Founder's Record COMPLETE**
-(all four endings + Continue-gate; axis-6 client work DONE),
-refinement-XIX 8/8, regression-guards 2+5, and the two hardening
-merges (gameover-reveal #2537 GREEN, reject-reasons #2542 PASS =
-guard-1 server half). **RIVER landed immediately AFTER the tag
-@8da9029** (ruling A: meandering-strip mapgen on the existing
-tile.river flag, byte-shaped twin, honest behavioral re-record) —
-mid-gate (reviewer engine-diff + 25-seed sweep queued);
-marker-0103 tags on its green. Engine spine remaining: river gates
--> D3-surfacing + 11b city names (queued, digest banked) -> D4-D6
-(spec ready). Client remaining: helper stack of five golden-neutral
-items (guards 3+4, founders-tone, specials-silhouettes,
-play-on-roblox, xx-pedia-splash — PEDIA_NAME string = user call).
-Roblox: intro landed + named ("A World Begun" + subtitle, user-ruled
-constants); midgame-join queued (#2543, claimSeat parity). Server
-lane queue: lobby-robustness (#2544). Sim-runner: river sweep then
-build-doctrine-baseline (one --stats run can serve both). USER:
-merge 0102, trademark search, Studio publish/acceptance session,
-PEDIA_NAME + city-list rulings.)
+Last updated: 2026-07-25 late evening (marker-0102 @17b4fb8 remains
+the MERGE-CONSISTENT candidate. Since the tag, the RIVER arc ran its
+full loop: landed @8da9029 → 25-seed sweep BREACHED M3-pop 23.5<28 →
+investigate-first ruling → audit found the mechanism (38% of strips
+on hills = ~165 mine-locked shields/world; river is flag-only +1
+trade, nothing replaced) → **fix-A @ea6c2a3** (hills never FLAGGED;
+2nd honest re-record; hills-never-flagged invariant) → reviewer
+GREEN #2593 (117/117) → **the post-fix 25-seed sweep is RUNNING**
+= marker-0103's last gate; escalation to the user only if M3 still
+<28. A SECOND window is open in parallel: the endscreen-winner
+view-contract fix (filterView carries gameOver+winner at strict
+gameOver — the fog-lapse ruling at the source; visibility.js+twin).
+Shipped since 0102: founders-tone (613f963, ally doctrine),
+specials-silhouettes (29c53a1 + roblox re-mirror 69cc40d),
+play-on-roblox hidden button (a61d34e), intro v1 USER-APPROVED
+frozen at v5b, roblox midgame-join BUILT+landed 58f74e4 (Studio
+verify pending), lobby-robustness merged fd30245, RC digest
+verified + drift-applied (#2565), fandom-reference license sweep.
+Spine after 0103: 11b authentic rosters (APPROVED full-replace,
+user veto open until the window) + D3-surfacing -> D4-D6 -> the
+XX §3 doctrine window. USER: merge 0102, roblox/** standing Write
+allowlist, PEDIA_NAME + city-roster last-call, Studio session,
+trademark.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -56,7 +55,7 @@ flowchart TD
     CLM["✅ claimSeat command (0097):\nAI seat -> human via the stamped command\npath; fixture 061; unblocked late-join §3"]
     A8N["✅ A8 tile contention (0102, fork-b 376ff03):\nonce-per-turn resolution, AI evals keep the\npre-A8 model (ruling); perf 0.53×; sweep GREEN"]
     CST["✅ coastal-build (0102, 95261a1): sea units\nrequire a center-coastal city; cityIsCoastal\nshared helper; scenario 064"]
-    RIV["🔨 RIVER landed @8da9029 (ruling A: meandering\nstrips on the EXISTING tile.river flag, ~11% land,\nbyte-shaped twin) — MID-GATE: reviewer engine-diff\n+ 25-seed sweep queued; 0103 tags on green"]
+    RIV["🔨 RIVER @8da9029 + fix-A @ea6c2a3 (breach→\naudit→hills-never-flagged; 2 honest re-records) —\nreviewer GREEN #2593; post-fix 25-seed sweep\nRUNNING = 0103's last gate"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; witness-8 AFTER-half\n+ treaty-UI rename pass ride the D4 landing)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -70,7 +69,7 @@ flowchart TD
     SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
     VCT["✅ #19 view-contract test MERGED (012d04b)\n+ master-proxy + lobby-drop (reviewer green)"]
     JTG["✅ XVII §3 join-toggle merged @e00be57\n(host open/closed, AI-seat auto-fill,\nreconnect-reclaim verified)"]
-    GOR["✅ gameover-reveal + reject-reasons merged\n(0102: fog lapses at gameOver #2496; guard-1\nserver half) · 📋 lobby-robustness queued"]
+    GOR["✅ gameover-reveal + reject-reasons (0102) +\nlobby-robustness MERGED fd30245 · 🔨 endscreen-\nwinner view-contract fix in build (gameOver+winner\nat strict gameOver) · 📋 docs/16 delta queued"]
     A50R --> A51D --> LJS --> SEC2 --> VCT --> JTG --> GOR
   end
 
@@ -90,7 +89,7 @@ flowchart TD
   subgraph ROBLOX["ROBLOX lane (second PC)"]
     T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
     SNAP["✅ age-snapshot instant starts ACTIVE\n(matcher twin + loader + roster-shuffle\n8f0e982) · specials mirror 577086c"]
-    STUD["🔨 runI-L batches built · intro 'One City\nThrough Time' LANDED + NAMED ('A World Begun'\n+ subtitle, user-ruled constants) ·\n📋 midgame-join queued (#2543, claimSeat parity) ·\n🚪 publish gate (ONE Studio acceptance session)"]
+    STUD["✅ intro v1 USER-APPROVED frozen at v5b ·\nmidgame-join BUILT + landed 58f74e4 (claimSeat\nparity, toggle default on) · 🚪 Studio session:\nverify midgame-join + publish gate + set\nROBLOX_EXPERIENCE_URL after"]
     R6["✅ R6 agent-complete (slice-1 de8a977 +\nslices 2-3 in-tree; 30 gates green)"]
     STUD --> T3
     R6 --> T3
@@ -143,12 +142,12 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~99% (A8 ✅ + coastal ✅ in 0102; river LANDED mid-gate) | **river gates** (reviewer + sweep → 0103), then the workturns/transforms companion |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, treaty-UI shell un-gated | **D3-surfacing + 11b → D4–D6** (the engine-queue tail; spec + digests banked) |
-| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept) — **user REOPENED the bar** via the XX §3 build doctrine | doctrine baseline (sim-runner) → engine window after D4–D6 unless promoted |
-| 4 | Roblox Tier 3 multiplayer | CERTIFIED + instant age-starts + intro landed & named | **midgame-join** (#2543) + 🚪 the ONE publish/acceptance Studio session |
-| 5 | Public hosting + master index | ✅ COMPLETE + LIVE at marker-0101 on the box | lobby-robustness polish queued (#2544) |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, A49 all flows ✅, **#34 Founder's Record ✅ (0102)** | helper stack: founders-tone, xx-pedia-splash (🚪 PEDIA_NAME string), guards 3/4 |
+| 1 | Every Civ 1 system faithful | ~99% (A8 ✅ + coastal ✅ + river fix-A reviewer-GREEN) | **the post-fix sweep** (running → 0103), then workturns/transforms |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, endscreen-winner fix in build | **11b rosters (approved, veto open) + D3-surfacing → D4–D6** |
+| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings) | doctrine window after D4–D6 unless promoted |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + **midgame-join landed** | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
+| 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness merged fd30245 | docs/16 delta re-assessment (queued) |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record ✅ + tone pass ✅, silhouettes ✅, play-on-roblox ✅ | xx-pedia-splash in build (🚪 PEDIA_NAME), guards 1c/3/4, river-gallery, flow-4 |
 
 ## Reading the tree — the three facts that matter
 

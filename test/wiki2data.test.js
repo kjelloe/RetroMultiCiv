@@ -22,7 +22,7 @@ test('cleanCell strips wiki markup', () => {
   assert.strictEqual(cleanCell('a<br/>b'), 'a / b');
 });
 
-test('cleanCell handles Fandom icon templates and artifacts', () => {
+test('cleanCell handles wiki icon templates and artifacts', () => {
   assert.strictEqual(
     cleanCell('&nbsp;{{FoodIcon1}}{{FoodIcon1}}<br/>&nbsp;{{ShieldIcon1}}<br/>&nbsp;'),
     '[food][food] / [shield] /'
