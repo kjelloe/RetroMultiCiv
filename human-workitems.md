@@ -26,7 +26,10 @@ XIX + regression-guards queued; RC drafts banked)._
 - [ ] **Title clearance (standing):** commission the PROFESSIONAL
   trademark search for "A World Begun" (lead) + "The Work of Ages"
   (backup); quietly reserve `aworldbegun.eu`/`.com`/`.no` (~€26/yr).
-  All public copy stays title-swappable until it clears.
+  UPDATE 2026-07-25: you ruled the ROBLOX experience displays
+  "A World Begun" (+ the ally subtitle) now, via swappable
+  constants — the search now mainly gates the browser/README/
+  store-wide commitment.
 
 - [ ] **Review the v1 release checklist** —
   `specs/v1-release-checklist.md`: RC marker → your main merge →
