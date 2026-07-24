@@ -4,45 +4,30 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 morning (marker-0101 TAGGED @c51dceb =
-MERGE-CONSISTENT + REDEPLOY candidate, clean-clone --full GREEN
-886/0-fail, supersedes 0097–0100; luau pin 0xd4151d33 unchanged
-across FOUR markers — everything since 0097 is engine-golden-neutral.
-0101 closes **refinement-XVII COMPLETE** (all 22 items: 18-item
-client batch + join-toggle both halves) + runK roblox batch +
-tooling fixes (ack-parser hash bug, reaper cooldown, watcher
-deployed+verified). RC PREP BANKED: reports/v1-rc-draft.md (axes
-pre-filled) + specs/readme-v1-draft.md (ally blocks framed,
-title-swappable). Remaining v1 = the engine spine (A8 threading
-[kit banked] -> coastal-build -> RIVER -> D3-surfacing -> D4-D6,
-+ workturns/transforms companion, fact-check #2465 banked) +
-Founder's Record (fresh helper session) + the Studio
-publish/acceptance session. USER: redeploy 0101, two fresh sessions,
-roblox Write approval, Studio, trademark. 0097 carried:
-#8 default-defender (behavioral, committed-goldens+PIN unmoved, gates
-requested #2393) · agent-mail at-least-once upgrade · fish/specials
-motifs + roblox mirror · roster-shuffle (age-snapshot instant starts
-ACTIVE on Roblox) · late-join CLIENT half + join-share QR + boot-fade
-+ onboarding-e2e fix · A49 flow-2 (flow-4 rides Founder's Record).
-Late-join+pause+eviction: FEATURE-COMPLETE — server half MERGED
-@205bbfe on reviewer green #2419 (both halves in-tree; only the
-cosmetic reveal banner remains, next helper session, live dispatch).
-Speed pass live: #19 DONE by hardening same evening (branch, gate
-queued to reviewer) → hardening now on the docs/16 SECURITY
-RE-ASSESSMENT (its own trigger: new dep + 1.0 proximity — the RC bar
-wants docs/16 current); witness-8 BEFORE-half queued (sim-runner,
-untaken pending its wake); D4 treaty SHELL un-gated (helper holds it
-behind Founder's Record). Fleet fully stocked — the rate limiter is
-the serialized engine spine + the two fresh-session starts + the
-gaming-PC session wakes (turn-based sessions cannot self-start a
-turn; see the Stop-hook item in specs/agent-mail-hub-upgrade.md
-phase 1). Engine queue UNBLOCKED by the tag: #32 A8
-(fresh bugfixer session) -> #19 view-contract -> D3-surfacing ->
-D4-D6 (witness-8 + treaty-UI ride D4). Client remaining: Founder's
-Record #34 (fresh helper session) + the post-join reveal banner (now
-buildable — server contract live). Roblox: runI design batch part 1
-built, continuing (long); publish gate after. USER: REDEPLOY FROM
-0097, trademark search + domains, Studio items 4b/4c.)
+Last updated: 2026-07-25 evening (marker-0102 TAGGED @17b4fb8 =
+MERGE-CONSISTENT, supersedes 0101. 0102 lands the LAST TWO axis-1
+engine items before river: **A8 tile contention** (fork-b, once-per-
+turn resolution, AI evals keep the pre-A8 model by ruling; perf
+INVERTED to 0.53×; 25-seed sweep GREEN #2540) + **coastal-build**
+(XVII §5, scenario 064) — plus **#34 Founder's Record COMPLETE**
+(all four endings + Continue-gate; axis-6 client work DONE),
+refinement-XIX 8/8, regression-guards 2+5, and the two hardening
+merges (gameover-reveal #2537 GREEN, reject-reasons #2542 PASS =
+guard-1 server half). **RIVER landed immediately AFTER the tag
+@8da9029** (ruling A: meandering-strip mapgen on the existing
+tile.river flag, byte-shaped twin, honest behavioral re-record) —
+mid-gate (reviewer engine-diff + 25-seed sweep queued);
+marker-0103 tags on its green. Engine spine remaining: river gates
+-> D3-surfacing + 11b city names (queued, digest banked) -> D4-D6
+(spec ready). Client remaining: helper stack of five golden-neutral
+items (guards 3+4, founders-tone, specials-silhouettes,
+play-on-roblox, xx-pedia-splash — PEDIA_NAME string = user call).
+Roblox: intro landed + named ("A World Begun" + subtitle, user-ruled
+constants); midgame-join queued (#2543, claimSeat parity). Server
+lane queue: lobby-robustness (#2544). Sim-runner: river sweep then
+build-doctrine-baseline (one --stats run can serve both). USER:
+merge 0102, trademark search, Studio publish/acceptance session,
+PEDIA_NAME + city-list rulings.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -69,9 +54,9 @@ flowchart TD
     SMALL["✅ smalls CLOSED (0088-0097): A7 wonders ·\npyramids-gov · settler-refuse + rehome (0095) ·\ndisorder-lux playbook · §46 default-defender ·\nA6a future-tech (0097)"]
     XAB["✅ xiv-ai-behavior #30 (0091) + gov arc\n(0094, bloat halved) + workers>pop + COW\nmap-sharing (0096, ~38% perf byte-identical)"]
     CLM["✅ claimSeat command (0097):\nAI seat -> human via the stamped command\npath; fixture 061; unblocked late-join §3"]
-    A8N["🔨 A8 tile contention — correctness PROVEN,\nparked at the perf ramp; fresh session THREADS\nthe once-per-turn assignment (kit banked)"]
-    CST["📋 coastal-build (XVII §5, verified bug:\nsea units need a CENTER-adjacent coast;\ncityIsCoastal shared with the AI paths)"]
-    RIV["📋 RIVER terrain (user-ruled 2026-07-25):\nthe 12th Civ1 terrain — meandering strips\n~10-12% land; specs/river-terrain.md;\nworkturns/transforms companion after"]
+    A8N["✅ A8 tile contention (0102, fork-b 376ff03):\nonce-per-turn resolution, AI evals keep the\npre-A8 model (ruling); perf 0.53×; sweep GREEN"]
+    CST["✅ coastal-build (0102, 95261a1): sea units\nrequire a center-coastal city; cityIsCoastal\nshared helper; scenario 064"]
+    RIV["🔨 RIVER landed @8da9029 (ruling A: meandering\nstrips on the EXISTING tile.river flag, ~11% land,\nbyte-shaped twin) — MID-GATE: reviewer engine-diff\n+ 25-seed sweep queued; 0103 tags on green"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; witness-8 AFTER-half\n+ treaty-UI rename pass ride the D4 landing)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -84,17 +69,18 @@ flowchart TD
     LJS["✅ late-join+pause+eviction FEATURE-COMPLETE\n(user design 2026-07-24 -> merged @205bbfe\nsame day; --no-late-join documented)"]
     SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
     VCT["✅ #19 view-contract test MERGED (012d04b)\n+ master-proxy + lobby-drop (reviewer green)"]
-    JTG["✅ XVII §3 join-toggle merged @e00be57\n(host open/closed, AI-seat auto-fill,\nreconnect-reclaim verified) — server lane\nqueue EMPTY, all delivered"]
-    A50R --> A51D --> LJS --> SEC2 --> VCT --> JTG
+    JTG["✅ XVII §3 join-toggle merged @e00be57\n(host open/closed, AI-seat auto-fill,\nreconnect-reclaim verified)"]
+    GOR["✅ gameover-reveal + reject-reasons merged\n(0102: fog lapses at gameOver #2496; guard-1\nserver half) · 📋 lobby-robustness queued"]
+    A50R --> A51D --> LJS --> SEC2 --> VCT --> JTG --> GOR
   end
 
   subgraph CLIENT["CLIENT/UI lane (golden-neutral)"]
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
-    A49["✅ A49 flow-2 SHIPPED (0097; per-seat\nfog guards) · 📋 flow-4 rides Founder's Record"]
-    LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + play-lane sweep +\nrefinement-XVII COMPLETE (all 22, 0101)"]
-    END["📋 #34 Founder's Record endgame package\n(FRESH helper session; flow-4 bundled)"]
+    A49["✅ A49 all five flows CLOSED (flow-2 in 0097;\nflow-4 endscreen rode Founder's Record in 0102)"]
+    LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + play-lane sweep +\nrefinement-XVII (0101) + XIX 8/8 (0102)"]
+    END["✅ #34 Founder's Record COMPLETE (0102,\n68fac99: all four endings + Continue-gate +\n?ending= preview) · 📋 founders-tone pass +\nguards 3/4 etc. on the helper stack (5 items)"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
     XIVQ --> FG
@@ -104,7 +90,7 @@ flowchart TD
   subgraph ROBLOX["ROBLOX lane (second PC)"]
     T3["✅ Tier 3 CERTIFIED (re-audit PASS #2222:\n29 gates green, re-bake in-tree 06448dd;\nverdict artifact roblox/acceptance/tier3-cert.md)"]
     SNAP["✅ age-snapshot instant starts ACTIVE\n(matcher twin + loader + roster-shuffle\n8f0e982) · specials mirror 577086c"]
-    STUD["🔨 runI batch IN BUILD (design rulings\nspecs/runI-design-rulings.md; items 12/6/5/2\nbuilt; seat-preview align queued) ·\n🚪 publish gate after (sound+saving+batch\nin ONE Studio acceptance session)"]
+    STUD["🔨 runI-L batches built · intro 'One City\nThrough Time' LANDED + NAMED ('A World Begun'\n+ subtitle, user-ruled constants) ·\n📋 midgame-join queued (#2543, claimSeat parity) ·\n🚪 publish gate (ONE Studio acceptance session)"]
     R6["✅ R6 agent-complete (slice-1 de8a977 +\nslices 2-3 in-tree; 30 gates green)"]
     STUD --> T3
     R6 --> T3
@@ -131,9 +117,9 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM done
-  class A50R,A51D,LJS,SEC2,VCT,JTG done
-  class XIVD,XIVQ,A58,A49,LJC,FG done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST done
+  class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
+  class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
   class MFL,W5,GOV done
 ```
@@ -157,29 +143,30 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~97% (all smalls ✅; river ruled IN grew the axis) | **A8 threading → coastal-build → RIVER terrain** (+ workturns/transforms companion) |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, treaty-UI shell un-gated | **D3-surfacing → D4–D6** (the engine-queue tail; spec ready) |
-| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept; floors/archetype/#30/gov-arc/disorder shipped+measured) | witness-8 AFTER-half rides D4 (BEFORE-half queued) |
-| 4 | Roblox Tier 3 multiplayer | CERTIFIED + R6 + instant age-starts ACTIVE; runI batch in build | **runI batch finish** + 🚪 the ONE publish/acceptance Studio session (sound+saving+batch) |
-| 5 | Public hosting + master index | ✅ COMPLETE + LIVE (+ late-join/pause/eviction feature-complete server-side) | — (self-lists + late-join go live on the 0097 redeploy) |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, A49 flow-2 ✅ | **#34 Founder's Record** (fresh helper session; flow-4 bundled) |
+| 1 | Every Civ 1 system faithful | ~99% (A8 ✅ + coastal ✅ in 0102; river LANDED mid-gate) | **river gates** (reviewer + sweep → 0103), then the workturns/transforms companion |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, treaty-UI shell un-gated | **D3-surfacing + 11b → D4–D6** (the engine-queue tail; spec + digests banked) |
+| 3 | AI at M-targets | ✅ COMPLETE for v1 (fork RULED accept) — **user REOPENED the bar** via the XX §3 build doctrine | doctrine baseline (sim-runner) → engine window after D4–D6 unless promoted |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + instant age-starts + intro landed & named | **midgame-join** (#2543) + 🚪 the ONE publish/acceptance Studio session |
+| 5 | Public hosting + master index | ✅ COMPLETE + LIVE at marker-0101 on the box | lobby-robustness polish queued (#2544) |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, A49 all flows ✅, **#34 Founder's Record ✅ (0102)** | helper stack: founders-tone, xx-pedia-splash (🚪 PEDIA_NAME string), guards 3/4 |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine is short now**: A8 (window OPEN) →
-   D3-surfacing → D4–D6, and that's the whole serialized remainder.
-   Everything else on the spine through marker-0097 is done and
-   gated; the AI-quality program is closed (floors green, archetype
-   accepted, fork ruled).
-2. **Three user gates remain:** the 0097 redeploy (late-join + all of
-   today's UI goes live on it), the ONE Roblox publish/acceptance
-   Studio session (after the runI batch), and the fresh helper
-   session for Founder's Record. Plus the standing trademark search.
-3. **No open designs remain agent-side.** D4–D6 spec ready with the
-   treaty-UI shell un-gated against provisional names; the runI batch
-   fully ruled; speed machinery live: baseline banking, the witness-8
-   BEFORE-half, per-dir-serialized lane-watcher for dark sessions,
-   and the at-least-once mail layer under it all.
+1. **The engine spine is nearly walked**: river is LANDED and
+   mid-gate; after its green the serialized remainder is
+   D3-surfacing + 11b city names → D4–D6, with the workturns
+   companion and the XX §3 build-doctrine window (user-reopened
+   axis 3) behind them. Everything through A8 + coastal is done,
+   gated, and inside merge-consistent marker-0102.
+2. **User gates remain:** merge marker-0102, the trademark search
+   (browser/store-wide naming — Roblox already displays "A World
+   Begun" by ruling), the ONE Studio publish/acceptance session,
+   and two strings: PEDIA_NAME and the city-list recommendation.
+3. **No lane is dry.** Bugfixer: d3-surfacing next. Helper: a
+   five-item golden-neutral stack. Hardening: lobby-robustness.
+   Sim-runner: river sweep + doctrine baseline (one run serves
+   both). Roblox: naming constants then midgame-join. Reviewer:
+   the river engine-diff gate.
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the

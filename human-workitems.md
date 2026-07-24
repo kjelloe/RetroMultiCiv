@@ -8,13 +8,27 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-25 (clean pass at marker-0101-live; the box runs
-XVII-complete; A8-(b) + Founder's Record + gameover-reveal in build;
-XIX + regression-guards queued; RC drafts banked)._
+_Last synced: 2026-07-25 evening (marker-0102 TAGGED @17b4fb8,
+merge-consistent: A8 + coastal-build + Founder's Record + XIX +
+gameover-reveal + reject-reasons. River landed after the tag,
+mid-gate → 0103. The box still runs 0101)._
 
 ---
 
 ## DECIDE / DO (needs you)
+
+- [ ] **Merge marker-0102** (@17b4fb8, declared merge-consistent —
+  `reports/marker-0102.md`): A8 tile contention + coastal-build +
+  Founder's Record (all four endings) + XIX 8/8 + guards 2/5 + the
+  two hardening merges. A redeploy after it brings the gameOver
+  full-map reveal + reject-reasons live.
+
+- [ ] **Two strings to rule:** (1) **PEDIA_NAME** — "Gamepedia"
+  collides with the Fandom wiki brand; alternatives on the table:
+  "Founder's Guide" (pairs with Founder's Record) or plain
+  "Encyclopedia" (one-constant swap either way). (2) The **city-list
+  recommendation** (full Civ1-exact lists + extend to 16 names +
+  territorial pool) awaits your veto before 11b lands it.
 
 - [x] **Ally round-trip COMPLETE** (2026-07-25): update forwarded,
   all three invitations answered, gallery strip reviewed — **specials
@@ -83,11 +97,12 @@ XIX + regression-guards queued; RC drafts banked)._
   self-host find-a-game. Deploys now self-verify (healthz guard);
   skim player bug reports occasionally:
   `ssh … 'ls -t /opt/retromulticiv/bug-reports | head'`.
-- **In build:** A8 tile-contention fork-(b) (perf acceptance PASSED,
-  re-record in progress) · Founder's Record (S1/S3 done, S2/S4 in
-  flight) · the gameOver full-map reveal (hardening). Queued: XIX
-  (your 8 live-box items) → regression-guards; then the engine spine
-  tail (coastal-build → RIVER → D3-surfacing → D4–D6).
+- **In gate:** RIVER (@8da9029 — meandering strips on the existing
+  tile.river flag, ~11% of land, twin-identical): reviewer engine-diff
+  + 25-seed sweep queued; marker-0103 tags on green. Then the spine
+  tail: D3-surfacing + 11b city names → D4–D6 → the AI build-doctrine
+  window (your XX §3 ruling; baseline measuring first). All six lanes
+  stocked — nothing is idle.
 - **Sizing/ops answers on record:** ~1 MB heap per live game — caps
   and CPU are the ceilings, not RAM; ports 8123/8200 behind nginx;
   the full hosting Q&A lives in how-to-host.
