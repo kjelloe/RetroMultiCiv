@@ -76,12 +76,18 @@ local newGameBtn = endButton(-250, 156, "New game", Color3.fromRGB(58, 118, 74))
 local replayBtn = endButton(-86, 156, "Watch replay", Color3.fromRGB(58, 66, 110))
 local closeBtn = endButton(96, 156, "Back to the world", Color3.fromRGB(60, 66, 80))
 newGameBtn.Activated:Connect(function()
-	-- go to a fresh server of this place (live only; a no-op in Studio play)
+	-- runL item 6: PlaceId is 0 in Studio / an unpublished place — teleporting
+	-- there errors ("invalid place id 0"). Only teleport in a real (published)
+	-- server; otherwise just drop back to the deck for a fresh game.
+	if game.PlaceId == 0 then
+		frame.Visible = false
+		return
+	end
 	local ok = pcall(function()
 		game:GetService("TeleportService"):Teleport(game.PlaceId, Players.LocalPlayer)
 	end)
 	if not ok then
-		frame.Visible = false -- Studio / teleport blocked: just drop back to the deck
+		frame.Visible = false -- teleport blocked: just drop back to the deck
 	end
 end)
 replayBtn.Activated:Connect(function()

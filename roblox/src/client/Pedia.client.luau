@@ -1,4 +1,4 @@
--- R19: the Civilopedia (docs/13 Tier-2; the browser A58b panel's Roblox
+-- R19: the Gamepedia (docs/13 Tier-2; the browser A58b panel's Roblox
 -- twin). Three panes: category buttons / entry list / detail. All display
 -- text comes from the baked rulesets + CatalogText (effect lines, unlock
 -- maps) + PediaConcepts (the 14 original concept entries) — facts and
@@ -27,7 +27,7 @@ openBtn.BackgroundColor3 = Color3.fromRGB(52, 64, 52)
 openBtn.TextColor3 = Color3.fromRGB(220, 240, 220)
 openBtn.Font = Enum.Font.SourceSansBold
 openBtn.TextSize = 18
-openBtn.Text = "Civilopedia"
+openBtn.Text = "Gamepedia"
 openBtn.Parent = gui
 do
 	local c = Instance.new("UICorner")
@@ -50,7 +50,7 @@ title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(235, 235, 235)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 22
-title.Text = "Civilopedia"
+title.Text = "Gamepedia"
 title.Parent = frame
 
 local closeBtn = Instance.new("TextButton")
@@ -232,7 +232,7 @@ local cats = nil
 local curCat = 1
 
 local function showEntry(catDef, id, def)
-	title.Text = "Civilopedia - " .. (def.name or id)
+	title.Text = "Gamepedia - " .. (def.name or id)
 	detailText.Text = catDef.render(id, def)
 	detail.CanvasPosition = Vector2.new(0, 0)
 end
@@ -328,4 +328,4 @@ ClientState.onPediaOpen(function(catKey, id)
 	frame.Visible = true
 end)
 
-print("[Pedia] R19 Civilopedia up (PEDIA button, top right)")
+print("[Pedia] R19 Gamepedia up (PEDIA button, top right)")

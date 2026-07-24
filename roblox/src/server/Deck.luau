@@ -23,6 +23,7 @@ local function part(parent, name, size, cframe, color, props)
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	p.Material = Enum.Material.SmoothPlastic
+	p.CastShadow = false -- runL item 2: the floating deck must not shadow the board
 	for k, v in pairs(props or {}) do
 		p[k] = v
 	end

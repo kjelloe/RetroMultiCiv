@@ -569,11 +569,11 @@ local function sendEndscreen()
 	end
 	local frame = { t = "endscreen", winner = state.winner, victory = victory,
 		year = state.year, rows = rows }
-	for userId in pairs(seatOfUser) do
-		local player = Players:GetPlayerByUserId(userId)
-		if player ~= nil then
-			remote:FireClient(player, frame)
-		end
+	-- runL item 5: post-game is public — send to EVERY connected player (seated,
+	-- spectator, OR a defeated player already sent to the deck) so they all get
+	-- the scoreboard + the Watch-replay button.
+	for _, player in ipairs(Players:GetPlayers()) do
+		remote:FireClient(player, frame)
 	end
 	print(("[SO7] endscreen sent: %s victory, winner %s"):format(victory, tostring(state.winner)))
 end
@@ -1589,13 +1589,16 @@ remote.OnServerEvent:Connect(function(player, msg)
 		-- R18: stream the history in chunks; the client sandbox re-derives.
 		-- THE LAW guard: raw history reveals every civ's whole game, so the
 		-- theater opens ONLY when the game is OVER (the classic Civ replay
-		-- moment) or to admins — a mid-game stream would be a fog wallhack.
-		local seated = seatOfUser[player.UserId] ~= nil
-		local allowed = theater.initialState ~= nil and seated
-			and (state == nil or state.gameOver == true or isAdmin(player))
+		-- moment — public data, the endscreen precedent) or to admins mid-game;
+		-- a mid-game stream to a non-admin would be a fog wallhack.
+		-- runL item 5: post-game is public to ANY connected player — a DEFEATED
+		-- player sent to the deck (unseated) must still watch the replay + see
+		-- the whole map. Dropped the seated requirement for the game-over case.
+		local isOver = state == nil or state.gameOver == true
+		local allowed = theater.initialState ~= nil and (isOver or isAdmin(player))
 		if not allowed then
 			remote:FireClient(player, { t = "rejected", commandId = commandId,
-				code = state ~= nil and state.gameOver ~= true and "gameStillRunning" or "notSeated" })
+				code = state ~= nil and state.gameOver ~= true and "gameStillRunning" or "noReplayYet" })
 			return
 		end
 		remote:FireClient(player, { t = "theaterInit",

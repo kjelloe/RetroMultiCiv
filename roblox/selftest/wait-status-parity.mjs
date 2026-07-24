@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 const { createWaitTracker, formatWait, formatSlowNote } =
   await import(new URL('../../client/ui/wait-status.js', import.meta.url));
 const lua = readFileSync(new URL('../src/client/WaitStatus.luau', import.meta.url), 'utf8');
-const client = readFileSync(new URL('../src/client/WaitStatus.client.luau', import.meta.url), 'utf8');
+const client = readFileSync(new URL('../src/client/WaitStatusHud.client.luau', import.meta.url), 'utf8');
 
 const errs = [];
 const needIn = (src, label, frag, why) => {

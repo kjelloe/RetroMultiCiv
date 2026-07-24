@@ -228,37 +228,41 @@ local function rebuild()
 		sendWorkers(set)
 	end
 
-	-- runI item 20: EVERY worker change is a DOUBLE-CLICK; a single click only
-	-- arms it + prints the hint. A single click used to fire immediately, so a
-	-- double-click on a worked tile removed then re-placed it (net nothing) and
-	-- a double-click on an unworked tile placed then removed it — both read as
-	-- dead. Double-click a worked tile = remove; an unworked tile = place when
-	-- a citizen is free, else swap out the weakest worked tile.
+	-- runL item 3 (robust rework): a SINGLE click removes a worked tile / places
+	-- on a free tile — it fires immediately so the highlight updates on the next
+	-- server-confirmed rebuild. A rapid second click on the SAME tile is
+	-- DEBOUNCED (ignored), so a double-click removes ONCE and can never re-place
+	-- it (the run-I/run-L "double-click does nothing" was the old double-click
+	-- detection racing the constant mid-game rebuilds). The one case that still
+	-- needs a deliberate double-click is a CAPPED city (no free citizen): the
+	-- second click swaps out the weakest worked tile.
 	local function toggle(idx)
 		local now = os.clock()
-		local isDouble = lastClick ~= nil and lastClick.idx == idx and now - lastClick.t < 0.6
-		if not isDouble then
-			lastClick = { idx = idx, t = now }
-			if workedIdx[idx] == true then
-				print("[WorkedTiles] double-click to remove this worker")
-			elseif workersPlacedNow < budget then
-				print("[WorkedTiles] double-click to work this tile")
-			else
-				print("[WorkedTiles] all citizens busy - double-click to swap with the weakest tile")
+		local recent = lastClick ~= nil and lastClick.idx == idx and now - lastClick.t < 0.6
+		if workedIdx[idx] == true then -- worked: single click removes (debounced)
+			if recent then
+				return
 			end
-			return
-		end
-		lastClick = nil
-		if workedIdx[idx] == true then -- double-click an active tile: remove
+			lastClick = { idx = idx, t = now }
 			local set = table.clone(workedIdx)
 			set[idx] = nil
 			sendWorkers(set)
-		elseif workersPlacedNow < budget then -- a citizen is free: place them
+		elseif workersPlacedNow < budget then -- free citizen: single click places
+			if recent then
+				return
+			end
+			lastClick = { idx = idx, t = now }
 			local set = table.clone(workedIdx)
 			set[idx] = true
 			sendWorkers(set)
-		else -- capped: swap out the weakest worked tile
-			applySwap(idx)
+		else -- capped: a DOUBLE click swaps out the weakest worked tile
+			if recent then
+				lastClick = nil
+				applySwap(idx)
+			else
+				lastClick = { idx = idx, t = now }
+				print("[WorkedTiles] all citizens busy - double-click to swap with the weakest tile")
+			end
 		end
 	end
 
@@ -288,8 +292,8 @@ local function rebuild()
 	closeAnchor.CanCollide = false
 	closeAnchor.CanQuery = false
 	closeAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
-	closeAnchor.CFrame = CFrame.new(city.x * TILE,
-		tileTopY(city.x, city.y) + 2, (city.y + 4.2) * TILE) -- session-E: a bit further down
+	closeAnchor.CFrame = CFrame.new((city.x - 2.2) * TILE, -- runL item 4: CLOSE on the left
+		tileTopY(city.x, city.y) + 2, (city.y + 4.2) * TILE)
 	closeAnchor.Parent = folder
 	local closeBB = Instance.new("BillboardGui")
 	closeBB.Size = UDim2.new(0, 220, 0, 40)
@@ -323,8 +327,8 @@ local function rebuild()
 	nextAnchor.CanCollide = false
 	nextAnchor.CanQuery = false
 	nextAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
-	nextAnchor.CFrame = CFrame.new(city.x * TILE,
-		tileTopY(city.x, city.y) + 2, (city.y + 3.25) * TILE)
+	nextAnchor.CFrame = CFrame.new((city.x + 2.2) * TILE, -- runL item 4: side by side, NEXT on the right
+		tileTopY(city.x, city.y) + 2, (city.y + 4.2) * TILE)
 	nextAnchor.Parent = folder
 	local nextBB = Instance.new("BillboardGui")
 	nextBB.Size = UDim2.new(0, 220, 0, 40)

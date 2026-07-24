@@ -828,6 +828,100 @@ its row and lists a `🏛 Wonders` timeline (last ~8). Gate 24
 (`stats-timeline-parity.mjs`) pins the accumulation vs stats-data.js + the
 push + the render. Catalog SO8 → PRESENT.
 
+### 3z. Playtest batches run-I / run-J / run-K (user sessions 2026-07-23/24)
+
+Three end-to-end 2100AD playthroughs on the gaming PC drove a batch of
+UI/UX and flow work. All golden-neutral (client render/UI + roblox-server
+seat/reset flow; JS engine untouched). Delivered:
+
+- **run-I design batch** (the 9 design-ruled items, spec
+  `specs/runI-design-rulings.md`): segmented-bar host setup + green/red
+  boolean toggles + +50% font (`Lobby`, legal-value lists MIRROR the
+  server: `MAP_SIZES` / `DIFFICULTY_LEVELS` / `rules.mapTypes` /
+  `rules.ages` / `maxCivsBySize`; segment-tap = `|target-current|` dir
+  steps over the EXISTING setup protocol — NO server change); zoom label
+  LOD (`ViewRenderer` reads `ClientState.cameraDist`, exposed by
+  `Camera`); tile info card + enemy-red cards (`Select`, yields via
+  `cities.tileYields`); map-overlays button + 3-toggle influence/presence
+  tints (`Overlays.client.luau`, fog-honest); fortify earthworks+pikes,
+  yield ICONS (`WorkedTiles`), Civilopedia rename, user-message banner.
+- **run-J**: setup panel 50% wider; overlay button re-styled + re-slotted
+  above Legend (Diplomacy bumped up); city-influence suppressed in city
+  view (`ClientState.cityViewOpen`); floating "VIEW NEXT CITY" in
+  `WorkedTiles` (twin of CLOSE CITY VIEW); **defeat→deck flow** (a seated
+  human at 0 cities, confirmed one turn later → 10s countdown → server
+  unseats + `LoadCharacter` to the deck, the regent keeps the seat);
+  endscreen NEW-GAME (teleport) + WATCH-REPLAY buttons; **theater camera
+  fix** (see gotcha 2).
+- **run-K**: replay MISMATCH + timeout fixes (gotchas 1 + 3), playback
+  bar re-style (2×h / 1.5×w, glyph transport buttons, view DROPDOWN),
+  exit-theater + game-over-End-Turn re-open the victory menu
+  (`ClientState.reshowEndScreen`), **server reset** (post-game, no theater
+  watcher for 30s → 60s countdown → soft reset to the deck; watcher
+  tracked via a `theaterAlive` keep-alive).
+- **run-L**: Civilopedia → **Gamepedia**; deck `CastShadow=false` (no
+  board shadow); worked-tile removal reworked to single-click + debounce
+  (gotcha 6); CLOSE / VIEW-NEXT-CITY side by side; **post-game is public**
+  (gotcha 5 — the theater + endscreen reach a defeated/deck player);
+  Studio `PlaceId==0` teleport guard (gotcha 7); **boot intro** animation
+  (`Intro.client.luau`, tap-to-skip); fixed the `WaitStatus` Rojo name
+  collision (gotcha 8).
+
+### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
+
+1. **The AI-round-chain guard is SEATS-DERIVED, never a fixed number.**
+   Any loop that re-runs a full round of AI seats (`endTurn` +
+   `runAiTurn` until the next human/regent) must guard with
+   `#state.playerOrder + 2`, NOT a constant. A fixed `10` strands the
+   traversal in ≥12-civ games (medium/large default to 14), so the round
+   never wraps back to the human and the state is wrong. This bug has
+   surfaced THREE times and been fixed each way: engine `session.js` /
+   `server/game.js` (`ec0ade2`), `GameServer.chainAndRound`, and
+   `ReplayTheater.deriveTo` (the run-K "MISMATCH at entry N" — the replay
+   re-derivation must match the recorded hashes, which were made with the
+   fixed guard). If you write new AI-round-traversal code, use the
+   seats-derived guard from the start.
+2. **The replay theater owns the camera while open.** The mini-stage is
+   built at `STAGE_Y=220` near world origin; `Camera.client` drives the
+   map camera every RenderStepped and would override any camera the
+   theater set — so nothing rendered. Fix: `ClientState.theaterActive`
+   makes `Camera` early-return, and the theater frames the stage on load.
+3. **Replay derivation must be incremental + yield.** Re-deriving a long
+   game (500+ rounds × AI chains) from the initial state on every scrub
+   blows the Luau execution budget (`Script timeout`). `deriveTo` caches
+   the last derived state+round, replays only FORWARD from a deep-cloned
+   cache, yields every ~30 entries, and loads at turn 1 (not the end).
+4. **Upstream `client/renderer/three/{props,recipes}.js` or `data/*.json`
+   drift → re-mirror + re-bake reflex.** Gate 25 (tile-props) fails when
+   `recipes.js` PROP_SHAPES / `props.js` SPECIAL_MOTIF change (e.g. the
+   specials `resShield`→`resStraw`/`pond` refinement); gate 4 fails on any
+   `data/*.json` change. Mirror `TileProps.luau` key-for-key and run
+   `node roblox/data/build.js`.
+5. **Post-game is PUBLIC.** The endscreen must broadcast to ALL connected
+   players (not just `seatOfUser`), and the theater request must DROP the
+   `seated` gate once `state.gameOver` — a defeated player already sent to
+   the deck (run-L item 5) is unseated but must still see the scoreboard +
+   watch the replay (its omniscient view IS "see the whole map"). Mid-game
+   the theater stays admin-only (fog wallhack).
+6. **Double-click detection is fragile on Roblox.** The city worked-tile
+   overlay rebuilds on every server view push (constant mid-game), so a
+   double-click's two `Activated` events land on different quad instances,
+   and `os.clock()` is CPU time (not wall). Prefer **single-click acts +
+   debounce the rapid second click** (run-L item 3) over requiring a
+   double-click; keep double-click only where a single click is ambiguous
+   (the capped-city swap).
+7. **Studio / unpublished place has `game.PlaceId == 0`.** Guard
+   `TeleportService:Teleport` on `PlaceId ~= 0` (it errors "invalid place
+   id 0"); fall back to the deck (run-L item 6).
+8. **Rojo NAME COLLISION is a silent boot break.** A `Foo.luau`
+   (ModuleScript) and `Foo.client.luau` (LocalScript) in the same folder
+   BOTH map to instance name "Foo", so
+   `require(script.Parent:WaitForChild("Foo"))` is ambiguous and can
+   return the LocalScript → "Attempted to call require with invalid
+   argument(s)" at boot, and the consumer silently never runs. Give the
+   consumer a distinct basename (`FooHud.client.luau`); the module keeps
+   the plain name. (Latent in `WaitStatus` since Tier-3, found in run-L.)
+
 ## 4. Self-test (`check.sh`)
 
 `roblox/check.sh` is the headless self-test (runnable on any machine
