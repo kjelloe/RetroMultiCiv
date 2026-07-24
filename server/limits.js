@@ -1,3 +1,7 @@
+// regression-guard 1: reject reason strings come from the ONE registry in
+// protocol.js (no scattered literals). protocol.js imports nothing, so no cycle.
+import { REJECT_REASONS } from './protocol.js';
+
 // Per-IP rate limits + global caps for the public host (A50 item 2, docs/16
 // gap 1). Pure and clock-injectable (deps.now) so every limit has a red case
 // with time advanced by hand — no sleeps in tests. LAN-safe defaults: a normal
@@ -49,8 +53,8 @@ export function createLimiter(deps) {
   const windows = {};  // "ip|action" -> ascending array of event timestamps (ms)
 
   function onConnect(ip) {
-    if (totalConns >= cfg.maxConns) return { ok: false, reason: 'serverFull' };
-    if ((conns[ip] || 0) >= cfg.maxConnsPerIp) return { ok: false, reason: 'tooManyConns' };
+    if (totalConns >= cfg.maxConns) return { ok: false, reason: REJECT_REASONS.serverFull };
+    if ((conns[ip] || 0) >= cfg.maxConnsPerIp) return { ok: false, reason: REJECT_REASONS.tooManyConns };
     conns[ip] = (conns[ip] || 0) + 1;
     totalConns += 1;
     return { ok: true };
@@ -73,7 +77,7 @@ export function createLimiter(deps) {
     const key = ip + '|' + action;
     const t = now();
     const arr = (windows[key] || []).filter(ts => t - ts < w);
-    if (arr.length >= lim) { windows[key] = arr; return { ok: false, reason: 'rateLimited' }; }
+    if (arr.length >= lim) { windows[key] = arr; return { ok: false, reason: REJECT_REASONS.rateLimited }; }
     arr.push(t);
     windows[key] = arr;
     return { ok: true };
@@ -81,7 +85,7 @@ export function createLimiter(deps) {
 
   // Global game cap — called at create time with the live game count.
   function canCreateGame(gameCount) {
-    if (gameCount >= cfg.maxGames) return { ok: false, reason: 'tooManyGames' };
+    if (gameCount >= cfg.maxGames) return { ok: false, reason: REJECT_REASONS.tooManyGames };
     return { ok: true };
   }
 
@@ -98,7 +102,7 @@ export function createLimiter(deps) {
     if (t > b.last) { b.tokens = Math.min(cap, b.tokens + ((t - b.last) / 1000) * rate); b.last = t; }
     if (b.tokens >= 1) { b.tokens -= 1; return { ok: true }; }
     connectRejected += 1;
-    return { ok: false, reason: 'connectRateLimited' };
+    return { ok: false, reason: REJECT_REASONS.connectRateLimited };
   }
 
   // Drop expired window entries so memory stays bounded under connect/disconnect
@@ -145,7 +149,7 @@ export function createCommandBudget(deps) {
     if (tokens > cap) tokens = cap;
     last = t;
     if (tokens >= 1) { tokens = tokens - 1; return { ok: true }; }
-    return { ok: false, reason: 'rateLimited' };
+    return { ok: false, reason: REJECT_REASONS.rateLimited };
   }
   return { take, stats: () => ({ tokens }) };
 }
@@ -181,10 +185,10 @@ export function createBudgets(deps) {
   function seatCmd(gameId, pid, kind) {
     const cap = kind === 'endTurn' ? cfg.endTurnBurst : cfg.seatCmdBurst;
     const rate = kind === 'endTurn' ? cfg.endTurnRefillPerSec : cfg.seatCmdRefillPerSec;
-    return { ok: take('s:' + gameId + '|' + pid + '|' + kind, cap, rate), reason: 'rateLimited' };
+    return { ok: take('s:' + gameId + '|' + pid + '|' + kind, cap, rate), reason: REJECT_REASONS.rateLimited };
   }
   function message(connId) {
-    return { ok: take('m:' + connId, cfg.msgBurst, cfg.msgRefillPerSec), reason: 'rateLimited' };
+    return { ok: take('m:' + connId, cfg.msgBurst, cfg.msgRefillPerSec), reason: REJECT_REASONS.rateLimited };
   }
   function dropGame(gameId) {
     const pre = 's:' + gameId + '|';

@@ -5,60 +5,92 @@
 // connection its own `game.view(seat)`.
 const MAX_FRAME = 64 * 1024;
 
+// regression-guard 1 (ruled #2523): the SINGLE source of truth for every
+// reject `code` the server layer can put on the wire — previously scattered as
+// literals across server/{index,limits,protocol}.js. Each value equals its key
+// (the wire string); referencing REJECT_REASONS.x keeps the strings identical
+// (no behavior change) while giving the client one contract to test its handler
+// map against (it must cover a SUPERSET of these). Grouped by origin; forwarded
+// lobby/limits reasons are listed so the export is the complete vocabulary.
+// Engine command-reject reasons (needsCoast-class) are the ENGINE's contract and
+// pass through `code: res.reason` untouched — not part of this server registry.
+export const REJECT_REASONS = Object.freeze({
+  // protocol.js — frame validation
+  badFrame: 'badFrame', badJson: 'badJson', badName: 'badName',
+  badShape: 'badShape', badToken: 'badToken', unknownType: 'unknownType',
+  // limits.js — rate / capacity
+  rateLimited: 'rateLimited', connectRateLimited: 'connectRateLimited',
+  tooManyConns: 'tooManyConns', tooManyGames: 'tooManyGames', serverFull: 'serverFull',
+  // index.js — join / resolve / game-state / moderation
+  badSave: 'badSave', blocked: 'blocked', chatOff: 'chatOff', codeRequired: 'codeRequired',
+  gameEnded: 'gameEnded', joinTimeout: 'joinTimeout', joiningClosed: 'joiningClosed',
+  noCode: 'noCode', noGame: 'noGame', noLobby: 'noLobby', noSeat: 'noSeat',
+  noSeatAvailable: 'noSeatAvailable', noSuchCode: 'noSuchCode', noSuchGame: 'noSuchGame',
+  noSuchSave: 'noSuchSave', noVoteOpen: 'noVoteOpen', notCreator: 'notCreator',
+  notHost: 'notHost', notInGame: 'notInGame', notOver: 'notOver', notPublic: 'notPublic',
+  notStarted: 'notStarted', seatNotBound: 'seatNotBound', seatOccupied: 'seatOccupied',
+  spectatorsOff: 'spectatorsOff', targetCannotVote: 'targetCannotVote', tooFast: 'tooFast',
+  // lobby.js — seat / registry reasons, forwarded via `code: res.reason`
+  alreadyStarted: 'alreadyStarted', badMode: 'badMode', cannotKickHost: 'cannotKickHost',
+  civTaken: 'civTaken', gameFull: 'gameFull', mapTooSmall: 'mapTooSmall',
+  noSuchCiv: 'noSuchCiv', noSuchSeat: 'noSuchSeat', notReclaimable: 'notReclaimable',
+  seatNotReserved: 'seatNotReserved', seatReserved: 'seatReserved'
+});
+
 export function parseMessage(raw) {
   if (typeof raw !== 'string' || raw.length === 0 || raw.length > MAX_FRAME) {
-    return { ok: false, code: 'badFrame' };
+    return { ok: false, code: REJECT_REASONS.badFrame };
   }
   let msg;
   try {
     msg = JSON.parse(raw);
   } catch (e) {
-    return { ok: false, code: 'badJson' };
+    return { ok: false, code: REJECT_REASONS.badJson };
   }
   if (!msg || typeof msg !== 'object' || Array.isArray(msg) || typeof msg.t !== 'string') {
-    return { ok: false, code: 'badShape' };
+    return { ok: false, code: REJECT_REASONS.badShape };
   }
   if (msg.t === 'ping') return { ok: true, msg };
   if (msg.t === 'join') {
     if (typeof msg.name !== 'string' || msg.name.length < 1 || msg.name.length > 24) {
-      return { ok: false, code: 'badName' };
+      return { ok: false, code: REJECT_REASONS.badName };
     }
     if (msg.token !== undefined && typeof msg.token !== 'string') {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
-    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: 'badShape' };
+    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     if (msg.seatCode !== undefined // A46: XXXX-YYYY in the docs/07 alphabet
         && !/^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}-[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{4}$/.test(msg.seatCode)) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     // Part B (mobile): lobby-reconnect id to reclaim a grace-held seat
     if (msg.lobbyReconnect !== undefined && (typeof msg.lobbyReconnect !== 'string' || msg.lobbyReconnect.length > 64)) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
   }
   // phase-4 lobby frames (docs/08 §2): create a game, list open games, start.
   if (msg.t === 'create') {
     if (typeof msg.name !== 'string' || msg.name.length < 1 || msg.name.length > 24) {
-      return { ok: false, code: 'badName' };
+      return { ok: false, code: REJECT_REASONS.badName };
     }
     if (msg.options !== undefined && (typeof msg.options !== 'object' || Array.isArray(msg.options))) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
   }
   if (msg.t === 'list' || msg.t === 'start') return { ok: true, msg };
   // A27 host-only lobby edits: slot mode/civ + slot-count resize
   if (msg.t === 'setSlot') {
-    if (typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.mode !== undefined && msg.mode !== 'open' && msg.mode !== 'ai') return { ok: false, code: 'badShape' };
-    if (msg.civ !== undefined && typeof msg.civ !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.mode === undefined && msg.civ === undefined) return { ok: false, code: 'badShape' };
+    if (typeof msg.seat !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.mode !== undefined && msg.mode !== 'open' && msg.mode !== 'ai') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.civ !== undefined && typeof msg.civ !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.mode === undefined && msg.civ === undefined) return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   if (msg.t === 'setSlots') {
-    if (!Number.isInteger(msg.civs)) return { ok: false, code: 'badShape' };
+    if (!Number.isInteger(msg.civs)) return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   // A37: lobby chat + host moderation. Chat text is HARD-capped here (200
@@ -66,26 +98,26 @@ export function parseMessage(raw) {
   // traffic and NEVER enters game state.
   if (msg.t === 'chat') {
     if (typeof msg.text !== 'string' || msg.text.length === 0 || msg.text.length > 200) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
   }
   if (msg.t === 'setChat') {
-    if (typeof msg.on !== 'boolean') return { ok: false, code: 'badShape' };
+    if (typeof msg.on !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   if (msg.t === 'setJoining') { // XVII §3: host-only lobby open/closed toggle
-    if (typeof msg.open !== 'boolean') return { ok: false, code: 'badShape' };
+    if (typeof msg.open !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   if (msg.t === 'kick') {
-    if (typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: 'badShape' };
+    if (typeof msg.seat !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.block !== undefined && typeof msg.block !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   // A40 slice 2: hand your OWN seat to the AI (stance) or take it back (null).
   if (msg.t === 'regent') {
-    if (msg.stance !== null && typeof msg.stance !== 'string') return { ok: false, code: 'badShape' };
+    if (msg.stance !== null && typeof msg.stance !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   // A47: the full recording for the replay theater — served ONLY post-gameOver
@@ -95,10 +127,10 @@ export function parseMessage(raw) {
   // only for lobbies that opted INTO the public list.
   if (msg.t === 'listGames') return { ok: true, msg };
   if (msg.t === 'joinListed') {
-    if (typeof msg.gameId !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.name !== undefined && typeof msg.name !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: 'badShape' };
-    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: 'badShape' };
+    if (typeof msg.gameId !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.name !== undefined && typeof msg.name !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   // A34: resume server saves from the host flow. `file` is a BASENAME only —
@@ -108,12 +140,12 @@ export function parseMessage(raw) {
   if (msg.t === 'resume') {
     if (typeof msg.file !== 'string' || !/^[A-Za-z0-9][\w.-]*\.json$/.test(msg.file)
         || msg.file.includes('..') || msg.file.includes('/') || msg.file.includes('\\')) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
   }
   if (msg.t === 'resumeByCode') { // A98: code is the resume gamecode; empty→noCode in the handler
-    if (typeof msg.code !== 'string' || msg.code.length > 40) return { ok: false, code: 'badShape' };
+    if (typeof msg.code !== 'string' || msg.code.length > 40) return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   // S1: a seat's match-report veto — no payload beyond the routing gameId
@@ -121,20 +153,20 @@ export function parseMessage(raw) {
   // phase-4 turn flow (docs/08 §6): host skip + propose/vote (>2/3 of eligible).
   if (msg.t === 'skipTurn' || msg.t === 'proposeSkip') return { ok: true, msg };
   if (msg.t === 'vote') {
-    if (typeof msg.yes !== 'boolean') return { ok: false, code: 'badShape' };
+    if (typeof msg.yes !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
   }
   if (msg.t === 'cmd' || msg.t === 'endTurn') {
-    if (typeof msg.token !== 'string') return { ok: false, code: 'badToken' };
-    if (!Number.isInteger(msg.commandId)) return { ok: false, code: 'badShape' };
+    if (typeof msg.token !== 'string') return { ok: false, code: REJECT_REASONS.badToken };
+    if (!Number.isInteger(msg.commandId)) return { ok: false, code: REJECT_REASONS.badShape };
     if (msg.t === 'cmd'
         && (!msg.cmd || typeof msg.cmd !== 'object' || Array.isArray(msg.cmd)
             || typeof msg.cmd.type !== 'string')) {
-      return { ok: false, code: 'badShape' };
+      return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
   }
-  return { ok: false, code: 'unknownType' };
+  return { ok: false, code: REJECT_REASONS.unknownType };
 }
 
 // A24: pid -> civ id for every player that has one — public identity (the
