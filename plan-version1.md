@@ -4,28 +4,24 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 late evening (marker-0102 @17b4fb8 remains
-the MERGE-CONSISTENT candidate. Since the tag, the RIVER arc ran its
-full loop: landed @8da9029 → 25-seed sweep BREACHED M3-pop 23.5<28 →
-investigate-first ruling → audit found the mechanism (38% of strips
-on hills = ~165 mine-locked shields/world; river is flag-only +1
-trade, nothing replaced) → **fix-A @ea6c2a3** (hills never FLAGGED;
-2nd honest re-record; hills-never-flagged invariant) → reviewer
-GREEN #2593 (117/117) → **the post-fix 25-seed sweep is RUNNING**
-= marker-0103's last gate; escalation to the user only if M3 still
-<28. A SECOND window is open in parallel: the endscreen-winner
-view-contract fix (filterView carries gameOver+winner at strict
-gameOver — the fog-lapse ruling at the source; visibility.js+twin).
-Shipped since 0102: founders-tone (613f963, ally doctrine),
-specials-silhouettes (29c53a1 + roblox re-mirror 69cc40d),
-play-on-roblox hidden button (a61d34e), intro v1 USER-APPROVED
-frozen at v5b, roblox midgame-join BUILT+landed 58f74e4 (Studio
-verify pending), lobby-robustness merged fd30245, RC digest
-verified + drift-applied (#2565), fandom-reference license sweep.
-Spine after 0103: 11b authentic rosters (user RULED GO,
-explicit option-A pick) + D3-surfacing -> D4-D6 -> the
-XX §3 doctrine window. USER: merge 0102, roblox/** standing Write
-allowlist, PEDIA_NAME + city-roster last-call, Studio session,
+Last updated: 2026-07-25 night (marker-0103 TAGGED @fe39360 =
+MERGE-CONSISTENT, SUPERSEDES 0102 — merge 0103. The RIVER arc ran its
+full loop IN ONE EVENING: landed @8da9029 → sweep breach → audit
+(mine-lock mechanism) → fix-A @ea6c2a3 (hills never flagged, 2nd
+honest re-record, reviewer GREEN #2593) → post-fix sweep 16/16
+clean (#2615) → USER RULING: M3-pop floor re-pinned 28→22 (flood
+residual, re-ratchets at the doctrine window). ALSO in 0103: d3
+endscreen-winner view contract (gameOver+winner in views at
+gameOver, reviewer GREEN #2604), lobby-robustness + docs/16 §8
+merges, the seven-item helper batch (founders-tone, silhouettes,
+play-on-roblox, pedia-splash w/ PEDIA_NAME=Encyclopedia RULED,
+guard-1c, river shots, flow4-endscreen → guards G1-G5 COMPLETE +
+A49 5/5), roblox intro v1 USER-APPROVED @v5b + midgame-join landed
++ runN reset architecture, the license sweep, and the RC digest
+drift-fixes. Report: reports/marker-0103.md. Spine now: **11b
+authentic rosters (user RULED GO — window OPEN)** → D3-surfacing
+remainder → D4-D6 → the XX §3 doctrine window. USER: merge 0103 +
+redeploy, roblox/** standing Write allowlist, Studio session,
 trademark.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
@@ -55,7 +51,7 @@ flowchart TD
     CLM["✅ claimSeat command (0097):\nAI seat -> human via the stamped command\npath; fixture 061; unblocked late-join §3"]
     A8N["✅ A8 tile contention (0102, fork-b 376ff03):\nonce-per-turn resolution, AI evals keep the\npre-A8 model (ruling); perf 0.53×; sweep GREEN"]
     CST["✅ coastal-build (0102, 95261a1): sea units\nrequire a center-coastal city; cityIsCoastal\nshared helper; scenario 064"]
-    RIV["🔨 RIVER @8da9029 + fix-A @ea6c2a3 (breach→\naudit→hills-never-flagged; 2 honest re-records) —\nreviewer GREEN #2593; post-fix 25-seed sweep\nRUNNING = 0103's last gate"]
+    RIV["✅ RIVER COMPLETE (0103 @fe39360): landed +\nfix-A + sweep clean; M3 floor re-pinned 22 by\nUSER RULING (flood residual; re-ratchets at the\ndoctrine window)"]
     D3S["📋 D3 server-surfacing · 11b city names"]
     D46["📋 Diplomacy D4–D6 — SPEC READY\n(d456-diplomacy-impl.md; witness-8 AFTER-half\n+ treaty-UI rename pass ride the D4 landing)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -69,7 +65,7 @@ flowchart TD
     SEC2["✅ docs/16 §7 re-assessed (2026-07-24,\nnew-dep+1.0 trigger): NO RC-blocker;\ntakeover-cap residual -> v2 shelf"]
     VCT["✅ #19 view-contract test MERGED (012d04b)\n+ master-proxy + lobby-drop (reviewer green)"]
     JTG["✅ XVII §3 join-toggle merged @e00be57\n(host open/closed, AI-seat auto-fill,\nreconnect-reclaim verified)"]
-    GOR["✅ gameover-reveal + reject-reasons (0102) +\nlobby-robustness MERGED fd30245 · 🔨 endscreen-\nwinner view-contract fix in build (gameOver+winner\nat strict gameOver) · 📋 docs/16 delta queued"]
+    GOR["✅ gameover-reveal + reject-reasons (0102) +\nlobby-robustness + docs/16 §8 delta + the\nendscreen-winner view contract ALL MERGED (0103)\n— server lane queue EMPTY"]
     A50R --> A51D --> LJS --> SEC2 --> VCT --> JTG --> GOR
   end
 
@@ -77,9 +73,9 @@ flowchart TD
     XIVD["✅ shipped: regency lifecycle · save/load\nbuttons · client-server redirect · endscreen\nfog-guard · bug-report · §24 tile-yield ·\n§27 tech-tree cards"]
     XIVQ["✅ the 30-item helper window CLOSED\n(XIV batches 2-5 + XV set + A58 + off-turn\nover-server + gov-picker; queue EMPTY)"]
     A58["✅ A58 pedia completion (2d4a8d1):\n0 catalog gaps + 3 concepts, reviewer\ncross-checked"]
-    A49["✅ A49 flows 1-3 + flow-2 nightly ·\n📋 flow-4 endscreen SPEC still open (did NOT\nride #34 — reviewer tree-check #2565)"]
+    A49["✅ A49 ALL FIVE FLOWS specced (0103):\nflow-4 = test-ui/endscreen.spec.js, doubles\nas regression-guard 3"]
     LJC["✅ late-join client + reveal banner +\njoin-share QR + boot-fade + specials motifs\n+ d4-treaty-shell + play-lane sweep +\nrefinement-XVII (0101) + XIX 8/8 (0102)"]
-    END["✅ #34 Founder's Record COMPLETE (0102,\n68fac99: all four endings + Continue-gate +\n?ending= preview) · 📋 founders-tone pass +\nguards 3/4 etc. on the helper stack (5 items)"]
+    END["✅ #34 Founder's Record + founders-tone +\nsilhouettes + play-on-roblox + pedia-splash\n(Encyclopedia) ALL SHIPPED (0103); guards\nG1-G5 complete; helper queue: oasis-palm"]
     FG["✅ 'Find game' server browser\n(initGlobalTab: checksum-honest listing,\npick re-points the join flow)"]
     XIVD --> XIVQ --> A58 --> A49 --> END
     XIVQ --> FG
@@ -116,7 +112,7 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV done
   class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
   class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
@@ -142,8 +138,8 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
-| 1 | Every Civ 1 system faithful | ~99% (A8 ✅ + coastal ✅ + river fix-A reviewer-GREEN) | **the post-fix sweep** (running → 0103), then workturns/transforms |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, endscreen-winner fix in build | **11b rosters (user RULED GO) + D3-surfacing → D4–D6** |
+| 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, endscreen-winner contract ✅ (0103) | **11b rosters (window OPEN) + D3-surfacing → D4–D6** |
 | 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings) | doctrine window after D4–D6 unless promoted |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + **midgame-join landed** | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness merged fd30245 | docs/16 delta re-assessment (queued) |

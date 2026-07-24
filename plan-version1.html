@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Last updated: <strong>2026-07-25 late evening</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0102</strong> @ 17b4fb8 (merge-consistent)</span>
-    <span class="chip">In gate: river fix-A reviewer-GREEN, <strong>post-fix sweep running</strong> → marker-0103</span>
+    <span class="chip">Last updated: <strong>2026-07-25 night</strong></span>
+    <span class="chip">Merge candidate: <strong>marker-0103</strong> @ fe39360 (merge-consistent, supersedes 0102)</span>
+    <span class="chip"><strong>RIVER COMPLETE</strong> — sweep 16/16 clean, M3 floor re-pinned 22 by your ruling</span>
   </div>
 </header>
 
@@ -97,8 +97,8 @@
     archetype wonders, the gov arc, COW perf, all the smalls, claimSeat, and now <strong>A8 tile contention</strong>
     (fork-b: once-per-turn resolution, perf 0.53× baseline, 25-seed sweep GREEN) + <strong>coastal-build</strong> (scenario 064).</div></div>
     <ol class="spine">
-      <li><span class="st now">🔨 sweep running</span><strong>RIVER + fix-A</strong> — the full loop ran tonight: landed @8da9029 → sweep breached M3-pop → audit found the mine-lock mechanism (38% of strips on hills) → fix-A @ea6c2a3 (hills never flagged, 2nd honest re-record) → reviewer GREEN (117/117) → the post-fix 25-seed sweep is 0103's last gate; escalation to you only if M3 still misses</li>
-      <li><span class="st qd">user RULED GO</span><strong>11b authentic city rosters</strong> — full 16-name Civ1-founding-order replace (a small re-record; current positions 1–8 are inauthentic); starts when 0103 tags (explicit option-A pick) · then <strong>D3 server-surfacing</strong> (the endscreen-winner half is in build now, golden-neutral)</li>
+      <li class="g"><span class="st done">✅ 0103</span><strong>RIVER COMPLETE</strong> — the full loop ran in one evening: landed → breach → audit (mine-lock) → fix-A (hills never flagged) → reviewer GREEN → sweep 16/16 clean → your ruling: M3-pop floor re-pinned 28→22 (flood residual; re-ratchets when the doctrine window lands walls)</li>
+      <li><span class="st now">🔨 window OPEN</span><strong>11b authentic city rosters</strong> — full 16-name Civ1-founding-order replace (your explicit option-A pick); rosters staged, swap script dry-run-verified · then <strong>D3 server-surfacing remainder</strong> (the endscreen-winner half shipped in 0103)</li>
       <li><span class="st qd">queued</span><strong>Diplomacy D4–D6</strong> — spec ready; the witness-8 AFTER-half and the treaty-UI rename pass ride the D4 landing</li>
       <li><span class="st qd">queued</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; measure-first baseline running on the gaming PC, the engine window queues after D4–D6 unless you promote it</li>
     </ol>
@@ -111,7 +111,7 @@
   <div class="item g"><div class="t"><span class="st done">✅ done</span>Server</div>
     <div class="d">A50 hardening + master index LIVE (axis 5 closed) + <strong>late-join / pause-on-empty / eviction
     FEATURE-COMPLETE</strong> (designed and merged 2026-07-24; <code>--no-late-join</code> documented) + docs/16 §7
-    re-assessed (no RC-blocker). View-contract + master-proxy + lobby-drop + join-toggle + gameover-reveal + reject-reasons + <strong>lobby-robustness</strong> (fd30245) ALL merged on reviewer green. In build: the endscreen-winner view-contract fix. Queued: the docs/16 delta re-assessment (five new surfaces since its last pass).</div></div>
+    re-assessed (no RC-blocker). View-contract + master-proxy + lobby-drop + join-toggle + gameover-reveal + reject-reasons + lobby-robustness + <strong>docs/16 §8 delta</strong> + <strong>the endscreen-winner view contract</strong> ALL merged on reviewer green (0103) — server lane queue empty.</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ v1-complete</span>Client / UI</div>
     <div class="d">The 30-item window, A58 pedia, A49 flows 1–3 (flow-4 endscreen spec still open — reviewer tree-check), late-join client half, join-share QR,
     fish/specials motifs, refinement-XVII (all 22) and XIX (8/8), regression guards 2+5, and <strong>#34 Founder's Record COMPLETE</strong>
@@ -128,8 +128,8 @@
   <div class="bar"></div>
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
-    <tr><td>1</td><td>Every Civ 1 system faithful</td><td>~99% (A8 ✅ · coastal ✅ · river fix-A reviewer-GREEN)</td><td><strong>the post-fix sweep</strong> (running → 0103), then workturns/transforms</td></tr>
-    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · endscreen-winner fix in build</td><td><strong>11b rosters (user RULED GO) + D3-surfacing → D4–D6</strong></td></tr>
+    <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE (0103)</strong> — all terrains in, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
+    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · endscreen-winner contract ✅</td><td><strong>11b rosters (window OPEN) + D3-surfacing → D4–D6</strong></td></tr>
     <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline: ~0 buildings)</td><td>doctrine window after D4–D6</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
     <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness merged</td><td>docs/16 delta (queued)</td></tr>
