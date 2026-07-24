@@ -1,6 +1,7 @@
 // Player options (⚙, top right) and the gameplay Help panel (❓). Options
 // are client preferences in localStorage — never game state, never hashed.
 import { PALETTES } from './palette.js';
+import { PEDIA_NAME } from './pedia-name.js';
 const KEY = 'retromulticiv-options';
 const DEFAULTS = {
   autoEndTurn: false,     // end the turn as soon as every unit has moved
@@ -154,7 +155,7 @@ export function initOptions(ctx) {
     <div class="help-entry"><b>🏛 Capital</b> — press <b>C</b> with no city selected to fly to your
       capital (the Palace city, or your oldest). With a city selected, C cycles
       its buildable improvements instead. <a class="pedia-deeplink" data-concept="corruption">📖 more in the pedia</a></div>
-    <div class="help-entry"><i>Full reference in the 📖 Civilopedia (?).</i></div>`;
+    <div class="help-entry"><i>Full reference in the 📖 ${PEDIA_NAME} (?).</i></div>`;
   document.body.appendChild(helpPanel);
   helpPanel.querySelector('.panel-close').addEventListener('click', () => helpPanel.classList.add('hidden'));
   // A58c deep-link: jump from a quick tip into the pedia's concept entry

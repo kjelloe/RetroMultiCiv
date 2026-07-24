@@ -8,6 +8,8 @@
 // at show-time, re-anchored on resize); a hidden target falls back to its proxy
 // or is skipped.
 
+import { PEDIA_NAME } from './pedia-name.js';
+
 const SEEN_KEY = 'rmc_onboarding_seen';
 
 function readSeen() { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') || {}; } catch (e) { return {}; } }
@@ -35,7 +37,7 @@ const GAME_ARROWS = [
   { sel: '#end-turn', label: 'End your turn when done', big: true },
   { sel: '#regent-btn', label: REGENCY_HELP, big: true },
   { sel: '#open-options', label: 'Options', big: false },
-  { sel: '#open-pedia', label: 'Civilopedia', big: false },
+  { sel: '#open-pedia', label: PEDIA_NAME, big: false },
   { sel: '#open-diplo', label: 'Foreign relations', big: false },
   { sel: '#help', label: 'Controls', big: false },
   { sel: '#turn-log', label: 'Turn log', big: false }

@@ -7,8 +7,21 @@
 // 'discoveryCards' mutes it (advice precedent). Hotseat-safe: ctx.HUMAN is
 // read per event, never cached.
 import { TECH_BLURBS } from './tech-blurbs.js';
+import { PEDIA_NAME } from './pedia-name.js';
 import { availableTechs } from '../../engine/tech.js';
 import { glyphImg } from './tech-glyphs.js';
+import { stanceFromPersonality } from '../../engine/leaders.js';
+
+// A59 leader stance → a readable one-liner for the game-start splash. Reuses the
+// engine's pure stance derivation (never a forked resolver); Civ 1 has no unique
+// units, so the splash presents the civ's SPECIALTY + the leader's personality.
+const LEADER_STANCE_PHRASE = {
+  aggressive: 'an aggressive leader who favors conquest',
+  science: 'a scholarly leader who favors research',
+  growth: 'an expansionist leader who favors growth and settlement',
+  defensive: 'a cautious leader who favors strong defenses',
+  balanced: 'a balanced, even-handed leader'
+};
 
 export function initDiscoveryCard(ctx) {
   const { session } = ctx;
@@ -16,6 +29,7 @@ export function initDiscoveryCard(ctx) {
   let overlay = null;      // XIV §26: the full celebration overlay (world-dim + card)
   let escHandler = null;
   const queue = [];
+  let shownCivIntro = false; // #6 item 2: the game-start civ splash shows once per start
 
   function enabled() {
     return !ctx.options || ctx.options.get('discoveryCards') !== false;
@@ -134,7 +148,7 @@ export function initDiscoveryCard(ctx) {
       <div class="dc-name">${esc(def.name)}</div>
       <div class="dc-blurb">A Wonder of the World${cityName ? ` — built in ${esc(cityName)}` : ''}. Only one civilization can hold it.</div>
       <div class="dc-actions">
-        <button class="dc-pedia">📖 Civilopedia</button>
+        <button class="dc-pedia">📖 ${PEDIA_NAME}</button>
         ${city ? '<button class="dc-goto">Go to ' + esc(cityName) + '</button>' : ''}
         <button class="dc-continue">Continue</button>
       </div>`;
@@ -157,6 +171,80 @@ export function initDiscoveryCard(ctx) {
     window.addEventListener('keydown', escHandler);
   }
 
+  // #6 item 2 (Refinement XX §2): the GAME-START civ splash — the same discovery
+  // frame (world-dim + centered card, Continue-gated, no auto-close): "You lead
+  // the [Civ]", the leader + personality (A59), and the civ's SPECIALTY with a §22
+  // hover-card + pedia deep-link. Civ 1 has NO unique units — the identity is the
+  // specialty (discount) and leader, never invented uniques. Once per game start;
+  // AUTOMATION/spectator-suppressed at the main.js call site.
+  function showCivIntro(civId) {
+    if (overlay) return; // never stack over another card
+    const civ = session.ruleset.civs && session.ruleset.civs[civId];
+    if (!civ) return;
+    shownCivIntro = true;
+    const leader = civ.leader || 'your ruler';
+    const stance = civ.personality ? stanceFromPersonality(civ.personality) : 'balanced';
+    const phrase = LEADER_STANCE_PHRASE[stance] || LEADER_STANCE_PHRASE.balanced;
+    const sp = civ.specialty || {};
+    const specUnit = sp.unit && units[sp.unit] ? sp.unit : null;
+    const rawColor = (civ.visual && civ.visual.primary) || civ.color || '#8fa8cc';
+    const color = /^#[0-9a-fA-F]{3,8}$/.test(rawColor) ? rawColor : '#8fa8cc';
+
+    overlay = document.createElement('div');
+    overlay.id = 'discovery-overlay';
+    const card = document.createElement('div');
+    card.id = 'discovery-card';
+    card.className = 'reveal ci-card';
+    card.innerHTML = `
+      <div class="dc-glyph"><div class="ci-emblem" style="--civ:${color}"></div></div>
+      <div class="dc-kicker">A NEW WORLD BEGINS</div>
+      <div class="dc-name">You lead the ${esc(civ.name)}</div>
+      <div class="dc-blurb">${esc(leader)} — ${esc(phrase)}.</div>
+      <div class="dc-unlocked">
+        <div class="dc-unlocked-h">YOUR PEOPLE'S STRENGTH</div>
+        <div class="ci-specialty">${esc(sp.blurb || 'a resourceful people')}`
+          + `${specUnit ? ` <button class="dc-link" data-cat="units" data-id="${esc(specUnit)}">📖 ${esc(units[specUnit].name)}</button>` : ''}</div>
+      </div>
+      <div class="dc-actions">
+        <button class="dc-continue">Begin your reign ▸</button>
+      </div>`;
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    card.querySelector('.dc-continue').addEventListener('click', close);
+    // the specialty unit opens its pedia entry
+    card.addEventListener('click', e => {
+      const link = e.target.closest('.dc-link');
+      if (link && ctx.pedia) { const cat = link.dataset.cat, id = link.dataset.id; close(); ctx.pedia.openTo(cat, id); }
+    });
+    // §22 hover-card summary on the specialty link — REUSE the panels builder
+    for (const link of card.querySelectorAll('.dc-link')) {
+      link.addEventListener('mouseenter', () => {
+        if (ctx.panels && ctx.panels.entitySummary && ctx.hoverCard) {
+          const sum = ctx.panels.entitySummary(link.dataset.cat, link.dataset.id);
+          if (sum) ctx.hoverCard.showAtEl(link, sum);
+        }
+      });
+      link.addEventListener('mouseleave', () => { if (ctx.hoverCard) ctx.hoverCard.hide(); });
+    }
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    escHandler = e => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', escHandler);
+  }
+
+  // gated entry: show ONCE per game start, only at a fresh/turn-0 start (a load
+  // into a mid-game turn does not re-introduce the civ). Returns true if it showed.
+  function maybeShowCivIntro() {
+    const state = session.state;
+    if (shownCivIntro || !state || state.gameOver === true) return false;
+    if (state.turn > 1) return false; // only the game start / a turn-0 load
+    const me = state.players[ctx.HUMAN];
+    const civId = me && me.civ;
+    if (civId === undefined) return false;
+    showCivIntro(civId);
+    return overlay !== null;
+  }
+
   function pump() {
     if (overlay || queue.length === 0) return;
     const item = queue.shift();
@@ -177,5 +265,5 @@ export function initDiscoveryCard(ctx) {
     pump();
   });
 
-  return { enabled, show, showWonder }; // show/showWonder exposed for e2e/screenshot hooks
+  return { enabled, show, showWonder, showCivIntro, maybeShowCivIntro }; // + civ splash (e2e/screenshot hooks)
 }

@@ -588,9 +588,16 @@ if (renderer.setReduceAnimation) {
     }
   });
 }
-// first in-game screen: one-time arrows to the controls (a real seated game,
-// not a spectator view and not a finished game booted just to show its endscreen)
-if (!ctx.SPECTATOR && !AUTOMATION && !(session.state && session.state.gameOver)) maybeShowGameOnboarding();
+// #6 item 2: the game-start civ splash — "You lead the [Civ]" + specialty +
+// leader (Continue-gated, once per start), then the WHERE-things-are arrows.
+// Both are suppressed for spectators / automated browsers / a finished game.
+if (!ctx.SPECTATOR && !AUTOMATION && !(session.state && session.state.gameOver)) {
+  // the civ splash is the game-start welcome; if it shows, the one-time onboarding
+  // arrows defer to this boot's Options → '🧭 controls guide' (no double overlay)
+  const introShown = ctx.discoveryCard && ctx.discoveryCard.maybeShowCivIntro
+    ? ctx.discoveryCard.maybeShowCivIntro() : false;
+  if (!introShown) maybeShowGameOnboarding();
+}
 session.onChange((_state, events) => {
   ctx.hud.refresh();
   ctx.panels.refresh();
@@ -704,6 +711,12 @@ if (params.get('wonderdemo') && ctx.discoveryCard && ctx.discoveryCard.showWonde
   const wid = session.ruleset.wonders[w] ? w : Object.keys(session.ruleset.wonders)[0];
   const cid = session.state.cityOrder && session.state.cityOrder[0];
   ctx.discoveryCard.showWonder(wid, cid);
+}
+// #6 item 2: ?civintro previews the game-start civ splash (AUTOMATION suppresses
+// the real trigger, so this hook is how screenshots/reviews see it).
+if (params.get('civintro') && ctx.discoveryCard && ctx.discoveryCard.showCivIntro) {
+  const me = session.state.players[ctx.HUMAN];
+  setTimeout(() => ctx.discoveryCard.showCivIntro(me && me.civ), 400);
 }
 
 // XIV §33: ?envoydemo=1 injects a sample incoming peace offer and pops the envoy

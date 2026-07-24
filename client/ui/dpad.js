@@ -4,6 +4,8 @@
 // it. Hold-to-repeat; the ⌂ center taps the existing 'c' fly-to-capital
 // handler (input.js) via a synthetic keydown, so the landing logic stays
 // single-sourced.
+import { PEDIA_NAME } from './pedia-name.js';
+
 export function initDpad(ctx) {
   const { renderer } = ctx;
   const pad = document.createElement('div');
@@ -84,7 +86,7 @@ export function initDpad(ctx) {
           ['pinch', 'zoom the map in and out'],
           ['🧭 / the ⌂ d-pad', 'pan the map, and show/hide the compass'],
           ['tap a city', 'open the city view'],
-          ['💾 / 📂 / ⚙ / 📖', 'save · load · options · Civilopedia']
+          ['💾 / 📂 / ⚙ / 📖', `save · load · options · ${PEDIA_NAME}`]
         ].map(([g, d]) => `<li><b>${g}</b> — ${d}</li>`).join('');
       }
     }

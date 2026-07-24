@@ -6,6 +6,7 @@
 // opens from the 📖 corner button + the '?' key. Client-only + golden-neutral:
 // reads session.ruleset, never game state.
 import { makeCatalogText } from './catalog-text.js';
+import { PEDIA_NAME } from './pedia-name.js';
 import { CONCEPTS } from './pedia-concepts.js';
 import { UNIT_BLURBS, BUILDING_BLURBS } from './unit-building-blurbs.js';
 
@@ -72,7 +73,7 @@ export function initPedia(ctx) {
   overlay.className = 'hidden';
   overlay.innerHTML = `
     <div id="pedia-frame">
-      <div id="pedia-head"><h2>📖 Civilopedia</h2><input id="pedia-search" type="search" placeholder="search by name…" autocomplete="off"><button id="pedia-close" title="close (Esc)">✕</button></div>
+      <div id="pedia-head"><h2>📖 ${PEDIA_NAME}</h2><input id="pedia-search" type="search" placeholder="search by name…" autocomplete="off"><button id="pedia-close" title="close (Esc)">✕</button></div>
       <div id="pedia-body"><div id="pedia-cats"></div><div id="pedia-list"></div><div id="pedia-entry"></div></div>
     </div>`;
   document.body.appendChild(overlay);
@@ -131,7 +132,7 @@ export function initPedia(ctx) {
   const corner = document.getElementById('corner-buttons');
   if (corner) {
     const b = document.createElement('button');
-    b.id = 'open-pedia'; b.title = 'civilopedia (?)'; b.textContent = '📖';
+    b.id = 'open-pedia'; b.title = `${PEDIA_NAME} (?)`; b.textContent = '📖';
     corner.insertBefore(b, corner.firstChild);
     b.addEventListener('click', toggle);
   }
