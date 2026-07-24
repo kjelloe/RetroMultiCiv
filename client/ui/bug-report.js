@@ -24,7 +24,7 @@ export function initBugReport(ctx) {
     try {
       diagnostics = session.exportDiagnostics({
         url: location.href,
-        urlParams: location.search,
+        urlParams: location.search, // a45-ok: captures the live url for the report
         errors: ctx.errors || [],
         rulesOverrides: ctx.rulesOverrides || {}
       });

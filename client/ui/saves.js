@@ -72,7 +72,7 @@ export function initSaves(ctx) {
   // Where the per-game "last seen" code lives (docs/07 §4 auto-compare):
   // gameId in server mode, the world seed otherwise.
   const codeKey = 'retromulticiv-lastcode-' + (session.gameId
-    || 'seed' + (new URLSearchParams(location.search).get('seed') || '0'));
+    || 'seed' + (new URLSearchParams(location.search).get('seed') || '0')); // a45-ok: known ?seed, not dropped
   const isServer = () => session.gameId !== undefined;
 
   // Persistent game-code toast (docs/07 §3–4): shows the verification code and
@@ -327,7 +327,7 @@ export function initSaves(ctx) {
   // resume (main.js ?resume=local boots from this record). Server games are
   // server-saved and skip all of this. rmc_* keys are permanent codenames.
   const AUTO_KEY = 'rmc_local_autosave';
-  const isMock = new URLSearchParams(location.search).has('mock');
+  const isMock = new URLSearchParams(location.search).has('mock'); // a45-ok: known ?mock, not dropped
   let quotaNoted = false;
   function writeAutosave() {
     if (isServer() || isMock) return;

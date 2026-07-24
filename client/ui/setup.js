@@ -123,7 +123,7 @@ export function showSetupScreen() {
   // he missed it as a return visitor). Still skipped by reduce-animation,
   // headless (navigator.webdriver) and every demo/e2e param, and by
   // ?splash=0; ?splash=1/?splashstill=1 force it for screenshots.
-  const sq = new URLSearchParams(location.search);
+  const sq = new URLSearchParams(location.search); // a45-ok: setup boot, pre-canonicalize
   let reduceAnim = false;
   try { reduceAnim = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').reduceAnimation === true; } catch (e) { /* fresh */ }
   const demoParams = ['setupdemo', 'lobbydemo', 'e2ehost', 'e2ejoin', 'e2ehostform', 'e2ejoinform', 'e2echat'];
@@ -374,13 +374,13 @@ export function showSetupScreen() {
   refreshHumans();
   // ?setupdemo=lan|hotseat presets the multi-human states for screenshots
   // ?e2ejoin=CODE — joiner-view screenshots without driving the form
-  const joinCode = new URLSearchParams(location.search).get('e2ejoin');
+  const joinCode = new URLSearchParams(location.search).get('e2ejoin'); // a45-ok: setup boot
   if (joinCode) import('./lobby.js').then(m => m.autoJoin(setupBox, joinCode.toUpperCase(), 'Ada'));
 
   // join-share deep link: ?join=CODE opens the Join form with the code prefilled
   // (the QR/invite link a host shares from the lobby) — the friend just enters a
   // name and joins. Distinct from the e2e auto-join above (this waits for input).
-  const inviteCode = new URLSearchParams(location.search).get('join');
+  const inviteCode = new URLSearchParams(location.search).get('join'); // a45-ok: setup boot
   if (inviteCode && !joinCode) import('./lobby.js').then(m => {
     m.startJoinFlow(setupBox);
     const el = document.getElementById('lobby-code-in');
@@ -394,23 +394,23 @@ export function showSetupScreen() {
   });
 
   // ?lobbydemo=host|joiner|blocked|kicked — A37 waiting-room UI states
-  const lobbyDemoKind = new URLSearchParams(location.search).get('lobbydemo');
+  const lobbyDemoKind = new URLSearchParams(location.search).get('lobbydemo'); // a45-ok: setup boot
   if (lobbyDemoKind) {
     import('./lobby.js').then(m => m.lobbyDemo(setupBox, lobbyDemoKind));
   }
   // ?e2ehostform=1 (A34 screenshots): open the HOST FORM (not auto-create) so
   // the resume-a-save picker renders against the live server's inventory
-  if (new URLSearchParams(location.search).get('e2ehostform') === '1') {
+  if (new URLSearchParams(location.search).get('e2ehostform') === '1') { // a45-ok: setup boot
     import('./lobby.js').then(m => m.startHostFlow(setupBox,
       { civs: 2, humans: 2, size: 'medium', age: 'ancient' }));
   }
   // ?e2ejoinform=1 (A41 screenshots): open the JOIN form so the browse list
   // renders against the live server's public lobbies
-  if (new URLSearchParams(location.search).get('e2ejoinform') === '1') {
+  if (new URLSearchParams(location.search).get('e2ejoinform') === '1') { // a45-ok: setup boot
     import('./lobby.js').then(m => m.startJoinFlow(setupBox));
   }
 
-  const demo = new URLSearchParams(location.search).get('setupdemo');
+  const demo = new URLSearchParams(location.search).get('setupdemo'); // a45-ok: setup boot
   if (demo === 'lan' || demo === 'hotseat') {
     humansEl.value = '2';
     hotseatEl.checked = demo === 'hotseat';
@@ -518,7 +518,7 @@ export function showSetupScreen() {
     // to the public DEFAULT_MASTER: it serves no CORS header (verified 2026-07-23),
     // so a cross-origin fetch would just dead-end worse — rely on the proxy + the
     // actionable text below (reviewer #2446 #2: skip the fallback when CORS is absent).
-    const masterUrl = new URLSearchParams(location.search).get('master') || '/master/servers';
+    const masterUrl = new URLSearchParams(location.search).get('master') || '/master/servers'; // a45-ok: setup boot
     // the self-hoster's way out, shared by the not-configured + unreachable cases
     const selfHostHint = 'Self-hosting? Run the server with --master <url> (also announces you), or add ?master=<url> to this page URL.';
     fetch(masterUrl).then(r => r.json()).then(data => {
@@ -550,7 +550,7 @@ export function showSetupScreen() {
 
   // e2e: ?e2ehost=1 auto-hosts a tiny 1-human game and starts it (the browser
   // test's lobby boot path); &e2ehold=1 stops at the waiting room (screenshots).
-  const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search); // a45-ok: setup boot
   if (params.get('e2ehost') === '1') {
     import('./lobby.js').then(m => m.startHostFlow(setupBox,
       { // A38: ?e2ecivs/?e2esize override the tiny default (12-civ shots)

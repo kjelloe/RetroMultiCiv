@@ -127,7 +127,7 @@ function persistAndBoot(msg) {
   // ?server=<url> path); a local join keeps the plain server=1 form.
   // L5: carry ?mlog=1 through the reload — a phone diagnosing the lobby→start
   // boot needs the on-screen log to survive into the game, not die at the reload.
-  const mlogOn = new URLSearchParams(location.search).get('mlog') === '1';
+  const mlogOn = new URLSearchParams(location.search).get('mlog') === '1'; // a45-ok: boot/lobby read
   location.search = `?server=${joinOrigin ? encodeURIComponent(joinOrigin) : '1'}&game=${msg.gameId}`
     + (spectator ? '&spectate=1' : '')
     + (mlogOn ? '&mlog=1' : '');
@@ -504,7 +504,7 @@ function updateRoster(lobby, mySeat, hostCtl) {
       el.appendChild(row);
     }
     // ?e2ekick=1 (A37 screenshots): open the first kick confirm deterministically
-    if (new URLSearchParams(location.search).get('e2ekick') === '1') {
+    if (new URLSearchParams(location.search).get('e2ekick') === '1') { // a45-ok: e2e boot hook
       const b = el.querySelector('.lobby-kick');
       if (b) b.click();
     }
