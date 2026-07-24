@@ -97,6 +97,10 @@ mid-gate → 0103. The box still runs 0101)._
       `ROBLOX_EXPERIENCE_URL` in `client/ui/roblox-link.js` to the
       experience URL (one line; the "🎮 Play on Roblox" button ships
       hidden until then).
+  12. **NEW — decide reserved-vs-public teleport** for the post-game
+      LIVE reset (runN ships RESERVED — right for friends-testing,
+      but a public experience wants drop-in joiners, which is what
+      midgame-join exists for; interim ruling #2608).
 
 ---
 
