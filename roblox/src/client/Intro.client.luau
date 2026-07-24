@@ -1,12 +1,11 @@
--- runL: the "One City Through Time" boot intro (specs/roblox-intro-animation.md,
--- architect-ruled). A ~25s staged, fully-procedural scene — existing part
--- recipes only, NO engine (no rng/state) → golden-neutral, deterministic by
--- being scripted. Played once before the lobby, ALWAYS skippable. Beats: empty
--- world → founding + title → era arc (marching units + a wonder + one battle
--- beat) → rocket launch white-out → fade to the deck. Lightweight (one city,
--- a handful of units, one rocket) per the slow-device rule. FIRST PASS — the
--- spec wants a Studio screencap per beat for acceptance; tune the camera CFrames
--- + beat feel there.
+-- runL/runM: the "One City Through Time" boot intro (specs/roblox-intro-animation.md,
+-- architect-ruled; user refinements runM round 2). A ~25s staged, fully-procedural
+-- scene — existing part idioms only, NO engine (no rng/state) → golden-neutral,
+-- deterministic by being scripted. Beats: fade-in-from-black over the empty world
+-- → founding + title → era arc (era BUILDINGS advance beside the silo while two
+-- unit groups SKIRMISH through the ages) → the skirmishers flee, the rocket
+-- launches, white-out → fade to the deck. ALWAYS skippable (large SKIP,
+-- lower-right). The regular UI is hidden throughout and restored at the reveal.
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -15,34 +14,25 @@ local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 
 -- ---- config -----------------------------------------------------------------
--- TITLE is behind ONE constant (naming pending the trademark search); "" = no
--- text, just the founding beat. Swap to "A World Begun" later = one string.
-local INTRO_TITLE = "A World Begun" -- user-ruled #2541 (still one-line swappable)
+-- Both constants one-line swappable (#2541 user ruling; trademark gate stands).
+local INTRO_TITLE = "A World Begun"
 local INTRO_SUBTITLE = "Start with one city. Build a civilization that lasts."
--- beat seconds (ally timing ruling: founding 5, launch white-out 4) — total 25
+-- beat seconds (ally timing: founding 5, launch 4) — total 25
 local BEAT_EMPTY, BEAT_FOUND, BEAT_ARC, BEAT_LAUNCH, BEAT_FADE = 4, 5, 10, 4, 2
 
 local player = Players.LocalPlayer
 
--- returning-player auto-skip (session attribute; a DataStore seen-flag is the
+-- returning-player auto-skip (session attribute; DataStore seen-flag is the
 -- publish-time upgrade). First-time default = play.
 if player:GetAttribute("seenIntro") then
 	return
 end
 player:SetAttribute("seenIntro", true)
 
--- CLAIM THE CAMERA ON FRAME ONE. Set introActive + Scriptable + an initial
--- CFrame BEFORE building anything, else Camera.client's map camera and Roblox's
--- default character camera fight our tweens the whole time (the "bouncing"
--- symptom — the staged scene never got framed). ORIGIN is far from the deck so
--- the two never share the view.
-local ORIGIN = Vector3.new(3000, 40, 3000)
-local camera = workspace.CurrentCamera
-ClientState.introActive = true
-camera.CameraType = Enum.CameraType.Scriptable
-camera.CFrame = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
-
--- the intro's OWN ScreenGui, created FIRST so the UI-hide below can exclude it
+-- ---- BLACK COVER FIRST (runM refinement 1) -----------------------------------
+-- The cover goes up the very first frame this script runs, so the camera hop
+-- from the spawn to the far scene is never seen; beat 1 FADES IN from black.
+-- The same frame later turns WHITE for the launch white-out.
 local gui = Instance.new("ScreenGui")
 gui.Name = "RMCIntro"
 gui.ResetOnSpawn = false
@@ -50,12 +40,17 @@ gui.DisplayOrder = 100
 gui.IgnoreGuiInset = true
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- runM (user): HIDE the whole regular UI while the intro plays — every OTHER
--- ScreenGui in PlayerGui is disabled, including ones that boot DURING the intro
--- (client scripts load in parallel, see the boot log), and restored at the deck
--- reveal (fade-to-white done, or SKIP). Deliberately does NOT touch CoreGui —
--- the runM log showed Roblox's own CoreGui modules (EmotesMenu/TopBar) failing
--- on their own; we stay clear of that machinery.
+local cover = Instance.new("Frame")
+cover.Size = UDim2.new(1, 0, 1, 0)
+cover.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+cover.BackgroundTransparency = 0
+cover.BorderSizePixel = 0
+cover.ZIndex = 100
+cover.Parent = gui
+
+-- runM: HIDE the whole regular UI while the intro plays — every OTHER ScreenGui,
+-- including ones that boot DURING the intro (client scripts load in parallel);
+-- restored at the deck reveal. Deliberately does NOT touch CoreGui.
 local playerGui = player:WaitForChild("PlayerGui")
 local hiddenGuis = {}
 local function hideGui(g)
@@ -68,7 +63,7 @@ for _, g in ipairs(playerGui:GetChildren()) do
 	hideGui(g)
 end
 local hideWatch = playerGui.ChildAdded:Connect(function(g)
-	task.defer(hideGui, g) -- let the newcomer initialize, then fold it away
+	task.defer(hideGui, g)
 end)
 local function restoreUi()
 	hideWatch:Disconnect()
@@ -79,8 +74,14 @@ local function restoreUi()
 	end
 end
 
--- ---- the scene: its own little world, far from the deck (y~141) --------------
-local scene = Instance.new("Folder")
+-- ---- claim the camera on frame one (behind the black cover) ------------------
+local ORIGIN = Vector3.new(3000, 40, 3000)
+local camera = workspace.CurrentCamera
+ClientState.introActive = true -- Camera.client holds Scriptable, skips its CFrame
+camera.CameraType = Enum.CameraType.Scriptable
+camera.CFrame = CFrame.lookAt(ORIGIN + Vector3.new(-34, 22, 34), ORIGIN)
+
+-- ---- the scene ----------------------------------------------------------------
 local scene = Instance.new("Folder")
 scene.Name = "IntroScene"
 scene.Parent = workspace
@@ -104,97 +105,187 @@ local function part(size, pos, color, mat, shape)
 	return p
 end
 
--- terrain diorama: grass plate + a coast strip + a few trees + a resource glint
+-- terrain diorama: grass plate + coast + trees + a resource glint
 part(Vector3.new(64, 2, 64), Vector3.new(0, -1, 0), Color3.fromRGB(76, 154, 63), Enum.Material.Grass)
 part(Vector3.new(64, 2, 16), Vector3.new(0, -0.85, 28), Color3.fromRGB(34, 90, 134), Enum.Material.Glass)
 for i = 1, 7 do
 	local a = i * 0.9
-	local trunk = part(Vector3.new(0.8, 2, 0.8), Vector3.new(math.cos(a) * 22, 1, math.sin(a) * 14 - 6), Color3.fromRGB(90, 62, 40))
-	local top = Instance.new("Part")
-	top.Anchored = true
-	top.CanCollide = false
-	top.CanQuery = false
-	top.CastShadow = false
-	top.Shape = Enum.PartType.Cylinder -- a squat cone stand-in via a tapered cyl look
-	top.Size = Vector3.new(3.2, 3.2, 3.2)
-	top.Color = Color3.fromRGB(45, 106, 53)
-	top.Material = Enum.Material.Grass
-	top.CFrame = trunk.CFrame * CFrame.new(0, 2, 0)
-	top.Parent = scene
+	local trunk = part(Vector3.new(0.8, 2, 0.8), Vector3.new(math.cos(a) * 24, 1, math.sin(a) * 15 - 8), Color3.fromRGB(90, 62, 40))
+	local top = part(Vector3.new(3.2, 3.2, 3.2), Vector3.new(0, 0, 0), Color3.fromRGB(45, 106, 53), Enum.Material.Grass, Enum.PartType.Ball)
+	top.CFrame = trunk.CFrame * CFrame.new(0, 2.4, 0)
 end
-local glint = part(Vector3.new(1.4, 1.4, 1.4), Vector3.new(-18, 1.4, 10), Color3.fromRGB(240, 210, 90), Enum.Material.Neon)
+part(Vector3.new(1.4, 1.4, 1.4), Vector3.new(-20, 1.4, 12), Color3.fromRGB(240, 210, 90), Enum.Material.Neon)
 
--- the city cluster (grows + recolors through the four era bands). BAND colors
--- mirror ViewRenderer's BAND_STYLE.
-local BANDS = {
-	Color3.fromRGB(198, 178, 146), -- ancient (mud)
-	Color3.fromRGB(188, 186, 178), -- classical/medieval (stone)
-	Color3.fromRGB(168, 104, 86),  -- industrial (brick)
-	Color3.fromRGB(160, 178, 202), -- modern/space (concrete)
+-- the SILO (runM refinement 2): a launch pad + the standing rocket, visible from
+-- the start so the era buildings grow BESIDE it
+part(Vector3.new(7, 1, 7), Vector3.new(9, 0.5, -3), Color3.fromRGB(96, 98, 104), Enum.Material.Concrete)
+local rocket = part(Vector3.new(1.8, 8, 1.8), Vector3.new(9, 5, -3), Color3.fromRGB(228, 228, 235), Enum.Material.Metal, Enum.PartType.Cylinder)
+rocket.CFrame = CFrame.new(ORIGIN + Vector3.new(9, 5, -3)) * CFrame.Angles(0, 0, math.rad(90))
+rocket.Size = Vector3.new(8, 1.8, 1.8)
+local nose = part(Vector3.new(1.2, 1.2, 1.2), Vector3.new(9, 9.6, -3), Color3.fromRGB(200, 80, 60), Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+
+-- the CITY beside the silo (runM refinement 2): actual-game-style era houses —
+-- wall + roof + the band's signature prop, colors/materials mirroring
+-- ViewRenderer's BAND_STYLE (mud/thatch → stone/tile → brick/tar → concrete/glass).
+local BAND = {
+	{ wall = Color3.fromRGB(198, 178, 146), wallMat = Enum.Material.Ground,
+	  roof = Color3.fromRGB(158, 120, 72), roofMat = Enum.Material.Grass, prop = "" },
+	{ wall = Color3.fromRGB(188, 186, 178), wallMat = Enum.Material.Slate,
+	  roof = Color3.fromRGB(168, 86, 64), roofMat = Enum.Material.Slate, prop = "keep" },
+	{ wall = Color3.fromRGB(168, 104, 86), wallMat = Enum.Material.Brick,
+	  roof = Color3.fromRGB(60, 58, 56), roofMat = Enum.Material.Slate, prop = "smokestack" },
+	{ wall = Color3.fromRGB(160, 178, 202), wallMat = Enum.Material.Concrete,
+	  roof = Color3.fromRGB(150, 190, 220), roofMat = Enum.Material.Glass, prop = "spire" },
 }
-local houses = {}
+local cityParts = {}
 local function buildCity(band)
-	for _, h in ipairs(houses) do
-		h:Destroy()
+	for _, p in ipairs(cityParts) do
+		p:Destroy()
 	end
-	houses = {}
-	local n = 3 + band * 2 -- grows with the era
+	cityParts = {}
+	local st = BAND[band]
+	local n = 3 + band -- the town grows with the era
 	for i = 1, n do
-		local a = i * 2.3
-		local r = 1.5 + (i % 3)
-		local h = part(Vector3.new(1.8, 2 + band * 0.8, 1.8),
-			Vector3.new(math.cos(a) * r, 1 + band * 0.4, math.sin(a) * r), BANDS[band], Enum.Material.Slate)
-		table.insert(houses, h)
+		local a = i * 2.4
+		local r = 2 + (i % 3) * 1.4
+		local h = 1.6 + band * 0.7
+		local x, z = -6 + math.cos(a) * r, -2 + math.sin(a) * r
+		local wall = part(Vector3.new(2, h, 2), Vector3.new(x, h / 2, z), st.wall, st.wallMat)
+		table.insert(cityParts, wall)
+		local roof
+		if band <= 2 then -- peaked: a 45°-rotated slab reads as a roofline
+			roof = part(Vector3.new(1.9, 1.9, 2.1), Vector3.new(x, h + 0.55, z), st.roof, st.roofMat)
+			roof.CFrame = CFrame.new(ORIGIN + Vector3.new(x, h + 0.55, z)) * CFrame.Angles(0, 0, math.rad(45))
+		else -- flat slab (industrial tar / modern glass)
+			roof = part(Vector3.new(2.2, 0.3, 2.2), Vector3.new(x, h + 0.15, z), st.roof, st.roofMat)
+		end
+		table.insert(cityParts, roof)
+	end
+	if st.prop == "keep" then
+		table.insert(cityParts, part(Vector3.new(1.6, 5, 1.6), Vector3.new(-6, 2.5, -2), Color3.fromRGB(170, 168, 160), Enum.Material.Slate))
+	elseif st.prop == "smokestack" then
+		table.insert(cityParts, part(Vector3.new(0.8, 6, 0.8), Vector3.new(-6, 3, -2), Color3.fromRGB(70, 62, 58), Enum.Material.Brick, Enum.PartType.Cylinder))
+	elseif st.prop == "spire" then
+		local s = part(Vector3.new(0.6, 7, 0.6), Vector3.new(-6, 3.5, -2), Color3.fromRGB(210, 225, 240), Enum.Material.Metal, Enum.PartType.Cylinder)
+		table.insert(cityParts, s)
+		table.insert(cityParts, part(Vector3.new(0.5, 0.5, 0.5), Vector3.new(-6, 7.2, -2), Color3.fromRGB(120, 220, 255), Enum.Material.Neon, Enum.PartType.Ball))
 	end
 end
 
--- a wonder rising beside the city (a simple columned block)
-local wonder = part(Vector3.new(5, 1, 5), Vector3.new(12, 0.5, -4), Color3.fromRGB(224, 214, 180), Enum.Material.Marble)
+-- a wonder rising at the city's far edge
+local wonder = part(Vector3.new(4, 1, 4), Vector3.new(-14, 0.5, -8), Color3.fromRGB(224, 214, 180), Enum.Material.Marble)
 wonder.Transparency = 1
 
--- the rocket (cylinder body + neon nose), hidden until the launch beat
-local rocket = Instance.new("Part")
-rocket.Anchored = true
-rocket.CanCollide = false
-rocket.CanQuery = false
-rocket.CastShadow = false
-rocket.Shape = Enum.PartType.Cylinder
-rocket.Size = Vector3.new(9, 1.6, 1.6)
-rocket.Color = Color3.fromRGB(228, 228, 235)
-rocket.CFrame = CFrame.new(ORIGIN + Vector3.new(0, 4, 0)) * CFrame.Angles(0, 0, math.rad(90))
-rocket.Transparency = 1
-rocket.Parent = scene
+-- ---- the SKIRMISH (runM refinement 3) -----------------------------------------
+-- Two small groups face off in front of the city and LUNGE at each other; each
+-- era band swaps them for that era's units; before the launch they FLEE.
+local ERA_MATCHUP = {
+	{ "militia", "phalanx" },
+	{ "legion", "knights" },
+	{ "musketeers", "riflemen" },
+	{ "riflemen", "armor" },
+}
+local BLUE = { primary = Color3.fromRGB(70, 120, 190), secondary = Color3.fromRGB(180, 205, 235) }
+local RED = { primary = Color3.fromRGB(190, 70, 60), secondary = Color3.fromRGB(235, 190, 180) }
+local fighters = {} -- { model, homeCF, dir } — dir = lunge direction (+x/-x)
+local skirmishGen = 0
 
--- ---- the white-out + title + skip overlay (gui created above the UI-hide) ----
-local whiteout = Instance.new("Frame")
-whiteout.Size = UDim2.new(1, 0, 1, 0)
-whiteout.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-whiteout.BackgroundTransparency = 1
-whiteout.ZIndex = 100
-whiteout.Parent = gui
+local function clearFighters()
+	skirmishGen += 1
+	for _, f in ipairs(fighters) do
+		f.model:Destroy()
+	end
+	fighters = {}
+end
 
+local function spawnFighter(unitType, colors, x, z, dir)
+	local model = Instance.new("Model")
+	model.Parent = scene
+	local home = CFrame.new(ORIGIN + Vector3.new(x, 1, z)) * CFrame.Angles(0, dir > 0 and math.rad(-90) or math.rad(90), 0)
+	local ok = pcall(AssetFactory.buildUnit, model, unitType, colors, home)
+	if not ok then
+		model:Destroy()
+		return
+	end
+	table.insert(fighters, { model = model, homeCF = home, dir = dir })
+end
+
+local function startSkirmish(band)
+	clearFighters()
+	local gen = skirmishGen
+	local pair = ERA_MATCHUP[band]
+	spawnFighter(pair[1], BLUE, -4.5, 12, 1)
+	spawnFighter(pair[1], BLUE, -6, 14.5, 1)
+	spawnFighter(pair[2], RED, 4.5, 12, -1)
+	spawnFighter(pair[2], RED, 6, 14.5, -1)
+	-- the lunge loop: each fighter darts toward the enemy line and back
+	task.spawn(function()
+		local phase = 0
+		while gen == skirmishGen do
+			phase += 1
+			for i, f in ipairs(fighters) do
+				if f.model.Parent ~= nil then
+					local lunging = (phase + i) % 2 == 0
+					local dx = lunging and f.dir * 2.2 or 0
+					pcall(function()
+						f.model:PivotTo(f.homeCF * CFrame.new(0, 0, -math.abs(dx)) )
+					end)
+				end
+			end
+			task.wait(0.35)
+			for _, f in ipairs(fighters) do
+				if f.model.Parent ~= nil then
+					pcall(function()
+						f.model:PivotTo(f.homeCF)
+					end)
+				end
+			end
+			task.wait(0.35)
+		end
+	end)
+end
+
+local function fleeFighters()
+	skirmishGen += 1 -- stops the lunge loop; the models remain for the flight
+	for _, f in ipairs(fighters) do
+		if f.model.Parent ~= nil then
+			task.spawn(function()
+				for s = 1, 12 do
+					pcall(function()
+						-- run AWAY from the pad: back the way each side came
+						f.model:PivotTo(f.homeCF * CFrame.new(0, 0, s * 1.6))
+					end)
+					task.wait(0.08)
+				end
+				f.model:Destroy()
+			end)
+		end
+	end
+	fighters = {}
+end
+
+-- ---- title / subtitle / SKIP (runM refinement 4: +50% fonts) -------------------
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 96)
-title.Position = UDim2.new(0, 0, 0.62, 0)
+title.Size = UDim2.new(1, 0, 0, 130)
+title.Position = UDim2.new(0, 0, 0.58, 0)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBlack
 title.TextColor3 = Color3.fromRGB(245, 232, 190)
 title.TextStrokeTransparency = 0.5
-title.TextSize = 60
+title.TextSize = 90 -- was 60 (+50%)
 title.TextTransparency = 1
 title.Text = INTRO_TITLE
 title.ZIndex = 101
 title.Parent = gui
 
--- runM #2541: the ruled sub-heading, smaller, under the title
 local subtitle = Instance.new("TextLabel")
-subtitle.Size = UDim2.new(1, 0, 0, 34)
-subtitle.Position = UDim2.new(0, 0, 0.62, 92)
+subtitle.Size = UDim2.new(1, 0, 0, 50)
+subtitle.Position = UDim2.new(0, 0, 0.58, 126)
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
 subtitle.TextColor3 = Color3.fromRGB(215, 222, 235)
 subtitle.TextStrokeTransparency = 0.6
-subtitle.TextSize = 26
+subtitle.TextSize = 39 -- was 26 (+50%)
 subtitle.TextTransparency = 1
 subtitle.Text = INTRO_SUBTITLE
 subtitle.ZIndex = 101
@@ -202,7 +293,7 @@ subtitle.Parent = gui
 
 local skipping = false
 local skipBtn = Instance.new("TextButton")
-skipBtn.Size = UDim2.new(0, 220, 0, 72) -- runM: LARGE (the only UI during the intro)
+skipBtn.Size = UDim2.new(0, 220, 0, 72) -- LARGE (the only UI during the intro)
 skipBtn.AnchorPoint = Vector2.new(1, 1)
 skipBtn.Position = UDim2.new(1, -28, 1, -28) -- lower-right (user-specified)
 skipBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
@@ -211,73 +302,45 @@ skipBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 skipBtn.Font = Enum.Font.GothamBold
 skipBtn.TextSize = 34
 skipBtn.Text = "SKIP \u{25B8}"
-skipBtn.ZIndex = 101
+skipBtn.ZIndex = 102
 skipBtn.Parent = gui
 do
 	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 8)
+	c.CornerRadius = UDim.new(0, 10)
 	c.Parent = skipBtn
 end
 
--- ---- helpers ----------------------------------------------------------------
+-- ---- helpers -------------------------------------------------------------------
 local function look(from, at, dur)
-	local tw = TweenService:Create(camera, TweenInfo.new(dur, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-		{ CFrame = CFrame.lookAt(ORIGIN + from, ORIGIN + at) })
-	tw:Play()
-	return tw
+	TweenService:Create(camera, TweenInfo.new(dur, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+		{ CFrame = CFrame.lookAt(ORIGIN + from, ORIGIN + at) }):Play()
 end
 local function fade(inst, prop, to, dur)
 	TweenService:Create(inst, TweenInfo.new(dur, Enum.EasingStyle.Quad), { [prop] = to }):Play()
 end
--- an interruptible wait: returns early if a skip fires
-local function beat(seconds)
+local function beat(seconds) -- interruptible wait
 	local t = 0
 	while t < seconds and not skipping do
 		t += task.wait()
 	end
 end
 
-local function marchUnit(unitType, fromDx, toDx, dz, dur)
-	local model = Instance.new("Model")
-	model.Parent = scene
-	local ok = pcall(AssetFactory.buildUnit, model, unitType,
-		{ primary = Color3.fromRGB(70, 120, 190), secondary = Color3.fromRGB(180, 205, 235) },
-		CFrame.new(ORIGIN + Vector3.new(fromDx, 1, dz)))
-	if not ok then
-		model:Destroy()
-		return
-	end
-	task.spawn(function()
-		local steps = math.max(1, math.floor(dur / 0.1))
-		for s = 1, steps do
-			if skipping then
-				break
-			end
-			local x = fromDx + (toDx - fromDx) * (s / steps)
-			pcall(function()
-				model:PivotTo(CFrame.new(ORIGIN + Vector3.new(x, 1, dz)))
-			end)
-			task.wait(0.1)
-		end
-		model:Destroy()
-	end)
-end
-
--- ---- the cleanup / fade to the deck -----------------------------------------
+-- ---- finish: ALWAYS restores UI + camera ---------------------------------------
 local finished = false
 local function finish()
 	if finished then
 		return
 	end
 	finished = true
-	-- ensure a white cover, then swap to the deck under it and fade the white out
-	fade(whiteout, "BackgroundTransparency", 0, skipping and 0.25 or 0.4)
+	clearFighters()
+	-- cover the swap (white if the launch got there, black on an early skip)
+	fade(cover, "BackgroundTransparency", 0, skipping and 0.25 or 0.4)
 	task.delay(skipping and 0.3 or 0.5, function()
 		scene:Destroy()
 		ClientState.introActive = false -- the deck camera (Camera.client) resumes
 		restoreUi() -- runM: the regular UI returns exactly at the deck reveal
 		task.wait(0.15)
-		fade(whiteout, "BackgroundTransparency", 1, BEAT_FADE * 0.6)
+		fade(cover, "BackgroundTransparency", 1, BEAT_FADE * 0.6)
 		fade(title, "TextTransparency", 1, 0.3)
 		fade(subtitle, "TextTransparency", 1, 0.3)
 		task.delay(BEAT_FADE, function()
@@ -291,56 +354,52 @@ skipBtn.Activated:Connect(function()
 	finish()
 end)
 
--- ---- the choreography (camera already claimed above) ------------------------
-buildCity(1) -- ancient, but hidden until the founding beat
-for _, h in ipairs(houses) do
-	h.Transparency = 1
+-- ---- choreography ---------------------------------------------------------------
+buildCity(1)
+for _, p in ipairs(cityParts) do
+	p.Transparency = 1 -- hidden until the founding beat
 end
 
 task.spawn(function()
-	-- the whole choreography is pcall-guarded: with the regular UI hidden, ANY
-	-- beat error must still reach finish() (which restores the UI + camera)
+	-- pcall-guarded: with the UI hidden, ANY beat error must still reach finish()
 	local ok, err = pcall(function()
-	-- beat 1: the empty world — a slow drift over the terrain, no city yet, no UI
+	-- beat 1: fade IN FROM BLACK over the empty world, slow drift (no city yet)
+	fade(cover, "BackgroundTransparency", 1, 1.4)
 	look(Vector3.new(-20, 18, 40), Vector3.new(0, 1, 0), BEAT_EMPTY)
 	beat(BEAT_EMPTY)
 	if skipping then return end
 
-	-- beat 2: the founding — the city fades up (ancient), the title rises in
-	look(Vector3.new(0, 14, 26), Vector3.new(0, 2, 0), BEAT_FOUND)
-	for _, h in ipairs(houses) do
-		fade(h, "Transparency", 0, 0.8)
+	-- beat 2: the founding — the ancient town fades up beside the silo, the
+	-- title + sub-heading rise in
+	look(Vector3.new(-2, 14, 26), Vector3.new(0, 2, 0), BEAT_FOUND)
+	for _, p in ipairs(cityParts) do
+		fade(p, "Transparency", 0, 0.8)
 	end
-	local puff = part(Vector3.new(1, 1, 1), Vector3.new(0, 1, 0), Color3.fromRGB(240, 235, 210), Enum.Material.Neon, Enum.PartType.Ball)
+	local puff = part(Vector3.new(1, 1, 1), Vector3.new(-6, 1, -2), Color3.fromRGB(240, 235, 210), Enum.Material.Neon, Enum.PartType.Ball)
 	fade(puff, "Size", Vector3.new(10, 10, 10), 0.6)
 	fade(puff, "Transparency", 1, 0.7)
 	if INTRO_TITLE ~= "" then
 		fade(title, "TextTransparency", 0, 1.2)
-		fade(subtitle, "TextTransparency", 0, 1.5) -- the ruled sub-heading rides in
+		fade(subtitle, "TextTransparency", 0, 1.5)
 	end
 	beat(BEAT_FOUND)
 	if skipping then return end
 
-	-- beat 3: the arc — one slow orbit while the city advances the four eras,
-	-- units march past, a wonder rises, and one battle beat mid-arc
+	-- beat 3: the arc — one slow orbit while the town advances the four eras
+	-- beside the silo, the era skirmish escalates, a wonder rises
 	fade(title, "TextTransparency", 1, 0.8)
 	fade(subtitle, "TextTransparency", 1, 0.8)
 	fade(wonder, "Transparency", 0, 1.5)
 	TweenService:Create(wonder, TweenInfo.new(BEAT_ARC * 0.5, Enum.EasingStyle.Quad),
-		{ Size = Vector3.new(5, 16, 5), Position = ORIGIN + Vector3.new(12, 8, -4) }):Play()
-	local eraUnits = { "militia", "legion", "knights", "musketeers", "riflemen", "armor" }
+		{ Size = Vector3.new(4, 14, 4), Position = ORIGIN + Vector3.new(-14, 7, -8) }):Play()
 	task.spawn(function()
 		for band = 1, 4 do
 			if skipping then break end
 			buildCity(band)
-			marchUnit(eraUnits[band], -26, 26, 8, BEAT_ARC / 4)
-			if band == 2 then -- one battle beat: a second group clashes, a color flips
-				marchUnit(eraUnits[5], 26, 4, 8, BEAT_ARC / 5)
-			end
+			startSkirmish(band)
 			beat(BEAT_ARC / 4)
 		end
 	end)
-	-- the orbit
 	local segs = 6
 	for s = 1, segs do
 		if skipping then break end
@@ -350,15 +409,21 @@ task.spawn(function()
 	end
 	if skipping then return end
 
-	-- beat 4: the launch — the rocket ignites, lifts off, the frame whites out
-	rocket.Transparency = 0
-	look(Vector3.new(6, 10, 22), Vector3.new(0, 12, 0), BEAT_LAUNCH * 0.4)
-	local flame = part(Vector3.new(2, 2, 2), Vector3.new(0, 1, 0), Color3.fromRGB(255, 180, 80), Enum.Material.Neon, Enum.PartType.Ball)
+	-- beat 4: the skirmishers FLEE, then the rocket ignites and lifts — the
+	-- frame brightens to WHITE
+	fleeFighters()
+	look(Vector3.new(4, 10, 24), Vector3.new(9, 12, -3), BEAT_LAUNCH * 0.4)
+	beat(0.9) -- a breath while they run
+	if skipping then return end
+	local flame = part(Vector3.new(2.4, 2.4, 2.4), Vector3.new(9, 1.4, -3), Color3.fromRGB(255, 180, 80), Enum.Material.Neon, Enum.PartType.Ball)
 	TweenService:Create(rocket, TweenInfo.new(BEAT_LAUNCH, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-		{ CFrame = CFrame.new(ORIGIN + Vector3.new(0, 120, 0)) * CFrame.Angles(0, 0, math.rad(90)) }):Play()
+		{ CFrame = CFrame.new(ORIGIN + Vector3.new(9, 130, -3)) * CFrame.Angles(0, 0, math.rad(90)) }):Play()
+	TweenService:Create(nose, TweenInfo.new(BEAT_LAUNCH, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Position = ORIGIN + Vector3.new(9, 134.6, -3) }):Play()
 	TweenService:Create(flame, TweenInfo.new(BEAT_LAUNCH, Enum.EasingStyle.Quad),
-		{ Position = ORIGIN + Vector3.new(0, 60, 0), Transparency = 1 }):Play()
-	fade(whiteout, "BackgroundTransparency", 0, BEAT_LAUNCH) -- brighten to white
+		{ Position = ORIGIN + Vector3.new(9, 70, -3), Transparency = 1 }):Play()
+	cover.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- the white-out cover
+	fade(cover, "BackgroundTransparency", 0, BEAT_LAUNCH)
 	beat(BEAT_LAUNCH)
 	end) -- pcall
 	if not ok then
