@@ -305,7 +305,8 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
     </div>
     ${hostCtl ? `<p class="setup-hint">slots: <button id="slot-minus" class="setup-lan-btn">−</button>
       <span id="slot-count"></span> <button id="slot-plus" class="setup-lan-btn">+</button>
-      · <label id="lobby-chat-toggle">chat <input id="lobby-chat-on" type="checkbox"></label></p>` : ''}
+      · <label id="lobby-chat-toggle">chat <input id="lobby-chat-on" type="checkbox"></label>
+      · <label id="lobby-joining-toggle" title="while open, joiners fill empty (and AI) seats; while closed, new joins are rejected">joining open <input id="lobby-joining-on" type="checkbox" checked></label></p>` : ''}
     <div id="lobby-roster"></div>
     <div id="lobby-chat" class="hidden">
       <div id="lobby-chat-log"></div>
@@ -349,6 +350,10 @@ function renderWaitingRoom(box, info, hostCtl, onStart, sendFn) {
       () => hostCtl.send({ t: 'setSlots', civs: hostCtl.count + 1 }));
     document.getElementById('lobby-chat-on').addEventListener('change',
       e => hostCtl.send({ t: 'setChat', on: e.target.checked }));
+    // XVII §3: host toggles whether new players may join (contract: the server
+    // sets lobby.joiningOpen and rejects blocked joins with code 'joiningClosed')
+    document.getElementById('lobby-joining-on').addEventListener('change',
+      e => hostCtl.send({ t: 'setJoining', open: e.target.checked }));
   }
   // A37 chat: send via Enter or the button; incoming lines land through
   // appendChat — textContent only, so payloads render inert (no innerHTML)
@@ -394,6 +399,9 @@ function syncChatPanel(lobby, hostCtl) {
   panel.classList.toggle('hidden', !on);
   const box = document.getElementById('lobby-chat-on');
   if (box) box.checked = on;
+  // XVII §3: reflect the host's joining-open state (default open) on the toggle
+  const jbox = document.getElementById('lobby-joining-on');
+  if (jbox) jbox.checked = lobby.joiningOpen !== false;
 }
 
 function appendChat(msg) {
@@ -857,6 +865,7 @@ export function startJoinFlow(box) {
           : msg.code === 'alreadyStarted' ? 'that game already started — ask for the save/token'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
           : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
+          : msg.code === 'joiningClosed' ? 'the host has closed joining' // XVII §3
           : msg.code === 'blocked' ? 'the host has blocked you from this game' // A37
           : msg.code === 'notPublic' ? 'that game is no longer listed' // A41
           : `server rejected: ${msg.code}`);
@@ -935,6 +944,7 @@ export function startJoinFlow(box) {
           : msg.code === 'alreadyStarted' ? 'that game already started — rejoin with your seat code'
           : msg.code === 'spectatorsOff' ? 'this game does not allow spectators'
           : msg.code === 'notStarted' ? 'spectating starts once the game does — try again after the host starts'
+          : msg.code === 'joiningClosed' ? 'the host has closed joining' // XVII §3
           : msg.code === 'blocked' ? 'the host has blocked you from this game' // A37
           : msg.code === 'badSeatCode' ? 'no seat carries that code — check the XXXX-YYYY the game showed you' // A46
           : msg.code === 'seatOccupied' ? 'that seat is still connected — close its tab first, then retry' // A46

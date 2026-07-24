@@ -41,6 +41,15 @@ const GAME_ARROWS = [
   { sel: '#turn-log', label: 'Turn log', big: false }
 ];
 
+// XVII #2: a friend who followed a ?join=CODE invite lands cold on the Join
+// screen — give it the same first-timer arrow treatment (name → prefilled code
+// → Join button), one-time per browser.
+const JOIN_ARROWS = [
+  { sel: '#lobby-name', label: 'Enter your name', big: true },
+  { sel: '#lobby-code-in', label: "Your friend's code is already filled in", big: false },
+  { sel: '#setup-start', label: 'Click Join to enter their game', big: true }
+];
+
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 function visible(el) {
@@ -168,6 +177,13 @@ export function maybeShowGameOnboarding() {
   if (hasSeenOnboarding('game')) return null;
   markSeen('game');
   return showWhenReady(GAME_ARROWS);
+}
+// XVII #2: fired from setup.js on ?join=CODE deep-link entry (caller gates on
+// automation — the full-screen overlay must not swallow e2e clicks)
+export function maybeShowJoinOnboarding() {
+  if (hasSeenOnboarding('join')) return null;
+  markSeen('join');
+  return showWhenReady(JOIN_ARROWS);
 }
 // the "?" re-show in Options — always shows (ignores the seen flag)
 export function showOnboarding(screen) {

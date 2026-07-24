@@ -511,6 +511,7 @@ export function initInput(ctx) {
 
   // next idle unit — skips fortified and working units unless selected by
   // hand; NEAREST first, so the camera glides instead of teleporting
+  let cyclingGotos = false; // XVII #17: re-entry guard for the auto-run-gotos path
   function nextUnit() {
     const movable = Object.values(session.state.units).filter(
       u => u.owner === ctx.HUMAN && u.moves > 0 && !u.fortified && !u.working && u.id !== sel.unitId
@@ -521,13 +522,24 @@ export function initInput(ctx) {
       hud.noMovesHint(); // XIV §20: the unified hint (adds 🔕, honors the mute option) — was a bare banner
       return;
     }
+    // XVII #17: units carrying a standing GoTo order aren't "idle" — the player
+    // already told them where to go. Cycle to the units that still NEED a decision
+    // first; if the only ones left all have GoTo orders, run those routes now (the
+    // client driver) rather than making the player click End Turn to trigger them.
+    const idle = movable.filter(u => gotoTargets[u.id] === undefined);
+    if (idle.length === 0 && !cyclingGotos) {
+      cyclingGotos = true;
+      runAllGotos().then(() => { cyclingGotos = false; nextUnit(); });
+      return;
+    }
+    const candidates = idle.length > 0 ? idle : movable;
     const lastId = sel.lastMovedBy[ctx.HUMAN];
     const anchor = (sel.unitId && session.state.units[sel.unitId])
       || (lastId && session.state.units[lastId]) || null;
-    let pick = movable[0];
+    let pick = candidates[0];
     if (anchor) {
       let best = 1e9;
-      for (const u of movable) {
+      for (const u of candidates) {
         const d = wrapDist(u.x, u.y, anchor.x, anchor.y);
         if (d < best) { best = d; pick = u; }
       }
@@ -1058,9 +1070,16 @@ export function initInput(ctx) {
     yieldTimer = setTimeout(() => {
       const tile = session.state.map.tiles[y * session.state.map.width + x];
       const yl = tileYields(tile, session.ruleset);
+      // XVII #9: name the special resource ("Horse", "Fish"…) when one is present
+      let specialName = '';
+      if (tile.special) {
+        const td = session.ruleset.terrain.terrains[tile.t];
+        if (td && td.special && td.special.name) specialName = td.special.name;
+      }
       const card = document.createElement('div');
       card.className = 'hover-yields';
       card.innerHTML = `<b>(${x},${y}) ${tile.t}</b>`
+        + (specialName ? `<span class="ysp">✦ ${specialName}</span>` : '')
         + `<span class="yf">🌾${yl.food}</span> <span class="ys">⚒${yl.shields}</span> <span class="yt">💰${yl.trade}</span>`;
       ctx.hoverCard.showAt(lastPointer.x, lastPointer.y, card);
     }, 300);

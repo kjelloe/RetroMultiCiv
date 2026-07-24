@@ -53,7 +53,8 @@ test('PROP_SHAPES covers every tile prop kind the renderer instances', async () 
     'jungleTrunk', 'jungleCanopy', 'jungleButtress', // XV §5 tropical jungle
     // specials-icons: per-resource special motif primitives
     'resFish', 'resFishTail', 'resCrystal', 'resWater', 'resPalm',
-    'resDerrick', 'resShield', 'resBeast', 'resBeastHead'];
+    'resDerrick', 'resStraw', 'resBeast', 'resBeastHead',
+    'pond']; // XVII #12 swamp pond discs
   for (const k of kinds) assert.ok(PROP_SHAPES[k], `prop kind "${k}" missing from PROP_SHAPES`);
   assert.strictEqual(Object.keys(PROP_SHAPES).length, kinds.length, 'no stray/unused prop shapes');
 });

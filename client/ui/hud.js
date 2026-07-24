@@ -115,7 +115,8 @@ export function initHud(ctx) {
     const bulbs = me.bulbs === undefined ? 0 : me.bulbs;
     const income = playerIncome(session.state, ctx.HUMAN, session.ruleset);
     const goldDelta = income.gold - income.maintenance;
-    const money = `💰 ${me.gold} (${goldDelta >= 0 ? '+' : ''}${goldDelta})`;
+    // XVII #16: the per-turn science (🔬+N) rides next to gold, matching 💰(+N)
+    const money = `💰 ${me.gold} (${goldDelta >= 0 ? '+' : ''}${goldDelta}) · 🔬 +${income.bulbs}`;
     // C2: the income breakdown tooltip — per-city trade after corruption, the
     // totals straight from playerIncome (the engine's own numbers)
     const cityRows = [];
@@ -143,12 +144,15 @@ export function initHud(ctx) {
     if (me.researching) {
       const cost = researchCost(session.state, ctx.HUMAN, session.ruleset);
       researchFill.style.width = Math.min(100, Math.floor(bulbs * 100 / cost)) + '%';
-      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} (+${income.bulbs}) · ${money} · ${ratesGov}`;
+      // XVII #16: turns-to-tech on the main line (∞ when science is zero)
+      const turns = income.bulbs > 0 ? Math.ceil(Math.max(0, cost - bulbs) / income.bulbs) : null;
+      const turnsStr = turns === null ? '∞' : `${turns} ${turns === 1 ? 'turn' : 'turns'}`;
+      researchLabel.textContent = `🔬 ${techs[me.researching].name} · ${bulbs}/${cost} · ${turnsStr} · ${money} · ${ratesGov}`;
       researchGlyph.src = glyphDataURL(me.researching, techs[me.researching].era, 22);
       researchGlyph.style.display = 'block';
     } else {
       researchFill.style.width = '0%';
-      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs (+${income.bulbs}) · ${money} · ${ratesGov}`;
+      researchLabel.textContent = `🔬 choose research · ${bulbs} bulbs · ${money} · ${ratesGov}`;
       researchGlyph.style.display = 'none';
     }
   }

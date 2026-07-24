@@ -10,8 +10,10 @@
 // neither is a gold sink — so they are correctly absent here; only gold flows
 // (taxes − building maintenance) appear, which is exactly what (+N) counts.
 import { playerIncome, cityEconOutput } from '../../engine/tech.js';
-import { governmentOf } from '../../engine/government.js';
+import { governmentOf, corruptionFor } from '../../engine/government.js';
+import { cityYields } from '../../engine/cities.js';
 import { makeOverviewPanel } from './overview-panel.js';
+import { cityUpkeep } from './upkeep.js';
 
 export function initEconOverview(ctx) {
   const { session } = ctx;
@@ -44,6 +46,21 @@ export function initEconOverview(ctx) {
       ] });
     }
     if (anarchy) rows.push({ cells: ['<span class="eco-note">⚡ Anarchy — the state collects no taxes</span>', ''] });
+    // XVII #20: treaty income — note what the D-line provides TODAY (nothing yet)
+    rows.push({ cells: ['<span class="eco-note">🤝 Treaty income — none (no per-turn treaties yet)</span>', ''] });
+
+    // XVII #20: corruption — informational (trade lost, already reflected in the
+    // post-corruption taxes above; it reduces BOTH gold and research)
+    let corruptTrade = 0;
+    if (!anarchy) for (const cid of own) {
+      const c = state.cities[cid];
+      if (c.disorder === true) continue;
+      corruptTrade += corruptionFor(state, c, cityYields(state, c, ruleset).trade, ruleset);
+    }
+    if (corruptTrade > 0) rows.push({ cells: [
+      '<span class="eco-note">↳ corruption skimmed (trade — already deducted above)</span>',
+      `<span class="loss">−${corruptTrade}➡</span>`
+    ] });
 
     // SINKS — building maintenance, itemized per city (always counted)
     for (const cid of own) {
@@ -61,13 +78,26 @@ export function initEconOverview(ctx) {
     const inc = playerIncome(state, me, ruleset);
     const net = inc.gold - inc.maintenance;
     rows.push({ cells: [
-      `<b class="eco-total">NET per turn (treasury ${p.gold}💰)</b>`,
+      `<b class="eco-total">NET GOLD per turn (treasury ${p.gold}💰)</b>`,
       `<b class="${net < 0 ? 'loss' : 'yf'}">${net >= 0 ? '+' : ''}${net}</b>`
     ] });
 
+    // XVII #20: non-gold upkeep — complete the statement WITHOUT touching the gold
+    // NET above. Civ1 unit upkeep is SHIELDS, settler upkeep is FOOD.
+    let upShields = 0, upFood = 0;
+    for (const cid of own) {
+      const u = cityUpkeep(state, cid, ruleset);
+      upShields += u.shields; upFood += u.food;
+    }
+    if (upShields > 0 || upFood > 0) {
+      rows.push({ cells: ['<span class="eco-note">— non-gold upkeep (paid in production, not gold) —</span>', ''] });
+      if (upShields > 0) rows.push({ cells: ['<span class="eco-out">⚒ Military unit upkeep</span>', `<span class="loss">−${upShields}⚒</span>`] });
+      if (upFood > 0) rows.push({ cells: ['<span class="eco-out">🌾 Settler food upkeep</span>', `<span class="loss">−${upFood}🌾</span>`] });
+    }
+
     return {
       empty: 'You have no cities — no economy yet.',
-      headers: [{ label: 'Source / Sink' }, { label: 'Gold/turn', title: 'sums exactly to the top-bar (+N)' }],
+      headers: [{ label: 'Source / Sink' }, { label: 'Per turn', title: 'the gold NET sums exactly to the top-bar (+N); non-gold upkeep is listed below it' }],
       rows
     };
   }

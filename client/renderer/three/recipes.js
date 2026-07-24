@@ -239,9 +239,10 @@ export const PROP_SHAPES = {
   resWater: { shape: 'cyl', size: [0.16, 0.16, 0.015], seg: 12 }, // oasis pool
   resPalm: { shape: 'cone', size: [0.11, 0.14], seg: 6 },       // oasis palm crown
   resDerrick: { shape: 'cone', size: [0.06, 0.34], seg: 4 },    // oil rig (dark tapered tower)
-  resShield: { shape: 'box', size: [0.14, 0.16, 0.03] },        // grassland shield
+  resStraw: { shape: 'cone', size: [0.035, 0.4], seg: 4 },      // grassland shield → a wheat stalk (a sheaf of these)
   resBeast: { shape: 'sphere', size: [0.1], seg: [8, 6] },      // game/horse/seal body (scaled)
   resBeastHead: { shape: 'sphere', size: [0.06], seg: [8, 6] }, // its head
+  pond: { shape: 'cyl', size: [0.11, 0.11, 0.012], seg: 10 },   // swamp: a scattered small water disc
   fortress: { shape: 'torus', size: [0.34, 0.05], seg: [6, 12] },
   tie: { shape: 'box', size: [0.03, 0.024, 0.17] },
   mineDoor: { shape: 'box', size: [0.11, 0.1, 0.02] },

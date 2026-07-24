@@ -37,7 +37,7 @@ const PROP_COLOR = {
   rock: 0x7d7468, peak: 0x63636d, snow: 0xe8eef0,
   grassTuft: 0x3f8f3f, dryScrub: 0x9d8f55, tundraScrub: 0x9fae9d,
   tie: 0x2c2620, mineDoor: 0x17130e, mineBeam: 0x6b4a2a,
-  fieldPatch: 0x59a03e, foam: 0xdcecf2,
+  fieldPatch: 0x59a03e, foam: 0xdcecf2, pond: 0x3a6b58,
   hutWall: 0xb08d5a, hutRoof: 0xc9a94c // N13: mud wall + thatch
 };
 // the translucent water plane's height (terrain.js buildWater) — foam strips
@@ -52,7 +52,14 @@ const SCRUB_COLOR = { grassland: 0x3f8f3f, plains: 0x9d8f55, desert: 0x9d8f55, t
 const SPECIAL_MOTIF = {
   ocean:     [{ k: 'resFish', color: 0xd2e6f5, sx: 1.7, sy: 0.55, sz: 0.95, dy: 0.03 },        // Fish
               { k: 'resFishTail', color: 0xbcd2e4, dx: 0.14, dy: 0.03, rotY: Math.PI / 2, sx: 0.8, sy: 0.7 }],
-  grassland: [{ k: 'resShield', color: 0xe0c14e, dy: 0.1 }],                                   // Shield
+  grassland: [                                                                                 // Shield → wheat sheaf (XVII #8/#14): a bright cluster of golden stalks
+              { k: 'resStraw', color: 0xf2d84e, dy: 0.2 },
+              { k: 'resStraw', color: 0xf6e264, dx: 0.11, dz: 0.03, dy: 0.19, rotX: 0.3, rotY: 0.4 },
+              { k: 'resStraw', color: 0xe8c840, dx: -0.09, dz: 0.09, dy: 0.19, rotX: 0.3, rotY: 2.1 },
+              { k: 'resStraw', color: 0xfced7a, dx: 0.05, dz: -0.11, dy: 0.19, rotX: 0.3, rotY: 3.7 },
+              { k: 'resStraw', color: 0xe2be3a, dx: -0.08, dz: -0.06, dy: 0.19, rotX: 0.3, rotY: 5.1 },
+              { k: 'resStraw', color: 0xf2d84e, dx: 0.08, dz: -0.04, dy: 0.19, rotX: 0.26, rotY: 1.2 },
+              { k: 'resStraw', color: 0xf6e264, dx: -0.02, dz: 0.1, dy: 0.19, rotX: 0.26, rotY: 4.4 }],
   plains:    [{ k: 'resBeast', color: 0x9a6b3f, sx: 1.5, sy: 0.8, sz: 0.8, dy: 0.05 },         // Horse
               { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.12, dy: 0.11 }],
   forest:    [{ k: 'resBeast', color: 0x7a5a35, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },       // Game (deer)
@@ -61,11 +68,11 @@ const SPECIAL_MOTIF = {
               { k: 'resBeastHead', color: 0x8a6a45, dx: -0.11, dy: 0.12 }],
   arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.8, sy: 0.6, sz: 0.75, dy: 0.04 },         // Seal
               { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.15, dy: 0.06 }],
-  desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02 },                                      // Oasis
-              { k: 'resPalm', color: 0x2f8d3f, dy: 0.17 }],
-  hills:     [{ k: 'resCrystal', color: 0x2b2b30, dy: 0.09 }],                                   // Coal
-  mountains: [{ k: 'resCrystal', color: 0xffcf3b, dy: 0.09 }],                                   // Gold
-  jungle:    [{ k: 'resCrystal', color: 0x5ad0c9, dy: 0.09 }],                                   // Gem
+  desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02, sx: 1.3, sz: 1.3 },                    // Oasis (XVII #14: larger pool + taller palm)
+              { k: 'resPalm', color: 0x2f8d3f, dy: 0.22, sx: 1.25, sy: 1.35, sz: 1.25 }],
+  hills:     [{ k: 'resCrystal', color: 0x2b2b30, dy: 0.11, sx: 1.3, sy: 1.3, sz: 1.3 }],         // Coal
+  mountains: [{ k: 'resCrystal', color: 0xffd23b, dy: 0.24, sx: 1.9, sy: 1.9, sz: 1.9 }],         // Gold (XVII #14: bright, raised above the peak, enlarged)
+  jungle:    [{ k: 'resCrystal', color: 0x5ad0c9, dy: 0.14, sx: 1.4, sy: 1.4, sz: 1.4 }],         // Gem (XVII #14: raised above the lowered canopy, enlarged)
   swamp:     [{ k: 'resDerrick', color: 0x2a2622, dy: 0.17 }]                                    // Oil
 };
 // eight neighbor directions for road connectivity (rotY aligns the segment)
@@ -89,7 +96,7 @@ export function createTileProps(map, tileTop, joins) {
     hutBase: [], hutRoof: [], // N13: goody-hut villages
     // specials-icons: per-resource motif primitives
     resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
-    resDerrick: [], resShield: [], resBeast: [], resBeastHead: []
+    resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], pond: []
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -156,29 +163,43 @@ export function createTileProps(map, tileTop, joins) {
       }
       if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
       if (t.t === 'forest') {
-        // 3–5 spruce cones, deterministically scattered and sized per tile
+        // 6–11 spruce cones (XVII #10: doubled density), scattered + sized per tile
         const color = PROP_COLOR.forest;
-        const count = 3 + Math.floor(visualRand(x, y, 1) * 3);
+        const count = 6 + Math.floor(visualRand(x, y, 1) * 6);
         for (let i = 0; i < count; i++) {
-          const s = 0.75 + visualRand(x, y, 10 + i) * 0.55;
+          const s = 0.75 + visualRand(x, y, 100 + i) * 0.55;
           items.tree.push({
             x, y, top, dim, color,
-            dx: (visualRand(x, y, 20 + i) - 0.5) * 0.62,
-            dz: (visualRand(x, y, 30 + i) - 0.5) * 0.62,
+            dx: (visualRand(x, y, 200 + i) - 0.5) * 0.72,
+            dz: (visualRand(x, y, 300 + i) - 0.5) * 0.72,
             dy: 0.14 * s, sx: s, sy: s, sz: s
           });
         }
       } else if (t.t === 'jungle') {
-        // XV §5: tropical rainforest — fewer, TALLER trees, each a buttress base +
-        // a slender trunk (above forest height) + a broad flat dome canopy; no cones.
-        const count = 3 + Math.floor(visualRand(x, y, 1) * 2); // 3–4 (broad canopies overlap)
+        // XV §5: tropical rainforest — each a buttress base + slender trunk + broad
+        // flat dome canopy; no cones. XVII #11: doubled canopy count at ~60% height
+        // (denser, lower rainforest mass).
+        const count = 6 + Math.floor(visualRand(x, y, 1) * 4); // 6–9 (broad canopies overlap)
+        const h = 0.6; // ~60% of the previous height
         for (let i = 0; i < count; i++) {
-          const s = 0.8 + visualRand(x, y, 10 + i) * 0.45;
-          const dx = (visualRand(x, y, 20 + i) - 0.5) * 0.5;
-          const dz = (visualRand(x, y, 30 + i) - 0.5) * 0.5;
-          items.jungleButtress.push({ x, y, top, dim, color: PROP_COLOR.jungleButtress, dx, dz, dy: 0.075 * s, sx: s, sy: s, sz: s });
-          items.jungleTrunk.push({ x, y, top, dim, color: PROP_COLOR.jungleTrunk, dx, dz, dy: 0.24 * s, sx: s, sy: s, sz: s });
-          items.jungleCanopy.push({ x, y, top, dim, color: PROP_COLOR.jungleCanopy, dx, dz, dy: 0.52 * s, sx: 1.05 * s, sy: 0.42 * s, sz: 1.05 * s });
+          const s = 0.8 + visualRand(x, y, 100 + i) * 0.45;
+          const dx = (visualRand(x, y, 200 + i) - 0.5) * 0.62;
+          const dz = (visualRand(x, y, 300 + i) - 0.5) * 0.62;
+          items.jungleButtress.push({ x, y, top, dim, color: PROP_COLOR.jungleButtress, dx, dz, dy: 0.075 * s * h, sx: s, sy: s * h, sz: s });
+          items.jungleTrunk.push({ x, y, top, dim, color: PROP_COLOR.jungleTrunk, dx, dz, dy: 0.24 * s * h, sx: s, sy: s * h, sz: s });
+          items.jungleCanopy.push({ x, y, top, dim, color: PROP_COLOR.jungleCanopy, dx, dz, dy: 0.52 * s * h, sx: 1.05 * s, sy: 0.42 * s * h, sz: 1.05 * s });
+        }
+      } else if (t.t === 'swamp') {
+        // XVII #12: scattered small pond discs so swamp reads as wet, waterlogged ground
+        const count = 2 + Math.floor(visualRand(x, y, 9) * 3); // 2–4
+        for (let i = 0; i < count; i++) {
+          const s = 0.6 + visualRand(x, y, 400 + i) * 0.7;
+          items.pond.push({
+            x, y, top, dim, color: PROP_COLOR.pond,
+            dx: (visualRand(x, y, 200 + i) - 0.5) * 0.66,
+            dz: (visualRand(x, y, 300 + i) - 0.5) * 0.66,
+            dy: 0.012, sx: s, sz: s
+          });
         }
       } else if (t.t === 'hills') {
         const count = 1 + (visualRand(x, y, 2) > 0.55 ? 1 : 0);
@@ -230,7 +251,7 @@ export function createTileProps(map, tileTop, joins) {
           for (const m of motif) {
             items[m.k].push({ x, y, top: base, dim, color: m.color,
               dx: m.dx || 0, dz: m.dz || 0, dy: m.dy || 0,
-              sx: m.sx, sy: m.sy, sz: m.sz, rotY: m.rotY || 0 });
+              sx: m.sx, sy: m.sy, sz: m.sz, rotX: m.rotX || 0, rotY: m.rotY || 0 });
           }
         } else { // any terrain without a motif keeps the generic marker
           items.special.push({ x, y, top: base, dim, color: PROP_COLOR.special, dx: -0.2, dz: 0.2, dy: 0.08 });

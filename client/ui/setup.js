@@ -385,6 +385,12 @@ export function showSetupScreen() {
     m.startJoinFlow(setupBox);
     const el = document.getElementById('lobby-code-in');
     if (el) el.value = inviteCode.toUpperCase().slice(0, 5);
+    // XVII #2: give an invited first-timer the arrow treatment on this screen.
+    // Suppress under automation — a full-screen overlay would swallow e2e clicks
+    // (navigator.webdriver is set by Playwright + raw-CDP, never by real users).
+    if (!(typeof navigator !== 'undefined' && navigator.webdriver)) {
+      import('./onboarding.js').then(o => o.maybeShowJoinOnboarding());
+    }
   });
 
   // ?lobbydemo=host|joiner|blocked|kicked — A37 waiting-room UI states

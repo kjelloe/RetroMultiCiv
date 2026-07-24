@@ -9,6 +9,7 @@ import { cityMood } from '../../engine/happiness.js';
 import { cityEconOutput } from '../../engine/tech.js';
 import { capitalOf } from '../../engine/government.js';
 import { makeOverviewPanel } from './overview-panel.js';
+import { cityUpkeep } from './upkeep.js';
 
 export function initCityOverview(ctx) {
   const { session } = ctx;
@@ -40,9 +41,15 @@ export function initCityOverview(ctx) {
       const y = cityYields(state, c, ruleset);
       const mood = cityMood(state, c, ruleset);
       const eco = cityEconOutput(state, c, taxRate, sciRate, perSpec, ruleset);
+      const up = cityUpkeep(state, cid, ruleset); // XVII #21
       const b = producing(c);
       const qlen = ctx.buildQueue ? ctx.buildQueue.get(cid).length : 0;
       const disorder = c.disorder === true ? ' <span class="loss" title="civil disorder">⚠</span>' : '';
+      // XVII #21: unit upkeep is SHIELDS (+ FOOD for settlers) — never gold —
+      // so label the currencies truthfully; a dash reads cleaner than a bare 0
+      const unitUp = (up.shields || up.food)
+        ? `${up.shields ? `<span class="ys">⚒${up.shields}</span>` : ''}${up.shields && up.food ? ' ' : ''}${up.food ? `<span class="yf">🌾${up.food}</span>` : ''}`
+        : '<span class="co-prog">—</span>';
       return {
         title: 'open ' + c.name,
         onClick: () => { if (ctx.panels && ctx.panels.openCityPanel) ctx.panels.openCityPanel(cid); },
@@ -52,6 +59,8 @@ export function initCityOverview(ctx) {
           `<span class="co-yft"><span class="yf">🌾${y.food}</span> <span class="ys">⚒${y.shields}</span> <span class="yt">➡${y.trade}</span></span>`,
           `💰${eco.gold} 🔬${eco.bulbs}`,
           `🎭${mood.entertainers} 💰${mood.taxmen} 🔬${mood.scientists}`,
+          up.bldgGold ? `<span class="loss">💰${up.bldgGold}</span>` : '<span class="co-prog">—</span>',
+          unitUp,
           `${esc(b.name)} <span class="co-prog">${c.shields}/${b.cost}</span>` + (qlen ? ` <span class="co-q" title="${qlen} queued">+${qlen}</span>` : '')
         ]
       };
@@ -61,7 +70,10 @@ export function initCityOverview(ctx) {
       headers: [
         { label: 'City' }, { label: 'Pop' }, { label: '🌾⚒➡', title: 'food / shields / trade' },
         { label: 'Tax·Sci', title: 'gold / research this city contributes' },
-        { label: '🎭💰🔬', title: 'entertainers / tax collectors / scientists' }, { label: 'Building' }
+        { label: '🎭💰🔬', title: 'entertainers / tax collectors / scientists' },
+        { label: 'Bldg 💰', title: 'building upkeep (gold) — the only gold sink' },
+        { label: 'Unit ⚒🌾', title: 'unit upkeep: shields (⚒) + settler food (🌾) — never gold' },
+        { label: 'Building' }
       ],
       rows
     };

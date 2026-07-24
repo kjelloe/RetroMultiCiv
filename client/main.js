@@ -38,6 +38,7 @@ import { initDebugPanel } from './ui/debug-panel.js';
 import { initStrategicOverlay } from './ui/strategic-overlay.js';
 import { initDiplomacy } from './ui/diplomacy.js';
 import { initTechTree } from './ui/tech-tree.js';
+import { initTopPanels } from './ui/top-panels.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -141,8 +142,10 @@ if (!params.has('seed') && !params.has('civs') && !params.has('mock') && !params
   revealApp(); // fade in the setup screen
   maybeShowRejoinBanner(); // XII.4: a left-behind server game gets a one-tap rejoin
   // first-timer arrows to the setup choices (once/browser) — but NOT under an
-  // e2e/demo flow (see AUTOMATION above).
-  if (!AUTOMATION) maybeShowSetupOnboarding();
+  // e2e/demo flow (see AUTOMATION above), NOR on a ?join deep-link: that swaps the
+  // panel to the Join form and runs its OWN first-timer arrows (XVII #2), so the
+  // setup arrows would point at the wrong (replaced) buttons.
+  if (!AUTOMATION && !params.has('join')) maybeShowSetupOnboarding();
   throw new Error('setup'); // stop the bootstrap; the setup screen reloads
 }
 // Tab-loss fix (user ruling 2026-07-22): ?resume=local boots straight from the
@@ -541,6 +544,7 @@ ctx.debugPanel = initDebugPanel(ctx); // A92: null unless state.debugEnabled
 ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 / spectator only)
 ctx.diplomacy = initDiplomacy(ctx); // D2: Foreign-relations panel (feature-detected; inert until D1)
 ctx.techTree = initTechTree(ctx); // XII.6: graphical tech tree + client-side beeline (🌳 / Shift+T)
+initTopPanels(); // XVII #19: top-center panels are mutually exclusive (after they're built)
 // L6: spectators issue no commands — the 🤖 regency button (and its seat
 // takeover) never exists for the view-only pseudo-seat
 ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)

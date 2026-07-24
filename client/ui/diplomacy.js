@@ -80,8 +80,9 @@ export function initDiplomacy(ctx) {
   btn.id = 'open-diplo';
   btn.title = 'foreign relations — war, peace, treaties';
   btn.textContent = '🤝';
-  const corner = document.getElementById('corner-buttons');
-  if (corner) corner.appendChild(btn);
+  // XVII #18: sits in the top-center overview cluster (left of the 💰 economy
+  // button), positioned absolutely via #open-diplo in style.css — not the corner group
+  document.body.appendChild(btn);
   btn.addEventListener('click', () => { box.classList.toggle('hidden'); render(); });
   box.querySelector('#diplo-close').addEventListener('click', () => box.classList.add('hidden'));
 

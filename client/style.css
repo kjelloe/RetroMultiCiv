@@ -65,11 +65,12 @@ html, body {
 #research-bar {
   position: absolute;
   top: 12px;
-  /* XV §1: +8ch wider for the icon rates — widen RIGHTWARD (left edge pinned at
+  /* XV §1 / XVII #16+#22: wider for the icon rates + turns-to-tech + the 🔬+N
+     per-turn science + the 🎭 lux value — widen RIGHTWARD (left edge pinned at
      its old centered position) so the 💰/⚔/🏙 overview buttons keep their gap */
   left: calc(50% - 190px);
   transform: none;
-  width: calc(380px + 8ch);
+  width: calc(380px + 26ch);
   height: 26px;
   background: rgba(10, 16, 28, 0.85);
   border: 1px solid #2a3a55;
@@ -427,8 +428,9 @@ html, body {
 #city-production {
   flex: 0 1 auto;
   width: max-content;
-  min-width: 200px;
-  max-width: 280px;
+  /* XVII #6: +3ch so building upkeep lines ("… · upkeep 1") don't wrap */
+  min-width: calc(200px + 3ch);
+  max-width: calc(280px + 3ch);
   max-height: 340px;
   display: flex;          /* XIV §43: build line + queue fixed on top, catalog scrolls */
   flex-direction: column;
@@ -513,6 +515,7 @@ html, body {
 .yf { color: #8fd18f; }
 .ys { color: #e0a458; }
 .yt { color: #6db3f2; }
+.ysp { color: #f2d84e; display: block; margin-bottom: 2px; } /* XVII #9: special-resource name */
 
 /* --- center banner (non-modal, unmissable) --- */
 #center-banner {
@@ -1069,6 +1072,11 @@ html, body {
 #regent-btn.active { background: #2e6b40; border-color: #4f9a63; }
 #regent-dialog {
   position: absolute;
+  /* XVII #4: anchor it LOWER-right, beside the 🤖 button it explains — override
+     the .panel top-center anchors (top/left/transform) it would otherwise inherit */
+  top: auto;
+  left: auto;
+  transform: none;
   right: 16px;
   bottom: 60px;
   width: 300px;
@@ -1535,6 +1543,9 @@ html, body {
   min-height: 1.2em;
   margin: 2px 0;
 }
+/* XVII #1: the starting-age hint reads as a caption spanning the whole panel,
+   centered under both columns (not left-boxed under the left column) */
+#setup-age-hint { max-width: none; text-align: center; }
 
 #setup-start, #setup-find, #handoff-go, #lobby-code-btn {
   margin-top: 14px;
@@ -1980,7 +1991,8 @@ html, body {
 /* D2: the Foreign-relations panel — per-met-civ war/peace status + treaty
    actions (feature-detected; inert until D1) */
 #diplo-overlay {
-  position: fixed; top: 52px; left: 12px; z-index: 24;
+  /* XVII #18: open centered like the other top-center panels (was top-left) */
+  position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 24;
   background: rgba(12, 18, 30, 0.96); border: 1px solid #2c4468;
   border-radius: 8px; padding: 8px 12px; color: #cdd8ea;
   font-size: 12px; max-height: 60vh; overflow-y: auto; max-width: 360px;
@@ -2373,7 +2385,7 @@ html, body {
 
 /* XIV §34/§41: the shared overview panels — top-bar toggle buttons (left of the
    research bar) + the shared scrollable table. 🏙 city overview, ⚔ military. */
-#open-city-overview, #open-military-overview, #open-econ-overview {
+#open-city-overview, #open-military-overview, #open-econ-overview, #open-diplo {
   position: absolute;
   top: 12px;
   height: 26px;
@@ -2388,10 +2400,13 @@ html, body {
   cursor: pointer;
   z-index: 6;
 }
-#open-city-overview { left: calc(50% - 226px); }
-#open-military-overview { left: calc(50% - 262px); } /* left of the 🏙 button */
-#open-econ-overview { left: calc(50% - 298px); }     /* left of the ⚔ button */
-#open-city-overview:hover, #open-military-overview:hover, #open-econ-overview:hover { background: #2f5388; }
+/* XVII #15: the 💰⚔🏙 overview cluster sits one button-width LEFT of the research
+   bar (a clear gap); XVII #18 adds 🤝 foreign-relations at the left of the cluster */
+#open-city-overview { left: calc(50% - 262px); }
+#open-military-overview { left: calc(50% - 298px); } /* left of the 🏙 button */
+#open-econ-overview { left: calc(50% - 334px); }     /* left of the ⚔ button */
+#open-diplo { left: calc(50% - 370px); }             /* left of the 💰 economy button (XVII #18) */
+#open-city-overview:hover, #open-military-overview:hover, #open-econ-overview:hover, #open-diplo:hover { background: #2f5388; }
 .overview-table .eco-in { color: #cde8d4; }
 .overview-table .eco-out { color: #cdd8ea; }
 .overview-table .eco-note { color: #ffd479; }
@@ -2414,11 +2429,13 @@ html, body {
 .overview-empty { padding: 10px; color: #8fa9cf; }
 
 @media (max-width: 720px) {
-  /* row 1 gets the overview buttons on the far left; shove the research bar over */
-  #open-econ-overview { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
-  #open-military-overview { top: 4px; left: 40px; height: 28px; line-height: 26px; z-index: 22; }
-  #open-city-overview { top: 4px; left: 74px; height: 28px; line-height: 26px; z-index: 22; }
-  #research-bar { left: 112px; }
+  /* row 1 gets the overview buttons on the far left; shove the research bar over.
+     XVII #18: 🤝 foreign-relations leads the row, left of the 💰 economy button. */
+  #open-diplo { top: 4px; left: 6px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-econ-overview { top: 4px; left: 40px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-military-overview { top: 4px; left: 74px; height: 28px; line-height: 26px; z-index: 22; }
+  #open-city-overview { top: 4px; left: 108px; height: 28px; line-height: 26px; z-index: 22; }
+  #research-bar { left: 146px; }
 }
 
 /* XIV §33: the incoming-offer envoy modal — blocks the map while it is up */
