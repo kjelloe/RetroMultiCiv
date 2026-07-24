@@ -12,6 +12,12 @@ local visibility = require("./visibility")
 
 local DEFAULTS = { width = 80, height = 50, landPercent = 32, continents = 5 }
 
+-- #36 river knobs (OURS — house tuning) + the fixed N,E,S,W neighbour order for the
+-- river distance-field BFS + gradient tie-breaks (deterministic; matches engine/mapgen.js).
+local RIVER_PCT = 11
+local MEANDER_PCT = 25
+local N4 = { { dx = 0, dy = -1 }, { dx = 1, dy = 0 }, { dx = 0, dy = 1 }, { dx = -1, dy = 0 } }
+
 -- Terrain pick tables per latitude band: {terrainId, weight}
 local BAND_POLAR = { { "tundra", 55 }, { "forest", 20 }, { "hills", 15 }, { "mountains", 10 } }
 local BAND_TEMPERATE_FAR = { { "forest", 25 }, { "grassland", 30 }, { "plains", 20 }, { "hills", 15 }, { "mountains", 10 } }
@@ -121,41 +127,101 @@ local function generateTiles(r0: number, width: number, height: number, landPerc
 		end
 	end
 
-	-- rivers: short walks flagged onto land tiles
+	-- rivers (#36, ruling A #2522): the `river` FLAG as meandering CONTINUOUS strips —
+	-- springs in hills/mountains gradient-descend a distance-to-ocean field to the coast,
+	-- ~RIVER_PCT% of land flagged, MEANDER_PCT free-wiggle. Byte-shaped twin of mapgen.js
+	-- (fixed N4 order, ocean-index queue order, single rng sequence, order-based ties).
 	local landCount = 0
 	for _, t in ipairs(tiles) do
 		if t.t ~= "ocean" and t.t ~= "arctic" then
 			landCount += 1
 		end
 	end
-	local rivers = idiv(landCount, 50)
-	for _ = 1, rivers do
-		local roll = rng.rollRange(r, width)
+	local target = idiv(landCount * RIVER_PCT, 100)
+	local dist = {}
+	for i = 0, width * height - 1 do
+		dist[i] = -1
+	end
+	local queue = {}
+	for i = 0, width * height - 1 do
+		if tiles[i + 1].t == "ocean" then
+			dist[i] = 0
+			table.insert(queue, i)
+		end
+	end
+	local qh = 1
+	while qh <= #queue do
+		local i = queue[qh]
+		qh += 1
+		local cx = i % width
+		local cy = idiv(i, width)
+		for _, d in ipairs(N4) do
+			local nx = wrap(cx + d.dx, width)
+			local ny = cy + d.dy
+			if ny >= 0 and ny < height then
+				local ni = ny * width + nx
+				if dist[ni] == -1 and tiles[ni + 1].t ~= "ocean" then
+					dist[ni] = dist[i] + 1
+					table.insert(queue, ni)
+				end
+			end
+		end
+	end
+	local springs = {}
+	for i = 0, width * height - 1 do
+		local tt = tiles[i + 1].t
+		if tt == "hills" or tt == "mountains" then
+			table.insert(springs, i)
+		end
+	end
+	local flagged = 0
+	while flagged < target and #springs > 0 do
+		local roll = rng.rollRange(r, #springs)
 		r = roll.rngState
-		local x = roll.value
-		roll = rng.rollRange(r, height - 2)
-		r = roll.rngState
-		local y = 1 + roll.value
-		roll = rng.rollRange(r, 6)
-		r = roll.rngState
-		local len = 3 + roll.value
-		while len > 0 do
-			len -= 1
+		local springIdx = springs[roll.value + 1]
+		table.remove(springs, roll.value + 1)
+		local x = springIdx % width
+		local y = idiv(springIdx, width)
+		local steps = 0
+		local maxSteps = width + height
+		while steps < maxSteps and flagged < target do
 			local tile = tiles[y * width + x + 1]
-			if tile.t ~= "ocean" and tile.t ~= "arctic" and tile.t ~= "mountains" then
+			if tile.t == "ocean" then
+				break
+			end
+			if tile.t ~= "arctic" and tile.t ~= "mountains" and tile.river ~= true then
 				tile.river = true
+				flagged += 1
 			end
-			roll = rng.rollRange(r, 4)
+			local cand = {}
+			for _, d in ipairs(N4) do
+				local nx = wrap(x + d.dx, width)
+				local ny = y + d.dy
+				if ny >= 0 and ny < height then
+					table.insert(cand, { nx = nx, ny = ny, dd = dist[ny * width + nx] })
+				end
+			end
+			if #cand == 0 then
+				break
+			end
+			roll = rng.rollRange(r, 100)
 			r = roll.rngState
-			if roll.value == 0 then
-				x = wrap(x + 1, width)
-			elseif roll.value == 1 then
-				x = wrap(x - 1, width)
-			elseif roll.value == 2 then
-				y = math.min(height - 2, y + 1)
+			if roll.value < MEANDER_PCT then
+				roll = rng.rollRange(r, #cand)
+				r = roll.rngState
+				x = cand[roll.value + 1].nx
+				y = cand[roll.value + 1].ny
 			else
-				y = math.max(1, y - 1)
+				local chosen = cand[1]
+				for _, c in ipairs(cand) do
+					if c.dd ~= -1 and (chosen.dd == -1 or c.dd < chosen.dd) then
+						chosen = c
+					end
+				end
+				x = chosen.nx
+				y = chosen.ny
 			end
+			steps += 1
 		end
 	end
 

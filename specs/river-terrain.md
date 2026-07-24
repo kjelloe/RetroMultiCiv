@@ -70,3 +70,32 @@ shape: per-terrain overrides `terrain.workTurns = {mine: 15, ...}`
 falling back to the flat rules.workTurns. Behavioral (settler
 timing) → honest re-record; riders into the same sweep if windows
 can merge.
+
+---
+
+## RULED (A) — ENHANCE THE FLAG (architect #2522, built #36 by bugfixer 2026-07-25)
+
+The design-read (#2521) found `tile.river` ALREADY EXISTS as a deeply-integrated
+FLAG (10 files: trade + defense + irrigation-water + road-gate + flood + AI
+scoring), so the terrain-type sections above are the ROAD NOT TAKEN. Ruled (A):
+enhance the flag, no new terrain type. Provenance label: **"river = feature-on-
+terrain (Civ2-shape data model) with Civ1-authentic effects + distribution"**.
+
+WHAT SHIPPED:
+- **Mapgen (engine/mapgen.js + luau twin)**: the short-random-walk river pass
+  replaced by meandering CONTINUOUS strips — a distance-to-ocean multi-source BFS
+  (N4 order, ocean-index queue order) then gradient-descent-with-meander from
+  hills/mountain springs to the coast, ~`RIVER_PCT`=11% of land, `MEANDER_PCT`=25%
+  free-wiggle (OUR knobs). Deterministic; JS==Luau map hashes verified.
+  Accepted quirks (architect #2527): confluences (flagged tiles don't recount),
+  spring-exhaustion undershoot on low-hill maps (never force with synthetic
+  springs), free meander can wander (maxSteps + flagged-set bound it).
+- **Effects — ALREADY PRESENT, verified vs the dump, no change**: riverModifier
+  tradeBonus 1 (grassland 2/0/0 → 2/0/1), defenseBonus 50, Shield special 2/1/1;
+  road-on-river needs Bridge Building + mine-on-river illegal (B19,
+  improvements.js); irrigation self-satisfies water; river domain = land (ships
+  never enter; cityIsCoastal excludes — river is not ocean).
+- **Renderer**: the existing RIVER_TINT lerp now reads as a ribbon because the
+  strips give it shape.
+- **Goldens**: FULL honest re-record (every generated map moved) + CANONICAL_PIN
+  re-bake + 25-seed sweep.

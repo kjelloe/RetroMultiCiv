@@ -10,6 +10,15 @@ import { hashState } from '../shared/statehash.js';
 
 const DEFAULTS = { width: 80, height: 50, landPercent: 32, continents: 5 };
 
+// #36 river knobs (OURS — not dump-sourced; document as house tuning): the share
+// of LAND tiles a game's meandering river strips target, and the per-step chance a
+// strip wiggles freely instead of gradient-descending toward the coast.
+const RIVER_PCT = 11;
+const MEANDER_PCT = 25;
+// N,E,S,W — the fixed neighbour order for the river distance-field BFS + gradient
+// tie-breaks (deterministic; the luau twin uses the same order).
+const N4 = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
+
 // Terrain pick tables per latitude band: [terrainId, weight]
 const BAND_POLAR = [['tundra', 55], ['forest', 20], ['hills', 15], ['mountains', 10]];
 const BAND_TEMPERATE_FAR = [['forest', 25], ['grassland', 30], ['plains', 20], ['hills', 15], ['mountains', 10]];
@@ -98,26 +107,67 @@ function generateTiles(rng, width, height, landPercent, continents) {
     }
   }
 
-  // rivers: short walks flagged onto land tiles
+  // rivers (#36, ruling A #2522): the `river` FLAG placed as meandering CONTINUOUS
+  // strips — springs in hills/mountains flow to the nearest coast, ~RIVER_PCT% of
+  // land flagged. "feature-on-terrain (Civ2-shape data model) with Civ1-authentic
+  // effects + distribution". Deterministic: a distance-to-ocean field (multi-source
+  // BFS, N4 order, ocean-index queue order), then each strip gradient-descends that
+  // field toward the sea with a MEANDER_PCT free-wiggle chance. All draws in a fixed
+  // order (spring pick, then per step: meander roll, and on a wiggle a neighbour
+  // roll) — the luau twin mirrors the exact sequence. Knobs are OURS (documented).
   let landCount = 0;
   for (const t of tiles) { if (t.t !== 'ocean' && t.t !== 'arctic') landCount++; }
-  const rivers = idiv(landCount, 50);
-  for (let n = 0; n < rivers; n++) {
-    let roll = rollRange(r, width); r = roll.rngState;
-    let x = roll.value;
-    roll = rollRange(r, height - 2); r = roll.rngState;
-    let y = 1 + roll.value;
-    roll = rollRange(r, 6); r = roll.rngState;
-    let len = 3 + roll.value;
-    while (len > 0) {
-      len--;
+  const target = idiv(landCount * RIVER_PCT, 100);
+  // distance-to-ocean over every non-ocean tile (arctic/mountains included so a
+  // spring always has a downhill path; they are just never FLAGGED). -1 = enclosed.
+  const dist = [];
+  for (let i = 0; i < width * height; i++) dist.push(-1);
+  const queue = [];
+  for (let i = 0; i < width * height; i++) { if (tiles[i].t === 'ocean') { dist[i] = 0; queue.push(i); } }
+  let qh = 0;
+  while (qh < queue.length) {
+    const i = queue[qh]; qh++;
+    const cx = i % width, cy = idiv(i, width);
+    for (const d of N4) {
+      const nx = wrap(cx + d.dx, width);
+      const ny = cy + d.dy;
+      if (ny < 0 || ny >= height) continue;
+      const ni = ny * width + nx;
+      if (dist[ni] === -1 && tiles[ni].t !== 'ocean') { dist[ni] = dist[i] + 1; queue.push(ni); }
+    }
+  }
+  // spring candidates: hills + mountains, tile-index order (deterministic).
+  const springs = [];
+  for (let i = 0; i < width * height; i++) { const tt = tiles[i].t; if (tt === 'hills' || tt === 'mountains') springs.push(i); }
+  let flagged = 0;
+  while (flagged < target && springs.length > 0) {
+    let roll = rollRange(r, springs.length); r = roll.rngState;
+    const springIdx = springs[roll.value];
+    springs.splice(roll.value, 1);
+    let x = springIdx % width, y = idiv(springIdx, width);
+    let steps = 0; const maxSteps = width + height;
+    while (steps < maxSteps && flagged < target) {
       const tile = tiles[y * width + x];
-      if (tile.t !== 'ocean' && tile.t !== 'arctic' && tile.t !== 'mountains') tile.river = true;
-      roll = rollRange(r, 4); r = roll.rngState;
-      if (roll.value === 0) x = wrap(x + 1, width);
-      else if (roll.value === 1) x = wrap(x - 1, width);
-      else if (roll.value === 2) y = Math.min(height - 2, y + 1);
-      else y = Math.max(1, y - 1);
+      if (tile.t === 'ocean') break; // reached the sea
+      if (tile.t !== 'arctic' && tile.t !== 'mountains' && tile.river !== true) { tile.river = true; flagged++; }
+      const cand = [];
+      for (const d of N4) {
+        const nx = wrap(x + d.dx, width);
+        const ny = y + d.dy;
+        if (ny < 0 || ny >= height) continue;
+        cand.push({ nx, ny, dd: dist[ny * width + nx] });
+      }
+      if (cand.length === 0) break;
+      roll = rollRange(r, 100); r = roll.rngState;
+      if (roll.value < MEANDER_PCT) {
+        roll = rollRange(r, cand.length); r = roll.rngState; // free wiggle
+        x = cand[roll.value].nx; y = cand[roll.value].ny;
+      } else {
+        let chosen = cand[0]; // gradient descent; N4 order breaks ties
+        for (const c of cand) { if (c.dd !== -1 && (chosen.dd === -1 || c.dd < chosen.dd)) chosen = c; }
+        x = chosen.nx; y = chosen.ny;
+      }
+      steps++;
     }
   }
 

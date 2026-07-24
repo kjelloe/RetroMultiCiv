@@ -60,11 +60,11 @@ test('era guard: all 68 techs classified, bucket sizes 22/15/14/17', () => {
 
 test('fast-forward is deterministic: same seed + age → identical state hash', () => {
   const age = ageById('renaissance');
-  // #36 N1a re-pin (seed 2 -> 3): the gov-tech beeline reshuffled trajectories, and seed 2's small
-  // world now conquers out before Renaissance (the abort path). Seed 3 survives (12/19 seeds do —
-  // not a regression). Same re-pin discipline as the 2026-07-18 (seed 1 -> 2) goody-hut move.
-  const a = fastForwardTo(RULESET, freshWorld(3), age, ['p1']);
-  const b = fastForwardTo(RULESET, freshWorld(3), age, ['p1']);
+  // #36 river-terrain re-pin (seed 3 -> 4): the meandering-strip river mapgen reshaped every world,
+  // and seed 3 now conquers out before Renaissance (the abort path). Seed 4 survives to turn 190
+  // (most seeds do — not a regression). Same re-pin discipline as the prior seed 1->2->3 moves.
+  const a = fastForwardTo(RULESET, freshWorld(4), age, ['p1']);
+  const b = fastForwardTo(RULESET, freshWorld(4), age, ['p1']);
   assert.ok(!a.aborted && !b.aborted, 'both runs complete');
   assert.strictEqual(a.state.turn, age.turn, 'stops at the age turn');
   assert.strictEqual(hashState(a.state), hashState(b.state), 'byte-identical worlds');
@@ -74,7 +74,7 @@ test('fast-forward is deterministic: same seed + age → identical state hash', 
 
 test('the grant is the era union for EVERY player, research reset', () => {
   const age = ageById('renaissance'); // grants the 22 ancient techs
-  const r = fastForwardTo(RULESET, freshWorld(3), age, ['p1']); // #36 N1a re-pin (seed 2 conquers out pre-Renaissance)
+  const r = fastForwardTo(RULESET, freshWorld(4), age, ['p1']); // #36 river re-pin (seed 3 conquers out pre-Renaissance)
   const ancient = Object.keys(RULESET.techs).filter(t => RULESET.techs[t].era === 'ancient').sort();
   assert.deepStrictEqual(r.grant, ancient);
   for (const pid of r.state.playerOrder) {
@@ -93,14 +93,12 @@ test('Space Age grants everything except Future Tech', () => {
 });
 
 test('a to-be-human civ dying aborts with its name — never a silent re-roll', () => {
-  // seed re-pinned to 7 on 2026-07-21 after the difficulty window (#2155/#2158:
-  // the default prince barbAtkPct 75 reshuffled early combat/expansion; seed 14's
-  // p1 now survives, seed 7 conquers Civ1 early — the abort path). The seed is a
-  // fixture, re-pinned whenever war/scout/expansion goldens move. Disasters OFF for
-  // a stable fixture — the random per-turn calamity would otherwise perturb it.
+  // #36 river-terrain re-pin (seed 7 -> 1): the meandering-strip mapgen reshaped every world;
+  // seed 7 now survives, seed 1 conquers Civ1 (p1) early — the abort path. The seed is a fixture,
+  // re-pinned whenever war/scout/expansion goldens move. Disasters OFF for a stable fixture.
   const noDisasters = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { disastersEnabled: false }) });
-  const r = fastForwardTo(noDisasters, freshWorld(7), ageById('renaissance'), ['p1']);
-  assert.ok(r.aborted, 'seed 14 eliminates p1 early');
+  const r = fastForwardTo(noDisasters, freshWorld(1), ageById('renaissance'), ['p1']);
+  assert.ok(r.aborted, 'seed 1 eliminates p1 (Civ1) early');
   assert.strictEqual(r.aborted.reason, 'civEliminated');
   assert.strictEqual(r.aborted.name, 'Civ1', 'the message can name the dead civ');
 });
