@@ -17,12 +17,10 @@ merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
 
 ### A. At the desk now (~15 min, unblocks everything)
 
-- [ ] **A1. Two rulings, one chat reply:**
-  - **PEDIA_NAME**: the client ships defaulted to "Gamepedia"
-    (flagged: it's a Fandom brand). Pick: keep "Gamepedia" /
-    "Founder's Guide" / "Encyclopedia" / your own. One-line swap in
-    `client/ui/pedia-name.js`.
-  - **City rosters**: say "go" or "veto" on the full authentic
+- [ ] **A1. One ruling left:**
+  - [x] **PEDIA_NAME** — RULED 2026-07-25: **"Encyclopedia"**
+    (applied in `client/ui/pedia-name.js`; Roblox swap relayed).
+  - [ ] **City rosters**: say "go" or "veto" on the full authentic
     replace (16 names/civ in Civ1 founding order; a small golden
     re-record). Silence = go once marker-0103 tags.
 - [ ] **A2. Grant roblox writes (the one active blocker):** in the
@@ -40,24 +38,27 @@ merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
   `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
   gameOver reveal, endscreen verdict fix, civ splash, pedia rename,
   founders-tone, silhouettes, late-join UI polish.
-- [ ] **A5. Eyeball two screenshots** (say good/bad in chat):
-  - `debugging/usergenerated/river-ribbon-gallery.png` (+ the
-    `-webgl1` twin) — the river ribbon acceptance shot.
-  - optional: the civ-start splash live at
-    `http://localhost:8123/client/?seed=1&civintro`.
+- [x] **A5. Screenshots eyeballed — OK** (user, 2026-07-25): river
+  ribbon accepted.
 
 ### B. Ally correspondence (whenever you next write)
 
-- [ ] **B1. Forward the screenshot round** to the designer ally:
-  `debugging/tone-defeat/conquest/score/space.png` (the Founder's
-  Record tone pass — their doctrine applied),
-  `debugging/usergenerated/specials-row/beasts/seal.png` (the
-  silhouette iteration: game antler, rearing horse, seal flipper),
-  and the river ribbon shot. Suggested note: "Your tone guidance and
-  silhouette notes are in — say if any ending's weight or beast
-  outline feels off. Rivers now render as ribbons; one look wanted."
-  One open offer to them: the conquest world-brighten is CSS-layer;
-  a renderer-level map brighten is available if they want it.
+- [ ] **B1. Forward the screenshot round** to the designer ally —
+  8 individual FILES (my earlier compressed notation misread as
+  folders; all verified present on the dev PC):
+  - `debugging/tone-defeat.png`, `debugging/tone-conquest.png`,
+    `debugging/tone-score.png`, `debugging/tone-space.png`
+    (the Founder's Record tone pass — their doctrine applied);
+  - `debugging/usergenerated/specials-row.png`,
+    `debugging/usergenerated/specials-beasts.png`,
+    `debugging/usergenerated/specials-seal.png`
+    (the silhouette iteration: game antler, rearing horse, flipper);
+  - `debugging/usergenerated/river-ribbon-gallery.png`.
+  Suggested note: "Your tone guidance and silhouette notes are in —
+  say if any ending's weight or beast outline feels off. Rivers now
+  render as ribbons; one look wanted." One open offer to them: the
+  conquest world-brighten is CSS-layer; a renderer-level map
+  brighten is available if they want it.
 
 ### C. Phone test (~10 min, carried)
 
