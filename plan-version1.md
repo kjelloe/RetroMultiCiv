@@ -22,8 +22,8 @@ play-on-roblox hidden button (a61d34e), intro v1 USER-APPROVED
 frozen at v5b, roblox midgame-join BUILT+landed 58f74e4 (Studio
 verify pending), lobby-robustness merged fd30245, RC digest
 verified + drift-applied (#2565), fandom-reference license sweep.
-Spine after 0103: 11b authentic rosters (APPROVED full-replace,
-user veto open until the window) + D3-surfacing -> D4-D6 -> the
+Spine after 0103: 11b authentic rosters (user RULED GO,
+explicit option-A pick) + D3-surfacing -> D4-D6 -> the
 XX §3 doctrine window. USER: merge 0102, roblox/** standing Write
 allowlist, PEDIA_NAME + city-roster last-call, Studio session,
 trademark.)
@@ -143,7 +143,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | ~99% (A8 ✅ + coastal ✅ + river fix-A reviewer-GREEN) | **the post-fix sweep** (running → 0103), then workturns/transforms |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, endscreen-winner fix in build | **11b rosters (approved, veto open) + D3-surfacing → D4–D6** |
+| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, claimSeat ✅, endscreen-winner fix in build | **11b rosters (user RULED GO) + D3-surfacing → D4–D6** |
 | 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings) | doctrine window after D4–D6 unless promoted |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + **midgame-join landed** | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness merged fd30245 | docs/16 delta re-assessment (queued) |
