@@ -1189,6 +1189,17 @@ export function startServer(opts) {
             e.paused = true;
             e.pausedAt = Date.now(); // §7: eviction breaks ties by longest-paused
           }
+          // lobby-robustness #4: an open skip-vote is only re-tallied on an
+          // incoming frame. A voter leaving shrinks the electorate (or drops a
+          // yes), so a departure could leave a now-passing vote open forever
+          // (the conn is already removed above, so skipVoteState recomputes on
+          // the reduced electorate). Resolve if it now passes, else re-broadcast
+          // the updated tally so clients see the new denominator.
+          if (e.skipVote) {
+            const s = skipVoteState(e, info.gameId);
+            if (s.yes >= s.needed) doSkip(info.gameId, e);
+            else broadcastGame(info.gameId, Object.assign({ t: 'skipVote' }, s));
+          }
         }
       }
     });
