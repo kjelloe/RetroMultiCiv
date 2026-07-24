@@ -1566,6 +1566,15 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 #discovery-card .dc-glyph { margin-bottom: 10px; }
 #discovery-card .dc-glyph .tech-glyph { width: 88px; height: 88px; }
 #discovery-card .dc-trophy { font-size: 72px; line-height: 88px; } /* XIV §48: wonder art fallback */
+/* #6 item 2: the game-start civ splash — a banner-round emblem in the civ color */
+#discovery-card .ci-emblem {
+  width: 72px; height: 72px; margin: 8px auto 0; border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, color-mix(in srgb, var(--civ, #8fa8cc) 78%, #ffffff 22%), var(--civ, #8fa8cc));
+  border: 3px solid color-mix(in srgb, var(--civ, #8fa8cc) 55%, #05070c);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--civ, #8fa8cc) 55%, transparent);
+}
+#discovery-card .ci-specialty { font-size: 13px; color: #cdd8ea; }
+#discovery-card .ci-card .dc-name { color: #ffe89a; }
 #discovery-card.reveal .dc-glyph { animation: dc-glyph-in 520ms ease-out both; }
 @keyframes dc-glyph-in { from { transform: scale(0.4) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
 #discovery-card .dc-kicker { font-size: 12px; letter-spacing: 2px; color: #8fa8cc; }
