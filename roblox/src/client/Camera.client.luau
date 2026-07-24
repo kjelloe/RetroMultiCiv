@@ -90,8 +90,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 RunService.RenderStepped:Connect(function(dt)
-	if ClientState.theaterActive then
-		return -- runJ item 7: the replay theater owns the camera while it is open
+	if ClientState.theaterActive or ClientState.introActive then
+		return -- the replay theater (runJ) / boot intro (runL) own the camera while active
 	end
 	camera.CameraType = Enum.CameraType.Scriptable
 
