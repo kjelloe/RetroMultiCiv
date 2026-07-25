@@ -6,7 +6,7 @@ import { hasWaterSource, workFlag } from '../../engine/improvements.js';
 import { computeVisible } from '../../engine/visibility.js';
 import { availableTechs } from '../../engine/tech.js';
 import { upgradeCost } from '../../engine/upgrade.js';
-import { canStepTo, stepDir, tileEnterable, greedySteps } from './move-hints.js';
+import { canStepTo, stepDir, tileEnterable, greedySteps, reachableSteps } from './move-hints.js';
 import { findPath } from '../../shared/pathfind.js';
 
 const MOVE_KEYS = {
@@ -636,6 +636,13 @@ export function initInput(ctx) {
         confirmEndTurnUntil = Date.now() + 5000;
         const plural = movable.length > 1;
         hud.banner(`⚠ ${movable.length} unit${plural ? 's' : ''} still ${plural ? 'have' : 'has'} moves — E / End Turn again to confirm`);
+        // mobile #11: don't make the player hunt for them — jump to one that still
+        // has moves (prefer one not already selected). Coarse-only so desktop's
+        // end-turn behaviour is unchanged.
+        if (isCoarse()) {
+          const jump = movable.find(u => u.id !== sel.unitId) || movable[0];
+          if (jump) { ctx.selectUnit(jump); renderer.centerOn(jump.x, jump.y); }
+        }
         return;
       }
       // XV §7: a size-1 city about to COMPLETE a Settler this turn will disband
@@ -929,20 +936,23 @@ export function initInput(ctx) {
     actionBar.textContent = '';
     const usable = unit && unit.owner === ctx.HUMAN && !state.gameOver
       && state.activePlayer === ctx.HUMAN && unit.moves > 0 && !unit.working;
+    // mobile #8: draw tap-to-move arrows on the selected unit's reachable tiles
+    // (coarse only; this REPLACES the bottom step-arrows retired below). Cleared
+    // whenever the unit can't act. Follows the unit — refreshActionBar runs on
+    // every session change (session.onChange).
+    if (renderer.setMoveArrows) {
+      renderer.setMoveArrows(isCoarse() && usable
+        ? reachableSteps(state, unit, session.ruleset) : null);
+    }
     if (!usable) {
       actionBar.classList.add('hidden');
       return;
     }
     const actions = [];
-    // XIV §7: on touch, the selected unit gets on-screen STEP arrows (keyboard
-    // WASD/arrows have no touch equivalent). moveSelected resolves an attack if
-    // the step lands on an enemy — the combat overlay shows the odds first.
-    if (isCoarse() && unit.moves > 0 && !unit.working) {
-      actions.push({ label: '▲', title: 'step north', run: () => touchStep('N') });
-      actions.push({ label: '◀', title: 'step west', run: () => touchStep('W') });
-      actions.push({ label: '▶', title: 'step east', run: () => touchStep('E') });
-      actions.push({ label: '▼', title: 'step south', run: () => touchStep('S') });
-    }
+    // mobile #8 (user, mobile playtest): the bottom step-arrows (▲◀▶▼) are RETIRED
+    // in favour of the tap-to-move arrow overlay drawn on the reachable tiles above
+    // — a tap on a hinted tile moves there (onPick), and an enemy tile still shows
+    // the odds + Attack/Cancel first (touchStep). The 🧭 compass (map pan) stays.
     if (unit.type === 'settlers') {
       const tile0 = state.map.tiles[unit.y * state.map.width + unit.x];
       const terrain = session.ruleset.terrain.terrains[tile0.t];
@@ -1160,20 +1170,10 @@ export function initInput(ctx) {
     if (unitsAt(session.state, x, y).length > 0 || cityAtTile(x, y)) return; // empty only
     yieldKey = key;
     yieldTimer = setTimeout(() => {
-      const tile = session.state.map.tiles[y * session.state.map.width + x];
-      const yl = tileYields(tile, session.ruleset);
-      // XVII #9: name the special resource ("Horse", "Fish"…) when one is present
-      let specialName = '';
-      if (tile.special) {
-        const td = session.ruleset.terrain.terrains[tile.t];
-        if (td && td.special && td.special.name) specialName = td.special.name;
-      }
-      const card = document.createElement('div');
-      card.className = 'hover-yields';
-      card.innerHTML = `<b>(${x},${y}) ${tile.t}</b>`
-        + (specialName ? `<span class="ysp">✦ ${specialName}</span>` : '')
-        + `<span class="yf">🌾${yl.food}</span> <span class="ys">⚒${yl.shields}</span> <span class="yt">💰${yl.trade}</span>`;
-      ctx.hoverCard.showAt(lastPointer.x, lastPointer.y, card);
+      // XVII #9: names the special resource ("Horse", "Fish"…) too — shared with
+      // the mobile #12 long-press inspect via makeYieldCard.
+      const card = makeYieldCard(x, y);
+      if (card) ctx.hoverCard.showAt(lastPointer.x, lastPointer.y, card);
     }, 300);
   }
   window.addEventListener('pointerdown', clearYieldCard);
@@ -1262,14 +1262,32 @@ export function initInput(ctx) {
     }
   });
 
+  let longPressConsumed = false; // mobile #12/#13: a fired long-press swallows its trailing tap
   renderer.onPick(pick => {
     const state = session.state;
+    if (longPressConsumed) { longPressConsumed = false; return; }
     if (gotoArming && sel.unitId && state.units[sel.unitId]) {
       gotoTargets[sel.unitId] = { x: pick.tile.x, y: pick.tile.y };
       gotoArming = false;
       runGoto(sel.unitId);
       refreshActionBar();
       return;
+    }
+    // mobile #14/#12: with a unit selected on touch, a tap on an ADJACENT tile is a
+    // MOVE — into an empty/own tile, INTO an adjacent own city (the city view opens
+    // only when NO unit is selected), or a confirmed attack on an enemy (touchStep
+    // shows the odds + Attack/Cancel first). Tapping ANOTHER of my own units on a
+    // plain tile still selects it (the expected stack gesture). Coarse-only so the
+    // desktop click model is unchanged.
+    if (isCoarse() && sel.unitId && state.units[sel.unitId]) {
+      const u = state.units[sel.unitId];
+      const dir = dirTo(u, pick.tile.x, pick.tile.y);
+      if (dir) {
+        const cityHere = cityAt(state, pick.tile.x, pick.tile.y);
+        const otherMineUnit = unitsAt(state, pick.tile.x, pick.tile.y)
+          .some(o => o.owner === ctx.HUMAN && o.id !== sel.unitId);
+        if (cityHere || !otherMineUnit) { touchStep(dir); return; }
+      }
     }
     const mineHere = unitsAt(state, pick.tile.x, pick.tile.y).filter(u => u.owner === ctx.HUMAN);
     if (mineHere.length > 0) {
@@ -1333,6 +1351,79 @@ export function initInput(ctx) {
     mapCanvas.addEventListener('pointerup', clearRightHold);
     mapCanvas.addEventListener('pointercancel', clearRightHold);
     mapCanvas.addEventListener('pointerleave', clearRightHold);
+
+    // mobile #12/#13: the TOUCH long-press on the map (held ~420ms without moving):
+    //  · selected unit + ADJACENT ENEMY tile → combat ODDS card (inspect only; the
+    //    attack still needs a confirming tap via touchStep). #12
+    //  · selected unit + NON-adjacent tile → GoTo there. #13
+    //  · anything else → the tile's yield + special overlay. #12
+    // The trailing tap (pointerup → onPick) is swallowed so a long-press never also
+    // moves/selects. Coarse-only; the mouse path keeps the right-button long-press.
+    let touchHold = null, holdStart = null;
+    const LONG_MS = 420, HOLD_TOL = 12;
+    const clearHold = () => { if (touchHold) { clearTimeout(touchHold); touchHold = null; } holdStart = null; };
+    mapCanvas.addEventListener('pointerdown', e => {
+      if (!isCoarse() || e.button > 0) return; // primary touch/click only
+      longPressConsumed = false; // clear any stale swallow flag
+      holdStart = { x: e.clientX, y: e.clientY };
+      clearTimeout(touchHold);
+      touchHold = setTimeout(() => {
+        touchHold = null;
+        const pick = renderer.pickAt ? renderer.pickAt(holdStart.x, holdStart.y) : null;
+        if (pick) doLongPress(pick, holdStart);
+      }, LONG_MS);
+    });
+    mapCanvas.addEventListener('pointermove', e => {
+      if (holdStart && touchHold) {
+        const dx = e.clientX - holdStart.x, dy = e.clientY - holdStart.y;
+        if (dx * dx + dy * dy > HOLD_TOL * HOLD_TOL) clearHold(); // a slide/pan, not a hold
+      }
+    });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) mapCanvas.addEventListener(ev, clearHold);
+  }
+
+  // mobile #12: build the tile yield + special card (shared by the hover preview
+  // and the touch long-press inspect). Returns null on a fogged tile.
+  function makeYieldCard(x, y) {
+    if (!tileVisible(x, y)) return null;
+    const tile = session.state.map.tiles[y * session.state.map.width + x];
+    const yl = tileYields(tile, session.ruleset);
+    let specialName = '';
+    if (tile.special) {
+      const td = session.ruleset.terrain.terrains[tile.t];
+      if (td && td.special && td.special.name) specialName = td.special.name;
+    }
+    const card = document.createElement('div');
+    card.className = 'hover-yields';
+    card.innerHTML = `<b>(${x},${y}) ${tile.t}</b>`
+      + (specialName ? `<span class="ysp">✦ ${specialName}</span>` : '')
+      + `<span class="yf">🌾${yl.food}</span> <span class="ys">⚒${yl.shields}</span> <span class="yt">💰${yl.trade}</span>`;
+    return card;
+  }
+  function doLongPress(pick, pt) {
+    const st = session.state;
+    const x = pick.tile.x, y = pick.tile.y;
+    longPressConsumed = true; // swallow the trailing tap
+    const u = sel.unitId ? st.units[sel.unitId] : null;
+    if (u && u.owner === ctx.HUMAN && st.activePlayer === ctx.HUMAN && !st.gameOver) {
+      const dir = dirTo(u, x, y);
+      const enemyHere = tileVisible(x, y) && unitsAt(st, x, y).some(o => o.owner !== ctx.HUMAN);
+      if (dir && enemyHere) { // #12: adjacent enemy → odds inspect (NO attack)
+        const odds = combatPreview(u, x, y);
+        hud.banner(odds ? `⚔ ${odds} — tap the tile to attack` : '⚔ this unit cannot attack', { x, y });
+        return;
+      }
+      if (!dir && (x !== u.x || y !== u.y)) { // #13: non-adjacent → GoTo
+        gotoTargets[sel.unitId] = { x, y };
+        runGoto(sel.unitId);
+        refreshActionBar();
+        hud.note(`🎯 GoTo (${x},${y})`);
+        return;
+      }
+    }
+    // #12: any other tile → yield + special overlay
+    const card = makeYieldCard(x, y);
+    if (card && ctx.hoverCard) ctx.hoverCard.showAt(pt.x, pt.y, card);
   }
 
   // --- keyboard ----------------------------------------------------------------

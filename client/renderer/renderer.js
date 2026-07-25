@@ -13,6 +13,8 @@
 //     setHoverColor(hex)        // tint the hover marker (red = attack preview)
 //     setSelection(sel)         // { unitId? , tile? } | null — highlight marker
 //     setFootprint(tiles)       // [{x, y}] overlay (settler site preview) | null
+//     setMoveArrows(items)      // [{x, y, dir}] tap-to-move arrows (mobile #8) | null
+//     pickAt(cx, cy)            // pick shape under a client point (touch long-press) | null
 //     centerOn(x, y)
 //     setZoom(dist)             // camera distance (clamped)
 //     destroy()

@@ -58,6 +58,24 @@ const STEP_VECS = {
   S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1]
 };
 
+// mobile #8: the reachable adjacent steps for a unit RIGHT NOW — one {x, y, dir}
+// per neighbor it may step onto (the tap-to-move arrow overlay that replaces the
+// bottom step-arrows). Enemy tiles are EXCLUDED (they get the attack treatment,
+// not a move arrow) via tileEnterable. PURE — Node unit-tests it directly.
+export function reachableSteps(state, unit, ruleset) {
+  const out = [];
+  if (!unit || unit.moves <= 0) return out;
+  for (const dir of Object.keys(STEP_VECS)) {
+    const v = STEP_VECS[dir];
+    let x = unit.x + v[0];
+    if (state.map.wrapX) x = ((x % state.map.width) + state.map.width) % state.map.width;
+    const y = unit.y + v[1];
+    if (y < 0 || y >= state.map.height) continue;
+    if (tileEnterable(state, unit, x, y, ruleset)) out.push({ x, y, dir });
+  }
+  return out;
+}
+
 // A68 (VIII.17): the GoTo greedy fallback's candidate steps — distance-
 // decreasing, in-bounds, sorted nearest-first, and DOMAIN-checked: a ship's
 // fallback must never even attempt a land step (the old filter let the

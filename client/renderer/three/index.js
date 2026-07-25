@@ -115,6 +115,16 @@ export function createRenderer(container) {
     color: 0xffe066, transparent: true, opacity: 0.22, depthWrite: false
   });
 
+  // mobile #8: persistent move-arrows on every tile the selected unit can step to
+  // (tap-to-move affordance). A group of flat cones, one per reachable neighbor,
+  // sharing one geometry+material (rebuilt on selection change; ≤8 arrows).
+  const moveArrowGroup = new THREE.Group();
+  scene.add(moveArrowGroup);
+  const geoMoveArrow = new THREE.ConeGeometry(0.11, 0.3, 6);
+  const matMoveArrow = new THREE.MeshBasicMaterial({
+    color: 0x7be07b, transparent: true, opacity: 0.85, depthWrite: false
+  });
+
   function tileTop(x, y) {
     return terrain ? terrain.tileTop(x, y) : 0;
   }
@@ -574,6 +584,25 @@ export function createRenderer(container) {
       const last = points[points.length - 1];
       pathEnd.position.set(last.x, tileTop(last.x, last.y) + 0.1, last.y);
       pathEnd.visible = true;
+    },
+    // XIV §25 / mobile #12/#13: resolve the tile (+ unit/city) under a client
+    // point, for the touch long-press handlers (inspect / odds / GoTo) that have
+    // no hover to lean on. Returns the same pick shape as onPick, or null.
+    pickAt(clientX, clientY) { return view ? castAt(clientX, clientY) : null; },
+    // mobile #8: items = [{x, y, dir}] — draw a move-arrow on each reachable tile
+    // around the selected unit (dir = step direction, ARROW_YAW keyed), or null to
+    // clear. The tap-to-move affordance that replaces the bottom d-pad arrows.
+    setMoveArrows(items) {
+      moveArrowGroup.clear();
+      if (!items || !view) return;
+      for (const it of items) {
+        if (ARROW_YAW[it.dir] === undefined) continue;
+        const m = new THREE.Mesh(geoMoveArrow, matMoveArrow);
+        m.rotation.order = 'YXZ';
+        m.position.set(it.x, tileTop(it.x, it.y) + 0.16, it.y);
+        m.rotation.set(Math.PI / 2, ARROW_YAW[it.dir], 0);
+        moveArrowGroup.add(m);
+      }
     },
     // tiles: [{x, y}] to highlight (the settler's would-be city footprint), or null
     setFootprint(tiles) {

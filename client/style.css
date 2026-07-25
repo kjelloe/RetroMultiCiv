@@ -2502,8 +2502,11 @@ a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on
   }
 
   /* the minimap earns its phone home here (C1 deferred it): smaller, above
-     End Turn instead of over it */
-  #minimap { width: 112px; right: 8px; bottom: 118px; }
+     End Turn instead of over it. mobile #15: CLEAR the desktop `top:52px` — with
+     both top AND bottom set, the fixed box stretched to fill between them (674px
+     tall on a phone, covering the right half). top:auto lets the height collapse
+     to the canvas (~70px), anchored at the bottom. */
+  #minimap { width: 112px; right: 8px; bottom: 118px; top: auto; }
 
   /* toasts wrap inside the viewport (nowrap clipped both edges at 412px) */
   #center-banner, #flash-banner {

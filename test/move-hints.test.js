@@ -3,8 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const RULESET = require('./ruleset.js');
 const mod = import('../client/ui/move-hints.js');
-let canStepTo, stepDir;
-test.before(async () => { ({ canStepTo, stepDir } = await mod); });
+let canStepTo, stepDir, reachableSteps;
+test.before(async () => { ({ canStepTo, stepDir, reachableSteps } = await mod); });
 
 function world() {
   // 4x3: land everywhere except an ocean tile at (2,1)
@@ -42,6 +42,21 @@ test('no arrow: zero moves, non-adjacent, enemy tile, off-map', () => {
   assert.strictEqual(canStepTo(s, s.units.u1, 3, 1, RULESET), false, 'two tiles away');
   assert.strictEqual(canStepTo(s, s.units.u1, 1, 0, RULESET), false, 'enemy tile is the attack ring');
   assert.strictEqual(canStepTo(s, s.units.u1, 1, -1, RULESET), false, 'off the map');
+});
+
+// mobile #8: reachableSteps — the tap-to-move arrow set. Excludes ocean (domain),
+// the enemy tile (attack, not move), off-map, and returns empty for a spent unit.
+test('mobile #8 reachableSteps: land neighbors only, enemy + ocean + spent excluded', () => {
+  const s = world(); // u1 at (1,1); ocean at (2,1); enemy e1 at (1,0)
+  const steps = reachableSteps(s, s.units.u1, RULESET);
+  const keys = steps.map(o => `${o.x},${o.y}:${o.dir}`).sort();
+  // (2,1) ocean excluded, (1,0) enemy excluded; the remaining 6 neighbors are land
+  assert.ok(!keys.some(k => k.startsWith('2,1')), 'ocean neighbor excluded');
+  assert.ok(!keys.some(k => k.startsWith('1,0')), 'enemy neighbor excluded');
+  assert.ok(keys.includes('0,1:W'), 'west land step present');
+  assert.ok(steps.every(o => canStepTo(s, s.units.u1, o.x, o.y, RULESET)), 'every step is a legal single step');
+  s.units.u1.moves = 0;
+  assert.deepStrictEqual(reachableSteps(s, s.units.u1, RULESET), [], 'spent unit has no steps');
 });
 
 test('x-wrap adjacency counts', () => {

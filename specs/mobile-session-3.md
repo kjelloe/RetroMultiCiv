@@ -32,7 +32,16 @@ tap/long-press model · **[flow]** turn sequencing · **[feature]** new affordan
   not mutually exclusive: keep the draggable compass (#5) AND add tile-overlay move
   arrows (#8); a user preferring tile arrows toggles the compass off. No ally question.
 - **#6** is a straight bug (endscreen on mobile) — highest priority, independent.
-- **#11** is a small flow wire-up.
+- **#11** is a small flow wire-up. NOTE (helper, 2026-07-25): #11 is NOT session/hud
+  wiring — its logic lives entirely in `client/ui/input.js` `endTurn()` (the "N units
+  still have moves — E/End Turn again" warning). It is gated with the interaction
+  cluster on that file's lock.
+
+## Observed during the remainder (helper, 2026-07-25) — new item, do NOT fold into a cluster
+
+| # | tag | item | note |
+|---|-----|------|------|
+| 15 | bug | On mobile portrait (~360–390px) the world `#minimap` is width-pinned (114px) but height-UNCONSTRAINED, so it renders ~674px tall and covers the right half of the play area | `#minimap` mobile rule (`client/style.css` ~line 2489: `width:112px; right:8px; bottom:118px`) sets no `max-height`/aspect cap — a tall/narrow map makes the minimap canvas tall. Confirmed via DOM probe to be independent of the #10 top-bar change. Golden-neutral client CSS (cap `max-height` + preserve aspect, or scale to a fixed box). Architect to queue as its own item. |
 
 ## Lane
 
