@@ -63,3 +63,19 @@ tree is clean. Slices ordered highest-leverage-first so each lands measurable va
   chronic threat). If doctrine-DOMINANT development is the intent, the next lever is a
   garrison-floor carve-out or hoisting doctrine above walls — decide on the sweep
   numbers (slice-1c vs fold into slice-2).
+
+## Peace-witness v2 + garrison-roam diagnosis (2026-07-26)
+
+- Peace-witness v1 (2-civ head slice) FALSIFIED: a DUEL (threat 28.8%, 7/10 conquest,
+  coverage 0.0%) — civ count does not control conflict; renamed the 2-civ duel witness.
+- v2 (user design): personality-selected pair — chinese+germans (defensive stance,
+  attackerPerCityPct 0) via the new sim-driver opts.roster + debugging/probe-peace.js
+  (@f795a87, golden-neutral). 3-seed local: STILL 0 buildings, 2-10 cities, all seeds
+  end in barb-driven elimination of one side.
+- **DIAGNOSIS (the deeper W6 blocker): GARRISON ROAM.** Seed-1 sampling: the lone
+  p1 city produces militia at every checkpoint while its garrison leaves (t180:
+  0 units in city, 37 alive on map). defenders < wantDefenders chronically -> the
+  ENTIRE garrisoned block (settlers + doctrine + econ) is unreachable. Explains both
+  the peace-pair 0% coverage AND most of the canonical dormancy. The slice-1d lever
+  is garrison RETENTION (unit-brain: fortified city garrison must stay), not another
+  cascade reorder. Design pending the slice-1c sweep verdict.
