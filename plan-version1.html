@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Last updated: <strong>2026-07-25 night</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0103</strong> @ fe39360 (merge-consistent, supersedes 0102)</span>
-    <span class="chip"><strong>RIVER COMPLETE</strong> — sweep 16/16 clean, M3 floor re-pinned 22 by your ruling</span>
+    <span class="chip">Status before the overnight window: <strong>2026-07-25 night</strong></span>
+    <span class="chip">Merge candidate: <strong>marker-0103</strong> @ fe39360 (tip has moved past it — see below)</span>
+    <span class="chip"><strong>Overnight: gaming PC rests ~7h</strong> — commits continue, tags don't, until it's back</span>
   </div>
 </header>
 
@@ -93,14 +93,23 @@
   <div class="bar"></div>
   <div class="item">
     <div class="item g" style="margin:.2rem 0 .8rem; padding:.6rem .8rem;">
-    <div class="d">✅ Everything through marker-0102 is done and gated: the XII.5/xiv-ai/naval/difficulty/space arcs,
-    archetype wonders, the gov arc, COW perf, all the smalls, claimSeat, and now <strong>A8 tile contention</strong>
-    (fork-b: once-per-turn resolution, perf 0.53× baseline, 25-seed sweep GREEN) + <strong>coastal-build</strong> (scenario 064).</div></div>
+    <div class="d">✅ Everything through marker-0103 is done: the XII.5/xiv-ai/naval/difficulty/space arcs, archetype wonders,
+    the gov arc, COW perf, all the smalls, claimSeat, A8 tile contention, coastal-build, and RIVER COMPLETE (landed +
+    fix-A + sweep clean; M3 floor re-pinned 22 by your ruling; <strong>the ally ACCEPTED it in full</strong> same night, with one
+    edge-seam lighting fix landed on the spot).</div></div>
+    <div class="item g" style="margin:.2rem 0 .8rem; padding:.6rem .8rem;">
+    <div class="d"><strong>LANE CONSOLIDATION (your ruling):</strong> helper STOPPED (queue empty, clean park). Bugfixer runs the
+    FULL D4–D6 diplomacy arc as its true final item, then stops too. The gaming PC (sim-runner/roblox-helper/reviewer)
+    rests ~7h starting now — no independent gate or sweep that whole window. <strong>Overnight policy:</strong> the architect
+    keeps committing every slice by pathspec with full golden discipline, but tags NOTHING until the gaming PC returns —
+    one batch tag in the morning. Novel judgment calls outside the D4–D6 digest: decide, document, flag for morning
+    confirm (same bar as tonight's river floor call).</div></div>
     <ol class="spine">
-      <li class="g"><span class="st done">✅ 0103</span><strong>RIVER COMPLETE</strong> — the full loop ran in one evening: landed → breach → audit (mine-lock) → fix-A (hills never flagged) → reviewer GREEN → sweep 16/16 clean → your ruling: M3-pop floor re-pinned 28→22 (flood residual; re-ratchets when the doctrine window lands walls)</li>
-      <li><span class="st now">🔨 window OPEN</span><strong>11b authentic city rosters</strong> — full 16-name Civ1-founding-order replace (your explicit option-A pick); rosters staged, swap script dry-run-verified · then <strong>D3 server-surfacing remainder</strong> (the endscreen-winner half shipped in 0103)</li>
-      <li><span class="st qd">queued</span><strong>Diplomacy D4–D6</strong> — spec ready; the witness-8 AFTER-half and the treaty-UI rename pass ride the D4 landing</li>
-      <li><span class="st qd">queued</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; measure-first baseline running on the gaming PC, the engine window queues after D4–D6 unless you promote it</li>
+      <li class="g"><span class="st done">✅</span><strong>11b authentic city rosters</strong> — LANDED @5617bf9: full 16-name Civ1-founding-order replace, honest behavioral+stamp re-record, twins 76/76</li>
+      <li class="g"><span class="st done">✅</span><strong>D4 diplomacy</strong> — LANDED @ceda2169e: tribute + tech exchange + human LAN treaty command + offer expiry, engine+twin+AI+client, honest re-record, twins 11/11. NOT TAGGED (overnight policy)</li>
+      <li><span class="st now">🔨 opening</span><strong>D5 reputation + senate</strong> — reputation band-reshape (0–4 Honorable..Treacherous, recoverable), senate blocks Republic/Democracy war-on-peace, UN wonder always-offers-peace (shares the Great Wall's flag)</li>
+      <li><span class="st qd">queued</span><strong>D6 embassies + missions</strong> — spec ready, follows D5 as its own golden window</li>
+      <li><span class="st qd">queued</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; baseline already measured (~0 buildings across all eras) — the engine window queues after D6 unless you promote it</li>
     </ol>
   </div>
 </section>
@@ -113,14 +122,15 @@
     FEATURE-COMPLETE</strong> (designed and merged 2026-07-24; <code>--no-late-join</code> documented) + docs/16 §7
     re-assessed (no RC-blocker). View-contract + master-proxy + lobby-drop + join-toggle + gameover-reveal + reject-reasons + lobby-robustness + <strong>docs/16 §8 delta</strong> + <strong>the endscreen-winner view contract</strong> ALL merged on reviewer green (0103) — server lane queue empty.</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ v1-complete</span>Client / UI</div>
-    <div class="d">The 30-item window, A58 pedia, A49 flows 1–3 (flow-4 endscreen spec still open — reviewer tree-check), late-join client half, join-share QR,
-    fish/specials motifs, refinement-XVII (all 22) and XIX (8/8), regression guards 2+5, and <strong>#34 Founder's Record COMPLETE</strong>
-    (all four endings + the Continue-gated scaffold) — every v1 client item shipped. Helper stack (polish, golden-neutral): founders-tone, specials-silhouettes, play-on-roblox button, xx-pedia-splash, guards 3+4.</div></div>
-  <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC)</div>
-    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). In build: the endscreen-winner view mirror. Then the publish gate (below).</div></div>
+    <div class="d">The 30-item window, A58 pedia, A49 all 5 flows, late-join client half, join-share QR, fish/specials motifs,
+    refinement-XVII+XIX, regression guards G1–G5 (all complete), and <strong>#34 Founder's Record COMPLETE</strong>
+    (all four endings) + founders-tone + specials-silhouettes + play-on-roblox + xx-pedia-splash — every v1 client
+    item shipped, and the ally ACCEPTED the tone/silhouette work FINAL. <strong>Helper STOPPED</strong> (queue empty, clean park).</div></div>
+  <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC — RESTING overnight)</div>
+    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). Two one-line edits (Encyclopedia swap, a code comment) held on the Write-grant. Resting with sim-runner + reviewer for ~7h; resumes on wake.</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ closed — bar reopened</span>AI-quality program</div>
     <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED. Your XX §3 build doctrine
-    (city roles: production/science/frontline/spawner) REOPENS the axis — baseline measurement first, the engine window after D4–D6 unless promoted.</div></div>
+    (city roles: production/science/frontline/spawner) REOPENS the axis — baseline already measured (~0 buildings all eras), the engine window queues after D6 unless promoted.</div></div>
 </section>
 
 <section id="axes">
@@ -128,22 +138,22 @@
   <div class="bar"></div>
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
-    <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE (0103)</strong> — all terrains in, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
-    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · claimSeat ✅ · endscreen-winner contract ✅</td><td><strong>11b rosters (window OPEN) + D3-surfacing → D4–D6</strong></td></tr>
-    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline: ~0 buildings)</td><td>doctrine window after D4–D6</td></tr>
+    <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE</strong> — all terrains in, ally-accepted, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
+    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · 11b ✅ · <strong>D4 LANDED</strong> (@ceda2169e, not yet tagged)</td><td><strong>D5 OPENING</strong> (reputation+senate+UN) → D6</td></tr>
+    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline: ~0 buildings)</td><td>doctrine window after D6</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
-    <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness merged</td><td>docs/16 delta (queued)</td></tr>
-    <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · Founder's Record + tone ✅ · silhouettes ✅</td><td>xx-pedia-splash in build (🚪 PEDIA_NAME) · guards · flow-4</td></tr>
+    <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness + docs/16 §8 merged</td><td>— (server lane queue empty)</td></tr>
+    <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · Founder's Record + tone + silhouettes ALL ally-approved final · Encyclopedia ✅</td><td>conquest renderer-brighten banked v1.x (non-blocking)</td></tr>
   </table></div>
 </section>
 
 <section id="gates">
   <div class="sec-head"><h2>User gates</h2><span class="tag">only you can open these</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t"><span class="st gate">🚪 now</span>Merge marker-0102 (@17b4fb8)</div>
-    <div class="d">A8 tile contention + coastal-build + Founder's Record + XIX + the two hardening merges — declared merge-consistent (reports/marker-0102.md). Redeploy after brings the gameOver reveal + reject reasons live.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 tonight or morning</span>Merge marker-0103 — or wait for the batch tag</div>
+    <div class="d">marker-0103 (@fe39360) is still merge-consistent and mergeable now. The tip has moved past it overnight (11b + D4, uncommitted-to-tag by policy) — a fresh marker supersedes it once the gaming PC + reviewer are back and can gate the accumulated work. Either merge 0103 tonight or wait for the morning tag.</div></div>
   <div class="item"><div class="t"><span class="st done">✅ ruled</span>PEDIA_NAME + the city-list call</div>
-    <div class="d">BOTH RULED 2026-07-25: PEDIA_NAME = "Encyclopedia" (applied) and city rosters = GO full-authentic-replace. This gate is CLOSED — kept for the record.</div></div>
+    <div class="d">BOTH RULED 2026-07-25: PEDIA_NAME = "Encyclopedia" (applied) and city rosters = GO full-authentic-replace (LANDED @5617bf9). This gate is CLOSED — kept for the record.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 after the batch</span>Roblox publish + acceptance session</div>
     <div class="d">One Studio/live session: publish, then sound + saving + the runI batch accepted together (ruled sequencing).</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 standing</span>Trademark search + domains</div>
