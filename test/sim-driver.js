@@ -1058,7 +1058,11 @@ async function runSim(opts) {
   // human-INDEPENDENT (score.js checkGameEnd uses only alive/assets/score/endYear), so this does
   // NOT change gameOver/victory; p1 is stance-excluded (plays balanced), deterministic. Default off.
   const humanSeat = opts.simulatedHumanSeat === true;
-  const players = SIM_ROSTER.slice(0, civs).map((p, i) => (
+  // peace-witness v2: opts.roster picks SPECIFIC civs (e.g. two low-aggression
+  // personalities) instead of the fixed head slice — measurement-only; the
+  // default path is byte-identical (goldens all use the head slice).
+  const roster = opts.roster === undefined ? SIM_ROSTER.slice(0, civs) : opts.roster;
+  const players = roster.map((p, i) => (
     { id: p.id, name: p.name, color: p.color, human: humanSeat && i === 0, civ: p.civ }
   ));
   if (players.length < civs) throw new Error(`sim roster supports up to ${SIM_ROSTER.length} civs`);
