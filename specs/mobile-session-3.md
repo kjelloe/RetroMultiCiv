@@ -27,14 +27,18 @@ tap/long-press model · **[flow]** turn sequencing · **[feature]** new affordan
   for the unit layer — should be designed together (client/ui/input.js + move-hints.js).
   Long-press = inspect/odds/goto; single-tap on a hinted tile = move; two-stage attack.
 - **Layout cluster (4, 7, 9, 10)** is HUD/popup responsive fit for mobile viewport.
-- **#5** (draggable compass) overlaps **#8** (retire bottom move-arrows) — need to
-  confirm whether the compass/d-pad stays for MAP PAN after unit-move arrows move to
-  tile overlays. **Open question for the user/ally.**
+- **#5** (draggable compass) vs **#8** (retire bottom move-arrows) — **RULED (user
+  2026-07-25): build BOTH.** The compass is user-toggleable on/off already, so they're
+  not mutually exclusive: keep the draggable compass (#5) AND add tile-overlay move
+  arrows (#8); a user preferring tile arrows toggles the compass off. No ally question.
 - **#6** is a straight bug (endscreen on mobile) — highest priority, independent.
 - **#11** is a small flow wire-up.
 
 ## Lane
 
-Golden-neutral client UI. Helper lane (its natural owner) is currently STOPPED; either
-the architect executes this batch, or the helper session is brought back online to run
-it in parallel. Decision pending user (flagged in the status report).
+Golden-neutral client UI. **RULED (user 2026-07-25): bugfixer owns this batch** — it's
+already in client/ui/input.js for the D6 client menu, so it's the natural owner. Runs
+AFTER the D6 menu finishes+unlocks. Order: #6 bug first, then layout cluster (4/7/9/10),
+then interaction cluster (8/12/13/14) as one coherent input.js/move-hints.js pass; #5+#8
+both built; #11+#5 wherever convenient. Golden-neutral throughout — any engine touch
+stops for architect sign-off. Queued #1 for bugfixer (#2673).
