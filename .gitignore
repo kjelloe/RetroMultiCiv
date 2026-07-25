@@ -43,6 +43,11 @@ __pycache__/
 roblox/*.png
 roblox/*.rbxl.lock
 
+# Custom-commissioned source art (multi-MB originals): the derived,
+# repo-sized deliverables live in debugging/usergenerated/ — never commit
+# the raw high-res sources here, same argument as data/wiki-extract/
+data/custom-art/
+
 # Playwright UI lane (A49) run artifacts — the specs live in test-ui/, but
 # traces/reports/results are regenerated, never committed
 test-results/
