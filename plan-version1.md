@@ -4,8 +4,17 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 — **marker-0105 TAGGED @b05a934 =
-MERGE-CONSISTENT** (supersedes 0104 as the merge candidate). Covers the
+Last updated: 2026-07-25 — **marker-0106 TAGGED @6cad106 =
+MERGE-CONSISTENT** (supersedes 0105 as the merge candidate). Adds **W3
+score happy-citizen term DONE @aa6197e** (scoreBreakdown +happy =
+happyCitizens*scorePerHappy, spec §10; pollution deferred off-in-v1) +
+golden-neutral roblox W3 re-bake @6cad106. STAMP-only (score not hashed,
+AI doesn't read it → only endYear score-winner is a trajectory surface,
+unchanged); reviewer GREEN #2741 (engine-diff + working-clone score/sim/
+age + twins 11/11 under lune; pristine clean-clone + 400-turn Luau
+deferred per user, high-confidence parity). Engine program now **3 of 6
+windows done** (W4 We-Love-the-King-Day next). reports/marker-0106.md.
+--- prior: marker-0105 @b05a934 covered the
 first two engine-program windows: **W1 diplomacy DONE @9dfc975**
 (bugfixer — discovered-sabotage + investigateCity, reviewer-gated #2724)
 and **W2 building effects DONE @a7f9da7** (architect — Mfg. Plant +100%/
@@ -62,7 +71,7 @@ flowchart TD
     D6S["✅ D6 embassies + missions (@984f48c, 0104):\ndiplomat-missions.js + twin — embassy + steal-tech\n(roll) + sabotage (roll) + incite + bribe; filterView\nembassy intel view-only. GOLDEN-NEUTRAL. Scenario\n065 pin 0xea7216fc JS==Luau. ARC COMPLETE"]
     W1E["✅ W1 diplomacy (@9dfc975, 0105): discovered-\nsabotage (botch-amplified discovery + reputation) +\ninvestigateCity re-apply; 065 behavioral 0x8771d49a;\nSTAMP-only cascade; twins 11/11"]
     W2E["✅ W2 building effects (@a7f9da7, 0105): Mfg.\nPlant +100%/obsoletes-Factory + SDI nuke-intercept\n(rollRange<70); STAMP-only (reviewer lune-verified\nBEHAVIOR byte-identical); scenario 066 0x7d67d913"]
-    W3E["🧩 W3 score term (happyCitizens + pollution)"]
+    W3E["✅ W3 score term (@aa6197e, 0106): scoreBreakdown\n+happy = happyCitizens*scorePerHappy (spec §10);\nSTAMP-only (reviewer GREEN #2741); pollution\ndeferred off-in-v1"]
     W4E["🧩 W4 We-Love-the-King-Day"]
     W6E["🧩 W6 build-doctrine (5 slices, LAST —\nclears M3-pop advisory)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
@@ -124,7 +133,7 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E,W3E done
   class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
   class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
@@ -153,7 +162,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
 | 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); measurement DONE (buildings ~0: 5/87 civs built any; wonders ~0; tech cap ~30; 0 launches); M3-pop 20<22 advisory | **build-doctrine PROMOTED — full 5-slice window** (user ruled; W6 of the engine program); clears the M3 advisory on landing |
-| 1b | Civ1 feature faithfulness (audit) | audit DONE — near-complete; **W1 diplomacy ✅ + W2 Mfg-Plant/SDI ✅ (marker-0105)** | **W3 score term · W4 We-Love-the-King-Day** (+ W5 re-home relabel); all v1 |
+| 1b | Civ1 feature faithfulness (audit) | audit DONE — **W1 diplomacy ✅ + W2 Mfg-Plant/SDI ✅ + W3 score term ✅ (marker-0106)** | **W4 We-Love-the-King-Day** (+ W5 re-home relabel); all v1 |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
@@ -161,12 +170,13 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 ## Reading the tree — the three facts that matter
 
 1. **The diplomacy arc is CLOSED; the engine lane is an ordered program,
-   now 2 of 6 windows done.** River, 11b, D4, D5, D6 landed + tagged
+   now 3 of 6 windows done.** River, 11b, D4, D5, D6 landed + tagged
    (marker-0104, axis 2 complete). The engine program
    (`specs/engine-program-v1.md`): **W1 diplomacy ✅ (@9dfc975) + W2
-   Mfg-Plant/SDI ✅ (@a7f9da7) — both tagged marker-0105**; remaining W3
-   score term, W4 We-Love-the-King-Day, W5 re-home relabel, W6
-   build-doctrine (PROMOTED, 5 slices, architect). build-doctrine (W6)
+   Mfg-Plant/SDI ✅ (@a7f9da7) tagged marker-0105; W3 score term ✅
+   (@aa6197e) tagged marker-0106**; remaining W4 We-Love-the-King-Day,
+   W5 re-home relabel, W6 build-doctrine (PROMOTED, 5 slices, architect).
+   build-doctrine (W6)
    clears the M3-pop 20<22 advisory on landing. Golden windows SERIALIZE
    to the architect — W3/W4/W6 all ripple the shared createGame stamp, so
    they cannot parallelize in the one shared dev-PC tree (only the
@@ -179,8 +189,8 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
    sim-runner (sweeps/measures + git operator), reviewer (gates PUSHED
    shas — commit+push before requesting review), roblox-helper (waiting
    on the user Studio session). Hardening parked (server lane empty).
-3. **User gates remain:** merge marker-0105 (ready now, supersedes
-   0104), the trademark search, the ONE Studio publish/acceptance
+3. **User gates remain:** merge marker-0106 (ready now, supersedes
+   0105), the trademark search, the ONE Studio publish/acceptance
    session, and the standing roblox Write allowlist. The M3-pop floor
    policy is RULED (user 2026-07-25): leave the value at 22, de-ratchet
    to advisory (removed from the nightly --enforce-floors, @9e42842),
