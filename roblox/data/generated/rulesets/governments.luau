@@ -30,13 +30,13 @@ return [==[{
     "id": "republic", "name": "Republic", "tech": "republic",
     "maxRate": 80, "freeUnitsPerCity": 0, "upkeepShields": 1,
     "tilePenalty": false, "tradeBonus": 1, "corruptionFactor": 2,
-    "martialLawMax": 0, "warUnhappiness": 1
+    "martialLawMax": 0, "warUnhappiness": 1, "govForbidsWar": true
   },
   "democracy": {
     "id": "democracy", "name": "Democracy", "tech": "democracy",
     "maxRate": 100, "freeUnitsPerCity": 0, "upkeepShields": 1,
     "tilePenalty": false, "tradeBonus": 1, "corruptionFactor": 0,
-    "martialLawMax": 0, "warUnhappiness": 2
+    "martialLawMax": 0, "warUnhappiness": 2, "govForbidsWar": true
   }
 }
 ]==]

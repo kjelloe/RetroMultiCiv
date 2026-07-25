@@ -60,7 +60,8 @@ return [==[{
     "obsoleteBy": "gunpowder",
     "cost": 300,
     "effect": {
-      "wallsEverywhere": true
+      "wallsEverywhere": true,
+      "peaceAcceptBonus": 1000
     }
   },
   "hanging-gardens": {
@@ -177,7 +178,9 @@ return [==[{
     "tech": "communism",
     "obsoleteBy": "",
     "cost": 600,
-    "effect": {}
+    "effect": {
+      "peaceAcceptBonus": 1000
+    }
   },
   "women-s-suffrage": {
     "name": "Women's Suffrage",

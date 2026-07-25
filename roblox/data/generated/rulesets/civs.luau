@@ -4,7 +4,7 @@
 return [==[{
   "romans": {
     "name": "Romans", "color": "#3b7dd8",
-    "cities": ["Rome", "Ostia", "Antium", "Cumae", "Pompeii", "Ravenna", "Neapolis", "Verona"],
+    "cities": ["Rome", "Caesarea", "Carthage", "Nicopolis", "Byzantium", "Brundisium", "Syracuse", "Antioch", "Palmyra", "Cyrene", "Gordion", "Tyrus", "Jerusalem", "Seleucia", "Ravenna", "Artaxata"],
     "specialty": { "type": "cheapUnit", "unit": "legion", "pct": 25, "blurb": "Legions cost 25% less" },
     "visual": { "primary": "#B83C3C", "secondary": "#F2C66D", "emblem": "sun" },
     "leader": "Caesar",
@@ -15,7 +15,7 @@ return [==[{
   },
   "babylonians": {
     "name": "Babylonians", "color": "#b13bd8",
-    "cities": ["Babylon", "Sumer", "Uruk", "Nineveh", "Ashur", "Akkad", "Eridu", "Lagash"],
+    "cities": ["Babylon", "Sumer", "Uruk", "Ninevah", "Ashur", "Ellipi", "Akkad", "Eridu", "Kish", "Nippur", "Shuruppak", "Zariqum", "Izibia", "Nimrud", "Arbela", "Zamua"],
     "specialty": { "type": "startTech", "tech": "alphabet", "blurb": "Begin knowing Alphabet" },
     "visual": { "primary": "#C9822B", "secondary": "#3F2A16", "emblem": "wheel" },
     "leader": "Hammurabi",
@@ -24,7 +24,7 @@ return [==[{
   },
   "germans": {
     "name": "Germans", "color": "#8a949e",
-    "cities": ["Berlin", "Leipzig", "Hamburg", "Bremen", "Frankfurt", "Bonn", "Nuremberg", "Cologne"],
+    "cities": ["Berlin", "Leipzig", "Hamburg", "Bremen", "Frankfurt", "Bonn", "Nuremberg", "Cologne", "Hannover", "Munich", "Stuttgart", "Heidelberg", "Salzburg", "Konigsberg", "Dortmund", "Brandenburg"],
     "specialty": { "type": "veteranUnit", "unit": "musketeers", "blurb": "Musketeers start as veterans" },
     "visual": { "primary": "#5F6872", "secondary": "#E8EEF2", "emblem": "mountain" },
     "leader": "Frederick",
@@ -33,7 +33,7 @@ return [==[{
   },
   "egyptians": {
     "name": "Egyptians", "color": "#d8b13b",
-    "cities": ["Thebes", "Memphis", "Heliopolis", "Elephantine", "Alexandria", "Byblos", "Giza", "Cairo"],
+    "cities": ["Thebes", "Memphis", "Oryx", "Heliopolis", "Gaza", "Alexandria", "Byblos", "Cairo", "Coptos", "Edfu", "Pithom", "Busirus", "Athribus", "Mendes", "Tanis", "Abydos"],
     "specialty": { "type": "startTech", "tech": "ceremonial-burial", "blurb": "Begin knowing Ceremonial Burial" },
     "visual": { "primary": "#F0E6C8", "secondary": "#2C2C35", "emblem": "tower" },
     "leader": "Ramesses",
@@ -42,7 +42,7 @@ return [==[{
   },
   "americans": {
     "name": "Americans", "color": "#4b6bd8",
-    "cities": ["Washington", "New York", "Boston", "Philadelphia", "Atlanta", "Chicago", "Buffalo", "St. Louis"],
+    "cities": ["Washington", "New York", "Boston", "Philadelphia", "Atlanta", "Chicago", "Buffalo", "St. Louis", "Detroit", "New Orleans", "Baltimore", "Denver", "Cincinnati", "Dallas", "Los Angeles", "Las Vegas"],
     "specialty": { "type": "cheapBuilding", "building": "marketplace", "pct": 25, "blurb": "Marketplaces cost 25% less" },
     "visual": { "primary": "#218C8C", "secondary": "#FFE0A3", "emblem": "chevron" },
     "leader": "Lincoln",
@@ -51,7 +51,7 @@ return [==[{
   },
   "greeks": {
     "name": "Greeks", "color": "#3bd875",
-    "cities": ["Athens", "Sparta", "Corinth", "Delphi", "Eretria", "Pharsalos", "Argos", "Mycenae"],
+    "cities": ["Athens", "Sparta", "Corinth", "Delphi", "Eretria", "Pharsalos", "Argos", "Mycenae", "Herakleia", "Antioch", "Ephesos", "Rhodes", "Knossos", "Troy", "Pergamon", "Miletos"],
     "specialty": { "type": "cheapBuilding", "building": "library", "pct": 25, "blurb": "Libraries cost 25% less" },
     "visual": { "primary": "#1F4F99", "secondary": "#F5D36C", "emblem": "crescent" },
     "leader": "Alexander",
@@ -60,7 +60,7 @@ return [==[{
   },
   "indians": {
     "name": "Indians", "color": "#d88fd8",
-    "cities": ["Delhi", "Bombay", "Madras", "Bangalore", "Calcutta", "Lahore", "Karachi", "Kolhapur"],
+    "cities": ["Delhi", "Bombay", "Madras", "Bangalore", "Calcutta", "Lahore", "Karachi", "Kolhapur", "Jaipur", "Hyderbad", "Bengal", "Chittagong", "Punjab", "Dacca", "Indus", "Ganges"],
     "specialty": { "type": "cheapBuilding", "building": "temple", "pct": 50, "blurb": "Temples cost 50% less" },
     "visual": { "primary": "#758A35", "secondary": "#F4E9C1", "emblem": "spiral" },
     "leader": "Gandhi",
@@ -69,7 +69,7 @@ return [==[{
   },
   "russians": {
     "name": "Russians", "color": "#d84a3b",
-    "cities": ["Moscow", "Leningrad", "Kiev", "Minsk", "Smolensk", "Odessa", "Sevastopol", "Tbilisi"],
+    "cities": ["Moscow", "Leningrad", "Kiev", "Minsk", "Smolensk", "Odessa", "Sevastopol", "Tiblisi", "Sverdlovsk", "Yakutsk", "Vladivostok", "Novograd", "Krasnoyarsk", "Riga", "Rostov", "Atrakhan"],
     "specialty": { "type": "veteranUnit", "unit": "riflemen", "blurb": "Riflemen start as veterans" },
     "visual": { "primary": "#8E2F45", "secondary": "#FFB36B", "emblem": "flame" },
     "leader": "Catherine",
@@ -78,7 +78,7 @@ return [==[{
   },
   "zulus": {
     "name": "Zulus", "color": "#b0632f",
-    "cities": ["Zimbabwe", "Ulundi", "Bapedi", "Hlobane", "Isandhlwana", "Intombe", "Mpondo", "Ngome"],
+    "cities": ["Zimbabwe", "Ulundi", "Bapedi", "Hlobane", "Isandhlwana", "Intombe", "Mpondo", "Ngome", "Swazi", "Tugela", "Umtata", "Umfolozi", "Ibabanago", "Isipezi", "Amatikulu", "Zunquin"],
     "specialty": { "type": "veteranUnit", "unit": "militia", "blurb": "Impi: militia start as veterans" },
     "visual": { "primary": "#7A4B2A", "secondary": "#F0B85A", "emblem": "hammer" },
     "leader": "Shaka",
@@ -87,7 +87,7 @@ return [==[{
   },
   "french": {
     "name": "French", "color": "#6db3f2",
-    "cities": ["Paris", "Orleans", "Lyons", "Tours", "Chartres", "Bordeaux", "Rouen", "Avignon"],
+    "cities": ["Paris", "Orleans", "Lyons", "Tours", "Chartres", "Bordeaux", "Rouen", "Avignon", "Marseilles", "Grenoble", "Dijon", "Amiens", "Cherbourg", "Poitiers", "Toulouse", "Bayonne"],
     "specialty": { "type": "cheapUnit", "unit": "knights", "pct": 25, "blurb": "Knights cost 25% less" },
     "visual": { "primary": "#C24C7A", "secondary": "#FFD6E6", "emblem": "diamond" },
     "leader": "Napoleon",
@@ -96,7 +96,7 @@ return [==[{
   },
   "aztecs": {
     "name": "Aztecs", "color": "#3bc9d8",
-    "cities": ["Tenochtitlan", "Teotihuacan", "Tlatelolco", "Texcoco", "Tlaxcala", "Xochicalco", "Tlacopan"],
+    "cities": ["Tenochtitlan", "Chiauhtia", "Chapultapec", "Coatepec", "Ayontzinco", "Itzapalapa", "Itzapam", "Mitxcoac", "Tucubaya", "Tecamac", "Tepezinco", "Ticoman", "Tlaxcala", "Xaltocan", "Xicalango", "Zumpanco"],
     "specialty": { "type": "startGold", "gold": 50, "blurb": "Begin with 50 gold in tribute" },
     "visual": { "primary": "#3F8F4A", "secondary": "#F0E2B6", "emblem": "oak" },
     "leader": "Montezuma",
@@ -105,7 +105,7 @@ return [==[{
   },
   "chinese": {
     "name": "Chinese", "color": "#d8d83b",
-    "cities": ["Peking", "Shanghai", "Canton", "Nanking", "Tsingtao", "Hangchow", "Tientsin", "Tatung"],
+    "cities": ["Peking", "Shanghai", "Canton", "Nanking", "Tsingtao", "Hangchow", "Tientsin", "Tatung", "Macao", "Anyang", "Shantung", "Chinan", "Kaifeng", "Ningpo", "Paoting", "Yangchow"],
     "specialty": { "type": "cheapBuilding", "building": "city-walls", "pct": 25, "blurb": "City Walls cost 25% less" },
     "visual": { "primary": "#6B4BB3", "secondary": "#E6D7FF", "emblem": "star" },
     "leader": "Qin Shi Huang",
@@ -114,7 +114,7 @@ return [==[{
   },
   "english": {
     "name": "English", "color": "#d83b8a",
-    "cities": ["London", "Coventry", "Birmingham", "Dover", "Nottingham", "York", "Liverpool", "Brighton"],
+    "cities": ["London", "Coventry", "Birmingham", "Dover", "Nottingham", "York", "Liverpool", "Brighton", "Oxford", "Reading", "Exeter", "Cambridge", "Hastings", "Canterbury", "Banbury", "Newcastle"],
     "specialty": { "type": "cheapUnit", "unit": "frigate", "pct": 25, "blurb": "Frigates cost 25% less" },
     "visual": { "primary": "#2F6FB3", "secondary": "#D9EEF7", "emblem": "wave" },
     "leader": "Elizabeth",
@@ -123,7 +123,7 @@ return [==[{
   },
   "mongols": {
     "name": "Mongols", "color": "#d8703b",
-    "cities": ["Samarkand", "Bokhara", "Nishapur", "Karakorum", "Kashgar", "Tabriz", "Kabul"],
+    "cities": ["Samarkand", "Bokhara", "Nishapur", "Karakorum", "Kashgar", "Tabriz", "Aleppo", "Kabul", "Ormuz", "Basra", "Khanbaryk", "Khorasan", "Shangtu", "Kazan", "Qyinsay", "Kerman"],
     "specialty": { "type": "cheapUnit", "unit": "cavalry", "pct": 25, "blurb": "Cavalry cost 25% less" },
     "visual": { "primary": "#66AFC2", "secondary": "#1D3340", "emblem": "rune" },
     "leader": "Genghis Khan",

@@ -165,7 +165,16 @@ return [==[{
     "relGrievanceOnBetray": 40,
     "relTrustOnBetray": 30,
     "relGrievanceDecay": 1,
-    "relLaunchWarBonus": 100
+    "relLaunchWarBonus": 100,
+    "offerExpiryTurns": 2,
+    "tributeDemandWeakness": 60,
+    "tributeDemandPct": 30,
+    "tributeReDemandCooldown": 10,
+    "tributeAcceptFear": 55,
+    "repBetrayBump": 1,
+    "repMax": 4,
+    "repRecoverTurns": 20,
+    "wPRep": 10
   },
   "contentCitizens": 4,
   "difficulties": {
