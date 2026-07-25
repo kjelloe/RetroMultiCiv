@@ -71,6 +71,12 @@ const FLOORS = [
   // the XX §3 build-doctrine window lands walls/granaries in flood-exposed cities.
   // (History: restored to 28 at #2181 after the thin-7-seed 27 re-pin; pre-river
   // median was 47 on that config era.)
+  // DE-RATCHETED TO ADVISORY (user ruling 2026-07-25 morning): the full 25-seed sweep
+  // @984f48c lands the median at 20 (thin 23-seed sample, 2 tripwire drops). The value
+  // STAYS 22 (the aspiration), but M3-pop is REMOVED from the nightly --enforce-floors
+  // list so it prints as a ⚠ advisory instead of hard-failing the run — tracked to the
+  // build-doctrine fix (the ~0-granaries root). Re-add it to --enforce-floors in the
+  // SAME commit that lands the granary doctrine and restores median >= 22.
   { key: 'M3-pop',       label: 'total population',     metric: 'pop',         cmp: '>=', value: 22 },
   { key: 'M4-impr',      label: 'improvement %',        metric: 'imprPct',     cmp: '>=', value: 50 },
   { key: 'M10-buys',     label: 'rush-buys per civ',    metric: 'buys',        cmp: '>',  value: 0  },
