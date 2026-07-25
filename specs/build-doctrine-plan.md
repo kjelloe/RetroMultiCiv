@@ -79,3 +79,20 @@ tree is clean. Slices ordered highest-leverage-first so each lands measurable va
   the peace-pair 0% coverage AND most of the canonical dormancy. The slice-1d lever
   is garrison RETENTION (unit-brain: fortified city garrison must stay), not another
   cascade reorder. Design pending the slice-1c sweep verdict.
+
+### Slice-1d design ruling (user, 2026-07-26)
+
+Retention is ROLE DISCIPLINE, not movement-freezing. Even a defensive civ in a
+peaceful world MUST send scouts out — to find excellent food/shield/trade city
+sites, learn which direction the other civs are, and spot barbarians to fend
+off. Two legs:
+1. **Garrison stickiness** — units in the city-defender role stay fortified in
+   their city; escort/hunt/explore selection must not poach a standing garrison
+   (or must backfill before leaving). Fixes the roam choke (the militia-forever
+   loop).
+2. **Scouting never zero** — marchRadiusPct gates marching-to-war, not site
+   discovery: the defensive stance's scout share needs a real explore radius
+   (today marchRadiusPct 0 × exploreMarchRadius 8 = 0, so its scouts stay
+   home — the second reason the peace pair stalled at 2 cities). With sites
+   discovered and the garrison stable, the §3a settler flow reaches the good
+   sites and the doctrine builds behind it.
