@@ -23,6 +23,7 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'cityFounded': case 'cityGrew': case 'cityStarved':
     case 'unitBuilt': case 'buildingBuilt':
     case 'cityDisorder': case 'cityOrderRestored':
+    case 'cityCelebrating': case 'cityCelebrationEnded': // W4 We Love the King Day
       return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
     case 'settlerRefused': // XV §7: the capital banked a settler (own-seat only — an internal decision)
       return cityOwner(e.cityId) === viewer ? 'cities' : null;

@@ -221,8 +221,32 @@ local function updateDisorder(state: any, ruleset: any, events: any)
 	end
 end
 
+-- W4 We Love the King Day: turn wrap, alongside disorder. A city with happy
+-- citizens at least half its pop and NO unhappy celebrates — the flag is stored
+-- (set-when-true / delete-when-false, mirroring disorder) so corruptionFor and the
+-- trade adjustment read one consistent verdict all turn. Hash-neutral for any city
+-- that never celebrates. No RNG.
+local function updateCelebration(state: any, ruleset: any, events: any)
+	local workedMap = cities.resolveAllWorked(state, ruleset)
+	for _, cityId in ipairs(state.cityOrder or {}) do
+		local city = state.cities[cityId]
+		if city ~= nil then
+			local mood = cityMood(state, city, ruleset, workedMap[cityId])
+			local celebrating = mood.happy * 2 >= city.pop and mood.unhappy == 0
+			if celebrating and city.celebrating ~= true then
+				city.celebrating = true
+				table.insert(events, { type = "cityCelebrating", cityId = cityId })
+			elseif not celebrating and city.celebrating == true then
+				city.celebrating = nil
+				table.insert(events, { type = "cityCelebrationEnded", cityId = cityId })
+			end
+		end
+	end
+end
+
 return {
 	cityMood = cityMood,
 	updateDisorder = updateDisorder,
+	updateCelebration = updateCelebration,
 	specialistsOf = specialistsOf,
 }

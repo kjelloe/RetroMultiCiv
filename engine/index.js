@@ -149,6 +149,7 @@ function endTurn(state, cmd, ruleset) {
     improvements.processWork(state, ruleset, events); // before harvest: a finished improvement counts this turn
     government.processRevolutions(state, ruleset, events);
     happiness.updateDisorder(state, ruleset, events); // one disorder verdict per city for the whole turn
+    happiness.updateCelebration(state, ruleset, events); // W4: one WLTKD verdict per city, before income reads it
     cities.processCities(state, ruleset, events);
     pollution.process(state, ruleset, events); // A91: smokestack pollution + meltdown (reads gross shields)
     disasters.process(state, ruleset, events); // CIV1 disasters (authentic-ON; the 7 non-meltdown calamities)

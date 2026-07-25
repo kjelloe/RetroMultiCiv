@@ -100,22 +100,32 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // createGame golden; the happy term itself is dormant in the soak (endYear 9999, score()
 // never fires) and does not shift the natural winner (p2). GOLDEN_SOAK 0x31e11976.. /
 // GOLDEN_NATURAL 0x2b5c539d (rounds 400/545 + winner p2 unchanged). A paste-back.
+// W4 WLTKD re-record: BEHAVIORAL (#28: BEHAVIOR_SOAK 200-400 + BEHAVIOR_NATURAL MOVED; the
+// 100 checkpoint 0x7d88a531 held — the first soak celebration lands between turns 100 and
+// 200). We-Love-the-King-Day: a city with happy*2 >= pop and 0 unhappy celebrates at the
+// wrap — corruption drops to 0 (all govs) and Republic/Democracy add +1 trade on trading
+// tiles (celebrateTradeBonus, Civ1-faithful, user-ruled; no rapture growth). The natural
+// game now ends round 365 (was 545) by CONQUEST, winner p3 (was p2) — celebrations shift
+// mid-game yields and the trajectory butterflies; the 25-seed distribution check rides the
+// sim-runner sweep. governments.json gained celebrateTradeBonus -> the createGame stamp
+// also ripples every createGame golden. GOLDEN_SOAK 0x27e4b6af.. / GOLDEN_NATURAL
+// 0x79a28572 / BEHAVIOR_SOAK 0xc5b392c9.. / BEHAVIOR_NATURAL 0x404fe91f. Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x0b84b4d1', 200: '0x504ba7a0', 300: '0x352eca5d', 400: '0x31e11976' },
-  finalHash: '0x31e11976'
+  checkpoints: { 100: '0xb5e2f37b', 200: '0xe98f7580', 300: '0x3c47ccbc', 400: '0x27e4b6af' },
+  finalHash: '0x27e4b6af'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x2b5c539d' };
+const GOLDEN_NATURAL = { rounds: 365, winner: 'p3', finalHash: '0x79a28572' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x7d88a531', 200: '0x47486030', 300: '0xd7aee69b', 400: '0xef6bf46c' },
-  finalHash: '0xef6bf46c'
+  checkpoints: { 100: '0x7d88a531', 200: '0x6b608208', 300: '0xbf8e7a9a', 400: '0xc5b392c9' },
+  finalHash: '0xc5b392c9'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x8d3c2153' };
+const BEHAVIOR_NATURAL = { finalHash: '0x404fe91f' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

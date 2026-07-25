@@ -31,6 +31,7 @@ function capitalOf(state, playerId, ruleset) {
 function corruptionFor(state, city, trade, ruleset) {
   const gov = governmentOf(state, city.owner, ruleset);
   if (gov.corruptionFactor === 0) return 0;
+  if (city.celebrating === true) return 0; // W4: We Love the King Day zeroes corruption/waste (all govs)
   const capital = capitalOf(state, city.owner, ruleset);
   if (!capital || capital.id === city.id) return 0;
   let dist;

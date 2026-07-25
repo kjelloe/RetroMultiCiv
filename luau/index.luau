@@ -114,6 +114,7 @@ local hooks = {}
 hooks.processWork = improvements.processWork -- batch 2: guard deleted, module in
 hooks.processRevolutions = government.processRevolutions -- batch 4: guard deleted
 hooks.updateDisorder = happiness.updateDisorder -- batch 3: guard deleted
+hooks.updateCelebration = happiness.updateCelebration -- W4: WLTKD verdict at turn wrap
 hooks.processCities = cities.processCities -- batch 3: guard deleted
 hooks.processResearch = tech.processResearch -- batch 3: guard + ported defaults deleted (the module owns them)
 hooks.processWonderTechs = tech.processWonderTechs -- #29 darwin one-shot + great-library catch-up
@@ -214,6 +215,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processWork(state, ruleset, events)
 		hooks.processRevolutions(state, ruleset, events)
 		hooks.updateDisorder(state, ruleset, events)
+		hooks.updateCelebration(state, ruleset, events) -- W4: one WLTKD verdict per city, before income reads it
 		hooks.processCities(state, ruleset, events)
 		hooks.processPollution(state, ruleset, events) -- A91: reads gross shields (after cities)
 		hooks.processDisasters(state, ruleset, events) -- CIV1 disasters (the 7 non-meltdown)

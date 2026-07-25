@@ -244,7 +244,7 @@ end
 
 -- Government adjustments per worked tile: despotism -1 on 3+, Republic/
 -- Democracy +1 trade on trade-producing tiles.
-local function govAdjustYields(y: any, gov: any)
+local function govAdjustYields(y: any, gov: any, celebrating: boolean)
 	local out = { food = y.food, shields = y.shields, trade = y.trade }
 	if gov.tilePenalty == true then
 		if out.food >= 3 then
@@ -259,6 +259,11 @@ local function govAdjustYields(y: any, gov: any)
 	end
 	if gov.tradeBonus > 0 and out.trade > 0 then
 		out.trade += gov.tradeBonus
+	end
+	-- W4 We Love the King Day: an extra +celebrateTradeBonus on tiles already
+	-- producing trade while the city celebrates (Republic/Democracy only in Civ 1).
+	if celebrating == true and gov.celebrateTradeBonus > 0 and out.trade > 0 then
+		out.trade += gov.celebrateTradeBonus
 	end
 	return out
 end
@@ -306,7 +311,7 @@ local function candidateTiles(state: any, city: any, ruleset: any): { any }
 			keep = false
 		end
 		if keep then
-			local y_ = govAdjustYields(tileYields(tiles[y * width + x + 1], ruleset), gov)
+			local y_ = govAdjustYields(tileYields(tiles[y * width + x + 1], ruleset), gov, city.celebrating == true)
 			table.insert(candidates, {
 				idx = y * width + x, x = x, y = y,
 				score = y_.food * 3 + y_.shields * 2 + y_.trade, yields = y_,
@@ -424,7 +429,7 @@ local function workedTiles(state: any, city: any, ruleset: any, workedIdx: any):
 	if centerSrc.railroad == true then
 		centerTile.railroad = true
 	end
-	local centerYields = govAdjustYields(tileYields(centerTile, ruleset), gov)
+	local centerYields = govAdjustYields(tileYields(centerTile, ruleset), gov, city.celebrating == true)
 	-- VI.2: the CAPITAL's city square carries a trade bonus, applied after
 	-- the government adjustment so despotism cannot erase it.
 	local capBonus = if ruleset.rules.capitalCenterTradeBonus == nil then 0

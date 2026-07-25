@@ -41,6 +41,10 @@ export function soundForEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'disorder' : null;
     case 'cityOrderRestored':
       return cityOwner(e.cityId) === viewer ? 'order' : null;
+    case 'cityCelebrating': // W4 We Love the King Day — the owner hears the celebration cue
+      return cityOwner(e.cityId) === viewer ? 'order' : null;
+    case 'cityCelebrationEnded':
+      return cityOwner(e.cityId) === viewer ? 'disorder' : null;
     case 'techDiscovered':
       // rivals' discoveries never reach a fogged seat (engine filterEvents)
       return e.playerId === viewer ? 'tech' : null;

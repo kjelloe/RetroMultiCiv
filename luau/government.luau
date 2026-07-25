@@ -38,6 +38,9 @@ local function corruptionFor(state: any, city: any, trade: number, ruleset: any)
 	if gov.corruptionFactor == 0 then
 		return 0
 	end
+	if city.celebrating == true then
+		return 0 -- W4: We Love the King Day zeroes corruption/waste (all govs)
+	end
 	local capital = capitalOf(state, city.owner, ruleset)
 	if capital == nil or capital.id == city.id then
 		return 0

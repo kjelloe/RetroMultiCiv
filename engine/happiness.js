@@ -153,4 +153,26 @@ function updateDisorder(state, ruleset, events) {
   }
 }
 
-export { cityMood, updateDisorder, specialistsOf };
+// W4 We Love the King Day: turn wrap, alongside disorder. A city with happy
+// citizens at least half its pop and NO unhappy celebrates — the flag is stored
+// (set-when-true / delete-when-false, mirroring disorder) so corruptionFor and the
+// trade adjustment read one consistent verdict all turn. Hash-neutral for any city
+// that never celebrates. No RNG.
+function updateCelebration(state, ruleset, events) {
+  const workedMap = resolveAllWorked(state, ruleset);
+  for (const cityId of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const city = state.cities[cityId];
+    if (!city) continue;
+    const mood = cityMood(state, city, ruleset, workedMap[cityId]);
+    const celebrating = mood.happy * 2 >= city.pop && mood.unhappy === 0;
+    if (celebrating && city.celebrating !== true) {
+      city.celebrating = true;
+      events.push({ type: 'cityCelebrating', cityId });
+    } else if (!celebrating && city.celebrating === true) {
+      delete city.celebrating;
+      events.push({ type: 'cityCelebrationEnded', cityId });
+    }
+  }
+}
+
+export { cityMood, updateDisorder, updateCelebration, specialistsOf };

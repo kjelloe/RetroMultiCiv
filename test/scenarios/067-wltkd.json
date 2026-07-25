@@ -1,0 +1,317 @@
+{
+  "name": "W4 We Love the King Day: celebrate flag, corruption zero, Rep trade bonus",
+  "notes": "Republic, two pop-2 cities. One citizen each goes idle (implicit entertainer) = 2 lux = 1 happy, 0 unhappy: happy*2 >= pop, both celebrate at the wrap (cityCelebrating). While celebrating, corruptionFor returns 0 for the off-capital city and the worked ocean tile earns +1 celebrateTradeBonus on top of the Republic tradeBonus. Putting c2's citizen back to the fields drops happy to 0: its celebration ends (flag deleted), c1 keeps celebrating.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": [
+        "p1"
+      ],
+      "map": {
+        "width": 7,
+        "height": 7,
+        "wrapX": false,
+        "tiles": [
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "ocean"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
+        ]
+      },
+      "units": {},
+      "cities": {
+        "c1": {
+          "id": "c1",
+          "name": "Rome",
+          "owner": "p1",
+          "x": 1,
+          "y": 1,
+          "pop": 2,
+          "food": 15,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        },
+        "c2": {
+          "id": "c2",
+          "name": "Neapolis",
+          "owner": "p1",
+          "x": 5,
+          "y": 5,
+          "pop": 2,
+          "food": 15,
+          "shields": 0,
+          "buildings": [],
+          "producing": {
+            "kind": "unit",
+            "id": "militia"
+          }
+        }
+      },
+      "cityOrder": [
+        "c1",
+        "c2"
+      ],
+      "wonders": {},
+      "nextUnitId": 1,
+      "nextCityId": 3,
+      "players": {
+        "p1": {
+          "id": "p1",
+          "name": "Romans",
+          "color": "#3b7dd8",
+          "human": true,
+          "gold": 0,
+          "techs": [
+            "republic"
+          ],
+          "researching": "",
+          "bulbs": 0,
+          "taxRate": 50,
+          "sciRate": 50,
+          "government": "republic"
+        }
+      },
+      "rngState": 11
+    }
+  },
+  "script": [
+    {
+      "cmd": {
+        "type": "setWorkers",
+        "playerId": "p1",
+        "cityId": "c1",
+        "workers": [
+          9
+        ]
+      },
+      "expect": {
+        "ok": true
+      },
+      "notes": "1 worker on the ocean tile, 1 idle citizen = entertainer (2 lux)"
+    },
+    {
+      "cmd": {
+        "type": "setWorkers",
+        "playerId": "p1",
+        "cityId": "c2",
+        "workers": [
+          33
+        ]
+      },
+      "expect": {
+        "ok": true
+      },
+      "notes": "same shape for the off-capital city"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.celebrating": true,
+          "cities.c2.celebrating": true
+        }
+      },
+      "notes": "2 lux upgrade the lone content worker to happy: 1*2 >= pop 2, 0 unhappy - both celebrate; income this wrap already carries celebrateTradeBonus + zero corruption"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.celebrating": true,
+          "cities.c2.celebrating": true
+        }
+      },
+      "notes": "steady state: still celebrating, no duplicate cityCelebrating event"
+    },
+    {
+      "cmd": {
+        "type": "setWorkers",
+        "playerId": "p1",
+        "cityId": "c2",
+        "workers": [
+          33,
+          39
+        ]
+      },
+      "expect": {
+        "ok": true
+      },
+      "notes": "c2's citizen returns to the fields - no entertainer, no lux"
+    },
+    {
+      "cmd": {
+        "type": "endTurn",
+        "playerId": "p1"
+      },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.celebrating": true,
+          "cities.c2.celebrating": null
+        }
+      },
+      "notes": "c2 happy drops to 0: celebration ends (cityCelebrationEnded, flag deleted); c1 unaffected"
+    }
+  ],
+  "final": {
+    "hash": "0x56151fa5"
+  }
+}

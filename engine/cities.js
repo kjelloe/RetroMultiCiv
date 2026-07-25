@@ -196,7 +196,7 @@ function effectPct(city, ruleset, key) {
 
 // Government adjustments per worked tile: the despotism −1 on any yield of
 // 3+, and the Republic/Democracy +1 trade on trade-producing tiles (Civ 1).
-function govAdjustYields(y, gov) {
+function govAdjustYields(y, gov, celebrating) {
   const out = { food: y.food, shields: y.shields, trade: y.trade };
   if (gov.tilePenalty === true) {
     if (out.food >= 3) out.food = out.food - 1;
@@ -204,6 +204,9 @@ function govAdjustYields(y, gov) {
     if (out.trade >= 3) out.trade = out.trade - 1;
   }
   if (gov.tradeBonus > 0 && out.trade > 0) out.trade = out.trade + gov.tradeBonus;
+  // W4 We Love the King Day: an extra +celebrateTradeBonus on tiles already
+  // producing trade while the city celebrates (Republic/Democracy only in Civ 1).
+  if (celebrating === true && gov.celebrateTradeBonus > 0 && out.trade > 0) out.trade = out.trade + gov.celebrateTradeBonus;
   return out;
 }
 
@@ -247,7 +250,7 @@ function candidateTiles(state, city, ruleset) {
       x = ((x % width) + width) % width;
     }
     if (blocked[y * width + x] === true) continue;
-    const y_ = govAdjustYields(tileYields(tiles[y * width + x], ruleset), gov);
+    const y_ = govAdjustYields(tileYields(tiles[y * width + x], ruleset), gov, city.celebrating === true);
     candidates.push({ idx: y * width + x, x, y, score: y_.food * 3 + y_.shields * 2 + y_.trade, yields: y_ });
   }
   candidates.sort((a, b) => b.score - a.score);
@@ -343,7 +346,7 @@ function workedTiles(state, city, ruleset, workedIdx) {
   if (centerSrc.mine === true) centerTile.mine = true; else centerTile.irrigation = true;
   centerTile.road = true;
   if (centerSrc.railroad === true) centerTile.railroad = true;
-  const centerYields = govAdjustYields(tileYields(centerTile, ruleset), gov);
+  const centerYields = govAdjustYields(tileYields(centerTile, ruleset), gov, city.celebrating === true);
   // VI.2: the CAPITAL's city square carries a trade bonus (the palace's
   // administration) — applied after the government adjustment so despotism
   // cannot erase it: every capital researches from turn one.

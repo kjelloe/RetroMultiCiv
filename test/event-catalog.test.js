@@ -30,6 +30,7 @@ const EVENT_TYPES = {
   researchSet: 'tech', ratesSet: 'tech', techDiscovered: 'tech', futureTechResearched: 'tech',
   governmentChanged: 'government', revolutionStarted: 'government',
   cityDisorder: 'happiness', cityOrderRestored: 'happiness',
+  cityCelebrating: 'happiness', cityCelebrationEnded: 'happiness', // W4 We Love the King Day
   barbariansSpawned: 'barbarians', sailsSpotted: 'barbarians', barbariansLanded: 'barbarians',
   pollutionSpread: 'pollution', cityMeltdown: 'pollution', terrainWarmed: 'pollution',
   disasterStruck: 'disasters',
