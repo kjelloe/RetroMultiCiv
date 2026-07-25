@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RetroMultiCiv — Roblox icon composition (512x512)</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0e16; }
+    #app { position: absolute; inset: 0; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../client/vendor/three.module.min.js" } }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // Roblox experience icon brief (designer ally, 2026-07-25 night):
+    // "The Founder's City" — the top-tier (pop>=28, CITY_TIERS scale 1.7)
+    // city glyph on one grassland tile, a river ribbon diagonal nearby (not
+    // touching the buildings), a couple of low-poly trees for context, no
+    // units, no text, no borders. Void background (no sky/horizon — this
+    // page never adds one). Square window = square screenshot, no crop.
+    import { createRenderer } from '../client/renderer/renderer.js';
+
+    const W = 4, H = 4;
+    const tiles = [];
+    for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
+    const at = (x, y) => tiles[y * W + x];
+
+    // City near the map's bottom-left corner so the void bleeds in on two
+    // sides at close camera range; river runs diagonally past its other
+    // corner, offset so it never touches the buildings.
+    at(2, 1).river = true;
+    at(2, 0).river = true;
+
+    const cities = {
+      capital: {
+        id: 'capital', name: '', owner: 'p1', x: 1, y: 2, pop: 30, buildings: []
+      }
+    };
+    const players = { p1: { id: 'p1', name: 'Founder', color: '#3b7dd8' } };
+
+    const view = { map: { width: W, height: H, wrapX: false, tiles }, units: {}, cities, players };
+
+    const renderer = createRenderer(document.getElementById('app'));
+    const q = new URLSearchParams(location.search);
+    renderer.setReduceAnimation(true); // rest pose — byte-stable, no sway/smoke
+    renderer.setCityLabelsVisible(false); // no pop badge / name pill — brief: "no text"
+    renderer.setViewState(view);
+    renderer.centerOn(parseFloat(q.get('cx')) || 1, parseFloat(q.get('cy')) || 1.6);
+    renderer.setZoom(parseFloat(q.get('zoom')) || 5);
+  </script>
+</body>
+</html>

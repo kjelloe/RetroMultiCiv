@@ -121,6 +121,7 @@ export function createRenderer(container) {
 
   let propMeshes = [];
   let endReveal = false; // #34 S2: at gameOver, un-dim EXPLORED tiles (unexplored stay unknown)
+  let showCityLabels = true; // icon/hero-shot composition: suppress pop/name/note sprites
   function buildTiles() {
     if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
@@ -305,6 +306,7 @@ export function createRenderer(container) {
       worldGroup.add(mesh);
       anim.collectSway('city', mesh, city.x, city.y);
       anim.addSmoke(city.x, city.y, tileTop(city.x, city.y), city.pop);
+      if (showCityLabels) {
       const label = makeCityLabel(String(city.pop), color, view.capitalId === city.id); // XIV §44: ★ the viewer's capital (side field, never off the city object)
       label.position.set(city.x, tileTop(city.x, city.y) + 1.05, city.y);
       cityLabels.push(label);
@@ -315,10 +317,11 @@ export function createRenderer(container) {
         cityLabels.push(nameLabel); // same lifecycle: removed + disposed on rebuild
         worldGroup.add(nameLabel);
       }
+      }
       // A68 (VIII.10/13): the production/disorder note pill below the name;
       // disorder additionally rings the tile red — LOUD on the map
       const note = cityNotes[city.id];
-      if (note) {
+      if (note && showCityLabels) {
         const noteLabel = makeNoteLabel(note.text, note.alert === true);
         noteLabel.position.set(city.x, tileTop(city.x, city.y) + 0.4, city.y);
         cityLabels.push(noteLabel);
@@ -522,6 +525,9 @@ export function createRenderer(container) {
     // server-map-at-gameOver upgrade (hardening) later feeds a full map through the
     // same path. Rebuilds the tile meshes at the current view.
     setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTiles(); },
+    // icon/hero-shot composition: suppress the pop/name/note sprites (no
+    // text/badges in the frame). Default true (existing behavior unchanged).
+    setCityLabelsVisible(flag) { showCityLabels = flag !== false; if (view) buildCities(); },
     animBusy() { return anim.busy(); }, // e2e: is a glide in flight?
     // A45: replace the data-overlay quads ([{idx,color,alpha,lift?}] | null)
     setOverlays(entries) {
