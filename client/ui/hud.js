@@ -360,6 +360,28 @@ export function initHud(ctx) {
   // (playtest: the actions clearly belong to this unit):
   // "Legion ★vet · ⚔3 🛡2 👟1/2 · hills (14,9) · ready · F: fortify"
   const unitLine = document.getElementById('unit-line');
+  // mobile #9: on a phone the selected-unit stat line belongs in the TOP HUD band
+  // (the bottom dock is crowded by the action bar). Reparent #unit-line into #hud
+  // while the mobile media query matches; restore it above the action bar on wider
+  // screens. Content is still written by unitNote() below — this only moves the node.
+  // Client-only, golden-neutral (no engine/state/hash).
+  (function relocateUnitLine() {
+    const hudEl = document.getElementById('hud');
+    const dock = document.getElementById('unit-dock');
+    const actionBar = document.getElementById('action-bar');
+    if (!hudEl || !dock || !unitLine || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 720px)');
+    const place = () => {
+      if (mq.matches) {
+        if (unitLine.parentNode !== hudEl) hudEl.appendChild(unitLine);
+      } else if (unitLine.parentNode !== dock) {
+        dock.insertBefore(unitLine, actionBar);
+      }
+    };
+    place();
+    if (mq.addEventListener) mq.addEventListener('change', place);
+    else if (mq.addListener) mq.addListener(place);
+  })();
   function unitNote(unit) {
     const t = session.ruleset.units[unit.type];
     const tile = session.state.map.tiles[unit.y * session.state.map.width + unit.x];

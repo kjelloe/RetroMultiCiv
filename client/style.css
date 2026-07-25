@@ -61,6 +61,12 @@ html, body {
   display: none;
 }
 
+/* mobile #10: the top-bar strip wrapper. On desktop + mid-width it generates NO
+   box (display:contents), so #research-bar / the overview toggles / #corner-buttons
+   keep their existing absolute placement — this wrapper is inert above 720px. The
+   flex scroll layout is in the ≤720px media block. */
+#top-bar { display: contents; }
+
 /* --- research bar (top center) --- */
 #research-bar {
   position: absolute;
@@ -1529,8 +1535,9 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   #dpad {
     display: grid;
     grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(3, 44px);
+    grid-template-rows: 16px repeat(3, 44px); /* mobile #5: row 1 is the drag grip */
     gap: 2px;
+    touch-action: none; /* mobile #5: a drag on the pad repositions it, never scrolls */
     position: fixed;
     right: 10px;
     /* XII.1: anchored to the vertical CENTER of the right edge — clears the
@@ -1555,6 +1562,16 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   }
   #dpad button:active { background: #2f5388; }
   #dpad .dpad-blank { visibility: hidden; }
+  /* mobile #5: the drag grip spans the pad's top; long-press the body also drags */
+  #dpad .dpad-grip {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: center;
+    height: 16px;
+    color: #8fa9cf; font-size: 12px; line-height: 1;
+    letter-spacing: 2px;
+    cursor: move; user-select: none;
+  }
+  #dpad.dpad-dragging { opacity: 0.9; }
 }
 
 /* L5: the ?mlog=1 mobile debug overlay — a phone with no console self-reports */
@@ -2639,6 +2656,55 @@ a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on
   #open-military-overview { top: 4px; left: 74px; height: 28px; line-height: 26px; z-index: 22; }
   #open-city-overview { top: 4px; left: 108px; height: 28px; line-height: 26px; z-index: 22; }
   #research-bar { left: 146px; }
+}
+
+/* mobile #10: on a phone the top-bar collapses into ONE horizontally scrollable
+   strip (like the bottom action bar), so the icons never bury the research bar.
+   These rules override the per-element absolute placement above (later source +
+   #top-bar>… specificity win). */
+@media (max-width: 720px) {
+  #top-bar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    align-items: center;
+    gap: 6px;
+    height: 46px;
+    padding: 4px 6px;
+    box-sizing: border-box;
+    background: rgba(8, 12, 20, 0.82);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 23;
+  }
+  /* each direct child becomes a non-shrinking flex item on the strip baseline —
+     cancel the absolute placement the rules above give them */
+  #top-bar > * {
+    position: static;
+    top: auto; left: auto; right: auto; bottom: auto;
+    transform: none;
+    flex: 0 0 auto;
+    margin: 0;
+  }
+  #top-bar > #research-bar { width: 210px; height: 32px; }
+  #top-bar > #corner-buttons { gap: 6px; }
+  /* the HUD strip (row 2) drops below the fixed 46px top strip */
+  #hud { top: 50px; }
+
+  /* mobile #9: the selected-unit stat line is reparented into the HUD band
+     (hud.js). Blend it in — wrap instead of nowrap-overflow, drop its own box,
+     and separate it from the HUD text with a thin rule. */
+  #hud > #unit-line {
+    white-space: normal;
+    background: none;
+    border: none;
+    border-top: 1px solid #24344f;
+    border-radius: 0;
+    padding: 3px 0 0;
+    margin-top: 3px;
+    font-size: 12px;
+    max-width: 100%;
+  }
 }
 
 /* XIV §33: the incoming-offer envoy modal — blocks the map while it is up */

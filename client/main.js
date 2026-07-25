@@ -39,6 +39,7 @@ import { initStrategicOverlay } from './ui/strategic-overlay.js';
 import { initDiplomacy } from './ui/diplomacy.js';
 import { initTechTree } from './ui/tech-tree.js';
 import { initTopPanels } from './ui/top-panels.js';
+import { initTopBar } from './ui/top-bar.js';
 import { initRegency } from './ui/regency.js';
 import { initReplay } from './ui/replay.js';
 import { initHistorian } from './ui/historian.js';
@@ -545,6 +546,7 @@ ctx.strategicOverlay = initStrategicOverlay(ctx); // live AI strategy (?debug=1 
 ctx.diplomacy = initDiplomacy(ctx); // D2: Foreign-relations panel (feature-detected; inert until D1)
 ctx.techTree = initTechTree(ctx); // XII.6: graphical tech tree + client-side beeline (🌳 / Shift+T)
 initTopPanels(); // XVII #19: top-center panels are mutually exclusive (after they're built)
+initTopBar(); // mobile #10: collect the top-bar icons into one scroll strip (mobile-only; inert on desktop)
 // L6: spectators issue no commands — the 🤖 regency button (and its seat
 // takeover) never exists for the view-only pseudo-seat
 ctx.regency = ctx.SPECTATOR ? null : initRegency(ctx); // A40: AI regency (🤖 auto turn)

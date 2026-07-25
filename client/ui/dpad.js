@@ -25,7 +25,66 @@ export function initDpad(ctx) {
   }
   let repeat = 0;
   function stop() { clearInterval(repeat); repeat = 0; }
+
+  // mobile #5 (user, mobile playtest): the compass is long-press DRAGGABLE and
+  // repositionable anywhere; the position persists in ctx.options (localStorage,
+  // never game state). A grip bar at the top drags on press; a long-press on the
+  // pad body also enters drag mode (cancelling the map pan). Viewport-clamped so
+  // it can never be dragged off-screen.
+  const opt = ctx.options;
+  const grip = document.createElement('div');
+  grip.className = 'dpad-grip';
+  grip.textContent = '⠿';
+  grip.title = 'drag to move the compass';
+  pad.insertBefore(grip, pad.firstChild);
+
+  const LONG_MS = 450, MOVE_TOL = 10;
+  let drag = null;       // active drag anchor {pointerX, pointerY, baseLeft, baseTop}
+  let longTimer = 0;     // pending long-press → drag
+  let downPt = null;     // pointerdown point, for the move-tolerance cancel
+  let justDragged = false; // suppress the trailing click after a drag
+
+  function applyPos(left, top) {
+    const r = pad.getBoundingClientRect();
+    const maxL = Math.max(0, window.innerWidth - r.width);
+    const maxT = Math.max(0, window.innerHeight - r.height);
+    left = Math.max(0, Math.min(left, maxL));
+    top = Math.max(0, Math.min(top, maxT));
+    pad.style.left = Math.round(left) + 'px';
+    pad.style.top = Math.round(top) + 'px';
+    pad.style.right = 'auto';
+    pad.style.bottom = 'auto';
+    pad.style.transform = 'none';
+  }
+  const savedPos = opt && opt.get('dpadPos');
+  if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number') {
+    // apply after layout so getBoundingClientRect knows the pad size
+    requestAnimationFrame(() => applyPos(savedPos.x, savedPos.y));
+  }
+
+  function beginDrag(e) {
+    clearTimeout(longTimer); longTimer = 0;
+    stop(); // cancel any in-flight pan-repeat
+    const r = pad.getBoundingClientRect();
+    drag = { pointerX: e.clientX, pointerY: e.clientY, baseLeft: r.left, baseTop: r.top };
+    pad.classList.add('dpad-dragging');
+    try { pad.setPointerCapture(e.pointerId); } catch (_) { /* capture optional */ }
+  }
+  function endDrag() {
+    if (!drag) return;
+    const r = pad.getBoundingClientRect();
+    if (opt) opt.set('dpadPos', { x: Math.round(r.left), y: Math.round(r.top) });
+    drag = null;
+    justDragged = true;
+    setTimeout(() => { justDragged = false; }, 0); // clears after the trailing click
+    pad.classList.remove('dpad-dragging');
+  }
+
   pad.addEventListener('pointerdown', e => {
+    if (e.target === grip) { e.preventDefault(); beginDrag(e); return; }
+    downPt = { x: e.clientX, y: e.clientY };
+    clearTimeout(longTimer);
+    longTimer = setTimeout(() => beginDrag(e), LONG_MS); // long-press anywhere → drag
     const dir = DIRS[e.target.className];
     if (!dir) return;
     e.preventDefault(); // no focus/scroll side effects on touch
@@ -33,10 +92,19 @@ export function initDpad(ctx) {
     stop();
     repeat = setInterval(() => renderer.panBy(dir[0] * 2, dir[1] * 2), 160);
   });
-  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) {
-    pad.addEventListener(ev, stop);
+  pad.addEventListener('pointermove', e => {
+    if (drag) { e.preventDefault(); applyPos(drag.baseLeft + (e.clientX - drag.pointerX), drag.baseTop + (e.clientY - drag.pointerY)); return; }
+    if (longTimer && downPt) {
+      const dx = e.clientX - downPt.x, dy = e.clientY - downPt.y;
+      if (dx * dx + dy * dy > MOVE_TOL * MOVE_TOL) { clearTimeout(longTimer); longTimer = 0; } // a slide, not a hold
+    }
+  });
+  for (const ev of ['pointerup', 'pointercancel']) {
+    pad.addEventListener(ev, () => { clearTimeout(longTimer); longTimer = 0; downPt = null; endDrag(); stop(); });
   }
+  pad.addEventListener('pointerleave', () => { if (!drag) stop(); });
   pad.addEventListener('click', e => {
+    if (justDragged) { e.stopPropagation(); return; } // a reposition, not a tap
     if (e.target.className === 'dpad-home') {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', bubbles: true }));
     }
@@ -49,8 +117,7 @@ export function initDpad(ctx) {
   // absent option reads falsy = not hidden). The button lives in the top-right
   // corner cluster (CSS gates it to touch), NOT on the pad — a hidden pad could
   // not reveal itself.
-  const opt = ctx.options;
-  const toggle = document.createElement('button');
+  const toggle = document.createElement('button'); // reuses `opt` declared above
   toggle.id = 'dpad-toggle';
   toggle.textContent = '🧭';
   toggle.title = 'show/hide the map compass';
