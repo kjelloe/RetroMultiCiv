@@ -82,8 +82,8 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Status before the overnight window: <strong>2026-07-25 night</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0103</strong> @ fe39360 (tip has moved past it — see below)</span>
+    <span class="chip">Updated: <strong>2026-07-25 morning</strong> — gaming PC back, diplomacy arc tagged</span>
+    <span class="chip">Merge candidate: <strong>marker-0104</strong> @ bbfa85c (MERGE-CONSISTENT — D4–D6 arc; supersedes 0103)</span>
     <span class="chip"><strong>Overnight: gaming PC rests ~7h</strong> — commits continue, tags don't, until it's back</span>
   </div>
 </header>
@@ -107,9 +107,9 @@
     <ol class="spine">
       <li class="g"><span class="st done">✅</span><strong>11b authentic city rosters</strong> — LANDED @5617bf9: full 16-name Civ1-founding-order replace, honest behavioral+stamp re-record, twins 76/76</li>
       <li class="g"><span class="st done">✅</span><strong>D4 diplomacy</strong> — LANDED @ceda2169e: tribute + tech exchange + human LAN treaty command + offer expiry, engine+twin+AI+client, honest re-record, twins 11/11. NOT TAGGED (overnight policy)</li>
-      <li><span class="st now">🔨 opening</span><strong>D5 reputation + senate</strong> — reputation band-reshape (0–4 Honorable..Treacherous, recoverable), senate blocks Republic/Democracy war-on-peace, UN wonder always-offers-peace (shares the Great Wall's flag)</li>
-      <li><span class="st qd">queued</span><strong>D6 embassies + missions</strong> — spec ready, follows D5 as its own golden window</li>
-      <li><span class="st qd">queued</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; baseline already measured (~0 buildings across all eras) — the engine window queues after D6 unless you promote it</li>
+      <li class="g"><span class="st done">✅</span><strong>D5 reputation + senate</strong> — LANDED @fe023c0 (0104): reputation 0–4 band (recoverable, byte-identical when healed), senate blocks Republic/Democracy war-on-peace, UN/Great Wall peaceAcceptBonus; fixes the D4 event-catalog gap</li>
+      <li class="g"><span class="st done">✅</span><strong>D6 embassies + missions</strong> — LANDED @984f48c (0104): diplomat-missions.js + twin (embassy + steal-tech roll + sabotage roll + incite + bribe), filterView embassy intel view-only. GOLDEN-NEUTRAL, scenario 065 pin 0xea7216fc JS==Luau. <strong>Diplomacy arc COMPLETE</strong></li>
+      <li><span class="st now">🔨 measuring</span><strong>AI build doctrine (XX §3)</strong> — your axis-3 reopening; baseline measured (~0 buildings all eras). <strong>Upside being measured</strong> (you ruled measure-first): 5-row 25-seed sweep quantifies research depth / happiness / launches before promote-vs-bank. The M3-pop 20&lt;22 river breach ties here (the granary fix restores flood-city pop)</li>
     </ol>
   </div>
 </section>
@@ -126,8 +126,8 @@
     refinement-XVII+XIX, regression guards G1–G5 (all complete), and <strong>#34 Founder's Record COMPLETE</strong>
     (all four endings) + founders-tone + specials-silhouettes + play-on-roblox + xx-pedia-splash — every v1 client
     item shipped, and the ally ACCEPTED the tone/silhouette work FINAL. <strong>Helper STOPPED</strong> (queue empty, clean park).</div></div>
-  <div class="item"><div class="t"><span class="st now">🔨 active</span>Roblox (second PC — RESTING overnight)</div>
-    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). Two one-line edits (Encyclopedia swap, a code comment) held on the Write-grant. Resting with sim-runner + reviewer for ~7h; resumes on wake.</div></div>
+  <div class="item"><div class="t"><span class="st now">🔨 active — back online</span>Roblox (second PC)</div>
+    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). Back on the gaming PC: gate-4 D4–D6 re-bake landed (bbfa85c, 4 ruleset hashes byte-verified), prepping a Studio-session checklist. Remaining v1 item is the ONE user-gated Studio session (verify midgame-join + publish + set ROBLOX_EXPERIENCE_URL).</div></div>
   <div class="item g"><div class="t"><span class="st done">✅ closed — bar reopened</span>AI-quality program</div>
     <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED. Your XX §3 build doctrine
     (city roles: production/science/frontline/spawner) REOPENS the axis — baseline already measured (~0 buildings all eras), the engine window queues after D6 unless promoted.</div></div>
@@ -139,8 +139,8 @@
   <div class="tablewrap"><table>
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
     <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE</strong> — all terrains in, ally-accepted, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
-    <tr><td>2</td><td>Diplomacy full D1–D6</td><td>D1–D3 ✅ · 11b ✅ · <strong>D4 LANDED</strong> (@ceda2169e, not yet tagged)</td><td><strong>D5 OPENING</strong> (reputation+senate+UN) → D6</td></tr>
-    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline: ~0 buildings)</td><td>doctrine window after D6</td></tr>
+    <tr class="g"><td>2</td><td>Diplomacy full D1–D6</td><td><strong>✅ COMPLETE</strong> — D1–D3 · 11b · D4 · D5 · D6 all LANDED + TAGGED (marker-0104)</td><td>— (axis closed)</td></tr>
+    <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3; baseline ~0 buildings); M3-pop 20&lt;22 river breach tied here</td><td><strong>build-doctrine upside MEASURING</strong> (measure-first ruling); promote/bank pending</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
     <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness + docs/16 §8 merged</td><td>— (server lane queue empty)</td></tr>
     <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · Founder's Record + tone + silhouettes ALL ally-approved final · Encyclopedia ✅</td><td>conquest renderer-brighten banked v1.x (non-blocking)</td></tr>
@@ -150,8 +150,8 @@
 <section id="gates">
   <div class="sec-head"><h2>User gates</h2><span class="tag">only you can open these</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t"><span class="st gate">🚪 tonight or morning</span>Merge marker-0103 — or wait for the batch tag</div>
-    <div class="d">marker-0103 (@fe39360) is still merge-consistent and mergeable now. The tip has moved past it overnight (11b + D4, uncommitted-to-tag by policy) — a fresh marker supersedes it once the gaming PC + reviewer are back and can gate the accumulated work. Either merge 0103 tonight or wait for the morning tag.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 ready now</span>Merge marker-0104 (@bbfa85c)</div>
+    <div class="d">marker-0104 is MERGE-CONSISTENT and supersedes 0103 — the full D4–D6 diplomacy arc, both gates GREEN and cross-agreeing on every hash. One documented pre-existing river-world floor breach (M3-pop 20&lt;22, orthogonal to diplomacy, tracked to build-doctrine) does not gate it. Merge when you're ready.</div></div>
   <div class="item"><div class="t"><span class="st done">✅ ruled</span>PEDIA_NAME + the city-list call</div>
     <div class="d">BOTH RULED 2026-07-25: PEDIA_NAME = "Encyclopedia" (applied) and city rosters = GO full-authentic-replace (LANDED @5617bf9). This gate is CLOSED — kept for the record.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 after the batch</span>Roblox publish + acceptance session</div>

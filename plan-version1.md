@@ -4,9 +4,14 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 night, STATUS BEFORE THE OVERNIGHT WINDOW
-(marker-0103 TAGGED @fe39360 = MERGE-CONSISTENT, still the merge
-candidate — tip has moved past it, see below). **LANE CONSOLIDATION
+Last updated: 2026-07-25 MORNING — **marker-0104 TAGGED @bbfa85c =
+MERGE-CONSISTENT** (the D4–D6 diplomacy arc batch tag; supersedes 0103
+as the merge candidate). Gaming PC is back: reviewer clean-clone --full
+942/0 + engine-diff + independent twin repro GREEN, sim-runner Gate-B +
+25/25-seed invariants GREEN, both cross-agree on every hash. The
+overnight no-tag policy is DISCHARGED. One pre-existing river-world
+floor breach documented (M3-pop 20<22, orthogonal to diplomacy, tracked
+to the XX §3 build-doctrine window — see below). **LANE CONSOLIDATION
 (user ruling): helper STOPPED** (its full stack shipped — 11b's
 oasis-palm follow-up, guards, splash, all committed); **bugfixer runs
 the FULL D4–D6 diplomacy arc as its true final item**, then stops
@@ -66,8 +71,8 @@ flowchart TD
     RIV["✅ RIVER COMPLETE (0103 @fe39360): landed +\nfix-A + sweep clean; M3 floor re-pinned 22 by\nUSER RULING; ally ACCEPTED + edge-seam fix\nlanded same night (c1f0cea)"]
     D11["✅ 11b authentic city rosters (@5617bf9):\nall 14 civs -> dump-exact 16-name Civ1\nfounding order; honest behavioral+stamp\nre-record; twins 76/76"]
     D4S["✅ D4 diplomacy (@ceda2169e): tribute + tech\nexchange + human LAN treaty cmd + offer expiry;\ntreaty-UI parley->diplomacy rename; NOT TAGGED\n(overnight policy — batch-tags in the morning)"]
-    D5S["🔨 D5 reputation + senate — OPENING:\nreputation band-reshape (0-4 Honorable..\nTreacherous, recoverable) · senate blocks\nRepublic/Democracy war-on-peace · UN wonder\nalways-offers-peace (shares Great Wall's flag)"]
-    D6S["📋 D6 embassies + missions — spec ready,\nfollows D5 as its own golden window"]
+    D5S["✅ D5 reputation + senate (@fe023c0, 0104):\nreputation 0-4 band (recoverable, byte-identical\nwhen healed) · senate blocks Republic/Democracy\nwar-on-peace · UN/Great Wall peaceAcceptBonus;\nfixes the D4 event-catalog gap"]
+    D6S["✅ D6 embassies + missions (@984f48c, 0104):\ndiplomat-missions.js + twin — embassy + steal-tech\n(roll) + sabotage (roll) + incite + bribe; filterView\nembassy intel view-only. GOLDEN-NEUTRAL. Scenario\n065 pin 0xea7216fc JS==Luau. ARC COMPLETE"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
   end
@@ -126,7 +131,7 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S done
   class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
   class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
@@ -153,27 +158,32 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | # | 1.0 axis (user ruling) | State | Remaining |
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
-| 2 | Diplomacy FULL D1–D6 | D1–D3 ✅, 11b ✅, **D4 LANDED** (@ceda2169e, not yet tagged) | **D5 OPENING** (reputation+senate+UN) → D6 (embassies+missions) |
-| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings) | doctrine window after D6 unless promoted |
+| 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
+| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings); M3-pop 20<22 river breach now tied to this | **build-doctrine upside being MEASURED** (user ruled measure-first); promote/bank pending the 5-row table |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine is inside its last arc.** River, 11b, and D4
-   are all landed; D5 is opening now, D6 follows as its own window,
-   and then only the workturns companion + the XX §3 doctrine window
-   stand between the engine lane and v1's axis 1–3 closure.
+1. **The engine spine's diplomacy arc is CLOSED.** River, 11b, D4,
+   D5, and D6 are all landed + tagged (marker-0104). Axis 2 (diplomacy
+   D1–D6) is complete. Only the XX §3 build-doctrine window (upside
+   being measured, promote/bank pending) + the banked workturns
+   companion stand between the engine lane and v1's axis 1–3 closure.
+   The M3-pop 20<22 river breach is now tied to build-doctrine (the
+   granary fix restores flood-city pop).
 2. **Lane consolidation is in effect.** Helper stopped (queue empty,
    clean park). Bugfixer runs D4–D6 solo as its final item, then
    stops too — after that the architect executes whatever remains.
    The gaming PC (sim-runner/roblox-helper/reviewer) rests overnight;
    commits continue, tags don't, until it's back.
-3. **User gates remain:** merge marker-0103 (or wait for the morning
-   batch tag, which will supersede it), the trademark search, the
-   ONE Studio publish/acceptance session, and the standing roblox
-   Write allowlist.
+3. **User gates remain:** merge marker-0104 (ready now, supersedes
+   0103), the trademark search, the ONE Studio publish/acceptance
+   session, and the standing roblox Write allowlist. Plus one policy
+   call: the M3-pop 20<22 floor (re-pin 22→20 for the river world, or
+   leave at 22 and let build-doctrine restore it — sim-runner leans
+   leave-and-track).
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the
