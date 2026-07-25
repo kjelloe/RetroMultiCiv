@@ -874,6 +874,11 @@ html, body {
   text-align: center;
   color: #dbe6f6;
   animation: moment-fade 0.6s ease;
+  /* mobile #6 (same class): a tall moment stage must not push its Continue button
+     off a short phone viewport — cap + scroll inside the card. */
+  box-sizing: border-box;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 @keyframes moment-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .moment-title {
@@ -992,6 +997,12 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   width: calc(100% - 40px);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
   color: #cdd8ea;
+  /* mobile #6: a tall scoreboard (many civs) overflowed a short phone viewport
+     top AND bottom — the verdict and the Continue/replay buttons were cut off and
+     unreachable (overflow was visible). Cap the height and scroll INSIDE the card. */
+  box-sizing: border-box;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 #endscreen-verdict { font-size: 30px; font-weight: 700; text-align: center; letter-spacing: 1px; }
 #endscreen-verdict.win { color: #ffe066; }
