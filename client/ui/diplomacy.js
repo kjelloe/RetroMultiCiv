@@ -11,6 +11,10 @@ import { displayColor } from './palette.js';
 
 const BARB_ID = 'barb'; // never a diplomacy target (spec §2)
 
+// D5 reputation bands (0=Honorable .. repMax=Treacherous). 0 is the clean default
+// (never shown); a soiled civ shows its band + is trusted less by every rival.
+const REP_BANDS = ['Honorable', 'Reliable', 'Wary', 'Dishonored', 'Treacherous'];
+
 // ?parleydemo=1 forces the D4 shell visible for screenshots (=chooser pops the
 // outbound chooser instead of the inbound offer). Captured at MODULE EVAL —
 // main.js canonicalizes the URL after boot (strips unknown params), so a LAZY
@@ -28,6 +32,7 @@ const DIPLO_REASON = {
   noSuchOffer: 'there is no standing offer to answer',
   noSuchTarget: 'no such civilization',
   atPeace: 'a peace treaty stands — break it first to attack',
+  senateRefused: 'your senate refuses to break the peace treaty',
   notYourTurn: 'wait for your turn',
   cannotDiplomacyBarbarians: 'barbarians do not negotiate',
   unknownKind: 'that is not a treaty action',
@@ -145,7 +150,8 @@ export function initDiplomacy(ctx) {
       if (p.alive === false) continue;
       if (p.barbarian === true) continue;
       const rep = reputationOf(state, pid);
-      const repTag = rep !== 0 ? ` <span class="diplo-rep" title="their standing (record-only until D3)">rep ${rep}</span>` : '';
+      const band = REP_BANDS[rep] || REP_BANDS[REP_BANDS.length - 1];
+      const repTag = rep > 0 ? ` <span class="diplo-rep" title="their standing — a civ that breaks treaties is trusted less">⚑ ${band}</span>` : '';
       rows.push(
         '<div class="diplo-row">'
         + `<span class="diplo-name" style="color:${displayColor(p.color)}">${esc(p.name)}</span>`

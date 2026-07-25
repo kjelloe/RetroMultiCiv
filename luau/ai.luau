@@ -2497,8 +2497,13 @@ local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet
 			end
 			return { type = "diplomacy", kind = if accept then "accept" else "reject", playerId = playerId, target = other }
 		end
+		-- D5 senate: a Republic/Democracy (govForbidsWar) AI cannot break peace —
+		-- skip the declare so it does not issue a command the senate will reject.
 		if rel == "peace" and aiDiplomacy.scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold then
-			return { type = "diplomacy", kind = "declare", playerId = playerId, target = other }
+			local gov = ruleset.governments[if state.players[playerId].government == nil then "despotism" else state.players[playerId].government]
+			if gov == nil or gov.govForbidsWar ~= true then
+				return { type = "diplomacy", kind = "declare", playerId = playerId, target = other }
+			end
 		end
 		-- §14 F1: the reject cooldown stops the offer/reject spam loop (reject
 		-- clears the offer but keeps war). Gate on rules.diplomacy.offerCooldown.

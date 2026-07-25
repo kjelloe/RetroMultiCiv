@@ -44,7 +44,10 @@ const EVENT_TYPES = {
   // D1 diplomacy: UPPER_SNAKE per the ally-specified shapes (spec §3) + the
   // committed D2 client classifier — a deliberate family exception to camelCase.
   WAR_DECLARED: 'diplomacy', PEACE_TREATY_SIGNED: 'diplomacy', TREATY_BROKEN: 'diplomacy',
-  FIRST_CONTACT: 'diplomacy'
+  FIRST_CONTACT: 'diplomacy',
+  // D4 offers: tribute + tech exchange + offer expiry. D5: reputation shift.
+  TRIBUTE_PAID: 'diplomacy', TECH_EXCHANGED: 'diplomacy', OFFER_EXPIRED: 'diplomacy',
+  REPUTATION_SHIFT: 'diplomacy'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',

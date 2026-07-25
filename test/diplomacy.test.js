@@ -93,7 +93,68 @@ test('declare while at peace: breaks the treaty (TREATY_BROKEN + reputation-)', 
   assert.strictEqual(relationOf(brk.state, 'p1', 'p2'), 'war');
   assert.ok(brk.events.some(e => e.type === 'WAR_DECLARED'));
   assert.ok(brk.events.some(e => e.type === 'TREATY_BROKEN' && e.penalty === 'reputation_loss'));
-  assert.strictEqual(reputationOf(brk.state, 'p1'), -1, 'breaking peace decrements reputation');
+  assert.strictEqual(reputationOf(brk.state, 'p1'), 1, 'D5: breaking peace INCREMENTS reputation toward Treacherous');
+  assert.ok(brk.events.some(e => e.type === 'REPUTATION_SHIFT' && e.reputation === 1 && e.direction === 'worse'));
+  assert.strictEqual(brk.state.players.p1.repCleanTurns, 0, 'the recovery clock resets on a betrayal');
+});
+
+// --- D5: senate + reputation recovery + peace-wonder ---
+
+function signedPeace(gov) {
+  // p1 (government gov) at peace with p2, p1 active
+  let s = baseState();
+  if (gov !== undefined) s.players.p1.government = gov;
+  s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 20 })).state;
+  s.activePlayer = 'p2';
+  s = engine.applyCommand(s, dip('p2', 'accept', 'p1')).state;
+  s.activePlayer = 'p1';
+  return s;
+}
+
+test('D5 senate: a Democracy/Republic cannot break a peace treaty (senateRefused)', () => {
+  for (const gov of ['democracy', 'republic']) {
+    const s = signedPeace(gov);
+    const r = engine.applyCommand(s, dip('p1', 'declare', 'p2'));
+    assert.strictEqual(r.ok, false, `${gov} declare must be refused`);
+    assert.strictEqual(r.reason, 'senateRefused', `${gov} -> senateRefused`);
+    assert.strictEqual(relationOf(r.state, 'p1', 'p2'), 'peace', 'the treaty stands');
+  }
+});
+
+test('D5 senate: despotism CAN break peace (no govForbidsWar) — and declaring from default war is fine', () => {
+  const s = signedPeace('despotism');
+  const r = engine.applyCommand(s, dip('p1', 'declare', 'p2'));
+  assert.ok(r.ok, r.reason);
+  assert.strictEqual(relationOf(r.state, 'p1', 'p2'), 'war', 'despotism breaks the treaty');
+  // a Democracy declaring from DEFAULT war (no treaty) is not senate-gated
+  const w = baseState(); w.players.p1.government = 'democracy';
+  const rw = engine.applyCommand(w, dip('p1', 'declare', 'p2'));
+  assert.ok(rw.ok, 'declaring formal war from default war is allowed under Democracy');
+});
+
+test('D5 reputation recovery: processReputation heals one band after repRecoverTurns clean turns', async () => {
+  const { processReputation } = await import('../engine/diplomacy.js');
+  const s = baseState();
+  s.players.p1.reputation = 2; s.players.p1.repCleanTurns = 0;
+  const recover = RULESET.rules.diplomacy.repRecoverTurns; // 20
+  // (recover-1) clean turns: just increments the clock, no heal
+  for (let i = 0; i < recover - 1; i++) processReputation(s, RULESET, []);
+  assert.strictEqual(s.players.p1.reputation, 2, 'no heal before the threshold');
+  assert.strictEqual(s.players.p1.repCleanTurns, recover - 1);
+  const ev = [];
+  processReputation(s, RULESET, ev); // the threshold turn
+  assert.strictEqual(s.players.p1.reputation, 1, 'healed one band');
+  assert.strictEqual(s.players.p1.repCleanTurns, 0, 'clock resets after a heal');
+  assert.ok(ev.some(e => e.type === 'REPUTATION_SHIFT' && e.direction === 'better' && e.reputation === 1));
+});
+
+test('D5 reputation recovery: a fully-healed civ sheds BOTH fields (byte-clean = never-soiled)', async () => {
+  const { processReputation } = await import('../engine/diplomacy.js');
+  const s = baseState();
+  s.players.p1.reputation = 1; s.players.p1.repCleanTurns = RULESET.rules.diplomacy.repRecoverTurns - 1;
+  processReputation(s, RULESET, []);
+  assert.strictEqual(s.players.p1.reputation, undefined, 'reputation field removed at 0 (never stored as 0)');
+  assert.strictEqual(s.players.p1.repCleanTurns, undefined, 'the clock is removed too');
 });
 
 test('reject clears the offer with no state change', () => {

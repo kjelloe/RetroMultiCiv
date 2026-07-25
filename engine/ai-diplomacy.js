@@ -4,10 +4,39 @@
 // imports THIS for its diplomacy step, so the reverse edge would cycle; military
 // strength + border pressure are small local reads over combat.js primitives.
 import { personalityOf } from './leaders.js';
-import { grievanceOf, trustOf } from './diplomacy.js';
+import { grievanceOf, trustOf, reputationOf } from './diplomacy.js';
 
 function idiv(a, b) {
   return Math.floor(a / b);
+}
+
+// D5: is wonder `wid` OBSOLETE — any player holds its obsoleteBy tech (global, the
+// cities.js wonderActive rule, inlined here to avoid the cities->diplomacy require
+// cycle the Luau twin hangs on).
+function wonderObsolete(state, wid, ruleset) {
+  const ob = ruleset.wonders[wid].obsoleteBy;
+  if (ob === undefined || ob === '') return false;
+  for (const pid of state.playerOrder) {
+    const techs = state.players[pid].techs === undefined ? [] : state.players[pid].techs;
+    if (techs.indexOf(ob) !== -1) return true;
+  }
+  return false;
+}
+
+// D5: the peace bonus `owner` earns from owning an ACTIVE peaceAcceptBonus wonder
+// (United Nations / Great Wall, #2507). Rivals' scorePeaceAccept toward the owner is
+// boosted so they both offer AND accept peace. Sums (both wonders) — omit-safe (0).
+function peaceWonderBonus(state, owner, ruleset) {
+  if (state.wonders === undefined) return 0;
+  let bonus = 0;
+  for (const wid of Object.keys(state.wonders)) {
+    const w = ruleset.wonders[wid];
+    if (w === undefined || w.effect === undefined || w.effect.peaceAcceptBonus === undefined) continue;
+    if (wonderObsolete(state, wid, ruleset)) continue;
+    const city = state.cities === undefined ? undefined : state.cities[state.wonders[wid]];
+    if (city !== undefined && city.owner === owner) bonus = bonus + w.effect.peaceAcceptBonus;
+  }
+  return bonus;
 }
 
 // count of a player's attack-capable units (like ai.js countMilitary; local to
@@ -102,8 +131,13 @@ function scorePeaceAccept(state, me, other, ruleset) {
   const trust = trustOf(state, me, other);
   const winning = weakness(state, me, other, ruleset);
   const warWeariness = 0;
+  // D5: a treacherous OTHER (high reputation) is trusted less — its offers discounted;
+  // an OTHER owning a peace wonder (UN/Great Wall) is far easier to make peace with.
+  const otherRep = reputationOf(state, other);
+  const peaceWonder = peaceWonderBonus(state, other, ruleset);
   return fear * d.wPFear + trust * d.wPTrust + warWeariness * d.wWeary
-    - agg * d.wPAgg - grv * d.wPGrv - winning * d.wWinning;
+    - agg * d.wPAgg - grv * d.wPGrv - winning * d.wWinning
+    - otherRep * d.wPRep + peaceWonder;
 }
 
 // D4: whether `me` should DEMAND tribute from `other` (#2507 digest — gated
@@ -127,4 +161,4 @@ function wantsPayTribute(state, me, other, ruleset) {
 }
 
 export { scoreWarIntent, scorePeaceAccept, weakness, fearOf, borderPressure, milStrength, hasLaunched,
-  wantsTribute, wantsPayTribute };
+  wantsTribute, wantsPayTribute, peaceWonderBonus };

@@ -10,10 +10,6 @@ local BARB_ID = "barb"
 
 local visibility = require("./visibility")
 
--- D1 reputation penalty for breaking a treaty (RECORD-ONLY; the weight moves to
--- data/*.json in D3).
-local TREATY_BREAK_PENALTY = 1
-
 -- D3 relationship-value defaults (structural neutral points): trust 50, grievance 0.
 local TRUST_DEFAULT = 50
 local GRIEVANCE_DEFAULT = 0
@@ -135,6 +131,12 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 	if cmd.kind == "declare" then
 		if entry ~= nil and entry.state == "war" then return { ok = false, reason = "alreadyWar" } end
 		local wasPeace = rel == "peace"
+		-- D5 SENATE: a Republic/Democracy (govForbidsWar) cannot break a standing peace
+		-- treaty — the senate refuses. Deterministic, a FIRST-CLASS reject (#2507).
+		if wasPeace then
+			local gov = ruleset.governments[if state.players[pid].government == nil then "despotism" else state.players[pid].government]
+			if gov ~= nil and gov.govForbidsWar == true then return { ok = false, reason = "senateRefused" } end
+		end
 		-- D3: MODIFY in place — preserve met/grievance/trust.
 		local e = if entry == nil then {} else entry
 		if entry == nil then state.relations[key] = e end
@@ -144,8 +146,16 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 		e.offer = nil
 		table.insert(events, { type = "WAR_DECLARED", attackerCivId = eventCiv(state, pid), defenderCivId = eventCiv(state, target), turn = state.turn, reason = "border_pressure" })
 		if wasPeace then
-			state.players[pid].reputation = reputationOf(state, pid) - TREATY_BREAK_PENALTY
+			-- D5 REPUTATION: a treaty break INCREMENTS reputation toward Treacherous
+			-- (0=Honorable .. repMax, clamped) + resets the recovery clock. REPUTATION_SHIFT.
 			local d = ruleset.rules.diplomacy
+			local bump = if d.repBetrayBump == nil then 1 else d.repBetrayBump
+			local max = if d.repMax == nil then 4 else d.repMax
+			local rep = reputationOf(state, pid) + bump
+			if rep > max then rep = max end
+			state.players[pid].reputation = rep
+			state.players[pid].repCleanTurns = 0
+			table.insert(events, { type = "REPUTATION_SHIFT", civId = eventCiv(state, pid), reputation = rep, direction = "worse", turn = state.turn })
 			bumpRel(state, target, pid, "grievance", d.relGrievanceOnBetray)
 			bumpRel(state, target, pid, "trust", -d.relTrustOnBetray)
 			table.insert(events, { type = "TREATY_BROKEN", breakerCivId = eventCiv(state, pid), injuredCivId = eventCiv(state, target), turn = state.turn, penalty = "reputation_loss" })
@@ -303,6 +313,37 @@ local function processExpiry(state: any, ruleset: any, events: any)
 	end
 end
 
+-- D5 reputation RECOVERY (engine processing, replayable), run once per round-wrap
+-- beside processDecay/processExpiry. A soiled civ (rep > 0) that keeps its treaties
+-- heals one band every repRecoverTurns clean turns; the clock resets on a betrayal.
+-- Fully-healed civs shed BOTH fields (reputation is stored 1..repMax or ABSENT, never
+-- 0) so a recovered state is byte-identical to a never-soiled one. Omit-safe.
+local function processReputation(state: any, ruleset: any, events: any)
+	local d = ruleset.rules.diplomacy
+	if d == nil then return end
+	local recover = if d.repRecoverTurns == nil then 0 else d.repRecoverTurns
+	if recover <= 0 then return end
+	for _, pid in ipairs(state.playerOrder) do
+		local p = state.players[pid]
+		if p ~= nil and p.reputation ~= nil and p.reputation > 0 then
+			local clean = (if p.repCleanTurns == nil then 0 else p.repCleanTurns) + 1
+			if clean >= recover then
+				local rep = p.reputation - 1
+				if rep <= 0 then
+					p.reputation = nil
+					p.repCleanTurns = nil
+				else
+					p.reputation = rep
+					p.repCleanTurns = 0
+				end
+				table.insert(events, { type = "REPUTATION_SHIFT", civId = eventCiv(state, pid), reputation = if p.reputation == nil then 0 else p.reputation, direction = "better", turn = state.turn })
+			else
+				p.repCleanTurns = clean
+			end
+		end
+	end
+end
+
 return {
 	relationOf = relationOf,
 	reputationOf = reputationOf,
@@ -316,4 +357,5 @@ return {
 	contactPass = contactPass,
 	processDecay = processDecay,
 	processExpiry = processExpiry,
+	processReputation = processReputation,
 }

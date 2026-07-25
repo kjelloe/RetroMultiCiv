@@ -2130,9 +2130,14 @@ function diplomacyStep(state, playerId, ruleset, doneSet) {
       else accept = scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold;
       return { type: 'diplomacy', kind: accept ? 'accept' : 'reject', playerId, target: other };
     }
-    // 2. at PEACE + war intent recovers -> declare (breaks the treaty, TREATY_BROKEN)
+    // 2. at PEACE + war intent recovers -> declare (breaks the treaty, TREATY_BROKEN).
+    // D5 senate: a Republic/Democracy (govForbidsWar) AI cannot break peace — skip the
+    // declare so it does not issue a command the senate will reject every turn.
     if (rel === 'peace' && scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold) {
-      return { type: 'diplomacy', kind: 'declare', playerId, target: other };
+      const gov = ruleset.governments[state.players[playerId].government === undefined ? 'despotism' : state.players[playerId].government];
+      if (gov === undefined || gov.govForbidsWar !== true) {
+        return { type: 'diplomacy', kind: 'declare', playerId, target: other };
+      }
     }
     // 3. at WAR + would accept peace itself + none pending + not on a reject
     // cooldown -> offer peace (perpetual). §14 F1: the cooldown stops the

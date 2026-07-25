@@ -65,7 +65,11 @@ export function classifyEvent(e, viewer, cityOwner) {
     // headline; the two parties get the detail in the row text) — always shown
     case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
     case 'FIRST_CONTACT': // D3: engine first-contact event (D2's audience trigger)
+    // D4/D5: tribute paid, tech traded, a civ's standing shifts — public diplomacy news
+    case 'TRIBUTE_PAID': case 'TECH_EXCHANGED': case 'REPUTATION_SHIFT':
       return 'world';
+    case 'OFFER_EXPIRED': // D4: an unanswered offer lapsed — ambient, too minor to log
+      return null;
     case 'pollutionSpread': // A91: a tile fouled near a city — ambient, not logged (too frequent)
       return null;
     case 'cityMeltdown': // A91: a nuclear meltdown fouled a square — the owner hears it

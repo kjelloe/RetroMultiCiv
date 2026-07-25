@@ -34,6 +34,8 @@ export function makeCatalogText(ruleset, opts) {
     doublesTemple: () => 'doubles the current Temple effect, including Mysticism\'s',
     cityTradeBonus: () => '+1 trade on every trade tile here',
     wallsEverywhere: () => 'city walls in all your cities',
+    // D5 (#2243/#2247): United Nations / Great Wall — rivals always make peace with you
+    peaceAcceptBonus: () => 'rival civilizations always accept and offer you peace',
     // manhattan-gate #16 (pre-existing gap the #29 coverage test surfaced)
     nukesEnabled: () => 'unlocks nuclear weapons for every civilization',
     // naval-truth: Lighthouse / Magellan's Expedition (RIDER #2247 — text-only fill)

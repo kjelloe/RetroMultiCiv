@@ -122,3 +122,29 @@ test('processDecay fades grievance each round (floored 0)', () => {
   dip.processDecay(s, RULESET);
   assert.strictEqual(dip.grievanceOf(s, 'p1', 'p2'), 3 - RULESET.rules.diplomacy.relGrievanceDecay, 'decayed by relGrievanceDecay');
 });
+
+test('D5 peaceWonderBonus: owning an active UN/Great-Wall boosts rivals toward peace', () => {
+  const s = world({
+    cities: { c1: { id: 'c1', name: 'A', owner: 'p2', x: 3, y: 3, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'],
+    wonders: { 'united-nations': 'c1' }
+  });
+  const bonus = RULESET.wonders['united-nations'].effect.peaceAcceptBonus;
+  assert.strictEqual(aidip.peaceWonderBonus(s, 'p2', RULESET), bonus, 'p2 owns the active UN');
+  assert.strictEqual(aidip.peaceWonderBonus(s, 'p1', RULESET), 0, 'p1 owns no peace wonder');
+  // it lifts a rival's scorePeaceAccept toward the owner by EXACTLY the bonus
+  const withUN = aidip.scorePeaceAccept(s, 'p1', 'p2', RULESET);
+  delete s.wonders['united-nations'];
+  assert.strictEqual(withUN - aidip.scorePeaceAccept(s, 'p1', 'p2', RULESET), bonus, 'the UN adds exactly its bonus');
+});
+
+test('D5 peaceWonderBonus: an OBSOLETE wonder (Great Wall past Gunpowder) grants nothing', () => {
+  const s = world({
+    cities: { c1: { id: 'c1', name: 'A', owner: 'p2', x: 3, y: 3, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1'],
+    wonders: { 'great-wall': 'c1' }
+  });
+  assert.strictEqual(aidip.peaceWonderBonus(s, 'p2', RULESET), RULESET.wonders['great-wall'].effect.peaceAcceptBonus, 'active Great Wall grants the bonus');
+  s.players.p1.techs = ['gunpowder']; // any player learning Gunpowder obsoletes it globally
+  assert.strictEqual(aidip.peaceWonderBonus(s, 'p2', RULESET), 0, 'obsolete Great Wall grants nothing');
+});

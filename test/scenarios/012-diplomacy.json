@@ -1,6 +1,6 @@
 {
   "name": "D1: war/peace chain — declare, offer, accept, break",
-  "notes": "declare war -> offer timed peace -> p2 accepts (PEACE_TREATY_SIGNED, expiresTurn) -> p1 breaks it (TREATY_BROKEN + reputation-). Pins the relations entry + the reputation int cross-language.",
+  "notes": "declare war -> offer timed peace -> p2 accepts (PEACE_TREATY_SIGNED, expiresTurn) -> p1 breaks it (TREATY_BROKEN + reputation+ toward Treacherous, D5). Pins the relations entry + the D5 reputation band (0..repMax) cross-language.",
   "setup": {
     "state": {
       "version": 1,
@@ -251,6 +251,6 @@
     "state": {
       "turn": 11
     },
-    "hash": "0x9e3ae1ba"
+    "hash": "0x58c90df3"
   }
 }

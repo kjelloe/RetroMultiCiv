@@ -277,7 +277,11 @@ const BUILDING_OVERLAY = {
 
 const WONDER_OVERLAY = {
   'colossus':              { effect: { cityTradeBonus: true } },
-  'great-wall':            { effect: { wallsEverywhere: true } },
+  // D5 (#2243/#2247): the Great Wall shares the "always offers peace" flag with the
+  // United Nations (#2507 digest) — rivals are far more willing to make/accept peace
+  // with the owner (peaceAcceptBonus dominates the AI's scorePeaceAccept). Great Wall
+  // lapses at Gunpowder (obsoleteBy in wonders.json -> wonderActive gates it).
+  'great-wall':            { effect: { wallsEverywhere: true, peaceAcceptBonus: 1000 } },
   'hanging-gardens':       { effect: { contentEverywhere: 1 } },
   'j-s-bach-s-cathedral':  { effect: { contentEverywhere: 2 } },
   'michelangelo-s-chapel': { effect: { contentEverywhere: 4 } },
@@ -318,8 +322,12 @@ const WONDER_OVERLAY = {
   // TECH: great-library EMPIRE-WIDE (free any tech >=2 OTHER civs know; obsolete@university already
   // in wonders.json); darwin ONE-SHOT (2 free techs at the cities.js:749 wonderBuilt hook).
   'great-library':           { effect: { libraryCatchUp: true } },
-  'darwin-s-voyage':         { effect: { freeTechsOnBuild: 2 } }
-  // DEFERRED (#2243 Q1): united-nations -> D4-D6 window (its home is D5 reputation/senate).
+  'darwin-s-voyage':         { effect: { freeTechsOnBuild: 2 } },
+  // D5 (#2243 Q1 deferral resolved): United Nations — "rivals more willing to
+  // negotiate/peace" (docs/14 / spec d456). Encoded as a peaceAcceptBonus on the
+  // OWNER: every rival's scorePeaceAccept toward the UN owner is boosted, so they
+  // both offer AND accept peace with it. Never obsolete (obsoleteBy="" in wonders.json).
+  'united-nations':          { effect: { peaceAcceptBonus: 1000 } }
 };
 
 function techId(techs, raw, context) {

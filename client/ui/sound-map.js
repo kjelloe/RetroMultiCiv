@@ -97,8 +97,9 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'combat-win' : null;
     case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
     case 'FIRST_CONTACT': // D3: the diplomacy/contact cues arrive in D2's presentation pass
-      // D1/D3 are engine-only: audio cues land with the D2 treaty/audience UI.
-      // Deliberately silent for now (explicit decision).
+    // D4/D5 diplomacy events — cues land with the treaty/audience UI pass.
+    case 'TRIBUTE_PAID': case 'TECH_EXCHANGED': case 'OFFER_EXPIRED': case 'REPUTATION_SHIFT':
+      // engine-only for now: deliberately silent (explicit decision).
       return null;
     default:
       return null; // most events (moves, production set, rates) are silent

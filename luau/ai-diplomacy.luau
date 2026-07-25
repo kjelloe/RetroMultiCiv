@@ -9,6 +9,33 @@ local function idiv(a: number, b: number): number
 	return math.floor(a / b)
 end
 
+-- D5: is wonder `wid` OBSOLETE — any player holds its obsoleteBy tech (global, the
+-- cities wonderActive rule, inlined to avoid the cities->diplomacy require cycle).
+local function wonderObsolete(state: any, wid: string, ruleset: any): boolean
+	local ob = ruleset.wonders[wid].obsoleteBy
+	if ob == nil or ob == "" then return false end
+	for _, pid in ipairs(state.playerOrder) do
+		local techs = if state.players[pid].techs == nil then {} else state.players[pid].techs
+		if table.find(techs, ob) ~= nil then return true end
+	end
+	return false
+end
+
+-- D5: the peace bonus `owner` earns from an ACTIVE peaceAcceptBonus wonder (UN /
+-- Great Wall, #2507). Rivals' scorePeaceAccept toward the owner is boosted. Sums.
+local function peaceWonderBonus(state: any, owner: string, ruleset: any): number
+	if state.wonders == nil then return 0 end
+	local bonus = 0
+	for wid, cid in pairs(state.wonders) do
+		local w = ruleset.wonders[wid]
+		if w ~= nil and w.effect ~= nil and w.effect.peaceAcceptBonus ~= nil and not wonderObsolete(state, wid, ruleset) then
+			local city = if state.cities == nil then nil else state.cities[cid]
+			if city ~= nil and city.owner == owner then bonus = bonus + w.effect.peaceAcceptBonus end
+		end
+	end
+	return bonus
+end
+
 local function milStrength(state: any, pid: string, ruleset: any): number
 	local n = 0
 	for _, u in pairs(state.units) do
@@ -92,8 +119,13 @@ local function scorePeaceAccept(state: any, me: string, other: string, ruleset: 
 	local trust = diplomacy.trustOf(state, me, other)
 	local winning = weakness(state, me, other, ruleset)
 	local warWeariness = 0
+	-- D5: a treacherous OTHER (high reputation) is trusted less; an OTHER owning a
+	-- peace wonder (UN/Great Wall) is far easier to make peace with.
+	local otherRep = diplomacy.reputationOf(state, other)
+	local peaceWonder = peaceWonderBonus(state, other, ruleset)
 	return fear * d.wPFear + trust * d.wPTrust + warWeariness * d.wWeary
 		- agg * d.wPAgg - grv * d.wPGrv - winning * d.wWinning
+		- otherRep * d.wPRep + peaceWonder
 end
 
 -- D4: whether `me` should DEMAND tribute from `other` (#2507 — gated non-R/D
@@ -123,4 +155,5 @@ return {
 	hasLaunched = hasLaunched,
 	wantsTribute = wantsTribute,
 	wantsPayTribute = wantsPayTribute,
+	peaceWonderBonus = peaceWonderBonus,
 }

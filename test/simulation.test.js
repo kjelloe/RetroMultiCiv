@@ -71,17 +71,21 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // ripples to every createGame golden). GOLDEN_SOAK 0x0b7d6cda.. / GOLDEN_NATURAL
 // 0x6241174d / BEHAVIOR_SOAK 0x7d88a531.. / BEHAVIOR_NATURAL 0x8d3c2153 (rounds
 // 400/545 + winner p2 UNCHANGED — tribute moved gold, not the outcome). Honest re-record.
+// D5 reputation+senate re-record: STAMP-ONLY (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL
+// UNMOVED — verified byte-identical to D4). The D5 knobs (governments.json
+// govForbidsWar on republic/democracy + rules.json rep knobs + wonders.json UN
+// peaceAcceptBonus) ripple the rulesetHash stamp into every createGame golden, but
+// this 4-civ seed never has an R/D civ break a peace treaty, never builds a peace
+// wonder, and never soils a reputation -> the senate/reputation/peace-wonder paths
+// are DORMANT here (proven live by test/diplomacy.test.js + test/ai-diplomacy.test.js
+// + the sim-runner witness scenarios). GOLDEN_SOAK 0x6ff424a8.. / GOLDEN_NATURAL
+// 0x4f9d2473 (rounds 400/545 + winner p2 unchanged). A paste-back, not a trajectory change.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: {
-    100: '0x0b7d6cda',
-    200: '0xf1e05f95',
-    300: '0xc68728c2',
-    400: '0xc3312a1b'
-  },
-  finalHash: '0xc3312a1b'
+  checkpoints: { 100: '0x6ff424a8', 200: '0xfcce153f', 300: '0xaf847d18', 400: '0xa70a8045' },
+  finalHash: '0xa70a8045'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x6241174d' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x4f9d2473' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

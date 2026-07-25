@@ -1,6 +1,6 @@
 {
   "name": "D3: relationship model — break, offer, accept (grievance bumps + peace decay)",
-  "notes": "declare breaks the peace (victim grievance+, trust-, reputation-); offer+accept re-signs peace and HALVES grievance both ways; met preserved. Pins the directed grievance/trust + met cross-language.",
+  "notes": "declare breaks the peace (victim grievance+, trust-, reputation+ toward Treacherous, D5); offer+accept re-signs peace and HALVES grievance both ways; met preserved. Pins the directed grievance/trust + met cross-language.",
   "setup": {
     "state": {
       "version": 1,
@@ -242,6 +242,6 @@
     "state": {
       "turn": 10
     },
-    "hash": "0x315e0593"
+    "hash": "0x4a46d02a"
   }
 }

@@ -21,10 +21,6 @@ const BARB_ID = 'barb';
 const TRUST_DEFAULT = 50;
 const GRIEVANCE_DEFAULT = 0;
 
-// D1 reputation penalty for breaking a treaty. RECORD-ONLY in D1 (nothing READS
-// reputation until D3); the tunable weight moves to data/*.json in D3.
-const TREATY_BREAK_PENALTY = 1;
-
 // the relations key is the sorted PLAYER-id pair (R3: pids, not civIds — civ is
 // an OPTIONAL player field; p1..pN is the engine identity everywhere).
 function pairKey(a, b) {
@@ -107,6 +103,13 @@ function diplomacyCommand(state, cmd, ruleset) {
     // a declare from the default (absent) or from peace is meaningful.
     if (entry !== undefined && entry.state === 'war') return { ok: false, reason: 'alreadyWar' };
     const wasPeace = rel === 'peace';
+    // D5 SENATE: a Republic/Democracy (governments.json govForbidsWar) cannot break a
+    // standing peace treaty — the senate refuses. Deterministic, a FIRST-CLASS reject
+    // (Civ1-blanket, #2507). Declaring from default war is unaffected (never wasPeace).
+    if (wasPeace) {
+      const gov = ruleset.governments[state.players[pid].government === undefined ? 'despotism' : state.players[pid].government];
+      if (gov !== undefined && gov.govForbidsWar === true) return { ok: false, reason: 'senateRefused' };
+    }
     // D3: MODIFY in place — preserve met/grievance/trust; only the D1 fields change.
     const e = entry === undefined ? {} : entry;
     if (entry === undefined) state.relations[key] = e;
@@ -116,9 +119,18 @@ function diplomacyCommand(state, cmd, ruleset) {
     delete e.offer;
     events.push({ type: 'WAR_DECLARED', attackerCivId: eventCiv(state, pid), defenderCivId: eventCiv(state, target), turn: state.turn, reason: 'border_pressure' });
     if (wasPeace) {
-      state.players[pid].reputation = reputationOf(state, pid) - TREATY_BREAK_PENALTY;
-      // D3: betrayal raises the VICTIM's grievance toward the breaker + cuts its trust.
+      // D5 REPUTATION: a treaty break INCREMENTS reputation toward Treacherous
+      // (0=Honorable .. repMax=Treacherous, clamped) and resets the recovery clock —
+      // replaces the D1 decrement. REPUTATION_SHIFT rides it; recovery is processReputation.
       const d = ruleset.rules.diplomacy;
+      const bump = d.repBetrayBump === undefined ? 1 : d.repBetrayBump;
+      const max = d.repMax === undefined ? 4 : d.repMax;
+      let rep = reputationOf(state, pid) + bump;
+      if (rep > max) rep = max;
+      state.players[pid].reputation = rep;
+      state.players[pid].repCleanTurns = 0;
+      events.push({ type: 'REPUTATION_SHIFT', civId: eventCiv(state, pid), reputation: rep, direction: 'worse', turn: state.turn });
+      // D3: betrayal raises the VICTIM's grievance toward the breaker + cuts its trust.
       bumpRel(state, target, pid, 'grievance', d.relGrievanceOnBetray);
       bumpRel(state, target, pid, 'trust', -d.relTrustOnBetray);
       events.push({ type: 'TREATY_BROKEN', breakerCivId: eventCiv(state, pid), injuredCivId: eventCiv(state, target), turn: state.turn, penalty: 'reputation_loss' });
@@ -333,5 +345,32 @@ function processExpiry(state, ruleset, events) {
   }
 }
 
+// D5 reputation RECOVERY (engine processing, replayable), run once per round-wrap
+// beside processDecay/processExpiry. A civ with a soiled reputation (rep > 0) that
+// keeps its treaties heals one band every repRecoverTurns consecutive clean turns
+// (reviewer #2066: RECOVERABLE). The clock (repCleanTurns) resets on a betrayal
+// (the declare handler). Fully-healed civs shed BOTH fields so a recovered state is
+// byte-identical to a never-soiled one (reputation is stored 1..repMax or ABSENT,
+// never 0). Omit-safe: a no-op for the whole clean soak.
+function processReputation(state, ruleset, events) {
+  const d = ruleset.rules.diplomacy;
+  if (d === undefined) return;
+  const recover = d.repRecoverTurns === undefined ? 0 : d.repRecoverTurns;
+  if (recover <= 0) return;
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid];
+    if (p === undefined || p.reputation === undefined || p.reputation <= 0) continue;
+    const clean = (p.repCleanTurns === undefined ? 0 : p.repCleanTurns) + 1;
+    if (clean >= recover) {
+      const rep = p.reputation - 1;
+      if (rep <= 0) { delete p.reputation; delete p.repCleanTurns; }
+      else { p.reputation = rep; p.repCleanTurns = 0; }
+      events.push({ type: 'REPUTATION_SHIFT', civId: eventCiv(state, pid), reputation: p.reputation === undefined ? 0 : p.reputation, direction: 'better', turn: state.turn });
+    } else {
+      p.repCleanTurns = clean;
+    }
+  }
+}
+
 export { relationOf, reputationOf, pruneDiplomacy, diplomacyCommand, pairKey,
-  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay, processExpiry };
+  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay, processExpiry, processReputation };

@@ -224,6 +224,7 @@ local function endTurn(state: any, cmd: any, ruleset: any): any
 		hooks.processSpace(state, ruleset, events) -- A76: first launched ship to arrive wins
 		diplomacy.processDecay(state, ruleset) -- D3: grievance fades each round (replayable)
 		diplomacy.processExpiry(state, ruleset, events) -- D4: stale offers expire (OFFER_EXPIRED)
+		diplomacy.processReputation(state, ruleset, events) -- D5: soiled reputation heals over clean turns
 		hooks.checkGameEnd(state, ruleset, events)
 		local ageAfter = worldAge(state, ruleset)
 		if ageAfter ~= ageBefore then
