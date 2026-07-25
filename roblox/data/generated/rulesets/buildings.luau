@@ -128,7 +128,10 @@ return [==[{
     "tech": "robotics",
     "cost": 320,
     "maintenance": 6,
-    "effect": {}
+    "effect": {
+      "shieldBonus": 100,
+      "obsoletesFactory": true
+    }
   },
   "nuclear-plant": {
     "name": "Nuclear Plant",
@@ -169,7 +172,9 @@ return [==[{
     "tech": "superconductor",
     "cost": 200,
     "maintenance": 4,
-    "effect": {}
+    "effect": {
+      "blocksNuke": true
+    }
   },
   "temple": {
     "name": "Temple",

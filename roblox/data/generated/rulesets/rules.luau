@@ -196,6 +196,7 @@ return [==[{
   "minCityDiagonal": 2,
   "capitalCenterTradeBonus": 1,
   "combatRounds": 1,
+  "sdiInterceptPct": 70,
   "maxCivsBySize": {
     "xsmall": 7,
     "small": 12,
