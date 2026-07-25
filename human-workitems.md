@@ -95,6 +95,14 @@ merge-consistent** — supersedes 0102–0106; the box runs 0101)._
       `client/ui/roblox-link.js` (one line — activates the hidden
       "🎮 Play on Roblox" button), and record the URL for the store
       description's Play link rule.
+  12b. **Genre setting at publish:** **Strategy, NO subgenre**
+      (architect recommendation 2026-07-25, user to confirm in the
+      dialog). Neither Strategy subgenre fits (Board & Card misleads,
+      Tower Defense is wrong); Turn-based RPG rejected (implies
+      embodying a character, not ruling a civ); Simulation/Tycoon
+      rejected (management is the means, not the primary loop —
+      Tycoon connotes dropper/idle games). Roblox best practice
+      explicitly allows genre-without-subgenre.
   13. Save the acceptance log (`runO.txt` next); the roblox-helper
       is flag-responsive for live findings.
 
