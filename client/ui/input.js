@@ -187,6 +187,11 @@ export function initInput(ctx) {
       if (e.type === 'SABOTAGE') return e.success ? '💣 Sabotage succeeded — their production is wrecked' : '💣 The sabotage was foiled';
       if (e.type === 'CITY_INCITED') return `✊ ${(state.cities[e.cityId] && state.cities[e.cityId].name) || 'the city'} incited to revolt! (−${e.gold} gold)`;
       if (e.type === 'UNIT_BRIBED') return `💰 Enemy unit bribed to your side (−${e.gold} gold)`;
+      if (e.type === 'CITY_INVESTIGATED') {
+        const cn = (state.cities[e.cityId] && state.cities[e.cityId].name) || 'the city';
+        const bld = e.producing ? ` — building ${e.producing}` : '';
+        return `🔎 ${cn}: pop ${e.pop}, ${e.shields} shields${bld}`;
+      }
     }
     return null;
   }
@@ -754,7 +759,8 @@ export function initInput(ctx) {
   // used only for the cost LABEL — the engine recomputes + arbitrates affordability.
   function missionDemandPct() {
     const d = session.state.difficulty, t = session.ruleset.rules.difficulties;
-    return (d && t && t[d] && t[d].parleyDemandPct) || 20;
+    const pct = (d && t && t[d]) ? t[d].parleyDemandPct : undefined; // reviewer #2691: match the engine's !==undefined (a 0 must not read as 20)
+    return pct !== undefined ? pct : 20;
   }
   async function diplomatMission(mission, extra) {
     if (!sel.unitId) return;
@@ -973,6 +979,8 @@ export function initInput(ctx) {
         const inciteCost = Math.floor(rcity.pop * 100 * pct / 20);
         actions.push({ label: '🏛 Establish Embassy', key: 'E', run: () => diplomatMission('establishEmbassy', { targetCityId: rcity.id }),
           title: 'reveals a rival CAPITAL\'s government, treasury, tech count, and capital location' });
+        actions.push({ label: '🔎 Investigate', key: 'I', run: () => diplomatMission('investigateCity', { targetCityId: rcity.id }),
+          title: 'a one-time look at the city\'s size, production, and shields' });
         actions.push({ label: '🕵 Steal Tech', key: 'S', run: () => diplomatMission('stealTech', { targetCityId: rcity.id }),
           title: 'a chance to steal one technology — once per city' });
         actions.push({ label: '💣 Sabotage', key: 'A', run: () => diplomatMission('sabotage', { targetCityId: rcity.id }),

@@ -92,6 +92,17 @@ function diplomatMissionCommand(state, cmd, ruleset) {
     return { ok: true, events };
   }
 
+  if (cmd.mission === 'investigateCity') {
+    const city = targetCity(state, me, unit, cmd.targetCityId);
+    if (city === null) return { ok: false, reason: 'noSuchTarget' };
+    // a READ-ONLY peek: the rival city is untouched. The one-time snapshot rides the
+    // (transient, non-hashed) event; only the diplomat's consumption is state.
+    delete state.units[cmd.unitId];
+    const prod = city.producing === undefined ? '' : (city.producing.id === undefined ? '' : city.producing.id);
+    events.push({ type: 'CITY_INVESTIGATED', byCivId: me, atCivId: city.owner, cityId: city.id, pop: city.pop, shields: city.shields === undefined ? 0 : city.shields, producing: prod, turn: state.turn });
+    return { ok: true, events };
+  }
+
   if (cmd.mission === 'stealTech') {
     const city = targetCity(state, me, unit, cmd.targetCityId);
     if (city === null) return { ok: false, reason: 'noSuchTarget' };

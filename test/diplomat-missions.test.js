@@ -138,6 +138,27 @@ test('sabotage: deterministic ROLL — success zeroes the shields box, consumes 
   assert.strictEqual(r.state.cities.cap2.shields, willSucceed ? 0 : 20, 'shields zeroed on success only');
 });
 
+test('investigateCity: a one-time snapshot event (pop/shields/producing), consumes the diplomat, no state change to the rival', () => {
+  const s = baseState();
+  const before = JSON.stringify(s.cities.cap2);
+  const r = engine.applyCommand(s, mission('investigateCity', { targetCityId: 'cap2' }));
+  assert.ok(r.ok, r.reason);
+  assert.strictEqual(r.state.units.d1, undefined, 'diplomat consumed');
+  assert.strictEqual(JSON.stringify(r.state.cities.cap2), before, 'the rival city is UNCHANGED (a read-only peek)');
+  const ev = r.events.find(e => e.type === 'CITY_INVESTIGATED');
+  assert.ok(ev, 'CITY_INVESTIGATED emitted');
+  assert.strictEqual(ev.pop, 4);
+  assert.strictEqual(ev.shields, 20);
+  assert.strictEqual(ev.cityId, 'cap2');
+});
+
+test('investigateCity: works on a non-capital rival city too (any rival city)', () => {
+  const s = baseState(); s.units.d1.x = 3; s.units.d1.y = 3;
+  const r = engine.applyCommand(s, mission('investigateCity', { targetCityId: 'c2b' }));
+  assert.ok(r.ok, r.reason);
+  assert.ok(r.events.some(e => e.type === 'CITY_INVESTIGATED' && e.cityId === 'c2b'));
+});
+
 test('rejections: notYourTurn, not a diplomat, out of reach, self/barbarian target', () => {
   const off = baseState({ activePlayer: 'p2' });
   assert.strictEqual(engine.applyCommand(off, mission('establishEmbassy', { targetCityId: 'cap2' })).reason, 'notYourTurn');

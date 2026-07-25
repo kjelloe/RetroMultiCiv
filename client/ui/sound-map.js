@@ -101,6 +101,7 @@ export function soundForEvent(e, viewer, cityOwner) {
     // audience/espionage UI pass.
     case 'TRIBUTE_PAID': case 'TECH_EXCHANGED': case 'OFFER_EXPIRED': case 'REPUTATION_SHIFT':
     case 'EMBASSY_ESTABLISHED': case 'TECH_STOLEN': case 'SABOTAGE': case 'CITY_INCITED': case 'UNIT_BRIBED':
+    case 'CITY_INVESTIGATED':
       // engine-only for now: deliberately silent (explicit decision).
       return null;
     default:

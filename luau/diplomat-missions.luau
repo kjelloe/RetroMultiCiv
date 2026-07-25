@@ -73,6 +73,17 @@ local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
 		return { ok = true, events = events }
 	end
 
+	if cmd.mission == "investigateCity" then
+		local city = targetCity(state, me, unit, cmd.targetCityId)
+		if city == nil then return { ok = false, reason = "noSuchTarget" } end
+		-- a READ-ONLY peek: the rival city is untouched. Snapshot rides the transient
+		-- event; only the diplomat's consumption is state.
+		state.units[cmd.unitId] = nil
+		local prod = if city.producing == nil then "" else (if city.producing.id == nil then "" else city.producing.id)
+		table.insert(events, { type = "CITY_INVESTIGATED", byCivId = me, atCivId = city.owner, cityId = city.id, pop = city.pop, shields = if city.shields == nil then 0 else city.shields, producing = prod, turn = state.turn })
+		return { ok = true, events = events }
+	end
+
 	if cmd.mission == "stealTech" then
 		local city = targetCity(state, me, unit, cmd.targetCityId)
 		if city == nil then return { ok = false, reason = "noSuchTarget" } end
