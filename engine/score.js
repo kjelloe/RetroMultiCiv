@@ -8,13 +8,23 @@
 // score() is the total; the sum + order are unchanged, so state.winner and the
 // goldens are byte-identical (hash-neutral refactor).
 import { pruneDiplomacy } from './diplomacy.js';
+import { resolveAllWorked } from './cities.js';
+import { cityMood } from './happiness.js';
 
 function scoreBreakdown(state, playerId, ruleset) {
   const player = state.players[playerId];
   let citizens = 0;
+  // W3 (spec §10): happy citizens score an extra point each. cityMood is a pure
+  // read (no RNG, no state mutation); resolveAllWorked snapshots the A8 contention
+  // once for all of the player's cities so the count matches the live game.
+  let happyCitizens = 0;
+  const workedMap = resolveAllWorked(state, ruleset);
   for (const cid of state.cityOrder || []) {
     const city = state.cities[cid];
-    if (city && city.owner === playerId) citizens += city.pop;
+    if (city && city.owner === playerId) {
+      citizens += city.pop;
+      happyCitizens += cityMood(state, city, ruleset, workedMap[cid]).happy;
+    }
   }
   let wonders = 0;
   if (state.wonders !== undefined) {
@@ -25,13 +35,14 @@ function scoreBreakdown(state, playerId, ruleset) {
   }
   const rules = ruleset.rules;
   const population = citizens * rules.scorePerCitizen;
+  const happy = happyCitizens * rules.scorePerHappy;
   const techs = player.techs.length * rules.scorePerTech;
   // XII.2: each Future Tech level scores like a normal advance (house value,
   // defaulted to scorePerTech). futureTech is 0 until the tree is exhausted, so
   // this term is 0 for every non-marathon game (byte-identical breakdown).
   const futureTechScore = (player.futureTech === undefined ? 0 : player.futureTech) * rules.scorePerFutureTech;
   const wonderScore = wonders * rules.scorePerWonder;
-  return { population, techs, futureTech: futureTechScore, wonders: wonderScore, total: population + techs + futureTechScore + wonderScore };
+  return { population, happy, techs, futureTech: futureTechScore, wonders: wonderScore, total: population + happy + techs + futureTechScore + wonderScore };
 }
 
 function score(state, playerId, ruleset) {

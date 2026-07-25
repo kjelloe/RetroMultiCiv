@@ -94,12 +94,18 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // the soak (no AI city builds a Mfg. Plant / SDI, no nuke is fired at the sim seeds).
 // GOLDEN_SOAK 0x484da93c.. / GOLDEN_NATURAL 0xb6232e74 (rounds 400/545 + winner p2
 // unchanged). A paste-back, not a trajectory change.
+// W3 score happy-citizen term re-record: STAMP-ONLY (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL
+// UNMOVED — verified via the null-and-run: behavior 0xef6bf46c/0x8d3c2153 held while GOLDEN
+// moved). data/rules.json gained scorePerHappy -> the createGame stamp ripples to every
+// createGame golden; the happy term itself is dormant in the soak (endYear 9999, score()
+// never fires) and does not shift the natural winner (p2). GOLDEN_SOAK 0x31e11976.. /
+// GOLDEN_NATURAL 0x2b5c539d (rounds 400/545 + winner p2 unchanged). A paste-back.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x484da93c', 200: '0xe40d5a2b', 300: '0x529a0dec', 400: '0xa7c3a1b5' },
-  finalHash: '0xa7c3a1b5'
+  checkpoints: { 100: '0x0b84b4d1', 200: '0x504ba7a0', 300: '0x352eca5d', 400: '0x31e11976' },
+  finalHash: '0x31e11976'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xb6232e74' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x2b5c539d' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

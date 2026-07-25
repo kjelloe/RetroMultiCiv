@@ -7,6 +7,8 @@
 -- ruleset, events), hasAssets(state, playerId).
 
 local diplomacy = require("./diplomacy") -- D1: prune treaties on elimination
+local cities = require("./cities") -- W3: resolveAllWorked snapshot for the happy-citizen count
+local happiness = require("./happiness") -- W3: cityMood happy count
 
 -- A73: the score by COMPONENT (population / techs / wonders) — score() is the
 -- total; sum + order unchanged, so state.winner and the goldens are byte-
@@ -14,10 +16,16 @@ local diplomacy = require("./diplomacy") -- D1: prune treaties on elimination
 local function scoreBreakdown(state: any, playerId: string, ruleset: any): any
 	local player = state.players[playerId]
 	local citizens = 0
+	-- W3 (spec §10): happy citizens score an extra point each. cityMood is a pure
+	-- read (no RNG, no state mutation); resolveAllWorked snapshots the A8 contention
+	-- once for all of the player's cities so the count matches the live game.
+	local happyCitizens = 0
+	local workedMap = cities.resolveAllWorked(state, ruleset)
 	for _, cid in ipairs(state.cityOrder or {}) do
 		local city = state.cities[cid]
 		if city ~= nil and city.owner == playerId then
 			citizens += city.pop
+			happyCitizens += happiness.cityMood(state, city, ruleset, workedMap[cid]).happy
 		end
 	end
 	local wonders = 0
@@ -31,12 +39,13 @@ local function scoreBreakdown(state: any, playerId: string, ruleset: any): any
 	end
 	local rules = ruleset.rules
 	local population = citizens * rules.scorePerCitizen
+	local happy = happyCitizens * rules.scorePerHappy
 	local techs = #player.techs * rules.scorePerTech
 	-- XII.2: each Future Tech level scores like a normal advance (0 until the tree
 	-- is exhausted, so byte-identical for every non-marathon game). Lua nil -> 0.
 	local futureTechScore = (if player.futureTech == nil then 0 else player.futureTech) * rules.scorePerFutureTech
 	local wonderScore = wonders * rules.scorePerWonder
-	return { population = population, techs = techs, futureTech = futureTechScore, wonders = wonderScore, total = population + techs + futureTechScore + wonderScore }
+	return { population = population, happy = happy, techs = techs, futureTech = futureTechScore, wonders = wonderScore, total = population + happy + techs + futureTechScore + wonderScore }
 end
 
 local function score(state: any, playerId: string, ruleset: any): number

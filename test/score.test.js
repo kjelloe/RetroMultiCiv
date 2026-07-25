@@ -42,9 +42,29 @@ test('A73: scoreBreakdown components sum to score() (hash-neutral contract)', as
   const { scoring } = await load();
   const state = duelState();
   const bd = scoring.scoreBreakdown(state, 'p1', RULESET);
-  assert.deepStrictEqual(bd, { population: 8, techs: 10, futureTech: 0, wonders: 20, total: 38 }); // 4*2 / 2*5 / 0 / 1*20
-  assert.strictEqual(bd.population + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components sum to the total');
+  // 4 pop*2 / 0 happy*1 / 2 tech*5 / 0 futureTech / 1 wonder*20 (this small city has no happy citizens)
+  assert.deepStrictEqual(bd, { population: 8, happy: 0, techs: 10, futureTech: 0, wonders: 20, total: 38 });
+  assert.strictEqual(bd.population + bd.happy + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components sum to the total');
   assert.strictEqual(bd.total, scoring.score(state, 'p1', RULESET), 'score() equals the breakdown total');
+});
+
+test('W3: happy citizens add scorePerHappy each (spec §10)', async () => {
+  const { scoring } = await load();
+  const { cityMood } = await import('../engine/happiness.js');
+  const { resolveAllWorked } = await import('../engine/cities.js');
+  // Cure for Cancer (happyEverywhere:1) makes one content citizen happy in each of
+  // the owner's cities; verify the score term equals the live cityMood happy count *
+  // scorePerHappy (no hard-coded number, so the assertion tracks the happiness model
+  // rather than duplicating it).
+  const state = duelState();
+  state.wonders = { pyramids: 'c1', 'cure-for-cancer': 'c1' };
+  state.players.p1.techs = ['alphabet', 'pottery', 'genetic-engineering']; // activates the wonder
+  const workedMap = resolveAllWorked(state, RULESET);
+  const expectedHappy = cityMood(state, state.cities.c1, RULESET, workedMap.c1).happy;
+  const bd = scoring.scoreBreakdown(state, 'p1', RULESET);
+  assert.ok(expectedHappy > 0, 'the crafted luxury city has at least one happy citizen');
+  assert.strictEqual(bd.happy, expectedHappy * RULESET.rules.scorePerHappy, 'happy term = happyCitizens * scorePerHappy');
+  assert.strictEqual(bd.population + bd.happy + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components still sum');
 });
 
 test('XII.2: futureTech levels add scorePerFutureTech to the breakdown', async () => {
@@ -55,7 +75,7 @@ test('XII.2: futureTech levels add scorePerFutureTech to the breakdown', async (
   // 4*2 + 2*5 + 3*scorePerFutureTech(5) + 1*20 = 8 + 10 + 15 + 20 = 53
   assert.strictEqual(bd.futureTech, 3 * RULESET.rules.scorePerFutureTech, 'the futureTech term = N * scorePerFutureTech');
   assert.strictEqual(bd.total, 53, 'futureTech folds into the total');
-  assert.strictEqual(bd.population + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components still sum');
+  assert.strictEqual(bd.population + bd.happy + bd.techs + bd.futureTech + bd.wonders, bd.total, 'components still sum');
 });
 
 test('conquest: last civilization standing wins at turn wrap', async () => {
