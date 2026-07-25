@@ -186,9 +186,12 @@ html, body {
   top: 52px;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 360px;
-  max-width: 640px;
-  max-height: calc(100vh - 80px);
+  /* mobile #7: never exceed the viewport width — a rigid 360px min overflowed
+     narrow phones (the panel centred, so it spilled off both edges). min()/calc
+     keeps the desktop sizing but shrinks to fit a phone with a 24px gutter. */
+  min-width: min(360px, calc(100vw - 24px));
+  max-width: min(640px, calc(100vw - 24px));
+  max-height: calc(100vh - 64px);
   overflow-y: auto;
   overflow-x: hidden;
   background: rgba(10, 16, 28, 0.96);
@@ -209,6 +212,13 @@ html, body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  /* mobile #7: keep the title + close reachable while a long panel body scrolls —
+     the header sticks to the top of the scroll container. */
+  position: sticky;
+  top: 0;
+  background: rgba(10, 16, 28, 0.96);
+  z-index: 1;
+  padding-top: 2px;
 }
 
 .panel-head h3 {
@@ -224,6 +234,12 @@ html, body {
   color: #cdd8ea;
   cursor: pointer;
   font-family: inherit;
+  /* mobile #7: an easy tap target (was barely clickable) */
+  min-width: 32px;
+  min-height: 32px;
+  font-size: 16px;
+  line-height: 1;
+  flex: none;
 }
 
 .panel button.option {
