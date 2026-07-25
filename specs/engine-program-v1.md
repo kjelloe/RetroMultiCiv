@@ -42,11 +42,13 @@ first. This ACTIVATES buildings across the AI, so the sim goldens re-record here
 W2/W4 effects live — hence build-doctrine goes LAST. Clears the M3-pop advisory (re-ratchet
 in-commit). Multi-slice, days of golden work.
 
-## Resourcing (RULED — user 2026-07-25: redirect bugfixer to engine after mobile)
-- **W1 → bugfixer** (after mobile-session-3; queued #1, mail #2686). Diplomacy expert +
-  holds the investigateCity patch. Re-records only the 065 SCENARIO golden.
-- **W2–W6 → architect.** I start with W2 (Mfg. Plant/SDI, quick golden-neutral win) while
-  bugfixer is still on mobile, then W3/W4/W5, then W6 build-doctrine. W1 and my windows
-  touch DIFFERENT golden files (065 vs sim-goldens) + different modules (diplomat-missions
-  vs cities/combat/score), so they can run concurrently WITH a file-lock deconflict + one
-  re-record at a time. bugfixer confirms its file set by mail when it picks W1 up.
+## Resourcing (RE-RULED — user 2026-07-25, v1 acceleration: reactivate helper + parallelize)
+- **W1 → bugfixer NOW** (pivoted off mobile #2695; helper took the mobile remainder). Re-
+  records only the 065 SCENARIO golden. Diplomacy expert + holds the investigateCity patch.
+- **W2–W6 → architect**, starting W2 (Mfg. Plant/SDI) concurrently. W1 (diplomat-missions.js
+  + diplomacy.js + 065 + rules.json) and my windows (cities/combat/score + buildings.json +
+  sim goldens) touch DIFFERENT files + different goldens, so they run in PARALLEL with a
+  file-lock deconflict; one re-record at a time on any shared golden.
+- **mobile-session-3 remainder → helper** (reactivated, #2696). Golden-neutral client.
+- Two parallel engine tracks + the user gates (Studio session + roblox/** Write allowlist,
+  user-owned) is the accelerated shape.

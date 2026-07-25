@@ -36,9 +36,10 @@ tap/long-press model · **[flow]** turn sequencing · **[feature]** new affordan
 
 ## Lane
 
-Golden-neutral client UI. **RULED (user 2026-07-25): bugfixer owns this batch** — it's
-already in client/ui/input.js for the D6 client menu, so it's the natural owner. Runs
-AFTER the D6 menu finishes+unlocks. Order: #6 bug first, then layout cluster (4/7/9/10),
-then interaction cluster (8/12/13/14) as one coherent input.js/move-hints.js pass; #5+#8
-both built; #11+#5 wherever convenient. Golden-neutral throughout — any engine touch
-stops for architect sign-off. Queued #1 for bugfixer (#2673).
+Golden-neutral client UI. **RE-RULED (user 2026-07-25, v1 acceleration): HELPER owns the
+REMAINDER.** bugfixer shipped #6 (@1aeba0b) + #7 (@ee7b195) then PIVOTED to the W1
+diplomacy engine window; the helper session was reactivated to finish #4/#5/#8/#9/#10/#11/
+#12/#13/#14 in parallel (#2696, queued). Order for helper: layout (#4/#9/#10), interaction
+cluster (#8/#12/#13/#14 as one input.js/move-hints.js pass), #5+#8 both built (compass
+toggleable), #11 wherever. Golden-neutral throughout — any engine touch stops for architect
+sign-off. bugfixer's #4/#9/#10 scoping handed to helper (esp. #10 = top-bar restructure).
