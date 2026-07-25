@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-25 (evening)</strong> — W4 WLTKD landed, gates in flight</span>
-    <span class="chip">Merge candidate: <strong>marker-0106</strong> @ 6cad106 (MERGE-CONSISTENT — W3 score term; supersedes 0105)</span>
-    <span class="chip"><strong>Engine program: 4 of 6 windows done</strong> — W5 (trivial) + W6 remain (architect, serial)</span>
+    <span class="chip">Updated: <strong>2026-07-25 (night)</strong> — marker-0107 tagged (W4 WLTKD, gates GREEN)</span>
+    <span class="chip">Merge candidate: <strong>marker-0107</strong> @ 8c50ceb (MERGE-CONSISTENT — W4 WLTKD + W5 + client surface; supersedes 0106)</span>
+    <span class="chip"><strong>Engine program: 5 of 6 windows done</strong> — only W6 build-doctrine remains (architect)</span>
   </div>
 </header>
 
@@ -113,8 +113,8 @@
       <li><span class="st done">✅</span><strong>W1 diplomacy DONE</strong> — @9dfc975 (marker-0105): investigateCity + discovered-sabotage (botch-amplified discovery → reputation+grievance), STAMP-only cascade re-record, twins 11/11, reviewer-gated #2724</li>
       <li><span class="st done">✅</span><strong>W2 building effects DONE</strong> — @a7f9da7 (marker-0105): Mfg. Plant +100%/obsoletes-Factory + SDI nuke-intercept (rollRange&lt;70), STAMP-only (reviewer lune-verified BEHAVIOR byte-identical, AI-buildable Mfg-Plant risk cleared), scenario 066 0x7d67d913 JS==Luau, reviewer-gated #2736</li>
       <li><span class="st done">✅</span><strong>W3 score term DONE</strong> — @aa6197e (marker-0106): scoreBreakdown +happy = happyCitizens*scorePerHappy (spec §10, pollution deferred off-in-v1), STAMP-only (score not hashed/AI doesn't read it → only endYear winner is a surface, unchanged), twins 11/11 lune, reviewer GREEN #2741</li>
-      <li><span class="st now">🔨</span><strong>W4 We-Love-the-King-Day LANDED</strong> — @b813bbc: celebrate flag at the wrap (happy*2&gt;=pop, 0 unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles (Civ1-faithful, user-ruled, no rapture). BEHAVIORAL re-record doubly verified (null-and-run + sim-runner probe #2746: 8.7% eligible city-turns, 25/25 seeds); natural golden 545→365 rounds, winner p2→p3 by conquest (butterfly). Scenario 067 0x56151fa5 JS==Luau, twins 11/11. Gates in flight: sim-runner 25-seed sweep + Gate B; reviewer engine-diff → marker-0107</li>
-      <li><span class="st qd">🧩 remaining</span><strong>W5 re-home relabel (trivial) · W6 build-doctrine</strong> (5 slices, LAST, clears M3-pop advisory; baseline MEASURED #2746: 0 temples/656 cities, 0.61% any-building — starts from empty) — architect, serial golden lane. See specs/engine-program-v1.md</li>
+      <li><span class="st done">✅</span><strong>W4 We-Love-the-King-Day DONE</strong> — @b813bbc (marker-0107): celebrate flag at the wrap (happy*2&gt;=pop, 0 unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles (Civ1-faithful, user-ruled, no rapture). BEHAVIORAL (natural 545→365, p2→p3 — reviewer-verified deterministic butterfly, byte-identical JS==Luau); gates GREEN: reviewer #2753 clean-clone 959/0-fail + sim-runner #2755 sweep 25/25. Scenario 067 0x56151fa5 JS==Luau. + W5 re-home relabel @a5b5808 (comment-only) + WLTKD client surface @8c50ceb (bugfixer)</li>
+      <li><span class="st qd">🧩 remaining</span><strong>W6 build-doctrine — the LAST engine window</strong> (5 slices, clears M3-pop advisory; baseline MEASURED #2746: 0 temples/656 cities, 0.61% any-building — starts from empty) — architect, serial golden lane. See specs/build-doctrine-plan.md</li>
     </ol>
   </div>
 </section>
@@ -146,7 +146,7 @@
     <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE</strong> — all terrains in, ally-accepted, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
     <tr class="g"><td>2</td><td>Diplomacy full D1–D6</td><td><strong>✅ COMPLETE</strong> — D1–D3 · 11b · D4 · D5 · D6 all LANDED + TAGGED (marker-0104)</td><td>— (axis closed)</td></tr>
     <tr><td>3</td><td>AI at M-targets</td><td>✅ v1 met — bar reopened (XX §3); measurement DONE (buildings ~0; wonders ~0; tech cap ~30; 0 launches); M3-pop 20&lt;22 advisory</td><td><strong>build-doctrine PROMOTED — full 5-slice window (W6)</strong>; clears the M3 advisory on landing</td></tr>
-    <tr><td>1b</td><td>Civ1 feature faithfulness (audit)</td><td>audit DONE — <strong>W1 ✅ + W2 ✅ + W3 ✅ (0106) + W4 WLTKD LANDED @b813bbc (BEHAVIORAL, gates in flight)</strong></td><td>W5 re-home relabel (trivial)</td></tr>
+    <tr><td>1b</td><td>Civ1 feature faithfulness (audit)</td><td><strong>✅ CLOSED (0107)</strong> — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅</td><td>— (axis closed)</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
     <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness + docs/16 §8 merged</td><td>— (server lane queue empty)</td></tr>
     <tr class="g"><td>6</td><td>Maps/sound/pedia/advisor/CI</td><td>advisor ✅ · A58 ✅ · Founder's Record + tone + silhouettes ALL ally-approved final · Encyclopedia ✅</td><td>conquest renderer-brighten banked v1.x (non-blocking)</td></tr>
@@ -156,8 +156,8 @@
 <section id="gates">
   <div class="sec-head"><h2>User gates</h2><span class="tag">only you can open these</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t"><span class="st gate">🚪 ready now</span>Merge marker-0106 (@6cad106)</div>
-    <div class="d">marker-0106 is MERGE-CONSISTENT and supersedes 0105 — the W3 score happy-citizen term (@aa6197e, spec §10) + golden-neutral roblox re-bake. STAMP-only (score not hashed, AI doesn't read it → only endYear winner is a trajectory surface, unchanged); reviewer GREEN #2741 (engine-diff + working-clone score/sim/age + twins 11/11 under lune; pristine clean-clone + 400-turn Luau deferred per your call, high-confidence parity). Merge when you're ready.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 ready now</span>Merge marker-0107 (@8c50ceb)</div>
+    <div class="d">marker-0107 is MERGE-CONSISTENT and supersedes 0106 — W4 We-Love-the-King-Day (BEHAVIORAL: celebrate flag → corruption 0 + Rep/Dem +1 trade; natural golden 545→365/p3, reviewer-verified deterministic butterfly byte-identical JS==Luau) + W5 re-home relabel + WLTKD client surface + roblox re-bake. Gates GREEN: reviewer #2753 (clean-clone 959/956/0-fail + independent lune repro) and sim-runner #2755 (25-seed sweep 25/25 clean). reports/marker-0107.md has the full delta. Merge when you're ready.</div></div>
   <div class="item"><div class="t"><span class="st done">✅ ruled</span>PEDIA_NAME + the city-list call</div>
     <div class="d">BOTH RULED 2026-07-25: PEDIA_NAME = "Encyclopedia" (applied) and city rosters = GO full-authentic-replace (LANDED @5617bf9). This gate is CLOSED — kept for the record.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 after the batch</span>Roblox publish + acceptance session</div>

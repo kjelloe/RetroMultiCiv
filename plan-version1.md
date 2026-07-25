@@ -4,20 +4,22 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 (evening) — **W4 We-Love-the-King-Day LANDED
-@b813bbc, gates in flight** (sim-runner 25-seed sweep + Gate B Luau
-400/natural; reviewer engine-diff — marker-0107 after both verdicts).
-Civ1-faithful (user-ruled): celebrate flag at the wrap (happy*2>=pop, 0
-unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles;
-no rapture. **BEHAVIORAL re-record, doubly verified** (null-and-run
-BEHAVIOR_SOAK 200-400 moved + sim-runner probe #2746: 8.7% eligible
-city-turns, 25/25 seeds); the natural golden shifted rounds 545→365,
-winner p2→p3 by conquest (butterfly — distribution sweep is the gate).
-Scenario 067 pin 0x56151fa5 JS==Luau; twins 11/11; engine program **4 of
-6 windows done** (W5 trivial relabel + W6 build-doctrine remain). W6
-baseline MEASURED (#2746): improvement doctrine inert — 0 temples/656
-cities, 0.61% any-building, M3-pop 20<22 breach — slice-1 starts from
-empty. Merge candidate remains **marker-0106**.
+Last updated: 2026-07-25 (night) — **marker-0107 TAGGED @8c50ceb =
+MERGE-CONSISTENT** (supersedes 0106 as the merge candidate). **W4
+We-Love-the-King-Day @b813bbc, BOTH GATES GREEN**: reviewer #2753
+(clean-clone 959/956/0-fail; the behavioral signature t100-held +
+200-400-moved reproduced under lune = anti-paste-back proof; the natural
+winner-flip 365/p3 verified a DETERMINISTIC butterfly, byte-identical
+JS==Luau) + sim-runner #2755 (25-seed sweep 25/25 clean, no invariant
+regression). Civ1-faithful (user-ruled): celebrate flag at the wrap →
+corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles; no rapture.
+Scenario 067 pin 0x56151fa5 JS==Luau. Riders: **W5 re-home relabel
+@a5b5808** (comment-only, both twins) + **WLTKD client surface @8c50ceb**
+(bugfixer: turnlog rows + celebrate banner + overview 🎉, fog-honest) +
+roblox GATE-4 re-bake @87fd953. Engine program **5 of 6 windows done —
+only W6 build-doctrine remains**. W6 baseline MEASURED (#2746):
+improvement doctrine inert — 0 temples/656 cities, 0.61% any-building,
+M3-pop 20<22 breach — slice-1 starts from empty. reports/marker-0107.md.
 --- prior: **marker-0106 TAGGED @6cad106 =
 MERGE-CONSISTENT** (supersedes 0105 as the merge candidate). Adds **W3
 score happy-citizen term DONE @aa6197e** (scoreBreakdown +happy =
@@ -86,7 +88,7 @@ flowchart TD
     W1E["✅ W1 diplomacy (@9dfc975, 0105): discovered-\nsabotage (botch-amplified discovery + reputation) +\ninvestigateCity re-apply; 065 behavioral 0x8771d49a;\nSTAMP-only cascade; twins 11/11"]
     W2E["✅ W2 building effects (@a7f9da7, 0105): Mfg.\nPlant +100%/obsoletes-Factory + SDI nuke-intercept\n(rollRange<70); STAMP-only (reviewer lune-verified\nBEHAVIOR byte-identical); scenario 066 0x7d67d913"]
     W3E["✅ W3 score term (@aa6197e, 0106): scoreBreakdown\n+happy = happyCitizens*scorePerHappy (spec §10);\nSTAMP-only (reviewer GREEN #2741); pollution\ndeferred off-in-v1"]
-    W4E["🔨 W4 We-Love-the-King-Day (@b813bbc):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365, p3 conquest);\nscenario 067 JS==Luau — gates in flight → 0107"]
+    W4E["✅ W4 We-Love-the-King-Day (@b813bbc, 0107):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365 p3, deterministic\nbutterfly); both gates GREEN; + W5 relabel @a5b5808"]
     W6E["🧩 W6 build-doctrine (5 slices, LAST —\nclears M3-pop advisory)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
@@ -176,7 +178,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
 | 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); measurement DONE (buildings ~0: 5/87 civs built any; wonders ~0; tech cap ~30; 0 launches); M3-pop 20<22 advisory | **build-doctrine PROMOTED — full 5-slice window** (user ruled; W6 of the engine program); clears the M3 advisory on landing |
-| 1b | Civ1 feature faithfulness (audit) | audit DONE — **W1 ✅ + W2 ✅ + W3 ✅ (0106) + W4 WLTKD LANDED @b813bbc (BEHAVIORAL, gates in flight)** | W5 re-home relabel (trivial); all v1 |
+| 1b | Civ1 feature faithfulness (audit) | **✅ CLOSED (0107)** — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅ | — (axis closed) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
@@ -184,13 +186,11 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 ## Reading the tree — the three facts that matter
 
 1. **The diplomacy arc is CLOSED; the engine lane is an ordered program,
-   now 4 of 6 windows done.** River, 11b, D4, D5, D6 landed + tagged
-   (marker-0104, axis 2 complete). The engine program
-   (`specs/engine-program-v1.md`): **W1 diplomacy ✅ (@9dfc975) + W2
-   Mfg-Plant/SDI ✅ (@a7f9da7) tagged marker-0105; W3 score term ✅
-   (@aa6197e) tagged marker-0106; W4 WLTKD LANDED @b813bbc (BEHAVIORAL,
-   gates in flight → marker-0107)**; remaining W5 re-home relabel
-   (trivial), W6 build-doctrine (PROMOTED, 5 slices, architect).
+   now 5 of 6 windows done — only W6 remains.** River, 11b, D4, D5, D6
+   landed + tagged (marker-0104, axis 2 complete). The engine program
+   (`specs/engine-program-v1.md`): **W1 ✅ + W2 ✅ (0105); W3 ✅ (0106);
+   W4 WLTKD ✅ + W5 relabel ✅ (0107, both gates GREEN)**; remaining
+   W6 build-doctrine (PROMOTED, 5 slices, architect).
    build-doctrine (W6)
    clears the M3-pop 20<22 advisory on landing. Golden windows SERIALIZE
    to the architect — W3/W4/W6 all ripple the shared createGame stamp, so

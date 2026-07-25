@@ -8,8 +8,8 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-25 late evening (tip 7aa6e34; marker-0102
-merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
+_Last synced: 2026-07-25 night (tip 8c50ceb; **marker-0107
+merge-consistent** — supersedes 0102–0106; the box runs 0101)._
 
 ---
 
@@ -27,12 +27,12 @@ merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
   for the clone's `roblox/**` — or add it to that clone's
   `.claude/settings.local.json` allowlist so it survives session
   restarts (this is the third per-session re-block tonight).
-- [ ] **A3. Merge the save point:** either merge **marker-0102 now**:
+- [ ] **A3. Merge the save point:** **marker-0107** (@8c50ceb) is the
+  latest merge-consistent marker (supersedes 0102–0106):
   `git fetch origin --tags && git checkout main && git merge
-  marker-0102 && git push` — or wait ~an hour for **marker-0103**
-  (river + tonight's batch) and merge that instead. 0103 supersedes;
-  merging 0102 now is only worth it if you want the box current
-  tonight.
+  marker-0107 && git push`. It carries the whole 0103–0107 run: river
+  final + D4–D6 diplomacy arc + engine program W1–W5 (incl. W4
+  We-Love-the-King-Day, both gates GREEN) + all client/roblox riders.
 - [ ] **A4. Redeploy the box** after whichever merge:
   `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
   gameOver reveal, endscreen verdict fix, civ splash, pedia rename,
