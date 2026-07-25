@@ -35,9 +35,11 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 
 ## Deferred from the Phase 6+ ledger (docs/03) not covered by the v1 cut
 
-- **Diplomat unit espionage** — the unit exists in `data/units.json`; active
-  espionage missions (steal tech, incite revolt, sabotage) are not built.
-  (`Civ1-authentic` when picked up.)
+- ~~**Diplomat unit espionage**~~ — SHIPPED in D6 (marker-0104):
+  establishEmbassy / stealTech / sabotage / inciteRevolt / bribeUnit in
+  `engine/diplomat-missions.js`. No longer deferred. (discovered-sabotage
+  + investigateCity are the remaining pieces, in the architect's diplomacy
+  window — see `plan-version1.md`.)
 - **Simultaneous turns / turn timer for multiplayer** — v1 multiplayer stays
   sequential with skip-vote/regency/auto-takeover.
 - **On-map city radius display → formal borders** — the fat-cross overlay may
