@@ -347,6 +347,12 @@ export function initTurnLog(ctx) {
         flashMessage(`😠 Civil disorder in ${state.cities[e.cityId].name} — appease your citizens (luxuries, temples, entertainers)`, cityLoc(state, e.cityId));
       } else if (e.type === 'cityOrderRestored' && ownCity(state, e.cityId)) {
         put(`😊 order restored in ${state.cities[e.cityId].name}`, 'win', cityLoc(state, e.cityId));
+      } else if (e.type === 'cityCelebrating' && ownCity(state, e.cityId)) {
+        // W4 WLTKD: mirrors the disorder pair — the onset gets a row + a flash, the end a quiet row
+        put(`🎉 We Love the King Day in ${state.cities[e.cityId].name}!`, 'win', cityLoc(state, e.cityId));
+        flashMessage(`🎉 We Love the King Day in ${state.cities[e.cityId].name}! — corruption vanishes while the city celebrates`, cityLoc(state, e.cityId));
+      } else if (e.type === 'cityCelebrationEnded' && ownCity(state, e.cityId)) {
+        put(`🎊 the celebration in ${state.cities[e.cityId].name} has ended`, '', cityLoc(state, e.cityId));
       } else if (e.type === 'revolutionStarted' && e.playerId === ctx.HUMAN) {
         put(`⚡ revolution! anarchy until ${session.ruleset.governments[e.government].name} takes hold`);
       } else if (e.type === 'governmentChanged' && e.playerId === ctx.HUMAN) {

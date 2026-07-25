@@ -509,7 +509,12 @@ export function initPanels(ctx) {
         ? '👷 manual tile assignment — click tiles below'
         : '👷 automatic tile assignment — click a tile to take over'}</div>`
       + (city.disorder === true // A68 (VIII.13): a loud banner, not a text line
-        ? '<div class="disorder-banner">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '');
+        ? '<div class="disorder-banner">⚠ CIVIL DISORDER — no production or taxes until the mood improves</div>' : '')
+      // W4 WLTKD: a celebratory banner (mirrors the disorder banner). Fog-honest —
+      // filterView strips `celebrating` from rival city shells, so this shows only for
+      // cities the viewer fully sees (own seats, or a spectator's omniscient view).
+      + (city.celebrating === true
+        ? '<div class="celebrate-banner">🎉 WE LOVE THE KING DAY — no corruption while it lasts (Republics & Democracies also gain +1 trade on trade tiles)</div>' : '');
     // XIV §43: the "building …" line lives at the TOP of the catalog column now
     // (always visible under the Units/Buildings/Wonders selection), the queue
     // renders directly below it — no longer buried in the left stats block.

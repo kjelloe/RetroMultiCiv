@@ -1658,6 +1658,16 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   color: #ffd9cc;
   font-weight: bold;
 }
+/* W4 WLTKD: the celebration banner — the disorder banner's cheerful counterpart (festive green) */
+.celebrate-banner {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #14401f;
+  border: 1px solid #4fae5a;
+  border-radius: 6px;
+  color: #d6f5dd;
+  font-weight: bold;
+}
 
 /* A68 (VIII.9): inapplicable settler jobs stay visible but grayed — the
    tooltip carries the why (already built / wrong terrain / needs a tech) */

@@ -45,6 +45,7 @@ export function initCityOverview(ctx) {
       const b = producing(c);
       const qlen = ctx.buildQueue ? ctx.buildQueue.get(cid).length : 0;
       const disorder = c.disorder === true ? ' <span class="loss" title="civil disorder">⚠</span>' : '';
+      const celebrate = c.celebrating === true ? ' <span class="win" title="We Love the King Day — no corruption">🎉</span>' : ''; // W4 WLTKD marker
       // XVII #21: unit upkeep is SHIELDS (+ FOOD for settlers) — never gold —
       // so label the currencies truthfully; a dash reads cleaner than a bare 0
       const unitUp = (up.shields || up.food)
@@ -54,7 +55,7 @@ export function initCityOverview(ctx) {
         title: 'open ' + c.name,
         onClick: () => { if (ctx.panels && ctx.panels.openCityPanel) ctx.panels.openCityPanel(cid); },
         cells: [
-          `<span class="co-name">${capital && capital.id === cid ? '★ ' : ''}${esc(c.name)}</span>${disorder}`,
+          `<span class="co-name">${capital && capital.id === cid ? '★ ' : ''}${esc(c.name)}</span>${disorder}${celebrate}`,
           String(c.pop),
           `<span class="co-yft"><span class="yf">🌾${y.food}</span> <span class="ys">⚒${y.shields}</span> <span class="yt">➡${y.trade}</span></span>`,
           `💰${eco.gold} 🔬${eco.bulbs}`,
