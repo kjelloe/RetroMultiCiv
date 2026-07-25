@@ -60,7 +60,12 @@ const TERRAIN = {
   jungle:    { base: 0.06, jitter: 0.012, peak: 0, palette: [0x3f7d46, 0x46884e, 0x38723f] },
   unknown:   { base: 0.0, jitter: 0, peak: 0, palette: [0x0a0e16] }
 };
-const RIVER_TINT = new THREE.Color(0x3a7ac8);
+// Darkened from 0x3a7ac8 (ally review 2026-07-25 night): the scene's
+// ambient(0.55)+directional(1.4) light sums to ~1.95x — on facets that catch
+// strong light, the old mid-bright blue's G/B channels multiplied past the
+// clamp and washed to near-white, reading as pale/constructed-canal seams
+// along the ribbon. This deeper blue stays visibly blue even at full light.
+const RIVER_TINT = new THREE.Color(0x1a4070);
 const FOG_TINT = new THREE.Color(0x0a0e16);
 
 // shared with the DOM UI (city view mini-map)
@@ -157,7 +162,14 @@ export function buildTerrain(map, reveal) { // reveal (#34 S2): un-dim explored 
       // note: quad rows are [x, height, z] with z = world position of vj
       for (let tri = 0; tri < 2; tri++) {
         color.setHex(spec.palette[Math.floor(visualRand(vi, vj, 11 + tri) * spec.palette.length)]);
-        if (tile.river) color.lerp(RIVER_TINT, 0.35);
+        // 0.35 -> 0.62 (ally review 2026-07-25 night): each of a river tile's up
+        // to 4 quad-cells still rolls its own base-terrain palette shade before
+        // the blend, and at 0.35 that per-face variance survived strongly enough
+        // on light base terrains (plains/desert/tundra) to read as pale/white
+        // tile-edge seams — a constructed-canal look, not a natural course. A
+        // stronger blend suppresses that facet contrast while keeping the same
+        // tint hue and the ribbon's width/meander untouched (the requested fix).
+        if (tile.river) color.lerp(RIVER_TINT, 0.62);
         if (tile.visible === false && reveal !== true) color.lerp(FOG_TINT, 0.45); // explored, out of sight (#34: reveal un-dims)
         const v0 = quad[tri * 3], v1 = quad[tri * 3 + 1], v2 = quad[tri * 3 + 2];
         a.set(v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]);
