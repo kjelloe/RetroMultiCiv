@@ -32,6 +32,15 @@ golden-neutral); if it feeds victory/AI, classify honestly.
 no unhappy ⇒ celebration (corruption/trade bonus). `engine/happiness.js` already computes
 happy citizens. NEEDS a golden check FIRST — if any AI city already meets the threshold at
 the soak seeds this is BEHAVIORAL (moves sim goldens); measure fixture-first.
+**DONE 2026-07-25, landed @b813bbc** (design specs/w4-wltkd.md, effect user-ruled
+Civ1-faithful — no rapture). Classification: **BEHAVIORAL**, doubly verified (null-and-run:
+BEHAVIOR_SOAK 200–400 moved, t100 held → first soak celebration lands t100–200; sim-runner
+probe #2746: 8.7% of AI city-turns celebrate-eligible, 25/25 seeds — small despotism/
+monarchy cities qualify via the content allowance despite 0 happiness buildings). Natural
+golden rounds 545→365, winner p2→p3 by conquest (butterfly; 25-seed distribution sweep is
+the gate). Scenario 067 pin 0x56151fa5 JS==Luau; events cityCelebrating/-Ended fully
+covered. Gates queued on b813bbc (sim-runner sweep + Gate B; reviewer engine-diff) →
+marker-0107.
 
 **W5 — Re-home provenance relabel.** `engine/movement.js:245` comment "Civ 1" → "Civ2-shape"
 (the codebase's mixing-ruling convention). Comment-only, golden-neutral — fold into whichever

@@ -53,3 +53,29 @@ celebrating city asserting corruption→0 and the Rep/Dem trade bonus.
 - Coverage: a `cityCelebrating` / `cityCelebrationEnded` event is optional (mirror
   `cityDisorder`/`cityOrderRestored`) — if added, register in EVENT_TYPES +
   classifyEvent + soundForEvent. Decide during build.
+
+## Delivered (2026-07-25, @b813bbc)
+
+Built as designed, fixture-first (`test/wltkd.test.js` failed pre-implementation on
+both hooks, then 2/2). All four hook points landed + Luau twins in one window;
+events `cityCelebrating`/`cityCelebrationEnded` WERE added (catalog + classifyEvent
++ soundForEvent — owner-only, reusing the order/disorder cues). Cross-language
+scenario `test/scenarios/067-wltkd.json` pins 0x56151fa5; Luau reproduces it exactly.
+
+**Classification: BEHAVIORAL** (the measure-first question answered twice, in
+agreement): the null-and-run moved BEHAVIOR_SOAK at checkpoints 200–400 (t100 held —
+first soak celebration lands between t100 and t200) and BEHAVIOR_NATURAL; the
+sim-runner probe (mail #2746) measured 8.745% of living-AI city-turns
+celebrate-eligible, 25/25 seeds, peak 25 cities in one turn — despite ~0 happiness
+buildings (small despotism/monarchy cities reach happy*2 >= pop via the content
+allowance). NOT dormant, as the baseline-buildings hypothesis had suggested.
+
+Golden delta: GOLDEN_SOAK 0x27e4b6af.. / GOLDEN_NATURAL rounds 545→365, winner
+p2→p3 by CONQUEST (barbs hold 8/10 cities at the end — probed before pinning;
+legitimate butterfly from mid-game celebration yields) / BEHAVIOR_SOAK 0xc5b392c9..
+/ BEHAVIOR_NATURAL 0x404fe91f / scenario002 0x5475e4c4 (JS==Luau) / age-snapshots
+CANONICAL_PIN 0x45f3dc72 / sim-smoke t100 0xb5e2f37b / ff-parity 0x2302c281 / A82a
+maptype pins. Twins gate 11/11 under lune; subset 785/786 (B13-witness local
+staleness only). Gates on b813bbc: sim-runner 25-seed distribution sweep vs
+baseline #2746 + Gate B Luau 400/natural + B13 regen; reviewer engine-diff →
+marker-0107.
