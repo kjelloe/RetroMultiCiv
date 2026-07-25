@@ -3,7 +3,7 @@ import { displayColor } from './palette.js';
 // who won, WHY, and by how much. The headline names the victory REASON in plain
 // words (from the gameOver event's `victory` field). The standings table ranks
 // every civ by final SCORE with its COMPONENT breakdown (population / happy citizens /
-// techs / wonders — from the engine's scoreBreakdown, never a parallel formula) as a
+// techs / future tech / wonders — from the engine's scoreBreakdown, never a parallel formula) as a
 // stacked bar, plus city/tech/wonder counts; dead civs are grayed with the turn
 // they fell. Scores are world-public at gameOver, so spectators and every LAN
 // seat see the same board. Golden-safe: render + the pre-existing event payload.
@@ -78,7 +78,7 @@ export function initEndScreen(ctx) {
       }
       out.push({
         pid, name: p.name, color: p.color, alive: p.alive !== false,
-        total: bd.total, popPts: bd.population, happyPts: bd.happy, techPts: bd.techs, wonderPts: bd.wonders,
+        total: bd.total, popPts: bd.population, happyPts: bd.happy, techPts: bd.techs, futurePts: bd.futureTech, wonderPts: bd.wonders,
         cities, techs: fogged ? null : p.techs.length, techFogged: fogged, wonders, death: deathTurn[pid]
       });
     }
@@ -86,15 +86,17 @@ export function initEndScreen(ctx) {
     return out;
   }
 
-  // a thin stacked bar: population / happy citizens / techs / wonders as shares of the
-  // top score, so the reader sees the composition AND the gap ("by how much"). W3 (§10)
-  // added the happy-citizen term — itemized here so the segments sum to the total.
+  // a thin stacked bar: population / happy citizens / techs / future tech / wonders as
+  // shares of the top score, so the reader sees the composition AND the gap ("by how
+  // much"). W3 (§10) added the happy-citizen term; futureTech (XII.2) is itemized too —
+  // both here so the segments sum to the total (order matches scoreBreakdown).
   function bar(r, max) {
     const pct = v => (max > 0 ? Math.round((v * 100) / max) : 0);
     return `<span class="eb-bar">`
       + `<span class="eb-pop" style="width:${pct(r.popPts)}%"></span>`
       + `<span class="eb-happy" style="width:${pct(r.happyPts)}%"></span>`
       + `<span class="eb-tech${r.techFogged ? ' fog' : ''}" style="width:${pct(r.techPts)}%"></span>`
+      + `<span class="eb-future" style="width:${pct(r.futurePts)}%"></span>`
       + `<span class="eb-won" style="width:${pct(r.wonderPts)}%"></span></span>`;
   }
 
@@ -308,7 +310,7 @@ export function initEndScreen(ctx) {
         <thead><tr><th>#</th><th>Civilization</th><th>Cities</th><th>Techs</th><th>Wonders</th><th>Score</th></tr></thead>
         <tbody>${body}</tbody>
       </table>
-      <div id="endscreen-legend"><span class="eb-pop"></span>population <span class="eb-happy"></span>happy <span class="eb-tech"></span>techs <span class="eb-won"></span>wonders</div>
+      <div id="endscreen-legend"><span class="eb-pop"></span>population <span class="eb-happy"></span>happy <span class="eb-tech"></span>techs <span class="eb-future"></span>future <span class="eb-won"></span>wonders</div>
       <div id="endscreen-buttons">
         <button id="es-replay">⏵ Watch the replay</button>
         <button id="es-stats">📊 View statistics</button>
