@@ -22,6 +22,7 @@ return [==[{
     { "id": "space", "name": "Space Age", "turn": 325, "grantEras": ["ancient", "renaissance", "industrial", "modern"], "except": ["future-tech"] }
   ],
   "scorePerCitizen": 2,
+  "scorePerHappy": 1,
   "scorePerTech": 5,
   "scorePerFutureTech": 5,
   "scorePerWonder": 20,
