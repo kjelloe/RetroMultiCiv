@@ -47,11 +47,14 @@ const EVENT_TYPES = {
   FIRST_CONTACT: 'diplomacy',
   // D4 offers: tribute + tech exchange + offer expiry. D5: reputation shift.
   TRIBUTE_PAID: 'diplomacy', TECH_EXCHANGED: 'diplomacy', OFFER_EXPIRED: 'diplomacy',
-  REPUTATION_SHIFT: 'diplomacy'
+  REPUTATION_SHIFT: 'diplomacy',
+  // D6 diplomat missions (engine/diplomat-missions.js): embassy + espionage
+  EMBASSY_ESTABLISHED: 'diplomat-missions', TECH_STOLEN: 'diplomat-missions',
+  SABOTAGE: 'diplomat-missions', CITY_INCITED: 'diplomat-missions', UNIT_BRIBED: 'diplomat-missions'
 };
 // the event-EMITTING engine modules (ai/rng/etc. construct commands, not events)
 const EMITTING = ['movement', 'improvements', 'index', 'cities', 'combat',
-  'tech', 'government', 'happiness', 'barbarians', 'pollution', 'disasters', 'naval', 'air', 'score', 'spaceship', 'trade', 'upgrade', 'debug', 'huts', 'diplomacy'];
+  'tech', 'government', 'happiness', 'barbarians', 'pollution', 'disasters', 'naval', 'air', 'score', 'spaceship', 'trade', 'upgrade', 'debug', 'huts', 'diplomacy', 'diplomat-missions'];
 
 const src = {};
 for (const m of EMITTING) {

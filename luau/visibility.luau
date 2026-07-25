@@ -9,6 +9,14 @@
 -- filterEvents(state, events, playerId).
 
 local statehash = require("./statehash")
+local government = require("./government")
+
+-- D6: has `viewer` an established embassy in `civId`? Omit-safe (inlined). Matches
+-- engine/visibility.js embassyBetween.
+local function embassyBetween(state: any, viewer: string, civId: string): boolean
+	return state.embassies ~= nil and state.embassies[viewer] ~= nil
+		and state.embassies[viewer][civId] ~= nil
+end
 
 local function initExplored(state: any)
 	local size = state.map.width * state.map.height
@@ -197,6 +205,18 @@ local function filterView(state: any, playerId: string, ruleset: any): any
 		-- stance-mix v1: a civ AI stance is public (R21 Statistics panel) — passed
 		-- through for ALL players. Views are never hashed = golden-neutral. Matches engine/visibility.js.
 		if p.stance ~= nil then players[pid].stance = p.stance end
+		-- D6 embassy intel: an established embassy reveals a rival's gov/gold/tech-count/
+		-- capital beyond plain fog. View-only, omit-safe. Matches engine/visibility.js.
+		if pid ~= playerId and embassyBetween(state, playerId, pid) then
+			players[pid].gold = p.gold
+			players[pid].techCount = if p.techs == nil then 0 else #p.techs
+			if p.government ~= nil then players[pid].government = p.government end
+			local cap = government.capitalOf(state, pid, ruleset)
+			if cap ~= nil then
+				players[pid].capitalX = cap.x
+				players[pid].capitalY = cap.y
+			end
+		end
 		if pid == playerId then
 			players[pid].gold = p.gold
 			players[pid].techs = p.techs

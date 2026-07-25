@@ -21,6 +21,7 @@ import * as trade from './trade.js';
 import * as upgrade from './upgrade.js';
 import * as debug from './debug.js';
 import * as diplomacy from './diplomacy.js';
+import * as diplomatMissions from './diplomat-missions.js';
 import { createGame as generateGame } from './mapgen.js';
 import { resetCow } from './cow.js';
 
@@ -238,6 +239,7 @@ function createEngine(ruleset) {
     else if (cmd.type === 'upgradeUnit') result = upgrade.upgradeUnit(next, cmd, ruleset);
     else if (cmd.type === 'debug') result = debug.debugCommand(next, cmd, ruleset);
     else if (cmd.type === 'diplomacy') result = diplomacy.diplomacyCommand(next, cmd, ruleset);
+    else if (cmd.type === 'diplomatMission') result = diplomatMissions.diplomatMissionCommand(next, cmd, ruleset);
     else if (cmd.type === 'claimSeat') result = claimSeat(next, cmd);
     else result = { ok: false, reason: 'unknownCommand' };
 

@@ -8,6 +8,15 @@
 // (rngState, other players' internals, unexplored map) ever leaks.
 // A player without an `explored` array is treated as omniscient (test states).
 
+import { capitalOf } from './government.js';
+
+// D6: has `viewer` an established embassy in `civId`? Omit-safe (inlined rather
+// than imported from diplomat-missions.js to keep this fog leaf dependency-light).
+function embassyBetween(state, viewer, civId) {
+  return state.embassies !== undefined && state.embassies[viewer] !== undefined
+    && state.embassies[viewer][civId] !== undefined;
+}
+
 function initExplored(state) {
   const size = state.map.width * state.map.height;
   for (const pid of state.playerOrder) {
@@ -158,6 +167,16 @@ function filterView(state, playerId, ruleset) {
     // who the builders are) — passed through for ALL players, not just the owner.
     // Views are never hashed, so this is golden-neutral.
     if (p.stance !== undefined) players[pid].stance = p.stance;
+    // D6 embassy intel: an established embassy in a rival reveals more than plain fog
+    // — their government, gold, tech COUNT (not the list), and capital location.
+    // View-only (never hashed), omit-safe (no embassy -> the bare {id,name,color,human}).
+    if (pid !== playerId && embassyBetween(state, playerId, pid)) {
+      players[pid].gold = p.gold;
+      players[pid].techCount = p.techs === undefined ? 0 : p.techs.length;
+      if (p.government !== undefined) players[pid].government = p.government;
+      const cap = capitalOf(state, pid, ruleset);
+      if (cap !== null) { players[pid].capitalX = cap.x; players[pid].capitalY = cap.y; }
+    }
     if (pid === playerId) {
       // everything the owner's own UI needs (and nothing about anyone else)
       players[pid].gold = p.gold;

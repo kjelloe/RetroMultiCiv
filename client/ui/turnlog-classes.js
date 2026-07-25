@@ -67,7 +67,12 @@ export function classifyEvent(e, viewer, cityOwner) {
     case 'FIRST_CONTACT': // D3: engine first-contact event (D2's audience trigger)
     // D4/D5: tribute paid, tech traded, a civ's standing shifts — public diplomacy news
     case 'TRIBUTE_PAID': case 'TECH_EXCHANGED': case 'REPUTATION_SHIFT':
+    // D6: an incited city changing hands + a bribed unit are public; espionage
+    // (embassy/steal/sabotage) is covert — only the acting player hears it.
+    case 'CITY_INCITED': case 'UNIT_BRIBED':
       return 'world';
+    case 'EMBASSY_ESTABLISHED': case 'TECH_STOLEN': case 'SABOTAGE':
+      return e.byCivId === viewer ? 'diplomacy' : null;
     case 'OFFER_EXPIRED': // D4: an unanswered offer lapsed — ambient, too minor to log
       return null;
     case 'pollutionSpread': // A91: a tile fouled near a city — ambient, not logged (too frequent)

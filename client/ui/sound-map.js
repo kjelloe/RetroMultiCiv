@@ -97,8 +97,10 @@ export function soundForEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'combat-win' : null;
     case 'WAR_DECLARED': case 'PEACE_TREATY_SIGNED': case 'TREATY_BROKEN':
     case 'FIRST_CONTACT': // D3: the diplomacy/contact cues arrive in D2's presentation pass
-    // D4/D5 diplomacy events — cues land with the treaty/audience UI pass.
+    // D4/D5 diplomacy + D6 diplomat-mission events — cues land with the treaty/
+    // audience/espionage UI pass.
     case 'TRIBUTE_PAID': case 'TECH_EXCHANGED': case 'OFFER_EXPIRED': case 'REPUTATION_SHIFT':
+    case 'EMBASSY_ESTABLISHED': case 'TECH_STOLEN': case 'SABOTAGE': case 'CITY_INCITED': case 'UNIT_BRIBED':
       // engine-only for now: deliberately silent (explicit decision).
       return null;
     default:

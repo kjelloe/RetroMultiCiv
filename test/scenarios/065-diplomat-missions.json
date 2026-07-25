@@ -1,0 +1,60 @@
+{
+  "name": "D6 diplomat missions: embassy, steal-tech, sabotage, incite, bribe (cross-language)",
+  "notes": "Five diplomats run one mission each against p2 (a capital + a second city + a unit). Pins the deterministic mission chain — incite/bribe gold buys, steal/sabotage RNG rolls off the crafted rngState — identically in Node and Luau. Golden-neutral to the soak (AI never issues these).",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 20,
+      "year": -2000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2"],
+      "map": {
+        "width": 7,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "d1": { "id": "d1", "type": "diplomat", "owner": "p1", "x": 2, "y": 2, "moves": 2, "fortified": false, "veteran": false },
+        "d2": { "id": "d2", "type": "diplomat", "owner": "p1", "x": 3, "y": 1, "moves": 2, "fortified": false, "veteran": false },
+        "d3": { "id": "d3", "type": "diplomat", "owner": "p1", "x": 3, "y": 3, "moves": 2, "fortified": false, "veteran": false },
+        "d4": { "id": "d4", "type": "diplomat", "owner": "p1", "x": 5, "y": 3, "moves": 2, "fortified": false, "veteran": false },
+        "d5": { "id": "d5", "type": "diplomat", "owner": "p1", "x": 3, "y": 4, "moves": 2, "fortified": false, "veteran": false },
+        "m2": { "id": "m2", "type": "militia", "owner": "p2", "x": 4, "y": 4, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {
+        "cap2": { "id": "cap2", "name": "Thebes", "owner": "p2", "x": 3, "y": 2, "pop": 4, "food": 0, "shields": 20, "buildings": ["palace"], "producing": { "kind": "unit", "id": "militia" } },
+        "c2b": { "id": "c2b", "name": "Memphis", "owner": "p2", "x": 4, "y": 3, "pop": 3, "food": 0, "shields": 15, "buildings": [], "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["cap2", "c2b"],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "players": {
+        "p1": { "id": "p1", "name": "Rome", "color": "#3b7dd8", "human": true, "gold": 5000, "techs": ["pottery"], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Egypt", "color": "#d84a3b", "human": false, "gold": 200, "techs": ["pottery", "bronze-working", "writing", "masonry"], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50, "government": "monarchy" }
+      },
+      "rngState": 987654321
+    }
+  },
+  "script": [
+    { "cmd": { "type": "diplomatMission", "playerId": "p1", "unitId": "d1", "mission": "establishEmbassy", "targetCityId": "cap2" }, "expect": { "ok": true } },
+    { "cmd": { "type": "diplomatMission", "playerId": "p1", "unitId": "d2", "mission": "stealTech", "targetCityId": "cap2" }, "expect": { "ok": true } },
+    { "cmd": { "type": "diplomatMission", "playerId": "p1", "unitId": "d3", "mission": "sabotage", "targetCityId": "c2b" }, "expect": { "ok": true } },
+    { "cmd": { "type": "diplomatMission", "playerId": "p1", "unitId": "d4", "mission": "inciteRevolt", "targetCityId": "c2b" }, "expect": { "ok": true } },
+    { "cmd": { "type": "diplomatMission", "playerId": "p1", "unitId": "d5", "mission": "bribeUnit", "targetUnitId": "m2" }, "expect": { "ok": true } }
+  ],
+  "final": {
+    "state": {
+      "turn": 20,
+      "activePlayer": "p1"
+    },
+    "hash": "0xea7216fc"
+  }
+}
