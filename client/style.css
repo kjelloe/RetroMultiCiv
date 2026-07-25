@@ -2545,6 +2545,10 @@ a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on
 
   /* End Turn + the d-pad ride above the strip */
   #end-turn { right: 8px; bottom: 64px; min-height: 44px; z-index: 7; }
+  /* mobile #4: the regent button rode the OLD End Turn row (bottom:16px) — stranded
+     once End Turn moved up. Keep it JUST LEFT of End Turn (clears its ~126px width +
+     an 8px gap from End Turn's right:8px) on the same row, with a 44px tap target. */
+  #regent-btn { right: 142px; bottom: 64px; min-height: 44px; z-index: 7; }
 
   /* reference overlays: full-screen sheets */
   #pedia-frame, #ship-frame { width: 100vw; height: 100vh; border-radius: 0; }
