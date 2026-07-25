@@ -1053,6 +1053,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 }
 .eb-bar > span { display: inline-block; height: 100%; vertical-align: top; }
 .eb-pop { background: #4fae5a; }
+.eb-happy { background: #e0795b; } /* W3: happy-citizen score term (warm coral, distinct from the gold wonders) */
 .eb-tech { background: #3ba0d2; }
 .eb-tech.fog { background: repeating-linear-gradient(45deg, #2c4a5c, #2c4a5c 3px, #24406b 3px, #24406b 6px); } /* rival techs unknown under server fog */
 .eb-won { background: #d9b24a; }
