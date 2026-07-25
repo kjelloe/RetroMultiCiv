@@ -174,7 +174,9 @@ return [==[{
     "repBetrayBump": 1,
     "repMax": 4,
     "repRecoverTurns": 20,
-    "wPRep": 10
+    "wPRep": 10,
+    "discoveryPctOnSuccess": 34,
+    "discoveryPctOnFail": 67
   },
   "contentCitizens": 4,
   "difficulties": {
