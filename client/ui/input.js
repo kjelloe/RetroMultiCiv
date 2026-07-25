@@ -177,6 +177,16 @@ export function initInput(ctx) {
       if (e.type === 'techDiscovered' && e.playerId === ctx.HUMAN) {
         return `🔬 ${session.ruleset.techs[e.tech].name} discovered!`;
       }
+      // D6 diplomat-mission outcomes (result cards): the acting player's feedback.
+      const civName = pid => (state.players[pid] && state.players[pid].name) || pid;
+      if (e.type === 'EMBASSY_ESTABLISHED') return `🏛 Embassy established in ${civName(e.atCivId)}`;
+      if (e.type === 'TECH_STOLEN') {
+        return e.tech ? `🕵 Stole ${session.ruleset.techs[e.tech].name} from ${civName(e.fromCivId)}!`
+          : '🕵 The theft was thwarted — nothing gained';
+      }
+      if (e.type === 'SABOTAGE') return e.success ? '💣 Sabotage succeeded — their production is wrecked' : '💣 The sabotage was foiled';
+      if (e.type === 'CITY_INCITED') return `✊ ${(state.cities[e.cityId] && state.cities[e.cityId].name) || 'the city'} incited to revolt! (−${e.gold} gold)`;
+      if (e.type === 'UNIT_BRIBED') return `💰 Enemy unit bribed to your side (−${e.gold} gold)`;
     }
     return null;
   }
@@ -221,7 +231,14 @@ export function initInput(ctx) {
     duplicateRoute: 'the home city already routes to this partner',
     alreadySoldThisTurn: 'only one building can be sold per city each turn',
     cannotSellPalace: 'the palace cannot be sold',
-    tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`
+    tooCloseToCity: `cities need ${session.ruleset.rules.minCityDistance || 3} tiles of spacing (${session.ruleset.rules.minCityDiagonal || 2} diagonally) — any civilization's city counts`,
+    // D6 diplomat missions (engine/diplomat-missions.js) — the espionage rejections
+    notADiplomat: 'only a Diplomat can run espionage missions',
+    notACapital: 'an embassy is established only in a rival CAPITAL',
+    cannotInciteCapital: 'a capital cannot be incited — you must take it by force',
+    alreadyStolen: 'this city has already been robbed of a technology',
+    noMoves: 'this diplomat has no moves left this turn',
+    noSuchTarget: 'move the diplomat beside the rival city or unit first'
   };
   const ACTION_COMMANDS = {
     startWork: true, foundCity: true, fortify: true, wait: true,
@@ -229,7 +246,8 @@ export function initInput(ctx) {
     setGovernment: true, setRates: true, setWorkers: true,
     establishTradeRoute: true, // A89 (inert until the N10 engine half lands)
     debug: true, // A92: the debug panel's commands flash their rejections too
-    upgradeUnit: true // N11 (CP18)
+    upgradeUnit: true, // N11 (CP18)
+    diplomatMission: true // D6: diplomat espionage rejects flash their reason
   };
 
   // wave III: after a combat involving the viewer, keep the camera at the
@@ -705,6 +723,49 @@ export function initInput(ctx) {
     });
   }
 
+  // --- D6 diplomat missions: espionage against an ADJACENT rival city/unit -----
+  // The engine (engine/diplomat-missions.js) arbitrates the capital/gold/roll gates;
+  // rejections flash via REASON_TEXT, outcomes via describeEvents. Adjacency mirrors
+  // the engine (Chebyshev <= 1). The diplomat is consumed on a successful mission.
+  function chebTo(unit, x, y) {
+    const map = session.state.map;
+    let dx = Math.abs(unit.x - x);
+    if (map.wrapX && map.width - dx < dx) dx = map.width - dx;
+    const dy = Math.abs(unit.y - y);
+    return dx > dy ? dx : dy;
+  }
+  function adjRivalCity(unit) {
+    const st = session.state;
+    for (const cid of st.cityOrder || []) {
+      const c = st.cities[cid];
+      if (c && c.owner !== ctx.HUMAN && c.owner !== 'barb' && chebTo(unit, c.x, c.y) <= 1) return c;
+    }
+    return null;
+  }
+  function adjRivalUnit(unit) {
+    const st = session.state;
+    for (const id of Object.keys(st.units)) {
+      const u = st.units[id];
+      if (u.owner !== ctx.HUMAN && u.owner !== 'barb' && chebTo(unit, u.x, u.y) <= 1) return u;
+    }
+    return null;
+  }
+  // the difficulty gold-demand percent (mirrors engine/diplomat-missions.js demandPct);
+  // used only for the cost LABEL — the engine recomputes + arbitrates affordability.
+  function missionDemandPct() {
+    const d = session.state.difficulty, t = session.ruleset.rules.difficulties;
+    return (d && t && t[d] && t[d].parleyDemandPct) || 20;
+  }
+  async function diplomatMission(mission, extra) {
+    if (!sel.unitId) return;
+    const unit = session.state.units[sel.unitId];
+    if (!unit || unit.type !== 'diplomat') { hud.note('✗ only a diplomat can do that'); return; }
+    const cmd = Object.assign({ type: 'diplomatMission', playerId: session.state.activePlayer, unitId: unit.id, mission }, extra || {});
+    if (await apply(cmd)) {
+      if (!session.state.units[unit.id]) sel.unitId = null; // the diplomat was consumed
+    }
+  }
+
   // --- GoTo: client-side multi-turn navigation (docs/04 §4) --------------------
   // Targets live only in the client (the engine stays one-tile-per-command);
   // each turn the unit greedily steps closer, never initiating an attack.
@@ -900,6 +961,29 @@ export function initInput(ctx) {
       if (me.techs.includes(session.ruleset.rules.fortressTech) && tile0.fortress !== true) {
         actions.push({ label: '🏰 Fortress', key: 'O', run: () => startWorkFor('fortress'),
           blocked: workBlocked(unit, 'fortress') });
+      }
+    }
+    // D6: a Diplomat beside a rival city/unit gets its espionage menu (the engine
+    // arbitrates the capital/gold/roll gates + consumes the unit on success).
+    if (unit.type === 'diplomat') {
+      const rcity = adjRivalCity(unit);
+      const runit = adjRivalUnit(unit);
+      if (rcity) {
+        const pct = missionDemandPct();
+        const inciteCost = Math.floor(rcity.pop * 100 * pct / 20);
+        actions.push({ label: '🏛 Establish Embassy', key: 'E', run: () => diplomatMission('establishEmbassy', { targetCityId: rcity.id }),
+          title: 'reveals a rival CAPITAL\'s government, treasury, tech count, and capital location' });
+        actions.push({ label: '🕵 Steal Tech', key: 'S', run: () => diplomatMission('stealTech', { targetCityId: rcity.id }),
+          title: 'a chance to steal one technology — once per city' });
+        actions.push({ label: '💣 Sabotage', key: 'A', run: () => diplomatMission('sabotage', { targetCityId: rcity.id }),
+          title: 'a chance to wreck the city\'s production in progress' });
+        actions.push({ label: `✊ Incite Revolt (💰${inciteCost})`, key: 'V', run: () => diplomatMission('inciteRevolt', { targetCityId: rcity.id }),
+          title: 'pay gold to flip a non-capital city to your side' });
+      }
+      if (runit) {
+        const bribeCost = Math.floor((session.ruleset.units[runit.type].cost || 0) * 10 * missionDemandPct() / 20);
+        actions.push({ label: `💰 Bribe Unit (💰${bribeCost})`, key: 'B', run: () => diplomatMission('bribeUnit', { targetUnitId: runit.id }),
+          title: 'pay gold to turn a rival unit to your side' });
       }
     }
     if (helpWonderCityFor(unit)) {
