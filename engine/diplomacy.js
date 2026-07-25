@@ -85,6 +85,21 @@ function diploGrantTech(state, pid, techId, events) {
   events.push({ type: 'techDiscovered', playerId: pid, tech: techId });
 }
 
+// D5/W1: soil `pid`'s reputation toward Treacherous — INCREMENT by repBetrayBump,
+// clamp to repMax, reset the recovery clock (heals later via processReputation), and
+// emit REPUTATION_SHIFT (direction 'worse'). The shared "treaty-break machinery":
+// a broken treaty (declare) AND a discovered covert mission (W1) both call this.
+function applyReputationHit(state, pid, ruleset, events) {
+  const d = ruleset.rules.diplomacy;
+  const bump = d.repBetrayBump === undefined ? 1 : d.repBetrayBump;
+  const max = d.repMax === undefined ? 4 : d.repMax;
+  let rep = reputationOf(state, pid) + bump;
+  if (rep > max) rep = max;
+  state.players[pid].reputation = rep;
+  state.players[pid].repCleanTurns = 0;
+  events.push({ type: 'REPUTATION_SHIFT', civId: eventCiv(state, pid), reputation: rep, direction: 'worse', turn: state.turn });
+}
+
 function diplomacyCommand(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const pid = cmd.playerId;
@@ -119,17 +134,10 @@ function diplomacyCommand(state, cmd, ruleset) {
     delete e.offer;
     events.push({ type: 'WAR_DECLARED', attackerCivId: eventCiv(state, pid), defenderCivId: eventCiv(state, target), turn: state.turn, reason: 'border_pressure' });
     if (wasPeace) {
-      // D5 REPUTATION: a treaty break INCREMENTS reputation toward Treacherous
-      // (0=Honorable .. repMax=Treacherous, clamped) and resets the recovery clock —
-      // replaces the D1 decrement. REPUTATION_SHIFT rides it; recovery is processReputation.
+      // D5 REPUTATION: a treaty break soils reputation toward Treacherous (the
+      // treaty-break machinery, now shared with W1 discovered-espionage).
       const d = ruleset.rules.diplomacy;
-      const bump = d.repBetrayBump === undefined ? 1 : d.repBetrayBump;
-      const max = d.repMax === undefined ? 4 : d.repMax;
-      let rep = reputationOf(state, pid) + bump;
-      if (rep > max) rep = max;
-      state.players[pid].reputation = rep;
-      state.players[pid].repCleanTurns = 0;
-      events.push({ type: 'REPUTATION_SHIFT', civId: eventCiv(state, pid), reputation: rep, direction: 'worse', turn: state.turn });
+      applyReputationHit(state, pid, ruleset, events);
       // D3: betrayal raises the VICTIM's grievance toward the breaker + cuts its trust.
       bumpRel(state, target, pid, 'grievance', d.relGrievanceOnBetray);
       bumpRel(state, target, pid, 'trust', -d.relTrustOnBetray);
@@ -373,4 +381,5 @@ function processReputation(state, ruleset, events) {
 }
 
 export { relationOf, reputationOf, pruneDiplomacy, diplomacyCommand, pairKey,
-  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay, processExpiry, processReputation };
+  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay, processExpiry, processReputation,
+  applyReputationHit };

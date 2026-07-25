@@ -251,7 +251,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x6ff424a8\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x318ba4c3\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -310,8 +310,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: 'f9a0a7bc', pangaea: '7c97ab45',
-      archipelago: '440abcf6', islands: 'dd87c77e'
+      continents: 'f92b2e00', pangaea: 'b38629e9',
+      archipelago: '007d3d0a', islands: '75fafcf2'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -368,8 +368,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // -> 0x09ccaf99 (11b: authentic 16/civ city rosters — civs.json is in the rulesetHash stamp — createGame move).
 // -> 0x010602ff (D4 diplomacy: the D4 knobs added to rules.json — a rulesetHash stamp move).
 // -> 0xc04f8349 (D5 reputation+senate: governments.json govForbidsWar + rules.json rep knobs + wonders.json UN — stamp).
+// -> 0xbe58daed (W1 discovered-sabotage: rules.json discoveryPct knobs — stamp).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xc04f8349 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xbe58daed turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

@@ -14,6 +14,7 @@
 import { rollRange } from './rng.js';
 import { capitalOf } from './government.js';
 import { difficultyOf } from './difficulty.js';
+import { applyReputationHit, bumpRel } from './diplomacy.js';
 
 const BARB_ID = 'barb';
 // the diplomat unit id, inlined as a module constant (the 'militia'/'barb' idiom) —
@@ -69,6 +70,22 @@ function flipCity(city, me) {
   city.shields = 0;
 }
 
+// W1 discovered-espionage: after a COVERT mission (steal/sabotage) resolves, one more
+// roll traces it to the perpetrator. BOTCH-AMPLIFIED — a FAILED job (succeeded=false) is
+// likelier traced (discoveryPctOnFail) than a clean one (discoveryPctOnSuccess). On
+// discovery: the perp's reputation is soiled (the shared treaty-break machinery), the
+// victim's grievance toward the perp rises, and ESPIONAGE_EXPOSED fires. rngState-threaded.
+function rollDiscovery(state, perp, victim, missionKind, succeeded, ruleset, events) {
+  const d = ruleset.rules.diplomacy;
+  const pct = succeeded ? d.discoveryPctOnSuccess : d.discoveryPctOnFail;
+  const roll = rollRange(state.rngState, 100);
+  state.rngState = roll.rngState;
+  if (roll.value >= pct) return; // undetected — a clean getaway
+  applyReputationHit(state, perp, ruleset, events);
+  bumpRel(state, victim, perp, 'grievance', d.relGrievanceOnBetray);
+  events.push({ type: 'ESPIONAGE_EXPOSED', byCivId: perp, atCivId: victim, mission: missionKind, turn: state.turn });
+}
+
 function diplomatMissionCommand(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const me = cmd.playerId;
@@ -119,15 +136,18 @@ function diplomatMissionCommand(state, cmd, ruleset) {
     delete state.units[cmd.unitId];
     const roll = rollRange(state.rngState, 100);
     state.rngState = roll.rngState;
-    if (roll.value >= STEAL_SUCCESS_PCT || eligible.length === 0) {
+    const succeeded = roll.value < STEAL_SUCCESS_PCT && eligible.length > 0;
+    if (succeeded) {
+      const pick = rollRange(state.rngState, eligible.length);
+      state.rngState = pick.rngState;
+      const tech = eligible[pick.value];
+      mine.techs.push(tech);
+      events.push({ type: 'TECH_STOLEN', byCivId: me, fromCivId: city.owner, tech, turn: state.turn });
+    } else {
       events.push({ type: 'TECH_STOLEN', byCivId: me, fromCivId: city.owner, tech: '', turn: state.turn });
-      return { ok: true, events };
     }
-    const pick = rollRange(state.rngState, eligible.length);
-    state.rngState = pick.rngState;
-    const tech = eligible[pick.value];
-    mine.techs.push(tech);
-    events.push({ type: 'TECH_STOLEN', byCivId: me, fromCivId: city.owner, tech, turn: state.turn });
+    // W1: the theft may be traced (after the success + pick rolls, so rngState order holds)
+    rollDiscovery(state, me, city.owner, 'stealTech', succeeded, ruleset, events);
     return { ok: true, events };
   }
 
@@ -142,6 +162,8 @@ function diplomatMissionCommand(state, cmd, ruleset) {
     // box) — the work-in-progress is destroyed. A failed attempt spends the diplomat.
     if (success && city.shields > 0) city.shields = 0;
     events.push({ type: 'SABOTAGE', byCivId: me, atCivId: city.owner, success, turn: state.turn });
+    // W1: the sabotage may be traced to the perpetrator
+    rollDiscovery(state, me, city.owner, 'sabotage', success, ruleset, events);
     return { ok: true, events };
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "D6 diplomat missions: embassy, steal-tech, sabotage, incite, bribe (cross-language)",
-  "notes": "Six diplomats: investigate (read-only) + establish-embassy + steal-tech + sabotage + incite + bribe against p2. Pins the deterministic mission chain (incite/bribe gold buys, steal/sabotage RNG rolls off the crafted rngState) identically in Node and Luau. Golden-neutral to the soak (AI never issues these).",
+  "notes": "Six diplomats: investigate (read-only) + establish-embassy + steal-tech + sabotage + incite + bribe against p2. W1: steal/sabotage now roll DISCOVERY after resolving -> on discovery the perp reputation is soiled + victim grievance rises + ESPIONAGE_EXPOSED. Pins the deterministic mission chain (gold buys, RNG success + discovery rolls off the crafted rngState) identically in Node and Luau. Golden-neutral to the soak (AI never issues these).",
   "setup": {
     "state": {
       "version": 1,
@@ -352,6 +352,6 @@
       "turn": 20,
       "activePlayer": "p1"
     },
-    "hash": "0xea7216fc"
+    "hash": "0x8771d49a"
   }
 }

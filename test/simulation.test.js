@@ -80,12 +80,19 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // are DORMANT here (proven live by test/diplomacy.test.js + test/ai-diplomacy.test.js
 // + the sim-runner witness scenarios). GOLDEN_SOAK 0x6ff424a8.. / GOLDEN_NATURAL
 // 0x4f9d2473 (rounds 400/545 + winner p2 unchanged). A paste-back, not a trajectory change.
+// W1 discovered-sabotage re-record: STAMP-ONLY (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL
+// UNMOVED — byte-identical to D5: 0x7d88a531../0x8d3c2153). The 2 discovery knobs
+// (data/rules.json discoveryPctOnSuccess/OnFail) ripple the rulesetHash stamp into every
+// createGame golden; the discovery path is DORMANT in the soak (AI never issues diplomat
+// missions) and the reputation refactor (applyReputationHit) is behaviour-preserving.
+// GOLDEN_SOAK 0x318ba4c3.. / GOLDEN_NATURAL 0xae54c329 (rounds 400/545 + winner p2
+// unchanged). A paste-back, not a trajectory change.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x6ff424a8', 200: '0xfcce153f', 300: '0xaf847d18', 400: '0xa70a8045' },
-  finalHash: '0xa70a8045'
+  checkpoints: { 100: '0x318ba4c3', 200: '0x9e026ede', 300: '0xef5e1c63', 400: '0x30eeb034' },
+  finalHash: '0x30eeb034'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x4f9d2473' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xae54c329' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

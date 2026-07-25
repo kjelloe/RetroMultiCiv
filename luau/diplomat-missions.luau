@@ -6,6 +6,7 @@
 local rng = require("./rng")
 local government = require("./government")
 local difficulty = require("./difficulty")
+local diplomacy = require("./diplomacy")
 
 local BARB_ID = "barb"
 local DIPLOMAT = "diplomat"
@@ -48,6 +49,20 @@ local function flipCity(city: any, me: string)
 	city.scientists = nil
 	city.producing = { kind = "unit", id = "militia" }
 	city.shields = 0
+end
+
+-- W1 discovered-espionage: a discovery roll after steal/sabotage resolve. BOTCH-AMPLIFIED
+-- (failed job likelier traced). On discovery: perp reputation soiled (shared treaty-break
+-- machinery) + victim grievance + ESPIONAGE_EXPOSED. rngState-threaded. Matches engine JS.
+local function rollDiscovery(state: any, perp: string, victim: string, missionKind: string, succeeded: boolean, ruleset: any, events: any)
+	local d = ruleset.rules.diplomacy
+	local pct = if succeeded then d.discoveryPctOnSuccess else d.discoveryPctOnFail
+	local roll = rng.rollRange(state.rngState, 100)
+	state.rngState = roll.rngState
+	if roll.value >= pct then return end
+	diplomacy.applyReputationHit(state, perp, ruleset, events)
+	diplomacy.bumpRel(state, victim, perp, "grievance", d.relGrievanceOnBetray)
+	table.insert(events, { type = "ESPIONAGE_EXPOSED", byCivId = perp, atCivId = victim, mission = missionKind, turn = state.turn })
 end
 
 local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
@@ -101,15 +116,18 @@ local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
 		state.units[cmd.unitId] = nil
 		local roll = rng.rollRange(state.rngState, 100)
 		state.rngState = roll.rngState
-		if roll.value >= STEAL_SUCCESS_PCT or #eligible == 0 then
+		local succeeded = roll.value < STEAL_SUCCESS_PCT and #eligible > 0
+		if succeeded then
+			local pick = rng.rollRange(state.rngState, #eligible)
+			state.rngState = pick.rngState
+			local tech = eligible[pick.value + 1]
+			table.insert(mine.techs, tech)
+			table.insert(events, { type = "TECH_STOLEN", byCivId = me, fromCivId = city.owner, tech = tech, turn = state.turn })
+		else
 			table.insert(events, { type = "TECH_STOLEN", byCivId = me, fromCivId = city.owner, tech = "", turn = state.turn })
-			return { ok = true, events = events }
 		end
-		local pick = rng.rollRange(state.rngState, #eligible)
-		state.rngState = pick.rngState
-		local tech = eligible[pick.value + 1]
-		table.insert(mine.techs, tech)
-		table.insert(events, { type = "TECH_STOLEN", byCivId = me, fromCivId = city.owner, tech = tech, turn = state.turn })
+		-- W1: the theft may be traced (after the success + pick rolls, so rngState order holds)
+		rollDiscovery(state, me, city.owner, "stealTech", succeeded, ruleset, events)
 		return { ok = true, events = events }
 	end
 
@@ -122,6 +140,8 @@ local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
 		local success = roll.value < SABOTAGE_SUCCESS_PCT
 		if success and city.shields > 0 then city.shields = 0 end
 		table.insert(events, { type = "SABOTAGE", byCivId = me, atCivId = city.owner, success = success, turn = state.turn })
+		-- W1: the sabotage may be traced to the perpetrator
+		rollDiscovery(state, me, city.owner, "sabotage", success, ruleset, events)
 		return { ok = true, events = events }
 	end
 

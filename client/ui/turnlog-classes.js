@@ -71,6 +71,8 @@ export function classifyEvent(e, viewer, cityOwner) {
     // (embassy/steal/sabotage) is covert — only the acting player hears it.
     case 'CITY_INCITED': case 'UNIT_BRIBED':
       return 'world';
+    case 'ESPIONAGE_EXPOSED': // W1: the victim (and the world, via reputation) learns who spied
+      return 'world';
     case 'EMBASSY_ESTABLISHED': case 'TECH_STOLEN': case 'SABOTAGE': case 'CITY_INVESTIGATED':
       return e.byCivId === viewer ? 'diplomacy' : null;
     case 'OFFER_EXPIRED': // D4: an unanswered offer lapsed — ambient, too minor to log

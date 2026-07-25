@@ -159,6 +159,61 @@ test('investigateCity: works on a non-capital rival city too (any rival city)', 
   assert.ok(r.events.some(e => e.type === 'CITY_INVESTIGATED' && e.cityId === 'c2b'));
 });
 
+// --- W1 discovered-sabotage: a discovery roll after steal/sabotage; fallout on discovery ---
+
+test('discovery: sabotage rolls discovery after resolving — on discovery perp reputation + victim grievance + ESPIONAGE_EXPOSED; else clean', async () => {
+  const { grievanceOf } = await import('../engine/diplomacy.js');
+  const d = RULESET.rules.diplomacy;
+  const s = baseState();
+  // rng order: sabotage success roll, THEN the discovery roll (botch-amplified odds)
+  const r1 = rollRange(s.rngState, 100); const success = r1.value < 50;
+  const r2 = rollRange(r1.rngState, 100);
+  const discovered = r2.value < (success ? d.discoveryPctOnSuccess : d.discoveryPctOnFail);
+  const r = engine.applyCommand(s, mission('sabotage', { targetCityId: 'cap2' }));
+  assert.ok(r.ok, r.reason);
+  if (discovered) {
+    assert.strictEqual(r.state.players.p1.reputation, 1, 'perp reputation soiled one band (treaty-break machinery)');
+    assert.strictEqual(grievanceOf(r.state, 'p2', 'p1'), d.relGrievanceOnBetray, 'victim grievance toward perp rose');
+    assert.ok(r.events.some(e => e.type === 'ESPIONAGE_EXPOSED' && e.mission === 'sabotage' && e.byCivId === 'p1' && e.atCivId === 'p2'));
+    assert.ok(r.events.some(e => e.type === 'REPUTATION_SHIFT' && e.direction === 'worse'));
+  } else {
+    assert.strictEqual(r.state.players.p1.reputation, undefined, 'clean job — no reputation hit');
+    assert.ok(!r.events.some(e => e.type === 'ESPIONAGE_EXPOSED'));
+  }
+});
+
+test('discovery: stealTech rolls discovery AFTER the success + tech-pick rolls (correct rng order)', () => {
+  const d = RULESET.rules.diplomacy;
+  const s = baseState();
+  const eligible = ['bronze-working', 'writing']; // p2's techs minus p1's (pottery), sorted
+  const r1 = rollRange(s.rngState, 100); const success = r1.value < 50 && eligible.length > 0;
+  let after = r1.rngState;
+  if (success) { const rp = rollRange(after, eligible.length); after = rp.rngState; }
+  const r2 = rollRange(after, 100);
+  const discovered = r2.value < (success ? d.discoveryPctOnSuccess : d.discoveryPctOnFail);
+  const r = engine.applyCommand(s, mission('stealTech', { targetCityId: 'cap2' }));
+  assert.ok(r.ok, r.reason);
+  assert.strictEqual(!!r.events.find(e => e.type === 'ESPIONAGE_EXPOSED'), discovered, 'exposed iff the discovery roll landed');
+  if (discovered) assert.strictEqual(r.state.players.p1.reputation, 1, 'exposed theft soils reputation');
+  else assert.strictEqual(r.state.players.p1.reputation, undefined, 'undetected theft leaves reputation clean');
+});
+
+test('discovery: incite + bribe are OVERT — no discovery roll (rngState untouched), no reputation/exposure', () => {
+  // incite (deterministic, no roll): rngState must be unchanged
+  const s = baseState(); s.units.d1.x = 3; s.units.d1.y = 3;
+  const r = engine.applyCommand(s, mission('inciteRevolt', { targetCityId: 'c2b' }));
+  assert.ok(r.ok, r.reason);
+  assert.strictEqual(r.state.rngState, s.rngState, 'incite rolls no rng (overt)');
+  assert.strictEqual(r.state.players.p1.reputation, undefined, 'no reputation hit');
+  assert.ok(!r.events.some(e => e.type === 'ESPIONAGE_EXPOSED'));
+  // bribe (deterministic): same
+  const s2 = baseState(); s2.units.d1.x = 4; s2.units.d1.y = 3;
+  const rb = engine.applyCommand(s2, mission('bribeUnit', { targetUnitId: 'm2' }));
+  assert.ok(rb.ok, rb.reason);
+  assert.strictEqual(rb.state.rngState, s2.rngState, 'bribe rolls no rng (overt)');
+  assert.ok(!rb.events.some(e => e.type === 'ESPIONAGE_EXPOSED'));
+});
+
 test('rejections: notYourTurn, not a diplomat, out of reach, self/barbarian target', () => {
   const off = baseState({ activePlayer: 'p2' });
   assert.strictEqual(engine.applyCommand(off, mission('establishEmbassy', { targetCityId: 'cap2' })).reason, 'notYourTurn');

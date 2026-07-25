@@ -115,6 +115,19 @@ local function diploGrantTech(state: any, pid: string, techId: string, events: a
 	table.insert(events, { type = "techDiscovered", playerId = pid, tech = techId })
 end
 
+-- D5/W1: soil `pid`'s reputation toward Treacherous — the shared treaty-break machinery
+-- (a broken treaty AND a discovered covert mission both call this). Matches engine/diplomacy.js.
+local function applyReputationHit(state: any, pid: string, ruleset: any, events: any)
+	local d = ruleset.rules.diplomacy
+	local bump = if d.repBetrayBump == nil then 1 else d.repBetrayBump
+	local max = if d.repMax == nil then 4 else d.repMax
+	local rep = reputationOf(state, pid) + bump
+	if rep > max then rep = max end
+	state.players[pid].reputation = rep
+	state.players[pid].repCleanTurns = 0
+	table.insert(events, { type = "REPUTATION_SHIFT", civId = eventCiv(state, pid), reputation = rep, direction = "worse", turn = state.turn })
+end
+
 local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then return { ok = false, reason = "notYourTurn" } end
 	local pid = cmd.playerId
@@ -146,16 +159,10 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 		e.offer = nil
 		table.insert(events, { type = "WAR_DECLARED", attackerCivId = eventCiv(state, pid), defenderCivId = eventCiv(state, target), turn = state.turn, reason = "border_pressure" })
 		if wasPeace then
-			-- D5 REPUTATION: a treaty break INCREMENTS reputation toward Treacherous
-			-- (0=Honorable .. repMax, clamped) + resets the recovery clock. REPUTATION_SHIFT.
+			-- D5 REPUTATION: a treaty break soils reputation (the treaty-break machinery,
+			-- now shared with W1 discovered-espionage via applyReputationHit).
 			local d = ruleset.rules.diplomacy
-			local bump = if d.repBetrayBump == nil then 1 else d.repBetrayBump
-			local max = if d.repMax == nil then 4 else d.repMax
-			local rep = reputationOf(state, pid) + bump
-			if rep > max then rep = max end
-			state.players[pid].reputation = rep
-			state.players[pid].repCleanTurns = 0
-			table.insert(events, { type = "REPUTATION_SHIFT", civId = eventCiv(state, pid), reputation = rep, direction = "worse", turn = state.turn })
+			applyReputationHit(state, pid, ruleset, events)
 			bumpRel(state, target, pid, "grievance", d.relGrievanceOnBetray)
 			bumpRel(state, target, pid, "trust", -d.relTrustOnBetray)
 			table.insert(events, { type = "TREATY_BROKEN", breakerCivId = eventCiv(state, pid), injuredCivId = eventCiv(state, target), turn = state.turn, penalty = "reputation_loss" })
@@ -358,4 +365,5 @@ return {
 	processDecay = processDecay,
 	processExpiry = processExpiry,
 	processReputation = processReputation,
+	applyReputationHit = applyReputationHit,
 }
