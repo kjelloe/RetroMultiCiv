@@ -370,6 +370,13 @@ below is a known, deliberate deviation to be closed in a later slice:
   cost/AI-bonus scaling waits for a later slice;
   Michelangelo's Chapel is approximated as +4 content everywhere and
   J.S. Bach's as +2 everywhere (Civ 1 limited Bach to one continent).
+  **Feature-audit gaps (2026-07-25, scheduled in the v1 engine program
+  `specs/engine-program-v1.md`, being closed): We Love the King Day
+  (celebration bonus, §4.4) not yet triggered though happy citizens are
+  computed (W4); Manufacturing Plant (+100% production) and SDI Defense
+  (nuclear counter) are buildable but their `effect` is inert (W2); the
+  score `happyCitizens`/pollution term (§10) is not yet in `score.js`
+  (W3).**
 - **Governments are in** (`data/governments.json`: rate caps, despotism
   tile penalty, Republic/Democracy trade bonus + war unhappiness, unit
   upkeep in shields, corruption by capital distance with Courthouse relief,

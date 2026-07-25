@@ -431,7 +431,12 @@ face.** User chose the widest option on every axis:
    nuclear area effects (A91), the space race (A76), manual sell
    (A86), trade routes (A89), field upgrades/Leonardo (A63 rest),
    goody huts (A4), remaining wonder effects (A7), tile contention
-   (A8) — ALL 1.0-required.
+   (A8) — ALL 1.0-required. **Feature-completeness audit (2026-07-25,
+   `specs/civ1-feature-audit.md`): near-complete; 4 small gaps found +
+   user-PROMOTED to v1 — We Love the King Day (celebration), Mfg. Plant
+   +100% production + SDI Defense (nuke counter), the score
+   happy-citizen term. These + the AI build doctrine (XX §3, promoted)
+   are the v1 engine program (`specs/engine-program-v1.md`).**
 2. **Diplomacy FULL D1–D6** — including human-to-human LAN
    treaties.
 3. **AI at its M-targets** with leaders (A59), coordination
