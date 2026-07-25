@@ -242,7 +242,8 @@ function disband(state, cmd, _ruleset) {
   return { ok: true, events: [{ type: 'unitDisbanded', unitId: cmd.unitId, x: unit.x, y: unit.y }] };
 }
 
-// XIV §45b: REHOME (Civ 1 "Home" command) — a unit standing in an OWNED city re-homes to it. Upkeep
+// XIV §45b: REHOME (Civ2-shape "Home" command — not in Civ 1; kept per the civ-mixing ruling,
+// provenance labeled) — a unit standing in an OWNED city re-homes to it. Upkeep
 // SHIFTS: from the next processCities the new city supports it (shield/food upkeep reads unit.home),
 // and the old home stops paying. This is the repair path for a settler-starved city whose garrison
 // is homed elsewhere. Rejects when the unit is not in an owned city, or is already homed there (no-op).

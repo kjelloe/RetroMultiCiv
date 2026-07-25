@@ -297,7 +297,8 @@ local function disband(state: any, cmd: any, _ruleset: any): any
 	return { ok = true, events = { { type = "unitDisbanded", unitId = cmd.unitId, x = unit.x, y = unit.y } } }
 end
 
--- XIV §45b: REHOME (Civ 1 "Home") — a unit in an OWNED city re-homes to it; upkeep shifts (twin).
+-- XIV §45b: REHOME (Civ2-shape "Home" — not in Civ 1; civ-mixing ruling, provenance labeled) —
+-- a unit in an OWNED city re-homes to it; upkeep shifts (twin).
 local function rehome(state: any, cmd: any, _ruleset: any): any
 	local unit = state.units[cmd.unitId]
 	if unit == nil then
