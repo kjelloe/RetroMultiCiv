@@ -39,12 +39,17 @@ non-blocking v1.x item. **MORNING UPDATE:** the diplomacy arc CLOSED
 + TAGGED (marker-0104 @bbfa85c, merge-consistent). The remaining v1
 ENGINE work is now an ordered program (`specs/engine-program-v1.md`),
 grown by the Civ1 feature audit (`specs/civ1-feature-audit.md` — user
-PROMOTED all 4 gaps): W1 diplomacy (investigateCity + discovered-
-sabotage → bugfixer post-mobile) · W2 Mfg-Plant+SDI effects · W3
-score happy-citizen term · W4 We-Love-the-King-Day · W5 re-home
-relabel · W6 build-doctrine (PROMOTED full window, 5 slices,
-architect). bugfixer also runs mobile play-session-3
-(`specs/mobile-session-3.md`, 11 items) before W1. USER GATES: merge
+PROMOTED all 4 gaps): **W1 diplomacy DONE — committed @9dfc975**
+(investigateCity + discovered-sabotage, STAMP-only cascade re-record,
+twins 11/11, reviewer gating) · **W2 Mfg-Plant+SDI IN FLIGHT**
+(architect — Mfg-Plant done+unit-green, STAMP-only; rebased on W1,
+re-recording the combined cascade) · W3 score term · W4
+We-Love-the-King-Day · W5 re-home relabel · W6 build-doctrine
+(PROMOTED, 5 slices, architect, LAST). **v1 ACCELERATED (user):**
+bugfixer pivoted to W1 (not post-mobile); the reactivated HELPER owns
+the mobile play-session-3 remainder (`specs/mobile-session-3.md` —
+#4/#6/#7 by bugfixer + #5/#9/#10 by helper all committed; interaction
+cluster #8/#11/#12/#13/#14 + #15-minimap in flight). USER GATES: merge
 0104, redeploy, roblox/** Write allowlist, Studio session, trademark.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
