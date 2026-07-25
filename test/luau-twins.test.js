@@ -250,7 +250,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x0bba709a\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x0b7d6cda\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -309,8 +309,8 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
     const PINS = {
-      continents: '39dcceec', pangaea: '79eb80b9',
-      archipelago: 'bdf023ce', islands: '43e79dca'
+      continents: '402fb286', pangaea: '8bdc5d9f',
+      archipelago: '53742e64', islands: 'ff805510'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -365,8 +365,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // -> 0xf48fa251 (#36 river-terrain: meandering-strip mapgen changes every generated map — behavioral).
 // -> 0xdf8dce5c (#36 fix (A) #2573: river strips no longer FLAG hills — reshapes every map — behavioral).
 // -> 0x09ccaf99 (11b: authentic 16/civ city rosters — civs.json is in the rulesetHash stamp — createGame move).
+// -> 0x010602ff (D4 diplomacy: the D4 knobs added to rules.json — a rulesetHash stamp move).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x09ccaf99 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x010602ff turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

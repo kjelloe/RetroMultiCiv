@@ -106,4 +106,25 @@ function scorePeaceAccept(state, me, other, ruleset) {
     - agg * d.wPAgg - grv * d.wPGrv - winning * d.wWinning;
 }
 
-export { scoreWarIntent, scorePeaceAccept, weakness, fearOf, borderPressure, milStrength, hasLaunched };
+// D4: whether `me` should DEMAND tribute from `other` (#2507 digest — gated
+// non-Republic/Democracy government + military dominance). A Republic/Democracy
+// does not extort (its senate/peaceful ethos), so it never demands. Deterministic
+// (no roll) — a state-derived strength read. The amount + cooldowns are decided
+// by the caller (diplomacyStep).
+function wantsTribute(state, me, other, ruleset) {
+  const d = ruleset.rules.diplomacy;
+  const p = state.players[me];
+  const gov = p.government === undefined ? 'despotism' : p.government;
+  if (gov === 'republic' || gov === 'democracy') return false;
+  return weakness(state, me, other, ruleset) >= d.tributeDemandWeakness;
+}
+
+// D4: whether `me` PAYS a tribute demand from `other` (else it refuses). Pays when
+// sufficiently outmatched (fear high) — the appease-the-strong read. Deterministic.
+function wantsPayTribute(state, me, other, ruleset) {
+  const d = ruleset.rules.diplomacy;
+  return fearOf(state, me, other, ruleset) >= d.tributeAcceptFear;
+}
+
+export { scoreWarIntent, scorePeaceAccept, weakness, fearOf, borderPressure, milStrength, hasLaunched,
+  wantsTribute, wantsPayTribute };

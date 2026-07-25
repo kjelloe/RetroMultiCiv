@@ -158,6 +158,7 @@ function endTurn(state, cmd, ruleset) {
     air.processAir(state, ruleset, events); // A72: fuel/crash for airborne units
     spaceship.processSpace(state, ruleset, events); // A76: first launched ship to arrive wins
     diplomacy.processDecay(state, ruleset); // D3: grievance fades each round (replayable)
+    diplomacy.processExpiry(state, ruleset, events); // D4: stale offers expire (OFFER_EXPIRED)
     scoring.checkGameEnd(state, ruleset, events);
     // A75: research/deaths this wrap may have advanced the world's age — emit a
     // transient world-news event (not hashed, so goldens are untouched)

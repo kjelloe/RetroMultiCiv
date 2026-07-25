@@ -96,6 +96,23 @@ local function scorePeaceAccept(state: any, me: string, other: string, ruleset: 
 		- agg * d.wPAgg - grv * d.wPGrv - winning * d.wWinning
 end
 
+-- D4: whether `me` should DEMAND tribute from `other` (#2507 — gated non-R/D
+-- government + military dominance). A Republic/Democracy never extorts. Deterministic.
+local function wantsTribute(state: any, me: string, other: string, ruleset: any): boolean
+	local d = ruleset.rules.diplomacy
+	local p = state.players[me]
+	local gov = if p.government == nil then "despotism" else p.government
+	if gov == "republic" or gov == "democracy" then return false end
+	return weakness(state, me, other, ruleset) >= d.tributeDemandWeakness
+end
+
+-- D4: whether `me` PAYS a tribute demand from `other` (else refuses). Pays when
+-- sufficiently outmatched (fear high). Deterministic.
+local function wantsPayTribute(state: any, me: string, other: string, ruleset: any): boolean
+	local d = ruleset.rules.diplomacy
+	return fearOf(state, me, other, ruleset) >= d.tributeAcceptFear
+end
+
 return {
 	scoreWarIntent = scoreWarIntent,
 	scorePeaceAccept = scorePeaceAccept,
@@ -104,4 +121,6 @@ return {
 	borderPressure = borderPressure,
 	milStrength = milStrength,
 	hasLaunched = hasLaunched,
+	wantsTribute = wantsTribute,
+	wantsPayTribute = wantsPayTribute,
 }

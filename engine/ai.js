@@ -16,7 +16,7 @@
 // No RNG: decisions are deterministic, so AI games replay to identical hashes.
 import { availableTechs, cityEconOutput, playerIncome, FUTURE_TECH_ID } from './tech.js';
 import { metOf, relationOf, pairKey } from './diplomacy.js';
-import { scoreWarIntent, scorePeaceAccept } from './ai-diplomacy.js';
+import { scoreWarIntent, scorePeaceAccept, wantsTribute, wantsPayTribute } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
 import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit, cityIsCoastal } from './cities.js';
 import { hasWaterSource } from './improvements.js';
@@ -2118,9 +2118,16 @@ function diplomacyStep(state, playerId, ruleset, doneSet) {
     doneSet[other] = true; // one diplomacy action per rival per turn
     const rel = relationOf(state, playerId, other);
     const entry = state.relations === undefined ? undefined : state.relations[pairKey(playerId, other)];
-    // 1. a pending peace offer FROM other -> accept/reject by scorePeaceAccept
+    // 1. a pending offer FROM other -> accept/reject by kind. A tribute DEMAND is
+    // paid (accept) only when outmatched (wantsPayTribute); a peace offer uses
+    // scorePeaceAccept; a techExchange offer (human LAN only) is refused in D4 —
+    // the AI does not trade techs yet (a later refinement).
     if (entry !== undefined && entry.offer !== undefined && entry.offer.from === other) {
-      const accept = scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold;
+      const okind = entry.offer.kind === undefined ? 'peace' : entry.offer.kind;
+      let accept;
+      if (okind === 'tribute') accept = wantsPayTribute(state, playerId, other, ruleset);
+      else if (okind === 'techExchange') accept = false;
+      else accept = scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold;
       return { type: 'diplomacy', kind: accept ? 'accept' : 'reject', playerId, target: other };
     }
     // 2. at PEACE + war intent recovers -> declare (breaks the treaty, TREATY_BROKEN)
@@ -2136,6 +2143,21 @@ function diplomacyStep(state, playerId, ruleset, doneSet) {
     if (rel === 'war' && (entry === undefined || entry.offer === undefined) && offerCooled
         && scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold) {
       return { type: 'diplomacy', kind: 'offer', playerId, target: other, terms: { peace: true } };
+    }
+    // 4. D4: a strong non-R/D AI DEMANDS tribute from a weaker met rival (#2507).
+    // Gated by wantsTribute + a worthwhile amount (tributeDemandPct of their gold)
+    // + no re-demand within tributeReDemandCooldown of the last payment (and the
+    // shared reject cooldown). Deterministic. Fires at peace OR war; a dominant AI
+    // never offers peace (branch 3), so the two do not collide.
+    const reDemandCd = d.tributeReDemandCooldown === undefined ? 0 : d.tributeReDemandCooldown;
+    const paidCooled = entry === undefined || entry.tributePaidTurn === undefined
+      || state.turn - entry.tributePaidTurn >= reDemandCd;
+    if ((entry === undefined || entry.offer === undefined) && offerCooled && paidCooled
+        && wantsTribute(state, playerId, other, ruleset)) {
+      const amt = idiv(state.players[other].gold * d.tributeDemandPct, 100);
+      if (amt >= 1) {
+        return { type: 'diplomacy', kind: 'offer', playerId, target: other, terms: { kind: 'tribute', gold: amt } };
+      }
     }
   }
   return null;

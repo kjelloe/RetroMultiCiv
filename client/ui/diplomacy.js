@@ -35,20 +35,23 @@ const DIPLO_REASON = {
   unknownCommand: 'diplomacy is not available in this game yet'
 };
 
-// D4 human-treaty SHELL (specs/d4-treaty-ui.md, un-gated speed pass). PROVISIONAL
-// wire names — command `parley`, events `parleyOffer`/`parleyResolved`, fields
-// term/gold/giveTech/wantTech; ONE rename/reshape pass expected when the D4 engine
-// window freezes the real shapes. The command builder + the term-describer are
-// PURE (unit-tested without a DOM); the chooser/modal reuse the envoy frame.
-export const PARLEY_TERMS = ['peace', 'ceasefire', 'tribute', 'techswap'];
-const PARLEY_LABEL = { peace: '🕊 Peace', ceasefire: '✋ Ceasefire', tribute: '💰 Tribute', techswap: '🔬 Tech swap' };
+// D4 human-treaty terms (D4 engine window landed — the provisional `parley` shell
+// froze to the real engine `diplomacy` command here). No cease-fire tier (ruling
+// #2507): peace / tribute / tech-swap only. The command builder + the term-describer
+// are PURE (unit-tested without a DOM); the chooser/modal reuse the envoy frame.
+export const PARLEY_TERMS = ['peace', 'tribute', 'techswap'];
+const PARLEY_LABEL = { peace: '🕊 Peace', tribute: '💰 Tribute', techswap: '🔬 Tech swap' };
 
-// build the `parley` command payload for a chosen term. PURE.
+// build the real engine `diplomacy` command for a chosen term. PURE. accept/reject
+// answer a pending inbound offer; peace/tribute/techswap are outbound offers whose
+// terms ride cmd.terms (kind omitted = peace, matching the AI's offer shape).
 export function parleyCommand(playerId, target, term, opts = {}) {
-  const cmd = { type: 'parley', playerId, target, term };
-  if (term === 'tribute') cmd.gold = Math.max(0, opts.gold | 0);
-  if (term === 'techswap') { cmd.giveTech = opts.giveTech || ''; cmd.wantTech = opts.wantTech || ''; }
-  return cmd;
+  if (term === 'accept' || term === 'reject') return { type: 'diplomacy', kind: term, playerId, target };
+  const terms = {};
+  if (term === 'tribute') { terms.kind = 'tribute'; terms.gold = Math.max(0, opts.gold | 0); }
+  else if (term === 'techswap') { terms.kind = 'techExchange'; terms.techId = opts.giveTech || ''; if (opts.wantTech) terms.wantTechId = opts.wantTech; }
+  else terms.peace = true; // peace: kind omitted
+  return { type: 'diplomacy', kind: 'offer', playerId, target, terms };
 }
 
 // human-readable text for an INCOMING parley offer payload (envoy-modal body).
@@ -59,8 +62,7 @@ export function describeParley(payload, opts = {}) {
   const tn = id => (opts.techName ? opts.techName(id) : id) || 'a technology';
   switch (payload && payload.term) {
     case 'peace': return `${name} propose a lasting peace treaty.`;
-    case 'ceasefire': return `${name} propose a ceasefire.`;
-    case 'tribute': return `${name} propose a tribute of ${payload.gold | 0} gold.`;
+    case 'tribute': return `${name} demand a tribute of ${payload.gold | 0} gold.`;
     case 'techswap': return `${name} offer ${tn(payload.giveTech)} in exchange for your ${tn(payload.wantTech)}.`;
     default: return `${name} propose terms.`;
   }
@@ -238,13 +240,12 @@ export function initDiplomacy(ctx) {
 
   function closeEnvoy() { envoyPid = null; modal.classList.add('hidden'); modal.innerHTML = ''; scanOffers(); }
 
-  // --- D4 human-treaty SHELL: OUTBOUND chooser + INBOUND parley modal ---------
-  // PROVISIONAL wire (parley / parleyOffer). The chooser sends a `parley` command
-  // (the engine rejects it until D4 — surfaced via the standard reject toast);
-  // an inbound parleyOffer reuses the envoy modal. Gated on a D4 command probe so
-  // Propose… stays hidden until the engine lands; ?parleydemo=1 forces it for shots.
+  // --- D4 human-treaty: OUTBOUND chooser + INBOUND offer modal ---------------
+  // The chooser sends the real engine `diplomacy` offer command (tribute/tech-swap/
+  // peace); an inbound offer reuses the envoy modal. Gated on the diplomacy command
+  // probe so Propose… stays hidden in a pre-D1 checkout; ?parleydemo=1 forces it for shots.
   let parleyReady = !!PARLEY_DEMO;
-  import('../../engine/diplomacy.js').then(m => { if (m && m.parleyCommand) { parleyReady = true; render(); } }).catch(() => {});
+  import('../../engine/diplomacy.js').then(m => { if (m && m.diplomacyCommand) { parleyReady = true; render(); } }).catch(() => {});
   const techName = id => (session.ruleset.techs && session.ruleset.techs[id] && session.ruleset.techs[id].name) || id;
 
   function openParleyChooser(pid) {

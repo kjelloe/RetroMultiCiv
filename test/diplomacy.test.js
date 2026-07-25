@@ -120,6 +120,86 @@ test('rejections: selfTarget, barbarian target, noSuchOffer, alreadyWar, notYour
   assert.strictEqual(engine.applyCommand(warred, dip('p1', 'declare', 'p2')).reason, 'alreadyWar');
 });
 
+// --- D4: tribute + tech exchange + offer expiry ---
+
+test('D4 tribute: an offer(kind:tribute) accepted transfers gold demander<-payer + TRIBUTE_PAID', () => {
+  let s = baseState();
+  s.players.p1.gold = 5;   // p1 = demander
+  s.players.p2.gold = 100; // p2 = payer
+  // p1 demands 40 gold from p2
+  const off = engine.applyCommand(s, dip('p1', 'offer', 'p2', { kind: 'tribute', gold: 40 }));
+  assert.ok(off.ok, off.reason);
+  const oe = off.state.relations['p1|p2'].offer;
+  assert.strictEqual(oe.kind, 'tribute');
+  assert.strictEqual(oe.gold, 40);
+  s = off.state; s.activePlayer = 'p2';
+  const acc = engine.applyCommand(s, dip('p2', 'accept', 'p1'));
+  assert.ok(acc.ok, acc.reason);
+  assert.strictEqual(acc.state.players[ 'p2'].gold, 60, 'payer down 40');
+  assert.strictEqual(acc.state.players['p1'].gold, 45, 'demander up 40');
+  assert.strictEqual(acc.state.relations['p1|p2'].offer, undefined, 'offer cleared');
+  assert.ok(acc.events.some(e => e.type === 'TRIBUTE_PAID' && e.gold === 40));
+  assert.strictEqual(relationOf(acc.state, 'p1', 'p2'), 'war', 'tribute does not change treaty state');
+});
+
+test('D4 tribute: payment clamps to the payer treasury (pay what you can)', () => {
+  let s = baseState();
+  s.players.p1.gold = 0; s.players.p2.gold = 25;
+  s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { kind: 'tribute', gold: 40 })).state;
+  s.activePlayer = 'p2';
+  const acc = engine.applyCommand(s, dip('p2', 'accept', 'p1'));
+  assert.ok(acc.ok, acc.reason);
+  assert.strictEqual(acc.state.players['p2'].gold, 0, 'payer emptied');
+  assert.strictEqual(acc.state.players['p1'].gold, 25, 'demander gets only what was there');
+  assert.ok(acc.events.some(e => e.type === 'TRIBUTE_PAID' && e.gold === 25), 'event carries the ACTUAL amount');
+});
+
+test('D4 techExchange swap: accept grants each side the other tech + TECH_EXCHANGED', () => {
+  let s = baseState();
+  s.players.p1.techs = ['pottery'];       // offerer has pottery, wants bronze-working
+  s.players.p2.techs = ['bronze-working'];
+  const off = engine.applyCommand(s, dip('p1', 'offer', 'p2',
+    { kind: 'techExchange', techId: 'pottery', wantTechId: 'bronze-working' }));
+  assert.ok(off.ok, off.reason);
+  s = off.state; s.activePlayer = 'p2';
+  const acc = engine.applyCommand(s, dip('p2', 'accept', 'p1'));
+  assert.ok(acc.ok, acc.reason);
+  assert.ok(acc.state.players['p2'].techs.indexOf('pottery') !== -1, 'acceptor got the offered tech');
+  assert.ok(acc.state.players['p1'].techs.indexOf('bronze-working') !== -1, 'offerer got the wanted tech');
+  assert.ok(acc.events.some(e => e.type === 'TECH_EXCHANGED'));
+  assert.strictEqual(acc.state.relations['p1|p2'].offer, undefined, 'offer cleared');
+});
+
+test('D4 techExchange one-way gift: no wantTechId only grants the acceptor', () => {
+  let s = baseState();
+  s.players.p1.techs = ['pottery'];
+  s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { kind: 'techExchange', techId: 'pottery' })).state;
+  s.activePlayer = 'p2';
+  const acc = engine.applyCommand(s, dip('p2', 'accept', 'p1'));
+  assert.ok(acc.ok, acc.reason);
+  assert.ok(acc.state.players['p2'].techs.indexOf('pottery') !== -1, 'acceptor got the gift');
+  assert.deepStrictEqual(acc.state.players['p1'].techs, ['pottery'], 'offerer unchanged (one-way)');
+});
+
+test('D4 offer expiry: processExpiry deletes a stale offer + emits OFFER_EXPIRED (neutral)', async () => {
+  const { processExpiry } = await import('../engine/diplomacy.js');
+  let s = baseState();
+  s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true })).state; // turn 10, expires 12
+  assert.strictEqual(s.relations['p1|p2'].offer.expiresTurn, 12, 'turn 10 + offerExpiryTurns 2');
+  s.turn = 12; // reached expiry
+  const events = [];
+  processExpiry(s, RULESET, events);
+  assert.strictEqual(s.relations['p1|p2'].offer, undefined, 'the stale offer is swept');
+  assert.ok(events.some(e => e.type === 'OFFER_EXPIRED'));
+  // an unexpired offer survives the sweep
+  let s2 = engine.applyCommand(baseState(), dip('p1', 'offer', 'p2', { peace: true })).state; // expires 12
+  s2.turn = 11;
+  const ev2 = [];
+  processExpiry(s2, RULESET, ev2);
+  assert.ok(s2.relations['p1|p2'].offer !== undefined, 'a fresh offer is not swept');
+  assert.strictEqual(ev2.length, 0);
+});
+
 // --- the combat reframe ---
 function twoArmies(rel) {
   // p1 legion adjacent to a p2 militia + a p2 city; optionally at peace

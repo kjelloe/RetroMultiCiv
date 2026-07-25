@@ -2484,7 +2484,17 @@ local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet
 		local rel = diplomacy.relationOf(state, playerId, other)
 		local entry = if state.relations == nil then nil else state.relations[diplomacy.pairKey(playerId, other)]
 		if entry ~= nil and entry.offer ~= nil and entry.offer.from == other then
-			local accept = aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold
+			-- a tribute DEMAND is paid only when outmatched; a peace offer uses
+			-- scorePeaceAccept; a techExchange offer (human LAN) is refused in D4.
+			local okind = if entry.offer.kind == nil then "peace" else entry.offer.kind
+			local accept
+			if okind == "tribute" then
+				accept = aiDiplomacy.wantsPayTribute(state, playerId, other, ruleset)
+			elseif okind == "techExchange" then
+				accept = false
+			else
+				accept = aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold
+			end
 			return { type = "diplomacy", kind = if accept then "accept" else "reject", playerId = playerId, target = other }
 		end
 		if rel == "peace" and aiDiplomacy.scoreWarIntent(state, playerId, other, ruleset) > d.warIntentThreshold then
@@ -2498,6 +2508,19 @@ local function diplomacyStep(state: any, playerId: string, ruleset: any, doneSet
 		if rel == "war" and (entry == nil or entry.offer == nil) and offerCooled
 			and aiDiplomacy.scorePeaceAccept(state, playerId, other, ruleset) > d.peaceAcceptThreshold then
 			return { type = "diplomacy", kind = "offer", playerId = playerId, target = other, terms = { peace = true } }
+		end
+		-- 4. D4: a strong non-R/D AI DEMANDS tribute from a weaker met rival (#2507).
+		-- Gated by wantsTribute + a worthwhile amount + no re-demand within
+		-- tributeReDemandCooldown of the last payment (and the shared reject cooldown).
+		local reDemandCd = if d.tributeReDemandCooldown == nil then 0 else d.tributeReDemandCooldown
+		local paidCooled = entry == nil or entry.tributePaidTurn == nil
+			or state.turn - entry.tributePaidTurn >= reDemandCd
+		if (entry == nil or entry.offer == nil) and offerCooled and paidCooled
+			and aiDiplomacy.wantsTribute(state, playerId, other, ruleset) then
+			local amt = idiv(state.players[other].gold * d.tributeDemandPct, 100)
+			if amt >= 1 then
+				return { type = "diplomacy", kind = "offer", playerId = playerId, target = other, terms = { kind = "tribute", gold = amt } }
+			end
 		end
 	end
 	return nil

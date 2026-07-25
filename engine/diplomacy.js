@@ -76,6 +76,19 @@ function idiv(a, b) {
   return Math.floor(a / b);
 }
 
+// D4: grant `techId` to `pid` (tech-exchange). MINIMAL by design — pushes the
+// tech + finishes matching in-progress research + emits techDiscovered, but does
+// NOT run the obsolete-building / Leonardo cascade grantTech does (that lives in
+// tech.js, which imports cities.js, which imports THIS — the require cycle the
+// Luau eager-require hangs on). No-op if the tech is empty or already held.
+function diploGrantTech(state, pid, techId, events) {
+  const player = state.players[pid];
+  if (player === undefined || techId === '' || player.techs.indexOf(techId) !== -1) return;
+  player.techs.push(techId);
+  if (player.researching === techId) player.researching = '';
+  events.push({ type: 'techDiscovered', playerId: pid, tech: techId });
+}
+
 function diplomacyCommand(state, cmd, ruleset) {
   if (state.activePlayer !== cmd.playerId) return { ok: false, reason: 'notYourTurn' };
   const pid = cmd.playerId;
@@ -117,6 +130,21 @@ function diplomacyCommand(state, cmd, ruleset) {
     const terms = cmd.terms === undefined ? {} : cmd.terms;
     const offer = { from: pid, turn: state.turn };
     if (terms.duration !== undefined) offer.duration = terms.duration; // absent = perpetual
+    // D4: a terms.kind carries the offer FLAVOUR (absent = peace, the D3 shape).
+    // Fields ride flat on the offer (not a nested obj) — hash-stable, Luau-friendly.
+    if (terms.kind === 'tribute') {
+      offer.kind = 'tribute';
+      offer.gold = terms.gold === undefined ? 0 : terms.gold;
+    } else if (terms.kind === 'techExchange') {
+      offer.kind = 'techExchange';
+      offer.techId = terms.techId === undefined ? '' : terms.techId;
+      if (terms.wantTechId !== undefined) offer.wantTechId = terms.wantTechId; // absent = one-way gift
+    }
+    // D4: every offer carries an expiry (offered + offerExpiryTurns). The sweep
+    // (processExpiry, run at round-wrap) deletes it and emits OFFER_EXPIRED so no
+    // offer silently disappears. omit-safe: no knob -> no expiry (pre-D4 shape).
+    const exp = ruleset.rules.diplomacy === undefined ? undefined : ruleset.rules.diplomacy.offerExpiryTurns;
+    if (exp !== undefined && exp > 0) offer.expiresTurn = state.turn + exp;
     if (entry === undefined) state.relations[key] = { state: 'war', offer: offer };
     else entry.offer = offer; // a new offer OVERWRITES a standing one (pinned)
     return { ok: true, events: [] }; // an offer is not yet a treaty — emits nothing
@@ -125,6 +153,36 @@ function diplomacyCommand(state, cmd, ruleset) {
   if (cmd.kind === 'accept') {
     if (entry === undefined || entry.offer === undefined) return { ok: false, reason: 'noSuchOffer' };
     const offer = entry.offer;
+    const okind = offer.kind === undefined ? 'peace' : offer.kind;
+    // D4: tribute — the acceptor (pid) is the PAYER; offer.from is the demander.
+    // Gold flows payer -> demander, clamped to the payer's treasury (pay what you
+    // can). Does NOT alter the war/peace state (a demand is separate from a treaty).
+    if (okind === 'tribute') {
+      const payer = state.players[pid];
+      const demander = state.players[offer.from];
+      let amt = offer.gold === undefined ? 0 : offer.gold;
+      if (payer.gold < amt) amt = payer.gold;
+      payer.gold = payer.gold - amt;
+      demander.gold = demander.gold + amt;
+      delete entry.offer;
+      entry.tributePaidTurn = state.turn; // gate re-demand (AI checks tributeReDemandCooldown)
+      events.push({ type: 'TRIBUTE_PAID', payerCivId: eventCiv(state, pid), receiverCivId: eventCiv(state, offer.from), gold: amt, turn: state.turn });
+      return { ok: true, events };
+    }
+    // D4: tech exchange — offer.from GIVES techId to the acceptor (pid); if a
+    // wantTechId is set, the acceptor gives it back (a swap). Whole techs only,
+    // no research points. Grants are MINIMAL here (push + techDiscovered) — the
+    // obsolete-building / Leonardo cascade is NOT run on a traded tech (a known
+    // D4 simplification; importing tech.js would form the tech->cities->diplomacy
+    // require cycle the Luau twin hangs on). Treaty state unchanged.
+    if (okind === 'techExchange') {
+      diploGrantTech(state, pid, offer.techId === undefined ? '' : offer.techId, events);
+      if (offer.wantTechId !== undefined) diploGrantTech(state, offer.from, offer.wantTechId, events);
+      delete entry.offer;
+      events.push({ type: 'TECH_EXCHANGED', giverCivId: eventCiv(state, offer.from), takerCivId: eventCiv(state, pid), turn: state.turn });
+      return { ok: true, events };
+    }
+    // peace (default) — the D3 behaviour.
     // D3: MODIFY in place — preserve met/grievance/trust.
     entry.state = 'peace';
     entry.treatyTurn = state.turn;
@@ -255,5 +313,25 @@ function processDecay(state, ruleset) {
   }
 }
 
+// D4 offer-expiry sweep — ENGINE processing (replayable), run once per round-wrap
+// (endTurn) beside processDecay. An offer past its expiresTurn is deleted and an
+// OFFER_EXPIRED event emitted (neutral wording) so no offer silently vanishes.
+// Omit-safe: a no-op when relations is empty or an offer carries no expiresTurn
+// (a pre-D4 offer, or a knob-less ruleset).
+function processExpiry(state, ruleset, events) {
+  if (state.relations === undefined) return;
+  for (const key of Object.keys(state.relations)) {
+    const e = state.relations[key];
+    const offer = e.offer;
+    if (offer === undefined || offer.expiresTurn === undefined) continue;
+    if (state.turn >= offer.expiresTurn) {
+      const parts = key.split('|');
+      const other = offer.from === parts[0] ? parts[1] : parts[0];
+      delete e.offer;
+      events.push({ type: 'OFFER_EXPIRED', fromCivId: eventCiv(state, offer.from), toCivId: eventCiv(state, other), turn: state.turn });
+    }
+  }
+}
+
 export { relationOf, reputationOf, pruneDiplomacy, diplomacyCommand, pairKey,
-  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay };
+  grievanceOf, trustOf, bumpRel, metOf, contactPass, processDecay, processExpiry };

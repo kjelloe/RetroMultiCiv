@@ -64,27 +64,34 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // createGame golden; the soak is DORMANT (no AI exhausts the 68-tech tree in 400/545 turns, so
 // futureTech stays 0). GOLDEN_SOAK 400 -> 0xaedef2e4, GOLDEN_NATURAL -> 0x9224ff7d (rounds 400/545
 // + winner p2 unchanged). A paste-back, not a trajectory change.
+// D4 diplomacy (tribute + tech exchange + offer expiry) re-record: BEHAVIORAL
+// (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL MOVED — offers now carry expiresTurn +
+// the sweep, and strong non-R/D AIs demand tribute -> gold redistributes) AND
+// STAMP (data/rules.json gained the D4 diplomacy knobs -> the createGame stamp
+// ripples to every createGame golden). GOLDEN_SOAK 0x0b7d6cda.. / GOLDEN_NATURAL
+// 0x6241174d / BEHAVIOR_SOAK 0x7d88a531.. / BEHAVIOR_NATURAL 0x8d3c2153 (rounds
+// 400/545 + winner p2 UNCHANGED — tribute moved gold, not the outcome). Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
   checkpoints: {
-    100: '0x0bba709a',
-    200: '0x6c621057',
-    300: '0x595167ea',
-    400: '0x79862fb8'
+    100: '0x0b7d6cda',
+    200: '0xf1e05f95',
+    300: '0xc68728c2',
+    400: '0xc3312a1b'
   },
-  finalHash: '0x79862fb8'
+  finalHash: '0xc3312a1b'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x011bb894' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x6241174d' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xd8efb74f', 200: '0xe043f072', 300: '0x53b4bdf5', 400: '0x3cb11b87' },
-  finalHash: '0x3cb11b87'
+  checkpoints: { 100: '0x7d88a531', 200: '0x47486030', 300: '0xd7aee69b', 400: '0xef6bf46c' },
+  finalHash: '0xef6bf46c'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xf57ad8de' };
+const BEHAVIOR_NATURAL = { finalHash: '0x8d3c2153' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

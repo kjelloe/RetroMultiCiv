@@ -107,6 +107,18 @@ local function metOf(state: any, a: string, b: string): boolean
 	return entry ~= nil and entry.met == true
 end
 
+-- D4: grant techId to pid (tech-exchange). MINIMAL — pushes the tech + finishes
+-- matching research + emits techDiscovered, but NOT the obsolete-building/Leonardo
+-- cascade (that lives in tech.luau -> cities.luau -> here, the require cycle the
+-- eager require hangs on). No-op if the tech is empty or already held.
+local function diploGrantTech(state: any, pid: string, techId: string, events: any)
+	local player = state.players[pid]
+	if player == nil or techId == "" or table.find(player.techs, techId) ~= nil then return end
+	table.insert(player.techs, techId)
+	if player.researching == techId then player.researching = "" end
+	table.insert(events, { type = "techDiscovered", playerId = pid, tech = techId })
+end
+
 local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 	if state.activePlayer ~= cmd.playerId then return { ok = false, reason = "notYourTurn" } end
 	local pid = cmd.playerId
@@ -145,6 +157,20 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 		local terms = if cmd.terms == nil then {} else cmd.terms
 		local offer = { from = pid, turn = state.turn }
 		if terms.duration ~= nil then offer.duration = terms.duration end -- absent = perpetual
+		-- D4: a terms.kind carries the offer FLAVOUR (absent = peace, the D3 shape).
+		-- Fields ride flat on the offer — hash-stable, Luau-friendly.
+		if terms.kind == "tribute" then
+			offer.kind = "tribute"
+			offer.gold = if terms.gold == nil then 0 else terms.gold
+		elseif terms.kind == "techExchange" then
+			offer.kind = "techExchange"
+			offer.techId = if terms.techId == nil then "" else terms.techId
+			if terms.wantTechId ~= nil then offer.wantTechId = terms.wantTechId end -- absent = one-way gift
+		end
+		-- D4: every offer carries an expiry (offered + offerExpiryTurns); the sweep
+		-- (processExpiry) deletes it + emits OFFER_EXPIRED. omit-safe (no knob -> none).
+		local exp = if ruleset.rules.diplomacy == nil then nil else ruleset.rules.diplomacy.offerExpiryTurns
+		if exp ~= nil and exp > 0 then offer.expiresTurn = state.turn + exp end
 		if entry == nil then
 			state.relations[key] = { state = "war", offer = offer }
 		else
@@ -156,6 +182,32 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 	if cmd.kind == "accept" then
 		if entry == nil or entry.offer == nil then return { ok = false, reason = "noSuchOffer" } end
 		local offer = entry.offer
+		local okind = if offer.kind == nil then "peace" else offer.kind
+		-- D4: tribute — acceptor (pid) is the PAYER; offer.from is the demander. Gold
+		-- flows payer -> demander, clamped to the payer's treasury. Treaty unchanged.
+		if okind == "tribute" then
+			local payer = state.players[pid]
+			local demander = state.players[offer.from]
+			local amt = if offer.gold == nil then 0 else offer.gold
+			if payer.gold < amt then amt = payer.gold end
+			payer.gold = payer.gold - amt
+			demander.gold = demander.gold + amt
+			entry.offer = nil
+			entry.tributePaidTurn = state.turn -- gate re-demand (AI checks tributeReDemandCooldown)
+			table.insert(events, { type = "TRIBUTE_PAID", payerCivId = eventCiv(state, pid), receiverCivId = eventCiv(state, offer.from), gold = amt, turn = state.turn })
+			return { ok = true, events = events }
+		end
+		-- D4: tech exchange — offer.from GIVES techId to acceptor (pid); a wantTechId
+		-- is given back (a swap). Whole techs only. Grants are MINIMAL (no cascade —
+		-- the require cycle). Treaty state unchanged.
+		if okind == "techExchange" then
+			diploGrantTech(state, pid, if offer.techId == nil then "" else offer.techId, events)
+			if offer.wantTechId ~= nil then diploGrantTech(state, offer.from, offer.wantTechId, events) end
+			entry.offer = nil
+			table.insert(events, { type = "TECH_EXCHANGED", giverCivId = eventCiv(state, offer.from), takerCivId = eventCiv(state, pid), turn = state.turn })
+			return { ok = true, events = events }
+		end
+		-- peace (default) — the D3 behaviour.
 		-- D3: MODIFY in place — preserve met/grievance/trust.
 		entry.state = "peace"
 		entry.treatyTurn = state.turn
@@ -235,6 +287,22 @@ local function processDecay(state: any, ruleset: any)
 	end
 end
 
+-- D4 offer-expiry sweep (engine processing, replayable), run once per round-wrap
+-- beside processDecay. An offer past its expiresTurn is deleted + OFFER_EXPIRED
+-- emitted (neutral). Omit-safe (no-op when relations empty or no expiresTurn).
+local function processExpiry(state: any, ruleset: any, events: any)
+	if state.relations == nil then return end
+	for key, e in pairs(state.relations) do
+		local offer = e.offer
+		if offer ~= nil and offer.expiresTurn ~= nil and state.turn >= offer.expiresTurn then
+			local parts = string.split(key, "|")
+			local other = if offer.from == parts[1] then parts[2] else parts[1]
+			e.offer = nil
+			table.insert(events, { type = "OFFER_EXPIRED", fromCivId = eventCiv(state, offer.from), toCivId = eventCiv(state, other), turn = state.turn })
+		end
+	end
+end
+
 return {
 	relationOf = relationOf,
 	reputationOf = reputationOf,
@@ -247,4 +315,5 @@ return {
 	metOf = metOf,
 	contactPass = contactPass,
 	processDecay = processDecay,
+	processExpiry = processExpiry,
 }
