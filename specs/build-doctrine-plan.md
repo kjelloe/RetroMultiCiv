@@ -44,3 +44,22 @@ tree is clean. Slices ordered highest-leverage-first so each lands measurable va
 - v2 shelf (NOT this window): Civ4 draft-from-super-food-wonder-city.
 - Pace: multi-slice, days of golden work; architect executes solo + gates per slice.
   Flag to user if the pace warrants reactivating a second engine lane.
+
+## Slice-1 delivery log (2026-07-26)
+
+- **1a @6fc9d6a** — doctrineBuilding landed (fixture-first 7/7, twins 11/11, honest
+  behavioral re-record). Gate finding (sim-runner #2760): mechanism DORMANT in the
+  canonical sweep — temple coverage 0.9%; root cause: the slot's threat gate, and
+  `threatened` is chronic at 7-civ density. M3-pop 25 (PASS ≥22) but not attributable.
+- **1b @00c3267** — threat gate dropped (walls-first still outranks; walled-under-threat
+  fixture added). Reviewer #2766: CODE GREEN (pristine 967/964/0-fail, twin bit-exact,
+  natural holds 545/p2); independent 3-seed canonical probe: coverage 2.0% → 6.2% —
+  directionally correct, MODEST. Authoritative figure = the 25-seed sweep (pending).
+- **Measurement lessons:** hashes moving ≠ mechanism firing (probe by direct count);
+  probe in the CANONICAL config, not the golden-seed sim config (a 4-civ 56x35 seed
+  showed 73% — cherry-picked by accident).
+- **Open lever (reviewer advisory):** at ~6% coverage most cities stay on the
+  defender/walls/army treadmill (garrison floor + walls precede the doctrine under
+  chronic threat). If doctrine-DOMINANT development is the intent, the next lever is a
+  garrison-floor carve-out or hoisting doctrine above walls — decide on the sweep
+  numbers (slice-1c vs fold into slice-2).
