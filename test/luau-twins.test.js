@@ -253,7 +253,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x9e242a6c\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x3be0609c\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -311,9 +311,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // W6 slice-1: rules.json buildDoctrine knobs stamp cascade (createGame move)
-      continents: '7840c2b7', pangaea: '2bcffbb0',
-      archipelago: '9bc81f61', islands: 'b0b8a969'
+    const PINS = { // W6 slice-1c FINAL knob (deferPop 3 + highFoodSurplus 2) stamp cascade
+      continents: 'eab9c89c', pangaea: '0114f5e5',
+      archipelago: '31ba269a', islands: '48fa0eb2'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -377,8 +377,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    fast-forwarded turns land before any celebration on this seed).
 // -> 0x1c294a2a (W6 slice-1 build-doctrine: rules.json buildDoctrine knobs — stamp AND
 //    behavioral: the 25 fast-forwarded AI turns now build granaries/temples per §3a).
+// -> 0xcaece949 (W6 slice-1c FINAL: granaryDeferPop 3 + highFoodSurplus 2 — the measured
+//    calibration; stamp AND behavioral).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x1c294a2a turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xcaece949 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

@@ -127,22 +127,39 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // 7 temples + 9 granaries / 22 cities (from ~1%), disorder 1/22. Natural HOLDS 545/p2.
 // GOLDEN_SOAK 0x90b16bdd.. / GOLDEN_NATURAL 0x9cca01fa / BEHAVIOR_SOAK 0x600c60f8.. /
 // BEHAVIOR_NATURAL 0xfe0047c5. Honest re-record.
+// W6 slice-1c re-record (defer-knob calibration, user-ruled after #2767: M3-pop regressed
+// 25->15.25 because granary-first crowded out settlers): buildDoctrine.highFoodSurplus 3->2
+// — ordinary small despotism cities (surplus 2 = the despotism cap) now DEFER and keep
+// settling; the granary lands at pop 4+. rules.json knob -> the createGame stamp ripples
+// too. BEHAVIOR_NATURAL held byte-identical to 1b (that seed never crosses the threshold);
+// the soak (chaos rates -> surplus swings) moved. Natural HOLDS 545/p2. GOLDEN_SOAK
+// 0x6676885b.. / GOLDEN_NATURAL 0x4645ebc2 / BEHAVIOR_SOAK 0x58f5fd73.. / BEHAVIOR_NATURAL
+// 0xfe0047c5 (held). Honest re-record.
+// W6 slice-1c FINAL re-record (defer-knob calibration, user-ruled after #2767 M3 25->15.25):
+// buildDoctrine granaryDeferPop 4->3 + highFoodSurplus 3->2 — the MEASURED point (3-seed
+// canonical probe): pop-1/2 settler factories keep settling, the median (pop-3) city builds
+// its granary; coverage ~5.8% vs 3.7% (deferPop 4) vs 6.2%-with-M3-collapse (1b no-defer).
+// The 25-seed sweep is the authoritative M3 arbiter. rules.json knobs -> createGame stamp
+// ripples. BEHAVIOR t100 0xad3e3c8b == slice-1b (no pop-1/2 granary lands by t100 on this
+// seed); natural BUTTERFLIES to rounds 498 / winner p1 (was 545/p2). GOLDEN_SOAK
+// 0x02e68edd.. / GOLDEN_NATURAL 0x8a8fae4d / BEHAVIOR_SOAK 0x199417cc.. / BEHAVIOR_NATURAL
+// 0xeb526ce2. Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x9e242a6c', 200: '0x45fddd00', 300: '0x493743e2', 400: '0x90b16bdd' },
-  finalHash: '0x90b16bdd'
+  checkpoints: { 100: '0x3be0609c', 200: '0x6dc4a430', 300: '0x18ea9207', 400: '0x02e68edd' },
+  finalHash: '0x02e68edd'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x9cca01fa' };
+const GOLDEN_NATURAL = { rounds: 498, winner: 'p1', finalHash: '0x8a8fae4d' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xad3e3c8b', 200: '0x3eacd757', 300: '0x93d87c61', 400: '0x600c60f8' },
-  finalHash: '0x600c60f8'
+  checkpoints: { 100: '0xad3e3c8b', 200: '0x5d16404f', 300: '0xe62b3e4c', 400: '0x199417cc' },
+  finalHash: '0x199417cc'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xfe0047c5' };
+const BEHAVIOR_NATURAL = { finalHash: '0xeb526ce2' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

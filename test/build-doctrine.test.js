@@ -57,11 +57,22 @@ test('slice-1: the knobs exist in rules.json (numbers in data, not engine)', () 
   assert.ok(Number.isInteger(d.highFoodSurplus) && d.highFoodSurplus > 0);
 });
 
-test('slice-1: granary before the settler loop (pottery known, ordinary food)', async () => {
+test('slice-1: a GROWN city (pop >= granaryDeferPop) builds the granary before more settlers', async () => {
   const { ai, engine } = await load();
-  const after = ai.runAiTurn(engine, doctrineState(['pottery']), 'p1', RULESET);
+  const after = ai.runAiTurn(engine, doctrineState(['pottery'], { pop: 4 }), 'p1', RULESET);
   assert.deepStrictEqual(after.cities.c9.producing, { kind: 'building', id: 'granary' },
-    'a defended, under-settler-target city owes the granary first (§3a core loop)');
+    'pop 4: the defer window is over — the granary lands (§3a core loop)');
+});
+
+test('slice-1c: an ordinary SMALL growing city keeps settling (defer is the common path)', async () => {
+  const { ai, engine } = await load();
+  // pop-2 despotism grassland = surplus 2 (the despotism cap) >= highFoodSurplus 2,
+  // pop < granaryDeferPop 3 -> DEFER. The slice-1b regression (M3 25->15.25): with
+  // highFoodSurplus at 3 the defer never fired under despotism and granaries crowded
+  // out settlers; calibrated 2/3 protects the pop-1/2 settler factories.
+  const after = ai.runAiTurn(engine, doctrineState(['pottery'], { pop: 2 }), 'p1', RULESET);
+  assert.strictEqual(after.cities.c9.producing.id, 'settlers',
+    'small growing cities keep the settler loop; the granary waits for granaryDeferPop');
 });
 
 test('slice-1: temple FIRST while the city is in disorder', async () => {
@@ -101,7 +112,8 @@ test('slice-1: doctrine satisfied -> the old settler behavior resumes', async ()
 
 test('slice-1: walls still outrank — a threatened unwalled city walls up first', async () => {
   const { ai, engine } = await load();
-  const state = doctrineState(['pottery', 'masonry']);
+  // pop 4 so a granary IS owed — the point: an actionable threat walls up before it
+  const state = doctrineState(['pottery', 'masonry'], { pop: 4 });
   state.units.e1 = { id: 'e1', type: 'legion', owner: 'p2', x: 8, y: 4, moves: 0, fortified: false, veteran: false };
   const after = ai.runAiTurn(engine, state, 'p1', RULESET);
   assert.strictEqual(after.cities.c9.producing.id, 'city-walls',
@@ -113,9 +125,9 @@ test('slice-1b: a threatened, garrisoned, WALLED city still builds its granary (
   // chronic threat (#2760): with walls already up, the doctrine must fire under
   // threat too — the old threat gate left coverage at 0.9% because 7-civ worlds
   // are threatened most of the game
-  const state = doctrineState(['pottery', 'masonry'], { buildings: ['city-walls'] });
+  const state = doctrineState(['pottery', 'masonry'], { pop: 4, buildings: ['city-walls'] });
   state.units.e1 = { id: 'e1', type: 'legion', owner: 'p2', x: 8, y: 4, moves: 0, fortified: false, veteran: false };
   const after = ai.runAiTurn(engine, state, 'p1', RULESET);
   assert.strictEqual(after.cities.c9.producing.id, 'granary',
-    'walled + garrisoned under chronic threat -> the granary still lands');
+    'walled + garrisoned under chronic threat -> the granary still lands (pop past the defer window)');
 });
