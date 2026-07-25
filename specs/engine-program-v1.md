@@ -42,8 +42,11 @@ first. This ACTIVATES buildings across the AI, so the sim goldens re-record here
 W2/W4 effects live — hence build-doctrine goes LAST. Clears the M3-pop advisory (re-ratchet
 in-commit). Multi-slice, days of golden work.
 
-## Resourcing note
-This is ~6 windows solo (W6 alone is 5 slices). Golden windows serialize on the lock, but
-the CLIENT halves (mission menus, WLTKD/celebration UI, building-effect blurbs) and the
-independent golden-neutral modules could be parallelized by a second lane. Flagged to the
-user: accept the serial architect pace, or reactivate helper / redirect bugfixer post-mobile.
+## Resourcing (RULED — user 2026-07-25: redirect bugfixer to engine after mobile)
+- **W1 → bugfixer** (after mobile-session-3; queued #1, mail #2686). Diplomacy expert +
+  holds the investigateCity patch. Re-records only the 065 SCENARIO golden.
+- **W2–W6 → architect.** I start with W2 (Mfg. Plant/SDI, quick golden-neutral win) while
+  bugfixer is still on mobile, then W3/W4/W5, then W6 build-doctrine. W1 and my windows
+  touch DIFFERENT golden files (065 vs sim-goldens) + different modules (diplomat-missions
+  vs cities/combat/score), so they can run concurrently WITH a file-lock deconflict + one
+  re-record at a time. bugfixer confirms its file set by mail when it picks W1 up.
