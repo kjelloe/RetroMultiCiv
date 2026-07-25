@@ -35,11 +35,17 @@ silhouettes + Founder's Record tone doctrine both final, no further
 iteration) with one river follow-up (pale tile-edge seams from a
 lighting clamp, not geometry) fixed same night (@c1f0cea); the
 conquest world-brighten renderer-level upgrade is banked as a
-non-blocking v1.x item. Spine after D6: the workturns/transforms
-companion → the XX §3 build-doctrine window (baseline already
-measured: AI builds ~0 buildings). USER: merge 0103 (or wait for the
-morning batch tag), redeploy, roblox/** standing Write allowlist,
-Studio session, trademark.)
+non-blocking v1.x item. **MORNING UPDATE:** the diplomacy arc CLOSED
++ TAGGED (marker-0104 @bbfa85c, merge-consistent). The remaining v1
+ENGINE work is now an ordered program (`specs/engine-program-v1.md`),
+grown by the Civ1 feature audit (`specs/civ1-feature-audit.md` — user
+PROMOTED all 4 gaps): W1 diplomacy (investigateCity + discovered-
+sabotage → bugfixer post-mobile) · W2 Mfg-Plant+SDI effects · W3
+score happy-citizen term · W4 We-Love-the-King-Day · W5 re-home
+relabel · W6 build-doctrine (PROMOTED full window, 5 slices,
+architect). bugfixer also runs mobile play-session-3
+(`specs/mobile-session-3.md`, 11 items) before W1. USER GATES: merge
+0104, redeploy, roblox/** Write allowlist, Studio session, trademark.)
 Source of truth for the 1.0 definition: `docs/03-roadmap.md` § "The 1.0
 definition" (user-ruled, maximal cut). Status legend: ✅ done · 🔨 in
 flight right now · 📋 queued (owner known) · 🧩 designed, not started ·
@@ -159,25 +165,31 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline ~0 buildings; M3-pop 20<22 river breach RULED advisory (de-ratcheted @9e42842, tracked to build-doctrine) | **build-doctrine upside being MEASURED** (user ruled measure-first); promote/bank pending the 5-row table |
+| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); measurement DONE (buildings ~0: 5/87 civs built any; wonders ~0; tech cap ~30; 0 launches); M3-pop 20<22 advisory | **build-doctrine PROMOTED — full 5-slice window** (user ruled; W6 of the engine program); clears the M3 advisory on landing |
+| 1b | Civ1 feature faithfulness (audit) | audit DONE — near-complete; 4 small gaps found + PROMOTED | **W2 Mfg-Plant+SDI · W3 score term · W4 We-Love-the-King-Day** (+ W5 re-home relabel); all v1 |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
 
 ## Reading the tree — the three facts that matter
 
-1. **The engine spine's diplomacy arc is CLOSED.** River, 11b, D4,
-   D5, and D6 are all landed + tagged (marker-0104). Axis 2 (diplomacy
-   D1–D6) is complete. Only the XX §3 build-doctrine window (upside
-   being measured, promote/bank pending) + the banked workturns
-   companion stand between the engine lane and v1's axis 1–3 closure.
-   The M3-pop 20<22 river breach is now tied to build-doctrine (the
-   granary fix restores flood-city pop).
-2. **Lane consolidation is in effect.** Helper stopped (queue empty,
-   clean park). Bugfixer runs D4–D6 solo as its final item, then
-   stops too — after that the architect executes whatever remains.
-   The gaming PC (sim-runner/roblox-helper/reviewer) rests overnight;
-   commits continue, tags don't, until it's back.
+1. **The diplomacy arc is CLOSED; the engine lane is now an ordered
+   program.** River, 11b, D4, D5, D6 all landed + tagged (marker-0104);
+   axis 2 complete. Remaining v1 engine work = W1–W6
+   (`specs/engine-program-v1.md`): W1 diplomacy (investigateCity +
+   discovered-sabotage, → bugfixer post-mobile), W2 Mfg-Plant+SDI, W3
+   score term, W4 We-Love-the-King-Day, W5 re-home relabel, W6
+   build-doctrine (PROMOTED, 5 slices, architect). W2–W4 close the Civ1
+   feature-audit gaps. build-doctrine (W6) clears the M3-pop 20<22
+   advisory on landing. Golden windows serialize; W1 (065 scenario) and
+   the architect's windows (sim goldens) run on different golden files.
+2. **Lane consolidation, morning shape.** Helper stopped (clean park).
+   Bugfixer REACTIVATED: runs mobile play-session-3 (11 items,
+   golden-neutral client) then W1 diplomacy (user ruling: redirect to
+   engine after mobile). Architect executes W2–W6. Gaming PC back:
+   sim-runner (sweeps/measures + git operator), reviewer (gates PUSHED
+   shas — commit+push before requesting review), roblox-helper (waiting
+   on the user Studio session). Hardening parked (server lane empty).
 3. **User gates remain:** merge marker-0104 (ready now, supersedes
    0103), the trademark search, the ONE Studio publish/acceptance
    session, and the standing roblox Write allowlist. The M3-pop floor
