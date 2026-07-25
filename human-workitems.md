@@ -42,21 +42,21 @@ merge-consistent; 0103 = the 6-seed sweep rerun; the box runs 0101)._
 
 ### B. Ally correspondence (whenever you next write)
 
-- [ ] **B1. Forward the screenshot round** to the designer ally —
-  8 individual FILES (my earlier compressed notation misread as
-  folders; all verified present on the dev PC):
-  - `debugging/tone-defeat.png`, `debugging/tone-conquest.png`,
-    `debugging/tone-score.png`, `debugging/tone-space.png`
-    (the Founder's Record tone pass — their doctrine applied);
-  - `debugging/usergenerated/specials-row.png`,
-    `debugging/usergenerated/specials-beasts.png`,
-    `debugging/usergenerated/specials-seal.png`
-    (the silhouette iteration: game antler, rearing horse, flipper);
-  - `debugging/usergenerated/river-ribbon-gallery.png`.
-  Suggested note: "Your tone guidance and silhouette notes are in —
-  say if any ending's weight or beast outline feels off. Rivers now
-  render as ribbons; one look wanted." One open offer to them: the
-  conquest world-brighten is CSS-layer; a renderer-level map
+- [x] **B1. Ally round-trip COMPLETE** (2026-07-25 night): specials
+  silhouette pass ACCEPTED final (no further iteration requested,
+  do not add horse anatomy detail), Founder's Record tone doctrine
+  APPROVED across all four endings with no changes requested, river
+  ACCEPTED end-to-end (WebGL1/WebGL2 parity confirmed) with one
+  follow-up — pale tile-edge seams reading as a canal — FIXED same
+  night (`c1f0cea`, re-shot screenshots). Full capture:
+  `specs/ally-response-2026-07-25-night-marker0103.md`.
+
+- [ ] **B2. Conquest world-brighten — a v1.x decision, no rush.**
+  The ally prefers a true renderer-level world-brightening over the
+  shipped CSS fade, but explicitly said not to hold release for it.
+  Banked as a follow-up (entry point noted in
+  `specs/endgame-moments-plan.md`) — queues after the D4–D6 arc
+  unless you want to promote it sooner.
   brighten is available if they want it.
 
 ### C. Phone test (~10 min, carried)
