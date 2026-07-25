@@ -269,10 +269,10 @@ const BUILDING_OVERLAY = {
   'hydro-plant':         { cost: 240, maintenance: 4, effect: { boostsFactory: true } },
   'power-plant':         { cost: 160, maintenance: 4, effect: { boostsFactory: true } },
   'nuclear-plant':       { cost: 160, maintenance: 2, effect: { boostsFactory: true } },
-  'mfg-plant':           { cost: 320, maintenance: 6, effect: {} },
+  'mfg-plant':           { cost: 320, maintenance: 6, effect: { shieldBonus: 100, obsoletesFactory: true } },
   'recycling-center':    { cost: 200, maintenance: 2, effect: {} },
   'mass-transit':        { cost: 160, maintenance: 4, effect: {} },
-  'sdi-defense':         { cost: 200, maintenance: 4, effect: {} }
+  'sdi-defense':         { cost: 200, maintenance: 4, effect: { blocksNuke: true } }
 };
 
 const WONDER_OVERLAY = {

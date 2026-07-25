@@ -796,7 +796,21 @@ function hooverPowersCity(state, city, ruleset) {
 function cityShieldOutput(state, city, ruleset, workedIdx) {
   let shields = cityYields(state, city, ruleset, workedIdx).shields;
   if (city.disorder === true) shields = 0;
-  let shieldPct = effectPct(city, ruleset, 'shieldBonus');
+  // Civ 1: shieldBonus buildings (Factory +50%, Mfg. Plant +100%). A Mfg. Plant OBSOLETES
+  // the Factory (data effect obsoletesFactory) — the Factory's bonus no longer counts when
+  // a Mfg. Plant is present (so Mfg+Factory = +100%, not +150%).
+  const bldgs = city.buildings === undefined ? [] : city.buildings;
+  let obsoletesFactory = false;
+  for (const b of bldgs) {
+    if (ruleset.buildings[b].effect.obsoletesFactory === true) { obsoletesFactory = true; break; }
+  }
+  let shieldPct = 0;
+  for (const b of bldgs) {
+    const eff = ruleset.buildings[b].effect;
+    if (eff.shieldBonus === undefined) continue;
+    if (obsoletesFactory && eff.obsoletesFactory !== true) continue;
+    shieldPct = shieldPct + eff.shieldBonus;
+  }
   if (shieldPct > 0) {
     let powered = false;
     for (const b of city.buildings === undefined ? [] : city.buildings) {

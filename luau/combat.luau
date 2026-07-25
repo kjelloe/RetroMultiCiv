@@ -211,6 +211,39 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 		diplomacy.bumpRel(state, defender.owner, attacker.owner, "grievance", ruleset.rules.diplomacy.relGrievanceOnAttack)
 	end
 
+	-- SDI Defense (Civ 1): a nuclear strike on a city that holds an SDI building is
+	-- intercepted at rules.sdiInterceptPct -- the missile is shot down, no detonation.
+	-- The roll draws the shared RNG ONLY when a nuke actually targets an SDI city
+	-- (never in the AI sim at its seeds), so the goldens stay behaviour-neutral.
+	if atype.nuclearBlast == true then
+		local sdiCity = cityAt(state, tx, ty)
+		if sdiCity ~= nil then
+			local sdi = false
+			local sdiBldgs = if sdiCity.buildings == nil then {} else sdiCity.buildings
+			for _, b in ipairs(sdiBldgs) do
+				if ruleset.buildings[b].effect.blocksNuke == true then
+					sdi = true
+					break
+				end
+			end
+			if sdi then
+				local iroll = rng.rollRange(state.rngState, 100)
+				state.rngState = iroll.rngState
+				if iroll.value < ruleset.rules.sdiInterceptPct then
+					attacker.moves = attacker.moves - 1
+					attacker.fortified = false
+					local iev = setmetatable({}, statehash.ARRAY_MT)
+					if atype.oneShot == true then
+						state.units[attacker.id] = nil
+						table.insert(iev, { type = "unitConsumed", unitId = attacker.id, owner = attacker.owner, x = attacker.x, y = attacker.y })
+					end
+					table.insert(iev, { type = "nukeIntercepted", cityId = sdiCity.id, owner = sdiCity.owner, attackerOwner = attacker.owner, x = tx, y = ty })
+					return { ok = true, events = iev }
+				end
+			end
+		end
+	end
+
 	local att = attackStrength(attacker, ruleset)
 	-- barbAtkPct WORLD knob: a barbarian attacker's strength scales (all-AI too).
 	local dOf = difficulty.difficultyOf(state, ruleset)

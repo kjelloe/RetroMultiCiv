@@ -34,6 +34,30 @@ test('#29 hoover-dam: same-continent Hydro Plant doubles the factory bonus', asy
   assert.strictEqual(shields(true, { 'hoover-dam': 'c2' }), 15, 'hoover across ocean: different continent, no power (still 15)');
 });
 
+test('W2 Mfg. Plant: +100% production, obsoletes Factory (Civ1)', async () => {
+  const { cities } = await load();
+  const mk = (buildings) => {
+    const W = 5, H = 3, tiles = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) tiles.push({ t: 'forest' });
+    return {
+      version: 1, turn: 1, year: -4000, activePlayer: 'p1', playerOrder: ['p1'],
+      map: { width: W, height: H, wrapX: false, tiles }, units: {},
+      cities: {
+        c1: { id: 'c1', name: 'Work', owner: 'p1', x: 3, y: 1, pop: 4, food: 0, shields: 0, buildings, producing: { kind: 'unit', id: 'militia' } }
+      },
+      cityOrder: ['c1'], nextUnitId: 1, nextCityId: 2, wonders: {},
+      players: { p1: { id: 'p1', name: 'A', color: '#00f', human: true, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 } },
+      rngState: 1
+    };
+  };
+  const sh = (b) => { const s = mk(b); return cities.cityShieldOutput(s, s.cities.c1, RULESET); };
+  assert.strictEqual(sh([]), 10, 'base forest city: no bonus (10)');
+  assert.strictEqual(sh(['factory']), 15, 'factory alone: +50% (control)');
+  assert.strictEqual(sh(['mfg-plant']), 20, 'Mfg. Plant alone: +100% (10 -> 20)');
+  assert.strictEqual(sh(['factory', 'mfg-plant']), 20, 'Mfg. Plant OBSOLETES Factory: +100% not +150% (10 -> 20)');
+  assert.strictEqual(sh(['mfg-plant', 'power-plant']), 30, 'Mfg. Plant powered: doubled to +200% (10 -> 30)');
+});
+
 test('tileYields: specials and river bonus apply', async () => {
   const { cities } = await load();
   assert.deepStrictEqual(cities.tileYields({ t: 'grassland' }, RULESET), { food: 2, shields: 0, trade: 0 });

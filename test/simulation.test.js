@@ -87,12 +87,19 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // missions) and the reputation refactor (applyReputationHit) is behaviour-preserving.
 // GOLDEN_SOAK 0x318ba4c3.. / GOLDEN_NATURAL 0xae54c329 (rounds 400/545 + winner p2
 // unchanged). A paste-back, not a trajectory change.
+// W2 building-effects re-record: STAMP-ONLY (#28: BEHAVIOR_SOAK + BEHAVIOR_NATURAL
+// UNMOVED — byte-identical to W1: 0x7d88a531../0x8d3c2153). buildings.json (Mfg. Plant
+// shieldBonus 100 + obsoletesFactory; SDI blocksNuke) + rules.json (sdiInterceptPct 70)
+// ripple the rulesetHash stamp into every createGame golden; both effects are DORMANT in
+// the soak (no AI city builds a Mfg. Plant / SDI, no nuke is fired at the sim seeds).
+// GOLDEN_SOAK 0x484da93c.. / GOLDEN_NATURAL 0xb6232e74 (rounds 400/545 + winner p2
+// unchanged). A paste-back, not a trajectory change.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x318ba4c3', 200: '0x9e026ede', 300: '0xef5e1c63', 400: '0x30eeb034' },
-  finalHash: '0x30eeb034'
+  checkpoints: { 100: '0x484da93c', 200: '0xe40d5a2b', 300: '0x529a0dec', 400: '0xa7c3a1b5' },
+  finalHash: '0xa7c3a1b5'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xae54c329' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xb6232e74' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

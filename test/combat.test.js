@@ -417,3 +417,50 @@ test('A91c control: a NON-nuclear attacker kills one defender, spares the stack,
     assert.strictEqual(survivors, 1, 'a normal attacker kills ONE sheltered defender at a time');
   }
 });
+
+// W2 SDI Defense (Civ 1, wiki-verified): the ONLY protection from a Nuclear Missile.
+// A city holding an SDI Defense building intercepts an incoming nuke at
+// rules.sdiInterceptPct (70%) — the missile is shot down (no detonation, the city
+// and its garrison survive), the one-shot attacker is still consumed.
+test('W2 SDI: an SDI city intercepts an incoming nuke — no detonation, garrison survives', async () => {
+  const { combat } = await load();
+  const RS = { ...RULESET, rules: { ...RULESET.rules, sdiInterceptPct: 100 } }; // force a hit
+  const W = 7, H = 7, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const units = {
+    u1: { id: 'u1', type: 'nuclear', owner: 'p1', x: 3, y: 2, moves: 16, fortified: false, veteran: false },
+    u2: { id: 'u2', type: 'phalanx', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false }
+  };
+  const st = miniState(tiles, W, H, units, {
+    cities: { c1: { id: 'c1', name: 'Shielded', owner: 'p2', x: 3, y: 3, pop: 6, food: 0, shields: 0, buildings: ['sdi-defense'], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1']
+  });
+  const res = combat.resolveAttack(st, st.units.u1, 3, 3, RS);
+  assert.strictEqual(res.ok, true);
+  assert.ok(res.events.some(e => e.type === 'nukeIntercepted' && e.cityId === 'c1'), 'nukeIntercepted emitted');
+  assert.ok(!res.events.some(e => e.type === 'cityNuked' || e.type === 'nukeFallout'), 'no detonation');
+  assert.strictEqual(st.cities.c1.pop, 6, 'the city is not halved');
+  assert.ok(st.units.u2 !== undefined, 'the garrison survives the interception');
+  assert.strictEqual(st.units.u1, undefined, 'the one-shot missile is still consumed');
+  assert.notStrictEqual(st.map.tiles[3 * W + 3].polluted, true, 'nothing fouled');
+});
+
+test('W2 SDI: interception is gated on the pct roll — pct 0 lets the nuke detonate', async () => {
+  const { combat } = await load();
+  const RS = { ...RULESET, rules: { ...RULESET.rules, sdiInterceptPct: 0 } }; // force a miss
+  const W = 7, H = 7, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const units = {
+    u1: { id: 'u1', type: 'nuclear', owner: 'p1', x: 3, y: 2, moves: 16, fortified: false, veteran: false },
+    u2: { id: 'u2', type: 'phalanx', owner: 'p2', x: 3, y: 3, moves: 1, fortified: false, veteran: false }
+  };
+  const st = miniState(tiles, W, H, units, {
+    cities: { c1: { id: 'c1', name: 'Shielded', owner: 'p2', x: 3, y: 3, pop: 6, food: 0, shields: 0, buildings: ['sdi-defense'], producing: { kind: 'unit', id: 'militia' } } },
+    cityOrder: ['c1']
+  });
+  const res = combat.resolveAttack(st, st.units.u1, 3, 3, RS);
+  assert.strictEqual(res.ok, true);
+  assert.ok(!res.events.some(e => e.type === 'nukeIntercepted'), 'no interception at pct 0');
+  assert.ok(res.events.some(e => e.type === 'cityNuked' && e.cityId === 'c1'), 'the nuke detonates through');
+  assert.strictEqual(st.cities.c1.pop, 3, 'the city is halved (6 -> 3)');
+});

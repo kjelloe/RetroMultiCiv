@@ -91,6 +91,8 @@ export function classifyEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
     case 'nukeFallout': // A91c: fallout fouled a ring tile — ambient (the strike row carries it)
       return null;
+    case 'nukeIntercepted': // W2 SDI: a nuke was shot down over a city — the owner hears the save, rivals see it
+      return cityOwner(e.cityId) === viewer ? 'cities' : 'rival';
     case 'saveCode': // synthetic client event (session-remote, A33)
       return 'saves';
     case 'regentTurn': // synthetic client event (session regency, B11)

@@ -169,6 +169,36 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     bumpRel(state, defender.owner, attacker.owner, 'grievance', ruleset.rules.diplomacy.relGrievanceOnAttack);
   }
 
+  // SDI Defense (Civ 1): a nuclear strike on a city that holds an SDI building is
+  // intercepted at rules.sdiInterceptPct — the missile is shot down, no detonation.
+  // The roll draws the shared RNG ONLY when a nuke actually targets an SDI city
+  // (never in the AI sim at its seeds), so the goldens stay behaviour-neutral.
+  if (atype.nuclearBlast === true) {
+    const sdiCity = cityAt(state, tx, ty);
+    if (sdiCity !== null) {
+      let sdi = false;
+      const sdiBldgs = sdiCity.buildings === undefined ? [] : sdiCity.buildings;
+      for (const b of sdiBldgs) {
+        if (ruleset.buildings[b].effect.blocksNuke === true) { sdi = true; break; }
+      }
+      if (sdi) {
+        const iroll = rollRange(state.rngState, 100);
+        state.rngState = iroll.rngState;
+        if (iroll.value < ruleset.rules.sdiInterceptPct) {
+          attacker.moves = attacker.moves - 1;
+          attacker.fortified = false;
+          const iev = [];
+          if (atype.oneShot) {
+            delete state.units[attacker.id];
+            iev.push({ type: 'unitConsumed', unitId: attacker.id, owner: attacker.owner, x: attacker.x, y: attacker.y });
+          }
+          iev.push({ type: 'nukeIntercepted', cityId: sdiCity.id, owner: sdiCity.owner, attackerOwner: attacker.owner, x: tx, y: ty });
+          return { ok: true, events: iev };
+        }
+      }
+    }
+  }
+
   let att = attackStrength(attacker, ruleset);
   // barbAtkPct is a WORLD difficulty knob: a BARBARIAN attacker's strength scales by
   // difficulties[level].barbAtkPct (applies all-AI too). Neutral 100 => identity.

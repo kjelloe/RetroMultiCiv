@@ -27,6 +27,8 @@ export function makeCatalogText(ruleset, opts) {
     corruptionReduction: v => `−${v}% corruption in this city`,
     shieldBonus: v => `+${v}% shields in this city`,
     boostsFactory: () => 'doubles the Factory bonus here',
+    obsoletesFactory: () => 'makes the Factory redundant (its shield bonus no longer applies)',
+    blocksNuke: () => 'intercepts a nuclear missile aimed at this city',
     isPalace: () => 'your capital — no corruption at the seat of power',
     contentEverywhere: v => `${v} content citizen${v > 1 ? 's' : ''} in every city`,
     happyEverywhere: v => `${v} happy citizen${v > 1 ? 's' : ''} in every city`,

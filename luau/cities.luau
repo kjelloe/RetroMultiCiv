@@ -1044,7 +1044,24 @@ local function cityShieldOutput(state: any, city: any, ruleset: any, workedIdx: 
 	if city.disorder == true then
 		shields = 0
 	end
-	local shieldPct = effectPct(city, ruleset, "shieldBonus")
+	-- Civ 1: shieldBonus buildings (Factory +50%, Mfg. Plant +100%). A Mfg. Plant OBSOLETES
+	-- the Factory (data effect obsoletesFactory) — the Factory's bonus no longer counts when
+	-- a Mfg. Plant is present (so Mfg+Factory = +100%, not +150%).
+	local bldgs = city.buildings or {}
+	local obsoletesFactory = false
+	for _, b in ipairs(bldgs) do
+		if ruleset.buildings[b].effect.obsoletesFactory == true then
+			obsoletesFactory = true
+			break
+		end
+	end
+	local shieldPct = 0
+	for _, b in ipairs(bldgs) do
+		local eff = ruleset.buildings[b].effect
+		if eff.shieldBonus == nil then continue end
+		if obsoletesFactory and eff.obsoletesFactory ~= true then continue end
+		shieldPct += eff.shieldBonus
+	end
 	if shieldPct > 0 then
 		local powered = false
 		for _, b in ipairs(city.buildings or {}) do

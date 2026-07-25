@@ -91,6 +91,8 @@ export function soundForEvent(e, viewer, cityOwner) {
       return cityOwner(e.cityId) === viewer ? 'combat-loss' : 'combat-distant';
     case 'nukeFallout': // A91c: fallout fouling — silent (the cityNuked/strike cue carries it)
       return null;
+    case 'nukeIntercepted': // W2 SDI: the missile was shot down — the owner hears a defensive cue; rivals faint
+      return cityOwner(e.cityId) === viewer ? 'found' : 'combat-distant';
     case 'hutEntered': // N13: own-seat village discovery cue (reuse 'found')
       return e.playerId === viewer ? 'found' : null;
     case 'ransomPaid': // N13: own-seat — a combat-win-flavoured payout
