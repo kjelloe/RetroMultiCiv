@@ -54,3 +54,27 @@ Exact glyphs, stage timings, copy tone, and the stellar/era frame treatment want
 ally's eye — I'll build each stage to the §1 spec and post a screenshot per moment for
 iteration rather than finalize unseen. Suggested first greenlight: S0 + S1 (scaffold +
 DEFEAT) as the proof-of-approach, then iterate S2–S4.
+
+## S2 renderer-level reveal — ally ruling 2026-07-25 night
+
+The ally reviewed the CSS-fade S2 (shipped in Founder's Record) and
+prefers a TRUE renderer-level reveal over the screen-layer fade: the
+actual terrain/cities/seas gradually receiving light via the real
+scene lighting, not an interface overlay lifting. Requested motion:
+war ends → held stillness → the world gradually lights → full globe
+visible → the Chronicle receives the result.
+
+RULING (architect + ally, non-blocking): renderer-level is the
+DEFINITIVE version, but explicitly NOT worth holding the release for
+— the ally's own words. The CSS fade stays as v1's shipped
+implementation; the animated version queues as a v1.x follow-up,
+after the D4–D6 arc.
+
+Entry point for whoever picks this up: the prerequisite is already
+shipped — `gameover-reveal` (marker-0102, `13d89e0`) means the server
+sends the unfiltered map at strict gameOver, and `setEndReveal(flag)`
+already un-dims explored tiles render-only (S2's existing hook). The
+remaining work is ANIMATION, not new data: interpolate the reveal
+(dim → lit) over the held-stillness beat instead of an instant flag
+flip, timed to the Moment stage machine. Client-only, render-only,
+golden-neutral by the same argument as the existing S2.
