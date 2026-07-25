@@ -159,7 +159,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline measured (~0 buildings); M3-pop 20<22 river breach now tied to this | **build-doctrine upside being MEASURED** (user ruled measure-first); promote/bank pending the 5-row table |
+| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); baseline ~0 buildings; M3-pop 20<22 river breach RULED advisory (de-ratcheted @9e42842, tracked to build-doctrine) | **build-doctrine upside being MEASURED** (user ruled measure-first); promote/bank pending the 5-row table |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
@@ -180,10 +180,10 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
    commits continue, tags don't, until it's back.
 3. **User gates remain:** merge marker-0104 (ready now, supersedes
    0103), the trademark search, the ONE Studio publish/acceptance
-   session, and the standing roblox Write allowlist. Plus one policy
-   call: the M3-pop 20<22 floor (re-pin 22→20 for the river world, or
-   leave at 22 and let build-doctrine restore it — sim-runner leans
-   leave-and-track).
+   session, and the standing roblox Write allowlist. The M3-pop floor
+   policy is RULED (user 2026-07-25): leave the value at 22, de-ratchet
+   to advisory (removed from the nightly --enforce-floors, @9e42842),
+   tracked to the build-doctrine granary fix — re-ratchet when it lands.
 
 _Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
 novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the
