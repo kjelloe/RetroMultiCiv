@@ -2661,9 +2661,12 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // §40: never queue a settler where completing it would self-disband the
       // city (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
       const settlerPopCost = ruleset.units['settlers'].popCost === undefined ? 0 : ruleset.units['settlers'].popCost;
-      // W6 slice-1: the §3a doctrine slot. A threatened city keeps the old path
-      // (walls-first below); an owed temple/granary preempts the settler loop.
-      const doctrine = threatened ? null : doctrineBuilding(state, city, me, ruleset);
+      // W6 slice-1: the §3a doctrine slot — an owed temple/granary preempts the
+      // settler loop. NOT threat-gated (slice-1b, sim-runner #2760): at 7-civ
+      // density `threatened` is chronic, and a threat gate here left coverage at
+      // 0.9% — a garrisoned city builds its granary under threat too; walls-first
+      // (canWall, below) still outranks the doctrine when the threat is actionable.
+      const doctrine = doctrineBuilding(state, city, me, ruleset);
       if (doctrine === null && city.pop > settlerPopCost
           && countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };

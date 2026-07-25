@@ -3013,9 +3013,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					-- §40: never queue a settler where completing it self-disbands the city
 					-- (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
 					local settlerPopCost = if ruleset.units["settlers"].popCost == nil then 0 else ruleset.units["settlers"].popCost
-					-- W6 slice-1: the §3a doctrine slot. A threatened city keeps the old path
-					-- (walls-first below); an owed temple/granary preempts the settler loop. TWIN.
-					local doctrine = if threatened then nil else doctrineBuilding(state, city, me, ruleset)
+					-- W6 slice-1: the §3a doctrine slot — an owed temple/granary preempts the
+					-- settler loop. NOT threat-gated (slice-1b, #2760: chronic threat at 7-civ
+					-- density left coverage at 0.9%); walls-first (canWall) still outranks. TWIN.
+					local doctrine = doctrineBuilding(state, city, me, ruleset)
 					if doctrine == nil and city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else

@@ -99,14 +99,23 @@ test('slice-1: doctrine satisfied -> the old settler behavior resumes', async ()
     'temple + granary in place -> expansion continues unchanged');
 });
 
-test('slice-1: threat still wins — a threatened city ignores the doctrine slot', async () => {
+test('slice-1: walls still outrank — a threatened unwalled city walls up first', async () => {
   const { ai, engine } = await load();
   const state = doctrineState(['pottery', 'masonry']);
-  // parked settlers hold the count at target (the B13g shape) so the walls branch is reachable
-  state.units.s1 = { id: 's1', type: 'settlers', owner: 'p1', x: 3, y: 4, moves: 0, fortified: false, veteran: false };
-  state.units.s2 = { id: 's2', type: 'settlers', owner: 'p1', x: 5, y: 4, moves: 0, fortified: false, veteran: false };
   state.units.e1 = { id: 'e1', type: 'legion', owner: 'p2', x: 8, y: 4, moves: 0, fortified: false, veteran: false };
   const after = ai.runAiTurn(engine, state, 'p1', RULESET);
   assert.strictEqual(after.cities.c9.producing.id, 'city-walls',
-    'B13g walls-first is untouched: threat outranks the doctrine');
+    'B13g walls-first is untouched: an actionable threat outranks the doctrine');
+});
+
+test('slice-1b: a threatened, garrisoned, WALLED city still builds its granary (no threat gate)', async () => {
+  const { ai, engine } = await load();
+  // chronic threat (#2760): with walls already up, the doctrine must fire under
+  // threat too — the old threat gate left coverage at 0.9% because 7-civ worlds
+  // are threatened most of the game
+  const state = doctrineState(['pottery', 'masonry'], { buildings: ['city-walls'] });
+  state.units.e1 = { id: 'e1', type: 'legion', owner: 'p2', x: 8, y: 4, moves: 0, fortified: false, veteran: false };
+  const after = ai.runAiTurn(engine, state, 'p1', RULESET);
+  assert.strictEqual(after.cities.c9.producing.id, 'granary',
+    'walled + garrisoned under chronic threat -> the granary still lands');
 });
