@@ -2068,6 +2068,45 @@ local function stanceBuilding(city: any, me: any, ruleset: any, S: any): string?
 	return nextBuilding(city, me, ruleset)
 end
 
+-- W6 build-doctrine slice-1 (§3a core loop, TWIN of ai.js doctrineBuilding):
+-- temple FIRST while the city is in disorder (happiness never optional), else
+-- granary BEFORE the settler loop (a high-food city defers it until
+-- buildDoctrine.granaryDeferPop), else temple AFTER the granary. nil =
+-- doctrine satisfied (or knobs absent = off). The payback lever can't see
+-- these (temple/granary yield no gold/bulbs — the R2 blind spot); reads the
+-- STORED disorder flag + cityYields; deterministic, no RNG.
+local function doctrineCanBuild(city: any, me: any, ruleset: any, id: string): boolean
+	local def = ruleset.buildings[id]
+	if def == nil then
+		return false
+	end
+	if city.buildings ~= nil and table.find(city.buildings, id) ~= nil then
+		return false
+	end
+	return def.tech == "" or table.find(me.techs, def.tech) ~= nil
+end
+local function doctrineBuilding(state: any, city: any, me: any, ruleset: any): string?
+	local d = ruleset.rules.buildDoctrine
+	if d == nil then
+		return nil
+	end
+	if city.disorder == true and doctrineCanBuild(city, me, ruleset, d.happinessBuilding) then
+		return d.happinessBuilding
+	end
+	if doctrineCanBuild(city, me, ruleset, d.growthBuilding) then
+		local surplus = cities.cityYields(state, city, ruleset).food - city.pop * 2 -- cities food arithmetic
+		if surplus >= d.highFoodSurplus and city.pop < d.granaryDeferPop then
+			return nil -- defer: growth first
+		end
+		return d.growthBuilding
+	end
+	if city.buildings ~= nil and table.find(city.buildings, d.growthBuilding) ~= nil
+		and doctrineCanBuild(city, me, ruleset, d.happinessBuilding) then
+		return d.happinessBuilding
+	end
+	return nil
+end
+
 -- The nearest own settler in the open with no adjacent military guard.
 local function nearestUnguardedSettler(state: any, unit: any, playerId: string, ruleset: any, radius: number): any
 	local best = nil
@@ -2974,7 +3013,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					-- §40: never queue a settler where completing it self-disbands the city
 					-- (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
 					local settlerPopCost = if ruleset.units["settlers"].popCost == nil then 0 else ruleset.units["settlers"].popCost
-					if city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
+					-- W6 slice-1: the §3a doctrine slot. A threatened city keeps the old path
+					-- (walls-first below); an owed temple/granary preempts the settler loop. TWIN.
+					local doctrine = if threatened then nil else doctrineBuilding(state, city, me, ruleset)
+					if doctrine == nil and city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
 						want = { kind = "unit", id = "settlers" }
 					else
 						-- B13g: a THREATENED city walls up first (masonry known, not
@@ -3013,6 +3055,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
+						elseif doctrine ~= nil then
+							-- W6 slice-1: temple/granary beat the army treadmill (§3a). TWIN.
+							want = { kind = "building", id = doctrine }
 						elseif defBuild ~= nil then
 							want = defBuild
 						elseif underArmy then

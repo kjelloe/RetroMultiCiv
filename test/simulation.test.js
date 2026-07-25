@@ -110,22 +110,31 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // sim-runner sweep. governments.json gained celebrateTradeBonus -> the createGame stamp
 // also ripples every createGame golden. GOLDEN_SOAK 0x27e4b6af.. / GOLDEN_NATURAL
 // 0x79a28572 / BEHAVIOR_SOAK 0xc5b392c9.. / BEHAVIOR_NATURAL 0x404fe91f. Honest re-record.
+// W6 slice-1 build-doctrine re-record: BEHAVIORAL by design (#28: EVERY BEHAVIOR checkpoint
+// moved, t100 included — granaries start inside the first 100 turns). The §3a core loop:
+// AI cities owe temple (disorder-first) + granary before the settler/army treadmill
+// (doctrineBuilding; knobs rules.buildDoctrine — also a createGame stamp ripple). The
+// natural game RETURNS to rounds 545 / winner p2 (the W4 365/p3 conquest butterfly was
+// seed-fragile; with buildings the world stabilizes and runs the full calendar). 25-seed
+// distribution + M3-floor check rides the sim-runner sweep. GOLDEN_SOAK 0x3390ce3c.. /
+// GOLDEN_NATURAL 0xcd33eb02 / BEHAVIOR_SOAK 0xaf6f4fe3.. / BEHAVIOR_NATURAL 0x3a017ee7.
+// Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0xb5e2f37b', 200: '0xe98f7580', 300: '0x3c47ccbc', 400: '0x27e4b6af' },
-  finalHash: '0x27e4b6af'
+  checkpoints: { 100: '0xda1bc41e', 200: '0xfaa78548', 300: '0xa3576f27', 400: '0x3390ce3c' },
+  finalHash: '0x3390ce3c'
 };
-const GOLDEN_NATURAL = { rounds: 365, winner: 'p3', finalHash: '0x79a28572' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xcd33eb02' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x7d88a531', 200: '0x6b608208', 300: '0xbf8e7a9a', 400: '0xc5b392c9' },
-  finalHash: '0xc5b392c9'
+  checkpoints: { 100: '0x04019e61', 200: '0x45856273', 300: '0x76b0a238', 400: '0xaf6f4fe3' },
+  finalHash: '0xaf6f4fe3'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x404fe91f' };
+const BEHAVIOR_NATURAL = { finalHash: '0x3a017ee7' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

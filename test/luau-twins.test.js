@@ -253,7 +253,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
       { cwd: REPO, encoding: 'utf8', timeout: 180000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xb5e2f37b\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xda1bc41e\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -311,9 +311,9 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // W4 WLTKD: governments.json celebrateTradeBonus stamp cascade (createGame move)
-      continents: '70010874', pangaea: '0793c6a9',
-      archipelago: '58b57b86', islands: '8a67565a'
+    const PINS = { // W6 slice-1: rules.json buildDoctrine knobs stamp cascade (createGame move)
+      continents: '7840c2b7', pangaea: '2bcffbb0',
+      archipelago: '9bc81f61', islands: 'b0b8a969'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -375,8 +375,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 // -> 0xb5d66cb8 (W3 score happy-citizen term: rules.json scorePerHappy — stamp).
 // -> 0x2302c281 (W4 WLTKD: governments.json celebrateTradeBonus — stamp; the ff probe's 25
 //    fast-forwarded turns land before any celebration on this seed).
+// -> 0x1c294a2a (W6 slice-1 build-doctrine: rules.json buildDoctrine knobs — stamp AND
+//    behavioral: the 25 fast-forwarded AI turns now build granaries/temples per §3a).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x2302c281 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x1c294a2a turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

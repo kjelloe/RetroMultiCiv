@@ -57,7 +57,9 @@ function leverWorld(over, cityOver, p1Over) {
 }
 
 test('lever: a saturated balanced city builds a short-payback marketplace over a unit', async () => {
-  const after = ai.runAiTurn(engine, leverWorld(), 'p1', RULESET);
+  // W6 slice-1: the §3a doctrine (granary/temple first) outranks the lever by
+  // design — satisfy it so this test keeps isolating its subject (payback vs unit)
+  const after = ai.runAiTurn(engine, leverWorld(undefined, { buildings: ['granary', 'temple'] }), 'p1', RULESET);
   const prod = after.cities.c1.producing;
   assert.strictEqual(prod.kind, 'building', `expected a building, got ${JSON.stringify(prod)}`);
   assert.strictEqual(prod.id, 'marketplace', `expected marketplace (shortest payback), got ${prod.id}`);

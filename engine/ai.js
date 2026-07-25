@@ -140,6 +140,39 @@ function stanceBuilding(city, me, ruleset, S) {
   return nextBuilding(city, me, ruleset);
 }
 
+// W6 build-doctrine slice-1 (§3a core loop): the doctrine building this city
+// owes RIGHT NOW — temple FIRST while the city is in disorder (happiness never
+// optional), else granary BEFORE the settler loop (a high-food city defers it
+// until buildDoctrine.granaryDeferPop — food already carries its growth), else
+// temple AFTER the granary. null = doctrine satisfied (or knobs absent = off).
+// The payback lever can't see these (temple/granary yield no gold/bulbs — the
+// R2 blind spot the baseline measured as 0 temples/656 cities), hence the
+// dedicated slot. Reads the STORED disorder flag (one verdict per turn) +
+// cityYields; deterministic, no RNG.
+function doctrineCanBuild(city, me, ruleset, id) {
+  const def = ruleset.buildings[id];
+  if (def === undefined) return false;
+  if (city.buildings !== undefined && city.buildings.indexOf(id) !== -1) return false;
+  return def.tech === '' || me.techs.indexOf(def.tech) !== -1;
+}
+function doctrineBuilding(state, city, me, ruleset) {
+  const d = ruleset.rules.buildDoctrine;
+  if (d === undefined) return null;
+  if (city.disorder === true && doctrineCanBuild(city, me, ruleset, d.happinessBuilding)) {
+    return d.happinessBuilding;
+  }
+  if (doctrineCanBuild(city, me, ruleset, d.growthBuilding)) {
+    const surplus = cityYields(state, city, ruleset).food - city.pop * 2; // cities.js food arithmetic
+    if (surplus >= d.highFoodSurplus && city.pop < d.granaryDeferPop) return null; // defer: growth first
+    return d.growthBuilding;
+  }
+  if (city.buildings !== undefined && city.buildings.indexOf(d.growthBuilding) !== -1
+      && doctrineCanBuild(city, me, ruleset, d.happinessBuilding)) {
+    return d.happinessBuilding;
+  }
+  return null;
+}
+
 function idiv(a, b) {
   return Math.floor(a / b);
 }
@@ -2628,7 +2661,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // §40: never queue a settler where completing it would self-disband the
       // city (pop <= its pop cost) — the AI guard (a human MAY, deliberately).
       const settlerPopCost = ruleset.units['settlers'].popCost === undefined ? 0 : ruleset.units['settlers'].popCost;
-      if (city.pop > settlerPopCost
+      // W6 slice-1: the §3a doctrine slot. A threatened city keeps the old path
+      // (walls-first below); an owed temple/granary preempts the settler loop.
+      const doctrine = threatened ? null : doctrineBuilding(state, city, me, ruleset);
+      if (doctrine === null && city.pop > settlerPopCost
           && countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
@@ -2679,6 +2715,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
+        } else if (doctrine !== null) {
+          // W6 slice-1: temple/granary beat the army treadmill (§3a — the whole
+          // point: shields flow to the core buildings the payback lever can't see)
+          want = { kind: 'building', id: doctrine };
         } else if (defBuild !== null) {
           want = defBuild; // stance-mix: the defending-builder's economy reserve
         } else if (underArmy) {
