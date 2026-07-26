@@ -50,14 +50,27 @@ a late-war game, where gold+lux fund the war and sci sits at 10–20%. The AI's
 war/peace rate posture should reflect this when Future Tech becomes reachable
 (long-horizon games; see the marathon measurement).
 
-## Confirmed as-is (user): nukes (3) and spaceship launches (7) need no
-doctrine work now.
+## 3. Nukes (user doctrine, added 2026-07-26 — was "as-is")
+
+In Civ 1 nukes were RARELY deployed offensively — typically only by the most
+aggressive civs/leaders, and only when trailing (2nd or 3rd place) with the
+game drawing to a close: 2100 AD approaching, or a spaceship already launched
+(the last-chance window). The trigger is therefore score-rank + endgame
+proximity + aggression, not mere availability. RETALIATION is the other half:
+once a civ uses nukes, the ATTACKED civ counter-attacks with its own — against
+cities, or against very large attacking stacks. (Doctrine shape: a
+desperation gate for first use; a retaliation flag that unlocks nuke-at-will
+against the aggressor.)
+
+## Confirmed as-is (user): spaceship launches (7) need no doctrine work now.
 
 ## Scope note — RULED (user, 2026-07-26)
 
 **War pair = v1**: pillage-siege (§5) + air-war (§4) fold into W6's
 war-adjacent slices (3/4) — small, authentic, visible in every game.
-**Econ pair = v1.x**: diplomats (§1) + caravans (§2) are new AI subsystems —
+**Econ pair + nukes = v1.x**: diplomats (§1), caravans (§2), and the nuke
+desperation/retaliation doctrine (§3 — near-unobservable before the marathon
+measurements anyway) are new AI subsystems —
 shelved to protect the 1.0 date; this spec is their opening backlog (the
 diplomat-thwart authenticity check still runs now so the answer is banked).
 Measurements (concept histogram, natural multi-seed, disasters-ON, and the
