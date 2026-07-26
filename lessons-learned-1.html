@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lessons learned #1 — agents & tooling</title>
+<style>
+  :root { --bg:#10131a; --card:#181d27; --ink:#dbe2ee; --dim:#8b95a7; --line:#2a3242;
+          --ok:#4fae5a; --warn:#d8a63b; --bad:#d85b4a; --acc:#5b8dd8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--ink);
+         font:15px/1.55 system-ui, sans-serif; max-width:980px; margin-inline:auto; }
+  h1 { font-size:1.5em; margin:0 0 4px; }
+  h2 { font-size:1.15em; margin:28px 0 10px; color:var(--acc); border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .sub { color:var(--dim); margin-bottom:18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin:10px 0; }
+  .card .t { font-weight:bold; margin-bottom:4px; }
+  .ok .t::before { content:"✅ "; } .bad .t::before { content:"⛔ "; }
+  .key .t::before { content:"⭐ "; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; font-size:0.95em; }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:#1d2431; }
+  code { background:#0d1016; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:0.92em; }
+  .meta { color:var(--dim); font-size:0.9em; }
+</style>
+</head>
+<body>
+<h1>Lessons learned #1 — multi-agent collaboration &amp; tooling</h1>
+<div class="sub">2026-07-26, written mid-W6 (build-doctrine window): four honest golden re-records,
+two falsified hypotheses, three gate-caught defects in one arc. Twin of <code>lessons-learned-1.md</code>.</div>
+
+<h2>Part 1 — Collaborating with other agents: what works</h2>
+
+<div class="card ok"><div class="t">Adversarial gates catch what tests cannot — run them on PUSHED shas</div>
+Slice-1a: fixtures 7/7, twins 11/11, clean-clone 0-fail — and behaviorally DORMANT (0.9% coverage);
+only the 25-seed measurement caught it. The 1b fix passed review + a 3-seed probe — the sweep caught
+the M3 collapse (25 → 15.25). Tests prove the mechanism; sweeps prove the <em>effect</em>.</div>
+
+<div class="card ok"><div class="t">Independent reproduction beats trust</div>
+The reviewer re-derives goldens under lune from git rather than believing commit messages. It turned
+"scary winner-flip" into "reproduces byte-identical JS==Luau = deterministic butterfly, not a bug".</div>
+
+<div class="card ok"><div class="t">Queue = obligation · mail = context · status = presence</div>
+Work travels as queue items (acked ≠ done), verdicts as mail (at-least-once, ack what you acted on),
+presence as one status line per lane. Blurring them stalls lanes silently — the session's one ambiguity
+(a stale "waiting" line over a taken queue item) cost a flag round-trip.</div>
+
+<div class="card ok"><div class="t">Locks are leases; pathspec-scope every commit</div>
+Three agents, one tree: 45-min lock leases + explicitly-named files per commit. <code>git stash push --
+&lt;files&gt;</code> saved a lane's WIP through a rebase. Corollary: casual <code>git checkout &lt;file&gt;</code>
+wiped an uncommitted change once — never do it on a shared tree.</div>
+
+<div class="card ok"><div class="t">Serialize stamp-shifting golden windows</div>
+Two windows that both touch rulesetHash data ripple the SAME createGame-stamp goldens — whoever runs the
+sim picks up the other's uncommitted change. Only golden-neutral work parallelizes.</div>
+
+<div class="card ok"><div class="t">Task openings: "git pull origin dev_night — expect tip &lt;sha&gt;"</div>
+Removes the whole reviewed-the-wrong-tree failure class for remote-clone lanes.</div>
+
+<div class="card ok"><div class="t">Blocked lanes raise their hand; silence is never a status</div>
+The blocked→ruling loop resolved the M3 regression in one cycle because the lane mailed BLOCKED with the
+full floor table instead of idling.</div>
+
+<div class="card ok"><div class="t">Report state, not agency</div>
+"M3-pop 15.5 FAILS floor 22, do not tag" is routable without reading the body. Build-log voice keeps
+verdicts machine-checkable.</div>
+
+<div class="card ok"><div class="t">Proactive lanes accelerate — when they hold no design authority</div>
+Proactive W5 gate + proactive sweeps sped the arc; safe because measure/review lanes label their output
+"advisory / your call".</div>
+
+<div class="card ok"><div class="t">User rulings are design inputs — fetch them at the fork</div>
+W4 scope, the 1c knob, the 1d role-discipline ruling: each one targeted question with concrete options and
+a recommendation, at the moment the fork was reached — not forgiveness afterwards.</div>
+
+<h2>Part 1b — What does not work</h2>
+<div class="card bad"><div class="t">Green tests as evidence of effect</div>Effects are measured by direct count in the wild config, never inferred from passing fixtures or moved hashes.</div>
+<div class="card bad"><div class="t">Small-sample probes as gate evidence</div>1 seed said 73%, 3 seeds said fine, 25 seeds said FAIL. Probes choose between variants; only the canonical sweep gates. Re-learned twice in one window.</div>
+<div class="card bad"><div class="t">Inline mail bodies / heredoc-into-send</div>Hook-blocked: they stream bodies through transcripts. Always Write the body file, then <code>send --body-file</code>.</div>
+<div class="card bad"><div class="t">Assuming a lane's environment</div>A lane lost Write/lune approvals mid-arc. Fix: commit probes into the repo (<code>debugging/probe-peace.js</code>) so remote lanes only need read+run.</div>
+<div class="card bad"><div class="t">"Known flakes" unread</div>Every not-ok name gets read; the one tolerated local red (B13 witness) is verified-gitignored and re-verified each window.</div>
+
+<h2>Part 2 — /tmp scratchpad vs ./debugging</h2>
+<div class="card"><div class="t">Session scratchpad (/tmp/…/scratchpad/)</div>
+One-shot diagnostics, mid-calibration probe variants, mail body files. Dies with the session — right for
+exploration, fatal for anything a remote lane or future session needs.</div>
+<div class="card"><div class="t">./debugging/ (committed)</div>
+Probes a write-blocked remote lane must run, witnesses reused across slices, measurement configs worth
+repeating. The moment a scratch probe proves useful twice, commit it. The standing scripts
+(<code>t.sh</code>, <code>peek.sh</code>, <code>shoot.sh</code>, <code>killport.sh</code>, <code>triage.sh</code>)
+replace ad-hoc pipes — use them.</div>
+
+<h2>Part 2b — The simulator stack: load-bearing tools</h2>
+<table>
+<tr><th>Tool / pattern</th><th>Why it is critical</th></tr>
+<tr><td><code>runSim(opts)</code> (test/sim-driver.js)</td><td>The universal probe substrate — seeds, size, civs, chaos, difficulty, <code>roster</code> (pick specific civs, e.g. a low-aggression pair), rulesOverrides. Every diagnostic this window was ~30 lines on top of it.</td></tr>
+<tr><td>GOLDEN vs BEHAVIOR hashes (#28)</td><td>The stamp/behavior discriminator. Null-and-run the GOLDEN pins and read whether BEHAVIOR moved; t100-held + later-moved doubles as anti-paste-back proof.</td></tr>
+<tr><td><code>soak.js --seeds N --stats --enforce-floors</code></td><td>The authoritative multi-seed truth + the M-floor ratchet. A floor enters enforcement only in the commit where the sim-runner confirms the median clears it.</td></tr>
+<tr><td>Probe-before-pin</td><td>Any surprising golden (winner flip, early end) gets a direct final-state probe BEFORE the pin commits, so the re-record header states what the ending IS.</td></tr>
+<tr><td>Committed witnesses</td><td>Fixed configs re-run per slice as acceptance tests. A falsified witness (2-civ ≠ peace) is renamed and kept — it measures the other extreme.</td></tr>
+<tr><td><code>tools/replay.js</code> + twins gate (lune)</td><td>Divergence bisection + the cross-language contract. "Byte-identical JS==Luau" is the strongest sentence in any verdict.</td></tr>
+</table>
+
+<h2>Part 2c — Patterns to keep</h2>
+<div class="card key"><div class="t">Fixture-first, always</div>The pre-implementation failure is part of the evidence.</div>
+<div class="card key"><div class="t">Measure in the canonical config</div>Golden-seed sims are for determinism; effect sizes come from 7-civ medium.</div>
+<div class="card key"><div class="t">Honest re-record headers</div>Every pin block states what moved, why, the classification, and the probe numbers — the file is the audit trail.</div>
+<div class="card key"><div class="t">Background long runs; read outputs from files</div>And never let <code>tail</code> eat the failing test's name.</div>
+<div class="card key"><div class="t">Kill contaminated runs</div>A baker/sim started before a knob flip is poisoned data — stop it, don't reason about it.</div>
+<div class="card key"><div class="t">Surgical edits over whole-file rewrites</div>Script-driven JSON rewrites re-serialize and churn the diff; use targeted edits.</div>
+<div class="card key"><div class="t">Skills for recurring asks</div><code>sync-pass</code>, <code>marker</code>, <code>status-report</code>: checklists beat memory for anything asked verbatim more than twice.</div>
+
+<h2>The meta-lesson</h2>
+<div class="card"><div class="t">Where the expensive defects actually live</div>
+Never in the code the tests covered — in the <em>interactions</em> (garrison floor × threat gate ×
+settler loop) that only whole-game measurement exposes. The system that catches them: fixture-first
+tests (mechanism) + twins gate (portability) + 25-seed sweeps (effect) + independent review (honesty) +
+a user ruling at each design fork (intent). Remove any leg and a plausible-but-wrong change ships.</div>
+
+<div class="meta">Generated 2026-07-26 mid-W6 · tip at time of writing: 3432e43</div>
+</body>
+</html>
