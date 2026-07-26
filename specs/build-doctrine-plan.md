@@ -96,3 +96,11 @@ off. Two legs:
    home — the second reason the peace pair stalled at 2 cities). With sites
    discovered and the garrison stable, the §3a settler flow reaches the good
    sites and the doctrine builds behind it.
+
+- **1c sweep VERDICT (#2774): M3-pop FAILS — 15.5 vs floor 22; cities 4.25 (no recovery
+  from 1b's 4.5). The 3-seed calibration probe was optimistic; 25-seed is authoritative
+  (lesson re-taught). NO marker on 1a-1c. Slice-1d (garrison stickiness + scouting-never-
+  zero, user-ruled above) is the fix layer — with the floor open, settlers AND doctrine
+  both flow. NOTE: M2-cities 4.25 < enforced floor 6 -> the NIGHTLY canonical soak will
+  red on the current tip until 1d lands (known-open, mid-window). Peace-witness huge-map
+  variant: no eliminations but still lopsided combat — true-peace parked per rule.**
