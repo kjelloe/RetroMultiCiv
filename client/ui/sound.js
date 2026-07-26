@@ -80,6 +80,11 @@ const TUNES = {
     NOTE.D4, NOTE.G4, NOTE.C5, NOTE.G4, NOTE.E4, NOTE.G4, NOTE.C4, NOTE.C4] }
 };
 
+// Exported for tools/render-sounds.js (the Roblox asset renderer): the recipe
+// table IS the sound design — rendering imports it so files can never drift
+// from the browser cues. No behavior change.
+export { RECIPES, TUNES };
+
 export function initSound(ctx) {
   const opt = ctx.options;
   let actx = null;      // created lazily (autoplay policy: needs a user gesture)
