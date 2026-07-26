@@ -57,6 +57,29 @@ function tuneToRecipe(tune) {
     notes: tune.notes.map((f, i) => [f, i * tune.tempo, tune.tempo * 0.9]) };
 }
 
+// Loudness floor (user feedback 2026-07-26: triangle/sine cues inaudible as
+// standalone files — those waves carry far less RMS than square/saw at equal
+// gain; the in-game mix masked it). Boost any file whose RMS over its
+// SOUNDING samples (|v| > 0.001) is under TARGET_RMS up to the target,
+// peak-clamped; louder files pass through untouched.
+const TARGET_RMS = 0.09;
+const PEAK_CLAMP = 0.85;
+function loudnessFloor(samples) {
+  let sum = 0, count = 0, peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const a = Math.abs(samples[i]);
+    if (a > 0.001) { sum += samples[i] * samples[i]; count++; }
+    if (a > peak) peak = a;
+  }
+  if (count === 0) return { samples, boost: 1 };
+  const rms = Math.sqrt(sum / count);
+  if (rms >= TARGET_RMS) return { samples, boost: 1 };
+  let boost = TARGET_RMS / rms;
+  if (peak * boost > PEAK_CLAMP) boost = PEAK_CLAMP / peak;
+  for (let i = 0; i < samples.length; i++) samples[i] *= boost;
+  return { samples, boost };
+}
+
 function writeWav(file, samples) {
   // soft-clip + convert to PCM16
   const n = samples.length;
@@ -80,17 +103,33 @@ function writeWav(file, samples) {
   fs.mkdirSync(outDir, { recursive: true });
   const rows = [];
   for (const [id, recipe] of Object.entries(RECIPES)) {
-    const samples = renderRecipe(recipe);
+    const { samples, boost } = loudnessFloor(renderRecipe(recipe));
     const file = path.join(outDir, `${id}.wav`);
     writeWav(file, samples);
-    rows.push({ id, seconds: +(samples.length / RATE).toFixed(2), file: `${id}.wav` });
+    rows.push({ id, seconds: +(samples.length / RATE).toFixed(2), file: `${id}.wav`, boost });
   }
   for (const [name, tune] of Object.entries(TUNES)) {
-    const samples = renderRecipe(tuneToRecipe(tune));
+    const { samples, boost } = loudnessFloor(renderRecipe(tuneToRecipe(tune)));
     const file = path.join(outDir, `tune-${name}.wav`);
     writeWav(file, samples);
-    rows.push({ id: `tune-${name}`, seconds: +(samples.length / RATE).toFixed(2), file: `tune-${name}.wav` });
+    rows.push({ id: `tune-${name}`, seconds: +(samples.length / RATE).toFixed(2), file: `tune-${name}.wav`, boost });
   }
-  for (const r of rows) console.log(`${r.file}  ${r.seconds}s`);
+  for (const r of rows) console.log(`${r.file}  ${r.seconds}s${r.boost > 1 ? `  (boosted ${r.boost.toFixed(1)}x)` : ''}`);
+  // The mix worksheet: assets are equal-loudness; the ORIGINAL browser mix is
+  // exactly 1/boost — emit it as the recommended Roblox Sound.Volume so the
+  // in-game balance reproduces the approved browser design.
+  const ws = ['| cue | file | suggested Roblox Volume | assetId (fill at upload) |',
+    '|---|---|---|---|'];
+  for (const r of rows) {
+    const vol = Math.max(0.15, Math.min(1, 1 / r.boost));
+    ws.push(`| ${r.id} | ${r.file} | ${vol.toFixed(2)} | |`);
+  }
+  fs.writeFileSync(path.join(outDir, 'VOLUMES.md'),
+    '# Roblox SoundId worksheet — equal-loudness assets + the browser mix as Volume\n\n'
+    + 'Files are loudness-normalized for upload; the "suggested Roblox Volume" column\n'
+    + 'restores the approved browser mix (it is the normalization inverted). Paste the\n'
+    + 'assetIds in at upload time; this table then drops into roblox/acceptance/.\n\n'
+    + ws.join('\n') + '\n');
+  console.log('VOLUMES.md written (mix worksheet with suggested Sound.Volume per cue)');
   console.log(`\n${rows.length} files -> ${outDir}`);
 })();
