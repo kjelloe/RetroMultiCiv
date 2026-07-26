@@ -104,3 +104,14 @@ off. Two legs:
   both flow. NOTE: M2-cities 4.25 < enforced floor 6 -> the NIGHTLY canonical soak will
   red on the current tip until 1d lands (known-open, mid-window). Peace-witness huge-map
   variant: no eliminations but still lopsided combat — true-peace parked per rule.**
+
+- **1d @bec9658 — garrison role discipline LANDED (user-ruled).** Fortified-in-city
+  units hold their post unless the guard floor survives without them (escort/march
+  never checked `fortified`); the brain's stay-home floor aligned with production's
+  wantDefenders (#2775 second leg). Scouts still range. ACCEPTANCE (peace pair,
+  seed 2 t400): 124 cities + 18% temple/granary coverage (from 0.0%) + 436 pop,
+  calendar ending restored. Fixtures: garrison 3/3 revert-proofed; the ff abort
+  fixture made deterministic-by-construction; wonder-drive re-pinned seed 12.
+  RUNTIME: soak double-run 3.5→36 min (denser worlds = the doctrine working);
+  lune smoke timeouts 180→600s. Twins 11/11 (the gate caught a twin nil-call
+  pre-push). FINAL gate round queued (sweep = the slice-1 marker verdict).
