@@ -7,11 +7,14 @@ that implement them (scheduling ruled separately — see the scope note at end).
 ## 1. Diplomats (the D6 AI gap)
 
 - **Defensive**: the AI should keep at least one diplomat in an IMPORTANT
-  BORDER CITY to thwart enemy diplomat attacks. **AUTHENTICITY CHECK ROUTED**
-  (reviewer pre-design): is diplomat-thwarts-diplomat a Civ 1 mechanic or a
-  Civ 2/4 concept? (If Civ2+, it enters via the civ-mixing ruling — label
-  provenance, user decides.) NOTE: the current engine has no thwart mechanic —
-  missions roll unopposed — so this is engine surface + AI doctrine.
+  BORDER CITY to thwart enemy diplomat attacks. **AUTHENTICITY VERDICT
+  (reviewer #2798): counter-espionage is CIV 2** — Civ 1 diplomats are
+  offense-only (the dump's Civ2 pages document the garrisoned-defender
+  intercept: 20%/diplomat compounding, 40%/spy). Civ 1's only limiter is the
+  once-per-city steal immunity, which our engine already implements. So the
+  defensive half enters via the civ-mixing ruling AT THE v1.x WINDOW: label
+  Civ2 provenance, copy the Civ2 shape (compounding per-garrison intercept,
+  ALONGSIDE the Civ1 once-per-city immunity), user decides adoption.
 - **Offensive (steal)**: a civ LAGGING IN TECH but with production capacity
   and sufficient garrison builds diplomats to steal tech from neighbors —
   especially when its reputation with that neighbor is already bad (nothing
@@ -33,7 +36,9 @@ In original Civ 1, the AI typically OPENED city assaults by pillaging roads/
 railroads on the approach to the city, then around it — a siege posture that
 cuts the defender's trade/production and reinforcement speed before the
 assault. The current war doctrine (mass → odds-gated assault) skips this
-entirely; adding it is an authenticity win.
+entirely. PROVENANCE (reviewer #2798): plausible but NOT wiki-backed — the
+dump doesn't document AI pillage patterns; this ships v1 on the user's
+~1000h recall, labeled recalled-behavior (civ-mixing convention).
 
 ## 4. Air units (late-era war doctrine)
 
