@@ -294,3 +294,26 @@ Options → world look → flip retro/enhanced live → screenshot both →
 pick (a) retro-faithful, (b) enhanced, or (c) enhanced-with-notes
 (tweaks become the bigger-lift backlog). Quick-win = Tier-2 polish;
 bigger-lift = this workstream's backlog, ordered by the user's pick.
+
+## The 1.0 parity appendix (user-ruled 2026-07-26, from the #2777 parity-delta audit)
+
+**Ruling: everything functional closes to the browser/mobile 1.0 experience;
+post-1.0 = D4–D6 diplomacy client UI + ALL style/size/font/placement polish.**
+
+1.0-CLOSE list (roblox-helper):
+1. WLTKD narration — turnlog celebrate cases + a CityPanel celebrate line (mirror
+   client/ui/turnlog.js @8c50ceb; the luau engine events already flow).
+2. Endscreen itemization — add happyPts (W3) + futurePts (XII.2) to the server
+   endscreen frame + the breakdown format (totals already correct via the twin).
+3. SO6 — turn-log classes/filters/jump-to (the cert PARTIAL).
+4. Statistics — battles/wonders timelines (cert PARTIAL; score-over-time live).
+5. Breakdown tooltips — the remaining surfaces (cert PARTIAL).
+6. MP4 — regency stance-select + narration lines (cert PARTIAL).
+
+POST-1.0 (ruled): D4–D6 diplomacy client surfaces (data layer already
+twin-faithful); all UI style/size/fonts/placement adjustments; the decorative
+tile-props art pass (style bucket). STANDING v1 divergences (old rulings stand,
+re-confirmed): build-queue per-item reorder/remove; lobby per-seat civ pick.
+INTENTIONAL/N-A (confirmed by audit): Founder's-Record-shape endgame (roblox has
+its own user-directed flow), join-share QR (no URLs on Roblox), mobile-web UX
+rows (platform equivalents exist).
