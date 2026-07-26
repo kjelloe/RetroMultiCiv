@@ -4,7 +4,27 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-25 (night) — **marker-0107 TAGGED @8c50ceb =
+Last updated: 2026-07-26 — **W6 build-doctrine window OPEN, mid-arc**
+(the LAST engine window; merge candidate remains **marker-0107** —
+slices land on dev_night unmarked until the gates pass). Slice arc so
+far: **1a** doctrineBuilding (temple/granary §3a core loop) @6fc9d6a —
+gates caught it DORMANT (0.9% coverage; chronic threat). **1b** threat-
+gate drop @00c3267 — coverage 3× but **M3-pop regressed 25→15.25**
+(granary-first crowded out settlers; sweep-caught, do-not-tag). **1c**
+defer-knob calibration @2728152 (user-ruled; deferPop 3 + surplus 2,
+3-variant measured) — sweep still **M3 FAIL 15.5**. Diagnosis
+(peace-witness + reviewer #2775 corroboration): **GARRISON ROAM** —
+escort/march never checked `fortified`, and the brain's stay-home floor
+disagreed with production's wantDefenders, so cities rebuilt militia
+forever and the whole settler/doctrine/econ block was unreachable.
+**1d IN FLIGHT** (user role-discipline ruling: garrison holds its post,
+scouts still range): fortified-hold + floor alignment landed in JS+twin,
+garrison fixtures 3/3 revert-proofed; peace-witness acceptance + re-record
++ gates pending. NOTE: nightly M2-cities will red mid-window (known-open).
+New standing witnesses: the 2-civ DUEL witness (falsified peace v1) +
+the personality-selected peace pair (chinese+germans, probe-peace.js).
+`lessons-learned-1.md`/`.html` written (agent collaboration + tooling).
+--- prior: **marker-0107 TAGGED @8c50ceb =
 MERGE-CONSISTENT** (supersedes 0106 as the merge candidate). **W4
 We-Love-the-King-Day @b813bbc, BOTH GATES GREEN**: reviewer #2753
 (clean-clone 959/956/0-fail; the behavioral signature t100-held +
@@ -89,7 +109,7 @@ flowchart TD
     W2E["✅ W2 building effects (@a7f9da7, 0105): Mfg.\nPlant +100%/obsoletes-Factory + SDI nuke-intercept\n(rollRange<70); STAMP-only (reviewer lune-verified\nBEHAVIOR byte-identical); scenario 066 0x7d67d913"]
     W3E["✅ W3 score term (@aa6197e, 0106): scoreBreakdown\n+happy = happyCitizens*scorePerHappy (spec §10);\nSTAMP-only (reviewer GREEN #2741); pollution\ndeferred off-in-v1"]
     W4E["✅ W4 We-Love-the-King-Day (@b813bbc, 0107):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365 p3, deterministic\nbutterfly); both gates GREEN; + W5 relabel @a5b5808"]
-    W6E["🧩 W6 build-doctrine (5 slices, LAST —\nclears M3-pop advisory)"]
+    W6E["🔨 W6 build-doctrine OPEN (slice-1 arc:\n1a dormant → 1b M3-regress → 1c still-FAIL →\ngarrison-roam diagnosed → 1d role-discipline\nIN FLIGHT; then slices 2-5)"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
     D6S --> W1E --> W2E --> W3E --> W4E --> W6E
@@ -177,7 +197,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | ✅ v1 targets met — bar REOPENED (XX §3); measurement DONE (buildings ~0: 5/87 civs built any; wonders ~0; tech cap ~30; 0 launches); M3-pop 20<22 advisory | **build-doctrine PROMOTED — full 5-slice window** (user ruled; W6 of the engine program); clears the M3 advisory on landing |
+| 3 | AI at M-targets | 🔨 **W6 slice-1 arc mid-flight**: 1a dormant → 1b M3-regress (25→15.25) → 1c still-FAIL 15.5 → garrison-roam DIAGNOSED (escort/march ignored `fortified`; floors misaligned) — 1d role-discipline (user-ruled) landed in tree, gates pending | 1d re-gate (sweep M3≥22 + coverage recovery) → slice-1 marker + M3 ratchet; then slices 2–5 |
 | 1b | Civ1 feature faithfulness (audit) | **✅ CLOSED (0107)** — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅ | — (axis closed) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
