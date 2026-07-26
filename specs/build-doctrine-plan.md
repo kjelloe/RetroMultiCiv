@@ -131,3 +131,10 @@ specifically (§3a) — is slice-3's city-roles machinery by nature. W6 is now:
 **slice-3 (city roles + the v1 war pair: pillage-siege + air-war) →
 slice-4 (frontier walls) → slice-5 (wonders appetite).** One golden window
 saved; the measure-first discipline paid for itself again.
+
+- **WAR_DECLARED histogram anomaly RESOLVED (code inspection, 2026-07-26):** not a
+  gap — D1's default relation is implicit hostility; formal declaration exists only
+  as treaty-breaking (AI declares solely from standing peace on war-intent recovery).
+  The histogram game's combats ran from the default relation and its one treaty was
+  never broken → 0 declarations is correct + Civ1-shaped. The sim-runner owner-tally
+  is now optional corroboration, not a blocker.
