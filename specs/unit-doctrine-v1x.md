@@ -53,10 +53,13 @@ war/peace rate posture should reflect this when Future Tech becomes reachable
 ## Confirmed as-is (user): nukes (3) and spaceship launches (7) need no
 doctrine work now.
 
-## Scope note
+## Scope note — RULED (user, 2026-07-26)
 
+**War pair = v1**: pillage-siege (§5) + air-war (§4) fold into W6's
+war-adjacent slices (3/4) — small, authentic, visible in every game.
+**Econ pair = v1.x**: diplomats (§1) + caravans (§2) are new AI subsystems —
+shelved to protect the 1.0 date; this spec is their opening backlog (the
+diplomat-thwart authenticity check still runs now so the answer is banked).
 Measurements (concept histogram, natural multi-seed, disasters-ON, and the
 post-slice-2 additions: 14-civ scaling + endYear-9999 marathon) are all
 approved — run them all, but they must NOT block the road to 1.0 if they drag.
-The IMPLEMENTATION scheduling of the four doctrine packages above (v1 window
-vs v1.x) is ruled separately.

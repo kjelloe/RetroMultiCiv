@@ -163,3 +163,9 @@ here per the civ-mixing ruling (surface + decide, label provenance):
   Discussion: overlaps the existing seaPathRadius/open-sea-risk knobs;
   a tech gate would need AI beeline awareness (needsOcean-v2 already
   fog-honest) — engine window, low value while hull-gating works.
+
+- **AI unit-doctrine econ pair (RULED v1.x, user 2026-07-26):** diplomat doctrine
+  (border-city defense pending the Civ1-thwart authenticity check + lagging-civ
+  tech-steal + incite/sabotage assault prep) and caravan doctrine (peace-economy
+  routes + wonder-help chains). Spec: `specs/unit-doctrine-v1x.md` §1–2. The war
+  pair (pillage-siege + air-war) went into W6 v1 scope.
