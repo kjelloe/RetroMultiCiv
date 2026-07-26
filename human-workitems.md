@@ -8,8 +8,8 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-25 night (tip 8c50ceb; **marker-0107
-merge-consistent** — supersedes 0102–0106; the box runs 0101)._
+_Last synced: 2026-07-25 night (tip 8c50ceb; **marker-0108
+merge-consistent** — supersedes 0102–0107; the box runs 0101)._
 
 ---
 
@@ -27,8 +27,8 @@ merge-consistent** — supersedes 0102–0106; the box runs 0101)._
   for the clone's `roblox/**` — or add it to that clone's
   `.claude/settings.local.json` allowlist so it survives session
   restarts (this is the third per-session re-block tonight).
-- [ ] **A3. Merge the save point:** **marker-0107** (@8c50ceb) is the
-  latest merge-consistent marker (supersedes 0102–0106):
+- [ ] **A3. Merge the save point:** **marker-0108** (@6796e2e) is the
+  latest merge-consistent marker (supersedes 0102–0107):
   `git fetch origin --tags && git checkout main && git merge
   marker-0107 && git push`. It carries the whole 0103–0107 run: river
   final + D4–D6 diplomacy arc + engine program W1–W5 (incl. W4

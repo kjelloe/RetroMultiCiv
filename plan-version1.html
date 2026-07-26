@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-26</strong> — W6 window OPEN mid-arc (slice-1d in flight)</span>
-    <span class="chip">Merge candidate: <strong>marker-0107</strong> @ 8c50ceb (MERGE-CONSISTENT — W4 WLTKD + W5 + client surface; supersedes 0106)</span>
-    <span class="chip"><strong>Engine program: 5 of 6 done · W6 OPEN</strong> — slice-1 arc: 1a dormant → 1b M3-regress → 1c FAIL → 1d role-discipline in flight</span>
+    <span class="chip">Updated: <strong>2026-07-26</strong> — marker-0108: W6 SLICE-1 COMPLETE (M3 62 = 4× floor)</span>
+    <span class="chip">Merge candidate: <strong>marker-0108</strong> @ 6796e2e (MERGE-CONSISTENT — W6 slice-1 + parity appendix; supersedes 0107)</span>
+    <span class="chip"><strong>W6 slice-1 ✅ (0108)</strong> — slices 2–5 remain (science/trade → roles → walls → wonders)</span>
   </div>
 </header>
 
@@ -114,7 +114,7 @@
       <li><span class="st done">✅</span><strong>W2 building effects DONE</strong> — @a7f9da7 (marker-0105): Mfg. Plant +100%/obsoletes-Factory + SDI nuke-intercept (rollRange&lt;70), STAMP-only (reviewer lune-verified BEHAVIOR byte-identical, AI-buildable Mfg-Plant risk cleared), scenario 066 0x7d67d913 JS==Luau, reviewer-gated #2736</li>
       <li><span class="st done">✅</span><strong>W3 score term DONE</strong> — @aa6197e (marker-0106): scoreBreakdown +happy = happyCitizens*scorePerHappy (spec §10, pollution deferred off-in-v1), STAMP-only (score not hashed/AI doesn't read it → only endYear winner is a surface, unchanged), twins 11/11 lune, reviewer GREEN #2741</li>
       <li><span class="st done">✅</span><strong>W4 We-Love-the-King-Day DONE</strong> — @b813bbc (marker-0107): celebrate flag at the wrap (happy*2&gt;=pop, 0 unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles (Civ1-faithful, user-ruled, no rapture). BEHAVIORAL (natural 545→365, p2→p3 — reviewer-verified deterministic butterfly, byte-identical JS==Luau); gates GREEN: reviewer #2753 clean-clone 959/0-fail + sim-runner #2755 sweep 25/25. Scenario 067 0x56151fa5 JS==Luau. + W5 re-home relabel @a5b5808 (comment-only) + WLTKD client surface @8c50ceb (bugfixer)</li>
-      <li><span class="st now">🔨</span><strong>W6 build-doctrine OPEN — the LAST engine window, slice-1 arc mid-flight</strong>. 1a doctrineBuilding @6fc9d6a (gates caught it DORMANT: 0.9% coverage, chronic threat) → 1b threat-gate drop @00c3267 (coverage 3× but M3-pop regressed 25→15.25 — sweep-caught) → 1c defer calibration @2728152 (user-ruled; still M3 FAIL 15.5) → <strong>garrison-roam DIAGNOSED</strong> (peace witness + reviewer #2775: escort/march never checked <code>fortified</code>, stay-home floor ≠ production's wantDefenders — cities rebuilt militia forever, the whole settler/doctrine/econ block unreachable) → <strong>1d role-discipline in flight</strong> (user ruling: garrison holds its post, scouts still range; fortified-hold + floor alignment in JS+twin, fixtures 3/3 revert-proofed, peace-witness acceptance + re-record + gates pending). Slices land unmarked until gates pass; nightly M2 red expected mid-window. New witnesses: 2-civ duel + personality-selected peace pair. See specs/build-doctrine-plan.md delivery log</li>
+      <li><span class="st done">✅</span><strong>W6 SLICE-1 COMPLETE</strong> — @6796e2e (marker-0108): the doctrine (1a) + defer calibrations (1b/1c, user-ruled) + garrison role discipline (1d, user-ruled). M3-pop 15.5→<strong>62</strong> (4× floor 22, RE-RATCHETED into nightly), M2-cities 16, M4-impr 91.5%, temple/granary coverage 0→<strong>57.3%</strong> (reviewer direct count), cities 5.7×; sweep 25/25 (the 2 "fails" were a checker gap — ss-part productions: <strong>the space race is live in sweeps for the first time</strong>); reviewer CLEAN ×2; twins 11/11 (caught a twin nil-call pre-push); peace witness (user-designed defensive pair) = the acceptance instrument. Runtime finding: soak 3.5→36 min (denser worlds). reports/marker-0108.md</li>
     </ol>
   </div>
 </section>
@@ -145,7 +145,7 @@
     <tr><th>#</th><th>Axis</th><th>State</th><th>Remaining</th></tr>
     <tr class="g"><td>1</td><td>Every Civ 1 system faithful</td><td><strong>RIVER COMPLETE</strong> — all terrains in, ally-accepted, floors re-baselined by ruling</td><td>workturns/transforms companion (banked)</td></tr>
     <tr class="g"><td>2</td><td>Diplomacy full D1–D6</td><td><strong>✅ COMPLETE</strong> — D1–D3 · 11b · D4 · D5 · D6 all LANDED + TAGGED (marker-0104)</td><td>— (axis closed)</td></tr>
-    <tr><td>3</td><td>AI at M-targets</td><td>🔨 <strong>W6 slice-1 arc mid-flight</strong>: 1a dormant → 1b M3-regress (25→15.25) → 1c still-FAIL 15.5 → garrison-roam diagnosed — 1d role-discipline landed in tree, gates pending</td><td>1d re-gate (sweep M3≥22 + coverage recovery) → slice-1 marker + M3 ratchet; then slices 2–5</td></tr>
+    <tr><td>3</td><td>AI at M-targets</td><td><strong>✅ W6 slice-1 COMPLETE (0108)</strong> — M3-pop 62 (4× floor, RE-RATCHETED), M2 16, M4 91.5%, coverage 57.3%, space race live in sweeps; sweep 25/25, reviewer CLEAN ×2</td><td>W6 slices 2–5 (science/trade → roles → walls → wonders)</td></tr>
     <tr><td>1b</td><td>Civ1 feature faithfulness (audit)</td><td><strong>✅ CLOSED (0107)</strong> — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅</td><td>— (axis closed)</td></tr>
     <tr><td>4</td><td>Roblox Tier 3 multiplayer</td><td>certified · intro v1 APPROVED · midgame-join landed</td><td>🚪 the ONE Studio session (verify + publish + URL const)</td></tr>
     <tr class="g"><td>5</td><td>Public hosting + master index</td><td>✅ complete + LIVE · lobby-robustness + docs/16 §8 merged</td><td>— (server lane queue empty)</td></tr>

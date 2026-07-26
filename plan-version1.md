@@ -4,26 +4,23 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-26 — **W6 build-doctrine window OPEN, mid-arc**
-(the LAST engine window; merge candidate remains **marker-0107** —
-slices land on dev_night unmarked until the gates pass). Slice arc so
-far: **1a** doctrineBuilding (temple/granary §3a core loop) @6fc9d6a —
-gates caught it DORMANT (0.9% coverage; chronic threat). **1b** threat-
-gate drop @00c3267 — coverage 3× but **M3-pop regressed 25→15.25**
-(granary-first crowded out settlers; sweep-caught, do-not-tag). **1c**
-defer-knob calibration @2728152 (user-ruled; deferPop 3 + surplus 2,
-3-variant measured) — sweep still **M3 FAIL 15.5**. Diagnosis
-(peace-witness + reviewer #2775 corroboration): **GARRISON ROAM** —
-escort/march never checked `fortified`, and the brain's stay-home floor
-disagreed with production's wantDefenders, so cities rebuilt militia
-forever and the whole settler/doctrine/econ block was unreachable.
-**1d IN FLIGHT** (user role-discipline ruling: garrison holds its post,
-scouts still range): fortified-hold + floor alignment landed in JS+twin,
-garrison fixtures 3/3 revert-proofed; peace-witness acceptance + re-record
-+ gates pending. NOTE: nightly M2-cities will red mid-window (known-open).
-New standing witnesses: the 2-civ DUEL witness (falsified peace v1) +
-the personality-selected peace pair (chinese+germans, probe-peace.js).
-`lessons-learned-1.md`/`.html` written (agent collaboration + tooling).
+Last updated: 2026-07-26 — **marker-0108 TAGGED @6796e2e =
+MERGE-CONSISTENT** (supersedes 0107). **W6 SLICE-1 COMPLETE** — the
+build-doctrine + garrison-discipline arc (1a doctrine → 1b/1c
+calibrations → 1d garrison role discipline, all user-ruled at the
+forks). THE NUMBERS: M3-pop median 15.5→**62** (floor 22 —
+RE-RATCHETED into nightly), M2-cities 4.25→**16**, M4-impr **91.5%**,
+temple/granary coverage 0→**57.3%** (reviewer direct count, 7×), city
+count 5.7×; sweep 25/25 (2 false-fails were a checker gap — ss-part
+was a legal kind the invariant never learned: THE SPACE RACE IS LIVE
+IN SWEEPS for the first time). Reviewer CLEAN ×2 (code + coverage);
+twins 11/11 (caught a twin nil-call pre-push). Peace witness (user
+design, chinese+germans defensive pair) = the acceptance instrument:
+124 cities/18% coverage where pre-1d was 2 cities/0 buildings. ALSO:
+Roblox 1.0-parity ruling + appendix (docs/13) with close-stack batch 1
+LANDED @80b42b8; runtime finding (soak 3.5→36min — denser worlds).
+Remaining W6: slices 2–5 (science/trade → roles → walls → wonders).
+reports/marker-0108.md.
 --- prior: **marker-0107 TAGGED @8c50ceb =
 MERGE-CONSISTENT** (supersedes 0106 as the merge candidate). **W4
 We-Love-the-King-Day @b813bbc, BOTH GATES GREEN**: reviewer #2753
@@ -109,10 +106,11 @@ flowchart TD
     W2E["✅ W2 building effects (@a7f9da7, 0105): Mfg.\nPlant +100%/obsoletes-Factory + SDI nuke-intercept\n(rollRange<70); STAMP-only (reviewer lune-verified\nBEHAVIOR byte-identical); scenario 066 0x7d67d913"]
     W3E["✅ W3 score term (@aa6197e, 0106): scoreBreakdown\n+happy = happyCitizens*scorePerHappy (spec §10);\nSTAMP-only (reviewer GREEN #2741); pollution\ndeferred off-in-v1"]
     W4E["✅ W4 We-Love-the-King-Day (@b813bbc, 0107):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365 p3, deterministic\nbutterfly); both gates GREEN; + W5 relabel @a5b5808"]
-    W6E["🔨 W6 build-doctrine OPEN (slice-1 arc:\n1a dormant → 1b M3-regress → 1c still-FAIL →\ngarrison-roam diagnosed → 1d role-discipline\nIN FLIGHT; then slices 2-5)"]
+    W6S1["✅ W6 SLICE-1 (0108 @6796e2e): doctrine +\ngarrison discipline — M3 62 (4x floor, RE-RATCHETED) ·\ncoverage 0→57% · cities 5.7x · space race LIVE in\nsweeps · sweep 25/25 · reviewer CLEAN x2"]
+    W6E["🧩 W6 slices 2-5: science/trade buildings →\ncity roles → frontier walls → wonders appetite"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
-    D6S --> W1E --> W2E --> W3E --> W4E --> W6E
+    D6S --> W1E --> W2E --> W3E --> W4E --> W6S1 --> W6E
   end
 
   subgraph SERVER["SERVER lane (golden-neutral, parallel)"]
@@ -197,7 +195,7 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | 🔨 **W6 slice-1 arc mid-flight**: 1a dormant → 1b M3-regress (25→15.25) → 1c still-FAIL 15.5 → garrison-roam DIAGNOSED (escort/march ignored `fortified`; floors misaligned) — 1d role-discipline (user-ruled) landed in tree, gates pending | 1d re-gate (sweep M3≥22 + coverage recovery) → slice-1 marker + M3 ratchet; then slices 2–5 |
+| 3 | AI at M-targets | **✅ W6 slice-1 COMPLETE (0108)** — M3-pop 62 (4× floor, RE-RATCHETED), M2 16, M4 91.5%, coverage 0→57.3%, cities 5.7×, space race live in sweeps; sweep 25/25, reviewer CLEAN ×2 | W6 slices 2–5 (science/trade → roles → walls → wonders) |
 | 1b | Civ1 feature faithfulness (audit) | **✅ CLOSED (0107)** — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅ | — (axis closed) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
