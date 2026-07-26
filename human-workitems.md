@@ -74,13 +74,17 @@ merge-consistent** — supersedes 0102–0107; the box runs 0101)._
      (also: commit the cert artifact — it's untracked on the gaming
      PC; the RC digest cites commits meanwhile).
   2. SO18 tech-glyphs render-verify (+ screenshots).
-  3. SoundId curation — **assets READY + user-approved (2026-07-26)**:
-     `node tools/render-sounds.js` → `debugging/sounds-export/` holds all
-     32 WAVs (30 cues + 2 tunes, loudness-normalized, listened + accepted)
-     plus `VOLUMES.md` (the worksheet: suggested Sound.Volume per cue =
-     the approved browser mix, empty assetId column). Upload at
-     create.roblox.com → Audio, fill the assetIds, drop the table into
-     `roblox/acceptance/`. The tunes cover the intro-cue row.
+  3. SoundId curation — **assets READY + user-approved (2026-07-26);
+     upload now AUTOMATED (@e69cb36)**: `node tools/render-sounds.js`
+     regenerates the 32 approved WAVs + `VOLUMES.md` anywhere
+     (`tools/render-sounds.md` is the guide). Then, instead of the
+     manual create.roblox.com flow: create a one-time Open Cloud API
+     key (Assets read+write) and run
+     `ROBLOX_API_KEY=… ROBLOX_USER_ID=… node roblox/tools/upload-sounds.js`
+     — it bulk-uploads every empty-assetId cue, fills `VOLUMES.md`, and
+     regenerates `SoundAssets.luau` (Sound.client already consumes it;
+     empty ids = silent no-op, so nothing breaks pre-upload). Manual
+     upload remains the fallback. The tunes cover the intro-cue row.
   4. DataStore: enable Studio API Services for save-flow testing.
   5. Specials-motif review on the map — now incl. the antler/
      rearing/flipper re-mirror (vs the browser gallery shots).

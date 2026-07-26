@@ -133,7 +133,7 @@
     <ol>
       <li>Studded round-2 review — <code>roblox/acceptance/tier3-cert.md</code> (+ commit the cert artifact, untracked on the gaming PC)</li>
       <li>SO18 tech-glyphs render-verify (+ screenshots)</li>
-      <li>SoundId curation — <strong>assets READY + user-approved (2026-07-26)</strong>: <code>debugging/sounds-export/</code> = 32 WAVs (normalized, accepted) + <code>VOLUMES.md</code> worksheet (suggested Volume = the browser mix; assetId column to fill at upload). Tunes cover the intro-cue row</li>
+      <li>SoundId curation — <strong>assets READY + user-approved (2026-07-26); upload AUTOMATED (@e69cb36)</strong>: <code>node tools/render-sounds.js</code> regenerates the 32 WAVs + <code>VOLUMES.md</code> anywhere (guide: <code>tools/render-sounds.md</code>); then one-time Open Cloud API key (Assets read+write) and <code>ROBLOX_API_KEY=… ROBLOX_USER_ID=… node roblox/tools/upload-sounds.js</code> — bulk-uploads, fills the worksheet, regenerates <code>SoundAssets.luau</code> (Sound.client consumes it; empty ids = silent). Manual upload = fallback. Tunes cover the intro-cue row</li>
       <li>DataStore: enable Studio API Services for save-flow testing</li>
       <li>Specials-motif review on the map — incl. the antler/rearing/flipper re-mirror</li>
       <li>Instant age-starts check (industrial/space boots near-instantly)</li>
