@@ -367,6 +367,11 @@ local function narrate(view, e, rs)
 		return ("[city] civil disorder in %s!"):format(cityName(view, e.cityId)), "loss"
 	elseif e.type == "cityOrderRestored" and ownCity(view, e.cityId) then
 		return ("[city] order restored in %s"):format(cityName(view, e.cityId)), "win"
+	elseif e.type == "cityCelebrating" and ownCity(view, e.cityId) then
+		-- W4 WLTKD (1.0-close #2): mirrors the disorder pair — onset row, quiet end
+		return ("[city] We Love the King Day in %s! corruption vanishes while it celebrates"):format(cityName(view, e.cityId)), "win"
+	elseif e.type == "cityCelebrationEnded" and ownCity(view, e.cityId) then
+		return ("[city] the celebration in %s has ended"):format(cityName(view, e.cityId)), ""
 	elseif e.type == "revolutionStarted" and e.playerId == you then
 		local g = rs.governments[e.government]
 		return ("[gov] revolution! anarchy until %s takes hold"):format(g and g.name or e.government), ""

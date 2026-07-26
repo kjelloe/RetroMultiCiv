@@ -44,6 +44,7 @@ return [==[{
   "settlerPathRadius": 12,
   "attackerPerCity": 1,
   "attackerBase": 2,
+  "buildDoctrine": { "happinessBuilding": "temple", "growthBuilding": "granary", "granaryDeferPop": 3, "highFoodSurplus": 2 },
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiSurplusBuyThreshold": 1000,

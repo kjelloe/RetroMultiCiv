@@ -284,6 +284,9 @@ local function cityBillboard(model, adornee, view, c)
 	if c.disorder == true then -- A68 parity: the disorder banner
 		table.insert(lines, '<font color="#ff8878"><b>CIVIL DISORDER</b></font>')
 	end
+	if c.celebrating == true then -- W4 WLTKD (1.0-close #2): the celebrate banner twin
+		table.insert(lines, '<font color="#ffd75e"><b>WE LOVE THE KING DAY</b></font>')
+	end
 	if c.producing ~= nil then
 		local def = (rs[c.producing.kind .. "s"] or {})[c.producing.id]
 		local cost = def and def.cost or 0

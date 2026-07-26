@@ -547,7 +547,8 @@ local function sendEndscreen()
 		end
 		table.insert(rows, { pid = pid, name = p.name, color = p.color,
 			alive = p.alive ~= false, total = bd.total,
-			popPts = bd.population, techPts = bd.techs, wonderPts = bd.wonders,
+			popPts = bd.population, happyPts = bd.happy, techPts = bd.techs,
+			futurePts = bd.futureTech, wonderPts = bd.wonders, -- 1.0-close #1: full itemization
 			cities = cities, techs = #p.techs, wonders = wonders })
 	end
 	-- victory type: space when the winner's launched ship has arrived,

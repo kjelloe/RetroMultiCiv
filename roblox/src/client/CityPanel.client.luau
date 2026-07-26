@@ -371,7 +371,11 @@ local function refresh()
 	end
 
 	title.Text = ("%s  (pop %d)"):format(city.name, city.pop)
-	stats.Text = ("food %d · shields %d · gold %d"):format(city.food or 0, city.shields or 0, me.gold or 0)
+	-- W4 WLTKD (1.0-close #2): the celebrate line (browser panels.js banner twin;
+	-- fog-honest — filterView strips `celebrating` from rival shells)
+	local celebrate = city.celebrating == true
+		and "\nWE LOVE THE KING DAY - no corruption while it lasts" or ""
+	stats.Text = ("food %d · shields %d · gold %d%s"):format(city.food or 0, city.shields or 0, me.gold or 0, celebrate)
 	local prodDef = (rs[city.producing.kind .. "s"] or {})[city.producing.id]
 	producing.Text = ("producing: %s %s (%d/%d)"):format(city.producing.kind,
 		prodDef and prodDef.name or city.producing.id, city.shields or 0,

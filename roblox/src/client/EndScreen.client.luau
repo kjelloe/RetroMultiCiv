@@ -159,9 +159,12 @@ local function show(msg)
 		text.Font = Enum.Font.Code
 		text.TextSize = 14
 		text.TextXAlignment = Enum.TextXAlignment.Left
-		text.Text = ("%d. %-14s <b>%d</b>  <font color=\"#9db2c8\">pop %d + techs %d + wonders %d</font>  · %d cities%s")
-			:format(i, r.name, r.total, r.popPts or 0, r.techPts or 0, r.wonderPts or 0,
-				r.cities or 0, r.alive and "" or "  (fallen)")
+		-- 1.0-close #1: the FULL browser itemization (pop/happy/techs/future/wonders);
+		-- the future segment only shows once someone holds Future Tech (rare pre-marathon)
+		local future = (r.futurePts or 0) > 0 and (" + future %d"):format(r.futurePts) or ""
+		text.Text = ("%d. %-14s <b>%d</b>  <font color=\"#9db2c8\">pop %d + happy %d + techs %d%s + wonders %d</font>  · %d cities%s")
+			:format(i, r.name, r.total, r.popPts or 0, r.happyPts or 0, r.techPts or 0, future,
+				r.wonderPts or 0, r.cities or 0, r.alive and "" or "  (fallen)")
 		text.Parent = row
 	end
 	list.CanvasSize = UDim2.new(0, 0, 0, #rows * 38)
