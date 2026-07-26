@@ -1,28 +1,26 @@
--- SO15 sound player (A77; architect ruling #2078 item 5 = curated library-map,
--- PROVISIONAL, no upload). The browser client/ui/sound.js SYNTHESISES cues in
--- Web Audio; Roblox plays Sound instances, so each cue maps to a Roblox audio
--- asset id. SoundMap.luau (the pure twin of sound-map.js) decides WHICH cue an
--- event earns; this fires it, fog-honest by construction (events arrive pre-
--- filtered; the map is viewer-relative). Honors an opt-out (options.sound).
---
--- SOUND_ASSET is PROVISIONAL: the ids are the user's to curate from the Studio
--- Toolbox (Audio) — filling one makes that cue audible; empty = silent no-op.
--- Upload-swap to bespoke cues stays the user-gated 1.y item (per the ruling).
+-- SO15 sound player (A77). The browser client/ui/sound.js SYNTHESISES cues in
+-- Web Audio; Roblox plays Sound instances mapped to UPLOADED audio assets: the
+-- same recipes are rendered offline (tools/render-sounds.js, user-approved
+-- 2026-07-26) and bulk-uploaded via Open Cloud (roblox/tools/upload-sounds.js),
+-- which regenerates SoundAssets.luau (cue -> rbxassetid + the approved browser
+-- mix as Volume). SoundMap.luau (the pure twin of sound-map.js) decides WHICH
+-- cue an event earns; this fires it, fog-honest by construction (events arrive
+-- pre-filtered; the map is viewer-relative). Honors an opt-out (options.sound).
+-- A cue whose asset is still "" (not yet uploaded) stays a silent no-op.
 local SoundService = game:GetService("SoundService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local SoundMap = require(script.Parent:WaitForChild("SoundMap"))
+local SoundAssets = require(script.Parent:WaitForChild("SoundAssets"))
 
--- cue -> rbxassetid string. Curate in Studio (Toolbox → Audio → copy Asset ID);
--- e.g. SOUND_ASSET["found"] = "rbxassetid://<id>". Empty = silent until filled.
-local SOUND_ASSET = {}
+-- cue -> rbxassetid string + per-cue volume, from the generated table (empty
+-- asset = silent until the uploader has run). SOUND_IDS stays the cue roster.
+local SOUND_ASSET, CUE_VOLUME = {}, {}
 for _, cue in ipairs(SoundMap.SOUND_IDS) do
-	SOUND_ASSET[cue] = ""
+	local row = SoundAssets[cue]
+	SOUND_ASSET[cue] = row ~= nil and row.asset or ""
+	CUE_VOLUME[cue] = row ~= nil and row.volume or 1
 end
-
--- per-cue relative gain (the browser mixes cues at different levels; kept here
--- so curation is id-only). Defaults to 1; tune once real assets are in.
-local CUE_VOLUME = { ["combat-distant"] = 0.4, ["capture-distant"] = 0.4 }
 
 local function muted()
 	return ClientState.options ~= nil and ClientState.options.sound == false
@@ -62,4 +60,4 @@ ClientState.onEvents(function(events, view)
 	end
 end)
 
-print("[Sound] SO15 cue player up (SoundIds provisional — curate in Studio Toolbox)")
+print("[Sound] SO15 cue player up (SoundAssets.luau: bespoke uploads via roblox/tools/upload-sounds.js)")
