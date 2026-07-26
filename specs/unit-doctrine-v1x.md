@@ -1,0 +1,62 @@
+# Unit-doctrine rulings (user, 2026-07-26) — diplomats, caravans, pillage-siege, air
+
+The user's Civ-veteran doctrine for the concepts the coverage histogram showed
+the AI never touches. Captured verbatim-in-substance for the design windows
+that implement them (scheduling ruled separately — see the scope note at end).
+
+## 1. Diplomats (the D6 AI gap)
+
+- **Defensive**: the AI should keep at least one diplomat in an IMPORTANT
+  BORDER CITY to thwart enemy diplomat attacks. **AUTHENTICITY CHECK ROUTED**
+  (reviewer pre-design): is diplomat-thwarts-diplomat a Civ 1 mechanic or a
+  Civ 2/4 concept? (If Civ2+, it enters via the civ-mixing ruling — label
+  provenance, user decides.) NOTE: the current engine has no thwart mechanic —
+  missions roll unopposed — so this is engine surface + AI doctrine.
+- **Offensive (steal)**: a civ LAGGING IN TECH but with production capacity
+  and sufficient garrison builds diplomats to steal tech from neighbors —
+  especially when its reputation with that neighbor is already bad (nothing
+  to lose).
+- **Offensive (prep)**: incite-revolt or sabotage via diplomat as PREPARATION
+  for an assault on a border city — weaken it before the attack lands.
+
+## 2. Caravans (the A89 AI gap)
+
+- **Peace economy**: PEACEFUL civs (at peace with neighbors) build caravans to
+  establish trade routes and boost their own economy.
+- **Wonder-help**: while a wonder is building, OTHER cities — once they have
+  sufficient defenders and their important buildings in place — build caravans
+  to speed the wonder (the classic caravan-chain).
+
+## 5. Pillage-siege (authentic Civ 1 war doctrine)
+
+In original Civ 1, the AI typically OPENED city assaults by pillaging roads/
+railroads on the approach to the city, then around it — a siege posture that
+cuts the defender's trade/production and reinforcement speed before the
+assault. The current war doctrine (mass → odds-gated assault) skips this
+entirely; adding it is an authenticity win.
+
+## 4. Air units (late-era war doctrine)
+
+- **Fighters**: a civ in a LATE-ERA WAR keeps fighters for defense against
+  enemy bombers (interception is the only counter).
+- **Bombers**: used to reduce a besieged city's defender count before the
+  ground assault (pairs with the pillage-siege posture).
+
+## 6. Future Tech / rate posture (context, not a work item)
+
+Future Tech is the end-game score sink once the tree is exhausted, beyond
+what economy/lux need — more relevant in a PEACEFUL late game (high sci) than
+a late-war game, where gold+lux fund the war and sci sits at 10–20%. The AI's
+war/peace rate posture should reflect this when Future Tech becomes reachable
+(long-horizon games; see the marathon measurement).
+
+## Confirmed as-is (user): nukes (3) and spaceship launches (7) need no
+doctrine work now.
+
+## Scope note
+
+Measurements (concept histogram, natural multi-seed, disasters-ON, and the
+post-slice-2 additions: 14-civ scaling + endYear-9999 marathon) are all
+approved — run them all, but they must NOT block the road to 1.0 if they drag.
+The IMPLEMENTATION scheduling of the four doctrine packages above (v1 window
+vs v1.x) is ruled separately.
