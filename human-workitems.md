@@ -95,6 +95,12 @@ merge-consistent** — supersedes 0102–0106; the box runs 0101)._
       `client/ui/roblox-link.js` (one line — activates the hidden
       "🎮 Play on Roblox" button), and record the URL for the store
       description's Play link rule.
+  12a2. **Store art at publish:** logo = `roblox/images/logo-512.png`
+      (committed @c718fde). Thumbnails (16:9, 1920×1080 PNG) live as
+      `roblox/images/thumb-N.png` — browser-renderer candidates are
+      committed for v1; CAPTURE REPLACEMENTS IN STUDIO while you're in
+      the sitting (authentic client look beats the browser renderer per
+      Roblox best practice). Keep text minimal, subject center-frame.
   12b. **Genre setting at publish:** **Strategy, NO subgenre**
       (architect recommendation 2026-07-25, user to confirm in the
       dialog). Neither Strategy subgenre fits (Board & Card misleads,
