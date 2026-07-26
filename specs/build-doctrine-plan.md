@@ -115,3 +115,19 @@ off. Two legs:
   RUNTIME: soak double-run 3.5→36 min (denser worlds = the doctrine working);
   lune smoke timeouts 180→600s. Twins 11/11 (the gate caught a twin nil-call
   pre-push). FINAL gate round queued (sweep = the slice-1 marker verdict).
+
+## Slice-2 RULED FOLDED INTO SLICE-3 (user, 2026-07-26)
+
+Slice-2's target (research depth via library/marketplace) was ACHIEVED BY
+SLICE-1's effects, measured before the window opened: fresh 1d sweep states
+show libraries/marketplaces building organically (seed 17 @t371: 46 libraries
++ 32 marketplaces + 6 universities / 139 cities; seed 24: present but thin),
+and the concept histogram recorded a civ EXHAUSTING the tech tree (Future
+Tech researched) by t400 — the ~30-tech ceiling is gone. The payback lever's
+existing yield-building path just needed slice-1's growth to feed it.
+
+What slice-2 still owed — ROUTING libraries/markets to trade-heavy cities
+specifically (§3a) — is slice-3's city-roles machinery by nature. W6 is now:
+**slice-3 (city roles + the v1 war pair: pillage-siege + air-war) →
+slice-4 (frontier walls) → slice-5 (wonders appetite).** One golden window
+saved; the measure-first discipline paid for itself again.
