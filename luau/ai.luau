@@ -3321,12 +3321,30 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							guards += 1
 						end
 					end
-					local need = if enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) then 2 else 1
+					-- W6 slice-1d: floor MATCHES production's wantDefenders (garrisonAlways2
+					-- stances build for 2; holding only 1 left their gate unreachable — #2775). TWIN.
+					local need = if (S.garrisonAlways2 == true or enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) then 2 else 1
 					-- B23: a scout departs to range only if the city keeps another
 					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
 					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
 					if guards <= need and not scoutDepart then
 						return { type = "fortify", playerId = playerId, unitId = uid }
+					end
+				end
+				-- W6 slice-1d (user ruling): GARRISON ROLE DISCIPLINE — a FORTIFIED unit in
+				-- an own city holds its post unless the city keeps its guard floor WITHOUT
+				-- it (escort/march never checked fortified; garrisons walked off and cities
+				-- rebuilt militia forever — #2774 + peace-witness). TWIN of ai.js.
+				if home ~= nil and home.owner == playerId and unit.fortified == true then
+					local others = 0
+					for _, g in ipairs(combat.unitsAt(state, unit.x, unit.y)) do
+						if g.owner == playerId and g.id ~= unit.id and ruleset.units[g.type].attack > 0 then
+							others = others + 1
+						end
+					end
+					local need2 = if (S.garrisonAlways2 == true or enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) then 2 else 1
+					if others < need2 then
+						return { type = "wait", playerId = playerId, unitId = uid } -- hold the post (stay fortified)
 					end
 				end
 				-- B23: a scout ranges the fog by rules.aiExploreMode -- greedy (pre-B23

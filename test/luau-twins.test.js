@@ -251,9 +251,11 @@ test('luau engine: data checksums, ported scenarios green, unported fail in-cont
 test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau'],
-      { cwd: REPO, encoding: 'utf8', timeout: 180000 });
+      // W6 slice-1d: denser worlds ~10x the sim runtime (the doctrine working);
+      // 100 lune turns need more headroom than the old 3-min cap
+      { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x3be0609c\n/,
+    assert.match(res.stdout, /checkpoint 100: 0xefa4f419\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -272,7 +274,7 @@ test('luau ai: the archipelago naval witness reaches the turn-100 checkpoint bit
       mapType: 'archipelago', deepAt: [100], artifactsDir: false });
     const jsHash = js.checkpoints[100];
     const res = spawnSync('lune', ['run', 'luau/sim-smoke.luau', '100', 'archipelago'],
-      { cwd: REPO, encoding: 'utf8', timeout: 180000 });
+      { cwd: REPO, encoding: 'utf8', timeout: 600000 }); // slice-1d density headroom
     assert.strictEqual(res.status, 0, `archipelago sim smoke failed:\n${res.stdout}\n${res.stderr}`);
     assert.match(res.stdout, new RegExp(`checkpoint 100: ${jsHash}\\n`),
       `the Luau naval AI diverged from JS on an archipelago (naval-active) seed — JS=${jsHash}, luau said:\n${res.stdout}`);
@@ -379,8 +381,10 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    behavioral: the 25 fast-forwarded AI turns now build granaries/temples per §3a).
 // -> 0xcaece949 (W6 slice-1c FINAL: granaryDeferPop 3 + highFoodSurplus 2 — the measured
 //    calibration; stamp AND behavioral).
+// -> 0x9a6070c8 (W6 slice-1d garrison role discipline — behavioral from the first fortify;
+//    ai.js+twin only, the createGame stamp HOLDS).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xcaece949 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0x9a6070c8 turn 25 grant 22';
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

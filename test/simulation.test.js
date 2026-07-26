@@ -144,22 +144,32 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // seed); natural BUTTERFLIES to rounds 498 / winner p1 (was 545/p2). GOLDEN_SOAK
 // 0x02e68edd.. / GOLDEN_NATURAL 0x8a8fae4d / BEHAVIOR_SOAK 0x199417cc.. / BEHAVIOR_NATURAL
 // 0xeb526ce2. Honest re-record.
+// W6 slice-1d re-record (garrison role discipline, user-ruled): a FORTIFIED unit in an own
+// city holds its post unless the guard floor survives without it (escort/march never checked
+// fortified), and the brain's stay-home floor now MATCHES production's wantDefenders
+// (garrisonAlways2 — reviewer #2775). ai.js+twin only — createGame stamps HOLD (002/maptype/
+// ff unchanged). ACCEPTANCE (peace pair, seed 2): 124 cities + 22 temples + 23 granaries
+// (18% coverage, was 0.0%) + 436 pop — the development engine unlocked. Natural RETURNS to
+// 545/p2 (calendar ending). RUNTIME FINDING: the soak double-run now takes ~36 min (was
+// ~3.5) — denser worlds are the doctrine working; suite-budget implications tracked in the
+// W6 delivery log. GOLDEN_SOAK 0xb0bd43d9.. / GOLDEN_NATURAL 0x5419139a / BEHAVIOR_SOAK
+// 0x123f2b58.. / BEHAVIOR_NATURAL 0x45c7a2b3. Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x3be0609c', 200: '0x6dc4a430', 300: '0x18ea9207', 400: '0x02e68edd' },
-  finalHash: '0x02e68edd'
+  checkpoints: { 100: '0xefa4f419', 200: '0x78c9997c', 300: '0x365a35db', 400: '0xb0bd43d9' },
+  finalHash: '0xb0bd43d9'
 };
-const GOLDEN_NATURAL = { rounds: 498, winner: 'p1', finalHash: '0x8a8fae4d' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x5419139a' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xad3e3c8b', 200: '0x5d16404f', 300: '0xe62b3e4c', 400: '0x199417cc' },
-  finalHash: '0x199417cc'
+  checkpoints: { 100: '0x6b382170', 200: '0xa5512107', 300: '0xc9d4cf52', 400: '0x123f2b58' },
+  finalHash: '0x123f2b58'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xeb526ce2' };
+const BEHAVIOR_NATURAL = { finalHash: '0x45c7a2b3' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

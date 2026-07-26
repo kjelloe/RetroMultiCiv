@@ -171,7 +171,11 @@ test('wonder-drive begins + persists: a builder capital commits to a wonder for 
   // change reshaped every world, so the old seed's builder no longer reaches a wonder (world-
   // dependent). Seed 6 fires ~turn 71 and persists 52 turns. A seed re-pin, not a wonder-drive
   // regression (ai.js unchanged by the river fix — only which tiles get the river flag moved).
-  let state = eng.createGame({ seed: 6, options: { width: 80, height: 50, players } });
+  // W6 slice-1 re-pin (seed 6 -> 12): the doctrine (temple/granary first) + garrison floors
+  // reshape every builder trajectory; the drive still fires on 7/14 scanned seeds — seed 12
+  // fires ~round 45 and persists 49 turns (the strongest witness). Mechanism-level commits
+  // stay covered by the crafted test above; this live witness needs a viable world.
+  let state = eng.createGame({ seed: 12, options: { width: 80, height: 50, players } });
   let wonderTurns = 0, firstFire = null;
   for (let round = 0; round < 200; round++) {
     for (const pid of state.playerOrder) {

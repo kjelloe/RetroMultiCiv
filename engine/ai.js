@@ -3002,7 +3002,15 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       for (const g of unitsAt(state, unit.x, unit.y)) {
         if (g.owner === playerId && ruleset.units[g.type].attack > 0) guards = guards + 1;
       }
-      const need = enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius) ? 2 : 1;
+      // W6 slice-1d: the hold floor must MATCH production's wantDefenders —
+      // garrisonAlways2 stances build for 2, but this floor held only 1
+      // unthreatened, so the fresh second guard (newest-rank -> tagged scout)
+      // departed and the city could never satisfy its own production gate
+      // (reviewer #2775: the visibility-gated veto never fires in low-threat
+      // worlds). Aligned: the second guard now fortifies and the garrisoned
+      // block becomes reachable.
+      const need = (S.garrisonAlways2 === true
+        || enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) ? 2 : 1;
       // B23c: a scout departs to range the map ONLY if the city keeps another
       // defender (guards >= 2) — the threat veto alone (B23b) was insufficient:
       // BARBS spawn without warning, so a sole guard that left before a threat
@@ -3014,6 +3022,27 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       const scoutDepart = scouting && exploreMode !== 'greedy' && guards >= 2;
       if (guards <= need && !scoutDepart) {
         return { type: 'fortify', playerId, unitId: uid };
+      }
+    }
+    // W6 slice-1d (user ruling 2026-07-26): GARRISON ROLE DISCIPLINE — a
+    // FORTIFIED unit standing in an own city is the garrison; it holds its post
+    // unless the city keeps its guard floor WITHOUT it. Before this, the escort
+    // branch and the march-at-enemy branch never checked `fortified`, so a
+    // garrison walked off to escort a settler (defensive escortR 150 stripped
+    // its own cities hardest) or marched at a viable enemy — the city then
+    // rebuilt militia forever (defenders < wantDefenders chronically), choking
+    // settlers, the build doctrine, and (via B23c guards>=2) the scouts too —
+    // measured in BOTH the canonical sweep (#2774) and the peace witness.
+    // Scouts/roamers/spare guards (guards excluding self >= need) still depart.
+    if (home && home.owner === playerId && unit.fortified === true) {
+      let others = 0;
+      for (const g of unitsAt(state, unit.x, unit.y)) {
+        if (g.owner === playerId && g.id !== unit.id && ruleset.units[g.type].attack > 0) others = others + 1;
+      }
+      const need = (S.garrisonAlways2 === true
+        || enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) ? 2 : 1;
+      if (others < need) {
+        return { type: 'wait', playerId, unitId: uid }; // hold the post (stay fortified)
       }
     }
     // B23: a scout ranges the fog by rules.aiExploreMode — greedy (pre-B23

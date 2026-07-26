@@ -93,12 +93,18 @@ test('Space Age grants everything except Future Tech', () => {
 });
 
 test('a to-be-human civ dying aborts with its name — never a silent re-roll', () => {
-  // #36 river-terrain re-pin (seed 7 -> 1): the meandering-strip mapgen reshaped every world;
-  // seed 7 now survives, seed 1 conquers Civ1 (p1) early — the abort path. The seed is a fixture,
-  // re-pinned whenever war/scout/expansion goldens move. Disasters OFF for a stable fixture.
+  // W6 slice-1d re-fixture: DETERMINISTIC-BY-CONSTRUCTION. The old seed pin needed
+  // re-hunting every time war/scout/expansion goldens moved, and post-1d (held
+  // garrisons) NO scanned seed eliminates a civ by turn 190 any more. The test's
+  // subject is the DETECTION + NAMING (never a silent re-roll), not war odds —
+  // so eliminate p1 by construction: strip its starting units before the ff.
   const noDisasters = Object.assign({}, RULESET, { rules: Object.assign({}, RULESET.rules, { disastersEnabled: false }) });
-  const r = fastForwardTo(noDisasters, freshWorld(1), ageById('renaissance'), ['p1']);
-  assert.ok(r.aborted, 'seed 1 eliminates p1 (Civ1) early');
+  const world = freshWorld(2);
+  for (const uid of Object.keys(world.units)) {
+    if (world.units[uid].owner === 'p1') delete world.units[uid];
+  }
+  const r = fastForwardTo(noDisasters, world, ageById('renaissance'), ['p1']);
+  assert.ok(r.aborted, 'a unitless, cityless p1 is eliminated at the first wrap');
   assert.strictEqual(r.aborted.reason, 'civEliminated');
   assert.strictEqual(r.aborted.name, 'Civ1', 'the message can name the dead civ');
 });
