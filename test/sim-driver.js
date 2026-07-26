@@ -169,9 +169,15 @@ function checkInvariants(state, ruleset) {
     if (!isInt(c.shields) || c.shields < 0) bad(`city ${cid}: shields ${c.shields}`);
     if (c.disorder !== undefined && c.disorder !== true) bad(`city ${cid}: disorder flag must be true or absent`);
     const prod = c.producing;
+    // W6 slice-1 gate finding: ss-part is a FIRST-CLASS production kind (A76;
+    // setProduction validates via rules.ssParts) — the checker predates the
+    // sweeps ever reaching the space race (the doctrine's research depth
+    // exposed the gap: seeds 17+24 false-failed on a legal Apollo-parts build).
     if (!prod || (prod.kind === 'unit' ? !ruleset.units[prod.id]
       : prod.kind === 'building' ? !ruleset.buildings[prod.id]
-      : prod.kind === 'wonder' ? !ruleset.wonders[prod.id] : true)) {
+      : prod.kind === 'wonder' ? !ruleset.wonders[prod.id]
+      : prod.kind === 'ss-part' ? !(ruleset.rules.ssParts !== undefined && ruleset.rules.ssParts[prod.id])
+      : true)) {
       bad(`city ${cid}: invalid producing ${JSON.stringify(prod)}`);
     }
     if (c.buildings !== undefined) {

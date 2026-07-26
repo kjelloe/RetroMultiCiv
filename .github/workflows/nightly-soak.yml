@@ -83,10 +83,11 @@ jobs:
     # >>> confirms the canonical median over its threshold), ADD its id to
     # >>> --enforce-floors IN THE SAME COMMIT as that change's golden
     # >>> re-record — each earned floor becomes permanent immediately.
-    # NOTE (user ruling 2026-07-25): M3-pop is DE-RATCHETED to advisory — the
-    # river re-baseline lands the median at 20 (<22). Value stays 22 in soak.js;
-    # re-ADD M3-pop here in the same commit that lands the build-doctrine granary
-    # fix and restores median >= 22.
+    # M3-pop RE-RATCHETED (2026-07-26, the W6 slice-1 marker commit): the
+    # build-doctrine + garrison-discipline arc lands the 25-seed canonical
+    # median at 62 (floor 22) — confirmed by the architect's fallback sweep
+    # (23 clean + 2 checker-gap false-fails re-verified clean). The 2026-07-25
+    # de-ratchet (river baseline 20) is closed.
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -99,7 +100,7 @@ jobs:
         run: |
           set +e
           node tools/soak.js --seeds 25 --turns 400 --civs 7 --size medium --no-chaos \
-            --enforce-floors M2-cities,M4-impr,M10-buys,M10-treasury,M-resourceCov \
+            --enforce-floors M2-cities,M3-pop,M4-impr,M10-buys,M10-treasury,M-resourceCov \
             --stats debugging/sim/nightly-canonical.jsonl 2>&1 | tee /tmp/canonical-soak.log
           rc=${PIPESTATUS[0]}
           {
