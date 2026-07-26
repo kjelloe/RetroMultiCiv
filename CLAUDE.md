@@ -346,8 +346,9 @@ LIVING plan docs (user ruling 2026-07-20): `plan-version1.md` (the
 axis against the ENGINE, not the workitem files, before flipping it
 done) AND its `plan-version1.html` twin (same content, card markup —
 the human-workitems twin pattern; added 2026-07-24), and, when
-something is deferred or promoted, `plan-version2.md`
-(the loose v2 shelf; items leave it only by user ruling).**
+something is deferred or promoted, `plan-version2.md` + its
+`plan-version2.html` twin (the loose v2 shelf; items leave it only
+by user ruling; twin added 2026-07-27).**
 
 Work splits across `agent-workitems.md` (A-items: features/docs for the
 local **coder-helper**; B-items: bug triage/fixes for the local

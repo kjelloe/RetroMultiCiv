@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The v2.0-or-later shelf — RetroMultiCiv</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+      --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+      --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191612; --card: #241f19; --ink: #e9e2d4; --muted: #a49a88;
+    --line: #3a332a; --accent: #d99a5b; --do: #e0894f; --play: #6bbf92;
+    --fyi: #8fb4d6; --park: #9a9082; --chip-bg: #322b21;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f1ea; --card: #fffdf7; --ink: #2b2620; --muted: #6b6459;
+    --line: #d8d0c0; --accent: #8a5a2b; --do: #b4531f; --play: #2f6f4f;
+    --fyi: #4a6b8a; --park: #7a7266; --chip-bg: #eee6d6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 2rem 1rem 4rem; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.75rem; }
+  h1 { font-size: 1.7rem; margin: 0 0 .3rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: .95rem; }
+  .meta { margin-top: .9rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip { display: inline-block; background: var(--chip-bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: .2rem .7rem; font-size: .82rem; color: var(--muted); }
+  .chip strong { color: var(--ink); }
+  section { margin: 1.75rem 0; }
+  .sec-head { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .3rem; }
+  .sec-head h2 { font-size: 1.05rem; margin: 0; text-transform: uppercase; letter-spacing: .06em; }
+  .sec-head .tag { font-size: .78rem; color: var(--muted); }
+  .bar { height: 3px; border-radius: 2px; margin: .35rem 0 1rem; }
+  #ruled .bar { background: var(--do); }     #ruled h2 { color: var(--do); }
+  #parked .bar { background: var(--fyi); }   #parked h2 { color: var(--fyi); }
+  #seeded .bar { background: var(--accent); } #seeded h2 { color: var(--accent); }
+  #ops .bar { background: var(--park); }     #ops h2 { color: var(--park); }
+  #pool .bar { background: var(--play); }    #pool h2 { color: var(--play); }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: .85rem 1rem; margin: .6rem 0; }
+  .item .t { font-weight: 600; }
+  .item .d { color: var(--muted); font-size: .92rem; margin-top: .25rem; }
+  .prov { display: inline-block; border-radius: 999px; padding: .05rem .55rem;
+    font-size: .78rem; border: 1px solid var(--line); margin-right: .4rem;
+    white-space: nowrap; color: var(--fyi); }
+  ul.tight { margin: .3rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .92rem; }
+  ul.tight li { margin: .25rem 0; }
+  footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem;
+    border-top: 1px solid var(--line); padding-top: 1rem; }
+</style>
+</head>
+<body><div class="wrap">
+
+<header>
+  <h1>The v2.0-or-later shelf</h1>
+  <div class="sub">HTML twin of <code>plan-version2.md</code> — an unordered holding list of everything explicitly
+  designated post-1.0, so nothing is lost and nothing sneaks into the v1 critical path.
+  <strong>An item leaves this file only by a user ruling.</strong> Provenance tags follow the civ-mixing ruling:
+  <code>Civ1-authentic</code> / <code>Civ2-shape</code> / <code>Civ4-shape</code> / <code>original</code>.</div>
+  <div class="meta">
+    <span class="chip">Updated: <strong>2026-07-27</strong> — unit-doctrine v1.x section added (econ pair + nukes ruled off the v1 path 2026-07-26)</span>
+    <span class="chip">The 1.0 tree lives in <strong>plan-version1.html</strong></span>
+  </div>
+</header>
+
+<section id="ruled">
+  <div class="sec-head"><h2>The user-ruled v2 shelf</h2><span class="tag">docs/03 § "The 1.0 definition", 2026-07-16</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t">Dedicated mobile UI</div>
+    <div class="d">A real touch-first interface, beyond the XIV UX fixes (arrow overlay, pinch fix, gesture legend) that ship in v1.</div></div>
+  <div class="item"><div class="t"><span class="prov">Civ4-shape</span>Civ4-style culture</div>
+    <div class="d">Culture points/borders; v1 keeps Civ 1 fixed city radii. The on-map fat-cross display is v1-adjacent; formal culture borders are here.</div></div>
+  <div class="item"><div class="t">Novelty map shapes</div>
+    <div class="d">Donut/spiral/mirror worlds beyond A82's Continents/Pangaea/Archipelago.</div></div>
+  <div class="item"><div class="t">Checkpointed save format</div>
+    <div class="d">Periodic state snapshots inside the save so very long games load/replay without full command-log re-derivation.</div></div>
+  <div class="item"><div class="t">Blender/glTF fidelity pass</div>
+    <div class="d">Replace procedural primitives with a real mesh pipeline where fidelity demands (the A88 "option B" branch).</div></div>
+</section>
+
+<section id="parked">
+  <div class="sec-head"><h2>Parked with explicit user interest</h2><span class="tag">raised by the user, deliberately not in v1</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t"><span class="prov">Civ4-shape</span>Richer anarchy/revolution/civics system</div>
+    <div class="d">docs/01 "PARKED (game-v2)" — explicit user interest; currently governments are Civ 1-faithful with simplified anarchy.</div></div>
+  <div class="item"><div class="t">AI conquest victory-drive slice</div>
+    <div class="d">XII.5 shipped the SPACE drive; a matching late-game conquest commitment (armies, siege doctrine, docs/15) was deliberately not bundled ("conquest is a LATER slice").</div></div>
+  <div class="item"><div class="t">Seam ghost columns (A85, renderer polish)</div>
+    <div class="d">User pick: "LATER, behind the AI program".</div></div>
+</section>
+
+<section id="seeded">
+  <div class="sec-head"><h2>Seeded designs</h2><span class="tag">each arrived with a ruling + enough design to restart cold</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t">AI unit-doctrine: econ pair + nukes — <strong>RULED v1.x</strong> (user 2026-07-26)</div>
+    <div class="d">Spec: <code>specs/unit-doctrine-v1x.md</code> (the opening backlog; the WAR pair — pillage-siege + air-war — went into W6 v1 scope instead). Shelved to protect the 1.0 date; each is a new AI subsystem:</div>
+    <ul class="tight">
+      <li><strong>Diplomat doctrine</strong> (§1): lagging-civ tech-steal (especially with already-bad reputation) + incite/sabotage as assault prep. The DEFENSIVE half is <strong>fact-checked <span class="prov">Civ2-shape</span></strong> (reviewer #2798: Civ 1 diplomats are offense-only; the compounding 20%/diplomat intercept is Civ 2) — enters via the civ-mixing ruling at this window, user decides adoption alongside the existing Civ1 once-per-city immunity.</li>
+      <li><strong>Caravan doctrine</strong> (§2): peaceful civs build caravans for trade routes + the classic wonder-help caravan chain (after defenders + key buildings are in place).</li>
+      <li><strong>Nuke desperation/retaliation doctrine</strong> (§3): first use gated on aggression + trailing rank + endgame proximity (2100 AD / spaceship launched); once nuked, the attacked civ retaliates at-will against the aggressor's cities or large stacks. Near-unobservable before the marathon measurements land.</li>
+    </ul></div>
+  <div class="item"><div class="t"><span class="prov">Civ2-shape</span>Civ 2 ruleset option (seeded 2026-07-21)</div>
+    <div class="d">A future GAME OPTION collecting the deliberately-rejected Civ2 mixes into a selectable ruleset variant (setup toggle / rulesOverrides preset): post-conquest civil disorder (§39), Lighthouse-saves-triremes (#1976), partisans/guerrillas, and whatever later audits reject-as-drift. Each entry arrives already fact-checked and labeled — buildable almost for free once enough accumulate.</div></div>
+  <div class="item"><div class="t"><span class="prov">Civ2-shape</span>Auto-explore unit action (USER-RULED into v2, 2026-07-22)</div>
+    <div class="d">A unit action keeping exploration-suited units exploring until fog is gone / interrupted / enemy appears. Build lean: the CLIENT-DRIVER pattern (like tech-beeline and automate — pure shared/ path-choice, normal move commands = golden-neutral + Roblox-portable); the engine's <code>aiExploreMode: bfs</code> router (B23) is the obvious brain to share. Design notes: stop-on-hut choice, ZOC/trireme open-sea risk, d-pad affordance, composes with the §31 off-turn queue.</div></div>
+  <div class="item"><div class="t">Cross-play bridge (seeded 2026-07-21, R6 ruling)</div>
+    <div class="d">1.0 ships per-platform populations; the R6 seat model keeps a hidden browser-compatible <code>seatCode</code> beside the Roblox UserId binding, so an optional post-1.0 bridge is a transport + auth project, not a seat-model redesign.</div></div>
+  <div class="item"><div class="t"><span class="prov">original</span>Negotiation layer — counter-offers (seeded 2026-07-21, ally D4 verdict)</div>
+    <div class="d">1.0 audiences are take-it-or-leave-it (Civ1-shaped, decisive). A future layer may add counter-offer rounds ONLY with: full AI valuation transparency, multiplayer timing rules, and a clear player reason to counter (ally conditions verbatim in <code>specs/ally-design-response-2026-07-21-diplomacy.md</code> §1).</div></div>
+  <div class="item"><div class="t">Public identity / rename (RE-RULED 2026-07-24)</div>
+    <div class="d"><strong>A World Begun</strong> (lead) / <strong>The Work of Ages</strong> (backup), both pending the PROFESSIONAL trademark search (user gate); Founders retired as a TITLE but sanctioned in-product (Founding Age, Founder's Record). Reserve aworldbegun.eu/.com/.no during clearance; rename lands as a 1.y display/config/DNS event — format identifiers never rename.</div></div>
+  <div class="item"><div class="t"><span class="prov">original</span>Per-game takeover cap (seeded 2026-07-24, sec-reassess §7 residual — LOW)</div>
+    <div class="d">Late-join takeover is rate-limited per IP globally, but no per-IP-PER-GAME cap: a patient attacker could claim several AI civs in ONE public game (grief only — idle squatters degrade to auto-regency). Fix if grief proves real on the live box; docs/16 §3 residual list carries the detail.</div></div>
+  <div class="item"><div class="t"><span class="prov">Civ2-shape</span>Civ2+ water features (seeded 2026-07-24 — discussion notes)</div>
+    <div class="d">Ruled OUT of v1 (Civ 1 has ONE Ocean terrain, Fish as its only water special, no tech gate on ocean movement — our engine matches). Held per the civ-mixing ruling:</div>
+    <ul class="tight">
+      <li><strong>Whales</strong>: a second water special → <code>tile.special</code> becomes typed (golden-breaking window touching terrain data, mapgen, statehash, fixtures, Luau twin). Only worth it bundled with a broader "typed specials" refactor.</li>
+      <li><strong>Coast vs Ocean terrain split</strong>: mostly visual — trireme-class coastal-hug pathing already delivers the gameplay distinction; a render-only "shallows tint" gets most of the look for free.</li>
+      <li><strong>Tech-gated ocean movement</strong>: Civ 1 gates by HULL, not tech; overlaps existing open-sea-risk knobs — engine window, low value while hull-gating works.</li>
+    </ul></div>
+</section>
+
+<section id="ops">
+  <div class="sec-head"><h2>Operational / infrastructure v2 + the deferred ledger</h2><span class="tag">non-game work + Phase 6+ items not in the v1 cut</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="t">Master-index v2 concerns (docs/12)</div>
+    <div class="d">Abuse-report path for listed servers; TLS on the index itself (v1 rides plain HTTP behind the alias); federation/multiple indexes if warranted.</div></div>
+  <div class="item"><div class="t">Nightly self-check mail integration (A96 leftover)</div>
+    <div class="d">Outbound notification needs an outbound-dependency decision; deliberately unbuilt.</div></div>
+  <div class="item"><div class="t">GHCR prebuilt Docker image</div>
+    <div class="d">Workflow exists; publish job gated on the repo owner opting in (<code>PUBLISH_GHCR</code> repo var).</div></div>
+  <div class="item"><div class="t">In-client bug-report v2</div>
+    <div class="d">v1 ships write-only file drops; triage tooling / dedup / a reader UI would be v2 (<code>debugging/triage.sh</code> covers the operator side).</div></div>
+  <div class="item"><div class="t">Simultaneous turns / turn timer for multiplayer</div>
+    <div class="d">v1 multiplayer stays sequential with skip-vote/regency/auto-takeover.</div></div>
+  <div class="item"><div class="t">On-map city radius display → formal borders</div>
+    <div class="d">The fat-cross overlay may land as v1 polish; anything border-like is v2 culture territory.</div></div>
+  <div class="item"><div class="t">Globe view / water shaders / renderer luxuries</div>
+    <div class="d">Superseded in v1 by the staged asset plan; revisit after the glTF decision.</div></div>
+</section>
+
+<section id="pool">
+  <div class="sec-head"><h2>Candidate pool</h2><span class="tag">raised once, no ruling yet — loosest tier</span></div>
+  <div class="bar"></div>
+  <div class="item"><div class="d">
+    • Progressive settler food upkeep (first-N-free variant, under measurement).<br>
+    • Barbarian leader ransom variants beyond the A4-bundled gold ransom.<br>
+    • Scenario/custom-game editor beyond <code>?debug=1</code> spawn tooling.<br>
+    • Hall-of-fame / persistent score ledger across games on a host.<br>
+    • Spectator quality-of-life (timeline scrubbing on live games — replay theater exists for recordings).</div></div>
+</section>
+
+<footer>
+  Shipped-since-shelving note: diplomat unit espionage LEFT this shelf via D6 (marker-0104) — see the md for the record.
+  Everything else that looks "missing" is either in <code>plan-version1.html</code> (the 1.0 tree) or already shipped —
+  check the engine before re-adding here. Sibling pages: <code>plan-version1.html</code> · <code>human-workitems.html</code>.
+</footer>
+
+</div></body>
+</html>

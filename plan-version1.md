@@ -4,7 +4,27 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-26 — **marker-0108 TAGGED @6796e2e =
+Last updated: 2026-07-27 — post-0108 refresh (no new marker;
+**0108 @6796e2e remains the merge candidate**). **W6 SLICE-2 RULED
+FOLDED into slice-3** (user 2026-07-26): target pre-achieved —
+measured organic 46 libraries + 32 markets + 6 universities across
+139 cities, tree exhaustion + Future Tech by t400 (@c18220e) — a
+golden window saved. **W6 now = slices 3–5, slice-3 OPEN**
+(architect): city-role assignment + the v1 WAR PAIR (pillage-siege +
+air-war — user unit-doctrine ruling; econ pair + nukes shelved v1.x,
+`specs/unit-doctrine-v1x.md` with the banked #2798 authenticity
+verdicts: counter-espionage=Civ2, pillage-siege=recalled-behavior).
+ALSO since 0108: sim-runner Gate-B corroboration landed (uniform
+23-seed recovery; peace-witness seed-2 exact-match); Roblox
+1.0-parity close-stack FULLY LANDED (batch 1 @80b42b8 + tooltip
+item-5 closed by ruling); **32 sound assets USER-APPROVED + upload
+AUTOMATED** (`tools/render-sounds.js`/`.md` + `roblox/tools/
+upload-sounds.js` @e69cb36 — the Studio sound item collapses to one
+API key + one script); B13 witness regenerated (last local red
+retired); concept-coverage audit: WAR_DECLARED=0 is
+correct-by-design (implicit-hostility default, declarations =
+treaty-breaks only, @d817df6).
+--- prior: **marker-0108 TAGGED @6796e2e =
 MERGE-CONSISTENT** (supersedes 0107). **W6 SLICE-1 COMPLETE** — the
 build-doctrine + garrison-discipline arc (1a doctrine → 1b/1c
 calibrations → 1d garrison role discipline, all user-ruled at the
@@ -107,7 +127,7 @@ flowchart TD
     W3E["✅ W3 score term (@aa6197e, 0106): scoreBreakdown\n+happy = happyCitizens*scorePerHappy (spec §10);\nSTAMP-only (reviewer GREEN #2741); pollution\ndeferred off-in-v1"]
     W4E["✅ W4 We-Love-the-King-Day (@b813bbc, 0107):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365 p3, deterministic\nbutterfly); both gates GREEN; + W5 relabel @a5b5808"]
     W6S1["✅ W6 SLICE-1 (0108 @6796e2e): doctrine +\ngarrison discipline — M3 62 (4x floor, RE-RATCHETED) ·\ncoverage 0→57% · cities 5.7x · space race LIVE in\nsweeps · sweep 25/25 · reviewer CLEAN x2"]
-    W6E["🧩 W6 slices 2-5: science/trade buildings →\ncity roles → frontier walls → wonders appetite"]
+    W6E["🔨 W6 slices 3-5 (slice-2 FOLDED, pre-achieved):\nslice-3 OPEN — city roles + war pair (pillage-\nsiege + air) → frontier walls → wonders appetite"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
     D6S --> W1E --> W2E --> W3E --> W4E --> W6S1 --> W6E
@@ -167,7 +187,7 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E,W3E done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E,W3E,W4E,W6S1 done
   class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
   class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
@@ -195,42 +215,42 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | **✅ W6 slice-1 COMPLETE (0108)** — M3-pop 62 (4× floor, RE-RATCHETED), M2 16, M4 91.5%, coverage 0→57.3%, cities 5.7×, space race live in sweeps; sweep 25/25, reviewer CLEAN ×2 | W6 slices 2–5 (science/trade → roles → walls → wonders) |
+| 3 | AI at M-targets | **✅ W6 slice-1 COMPLETE (0108)** — M3-pop 62 (4× floor, RE-RATCHETED), M2 16, M4 91.5%, coverage 0→57.3%, cities 5.7×, space race live in sweeps; sweep 25/25, reviewer CLEAN ×2; **slice-2 FOLDED** (pre-achieved, measured, user-ruled @c18220e) | W6 slices 3–5: **slice-3 IN FLIGHT** (city roles + war pair) → walls → wonders |
 | 1b | Civ1 feature faithfulness (audit) | **✅ CLOSED (0107)** — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅ | — (axis closed) |
-| 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed | 🚪 the ONE Studio session (verify midgame-join + publish + URL const) |
+| 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed + **1.0-parity close-stack FULLY LANDED** (batch 1 @80b42b8, item-5 closed) + sound upload AUTOMATED (@e69cb36) | 🚪 the ONE Studio session (verify midgame-join + publish + URL const + API-key sound upload + store art/genre) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅ | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | conquest renderer-brighten banked v1.x (non-blocking); guards G1–G5 + A49 5/5 all complete |
 
 ## Reading the tree — the three facts that matter
 
-1. **The diplomacy arc is CLOSED; the engine lane is an ordered program,
-   now 5 of 6 windows done — only W6 remains.** River, 11b, D4, D5, D6
-   landed + tagged (marker-0104, axis 2 complete). The engine program
-   (`specs/engine-program-v1.md`): **W1 ✅ + W2 ✅ (0105); W3 ✅ (0106);
-   W4 WLTKD ✅ + W5 relabel ✅ (0107, both gates GREEN)**; remaining
-   W6 build-doctrine (PROMOTED, 5 slices, architect).
-   build-doctrine (W6)
-   clears the M3-pop 20<22 advisory on landing. Golden windows SERIALIZE
-   to the architect — W3/W4/W6 all ripple the shared createGame stamp, so
-   they cannot parallelize in the one shared dev-PC tree (only the
-   NON-golden portions — client halves, pedia/advisory text — can be
-   offloaded to an idle lane).
-2. **Lane consolidation, morning shape.** Helper stopped (clean park).
-   Bugfixer REACTIVATED: runs mobile play-session-3 (11 items,
-   golden-neutral client) then W1 diplomacy (user ruling: redirect to
-   engine after mobile). Architect executes W2–W6. Gaming PC back:
-   sim-runner (sweeps/measures + git operator), reviewer (gates PUSHED
-   shas — commit+push before requesting review), roblox-helper (waiting
-   on the user Studio session). Hardening parked (server lane empty).
-3. **User gates remain:** merge marker-0106 (ready now, supersedes
-   0105), the trademark search, the ONE Studio publish/acceptance
-   session, and the standing roblox Write allowlist. The M3-pop floor
-   policy is RULED (user 2026-07-25): leave the value at 22, de-ratchet
-   to advisory (removed from the nightly --enforce-floors, @9e42842),
-   tracked to the build-doctrine granary fix — re-ratchet when it lands.
+1. **The engine program is 5.5 of 6 windows done — only W6 slices 3–5
+   remain, and they are the critical path.** W1–W5 ✅ (0105–0107); W6
+   slice-1 ✅ (0108: M3 62, coverage 57.3%, the M3-pop floor
+   RE-RATCHETED into nightly); slice-2 FOLDED into slice-3 by user
+   ruling (target pre-achieved, measured — a golden window saved).
+   Slice-3 is OPEN now: city-role assignment + the v1 war pair
+   (pillage-siege + air-war, `specs/unit-doctrine-v1x.md`); then
+   slice-4 frontier walls, slice-5 wonders appetite. Golden windows
+   SERIALIZE to the architect — only the NON-golden portions (client
+   halves, pedia/advisory text) can be offloaded to an idle lane.
+2. **Lane shape (current).** Helper stopped (clean park). Bugfixer
+   idle post-B13-witness-regen, queue restocked (witness-generator
+   promotion). Sim-runner back online: Gate-B corroboration landed;
+   measurement batch queued (concept histograms, natural distribution,
+   disasters-ON, peace-witness remainder — approved, never
+   1.0-blocking). Reviewer idle; next gate = W6 slice-3. Roblox-helper:
+   close-stack FULLY LANDED, waiting on the user Studio session.
+   Hardening: SIGTERM-flake queue item (its exclusive files).
+3. **User gates remain:** merge marker-0108 (@6796e2e, ready now,
+   supersedes 0107), the trademark search, and the ONE Studio session
+   — now shorter: publish + midgame-join verify + store art/genre +
+   the scripted sound upload (one Open Cloud API key +
+   `roblox/tools/upload-sounds.js`) + ROBLOX_EXPERIENCE_URL.
 
-_Not in v1 (user-ruled v2 shelf): dedicated mobile UI, Civ4-style culture,
-novelty map shapes, checkpointed saves, Blender/glTF fidelity pass, the
-Civ2-ruleset game option, cross-play bridge, negotiation layer, rename
-program. The XIV mobile items above are UX fixes to the existing client,
-not the v2 mobile UI._
+_Not in v1 (user-ruled v2/v1.x shelf): dedicated mobile UI, Civ4-style
+culture, novelty map shapes, checkpointed saves, Blender/glTF fidelity
+pass, the Civ2-ruleset game option, cross-play bridge, negotiation layer,
+rename program, and the AI unit-doctrine econ pair + nuke doctrine
+(diplomats/caravans/nukes — ruled v1.x 2026-07-26,
+`specs/unit-doctrine-v1x.md`). The XIV mobile items above are UX fixes to
+the existing client, not the v2 mobile UI._

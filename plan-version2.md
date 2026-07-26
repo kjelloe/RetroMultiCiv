@@ -3,7 +3,9 @@
 _LIVING DOCUMENT, deliberately looser than `plan-version1.md`: an unordered
 holding list of everything explicitly designated post-1.0, so nothing is
 lost and nothing sneaks into the v1 critical path. An item leaves this file
-only by a user ruling. Last updated: 2026-07-24._
+only by a user ruling. Last updated: 2026-07-27 (unit-doctrine v1.x
+section added — econ pair + nukes ruled off the v1 path 2026-07-26;
+HTML twin `plan-version2.html` added)._
 
 Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 `Civ2-shape` / `Civ4-shape` / `original`.
@@ -164,8 +166,25 @@ here per the civ-mixing ruling (surface + decide, label provenance):
   a tech gate would need AI beeline awareness (needsOcean-v2 already
   fog-honest) — engine window, low value while hull-gating works.
 
-- **AI unit-doctrine econ pair (RULED v1.x, user 2026-07-26):** diplomat doctrine
-  (border-city defense pending the Civ1-thwart authenticity check + lagging-civ
-  tech-steal + incite/sabotage assault prep) and caravan doctrine (peace-economy
-  routes + wonder-help chains). Spec: `specs/unit-doctrine-v1x.md` §1–2. The war
-  pair (pillage-siege + air-war) went into W6 v1 scope.
+## AI unit-doctrine: econ pair + nukes (RULED v1.x, user 2026-07-26)
+
+Spec: `specs/unit-doctrine-v1x.md` (the opening backlog for these
+windows; the WAR pair — pillage-siege + air-war — went into W6 v1
+scope instead). Shelved to protect the 1.0 date; each is a new AI
+subsystem:
+
+- **Diplomat doctrine** (§1): lagging-civ tech-steal (especially with
+  already-bad reputation) + incite/sabotage as assault preparation.
+  The DEFENSIVE half (garrisoned diplomat thwarts missions) is
+  **fact-checked as `Civ2-shape`** (reviewer #2798: Civ 1 diplomats
+  are offense-only; the compounding 20%/diplomat intercept is Civ 2)
+  — enters via the civ-mixing ruling at this window, user decides
+  adoption alongside the existing Civ1 once-per-city immunity.
+- **Caravan doctrine** (§2): peaceful civs build caravans for trade
+  routes + the classic wonder-help caravan chain (after defenders +
+  key buildings are in place).
+- **Nuke desperation/retaliation doctrine** (§3): first use gated on
+  aggression + trailing rank + endgame proximity (2100 AD / spaceship
+  launched); once nuked, the attacked civ retaliates at-will against
+  the aggressor's cities or large stacks. Near-unobservable before
+  the marathon measurements land.

@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-26</strong> — marker-0108: W6 SLICE-1 COMPLETE (M3 62 = 4× floor)</span>
+    <span class="chip">Updated: <strong>2026-07-27</strong> — slice-2 FOLDED (pre-achieved) · slice-3 OPEN (roles + war pair) · sound assets approved + upload automated</span>
     <span class="chip">Merge candidate: <strong>marker-0108</strong> @ 6796e2e (MERGE-CONSISTENT — W6 slice-1 + parity appendix; supersedes 0107)</span>
-    <span class="chip"><strong>W6 slice-1 ✅ (0108)</strong> — slices 2–5 remain (science/trade → roles → walls → wonders)</span>
+    <span class="chip"><strong>W6 slice-1 ✅ (0108) · slice-2 folded</strong> — slices 3–5 remain (roles + war pair → walls → wonders)</span>
   </div>
 </header>
 
@@ -109,12 +109,14 @@
       <li class="g"><span class="st done">✅</span><strong>D4 diplomacy</strong> — LANDED @ceda2169e: tribute + tech exchange + human LAN treaty command + offer expiry, engine+twin+AI+client, honest re-record, twins 11/11. NOT TAGGED (overnight policy)</li>
       <li class="g"><span class="st done">✅</span><strong>D5 reputation + senate</strong> — LANDED @fe023c0 (0104): reputation 0–4 band (recoverable, byte-identical when healed), senate blocks Republic/Democracy war-on-peace, UN/Great Wall peaceAcceptBonus; fixes the D4 event-catalog gap</li>
       <li class="g"><span class="st done">✅</span><strong>D6 embassies + missions</strong> — LANDED @984f48c (0104): diplomat-missions.js + twin (embassy + steal-tech roll + sabotage roll + incite + bribe), filterView embassy intel view-only. GOLDEN-NEUTRAL, scenario 065 pin 0xea7216fc JS==Luau. <strong>Diplomacy arc COMPLETE</strong></li>
-      <li><span class="st now">🔨 promoted</span><strong>AI build doctrine (XX §3 = W6)</strong> — measurement DONE (buildings ~0: 5/87 civs built any; wonders ~0; tech cap ~30; 0 launches). <strong>PROMOTED to a full 5-slice window</strong> (your ruling), architect-executed, happiness-first; clears the M3-pop 20&lt;22 advisory on landing. Last of the engine program W1–W6</li>
+      <li class="g"><span class="st done">✅ promoted → delivering</span><strong>AI build doctrine (XX §3 = W6)</strong> — baseline measured (buildings ~0), PROMOTED to a full window (your ruling), architect-executed. Slice-1 DELIVERED (0108, M3 advisory not just cleared but re-ratcheted at 4× headroom); slice-2 folded; slices 3–5 = the last engine work before 1.0</li>
       <li><span class="st done">✅</span><strong>W1 diplomacy DONE</strong> — @9dfc975 (marker-0105): investigateCity + discovered-sabotage (botch-amplified discovery → reputation+grievance), STAMP-only cascade re-record, twins 11/11, reviewer-gated #2724</li>
       <li><span class="st done">✅</span><strong>W2 building effects DONE</strong> — @a7f9da7 (marker-0105): Mfg. Plant +100%/obsoletes-Factory + SDI nuke-intercept (rollRange&lt;70), STAMP-only (reviewer lune-verified BEHAVIOR byte-identical, AI-buildable Mfg-Plant risk cleared), scenario 066 0x7d67d913 JS==Luau, reviewer-gated #2736</li>
       <li><span class="st done">✅</span><strong>W3 score term DONE</strong> — @aa6197e (marker-0106): scoreBreakdown +happy = happyCitizens*scorePerHappy (spec §10, pollution deferred off-in-v1), STAMP-only (score not hashed/AI doesn't read it → only endYear winner is a surface, unchanged), twins 11/11 lune, reviewer GREEN #2741</li>
       <li><span class="st done">✅</span><strong>W4 We-Love-the-King-Day DONE</strong> — @b813bbc (marker-0107): celebrate flag at the wrap (happy*2&gt;=pop, 0 unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles (Civ1-faithful, user-ruled, no rapture). BEHAVIORAL (natural 545→365, p2→p3 — reviewer-verified deterministic butterfly, byte-identical JS==Luau); gates GREEN: reviewer #2753 clean-clone 959/0-fail + sim-runner #2755 sweep 25/25. Scenario 067 0x56151fa5 JS==Luau. + W5 re-home relabel @a5b5808 (comment-only) + WLTKD client surface @8c50ceb (bugfixer)</li>
-      <li><span class="st done">✅</span><strong>W6 SLICE-1 COMPLETE</strong> — @6796e2e (marker-0108): the doctrine (1a) + defer calibrations (1b/1c, user-ruled) + garrison role discipline (1d, user-ruled). M3-pop 15.5→<strong>62</strong> (4× floor 22, RE-RATCHETED into nightly), M2-cities 16, M4-impr 91.5%, temple/granary coverage 0→<strong>57.3%</strong> (reviewer direct count), cities 5.7×; sweep 25/25 (the 2 "fails" were a checker gap — ss-part productions: <strong>the space race is live in sweeps for the first time</strong>); reviewer CLEAN ×2; twins 11/11 (caught a twin nil-call pre-push); peace witness (user-designed defensive pair) = the acceptance instrument. Runtime finding: soak 3.5→36 min (denser worlds). reports/marker-0108.md</li>
+      <li class="g"><span class="st done">✅</span><strong>W6 SLICE-1 COMPLETE</strong> — @6796e2e (marker-0108): the doctrine (1a) + defer calibrations (1b/1c, user-ruled) + garrison role discipline (1d, user-ruled). M3-pop 15.5→<strong>62</strong> (4× floor 22, RE-RATCHETED into nightly), M2-cities 16, M4-impr 91.5%, temple/granary coverage 0→<strong>57.3%</strong> (reviewer direct count), cities 5.7×; sweep 25/25 (the 2 "fails" were a checker gap — ss-part productions: <strong>the space race is live in sweeps for the first time</strong>); reviewer CLEAN ×2; twins 11/11 (caught a twin nil-call pre-push); peace witness (user-designed defensive pair) = the acceptance instrument. Runtime finding: soak 3.5→36 min (denser worlds). reports/marker-0108.md</li>
+      <li class="g"><span class="st done">✅ ruled</span><strong>W6 slice-2 FOLDED into slice-3</strong> — user ruling 2026-07-26 (@c18220e): target pre-achieved, measured — organic 46 libraries + 32 markets + 6 universities across 139 cities, tree exhaustion + Future Tech by t400. A golden window saved.</li>
+      <li><span class="st now">🔨 open now</span><strong>W6 slice-3: city roles + the v1 war pair</strong> — city-role assignment (production/science/frontline/spawner from geography + empire context) + pillage-siege and air-war doctrine (<code>specs/unit-doctrine-v1x.md</code>; #2798 verdicts banked: counter-espionage=Civ2 → v1.x, pillage-siege = recalled-behavior label). Econ pair + nukes shelved v1.x. Then slice-4 frontier walls, slice-5 wonders appetite — and the engine program is done.</li>
     </ol>
   </div>
 </section>
@@ -131,11 +133,10 @@
     refinement-XVII+XIX, regression guards G1–G5 (all complete), and <strong>#34 Founder's Record COMPLETE</strong>
     (all four endings) + founders-tone + specials-silhouettes + play-on-roblox + xx-pedia-splash — every v1 client
     item shipped, and the ally ACCEPTED the tone/silhouette work FINAL. <strong>Helper STOPPED</strong> (queue empty, clean park).</div></div>
-  <div class="item"><div class="t"><span class="st now">🔨 active — back online</span>Roblox (second PC)</div>
-    <div class="d">Tier 3 certified, instant age-starts, specials + antler re-mirror landed, <strong>intro v1 APPROVED by you, frozen at v5b</strong> ("A World Begun" + subtitle), <strong>midgame-join BUILT and landed</strong> (58f74e4 — claimSeat parity, toggle default on; your Studio verify pending). Back on the gaming PC: gate-4 D4–D6 re-bake landed (bbfa85c, 4 ruleset hashes byte-verified), prepping a Studio-session checklist. Remaining v1 item is the ONE user-gated Studio session (verify midgame-join + publish + set ROBLOX_EXPERIENCE_URL).</div></div>
-  <div class="item g"><div class="t"><span class="st done">✅ closed — bar reopened</span>AI-quality program</div>
-    <div class="d">Floors ratcheted green, archetype accepted, gov arc landed, space fork RULED. Your XX §3 build doctrine
-    (city roles: production/science/frontline/spawner) REOPENS the axis — baseline already measured (~0 buildings all eras), the engine window queues after D6 unless promoted.</div></div>
+  <div class="item g"><div class="t"><span class="st done">✅ code-complete for 1.0</span>Roblox (second PC)</div>
+    <div class="d">Tier 3 certified, instant age-starts, <strong>intro v1 APPROVED frozen at v5b</strong>, <strong>midgame-join BUILT and landed</strong> (58f74e4), and the <strong>1.0-parity close-stack FULLY LANDED</strong> (batch 1 @80b42b8: endscreen itemization + WLTKD narration; SO6/SO8/MP4 verified present; tooltip item-5 closed by ruling). <strong>Sound pipeline automated</strong> (@e69cb36): 32 user-approved WAVs regenerate via <code>tools/render-sounds.js</code>; <code>roblox/tools/upload-sounds.js</code> bulk-uploads via Open Cloud, fills VOLUMES.md, regenerates SoundAssets.luau. Remaining v1 item = the ONE user-gated Studio session (verify midgame-join + publish + store art/genre + API-key sound upload + ROBLOX_EXPERIENCE_URL).</div></div>
+  <div class="item g"><div class="t"><span class="st done">✅ floors green — slice-1 landed big</span>AI-quality program</div>
+    <div class="d">Floors ratcheted green (M3-pop RE-RATCHETED at 62 vs floor 22), archetype accepted, gov arc landed, space fork RULED, W6 slice-1 delivered the build-doctrine recovery (coverage 0→57.3%). Remaining: the slice-3 city-role assignment (production/science/frontline/spawner) + war pair, then walls + wonders appetite. Measurement batch queued to sim-runner (approved, never 1.0-blocking).</div></div>
 </section>
 
 <section id="axes">
@@ -156,12 +157,12 @@
 <section id="gates">
   <div class="sec-head"><h2>User gates</h2><span class="tag">only you can open these</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t"><span class="st gate">🚪 ready now</span>Merge marker-0107 (@8c50ceb)</div>
-    <div class="d">marker-0107 is MERGE-CONSISTENT and supersedes 0106 — W4 We-Love-the-King-Day (BEHAVIORAL: celebrate flag → corruption 0 + Rep/Dem +1 trade; natural golden 545→365/p3, reviewer-verified deterministic butterfly byte-identical JS==Luau) + W5 re-home relabel + WLTKD client surface + roblox re-bake. Gates GREEN: reviewer #2753 (clean-clone 959/956/0-fail + independent lune repro) and sim-runner #2755 (25-seed sweep 25/25 clean). reports/marker-0107.md has the full delta. Merge when you're ready.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 ready now</span>Merge marker-0108 (@6796e2e)</div>
+    <div class="d">marker-0108 is MERGE-CONSISTENT and supersedes 0107 — W6 slice-1 complete (doctrine + garrison discipline: M3-pop 62 = 4× floor RE-RATCHETED, coverage 0→57.3%, cities 5.7×) + the Roblox 1.0-parity appendix + close-stack batch 1. Gates GREEN: sweep 25/25, reviewer CLEAN ×2 (code #2787 + coverage cross-check #2788), twins 11/11, sim-runner Gate-B corroboration (#2794, uniform 23-seed recovery). reports/marker-0108.md has the full arc. Merge when you're ready.</div></div>
   <div class="item"><div class="t"><span class="st done">✅ ruled</span>PEDIA_NAME + the city-list call</div>
     <div class="d">BOTH RULED 2026-07-25: PEDIA_NAME = "Encyclopedia" (applied) and city rosters = GO full-authentic-replace (LANDED @5617bf9). This gate is CLOSED — kept for the record.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 after the batch</span>Roblox publish + acceptance session</div>
-    <div class="d">One Studio/live session: publish, then sound + saving + the runI batch accepted together (ruled sequencing).</div></div>
+    <div class="d">One Studio/live session: publish, midgame-join verify, store art (logo committed, thumbnails in-Studio) + genre (Strategy, no subgenre — ruled), the scripted sound upload (one Open Cloud API key + <code>node roblox/tools/upload-sounds.js</code> — fills assetIds + SoundAssets.luau automatically), saving + runI batch accepted together (ruled sequencing), then ROBLOX_EXPERIENCE_URL.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 standing</span>Trademark search + domains</div>
     <div class="d">"A World Begun" (lead) / "The Work of Ages" (backup); reserve aworldbegun.eu/.com/.no during clearance.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 at RC</span>The release checklist</div>
@@ -169,9 +170,10 @@
 </section>
 
 <footer>
-  Not in v1 (the ruled v2 shelf): dedicated mobile UI · Civ4 culture · novelty maps · checkpointed saves ·
+  Not in v1 (the ruled v2/v1.x shelf): dedicated mobile UI · Civ4 culture · novelty maps · checkpointed saves ·
   Blender pass · Civ2-ruleset option · cross-play bridge · negotiation layer · rename program · Civ2+ water
-  features · per-game takeover cap. Sibling page: <code>human-workitems.html</code>.
+  features · per-game takeover cap · AI unit-doctrine econ pair + nuke doctrine (v1.x, <code>specs/unit-doctrine-v1x.md</code>).
+  Sibling pages: <code>plan-version2.html</code> · <code>human-workitems.html</code>.
 </footer>
 
 </div></body>
