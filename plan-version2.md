@@ -3,9 +3,12 @@
 _LIVING DOCUMENT, deliberately looser than `plan-version1.md`: an unordered
 holding list of everything explicitly designated post-1.0, so nothing is
 lost and nothing sneaks into the v1 critical path. An item leaves this file
-only by a user ruling. Last updated: 2026-07-27 (unit-doctrine v1.x
-section added — econ pair + nukes ruled off the v1 path 2026-07-26;
-HTML twin `plan-version2.html` added)._
+only by a user ruling. Last updated: 2026-07-27 (2nd pass — TWO items
+LEFT the shelf by user ruling: novelty map SHAPES → v1 as W7
+[toroidal wrap stays here] and the unit-doctrine ECON PAIR → v1 as W8
+[nukes + counter-espionage stay]; GHCR image → release-checklist step
+4b. Earlier same day: unit-doctrine section added; HTML twin
+`plan-version2.html` added)._
 
 Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 `Civ2-shape` / `Civ4-shape` / `original`.
@@ -17,8 +20,13 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 - **Civ4-style culture** — culture points/borders; v1 keeps Civ 1 fixed
   city radii. (`Civ4-shape`; the on-map fat-cross display is v1-adjacent,
   formal culture borders are here.)
-- **Novelty map shapes** — donut/spiral/mirror worlds beyond A82's
-  Continents/Pangaea/Archipelago.
+- ~~**Novelty map shapes**~~ — **LEFT THE SHELF (user ruling
+  2026-07-27): promoted to v1 as W7** (`specs/map-shapes-w7.md`:
+  fractal/oval/ring/inland-sea/clover, one additive window). What
+  REMAINS here: **toroidal wrap** (Y-wrap — touches all distance/BFS
+  math, mapgen poles, fog, minimap, renderer, AI pathing + the full
+  Luau twin; deep window, deferred) and any shapes beyond the W7 five
+  (spiral/mirror worlds).
 - **Checkpointed save format** — periodic state snapshots inside the save so
   very long games load/replay without full command-log re-derivation.
 - **Blender/glTF fidelity pass** — replace procedural primitives with a real
@@ -56,8 +64,9 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
   federation/multiple indexes if the community ever warrants it.
 - **Nightly self-check mail integration** (A96 leftover) — outbound
   notification needs an outbound-dependency decision; deliberately unbuilt.
-- **GHCR prebuilt Docker image** — workflow exists, publish job gated on the
-  repo owner opting in (`PUBLISH_GHCR` repo var).
+- ~~**GHCR prebuilt Docker image**~~ — **LEFT THE SHELF (user ruling
+  2026-07-27): now release-checklist step 4b** (flip `PUBLISH_GHCR`
+  + one verified run at RC; `specs/v1-release-checklist.md`).
 - **In-client bug-report v2** — v1 ships write-only file drops; triage
   tooling / dedup / a reader UI would be v2 (`debugging/triage.sh` covers
   the operator side for now).
@@ -166,25 +175,21 @@ here per the civ-mixing ruling (surface + decide, label provenance):
   a tech gate would need AI beeline awareness (needsOcean-v2 already
   fog-honest) — engine window, low value while hull-gating works.
 
-## AI unit-doctrine: econ pair + nukes (RULED v1.x, user 2026-07-26)
+## AI unit-doctrine remainder (RE-RULED 2026-07-27: econ pair LEFT for v1)
 
-Spec: `specs/unit-doctrine-v1x.md` (the opening backlog for these
-windows; the WAR pair — pillage-siege + air-war — went into W6 v1
-scope instead). Shelved to protect the 1.0 date; each is a new AI
-subsystem:
+Spec: `specs/unit-doctrine-v1x.md`. The ECON PAIR (offensive diplomat
+doctrine §1 + caravan doctrine §2) was **promoted to v1 as W8** (user
+ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
 
-- **Diplomat doctrine** (§1): lagging-civ tech-steal (especially with
-  already-bad reputation) + incite/sabotage as assault preparation.
-  The DEFENSIVE half (garrisoned diplomat thwarts missions) is
+- **Diplomat counter-espionage** (the §1 DEFENSIVE half):
   **fact-checked as `Civ2-shape`** (reviewer #2798: Civ 1 diplomats
   are offense-only; the compounding 20%/diplomat intercept is Civ 2)
-  — enters via the civ-mixing ruling at this window, user decides
-  adoption alongside the existing Civ1 once-per-city immunity.
-- **Caravan doctrine** (§2): peaceful civs build caravans for trade
-  routes + the classic wonder-help caravan chain (after defenders +
-  key buildings are in place).
+  — enters via the civ-mixing ruling at its own window; user decides
+  adoption alongside the existing Civ1 once-per-city immunity. NOT
+  part of W8.
 - **Nuke desperation/retaliation doctrine** (§3): first use gated on
   aggression + trailing rank + endgame proximity (2100 AD / spaceship
   launched); once nuked, the attacked civ retaliates at-will against
   the aggressor's cities or large stacks. Near-unobservable before
-  the marathon measurements land.
+  the marathon measurements land — **stays v1.x pending the marathon
+  lane (re-confirmed 2026-07-27)**.

@@ -30,6 +30,12 @@ v1 tree is done (all six axes; see plan-version1.md). Order matters.
    civs, marathon opt-in, --max-turns 700, --bug-reports on,
    --announce to the public index. Documented as the v1 baseline in
    how-to-host (no changes needed).
+4b. **GHCR prebuilt image** (RULED IN, user 2026-07-27): USER flips
+   the repo variable `PUBLISH_GHCR=true`; the existing
+   docker-image.yml workflow publishes
+   `ghcr.io/<owner>/retromulticiv:{latest,sha}`; architect verifies
+   one workflow run + a pull-and-run smoke, then adds the pull line
+   to how-to-host/README. Zero engine surface.
 5. **README + release notes**: the ally's three-block copy is IN
    HAND (specs/ally-response-2026-07-24-naming-release.md) —
    title-swappable. NAMING (ally-ruled): "A World Begun" lead /

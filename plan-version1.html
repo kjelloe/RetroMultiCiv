@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-27</strong> — slice-2 FOLDED (pre-achieved) · slice-3 OPEN (roles + war pair) · sound assets approved + upload automated</span>
+    <span class="chip">Updated: <strong>2026-07-27</strong> — SCOPE RULING: program extends <strong>W6 → W7 maps → W8 econ pair</strong> (+~1 week, accepted) · GHCR at RC · nukes stay v1.x</span>
     <span class="chip">Merge candidate: <strong>marker-0108</strong> @ 6796e2e (MERGE-CONSISTENT — W6 slice-1 + parity appendix; supersedes 0107)</span>
-    <span class="chip"><strong>W6 slice-1 ✅ (0108) · slice-2 folded</strong> — slices 3–5 remain (roles + war pair → walls → wonders)</span>
+    <span class="chip"><strong>W6 slice-1 ✅ · slice-2 folded</strong> — slices 3–5 (slice-3 OPEN) → W7 map shapes → W8 econ pair</span>
   </div>
 </header>
 
@@ -116,7 +116,9 @@
       <li><span class="st done">✅</span><strong>W4 We-Love-the-King-Day DONE</strong> — @b813bbc (marker-0107): celebrate flag at the wrap (happy*2&gt;=pop, 0 unhappy) → corruption 0 (all govs) + Rep/Dem +1 trade on trading tiles (Civ1-faithful, user-ruled, no rapture). BEHAVIORAL (natural 545→365, p2→p3 — reviewer-verified deterministic butterfly, byte-identical JS==Luau); gates GREEN: reviewer #2753 clean-clone 959/0-fail + sim-runner #2755 sweep 25/25. Scenario 067 0x56151fa5 JS==Luau. + W5 re-home relabel @a5b5808 (comment-only) + WLTKD client surface @8c50ceb (bugfixer)</li>
       <li class="g"><span class="st done">✅</span><strong>W6 SLICE-1 COMPLETE</strong> — @6796e2e (marker-0108): the doctrine (1a) + defer calibrations (1b/1c, user-ruled) + garrison role discipline (1d, user-ruled). M3-pop 15.5→<strong>62</strong> (4× floor 22, RE-RATCHETED into nightly), M2-cities 16, M4-impr 91.5%, temple/granary coverage 0→<strong>57.3%</strong> (reviewer direct count), cities 5.7×; sweep 25/25 (the 2 "fails" were a checker gap — ss-part productions: <strong>the space race is live in sweeps for the first time</strong>); reviewer CLEAN ×2; twins 11/11 (caught a twin nil-call pre-push); peace witness (user-designed defensive pair) = the acceptance instrument. Runtime finding: soak 3.5→36 min (denser worlds). reports/marker-0108.md</li>
       <li class="g"><span class="st done">✅ ruled</span><strong>W6 slice-2 FOLDED into slice-3</strong> — user ruling 2026-07-26 (@c18220e): target pre-achieved, measured — organic 46 libraries + 32 markets + 6 universities across 139 cities, tree exhaustion + Future Tech by t400. A golden window saved.</li>
-      <li><span class="st now">🔨 open now</span><strong>W6 slice-3: city roles + the v1 war pair</strong> — city-role assignment (production/science/frontline/spawner from geography + empire context) + pillage-siege and air-war doctrine (<code>specs/unit-doctrine-v1x.md</code>; #2798 verdicts banked: counter-espionage=Civ2 → v1.x, pillage-siege = recalled-behavior label). Econ pair + nukes shelved v1.x. Then slice-4 frontier walls, slice-5 wonders appetite — and the engine program is done.</li>
+      <li><span class="st now">🔨 open now</span><strong>W6 slice-3: city roles + the v1 war pair</strong> — city-role assignment (production/science/frontline/spawner from geography + empire context) + pillage-siege and air-war doctrine (<code>specs/unit-doctrine-v1x.md</code>; #2798 verdicts banked: counter-espionage=Civ2 → v1.x, pillage-siege = recalled-behavior label). Then slice-4 frontier walls, slice-5 wonders appetite.</li>
+      <li><span class="st qd">📋 ruled in 07-27</span><strong>W7: novelty map shapes</strong> — one ADDITIVE golden window (<code>specs/map-shapes-w7.md</code>): fractal (generator knobs) + oval + ring/donut + inland-sea (mask stage in mapgen) + clover with BALANCED STARTS (the hidden-cost sub-slice). Existing goldens untouched; each new type gets its own JS==Luau pin; water-heavy shapes get mini naval-acceptance soaks. Toroidal wrap DEFERRED to v2 (cylindrical + flat already exist via <code>map.wrapX</code>). ~2–3 days + ~1 for clover starts.</li>
+      <li><span class="st qd">📋 promoted 07-27</span><strong>W8: unit-doctrine econ pair</strong> — offensive diplomat doctrine (lagging-civ tech-steal + incite/sabotage assault prep) + caravan doctrine (peace-economy routes + wonder-help chains). AI BRAIN ONLY — the D6 mission + A83/A89 caravan mechanics already ship. Counter-espionage stays v1.x (Civ2 civ-mixing decision); nukes stay v1.x pending the marathon lane. ~2–4 days with gates. <strong>Last engine window before 1.0.</strong></li>
     </ol>
   </div>
 </section>
@@ -165,14 +167,14 @@
     <div class="d">One Studio/live session: publish, midgame-join verify, store art (logo committed, thumbnails in-Studio) + genre (Strategy, no subgenre — ruled), the scripted sound upload (one Open Cloud API key + <code>node roblox/tools/upload-sounds.js</code> — fills assetIds + SoundAssets.luau automatically), saving + runI batch accepted together (ruled sequencing), then ROBLOX_EXPERIENCE_URL.</div></div>
   <div class="item"><div class="t"><span class="st gate">🚪 standing</span>Trademark search + domains</div>
     <div class="d">"A World Begun" (lead) / "The Work of Ages" (backup); reserve aworldbegun.eu/.com/.no during clearance.</div></div>
-  <div class="item"><div class="t"><span class="st gate">🚪 at RC</span>The release checklist</div>
-    <div class="d">specs/v1-release-checklist.md: RC marker → your main merge → v1.0.0 tag → redeploy from main → README on the ally's three blocks → announce.</div></div>
+  <div class="item"><div class="t"><span class="st gate">🚪 at RC</span>The release checklist (now incl. GHCR)</div>
+    <div class="d">specs/v1-release-checklist.md: RC marker → your main merge → v1.0.0 tag → redeploy from main → <strong>step 4b (ruled 07-27): flip <code>PUBLISH_GHCR=true</code>, verify one workflow run + pull-and-run smoke</strong> → README on the ally's three blocks → announce.</div></div>
 </section>
 
 <footer>
-  Not in v1 (the ruled v2/v1.x shelf): dedicated mobile UI · Civ4 culture · novelty maps · checkpointed saves ·
-  Blender pass · Civ2-ruleset option · cross-play bridge · negotiation layer · rename program · Civ2+ water
-  features · per-game takeover cap · AI unit-doctrine econ pair + nuke doctrine (v1.x, <code>specs/unit-doctrine-v1x.md</code>).
+  Not in v1 (the ruled v2/v1.x shelf): dedicated mobile UI · Civ4 culture · TOROIDAL wrap (map shapes themselves = W7, in v1) ·
+  checkpointed saves · Blender pass · Civ2-ruleset option · cross-play bridge · negotiation layer · rename program · Civ2+ water
+  features · per-game takeover cap · nuke doctrine + diplomat counter-espionage (the econ pair = W8, in v1).
   Sibling pages: <code>plan-version2.html</code> · <code>human-workitems.html</code>.
 </footer>
 

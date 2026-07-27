@@ -71,7 +71,7 @@
   <strong>An item leaves this file only by a user ruling.</strong> Provenance tags follow the civ-mixing ruling:
   <code>Civ1-authentic</code> / <code>Civ2-shape</code> / <code>Civ4-shape</code> / <code>original</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-27</strong> — unit-doctrine v1.x section added (econ pair + nukes ruled off the v1 path 2026-07-26)</span>
+    <span class="chip">Updated: <strong>2026-07-27</strong> (2nd) — TWO items LEFT the shelf by ruling: map shapes → v1 (W7, toroidal stays) · econ pair → v1 (W8, nukes stay) · GHCR → RC checklist 4b</span>
     <span class="chip">The 1.0 tree lives in <strong>plan-version1.html</strong></span>
   </div>
 </header>
@@ -83,8 +83,8 @@
     <div class="d">A real touch-first interface, beyond the XIV UX fixes (arrow overlay, pinch fix, gesture legend) that ship in v1.</div></div>
   <div class="item"><div class="t"><span class="prov">Civ4-shape</span>Civ4-style culture</div>
     <div class="d">Culture points/borders; v1 keeps Civ 1 fixed city radii. The on-map fat-cross display is v1-adjacent; formal culture borders are here.</div></div>
-  <div class="item"><div class="t">Novelty map shapes</div>
-    <div class="d">Donut/spiral/mirror worlds beyond A82's Continents/Pangaea/Archipelago.</div></div>
+  <div class="item"><div class="t"><s>Novelty map shapes</s> — LEFT THE SHELF (ruled 2026-07-27)</div>
+    <div class="d">Promoted to v1 as <strong>W7</strong> (<code>specs/map-shapes-w7.md</code>: fractal/oval/ring/inland-sea/clover, one additive window). What REMAINS here: <strong>toroidal wrap</strong> (Y-wrap — all distance/BFS math, mapgen poles, fog, minimap, renderer, AI pathing + the full Luau twin; deep window, deferred) and shapes beyond the W7 five (spiral/mirror worlds).</div></div>
   <div class="item"><div class="t">Checkpointed save format</div>
     <div class="d">Periodic state snapshots inside the save so very long games load/replay without full command-log re-derivation.</div></div>
   <div class="item"><div class="t">Blender/glTF fidelity pass</div>
@@ -105,12 +105,11 @@
 <section id="seeded">
   <div class="sec-head"><h2>Seeded designs</h2><span class="tag">each arrived with a ruling + enough design to restart cold</span></div>
   <div class="bar"></div>
-  <div class="item"><div class="t">AI unit-doctrine: econ pair + nukes — <strong>RULED v1.x</strong> (user 2026-07-26)</div>
-    <div class="d">Spec: <code>specs/unit-doctrine-v1x.md</code> (the opening backlog; the WAR pair — pillage-siege + air-war — went into W6 v1 scope instead). Shelved to protect the 1.0 date; each is a new AI subsystem:</div>
+  <div class="item"><div class="t">AI unit-doctrine remainder — <strong>RE-RULED 2026-07-27: econ pair LEFT for v1</strong></div>
+    <div class="d">Spec: <code>specs/unit-doctrine-v1x.md</code>. The ECON PAIR (offensive diplomat §1 + caravan §2) was <strong>promoted to v1 as W8</strong> (sequenced after W6 + W7). What REMAINS here:</div>
     <ul class="tight">
-      <li><strong>Diplomat doctrine</strong> (§1): lagging-civ tech-steal (especially with already-bad reputation) + incite/sabotage as assault prep. The DEFENSIVE half is <strong>fact-checked <span class="prov">Civ2-shape</span></strong> (reviewer #2798: Civ 1 diplomats are offense-only; the compounding 20%/diplomat intercept is Civ 2) — enters via the civ-mixing ruling at this window, user decides adoption alongside the existing Civ1 once-per-city immunity.</li>
-      <li><strong>Caravan doctrine</strong> (§2): peaceful civs build caravans for trade routes + the classic wonder-help caravan chain (after defenders + key buildings are in place).</li>
-      <li><strong>Nuke desperation/retaliation doctrine</strong> (§3): first use gated on aggression + trailing rank + endgame proximity (2100 AD / spaceship launched); once nuked, the attacked civ retaliates at-will against the aggressor's cities or large stacks. Near-unobservable before the marathon measurements land.</li>
+      <li><strong>Diplomat counter-espionage</strong> (the §1 DEFENSIVE half): fact-checked <span class="prov">Civ2-shape</span> (reviewer #2798: Civ 1 diplomats are offense-only; the compounding 20%/diplomat intercept is Civ 2) — enters via the civ-mixing ruling at its own window; user decides adoption alongside the existing Civ1 once-per-city immunity. NOT part of W8.</li>
+      <li><strong>Nuke desperation/retaliation doctrine</strong> (§3): first use gated on aggression + trailing rank + endgame proximity (2100 AD / spaceship launched); once nuked, the attacked civ retaliates at-will against the aggressor's cities or large stacks. <strong>Stays v1.x pending the marathon lane (re-confirmed 2026-07-27).</strong></li>
     </ul></div>
   <div class="item"><div class="t"><span class="prov">Civ2-shape</span>Civ 2 ruleset option (seeded 2026-07-21)</div>
     <div class="d">A future GAME OPTION collecting the deliberately-rejected Civ2 mixes into a selectable ruleset variant (setup toggle / rulesOverrides preset): post-conquest civil disorder (§39), Lighthouse-saves-triremes (#1976), partisans/guerrillas, and whatever later audits reject-as-drift. Each entry arrives already fact-checked and labeled — buildable almost for free once enough accumulate.</div></div>
@@ -140,8 +139,8 @@
     <div class="d">Abuse-report path for listed servers; TLS on the index itself (v1 rides plain HTTP behind the alias); federation/multiple indexes if warranted.</div></div>
   <div class="item"><div class="t">Nightly self-check mail integration (A96 leftover)</div>
     <div class="d">Outbound notification needs an outbound-dependency decision; deliberately unbuilt.</div></div>
-  <div class="item"><div class="t">GHCR prebuilt Docker image</div>
-    <div class="d">Workflow exists; publish job gated on the repo owner opting in (<code>PUBLISH_GHCR</code> repo var).</div></div>
+  <div class="item"><div class="t"><s>GHCR prebuilt Docker image</s> — LEFT THE SHELF (ruled 2026-07-27)</div>
+    <div class="d">Now release-checklist step 4b: flip <code>PUBLISH_GHCR</code> + one verified run at RC (<code>specs/v1-release-checklist.md</code>).</div></div>
   <div class="item"><div class="t">In-client bug-report v2</div>
     <div class="d">v1 ships write-only file drops; triage tooling / dedup / a reader UI would be v2 (<code>debugging/triage.sh</code> covers the operator side).</div></div>
   <div class="item"><div class="t">Simultaneous turns / turn timer for multiplayer</div>

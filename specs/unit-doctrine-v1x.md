@@ -78,6 +78,21 @@ desperation/retaliation doctrine (§3 — near-unobservable before the marathon
 measurements anyway) are new AI subsystems —
 shelved to protect the 1.0 date; this spec is their opening backlog (the
 diplomat-thwart authenticity check still runs now so the answer is banked).
+
+## Scope note 2 — RE-RULED (user, 2026-07-27): econ pair PROMOTED to v1
+
+The ECON PAIR (§1 offensive diplomat doctrine + §2 caravan doctrine) is
+promoted into the v1 engine program as **W8**, sequenced AFTER W6
+completes and after the W7 novelty-map-shapes window (W6 slices 3–5 →
+W7 maps → W8 econ pair). Costed at ~2–4 days with full gates; the
+mechanics all exist (D6 missions, A83/A89 caravans) — W8 is AI brain
+only, one behavioral golden window.
+
+Stays OUT of W8 / remains v1.x:
+- §1's DEFENSIVE half (garrisoned-diplomat counter-espionage) — Civ 2
+  mechanic (#2798), separate civ-mixing adoption decision.
+- §3 nukes — v1.x pending the marathon measurement lane (user: "keep
+  nukes v1.x pending the marathon lane").
 Measurements (concept histogram, natural multi-seed, disasters-ON, and the
 post-slice-2 additions: 14-civ scaling + endYear-9999 marathon) are all
 approved — run them all, but they must NOT block the road to 1.0 if they drag.
