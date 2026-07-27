@@ -147,6 +147,11 @@ the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
 invocation (summary + failure blocks, no inline pipes),
 `debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
 `ss` — never pkill patterns, they self-match the calling shell),
+`debugging/job.sh run <id> -- <cmd…>` launches LONG runs (sweeps,
+soaks, lune goldens) setsid-DETACHED so they survive session teardown
+— state on disk under debugging/jobs/<id>/ (`list`/`tail`/`wait`/
+`kill`; kill takes the whole process group, so no orphaned soak
+workers) — the REQUIRED launcher for any run >~2 min on agent boxes,
 `debugging/peek.sh [-c N] FILE PATTERN… | FILE N-M` prints numbered
 matches-with-context or a line range (replaces grep|sed|head chains),
 `debugging/shoot.sh out.png "/client/?params" [--server "args"]
