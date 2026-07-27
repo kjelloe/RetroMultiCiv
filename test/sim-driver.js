@@ -46,8 +46,12 @@ const SIM_ROSTER = [
 // accumulation under freeUnitsPerCity 99 — an AI-efficiency target in
 // the docs/04 ledger, not a runaway: growth is linear with cities.
 const MAX_POP = 40;
-const MAX_UNITS = 1000;
-const MAX_GOLD = 100000;
+// Marathon/diagnostic runs may legitimately exceed the defaults (an
+// endYear-9999 world crosses 1000 units ~t900): override via env
+// (SIM_MAX_UNITS / SIM_MAX_GOLD) instead of editing this file — the
+// suites never set them, so test behavior is unchanged.
+const MAX_UNITS = Number(process.env.SIM_MAX_UNITS) > 0 ? Number(process.env.SIM_MAX_UNITS) : 1000;
+const MAX_GOLD = Number(process.env.SIM_MAX_GOLD) > 0 ? Number(process.env.SIM_MAX_GOLD) : 100000;
 
 let MODS = null;
 async function loadModules() {
