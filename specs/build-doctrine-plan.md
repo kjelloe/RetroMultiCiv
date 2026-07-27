@@ -167,9 +167,11 @@ First full-scale batch through debugging/job.sh (detached; canary-proven).
 - **Natural victory distribution:** first run was a config artifact
   (--turns 400 cut games before endYear ~545); re-launched at 600.
 
-- **Natural victory distribution (natural2, 25-seed --turns 600, #2823):**
-  22/25 decided — 21 reach endYear 545 as SCORE victories, 1 early
-  elimination (t460); winners balanced (Zulus 7 / Egyptians 6 / Greeks 5 /
-  Romans 4); NO space victory (corroborates the commit-gap finding), no
-  runaway conquest — a survivor always stands at endYear. The 3 fails are
-  unit>1000 tripwire hits, re-runnable under the b9e01e3 env caps.
+- **Natural victory distribution — COMPLETE (natural2 + relaunch,
+  25-seed --turns 600, #2823/#2827): 24/25 endYear-545 SCORE victories +
+  1 early elimination (t460).** Winners balanced (Zulus / Egyptians /
+  Greeks / Romans all represented); NO space victory anywhere
+  (corroborates the commit-gap finding); no runaway conquest — a
+  survivor always stands at endYear. The 3 tripwire seeds re-ran clean
+  under SIM_MAX_UNITS=4000 (b9e01e3), all three endYear score wins —
+  the tripwire hits were unit-count, not gameplay, artifacts.
