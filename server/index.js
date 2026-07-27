@@ -1766,6 +1766,21 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       softPct: opts.memSoftPct, checkMs: opts.memCheckMs,
       gameProbe: server.gameProbe, autosaveAll: server.autosaveAll
     });
+    // Slice 3c: graceful shutdown — close sockets + exit (state already durable
+    // via autosave-per-command; 5s hard-exit guard if close hangs). Registered
+    // BEFORE the boot announce below: until process.on installs the sigaction,
+    // the OS default kills the process instantly (code=null, sig=SIGTERM), so a
+    // supervisor/test that signals on seeing the ready line could land in that
+    // gap (the reviewer-observed flake) — announce-ready must mean handlers armed.
+    let down = false;
+    const shutdown = sig => {
+      if (down) return; down = true;
+      console.log(`\n${sig} — closing sockets and shutting down…`);
+      setTimeout(() => process.exit(0), 5000).unref();
+      server.close().then(() => process.exit(0));
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
     console.log(`RetroMultiCiv server: http://localhost:${port}/client/ (default game ${game.gameId}, turn ${game.state.turn})`);
     console.log(`WebSocket: ws://localhost:${port}/ws — autosave ${opts.autosave === false ? 'OFF' : 'on'} — static ${opts.debug ? 'WHOLE-REPO (--debug)' : 'hardened (client/engine/shared/data)'} — lobby: create/list/join-code/start`);
     // Slice 3c: one-line posture summary so an operator sees the active guards.
@@ -1781,17 +1796,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (opts.host !== '127.0.0.1' && opts.host !== 'localhost' && !opts.trustProxyHops) {
       console.log('note: reachable on the network over plain ws:// — for PUBLIC hosting terminate TLS at a reverse proxy (tokens travel the socket); LAN is fine. See docs/how-to-host.md.');
     }
-    // Slice 3c: graceful shutdown — close sockets + exit (state already durable
-    // via autosave-per-command; 5s hard-exit guard if close hangs).
-    let down = false;
-    const shutdown = sig => {
-      if (down) return; down = true;
-      console.log(`\n${sig} — closing sockets and shutting down…`);
-      setTimeout(() => process.exit(0), 5000).unref();
-      server.close().then(() => process.exit(0));
-    };
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT', () => shutdown('SIGINT'));
   }).catch(err => {
     console.error(`cannot start: ${err.message}`);
     process.exit(1);
