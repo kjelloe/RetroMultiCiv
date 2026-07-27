@@ -138,3 +138,31 @@ saved; the measure-first discipline paid for itself again.
   The histogram game's combats ran from the default relation and its one treaty was
   never broken → 0 declarations is correct + Civ1-shaped. The sim-runner owner-tally
   is now optional corroboration, not a blocker.
+
+## Measurement round @canonical scale (sim-runner #2819, 2026-07-27)
+
+First full-scale batch through debugging/job.sh (detached; canary-proven).
+
+- **Build-doctrine CONFIRMED LIVE at scale:** buildingBuilt 1564 over 3
+  canonical 400t/7civ games (was 0 at the t100 horizon — that earlier
+  "unused" read was purely horizon truncation). wonderBuilt 25,
+  cityCelebrating 378, unitUpgraded 237, naval load/unload 29 — the
+  doctrine + WLTKD + upgrade systems all fire organically.
+- **Disasters ON vs OFF (25-seed canonical pair): IDENTICAL floors**
+  (M2 17.5 / M3-pop 64 / M4 91.5 both sides, all 25 clean) — the
+  doctrine surplus absorbs disaster losses (disasterStruck ~818/seed).
+  Shipping default ON is floor-safe, now measured.
+- **Space arc — SHARPER finding:** ssPartBuilt/shipLaunched/spaceVictory
+  all 0 YET futureTechResearched=10 — a civ EXHAUSTS the tree and spills
+  into Future Tech without ever committing to Apollo/ship. The launch
+  blocker is no longer research depth (tree end is reached); it is the
+  commit-to-ship step in the drive. Feeds the v1 contested-ending record
+  (XII.5 fork) and any v1.x space tuning; marathon run will show whether
+  longer horizons change it.
+- **W8 motivation confirmed at scale:** espionage family, TECH_EXCHANGED,
+  tradeRouteEstablished all 0 (only TRIBUTE_PAID 87 + one peace treaty
+  fire) — exactly the econ-pair gap the W8 window closes. WAR_DECLARED=0
+  with 508 combats/76 captures corroborates the correct-by-design ruling
+  at scale.
+- **Natural victory distribution:** first run was a config artifact
+  (--turns 400 cut games before endYear ~545); re-launched at 600.
