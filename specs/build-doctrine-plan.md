@@ -175,3 +175,105 @@ First full-scale batch through debugging/job.sh (detached; canary-proven).
   survivor always stands at endYear. The 3 tripwire seeds re-ran clean
   under SIM_MAX_UNITS=4000 (b9e01e3), all three endYear score wins —
   the tripwire hits were unit-count, not gameplay, artifacts.
+
+## Slice-3 DESIGN (city roles + the v1 war pair) — opened 2026-07-28
+
+One behavioral golden window, three sub-parts built sequentially, ONE
+re-record at the end. Contracts: refinement-xx §3/§3a (roles),
+unit-doctrine-v1x §4 (air) + §5 (pillage-siege, recalled-behavior
+label), reviewer #2798 + #2814-16 banked verdicts.
+
+### 3A. City roles (§3/§3a)
+
+A deterministic per-city ROLE from geography + empire context, via the
+navalFacts done-cache pattern (`roleFacts` computed once per turn):
+rank own cities by SHIELD yield and by TRADE yield (sortIds walks,
+integer yields from cityYields).
+
+- **frontline** = `threatened` (existing enemyNear verdict). Effect:
+  walls-first (exists as canWall) and BLOCKS the science list (no
+  university on the border) — §3 "walls ONLY in frontline cities".
+- **production** = top `cityRoles.prodCities` by shields (not
+  frontline). Effect list `cityRoles.productionBuildings`:
+  barracks → factory → hydro-plant/nuclear-plant/power-plant
+  (best-available plant by tech, the §3a "one MILITARY city" +
+  factory-era concentration).
+- **science** = top `cityRoles.sciCities` by trade (not frontline/
+  production). Effect list `cityRoles.scienceBuildings`: library →
+  marketplace → university → bank (§3a trade-heavy pairing).
+- **spawner** = food surplus >= `spawnerFoodSurplus` AND shields <=
+  `spawnerMaxShields` (not any above). Effect: the settler branch's
+  empire cap gets +1 headroom for spawner cities (they keep the
+  settler loop alive; §3 "high-food/low-production = SETTLER SPAWNER").
+- **default** = everything else; existing cascade untouched.
+
+Role building slots into the econ pick: `roleBuilding` (first missing
++ tech-known id from the role list) is tried BEFORE
+stanceBuilding/payback in the econ fallback — slice-1 doctrine
+(temple/granary) keeps strict priority above it, walls/army slots
+unchanged.
+
+- **Happiness ladder** (§3 "ALWAYS"): `buildDoctrine.happinessBuilding`
+  generalizes to a LADDER walk — disorder with temple already built
+  climbs to colosseum (new `buildDoctrine.happinessLadder:
+  ["temple","colosseum"]`; the single-id knob stays as ladder[0] for
+  fixture compat).
+
+Knobs (data/rules.json `cityRoles` — rulesetHash STAMP + behavioral,
+same cascade as slice-1): prodCities 2, sciCities 2,
+spawnerFoodSurplus 3, spawnerMaxShields 4, productionBuildings +
+scienceBuildings lists as above.
+
+### 3B. Pillage-siege (§5, recalled-behavior)
+
+The hold-at-city-edge branch (massing/odds wait) stops idling: a
+holding attacker standing within `siegePillageRadius` (rules knob, 2 =
+the city radius) of the TARGET enemy city, on a tile with an
+improvement (irrigation/mine/railroad/road — the improvements.js
+pillage order) and moves left, returns `pillage` instead of `wait` —
+each held turn strips one improvement from the siege ring (cuts the
+defender's yields + reinforcement roads before the assault). Guard:
+never within radius 2 of an OWN city (border overlap). No new state,
+no RNG; the pillage command already exists (engine/improvements.js).
+
+### 3C. Air war (§4)
+
+The AI currently NEVER fields air units (bestAttackerUnit is
+land-only; histogram airCrashed=0). Minimal authentic doctrine:
+
+- **Build**: once at its land army target with an active known enemy
+  city (the existing march has a target), a PRODUCTION-role city
+  builds bombers up to `airDoctrine.bombers` (2); any city builds ONE
+  fighter when a rival AIR unit stands within threatRadius of an own
+  city (fog-honest sighting) up to `airDoctrine.fighters` (2).
+- **Unit brain** (new `domain === 'air'` block before the generic
+  march): a BOMBER strikes the assault target city only while the
+  siege exists (>=1 own ground attacker adjacent) AND the city is
+  within `airDoctrine.leash` (6) of a friendly base (city) — else it
+  returns/holds at base (the fuel-truth leash; fuel 2 = there and
+  back). A FIGHTER engages a visible enemy air unit within leash
+  (attacksAir interception, odds-gated like any attack), else holds at
+  base (defensive posture — never marches).
+
+Knobs in rules.json `airDoctrine` { bombers: 2, fighters: 2, leash: 6 }.
+
+### Fixtures (failing-first, before engine edits)
+
+test/city-roles.test.js: role assignment determinism (crafted 4-city
+state: shield-heavy → production, trade-heavy → science, threatened →
+frontline blocks science, food-flat → spawner); role building pick
+order; happiness-ladder colosseum-on-disorder-with-temple.
+test/siege-air.test.js: holding attacker pillages the ring tile (and
+not an own-radius tile); bomber holds without siege, strikes with
+siege inside leash; fighter holds at base, engages visible enemy air.
+Plus scenario JSONs only if a cross-language behavior pin is warranted
+(roles are covered by the sim goldens; decide at re-record).
+
+### Gates
+
+Engine+twin one window; #28 discriminator null-and-run (expect
+BEHAVIORAL + STAMP: rules.json changes); detached re-record
+(job.sh); sim-runner 25-seed sweep + coverage probe (roles: barracks/
+factory/library/university per-city-per-role counts; siege: pillaged
+events > 0 in war seeds; air: bombers/fighters built in late-era
+seeds) + peace-witness re-run; reviewer engine-diff + clean-clone.
