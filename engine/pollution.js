@@ -147,6 +147,30 @@ function processWarming(state, ruleset, events) {
   state.warmingTimer = timer;
 }
 
+// A91c: ocean -> swamp raises land UNDER a fleet. A sea unit left on the new land tile
+// breaks the sea-unit-on-land invariant, so it is lost with its cargo — the same shape as
+// the open-sea trireme loss (naval.js) and the vanishing coastal city (B27, cities.js);
+// no new event type. Deleting a fixed SET of units => order-independent final state
+// (events aren't hashed). A city never sits on a warmed square (cities are on land).
+function strandedShips(state, ruleset, x, y, events) {
+  const dom = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x].t].domain;
+  if (dom === 'sea') return;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    if (u === undefined || u.x !== x || u.y !== y) continue;
+    if (ruleset.units[u.type].domain !== 'sea') continue;
+    for (const cid of Object.keys(state.units)) {
+      const c = state.units[cid];
+      if (c !== undefined && c.aboard === uid) {
+        delete state.units[cid];
+        events.push({ type: 'cargoLost', unitId: cid, owner: c.owner, shipId: uid, x: x, y: y });
+      }
+    }
+    delete state.units[uid];
+    events.push({ type: 'triremeLost', unitId: uid, owner: u.owner, x: x, y: y });
+  }
+}
+
 // the greenhouse event: for each fouled square (in index order), degrade one matching
 // tile in its reach (self + neighbors) per warmingTransforms, then clear that square's
 // pollution — so warming self-limits (it eats the pollution that drove it).
@@ -175,6 +199,7 @@ function greenhouse(state, ruleset, polluted, events) {
       tt.t = poll.warmingTransforms[tt.t];
       if (tt.polluted === true) delete tt.polluted;
       events.push({ type: 'terrainWarmed', x: c.x, y: c.y });
+      strandedShips(state, ruleset, c.x, c.y, events);
     }
     const src = cowTile(state, idx);
     delete src.polluted; // this square's pollution is consumed by the warming

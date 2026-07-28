@@ -161,3 +161,51 @@ test('A91b warming: below the threshold the clock idles (no warming, no state fi
   assert.notStrictEqual(st.map.tiles.some(t => t.t === 'desert'), true, 'no terrain degraded');
   assert.strictEqual(st.warmingStage, undefined, 'the warming clock never started (fields absent)');
 });
+
+// A91c: the greenhouse turns OCEAN into SWAMP (rules.pollution.warmingTransforms) —
+// a fleet sitting on that square would be left standing on dry land, breaking the
+// sim invariant "sea unit on land outside a city" (seed 6 t363, W6-closing sweep).
+// A ship caught by the rising land is LOST with its cargo, the same shape as the
+// open-sea trireme loss (naval.js) and the vanishing-coastal-city loss (B27,
+// cities.js): triremeLost + cargoLost, no new event type.
+// Board: all grassland (NOT a warming candidate) except ONE ocean tile, so every
+// transform the greenhouse can make is that tile.
+function strandBoard() {
+  const W = 8, H = 8, tiles = [];
+  for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland' });
+  const SEA = 4 * W + 4; // (4,4) — the only warming candidate on the board
+  tiles[SEA].t = 'ocean';
+  // 10 fouled squares (== warmingThreshold), all neighbours of the sea tile so the
+  // candidate list is never empty
+  const foul = [3 * W + 3, 3 * W + 4, 3 * W + 5, 4 * W + 3, 4 * W + 5,
+    5 * W + 3, 5 * W + 4, 5 * W + 5, 0, 1];
+  for (const i of foul) tiles[i].polluted = true;
+  return {
+    version: 1, turn: 300, year: 1990, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: W, height: H, wrapX: false, tiles },
+    units: {
+      u1: { id: 'u1', type: 'ironclad', owner: 'p1', x: 4, y: 4, moves: 4 },
+      u2: { id: 'u2', type: 'legion', owner: 'p1', x: 4, y: 4, moves: 1, aboard: 'u1' }
+    },
+    wonders: {}, nextUnitId: 5, nextCityId: 5, cities: {}, cityOrder: [],
+    players: { p1: { id: 'p1', alive: true, techs: [], government: 'despotism' } }, rngState: 1
+  };
+}
+
+test('A91c warming: a ship caught by ocean->swamp is lost with its cargo (never stranded on land)', async () => {
+  const { process } = await load();
+  const poll = RULESET.rules.pollution;
+  const st = strandBoard();
+  const seen = [];
+  for (let turn = 0; turn < poll.warmingStageTurns * poll.warmingStages; turn++) {
+    const events = [];
+    process(st, RULESET, events);
+    for (const e of events) seen.push(e);
+  }
+  assert.ok(seen.some(e => e.type === 'terrainWarmed'), 'the greenhouse fired');
+  assert.strictEqual(st.map.tiles[4 * 8 + 4].t, 'swamp', 'the ocean square became swamp');
+  assert.strictEqual(st.units.u1, undefined, 'the ironclad did not survive on dry land');
+  assert.strictEqual(st.units.u2, undefined, 'its cargo went down with it');
+  assert.ok(seen.some(e => e.type === 'triremeLost' && e.unitId === 'u1'), 'the loss is reported');
+  assert.ok(seen.some(e => e.type === 'cargoLost' && e.unitId === 'u2'), 'the cargo loss is reported');
+});

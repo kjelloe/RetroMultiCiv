@@ -79,6 +79,36 @@ local function foulOne(state: any, cands: any): any
 	return t
 end
 
+-- A91c: ocean -> swamp raises land UNDER a fleet. A sea unit left on the new land tile
+-- breaks the sea-unit-on-land invariant, so it is lost with its cargo -- the same shape as
+-- the open-sea trireme loss (naval) and the vanishing coastal city (B27, cities); no new
+-- event type. Deleting a fixed SET => order-independent final state; the key snapshots
+-- avoid the pairs()+delete-non-current-key UB (JS Object.keys is a snapshot).
+local function strandedShips(state: any, ruleset: any, x: number, y: number, events: any)
+	local dom = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x + 1].t].domain
+	if dom == "sea" then
+		return
+	end
+	local ids = {}
+	for uid in pairs(state.units) do ids[#ids + 1] = uid end
+	for _, uid in ipairs(ids) do
+		local u = state.units[uid]
+		if u ~= nil and u.x == x and u.y == y and ruleset.units[u.type].domain == "sea" then
+			local cids = {}
+			for cid in pairs(state.units) do cids[#cids + 1] = cid end
+			for _, cid in ipairs(cids) do
+				local c = state.units[cid]
+				if c ~= nil and c.aboard == uid then
+					state.units[cid] = nil
+					table.insert(events, { type = "cargoLost", unitId = cid, owner = c.owner, shipId = uid, x = x, y = y })
+				end
+			end
+			state.units[uid] = nil
+			table.insert(events, { type = "triremeLost", unitId = uid, owner = u.owner, x = x, y = y })
+		end
+	end
+end
+
 -- the greenhouse event: for each fouled square (in index order), degrade one matching
 -- tile in its reach (self + neighbors) per warmingTransforms, then clear that square's
 -- pollution -- so warming self-limits (it eats the pollution that drove it).
@@ -115,6 +145,7 @@ local function greenhouse(state: any, ruleset: any, polluted: any, events: any)
 				tt.polluted = nil
 			end
 			table.insert(events, { type = "terrainWarmed", x = c.x, y = c.y })
+			strandedShips(state, ruleset, c.x, c.y, events)
 		end
 		cow.cowTile(state, idx).polluted = nil
 	end
