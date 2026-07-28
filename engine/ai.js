@@ -2001,6 +2001,28 @@ function nextWonderFor(state, me, ruleset, stanceName) {
   return best;
 }
 
+// W6 slice-5 (§3a the super-food specialist play): a ONE-CITY happiness
+// wonder (effect.allContentInCity — the Shakespeare's-Theatre class) is
+// HOSTED in the empire's best SPAWNER city: all-content there unlocks running
+// many specialists off its food surplus, worth it "even if it benefits
+// effectively just that one city" (user §3a). Everywhere-wonders keep the
+// high-shield drive city. Deterministic: cityOrder walk, strictly-greater
+// surplus keeps the earliest. No knob — roles + the wonder data field decide.
+function wonderHostCity(done, state, playerId, ruleset, wonderId, driveCity) {
+  const def = ruleset.wonders[wonderId];
+  if (def === undefined || def.effect === undefined || def.effect.allContentInCity !== true) return driveCity;
+  const roles = roleFacts(done, state, playerId, ruleset);
+  let best = null;
+  let bestSurplus = -9999;
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    if (roles[cid] !== 'spawner') continue;
+    const c = state.cities[cid];
+    const surplus = cityYields(state, c, ruleset).food - c.pop * 2;
+    if (surplus > bestSurplus) { best = c; bestSurplus = surplus; }
+  }
+  return best !== null ? best : driveCity;
+}
+
 // N9b: a shallow city copy with one building appended — for valuing a candidate
 // building via cityEconOutput WITHOUT mutating the real city. Buildings don't
 // change worked tiles, so only the effectPct (taxBonus/sciBonus) term differs.
@@ -2889,16 +2911,24 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // per civ) so they complete fastest — a wide civ's capital is often not its strongest city.
     if (S.wonderAppetite !== undefined && S.wonderAppetite !== 'none' && !threatened) {
       const driveCity = highestShieldCity(state, playerId, ruleset);
-      if (driveCity !== null && driveCity !== undefined && driveCity.id === cid) {
-        const held = (city.producing.kind === 'wonder'
-          && (state.wonders === undefined || state.wonders[city.producing.id] === undefined))
-          ? city.producing.id : null;
-        if (held !== null) {
-          want = { kind: 'wonder', id: held }; wonderDriven = true; // persist own wonder (any appetite)
-        } else if (appetiteStart(S, driveCity, state, playerId, ruleset)
-            && !civWonderInFlight(state, playerId)) {
-          const w = nextWonderFor(state, me, ruleset, effStance);
-          if (w !== null) { want = { kind: 'wonder', id: w }; wonderDriven = true; } // start new (tier-gated)
+      // W6 slice-5: the hoisted persist now covers ANY wonder HOST (the civ's
+      // one-in-flight invariant keeps this to at most one city) — a spawner
+      // hosting the specialist wonder must not lose it to the doctrine/defense
+      // cascade any more than the drive city would (the half-shields penalty).
+      const held = (city.producing.kind === 'wonder'
+        && (state.wonders === undefined || state.wonders[city.producing.id] === undefined))
+        ? city.producing.id : null;
+      if (held !== null) {
+        want = { kind: 'wonder', id: held }; wonderDriven = true; // persist own wonder (any appetite)
+      } else if (driveCity !== null && driveCity !== undefined
+          && appetiteStart(S, driveCity, state, playerId, ruleset)
+          && !civWonderInFlight(state, playerId)) {
+        // the tier gate reads the DRIVE city (civ maturity); the PLACEMENT may
+        // move: a one-city happiness wonder is hosted in the best spawner
+        // (§3a super-food specialist play, wonderHostCity), else here.
+        const w = nextWonderFor(state, me, ruleset, effStance);
+        if (w !== null && wonderHostCity(done, state, playerId, ruleset, w, driveCity).id === cid) {
+          want = { kind: 'wonder', id: w }; wonderDriven = true; // start new (tier-gated)
         }
       }
     }

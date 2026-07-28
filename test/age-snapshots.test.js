@@ -69,7 +69,7 @@ test('baker genesis == browser genesis (snapshot load reproduces the live ff)', 
 // gitignored, so this pin is the only thing that goes red; move it ONLY on an
 // intentional behavioral re-record (re-bake, then paste the new hash), same
 // ritual as the simulation.test.js checkpoints.
-const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0xa73c9594' }; // W6 slice-4 (frontier walls + core floor — frontierRadius stamp + border-aware ff)
+const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0xa6f1d49b' }; // W6 slice-5 (wonder host — behavioral only, createGame stamps HELD)
 test('canonical snapshot statehash pin — moves only on a behavioral re-record', async () => {
   const { createEngine, fastForwardTo, hashState, shuffleRoster } = await deps();
   const p = CANONICAL_PIN;

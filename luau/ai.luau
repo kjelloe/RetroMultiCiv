@@ -2217,6 +2217,30 @@ local function garrisonNeed(done: any, state: any, playerId: string, ruleset: an
 	end
 	return if r == "frontier" then 2 else 1
 end
+-- W6 slice-5 (§3a super-food specialist play) TWIN: a ONE-CITY happiness
+-- wonder (effect.allContentInCity) is HOSTED in the best SPAWNER city;
+-- everywhere-wonders keep the drive city. Deterministic cityOrder walk,
+-- strictly-greater surplus keeps the earliest. No knob.
+local function wonderHostCity(done: any, state: any, playerId: string, ruleset: any, wonderId: string, driveCity: any): any
+	local def = ruleset.wonders[wonderId]
+	if def == nil or def.effect == nil or def.effect.allContentInCity ~= true then
+		return driveCity
+	end
+	local roles = roleFacts(done, state, playerId, ruleset)
+	local best = nil
+	local bestSurplus = -9999
+	for _, cid in ipairs(state.cityOrder or {}) do
+		if roles[cid] == "spawner" then
+			local c = state.cities[cid]
+			local surplus = cities.cityYields(state, c, ruleset).food - c.pop * 2
+			if surplus > bestSurplus then
+				best = c
+				bestSurplus = surplus
+			end
+		end
+	end
+	return if best ~= nil then best else driveCity
+end
 -- The role build list is TIERS of alternatives (rules.cityRoles lists): a tier
 -- with any member already built is satisfied; else the first tech-known
 -- missing member is owed. One plant total, preference-ordered. TWIN.
@@ -3270,22 +3294,25 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- tier); the EAGER tier (HIGH always / MED after core buildings) STARTS a stance wonder.
 				if S.wonderAppetite ~= nil and S.wonderAppetite ~= "none" and not threatened then
 					local driveCity = highestShieldCity(state, playerId, ruleset)
-					if driveCity ~= nil and driveCity.id == cid then
-						local held = nil
-						if city.producing.kind == "wonder"
-							and (state.wonders == nil or state.wonders[city.producing.id] == nil) then
-							held = city.producing.id
-						end
-						if held ~= nil then
-							want = { kind = "wonder", id = held } -- persist own wonder (any appetite)
+					-- W6 slice-5: the hoisted persist covers ANY wonder HOST (one in
+					-- flight per civ keeps this to at most one city). TWIN.
+					local held = nil
+					if city.producing.kind == "wonder"
+						and (state.wonders == nil or state.wonders[city.producing.id] == nil) then
+						held = city.producing.id
+					end
+					if held ~= nil then
+						want = { kind = "wonder", id = held } -- persist own wonder (any appetite)
+						wonderDriven = true
+					elseif driveCity ~= nil
+						and appetiteStart(S, driveCity, state, playerId, ruleset)
+						and not civWonderInFlight(state, playerId) then
+						-- tier gate reads the DRIVE city; placement may move to the
+						-- spawner for a one-city happiness wonder (wonderHostCity). TWIN.
+						local w = nextWonderFor(state, me, ruleset, effStance)
+						if w ~= nil and wonderHostCity(done, state, playerId, ruleset, w, driveCity).id == cid then
+							want = { kind = "wonder", id = w } -- start new (tier-gated)
 							wonderDriven = true
-						elseif appetiteStart(S, driveCity, state, playerId, ruleset)
-							and not civWonderInFlight(state, playerId) then
-							local w = nextWonderFor(state, me, ruleset, effStance)
-							if w ~= nil then
-								want = { kind = "wonder", id = w } -- start new (tier-gated)
-								wonderDriven = true
-							end
 						end
 					end
 				end

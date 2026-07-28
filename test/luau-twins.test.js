@@ -255,7 +255,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
       // 100 lune turns need more headroom than the old 3-min cap
       { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x21dfc423\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x0aad4beb\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 

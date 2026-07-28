@@ -162,22 +162,25 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // garrison/settler behavior from turn 1, unlike slice-3's midgame-only signature;
 // rules.json cityRoles.frontierRadius adds the stamp). Rounds 400/545 + natural
 // winner p2 UNCHANGED across BOTH slices (no macro-outcome shift). Honest re-records.
+// W6 slice-5 re-record (super-food wonder host): BEHAVIORAL, NO STAMP (ai.js+twin
+// only — 002/maptype/ff-parity createGame pins all HELD; the #28 pair moved
+// together). Natural 545/p2 UNCHANGED a fourth consecutive re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x21dfc423', 200: '0xa0eef20f', 300: '0x933d0157', 400: '0xe1dbb68e' },
-  finalHash: '0xe1dbb68e'
+  checkpoints: { 100: '0x0aad4beb', 200: '0xafb57477', 300: '0x36fed008', 400: '0x97c3f1d2' },
+  finalHash: '0x97c3f1d2'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xccb07a34' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xf7d5a860' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0xa82ddd63', 200: '0x2431478f', 300: '0xc25d0485', 400: '0x5fc1b6d6' },
-  finalHash: '0x5fc1b6d6'
+  checkpoints: { 100: '0x184dd153', 200: '0xab85ec57', 300: '0xc94f7592', 400: '0xe956700a' },
+  finalHash: '0xe956700a'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xb9e571e7' };
+const BEHAVIOR_NATURAL = { finalHash: '0xbf1918cd' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {
