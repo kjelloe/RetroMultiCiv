@@ -7,9 +7,12 @@
 > through both runtimes with identical hashes; a two-machine LAN
 > session survived disconnection and a server restart, then replayed
 > identically.
-> **Next:** measured AI quality (build-priority + strategic modes),
-> naval/air doctrine, legible diplomacy, the space race, onboarding,
-> and public-server hosting.
+> **Since:** measured AI doctrine (build priorities, city roles, naval
+> invasion, air and siege play), Civ 1-scale diplomacy (treaties,
+> tribute, reputation, the senate, embassies), the space race, and a
+> public server.
+> **Next:** 1.0 — map shapes beyond continents, economic AI doctrine,
+> and a prebuilt server image.
 
 A browser-based, turn-based 4X strategy game implementing classic early-4X
 mechanics (in the tradition of the 1991 original) through an original,
@@ -17,7 +20,7 @@ deterministic simulation engine, architected for a mechanical
 module-by-module port to Roblox Luau. "Multi" as in multiplayer — and
 multiple implementations.
 
-![Late-game world at 1775 AD: an Aztec empire with population badges, roads and irrigation, mountain ranges, units on patrol — and an advice card explaining combat odds](docs/screenshot.png)
+![Turn 888, 2784 AD: a Chinese republic under Flight — city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food/shields/trade](docs/screenshot.png)
 
 - Browser client: three.js low-poly renderer (flat tile boxes + raycast picking) behind a renderer interface — three pinned to r162 so WebGL1-only browsers still render
 - Backend: Node.js (minimal deps), authoritative from phase 3
@@ -48,7 +51,7 @@ the `/ws` WebSocket upgrade block), and a Raspberry Pi section — is in
 |---|---|
 | [docs/01-game-spec.md](docs/01-game-spec.md) | Game rules: map, cities, units, combat, full Civ 1 tech tree, wonders, governments, AI, victory |
 | [docs/02-architecture.md](docs/02-architecture.md) | Engine-as-reducer design, repo layout, tech stack, Lua-portability rules, network protocol, Roblox port shape |
-| [docs/03-roadmap.md](docs/03-roadmap.md) | The development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port (all complete) → diplomacy (designed) |
+| [docs/03-roadmap.md](docs/03-roadmap.md) | The development phases: single-player → hotseat → authoritative backend → LAN multiplayer → Roblox port → diplomacy (all complete) |
 | [docs/04-phase1-enrichments.md](docs/04-phase1-enrichments.md) | Designs for the remaining Civ 1 systems (happiness, governments, transforms, goody huts…) with state shapes and hash-impact notes |
 | [docs/05-simulation-test.md](docs/05-simulation-test.md) | The headless all-AI simulation harness: chaos injection, invariants, golden checkpoint hashes |
 | [docs/06-phase3-server.md](docs/06-phase3-server.md) | Authoritative server: protocol, seats, tokens, per-player views, persistence |
@@ -59,6 +62,8 @@ the `/ws` WebSocket upgrade block), and a Raspberry Pi section — is in
 | [docs/12-global-host.md](docs/12-global-host.md) | Public hosting design: hosted games + a QuakeWorld-style master index (future) |
 | [docs/13-roblox-ui-parity.md](docs/13-roblox-ui-parity.md) | The Roblox client roadmap: every browser UI element's Roblox representation, in tiers |
 | [docs/14-phase6-diplomacy.md](docs/14-phase6-diplomacy.md) | Phase 6 design: Civ 1-scale treaties, leader audiences, reputation + senate, human treaties in LAN |
+| [docs/15-ai-war.md](docs/15-ai-war.md) | The AI war doctrine: force-ratio rulings measured by simulation sweeps, army composition, siege and blockade, era templates |
+| [docs/16-security-assessment.md](docs/16-security-assessment.md) | The hosted surface: posture per component, the ranked gap list, and an operator quick-card |
 | [specs/](specs/) | The designer ally's reference documents (original "Project Founders" spec, gameplay-loop review, asset plan, plan feedback rounds) — kept verbatim; adopted ideas are merged into the docs above |
 
 ## Requirements
@@ -117,7 +122,9 @@ per-item build times and unlock reasons, a narrated turn log, map
 overlays (city influence, forces) — in an original low-poly art style
 with animated flags, gliding units, and a living title-screen diorama.
 
-![City view at pop 10: yields, manual worked-tile assignment, the building catalog with plain-language effects, rush-buy — the strategic layer in one panel](docs/screenshot-cityview.png)
+![City view of Shanghai at pop 10: citizen moods, 23/7/23 food-shields-trade with the growth box stalled, manual worked-tile assignment on the 21-tile grid, and the building catalog with plain-language effects and rush-buy prices](docs/screenshot-cityview.png)
+
+![The same empire zoomed out: the whole landmass with borders, a selected Riflemen stack fortified in Peking, the unit action bar, and an odds readout — "Risky 40% — Riflemen 300 vs Phalanx 450 (forest +50%, fortified +50%)" — before an attack is committed](docs/screenshot-world.png)
 
 **Multiplayer, accepted for real.** Hotseat behind an opaque hand-off
 screen; or host a LAN game with `./run.sh` (or `run.ps1`) — friends
@@ -128,6 +135,16 @@ an **AI regent** can play your seat while you step away; the server
 autosaves and resumes. The acceptance test was physical: a real
 two-machine session survived a network cut AND a server kill with
 save-resume, replaying hash-for-hash.
+
+**Rivals that talk, and fight on doctrine.** Contact opens an
+audience: cease-fires and peace treaties, tribute and technology
+demands, embassies and diplomat missions, a reputation every AI
+remembers, and a senate that can overrule a warmongering democracy.
+The war side is measured rather than asserted — force ratios, city
+roles (frontline, production, science, settler-spawner), walls on the
+border, naval invasions, siege pillage, and bomber pairs are each
+tuned by simulation sweeps over 25 seeds and locked behind regression
+floors.
 
 **The Roblox port is complete and verified.** The entire deterministic
 engine — every rule, world generation, and the AI itself — runs in
