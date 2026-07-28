@@ -131,14 +131,33 @@ archipelago acceptance). Groups are now Classic / Novelty shapes.
 
 **Stamp cascade (expected, in progress):** adding `rules.mapTypes` entries
 moves `rulesetHash`, so every createGame-stamped golden re-records. Done so
-far: the eight maptype pins (`continents d189d249`, `pangaea 03c3e94e`,
-`archipelago d46f37b3`, `islands 641d9ffb`, `fractal c101dbef`, `oval
-83e8c7cb`, `ring ada85829`, `inland-sea 9ec72288`) and scenario 002
-(`0x075cd7cf`). Pending: the #28 discriminator classification (expected
+far (NINE types after clover — the four-shape values were superseded before
+they were committed): `continents 856e4f41`, `pangaea 6862c666`,
+`archipelago 3da45b9f`, `islands c76a076f`, `fractal 518a87cb`, `oval
+cd182fc7`, `ring 590c6afd`, `inland-sea 800566b0`, `clover 2687aec3`;
+scenario 002 `0x6d55a5c0`; age-snapshot `CANONICAL_PIN 0x43ad9e40`. Pending: the #28 discriminator classification (expected
 STAMP-ONLY — existing types generate identically), age-snapshot
 `CANONICAL_PIN`, `FF_PARITY`, `GOLDEN_SOAK`/`GOLDEN_NATURAL`, sim-smoke t100.
 
-**Still to come in this window:** clover with balanced petal starts (its own
-sub-slice, per the contract), the per-shape naval acceptance runs for the
+**CLOVER LANDED IN THE SAME PASS (2026-07-29)** — folded in before the
+re-record finished so the window pays ONE stamp cascade instead of two.
+- Mask: four mirrored petals (`maskPetalPct` 55 from centre, `maskLobePct` 38
+  radius) joined by a central hub (`maskHubPct` 22), so each petal chokes onto
+  contested middle ground. Because the offsets are ABSOLUTE, testing one petal
+  centre covers all four.
+- **Balanced petal starts — measured, not assumed.** The contract called this
+  the hidden cost and it was right: with the stock start finder, five seeds
+  gave only 2–3 DISTINCT petals of 4 (civs piling into two lobes, which
+  removes the whole point of the shape). `findStarts` now takes a `petals`
+  flag: the Nth civ wants the Nth petal, and the demand RELAXES together with
+  the existing `minDist` relaxation, so a cramped world still fills every seat
+  instead of failing. Result: 4/4 distinct petals on every seed tested, and
+  7/14-civ games spread 2/2/2/1 and 4/4/3/3. Twin ported (`petalOf`).
+- Fixtures: `test/map-shapes.test.js` now 7/7 (clover asserts land only in
+  petal-or-hub, plus one-civ-per-petal across three seeds). A real-client
+  smoke shot boots `?maptype=clover` with the settler placed in a petal.
+No fallback to v1.x was needed.
+
+**Still to come in this window:** the per-shape naval acceptance runs for the
 water-heavy shapes against the sim-runner's pre-baseline, and the closing
 canonical sweep on the DEFAULT type that proves the window was additive.

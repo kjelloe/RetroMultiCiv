@@ -720,11 +720,30 @@ the free advances never granted a currently-researched tech in the pinned seed, 
 natural stayed byte-identical to the pre-fix record. Cross-language pins: scenarios
 041–044.
 
+### Pollution & global warming (A91/A91b, engine)
+
+A city's smokestack pollution comes from its industrial shields (halved by a
+Power Plant, divided further by a Recycling Centre) plus a population term
+gated on industrial technology (Industrialization → Automobile → Mass
+Production → Plastics) and zeroed by Mass Transit; anything over the
+tolerance rolls a nearby land square dirty. A nuclear-plant city in civil
+disorder before Fusion Power can MELT DOWN and foul an adjacent square.
+Settlers scrub a fouled square (the order is repeatable — the unit survives).
+
+While enough of the map stays fouled, a staged clock advances; on the last
+stage a GREENHOUSE event degrades terrain near the fouled squares
+(`rules.pollution.warmingTransforms`: plains → desert, ocean → swamp) and
+consumes that pollution, so warming self-limits. **A ship on a square that
+turns from ocean to swamp is WRECKED, and any land unit it carried is BEACHED
+on the new land** (user ruling 2026-07-29): the hull cannot exist on land, but
+its cargo has somewhere legal to stand, so it disembarks where the ship went
+down. Provenance: the ship rule is an invariant repair, not a Civ 1 mechanic —
+the reference dump states no ship fate for land rising under a hull.
+
 ## 12. Out of scope for v1 (specified in roadmap phases)
 
-Diplomacy & negotiations, Diplomat/Caravan combat gameplay, pollution &
-global warming, difficulty-level
-modifiers beyond a single global multiplier, palace/throne-room fluff, and
-**random city disasters** (fire, plague, flood, pirates, earthquake — Civ 1 ties
-building effects to these, e.g. Aqueduct prevents fire/plague, Barracks prevents
-pirates; the building data in `data/wiki-extract/` records this for later).
+Diplomat/Caravan *combat* gameplay, difficulty-level
+modifiers beyond a single global multiplier, and palace/throne-room fluff.
+(Diplomacy & negotiations SHIPPED in phase 6 — see docs/14; pollution &
+global warming SHIPPED as A91/A91b, above; **random city disasters** SHIPPED
+as the seven Civ 1 calamities, toggleable per game.)
