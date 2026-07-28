@@ -28,7 +28,15 @@ start landmass (we measured aboardCount=0, crossWater=never).
   (useful as a naval-investment control map).
 - **Random** — chooses from the supported types.
 
-### Advanced / post-naval-AI-acceptance (unlock when the naval suite is green)
+### Advanced / post-naval-AI-acceptance — GATE CLOSED 2026-07-29
+The naval acceptance suite is green (transport + overseas invasion, 25/25
+archipelago), so this group no longer gates anything: Archipelago and Islands
+ship in the normal list, and the setup screen's "Advanced — naval AI in
+progress" group was retired in the W7 landing. The second picker group now
+separates the W7 NOVELTY shapes from the classic four. Terra and Big & Small
+remain unbuilt (not gated — simply not written).
+
+### Advanced / post-naval-AI-acceptance (historical list)
 - **Archipelago** — many small islands; naval exploration/transport/coastal.
 - **Terra** — Old World start, empty New World across an ocean; the best
   acceptance map for ocean-going AI. No civ may start in the New World.

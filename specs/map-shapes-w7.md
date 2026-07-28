@@ -83,3 +83,62 @@ byte-shaped to `luau/`). Fractal is generator-knobs, not a mask.
 ~2–3 days including gates; +~1 day if clover's balanced starts are
 done properly. Fractal+oval land first (low risk), ring/inland-sea
 next (naval soaks), clover last.
+
+## Delivery log
+
+**2026-07-29 — landing 1 (mask stage + four shapes), local green, gates pending.**
+Fixture-first: `test/map-shapes.test.js` 6/6 (was 3 RED before the engine
+change). What shipped:
+
+- **The mask stage** (`engine/mapgen.js` `maskAllows` + a `mask` argument to
+  `generateTiles`, twinned byte-shaped in `luau/mapgen.luau`). Geometry:
+  offsets from the map centre in DOUBLED coordinates (so the centre is exact
+  on even sizes), expressed as PERCENT of the half-extent — a shape is
+  therefore size-independent and needs no per-size tuning. `maskAllows`
+  returns false inside `innerPct` and outside `outerPct`; both default to 0
+  (= no constraint on that side).
+- **Wrap-awareness**: the x offset takes the short way round the cylinder
+  (`if (width*2 - dx < dx) dx = width*2 - dx`). The pre-design flagged the
+  seam as the determinism risk; the `inland-sea` fixture is the guard — its
+  rim must carry land at both `x < 3` and `x > W-4`, which a left-edge-based
+  mask cannot do.
+- **Start placement under a mask**: the drunkard's walk needs a start INSIDE
+  the mask or it spends its whole budget in forbidden sea. Bounded re-rolls
+  (40 tries, so the RNG draw count stays finite and identical in both
+  engines), then a deterministic index-order scan as the fallback. Step
+  budget goes from `budget*10` to `budget*20` when a mask is present, since a
+  masked walk wastes steps outside the shape. Unmasked types keep both the
+  old start pick and the old budget — the legacy path is byte-untouched.
+- **Presets** (`data/rules.json`): `fractal` (knobs only — 26% land over 30
+  walks, NO mask and NO engine code), `oval` (outer 95), `ring` (inner 45,
+  outer 95), `inland-sea` (inner 50). Each carries the REQUIRED
+  `provenance` field ("later-Civ shape (Civ 1 had no map-shape selector)"),
+  which the setup screen now shows in its hint line.
+
+**Geometry decision — `ring` is a donut around the map centre, not a belt
+around the cylinder.** With a wrap-aware x offset, `x=0` is the FARTHEST
+column from the centre, so the annulus excludes both the middle and the
+extreme columns: sea inside, sea outside, land between. A belt (land that
+closes all the way round the cylinder) is the `inland-sea` shape instead.
+The ring fixture therefore asserts the donut property (land above AND below
+the central sea) and the seam assertion lives with `inland-sea`.
+
+**Client:** the picker was already data-driven from `rules.mapTypes`, so the
+new shapes appear with no client work. The stale A82a gate group ("Advanced —
+naval AI in progress") was RETIRED in the same pass — that caveat has been
+false since the naval arc shipped (transport + overseas invasion, 25/25
+archipelago acceptance). Groups are now Classic / Novelty shapes.
+
+**Stamp cascade (expected, in progress):** adding `rules.mapTypes` entries
+moves `rulesetHash`, so every createGame-stamped golden re-records. Done so
+far: the eight maptype pins (`continents d189d249`, `pangaea 03c3e94e`,
+`archipelago d46f37b3`, `islands 641d9ffb`, `fractal c101dbef`, `oval
+83e8c7cb`, `ring ada85829`, `inland-sea 9ec72288`) and scenario 002
+(`0x075cd7cf`). Pending: the #28 discriminator classification (expected
+STAMP-ONLY — existing types generate identically), age-snapshot
+`CANONICAL_PIN`, `FF_PARITY`, `GOLDEN_SOAK`/`GOLDEN_NATURAL`, sim-smoke t100.
+
+**Still to come in this window:** clover with balanced petal starts (its own
+sub-slice, per the contract), the per-shape naval acceptance runs for the
+water-heavy shapes against the sim-runner's pre-baseline, and the closing
+canonical sweep on the DEFAULT type that proves the window was additive.
