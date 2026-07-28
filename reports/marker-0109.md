@@ -1,9 +1,5 @@
 # marker-0109 — W6 COMPLETE: slices 3+4+5 (city roles, war pair, frontier defence, wonder host)
 
-DRAFT — tags on: sim-runner 25-seed sweep verdict (floors) + reviewer
-pristine clean-clone (both in flight at write time). Numbers marked
-[SWEEP] / [CLONE] fill in from those verdicts.
-
 Delta since marker-0108 (@6796e2e): the W6 build-doctrine window ran to
 completion — three behavioral slices landed in one day — plus the W7/W8
 scope ruling, the measurement program's consolidation, the job.sh
@@ -58,11 +54,48 @@ macro-outcome shift the whole window.
   #2832 (990/986/1 parallel flake, pair-proved); combined s3+s4 PASS
   #2836 (garrisonNeed 3-site alignment confirmed); combined W6 PASS
   #2839 (twin 1:1, stamp-free verified, no dropped guards).
-  [CLONE] final pristine clean-clone at be01b87: ___
-- Sim-runner: [SWEEP] 25-seed canonical floors at be01b87: M2 ___ /
-  M3-pop ___ / M4 ___ ; peace witness: ___ ; invariants: ___
+  Final pristine clean-clone at be01b87 (#2842): CODE GREEN —
+  marker-gate.sh --full 1001 tests / 997 pass / 1 fail / 3 skipped; the
+  lone RED is the recurring N3 parallel-load false-red (ai.test.js
+  isolated 52/52 x2 on be01b87 — 2nd consecutive window, deterministic
+  test, resource contention). Independent lune repro: GOLDEN cp100
+  0x0aad4beb + cp400 0x97c3f1d2 == committed, natural 545/p2/0xf7d5a860
+  (4th hold), BEHAVIOR moved => honest re-record, JS==Luau.
+- Sim-runner (#2841, interim at be01b87): canonical-25 19/25 complete,
+  AGGREGATE GREEN and baseline-comparable vs d5007db (cities median 27
+  both, techs 42 v 47, elimination 17% v 16%, government mix stable);
+  floors are a no-op on the 4-civ chaos profile at both SHAs. Invariants:
+  seed19 t284 tripwire IDENTICAL at both SHAs (pre-existing, not W6);
+  seeds 1 & 8 baseline tripwires GONE at be01b87 (trajectory shift).
+  ONE NEW item — seed6 t363 "ironclad on land outside a city" —
+  ROOT-CAUSED, see below. Remainder (6 seeds) + peace/combat witnesses
+  were starved behind a duplicate job; re-queued (kill approved #2843).
 - Local at every landing: fixtures RED→GREEN, sim 7/7, twins 11/11,
   suites up to 176/176.
+
+## The one new sweep finding: seed 6 (root-caused, NOT W6)
+
+The 25-seed sweep surfaced one failure mode that appears in no earlier
+sweep log: seed 6, t363, "sea unit (ironclad) on land outside a city".
+Root cause found here on the dev box and reproduced in a fixture that
+does not depend on the seed at all:
+`data/rules.json` `pollution.warmingTransforms` maps `ocean` → `swamp`,
+so an A91b greenhouse event can turn an ocean square into land WITH A
+SHIP STANDING ON IT. The mechanism predates W6 by the whole A91b
+window; W6's denser, longer-lived worlds (more cities → more industry →
+more pollution, and more ships) are what finally rolled the dice on an
+occupied ocean tile. No W6 code is implicated.
+
+Fix (own window, own gate — NOT part of this marker): after a warming
+transform, a sea unit left on a non-sea square is lost with its cargo,
+reusing `triremeLost` + `cargoLost` — the same shape as the open-sea
+trireme loss (`naval.js`) and the vanishing coastal city (B27,
+`cities.js`), so no new event type and no catalog/sound/turnlog work.
+Fixture first: `test/pollution.test.js` "A91c warming: a ship caught by
+ocean->swamp is lost with its cargo" — RED on the pre-fix engine (the
+ironclad alive on swamp), GREEN after; JS + Luau twins in one window.
+It lands after this tag, once its own reviewer diff and golden status
+are settled.
 
 ## Also in this span
 
@@ -97,5 +130,19 @@ none). All knob-gated: absent knobs reproduce legacy behavior exactly
 
 ## Consistency
 
-[filled at tag time — declared merge-consistent or not, and the
-supersession of marker-0108 as the merge candidate]
+**MERGE-CONSISTENT — the user may merge this.** It SUPERSEDES
+marker-0108 as the merge candidate. Basis: the reviewer's pristine
+clean-clone at be01b87 is green on everything W6 touches with the lone
+RED characterized and isolation-proven, both engines reproduce every
+committed pin, the re-records are honest by the #28 discriminator, and
+the sweep's aggregates at be01b87 match the pre-slice baseline with the
+floors safe.
+
+Two open items, neither of which changes the verdict:
+- The sweep's last 6 seeds and the peace/combat witnesses were starved
+  behind a duplicate job on the measurement box and are re-queued. The
+  19 completed seeds already agree with the baseline; if any remaining
+  seed breaches a floor it will be reported as an amendment to this
+  report, not silently.
+- The seed-6 warming/stranding edge (above) is pre-existing, not a W6
+  regression, and its fix lands in the next window with its own gate.
