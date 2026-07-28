@@ -155,11 +155,23 @@ function doctrineCanBuild(city, me, ruleset, id) {
   if (city.buildings !== undefined && city.buildings.indexOf(id) !== -1) return false;
   return def.tech === '' || me.techs.indexOf(def.tech) !== -1;
 }
+// W6 slice-3A: the happiness LADDER (§3 "temple, colosseum in every city that
+// NEEDS them") — persistent disorder with the temple already built climbs to
+// the next rung. Knob buildDoctrine.happinessLadder; absent = the single
+// happinessBuilding (fixture/back compat).
+function doctrineHappiness(city, me, ruleset, d) {
+  const ladder = d.happinessLadder === undefined ? [d.happinessBuilding] : d.happinessLadder;
+  for (const id of ladder) {
+    if (doctrineCanBuild(city, me, ruleset, id)) return id;
+  }
+  return null;
+}
 function doctrineBuilding(state, city, me, ruleset) {
   const d = ruleset.rules.buildDoctrine;
   if (d === undefined) return null;
-  if (city.disorder === true && doctrineCanBuild(city, me, ruleset, d.happinessBuilding)) {
-    return d.happinessBuilding;
+  if (city.disorder === true) {
+    const h = doctrineHappiness(city, me, ruleset, d);
+    if (h !== null) return h;
   }
   if (doctrineCanBuild(city, me, ruleset, d.growthBuilding)) {
     const surplus = cityYields(state, city, ruleset).food - city.pop * 2; // cities.js food arithmetic
@@ -171,6 +183,226 @@ function doctrineBuilding(state, city, me, ruleset) {
     return d.happinessBuilding;
   }
   return null;
+}
+
+// W6 slice-3A (§3/§3a): deterministic city ROLES from geography + empire
+// context, computed once per turn (roleFacts done-cache, the navalFacts
+// pattern). Ranking = repeated linear max scans over cityOrder (no sort;
+// strictly-greater keeps the earliest city on ties — deterministic, twin-
+// portable). Role slots scale with empire size (citiesPerRoleSlot) so a
+// small civ CONCENTRATES instead of smearing (§3a "one MILITARY city").
+// Precedence: frontline (threatened — walls belong there, investments do
+// not) > spawner (absolute high-food/low-shield test — a lousy production
+// city however it ranks) > production (top shields) > science (top trade).
+function roleSlotCount(knob, nCities, per) {
+  const scaled = 1 + idiv(nCities, per);
+  return knob < scaled ? knob : scaled;
+}
+function pickTopRole(ids, roles, score, n, role) {
+  for (let k = 0; k < n; k++) {
+    let best = null;
+    for (const cid of ids) {
+      if (roles[cid] !== undefined) continue;
+      if (best === null || score[cid] > score[best]) best = cid;
+    }
+    if (best === null) return;
+    roles[best] = role;
+  }
+}
+function computeCityRoles(state, playerId, ruleset) {
+  const RC = ruleset.rules.cityRoles;
+  const roles = {};
+  if (RC === undefined) return roles;
+  const me = state.players[playerId];
+  const ids = [];
+  const shields = {};
+  const trades = {};
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    ids.push(cid);
+    const y = cityYields(state, c, ruleset);
+    shields[cid] = y.shields;
+    trades[cid] = y.trade;
+    if (enemyNear(state, me, playerId, c.x, c.y, ruleset.rules.threatRadius)) {
+      roles[cid] = 'frontline';
+    } else if (y.food - c.pop * 2 >= RC.spawnerFoodSurplus && y.shields <= RC.spawnerMaxShields) {
+      roles[cid] = 'spawner';
+    }
+  }
+  pickTopRole(ids, roles, shields, roleSlotCount(RC.prodCities, ids.length, RC.citiesPerRoleSlot), 'production');
+  pickTopRole(ids, roles, trades, roleSlotCount(RC.sciCities, ids.length, RC.citiesPerRoleSlot), 'science');
+  return roles;
+}
+function roleFacts(done, state, playerId, ruleset) {
+  if (done.roles === undefined) done.roles = computeCityRoles(state, playerId, ruleset);
+  return done.roles;
+}
+// The role build list is TIERS of alternatives (rules.cityRoles lists): a tier
+// with any member already built is satisfied; else the first tech-known
+// missing member is owed. One plant total, preference-ordered (§3 "hydro,
+// nuclear later, coal plant worst-case").
+function roleTierBuilding(city, me, ruleset, tiers) {
+  for (const tier of tiers) {
+    let present = false;
+    for (const id of tier) {
+      if (city.buildings !== undefined && city.buildings.indexOf(id) !== -1) present = true;
+    }
+    if (present) continue;
+    for (const id of tier) {
+      if (doctrineCanBuild(city, me, ruleset, id)) return id;
+    }
+  }
+  return null;
+}
+
+// W6 slice-3C (unit-doctrine-v1x §4): per-turn air facts (done-cache). Counts
+// the civ's own air arms and raises the interception ALARM when any rival air
+// unit stands within threatRadius of an own city (fog-honest enough: air over
+// the home perimeter is seen). Nuclear units count as neither arm (v1.x).
+function computeAirFacts(state, playerId, ruleset) {
+  const facts = { alarm: false, bombers: 0, fighters: 0 };
+  if (ruleset.rules.airDoctrine === undefined) return facts;
+  for (const uid of Object.keys(state.units)) {
+    const u = state.units[uid];
+    const def = ruleset.units[u.type];
+    if (def.domain !== 'air' || def.nuclearBlast === true) continue;
+    if (u.owner === playerId) {
+      if (def.attacksAir === true) facts.fighters = facts.fighters + 1;
+      else facts.bombers = facts.bombers + 1;
+      continue;
+    }
+    if (facts.alarm) continue;
+    for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+      const c = state.cities[cid];
+      if (!c || c.owner !== playerId) continue;
+      if (chebyshev(state.map, u.x, u.y, c.x, c.y) <= ruleset.rules.threatRadius) {
+        facts.alarm = true;
+        break;
+      }
+    }
+  }
+  return facts;
+}
+function airFacts(done, state, playerId, ruleset) {
+  if (done.air === undefined) done.air = computeAirFacts(state, playerId, ruleset);
+  return done.air;
+}
+// Best buildable air units (the bestAttackerUnit shape: strongest attack,
+// then cheapest, then id; skips obsolete). Bomber = air attacker that is
+// neither interceptor nor nuclear; fighter = the attacksAir interceptor.
+function bestBomberUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'air' || def.attacksAir === true || def.nuclearBlast === true) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.attack > bestDef.attack
+        || (def.attack === bestDef.attack && def.cost < bestDef.cost)
+        || (def.attack === bestDef.attack && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best;
+}
+function bestFighterUnit(me, ruleset) {
+  let best = null, bestDef = null;
+  for (const id of Object.keys(ruleset.units)) {
+    const def = ruleset.units[id];
+    if (def.domain !== 'air' || def.attacksAir !== true) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    if (unitObsolete(def, me.techs)) continue;
+    if (best === null
+        || def.attack > bestDef.attack
+        || (def.attack === bestDef.attack && def.cost < bestDef.cost)
+        || (def.attack === bestDef.attack && def.cost === bestDef.cost && id < best)) {
+      best = id; bestDef = def;
+    }
+  }
+  return best;
+}
+function nearestOwnCityTo(state, playerId, x, y) {
+  let best = null, bestDist = 9999;
+  for (const cid of sortIds(state.cityOrder === undefined ? [] : state.cityOrder)) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    const d = chebyshev(state.map, x, y, c.x, c.y);
+    if (d < bestDist) { best = c; bestDist = d; }
+  }
+  return best;
+}
+
+// W6 slice-3B (unit-doctrine-v1x §5, RECALLED-BEHAVIOR label — #2798: the
+// dump documents mechanics, not AI patterns; this encodes the user's ~1000h
+// recall of Civ 1 siege play): a besieger HOLDING at the target city (massing
+// or odds wait) strips the siege ring instead of idling — one improvement per
+// held turn (the improvements.js pillage order), cutting the defender's
+// yields and reinforcement roads before the assault. Land units with moves,
+// within siegePillageRadius of the TARGET, never inside an own city's radius
+// (border overlap guard). No new state, no RNG.
+function siegePillageCommand(state, unit, playerId, target, ruleset) {
+  const r = ruleset.rules.siegePillageRadius;
+  if (r === undefined) return null;
+  if (unit.moves <= 0) return null;
+  if (ruleset.units[unit.type].domain !== 'land') return null;
+  if (chebyshev(state.map, unit.x, unit.y, target.x, target.y) > r) return null;
+  const tile = state.map.tiles[unit.y * state.map.width + unit.x];
+  if (tile.irrigation !== true && tile.mine !== true && tile.railroad !== true && tile.road !== true) return null;
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner !== playerId) continue;
+    if (chebyshev(state.map, unit.x, unit.y, c.x, c.y) <= 2) return null;
+  }
+  return { type: 'pillage', playerId, unitId: unit.id };
+}
+
+// W6 slice-3C (unit-doctrine-v1x §4): the air brain. A BOMBER pairs with the
+// ground siege — it strikes the nearest known enemy city only while based
+// (fuel truth: aloft -> straight home, never a second sortie), the target
+// sits within airDoctrine.leash of a friendly base, and at least one own
+// ground attacker stands adjacent (the siege exists — "reduce a besieged
+// city's defenders before the assault"). A FIGHTER is DEFENSE: it engages a
+// visible enemy air unit within the leash (attacksAir interception), else
+// holds at base — it never marches or strikes cities. AI nuclear units hold
+// (nuke doctrine = v1.x, user-ruled).
+function airCommand(state, me, playerId, unit, uid, ruleset, A) {
+  const def = ruleset.units[unit.type];
+  if (def.nuclearBlast === true) return { type: 'wait', playerId, unitId: uid };
+  if (unit.aloft !== undefined) {
+    const home = nearestOwnCityTo(state, playerId, unit.x, unit.y);
+    if (home !== null && (home.x !== unit.x || home.y !== unit.y)) {
+      const dir = dirToward(state.map, unit.x, unit.y, home.x, home.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+    }
+    return { type: 'wait', playerId, unitId: uid };
+  }
+  if (def.attacksAir === true) {
+    let tgt = null, td = 9999;
+    for (const ouid of sortIds(Object.keys(state.units))) {
+      const ou = state.units[ouid];
+      if (ou.owner === playerId || ou.aboard !== undefined) continue;
+      if (ruleset.units[ou.type].domain !== 'air') continue;
+      const d = chebyshev(state.map, unit.x, unit.y, ou.x, ou.y);
+      if (d < td) { tgt = ou; td = d; }
+    }
+    if (tgt !== null && td <= A.leash) {
+      const dir = dirToward(state.map, unit.x, unit.y, tgt.x, tgt.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+    }
+    return { type: 'wait', playerId, unitId: uid };
+  }
+  const target = nearestKnownEnemyCity(state, unit, playerId);
+  if (target !== null) {
+    const base = nearestOwnCityTo(state, playerId, target.x, target.y);
+    if (base !== null && chebyshev(state.map, base.x, base.y, target.x, target.y) <= A.leash
+        && attackersAdjacentTo(state, playerId, ruleset, target.x, target.y) >= 1) {
+      const dir = dirToward(state.map, unit.x, unit.y, target.x, target.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+    }
+  }
+  return { type: 'wait', playerId, unitId: uid };
 }
 
 function idiv(a, b) {
@@ -2667,8 +2899,14 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // 0.9% — a garrisoned city builds its granary under threat too; walls-first
       // (canWall, below) still outranks the doctrine when the threat is actionable.
       const doctrine = doctrineBuilding(state, city, me, ruleset);
+      // W6 slice-3A: this city's ROLE (frontline/production/science/spawner or
+      // undefined = default), computed once per turn. A spawner keeps the
+      // settler loop alive one past the empire cap (§3 "high-food/low-
+      // production city = SETTLER SPAWNER").
+      const role = roleFacts(done, state, playerId, ruleset)[cid];
       if (doctrine === null && city.pop > settlerPopCost
-          && countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)) {
+          && countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv)
+            + (role === 'spawner' ? 1 : 0)) {
         want = { kind: 'unit', id: 'settlers' };
       } else {
         // B13g: a THREATENED city walls up first (a known enemy within 8),
@@ -2701,7 +2939,16 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         // garrison + walls) — its attackerPct-0 removes the standing-army
         // treadmill so the reserve is actually reached. Wonders are CONCENTRATED
         // in the capital (capitalOf, pop-2+) so they complete instead of racing.
-        const econBuilding = stanceBuilding(city, me, ruleset, S);
+        // W6 slice-3A: the ROLE list beats the generic stance/cheapest pick —
+        // production climbs barracks -> factory -> best plant, science climbs
+        // library -> marketplace -> university -> bank. Frontline/spawner/
+        // default carry no list (frontline deliberately BLOCKS the science
+        // ladder — §3 "walls ONLY in frontline cities", investments stay off
+        // the border). Slice-1 doctrine (temple/granary) still outranks all.
+        const roleB = role === 'production' ? roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.productionBuildings)
+          : role === 'science' ? roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.scienceBuildings)
+          : null;
+        const econBuilding = roleB !== null ? roleB : stanceBuilding(city, me, ruleset, S);
         const econWonder = econBuilding === null ? nextWonder(state, me, ruleset) : null;
         const econItem = econBuilding !== null ? { kind: 'building', id: econBuilding }
           : econWonder !== null ? { kind: 'wonder', id: econWonder } : null;
@@ -2716,6 +2963,27 @@ function pickCommand(state, playerId, ruleset, done, stance) {
             : econBuilding !== null ? { kind: 'building', id: econBuilding }
             : pw !== null ? { kind: 'wonder', id: pw } : null;
         }
+        // W6 slice-3C: the AIR arms slot — past the land army target. The
+        // interception ALARM (rival air over the home perimeter) outranks the
+        // bomber arm (defense first, §4); the bomber arm needs a live target
+        // (a known enemy city) and only PRODUCTION cities field it (§3a
+        // concentration). Caps in rules.airDoctrine.
+        const AD = ruleset.rules.airDoctrine;
+        let airW = null;
+        if (AD !== undefined) {
+          const AF = airFacts(done, state, playerId, ruleset);
+          const fu = bestFighterUnit(me, ruleset);
+          if (AF.alarm === true && fu !== null && AF.fighters < AD.fighters) airW = fu;
+          // production OR frontline fields the bomber arm — at 7-civ density
+          // threat is chronic (the slice-1a lesson), so a production-only gate
+          // would leave the arm near-dormant; a frontline city as forward
+          // airbase is Civ1-shaped anyway.
+          if (airW === null && (role === 'production' || role === 'frontline')) {
+            const bu = bestBomberUnit(me, ruleset);
+            if (bu !== null && AF.bombers < AD.bombers
+                && nearestKnownEnemyCity(state, city, playerId) !== null) airW = bu;
+          }
+        }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
         } else if (doctrine !== null) {
@@ -2726,6 +2994,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = defBuild; // stance-mix: the defending-builder's economy reserve
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
+        } else if (airW !== null) {
+          want = { kind: 'unit', id: airW };
         } else if (isCoastal(state, city.x, city.y, ruleset)
                    && bestCarrierUnit(me, ruleset) !== null
                    && !hasFreeCarrier(state, playerId, ruleset)
@@ -2796,6 +3066,14 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // #35 naval-invade-B: the memoized invasion plan (target overseas war city + its continent +
     // KNOWN defense sum). Cheap after the first call this turn; null target = invasion dormant.
     const invasion = invasionFacts(done, state, playerId, ruleset);
+
+    // W6 slice-3C: air units get their own brain FIRST (before scout/escort/
+    // march selection can misfile them) — bombers pair with the ground siege,
+    // fighters intercept, aloft units head home. Knobs absent = the legacy
+    // fall-through (omit-safe, pre-slice behavior).
+    if (ruleset.units[unit.type].domain === 'air' && ruleset.rules.airDoctrine !== undefined) {
+      return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine);
+    }
 
     if (unit.type === 'settlers') {
       // naval-loop S3 DISEMBARK: an embarked settler is cargo. Step ashore when the
@@ -3109,6 +3387,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
             const adir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
             if (adir && !stepEntersSea(state, unit, adir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: adir };
           }
+          // W6 slice-3B: the massing/odds hold converts to SIEGE WORK — strip
+          // the ring tile instead of idling (recalled-behavior, v1x §5).
+          const sp = siegePillageCommand(state, unit, playerId, targetCity, ruleset);
+          if (sp !== null) return sp;
           return { type: 'wait', playerId, unitId: uid }; // hold: not massed / bad odds
         }
         const cdir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y);
@@ -3119,6 +3401,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           let blocked = false;
           for (const u of unitsAt(state, nx, ny)) if (u.owner !== playerId) blocked = true;
           if (blocked && !assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGatePct)) {
+            // W6 slice-3B: the approach hold pillages too when already inside
+            // the siege ring (dist 2 -> the radius knob covers it).
+            const asp = siegePillageCommand(state, unit, playerId, targetCity, ruleset);
+            if (asp !== null) return asp;
             return { type: 'wait', playerId, unitId: uid }; // don't charge bad odds (bo3)
           }
           if (!stepEntersSea(state, unit, cdir, ruleset)) return { type: 'moveUnit', playerId, unitId: uid, dir: cdir };

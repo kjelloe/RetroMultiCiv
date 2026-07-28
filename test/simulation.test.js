@@ -154,22 +154,27 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // ~3.5) — denser worlds are the doctrine working; suite-budget implications tracked in the
 // W6 delivery log. GOLDEN_SOAK 0xb0bd43d9.. / GOLDEN_NATURAL 0x5419139a / BEHAVIOR_SOAK
 // 0x123f2b58.. / BEHAVIOR_NATURAL 0x45c7a2b3. Honest re-record.
+// W6 slice-3 re-record (city roles + war pair): BEHAVIORAL + STAMP (#28: BEHAVIOR_SOAK
+// t100 HELD 0x6b382170, 200-400 MOVED + BEHAVIOR_NATURAL MOVED — role-routed buildings,
+// siege pillage, and the air arms change trajectories from the midgame on; rules.json
+// cityRoles/airDoctrine/siegePillageRadius/happinessLadder add the createGame stamp).
+// Rounds 400/545 + natural winner p2 UNCHANGED (no macro-outcome shift). Honest re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0xefa4f419', 200: '0x78c9997c', 300: '0x365a35db', 400: '0xb0bd43d9' },
-  finalHash: '0xb0bd43d9'
+  checkpoints: { 100: '0xb1a5b113', 200: '0x46c543af', 300: '0x3cf7f832', 400: '0xcd1ffc17' },
+  finalHash: '0xcd1ffc17'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x5419139a' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xb0f61c30' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x6b382170', 200: '0xa5512107', 300: '0xc9d4cf52', 400: '0x123f2b58' },
-  finalHash: '0x123f2b58'
+  checkpoints: { 100: '0x6b382170', 200: '0xbf9db658', 300: '0xef8905c9', 400: '0x82b1da0e' },
+  finalHash: '0x82b1da0e'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x45c7a2b3' };
+const BEHAVIOR_NATURAL = { finalHash: '0xa72f0e58' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

@@ -2085,13 +2085,29 @@ local function doctrineCanBuild(city: any, me: any, ruleset: any, id: string): b
 	end
 	return def.tech == "" or table.find(me.techs, def.tech) ~= nil
 end
+-- W6 slice-3A: the happiness LADDER (§3 "temple, colosseum in every city that
+-- NEEDS them") — persistent disorder with the temple already built climbs to
+-- the next rung. Knob buildDoctrine.happinessLadder; absent = the single
+-- happinessBuilding (fixture/back compat). TWIN of ai.js doctrineHappiness.
+local function doctrineHappiness(city: any, me: any, ruleset: any, d: any): string?
+	local ladder = if d.happinessLadder == nil then { d.happinessBuilding } else d.happinessLadder
+	for _, id in ipairs(ladder) do
+		if doctrineCanBuild(city, me, ruleset, id) then
+			return id
+		end
+	end
+	return nil
+end
 local function doctrineBuilding(state: any, city: any, me: any, ruleset: any): string?
 	local d = ruleset.rules.buildDoctrine
 	if d == nil then
 		return nil
 	end
-	if city.disorder == true and doctrineCanBuild(city, me, ruleset, d.happinessBuilding) then
-		return d.happinessBuilding
+	if city.disorder == true then
+		local h = doctrineHappiness(city, me, ruleset, d)
+		if h ~= nil then
+			return h
+		end
 	end
 	if doctrineCanBuild(city, me, ruleset, d.growthBuilding) then
 		local surplus = cities.cityYields(state, city, ruleset).food - city.pop * 2 -- cities food arithmetic
@@ -2105,6 +2121,255 @@ local function doctrineBuilding(state: any, city: any, me: any, ruleset: any): s
 		return d.happinessBuilding
 	end
 	return nil
+end
+
+-- W6 slice-3A (§3/§3a) TWIN: deterministic city ROLES from geography + empire
+-- context, computed once per turn (roleFacts done-cache). Ranking = repeated
+-- linear max scans over cityOrder (strictly-greater keeps the earliest city
+-- on ties). Slots scale with empire size (citiesPerRoleSlot). Precedence:
+-- frontline > spawner (absolute test) > production (shields) > science (trade).
+local function roleSlotCount(knob: number, nCities: number, per: number): number
+	local scaled = 1 + idiv(nCities, per)
+	return if knob < scaled then knob else scaled
+end
+local function pickTopRole(ids: any, roles: any, score: any, n: number, role: string)
+	for k = 1, n do
+		local best = nil
+		for _, cid in ipairs(ids) do
+			if roles[cid] == nil and (best == nil or score[cid] > score[best]) then
+				best = cid
+			end
+		end
+		if best == nil then
+			return
+		end
+		roles[best] = role
+	end
+end
+local function computeCityRoles(state: any, playerId: string, ruleset: any): any
+	local RC = ruleset.rules.cityRoles
+	local roles = {}
+	if RC == nil then
+		return roles
+	end
+	local me = state.players[playerId]
+	local ids = {}
+	local shields = {}
+	local trades = {}
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			table.insert(ids, cid)
+			local y = cities.cityYields(state, c, ruleset)
+			shields[cid] = y.shields
+			trades[cid] = y.trade
+			if enemyNear(state, me, playerId, c.x, c.y, ruleset.rules.threatRadius) then
+				roles[cid] = "frontline"
+			elseif y.food - c.pop * 2 >= RC.spawnerFoodSurplus and y.shields <= RC.spawnerMaxShields then
+				roles[cid] = "spawner"
+			end
+		end
+	end
+	pickTopRole(ids, roles, shields, roleSlotCount(RC.prodCities, #ids, RC.citiesPerRoleSlot), "production")
+	pickTopRole(ids, roles, trades, roleSlotCount(RC.sciCities, #ids, RC.citiesPerRoleSlot), "science")
+	return roles
+end
+local function roleFacts(done: any, state: any, playerId: string, ruleset: any): any
+	if done.roles == nil then
+		done.roles = computeCityRoles(state, playerId, ruleset)
+	end
+	return done.roles
+end
+-- The role build list is TIERS of alternatives (rules.cityRoles lists): a tier
+-- with any member already built is satisfied; else the first tech-known
+-- missing member is owed. One plant total, preference-ordered. TWIN.
+local function roleTierBuilding(city: any, me: any, ruleset: any, tiers: any): string?
+	for _, tier in ipairs(tiers) do
+		local present = false
+		for _, id in ipairs(tier) do
+			if city.buildings ~= nil and table.find(city.buildings, id) ~= nil then
+				present = true
+			end
+		end
+		if not present then
+			for _, id in ipairs(tier) do
+				if doctrineCanBuild(city, me, ruleset, id) then
+					return id
+				end
+			end
+		end
+	end
+	return nil
+end
+
+-- W6 slice-3C (unit-doctrine-v1x §4) TWIN: per-turn air facts (done-cache).
+-- Own air arms counted; ALARM when any rival air unit stands within
+-- threatRadius of an own city. Nuclear units count as neither arm (v1.x).
+local function computeAirFacts(state: any, playerId: string, ruleset: any): any
+	local facts = { alarm = false, bombers = 0, fighters = 0 }
+	if ruleset.rules.airDoctrine == nil then
+		return facts
+	end
+	for _, uid in ipairs(sortedKeys(state.units)) do
+		local u = state.units[uid]
+		local def = ruleset.units[u.type]
+		if def.domain == "air" and def.nuclearBlast ~= true then
+			if u.owner == playerId then
+				if def.attacksAir == true then
+					facts.fighters = facts.fighters + 1
+				else
+					facts.bombers = facts.bombers + 1
+				end
+			elseif not facts.alarm then
+				for _, cid in ipairs(state.cityOrder or {}) do
+					local c = state.cities[cid]
+					if c ~= nil and c.owner == playerId
+						and chebyshev(state.map, u.x, u.y, c.x, c.y) <= ruleset.rules.threatRadius then
+						facts.alarm = true
+						break
+					end
+				end
+			end
+		end
+	end
+	return facts
+end
+local function airFacts(done: any, state: any, playerId: string, ruleset: any): any
+	if done.air == nil then
+		done.air = computeAirFacts(state, playerId, ruleset)
+	end
+	return done.air
+end
+-- Best buildable air units (the bestAttackerUnit shape). Bomber = air attacker
+-- that is neither interceptor nor nuclear; fighter = the attacksAir interceptor.
+local function bestBomberUnit(me: any, ruleset: any): string?
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "air" and def.attacksAir ~= true and def.nuclearBlast ~= true
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or def.attack > bestDef.attack
+				or (def.attack == bestDef.attack and def.cost < bestDef.cost)
+				or (def.attack == bestDef.attack and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return best
+end
+local function bestFighterUnit(me: any, ruleset: any): string?
+	local best, bestDef = nil, nil
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.domain == "air" and def.attacksAir == true
+			and (def.tech == "" or table.find(me.techs, def.tech) ~= nil)
+			and not cities.unitObsolete(def, me.techs) then
+			if best == nil
+				or def.attack > bestDef.attack
+				or (def.attack == bestDef.attack and def.cost < bestDef.cost)
+				or (def.attack == bestDef.attack and def.cost == bestDef.cost and id < best) then
+				best = id
+				bestDef = def
+			end
+		end
+	end
+	return best
+end
+local function nearestOwnCityTo(state: any, playerId: string, x: number, y: number): any
+	local best = nil
+	local bestDist = 9999
+	for _, cid in ipairs(combat.sortIds(state.cityOrder or {})) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId then
+			local d = chebyshev(state.map, x, y, c.x, c.y)
+			if d < bestDist then
+				best = c
+				bestDist = d
+			end
+		end
+	end
+	return best
+end
+
+-- W6 slice-3B (unit-doctrine-v1x §5, RECALLED-BEHAVIOR label — #2798) TWIN:
+-- a besieger HOLDING at the target city strips the siege ring instead of
+-- idling — one improvement per held turn. Land units with moves, within
+-- siegePillageRadius of the TARGET, never inside an own city's radius.
+local function siegePillageCommand(state: any, unit: any, playerId: string, target: any, ruleset: any): any
+	local r = ruleset.rules.siegePillageRadius
+	if r == nil or unit.moves <= 0 or ruleset.units[unit.type].domain ~= "land" then
+		return nil
+	end
+	if chebyshev(state.map, unit.x, unit.y, target.x, target.y) > r then
+		return nil
+	end
+	local tile = state.map.tiles[unit.y * state.map.width + unit.x + 1]
+	if tile.irrigation ~= true and tile.mine ~= true and tile.railroad ~= true and tile.road ~= true then
+		return nil
+	end
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and chebyshev(state.map, unit.x, unit.y, c.x, c.y) <= 2 then
+			return nil
+		end
+	end
+	return { type = "pillage", playerId = playerId, unitId = unit.id }
+end
+
+-- W6 slice-3C (unit-doctrine-v1x §4) TWIN: the air brain. Bomber pairs with
+-- the ground siege (based + leash + >=1 own attacker adjacent); aloft ->
+-- straight home; fighter = interception only; nuclear holds (v1.x).
+local function airCommand(state: any, me: any, playerId: string, unit: any, uid: string, ruleset: any, A: any): any
+	local def = ruleset.units[unit.type]
+	if def.nuclearBlast == true then
+		return { type = "wait", playerId = playerId, unitId = uid }
+	end
+	if unit.aloft ~= nil then
+		local home = nearestOwnCityTo(state, playerId, unit.x, unit.y)
+		if home ~= nil and (home.x ~= unit.x or home.y ~= unit.y) then
+			local dir = dirToward(state.map, unit.x, unit.y, home.x, home.y)
+			if dir ~= nil then
+				return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
+			end
+		end
+		return { type = "wait", playerId = playerId, unitId = uid }
+	end
+	if def.attacksAir == true then
+		local tgt = nil
+		local td = 9999
+		for _, ouid in ipairs(combat.sortIds(sortedKeys(state.units))) do
+			local ou = state.units[ouid]
+			if ou.owner ~= playerId and ou.aboard == nil and ruleset.units[ou.type].domain == "air" then
+				local d = chebyshev(state.map, unit.x, unit.y, ou.x, ou.y)
+				if d < td then
+					tgt = ou
+					td = d
+				end
+			end
+		end
+		if tgt ~= nil and td <= A.leash then
+			local dir = dirToward(state.map, unit.x, unit.y, tgt.x, tgt.y)
+			if dir ~= nil then
+				return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
+			end
+		end
+		return { type = "wait", playerId = playerId, unitId = uid }
+	end
+	local target = nearestKnownEnemyCity(state, unit, playerId)
+	if target ~= nil then
+		local base = nearestOwnCityTo(state, playerId, target.x, target.y)
+		if base ~= nil and chebyshev(state.map, base.x, base.y, target.x, target.y) <= A.leash
+			and attackersAdjacentTo(state, playerId, ruleset, target.x, target.y) >= 1 then
+			local dir = dirToward(state.map, unit.x, unit.y, target.x, target.y)
+			if dir ~= nil then
+				return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
+			end
+		end
+	end
+	return { type = "wait", playerId = playerId, unitId = uid }
 end
 
 -- The nearest own settler in the open with no adjacent military guard.
@@ -3017,7 +3282,11 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					-- settler loop. NOT threat-gated (slice-1b, #2760: chronic threat at 7-civ
 					-- density left coverage at 0.9%); walls-first (canWall) still outranks. TWIN.
 					local doctrine = doctrineBuilding(state, city, me, ruleset)
-					if doctrine == nil and city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) then
+					-- W6 slice-3A: this city's ROLE (frontline/production/science/
+					-- spawner or nil = default); a spawner keeps the settler loop
+					-- alive one past the empire cap (§3). TWIN.
+					local role = roleFacts(done, state, playerId, ruleset)[cid]
+					if doctrine == nil and city.pop > settlerPopCost and countSettlers(state, playerId) < S.settlerBase + idiv(countCities(state, playerId), S.settlerDiv) + (if role == "spawner" then 1 else 0) then
 						want = { kind = "unit", id = "settlers" }
 					else
 						-- B13g: a THREATENED city walls up first (masonry known, not
@@ -3042,7 +3311,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						-- defending-builder RESERVE (defBuild). econReserve comes from the STANCE
 						-- (S.econReserve): balanced 0 = inert (identity), the builder stance 99.
 						-- Wonders concentrate in the capital (pop-2+) so they complete. Matches engine/ai.js.
-						local econBuilding = stanceBuilding(city, me, ruleset, S)
+						-- W6 slice-3A: the ROLE list beats the generic stance/cheapest
+						-- pick; frontline deliberately BLOCKS the science ladder. TWIN.
+						local roleB = if role == "production" then roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.productionBuildings)
+							elseif role == "science" then roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.scienceBuildings)
+							else nil
+						local econBuilding = if roleB ~= nil then roleB else stanceBuilding(city, me, ruleset, S)
 						local econWonder = if econBuilding == nil then nextWonder(state, me, ruleset) else nil
 						local econItem = if econBuilding ~= nil then { kind = "building", id = econBuilding } elseif econWonder ~= nil then { kind = "wonder", id = econWonder } else nil
 						local econReserve = if S.econReserve == nil then 0 else S.econReserve
@@ -3054,6 +3328,26 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							local pw = if ((isCap and builtCount >= 2) or econBuilding == nil) then nextWonder(state, me, ruleset) else nil
 							defBuild = if (isCap and builtCount >= 2 and pw ~= nil) then { kind = "wonder", id = pw } elseif econBuilding ~= nil then { kind = "building", id = econBuilding } elseif pw ~= nil then { kind = "wonder", id = pw } else nil
 						end
+						-- W6 slice-3C: the AIR arms slot — past the land army target.
+						-- Interception alarm outranks the bomber arm; production OR
+						-- frontline fields bombers (the slice-1a chronic-threat lesson:
+						-- a production-only gate would leave the arm near-dormant). TWIN.
+						local AD = ruleset.rules.airDoctrine
+						local airW = nil
+						if AD ~= nil then
+							local AF = airFacts(done, state, playerId, ruleset)
+							local fu = bestFighterUnit(me, ruleset)
+							if AF.alarm == true and fu ~= nil and AF.fighters < AD.fighters then
+								airW = fu
+							end
+							if airW == nil and (role == "production" or role == "frontline") then
+								local bu = bestBomberUnit(me, ruleset)
+								if bu ~= nil and AF.bombers < AD.bombers
+									and nearestKnownEnemyCity(state, city, playerId) ~= nil then
+									airW = bu
+								end
+							end
+						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
 						elseif doctrine ~= nil then
@@ -3063,6 +3357,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = defBuild
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
+						elseif airW ~= nil then
+							want = { kind = "unit", id = airW }
 						elseif isCoastal(state, city.x, city.y, ruleset)
 							and bestCarrierUnit(me, ruleset) ~= nil
 							and not hasFreeCarrier(state, playerId, ruleset)
@@ -3119,6 +3415,13 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 
 				-- #35 naval-invade-B twin: the memoized invasion plan (target + continent + KNOWN defense).
 				local invasion = invasionFacts(done, state, playerId, ruleset)
+
+				-- W6 slice-3C: air units get their own brain FIRST (before scout/
+				-- escort/march selection can misfile them). Knobs absent = the
+				-- legacy fall-through (omit-safe). TWIN.
+				if ruleset.units[unit.type].domain == "air" and ruleset.rules.airDoctrine ~= nil then
+					return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine)
+				end
 
 				if unit.type == "settlers" then
 					-- naval-loop S3 DISEMBARK: an embarked settler is cargo -- step ashore when the
@@ -3408,6 +3711,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 									return { type = "moveUnit", playerId = playerId, unitId = uid, dir = adir }
 								end
 							end
+							-- W6 slice-3B: the massing/odds hold converts to SIEGE WORK
+							-- (recalled-behavior, v1x §5). TWIN.
+							local sp = siegePillageCommand(state, unit, playerId, targetCity, ruleset)
+							if sp ~= nil then
+								return sp
+							end
 							return { type = "wait", playerId = playerId, unitId = uid }
 						end
 						local cdir = dirToward(state.map, unit.x, unit.y, targetCity.x, targetCity.y)
@@ -3422,6 +3731,12 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 								end
 							end
 							if blocked and not assaultOddsOk(state, unit, nx, ny, ruleset, D.oddsGatePct) then
+								-- W6 slice-3B: the approach hold pillages too when already
+								-- inside the siege ring. TWIN.
+								local asp = siegePillageCommand(state, unit, playerId, targetCity, ruleset)
+								if asp ~= nil then
+									return asp
+								end
 								return { type = "wait", playerId = playerId, unitId = uid }
 							end
 							if not stepEntersSea(state, unit, cdir, ruleset) then
