@@ -333,3 +333,32 @@ production-role city hosts the drive when the capital is busy),
 sweep floors + wonder-count coverage probe (wonderBuilt 25/3-games
 canonical is the pre-slice reference), reviewer. Closing slice-5
 CLOSES the W6 window → W7 map shapes opens.
+
+## Slices 3-5 delivery log (2026-07-28) — W6 CODE-COMPLETE
+
+All three landed same-day, each fixture-first with an honest re-record;
+natural 545/winner-p2 HELD across all four W6 re-records (no macro shift).
+
+- **Slice-3 @692ca7e** (city roles + war pair): roles frontline/production/
+  science/spawner + tiered lists + happiness ladder; siege pillage at the
+  massing hold; the air brain (bomber-with-siege, fighter interception,
+  nuclear inert). BEHAVIORAL + STAMP, BEHAVIOR t100 HELD. Reviewer PASS
+  #2831 + pristine clean-clone GREEN #2832 (which also surfaced the
+  density-era parallel-flake lesson — engine reds now pair-prove by
+  isolation on commit+parent).
+- **Slice-4 @d5007db** (frontier defence): proactive frontier walls
+  (nearKnownRivalCity, frontierRadius 12) + garrisonNeed = ONE shared floor
+  at all three slice-1d sites (interior relaxes to 1 for garrisonAlways2
+  stances — a surfaced CONTRACT CHANGE, ai.test re-authored to
+  border-scoped). BEHAVIORAL from t100 (the floor acts turn 1) + STAMP.
+  Reviewer combined s3+s4 PASS #2836 (3-site alignment confirmed).
+- **Slice-5 @be01b87** (wonders appetite): the §3a super-food specialist
+  play — allContentInCity wonders host in the best spawner city; persist
+  widened to any host. Seed items 1+3 resolved MEASURED-FIRST (placement
+  was already highest-shield since #26; thresholds stay sweep-calibrated).
+  BEHAVIORAL, NO STAMP — the first stamp-free W6 slice (002/maptype/
+  ff-parity held).
+
+OPEN: the W6-closing combined gate at be01b87 (sim-runner sweep #2837 —
+floors + role/siege/air/wonder coverage + interior-floor-vs-barbs watch —
++ reviewer #2838). The W6 marker tags on both; W7 map shapes opens after.
