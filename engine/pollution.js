@@ -148,10 +148,13 @@ function processWarming(state, ruleset, events) {
 }
 
 // A91c: ocean -> swamp raises land UNDER a fleet. A sea unit left on the new land tile
-// breaks the sea-unit-on-land invariant, so it is lost with its cargo — the same shape as
-// the open-sea trireme loss (naval.js) and the vanishing coastal city (B27, cities.js);
-// no new event type. Deleting a fixed SET of units => order-independent final state
-// (events aren't hashed). A city never sits on a warmed square (cities are on land).
+// breaks the sea-unit-on-land invariant, so the HULL is lost — the same shape as the
+// open-sea trireme loss (naval.js) and the vanishing coastal city (B27, cities.js).
+// The CARGO is not: the square is land now, so an embarked land unit is simply BEACHED
+// there (user ruling 2026-07-29 — the ship is wrecked, the troops walk off), which is
+// the ordinary unitUnloaded shape. No new event type. Both the deletion set and the
+// unloaded set are fixed per tile => order-independent final state (events aren't
+// hashed). A city never sits on a warmed square (cities are on land).
 function strandedShips(state, ruleset, x, y, events) {
   const dom = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x].t].domain;
   if (dom === 'sea') return;
@@ -162,8 +165,8 @@ function strandedShips(state, ruleset, x, y, events) {
     for (const cid of Object.keys(state.units)) {
       const c = state.units[cid];
       if (c !== undefined && c.aboard === uid) {
-        delete state.units[cid];
-        events.push({ type: 'cargoLost', unitId: cid, owner: c.owner, shipId: uid, x: x, y: y });
+        delete c.aboard;
+        events.push({ type: 'unitUnloaded', unitId: cid, owner: c.owner, x: x, y: y });
       }
     }
     delete state.units[uid];

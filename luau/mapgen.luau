@@ -58,7 +58,56 @@ local function tileDistance(ax: number, ay: number, bx: number, by: number, widt
 	return if dx > dy then dx else dy
 end
 
-local function generateTiles(r0: number, width: number, height: number, landPercent: number, continents: number)
+-- W7 (specs/map-shapes-w7.md): the MASK STAGE. A named map type may confine the
+-- land-blob budget to a shape -- the walk still wanders freely, it just cannot
+-- leave land outside the mask. Pure integer math: offsets from the map centre are
+-- expressed in PERCENT of the half-extent (doubled coordinates keep the centre
+-- exact on even sizes), so a shape is size-independent. WRAP-AWARE in x -- the world
+-- is a cylinder (map.wrapX is always true), so a ring must close across x=0 instead
+-- of seaming there. No mask (the four pre-W7 types) => the legacy path, untouched.
+local function maskAllows(mask: any, x: number, y: number, width: number, height: number): boolean
+	if mask == nil then
+		return true
+	end
+	local dx = x * 2 - (width - 1)
+	if dx < 0 then
+		dx = -dx
+	end
+	if width * 2 - dx < dx then
+		dx = width * 2 - dx -- the short way round the cylinder
+	end
+	local dy = y * 2 - (height - 1)
+	if dy < 0 then
+		dy = -dy
+	end
+	local dxPct = idiv(dx * 100, width - 1)
+	local dyPct = idiv(dy * 100, height - 1)
+	local r2 = dxPct * dxPct + dyPct * dyPct
+	-- CLOVER: four symmetric petals (one per quadrant) joined by a central hub, so
+	-- every petal has a choke onto contested middle ground. petalPct = how far the
+	-- petal centres sit from the map centre, lobePct = petal radius, hubPct = the
+	-- radius of the connecting middle. Petals are mirrored, so testing the ABSOLUTE
+	-- offset against one petal centre covers all four.
+	if mask.lobePct ~= nil then
+		if r2 <= mask.hubPct * mask.hubPct then
+			return true
+		end
+		local px = dxPct - mask.petalPct
+		local py = dyPct - mask.petalPct
+		return px * px + py * py <= mask.lobePct * mask.lobePct
+	end
+	local inner = if mask.innerPct == nil then 0 else mask.innerPct
+	local outer = if mask.outerPct == nil then 0 else mask.outerPct
+	if inner > 0 and r2 < inner * inner then
+		return false
+	end
+	if outer > 0 and r2 > outer * outer then
+		return false
+	end
+	return true
+end
+
+local function generateTiles(r0: number, width: number, height: number, landPercent: number, continents: number, mask: any)
 	local tiles = setmetatable({}, statehash.ARRAY_MT)
 	for i = 1, width * height do
 		tiles[i] = { t = "ocean" }
@@ -81,11 +130,41 @@ local function generateTiles(r0: number, width: number, height: number, landPerc
 		roll = rng.rollRange(r, height - 8)
 		r = roll.rngState
 		local y = 4 + roll.value
-		local steps = budget * 10
+		-- a masked shape needs a start INSIDE the mask, or the blob spends its whole
+		-- step budget wandering the forbidden sea. Bounded re-rolls keep the draw count
+		-- finite (and identical in both engines); the fallback scan is deterministic.
+		if mask ~= nil then
+			local tries = 0
+			while tries < 40 and not maskAllows(mask, x, y, width, height) do
+				tries += 1
+				roll = rng.rollRange(r, width)
+				r = roll.rngState
+				x = roll.value
+				roll = rng.rollRange(r, height - 8)
+				r = roll.rngState
+				y = 4 + roll.value
+			end
+			if not maskAllows(mask, x, y, width, height) then
+				local found = false
+				for yy = 2, height - 3 do
+					if not found then
+						for xx = 0, width - 1 do
+							if maskAllows(mask, xx, yy, width, height) then
+								x = xx
+								y = yy
+								found = true
+								break
+							end
+						end
+					end
+				end
+			end
+		end
+		local steps = if mask == nil then budget * 10 else budget * 20
 		while budget > 0 and steps > 0 do
 			steps -= 1
 			local i = y * width + x + 1
-			if tiles[i].t == "ocean" then
+			if tiles[i].t == "ocean" and maskAllows(mask, x, y, width, height) then
 				tiles[i].t = "land"
 				budget -= 1
 			end
@@ -252,7 +331,17 @@ local function generateTiles(r0: number, width: number, height: number, landPerc
 	return { tiles = tiles, rngState = r }
 end
 
-local function findStarts(r0: number, map: any, players: { any })
+-- W7 clover: which petal (quadrant) a tile sits in -- NE/NW/SE/SW as 0..3. Only
+-- meaningful for the petal shapes; used to spread starts one civ per petal, which
+-- is the whole point of the shape (without it civs pile into two lobes and the
+-- contested centre never becomes contested -- measured: 2-3 distinct petals of 4).
+local function petalOf(x: number, y: number, width: number, height: number): number
+	local east = if x * 2 > width - 1 then 1 else 0
+	local south = if y * 2 > height - 1 then 1 else 0
+	return south * 2 + east
+end
+
+local function findStarts(r0: number, map: any, players: { any }, petals: boolean?)
 	local width, height, tiles = map.width, map.height, map.tiles
 	local starts = {}
 	local r = r0
@@ -269,7 +358,14 @@ local function findStarts(r0: number, map: any, players: { any })
 			r = roll.rngState
 			local y = 3 + roll.value -- starts keep 3 tiles from the polar edges
 			local tile = tiles[y * width + x + 1]
-			if GOOD[tile.t] == true then
+			-- petal round-robin: the Nth civ wants the Nth petal. The demand RELAXES with
+			-- the distance rule (the outer loop), so a cramped world still fills every
+			-- seat instead of failing -- same shape as the existing minDist relaxation.
+			local petalOk = true
+			if petals == true and minDist > 0 and petalOf(x, y, width, height) ~= #starts % 4 then
+				petalOk = false
+			end
+			if GOOD[tile.t] == true and petalOk then
 				local clear = true
 				for _, s in ipairs(starts) do
 					if tileDistance(x, y, s.x, s.y, width, true) < minDist then
@@ -315,10 +411,18 @@ local function createGame(setup: any, ruleset: any): any
 	local continents = if options.continents == nil or options.continents == 0
 		then (if preset.continents == nil or preset.continents == 0 then DEFAULTS.continents else preset.continents)
 		else options.continents
-	local gen = generateTiles(r, width, height, landPercent, continents)
+	local mask: any = nil
+	if preset.maskKind ~= nil then
+		mask = {
+			innerPct = preset.maskInnerPct, outerPct = preset.maskOuterPct,
+			petalPct = preset.maskPetalPct, lobePct = preset.maskLobePct,
+			hubPct = preset.maskHubPct,
+		}
+	end
+	local gen = generateTiles(r, width, height, landPercent, continents, mask)
 	local map = { width = width, height = height, wrapX = true, tiles = gen.tiles }
 
-	local found = findStarts(gen.rngState, map, playerDefs)
+	local found = findStarts(gen.rngState, map, playerDefs, preset.maskLobePct ~= nil)
 	if #found.starts < #playerDefs then
 		return { ok = false, reason = "noStartPositions" }
 	end

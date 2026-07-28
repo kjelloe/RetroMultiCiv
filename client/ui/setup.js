@@ -272,16 +272,19 @@ export function showSetupScreen() {
     // A82a: map types from rules.mapTypes — data-driven like the ages; the
     // hint line carries the HONEST world description (the label must match
     // the world the preset actually generates). Absent table = Continents only.
-    // A82a-gate (user decision, specs/map-types-reference.md): naval maps sit
-    // in an ADVANCED group until the AI can cross water (N3) — AI opponents
-    // sit trapped on island maps today. Optgroups render only in the opened
-    // list, so the closed control (and the splash golden) never moves.
-    const MT_LAUNCH = ['continents', 'pangaea'];
+    // A82a-gate (user decision, specs/map-types-reference.md) originally parked
+    // naval maps in an ADVANCED group until the AI could cross water; that gate
+    // is CLOSED — the naval arc shipped (transport + overseas invasion, 25/25
+    // archipelago acceptance), so the water maps sit with the rest. The second
+    // group now separates the W7 NOVELTY shapes (later-Civ shapes; Civ 1 had no
+    // map-shape selector) from the classic four. Optgroups render only in the
+    // opened list, so the closed control (and the splash golden) never moves.
+    const MT_CLASSIC = ['continents', 'pangaea', 'archipelago', 'islands'];
     const mtEl = document.getElementById('setup-maptype');
     const mtHint = document.getElementById('setup-maptype-hint');
     if (mtEl && mtHint && rules.mapTypes) {
       mtEl.textContent = ''; // regroup: the static Continents option moves into Launch
-      const groups = { launch: 'Launch', advanced: 'Advanced — naval AI in progress' };
+      const groups = { launch: 'Classic', advanced: 'Novelty shapes' };
       const els = {};
       for (const [key, label] of Object.entries(groups)) {
         els[key] = document.createElement('optgroup');
@@ -293,12 +296,12 @@ export function showSetupScreen() {
         opt.value = id;
         opt.textContent = mt.name || id;
         if (id === 'continents') opt.selected = true;
-        els[MT_LAUNCH.includes(id) ? 'launch' : 'advanced'].appendChild(opt);
+        els[MT_CLASSIC.includes(id) ? 'launch' : 'advanced'].appendChild(opt);
       }
       const mtRefresh = () => {
         const mt = rules.mapTypes[mtEl.value];
-        const advanced = !MT_LAUNCH.includes(mtEl.value);
-        mtHint.textContent = ((mt && mt.desc) || '') + (advanced ? ' — naval AI in progress' : '');
+        mtHint.textContent = ((mt && mt.desc) || '')
+          + (mt && mt.provenance ? ' — ' + mt.provenance : '');
       };
       mtEl.addEventListener('change', mtRefresh);
       mtRefresh();

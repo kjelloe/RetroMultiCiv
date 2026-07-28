@@ -80,10 +80,12 @@ local function foulOne(state: any, cands: any): any
 end
 
 -- A91c: ocean -> swamp raises land UNDER a fleet. A sea unit left on the new land tile
--- breaks the sea-unit-on-land invariant, so it is lost with its cargo -- the same shape as
--- the open-sea trireme loss (naval) and the vanishing coastal city (B27, cities); no new
--- event type. Deleting a fixed SET => order-independent final state; the key snapshots
--- avoid the pairs()+delete-non-current-key UB (JS Object.keys is a snapshot).
+-- breaks the sea-unit-on-land invariant, so the HULL is lost -- the same shape as the
+-- open-sea trireme loss (naval) and the vanishing coastal city (B27, cities). The CARGO
+-- is not: the square is land now, so an embarked land unit is simply BEACHED there
+-- (user ruling 2026-07-29), the ordinary unitUnloaded shape. No new event type. Both
+-- sets are fixed per tile => order-independent final state; the key snapshots avoid the
+-- pairs()+delete-non-current-key UB (JS Object.keys is a snapshot).
 local function strandedShips(state: any, ruleset: any, x: number, y: number, events: any)
 	local dom = ruleset.terrain.terrains[state.map.tiles[y * state.map.width + x + 1].t].domain
 	if dom == "sea" then
@@ -99,8 +101,8 @@ local function strandedShips(state: any, ruleset: any, x: number, y: number, eve
 			for _, cid in ipairs(cids) do
 				local c = state.units[cid]
 				if c ~= nil and c.aboard == uid then
-					state.units[cid] = nil
-					table.insert(events, { type = "cargoLost", unitId = cid, owner = c.owner, shipId = uid, x = x, y = y })
+					c.aboard = nil
+					table.insert(events, { type = "unitUnloaded", unitId = cid, owner = c.owner, x = x, y = y })
 				end
 			end
 			state.units[uid] = nil

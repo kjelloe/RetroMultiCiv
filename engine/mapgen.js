@@ -53,7 +53,42 @@ function tileDistance(ax, ay, bx, by, width, wrapX) {
   return dx > dy ? dx : dy;
 }
 
-function generateTiles(rng, width, height, landPercent, continents) {
+// W7 (specs/map-shapes-w7.md): the MASK STAGE. A named map type may confine the
+// land-blob budget to a shape — the walk still wanders freely, it just cannot
+// leave land outside the mask. Pure integer math: offsets from the map centre are
+// expressed in PERCENT of the half-extent (doubled coordinates keep the centre
+// exact on even sizes), so a shape is size-independent. WRAP-AWARE in x — the world
+// is a cylinder (map.wrapX is always true), so a ring must close across x=0 instead
+// of seaming there. No mask (the four pre-W7 types) => the legacy path, untouched.
+function maskAllows(mask, x, y, width, height) {
+  if (mask === undefined) return true;
+  let dx = x * 2 - (width - 1);
+  if (dx < 0) dx = -dx;
+  if (width * 2 - dx < dx) dx = width * 2 - dx; // the short way round the cylinder
+  let dy = y * 2 - (height - 1);
+  if (dy < 0) dy = -dy;
+  const dxPct = idiv(dx * 100, width - 1);
+  const dyPct = idiv(dy * 100, height - 1);
+  const r2 = dxPct * dxPct + dyPct * dyPct;
+  // CLOVER: four symmetric petals (one per quadrant) joined by a central hub, so
+  // every petal has a choke onto contested middle ground. petalPct = how far the
+  // petal centres sit from the map centre, lobePct = petal radius, hubPct = the
+  // radius of the connecting middle. Petals are mirrored, so testing the ABSOLUTE
+  // offset against one petal centre covers all four.
+  if (mask.lobePct !== undefined) {
+    if (r2 <= mask.hubPct * mask.hubPct) return true;
+    const px = dxPct - mask.petalPct;
+    const py = dyPct - mask.petalPct;
+    return px * px + py * py <= mask.lobePct * mask.lobePct;
+  }
+  const inner = mask.innerPct === undefined ? 0 : mask.innerPct;
+  const outer = mask.outerPct === undefined ? 0 : mask.outerPct;
+  if (inner > 0 && r2 < inner * inner) return false;
+  if (outer > 0 && r2 > outer * outer) return false;
+  return true;
+}
+
+function generateTiles(rng, width, height, landPercent, continents, mask) {
   const tiles = [];
   for (let i = 0; i < width * height; i++) tiles.push({ t: 'ocean' });
 
@@ -72,11 +107,31 @@ function generateTiles(rng, width, height, landPercent, continents) {
     let x = roll.value;
     roll = rollRange(r, height - 8); r = roll.rngState;
     let y = 4 + roll.value;
-    let steps = budget * 10;
+    // a masked shape needs a start INSIDE the mask, or the blob spends its whole
+    // step budget wandering the forbidden sea. Bounded re-rolls keep the draw count
+    // finite (and identical in both engines); the fallback scan is deterministic.
+    if (mask !== undefined) {
+      let tries = 0;
+      while (tries < 40 && !maskAllows(mask, x, y, width, height)) {
+        tries++;
+        roll = rollRange(r, width); r = roll.rngState;
+        x = roll.value;
+        roll = rollRange(r, height - 8); r = roll.rngState;
+        y = 4 + roll.value;
+      }
+      if (!maskAllows(mask, x, y, width, height)) {
+        for (let yy = 2; yy < height - 2; yy++) {
+          for (let xx = 0; xx < width; xx++) {
+            if (maskAllows(mask, xx, yy, width, height)) { x = xx; y = yy; yy = height; break; }
+          }
+        }
+      }
+    }
+    let steps = mask === undefined ? budget * 10 : budget * 20;
     while (budget > 0 && steps > 0) {
       steps--;
       const i = y * width + x;
-      if (tiles[i].t === 'ocean') {
+      if (tiles[i].t === 'ocean' && maskAllows(mask, x, y, width, height)) {
         tiles[i].t = 'land';
         budget--;
       }
@@ -195,7 +250,17 @@ function generateTiles(rng, width, height, landPercent, continents) {
   return { tiles, rngState: r };
 }
 
-function findStarts(rng, map, players) {
+// W7 clover: which petal (quadrant) a tile sits in — NE/NW/SE/SW as 0..3. Only
+// meaningful for the petal shapes; used to spread starts one civ per petal, which
+// is the whole point of the shape (without it civs pile into two lobes and the
+// contested centre never becomes contested — measured: 2-3 distinct petals of 4).
+function petalOf(x, y, width, height) {
+  const east = x * 2 > width - 1 ? 1 : 0;
+  const south = y * 2 > height - 1 ? 1 : 0;
+  return south * 2 + east;
+}
+
+function findStarts(rng, map, players, petals) {
   const { width, height, tiles } = map;
   const starts = [];
   let r = rng;
@@ -211,6 +276,11 @@ function findStarts(rng, map, players) {
       const y = 3 + roll.value; // starts keep 3 tiles from the polar edges
       const tile = tiles[y * width + x];
       if (!GOOD[tile.t]) continue;
+      // petal round-robin: the Nth civ wants the Nth petal. The demand RELAXES with
+      // the distance rule (the outer loop), so a cramped world still fills every
+      // seat instead of failing — same shape as the existing minDist relaxation.
+      if (petals === true && minDist > 0
+        && petalOf(x, y, width, height) !== starts.length % 4) continue;
       let clear = true;
       for (const s of starts) {
         if (tileDistance(x, y, s.x, s.y, width, true) < minDist) { clear = false; break; }
@@ -243,10 +313,14 @@ function createGame(setup, ruleset) {
   let rng = seedRng(setup.seed);
   const gen = generateTiles(rng, width, height,
     options.landPercent || preset.landPercent || DEFAULTS.landPercent,
-    options.continents || preset.continents || DEFAULTS.continents);
+    options.continents || preset.continents || DEFAULTS.continents,
+    preset.maskKind === undefined ? undefined
+      : { innerPct: preset.maskInnerPct, outerPct: preset.maskOuterPct,
+        petalPct: preset.maskPetalPct, lobePct: preset.maskLobePct,
+        hubPct: preset.maskHubPct });
   const map = { width, height, wrapX: true, tiles: gen.tiles };
 
-  const found = findStarts(gen.rngState, map, playerDefs);
+  const found = findStarts(gen.rngState, map, playerDefs, preset.maskLobePct !== undefined);
   if (found.starts.length < playerDefs.length) {
     return { ok: false, reason: 'noStartPositions' };
   }

@@ -30,7 +30,7 @@ local function world(mapType: any): string
 end
 
 print("maptype:default: " .. world(nil))
-for _, t in ipairs({ "continents", "pangaea", "archipelago", "islands" }) do
+for _, t in ipairs({ "continents", "pangaea", "archipelago", "islands", "fractal", "oval", "ring", "inland-sea", "clover" }) do
 	print("maptype:" .. t .. ": " .. world(t))
 end
 print("maptype:unknown: " .. world("doughnut"))

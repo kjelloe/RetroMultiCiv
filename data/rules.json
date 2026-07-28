@@ -6,17 +6,71 @@
   "taxBumpStep": 10,
   "endYear": 2100,
   "yearSteps": [
-    { "until": 0, "step": 20 },
-    { "until": 1500, "step": 10 },
-    { "until": 1850, "step": 5 },
-    { "until": 2100, "step": 2 }
+    {
+      "until": 0,
+      "step": 20
+    },
+    {
+      "until": 1500,
+      "step": 10
+    },
+    {
+      "until": 1850,
+      "step": 5
+    },
+    {
+      "until": 2100,
+      "step": 2
+    }
   ],
   "ages": [
-    { "id": "ancient", "name": "Ancient", "turn": 0, "grantEras": [] },
-    { "id": "renaissance", "name": "Renaissance", "turn": 190, "grantEras": ["ancient"] },
-    { "id": "industrial", "name": "Industrial", "turn": 256, "grantEras": ["ancient", "renaissance"] },
-    { "id": "modern", "name": "Modern", "turn": 305, "grantEras": ["ancient", "renaissance", "industrial"] },
-    { "id": "space", "name": "Space Age", "turn": 325, "grantEras": ["ancient", "renaissance", "industrial", "modern"], "except": ["future-tech"] }
+    {
+      "id": "ancient",
+      "name": "Ancient",
+      "turn": 0,
+      "grantEras": []
+    },
+    {
+      "id": "renaissance",
+      "name": "Renaissance",
+      "turn": 190,
+      "grantEras": [
+        "ancient"
+      ]
+    },
+    {
+      "id": "industrial",
+      "name": "Industrial",
+      "turn": 256,
+      "grantEras": [
+        "ancient",
+        "renaissance"
+      ]
+    },
+    {
+      "id": "modern",
+      "name": "Modern",
+      "turn": 305,
+      "grantEras": [
+        "ancient",
+        "renaissance",
+        "industrial"
+      ]
+    },
+    {
+      "id": "space",
+      "name": "Space Age",
+      "turn": 325,
+      "grantEras": [
+        "ancient",
+        "renaissance",
+        "industrial",
+        "modern"
+      ],
+      "except": [
+        "future-tech"
+      ]
+    }
   ],
   "scorePerCitizen": 2,
   "scorePerHappy": 1,
@@ -41,7 +95,16 @@
   "settlerPathRadius": 12,
   "attackerPerCity": 1,
   "attackerBase": 2,
-  "buildDoctrine": { "happinessBuilding": "temple", "growthBuilding": "granary", "granaryDeferPop": 3, "highFoodSurplus": 2, "happinessLadder": ["temple", "colosseum"] },
+  "buildDoctrine": {
+    "happinessBuilding": "temple",
+    "growthBuilding": "granary",
+    "granaryDeferPop": 3,
+    "highFoodSurplus": 2,
+    "happinessLadder": [
+      "temple",
+      "colosseum"
+    ]
+  },
   "cityRoles": {
     "frontierRadius": 12,
     "prodCities": 2,
@@ -49,16 +112,49 @@
     "citiesPerRoleSlot": 4,
     "spawnerFoodSurplus": 3,
     "spawnerMaxShields": 4,
-    "productionBuildings": [["barracks"], ["factory"], ["hydro-plant", "nuclear-plant", "power-plant"]],
-    "scienceBuildings": [["library"], ["marketplace"], ["university"], ["bank"]]
+    "productionBuildings": [
+      [
+        "barracks"
+      ],
+      [
+        "factory"
+      ],
+      [
+        "hydro-plant",
+        "nuclear-plant",
+        "power-plant"
+      ]
+    ],
+    "scienceBuildings": [
+      [
+        "library"
+      ],
+      [
+        "marketplace"
+      ],
+      [
+        "university"
+      ],
+      [
+        "bank"
+      ]
+    ]
   },
   "siegePillageRadius": 2,
-  "airDoctrine": { "bombers": 2, "fighters": 2, "leash": 6 },
+  "airDoctrine": {
+    "bombers": 2,
+    "fighters": 2,
+    "leash": 6
+  },
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiSurplusBuyThreshold": 1000,
   "aiScoutSharePct": 25,
-  "aiScoutQuotaByCities": { "1": 3, "2": 6, "3": 10 },
+  "aiScoutQuotaByCities": {
+    "1": 3,
+    "2": 6,
+    "3": 10
+  },
   "aiScoutThreatVeto": true,
   "aiFastScoutCount": 2,
   "aiBoatScoutCount": 2,
@@ -72,26 +168,76 @@
   "invadeRatioPct": 300,
   "aiBuilderPct": 35,
   "aiWarDoctrine": {
-    "1": { "massSize": 4, "oddsGatePct": 0, "defenderGatePct": 30 },
-    "3": { "massSize": 4, "oddsGatePct": 200, "defenderGatePct": 200 }
+    "1": {
+      "massSize": 4,
+      "oddsGatePct": 0,
+      "defenderGatePct": 30
+    },
+    "3": {
+      "massSize": 4,
+      "oddsGatePct": 200,
+      "defenderGatePct": 200
+    }
   },
   "barbTierThreshold": 30,
   "barbTiers": [
-    { "tech": "", "unit": "militia" },
-    { "tech": "gunpowder", "unit": "musketeers" },
-    { "tech": "conscription", "unit": "riflemen" },
-    { "tech": "labor-union", "unit": "mech-inf" }
+    {
+      "tech": "",
+      "unit": "militia"
+    },
+    {
+      "tech": "gunpowder",
+      "unit": "musketeers"
+    },
+    {
+      "tech": "conscription",
+      "unit": "riflemen"
+    },
+    {
+      "tech": "labor-union",
+      "unit": "mech-inf"
+    }
   ],
   "buyGoldPerShield": 2,
   "buyGoldPerShieldWonder": 4,
   "buyGoldPerShieldSS": 8,
   "ssParts": {
-    "structural": { "tech": "space-flight", "cost": 80, "mass": 100, "max": 39 },
-    "propulsion": { "tech": "plastics", "cost": 160, "mass": 400, "max": 8 },
-    "fuel": { "tech": "plastics", "cost": 160, "mass": 400, "max": 8 },
-    "habitation": { "tech": "robotics", "cost": 320, "mass": 1600, "max": 4 },
-    "lifeSupport": { "tech": "robotics", "cost": 320, "mass": 1600, "max": 4 },
-    "solar": { "tech": "robotics", "cost": 320, "mass": 400, "max": 4 }
+    "structural": {
+      "tech": "space-flight",
+      "cost": 80,
+      "mass": 100,
+      "max": 39
+    },
+    "propulsion": {
+      "tech": "plastics",
+      "cost": 160,
+      "mass": 400,
+      "max": 8
+    },
+    "fuel": {
+      "tech": "plastics",
+      "cost": 160,
+      "mass": 400,
+      "max": 8
+    },
+    "habitation": {
+      "tech": "robotics",
+      "cost": 320,
+      "mass": 1600,
+      "max": 4
+    },
+    "lifeSupport": {
+      "tech": "robotics",
+      "cost": 320,
+      "mass": 1600,
+      "max": 4
+    },
+    "solar": {
+      "tech": "robotics",
+      "cost": 320,
+      "mass": 400,
+      "max": 4
+    }
   },
   "ssFlight": {
     "gateWonder": "apollo-program",
@@ -104,7 +250,12 @@
     "successFlightFreeYears": 15
   },
   "victoryDrive": {
-    "spaceStances": ["science", "builder", "balanced", "defensive"],
+    "spaceStances": [
+      "science",
+      "builder",
+      "balanced",
+      "defensive"
+    ],
     "spaceCommitTechGap": 3,
     "holdPathPct": 80
   },
@@ -115,10 +266,24 @@
     "permanentDivisor": 8,
     "permanentPad": 4,
     "routeCap": 3,
-    "sameContinent": { "num": 1, "den": 2 },
-    "sameCiv": { "num": 1, "den": 2 },
-    "railroad": { "tech": "railroad", "num": 2, "den": 3 },
-    "flight": { "tech": "flight", "num": 2, "den": 3 }
+    "sameContinent": {
+      "num": 1,
+      "den": 2
+    },
+    "sameCiv": {
+      "num": 1,
+      "den": 2
+    },
+    "railroad": {
+      "tech": "railroad",
+      "num": 2,
+      "den": 3
+    },
+    "flight": {
+      "tech": "flight",
+      "num": 2,
+      "den": 3
+    }
   },
   "upgrade": {
     "baseGold": 10,
@@ -130,7 +295,13 @@
     "gold": 50,
     "ambushCityRadius": 3,
     "ambushCount": 2,
-    "weights": { "advancedTribe": 2, "advance": 4, "gold": 6, "mercs": 4, "ambush": 4 }
+    "weights": {
+      "advancedTribe": 2,
+      "advance": 4,
+      "gold": 6,
+      "mercs": 4,
+      "ambush": 4
+    }
   },
   "barb": {
     "leaderRansom": 100,
@@ -141,25 +312,58 @@
     "tolerance": 20,
     "industrialDivisorPower": 2,
     "industrialDivisorRecycling": 3,
-    "popModifierPctByTech": { "industrialization": 25, "automobile": 50, "mass-production": 75, "plastics": 100 },
+    "popModifierPctByTech": {
+      "industrialization": 25,
+      "automobile": 50,
+      "mass-production": 75,
+      "plastics": 100
+    },
     "smokestackPctPerPoint": 1,
     "meltdownChance": 20,
     "warmingStages": 4,
     "warmingStageTurns": 5,
     "warmingThreshold": 10,
-    "warmingTransforms": { "plains": "desert", "ocean": "swamp" }
+    "warmingTransforms": {
+      "plains": "desert",
+      "ocean": "swamp"
+    }
   },
   "disastersEnabled": true,
   "disasters": {
     "baseChancePct": 2,
     "pirateGoldPct": 50,
-    "pirate": { "prevent": "barracks", "terrain": "ocean" },
-    "flood": { "prevent": "city-walls", "river": true, "popPct": 25 },
-    "fire": { "prevent": "aqueduct", "destroyBuilding": true },
-    "plague": { "prevent": "aqueduct", "preventTech": "medicine", "popPct": 25 },
-    "famine": { "prevent": "granary", "popPct": 33 },
-    "volcano": { "prevent": "temple", "terrain": "mountains", "destroyBuilding": true, "popPct": 33 },
-    "earthquake": { "terrain": "hills", "destroyBuilding": true }
+    "pirate": {
+      "prevent": "barracks",
+      "terrain": "ocean"
+    },
+    "flood": {
+      "prevent": "city-walls",
+      "river": true,
+      "popPct": 25
+    },
+    "fire": {
+      "prevent": "aqueduct",
+      "destroyBuilding": true
+    },
+    "plague": {
+      "prevent": "aqueduct",
+      "preventTech": "medicine",
+      "popPct": 25
+    },
+    "famine": {
+      "prevent": "granary",
+      "popPct": 33
+    },
+    "volcano": {
+      "prevent": "temple",
+      "terrain": "mountains",
+      "destroyBuilding": true,
+      "popPct": 33
+    },
+    "earthquake": {
+      "terrain": "hills",
+      "destroyBuilding": true
+    }
   },
   "trireme": {
     "lossChancePct": 50,
@@ -170,8 +374,19 @@
     "warIntentThreshold": 60,
     "peaceAcceptThreshold": 30,
     "offerCooldown": 10,
-    "wAgg": 1, "wGrv": 1, "wWeak": 1, "wBorder": 1, "wFear": 2, "wTrust": 1, "wLaunch": 100,
-    "wPFear": 2, "wPTrust": 1, "wWeary": 1, "wPAgg": 1, "wPGrv": 1, "wWinning": 2,
+    "wAgg": 1,
+    "wGrv": 1,
+    "wWeak": 1,
+    "wBorder": 1,
+    "wFear": 2,
+    "wTrust": 1,
+    "wLaunch": 100,
+    "wPFear": 2,
+    "wPTrust": 1,
+    "wWeary": 1,
+    "wPAgg": 1,
+    "wPGrv": 1,
+    "wWinning": 2,
     "relGrievanceOnAttack": 15,
     "relGrievanceOnBetray": 40,
     "relTrustOnBetray": 30,
@@ -191,13 +406,76 @@
   },
   "contentCitizens": 4,
   "difficulties": {
-    "trainer":    { "contentCitizens": 7, "startGold": 100, "aiFoodRows": 18, "aiCostPct": 180, "aiBulbInc": 15, "humanBulbInc": 4,  "barbAtkPct": 10,  "parleyDemandPct": 10 },
-    "chieftain":  { "contentCitizens": 6, "startGold": 50,  "aiFoodRows": 16, "aiCostPct": 160, "aiBulbInc": 14, "humanBulbInc": 6,  "barbAtkPct": 25,  "parleyDemandPct": 25 },
-    "warlord":    { "contentCitizens": 5, "startGold": 0,   "aiFoodRows": 14, "aiCostPct": 140, "aiBulbInc": 13, "humanBulbInc": 8,  "barbAtkPct": 50,  "parleyDemandPct": 50 },
-    "prince":     { "contentCitizens": 4, "startGold": 0,   "aiFoodRows": 12, "aiCostPct": 120, "aiBulbInc": 12, "humanBulbInc": 10, "barbAtkPct": 75,  "parleyDemandPct": 75 },
-    "king":       { "contentCitizens": 3, "startGold": 0,   "aiFoodRows": 10, "aiCostPct": 100, "aiBulbInc": 11, "humanBulbInc": 12, "barbAtkPct": 100, "parleyDemandPct": 100 },
-    "emperor":    { "contentCitizens": 2, "startGold": 0,   "aiFoodRows": 8,  "aiCostPct": 80,  "aiBulbInc": 10, "humanBulbInc": 14, "barbAtkPct": 125, "parleyDemandPct": 125 },
-    "godemperor": { "contentCitizens": 1, "startGold": 0,   "aiFoodRows": 6,  "aiCostPct": 60,  "aiBulbInc": 9,  "humanBulbInc": 16, "barbAtkPct": 150, "parleyDemandPct": 150 }
+    "trainer": {
+      "contentCitizens": 7,
+      "startGold": 100,
+      "aiFoodRows": 18,
+      "aiCostPct": 180,
+      "aiBulbInc": 15,
+      "humanBulbInc": 4,
+      "barbAtkPct": 10,
+      "parleyDemandPct": 10
+    },
+    "chieftain": {
+      "contentCitizens": 6,
+      "startGold": 50,
+      "aiFoodRows": 16,
+      "aiCostPct": 160,
+      "aiBulbInc": 14,
+      "humanBulbInc": 6,
+      "barbAtkPct": 25,
+      "parleyDemandPct": 25
+    },
+    "warlord": {
+      "contentCitizens": 5,
+      "startGold": 0,
+      "aiFoodRows": 14,
+      "aiCostPct": 140,
+      "aiBulbInc": 13,
+      "humanBulbInc": 8,
+      "barbAtkPct": 50,
+      "parleyDemandPct": 50
+    },
+    "prince": {
+      "contentCitizens": 4,
+      "startGold": 0,
+      "aiFoodRows": 12,
+      "aiCostPct": 120,
+      "aiBulbInc": 12,
+      "humanBulbInc": 10,
+      "barbAtkPct": 75,
+      "parleyDemandPct": 75
+    },
+    "king": {
+      "contentCitizens": 3,
+      "startGold": 0,
+      "aiFoodRows": 10,
+      "aiCostPct": 100,
+      "aiBulbInc": 11,
+      "humanBulbInc": 12,
+      "barbAtkPct": 100,
+      "parleyDemandPct": 100
+    },
+    "emperor": {
+      "contentCitizens": 2,
+      "startGold": 0,
+      "aiFoodRows": 8,
+      "aiCostPct": 80,
+      "aiBulbInc": 10,
+      "humanBulbInc": 14,
+      "barbAtkPct": 125,
+      "parleyDemandPct": 125
+    },
+    "godemperor": {
+      "contentCitizens": 1,
+      "startGold": 0,
+      "aiFoodRows": 6,
+      "aiCostPct": 60,
+      "aiBulbInc": 9,
+      "humanBulbInc": 16,
+      "barbAtkPct": 150,
+      "parleyDemandPct": 150
+    }
   },
   "settlerFoodUpkeep": 1,
   "luxPerStep": 2,
@@ -217,9 +495,75 @@
     "huge": 14
   },
   "mapTypes": {
-    "continents": { "name": "Continents", "desc": "one large landmass", "landPercent": 32, "continents": 5 },
-    "pangaea": { "name": "Pangaea", "desc": "a single, drier continent", "landPercent": 36, "continents": 1 },
-    "archipelago": { "name": "Archipelago", "desc": "many small landmasses", "landPercent": 20, "continents": 20 },
-    "islands": { "name": "Islands", "desc": "scattered small islands", "landPercent": 14, "continents": 24 }
+    "continents": {
+      "name": "Continents",
+      "desc": "one large landmass",
+      "landPercent": 32,
+      "continents": 5
+    },
+    "pangaea": {
+      "name": "Pangaea",
+      "desc": "a single, drier continent",
+      "landPercent": 36,
+      "continents": 1
+    },
+    "archipelago": {
+      "name": "Archipelago",
+      "desc": "many small landmasses",
+      "landPercent": 20,
+      "continents": 20
+    },
+    "islands": {
+      "name": "Islands",
+      "desc": "scattered small islands",
+      "landPercent": 14,
+      "continents": 24
+    },
+    "fractal": {
+      "name": "Fractal",
+      "desc": "a jagged, broken-up world",
+      "provenance": "later-Civ shape (Civ 1 had no map-shape selector)",
+      "landPercent": 26,
+      "continents": 30
+    },
+    "oval": {
+      "name": "Oval",
+      "desc": "one rounded landmass ringed by open sea",
+      "provenance": "later-Civ shape (Civ 1 had no map-shape selector)",
+      "landPercent": 34,
+      "continents": 3,
+      "maskKind": "oval",
+      "maskOuterPct": 95
+    },
+    "ring": {
+      "name": "Ring",
+      "desc": "a band of land around a central sea",
+      "provenance": "later-Civ shape (Civ 1 had no map-shape selector)",
+      "landPercent": 28,
+      "continents": 6,
+      "maskKind": "ring",
+      "maskInnerPct": 45,
+      "maskOuterPct": 95
+    },
+    "inland-sea": {
+      "name": "Inland Sea",
+      "desc": "land along the rim, one sea locked inside",
+      "provenance": "later-Civ shape (Civ 1 had no map-shape selector)",
+      "landPercent": 34,
+      "continents": 6,
+      "maskKind": "inland-sea",
+      "maskInnerPct": 50
+    },
+    "clover": {
+      "name": "Clover",
+      "desc": "four petals of land meeting at a contested centre",
+      "provenance": "later-Civ shape (Civ 1 had no map-shape selector)",
+      "landPercent": 30,
+      "continents": 4,
+      "maskKind": "clover",
+      "maskPetalPct": 55,
+      "maskLobePct": 38,
+      "maskHubPct": 22
+    }
   }
 }

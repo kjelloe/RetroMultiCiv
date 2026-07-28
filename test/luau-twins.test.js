@@ -313,9 +313,11 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // W6 slice-3 (city roles + war pair) rules.json stamp cascade
-      continents: '5a696386', pangaea: '82360507',
-      archipelago: 'e7fa3f88', islands: 'd1198b9c'
+    const PINS = { // W7 map shapes: rules.json stamp cascade + the five NEW shapes
+      continents: '856e4f41', pangaea: '6862c666',
+      archipelago: '3da45b9f', islands: 'c76a076f',
+      fractal: '518a87cb', oval: 'cd182fc7', ring: '590c6afd',
+      'inland-sea': '800566b0', clover: '2687aec3'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },

@@ -165,9 +165,10 @@ test('A91b warming: below the threshold the clock idles (no warming, no state fi
 // A91c: the greenhouse turns OCEAN into SWAMP (rules.pollution.warmingTransforms) —
 // a fleet sitting on that square would be left standing on dry land, breaking the
 // sim invariant "sea unit on land outside a city" (seed 6 t363, W6-closing sweep).
-// A ship caught by the rising land is LOST with its cargo, the same shape as the
-// open-sea trireme loss (naval.js) and the vanishing-coastal-city loss (B27,
-// cities.js): triremeLost + cargoLost, no new event type.
+// The HULL is lost (the open-sea trireme loss shape, naval.js / B27 cities.js), but
+// the CARGO is BEACHED, not drowned (user ruling 2026-07-29): the square is land
+// now, so an embarked land unit simply walks off — the ordinary unitUnloaded shape.
+// No new event type.
 // Board: all grassland (NOT a warming candidate) except ONE ocean tile, so every
 // transform the greenhouse can make is that tile.
 function strandBoard() {
@@ -192,7 +193,7 @@ function strandBoard() {
   };
 }
 
-test('A91c warming: a ship caught by ocean->swamp is lost with its cargo (never stranded on land)', async () => {
+test('A91c warming: a ship caught by ocean->swamp is wrecked and its cargo beached', async () => {
   const { process } = await load();
   const poll = RULESET.rules.pollution;
   const st = strandBoard();
@@ -205,7 +206,10 @@ test('A91c warming: a ship caught by ocean->swamp is lost with its cargo (never 
   assert.ok(seen.some(e => e.type === 'terrainWarmed'), 'the greenhouse fired');
   assert.strictEqual(st.map.tiles[4 * 8 + 4].t, 'swamp', 'the ocean square became swamp');
   assert.strictEqual(st.units.u1, undefined, 'the ironclad did not survive on dry land');
-  assert.strictEqual(st.units.u2, undefined, 'its cargo went down with it');
-  assert.ok(seen.some(e => e.type === 'triremeLost' && e.unitId === 'u1'), 'the loss is reported');
-  assert.ok(seen.some(e => e.type === 'cargoLost' && e.unitId === 'u2'), 'the cargo loss is reported');
+  assert.notStrictEqual(st.units.u2, undefined, 'the cargo walked off onto the new land');
+  assert.strictEqual(st.units.u2.aboard, undefined, 'and is no longer embarked');
+  assert.strictEqual(st.units.u2.x, 4, 'beached where the ship was (x)');
+  assert.strictEqual(st.units.u2.y, 4, 'beached where the ship was (y)');
+  assert.ok(seen.some(e => e.type === 'triremeLost' && e.unitId === 'u1'), 'the wreck is reported');
+  assert.ok(seen.some(e => e.type === 'unitUnloaded' && e.unitId === 'u2'), 'the beaching is reported');
 });
