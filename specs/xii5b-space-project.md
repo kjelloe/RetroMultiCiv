@@ -166,3 +166,29 @@ in specs/calendar-545.md as well.
   on the sim-runner; if launches appear, the arc closes measured-
   emergent; if not, v1 ships as ruled and bulb-pacing goes to the v2
   shelf as a design knob.
+
+## ADDENDUM 2026-07-28 — the blocker MOVED: research depth is SOLVED, the commit step is not
+
+The canonical concept histogram after W6 slice-1 (sim-runner #2819, 3x
+400t/7civ) overturns the FINAL-RULING framing above ("the sole limiter
+is research depth vs game length"):
+
+- futureTechResearched fired x10 — a civ EXHAUSTS the 68-tech tree and
+  spills into Future Tech within a NORMAL 400-turn game. The research
+  runway the whole bulb-tuning debate was about now exists, delivered
+  by the W6 build-doctrine growth (libraries/universities organic).
+- Yet ssPartBuilt / shipLaunched / spaceVictory all remained 0, and the
+  natural 25-seed distribution (#2823/#2827) shows 24/25 endYear SCORE
+  victories, zero space anywhere.
+
+So the residual blocker is the COMMIT-TO-SHIP step: eligible civs
+research PAST the space techs into Future Tech instead of committing
+to Apollo/parts. Any v1.x space-tuning window should start at the
+commit funnel — the 9-metric --stats witness already measures it
+(eligibleTurn/commitTurn/pathPct): extract per-civ WHERE the funnel
+breaks (eligible-never-commits vs commits-never-builds-Apollo). The
+marathon measurement (endYear 9999, in flight) shows whether longer
+horizons change commit behavior; early partial: long games decide by
+CONQUEST (~t712/t826), still not space. The v1 ruling (authentically-
+contested ending) STANDS — this addendum is the v1.x starting point,
+not a reopening.

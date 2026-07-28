@@ -277,3 +277,59 @@ BEHAVIORAL + STAMP: rules.json changes); detached re-record
 factory/library/university per-city-per-role counts; siege: pillaged
 events > 0 in war seeds; air: bombers/fighters built in late-era
 seeds) + peace-witness re-run; reviewer engine-diff + clean-clone.
+
+## Slice-4 DESIGN SEED (frontier defence) — written 2026-07-28, opens after slice-3 gates
+
+What slice-3 already delivered: `frontline` role (threatened =
+enemyNear within threatRadius) + reactive walls (B13g canWall) + the
+science-list block on the border. What slice-4 still owes (§3
+"frontier-exposed cities ONLY" + "defender coverage in core"):
+
+1. **Proactive frontier detection** — today walls are REACTIVE (a
+   visible enemy within 8). A frontier city facing a known rival
+   direction should wall BEFORE the stack arrives: fog-honest border
+   test = proximity of the nearest KNOWN rival city (explored-map
+   read, the nearestKnownEnemyCity machinery) within a knob radius
+   (`cityRoles.frontierRadius`, sweep ~12-16). Frontier-but-not-yet-
+   threatened cities get walls in the role slot (below canWall's
+   urgency, above the role lists).
+2. **Core defender floor** — interior cities (neither frontline nor
+   frontier) may relax to wantDefenders 1 even under garrisonAlways2
+   stances, freeing shields for the role lists; frontier/frontline
+   keep the full floor. Measured risk: barb spawns in the interior —
+   the sweep + peace witness arbitrate.
+3. Explicitly NOT slice-4: unit repositioning (garrison discipline is
+   slice-1d and stays); wall-building in EVERY city (the anti-goal).
+
+Gates: fixture-first (frontier-without-visible-threat walls up; an
+interior city does not), canonical sweep + peace witness (watch M3 —
+wall shields compete with growth), reviewer engine-diff. Expect
+BEHAVIORAL + STAMP (new knob).
+
+## Slice-5 DESIGN SEED (wonders appetite) — written 2026-07-28, LAST W6 slice
+
+Existing machinery: wonderAppetite tiers (none/low/med/high) +
+WONDER_AFFINITY stance lists + the builder wonderDrive + capital
+concentration. What slice-5 owes (§3a):
+
+1. **Role-aware wonder placement** — the wonder-drive city pick is
+   capital-concentrated today; a HIGH-shield production-role city
+   should be eligible when the capital is busy (roleFacts reuse).
+2. **The super-food specialist play** — a spawner-role city with a
+   big surplus considers a HAPPINESS wonder (hanging-gardens class)
+   even if it mostly benefits itself: it unlocks running many
+   specialists there (§3a verbatim). Gate on surplus + appetite ≥
+   low + the wonder being in the civ's affinity or happiness class.
+3. **Growth/happiness affinity widening** — growth stance's list
+   already carries the happiness wonders; the appetite THRESHOLDS
+   (wonderLowShields/wonderMedBuildings) may need role-scaling so a
+   production-role city starts wonders earlier than a default city.
+   Sweep-calibrated, not guessed (the slice-1c lesson).
+4. Explicitly NOT slice-5: new wonder EFFECTS (all shipped), Apollo/
+   Manhattan gates (own machinery), the v2 draft-from-wonder-city.
+
+Gates: fixture-first (super-food city picks the happiness wonder;
+production-role city hosts the drive when the capital is busy),
+sweep floors + wonder-count coverage probe (wonderBuilt 25/3-games
+canonical is the pre-slice reference), reviewer. Closing slice-5
+CLOSES the W6 window → W7 map shapes opens.
