@@ -2146,6 +2146,18 @@ local function pickTopRole(ids: any, roles: any, score: any, n: number, role: st
 		roles[best] = role
 	end
 end
+-- W6 slice-4 TWIN: is (x,y) near a KNOWN rival city (fog-honest explored
+-- read)? The PROACTIVE border test.
+local function nearKnownRivalCity(state: any, me: any, playerId: string, x: number, y: number, radius: number): boolean
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner ~= playerId and isExplored(me, state.map, c.x, c.y)
+			and chebyshev(state.map, x, y, c.x, c.y) <= radius then
+			return true
+		end
+	end
+	return false
+end
 local function computeCityRoles(state: any, playerId: string, ruleset: any): any
 	local RC = ruleset.rules.cityRoles
 	local roles = {}
@@ -2165,6 +2177,10 @@ local function computeCityRoles(state: any, playerId: string, ruleset: any): any
 			trades[cid] = y.trade
 			if enemyNear(state, me, playerId, c.x, c.y, ruleset.rules.threatRadius) then
 				roles[cid] = "frontline"
+			elseif RC.frontierRadius ~= nil
+				and nearKnownRivalCity(state, me, playerId, c.x, c.y, RC.frontierRadius) then
+				-- W6 slice-4: FRONTIER — near a known rival city, not yet threatened. TWIN.
+				roles[cid] = "frontier"
 			elseif y.food - c.pop * 2 >= RC.spawnerFoodSurplus and y.shields <= RC.spawnerMaxShields then
 				roles[cid] = "spawner"
 			end
@@ -2179,6 +2195,27 @@ local function roleFacts(done: any, state: any, playerId: string, ruleset: any):
 		done.roles = computeCityRoles(state, playerId, ruleset)
 	end
 	return done.roles
+end
+-- W6 slice-4 TWIN: THE garrison floor — the ONE formula all three slice-1d
+-- sites share. Frontline 2; garrisonAlways2 keeps 2 on the FRONTIER too;
+-- interior relaxes to 1. Knob-gated legacy reproduction when absent.
+local function garrisonNeed(done: any, state: any, playerId: string, ruleset: any, S: any, city: any): number
+	local RC = ruleset.rules.cityRoles
+	if RC == nil then
+		return if (S.garrisonAlways2 == true
+			or enemyNear(state, state.players[playerId], playerId, city.x, city.y, ruleset.rules.threatRadius)) then 2 else 1
+	end
+	local r = roleFacts(done, state, playerId, ruleset)[city.id]
+	if r == "frontline" then
+		return 2
+	end
+	if S.garrisonAlways2 ~= true then
+		return 1
+	end
+	if RC.frontierRadius == nil then
+		return 2 -- no frontier band: legacy always-2
+	end
+	return if r == "frontier" then 2 else 1
 end
 -- The role build list is TIERS of alternatives (rules.cityRoles lists): a tier
 -- with any member already built is satisfied; else the first tech-known
@@ -3204,7 +3241,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- always wants 2 guards; growth wants more settlers; aggressive
 				-- raises the empire army cap.
 				local threatened = enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius)
-					local wantDefenders = if (S.garrisonAlways2 or threatened) then 2 else 1
+					-- W6 slice-4: the shared garrison-floor formula (garrisonNeed). TWIN.
+					local wantDefenders = garrisonNeed(done, state, playerId, ruleset, S, city)
 				local want = { kind = "unit", id = bestDefender }
 				-- N9b HOIST (Finding-3 fix): the builder wonder-drive is CAPITAL-INTENT, a
 				-- FIRST-CLASS check ABOVE the garrison/saturation cascade. Gate = NOT-THREATENED
@@ -3315,6 +3353,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						-- pick; frontline deliberately BLOCKS the science ladder. TWIN.
 						local roleB = if role == "production" then roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.productionBuildings)
 							elseif role == "science" then roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.scienceBuildings)
+							-- W6 slice-4: a FRONTIER city walls up PROACTIVELY. TWIN.
+							elseif role == "frontier" then (if doctrineCanBuild(city, me, ruleset, "city-walls") then "city-walls" else nil)
 							else nil
 						local econBuilding = if roleB ~= nil then roleB else stanceBuilding(city, me, ruleset, S)
 						local econWonder = if econBuilding == nil then nextWonder(state, me, ruleset) else nil
@@ -3626,7 +3666,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 					end
 					-- W6 slice-1d: floor MATCHES production's wantDefenders (garrisonAlways2
 					-- stances build for 2; holding only 1 left their gate unreachable — #2775). TWIN.
-					local need = if (S.garrisonAlways2 == true or enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) then 2 else 1
+					-- W6 slice-4: the shared floor formula (garrisonNeed — three-site rule). TWIN.
+					local need = garrisonNeed(done, state, playerId, ruleset, S, home)
 					-- B23: a scout departs to range only if the city keeps another
 					-- defender (>= 2 guards); a sole defender stays. greedy = pre-B23.
 					local scoutDepart = scouting and exploreMode ~= "greedy" and guards >= 2
@@ -3645,7 +3686,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							others = others + 1
 						end
 					end
-					local need2 = if (S.garrisonAlways2 == true or enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) then 2 else 1
+					-- W6 slice-4: the shared floor formula (garrisonNeed — three-site rule). TWIN.
+					local need2 = garrisonNeed(done, state, playerId, ruleset, S, home)
 					if others < need2 then
 						return { type = "wait", playerId = playerId, unitId = uid } -- hold the post (stay fortified)
 					end

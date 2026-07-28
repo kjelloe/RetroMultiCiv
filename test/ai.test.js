@@ -448,17 +448,24 @@ test('AI stances: balanced / undefined / unknown are the byte-identical default'
   }
 });
 
-test('AI stance defensive: garrisons two + prioritizes city walls', async () => {
+test('AI stance defensive: garrisons two on the frontier + prioritizes city walls', async () => {
   const { ai, engine } = await load();
-  // a city with ONE guard, producing settlers, no enemy near
-  const mk = () => grassState(9, 9,
-    { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
-    { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } } },
-    { players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+  // W6 slice-4 CONTRACT CHANGE: garrisonAlways2 now applies on the BORDER
+  // (frontline/frontier), not empire-wide — a known rival city inside
+  // cityRoles.frontierRadius makes this city frontier, so defensive wants its
+  // 2nd guard; balanced at the same frontier (unthreatened) keeps expanding.
+  const mk = () => {
+    const st = grassState(16, 9,
+      { u1: { id: 'u1', type: 'militia', owner: 'p1', x: 4, y: 4, moves: 0, fortified: true, veteran: false } },
+      { c9: { id: 'c9', name: 'C', owner: 'p1', x: 4, y: 4, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'settlers' } },
+        e9: { id: 'e9', name: 'R', owner: 'p2', x: 12, y: 4, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
+      { players: { p1: { id: 'p1', name: 'A', color: '#00f', human: false, gold: 0, techs: ['masonry'], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50, explored: new Array(16 * 9).fill(1) }, p2: { id: 'p2', name: 'B', color: '#f00', human: false, gold: 0, techs: [], researching: 'x', bulbs: 0, taxRate: 50, sciRate: 50 } } });
+    return st;
+  };
   const balanced = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'balanced');
   const defensive = ai.runAiTurn(engine, mk(), 'p1', RULESET, [], 'defensive');
-  assert.strictEqual(balanced.cities.c9.producing.id, 'settlers', 'balanced (1 guard, no threat): keeps expanding');
-  assert.strictEqual(defensive.cities.c9.producing.id, 'militia', 'defensive: wants a second guard');
+  assert.strictEqual(balanced.cities.c9.producing.id, 'settlers', 'balanced (1 guard, frontier, no threat): keeps expanding');
+  assert.strictEqual(defensive.cities.c9.producing.id, 'militia', 'defensive: wants a second guard on the frontier');
 });
 
 test('AI stance growth: builds settlers past the balanced cap', async () => {

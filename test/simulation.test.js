@@ -155,26 +155,29 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // W6 delivery log. GOLDEN_SOAK 0xb0bd43d9.. / GOLDEN_NATURAL 0x5419139a / BEHAVIOR_SOAK
 // 0x123f2b58.. / BEHAVIOR_NATURAL 0x45c7a2b3. Honest re-record.
 // W6 slice-3 re-record (city roles + war pair): BEHAVIORAL + STAMP (#28: BEHAVIOR_SOAK
-// t100 HELD 0x6b382170, 200-400 MOVED + BEHAVIOR_NATURAL MOVED — role-routed buildings,
-// siege pillage, and the air arms change trajectories from the midgame on; rules.json
-// cityRoles/airDoctrine/siegePillageRadius/happinessLadder add the createGame stamp).
-// Rounds 400/545 + natural winner p2 UNCHANGED (no macro-outcome shift). Honest re-record.
+// t100 HELD 0x6b382170, 200-400 MOVED — role-routed buildings, siege pillage, air arms
+// from the midgame on). GOLDEN_SOAK 0xb1a5b113.. / NATURAL 0xb0f61c30.
+// W6 slice-4 re-record (frontier walls + core defender floor): BEHAVIORAL + STAMP
+// (#28: BEHAVIOR t100 MOVED TOO 0xa82ddd63 — the interior floor relaxation frees
+// garrison/settler behavior from turn 1, unlike slice-3's midgame-only signature;
+// rules.json cityRoles.frontierRadius adds the stamp). Rounds 400/545 + natural
+// winner p2 UNCHANGED across BOTH slices (no macro-outcome shift). Honest re-records.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0xb1a5b113', 200: '0x46c543af', 300: '0x3cf7f832', 400: '0xcd1ffc17' },
-  finalHash: '0xcd1ffc17'
+  checkpoints: { 100: '0x21dfc423', 200: '0xa0eef20f', 300: '0x933d0157', 400: '0xe1dbb68e' },
+  finalHash: '0xe1dbb68e'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xb0f61c30' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xccb07a34' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x6b382170', 200: '0xbf9db658', 300: '0xef8905c9', 400: '0x82b1da0e' },
-  finalHash: '0x82b1da0e'
+  checkpoints: { 100: '0xa82ddd63', 200: '0x2431478f', 300: '0xc25d0485', 400: '0x5fc1b6d6' },
+  finalHash: '0x5fc1b6d6'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xa72f0e58' };
+const BEHAVIOR_NATURAL = { finalHash: '0xb9e571e7' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

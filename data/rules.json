@@ -43,6 +43,7 @@
   "attackerBase": 2,
   "buildDoctrine": { "happinessBuilding": "temple", "growthBuilding": "granary", "granaryDeferPop": 3, "highFoodSurplus": 2, "happinessLadder": ["temple", "colosseum"] },
   "cityRoles": {
+    "frontierRadius": 12,
     "prodCities": 2,
     "sciCities": 2,
     "citiesPerRoleSlot": 4,

@@ -209,6 +209,18 @@ function pickTopRole(ids, roles, score, n, role) {
     roles[best] = role;
   }
 }
+// W6 slice-4: is (x,y) near a KNOWN rival city (fog-honest: the explored-map
+// read, same discipline as nearestKnownEnemyCity)? The PROACTIVE border test —
+// a stack needs no sighting for geography to be a frontier.
+function nearKnownRivalCity(state, me, playerId, x, y, radius) {
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (!c || c.owner === playerId) continue;
+    if (!isExplored(me, state.map, c.x, c.y)) continue;
+    if (chebyshev(state.map, x, y, c.x, c.y) <= radius) return true;
+  }
+  return false;
+}
 function computeCityRoles(state, playerId, ruleset) {
   const RC = ruleset.rules.cityRoles;
   const roles = {};
@@ -226,6 +238,12 @@ function computeCityRoles(state, playerId, ruleset) {
     trades[cid] = y.trade;
     if (enemyNear(state, me, playerId, c.x, c.y, ruleset.rules.threatRadius)) {
       roles[cid] = 'frontline';
+    } else if (RC.frontierRadius !== undefined
+        && nearKnownRivalCity(state, me, playerId, c.x, c.y, RC.frontierRadius)) {
+      // W6 slice-4: FRONTIER — near a known rival city but not yet threatened.
+      // Walls up proactively (§3 "frontier-exposed only"); blocks the science
+      // list like frontline; keeps the full garrisonAlways2 floor.
+      roles[cid] = 'frontier';
     } else if (y.food - c.pop * 2 >= RC.spawnerFoodSurplus && y.shields <= RC.spawnerMaxShields) {
       roles[cid] = 'spawner';
     }
@@ -237,6 +255,24 @@ function computeCityRoles(state, playerId, ruleset) {
 function roleFacts(done, state, playerId, ruleset) {
   if (done.roles === undefined) done.roles = computeCityRoles(state, playerId, ruleset);
   return done.roles;
+}
+// W6 slice-4: THE garrison floor — the ONE formula all three slice-1d sites
+// share (production wantDefenders, the unfortified stay-home floor, the
+// fortified hold floor). Frontline always keeps 2; a garrisonAlways2 stance
+// keeps 2 on the FRONTIER too; the INTERIOR relaxes to 1 (§3 "defender
+// coverage in core" — the freed shields flow to the role lists). Knob-gated:
+// without cityRoles/frontierRadius the legacy formula is reproduced exactly.
+function garrisonNeed(done, state, playerId, ruleset, S, city) {
+  const RC = ruleset.rules.cityRoles;
+  if (RC === undefined) {
+    return (S.garrisonAlways2 === true
+      || enemyNear(state, state.players[playerId], playerId, city.x, city.y, ruleset.rules.threatRadius)) ? 2 : 1;
+  }
+  const r = roleFacts(done, state, playerId, ruleset)[city.id];
+  if (r === 'frontline') return 2;
+  if (S.garrisonAlways2 !== true) return 1;
+  if (RC.frontierRadius === undefined) return 2; // no frontier band: legacy always-2
+  return r === 'frontier' ? 2 : 1;
 }
 // The role build list is TIERS of alternatives (rules.cityRoles lists): a tier
 // with any member already built is satisfied; else the first tech-known
@@ -2806,7 +2842,9 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // for the sim): defensive always wants 2 guards; growth wants more
     // settlers; aggressive raises the empire army cap.
     const threatened = enemyNear(state, me, playerId, city.x, city.y, ruleset.rules.threatRadius);
-    const wantDefenders = (S.garrisonAlways2 || threatened) ? 2 : 1;
+    // W6 slice-4: the shared garrison-floor formula (garrisonNeed) — see the
+    // helper; interior cities of garrisonAlways2 stances relax to 1.
+    const wantDefenders = garrisonNeed(done, state, playerId, ruleset, S, city);
     let want = { kind: 'unit', id: bestDefender };
     // N9b HOIST (Finding-3 fix, architect @50f5ebd3 + the min-garrison finding):
     // the builder wonder-drive is CAPITAL-INTENT ("some civs MUST build wonders"),
@@ -2947,6 +2985,9 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         // the border). Slice-1 doctrine (temple/granary) still outranks all.
         const roleB = role === 'production' ? roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.productionBuildings)
           : role === 'science' ? roleTierBuilding(city, me, ruleset, ruleset.rules.cityRoles.scienceBuildings)
+          // W6 slice-4: a FRONTIER city walls up PROACTIVELY (canWall stays the
+          // reactive urgent path; this is the same wall before any sighting)
+          : role === 'frontier' ? (doctrineCanBuild(city, me, ruleset, 'city-walls') ? 'city-walls' : null)
           : null;
         const econBuilding = roleB !== null ? roleB : stanceBuilding(city, me, ruleset, S);
         const econWonder = econBuilding === null ? nextWonder(state, me, ruleset) : null;
@@ -3287,8 +3328,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       // (reviewer #2775: the visibility-gated veto never fires in low-threat
       // worlds). Aligned: the second guard now fortifies and the garrisoned
       // block becomes reachable.
-      const need = (S.garrisonAlways2 === true
-        || enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) ? 2 : 1;
+      // W6 slice-4: the shared floor formula (garrisonNeed — three-site rule)
+      const need = garrisonNeed(done, state, playerId, ruleset, S, home);
       // B23c: a scout departs to range the map ONLY if the city keeps another
       // defender (guards >= 2) — the threat veto alone (B23b) was insufficient:
       // BARBS spawn without warning, so a sole guard that left before a threat
@@ -3317,8 +3358,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
       for (const g of unitsAt(state, unit.x, unit.y)) {
         if (g.owner === playerId && g.id !== unit.id && ruleset.units[g.type].attack > 0) others = others + 1;
       }
-      const need = (S.garrisonAlways2 === true
-        || enemyNear(state, me, playerId, home.x, home.y, ruleset.rules.threatRadius)) ? 2 : 1;
+      // W6 slice-4: the shared floor formula (garrisonNeed — three-site rule)
+      const need = garrisonNeed(done, state, playerId, ruleset, S, home);
       if (others < need) {
         return { type: 'wait', playerId, unitId: uid }; // hold the post (stay fortified)
       }
