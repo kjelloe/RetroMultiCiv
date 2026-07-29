@@ -93,6 +93,10 @@
   </div>
 
   <div class="item"><span class="box"></span>
+    <div class="t">A5. Grant each gaming-PC lane its own working directory (2 min, unblocks both)</div>
+    <div class="d">Both lanes went idle on 2026-07-29 for the same reason — the directory they need is outside their session's allowed set. The reviewer could not run its clean-clone check (<code>reviewer-lab</code> not allowed); the sim-runner could not run any W7 measurement (<code>~/sim-lab</code> not allowed, <code>/mnt/c</code> tree stale). Both correctly refused to work around it by checking a tip out over another lane's tree. Fix: in each session, <code>/permissions</code> → allow read/write + git + node/lune <em>inside that lane's own directory only</em>. Without it every measurement and independent reproduction falls back to the dev box, which defeats the point of the second machine.</div>
+  </div>
+  <div class="item"><span class="box"></span>
     <div class="t">A4. Redeploy the box</div>
     <div class="d"><code>./ssh-deploy.sh</code> after whichever merge (self-verifies via healthz). Goes live: gameOver reveal, endscreen verdict fix, civ splash, pedia rename, founders-tone, silhouettes, late-join UI polish.</div>
   </div>

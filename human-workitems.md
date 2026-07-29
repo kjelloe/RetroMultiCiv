@@ -35,6 +35,19 @@ the box runs 0101)._
   final + D4–D6 diplomacy arc + engine program W1–W5 + the COMPLETE W6
   build-doctrine window (city roles, siege/air war pair, frontier
   defence, wonder hosting) + all client/roblox riders.
+- [ ] **A5. Grant each gaming-PC lane its own working directory (2 min, unblocks
+  both).** Both lanes went idle on 2026-07-29 for the same reason: the
+  directory they need is outside their session's allowed set. The reviewer
+  could not run its clean-clone check (`reviewer-lab` not allowed) and the
+  sim-runner could not run any W7 measurement (`~/sim-lab` not allowed, and its
+  `/mnt/c` tree is stale). Both correctly REFUSED to work around it by checking
+  a tip out over someone else's tree. Fix: in each of those sessions,
+  `/permissions` → allow read/write plus git and node/lune **inside that lane's
+  own directory only** (`reviewer-lab` for the reviewer, `~/sim-lab` for the
+  sim-runner). Without it, every measurement and every independent
+  reproduction falls back to the dev box, which is slower and defeats the point
+  of having a second machine.
+
 - [ ] **A4. Redeploy the box** after whichever merge:
   `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
   gameOver reveal, endscreen verdict fix, civ splash, pedia rename,
