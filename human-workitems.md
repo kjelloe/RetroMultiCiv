@@ -46,7 +46,13 @@ the box runs 0101)._
   own directory only** (`reviewer-lab` for the reviewer, `~/sim-lab` for the
   sim-runner). Without it, every measurement and every independent
   reproduction falls back to the dev box, which is slower and defeats the point
-  of having a second machine.
+  of having a second machine. **Update 2026-07-30:** the sim-runner is
+  unblocked, but the reviewer reported its lab dir still denied — a new grant
+  usually needs that session RESTARTED before it takes effect, so if the
+  reviewer stays blocked, restart its session (or confirm the allowlist entry
+  names `reviewer-lab` specifically). It now has a worktree fallback documented
+  in docs/18, so this is no longer a hard stop — just slower and less
+  independent.
 
 - [ ] **A4. Redeploy the box** after whichever merge:
   `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
