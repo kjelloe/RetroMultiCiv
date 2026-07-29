@@ -166,7 +166,12 @@ end
 -- MAP_SIZES / DIFFICULTY_LEVELS / rules.mapTypes / rules.ages / maxCivsBySize) —
 -- browser-parity, no contract touch.
 local SETUP_SIZES = { "xsmall", "small", "medium" }
-local SETUP_MAPTYPES = { "archipelago", "continents", "islands", "pangaea" }
+-- W7: full rules.mapTypes roster, SORTED — the server steps sorted keys, so
+-- this list must stay alphabetical or segment taps land on the wrong preset
+local SETUP_MAPTYPES = {
+	"archipelago", "clover", "continents", "fractal", "inland-sea",
+	"islands", "oval", "pangaea", "ring",
+}
 local SETUP_AGES = { "ancient", "renaissance", "industrial", "modern", "space" }
 local SETUP_DIFFICULTY = { "trainer", "easy", "medium", "hard", "godemperor" }
 local SETUP_COMBAT = { "bestof3", "authentic" }

@@ -44,7 +44,19 @@ return [==[{
   "settlerPathRadius": 12,
   "attackerPerCity": 1,
   "attackerBase": 2,
-  "buildDoctrine": { "happinessBuilding": "temple", "growthBuilding": "granary", "granaryDeferPop": 3, "highFoodSurplus": 2 },
+  "buildDoctrine": { "happinessBuilding": "temple", "growthBuilding": "granary", "granaryDeferPop": 3, "highFoodSurplus": 2, "happinessLadder": ["temple", "colosseum"] },
+  "cityRoles": {
+    "frontierRadius": 12,
+    "prodCities": 2,
+    "sciCities": 2,
+    "citiesPerRoleSlot": 4,
+    "spawnerFoodSurplus": 3,
+    "spawnerMaxShields": 4,
+    "productionBuildings": [["barracks"], ["factory"], ["hydro-plant", "nuclear-plant", "power-plant"]],
+    "scienceBuildings": [["library"], ["marketplace"], ["university"], ["bank"]]
+  },
+  "siegePillageRadius": 2,
+  "airDoctrine": { "bombers": 2, "fighters": 2, "leash": 6 },
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiSurplusBuyThreshold": 1000,
@@ -211,7 +223,12 @@ return [==[{
     "continents": { "name": "Continents", "desc": "one large landmass", "landPercent": 32, "continents": 5 },
     "pangaea": { "name": "Pangaea", "desc": "a single, drier continent", "landPercent": 36, "continents": 1 },
     "archipelago": { "name": "Archipelago", "desc": "many small landmasses", "landPercent": 20, "continents": 20 },
-    "islands": { "name": "Islands", "desc": "scattered small islands", "landPercent": 14, "continents": 24 }
+    "islands": { "name": "Islands", "desc": "scattered small islands", "landPercent": 14, "continents": 24 },
+    "fractal": { "name": "Fractal", "desc": "a jagged, broken-up world", "provenance": "later-Civ shape (Civ 1 had no map-shape selector)", "landPercent": 26, "continents": 30 },
+    "oval": { "name": "Oval", "desc": "one rounded landmass ringed by open sea", "provenance": "later-Civ shape (Civ 1 had no map-shape selector)", "landPercent": 34, "continents": 3, "maskKind": "oval", "maskOuterPct": 95 },
+    "ring": { "name": "Ring", "desc": "a band of land around a central sea", "provenance": "later-Civ shape (Civ 1 had no map-shape selector)", "landPercent": 28, "continents": 6, "maskKind": "ring", "maskInnerPct": 45, "maskOuterPct": 95 },
+    "inland-sea": { "name": "Inland Sea", "desc": "land along the rim, one sea locked inside", "provenance": "later-Civ shape (Civ 1 had no map-shape selector)", "landPercent": 34, "continents": 6, "maskKind": "inland-sea", "maskInnerPct": 50 },
+    "clover": { "name": "Clover", "desc": "four petals of land meeting at a contested centre", "provenance": "later-Civ shape (Civ 1 had no map-shape selector)", "landPercent": 30, "continents": 4, "maskKind": "clover", "maskPetalPct": 55, "maskLobePct": 38, "maskHubPct": 22 }
   }
 }
 ]==]
