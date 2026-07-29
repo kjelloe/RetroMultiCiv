@@ -165,12 +165,20 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // W6 slice-5 re-record (super-food wonder host): BEHAVIORAL, NO STAMP (ai.js+twin
 // only — 002/maptype/ff-parity createGame pins all HELD; the #28 pair moved
 // together). Natural 545/p2 UNCHANGED a fourth consecutive re-record.
+// W7 re-record (novelty map shapes: five new rules.mapTypes entries + the mapgen
+// mask stage): STAMP-ONLY, verified by the #28 discriminator — every BEHAVIOR_*
+// value below is BYTE-IDENTICAL to the slice-5 record while GOLDEN_* moved, i.e.
+// the trajectory never changed; only the rulesetHash the world is stamped with.
+// Existing map types keep their exact generation path (no mask => legacy walk), and
+// the A91c warming fix rode this same run without moving BEHAVIOR either (a golden
+// game has to actually warm an OCCUPIED ocean tile for it to bite). Natural
+// 545/p2 UNCHANGED a fifth consecutive re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x0aad4beb', 200: '0xafb57477', 300: '0x36fed008', 400: '0x97c3f1d2' },
-  finalHash: '0x97c3f1d2'
+  checkpoints: { 100: '0x3d9f5881', 200: '0x7a322cd1', 300: '0x1847cebe', 400: '0xfcebe728' },
+  finalHash: '0xfcebe728'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xf7d5a860' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xa1c6e53a' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

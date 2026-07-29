@@ -255,7 +255,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
       // 100 lune turns need more headroom than the old 3-min cap
       { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x0aad4beb\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x3d9f5881\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -389,7 +389,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    siegePillageRadius/happinessLadder — stamp AND behavioral: the ff turns now
 //    role-route buildings).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x2027a334 turn 25 grant 22';
+const FF_PARITY_PIN = 'ff-parity 0xf22d9ba5 turn 25 grant 22'; // W7 stamp cascade
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

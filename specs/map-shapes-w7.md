@@ -135,9 +135,18 @@ far (NINE types after clover — the four-shape values were superseded before
 they were committed): `continents 856e4f41`, `pangaea 6862c666`,
 `archipelago 3da45b9f`, `islands c76a076f`, `fractal 518a87cb`, `oval
 cd182fc7`, `ring 590c6afd`, `inland-sea 800566b0`, `clover 2687aec3`;
-scenario 002 `0x6d55a5c0`; age-snapshot `CANONICAL_PIN 0x43ad9e40`. Pending: the #28 discriminator classification (expected
-STAMP-ONLY — existing types generate identically), age-snapshot
-`CANONICAL_PIN`, `FF_PARITY`, `GOLDEN_SOAK`/`GOLDEN_NATURAL`, sim-smoke t100.
+scenario 002 `0x6d55a5c0`; age-snapshot `CANONICAL_PIN 0x43ad9e40`. **#28 CLASSIFICATION: STAMP-ONLY, verified.** Every BEHAVIOR_* value came back
+BYTE-IDENTICAL to the W6 slice-5 record (`0x184dd153 / 0xab85ec57 /
+0xc94f7592 / 0xe956700a`, natural `0xbf1918cd`) while every GOLDEN_* moved —
+the trajectory never changed, only the rulesetHash the world is stamped with.
+Natural 545 / winner p2 held a FIFTH consecutive re-record. The same run also
+covered the A91c warming fix, which likewise left BEHAVIOR unmoved (a golden
+game has to actually warm an OCCUPIED ocean tile for it to bite).
+Re-recorded: `GOLDEN_SOAK` 100 `0x3d9f5881` / 200 `0x7a322cd1` / 300
+`0x1847cebe` / 400 `0xfcebe728`; `GOLDEN_NATURAL` 545 p2 `0xa1c6e53a`;
+sim-smoke t100 `0x3d9f5881` (Luau reproduces it bit-exact); `FF_PARITY`
+`0xf22d9ba5`; age-snapshot `CANONICAL_PIN 0x43ad9e40`; scenario 002
+`0x6d55a5c0`; the nine maptype pins above.
 
 **CLOVER LANDED IN THE SAME PASS (2026-07-29)** — folded in before the
 re-record finished so the window pays ONE stamp cascade instead of two.
