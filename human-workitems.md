@@ -61,6 +61,21 @@ the box runs 0101)._
   unless you want to promote it sooner.
   brighten is available if they want it.
 
+### B3. Novelty map shapes — a gameplay-quality call, WAITING ON MEASUREMENTS
+
+- [ ] **B3. If the AI plays the water-heavy new shapes badly, ship or hold?**
+  W7 added five map shapes (fractal, oval, ring, inland-sea, clover). The
+  engine side is done and the shapes generate correctly; what is unproven is
+  whether the AI *plays* ring and inland-sea, whose topology forces overseas
+  expansion in a way the naval acceptance (archipelago-specific) never
+  covered. The sim-runner is measuring exactly that: cities founded, coastal
+  share, transports built, whether any overseas city appears. If it comes back
+  weak, the options are (a) ship them anyway, clearly grouped as "Novelty
+  shapes" in the picker — the human player gets the variety, the AI is simply
+  weaker there, or (b) hold the two water shapes to v1.x and ship
+  fractal/oval/clover now. I will bring a recommendation with the numbers; the
+  call is yours because it trades variety against AI quality.
+
 ### C. Phone test (~10 min, carried)
 
 - [ ] **C1. Mobile seated-start re-test:** phone seated in lobby →
