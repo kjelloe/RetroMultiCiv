@@ -170,3 +170,15 @@ No fallback to v1.x was needed.
 **Still to come in this window:** the per-shape naval acceptance runs for the
 water-heavy shapes against the sim-runner's pre-baseline, and the closing
 canonical sweep on the DEFAULT type that proves the window was additive.
+
+## Commit map (the history is honest, one subject line is not)
+
+`6cd56ef` is labelled "engine(a91c): USER RULING — beach the cargo" but ALSO
+carries the entire W7 mask stage: W7 files were staged when the small A91c
+ruling was committed and `git commit` swept them in. The git operator pushed
+further commits on top, so the history stands as-is and the record lives here
+instead. To review W7, diff the RANGE `4ba54e4..6b4f03c`, not the subject
+lines. `e8323a0` + `6500ac2` carry the re-record pin edits; `6b4f03c` restores
+`data/rules.json` to its compact formatting after a JSON re-serializer
+exploded the whole file (content deep-compared byte-equal; maptype pins
+unmoved).
