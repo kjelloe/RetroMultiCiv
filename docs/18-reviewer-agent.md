@@ -46,6 +46,21 @@ drift a design can carry before it is ever built.
 - **Branch/tag discipline:** review the exact tagged commit
   (`git checkout marker-NNNN` in its clone, or a detached worktree). Note the
   SHA it reviewed in every verdict.
+- **When the lab directory is out of session scope** (measured twice,
+  2026-07-29/30: two consecutive wakes idled on this, not on work): first
+  re-check, since a new permission grant usually needs a session RESTART before
+  it takes effect. If the lab tree is still denied, do NOT check a tip out over
+  another lane's live clone — instead add a **detached worktree inside a
+  directory that IS allowed**:
+  `git -C <allowed-clone> worktree add <allowed-clone>/.gate-<name> <sha>`.
+  A worktree is a separate, pristine checkout sharing the object store, so the
+  host clone's HEAD, index and working files are untouched. Verify the host
+  clone first (`remote -v`, `status --porcelain`, `agent-mail.py locks`) and
+  stop if it carries uncommitted work or a lock. Remove it when done
+  (`worktree remove`), or keep it — it is cheap and reusable for the next gate.
+  Report the exact denied path when even this is impossible: the architect will
+  tag with the gap stated rather than stall the merge candidate on an
+  environment problem.
 
 ## Per-marker procedure
 
