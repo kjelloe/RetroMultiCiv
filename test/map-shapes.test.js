@@ -159,6 +159,46 @@ test('W7 clover: four petals meeting at a hub, and one civ per petal', async () 
   }
 });
 
+// COVERAGE CONTRACT (the terrain-table pattern, docs/CLAUDE.md): a mapType whose
+// `maskKind` the engine does not implement would SILENTLY generate an unmasked
+// world — the ruleset would promise a shape the generator ignores. These two tests
+// are the forcing function: a new shape must extend maskAllows and say where it
+// came from.
+const KNOWN_MASKS = ['oval', 'ring', 'inland-sea', 'clover'];
+const CLASSIC = ['continents', 'pangaea', 'archipelago', 'islands'];
+
+test('W7 contract: every mapTypes entry generates a playable world', async () => {
+  const { engine } = await load();
+  for (const id of Object.keys(RULESET.rules.mapTypes)) {
+    const st = world(engine, id);
+    assert.notStrictEqual(st.ok, false, `${id}: createGame failed (${st.reason})`);
+    assert.ok(landTiles(st).length > 100, `${id}: generated a world with land`);
+    const owners = {};
+    for (const uid of Object.keys(st.units)) owners[st.units[uid].owner] = true;
+    assert.strictEqual(Object.keys(owners).length, PLAYERS.length, `${id}: every civ seated`);
+  }
+});
+
+test('W7 contract: a declared maskKind is implemented, and it actually binds', async () => {
+  const { engine, hashState } = await load();
+  for (const [id, mt] of Object.entries(RULESET.rules.mapTypes)) {
+    if (mt.maskKind === undefined) continue;
+    assert.ok(KNOWN_MASKS.includes(mt.maskKind),
+      `${id}: maskKind "${mt.maskKind}" is not implemented in mapgen — it would silently generate UNMASKED`);
+    // proof the mask binds: the same knobs WITHOUT the mask give a different world
+    const masked = hashState(world(engine, id));
+    const bare = hashState(engine.createGame({ seed: 42, options: { width: W, height: H,
+      players: PLAYERS, landPercent: mt.landPercent, continents: mt.continents } }));
+    assert.notStrictEqual(masked, bare, `${id}: the mask changed nothing (is it wired?)`);
+  }
+  // provenance: the shapes that are NOT the classic four are later-Civ imports and
+  // must say so (reviewer authenticity requirement — Civ 1 had no shape selector)
+  for (const [id, mt] of Object.entries(RULESET.rules.mapTypes)) {
+    if (CLASSIC.includes(id)) continue;
+    assert.match(mt.provenance || '', /Civ 1/, `${id}: a non-classic shape needs its provenance note`);
+  }
+});
+
 test('W7: the existing types are untouched by the mask stage', async () => {
   const { engine, hashState } = await load();
   const legacy = world(engine, undefined);

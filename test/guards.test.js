@@ -289,3 +289,44 @@ test('scenario goldens are PINNED: no committed final.hash may be null (B10)', (
       `${f}: final.hash is ${s.final && JSON.stringify(s.final.hash)} — run the scenario, paste the printed hash back`);
   }
 });
+
+// A91c (seed-6 t363, W6-closing sweep): global warming turned an OCEAN square to
+// swamp under a fleet and left a sea unit standing on land — the class of bug every
+// terrain mutation can cause. Three engine files rewrite a tile's terrain; this guard
+// makes a FOURTH one, or a domain-crossing settler transform, a deliberate act rather
+// than a silent repeat.
+test('terrain mutation contract: a mid-game terrain rewrite must handle stranded units', () => {
+  const fs = require('fs');
+  const dir = path.join(REPO, 'engine');
+  const writers = [];
+  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.js'))) {
+    const src = fs.readFileSync(path.join(dir, f), 'utf8');
+    // a terrain write is `<something>.t = <something>` (tile objects only carry `t`)
+    if (/^[^\n/]*\.t\s*=\s*[^=]/m.test(src)) writers.push(f);
+  }
+  writers.sort();
+  // improvements.js = settler transforms (land->land only, asserted below);
+  // mapgen.js = world creation (no units exist yet); pollution.js = the greenhouse,
+  // the only mid-game rewrite that CAN cross domains, and it calls strandedShips().
+  assert.deepStrictEqual(writers, ['improvements.js', 'mapgen.js', 'pollution.js'],
+    'a NEW engine file rewrites tile terrain — if it can run mid-game and cross domains, '
+    + 'units may be left on the wrong element (A91c). Handle it like pollution.js '
+    + 'strandedShips(), then add the file here with a note.');
+
+  // the settler path is safe ONLY because every transform stays within its domain
+  const terrain = require('../data/terrain.json').terrains;
+  for (const [id, t] of Object.entries(terrain)) {
+    for (const [work, to] of Object.entries(t.transforms || {})) {
+      assert.strictEqual(terrain[to].domain, t.domain,
+        `terrain ${id} --${work}--> ${to} crosses domains; improvements.js would strand `
+        + 'units on the new element — it needs the A91c treatment before this ships');
+    }
+  }
+
+  const poll = fs.readFileSync(path.join(dir, 'pollution.js'), 'utf8');
+  assert.match(poll, /warmingTransforms\[tt\.t\][\s\S]{0,400}?strandedShips\(/,
+    'pollution.js warms terrain without calling strandedShips() — the A91c fix was dropped');
+  const twin = fs.readFileSync(path.join(REPO, 'luau', 'pollution.luau'), 'utf8');
+  assert.match(twin, /warmingTransforms\[tt\.t\][\s\S]{0,400}?strandedShips\(/,
+    'the Luau twin warms terrain without calling strandedShips() — the engines would diverge');
+});
