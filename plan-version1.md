@@ -4,7 +4,25 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-07-28 — **marker-0109 TAGGED = MERGE-CONSISTENT
+Last updated: 2026-07-30 — **marker-0110 TAGGED @dac46ec = MERGE-CONSISTENT
+(supersedes 0109): W7 NOVELTY MAP SHAPES + the A91c warming/stranding repair.**
+Five new shapes (fractal/oval/ring/inland-sea/clover) via a wrap-aware integer
+mask stage; clover ships WITH balanced petal starts (measured: stock finder gave
+2-3 distinct petals of 4, the round-robin gives 4/4 across 20 games). A91c: a
+greenhouse turning ocean to swamp under a fleet now wrecks the hull and BEACHES
+the cargo (user ruling). Gates: reviewer clean-clone + INDEPENDENT lune repro
+PASS, additivity sweep 24/25 (the one FAIL is the documented pre-existing seed-19
+tripwire), STAMP-ONLY, natural 545/p2 held a fifth time.
+**W8 — THE LAST ENGINE WINDOW — IS IMPLEMENTED (@c074384 + coverage fixes).**
+The econ pair: offensive diplomat (tech-lag steal, assault-prep sabotage) and
+caravan doctrine (wonder chain, peace-economy routes), AI brain only. The
+coverage run then caught the doctrine half-inert in play — ~94 diplomat missions
+for 2 ACCEPTED steals (once-per-city immunity) and 624 route commands for ZERO
+routes (the 10-tile domestic distance rule) — both fixed, with the rules now
+encoded in fixtures (13/13). Gates open. **Title ruled + shipped: the browser and
+mobile start screen is now "A World Begun" with "Project RetroMultiCiv" linking
+to the repo, matching the Roblox client.**
+--- prior: 2026-07-28 — **marker-0109 TAGGED = MERGE-CONSISTENT
 (supersedes 0108): THE W6 BUILD-DOCTRINE WINDOW IS COMPLETE.** Slices
 3 (city roles + the v1 war pair: siege pillage + air doctrine) @692ca7e,
 4 (frontier defence; garrisonNeed consolidated to ONE formula at all
@@ -157,8 +175,8 @@ flowchart TD
     W4E["✅ W4 We-Love-the-King-Day (@b813bbc, 0107):\ncelebrate flag → corruption 0 + Rep/Dem +1 trade;\nBEHAVIORAL (natural 545→365 p3, deterministic\nbutterfly); both gates GREEN; + W5 relabel @a5b5808"]
     W6S1["✅ W6 SLICE-1 (0108 @6796e2e): doctrine +\ngarrison discipline — M3 62 (4x floor, RE-RATCHETED) ·\ncoverage 0→57% · cities 5.7x · space race LIVE in\nsweeps · sweep 25/25 · reviewer CLEAN x2"]
     W6E["✅ W6 slices 3-5 COMPLETE (0109 @be01b87):\ncity roles + war pair (siege pillage + air) ·\nfrontier walls (garrisonNeed consolidated) ·\nwonder host; walls border 75% vs interior 33%"]
-    W7E["🔨 W7 novelty map shapes — OPENS NEXT:\nfractal · oval · ring · inland-sea · clover\n(balanced starts); ADDITIVE — toroidal deferred"]
-    W8E["🧩 W8 econ-pair doctrine (PROMOTED 07-27):\noffensive diplomat + caravan AI brain\n(mechanics ship already); nukes stay v1.x"]
+    W7E["✅ W7 map shapes COMPLETE (0110 @dac46ec):\nfractal · oval · ring · inland-sea · clover WITH\nbalanced petal starts (4/4 petals, 20 games);\nSTAMP-ONLY · sweep 24/25 · A91c repair rides"]
+    W8E["🔨 W8 econ pair IMPLEMENTED — gates open:\ndiplomat steal/prep + caravan chain/routes;\ncoverage caught 2 defects (immunity, route\nlegality) — fixed, 13/13 fixtures"]
     HIST --> NAV2 --> DAB --> DIFF --> B27 --> APN --> MAN --> NAVL
     NAVL --> ARCH --> SMALL --> XAB --> CLM --> A8N --> CST --> RIV --> D11 --> D4S --> D5S --> D6S
     D6S --> W1E --> W2E --> W3E --> W4E --> W6S1 --> W6E --> W7E --> W8E
@@ -218,7 +236,7 @@ flowchart TD
 
   classDef goal fill:#2f6f4f,color:#fff,stroke:#2f6f4f
   classDef done fill:#d9f2e0,color:#1c4a33,stroke:#7bc09a
-  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E,W3E,W4E,W6S1,W6E done
+  class HIST,NAV2,DAB,DIFF,B27,APN,ARCH,MAN,NAVL,SMALL,XAB,CLM,A8N,CST,RIV,D11,D4S,D5S,D6S,W1E,W2E,W3E,W4E,W6S1,W6E,W7E done
   class A50R,A51D,LJS,SEC2,VCT,JTG,GOR done
   class XIVD,XIVQ,A58,A49,LJC,FG,END done
   class T3,SNAP,R6 done
@@ -246,11 +264,11 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 |---|---|---|---|
 | 1 | Every Civ 1 system faithful | **RIVER COMPLETE (0103)** — all terrains in, floors re-baselined by ruling | workturns/transforms companion (banked) |
 | 2 | Diplomacy FULL D1–D6 | **✅ COMPLETE** — D1–D3 ✅, 11b ✅, D4/D5/D6 all LANDED + TAGGED (marker-0104) | — (axis closed) |
-| 3 | AI at M-targets | **✅ W6 COMPLETE (0109)** — slice-1 numbers hold (M3-pop 62 = 4× floor, M2 16, M4 91.5%, coverage 0→57.3%) and slices 3–5 add city roles + the war pair + frontier walls + wonder hosting: walls border 75.0% vs interior 32.8%, barracks 239/library 215 across 428 cities, air arms live, wonders +32%; reviewer clean-clone GREEN, sweep aggregates baseline-comparable | **W8 econ-pair doctrine** (after W7) — the last engine window before RC |
+| 3 | AI at M-targets | **✅ W6 COMPLETE (0109) + W8 econ pair implemented (gates open)** — slice-1 numbers hold (M3-pop 62 = 4× floor, M2 16, M4 91.5%, coverage 0→57.3%) and slices 3–5 add city roles + the war pair + frontier walls + wonder hosting: walls border 75.0% vs interior 32.8%, barracks 239/library 215 across 428 cities, air arms live, wonders +32%; reviewer clean-clone GREEN, sweep aggregates baseline-comparable | **W8 econ-pair doctrine** (after W7) — the last engine window before RC |
 | 1b | Civ1 feature faithfulness (audit) | **✅ CLOSED (0107)** — W1 ✅ + W2 ✅ + W3 ✅ + W4 WLTKD ✅ (gates GREEN) + W5 relabel ✅ | — (axis closed) |
 | 4 | Roblox Tier 3 multiplayer | CERTIFIED + intro v1 APPROVED (frozen v5b) + midgame-join landed + **1.0-parity close-stack FULLY LANDED** (batch 1 @80b42b8, item-5 closed) + sound upload AUTOMATED (@e69cb36) | 🚪 the ONE Studio session (verify midgame-join + publish + URL const + API-key sound upload + store art/genre) |
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
-| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | **W7 novelty-map-shapes window OPENS NOW** (`specs/map-shapes-w7.md`; the browser picker is already data-driven from `rules.mapTypes`, so the client half is ~zero); conquest renderer-brighten banked v1.x; guards G1–G5 + A49 5/5 all complete |
+| 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | **✅ W7 map shapes SHIPPED (0110)** — nine types incl. clover with balanced starts; naval acceptance for the water-heavy shapes rides after (human-workitems B3) (`specs/map-shapes-w7.md`; the browser picker is already data-driven from `rules.mapTypes`, so the client half is ~zero); conquest renderer-brighten banked v1.x; guards G1–G5 + A49 5/5 all complete |
 
 ## Reading the tree — the three facts that matter
 
