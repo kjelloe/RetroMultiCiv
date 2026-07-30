@@ -122,6 +122,35 @@ test('stealTech: deterministic ROLL — matches rng, once-per-city, consumes the
   assert.deepStrictEqual(r2.state.players.p1.techs, r.state.players.p1.techs);
 });
 
+// FOUND BY THE W8 GATE SWEEP (sim-runner, seeds 13/18, 2026-07-30): stealing the
+// tech you are CURRENTLY RESEARCHING left `researching` set, so processResearch
+// completed it again and grantTech pushed a SECOND copy — a duplicate tech in
+// state. Latent since D6; W8's diplomat doctrine drives enough steals to hit it.
+// grantTech (tech.js) and diploGrantTech (diplomacy.js) both already guard this;
+// the direct push in stealTech was the one path that did not.
+test('stealTech: stealing the tech you are researching clears it (no duplicate)', () => {
+  const s = baseState();
+  // force the success branch and make the stolen pick the one being researched:
+  // p2 holds bronze-working + writing, so research bronze-working and roll until
+  // the engine's own pick lands there.
+  s.players.p1.researching = 'bronze-working';
+  s.players.p1.bulbs = 0;
+  let r = null;
+  for (let seed = 1; seed < 200 && r === null; seed++) {
+    const probe = baseState();
+    probe.rngState = seed;
+    probe.players.p1.researching = 'bronze-working';
+    const out = engine.applyCommand(probe, mission('stealTech', { targetCityId: 'cap2' }));
+    if (out.ok && out.state.players.p1.techs.indexOf('bronze-working') !== -1) r = out;
+  }
+  assert.ok(r !== null, 'found a seed where bronze-working is the stolen tech');
+  const techs = r.state.players.p1.techs;
+  const copies = techs.filter(t => t === 'bronze-working').length;
+  assert.strictEqual(copies, 1, `bronze-working appears ${copies}x — a duplicate tech`);
+  assert.strictEqual(r.state.players.p1.researching, '',
+    'the stolen tech must stop being researched, or processResearch re-completes it');
+});
+
 test('stealTech: a city already stolen from is refused (alreadyStolen)', () => {
   const s = baseState(); s.cities.cap2.techStolen = true;
   const r = engine.applyCommand(s, mission('stealTech', { targetCityId: 'cap2' }));

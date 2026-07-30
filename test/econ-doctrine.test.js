@@ -230,13 +230,16 @@ test('W8b-10: at peace a surplus city opens a route; at war it does not', async 
       'masonry', 'currency', 'trade'],
     homeBuildings: ['barracks', 'temple', 'granary'],
     cities: {
-      c2: { id: 'c2', name: 'Second', owner: 'p1', x: 6, y: 7, pop: 4, food: 0, shields: 8,
+      // >= rules.tradeRoute.minDomesticDistance (10) from c1 at (3,4): a CLOSER
+      // partner would be rejected as ownCityTooClose, and the doctrine must not
+      // build a caravan for a route the engine will refuse (coverage finding)
+      c2: { id: 'c2', name: 'Second', owner: 'p1', x: 14, y: 7, pop: 4, food: 0, shields: 8,
         buildings: ['temple'], producing: { kind: 'unit', id: 'militia' } }
     }
   };
   const peace = econState(base);
-  peace.units.g5 = { id: 'g5', type: 'militia', owner: 'p1', x: 6, y: 7, moves: 0, fortified: true, veteran: false };
-  peace.units.g6 = { id: 'g6', type: 'militia', owner: 'p1', x: 6, y: 7, moves: 0, fortified: true, veteran: false };
+  peace.units.g5 = { id: 'g5', type: 'militia', owner: 'p1', x: 14, y: 7, moves: 0, fortified: true, veteran: false };
+  peace.units.g6 = { id: 'g6', type: 'militia', owner: 'p1', x: 14, y: 7, moves: 0, fortified: true, veteran: false };
   // NOTE (the trap this fixture guards): this state has NO `relations` table, and
   // engine/diplomacy.js relationOf() DEFAULTS TO 'war' when relations are absent.
   // A peace economy gated on formal relations would therefore read as permanent
@@ -248,10 +251,46 @@ test('W8b-10: at peace a surplus city opens a route; at war it does not', async 
     'the peace dividend: surplus goes into trade routes');
 
   const war = econState(base);
-  war.units.g5 = { id: 'g5', type: 'militia', owner: 'p1', x: 6, y: 7, moves: 0, fortified: true, veteran: false };
-  war.units.g6 = { id: 'g6', type: 'militia', owner: 'p1', x: 6, y: 7, moves: 0, fortified: true, veteran: false };
+  war.units.g5 = { id: 'g5', type: 'militia', owner: 'p1', x: 14, y: 7, moves: 0, fortified: true, veteran: false };
+  war.units.g6 = { id: 'g6', type: 'militia', owner: 'p1', x: 14, y: 7, moves: 0, fortified: true, veteran: false };
   war.units.a1 = { id: 'a1', type: 'legion', owner: 'p1', x: 8, y: 4, moves: 0, fortified: false, veteran: false };
   const warCmd = ai.pickCommand(war, 'p1', RULESET, {});
   assert.ok(!(warCmd.type === 'setProduction' && warCmd.item.id === 'caravan'),
     'at war the war doctrine outranks the peace economy');
+});
+
+// === COVERAGE FIXTURES (added 2026-07-30 after probe-concepts showed the
+// doctrine issuing commands the engine REJECTED — ~94 diplomat missions for 2
+// accepted steals, and 624 route commands for ZERO routes). A rejected command
+// is a wasted unit and a wasted turn; these encode the two rules that were
+// being ignored. ==========================================================
+
+test('W8a-11: a city already stolen from is IMMUNE — the intent skips it', async () => {
+  const ai = await load();
+  const state = econState({ noOwnCity: true, units: {
+    d9: { id: 'd9', type: 'diplomat', owner: 'p1', x: 8, y: 4, moves: 2, fortified: false, veteran: false }
+  } });
+  state.cities.e2.techStolen = true; // Civ1 once-per-city immunity, already spent
+  const cmd = ai.pickCommand(state, 'p1', RULESET, {});
+  assert.ok(!(cmd.type === 'diplomatMission' && cmd.targetCityId === 'e2'),
+    'targeting an immune city spends the diplomat for nothing (alreadyStolen)');
+});
+
+test('W8b-12: no caravan for a route the engine would reject (too-close partner)', async () => {
+  const ai = await load();
+  const state = econState({
+    myTechs: ['writing', 'bronze-working', 'pottery', 'alphabet', 'ceremonial-burial',
+      'masonry', 'currency', 'trade'],
+    homeBuildings: ['barracks', 'temple', 'granary'],
+    cities: {
+      // 3 tiles from c1 — under minDomesticDistance, so a route here is refused
+      c2: { id: 'c2', name: 'TooClose', owner: 'p1', x: 6, y: 4, pop: 4, food: 0, shields: 8,
+        buildings: ['temple'], producing: { kind: 'unit', id: 'militia' } }
+    }
+  });
+  state.units.g5 = { id: 'g5', type: 'militia', owner: 'p1', x: 6, y: 4, moves: 0, fortified: true, veteran: false };
+  state.units.g6 = { id: 'g6', type: 'militia', owner: 'p1', x: 6, y: 4, moves: 0, fortified: true, veteran: false };
+  const cmd = ai.pickCommand(state, 'p1', RULESET, {});
+  assert.ok(!(cmd.type === 'setProduction' && cmd.item.id === 'caravan'),
+    'no legal partner => no caravan (else it is built, walks, and is refused)');
 });

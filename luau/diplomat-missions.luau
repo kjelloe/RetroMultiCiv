@@ -129,6 +129,12 @@ local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
 			state.rngState = pick.rngState
 			local tech = eligible[pick.value + 1]
 			table.insert(mine.techs, tech)
+			-- W8 gate sweep: acquiring a tech must STOP researching it, or
+			-- processResearch re-completes it and grantTech pushes a duplicate.
+			-- Mirrors tech.grantTech / diplomacy.diploGrantTech. TWIN.
+			if mine.researching == tech then
+				mine.researching = ""
+			end
 			table.insert(events, { type = "TECH_STOLEN", byCivId = me, fromCivId = city.owner, tech = tech, turn = state.turn })
 		else
 			table.insert(events, { type = "TECH_STOLEN", byCivId = me, fromCivId = city.owner, tech = "", turn = state.turn })

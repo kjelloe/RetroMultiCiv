@@ -300,7 +300,12 @@ function diplomatIntent(state, playerId, ruleset) {
         }
       }
     }
-    if (lag >= DD.techLagMin) {
+    // COVERAGE FINDING (probe-concepts, 2026-07-30): a city that has already been
+    // stolen from is IMMUNE (Civ1 once-per-city, diplomat-missions.js
+    // 'alreadyStolen'), so targeting it again spends a diplomat and a turn for
+    // nothing. The first coverage run issued ~94 missions for 2 accepted steals
+    // because the intent kept re-picking the same immune city. Skip them.
+    if (lag >= DD.techLagMin && c.techStolen !== true) {
       const rep = repTowardMe(state, c.owner, playerId);
       if (steal === null || rep < stealRep) { steal = { mission: 'stealTech', cityId: cid }; stealRep = rep; }
     }
@@ -323,6 +328,34 @@ function wonderHelpTarget(state, playerId, ruleset, x, y, maxDist) {
     if (state.wonders !== undefined && state.wonders[c.producing.id] !== undefined) continue;
     const d = chebyshev(state.map, x, y, c.x, c.y);
     if (d < bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
+// COVERAGE FINDING (probe-concepts, 2026-07-30): the nearest own city is almost
+// never a LEGAL trade partner — a domestic route needs
+// rules.tradeRoute.minDomesticDistance (10) between home and partner, and a pair
+// may not already have a route. The first coverage run issued 624
+// establishTradeRoute commands and established ZERO routes because the brain
+// picked the nearest city every time. This returns a partner the engine will
+// actually ACCEPT, or null (in which case no caravan is built for a route).
+function tradeRoutePartner(state, playerId, ruleset, homeId, fromX, fromY) {
+  const home = homeId === undefined ? undefined : state.cities[homeId];
+  if (home === undefined) return null;
+  const TR = ruleset.rules.tradeRoute;
+  if (TR === undefined) return null;
+  const existing = home.tradeRoutes === undefined ? [] : home.tradeRoutes;
+  let best = null;
+  let bestD = -1;
+  for (const cid of sortIds(state.cityOrder === undefined ? [] : state.cityOrder)) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner !== playerId || cid === homeId) continue;
+    if (chebyshev(state.map, home.x, home.y, c.x, c.y) < TR.minDomesticDistance) continue;
+    let dup = false;
+    for (const r of existing) if (r.partnerCityId === cid) { dup = true; break; }
+    if (dup) continue;
+    const d = chebyshev(state.map, fromX, fromY, c.x, c.y);
+    if (best === null || d < bestD) { best = c; bestD = d; }
   }
   return best;
 }
@@ -3207,7 +3240,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
               && countOwnUnitsOfType(state, playerId, 'caravan') < CD.maxInFlight) {
             const wt = wonderHelpTarget(state, playerId, ruleset, city.x, city.y, CD.wonderHelpMaxDistance);
             if (wt !== null && wt.id !== cid) caravanW = 'caravan';
-            else if (wt === null && econPeace(state, playerId, ruleset)) caravanW = 'caravan';
+            else if (wt === null && econPeace(state, playerId, ruleset)
+                     && tradeRoutePartner(state, playerId, ruleset, cid, city.x, city.y) !== null) {
+              caravanW = 'caravan'; // a route the engine will accept, or no caravan
+            }
           }
         }
         if (canWall) {
@@ -3319,14 +3355,7 @@ function pickCommand(state, playerId, ruleset, done, stance) {
         }
         return { type: 'wait', playerId, unitId: uid };
       }
-      let partner = null;
-      let partnerD = -1;
-      for (const cid2 of sortIds(state.cityOrder === undefined ? [] : state.cityOrder)) {
-        const c2 = state.cities[cid2];
-        if (c2 === undefined || c2.owner !== playerId || cid2 === unit.home) continue;
-        const d2 = chebyshev(state.map, unit.x, unit.y, c2.x, c2.y);
-        if (partner === null || d2 < partnerD) { partner = c2; partnerD = d2; }
-      }
+      const partner = tradeRoutePartner(state, playerId, ruleset, unit.home, unit.x, unit.y);
       if (partner !== null) {
         if (unit.x === partner.x && unit.y === partner.y) {
           return { type: 'establishTradeRoute', playerId, unitId: uid };

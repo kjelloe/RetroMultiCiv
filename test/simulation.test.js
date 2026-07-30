@@ -179,22 +179,32 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // Writing/Trade, which arrive after t100. A paste-back would have moved t100 too.
 // Natural 545/p2 UNCHANGED a SIXTH consecutive re-record. rules.json gains
 // diplomatDoctrine/caravanDoctrine => the createGame stamp cascade rides along.
+// W8c/W8d re-record (the coverage fixes + the duplicate-tech repair): BEHAVIORAL,
+// NO STAMP — ai.js/diplomat-missions.js and their twins only, so 002 / maptype /
+// ff-parity / age-snapshot all HOLD (002 re-verified, scenarios 68/68).
+// t100 and t200 are BYTE-IDENTICAL to the W8 record: the steal-immunity skip and
+// the legal-trade-partner rule only bite once thefts have created immunity and
+// empires are dense enough for the 10-tile route rule, which is t300 onward.
+// The duplicate-tech fix is golden-NEUTRAL at these seeds (both discriminator
+// runs produced identical numbers) — it corrects seeds 13/18 of the 25-seed
+// sweep, where a steal landed on the tech being researched. Natural 545/p2 held
+// a SEVENTH consecutive re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x1392d799', 200: '0x096df72c', 300: '0x0d2cab4b', 400: '0x2365c4b2' },
-  finalHash: '0x2365c4b2'
+  checkpoints: { 100: '0x1392d799', 200: '0x096df72c', 300: '0x5d92e626', 400: '0x55dff9e5' },
+  finalHash: '0x55dff9e5'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x03a016c0' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x7550defb' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x184dd153', 200: '0x24ad814c', 300: '0x43b2e0af', 400: '0x9793da66' },
-  finalHash: '0x9793da66'
+  checkpoints: { 100: '0x184dd153', 200: '0x24ad814c', 300: '0x104a0912', 400: '0x3d8e2731' },
+  finalHash: '0x3d8e2731'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xfc1587e3' };
+const BEHAVIOR_NATURAL = { finalHash: '0xa7463164' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

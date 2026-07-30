@@ -2258,7 +2258,10 @@ local function diplomatIntent(state: any, playerId: string, ruleset: any): any
 					end
 				end
 			end
-			if lag >= DD.techLagMin then
+			-- COVERAGE FINDING (probe-concepts, 2026-07-30): a city already stolen from
+			-- is IMMUNE (Civ1 once-per-city), so re-targeting it spends a diplomat for
+			-- nothing -- ~94 missions produced 2 accepted steals before this. TWIN.
+			if lag >= DD.techLagMin and c.techStolen ~= true then
 				local rep = repTowardMe(state, c.owner, playerId)
 				if steal == nil or rep < stealRep then
 					steal = { mission = "stealTech", cityId = cid }
@@ -2303,6 +2306,50 @@ local function wonderHelpTarget(state: any, playerId: string, ruleset: any, x: n
 				if d < bestD then
 					bestD = d
 					best = c
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- COVERAGE FINDING (probe-concepts, 2026-07-30): the nearest own city is almost
+-- never a LEGAL trade partner -- a domestic route needs
+-- rules.tradeRoute.minDomesticDistance between home and partner and no duplicate.
+-- 624 route commands established ZERO routes before this. Returns a partner the
+-- engine will ACCEPT, or nil. TWIN.
+local function tradeRoutePartner(state: any, playerId: string, ruleset: any, homeId: any, fromX: number, fromY: number): any
+	if homeId == nil then
+		return nil
+	end
+	local home = state.cities[homeId]
+	if home == nil then
+		return nil
+	end
+	local TR = ruleset.rules.tradeRoute
+	if TR == nil then
+		return nil
+	end
+	local existing = if home.tradeRoutes == nil then {} else home.tradeRoutes
+	local best = nil
+	local bestD = -1
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	for _, cid in ipairs(combat.sortIds(order)) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and cid ~= homeId
+			and chebyshev(state.map, home.x, home.y, c.x, c.y) >= TR.minDomesticDistance then
+			local dup = false
+			for _, r in ipairs(existing) do
+				if r.partnerCityId == cid then
+					dup = true
+					break
+				end
+			end
+			if not dup then
+				local d = chebyshev(state.map, fromX, fromY, c.x, c.y)
+				if best == nil or d < bestD then
+					best = c
+					bestD = d
 				end
 			end
 		end
@@ -3599,8 +3646,9 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 								local wt = wonderHelpTarget(state, playerId, ruleset, city.x, city.y, CD.wonderHelpMaxDistance)
 								if wt ~= nil and wt.id ~= cid then
 									caravanW = "caravan"
-								elseif wt == nil and econPeace(state, playerId, ruleset) then
-									caravanW = "caravan"
+								elseif wt == nil and econPeace(state, playerId, ruleset)
+									and tradeRoutePartner(state, playerId, ruleset, cid, city.x, city.y) ~= nil then
+									caravanW = "caravan" -- a route the engine will accept, or no caravan
 								end
 							end
 						end
@@ -3698,19 +3746,7 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 						end
 						return { type = "wait", playerId = playerId, unitId = uid }
 					end
-					local partner = nil
-					local partnerD = -1
-					local order2 = if state.cityOrder == nil then {} else state.cityOrder
-					for _, cid2 in ipairs(combat.sortIds(order2)) do
-						local c2 = state.cities[cid2]
-						if c2 ~= nil and c2.owner == playerId and cid2 ~= unit.home then
-							local d2 = chebyshev(state.map, unit.x, unit.y, c2.x, c2.y)
-							if partner == nil or d2 < partnerD then
-								partner = c2
-								partnerD = d2
-							end
-						end
-					end
+					local partner = tradeRoutePartner(state, playerId, ruleset, unit.home, unit.x, unit.y)
 					if partner ~= nil then
 						if unit.x == partner.x and unit.y == partner.y then
 							return { type = "establishTradeRoute", playerId = playerId, unitId = uid }

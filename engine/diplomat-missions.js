@@ -142,6 +142,12 @@ function diplomatMissionCommand(state, cmd, ruleset) {
       state.rngState = pick.rngState;
       const tech = eligible[pick.value];
       mine.techs.push(tech);
+      // W8 gate sweep (sim-runner, seeds 13/18): acquiring a tech must STOP any
+      // in-progress research of that same tech, or processResearch completes it
+      // again and grantTech pushes a duplicate. The same one-liner guards
+      // tech.js grantTech and diplomacy.js diploGrantTech; this direct push was
+      // the last path missing it. Bulbs carry to the next pick, as there.
+      if (mine.researching === tech) mine.researching = '';
       events.push({ type: 'TECH_STOLEN', byCivId: me, fromCivId: city.owner, tech, turn: state.turn });
     } else {
       events.push({ type: 'TECH_STOLEN', byCivId: me, fromCivId: city.owner, tech: '', turn: state.turn });
