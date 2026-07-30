@@ -173,7 +173,7 @@ function diplomatMissionCommand(state, cmd, ruleset) {
     // the capital cannot be incited (Civ1) — you must take it by force
     const cap = capitalOf(state, city.owner, ruleset);
     if (cap !== null && cap.id === city.id) return { ok: false, reason: 'cannotInciteCapital' };
-    const cost = idiv(city.pop * INCITE_GOLD_PER_POP * demandPct(state, ruleset), 20);
+    const cost = inciteCost(state, city, ruleset);
     const mine = state.players[me];
     if (mine.gold < cost) return { ok: false, reason: 'notEnoughGold' };
     const formerOwner = city.owner;
@@ -205,9 +205,16 @@ function diplomatMissionCommand(state, cmd, ruleset) {
 
 // D6 embassy intel: has `viewer` an embassy in `civId`? (omit-safe). filterView reads
 // this to reveal a rival's government/gold/tech-count/capital beyond plain fog.
+// W8a: the AI needs the SAME price the mission charges, so it never issues an
+// unaffordable incite (a rejected command wastes the turn). One source of truth —
+// the mission calls this too.
+function inciteCost(state, city, ruleset) {
+  return idiv(city.pop * INCITE_GOLD_PER_POP * demandPct(state, ruleset), 20);
+}
+
 function hasEmbassy(state, viewer, civId) {
   return state.embassies !== undefined && state.embassies[viewer] !== undefined
     && state.embassies[viewer][civId] !== undefined;
 }
 
-export { diplomatMissionCommand, hasEmbassy };
+export { diplomatMissionCommand, hasEmbassy, inciteCost };

@@ -34,6 +34,13 @@ local function demandPct(state: any, ruleset: any): number
 	return if d ~= nil and d.parleyDemandPct ~= nil then d.parleyDemandPct else DEFAULT_DEMAND_PCT
 end
 
+-- W8a: the AI needs the SAME price the mission charges, so it never issues an
+-- unaffordable incite (a rejected command wastes the turn). One source of truth --
+-- the mission calls this too.
+local function inciteCost(state: any, city: any, ruleset: any): number
+	return idiv(city.pop * INCITE_GOLD_PER_POP * demandPct(state, ruleset), 20)
+end
+
 local function targetCity(state: any, me: string, unit: any, cityId: any): any
 	local city = if state.cities == nil then nil else state.cities[cityId]
 	if city == nil or city.owner == me or city.owner == BARB_ID then return nil end
@@ -150,7 +157,7 @@ local function diplomatMissionCommand(state: any, cmd: any, ruleset: any): any
 		if city == nil then return { ok = false, reason = "noSuchTarget" } end
 		local cap = government.capitalOf(state, city.owner, ruleset)
 		if cap ~= nil and cap.id == city.id then return { ok = false, reason = "cannotInciteCapital" } end
-		local cost = idiv(city.pop * INCITE_GOLD_PER_POP * demandPct(state, ruleset), 20)
+		local cost = inciteCost(state, city, ruleset)
 		local mine = state.players[me]
 		if mine.gold < cost then return { ok = false, reason = "notEnoughGold" } end
 		local formerOwner = city.owner
@@ -188,4 +195,5 @@ end
 return {
 	diplomatMissionCommand = diplomatMissionCommand,
 	hasEmbassy = hasEmbassy,
+	inciteCost = inciteCost,
 }

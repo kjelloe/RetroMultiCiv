@@ -173,22 +173,28 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // the A91c warming fix rode this same run without moving BEHAVIOR either (a golden
 // game has to actually warm an OCCUPIED ocean tile for it to bite). Natural
 // 545/p2 UNCHANGED a fifth consecutive re-record.
+// W8 re-record (the econ pair: offensive diplomat + caravan doctrine): BEHAVIORAL
+// + STAMP, with the honest midgame signature — BEHAVIOR t100 is BYTE-IDENTICAL to
+// the W7 record (0x184dd153) while t200-400 moved, because both doctrines need
+// Writing/Trade, which arrive after t100. A paste-back would have moved t100 too.
+// Natural 545/p2 UNCHANGED a SIXTH consecutive re-record. rules.json gains
+// diplomatDoctrine/caravanDoctrine => the createGame stamp cascade rides along.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x3d9f5881', 200: '0x7a322cd1', 300: '0x1847cebe', 400: '0xfcebe728' },
-  finalHash: '0xfcebe728'
+  checkpoints: { 100: '0x1392d799', 200: '0x096df72c', 300: '0x0d2cab4b', 400: '0x2365c4b2' },
+  finalHash: '0x2365c4b2'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xa1c6e53a' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x03a016c0' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x184dd153', 200: '0xab85ec57', 300: '0xc94f7592', 400: '0xe956700a' },
-  finalHash: '0xe956700a'
+  checkpoints: { 100: '0x184dd153', 200: '0x24ad814c', 300: '0x43b2e0af', 400: '0x9793da66' },
+  finalHash: '0x9793da66'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xbf1918cd' };
+const BEHAVIOR_NATURAL = { finalHash: '0xfc1587e3' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

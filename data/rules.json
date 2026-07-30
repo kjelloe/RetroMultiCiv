@@ -216,6 +216,8 @@
     "xlarge": 14,
     "huge": 14
   },
+  "diplomatDoctrine": { "techLagMin": 3, "minShields": 6, "maxInFlight": 1, "prepRadius": 8 },
+  "caravanDoctrine": { "minShields": 6, "maxInFlight": 2, "wonderHelpMaxDistance": 12, "peaceRouteMinTrade": 4 },
   "mapTypes": {
     "continents": { "name": "Continents", "desc": "one large landmass", "landPercent": 32, "continents": 5 },
     "pangaea": { "name": "Pangaea", "desc": "a single, drier continent", "landPercent": 36, "continents": 1 },

@@ -22,6 +22,7 @@ import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive,
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
+import { inciteCost } from './diplomat-missions.js';
 import { strategicSnapshot } from '../shared/strategic.js';
 
 const DIR_KEYS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -221,6 +222,129 @@ function nearKnownRivalCity(state, me, playerId, x, y, radius) {
   }
   return false;
 }
+// === W8a offensive diplomat doctrine (specs/w8-econ-doctrine.md; unit-doctrine
+// v1x §1) ==================================================================
+// How far behind the best rival this civ is, in advances. Reads every player's
+// tech count directly — the SAME read spaceCommitEligible already uses (the AI
+// brain sees full state; no other AI decision gates on embassies), so this stays
+// consistent with the existing brain rather than inventing a new visibility rule.
+function techLagOf(state, playerId) {
+  const me = state.players[playerId];
+  if (me === undefined) return 0;
+  let lead = 0;
+  for (const pid of state.playerOrder === undefined ? [] : state.playerOrder) {
+    if (pid === playerId) continue;
+    const p = state.players[pid];
+    if (p === undefined || p.alive === false) continue;
+    if (p.techs.length > lead) lead = p.techs.length;
+  }
+  return lead - me.techs.length;
+}
+
+// D5 reputation of `them` toward `me` (0 when the pair has no history) — the
+// "nothing to lose" preference reads this, never mutates it.
+function repTowardMe(state, them, playerId) {
+  const rel = state.relations;
+  if (rel === undefined || rel[them] === undefined) return 0;
+  const r = rel[them][playerId];
+  if (r === undefined || r.reputation === undefined) return 0;
+  return r.reputation;
+}
+
+// Is this rival city already an ASSAULT TARGET — i.e. does an own attacker
+// stand adjacent to it (the W6 slice-3 massing/hold posture)? Prep work only
+// makes sense where the ground attack is actually forming.
+function beingAssaulted(state, playerId, ruleset, city) {
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const u = state.units[uid];
+    if (u === undefined || u.owner !== playerId || u.aboard !== undefined) continue;
+    const d = ruleset.units[u.type];
+    if (d.domain !== 'land' || d.attack <= d.defense) continue;
+    if (chebyshev(state.map, u.x, u.y, city.x, city.y) <= 1) return true;
+  }
+  return false;
+}
+
+// The diplomat INTENT: what a diplomat would be FOR right now, or null. PREP
+// outranks STEAL (an assault already forming is time-critical); a mission that
+// cannot be paid for is never chosen — a rejected command wastes the turn.
+// Deterministic: cityOrder scan, strictly-greater comparisons keep the earliest.
+function diplomatIntent(state, playerId, ruleset) {
+  const DD = ruleset.rules.diplomatDoctrine;
+  if (DD === undefined) return null;
+  const me = state.players[playerId];
+  if (me === undefined) return null;
+  const dip = ruleset.units.diplomat;
+  if (dip === undefined) return null;
+  if (dip.tech !== '' && me.techs.indexOf(dip.tech) === -1) return null;
+  let prep = null;
+  let steal = null;
+  let stealRep = 1;
+  const lag = techLagOf(state, playerId);
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner === playerId) continue;
+    if (!isExplored(me, state.map, c.x, c.y)) continue;
+    if (prep === null && beingAssaulted(state, playerId, ruleset, c)) {
+      // sabotage needs something to destroy; incite needs a treasury that can
+      // actually pay (diplomat-missions prices it off the target's size/gold)
+      const buildings = c.buildings === undefined ? [] : c.buildings;
+      if (buildings.length > 0) prep = { mission: 'sabotage', cityId: cid };
+      else {
+        // incite: the capital is never incitable (Civ1) and the price must be
+        // payable — both read from the mission's own rules, not re-derived here
+        const cap = capitalOf(state, c.owner, ruleset);
+        if ((cap === null || cap === undefined || cap.id !== cid)
+            && me.gold >= inciteCost(state, c, ruleset)) {
+          prep = { mission: 'inciteRevolt', cityId: cid };
+        }
+      }
+    }
+    if (lag >= DD.techLagMin) {
+      const rep = repTowardMe(state, c.owner, playerId);
+      if (steal === null || rep < stealRep) { steal = { mission: 'stealTech', cityId: cid }; stealRep = rep; }
+    }
+  }
+  if (prep !== null) return prep;
+  return steal;
+}
+
+// === W8b caravan doctrine (specs/w8-econ-doctrine.md; unit-doctrine v1x §2) ===
+// The own city currently building a WONDER that a caravan from (x,y) could reach
+// inside the doctrine's range, or null. Deterministic cityOrder scan, nearest
+// wins, strictly-less keeps the earliest on a tie.
+function wonderHelpTarget(state, playerId, ruleset, x, y, maxDist) {
+  let best = null;
+  let bestD = maxDist + 1;
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const c = state.cities[cid];
+    if (c === undefined || c.owner !== playerId) continue;
+    if (c.producing === undefined || c.producing.kind !== 'wonder') continue;
+    if (state.wonders !== undefined && state.wonders[c.producing.id] !== undefined) continue;
+    const d = chebyshev(state.map, x, y, c.x, c.y);
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
+// Is this civ enjoying PEACE, for the purpose of the peace economy? Uses the
+// govSafe proxy (no enemy near any own city), NOT relationOf: formal relations
+// default to 'war' when absent, so a relationOf gate would read as permanent war
+// in crafted states and in the no-diplomacy soak — the same always-false trap
+// that left W6 slice-1a's doctrine dormant at 0.9% coverage.
+function econPeace(state, playerId, ruleset) {
+  return govSafe(state, playerId, ruleset);
+}
+
+function countOwnUnitsOfType(state, playerId, type) {
+  let n = 0;
+  for (const uid of sortIds(Object.keys(state.units))) {
+    const u = state.units[uid];
+    if (u !== undefined && u.owner === playerId && u.type === type) n++;
+  }
+  return n;
+}
+
 function computeCityRoles(state, playerId, ruleset) {
   const RC = ruleset.rules.cityRoles;
   const roles = {};
@@ -3055,6 +3179,37 @@ function pickCommand(state, playerId, ruleset, done, stance) {
                 && nearestKnownEnemyCity(state, city, playerId) !== null) airW = bu;
           }
         }
+        // W8a: the offensive diplomat. INTENT-GATED (no intent => no diplomat, so
+        // the doctrine never produces idle diplomats wandering the map) and bounded
+        // by maxInFlight. PRIORITY, decided here: it sits ABOVE the generic army
+        // treadmill (a bounded, deliberate build must not lose every tie to "one
+        // more attacker") but BELOW the settler loop — EXPANSION KEEPS PRIORITY;
+        // unlike W6 slice-1's temple/granary, espionage does not preempt growth.
+        // Defence/walls/doctrine still win. So this fires once a city's settler
+        // loop is saturated, which at any real empire size is the common case.
+        const DD = ruleset.rules.diplomatDoctrine;
+        let diploW = null;
+        if (DD !== undefined && (city.shields === undefined ? 0 : city.shields) >= DD.minShields
+            && countOwnUnitsOfType(state, playerId, 'diplomat') < DD.maxInFlight
+            && diplomatIntent(state, playerId, ruleset) !== null) {
+          diploW = 'diplomat';
+        }
+        // W8b: the caravan. Two intents, both bounded by maxInFlight: feed a wonder
+        // that another own city is building (the classic chain), or — at peace — turn
+        // surplus into a trade route. Same priority band as the diplomat: below the
+        // settler loop and defence, above the generic army treadmill.
+        const CD = ruleset.rules.caravanDoctrine;
+        let caravanW = null;
+        if (CD !== undefined) {
+          const cvn = ruleset.units.caravan;
+          const knowsCaravan = cvn !== undefined && (cvn.tech === '' || me.techs.indexOf(cvn.tech) !== -1);
+          if (knowsCaravan && (city.shields === undefined ? 0 : city.shields) >= CD.minShields
+              && countOwnUnitsOfType(state, playerId, 'caravan') < CD.maxInFlight) {
+            const wt = wonderHelpTarget(state, playerId, ruleset, city.x, city.y, CD.wonderHelpMaxDistance);
+            if (wt !== null && wt.id !== cid) caravanW = 'caravan';
+            else if (wt === null && econPeace(state, playerId, ruleset)) caravanW = 'caravan';
+          }
+        }
         if (canWall) {
           want = { kind: 'building', id: 'city-walls' };
         } else if (doctrine !== null) {
@@ -3063,6 +3218,10 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = { kind: 'building', id: doctrine };
         } else if (defBuild !== null) {
           want = defBuild; // stance-mix: the defending-builder's economy reserve
+        } else if (diploW !== null) {
+          want = { kind: 'unit', id: diploW };
+        } else if (caravanW !== null) {
+          want = { kind: 'unit', id: caravanW };
         } else if (underArmy) {
           want = { kind: 'unit', id: attacker };
         } else if (airW !== null) {
@@ -3144,6 +3303,61 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // fall-through (omit-safe, pre-slice behavior).
     if (ruleset.units[unit.type].domain === 'air' && ruleset.rules.airDoctrine !== undefined) {
       return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine);
+    }
+
+    // W8b: a caravan walks to the wonder it is feeding and spends itself there;
+    // with no wonder to feed it opens a trade route in the nearest OTHER own city
+    // (trade.establishTradeRoute prices the pair — the AI does not second-guess it).
+    if (unit.type === 'caravan' && ruleset.rules.caravanDoctrine !== undefined) {
+      const CD = ruleset.rules.caravanDoctrine;
+      const wt = wonderHelpTarget(state, playerId, ruleset, unit.x, unit.y, CD.wonderHelpMaxDistance);
+      if (wt !== null) {
+        if (unit.x === wt.x && unit.y === wt.y) return { type: 'helpWonder', playerId, unitId: uid };
+        const wdir = dirToward(state.map, unit.x, unit.y, wt.x, wt.y);
+        if (wdir && !stepEntersSea(state, unit, wdir, ruleset)) {
+          return { type: 'moveUnit', playerId, unitId: uid, dir: wdir };
+        }
+        return { type: 'wait', playerId, unitId: uid };
+      }
+      let partner = null;
+      let partnerD = -1;
+      for (const cid2 of sortIds(state.cityOrder === undefined ? [] : state.cityOrder)) {
+        const c2 = state.cities[cid2];
+        if (c2 === undefined || c2.owner !== playerId || cid2 === unit.home) continue;
+        const d2 = chebyshev(state.map, unit.x, unit.y, c2.x, c2.y);
+        if (partner === null || d2 < partnerD) { partner = c2; partnerD = d2; }
+      }
+      if (partner !== null) {
+        if (unit.x === partner.x && unit.y === partner.y) {
+          return { type: 'establishTradeRoute', playerId, unitId: uid };
+        }
+        const pdir2 = dirToward(state.map, unit.x, unit.y, partner.x, partner.y);
+        if (pdir2 && !stepEntersSea(state, unit, pdir2, ruleset)) {
+          return { type: 'moveUnit', playerId, unitId: uid, dir: pdir2 };
+        }
+      }
+      return { type: 'wait', playerId, unitId: uid };
+    }
+
+    // W8a: a diplomat has ONE job — walk to its intent's target city and run the
+    // mission when adjacent. Handled here, before scout/escort selection can
+    // misfile a non-combat unit (the same reason the air brain sits first).
+    if (unit.type === 'diplomat' && ruleset.rules.diplomatDoctrine !== undefined) {
+      const intent = diplomatIntent(state, playerId, ruleset);
+      if (intent !== null) {
+        const target = state.cities[intent.cityId];
+        if (target !== undefined) {
+          if (chebyshev(state.map, unit.x, unit.y, target.x, target.y) <= 1) {
+            return { type: 'diplomatMission', playerId, unitId: uid,
+              mission: intent.mission, targetCityId: intent.cityId };
+          }
+          const ddir = dirToward(state.map, unit.x, unit.y, target.x, target.y);
+          if (ddir && !stepEntersSea(state, unit, ddir, ruleset)) {
+            return { type: 'moveUnit', playerId, unitId: uid, dir: ddir };
+          }
+        }
+      }
+      return { type: 'wait', playerId, unitId: uid };
     }
 
     if (unit.type === 'settlers') {

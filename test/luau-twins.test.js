@@ -255,7 +255,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
       // 100 lune turns need more headroom than the old 3-min cap
       { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x3d9f5881\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x1392d799\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -313,11 +313,11 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // W7 map shapes: rules.json stamp cascade + the five NEW shapes
-      continents: '856e4f41', pangaea: '6862c666',
-      archipelago: '3da45b9f', islands: 'c76a076f',
-      fractal: '518a87cb', oval: 'cd182fc7', ring: '590c6afd',
-      'inland-sea': '800566b0', clover: '2687aec3'
+    const PINS = { // W8 econ pair: rules.json stamp cascade over the nine shapes
+      continents: '04f946de', pangaea: '6c0b2a43',
+      archipelago: '50a043bc', islands: 'c51b34b4',
+      fractal: 'c15fd94c', oval: 'bebb8f3c', ring: '35a08892',
+      'inland-sea': 'e3567b8b', clover: 'e8060e74'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -389,7 +389,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    siegePillageRadius/happinessLadder — stamp AND behavioral: the ff turns now
 //    role-route buildings).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0xf22d9ba5 turn 25 grant 22'; // W7 stamp cascade
+const FF_PARITY_PIN = 'ff-parity 0x46ab7030 turn 25 grant 22'; // W8 stamp cascade
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

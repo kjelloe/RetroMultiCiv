@@ -16,6 +16,7 @@ local cities = require("./cities")
 local improvements = require("./improvements")
 local happiness = require("./happiness")
 local government = require("./government")
+local diplomatMissions = require("./diplomat-missions")
 local diplomacy = require("./diplomacy") -- D3: met/relation reads
 local aiDiplomacy = require("./ai-diplomacy") -- D3: score models
 local strategic = require("./strategic") -- XII.5b: commit snapshot
@@ -2158,6 +2159,166 @@ local function nearKnownRivalCity(state: any, me: any, playerId: string, x: numb
 	end
 	return false
 end
+-- === W8a offensive diplomat doctrine (specs/w8-econ-doctrine.md; unit-doctrine
+-- v1x section 1) ============================================================
+-- How far behind the best rival this civ is, in advances. Reads every player's
+-- tech count directly -- the SAME read spaceCommitEligible already uses (the AI
+-- brain sees full state; no other AI decision gates on embassies), so this stays
+-- consistent with the existing brain rather than inventing a new visibility rule.
+local function techLagOf(state: any, playerId: string): number
+	local me = state.players[playerId]
+	if me == nil then
+		return 0
+	end
+	local lead = 0
+	local order = if state.playerOrder == nil then {} else state.playerOrder
+	for _, pid in ipairs(order) do
+		if pid ~= playerId then
+			local p = state.players[pid]
+			if p ~= nil and p.alive ~= false and #p.techs > lead then
+				lead = #p.techs
+			end
+		end
+	end
+	return lead - #me.techs
+end
+
+-- D5 reputation of `them` toward `me` (0 when the pair has no history) -- the
+-- "nothing to lose" preference reads this, never mutates it.
+local function repTowardMe(state: any, them: string, playerId: string): number
+	local rel = state.relations
+	if rel == nil or rel[them] == nil then
+		return 0
+	end
+	local r = rel[them][playerId]
+	if r == nil or r.reputation == nil then
+		return 0
+	end
+	return r.reputation
+end
+
+-- Is this rival city already an ASSAULT TARGET -- does an own attacker stand
+-- adjacent to it (the W6 slice-3 massing/hold posture)? Prep work only makes
+-- sense where the ground attack is actually forming.
+local function beingAssaulted(state: any, playerId: string, ruleset: any, city: any): boolean
+	local ids = {}
+	for uid in pairs(state.units) do ids[#ids + 1] = uid end
+	for _, uid in ipairs(combat.sortIds(ids)) do
+		local u = state.units[uid]
+		if u ~= nil and u.owner == playerId and u.aboard == nil then
+			local d = ruleset.units[u.type]
+			if d.domain == "land" and d.attack > d.defense
+				and chebyshev(state.map, u.x, u.y, city.x, city.y) <= 1 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- The diplomat INTENT: what a diplomat would be FOR right now, or nil. PREP
+-- outranks STEAL (an assault already forming is time-critical); a mission that
+-- cannot be paid for is never chosen -- a rejected command wastes the turn.
+-- Deterministic: cityOrder scan, strictly-less keeps the earliest.
+local function diplomatIntent(state: any, playerId: string, ruleset: any): any
+	local DD = ruleset.rules.diplomatDoctrine
+	if DD == nil then
+		return nil
+	end
+	local me = state.players[playerId]
+	if me == nil then
+		return nil
+	end
+	local dip = ruleset.units.diplomat
+	if dip == nil then
+		return nil
+	end
+	if dip.tech ~= "" and table.find(me.techs, dip.tech) == nil then
+		return nil
+	end
+	local prep = nil
+	local steal = nil
+	local stealRep = 1
+	local lag = techLagOf(state, playerId)
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	for _, cid in ipairs(order) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner ~= playerId and isExplored(me, state.map, c.x, c.y) then
+			if prep == nil and beingAssaulted(state, playerId, ruleset, c) then
+				local buildings = if c.buildings == nil then {} else c.buildings
+				if #buildings > 0 then
+					prep = { mission = "sabotage", cityId = cid }
+				else
+					-- incite: the capital is never incitable (Civ1) and the price must be
+					-- payable -- both read from the mission's own rules, not re-derived here
+					local cap = government.capitalOf(state, c.owner, ruleset)
+					if (cap == nil or cap.id ~= cid)
+						and me.gold >= diplomatMissions.inciteCost(state, c, ruleset) then
+						prep = { mission = "inciteRevolt", cityId = cid }
+					end
+				end
+			end
+			if lag >= DD.techLagMin then
+				local rep = repTowardMe(state, c.owner, playerId)
+				if steal == nil or rep < stealRep then
+					steal = { mission = "stealTech", cityId = cid }
+					stealRep = rep
+				end
+			end
+		end
+	end
+	if prep ~= nil then
+		return prep
+	end
+	return steal
+end
+
+local function countOwnUnitsOfType(state: any, playerId: string, unitType: string): number
+	local n = 0
+	local ids = {}
+	for uid in pairs(state.units) do ids[#ids + 1] = uid end
+	for _, uid in ipairs(combat.sortIds(ids)) do
+		local u = state.units[uid]
+		if u ~= nil and u.owner == playerId and u.type == unitType then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- === W8b caravan doctrine (specs/w8-econ-doctrine.md; unit-doctrine v1x sec 2) ===
+-- The own city currently building a WONDER that a caravan from (x,y) could reach
+-- inside the doctrine's range, or nil. Deterministic cityOrder scan, nearest wins,
+-- strictly-less keeps the earliest on a tie.
+local function wonderHelpTarget(state: any, playerId: string, ruleset: any, x: number, y: number, maxDist: number): any
+	local best = nil
+	local bestD = maxDist + 1
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	for _, cid in ipairs(order) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner == playerId and c.producing ~= nil and c.producing.kind == "wonder" then
+			local built = state.wonders ~= nil and state.wonders[c.producing.id] ~= nil
+			if not built then
+				local d = chebyshev(state.map, x, y, c.x, c.y)
+				if d < bestD then
+					bestD = d
+					best = c
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- Is this civ enjoying PEACE, for the purpose of the peace economy? Uses the
+-- govSafe proxy (no enemy near any own city), NOT relationOf: formal relations
+-- default to 'war' when absent, so a relationOf gate would read as permanent war
+-- in crafted states and in the no-diplomacy soak -- the same always-false trap
+-- that left W6 slice-1a's doctrine dormant at 0.9% coverage.
+local function econPeace(state: any, playerId: string, ruleset: any): boolean
+	return govSafe(state, playerId, ruleset)
+end
+
 local function computeCityRoles(state: any, playerId: string, ruleset: any): any
 	local RC = ruleset.rules.cityRoles
 	local roles = {}
@@ -3415,6 +3576,34 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 								end
 							end
 						end
+						-- W8a: the offensive diplomat. INTENT-GATED (no intent => no diplomat, so the
+						-- doctrine never produces idle diplomats) and bounded by maxInFlight. PRIORITY:
+						-- above the generic army treadmill, BELOW the settler loop -- expansion keeps
+						-- priority, unlike W6 slice-1's temple/granary. TWIN.
+						local DD = ruleset.rules.diplomatDoctrine
+						local diploW = nil
+						if DD ~= nil and (if city.shields == nil then 0 else city.shields) >= DD.minShields
+							and countOwnUnitsOfType(state, playerId, "diplomat") < DD.maxInFlight
+							and diplomatIntent(state, playerId, ruleset) ~= nil then
+							diploW = "diplomat"
+						end
+						-- W8b: the caravan -- feed a wonder another own city is building (the classic
+						-- chain), or at peace turn surplus into a trade route. Same priority band. TWIN.
+						local CD = ruleset.rules.caravanDoctrine
+						local caravanW = nil
+						if CD ~= nil then
+							local cvn = ruleset.units.caravan
+							local knowsCaravan = cvn ~= nil and (cvn.tech == "" or table.find(me.techs, cvn.tech) ~= nil)
+							if knowsCaravan and (if city.shields == nil then 0 else city.shields) >= CD.minShields
+								and countOwnUnitsOfType(state, playerId, "caravan") < CD.maxInFlight then
+								local wt = wonderHelpTarget(state, playerId, ruleset, city.x, city.y, CD.wonderHelpMaxDistance)
+								if wt ~= nil and wt.id ~= cid then
+									caravanW = "caravan"
+								elseif wt == nil and econPeace(state, playerId, ruleset) then
+									caravanW = "caravan"
+								end
+							end
+						end
 						if canWall then
 							want = { kind = "building", id = "city-walls" }
 						elseif doctrine ~= nil then
@@ -3422,6 +3611,10 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = { kind = "building", id = doctrine }
 						elseif defBuild ~= nil then
 							want = defBuild
+						elseif diploW ~= nil then
+							want = { kind = "unit", id = diploW }
+						elseif caravanW ~= nil then
+							want = { kind = "unit", id = caravanW }
 						elseif underArmy then
 							want = { kind = "unit", id = attacker }
 						elseif airW ~= nil then
@@ -3488,6 +3681,66 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- legacy fall-through (omit-safe). TWIN.
 				if ruleset.units[unit.type].domain == "air" and ruleset.rules.airDoctrine ~= nil then
 					return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine)
+				end
+
+				-- W8b: a caravan walks to the wonder it feeds and spends itself there; with no
+				-- wonder to feed it opens a trade route in the nearest OTHER own city. TWIN.
+				if unit.type == "caravan" and ruleset.rules.caravanDoctrine ~= nil then
+					local CDu = ruleset.rules.caravanDoctrine
+					local wt = wonderHelpTarget(state, playerId, ruleset, unit.x, unit.y, CDu.wonderHelpMaxDistance)
+					if wt ~= nil then
+						if unit.x == wt.x and unit.y == wt.y then
+							return { type = "helpWonder", playerId = playerId, unitId = uid }
+						end
+						local wdir = dirToward(state.map, unit.x, unit.y, wt.x, wt.y)
+						if wdir ~= nil and not stepEntersSea(state, unit, wdir, ruleset) then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = wdir }
+						end
+						return { type = "wait", playerId = playerId, unitId = uid }
+					end
+					local partner = nil
+					local partnerD = -1
+					local order2 = if state.cityOrder == nil then {} else state.cityOrder
+					for _, cid2 in ipairs(combat.sortIds(order2)) do
+						local c2 = state.cities[cid2]
+						if c2 ~= nil and c2.owner == playerId and cid2 ~= unit.home then
+							local d2 = chebyshev(state.map, unit.x, unit.y, c2.x, c2.y)
+							if partner == nil or d2 < partnerD then
+								partner = c2
+								partnerD = d2
+							end
+						end
+					end
+					if partner ~= nil then
+						if unit.x == partner.x and unit.y == partner.y then
+							return { type = "establishTradeRoute", playerId = playerId, unitId = uid }
+						end
+						local pdir2 = dirToward(state.map, unit.x, unit.y, partner.x, partner.y)
+						if pdir2 ~= nil and not stepEntersSea(state, unit, pdir2, ruleset) then
+							return { type = "moveUnit", playerId = playerId, unitId = uid, dir = pdir2 }
+						end
+					end
+					return { type = "wait", playerId = playerId, unitId = uid }
+				end
+
+				-- W8a: a diplomat has ONE job -- walk to its intent's target city and run the
+				-- mission when adjacent. Before scout/escort selection can misfile it. TWIN.
+				if unit.type == "diplomat" and ruleset.rules.diplomatDoctrine ~= nil then
+					local intent = diplomatIntent(state, playerId, ruleset)
+					if intent ~= nil then
+						local target = state.cities[intent.cityId]
+						if target ~= nil then
+							if chebyshev(state.map, unit.x, unit.y, target.x, target.y) <= 1 then
+								return { type = "diplomatMission", playerId = playerId, unitId = uid,
+									mission = intent.mission, targetCityId = intent.cityId }
+							end
+							local ddir = dirToward(state.map, unit.x, unit.y, target.x, target.y)
+							if ddir ~= nil and not stepEntersSea(state, unit, ddir, ruleset) then
+								return { type = "moveUnit", playerId = playerId, unitId = uid, dir = ddir }
+							end
+						end
+					end
+					return { type = "wait", playerId = playerId, unitId = uid }
 				end
 
 				if unit.type == "settlers" then
