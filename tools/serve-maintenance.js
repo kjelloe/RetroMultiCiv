@@ -62,7 +62,7 @@ function contactHtml() {
 function maintenancePage() {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RetroMultiCiv — down for maintenance</title>
+<title>A World Begun — down for maintenance</title>
 <style>
   body { margin:0; background:#10131a; color:#dfe6f2;
     font:16px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;
@@ -74,7 +74,7 @@ function maintenancePage() {
 </style></head>
 <body><div class="card">
   <h1>Down for maintenance</h1>
-  <p>The RetroMultiCiv server is temporarily unavailable and will be back soon.</p>
+  <p>The A World Begun server is temporarily unavailable and will be back soon.</p>
   ${contactHtml()}
 </div></body></html>`;
 }

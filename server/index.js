@@ -1560,7 +1560,7 @@ export function startServer(opts) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: opts.publicName || `RetroMultiCiv @ ${opts.publicAddr}`,
+            name: opts.publicName || `A World Begun @ ${opts.publicAddr}`, // the DISPLAY name players see in the server list (client/ui/game-name.js holds the browser twin)
             host: aHost, port: aPort !== null ? aPort : listenPort,
             protocolVersion: '1',
             dataHashes,
