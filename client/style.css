@@ -2167,10 +2167,19 @@ a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on
 #turn-list .loss { color: #ff7b6b; }
 
 /* --- city-name dialog --- */
+/* MOBILE PLAYTHROUGH FINDING (2026-07-30): on a phone the touch d-pad (z-index
+   40) covered the CENTRE of this dialog's "Found city" button —
+   document.elementFromPoint() at the button's middle returned #dpad, so a player
+   tapping the obvious spot panned the map instead of founding the city. A modal
+   asks a question and must sit above the persistent touch overlay; the d-pad is
+   also pointer-suppressed while a modal is open (see #dpad rule) so a tap that
+   lands just outside the button cannot pan the map behind the question either. */
 #name-dialog {
   top: 30%;
   min-width: 300px;
+  z-index: 60;
 }
+body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
 
 #name-dialog input {
   width: 100%;

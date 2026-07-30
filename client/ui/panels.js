@@ -822,6 +822,9 @@ export function initPanels(ctx) {
     nameConfirm = onConfirm;
     nameInput.value = suggestion;
     nameDialog.classList.remove('hidden');
+    // mobile playthrough finding: the touch d-pad overlays this dialog's buttons,
+    // so a modal marks the body and the pad goes non-interactive while it is up
+    document.body.classList.add('modal-open');
     nameInput.focus();
     nameInput.select();
   }
@@ -829,6 +832,7 @@ export function initPanels(ctx) {
   function closeNameDialog() {
     nameConfirm = null;
     nameDialog.classList.add('hidden');
+    document.body.classList.remove('modal-open');
   }
 
   document.getElementById('name-ok').addEventListener('click', () => {
