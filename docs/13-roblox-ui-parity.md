@@ -317,3 +317,16 @@ re-confirmed): build-queue per-item reorder/remove; lobby per-seat civ pick.
 INTENTIONAL/N-A (confirmed by audit): Founder's-Record-shape endgame (roblox has
 its own user-directed flow), join-share QR (no URLs on Roblox), mobile-web UX
 rows (platform equivalents exist).
+
+**F1 — CITY NAMING (found by the UI playthrough prep, roblox-helper #2877,
+2026-07-30).** The browser asks for a city name in a modal before founding; the
+Roblox client's `doFound()` auto-names ("Colony N") and sends immediately, with
+no rename surface. Recorded as a **v1.0 DIVERGENCE, parity deferred to v1.x**
+(Roblox ships browser-first by ruling; naming is a flavour surface, not a rules
+one, and the auto-name keeps the tap-count low on a controller/touch platform).
+Two things worth carrying to whoever builds it: (a) the platform shape is a
+TextBox pre-filled with "Colony N" plus a confirm button, focus RELEASED on
+close; (b) do NOT port the browser modal naively — the browser version put a
+persistent touch overlay on top of its own confirm button (fixed 2026-07-30,
+`body.modal-open`), and a naive port would recreate that trap on a platform
+where focus handling is harder to inspect.
