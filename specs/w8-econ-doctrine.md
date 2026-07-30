@@ -194,3 +194,39 @@ HOLD (scenario 002 re-verified unchanged, scenarios 68/68). Soak t100 and t200
 are BYTE-IDENTICAL to W8 (`0x1392d799` / `0x096df72c`) with t300/t400 moving —
 the fixes bite once thefts start creating immunity and empires get dense enough
 for the distance rule to matter, which is exactly when they should.
+
+## W8d — the gate sweep's find: duplicate techs (2026-07-30)
+
+The sim-runner's 25-seed gate sweep at c074384 passed every floor (M2-cities 18,
+M3-pop 66, M4-impr 93%, M10-buys 14, resource coverage 85.5%) and then found
+something the floors could not express: **seeds 13 and 18 ended with a DUPLICATE
+TECH** in a player's list (astronomy at t205, bronze-working at t141).
+
+Root cause, latent since D6 and surfaced only because W8 drives steals often
+enough to hit it: `stealTech` pushed the stolen tech directly and never cleared
+the thief's `researching`. Steal the tech you are currently researching and
+`processResearch` completes it again, so `grantTech` pushes a second copy.
+`tech.js grantTech` and `diplomacy.js diploGrantTech` both already carried the
+one-line guard — the direct push in `stealTech` was the only path without it.
+
+Fixed in both engines with that same one-liner. Fixture first, and a real
+reproduction rather than a stand-in: the test searches rngStates until the
+engine's OWN pick lands on the researched tech, then asserts exactly one copy
+plus a cleared `researching`.
+
+**Why a duplicate tech is not cosmetic:** `techs.length` feeds the tech-lag read
+that W8's own diplomat doctrine uses to decide whether to steal, and score and
+era rank read the same list. A civ that stole its way into duplicates would
+misreport its progress to the AI deciding whether to steal again.
+
+**The lesson for gates:** floors measure whether the game is healthy in
+aggregate; they cannot see a corrupt list inside a healthy-looking empire. The
+invariant checker caught it because someone wrote an invariant for it — this is
+the argument for adding invariants when a new system touches shared state, not
+only for watching the floors.
+
+**Sabotage, considered and left alone:** repeated sabotage on the same city is
+NOT immunity-blocked, the odds are a real 50%, and a second attempt on a
+defended target is legitimate play. If coverage on the follow-up shows sabotage
+commands piling up with no `CITY_SABOTAGED` events, that becomes a measured
+defect and gets the steal-immunity treatment.
