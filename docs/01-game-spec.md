@@ -331,6 +331,19 @@ Unlocked by tech; switching triggers 1–4 turns of **Anarchy** (unless Pyramids
 
   v1 upgrades on top: keep N defenders per city, data-driven build orders,
   research priority lists per AI "personality", attack weakest neighbor city.
+
+  **What v1 actually ships** (each measured by simulation sweeps rather than
+  asserted, and each knob-gated so an absent knob reproduces the older
+  behaviour): a BUILD DOCTRINE (temple/granary before the army treadmill,
+  city roles — frontline / production / science / settler-spawner — with tiered
+  build lists per role, and walls on the frontier); a WAR PAIR (siege pillage
+  on the approach, bombers paired with a ground siege inside a fuel leash,
+  fighters as interception only); and an ECON PAIR (diplomats that steal tech
+  when the civ is behind and weaken an assault target before it falls, caravans
+  that feed a wonder under construction or open trade routes in peacetime).
+  Priority between them is deliberate: garrison and disorder outrank everything,
+  expansion outranks the doctrines, and the doctrines outrank the generic army
+  treadmill.
 - AI must issue only legal commands through the same engine API as players —
   this keeps it portable and testable.
 
