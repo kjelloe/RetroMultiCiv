@@ -92,6 +92,25 @@ AI never touches. Caveat: short horizons inflate the unused list
 scale only for conclusions. Reference round: build-doctrine-plan.md
 "Measurement round 2026-07-27".
 
+**READ IT AS A RATIO, NOT A LIST (W8, 2026-07-30).** The tally's real
+power is COMMANDS ISSUED vs the EVENTS those commands emit. A doctrine
+can issue a command every turn and have the engine REJECT every one:
+W8 shipped with ~94 `diplomatMission` commands producing 2 accepted
+steals (the once-per-city `alreadyStolen` rule) and 624
+`establishTradeRoute` commands producing ZERO routes (the 10-tile
+`minDomesticDistance` rule). Goldens moved, fixtures were green, the
+twin was faithful — and half the doctrine was inert. So: for every new
+AI behaviour, pair the command count with the event its ACCEPTANCE
+emits, and treat a large gap as a defect. Note which events fire on
+BOTH success and failure (`TECH_STOLEN` does) — those count acceptances
+and are the sharper signal; success-only events (`CITY_SABOTAGED`)
+cannot distinguish a rejected command from an unlucky roll.
+
+**Corollary for fixtures:** a command-level fixture proves the AI CHOSE
+something, never that the engine will TAKE it. Where a mechanic has
+legality rules (distance, immunity, cost), the fixture must encode them
+or it will pass on a command that is always refused in play.
+
 ### 6. Natural victory distribution
 
 `--natural` multi-seed with `--turns 600` (games must be allowed to
