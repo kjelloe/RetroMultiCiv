@@ -151,3 +151,46 @@ INDEPENDENTLY by both engines, which is the twin-fidelity proof.
 age-snapshot, ff-parity, sim-smoke), then the coverage proof by DIRECT COUNT —
 diplomat missions issued, caravans delivered, routes established in canonical
 play. The W6 lesson stands: a moved hash is not evidence a mechanism fires.
+
+## W8c — what the coverage run caught (2026-07-30)
+
+The re-record was honest, the twin was faithful, the fixtures were green — and
+the doctrine was still **half-broken in play**. `debugging/probe-concepts.js`
+over 3 canonical seeds, counting COMMANDS ISSUED against EVENTS EMITTED:
+
+| surface | commands issued | events emitted | verdict |
+|---|---|---|---|
+| `helpWonder` | 27 / 2 / 8 / 37 | `wonderHelped` 27 / 2 / 8 / 37 | 1:1 — works |
+| `diplomatMission` | 6 / 41 / 0 / 47 | `TECH_STOLEN` 0 / 1 / 0 / 1 | ~94 issued, **2 accepted** |
+| `establishTradeRoute` | 126 / 186 / 0 / 312 | `tradeRouteEstablished` **0** | 624 issued, **none accepted** |
+
+`TECH_STOLEN` is emitted on success AND failure, so it counts ACCEPTED commands —
+which is what made the diplomat gap visible at all.
+
+**Cause 1 — steal immunity ignored.** `diplomat-missions.js` rejects
+`alreadyStolen` (Civ 1's once-per-city rule, implemented since D6). The intent
+re-picked the same target — worst reputation, earliest in `cityOrder` — so after
+the first theft every later diplomat walked to an immune city and was refused.
+Fixed: the steal intent skips `techStolen === true`. Prep intents are unaffected
+(sabotage and incite carry no immunity).
+
+**Cause 2 — the nearest city is not a legal trade partner.** A domestic route
+requires `rules.tradeRoute.minDomesticDistance` (10) between home and partner
+plus no duplicate pair. The brain picked the NEAREST other own city, which in a
+dense empire is 3–6 tiles — refused every time. Fixed: `tradeRoutePartner()`
+returns only a partner the engine will ACCEPT, and the BUILD gate requires one to
+exist, so the doctrine stops minting caravans for impossible routes.
+
+**The fixture-level lesson (the reusable one).** Fixture W8b-10 asserted a
+caravan BUILD for a route the engine would have REJECTED — its two cities were 4
+tiles apart. It passed because it checked the DECISION and never the
+ACCEPTANCE. A command-level fixture proves the AI *chose* something; it does not
+prove the engine will *take* it. Where a mechanic has legality rules, a fixture
+must encode those rules too. Now corrected, plus two new guards: W8a-11 (an
+immune city is skipped) and W8b-12 (no caravan without a legal partner). 13/13.
+
+**W8c re-record:** ai.js + twin only, no data change, so the createGame stamps
+HOLD (scenario 002 re-verified unchanged, scenarios 68/68). Soak t100 and t200
+are BYTE-IDENTICAL to W8 (`0x1392d799` / `0x096df72c`) with t300/t400 moving —
+the fixes bite once thefts start creating immunity and empires get dense enough
+for the distance rule to matter, which is exactly when they should.
