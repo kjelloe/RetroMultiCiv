@@ -5,13 +5,15 @@
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
 import { matchSnapshot } from '../../shared/age-snapshots.js';
 import { robloxLinkHtml } from './roblox-link.js';
+import { GAME_NAME, GAME_SUBTITLE, GAME_REPO_URL } from './game-name.js';
 
 export function showSetupScreen() {
   const overlay = document.createElement('div');
   overlay.id = 'setup-screen';
   overlay.innerHTML = `
     <div id="setup-box">
-      <h2>RetroMultiCiv <button id="setup-help" type="button" title="new here?" aria-label="new here?">?</button></h2>
+      <h2>${GAME_NAME} <button id="setup-help" type="button" title="new here?" aria-label="new here?">?</button></h2>
+      <p class="setup-subtitle"><a href="${GAME_REPO_URL}" target="_blank" rel="noopener">${GAME_SUBTITLE} ↗</a></p>
       <p class="setup-hint">One deterministic engine, one world, 4000 BC — or any age you pick.
         Play solo against the AI, pass the keyboard in hotseat, or host a LAN game
         friends join with a 5-letter code.<span id="setup-maxciv-line"></span></p>
