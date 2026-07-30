@@ -95,6 +95,17 @@ the box runs 0101)._
   fractal/oval/clover now. I will bring a recommendation with the numbers; the
   call is yours because it trades variety against AI quality.
 
+### B4. Usage metrics — RULED IN for v1.0, building now
+
+- [x] **B4 ruled (2026-07-31):** the hosted services record no usage data today
+  — `/healthz` gives point-in-time gauges only and the master index has no
+  counters at all, so "did anyone play, and did any game finish?" is currently
+  unanswerable. **Your rulings:** v1.0 scope (gather from launch) and
+  **localhost-private** exposure. Designed in `specs/metrics-v1.md` and handed to
+  the hardening lane. Counts only — no IPs, user agents, tokens, names, or
+  per-request logs. You will read it over SSH with
+  `curl -s localhost:8123/metrics`.
+
 ### C. Phone test (~10 min, carried)
 
 - [ ] **C1. Mobile seated-start re-test:** phone seated in lobby →
