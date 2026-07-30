@@ -1,8 +1,5 @@
 # marker-0110 — W7 novelty map shapes + the A91c warming/stranding repair
 
-DRAFT — tags on the closing 25-seed additivity sweep (running on the dev box
-at write time; the `[SWEEP]` slot below fills from it).
-
 Delta since marker-0109 (@7f6f50b): the W7 map-shapes window landed complete
 (five new shapes including clover with balanced petal starts), plus a
 pre-existing engine bug the W6-closing sweep had surfaced, plus deploy-script
@@ -99,14 +96,20 @@ scenario 002 `0x6d55a5c0`; nine maptype pins (`continents 856e4f41`, `pangaea
   maptype pins, data checksums, sim-smoke, ff-parity — so the pins are
   executed-and-equal cross-language), age-snapshots green, scenarios 68/68,
   map-shapes 9/9, guards 16/16.
-- **[SWEEP]** closing 25-seed additivity sweep on the DEFAULT type: ___
-- **HONEST GAP:** the reviewer could NOT run its independent clean-clone lune
-  repro this session — `reviewer-lab` was outside its allowed directories, and
-  it rightly refused to check the tip out over the architect's working tree.
-  The same scope problem idled the sim-runner (`~/sim-lab`), so the W7
-  measurements ran (or are running) on the dev box instead. Cross-language
-  execution IS confirmed, but on ONE machine only. A per-lane directory grant is
-  filed as human-workitems A5.
+- **Closing 25-seed additivity sweep on the DEFAULT type: 24/25 clean.** The one
+  FAIL is seed 19's unit tripwire at t284 (1007 > 1000), which the sim-runner had
+  already characterised as PRE-EXISTING and byte-identical at both be01b87 and
+  d5007db (#2841) — it is not a W7 effect. That is the cheap proof the window was
+  additive: the default map type plays exactly as it did before the mask stage.
+- **GAP CLOSED.** The reviewer was blocked twice on directory scope, but after
+  the user's grant it ran the independent repro on the gaming PC and reported
+  PASS (#2861), then delivered the full marker gate (#2863): pristine clean-clone
+  flake-cleared (the lone RED is the recurring density false-red, isolated 52/52),
+  all five new shapes reproduce JS==Luau, and the engine-diff hits every one of
+  its own pre-design flags — wrap-aware seam, finite/identical draw counts,
+  pure-integer geometry, additive-clean legacy path, deterministic clover, and
+  provenance on all five. Cross-language execution is now confirmed on TWO
+  machines. The worktree fallback that unblocked it is recorded in docs/18.
 
 ## Also in this span
 
@@ -141,4 +144,20 @@ this ruleset (routed separately).
 
 ## Consistency
 
-[filled at tag time]
+**MERGE-CONSISTENT — the user may merge this.** It SUPERSEDES marker-0109 as the
+merge candidate. Basis: the reviewer's pristine clean-clone plus its independent
+lune reproduction of every new pin, the #28 discriminator's STAMP-ONLY
+classification (BEHAVIOR byte-identical to marker-0109 while GOLDEN moved), the
+natural golden holding 545/p2 for a fifth consecutive re-record, and a 24/25
+additivity sweep whose only failure is a documented pre-existing tripwire.
+
+Riding on top, both golden-neutral: the Roblox lane's W7 map-type re-bake and
+9-segment picker (@f565b6f, rules 0x79ba7107 verified), and the deploy-script
+hardening.
+
+Open and explicitly NOT blocking: the naval acceptance for the water-heavy
+shapes (ring, inland-sea) is queued to the sim-runner and rides AFTER this tag
+on the reviewer's judgement — the mask stage touches zero AI or naval code and
+the novelty shapes are not the default. If the AI turns out to play them badly,
+the decision is filed as human-workitems B3 (ship as labelled novelty vs hold to
+v1.x), not a correctness fix.
