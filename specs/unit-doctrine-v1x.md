@@ -96,3 +96,38 @@ Stays OUT of W8 / remains v1.x:
 Measurements (concept histogram, natural multi-seed, disasters-ON, and the
 post-slice-2 additions: 14-civ scaling + endYear-9999 marathon) are all
 approved — run them all, but they must NOT block the road to 1.0 if they drag.
+
+## 8. Overseas expansion on saturation (v1.x — filed by user ruling 2026-07-31)
+
+**The measured gap.** W7's naval acceptance found the AI treats ring,
+inland-sea and oval as land maps: 0 overseas cities across 5×200t and 3×400t
+runs, while the archipelago CONTROL reports 5 on the same probe (so the metric
+fires when the behaviour happens). At 400 turns ring is saturated — ~117 cities
+per game against ~112 of capacity — and the AI **stops expanding rather than
+crossing**: only ~9 cities added between t200 and t400.
+
+**Why the existing path misses it.** The naval settlement route triggers on a
+STRANDED settler — a civ boxed in from turn one, which is the archipelago shape
+and why that acceptance passed 25/25. On a ring each civ owns a generous arc and
+always has a *local* site, so the stranded-settler condition never arises; when
+the arc fills, expansion simply halts. The trigger is "no local site for THIS
+settler", never "my landmass is full and there is land across the water".
+
+**The doctrine to add.** When a civ's home landmass is saturated — no legal city
+site left on its own land component — it should re-evaluate expansion across
+water: pick the nearest known land component with room, ferry a settler, and
+found there. The mechanics already exist (carrier ferry, disembark, overseas
+site selection from the naval arc); this is a TRIGGER gap, the same shape as
+W8's diplomat intent — the brain never asks the question, so a working mechanism
+stays idle.
+
+**How it must be verified** (the W6/W8 lesson, non-negotiable for this item):
+not by a moved hash and not by a fixture alone. The acceptance number is
+`debugging/probe-mapshape-naval.js` OVERSEAS CITIES on ring and inland-sea
+rising above zero, with the archipelago control still non-zero and the canonical
+floors unmoved. A fixture proves the AI *chose* to ferry; only the probe proves
+the engine *accepted* the sequence end to end.
+
+**Not a v1.0 blocker by ruling:** the shapes are opt-in and non-default, the gap
+is opponent strength rather than correctness, and an unmeasured doctrine change
+does not belong in a release candidate.

@@ -231,3 +231,23 @@ unmeasured doctrine change into the release — exactly the trade W6 taught us n
 to make. Holding the shapes back instead would cost the human-facing variety
 that is the whole point of W7, to fix an opponent-strength gap on three opt-in
 map types.
+
+### RULED (user, 2026-07-31): SHIP
+
+The recommendation was accepted. The five novelty shapes ship in v1.0 as the
+labelled, opt-in "Novelty shapes" group they already occupy in the picker — the
+default remains Continents, so no player meets a water-heavy shape without
+choosing it.
+
+**Rationale, recorded so the trade is legible later:** the shapes are playable
+and measured (hundreds of cities per game, no invariant breaches, navies built,
+65–72% coastal); the gap is opponent STRENGTH on the water half of three opt-in
+maps, not correctness. Holding them would cost the human-facing variety that is
+the entire point of W7. Fixing the AI now would mean landing an unmeasured
+doctrine change during the release candidate — the trade W6 taught us not to
+make, where a hash moving is not evidence a mechanism fires. So the variety
+ships now and the AI improvement gets its own window with its own coverage
+proof.
+
+Filed for v1.x: **"re-evaluate overseas expansion when the home landmass
+saturates"** — see `specs/unit-doctrine-v1x.md`.
