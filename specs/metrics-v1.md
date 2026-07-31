@@ -92,6 +92,24 @@ better, and they would push this file toward a behaviour log.
 - The file is runtime state: gitignored, never served back to clients, and out
   of the deploy rsync allowlist.
 
+## 6b. Known limits (recorded, not deferred bugs)
+
+- **Counter ceiling.** Counters are safe integers clamped at
+  `Number.MAX_SAFE_INTEGER` (2^53-1) — unreachable for a hosted game. The
+  original implementation used `| 0` (int32), which does not saturate but WRAPS
+  NEGATIVE at 2147483647; a negative `page_loads` would be worse than a stalled
+  one, so the coercion was replaced (architect call on the reviewer's note
+  #2887). The no-float/integer discipline that motivates `| 0` in engine code
+  does not apply here: metrics are runtime counters, never hashed game state.
+- **Restart-resilient, not crash-proof.** Persistence is dirty-flagged at most
+  once per interval plus one write on graceful shutdown, so a hard kill can lose
+  up to one interval of counts. That is the deliberate trade for never putting a
+  write in a request path.
+- **Module form.** `server/metrics.cjs`, not `.js`: the game server is ESM and
+  the master index is CJS, and `.cjs` is the one form both can consume. The spec
+  originally said `metrics.js`; the hardening lane flagged the deviation rather
+  than silently diverging, which is the behaviour wanted.
+
 ## 7. Non-goals
 
 No analytics service, no dashboards, no time-series, no retention cohorts, no

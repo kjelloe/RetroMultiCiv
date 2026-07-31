@@ -25,26 +25,38 @@ function createMetrics(deps) {
   const now = deps.now || Date.now;
   const warn = deps.warn || (m => console.log(m));
   const counters = {};
-  for (const k of Object.keys(deps.defaults || {})) counters[k] = deps.defaults[k] | 0;
+  for (const k of Object.keys(deps.defaults || {})) counters[k] = Math.trunc(deps.defaults[k]) || 0;
   let startedAt = Math.floor(now() / 1000);
   let filePath = null;
   let dirty = false;
   let lastSaveAt = 0;
   let warnedSave = false;
 
+  // SAFE-INTEGER counters (architect call on the reviewer's int32 note, #2887).
+  // `| 0` is int32: at 2147483647 the next bump WRAPS NEGATIVE rather than
+  // saturating, and a negative page_loads is worse than a stalled one. These are
+  // runtime counters, not game state — the no-float/integer-hash discipline that
+  // motivates `| 0` elsewhere does not apply — so they use ordinary integer
+  // addition clamped at Number.MAX_SAFE_INTEGER (2^53-1), which a hosted game
+  // cannot reach. Known limit recorded in specs/metrics-v1.md.
+  const MAXC = Number.MAX_SAFE_INTEGER;
+  function clampInt(v) {
+    const t = Math.trunc(v);
+    return t > MAXC ? MAXC : (t < 0 ? 0 : t);
+  }
   function bump(name, n) {
-    counters[name] = (counters[name] | 0) + (n === undefined ? 1 : n | 0);
+    counters[name] = clampInt(clampInt(counters[name]) + (n === undefined ? 1 : Math.trunc(n)));
     dirty = true;
   }
   function setPeak(name, v) {
-    if ((v | 0) > (counters[name] | 0)) { counters[name] = v | 0; dirty = true; }
+    if (clampInt(v) > clampInt(counters[name])) { counters[name] = clampInt(v); dirty = true; }
   }
   function set(name, v) { // plain gauge (e.g. servers_listed)
-    if ((counters[name] | 0) !== (v | 0)) { counters[name] = v | 0; dirty = true; }
+    if (clampInt(counters[name]) !== clampInt(v)) { counters[name] = clampInt(v); dirty = true; }
   }
   function snapshot() {
     const out = { started_at: startedAt };
-    for (const k of Object.keys(counters).sort()) out[k] = counters[k] | 0;
+    for (const k of Object.keys(counters).sort()) out[k] = clampInt(counters[k]);
     return out;
   }
   // Load previous totals and continue; a missing/corrupt file starts fresh at
