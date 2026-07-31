@@ -362,3 +362,28 @@ natural 545/winner-p2 HELD across all four W6 re-records (no macro shift).
 OPEN: the W6-closing combined gate at be01b87 (sim-runner sweep #2837 —
 floors + role/siege/air/wonder coverage + interior-floor-vs-barbs watch —
 + reviewer #2838). The W6 marker tags on both; W7 map shapes opens after.
+
+## Late find: slice-3's spawner headroom outranks the naval slot (2026-07-31)
+
+`test/naval-probe.test.js` N3 has failed since slice-3 landed and was dismissed
+as a parallel-load flake for four windows — wrongly, and for an avoidable
+reason: the isolation runs quoted as clearing it ("52/52") were of
+`test/ai.test.js`, a different file. N3 fails in isolation.
+
+Mechanism, confirmed by toggling one knob: with `rules.cityRoles` the coastal
+city takes the SPAWNER role, whose `+1` settler headroom lifts the settler cap
+above the naval build slot, so the civ makes another settler instead of its first
+hull. Bisected with clean worktrees — passes at marker-0108 (6796e2e), fails from
+slice-3 (692ca7e).
+
+**Assessed as ruled behaviour, not a defect:** expansion outranks doctrine (the
+priority W8 adopted and the reviewer endorsed), and ships still get built and
+used in play — the W7 acceptance probe counts 35–38 hulls and 5 overseas cities
+on archipelago. The tests now pin both halves separately: the omit-safe legacy
+contract (no `cityRoles` ⇒ naval priority) and the real sequence (a spawner
+coastal city expands first, then reaches its hull once headroom is spent).
+
+**The transferable lesson:** a slice that changes a *cap* changes every decision
+ranked below it. Slice-3's settler bump was reviewed as a settler change; its
+effect on the naval slot was invisible until a test that had been quietly red
+was finally read properly.
