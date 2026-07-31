@@ -1,8 +1,5 @@
 # marker-0111 — W8 econ pair (the last engine window) + the two-surface UI pass
 
-DRAFT — tags on the sim-runner's acceptance-ratio re-run at `aff4366` (the one
-gate outstanding; the `[RATIO]` slot below fills from it).
-
 Delta since marker-0110 (@dac46ec): the final engine window of the v1 programme
 landed, was measured, was found half-inert in play, and was repaired — twice.
 Plus the ruled title on every surface, a mobile UI playthrough that found a real
@@ -123,11 +120,51 @@ its acceptance pinned to the probe's overseas count, not to a moved hash.
   the duplicate-tech guard confirmed as closing a real latent bug; the coverage
   pickers deterministic. They also endorsed the priority call — doctrines above
   the army treadmill, below the settler loop.
-- **[RATIO]** sim-runner acceptance re-run at aff4366: `diplomatMission` vs
-  `TECH_STOLEN`, `establishTradeRoute` vs `tradeRouteEstablished`, floors, and
-  no duplicate tech on seeds 13/18: ___
-- Local: simulation 7/7, luau-twins 11/11, econ-doctrine 13/13,
-  diplomat-missions 18/18, mobile specs 7 passed.
+- **Sim-runner acceptance re-run at aff4366 — GREEN** (#2884), and this is the
+  proof W8c existed for: `diplomatMission` **34 → TECH_STOLEN 8 + SABOTAGE 26 =
+  34, i.e. ZERO wasted missions** (the ~94-missions-for-2-steals waste is gone);
+  `establishTradeRoute` **3/3 established**, combined 4/4 across both jobs (the
+  sim-runner explicitly corrected its own earlier "routes look dormant" reading —
+  they are seed-rare, not inert); **DUP_TECH PASS on all seeds** including the
+  load-bearing 13 and 18; floors held (M2-cities 18, M3-pop 66, M4 93%,
+  M10-buys 14, resource coverage 85.5%).
+- Local: **full suite 1027/1027, zero failures** — the first clean board of the
+  arc, reached by fixing three standing reds rather than labelling them (below).
+  Also simulation 7/7, luau-twins 11/11, econ-doctrine 13/13,
+  diplomat-missions 18/18, naval-probe 8/8, browser 19/19, mobile specs 7 passed.
+
+## The three "known flakes" were mostly not flakes
+
+A user instruction — "no flaky tests indeed" — turned into the most valuable
+audit of the arc. Of three standing suite reds, only ONE was environmental:
+
+1. **N3 "a coastal naval civ builds a ship" — a REAL regression, live since W6
+   slice-3 and dismissed for four windows.** It fails in ISOLATION, which no
+   amount of parallel-load contention can explain. The mis-diagnosis was an
+   attribution error: N3 lives in `test/naval-probe.test.js` (7 tests) while the
+   isolation runs quoted as clearing it ("52/52") were of `test/ai.test.js` (52
+   tests). Bisected with clean worktrees — passes at marker-0108, fails from
+   slice-3 — and the mechanism confirmed by toggling one knob: with
+   `rules.cityRoles` the coastal city takes the SPAWNER role, whose +1 settler
+   headroom outranks the naval slot. Assessed as RULED behaviour (expansion
+   outranks doctrine; ships still get built and used in play — 35-38 hulls and 5
+   overseas cities on the archipelago probe), so the fix was to stop one fixture
+   silently covering two contracts: the omit-safe legacy path (no `cityRoles` ⇒
+   naval priority) and the real sequence (a spawner expands first, then reaches
+   its hull) are now pinned separately.
+2. **B13 witness — a STALE ARTIFACT, not a flake.** The W6-W8 behavioural windows
+   invalidated a recording that must replay exactly. Regenerated.
+3. **Browser smoke — the one real environmental case**, fixed at source rather
+   than tolerated: `debugging/t.sh` caps runner concurrency for full-suite runs,
+   `dumpDom` retries once on an EMPTY dump (unambiguously a boot failure, never a
+   wrong assertion), and four fixed real-time budgets were raised after measuring
+   the onboarding session at 91.8s against a 35s deadline — a LATE overlay had
+   been reported as a MISSING one. None of these weaken an assertion: every one
+   asks whether the client eventually does X, never whether it does X quickly.
+
+**The transferable rule, now in memory:** "known flake" is a claim requiring
+evidence per RUN, not a label a test inherits — and a slice that changes a CAP
+changes every decision ranked below it.
 
 ## Breaking / compatibility
 
@@ -138,4 +175,18 @@ re-baked for the new knobs.
 
 ## Consistency
 
-[filled at tag time]
+**MERGE-CONSISTENT — the user may merge this.** It SUPERSEDES marker-0110 as the
+merge candidate. Basis: the reviewer's pristine clean-clone and independent lune
+reproduction at aff4366, the sim-runner's acceptance-ratio proof, a full local
+suite at **1027/1027 with zero failures**, the #28 classification honest with
+t100/t200 held byte-identical, and the natural golden holding 545/p2 for a
+seventh consecutive re-record.
+
+Riding on top, all golden-neutral: the ruled title on every client surface, the
+mobile playthrough plus the d-pad/modal fix it found, the Roblox playthrough
+checklist and its F1 divergence record, the Roblox data re-bake, and the
+usage-metrics design handed to the hardening lane.
+
+Open and NOT blocking: the water-heavy map shapes ship by user ruling with the
+overseas-expansion gap filed as `specs/unit-doctrine-v1x.md` §8; the hardening
+lane's metrics implementation is in progress.
