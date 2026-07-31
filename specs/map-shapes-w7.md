@@ -217,6 +217,17 @@ has a *local* site, and never enters that path — then simply halts at saturati
 instead of re-evaluating across the water. Same for oval, where a single
 landmass makes the zero partly expected.
 
+**SECOND CONTROL, and it reframes the finding (2026-07-31).** The same probe was
+run on **continents — the DEFAULT map type** — at 400t/7civ: 430 cities, 74.7%
+coastal, 69 sea units, **0 overseas cities**. So this is NOT a novelty-shape
+defect at all: the AI declines overseas settlement on the shipped default map
+exactly as it does on the new shapes, and archipelago is the outlier where the
+map forces the behaviour. That makes the ship ruling stronger than the original
+argument — the novelty shapes are **no worse than the default** on this axis, so
+shipping them adds variety without adding a regression. It also widens the v1.x
+item: the doctrine gap is general overseas expansion, not something these three
+shapes provoke.
+
 **Assessment:** these shapes are PLAYABLE, not broken — hundreds of cities,
 navies built, 65–72% coastal cities, and no GAME-CORRECTNESS invariant breach.
 

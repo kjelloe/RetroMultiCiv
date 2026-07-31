@@ -128,6 +128,14 @@ rising above zero, with the archipelago control still non-zero and the canonical
 floors unmoved. A fixture proves the AI *chose* to ferry; only the probe proves
 the engine *accepted* the sequence end to end.
 
+**SCOPE WIDENED by the continents control (2026-07-31):** the same probe on
+**continents at 400t/7civ** — the shipped DEFAULT map — also reports **0 overseas
+cities** (430 cities, 74.7% coastal, 69 sea units). So this is not a
+novelty-shape gap: the AI declines overseas settlement on the default map too,
+and archipelago is the outlier where being boxed in forces it. Anyone picking
+this item up should therefore measure on CONTINENTS as well as ring/inland-sea,
+and treat archipelago as the positive control that proves the instrument.
+
 **Not a v1.0 blocker by ruling:** the shapes are opt-in and non-default, the gap
 is opponent strength rather than correctness, and an unmeasured doctrine change
 does not belong in a release candidate.
