@@ -35,6 +35,7 @@ import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
 import { parseMessage, route, turnBroadcasts, playerCivs, REJECT_REASONS } from './protocol.js';
+import { createMetrics, isLoopback } from './metrics.cjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MIME = {
@@ -127,6 +128,20 @@ export function startServer(opts) {
   const autosave = opts.autosave !== false;
   const SAVES = opts.savesDir || path.join(REPO, 'saves'); // A98: overridable for tests
 
+  // Usage metrics (specs/metrics-v1.md): counts only, localhost-private.
+  // Persisted only when opts.metricsFile is set (the CLI defaults it; direct
+  // startServer() callers — tests — run in-memory unless they pass a path).
+  const metrics = createMetrics({
+    now, defaults: {
+      page_loads: 0, games_created: 0, games_resumed: 0, games_completed: 0,
+      games_abandoned: 0, turns_played: 0, player_joins: 0, seat_reclaims: 0,
+      spectator_joins: 0, bug_reports: 0, peak_games: 0, peak_conns: 0
+    }
+  });
+  if (opts.metricsFile) metrics.load(opts.metricsFile);
+  const metricsTimer = setInterval(() => metrics.maybeSave(), 60000); // §6: dirty-flagged, ≤1 write/60s
+  if (metricsTimer.unref) metricsTimer.unref();
+
   // Boot the default game (phase-3): a resume (--game) or a fresh setup.
   let defaultGame;
   if (opts.game) {
@@ -170,6 +185,9 @@ export function startServer(opts) {
   // CLI host stays in control via --no-spectators — docs/08 §6). Lobby-created
   // games remain opt-in at create.
   registry.register(defaultGame, opts.spectators !== false);
+  metrics.bump(opts.game ? 'games_resumed' : 'games_created'); // boot game: --game = a resume
+  metrics.setPeak('peak_games', registry.list().length);
+  registry.entryOf(defaultGame.gameId).metricsTurn = defaultGame.state.turn; // turns_played baseline
   const defaultGameId = defaultGame.gameId;
 
   // A61 slice 1: HARDENED BY DEFAULT. The static handler used to serve the
@@ -236,6 +254,16 @@ export function startServer(opts) {
       res.end(JSON.stringify(healthSnapshot()));
       return;
     }
+    // metrics-v1 §3: cumulative counters, LOOPBACK-ONLY unless --metrics-public.
+    // A remote request falls through to the static whitelist's 404 — the same
+    // answer any unknown path gets, so the endpoint's existence is not
+    // advertised. Socket address, never XFF: a proxy hop is not the operator.
+    if (req.method === 'GET' && urlPath === '/metrics'
+        && (opts.metricsPublic === true || isLoopback(req.socket && req.socket.remoteAddress))) {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify(metrics.snapshot()));
+      return;
+    }
     // master-proxy (reviewer #2446): a self-hosted box that ANNOUNCES to a master
     // has no same-origin server list — /master/servers only exists on the hosted
     // deployment's reverse proxy. Proxy it here so Find-game works self-hosted,
@@ -286,6 +314,7 @@ export function startServer(opts) {
         try {
           writeBugReport(opts.bugReports, payload);
           rotateBugReports(opts.bugReports, 100); // keep the newest 100
+          metrics.bump('bug_reports'); // metrics-v1 §4: accepted reports only
           res.writeHead(200, J); res.end('{"ok":true}');
         } catch (e) { res.writeHead(500, J); res.end('{"ok":false,"reason":"writeFailed"}'); }
       });
@@ -313,6 +342,9 @@ export function startServer(opts) {
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, buf) => {
       if (err) { res.writeHead(404); res.end(); return; }
+      // metrics-v1 §4: a served client ENTRY document is a visit — a count,
+      // not a visitor record (no IP/UA read here, per the privacy contract).
+      if (urlPath === '/client/' || urlPath === '/client/index.html') metrics.bump('page_loads');
       const ext = path.extname(file);
       // Slice 3b: nosniff on every asset; the HTML entrypoint revalidates so a
       // deploy propagates (no stale client), other assets cache briefly (longer
@@ -560,6 +592,13 @@ export function startServer(opts) {
     return n;
   }
   function closeGame(gameId, reason) {
+    // metrics-v1 §4: leaving the registry WITHOUT gameOver = abandoned
+    // (eviction, lobby expiry, idle abandonment — the reason is not recorded,
+    // only the count). A finished game closing is already counted completed.
+    const eClose = registry.entryOf(gameId);
+    if (eClose && !(eClose.game && eClose.game.state && eClose.game.state.gameOver === true)) {
+      metrics.bump('games_abandoned');
+    }
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'gameClosed', gameId, reason });
     registry.remove(gameId); // the on-disk save survives — abandoned games stay resumable by code
     budgets.dropGame(gameId); // release this game's per-seat command buckets
@@ -665,6 +704,8 @@ export function startServer(opts) {
       send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.serverFull }); return;
     }
     registry.register(game, false); // spectators: off for resumed games (v1)
+    metrics.bump('games_resumed'); metrics.setPeak('peak_games', registry.list().length);
+    registry.entryOf(game.gameId).metricsTurn = game.state.turn; // resumed history is never re-counted
     saveFiles[game.gameId] = file;
     send(ws, { t: 'resumed', gameId: game.gameId, code: game.code(), turn: game.state.turn });
   }
@@ -688,6 +729,8 @@ export function startServer(opts) {
     // §6 revival-at-cap: make room by evicting a paused game, else refuse (null).
     if (!limiter.canCreateGame(registry.list().length).ok && !evictOnePaused()) return null;
     registry.register(game, false);
+    metrics.bump('games_resumed'); metrics.setPeak('peak_games', registry.list().length);
+    registry.entryOf(game.gameId).metricsTurn = game.state.turn; // resumed history is never re-counted
     saveFiles[game.gameId] = file;
     return game;
   }
@@ -741,6 +784,26 @@ export function startServer(opts) {
   // (spectator pseudo-seats get game.view('spectator') — omniscient, docs/08 §6).
   function fanout(gameId, out, game) {
     for (const m of out.broadcast) for (const [o, i] of conns) if (i.gameId === gameId) send(o, m);
+    // metrics-v1 §4, wired at THE state-change choke point (every applied
+    // command/turn fans out here): turns_played = the per-entry turn delta
+    // (baseline set at register/start; the undefined check is a safety net for
+    // any unregistered path — it forfeits that game's first delta rather than
+    // ever over-counting), and games_completed latches ONCE per entry at the
+    // gameOver transition.
+    {
+      const e = registry.entryOf(gameId);
+      if (e && game && game.state) {
+        if (e.metricsTurn === undefined) e.metricsTurn = game.state.turn;
+        if (game.state.turn > e.metricsTurn) {
+          metrics.bump('turns_played', game.state.turn - e.metricsTurn);
+          e.metricsTurn = game.state.turn;
+        }
+        if (game.state.gameOver === true && e.metricsCompleted !== true) {
+          e.metricsCompleted = true;
+          metrics.bump('games_completed');
+        }
+      }
+    }
     if (out.viewsChanged) {
       // gameover-reveal (XVII ruling #2496): at gameOver the fog rules lapse —
       // Civ1 shows the whole world once no competitive info remains. Compute the
@@ -976,6 +1039,7 @@ export function startServer(opts) {
       if (e.status !== 'started') { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.notStarted }); return; }
       if (e.options.allowSpectators !== true) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.spectatorsOff }); return; }
       info.gameId = gameId; info.playerId = 'spectator'; info.spectator = true;
+      metrics.bump('spectator_joins'); // metrics-v1 §4
       send(ws, {
         t: 'joined', playerId: 'spectator', gameId,
         view: e.game.view('spectator'), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
@@ -1064,6 +1128,7 @@ export function startServer(opts) {
         if (bound.error || bound.playerId !== pid) { send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.noSeatAvailable }); return; }
         e.seats[pid] = { human: true, reserved: true, name: msg.name || 'Player' }; // registry tracks the seat
         info.playerId = pid; info.seat = pid;
+        metrics.bump('player_joins'); // metrics-v1 §4: takeover mints a FRESH token
         send(ws, {
           t: 'joined', playerId: pid, gameId, token: bound.token, seatCode: bound.seatCode,
           assignedCiv: e.game.state.players[pid].civ, // §4: client shows a post-join reveal banner
@@ -1075,7 +1140,15 @@ export function startServer(opts) {
         return;
       }
       const out = route(e.game, msg);
-      for (const m of out.reply) { send(ws, m); if (m.t === 'joined') info.playerId = m.playerId; }
+      for (const m of out.reply) {
+        send(ws, m);
+        if (m.t === 'joined') {
+          info.playerId = m.playerId;
+          // metrics-v1 §4: a join carrying a prior credential (token or seat
+          // code) is the "came back" signal; a bare join binds a fresh token.
+          metrics.bump(msg.token || msg.seatCode ? 'seat_reclaims' : 'player_joins');
+        }
+      }
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
         cancelTakeover(gameId, info.playerId); // XIV §30: the player is back — stop/undo any auto-takeover
         broadcastGame(gameId, { t: 'presence', playerId: info.playerId, connected: true });
@@ -1097,6 +1170,7 @@ export function startServer(opts) {
     if (autosave && res.game.setSidecar) res.game.setSidecar(sidecarOf(savePath(gameId)));
     olog('game_start', { gameId, seats: liveSeats.length, turn: res.game.state.turn });
     const entry = registry.entryOf(gameId);
+    entry.metricsTurn = res.game.state.turn; // turns_played baseline for the lobby-started game
     // bind live human seats IN ORDER: bindSeat's first-free then lands each
     // connection on its charted seat (lobby authored setup to match).
     for (const pid of res.humanSeats) {
@@ -1105,6 +1179,7 @@ export function startServer(opts) {
       if (o && bound.playerId) {
         const ci = conns.get(o);
         ci.playerId = bound.playerId; ci.seat = pid;
+        metrics.bump('player_joins'); // metrics-v1 §4: start-time bind = fresh token
         send(o, {
           t: 'joined', playerId: bound.playerId, gameId, token: bound.token,
           seatCode: bound.seatCode, // A46: private to this seat's connection
@@ -1133,6 +1208,7 @@ export function startServer(opts) {
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
     // token-bucket — the per-connection fairness guard on the cmd/endTurn path.
     conns.set(ws, { budget: createCommandBudget({ now, limits: opts.limits }), cid: String(++connSeq), ip });
+    metrics.setPeak('peak_conns', conns.size); // metrics-v1 §4 gauge
     olog('conn_open', { conns: conns.size });
     // A ws protocol error (oversized frame past maxPayload, malformed framing)
     // emits 'error'; WITHOUT a listener Node throws and crashes the whole
@@ -1346,6 +1422,7 @@ export function startServer(opts) {
           return;
         }
         const { entry, seat } = res;
+        metrics.bump('games_created'); metrics.setPeak('peak_games', registry.list().length); // metrics-v1 §4
         // §1 late-join: per-game flag, default ON, disabled host-wide by
         // --no-late-join. Only EFFECTIVE with listPublicly (options.public) —
         // §2 listing + §3 takeover check the (public AND lateJoining) pair.
@@ -1603,10 +1680,23 @@ export function startServer(opts) {
         heartbeatTick, // Part A: tests drive heartbeat rounds without waiting heartbeatMs
         gameProbe, autosaveAll, // crash.js: crashdump context + OOM graceful save-all
         healthSnapshot, // A50 item 5: /healthz body (test/ops visibility)
+        metrics, // metrics-v1: the counter instance (test/ops visibility, like healthSnapshot)
         announceStatus: () => ({ listed: announceState.listed, reason: announceState.reason, lastError: announceState.lastError }), // A51b: test/console visibility
         close: () => new Promise(done => {
           clearInterval(sweepTimer);
           clearInterval(heartbeatTimer); // Part A
+          clearInterval(metricsTimer); // metrics-v1 §6
+          // metrics-v1 §4: shutdown counts every live unfinished game as
+          // abandoned (they leave service without gameOver; a later resume
+          // increments games_resumed, keeping the totals interpretable), then
+          // the one graceful-shutdown write.
+          for (const g of registry.list()) {
+            const eShut = registry.entryOf(g.gameId);
+            if (eShut && !(eShut.game && eShut.game.state && eShut.game.state.gameOver === true)) {
+              metrics.bump('games_abandoned');
+            }
+          }
+          if (opts.metricsFile) metrics.save();
           if (announceTimer) clearInterval(announceTimer); // A51b
           for (const k of Object.keys(graceTimers)) clearTimeout(graceTimers[k]); // Part B seat-grace
           for (const k of Object.keys(takeoverTimers)) clearTimeout(takeoverTimers[k]); // XIV §30
@@ -1659,6 +1749,8 @@ Public hosting (docs/12, docs/16):
   --public-name NAME    listing name on the master index
   --share-reports DIR   write anonymized match reports (off by default)
   --bug-reports DIR     accept in-client bug reports, write-only to DIR (off by default)
+  --metrics-file PATH   usage-counter persistence (default metrics.json in the repo root)
+  --metrics-public      serve GET /metrics beyond loopback (default: localhost-only 404s remotely)
 
 Caps and budgets (docs/how-to-host.md § "Sizing by RAM"):
   --max-games N         --max-conns N         --max-conns-per-ip N
@@ -1745,6 +1837,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--public-addr') opts.publicAddr = argv[++i];
     else if (a === '--share-reports') opts.shareReports = argv[++i]; // S1: match-report dir (OFF by default)
     else if (a === '--bug-reports') opts.bugReports = argv[++i]; // #3: in-client bug-report sink (write-only, OFF by default)
+    else if (a === '--metrics-file') opts.metricsFile = argv[++i]; // metrics-v1 §6: counter persistence path
+    else if (a === '--metrics-public') opts.metricsPublic = true; // metrics-v1 §3: serve /metrics beyond loopback (opt-in)
     else if (a === '--regency-min-turn-ms') opts.regencyMinTurnMs = Number(argv[++i]); // XIV §3: total ms per regent round (÷ regents); 0 = instant
     else if (a === '--debug') opts.debug = true; // A61: dev conveniences (whole-repo static, verbose)
     // A101 rider: WARN, don't fail. A cloud-init unit can then carry a future
@@ -1752,6 +1846,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // box hit); a typo'd flag no-ops and shows up on the boot `caps:` line below.
     else { console.error(`WARN: unknown argument ${a} — ignored; see --help`); }
   }
+  // metrics-v1 §6: the CLI (a real host) persists by default beside the runtime
+  // state; direct startServer() callers (tests) stay in-memory unless they ask.
+  if (opts.metricsFile === undefined) opts.metricsFile = path.join(REPO, 'metrics.json');
   // Crash resilience: install fatal-error handlers EARLY (deps filled after boot,
   // read by reference at crash-time) so even a boot crash writes a crashdump.
   const crashDeps = {};

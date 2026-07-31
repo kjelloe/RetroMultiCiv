@@ -332,6 +332,16 @@ Done: **https://yourdomain.example/client/?server=1** is a public game.
 | Instant `?age=` starts | `node tools/bake-age-snapshots.js` on your DEV machine before deploying (a build step — the snapshots are gitignored and ship via rsync; without them `?age=` falls back to live fast-forward, which is correct but slower) |
 | Back up games   | `cp -a /opt/multiciv/saves ~/multiciv-saves-$(date +%F)` |
 | Renew cert test | `sudo certbot renew --dry-run`                  |
+| Usage counters  | `curl -s localhost:8123/metrics` (over SSH)     |
+
+**Usage metrics** (`specs/metrics-v1.md`): cumulative counts only — page loads,
+games created/resumed/completed/abandoned, turns, joins/reclaims, peaks. No
+IPs, no names, no per-request log. `GET /metrics` answers **loopback only**
+(a remote request gets a plain 404); reading it over SSH as above is the whole
+intended workflow. `--metrics-public` opens it up if you really want that;
+`--metrics-file PATH` moves the persistence file (default `metrics.json` in
+the app root, written at most once a minute). The master index serves the same
+endpoint with its own counters (announces, listings, list requests).
 
 `saves/*.json` carry seat tokens and game codes — they are already off the
 wire (the hardened static whitelist never serves `saves/`), so treat that
