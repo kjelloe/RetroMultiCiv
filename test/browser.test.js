@@ -45,19 +45,32 @@ function startServer() {
   });
 }
 
-function dumpDom(chromium, url) {
+function dumpDomOnce(chromium, url, budgetMs) {
   return new Promise((resolve, reject) => {
     const proc = spawn(chromium, [
       '--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
-      '--window-size=800,600', '--virtual-time-budget=8000', '--timeout=25000',
-      '--dump-dom', url
+      '--window-size=800,600', `--virtual-time-budget=${budgetMs}`,
+      `--timeout=${budgetMs * 3}`, '--dump-dom', url
     ], { stdio: ['ignore', 'pipe', 'ignore'] });
     let out = '';
     proc.stdout.on('data', d => { out += d; });
     proc.on('error', reject);
     proc.on('close', () => resolve(out));
-    setTimeout(() => proc.kill('SIGKILL'), 30000).unref();
+    setTimeout(() => proc.kill('SIGKILL'), budgetMs * 4).unref();
   });
+}
+
+// A SwiftShader Chromium boot competing with the rest of the suite can miss its
+// budget and return an EMPTY dump — measured 2026-07-31: these tests pass 19/19
+// alone and failed in-suite with "browser produced no DOM". An empty dump is
+// unambiguously a boot failure (never a wrong assertion), so ONE retry on a
+// doubled budget is contention tolerance, not flake-hiding: a genuinely broken
+// client still returns a DOM and still fails its assertions. The suite runner
+// also caps concurrency now (debugging/t.sh) so this path is rarely reached.
+function dumpDom(chromium, url) {
+  return dumpDomOnce(chromium, url, 8000).then(out => (
+    out.length > 0 ? out : dumpDomOnce(chromium, url, 16000)
+  ));
 }
 
 // A served-by-server page joins over a real WebSocket during boot. The shared

@@ -12,7 +12,18 @@ VERBOSE=0
 TARGETS=("$@")
 [ ${#TARGETS[@]} -eq 0 ] && TARGETS=(test/*.test.js)
 
-OUT=$(node --test --test-reporter=tap "${TARGETS[@]}" 2>&1)
+# CONCURRENCY CAP (2026-07-31): node --test defaults to one worker per core, and
+# the density-era suite has files that each build 400-turn worlds — 16 of those
+# in parallel starved the headless-browser boots ("browser produced no DOM") while
+# every one of those tests passes alone. Cap the FULL-suite run so the reds the
+# suite reports are real; a targeted run (few files) keeps the default.
+CONC=""
+if [ ${#TARGETS[@]} -gt 8 ]; then
+  CORES=$(nproc 2>/dev/null || echo 4)
+  CAP=$(( CORES / 3 )); [ "$CAP" -lt 2 ] && CAP=2; [ "$CAP" -gt 6 ] && CAP=6
+  CONC="--test-concurrency=$CAP"
+fi
+OUT=$(node --test $CONC --test-reporter=tap "${TARGETS[@]}" 2>&1)
 STATUS=$?
 
 if [ "$VERBOSE" = 1 ]; then
