@@ -137,7 +137,11 @@ function resumeSession(chromium, base, action) {
       '--window-size=800,600', '--user-data-dir=' + prof,
       `--remote-debugging-port=${port}`, `${base}/client/?e2e=1&seed=12345`
     ], { stdio: ['ignore', 'ignore', 'ignore'] });
-    const deadline = Date.now() + 35000;
+    // Budgets raised for SUITE runs (measured 2026-07-31: the onboarding session
+    // took 91.8s under full-suite load and its 35s deadline produced a false red).
+    // These assert BEHAVIOUR, never speed — a broken client still fails, it just
+    // is not raced by a busy box. debugging/t.sh also caps runner concurrency.
+    const deadline = Date.now() + 150000;
     let done = false;
     const finish = (err, val) => {
       if (done) return; done = true;
@@ -202,7 +206,11 @@ function onboardingSession(chromium, base) {
       '--window-size=800,600', '--user-data-dir=' + prof,
       `--remote-debugging-port=${port}`, 'about:blank'
     ], { stdio: ['ignore', 'ignore', 'ignore'] });
-    const deadline = Date.now() + 35000;
+    // Budgets raised for SUITE runs (measured 2026-07-31: the onboarding session
+    // took 91.8s under full-suite load and its 35s deadline produced a false red).
+    // These assert BEHAVIOUR, never speed — a broken client still fails, it just
+    // is not raced by a busy box. debugging/t.sh also caps runner concurrency.
+    const deadline = Date.now() + 150000;
     let done = false;
     const finish = (err, val) => {
       if (done) return; done = true;
@@ -453,7 +461,7 @@ test('browser lobby: host → start → reload boots the game on the named seat'
       // A29 (VI.1): the status line reads "<Civ> (Kjell)" — the parenthesised
       // name is still the proof that the lobby's seating chart survived
       const dom = await dumpDomLive(chromium, url,
-        h => /turn 1 · 4000 BC · [^·]*\(Kjell\)/.test(h), 25000);
+        h => /turn 1 · 4000 BC · [^·]*\(Kjell\)/.test(h), 90000); // suite-load budget
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
       assert.match(dom, /turn 1 · 4000 BC · [^·]*\(Kjell\)/, 'the reloaded game runs on the lobby-named seat');
       assert.match(dom, /<canvas/, 'the renderer attached after the lobby reload');
@@ -718,7 +726,7 @@ test('browser LAN wait: rival at turn shows the waiting line, not the your-turn 
     const gs = await startGameServer({ seed: 4242, civs: 2, humans: 2, size: 'xsmall', autosave: false });
     try {
       const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=4&civ=romans`;
-      const dom = await dumpDomLive(chromium, url, h => /is moving · \d+s/.test(h), 25000);
+      const dom = await dumpDomLive(chromium, url, h => /is moving · \d+s/.test(h), 90000); // suite-load budget
       const wait = dom.match(/⏳ ([^<]+) is moving · \d+s/);
       assert.ok(wait, 'the waiting line must appear once the rival is at turn');
       assert.strictEqual(wait[1], 'Player 2', 'it names the player we are waiting FOR');
