@@ -82,7 +82,27 @@ the box runs 0101)._
 
 ### B3. Novelty map shapes — a gameplay-quality call, WAITING ON MEASUREMENTS
 
-- [ ] **B3. If the AI plays the water-heavy new shapes badly, ship or hold?**
+- [ ] **B3. Ship the water-heavy shapes, or hold them? — MEASURED, awaiting your call.**
+  **The numbers (7 civs, canonical):** ring 539 cities / 71.8% coastal / 59
+  transport hulls / **0 overseas cities**; inland-sea 582 / 68.0% / 57 / **0**;
+  oval 617 / 64.7% / 49 / **0**. At 400 turns ring is SATURATED (~117 cities per
+  game against ~112 of capacity) and the zero still holds. The control that makes
+  this trustworthy: **archipelago reports 5 overseas cities on the same probe**,
+  so the metric fires when the behaviour happens — the zeros are real, not an
+  instrument artefact.
+  **What it means:** the shapes are playable, not broken (hundreds of cities, no
+  invariant breaches, navies built) — but the AI treats them as land maps and
+  never contests the far side. On archipelago a civ is boxed in from turn one so
+  the naval path triggers; on a ring each civ owns a generous arc, always has a
+  local site, and halts at saturation instead of looking across the water.
+  **My recommendation: SHIP** them as the labelled "Novelty shapes" they already
+  are (opt-in, never the default), and file "re-evaluate overseas expansion when
+  the home landmass saturates" as a v1.x doctrine item with its own measured
+  window. Holding them back would cost the human-facing variety that is the point
+  of W7, to fix an opponent-strength gap on three opt-in map types; rushing the
+  AI fix at RC would put an unmeasured doctrine change into the release.
+  _(Original framing below.)_
+- [ ] ~~**B3-original. If the AI plays the water-heavy new shapes badly, ship or hold?**~~
   W7 added five map shapes (fractal, oval, ring, inland-sea, clover). The
   engine side is done and the shapes generate correctly; what is unproven is
   whether the AI *plays* ring and inland-sea, whose topology forces overseas
