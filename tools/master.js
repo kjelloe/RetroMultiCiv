@@ -21,6 +21,10 @@
 // not). Dead listings were the old master lists' curse; they die at the door.
 // No heartbeat for TTL_MS → delisted by the sweep.
 const http = require('http');
+// metrics-v1 (specs/metrics-v1.md §5): counts only. The shared counter store is
+// CJS (server/metrics.cjs) precisely so this zero-dependency CJS script can
+// require it while the ESM game server imports the same file.
+const { createMetrics, isLoopback } = require('../server/metrics.cjs');
 
 const TTL_MS = 3 * 60 * 1000;        // no heartbeat this long -> delisted
 const REPROBE_MS = 5 * 60 * 1000;    // periodic revalidation cadence
@@ -79,11 +83,29 @@ function createMaster(opts) {
   const registry = {};   // "host:port" -> entry
   const lastAnnounceByIp = {};
 
+  // metrics-v1 §5: counters only. distinct host:port keys live in THIS set —
+  // persisted only as a size, never as members (privacy contract).
+  const metrics = createMetrics({
+    now, defaults: {
+      announces: 0, announces_rejected: 0, distinct_servers: 0,
+      servers_listed: 0, list_requests: 0, stale_evictions: 0
+    }
+  });
+  const distinctSeen = new Set();
+  if (opts.metricsFile) metrics.load(opts.metricsFile);
+  const metricsTimer = setInterval(() => metrics.maybeSave(), 60000); // §6: ≤1 write/60s
+  if (metricsTimer.unref) metricsTimer.unref();
+  const listedCount = () => Object.keys(registry).filter(k => registry[k].listed).length;
+
   function sweep(t) {
     const cut = (t !== undefined ? t : now()) - TTL_MS;
     for (const key of Object.keys(registry)) {
-      if (registry[key].lastSeen < cut) delete registry[key];
+      if (registry[key].lastSeen < cut) {
+        delete registry[key];
+        metrics.bump('stale_evictions'); // §5: dropped for missed heartbeats
+      }
     }
+    metrics.set('servers_listed', listedCount());
   }
 
   async function handleAnnounce(body, ip) {
@@ -93,17 +115,24 @@ function createMaster(opts) {
     }
     lastAnnounceByIp[ip] = t;
     let a;
-    try { a = JSON.parse(body); } catch (e) { return { status: 400, out: { ok: false, reason: 'badJson' } }; }
+    try { a = JSON.parse(body); } catch (e) {
+      metrics.bump('announces_rejected'); // §5: the misconfiguration signal
+      return { status: 400, out: { ok: false, reason: 'badJson' } };
+    }
     if (typeof a.host !== 'string' || a.host === '' || !Number.isInteger(a.port)) {
+      metrics.bump('announces_rejected');
       return { status: 400, out: { ok: false, reason: 'badAddress' } };
     }
     // the anti-relay guard runs BEFORE any probe (opts.allowPrivate is the
     // local test harness's escape hatch — never set in a deployed master)
     if (!opts.allowPrivate && !isPublicAddress(a.host)) {
+      metrics.bump('announces_rejected'); // held off-list = an address misconfiguration
       return { status: 200, out: { ok: true, listed: false,
         reason: 'not a publicly routable address — the index only lists public hosts' } };
     }
     const key = `${a.host}:${a.port}`;
+    metrics.bump('announces'); // §5: an accepted announce (probe outcome aside)
+    if (!distinctSeen.has(key)) { distinctSeen.add(key); metrics.bump('distinct_servers'); }
     const prior = registry[key];
     const entry = {
       name: String(a.name || key).slice(0, MAX_NAME),
@@ -127,6 +156,7 @@ function createMaster(opts) {
           'unreachable from the master — check port forwarding / firewall';
       }
     }
+    metrics.set('servers_listed', listedCount()); // §5 gauge: entries currently listed
     return { status: 200, out: { ok: true, listed: entry.listed, reason: entry.reason || undefined } };
   }
 
@@ -171,8 +201,17 @@ function createMaster(opts) {
       });
       return;
     }
-    if (req.method === 'GET' && req.url === '/servers') { reply(200, listServers(), true); return; }
+    if (req.method === 'GET' && req.url === '/servers') {
+      metrics.bump('list_requests'); // §5: the "find game" demand signal
+      reply(200, listServers(), true); return;
+    }
     if (req.method === 'GET' && req.url === '/healthz') { reply(200, { ok: true }); return; }
+    // metrics-v1 §3: loopback-only unless --metrics-public; a remote request
+    // gets the same 404 an unknown route gets (the endpoint is not advertised).
+    if (req.method === 'GET' && req.url === '/metrics'
+        && (opts.metricsPublic === true || isLoopback(req.socket && req.socket.remoteAddress))) {
+      reply(200, metrics.snapshot()); return;
+    }
     reply(404, { ok: false, reason: 'noSuchRoute' });
   });
 
@@ -180,12 +219,14 @@ function createMaster(opts) {
   if (sweeper.unref) sweeper.unref();
 
   return {
-    server, registry, sweep,
+    server, registry, sweep, metrics, // metrics-v1: instance exposed for tests/ops
     listen(port, host) {
       return new Promise(resolve => server.listen(port || 0, host || '127.0.0.1', () => resolve(server.address().port)));
     },
     close() {
       clearInterval(sweeper);
+      clearInterval(metricsTimer); // metrics-v1 §6
+      if (opts.metricsFile) metrics.save(); // the one graceful-shutdown write
       return new Promise(resolve => server.close(resolve));
     }
   };
@@ -199,7 +240,13 @@ if (require.main === module) {
   // proxy / firewall (#1894), so a flushed ufw doesn't leave :8200 world-open.
   const hostArg = process.argv.indexOf('--host');
   const host = hostArg !== -1 ? process.argv[hostArg + 1] : '0.0.0.0';
-  createMaster().listen(port, host).then(p =>
+  // metrics-v1: the master has no runtime-state dir, so its default persistence
+  // lands beside the process cwd under a DISTINCT name (a game server run from
+  // the same directory must not collide on metrics.json).
+  const mfArg = process.argv.indexOf('--metrics-file');
+  const metricsFile = mfArg !== -1 ? process.argv[mfArg + 1] : 'master-metrics.json';
+  const metricsPublic = process.argv.includes('--metrics-public');
+  createMaster({ metricsFile, metricsPublic }).listen(port, host).then(p =>
     console.log(`master index listening on ${host}:${p} — POST /announce · GET /servers`));
 }
 
