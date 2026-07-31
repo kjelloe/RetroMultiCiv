@@ -82,7 +82,7 @@ the box runs 0101)._
 
 ### B3. Novelty map shapes — a gameplay-quality call, WAITING ON MEASUREMENTS
 
-- [ ] **B3. Ship the water-heavy shapes, or hold them? — MEASURED, awaiting your call.**
+- [x] **B3. RULED 2026-07-31 — SHIP.** The novelty shapes go into v1.0 as the labelled opt-in group; the AI gap is filed as a v1.x doctrine item (`specs/unit-doctrine-v1x.md` §8, acceptance pinned to the probe's overseas-cities count, not a hash). Evidence that produced the ruling:
   **The numbers (7 civs, canonical):** ring 539 cities / 71.8% coastal / 59
   transport hulls / **0 overseas cities**; inland-sea 582 / 68.0% / 57 / **0**;
   oval 617 / 64.7% / 49 / **0**. At 400 turns ring is SATURATED (~117 cities per
