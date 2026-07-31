@@ -182,3 +182,52 @@ lines. `e8323a0` + `6500ac2` carry the re-record pin edits; `6b4f03c` restores
 `data/rules.json` to its compact formatting after a JSON re-serializer
 exploded the whole file (content deep-compared byte-equal; maptype pins
 unmoved).
+
+## Naval acceptance — measured verdict (2026-07-31)
+
+The contract asked whether the AI *plays* the water-heavy shapes. Direct counts,
+`debugging/probe-mapshape-naval.js`, 7 civs, canonical config:
+
+| shape | games | cities | coastal | transport hulls alive | **overseas cities** |
+|---|---|---|---|---|---|
+| ring | 5 × 200t | 539 | 71.8% | 59 | **0** |
+| inland-sea | 5 × 200t | 582 | 68.0% | 57 | **0** |
+| oval | 5 × 200t | 617 | 64.7% | 49 | **0** |
+| ring | 3 × 400t | 352 | 71.3% | 59 | **0** |
+| **archipelago (control)** | 3 × 400t | 217 | 88.0% | 35 | **5** |
+
+**Reading the zeros honestly took three passes, and the first two were wrong.**
+
+1. First reading — "the AI builds a navy and never crosses" — outran the
+   evidence.
+2. Second — "it simply never *needed* to; the land is spacious" — was testable,
+   so I tested it: ring holds ~1116 land tiles (≈112 cities at normal spacing)
+   and the 400-turn run founded **117 per game**. The landmass is SATURATED and
+   the zero holds. Expansion adds ~9 cities per game between t200 and t400: the
+   AI stops expanding rather than crossing.
+3. Third — "maybe the probe cannot detect a crossing at all" — is why the
+   ARCHIPELAGO CONTROL matters. It reports 5 overseas cities on the same
+   instrument, so the metric fires when the behaviour happens. The zeros are
+   real and specific to these shapes.
+
+**Why:** on archipelago a civ is boxed in from turn one, so the naval path
+(stranded settler → carrier ferry → overseas site) triggers early and the
+acceptance passed 25/25. On ring/inland-sea each civ owns a generous arc, always
+has a *local* site, and never enters that path — then simply halts at saturation
+instead of re-evaluating across the water. Same for oval, where a single
+landmass makes the zero partly expected.
+
+**Assessment:** these shapes are PLAYABLE, not broken — hundreds of cities, no
+invariant breaches, navies built, 65–72% coastal cities. What the AI does not do
+is contest the far side. A human player gets the variety immediately; the AI is
+simply a weaker opponent on the water half of these maps.
+
+**Recommendation (the user rules — human-workitems B3):** SHIP them as the
+labelled "Novelty shapes" they already are (opt-in, never the default), and file
+"re-evaluate overseas expansion when the home landmass saturates" as a v1.x
+doctrine item. Rationale: the fix is an AI behaviour change that deserves its own
+measured window with its own coverage proof, and rushing it at RC would put an
+unmeasured doctrine change into the release — exactly the trade W6 taught us not
+to make. Holding the shapes back instead would cost the human-facing variety
+that is the whole point of W7, to fix an opponent-strength gap on three opt-in
+map types.
