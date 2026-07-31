@@ -57,11 +57,24 @@ test('N3: bestSeaUnit — earliest ship once its tech is known, null before', as
   assert.strictEqual(ai.bestSeaUnit({ techs: ['map-making'] }, RULESET), 'trireme', 'map-making unlocks the trireme');
 });
 
-test('N3: a coastal naval civ with a land core builds a ship (above buildings)', async () => {
+// W6 slice-3 INTERACTION, found 2026-07-31 (see the pair of tests below).
+// A high-food / low-shield city now takes the SPAWNER role, which grants one
+// extra settler of headroom — and that settler outranks the naval slot. The
+// original fixture city (pop 2, 0 shields, all grassland) is exactly a spawner,
+// so it began building settlers instead of its first hull. That is the ruled
+// priority (expansion before doctrine, W8 §"EXPANSION KEEPS PRIORITY"), not a
+// naval defect: real games still build and use ships (the W7 acceptance probe
+// counts 35-38 hulls and 5 overseas cities on archipelago). The contract that
+// must stay guarded is that a naval civ DOES reach its ship — so N3 now pins
+// both halves explicitly instead of one fixture silently covering both.
+test('N3: a coastal naval civ builds a ship above buildings (omit-safe: no cityRoles)', async () => {
   const ai = await load();
   // 3 land militia (the land core, one garrisons the city) + 2 settlers (so the
   // settler target is met); monarchy + map-making known but NO attacker tech ->
   // the want-decision falls through walls/attacker to the naval slot.
+  // Asserted with cityRoles ABSENT, which is both the pre-W6 contract and the
+  // omit-safe guarantee every W6 slice claims: knobs absent => legacy behaviour.
+  // The WITH-roles behaviour is pinned by the pair test below.
   const units = [
     { id: 'u1', type: 'militia', x: 5, y: 5 },
     { id: 'u2', type: 'militia', x: 4, y: 5 },
@@ -70,10 +83,37 @@ test('N3: a coastal naval civ with a land core builds a ship (above buildings)',
     { id: 'u5', type: 'settlers', x: 3, y: 4 }
   ];
   const st = navalState(seaMap(14, 12, 6), 5, units, ['monarchy', 'map-making']);
-  const cmd = ai.pickCommand(st, 'p1', RULESET, {});
+  const cmd = ai.pickCommand(st, 'p1', withRules({ cityRoles: undefined }), {});
   assert.strictEqual(cmd.type, 'setProduction', 'the coastal city sets production');
   assert.strictEqual(cmd.cityId, 'c1');
   assert.deepStrictEqual(cmd.item, { kind: 'unit', id: 'trireme' }, 'it builds the earliest ship');
+});
+
+test('N3 x slice-3: a SPAWNER coastal city expands first, then builds its ship', async () => {
+  const ai = await load();
+  const units = [
+    { id: 'u1', type: 'militia', x: 5, y: 5 },
+    { id: 'u2', type: 'militia', x: 4, y: 5 },
+    { id: 'u3', type: 'militia', x: 4, y: 4 },
+    { id: 'u4', type: 'settlers', x: 3, y: 5 },
+    { id: 'u5', type: 'settlers', x: 3, y: 4 }
+  ];
+  // the ORIGINAL fixture shape (0 shields) = a spawner: the extra settler wins
+  const spawner = navalState(seaMap(14, 12, 6), 5, units, ['monarchy', 'map-making']);
+  const first = ai.pickCommand(spawner, 'p1', RULESET, {});
+  assert.deepStrictEqual(first.item, { kind: 'unit', id: 'settlers' },
+    'the spawner role expands first — expansion outranks doctrine (ruled)');
+
+  // once the settler headroom is used up, the SAME city reaches its hull: this is
+  // the half that must never regress — a naval civ that never builds a ship is a
+  // broken civ, and the W7 acceptance probe is the in-play counterpart.
+  const after = navalState(seaMap(14, 12, 6), 5, units.concat([
+    { id: 'u6', type: 'settlers', x: 2, y: 5 },
+    { id: 'u7', type: 'settlers', x: 2, y: 4 }
+  ]), ['monarchy', 'map-making']);
+  const later = ai.pickCommand(after, 'p1', RULESET, {});
+  assert.deepStrictEqual(later.item, { kind: 'unit', id: 'trireme' },
+    'settler headroom spent -> the naval slot fires');
 });
 
 test('N3: a landlocked civ never builds a ship', async () => {
