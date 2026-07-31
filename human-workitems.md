@@ -117,6 +117,13 @@ the box runs 0101)._
 
 ### B4. Usage metrics — RULED IN for v1.0, building now
 
+- [x] **B4 DELIVERED (2026-08-01):** built by the hardening lane, reviewer PASS on
+  code + placement + an independent privacy audit, merged to dev_night. One
+  architect call on top: the counters used `| 0` (int32), which WRAPS NEGATIVE at
+  2.1 billion rather than saturating — replaced with safe-integer arithmetic, since
+  a negative page-load count would be worse than a stalled one. Read it with
+  `curl -s localhost:8123/metrics`. Awaiting only a clean-clone suite confirmation
+  (queued to the sim-runner with the RC sweep).
 - [x] **B4 ruled (2026-07-31):** the hosted services record no usage data today
   — `/healthz` gives point-in-time gauges only and the master index has no
   counters at all, so "did anyone play, and did any game finish?" is currently

@@ -128,8 +128,8 @@
   <div class="sec-head"><h2>B4. Usage metrics</h2><span class="tag">ruled in for v1.0 — building</span></div>
   <div class="bar" style="background: var(--play);"></div>
   <div class="item"><span class="box">[x]</span>
-    <div class="t">Ruled 2026-07-31: v1.0 scope, localhost-private</div>
-    <div class="d">The hosted services record no usage data today — <code>/healthz</code> is point-in-time gauges only and the master index has no counters at all, so "did anyone play, and did any game finish?" is unanswerable. Designed in <code>specs/metrics-v1.md</code> and handed to the hardening lane: page loads, games created/completed/abandoned, turns, joins and seat reclaims, plus announces and list requests on the index. Counts only — no IPs, user agents, tokens, names or per-request logs. You read it over SSH with <code>curl -s localhost:8123/metrics</code>.</div>
+    <div class="t"><strong>DELIVERED 2026-08-01</strong> — built, reviewed, merged (ruled 2026-07-31: v1.0 scope, localhost-private)</div>
+    <div class="d">The hosted services record no usage data today — <code>/healthz</code> is point-in-time gauges only and the master index has no counters at all, so "did anyone play, and did any game finish?" is unanswerable. Designed in <code>specs/metrics-v1.md</code> and handed to the hardening lane: page loads, games created/completed/abandoned, turns, joins and seat reclaims, plus announces and list requests on the index. Counts only — no IPs, user agents, tokens, names or per-request logs. You read it over SSH with <code>curl -s localhost:8123/metrics</code>. <strong>Status:</strong> hardening built it, the reviewer passed code + placement + an independent privacy audit, and it is merged. One architect call on top: the counters used int32 coercion, which wraps NEGATIVE at 2.1 billion rather than saturating — replaced with safe-integer arithmetic. Awaiting only a clean-clone suite confirmation, queued with the RC sweep.</div>
   </div>
 </section>
 

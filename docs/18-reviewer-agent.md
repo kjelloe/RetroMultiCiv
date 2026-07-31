@@ -62,6 +62,32 @@ drift a design can carry before it is ever built.
   tag with the gap stated rather than stall the merge candidate on an
   environment problem.
 
+## Classifying a RED (added 2026-08-01 after a four-window miss)
+
+A reviewer's core job is to not wave a red through. One was waved through four
+times — "N3: a coastal naval civ builds a ship" was called a flake in four
+consecutive windows while being a real regression from W6 slice-3. The cause was
+mundane and entirely preventable: the isolation runs were of `test/ai.test.js`
+(inferred from the test's subject line) while the test actually lives in
+`test/naval-probe.test.js`. A wrong-file pass was read as proof of a flake.
+
+Rules, adopted by the lane and binding here:
+
+1. **Find the file mechanically, never by inference:**
+   `grep -rl "<exact subtest name>" test/*.test.js`. A subject line that sounds
+   like build priority may live in the naval probe.
+2. **A red that RECURS across windows is a REGRESSION signal, not a flake
+   signal.** Scrutiny escalates with each repeat; it never decays into
+   dismissal. Four identical reds should trigger "why does this keep coming
+   back" long before the fourth.
+3. **Isolation proves a flake only if it is the RIGHT test AND it passes across
+   repeats.** A single pass of the wrong file proves nothing.
+4. **"Known flake" is a claim requiring evidence per RUN**, not a label a test
+   inherits from a previous verdict. Quote the run.
+5. Prefer FIXING the contention to living with it — a genuine environmental red
+   (an empty browser dump under load, a deadline shorter than a loaded box needs)
+   has a source, and the source is usually a budget or a concurrency setting.
+
 ## Per-marker procedure
 
 For each `marker-NNNN` the architect declares a merge candidate:
