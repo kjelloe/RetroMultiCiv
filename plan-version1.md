@@ -284,6 +284,27 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | **✅ W7 map shapes SHIPPED (0110)** — nine types incl. clover with balanced starts; naval acceptance for the water-heavy shapes rides after (human-workitems B3) (`specs/map-shapes-w7.md`; the browser picker is already data-driven from `rules.mapTypes`, so the client half is ~zero); conquest renderer-brighten banked v1.x; guards G1–G5 + A49 5/5 all complete |
 
+## Where v1.0 actually stands (2026-08-01)
+
+**No engine work remains.** W1–W8 are built, gated and tagged (marker-0111); the
+full suite is 1027/1027 with zero failures; `GAME_VERSION` is already `1.0.0`.
+What is left is the RC sequence and two lanes finishing non-blocking work:
+
+| remaining | owner | blocking 1.0? |
+|---|---|---|
+| RC marker + `reports/v1-rc.md` evidence digest (drafted) | architect | the RC itself |
+| A fresh canonical 25-seed sweep banked at the RC marker | sim-runner | precondition 3 |
+| Clean-clone at the RC marker (small delta on 0111) | reviewer | precondition 3 |
+| Usage metrics (`specs/metrics-v1.md`, localhost-private) | hardening | no — ships when ready |
+| Merge to main · `v1.0.0` tag · redeploy · `PUBLISH_GHCR` flip | **user** | yes, by design |
+| Roblox Studio sitting (checklist ready, 31 headless gates cleared) | **user** | no — Roblox is a v1.x point release |
+| Professional trademark search on the title | **user** | release-gating judgement |
+
+Deliberately deferred, with rationale recorded: the AI's overseas-expansion gap
+(`specs/unit-doctrine-v1x.md` §8 — measured, opt-in shapes ship anyway), nukes
+and counter-espionage, toroidal wrap, and the Roblox parity remainder. The full
+list is `plan-version2.md`.
+
 ## Reading the tree — the three facts that matter
 
 1. **The engine program now runs W6 → W7 → W8 (user scope ruling

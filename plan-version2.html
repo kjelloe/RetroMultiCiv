@@ -71,7 +71,7 @@
   <strong>An item leaves this file only by a user ruling.</strong> Provenance tags follow the civ-mixing ruling:
   <code>Civ1-authentic</code> / <code>Civ2-shape</code> / <code>Civ4-shape</code> / <code>original</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-27</strong> (2nd) — TWO items LEFT the shelf by ruling: map shapes → v1 (W7, toroidal stays) · econ pair → v1 (W8, nukes stay) · GHCR → RC checklist 4b</span>
+    <span class="chip">Updated: <strong>2026-08-01</strong> — the v1 engine programme is COMPLETE (W1–W8, marker-0111), so this shelf is now the definitive list of what v1.0 deliberately does not do. Three items ARRIVED, all from measurement; none left.</span>
     <span class="chip">The 1.0 tree lives in <strong>plan-version1.html</strong></span>
   </div>
 </header>
@@ -160,6 +160,36 @@
     • Scenario/custom-game editor beyond <code>?debug=1</code> spawn tooling.<br>
     • Hall-of-fame / persistent score ledger across games on a host.<br>
     • Spectator quality-of-life (timeline scrubbing on live games — replay theater exists for recordings).</div></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Overseas expansion on saturation</h2><span class="tag">arrived 2026-07-31 — measured, user-ruled</span></div>
+  <div class="bar" style="background: var(--play);"></div>
+  <div class="item"><div class="t">When a civ's home landmass is full, it should look across the water instead of halting</div>
+    <div class="d"><strong>Measured, not suspected.</strong> ring / inland-sea / oval report <strong>0 overseas cities</strong> at 200t and at 400t with ring saturated (~117 cities against ~112 of capacity) — and <strong>continents, the shipped default map, behaves identically</strong>. Archipelago is the outlier at 5, which is the control proving the probe fires at all. Root cause is a <em>trigger</em> gap: the naval settlement route keys on a STRANDED settler, which a generous home arc never produces — the same shape as W8's diplomat intent, a working mechanism idle because the brain never asks. Acceptance is pinned to the probe's overseas-cities count rising above zero on ring AND continents with the control still firing and floors unmoved — explicitly not to a moved hash. Not a v1.0 blocker: the affected shapes are opt-in, the gap is opponent strength rather than correctness, and an unmeasured doctrine change does not belong in an RC. Spec: <code>specs/unit-doctrine-v1x.md</code> §8.</div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Roblox parity remainder</h2><span class="tag">v1.x point release (standing ruling)</span></div>
+  <div class="bar" style="background: var(--play);"></div>
+  <div class="item"><div class="t">F1 — city naming diverges</div>
+    <div class="d">The browser asks for a city name in a modal; Roblox's <code>doFound()</code> auto-names ("Colony N") with no rename surface. Ruled a v1.0 divergence (docs/13). For whoever builds it: the platform shape is a TextBox pre-filled with the auto-name plus a confirm button, focus released on close — and do <em>not</em> port the browser modal naively, because that modal had a touch overlay covering its own confirm button (fixed 2026-07-30), a trap harder to see where focus handling is less inspectable.</div>
+  </div>
+  <div class="item"><div class="t">D4–D6 diplomacy client surfaces</div>
+    <div class="d">The data layer is already twin-faithful; only the UI is deferred.</div>
+  </div>
+  <div class="item"><div class="t">Standing divergences, re-confirmed</div>
+    <div class="d">Build-queue per-item reorder/remove; lobby per-seat civ pick. Intentional/N-A: the Founder's-Record-shape endgame (Roblox has its own flow), join-share QR (no URLs on Roblox), mobile-web UX rows. The Studio sitting is user-gated; <code>roblox/PLAYTHROUGH-UI.md</code> is the 18-step checklist that makes it cheap, with 31 headless gates / 103 assertions already cleared.</div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Deliberately NOT on this shelf</h2><span class="tag">recorded so they are not re-raised</span></div>
+  <div class="bar" style="background: var(--do);"></div>
+  <div class="item"><div class="t">Three things that look like shelf items and are not</div>
+    <div class="d"><strong>Usage metrics</strong> — ruled INTO v1.0 (localhost-private, <code>specs/metrics-v1.md</code>): post-hoc metrics cannot describe a launch week, so it did not wait. <strong>The novelty map shapes</strong> — ruled SHIP for v1.0; only the AI's overseas gap above is deferred, not the shapes. <strong>GHCR prebuilt image</strong> — release-checklist step 4b, not a shelf item.</div>
+  </div>
 </section>
 
 <footer>

@@ -3,12 +3,14 @@
 _LIVING DOCUMENT, deliberately looser than `plan-version1.md`: an unordered
 holding list of everything explicitly designated post-1.0, so nothing is
 lost and nothing sneaks into the v1 critical path. An item leaves this file
-only by a user ruling. Last updated: 2026-07-27 (2nd pass — TWO items
-LEFT the shelf by user ruling: novelty map SHAPES → v1 as W7
-[toroidal wrap stays here] and the unit-doctrine ECON PAIR → v1 as W8
-[nukes + counter-espionage stay]; GHCR image → release-checklist step
-4b. Earlier same day: unit-doctrine section added; HTML twin
-`plan-version2.html` added)._
+only by a user ruling. Last updated: 2026-08-01 — **the v1 engine programme is
+COMPLETE (W1–W8 all tagged, marker-0111), so this shelf is now the definitive
+list of what v1.0 deliberately does NOT do.** Three items ARRIVED this pass, all
+from measurement rather than speculation: overseas expansion on saturation, the
+Roblox city-naming divergence, and the two v1.x items the W8 window spun off.
+Nothing left the shelf. Earlier: 2026-07-27 (2nd pass — novelty map SHAPES → v1
+as W7 [toroidal wrap stayed], unit-doctrine ECON PAIR → v1 as W8 [nukes +
+counter-espionage stayed]; GHCR image → release-checklist step 4b)._
 
 Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 `Civ2-shape` / `Civ4-shape` / `original`.
@@ -193,3 +195,52 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
   the aggressor's cities or large stacks. Near-unobservable before
   the marathon measurements land — **stays v1.x pending the marathon
   lane (re-confirmed 2026-07-27)**.
+- **Overseas expansion on saturation** (§8, ADDED 2026-07-31 by user ruling
+  after the W7 naval acceptance): when a civ's home landmass has no legal city
+  site left, it should re-evaluate expansion across water instead of simply
+  halting. MEASURED, not suspected — ring/inland-sea/oval report **0 overseas
+  cities** at 200t and at 400t with ring saturated (~117 cities against ~112 of
+  capacity), and **continents, the shipped DEFAULT map, behaves identically**;
+  archipelago is the outlier at 5, which is the control proving the probe fires.
+  Root cause is a TRIGGER gap: the naval settlement route keys on a STRANDED
+  settler, a condition a generous home arc never produces — the same shape as
+  W8's diplomat intent, a working mechanism idle because the brain never asks.
+  **Acceptance is pinned to `debugging/probe-mapshape-naval.js` overseas-cities
+  rising above zero on ring AND continents, with the archipelago control still
+  firing and the canonical floors unmoved — explicitly NOT to a moved hash.**
+  Not a v1.0 blocker by ruling: the affected shapes are opt-in and non-default,
+  the gap is opponent strength rather than correctness, and an unmeasured
+  doctrine change does not belong in a release candidate.
+
+## Roblox parity remainder (v1.x point release, ruled — docs/13)
+
+Roblox ships browser-first: the v1.0 gate is the browser client, and the Roblox
+pass is a v1.x point release by standing ruling. What is knowingly outstanding:
+
+- **F1 — city naming** (found 2026-07-30 by the UI-playthrough prep): the
+  browser asks for a city name in a modal; the Roblox client's `doFound()`
+  auto-names ("Colony N") with no rename surface. Recorded in docs/13 as a ruled
+  v1.0 divergence. Two notes for whoever builds it: the platform shape is a
+  TextBox pre-filled with the auto-name plus a confirm button with focus
+  RELEASED on close, and do NOT port the browser modal naively — that modal had
+  a touch overlay covering its own confirm button (fixed 2026-07-30), a trap
+  harder to see on a platform where focus handling is less inspectable.
+- **D4–D6 diplomacy client surfaces** — the data layer is already twin-faithful;
+  only the UI is deferred (post-1.0, ruled).
+- **Standing v1 divergences, re-confirmed**: build-queue per-item
+  reorder/remove; lobby per-seat civ pick. **Intentional/N-A**: the
+  Founder's-Record-shape endgame (Roblox has its own user-directed flow),
+  join-share QR (no URLs on Roblox), mobile-web UX rows (platform equivalents).
+- The Studio sitting itself is user-gated; `roblox/PLAYTHROUGH-UI.md` is the
+  18-step checklist written to make it cheap, with the headless clears (31
+  gates / 103 assertions) already run so the sitting spends time only on
+  presentation and wiring.
+
+## Deliberately NOT on this shelf (recorded so they are not re-raised)
+
+- **Usage metrics** — ruled INTO v1.0 (2026-07-31), localhost-private;
+  `specs/metrics-v1.md`, built by the hardening lane. Post-hoc metrics cannot
+  describe a launch week, which is why it did not wait.
+- **The novelty map shapes themselves** — ruled SHIP for v1.0 (2026-07-31). Only
+  the AI's overseas-expansion gap above is deferred, not the shapes.
+- **GHCR prebuilt image** — release-checklist step 4b, not a shelf item.
