@@ -217,8 +217,20 @@ has a *local* site, and never enters that path — then simply halts at saturati
 instead of re-evaluating across the water. Same for oval, where a single
 landmass makes the zero partly expected.
 
-**Assessment:** these shapes are PLAYABLE, not broken — hundreds of cities, no
-invariant breaches, navies built, 65–72% coastal cities. What the AI does not do
+**Assessment:** these shapes are PLAYABLE, not broken — hundreds of cities,
+navies built, 65–72% coastal cities, and no GAME-CORRECTNESS invariant breach.
+
+**Correction to an earlier claim (2026-07-31).** The recommendation originally
+said "no invariant breaches" on the strength of the 200-turn runs. The 400-turn
+inland-sea run then breached on seed 2 at t231, so that claim was stated at more
+confidence than the evidence carried. Root-caused: it is the DIAGNOSTIC UNIT
+TRIPWIRE (`1006 units > 1000`), which `test/sim-driver.js` documents as a
+deliberately tight diagnostic cap — not a rules invariant. It is a known,
+pre-existing class that fires on dense 7-civ games (the canonical sweeps hit it
+on seeds 17/19/25 at identical rates on pre-W7 SHAs, and marathon runs cross
+1000 units around t900 by design, which is why the cap is env-overridable).
+Nothing about it is map-shape specific, so the ruling stands — but the precise
+statement is "no game-correctness breach", not "no breaches". What the AI does not do
 is contest the far side. A human player gets the variety immediately; the AI is
 simply a weaker opponent on the water half of these maps.
 
