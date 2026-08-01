@@ -244,7 +244,13 @@ if (require.main === module) {
   // lands beside the process cwd under a DISTINCT name (a game server run from
   // the same directory must not collide on metrics.json).
   const mfArg = process.argv.indexOf('--metrics-file');
-  const metricsFile = mfArg !== -1 ? process.argv[mfArg + 1] : 'master-metrics.json';
+  // DEFAULT IS SCRIPT-RELATIVE, not cwd-relative (fixed 2026-08-01 from a live
+  // deploy): a hardened systemd unit runs with a read-only working directory, so
+  // a bare 'master-metrics.json' resolved to a path that cannot be written and
+  // persistence silently degraded to warn-once. The app directory beside this
+  // script is the one place the service is guaranteed to own.
+  const metricsFile = mfArg !== -1 ? process.argv[mfArg + 1]
+    : require('path').join(__dirname, '..', 'master-metrics.json');
   const metricsPublic = process.argv.includes('--metrics-public');
   createMaster({ metricsFile, metricsPublic }).listen(port, host).then(p =>
     console.log(`master index listening on ${host}:${p} — POST /announce · GET /servers`));

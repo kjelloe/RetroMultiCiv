@@ -120,7 +120,7 @@ $SSH "$DEPLOY" "
   fi
   # 2. do our ports still belong to us? a neighbour binding 8123 first turns our
   #    restart into a crash-loop that healthz alone reports as a dead server.
-  for p in 8123 8970; do
+  for p in 8123 8200; do
     owner=\$(sudo ss -ltnp 2>/dev/null | grep -w \":\$p\" | grep -oE 'users:\(\(\"[^\"]+' | head -1 | cut -d'\"' -f2)
     if [ -n \"\$owner\" ] && [ \"\$owner\" != 'node' ]; then
       echo \"    !! port \$p is held by '\$owner', not node — a neighbour may have taken it\"
@@ -172,7 +172,7 @@ $SSH "$DEPLOY" \
      sleep 3 && \
      systemctl is-active retromulticiv-game retromulticiv-master && \
      curl -fsS http://127.0.0.1:8123/healthz && echo ' <- game answering' && \
-     curl -fsS http://127.0.0.1:8970/servers >/dev/null && echo 'master answering'"
+     curl -fsS http://127.0.0.1:8200/servers >/dev/null && echo 'master answering'"
 
 # CONTENT CHECK: a half-finished rsync leaves a SERVING box on a mixed tree —
 # healthz still answers 200. Compare the ruleset the box actually holds.
