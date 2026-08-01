@@ -34,6 +34,16 @@ DEPLOY="<DEPLOY_USER>@<YOUR_DOMAIN>"
 APP="/opt/retromulticiv"
 SSH="ssh -p 2222"    # add -i ~/.ssh/<your-key> if it isn't your default key
 
+# ---- one SSH connection for the whole deploy --------------------------------
+# Without this every step opens its own connection: three passphrase prompts on a
+# key without an agent, three chances to be dropped mid-deploy, and three sshd
+# auth attempts in quick succession (which rate-limiting can refuse). ControlMaster
+# opens ONE connection, reuses it for every step, and closes it at the end.
+MUX_SOCK="${TMPDIR:-/tmp}/multiciv-deploy-%r@%h:%p"
+SSH="$SSH -o ControlMaster=auto -o ControlPath=$MUX_SOCK -o ControlPersist=300 -o ServerAliveInterval=30 -o ServerAliveCountMax=6"
+cleanup_mux() { ssh -O exit -o ControlPath="$MUX_SOCK" "$DEPLOY" 2>/dev/null || true; }
+trap cleanup_mux EXIT
+
 # ---- deploy provenance guard (what is about to become public) ---------------
 # This script deploys the WORKING TREE, not a tag: whatever is checked out here
 # goes to the public box. Print the provenance and stop for confirmation when it
@@ -113,6 +123,8 @@ $SSH "$DEPLOY" "
 
 echo "==> Syncing runtime code to $DEPLOY:$APP (allowlist)"
 rsync -av --no-owner --no-group \
+    --exclude 'data/custom-art' \
+    --exclude '*:Zone.Identifier' \
     --exclude 'data/wiki-extract' \
     --include '/client/***' \
     --include '/engine/***' \
@@ -129,6 +141,11 @@ rsync -av --no-owner --no-group \
     --exclude '*' \
     -e "$SSH" \
     ./ "$DEPLOY:$APP/"
+
+# One-time stale-artefact sweep: --exclude stops FUTURE pushes but does not
+# remove what earlier deploys already put on the box. Zone.Identifier files and
+# the local-only art directory are removed here; harmless to run every time.
+$SSH "$DEPLOY" "rm -rf $APP/data/custom-art; find $APP -name '*:Zone.Identifier' -delete 2>/dev/null || true"
 
 echo "==> Installing deps (ws) + restarting master + game"
 $SSH "$DEPLOY" \
