@@ -39,6 +39,7 @@ SSH="ssh -p 2222"    # add -i ~/.ssh/<your-key> if it isn't your default key
 # key without an agent, three chances to be dropped mid-deploy, and three sshd
 # auth attempts in quick succession (which rate-limiting can refuse). ControlMaster
 # opens ONE connection, reuses it for every step, and closes it at the end.
+SSH_SHOW="$SSH"   # the plain form, for the copy-pasteable hints at the end
 MUX_SOCK="${TMPDIR:-/tmp}/multiciv-deploy-%r@%h:%p"
 SSH="$SSH -o ControlMaster=auto -o ControlPath=$MUX_SOCK -o ControlPersist=300 -o ServerAliveInterval=30 -o ServerAliveCountMax=6"
 cleanup_mux() { ssh -O exit -o ControlPath="$MUX_SOCK" "$DEPLOY" 2>/dev/null || true; }
@@ -216,5 +217,5 @@ case "$PUB" in
 esac
 
 echo "==> Deployed + verified serving."
-echo "    Logs:        $SSH $DEPLOY 'journalctl -u retromulticiv-game -f'"
-echo "    Bug reports: $SSH $DEPLOY 'ls -t /opt/retromulticiv/bug-reports | head'   # newest player 🐞 reports"
+echo "    Logs:        $SSH_SHOW $DEPLOY 'journalctl -u retromulticiv-game -f'"
+echo "    Bug reports: $SSH_SHOW $DEPLOY 'ls -t /opt/retromulticiv/bug-reports | head'   # newest player 🐞 reports"
