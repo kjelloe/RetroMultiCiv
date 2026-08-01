@@ -371,6 +371,10 @@ very large game can slow every game on that process (single event loop).
   WRITES only (sanitized filenames, atomic, rotation-capped ≤ 100 files).
   Keep DIR OUTSIDE the served tree (`client/ engine/ shared/ data/`) and off
   any `--debug` host — the dir must never be reachable over HTTP (§8).
+- `GET /metrics` is loopback-only (remote = plain 404); read it over SSH
+  (`curl -s localhost:8123/metrics`). Do NOT type `--metrics-public` on a
+  public host unless you mean to publish the counters — they are counts only
+  (§9), but private-by-default is the posture.
 - Docker: the image runs hardened defaults; flags pass through
   `docker run IMAGE --flags`.
 
@@ -385,7 +389,7 @@ very large game can slow every game on that process (single event loop).
   unauthenticated claims — P5); (b) at any new dependency; (c) at 1.0; (d) if
   the residual single-loop/volumetric items are acted on.
 - Fired so far: 5(a) → §6 (2026-07-22); new-dep + RC → §7 (2026-07-24);
-  new-surfaces/1.0 → §8 (2026-07-25).
+  new-surfaces/1.0 → §8 (2026-07-25); metrics endpoint → §9 (2026-08-01).
 
 ## 6. Master-index-public re-assessment (2026-07-22 — trigger 5(a) fired)
 
@@ -538,3 +542,43 @@ RC-blocking. This satisfies the §5 "re-assess at 1.0" trigger for the
 current surface set.** Next re-run triggers: new dependency · residuals
 acted on · any new listener/POST sink.
 Next re-run triggers: new dependency · 1.0 RC · residual items acted on.
+
+## 9. Usage-metrics endpoint (2026-08-01 — trigger: new hosted surface)
+
+`GET /metrics` landed on BOTH hosted services (game server + master index;
+specs/metrics-v1.md, merged 2fcd961). One posture row; **no gap ranked.**
+
+- **Exposure: loopback-only by SOCKET address.** The guard reads
+  `req.socket.remoteAddress` (`server/metrics.cjs` `isLoopback`:
+  127.0.0.1 / ::1 / ::ffff:127.0.0.1), never a forwarded header — a
+  reverse-proxy hop is by definition not the operator's shell, so a
+  spoofed `X-Forwarded-For` cannot open it. A remote request falls
+  through to the same plain 404 any unknown path gets (game server: the
+  A61 static-whitelist 404; master: `noSuchRoute`) — the endpoint's
+  existence is not advertised (404, deliberately not 403).
+- **Opt-in publication only:** `--metrics-public` (typed per service) is
+  the sole way to serve it beyond loopback, and even then the payload is
+  the same counters-only snapshot. Off by default; documented in
+  how-to-host with `curl -s localhost:8123/metrics` over SSH as the
+  intended workflow.
+- **Payload: counts only — the privacy contract is enforced in code, not
+  policy.** Snapshot = counter names + `started_at`, nothing else; no
+  IPs, user agents, tokens, names, game ids, or seeds anywhere in the
+  store's state, schema, or persistence file. `page_loads` counts served
+  client entry documents without reading IP/UA; the master's
+  distinct-servers set persists as a SIZE only, never members. No
+  per-request log exists (totals, never rows). Independently re-audited
+  at the reviewer gate (#2887) and by the architect at merge (#2891).
+- **Availability posture:** a metrics failure can never affect serving —
+  load/save catch everything, warn once, carry on; writes are
+  dirty-flagged, at most one per 60 s, never in a request path; counters
+  clamp at MAX_SAFE_INTEGER (wrap-negative ruled out at merge). The
+  persistence file is gitignored, off the deploy allowlist, and never
+  HTTP-served.
+
+**Verdict: no new attack class and no ranked gap — the endpoint is
+disclosure-shaped by design and its disclosure is a counters-only JSON
+readable by whoever holds a shell on the box (who can already read
+everything). §4 quick-card already carries the operator line.** Next
+re-run triggers unchanged: new dependency · residuals acted on · any new
+listener/POST sink.
