@@ -134,8 +134,12 @@ environmental:
   concurrency cap, an empty-dump retry, and four real-time budgets raised after
   measuring an onboarding session at 91.8s against a 35s deadline).
 
-The reviewer lane owned the miss unprompted and the rules that prevent it are now
-binding in `docs/18`: find the failing test's file mechanically, treat a recurring
+The reviewer lane owned the miss unprompted — and the architect's share was
+larger than it looks: marker-0109 and marker-0110 both carry that flake
+characterisation **in the architect's own words**, repeated from the reviewer's
+verdict without ever running the file. A verdict adopted without checking is a
+verdict owned, and that is how an unverified claim reached three tagged markers.
+The rules that prevent it are now binding in `docs/18`: find the failing test's file mechanically, treat a recurring
 red as a regression signal, and require evidence per run before the word "flake"
 is used. **A release should be able to say what its green means.** This one can.
 
