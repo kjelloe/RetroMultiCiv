@@ -167,8 +167,13 @@ good under repetition beats a larger set that is merely present.
 - One track plays at a time; the era track changes when the player's most
   advanced technology crosses an era boundary. Change is **cross-faded over
   ~4 seconds**, never cut.
-- Music is a **separate volume channel** from effects, already in the options
-  panel, and can be set to zero without silencing gameplay cues.
+- **Players can turn music off** — this already ships: an options checkbox
+  (`soundMusic`, "Music") independent of the "Sound effects" checkbox, plus a
+  master volume slider. With music off, `vol('music')` returns 0 and no music is
+  scheduled at all, while every gameplay cue keeps working. Nothing in this
+  commission depends on the player leaving it on, and the option label will be
+  updated from "world-creation and title themes" to name the real soundtrack
+  when it lands.
 - Loops may be separated by a **configurable rest** (default a few seconds of
   silence) so a 4-minute track does not feel like a 4-minute treadmill.
 - Endings and stings **duck** the map layer rather than stopping it.

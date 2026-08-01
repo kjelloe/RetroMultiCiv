@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A World Begun — soundtrack brief</title>
+<style>
+  :root {
+    --ink: #1b1c1f; --dim: #5d626c; --line: #e2e0da; --bg: #faf8f4;
+    --card: #ffffff; --accent: #8a5a2b; --accent-soft: #f3ece2; --p1: #7a3e12;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #e8e6e1; --dim: #a3a7b0; --line: #33363c; --bg: #16171a;
+            --card: #1d1f23; --accent: #d8a35f; --accent-soft: #2a2620; --p1: #e8b877; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.62 Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 48px 22px 96px; }
+  header { border-bottom: 2px solid var(--accent); padding-bottom: 20px; margin-bottom: 32px; }
+  h1 { font-size: 2.1rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); font-size: 1.02rem; font-style: italic; margin: 0; }
+  h2 { font-size: 1.3rem; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 26px 0 8px; color: var(--accent); }
+  p, li { margin: 0 0 12px; }
+  ul, ol { padding-left: 22px; }
+  strong { font-weight: 700; }
+  code { font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; }
+  .lead { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    padding: 16px 18px; border-radius: 6px; margin: 0 0 28px; }
+  .rules { counter-reset: r; list-style: none; padding: 0; }
+  .rules li { counter-increment: r; position: relative; padding-left: 44px; margin-bottom: 16px; }
+  .rules li::before { content: counter(r); position: absolute; left: 0; top: 2px;
+    width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: grid; place-items: center; font: 700 15px/1 system-ui, sans-serif; }
+  .warn { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 6px;
+    padding: 14px 16px; margin: 18px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 22px;
+    font: 14px/1.5 system-ui, -apple-system, sans-serif; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); font-weight: 700; }
+  td.id { font-family: ui-monospace, monospace; font-size: 13px; white-space: nowrap; }
+  .p1 { color: var(--p1); font-weight: 700; }
+  .era { border-left: 3px solid var(--line); padding-left: 14px; margin: 0 0 14px; }
+  .era b { color: var(--accent); }
+  .checks { list-style: none; padding: 0; }
+  .checks li { padding-left: 28px; position: relative; margin-bottom: 10px; }
+  .checks li::before { content: "✓"; position: absolute; left: 4px; color: var(--accent); font-weight: 700; }
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--dim); font-size: 13px; }
+  @media print {
+    :root { --bg: #fff; --card: #fff; --ink: #000; --dim: #444; }
+    .wrap { max-width: none; padding: 0; } h2 { page-break-after: avoid; }
+    table, .era, .warn { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body><div class="wrap">
+
+<header>
+  <h1>A World Begun — soundtrack brief</h1>
+  <p class="sub">Loading / intro music and in-game map music · commissioning brief, August 2026</p>
+</header>
+
+<div class="lead">
+  <p><strong>The game:</strong> a turn-based 4X strategy game in the tradition of the 1991
+  original — you lead a civilization from 4000&nbsp;BC to the space age. It runs in a browser
+  and on Roblox.</p>
+  <p style="margin-bottom:0"><strong>The one fact that shapes everything below:</strong> a session
+  lasts <strong>one to six hours</strong>, mostly on a single screen, with the player thinking.
+  Not a shooter where music is heard in ninety-second bursts.</p>
+</div>
+
+<p>The game already has its sound <em>effects</em> — roughly thirty short cues for combat,
+building, discoveries and so on, generated in the browser. Those stay as they are and are not
+part of this commission. What we are commissioning is the <strong>music</strong>: the title
+theme and the music that plays over the map.</p>
+
+<h2>1. The three rules that matter more than any single track</h2>
+<ol class="rules">
+  <li><strong>It has to survive hour three.</strong> A theme that delights on loop 2 can be
+  unbearable on loop 40. Slow harmonic movement, long phrases, melody <em>suggested</em> rather
+  than hammered. If a hook is catchy enough to hum after one listen, it is probably too strong
+  for the map layer.</li>
+  <li><strong>It plays under thinking, not over action.</strong> The player is reading numbers,
+  comparing tiles, weighing a war. The music must sit below attention and stay there — sparse,
+  unhurried, with air in it.</li>
+  <li><strong>Silence is a legitimate instrument.</strong> We would rather have six excellent
+  minutes that breathe than twenty minutes of continuous sound. Tracks may rest; the engine can
+  leave gaps between loops.</li>
+</ol>
+
+<div class="warn"><strong>The anti-goal, stated plainly because it is the usual failure:</strong>
+no epic orchestral bombast on the map layer. Save intensity for the intro and the endings, where
+it is earned and heard once.</div>
+
+<h2>2. Track list</h2>
+<p>Lengths are the <em>composed</em> length before looping. <span class="p1">Priority&nbsp;1</span>
+is what we would commission first — the game is complete and better with only that set.</p>
+
+<h3>A. Front of game</h3>
+<table>
+  <tr><th>Track</th><th>Where it plays</th><th>Length</th><th>Loops</th><th>Priority</th></tr>
+  <tr><td class="id">intro-title</td><td>Title / setup screen, under a slowly rotating landscape</td><td>1:30–2:30</td><td>yes</td><td class="p1">1</td></tr>
+  <tr><td class="id">intro-first-launch</td><td>Optional — the very first launch only</td><td>0:45–1:15</td><td>no</td><td>3</td></tr>
+  <tr><td class="id">loading-age</td><td>A real wait: centuries being simulated before play starts</td><td>0:30–1:00</td><td>yes</td><td>2</td></tr>
+</table>
+
+<p><strong>intro-title is the one everybody hears.</strong> It is the first impression, and it
+plays while the player chooses a civilization, a map and a difficulty — so it may be heard for
+twenty seconds or four minutes. <b>Theme:</b> the beginning of things. Curiosity and open horizon
+rather than triumph; something that could be a folk melody from anywhere on Earth rather than one
+specific tradition. Restrained percussion, or none. It should feel like <em>before</em> history,
+not like a war about to start. This is the one track allowed a real, memorable melody — it is
+heard at the start of a session, not for three hours.</p>
+
+<p><strong>loading-age</strong> covers a genuine wait while the world is fast-forwarded through
+centuries. <b>Theme:</b> time passing and accumulating — a repeating figure that gains a layer
+every few bars, then resets. Functional music that makes a wait feel like a process rather than
+a hang.</p>
+
+<h3>B. The map layer, by era — the heart of the commission</h3>
+<p>The game moves through five ages, and the music changes with them. This is the main musical
+arc of a session: <em>the same world, four times older</em>.</p>
+<table>
+  <tr><th>Track</th><th>Era</th><th>Length</th><th>Loops</th><th>Priority</th></tr>
+  <tr><td class="id">map-ancient</td><td>4000 BC → classical</td><td>3:00–5:00</td><td>yes</td><td class="p1">1</td></tr>
+  <tr><td class="id">map-renaissance</td><td>Classical → industrial</td><td>3:00–5:00</td><td>yes</td><td class="p1">1</td></tr>
+  <tr><td class="id">map-industrial</td><td>Industrial age</td><td>3:00–5:00</td><td>yes</td><td class="p1">1</td></tr>
+  <tr><td class="id">map-modern</td><td>Modern age</td><td>3:00–5:00</td><td>yes</td><td>2</td></tr>
+  <tr><td class="id">map-space</td><td>Space age (endgame)</td><td>2:00–4:00</td><td>yes</td><td>2</td></tr>
+</table>
+
+<p>The arc, given as instrumentation rather than adjectives so it is actionable:</p>
+<div class="era"><b>Ancient</b> — few voices, wide space, no harmony in a hurry. Bone flute, frame
+drum, low drone, a single human voice used as texture. The world is mostly unknown; it should
+feel like not knowing what is over the hill.</div>
+<div class="era"><b>Renaissance</b> — more voices, real counterpoint, plucked and bowed strings.
+Confidence and craft: the world is being mapped and argued about. Still no drums of war.</div>
+<div class="era"><b>Industrial</b> — rhythm arrives, and it is mechanical rather than martial.
+Repetition, pulse, iron. This is where material from the ancient track can return transformed —
+the strongest single moment available to us, if it appeals to you.</div>
+<div class="era"><b>Modern</b> — thinner and colder rather than bigger. Sustained tones, electric
+texture, less human breath. The world is fully known and mostly spoken for.</div>
+<div class="era"><b>Space</b> — genuinely quiet, high and open, almost weightless. The endgame
+runs long and tense, so this must be the calmest track of the set, not the loudest.</div>
+
+<div class="warn"><strong>Wanted, not required — and the highest-value idea in this brief:</strong>
+a small motif of three to five notes that can survive all five treatments. If it does, the era
+changes land as <em>a story</em> rather than a playlist.</div>
+
+<h3>C. Water-world colour <span style="font-weight:400;color:var(--dim)">(optional, priority 3)</span></h3>
+<p>The game has nine map shapes; most need nothing. Two are distinctive enough to feel a variant:
+worlds that are mostly ocean, and worlds built around one central sea. If it appeals, a single
+<code>map-ancient-water</code> variant — same material, different instrumentation (breath,
+resonance, less earth). Please do not write five more full tracks for this; it is seasoning.</p>
+
+<h3>D. Moments <span style="font-weight:400;color:var(--dim)">(short, non-looping)</span></h3>
+<table>
+  <tr><th>Track</th><th>When it plays</th><th>Length</th></tr>
+  <tr><td class="id">sting-wonder</td><td>A world wonder is completed, anywhere on Earth</td><td>0:06–0:10</td></tr>
+  <tr><td class="id">sting-golden</td><td>Your people celebrate their ruler</td><td>0:04–0:08</td></tr>
+  <tr><td class="id">end-conquest</td><td>Victory by conquest</td><td>0:20–0:40</td></tr>
+  <tr><td class="id">end-score</td><td>The game reaches 2100 AD and is scored</td><td>0:20–0:40</td></tr>
+  <tr><td class="id">end-space</td><td>Victory by spaceship</td><td>0:20–0:40</td></tr>
+  <tr><td class="id">end-defeat</td><td>Your civilization is destroyed</td><td>0:15–0:30</td></tr>
+</table>
+<p>The endings are heard <strong>once per game</strong>, at the moment a session of several hours
+resolves. They are the only place here where full intensity is right — and
+<code>end-defeat</code> should be genuinely <em>sad</em> rather than ominous. The player just lost
+several hours; respect it.</p>
+
+<h2>3. How much music, honestly</h2>
+<p>Priority 1 alone is <strong>four tracks, roughly 13–18 minutes</strong> — a complete,
+shippable soundtrack. Priority 2 adds another 8–12 minutes. Priority 3 is optional colour.</p>
+<p><strong>Please do not deliver 45 minutes.</strong> A smaller set that is genuinely good under
+repetition beats a larger set that is merely present.</p>
+
+<h2>4. Mix and loudness</h2>
+<ul>
+  <li><strong>−20 to −18 LUFS integrated</strong> for map tracks — deliberately quiet. They sit
+  under sound effects and under a person concentrating. Intro and endings may sit about 3&nbsp;dB
+  hotter.</li>
+  <li><strong>Leave 1–4&nbsp;kHz uncluttered</strong> where you can. Our effect cues live there,
+  and a player must hear a combat result over the music without us ducking it.</li>
+  <li><strong>True peak ≤ −1&nbsp;dBTP</strong>, no brickwall limiting, no aggressive multiband
+  compression. Dynamic range is a feature here.</li>
+  <li><strong>Stereo, but check in mono</strong> — many players are on phone speakers.</li>
+</ul>
+
+<h2>5. Delivery</h2>
+<ul>
+  <li><strong>Masters:</strong> WAV, 48&nbsp;kHz, 24-bit, one file per track, named exactly by the
+  track id above — <code>map-ancient.wav</code>.</li>
+  <li><strong>Loops:</strong> ideally seamless (the last bar flows into the first). If not,
+  send loop-start and loop-end sample positions in a text file.</li>
+  <li><strong>Stems</strong> are optional but valuable: if the era tracks share material, stems let
+  us cross-fade between eras instead of cutting.</li>
+  <li>We handle web encoding and the Roblox upload — please don't pre-compress.</li>
+  <li>A rough sketch (phone recording, piano) of <code>intro-title</code> and
+  <code>map-ancient</code> before full production is very welcome. Those two set the palette for
+  everything else.</li>
+</ul>
+
+<h2>6. How the game uses it</h2>
+<ul>
+  <li>One track at a time. The era track changes when the player's technology crosses an age
+  boundary, <strong>cross-faded over about four seconds</strong> — never cut.</li>
+  <li>Music has its <strong>own on/off control and volume</strong>, separate from sound effects.
+  A player can turn music off entirely and every gameplay cue still works.</li>
+  <li>Loops can be separated by a short configurable silence, so a four-minute track never feels
+  like a four-minute treadmill.</li>
+  <li>Endings and stings duck the map music rather than stopping it.</li>
+</ul>
+
+<h2>7. How we will judge it</h2>
+<ul class="checks">
+  <li><strong>The three-hour test.</strong> We loop each map track for an hour while playing. If we
+  reach for the volume slider, it fails — however beautiful it is on first listen.</li>
+  <li><strong>The phone test.</strong> Audible and pleasant in mono on a phone speaker.</li>
+  <li><strong>The cue test.</strong> A combat result and a discovery chime stay clearly audible over
+  the music, with no ducking.</li>
+  <li><strong>The seam test.</strong> Loop it ten times and listen for the join.</li>
+  <li><strong>The arc test.</strong> Played back to back, ancient → renaissance → industrial should
+  feel like one world ageing, not three unrelated pieces.</li>
+</ul>
+
+<h2>8. Rights — please confirm before starting</h2>
+<p>This is an original game, freely available, with open-source code. It is inspired by a 1991
+title but uses none of its assets. The music must be <strong>original</strong> and free of
+sample-library licence terms that would prevent distribution in a free game and inside a Roblox
+experience. Please confirm the intended rights grant in writing before production — far easier
+now than afterwards.</p>
+
+<footer>
+  A World Begun (project name RetroMultiCiv) · soundtrack commissioning brief ·
+  questions to the project owner. The equivalent Markdown lives at
+  <code>specs/game-soundtrack-design.md</code>.
+</footer>
+
+</div></body>
+</html>
