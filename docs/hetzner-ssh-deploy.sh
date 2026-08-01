@@ -44,6 +44,19 @@ SSH="$SSH -o ControlMaster=auto -o ControlPath=$MUX_SOCK -o ControlPersist=300 -
 cleanup_mux() { ssh -O exit -o ControlPath="$MUX_SOCK" "$DEPLOY" 2>/dev/null || true; }
 trap cleanup_mux EXIT
 
+# ---- key into the agent once, so the deploy prompts at most once ------------
+# With multiplexing above, an agent-less key prompts exactly once per deploy.
+# Loading it into a running agent makes that zero for the rest of the session.
+# Skipped silently when no agent is running (ssh-add needs SSH_AUTH_SOCK) or when
+# the key is already loaded — this is convenience, never a requirement.
+KEYFILE="$HOME/.ssh/<your-key>"
+if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -r "$KEYFILE" ]; then
+  if ! ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf "$KEYFILE" 2>/dev/null | awk '{print $2}')"; then
+    echo "==> Adding the deploy key to your ssh-agent (once per session)"
+    ssh-add "$KEYFILE" || echo "    (skipped — continuing; you will be prompted once)"
+  fi
+fi
+
 # ---- deploy provenance guard (what is about to become public) ---------------
 # This script deploys the WORKING TREE, not a tag: whatever is checked out here
 # goes to the public box. Print the provenance and stop for confirmation when it
