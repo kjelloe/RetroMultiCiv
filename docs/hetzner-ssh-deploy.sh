@@ -82,6 +82,35 @@ else
   fi
 fi
 
+# ---- shared-box sanity: are the NEIGHBOURS about to break us? ---------------
+# This box hosts other games (ops/multi-game-hosting.md). Their configs share
+# one nginx and one certificate, so their mistakes become our outage. Checked
+# BEFORE we restart, so a bad neighbour is visible while the old process is
+# still serving.
+echo "==> Shared-box sanity"
+$SSH "$DEPLOY" "
+  # 1. nginx config validity. Not our file, but a broken one means the NEXT
+  #    reload (ours, a neighbour's, or certbot's renewal) takes every site down.
+  if ! sudo nginx -t 2>/dev/null; then
+    echo '    !! nginx -t FAILS on this box — the next reload will drop EVERY site.'
+    echo '       Output above names the file. Fix or unlink it before deploying.'
+  fi
+  # 2. do our ports still belong to us? a neighbour binding 8123 first turns our
+  #    restart into a crash-loop that healthz alone reports as a dead server.
+  for p in 8123 8970; do
+    owner=\$(sudo ss -ltnp 2>/dev/null | grep -w \":\$p\" | grep -oE 'users:\(\(\"[^\"]+' | head -1 | cut -d'\"' -f2)
+    if [ -n \"\$owner\" ] && [ \"\$owner\" != 'node' ]; then
+      echo \"    !! port \$p is held by '\$owner', not node — a neighbour may have taken it\"
+    fi
+  done
+  # 3. headroom. A neighbour filling the disk breaks our autosave writes; a
+  #    neighbour eating RAM gets us OOM-killed even though we behaved.
+  df -h / | awk 'NR==2 && \$5+0 > 90 { print \"    !! disk \" \$5 \" full — autosaves will start failing\" }'
+  free -m | awk '/^Mem:/ { if (\$7 < 200) print \"    !! only \" \$7 \"MB available — OOM risk on this box\" }'
+  # 4. who else lives here (informational: know your neighbours before blaming us)
+  echo -n '    neighbours: '; ls /etc/nginx/sites-enabled/ 2>/dev/null | tr '\n' ' '; echo
+"
+
 echo "==> Syncing runtime code to $DEPLOY:$APP (allowlist)"
 rsync -av --no-owner --no-group \
     --exclude 'data/wiki-extract' \
@@ -130,6 +159,31 @@ echo "    ruleset verified on the box ($RULES_LOCAL)"
 # while the unit crash-loops — boot-time validations (e.g. the --public-addr
 # format check) lie dormant on a long-running process until the NEXT restart,
 # i.e. this deploy. A dead listener now fails the deploy loudly.
+
+# PUBLIC verification — through nginx and TLS, not just the loopback port.
+# The loopback checks above prove OUR process is alive; they say nothing about
+# whether the public site works, because they bypass nginx entirely. A neighbour
+# with a broken server block, a default_server hijack, or an expired shared
+# certificate takes the site down while 127.0.0.1 still answers happily. This is
+# the check that would have caught it.
+PUBLIC_HOST="${DEPLOY#*@}"
+echo "==> Verifying the PUBLIC endpoint (https://$PUBLIC_HOST)"
+PUB=$(curl -fsS --max-time 15 "https://$PUBLIC_HOST/healthz" 2>/dev/null || true)
+if [ -z "$PUB" ]; then
+  echo "ERROR: the public endpoint did not answer, though the local port did."
+  echo "       That means nginx or TLS, not the game: check 'sudo nginx -t',"
+  echo "       the certificate expiry, and whether a neighbour site grabbed the"
+  echo "       default vhost. The old process may still be serving — check before"
+  echo "       assuming an outage."
+  exit 1
+fi
+case "$PUB" in
+  *'"ok"'*) echo "    public healthz OK" ;;
+  *) echo "ERROR: the public endpoint answered, but not with OUR health body."
+     echo "       Another site is likely bound to this name (default_server or a"
+     echo "       duplicate server_name). Body was: $PUB"
+     exit 1 ;;
+esac
 
 echo "==> Deployed + verified serving."
 echo "    Logs:        $SSH $DEPLOY 'journalctl -u retromulticiv-game -f'"
