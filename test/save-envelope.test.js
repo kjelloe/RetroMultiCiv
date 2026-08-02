@@ -161,6 +161,25 @@ test('B13 witness: the post-B13 rulesOverrides recording replays clean', async (
   assert.doesNotMatch(note, /pre-B16/, 'the witness records its own difficulty');
   assert.deepStrictEqual(diag.rulesOverrides, { contentCitizens: 6 }, 'trainer difficulty travels with the recording');
   const report = await replayDiagnostics(diag, JSON.parse(JSON.stringify(RULESET)));
+  // The artifact lives under debugging/logs/, which is gitignored by policy
+  // (guards.test.js pins that), so every machine bakes its own and they age at
+  // different rates. A witness baked against an OLDER ruleset that now diverges
+  // proves nothing about the engine — it proves the artifact predates a
+  // data/rules.json change. Distinguish the two cases rather than reporting a
+  // wall of hash diffs: stamp mismatch + divergence = stale artifact (skip,
+  // with the regeneration command); stamps EQUAL + divergence = a real
+  // behavioural regression, and this must fail loudly.
+  if (report.problems.length > 0) {
+    const { hashState } = await import('../shared/statehash.js');
+    const current = '0x' + (hashState(RULESET) >>> 0).toString(16).padStart(8, '0');
+    const baked = diag.initialState && diag.initialState.rulesetHash;
+    if (baked !== undefined && baked !== current) {
+      t.skip(`stale witness: baked against ruleset ${baked}, engine now ${current} — `
+        + 'regenerate with `node debugging/gen-witness-b13.js` (the divergence is a '
+        + 'ruleset change since the bake, not an engine regression)');
+      return;
+    }
+  }
   assert.deepStrictEqual(report.problems, [],
     'the post-B13 recording reproduces exactly — the fresh live guard');
   assert.ok(report.turn > 100, 'a genuine late-era game (100+ turns)');
