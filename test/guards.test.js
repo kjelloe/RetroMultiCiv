@@ -67,10 +67,33 @@ function stubServerTree(prefix, indexJs) {
   return dir;
 }
 
+// These four guards are the only tests in the suite that start a WINDOWS
+// process from WSL. That interop has a startup cost nothing else here pays,
+// and it degrades badly when the rest of the suite is saturating the cores:
+// measured on the 2026-08-02 RC run, two of them hit the 90 s wall while the
+// same file passed 16/16 in isolation. A spawn that is KILLED by the timeout
+// returns empty stdout AND empty stderr, so the assertion downstream reports
+// "must reach the failure report:" with nothing after it — which reads like a
+// behavioural failure and is not one. So: retry once with a wider window, and
+// if it still times out, say so in those words rather than assert on silence.
+const PS_TIMEOUT = 90000;
 function psRun(args, opts) {
-  return spawnSync('powershell.exe',
+  const run = ms => spawnSync('powershell.exe',
     ['-NoProfile', '-ExecutionPolicy', 'Bypass'].concat(args),
-    Object.assign({ encoding: 'utf8', timeout: 90000 }, opts));
+    Object.assign({ encoding: 'utf8', timeout: ms }, opts));
+  let res = run(PS_TIMEOUT);
+  if (psTimedOut(res)) res = run(PS_TIMEOUT * 3);
+  return res;
+}
+function psTimedOut(res) {
+  return !!(res.error && (res.error.code === 'ETIMEDOUT' || /timed? ?out/i.test(res.error.message || '')));
+}
+// Call before asserting on a psRun result, so a starved interop names itself.
+function psAlive(res, label) {
+  assert.ok(!psTimedOut(res),
+    `${label}: PowerShell interop timed out twice (${PS_TIMEOUT}ms then ${PS_TIMEOUT * 3}ms). ` +
+    'This is a WSL->Windows spawn starved by parallel load, NOT a run.ps1 defect — ' +
+    'rerun this file alone to confirm before treating it as a regression.');
 }
 // powershell.exe reachable AND a Windows-side node for Start-Process to find
 const psReady = (() => {
@@ -95,6 +118,7 @@ test('run.sh: a module-resolution crash names the module and the recovery', () =
 test('run.ps1: -Help parses and documents the arguments (real PowerShell)',
   { skip: !psReady && 'powershell.exe (with Windows node) not reachable' }, () => {
     const res = psRun(['-File', winPath(path.join(REPO, 'run.ps1')), '-Help']);
+    psAlive(res, '-Help');
     assert.strictEqual(res.status, 0, `run.ps1 -Help failed:\n${res.stdout}\n${res.stderr}`);
     assert.match(res.stdout, /usage: .*run\.ps1/);
   });
@@ -111,6 +135,7 @@ test('run.ps1: no-args and port-only invocations build a clean ArgumentList (rea
       for (const extra of [[], ['18998']]) {
         const label = extra.length ? 'port-only' : 'no-args';
         const res = psRun(['-File', script].concat(extra));
+        psAlive(res, label);
         const out = `${res.stdout}\n${res.stderr}`;
         assert.ok(!/Cannot validate argument/.test(out),
           `${label}: ArgumentList carried a null element (unbound remaining-args param):\n${out}`);
@@ -268,6 +293,7 @@ test('run.ps1: a SLOW crash must not be reported as a running server (B8, real P
       const script = winPath(path.join(dir, 'run.ps1'));
       const res = psRun(['-Command',
         `$env:MULTICIV_BOOT_WINDOW='20'; & '${script}' 18991; exit $LASTEXITCODE`]);
+      psAlive(res, 'B8 slow-crash');
       const out = `${res.stdout}\n${res.stderr}`;
       assert.ok(!/server running/.test(out),
         `a crashing server must never get the success banner:\n${out}`);
