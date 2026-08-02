@@ -89,3 +89,86 @@ test('barb-sea-raids: sails spotted (visibility-gated) T-1, raiders land T', asy
   assert.ok(state.units[landed.unitId] && state.units[landed.unitId].owner === 'barb', 'a barbarian unit exists on the beach');
   assert.ok(state.pendingRaids === undefined, 'the resolved raid is cleared (hash-stable when empty)');
 });
+
+// The barbarian ceiling (user ruling 2026-08-02). A civ is bounded by unit
+// upkeep; barbarian hordes pay nothing, so a captured city could ship units
+// forever — the RC sweep measured 695 barbarian units, 69% of the map, at turn
+// 340. rules.barb.maxUnits is the missing ceiling, and the hordes with the
+// least left to raid give up first. PROVENANCE: RetroMultiCiv, not Civ 1 —
+// the wiki documents only the LEADER disbanding once clear of civ cities.
+function capState(positions, cities) {
+  const units = {};
+  for (const [id, x, y] of positions) {
+    units[id] = { id, type: 'militia', owner: 'barb', x, y, moves: 1, fortified: false, veteran: false };
+  }
+  const cityMap = {}, cityOrder = [];
+  for (const [id, owner, x, y] of cities === undefined ? [] : cities) {
+    cityMap[id] = { id, name: id, owner, x, y, pop: 1, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } };
+    cityOrder.push(id);
+  }
+  return {
+    turn: 40, map: { width: 60, height: 40, wrapX: false, tiles: [] },
+    units, cities: cityMap, cityOrder,
+    players: { p1: { id: 'p1', alive: true, techs: [] }, barb: { id: 'barb', alive: true, techs: [] } },
+    playerOrder: ['p1', 'barb']
+  };
+}
+const capRules = cap => Object.assign({}, RULESET, {
+  rules: Object.assign({}, RULESET.rules, { barb: Object.assign({}, RULESET.rules.barb, { maxUnits: cap }) })
+});
+
+test('barb cap: under the ceiling nothing disbands', async () => {
+  const { enforceCap } = await load();
+  const state = capState([['u1', 1, 1], ['u2', 2, 2], ['u3', 3, 3]], [['c1', 'p1', 0, 0]]);
+  const events = [];
+  enforceCap(state, capRules(3), events);
+  assert.strictEqual(Object.keys(state.units).length, 3, 'exactly at the cap is not over it');
+  assert.deepStrictEqual(events, []);
+});
+
+test('barb cap: the hordes FURTHEST from a civ city disband, down to the cap', async () => {
+  const { enforceCap } = await load();
+  // civ city at (0,0); u1 nearest .. u5 furthest
+  const state = capState(
+    [['u1', 1, 0], ['u2', 5, 0], ['u3', 12, 0], ['u4', 25, 0], ['u5', 40, 0]],
+    [['c1', 'p1', 0, 0]]
+  );
+  const events = [];
+  enforceCap(state, capRules(2), events);
+  assert.deepStrictEqual(Object.keys(state.units).sort(), ['u1', 'u2'], 'the two nearest survive');
+  assert.deepStrictEqual(events.map(e => e.unitId), ['u5', 'u4', 'u3'],
+    'furthest first, so the turn log reads as the outermost hordes dispersing');
+  assert.strictEqual(events[0].type, 'barbariansDispersed');
+});
+
+test('barb cap: a BARBARIAN-held city is a camp, not a raid target', async () => {
+  const { enforceCap } = await load();
+  // u2 sits on top of a barbarian city but far from the only civ city:
+  // being at home must not save it.
+  const state = capState(
+    [['u1', 1, 0], ['u2', 40, 0]],
+    [['c1', 'p1', 0, 0], ['c2', 'barb', 40, 0]]
+  );
+  const events = [];
+  enforceCap(state, capRules(1), events);
+  assert.deepStrictEqual(Object.keys(state.units), ['u1'], 'distance is to CIV cities only');
+});
+
+test('barb cap: with no civ cities left the cap still holds, by id', async () => {
+  const { enforceCap } = await load();
+  const state = capState([['u1', 1, 0], ['u2', 5, 0], ['u3', 9, 0]], [['c2', 'barb', 3, 3]]);
+  const events = [];
+  enforceCap(state, capRules(1), events);
+  assert.strictEqual(Object.keys(state.units).length, 1, 'the ceiling is unconditional');
+});
+
+test('barb cap: omitting maxUnits keeps the pre-ruling behavior', async () => {
+  const { enforceCap } = await load();
+  const state = capState([['u1', 1, 0], ['u2', 5, 0], ['u3', 9, 0]], [['c1', 'p1', 0, 0]]);
+  const bare = Object.assign({}, RULESET, {
+    rules: Object.assign({}, RULESET.rules, { barb: { leaderRansom: 100, leaderChance: 4, seaRaidChance: 8 } })
+  });
+  const events = [];
+  enforceCap(state, bare, events);
+  assert.strictEqual(Object.keys(state.units).length, 3, 'omit-safe: no knob, no cap');
+});

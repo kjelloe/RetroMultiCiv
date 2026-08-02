@@ -189,12 +189,34 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // runs produced identical numbers) — it corrects seeds 13/18 of the 25-seed
 // sweep, where a steal landed on the tech being researched. Natural 545/p2 held
 // a SEVENTH consecutive re-record.
+// 2026-08-02 re-record (capture-defender era + the barbarian ceiling): two
+// engine changes in one window, both from the RC sweep's seed-25 tripwire.
+// (1) captureCity garrisons at the CAPTOR's tech level via bestDefenderUnit
+// instead of a hardcoded militia — §46's founding rule, finally applied to
+// capture (scenario 068 pins it; barbarians hold no techs so they still get
+// militia, with no special case). (2) rules.barb.maxUnits = 128 caps barbarian
+// hordes, the furthest from a CIV city disbanding first — the ceiling that unit
+// upkeep provides for a real civ and that barbarians never paid, which is how
+// one sweep seed reached 695 barbarian units. rules.json gains maxUnits => the
+// createGame stamp cascade rides along. Natural 545/p2 UNCHANGED an EIGHTH
+// consecutive re-record.
+// #28 CLASSIFICATION, and it is a sharp one: the 400-turn chaos soak is
+// STAMP-ONLY — all four BEHAVIOR_SOAK checkpoints (t100..t400) are BYTE-
+// IDENTICAL to the W8 record, so on 4 civs at 56x35 neither change fires
+// within 400 turns. Only BEHAVIOR_NATURAL moved (0xa7463164 -> 0xffa2a785).
+// That is exactly where these changes SHOULD bite and nowhere else: the
+// natural game runs the full 545 rounds to 2100 AD, which is long enough for
+// a civ past gunpowder to capture a city (garrison unit differs) and for
+// barbarians to accumulate against the new ceiling. A change that moved the
+// soak's behavior hashes too would have meant it was firing somewhere it had
+// no business firing. Honest re-record: the HELD soak hashes are the
+// anti-paste-back evidence.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x1392d799', 200: '0x096df72c', 300: '0x5d92e626', 400: '0x55dff9e5' },
-  finalHash: '0x55dff9e5'
+  checkpoints: { 100: '0x6d5e57f7', 200: '0xfe085012', 300: '0x35a50384', 400: '0xfbabb143' },
+  finalHash: '0xfbabb143'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x7550defb' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x4f2c1018' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
@@ -204,7 +226,7 @@ const BEHAVIOR_SOAK = {
   checkpoints: { 100: '0x184dd153', 200: '0x24ad814c', 300: '0x104a0912', 400: '0x3d8e2731' },
   finalHash: '0x3d8e2731'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xa7463164' };
+const BEHAVIOR_NATURAL = { finalHash: '0xffa2a785' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

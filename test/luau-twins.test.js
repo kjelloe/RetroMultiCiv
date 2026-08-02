@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 67, 'the scenarios (067 WLTKD added)');
+      assert.strictEqual(files.length, 68, 'the scenarios (068 capture-defender-era added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -189,7 +189,8 @@ const PORTED = [
   '064-coastal-build.json', // XVII §5: sea units need a coastal city (cityIsCoastal); cross-language
   '065-diplomat-missions.json', // D6: embassy + steal/sabotage/incite/bribe (RNG rolls + gold buys); cross-language
   '066-sdi-intercept.json', // W2: SDI Defense intercepts a nuke on an SDI city (rng roll off crafted rngState); cross-language
-  '067-wltkd.json' // W4: We Love the King Day — celebrate flag at the wrap, corruption zero, Rep celebrate trade bonus (cross-language)
+  '067-wltkd.json', // W4: We Love the King Day — celebrate flag at the wrap, corruption zero, Rep celebrate trade bonus (cross-language)
+  '068-capture-defender-era.json' // capture garrisons at the CAPTOR's tech level (barbarians, tech-less, still get militia); cross-language
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a
@@ -255,7 +256,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
       // 100 lune turns need more headroom than the old 3-min cap
       { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0x1392d799\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x6d5e57f7\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -313,11 +314,11 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // W8 econ pair: rules.json stamp cascade over the nine shapes
-      continents: '04f946de', pangaea: '6c0b2a43',
-      archipelago: '50a043bc', islands: 'c51b34b4',
-      fractal: 'c15fd94c', oval: 'bebb8f3c', ring: '35a08892',
-      'inland-sea': 'e3567b8b', clover: 'e8060e74'
+    const PINS = { // barbarian ceiling: rules.json stamp cascade over the nine shapes
+      continents: 'b801b8cd', pangaea: '3e9e9766',
+      archipelago: '85e7fe47', islands: '4b715a2b',
+      fractal: '96f9c49f', oval: '00a3a3ff', ring: '0d3e86cd',
+      'inland-sea': 'acfbe724', clover: 'c7f308d3'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -389,7 +390,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    siegePillageRadius/happinessLadder — stamp AND behavioral: the ff turns now
 //    role-route buildings).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x46ab7030 turn 25 grant 22'; // W8 stamp cascade
+const FF_PARITY_PIN = 'ff-parity 0x83b04c7d turn 25 grant 22'; // barbarian-ceiling stamp cascade (turn/grant UNMOVED)
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

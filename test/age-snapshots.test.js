@@ -67,9 +67,15 @@ test('baker genesis == browser genesis (snapshot load reproduces the live ff)', 
 // the mechanical forcing function behind "every behavioral re-record also
 // re-runs `node tools/bake-age-snapshots.js`". The snapshot files are
 // gitignored, so this pin is the only thing that goes red; move it ONLY on an
-// intentional behavioral re-record (re-bake, then paste the new hash), same
-// ritual as the simulation.test.js checkpoints.
-const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0x85843449' }; // W8 econ pair (diplomat/caravan knobs — createGame STAMP cascade)
+// intentional re-record (re-bake, then paste the new hash), same ritual as the
+// simulation.test.js checkpoints.
+// NOTE (2026-08-02): this is a FULL statehash, so it carries the rulesetHash
+// STAMP and therefore moves on any data/*.json change — not only on behavioral
+// ones, despite what the test's title has always said. Kept as-is deliberately:
+// a stamp move is exactly when the baked snapshots go stale and need re-baking,
+// which is the whole point of the forcing function. The #28 behavior/stamp
+// DISCRIMINATION lives in simulation.test.js, not here.
+const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0xb9c64c9c' }; // barbarian ceiling (rules.barb.maxUnits — createGame STAMP cascade)
 test('canonical snapshot statehash pin — moves only on a behavioral re-record', async () => {
   const { createEngine, fastForwardTo, hashState, shuffleRoster } = await deps();
   const p = CANONICAL_PIN;

@@ -279,6 +279,57 @@ function resolvePendingRaids(state, ruleset, events) {
   else delete state.pendingRaids;
 }
 
+// Barbarian hordes have no economy to pay for themselves: a real civ is held in
+// check by unit upkeep, and nothing played that role here, so barbarians who
+// captured a city could grow without bound (the RC sweep found 695 barbarian
+// units, 69% of the map, at turn 340). rules.barb.maxUnits is that missing
+// ceiling. When it is exceeded, the hordes with the LEAST left to raid give up
+// first: units are ranked by distance to the nearest CIVILIZATION city and the
+// furthest disband, back down to the cap.
+//
+// PROVENANCE: RetroMultiCiv, not recreated Civ 1. The wiki documents only the
+// barbarian LEADER disbanding itself once it is clear of other civs' cities;
+// extending that to ordinary hordes, and adding a ceiling, is our own rule
+// (user ruling 2026-08-02). Omit-safe: no maxUnits knob = no cap, exactly the
+// pre-2026-08-02 behavior.
+function farthestFirst(a, b) {
+  // furthest from a civ city first; ties by id so both engines agree
+  return b.d - a.d || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+function enforceCap(state, ruleset, events) {
+  const cap = ruleset.rules.barb.maxUnits;
+  if (cap === undefined) return;
+  const ids = [];
+  for (const id of sortIds(Object.keys(state.units))) {
+    if (state.units[id].owner === BARB_ID) ids.push(id);
+  }
+  if (ids.length <= cap) return;
+  // distance to the nearest city that is NOT barbarian-held; a barbarian city
+  // is a camp, not something to raid, so it must not keep a horde alive.
+  const ranked = [];
+  for (const id of ids) {
+    const u = state.units[id];
+    let best = -1;
+    for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+      const c = state.cities[cid];
+      if (c === undefined || c.owner === BARB_ID) continue;
+      const d = chebyshev(state.map, u.x, u.y, c.x, c.y);
+      if (best === -1 || d < best) best = d;
+    }
+    // no civ cities left at all: every horde is equally purposeless, so the
+    // ranking collapses to the id tie-break and the cap still holds.
+    ranked.push({ id, d: best === -1 ? 0 : best });
+  }
+  ranked.sort(farthestFirst);
+  const excess = ids.length - cap;
+  for (let i = 0; i < excess; i++) {
+    const u = state.units[ranked[i].id];
+    delete state.units[ranked[i].id];
+    events.push({ type: 'barbariansDispersed', unitId: ranked[i].id, x: u.x, y: u.y });
+  }
+}
+
 // Called once per game turn from endTurn's wrap.
 function process(state, ruleset, events) {
   if (state.turn < FIRST_TURN) return;
@@ -289,6 +340,8 @@ function process(state, ruleset, events) {
     const unit = state.units[id];
     if (unit && unit.owner === BARB_ID) act(state, unit, ruleset, events);
   }
+  // after acting: some hordes died attacking this turn, so cap on what remains
+  enforceCap(state, ruleset, events);
 }
 
-export { process, BARB_ID, FIRST_TURN, barbTier, ensureBarbPlayer };
+export { process, BARB_ID, FIRST_TURN, barbTier, ensureBarbPlayer, enforceCap };

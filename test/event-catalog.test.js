@@ -32,6 +32,7 @@ const EVENT_TYPES = {
   cityDisorder: 'happiness', cityOrderRestored: 'happiness',
   cityCelebrating: 'happiness', cityCelebrationEnded: 'happiness', // W4 We Love the King Day
   barbariansSpawned: 'barbarians', sailsSpotted: 'barbarians', barbariansLanded: 'barbarians',
+  barbariansDispersed: 'barbarians', // the rules.barb.maxUnits ceiling: a horde too far from any civ city gives up
   pollutionSpread: 'pollution', cityMeltdown: 'pollution', terrainWarmed: 'pollution',
   disasterStruck: 'disasters',
   triremeLost: 'naval',

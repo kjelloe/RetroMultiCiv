@@ -366,7 +366,17 @@ local function captureCity(state: any, unit: any, city: any, events: any, rulese
 	city.workers = nil
 	city.taxmen = nil
 	city.scientists = nil
-	city.producing = { kind = "unit", id = "militia" }
+	-- §46 applied to CAPTURE, not just founding (user ruling 2026-08-02): the new
+	-- ruler garrisons at ITS OWN tech level, so a gunpowder civ that takes a city
+	-- starts musketeers rather than a militia it obsoleted long ago (and which
+	-- setProduction would now reject). Barbarians hold no techs, so this returns
+	-- militia for them with no special case -- the authentic nomad outcome ("the
+	-- Barbarians do not function as a regular civilization", Civ 1 wiki).
+	-- ruleset is optional on this path; fall back to the historical militia.
+	city.producing = {
+		kind = "unit",
+		id = if ruleset == nil then "militia" else cities.bestDefenderUnit(state.players[unit.owner], ruleset),
+	}
 	city.shields = 0
 
 	local plunder = city.pop * 10

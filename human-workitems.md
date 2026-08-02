@@ -22,12 +22,21 @@ Everything else in this section was completed and has been dropped. What
 remains is the v1.0 release itself, in order. Nothing here is blocked on an
 agent except A1, which is running as this file is written.
 
-- [ ] **A1. Wait for the two RC gates (running now, no action from you).**
-  The sim-runner is executing the canonical 25-seed sweep at the release tip
-  `a0e59b3`, and the reviewer has the clean-clone full suite queued in
-  parallel. When both report, the architect tags the **RC marker** and writes
-  its report. If either fails, you will hear that plainly rather than seeing a
-  tag appear.
+- [ ] **A1. Three findings pushed the RC back — no action from you, but the
+  reason matters.** The first RC sweep came back 24/25 and the failure was
+  real, not a harness artifact: barbarians who capture a city kept running it
+  as a normal city, reaching 695 barbarian units (69% of the map) by turn 340.
+  Root-causing that found a second defect — capturing a city always started
+  building `militia`, even for a civ that obsoleted it centuries earlier — and
+  your diplomacy report found a third, treaties being offered to civs never
+  met. What is running now:
+  1. the barbarian-ceiling + capture-defender golden window (goldens
+     re-recorded, twins re-pinning, then a fresh 25-seed sweep — which also
+     measures whether the 128-unit ceiling is ever actually reached);
+  2. **A105**, the diplomacy engine gate (the client half already ships; the
+     engine still accepts unmet targets, and closing it means migrating ~36
+     crafted fixtures);
+  3. then the RC marker, its report, and the plan-doc refresh.
 - [ ] **A2. Merge the RC marker to main** (the architect will name it and
   declare it merge-consistent; it supersedes 0102–0111):
   `git fetch origin --tags && git checkout main && git merge <marker> && git push`.

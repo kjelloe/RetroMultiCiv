@@ -80,8 +80,8 @@
   <p class="d">Everything else that stood here is done and has been dropped. What remains is the v1.0 release itself, in order. Nothing below is blocked on an agent except A1, which is running as this page is written.</p>
 
   <div class="item"><span class="box"></span>
-    <div class="t">A1. Wait for the two RC gates — running now, no action from you</div>
-    <div class="d">The sim-runner is executing the canonical 25-seed sweep at the release tip <code>a0e59b3</code>; the reviewer has the clean-clone full suite queued in parallel. When both report, the architect tags the <strong>RC marker</strong> and writes its report. If either fails you will hear it plainly, rather than seeing a tag appear.</div>
+    <div class="t">A1. Three findings pushed the RC back — no action from you, but the reason matters</div>
+    <div class="d">The first RC sweep came back <strong>24/25</strong>, and the failure was real rather than a harness artifact: barbarians who capture a city kept running it as a normal city, reaching <strong>695 barbarian units — 69% of the map</strong> — by turn 340. Root-causing that found a second defect (capturing a city always started building <code>militia</code>, even for a civ that obsoleted it centuries earlier), and your diplomacy report found a third (treaties offered to civs never met). Running now: <strong>(1)</strong> the barbarian-ceiling + capture-defender golden window — goldens re-recorded, twins re-pinning, then a fresh 25-seed sweep that also measures whether the 128-unit ceiling is ever actually reached; <strong>(2)</strong> <strong>A105</strong>, the diplomacy engine gate — the client half already ships, the engine still accepts unmet targets, and closing it means migrating ~36 crafted fixtures; <strong>(3)</strong> then the RC marker, its report, and the plan-doc refresh.</div>
   </div>
 
   <div class="item"><span class="box"></span>

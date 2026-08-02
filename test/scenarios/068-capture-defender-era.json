@@ -1,0 +1,79 @@
+{
+  "name": "capture sets an ERA-RELEVANT defender, not a hardcoded militia (barbarians still get militia)",
+  "notes": "§46 gave FOUNDING a best-buildable-defender default (createCityAt -> bestDefenderUnit) but CAPTURE kept a hardcoded 'militia', so a gunpowder civ that took a city started building a unit it had long since obsoleted and setProduction would now reject. 7x5 grassland: p1 knows bronze-working/feudalism/gunpowder and walks into undefended p2 city c1; barbarians walk into undefended p2 city c2. The captor's own tech decides — p1 gets musketeers, the tech-less barbarians get militia, which is the authentic nomad outcome (Civ 1: 'Barbarians do not function as a regular civilization') and needs no special case in the code. User ruling 2026-08-02: barbarian-held cities building basic units is correct; any other civ follows the regular building procedure at its tech level.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 1,
+      "year": -4000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2", "barb"],
+      "map": {
+        "width": 7,
+        "height": 5,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {
+        "a1": { "id": "a1", "type": "militia", "owner": "p1", "x": 1, "y": 1, "moves": 1, "fortified": false, "veteran": false },
+        "b1": { "id": "b1", "type": "militia", "owner": "barb", "x": 4, "y": 3, "moves": 1, "fortified": false, "veteran": false }
+      },
+      "cities": {
+        "c1": { "id": "c1", "name": "Ur", "owner": "p2", "x": 2, "y": 1, "pop": 3, "food": 0, "shields": 0, "buildings": [], "producing": { "kind": "unit", "id": "militia" } },
+        "c2": { "id": "c2", "name": "Eridu", "owner": "p2", "x": 5, "y": 3, "pop": 3, "food": 0, "shields": 0, "buildings": [], "producing": { "kind": "unit", "id": "militia" } }
+      },
+      "cityOrder": ["c1", "c2"],
+      "wonders": {},
+      "nextUnitId": 2,
+      "nextCityId": 3,
+      "rngState": 12345,
+      "players": {
+        "p1": { "id": "p1", "name": "A", "color": "#3b7dd8", "human": true, "gold": 0, "techs": ["bronze-working", "feudalism", "gunpowder"], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "B", "color": "#d84a3b", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "barb": { "id": "barb", "name": "Barbarians", "color": "#c03030", "human": false, "gold": 0, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      }
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "moveUnit", "playerId": "p1", "unitId": "a1", "dir": "E" },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c1.owner": "p1",
+          "cities.c1.producing.kind": "unit",
+          "cities.c1.producing.id": "musketeers"
+        }
+      }
+    },
+    {
+      "cmd": { "type": "endTurn", "playerId": "p1" },
+      "expect": { "ok": true }
+    },
+    {
+      "cmd": { "type": "endTurn", "playerId": "p2" },
+      "expect": { "ok": true }
+    },
+    {
+      "cmd": { "type": "moveUnit", "playerId": "barb", "unitId": "b1", "dir": "E" },
+      "expect": {
+        "ok": true,
+        "state": {
+          "cities.c2.owner": "barb",
+          "cities.c2.producing.kind": "unit",
+          "cities.c2.producing.id": "militia"
+        }
+      }
+    }
+  ],
+  "final": {
+    "state": { "turn": 1 },
+    "hash": "0xe306b2d9"
+  }
+}

@@ -87,6 +87,43 @@ is explicit in the source, so bounding their economy is a faithfulness repair.
   cross-language.
 - Goldens re-recorded honestly (eighth consecutive natural 545/p2 hold).
 
+## The #28 classification, which came out unusually clean
+
+`GOLDEN_SOAK` 0x6d5e57f7 / 0xfe085012 / 0x35a50384 / 0xfbabb143;
+`GOLDEN_NATURAL` 545 / p2 / 0x4f2c1018.
+
+The interesting part is what did NOT move. **All four `BEHAVIOR_SOAK`
+checkpoints are byte-identical to the W8 record** — t100 through t400 —
+so on 4 civs at 56x35 neither change fires within 400 turns at all. The only
+behaviour hash that moved is `BEHAVIOR_NATURAL` (0xa7463164 -> 0xffa2a785),
+and the natural game runs the full 545 rounds to 2100 AD: long enough for a civ
+past gunpowder to capture a city, and long enough for barbarians to accumulate
+against the new ceiling.
+
+That is the signature you want from a change like this. Had the soak's
+behaviour hashes moved too, it would have meant the code was firing somewhere it
+had no business firing — an early-game garrison difference, or a cap biting at
+population levels it should never reach. And because those hashes HELD across a
+re-record, they are also the anti-paste-back evidence: a pasted-back stamp move
+cannot produce four unchanged behaviour hashes beside four changed full ones.
+
+STAMP cascade from `rules.barb.maxUnits` (a `data/rules.json` knob moves
+`rulesetHash`, which every `createGame` stamps into state), re-pinned:
+
+| pin | from | to |
+|---|---|---|
+| scenario 002 | 0x3ca07386 | 0x8b6d7d26 |
+| age-snapshot `CANONICAL_PIN` | 0x85843449 | 0xb9c64c9c |
+| Luau sim-smoke t100 | 0x1392d799 | 0x6d5e57f7 |
+| `FF_PARITY_PIN` | 0x46ab7030 | 0x83b04c7d (turn 25 / grant 22 UNMOVED) |
+| the nine map-type anchors | — | all nine moved; shapes unchanged |
+
+`mapgen.test.js`, `map-shapes.test.js` and `twin-parity.test.js` all HELD — they
+assert map STRUCTURE rather than a stamped whole-state hash, which is why they
+are unaffected by a ruleset knob while the nine anchors in `luau-twins.test.js`
+(whole-state hashes) all moved. Worth knowing which of the two kinds a pin is
+before predicting whether a stamp change will touch it.
+
 ## Still open
 
 Whether the 128 ceiling is ever REACHED in a normal game is a measurement, not

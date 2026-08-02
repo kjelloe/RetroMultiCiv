@@ -374,6 +374,71 @@ local function resolvePendingRaids(state: any, ruleset: any, events: any)
 	end
 end
 
+-- Barbarian hordes have no economy to pay for themselves: a real civ is held in
+-- check by unit upkeep, and nothing played that role here, so barbarians who
+-- captured a city could grow without bound (the RC sweep found 695 barbarian
+-- units, 69% of the map, at turn 340). rules.barb.maxUnits is that missing
+-- ceiling. When it is exceeded, the hordes with the LEAST left to raid give up
+-- first: units are ranked by distance to the nearest CIVILIZATION city and the
+-- furthest disband, back down to the cap.
+--
+-- PROVENANCE: RetroMultiCiv, not recreated Civ 1. The wiki documents only the
+-- barbarian LEADER disbanding itself once it is clear of other civs' cities;
+-- extending that to ordinary hordes, and adding a ceiling, is our own rule
+-- (user ruling 2026-08-02). Omit-safe: no maxUnits knob = no cap.
+local function enforceCap(state: any, ruleset: any, events: any)
+	local cap = ruleset.rules.barb.maxUnits
+	if cap == nil then
+		return
+	end
+	local keys = {}
+	for id in pairs(state.units) do
+		table.insert(keys, id)
+	end
+	local ids = {}
+	for _, id in ipairs(combat.sortIds(keys)) do
+		if state.units[id].owner == BARB_ID then
+			table.insert(ids, id)
+		end
+	end
+	if #ids <= cap then
+		return
+	end
+	-- distance to the nearest city that is NOT barbarian-held; a barbarian city
+	-- is a camp, not something to raid, so it must not keep a horde alive.
+	local ranked = {}
+	for _, id in ipairs(ids) do
+		local u = state.units[id]
+		local best = -1
+		local order = if state.cityOrder == nil then {} else state.cityOrder
+		for _, cid in ipairs(order) do
+			local c = state.cities[cid]
+			if c ~= nil and c.owner ~= BARB_ID then
+				local d = chebyshev(state.map, u.x, u.y, c.x, c.y)
+				if best == -1 or d < best then
+					best = d
+				end
+			end
+		end
+		-- no civ cities left at all: every horde is equally purposeless, so the
+		-- ranking collapses to the id tie-break and the cap still holds.
+		table.insert(ranked, { id = id, d = if best == -1 then 0 else best })
+	end
+	-- furthest from a civ city first; ties by id so both engines agree
+	table.sort(ranked, function(a, b)
+		if a.d ~= b.d then
+			return a.d > b.d
+		end
+		return a.id < b.id
+	end)
+	local excess = #ids - cap
+	for i = 1, excess do
+		local u = state.units[ranked[i].id]
+		state.units[ranked[i].id] = nil
+		table.insert(events, { type = "barbariansDispersed", unitId = ranked[i].id, x = u.x, y = u.y })
+	end
+end
+
 local function process(state: any, ruleset: any, events: any)
 	if state.turn < FIRST_TURN then
 		return
@@ -395,6 +460,8 @@ local function process(state: any, ruleset: any, events: any)
 			act(state, unit, ruleset, events)
 		end
 	end
+	-- after acting: some hordes died attacking this turn, so cap on what remains
+	enforceCap(state, ruleset, events)
 end
 
 return {
@@ -403,4 +470,5 @@ return {
 	FIRST_TURN = FIRST_TURN,
 	barbTier = barbTier,
 	ensureBarbPlayer = ensureBarbPlayer,
+	enforceCap = enforceCap,
 }

@@ -1,8 +1,12 @@
 # v1.0 release candidate — the evidence digest
 
 Assembled for the RC marker (`specs/v1-release-checklist.md` step 1). Updated
-2026-08-01: **the v1 engine programme is COMPLETE** — W1–W8 all built, gated and
-tagged (marker-0111), full suite 1027/1027 with zero failures.
+2026-08-02: **the v1 engine programme is COMPLETE** — W1–W8 all built, gated and
+tagged. The suite figure that follows is **marker-0111's**: 1027/1027 with zero
+failures, measured at `db76757`, not at the RC tip. **[RC-pending]** the release
+tip's own numbers come from the RC gates and are recorded in the RC marker's
+report; do not read this header as an RC-current claim (reviewer #2903 point 1 —
+the same attribution discipline Axis 3 already uses).
 Each axis states what shipped, WHAT PROVES IT, and what is knowingly left out.
 Written to be checkable: every claim names the gate, sweep, or measurement that
 backs it, so the release decision reads evidence rather than assertion.
@@ -63,9 +67,12 @@ the counts did.
 
 The whole deterministic engine runs in Luau and provably matches the JavaScript
 engine; a Studio session's command log replays hash-exact through the browser
-engine. **Proof:** `test/luau-twins.test.js` 11/11 — rng/statehash/gamecode
-anchors, every scenario, the nine map-type pins, ff-parity, the golden-seed sim
-to turn 100, and replay-verdict equality.
+engine. **Proof:** `test/luau-twins.test.js` 11/11 **RAN** (lune present) —
+rng/statehash/gamecode anchors, every scenario, the nine map-type pins,
+ff-parity, the golden-seed sim to turn 100, and replay-verdict equality. The
+distinction matters: this gate SELF-SKIPS without lune, and a silently skipped
+cross-language gate at the RC tip would be a finding rather than a pass
+(reviewer #2903 point 2).
 **Open (not a v1.0 gate, ruled):** the one Studio sitting — publish, store art,
 genre, sound upload — and the UI playthrough checklist prepared for it.
 
@@ -82,8 +89,13 @@ replayed hash-for-hash), and the live box.
 Nine map types (the four classic plus fractal, oval, ring, inland-sea, clover
 with balanced starts), 32 approved sound assets, the Encyclopedia, the advisor
 card system, and the nightly soak. **Proof:** marker-0110's clean-clone and
-independent lune reproduction; the additivity sweep 24/25 (single failure a
-documented pre-existing tripwire).
+independent lune reproduction; the additivity sweep 24/25, the single failure
+being the sim-driver's >1000-unit tripwire (`specs/measurement-program.md` §7;
+`specs/build-doctrine-plan.md` line 175 records the earlier handling —
+re-running under `SIM_MAX_UNITS=4000`).
+**That earlier handling was wrong, and the RC sweep is what exposed it** — see
+"The tripwire we explained away" below. The 24/25 result stands; the reading of
+the 1 does not.
 Naval acceptance MEASURED and RULED (2026-07-31): the AI declines overseas
 settlement on ring/inland-sea/oval — and equally on **continents, the shipped
 default**, with archipelago the outlier at 5 overseas cities (the control that
@@ -142,6 +154,55 @@ verdict owned, and that is how an unverified claim reached three tagged markers.
 The rules that prevent it are now binding in `docs/18`: find the failing test's file mechanically, treat a recurring
 red as a regression signal, and require evidence per run before the word "flake"
 is used. **A release should be able to say what its green means.** This one can.
+
+## The tripwire we explained away
+
+The RC sweep came back 24/25, with seed 25 failing the sim-driver's >1000-unit
+invariant at turn 340. That tripwire had fired before. The recorded conclusion,
+in `specs/build-doctrine-plan.md`, was that "the tripwire hits were unit-count,
+not gameplay, artifacts" — and the response was to re-run those seeds with
+`SIM_MAX_UNITS=4000`, where they passed.
+
+Root-caused this time instead of raised: at turn 340 the failing state held 1004
+units, of which **695 were barbarian-owned** — 69% of everything on the map,
+against 309 units for all five surviving civs combined. Two civs were already
+dead. `engine/cities.js processCities()` iterates `state.cityOrder` with no owner
+filter, and `engine/combat.js captureCity()` sets the captured city to produce a
+defender, so a barbarian-held city keeps its food box, keeps growing, and keeps
+shipping units forever. Reproduced on a crafted state: one size-3 barbarian city
+produced 6 militia in 80 turns and grew while doing it. The seed-25 case is that
+mechanism running on two eliminated civs' developed cities for 300 turns.
+
+So the count was never a harness artifact. It was the harness correctly
+reporting a mechanism nobody had looked at, and the cap was raised until it
+stopped complaining. This is the same failure as the "known flake" habit
+documented below, in a different costume: **an inconvenient signal explained
+rather than investigated.** The rule that follows from it is the same one —
+a threshold may be raised only with evidence about what produced the number,
+never to make a red go away.
+
+User ruling 2026-08-02 on the mechanism: barbarian-held cities building **basic
+units** (militia, cavalry, possibly leaders) is correct and stays — they are
+nomads, not an administration. What was NOT correct was every other civ getting
+the same hardcoded militia, and that is fixed (below). Whether barbarian
+accumulation itself needs an engine bound is open and tracked separately; it
+does not block the release, but it is not closed either.
+
+## Capture garrisons at the captor's tech level
+
+Found while root-causing the above, and confirmed as a defect by the user:
+founding a city has used a best-buildable-defender default since §46
+(`createCityAt` → `bestDefenderUnit`), but **capturing** one still hardcoded
+`militia`. A gunpowder civ that took a city started building a unit it had
+obsoleted long ago and that `setProduction` would now refuse.
+
+Fixed in one golden window with the fixture first
+(`test/scenarios/068-capture-defender-era.json`, RED before the change),
+`engine/combat.js` and its `luau/combat.luau` twin changed together, and the
+twins gate green 11/11 with the new scenario reproducing cross-language. The
+captor's own techs decide: phalanx, musketeers, riflemen, mech-inf by era — and
+barbarians, holding no techs, still get militia with **no special case in the
+code**, which is exactly the ruling.
 
 ## Usage metrics (shipped in v1.0 by ruling)
 

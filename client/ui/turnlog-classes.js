@@ -55,6 +55,14 @@ export function classifyEvent(e, viewer, cityOwner) {
       return e.playerId === viewer ? 'cities' : null;
     case 'debugCommand': // A92: a debug command was used (world — the taint is public)
       return 'world';
+    case 'barbariansDispersed':
+      // DELIBERATE SILENCE, not an oversight. The ceiling disbands the hordes
+      // FURTHEST from any civilization's city — by construction the tiles no
+      // seat can see — so announcing it would report events from inside the
+      // fog. It also fires in batches at the cap, which would bury the log.
+      // barbariansSpawned stays public ("an uprising somewhere in the wilds");
+      // hordes quietly giving up in the wilderness is not news anyone receives.
+      return null;
     case 'hutEntered': // N13: own unit entered a village (own-seat)
       return e.playerId === viewer ? 'cities' : null;
     case 'ransomPaid': // N13: own unit killed a lone barbarian leader (own-seat)
