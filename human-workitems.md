@@ -8,58 +8,41 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-07-28 (tip after marker-0109; **marker-0109
-merge-consistent** — the W6 window complete, supersedes 0102–0108;
-the box runs 0101)._
+_Last synced: 2026-08-02 (tip `a0e59b3`; **marker-0111 merge-consistent**,
+supersedes 0102–0110 — every engine window W1–W8 complete. The RC marker is
+pending the two gates now running; the box runs a hand-deployed dev_night.)_
 
 ---
 
 ## STEP LIST — in this order
 
-### A. At the desk now (~15 min, unblocks everything)
+### A. The release sequence — this is now the whole of section A
 
-- [x] **A1. Both rulings DONE (2026-07-25):**
-  - **PEDIA_NAME** = **"Encyclopedia"** (applied; Roblox swap
-    queued).
-  - **City rosters** = **GO, full authentic replace** (explicit
-    option-A pick; the 11b window opens when marker-0103 tags).
-- [ ] **A2. Grant roblox writes (the one active blocker):** in the
-  ROBLOX PC's Claude session run `/permissions` and allow Edit/Write
-  for the clone's `roblox/**` — or add it to that clone's
-  `.claude/settings.local.json` allowlist so it survives session
-  restarts (this is the third per-session re-block tonight).
-- [ ] **A3. Merge the save point:** **marker-0109** is the latest
-  merge-consistent marker (supersedes 0102–0108):
-  `git fetch origin --tags && git checkout main && git merge
-  marker-0109 && git push`. It carries the whole 0103–0109 run: river
-  final + D4–D6 diplomacy arc + engine program W1–W5 + the COMPLETE W6
-  build-doctrine window (city roles, siege/air war pair, frontier
-  defence, wonder hosting) + all client/roblox riders.
-- [ ] **A5. Grant each gaming-PC lane its own working directory (2 min, unblocks
-  both).** Both lanes went idle on 2026-07-29 for the same reason: the
-  directory they need is outside their session's allowed set. The reviewer
-  could not run its clean-clone check (`reviewer-lab` not allowed) and the
-  sim-runner could not run any W7 measurement (`~/sim-lab` not allowed, and its
-  `/mnt/c` tree is stale). Both correctly REFUSED to work around it by checking
-  a tip out over someone else's tree. Fix: in each of those sessions,
-  `/permissions` → allow read/write plus git and node/lune **inside that lane's
-  own directory only** (`reviewer-lab` for the reviewer, `~/sim-lab` for the
-  sim-runner). Without it, every measurement and every independent
-  reproduction falls back to the dev box, which is slower and defeats the point
-  of having a second machine. **Update 2026-07-30:** the sim-runner is
-  unblocked, but the reviewer reported its lab dir still denied — a new grant
-  usually needs that session RESTARTED before it takes effect, so if the
-  reviewer stays blocked, restart its session (or confirm the allowlist entry
-  names `reviewer-lab` specifically). It now has a worktree fallback documented
-  in docs/18, so this is no longer a hard stop — just slower and less
-  independent.
+Everything else in this section was completed and has been dropped. What
+remains is the v1.0 release itself, in order. Nothing here is blocked on an
+agent except A1, which is running as this file is written.
 
-- [ ] **A4. Redeploy the box** after whichever merge:
-  `./ssh-deploy.sh` (self-verifies via healthz). Brings live: the
-  gameOver reveal, endscreen verdict fix, civ splash, pedia rename,
-  founders-tone, silhouettes, late-join UI polish.
-- [x] **A5. Screenshots eyeballed — OK** (user, 2026-07-25): river
-  ribbon accepted.
+- [ ] **A1. Wait for the two RC gates (running now, no action from you).**
+  The sim-runner is executing the canonical 25-seed sweep at the release tip
+  `a0e59b3`, and the reviewer has the clean-clone full suite queued in
+  parallel. When both report, the architect tags the **RC marker** and writes
+  its report. If either fails, you will hear that plainly rather than seeing a
+  tag appear.
+- [ ] **A2. Merge the RC marker to main** (the architect will name it and
+  declare it merge-consistent; it supersedes 0102–0111):
+  `git fetch origin --tags && git checkout main && git merge <marker> && git push`.
+  It carries every engine window W1–W8, the D4–D6 diplomacy arc, the nine map
+  shapes, usage metrics, and the whole client/Roblox rider set.
+- [ ] **A3. Tag the release:** `git tag -a v1.0.0 -m "…" && git push origin v1.0.0`.
+  `shared/version.js` already reads `1.0.0`, so nothing in code changes here.
+- [ ] **A4. Redeploy the box from main** (not dev_night): `./ssh-deploy.sh`,
+  which self-verifies the public endpoint. The box currently runs a
+  hand-deployed dev_night tip; this makes live and released the same thing.
+- [ ] **A5. Flip GHCR publishing** — a repo-variable change plus one verified
+  run, `specs/v1-release-checklist.md` step 4b.
+
+The full sequence with its checks is `specs/v1-release-checklist.md`; the
+evidence behind the decision is `reports/v1-rc.md`.
 
 ### B. Ally correspondence (whenever you next write)
 

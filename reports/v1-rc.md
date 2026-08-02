@@ -153,6 +153,12 @@ is not advertised. The operator reads it with one line over SSH. Rationale for
 shipping it at 1.0 rather than after: post-hoc metrics cannot describe a launch
 week.
 
+The surface is also **documented where the project claims to enumerate its
+surfaces**: `docs/16-security-assessment.md` §9 now carries the endpoint's
+posture and the operator quick-card names it (reviewer PASS, merged at
+`a0e59b3`). Adding a hosted surface without updating the assessment that lists
+them is the ordinary way a security document goes quietly stale.
+
 ## Recommendation
 
 The engine, client, server, Roblox twin, tests and documentation are at the bar

@@ -67,44 +67,44 @@
   <h1>Human work items</h1>
   <div class="sub">Step-ordered list of what only you can do. Agent tasks live in <code>agent-workitems.md</code>. Twin of <code>human-workitems.md</code>.</div>
   <div class="meta">
-    <span class="chip">Synced: <strong>2026-07-28</strong> (marker-0109)</span>
-    <span class="chip">Merge candidate: <strong>marker-0109</strong> (supersedes 0102–0108)</span>
-    <span class="chip">Box runs: marker-0101</span>
+    <span class="chip">Synced: <strong>2026-08-02</strong> (tip a0e59b3)</span>
+    <span class="chip">Merge candidate: <strong>marker-0111</strong> (supersedes 0102–0110); RC marker pending its two gates</span>
+    <span class="chip">Box runs: a hand-deployed dev_night</span>
   </div>
 </header>
 
 <section id="do">
-  <div class="sec-head"><h2>A. At the desk now</h2><span class="tag">~15 min — unblocks everything</span></div>
+  <div class="sec-head"><h2>A. The release sequence</h2><span class="tag">this is now the whole of section A</span></div>
   <div class="bar"></div>
 
-  <div class="item"><span class="box" style="background: var(--play); border-color: var(--play);"></span>
-    <div class="t">A1. Both rulings DONE (2026-07-25)</div>
-    <div class="d"><strong>PEDIA_NAME = "Encyclopedia"</strong> (applied; Roblox swap queued). <strong>City rosters = GO, full authentic replace</strong> (explicit option-A pick; the 11b window opens when marker-0103 tags).</div>
+  <p class="d">Everything else that stood here is done and has been dropped. What remains is the v1.0 release itself, in order. Nothing below is blocked on an agent except A1, which is running as this page is written.</p>
+
+  <div class="item"><span class="box"></span>
+    <div class="t">A1. Wait for the two RC gates — running now, no action from you</div>
+    <div class="d">The sim-runner is executing the canonical 25-seed sweep at the release tip <code>a0e59b3</code>; the reviewer has the clean-clone full suite queued in parallel. When both report, the architect tags the <strong>RC marker</strong> and writes its report. If either fails you will hear it plainly, rather than seeing a tag appear.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">A2. Grant roblox writes — the one active blocker</div>
-    <div class="d">In the ROBLOX PC's Claude session: <code>/permissions</code> → allow Edit/Write for <code>roblox/**</code> — or add it to that clone's <code>.claude/settings.local.json</code> allowlist so it survives restarts (third per-session re-block tonight).</div>
+    <div class="t">A2. Merge the RC marker to main</div>
+    <div class="d">The architect will name it and declare it merge-consistent; it supersedes 0102–0111. <code>git fetch origin --tags &amp;&amp; git checkout main &amp;&amp; git merge &lt;marker&gt; &amp;&amp; git push</code>. Carries every engine window W1–W8, the D4–D6 diplomacy arc, the nine map shapes, usage metrics, and the whole client/Roblox rider set.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">A3. Merge the save point</div>
-    <div class="d"><strong>marker-0109</strong> is the latest merge-consistent marker (supersedes 0102–0108): <code>git fetch origin --tags && git checkout main && git merge marker-0109 && git push</code>. Carries the whole 0103–0109 run: river final + D4–D6 diplomacy arc + engine program W1–W5 + the COMPLETE W6 build-doctrine window (city roles, siege/air war pair, frontier defence, wonder hosting) + all client/roblox riders.</div>
+    <div class="t">A3. Tag the release</div>
+    <div class="d"><code>git tag -a v1.0.0 -m "…" &amp;&amp; git push origin v1.0.0</code>. <code>shared/version.js</code> already reads <code>1.0.0</code>, so no code changes here.</div>
   </div>
 
   <div class="item"><span class="box"></span>
-    <div class="t">A5. Grant each gaming-PC lane its own working directory (2 min, unblocks both)</div>
-    <div class="d">Both lanes went idle on 2026-07-29 for the same reason — the directory they need is outside their session's allowed set. The reviewer could not run its clean-clone check (<code>reviewer-lab</code> not allowed); the sim-runner could not run any W7 measurement (<code>~/sim-lab</code> not allowed, <code>/mnt/c</code> tree stale). Both correctly refused to work around it by checking a tip out over another lane's tree. Fix: in each session, <code>/permissions</code> → allow read/write + git + node/lune <em>inside that lane's own directory only</em>. Without it every measurement and independent reproduction falls back to the dev box, which defeats the point of the second machine. <strong>Update 2026-07-30:</strong> the sim-runner is unblocked, but the reviewer reports its lab dir still denied — a new grant usually needs that session <em>restarted</em> before it takes effect, so restart it (or confirm the allowlist entry names <code>reviewer-lab</code> specifically). A worktree fallback is now documented in docs/18, so this is no longer a hard stop — just slower and less independent.</div>
-  </div>
-  <div class="item"><span class="box"></span>
-    <div class="t">A4. Redeploy the box</div>
-    <div class="d"><code>./ssh-deploy.sh</code> after whichever merge (self-verifies via healthz). Goes live: gameOver reveal, endscreen verdict fix, civ splash, pedia rename, founders-tone, silhouettes, late-join UI polish.</div>
+    <div class="t">A4. Redeploy the box from main — not dev_night</div>
+    <div class="d"><code>./ssh-deploy.sh</code>, which self-verifies the public endpoint. The box currently runs a hand-deployed dev_night tip; this makes live and released the same thing.</div>
   </div>
 
-  <div class="item"><span class="box" style="background: var(--play); border-color: var(--play);"></span>
-    <div class="t">A5. Screenshots — OK (user, 2026-07-25)</div>
-    <div class="d">River ribbon accepted.</div>
+  <div class="item"><span class="box"></span>
+    <div class="t">A5. Flip GHCR publishing</div>
+    <div class="d">A repo-variable change plus one verified run — <code>specs/v1-release-checklist.md</code> step 4b.</div>
   </div>
+
+  <p class="d">The full sequence with its checks is <code>specs/v1-release-checklist.md</code>; the evidence behind the decision is <code>reports/v1-rc.md</code>.</p>
 </section>
 
 <section id="ally">
