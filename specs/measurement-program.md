@@ -124,7 +124,22 @@ endYear pushed out (rulesOverrides endYear 9999 or --turns 1500+).
 The sim-driver tripwires (MAX_UNITS 1000 / MAX_GOLD 100000) are
 env-overridable for these runs ONLY: `SIM_MAX_UNITS=4000
 SIM_MAX_GOLD=500000 …` (b9e01e3; defaults untouched, suites
-unaffected). Feeds: nuke-doctrine v1.x trigger windows, the space
+unaffected).
+
+**Raising a tripwire is not a finding — it is a measurement choice,
+and it needs a reason (added 2026-08-02, after this rule was learned
+the hard way).** A marathon run legitimately exceeds a cap sized for
+a 400-turn game; that is what the override is for. What is NOT
+legitimate is raising the cap on a run the cap was sized for, and
+recording "artifact, not gameplay" without looking at what produced
+the number. That happened: three seeds were re-run at
+`SIM_MAX_UNITS=4000`, passed, and were written up as counting
+artifacts. They were barbarian accumulation from captured cities —
+a real mechanism that then survived four more months of measurement
+because the signal had been silenced. Before overriding a tripwire,
+state in the run report WHAT the excess consisted of (owner
+breakdown for units, source breakdown for gold). If you cannot say,
+the run has not been measured, only completed. Feeds: nuke-doctrine v1.x trigger windows, the space
 commit-gap question, tree-exhaustion pacing.
 
 ### 8. Space commit funnel (9-metric witness)

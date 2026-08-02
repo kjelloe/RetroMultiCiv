@@ -87,6 +87,15 @@ Rules, adopted by the lane and binding here:
 5. Prefer FIXING the contention to living with it — a genuine environmental red
    (an empty browser dump under load, a deadline shorter than a loaded box needs)
    has a source, and the source is usually a budget or a concurrency setting.
+6. **A THRESHOLD raised is a signal silenced.** The same discipline applies to
+   sim-driver tripwires, timeouts, and floors as to test reds: raising the
+   number is a measurement choice that needs a stated reason, and "it passes at
+   the higher value" is not one. Added 2026-08-02 after the >1000-unit tripwire
+   was re-run at `SIM_MAX_UNITS=4000`, passed, and was written up as a counting
+   artifact — it was barbarian accumulation from captured cities, a real
+   mechanism that then went unexamined for months because the alarm had been
+   turned down. Before accepting an override, ask what the excess CONSISTED of.
+   If nobody can say, it has not been diagnosed.
 
 ## Per-marker procedure
 

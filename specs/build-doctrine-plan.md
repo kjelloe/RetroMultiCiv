@@ -174,7 +174,18 @@ First full-scale batch through debugging/job.sh (detached; canary-proven).
   (corroborates the commit-gap finding); no runaway conquest — a
   survivor always stands at endYear. The 3 tripwire seeds re-ran clean
   under SIM_MAX_UNITS=4000 (b9e01e3), all three endYear score wins —
-  the tripwire hits were unit-count, not gameplay, artifacts.
+  ~~the tripwire hits were unit-count, not gameplay, artifacts.~~
+
+  **CORRECTED 2026-08-02 — that conclusion was wrong.** The same tripwire
+  fired again on the RC sweep (seed 25, t340), and was root-caused this
+  time instead of raised: 695 of the 1004 units were BARBARIAN-owned,
+  because `processCities()` had no owner filter and a barbarian-captured
+  city therefore grew and produced units forever. That is a gameplay
+  mechanism, not a counting artifact. The `SIM_MAX_UNITS=4000` re-runs
+  did not disprove a problem; they raised the threshold above it. Fixed
+  by `rules.barb.maxUnits` (the ceiling unit upkeep provides for a real
+  civ and barbarians never paid) — see `specs/barbarian-ceiling.md`.
+  **The 24/25 result stands; only the reading of the 1 was wrong.**
 
 ## Slice-3 DESIGN (city roles + the v1 war pair) — opened 2026-07-28
 
