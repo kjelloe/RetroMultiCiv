@@ -26,6 +26,17 @@ export function relationEntry(state, a, b) {
   return e || null;
 }
 
+// Have these two MADE CONTACT? The view-side mirror of engine/diplomacy.js
+// metOf — same symmetric pair flag, same omit-safe reading (absent = unmet), so
+// a crafted or pre-D3 state reads as "not met" rather than throwing. Kept here
+// rather than in the panel because the Roblox client needs the identical
+// predicate, and because a UI that hides a civ must agree with the engine about
+// which civs are hidden.
+export function haveMet(state, a, b) {
+  const e = relationEntry(state, a, b);
+  return e !== null && e.met === true;
+}
+
 // A standing peace offer on the pair, or null. The offer lives IN the relations
 // entry (R2): { from, duration, turn }. `from` is the pid that proposed it.
 export function pendingOfferFor(state, a, b) {

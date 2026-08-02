@@ -6,7 +6,7 @@
 // (the spec DEFAULT). The probe keeps the panel graceful in a pre-D1 checkout.
 // No engine writes here; the panel only READS (shared/diplomacy-view.js, which
 // re-exports the engine's own relationOf) and DISPATCHES logged commands.
-import { relationLabel, reputationOf, treatyActions, pendingOfferFor } from '../../shared/diplomacy-view.js';
+import { relationLabel, reputationOf, treatyActions, pendingOfferFor, haveMet } from '../../shared/diplomacy-view.js';
 import { displayColor } from './palette.js';
 
 const BARB_ID = 'barb'; // never a diplomacy target (spec §2)
@@ -138,9 +138,13 @@ export function initDiplomacy(ctx) {
   function render() {
     if (box.classList.contains('hidden')) return;
     const state = session.state;
-    // List every foreign, non-barbarian, living civ. D1 does NOT gate
-    // diplomacy on met-state (specs §2: notMet DEFERRED), so this mirrors the
-    // engine — the FIRST_CONTACT met-refinement rides its own future window.
+    // List every foreign, non-barbarian, living civ — but a civ you have NOT
+    // MET is a rumour, not a negotiating partner (user report 2026-08-02). It
+    // shows as an unnamed placeholder with no actions: knowing the NAME of a
+    // civilization on the far side of an unexplored map is itself a fog leak,
+    // and being able to send it a peace treaty is worse. The row is kept rather
+    // than dropped so the panel still conveys how many powers exist — which the
+    // player learns anyway from the score and civ counts at setup.
     const order = state.playerOrder || Object.keys(state.players);
     const rows = [];
     for (const pid of order) {
@@ -149,6 +153,15 @@ export function initDiplomacy(ctx) {
       if (!p || (p.human === undefined && p.name === undefined)) continue;
       if (p.alive === false) continue;
       if (p.barbarian === true) continue;
+      if (!haveMet(state, ctx.HUMAN, pid)) {
+        rows.push(
+          '<div class="diplo-row diplo-unmet">'
+          + '<span class="diplo-name diplo-unknown">unknown civilization</span>'
+          + '<span class="diplo-status">you have not met them</span>'
+          + '<span class="diplo-acts"></span>'
+          + '</div>');
+        continue;
+      }
       const rep = reputationOf(state, pid);
       const band = REP_BANDS[rep] || REP_BANDS[REP_BANDS.length - 1];
       const repTag = rep > 0 ? ` <span class="diplo-rep" title="their standing — a civ that breaks treaties is trusted less">⚑ ${band}</span>` : '';

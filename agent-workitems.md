@@ -4248,3 +4248,47 @@ filed to `xiv-ai-behavior` as further unit-bloat evidence.
 ## A103 — A91c: global warming no longer strands ships (architect, self-executed 2026-07-29; engine + Luau twin, golden-neutral)  [done: 2026-07-29 @4ba54e4 — root cause of the W6-closing sweep's ONLY new finding (seed 6 t363, "sea unit (ironclad) on land outside a city", sim-runner #2841). `rules.pollution.warmingTransforms` maps `ocean` → `swamp`, so an A91b greenhouse event could raise land UNDER a fleet; pre-existing since the A91b window, exposed by W6's denser/longer worlds (more industry → more pollution → more warming rolls, and more ships). CONFIRMED IN THE WILD, not inferred: the seed-6 profile reproduced locally on the pre-fix engine and the failing save shows u426 at (26,18) on a SWAMP tile with no city. Fix: `strandedShips()` in engine/pollution.js + the luau/pollution.luau twin — after a warming transform, if the new terrain's domain is not sea, every sea unit on that square is lost with its cargo, reusing `triremeLost`/`cargoLost` (the naval.js open-sea + B27 vanishing-city idiom), so NO new event type and no catalog/sound/turnlog surface. Deleting a fixed set keeps the final state order-independent; the twin uses the cities.luau key-snapshot idiom. Fixture-first: test/pollution.test.js "A91c warming: a ship caught by ocean->swamp is lost with its cargo" (a board that is all grassland except ONE ocean tile, so the greenhouse has exactly one legal transform) — RED with the ironclad alive on swamp, GREEN after. GOLDEN-NEUTRAL by measurement: simulation 7/7 + twins 11/11 with the fix in tree; related suites 146/146. Reviewer gate #2848 CLEAR (#2849: engine-diff/determinism/twin-fidelity PASS, 0 findings; their clone was sandbox-blocked so the full-suite reproduction is the architect's local run, flagged honestly). The design question (destroy vs displace) went to the reviewer, who judged DESTROY — no Civ 1 rule exists for a hull caught by rising land, so this is an invariant repair, not a mechanic port.] [USER RULING 2026-07-29 @6cd56ef — BEACH THE CARGO: the hull is still wrecked, but the square is LAND once the greenhouse fires, so an embarked land unit walks off instead of drowning. cargo now loses its `aboard` field + gets the ordinary `unitUnloaded` event (movement.js:209 shape); the hull keeps `triremeLost`. The unloaded set is fixed per tile exactly as the deleted set was, so the final state stays order-independent, and a land unit on land with no `aboard` is legal by the sim-driver's own check. Fixture re-authored in the same commit ("...is wrecked and its cargo beached"); pollution/naval/naval-transport 27/27. Delta sent for a re-read (#2850).]
 
 ## A104 — W7 novelty map shapes: the mask stage (architect, self-executed 2026-07-29; engine + Luau twin + data, STAMP cascade)  [in progress: 2026-07-29 — landing 1 of the W7 window (`specs/map-shapes-w7.md`, delivery log there). Fixture-first `test/map-shapes.test.js` 6/6 (3 RED before the engine change). `maskAllows` + a `mask` argument to `generateTiles` (engine/mapgen.js, twinned byte-shaped in luau/mapgen.luau): centre offsets in doubled coordinates expressed as PERCENT of the half-extent (size-independent), inner/outer radius bands, WRAP-AWARE in x so a shape closes across the seam instead of tearing at x=0 (the pre-design's flagged risk; the inland-sea fixture is the guard). Masked walks get an in-mask start (40 bounded re-rolls, then a deterministic index-order scan) and a doubled step budget; unmasked types keep the exact legacy path. Four new `rules.mapTypes`: fractal (preset knobs only, no engine code), oval, ring, inland-sea — each carrying the REQUIRED provenance field ("later-Civ shape (Civ 1 had no map-shape selector)"). Client needed no work (picker is data-driven); the stale "Advanced — naval AI in progress" group was retired in the same pass since the naval arc shipped. Re-record in progress: 8 maptype pins + scenario 002 done; discriminator classification, age-snapshot, ff-parity, sim goldens and sim-smoke pending. Remaining in the window: clover + balanced petal starts, naval acceptance runs on the water shapes, and the closing canonical sweep on the default type.]
+
+## A105 — Diplomacy is offered to civs that have never been met (user report 2026-08-02; CLIENT half landed, ENGINE gate open)
+
+**What the user saw:** the 🕊 diplomacy panel listed every living civ by NAME and
+offered "Offer peace" for civs on the far side of an unexplored map. Two problems
+in one: knowing a civilization's name before meeting it is a fog leak, and being
+able to sign a treaty with it is a mechanic that should not exist.
+
+**Confirmed as a deliberate deferral, not an unknown bug.** `client/ui/diplomacy.js`
+carried the comment "D1 does NOT gate diplomacy on met-state (specs §2: notMet
+DEFERRED)", and the `notMet` reject copy was already written and unused. The
+engine has had `metOf` and a per-turn `contactPass` since D3, so the state exists
+— nothing consumed it on this path.
+
+**[done: 2026-08-02 — CLIENT half, golden-neutral]** `haveMet(state, a, b)` added
+to `shared/diplomacy-view.js` (pure, Roblox-portable, mirrors engine `metOf`
+including its omit-safe absent-means-unmet reading). The panel renders an unmet
+civ as an anonymous row — "unknown civilization / you have not met them", no
+name, no colour, no action buttons — rather than dropping it, so the panel still
+conveys how many powers exist, which the player already knows from setup and the
+score. `test/diplomacy-view.test.js` +2: the predicate's own contract, and an
+agreement test asserting `haveMet` and engine `metOf` return the same answer on
+the same five states, so the UI can never disagree with the engine about who is
+hidden.
+
+**OPEN — the ENGINE gate.** `engine/diplomacy.js diplomacyCommand()` still accepts
+a treaty command against an unmet civ; only the UI declines to offer one. A
+crafted client, or the server's own command path, is ungated. The fix is one
+guard (`if (!metOf(state, pid, target)) return { ok: false, reason: 'notMet' }`)
+plus its `luau/diplomacy.luau` twin, but it is NOT a one-liner in practice:
+
+- `metOf` is omit-safe, so every CRAFTED state without an explicit `met: true`
+  becomes un-negotiable. That hits `test/scenarios/012-diplomacy.json` (no
+  relations map at all — its first command would reject), `045-ai-diplomacy.json`,
+  and roughly 36 tests across `diplomacy.test.js`, `d4-treaty-shell.test.js` and
+  `ai-diplomacy.test.js`. Each fixture needs a `met: true` pair entry and each
+  affected scenario needs re-pinning.
+- The sim goldens should be UNAFFECTED: `engine/ai.js` already gates its own
+  diplomacy on `metOf` (line ~2595), so the AI never issues these commands
+  unmet. Worth measuring rather than asserting.
+
+Deliberately NOT folded into the 2026-08-02 capture-defender/barbarian-cap
+window: different theme, and mixing a fixture migration into a golden re-record
+makes the reviewer's attribution job harder. Sequenced as the next window.

@@ -2252,6 +2252,9 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
 }
 .diplo-act:hover { background: #26385a; }
 .diplo-pending { color: #8fa3c2; font-size: 11px; font-style: italic; }
+/* a civ you have not met: present but anonymous, and offering it nothing */
+.diplo-unmet .diplo-status { color: #7d8798; font-style: italic; }
+.diplo-unknown { color: #6f7a8c; font-weight: normal; font-style: italic; }
 .diplo-empty { color: #6d7f9c; }
 #diplo-note { color: #e0a898; font-size: 11px; margin-top: 6px; }
 #diplo-note.hidden { display: none; }

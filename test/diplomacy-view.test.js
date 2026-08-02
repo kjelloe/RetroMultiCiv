@@ -96,3 +96,35 @@ test('diplomacyEventRow: party hears detail, world hears the headline (B5 fog)',
 
   assert.strictEqual(D.diplomacyEventRow({ type: 'somethingElse' }, asRome), null, 'unknown types → null');
 });
+
+// A civ you have not MET is a rumour, not a negotiating partner (user report
+// 2026-08-02): the panel showed every living civ by NAME and offered a peace
+// button for civs on the far side of an unexplored map. haveMet is the shared
+// predicate the panel and the Roblox client both read, and it must agree with
+// engine/diplomacy.js metOf — same symmetric pair flag, same omit-safe default.
+test('haveMet: omit-safe false, symmetric, and true only on an explicit flag', () => {
+  assert.strictEqual(D.haveMet({ turn: 5 }, 'p1', 'p2'), false, 'no relations map → unmet');
+  assert.strictEqual(D.haveMet({ turn: 5, relations: {} }, 'p1', 'p2'), false, 'empty map → unmet');
+  assert.strictEqual(D.haveMet({ relations: { 'p1|p2': { state: 'war' } } }, 'p1', 'p2'), false,
+    'an entry without the flag is still unmet — a war default must not imply contact');
+  const met = { relations: { 'p1|p2': { met: true } } };
+  assert.strictEqual(D.haveMet(met, 'p1', 'p2'), true);
+  assert.strictEqual(D.haveMet(met, 'p2', 'p1'), true, 'one flag serves both directions');
+  assert.strictEqual(D.haveMet({ relations: { 'p1|p2': { met: 'yes' } } }, 'p1', 'p2'), false,
+    'strictly the boolean — state carries no truthy strings');
+});
+
+test('haveMet agrees with the engine metOf on the same states', async () => {
+  const { metOf } = await import('../engine/diplomacy.js');
+  const cases = [
+    { turn: 5 },
+    { turn: 5, relations: {} },
+    { relations: { 'p1|p2': { state: 'war' } } },
+    { relations: { 'p1|p2': { met: true } } },
+    { relations: { 'p1|p2': { met: true, state: 'peace' } } }
+  ];
+  for (const s of cases) {
+    assert.strictEqual(D.haveMet(s, 'p1', 'p2'), metOf(s, 'p1', 'p2'),
+      `view and engine must not disagree about contact: ${JSON.stringify(s)}`);
+  }
+});
