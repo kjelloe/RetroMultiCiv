@@ -59,6 +59,15 @@ function M.relationLabel(view, me, them)
 	return "⚔ at war" .. since
 end
 
+-- haveMet: have these two MADE CONTACT? Twin of shared/diplomacy-view.js
+-- haveMet (845a036) — same symmetric pair flag, same omit-safe reading
+-- (absent = unmet), so a crafted or pre-D3 view reads "not met" rather than
+-- erroring. The panel hides unmet civs behind an "unknown civilization" row.
+function M.haveMet(view, a, b)
+	local e = relationEntry(view, a, b)
+	return e ~= nil and e.met == true
+end
+
 -- reputationOf: player's standing (0 default), engine/diplomacy.js parity.
 function M.reputationOf(view, pid)
 	local p = view.players[pid]

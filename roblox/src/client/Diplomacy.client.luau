@@ -100,12 +100,20 @@ local function repaint()
 	end
 	table.sort(ids)
 	for _, pid in ipairs(ids) do
-		local p = view.players[pid]
-		local rel = DiplomacyView.relationOf(view, you, pid)
-		local label = DiplomacyView.relationLabel(view, you, pid)
-		local rep = DiplomacyView.reputationOf(view, pid)
-		local repTag = rep ~= 0 and ("  rep %d"):format(rep) or ""
-		row(order, ("%s — %s%s"):format(p.name or pid, label, repTag), COLORS[rel] or COLORS.head)
+		-- a civ you have NOT MET is a rumour, not a negotiating partner
+		-- (845a036 browser mirror): its name is a fog leak, so it shows as an
+		-- unnamed placeholder row — kept so the panel still conveys how many
+		-- powers exist.
+		if not DiplomacyView.haveMet(view, you, pid) then
+			row(order, "unknown civilization — you have not met them", COLORS.head)
+		else
+			local p = view.players[pid]
+			local rel = DiplomacyView.relationOf(view, you, pid)
+			local label = DiplomacyView.relationLabel(view, you, pid)
+			local rep = DiplomacyView.reputationOf(view, pid)
+			local repTag = rep ~= 0 and ("  rep %d"):format(rep) or ""
+			row(order, ("%s — %s%s"):format(p.name or pid, label, repTag), COLORS[rel] or COLORS.head)
+		end
 		order += 1
 		shown += 1
 	end
