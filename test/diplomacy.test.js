@@ -28,23 +28,49 @@ function baseState(over) {
 }
 const dip = (playerId, kind, target, terms) => ({ type: 'diplomacy', kind, playerId, target, terms });
 
+// A105: the engine refuses diplomacy with a civ you have not MET, and metOf is
+// omit-safe (absent = unmet). So a crafted state that ISSUES a diplomacy command
+// has to say the pair made contact. Deliberately a separate helper rather than a
+// baseState default: the "default is war" test below pins that a crafted state
+// stamps NO relations map at all, and that omit-safe property is load-bearing
+// for every scenario hash in the repo.
+// The entry shape MATTERS: contactPass creates `{ state: 'war' }` and then sets
+// met on it, so a met pair in a real game always carries an explicit state. A
+// first draft of this helper wrote `{ met: true }` alone — a shape the engine
+// never produces — and relationOf returned undefined instead of 'war' for it.
+// Craft what the engine would actually have built.
+function metState(over) {
+  const s = baseState(over);
+  if (s.relations === undefined) s.relations = {};
+  const pair = s.relations['p1|p2'] === undefined ? { state: 'war' } : s.relations['p1|p2'];
+  pair.met = true;
+  s.relations['p1|p2'] = pair;
+  return s;
+}
+
 test('default is war: an empty state reads war (omit-safe, byte-identical to pre-D1)', () => {
   const s = baseState();
   assert.strictEqual(relationOf(s, 'p1', 'p2'), 'war');
   assert.strictEqual(s.relations, undefined, 'createGame/crafted states stamp no relations');
 });
 
-test('declare war: sets an explicit war entry + WAR_DECLARED', () => {
-  const r = engine.applyCommand(baseState(), dip('p1', 'declare', 'p2'));
-  assert.ok(r.ok, r.reason);
-  assert.strictEqual(relationOf(r.state, 'p1', 'p2'), 'war');
-  assert.strictEqual(r.state.relations['p1|p2'].state, 'war');
-  assert.ok(r.events.some(e => e.type === 'WAR_DECLARED' && e.reason === 'border_pressure'));
-  assert.ok(!r.events.some(e => e.type === 'TREATY_BROKEN'), 'no treaty was broken (was default war)');
+// A105 surfaced a consequence of D3 that was never written down: contactPass
+// creates the pair entry as `{ state: 'war' }` and only then sets met, so by the
+// time two civs have MET they already carry an EXPLICIT war entry. Declaring
+// against them therefore hits the alreadyWar reject, and declare-from-default is
+// unreachable in play. That is coherent rather than broken — Civ 1 has no formal
+// declaration and war IS the default — and it means WAR_DECLARED is in practice a
+// TREATY-BREAK event (covered by the "declare while at peace" test below).
+// Pinned here so the next person meets the fact rather than rediscovering it.
+test('declare against a MET civ at default war is refused (war is already explicit after contact)', () => {
+  const r = engine.applyCommand(metState(), dip('p1', 'declare', 'p2'));
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'alreadyWar');
+  assert.strictEqual(relationOf(r.state, 'p1', 'p2'), 'war', 'the standing relation is unchanged');
 });
 
 test('offer -> accept: peace signed with expiresTurn (timed) + PEACE_TREATY_SIGNED', () => {
-  let s = baseState();
+  let s = metState();
   const off = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 20 }));
   assert.ok(off.ok, off.reason);
   assert.strictEqual(off.events.length, 0, 'an offer emits nothing until answered');
@@ -61,7 +87,7 @@ test('offer -> accept: peace signed with expiresTurn (timed) + PEACE_TREATY_SIGN
 });
 
 test('perpetual peace: an offer with no duration signs a treaty with no expiresTurn (Civ1 default)', () => {
-  let s = baseState();
+  let s = metState();
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true })).state;
   s.activePlayer = 'p2';
   const acc = engine.applyCommand(s, dip('p2', 'accept', 'p1'));
@@ -71,7 +97,7 @@ test('perpetual peace: an offer with no duration signs a treaty with no expiresT
 });
 
 test('timed peace lapses to war on expiry with NO mutation/event (R2 expiry derivation)', () => {
-  let s = baseState();
+  let s = metState();
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 5 })).state;
   s.activePlayer = 'p2';
   s = engine.applyCommand(s, dip('p2', 'accept', 'p1')).state; // expiresTurn = 15
@@ -82,7 +108,7 @@ test('timed peace lapses to war on expiry with NO mutation/event (R2 expiry deri
 });
 
 test('declare while at peace: breaks the treaty (TREATY_BROKEN + reputation-)', () => {
-  let s = baseState();
+  let s = metState();
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 20 })).state;
   s.activePlayer = 'p2';
   s = engine.applyCommand(s, dip('p2', 'accept', 'p1')).state;
@@ -102,7 +128,7 @@ test('declare while at peace: breaks the treaty (TREATY_BROKEN + reputation-)', 
 
 function signedPeace(gov) {
   // p1 (government gov) at peace with p2, p1 active
-  let s = baseState();
+  let s = metState();
   if (gov !== undefined) s.players.p1.government = gov;
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 20 })).state;
   s.activePlayer = 'p2';
@@ -126,15 +152,17 @@ test('D5 senate: despotism CAN break peace (no govForbidsWar) — and declaring 
   const r = engine.applyCommand(s, dip('p1', 'declare', 'p2'));
   assert.ok(r.ok, r.reason);
   assert.strictEqual(relationOf(r.state, 'p1', 'p2'), 'war', 'despotism breaks the treaty');
-  // a Democracy declaring from DEFAULT war (no treaty) is not senate-gated
-  const w = baseState(); w.players.p1.government = 'democracy';
+  // a Democracy at DEFAULT war (no treaty) is not senate-gated — the refusal it
+  // gets is the ordinary alreadyWar, NOT senateRefused. The distinction is the
+  // point: the senate blocks breaking a TREATY, never fighting a standing war.
+  const w = metState(); w.players.p1.government = 'democracy';
   const rw = engine.applyCommand(w, dip('p1', 'declare', 'p2'));
-  assert.ok(rw.ok, 'declaring formal war from default war is allowed under Democracy');
+  assert.strictEqual(rw.reason, 'alreadyWar', 'not senateRefused — there is no treaty to break');
 });
 
 test('D5 reputation recovery: processReputation heals one band after repRecoverTurns clean turns', async () => {
   const { processReputation } = await import('../engine/diplomacy.js');
-  const s = baseState();
+  const s = metState();
   s.players.p1.reputation = 2; s.players.p1.repCleanTurns = 0;
   const recover = RULESET.rules.diplomacy.repRecoverTurns; // 20
   // (recover-1) clean turns: just increments the clock, no heal
@@ -150,7 +178,7 @@ test('D5 reputation recovery: processReputation heals one band after repRecoverT
 
 test('D5 reputation recovery: a fully-healed civ sheds BOTH fields (byte-clean = never-soiled)', async () => {
   const { processReputation } = await import('../engine/diplomacy.js');
-  const s = baseState();
+  const s = metState();
   s.players.p1.reputation = 1; s.players.p1.repCleanTurns = RULESET.rules.diplomacy.repRecoverTurns - 1;
   processReputation(s, RULESET, []);
   assert.strictEqual(s.players.p1.reputation, undefined, 'reputation field removed at 0 (never stored as 0)');
@@ -158,7 +186,7 @@ test('D5 reputation recovery: a fully-healed civ sheds BOTH fields (byte-clean =
 });
 
 test('reject clears the offer with no state change', () => {
-  let s = baseState();
+  let s = metState();
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true, duration: 20 })).state;
   s.activePlayer = 'p2';
   const rej = engine.applyCommand(s, dip('p2', 'reject', 'p1'));
@@ -169,12 +197,12 @@ test('reject clears the offer with no state change', () => {
 });
 
 test('rejections: selfTarget, barbarian target, noSuchOffer, alreadyWar, notYourTurn', () => {
-  const s = baseState();
+  const s = metState();
   assert.strictEqual(engine.applyCommand(s, dip('p1', 'declare', 'p1')).reason, 'selfTarget');
   assert.strictEqual(engine.applyCommand(s, dip('p1', 'declare', 'barb')).reason, 'cannotDiplomacyBarbarians');
   assert.strictEqual(engine.applyCommand(s, dip('p1', 'accept', 'p2')).reason, 'noSuchOffer');
   assert.strictEqual(engine.applyCommand(s, dip('p1', 'reject', 'p2')).reason, 'noSuchOffer');
-  const off = baseState({ activePlayer: 'p2' });
+  const off = metState({ activePlayer: 'p2' });
   assert.strictEqual(engine.applyCommand(off, dip('p1', 'declare', 'p2')).reason, 'notYourTurn');
   // alreadyWar: an explicit war entry rejects a re-declare
   const warred = engine.applyCommand(s, dip('p1', 'declare', 'p2')).state;
@@ -184,7 +212,7 @@ test('rejections: selfTarget, barbarian target, noSuchOffer, alreadyWar, notYour
 // --- D4: tribute + tech exchange + offer expiry ---
 
 test('D4 tribute: an offer(kind:tribute) accepted transfers gold demander<-payer + TRIBUTE_PAID', () => {
-  let s = baseState();
+  let s = metState();
   s.players.p1.gold = 5;   // p1 = demander
   s.players.p2.gold = 100; // p2 = payer
   // p1 demands 40 gold from p2
@@ -204,7 +232,7 @@ test('D4 tribute: an offer(kind:tribute) accepted transfers gold demander<-payer
 });
 
 test('D4 tribute: payment clamps to the payer treasury (pay what you can)', () => {
-  let s = baseState();
+  let s = metState();
   s.players.p1.gold = 0; s.players.p2.gold = 25;
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { kind: 'tribute', gold: 40 })).state;
   s.activePlayer = 'p2';
@@ -216,7 +244,7 @@ test('D4 tribute: payment clamps to the payer treasury (pay what you can)', () =
 });
 
 test('D4 techExchange swap: accept grants each side the other tech + TECH_EXCHANGED', () => {
-  let s = baseState();
+  let s = metState();
   s.players.p1.techs = ['pottery'];       // offerer has pottery, wants bronze-working
   s.players.p2.techs = ['bronze-working'];
   const off = engine.applyCommand(s, dip('p1', 'offer', 'p2',
@@ -232,7 +260,7 @@ test('D4 techExchange swap: accept grants each side the other tech + TECH_EXCHAN
 });
 
 test('D4 techExchange one-way gift: no wantTechId only grants the acceptor', () => {
-  let s = baseState();
+  let s = metState();
   s.players.p1.techs = ['pottery'];
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { kind: 'techExchange', techId: 'pottery' })).state;
   s.activePlayer = 'p2';
@@ -244,7 +272,7 @@ test('D4 techExchange one-way gift: no wantTechId only grants the acceptor', () 
 
 test('D4 offer expiry: processExpiry deletes a stale offer + emits OFFER_EXPIRED (neutral)', async () => {
   const { processExpiry } = await import('../engine/diplomacy.js');
-  let s = baseState();
+  let s = metState();
   s = engine.applyCommand(s, dip('p1', 'offer', 'p2', { peace: true })).state; // turn 10, expires 12
   assert.strictEqual(s.relations['p1|p2'].offer.expiresTurn, 12, 'turn 10 + offerExpiryTurns 2');
   s.turn = 12; // reached expiry
@@ -253,7 +281,7 @@ test('D4 offer expiry: processExpiry deletes a stale offer + emits OFFER_EXPIRED
   assert.strictEqual(s.relations['p1|p2'].offer, undefined, 'the stale offer is swept');
   assert.ok(events.some(e => e.type === 'OFFER_EXPIRED'));
   // an unexpired offer survives the sweep
-  let s2 = engine.applyCommand(baseState(), dip('p1', 'offer', 'p2', { peace: true })).state; // expires 12
+  let s2 = engine.applyCommand(metState(), dip('p1', 'offer', 'p2', { peace: true })).state; // expires 12
   s2.turn = 11;
   const ev2 = [];
   processExpiry(s2, RULESET, ev2);
@@ -264,7 +292,7 @@ test('D4 offer expiry: processExpiry deletes a stale offer + emits OFFER_EXPIRED
 // --- the combat reframe ---
 function twoArmies(rel) {
   // p1 legion adjacent to a p2 militia + a p2 city; optionally at peace
-  const s = baseState({
+  const s = metState({
     units: {
       a: { id: 'a', type: 'legion', owner: 'p1', x: 2, y: 2, moves: 1, fortified: false, veteran: false },
       d: { id: 'd', type: 'militia', owner: 'p2', x: 3, y: 2, moves: 1, fortified: false, veteran: false }
@@ -286,7 +314,7 @@ test('atPeace: a unit cannot attack a peace civ; at war (default) it can', () =>
 test('atPeace: cannot capture a peace civ undefended city; war unchanged', () => {
   // move p1 legion onto the undefended p2 city (move the defender away first via a crafted state)
   const mk = rel => {
-    const s = baseState({
+    const s = metState({
       units: { a: { id: 'a', type: 'legion', owner: 'p1', x: 3, y: 2, moves: 1, fortified: false, veteran: false } },
       cities: { c2: { id: 'c2', name: 'Thebes', owner: 'p2', x: 3, y: 3, pop: 2, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
       cityOrder: ['c2']
@@ -305,7 +333,7 @@ test('A79 blockade is war-gated: an enemy on a worked tile blocks at WAR, not at
   const { candidateTiles } = await import('../engine/cities.js');
   // p1 city at (3,2); a p2 unit on a fat-cross tile (3,1)
   const mk = rel => {
-    const s = baseState({
+    const s = metState({
       units: { e: { id: 'e', type: 'militia', owner: 'p2', x: 3, y: 1, moves: 1, fortified: false, veteran: false } },
       cities: { c1: { id: 'c1', name: 'Rome', owner: 'p1', x: 3, y: 2, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } } },
       cityOrder: ['c1']
@@ -324,7 +352,7 @@ test('prune on elimination: treaties/offers with a dead civ are dropped (dead-pa
   const { pruneDiplomacy } = await import('../engine/diplomacy.js');
   const { checkGameEnd } = await import('../engine/score.js');
   // direct: pruning p2 drops every pair containing p2, leaves the rest
-  const s = baseState();
+  const s = metState();
   s.players.p3 = { id: 'p3', name: 'Greece', color: '#0f0', human: false, gold: 0, techs: [], researching: '', bulbs: 0, taxRate: 50, sciRate: 50 };
   s.playerOrder = ['p1', 'p2', 'p3'];
   s.relations = {
@@ -338,7 +366,7 @@ test('prune on elimination: treaties/offers with a dead civ are dropped (dead-pa
   assert.ok(s.relations['p1|p3'] !== undefined, 'p1|p3 survives (no p2)');
 
   // via elimination: p2 alive with no assets -> checkGameEnd eliminates + prunes
-  const e = baseState();
+  const e = metState();
   e.players.p1.alive = true; e.players.p2.alive = true;
   e.units = { u1: { id: 'u1', type: 'settlers', owner: 'p1', x: 1, y: 1, moves: 1, fortified: false, veteran: false } };
   e.relations = { 'p1|p2': { state: 'peace', treatyTurn: 5 } };

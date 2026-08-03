@@ -160,3 +160,50 @@ expiresTurn — the Civ1-consistent default, which moots the expiry
 derivation for the common case); duration-bearing treaties are
 labeled house/original. The war-gated blockade + public stance are
 the user's pre-ruled D1 defaults (2026-07-18).
+
+---
+
+## A105 — the `notMet` deferral is CLOSED (2026-08-02)
+
+The deferral above stood for the right reason and outlived it. D3 shipped
+`contactPass` + omit-safe `met` state, so the objection ("`notMet` has nothing
+to read") stopped being true — but nothing consumed it on the command path, and
+the deferral note stayed. A user report closed the loop: the diplomacy panel
+listed every living civ **by name** and offered a peace treaty to civs on the
+far side of an unexplored map.
+
+Two halves, both shipped:
+
+- **Client** (golden-neutral): `haveMet()` in `shared/diplomacy-view.js`, mirroring
+  engine `metOf` including its omit-safe reading. Unmet civs render as an
+  anonymous row — "unknown civilization / you have not met them", no name, no
+  colour, no actions. The row is KEPT rather than hidden: setup and the score
+  already tell the player how many powers exist, so concealing the count would
+  be a fiction while concealing the identity is the honest part. A test asserts
+  `haveMet` and engine `metOf` never disagree on the same state.
+- **Engine**: `diplomacyCommand()` rejects an unmet target with `notMet`, twinned
+  in `luau/diplomacy.luau`, pinned cross-language by
+  `test/scenarios/069-diplomacy-notmet.json` (all three command kinds, not only
+  the one the report named). **Golden-NEUTRAL by measurement** — the goldens did
+  not move, because `engine/ai.js` already gated its own diplomacy on `metOf`,
+  so the AI never issued the commands the guard refuses. The 2026 fear that
+  met-state would move every hash was answered by D3 paying that cost; this
+  guard adds none.
+
+### A finding that fell out of the migration, worth knowing
+
+`contactPass` creates the pair entry as `{ state: 'war' }` and only then sets
+`met`. So by the time two civs have MET they already carry an **explicit** war
+entry — and `declare` against them hits `alreadyWar`. **Declare-from-default is
+unreachable in play, and `WAR_DECLARED` is in practice a TREATY-BREAK event.**
+
+That is coherent rather than broken: Civ 1 has no formal declaration and war is
+the default relation, so "declaring war on someone you are already at war with"
+correctly does nothing. But it was written down nowhere, and two unit tests plus
+scenario 012 were asserting a path that cannot occur — they crafted states with
+`met` absent, which the engine never produces. All three now pin the real
+behaviour with the reasoning attached.
+
+The blast radius, for the record, was 15 tests and one scenario — not the ~36
+the architect estimated before measuring. The estimate was a guess presented
+with more confidence than it had earned.

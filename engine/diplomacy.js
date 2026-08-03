@@ -107,6 +107,13 @@ function diplomacyCommand(state, cmd, ruleset) {
   if (target === pid) return { ok: false, reason: 'selfTarget' };
   if (pid === BARB_ID || target === BARB_ID) return { ok: false, reason: 'cannotDiplomacyBarbarians' };
   if (state.players[target] === undefined) return { ok: false, reason: 'noSuchTarget' };
+  // A105 (user report 2026-08-02): a civ you have not MET is not a negotiating
+  // partner. The client stopped OFFERING treaties to unmet civs in the same
+  // window, but the UI declining to send a command is not a rule — the server's
+  // command path and any crafted client were still ungated. metOf is omit-safe
+  // (absent pair = unmet), which is why every crafted fixture that issues a
+  // diplomacy command now has to say the pair made contact.
+  if (!metOf(state, pid, target)) return { ok: false, reason: 'notMet' };
   const key = pairKey(pid, target);
   if (state.relations === undefined) state.relations = {};
   const entry = state.relations[key];

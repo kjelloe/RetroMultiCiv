@@ -135,6 +135,13 @@ local function diplomacyCommand(state: any, cmd: any, ruleset: any): any
 	if target == pid then return { ok = false, reason = "selfTarget" } end
 	if pid == BARB_ID or target == BARB_ID then return { ok = false, reason = "cannotDiplomacyBarbarians" } end
 	if state.players[target] == nil then return { ok = false, reason = "noSuchTarget" } end
+	-- A105 (user report 2026-08-02): a civ you have not MET is not a negotiating
+	-- partner. The client stopped OFFERING treaties to unmet civs in the same
+	-- window, but the UI declining to send a command is not a rule -- the server's
+	-- command path and any crafted client were still ungated. metOf is omit-safe
+	-- (absent pair = unmet), which is why every crafted fixture that issues a
+	-- diplomacy command now has to say the pair made contact.
+	if not metOf(state, pid, target) then return { ok = false, reason = "notMet" } end
 	local key = pairKey(pid, target)
 	if state.relations == nil then state.relations = {} end
 	local entry = state.relations[key]

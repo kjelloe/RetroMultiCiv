@@ -4273,7 +4273,18 @@ agreement test asserting `haveMet` and engine `metOf` return the same answer on
 the same five states, so the UI can never disagree with the engine about who is
 hidden.
 
-**OPEN — the ENGINE gate.** `engine/diplomacy.js diplomacyCommand()` still accepts
+**[done: 2026-08-02 — ENGINE gate, golden-NEUTRAL by measurement]** The guard
+landed with its `luau/diplomacy.luau` twin and
+`test/scenarios/069-diplomacy-notmet.json` pinning all three command kinds
+cross-language; scenario 012 was rewritten around the alreadyWar finding and
+re-pinned. The simulation goldens did NOT move — `engine/ai.js` already gated on
+`metOf`, so the AI never issued the refused commands. Blast radius was 15 tests
++ 1 scenario, not the ~36 estimated below: the estimate was a guess quoted with
+unearned confidence, and the real number came from applying the guard and
+counting. Full detail in `specs/d1-diplomacy.md` (A105 section), including the
+declare-is-always-alreadyWar finding the migration surfaced.
+
+**The original assessment, kept for the record.** `engine/diplomacy.js diplomacyCommand()` still accepts
 a treaty command against an unmet civ; only the UI declines to offer one. A
 crafted client, or the server's own command path, is ungated. The fix is one
 guard (`if (!metOf(state, pid, target)) return { ok: false, reason: 'notMet' }`)

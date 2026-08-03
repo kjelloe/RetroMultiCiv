@@ -1,6 +1,6 @@
 {
   "name": "D1: war/peace chain — declare, offer, accept, break",
-  "notes": "declare war -> offer timed peace -> p2 accepts (PEACE_TREATY_SIGNED, expiresTurn) -> p1 breaks it (TREATY_BROKEN + reputation+ toward Treacherous, D5). Pins the relations entry + the D5 reputation band (0..repMax) cross-language.",
+  "notes": "A105: the pair has MET (the engine now refuses diplomacy with a civ you have not met) and therefore already carries the EXPLICIT war entry contactPass writes at first contact — so the opening declare is refused as alreadyWar rather than accepted, and WAR_DECLARED is in practice a TREATY-BREAK event. Chain: declare (refused, war already explicit) -> offer timed peace -> p2 accepts (PEACE_TREATY_SIGNED, expiresTurn) -> p1 breaks it (TREATY_BROKEN + reputation+ toward Treacherous, D5). Pins the relations entry + the D5 reputation band (0..repMax) cross-language.",
   "setup": {
     "state": {
       "version": 1,
@@ -150,6 +150,12 @@
       "wonders": {},
       "nextUnitId": 9,
       "nextCityId": 9,
+      "relations": {
+        "p1|p2": {
+          "state": "war",
+          "met": true
+        }
+      },
       "players": {
         "p1": {
           "id": "p1",
@@ -188,7 +194,7 @@
         "target": "p2"
       },
       "expect": {
-        "ok": true
+        "ok": false
       }
     },
     {
@@ -251,6 +257,6 @@
     "state": {
       "turn": 11
     },
-    "hash": "0x58c90df3"
+    "hash": "0xc4a23d25"
   }
 }

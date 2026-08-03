@@ -429,7 +429,7 @@ test('browser served-by-server: the client founds a city through the WebSocket',
       // if the awaited foundCity round-tripped the socket.
       const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=1&civ=romans`;
       const dom = await dumpDomLive(chromium, url,
-        h => /turn 1 · 4000 BC · Player 1/.test(h) && /Testopolis/.test(h), 20000);
+        h => /turn 1 · 4000 BC · Player 1/.test(h) && /Testopolis/.test(h), 90000); // suite-load budget
       assert.ok(!/ERROR:/.test(dom), `client surfaced an error:\n${dom.match(/ERROR:[^<]*/)?.[0] || ''}`);
       assert.match(dom, /<canvas/, 'the renderer must attach a canvas in server mode');
       assert.match(dom, /turn 1 · 4000 BC · Player 1/, 'the HUD must show the joined seat and turn');
@@ -597,7 +597,10 @@ test('browser reconnect: a severed socket reclaims its seat and the HUD recovers
     const gs = await startGameServer({ seed: 99, civs: 2, humans: 1, size: 'xsmall', autosave: false });
     try {
       const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=8&civ=romans`;
-      const dom = await dumpDomLive(chromium, url, h => /e2e8 reconnected:true/.test(h), 20000);
+      // a SEVERED socket reclaims via a 1/s retry loop, so this one needs the
+      // suite-load budget more than most: measured 36.3s to fail at 20s under a
+      // fully parallel suite, green in isolation across repeats.
+      const dom = await dumpDomLive(chromium, url, h => /e2e8 reconnected:true/.test(h), 90000);
       const m = dom.match(/e2e8 reconnected:true hud:\[([^\]]*)\] seatCode:(\w+) errors:(\d+)/);
       assert.ok(m, `the e2e=8 probe must report:\n${dom.match(/e2e8 [^<]*/)?.[0] || '(no probe)'}`);
       assert.match(m[1], /turn \d/, 'the HUD recovered to a live turn line');
@@ -679,7 +682,7 @@ test('browser lobby chat: a script payload renders as text, not markup',
     try {
       const payload = encodeURIComponent('<img src=x onerror="document.title=1">hi');
       const url = `http://127.0.0.1:${gs.port}/client/?e2ehost=1&e2ehold=1&e2echat=${payload}`;
-      const dom = await dumpDomLive(chromium, url, h => /lobby-chat-log/.test(h) && /Kjell:/.test(h), 20000);
+      const dom = await dumpDomLive(chromium, url, h => /lobby-chat-log/.test(h) && /Kjell:/.test(h), 90000); // suite-load budget
       const log = dom.match(/id="lobby-chat-log"[\s\S]*?<\/div>/)[0];
       assert.match(log, /Kjell: &lt;img/, 'the payload is visible as escaped text');
       assert.ok(!/<img/.test(log), 'no element was created from the payload');
@@ -702,7 +705,7 @@ test('browser LAN turn pass: handing to the other human keeps my own viewpoint',
     const gs = await startGameServer({ seed: 4242, civs: 2, humans: 2, size: 'xsmall', autosave: false });
     try {
       const url = `http://127.0.0.1:${gs.port}/client/?server=1&e2e=4&civ=romans`;
-      const dom = await dumpDomLive(chromium, url, h => /e2e4 human:/.test(h), 20000);
+      const dom = await dumpDomLive(chromium, url, h => /e2e4 human:/.test(h), 90000); // suite-load budget
       const m = dom.match(/e2e4 human:(\w+) active:(\w+) handoffOpen:(\w+) errors:(\d+)/);
       assert.ok(m, `the e2e=4 probe must report:\n${dom.match(/e2e4[^<]*/)?.[0] || '(no probe)'}`);
       assert.strictEqual(m[2], 'p2', 'the server parked the turn on the unbound human seat');

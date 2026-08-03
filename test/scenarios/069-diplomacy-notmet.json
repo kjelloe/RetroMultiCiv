@@ -1,0 +1,60 @@
+{
+  "name": "A105: diplomacy with a civ you have not MET is refused; contact makes it possible",
+  "notes": "User report 2026-08-02: the panel listed unmet civs BY NAME and offered them peace treaties. The client half stopped offering, but a UI declining to send a command is not a rule — the server's command path and any crafted client were still ungated. This pins the ENGINE rule in both languages. p1 and p3 have never met (no relations entry at all, the omit-safe default), so every diplomacy kind is refused with notMet; p1 and p2 carry the entry contactPass writes at first contact ({ state: 'war', met: true }) and can negotiate normally. The three refused kinds cover the whole command family rather than just the one the user saw.",
+  "setup": {
+    "state": {
+      "version": 1,
+      "turn": 10,
+      "year": -3000,
+      "activePlayer": "p1",
+      "playerOrder": ["p1", "p2", "p3"],
+      "map": {
+        "width": 5,
+        "height": 3,
+        "wrapX": false,
+        "tiles": [
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" },
+          { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }, { "t": "grassland" }
+        ]
+      },
+      "units": {},
+      "cities": {},
+      "cityOrder": [],
+      "wonders": {},
+      "nextUnitId": 9,
+      "nextCityId": 9,
+      "rngState": 1,
+      "relations": {
+        "p1|p2": { "state": "war", "met": true }
+      },
+      "players": {
+        "p1": { "id": "p1", "name": "Rome", "color": "#00f", "human": false, "gold": 100, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p2": { "id": "p2", "name": "Egypt", "color": "#f00", "human": false, "gold": 100, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 },
+        "p3": { "id": "p3", "name": "Greece", "color": "#0f0", "human": false, "gold": 100, "techs": [], "researching": "", "bulbs": 0, "taxRate": 50, "sciRate": 50 }
+      }
+    }
+  },
+  "script": [
+    {
+      "cmd": { "type": "diplomacy", "kind": "offer", "playerId": "p1", "target": "p3", "terms": { "peace": true, "duration": 20 } },
+      "expect": { "ok": false, "state": { "relations.p1|p3": null } }
+    },
+    {
+      "cmd": { "type": "diplomacy", "kind": "declare", "playerId": "p1", "target": "p3" },
+      "expect": { "ok": false, "state": { "relations.p1|p3": null } }
+    },
+    {
+      "cmd": { "type": "diplomacy", "kind": "accept", "playerId": "p1", "target": "p3" },
+      "expect": { "ok": false }
+    },
+    {
+      "cmd": { "type": "diplomacy", "kind": "offer", "playerId": "p1", "target": "p2", "terms": { "peace": true, "duration": 20 } },
+      "expect": { "ok": true }
+    }
+  ],
+  "final": {
+    "state": { "turn": 10 },
+    "hash": "0x2a4acd11"
+  }
+}
