@@ -138,7 +138,8 @@ return [==[{
   "barb": {
     "leaderRansom": 100,
     "leaderChance": 4,
-    "seaRaidChance": 8
+    "seaRaidChance": 8,
+    "maxUnits": 128
   },
   "pollution": {
     "tolerance": 20,
