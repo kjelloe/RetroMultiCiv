@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-07-27</strong> — SCOPE RULING: program extends <strong>W6 → W7 maps → W8 econ pair</strong> (+~1 week, accepted) · GHCR at RC · nukes stay v1.x</span>
-    <span class="chip">Merge candidate: <strong>marker-0111</strong> (MERGE-CONSISTENT — W8 econ pair, the LAST engine window; supersedes 0110)</span>
-    <span class="chip"><strong>W1–W8 ALL ✅ COMPLETE + GATED</strong> — suite 1027/1027, zero failures; next is the RC</span>
+    <span class="chip">Updated: <strong>2026-08-03</strong> — <strong>THE RELEASE CANDIDATE IS TAGGED</strong></span>
+    <span class="chip">Merge candidate: <strong>marker-0112</strong> @2e0511c (MERGE-CONSISTENT — supersedes 0102–0111)</span>
+    <span class="chip"><strong>W1–W8 ALL ✅ COMPLETE + GATED</strong> — suite <strong>1048/1048</strong>, zero failures, zero skips; both RC gates green</span>
   </div>
 </header>
 
@@ -144,23 +144,25 @@
 </section>
 
 <section id="rcstatus">
-  <div class="sec-head"><h2>Where v1.0 actually stands</h2><span class="tag">2026-08-01</span></div>
+  <div class="sec-head"><h2>Where v1.0 actually stands</h2><span class="tag">2026-08-03</span></div>
   <div class="bar" style="background: var(--play);"></div>
-  <div class="item"><div class="t">No engine work remains</div>
-    <div class="d">W1–W8 built, gated and tagged (marker-0111); full suite <strong>1027/1027, zero failures</strong>; <code>GAME_VERSION</code> already <code>1.0.0</code>.</div>
+  <div class="item"><div class="t">No engine work remains, and the RC is TAGGED</div>
+    <div class="d"><strong>marker-0112 @2e0511c</strong> is merge-consistent; the full suite is <strong>1048/1048</strong> with zero failures and zero skips; <code>GAME_VERSION</code> is already <code>1.0.0</code>. Both RC gates are green — the reviewer's pristine clean-clone with an independent lune reproduction, and the sim-runner's canonical 25-seed sweep (six floors green, the barbarian ceiling confirmed load-bearing by direct measurement rather than inferred from a tripwire not firing).</div>
+  </div>
+  <div class="item"><div class="t">The RC gate earned its keep</div>
+    <div class="d">The first sweep came back 24/25 and the failing seed was a <strong>real engine defect</strong>, not a harness artifact: barbarian-captured cities produced units forever (695 of 1004 units barbarian-owned at t340). Root-causing it found a second defect — capture always started <code>militia</code>, even for a civ that obsoleted it centuries earlier — and a user report found a third, treaties offered to civs never met. All three are fixed in this marker.</div>
   </div>
   <table>
     <tr><th>Remaining</th><th>Owner</th><th>Blocking 1.0?</th></tr>
-    <tr><td>RC marker + <code>reports/v1-rc.md</code> digest (drafted)</td><td>architect</td><td>the RC itself</td></tr>
-    <tr><td>Fresh canonical 25-seed sweep banked at the RC marker</td><td>sim-runner</td><td>precondition 3</td></tr>
-    <tr><td>Clean-clone at the RC marker (small delta on 0111)</td><td>reviewer</td><td>precondition 3</td></tr>
-    <tr><td>Usage metrics (localhost-private)</td><td>hardening</td><td>no — ships when ready</td></tr>
-    <tr><td>Merge to main · <code>v1.0.0</code> tag · redeploy · GHCR flip</td><td><strong>user</strong></td><td>yes, by design</td></tr>
-    <tr><td>Roblox Studio sitting (checklist ready)</td><td><strong>user</strong></td><td>no — Roblox is a v1.x point release</td></tr>
+    <tr><td>Merge <code>marker-0112</code> to main</td><td><strong>user</strong></td><td>yes, by design</td></tr>
+    <tr><td><code>v1.0.0</code> tag</td><td><strong>user</strong></td><td>yes</td></tr>
+    <tr><td>Redeploy the box <strong>from main</strong> (not dev_night)</td><td><strong>user</strong></td><td>yes</td></tr>
+    <tr><td><code>PUBLISH_GHCR</code> flip + one verified run</td><td><strong>user</strong></td><td>yes</td></tr>
     <tr><td>Professional trademark search</td><td><strong>user</strong></td><td>release-gating judgement</td></tr>
+    <tr><td>Roblox Studio sitting (checklist ready)</td><td><strong>user</strong></td><td>no — Roblox is a v1.x point release</td></tr>
   </table>
   <div class="item"><div class="t">Deliberately deferred, rationale recorded</div>
-    <div class="d">The AI's overseas-expansion gap (measured; the opt-in shapes ship anyway), nukes, counter-espionage, toroidal wrap, and the Roblox parity remainder — full list in <code>plan-version2.html</code>.</div>
+    <div class="d">The AI's overseas-expansion gap (measured; the opt-in shapes ship anyway), <strong>barbarian hunt range</strong> (<code>HUNT_RADIUS</code> 8 — the likelier reason hordes accumulate at all, but changing it moves AI aggression and needs its own measurement), nukes, counter-espionage, toroidal wrap, and the Roblox parity remainder — full list in <code>plan-version2.html</code>.</div>
   </div>
 </section>
 

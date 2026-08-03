@@ -4,20 +4,26 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-08-01 — **marker-0111 TAGGED @db76757 = MERGE-CONSISTENT
-(supersedes 0110): W8 ECON PAIR — THE LAST ENGINE WINDOW — IS COMPLETE, so every
-window of the v1 engine programme (W1–W8) is now built, gated and tagged.**
-Offensive diplomat + caravan doctrine, AI brain only; the coverage run found it
-half-inert in play (~94 missions for 2 accepted steals; 624 route commands for
-zero routes) and the acceptance re-run proves the fixes took: 34 missions → 34
-accepted outcomes with ZERO waste, routes 3/3, duplicate-tech clean across ten
-seeds, floors held. **Full suite 1027/1027, zero failures** — reached by fixing
-three standing reds rather than labelling them; two were real (a naval regression
-live since W6 slice-3, and a stale replay witness). Also shipped: the ruled title
-on browser + mobile, a mobile UI playthrough that found and fixed a d-pad
-overlaying the found-city button, the Roblox playthrough checklist, the novelty
-map shapes RULED SHIP (AI gap filed v1.x), and the usage-metrics design handed to
-hardening. **NEXT: the RC.**
+Last updated: 2026-08-03 — **marker-0112 TAGGED @2e0511c = MERGE-CONSISTENT
+(supersedes 0102–0111): THE RELEASE CANDIDATE.** The RC gate did its job: the
+canonical sweep came back 24/25 and the failing seed was a REAL engine defect,
+not a harness artifact — barbarian-captured cities produced units forever (695
+of 1004 units barbarian-owned at t340). Root-causing it found a second defect
+(capture always started `militia`, even for a civ that obsoleted it), and a user
+report found a third (treaties offered to civs never met). All three fixed here.
+The sweep is now CLEAN 25/25 with six floors green, the 128-unit ceiling binds on
+4 of 25 seeds and holds barbarians at exactly 128 (total units max 530, was
+1004), and the nightly — red every night for three unrelated non-game reasons —
+is fixed. **Full suite 1048/1048, zero failures, zero skips.**
+**NEXT: the user's release sequence — merge to main, `v1.0.0`, redeploy, GHCR.**
+--- prior: 2026-08-01 — **marker-0111 @db76757: W8 ECON PAIR, the last engine
+window**, so W1–W8 were all built, gated and tagged. Suite reached 1027/1027 by
+fixing three standing reds rather than labelling them; two were real (a naval
+regression live since W6 slice-3, and a stale replay witness). Also shipped: the
+ruled title on browser + mobile, a mobile UI playthrough that found and fixed a
+d-pad overlaying the found-city button, the Roblox playthrough checklist, the
+novelty map shapes RULED SHIP (AI gap filed v1.x), and the usage-metrics design
+handed to hardening.
 --- prior: 2026-07-30 — **marker-0110 TAGGED @dac46ec = MERGE-CONSISTENT
 (supersedes 0109): W7 NOVELTY MAP SHAPES + the A91c warming/stranding repair.**
 Five new shapes (fractal/oval/ring/inland-sea/clover) via a wrap-aware integer
@@ -284,24 +290,31 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | **✅ W7 map shapes SHIPPED (0110)** — nine types incl. clover with balanced starts; naval acceptance for the water-heavy shapes rides after (human-workitems B3) (`specs/map-shapes-w7.md`; the browser picker is already data-driven from `rules.mapTypes`, so the client half is ~zero); conquest renderer-brighten banked v1.x; guards G1–G5 + A49 5/5 all complete |
 
-## Where v1.0 actually stands (2026-08-01)
+## Where v1.0 actually stands (2026-08-03)
 
-**No engine work remains.** W1–W8 are built, gated and tagged (marker-0111); the
-full suite is 1027/1027 with zero failures; `GAME_VERSION` is already `1.0.0`.
-What is left is the RC sequence and two lanes finishing non-blocking work:
+**No engine work remains, and the RC is TAGGED.** marker-0112 @2e0511c is
+merge-consistent; the full suite is 1048/1048 with zero failures and zero skips;
+`GAME_VERSION` is already `1.0.0`. Both RC gates are green — the reviewer's
+pristine clean-clone with an independent lune reproduction, and the sim-runner's
+canonical 25-seed sweep (all six floors green, the barbarian ceiling confirmed
+load-bearing by direct measurement rather than inferred from a tripwire not
+firing).
+
+What is left is entirely the user's sequence:
 
 | remaining | owner | blocking 1.0? |
 |---|---|---|
-| RC marker + `reports/v1-rc.md` evidence digest (drafted) | architect | the RC itself |
-| A fresh canonical 25-seed sweep banked at the RC marker | sim-runner | precondition 3 |
-| Clean-clone at the RC marker (small delta on 0111) | reviewer | precondition 3 |
-| Usage metrics (`specs/metrics-v1.md`, localhost-private) | hardening | no — ships when ready |
-| Merge to main · `v1.0.0` tag · redeploy · `PUBLISH_GHCR` flip | **user** | yes, by design |
-| Roblox Studio sitting (checklist ready, 31 headless gates cleared) | **user** | no — Roblox is a v1.x point release |
+| Merge `marker-0112` to main | **user** | yes, by design |
+| `v1.0.0` tag | **user** | yes |
+| Redeploy the box FROM MAIN (not dev_night) | **user** | yes |
+| `PUBLISH_GHCR` flip + one verified run | **user** | yes |
 | Professional trademark search on the title | **user** | release-gating judgement |
+| Roblox Studio sitting (checklist ready, 31 headless gates cleared) | **user** | no — Roblox is a v1.x point release |
 
 Deliberately deferred, with rationale recorded: the AI's overseas-expansion gap
-(`specs/unit-doctrine-v1x.md` §8 — measured, opt-in shapes ship anyway), nukes
+(`specs/unit-doctrine-v1x.md` §8 — measured, opt-in shapes ship anyway),
+barbarian hunt range (`HUNT_RADIUS` 8 — the likelier reason hordes accumulate at
+all, but changing it moves AI aggression and needs its own measurement), nukes
 and counter-espionage, toroidal wrap, and the Roblox parity remainder. The full
 list is `plan-version2.md`.
 

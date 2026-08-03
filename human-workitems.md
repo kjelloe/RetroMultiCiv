@@ -8,9 +8,9 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-08-02 (tip `a0e59b3`; **marker-0111 merge-consistent**,
-supersedes 0102–0110 — every engine window W1–W8 complete. The RC marker is
-pending the two gates now running; the box runs a hand-deployed dev_night.)_
+_Last synced: 2026-08-03 (tip `2e0511c`; **marker-0112 = THE RELEASE CANDIDATE,
+merge-consistent**, supersedes 0102–0111. Both RC gates green, suite 1048/1048.
+Everything below is now yours: merge, tag, redeploy, GHCR.)_
 
 ---
 
@@ -19,27 +19,23 @@ pending the two gates now running; the box runs a hand-deployed dev_night.)_
 ### A. The release sequence — this is now the whole of section A
 
 Everything else in this section was completed and has been dropped. What
-remains is the v1.0 release itself, in order. Nothing here is blocked on an
-agent except A1, which is running as this file is written.
+remains is the v1.0 release itself, in order. **Nothing here is blocked on an
+agent any more** — A1 is done and every remaining step is yours.
 
-- [ ] **A1. Three findings pushed the RC back — no action from you, but the
-  reason matters.** The first RC sweep came back 24/25 and the failure was
-  real, not a harness artifact: barbarians who capture a city kept running it
-  as a normal city, reaching 695 barbarian units (69% of the map) by turn 340.
-  Root-causing that found a second defect — capturing a city always started
-  building `militia`, even for a civ that obsoleted it centuries earlier — and
-  your diplomacy report found a third, treaties being offered to civs never
-  met. What is running now:
-  1. the barbarian-ceiling + capture-defender golden window (goldens
-     re-recorded, twins re-pinning, then a fresh 25-seed sweep — which also
-     measures whether the 128-unit ceiling is ever actually reached);
-  2. **A105**, the diplomacy engine gate (the client half already ships; the
-     engine still accepts unmet targets, and closing it means migrating ~36
-     crafted fixtures);
-  3. then the RC marker, its report, and the plan-doc refresh.
-- [ ] **A2. Merge the RC marker to main** (the architect will name it and
-  declare it merge-consistent; it supersedes 0102–0111):
-  `git fetch origin --tags && git checkout main && git merge <marker> && git push`.
+- [x] **A1. DONE — the RC is tagged: `marker-0112` @2e0511c, merge-consistent.**
+  Three findings pushed it back, and the reason still matters. The first RC
+  sweep came back 24/25 and the failure was REAL, not a harness artifact:
+  barbarians who capture a city kept running it as a normal city, reaching 695
+  barbarian units — 69% of the map — by turn 340. Root-causing that found a
+  second defect (capturing a city always started building `militia`, even for a
+  civ that obsoleted it centuries earlier), and your diplomacy report found a
+  third (treaties offered to civs never met). All three are fixed, twinned and
+  independently gated. The re-sweep is clean 25/25 with all six floors green,
+  and the 128-unit barbarian ceiling is confirmed **load-bearing** — it binds on
+  4 of 25 seeds and holds barbarians at exactly 128, with total units peaking at
+  530 against 1004 before. Details: `reports/marker-0112.md`.
+- [ ] **A2. Merge the RC to main:**
+  `git fetch origin --tags && git checkout main && git merge marker-0112 && git push`.
   It carries every engine window W1–W8, the D4–D6 diplomacy arc, the nine map
   shapes, usage metrics, and the whole client/Roblox rider set.
 - [ ] **A3. Tag the release:** `git tag -a v1.0.0 -m "…" && git push origin v1.0.0`.
