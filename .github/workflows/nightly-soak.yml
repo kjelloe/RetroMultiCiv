@@ -43,7 +43,14 @@ jobs:
 
   soak:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 120, raised from 45 on 2026-08-03. The W6-W8 doctrine windows made late-game
+    # states far denser (the sim-runner measured 886-2826 ms/turn on large
+    # no-chaos states, ~15-20x the old calibration), so this job began exceeding
+    # 45 min and being CANCELLED — which reads in the run list as a failure with
+    # no failing assertion. Raising the natural soak to its correct 600 turns
+    # adds to that. If this budget is hit again, the answer is to split the two
+    # soaks into separate jobs, not to shorten the runs.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,10 +61,15 @@ jobs:
         run: node tools/soak.js --seeds 25 --turns 400 --size small --difficulty godemperor --stats debugging/sim/nightly-godemperor.jsonl
       - name: Natural-rules soak — 25 seeds must each produce a winner
         if: ${{ !cancelled() }}
-        # 400, not 320: the Civ-style calendar (A21) puts 2100 AD — where the
-        # score victory fires — at ~turn 395; a shorter budget strands natural
-        # games in the 1800s with no winner (the 2026-07-14 24/25 failure).
-        run: node tools/soak.js --seeds 25 --turns 400 --size small --natural --stats debugging/sim/nightly-natural.jsonl
+        # 600, not 400 (corrected 2026-08-03). The comment this replaces said
+        # the calendar puts 2100 AD at ~turn 395 — true when it was written,
+        # stale since the calendar moved: GOLDEN_NATURAL in simulation.test.js
+        # pins the score victory at round 545. A 400-turn budget therefore
+        # CANNOT reach it, so every natural seed reported "NO VICTORY by turn
+        # 400" and the nightly failed every night on a manufactured finding.
+        # specs/measurement-program.md §6 already documented this exact artifact
+        # (#2823) and mandated --turns 600; CI had not been updated to match.
+        run: node tools/soak.js --seeds 25 --turns 600 --size small --natural --stats debugging/sim/nightly-natural.jsonl
       - name: Upload telemetry + failure artifacts
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
