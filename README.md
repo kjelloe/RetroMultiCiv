@@ -35,10 +35,10 @@ No build step, one dependency (`ws`), no database. Get Node LTS, clone, and:
 npm ci && ./run.sh          # → http://localhost:8123/client/?server=1
 ```
 
-Or with Docker:
+Or with Docker, no build and no clone:
 
 ```bash
-docker run --rm -p 8123:8123 $(docker build -q .)
+docker run -p 8123:8123 ghcr.io/kjelloe/retromulticiv:latest
 ```
 
 Full guide — systemd, a public Hetzner VM with nginx + Let's Encrypt TLS (incl.

@@ -138,6 +138,18 @@ nothing changed.
 
 ## Docker
 
+### The prebuilt image (no build needed)
+
+```bash
+docker run -p 8123:8123 ghcr.io/kjelloe/retromulticiv:latest
+# → http://localhost:8123/client/?server=1
+```
+
+Published to GHCR by CI, public, no login required. Two tags: `latest`, and the
+release commit SHA if you want to pin.
+
+### Building it yourself
+
 The repo **is** the app (no build artifacts), so the image just copies the
 source, installs `ws`, and runs Node. A `Dockerfile` and a `compose.yaml` ship
 in the repo root.
@@ -145,7 +157,6 @@ in the repo root.
 ```bash
 docker build -t retromulticiv .
 docker run --rm -p 8123:8123 retromulticiv
-# → http://localhost:8123/client/?server=1
 ```
 
 Pass server flags after the image name — they reach `node server/index.js`:
@@ -177,14 +188,82 @@ volumes:
   multiciv-saves:
 ```
 
-> **Prebuilt image.** A GitHub Actions workflow can publish the image to GHCR
-> so operators skip `docker build`. That publishes a **public artifact**, so
-> it stays disabled until the repo owner opts in — see the note at the top of
-> `.github/workflows/docker-image.yml`.
-
 Behind a reverse proxy, run the container on loopback
 (`-p 127.0.0.1:8123:8123`) and point nginx at it exactly as in the Hetzner
 section — the WebSocket upgrade headers are the same.
+
+### Publishing the image — for maintainers of this repo
+
+Skip this section unless you own the repository; it is how the prebuilt image
+above gets there.
+
+Publishing is **off by default and stays an owner decision**, because it puts a
+public artifact into the world. The `docker-image` workflow's `build` job always
+runs and only validates that the image builds; the `publish` job is gated on a
+repository variable. You can see the gate working in any run:
+
+```
+✓ build   in 11s
+- publish in 0s      ← skipped, PUBLISH_GHCR is not set
+```
+
+**1. Flip the variable.**
+
+```bash
+gh variable set PUBLISH_GHCR --body true
+gh variable list
+```
+
+By hand: Settings → Secrets and variables → Actions → Variables → new variable
+`PUBLISH_GHCR` = `true`.
+
+**2. Trigger a run.** A push to `main` also triggers it once the variable is set.
+
+```bash
+gh workflow run docker-image --ref main
+gh run watch $(gh run list --workflow docker-image --limit 1 --json databaseId -q '.[0].databaseId')
+```
+
+It pushes `ghcr.io/<owner>/retromulticiv:latest` and `:<commit-sha>`.
+
+**3. Make the package public — the step that is easy to miss.**
+
+A GHCR package pushed by Actions is created **private** by default. The workflow
+succeeds, the image exists, and `docker pull` fails for everyone except you —
+and you cannot see the problem, because you are authenticated. Profile →
+Packages → `retromulticiv` → Package settings → Change visibility → Public.
+
+**4. Verify.** Two paths, and they prove different things.
+
+*With a Docker daemon* — the real check, because it proves the container boots:
+
+```bash
+docker pull ghcr.io/<owner>/retromulticiv:latest
+docker run -d --name rmc-smoke -p 8199:8123 ghcr.io/<owner>/retromulticiv --port 8123
+curl -s localhost:8199/healthz          # expect {"ok":true,...}
+docker rm -f rmc-smoke
+```
+
+Port 8199 on the host so it cannot collide with a dev server on 8123.
+
+*Without one* — `debugging/ghcr-verify.sh` talks to the registry API as an
+anonymous client. That anonymity is the point: if the anonymous token is
+refused, the package is missing or still private.
+
+```
+anonymous pull token: OK (the package is public)
+tags: "latest","fecb906a4ff8d1d51ae23341e0ffb40c130f6975"
+manifest HTTP: 200
+manifest: image manifest, 10 blob digest(s)
+```
+
+It proves the image exists, is publicly pullable and has a well-formed manifest.
+It does **not** prove the container boots, so treat a registry-only check as
+partial and finish with the smoke when a daemon is available.
+
+**Turning it back off:** `gh variable delete PUBLISH_GHCR`. The `build` job keeps
+validating; nothing further is published, and already-pushed images stay in the
+registry until deleted from the package settings.
 
 ---
 
