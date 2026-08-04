@@ -76,3 +76,32 @@ test('webglHelp addresses the browser the player is actually using', async () =>
   // and this one pin.
   assert.doesNotMatch(webglHelp(CR), /Lockdown Mode/, 'Chrome UA contains "Safari" but is not Safari');
 });
+
+// The no-WebGL card (user report 2026-08-04). A player whose browser cannot
+// create a GL context sees nothing render at all, so this card IS the product
+// for them — it has to carry the browser's own reason and a remedy they can
+// type correctly.
+test('webglBlockedHtml carries the browser reason and a remedy for that browser', async () => {
+  const { webglBlockedHtml } = await import('../client/diagnostics.js');
+  const FF = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
+  const CR = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+  const why = 'tryANGLE (FEATURE_FAILURE_EGL_NO_CONFIG) * Exhausted GL driver options.';
+
+  const ff = webglBlockedHtml({ why }, FF);
+  assert.match(ff, /webgl\.angle\.force-warp/, 'the verified Firefox remedy is named exactly');
+  assert.match(ff, /Restart Firefox completely/i, 'the restart step is explicit — the fix fails without it');
+  assert.match(ff, /EGL_NO_CONFIG/, 'the reported signature is surfaced, not swallowed');
+  assert.doesNotMatch(ff, /chrome:\/\//, 'no chrome:// advice for a Firefox user');
+
+  // the reason is the browser's words: it must be escaped, never injected raw
+  const nasty = webglBlockedHtml({ why: '<img src=x onerror=alert(1)>' }, FF);
+  assert.doesNotMatch(nasty, /<img/, 'the browser-supplied reason is escaped');
+  assert.match(nasty, /&lt;img/, 'and is still shown, escaped');
+
+  // absent reason must not print an empty "Your browser reported:" line
+  assert.doesNotMatch(webglBlockedHtml({}, FF), /reported/, 'no dangling label when there is no reason');
+
+  const cr = webglBlockedHtml({ why }, CR);
+  assert.match(cr, /chrome:\/\/gpu/, 'Chrome keeps its own diagnostics page');
+  assert.doesNotMatch(cr, /about:config/, 'and does not get Firefox advice');
+});

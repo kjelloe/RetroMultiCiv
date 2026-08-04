@@ -5,7 +5,7 @@
 // ctx.HUMAN is the current VIEWPOINT (hotseat hands it between players).
 import { mlog } from './ui/mlog.js'; // L5: FIRST import — the ?mlog buffer arms before anything else
 import { createRenderer } from './renderer/renderer.js';
-import { getGraphicsDiagnostics, showDiagnostics, webglHelp } from './diagnostics.js';
+import { getGraphicsDiagnostics, showDiagnostics, webglHelp, webglBlockedHtml } from './diagnostics.js';
 import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
@@ -210,8 +210,22 @@ const diag = getGraphicsDiagnostics();
 console.table(diag);
 if (params.get('diag') === '1' || !diag.webgl2) showDiagnostics(diag);
 if (!diag.webgl2 && !diag.webgl1) {
+  // No WebGL at all: nothing will render, so a corner status line is the wrong
+  // shape — it is easy to miss and cannot carry a pref name you have to type
+  // exactly. Show a centered card with the browser's own reason and the steps
+  // that fix it. (Reported 2026-08-04: Firefox/ANGLE EGL_NO_CONFIG.)
   hudStatus.style.color = '#ff7b6b';
   hudStatus.textContent = webglHelp();
+  const blocked = document.createElement('div');
+  blocked.id = 'webgl-blocked';
+  blocked.innerHTML = webglBlockedHtml(diag);
+  document.body.appendChild(blocked);
+  // The boot fade is opaque from the first paint and is only cleared once the
+  // world is ready — which never happens on this path. Without clearing it the
+  // card renders correctly and is invisible behind a black sheet, which is
+  // indistinguishable from the game simply failing to load.
+  const fade = document.getElementById('boot-fade');
+  if (fade && fade.parentNode) fade.parentNode.removeChild(fade);
   throw new Error('WebGL unavailable');
 }
 if (!diag.webgl2) {

@@ -73,3 +73,69 @@ export function webglHelp(ua = typeof navigator === 'undefined' ? '' : navigator
     'restart the browser (chrome://restart — a crashed GPU process reports ' +
     '"BindToCurrentSequence failed" until you do). Or try another browser.';
 }
+
+// A centered, actionable panel for the one case a player cannot recover from on
+// their own: no WebGL at all, so nothing renders. Plain text in the corner was
+// not enough — it is easy to miss, and it cannot carry a pref name you have to
+// type exactly. `ua` and `diag` are parameters so this is testable headless.
+//
+// The Firefox branch is the REMEDY THAT ACTUALLY WORKED on a real report
+// (2026-08-04): ANGLE could not find an EGL config on an Intel Iris Xe with a
+// January-2026 driver — WebRender and WebGPU both fine, so not a dead GPU and
+// not a blocklist — and webgl.angle.force-warp plus a FULL restart fixed it.
+// The restart detail matters: closing the window is not enough.
+export function webglBlockedHtml(diag = {}, ua = typeof navigator === 'undefined' ? '' : navigator.userAgent) {
+  const isFirefox = /firefox|gecko\//i.test(ua) && !/chrome|edg\//i.test(ua);
+  const isSafari = /safari/i.test(ua) && !/chrome|chromium|edg\//i.test(ua);
+  const esc = t => String(t == null ? '' : t)
+    .replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // The browser's own reason, when it gave one — far more useful than ours.
+  const reason = diag.why
+    ? `<p class="wb-reason">Your browser reported: <code>${esc(diag.why)}</code></p>`
+    : '';
+  // EGL_NO_CONFIG is the signature of the case we have a verified fix for.
+  const eglNoConfig = /EGL_NO_CONFIG|EXHAUSTED_DRIVERS/i.test(String(diag.why || ''));
+
+  let steps;
+  if (isFirefox) {
+    steps =
+      `<li><strong>Enable software rendering for 3D.</strong> Open a new tab, go to
+        <code>about:config</code>, accept the warning, search for
+        <code>webgl.angle.force-warp</code> and set it to <strong>true</strong>.</li>
+       <li><strong>Restart Firefox completely</strong> — quit the whole browser, not
+        just this window. The setting does not take effect otherwise.</li>
+       <li>If that does not do it, hand Firefox your other GPU: Windows
+        <em>Settings → Display → Graphics → Firefox → High performance</em>.</li>`
+      + (eglNoConfig
+        ? `<li class="wb-note">Your error is <code>EGL_NO_CONFIG</code>, which usually
+             means a graphics-driver update broke the translation layer rather than
+             anything being wrong with your hardware. Rolling the display driver
+             back also fixes it.</li>`
+        : '');
+  } else if (isSafari) {
+    steps =
+      `<li>Safari → <em>Settings → Advanced</em> → tick
+        <strong>Show features for web developers</strong>.</li>
+       <li>Then <em>Develop → Experimental Features</em> and make sure WebGL is enabled.</li>
+       <li>WebGL is also switched off entirely by <strong>Lockdown Mode</strong>.</li>`;
+  } else {
+    steps =
+      `<li>Check hardware acceleration is on: <code>chrome://settings/system</code>.</li>
+       <li>Open <code>chrome://gpu</code> — it names the reason near the top.</li>
+       <li>Restart the browser fully via <code>chrome://restart</code>. A crashed GPU
+        process reports "BindToCurrentSequence failed" until you do.</li>`;
+  }
+
+  return `<div class="wb-card" role="alertdialog" aria-labelledby="wb-title">
+  <h2 id="wb-title">The 3D map can\u2019t start on this browser</h2>
+  <p>Everything else about the game works \u2014 this is a graphics-driver problem
+     on this machine, not a problem with your game or your connection.</p>
+  ${reason}
+  <p><strong>How to fix it${isFirefox ? ', in order' : ''}:</strong></p>
+  <ol>${steps}</ol>
+  <p class="wb-foot">Software rendering is slower than your graphics card, but the
+     game is turn-based and stays perfectly playable on it.</p>
+</div>`;
+}
+

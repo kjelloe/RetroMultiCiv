@@ -2803,3 +2803,34 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
   border: 1px solid #3b5d8f; background: rgba(22, 35, 58, 0.95); color: #cdd8ea;
 }
 #settler-warn .sw-go { border-color: #a24; background: #6b2530; }
+
+/* The no-WebGL card. Centered and modal-looking because when this shows,
+   NOTHING else on the page has rendered — there is no game behind it to
+   obscure, and the player's only route out is the steps it carries. */
+#webgl-blocked {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem; background: rgba(6, 10, 18, .92);
+  overflow-y: auto;
+}
+#webgl-blocked .wb-card {
+  max-width: 34rem; width: 100%;
+  background: #121a29; color: #dbe4f2;
+  border: 1px solid #2c3d5c; border-radius: 12px;
+  padding: 1.4rem 1.6rem;
+  font: 14px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+}
+#webgl-blocked h2 { margin: 0 0 .5rem; font-size: 1.15rem; color: #ffd9a0; }
+#webgl-blocked p { margin: .5rem 0; }
+#webgl-blocked ol { margin: .4rem 0 .2rem; padding-left: 1.3rem; }
+#webgl-blocked li { margin: .45rem 0; }
+#webgl-blocked code {
+  background: #0b1220; border: 1px solid #24344f; border-radius: 4px;
+  padding: .05rem .35rem; font-size: .92em;
+  /* the whole point of these is that they get typed correctly */
+  user-select: all; word-break: break-word;
+}
+#webgl-blocked .wb-reason { color: #b9c6dc; font-size: .93em; }
+#webgl-blocked .wb-note { color: #b9c6dc; list-style: none; margin-left: -1.3rem; }
+#webgl-blocked .wb-foot { color: #96a5bd; font-size: .9em; margin-top: .9rem; }
