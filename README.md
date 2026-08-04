@@ -53,7 +53,7 @@ the browser engine with identical state hashes at every checkpoint. 1048 headles
 tests hold that contract, including 69 rule scenarios that run against both
 engines and a golden 545-turn game pinned to the hash.
 
-![The graphical technology tree: Alphabet through Writing ticked as known, Astronomy and Philosophy circled as available, Democracy and Gunpowder still locked, with dependency edges drawn between them and a procedural era glyph on every advance](docs/screenshot-techtree.png)
+![The graphical technology tree: known advances ticked, available ones circled, locked ones dimmed, dependency edges drawn between them, and a hover card on Monarchy reading "needs: Code of Laws, Ceremonial Burial — Authority is gathered into a single crown"](docs/screenshot-techtree.png)
 
 ## Multiplayer
 

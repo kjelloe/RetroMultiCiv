@@ -54,7 +54,7 @@ turn by turn, exactly as it unfolded. **The record is the game.**
 Press **Shift+D** in any game to download a recording; `node tools/replay.js
 <file>` re-runs it and pinpoints the exact command where anything diverges.
 
-![The graphical technology tree: Alphabet through Writing ticked as known, Astronomy and Philosophy circled as available, Democracy and Gunpowder still locked, dependency edges drawn between them, and a procedural era glyph on every advance](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-techtree.png)
+![The graphical technology tree: known advances ticked, available ones circled, locked ones dimmed, dependency edges drawn between them, and a hover card on Monarchy reading "needs: Code of Laws, Ceremonial Burial — Authority is gathered into a single crown"](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-techtree.png)
 
 There are **two** implementations — JavaScript and Luau — and they agree
 byte-for-byte. A game played in Roblox Studio replays command-by-command through
