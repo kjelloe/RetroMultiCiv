@@ -1,31 +1,71 @@
-# RetroMultiCiv
+# A World Begun
 
-> **Now:** a playable deterministic 4X on browser AND Roblox, with LAN
-> multiplayer, replay verification, and a shared cross-language rules
-> engine (both runtimes compute byte-identical state).
-> **Proof:** a real Roblox Studio game replayed command-by-command
-> through both runtimes with identical hashes; a two-machine LAN
-> session survived disconnection and a server restart, then replayed
-> identically.
-> **Since:** measured AI doctrine (build priorities, city roles, naval
-> invasion, air and siege play), Civ 1-scale diplomacy (treaties,
-> tribute, reputation, the senate, embassies), the space race, and a
-> public server.
-> **Next:** 1.0 — map shapes beyond continents, economic AI doctrine,
-> and a prebuilt server image.
+*A faithful recreation of the 1991 Civilization ruleset — for the browser and
+Roblox, with real multiplayer and a deterministic engine that can replay any
+game exactly as it happened.*
 
-A browser-based, turn-based 4X strategy game implementing classic early-4X
-mechanics (in the tradition of the 1991 original) through an original,
-deterministic simulation engine, architected for a mechanical
-module-by-module port to Roblox Luau. "Multi" as in multiplayer — and
-multiple implementations.
+**Play now: [aworldbegun.kjell.today](https://aworldbegun.kjell.today)** ·
+**v1.0.0** · MIT · no account, no install
+
+> RetroMultiCiv is the technical name of the project and of this repository;
+> *A World Begun* is what the game is called.
 
 ![Turn 888, 2784 AD: a Chinese republic under Flight — city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food/shields/trade](docs/screenshot.png)
 
-- Browser client: three.js low-poly renderer (flat tile boxes + raycast picking) behind a renderer interface — three pinned to r162 so WebGL1-only browsers still render
-- Backend: Node.js (minimal deps), authoritative from phase 3
-- One pure, deterministic game engine shared by every phase
-- Default world: 80×50, east–west wrapping (Civ 1 size)
+## What this is
+
+*A World Begun* rebuilds the 1991 ruleset — 4000 BC to the space age, the full
+68-advance tree, 21 world-unique wonders, the government ladder, happiness and
+disorder, pollution and global warming, barbarians, huts and the 2100 AD
+reckoning. The rules are authentic. **The AI plays by them too:** it has no
+resource cheats and no hidden information, and it is bound by the same
+deterministic engine you are.
+
+## What makes the AI worth playing against
+
+The civilizations here have character. Scientists research toward democracy and
+race libraries. Builders raise monuments before armies. Conquerors stage
+overseas invasions when the odds are right. Every AI civilization governs,
+modernizes and manages unhappiness in a way that reflects what it is — not just
+what the numbers suggest. It will not always win. But it will always be doing
+something recognizable.
+
+That is measured, not asserted. A 25-seed headless sweep gates every release
+against floors for cities founded, population, improvement coverage, rush-buys
+and resource use — and the doctrine ships only when the sweep says it fires in
+play, not when the code merely exists. One late window caught the economic
+doctrine issuing 624 trade-route commands that produced **zero** routes; the
+fix was measured before it counted as done.
+
+## What the engine guarantees
+
+Every game produces a complete, verifiable history. Any session can be replayed
+turn by turn, exactly as it unfolded. **The record is the game.**
+
+That is a property, not a feature: one pure engine, state as plain data, every
+random draw seeded and ordered. Press Shift+D in any game to download a
+recording, and `node tools/replay.js <file>` re-runs it through the engine and
+pinpoints the exact command where anything diverges.
+
+There are **two** implementations — JavaScript and Luau — and they agree
+byte-for-byte. A game played in Roblox Studio replays command-by-command through
+the browser engine with identical state hashes at every checkpoint. 1048 headless
+tests hold that contract, including 69 rule scenarios that run against both
+engines and a golden 545-turn game pinned to the hash.
+
+## Multiplayer
+
+Hotseat on one keyboard; LAN or internet through an authoritative server with a
+5-letter join code. Seats survive disconnection — reconnect and reclaim, or let
+AI regency play your turns until you return. A two-machine session has been cut
+mid-game, had its server killed and restarted, and replayed hash-identical
+afterwards.
+
+## Also on Roblox
+
+The same engine, ported module-by-module to Luau rather than reimplemented. The
+Roblox client is a v1.x point release; the engine parity it depends on is
+already proven and gated in CI.
 
 ## Host your own server
 
@@ -104,7 +144,7 @@ the wiki and stays out of this MIT repo — regenerate it locally when needed.
 The committed `data/*.json` rulesets hold game statistics (facts) structured
 for this engine. Tests that need the dump or extraction self-skip without them.
 
-## Status — v0.5
+## Status — v1.0.0 (released 2026-08-04)
 
 **The full game, in the browser.** A complete, winnable classic-4X
 game against AI opponents: seeded 80×50 worlds with fog of war, all 28
