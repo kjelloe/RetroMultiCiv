@@ -3,6 +3,7 @@ Roblox, with real multiplayer and a deterministic engine that can replay any
 game exactly as it happened.*
 
 **Play now: <https://aworldbegun.kjell.today>** — no account, no install.
+**Or on Roblox: <https://www.roblox.com/games/78821734305285/A-World-Begun>**
 
 ![A Chinese republic in 2784 AD: city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food, shields and trade](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot.png)
 
@@ -93,13 +94,22 @@ and Raspberry Pi: [docs/how-to-host.md](docs/how-to-host.md). Self-hosted server
 can announce themselves to a public master index, so other players can find them
 from the setup screen.
 
-<!-- ROBLOX: add the experience link + one in-Studio screenshot here once
-     published. Both come from the same Studio sitting. -->
+## Also on Roblox
+
+**<https://www.roblox.com/games/78821734305285/A-World-Begun>**
+
+The same engine, ported module-by-module to Luau rather than reimplemented — not
+a separate build that happens to agree, but the same modules translated and held
+to byte-identical state by CI. A game played there replays command-by-command
+through the browser engine with identical hashes at every checkpoint.
+
+<!-- ROBLOX SCREENSHOT: one in-Studio capture still to add. -->
 
 ## Known limits, stated plainly
 
-- **Roblox is a v1.x point release.** The engine parity it depends on is proven
-  and gated in CI; the client is not finished.
+- **The Roblox client is a v1.x point release.** It is published and playable,
+  and the engine parity underneath it is proven and gated in CI — but its UI does
+  not yet reach browser parity. The browser client is the complete one.
 - **The AI does not expand overseas** unless the map forces it early. Measured
   on the shipped default map as well as the novelty shapes — it is a doctrine
   gap, filed with its acceptance test, not a surprise.

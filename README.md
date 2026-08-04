@@ -5,7 +5,7 @@ Roblox, with real multiplayer and a deterministic engine that can replay any
 game exactly as it happened.*
 
 **Play now: [aworldbegun.kjell.today](https://aworldbegun.kjell.today)** ·
-**v1.0.0** · MIT · no account, no install
+**[on Roblox](https://www.roblox.com/games/78821734305285/A-World-Begun)** · **v1.0.0** · MIT
 
 > RetroMultiCiv is the technical name of the project and of this repository;
 > *A World Begun* is what the game is called.
@@ -70,9 +70,7 @@ a reimplementation that happens to agree, but the same modules translated and
 held to byte-identical state by CI. The Roblox client is a v1.x point release;
 the engine parity it depends on is already proven and gated.
 
-<!-- ROBLOX_LINK: paste the experience URL here once published, and set the same
-     URL in client/ui/roblox-link.js (ROBLOX_EXPERIENCE_URL) so the setup screen
-     shows its "Play on Roblox" button. Both are currently empty. -->
+**Play it there: [A World Begun on Roblox](https://www.roblox.com/games/78821734305285/A-World-Begun)**
 
 ## Host your own server
 

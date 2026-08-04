@@ -1,9 +1,7 @@
 // Play-on-Roblox entry point (user-ruled). The setup screen links to the Roblox
 // experience ONLY once this URL is recorded — empty ships as NO button; the
-// publish session sets it in one line. The label stays name-neutral until the
-// browser-wide naming gate resolves (see the naming ruling); it is a swappable
-// constant so publish can adjust it alongside the URL.
-export const ROBLOX_EXPERIENCE_URL = '';
+// publish session sets it in one line. PUBLISHED 2026-08-05.
+export const ROBLOX_EXPERIENCE_URL = 'https://www.roblox.com/games/78821734305285/A-World-Begun';
 export const ROBLOX_LINK_LABEL = '🎮 Play on Roblox';
 
 // Pure: the setup-screen anchor HTML, or '' when unconfigured. Only a plain
