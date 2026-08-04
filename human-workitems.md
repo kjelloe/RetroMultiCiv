@@ -136,8 +136,11 @@ evidence behind the decision is `reports/v1-rc.md`.
      (also: commit the cert artifact — it's untracked on the gaming
      PC; the RC digest cites commits meanwhile).
   2. SO18 tech-glyphs render-verify (+ screenshots).
-  3. SoundId curation — **assets READY + user-approved (2026-07-26);
-     upload now AUTOMATED (@e69cb36)**: `node tools/render-sounds.js`
+  3. SoundId curation — **DONE (2026-08-04, #2922): user uploaded all 32
+     cues via Open Cloud; `SoundAssets.luau` now carries a real
+     `rbxassetid://` per cue and Sound.client plays them.** History —
+     assets READY + user-approved (2026-07-26); upload AUTOMATED
+     (@e69cb36): `node tools/render-sounds.js`
      regenerates the 32 approved WAVs + `VOLUMES.md` anywhere
      (`tools/render-sounds.md` is the guide). Then, instead of the
      manual create.roblox.com flow: create a one-time Open Cloud API
