@@ -16,8 +16,11 @@ covers steps 1–15 without a restart.
 `roblox/acceptance/playthrough/NN-<slug>.png` (acceptance/ is never
 committed — the set is for human review, numbered like the browser run's).
 
-**Sound is expected SILENT** this sitting: `SoundAssets.luau` assetIds are
-empty until the Open Cloud upload run. Silence is not a finding.
+**Sound is LIVE** as of the Open Cloud upload run (2026-08-04, #2922): all 32
+`SoundAssets.luau` cues carry real `rbxassetid://` ids, so combat/found/tech/
+wonder/etc. should play at the approved browser-mix Volume (the sound=false
+Options row still mutes). Silence on a cue IS a finding now — check the id
+resolved and the asset is public.
 
 **Style/size/font/placement polish is post-1.0 by ruling** — log layout
 items only if they block reading or tapping.
@@ -217,8 +220,10 @@ items only if they block reading or tapping.
   ruling, and D3+ parity is additionally blocked server-side (filterView
   omits `state.relations`; needs a golden-window change). Skip diplomacy
   depth checks.
-- **Sound cues** — all assetIds empty until the user's Open Cloud upload
-  run; the mixer wiring is testable only after that run.
+- **Sound cues** — NOW LIVE (upload run 2026-08-04, #2922): 32/32 assetIds
+  filled, so this is a testable item this sitting, no longer expected-absent.
+  Verify a few cues fire (combat, found, tech, wonder) and the Options mute
+  row silences them.
 - **Live-server instance reset** (TeleportAsync + reserved server) — not
   reachable in Studio (PlaceId 0); Studio verifies the soft path only.
 - **Clipboard copy of the game code** — no clipboard API on Roblox;
