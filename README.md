@@ -53,6 +53,8 @@ the browser engine with identical state hashes at every checkpoint. 1048 headles
 tests hold that contract, including 69 rule scenarios that run against both
 engines and a golden 545-turn game pinned to the hash.
 
+![The graphical technology tree: Alphabet through Writing ticked as known, Astronomy and Philosophy circled as available, Democracy and Gunpowder still locked, with dependency edges drawn between them and a procedural era glyph on every advance](docs/screenshot-techtree.png)
+
 ## Multiplayer
 
 Hotseat on one keyboard; LAN or internet through an authoritative server with a
@@ -63,9 +65,14 @@ afterwards.
 
 ## Also on Roblox
 
-The same engine, ported module-by-module to Luau rather than reimplemented. The
-Roblox client is a v1.x point release; the engine parity it depends on is
-already proven and gated in CI.
+The same engine, ported module-by-module to Luau rather than reimplemented — not
+a reimplementation that happens to agree, but the same modules translated and
+held to byte-identical state by CI. The Roblox client is a v1.x point release;
+the engine parity it depends on is already proven and gated.
+
+<!-- ROBLOX_LINK: paste the experience URL here once published, and set the same
+     URL in client/ui/roblox-link.js (ROBLOX_EXPERIENCE_URL) so the setup screen
+     shows its "Play on Roblox" button. Both are currently empty. -->
 
 ## Host your own server
 
@@ -206,8 +213,7 @@ and `node tools/replay.js <file>` re-runs it through the engine to
 verify — or pinpoint — exactly what happened.
 
 This game is built AI-assisted (Claude Code) with a human designer and a WebGL
-specialist contributing reviews. The full development prompt log is kept
-locally and will be published, curated, with the 1.0 release.
+specialist contributing reviews.
 
 ## License
 

@@ -4,6 +4,8 @@ game exactly as it happened.*
 
 **Play now: <https://aworldbegun.kjell.today>** — no account, no install.
 
+![A Chinese republic in 2784 AD: city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food, shields and trade](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot.png)
+
 ---
 
 ## What this is
@@ -52,6 +54,8 @@ turn by turn, exactly as it unfolded. **The record is the game.**
 Press **Shift+D** in any game to download a recording; `node tools/replay.js
 <file>` re-runs it and pinpoints the exact command where anything diverges.
 
+![The graphical technology tree: Alphabet through Writing ticked as known, Astronomy and Philosophy circled as available, Democracy and Gunpowder still locked, dependency edges drawn between them, and a procedural era glyph on every advance](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-techtree.png)
+
 There are **two** implementations — JavaScript and Luau — and they agree
 byte-for-byte. A game played in Roblox Studio replays command-by-command through
 the browser engine with identical state hashes at every checkpoint. **1048
@@ -88,6 +92,9 @@ Or from source: `npm ci && ./run.sh`. Full guide including systemd, nginx + TLS
 and Raspberry Pi: [docs/how-to-host.md](docs/how-to-host.md). Self-hosted servers
 can announce themselves to a public master index, so other players can find them
 from the setup screen.
+
+<!-- ROBLOX: add the experience link + one in-Studio screenshot here once
+     published. Both come from the same Studio sitting. -->
 
 ## Known limits, stated plainly
 
