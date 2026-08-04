@@ -2834,3 +2834,17 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
 #webgl-blocked .wb-reason { color: #b9c6dc; font-size: .93em; }
 #webgl-blocked .wb-note { color: #b9c6dc; list-style: none; margin-left: -1.3rem; }
 #webgl-blocked .wb-foot { color: #96a5bd; font-size: .9em; margin-top: .9rem; }
+
+/* Options → Graphics. The diagnostics used to live permanently in the HUD; here
+   they are on demand, beside the setting they explain. */
+#opt-graphics { border: 1px solid #2a3a56; border-radius: 8px; margin: 10px 0 6px; padding: 6px 10px 10px; }
+#opt-graphics legend { color: #ffd9a0; font-size: 12px; padding: 0 4px; }
+#gfx-now { color: #b9c6dc; font-size: 12px; margin: 2px 0 6px; }
+#gfx-actions { display: flex; gap: 6px; margin-top: 6px; }
+#gfx-result, #gfx-detail {
+  white-space: pre-wrap; word-break: break-word;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #b9c6dc; background: #0b1220; border: 1px solid #24344f;
+  border-radius: 6px; padding: 6px 8px; margin-top: 6px;
+}
+#gfx-result.hidden, #gfx-detail.hidden { display: none; }

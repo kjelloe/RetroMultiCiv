@@ -15,12 +15,25 @@ export function terrainColor(terrainId) {
   return terrainBaseColor(terrainId);
 }
 
-export function createRenderer(container) {
+// opts.forceWebgl1 — the player's Options choice. three r162 is WebGL1-capable,
+// so handing it a 'webgl' context we made ourselves pins it to WebGL1 even where
+// WebGL2 exists. Some drivers expose a WebGL2 that is present but unreliable;
+// this is the one renderer lever a web page genuinely has.
+export function createRenderer(container, opts = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d1420);
 
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 500);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  let renderer;
+  if (opts.forceWebgl1) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgl', { antialias: true })
+      || canvas.getContext('experimental-webgl', { antialias: true });
+    if (!context) throw new Error('WebGL1 was requested but the browser would not create it');
+    renderer = new THREE.WebGLRenderer({ canvas, context, antialias: true });
+  } else {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
 

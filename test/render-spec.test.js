@@ -105,3 +105,47 @@ test('webglBlockedHtml carries the browser reason and a remedy for that browser'
   assert.match(cr, /chrome:\/\/gpu/, 'Chrome keeps its own diagnostics page');
   assert.doesNotMatch(cr, /about:config/, 'and does not get Firefox advice');
 });
+
+// Options → Graphics (user report 2026-08-04): the diagnostics block used to sit
+// permanently in the HUD for every WebGL1 player. It moved into Options, which
+// only works if the renderer preference is a real, plumbed setting.
+test('the renderer option is a real preference the renderer honours', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const opts = fs.readFileSync(path.join(__dirname, '..', 'client', 'ui', 'options.js'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client', 'main.js'), 'utf8');
+  const three = fs.readFileSync(path.join(__dirname, '..', 'client', 'renderer', 'three', 'index.js'), 'utf8');
+
+  assert.match(opts, /renderer:\s*'auto'/, 'the option has a default');
+  assert.match(opts, /data-opt="renderer"/, 'and a control bound to it');
+
+  // main.js must read it BEFORE building the renderer — options.js initialises
+  // later, so a ctx.options read here would always be undefined.
+  assert.match(main, /localStorage\.getItem\('retromulticiv-options'\)/,
+    'main.js reads the stored preference directly, not through ctx.options');
+  assert.ok(main.indexOf('rendererPref') < main.indexOf('createRenderer(document.getElementById'),
+    'the preference is resolved before the renderer is created');
+  assert.match(main, /forceWebgl1: rendererPref === 'webgl1'/, 'and is passed through');
+  assert.match(three, /opts\.forceWebgl1/, 'the renderer acts on it');
+  assert.match(three, /getContext\('webgl'/, 'by making a WebGL1 context itself');
+
+  // the HUD block is opt-in now — NOT shown merely because WebGL2 is missing
+  assert.doesNotMatch(main, /params\.get\('diag'\) === '1' \|\| !diag\.webgl2/,
+    'a WebGL1 player must not get the permanent HUD diagnostics wall');
+});
+
+// Mobile compass default (user ruling 2026-08-04): the per-unit arrows carry
+// navigation, so the d-pad starts hidden. Safe ONLY because the 🧭 toggle lives
+// outside the pad — a hidden pad cannot reveal itself.
+test('the mobile compass is hidden by default, and can still be brought back', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const opts = fs.readFileSync(path.join(__dirname, '..', 'client', 'ui', 'options.js'), 'utf8');
+  const dpad = fs.readFileSync(path.join(__dirname, '..', 'client', 'ui', 'dpad.js'), 'utf8');
+
+  assert.match(opts, /dpadHidden:\s*true/, 'the compass defaults to hidden');
+  // the toggle must be appended to the corner cluster, never to the pad itself
+  assert.match(dpad, /corner\.appendChild\(toggle\)/,
+    'the reveal button lives outside the pad, or a hidden pad is unrecoverable');
+  assert.doesNotMatch(dpad, /pad\.appendChild\(toggle\)/, 'and specifically not on the pad');
+});

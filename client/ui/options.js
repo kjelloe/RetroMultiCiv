@@ -2,6 +2,7 @@
 // are client preferences in localStorage — never game state, never hashed.
 import { PALETTES } from './palette.js';
 import { PEDIA_NAME } from './pedia-name.js';
+import { getGraphicsDiagnostics, rendererSummary, probeContext, webglHelp } from '../diagnostics.js';
 const KEY = 'retromulticiv-options';
 const DEFAULTS = {
   autoEndTurn: false,     // end the turn as soon as every unit has moved
@@ -19,7 +20,14 @@ const DEFAULTS = {
   firstTimeTips: true,    // A78: contextual first-timer advice (re-enable resets)
   civPalette: 'default',  // palette pass: display-time civ-color remap (ui/palette.js)
   discoveryCards: true,   // the tech-discovery card (ui/discovery-card.js)
-  showMinimap: true       // XIV §36: show the world minimap (OFF hides it; layout reflows)
+  showMinimap: true,      // XIV §36: show the world minimap (OFF hides it; layout reflows)
+  renderer: 'auto',       // auto | webgl1 — read by main.js BEFORE the renderer is built
+  // Default OFF since 2026-08-04 (user, mobile playtest): the per-unit arrows
+  // carry navigation well enough that the compass was mostly costing screen
+  // space. The 🧭 button (touch only) still brings it back, and a player who
+  // explicitly turned it on has `false` STORED, which overrides this default —
+  // so this changes the default, not anyone's existing choice.
+  dpadHidden: true
 };
 
 export function initOptions(ctx) {
@@ -91,6 +99,22 @@ export function initOptions(ctx) {
         ${Object.keys(PALETTES).map(m => `<option value="${m}">${m}</option>`).join('')}
       </select>
     </label>
+    <fieldset id="opt-graphics">
+      <legend>Graphics</legend>
+      <div id="gfx-now">checking…</div>
+      <label>3D renderer
+        <select data-opt="renderer">
+          <option value="auto">automatic (recommended)</option>
+          <option value="webgl1">force WebGL 1</option>
+        </select>
+      </label>
+      <div id="gfx-actions">
+        <button id="gfx-test" type="button">Test this setting</button>
+        <button id="gfx-details" type="button">Details</button>
+      </div>
+      <div id="gfx-result" class="hidden"></div>
+      <div id="gfx-detail" class="hidden"></div>
+    </fieldset>
     <div id="options-report"><button id="open-onboarding" type="button">🧭 Show controls guide</button><button id="open-bug-report" type="button">🐞 Report a bug</button></div>`;
   document.body.appendChild(panel);
 
@@ -103,6 +127,51 @@ export function initOptions(ctx) {
   if (reportBtn) reportBtn.addEventListener('click', () => {
     panel.classList.add('hidden');
     if (ctx.bugReport) ctx.bugReport.open();
+  });
+
+  // --- Graphics: what is rendering, and the one lever a web page really has ---
+  // Moved out of the HUD (user report 2026-08-04): the diagnostics block showed
+  // permanently for every WebGL1 player — six lines of driver strings in the
+  // corner of a working game. Here it is on demand, next to the choice it
+  // informs, and the Test button reports the browser's own error where the
+  // player is deciding rather than after a reload into a broken game.
+  const gfxNow = panel.querySelector('#gfx-now');
+  const gfxResult = panel.querySelector('#gfx-result');
+  const gfxDetail = panel.querySelector('#gfx-detail');
+  const gfxTest = panel.querySelector('#gfx-test');
+  const gfxDetailsBtn = panel.querySelector('#gfx-details');
+  let gfxDiag = null;
+  function gfx() { return (gfxDiag = gfxDiag || getGraphicsDiagnostics()); }
+
+  if (gfxNow) gfxNow.textContent = `Now rendering with: ${rendererSummary(gfx())}`;
+
+  if (gfxDetailsBtn && gfxDetail) gfxDetailsBtn.addEventListener('click', () => {
+    const showing = !gfxDetail.classList.toggle('hidden');
+    if (!showing) return;
+    const d = gfx();
+    gfxDetail.textContent =
+      `WebGL2: ${d.webgl2 ? 'yes' : 'NO'} · WebGL1: ${d.webgl1 ? 'yes' : 'NO'}\n`
+      + `GPU: ${d.renderer || 'unknown'}\n`
+      + `vendor: ${d.vendor || 'unknown'}\n`
+      + (d.why ? `browser said: ${d.why}\n` : '')
+      + (d.webgl2 ? '' : d.webgl1 ? 'running on the WebGL1 fallback (three r162)\n' : '')
+      + `\n${webglHelp()}`;
+  });
+
+  if (gfxTest && gfxResult) gfxTest.addEventListener('click', () => {
+    const pref = values.renderer || 'auto';
+    const r = probeContext(pref);
+    gfxResult.classList.remove('hidden');
+    if (r.ok) {
+      const changed = pref === 'webgl1' && gfx().webgl2;
+      gfxResult.textContent = `✅ ${r.kind} works here`
+        + (r.renderer ? ` (${String(r.renderer).replace(/\s*\n\s*/g, ' ')})` : '')
+        + (changed ? ' — reload the page to switch to it.' : '.');
+    } else {
+      // the browser's own words, not ours — this is the string worth having
+      gfxResult.textContent = `❌ ${pref === 'webgl1' ? 'WebGL 1' : 'A 3D context'} could not be created.\n`
+        + `Browser said: ${r.why}\n\n${webglHelp()}`;
+    }
   });
 
   // XIV §5+§8: always-visible Save/Load — the only save path on a touch device

@@ -113,10 +113,12 @@ export function initDpad(ctx) {
 
   // XII.1 (user, mobile playtest): a compass toggle to show/hide the nav pad —
   // some players want the screen space back. The choice persists in ctx.options
-  // (the shared localStorage blob, like the other prefs); default SHOWN (an
-  // absent option reads falsy = not hidden). The button lives in the top-right
-  // corner cluster (CSS gates it to touch), NOT on the pad — a hidden pad could
-  // not reveal itself.
+  // (the shared localStorage blob, like the other prefs). **Default HIDDEN since
+  // 2026-08-04** (user ruling after mobile play): the per-unit arrows carry
+  // navigation well enough that the compass mostly cost screen space. The button
+  // lives in the top-right corner cluster (CSS gates it to touch), NOT on the
+  // pad — a hidden pad could not reveal itself, which is what makes an
+  // off-by-default safe.
   const toggle = document.createElement('button'); // reuses `opt` declared above
   toggle.id = 'dpad-toggle';
   toggle.textContent = '🧭';

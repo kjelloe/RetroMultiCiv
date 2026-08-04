@@ -37,6 +37,47 @@ export function getGraphicsDiagnostics() {
   return diag;
 }
 
+// One line for the Options panel: what is ACTUALLY rendering right now.
+export function rendererSummary(diag) {
+  if (!diag.webgl2 && !diag.webgl1) return 'none — WebGL unavailable';
+  const api = diag.webgl2 ? 'WebGL 2' : 'WebGL 1 (fallback)';
+  const gpu = diag.renderer ? String(diag.renderer).replace(/\s*\n\s*/g, ' ') : 'unknown GPU';
+  return `${api} · ${gpu}`;
+}
+
+// Try to create a context the way a given preference would, and report what the
+// browser says. This is what the Options "Test" button runs: the player gets the
+// browser's own error where they are making the choice, instead of having to
+// reload into a broken game to find out.
+export function probeContext(pref) {
+  const c = document.createElement('canvas');
+  let why = null;
+  c.addEventListener('webglcontextcreationerror', e => { if (e.statusMessage) why = e.statusMessage; }, false);
+  let gl = null;
+  try {
+    gl = pref === 'webgl1'
+      ? (c.getContext('webgl') || c.getContext('experimental-webgl'))
+      : (c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl'));
+  } catch (e) { why = why || e.message; }
+  if (!gl) return { ok: false, kind: null, why: why || 'the browser refused a context without saying why' };
+  const kind = (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext)
+    ? 'WebGL 2' : 'WebGL 1';
+  // Same unmasking as getGraphicsDiagnostics: Chrome and Safari return a generic
+  // "WebKit WebGL" from the plain RENDERER, so the probe would report a less
+  // useful name than the line directly above it in the same panel.
+  let name = null;
+  try {
+    name = gl.getParameter(gl.RENDERER);
+    if (/webkit|mozilla|apple gpu/i.test(String(name))) {
+      const info = gl.getExtension('WEBGL_debug_renderer_info');
+      if (info) name = gl.getParameter(info.UNMASKED_RENDERER_WEBGL);
+    }
+  } catch (e) { /* some drivers refuse */ }
+  // release it immediately — contexts are a limited resource and this is a probe
+  try { const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext(); } catch (e) { /* */ }
+  return { ok: true, kind, why: null, renderer: name };
+}
+
 export function showDiagnostics(diag) {
   const el = document.getElementById('hud-diag');
   el.textContent =

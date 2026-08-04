@@ -208,7 +208,11 @@ ruleset.rules = Object.assign({}, rules, rulesOverrides);
 // --- graphics: probe before three.js starts (pinned to r162 = WebGL1 capable) ---
 const diag = getGraphicsDiagnostics();
 console.table(diag);
-if (params.get('diag') === '1' || !diag.webgl2) showDiagnostics(diag);
+// The diagnostics block is opt-in now. It used to appear for ANY WebGL1 player,
+// which meant a permanent six-line wall in the HUD for exactly the people whose
+// setup already works. It lives in Options -> Graphics, and ?diag=1 still forces
+// it on screen for support conversations.
+if (params.get('diag') === '1') showDiagnostics(diag);
 if (!diag.webgl2 && !diag.webgl1) {
   // No WebGL at all: nothing will render, so a corner status line is the wrong
   // shape — it is easy to miss and cannot carry a pref name you have to type
@@ -231,9 +235,14 @@ if (!diag.webgl2 && !diag.webgl1) {
 if (!diag.webgl2) {
   console.warn('RetroMultiCiv: WebGL2 unavailable, rendering via WebGL1 fallback');
 }
+// The renderer preference is read straight from localStorage: ui/options.js
+// initialises later than this, and the choice has to be known BEFORE the context
+// is created. Defensive throughout — a corrupt value must not stop the game.
+let rendererPref = 'auto';
+try { rendererPref = (JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').renderer) || 'auto'; } catch (e) { /* */ }
 let renderer;
 try {
-  renderer = createRenderer(document.getElementById('app'));
+  renderer = createRenderer(document.getElementById('app'), { forceWebgl1: rendererPref === 'webgl1' });
 } catch (err) {
   hudStatus.style.color = '#ff7b6b';
   hudStatus.textContent = `The 3D map could not start: ${err.message} — ${webglHelp()}`;
