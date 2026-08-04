@@ -46,3 +46,33 @@ test('the unitSilhouette key replaced typeClasses (loud break for stale readers)
   assert.deepStrictEqual(spec.models.unitSilhouette, recipes.unitSilhouette,
     'unitSilhouette mirrors the generated recipe mapping');
 });
+
+// A player on the live site hit "WebGL unavailable" in Firefox and was shown
+// help telling them to open chrome://settings/system — a URL that does not
+// exist in their browser. The one message a blocked player ever sees has to
+// address the browser they are actually using.
+test('webglHelp addresses the browser the player is actually using', async () => {
+  const { webglHelp } = await import('../client/diagnostics.js');
+  const FF = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
+  const CR = 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+  const SF = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
+  const ED = CR + ' Edg/126.0';
+
+  const ff = webglHelp(FF);
+  assert.match(ff, /about:support/, 'Firefox users get the Firefox diagnostics page');
+  assert.doesNotMatch(ff, /chrome:\/\//, 'Firefox users must NOT be sent to chrome:// URLs');
+
+  const sf = webglHelp(SF);
+  assert.doesNotMatch(sf, /chrome:\/\/|about:config/, 'Safari users get neither Chrome nor Firefox advice');
+
+  for (const [name, ua] of [['chrome', CR], ['edge', ED]]) {
+    const t = webglHelp(ua);
+    assert.match(t, /chrome:\/\/gpu/, `${name} keeps the chrome:// diagnostics`);
+    assert.doesNotMatch(t, /about:config/, `${name} does not get Firefox advice`);
+  }
+
+  // Edge's UA contains "Chrome" and Chrome's contains "Safari" — the branches
+  // must not be fooled by either, which is what the two negative asserts above
+  // and this one pin.
+  assert.doesNotMatch(webglHelp(CR), /Lockdown Mode/, 'Chrome UA contains "Safari" but is not Safari');
+});
