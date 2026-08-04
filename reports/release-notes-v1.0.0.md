@@ -103,7 +103,7 @@ a separate build that happens to agree, but the same modules translated and held
 to byte-identical state by CI. A game played there replays command-by-command
 through the browser engine with identical hashes at every checkpoint.
 
-<!-- ROBLOX SCREENSHOT: one in-Studio capture still to add. -->
+![The same game running inside Roblox: an avatar standing on the tile map at turn 288, 870 AD, with cities showing population and what they are building, the unit action bar along the bottom, and the minimap](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-roblox.png)
 
 ## Known limits, stated plainly
 

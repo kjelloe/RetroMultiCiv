@@ -235,5 +235,16 @@ items only if they block reading or tapping.
   browser has a confirm-by-tap name dialog, Roblox auto-names with no
   prompt. Tier-1 row divergence; needs an architect route (dialog vs
   ruled-divergence note in docs/13).
-- Add sitting findings here as `F2, F3, …` with the step number and a
+- **F2 (from the 2026-08-05 publish screenshot, `roblox/debugging/roblox-screenshot-close.png`):**
+  **world-space labels collide and become unreadable at close camera range.**
+  At turn 288 with several cities in view, the city name/pop lines and the unit
+  strength lines overlap into an unreadable block — "BANGALORE (pop 3)" runs
+  through "Cavalry 2/1" and "Militia 1/1", and neighbouring `Settlers 0/1`
+  labels merge. Repro: stand the avatar among 3+ adjacent cities at default
+  camera height. It reads as a rendering fault rather than as density, which is
+  the part that matters — this is a legibility defect, not a cosmetic one.
+  Browser avoids it by drawing labels in screen space with collision handling.
+  Routes to the docs/13 parity tiers; NOT a v1.0 gate (the Roblox client is a
+  v1.x point release) but it is the first thing a new player sees.
+- Add sitting findings here as `F3, F4, …` with the step number and a
   one-line repro.

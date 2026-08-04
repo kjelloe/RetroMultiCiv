@@ -72,6 +72,8 @@ the engine parity it depends on is already proven and gated.
 
 **Play it there: [A World Begun on Roblox](https://www.roblox.com/games/78821734305285/A-World-Begun)**
 
+![The same game running inside Roblox: an avatar standing on the tile map at turn 288, 870 AD, with cities showing population and what they are building, the unit action bar along the bottom, and the minimap](docs/screenshot-roblox.png)
+
 ## Host your own server
 
 No build step, one dependency (`ws`), no database. Get Node LTS, clone, and:
