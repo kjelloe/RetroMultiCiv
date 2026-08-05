@@ -4,18 +4,27 @@ _LIVING DOCUMENT (user ruling 2026-07-20): kept current as markers land —
 update the node statuses + "last updated" line with each marker report, and
 re-verify against the engine (not the workitem files) when an axis flips to
 done. Companion: `plan-version2.md` (the v2.0-or-later shelf).
-Last updated: 2026-08-03 — **marker-0112 TAGGED @2e0511c = MERGE-CONSISTENT
+Last updated: 2026-08-05 — **v1.0.0 SHIPPED 2026-08-04**, and v1.0.1 is prepared.
+`main` = tag `v1.0.0` = `fecb906` was the release; the box, the GHCR image and
+the Roblox experience all went live from it. **This plan's job is done** — every
+axis is closed and the remaining work is patch-shaped, tracked on
+`plan-version2.md` rather than here.
+**v1.0.1 (prepared on dev_night, awaiting the user's merge):** the no-WebGL card
+and its browser-aware help, graphics diagnostics moved out of the HUD into
+Options with a real renderer preference, the mobile compass hidden by default,
+the published Roblox link, and the research-panel foot row. No engine or rules
+changes — every golden hash unmoved. Suite **1052/1052**, zero failures, zero
+skips. The version bump exists because `GAME_VERSION` is stamped into save
+envelopes, recordings and bug reports: leaving it at 1.0.0 would have every
+report from the live box name a version whose client code it was not running.
+--- prior: 2026-08-03 — **marker-0112 TAGGED @2e0511c = MERGE-CONSISTENT
 (supersedes 0102–0111): THE RELEASE CANDIDATE.** The RC gate did its job: the
 canonical sweep came back 24/25 and the failing seed was a REAL engine defect,
 not a harness artifact — barbarian-captured cities produced units forever (695
-of 1004 units barbarian-owned at t340). Root-causing it found a second defect
-(capture always started `militia`, even for a civ that obsoleted it), and a user
-report found a third (treaties offered to civs never met). All three fixed here.
-The sweep is now CLEAN 25/25 with six floors green, the 128-unit ceiling binds on
-4 of 25 seeds and holds barbarians at exactly 128 (total units max 530, was
-1004), and the nightly — red every night for three unrelated non-game reasons —
-is fixed. **Full suite 1048/1048, zero failures, zero skips.**
-**NEXT: the user's release sequence — merge to main, `v1.0.0`, redeploy, GHCR.**
+of 1004 units barbarian-owned at t340). Root-causing that found a second defect
+(capture always started `militia`) and a user report found a third (treaties
+offered to civs never met). Sweep then CLEAN 25/25, six floors green, the
+128-unit ceiling binding on 4 of 25 seeds. Suite 1048/1048.
 --- prior: 2026-08-01 — **marker-0111 @db76757: W8 ECON PAIR, the last engine
 window**, so W1–W8 were all built, gated and tagged. Suite reached 1027/1027 by
 fixing three standing reds rather than labelling them; two were real (a naval
@@ -290,33 +299,32 @@ master-index CODE (announce protocol + probe + `badAddress` guard, tested).
 | 5 | Public hosting + master index | ✅ COMPLETE + LIVE; lobby-robustness + docs/16 §8 merged | — (server lane queue empty) |
 | 6 | Maps/sound/pedia/advisor/CI | advisor ✅, A58 ✅, Founder's Record + tone pass + silhouettes ALL ally-approved final, PEDIA_NAME=Encyclopedia ✅, **32 sound assets user-approved (2026-07-26)** | **✅ W7 map shapes SHIPPED (0110)** — nine types incl. clover with balanced starts; naval acceptance for the water-heavy shapes rides after (human-workitems B3) (`specs/map-shapes-w7.md`; the browser picker is already data-driven from `rules.mapTypes`, so the client half is ~zero); conquest renderer-brighten banked v1.x; guards G1–G5 + A49 5/5 all complete |
 
-## Where v1.0 actually stands (2026-08-03)
+## Where v1.0 actually stands (2026-08-05) — RELEASED
 
-**No engine work remains, and the RC is TAGGED.** marker-0112 @2e0511c is
-merge-consistent; the full suite is 1048/1048 with zero failures and zero skips;
-`GAME_VERSION` is already `1.0.0`. Both RC gates are green — the reviewer's
-pristine clean-clone with an independent lune reproduction, and the sim-runner's
-canonical 25-seed sweep (all six floors green, the barbarian ceiling confirmed
-load-bearing by direct measurement rather than inferred from a tripwire not
-firing).
+**Shipped.** `v1.0.0` tagged 2026-08-04 at `fecb906`; merged to `main`, deployed,
+published as a public GHCR image, and live on Roblox. The games portal at
+`games.kjell.today` lists it. Nothing on this plan is outstanding.
 
-What is left is entirely the user's sequence:
+| axis | state |
+|---|---|
+| 1 · Every Civ 1 system faithful | ✅ closed |
+| 1b · Civ 1 feature audit | ✅ closed (marker-0107) |
+| 2 · Diplomacy D1–D6 | ✅ closed (marker-0104), plus the A105 met-gate |
+| 3 · AI at the M-targets | ✅ closed — six floors green on the RC sweep |
+| 4 · Roblox tier-3 multiplayer | ✅ engine parity gated; **client published**, UI parity is v1.x |
+| 5 · Public hosting + master index | ✅ live |
+| 6 · Maps, sound, reference, advisor, CI | ✅ closed — nightly repaired 2026-08-03 |
 
-| remaining | owner | blocking 1.0? |
-|---|---|---|
-| Merge `marker-0112` to main | **user** | yes, by design |
-| `v1.0.0` tag | **user** | yes |
-| Redeploy the box FROM MAIN (not dev_night) | **user** | yes |
-| `PUBLISH_GHCR` flip + one verified run | **user** | yes |
-| Professional trademark search on the title | **user** | release-gating judgement |
-| Roblox Studio sitting (checklist ready, 31 headless gates cleared) | **user** | no — Roblox is a v1.x point release |
+**Open, and all of it patch-shaped** (tracked on `plan-version2.md`):
 
-Deliberately deferred, with rationale recorded: the AI's overseas-expansion gap
-(`specs/unit-doctrine-v1x.md` §8 — measured, opt-in shapes ship anyway),
-barbarian hunt range (`HUNT_RADIUS` 8 — the likelier reason hordes accumulate at
-all, but changing it moves AI aggression and needs its own measurement), nukes
-and counter-espionage, toroidal wrap, and the Roblox parity remainder. The full
-list is `plan-version2.md`.
+| item | note |
+|---|---|
+| v1.0.1 merge + tag + release | prepared on dev_night; user-executed |
+| Container-boot smoke | registry verified public; boot unproven (4 docker commands) |
+| Production-switch penalty compounds | measured + designed, v1.0.1 candidate |
+| Roblox label collision (`PLAYTHROUGH-UI` F2) | legibility defect at close camera range |
+| AI overseas expansion | measured gap, `specs/unit-doctrine-v1x.md` §8 |
+| Barbarian hunt range (`HUNT_RADIUS` 8) | the likelier cause of accumulation; needs its own measurement |
 
 ## Reading the tree — the three facts that matter
 

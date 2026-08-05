@@ -82,9 +82,9 @@
   <h1>Road to v1.0 — the remaining work</h1>
   <div class="sub">HTML twin of <code>plan-version1.md</code> (the living dependency tree). The v2 shelf lives in <code>plan-version2.md</code>.</div>
   <div class="meta">
-    <span class="chip">Updated: <strong>2026-08-03</strong> — <strong>THE RELEASE CANDIDATE IS TAGGED</strong></span>
-    <span class="chip">Merge candidate: <strong>marker-0112</strong> @2e0511c (MERGE-CONSISTENT — supersedes 0102–0111)</span>
-    <span class="chip"><strong>W1–W8 ALL ✅ COMPLETE + GATED</strong> — suite <strong>1048/1048</strong>, zero failures, zero skips; both RC gates green</span>
+    <span class="chip">Updated: <strong>2026-08-05</strong> — <strong>v1.0.0 SHIPPED 2026-08-04</strong>; v1.0.1 prepared</span>
+    <span class="chip">Live: <a href="https://aworldbegun.kjell.today">aworldbegun.kjell.today</a> · <a href="https://www.roblox.com/games/78821734305285/A-World-Begun">Roblox</a> · GHCR image public</span>
+    <span class="chip">Suite <strong>1052/1052</strong>, zero failures, zero skips — this plan is DONE; remaining work is patch-shaped and lives in <code>plan-version2.html</code></span>
   </div>
 </header>
 
@@ -144,25 +144,16 @@
 </section>
 
 <section id="rcstatus">
-  <div class="sec-head"><h2>Where v1.0 actually stands</h2><span class="tag">2026-08-03</span></div>
+  <div class="sec-head"><h2>Where v1.0 actually stands</h2><span class="tag">2026-08-05 — RELEASED</span></div>
   <div class="bar" style="background: var(--play);"></div>
-  <div class="item"><div class="t">No engine work remains, and the RC is TAGGED</div>
-    <div class="d"><strong>marker-0112 @2e0511c</strong> is merge-consistent; the full suite is <strong>1048/1048</strong> with zero failures and zero skips; <code>GAME_VERSION</code> is already <code>1.0.0</code>. Both RC gates are green — the reviewer's pristine clean-clone with an independent lune reproduction, and the sim-runner's canonical 25-seed sweep (six floors green, the barbarian ceiling confirmed load-bearing by direct measurement rather than inferred from a tripwire not firing).</div>
+  <div class="item"><div class="t">Shipped</div>
+    <div class="d"><code>v1.0.0</code> tagged 2026-08-04 at <code>fecb906</code>; merged to <code>main</code>, deployed, published as a public GHCR image, and live on Roblox. The portal at <code>games.kjell.today</code> lists it. Nothing on this plan is outstanding.</div>
   </div>
-  <div class="item"><div class="t">The RC gate earned its keep</div>
-    <div class="d">The first sweep came back 24/25 and the failing seed was a <strong>real engine defect</strong>, not a harness artifact: barbarian-captured cities produced units forever (695 of 1004 units barbarian-owned at t340). Root-causing it found a second defect — capture always started <code>militia</code>, even for a civ that obsoleted it centuries earlier — and a user report found a third, treaties offered to civs never met. All three are fixed in this marker.</div>
+  <div class="item"><div class="t">v1.0.1 — prepared on dev_night, awaiting the merge</div>
+    <div class="d">The no-WebGL card and its browser-aware help, graphics diagnostics moved out of the HUD into Options with a real renderer preference, the mobile compass hidden by default, the published Roblox link, and the research-panel foot row. <strong>No engine or rules changes</strong> — every golden hash unmoved. The version bump exists because <code>GAME_VERSION</code> is stamped into save envelopes, recordings and bug reports: leaving it at 1.0.0 would have every report from the live box name a version whose client code it was not running.</div>
   </div>
-  <table>
-    <tr><th>Remaining</th><th>Owner</th><th>Blocking 1.0?</th></tr>
-    <tr><td>Merge <code>marker-0112</code> to main</td><td><strong>user</strong></td><td>yes, by design</td></tr>
-    <tr><td><code>v1.0.0</code> tag</td><td><strong>user</strong></td><td>yes</td></tr>
-    <tr><td>Redeploy the box <strong>from main</strong> (not dev_night)</td><td><strong>user</strong></td><td>yes</td></tr>
-    <tr><td><code>PUBLISH_GHCR</code> flip + one verified run</td><td><strong>user</strong></td><td>yes</td></tr>
-    <tr><td>Professional trademark search</td><td><strong>user</strong></td><td>release-gating judgement</td></tr>
-    <tr><td>Roblox Studio sitting (checklist ready)</td><td><strong>user</strong></td><td>no — Roblox is a v1.x point release</td></tr>
-  </table>
-  <div class="item"><div class="t">Deliberately deferred, rationale recorded</div>
-    <div class="d">The AI's overseas-expansion gap (measured; the opt-in shapes ship anyway), <strong>barbarian hunt range</strong> (<code>HUNT_RADIUS</code> 8 — the likelier reason hordes accumulate at all, but changing it moves AI aggression and needs its own measurement), nukes, counter-espionage, toroidal wrap, and the Roblox parity remainder — full list in <code>plan-version2.html</code>.</div>
+  <div class="item"><div class="t">Open — and all of it patch-shaped</div>
+    <div class="d">Tracked in <code>plan-version2.html</code>: the v1.0.1 merge/tag/release (user-executed); the container-boot smoke (registry verified public, boot unproven); the production-switch penalty compounding; the Roblox label collision (<code>PLAYTHROUGH-UI</code> F2); the AI's overseas-expansion gap; and barbarian hunt range, the likelier cause of horde accumulation, which needs its own measurement.</div>
   </div>
 </section>
 
