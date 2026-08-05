@@ -15,6 +15,10 @@ counter-espionage stayed]; GHCR image → release-checklist step 4b)._
 Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 `Civ2-shape` / `Civ4-shape` / `original`.
 
+> **Not everything deferred belongs here.** `plan-version-1-patch.md` holds the
+> v1.0.x tier — post-release findings worth a patch rather than a v2. This file
+> stays for things ruled OUT of v1 by design.
+
 ## The user-ruled v2 shelf (docs/03 § "The 1.0 definition", 2026-07-16)
 
 - **Dedicated mobile UI** — a real touch-first interface, beyond the XIV
