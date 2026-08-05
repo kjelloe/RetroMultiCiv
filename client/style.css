@@ -716,15 +716,28 @@ html, body {
 }
 #view-summary.hidden { display: none; }
 
-/* XIV §21: the tech-tree button sits in the research panel's lower section */
+/* XIV §21 / 2026-08-05: the tech-tree button shares the foot ROW with "Start
+   research" — same line, same height, same type. Everything visual now comes
+   from `.panel-foot button` so the two cannot drift apart; this rule only
+   cancels the absolute placement the top-bar variant sets (rule further down),
+   which would otherwise float it outside the panel. */
+#research-panel .panel-foot {
+  justify-content: space-between;   /* tree left, Start research right */
+  align-items: center;
+  gap: 8px;
+}
+/* Both foot buttons share one explicit type size. Without it "Start research"
+   keeps the UA default (13.33px) while the tree button carries 14px from the
+   top-bar rule, and they read as two different controls. */
+#research-panel .panel-foot button { font-size: 14px; }
 #research-panel #open-tech-tree {
-  /* XIX #8: cancel the leftover top-bar absolute placement (rule below) that
-     otherwise floats it to the upper-right OUTSIDE the panel — keep it in normal
-     flow, lower-left inside the panel (XV §3) */
   position: static; top: auto; left: auto;
-  display: inline-block; width: auto; margin-top: 12px; padding: 9px 12px; box-sizing: border-box;
-  background: #223a5e; color: #cfe0f5; border: 1px solid #3b5d8f; border-radius: 6px;
-  font-size: 14px; font-family: inherit; cursor: pointer; /* XV §3: lower-left, not full-width */
+  height: auto; width: auto; margin: 0;
+  /* an ID selector outranks `.panel-foot button`, so the shared padding has to
+     be restated here or the button collapses to the top-bar rule's `0 8px` and
+     ends up two-thirds the height of its neighbour */
+  padding: 5px 16px;
+  box-sizing: border-box; font-family: inherit;
 }
 /* XIX #5: the replay view/civ dropdown matched the browser default light-gray —
    restyle to the project's dark control look (cf. #setup-box select) */

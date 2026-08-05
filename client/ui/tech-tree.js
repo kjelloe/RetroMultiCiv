@@ -248,9 +248,16 @@ export function initTechTree(ctx) {
   btn.textContent = '🌳 View technology tree';
   btn.title = 'the whole tech tree (Shift+T)';
   btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+  // Into the panel FOOT, so it shares the row with "Start research" instead of
+  // dropping onto a line of its own below it (user, 2026-08-05). fillResearchPanel
+  // only clears #research-list, so a child of the foot survives every refresh
+  // exactly as a direct child of the panel did.
   const rp = document.getElementById('research-panel');
+  const foot = rp ? rp.querySelector('.panel-foot') : null;
   const bar = document.getElementById('research-bar');
-  if (rp) rp.appendChild(btn);
+  const startBtn = document.getElementById('research-start');
+  if (foot) foot.insertBefore(btn, startBtn || null); // tree on the left, Start on the right
+  else if (rp) rp.appendChild(btn);
   else if (bar && bar.parentNode) bar.parentNode.insertBefore(btn, bar.nextSibling); // fallback
 
   window.addEventListener('keydown', e => {

@@ -34,6 +34,62 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 - **Blender/glTF fidelity pass** — replace procedural primitives with a real
   mesh pipeline where fidelity demands (the A88 "option B" branch).
 
+## Production-switch penalty compounds while you decide (v1.0.1 candidate, user playtest 2026-08-05)
+
+**User note:** "when changing production in a city, the penalty for swapping
+should only happen once — I change from Phalanx to Granary to Barracks, should
+only yield one loss of shields, not two stages."
+
+**Measured before filing** (`engine/cities.js:576`, a city holding 40 shields):
+
+| change | kind crossing | shields |
+|---|---|---|
+| start — Phalanx | — | 40 |
+| → Granary | unit → building | **20** |
+| → Barracks | building → building | 20 *(free)* |
+| → Phalanx | building → unit | **10** |
+| → Granary | unit → building | **5** |
+
+So the literal example already costs ONE penalty: `building → building` is free,
+because the rule fires on `city.producing.kind !== item.kind`. What the note is
+really pointing at is confirmed and worse than the example: **the penalty
+compounds per command.** Four changes while making up your mind take 40 shields
+to 5 — 87.5% of the box — because every category crossing halves what is left.
+That punishes *browsing the catalogue*, not *changing your mind*.
+
+**Why it is wrong beyond the arithmetic:** the cost of a decision should not
+depend on the route taken to it. Phalanx → Granary costs half; Phalanx →
+Barracks → Phalanx → Granary costs seven-eighths, for the same end state on the
+same turn. Nothing in the fiction justifies that.
+
+**Proposed fix — idempotent AND reversible.** Stamp two fields at the turn wrap:
+
+```
+city.prodKind0   the producing.kind the city STARTED the turn with
+city.shields0    the shields it started the turn with
+```
+
+then `setProduction` becomes, instead of a running halving:
+
+```
+city.shields = (item.kind === city.prodKind0) ? city.shields0 : idiv(city.shields0, 2)
+```
+
+One penalty per turn maximum; returning to the original category **restores** the
+shields, so opening the catalogue and closing it again costs nothing. That is
+the behaviour the note asks for, and it removes the route-dependence rather than
+merely capping it.
+
+**Cost:** two new city fields (both integers/strings, so state-contract clean),
+a golden re-record, and the Luau twin. Interacts with `buyProduction` — a buy
+fills the box, so `shields0` must be updated at that point or a later switch
+would restore a pre-purchase number. **That interaction is the part to get right;
+it is where a naive implementation leaks gold into shields.**
+
+**Not in v1.0** by user routing ("for patch version"). No Civ 1 citation either
+way: the wiki dump documents no production-change penalty at all, so this is a
+design call, not a faithfulness repair — label it as such.
+
 ## Parked with explicit user interest
 
 - **Richer anarchy/revolution/civics system** (`Civ4-shape`; docs/01

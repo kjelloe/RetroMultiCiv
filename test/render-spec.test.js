@@ -149,3 +149,27 @@ test('the mobile compass is hidden by default, and can still be brought back', a
     'the reveal button lives outside the pad, or a hidden pad is unrecoverable');
   assert.doesNotMatch(dpad, /pad\.appendChild\(toggle\)/, 'and specifically not on the pad');
 });
+
+// Research panel foot (user, 2026-08-05): "View technology tree" sat on its own
+// line BELOW "Start research" and at a different size. Both buttons now share
+// the foot row. The id-specificity note is the load-bearing part: #open-tech-tree
+// outranks `.panel-foot button`, so the shared padding has to be restated or the
+// button silently collapses to the top-bar rule's `0 8px`.
+test('the tech-tree button shares the research foot row with Start research', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const tt = fs.readFileSync(path.join(__dirname, '..', 'client', 'ui', 'tech-tree.js'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'style.css'), 'utf8');
+
+  assert.match(tt, /foot\.insertBefore\(btn/, 'the button is placed INTO the panel foot');
+  assert.doesNotMatch(tt, /^\s*if \(rp\) rp\.appendChild\(btn\);/m,
+    'and no longer appended to the panel root, which put it on its own line');
+
+  const rule = css.match(/#research-panel #open-tech-tree \{[^}]*\}/);
+  assert.ok(rule, 'the panel-scoped rule exists');
+  assert.match(rule[0], /padding:\s*5px 16px/,
+    'padding restated at id specificity — .panel-foot button cannot win against an id');
+  assert.match(rule[0], /height:\s*auto/, 'height auto so both size from padding');
+  assert.match(css, /#research-panel \.panel-foot button \{ font-size: 14px; \}/,
+    'both foot buttons share one explicit type size');
+});

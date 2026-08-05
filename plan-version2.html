@@ -92,6 +92,31 @@
 </section>
 
 <section id="parked">
+  <div class="sec-head"><h2>Production-switch penalty compounds while you decide</h2><span class="tag">v1.0.1 candidate — user playtest 2026-08-05</span></div>
+  <div class="bar"></div>
+  <div class="item">
+    <div class="t">Measured before filing (engine/cities.js:576, a city holding 40 shields)</div>
+    <div class="d">
+      <table>
+        <tr><th>change</th><th>kind crossing</th><th>shields</th></tr>
+        <tr><td>start — Phalanx</td><td>—</td><td>40</td></tr>
+        <tr><td>→ Granary</td><td>unit → building</td><td><strong>20</strong></td></tr>
+        <tr><td>→ Barracks</td><td>building → building</td><td>20 <em>(free)</em></td></tr>
+        <tr><td>→ Phalanx</td><td>building → unit</td><td><strong>10</strong></td></tr>
+        <tr><td>→ Granary</td><td>unit → building</td><td><strong>5</strong></td></tr>
+      </table>
+      The literal example already costs ONE penalty — <code>building → building</code> is free. The real defect is that the penalty <strong>compounds per command</strong>: four changes while deciding take 40 shields to 5. That punishes browsing the catalogue, not changing your mind — and it makes the cost of a decision depend on the route taken to it.
+    </div>
+  </div>
+  <div class="item">
+    <div class="t">Proposed fix — idempotent and reversible</div>
+    <div class="d">Stamp <code>prodKind0</code> and <code>shields0</code> at the turn wrap, then <code>shields = (item.kind === prodKind0) ? shields0 : idiv(shields0, 2)</code>. One penalty per turn maximum, and returning to the original category restores the shields. Costs two city fields, a golden re-record and the Luau twin. <strong>The interaction to get right is <code>buyProduction</code></strong> — a buy fills the box, so <code>shields0</code> must move with it or a later switch would restore a pre-purchase number and leak gold into shields.</div>
+  </div>
+  <div class="item">
+    <div class="t">Design call, not a faithfulness repair</div>
+    <div class="d">The wiki dump documents no production-change penalty at all, so there is no Civ 1 citation either way. Label it as our own rule. Routed to a patch by the user, not v1.0.</div>
+  </div>
+
   <div class="sec-head"><h2>Parked with explicit user interest</h2><span class="tag">raised by the user, deliberately not in v1</span></div>
   <div class="bar"></div>
   <div class="item"><div class="t"><span class="prov">Civ4-shape</span>Richer anarchy/revolution/civics system</div>
