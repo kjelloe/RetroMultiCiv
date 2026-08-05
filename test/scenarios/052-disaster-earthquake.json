@@ -31,5 +31,5 @@
   "script": [
     { "cmd": { "type": "endTurn", "playerId": "p1" }, "expect": { "ok": true } }
   ],
-  "final": { "hash": "0xe2e39f02" }
+  "final": { "hash": "0xd0f9f3a6" }
 }

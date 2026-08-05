@@ -480,3 +480,79 @@ test('manhattan-gate: nuclear gates on the Manhattan Project + the no-nukes togg
   assert.strictEqual(setNuke(RULESET, { 'manhattan-project': 'c1' }).ok, true, 'Manhattan built -> setProduction ok');
   assert.strictEqual(setNuke(noNukesRules, { 'manhattan-project': 'c1' }).reason, 'noNukes', 'host no-nukes toggle -> rejected');
 });
+
+// Production-switch penalty (user playtest 2026-08-05): "the penalty for
+// swapping should only happen once". It used to fire on EVERY category change,
+// so the cost of a decision depended on the route taken to it — Phalanx →
+// Granary cost half, Phalanx → Barracks → Phalanx → Granary cost seven-eighths
+// for the same end state on the same turn. The baseline is now the category and
+// shield count the city STARTED the turn with, which makes the penalty
+// idempotent and reversible.
+function switchState(shields) {
+  const tiles = [];
+  for (let i = 0; i < 35; i++) tiles.push({ t: 'grassland' });
+  return {
+    version: 1, turn: 20, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 7, height: 5, wrapX: false, tiles },
+    units: {}, cityOrder: ['c1'], wonders: {}, nextUnitId: 2, nextCityId: 2, rngState: 1,
+    cities: {
+      c1: {
+        id: 'c1', name: 'Ur', owner: 'p1', x: 3, y: 2, pop: 4, food: 0,
+        shields, buildings: [], producing: { kind: 'unit', id: 'phalanx' },
+        // what the turn wrap stamps
+        shields0: shields, prodKind0: 'unit'
+      }
+    },
+    players: {
+      p1: {
+        id: 'p1', name: 'A', color: '#fff', human: true, gold: 500,
+        techs: ['bronze-working', 'pottery', 'alphabet', 'ceremonial-burial', 'masonry'],
+        researching: '', bulbs: 0, taxRate: 50, sciRate: 50
+      }
+    }
+  };
+}
+
+test('production switch: the penalty is charged ONCE per turn, not per change', async () => {
+  const { createEngine } = await import('../engine/index.js');
+  const engine = createEngine(RULESET);
+  const set = (s, kind, id) =>
+    engine.applyCommand(s, { type: 'setProduction', playerId: 'p1', cityId: 'c1', item: { kind, id } });
+
+  let s = switchState(40);
+  s = set(s, 'building', 'granary').state;
+  assert.strictEqual(s.cities.c1.shields, 20, 'unit → building: half, once');
+  s = set(s, 'building', 'barracks').state;
+  assert.strictEqual(s.cities.c1.shields, 20, 'building → building: still no penalty');
+
+  // the fix: crossing back and forth must not compound
+  s = set(s, 'unit', 'phalanx').state;
+  assert.strictEqual(s.cities.c1.shields, 40, 'back to the STARTING category: the shields return');
+  s = set(s, 'building', 'granary').state;
+  assert.strictEqual(s.cities.c1.shields, 20, 'and switching away again is still just half of 40');
+  s = set(s, 'wonder', 'pyramids').state;
+  assert.strictEqual(s.cities.c1.shields, 20, 'a third category — still half of the turn-start box');
+});
+
+test('production switch: the baseline is re-stamped by the turn wrap', async () => {
+  const { createEngine } = await import('../engine/index.js');
+  const engine = createEngine(RULESET);
+  let s = switchState(40);
+  s = engine.applyCommand(s, { type: 'setProduction', playerId: 'p1', cityId: 'c1', item: { kind: 'building', id: 'granary' } }).state;
+  assert.strictEqual(s.cities.c1.shields, 20);
+  s = engine.applyCommand(s, { type: 'endTurn', playerId: 'p1' }).state;
+  // after the wrap the city has produced; whatever it now holds is the new
+  // baseline, and its category is the one it ended the turn on
+  assert.strictEqual(s.cities.c1.prodKind0, 'building', 'the wrap re-stamps the category');
+  assert.strictEqual(s.cities.c1.shields0, s.cities.c1.shields, 'and the shield baseline');
+});
+
+test('production switch: omit-safe — a crafted state with no baseline still penalises once', async () => {
+  const { createEngine } = await import('../engine/index.js');
+  const engine = createEngine(RULESET);
+  const s0 = switchState(40);
+  delete s0.cities.c1.shields0;
+  delete s0.cities.c1.prodKind0;
+  const r = engine.applyCommand(s0, { type: 'setProduction', playerId: 'p1', cityId: 'c1', item: { kind: 'building', id: 'granary' } });
+  assert.strictEqual(r.state.cities.c1.shields, 20, 'falls back to the current values as the baseline');
+});

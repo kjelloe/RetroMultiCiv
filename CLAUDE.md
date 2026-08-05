@@ -144,7 +144,14 @@ lazily (A45 trap).
 
 `node --test test/` — headless (the dump integration test self-skips if
 the dump is absent); `debugging/t.sh [-v] [files…]` is the preferred
-invocation (summary + failure blocks, no inline pipes),
+invocation (summary + failure blocks, no inline pipes).
+**`node --test test/` does NOT run `test-ui/`** — that playwright lane only
+runs in the nightly, so a `client/**` change can pass the whole 1050-test
+suite and still break the real UI. It happened TWICE in two days
+(2026-08-05): the A105 met-gate broke the diplomacy spec, and the compass
+default broke the d-pad spec. **After any client/UI change run
+`npx playwright test test-ui/<spec>` for the area touched** (whole lane
+~11 min, single spec ~30 s). Other tools:
 `debugging/killport.sh PORT…` frees stray dev servers (kills by PID from
 `ss` — never pkill patterns, they self-match the calling shell),
 `debugging/job.sh run <id> -- <cmd…>` launches LONG runs (sweeps,

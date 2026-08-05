@@ -211,22 +211,35 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // soak's behavior hashes too would have meant it was firing somewhere it had
 // no business firing. Honest re-record: the HELD soak hashes are the
 // anti-paste-back evidence.
+// 2026-08-05 re-record (production-switch baseline): the switch penalty is now
+// charged ONCE per turn against what the city STARTED the turn with, instead of
+// compounding per command — so the cost of a decision no longer depends on the
+// route taken to it (user playtest). Cities gain two fields, `shields0` and
+// `prodKind0`, stamped at the wrap / founding / capture / buy.
+//
+// #28: BOTH move, and that is expected rather than informative here. Adding
+// fields to every city changes the state hash regardless of behaviour, so the
+// discriminator cannot separate "extra field" from "different outcome" in this
+// window — it only excludes the rulesetHash stamp. The honest separation came
+// from the SCENARIOS instead: all 24 that moved failed on the hash ONLY, with
+// zero behavioural assertions failing, which shows crafted states take the
+// omit-safe path unchanged. Natural 545/p2 holds a NINTH consecutive re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0x6d5e57f7', 200: '0xfe085012', 300: '0x35a50384', 400: '0xfbabb143' },
-  finalHash: '0xfbabb143'
+  checkpoints: { 100: '0xb176b92a', 200: '0xee94526b', 300: '0xc071aa36', 400: '0x7fee3918' },
+  finalHash: '0x7fee3918'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x4f2c1018' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x0877dae9' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x184dd153', 200: '0x24ad814c', 300: '0x104a0912', 400: '0x3d8e2731' },
-  finalHash: '0x3d8e2731'
+  checkpoints: { 100: '0x9cb746ec', 200: '0xbb89c617', 300: '0xdcee3574', 400: '0x18b4976c' },
+  finalHash: '0x18b4976c'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0xffa2a785' };
+const BEHAVIOR_NATURAL = { finalHash: '0x42fb3338' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

@@ -14,7 +14,11 @@ lanes never tag; sim-runner lands commits, the architect tags.
    are on origin/dev_night (push first if local-only — dev_night push/pull
    is architect-granted 2026-07-20; dev/main stay user-only).
 2. **Verify green**: run the delivered surface's suites via
-   `debugging/t.sh <files>`; then check the FULL suite state. Known-red
+   `debugging/t.sh <files>`; then check the FULL suite state.
+   **If the marker touches `client/**`, also run the playwright lane** —
+   `npx playwright test test-ui/` (~11 min). `node --test test/` does NOT
+   cover it, and two client changes shipped green and broke it in one week
+   (2026-08-05). Known-red
    goldens from an OPEN golden window are allowed ONLY if the marker is
    declared not-merge-consistent (step 5).
 3. **Number + tag**: `git tag -l 'marker-00*' | tail -3` for the next number;

@@ -34,7 +34,7 @@ Provenance tags follow the civ-mixing ruling: `Civ1-authentic` /
 - **Blender/glTF fidelity pass** — replace procedural primitives with a real
   mesh pipeline where fidelity demands (the A88 "option B" branch).
 
-## Production-switch penalty compounds while you decide (v1.0.1 candidate, user playtest 2026-08-05)
+## ~~Production-switch penalty compounds while you decide~~ — **FIXED 2026-08-05**
 
 **User note:** "when changing production in a city, the penalty for swapping
 should only happen once — I change from Phalanx to Granary to Barracks, should
@@ -89,6 +89,20 @@ it is where a naive implementation leaks gold into shields.**
 **Not in v1.0** by user routing ("for patch version"). No Civ 1 citation either
 way: the wiki dump documents no production-change penalty at all, so this is a
 design call, not a faithfulness repair — label it as such.
+
+**BUILT 2026-08-05, exactly as designed above.** `shields0` + `prodKind0`
+stamped at the turn wrap, at founding, at capture and on a buy; `setProduction`
+reads them, omit-safe. The `buyProduction` interaction flagged above was real —
+without re-baselining on purchase, a later switch restored a PRE-PURCHASE number
+and silently swallowed the gold spent.
+
+Cost, for the record, because it is the honest measure of a "small" patch: a
+full behavioural re-record — **69 scenario hashes**, the age-snapshot canonical
+pin, ff-parity, the Luau sim-smoke t100 anchor and the sim goldens. Before
+re-pinning anything, **zero behavioural assertions failed** across the 24
+scenarios that moved: every failure was hash-only, because crafted states take
+the omit-safe path. That check is what separates an honest mass re-pin from
+papering over a change.
 
 ## Parked with explicit user interest
 

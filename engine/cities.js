@@ -494,6 +494,10 @@ function createCityAt(state, playerId, x, y, ruleset, events, name) {
     buildings: [],
     producing: { kind: 'unit', id: defender }
   };
+  // the switch-penalty baseline (see setProduction): a city founded mid-turn has
+  // one from its first moment rather than waiting for the next wrap
+  state.cities[cityId].shields0 = 0;
+  state.cities[cityId].prodKind0 = 'unit';
   state.cityOrder.push(cityId);
   reveal(state, playerId, x, y, 2);
   events.push({ type: 'cityFounded', cityId, x, y });
@@ -572,10 +576,19 @@ function setProduction(state, cmd, ruleset) {
     return { ok: false, reason: 'wonderTaken' };
   }
 
-  // Civ 1: switching production category forfeits half the accumulated shields
-  if (city.producing.kind !== item.kind) {
-    city.shields = idiv(city.shields, 2);
-  }
+  // Switching production category forfeits half the shields — ONCE per turn, not
+  // once per change (user playtest 2026-08-05). The baseline is what the city
+  // STARTED the turn with (stamped at the wrap, at founding, at capture and on a
+  // buy), so the penalty is idempotent AND reversible: browsing the catalogue
+  // costs nothing, and returning to the original category restores the box.
+  // Charging per command made the cost depend on the ROUTE to a decision —
+  // unit->building cost half, unit->building->unit->building cost seven-eighths
+  // for the same end state on the same turn.
+  // Omit-safe: a crafted state with no baseline falls back to the current
+  // values, which reproduces the old single-switch behaviour exactly.
+  const kind0 = city.prodKind0 === undefined ? city.producing.kind : city.prodKind0;
+  const base = city.shields0 === undefined ? city.shields : city.shields0;
+  city.shields = item.kind === kind0 ? base : idiv(base, 2);
   city.producing = { kind: item.kind, id: item.id };
   return { ok: true, events: [{ type: 'productionSet', cityId: city.id, item: city.producing }] };
 }
@@ -607,6 +620,12 @@ function buyProduction(state, cmd, ruleset) {
   if (player.gold < price) return { ok: false, reason: 'notEnoughGold' };
   player.gold = player.gold - price;
   city.shields = cost; // the civ-effective cost, so completion triggers at the wrap
+  // Re-baseline the switch penalty on the PURCHASE. Without this a later switch
+  // would restore `shields0` — a PRE-PURCHASE number — and silently swallow the
+  // gold just spent. Buying is a deliberate commitment to this item, so it is
+  // the right place for the baseline to move.
+  city.shields0 = city.shields;
+  city.prodKind0 = city.producing.kind;
   return { ok: true, events: [{ type: 'productionBought', cityId: city.id, price, item: prod }] };
 }
 
@@ -996,6 +1015,12 @@ function processCities(state, ruleset, events) {
         }
       }
     }
+    // Re-stamp the switch-penalty baseline for the turn that is about to begin:
+    // whatever the city now holds, in whatever category it ended on. Done LAST,
+    // after production has been resolved, so the baseline is the box the player
+    // will actually see. (setProduction reads these; see the note there.)
+    city.shields0 = city.shields;
+    city.prodKind0 = city.producing.kind;
   }
 }
 

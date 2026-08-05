@@ -92,7 +92,7 @@
 </section>
 
 <section id="parked">
-  <div class="sec-head"><h2>Production-switch penalty compounds while you decide</h2><span class="tag">v1.0.1 candidate — user playtest 2026-08-05</span></div>
+  <div class="sec-head"><h2>Production-switch penalty compounds while you decide</h2><span class="tag">✅ FIXED 2026-08-05 — kept for the reasoning</span></div>
   <div class="bar"></div>
   <div class="item">
     <div class="t">Measured before filing (engine/cities.js:576, a city holding 40 shields)</div>
@@ -111,6 +111,10 @@
   <div class="item">
     <div class="t">Proposed fix — idempotent and reversible</div>
     <div class="d">Stamp <code>prodKind0</code> and <code>shields0</code> at the turn wrap, then <code>shields = (item.kind === prodKind0) ? shields0 : idiv(shields0, 2)</code>. One penalty per turn maximum, and returning to the original category restores the shields. Costs two city fields, a golden re-record and the Luau twin. <strong>The interaction to get right is <code>buyProduction</code></strong> — a buy fills the box, so <code>shields0</code> must move with it or a later switch would restore a pre-purchase number and leak gold into shields.</div>
+  </div>
+  <div class="item">
+    <div class="t">✅ Built 2026-08-05 — and what a "small" patch actually cost</div>
+    <div class="d">Implemented exactly as designed: <code>shields0</code> + <code>prodKind0</code> stamped at the turn wrap, at founding, at capture and on a buy. The <code>buyProduction</code> interaction flagged above was real — without re-baselining on purchase, a later switch restored a PRE-PURCHASE number and swallowed the gold spent. The cost was a full behavioural re-record: <strong>69 scenario hashes</strong>, the age-snapshot pin, ff-parity, the Luau t100 anchor and the sim goldens. Before re-pinning, <strong>zero behavioural assertions failed</strong> across the 24 scenarios that moved — all hash-only, because crafted states take the omit-safe path. That check is what separates an honest mass re-pin from papering over a change.</div>
   </div>
   <div class="item">
     <div class="t">Design call, not a faithfulness repair</div>
