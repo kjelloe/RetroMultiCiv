@@ -5,7 +5,7 @@ Roblox, with real multiplayer and a deterministic engine that can replay any
 game exactly as it happened.*
 
 **Play now: [aworldbegun.kjell.today](https://aworldbegun.kjell.today)** ·
-**[on Roblox](https://www.roblox.com/games/78821734305285/A-World-Begun)** · **v1.0.0** · MIT
+**[on Roblox](https://www.roblox.com/games/78821734305285/A-World-Begun)** · **v1.0.1** · MIT
 
 > RetroMultiCiv is the technical name of the project and of this repository;
 > *A World Begun* is what the game is called.
@@ -151,7 +151,7 @@ the wiki and stays out of this MIT repo — regenerate it locally when needed.
 The committed `data/*.json` rulesets hold game statistics (facts) structured
 for this engine. Tests that need the dump or extraction self-skip without them.
 
-## Status — v1.0.0 (released 2026-08-04)
+## Status — v1.0.1 (1.0 released 2026-08-04)
 
 **The full game, in the browser.** A complete, winnable classic-4X
 game against AI opponents: seeded 80×50 worlds with fog of war, all 28

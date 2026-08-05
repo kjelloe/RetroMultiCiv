@@ -5,7 +5,7 @@ game exactly as it happened.*
 **Play now: <https://aworldbegun.kjell.today>** — no account, no install.
 **Or on Roblox: <https://www.roblox.com/games/78821734305285/A-World-Begun>**
 
-![A Chinese republic in 2784 AD: city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food, shields and trade](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot.png)
+![A Chinese republic in 2784 AD: city population badges, a railroad network across grassland and hills, an Aztec border to the east, the minimap, and a tile card reading out food, shields and trade](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/40d6cd29aee7698a392483beaeb0632cbcb02aac/docs/screenshot.png)
 
 ---
 
@@ -55,7 +55,7 @@ turn by turn, exactly as it unfolded. **The record is the game.**
 Press **Shift+D** in any game to download a recording; `node tools/replay.js
 <file>` re-runs it and pinpoints the exact command where anything diverges.
 
-![The graphical technology tree: known advances ticked, available ones circled, locked ones dimmed, dependency edges drawn between them, and a hover card on Monarchy reading "needs: Code of Laws, Ceremonial Burial — Authority is gathered into a single crown"](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-techtree.png)
+![The graphical technology tree: known advances ticked, available ones circled, locked ones dimmed, dependency edges drawn between them, and a hover card on Monarchy reading "needs: Code of Laws, Ceremonial Burial — Authority is gathered into a single crown"](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/40d6cd29aee7698a392483beaeb0632cbcb02aac/docs/screenshot-techtree.png)
 
 There are **two** implementations — JavaScript and Luau — and they agree
 byte-for-byte. A game played in Roblox Studio replays command-by-command through
@@ -103,7 +103,7 @@ a separate build that happens to agree, but the same modules translated and held
 to byte-identical state by CI. A game played there replays command-by-command
 through the browser engine with identical hashes at every checkpoint.
 
-![The same game running inside Roblox: an avatar standing on the tile map at turn 288, 870 AD, with cities showing population and what they are building, the unit action bar along the bottom, and the minimap](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/v1.0.0/docs/screenshot-roblox.png)
+![The same game running inside Roblox: an avatar standing on the tile map at turn 288, 870 AD, with cities showing population and what they are building, the unit action bar along the bottom, and the minimap](https://raw.githubusercontent.com/kjelloe/RetroMultiCiv/40d6cd29aee7698a392483beaeb0632cbcb02aac/docs/screenshot-roblox.png)
 
 ## Known limits, stated plainly
 

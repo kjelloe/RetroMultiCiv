@@ -3,7 +3,15 @@
 // golden-neutral). Loaders reject a MAJOR-version mismatch with a friendly line
 // instead of a hash surprise: cheap now, painful to lack at the 2.0 boundary.
 // Bump this on a release; the MAJOR component gates cross-version loads.
-export const GAME_VERSION = '1.0.0';
+//
+// 1.0.1 (2026-08-05): the deployed tree moved past the v1.0.0 tag with
+// player-facing client fixes (the no-WebGL card and its browser-aware help, the
+// Options graphics panel, the mobile compass default, the published Roblox
+// link). The constant is bumped because it is stamped into save envelopes,
+// recordings and bug reports — leaving it at 1.0.0 would have every report from
+// the live box name a version whose client code it is not running, which sends
+// whoever reads it hunting the wrong tree.
+export const GAME_VERSION = '1.0.1';
 
 // the leading integer of a version string, or null when absent/unparseable
 export function majorOf(v) {
