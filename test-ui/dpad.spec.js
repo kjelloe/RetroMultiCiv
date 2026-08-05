@@ -24,20 +24,29 @@ for (const view of [{ name: 'portrait', width: 412, height: 915 }, { name: 'land
       await page.goto(`http://127.0.0.1:${server.port}/client/?seed=2&civs=2&zoom=5`);
       await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
 
-      // the pad and the toggle render on a coarse (touch) viewport
-      await expect(page.locator('#dpad')).toBeVisible();
+      // The compass now starts HIDDEN (user ruling 2026-08-05: the per-unit
+      // arrows carry navigation). The toggle must still render, or a hidden pad
+      // would be unrecoverable — that is the property this test exists to guard.
       await expect(page.locator('#dpad-toggle')).toBeVisible();
+      await expect(page.locator('#dpad')).toBeHidden();
 
-      // the pad must NOT overlap the End Turn button (the field bug)
+      // the toggle brings it back …
+      await page.locator('#dpad-toggle').click();
+      await expect(page.locator('#dpad')).toBeVisible();
+
+      // … and while shown it must NOT overlap the End Turn button (the field bug)
       const b1 = await boxes(page);
       expect(b1.dp.disp).not.toBe('none');
       expect(overlaps(b1.dp, b1.et), 'd-pad overlaps End Turn').toBe(false);
 
-      // the compass toggle hides the pad …
+      // … and that choice persists across a reload, overriding the new default
+      await page.reload();
+      await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
+      await expect(page.locator('#dpad')).toBeVisible();
+
+      // hiding it again also persists
       await page.locator('#dpad-toggle').click();
       await expect(page.locator('#dpad')).toBeHidden();
-
-      // … and the choice persists across a reload
       await page.reload();
       await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
       await expect(page.locator('#dpad')).toBeHidden();
