@@ -104,6 +104,20 @@ Concrete per-box-RAM tuning (2/4/8/16/32 GB: heap size, MemoryMax,
 
 ## 6. The master index (A51 — the QuakeWorld/CS pattern, user-set 2026-07-14; 1.0-REQUIRED; **CODE BUILD GREEN-LIT 2026-07-17** (user last-call ruling) — announce protocol + index service + in-client server browser build now, tested against a local index; only DEPLOYMENT stays gated on the user scheduling DNS + the host box)
 
+**Routes (as built).** `POST /announce`, `GET /servers` (JSON, CORS), `GET
+/healthz`, `GET /metrics` (loopback-only unless `--metrics-public`), and — added
+2026-08-05 — `GET /` returning a small HTML signpost. The root existed only as a
+404 before that, which is what a human pasting the hostname into a browser hit;
+the address looks like a website, so they will. The page states what the service
+is, how many servers are listed, and links to somewhere you can actually play.
+
+**It reports a COUNT, never the listed names.** Server names arrive from whoever
+announces, so rendering them would put attacker-controlled strings into HTML on
+a public page. The machine-readable `/servers` is where the data lives, and the
+in-client browser is what consumes it. A test pins this by announcing a name
+containing an `<img onerror=…>` payload and asserting it appears nowhere in the
+page — not escaped, simply not rendered.
+
 A bulletin board, not a broker: the master lists servers; game
 traffic NEVER touches it. Players browse the index and connect
 DIRECTLY to the chosen host's ws origin.

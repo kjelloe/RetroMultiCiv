@@ -172,3 +172,37 @@ test('barb cap: omitting maxUnits keeps the pre-ruling behavior', async () => {
   enforceCap(state, bare, events);
   assert.strictEqual(Object.keys(state.units).length, 3, 'omit-safe: no knob, no cap');
 });
+
+// A barbarian attack emitted NOTHING (user playtest 2026-08-05: "when barbarians
+// win over one of your units, there is no entry in the turn log and thus no
+// location marker"). act() calls resolveAttack, which RETURNS { ok, events } —
+// movement.js returns that straight up the command path, but barbarians.js
+// discarded it, so every barbarian battle was silent: no turn-log line, no
+// zoom-to marker, no combat cue.
+test('a barbarian attack reports itself — combatResolved reaches the caller', async () => {
+  const { process } = await load();
+  const tiles = [];
+  for (let i = 0; i < 35; i++) tiles.push({ t: 'grassland' });
+  const state = {
+    turn: 20, year: -3000, activePlayer: 'p1', playerOrder: ['p1'],
+    map: { width: 7, height: 5, wrapX: false, tiles },
+    // the barbarian stands next to a lone defender, so act() must attack it
+    units: {
+      b1: { id: 'b1', type: 'legion', owner: 'barb', x: 3, y: 2, moves: 1, fortified: false, veteran: false },
+      d1: { id: 'd1', type: 'militia', owner: 'p1', x: 4, y: 2, moves: 1, fortified: false, veteran: false }
+    },
+    cities: {}, cityOrder: [], wonders: {}, nextUnitId: 5, nextCityId: 2, rngState: 99,
+    players: {
+      p1: { id: 'p1', name: 'Rome', alive: true, gold: 0, techs: [] },
+      barb: { id: 'barb', name: 'Barbarians', alive: true, gold: 0, techs: [] }
+    }
+  };
+  const events = [];
+  process(state, RULESET, events);
+  const combat = events.filter(e => e.type === 'combatResolved');
+  assert.strictEqual(combat.length, 1, `the battle must be reported; got ${JSON.stringify(events.map(e => e.type))}`);
+  assert.strictEqual(combat[0].attackerOwner, 'barb', 'attributed to the barbarians');
+  assert.strictEqual(combat[0].defenderOwner, 'p1', 'and names the defender, so the turn log can classify it');
+  assert.strictEqual(typeof combat[0].x, 'number', 'carries a location — the turn-log marker needs it');
+  assert.strictEqual(typeof combat[0].y, 'number');
+});

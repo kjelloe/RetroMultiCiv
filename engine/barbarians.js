@@ -161,7 +161,14 @@ function act(state, unit, ruleset, events) {
   const hostiles = unitsAt(state, nx, ny).filter(u => u.owner !== BARB_ID);
   if (hostiles.length > 0) {
     unit.moves = 1; // wrap processing runs after players spent their moves
-    resolveAttack(state, unit, nx, ny, ruleset);
+    // resolveAttack RETURNS its events; movement.js passes that result straight
+    // up the command path. Here the return value was DISCARDED, so every
+    // barbarian battle was silent — no turn-log line, no zoom-to marker, no
+    // combat cue, and no ransom/promotion surfacing either.
+    const res = resolveAttack(state, unit, nx, ny, ruleset);
+    if (res !== undefined && res.ok === true && res.events !== undefined) {
+      for (const ev of res.events) events.push(ev);
+    }
     return;
   }
   const terrain = ruleset.terrain.terrains[state.map.tiles[ny * width + nx].t];

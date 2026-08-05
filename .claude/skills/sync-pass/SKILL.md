@@ -48,6 +48,15 @@ the status board. List the deltas BEFORE editing anything.
 
 ## Traps (measured)
 
+- **`node --test test/` does not run `test-ui/`.** A client or UI change can
+  pass the entire engine suite and still break the playwright lane, which only
+  the nightly runs — that is how A105 shipped green and broke the diplomacy
+  spec (2026-08-05). After any `client/**` change, run
+  `npx playwright test test-ui/<spec>` for the area touched.
+- **Check CI when a release is near.** No lane owns it, so it drifts: the
+  nightly was red for 25+ consecutive runs across three unrelated causes before
+  anyone looked (2026-08-03).
+
 - The html twin silently diverges from the md — always grep both for the
   text you changed.
 - Done-claims: verify against the ENGINE/code (`ls engine/…`, grep) before

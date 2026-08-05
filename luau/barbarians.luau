@@ -211,7 +211,16 @@ local function act(state: any, unit: any, ruleset: any, events: any)
 	end
 	if hostile then
 		unit.moves = 1 -- wrap processing runs after players spent their moves
-		combat.resolveAttack(state, unit, nx, ny, ruleset)
+		-- resolveAttack RETURNS its events; movement passes that result straight up
+		-- the command path. Here the return value was DISCARDED, so every barbarian
+		-- battle was silent -- no turn-log line, no zoom-to marker, no combat cue,
+		-- and no ransom/promotion surfacing either.
+		local res = combat.resolveAttack(state, unit, nx, ny, ruleset)
+		if res ~= nil and res.ok == true and res.events ~= nil then
+			for _, ev in ipairs(res.events) do
+				table.insert(events, ev)
+			end
+		end
 		return
 	end
 	local terrain = ruleset.terrain.terrains[state.map.tiles[ny * width + nx + 1].t]

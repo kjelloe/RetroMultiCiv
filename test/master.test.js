@@ -138,3 +138,51 @@ test('size cap: an oversized announce is cut off with 413', async () => {
     assert.deepStrictEqual(l.body.servers, [], 'nothing listed from the oversized announce');
   } finally { await m.close(); }
 });
+
+// A raw GET — the `get` helper above JSON-parses, which the HTML page is not.
+function getText(port, path) {
+  return new Promise((resolve, reject) => {
+    http.get({ host: '127.0.0.1', port, path }, res => {
+      let out = '';
+      res.on('data', c => { out += c; });
+      res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, text: out }));
+    }).on('error', reject);
+  });
+}
+
+// The public signpost page (user, 2026-08-05). servers.multiciv.kjell.today looks
+// like a website, so people paste it into a browser and used to get a bare 404.
+// The machine routes are unchanged; this is a one-page explanation of what the
+// service is and where to go instead.
+test('master /: a human signpost that never renders an announced name', async () => {
+  let t = 1000000;
+  const m = createMaster({ now: () => t, probe: async () => true });
+  const port = await m.listen(0);
+  try {
+    // announce a server whose NAME is hostile — names come from whoever
+    // announces, so they are attacker-controlled input on a public page
+    const a = await post(port, '/announce', ANNOUNCE({ name: '<img src=x onerror=alert(1)>' }));
+    assert.strictEqual(a.status, 200, 'the announce is accepted as usual');
+
+    const page = await getText(port, '/');
+    assert.strictEqual(page.status, 200, 'the root answers');
+    assert.match(page.headers['content-type'] || '', /text\/html/, 'as HTML');
+
+    assert.match(page.text, /server index/i, 'says what the service is');
+    assert.match(page.text, /aworldbegun\.kjell\.today/, 'and points somewhere you can actually play');
+    assert.match(page.text, /\/servers/, 'names the machine endpoint for anyone poking at it');
+    assert.match(page.text, /1 server is listed/, 'reports the live count');
+
+    // the load-bearing assertion: the page reports a COUNT, never the names —
+    // so an announced string cannot reach HTML at all, escaped or otherwise
+    assert.doesNotMatch(page.text, /<img/i, 'an announced name never reaches the page');
+    assert.doesNotMatch(page.text, /onerror/i, 'not even escaped — it is simply not rendered');
+
+    // the machine routes are untouched by the addition
+    assert.strictEqual((await get(port, '/healthz')).status, 200, '/healthz still 200');
+    const list = await get(port, '/servers');
+    assert.strictEqual(list.status, 200, '/servers still 200');
+    assert.ok(Array.isArray(list.body.servers), 'and still JSON');
+    assert.strictEqual((await get(port, '/nope')).status, 404, 'unknown routes still 404');
+  } finally { await m.close(); }
+});

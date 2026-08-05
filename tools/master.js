@@ -160,6 +160,33 @@ function createMaster(opts) {
     return { status: 200, out: { ok: true, listed: entry.listed, reason: entry.reason || undefined } };
   }
 
+  // The public signpost page. Deliberately a COUNT and not a listing: the names
+  // in the registry are supplied by whoever announces, so rendering them would
+  // put untrusted strings into HTML on a public page. The machine-readable
+  // /servers endpoint is where the data lives, and the game reads that.
+  function indexHtml(count) {
+    const servers = count === 1 ? '1 server is' : count + ' servers are';
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+      + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+      + '<title>A World Begun — server index</title><style>'
+      + ':root{color-scheme:light dark}'
+      + 'body{max-width:34rem;margin:4rem auto;padding:0 1.25rem;'
+      + 'font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}'
+      + 'h1{font-size:1.4rem;margin:0 0 .3rem}p{margin:.7rem 0}'
+      + 'code{background:rgba(128,128,128,.16);border-radius:4px;padding:.05rem .35rem}'
+      + '.muted{opacity:.72;font-size:.9rem}</style></head><body>'
+      + '<h1>A World Begun — server index</h1>'
+      + '<p>This is the public index that self-hosted <em>A World Begun</em> servers '
+      + 'announce themselves to. It is a machine endpoint, not a place to play.</p>'
+      + '<p><strong>' + servers + ' listed right now.</strong> The game reads this '
+      + 'list itself — open <em>Find game</em> on the setup screen.</p>'
+      + '<p>▶ <a href="https://aworldbegun.kjell.today">Play A World Begun</a></p>'
+      + '<p class="muted">Endpoints: <code>/servers</code> (JSON list) · '
+      + '<code>/announce</code> (POST, for server hosts) · <code>/healthz</code>.<br>'
+      + 'Hosting your own? See the how-to-host guide in the project repository.</p>'
+      + '</body></html>';
+  }
+
   function listServers() {
     sweep();
     const t = now();
@@ -204,6 +231,17 @@ function createMaster(opts) {
     if (req.method === 'GET' && req.url === '/servers') {
       metrics.bump('list_requests'); // §5: the "find game" demand signal
       reply(200, listServers(), true); return;
+    }
+    // A human who pastes this hostname into a browser used to get a bare 404 —
+    // it looks like a website, so people will. This is a signpost, not a UI: it
+    // says what the service is, how many servers are listed, and where to go.
+    // The machine routes above are untouched.
+    if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
+      const list = listServers();
+      const n = list.servers.length;
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(indexHtml(n));
+      return;
     }
     if (req.method === 'GET' && req.url === '/healthz') { reply(200, { ok: true }); return; }
     // metrics-v1 §3: loopback-only unless --metrics-public; a remote request

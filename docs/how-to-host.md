@@ -588,8 +588,11 @@ Individual symptoms and fixes:
 
 The official master index lives at **`https://servers.multiciv.kjell.today`**
 — every client's Find-game button queries it by default (override with
-`?master=<url>`, silence with `?master=off`). To list your server there,
-add two flags to your game server:
+`?master=<url>`, silence with `?master=off`). Opening that URL in a browser
+gives a short page saying what the service is and how many servers are listed;
+the data itself is at `/servers` (JSON), which is what the game reads.
+
+To list your server there, add two flags to your game server:
 
 ```
 --announce https://servers.multiciv.kjell.today \
