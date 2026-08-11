@@ -1,7 +1,7 @@
 # marker-0113 — the graphics-levels arc (G0–G5), complete
 
-**Tag:** `marker-0113` at `c6bdb7b` · **merge-consistent — the user may merge
-this.** Delta since marker-0112 (the v1.0 RC): the v1.0.0/v1.0.1 release
+**Tag:** `marker-0113` at `14cd6a0` (the report commit; last code commit
+`c6bdb7b`) · **merge-consistent — the user may merge this.** Delta since marker-0112 (the v1.0 RC): the v1.0.0/v1.0.1 release
 window (already merged by the user), then this arc: five commits,
 `343851b → c6bdb7b`, all client-side, all golden-neutral — no engine, data
 ruleset, or Luau twin changes anywhere in the arc.
