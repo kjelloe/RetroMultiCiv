@@ -25,7 +25,7 @@
 
     // A44: 16 wide — one margin column each side so edge-column name pills
     // (English, Russians…) never crop at the viewport edge
-    const W = 16, H = 20;
+    const W = 16, H = 23; // rows 20–22: the terrain-hue swatch patch (G0)
     const tiles = [];
     for (let i = 0; i < W * H; i++) tiles.push({ t: 'grassland', visible: true });
     const at = (x, y) => tiles[y * W + x];
@@ -62,6 +62,16 @@
     at(11, 19).t = 'swamp';   // bare swamp: pond discs (#12)
     at(12, 19).t = 'forest';  // bare forest: doubled density (#10)
     at(13, 19).t = 'jungle';  // bare jungle: doubled, lower canopy (#11)
+    // rows 20–22: terrain-hue swatch patch (G0/graphics-levels) — desert,
+    // plains and grassland as ADJACENT 5x3 bands, deep enough for dune
+    // ripple and per-face palette variance to read. Flat terrain only, so
+    // the specials row 19 behind it stays unoccluded. The standing review
+    // surface for terrain hue/texture work: frame with ?cx=7&cy=21&zoom=3.2.
+    for (let y = 20; y <= 22; y++) {
+      for (let x = 0; x <= 4; x++) at(x, y).t = 'desert';
+      for (let x = 5; x <= 9; x++) at(x, y).t = 'plains';
+      // x 10..15 stay grassland — the third band + margin
+    }
     // row 5: water for the fleet; rows 9–13: the faction-grid terrains
     for (let x = 0; x < W; x++) at(x, 5).t = 'ocean';
     for (let x = 0; x < W; x++) {

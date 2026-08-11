@@ -242,6 +242,14 @@ export const PROP_SHAPES = {
   resStraw: { shape: 'cone', size: [0.035, 0.4], seg: 4 },      // grassland shield → a wheat stalk (a sheaf of these)
   resBeast: { shape: 'sphere', size: [0.1], seg: [8, 6] },      // game/horse/seal body (scaled)
   resBeastHead: { shape: 'sphere', size: [0.06], seg: [8, 6] }, // its head
+  // G0 horse anatomy (specs/graphics-levels.md): the plains Horse motif gets a
+  // real quadruped silhouette — legs + neck + muzzle + tail + ears. Generic
+  // names: the Game/deer motif can adopt legs later without new shapes.
+  resLeg: { shape: 'cyl', size: [0.014, 0.018, 0.17], seg: 5 },   // slim leg, hoof-end wider
+  resNeck: { shape: 'cyl', size: [0.024, 0.042, 0.18], seg: 6 },  // tapering neck (narrow top)
+  resMuzzle: { shape: 'box', size: [0.085, 0.045, 0.05] },        // the horse-head muzzle block
+  resTail: { shape: 'cone', size: [0.02, 0.14], seg: 4 },         // tail
+  resEar: { shape: 'cone', size: [0.013, 0.05], seg: 3 },         // pricked ear
   resAntler: { shape: 'cone', size: [0.022, 0.2], seg: 4 },     // stag-antler tine: the Game silhouette feature (one tall asymmetric fork reads at tile scale)
   pond: { shape: 'cyl', size: [0.11, 0.11, 0.012], seg: 10 },   // swamp: a scattered small water disc
   fortress: { shape: 'torus', size: [0.34, 0.05], seg: [6, 12] },

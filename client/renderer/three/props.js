@@ -111,7 +111,8 @@ export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2
     hutBase: [], hutRoof: [], // N13: goody-hut villages
     // specials-icons: per-resource motif primitives
     resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
-    resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [], pond: []
+    resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [],
+    resLeg: [], resNeck: [], resMuzzle: [], resTail: [], resEar: [], pond: []
   };
   const roadAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
