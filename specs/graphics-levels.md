@@ -161,10 +161,9 @@ must read at a glance. WebGL1 pass mandatory. Ally screenshot review
 target, bias tuned, no acne), pixel ratio 3, scatter ×1.7, per-tier sun
 (SUN_HIGH; SUN_BASE direction-preserved so low/medium shading is untouched —
 low re-verified byte-identical). High on WebGL1 DEGRADES to medium,
-verified byte-identical to a real medium WebGL1 render. **Provisional look
-= H2 "warm afternoon"** (`0xffe9c4`, sun 44° offset) of 3 shot variants
-(g3-high-h1/h2/h3.png) — awaiting the user pick; swapping = one SUN_HIGH
-line + reshoot. **Found during verification: `--disable-es3-gl-context` was
+verified byte-identical to a real medium WebGL1 render. **Look = H2 "warm afternoon"
+(user-picked 2026-08-12 of 3 variants**, g3-high-h1/h2/h3.png; `0xffe9c4`,
+sun 44° offset). **Found during verification: `--disable-es3-gl-context` was
 removed upstream and silently no-ops — the WebGL1 lane had been proving
 nothing. Replaced with `--disable-webgl2` everywhere; `debugging/
 webgl-probe.js` (permanent) verifies the flags actually work.**
@@ -176,9 +175,9 @@ curves). High: `recipes-high.js`, all 21 silhouette bodies authored
 — legs/arms/helmets, ox-drawn settler wagon, armored knight with
 caparison, road-wheeled tank, four-engine bomber, two-masted sail ships,
 turreted battleships, flattop carrier with parked aircraft). Cities at
-high: house ring ×1.3. **Provisional style = A "faithful upscale"**;
-B "heroic" and C "chunky miniature" demoed on the spearman
-(g4-style-a/b/c.png) for the roster-wide direction pick. Known polish
+high: house ring ×1.3. **Style = A "faithful upscale"
+(user-picked 2026-08-12 of 3**; B "heroic" / C "chunky miniature" demos in
+g4-style-a/b/c.png). Known polish
 item: irrigation/road strip props can float slightly over high's denser
 relief — cosmetic, queued for the pick-up pass.
 
