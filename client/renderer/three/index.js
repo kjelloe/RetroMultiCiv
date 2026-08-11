@@ -214,7 +214,7 @@ export function createRenderer(container, opts = {}) {
     for (const city of Object.values(view.cities || {})) {
       joins[city.y * view.map.width + city.x] = true;
     }
-    propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel);
+    propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel, terrain.surfaceAt);
     for (const m of propMeshes) {
       setShadowFlags(m, gfxLevel === 'high', gfxLevel === 'high');
       worldGroup.add(m);

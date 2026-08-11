@@ -251,9 +251,25 @@ export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): u
     return H[vj * (gw + 1) + vi];
   }
 
+  // Surface height at CONTINUOUS world coordinates — bilinear over the H grid
+  // (the exact mesh, not a re-derivation). G4 polish: off-center props (road
+  // segments, field patches, scatter) sit ON the denser medium/high relief
+  // instead of floating at the tile-center height.
+  function surfaceAt(fx, fz) {
+    const gx = Math.min(Math.max((fx + 0.5) * segs, 0), gw);
+    const gz = Math.min(Math.max((fz + 0.5) * segs, 0), gh);
+    const x0 = Math.floor(gx), z0 = Math.floor(gz);
+    const x1 = Math.min(x0 + 1, gw), z1 = Math.min(z0 + 1, gh);
+    const tx = gx - x0, tz = gz - z0;
+    const h00 = H[z0 * (gw + 1) + x0], h10 = H[z0 * (gw + 1) + x1];
+    const h01 = H[z1 * (gw + 1) + x0], h11 = H[z1 * (gw + 1) + x1];
+    return (h00 * (1 - tx) + h10 * tx) * (1 - tz) + (h01 * (1 - tx) + h11 * tx) * tz;
+  }
+
   return {
     mesh,
     tileTop,
+    surfaceAt,
     dispose() {
       for (const part of parts) { part.geometry.dispose(); part.material.dispose(); }
     }

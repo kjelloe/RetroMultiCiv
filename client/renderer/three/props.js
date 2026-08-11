@@ -120,10 +120,26 @@ const ROAD_DIRS = [
 // pure visualRand(x, y, salt) — same field on every client at the same level.
 const SCATTER_PEBBLE = { desert: 0xb5924d, hills: 0x8a7f66, tundra: 0x8f968c, arctic: 0xd8e2e6 };
 
-export function createTileProps(map, tileTop, joins, reveal, level = 'low') { // reveal (#34 S2): un-dim explored tiles
+export function createTileProps(map, tileTop, joins, reveal, level = 'low', surfaceAt) { // reveal (#34 S2): un-dim explored tiles
   // high multiplies the medium scatter (G3): denser tufts/pebbles, same field idiom
   const scatter = level === 'high' ? DETAIL_STYLE.scatterBoost * 1.7
     : level === 'medium' ? DETAIL_STYLE.scatterBoost : 0;
+  // G4 polish: at medium/high, off-center props sample the REAL surface at
+  // their offset (terrain.js surfaceAt over the mesh's own height grid) — road
+  // segments and scatter stop floating over the denser relief. Low keeps the
+  // tile-center height exactly (byte-identity).
+  const ground = (x, y, dx, dz, center) =>
+    (surfaceAt !== undefined && level !== 'low') ? surfaceAt(x + dx, y + dz) : center;
+  // Long rigid strips (roads, irrigation channels) additionally TILT to their
+  // endpoint heights — a flat box anchored at its midpoint still bridges dips
+  // on the denser relief. Euler XYZ applies the Z pitch BEFORE the Y yaw, so
+  // rotZ pitches the box along its own length. Returns { top, rotZ }.
+  const laid = (cx, cz, rotY, halfLen, center) => {
+    if (surfaceAt === undefined || level === 'low') return { top: center, rotZ: 0 };
+    const ex = Math.cos(rotY) * halfLen, ez = -Math.sin(rotY) * halfLen;
+    const hPlus = surfaceAt(cx + ex, cz + ez), hMinus = surfaceAt(cx - ex, cz - ez);
+    return { top: (hPlus + hMinus) / 2, rotZ: Math.atan2(hPlus - hMinus, halfLen * 2) };
+  };
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
     jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5
@@ -163,9 +179,10 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low') { //
       const top = tileTop(x, y);
       if (t.irrigation) {
         // thin channel + two cultivated field patches (art A1.6b)
-        items.strip.push({ x, y, top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, dy: 0.02 });
-        items.fieldPatch.push({ x, y, top, dim, color: PROP_COLOR.fieldPatch, dx: -0.2, dz: 0.14, dy: 0.015, rotY: Math.PI / 4 });
-        items.fieldPatch.push({ x, y, top, dim, color: PROP_COLOR.fieldPatch, dx: 0.16, dz: -0.2, dy: 0.015, rotY: Math.PI / 4 });
+        const ch = laid(x, y, Math.PI / 4, 0.36, top);
+        items.strip.push({ x, y, top: ch.top, dim, color: PROP_COLOR.irrigation, rotY: Math.PI / 4, rotZ: ch.rotZ, dy: 0.02 });
+        items.fieldPatch.push({ x, y, top: ground(x, y, -0.2, 0.14, top), dim, color: PROP_COLOR.fieldPatch, dx: -0.2, dz: 0.14, dy: 0.015, rotY: Math.PI / 4 });
+        items.fieldPatch.push({ x, y, top: ground(x, y, 0.16, -0.2, top), dim, color: PROP_COLOR.fieldPatch, dx: 0.16, dz: -0.2, dy: 0.015, rotY: Math.PI / 4 });
       }
       if (t.road || t.railroad) {
         // segments toward each connected neighbor; an isolated road is a stub
@@ -174,15 +191,16 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low') { //
         for (const d of ROAD_DIRS) {
           if (!roadAt(x + d.dx, y + d.dy)) continue;
           connected++;
+          const seg = laid(x + d.dx * 0.25, y + d.dy * 0.25, d.rot, 0.25 * (d.diag ? 1.42 : 1), top);
           items.roadSeg.push({
-            x, y, top, dim, color, rotY: d.rot, dy: 0.03,
+            x, y, top: seg.top, dim, color, rotY: d.rot, rotZ: seg.rotZ, dy: 0.03,
             dx: d.dx * 0.25, dz: d.dy * 0.25, sx: d.diag ? 1.42 : 1
           });
           if (t.railroad) {
             // cross-ties along the rail segment (art A1.6b)
             for (const k of [0.14, 0.3]) {
               items.tie.push({
-                x, y, top, dim, color: PROP_COLOR.tie, rotY: d.rot, dy: 0.032,
+                x, y, top: ground(x, y, d.dx * k, d.dy * k, top), dim, color: PROP_COLOR.tie, rotY: d.rot, dy: 0.032,
                 dx: d.dx * k, dz: d.dy * k
               });
             }
@@ -261,11 +279,11 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low') { //
           + (scatter > 0 ? Math.floor(visualRand(x, y, 9) * scatter) : 0);
         for (let i = 0; i < count; i++) {
           const s = scatter > 0 ? 0.6 + visualRand(x, y, 90 + i) * 0.55 : 1;
+          const dx = (visualRand(x, y, 70 + i) - 0.5) * 0.7;
+          const dz = (visualRand(x, y, 80 + i) - 0.5) * 0.7;
           items.scrub.push({
-            x, y, top, dim, color: SCRUB_COLOR[t.t],
-            dx: (visualRand(x, y, 70 + i) - 0.5) * 0.7,
-            dz: (visualRand(x, y, 80 + i) - 0.5) * 0.7,
-            dy: 0.05 * s, sx: s, sy: s, sz: s
+            x, y, top: ground(x, y, dx, dz, top), dim, color: SCRUB_COLOR[t.t],
+            dx, dz, dy: 0.05 * s, sx: s, sy: s, sz: s
           });
         }
       }
@@ -275,22 +293,22 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low') { //
         const k = 1 + (visualRand(x, y, 18) > 0.6 ? 1 : 0);
         for (let i = 0; i < k; i++) {
           const s = 0.2 + visualRand(x, y, 110 + i) * 0.12;
+          const dx = (visualRand(x, y, 120 + i) - 0.5) * 0.8;
+          const dz = (visualRand(x, y, 130 + i) - 0.5) * 0.8;
           items.rock.push({
-            x, y, top, dim, color: SCATTER_PEBBLE[t.t],
-            dx: (visualRand(x, y, 120 + i) - 0.5) * 0.8,
-            dz: (visualRand(x, y, 130 + i) - 0.5) * 0.8,
-            dy: 0.03, sx: s, sy: s, sz: s
+            x, y, top: ground(x, y, dx, dz, top), dim, color: SCATTER_PEBBLE[t.t],
+            dx, dz, dy: 0.03, sx: s, sy: s, sz: s
           });
         }
       }
       if (scatter > 0 && t.t === 'swamp' && visualRand(x, y, 19) < 0.22 * scatter) {
         const k = 2 + (visualRand(x, y, 20) > 0.5 ? 1 : 0);
         for (let i = 0; i < k; i++) {
+          const dx = (visualRand(x, y, 140 + i) - 0.5) * 0.7;
+          const dz = (visualRand(x, y, 150 + i) - 0.5) * 0.7;
           items.scrub.push({
-            x, y, top, dim, color: 0x4a6b45, // reeds: thin, tall, marsh-green
-            dx: (visualRand(x, y, 140 + i) - 0.5) * 0.7,
-            dz: (visualRand(x, y, 150 + i) - 0.5) * 0.7,
-            dy: 0.07, sx: 0.35, sy: 1.4, sz: 0.35
+            x, y, top: ground(x, y, dx, dz, top), dim, color: 0x4a6b45, // reeds: thin, tall, marsh-green
+            dx, dz, dy: 0.07, sx: 0.35, sy: 1.4, sz: 0.35
           });
         }
       }

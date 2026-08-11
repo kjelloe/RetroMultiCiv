@@ -177,9 +177,11 @@ caparison, road-wheeled tank, four-engine bomber, two-masted sail ships,
 turreted battleships, flattop carrier with parked aircraft). Cities at
 high: house ring ×1.3. **Style = A "faithful upscale"
 (user-picked 2026-08-12 of 3**; B "heroic" / C "chunky miniature" demos in
-g4-style-a/b/c.png). Known polish
-item: irrigation/road strip props can float slightly over high's denser
-relief — cosmetic, queued for the pick-up pass.
+g4-style-a/b/c.png). Polish item RESOLVED
+2026-08-12: off-center props (road segments, ties, field patches, scatter)
+sample the mesh's own height grid (`terrain.surfaceAt`), and long strips
+TILT to their endpoint heights (Euler XYZ: Z-pitch before Y-yaw) — roads
+and channels lie ON the medium/high relief; low is untouched (byte-checked).
 
 **G5 DONE 2026-08-12** — `test-ui/graphics-levels.spec.js` (picker
 persistence + per-tier boot + triangle budget low<medium<high with a 3M
