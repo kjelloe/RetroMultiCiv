@@ -6,6 +6,7 @@ import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js
 import { matchSnapshot } from '../../shared/age-snapshots.js';
 import { robloxLinkHtml } from './roblox-link.js';
 import { GAME_NAME, GAME_SUBTITLE, GAME_REPO_URL } from './game-name.js';
+import { getGraphicsDiagnostics, suggestGraphicsLevel } from '../diagnostics.js';
 
 export function showSetupScreen() {
   const overlay = document.createElement('div');
@@ -80,6 +81,15 @@ export function showSetupScreen() {
         <select id="setup-age"><option value="ancient" selected>Ancient (4000 BC)</option></select>
       </label>
       <p class="setup-hint" id="setup-age-hint"></p>
+      <label>Graphics level
+        <select id="setup-graphics">
+          <option value="auto">Automatic</option>
+          <option value="low">Low — classic look, runs anywhere</option>
+          <option value="medium">Medium — detailed terrain</option>
+          <option value="high">High — full detail (needs a real GPU)</option>
+        </select>
+      </label>
+      <p class="setup-hint" id="setup-graphics-hint"></p>
       <label>World seed <input id="setup-seed" type="text" inputmode="numeric" placeholder="random"></label>
       <div id="setup-primary">
         <button id="setup-start">Start game</button>
@@ -118,6 +128,35 @@ export function showSetupScreen() {
       });
     }
   } catch (e) { /* corrupt record — the card just doesn't show */ }
+
+  // G1 graphics-level picker (specs/graphics-levels.md): a CLIENT DISPLAY
+  // preference, stored in the same ⚙ options key — never a game parameter,
+  // never in the URL. The hint shows what the GPU probe detected so
+  // "Automatic" is a verdict, not a mystery; an explicit pick persists and
+  // the in-game ⚙ panel edits the same value.
+  {
+    const OPTS_KEY = 'retromulticiv-options';
+    const sel = document.getElementById('setup-graphics');
+    const hint = document.getElementById('setup-graphics-hint');
+    let storedGfx = 'auto';
+    try { storedGfx = (JSON.parse(localStorage.getItem(OPTS_KEY) || '{}').graphics) || 'auto'; } catch (e) { /* */ }
+    sel.value = storedGfx;
+    let detected = 'medium';
+    try { detected = suggestGraphicsLevel(getGraphicsDiagnostics()); } catch (e) { /* headless */ }
+    const syncHint = () => {
+      hint.textContent = sel.value === 'auto'
+        ? `detected for this machine: ${detected}`
+        : 'changeable anytime in ⚙ Options';
+    };
+    syncHint();
+    sel.addEventListener('change', () => {
+      let o = {};
+      try { o = JSON.parse(localStorage.getItem(OPTS_KEY) || '{}'); } catch (e) { o = {}; }
+      o.graphics = sel.value;
+      try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)); } catch (e) { /* private mode */ }
+      syncHint();
+    });
+  }
   const setupBox = document.getElementById('setup-box');
 
   // A42/A62: an animated diorama BEHIND the setup card — the renderer +

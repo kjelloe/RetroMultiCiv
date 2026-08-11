@@ -4,6 +4,7 @@
 // module, mirroring factions.js; assets.js keeps unit/city construction only.
 import * as THREE from 'three';
 import { PROP_SHAPES } from './recipes.js';
+import { DETAIL_STYLE } from './terrain-detail.js';
 
 // --- deterministic visual randomness (terrain art A1.5) -------------------------
 // Decoration must be identical across refreshes, saves, and clients, and
@@ -113,7 +114,14 @@ const ROAD_DIRS = [
 // the tile is explored but not visible). Rebuilt wholesale with the tiles;
 // geometries/material are shared, so only the instance buffers need disposal.
 // `joins` marks tile indices that roads visually connect to (own cities).
-export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2): un-dim explored tiles
+// level (G2, specs/graphics-levels.md): 'low' keeps the shipped sparse scrub;
+// medium+ densifies the ground scatter (more tufts, pebbles, swamp reeds) so
+// open terrain reads as a surface rather than a board. Scatter placement is
+// pure visualRand(x, y, salt) — same field on every client at the same level.
+const SCATTER_PEBBLE = { desert: 0xb5924d, hills: 0x8a7f66, tundra: 0x8f968c, arctic: 0xd8e2e6 };
+
+export function createTileProps(map, tileTop, joins, reveal, level = 'low') { // reveal (#34 S2): un-dim explored tiles
+  const scatter = (level === 'medium' || level === 'high') ? DETAIL_STYLE.scatterBoost : 0;
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
     jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5
@@ -244,15 +252,43 @@ export function createTileProps(map, tileTop, joins, reveal) { // reveal (#34 S2
         const s = 0.85 + visualRand(x, y, 5) * 0.4;
         items.peak.push({ x, y, top, dim, color: PROP_COLOR.peak, dx: px, dz: pz, dy: 0.25 * s, sx: s, sy: s, sz: s, rotY: visualRand(x, y, 6) * Math.PI });
         items.snow.push({ x, y, top, dim, color: PROP_COLOR.snow, dx: px, dz: pz, dy: 0.42 * s, sx: s, sy: s, sz: s, rotY: visualRand(x, y, 6) * Math.PI });
-      } else if (SCRUB_COLOR[t.t] !== undefined && visualRand(x, y, 7) > 0.55) {
-        // sparse tufts/scrub so open ground reads as a world, not a board
-        const count = 1 + (visualRand(x, y, 8) > 0.7 ? 1 : 0);
+      } else if (SCRUB_COLOR[t.t] !== undefined && visualRand(x, y, 7) > (scatter > 0 ? 0.55 - 0.15 * scatter : 0.55)) {
+        // sparse tufts/scrub so open ground reads as a world, not a board;
+        // medium+ lowers the threshold and raises the count (G2 scatter)
+        const count = 1 + (visualRand(x, y, 8) > 0.7 ? 1 : 0)
+          + (scatter > 0 ? Math.floor(visualRand(x, y, 9) * scatter) : 0);
         for (let i = 0; i < count; i++) {
+          const s = scatter > 0 ? 0.6 + visualRand(x, y, 90 + i) * 0.55 : 1;
           items.scrub.push({
             x, y, top, dim, color: SCRUB_COLOR[t.t],
             dx: (visualRand(x, y, 70 + i) - 0.5) * 0.7,
             dz: (visualRand(x, y, 80 + i) - 0.5) * 0.7,
-            dy: 0.05
+            dy: 0.05 * s, sx: s, sy: s, sz: s
+          });
+        }
+      }
+      // G2 medium+ ground scatter: pebbles on dry/rocky/cold ground, reeds in
+      // swamp — small instanced props, colors fixed per terrain
+      if (scatter > 0 && SCATTER_PEBBLE[t.t] !== undefined && visualRand(x, y, 17) < 0.18 * scatter) {
+        const k = 1 + (visualRand(x, y, 18) > 0.6 ? 1 : 0);
+        for (let i = 0; i < k; i++) {
+          const s = 0.2 + visualRand(x, y, 110 + i) * 0.12;
+          items.rock.push({
+            x, y, top, dim, color: SCATTER_PEBBLE[t.t],
+            dx: (visualRand(x, y, 120 + i) - 0.5) * 0.8,
+            dz: (visualRand(x, y, 130 + i) - 0.5) * 0.8,
+            dy: 0.03, sx: s, sy: s, sz: s
+          });
+        }
+      }
+      if (scatter > 0 && t.t === 'swamp' && visualRand(x, y, 19) < 0.22 * scatter) {
+        const k = 2 + (visualRand(x, y, 20) > 0.5 ? 1 : 0);
+        for (let i = 0; i < k; i++) {
+          items.scrub.push({
+            x, y, top, dim, color: 0x4a6b45, // reeds: thin, tall, marsh-green
+            dx: (visualRand(x, y, 140 + i) - 0.5) * 0.7,
+            dz: (visualRand(x, y, 150 + i) - 0.5) * 0.7,
+            dy: 0.07, sx: 0.35, sy: 1.4, sz: 0.35
           });
         }
       }

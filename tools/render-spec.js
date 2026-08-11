@@ -116,7 +116,7 @@ function build() {
       version: 1,
       generatedBy: 'tools/render-spec.js — regenerate after any renderer table change',
       fields: {
-        terrain: 'tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = mesh density (terrain.js SEGS)',
+        terrain: 'tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = LOW mesh density (Roblox mirrors low; terrain.js LEVEL_SEGS carries medium/high)',
         factions: 'data/civs.json visual{} per civ id + flat color. FIELD SEMANTICS (A44): `color` is the gameplay/seat display color (HUD text, scores, pop badges — anywhere a flat swatch identifies the player) while `visual.primary/secondary` is the CLIENT-ONLY art palette (base discs, flags, roofs); they often differ deliberately for on-terrain readability. A color→seatColor rename is a possible FUTURE migration (touches saves) — not done. lightColor = luminance rule forcing dark rims on light primaries (factions.js)',
         models: 'shared primitive geometries (three.js constructor args), neutral material colors, unit-type → silhouette class map, city growth tiers; builders that resist declarative capture are procedural:true with a description (assets.js)',
         props: 'tile decoration colors (props.js PROP_COLOR); placement is deterministic visualRand(x,y,salt) — procedural by design',
@@ -126,7 +126,10 @@ function build() {
     terrain: {
       tiles: terrain,
       waterLevel: constNum(propsSrc, 'WATER_LEVEL'),
-      gridSegmentsPerTile: constNum(terrainSrc, 'SEGS')
+      // G2 graphics levels: Roblox mirrors the LOW look (docs/13), so the flat
+      // key stays the low density; the per-level table rides alongside
+      gridSegmentsPerTile: sliceTable(terrainSrc, 'LEVEL_SEGS', '{', '}').low,
+      gridSegmentsPerTileByLevel: sliceTable(terrainSrc, 'LEVEL_SEGS', '{', '}')
     },
     factions: {
       lightColor: { rule: 'luminance 0.299r+0.587g+0.114b', threshold: lightThreshold, effect: 'dark rim under base disc / dark ground ring under cities' },

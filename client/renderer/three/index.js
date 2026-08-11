@@ -19,7 +19,13 @@ export function terrainColor(terrainId) {
 // so handing it a 'webgl' context we made ourselves pins it to WebGL1 even where
 // WebGL2 exists. Some drivers expose a WebGL2 that is present but unreliable;
 // this is the one renderer lever a web page genuinely has.
+// opts.graphics — the resolved graphics level ('low' | 'medium' | 'high',
+// specs/graphics-levels.md). Anything else normalizes to 'low', the shipped
+// baseline; the level only changes what buildTiles constructs, never state.
+const GFX_LEVELS = { low: true, medium: true, high: true };
+
 export function createRenderer(container, opts = {}) {
+  let gfxLevel = GFX_LEVELS[opts.graphics] ? opts.graphics : 'low';
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d1420);
 
@@ -149,7 +155,7 @@ export function createRenderer(container, opts = {}) {
     if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
     // the continuous surface: heights, palette facets, river tint, fog dim
-    terrain = buildTerrain(view.map, endReveal);
+    terrain = buildTerrain(view.map, endReveal, gfxLevel);
     worldGroup.add(terrain.mesh);
     if (water) { worldGroup.remove(water.mesh); water.dispose(); }
     water = buildWater(view.map);
@@ -159,7 +165,7 @@ export function createRenderer(container, opts = {}) {
     for (const city of Object.values(view.cities || {})) {
       joins[city.y * view.map.width + city.x] = true;
     }
-    propMeshes = createTileProps(view.map, tileTop, joins, endReveal);
+    propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel);
     for (const m of propMeshes) worldGroup.add(m);
   }
 
@@ -548,6 +554,16 @@ export function createRenderer(container, opts = {}) {
     // server-map-at-gameOver upgrade (hardening) later feeds a full map through the
     // same path. Rebuilds the tile meshes at the current view.
     setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTiles(); },
+    // G1 graphics level, live-switchable from ⚙ Options. Rebuilds the whole
+    // world: a level change moves tileTop anchors (mesh density changes the
+    // center-vertex sampling), so units/cities/props must re-anchor too.
+    setGraphicsLevel(level) {
+      const l = GFX_LEVELS[level] ? level : 'low';
+      if (l === gfxLevel) return;
+      gfxLevel = l;
+      if (view && view.map) { buildTiles(); buildUnits(); buildCities(); }
+    },
+    graphicsLevel() { return gfxLevel; },
     // icon/hero-shot composition: suppress the pop/name/note sprites (no
     // text/badges in the frame). Default true (existing behavior unchanged).
     setCityLabelsVisible(flag) { showCityLabels = flag !== false; if (view) buildCities(); },

@@ -3,7 +3,7 @@
     "version": 1,
     "generatedBy": "tools/render-spec.js — regenerate after any renderer table change",
     "fields": {
-      "terrain": "tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = mesh density (terrain.js SEGS)",
+      "terrain": "tiles = per-terrain surface recipe: base height, per-vertex jitter, extra peak height, three facet palette shades (terrain.js TERRAIN); waterLevel = the translucent plane height (props.js); gridSegmentsPerTile = LOW mesh density (Roblox mirrors low; terrain.js LEVEL_SEGS carries medium/high)",
       "factions": "data/civs.json visual{} per civ id + flat color. FIELD SEMANTICS (A44): `color` is the gameplay/seat display color (HUD text, scores, pop badges — anywhere a flat swatch identifies the player) while `visual.primary/secondary` is the CLIENT-ONLY art palette (base discs, flags, roofs); they often differ deliberately for on-terrain readability. A color→seatColor rename is a possible FUTURE migration (touches saves) — not done. lightColor = luminance rule forcing dark rims on light primaries (factions.js)",
       "models": "shared primitive geometries (three.js constructor args), neutral material colors, unit-type → silhouette class map, city growth tiers; builders that resist declarative capture are procedural:true with a description (assets.js)",
       "props": "tile decoration colors (props.js PROP_COLOR); placement is deterministic visualRand(x,y,salt) — procedural by design",
@@ -144,7 +144,12 @@
       }
     },
     "waterLevel": -0.02,
-    "gridSegmentsPerTile": 2
+    "gridSegmentsPerTile": 2,
+    "gridSegmentsPerTileByLevel": {
+      "low": 2,
+      "medium": 4,
+      "high": 4
+    }
   },
   "factions": {
     "lightColor": {

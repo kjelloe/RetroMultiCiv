@@ -153,6 +153,7 @@ changes. The second is cheaper and targets the actual gap.
 | Roblox world-space label collision | `roblox/PLAYTHROUGH-UI.md` F2 | legibility, first thing a new player sees |
 | Container-boot smoke unproven | `docs/how-to-host.md` §Publishing | registry verified public; boot never tested |
 | Counter-espionage, toroidal wrap | `plan-version2.md` | v2 shelf by ruling |
+| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | active v1.x feature arc — G0/G1/G2 landed, G3–G5 open |
 
 ## Fixed since release, for the record
 

@@ -7,6 +7,7 @@
 // visualRand(x, y, salt); nothing touches game state.
 import * as THREE from 'three';
 import { visualRand, WATER_LEVEL } from './props.js';
+import { detailTexture } from './terrain-detail.js';
 
 // --- low-contrast surface mottle (art A1.6b §2) --------------------------------
 // One tileable 64x64 CanvasTexture of faint speckles, world-planar mapped and
@@ -32,7 +33,14 @@ function mottleTexture() {
   return mottleTex;
 }
 
-const SEGS = 2; // grid cells per tile edge — tile centers land on vertices
+// grid cells per tile edge — tile centers land on vertices. Per graphics
+// level (specs/graphics-levels.md G2): low = the shipped 8-tris/tile look,
+// BYTE-IDENTICAL to the pre-level renderer (gallery.html?vertexcheck=1 and
+// every rest-pose screenshot contract pin it); medium = 32 tris/tile with
+// real dune geometry and per-terrain detail textures. high currently renders
+// the medium terrain — G3 gives it its own 128-tris/tile pass.
+const LEVEL_SEGS = { low: 2, medium: 4, high: 4 };
+const LEVEL_DUNE_AMP = { low: 0.035, medium: 0.055, high: 0.055 };
 
 // base: ground level; jitter: vertex wobble amplitude; peak: extra center
 // height (mountains read as ridges, hills as mounds); palette: 3 shades
@@ -92,7 +100,7 @@ function specAt(map, tx, ty) {
 // integers): bilinear blend of the four nearest tile-center base heights —
 // coasts ramp down into the water basin, hills shoulder into plains — plus
 // deterministic vertex wobble and a center peak for hills/mountains.
-function heightAt(map, fx, fy, vi, vj) {
+function heightAt(map, fx, fy, vi, vj, segs, duneAmp) {
   const x0 = Math.floor(fx), y0 = Math.floor(fy);
   const wx = fx - x0, wy = fy - y0;
   const s00 = specAt(map, x0, y0), s10 = specAt(map, x0 + 1, y0);
@@ -102,9 +110,9 @@ function heightAt(map, fx, fy, vi, vj) {
   const amp = lerp(lerp(s00.jitter, s10.jitter, wx), lerp(s01.jitter, s11.jitter, wx), wy);
   h += (visualRand(vi, vj, 7) - 0.5) * 2 * amp;
   const near = specAt(map, Math.round(fx), Math.round(fy));
-  if (near.dunes) h += Math.sin(fx * 2.4) * Math.cos(fy * 1.9) * 0.035;
+  if (near.dunes) h += Math.sin(fx * 2.4) * Math.cos(fy * 1.9) * duneAmp;
   // a tile-center vertex on peaked terrain rises into a ridge point
-  if (near.peak > 0 && vi % SEGS === 1 && vj % SEGS === 1) {
+  if (near.peak > 0 && vi % segs === segs / 2 && vj % segs === segs / 2) {
     h += near.peak * (0.7 + visualRand(vi, vj, 8) * 0.6);
   }
   return h;
@@ -123,33 +131,55 @@ function heightAt(map, fx, fy, vi, vj) {
 // per-face (each face belongs to exactly one tile), never per shared vertex.
 // The determinism half is mechanically checked in the browser suite
 // (gallery.html?vertexcheck=1 builds this mesh twice, byte-compares buffers).
-export function buildTerrain(map, reveal) { // reveal (#34 S2): un-dim explored tiles
+// level (G2): 'low' | 'medium' | 'high'. Low writes ONE geometry with the
+// mottle material — the same buffers in the same order as before levels
+// existed. Medium+ writes one geometry PER TERRAIN ID so each carries its own
+// procedural detail texture (terrain-detail.js); the face loop and every
+// height/palette decision are shared, so the levels differ only in where a
+// face's vertices land and which material shades them.
+export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): un-dim explored tiles
   const { width, height } = map;
-  const gw = width * SEGS, gh = height * SEGS;
+  const segs = LEVEL_SEGS[level] || 2;
+  const duneAmp = LEVEL_DUNE_AMP[level] || 0.035;
+  const perTerrain = segs !== 2; // medium+: per-terrain buckets with detail textures
+  const gw = width * segs, gh = height * segs;
 
-  // vertex height grid, (gw+1) x (gh+1); world x = -0.5 + vi / SEGS
+  // vertex height grid, (gw+1) x (gh+1); world x = -0.5 + vi / segs
   const H = new Float32Array((gw + 1) * (gh + 1));
   for (let vj = 0; vj <= gh; vj++) {
     for (let vi = 0; vi <= gw; vi++) {
-      H[vj * (gw + 1) + vi] = heightAt(map, -0.5 + vi / SEGS, -0.5 + vj / SEGS, vi, vj);
+      H[vj * (gw + 1) + vi] = heightAt(map, -0.5 + vi / segs, -0.5 + vj / segs, vi, vj, segs, duneAmp);
     }
   }
 
-  const faces = gw * gh * 2;
-  const positions = new Float32Array(faces * 9);
-  const normals = new Float32Array(faces * 9);
-  const colors = new Float32Array(faces * 9);
-  const uvs = new Float32Array(faces * 6); // world-planar, for the mottle map
+  // face buckets: key -> preallocated attribute arrays. Low = one bucket for
+  // the whole sheet; medium+ = one per terrain id (counted first).
+  const tilesByKey = {};
+  for (const t of map.tiles) {
+    const key = perTerrain ? (TERRAIN[t.t] ? t.t : 'grassland') : 'all';
+    tilesByKey[key] = (tilesByKey[key] || 0) + 1;
+  }
+  const buckets = {};
+  for (const key of Object.keys(tilesByKey)) {
+    const faces = tilesByKey[key] * segs * segs * 2;
+    buckets[key] = {
+      positions: new Float32Array(faces * 9),
+      normals: new Float32Array(faces * 9),
+      colors: new Float32Array(faces * 9),
+      uvs: new Float32Array(faces * 6), // world-planar, for the mottle/detail map
+      p: 0
+    };
+  }
+
   const color = new THREE.Color();
   const a = new THREE.Vector3(), b = new THREE.Vector3(), n = new THREE.Vector3();
-
-  let p = 0;
-  const wx = (vi) => -0.5 + vi / SEGS;
+  const wx = (vi) => -0.5 + vi / segs;
   for (let vj = 0; vj < gh; vj++) {
     for (let vi = 0; vi < gw; vi++) {
-      const tx = Math.floor(vi / SEGS), ty = Math.floor(vj / SEGS);
+      const tx = Math.floor(vi / segs), ty = Math.floor(vj / segs);
       const tile = map.tiles[ty * width + tx];
       const spec = TERRAIN[tile.t] || TERRAIN.grassland;
+      const bucket = buckets[perTerrain ? (TERRAIN[tile.t] ? tile.t : 'grassland') : 'all'];
       const h00 = H[vj * (gw + 1) + vi], h10 = H[vj * (gw + 1) + vi + 1];
       const h01 = H[(vj + 1) * (gw + 1) + vi], h11 = H[(vj + 1) * (gw + 1) + vi + 1];
       // two triangles per cell; alternate the diagonal for a woven look
@@ -176,32 +206,48 @@ export function buildTerrain(map, reveal) { // reveal (#34 S2): un-dim explored 
         b.set(v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]);
         n.crossVectors(a, b).normalize();
         if (n.y < 0) n.negate();
+        let p = bucket.p;
         for (const v of [v0, v1, v2]) {
-          positions[p] = v[0]; positions[p + 1] = v[1]; positions[p + 2] = v[2];
-          normals[p] = n.x; normals[p + 1] = n.y; normals[p + 2] = n.z;
-          colors[p] = color.r; colors[p + 1] = color.g; colors[p + 2] = color.b;
-          uvs[(p / 3) * 2] = v[0] / 4; uvs[(p / 3) * 2 + 1] = v[2] / 4;
+          bucket.positions[p] = v[0]; bucket.positions[p + 1] = v[1]; bucket.positions[p + 2] = v[2];
+          bucket.normals[p] = n.x; bucket.normals[p + 1] = n.y; bucket.normals[p + 2] = n.z;
+          bucket.colors[p] = color.r; bucket.colors[p + 1] = color.g; bucket.colors[p + 2] = color.b;
+          bucket.uvs[(p / 3) * 2] = v[0] / 4; bucket.uvs[(p / 3) * 2 + 1] = v[2] / 4;
           p += 3;
         }
+        bucket.p = p;
       }
     }
   }
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   // DoubleSide: the sheet is hand-wound; culling half of it by winding
   // mistakes is a worse deal than shading both faces of one terrain mesh
-  const material = new THREE.MeshLambertMaterial({
-    vertexColors: true, side: THREE.DoubleSide, map: mottleTexture()
-  });
-  const mesh = new THREE.Mesh(geometry, material);
+  const parts = []; // { geometry, material } per bucket
+  for (const key of Object.keys(buckets).sort()) {
+    const bk = buckets[key];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(bk.positions, 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(bk.normals, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(bk.colors, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(bk.uvs, 2));
+    const material = new THREE.MeshLambertMaterial({
+      vertexColors: true, side: THREE.DoubleSide,
+      map: perTerrain ? detailTexture(key) : mottleTexture()
+    });
+    parts.push({ geometry, material });
+  }
+  // low keeps the single-Mesh shape (?vertexcheck=1 byte-compares its buffers);
+  // medium+ groups the per-terrain meshes under one node
+  let mesh;
+  if (parts.length === 1) {
+    mesh = new THREE.Mesh(parts[0].geometry, parts[0].material);
+  } else {
+    mesh = new THREE.Group();
+    for (const part of parts) mesh.add(new THREE.Mesh(part.geometry, part.material));
+  }
 
   function tileTop(x, y) {
-    // tile center lands exactly on vertex (x*SEGS + 1, y*SEGS + 1) for SEGS=2
-    const vi = x * SEGS + SEGS / 2, vj = y * SEGS + SEGS / 2;
+    // tile center lands exactly on vertex (x*segs + segs/2, y*segs + segs/2)
+    const vi = x * segs + segs / 2, vj = y * segs + segs / 2;
     return H[vj * (gw + 1) + vi];
   }
 
@@ -209,8 +255,7 @@ export function buildTerrain(map, reveal) { // reveal (#34 S2): un-dim explored 
     mesh,
     tileTop,
     dispose() {
-      geometry.dispose();
-      material.dispose();
+      for (const part of parts) { part.geometry.dispose(); part.material.dispose(); }
     }
   };
 }

@@ -124,6 +124,27 @@ Luau terrain palette's desert row (that lane owns `roblox/`).
 (units, terrain detail) presents 3 variants as screenshots for user
 selection before landing.** G0 was the first pass of that loop.
 
+**G1 DONE 2026-08-05** — `graphics: 'auto'` option + ⚙ Graphics-level select
+with resolved-tier note; pure `suggestGraphicsLevel(diag)` probe
+(`test/graphics-level.test.js` pins the GPU-string table: software/WebGL1-only
+→ low, recognized discrete/Apple-Silicon → high, else medium); setup-screen
+picker row (same localStorage key, never a game param); boot resolve +
+live-switch in main.js (`renderer.setGraphicsLevel` rebuilds the world —
+tileTop anchors move with mesh density). Lobby entry point rides the setup
+screen; post-join changes go through ⚙.
+
+**G2 terrain Medium DONE 2026-08-05** — `LEVEL_SEGS {low:2, medium:4}` with
+low proven byte-identical (gallery cmp + vertexcheck); per-terrain face
+buckets each with a procedural detail texture (`terrain-detail.js`, painter
+per terrain id, coverage-tested); denser scatter + pebbles + swamp reeds
+behind the level gate; deeper medium dunes; medium `--webgl1` shot
+byte-identical. **Measured lesson: multiply-textures must DARKEN below the
+~1.95x lighting clamp or they render invisible** — first texture pass was
+symmetric-around-white and showed nothing; all painters now mark 0.45–0.85
+multipliers. Style variant user-picked from 3 (`debugging/g2-variants.html`): **v2
+balanced weave** (contrast 1.0, density 1.0, scatterBoost 2) — the shipped
+`DETAIL_STYLE`. High currently renders the medium terrain until G3.
+
 **G1 — plumbing (no visual change).** Option + probe + setup/Options/lobby
 UI + resolved-tier plumbing into `createRenderer`/`buildTerrain`/composer
 (all levels still render the Low path). Ships alone; proves the switch and

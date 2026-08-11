@@ -157,8 +157,10 @@
       units, cities, players
     };
 
-    const renderer = createRenderer(document.getElementById('app'));
     const q = new URLSearchParams(location.search);
+    // ?gfx=low|medium|high (G2): review the gallery at any graphics level;
+    // default stays low — the byte-comparable rest-pose baseline
+    const renderer = createRenderer(document.getElementById('app'), { graphics: q.get('gfx') || 'low' });
     // ?vertexcheck=1 (A44): the shared-vertex determinism half — build the
     // terrain mesh twice, byte-compare position+color buffers into #label
     if (q.get('vertexcheck') === '1') {

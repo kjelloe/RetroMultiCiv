@@ -5,7 +5,7 @@
 // ctx.HUMAN is the current VIEWPOINT (hotseat hands it between players).
 import { mlog } from './ui/mlog.js'; // L5: FIRST import — the ?mlog buffer arms before anything else
 import { createRenderer } from './renderer/renderer.js';
-import { getGraphicsDiagnostics, showDiagnostics, webglHelp, webglBlockedHtml } from './diagnostics.js';
+import { getGraphicsDiagnostics, showDiagnostics, webglHelp, webglBlockedHtml, suggestGraphicsLevel } from './diagnostics.js';
 import { createSession } from './session.js';
 import { createRemoteSession } from './session-remote.js';
 import { gameCode as computeGameCode } from '../shared/gamecode.js';
@@ -239,10 +239,23 @@ if (!diag.webgl2) {
 // initialises later than this, and the choice has to be known BEFORE the context
 // is created. Defensive throughout — a corrupt value must not stop the game.
 let rendererPref = 'auto';
-try { rendererPref = (JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').renderer) || 'auto'; } catch (e) { /* */ }
+let graphicsPref = 'auto';
+try {
+  const o = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}');
+  rendererPref = o.renderer || 'auto';
+  graphicsPref = o.graphics || 'auto';
+} catch (e) { /* */ }
+// G1 graphics level (specs/graphics-levels.md): 'auto' resolves through the GPU
+// probe; an explicit pick wins. The resolver runs again on every ⚙ change (the
+// watch below), so this is only the boot value.
+const resolveGraphics = pref => (pref === 'low' || pref === 'medium' || pref === 'high')
+  ? pref : suggestGraphicsLevel(diag);
 let renderer;
 try {
-  renderer = createRenderer(document.getElementById('app'), { forceWebgl1: rendererPref === 'webgl1' });
+  renderer = createRenderer(document.getElementById('app'), {
+    forceWebgl1: rendererPref === 'webgl1',
+    graphics: resolveGraphics(graphicsPref)
+  });
 } catch (err) {
   hudStatus.style.color = '#ff7b6b';
   hudStatus.textContent = `The 3D map could not start: ${err.message} — ${webglHelp()}`;
@@ -603,6 +616,13 @@ ctx.options.watch(k => {
     ctx.hud.refresh();
   }
 });
+// G1: the ⚙ graphics level applies live — the renderer rebuilds the world
+// scene at the new level (display-only; never game state)
+if (renderer.setGraphicsLevel) {
+  ctx.options.watch((k, v) => {
+    if (k === 'graphics') renderer.setGraphicsLevel(resolveGraphics(v));
+  });
+}
 // A28: renderer animations honor the ⚙ reduce-animation preference, live
 if (renderer.setReduceAnimation) {
   renderer.setReduceAnimation(ctx.options.get('reduceAnimation') === true);

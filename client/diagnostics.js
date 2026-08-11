@@ -37,6 +37,22 @@ export function getGraphicsDiagnostics() {
   return diag;
 }
 
+// G1 graphics-levels (specs/graphics-levels.md): suggest a tier from the GPU
+// diagnostics. PURE — takes the diag object so it is unit-testable headless.
+// Conservative by construction: anything unrecognized with WebGL2 gets
+// 'medium'; 'high' is reserved for GPU strings we positively recognize as
+// discrete/desktop-class; software renderers and WebGL1-only stacks get 'low'.
+export function suggestGraphicsLevel(diag) {
+  if (!diag || (!diag.webgl2 && !diag.webgl1)) return 'low';
+  const gpu = String(diag.renderer || '');
+  // software / translation-layer renderers: the machines Low exists for
+  if (/swiftshader|warp|llvmpipe|softpipe|basic render|software|d3d9/i.test(gpu)) return 'low';
+  if (!diag.webgl2) return 'low'; // old stacks: WebGL1-only
+  // desktop-class discrete GPUs (and Apple Silicon): High territory
+  if (/geforce|rtx|gtx|quadro|radeon (rx|pro|vii)|apple m\d/i.test(gpu)) return 'high';
+  return 'medium'; // integrated (Iris/UHD), mobile with WebGL2, unknown
+}
+
 // One line for the Options panel: what is ACTUALLY rendering right now.
 export function rendererSummary(diag) {
   if (!diag.webgl2 && !diag.webgl1) return 'none — WebGL unavailable';

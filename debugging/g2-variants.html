@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>G2 variants — medium terrain detail style</title>
+<style>
+  body { margin: 0; padding: 16px 20px 40px; background: #0d1420; color: #cdd8ea;
+         font: 14px ui-monospace, monospace; }
+  h1 { font-size: 17px; } h2 { font-size: 15px; margin-top: 34px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; }
+  figure { margin: 0; }
+  figcaption { padding: 4px 2px; }
+  img { display: block; max-width: 620px; width: 100%; border: 1px solid #2a3550; }
+</style>
+</head>
+<body>
+<h1>G2 variants — medium terrain detail (specs/graphics-levels.md)</h1>
+<p>Each variant = texture contrast × mark density × ground-scatter amount.
+Close shots: the desert/plains/grassland swatch. Wide shots: the same bands
+with the specials row and city behind — the map-scale read. All medium tier;
+low is untouched (byte-verified).</p>
+
+<h2>Close — the swatch seam</h2>
+<div class="row">
+<figure><img src="g2-med-v1.png" alt="v1 close"><figcaption>v1 — subtle grain (contrast 0.6, sparse scatter)</figcaption></figure>
+<figure><img src="g2-med-v2.png" alt="v2 close"><figcaption>v2 — balanced weave (contrast 1.0, moderate scatter)</figcaption></figure>
+<figure><img src="g2-med-v3.png" alt="v3 close"><figcaption>v3 — bold hand-drawn (contrast 1.5, dense scatter)</figcaption></figure>
+</div>
+
+<h2>Wide — map-scale read</h2>
+<div class="row">
+<figure><img src="g2-med-v1-wide.png" alt="v1 wide"><figcaption>v1 wide</figcaption></figure>
+<figure><img src="g2-med-v2-wide.png" alt="v2 wide"><figcaption>v2 wide</figcaption></figure>
+<figure><img src="g2-med-v3-wide.png" alt="v3 wide"><figcaption>v3 wide</figcaption></figure>
+</div>
+</body>
+</html>

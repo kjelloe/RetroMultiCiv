@@ -2,7 +2,7 @@
 // are client preferences in localStorage — never game state, never hashed.
 import { PALETTES } from './palette.js';
 import { PEDIA_NAME } from './pedia-name.js';
-import { getGraphicsDiagnostics, rendererSummary, probeContext, webglHelp } from '../diagnostics.js';
+import { getGraphicsDiagnostics, rendererSummary, probeContext, webglHelp, suggestGraphicsLevel } from '../diagnostics.js';
 const KEY = 'retromulticiv-options';
 const DEFAULTS = {
   autoEndTurn: false,     // end the turn as soon as every unit has moved
@@ -22,6 +22,7 @@ const DEFAULTS = {
   discoveryCards: true,   // the tech-discovery card (ui/discovery-card.js)
   showMinimap: true,      // XIV §36: show the world minimap (OFF hides it; layout reflows)
   renderer: 'auto',       // auto | webgl1 — read by main.js BEFORE the renderer is built
+  graphics: 'auto',       // G1 graphics level: auto | low | medium | high (auto = GPU probe)
   // Default OFF since 2026-08-04 (user, mobile playtest): the per-unit arrows
   // carry navigation well enough that the compass was mostly costing screen
   // space. The 🧭 button (touch only) still brings it back, and a player who
@@ -102,6 +103,15 @@ export function initOptions(ctx) {
     <fieldset id="opt-graphics">
       <legend>Graphics</legend>
       <div id="gfx-now">checking…</div>
+      <label>Graphics level
+        <select data-opt="graphics">
+          <option value="auto">automatic (recommended)</option>
+          <option value="low">low — classic look, runs anywhere</option>
+          <option value="medium">medium — detailed terrain</option>
+          <option value="high">high — full detail (needs a real GPU)</option>
+        </select>
+      </label>
+      <p class="setup-hint" id="gfx-level-note"></p>
       <label>3D renderer
         <select data-opt="renderer">
           <option value="auto">automatic (recommended)</option>
@@ -144,6 +154,28 @@ export function initOptions(ctx) {
   function gfx() { return (gfxDiag = gfxDiag || getGraphicsDiagnostics()); }
 
   if (gfxNow) gfxNow.textContent = `Now rendering with: ${rendererSummary(gfx())}`;
+
+  // G1: what the graphics level actually resolves to, and the honest note when
+  // the pick exceeds what this browser can do (High needs WebGL2 — G3 degrades
+  // per-feature; the note tells the player BEFORE they wonder why it looks the
+  // same). Level changes rebuild the world scene live via the watch() hook in
+  // main.js; the note also covers the auto case so the probe's verdict is visible.
+  const gfxLevelNote = panel.querySelector('#gfx-level-note');
+  function syncLevelNote() {
+    if (!gfxLevelNote) return;
+    const d = gfx();
+    const suggested = suggestGraphicsLevel(d);
+    const pick = values.graphics || 'auto';
+    let text = pick === 'auto'
+      ? `auto-detected for this machine: ${suggested}`
+      : `selected: ${pick}`;
+    if ((pick === 'high' || (pick === 'auto' && suggested === 'high')) && !d.webgl2) {
+      text += ' — this browser has no WebGL2, so high features fall back to medium';
+    }
+    gfxLevelNote.textContent = text;
+  }
+  syncLevelNote();
+  ctx.options.watch(k => { if (k === 'graphics') syncLevelNote(); });
 
   if (gfxDetailsBtn && gfxDetail) gfxDetailsBtn.addEventListener('click', () => {
     const showing = !gfxDetail.classList.toggle('hidden');
