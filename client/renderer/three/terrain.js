@@ -53,7 +53,7 @@ const TERRAIN = {
   forest:    { base: 0.06, jitter: 0.012, peak: 0, palette: [0x2d6a35, 0x33743c, 0x27602f] },
   hills:     { base: 0.20, jitter: 0.06, peak: 0.10, palette: [0x96854f, 0xa08f58, 0x8a7a47] },
   mountains: { base: 0.80, jitter: 0.18, peak: 0.45, palette: [0x8c8c94, 0x7f7f86, 0x9a9aa2] },
-  desert:    { base: 0.05, jitter: 0.015, peak: 0, dunes: true, palette: [0xd9c27e, 0xe2cd8a, 0xcdb671] },
+  desert:    { base: 0.05, jitter: 0.015, peak: 0, dunes: true, palette: [0xeab84f, 0xf2c460, 0xdcaa40] },
   tundra:    { base: 0.04, jitter: 0.012, peak: 0, palette: [0xb0b8a8, 0xa5ad9d, 0xbbc3b3] },
   arctic:    { base: 0.06, jitter: 0.015, peak: 0, palette: [0xe8eef0, 0xdde4e7, 0xf2f7f8] },
   swamp:     { base: 0.02, jitter: 0.01, peak: 0, palette: [0x5d7a5a, 0x546f52, 0x668563] },

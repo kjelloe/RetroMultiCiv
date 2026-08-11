@@ -60,8 +60,19 @@ const SPECIAL_MOTIF = {
               { k: 'resStraw', color: 0xe2be3a, dx: -0.08, dz: -0.06, dy: 0.19, rotX: 0.3, rotY: 5.1 },
               { k: 'resStraw', color: 0xf2d84e, dx: 0.08, dz: -0.04, dy: 0.19, rotX: 0.26, rotY: 1.2 },
               { k: 'resStraw', color: 0xf6e264, dx: -0.02, dz: 0.1, dy: 0.19, rotX: 0.26, rotY: 4.4 }],
-  plains:    [{ k: 'resBeast', color: 0x9a6b3f, sx: 1.65, sy: 0.6, sz: 0.6, dy: 0.15, rotZ: -0.9 }, // Horse — REARING profile: reared up on hindquarters, head high (not a horizontal blob)
-              { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.09, dy: 0.31 }],                     // head held high at the top of the rear
+  plains:    [ // Horse — G0 standing profile (user pick 2026-08-05, specs/graphics-levels.md):
+              // barrel body on four legs, arched neck, muzzle, pricked ears, swept tail
+              { k: 'resBeast', color: 0x9a6b3f, sx: 1.5, sy: 0.75, sz: 0.65, dy: 0.24 },
+              { k: 'resLeg', color: 0x8a5f36, dx: -0.10, dz: -0.045, dy: 0.085 },
+              { k: 'resLeg', color: 0x8a5f36, dx: -0.10, dz: 0.045, dy: 0.085 },
+              { k: 'resLeg', color: 0x8a5f36, dx: 0.10, dz: -0.045, dy: 0.085 },
+              { k: 'resLeg', color: 0x8a5f36, dx: 0.10, dz: 0.045, dy: 0.085 },
+              { k: 'resNeck', color: 0x9a6b3f, dx: -0.13, dy: 0.33, rotZ: 0.55 },
+              { k: 'resBeastHead', color: 0x9a6b3f, dx: -0.185, dy: 0.42, sy: 0.9 },
+              { k: 'resMuzzle', color: 0x9a6b3f, dx: -0.245, dy: 0.405 },
+              { k: 'resEar', color: 0x5d3f22, dx: -0.165, dz: -0.025, dy: 0.475 },
+              { k: 'resEar', color: 0x5d3f22, dx: -0.165, dz: 0.025, dy: 0.475 },
+              { k: 'resTail', color: 0x5d3f22, dx: 0.175, dy: 0.24, rotZ: 2.6 }],
   forest:    [{ k: 'resBeast', color: 0x7a5a35, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },       // Game (deer)
               { k: 'resBeastHead', color: 0x7a5a35, dx: -0.11, dy: 0.12 },
               { k: 'resAntler', color: 0x533c22, dx: -0.12, dy: 0.26, rotZ: 0.62 },             // stag antlers — a tall V fork above the head; the load-bearing Game silhouette

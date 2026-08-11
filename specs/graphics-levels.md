@@ -108,6 +108,22 @@ Two reports that apply at EVERY tier and don't wait for the system:
 G0 ships before G1 and re-baselines the Low screenshots ONCE, so the
 graphics-level slices inherit a stable baseline. ~half a session.
 
+**G0 DONE 2026-08-05** — 3 variants each, user-selected: desert = v2 warm
+amber (`0xeab84f/0xf2c460/0xdcaa40`); horse = v1 standing profile (barrel
+body, 4 legs, arched neck, muzzle, ears, tail — five new generic quadruped
+shapes in PROP_SHAPES, reusable by the Game/deer motif later).
+render-spec.json + asset-recipes.json regenerated; gallery grew the rows
+20–22 terrain swatch (the standing hue-review surface) and the variant
+process is recorded in `debugging/g0-variants.html`. Verified: contract
+tests + browser smoke green, gallery shot standard AND `--webgl1`
+byte-identical, `?vertexcheck=1` true/true. FOLLOW-UP queued to
+roblox-helper: re-mirror `TileProps.luau` SPECIAL_MOTIF (plains) + the
+Luau terrain palette's desert row (that lane owns `roblox/`).
+
+**Standing review rule (user ruling 2026-08-05): every art-bearing slice
+(units, terrain detail) presents 3 variants as screenshots for user
+selection before landing.** G0 was the first pass of that loop.
+
 **G1 — plumbing (no visual change).** Option + probe + setup/Options/lobby
 UI + resolved-tier plumbing into `createRenderer`/`buildTerrain`/composer
 (all levels still render the Low path). Ships alone; proves the switch and
