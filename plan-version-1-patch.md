@@ -6,7 +6,7 @@ read-the-code review rather than a memory dump. Companions: `plan-version1.md`
 This file is the middle tier: things worth fixing in a **patch**, not worth
 holding a release for._
 
-**Last updated: 2026-08-05.** Released: `v1.0.0` (2026-08-04), `v1.0.1`
+**Last updated: 2026-08-12.** Released: `v1.0.0` (2026-08-04), `v1.0.1`
 (2026-08-05). Live at aworldbegun.kjell.today and on Roblox.
 
 ---
@@ -153,7 +153,7 @@ changes. The second is cheaper and targets the actual gap.
 | Roblox world-space label collision | `roblox/PLAYTHROUGH-UI.md` F2 | legibility, first thing a new player sees |
 | Container-boot smoke unproven | `docs/how-to-host.md` §Publishing | registry verified public; boot never tested |
 | Counter-espionage, toroidal wrap | `plan-version2.md` | v2 shelf by ruling |
-| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | active v1.x feature arc — G0/G1/G2 landed, G3–G5 open |
+| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | ARC COMPLETE 2026-08-12 (marker-0113): all six slices landed, all picks user-confirmed |
 
 ## Fixed since release, for the record
 
