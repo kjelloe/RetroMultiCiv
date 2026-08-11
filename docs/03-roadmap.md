@@ -627,7 +627,7 @@ the designer ally's plan:
   markers all sit on the landscape. Picking raycasts the surface and rounds
   `hit.point` to tile coords. All displacement through `visualRand` —
   deterministic, nothing in state. Verified WebGL2 + WebGL1
-  (`--disable-es3-gl-context`) + gallery + browser e2e.
+  (`--disable-webgl2`) + gallery + browser e2e.
 - ✅ **A1.6a — Faction identity & status markers** *(done 2026-07-13, from
   `specs/plan-assets-2.md` + the ally-authored table in
   `specs/civ-visuals.md`)*: per-civ visual{primary, secondary, emblem} in

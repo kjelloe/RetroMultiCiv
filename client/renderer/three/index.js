@@ -40,13 +40,48 @@ export function createRenderer(container, opts = {}) {
   } else {
     renderer = new THREE.WebGLRenderer({ antialias: true });
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
 
+  // G3: High requires WebGL2 (shadow quality, uncapped resolution). On a
+  // WebGL1 context the request DEGRADES to medium — honestly: graphicsLevel()
+  // reports the effective tier, and the ⚙ Options note explains why.
+  if (gfxLevel === 'high' && !renderer.capabilities.isWebGL2) gfxLevel = 'medium';
+
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.4);
-  sun.position.set(-30, 60, -20);
+  // G3: the sun's OFFSET from the camera target + color per tier. Low/medium
+  // keep the shipped values exactly (direction unchanged → shading unchanged —
+  // a directional light only uses direction, so following the target is
+  // byte-neutral for them). High may angle lower/warmer for readable shadows;
+  // its values are the user-picked G3 look variant.
+  const SUN_BASE = { dx: -30, dy: 60, dz: -20, color: 0xfff4e0, intensity: 1.4 };
+  const SUN_HIGH = { dx: -42, dy: 44, dz: -26, color: 0xffe9c4, intensity: 1.5 };
+  const sun = new THREE.DirectionalLight(SUN_BASE.color, SUN_BASE.intensity);
+  sun.position.set(SUN_BASE.dx, SUN_BASE.dy, SUN_BASE.dz);
   scene.add(sun);
+  scene.add(sun.target);
+  // G3 sun shadows (high only): the shadow camera is a tight box that FOLLOWS
+  // the pan target (updateCamera) — far better texel density than covering the
+  // whole map. Bias/normalBias tuned against acne on the faceted low-poly
+  // surface (screenshot-iterated, specs/graphics-levels.md G3).
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 220;
+  sun.shadow.bias = -0.0002;
+  sun.shadow.normalBias = 0.03;
+  const SHADOW_BOX = 26; // half-extent of the followed shadow frustum, world units
+  sun.shadow.camera.left = -SHADOW_BOX; sun.shadow.camera.right = SHADOW_BOX;
+  sun.shadow.camera.top = SHADOW_BOX; sun.shadow.camera.bottom = -SHADOW_BOX;
+  function applyLevelToRenderer() {
+    const high = gfxLevel === 'high';
+    renderer.shadowMap.enabled = high;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    sun.castShadow = high;
+    const s = high ? SUN_HIGH : SUN_BASE;
+    sun.color.setHex(s.color);
+    sun.intensity = s.intensity;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, high ? 3 : 2));
+  }
+  applyLevelToRenderer();
 
   // --- camera rig: fixed tilt, pan target + zoom distance ---
   const cam = { targetX: 0, targetZ: 0, dist: 18, minDist: 5, maxDist: 60, tilt: 0.9 };
@@ -57,6 +92,11 @@ export function createRenderer(container, opts = {}) {
       cam.targetZ + cam.dist * Math.cos(cam.tilt)
     );
     camera.lookAt(cam.targetX, 0, cam.targetZ);
+    // keep the sun and its shadow box centered on the view; the offset (and so
+    // the light DIRECTION) is per-tier — SUN_BASE for low/medium, SUN_HIGH high
+    const s = gfxLevel === 'high' ? SUN_HIGH : SUN_BASE;
+    sun.position.set(cam.targetX + s.dx, s.dy, cam.targetZ + s.dz);
+    sun.target.position.set(cam.targetX, 0, cam.targetZ);
   }
 
   function resize() {
@@ -151,11 +191,20 @@ export function createRenderer(container, opts = {}) {
   let propMeshes = [];
   let endReveal = false; // #34 S2: at gameOver, un-dim EXPLORED tiles (unexplored stay unknown)
   let showCityLabels = true; // icon/hero-shot composition: suppress pop/name/note sprites
+  // G3: shadow participation per level — terrain receives, props/units/cities
+  // cast onto it (units don't receive: self-shadow acne on small primitives)
+  function setShadowFlags(root, cast, receive) {
+    root.traverse(o => {
+      if (o.isMesh || o.isInstancedMesh) { o.castShadow = cast; o.receiveShadow = receive; }
+    });
+  }
+
   function buildTiles() {
     if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
     // the continuous surface: heights, palette facets, river tint, fog dim
     terrain = buildTerrain(view.map, endReveal, gfxLevel);
+    setShadowFlags(terrain.mesh, false, gfxLevel === 'high');
     worldGroup.add(terrain.mesh);
     if (water) { worldGroup.remove(water.mesh); water.dispose(); }
     water = buildWater(view.map);
@@ -166,7 +215,10 @@ export function createRenderer(container, opts = {}) {
       joins[city.y * view.map.width + city.x] = true;
     }
     propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel);
-    for (const m of propMeshes) worldGroup.add(m);
+    for (const m of propMeshes) {
+      setShadowFlags(m, gfxLevel === 'high', gfxLevel === 'high');
+      worldGroup.add(m);
+    }
   }
 
   // faction visuals (art A1.6a): pid -> {primary, secondary, emblem} from
@@ -199,6 +251,7 @@ export function createRenderer(container, opts = {}) {
       }); // group, base at y = 0
       mesh.position.set(u.x, unitTop(u.x, u.y), u.y);
       mesh.userData.unitId = u.id;
+      setShadowFlags(mesh, gfxLevel === 'high', false);
       unitMeshes.set(u.id, mesh);
       worldGroup.add(mesh);
       anim.collectSway('unit', mesh, u.x, u.y);
@@ -331,6 +384,7 @@ export function createRenderer(container, opts = {}) {
       const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand); // base at y = 0
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
+      setShadowFlags(mesh, gfxLevel === 'high', false);
       cityMeshes.set(city.id, mesh);
       worldGroup.add(mesh);
       anim.collectSway('city', mesh, city.x, city.y);
@@ -558,9 +612,12 @@ export function createRenderer(container, opts = {}) {
     // world: a level change moves tileTop anchors (mesh density changes the
     // center-vertex sampling), so units/cities/props must re-anchor too.
     setGraphicsLevel(level) {
-      const l = GFX_LEVELS[level] ? level : 'low';
+      let l = GFX_LEVELS[level] ? level : 'low';
+      if (l === 'high' && !renderer.capabilities.isWebGL2) l = 'medium'; // G3 degrade
       if (l === gfxLevel) return;
       gfxLevel = l;
+      applyLevelToRenderer();
+      updateCamera();
       if (view && view.map) { buildTiles(); buildUnits(); buildCities(); }
     },
     graphicsLevel() { return gfxLevel; },

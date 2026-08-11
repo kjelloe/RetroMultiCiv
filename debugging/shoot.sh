@@ -19,7 +19,7 @@ EXTRA=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --server) MODE=node; SRVARGS=${2:-}; [ $# -gt 1 ] && shift ;;
-    --webgl1) EXTRA="--disable-es3-gl-context" ;;
+    --webgl1) EXTRA="--disable-webgl2" ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
   shift

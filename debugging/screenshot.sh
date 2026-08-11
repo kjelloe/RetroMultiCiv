@@ -7,7 +7,7 @@
 # Examples:
 #   debugging/screenshot.sh /tmp/shot.png
 #   debugging/screenshot.sh /tmp/city.png "http://127.0.0.1:8123/client/?seed=12345&e2e=1&e2eclose=1&zoom=6"
-#   debugging/screenshot.sh /tmp/webgl1.png "" --disable-es3-gl-context   # WebGL1-only pass
+#   debugging/screenshot.sh /tmp/webgl1.png "" --disable-webgl2   # WebGL1-only pass (--disable-es3-gl-context was REMOVED upstream and silently no-ops — verified by debugging/webgl-probe.js 2026-08-12)
 set -euo pipefail
 
 OUT="${1:-/tmp/multiciv.png}"

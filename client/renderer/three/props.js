@@ -121,7 +121,9 @@ const ROAD_DIRS = [
 const SCATTER_PEBBLE = { desert: 0xb5924d, hills: 0x8a7f66, tundra: 0x8f968c, arctic: 0xd8e2e6 };
 
 export function createTileProps(map, tileTop, joins, reveal, level = 'low') { // reveal (#34 S2): un-dim explored tiles
-  const scatter = (level === 'medium' || level === 'high') ? DETAIL_STYLE.scatterBoost : 0;
+  // high multiplies the medium scatter (G3): denser tufts/pebbles, same field idiom
+  const scatter = level === 'high' ? DETAIL_STYLE.scatterBoost * 1.7
+    : level === 'medium' ? DETAIL_STYLE.scatterBoost : 0;
   const items = {
     strip: [], roadSeg: [], mine: [], tree: [], scrub: [],
     jungleTrunk: [], jungleCanopy: [], jungleButtress: [], // XV §5

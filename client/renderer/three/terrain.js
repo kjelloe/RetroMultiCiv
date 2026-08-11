@@ -38,8 +38,8 @@ function mottleTexture() {
 // BYTE-IDENTICAL to the pre-level renderer (gallery.html?vertexcheck=1 and
 // every rest-pose screenshot contract pin it); medium = 32 tris/tile with
 // real dune geometry and per-terrain detail textures. high currently renders
-// the medium terrain — G3 gives it its own 128-tris/tile pass.
-const LEVEL_SEGS = { low: 2, medium: 4, high: 4 };
+// the medium terrain textures at its own 128-tris/tile density (G3).
+const LEVEL_SEGS = { low: 2, medium: 4, high: 8 };
 const LEVEL_DUNE_AMP = { low: 0.035, medium: 0.055, high: 0.055 };
 
 // base: ground level; jitter: vertex wobble amplitude; peak: extra center

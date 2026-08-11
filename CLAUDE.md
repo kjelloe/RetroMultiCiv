@@ -72,7 +72,7 @@ operator).
 - **three.js is pinned to r162 — do NOT upgrade to r163+.** r163 removed WebGL1
   support, and the user's own browser is stuck on ANGLE Direct3D9 (WebGL1
   only). r162 auto-falls back to WebGL1. Verify any renderer change with the
-  headless screenshot loop below, including once with `--disable-es3-gl-context`
+  headless screenshot loop below, including once with `--disable-webgl2`
   (emulates the WebGL1-only environment).
 - Minimal dependencies: `ws` (server), vendored three.js, vendored
   qrcode-generator (client/vendor/qrcode.min.js, MIT, Kazuhiko Arase
@@ -209,7 +209,7 @@ files use dynamic `import()` for them. `tools/` stays CJS.
 **Visual verification without a GPU:** use `debugging/screenshot.sh [out.png]
 [url] [extra chrome flags]` — it wraps the Playwright-cached headless Chromium
 with the required SwiftShader flags (WebGL has no GPU here and fails without
-them). WebGL1 pass: append `--disable-es3-gl-context`. Useful URL params:
+them). WebGL1 pass: append `--disable-webgl2` (`--disable-es3-gl-context` was removed upstream and silently no-ops — debugging/webgl-probe.js verifies). Useful URL params:
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 `debugging/gallery.html` shows every unit silhouette, city tier, tile
 prop, AND the 14-civ faction acceptance grid through the real renderer
