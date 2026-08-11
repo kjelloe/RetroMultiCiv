@@ -248,7 +248,7 @@ export function createRenderer(container, opts = {}) {
         veteran: u.veteran === true,
         fortified: u.fortified === true,
         canMove: u.moves > 0
-      }); // group, base at y = 0
+      }, gfxLevel); // group, base at y = 0
       mesh.position.set(u.x, unitTop(u.x, u.y), u.y);
       mesh.userData.unitId = u.id;
       setShadowFlags(mesh, gfxLevel === 'high', false);
@@ -381,7 +381,7 @@ export function createRenderer(container, opts = {}) {
       // era band comes from the annotated view's side map (never off the city
       // object — that would alias into real state); ancient when absent
       const eraBand = (view.cityEraBands || {})[city.id];
-      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand); // base at y = 0
+      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand, gfxLevel); // base at y = 0
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
       setShadowFlags(mesh, gfxLevel === 'high', false);
@@ -621,6 +621,9 @@ export function createRenderer(container, opts = {}) {
       if (view && view.map) { buildTiles(); buildUnits(); buildCities(); }
     },
     graphicsLevel() { return gfxLevel; },
+    // G5 perf guard: the live renderer stats — triangles drawn last frame +
+    // the effective tier (test-ui/graphics-levels.spec.js budgets against it)
+    renderInfo() { return { level: gfxLevel, triangles: renderer.info.render.triangles, calls: renderer.info.render.calls }; },
     // icon/hero-shot composition: suppress the pop/name/note sprites (no
     // text/badges in the frame). Default true (existing behavior unchanged).
     setCityLabelsVisible(flag) { showCityLabels = flag !== false; if (view) buildCities(); },

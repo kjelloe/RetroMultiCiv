@@ -156,7 +156,40 @@ scatter. The tier the complaint is really about — desert/plains/grassland
 must read at a glance. WebGL1 pass mandatory. Ally screenshot review
 (gallery + world shots) before acceptance. ~1–2 sessions.
 
-**G3 — terrain High + lighting.** SEGS=8, dense scatter with distance
+**G3 DONE 2026-08-12 (overnight window; look variant = decide-document-flag)**
+— SEGS 8, PCFSoft sun shadows (2048 map, shadow box follows the camera
+target, bias tuned, no acne), pixel ratio 3, scatter ×1.7, per-tier sun
+(SUN_HIGH; SUN_BASE direction-preserved so low/medium shading is untouched —
+low re-verified byte-identical). High on WebGL1 DEGRADES to medium,
+verified byte-identical to a real medium WebGL1 render. **Provisional look
+= H2 "warm afternoon"** (`0xffe9c4`, sun 44° offset) of 3 shot variants
+(g3-high-h1/h2/h3.png) — awaiting the user pick; swapping = one SUN_HIGH
+line + reshoot. **Found during verification: `--disable-es3-gl-context` was
+removed upstream and silently no-ops — the WebGL1 lane had been proving
+nothing. Replaced with `--disable-webgl2` everywhere; `debugging/
+webgl-probe.js` (permanent) verifies the flags actually work.**
+
+**G4 DONE 2026-08-12 (overnight; style direction = decide-document-flag)** —
+medium: composer segment boost ×1.5 (mechanical, whole roster + smooth
+curves). High: `recipes-high.js`, all 21 silhouette bodies authored
+(covers the 29-unit roster; same footprints/palette, real anatomy and kit
+— legs/arms/helmets, ox-drawn settler wagon, armored knight with
+caparison, road-wheeled tank, four-engine bomber, two-masted sail ships,
+turreted battleships, flattop carrier with parked aircraft). Cities at
+high: house ring ×1.3. **Provisional style = A "faithful upscale"**;
+B "heroic" and C "chunky miniature" demoed on the spearman
+(g4-style-a/b/c.png) for the roster-wide direction pick. Known polish
+item: irrigation/road strip props can float slightly over high's denser
+relief — cosmetic, queued for the pick-up pass.
+
+**G5 DONE 2026-08-12** — `test-ui/graphics-levels.spec.js` (picker
+persistence + per-tier boot + triangle budget low<medium<high with a 3M
+runaway ceiling + ⚙ live-switch rebuild), `renderInfo()`/`window.__gfxInfo`
+debug handle, README graphics-levels section. The WebGL1 degrade path is
+guarded by webgl-probe.js + the shoot.sh --webgl1 lane (SwiftShader is
+WebGL2, so the spec can't exercise it).
+
+**G3 — terrain High + lighting (original plan).** SEGS=8, dense scatter with distance
 culling, shadows, pixel ratio 3, water detail. WebGL2 gate + degradation
 notes. Perf measured on the reference workload before/after. ~1–2 sessions.
 

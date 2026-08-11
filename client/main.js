@@ -623,6 +623,9 @@ if (renderer.setGraphicsLevel) {
     if (k === 'graphics') renderer.setGraphicsLevel(resolveGraphics(v));
   });
 }
+// G5: read-only debug handle for the perf-budget spec (effective tier +
+// triangles/calls drawn last frame) — never game state
+if (renderer.renderInfo) window.__gfxInfo = () => renderer.renderInfo();
 // A28: renderer animations honor the ⚙ reduce-animation preference, live
 if (renderer.setReduceAnimation) {
   renderer.setReduceAnimation(ctx.options.get('reduceAnimation') === true);

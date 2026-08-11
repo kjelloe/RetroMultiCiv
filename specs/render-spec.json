@@ -148,7 +148,7 @@
     "gridSegmentsPerTileByLevel": {
       "low": 2,
       "medium": 4,
-      "high": 4
+      "high": 8
     }
   },
   "factions": {

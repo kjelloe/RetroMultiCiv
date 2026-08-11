@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { emblemTexture, isLightColor } from './factions.js';
 import { UNIT_RECIPES, UNIT_SILHOUETTE, CITY_RECIPE } from './recipes.js';
+import { HIGH_UNIT_RECIPES } from './recipes-high.js';
 import { RECIPE_CHROME, TYPE_EXTRA } from './unit-chrome.js';
 import { CITY_ERA_STYLES } from '../../../shared/city-era.js';
 
@@ -103,19 +104,24 @@ function add(group, geo, mat, x, y, z) {
 // A88: build a geometry from a recipe primitive (cached, so shared shapes reuse
 // one buffer exactly as the GEO constants did — sharing vs new instance never
 // moves a pixel). shape/size/seg mirror the three.js constructors 1:1.
+// G4: segMult (graphics level) multiplies radial/height segments — medium 1.5,
+// high 2 — so curved primitives round out; mult 1 (low) keys and builds
+// EXACTLY as before. Dodeca detail is left alone (detail 1 = a ball).
 const recipeGeo = {};
-function geometryFor(p) {
-  const key = p.shape + '|' + p.size.join(',') + '|' + (p.seg === undefined ? '' : [].concat(p.seg).join(','));
+function boostSeg(seg, mult) { return Math.max(3, Math.round((seg || 8) * mult)); }
+function geometryFor(p, segMult = 1) {
+  const key = p.shape + '|' + p.size.join(',') + '|' + (p.seg === undefined ? '' : [].concat(p.seg).join(',')) + (segMult === 1 ? '' : '|x' + segMult);
   if (recipeGeo[key]) return recipeGeo[key];
   let g;
   if (p.shape === 'box') g = new THREE.BoxGeometry(p.size[0], p.size[1], p.size[2]);
-  else if (p.shape === 'cyl') g = new THREE.CylinderGeometry(p.size[0], p.size[1], p.size[2], p.seg);
-  else if (p.shape === 'cone') g = new THREE.ConeGeometry(p.size[0], p.size[1], p.seg);
-  else if (p.shape === 'sphere') g = new THREE.SphereGeometry(p.size[0], p.seg[0], p.seg[1]);
+  else if (p.shape === 'cyl') g = new THREE.CylinderGeometry(p.size[0], p.size[1], p.size[2], segMult === 1 ? p.seg : boostSeg(p.seg, segMult));
+  else if (p.shape === 'cone') g = new THREE.ConeGeometry(p.size[0], p.size[1], segMult === 1 ? p.seg : boostSeg(p.seg, segMult));
+  else if (p.shape === 'sphere') g = new THREE.SphereGeometry(p.size[0], segMult === 1 ? p.seg[0] : boostSeg(p.seg[0], segMult), segMult === 1 ? p.seg[1] : boostSeg(p.seg[1], segMult));
   else if (p.shape === 'dodeca') g = new THREE.DodecahedronGeometry(p.size[0], p.seg || 0);
   recipeGeo[key] = g;
   return g;
 }
+const SEG_MULT = { low: 1, medium: 1.5, high: 2 };
 // a colorRole slot → material: neutral roles from NEUTRAL, 'primary'/'secondary'
 // injected from the civ visual (the data itself never carries a faction hex)
 function roleMaterial(role, visual) {
@@ -125,9 +131,9 @@ function roleMaterial(role, visual) {
 }
 // compose a recipe's primitive list into the group — byte-identical to the
 // hand-written add()/scale/rotation the silhouette functions used to do inline
-function composeRecipe(group, recipe, visual) {
+function composeRecipe(group, recipe, visual, segMult = 1) {
   for (const p of recipe) {
-    const mesh = add(group, geometryFor(p), roleMaterial(p.color, visual), p.pos[0], p.pos[1], p.pos[2]);
+    const mesh = add(group, geometryFor(p, segMult), roleMaterial(p.color, visual), p.pos[0], p.pos[1], p.pos[2]);
     if (p.scale !== undefined) {
       if (Array.isArray(p.scale)) mesh.scale.set(p.scale[0], p.scale[1], p.scale[2]);
       else mesh.scale.setScalar(p.scale);
@@ -190,15 +196,22 @@ function pennant(group, visual, x, y, scale) {
 // unit-chrome.js. No per-type function ladder that hardcoded a second copy of
 // the mapping. Byte-identical to the old path (the mesh child ORDER is
 // preserved: baseToken → body → type-extra → sail → pennant).
-export function createUnitMesh(unitType, colorOrVisual, status) {
+// level (G4, specs/graphics-levels.md): 'low' builds exactly the shipped
+// silhouettes. Medium rounds curved primitives (segment boost). High swaps in
+// the HIGH_UNIT_RECIPES body when one is authored for the silhouette —
+// un-authored silhouettes get the medium treatment, so the tier can land
+// incrementally without a gap in the roster.
+export function createUnitMesh(unitType, colorOrVisual, status, level = 'low') {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const recipe = UNIT_SILHOUETTE[unitType] || 'fallback';
   const chrome = RECIPE_CHROME[recipe] || {};
+  const segMult = SEG_MULT[level] || 1;
+  const bodyOf = name => (level === 'high' && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name] : UNIT_RECIPES[name];
   baseToken(group, visual, status, chrome.naval ? 0.02 : 0.035);
-  if (chrome.plain) { composeRecipe(group, UNIT_RECIPES.fallback); return group; } // all-neutral, no visual/pennant
-  composeRecipe(group, UNIT_RECIPES[recipe], visual);
-  if (TYPE_EXTRA[unitType]) composeRecipe(group, UNIT_RECIPES[TYPE_EXTRA[unitType]], visual); // chariot wheels
+  if (chrome.plain) { composeRecipe(group, bodyOf('fallback'), undefined, segMult); return group; } // all-neutral, no visual/pennant
+  composeRecipe(group, bodyOf(recipe), visual, segMult);
+  if (TYPE_EXTRA[unitType]) composeRecipe(group, bodyOf(TYPE_EXTRA[unitType]), visual, segMult); // chariot wheels
   if (chrome.sail) { const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02); sail.scale.set(1.3, 2, 1); } // procedural plane
   if (chrome.pennant) pennant(group, visual, chrome.pennant[0], chrome.pennant[1], chrome.pennant[2]);
   return group;
@@ -284,11 +297,16 @@ function addEraSignature(group, style, tier, tierIndex, isCapital) {
   }
 }
 
-export function createCityMesh(city, colorOrVisual, isCapital, eraBand) {
+// level (G4): high densifies the house ring +30% — same tier ladder, same era
+// styles, just a fuller settlement; low/medium build exactly the shipped count.
+export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 'low') {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
-  const tier = cityTierFor(city.pop);
-  const tierIndex = CITY_TIERS.indexOf(tier);
+  const baseTier = cityTierFor(city.pop);
+  const tier = level === 'high'
+    ? { minPop: baseTier.minPop, houses: Math.ceil(baseTier.houses * 1.3), scale: baseTier.scale }
+    : baseTier;
+  const tierIndex = CITY_TIERS.indexOf(baseTier); // index by the REAL tier — the high-density clone is not in the table
   // ERA band (render-only hint): the annotated view passes it via a side map
   // (see index.js buildCities); direct callers (gallery/mock) may set a
   // `city.eraBand` field instead; no band → ancient.
