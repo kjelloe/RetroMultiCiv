@@ -207,7 +207,7 @@ export function createUnitMesh(unitType, colorOrVisual, status, level = 'low') {
   const recipe = UNIT_SILHOUETTE[unitType] || 'fallback';
   const chrome = RECIPE_CHROME[recipe] || {};
   const segMult = SEG_MULT[level] || 1;
-  const bodyOf = name => (level === 'high' && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name] : UNIT_RECIPES[name];
+  const bodyOf = name => ((level === 'medium' || level === 'high') && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name] : UNIT_RECIPES[name]; // H1: the authored bodies ARE the medium bar
   baseToken(group, visual, status, chrome.naval ? 0.02 : 0.035);
   if (chrome.plain) { composeRecipe(group, bodyOf('fallback'), undefined, segMult); return group; } // all-neutral, no visual/pennant
   composeRecipe(group, bodyOf(recipe), visual, segMult);
@@ -303,7 +303,7 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const baseTier = cityTierFor(city.pop);
-  const tier = level === 'high'
+  const tier = (level === 'medium' || level === 'high') // H1: density rides down to medium
     ? { minPop: baseTier.minPop, houses: Math.ceil(baseTier.houses * 1.3), scale: baseTier.scale }
     : baseTier;
   const tierIndex = CITY_TIERS.indexOf(baseTier); // index by the REAL tier — the high-density clone is not in the table

@@ -52,8 +52,10 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
     tris[level] = { n: info.triangles, degraded: level === 'high' && !webgl2 };
   }
   expect(tris.medium.n).toBeGreaterThan(tris.low.n);
+  // H1 re-tier (spec §4b): high terrain == medium terrain until H2 lands its
+  // smooth pass, so high >= medium here; H2 restores strict >.
   if (tris.high.degraded) expect(tris.high.n).toBe(tris.medium.n); // degraded high IS medium
-  else expect(tris.high.n).toBeGreaterThan(tris.medium.n);
+  else expect(tris.high.n).toBeGreaterThanOrEqual(tris.medium.n);
   // runaway ceiling: an xsmall map at high must stay far under discrete-GPU
   // budgets; a blowout here means a level multiplied something it shouldn't
   expect(tris.high.n).toBeLessThan(3_000_000);

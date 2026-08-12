@@ -39,8 +39,8 @@ function mottleTexture() {
 // every rest-pose screenshot contract pin it); medium = 32 tris/tile with
 // real dune geometry and per-terrain detail textures. high currently renders
 // the medium terrain textures at its own 128-tris/tile density (G3).
-const LEVEL_SEGS = { low: 2, medium: 4, high: 8 };
-const LEVEL_DUNE_AMP = { low: 0.035, medium: 0.055, high: 0.055 };
+const LEVEL_SEGS = { low: 2, medium: 8, high: 8 }; // H1 re-tier: the G3 terrain IS the medium bar; H2 gives high its own smooth pass
+const LEVEL_DUNE_AMP = { low: 0.035, medium: 0.055, high: 0.055 }; // (already equal — dunes were never the tier delta)
 
 // base: ground level; jitter: vertex wobble amplitude; peak: extra center
 // height (mountains read as ridges, hills as mounds); palette: 3 shades

@@ -249,7 +249,24 @@ as curved conforming ribbons — and soft shadows tying it together.
 
 ### Slices
 
-**H1 — re-tier + the animals (the patch; ~1 session).**
+**H1 DONE 2026-08-13** — re-tier landed: medium terrain = LEVEL_SEGS 8 +
+×1.7 scatter, medium units = the 21 authored bodies, medium cities ×1.3;
+high's only delta until H2 is shadows (spec test asserts >= with a pointer
+here). Animals user-picked of 3 each: **deer V1 standing-alert** (forest +
+tundra in its colors — legs, raised neck, the antler V, white tail),
+**seal V1 basking** (chest on fore-flippers, head up, tail flipper),
+**fish V1 side-profile** (forked tail, dorsal fin, eye dot). All reuse the
+G0 quadruped shapes — no new PROP_SHAPES, no asset-recipes change. Low
+re-baselined once (G0 precedent). **Measured note: WebGL1-vs-WebGL2 LOW
+frames are no longer byte-identical — thin sub-pixel geometry (antlers,
+flippers) resolves differently between the backends' MSAA (max channel
+delta 53 on ~7k edge pixels, confined to the specials row). Byte-parity
+across GL backends was an observed nicety, never the contract; the
+contracts that hold are vertexcheck determinism (true/true) and the
+WebGL1 pass functioning.** Visual goldens re-record rides the next CI
+dispatch. Variants: `debugging/h1-variants.html`.
+
+**H1 — re-tier + the animals (the original plan).**
 - Medium terrain := LEVEL_SEGS 8 + textures + ×1.7 scatter; High terrain
   temporarily equal (test note below). Medium units := HIGH_UNIT_RECIPES;
   medium cities := ×1.3. High keeps shadows as its only delta until H2.

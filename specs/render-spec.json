@@ -147,7 +147,7 @@
     "gridSegmentsPerTile": 2,
     "gridSegmentsPerTileByLevel": {
       "low": 2,
-      "medium": 4,
+      "medium": 8,
       "high": 8
     }
   },

@@ -51,8 +51,12 @@ const SCRUB_COLOR = { grassland: 0x3f8f3f, plains: 0x9d8f55, desert: 0x9d8f55, t
 // the resource is DERIVED from the tile's terrain (each terrain has exactly one
 // special — data/terrain.json). ocean rides the water surface (see the handler).
 const SPECIAL_MOTIF = {
-  ocean:     [{ k: 'resFish', color: 0xd2e6f5, sx: 1.7, sy: 0.55, sz: 0.95, dy: 0.03 },        // Fish
-              { k: 'resFishTail', color: 0xbcd2e4, dx: 0.14, dy: 0.03, rotY: Math.PI / 2, sx: 0.8, sy: 0.7 }],
+  ocean:     [ // Fish — H1 side profile (user pick 2026-08-13 of 3): body + FORKED tail + dorsal fin + eye dot
+              { k: 'resFish', color: 0xd2e6f5, sx: 1.5, sy: 0.75, sz: 0.45, dy: 0.06 },
+              { k: 'resFishTail', color: 0xbcd2e4, dx: 0.15, dy: 0.1, rotZ: -0.9, sx: 0.9, sy: 0.85 },
+              { k: 'resFishTail', color: 0xbcd2e4, dx: 0.15, dy: 0.015, rotZ: -2.2, sx: 0.9, sy: 0.85 },
+              { k: 'resFishTail', color: 0xbcd2e4, dx: -0.01, dy: 0.13, rotZ: -0.35, sx: 0.8, sy: 0.9 },
+              { k: 'resEar', color: 0x2b3a4a, dx: -0.1, dy: 0.075, dz: 0.042, rotX: 1.5707963267948966, sx: 1.4, sy: 0.4, sz: 1.4 }],
   grassland: [                                                                                 // Shield → wheat sheaf (XVII #8/#14): a bright cluster of golden stalks
               { k: 'resStraw', color: 0xf2d84e, dy: 0.2 },
               { k: 'resStraw', color: 0xf6e264, dx: 0.11, dz: 0.03, dy: 0.19, rotX: 0.3, rotY: 0.4 },
@@ -74,17 +78,37 @@ const SPECIAL_MOTIF = {
               { k: 'resEar', color: 0x5d3f22, dx: -0.165, dz: -0.025, dy: 0.475 },
               { k: 'resEar', color: 0x5d3f22, dx: -0.165, dz: 0.025, dy: 0.475 },
               { k: 'resTail', color: 0x5d3f22, dx: 0.175, dy: 0.24, rotZ: 2.6 }],
-  forest:    [{ k: 'resBeast', color: 0x7a5a35, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },       // Game (deer)
-              { k: 'resBeastHead', color: 0x7a5a35, dx: -0.11, dy: 0.12 },
-              { k: 'resAntler', color: 0x533c22, dx: -0.12, dy: 0.26, rotZ: 0.62 },             // stag antlers — a tall V fork above the head; the load-bearing Game silhouette
-              { k: 'resAntler', color: 0x533c22, dx: -0.07, dy: 0.26, rotZ: -0.62 }],
-  tundra:    [{ k: 'resBeast', color: 0x8a6a45, sx: 1.35, sy: 0.85, sz: 0.9, dy: 0.05 },        // Game
-              { k: 'resBeastHead', color: 0x8a6a45, dx: -0.11, dy: 0.12 },
-              { k: 'resAntler', color: 0x5f4728, dx: -0.12, dy: 0.26, rotZ: 0.62 },
-              { k: 'resAntler', color: 0x5f4728, dx: -0.07, dy: 0.26, rotZ: -0.62 }],
-  arctic:    [{ k: 'resBeast', color: 0xc4cbd4, sx: 1.85, sy: 0.55, sz: 0.72, dy: 0.04 },        // Seal — low flat body
-              { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.16, dy: 0.06 },
-              { k: 'resFishTail', color: 0xb4bcc6, dx: 0.17, dy: 0.09, rotZ: -0.95, sx: 1.1, sy: 1.3 }], // upturned tail flipper — the asymmetric feature vs the low head
+  forest:    [ // Game (deer) — H1 standing-alert (user pick 2026-08-13 of 3): slim body on legs, neck UP, antler V high
+              { k: 'resBeast', color: 0x7a5a35, sx: 1.15, sy: 0.62, sz: 0.5, dy: 0.22 },
+              { k: 'resLeg', color: 0x6b4d2c, dx: -0.08, dz: -0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x6b4d2c, dx: -0.08, dz: 0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x6b4d2c, dx: 0.08, dz: -0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x6b4d2c, dx: 0.08, dz: 0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resNeck', color: 0x7a5a35, dx: -0.1, dy: 0.31, rotZ: 0.28, sx: 0.75, sz: 0.75 },
+              { k: 'resBeastHead', color: 0x7a5a35, dx: -0.13, dy: 0.41, sy: 0.85 },
+              { k: 'resMuzzle', color: 0x7a5a35, dx: -0.18, dy: 0.4, sx: 0.7, sy: 0.8, sz: 0.8 },
+              { k: 'resAntler', color: 0x533c22, dx: -0.15, dy: 0.5, rotZ: 0.62 },
+              { k: 'resAntler', color: 0x533c22, dx: -0.1, dy: 0.5, rotZ: -0.62 },
+              { k: 'resTail', color: 0xe8e0cc, dx: 0.12, dy: 0.24, rotZ: 2.4, sx: 0.5, sy: 0.4 }],
+  tundra:    [ // Game (deer) — the H1 V1 standing-alert pose in tundra colors (user pick 2026-08-13)
+              { k: 'resBeast', color: 0x8a6a45, sx: 1.15, sy: 0.62, sz: 0.5, dy: 0.22 },
+              { k: 'resLeg', color: 0x5f4728, dx: -0.08, dz: -0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x5f4728, dx: -0.08, dz: 0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x5f4728, dx: 0.08, dz: -0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resLeg', color: 0x5f4728, dx: 0.08, dz: 0.035, dy: 0.075, sx: 0.8, sz: 0.8 },
+              { k: 'resNeck', color: 0x8a6a45, dx: -0.1, dy: 0.31, rotZ: 0.28, sx: 0.75, sz: 0.75 },
+              { k: 'resBeastHead', color: 0x8a6a45, dx: -0.13, dy: 0.41, sy: 0.85 },
+              { k: 'resMuzzle', color: 0x8a6a45, dx: -0.18, dy: 0.4, sx: 0.7, sy: 0.8, sz: 0.8 },
+              { k: 'resAntler', color: 0x5f4728, dx: -0.15, dy: 0.5, rotZ: 0.62 },
+              { k: 'resAntler', color: 0x5f4728, dx: -0.1, dy: 0.5, rotZ: -0.62 },
+              { k: 'resTail', color: 0xe8e0cc, dx: 0.12, dy: 0.24, rotZ: 2.4, sx: 0.5, sy: 0.4 }],
+  arctic:    [ // Seal — H1 basking (user pick 2026-08-13 of 3): tapered body, CHEST RAISED on fore-flippers, head up, tail flipper
+              { k: 'resBeast', color: 0xc4cbd4, sx: 1.6, sy: 0.6, sz: 0.7, dy: 0.12, rotZ: -0.22 },
+              { k: 'resBeastHead', color: 0xc4cbd4, dx: -0.2, dy: 0.26, sy: 0.9 },
+              { k: 'resMuzzle', color: 0xb4bcc6, dx: -0.26, dy: 0.24, sx: 0.6, sy: 0.6, sz: 0.7 },
+              { k: 'resLeg', color: 0xb4bcc6, dx: -0.12, dz: -0.06, dy: 0.05, rotZ: 0.5, sx: 1.2, sy: 0.45, sz: 0.6 },
+              { k: 'resLeg', color: 0xb4bcc6, dx: -0.12, dz: 0.06, dy: 0.05, rotZ: -0.5, sx: 1.2, sy: 0.45, sz: 0.6 },
+              { k: 'resFishTail', color: 0xb4bcc6, dx: 0.18, dy: 0.08, rotZ: -0.95, sx: 1.1, sy: 1.3 }],
   desert:    [{ k: 'resWater', color: 0x2f7fc0, dy: 0.02, sx: 1.3, sz: 1.3 },                    // Oasis: the pool
               { k: 'jungleTrunk', color: 0x8a6a3d, dy: 0.18, sx: 1.05, sy: 0.8, sz: 1.05 },         // brown palm trunk (jungleTrunk reused, scaled down)
               // frond crown: blades PLANTED around a small ring at the trunk top, each
@@ -121,9 +145,9 @@ const ROAD_DIRS = [
 const SCATTER_PEBBLE = { desert: 0xb5924d, hills: 0x8a7f66, tundra: 0x8f968c, arctic: 0xd8e2e6 };
 
 export function createTileProps(map, tileTop, joins, reveal, level = 'low', surfaceAt) { // reveal (#34 S2): un-dim explored tiles
-  // high multiplies the medium scatter (G3): denser tufts/pebbles, same field idiom
-  const scatter = level === 'high' ? DETAIL_STYLE.scatterBoost * 1.7
-    : level === 'medium' ? DETAIL_STYLE.scatterBoost : 0;
+  // H1 re-tier: medium and high share the G3 scatter density (the user judged
+  // the G3 look a MEDIUM); H2 differentiates high again with the smooth pass
+  const scatter = (level === 'medium' || level === 'high') ? DETAIL_STYLE.scatterBoost * 1.7 : 0;
   // G4 polish: at medium/high, off-center props sample the REAL surface at
   // their offset (terrain.js surfaceAt over the mesh's own height grid) — road
   // segments and scatter stop floating over the denser relief. Low keeps the
