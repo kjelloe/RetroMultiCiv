@@ -31,24 +31,32 @@ test('the setup picker persists the graphics choice in the options key', async (
 test('each tier boots and the triangle budget ranks low < medium < high', async ({ page }) => {
   const tris = {};
   for (const level of ['low', 'medium', 'high']) {
-    await page.goto(clientUrl('?e2e=1&seed=11&civs=2&size=xsmall'));
+    // Set the option from a NON-BOOTING same-origin page: the game page's own
+    // options.set() rewrites the whole localStorage object, so writing while a
+    // booted page is alive races it and loses (the first ui-dev-night run
+    // caught exactly that: medium request, low boot).
+    await page.goto(clientUrl('host-guide.html'));
     await page.evaluate(l => {
       const o = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}');
       o.graphics = l;
       localStorage.setItem('retromulticiv-options', JSON.stringify(o));
     }, level);
-    await page.reload();
+    await page.goto(clientUrl('?e2e=1&seed=11&civs=2&size=xsmall'));
     await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });
     await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().triangles > 0);
     const info = await page.evaluate(() => window.__gfxInfo());
-    expect(info.level).toBe(level); // SwiftShader is WebGL2: no degrade expected
-    tris[level] = info.triangles;
+    // high on a WebGL1-only stack DEGRADES to medium by design — expect the
+    // degrade rather than fail on it (runner GL stacks vary)
+    const webgl2 = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl2'));
+    expect(info.level).toBe(level === 'high' && !webgl2 ? 'medium' : level);
+    tris[level] = { n: info.triangles, degraded: level === 'high' && !webgl2 };
   }
-  expect(tris.medium).toBeGreaterThan(tris.low);
-  expect(tris.high).toBeGreaterThan(tris.medium);
+  expect(tris.medium.n).toBeGreaterThan(tris.low.n);
+  if (tris.high.degraded) expect(tris.high.n).toBe(tris.medium.n); // degraded high IS medium
+  else expect(tris.high.n).toBeGreaterThan(tris.medium.n);
   // runaway ceiling: an xsmall map at high must stay far under discrete-GPU
   // budgets; a blowout here means a level multiplied something it shouldn't
-  expect(tris.high).toBeLessThan(3_000_000);
+  expect(tris.high.n).toBeLessThan(3_000_000);
 });
 
 test('the ⚙ live switch rebuilds the scene at the new tier', async ({ page }) => {

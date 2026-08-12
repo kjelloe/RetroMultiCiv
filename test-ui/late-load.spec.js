@@ -6,11 +6,18 @@
 // Golden-neutral (client load path only).
 import { test, expect } from '@playwright/test';
 import { startServer } from '../server/index.js';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SAVE = path.join(__dirname, '..', 'debugging', 'logs', 'retromulticiv-g5khd-turn-1617.json');
+// The g5khd recording is an UNTRACKED playtest artifact (debugging/logs is
+// local-only), so CI runners never have it — self-skip there, run where it
+// exists (the browser.test.js dump-absent idiom). Surfaced by the first
+// ui-dev-night run: this spec had been failing on every runner since it
+// landed, invisibly inside the chronically-red nightly.
+test.skip(!fs.existsSync(SAVE), 'g5khd fixture absent (untracked local recording)');
 
 let server;
 test.beforeAll(async () => {

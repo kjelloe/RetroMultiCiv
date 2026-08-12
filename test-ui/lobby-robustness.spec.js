@@ -33,7 +33,11 @@ test('a dropped lobby socket shows the lost-connection line, not a stale room', 
     await expect(join.locator('#lobby-code')).toHaveText(code);
 
     await own.close(); // every lobby socket dies
-    await expect(join.locator('#lobby-status')).toContainText('lobby connection lost', { timeout: 15000 });
+    // 45s, not 15s: a seat-holding joiner deliberately RETRIES first — Part C
+    // (shared/lobby-reconnect.js, same day as this spec but hours later) walks
+    // 6 backoff attempts (~28s of timers) before falling through to the truth
+    // screen. The line still MUST appear; only the deadline honors the design.
+    await expect(join.locator('#lobby-status')).toContainText('lobby connection lost', { timeout: 45000 });
   } finally {
     await joinCtx.close();
     await hostCtx.close();
