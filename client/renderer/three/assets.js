@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { emblemTexture, isLightColor } from './factions.js';
 import { UNIT_RECIPES, UNIT_SILHOUETTE, CITY_RECIPE } from './recipes.js';
 import { HIGH_UNIT_RECIPES } from './recipes-high.js';
+import { MODEL_UNIT_RECIPES } from './recipes-model.js';
 import { RECIPE_CHROME, TYPE_EXTRA } from './unit-chrome.js';
 import { CITY_ERA_STYLES } from '../../../shared/city-era.js';
 
@@ -207,7 +208,12 @@ export function createUnitMesh(unitType, colorOrVisual, status, level = 'low') {
   const recipe = UNIT_SILHOUETTE[unitType] || 'fallback';
   const chrome = RECIPE_CHROME[recipe] || {};
   const segMult = SEG_MULT[level] || 1;
-  const bodyOf = name => ((level === 'medium' || level === 'high') && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name] : UNIT_RECIPES[name]; // H1: the authored bodies ARE the medium bar
+  // H1: the authored (recipes-high) bodies ARE the medium bar; H4: high
+  // prefers the MODEL-grade table, falling back per silhouette so the tier
+  // lands batch by batch (absent model body → the medium body).
+  const bodyOf = name => (level === 'high' && MODEL_UNIT_RECIPES[name]) ? MODEL_UNIT_RECIPES[name]
+    : ((level === 'medium' || level === 'high') && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name]
+    : UNIT_RECIPES[name];
   baseToken(group, visual, status, chrome.naval ? 0.02 : 0.035);
   if (chrome.plain) { composeRecipe(group, bodyOf('fallback'), undefined, segMult); return group; } // all-neutral, no visual/pennant
   composeRecipe(group, bodyOf(recipe), visual, segMult);

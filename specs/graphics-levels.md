@@ -322,7 +322,22 @@ wall box + pitched roof + chimney + window insets (dark material), era
 variants (thatch/timber → brick+smokestacks → glass slabs); city walls as
 a real rampart ring; the capital's palace as a landmark.
 
-**H4 — High units (~3–5 sessions, 3-variant batches).** Vehicle-grade
+**H4 BATCH 1 DONE 2026-08-13 (overnight)** — `recipes-model.js`
+(MODEL_UNIT_RECIPES), consumed only at high with per-silhouette fallback to
+the medium body, so the tier lands batch by batch. Eight flagship bodies at
+TW vehicle-grade: footSoldier (stance/belt/cheek-guard helm/butt spike/
+shield boss), phalanx (faction-blazon shield + transverse crest + greaves),
+mounted (mane/hooves/saddle blanket/raised sword), knight (caparison +
+chanfron + visor slit + lance guard), tank (road wheels + skirts + mantlet
++ cupola + tow hooks), shipSail (plank lines/keel/castles/crow's nest/
+rudder), shipPowered (deck/capped funnels/bridge windows/twin-barrel
+turrets/lifeboats), aircraft (cowl/prop/spinner/canopy/gear). Verified:
+low byte-identical, battery 22/22, graphics spec 3/3. **Batch 2 (remaining
+13 silhouettes: wagon, chariotWheels, siege, catapult, diplomat,
+musketeers, riflemen, apc, bomber, nuclear, shipSub, carrier, fallback) =
+the next session's work.**
+
+**H4 — High units (the original plan).** Vehicle-grade
 bodies over the recipes-high skeletons: wheels with hubs and spokes, tank
 treads with road wheels, cabs with window insets, ship hulls with planking
 lines + rigging + cloth sails, aircraft with canopies and engine detail,
