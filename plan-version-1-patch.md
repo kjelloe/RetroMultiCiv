@@ -6,7 +6,7 @@ read-the-code review rather than a memory dump. Companions: `plan-version1.md`
 This file is the middle tier: things worth fixing in a **patch**, not worth
 holding a release for._
 
-**Last updated: 2026-08-12.** Released: `v1.0.0` (2026-08-04), `v1.0.1`
+**Last updated: 2026-08-12 (evening).** Released: `v1.0.0` (2026-08-04), `v1.0.1`
 (2026-08-05). Live at aworldbegun.kjell.today and on Roblox.
 
 ---
@@ -54,6 +54,13 @@ a mail — turns the existing prober into an alerter.
 **Not recommended:** adding a monitoring stack. This is one small box; an
 uptime-check service or the games-index hook is proportionate.
 
+**DONE (code) 2026-08-12** — the games-index prober now alerts on
+transitions: DOWN after 2 consecutive misses (~10 min), recovery with
+duration, one alert per incident, state in `~/.games-index-alerts.json`
+(outside the deploy tree). Any plain-text-POST webhook; ntfy.sh documented
+in the gamesindex README. **Remaining = user:** pick an ntfy topic, set
+`site.alertWebhook`, deploy.
+
 ## P2 — Backups are on-host only, and miss the bug reports
 
 **What.** `docs/hetzner-cloud-init.yaml` installs a nightly `cron.d` job that
@@ -72,6 +79,13 @@ tars `saves/` into `/home/<user>/backups`, 30-day retention.
 **Fix.** Verify it exists; add `bugreports` to the tar; push the archive
 off-host (`restic`, `rclone`, or an rsync to another machine). The tar is fine —
 the location is the defect.
+
+**DONE (agent half) 2026-08-12** — the cloud-init cron tars
+`saves/ + bugreports/`; `ops/backup-offhost.sh` (rsync push with a
+restricted dedicated key + far-end verify); how-to-host § "Backups, done
+properly". **Remaining = user, on the VM:** `ls -la ~/backups` (has the
+cron ever run), update `/etc/cron.d/retromulticiv-backup` to the template
+line, pick a destination box, fill DEST, install the 03:20 cron.
 
 ## P3 — Nukes are asymmetric: a player can, the AI never will
 
@@ -141,6 +155,10 @@ coverage.
 **Fix.** Either schedule the nightly on `dev_night` as well, or add a light
 push-triggered workflow that runs the UI lane on `dev_night` when `client/**`
 changes. The second is cheaper and targets the actual gap.
+
+**DONE 2026-08-12** — `.github/workflows/ui-dev-night.yml`: the nightly's
+ui-lane job, push-triggered on dev_night for client/test-ui/shared/server
+paths, concurrency-superseding. First run fires on this very push.
 
 ---
 

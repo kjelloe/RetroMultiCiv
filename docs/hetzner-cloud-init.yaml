@@ -251,9 +251,14 @@ write_files:
       echo "Crash/OOM dumps land in $APP/crashdumps/"
 
   # ── daily save backup (03:00) — games are FILES in saves/, not a DB. ───────
+  # P2: bugreports/ rides in the same tar when present (it exists only once
+  # --bug-reports is enabled) — player-submitted reports are the one thing on
+  # this box nobody can re-send. The tar stays ON-HOST; pair it with an
+  # off-host push (docs/how-to-host.md § Backups) — a same-disk copy protects
+  # against rm, not against losing the host.
   - path: /etc/cron.d/retromulticiv-backup
     content: |
-      0 3 * * * <DEPLOY_USER> mkdir -p /home/<DEPLOY_USER>/backups && tar czf /home/<DEPLOY_USER>/backups/saves-$(date +\%F).tar.gz -C /opt/retromulticiv saves && find /home/<DEPLOY_USER>/backups -name 'saves-*.tar.gz' -mtime +30 -delete
+      0 3 * * * <DEPLOY_USER> sh -c 'mkdir -p $HOME/backups && cd /opt/retromulticiv && tar czf $HOME/backups/saves-$(date +\%F).tar.gz saves $([ -d bugreports ] && echo bugreports) && find $HOME/backups -name "saves-*.tar.gz" -mtime +30 -delete'
 
 runcmd:
   # Node.js 22 LTS via NodeSource

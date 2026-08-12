@@ -1,0 +1,50 @@
+# P6 (plan-version-1-patch.md): the playwright UI lane runs on dev_night
+# PUSHES that touch the client-facing tree — closing the gap where a client
+# change passed the full node suite and still broke the real UI (it happened
+# twice in two days, 2026-08-05: the A105 met-gate vs diplomacy.spec, the
+# compass default vs dpad.spec). The nightly on main remains the wide net;
+# this is the fast tripwire on the branch where the work actually happens.
+# engine/** is deliberately NOT a trigger: engine changes have their own
+# gates (goldens, twins, scenarios), and this lane's signal is the UI.
+name: ui-dev-night
+
+on:
+  push:
+    branches: [dev_night]
+    paths:
+      - 'client/**'
+      - 'test-ui/**'
+      - 'shared/**'
+      - 'server/**'
+      - 'playwright.config.*'
+      - '.github/workflows/ui-dev-night.yml'
+  workflow_dispatch:
+
+# rapid pushes supersede each other — only the tip needs the verdict
+concurrency:
+  group: ui-dev-night
+  cancel-in-progress: true
+
+jobs:
+  ui-lane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Install the Playwright chromium browser
+        run: npx playwright install --with-deps chromium
+      - name: Multi-client UI lane (npx playwright test)
+        run: npx playwright test
+      - name: Upload Playwright traces + report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore

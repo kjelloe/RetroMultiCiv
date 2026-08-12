@@ -411,6 +411,28 @@ Done: **https://yourdomain.example/client/?server=1** is a public game.
 | Instant `?age=` starts | `node tools/bake-age-snapshots.js` on your DEV machine before deploying (a build step — the snapshots are gitignored and ship via rsync; without them `?age=` falls back to live fast-forward, which is correct but slower) |
 | Back up games   | `cp -a /opt/multiciv/saves ~/multiciv-saves-$(date +%F)` |
 | Renew cert test | `sudo certbot renew --dry-run`                  |
+
+**Backups, done properly.** Games are files in `saves/`; player bug reports
+(if you run `--bug-reports`) are files in `bugreports/` — and those are the
+one thing on the box nobody can re-send. Three rules:
+
+1. **Tar both, nightly.** The cloud-init template installs this at 03:00
+   (`docs/hetzner-cloud-init.yaml`, `/etc/cron.d/retromulticiv-backup`):
+   `saves/` + `bugreports/` when present, 30-day retention in `~/backups`.
+   If your box predates the template's bugreports line, update the cron file
+   to match the template. Verify it has ever run: `ls -la ~/backups`.
+2. **Push the tars OFF the host.** A same-disk copy protects against `rm`,
+   not against losing the box. Any machine you control that runs sshd works
+   as the far end: make a dedicated ssh key, restrict it in
+   `authorized_keys` (`command="rsync --server ...",restrict`), and rsync
+   `~/backups/` across on a second cron (03:20). A worked script with the
+   measured ssh gotchas baked in ships in the maintainers' ops directory;
+   the shape is: `rsync -av --delete -e "ssh -o IdentityFile=... -o
+   BatchMode=yes" ~/backups/ user@far-host:/srv/game-backups/`, then
+   **list the far end** — "it ran" is not "it arrived".
+3. **Restoring** is untarring into `/opt/multiciv` and restarting; a save's
+   integrity is verifiable with `node debugging/save-info.js <file>` before
+   you trust it.
 | Usage counters  | `curl -s localhost:8123/metrics` (over SSH)     |
 
 **Usage metrics** (`specs/metrics-v1.md`): cumulative counts only — page loads,
