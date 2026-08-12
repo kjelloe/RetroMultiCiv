@@ -77,7 +77,15 @@ test('mobile playthrough: setup → play → city → panels → save, at phone 
   await noHorizontalOverflow(page, 'in game');
   await shot(page, '02-first-turn');
 
-  // the touch controls a phone player depends on
+  // the touch controls a phone player depends on. The d-pad is HIDDEN by
+  // default since 2026-08-04 (compass-off ruling — unit arrows carry
+  // navigation); the 🧭 toggle brings it back, and THAT flow is what a phone
+  // player who wants it actually does. dpad.spec.js was aligned on 2026-08-05;
+  // this spec was missed and had been red on every runner since, invisible
+  // inside the chronically-red nightly (found by ui-dev-night run 2).
+  await expect(page.locator('#dpad')).toBeHidden();
+  await expect(page.locator('#dpad-toggle')).toBeVisible();
+  await page.locator('#dpad-toggle').click();
   await expect(page.locator('#dpad')).toBeVisible();
   await expect(page.locator('#end-turn')).toBeVisible();
   const clash = await page.evaluate(() => {

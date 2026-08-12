@@ -16,6 +16,10 @@ test.beforeAll(async () => {
 test.afterAll(async () => { await server.close(); });
 
 test('a dropped lobby socket shows the lost-connection line, not a stale room', async ({ browser }) => {
+  // the seat-holding joiner deliberately retries ~28s (Part C backoff) before
+  // the truth screen — the default 30s TEST budget can't contain that plus
+  // setup on a slow runner (ui-dev-night run 2: "Test timeout of 30000ms")
+  test.setTimeout(90000);
   // own server: killing it IS the socket death (setOffline leaves the ws
   // HALF-OPEN with no close event — measured here; that half-open shape is
   // the Android story itself, and only a real close reaches the client)
