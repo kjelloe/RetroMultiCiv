@@ -13,7 +13,14 @@ on:
 jobs:
   suite:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 35, raised from 20 on 2026-08-12. Measured, not waved: the 2026-08-11
+    # main run's suite step took 19m15s at 1048 tests — 45s under the wire —
+    # and dev_night's 1063-test suite (graphics-levels + ui additions) tipped
+    # over it, so both dispatched runs were CANCELLED mid-suite with no
+    # failing assertion (the same tree is 1062/1063 green locally). The
+    # excess is suite growth; 35 leaves the same ~40% headroom 20 had when
+    # the budget was set.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
