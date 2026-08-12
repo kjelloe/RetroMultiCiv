@@ -281,7 +281,24 @@ dispatch. Variants: `debugging/h1-variants.html`.
   becomes `>=` in H1 (they are equal until H2 gives High its own terrain),
   with a comment pointing here; restore `>` in H2.
 
-**H2 — High terrain, the TW look (~2–3 sessions, 3-variant gates).**
+**H2 DONE 2026-08-13 (overnight window; picks = decide-document-flag)** —
+High renders the smooth TW style: ONE indexed mesh, per-vertex colors
+blended across tile boundaries (sharpened bilinear weights —
+`SMOOTH_STYLE.blendSharpness`), `computeVertexNormals` relief, SAND painted
+at land/water boundary vertices (both banks — the TW beach), river/fog as
+per-vertex weights (soft edges). TW tree kit at high: trunk + layered
+canopy, 60/25/15 deciduous/conifer/autumn species mix + lone meadow trees
+on open grassland; roads = 3 conforming sub-segments per connection + white
+centerline dashes (rails keep ties); double surf line on coasts.
+PROVISIONAL picks pending user return (`debugging/h2-variants.html`):
+blend V2 "balanced" (exponent 3) + forest A "mixed wood". Verified: LOW
+byte-identical, medium self-consistent (H2 is entirely behind the high
+gate), battery 22/22, graphics spec 3/3 with the strict `>` restored
+(high owns trees/dashes/foam beyond medium). New PROP_SHAPES: treeTrunk /
+treeCanopy / roadDash (asset-recipes regenerated — additive, Roblox
+unaffected).
+
+**H2 — High terrain, the TW look (the original plan).**
 Smooth per-vertex normals (indexed geometry at high, computeVertexNormals);
 color BLENDING at tile transitions (vertex colors sampled from neighbor
 terrain at boundary vertices); sand ring where land meets water; animated

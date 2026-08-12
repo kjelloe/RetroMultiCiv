@@ -260,7 +260,13 @@ export const PROP_SHAPES = {
   foam: { shape: 'box', size: [0.82, 0.01, 0.06] },
   // N13: the goody-hut village — a round wall + thatch roof pair
   hutBase: { shape: 'cyl', size: [0.13, 0.15, 0.12], seg: 6 },
-  hutRoof: { shape: 'cone', size: [0.18, 0.14], seg: 6 }
+  hutRoof: { shape: 'cone', size: [0.18, 0.14], seg: 6 },
+  // H2 (specs/graphics-levels.md §4b): the HIGH tree kit — trunk + layered
+  // round canopy (deciduous stacks 2-3 spheres, conifers stack the classic
+  // 'tree' cone) and the road centerline dash. Instanced like everything here.
+  treeTrunk: { shape: 'cyl', size: [0.018, 0.026, 0.16], seg: 6 },
+  treeCanopy: { shape: 'sphere', size: [0.11], seg: [10, 8] },
+  roadDash: { shape: 'box', size: [0.09, 0.006, 0.016] }
 };
 
 // every unit type → its silhouette recipe (the assets.js class tables as data;

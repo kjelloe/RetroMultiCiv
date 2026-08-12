@@ -170,6 +170,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
     rock: [], peak: [], snow: [], special: [], fortress: [],
     tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: [],
     hutBase: [], hutRoof: [], // N13: goody-hut villages
+    treeTrunk: [], treeCanopy: [], roadDash: [], // H2: high tree kit + centerlines
     // specials-icons: per-resource motif primitives
     resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
     resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [],
@@ -215,11 +216,31 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         for (const d of ROAD_DIRS) {
           if (!roadAt(x + d.dx, y + d.dy)) continue;
           connected++;
+          if (level === 'high') {
+            // H2: the connection half is THREE conforming sub-segments (the
+            // ribbon read — each hugs the surface at its own pitch), and roads
+            // (not rails) carry TW centerline dashes
+            const df = d.diag ? 1.42 : 1;
+            for (const c of [0.0833, 0.25, 0.4167]) {
+              const sub = laid(x + d.dx * c, y + d.dy * c, d.rot, 0.0833 * df, top);
+              items.roadSeg.push({
+                x, y, top: sub.top, dim, color, rotY: d.rot, rotZ: sub.rotZ, dy: 0.03,
+                dx: d.dx * c, dz: d.dy * c, sx: 0.36 * df
+              });
+              if (!t.railroad) {
+                items.roadDash.push({
+                  x, y, top: sub.top, dim, color: 0xe8e8e8, rotY: d.rot, rotZ: sub.rotZ, dy: 0.041,
+                  dx: d.dx * c, dz: d.dy * c, sx: df
+                });
+              }
+            }
+          } else {
           const seg = laid(x + d.dx * 0.25, y + d.dy * 0.25, d.rot, 0.25 * (d.diag ? 1.42 : 1), top);
           items.roadSeg.push({
             x, y, top: seg.top, dim, color, rotY: d.rot, rotZ: seg.rotZ, dy: 0.03,
             dx: d.dx * 0.25, dz: d.dy * 0.25, sx: d.diag ? 1.42 : 1
           });
+          }
           if (t.railroad) {
             // cross-ties along the rail segment (art A1.6b)
             for (const k of [0.14, 0.3]) {
@@ -242,6 +263,33 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
       }
       if (t.fortress) items.fortress.push({ x, y, top, dim, color: PROP_COLOR.fortress, rotX: Math.PI / 2, dy: 0.05 });
       if (t.t === 'forest') {
+        if (level === 'high') {
+          // H2: TW-style tree models — trunk + layered canopy; species mix
+          // (60% deciduous, 25% conifer, 15% autumn), all placement/species
+          // via visualRand so every client grows the same wood
+          const count = 5 + Math.floor(visualRand(x, y, 1) * 4);
+          for (let i = 0; i < count; i++) {
+            const s = 0.8 + visualRand(x, y, 100 + i) * 0.5;
+            const dx = (visualRand(x, y, 200 + i) - 0.5) * 0.72;
+            const dz = (visualRand(x, y, 300 + i) - 0.5) * 0.72;
+            const gnd = ground(x, y, dx, dz, top);
+            const species = visualRand(x, y, 400 + i);
+            if (species < 0.25) { // conifer: trunk + two stacked cones
+              items.treeTrunk.push({ x, y, top: gnd, dim, color: 0x6a5236, dx, dz, dy: 0.08 * s, sx: s, sy: s, sz: s });
+              items.tree.push({ x, y, top: gnd, dim, color: 0x2d6a35, dx, dz, dy: 0.2 * s, sx: s, sy: s, sz: s });
+              items.tree.push({ x, y, top: gnd, dim, color: 0x33743c, dx, dz, dy: 0.32 * s, sx: s * 0.7, sy: s * 0.8, sz: s * 0.7 });
+            } else { // deciduous / autumn: trunk + 2-3 canopy spheres
+              const autumn = species > 0.85;
+              const c1 = autumn ? 0xd07a2e : 0x3f8f43, c2 = autumn ? 0xdd9a3a : 0x4c9a4f;
+              items.treeTrunk.push({ x, y, top: gnd, dim, color: 0x6a5236, dx, dz, dy: 0.08 * s, sx: s, sy: s, sz: s });
+              items.treeCanopy.push({ x, y, top: gnd, dim, color: c1, dx, dz, dy: 0.22 * s, sx: s, sy: s * 0.9, sz: s });
+              items.treeCanopy.push({ x, y, top: gnd, dim, color: c2, dx: dx + 0.04 * s, dz: dz - 0.02 * s, dy: 0.3 * s, sx: s * 0.7, sy: s * 0.65, sz: s * 0.7 });
+              if (visualRand(x, y, 500 + i) > 0.5) {
+                items.treeCanopy.push({ x, y, top: gnd, dim, color: c1, dx: dx - 0.05 * s, dz: dz + 0.03 * s, dy: 0.27 * s, sx: s * 0.6, sy: s * 0.55, sz: s * 0.6 });
+              }
+            }
+          }
+        } else {
         // 6–11 spruce cones (XVII #10: doubled density), scattered + sized per tile
         const color = PROP_COLOR.forest;
         const count = 6 + Math.floor(visualRand(x, y, 1) * 6);
@@ -253,6 +301,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             dz: (visualRand(x, y, 300 + i) - 0.5) * 0.72,
             dy: 0.14 * s, sx: s, sy: s, sz: s
           });
+        }
         }
       } else if (t.t === 'jungle') {
         // XV §5: tropical rainforest — each a buttress base + slender trunk + broad
@@ -311,6 +360,19 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
           });
         }
       }
+      // H2: occasional LONE tree on open grassland at high (the TW look —
+      // scattered singles across the meadows), never on worked/occupied tiles
+      if (level === 'high' && t.t === 'grassland' && !t.irrigation && !t.road && !t.railroad
+          && !t.mine && !t.special && visualRand(x, y, 21) < 0.09) {
+        const s = 0.9 + visualRand(x, y, 22) * 0.5;
+        const dx = (visualRand(x, y, 23) - 0.5) * 0.6;
+        const dz = (visualRand(x, y, 24) - 0.5) * 0.6;
+        const gnd = ground(x, y, dx, dz, top);
+        const autumn = visualRand(x, y, 25) > 0.88;
+        items.treeTrunk.push({ x, y, top: gnd, dim, color: 0x6a5236, dx, dz, dy: 0.08 * s, sx: s, sy: s, sz: s });
+        items.treeCanopy.push({ x, y, top: gnd, dim, color: autumn ? 0xd07a2e : 0x3f8f43, dx, dz, dy: 0.22 * s, sx: s, sy: s * 0.9, sz: s });
+        items.treeCanopy.push({ x, y, top: gnd, dim, color: autumn ? 0xdd9a3a : 0x4c9a4f, dx: dx + 0.04 * s, dz: dz - 0.02 * s, dy: 0.3 * s, sx: s * 0.7, sy: s * 0.65, sz: s * 0.7 });
+      }
       // G2 medium+ ground scatter: pebbles on dry/rocky/cold ground, reeds in
       // swamp — small instanced props, colors fixed per terrain
       if (scatter > 0 && SCATTER_PEBBLE[t.t] !== undefined && visualRand(x, y, 17) < 0.18 * scatter) {
@@ -337,6 +399,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         }
       }
       if (t.t === 'ocean') {
+        // (H2 foam densify happens inside the existing coast handler below)
         // foam strips along shore edges, riding just above the water plane
         // (art A1.6b §4: stylized, grid-readable — one strip per land edge)
         for (const d of [{ dx: 1, dy: 0, rot: Math.PI / 2 }, { dx: -1, dy: 0, rot: Math.PI / 2 },
@@ -346,6 +409,15 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             x, y, dim, top: WATER_LEVEL + 0.008, dy: 0,
             color: PROP_COLOR.foam, rotY: d.rot, dx: d.dx * 0.44, dz: d.dy * 0.44
           });
+          if (level === 'high') {
+            // H2: a second, thinner foam line a little off the beach — the TW
+            // double-line surf read
+            items.foam.push({
+              x, y, dim, top: WATER_LEVEL + 0.008, dy: 0,
+              color: PROP_COLOR.foam, rotY: d.rot, dx: d.dx * 0.34, dz: d.dy * 0.34,
+              sx: 0.85, sz: 0.5
+            });
+          }
         }
       }
       if (t.special) {

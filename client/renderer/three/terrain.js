@@ -137,11 +137,24 @@ function heightAt(map, fx, fy, vi, vj, segs, duneAmp) {
 // procedural detail texture (terrain-detail.js); the face loop and every
 // height/palette decision are shared, so the levels differ only in where a
 // face's vertices land and which material shades them.
+// H2 (spec §4b): the HIGH tier's smooth-terrain style — the Transport World
+// watermark. Vertex colors blend across tile boundaries with a sharpness
+// exponent (1 = fully painterly, high = near-faceted); the sand band paints
+// shoreline vertices on both sides of a land/water boundary. Provisional
+// values land under the decide-document-flag rule; the 3-variant question
+// settles them.
+export const SMOOTH_STYLE = {
+  blendSharpness: 3,   // weight exponent: 2 painterly / 3 balanced / 6 subtle
+  sand: 0xdcc98e,      // the beach band hue
+  sandLandLerp: 0.45   // how far a shore-adjacent land vertex leans toward sand
+};
+
 export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): un-dim explored tiles
   const { width, height } = map;
   const segs = LEVEL_SEGS[level] || 2;
   const duneAmp = LEVEL_DUNE_AMP[level] || 0.035;
-  const perTerrain = segs !== 2; // medium+: per-terrain buckets with detail textures
+  const smooth = level === 'high'; // H2: high renders the smooth blended style
+  const perTerrain = !smooth && segs !== 2; // medium: per-terrain buckets with detail textures
   const gw = width * segs, gh = height * segs;
 
   // vertex height grid, (gw+1) x (gh+1); world x = -0.5 + vi / segs
@@ -151,6 +164,8 @@ export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): u
       H[vj * (gw + 1) + vi] = heightAt(map, -0.5 + vi / segs, -0.5 + vj / segs, vi, vj, segs, duneAmp);
     }
   }
+
+  if (smooth) return buildSmoothTerrain(map, reveal, segs, H);
 
   // face buckets: key -> preallocated attribute arrays. Low = one bucket for
   // the whole sheet; medium+ = one per terrain id (counted first).
@@ -273,6 +288,132 @@ export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): u
     dispose() {
       for (const part of parts) { part.geometry.dispose(); part.material.dispose(); }
     }
+  };
+}
+
+// --- H2: the smooth high-tier surface -------------------------------------------
+// ONE indexed grid geometry: (gw+1)x(gh+1) shared vertices, per-VERTEX colors
+// blended from the four nearest tiles (sharpened bilinear weights, so tiles
+// stay readable while edges fade into each other), computeVertexNormals for
+// the smooth relief, sand painted at land/water boundary vertices, river tint
+// and fog dim applied as per-vertex WEIGHTS (soft edges instead of tile-hard
+// ones). Same H grid, same tileTop anchors, same determinism (visualRand).
+function buildSmoothTerrain(map, reveal, segs, H) {
+  const { width, height } = map;
+  const gw = width * segs, gh = height * segs;
+  const nvx = gw + 1, nvz = gh + 1;
+  const positions = new Float32Array(nvx * nvz * 3);
+  const colors = new Float32Array(nvx * nvz * 3);
+  const uvs = new Float32Array(nvx * nvz * 2);
+  const color = new THREE.Color(), tileCol = new THREE.Color();
+  const SAND = new THREE.Color(SMOOTH_STYLE.sand);
+  const p = SMOOTH_STYLE.blendSharpness;
+
+  const clampTX = tx => {
+    if (tx >= 0 && tx < width) return tx;
+    if (map.wrapX) return ((tx % width) + width) % width;
+    return tx < 0 ? 0 : width - 1;
+  };
+  const clampTY = ty => ty < 0 ? 0 : ty >= height ? height - 1 : ty;
+
+  for (let vj = 0; vj < nvz; vj++) {
+    for (let vi = 0; vi < nvx; vi++) {
+      const idx = vj * nvx + vi;
+      const fx = -0.5 + vi / segs, fz = -0.5 + vj / segs;
+      positions[idx * 3] = fx;
+      positions[idx * 3 + 1] = H[idx];
+      positions[idx * 3 + 2] = fz;
+      uvs[idx * 2] = fx / 4; uvs[idx * 2 + 1] = fz / 4;
+
+      // the four nearest tiles + sharpened bilinear weights
+      const x0 = Math.floor(fx), z0 = Math.floor(fz);
+      const wx = fx - x0, wz = fz - z0;
+      const quad = [
+        [clampTX(x0), clampTY(z0), (1 - wx) * (1 - wz)],
+        [clampTX(x0 + 1), clampTY(z0), wx * (1 - wz)],
+        [clampTX(x0), clampTY(z0 + 1), (1 - wx) * wz],
+        [clampTX(x0 + 1), clampTY(z0 + 1), wx * wz]
+      ];
+      let wsum = 0;
+      for (const q of quad) { q[2] = Math.pow(q[2], p); wsum += q[2]; }
+      // does this vertex touch both land and water? (the shoreline test)
+      let touchesLand = false, touchesWater = false;
+      for (const q of quad) {
+        if (q[2] <= 0) continue;
+        const t = map.tiles[q[1] * width + q[0]].t;
+        if (t === 'ocean') touchesWater = true;
+        else if (t !== 'unknown') touchesLand = true;
+      }
+      const shore = touchesLand && touchesWater;
+      color.setRGB(0, 0, 0);
+      let riverW = 0, fogW = 0;
+      for (const q of quad) {
+        if (q[2] <= 0) continue;
+        const w = q[2] / wsum;
+        const tile = map.tiles[q[1] * width + q[0]];
+        const spec = TERRAIN[tile.t] || TERRAIN.grassland;
+        tileCol.setHex(spec.palette[Math.floor(visualRand(q[0], q[1], 11) * spec.palette.length)]);
+        if (shore) {
+          // the beach band: water contributes SAND at mixed vertices; the land
+          // side leans toward sand so the ring sits on both banks (TW's look)
+          if (tile.t === 'ocean') tileCol.copy(SAND);
+          else if (tile.t !== 'unknown') tileCol.lerp(SAND, SMOOTH_STYLE.sandLandLerp);
+        }
+        color.r += tileCol.r * w; color.g += tileCol.g * w; color.b += tileCol.b * w;
+        if (tile.river) riverW += w;
+        if (tile.visible === false && reveal !== true) fogW += w;
+      }
+      if (riverW > 0) color.lerp(RIVER_TINT, 0.62 * riverW);
+      if (fogW > 0) color.lerp(FOG_TINT, 0.45 * fogW);
+      colors[idx * 3] = color.r; colors[idx * 3 + 1] = color.g; colors[idx * 3 + 2] = color.b;
+    }
+  }
+
+  const index = new Uint32Array(gw * gh * 6);
+  let k = 0;
+  for (let vj = 0; vj < gh; vj++) {
+    for (let vi = 0; vi < gw; vi++) {
+      const i00 = vj * nvx + vi, i10 = i00 + 1, i01 = i00 + nvx, i11 = i01 + 1;
+      // the same alternating diagonal as the faceted path, for parity of shape
+      if ((vi + vj) % 2 === 0) {
+        index[k++] = i00; index[k++] = i01; index[k++] = i11;
+        index[k++] = i00; index[k++] = i11; index[k++] = i10;
+      } else {
+        index[k++] = i00; index[k++] = i01; index[k++] = i10;
+        index[k++] = i10; index[k++] = i01; index[k++] = i11;
+      }
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geometry.setIndex(new THREE.BufferAttribute(index, 1));
+  geometry.computeVertexNormals(); // the smooth relief — shared vertices average their faces
+  const material = new THREE.MeshLambertMaterial({
+    vertexColors: true, side: THREE.DoubleSide, map: mottleTexture()
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+
+  function tileTop(x, y) {
+    const vi = x * segs + segs / 2, vj = y * segs + segs / 2;
+    return H[vj * (gw + 1) + vi];
+  }
+  function surfaceAt(fx, fz) {
+    const gx = Math.min(Math.max((fx + 0.5) * segs, 0), gw);
+    const gz = Math.min(Math.max((fz + 0.5) * segs, 0), gh);
+    const x0 = Math.floor(gx), z0 = Math.floor(gz);
+    const x1 = Math.min(x0 + 1, gw), z1 = Math.min(z0 + 1, gh);
+    const tx = gx - x0, tz = gz - z0;
+    const h00 = H[z0 * (gw + 1) + x0], h10 = H[z0 * (gw + 1) + x1];
+    const h01 = H[z1 * (gw + 1) + x0], h11 = H[z1 * (gw + 1) + x1];
+    return (h00 * (1 - tx) + h10 * tx) * (1 - tz) + (h01 * (1 - tx) + h11 * tx) * tz;
+  }
+
+  return {
+    mesh, tileTop, surfaceAt,
+    dispose() { geometry.dispose(); material.dispose(); }
   };
 }
 

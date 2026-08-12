@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>H2 variants — High smooth terrain + TW trees</title>
+<style>
+  body { margin: 0; padding: 16px 20px 40px; background: #0d1420; color: #cdd8ea;
+         font: 14px ui-monospace, monospace; }
+  h1 { font-size: 17px; } h2 { font-size: 15px; margin-top: 34px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; }
+  figure { margin: 0; }
+  figcaption { padding: 4px 2px; max-width: 620px; }
+  img { display: block; max-width: 620px; width: 100%; border: 1px solid #2a3550; }
+  .prov { color: #8fd18f; }
+</style>
+</head>
+<body>
+<h1>H2 variants — the Transport World High terrain (spec §4b)</h1>
+<p>High only; Low/Medium keep the faceted identity (byte-verified). Both
+provisionals landed under decide-document-flag — swapping either is a
+one-line change + reshoot.</p>
+
+<h2>Terrain blend sharpness (the desert/plains/grassland seam)</h2>
+<div class="row">
+<figure><img src="h2-blend-v1.png" alt="blend v1"><figcaption>V1 — painterly (exponent 2): widest gradients, softest world; tile identity weakest</figcaption></figure>
+<figure><img src="h2-blend-v2.png" alt="blend v2"><figcaption class="prov">V2 — balanced (exponent 3, PROVISIONAL): clear tiles with real blended borders — closest to the TW reference</figcaption></figure>
+<figure><img src="h2-blend-v3.png" alt="blend v3"><figcaption>V3 — subtle (exponent 6): blend only in a narrow edge band; nearest the faceted read</figcaption></figure>
+</div>
+
+<h2>Forest character (the forest tile, close)</h2>
+<div class="row">
+<figure><img src="h2-trees-v1.png" alt="trees v1"><figcaption class="prov">A — mixed wood (PROVISIONAL): 60% deciduous layered canopies / 25% conifer / 15% autumn</figcaption></figure>
+<figure><img src="h2-trees-v2.png" alt="trees v2"><figcaption>B — conifer-dominant (70%): closest to the classic Civ spruce read, with round-canopy accents</figcaption></figure>
+<figure><img src="h2-trees-v3.png" alt="trees v3"><figcaption>C — lush dense: more and bigger trees per tile; richest, heaviest</figcaption></figure>
+</div>
+</body>
+</html>
