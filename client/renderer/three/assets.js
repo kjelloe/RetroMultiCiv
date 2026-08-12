@@ -264,6 +264,20 @@ const PROP_GEO = {
 };
 const STACK_MAT = new THREE.MeshLambertMaterial({ color: 0x3b3b40 });
 const SPIRE_MAT = new THREE.MeshLambertMaterial({ color: 0xb9c6d6 });
+// H3 (spec §4b): the HIGH city house kit — gable ridge roofs, chimneys,
+// window insets, rampart walls with corner towers. Shared geometries.
+const HIGH_GEO = {
+  gable: new THREE.ConeGeometry(0.72, 1, 4),          // scaled [long, h, narrow] → a ridge roof
+  chimney: new THREE.BoxGeometry(0.028, 0.07, 0.028),
+  window: new THREE.BoxGeometry(0.012, 0.03, 0.026),  // proud dark inset on a wall face
+  door: new THREE.BoxGeometry(0.014, 0.045, 0.03),
+  wallSeg: new THREE.BoxGeometry(0.24, 0.09, 0.045),  // rampart segment (ring of 10)
+  wallTower: new THREE.CylinderGeometry(0.045, 0.052, 0.13, 8),
+  towerCap: new THREE.ConeGeometry(0.055, 0.06, 8),
+  acBox: new THREE.BoxGeometry(0.05, 0.02, 0.05)      // modern rooftop unit
+};
+const WINDOW_MAT = new THREE.MeshLambertMaterial({ color: 0x1c2230 });
+const DOOR_MAT = new THREE.MeshLambertMaterial({ color: 0x2e2418 });
 
 // The band's signature central structure. CITY_TIERS gates the tower to upper
 // tiers; the capital always gets the (larger) band core, so it evolves
@@ -327,12 +341,53 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
     const z = Math.sin(angle) * dist;
     const base = add(group, houseGeo, bodyMat, x, h / 2, z);
     base.scale.set(w, h, w);
+    if (level === 'high') {
+      // H3: the model-grade house — houses FACE the city center (rotate the
+      // whole footprint), gable ridge roof for peaked eras, chimney, a lit
+      // window pair on the street face, a door on every third house. All
+      // deterministic off the house index — no RNG, rebuilds are stable.
+      const facing = angle + Math.PI; // toward the center
+      base.rotation.y = facing;
+      if (peaked) {
+        const roof = add(group, HIGH_GEO.gable, roofMat, x, h + h * 0.28, z);
+        roof.scale.set(w * 1.05, h * 0.62, w * 0.72);
+        roof.rotation.y = facing + Math.PI / 4; // cone seg-4 diagonal → ridge along the footprint
+        const ch = add(group, HIGH_GEO.chimney, STACK_MAT, x + Math.cos(facing + 2.2) * w * 0.28, h + h * 0.5, z + Math.sin(facing + 2.2) * w * 0.28);
+        ch.scale.setScalar(tier.scale);
+      } else if (style.roofShape === 'flat') { // industrial: low roof + thin stack on every other house
+        const roof = add(group, roofGeo, roofMat, x, h + h * 0.08, z);
+        roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+        roof.rotation.y = facing;
+        if (i % 2 === 0) add(group, PROP_GEO.smokestack, STACK_MAT, x, h + h * 0.2, z).scale.setScalar(0.32 * tier.scale);
+      } else { // modern slab: rooftop unit instead of a chimney
+        const roof = add(group, roofGeo, roofMat, x, h + h * 0.08, z);
+        roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+        roof.rotation.y = facing;
+        add(group, HIGH_GEO.acBox, STACK_MAT, x + w * 0.15, h + h * 0.18, z);
+      }
+      // windows on the street face (proud dark boxes; the inset READ)
+      const wx1 = x + Math.cos(facing) * w * 0.52, wz1 = z + Math.sin(facing) * w * 0.52;
+      const side = facing + Math.PI / 2;
+      for (const off of i % 3 === 0 ? [0.22] : [-0.2, 0.24]) {
+        const wm = add(group, HIGH_GEO.window, WINDOW_MAT,
+          wx1 + Math.cos(side) * w * off, h * 0.55, wz1 + Math.sin(side) * w * off);
+        wm.rotation.y = facing;
+        wm.scale.setScalar(tier.scale);
+      }
+      if (i % 3 === 0) { // a door where the single window left room
+        const dm = add(group, HIGH_GEO.door, DOOR_MAT,
+          wx1 + Math.cos(side) * w * -0.12, h * 0.32, wz1 + Math.sin(side) * w * -0.12);
+        dm.rotation.y = facing;
+        dm.scale.setScalar(tier.scale);
+      }
+    } else {
     const roof = add(group, roofGeo, roofMat, x, 0, z);
     if (peaked) {
       roof.position.y = h + h * 0.32; roof.scale.set(w * 0.82, h * 0.7, w * 0.82);
       roof.rotation.y = Math.PI / 4;
     } else { // flat / slab industrial+modern rooflines sit low on the body
       roof.position.y = h + h * 0.08; roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+    }
     }
   }
   // the band's signature central structure (tower / smokestacks / dome+spire /
@@ -361,8 +416,22 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
     rim.scale.set(0.9, 0.9, 0.5);
   }
   if ((city.buildings || []).indexOf('city-walls') !== -1) {
-    const wall = add(group, GEO.wallRing, NEUTRAL.stone, 0, 0.06, 0);
-    wall.rotation.x = Math.PI / 2;
+    if (level === 'high') {
+      // H3: a real rampart — 10 wall segments in a ring with 5 corner towers
+      // (capped), replacing the torus marker. Deterministic ring placement.
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        const seg = add(group, HIGH_GEO.wallSeg, NEUTRAL.stone, Math.cos(a) * 0.46, 0.045, Math.sin(a) * 0.46);
+        seg.rotation.y = -a + Math.PI / 2;
+        if (i % 2 === 0) {
+          add(group, HIGH_GEO.wallTower, ERA_MAT.stone || NEUTRAL.stone, Math.cos(a) * 0.46, 0.065, Math.sin(a) * 0.46);
+          add(group, HIGH_GEO.towerCap, NEUTRAL.wood, Math.cos(a) * 0.46, 0.16, Math.sin(a) * 0.46);
+        }
+      }
+    } else {
+      const wall = add(group, GEO.wallRing, NEUTRAL.stone, 0, 0.06, 0);
+      wall.rotation.x = Math.PI / 2;
+    }
   }
   return group;
 }

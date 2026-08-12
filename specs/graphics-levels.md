@@ -307,7 +307,17 @@ geometry (curve through neighbor connections, dashed centerline texture);
 tree/forest props get trunk+layered-canopy models with per-tile species
 variety. Perf measured on the reference workload; triangle ceiling re-set.
 
-**H3 — High cities (~2 sessions, 3-variant gates).** House model kit:
+**H3 DONE 2026-08-13 (overnight; pick = decide-document-flag)** — the
+High house kit: houses FACE the city center, gable ridge roofs (4-seg cone
+scaled to a ridge) with chimneys on peaked eras, industrial keeps flat
+roofs + per-house smokestacks, modern slabs carry rooftop units; window
+insets (proud dark boxes) + doors, all deterministic off the house index;
+City Walls becomes a REAL rampart — 10 segments + 5 capped towers.
+PROVISIONAL style = A "lived-in" of 3 (`debugging/h3-variants.html`).
+Verified: low byte-identical, battery green (render-spec regenerated —
+the HIGH_GEO table is additive), era grid reads at high.
+
+**H3 — High cities (the original plan).** House model kit:
 wall box + pitched roof + chimney + window insets (dark material), era
 variants (thatch/timber → brick+smokestacks → glass slabs); city walls as
 a real rampart ring; the capital's palace as a landmark.
