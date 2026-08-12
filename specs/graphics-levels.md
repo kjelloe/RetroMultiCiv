@@ -210,6 +210,85 @@ docs/03 + README graphics section; `plan-version1.html`/workitems sync.
 Order: G1 → G2 → G3 → G4 → G5. G2 is the earliest shippable player-visible
 win; G4 is parallelizable behind the switch once G1 lands.
 
+## 4b. THE V2 LADDER — re-tiered after the gallery-tiers review (2026-08-13)
+
+_The user reviewed `gallery-tiers-comparison.png` and re-set the goals: the
+G3 high terrain is a MEDIUM, medium units/cities need real vertex budgets,
+every special must read as ITS animal, and the High watermark is
+**Transport World** (a friend's three.js Transport Tycoon —
+`debugging/example-from-transport-world.png`). Four rulings, same day:_
+
+1. **Shadows stay High-only.** Medium = dense terrain + textures + detailed
+   units, shadow-free, integrated-GPU friendly.
+2. **High terrain goes SMOOTH, TW-style.** Per-vertex normals, cross-tile
+   color blending, sand coast rings, shoreline foam, terrain-conforming
+   road ribbons. The faceted "tabletop" identity stays the Low/Medium look;
+   High is "the world made real".
+3. **High units/cities go model-grade.** Cities: multi-part houses (pitched
+   roofs, chimneys, window insets, era-styled), landmarks for walls/wonders.
+   Units: vehicle-grade — wheels with hubs, cabs, mantlets, rigging, limbs
+   and kit. The ownership base disc stays at EVERY tier (gameplay-critical).
+4. **Re-tier + animals ship first** as a patch; the High arc runs behind it
+   in 3-variant batches.
+
+**What the TW watermark actually consists of** (the analysis the rulings
+answered): smooth relief with blended transitions (grass→rock, sand ring at
+water), foam shoreline, model-grade houses (10–20 parts each), recognizable
+vehicles, trees as trunk+layered-canopy models with species variety, roads
+as curved conforming ribbons — and soft shadows tying it together.
+
+### The v2 tier table
+
+| | Low (unchanged, forever) | Medium (v2) | High (v2) |
+|---|---|---|---|
+| terrain | faceted SEGS 2 | faceted SEGS 8 + detail textures + scatter ×1.7 (= the G3 terrain) | SMOOTH: per-vertex normals, blended transitions, sand coasts, foam shoreline, road ribbons |
+| units | shipped recipes | the 21 faithful-upscale bodies + seg boost (= G4 high) | model-grade TW bodies, authored per silhouette |
+| cities | shipped tiers | ×1.3 density + seg boost | multi-part era-styled houses, landmark walls/wonders |
+| specials | identifiable animals (H1 — every tier shares the motifs) | same, denser segments | same, high-segment |
+| lighting | flat | flat (no shadows) | sun shadows, pixel ratio 3, WebGL2 gate |
+
+### Slices
+
+**H1 — re-tier + the animals (the patch; ~1 session).**
+- Medium terrain := LEVEL_SEGS 8 + textures + ×1.7 scatter; High terrain
+  temporarily equal (test note below). Medium units := HIGH_UNIT_RECIPES;
+  medium cities := ×1.3. High keeps shadows as its only delta until H2.
+- The Civ 1 special ANIMALS get the G0 horse treatment: **Game/deer**
+  (forest + tundra — body on legs, lifted neck+head, the antler V),
+  **Seal** (arctic — tapered body, raised head, fore-flippers, tail
+  flipper), **Fish** (ocean — real tail fin, dorsal fin, eye dot). The
+  quadruped shapes from G0 reuse; 3 variants each for user pick. Motifs are
+  tier-shared, so LOW re-baselines ONCE more (G0 precedent) → visual
+  goldens re-record rides this slice.
+- `test-ui/graphics-levels.spec.js`: high-vs-medium triangle assertion
+  becomes `>=` in H1 (they are equal until H2 gives High its own terrain),
+  with a comment pointing here; restore `>` in H2.
+
+**H2 — High terrain, the TW look (~2–3 sessions, 3-variant gates).**
+Smooth per-vertex normals (indexed geometry at high, computeVertexNormals);
+color BLENDING at tile transitions (vertex colors sampled from neighbor
+terrain at boundary vertices); sand ring where land meets water; animated
+foam shoreline strip hugging the coast; road/rail as conforming ribbon
+geometry (curve through neighbor connections, dashed centerline texture);
+tree/forest props get trunk+layered-canopy models with per-tile species
+variety. Perf measured on the reference workload; triangle ceiling re-set.
+
+**H3 — High cities (~2 sessions, 3-variant gates).** House model kit:
+wall box + pitched roof + chimney + window insets (dark material), era
+variants (thatch/timber → brick+smokestacks → glass slabs); city walls as
+a real rampart ring; the capital's palace as a landmark.
+
+**H4 — High units (~3–5 sessions, 3-variant batches).** Vehicle-grade
+bodies over the recipes-high skeletons: wheels with hubs and spokes, tank
+treads with road wheels, cabs with window insets, ship hulls with planking
+lines + rigging + cloth sails, aircraft with canopies and engine detail,
+infantry with articulated limbs and kit. Authored in review batches
+(ancient / gunpowder / industrial / naval / air).
+
+**H5 — guards + re-budget.** Per-tier triangle budgets re-measured; the
+runaway ceiling raised with the measurement recorded; gallery tier axis
+re-shot; goldens re-recorded; README/docs updated.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
