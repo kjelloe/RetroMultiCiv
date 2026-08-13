@@ -332,10 +332,17 @@ chanfron + visor slit + lance guard), tank (road wheels + skirts + mantlet
 + cupola + tow hooks), shipSail (plank lines/keel/castles/crow's nest/
 rudder), shipPowered (deck/capped funnels/bridge windows/twin-barrel
 turrets/lifeboats), aircraft (cowl/prop/spinner/canopy/gear). Verified:
-low byte-identical, battery 22/22, graphics spec 3/3. **Batch 2 (remaining
-13 silhouettes: wagon, chariotWheels, siege, catapult, diplomat,
-musketeers, riflemen, apc, bomber, nuclear, shipSub, carrier, fallback) =
-the next session's work.**
+low byte-identical, battery 22/22, graphics spec 3/3.
+
+**H4 BATCH 2 DONE 2026-08-13 (same window) — H4 COMPLETE: all 21
+silhouettes model-grade.** Sprung ox wagon (canopy hoops, driver, yoked
+pair), spoked chariot wheels + basket, ringed cannon with elevation screw
++ ammo box, full torsion catapult (skein/winch/stone pile), envoy with
+wax-sealed scroll, musketeer + rifleman with LEVELED weapons and both
+arms, APC with wheel wells + headlights, glazed-nose four-engine bomber,
+gantry-launched missile, submarine with deck line + prop guard, carrier
+with angled deck stripe + radar bar, and a neutral obelisk fallback.
+Same verification set green; low byte-identical throughout.
 
 **H4 — High units (the original plan).** Vehicle-grade
 bodies over the recipes-high skeletons: wheels with hubs and spokes, tank

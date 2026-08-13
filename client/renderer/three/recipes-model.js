@@ -198,4 +198,221 @@ export const MODEL_UNIT_RECIPES = {
     { shape: 'cyl', size: [0.018, 0.018, 0.012], seg: 10, pos: [0.1, 0.24, -0.07], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' }, // wheels
     { shape: 'cyl', size: [0.018, 0.018, 0.012], seg: 10, pos: [0.1, 0.24, 0.07], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' }
   ]
+,  // ---- BATCH 2 (2026-08-13, same window) ----------------------------------
+  // settlers/caravan: sprung wagon — canopy hoops, seat + driver, yoked oxen pair
+  wagon: [
+    { shape: 'box', size: [0.44, 0.15, 0.27], pos: [-0.08, 0.22, 0], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.08, 0.15, 0], scale: [0.46, 0.02, 0.29], color: 'wheel' },   // bed rail
+    { shape: 'cyl', size: [0.135, 0.135, 0.38], seg: 18, pos: [-0.08, 0.35, 0], rot: [0, 0, 1.5707963267948966], color: 'canvas' },
+    { shape: 'cyl', size: [0.139, 0.139, 0.012], seg: 18, pos: [-0.22, 0.35, 0], rot: [0, 0, 1.5707963267948966], color: 'wheel' }, // hoop rims
+    { shape: 'cyl', size: [0.139, 0.139, 0.012], seg: 18, pos: [0.02, 0.35, 0], rot: [0, 0, 1.5707963267948966], color: 'wheel' },
+    { shape: 'box', size: [0.09, 0.035, 0.24], pos: [0.13, 0.3, 0], color: 'wood' },                       // seat
+    { shape: 'cone', size: [0.055, 0.13], seg: 10, pos: [0.13, 0.38, -0.04], color: 'cloth' },             // driver
+    { shape: 'sphere', size: [0.035], seg: [10, 8], pos: [0.13, 0.47, -0.04], color: 'skin' },
+    { shape: 'cyl', size: [0.095, 0.095, 0.032], seg: 16, pos: [-0.22, 0.1, -0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.095, 0.095, 0.032], seg: 16, pos: [-0.22, 0.1, 0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.075, 0.075, 0.032], seg: 16, pos: [0.1, 0.08, -0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.075, 0.075, 0.032], seg: 16, pos: [0.1, 0.08, 0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'sphere', size: [0.018], seg: [8, 6], pos: [-0.22, 0.1, -0.18], color: 'darkMetal' },          // hubs
+    { shape: 'sphere', size: [0.018], seg: [8, 6], pos: [-0.22, 0.1, 0.18], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.011, 0.011, 0.2], seg: 6, pos: [0.24, 0.15, 0], rot: [0, 0, 1.4], color: 'wood' }, // yoke pole
+    { shape: 'box', size: [1, 1, 1], pos: [0.33, 0.16, 0], scale: [0.02, 0.02, 0.18], color: 'wood' },      // yoke bar
+    { shape: 'box', size: [1, 1, 1], pos: [0.37, 0.13, -0.07], scale: [0.14, 0.1, 0.08], color: 'horse' },  // oxen pair
+    { shape: 'box', size: [1, 1, 1], pos: [0.37, 0.13, 0.07], scale: [0.14, 0.1, 0.08], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.45, 0.18, -0.07], scale: [0.06, 0.06, 0.06], color: 'horse' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.45, 0.18, 0.07], scale: [0.06, 0.06, 0.06], color: 'horse' },
+    { shape: 'cyl', size: [0.011, 0.013, 0.08], seg: 6, pos: [0.33, 0.045, -0.09], color: 'horse' },
+    { shape: 'cyl', size: [0.011, 0.013, 0.08], seg: 6, pos: [0.33, 0.045, 0.05], color: 'horse' },
+    { shape: 'cyl', size: [0.011, 0.013, 0.08], seg: 6, pos: [0.42, 0.045, -0.05], color: 'horse' },
+    { shape: 'cyl', size: [0.011, 0.013, 0.08], seg: 6, pos: [0.42, 0.045, 0.09], color: 'horse' }
+  ],
+  // chariot extra: spoked wheels (rim + hub + 4 spoke boxes) + basket rail
+  chariotWheels: [
+    { shape: 'cyl', size: [0.1, 0.1, 0.03], seg: 18, pos: [-0.14, 0.11, -0.13], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.1, 0.1, 0.03], seg: 18, pos: [-0.14, 0.11, 0.13], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'sphere', size: [0.024], seg: [8, 6], pos: [-0.14, 0.11, -0.15], color: 'darkMetal' },
+    { shape: 'sphere', size: [0.024], seg: [8, 6], pos: [-0.14, 0.11, 0.15], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.14, 0.11, -0.145], scale: [0.16, 0.012, 0.012], color: 'wood' }, // spokes
+    { shape: 'box', size: [1, 1, 1], pos: [-0.14, 0.11, -0.145], scale: [0.012, 0.16, 0.012], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.14, 0.11, 0.145], scale: [0.16, 0.012, 0.012], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.14, 0.11, 0.145], scale: [0.012, 0.16, 0.012], color: 'wood' },
+    { shape: 'box', size: [0.13, 0.09, 0.2], pos: [-0.15, 0.19, 0], color: 'wood' },                        // basket
+    { shape: 'box', size: [1, 1, 1], pos: [-0.15, 0.245, 0], scale: [0.14, 0.014, 0.22], color: 'wheel' }   // rail
+  ],
+  // cannon/artillery: rings, elevation screw, spoked wheels, trail + ammo box
+  siege: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.18, 0], scale: [0.34, 0.07, 0.2], color: 'wood' },
+    { shape: 'cyl', size: [0.115, 0.115, 0.036], seg: 18, pos: [0.02, 0.125, -0.14], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.115, 0.115, 0.036], seg: 18, pos: [0.02, 0.125, 0.14], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'sphere', size: [0.026], seg: [8, 6], pos: [0.02, 0.125, -0.165], color: 'darkMetal' },
+    { shape: 'sphere', size: [0.026], seg: [8, 6], pos: [0.02, 0.125, 0.165], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.125, -0.16], scale: [0.19, 0.012, 0.012], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.125, -0.16], scale: [0.012, 0.19, 0.012], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.125, 0.16], scale: [0.19, 0.012, 0.012], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.125, 0.16], scale: [0.012, 0.19, 0.012], color: 'wood' },
+    { shape: 'cyl', size: [0.033, 0.043, 0.48], seg: 14, pos: [0.1, 0.3, 0], rot: [0, 0, -1.05], color: 'metal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.02], seg: 14, pos: [0.05, 0.235, 0], rot: [0, 0, -1.05], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.04, 0.04, 0.018], seg: 14, pos: [0.17, 0.39, 0], rot: [0, 0, -1.05], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.036, 0.036, 0.016], seg: 14, pos: [0.24, 0.48, 0], rot: [0, 0, -1.05], color: 'darkMetal' }, // muzzle ring
+    { shape: 'cyl', size: [0.012, 0.012, 0.07], seg: 8, pos: [-0.03, 0.2, 0], color: 'metal' },              // elevation screw
+    { shape: 'box', size: [1, 1, 1], pos: [-0.18, 0.13, 0], scale: [0.16, 0.05, 0.05], rot: [0, 0, 0.28], color: 'wood' },
+    { shape: 'box', size: [0.07, 0.05, 0.09], pos: [-0.13, 0.22, 0], color: 'wood' }                          // ammo box
+  ],
+  // catapult: full torsion frame, wound skein, arm + sling cup, winch, stone pile
+  catapult: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.16, 0], scale: [0.4, 0.1, 0.24], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.05, 0.28, -0.1], scale: [0.3, 0.16, 0.035], rot: [0, 0, 0.15], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.05, 0.28, 0.1], scale: [0.3, 0.16, 0.035], rot: [0, 0, 0.15], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.05, 0.36, 0], scale: [0.035, 0.035, 0.23], color: 'wood' },      // crossbar
+    { shape: 'cyl', size: [0.024, 0.024, 0.24], seg: 10, pos: [0.09, 0.22, 0], rot: [1.5707963267948966, 0, 0], color: 'canvas' }, // skein
+    { shape: 'cyl', size: [0.09, 0.09, 0.038], seg: 16, pos: [-0.12, 0.1, -0.135], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.038], seg: 16, pos: [-0.12, 0.1, 0.135], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.038], seg: 16, pos: [0.13, 0.1, -0.135], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'cyl', size: [0.09, 0.09, 0.038], seg: 16, pos: [0.13, 0.1, 0.135], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.05, 0.37, 0], scale: [0.055, 0.42, 0.045], rot: [0, 0, 0.6], color: 'wood' }, // arm
+    { shape: 'cyl', size: [0.05, 0.058, 0.05], seg: 12, pos: [-0.17, 0.54, 0], rot: [0, 0, -0.5], color: 'wood' },
+    { shape: 'sphere', size: [0.042], seg: [10, 8], pos: [-0.17, 0.565, 0], color: 'stone' },
+    { shape: 'cyl', size: [0.02, 0.02, 0.2], seg: 8, pos: [0.17, 0.2, 0], rot: [1.5707963267948966, 0, 0], color: 'wood' }, // winch
+    { shape: 'box', size: [1, 1, 1], pos: [0.17, 0.2, -0.12], scale: [0.06, 0.012, 0.012], color: 'wood' },   // winch handle
+    { shape: 'sphere', size: [0.03], seg: [8, 6], pos: [-0.05, 0.06, 0.09], color: 'stone' },                 // stone pile
+    { shape: 'sphere', size: [0.026], seg: [8, 6], pos: [0.0, 0.055, 0.11], color: 'stone' },
+    { shape: 'sphere', size: [0.024], seg: [8, 6], pos: [-0.02, 0.09, 0.11], color: 'stone' }
+  ],
+  // diplomat: robed envoy — hat, cloak, satchel with strap, raised sealed scroll
+  diplomat: [
+    H.legL, H.legR, H.bootL, H.bootR,
+    { shape: 'cone', size: [0.15, 0.36], seg: 14, pos: [0, 0.31, 0], color: 'canvas' },
+    { shape: 'cone', size: [0.16, 0.12], seg: 14, pos: [0, 0.18, 0], color: 'cloth' },                        // cloak hem
+    { shape: 'sphere', size: [0.085], seg: [14, 12], pos: [0, 0.55, 0], color: 'skin' },
+    { shape: 'cyl', size: [0.1, 0.1, 0.014], seg: 16, pos: [0, 0.605, 0], color: 'wood' },
+    { shape: 'sphere', size: [0.05], seg: [12, 8], pos: [0, 0.625, 0], scale: [1, 0.62, 1], color: 'wood' },
+    { shape: 'cyl', size: [0.019, 0.024, 0.16], seg: 8, pos: [0.09, 0.42, 0.04], rot: [0, 0, -1.2], color: 'canvas' },
+    { shape: 'cyl', size: [0.02, 0.02, 0.1], seg: 10, pos: [0.17, 0.5, 0.04], rot: [0.3, 0, -0.3], color: 'canvas' },
+    { shape: 'cyl', size: [0.026, 0.026, 0.012], seg: 8, pos: [0.19, 0.53, 0.05], rot: [0.3, 0, -0.3], color: 'primary' }, // wax seal
+    { shape: 'box', size: [1, 1, 1], pos: [-0.1, 0.29, 0.05], scale: [0.09, 0.11, 0.045], color: 'wood' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.1, 0.35, 0.05], scale: [0.09, 0.02, 0.05], color: 'wheel' },    // satchel flap
+    { shape: 'box', size: [1, 1, 1], pos: [-0.04, 0.44, 0.06], scale: [0.014, 0.2, 0.014], rot: [0, 0, 0.5], color: 'wheel' }
+  ],
+  // musketeers: musket LEVELED to fire, hat with plume, powder horn + bandolier
+  musketeers: [
+    H.legL, H.legR, H.bootL, H.bootR,
+    { shape: 'cone', size: [0.145, 0.3], seg: 12, pos: [0, 0.3, 0], color: 'cloth' },
+    H.belt,
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.38, 0], scale: [0.02, 0.16, 0.11], rot: [0, 0, 0.5], color: 'wheel' },  // bandolier
+    { shape: 'sphere', size: [0.085], seg: [14, 12], pos: [0, 0.55, 0], color: 'skin' },
+    { shape: 'cyl', size: [0.105, 0.105, 0.018], seg: 16, pos: [0, 0.61, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.052, 0.058, 0.065], seg: 12, pos: [0, 0.65, 0], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.055, 0.66, 0], scale: [0.07, 0.035, 0.012], rot: [0, 0, 0.5], color: 'canvas' }, // plume
+    { shape: 'cyl', size: [0.017, 0.017, 0.52], seg: 10, pos: [0.2, 0.47, 0.03], rot: [0, 0, -1.45], color: 'darkMetal' }, // barrel LEVELED
+    { shape: 'box', size: [1, 1, 1], pos: [0.04, 0.43, 0.03], scale: [0.14, 0.05, 0.045], rot: [0, 0, -0.15], color: 'wood' },
+    { shape: 'cyl', size: [0.019, 0.024, 0.15], seg: 8, pos: [0.11, 0.45, 0.06], rot: [0.4, 0, -1.3], color: 'cloth' },     // firing arm
+    { shape: 'cyl', size: [0.019, 0.024, 0.14], seg: 8, pos: [0.16, 0.42, -0.02], rot: [-0.3, 0, -1.5], color: 'cloth' },   // support arm
+    { shape: 'cone', size: [0.028, 0.085], seg: 10, pos: [-0.07, 0.3, -0.1], rot: [2.6, 0, 0.4], color: 'wood' }
+  ],
+  // riflemen: rifle at the shoulder, brimmed helmet, pack + bedroll, bayonet
+  riflemen: [
+    H.legL, H.legR, H.bootL, H.bootR,
+    { shape: 'cone', size: [0.145, 0.3], seg: 12, pos: [0, 0.3, 0], color: 'cloth' },
+    H.belt,
+    { shape: 'sphere', size: [0.085], seg: [14, 12], pos: [0, 0.55, 0], color: 'skin' },
+    { shape: 'sphere', size: [0.104], seg: [14, 10], pos: [0, 0.585, 0], scale: [1, 0.6, 1], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.012, 0.012, 0.6], seg: 10, pos: [0.17, 0.5, 0.03], rot: [0, 0, -1.35], color: 'darkMetal' },
+    { shape: 'cone', size: [0.02, 0.09], seg: 8, pos: [0.44, 0.56, 0.03], rot: [0, 0, -1.35], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.05, 0.44, 0.03], scale: [0.12, 0.042, 0.04], rot: [0, 0, -0.25], color: 'wood' },
+    { shape: 'cyl', size: [0.019, 0.024, 0.15], seg: 8, pos: [0.1, 0.46, 0.06], rot: [0.4, 0, -1.25], color: 'cloth' },
+    { shape: 'cyl', size: [0.019, 0.024, 0.14], seg: 8, pos: [0.15, 0.43, -0.01], rot: [-0.3, 0, -1.5], color: 'cloth' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.1, 0.42, 0], scale: [0.06, 0.12, 0.1], color: 'wood' },
+    { shape: 'cyl', size: [0.022, 0.022, 0.09], seg: 8, pos: [-0.1, 0.5, 0], rot: [1.5707963267948966, 0, 0], color: 'cloth' } // bedroll
+  ],
+  // mech-inf: APC with wheel wells, hatches open, antenna, squad, headlights
+  apc: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.21, 0], scale: [0.44, 0.2, 0.28], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.2, 0.19, 0], scale: [0.12, 0.15, 0.24], rot: [0, 0, 0.4], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.22, 0.2, 0], scale: [0.05, 0.14, 0.24], rot: [0, 0, -0.3], color: 'hull' }, // rear ramp
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [-0.14, 0.08, -0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [0.0, 0.08, -0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [0.14, 0.08, -0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [-0.14, 0.08, 0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [0.0, 0.08, 0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.05, 0.05, 0.03], seg: 12, pos: [0.14, 0.08, 0.16], rot: [1.5707963267948966, 0, 0], color: 'darkMetal' },
+    { shape: 'sphere', size: [0.02], seg: [8, 6], pos: [-0.14, 0.08, -0.18], color: 'metal' },
+    { shape: 'sphere', size: [0.02], seg: [8, 6], pos: [0.14, 0.08, 0.18], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.34, 0], scale: [0.13, 0.09, 0.13], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.011, 0.011, 0.15], seg: 6, pos: [0.09, 0.4, 0], rot: [0, 0, 1.2], color: 'metal' },
+    { shape: 'sphere', size: [0.034], seg: [10, 8], pos: [-0.12, 0.33, -0.06], scale: [1, 0.7, 1], color: 'darkMetal' },
+    { shape: 'sphere', size: [0.034], seg: [10, 8], pos: [-0.12, 0.33, 0.06], scale: [1, 0.7, 1], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.004, 0.004, 0.2], seg: 4, pos: [-0.18, 0.42, 0.1], color: 'metal' },
+    { shape: 'sphere', size: [0.014], seg: [8, 6], pos: [0.27, 0.24, -0.09], color: 'canvas' },               // headlights
+    { shape: 'sphere', size: [0.014], seg: [8, 6], pos: [0.27, 0.24, 0.09], color: 'canvas' }
+  ],
+  // bomber: glazed nose, four engines with props, waist line, twin tail
+  bomber: [
+    { shape: 'cyl', size: [0.058, 0.064, 0.5], seg: 14, pos: [0, 0.33, 0], rot: [0, 0, 1.5707963267948966], color: 'metal' },
+    { shape: 'sphere', size: [0.058], seg: [12, 10], pos: [0.27, 0.33, 0], scale: [1.1, 1, 1], color: 'darkMetal' }, // glazed nose
+    { shape: 'cone', size: [0.05, 0.12], seg: 14, pos: [-0.3, 0.33, 0], rot: [0, 0, 1.5707963267948966], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.335, -0.2], scale: [0.17, 0.018, 0.34], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.335, 0.2], scale: [0.17, 0.018, 0.34], color: 'metal' },
+    { shape: 'cyl', size: [0.026, 0.03, 0.09], seg: 10, pos: [0.07, 0.315, -0.14], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.026, 0.03, 0.09], seg: 10, pos: [0.07, 0.315, -0.28], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.026, 0.03, 0.09], seg: 10, pos: [0.07, 0.315, 0.14], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.026, 0.03, 0.09], seg: 10, pos: [0.07, 0.315, 0.28], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.048, 0.048, 0.007], seg: 12, pos: [0.12, 0.315, -0.14], rot: [0, 0, 1.5707963267948966], color: 'cloth' },
+    { shape: 'cyl', size: [0.048, 0.048, 0.007], seg: 12, pos: [0.12, 0.315, -0.28], rot: [0, 0, 1.5707963267948966], color: 'cloth' },
+    { shape: 'cyl', size: [0.048, 0.048, 0.007], seg: 12, pos: [0.12, 0.315, 0.14], rot: [0, 0, 1.5707963267948966], color: 'cloth' },
+    { shape: 'cyl', size: [0.048, 0.048, 0.007], seg: 12, pos: [0.12, 0.315, 0.28], rot: [0, 0, 1.5707963267948966], color: 'cloth' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.27, 0.4, -0.09], scale: [0.06, 0.1, 0.014], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.27, 0.4, 0.09], scale: [0.06, 0.1, 0.014], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.27, 0.35, 0], scale: [0.05, 0.014, 0.24], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.02, 0.36, 0], scale: [0.4, 0.008, 0.01], color: 'darkMetal' }    // spine line
+  ],
+  // nuclear: gantry-launched missile — ring fins, exhaust bell, umbilical mast
+  nuclear: [
+    { shape: 'cyl', size: [0.048, 0.048, 0.42], seg: 16, pos: [0, 0.37, 0], rot: [0, 0, -1.2], color: 'metal' },
+    { shape: 'cone', size: [0.048, 0.13], seg: 16, pos: [0.245, 0.465, 0], rot: [0, 0, -1.2], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.03, 0.03, 0.02], seg: 12, pos: [0.09, 0.41, 0], rot: [0, 0, -1.2], color: 'primary' }, // faction band
+    { shape: 'cyl', size: [0.058, 0.044, 0.05], seg: 12, pos: [-0.19, 0.29, 0], rot: [0, 0, -1.2], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.16, 0.3, 0], scale: [0.11, 0.09, 0.012], rot: [0, 0, -1.2], color: 'cloth' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.16, 0.3, 0], scale: [0.11, 0.012, 0.15], rot: [0, 0, -1.2], color: 'cloth' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.16, 0.3, 0], scale: [0.11, 0.065, 0.065], rot: [0.7853981633974483, 0, -1.2], color: 'cloth' },
+    { shape: 'cyl', size: [0.012, 0.014, 0.3], seg: 6, pos: [-0.06, 0.18, -0.09], color: 'darkMetal' },        // gantry mast
+    { shape: 'box', size: [1, 1, 1], pos: [-0.02, 0.3, -0.05], scale: [0.012, 0.012, 0.09], color: 'metal' }   // umbilical
+  ],
+  // submarine: pressure hull, sail + planes, periscopes, prop guard, deck line
+  shipSub: [
+    { shape: 'cyl', size: [0.068, 0.068, 0.42], seg: 16, pos: [-0.02, 0.12, 0], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cone', size: [0.068, 0.12], seg: 16, pos: [0.25, 0.12, 0], rot: [0, 0, -1.5707963267948966], color: 'darkMetal' },
+    { shape: 'cone', size: [0.068, 0.1], seg: 16, pos: [-0.28, 0.12, 0], rot: [0, 0, 1.5707963267948966], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.02, 0.19, 0], scale: [0.36, 0.012, 0.05], color: 'metal' },      // deck line
+    { shape: 'box', size: [1, 1, 1], pos: [-0.04, 0.26, 0], scale: [0.11, 0.13, 0.045], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.0, 0.28, 0], scale: [0.02, 0.05, 0.03], color: 'metal' },         // sail window
+    { shape: 'cyl', size: [0.005, 0.005, 0.1], seg: 4, pos: [-0.06, 0.37, 0], color: 'metal' },
+    { shape: 'cyl', size: [0.004, 0.004, 0.08], seg: 4, pos: [-0.03, 0.36, 0], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0.16, 0.12, 0], scale: [0.02, 0.01, 0.22], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.24, 0.16, 0], scale: [0.02, 0.09, 0.014], color: 'darkMetal' },
+    { shape: 'cyl', size: [0.03, 0.03, 0.012], seg: 10, pos: [-0.31, 0.12, 0], rot: [0, 0, 1.5707963267948966], color: 'metal' } // prop guard
+  ],
+  // carrier: angled deck stripe, island + radar mast, parked wings, crane
+  carrier: [
+    { shape: 'box', size: [1, 1, 1], pos: [-0.04, 0.14, 0], scale: [0.54, 0.12, 0.18], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.04, 0.095, 0], scale: [0.56, 0.02, 0.19], color: 'darkMetal' },
+    { shape: 'cone', size: [1, 1], seg: 6, pos: [0.28, 0.14, 0], scale: [0.1, 0.12, 0.1], rot: [0, 0, -1.5707963267948966], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.235, 0], scale: [0.64, 0.028, 0.27], color: 'darkMetal' },
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.252, 0], scale: [0.58, 0.004, 0.026], color: 'canvas' },       // centre stripe
+    { shape: 'box', size: [1, 1, 1], pos: [-0.02, 0.252, -0.06], scale: [0.4, 0.004, 0.02], rot: [0, 0.22, 0], color: 'canvas' }, // angled stripe
+    { shape: 'box', size: [1, 1, 1], pos: [-0.06, 0.32, 0.1], scale: [0.11, 0.13, 0.055], color: 'hull' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.02, 0.35, 0.1], scale: [0.012, 0.03, 0.045], color: 'canvas' }, // island windows
+    { shape: 'cyl', size: [0.007, 0.007, 0.1], seg: 6, pos: [-0.06, 0.42, 0.1], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.06, 0.47, 0.1], scale: [0.05, 0.008, 0.012], color: 'metal' },   // radar bar
+    { shape: 'box', size: [1, 1, 1], pos: [0.14, 0.265, -0.05], scale: [0.08, 0.018, 0.026], color: 'metal' }, // parked a/c 1
+    { shape: 'box', size: [1, 1, 1], pos: [0.14, 0.265, -0.05], scale: [0.026, 0.014, 0.09], color: 'metal' },
+    { shape: 'box', size: [1, 1, 1], pos: [-0.22, 0.265, 0.04], scale: [0.08, 0.018, 0.026], color: 'metal' }, // parked a/c 2
+    { shape: 'box', size: [1, 1, 1], pos: [-0.22, 0.265, 0.04], scale: [0.026, 0.014, 0.09], color: 'metal' },
+    { shape: 'cyl', size: [0.008, 0.008, 0.09], seg: 6, pos: [0.24, 0.28, 0.07], rot: [0, 0, -0.5], color: 'darkMetal' } // crane
+  ],
+  // fallback: a neat neutral obelisk instead of the plain drum
+  fallback: [
+    { shape: 'box', size: [1, 1, 1], pos: [0, 0.06, 0], scale: [0.22, 0.05, 0.22], color: 'stone' },
+    { shape: 'cyl', size: [0.14, 0.18, 0.4], seg: 12, pos: [0, 0.3, 0], color: 'cloth' },
+    { shape: 'sphere', size: [0.08], seg: [12, 10], pos: [0, 0.55, 0], color: 'cloth' }
+  ]
 };
