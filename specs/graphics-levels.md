@@ -19,6 +19,10 @@ the same evening (user):_
 
 ## 1. What each tier is
 
+_**SUPERSEDED 2026-08-13** — the table below is the ORIGINAL (G-era) ladder,
+kept for the record; the SHIPPED ladder is §4b's v2 table (High = smooth
+TW terrain + model-grade units; Medium = this table's High minus shadows)._
+
 | | **Low** (= v1.0.1 today) | **Medium** | **High** |
 |---|---|---|---|
 | target hardware | old phones, WARP / software GL, ANGLE D3D9 | integrated GPU (Iris Xe class) | discrete GPU |

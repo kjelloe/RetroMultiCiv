@@ -34,12 +34,13 @@ function mottleTexture() {
 }
 
 // grid cells per tile edge — tile centers land on vertices. Per graphics
-// level (specs/graphics-levels.md G2): low = the shipped 8-tris/tile look,
-// BYTE-IDENTICAL to the pre-level renderer (gallery.html?vertexcheck=1 and
-// every rest-pose screenshot contract pin it); medium = 32 tris/tile with
-// real dune geometry and per-terrain detail textures. high currently renders
-// the medium terrain textures at its own 128-tris/tile density (G3).
-const LEVEL_SEGS = { low: 2, medium: 8, high: 8 }; // H1 re-tier: the G3 terrain IS the medium bar; H2 gives high its own smooth pass
+// level (specs/graphics-levels.md §4b, the v2 ladder): low = the shipped
+// 8-tris/tile faceted look, BYTE-IDENTICAL to the pre-level renderer
+// (gallery.html?vertexcheck=1 + the rest-pose screenshot contracts pin it);
+// medium = 128 tris/tile faceted with per-terrain detail textures; high =
+// the same density rendered SMOOTH (buildSmoothTerrain below — indexed,
+// vertex-color blended, sand shorelines).
+const LEVEL_SEGS = { low: 2, medium: 8, high: 8 };
 const LEVEL_DUNE_AMP = { low: 0.035, medium: 0.055, high: 0.055 }; // (already equal — dunes were never the tier delta)
 
 // base: ground level; jitter: vertex wobble amplitude; peak: extra center

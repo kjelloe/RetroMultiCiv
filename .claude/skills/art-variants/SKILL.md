@@ -46,3 +46,6 @@ the mechanized form.
   they render invisible.
 - After renderer-table changes: `node tools/render-spec.js` + the
   asset/mock-state/render-spec test battery.
+- Triangle/call budgets: `debugging/measure-tris.mjs` — PLAIN boots only.
+  A `?e2e=1` boot parks the scene in artificial probe states (0-unit
+  swaps) and its numbers lie (measured 2026-08-13).

@@ -127,8 +127,9 @@ client-side beeline (research goal in client state, issues normal
 setResearch — golden-neutral; the DAG-walk is pure in shared/beeline.js);
 tech-glyphs = procedural per-tech icons (era frame + motif, factions.js
 idiom). The
-renderer splits renderer/three/{index,assets,props,terrain,factions,
-overlays,recipes,unit-chrome,anim
+renderer splits renderer/three/{index,assets,props,terrain,
+terrain-detail,factions,overlays,recipes,recipes-high,recipes-model,
+unit-chrome,anim
 — anim.js is render-time-only motion: clock+position phases, never
 engine RNG/state}. UI reads session.state
 and calls session.apply()/endTurn(); session.onChange drives refresh.
@@ -213,8 +214,9 @@ them). WebGL1 pass: append `--disable-webgl2` (`--disable-es3-gl-context` was re
 `?zoom=6` close-up, `?e2e=1&e2eclose=1` scripted city + panels closed.
 `debugging/gallery.html` shows every unit silhouette, city tier, tile
 prop, AND the 14-civ faction acceptance grid through the real renderer
-(`?cx/cy/zoom` reposition it; boots at REST POSE so asset shots stay
-byte-comparable — `?anim=1` opts into motion) — screenshot it after any
+(`?cx/cy/zoom` reposition it, `?gfx=low|medium|high` renders any
+graphics tier — LOW is the byte-comparable baseline; boots at REST POSE
+so asset shots stay byte-comparable — `?anim=1` opts into motion) — screenshot it after any
 change under
 renderer/three/ (terrain.js = the continuous faceted surface; explicit
 per-face normals, NOT flatShading, which needs a WebGL1 extension).

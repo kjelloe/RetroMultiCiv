@@ -172,9 +172,16 @@
         Array.from(t2.mesh.geometry.attributes.position.array));
       const col = eq(Array.from(t1.mesh.geometry.attributes.color.array),
         Array.from(t2.mesh.geometry.attributes.color.array));
+      // H2: the SMOOTH high path holds the same determinism contract — one
+      // indexed mesh, so compare its buffers directly (spec §4b)
+      const s1 = buildTerrain(view.map, undefined, 'high'), s2 = buildTerrain(view.map, undefined, 'high');
+      const spos = eq(Array.from(s1.mesh.geometry.attributes.position.array),
+        Array.from(s2.mesh.geometry.attributes.position.array));
+      const scol = eq(Array.from(s1.mesh.geometry.attributes.color.array),
+        Array.from(s2.mesh.geometry.attributes.color.array));
       document.getElementById('label').textContent =
-        `vertexcheck positions:${pos} colors:${col}`;
-      t1.dispose(); t2.dispose();
+        `vertexcheck positions:${pos} colors:${col} smoothPos:${spos} smoothCol:${scol}`;
+      t1.dispose(); t2.dispose(); s1.dispose(); s2.dispose();
     }
     // A28: the gallery compares assets at REST POSE by default (byte-stable
     // screenshots — no sway/smoke). Animation demos opt in:

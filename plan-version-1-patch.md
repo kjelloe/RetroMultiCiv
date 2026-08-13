@@ -171,7 +171,7 @@ paths, concurrency-superseding. First run fires on this very push.
 | Roblox world-space label collision | `roblox/PLAYTHROUGH-UI.md` F2 | legibility, first thing a new player sees |
 | Container-boot smoke unproven | `docs/how-to-host.md` §Publishing | registry verified public; boot never tested |
 | Counter-espionage, toroidal wrap | `plan-version2.md` | v2 shelf by ruling |
-| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | ARC COMPLETE 2026-08-12 (marker-0113): all six slices landed, all picks user-confirmed |
+| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | v2 LADDER COMPLETE 2026-08-13 (marker-0115): TW-watermark High, model-grade 21/21, all picks user-confirmed |
 
 ## Fixed since release, for the record
 
