@@ -126,6 +126,81 @@ const SPECIAL_MOTIF = {
   jungle:    [{ k: 'resCrystal', color: 0x5ad0c9, dy: 0.14, sx: 1.4, sy: 1.4, sz: 1.4 }],         // Gem (XVII #14: raised above the lowered canopy, enlarged)
   swamp:     [{ k: 'resDerrick', color: 0x2a2622, dy: 0.17 }]                                    // Oil
 };
+// H6 (spec §4b): HIGH-tier animal motifs — high-segment anatomy with jointed
+// legs, full antler racks, fins. Selected over SPECIAL_MOTIF at level 'high';
+// terrains absent here (wheat/oasis/crystals/oil) keep the shared motif.
+// Poses preserve the user-picked H1 attitudes (standing deer, basking seal,
+// side-profile fish, standing horse) — this tier is MORE VERTICES, not a
+// different animal.
+const leg4 = (color, hoofColor, xF, xB, zz, yU, yL) => {
+  const out = [];
+  for (const [lx, lz] of [[xF, -zz], [xF, zz], [xB, -zz], [xB, zz]]) {
+    out.push({ k: 'hiLegU', color, dx: lx, dz: lz, dy: yU });
+    out.push({ k: 'hiLegL', color, dx: lx, dz: lz, dy: yL });
+    out.push({ k: 'hiHoof', color: hoofColor, dx: lx, dz: lz, dy: 0.012 });
+  }
+  return out;
+};
+const antlers = (color, dx, dy) => [
+  { k: 'hiBeam', color, dx, dz: -0.028, dy, rotZ: 0.55, rotX: -0.25 },
+  { k: 'hiBeam', color, dx, dz: 0.028, dy, rotZ: 0.55, rotX: 0.25 },
+  { k: 'hiTine', color, dx: dx - 0.015, dz: -0.045, dy: dy + 0.055, rotZ: 0.2, rotX: -0.4 },
+  { k: 'hiTine', color, dx: dx - 0.015, dz: 0.045, dy: dy + 0.055, rotZ: 0.2, rotX: 0.4 },
+  { k: 'hiTine', color, dx: dx + 0.02, dz: -0.05, dy: dy + 0.04, rotZ: 0.9, rotX: -0.3 },
+  { k: 'hiTine', color, dx: dx + 0.02, dz: 0.05, dy: dy + 0.04, rotZ: 0.9, rotX: 0.3 }
+];
+const SPECIAL_MOTIF_HIGH = {
+  forest: [ // deer, standing-alert — the H1 pose with real anatomy
+    { k: 'hiBody', color: 0x7a5a35, sx: 1.45, sy: 0.72, sz: 0.55, dy: 0.235 },
+    { k: 'hiBody', color: 0x7a5a35, sx: 0.7, sy: 0.55, sz: 0.5, dx: -0.1, dy: 0.26 },      // chest
+    { k: 'hiLegU', color: 0x7a5a35, dx: -0.11, dy: 0.3, rotZ: 0.5, sx: 1.3, sy: 1.4, sz: 1.3 }, // neck
+    { k: 'hiHead', color: 0x7a5a35, dx: -0.15, dy: 0.415 },
+    { k: 'hiMuzzle', color: 0x6b4d2c, dx: -0.2, dy: 0.4, sx: 1.2, sy: 0.85, sz: 0.85 },
+    { k: 'hiEar', color: 0x6b4d2c, dx: -0.13, dz: -0.035, dy: 0.47, rotX: -0.5 },
+    { k: 'hiEar', color: 0x6b4d2c, dx: -0.13, dz: 0.035, dy: 0.47, rotX: 0.5 }
+  ].concat(antlers(0x533c22, -0.14, 0.5)).concat(leg4(0x6b4d2c, 0x3a2c18, -0.085, 0.085, 0.038, 0.14, 0.06)).concat([
+    { k: 'resTail', color: 0xe8e0cc, dx: 0.13, dy: 0.25, rotZ: 2.4, sx: 0.5, sy: 0.4 }
+  ]),
+  tundra: [ // the same deer in tundra colors
+    { k: 'hiBody', color: 0x8a6a45, sx: 1.45, sy: 0.72, sz: 0.55, dy: 0.235 },
+    { k: 'hiBody', color: 0x8a6a45, sx: 0.7, sy: 0.55, sz: 0.5, dx: -0.1, dy: 0.26 },
+    { k: 'hiLegU', color: 0x8a6a45, dx: -0.11, dy: 0.3, rotZ: 0.5, sx: 1.3, sy: 1.4, sz: 1.3 },
+    { k: 'hiHead', color: 0x8a6a45, dx: -0.15, dy: 0.415 },
+    { k: 'hiMuzzle', color: 0x745738, dx: -0.2, dy: 0.4, sx: 1.2, sy: 0.85, sz: 0.85 },
+    { k: 'hiEar', color: 0x745738, dx: -0.13, dz: -0.035, dy: 0.47, rotX: -0.5 },
+    { k: 'hiEar', color: 0x745738, dx: 0.13 - 0.26, dz: 0.035, dy: 0.47, rotX: 0.5 }
+  ].concat(antlers(0x5f4728, -0.14, 0.5)).concat(leg4(0x745738, 0x40301c, -0.085, 0.085, 0.038, 0.14, 0.06)).concat([
+    { k: 'resTail', color: 0xe8e0cc, dx: 0.13, dy: 0.25, rotZ: 2.4, sx: 0.5, sy: 0.4 }
+  ]),
+  plains: [ // horse, standing — the G0 pose with real anatomy + mane
+    { k: 'hiBody', color: 0x9a6b3f, sx: 1.6, sy: 0.82, sz: 0.66, dy: 0.26 },
+    { k: 'hiLegU', color: 0x9a6b3f, dx: -0.13, dy: 0.33, rotZ: 0.55, sx: 1.7, sy: 1.6, sz: 1.7 }, // neck
+    { k: 'hiHead', color: 0x9a6b3f, dx: -0.185, dy: 0.46, sy: 0.9 },
+    { k: 'hiMuzzle', color: 0x8a5f36, dx: -0.245, dy: 0.44, sx: 1.4, sy: 0.9, sz: 0.9 },
+    { k: 'hiEar', color: 0x5d3f22, dx: -0.16, dz: -0.03, dy: 0.52, rotX: -0.4 },
+    { k: 'hiEar', color: 0x5d3f22, dx: -0.16, dz: 0.03, dy: 0.52, rotX: 0.4 },
+    { k: 'roadDash', color: 0x5d3f22, dx: -0.1, dy: 0.42, rotZ: -0.9, sx: 1.3, sy: 3.2, sz: 1.6 } // mane ridge
+  ].concat(leg4(0x8a5f36, 0x3a2c18, -0.1, 0.1, 0.045, 0.15, 0.065)).concat([
+    { k: 'resTail', color: 0x5d3f22, dx: 0.17, dy: 0.27, rotZ: 2.6 }
+  ]),
+  arctic: [ // seal, basking — smooth high-seg body, real flippers
+    { k: 'hiBody', color: 0xc4cbd4, sx: 1.75, sy: 0.62, sz: 0.72, dy: 0.11, rotZ: -0.18 },
+    { k: 'hiBody', color: 0xc4cbd4, sx: 0.62, sy: 0.55, sz: 0.55, dx: -0.17, dy: 0.22 },   // raised chest
+    { k: 'hiHead', color: 0xc4cbd4, dx: -0.21, dy: 0.3 },
+    { k: 'hiMuzzle', color: 0xb4bcc6, dx: -0.26, dy: 0.28, sy: 0.8 },
+    { k: 'hiFin', color: 0xb4bcc6, dx: -0.12, dz: -0.075, dy: 0.045, rotZ: 2.2, rotX: -0.5, sy: 0.55 },
+    { k: 'hiFin', color: 0xb4bcc6, dx: -0.12, dz: 0.075, dy: 0.045, rotZ: 2.2, rotX: 0.5, sy: 0.55 },
+    { k: 'hiFin', color: 0xb4bcc6, dx: 0.2, dy: 0.09, rotZ: -1.1, sx: 1.2, sy: 0.5, sz: 1.4 }
+  ],
+  ocean: [ // fish, side profile — high-seg body, full fin set, eye
+    { k: 'hiBody', color: 0xd2e6f5, sx: 1.45, sy: 0.85, sz: 0.42, dy: 0.07 },
+    { k: 'hiFin', color: 0xbcd2e4, dx: 0.16, dy: 0.1, rotZ: -0.85, sy: 0.85, sz: 0.4 },
+    { k: 'hiFin', color: 0xbcd2e4, dx: 0.16, dy: 0.025, rotZ: -2.25, sy: 0.85, sz: 0.4 },
+    { k: 'hiFin', color: 0xbcd2e4, dx: -0.01, dy: 0.15, rotZ: -0.35, sy: 0.75, sz: 0.35 },
+    { k: 'hiFin', color: 0xbcd2e4, dx: 0.02, dz: 0.045, dy: 0.045, rotZ: -2.6, sy: 0.5, sz: 0.3 }, // pectoral
+    { k: 'hiHead', color: 0x2b3a4a, dx: -0.1, dz: 0.042, dy: 0.085, sx: 0.28, sy: 0.28, sz: 0.28 } // eye
+  ]
+};
 // eight neighbor directions for road connectivity (rotY aligns the segment)
 const ROAD_DIRS = [
   { dx: 1, dy: 0, rot: 0, diag: false }, { dx: -1, dy: 0, rot: 0, diag: false },
@@ -171,6 +246,8 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
     tie: [], mineDoor: [], mineBeam: [], fieldPatch: [], foam: [],
     hutBase: [], hutRoof: [], // N13: goody-hut villages
     treeTrunk: [], treeCanopy: [], roadDash: [], // H2: high tree kit + centerlines
+    hiBody: [], hiHead: [], hiMuzzle: [], hiLegU: [], hiLegL: [], hiHoof: [],
+    hiEar: [], hiBeam: [], hiTine: [], hiFin: [], hiHorn: [], // H6: high animal kit
     // specials-icons: per-resource motif primitives
     resFish: [], resFishTail: [], resCrystal: [], resWater: [], resPalm: [],
     resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [],
@@ -266,12 +343,18 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         if (level === 'high') {
           // H2: TW-style tree models — trunk + layered canopy; species mix
           // (60% deciduous, 25% conifer, 15% autumn), all placement/species
-          // via visualRand so every client grows the same wood
-          const count = 5 + Math.floor(visualRand(x, y, 1) * 4);
+          // via visualRand so every client grows the same wood.
+          // H6: a SPECIAL forest tile is a CLEARING — few trees, pushed to the
+          // rim, so the high-detail Game animal isn't buried in canopy.
+          const count = t.special ? 2 : 5 + Math.floor(visualRand(x, y, 1) * 4);
           for (let i = 0; i < count; i++) {
             const s = 0.8 + visualRand(x, y, 100 + i) * 0.5;
-            const dx = (visualRand(x, y, 200 + i) - 0.5) * 0.72;
-            const dz = (visualRand(x, y, 300 + i) - 0.5) * 0.72;
+            let dx = (visualRand(x, y, 200 + i) - 0.5) * 0.72;
+            let dz = (visualRand(x, y, 300 + i) - 0.5) * 0.72;
+            if (t.special) { // push to the tile rim, keep the center clear
+              const m = Math.max(Math.abs(dx), Math.abs(dz), 0.001);
+              dx = dx / m * 0.34; dz = dz / m * 0.34;
+            }
             const gnd = ground(x, y, dx, dz, top);
             const species = visualRand(x, y, 400 + i);
             if (species < 0.25) { // conifer: trunk + two stacked cones
@@ -425,7 +508,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         // OCEAN special (fish) rides the WATER SURFACE, not the submerged floor
         // (`top`) — at `top` it renders underwater, invisible (friend playtest).
         const base = t.t === 'ocean' ? WATER_LEVEL : top;
-        const motif = SPECIAL_MOTIF[t.t];
+        const motif = (level === 'high' && SPECIAL_MOTIF_HIGH[t.t]) || SPECIAL_MOTIF[t.t]; // H6 tier-split
         if (motif) {
           for (const m of motif) {
             items[m.k].push({ x, y, top: base, dim, color: m.color,

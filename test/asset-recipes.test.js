@@ -57,6 +57,8 @@ test('PROP_SHAPES covers every tile prop kind the renderer instances', async () 
     'resAntler', // specials silhouette pass: the Game stag-antler tine
     'resLeg', 'resNeck', 'resMuzzle', 'resTail', 'resEar', // G0 horse anatomy (specs/graphics-levels.md)
     'treeTrunk', 'treeCanopy', 'roadDash', // H2 high tree kit + centerline (spec §4b)
+    'hiBody', 'hiHead', 'hiMuzzle', 'hiLegU', 'hiLegL', 'hiHoof', 'hiEar',
+    'hiBeam', 'hiTine', 'hiFin', 'hiHorn', // H6 high animal kit (spec §4b)
     'pond']; // XVII #12 swamp pond discs
   for (const k of kinds) assert.ok(PROP_SHAPES[k], `prop kind "${k}" missing from PROP_SHAPES`);
   assert.strictEqual(Object.keys(PROP_SHAPES).length, kinds.length, 'no stray/unused prop shapes');

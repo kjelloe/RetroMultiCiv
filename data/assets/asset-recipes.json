@@ -2334,6 +2334,104 @@
         0.006,
         0.016
       ]
+    },
+    "hiBody": {
+      "shape": "sphere",
+      "size": [
+        0.1
+      ],
+      "seg": [
+        18,
+        14
+      ]
+    },
+    "hiHead": {
+      "shape": "sphere",
+      "size": [
+        0.06
+      ],
+      "seg": [
+        16,
+        12
+      ]
+    },
+    "hiMuzzle": {
+      "shape": "sphere",
+      "size": [
+        0.035
+      ],
+      "seg": [
+        12,
+        10
+      ]
+    },
+    "hiLegU": {
+      "shape": "cyl",
+      "size": [
+        0.016,
+        0.02,
+        0.1
+      ],
+      "seg": 10
+    },
+    "hiLegL": {
+      "shape": "cyl",
+      "size": [
+        0.011,
+        0.014,
+        0.09
+      ],
+      "seg": 10
+    },
+    "hiHoof": {
+      "shape": "cyl",
+      "size": [
+        0.016,
+        0.017,
+        0.022
+      ],
+      "seg": 10
+    },
+    "hiEar": {
+      "shape": "cone",
+      "size": [
+        0.012,
+        0.045
+      ],
+      "seg": 8
+    },
+    "hiBeam": {
+      "shape": "cyl",
+      "size": [
+        0.006,
+        0.009,
+        0.14
+      ],
+      "seg": 8
+    },
+    "hiTine": {
+      "shape": "cone",
+      "size": [
+        0.008,
+        0.09
+      ],
+      "seg": 6
+    },
+    "hiFin": {
+      "shape": "cone",
+      "size": [
+        0.05,
+        0.1
+      ],
+      "seg": 10
+    },
+    "hiHorn": {
+      "shape": "cone",
+      "size": [
+        0.012,
+        0.06
+      ],
+      "seg": 8
     }
   }
 }

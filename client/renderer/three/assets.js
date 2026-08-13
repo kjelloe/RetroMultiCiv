@@ -352,39 +352,75 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
       // whole footprint), gable ridge roof for peaked eras, chimney, a lit
       // window pair on the street face, a door on every third house. All
       // deterministic off the house index — no RNG, rebuilds are stable.
+      // H8 (user ruling 2026-08-14): the OUTER-ring houses — the ones a
+      // zoomed-in player actually sees — carry the full facade kit: framed
+      // panes, door + lintel + step, and every other outer house gains a
+      // second storey with an upper window row. Inner houses stay simple
+      // (occluded by the ring).
       const facing = angle + Math.PI; // toward the center
       base.rotation.y = facing;
+      const outer = (i % 3) !== 0; // dist 0.26 / 0.36 rings
+      const twoStorey = outer && i % 2 === 0;
+      const hh = twoStorey ? h * 1.45 : h; // the storey grows the body
+      if (twoStorey) { base.scale.set(w, hh, w); base.position.y = hh / 2; }
       if (peaked) {
-        const roof = add(group, HIGH_GEO.gable, roofMat, x, h + h * 0.28, z);
-        roof.scale.set(w * 1.05, h * 0.62, w * 0.72);
+        const roof = add(group, HIGH_GEO.gable, roofMat, x, hh + hh * 0.28, z);
+        roof.scale.set(w * 1.05, hh * 0.62, w * 0.72);
         roof.rotation.y = facing + Math.PI / 4; // cone seg-4 diagonal → ridge along the footprint
-        const ch = add(group, HIGH_GEO.chimney, STACK_MAT, x + Math.cos(facing + 2.2) * w * 0.28, h + h * 0.5, z + Math.sin(facing + 2.2) * w * 0.28);
+        const ch = add(group, HIGH_GEO.chimney, STACK_MAT, x + Math.cos(facing + 2.2) * w * 0.28, hh + hh * 0.5, z + Math.sin(facing + 2.2) * w * 0.28);
         ch.scale.setScalar(tier.scale);
+        if (outer) { // H8: gable trim under the eave on the street face
+          const trim = add(group, HIGH_GEO.window, roofMat,
+            x + Math.cos(facing) * w * 0.5, hh * 0.98, z + Math.sin(facing) * w * 0.5);
+          trim.rotation.y = facing;
+          trim.scale.set(0.7, 0.35, w * 32);
+        }
       } else if (style.roofShape === 'flat') { // industrial: low roof + thin stack on every other house
-        const roof = add(group, roofGeo, roofMat, x, h + h * 0.08, z);
-        roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+        const roof = add(group, roofGeo, roofMat, x, hh + hh * 0.08, z);
+        roof.scale.set(w * 0.98, hh * 0.2, w * 0.98);
         roof.rotation.y = facing;
-        if (i % 2 === 0) add(group, PROP_GEO.smokestack, STACK_MAT, x, h + h * 0.2, z).scale.setScalar(0.32 * tier.scale);
+        if (i % 2 === 0) add(group, PROP_GEO.smokestack, STACK_MAT, x, hh + hh * 0.2, z).scale.setScalar(0.32 * tier.scale);
       } else { // modern slab: rooftop unit instead of a chimney
-        const roof = add(group, roofGeo, roofMat, x, h + h * 0.08, z);
-        roof.scale.set(w * 0.98, h * 0.2, w * 0.98);
+        const roof = add(group, roofGeo, roofMat, x, hh + hh * 0.08, z);
+        roof.scale.set(w * 0.98, hh * 0.2, w * 0.98);
         roof.rotation.y = facing;
-        add(group, HIGH_GEO.acBox, STACK_MAT, x + w * 0.15, h + h * 0.18, z);
+        add(group, HIGH_GEO.acBox, STACK_MAT, x + w * 0.15, hh + hh * 0.18, z);
       }
-      // windows on the street face (proud dark boxes; the inset READ)
+      // windows on the street face (proud dark boxes; the inset READ).
+      // H8: outer houses get FRAMED panes; two-storey houses an upper row.
       const wx1 = x + Math.cos(facing) * w * 0.52, wz1 = z + Math.sin(facing) * w * 0.52;
       const side = facing + Math.PI / 2;
-      for (const off of i % 3 === 0 ? [0.22] : [-0.2, 0.24]) {
-        const wm = add(group, HIGH_GEO.window, WINDOW_MAT,
-          wx1 + Math.cos(side) * w * off, h * 0.55, wz1 + Math.sin(side) * w * off);
-        wm.rotation.y = facing;
-        wm.scale.setScalar(tier.scale);
+      const paneRows = twoStorey ? [hh * 0.32, hh * 0.68] : [h * 0.55];
+      for (const rowY of paneRows) {
+        for (const off of !outer ? [0.22] : [-0.2, 0.24]) {
+          const px = wx1 + Math.cos(side) * w * off, pz = wz1 + Math.sin(side) * w * off;
+          if (outer) { // frame: a lighter surround slightly behind the pane
+            const fr = add(group, HIGH_GEO.window, ERA_MAT.thatch,
+              px - Math.cos(facing) * 0.004, rowY, pz - Math.sin(facing) * 0.004);
+            fr.rotation.y = facing;
+            fr.scale.set(tier.scale * 0.8, tier.scale * 1.3, tier.scale * 1.35);
+          }
+          const wm = add(group, HIGH_GEO.window, WINDOW_MAT, px, rowY, pz);
+          wm.rotation.y = facing;
+          wm.scale.setScalar(tier.scale);
+        }
       }
-      if (i % 3 === 0) { // a door where the single window left room
-        const dm = add(group, HIGH_GEO.door, DOOR_MAT,
-          wx1 + Math.cos(side) * w * -0.12, h * 0.32, wz1 + Math.sin(side) * w * -0.12);
+      if (!outer ? i % 3 === 0 : true) { // H8: every OUTER house gets a door
+        const doorY = hh * 0.16;
+        const dx2 = wx1 + Math.cos(side) * w * -0.12, dz2 = wz1 + Math.sin(side) * w * -0.12;
+        const dm = add(group, HIGH_GEO.door, DOOR_MAT, dx2, doorY, dz2);
         dm.rotation.y = facing;
         dm.scale.setScalar(tier.scale);
+        if (outer) {
+          const lintel = add(group, HIGH_GEO.window, ERA_MAT.stone,
+            dx2, doorY + 0.028 * tier.scale, dz2);
+          lintel.rotation.y = facing;
+          lintel.scale.set(tier.scale * 0.7, tier.scale * 0.4, tier.scale * 1.5);
+          const step = add(group, HIGH_GEO.window, ERA_MAT.stone,
+            dx2 + Math.cos(facing) * 0.008, 0.006, dz2 + Math.sin(facing) * 0.008);
+          step.rotation.y = facing;
+          step.scale.set(tier.scale * 1.2, tier.scale * 0.3, tier.scale * 1.6);
+        }
       }
     } else {
     const roof = add(group, roofGeo, roofMat, x, 0, z);

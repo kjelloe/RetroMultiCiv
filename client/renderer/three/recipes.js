@@ -266,7 +266,22 @@ export const PROP_SHAPES = {
   // 'tree' cone) and the road centerline dash. Instanced like everything here.
   treeTrunk: { shape: 'cyl', size: [0.018, 0.026, 0.16], seg: 6 },
   treeCanopy: { shape: 'sphere', size: [0.11], seg: [10, 8] },
-  roadDash: { shape: 'box', size: [0.09, 0.006, 0.016] }
+  roadDash: { shape: 'box', size: [0.09, 0.006, 0.016] },
+  // H6 (spec §4b): the HIGH-tier animal kit — high-segment bodies with
+  // jointed legs, antler racks, fins and horns. Consumed only by
+  // SPECIAL_MOTIF_HIGH (props.js) and the model wagon's oxen; low/medium
+  // motifs never reference these.
+  hiBody: { shape: 'sphere', size: [0.1], seg: [18, 14] },
+  hiHead: { shape: 'sphere', size: [0.06], seg: [16, 12] },
+  hiMuzzle: { shape: 'sphere', size: [0.035], seg: [12, 10] },
+  hiLegU: { shape: 'cyl', size: [0.016, 0.02, 0.1], seg: 10 },
+  hiLegL: { shape: 'cyl', size: [0.011, 0.014, 0.09], seg: 10 },
+  hiHoof: { shape: 'cyl', size: [0.016, 0.017, 0.022], seg: 10 },
+  hiEar: { shape: 'cone', size: [0.012, 0.045], seg: 8 },
+  hiBeam: { shape: 'cyl', size: [0.006, 0.009, 0.14], seg: 8 },
+  hiTine: { shape: 'cone', size: [0.008, 0.09], seg: 6 },
+  hiFin: { shape: 'cone', size: [0.05, 0.1], seg: 10 },
+  hiHorn: { shape: 'cone', size: [0.012, 0.06], seg: 8 }
 };
 
 // every unit type → its silhouette recipe (the assets.js class tables as data;

@@ -22,5 +22,5 @@ if [ -z "$CHROME" ]; then
 fi
 
 exec "$CHROME" --no-sandbox --enable-unsafe-swiftshader --use-angle=swiftshader \
-  --window-size=1280,800 --virtual-time-budget=6000 \
+  --window-size=1280,800 --virtual-time-budget=9000 \
   "$@" --screenshot="$OUT" "$URL"

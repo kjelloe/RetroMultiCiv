@@ -371,6 +371,39 @@ ladder; README tier descriptions updated.
 runaway ceiling raised with the measurement recorded; gallery tier axis
 re-shot; goldens re-recorded; README/docs updated.
 
+### H6–H8 — the zoom-detail pass (user review of the v2 tier sheet, 2026-08-14)
+
+_Rulings: all animals (four specials + wagon oxen) high-detail at HIGH ONLY
+(tier-split motifs — low/medium keep the H1 poses); figures = ROUNDED R15
+(soft R15 shape, not literal Roblox); outer houses get the full facade kit.
+All picks user-confirmed same day: animals A-anatomical, figures A-game-
+proportions, houses A-mixed-storeys (`debugging/h6-h8-variants.html`)._
+
+**H6 DONE** — `SPECIAL_MOTIF_HIGH` (props.js), selected at level high:
+deer (forest+tundra), horse, seal, fish rebuilt on 11 new high-segment
+shapes (`hi*` in PROP_SHAPES: jointed legs with hooves, antler beam+tines,
+fins, horns; spheres up to 18×14). Special forest tiles become CLEARINGS
+at high (2 rim trees) so the Game animal isn't buried in H2 canopy. The
+model wagon's oxen get real anatomy (rounded bodies, horned heads,
+muzzles, 4 legs each, tails). Screenshot budget 6s→9s (the heavier high
+gallery began racing it flaky — measured).
+
+**H7 DONE** — every human figure at high is a rounded R15: boots, jointed
+lower/upper legs, pelvis, lower+upper torso, shoulder spheres, neck,
+16-seg head; posable arm helpers. Rebuilt: footSoldier, phalanx,
+musketeers, riflemen, diplomat (standing) + mounted/knight riders and the
+wagon driver (seated R15, saddle-hung legs). Kit (helms, crests, weapons,
+shields, satchels) repositioned to the new frame.
+
+**H8 DONE** — outer-ring houses (the zoom-visible ones) carry the full
+facade kit: framed lit panes, a door with stone lintel + doorstep on every
+outer house, gable trim, and every other outer house is two-storey with an
+upper window row; roofs/chimneys follow the storey height. Inner houses
+stay simple (occluded).
+
+Verified: LOW byte-identical, medium deterministic + tier-split-unchanged,
+battery 22/22, graphics spec 3/3.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
