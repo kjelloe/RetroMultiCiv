@@ -623,7 +623,10 @@ export function createRenderer(container, opts = {}) {
     graphicsLevel() { return gfxLevel; },
     // G5 perf guard: the live renderer stats — triangles drawn last frame +
     // the effective tier (test-ui/graphics-levels.spec.js budgets against it)
-    renderInfo() { return { level: gfxLevel, triangles: renderer.info.render.triangles, calls: renderer.info.render.calls }; },
+    renderInfo() {
+      const census = { unitMeshes: unitMeshes.size, cityMeshes: cityMeshes.size, propMeshes: propMeshes.length, worldChildren: worldGroup.children.length, hasView: !!view };
+      return { level: gfxLevel, triangles: renderer.info.render.triangles, calls: renderer.info.render.calls, census };
+    },
     // icon/hero-shot composition: suppress the pop/name/note sprites (no
     // text/badges in the frame). Default true (existing behavior unchanged).
     setCityLabelsVisible(flag) { showCityLabels = flag !== false; if (view) buildCities(); },

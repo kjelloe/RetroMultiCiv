@@ -351,7 +351,17 @@ lines + rigging + cloth sails, aircraft with canopies and engine detail,
 infantry with articulated limbs and kit. Authored in review batches
 (ancient / gunpowder / industrial / naval / air).
 
-**H5 — guards + re-budget.** Per-tier triangle budgets re-measured; the
+**H5 DONE 2026-08-13** — per-tier budgets MEASURED on the plain xsmall
+boot (`debugging/measure-tris.mjs`, permanent): low 9,600 tris / 24 calls
+→ medium 130,152 / 39 → high 135,416 / 44; the 3M runaway ceiling holds
+with ~22× headroom. `renderInfo()` gained a scene census (unit/city/prop
+mesh counts). **Measurement trap, recorded: never budget against a
+`?e2e=1` boot — the e2e probe flow parks the scene in artificial states
+(0-unit swaps mid-probe) and the numbers lie; the spec + the measure tool
+both boot PLAIN now.** Tier comparison sheet regenerated for the v2
+ladder; README tier descriptions updated.
+
+**H5 — guards + re-budget (the original plan).** Per-tier triangle budgets re-measured; the
 runaway ceiling raised with the measurement recorded; gallery tier axis
 re-shot; goldens re-recorded; README/docs updated.
 

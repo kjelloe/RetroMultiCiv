@@ -41,9 +41,11 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
       o.graphics = l;
       localStorage.setItem('retromulticiv-options', JSON.stringify(o));
     }, level);
-    await page.goto(clientUrl('?e2e=1&seed=11&civs=2&size=xsmall'));
+    // PLAIN boot — ?e2e=1's probe flow parks the scene in artificial states
+    // (0-unit swaps mid-probe), which made these numbers lie (found 2026-08-13)
+    await page.goto(clientUrl('?seed=11&civs=2&size=xsmall&zoom=7'));
     await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });
-    await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().triangles > 0);
+    await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().calls > 5);
     const info = await page.evaluate(() => window.__gfxInfo());
     // high on a WebGL1-only stack DEGRADES to medium by design — expect the
     // degrade rather than fail on it (runner GL stacks vary)
@@ -60,9 +62,9 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
 });
 
 test('the ⚙ live switch rebuilds the scene at the new tier', async ({ page }) => {
-  await page.goto(clientUrl('?e2e=1&seed=11&civs=2&size=xsmall'));
+  await page.goto(clientUrl('?seed=11&civs=2&size=xsmall&zoom=7'));
   await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });
-  await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().triangles > 0);
+  await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().calls > 5);
   const before = await page.evaluate(() => window.__gfxInfo());
   await page.click('#open-options');
   await page.selectOption('#options-panel select[data-opt="graphics"]', 'medium');

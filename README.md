@@ -119,13 +119,15 @@ the `/ws` WebSocket upgrade block), and a Raspberry Pi section — is in
 - Any static file server for the client (`python3 -m http.server` shown below)
 - A browser with WebGL — WebGL1 suffices (three.js is pinned to r162 for that);
   append `?diag=1` to the game URL for a graphics diagnostics panel
-- **Graphics levels** (setup screen or ⚙ Options): *Low* is the classic look
-  and runs anywhere, including old phones and software rendering; *Medium*
-  adds detailed terrain (denser mesh, per-terrain textures, ground scatter)
-  and suits integrated GPUs; *High* adds sun shadows, high-detail units and
-  full-resolution rendering, and expects a real GPU with WebGL2 (it falls
-  back to Medium honestly where that's absent). *Automatic* picks by probing
-  the GPU, and the choice can be changed live in ⚙ Options.
+- **Graphics levels** (setup screen or ⚙ Options): *Low* is the classic
+  faceted look and runs anywhere, including old phones and software
+  rendering; *Medium* adds dense detailed terrain (8× mesh, per-terrain
+  textures, ground scatter) and crafted unit models, and suits integrated
+  GPUs; *High* renders a smooth blended world — sand shorelines, species-
+  varied trees, road centerlines — with sun shadows, model-grade units and
+  cities, and full-resolution rendering; it expects a real GPU with WebGL2
+  (falling back to Medium honestly where that's absent). *Automatic* picks
+  by probing the GPU, and the choice can be changed live in ⚙ Options.
 
 ## Running
 
