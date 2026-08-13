@@ -21,7 +21,7 @@ RELEASED and live; everything below is post-release.)_
   High (smooth TW terrain, model-grade units+cities, shadows). All 9 art
   picks along the way were yours; the three H2/H3 picks confirmed the
   landed provisionals.
-- [ ] **A2. Merge marker-0115 to main and redeploy:**
+- [ ] **A2. Merge marker-0116 to main and redeploy:**
   `git fetch origin --tags && git checkout main && git merge marker-0116 &&
   git push`, then `./ssh-deploy.sh`. Client-only vs v1.0.1's engine; the
   re-recorded visual goldens ride it, so the nightly on main goes green.
