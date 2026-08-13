@@ -290,8 +290,9 @@ per-vertex weights (soft edges). TW tree kit at high: trunk + layered
 canopy, 60/25/15 deciduous/conifer/autumn species mix + lone meadow trees
 on open grassland; roads = 3 conforming sub-segments per connection + white
 centerline dashes (rails keep ties); double surf line on coasts.
-PROVISIONAL picks pending user return (`debugging/h2-variants.html`):
-blend V2 "balanced" (exponent 3) + forest A "mixed wood". Verified: LOW
+Picks USER-CONFIRMED 2026-08-13 (`debugging/h2-variants.html`):
+blend V2 "balanced" (exponent 3) + forest A "mixed wood" — both were the
+landed provisionals. Verified: LOW
 byte-identical, medium self-consistent (H2 is entirely behind the high
 gate), battery 22/22, graphics spec 3/3 with the strict `>` restored
 (high owns trees/dashes/foam beyond medium). New PROP_SHAPES: treeTrunk /
@@ -313,7 +314,8 @@ scaled to a ridge) with chimneys on peaked eras, industrial keeps flat
 roofs + per-house smokestacks, modern slabs carry rooftop units; window
 insets (proud dark boxes) + doors, all deterministic off the house index;
 City Walls becomes a REAL rampart — 10 segments + 5 capped towers.
-PROVISIONAL style = A "lived-in" of 3 (`debugging/h3-variants.html`).
+Style A "lived-in" USER-CONFIRMED 2026-08-13 of 3
+(`debugging/h3-variants.html`) — the landed provisional.
 Verified: low byte-identical, battery green (render-spec regenerated —
 the HIGH_GEO table is additive), era grid reads at high.
 
