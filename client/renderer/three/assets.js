@@ -357,7 +357,11 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
       // panes, door + lintel + step, and every other outer house gains a
       // second storey with an upper window row. Inner houses stay simple
       // (occluded by the ring).
-      const facing = angle + Math.PI; // toward the center
+      // H8b (user ruling 2026-08-14): facades face the CAMERA — the game
+      // camera sits south of the target looking north, so +z surfaces are
+      // the visible ones. Center-facing facades rendered detail nobody
+      // could see. All high houses align south, village-grid style.
+      const facing = Math.PI / 2;
       base.rotation.y = facing;
       const outer = (i % 3) !== 0; // dist 0.26 / 0.36 rings
       const twoStorey = outer && i % 2 === 0;

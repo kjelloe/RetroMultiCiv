@@ -404,6 +404,20 @@ stay simple (occluded).
 Verified: LOW byte-identical, medium deterministic + tier-split-unchanged,
 battery 22/22, graphics spec 3/3.
 
+**H7b + H8b (user review 2026-08-14, second pass):**
+- **No bald heads.** Every human figure at high wears headwear or hair:
+  hair fringes under every open helm/hat (footSoldier, phalanx, musketeer,
+  rifleman, diplomat, mounted rider), the knight's great helm is full-cover,
+  and the wagon driver — the one truly bare head — gets hair + a straw work
+  hat (civilian → hair/cap per the ruling).
+- **Facades face the CAMERA.** H8's kit faced the tile center, where the
+  player can never see it — the game camera sits south looking north, so
+  +z faces are the visible ones. All high houses now align facing south
+  (village-grid style); windows/doors/lintels/steps read from the actual
+  play view. Lesson recorded: detail that doesn't face the camera is
+  detail that doesn't exist.
+Verified same set: low byte-identical, battery 22/22, spec 3/3.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;

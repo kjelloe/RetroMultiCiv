@@ -63,6 +63,7 @@ const R15seated = (torso, legs, dx, dy) => [
 export const MODEL_UNIT_RECIPES = {
   // ---- the spearman, fully kitted: stance, belt, cheek-guard helm, butt spike
   footSoldier: R15('cloth', 'cloth').concat(armReach2('cloth', 1, 0.1)).concat(armIdle2('cloth', -1)).concat([
+    { shape: 'sphere', size: [0.054], seg: [12, 8], pos: [0, 0.492, 0], scale: [1, 0.5, 1], color: 'wheel' },   // hair fringe (H7b: no bald heads)
     { shape: 'sphere', size: [0.06], seg: [14, 10], pos: [0, 0.525, 0], scale: [1, 0.8, 1], color: 'metal' },   // helm dome
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.485, -0.05], scale: [0.04, 0.05, 0.012], color: 'metal' },      // cheek guards
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.485, 0.05], scale: [0.04, 0.05, 0.012], color: 'metal' },
@@ -77,6 +78,7 @@ export const MODEL_UNIT_RECIPES = {
   phalanx: R15('cloth', 'cloth').concat(armReach2('cloth', 1, 0.15)).concat([
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.095, -0.028], scale: [0.034, 0.08, 0.044], color: 'metal' },    // greaves
     { shape: 'box', size: [1, 1, 1], pos: [0.005, 0.095, 0.028], scale: [0.034, 0.08, 0.044], color: 'metal' },
+    { shape: 'sphere', size: [0.054], seg: [12, 8], pos: [0, 0.492, 0], scale: [1, 0.5, 1], color: 'wheel' }, // hair fringe (H7b)
     { shape: 'sphere', size: [0.06], seg: [14, 10], pos: [0, 0.525, 0], scale: [1, 0.8, 1], color: 'metal' },
     { shape: 'box', size: [1, 1, 1], pos: [0, 0.585, 0], scale: [0.075, 0.045, 0.014], rot: [1.5707963267948966, 0, 0], color: 'primary' },
     { shape: 'cyl', size: [0.011, 0.011, 0.72], seg: 10, pos: [0.12, 0.44, 0.06], rot: [0, 0, -0.1], color: 'wood' },
@@ -106,6 +108,7 @@ export const MODEL_UNIT_RECIPES = {
     { shape: 'box', size: [0.15, 0.018, 0.13], pos: [-0.02, 0.405, 0], color: 'primary' },              // saddle blanket
     { shape: 'box', size: [0.08, 0.03, 0.08], pos: [-0.02, 0.43, 0], color: 'wood' }                    // saddle
   ].concat(R15seated('cloth', 'cloth', -0.02, 0.44)).concat([
+    { shape: 'sphere', size: [0.05], seg: [12, 8], pos: [-0.02, 0.705, 0], scale: [1, 0.45, 1], color: 'wheel' }, // hair fringe (H7b)
     { shape: 'sphere', size: [0.052], seg: [14, 10], pos: [-0.02, 0.72, 0], scale: [1, 0.72, 1], color: 'metal' }, // helmet
     { shape: 'cyl', size: [0.013, 0.016, 0.09], seg: 8, pos: [0.03, 0.62, 0.05], rot: [0, 0, -1.3], color: 'cloth' }, // sword arm
     { shape: 'cyl', size: [0.011, 0.013, 0.08], seg: 8, pos: [0.08, 0.66, 0.05], rot: [0, 0, -1.6], color: 'cloth' },
@@ -245,6 +248,9 @@ export const MODEL_UNIT_RECIPES = {
     { shape: 'box', size: [1, 1, 1], pos: [0.13, 0.4, -0.04], scale: [0.06, 0.055, 0.078], color: 'cloth' },
     { shape: 'cyl', size: [0.013, 0.015, 0.024], seg: 10, pos: [0.13, 0.435, -0.04], color: 'skin' },
     { shape: 'sphere', size: [0.036], seg: [14, 10], pos: [0.13, 0.475, -0.04], color: 'skin' },
+    { shape: 'sphere', size: [0.038], seg: [12, 8], pos: [0.13, 0.483, -0.04], scale: [1, 0.55, 1], color: 'wheel' }, // hair under the hat (H7b: no bald heads)
+    { shape: 'cyl', size: [0.062, 0.062, 0.01], seg: 14, pos: [0.13, 0.5, -0.04], color: 'canvas' },   // straw brim
+    { shape: 'sphere', size: [0.032], seg: [10, 8], pos: [0.13, 0.508, -0.04], scale: [1, 0.55, 1], color: 'canvas' }, // straw crown
     { shape: 'cyl', size: [0.011, 0.013, 0.055], seg: 8, pos: [0.17, 0.38, -0.04], rot: [0, 0, -1.1], color: 'cloth' }, // rein arm
     { shape: 'cyl', size: [0.095, 0.095, 0.032], seg: 16, pos: [-0.22, 0.1, -0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
     { shape: 'cyl', size: [0.095, 0.095, 0.032], seg: 16, pos: [-0.22, 0.1, 0.16], rot: [1.5707963267948966, 0, 0], color: 'wheel' },
@@ -332,6 +338,7 @@ export const MODEL_UNIT_RECIPES = {
   // diplomat: robed envoy — hat, cloak, satchel with strap, raised sealed scroll
   diplomat: R15('canvas', 'canvas').concat(armIdle2('canvas', -1)).concat([
     { shape: 'cone', size: [0.13, 0.16], seg: 16, pos: [0, 0.26, 0], color: 'cloth' },                 // cloak hem
+    { shape: 'sphere', size: [0.054], seg: [12, 8], pos: [0, 0.515, 0], scale: [1, 0.45, 1], color: 'wheel' }, // hair under the brim (H7b)
     { shape: 'cyl', size: [0.09, 0.09, 0.013], seg: 18, pos: [0, 0.55, 0], color: 'wood' },            // hat brim
     { shape: 'sphere', size: [0.045], seg: [14, 10], pos: [0, 0.565, 0], scale: [1, 0.6, 1], color: 'wood' },
     { shape: 'cyl', size: [0.013, 0.016, 0.14], seg: 8, pos: [0.075, 0.42, 0.04], rot: [0.2, 0, -1.2], color: 'canvas' },
@@ -343,6 +350,7 @@ export const MODEL_UNIT_RECIPES = {
   // musketeers: musket LEVELED to fire, hat with plume, powder horn + bandolier
   musketeers: R15('cloth', 'cloth').concat([
     { shape: 'box', size: [1, 1, 1], pos: [0.0, 0.36, 0], scale: [0.018, 0.15, 0.1], rot: [0, 0, 0.5], color: 'wheel' },  // bandolier
+    { shape: 'sphere', size: [0.054], seg: [12, 8], pos: [0, 0.51, 0], scale: [1, 0.45, 1], color: 'wheel' }, // hair under the brim (H7b)
     { shape: 'cyl', size: [0.095, 0.095, 0.016], seg: 18, pos: [0, 0.545, 0], color: 'darkMetal' },   // hat brim
     { shape: 'cyl', size: [0.048, 0.053, 0.06], seg: 14, pos: [0, 0.58, 0], color: 'darkMetal' },
     { shape: 'box', size: [1, 1, 1], pos: [0.05, 0.59, 0], scale: [0.065, 0.03, 0.01], rot: [0, 0, 0.5], color: 'canvas' },
@@ -354,6 +362,7 @@ export const MODEL_UNIT_RECIPES = {
   ]),
   // riflemen: rifle at the shoulder, brimmed helmet, pack + bedroll, bayonet
   riflemen: R15('cloth', 'cloth').concat([
+    { shape: 'sphere', size: [0.054], seg: [12, 8], pos: [0, 0.505, 0], scale: [1, 0.45, 1], color: 'wheel' }, // hair under the helmet (H7b)
     { shape: 'sphere', size: [0.096], seg: [16, 10], pos: [0, 0.53, 0], scale: [1, 0.58, 1], color: 'darkMetal' }, // brimmed helmet
     { shape: 'cyl', size: [0.011, 0.011, 0.56], seg: 12, pos: [0.16, 0.46, 0.03], rot: [0, 0, -1.35], color: 'darkMetal' },
     { shape: 'cone', size: [0.018, 0.08], seg: 10, pos: [0.41, 0.52, 0.03], rot: [0, 0, -1.35], color: 'metal' },
