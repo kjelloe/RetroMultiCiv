@@ -8,8 +8,8 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-08-13 (tip on `dev_night`; **marker-0118 = the graphics
-v2 ladder, merge-consistent**, supersedes 0113-0117. v1.0.0 + v1.0.1 are
+_Last synced: 2026-08-13 (tip on `dev_night`; **marker-0119 = the graphics
+v2 ladder, merge-consistent**, supersedes 0113-0118. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -21,8 +21,8 @@ RELEASED and live; everything below is post-release.)_
   High (smooth TW terrain, model-grade units+cities, shadows). All 9 art
   picks along the way were yours; the three H2/H3 picks confirmed the
   landed provisionals.
-- [ ] **A2. Merge marker-0118 to main and redeploy:**
-  `git fetch origin --tags && git checkout main && git merge marker-0118 &&
+- [ ] **A2. Merge marker-0119 to main and redeploy:**
+  `git fetch origin --tags && git checkout main && git merge marker-0119 &&
   git push`, then `./ssh-deploy.sh`. Client-only vs v1.0.1's engine; the
   re-recorded visual goldens ride it, so the nightly on main goes green.
   This is effectively **v1.0.2** — say the word for release notes.
