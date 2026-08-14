@@ -455,8 +455,24 @@ structure. H10 deepens each band AT HIGH:_
 Implementation shape: a per-band HIGH kit table beside CITY_ERA_STYLES
 (roof set, body materials, street props, signature extras) — the band id
 already reaches createCityMesh, so no engine/state/protocol change and
-fog-honesty is inherited. Each band gets the 3-variant gate. Estimate 2–3
-sessions; browser-only (Roblox mirrors low). NOT STARTED — awaiting go.
+fog-honesty is inherited. Browser-only (Roblox mirrors low).
+
+**H10 BUILT 2026-08-14 (user go):** `HIGH_ERA_KIT` in assets.js —
+- **Ancient:** roof mix restricted to thatch + logs; mud bodies; a WELL
+  (stone ring, posts, thatch cap) at every non-capital village's center.
+- **Classical/Medieval:** the full H9 roof rotation; TIMBER-FRAME walls
+  alternate with stone on the outer ring.
+- **Industrial:** tar-only roofs, warehouse proportions on every third
+  outer house, STREET LAMPS at the doors, panes switch to the LIT
+  material.
+- **Modern/Space:** lit panes + lamps; antennas on two-storey roofs and
+  tilted SOLAR PANELS on slabs; the capital gains a LANDING PAD with an
+  H marking at the city edge. (The spec's "space-era-only pad" is
+  approximated by the modernSpace band — band granularity is what the
+  fog-honest system carries; noted deviation.)
+Deferred from the plan: classical banner poles (the city already flies a
+banner; add on demand). Intensity USER-CONFIRMED 2026-08-14: **A full
+kit** (the in-tree recommendation; `h10-eras-a/b/c.png`).
 
 ## 5. Risks, named
 

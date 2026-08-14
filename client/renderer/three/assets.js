@@ -290,6 +290,32 @@ const WINDOW_MAT = new THREE.MeshLambertMaterial({ color: 0x1c2230 });
 const ROOF_TILE_MAT = new THREE.MeshLambertMaterial({ color: 0xa1543a });
 const ROOF_SHINGLE_MAT = new THREE.MeshLambertMaterial({ color: 0x74806e });
 const ROOF_LOG_MAT = new THREE.MeshLambertMaterial({ color: 0x6b4a2a });
+// H10 (spec §4b): the era kit — cities age Ancient → Space at High. Each
+// band restricts the roof mix, swaps wall materials, and adds its own
+// street furniture; everything below keys off the band id + house index.
+const TIMBER_MAT = new THREE.MeshLambertMaterial({ color: 0x9a7b52 });   // classical timber-frame walls
+const WINDOW_LIT_MAT = new THREE.MeshLambertMaterial({ color: 0xe8c96a }); // industrial+ lit panes
+const LAMP_MAT = new THREE.MeshLambertMaterial({ color: 0xffd98a });
+const SOLAR_MAT = new THREE.MeshLambertMaterial({ color: 0x2b3f66 });
+const PAD_MAT = new THREE.MeshLambertMaterial({ color: 0x8b929c });
+const HIGH_ERA_GEO = {
+  lampPole: new THREE.CylinderGeometry(0.0045, 0.0055, 0.09, 6),
+  lampHead: new THREE.SphereGeometry(0.011, 8, 6),
+  antenna: new THREE.CylinderGeometry(0.0025, 0.0035, 0.07, 4),
+  solar: new THREE.BoxGeometry(0.05, 0.006, 0.036),
+  padDisc: new THREE.CylinderGeometry(0.095, 0.095, 0.008, 20),
+  wellRing: new THREE.CylinderGeometry(0.034, 0.038, 0.03, 10),
+  wellRoof: new THREE.ConeGeometry(0.045, 0.035, 4),
+  wellPost: new THREE.CylinderGeometry(0.005, 0.005, 0.06, 4)
+};
+// per-band: which of the H9 roof styles are allowed (0 era / 1 tile /
+// 2 shingle / 3 logs), whether panes glow, and the band's street kit
+const HIGH_ERA_KIT = {
+  ancient:           { roofs: [0, 3, 0, 3], lit: false, lamps: false, well: true },
+  classicalMedieval: { roofs: [0, 1, 2, 3], lit: false, lamps: false, well: false },
+  industrial:        { roofs: [0], lit: true, lamps: true, warehouse: true },
+  modernSpace:       { roofs: [0], lit: true, lamps: true, tech: true }
+};
 const DOOR_MAT = new THREE.MeshLambertMaterial({ color: 0x2e2418 });
 
 // The band's signature central structure. CITY_TIERS gates the tower to upper
@@ -337,7 +363,9 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
   // ERA band (render-only hint): the annotated view passes it via a side map
   // (see index.js buildCities); direct callers (gallery/mock) may set a
   // `city.eraBand` field instead; no band → ancient.
-  const style = CITY_ERA_STYLES[eraBand || city.eraBand] || CITY_ERA_STYLES.ancient;
+  const band = CITY_ERA_STYLES[eraBand || city.eraBand] ? (eraBand || city.eraBand) : 'ancient';
+  const style = CITY_ERA_STYLES[band];
+  const kit = HIGH_ERA_KIT[band]; // H10: the band's High street kit
   // A88: house SHAPE from CITY_RECIPE; the era band sets roof SHAPE + body/roof
   // MATERIAL (not owner color — that's the base ring). The placement is procedural.
   const houseGeo = geometryFor(CITY_RECIPE.house);
@@ -375,8 +403,10 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
       const hh = twoStorey ? h * 1.45 : h; // the storey grows the body
       if (twoStorey) { base.scale.set(w, hh, w); base.position.y = hh / 2; }
       if (peaked) {
-        // H9b: roof style rotates per house — era default / tile / shingle / logs
-        const styleIdx = i % 4;
+        // H9b: roof style rotates per house — era default / tile / shingle /
+        // logs; H10 restricts the rotation to the BAND's set (ancient has no
+        // terracotta, industrial+ never thatch)
+        const styleIdx = kit.roofs[i % kit.roofs.length];
         const roofPick = styleIdx === 1 ? ROOF_TILE_MAT : styleIdx === 2 ? ROOF_SHINGLE_MAT : styleIdx === 3 ? ROOF_LOG_MAT : roofMat;
         const roof = add(group, HIGH_GEO.gable, roofPick, x, hh + hh * 0.28, z);
         roof.scale.set(w * 1.05, hh * 0.62, w * 0.72);
@@ -412,10 +442,29 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
         roof.rotation.y = facing;
         add(group, HIGH_GEO.acBox, STACK_MAT, x + w * 0.15, hh + hh * 0.18, z);
       }
+      // H10: era wall variety + the band's street furniture
+      if (band === 'classicalMedieval' && outer && i % 2 === 1) base.material = TIMBER_MAT; // timber-frame rows
+      if (band === 'industrial' && kit.warehouse && outer && i % 3 === 1) {
+        base.scale.set(w * 1.45, hh * 0.62, w * 1.05); // the warehouse proportion
+        base.position.y = hh * 0.31;
+      }
+      if (kit.lamps && outer && i % 3 === 0) { // a street lamp at the door side
+        const lx = x + Math.cos(facing) * w * 0.85, lz = z + Math.sin(facing) * w * 0.85;
+        add(group, HIGH_ERA_GEO.lampPole, STACK_MAT, lx, 0.045, lz);
+        add(group, HIGH_ERA_GEO.lampHead, LAMP_MAT, lx, 0.095, lz);
+      }
+      if (band === 'modernSpace' && kit.tech && outer) { // rooftop tech
+        if (twoStorey) add(group, HIGH_ERA_GEO.antenna, NEUTRAL.metal, x + w * 0.2, hh + hh * 0.3, z);
+        else {
+          const sp = add(group, HIGH_ERA_GEO.solar, SOLAR_MAT, x - w * 0.1, hh + hh * 0.2, z);
+          sp.rotation.z = 0.25;
+        }
+      }
       // windows on the street face (proud dark boxes; the inset READ).
       // H8: outer houses get FRAMED panes; two-storey houses an upper row.
       const wx1 = x + Math.cos(facing) * w * 0.52, wz1 = z + Math.sin(facing) * w * 0.52;
       const side = facing + Math.PI / 2;
+      const paneMat = kit.lit ? WINDOW_LIT_MAT : WINDOW_MAT; // H10: industrial+ panes glow
       const paneRows = twoStorey ? [hh * 0.32, hh * 0.68] : [h * 0.55];
       for (const rowY of paneRows) {
         for (const off of !outer ? [0.22] : [-0.2, 0.24]) {
@@ -426,7 +475,7 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
             fr.rotation.y = facing;
             fr.scale.set(tier.scale * 0.8, tier.scale * 1.3, tier.scale * 1.35);
           }
-          const wm = add(group, HIGH_GEO.window, WINDOW_MAT, px, rowY, pz);
+          const wm = add(group, HIGH_GEO.window, paneMat, px, rowY, pz);
           wm.rotation.y = facing;
           wm.scale.setScalar(tier.scale);
         }
@@ -461,6 +510,26 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
   // the band's signature central structure (tower / smokestacks / dome+spire /
   // capital hall), gated by tier + capital
   addEraSignature(group, style, tier, tierIndex, isCapital);
+  // H10: the ancient WELL (a non-capital village's center) and the
+  // modernSpace capital's LANDING PAD at the city edge
+  if (level === 'high' && kit) {
+    if (kit.well && !isCapital) {
+      add(group, HIGH_ERA_GEO.wellRing, ERA_MAT.stone, 0.1, 0.02, -0.08);
+      add(group, HIGH_ERA_GEO.wellPost, NEUTRAL.wood, 0.065, 0.05, -0.08);
+      add(group, HIGH_ERA_GEO.wellPost, NEUTRAL.wood, 0.135, 0.05, -0.08);
+      const wr = add(group, HIGH_ERA_GEO.wellRoof, ERA_MAT.thatch, 0.1, 0.095, -0.08);
+      wr.rotation.y = Math.PI / 4;
+    }
+    if (band === 'modernSpace' && isCapital) {
+      add(group, HIGH_ERA_GEO.padDisc, PAD_MAT, 0.2, 0.008, 0.34);
+      const m1 = add(group, HIGH_GEO.window, WINDOW_MAT, 0.2, 0.014, 0.34);
+      m1.scale.set(2.2, 0.3, 4.5); // the H marking bars
+      const m2 = add(group, HIGH_GEO.window, WINDOW_MAT, 0.16, 0.014, 0.34);
+      m2.scale.set(0.8, 0.3, 2.2);
+      const m3 = add(group, HIGH_GEO.window, WINDOW_MAT, 0.24, 0.014, 0.34);
+      m3.scale.set(0.8, 0.3, 2.2);
+    }
+  }
   // owner identity: a colored base RING (guardrail — never the body/roof, so the
   // era reads at map zoom); the banner/flag also carries the owner color
   const ownerRing = add(group, GEO.baseRim, matFor(visual.primary), 0, 0.035, 0);
