@@ -8,8 +8,8 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-08-13 (tip on `dev_night`; **marker-0120 = the graphics
-v2 ladder, merge-consistent**, supersedes 0113-0119. v1.0.0 + v1.0.1 are
+_Last synced: 2026-08-13 (tip on `dev_night`; **marker-0121 = the graphics
+v2 ladder, merge-consistent**, supersedes 0113-0120. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -21,12 +21,15 @@ RELEASED and live; everything below is post-release.)_
   High (smooth TW terrain, model-grade units+cities, shadows). All 9 art
   picks along the way were yours; the three H2/H3 picks confirmed the
   landed provisionals.
-- [ ] **A2. Merge marker-0120 to main and redeploy:**
-  `git fetch origin --tags && git checkout main && git merge marker-0120 &&
+- [ ] **A2. Merge marker-0121 to main and redeploy:**
+  `git fetch origin --tags && git checkout main && git merge marker-0121 &&
   git push`, then `./ssh-deploy.sh`. Client-only vs v1.0.1's engine; the
   re-recorded visual goldens ride it, so the nightly on main goes green.
   This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A3. Real-hardware High acceptance** (the one measurement no agent
+- [ ] **A3. Playtest pass — follow `./playtest.md`** (the 1440p fps number,
+  the multi-device matrix, and the new affordances: first-visit arrow,
+  `?gfx=` links, live tier switching). Results go to the spec's §6.
+- [ ] **A3b. (superseded by A3) Real-hardware High acceptance** (the one measurement no agent
   can take): on the gaming PC at 1440p, a `large` map at High — is it
   ≥50 fps? The number goes in `specs/graphics-levels.md` §6. And do the
   original playtesters call Medium/High "clearly visible what it is"?
