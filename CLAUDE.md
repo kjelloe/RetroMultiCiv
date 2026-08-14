@@ -194,7 +194,8 @@ strategic-overlay panel is debug/spectator-only, reads
 shared/strategic.js — the same snapshot the soak --stats rows use),
 `?mock=1` static
 state, `?mlog=1` on-screen boot/ws/error overlay for console-less
-devices [phones], `?palette=<mode>` display-palette override). Play (phase-3
+devices [phones], `?palette=<mode>` display-palette override, `?gfx=low..high`
+pre-selects + persists the graphics tier from links). Play (phase-3
 authoritative server): `node server/index.js [--port 8123] [--seed N]
 [--civs N] [--size medium] [--game saves/<id>.json] [--no-save]
 [--no-spectators] [--host IP]` hosts the client AND the game; open

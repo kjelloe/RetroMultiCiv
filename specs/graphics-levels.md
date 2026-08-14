@@ -360,7 +360,9 @@ infantry with articulated limbs and kit. Authored in review batches
 **H5 DONE 2026-08-13** — per-tier budgets MEASURED on the plain xsmall
 boot (`debugging/measure-tris.mjs`, permanent): low 9,600 tris / 24 calls
 → medium 130,152 / 39 → high 135,416 / 44; the 3M runaway ceiling holds
-with ~22× headroom. `renderInfo()` gained a scene census (unit/city/prop
+with ~22× headroom. **Re-measured 2026-08-15 after H6–H11** (R15 medium
+promotion, wonders, era kits, rich water): low 9,600 / 24 → medium
+135,640 / 67 → high 149,043 / 63 — still ~20× headroom. `renderInfo()` gained a scene census (unit/city/prop
 mesh counts). **Measurement trap, recorded: never budget against a
 `?e2e=1` boot — the e2e probe flow parks the scene in artificial states
 (0-unit swaps mid-probe) and the numbers lie; the spec + the measure tool
@@ -426,7 +428,10 @@ Verified same set: low byte-identical, battery 22/22, spec 3/3.
   plume); cavalry/chariot rider = KETTLE HAT (wide riveted brim); musketeers
   = MORION (boat brim with upswept points, dome, tall comb, plume);
   riflemen keep the brimmed steel helmet (already period-true). Reference
-  image kept at `debugging/helmets.png`.
+  image: `debugging/helmets.png` — USER-PROVIDED, deliberately UNTRACKED
+  (third-party imagery; not for the MIT repo), as is
+  `debugging/example-from-transport-world.png` (a friend's game). They
+  exist only on this machine.
 - **Roof-style variation** on peaked eras: per-house deterministic pick —
   era default / terracotta TILE with ridge cap / grey-green SHINGLE /
   WOODEN LOGS with plank lines. Pick USER-CONFIRMED 2026-08-14: **A balanced

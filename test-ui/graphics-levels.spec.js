@@ -61,6 +61,19 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
   expect(tris.high.n).toBeLessThan(3_000_000);
 });
 
+test('?gfx= on a link pre-selects and persists the tier, then leaves the URL', async ({ page }) => {
+  // H11: share links can carry the tier. Applied + persisted; the boot
+  // canonicalization then drops the param from the address bar.
+  await page.goto(clientUrl('?gfx=medium&seed=11&civs=2&size=xsmall&zoom=7'));
+  await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });
+  await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().calls > 5);
+  const info = await page.evaluate(() => window.__gfxInfo());
+  expect(info.level).toBe('medium');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('retromulticiv-options') || '{}').graphics);
+  expect(stored).toBe('medium');
+  expect(page.url()).not.toContain('gfx='); // canonicalized away
+});
+
 test('the ⚙ live switch rebuilds the scene at the new tier', async ({ page }) => {
   await page.goto(clientUrl('?seed=11&civs=2&size=xsmall&zoom=7'));
   await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });

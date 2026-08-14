@@ -44,6 +44,11 @@ the mechanized form.
   flag bites).
 - Multiply-texture marks must DARKEN below the ~1.95x lighting clamp or
   they render invisible.
+- **Detail must face the CAMERA** (south/+z — it sits south looking
+  north): center-facing facades AND north-rim wonder landmarks both
+  shipped invisible before review shots caught them (bit twice,
+  2026-08-14). Anchor detail on the south/east/west rim, and REVIEW FROM
+  THE PLAY ANGLE, not the mind's eye.
 - After renderer-table changes: `node tools/render-spec.js` + the
   asset/mock-state/render-spec test battery.
 - Triangle/call budgets: `debugging/measure-tris.mjs` — PLAIN boots only.

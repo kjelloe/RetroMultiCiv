@@ -29,10 +29,6 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **A3. Playtest pass — follow `./playtest.md`** (the 1440p fps number,
   the multi-device matrix, and the new affordances: first-visit arrow,
   `?gfx=` links, live tier switching). Results go to the spec's §6.
-- [ ] **A3b. (superseded by A3) Real-hardware High acceptance** (the one measurement no agent
-  can take): on the gaming PC at 1440p, a `large` map at High — is it
-  ≥50 fps? The number goes in `specs/graphics-levels.md` §6. And do the
-  original playtesters call Medium/High "clearly visible what it is"?
 
 ## B. Operations you started (P1/P2 user halves)
 
