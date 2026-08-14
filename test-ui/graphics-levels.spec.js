@@ -74,6 +74,25 @@ test('?gfx= on a link pre-selects and persists the tier, then leaves the URL', a
   expect(page.url()).not.toContain('gfx='); // canonicalized away
 });
 
+test('hovering open terrain resolves a tile at MEDIUM (the group-pick guard)', async ({ page }) => {
+  // The medium terrain is a GROUP of per-terrain meshes; castAt must treat a
+  // child hit as terrain (user playtest find 2026-08-15 — hover arrows dead
+  // at medium only). The HUD's hover readout proves the pick resolves.
+  await page.goto(clientUrl('host-guide.html'));
+  await page.evaluate(() => {
+    const o = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}');
+    o.graphics = 'medium';
+    localStorage.setItem('retromulticiv-options', JSON.stringify(o));
+  });
+  await page.goto(clientUrl('?seed=11&civs=2&size=xsmall&zoom=6'));
+  await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });
+  await page.waitForFunction(() => window.__gfxInfo && window.__gfxInfo().calls > 5);
+  await page.mouse.move(500, 300);
+  await page.mouse.move(520, 320); // a second move fires the hover path
+  // the tile readout (#hud-tile) carries "(x,y) <terrain>" once the pick resolves
+  await expect(page.locator('#hud-tile')).toContainText(/\(\d+,\d+\)/, { timeout: 5000 });
+});
+
 test('the ⚙ live switch rebuilds the scene at the new tier', async ({ page }) => {
   await page.goto(clientUrl('?seed=11&civs=2&size=xsmall&zoom=7'));
   await expect(page.locator('#hud-status')).toContainText('turn', { timeout: 30000 });

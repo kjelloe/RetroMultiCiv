@@ -443,7 +443,16 @@ export function createRenderer(container, opts = {}) {
     // recursive: units/cities are asset groups — the hit lands on a child
     const hit = raycaster.intersectObjects(targets, true)[0];
     if (!hit) return null;
-    if (terrain && hit.object === terrain.mesh) {
+    // The terrain is ONE mesh at low/high but a GROUP of per-terrain buckets
+    // at medium (G2) — the recursive hit lands on a CHILD there, so identity
+    // against terrain.mesh must walk parents. Comparing === alone made every
+    // hover/tap on open terrain return null at medium (user playtest find,
+    // 2026-08-15: no hover arrows at medium, fine at low).
+    let isTerrainHit = false;
+    for (let o = hit.object; o; o = o.parent) {
+      if (terrain && o === terrain.mesh) { isTerrainHit = true; break; }
+    }
+    if (isTerrainHit) {
       // continuous surface: the hit point IS the tile (tiles centered on ints)
       const x = Math.min(view.map.width - 1, Math.max(0, Math.round(hit.point.x)));
       const y = Math.min(view.map.height - 1, Math.max(0, Math.round(hit.point.z)));

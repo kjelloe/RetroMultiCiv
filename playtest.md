@@ -18,6 +18,8 @@ get recorded in `specs/graphics-levels.md` §6._
 | Device | Auto-detected tier (setup hint) | Tier played | Feels smooth? | Terrain "reads at a glance"? | Notes |
 |---|---|---|---|---|---|
 | gaming PC 1440p | | high | | | |
+| Dell Latitude (UHD 600) | medium | medium | ~48 fps | | hover-pick bug found + fixed (marker-0124) |
+| Dell Latitude (UHD 600) | medium | low | ~58 fps | | |
 | work laptop (Iris Xe) | | medium | | | |
 | phone | | low | | | |
 | ... | | | | | |

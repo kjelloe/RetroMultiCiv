@@ -512,6 +512,22 @@ All seven items landed same-day:
    GPU probe (not user-agent) already resolves 'auto' and fills the setup
    hint — no header sniffing needed or wanted.
 
+### Playtest findings (user, 2026-08-15 — Dell Latitude, Intel UHD 600)
+
+- **Measured fps:** medium ≈ 48, low ≈ 58 (browser FPS meter). The probe
+  auto-detects Intel → medium; ~48 fps on a UHD 600 — the weakest Intel
+  tier — is acceptable, and Low remains one ⚙ click away.
+- **BUG found by play, fixed same day (marker-0124):** hover arrows /
+  terrain picks dead at MEDIUM only. `castAt` raycasts recursively but
+  tested `hit.object === terrain.mesh` — one mesh at low/high, a GROUP of
+  per-terrain buckets at medium (G2), so every open-terrain hover or tap
+  resolved null since G2 landed. No spec clicked terrain at medium; CI's
+  playthrough runs at low (SwiftShader auto-detect). Fixed with a parent
+  walk; guarded by the graphics spec's "group-pick guard" test, proven
+  red-on-revert. **Lesson: a tier that changes SCENE STRUCTURE (mesh →
+  group) must re-run every code path that does identity tests against
+  scene objects — picking, not just rendering.**
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
