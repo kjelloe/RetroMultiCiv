@@ -211,7 +211,10 @@ export function createUnitMesh(unitType, colorOrVisual, status, level = 'low') {
   // H1: the authored (recipes-high) bodies ARE the medium bar; H4: high
   // prefers the MODEL-grade table, falling back per silhouette so the tier
   // lands batch by batch (absent model body → the medium body).
-  const bodyOf = name => (level === 'high' && MODEL_UNIT_RECIPES[name]) ? MODEL_UNIT_RECIPES[name]
+  // H11 (user ruling 2026-08-14): the MODEL bodies (R15 figures + period
+  // helmets) are promoted to MEDIUM too — recipes-high remains the fallback
+  // layer for anything the model table ever lacks.
+  const bodyOf = name => ((level === 'medium' || level === 'high') && MODEL_UNIT_RECIPES[name]) ? MODEL_UNIT_RECIPES[name]
     : ((level === 'medium' || level === 'high') && HIGH_UNIT_RECIPES[name]) ? HIGH_UNIT_RECIPES[name]
     : UNIT_RECIPES[name];
   baseToken(group, visual, status, chrome.naval ? 0.02 : 0.035);
@@ -310,6 +313,73 @@ const HIGH_ERA_GEO = {
 };
 // per-band: which of the H9 roof styles are allowed (0 era / 1 tile /
 // 2 shingle / 3 logs), whether panes glow, and the band's street kit
+// H11: WONDER LANDMARKS — six iconic wonders render as structures on the
+// owning city at high (view.wonders is world news, so this is fog-honest).
+// Fixed anchor per wonder id; primitives only, faction-neutral materials.
+const BRONZE_MAT = new THREE.MeshLambertMaterial({ color: 0xa07437 });
+const MARBLE_MAT = new THREE.MeshLambertMaterial({ color: 0xd8d2c4 });
+const SANDSTONE_MAT = new THREE.MeshLambertMaterial({ color: 0xd4b878 });
+const WONDER_GEO = {
+  pyr: new THREE.ConeGeometry(0.07, 0.11, 4),
+  wallSeg2: new THREE.BoxGeometry(0.11, 0.05, 0.022),
+  colTorso: new THREE.BoxGeometry(0.036, 0.06, 0.026),
+  colLimb: new THREE.CylinderGeometry(0.007, 0.009, 0.05, 8),
+  colHead: new THREE.SphereGeometry(0.016, 10, 8),
+  ltHouse: new THREE.CylinderGeometry(0.02, 0.028, 0.16, 12),
+  ltHead: new THREE.SphereGeometry(0.016, 10, 8),
+  terrace: new THREE.BoxGeometry(0.11, 0.028, 0.11),
+  shrub: new THREE.SphereGeometry(0.018, 8, 6),
+  column: new THREE.CylinderGeometry(0.006, 0.007, 0.055, 8),
+  slab: new THREE.BoxGeometry(0.1, 0.01, 0.07),
+  pediment: new THREE.ConeGeometry(0.055, 0.03, 4)
+};
+// Anchors are ALL on the south/east/west rim — the camera-facing lesson
+// (H8b): a landmark hidden behind the ring is a landmark that doesn't exist.
+function addWonderLandmarks(group, wonderIds) {
+  for (const wid of wonderIds) {
+    if (wid === 'pyramids') { // a staggered trio in sandstone
+      add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.32, 0.055, 0.28).rotation.y = Math.PI / 4;
+      const p2 = add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.4, 0.038, 0.2); p2.scale.setScalar(0.7); p2.rotation.y = Math.PI / 4;
+      const p3 = add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.26, 0.028, 0.36); p3.scale.setScalar(0.5); p3.rotation.y = Math.PI / 4;
+    } else if (wid === 'great-wall') { // a crenellated arc with two towers
+      for (const [wx2, wz2, ry] of [[-0.06, 0.44, -0.25], [0.06, 0.42, 0.15], [0.17, 0.38, 0.5]]) {
+        add(group, WONDER_GEO.wallSeg2, ERA_MAT.stone, wx2, 0.028, wz2).rotation.y = ry;
+      }
+      add(group, HIGH_GEO.wallTower, ERA_MAT.stone, -0.12, 0.045, 0.44);
+      add(group, HIGH_GEO.towerCap, NEUTRAL.wood, -0.12, 0.1, 0.44);
+      add(group, HIGH_GEO.wallTower, ERA_MAT.stone, 0.22, 0.045, 0.35);
+      add(group, HIGH_GEO.towerCap, NEUTRAL.wood, 0.22, 0.1, 0.35);
+    } else if (wid === 'colossus') { // the bronze giant, torch arm raised
+      add(group, WONDER_GEO.slab, MARBLE_MAT, 0.38, 0.008, 0.16).scale.set(0.6, 1.6, 0.8);
+      add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.37, 0.045, 0.15);
+      add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.39, 0.045, 0.17);
+      add(group, WONDER_GEO.colTorso, BRONZE_MAT, 0.38, 0.1, 0.16);
+      add(group, WONDER_GEO.colHead, BRONZE_MAT, 0.38, 0.15, 0.16);
+      const arm = add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.4, 0.145, 0.18);
+      arm.rotation.z = -0.6;
+      add(group, HIGH_ERA_GEO.lampHead, LAMP_MAT, 0.425, 0.175, 0.195);
+    } else if (wid === 'lighthouse') { // the white tower with the light
+      add(group, WONDER_GEO.ltHouse, MARBLE_MAT, -0.42, 0.08, 0.1);
+      add(group, HIGH_GEO.window, STACK_MAT, -0.42, 0.1, 0.125).scale.set(1.2, 1.2, 1.2);
+      add(group, WONDER_GEO.ltHead, LAMP_MAT, -0.42, 0.175, 0.1);
+      add(group, HIGH_GEO.towerCap, ERA_MAT.tile, -0.42, 0.2, 0.1);
+    } else if (wid === 'hanging-gardens') { // green terraces
+      add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.014, 0.02);
+      const t2 = add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.042, 0.02); t2.scale.setScalar(0.72);
+      const t3 = add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.068, 0.02); t3.scale.setScalar(0.48);
+      for (const [gx, gz, gy] of [[0.37, -0.02, 0.035], [0.47, 0.06, 0.035], [0.39, 0.07, 0.062], [0.45, -0.03, 0.062], [0.42, 0.02, 0.088]]) {
+        add(group, WONDER_GEO.shrub, matFor('#3f8f43'), gx, gy, gz);
+      }
+    } else if (wid === 'oracle') { // the columned shrine
+      add(group, WONDER_GEO.slab, MARBLE_MAT, -0.18, 0.006, 0.42);
+      for (const [cx2, cz2] of [[-0.22, 0.39], [-0.14, 0.39], [-0.22, 0.45], [-0.14, 0.45]]) {
+        add(group, WONDER_GEO.column, MARBLE_MAT, cx2, 0.035, cz2);
+      }
+      add(group, WONDER_GEO.slab, MARBLE_MAT, -0.18, 0.065, 0.42).scale.set(0.9, 0.8, 0.9);
+      add(group, WONDER_GEO.pediment, MARBLE_MAT, -0.18, 0.085, 0.42).rotation.y = Math.PI / 4;
+    }
+  }
+}
 const HIGH_ERA_KIT = {
   ancient:           { roofs: [0, 3, 0, 3], lit: false, lamps: false, well: true },
   classicalMedieval: { roofs: [0, 1, 2, 3], lit: false, lamps: false, well: false },
@@ -352,7 +422,7 @@ function addEraSignature(group, style, tier, tierIndex, isCapital) {
 
 // level (G4): high densifies the house ring +30% — same tier ladder, same era
 // styles, just a fuller settlement; low/medium build exactly the shipped count.
-export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 'low') {
+export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 'low', wonderIds = []) {
   const group = new THREE.Group();
   const visual = resolveVisual(colorOrVisual);
   const baseTier = cityTierFor(city.pop);
@@ -513,6 +583,18 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
   // H10: the ancient WELL (a non-capital village's center) and the
   // modernSpace capital's LANDING PAD at the city edge
   if (level === 'high' && kit) {
+    // H11: the owning city's wonder landmarks (view.wonders = world news)
+    if (wonderIds.length) addWonderLandmarks(group, wonderIds);
+    // H11: three classical banner poles around the ring (user: "add 3")
+    if (band === 'classicalMedieval') {
+      for (const ang of [0.8, 2.9, 5.0]) {
+        const bx = Math.cos(ang) * 0.44, bz = Math.sin(ang) * 0.44;
+        const pole = add(group, GEO.pole, NEUTRAL.wood, bx, 0.24, bz);
+        pole.scale.set(0.7, 0.7, 0.7);
+        const fl = add(group, GEO.flag, flagMatFor(visual.primary), bx + 0.05, 0.42, bz);
+        fl.scale.set(0.55, 0.55, 1);
+      }
+    }
     if (kit.well && !isCapital) {
       add(group, HIGH_ERA_GEO.wellRing, ERA_MAT.stone, 0.1, 0.02, -0.08);
       add(group, HIGH_ERA_GEO.wellPost, NEUTRAL.wood, 0.065, 0.05, -0.08);

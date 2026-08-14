@@ -207,7 +207,7 @@ export function createRenderer(container, opts = {}) {
     setShadowFlags(terrain.mesh, false, gfxLevel === 'high');
     worldGroup.add(terrain.mesh);
     if (water) { worldGroup.remove(water.mesh); water.dispose(); }
-    water = buildWater(view.map);
+    water = buildWater(view.map, gfxLevel); // H11: high gets the wave/shimmer sheet
     worldGroup.add(water.mesh);
     // roads draw segments toward neighbors; city tiles count as connections
     const joins = {};
@@ -381,7 +381,12 @@ export function createRenderer(container, opts = {}) {
       // era band comes from the annotated view's side map (never off the city
       // object — that would alias into real state); ancient when absent
       const eraBand = (view.cityEraBands || {})[city.id];
-      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand, gfxLevel); // base at y = 0
+      // H11: this city's wonders (view.wonders is world news — fog-honest)
+      const wonderIds = [];
+      for (const wid of Object.keys(view.wonders || {})) {
+        if (view.wonders[wid] === city.id) wonderIds.push(wid);
+      }
+      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand, gfxLevel, wonderIds); // base at y = 0
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
       mesh.userData.cityId = city.id;
       setShadowFlags(mesh, gfxLevel === 'high', false);

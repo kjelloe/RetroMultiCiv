@@ -245,6 +245,19 @@ try {
   rendererPref = o.renderer || 'auto';
   graphicsPref = o.graphics || 'auto';
 } catch (e) { /* */ }
+// H11: ?gfx=low|medium|high|auto — links can pre-select the tier (a shared
+// "come play, it runs on your phone" link says gfx=low). Applied AND
+// persisted (the link expressed intent); the boot canonicalization then
+// drops the param, so it never lingers in the address bar.
+const gfxParam = params.get('gfx');
+if (gfxParam === 'low' || gfxParam === 'medium' || gfxParam === 'high' || gfxParam === 'auto') {
+  graphicsPref = gfxParam;
+  try {
+    const o = JSON.parse(localStorage.getItem('retromulticiv-options') || '{}');
+    o.graphics = gfxParam;
+    localStorage.setItem('retromulticiv-options', JSON.stringify(o));
+  } catch (e) { /* private mode */ }
+}
 // G1 graphics level (specs/graphics-levels.md): 'auto' resolves through the GPU
 // probe; an explicit pick wins. The resolver runs again on every ⚙ change (the
 // watch below), so this is only the boot value.

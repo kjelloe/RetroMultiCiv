@@ -442,25 +442,61 @@ function bandTexture() {
   return bandTex;
 }
 
-export function buildWater(map) {
-  const geometry = new THREE.PlaneGeometry(map.width, map.height);
+export function buildWater(map, level = 'low') {
+  // H11 (spec §4b): HIGH water is richer — a segmented sheet with gentle
+  // render-time waves plus a counter-drifting shimmer layer above the base
+  // bands. Low/medium keep the exact shipped plane (byte-stable).
+  const smooth = level === 'high';
+  const segX = smooth ? Math.min(64, map.width * 2) : 1;
+  const segZ = smooth ? Math.min(40, map.height * 2) : 1;
+  const geometry = new THREE.PlaneGeometry(map.width, map.height, segX, segZ);
   const tex = bandTexture();
   tex.repeat.set(map.width / 6, map.height / 6);
   const material = new THREE.MeshPhongMaterial({
     color: 0x3d84b8, map: tex, transparent: true, opacity: 0.45,
-    shininess: 35 // the ally's number — a gentle specular glint, WebGL1-safe
+    shininess: smooth ? 55 : 35 // the ally's number at low/med; a touch glossier smooth
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.rotation.x = -Math.PI / 2;
   mesh.position.set((map.width - 1) / 2, WATER_LEVEL, (map.height - 1) / 2);
+  const parent = new THREE.Group();
+  parent.add(mesh);
+  let shimmerTex = null, shimmer = null, shimGeo = null, shimMat = null;
+  if (smooth) {
+    shimmerTex = bandTexture().clone();
+    shimmerTex.needsUpdate = true;
+    shimmerTex.wrapS = shimmerTex.wrapT = THREE.RepeatWrapping;
+    shimmerTex.repeat.set(map.width / 3.2, map.height / 3.2); // finer sparkle
+    shimGeo = new THREE.PlaneGeometry(map.width, map.height);
+    shimMat = new THREE.MeshBasicMaterial({
+      map: shimmerTex, transparent: true, opacity: 0.1, depthWrite: false
+    });
+    shimmer = new THREE.Mesh(shimGeo, shimMat);
+    shimmer.rotation.x = -Math.PI / 2;
+    shimmer.position.set((map.width - 1) / 2, WATER_LEVEL + 0.004, (map.height - 1) / 2);
+    parent.add(shimmer);
+  }
+  const pos = smooth ? geometry.attributes.position : null;
+  const baseXY = smooth ? Float32Array.from(pos.array) : null;
   return {
-    mesh,
+    mesh: parent,
     tick(timeMs) { // render-time wave drift (never simulation state)
       tex.offset.set((timeMs * 0.000012) % 1, (timeMs * 0.000007) % 1);
+      if (!smooth) return;
+      shimmerTex.offset.set(1 - (timeMs * 0.000019) % 1, (timeMs * 0.000011) % 1); // counter-drift
+      const t = timeMs * 0.0011;
+      const arr = pos.array;
+      for (let i = 0; i < arr.length; i += 3) {
+        const wx2 = baseXY[i], wy2 = baseXY[i + 1];
+        arr[i + 2] = Math.sin(wx2 * 1.7 + t) * 0.006 + Math.cos(wy2 * 2.3 + t * 0.8) * 0.005;
+      }
+      pos.needsUpdate = true;
+      geometry.computeVertexNormals(); // the glint rides the moving normals
     },
     dispose() {
       geometry.dispose();
       material.dispose();
+      if (shimGeo) { shimGeo.dispose(); shimMat.dispose(); }
     }
   };
 }

@@ -155,7 +155,12 @@
 
     const view = {
       map: { width: W, height: H, wrapX: false, tiles },
-      units, cities, players
+      units, cities, players,
+      // H11: wonder landmarks on the row-7 tier cities (high renders them)
+      wonders: {
+        pyramids: 'c2', 'great-wall': 'c2', colossus: 'c3',
+        lighthouse: 'c3', 'hanging-gardens': 'c4', oracle: 'c4'
+      }
     };
 
     const q = new URLSearchParams(location.search);

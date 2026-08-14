@@ -26,6 +26,7 @@ export function hasSeenOnboarding(screen) { return readSeen()[screen] === true; 
 export const REGENCY_HELP = "AI regency — the AI plays your turns while you're away; click to hand over / take back";
 const SETUP_ARROWS = [
   { sel: '#setup-start', label: 'Start your game here', big: true },
+  { sel: '#setup-graphics', label: 'Pick your graphics level — Low runs anywhere, High wants a real GPU', big: false }, // H11: first-visit pointer to the tier choice
   { sel: '#rejoin-banner', label: 'Or resume a game you left', big: false },
   { sel: '#setup-host', label: 'Host a LAN game', big: false },
   { sel: '#setup-find', label: 'Find a public game', big: false },

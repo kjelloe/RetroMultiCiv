@@ -474,6 +474,31 @@ Deferred from the plan: classical banner poles (the city already flies a
 banner; add on demand). Intensity USER-CONFIRMED 2026-08-14: **A full
 kit** (the in-tree recommendation; `h10-eras-a/b/c.png`).
 
+### H11 — the follow-up batch (user rulings 2026-08-14, fourth pass)
+
+All seven items landed same-day:
+1. **R15 + period helmets PROMOTED TO MEDIUM** — bodyOf prefers the model
+   table at medium and high; recipes-high stays as the fallback layer.
+2. **Wonder landmarks** (high): six iconic wonders render on the owning
+   city — pyramids trio, crenellated great-wall arc with towers, bronze
+   colossus with torch, white lighthouse with lamp, terraced hanging
+   gardens, columned oracle. `view.wonders` is world news → fog-honest.
+   All anchors on the SOUTH/EAST/WEST rim (the H8b camera-facing lesson —
+   the first draft hid them behind the ring and the review shot caught it).
+3. **Three classical banner poles** around the ring, faction-primary flags.
+4. **Richer High water**: segmented sheet with gentle render-time waves
+   (computeVertexNormals per tick — the glint moves), a counter-drifting
+   finer shimmer layer, slightly glossier specular. Low/medium keep the
+   exact shipped plane; reduce-animation freezes it all as before.
+5. **playtest.md** at the repo root — the user's device-matrix checklist +
+   the 1440p fps procedure; results land back in §6 here.
+6. **First-visit onboarding arrow** points at the setup Graphics picker
+   (one-time per browser; re-showable via ⚙ → controls guide).
+7. **`?gfx=low|medium|high|auto` link param** — applied AND persisted at
+   boot, then dropped by the URL canonicalization. Auto-detect note: the
+   GPU probe (not user-agent) already resolves 'auto' and fills the setup
+   hint — no header sniffing needed or wanted.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
