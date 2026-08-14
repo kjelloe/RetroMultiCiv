@@ -39,7 +39,10 @@ the arc's acceptance criterion.
 ## 4. New affordances to sanity-check (shipped in the H11 batch)
 
 - **First visit** (fresh browser / incognito): the setup screen's arrow
-  overlay now includes one pointing at the Graphics level picker.
+  overlay includes one pointing at the Graphics level picker — and the
+  arrows now FOLLOW THE SCROLL (fixed 2026-08-15 from your laptop report:
+  on short screens, below-fold buttons get their arrows as you scroll to
+  them; before, only the visible ones ever drew).
 - **Link pre-selection:** `?gfx=low` / `?gfx=medium` / `?gfx=high` on any
   game URL pre-selects and persists the tier (then vanishes from the URL).
   Try `…/client/?gfx=low` on a phone.

@@ -499,6 +499,14 @@ All seven items landed same-day:
    the 1440p fps procedure; results land back in §6 here.
 6. **First-visit onboarding arrow** points at the setup Graphics picker
    (one-time per browser; re-showable via ⚙ → controls guide).
+   **H11b fix (user's laptop report 2026-08-15):** the setup card scrolls,
+   and the overlay only drew arrows for targets visible at show-time — on
+   short screens that degraded to the graphics arrow ALONE (it reads as
+   "replaced the other hints"). The overlay now re-renders on scroll
+   (capture phase — the inner panel's events), so every button gains its
+   arrow as it scrolls into view; a centre-screen target also gets a
+   default approach angle instead of a degenerate zero-length arrow.
+   Reproduced + verified at 1366×728: 3 arrows before, all 5 after.
 7. **`?gfx=low|medium|high|auto` link param** — applied AND persisted at
    boot, then dropped by the URL canonicalization. Auto-detect note: the
    GPU probe (not user-agent) already resolves 'auto' and fills the setup
