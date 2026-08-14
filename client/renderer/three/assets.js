@@ -283,6 +283,13 @@ const HIGH_GEO = {
   acBox: new THREE.BoxGeometry(0.05, 0.02, 0.05)      // modern rooftop unit
 };
 const WINDOW_MAT = new THREE.MeshLambertMaterial({ color: 0x1c2230 });
+// H9b (user ruling 2026-08-14): roof-STYLE variation on the peaked eras —
+// per-house deterministic pick between the era's default, terracotta TILE
+// (with a ridge cap), grey-green SHINGLE, and WOODEN LOGS (with two plank
+// lines). Industrial/modern keep their flat/slab roofs.
+const ROOF_TILE_MAT = new THREE.MeshLambertMaterial({ color: 0xa1543a });
+const ROOF_SHINGLE_MAT = new THREE.MeshLambertMaterial({ color: 0x74806e });
+const ROOF_LOG_MAT = new THREE.MeshLambertMaterial({ color: 0x6b4a2a });
 const DOOR_MAT = new THREE.MeshLambertMaterial({ color: 0x2e2418 });
 
 // The band's signature central structure. CITY_TIERS gates the tower to upper
@@ -368,9 +375,24 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
       const hh = twoStorey ? h * 1.45 : h; // the storey grows the body
       if (twoStorey) { base.scale.set(w, hh, w); base.position.y = hh / 2; }
       if (peaked) {
-        const roof = add(group, HIGH_GEO.gable, roofMat, x, hh + hh * 0.28, z);
+        // H9b: roof style rotates per house — era default / tile / shingle / logs
+        const styleIdx = i % 4;
+        const roofPick = styleIdx === 1 ? ROOF_TILE_MAT : styleIdx === 2 ? ROOF_SHINGLE_MAT : styleIdx === 3 ? ROOF_LOG_MAT : roofMat;
+        const roof = add(group, HIGH_GEO.gable, roofPick, x, hh + hh * 0.28, z);
         roof.scale.set(w * 1.05, hh * 0.62, w * 0.72);
         roof.rotation.y = facing + Math.PI / 4; // cone seg-4 diagonal → ridge along the footprint
+        if (styleIdx === 1) { // tile: a ridge cap along the peak
+          const cap = add(group, HIGH_GEO.window, ROOF_LOG_MAT, x, hh + hh * 0.56, z);
+          cap.rotation.y = facing + Math.PI / 2;
+          cap.scale.set(1.1, 0.5, w * 68);
+        } else if (styleIdx === 3) { // logs: two plank lines across the slope
+          for (const t of [0.36, 0.46]) {
+            const plank = add(group, HIGH_GEO.window, ROOF_TILE_MAT,
+              x + Math.cos(facing) * w * 0.32, hh + hh * t, z + Math.sin(facing) * w * 0.32);
+            plank.rotation.y = facing + Math.PI / 2;
+            plank.scale.set(0.7, 0.35, w * 52);
+          }
+        }
         const ch = add(group, HIGH_GEO.chimney, STACK_MAT, x + Math.cos(facing + 2.2) * w * 0.28, hh + hh * 0.5, z + Math.sin(facing + 2.2) * w * 0.28);
         ch.scale.setScalar(tier.scale);
         if (outer) { // H8: gable trim under the eave on the street face

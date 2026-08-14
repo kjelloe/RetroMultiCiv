@@ -418,6 +418,46 @@ battery 22/22, graphics spec 3/3.
   detail that doesn't exist.
 Verified same set: low byte-identical, battery 22/22, spec 3/3.
 
+**H9a+H9b (user review 2026-08-14, third pass — helmets.png reference):**
+- **Period helmets per unit type** (all High, recipes-model): militia/legion
+  = NASAL HELM (conical dome, riveted brow band, nose bar, reduced faction
+  crest); phalanx = BARBUTE (low dome, dark T-slit — the hoplite helmet);
+  knights = true GREAT HELM (flat-topped cylinder, eye slit, breath line,
+  plume); cavalry/chariot rider = KETTLE HAT (wide riveted brim); musketeers
+  = MORION (boat brim with upswept points, dome, tall comb, plume);
+  riflemen keep the brimmed steel helmet (already period-true). Reference
+  image kept at `debugging/helmets.png`.
+- **Roof-style variation** on peaked eras: per-house deterministic pick —
+  era default / terracotta TILE with ridge cap / grey-green SHINGLE /
+  WOODEN LOGS with plank lines. Pick USER-CONFIRMED 2026-08-14: **A balanced
+  mix** (the in-tree recommendation; `h9-roofs-a/b/c.png`).
+
+### H10 — PLANNED (user request 2026-08-14): cities that age with the eras
+
+_Plan only — build on go. Foundation exists: `shared/city-era.js` already
+bands every city ancient → classicalMedieval → industrial → modernSpace
+from the owner's most-advanced tech era, render-only and fog-honest, and
+CITY_ERA_STYLES already swaps body/roof materials + the signature
+structure. H10 deepens each band AT HIGH:_
+
+1. **Ancient:** mud-brick bodies, thatch + log roofs only, a WELL or
+   granary as the center prop, packed-earth ground ring.
+2. **Classical/Medieval:** timber-frame and stone walls; tile + shingle
+   enter the roof mix; banner poles; the keep signature and rampart walls
+   as today.
+3. **Industrial:** brick rows, flat tar roofs, per-house smokestacks (as
+   today) + STREET LAMPS along the outer ring, a warehouse block, sootier
+   palette; window panes switch to a LIT material (evening-window read).
+4. **Modern/Space:** glass slabs, rooftop units + antennas + solar panels;
+   lit panes; once the owner reaches the space era, the capital gains a
+   small LANDING PAD / dome signature.
+
+Implementation shape: a per-band HIGH kit table beside CITY_ERA_STYLES
+(roof set, body materials, street props, signature extras) — the band id
+already reaches createCityMesh, so no engine/state/protocol change and
+fog-honesty is inherited. Each band gets the 3-variant gate. Estimate 2–3
+sessions; browser-only (Roblox mirrors low). NOT STARTED — awaiting go.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
