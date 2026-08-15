@@ -77,12 +77,15 @@
     <div><strong>A1. Review the tier sheet</strong> — <code>debugging/gallery-tiers-comparison.png</code>:
     Low (classic, unchanged) / Medium (dense faceted + crafted units) / High (smooth
     Transport-World terrain, model-grade units+cities, shadows). All 9 art picks were yours.</div></div>
+  <div class="item"><span class="box" style="border-color: var(--play); background: var(--play);"></span>
+    <div style="text-decoration: line-through; opacity: .75;"><strong>A2. Merge marker-0129 to main and redeploy</strong> —
+    DONE 2026-08-15 (user). Effectively <strong>v1.0.2</strong> — say the word for release notes.</div></div>
   <div class="item"><span class="box"></span>
-    <div><strong>A2. Merge marker-0129 to main and redeploy</strong> —
-    <code>git fetch origin --tags && git checkout main && git merge marker-0129 && git push</code>,
-    then <code>./ssh-deploy.sh</code>. Client-only vs v1.0.1; the re-recorded visual goldens
-    ride it, so the nightly on main goes green. Effectively <strong>v1.0.2</strong> —
-    say the word for release notes.</div></div>
+    <div><strong>A2b. Merge marker-0130 when declared</strong> — the canonical-floors CI repair
+    (the nightly's floor-enforcement job has been killed at its 45-min budget every night since
+    ~2026-08-09; fixed measured at 150 min) + the H13b road-city regression guard. Workflow+test
+    only; until it reaches main, the scheduled nightly's canonical-floors job keeps dying at the
+    wire.</div></div>
   <div class="item"><span class="box"></span>
     <div><strong>A3. Playtest pass — follow <code>./playtest.md</code></strong> — the 1440p fps
     number, the multi-device matrix, and the new affordances (first-visit arrow,

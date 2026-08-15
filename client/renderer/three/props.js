@@ -357,6 +357,18 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             x, y, top: seg.top, dim, color, rotY: d.rot, rotZ: seg.rotZ, dy: 0.03,
             dx: d.dx * 0.25, dz: d.dy * 0.25, sx: df * (staged ? RS.len : 1), sz: staged && !isRail ? RS.w : 1
           });
+          if (staged && !isRail && RS.dash) {
+            // medium gets the stage markings too (user 2026-08-15) — one dash
+            // per half-segment (high's conforming ribbon carries three);
+            // LOW stays dashless, the byte-frozen classic
+            const rows = roadStage === 4 ? [-0.03, 0.03] : [0]; // highway: twin rows
+            for (const off of rows) {
+              items.roadDash.push({
+                x, y, top: seg.top, dim, color: 0xe8e8e8, rotY: d.rot, rotZ: seg.rotZ, dy: 0.041,
+                dx: d.dx * 0.25 - Math.sin(d.rot) * off, dz: d.dy * 0.25 - Math.cos(d.rot) * off, sx: df
+              });
+            }
+          }
           if (isRail && staged) { // medium: twin rails on the single segment
             const tracks = roadStage >= 3 ? [-0.062, -0.018, 0.018, 0.062] : [-0.022, 0.022];
             for (const off of tracks) {

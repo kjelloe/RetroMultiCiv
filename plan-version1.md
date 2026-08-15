@@ -8,7 +8,11 @@ Companion added 2026-08-05: **`plan-version-1-patch.md`** — the middle tier,
 from a post-release code review: things worth a PATCH, not worth holding a
 release for (alerting, off-host backups, AI nukes, bankruptcy, ai.js size, CI
 branch coverage).
-Last updated: 2026-08-05 — **v1.0.0 SHIPPED 2026-08-04**, and v1.0.1 is prepared.
+Last updated: 2026-08-15 — **v1.0.2 in effect: marker-0129 merged to main and
+deployed by the user** (the graphics ladder G0–H13b: three display tiers, era
+roads, roads-into-cities; client/render-side only, every gamesim golden
+unmoved; release notes on the user's word). Suite 1062 local / 1064 CI.
+--- prior: 2026-08-05 — **v1.0.0 SHIPPED 2026-08-04**, and v1.0.1 is prepared.
 `main` = tag `v1.0.0` = `fecb906` was the release; the box, the GHCR image and
 the Roblox experience all went live from it. **This plan's job is done** — every
 axis is closed and the remaining work is patch-shaped, tracked on

@@ -618,7 +618,10 @@ and the default-frame CI golden, which renders at low).
   length; stage 1 alternates cobble shades at high; stage 4 draws twin
   dash rows on a 1.7× width. Rails at medium+high are twin steel lines
   riding the segments, DOUBLE-tracked with widened cross-ties from
-  stage 3.
+  stage 3. **Medium carries the stage markings too** (user, 2026-08-15
+  follow-up): one dash per half-segment at stages 3–4 (high's conforming
+  ribbon carries three), twin rows on the highway — LOW stays dashless,
+  the byte-frozen classic.
 - **Rebuild wiring**: `viewerRoadStage` rides the map signature
   (`computeMapSig`), so a stage change (new era reached) triggers exactly
   one tile rebuild.

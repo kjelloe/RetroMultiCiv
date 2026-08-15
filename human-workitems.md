@@ -21,11 +21,14 @@ RELEASED and live; everything below is post-release.)_
   High (smooth TW terrain, model-grade units+cities, shadows). All 9 art
   picks along the way were yours; the three H2/H3 picks confirmed the
   landed provisionals.
-- [ ] **A2. Merge marker-0129 to main and redeploy:**
-  `git fetch origin --tags && git checkout main && git merge marker-0129 &&
-  git push`, then `./ssh-deploy.sh`. Client-only vs v1.0.1's engine; the
-  re-recorded visual goldens ride it, so the nightly on main goes green.
-  This is effectively **v1.0.2** — say the word for release notes.
+- [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
+  (user). This is effectively **v1.0.2** — say the word for release notes.
+- [ ] **A2b. Merge marker-0130 when declared** — the canonical-floors CI
+  repair (the nightly's floor-enforcement job has been killed at its
+  45-min budget every night since ~2026-08-09; fixed measured at 150) +
+  the H13b road-city regression guard. Workflow+test only; until it
+  reaches main, the scheduled nightly's canonical-floors job keeps dying
+  at the wire.
 - [ ] **A3. Playtest pass — follow `./playtest.md`** (the 1440p fps number,
   the multi-device matrix, and the new affordances: first-visit arrow,
   `?gfx=` links, live tier switching). Results go to the spec's §6.
