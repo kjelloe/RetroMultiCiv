@@ -14,6 +14,8 @@ test('suggestGraphicsLevel: the GPU-string table', async () => {
     [true, true, 'Google SwiftShader', 'low'],                             // CI / headless software GL
     [true, true, 'ANGLE (Microsoft, Microsoft Basic Render Driver ...)', 'low'],
     [true, true, 'ANGLE (Intel(R) UHD Graphics 620 Direct3D11 vs_5_0)', 'medium'],
+    [true, true, 'ANGLE (Intel(R) UHD Graphics 600 Direct3D11 vs_5_0)', 'low'],   // Gemini Lake: measured ~48fps at medium — starts low
+    [true, true, 'ANGLE (Intel(R) UHD Graphics 615)', 'low'],                     // Amber Lake Y
     [true, true, 'ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x9A49))', 'medium'],
     [false, true, 'ANGLE (Intel(R) HD Graphics Direct3D9Ex vs_3_0)', 'low'], // the D3D9 machine: WebGL1-only
     [true, true, 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Direct3D11)', 'high'],

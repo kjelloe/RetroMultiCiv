@@ -156,10 +156,16 @@
     const view = {
       map: { width: W, height: H, wrapX: false, tiles },
       units, cities, players,
-      // H11: wonder landmarks on the row-7 tier cities (high renders them)
+      // H11/H12: the FULL wonder catalog across the row-7 tier cities
       wonders: {
-        pyramids: 'c2', 'great-wall': 'c2', colossus: 'c3',
-        lighthouse: 'c3', 'hanging-gardens': 'c4', oracle: 'c4'
+        pyramids: 'c2', 'great-wall': 'c2', colossus: 'c2', lighthouse: 'c2',
+        'hanging-gardens': 'c2', oracle: 'c2',
+        'great-library': 'c3', 'copernicus-observatory': 'c3', 'darwin-s-voyage': 'c3',
+        'magellan-s-expedition': 'c3', 'isaac-newton-s-college': 'c3', 'j-s-bach-s-cathedral': 'c3',
+        'michelangelo-s-chapel': 'c4', 'shakespeare-s-theatre': 'c4', 'leonardo-s-workshop': 'c4',
+        'hoover-dam': 'c4', 'women-s-suffrage': 'c4', 'united-nations': 'c4',
+        'manhattan-project': 'c5', 'seti-program': 'c5', 'cure-for-cancer': 'c5',
+        'apollo-program': 'c5'
       }
     };
 

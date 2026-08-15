@@ -512,6 +512,26 @@ All seven items landed same-day:
    GPU probe (not user-agent) already resolves 'auto' and fills the setup
    hint — no header sniffing needed or wanted.
 
+### Playtest findings (user, 2026-08-15 — RTX 4090 + 9900X, High) + H12 batch
+
+- **Measured:** 30–60 fps while playing, 950 MB. A 4090 fluctuating to 30
+  settles it: the dips are CPU-side (full-scene rebuilds + draw calls) —
+  **H12b (delta rebuilds, merged city geometry, instanced bodies) is now
+  the highest-value graphics work remaining.**
+- **BUG (`flying-boulders.png`, local): hills boulders + mountain/hill
+  crystals levitating at High.** Hill/mountain centres are PEAKED, and
+  offset props anchored at the centre height floated over the falling
+  slope; the crystals' faceted-era "raised above the peak" lift compounded
+  it. Fixed: hills rocks and every special-motif prim ground at their OWN
+  offset via `surfaceAt`, and crystals sink to 0.45× lift at high. Third
+  member of the tier-look lesson family.
+- **H12 rulings, all landed:** (1) the FULL 22-wonder landmark set —
+  slot-anchored builders (12 visible-rim slots, sorted-id assignment,
+  outward wrap past 12); every wonder from the Great Library to the Apollo
+  gantry now renders on its owning city. (2) City kits (facades, era
+  kits, ramparts, wonders, banners) PROMOTED TO MEDIUM. (3) UHD 600–617
+  auto-detects LOW (the 48fps ruling); UHD 620+ stays medium.
+
 ### Playtest findings (user, 2026-08-15 — RTX 4070 + 5600X, High)
 
 - **Measured:** ~50 fps typical, dips to 12 at worst; memory peak 593 MB

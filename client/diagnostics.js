@@ -47,6 +47,10 @@ export function suggestGraphicsLevel(diag) {
   const gpu = String(diag.renderer || '');
   // software / translation-layer renderers: the machines Low exists for
   if (/swiftshader|warp|llvmpipe|softpipe|basic render|software|d3d9/i.test(gpu)) return 'low';
+  // Gemini/Amber-Lake-class Intel (UHD 600-617): measured ~48fps at medium
+  // (user's Dell Latitude, 2026-08-15) — start them at low, medium is one
+  // ⚙ click away. UHD 620+ stays medium.
+  if (/UHD Graphics 6[01][0-9]\b/i.test(gpu)) return 'low';
   if (!diag.webgl2) return 'low'; // old stacks: WebGL1-only
   // desktop-class discrete GPUs (and Apple Silicon): High territory
   if (/geforce|rtx|gtx|quadro|radeon (rx|pro|vii)|apple m\d/i.test(gpu)) return 'high';

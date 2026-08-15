@@ -413,13 +413,16 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
           });
         }
       } else if (t.t === 'hills') {
+        // H12 (flying-boulders.png): a hill's centre is PEAKED — anchoring an
+        // offset rock at the centre height floats it over the falling slope.
+        // ground() samples the real surface at the rock's own position.
         const count = 1 + (visualRand(x, y, 2) > 0.55 ? 1 : 0);
         for (let i = 0; i < count; i++) {
+          const dx = (visualRand(x, y, 40 + i) - 0.5) * 0.5;
+          const dz = (visualRand(x, y, 50 + i) - 0.5) * 0.5;
           items.rock.push({
-            x, y, top, dim, color: PROP_COLOR.rock,
-            dx: (visualRand(x, y, 40 + i) - 0.5) * 0.5,
-            dz: (visualRand(x, y, 50 + i) - 0.5) * 0.5,
-            dy: 0.05, sy: 0.6, rotY: visualRand(x, y, 60 + i) * Math.PI
+            x, y, top: ground(x, y, dx, dz, top), dim, color: PROP_COLOR.rock,
+            dx, dz, dy: 0.05, sy: 0.6, rotY: visualRand(x, y, 60 + i) * Math.PI
           });
         }
       } else if (t.t === 'mountains' && level !== 'high') {
@@ -516,8 +519,13 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         const motif = (level === 'high' && SPECIAL_MOTIF_HIGH[t.t]) || SPECIAL_MOTIF[t.t]; // H6 tier-split
         if (motif) {
           for (const m of motif) {
-            items[m.k].push({ x, y, top: base, dim, color: m.color,
-              dx: m.dx || 0, dz: m.dz || 0, dy: m.dy || 0,
+            // H12: each prim grounds at ITS OWN offset (peaked hill/mountain
+            // centres floated offset prims — flying-boulders.png), and the
+            // crystals' faceted-era "raised above the peak" lift sinks at
+            // high, where the smooth summit carries the shape itself.
+            const crystalSink = (level === 'high' && m.k === 'resCrystal') ? 0.45 : 1;
+            items[m.k].push({ x, y, top: ground(x, y, m.dx || 0, m.dz || 0, base), dim, color: m.color,
+              dx: m.dx || 0, dz: m.dz || 0, dy: (m.dy || 0) * crystalSink,
               sx: m.sx, sy: m.sy, sz: m.sz, rotX: m.rotX || 0, rotY: m.rotY || 0, rotZ: m.rotZ || 0 });
           }
         } else { // any terrain without a motif keeps the generic marker

@@ -320,6 +320,14 @@ const BRONZE_MAT = new THREE.MeshLambertMaterial({ color: 0xa07437 });
 const MARBLE_MAT = new THREE.MeshLambertMaterial({ color: 0xd8d2c4 });
 const SANDSTONE_MAT = new THREE.MeshLambertMaterial({ color: 0xd4b878 });
 const WONDER_GEO = {
+  domeHalf: new THREE.SphereGeometry(0.045, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+  dish: new THREE.CylinderGeometry(0.05, 0.012, 0.02, 12),
+  hull2: new THREE.BoxGeometry(0.09, 0.024, 0.036),
+  waterDisc: new THREE.CylinderGeometry(0.075, 0.075, 0.006, 14),
+  rocket: new THREE.CylinderGeometry(0.013, 0.016, 0.09, 10),
+  nose2: new THREE.ConeGeometry(0.013, 0.03, 10),
+  flagTiny: new THREE.BoxGeometry(0.022, 0.014, 0.003),
+  barrel: new THREE.CylinderGeometry(0.035, 0.035, 0.09, 12, 1, false, 0, Math.PI),
   pyr: new THREE.ConeGeometry(0.07, 0.11, 4),
   wallSeg2: new THREE.BoxGeometry(0.11, 0.05, 0.022),
   colTorso: new THREE.BoxGeometry(0.036, 0.06, 0.026),
@@ -333,52 +341,173 @@ const WONDER_GEO = {
   slab: new THREE.BoxGeometry(0.1, 0.01, 0.07),
   pediment: new THREE.ConeGeometry(0.055, 0.03, 4)
 };
-// Anchors are ALL on the south/east/west rim — the camera-facing lesson
-// (H8b): a landmark hidden behind the ring is a landmark that doesn't exist.
-function addWonderLandmarks(group, wonderIds) {
-  for (const wid of wonderIds) {
-    if (wid === 'pyramids') { // a staggered trio in sandstone
-      add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.32, 0.055, 0.28).rotation.y = Math.PI / 4;
-      const p2 = add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.4, 0.038, 0.2); p2.scale.setScalar(0.7); p2.rotation.y = Math.PI / 4;
-      const p3 = add(group, WONDER_GEO.pyr, SANDSTONE_MAT, -0.26, 0.028, 0.36); p3.scale.setScalar(0.5); p3.rotation.y = Math.PI / 4;
-    } else if (wid === 'great-wall') { // a crenellated arc with two towers
-      for (const [wx2, wz2, ry] of [[-0.06, 0.44, -0.25], [0.06, 0.42, 0.15], [0.17, 0.38, 0.5]]) {
-        add(group, WONDER_GEO.wallSeg2, ERA_MAT.stone, wx2, 0.028, wz2).rotation.y = ry;
-      }
-      add(group, HIGH_GEO.wallTower, ERA_MAT.stone, -0.12, 0.045, 0.44);
-      add(group, HIGH_GEO.towerCap, NEUTRAL.wood, -0.12, 0.1, 0.44);
-      add(group, HIGH_GEO.wallTower, ERA_MAT.stone, 0.22, 0.045, 0.35);
-      add(group, HIGH_GEO.towerCap, NEUTRAL.wood, 0.22, 0.1, 0.35);
-    } else if (wid === 'colossus') { // the bronze giant, torch arm raised
-      add(group, WONDER_GEO.slab, MARBLE_MAT, 0.38, 0.008, 0.16).scale.set(0.6, 1.6, 0.8);
-      add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.37, 0.045, 0.15);
-      add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.39, 0.045, 0.17);
-      add(group, WONDER_GEO.colTorso, BRONZE_MAT, 0.38, 0.1, 0.16);
-      add(group, WONDER_GEO.colHead, BRONZE_MAT, 0.38, 0.15, 0.16);
-      const arm = add(group, WONDER_GEO.colLimb, BRONZE_MAT, 0.4, 0.145, 0.18);
-      arm.rotation.z = -0.6;
-      add(group, HIGH_ERA_GEO.lampHead, LAMP_MAT, 0.425, 0.175, 0.195);
-    } else if (wid === 'lighthouse') { // the white tower with the light
-      add(group, WONDER_GEO.ltHouse, MARBLE_MAT, -0.42, 0.08, 0.1);
-      add(group, HIGH_GEO.window, STACK_MAT, -0.42, 0.1, 0.125).scale.set(1.2, 1.2, 1.2);
-      add(group, WONDER_GEO.ltHead, LAMP_MAT, -0.42, 0.175, 0.1);
-      add(group, HIGH_GEO.towerCap, ERA_MAT.tile, -0.42, 0.2, 0.1);
-    } else if (wid === 'hanging-gardens') { // green terraces
-      add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.014, 0.02);
-      const t2 = add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.042, 0.02); t2.scale.setScalar(0.72);
-      const t3 = add(group, WONDER_GEO.terrace, SANDSTONE_MAT, 0.42, 0.068, 0.02); t3.scale.setScalar(0.48);
-      for (const [gx, gz, gy] of [[0.37, -0.02, 0.035], [0.47, 0.06, 0.035], [0.39, 0.07, 0.062], [0.45, -0.03, 0.062], [0.42, 0.02, 0.088]]) {
-        add(group, WONDER_GEO.shrub, matFor('#3f8f43'), gx, gy, gz);
-      }
-    } else if (wid === 'oracle') { // the columned shrine
-      add(group, WONDER_GEO.slab, MARBLE_MAT, -0.18, 0.006, 0.42);
-      for (const [cx2, cz2] of [[-0.22, 0.39], [-0.14, 0.39], [-0.22, 0.45], [-0.14, 0.45]]) {
-        add(group, WONDER_GEO.column, MARBLE_MAT, cx2, 0.035, cz2);
-      }
-      add(group, WONDER_GEO.slab, MARBLE_MAT, -0.18, 0.065, 0.42).scale.set(0.9, 0.8, 0.9);
-      add(group, WONDER_GEO.pediment, MARBLE_MAT, -0.18, 0.085, 0.42).rotation.y = Math.PI / 4;
+// Anchors: 12 SLOTS on the south/east/west rim (the camera-facing lesson);
+// each owned wonder takes the next slot in sorted-id order, wrapping with an
+// outward bump past 12. Every builder draws RELATIVE to its slot base.
+const WONDER_SLOTS = [
+  [-0.36, 0.4], [-0.12, 0.44], [0.12, 0.44], [0.36, 0.4],
+  [-0.44, 0.24], [0.44, 0.24], [-0.46, 0.06], [0.46, 0.06],
+  [-0.42, -0.12], [0.42, -0.12], [-0.24, 0.42], [0.24, 0.42]
+];
+const WONDER_BUILDERS = {
+  pyramids(g, bx, bz) {
+    add(g, WONDER_GEO.pyr, SANDSTONE_MAT, bx, 0.055, bz).rotation.y = Math.PI / 4;
+    const p2 = add(g, WONDER_GEO.pyr, SANDSTONE_MAT, bx - 0.08, 0.038, bz - 0.06); p2.scale.setScalar(0.7); p2.rotation.y = Math.PI / 4;
+    const p3 = add(g, WONDER_GEO.pyr, SANDSTONE_MAT, bx + 0.07, 0.028, bz + 0.05); p3.scale.setScalar(0.5); p3.rotation.y = Math.PI / 4;
+  },
+  'great-wall'(g, bx, bz) {
+    for (const [wx2, wz2, ry] of [[bx - 0.1, bz + 0.02, -0.25], [bx + 0.02, bz, 0.15], [bx + 0.13, bz - 0.04, 0.5]]) {
+      add(g, WONDER_GEO.wallSeg2, ERA_MAT.stone, wx2, 0.028, wz2).rotation.y = ry;
     }
+    add(g, HIGH_GEO.wallTower, ERA_MAT.stone, bx - 0.16, 0.045, bz + 0.02);
+    add(g, HIGH_GEO.towerCap, NEUTRAL.wood, bx - 0.16, 0.1, bz + 0.02);
+    add(g, HIGH_GEO.wallTower, ERA_MAT.stone, bx + 0.18, 0.045, bz - 0.05);
+    add(g, HIGH_GEO.towerCap, NEUTRAL.wood, bx + 0.18, 0.1, bz - 0.05);
+  },
+  colossus(g, bx, bz) {
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.008, bz).scale.set(0.6, 1.6, 0.8);
+    add(g, WONDER_GEO.colLimb, BRONZE_MAT, bx - 0.01, 0.045, bz - 0.01);
+    add(g, WONDER_GEO.colLimb, BRONZE_MAT, bx + 0.01, 0.045, bz + 0.01);
+    add(g, WONDER_GEO.colTorso, BRONZE_MAT, bx, 0.1, bz);
+    add(g, WONDER_GEO.colHead, BRONZE_MAT, bx, 0.15, bz);
+    const arm = add(g, WONDER_GEO.colLimb, BRONZE_MAT, bx + 0.02, 0.145, bz + 0.02);
+    arm.rotation.z = -0.6;
+    add(g, HIGH_ERA_GEO.lampHead, LAMP_MAT, bx + 0.045, 0.175, bz + 0.035);
+  },
+  lighthouse(g, bx, bz) {
+    add(g, WONDER_GEO.ltHouse, MARBLE_MAT, bx, 0.08, bz);
+    add(g, HIGH_GEO.window, STACK_MAT, bx, 0.1, bz + 0.025).scale.set(1.2, 1.2, 1.2);
+    add(g, WONDER_GEO.ltHead, LAMP_MAT, bx, 0.175, bz);
+    add(g, HIGH_GEO.towerCap, ERA_MAT.tile, bx, 0.2, bz);
+  },
+  'hanging-gardens'(g, bx, bz) {
+    add(g, WONDER_GEO.terrace, SANDSTONE_MAT, bx, 0.014, bz);
+    const t2 = add(g, WONDER_GEO.terrace, SANDSTONE_MAT, bx, 0.042, bz); t2.scale.setScalar(0.72);
+    const t3 = add(g, WONDER_GEO.terrace, SANDSTONE_MAT, bx, 0.068, bz); t3.scale.setScalar(0.48);
+    for (const [gx, gz, gy] of [[-0.05, -0.04, 0.035], [0.05, 0.04, 0.035], [-0.03, 0.05, 0.062], [0.03, -0.05, 0.062], [0, 0, 0.088]]) {
+      add(g, WONDER_GEO.shrub, matFor('#3f8f43'), bx + gx, gy, bz + gz);
+    }
+  },
+  oracle(g, bx, bz) {
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.006, bz);
+    for (const [cx2, cz2] of [[-0.04, -0.03], [0.04, -0.03], [-0.04, 0.03], [0.04, 0.03]]) {
+      add(g, WONDER_GEO.column, MARBLE_MAT, bx + cx2, 0.035, bz + cz2);
+    }
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.065, bz).scale.set(0.9, 0.8, 0.9);
+    add(g, WONDER_GEO.pediment, MARBLE_MAT, bx, 0.085, bz).rotation.y = Math.PI / 4;
+  },
+  'great-library'(g, bx, bz) {
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.008, bz).scale.set(1.2, 1.6, 1.2);
+    for (const cx2 of [-0.035, 0, 0.035]) add(g, WONDER_GEO.column, MARBLE_MAT, bx + cx2, 0.045, bz + 0.028);
+    add(g, HIGH_GEO.window, STACK_MAT, bx, 0.05, bz - 0.01).scale.set(3.2, 2.2, 3);
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.078, bz).scale.set(1.05, 0.8, 1.05);
+  },
+  'copernicus-observatory'(g, bx, bz) {
+    add(g, WONDER_GEO.ltHouse, ERA_MAT.stone, bx, 0.06, bz).scale.set(1.3, 0.75, 1.3);
+    add(g, WONDER_GEO.domeHalf, MARBLE_MAT, bx, 0.12, bz);
+    const t = add(g, WONDER_GEO.column, BRONZE_MAT, bx + 0.02, 0.16, bz);
+    t.rotation.z = -0.7; // the telescope
+  },
+  'darwin-s-voyage'(g, bx, bz) {
+    add(g, WONDER_GEO.waterDisc, matFor('#3d84b8'), bx, 0.006, bz);
+    add(g, WONDER_GEO.hull2, NEUTRAL.wood, bx, 0.03, bz);
+    add(g, WONDER_GEO.column, NEUTRAL.wood, bx, 0.07, bz).scale.set(0.8, 1.2, 0.8);
+    add(g, WONDER_GEO.flagTiny, matFor('#e8e0cc'), bx + 0.015, 0.09, bz);
+  },
+  'magellan-s-expedition'(g, bx, bz) {
+    add(g, WONDER_GEO.waterDisc, matFor('#2f6f9f'), bx, 0.006, bz);
+    add(g, WONDER_GEO.hull2, NEUTRAL.wood, bx - 0.01, 0.03, bz).scale.set(1.2, 1, 1.1);
+    add(g, WONDER_GEO.column, NEUTRAL.wood, bx - 0.03, 0.07, bz).scale.set(0.8, 1.2, 0.8);
+    add(g, WONDER_GEO.column, NEUTRAL.wood, bx + 0.02, 0.065, bz).scale.set(0.7, 1, 0.7);
+    add(g, WONDER_GEO.flagTiny, matFor('#d84a3b'), bx - 0.015, 0.09, bz);
+  },
+  'isaac-newton-s-college'(g, bx, bz) {
+    add(g, HIGH_GEO.window, ERA_MAT.brick, bx, 0.035, bz).scale.set(5.5, 2.4, 4);
+    add(g, HIGH_GEO.wallTower, ERA_MAT.brick, bx - 0.05, 0.05, bz).scale.setScalar(0.8);
+    add(g, HIGH_GEO.wallTower, ERA_MAT.brick, bx + 0.05, 0.05, bz).scale.setScalar(0.8);
+    add(g, HIGH_ERA_GEO.wellPost, NEUTRAL.wood, bx + 0.085, 0.035, bz + 0.03);
+    add(g, WONDER_GEO.shrub, matFor('#3f8f43'), bx + 0.085, 0.075, bz + 0.03);
+    add(g, WONDER_GEO.shrub, matFor('#c33'), bx + 0.095, 0.052, bz + 0.038).scale.setScalar(0.3); // the apple
+  },
+  'j-s-bach-s-cathedral'(g, bx, bz) {
+    add(g, HIGH_GEO.window, ERA_MAT.stone, bx, 0.04, bz).scale.set(4.5, 3, 5.5);
+    add(g, HIGH_GEO.gable, ERA_MAT.tile, bx, 0.085, bz).scale.set(0.09, 0.05, 0.062);
+    add(g, PROP_GEO.spire, MARBLE_MAT, bx - 0.035, 0.14, bz).scale.setScalar(0.35);
+    add(g, HIGH_ERA_GEO.lampHead, matFor('#7a5230'), bx + 0.03, 0.07, bz + 0.032); // rose window
+  },
+  'michelangelo-s-chapel'(g, bx, bz) {
+    add(g, HIGH_GEO.window, MARBLE_MAT, bx, 0.035, bz).scale.set(4.5, 2.6, 4.5);
+    const roof = add(g, WONDER_GEO.barrel, ERA_MAT.tile, bx, 0.062, bz);
+    roof.rotation.z = Math.PI / 2; roof.scale.set(0.75, 0.62, 0.75);
+    add(g, WONDER_GEO.domeHalf, MARBLE_MAT, bx, 0.075, bz).scale.setScalar(0.6);
+  },
+  'shakespeare-s-theatre'(g, bx, bz) { // the Globe: an open ring + thatch rim
+    add(g, HIGH_ERA_GEO.wellRing, ERA_MAT.mud, bx, 0.03, bz).scale.set(1.9, 1.6, 1.9);
+    add(g, HIGH_ERA_GEO.wellRing, ERA_MAT.thatch, bx, 0.062, bz).scale.set(2.0, 0.5, 2.0);
+    add(g, WONDER_GEO.slab, NEUTRAL.wood, bx, 0.012, bz).scale.set(0.45, 1, 0.45); // the stage
+  },
+  'leonardo-s-workshop'(g, bx, bz) {
+    add(g, HIGH_GEO.window, ERA_MAT.mud, bx, 0.03, bz).scale.set(4, 2.2, 3.4);
+    add(g, HIGH_GEO.gable, ERA_MAT.tile, bx, 0.062, bz).scale.set(0.075, 0.04, 0.05);
+    add(g, WONDER_GEO.column, NEUTRAL.wood, bx + 0.05, 0.09, bz).scale.set(0.6, 0.9, 0.6);
+    const wing = add(g, HIGH_GEO.window, ERA_MAT.thatch, bx + 0.05, 0.125, bz); // the flying machine
+    wing.scale.set(6, 0.4, 1.6); wing.rotation.z = 0.15;
+  },
+  'hoover-dam'(g, bx, bz) {
+    add(g, WONDER_GEO.waterDisc, matFor('#2f6f9f'), bx, 0.006, bz - 0.045).scale.set(0.9, 1, 0.7);
+    for (const [ox, ry] of [[-0.045, 0.35], [0, 0], [0.045, -0.35]]) {
+      const seg = add(g, WONDER_GEO.wallSeg2, ERA_MAT.concrete, bx + ox, 0.035, bz + 0.01);
+      seg.rotation.y = ry; seg.scale.set(0.55, 1.5, 1.4);
+    }
+  },
+  'women-s-suffrage'(g, bx, bz) { // the banner statue
+    add(g, WONDER_GEO.slab, MARBLE_MAT, bx, 0.008, bz).scale.set(0.55, 1.6, 0.7);
+    add(g, WONDER_GEO.colTorso, BRONZE_MAT, bx, 0.075, bz).scale.setScalar(0.85);
+    add(g, WONDER_GEO.colHead, BRONZE_MAT, bx, 0.12, bz).scale.setScalar(0.85);
+    const arm = add(g, WONDER_GEO.colLimb, BRONZE_MAT, bx + 0.015, 0.115, bz);
+    arm.rotation.z = -1.1;
+    add(g, WONDER_GEO.flagTiny, matFor('#7a4a8a'), bx + 0.045, 0.135, bz).scale.setScalar(1.4);
+  },
+  'united-nations'(g, bx, bz) {
+    add(g, HIGH_GEO.window, ERA_MAT.glass, bx, 0.07, bz).scale.set(1.6, 6.5, 3.6); // the slab tower
+    for (const [i2, c] of [[-1, '#d84a3b'], [0, '#3b7dd8'], [1, '#3f8f43']].map((v, i3) => [v[0], v[1]])) {
+      add(g, HIGH_ERA_GEO.wellPost, NEUTRAL.metal, bx + i2 * 0.028 - 0.0, 0.03, bz + 0.05);
+      add(g, WONDER_GEO.flagTiny, matFor(c), bx + i2 * 0.028 + 0.012, 0.055, bz + 0.05);
+    }
+  },
+  'manhattan-project'(g, bx, bz) {
+    add(g, HIGH_GEO.window, ERA_MAT.concrete, bx, 0.028, bz).scale.set(4.5, 2, 4.5); // the bunker
+    add(g, HIGH_GEO.window, matFor('#e8c020'), bx, 0.05, bz + 0.001).scale.set(4.6, 0.4, 4.6); // warning band
+    add(g, PROP_GEO.smokestack, STACK_MAT, bx + 0.05, 0.07, bz - 0.03).scale.setScalar(0.35);
+  },
+  'seti-program'(g, bx, bz) {
+    add(g, HIGH_GEO.wallTower, ERA_MAT.concrete, bx, 0.04, bz).scale.set(0.8, 0.6, 0.8);
+    const dish = add(g, WONDER_GEO.dish, MARBLE_MAT, bx, 0.085, bz);
+    dish.rotation.z = 0.6; dish.rotation.x = 0.2;
+    add(g, WONDER_GEO.column, NEUTRAL.metal, bx + 0.02, 0.1, bz).scale.set(0.4, 0.5, 0.4);
+  },
+  'cure-for-cancer'(g, bx, bz) {
+    add(g, HIGH_GEO.window, MARBLE_MAT, bx, 0.035, bz).scale.set(4.5, 2.6, 4);
+    add(g, HIGH_GEO.window, matFor('#3f8f43'), bx, 0.045, bz + 0.026).scale.set(0.6, 1.6, 0.5); // the cross
+    add(g, HIGH_GEO.window, matFor('#3f8f43'), bx, 0.045, bz + 0.026).scale.set(1.8, 0.55, 0.5);
+  },
+  'apollo-program'(g, bx, bz) {
+    add(g, WONDER_GEO.slab, ERA_MAT.concrete, bx, 0.006, bz).scale.set(1.1, 1.2, 1.1);
+    add(g, WONDER_GEO.rocket, MARBLE_MAT, bx, 0.055, bz);
+    add(g, WONDER_GEO.nose2, matFor('#d84a3b'), bx, 0.115, bz);
+    add(g, HIGH_GEO.window, STACK_MAT, bx + 0.03, 0.05, bz).scale.set(0.5, 4.2, 0.5); // the gantry
   }
+};
+function addWonderLandmarks(group, wonderIds) {
+  const owned = [...wonderIds].sort();
+  owned.forEach((wid, i) => {
+    const builder = WONDER_BUILDERS[wid];
+    if (!builder) return;
+    const slot = WONDER_SLOTS[i % WONDER_SLOTS.length];
+    const ring = Math.floor(i / WONDER_SLOTS.length); // >12 wonders: bump outward
+    const scale2 = 1 + ring * 0.18;
+    builder(group, slot[0] * scale2, slot[1] * scale2);
+  });
 }
 const HIGH_ERA_KIT = {
   ancient:           { roofs: [0, 3, 0, 3], lit: false, lamps: false, well: true },
@@ -452,7 +581,7 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
     const z = Math.sin(angle) * dist;
     const base = add(group, houseGeo, bodyMat, x, h / 2, z);
     base.scale.set(w, h, w);
-    if (level === 'high') {
+    if (level === 'medium' || level === 'high') { // H12: city kits ride to MEDIUM (user ruling 2026-08-15)
       // H3: the model-grade house — houses FACE the city center (rotate the
       // whole footprint), gable ridge roof for peaked eras, chimney, a lit
       // window pair on the street face, a door on every third house. All
@@ -582,7 +711,7 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
   addEraSignature(group, style, tier, tierIndex, isCapital);
   // H10: the ancient WELL (a non-capital village's center) and the
   // modernSpace capital's LANDING PAD at the city edge
-  if (level === 'high' && kit) {
+  if ((level === 'medium' || level === 'high') && kit) { // H12: medium too
     // H11: the owning city's wonder landmarks (view.wonders = world news)
     if (wonderIds.length) addWonderLandmarks(group, wonderIds);
     // H11: three classical banner poles around the ring (user: "add 3")
@@ -635,7 +764,7 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
     rim.scale.set(0.9, 0.9, 0.5);
   }
   if ((city.buildings || []).indexOf('city-walls') !== -1) {
-    if (level === 'high') {
+    if (level === 'medium' || level === 'high') { // H12: medium too
       // H3: a real rampart — 10 wall segments in a ring with 5 corner towers
       // (capped), replacing the torus marker. Deterministic ring placement.
       for (let i = 0; i < 10; i++) {
