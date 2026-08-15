@@ -215,7 +215,7 @@ export function createRenderer(container, opts = {}) {
         | (e.pollution ? 512 : 0));
     }
     for (const c of Object.values(view.cities || {})) mix(c.y * view.map.width + c.x); // road joins
-    return h + '|' + view.map.width + 'x' + view.map.height + '|' + gfxLevel + '|' + endReveal;
+    return h + '|' + view.map.width + 'x' + view.map.height + '|' + gfxLevel + '|' + endReveal + '|' + (view.viewerRoadStage === undefined ? 3 : view.viewerRoadStage);
   }
   function buildTilesIfChanged() {
     const sig = computeMapSig();
@@ -238,7 +238,9 @@ export function createRenderer(container, opts = {}) {
     for (const city of Object.values(view.cities || {})) {
       joins[city.y * view.map.width + city.x] = true;
     }
-    propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel, terrain.surfaceAt);
+    // H13: unannotated views (gallery/mock) default to stage 3 — the classic look
+    const roadStage = view.viewerRoadStage === undefined ? 3 : view.viewerRoadStage;
+    propMeshes = createTileProps(view.map, tileTop, joins, endReveal, gfxLevel, terrain.surfaceAt, roadStage);
     for (const m of propMeshes) {
       setShadowFlags(m, gfxLevel === 'high', gfxLevel === 'high');
       worldGroup.add(m);

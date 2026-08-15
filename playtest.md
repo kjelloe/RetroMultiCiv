@@ -21,7 +21,7 @@ get recorded in `specs/graphics-levels.md` §6._
 | Dell Latitude (UHD 600) | medium | medium | ~48 fps | | hover-pick bug found + fixed (marker-0124) |
 | Dell Latitude (UHD 600) | medium | low | ~58 fps | | |
 | RTX 4070 + 5600X | high | high | ~50 typical, dips to 12 | | 593 MB max (healthy); peaks-over-peaks bug found + fixed (marker-0125) |
-| RTX 4090 + 9900X | high | high | 30-60 while playing | | 950 MB; CPU-bound confirmed (a 4090 doesn't dip on GPU) — H12b is the fix; flying-boulders bug found + fixed (marker-0126) |
+| RTX 4090 + 9900X | high | high | 40-57 while playing (post-H12b; was 30-60) | | 950 MB; CPU-bound confirmed (a 4090 doesn't dip on GPU) — H12b delta-rebuilds+baking landed, re-playtest 2026-08-15 confirms the dips gone; flying-boulders bug found + fixed (marker-0126) |
 | work laptop (Iris Xe) | | medium | | | |
 | phone | | low | | | |
 | ... | | | | | |

@@ -597,6 +597,39 @@ The 4090's 30–60 fps proved the frame cost is CPU-side. Two halves:
    Parked (only if real play still dips): instanced unit bodies across
    same-type units, merged terrain-prop draw batching.
 
+   **4090 re-playtest (user, 2026-08-15): 40–57 fps while playing** — up
+   from 30–60 with the dips gone; recorded in playtest.md.
+
+### H13 — era-progressive roads + rails (user, 2026-08-15) — DONE
+
+Roads restyle with the VIEWER's era at medium/high; LOW keeps the exact
+classic segments (the byte-frozen contract — proven by the g0-final cmp
+and the default-frame CI golden, which renders at low).
+
+- **The stage function** (`shared/city-era.js roadStageFor`, pure +
+  Roblox-portable): 0 dirt path (ancient) → 1 cobblestone (any
+  renaissance tech) → 2 slim unmarked (any industrial tech) → 3 marked,
+  the classic look (`automobile`) → 4 four-lane highway (`plastics` or
+  `space-flight`). Keyed on the VIEWER's own techs — roads have no owner,
+  so this is fog-honest by construction (`annotateCityEra` stamps
+  `view.viewerRoadStage`; spectators get the max over players; unannotated
+  views — gallery, mock — default to stage 3, the classic look).
+- **The styles** (`props.js` RS table): per-stage color/width/segment
+  length; stage 1 alternates cobble shades at high; stage 4 draws twin
+  dash rows on a 1.7× width. Rails at medium+high are twin steel lines
+  riding the segments, DOUBLE-tracked with widened cross-ties from
+  stage 3.
+- **Rebuild wiring**: `viewerRoadStage` rides the map signature
+  (`computeMapSig`), so a stage change (new era reached) triggers exactly
+  one tile rebuild.
+- **Review surfaces**: `gallery.html?roadstage=0..4` overrides the stage;
+  `?raildemo=1` turns the row-1 road run into rails (the standing rail
+  tile (1,6) hides behind the pop-1 city badge from the fixed camera).
+  Neither param is on by default, so the CI visual golden is untouched.
+  Sheet: `debugging/h13-road-eras.png`.
+- Test: `roadStageFor` table in `test/graphics-level.test.js` (data/techs.json
+  top level IS the id→tech map — no `.techs` wrapper).
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;

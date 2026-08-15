@@ -219,7 +219,7 @@ const ROAD_DIRS = [
 // pure visualRand(x, y, salt) — same field on every client at the same level.
 const SCATTER_PEBBLE = { desert: 0xb5924d, hills: 0x8a7f66, tundra: 0x8f968c, arctic: 0xd8e2e6 };
 
-export function createTileProps(map, tileTop, joins, reveal, level = 'low', surfaceAt) { // reveal (#34 S2): un-dim explored tiles
+export function createTileProps(map, tileTop, joins, reveal, level = 'low', surfaceAt, roadStage = 3) { // reveal (#34 S2): un-dim explored tiles
   // H1 re-tier: medium and high share the G3 scatter density (the user judged
   // the G3 look a MEDIUM); H2 differentiates high again with the smooth pass
   const scatter = (level === 'medium' || level === 'high') ? DETAIL_STYLE.scatterBoost * 1.7 : 0;
@@ -287,43 +287,87 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         items.fieldPatch.push({ x, y, top: ground(x, y, 0.16, -0.2, top), dim, color: PROP_COLOR.fieldPatch, dx: 0.16, dz: -0.2, dy: 0.015, rotY: Math.PI / 4 });
       }
       if (t.road || t.railroad) {
-        // segments toward each connected neighbor; an isolated road is a stub
-        const color = t.railroad ? PROP_COLOR.railroad : PROP_COLOR.road;
+        // H13 (user 2026-08-15): at medium/high, roads restyle with the
+        // VIEWER's era — 0 dirt path / 1 cobblestone / 2 slim unmarked /
+        // 3 marked (the classic look) / 4 four-lane highway — and rails are
+        // twin steel lines, double-tracked from stage 3. LOW keeps the exact
+        // classic segments (byte-frozen contract).
+        const staged = level === 'medium' || level === 'high';
+        const RS = [
+          { color: 0x7a5c38, w: 0.55, len: 0.85, dash: false }, // dirt path
+          { color: 0x8a8578, w: 0.8, len: 1, dash: false },     // cobblestone
+          { color: 0x50505a, w: 0.6, len: 1, dash: false },     // slim unmarked
+          { color: 0x8a6f4d, w: 1, len: 1, dash: true },        // marked (classic)
+          { color: 0x3a3a44, w: 1.7, len: 1, dash: true }       // highway
+        ][roadStage] || { color: 0x8a6f4d, w: 1, len: 1, dash: true };
+        const isRail = t.railroad === true;
+        const color = isRail ? PROP_COLOR.railroad : (staged ? RS.color : PROP_COLOR.road);
         let connected = 0;
         for (const d of ROAD_DIRS) {
           if (!roadAt(x + d.dx, y + d.dy)) continue;
           connected++;
+          const df = d.diag ? 1.42 : 1;
           if (level === 'high') {
             // H2: the connection half is THREE conforming sub-segments (the
-            // ribbon read — each hugs the surface at its own pitch), and roads
-            // (not rails) carry TW centerline dashes
-            const df = d.diag ? 1.42 : 1;
+            // ribbon read); H13 styles width/hue/markings by stage
             for (const c of [0.0833, 0.25, 0.4167]) {
               const sub = laid(x + d.dx * c, y + d.dy * c, d.rot, 0.0833 * df, top);
+              const segColor = staged && roadStage === 1 && !isRail
+                ? (Math.floor(c * 12) % 2 ? 0x938e80 : 0x827d70) : color; // cobble shade alternation
               items.roadSeg.push({
-                x, y, top: sub.top, dim, color, rotY: d.rot, rotZ: sub.rotZ, dy: 0.03,
-                dx: d.dx * c, dz: d.dy * c, sx: 0.36 * df
+                x, y, top: sub.top, dim, color: segColor, rotY: d.rot, rotZ: sub.rotZ, dy: 0.03,
+                dx: d.dx * c, dz: d.dy * c, sx: 0.36 * df * RS.len, sz: isRail ? 0.7 : RS.w
               });
-              if (!t.railroad) {
-                items.roadDash.push({
-                  x, y, top: sub.top, dim, color: 0xe8e8e8, rotY: d.rot, rotZ: sub.rotZ, dy: 0.041,
-                  dx: d.dx * c, dz: d.dy * c, sx: df
-                });
+              if (!isRail && RS.dash) {
+                if (roadStage === 4) { // highway: twin dash rows
+                  for (const off of [-0.03, 0.03]) {
+                    items.roadDash.push({
+                      x, y, top: sub.top, dim, color: 0xe8e8e8, rotY: d.rot, rotZ: sub.rotZ, dy: 0.041,
+                      dx: d.dx * c - Math.sin(d.rot) * off, dz: d.dy * c - Math.cos(d.rot) * off, sx: df
+                    });
+                  }
+                } else {
+                  items.roadDash.push({
+                    x, y, top: sub.top, dim, color: 0xe8e8e8, rotY: d.rot, rotZ: sub.rotZ, dy: 0.041,
+                    dx: d.dx * c, dz: d.dy * c, sx: df
+                  });
+                }
+              }
+              if (isRail && staged) { // twin steel rails ride each sub-segment
+                const tracks = roadStage >= 3 ? [-0.062, -0.018, 0.018, 0.062] : [-0.022, 0.022];
+                for (const off of tracks) {
+                  items.roadSeg.push({
+                    x, y, top: sub.top, dim, color: 0x9aa0a8, rotY: d.rot, rotZ: sub.rotZ, dy: 0.037,
+                    dx: d.dx * c - Math.sin(d.rot) * off, dz: d.dy * c - Math.cos(d.rot) * off,
+                    sx: 0.36 * df, sz: 0.09
+                  });
+                }
               }
             }
           } else {
-          const seg = laid(x + d.dx * 0.25, y + d.dy * 0.25, d.rot, 0.25 * (d.diag ? 1.42 : 1), top);
+          const seg = laid(x + d.dx * 0.25, y + d.dy * 0.25, d.rot, 0.25 * df, top);
           items.roadSeg.push({
             x, y, top: seg.top, dim, color, rotY: d.rot, rotZ: seg.rotZ, dy: 0.03,
-            dx: d.dx * 0.25, dz: d.dy * 0.25, sx: d.diag ? 1.42 : 1
+            dx: d.dx * 0.25, dz: d.dy * 0.25, sx: df * (staged ? RS.len : 1), sz: staged && !isRail ? RS.w : 1
           });
+          if (isRail && staged) { // medium: twin rails on the single segment
+            const tracks = roadStage >= 3 ? [-0.062, -0.018, 0.018, 0.062] : [-0.022, 0.022];
+            for (const off of tracks) {
+              items.roadSeg.push({
+                x, y, top: seg.top, dim, color: 0x9aa0a8, rotY: d.rot, rotZ: seg.rotZ, dy: 0.037,
+                dx: d.dx * 0.25 - Math.sin(d.rot) * off, dz: d.dy * 0.25 - Math.cos(d.rot) * off,
+                sx: df, sz: 0.09
+              });
+            }
           }
-          if (t.railroad) {
+          }
+          if (isRail) {
             // cross-ties along the rail segment (art A1.6b)
             for (const k of [0.14, 0.3]) {
               items.tie.push({
                 x, y, top: ground(x, y, d.dx * k, d.dy * k, top), dim, color: PROP_COLOR.tie, rotY: d.rot, dy: 0.032,
-                dx: d.dx * k, dz: d.dy * k
+                dx: d.dx * k, dz: d.dy * k,
+                sz: staged && roadStage >= 3 ? 1.6 : 1 // double-track ties widen
               });
             }
           }

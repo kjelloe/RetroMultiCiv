@@ -153,9 +153,16 @@
       cities['gc' + bi] = { id: 'gc' + bi, name: 'capital', owner: 'f1', x: col, y: 18, pop: 16, buildings: ['palace'], eraBand: band };
     });
 
+    const qq = new URLSearchParams(location.search);
+    // ?raildemo=1 (H13 review): the standing rail tile (1,6) sits behind the
+    // pop-1 city badge from the fixed camera, so this opt-in turns the row-1
+    // road run (x5–7) into rails for occlusion-free shots. Never on by
+    // default — the default scene is the CI visual golden.
+    if (qq.get('raildemo')) for (const x of [5, 6, 7]) at(x, 1).railroad = true;
     const view = {
       map: { width: W, height: H, wrapX: false, tiles },
       units, cities, players,
+      viewerRoadStage: qq.get('roadstage') !== null ? parseInt(qq.get('roadstage'), 10) : undefined, // H13 review override
       // H11/H12: the FULL wonder catalog across the row-7 tier cities
       wonders: {
         pyramids: 'c2', 'great-wall': 'c2', colossus: 'c2', lighthouse: 'c2',

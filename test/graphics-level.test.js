@@ -34,6 +34,22 @@ test('suggestGraphicsLevel: the GPU-string table', async () => {
   assert.strictEqual(suggestGraphicsLevel(null), 'low', 'null diag never crashes');
 });
 
+test('roadStageFor: viewer techs drive the road era (H13)', async () => {
+  const { roadStageFor } = await import('../shared/city-era.js');
+  const techs = require('../data/techs.json'); // top-level IS the id→tech map
+  const p = (...ids) => ({ techs: ids });
+  assert.strictEqual(roadStageFor(null, techs), 0, 'no viewer → 0');
+  assert.strictEqual(roadStageFor({ }, techs), 0, 'no techs field → 0');
+  assert.strictEqual(roadStageFor(p(), techs), 0, 'empty → dirt path');
+  assert.strictEqual(roadStageFor(p('bronze-working'), techs), 0, 'ancient stays dirt');
+  assert.strictEqual(roadStageFor(p('bronze-working', 'university'), techs), 1, 'renaissance → cobblestone');
+  assert.strictEqual(roadStageFor(p('university', 'railroad'), techs), 2, 'industrial → slim unmarked');
+  assert.strictEqual(roadStageFor(p('automobile'), techs), 3, 'automobile → marked classic');
+  assert.strictEqual(roadStageFor(p('automobile', 'plastics'), techs), 4, 'plastics → highway');
+  assert.strictEqual(roadStageFor(p('space-flight'), techs), 4, 'space-flight → highway');
+  assert.strictEqual(roadStageFor(p('unknown-id'), techs), 0, 'unknown ids ignored');
+});
+
 test('terrain-detail painters cover every terrain id', () => {
   // the terrain-coverage pattern (test/mock-state.test.js): terrain-detail.js
   // is browser ESM (imports 'three'), so read the PAINTERS table from source —

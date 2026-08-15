@@ -48,13 +48,33 @@ export function cityEraBand(ownerPlayer, techsTable) {
   return best;
 }
 
+// H13 (specs/graphics-levels.md): the ROAD-ERA stage — roads/rails restyle
+// with the VIEWER's own advancement (roads have no owner, so the honest,
+// fog-safe driver is what YOU know): 0 dirt path → 1 cobblestone
+// (renaissance) → 2 slim unmarked asphalt (industrial) → 3 marked roads,
+// the classic look (automobile) → 4 four-lane highway (plastics /
+// space-flight). Render-only; low tier ignores it (byte-frozen).
+export function roadStageFor(viewerPlayer, techsTable) {
+  if (!viewerPlayer || !viewerPlayer.techs || !techsTable) return 0;
+  let stage = 0;
+  for (const id of viewerPlayer.techs) {
+    const t = techsTable[id];
+    if (!t) continue;
+    if (t.era === 'renaissance' && stage < 1) stage = 1;
+    else if (t.era === 'industrial' && stage < 2) stage = 2;
+    if (id === 'automobile' && stage < 3) stage = 3;
+    if ((id === 'plastics' || id === 'space-flight') && stage < 4) stage = 4;
+  }
+  return stage;
+}
+
 // Annotate a fog-filtered view with a render-only per-city era band, written to
 // a SIDE MAP (`view.cityEraBands[id]`) the renderer reads — NOT onto the city
 // objects. filterView aliases own/omniscient city objects straight from real
 // state (visibility.js: `cities[id] = c`), so stamping `c.eraBand` would mutate
 // state.cities and taint every hash path; the side map lives only on the fresh
 // top-level view object filterView allocates, so it is truly never state/hash.
-export function annotateCityEra(view, techsTable) {
+export function annotateCityEra(view, techsTable, viewerId) {
   if (!view || !view.cities) return view;
   const bands = {};
   for (const id of Object.keys(view.cities)) {
@@ -62,5 +82,20 @@ export function annotateCityEra(view, techsTable) {
     bands[id] = cityEraBand(view.players && view.players[c.owner], techsTable);
   }
   view.cityEraBands = bands;
+  // H13: the viewer's road stage rides the same side-annotation. A viewer
+  // with no player (spectator/omniscient) sees the world as it is — the MAX
+  // stage across players whose techs the view carries.
+  if (view.players) {
+    if (viewerId !== undefined && view.players[viewerId]) {
+      view.viewerRoadStage = roadStageFor(view.players[viewerId], techsTable);
+    } else {
+      let best = 0;
+      for (const p of Object.values(view.players)) {
+        const st = roadStageFor(p, techsTable);
+        if (st > best) best = st;
+      }
+      view.viewerRoadStage = best;
+    }
+  }
   return view;
 }

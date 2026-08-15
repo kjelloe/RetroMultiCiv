@@ -240,7 +240,7 @@ export function initHud(ctx) {
     if (renderer.setCityNotes) renderer.setCityNotes(cityNotes(state));
     // era-band render hint (specs/city-era-looks.md): derive per city from the
     // owner's tech era on the fog-filtered view, so the renderer stays rules-blind
-    const view = annotateCityEra(filterView(state, ctx.HUMAN), techs);
+    const view = annotateCityEra(filterView(state, ctx.HUMAN), techs, ctx.HUMAN); // H13: + viewerRoadStage
     // XIV §44: flag the VIEWER's own capital so the map label carries a ★ (fog-
     // honest — a rival's capital needs data the viewer can't see). Render-only:
     // the id rides a SIDE FIELD of the fresh view, NEVER stamped on the aliased
