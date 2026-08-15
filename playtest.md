@@ -20,6 +20,7 @@ get recorded in `specs/graphics-levels.md` §6._
 | gaming PC 1440p | | high | | | |
 | Dell Latitude (UHD 600) | medium | medium | ~48 fps | | hover-pick bug found + fixed (marker-0124) |
 | Dell Latitude (UHD 600) | medium | low | ~58 fps | | |
+| RTX 4070 + 5600X | high | high | ~50 typical, dips to 12 | | 593 MB max (healthy); peaks-over-peaks bug found + fixed (marker-0125) |
 | work laptop (Iris Xe) | | medium | | | |
 | phone | | low | | | |
 | ... | | | | | |

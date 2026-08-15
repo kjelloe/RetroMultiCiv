@@ -422,7 +422,12 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             dy: 0.05, sy: 0.6, rotY: visualRand(x, y, 60 + i) * Math.PI
           });
         }
-      } else if (t.t === 'mountains') {
+      } else if (t.t === 'mountains' && level !== 'high') {
+        // The peak + snow cones give the FACETED tiers their summits. At HIGH
+        // the smooth terrain owns the silhouette and these read as a second
+        // peak floating over the real one (user playtest screenshot,
+        // peakes-over-peakes.png, 2026-08-15) — the smooth pass snow-caps
+        // its summits via vertex color instead (terrain.js SNOWLINE).
         const px = (visualRand(x, y, 3) - 0.5) * 0.3;
         const pz = (visualRand(x, y, 4) - 0.5) * 0.3;
         const s = 0.85 + visualRand(x, y, 5) * 0.4;

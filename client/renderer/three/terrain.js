@@ -75,6 +75,7 @@ const TERRAIN = {
 // clamp and washed to near-white, reading as pale/constructed-canal seams
 // along the ribbon. This deeper blue stays visibly blue even at full light.
 const RIVER_TINT = new THREE.Color(0x1a4070);
+const SNOW_TINT = new THREE.Color(0xeef3f6); // H12a: the smooth summit cap
 const FOG_TINT = new THREE.Color(0x0a0e16);
 
 // shared with the DOM UI (city view mini-map)
@@ -365,6 +366,11 @@ function buildSmoothTerrain(map, reveal, segs, H) {
         if (tile.visible === false && reveal !== true) fogW += w;
       }
       if (riverW > 0) color.lerp(RIVER_TINT, 0.62 * riverW);
+      // H12a: SNOWLINE — the smooth pass snow-caps its own summits (the peak
+      // prop cones are suppressed at high; they read as a second floating
+      // peak). Vertices above 0.85 whiten toward full snow by 1.15.
+      const hV = H[idx];
+      if (hV > 0.85) color.lerp(SNOW_TINT, Math.min(1, (hV - 0.85) / 0.3) * 0.85);
       if (fogW > 0) color.lerp(FOG_TINT, 0.45 * fogW);
       colors[idx * 3] = color.r; colors[idx * 3 + 1] = color.g; colors[idx * 3 + 2] = color.b;
     }
@@ -491,7 +497,9 @@ export function buildWater(map, level = 'low') {
         arr[i + 2] = Math.sin(wx2 * 1.7 + t) * 0.006 + Math.cos(wy2 * 2.3 + t * 0.8) * 0.005;
       }
       pos.needsUpdate = true;
-      geometry.computeVertexNormals(); // the glint rides the moving normals
+      // H12a perf: normals every 4th tick — the per-frame recompute showed in
+      // the RTX playtest's dips; the glint still moves, at a quarter the cost
+      if ((this._nrm = ((this._nrm || 0) + 1) % 4) === 0) geometry.computeVertexNormals();
     },
     dispose() {
       geometry.dispose();

@@ -512,6 +512,26 @@ All seven items landed same-day:
    GPU probe (not user-agent) already resolves 'auto' and fills the setup
    hint — no header sniffing needed or wanted.
 
+### Playtest findings (user, 2026-08-15 — RTX 4070 + 5600X, High)
+
+- **Measured:** ~50 fps typical, dips to 12 at worst; memory peak 593 MB
+  (healthy — no leak signal). The DIPS are the finding: a 4070 is not
+  GPU-bound here, so the worst frames are CPU-side — the prime suspects
+  are (a) full-scene rebuilds on every state change (`setViewState`
+  rebuilds ALL tiles/units/cities; at High each unit is a 30–50-mesh
+  group) and (b) draw-call counts at late-game unit scale. **H12b (perf,
+  planned):** delta rebuilds (only changed units/cities), per-material
+  geometry merging for city groups, instanced unit bodies. The cheap win
+  landed now: the High water's per-frame `computeVertexNormals` runs every
+  4th tick (H12a).
+- **BUG (screenshot `peakes-over-peakes.png`, local): the faceted tiers'
+  peak + snow PROP CONES still planted on High's smooth mountains** —
+  a second summit floating over the real one. Fixed: cones are
+  low/medium-only; the smooth pass snow-caps its own summits via a
+  vertex-color SNOWLINE (H > 0.85 whitens toward snow). Same lesson class
+  as the tier-split motifs: props designed FOR a tier's look must be
+  GATED to it.
+
 ### Playtest findings (user, 2026-08-15 — Dell Latitude, Intel UHD 600)
 
 - **Measured fps:** medium ≈ 48, low ≈ 58 (browser FPS meter). The probe
