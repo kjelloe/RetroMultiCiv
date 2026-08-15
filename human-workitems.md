@@ -8,8 +8,8 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-08-15 (tip on `dev_night`; **marker-0131 = the graphics
-v2 ladder + H13 era roads + roads-into-cities + S2 reveal + CI repair, merge-consistent**, supersedes 0113-0130. v1.0.0 + v1.0.1 are
+_Last synced: 2026-08-15 (tip on `dev_night`; **marker-0132 = the graphics
+v2 ladder + S2 reveal + CI repair + mobile fixes, merge-consistent**, supersedes 0113-0131. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -23,7 +23,7 @@ RELEASED and live; everything below is post-release.)_
   landed provisionals.
 - [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
   (user). This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A2b. Merge marker-0131 (supersedes 0130)** — the canonical-floors CI
+- [ ] **A2b. Merge marker-0132 (supersedes 0130-0131)** — the canonical-floors CI
   repair (the nightly's floor-enforcement job has been killed at its
   45-min budget every night since ~2026-08-09; fixed measured at 150) +
   the H13b road-city regression guard. Workflow+test only; until it
