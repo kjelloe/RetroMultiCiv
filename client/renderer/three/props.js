@@ -488,12 +488,12 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             dx, dz, dy: 0.05, sy: 0.6, rotY: visualRand(x, y, 60 + i) * Math.PI
           });
         }
-      } else if (t.t === 'mountains' && level !== 'high') {
-        // The peak + snow cones give the FACETED tiers their summits. At HIGH
-        // the smooth terrain owns the silhouette and these read as a second
-        // peak floating over the real one (user playtest screenshot,
-        // peakes-over-peakes.png, 2026-08-15) — the smooth pass snow-caps
-        // its summits via vertex color instead (terrain.js SNOWLINE).
+      } else if (t.t === 'mountains' && level === 'low') {
+        // The peak + snow cones give LOW its summits. At HIGH the smooth
+        // terrain owns the silhouette (peakes-over-peakes.png, 2026-08-15),
+        // and at MEDIUM the SEGS-8 faceted mesh does too (the same doubled
+        // read, mobile playtest 2026-08-15) — both snow-cap via vertex color
+        // instead (terrain.js SNOWLINE / the H13c per-face lerp).
         const px = (visualRand(x, y, 3) - 0.5) * 0.3;
         const pz = (visualRand(x, y, 4) - 0.5) * 0.3;
         const s = 0.85 + visualRand(x, y, 5) * 0.4;
@@ -586,9 +586,17 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             // centres floated offset prims — flying-boulders.png), and the
             // crystals' faceted-era "raised above the peak" lift sinks at
             // high, where the smooth summit carries the shape itself.
+            // sinks at HIGH since H12 (broad smooth summits carry it); at
+            // MEDIUM the SEGS-8 summit is a thin spike, so the gold moves to
+            // a grounded FLANK instead of perching on the apex (H13c, mobile
+            // playtest 2026-08-15). LOW keeps the classic raised-above-the-
+            // cone anchor, byte-frozen.
             const crystalSink = (level === 'high' && m.k === 'resCrystal') ? 0.45 : 1;
-            items[m.k].push({ x, y, top: ground(x, y, m.dx || 0, m.dz || 0, base), dim, color: m.color,
-              dx: m.dx || 0, dz: m.dz || 0, dy: (m.dy || 0) * crystalSink,
+            const flank = level === 'medium' && m.k === 'resCrystal' && t.t === 'mountains';
+            const mdx = flank ? 0.26 : (m.dx || 0);
+            const mdz = flank ? 0.22 : (m.dz || 0);
+            items[m.k].push({ x, y, top: ground(x, y, mdx, mdz, base), dim, color: m.color,
+              dx: mdx, dz: mdz, dy: flank ? 0.05 : (m.dy || 0) * crystalSink,
               sx: m.sx, sy: m.sy, sz: m.sz, rotX: m.rotX || 0, rotY: m.rotY || 0, rotZ: m.rotZ || 0 });
           }
         } else { // any terrain without a motif keeps the generic marker

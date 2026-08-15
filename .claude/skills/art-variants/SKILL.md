@@ -46,7 +46,11 @@ the mechanized form.
   they render invisible.
 - **Props designed for a tier's LOOK must be GATED to it** — the faceted
   peak/snow cones floated over High's smooth summits (playtest find,
-  2026-08-15); same class as the tier-split animal motifs.
+  2026-08-15), then over MEDIUM's SEGS-8 summits too (mobile playtest,
+  same day — cones are LOW-only now; medium/high snow-cap via vertex
+  color). When a tier's MESH takes over a silhouette, audit every prop
+  that assumed the old one (the mountain gold needed a per-tier anchor:
+  low apex-raised / medium flank-grounded / high sunk).
 - **A tier that changes scene STRUCTURE (mesh → group) must re-run every
   identity-test code path, picking included** — `castAt`'s `=== terrain.mesh`
   silently killed all terrain picks at medium from G2 until a playtest

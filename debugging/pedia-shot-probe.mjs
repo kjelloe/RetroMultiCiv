@@ -1,0 +1,23 @@
+import { chromium, devices } from '@playwright/test';
+import { spawn } from 'node:child_process';
+const srv = spawn('python3', ['-m', 'http.server', '8967'], { cwd: '/home/kjelloe/GIT/multiciv', stdio: 'ignore' });
+await new Promise(r => setTimeout(r, 800));
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+const ctxB = await browser.newContext({ ...devices['Pixel 7'] });
+const page = await ctxB.newPage();
+await page.goto('http://127.0.0.1:8967/client/?seed=7&civs=2&e2e=1');
+await page.waitForFunction(() => (document.getElementById('hud-status') || {}).textContent?.includes('turn'), null, { timeout: 60000 });
+await page.evaluate(() => document.querySelector('#pedia') ? null : null);
+await page.keyboard.press('?');
+await page.waitForTimeout(600);
+const visible = await page.evaluate(() => !document.getElementById('pedia').classList.contains('hidden'));
+if (!visible) await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.includes('📖')); if (b) b.click(); });
+await page.waitForTimeout(400);
+const box = await page.evaluate(() => {
+  const r = document.getElementById('pedia-close').getBoundingClientRect();
+  const f = document.getElementById('pedia-frame').getBoundingClientRect();
+  return { closeTop: r.top, closeH: r.height, frameTop: f.top, vh: innerHeight, open: !document.getElementById('pedia').classList.contains('hidden') };
+});
+console.log(JSON.stringify(box));
+await page.screenshot({ path: 'debugging/pedia-mobile.png' });
+await browser.close(); srv.kill();

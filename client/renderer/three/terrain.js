@@ -217,6 +217,17 @@ export function buildTerrain(map, reveal, level = 'low') { // reveal (#34 S2): u
         // stronger blend suppresses that facet contrast while keeping the same
         // tint hue and the ribbon's width/meander untouched (the requested fix).
         if (tile.river) color.lerp(RIVER_TINT, 0.62);
+        // H13c: MEDIUM snow-caps its own summits, the H12a smooth treatment on
+        // the faceted mesh (per-face: the peak cones are LOW-only now — at
+        // SEGS 8 the mesh owns the silhouette and cones read as a second
+        // floating peak; mobile playtest, 2026-08-15). perTerrain gates it
+        // off LOW, whose bytes are frozen.
+        if (perTerrain) {
+          // line 0.78 (vs the smooth pass's 0.85): medium summits are thin
+          // spikes, so the cap needs to start lower to read as snow at all
+          const fh = Math.max(quad[tri * 3][1], quad[tri * 3 + 1][1], quad[tri * 3 + 2][1]);
+          if (fh > 0.78) color.lerp(SNOW_TINT, Math.min(1, (fh - 0.78) / 0.3) * 0.85);
+        }
         if (tile.visible === false && reveal !== true) color.lerp(FOG_TINT, 0.45); // explored, out of sight (#34: reveal un-dims)
         const v0 = quad[tri * 3], v1 = quad[tri * 3 + 1], v2 = quad[tri * 3 + 2];
         a.set(v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]);

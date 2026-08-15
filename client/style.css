@@ -2495,6 +2495,13 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
   background: #24406b; color: #cdd8ea; border: 1px solid #3b5d8f;
   border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: inherit;
 }
+/* Mobile (coarse pointer): the ✕ sat at the very top edge under the browser
+   chrome / notch, barely reachable (mobile playtest 2026-08-15). The real
+   phone layout is the max-width:720px FULL-BLEED sheet below — the head
+   drops clear of the top there; this block just grows the tap target. */
+@media (pointer: coarse) {
+  #pedia-close { padding: 10px 18px; font-size: 17px; }
+}
 #pedia-body { display: grid; grid-template-columns: 130px 210px 1fr; flex: 1; min-height: 0; }
 #pedia-cats {
   display: flex; flex-direction: column; gap: 4px; padding: 8px;
@@ -2619,8 +2626,12 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
      an 8px gap from End Turn's right:8px) on the same row, with a 44px tap target. */
   #regent-btn { right: 142px; bottom: 64px; min-height: 44px; z-index: 7; }
 
-  /* reference overlays: full-screen sheets */
-  #pedia-frame, #ship-frame { width: 100vw; height: 100vh; border-radius: 0; }
+  /* reference overlays: full-screen sheets. 100dvh (not vh) so the sheet
+     tracks the real viewport under the mobile URL bar, and the head clears
+     the top edge + notch — the ✕ was barely reachable up there (mobile
+     playtest 2026-08-15). */
+  #pedia-frame, #ship-frame { width: 100vw; height: 100dvh; border-radius: 0; }
+  #pedia-head, #ship-head { padding-top: max(26px, env(safe-area-inset-top)); }
   #pedia-body { grid-template-columns: 84px 132px 1fr; font-size: 12px; }
   #ship-body { grid-template-columns: 1fr; overflow-y: auto; }
   #ship-diagram { min-height: 46vh; border-right: none; border-bottom: 1px solid #24344f; }

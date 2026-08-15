@@ -661,6 +661,32 @@ not absent. A headless `createTileProps` probe (Node + a `three` alias
 loader) proved the instances existed; a magnified crop then found them
 in-frame. Magnify the exact pixels before concluding geometry is absent.
 
+### H13c — medium peaks + mobile pedia (mobile playtest, 2026-08-15)
+
+Two mobile finds, both the second occurrence of a known class:
+
+1. **Peaks-over-peaks AT MEDIUM** (the High bug's sibling — the SEGS-8
+   faceted mesh also owns real summits): the peak/snow prop cones are
+   **LOW-only** now (`level === 'low'`); medium snow-caps via a
+   per-face vertex lerp in the faceted builder (gated `perTerrain`, so
+   LOW's bytes stay frozen; line 0.78 vs the smooth pass's 0.85 —
+   medium summits are thin spikes and the cap must start lower). The
+   floating **mountain gold** moves to a grounded FLANK at medium
+   (dx 0.26/dz 0.22, dy 0.05) instead of perching on the apex; high
+   keeps the H12 0.45-sink on its broad smooth summits; low keeps the
+   classic raised-above-the-cone anchor. Skill rule confirmed twice
+   now: props designed for a tier's look must be gated to it — when a
+   tier's MESH takes over a silhouette, audit every prop that assumed
+   the old one.
+2. **Mobile pedia ✕ unreachable at the top edge**: the max-width-720
+   full-bleed sheet used `100vh` (extends under the mobile URL bar)
+   and no top clearance. Now `100dvh` + `padding-top:
+   max(26px, env(safe-area-inset-top))` on `#pedia-head` AND
+   `#ship-head` (same sheet pattern), plus a coarse-pointer tap-target
+   bump on the ✕. Probe: `debugging/pedia-shot-probe.mjs` (Pixel-7
+   viewport, prints close-button geometry) — closeTop 1.5px → 26.5px,
+   42px target.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;
