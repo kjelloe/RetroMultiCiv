@@ -44,6 +44,14 @@ the mechanized form.
   flag bites).
 - Multiply-texture marks must DARKEN below the ~1.95x lighting clamp or
   they render invisible.
+- **Props designed for a tier's LOOK must be GATED to it** — the faceted
+  peak/snow cones floated over High's smooth summits (playtest find,
+  2026-08-15); same class as the tier-split animal motifs.
+- **A tier that changes scene STRUCTURE (mesh → group) must re-run every
+  identity-test code path, picking included** — `castAt`'s `=== terrain.mesh`
+  silently killed all terrain picks at medium from G2 until a playtest
+  caught it (2026-08-15). Guard structure changes with an interaction test,
+  not only renders.
 - **Detail must face the CAMERA** (south/+z — it sits south looking
   north): center-facing facades AND north-rim wonder landmarks both
   shipped invisible before review shots caught them (bit twice,

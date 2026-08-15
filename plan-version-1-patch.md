@@ -171,7 +171,7 @@ paths, concurrency-superseding. First run fires on this very push.
 | Roblox world-space label collision | `roblox/PLAYTHROUGH-UI.md` F2 | legibility, first thing a new player sees |
 | Container-boot smoke unproven | `docs/how-to-host.md` §Publishing | registry verified public; boot never tested |
 | Counter-espionage, toroidal wrap | `plan-version2.md` | v2 shelf by ruling |
-| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | through H11 (marker-0121, 2026-08-14): TW High + era-aging cities + wonders + medium R15 promotion; awaiting the user's playtest.md pass |
+| Graphics levels low/medium/high (playtest 2026-08-05) | `specs/graphics-levels.md` | through the playtest round (marker-0125, 2026-08-15): 3 real-hardware bugs fixed with guards; H12b perf (delta rebuilds) parked; playtest continues |
 
 ## Fixed since release, for the record
 
