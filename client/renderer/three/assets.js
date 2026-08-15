@@ -95,6 +95,62 @@ function flagTexMatFor(visual) {
   return flagTexCache[key];
 }
 
+// H12b: BAKE a finished unit/city group's static parts — every plain-color
+// Lambert mesh (no texture map) outside a sway hinge merges into ONE mesh
+// per material. A high unit drops from ~40 draw calls to ~8, a kitted city
+// from ~100 to ~15 — the 4090 playtest proved the frame cost is CPU-side
+// draw submission, not shading. Textured flags, sway subtrees and Sprites
+// stay live; baked geometries are unique, so the group carries them in
+// userData.bakedGeos for disposal when the mesh is discarded (the shared
+// recipe-geometry cache must never be disposed).
+function bakeGroupStatic(root, level) {
+  // LOW stays UNBAKED: its draw counts are tiny anyway, and merging shifts
+  // draw order enough to move near-coplanar edge pixels — which would break
+  // the low byte-identity contract and the CI visual goldens (measured:
+  // max channel delta 20 in the gallery frame).
+  if (level !== 'medium' && level !== 'high') return;
+  root.updateMatrixWorld(true);
+  const doomed = [];
+  root.traverse(o => {
+    if (!o.isMesh || o.material.map) return;
+    for (let a2 = o; a2 && a2 !== root; a2 = a2.parent) if (a2.userData.sway) return;
+    doomed.push(o);
+  });
+  if (doomed.length < 8) return; // not worth the merge
+  const buckets = new Map(); // material -> { pos: [], norm: [], uv: [], n: 0 }
+  for (const m of doomed) {
+    const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    g.applyMatrix4(m.matrixWorld);
+    let b2 = buckets.get(m.material);
+    if (!b2) { b2 = { pos: [], norm: [], uv: [], n: 0 }; buckets.set(m.material, b2); }
+    b2.pos.push(g.attributes.position.array);
+    b2.norm.push(g.attributes.normal.array);
+    b2.uv.push(g.attributes.uv ? g.attributes.uv.array : new Float32Array((g.attributes.position.count) * 2));
+    b2.n += g.attributes.position.count;
+  }
+  for (const m of doomed) m.parent.remove(m);
+  const bakedGeos = [];
+  for (const [mat, b2] of buckets) {
+    const pos = new Float32Array(b2.n * 3), norm = new Float32Array(b2.n * 3), uv = new Float32Array(b2.n * 2);
+    let o3 = 0, o2 = 0;
+    for (let i = 0; i < b2.pos.length; i++) {
+      pos.set(b2.pos[i], o3); norm.set(b2.norm[i], o3); uv.set(b2.uv[i], o2);
+      o3 += b2.pos[i].length; o2 += b2.uv[i].length;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(norm, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    bakedGeos.push(geo);
+    root.add(new THREE.Mesh(geo, mat));
+  }
+  root.userData.bakedGeos = bakedGeos;
+}
+// index.js calls this when discarding a baked group
+export function disposeBaked(root) {
+  for (const g of root.userData.bakedGeos || []) g.dispose();
+}
+
 function add(group, geo, mat, x, y, z) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
@@ -223,6 +279,7 @@ export function createUnitMesh(unitType, colorOrVisual, status, level = 'low') {
   if (TYPE_EXTRA[unitType]) composeRecipe(group, bodyOf(TYPE_EXTRA[unitType]), visual, segMult); // chariot wheels
   if (chrome.sail) { const sail = add(group, GEO.flag, NEUTRAL.canvas, -0.04, 0.42, 0.02); sail.scale.set(1.3, 2, 1); } // procedural plane
   if (chrome.pennant) pennant(group, visual, chrome.pennant[0], chrome.pennant[1], chrome.pennant[2]);
+  bakeGroupStatic(group, level); // H12b: static parts merge per material (medium/high)
   return group;
 }
 
@@ -781,5 +838,6 @@ export function createCityMesh(city, colorOrVisual, isCapital, eraBand, level = 
       wall.rotation.x = Math.PI / 2;
     }
   }
+  bakeGroupStatic(group, level); // H12b: the house ring + kits + wonders merge per material (medium/high)
   return group;
 }

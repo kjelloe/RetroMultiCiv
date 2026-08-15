@@ -568,6 +568,35 @@ All seven items landed same-day:
   group) must re-run every code path that does identity tests against
   scene objects — picking, not just rendering.**
 
+### H12b — the CPU-bound fix (user go, 2026-08-15) — DONE
+
+The 4090's 30–60 fps proved the frame cost is CPU-side. Two halves:
+
+1. **Delta rebuilds** (`index.js`): `setViewState` no longer rebuilds the
+   world wholesale. The map view carries an FNV signature (terrain ids +
+   the nine render-relevant tile flags + city join positions + level +
+   reveal) — commands that change no tile SKIP the terrain/props/water
+   rebuild entirely. Units and cities carry per-object signatures (type/
+   owner/factionsVersion/status/level; pop/walls/capital/era/wonders) —
+   unchanged objects KEEP their meshes and just move; vanished ones
+   dispose their baked geometry. Every force path (level switch, faction/
+   palette change via factionsVersion, end-reveal) flows through the same
+   gates.
+2. **Static baking** (`assets.js bakeGroupStatic`): a finished unit/city
+   group merges every plain-Lambert mesh outside a sway hinge into ONE
+   mesh per material — textured flags, sprites and pennant hinges stay
+   live; baked geometries are tracked for disposal. Measured on the
+   xsmall boot: medium 67→31 draw calls, high 63→25; at late-game scale
+   the ratio compounds (a high unit ~40→~8 draws, a kitted city ~100→~15).
+   **LOW IS DELIBERATELY UNBAKED:** merging shifts draw order enough to
+   move near-coplanar edge pixels (measured max delta 20), which would
+   break the low byte-identity contract and the CI visual goldens — and
+   low's ~24 calls never needed help. Guard: the budget spec asserts
+   medium/high calls < 55 on the boot scene.
+
+   Parked (only if real play still dips): instanced unit bodies across
+   same-type units, merged terrain-prop draw batching.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;

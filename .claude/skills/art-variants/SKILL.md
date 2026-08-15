@@ -59,6 +59,9 @@ the mechanized form.
   THE PLAY ANGLE, not the mind's eye.
 - After renderer-table changes: `node tools/render-spec.js` + the
   asset/mock-state/render-spec test battery.
+- **Baked/merged geometry shifts draw order → near-coplanar edge pixels
+  move** (measured delta 20): never bake the byte-contracted LOW tier;
+  gate merges to tiers without pixel pins.
 - Triangle/call budgets: `debugging/measure-tris.mjs` — PLAIN boots only.
   A `?e2e=1` boot parks the scene in artificial probe states (0-unit
   swaps) and its numbers lie (measured 2026-08-13).

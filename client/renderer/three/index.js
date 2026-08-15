@@ -3,7 +3,7 @@
 // groups (assets.js), raycast picking. Fixed-tilt camera with drag-pan and
 // wheel-zoom.
 import * as THREE from 'three';
-import { createUnitMesh, createCityMesh } from './assets.js';
+import { createUnitMesh, createCityMesh, disposeBaked } from './assets.js';
 import { createTileProps, WATER_LEVEL } from './props.js';
 import { buildTerrain, buildWater, terrainBaseColor } from './terrain.js';
 import { createAnimLayer } from './anim.js';
@@ -199,6 +199,30 @@ export function createRenderer(container, opts = {}) {
     });
   }
 
+  // H12b: a cheap FNV-style signature over everything buildTiles reads —
+  // most commands change no tile, so most setViewState calls skip the
+  // expensive terrain/props rebuild entirely (the 4090 hitch fix, half 1).
+  function computeMapSig() {
+    const t = view.map.tiles;
+    let h = 2166136261 >>> 0;
+    const mix = v => { h = Math.imul(h ^ v, 16777619) >>> 0; };
+    for (let i = 0; i < t.length; i++) {
+      const e = t[i];
+      mix(e.t.charCodeAt(0) * 131 + e.t.length);
+      mix((e.visible === false ? 1 : 0) | (e.road ? 2 : 0) | (e.railroad ? 4 : 0)
+        | (e.irrigation ? 8 : 0) | (e.mine ? 16 : 0) | (e.fortress ? 32 : 0)
+        | (e.river ? 64 : 0) | (e.special ? 128 : 0) | (e.hut ? 256 : 0)
+        | (e.pollution ? 512 : 0));
+    }
+    for (const c of Object.values(view.cities || {})) mix(c.y * view.map.width + c.x); // road joins
+    return h + '|' + view.map.width + 'x' + view.map.height + '|' + gfxLevel + '|' + endReveal;
+  }
+  function buildTilesIfChanged() {
+    const sig = computeMapSig();
+    if (sig === mapSig) return;
+    mapSig = sig;
+    buildTiles();
+  }
   function buildTiles() {
     if (terrain) { worldGroup.remove(terrain.mesh); terrain.dispose(); }
     for (const m of propMeshes) { worldGroup.remove(m); m.dispose(); }
@@ -225,6 +249,8 @@ export function createRenderer(container, opts = {}) {
   // data/civs.json, provided by the host (main.js/gallery). Anyone absent
   // falls back to their plain player color — mock/test states, lobby games.
   let factions = {};
+  let factionsVersion = 0; // H12b: bumps on setFactions/palette — invalidates unit/city signatures
+  let mapSig = ''; // H12b: skip tile rebuilds when the map view is unchanged
   function visualOf(pid) {
     // palette pass: every visual/color leaves through the display remap
     // (identity unless a ⚙ palette mode is on — ui/palette.js)
@@ -239,22 +265,38 @@ export function createRenderer(container, opts = {}) {
     return Math.max(tileTop(x, y), WATER_LEVEL + 0.01);
   }
 
+  // H12b: DELTA rebuild — a unit whose visual signature is unchanged keeps
+  // its (baked) mesh and only moves; late-game maps stop re-creating
+  // hundreds of 30-mesh groups on every command (the 4090 hitch fix, half 2).
+  function unitSig(u) {
+    return [u.type, u.owner, factionsVersion, u.veteran === true,
+      u.fortified === true, u.moves > 0, gfxLevel].join('|');
+  }
   function buildUnits() {
-    for (const mesh of unitMeshes.values()) worldGroup.remove(mesh);
-    unitMeshes.clear();
     anim.resetSway('unit');
+    const seen = new Set();
     for (const u of Object.values(view.units || {})) {
-      const mesh = createUnitMesh(u.type, visualOf(u.owner), {
-        veteran: u.veteran === true,
-        fortified: u.fortified === true,
-        canMove: u.moves > 0
-      }, gfxLevel); // group, base at y = 0
+      seen.add(u.id);
+      const sig = unitSig(u);
+      let mesh = unitMeshes.get(u.id);
+      if (!mesh || mesh.userData.sig !== sig) {
+        if (mesh) { worldGroup.remove(mesh); disposeBaked(mesh); }
+        mesh = createUnitMesh(u.type, visualOf(u.owner), {
+          veteran: u.veteran === true,
+          fortified: u.fortified === true,
+          canMove: u.moves > 0
+        }, gfxLevel); // group, base at y = 0
+        mesh.userData.unitId = u.id;
+        mesh.userData.sig = sig;
+        setShadowFlags(mesh, gfxLevel === 'high', false);
+        unitMeshes.set(u.id, mesh);
+        worldGroup.add(mesh);
+      }
       mesh.position.set(u.x, unitTop(u.x, u.y), u.y);
-      mesh.userData.unitId = u.id;
-      setShadowFlags(mesh, gfxLevel === 'high', false);
-      unitMeshes.set(u.id, mesh);
-      worldGroup.add(mesh);
       anim.collectSway('unit', mesh, u.x, u.y);
+    }
+    for (const [id, mesh] of unitMeshes) {
+      if (!seen.has(id)) { worldGroup.remove(mesh); disposeBaked(mesh); unitMeshes.delete(id); }
     }
   }
 
@@ -356,9 +398,15 @@ export function createRenderer(container, opts = {}) {
     return sprite;
   }
 
+  // H12b: city groups delta-rebuild by signature too (labels/rings below
+  // stay wholesale — they're cheap sprites; the kitted GROUP is the cost)
+  function citySig(city, isCapital, eraBand, wonderIds) {
+    return [city.pop, city.owner, factionsVersion,
+      (city.buildings || []).indexOf('city-walls') !== -1, isCapital,
+      eraBand || '', wonderIds.join(','), gfxLevel].join('|');
+  }
   function buildCities() {
-    for (const mesh of cityMeshes.values()) worldGroup.remove(mesh);
-    cityMeshes.clear();
+    const seenCities = new Set();
     anim.resetSway('city');
     anim.resetSmoke();
     for (const label of cityLabels) {
@@ -386,12 +434,19 @@ export function createRenderer(container, opts = {}) {
       for (const wid of Object.keys(view.wonders || {})) {
         if (view.wonders[wid] === city.id) wonderIds.push(wid);
       }
-      const mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand, gfxLevel, wonderIds); // base at y = 0
+      seenCities.add(city.id);
+      const sig = citySig(city, isCapital, eraBand, wonderIds);
+      let mesh = cityMeshes.get(city.id);
+      if (!mesh || mesh.userData.sig !== sig) {
+        if (mesh) { worldGroup.remove(mesh); disposeBaked(mesh); }
+        mesh = createCityMesh(city, visualOf(city.owner), isCapital, eraBand, gfxLevel, wonderIds); // base at y = 0
+        mesh.userData.cityId = city.id;
+        mesh.userData.sig = sig;
+        setShadowFlags(mesh, gfxLevel === 'high', false);
+        cityMeshes.set(city.id, mesh);
+        worldGroup.add(mesh);
+      }
       mesh.position.set(city.x, tileTop(city.x, city.y), city.y);
-      mesh.userData.cityId = city.id;
-      setShadowFlags(mesh, gfxLevel === 'high', false);
-      cityMeshes.set(city.id, mesh);
-      worldGroup.add(mesh);
       anim.collectSway('city', mesh, city.x, city.y);
       anim.addSmoke(city.x, city.y, tileTop(city.x, city.y), city.pop);
       if (showCityLabels) {
@@ -425,6 +480,10 @@ export function createRenderer(container, opts = {}) {
           worldGroup.add(ring);
         }
       }
+    }
+    // H12b: cities gone from the view (razed/fog) release their baked groups
+    for (const [id, mesh] of cityMeshes) {
+      if (!seenCities.has(id)) { worldGroup.remove(mesh); disposeBaked(mesh); cityMeshes.delete(id); }
     }
   }
 
@@ -581,7 +640,7 @@ export function createRenderer(container, opts = {}) {
         for (const u of Object.values(view.units || {})) prev[u.id] = { x: u.x, y: u.y };
       }
       view = v;
-      buildTiles();
+      buildTilesIfChanged(); // H12b: most commands change no tile — skip the rebuild
       buildUnits();
       buildCities();
       for (const u of Object.values(view.units || {})) {
@@ -602,6 +661,7 @@ export function createRenderer(container, opts = {}) {
     },
     setFactions(map) {
       factions = map || {};
+      factionsVersion++; // H12b: invalidates every unit/city signature
       if (view) { buildUnits(); buildCities(); }
     },
     // A28 combat flash: a brief expanding ring at each combat site (the
@@ -621,7 +681,7 @@ export function createRenderer(container, opts = {}) {
     // — render-only, never state; unexplored tiles stay 'unknown' (fog-honest). The
     // server-map-at-gameOver upgrade (hardening) later feeds a full map through the
     // same path. Rebuilds the tile meshes at the current view.
-    setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTiles(); },
+    setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTilesIfChanged(); }, // sig includes reveal
     // G1 graphics level, live-switchable from ⚙ Options. Rebuilds the whole
     // world: a level change moves tileTop anchors (mesh density changes the
     // center-vertex sampling), so units/cities/props must re-anchor too.
@@ -632,7 +692,7 @@ export function createRenderer(container, opts = {}) {
       gfxLevel = l;
       applyLevelToRenderer();
       updateCamera();
-      if (view && view.map) { buildTiles(); buildUnits(); buildCities(); }
+      if (view && view.map) { buildTilesIfChanged(); buildUnits(); buildCities(); } // sigs include the level
     },
     graphicsLevel() { return gfxLevel; },
     // G5 perf guard: the live renderer stats — triangles drawn last frame +

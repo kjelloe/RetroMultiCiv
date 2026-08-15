@@ -51,7 +51,7 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
     // degrade rather than fail on it (runner GL stacks vary)
     const webgl2 = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl2'));
     expect(info.level).toBe(level === 'high' && !webgl2 ? 'medium' : level);
-    tris[level] = { n: info.triangles, degraded: level === 'high' && !webgl2 };
+    tris[level] = { n: info.triangles, c: info.calls, degraded: level === 'high' && !webgl2 };
   }
   expect(tris.medium.n).toBeGreaterThan(tris.low.n);
   if (tris.high.degraded) expect(tris.high.n).toBe(tris.medium.n); // degraded high IS medium
@@ -59,6 +59,11 @@ test('each tier boots and the triangle budget ranks low < medium < high', async 
   // runaway ceiling: an xsmall map at high must stay far under discrete-GPU
   // budgets; a blowout here means a level multiplied something it shouldn't
   expect(tris.high.n).toBeLessThan(3_000_000);
+  // H12b: the static bake holds — medium/high draw CALLS stay low on this
+  // boot (pre-bake: 67/63; post: 31/25). A regression past 55 means groups
+  // stopped merging.
+  expect(tris.medium.c).toBeLessThan(55);
+  expect(tris.high.c).toBeLessThan(55);
 });
 
 test('?gfx= on a link pre-selects and persists the tier, then leaves the URL', async ({ page }) => {
