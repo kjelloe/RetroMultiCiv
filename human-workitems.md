@@ -58,8 +58,11 @@ RELEASED and live; everything below is post-release.)_
   midgame-join live (two clients, B joins with seats full → gets the
   second-strongest AI civ), publish the experience, set
   `ROBLOX_EXPERIENCE_URL` in `client/ui/roblox-link.js` (un-hides the
-  setup-screen button). Checklist: `roblox/PLAYTHROUGH-UI.md`. Parked
-  alongside: the Studded round-2 screenshot review.
+  setup-screen button). Checklist: `roblox/PLAYTHROUGH-UI.md`. While in
+  Studio, also run the ONE-MOTIF tech-glyph confirmation render
+  (`roblox/acceptance/editableimage-glyph-spike.md` — EditableImage is
+  provable only in Play-Solo; the renderer is built + gate-31-pinned).
+  Parked alongside: the Studded round-2 screenshot review.
 - [ ] **C2. Remaining patch-plan engine items** (your go starts them):
   P4 bankruptcy sells buildings (small window), P3 AI nuke doctrine
   (a measured behavioural window).

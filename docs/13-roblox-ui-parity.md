@@ -285,9 +285,16 @@ terrain features the run-F #5 improvement blocks never drew: forest/
 jungle trees, hill rocks, mountain peak+snow, scrub tufts, shore foam,
 resource specials, goody huts. Supersedes those blocks; fog-honest,
 render-only, signature-cached. `SurfaceAppearance`/two-part-tree polish
-stays on the bigger-lift backlog above. (tech-glyphs remains open —
-routed to the architect for a Roblox-asset approach ruling; SO15 sound
-RESOLVED — audio LIVE since 2026-08-04, #2922.) **TileProps drift note
+stays on the bigger-lift backlog above. (tech-glyphs approach RESOLVED —
+ruling #2078 picked EditableImage, and the renderer is BUILT:
+`EditableGlyph.luau` draws the `GlyphData.luau` motif primitives
+[browser tech-glyphs.js twin, gate 31 pins all-68 coverage], era-frame
+fallback when EditableImage is absent; remaining inputs are (a) the
+one-motif Studio confirmation render — rides the C1b Studio session,
+see `roblox/acceptance/editableimage-glyph-spike.md` — and (b) the ~32
+provisional MOTIFS awaiting the ally concept pass, which is shared
+motif DATA feeding both clients. SO15 sound RESOLVED — audio LIVE
+since 2026-08-04, #2922.) **TileProps drift note
 (2026-08-15):** the browser's H13/H13b window restyled the props.js
 road/rail block after CP1 landed — 5-stage viewer-era roads
 (`roadStageFor` in shared/city-era.js), twin steel rails double-tracked
