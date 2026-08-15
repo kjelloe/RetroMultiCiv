@@ -47,9 +47,19 @@ RELEASED and live; everything below is post-release.)_
 
 ## C. Other lanes
 
-- [ ] **C1. Wake the Roblox lane when convenient** — its queue holds the
-  re-mirror of the G0 horse/desert AND the H1 deer/seal/fish motifs
-  (`TileProps.luau`); code travels by your git pump.
+- [ ] **C1. Wake the Roblox lane when convenient** — its queue holds 5
+  items (audited complete 2026-08-15): G0 horse/desert + H1 deer/seal/fish
+  motif re-mirrors, the `roadStageFor` city-era twin + the TileProps
+  H13/H13b road-rail sync, and the never-landed Encyclopedia swap (the
+  held #2616 edits — `Pedia.client.luau` still says Gamepedia). Code
+  travels by your git pump.
+- [ ] **C1b. The ONE Roblox Studio session (the lane's only remaining
+  v1 gate, surfaced #2665 but previously untracked here):** verify
+  midgame-join live (two clients, B joins with seats full → gets the
+  second-strongest AI civ), publish the experience, set
+  `ROBLOX_EXPERIENCE_URL` in `client/ui/roblox-link.js` (un-hides the
+  setup-screen button). Checklist: `roblox/PLAYTHROUGH-UI.md`. Parked
+  alongside: the Studded round-2 screenshot review.
 - [ ] **C2. Remaining patch-plan engine items** (your go starts them):
   P4 bankruptcy sells buildings (small window), P3 AI nuke doctrine
   (a measured behavioural window).

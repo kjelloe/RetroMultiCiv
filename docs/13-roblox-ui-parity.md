@@ -285,8 +285,15 @@ terrain features the run-F #5 improvement blocks never drew: forest/
 jungle trees, hill rocks, mountain peak+snow, scrub tufts, shore foam,
 resource specials, goody huts. Supersedes those blocks; fog-honest,
 render-only, signature-cached. `SurfaceAppearance`/two-part-tree polish
-stays on the bigger-lift backlog above. (tech-glyphs + SO15 sound remain
-open — routed to the architect for a Roblox-asset approach ruling.)
+stays on the bigger-lift backlog above. (tech-glyphs remains open —
+routed to the architect for a Roblox-asset approach ruling; SO15 sound
+RESOLVED — audio LIVE since 2026-08-04, #2922.) **TileProps drift note
+(2026-08-15):** the browser's H13/H13b window restyled the props.js
+road/rail block after CP1 landed — 5-stage viewer-era roads
+(`roadStageFor` in shared/city-era.js), twin steel rails double-tracked
+from stage 3, and city tiles drawing the road half toward real-road
+neighbours (plain road, never rail). The twin sync is queued to this
+lane (queue items #3 + #5).
 
 **Decision flow:** the toggle IS the side-by-side (the soundboard house
 pattern — this machine cannot render Roblox, the user's session can):
