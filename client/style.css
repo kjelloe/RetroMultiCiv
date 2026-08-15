@@ -977,17 +977,15 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 .moment-chronicle .moment-title { color: #f2e6cf; }
 .moment-chronicle .moment-log { color: #e2d3b4; font-style: normal; font-size: 17px; }
 
-/* CONQUEST — the "Total Map" reveal: the overlay goes transparent so the brightened
-   world shows through, the caption rides low with a shadow for legibility */
+/* CONQUEST — the "Total Map" reveal: the overlay stays transparent from the
+   first frame; the RENDERER carries the brightening (S2 v1.x — the world
+   gradually receives light via the real scene lighting, ally ruling
+   2026-07-25; the old CSS moment-brighten fade is retired). The caption
+   rides low with a vignette + shadow for legibility over the lit world. */
 #endscreen-moment.moment-reveal-bg {
   background-image: radial-gradient(ellipse at center, rgba(3, 5, 10, 0) 34%, rgba(3, 5, 10, 0.6) 100%);
   background-color: rgba(3, 5, 10, 0);
   align-items: flex-end;
-  animation: moment-brighten 2.6s ease-out both; /* world-brighten SLOW — grave, complete, a record not a fanfare */
-}
-@keyframes moment-brighten {
-  from { background-color: rgba(3, 5, 10, 0.94); } /* the reveal is held back... */
-  to { background-color: rgba(3, 5, 10, 0); }      /* ...then the world brightens in */
 }
 .moment-peace {
   padding-bottom: 80px;

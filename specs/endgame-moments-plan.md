@@ -78,3 +78,18 @@ remaining work is ANIMATION, not new data: interpolate the reveal
 (dim → lit) over the held-stillness beat instead of an instant flag
 flip, timed to the Moment stage machine. Client-only, render-only,
 golden-neutral by the same argument as the existing S2.
+
+**DONE 2026-08-15 (user go).** Implemented as a LIGHTING ramp, which is
+exactly the ally's wording ("the actual terrain gradually receiving
+light via the real scene lighting"): `setEndReveal(true, rampMs)` —
+the reveal rebuild happens with the lights pre-dropped to 12% (the pop
+is invisible), the first 22% of the ramp HOLDS the stillness, then
+ambient + sun smoothstep to the tier baseline over the remainder
+(conquest passes 3400 ms). The ramp lives in the render loop next to
+the water/sway ticks — render-time only, never state. reduce-animation
+keeps the instant flip (accessibility, and the byte-stable A48 shots
+never see a ramp). The CSS `moment-brighten` curtain is retired; the
+`moment-reveal-bg` overlay is now a transparent vignette for caption
+legibility only. Verified: virtual-time shots at 1.5 s (held dark) vs
+9 s (exact baseline) — `debugging/s2-dark.png` / `s2-lit.png`;
+endscreen spec 5/5; browser smoke 19/19.

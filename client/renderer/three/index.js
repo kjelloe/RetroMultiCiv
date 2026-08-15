@@ -47,7 +47,9 @@ export function createRenderer(container, opts = {}) {
   // reports the effective tier, and the ⚙ Options note explains why.
   if (gfxLevel === 'high' && !renderer.capabilities.isWebGL2) gfxLevel = 'medium';
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const AMBIENT_BASE = 0.55;
+  const ambient = new THREE.AmbientLight(0xffffff, AMBIENT_BASE);
+  scene.add(ambient);
   // G3: the sun's OFFSET from the camera target + color per tier. Low/medium
   // keep the shipped values exactly (direction unchanged → shading unchanged —
   // a directional light only uses direction, so following the target is
@@ -119,6 +121,24 @@ export function createRenderer(container, opts = {}) {
   // by the ⚙ "reduce animation" option (setReduceAnimation below)
   const anim = createAnimLayer(scene, unitMeshes);
   let animReduced = false; // A48: also freezes the water drift when true
+  // #34 S2 v1.x (ally ruling 2026-07-25): the TRUE renderer-level conquest
+  // reveal — the world gradually receives light via the real scene lighting,
+  // not an interface overlay lifting. {t0, ms}; render-time only, never state.
+  let revealRamp = null;
+  const REVEAL_DARK = 0.12; // held-stillness light fraction
+  const REVEAL_HOLD = 0.22; // first fraction of the ramp holds the stillness
+  function sunBaseIntensity() { return (gfxLevel === 'high' ? SUN_HIGH : SUN_BASE).intensity; }
+  function applyRevealLights(p) {
+    const t = p <= REVEAL_HOLD ? 0 : (p - REVEAL_HOLD) / (1 - REVEAL_HOLD);
+    const e = t * t * (3 - 2 * t); // smoothstep — grave, not a fanfare
+    const k = REVEAL_DARK + (1 - REVEAL_DARK) * e;
+    ambient.intensity = AMBIENT_BASE * k;
+    sun.intensity = sunBaseIntensity() * k;
+  }
+  function restoreLights() {
+    ambient.intensity = AMBIENT_BASE;
+    sun.intensity = sunBaseIntensity();
+  }
   // A45 data overlays: tinted per-tile quads, contents decided by the UI
   const overlays = createOverlayLayer(scene);
 
@@ -618,6 +638,11 @@ export function createRenderer(container, opts = {}) {
     // ocean-bearing frames byte-stable for the visual-regression goldens
     if (water && !animReduced) water.tick(now); // wave drift: render time only
     anim.tick(now);             // A28 sway/glide/smoke/flash: same clock
+    if (revealRamp) {           // #34 S2: the world gradually lights
+      const p = Math.min(1, (now - revealRamp.t0) / revealRamp.ms);
+      applyRevealLights(p);
+      if (p >= 1) revealRamp = null; // ends exactly at the tier baseline
+    }
     // A36: name pills track the camera distance (readable at any zoom)
     const nameF = Math.min(2.2, Math.max(0.8, cam.dist / 12));
     for (const l of cityLabels) {
@@ -683,7 +708,20 @@ export function createRenderer(container, opts = {}) {
     // — render-only, never state; unexplored tiles stay 'unknown' (fog-honest). The
     // server-map-at-gameOver upgrade (hardening) later feeds a full map through the
     // same path. Rebuilds the tile meshes at the current view.
-    setEndReveal(flag) { endReveal = flag === true; if (view && view.map) buildTilesIfChanged(); }, // sig includes reveal
+    // sig includes reveal. rampMs (#34 S2 v1.x): >0 animates the reveal —
+    // held stillness, then the world gradually lights via the scene lighting.
+    // reduce-animation keeps the instant flip (accessibility + byte-stable shots).
+    setEndReveal(flag, rampMs) {
+      endReveal = flag === true;
+      if (view && view.map) buildTilesIfChanged();
+      if (endReveal && rampMs > 0 && !animReduced) {
+        revealRamp = { t0: performance.now(), ms: rampMs };
+        applyRevealLights(0); // dark BEFORE the next frame — the rebuild pop is invisible
+      } else {
+        revealRamp = null;
+        restoreLights();
+      }
+    },
     // G1 graphics level, live-switchable from ⚙ Options. Rebuilds the whole
     // world: a level change moves tileTop anchors (mesh density changes the
     // center-vertex sampling), so units/cities/props must re-anchor too.

@@ -185,8 +185,10 @@ export function initEndScreen(ctx) {
     const w = state.players[wid];
     const civName = (w && w.name) || 'the victors';
     return [
-      { cls: 'moment-peace', overlayCls: 'moment-reveal-bg', // overlay clears SLOWLY: the world brightens in (tone doctrine — a record, not a fanfare)
-        onEnter: () => { if (ctx.renderer && ctx.renderer.setEndReveal) ctx.renderer.setEndReveal(true); },
+      { cls: 'moment-peace', overlayCls: 'moment-reveal-bg', // transparent vignette: the RENDERER carries the reveal (S2 v1.x, ally ruling)
+        // held stillness → the world gradually lights via the real scene
+        // lighting (renderer ramp; reduce-animation keeps the instant flip)
+        onEnter: () => { if (ctx.renderer && ctx.renderer.setEndReveal) ctx.renderer.setEndReveal(true, 3400); },
         html: '<div class="moment-title">The last war is over.</div>'
           + `<div class="moment-sub">The colors of the ${esc(civName)} span the horizon, unopposed.</div>`,
         continueLabel: 'Behold the world' }
