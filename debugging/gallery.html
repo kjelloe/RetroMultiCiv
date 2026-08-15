@@ -45,6 +45,7 @@
     at(10, 1).hut = true; // N13: the goody-hut village prop
     Object.assign(at(0, 6), { fortress: true });
     Object.assign(at(1, 6), { road: true, railroad: true });
+    at(6, 6).road = true; // road-into-city demo: city Eight (6,7) draws the other half
     // row 19 (frontmost, unoccluded): specials showcase (XVII #8/#12/#14) — each
     // terrain's special motif, then bare swamp/forest/jungle so the density passes
     // read. Frame the halves with ?cx=2.5&cy=19&zoom=4 (left) / ?cx=10&cy=19&zoom=4
@@ -180,6 +181,9 @@
     // ?gfx=low|medium|high (G2): review the gallery at any graphics level;
     // default stays low — the byte-comparable rest-pose baseline
     const renderer = createRenderer(document.getElementById('app'), { graphics: q.get('gfx') || 'low' });
+    // ?nolabels=1: suppress city pop badges/name pills — they float over the
+    // tile BEHIND their city from the fixed camera and hide props there
+    if (q.get('nolabels')) renderer.setCityLabelsVisible(false);
     // ?vertexcheck=1 (A44): the shared-vertex determinism half — build the
     // terrain mesh twice, byte-compare position+color buffers into #label
     if (q.get('vertexcheck') === '1') {

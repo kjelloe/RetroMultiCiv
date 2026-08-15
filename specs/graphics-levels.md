@@ -630,6 +630,34 @@ and the default-frame CI golden, which renders at low).
 - Test: `roadStageFor` table in `test/graphics-level.test.js` (data/techs.json
   top level IS the id→tech map — no `.techs` wrapper).
 
+### H13b — roads run INTO cities (user, 2026-08-15) — ALL TIERS
+
+Roads used to die at the city tile's border (the road tile drew its half,
+the city tile drew nothing). Now a city tile draws the road's other half —
+a centre-to-edge segment toward every neighbour that CARRIES a real road —
+styled by the viewer's road stage, always as a plain road: `isRail` is
+forced off on city tiles, so **rails still stop at the city edge** (the
+user's "roads, not railroads" rule). Guards: city halves connect only to
+real road tiles (`roadAt(x, y, real)` — a roadless city next to another
+city sprouts nothing), and city tiles never draw the isolated-road stub.
+
+**This changes LOW deliberately** (ruled a fix, not an upgrade: a road
+stopping one tile short of the city it serves reads as a bug at every
+tier). The CI visual goldens re-record from CI actuals with this change;
+`debugging/g0-final.png` (the terrain-swatch frame, no cities) stays
+byte-identical, so the low-identity instrument survives. The gallery
+gains a permanent road→city demo (road at (6,6), city Eight at (6,7))
+and `?nolabels=1` (renderer `setCityLabelsVisible(false)`) — the pop
+badge floats over the tile BEHIND its city from the fixed camera and
+hides exactly the props under review. Review sheet:
+`debugging/road-city-tiers.png`.
+
+**Diagnosis lesson (cost three shot rounds):** the medium join looked
+"missing" — it was OCCLUDED (badge + tall kit houses) and low-contrast,
+not absent. A headless `createTileProps` probe (Node + a `three` alias
+loader) proved the instances existed; a magnified crop then found them
+in-frame. Magnify the exact pixels before concluding geometry is absent.
+
 ## 5. Risks, named
 
 - **Style seam.** High-detail units next to Low-ish props would look wrong;

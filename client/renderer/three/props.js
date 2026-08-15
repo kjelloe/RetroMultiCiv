@@ -253,7 +253,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
     resDerrick: [], resStraw: [], resBeast: [], resBeastHead: [], resAntler: [],
     resLeg: [], resNeck: [], resMuzzle: [], resTail: [], resEar: [], pond: []
   };
-  const roadAt = (x, y) => {
+  const roadAt = (x, y, real) => {
     if (y < 0 || y >= map.height) return false;
     let xx = x;
     if (xx < 0 || xx >= map.width) {
@@ -261,7 +261,9 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
       xx = ((xx % map.width) + map.width) % map.width;
     }
     const n = map.tiles[y * map.width + xx];
-    return n.road === true || n.railroad === true || joins[y * map.width + xx] === true;
+    // real=true: only tiles that CARRY a road — city joins don't count
+    // (a roadless city next to another city must not sprout segments)
+    return n.road === true || n.railroad === true || (real !== true && joins[y * map.width + xx] === true);
   };
   const landAt = (x, y) => {
     if (y < 0 || y >= map.height) return false;
@@ -286,7 +288,12 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
         items.fieldPatch.push({ x, y, top: ground(x, y, -0.2, 0.14, top), dim, color: PROP_COLOR.fieldPatch, dx: -0.2, dz: 0.14, dy: 0.015, rotY: Math.PI / 4 });
         items.fieldPatch.push({ x, y, top: ground(x, y, 0.16, -0.2, top), dim, color: PROP_COLOR.fieldPatch, dx: 0.16, dz: -0.2, dy: 0.015, rotY: Math.PI / 4 });
       }
-      if (t.road || t.railroad) {
+      // city tiles draw the road's OTHER half (user 2026-08-15): a plain-road
+      // half-segment toward each neighbour that carries a real road, so roads
+      // run in to the buildings instead of dying at the tile border. Roads
+      // only, never rail styling — rails still stop at the city edge.
+      const isCity = joins[y * map.width + x] === true;
+      if (t.road || t.railroad || isCity) {
         // H13 (user 2026-08-15): at medium/high, roads restyle with the
         // VIEWER's era — 0 dirt path / 1 cobblestone / 2 slim unmarked /
         // 3 marked (the classic look) / 4 four-lane highway — and rails are
@@ -300,11 +307,11 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
           { color: 0x8a6f4d, w: 1, len: 1, dash: true },        // marked (classic)
           { color: 0x3a3a44, w: 1.7, len: 1, dash: true }       // highway
         ][roadStage] || { color: 0x8a6f4d, w: 1, len: 1, dash: true };
-        const isRail = t.railroad === true;
+        const isRail = t.railroad === true && !isCity;
         const color = isRail ? PROP_COLOR.railroad : (staged ? RS.color : PROP_COLOR.road);
         let connected = 0;
         for (const d of ROAD_DIRS) {
-          if (!roadAt(x + d.dx, y + d.dy)) continue;
+          if (!roadAt(x + d.dx, y + d.dy, isCity)) continue;
           connected++;
           const df = d.diag ? 1.42 : 1;
           if (level === 'high') {
@@ -372,7 +379,7 @@ export function createTileProps(map, tileTop, joins, reveal, level = 'low', surf
             }
           }
         }
-        if (connected === 0) {
+        if (connected === 0 && !isCity) {
           items.roadSeg.push({ x, y, top, dim, color, rotY: 0, dy: 0.03, sx: 0.5 });
         }
       }

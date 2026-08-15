@@ -65,3 +65,11 @@ the mechanized form.
 - Triangle/call budgets: `debugging/measure-tris.mjs` — PLAIN boots only.
   A `?e2e=1` boot parks the scene in artificial probe states (0-unit
   swaps) and its numbers lie (measured 2026-08-13).
+- **"Missing" props are usually OCCLUDED, not absent** (cost three shot
+  rounds, 2026-08-15): city pop badges float over the tile BEHIND their
+  city from the fixed camera, and tall medium/high houses hide the tile
+  north of a city. Shoot review frames with `gallery.html?nolabels=1`
+  (badges/pills off), MAGNIFY the exact pixels (PIL crop+resize) before
+  concluding geometry is missing, and if still unsure prove the instances
+  headlessly: import `createTileProps` in Node with a loader that aliases
+  `three` to the vendored module and read the instance matrices.
