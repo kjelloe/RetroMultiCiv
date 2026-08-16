@@ -36,6 +36,7 @@ agent-chat.md
 
 # personal ops playbook (hosting recipes, deploy notes) — not part of the MIT repo
 ops/
+ops
 
 # Ignore any py-cache
 __pycache__/
