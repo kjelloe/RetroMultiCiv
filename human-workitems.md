@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-08-15 (tip on `dev_night`; **marker-0132 = the graphics
+_Last synced: 2026-10-30 (tip on `dev_night` = the fastengine batch `e612651`, not yet in a marker; last marker **marker-0132 = the graphics
 v2 ladder + S2 reveal + CI repair + mobile fixes, merge-consistent**, supersedes 0113-0131. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
@@ -47,8 +47,9 @@ RELEASED and live; everything below is post-release.)_
 
 ## C. Other lanes
 
-- [ ] **C1. Wake the Roblox lane when convenient** — its queue holds 5
-  items (audited complete 2026-08-15): G0 horse/desert + H1 deer/seal/fish
+- [ ] **C1. Wake the Roblox lane when convenient** — its queue holds 7
+  items (items 6–7 added 2026-10-30: the server door-validation twin, P1,
+  and an `ageChanged` Studio check; the first 5 audited 2026-08-15): G0 horse/desert + H1 deer/seal/fish
   motif re-mirrors, the `roadStageFor` city-era twin + the TileProps
   H13/H13b road-rail sync, and the never-landed Encyclopedia swap (the
   held #2616 edits — `Pedia.client.luau` still says Gamepedia). Code
@@ -63,6 +64,16 @@ RELEASED and live; everything below is post-release.)_
   (`roblox/acceptance/editableimage-glyph-spike.md` — EditableImage is
   provable only in Play-Solo; the renderer is built + gate-31-pinned).
   Parked alongside: the Studded round-2 screenshot review.
+- [ ] **C3. Run the Luau twins gate on a lune box** — lune is absent on the
+  dev PC, so the twins skipped for `e612651` (one view-only line in
+  `luau/visibility.luau`). Hand `specs/luau-catchup-2026-10-30.md` to the
+  sim-runner or roblox-helper; step 1 is the gate.
+- [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
+  status table in `~/GIT/unityworks/specs/server_change_requests.md` is
+  uncommitted there (your git).
+- [ ] **C5. fastengine batch → marker** — `e612651` is gate-green but
+  untagged; say the word and it becomes the next marker (additive wire
+  changes, `PROTOCOL` stays 1, nothing a running game must react to).
 - [ ] **C2. Remaining patch-plan engine items** (your go starts them):
   P4 bankruptcy sells buildings (small window), P3 AI nuke doctrine
   (a measured behavioural window).

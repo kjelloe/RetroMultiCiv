@@ -17,7 +17,7 @@ the status board. List the deltas BEFORE editing anything.
 ## The checklist
 
 1. **Test counts**: `debugging/sync-check.sh` — fix stale counts via sed in
-   README.md / plan-update.md / agent-workitems.md. Re-run until `ok`.
+   README.md / agent-workitems.md. Re-run until `ok`.
 2. **Specs** (`specs/*.md`): new rulings appended to the spec they rule on
    (dated, with mail #ids); delivery-tracker lines on triage specs; VERBATIM
    ally responses in their own `ally-*-response-*.md` file, routed by

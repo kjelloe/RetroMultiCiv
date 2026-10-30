@@ -8,7 +8,8 @@ Companion added 2026-08-05: **`plan-version-1-patch.md`** — the middle tier,
 from a post-release code review: things worth a PATCH, not worth holding a
 release for (alerting, off-host backups, AI nukes, bankruptcy, ai.js size, CI
 branch coverage).
-Last updated: 2026-08-15 — **v1.0.2 in effect: marker-0129 merged to main and
+Last updated: 2026-10-30 — the fastengine change requests R1–R14 landed on dev_night (@e612651, golden-neutral; door validation, seat-only saves, protocol version, client fixes — `specs/fastengine-requests.md`); not yet in a marker. Suite 1078 local; Luau twins unverified since 2026-08-05 (plan: `specs/luau-catchup-2026-10-30.md`).
+--- prior: 2026-08-15 — **v1.0.2 in effect: marker-0129 merged to main and
 deployed by the user** (the graphics ladder G0–H13b: three display tiers, era
 roads, roads-into-cities; client/render-side only, every gamesim golden
 unmoved; release notes on the user's word). Suite 1062 local / 1064 CI.

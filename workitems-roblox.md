@@ -5,7 +5,7 @@ work stack (transcribed 2026-08-27 from the dev-PC queue store, FIFO
 order preserved) plus the mail context each item referenced. It is
 self-contained: nothing below requires reading the mailbox.
 
-**First step: `git pull origin dev_night` — expect tip `1d1b32a` or
+**First step: `git pull origin dev_night` — expect tip `e612651` or
 later.** All source-of-truth files named below are at that tip.
 
 **Process while the hub is down:** roblox-helper owns `roblox/`
@@ -109,6 +109,25 @@ source):
 Browser reference guard: `test/road-city.test.js` (Node side) encodes
 the city-tile rules; the H13b sections of `specs/graphics-levels.md`
 describe both features.
+
+---
+
+## 6. Server door validation — the fe-R13/R2 twin [architect, queued 2026-10-30, P1]
+
+`GameServer.server.luau` copies every client `cmd` field into
+`engine.applyCommand` unchecked. A client can send `type = "claimSeat"`
+(server-only), and a non-ASCII or control-char string (a city name)
+enters state, where `statehash` refuses it. Port `shared/state-string.js`
+as a twin, reject both with `badShape` before the engine call, cap
+`cmd.name` at 24. Detail + reference tests:
+`specs/luau-catchup-2026-10-30.md` step 2.
+
+## 7. `ageChanged` now reaches Roblox clients [architect, queued 2026-10-30]
+
+`luau/visibility.luau` WORLD_NEWS gained `ageChanged` in `e612651`
+(golden-neutral, view-only). No code change needed on this side; confirm
+in Studio that the `[world]` age line shows once per age. Detail:
+`specs/luau-catchup-2026-10-30.md` step 2.
 
 ---
 

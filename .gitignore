@@ -70,3 +70,6 @@ roblox/data/generated/AgeSnapshotManifest.luau
 # metrics-v1 (specs/metrics-v1.md §6): runtime counter state, never committed/served
 /metrics.json
 /master-metrics.json
+
+# test-ui/mobile-playthrough.spec.js step shots (regenerated each run)
+debugging/mobile-playthrough/

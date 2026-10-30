@@ -233,3 +233,12 @@ Self-executed by the architect in plan order; all golden-neutral (the only engin
 | A112 | R6 | done | `server/native.js` ported (product name only); setup-screen line `client/ui/native-links.js`; `test/server-native.test.js`. |
 | A113 | R14 | done (user go 2026-10-30) | `--saves-dir`, `--crashdumps-dir`; `test/server-saves-dir.test.js`. |
 | — | CLAUDE.md | done | "Downstream mirrors" paragraph. |
+
+### Follow-ups (sync pass 2026-10-30)
+
+- Luau twins gate not run (lune absent on the dev PC); plan for a lune
+  lane: `specs/luau-catchup-2026-10-30.md`.
+- The Roblox server has the same door gap R13/R2 closed here (unchecked
+  `cmd` fields, `claimSeat` reachable from a client): queued as
+  `workitems-roblox.md` item 6.
+- No marker cut yet; `human-workitems.md` C5.

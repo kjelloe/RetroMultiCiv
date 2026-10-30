@@ -26,6 +26,5 @@ check() { # file, grep-pattern producing the number
   fi
 }
 check README.md            "[0-9]+ headless tests"
-check plan-update.md       "[0-9]+ automated tests"
 check agent-workitems.md   "currently [0-9]+ tests"
 exit $DRIFT

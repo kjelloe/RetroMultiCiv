@@ -67,7 +67,7 @@
     Agent/coder tasks live in <code>agent-workitems.md</code>. Markdown source:
     <code>human-workitems.md</code>.</p>
   <p>
-    <span class="chip">Synced: <strong>2026-08-15</strong> (dev_night)</span>
+    <span class="chip">Synced: <strong>2026-10-30</strong> (dev_night tip e612651, untagged)</span>
     <span class="chip">Merge candidate: <strong>marker-0132 = the graphics ladder + S2 reveal + CI repair + mobile fixes</strong> (supersedes 0113-0131), merge-consistent</span>
     <span class="chip">v1.0.0 + v1.0.1 RELEASED and live</span>
   </p>
@@ -105,7 +105,8 @@
 
   <div class="sec-head"><h2>C. Other lanes</h2></div>
   <div class="item"><span class="box"></span>
-    <div><strong>C1. Wake the Roblox lane</strong> — its queue holds 5 items (audited complete
+    <div><strong>C1. Wake the Roblox lane</strong> — its queue holds 7 items (6–7 added 2026-10-30:
+    the server door-validation twin, P1, and an <code>ageChanged</code> Studio check; the first 5 audited
     2026-08-15): G0 horse/desert + H1 deer/seal/fish motif re-mirrors, the <code>roadStageFor</code>
     city-era twin + the TileProps H13/H13b road-rail sync, and the never-landed Encyclopedia swap
     (the held #2616 edits — <code>Pedia.client.luau</code> still says Gamepedia). Code travels by
@@ -119,6 +120,17 @@
     confirmation render (<code>roblox/acceptance/editableimage-glyph-spike.md</code> — the
     EditableImage renderer is built + gate-31-pinned, provable only in Play-Solo). Parked
     alongside: the Studded round-2 screenshot review.</div></div>
+  <div class="item"><span class="box"></span>
+    <div><strong>C3. Run the Luau twins gate on a lune box</strong> — lune is absent on the dev PC, so
+    the twins skipped for <code>e612651</code> (one view-only line in <code>luau/visibility.luau</code>). Hand
+    <code>specs/luau-catchup-2026-10-30.md</code> to the sim-runner or roblox-helper; step 1 is the gate.</div></div>
+  <div class="item"><span class="box"></span>
+    <div><strong>C4. Commit the unityworks status edit</strong> — the RetroMultiCiv R1–R14 status
+    table in <code>~/GIT/unityworks/specs/server_change_requests.md</code> is uncommitted there (your git).</div></div>
+  <div class="item"><span class="box"></span>
+    <div><strong>C5. fastengine batch → marker</strong> — <code>e612651</code> is gate-green but untagged;
+    say the word and it becomes the next marker (additive wire changes, <code>PROTOCOL</code> stays 1,
+    nothing a running game must react to).</div></div>
   <div class="item"><span class="box"></span>
     <div><strong>C2. Remaining patch-plan engine items</strong> (your go starts them): P4
     bankruptcy sells buildings (small window), P3 AI nuke doctrine (a measured behavioural
