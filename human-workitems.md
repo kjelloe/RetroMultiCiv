@@ -8,8 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-10-30 (tip on `dev_night` = the fastengine batch `e612651`, not yet in a marker; last marker **marker-0132 = the graphics
-v2 ladder + S2 reveal + CI repair + mobile fixes, merge-consistent**, supersedes 0113-0131. v1.0.0 + v1.0.1 are
+_Last synced: 2026-10-30 (tip on `dev_night`; **marker-0133 = the fastengine batch R1–R14, merge-consistent**, supersedes 0132 and earlier. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -23,7 +22,10 @@ RELEASED and live; everything below is post-release.)_
   landed provisionals.
 - [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
   (user). This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A2b. Merge marker-0132 (supersedes 0130-0131)** — the canonical-floors CI
+- [ ] **A2b. Push, then merge marker-0133 (supersedes 0130-0132)** — first
+  `git push origin dev_night marker-0133` (this session has no GitHub
+  credentials; the tag is local). 0133 adds the fastengine batch
+  (`reports/marker-0133.md`) on top of 0132's canonical-floors CI
   repair (the nightly's floor-enforcement job has been killed at its
   45-min budget every night since ~2026-08-09; fixed measured at 150) +
   the H13b road-city regression guard. Workflow+test only; until it
@@ -71,9 +73,6 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
   status table in `~/GIT/unityworks/specs/server_change_requests.md` is
   uncommitted there (your git).
-- [ ] **C5. fastengine batch → marker** — `e612651` is gate-green but
-  untagged; say the word and it becomes the next marker (additive wire
-  changes, `PROTOCOL` stays 1, nothing a running game must react to).
 - [ ] **C2. Remaining patch-plan engine items** (your go starts them):
   P4 bankruptcy sells buildings (small window), P3 AI nuke doctrine
   (a measured behavioural window).
