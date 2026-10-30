@@ -987,7 +987,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   background-color: rgba(3, 5, 10, 0);
   align-items: flex-end;
 }
-.moment-peace {
+#moment-card.moment-peace { /* fe-R11: outranks #moment-card's padding */
   padding-bottom: 80px;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.92);
 }
@@ -1091,7 +1091,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   flex: 1; background: #24406b; color: #dbe6f6; border: 1px solid #3b5d8f; border-radius: 6px;
   padding: 10px 12px; font-size: 14px; font-family: inherit; cursor: pointer; min-height: 44px;
 }
-#opt-save { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
+#options-saverow #opt-save { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
 
 /* #3: in-client bug report */
 #options-report { margin-top: 12px; padding-top: 10px; border-top: 1px solid #24314c; }
@@ -1296,6 +1296,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 .regent-stance.chosen { border-color: #4f9a63; background: #223a2c; }
 .regent-blurb { color: #8fa3c0; font-size: 11px; }
 #regent-off { margin-top: 8px; width: 100%; padding: 6px; cursor: pointer; }
+#regent-off.hidden { display: none; }
 
 /* A39: turn-log filter row + display-time class filtering (the entries
    stay in the DOM — toggling a class back reveals the retained history) */
@@ -1348,7 +1349,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
 }
 #lobby-chat-row { display: flex; gap: 6px; margin-top: 6px; }
 #lobby-chat-text { flex: 1; }
-.lobby-kick { border-color: #8f3b3b; color: #e8b0a8; }
+.setup-lan-btn.lobby-kick { border-color: #8f3b3b; color: #e8b0a8; } /* fe-R11: outranks the later .setup-lan-btn */
 .lobby-notice { color: #e0a458; font-style: italic; } /* L8: in-lobby refusal lines */
 
 /* A42 slice 2: the first-visit diorama behind the setup card — dimmed so
@@ -1631,7 +1632,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   box-shadow: 0 0 22px color-mix(in srgb, var(--civ, #8fa8cc) 55%, transparent);
 }
 #discovery-card .ci-specialty { font-size: 13px; color: #cdd8ea; }
-#discovery-card .ci-card .dc-name { color: #ffe89a; }
+#discovery-card.ci-card .dc-name { color: #ffe89a; } /* fe-R11: the id and .ci-card share one element */
 #discovery-card.reveal .dc-glyph { animation: dc-glyph-in 520ms ease-out both; }
 @keyframes dc-glyph-in { from { transform: scale(0.4) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
 #discovery-card .dc-kicker { font-size: 12px; letter-spacing: 2px; color: #8fa8cc; }
@@ -1656,7 +1657,7 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   min-height: 44px; padding: 10px 18px; font: inherit; font-size: 14px; border-radius: 6px; cursor: pointer;
   background: #24406b; color: #dbe6f6; border: 1px solid #3b5d8f;
 }
-#discovery-card .dc-continue { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
+#discovery-card .dc-actions .dc-continue { background: #2e6b40; border-color: #4f9a63; color: #d8f0dc; }
 #discovery-card .dc-choose:disabled { opacity: 0.5; cursor: default; }
 
 /* A68 (VIII.13): civil disorder is LOUD in the city view */
@@ -1765,6 +1766,8 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   margin: 8px 0;
   text-align: right;
 }
+/* fe-R11: the lobby's inline toggles sit in a hint line, not the settings grid */
+#setup-box #lobby-chat-toggle, #setup-box #lobby-joining-toggle { display: inline; margin: 0; }
 
 #setup-box select, #setup-box input {
   background: #16233a;
@@ -1823,11 +1826,16 @@ body.endgame-mourning #endscreen { filter: grayscale(1) brightness(0.92); }
   cursor: pointer;
 }
 .setup-lan-btn:hover { background: #1b2c49; color: #cdd8ea; }
-a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on-Roblox anchor styled as a LAN button */
+a.setup-lan-btn { display: inline-block; text-decoration: none; }
+/* fe-R6: the native client's downloads (ui/native-links.js) — desktop builds, so not on touch */
+#native-links { margin-top: 10px; font-size: 12px; color: #8fa8cc; }
+#native-links a { color: #cdd8ea; }
+#native-links[hidden] { display: none; }
+@media (pointer: coarse) { #native-links { display: none; } } /* the Play-on-Roblox anchor styled as a LAN button */
 
 /* XIV §22/§24/§27: the shared hover-card (tile yields, pedia links, tech nodes) */
 #hover-card {
-  position: fixed; z-index: 45; max-width: 280px; pointer-events: none;
+  position: fixed; z-index: 65; max-width: 280px; pointer-events: none; /* fe-R11: above #tech-tree (60) */
   background: rgba(10, 16, 28, 0.97); border: 1px solid #3b5d8f; border-radius: 6px;
   padding: 8px 10px; font-size: 12px; color: #cdd8ea; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
@@ -2176,6 +2184,7 @@ a.setup-lan-btn { display: inline-block; text-decoration: none; } /* the Play-on
 
 #turn-list .win { color: #8fd18f; }
 #turn-list .loss { color: #ff7b6b; }
+#city-panel .loss, .overview-table .loss { color: #ff7b6b; } /* fe-R11: deficits in the city view + overviews */
 
 /* --- city-name dialog --- */
 /* MOBILE PLAYTHROUGH FINDING (2026-07-30): on a phone the touch d-pad (z-index
@@ -2689,6 +2698,10 @@ body.modal-open #dpad { pointer-events: none; opacity: 0.35; }
   #open-econ-overview { top: 44px; left: calc(50% - 38px); }
   #open-military-overview { top: 44px; left: calc(50% - 2px); }
   #open-city-overview { top: 44px; left: calc(50% + 34px); }
+  /* fe-R11: an open overview sits below the button row that toggles it */
+  #econ-overview-panel, #military-overview-panel, #city-overview-panel { top: 78px; }
+  /* fe-R9: the HUD wraps before it reaches the research bar's left edge (50% - 190px) */
+  #hud { max-width: calc(50% - 190px - 12px - 12px - 30px); }
 }
 .overview-table .eco-in { color: #cde8d4; }
 .overview-table .eco-out { color: #cdd8ea; }

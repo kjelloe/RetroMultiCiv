@@ -129,7 +129,7 @@ export function initAutomate(ctx) {
   function checkWakes(state) {
     const d = load();
     if (d.sentry.length === 0) return;
-    const view = filterView(state, ctx.HUMAN);
+    const view = filterView(state, ctx.HUMAN, session.ruleset);
     for (const uid of d.sentry.slice()) {
       const u = state.units[uid];
       if (!u) continue;
@@ -152,7 +152,7 @@ export function initAutomate(ctx) {
   function checkAutoPause(state) {
     const d = load();
     if (d.auto.length === 0) return;
-    const view = filterView(state, ctx.HUMAN);
+    const view = filterView(state, ctx.HUMAN, session.ruleset);
     for (const uid of d.auto.slice()) {
       const u = state.units[uid];
       if (!u) continue;
@@ -267,7 +267,7 @@ export function initAutomate(ctx) {
           const unit = state.units[uid];
           if (!unit || unit.owner !== ctx.HUMAN || unit.type !== 'settlers') { cancelAuto(uid); break; }
           if (unit.moves <= 0 || unit.working) break;
-          const view = filterView(state, ctx.HUMAN);
+          const view = filterView(state, ctx.HUMAN, session.ruleset);
           const job = findJob(view, view.units[uid] || unit);
           if (!job) {
             // XIV §42: nothing left to improve in range — wake it (don't idle auto)

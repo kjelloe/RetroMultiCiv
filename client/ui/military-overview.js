@@ -25,7 +25,9 @@ export function initMilitaryOverview(ctx) {
       let best = null, bestD = Infinity;
       for (const cid of ownCityIds) {
         const c = state.cities[cid];
-        const d = Math.abs(c.x - x) + Math.abs(c.y - y);
+        let dx = Math.abs(c.x - x);
+        if (state.map.wrapX && state.map.width - dx < dx) dx = state.map.width - dx; // fe-R11: the seam is not a wall
+        const d = dx + Math.abs(c.y - y);
         if (d < bestD) { bestD = d; best = c; }
       }
       return best;

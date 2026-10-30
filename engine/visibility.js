@@ -255,7 +255,8 @@ function filterView(state, playerId, ruleset) {
 // learning two strangers met is fog-dishonest, so it is party-scoped below.
 const WORLD_NEWS = {
   wonderBuilt: true, wonderLost: true, gameOver: true, playerDefeated: true,
-  WAR_DECLARED: true, TREATY_BROKEN: true, PEACE_TREATY_SIGNED: true
+  WAR_DECLARED: true, TREATY_BROKEN: true, PEACE_TREATY_SIGNED: true,
+  ageChanged: true
 };
 
 // the viewer's civ id, resolved exactly as diplomacy.js eventCiv() builds the

@@ -49,12 +49,14 @@ export function initTechTree(ctx) {
   const canvas = overlay.querySelector('#tech-tree-canvas');
   const svg = overlay.querySelector('#tech-tree-edges');
   overlay.querySelector('#tech-tree-close').addEventListener('click', () => toggle(false));
-  overlay.querySelector('#tt-back').addEventListener('click', () => toggle(false));
-  overlay.querySelector('#tt-close-research').addEventListener('click', () => {
+  // fe-R11: opening the tree hid the research panel (top-panels.js keeps one
+  // top panel open), so Back re-opens the list and Close just closes the tree
+  overlay.querySelector('#tt-back').addEventListener('click', () => {
     toggle(false);
     const rp = document.getElementById('research-panel');
-    if (rp && !rp.classList.contains('hidden') && ctx.panels && ctx.panels.toggleResearchPanel) ctx.panels.toggleResearchPanel();
+    if (rp && rp.classList.contains('hidden') && ctx.panels && ctx.panels.toggleResearchPanel) ctx.panels.toggleResearchPanel();
   });
+  overlay.querySelector('#tt-close-research').addEventListener('click', () => toggle(false));
 
   // --- layout (built once — the DAG shape never changes) ---------------------
   const pos = {};   // id -> { x, y }

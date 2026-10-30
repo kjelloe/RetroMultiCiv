@@ -129,7 +129,7 @@ export function initSaves(ctx) {
   // authoritative code or a loadable state. Both Shift+S and Shift+D fetch the
   // server's own save (docs/06 static host serves saves/<gameId>.json).
   function fetchServerSave() {
-    fetch(`/saves/${session.gameId}.json`).then(r => {
+    fetch(`/saves/${session.gameId}.json`, { headers: session.saveHeaders() }).then(r => {
       if (!r.ok) throw new Error(`no server save yet (${r.status})`);
       return r.text();
     }).then(text => {

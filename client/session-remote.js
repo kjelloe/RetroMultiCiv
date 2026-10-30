@@ -8,7 +8,9 @@
 // command yields `applied` (events) THEN `view` (new state). So apply()'s
 // Promise resolves on the VIEW, not the ack — session.state is fresh by the
 // time an awaiting caller resumes. A `rejected` has no following view, so it
-// resolves immediately.
+// resolves immediately. fe-R8: only a view after THIS command's own `applied`
+// resolves it ok; a frame the server dropped (rateLimited, commandId -1) or a
+// reply that never comes resolves ok:false instead of riding a rival's view.
 import { mlog } from './ui/mlog.js'; // L5: no-op unless ?mlog=1
 import { OFFTURN_WHITELIST } from '../engine/index.js'; // XIV §31: the A54 whitelist
 
@@ -18,6 +20,7 @@ export function createRemoteSession(opts) {
   const wsUrl = opts.wsUrl;
   const name = opts.name || 'Player';
   const spectator = opts.spectator === true; // A17: tokenless view-only pseudo-seat
+  const requestTimeoutMs = opts.requestTimeoutMs || 30000; // fe-R8: a big map's AI round can take seconds
   // The server owns the gameId; the client learns it from the joined reply and
   // NEEDS it for the /saves/<gameId>.json fetch + localStorage key names. Persist
   // it per-origin so a page reload can find its token key before joining (the
@@ -53,7 +56,7 @@ export function createRemoteSession(opts) {
 
   // one command in flight at a time (the ui awaits): the ack's events wait
   // here for the view that resolves the caller's Promise.
-  let awaiting = null;                    // { commandId, resolve }
+  let awaiting = null;                    // { commandId, resolve, timer, acked }
   let awaitingEvents = null;
   // XIV §31: mirror the LOCAL A54 off-turn queue (session.js) over the server —
   // whitelisted self-scoped cmds issued when it is NOT my turn are held here
@@ -138,19 +141,24 @@ export function createRemoteSession(opts) {
       const wasJoined = joined;
       joined = true;
       if (state) prevActive = state.activePlayer; // XIV §31: baseline for the turn-flip flush
+      // fe-R8: a rejoin that lands on my own turn sees no flip — flush now
+      if (state && state.activePlayer === playerId) flushOffturn();
       // reconnect: a wholesale view replacement — the stateReplaced marker
       // re-baselines subscribers (turn-log contacts), same as a local load
       if (wasJoined) notify([{ type: 'stateReplaced' }]);
       return { joinedNow: !wasJoined };
     }
     if (msg.t === 'applied') {
-      awaitingEvents = msg.events || [];
+      if (awaiting && msg.commandId === awaiting.commandId) {
+        awaiting.acked = true;
+        awaitingEvents = msg.events || [];
+      }
       return {};
     }
     if (msg.t === 'rejected') {
-      if (awaiting && (msg.commandId === awaiting.commandId)) {
-        const w = awaiting; awaiting = null; awaitingEvents = null;
-        w.resolve({ ok: false, reason: msg.code, message: msg.message, events: [] });
+      if (awaiting && (msg.commandId === awaiting.commandId
+          || (msg.commandId === -1 && msg.code === 'rateLimited'))) {
+        settle({ ok: false, reason: msg.code, message: msg.message, events: [] });
       } else if (msg.commandId === -1) {
         status('server rejected a frame: ' + msg.code);
       }
@@ -166,7 +174,7 @@ export function createRemoteSession(opts) {
       const forPromise = awaitingEvents || [];
       awaitingEvents = null;
       notify(forNotify);                  // ui refreshes on the new state first
-      if (awaiting) { const w = awaiting; awaiting = null; w.resolve({ ok: true, events: forPromise }); }
+      if (awaiting && awaiting.acked) settle({ ok: true, events: forPromise });
       // XIV §31: my turn just started (activePlayer flipped TO me) → flush the queue
       if (state && prevActive !== playerId && state.activePlayer === playerId) flushOffturn();
       if (state) prevActive = state.activePlayer;
@@ -188,7 +196,8 @@ export function createRemoteSession(opts) {
     // A40: the presence broadcast carries which seats are on regency — keep
     // my OWN stance so ui/regency.js can reflect the Auto Turn state
     if (msg.t === 'presence' && msg.regents) {
-      myRegent = msg.regents[playerId] ? 'on' : undefined;
+      // fe-R10: the stance itself when the server sends it (stances), else just 'on'
+      myRegent = msg.regents[playerId] ? ((msg.stances && msg.stances[playerId]) || 'on') : undefined;
     }
     if (msg.t === 'fullLog' && fullLogWaiter) { // A47: the replay recording
       const w = fullLogWaiter; fullLogWaiter = null;
@@ -217,10 +226,20 @@ export function createRemoteSession(opts) {
     frame.gameId = gameId;
     frame.token = token;
     sent.push({ t: frame.t, commandId: frame.commandId });
+    if (awaiting) settle({ ok: false, reason: 'superseded', events: [] });
     return new Promise(resolve => {
-      awaiting = { commandId: frame.commandId, resolve };
+      const timer = setTimeout(() => settle({ ok: false, reason: 'timeout', events: [] }), requestTimeoutMs);
+      if (timer.unref) timer.unref(); // node tests: an unanswered request must not hold the process
+      awaiting = { commandId: frame.commandId, resolve, timer, acked: false };
       send(frame);
     });
+  }
+
+  function settle(result) {
+    const w = awaiting;
+    awaiting = null; awaitingEvents = null;
+    clearTimeout(w.timer);
+    w.resolve(result);
   }
 
   function openSocket(resolveJoin, rejectJoin) {
@@ -294,6 +313,7 @@ export function createRemoteSession(opts) {
     get gameId() { return gameId; }, // presence signals server mode to ui/saves.js
     get serverCode() { return serverCode; }, // docs/07: authoritative code for ctx.gameCode()
     get seatCode() { return mySeatCode; },   // A46: shown next to the game code
+    saveHeaders() { return token ? { 'X-Seat-Token': token } : {}; }, // fe-R1: a live save is seat-only
     regentStance() { return myRegent; },     // A40: my seat's regency, from presence
     send(frame) { send(Object.assign({ gameId }, frame)); }, // A40: fire-and-forget {t:'regent'}
     // A47: the full recording for the replay theater (server-owned; only

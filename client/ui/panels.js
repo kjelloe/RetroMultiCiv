@@ -6,6 +6,7 @@ import { cityMood } from '../../engine/happiness.js';
 import { unitsAt, cityAt } from '../../engine/combat.js';
 import { terrainColor } from '../renderer/renderer.js';
 import { makeCatalogText } from './catalog-text.js';
+import { foldToAscii } from '../../shared/state-string.js';
 import { UNIT_BLURBS, BUILDING_BLURBS } from './unit-building-blurbs.js';
 
 export function initPanels(ctx) {
@@ -239,6 +240,8 @@ export function initPanels(ctx) {
     return units[item.id];
   }
 
+  const MOOD_WONDER_EFFECTS = ['happyEverywhere', 'contentEverywhere', 'allContentInCity', 'doublesTemple', 'warUnhappyReduce'];
+
   function openCityPanel(cityId) {
     openCityId = cityId;
     sel.cityId = cityId;
@@ -248,7 +251,9 @@ export function initPanels(ctx) {
     renderer.centerOn(city.x, city.y);
     closeStackPanel();
     researchPanel.classList.add('hidden');
+    if (ctx.refreshActionBar) ctx.refreshActionBar(); // fe-R11: the unit selection just cleared
     fillCityPanel();
+    if (openCityId === null) return; // fe-R11: fillCityPanel refused (not this viewer's city)
     cityPanel.classList.remove('hidden');
     if (ctx.advice && city && city.owner === ctx.HUMAN) ctx.advice.offer('city-view'); // A78
   }
@@ -359,7 +364,7 @@ export function initPanels(ctx) {
     const isCapital = capital && capital.id === city.id;
     const title = document.getElementById('city-title');
     title.textContent = `🏛 ${isCapital ? '★ ' : ''}${city.name} — pop ${city.pop} (${state.players[city.owner].name})`;
-    if (isCapital) title.title = 'your capital — corruption grows with distance from here';
+    title.title = isCapital ? 'your capital — corruption grows with distance from here' : '';
     // faction emblem chip (art A1.6a): the owner's flag from data/civs.json
     const ownerCiv = state.players[city.owner].civ;
     const visual = ownerCiv && session.ruleset.civs[ownerCiv] && session.ruleset.civs[ownerCiv].visual;
@@ -459,7 +464,7 @@ export function initPanels(ctx) {
         && state.cities[state.wonders[wid]] && state.cities[state.wonders[wid]].owner === city.owner)
       .filter(wid => {
         const e = session.ruleset.wonders[wid].effect || {};
-        return e.happyBonus !== undefined || e.contentBonus !== undefined || e.allContent !== undefined;
+        return MOOD_WONDER_EFFECTS.some(k => e[k] !== undefined); // fe-R11: the keys data/wonders.json carries
       })
       .map(wid => session.ruleset.wonders[wid].name);
     const moodTip = 'mood factors (the engine computes the faces):'
@@ -836,7 +841,7 @@ export function initPanels(ctx) {
   }
 
   document.getElementById('name-ok').addEventListener('click', () => {
-    const name = nameInput.value.trim();
+    const name = foldToAscii(nameInput.value).trim(); // fe-R13: state strings are printable ASCII
     const cb = nameConfirm;
     closeNameDialog();
     if (cb && name) cb(name);
@@ -907,6 +912,6 @@ export function initPanels(ctx) {
     openCityPanel, closeCityPanel, toggleResearchPanel, cycleCity,
     openStackPanel, closeStackPanel, openNameDialog, closeAll, refresh,
     entitySummary, // XV §6: the §22 hover-card summary builder, reused by the discovery popup
-    isCityOpen: () => openCityId !== null
+    isCityOpen: () => openCityId !== null && !cityPanel.classList.contains('hidden') // fe-R11: top-panels.js may hide it
   };
 }

@@ -84,6 +84,22 @@ operator).
   its Studio plugin are approved on the ROBLOX PC only (user-approved
   2026-07-14, docs/10). Ask before adding anything else.
 
+- **Downstream mirrors (fastengine, 2026-10-30).** fastengine
+  (`~/GIT/fastengine`) mirrors these read-only helpers in C# for its native
+  client:
+  `engine/{cities,combat,tech,trade,government,difficulty,diplomacy,happiness,improvements,score,upgrade,visibility,spaceship,leaders}.js`
+  (diplomacy: its read side), `shared/{pathfind,statehash,gamecode,beeline,city-era,diplomacy-view,victory-presets}.js`,
+  `client/ui/hud.js` cityNotes and refresh (what it hands the renderer: filterView, annotateCityEra, capitalOf),
+  `client/session-remote.js` augment, its command path (one waiter, the ack's events on the next view) and
+  OFFTURN_WHITELIST, `client/ui/move-hints.js`, `client/ui/input.js`'s tables (MOVE_KEYS, PRODUCTION_KEYS, the work
+  keys, REASON_TEXT, ACTION_COMMANDS) and gotoPreviewPath, planCanEnter, describeEvents and combatPreview,
+  `client/ui/reject-copy.js`, `client/ui/lobby.js`'s refusal wording and SERVER_FULL_MSG, and
+  `client/ui/wait-status.js`. It also relies on: the engine and replay entry points its replay and stats screens run
+  in node; the autosave format and `--game` resume (its F5/F9); `dataHashes`; starting the server in-process with
+  `--host 127.0.0.1 --port 0`; and the socket protocol (`PROTOCOL` in `server/protocol.js`, docs/06 §3 — wire
+  changes additive, new fields last). Changing any of these is fine; mention it in the commit message so the native
+  port re-runs its checks. Their change requests: `specs/fastengine-requests.md`.
+
 ## Data source
 
 Stat tables come from a local wikiteam XML dump of a Civ 1 reference wiki
@@ -122,7 +138,7 @@ stats-data,palette,mlog,dpad,discovery-card,tech-blurbs,ship,minimap,
 build-queue,automate,debug-panel,strategic-overlay,diplomacy,rejoin,
 tech-tree,tech-glyphs,bug-report,city-overview,econ-overview,
 hover-card,military-overview,onboarding,overview-panel,score-view,
-top-panels,unit-building-blurbs,upkeep}. tech-tree = the 🌳 graphical tech-tree overlay +
+top-panels,unit-building-blurbs,upkeep,native-links}. tech-tree = the 🌳 graphical tech-tree overlay +
 client-side beeline (research goal in client state, issues normal
 setResearch — golden-neutral; the DAG-walk is pure in shared/beeline.js);
 tech-glyphs = procedural per-tech icons (era frame + motif, factions.js

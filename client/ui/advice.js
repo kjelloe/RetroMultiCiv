@@ -244,7 +244,7 @@ export function initAdvice(ctx) {
       // advisor-hint-cards.md: the onboarding first-time triggers. Event-driven
       // ones read the fog-FILTERED event stream (filterEvents) so the player only
       // gets nudges about things they can perceive — the sound.js precedent.
-      for (const e of filterEvents(state, events || [], me)) {
+      for (const e of filterEvents(state, events || [], me, ruleset)) {
         if (e.type === 'cityStarved' && ownCity(state, e.cityId)) offer('growth-stall', { City: (state.cities[e.cityId] || {}).name || 'your city' });
         else if (e.type === 'governmentChanged' && e.playerId === me
           && e.government !== 'despotism' && e.government !== 'anarchy') offer('new-government');
@@ -264,7 +264,7 @@ export function initAdvice(ctx) {
       // still-unseen card actually needs it (the scan is skipped once all fire).
       if (wants('first-city') || wants('barbarian') || wants('goody-hut')
         || wants('wonder-available') || wants('endgame')) {
-        const view = filterView(state, me);
+        const view = filterView(state, me, ruleset);
         if (hasOwnCityWhen(view, me)) offer('first-city');
         if (barbarianSightedWhen(view, me)) offer('barbarian');
         if (hutSightedWhen(view, me)) offer('goody-hut');

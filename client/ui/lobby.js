@@ -15,7 +15,13 @@
 import { shouldReconnect, reconnectFrame, backoffDelay, wakeIsSuspect } from '../../shared/lobby-reconnect.js';
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
 import { rejectText } from './reject-copy.js';
+import { foldToAscii } from '../../shared/state-string.js';
 import qrcode from '../vendor/qrcode.min.js';
+
+// fe-R13: the server accepts printable ASCII only; fold so "Åse" joins as "Ase"
+function lobbyName(fallback) {
+  return foldToAscii(document.getElementById('lobby-name').value).trim() || fallback;
+}
 
 // join-share: the invite URL a host shares from the lobby — the friend's client
 // opens the Join form with the code prefilled (setup.js ?join=).
@@ -509,7 +515,8 @@ function fail(box, text) {
   const st = document.getElementById('lobby-status');
   if (st) { st.textContent = `✗ ${text}`; return; }
   box.innerHTML = `<h2>Game lobby</h2><p class="setup-hint">✗ ${text}</p>
-    <p class="setup-hint"><a href="./">← back to setup</a></p>`;
+    <p class="setup-hint"><a href="./">← back to setup</a> · <a href="" id="lobby-retry">↻ try again</a></p>`;
+  document.getElementById('lobby-retry').addEventListener('click', e => { e.preventDefault(); location.reload(); }); // fe-R11
 }
 
 // Host: create with the setup form's world options. auto/hold drive the e2e.
@@ -624,7 +631,7 @@ export function startHostFlow(box, options, flags) {
     options.victory = document.getElementById('lobby-victory').value; // victory-conditions preset
     options.size = document.getElementById('lobby-size').value;
     options.age = document.getElementById('lobby-age').value;
-    create(document.getElementById('lobby-name').value.trim() || 'Player 1');
+    create(lobbyName('Player 1'));
   });
   // A34: the host machine's saves, newest first — resume loads it on the
   // server (seats reset) and this connection joins it straight away
@@ -654,7 +661,7 @@ export function startHostFlow(box, options, flags) {
       // the join boots the game via the shared {t:'joined'} path
       sock.send(JSON.stringify({
         t: 'join', joinCode: msg.gameId,
-        name: document.getElementById('lobby-name').value.trim() || 'Player 1'
+        name: lobbyName('Player 1')
       }));
     } else if (msg.t === 'rejected') {
       fail(box, msg.code === 'noSuchSave' ? 'that save is gone from saves/'
@@ -893,7 +900,7 @@ export function startJoinFlow(box) {
       btn.textContent = d.action === 'join' ? 'join' : d.action === 'takeover' ? 'Join' : 'spectate';
       const doJoin = () => joinVia({
         t: 'joinListed', gameId: g.gameId,
-        name: document.getElementById('lobby-name').value.trim() || 'Player',
+        name: lobbyName('Player'),
         seat: d.action === 'join' ? (document.getElementById('lobby-seat').value || undefined) : undefined,
         spectator: d.action === 'spectate' ? true : undefined
       });
@@ -911,7 +918,7 @@ export function startJoinFlow(box) {
   browseWs.addEventListener('open', () => browseWs.send(JSON.stringify({ t: 'listGames' })));
 
   document.getElementById('setup-start').addEventListener('click', () => {
-    const name = document.getElementById('lobby-name').value.trim() || 'Player';
+    const name = lobbyName('Player');
     const code = document.getElementById('lobby-code-in').value.trim().toUpperCase();
     const seat = document.getElementById('lobby-seat').value || undefined;
     const spectate = document.getElementById('lobby-spectate').checked || undefined;
@@ -1025,7 +1032,9 @@ async function initGlobalTab(box) {
     btn.className = 'setup-lan-btn';
     btn.textContent = 'browse';
     btn.addEventListener('click', () => {
-      joinOrigin = `ws://${s.host}:${s.port}/ws`;
+      // fe-R3: a 443 server sits behind TLS, and an https page cannot open ws:// at all
+      const scheme = s.port === 443 || location.protocol === 'https:' ? 'wss' : 'ws';
+      joinOrigin = `${scheme}://${s.host}:${s.port}/ws`;
       startJoinFlow(box); // re-render: the browse list + joins now target the pick
     });
     row.appendChild(btn);

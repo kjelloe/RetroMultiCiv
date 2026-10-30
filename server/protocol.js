@@ -3,7 +3,28 @@
 // the results. Per-seat views can't be broadcast (they differ per player),
 // so routing signals `viewsChanged` and the socket layer sends each
 // connection its own `game.view(seat)`.
+import { isStateString, onlyStateStrings } from '../shared/state-string.js';
+
 const MAX_FRAME = 64 * 1024;
+
+// fe-R5: the socket protocol's version, sent as `proto` on every `joined` and
+// `openGames` row. A client may pin it with /ws?proto=N (absent = accepted).
+// Bump it only when a message shape changes INCOMPATIBLY; additive fields
+// (new keys last) do not bump it.
+export const PROTOCOL = 1;
+const MAX_NAME = 24;
+
+// fe-R2: the command types a client may send over the socket. Engine-internal
+// types (claimSeat: the server's late-join flow applies it directly) are not
+// here; test/server-command-allowlist.test.js fails when an engine command type
+// is in neither list.
+export const CLIENT_COMMANDS = Object.freeze([
+  'moveUnit', 'fortify', 'wait', 'endTurn', 'foundCity', 'setProduction', 'setWorkers',
+  'startWork', 'pillage', 'disband', 'rehome', 'buy', 'helpWonder', 'sellBuilding',
+  'setGovernment', 'setResearch', 'setRates', 'launchShip', 'establishTradeRoute',
+  'upgradeUnit', 'debug', 'diplomacy', 'diplomatMission'
+]);
+export const SERVER_ONLY_COMMANDS = Object.freeze(['claimSeat']);
 
 // regression-guard 1 (ruled #2523): the SINGLE source of truth for every
 // reject `code` the server layer can put on the wire — previously scattered as
@@ -18,6 +39,9 @@ export const REJECT_REASONS = Object.freeze({
   // protocol.js — frame validation
   badFrame: 'badFrame', badJson: 'badJson', badName: 'badName',
   badShape: 'badShape', badToken: 'badToken', unknownType: 'unknownType',
+  notAllowed: 'notAllowed', protocolMismatch: 'protocolMismatch',
+  // index.js — a handler threw (fe-R13 containment); the process keeps serving
+  internal: 'internal',
   // limits.js — rate / capacity
   rateLimited: 'rateLimited', connectRateLimited: 'connectRateLimited',
   tooManyConns: 'tooManyConns', tooManyGames: 'tooManyGames', serverFull: 'serverFull',
@@ -52,7 +76,7 @@ export function parseMessage(raw) {
   }
   if (msg.t === 'ping') return { ok: true, msg };
   if (msg.t === 'join') {
-    if (typeof msg.name !== 'string' || msg.name.length < 1 || msg.name.length > 24) {
+    if (!isStateString(msg.name, MAX_NAME) || msg.name.length < 1) {
       return { ok: false, code: REJECT_REASONS.badName };
     }
     if (msg.token !== undefined && typeof msg.token !== 'string') {
@@ -72,10 +96,11 @@ export function parseMessage(raw) {
   }
   // phase-4 lobby frames (docs/08 §2): create a game, list open games, start.
   if (msg.t === 'create') {
-    if (typeof msg.name !== 'string' || msg.name.length < 1 || msg.name.length > 24) {
+    if (!isStateString(msg.name, MAX_NAME) || msg.name.length < 1) {
       return { ok: false, code: REJECT_REASONS.badName };
     }
-    if (msg.options !== undefined && (typeof msg.options !== 'object' || Array.isArray(msg.options))) {
+    if (msg.options !== undefined && (typeof msg.options !== 'object' || Array.isArray(msg.options)
+        || !onlyStateStrings(msg.options))) {
       return { ok: false, code: REJECT_REASONS.badShape };
     }
     return { ok: true, msg };
@@ -128,7 +153,7 @@ export function parseMessage(raw) {
   if (msg.t === 'listGames') return { ok: true, msg };
   if (msg.t === 'joinListed') {
     if (typeof msg.gameId !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
-    if (msg.name !== undefined && typeof msg.name !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
+    if (msg.name !== undefined && (typeof msg.name !== 'string' || !isStateString(msg.name, MAX_NAME))) return { ok: false, code: REJECT_REASONS.badName };
     if (msg.seat !== undefined && typeof msg.seat !== 'string') return { ok: false, code: REJECT_REASONS.badShape };
     if (msg.spectator !== undefined && typeof msg.spectator !== 'boolean') return { ok: false, code: REJECT_REASONS.badShape };
     return { ok: true, msg };
@@ -161,8 +186,12 @@ export function parseMessage(raw) {
     if (!Number.isInteger(msg.commandId)) return { ok: false, code: REJECT_REASONS.badShape };
     if (msg.t === 'cmd'
         && (!msg.cmd || typeof msg.cmd !== 'object' || Array.isArray(msg.cmd)
-            || typeof msg.cmd.type !== 'string')) {
+            || typeof msg.cmd.type !== 'string' || !onlyStateStrings(msg.cmd)
+            || (msg.cmd.name !== undefined && !isStateString(msg.cmd.name, MAX_NAME)))) {
       return { ok: false, code: REJECT_REASONS.badShape };
+    }
+    if (msg.t === 'cmd' && !CLIENT_COMMANDS.includes(msg.cmd.type)) {
+      return { ok: false, code: REJECT_REASONS.notAllowed };
     }
     return { ok: true, msg };
   }
@@ -231,7 +260,8 @@ export function route(game, msg) {
         view: game.view(bound.playerId),
         rulesOverrides: game.rulesOverrides,
         code: game.code(), // docs/07: the authoritative verification code
-        civs: playerCivs(game) // A24: public identity — city rosters + faction visuals
+        civs: playerCivs(game), // A24: public identity — city rosters + faction visuals
+        proto: PROTOCOL
       }],
       broadcast: [],
       viewsChanged: false

@@ -5,6 +5,7 @@
 import { victoryOptions, DEFAULT_VICTORY } from '../../shared/victory-presets.js';
 import { matchSnapshot } from '../../shared/age-snapshots.js';
 import { robloxLinkHtml } from './roblox-link.js';
+import { loadNativeLinks } from './native-links.js';
 import { GAME_NAME, GAME_SUBTITLE, GAME_REPO_URL } from './game-name.js';
 import { getGraphicsDiagnostics, suggestGraphicsLevel } from '../diagnostics.js';
 
@@ -101,9 +102,11 @@ export function showSetupScreen() {
         ${robloxLinkHtml()}
       </div>
       <div id="setup-find-list" class="hidden"></div>
+      <div id="native-links" hidden></div>
       <p class="setup-hint" id="setup-host-guide"><a href="host-guide.html" target="_blank" rel="noopener">Hosting guide ↗</a> · <a href="https://github.com/kjelloe/RetroMultiCiv/issues" target="_blank" rel="noopener">Report issue ↗</a></p>
     </div>`;
   document.body.appendChild(overlay);
+  loadNativeLinks(document.getElementById('native-links')); // fe-R6
   // Tab-loss fix (user ruling 2026-07-22): a local game autosaves to
   // localStorage every turn (saves.js); returning to the bare page offers an
   // inline resume. Server use stays limited to the LAN buttons (Host/Join/
@@ -564,7 +567,9 @@ export function showSetupScreen() {
     // to the public DEFAULT_MASTER: it serves no CORS header (verified 2026-07-23),
     // so a cross-origin fetch would just dead-end worse — rely on the proxy + the
     // actionable text below (reviewer #2446 #2: skip the fallback when CORS is absent).
-    const masterUrl = new URLSearchParams(location.search).get('master') || '/master/servers'; // a45-ok: setup boot
+    // fe-R11: ?master= is the index BASE, as lobby.js reads it; both append /servers
+    const masterParam = new URLSearchParams(location.search).get('master'); // a45-ok: setup boot
+    const masterUrl = masterParam ? masterParam.replace(/\/$/, '') + '/servers' : '/master/servers';
     // the self-hoster's way out, shared by the not-configured + unreachable cases
     const selfHostHint = 'Self-hosting? Run the server with --master <url> (also announces you), or add ?master=<url> to this page URL.';
     fetch(masterUrl).then(r => r.json()).then(data => {

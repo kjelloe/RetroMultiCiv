@@ -180,7 +180,7 @@ export function initSound(ctx) {
       if (!events || events.length === 0) return;
       // fog gate: only sound what the viewer could actually witness (same as
       // the turn log) — session round events are omniscient
-      const seen = filterEvents(state, events, ctx.HUMAN);
+      const seen = filterEvents(state, events, ctx.HUMAN, ctx.session.ruleset);
       const owner = cityOwner(state);
       for (const e of seen) {
         let id = soundForEvent(e, ctx.HUMAN, owner);

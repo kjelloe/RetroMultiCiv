@@ -34,7 +34,8 @@ import { selectTakeoverSeat, takeoverPool, selectEviction } from './late-join.js
 import { cityEraBand, CITY_ERA_BANDS } from '../shared/city-era.js';
 import { buildReport, writeReport, rotateReports } from './report.js';
 import { writeBugReport, rotateBugReports } from './bug-report.js';
-import { parseMessage, route, turnBroadcasts, playerCivs, REJECT_REASONS } from './protocol.js';
+import { nativeSource, serveNative } from './native.js';
+import { parseMessage, route, turnBroadcasts, playerCivs, REJECT_REASONS, PROTOCOL } from './protocol.js';
 import { createMetrics, isLoopback } from './metrics.cjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -198,6 +199,13 @@ export function startServer(opts) {
   // gallery + diagnostics (shoot.sh --server passes it for /debugging/ URLs).
   const debugMode = opts.debug === true;
   const STATIC_ROOTS = ['/client/', '/engine/', '/shared/', '/data/'];
+  function protoParam(reqUrl) {
+    try { return new URL(reqUrl || '', 'http://x').searchParams.get('proto'); } catch (e) { return null; }
+  }
+  function saveReadable(game, token) {
+    if (debugMode || game.state.gameOver === true) return true;
+    return typeof token === 'string' && game.seatOf(token) !== null;
+  }
   function servable(urlPath) {
     if (debugMode) return true; // dev: whole repo (gallery, /debugging/*)
     return STATIC_ROOTS.some(r => urlPath.startsWith(r));
@@ -219,6 +227,11 @@ export function startServer(opts) {
     arr.push(t);
     return true;
   }
+
+  // fe-R6: NATIVE_DOWNLOADS = a folder (served under /native/), file:// or http(s):// (linked)
+  const nativeSrc = nativeSource(opts.nativeDownloads !== undefined ? opts.nativeDownloads : process.env.NATIVE_DOWNLOADS, REPO);
+  if (nativeSrc.kind === 'url') console.log(`native client linked at ${nativeSrc.url}`);
+  else if (nativeSrc.kind === 'folder') console.log(`native client offered from ${nativeSrc.dir}`);
 
   const httpServer = http.createServer((req, res) => {
     // Slice 3b: cap absurd URL lengths cheaply, before URL parsing (Node already
@@ -252,6 +265,10 @@ export function startServer(opts) {
     if (urlPath === '/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify(healthSnapshot()));
+      return;
+    }
+    if (urlPath === '/native.json' || urlPath.startsWith('/native/')) {
+      serveNative(req, res, nativeSrc).catch(() => res.destroy());
       return;
     }
     // metrics-v1 §3: cumulative counters, LOOPBACK-ONLY unless --metrics-public.
@@ -330,11 +347,15 @@ export function startServer(opts) {
     if (req.method === 'GET' && urlPath.startsWith('/saves/') && urlPath.endsWith('.json') && urlPath.indexOf('..') === -1) {
       const gid = urlPath.slice('/saves/'.length, -('.json'.length));
       const e = gid ? registry.entryOf(gid) : null;
-      if (e && e.game) {
+      if (e && e.game && saveReadable(e.game, req.headers['x-seat-token'])) {
         res.writeHead(200, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify(e.game.toDownload()));
         return;
       }
+      // fe-R1: a live game's save is the unfiltered state; only a seat of THAT
+      // game may read it (or anyone once it is over, or under --debug). Same
+      // 404 as an unknown id, so the endpoint is not an oracle for live games.
+      if (e && e.game) { res.writeHead(404); res.end(); return; }
     }
     if (!servable(urlPath)) { res.writeHead(404); res.end(); return; } // A61: whitelist
     let file = path.normalize(path.join(REPO, urlPath));
@@ -381,6 +402,9 @@ export function startServer(opts) {
   // (A50 item 6), then the per-IP connect-rate (3a).
   const wss = new WebSocketServer({
     server: httpServer, path: '/ws', maxPayload: 64 * 1024,
+    // fe-R4: views are 140-550 KB of JSON per seat per command; small frames
+    // skip compression, and no context takeover bounds memory per socket
+    perMessageDeflate: { threshold: 4096, serverNoContextTakeover: true, clientNoContextTakeover: true },
     // Self-audit (#2143): connect-rate BEFORE the invite check so wrong-invite
     // attempts spend the per-IP connect budget — bounds invite-code brute force
     // (codes are low-entropy operator strings). Origin stays first (cheapest,
@@ -590,6 +614,20 @@ export function startServer(opts) {
     let n = 0;
     for (const [, i] of conns) if (i.gameId === gameId && i.playerId && i.playerId !== 'spectator') n = n + 1;
     return n;
+  }
+  // fe-R13: one client's frame must not end every game on the server. The
+  // sender gets `internal`; a game whose committed state no longer hashes is
+  // poisoned for every later save/round, so it closes (its last good save stays
+  // on disk). The process crash handler remains for faults outside a frame.
+  function containFault(ws, err) {
+    const info = conns.get(ws);
+    const gameId = (info && info.gameId) || defaultGameId;
+    console.error(`contained fault (game ${gameId}): ${(err && err.stack) || err}`);
+    olog('fault', { gameId });
+    send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.internal });
+    const e = gameId ? registry.entryOf(gameId) : null;
+    if (!e || !e.game) return;
+    try { hashState(e.game.state); } catch (hashErr) { closeGame(gameId, 'fault'); }
   }
   function closeGame(gameId, reason) {
     // metrics-v1 §4: leaving the registry WITHOUT gameOver = abandoned
@@ -921,7 +959,7 @@ export function startServer(opts) {
       if (takeoverOn(e)) {
         e.game.setRegent(pid, 'balanced'); // the AI drives the seat
         takeoverSeats[key] = true;
-        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId), stances: regentStances(gameId) });
         driveRegents(gameId, e); // play it now if it's their turn
       } else if (e.game.state.activePlayer === pid) {
         doSkip(gameId, e); // OFF: skip the stalled seat's turn so the round advances
@@ -938,7 +976,7 @@ export function startServer(opts) {
       const e = registry.entryOf(gameId);
       if (e && e.game && e.game.regentOf && e.game.regentOf(pid) !== undefined) {
         e.game.setRegent(pid, null);
-        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+        broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId), stances: regentStances(gameId) });
       }
     }
   }
@@ -991,6 +1029,19 @@ export function startServer(opts) {
   }
   // A40: which human seats are on AI regency (pid present = auto) — rides the
   // presence broadcast so every client's wait line can tag "🤖 (auto)"
+  // fe-R10: the stance each regent seat plays (regentMap keeps `true` per seat
+  // for existing readers); the seat's own client highlights its choice
+  function regentStances(gameId) {
+    const out = {};
+    const e = registry.entryOf(gameId);
+    if (e && e.game) {
+      for (const pid of e.game.state.playerOrder) {
+        const stance = e.game.regentOf(pid);
+        if (stance !== undefined) out[pid] = stance;
+      }
+    }
+    return out;
+  }
   function regentMap(gameId) {
     const out = {};
     const e = registry.entryOf(gameId);
@@ -1043,7 +1094,8 @@ export function startServer(opts) {
       send(ws, {
         t: 'joined', playerId: 'spectator', gameId,
         view: e.game.view('spectator'), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
-        civs: playerCivs(e.game) // A24: faction visuals for the omniscient view too
+        civs: playerCivs(e.game), // A24: faction visuals for the omniscient view too
+        proto: PROTOCOL
       });
       return;
     }
@@ -1133,7 +1185,8 @@ export function startServer(opts) {
           t: 'joined', playerId: pid, gameId, token: bound.token, seatCode: bound.seatCode,
           assignedCiv: e.game.state.players[pid].civ, // §4: client shows a post-join reveal banner
           view: e.game.view(pid), rulesOverrides: e.game.rulesOverrides, code: e.game.code(),
-          civs: playerCivs(e.game)
+          civs: playerCivs(e.game),
+          proto: PROTOCOL
         });
         if (autosave) e.game.saveTo(savePath(gameId)); // claimSeat changed state — persist
         broadcastGame(gameId, { t: 'presence', playerId: pid, connected: true });
@@ -1152,7 +1205,7 @@ export function startServer(opts) {
       if (info.playerId) { // presence: tell the game, and hand the joiner the map
         cancelTakeover(gameId, info.playerId); // XIV §30: the player is back — stop/undo any auto-takeover
         broadcastGame(gameId, { t: 'presence', playerId: info.playerId, connected: true });
-        send(ws, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+        send(ws, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId), stances: regentStances(gameId) });
       }
     }
   }
@@ -1184,7 +1237,8 @@ export function startServer(opts) {
           t: 'joined', playerId: bound.playerId, gameId, token: bound.token,
           seatCode: bound.seatCode, // A46: private to this seat's connection
           view: res.game.view(bound.playerId), rulesOverrides: res.game.rulesOverrides, code: res.game.code(),
-          civs: playerCivs(res.game) // A24: city rosters + faction visuals
+          civs: playerCivs(res.game), // A24: city rosters + faction visuals
+          proto: PROTOCOL
         });
       } else {
         // L8 (reviewer #1328): the skip is no longer silent — the log names
@@ -1195,7 +1249,7 @@ export function startServer(opts) {
       }
     }
     for (const [o, i] of conns) if (i.gameId === gameId) send(o, { t: 'started', gameId });
-    broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId) });
+    broadcastGame(gameId, { t: 'presence', all: presenceMap(gameId), regents: regentMap(gameId), stances: regentStances(gameId) });
     if (autosave) res.game.saveTo(savePath(gameId));
   }
 
@@ -1203,6 +1257,14 @@ export function startServer(opts) {
     // A50 item 2: admission control — global + per-IP concurrency caps (the
     // per-IP connect-RATE already ran in verifyClient, pre-allocation).
     const ip = clientIp(req); // proxy-aware; stored so every per-IP check agrees
+    // fe-R5: a client pinned to another protocol is told why, before admission
+    const wantProto = protoParam(req.url);
+    if (wantProto !== null && wantProto !== String(PROTOCOL)) {
+      send(ws, { t: 'rejected', commandId: -1, code: REJECT_REASONS.protocolMismatch,
+        message: `server speaks protocol ${PROTOCOL}, client asked for ${wantProto}` });
+      ws.close(1008);
+      return;
+    }
     const adm = limiter.onConnect(ip);
     if (!adm.ok) { send(ws, { t: 'rejected', commandId: -1, code: adm.reason }); ws.close(); return; }
     // A50 item 0 (docs/17 lane): every admitted socket gets its own command
@@ -1280,6 +1342,9 @@ export function startServer(opts) {
       }
     });
     ws.on('message', raw => {
+      try { handleMessage(raw); } catch (err) { containFault(ws, err); }
+    });
+    function handleMessage(raw) {
       const parsed = parseMessage(raw.toString());
       if (!parsed.ok) { send(ws, { t: 'rejected', commandId: -1, code: parsed.code }); return; }
       const msg = parsed.msg;
@@ -1303,8 +1368,8 @@ export function startServer(opts) {
         // (existence still lists; the code is the secret, not the game)
         const games = registry.list().map(g => {
           const e = registry.entryOf(g.gameId);
-          if (e && e.options && e.options.public === true) return g;
-          return { gameId: g.gameId, started: g.started, turn: g.turn, seats: g.seats };
+          if (e && e.options && e.options.public === true) return Object.assign({}, g, { proto: PROTOCOL });
+          return { gameId: g.gameId, started: g.started, turn: g.turn, seats: g.seats, proto: PROTOCOL };
         });
         send(ws, { t: 'games', games });
         return;
@@ -1341,7 +1406,8 @@ export function startServer(opts) {
             spectators: e.options.allowSpectators === true,
             status: e.status,
             state: started ? (paused ? 'paused' : 'running') : 'open',
-            joinable: started ? lj : open > 0
+            joinable: started ? lj : open > 0,
+            proto: PROTOCOL
           };
           if (started) { row.turn = e.game.state.turn; row.era = gameEraBand(e.game.state).band; }
           games.push(row);
@@ -1546,7 +1612,7 @@ export function startServer(opts) {
         }
         e.game.setRegent(info.playerId, msg.stance);
         if (e.paused) e.paused = false; // §5: re-enabling regency resumes a paused game
-        broadcastGame(info.gameId, { t: 'presence', all: presenceMap(info.gameId), regents: regentMap(info.gameId) });
+        broadcastGame(info.gameId, { t: 'presence', all: presenceMap(info.gameId), regents: regentMap(info.gameId), stances: regentStances(info.gameId) });
         driveRegents(info.gameId, e); // if it's their turn now, start playing
         return;
       }
@@ -1582,7 +1648,7 @@ export function startServer(opts) {
       fanout(gameId, out, e.game);
       if (e.paused && seatPid !== null) e.paused = false; // §5: a seated human's command resumes a paused game
       driveRegents(gameId, e); // A40: if the turn landed on a regent, play it
-    });
+    }
   });
 
   rotateSaves(); // A50 item 3: trim a bloated saves/ dir on boot, before serving
@@ -1639,7 +1705,7 @@ export function startServer(opts) {
           body: JSON.stringify({
             name: opts.publicName || `A World Begun @ ${opts.publicAddr}`, // the DISPLAY name players see in the server list (client/ui/game-name.js holds the browser twin)
             host: aHost, port: aPort !== null ? aPort : listenPort,
-            protocolVersion: '1',
+            protocolVersion: String(PROTOCOL),
             dataHashes,
             openGames: publicOpenGames()
           })
@@ -1734,6 +1800,8 @@ Game:
   --humans N            human seats in the default game
   --size NAME           xsmall|small|medium|large|huge (default medium)
   --game FILE           resume from a save
+  --saves-dir DIR       autosave directory (default saves/ in the repo; created on first save)
+  --crashdumps-dir DIR  crashdump directory (default crashdumps/ under the working directory)
   --host ADDR           bind address (use 127.0.0.1 behind a proxy)
   --no-save             disable autosave
   --no-spectators       refuse tokenless spectators
@@ -1778,6 +1846,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     else if (a === '--humans') opts.humans = Number(argv[++i]);
     else if (a === '--size') opts.size = argv[++i];
     else if (a === '--game') opts.game = argv[++i];
+    else if (a === '--saves-dir') opts.savesDir = path.resolve(argv[++i]); // fe-R14: autosaves outside the install
+    else if (a === '--crashdumps-dir') opts.crashdumpsDir = path.resolve(argv[++i]); // fe-R14
     else if (a === '--reset-seats') opts.resetSeats = true;
     else if (a === '--allow-ruleset-drift') opts.allowRulesetDrift = true;
     else if (a === '--host') opts.host = argv[++i];
@@ -1851,7 +1921,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (opts.metricsFile === undefined) opts.metricsFile = path.join(REPO, 'metrics.json');
   // Crash resilience: install fatal-error handlers EARLY (deps filled after boot,
   // read by reference at crash-time) so even a boot crash writes a crashdump.
-  const crashDeps = {};
+  const crashDeps = opts.crashdumpsDir ? { dir: opts.crashdumpsDir } : {};
   installCrashHandlers(crashDeps);
   Promise.resolve().then(() => startServer(opts)).then((server) => {
     const { port, game } = server;

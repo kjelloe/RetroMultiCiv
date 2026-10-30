@@ -854,6 +854,9 @@ export function initInput(ctx) {
            && session.state.units[unitId].moves > 0 && guard-- > 0) {
       if (!(await gotoStep(unitId))) break;
     }
+    const u = session.state.units[unitId];
+    const t = gotoTargets[unitId];
+    if (u && t && u.x === t.x && u.y === t.y) delete gotoTargets[unitId]; // fe-R9: arrived on the last move
     if (gotoTargets[unitId] && session.state.units[unitId]) {
       hud.note(`🎯 en route to (${gotoTargets[unitId].x},${gotoTargets[unitId].y}) — continues next turn`);
     }
@@ -1140,7 +1143,7 @@ export function initInput(ctx) {
   let visMask = null;
   session.onChange(() => { visMask = null; });
   function tileVisible(x, y) {
-    if (visMask === null) visMask = computeVisible(session.state, ctx.HUMAN);
+    if (visMask === null) visMask = computeVisible(session.state, ctx.HUMAN, session.ruleset);
     return visMask[y * session.state.map.width + x] === 1;
   }
 
@@ -1310,7 +1313,7 @@ export function initInput(ctx) {
       return;
     }
     const city = pick.cityId ? state.cities[pick.cityId] : null;
-    if (city && city.owner === state.activePlayer) {
+    if (city && city.owner === ctx.HUMAN) { // fe-R11: the viewer's city, not whoever is active
       panels.openCityPanel(city.id);
       return;
     }

@@ -270,7 +270,7 @@ export function initEndScreen(ctx) {
   // without a real gameOver — sets the module-local eventWinner only (never state).
   function previewEnding(kind) {
     const state = session.state;
-    let wid = ctx.HUMAN;
+    let wid = ctx.SPECTATOR ? (state.playerOrder || [])[0] : ctx.HUMAN; // fe-R11: a spectator has no player record
     if (kind === 'defeat') wid = (state.playerOrder || []).find(p => p !== ctx.HUMAN) || ctx.HUMAN;
     eventWinner = wid;
     shownFor = null;
@@ -285,7 +285,8 @@ export function initEndScreen(ctx) {
     const max = list.length ? list[0].total : 0;
     const wid = winnerId(state);
     const humanWon = wid === ctx.HUMAN;
-    const verdict = ctx.SPECTATOR ? '🏁 THE GAME IS OVER'
+    const noVerdict = ctx.SPECTATOR || wid === undefined; // fe-R11: no winner recorded → no defeat claim
+    const verdict = noVerdict ? '🏁 THE GAME IS OVER'
       : (humanWon ? '🏆 VICTORY' : '💀 DEFEAT');
 
     panel = document.createElement('div');
@@ -302,7 +303,7 @@ export function initEndScreen(ctx) {
     });
 
     panel.innerHTML = `<div id="endscreen-card" class="${victory === 'space' ? 'stellar' : ''}">
-      <div id="endscreen-verdict" class="${humanWon ? 'win' : (ctx.SPECTATOR ? 'neutral' : 'loss')}">${verdict}</div>
+      <div id="endscreen-verdict" class="${humanWon ? 'win' : (noVerdict ? 'neutral' : 'loss')}">${verdict}</div>
       <div id="endscreen-reason">${esc(headline(state, victory))}</div>
       ${state.debugUsed === true
         ? '<div id="endscreen-debug">⚠ DEBUG GAME — god-mode commands were used; this result carries the permanent mark (docs/07)</div>'

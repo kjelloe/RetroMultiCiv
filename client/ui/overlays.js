@@ -121,7 +121,7 @@ export function initOverlays(ctx) {
     if (!renderer.setOverlays) return;
     const ids = OVERLAYS.filter(o => active[o.id] === true);
     if (ids.length === 0) { renderer.setOverlays(null); return; }
-    const view = filterView(session.state, ctx.HUMAN); // live viewpoint
+    const view = filterView(session.state, ctx.HUMAN, session.ruleset); // live viewpoint
     const entries = [];
     ids.forEach((o, i) => {
       for (const e of o.computeTiles(view, ctx.HUMAN)) {

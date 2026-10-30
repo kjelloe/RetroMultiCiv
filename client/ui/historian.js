@@ -73,7 +73,8 @@ export function initHistorian(ctx) {
     }
     function onKey(e) {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); }
+      // fe-R12: stop here — input.js's window handler would also end the turn (Enter) or close panels (Esc)
+      if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); close(); }
     }
     panel.querySelector('#historian-close').addEventListener('click', close);
     panel.addEventListener('click', e => { if (e.target === panel) close(); }); // click the backdrop

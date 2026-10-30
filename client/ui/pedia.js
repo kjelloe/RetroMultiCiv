@@ -17,6 +17,7 @@ export function initPedia(ctx) {
   const r = session.ruleset;
   const { units, buildings, wonders, techs, governments, terrain } = r;
   const cat = makeCatalogText(r);
+  const terrains = terrain.terrains; // fe-R11: terrain.json wraps the table (+ riverModifier)
 
   // sorted [id, def] pairs by display name
   const sorted = table => Object.keys(table).map(id => [id, table[id]]).sort((a, b) => (a[1].name < b[1].name ? -1 : a[1].name > b[1].name ? 1 : 0));
@@ -57,7 +58,7 @@ export function initPedia(ctx) {
         ${statRow('Martial law', g.martialLawMax ? 'up to ' + g.martialLawMax + ' units calm a city' : 'none')}${statRow('War unhappiness', g.warUnhappiness ? 'yes' : 'no')}
       </div>
       ${g.tech ? `<p class="pedia-req">Requires ${techLink(g.tech)}</p>` : '<p class="pedia-req">Available from the start</p>'}` },
-    terrain: { label: 'Terrain', list: () => sorted(terrain), render: (id, t) => `
+    terrain: { label: 'Terrain', list: () => sorted(terrains), render: (id, t) => `
       <div class="pedia-stats">
         ${statRow('Yields (F/S/T)', (t.yields ? [t.yields.food || 0, t.yields.shields || 0, t.yields.trade || 0].join(' / ') : '0 / 0 / 0'))}
         ${statRow('Defense', t.defenseBonus ? '+' + t.defenseBonus + '%' : 'none')}${statRow('Move cost', t.move)}
@@ -104,7 +105,7 @@ export function initPedia(ctx) {
       : '<div class="pedia-empty">no matches</div>';
   }
   function showEntry(catId, id) {
-    const def = catId === 'concepts' ? CONCEPT_MAP[id] : r[catId][id];
+    const def = catId === 'concepts' ? CONCEPT_MAP[id] : catId === 'terrain' ? terrains[id] : r[catId][id];
     if (!def) return;
     entryEl.innerHTML = `<h3>${esc(def.name)}</h3>${CATS[catId].render(id, def)}`;
   }

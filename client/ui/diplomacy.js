@@ -66,11 +66,21 @@ export function describeParley(payload, opts = {}) {
   const name = opts.name || 'They';
   const tn = id => (opts.techName ? opts.techName(id) : id) || 'a technology';
   switch (payload && payload.term) {
-    case 'peace': return `${name} propose a lasting peace treaty.`;
+    case 'peace': return `${name} propose a ${payload.duration ? (payload.duration | 0) + '-turn' : 'lasting'} peace treaty.`;
     case 'tribute': return `${name} demand a tribute of ${payload.gold | 0} gold.`;
-    case 'techswap': return `${name} offer ${tn(payload.giveTech)} in exchange for your ${tn(payload.wantTech)}.`;
+    case 'techswap': return payload.wantTech
+      ? `${name} offer ${tn(payload.giveTech)} in exchange for your ${tn(payload.wantTech)}.`
+      : `${name} offer ${tn(payload.giveTech)} as a gift.`;
     default: return `${name} propose terms.`;
   }
+}
+
+// fe-R11: a pending engine offer (engine/diplomacy.js, flat kind/gold/techId
+// fields) as the describeParley payload, so the envoy names what is offered. PURE.
+export function offerPayload(offer) {
+  if (offer && offer.kind === 'tribute') return { term: 'tribute', gold: offer.gold };
+  if (offer && offer.kind === 'techExchange') return { term: 'techswap', giveTech: offer.techId, wantTech: offer.wantTechId };
+  return { term: 'peace', duration: offer && offer.duration };
 }
 
 export function initDiplomacy(ctx) {
@@ -90,6 +100,7 @@ export function initDiplomacy(ctx) {
   // XVII #18: sits in the top-center overview cluster (left of the 💰 economy
   // button), positioned absolutely via #open-diplo in style.css — not the corner group
   document.body.appendChild(btn);
+  if (ctx.SPECTATOR) btn.classList.add('hidden'); // fe-R11: a spectator has no relations to show
   btn.addEventListener('click', () => { box.classList.toggle('hidden'); render(); });
   box.querySelector('#diplo-close').addEventListener('click', () => box.classList.add('hidden'));
 
@@ -224,8 +235,8 @@ export function initDiplomacy(ctx) {
   function showEnvoy(pid, offer) {
     const p = session.state.players[pid];
     envoyPid = pid;
-    const dur = offer && offer.duration;
-    const offerText = `${esc(p.name)} proposes a ${dur ? esc(dur) + '-turn' : 'lasting'} peace treaty.`;
+    const civ0 = p.civ && session.ruleset.civs[p.civ];
+    const offerText = esc(describeParley(offerPayload(offer), { name: civ0 ? `The ${civ0.name}` : p.name, techName }));
     modal.innerHTML = '<div id="envoy-card" role="dialog" aria-modal="true">'
       + `<div id="envoy-head"><span id="envoy-glyph"></span>`
       + `<span class="envoy-leader" style="color:${displayColor(p.color)}">${esc(p.name)}</span></div>`
@@ -245,8 +256,8 @@ export function initDiplomacy(ctx) {
       img.style.cssText = 'width:22px;height:22px;vertical-align:-4px;margin-right:8px;border-radius:3px;';
       g.appendChild(img);
     }).catch(() => { /* no renderer (headless) — the name still carries it */ });
-    modal.querySelector('#envoy-accept').addEventListener('click', () => { const t = envoyPid; closeEnvoy(); dispatch('accept', t); });
-    modal.querySelector('#envoy-reject').addEventListener('click', () => { const t = envoyPid; closeEnvoy(); dispatch('reject', t); });
+    modal.querySelector('#envoy-accept').addEventListener('click', () => answer(t => dispatch('accept', t)));
+    modal.querySelector('#envoy-reject').addEventListener('click', () => answer(t => dispatch('reject', t)));
     modal.querySelector('#envoy-later').addEventListener('click', later);
   }
 
@@ -258,6 +269,19 @@ export function initDiplomacy(ctx) {
   }
 
   function closeEnvoy() { envoyPid = null; modal.classList.add('hidden'); modal.innerHTML = ''; scanOffers(); }
+
+  // fe-R11: hold envoyPid (which gates scanOffers) until the answer has landed —
+  // closing first re-scanned the unchanged state and re-popped the same offer
+  async function answer(send) {
+    const t = envoyPid;
+    modal.classList.add('hidden');
+    modal.innerHTML = '';
+    await send(t);
+    // a refused answer leaves the offer standing: defer it rather than re-pop it at once
+    const still = pendingOfferFor(session.state, ctx.HUMAN, t);
+    if (still && still.from === t) deferred[offerKey(t, still)] = true;
+    closeEnvoy();
+  }
 
   // --- D4 human-treaty: OUTBOUND chooser + INBOUND offer modal ---------------
   // The chooser sends the real engine `diplomacy` offer command (tribute/tech-swap/
@@ -324,8 +348,8 @@ export function initDiplomacy(ctx) {
       + '<button id="envoy-reject">✗ Reject</button>'
       + '<button id="envoy-later">Consider later</button></div></div>';
     modal.classList.remove('hidden');
-    modal.querySelector('#envoy-accept').addEventListener('click', async () => { closeEnvoy(); await session.apply(parleyCommand(ctx.HUMAN, pid, 'accept')); });
-    modal.querySelector('#envoy-reject').addEventListener('click', async () => { closeEnvoy(); await session.apply(parleyCommand(ctx.HUMAN, pid, 'reject')); });
+    modal.querySelector('#envoy-accept').addEventListener('click', () => answer(() => session.apply(parleyCommand(ctx.HUMAN, pid, 'accept'))));
+    modal.querySelector('#envoy-reject').addEventListener('click', () => answer(() => session.apply(parleyCommand(ctx.HUMAN, pid, 'reject'))));
     modal.querySelector('#envoy-later').addEventListener('click', () => { closeEnvoy(); });
   }
   // event hook (inert until the D4 engine emits parleyOffer): the meta/event stream
@@ -345,6 +369,7 @@ export function initDiplomacy(ctx) {
   }, true);
 
   session.onChange(() => { render(); scanOffers(); });
+  scanOffers(); // fe-R11: an offer already standing in the joined/loaded state
   return { render, open: () => { box.classList.remove('hidden'); render(); }, scanOffers, envoyOpen: () => envoyPid !== null };
 }
 

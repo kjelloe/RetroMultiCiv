@@ -161,6 +161,8 @@ function drawPrim(ctx, pr, ink) {
     pr.pts.forEach((pt, i) => i ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]));
     if (pr.close) ctx.closePath();
     pr.fill ? ctx.fill() : ctx.stroke();
+  } else if (pr.p === 'dots') { // fe-R11: filled points, as roblox/src/client/EditableGlyph.luau draws them
+    for (const pt of pr.pts) { ctx.beginPath(); ctx.arc(pt[0], pt[1], pr.r, 0, Math.PI * 2); ctx.fill(); }
   } else if (pr.p === 'letter') {
     ctx.font = `700 ${pr.size}px Georgia, "Times New Roman", serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

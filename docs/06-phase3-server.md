@@ -109,6 +109,27 @@ Rules:
 - Views come from `engine/visibility.js` `filterView(state, seat)` — the
   leak contract in test/visibility.test.js is the security boundary.
   `rngState` never crosses the wire (already excluded by filterView).
+- **Protocol version (fe-R5).** `PROTOCOL` in `server/protocol.js` rides
+  every `joined`, every `games`/`openGames` row (`proto`, last field) and
+  the master announce (`protocolVersion`). A client may pin it with
+  `/ws?proto=N`; a mismatch gets `rejected protocolMismatch` (message names
+  both versions) and close 1008 before admission. No `?proto=` is
+  accepted (the served browser never sends one). Bump `PROTOCOL` only for an
+  INCOMPATIBLE message-shape change; additive fields (new keys last) do not
+  bump it. Native clients (fastengine) depend on this.
+- **Client commands are allowlisted (fe-R2).** `CLIENT_COMMANDS` in
+  `server/protocol.js`; engine-internal types (`claimSeat`) are
+  `SERVER_ONLY_COMMANDS` and answer `notAllowed`. A new engine command must
+  be added to one list or `test/server-door-validation.test.js` fails.
+- **Client strings obey the state-string rule (fe-R13).** Every string in a
+  `cmd`, and `name` on `join`/`create`/`joinListed`, must be printable
+  ASCII (`shared/state-string.js`, the `statehash.js` rule) — else
+  `badName`/`badShape`. A throw while handling one frame answers
+  `rejected internal`; a game whose state no longer hashes is closed
+  (`gameClosed`, reason `fault`).
+- **Live save downloads are seat-only (fe-R1).** `GET /saves/<id>.json` for
+  a live game needs header `X-Seat-Token` of a seat in that game (404
+  otherwise); finished games and `--debug` serve without it.
 
 ## 4. Seats and tokens (phase-3 minimal, phase-4 ready)
 

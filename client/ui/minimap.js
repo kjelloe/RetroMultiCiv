@@ -40,7 +40,7 @@ export function initMinimap(ctx) {
     const { width, height } = dims();
     if (mapCanvas.width !== width) { mapCanvas.width = width; rectCanvas.width = width; }
     if (mapCanvas.height !== height) { mapCanvas.height = height; rectCanvas.height = height; }
-    const view = filterView(session.state, ctx.HUMAN);
+    const view = filterView(session.state, ctx.HUMAN, session.ruleset);
     const g = mapCanvas.getContext('2d');
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {

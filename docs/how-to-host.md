@@ -751,6 +751,8 @@ everything after the port):
 | `--size S`       | `medium`  | `xsmall`…`huge`.                                    |
 | `--game FILE`    | —         | Resume a saved server game (e.g. `saves/g42.json`). |
 | `--no-save`      | off       | Disable the autosave after each accepted command.  |
+| `--saves-dir DIR` | `saves/` in the repo | Where autosaves go (created on first save) — e.g. a user settings folder when the install dir is read-only. |
+| `--crashdumps-dir DIR` | `crashdumps/` in the working dir | Where crashdumps go. |
 | `--max-saves N`  | `100`     | `saves/` count budget; oldest completed/abandoned retire first, active never. |
 | `--max-saves-mb N` | `500`   | `saves/` size budget (MB); same rotation policy.   |
 | `--max-conns N`  | `200`     | Global concurrent WebSocket connections.           |
@@ -873,8 +875,18 @@ small box — see `specs/server-crash-resilience.md`).
   `/client/` (keeping query params, so join links work).
 - `/ws` — the authoritative game WebSocket. A reverse proxy MUST forward the
   `Upgrade`/`Connection` headers for it.
-- `saves/*.json` — the only game state on disk (in-memory otherwise). Autosaved
-  after each accepted command unless `--no-save`. Not served over HTTP.
+- `saves/*.json` (or `--saves-dir`) — the only game state on disk (in-memory
+  otherwise). Autosaved after each accepted command unless `--no-save`. Not
+  served statically; `/saves/<id>.json` snapshots a live game only for a seat
+  of that game (`X-Seat-Token` header) or once the game is over.
+- `/native.json`, `/native/<file>` — the native (desktop) client downloads.
+  Env `NATIVE_DOWNLOADS` = a folder (absolute or repo-relative; read per
+  request, only `RetroMultiCiv*` plain file names offered, single byte ranges
+  for resumable downloads), a `file://` URL, or an `http(s)://` URL (linked
+  as is). Unset = no link on the setup screen.
+- `/ws?proto=N` — optional protocol pin for native clients; a mismatch is
+  refused with `protocolMismatch`. Views are compressed (`permessage-deflate`)
+  when the client offers it; a reverse proxy must pass the extension through.
 
 ### What this deliberately does not have
 

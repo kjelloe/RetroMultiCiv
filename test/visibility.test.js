@@ -217,6 +217,12 @@ test('filterEvents: world news reaches everyone, techDiscovered stays its own pl
   assert.strictEqual(p2Gets.length, 4, 'the discoverer hears their own tech');
 });
 
+test('filterEvents: ageChanged is world news — every seat hears it (fe-R12)', async () => {
+  const { vis } = await load();
+  const e = { type: 'ageChanged', age: 'medieval', turn: 80 };
+  assert.deepStrictEqual(vis.filterEvents(eventsState(), [e], 'p1'), [e]);
+});
+
 test('filterEvents: referenced city/unit coordinates count; spectators hear everything', async () => {
   const { vis } = await load();
   const state = eventsState();

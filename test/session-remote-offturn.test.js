@@ -27,11 +27,11 @@ const view = active => ({
   map: { width: 2, height: 2, wrapX: false, tiles: [{ t: 'grassland' }, { t: 'grassland' }, { t: 'grassland' }, { t: 'grassland' }] }
 });
 
-async function joinAt(active) {
+async function joinAt(active, extra) {
   global.WebSocket = MockWS;
   global.localStorage = memLocal();
   const { createRemoteSession } = await import('../client/session-remote.js');
-  const p = createRemoteSession({ ruleset: RULESET, wsUrl: 'ws://mock', name: 'B' });
+  const p = createRemoteSession(Object.assign({ ruleset: RULESET, wsUrl: 'ws://mock', name: 'B' }, extra));
   const ws = MockWS.last;
   await tick(); // 'open' → join frame sent
   ws.recv({ t: 'joined', playerId: 'p2', gameId: 'g1', token: 'tok', view: view(active) });
@@ -64,4 +64,45 @@ test('§31: a whitelisted cmd on MY turn is sent immediately, not queued', async
   session.apply({ type: 'setResearch', playerId: 'p2', tech: 'pottery' });
   assert.strictEqual(session.pendingOffturn, 0, 'on-turn → not queued');
   assert.strictEqual(ws.cmds().length, 1, 'sent immediately');
+});
+
+test('fe-R8: a queued cmd flushes on a REJOIN that lands on my own turn', async () => {
+  const { session, ws } = await joinAt('p1');
+  session.apply({ type: 'setRates', playerId: 'p2', taxRate: 40, sciRate: 60 });
+  assert.strictEqual(session.pendingOffturn, 1);
+  ws.close(); // the reconnect reuses this session object (and its queue)
+  await new Promise(r => setTimeout(r, 1100));
+  const ws2 = MockWS.last;
+  assert.notStrictEqual(ws2, ws, 'reconnected on a fresh socket');
+  await tick();
+  ws2.recv({ t: 'joined', playerId: 'p2', gameId: 'g1', token: 'tok', view: view('p2') });
+  await tick();
+  const cmds = ws2.cmds();
+  assert.strictEqual(cmds.length, 1, 'the queued setRates went out before any other command');
+  assert.strictEqual(cmds[0].cmd.type, 'setRates');
+});
+
+test('fe-R8: a dropped frame settles ok:false — never ok:true on a rival view', async () => {
+  const { session, ws } = await joinAt('p2', { requestTimeoutMs: 50 });
+  const dropped = session.apply({ type: 'moveUnit', playerId: 'p2', unitId: 'u', dir: 'N' });
+  ws.recv({ t: 'view', view: view('p2') }); // someone else's action pushes a view; no applied for us
+  ws.recv({ t: 'rejected', commandId: -1, code: 'rateLimited' });
+  assert.deepStrictEqual(await dropped, { ok: false, reason: 'rateLimited', message: undefined, events: [] });
+
+  const lost = session.apply({ type: 'moveUnit', playerId: 'p2', unitId: 'u', dir: 'N' });
+  ws.recv({ t: 'view', view: view('p2') });
+  assert.strictEqual((await lost).reason, 'timeout', 'no reply at all → bounded timeout');
+
+  const okCmd = session.apply({ type: 'moveUnit', playerId: 'p2', unitId: 'u', dir: 'N' });
+  const id = ws.cmds().at(-1).commandId;
+  ws.recv({ t: 'applied', commandId: id, events: [{ type: 'unitMoved' }] });
+  ws.recv({ t: 'view', view: view('p2') });
+  assert.deepStrictEqual(await okCmd, { ok: true, events: [{ type: 'unitMoved' }] });
+});
+
+test('fe-R8: a new request settles the one still in flight as superseded', async () => {
+  const { session } = await joinAt('p2');
+  const first = session.apply({ type: 'moveUnit', playerId: 'p2', unitId: 'u', dir: 'N' });
+  session.apply({ type: 'moveUnit', playerId: 'p2', unitId: 'u', dir: 'S' });
+  assert.strictEqual((await first).reason, 'superseded');
 });

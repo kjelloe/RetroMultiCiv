@@ -277,6 +277,7 @@ local WORLD_NEWS: { [string]: boolean } =
 	{
 		wonderBuilt = true, wonderLost = true, gameOver = true, playerDefeated = true,
 		WAR_DECLARED = true, TREATY_BROKEN = true, PEACE_TREATY_SIGNED = true,
+		ageChanged = true,
 	}
 
 -- the viewer's civ id, resolved as diplomacy eventCiv builds the event's civ

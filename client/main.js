@@ -780,6 +780,13 @@ if (params.get('civintro') && ctx.discoveryCard && ctx.discoveryCard.showCivIntr
   setTimeout(() => ctx.discoveryCard.showCivIntro(me && me.civ), 400);
 }
 
+// fe-R12: ?historiandemo=<age|1> opens the age-change historian (the real trigger
+// is an ageChanged event) — the key-leak spec drives Enter/Esc against it
+if (params.get('historiandemo') && ctx.historian) {
+  const age = params.get('historiandemo');
+  ctx.historian.show(session.state, age === '1' ? 'medieval' : age);
+}
+
 // XIV §33: ?envoydemo=1 injects a sample incoming peace offer and pops the envoy
 // modal, leaving it up (screenshot review / manual look — the real trigger is a
 // rival's offer landing on your turn). Local engine only (fog-view has no
@@ -791,7 +798,7 @@ if (params.get('envoydemo') === '1' && params.get('server') !== '1' && ctx.diplo
     const { pairKey } = await import('../shared/diplomacy-view.js');
     await Promise.resolve(); // let initDiplomacy's command probe flip commandReady
     if (!session.state.relations) session.state.relations = {};
-    session.state.relations[pairKey(ctx.HUMAN, rival)] = { state: 'war', offer: { from: rival, turn: session.state.turn } };
+    session.state.relations[pairKey(ctx.HUMAN, rival)] = { state: 'war', met: true, offer: { from: rival, turn: session.state.turn } }; // met: A105 gate
     ctx.diplomacy.scanOffers();
   }
 }

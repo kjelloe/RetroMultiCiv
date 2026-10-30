@@ -49,6 +49,11 @@ export function makeOverviewPanel(ctx, opts) {
   function close() { panel.classList.add('hidden'); }
   function toggle() { panel.classList.contains('hidden') ? open() : close(); }
   btn.addEventListener('click', toggle);
+  // fe-R11: the ✕ tooltip promises Esc; input.js's Esc (panels.closeAll) does not know overviews
+  document.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'Escape' && !panel.classList.contains('hidden')) close();
+  });
   // stay live while open; the caller's build() reads ctx.HUMAN per draw
   if (session.onChange) session.onChange(() => { if (!panel.classList.contains('hidden')) draw(); });
 

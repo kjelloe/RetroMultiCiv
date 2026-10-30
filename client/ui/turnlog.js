@@ -114,7 +114,7 @@ export function initTurnLog(ctx) {
   // first contact: any rival whose unit or city enters the player's view
   let met = {};
   function scanContacts(state, announce) {
-    const view = filterView(state, ctx.HUMAN);
+    const view = filterView(state, ctx.HUMAN, session.ruleset);
     const seen = {};
     const seenLoc = {}; // XV §9: where each owner was FIRST sighted (for the ⌖ zoom-to)
     for (const u of Object.values(view.units || {})) { seen[u.owner] = true; if (!seenLoc[u.owner]) seenLoc[u.owner] = { x: u.x, y: u.y }; }
@@ -159,7 +159,7 @@ export function initTurnLog(ctx) {
     // A39: the log narrates only what this viewpoint could SEE — the same
     // engine filter the server applies per seat (B5); in local games the
     // session's round events are omniscient, so this is the fog gate
-    const seen = filterEvents(state, events, ctx.HUMAN);
+    const seen = filterEvents(state, events, ctx.HUMAN, session.ruleset);
     for (const e of seen) {
       // filter class (A39): tags the entry for the display-time filter row
       const klass = classifyEvent(e, ctx.HUMAN,
@@ -280,10 +280,11 @@ export function initTurnLog(ctx) {
           ambush: '🛖 barbarians pour out of the village — ambush!'
         };
         const cls = e.result === 'ambush' ? 'loss' : e.result === 'nothing' ? '' : 'win';
-        put(HUT_TEXT[e.result] || `🛖 village entered (${e.result})`, cls, { x: e.x, y: e.y });
+        const hutText = HUT_TEXT[e.result] || `🛖 village entered (${e.result})`;
+        put(hutText, cls, { x: e.x, y: e.y });
         if (e.result === 'ambush') flashMessage('🛖 Ambush! Barbarians pour out of the village!', { x: e.x, y: e.y });
         else if (e.result === 'advancedTribe') flashMessage('🛖 An advanced tribe joins your civilization!', { x: e.x, y: e.y });
-        else if (e.result !== 'nothing') flashMessage(HUT_TEXT[e.result], { x: e.x, y: e.y });
+        else if (e.result !== 'nothing') flashMessage(hutText, { x: e.x, y: e.y });
       } else if (e.type === 'ransomPaid' && e.playerId === ctx.HUMAN) {
         // N13: the lone barbarian leader bought his life
         put(`👑 barbarian leader captured at (${e.x},${e.y}) — ransom +${e.gold}💰`, 'win', { x: e.x, y: e.y });

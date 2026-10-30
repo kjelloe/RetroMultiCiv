@@ -153,7 +153,7 @@ export function initReplay(ctx) {
     const feed = panel.querySelector('#replay-feed');
     const turnLabel = panel.querySelector('#replay-turn');
     const scrubEl = panel.querySelector('#replay-scrub');
-    const viewFor = s => filterView(s, perspective);
+    const viewFor = s => filterView(s, perspective, ruleset);
     // XIX #7: render the stepped view PLUS the influence overlay (when toggled on)
     function paint(s) {
       const v = viewFor(s);
@@ -316,7 +316,7 @@ export function initReplay(ctx) {
       panel.remove();
       theater = null;
       if (renderer.setReduceAnimation) renderer.setReduceAnimation(priorReduce === true);
-      renderer.setViewState(filterView(session.state, ctx.HUMAN)); // back to the final game view
+      renderer.setViewState(filterView(session.state, ctx.HUMAN, ruleset)); // back to the final game view
       // XIX #7: drop the replay influence layer and restore the game's own overlay state
       if (ctx.overlays && ctx.overlays.recompute) ctx.overlays.recompute();
       else if (renderer.setOverlays) renderer.setOverlays(null);
