@@ -14,7 +14,10 @@ lanes never tag; sim-runner lands commits, the architect tags.
    are on origin/dev_night (push first if local-only — dev_night push/pull
    is architect-granted 2026-07-20; dev/main stay user-only).
 2. **Verify green**: run the delivered surface's suites via
-   `debugging/t.sh <files>`; then check the FULL suite state.
+   `debugging/t.sh <files>`; then check the FULL suite state. Read the
+   `FAIL:` lines, and check that their count matches the `# fail` tally:
+   marker-0134 shipped a red test that a 40-line failure-block cap hid
+   behind two long blocks (t.sh now lists every failure by name).
    **If the marker touches `client/**`, also run the playwright lane** —
    `npx playwright test test-ui/` (~11 min). `node --test test/` does NOT
    cover it, and two client changes shipped green and broke it in one week

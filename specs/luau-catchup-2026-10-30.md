@@ -48,7 +48,7 @@ followed on top of this and re-records; see its commit.
 
 ## Step 2 — roblox-helper queue (`workitems-roblox.md`)
 
-Items 1–5 (queued 2026-08-08..11) are all still open; item 8 (the `buildingSold` turn-log line, P4) was added after this plan:
+Items 1–5 (queued 2026-08-08..11) are all still open; items 8 (the `buildingSold` turn-log line, P4) and 9 (re-bake the rulesets for P3's `nukeDoctrine`) were added after this plan:
 
 1. G0 re-mirror — Horse rework + desert palette (TileProps)
 2. H1 animal reworks — deer/seal/fish (pair with 1)

@@ -53,6 +53,9 @@ the status board. List the deltas BEFORE editing anything.
   the nightly runs — that is how A105 shipped green and broke the diplomacy
   spec (2026-08-05). After any `client/**` change, run
   `npx playwright test test-ui/<spec>` for the area touched.
+- **Count the failures, don't skim them.** `t.sh` prints a `FAIL:` line
+  per failing test; if that count disagrees with `# fail`, look again
+  (marker-0134, 2026-10-31: a hidden third failure shipped in a tag).
 - **Check CI when a release is near.** No lane owns it, so it drifts: the
   nightly was red for 25+ consecutive runs across three unrelated causes before
   anyone looked (2026-08-03).

@@ -194,7 +194,7 @@ obsoleted-by tech, domain (land/sea/air), and flags (e.g. `ignoresWalls`,
 | Transport   | 0/1/4  | 50  | Industrialization | Carries 8 |
 | Fighter     | 4/2/10 | 60  | Flight         | Must end turn in city/carrier |
 | Bomber      | 12/1/8 | 120 | Advanced Flight| Two-turn range |
-| Nuclear     | 99/0/16| 160 | Rocketry + Manhattan Project | Destroys stack + city pop |
+| Nuclear     | 99/0/16| 160 | Rocketry + Manhattan Project | Destroys stack + city pop; the AI uses it only in retaliation (docs/15) |
 
 ### 5.3 Movement
 

@@ -141,7 +141,10 @@ the suffix `, obsolete` or `, treasury empty`; own seat only.
 
 Same pass: `PediaConcepts.luau` mirrors the browser's `upkeep` concept,
 which gained one sentence (`client/ui/pedia-concepts.js`): "If the treasury
-cannot pay, your cheapest building is sold each turn until it can".
+cannot pay, your cheapest building is sold each turn until it can". The
+`combat` concept also gained one (P3): "Rival leaders never fire a nuclear
+weapon first, but a civ that uses one invites nuclear retaliation from every
+civ at war with it."
 
 ## 9. Re-bake the generated rulesets — `rules.nukeDoctrine` [architect, queued 2026-10-30]
 
