@@ -69,5 +69,10 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
   status table in `~/GIT/unityworks/specs/server_change_requests.md` is
   uncommitted there (your git).
+- [ ] **C2a. P4 is a golden re-record — next marker on your word.**
+  `220b5c5` (bankruptcy sells a building) moved GOLDEN_SOAK/NATURAL and
+  the behavior pins (behavioral; 545/p2 held). Saves keep loading; a
+  running game's later turns differ from a pre-P4 replay. Untagged until
+  you say go (it would be marker-0134). Push it with the marker-0133 push.
 - [ ] **C2. Remaining patch-plan engine item:** P3 AI nuke doctrine (a
   measured behavioural window). P4 bankruptcy landed 2026-10-30.
