@@ -16,11 +16,30 @@ M.PROP_SHAPES = {
 	roadSeg = { shape = "box", size = { 0.5, 0.02, 0.12 } },
 	mine = { shape = "cone", size = { 0.13, 0.2 }, seg = 4 },
 	tree = { shape = "cone", size = { 0.11, 0.28 }, seg = 6 },
+	jungleTrunk = { shape = "cyl", size = { 0.028, 0.042, 0.46 }, seg = 6 },
+	jungleCanopy = { shape = "sphere", size = { 0.21 }, seg = { 8, 5 } },
+	jungleButtress = { shape = "cone", size = { 0.085, 0.16 }, seg = 6 },
 	scrub = { shape = "cone", size = { 0.055, 0.11 }, seg = 5 },
 	rock = { shape = "dodeca", size = { 0.14 }, seg = 0 },
 	peak = { shape = "cone", size = { 0.26, 0.5 }, seg = 5 },
 	snow = { shape = "cone", size = { 0.12, 0.2 }, seg = 5 },
 	special = { shape = "sphere", size = { 0.07 }, seg = { 8, 6 } },
+	resFish = { shape = "sphere", size = { 0.09 }, seg = { 8, 6 } },
+	resFishTail = { shape = "cone", size = { 0.06, 0.09 }, seg = 4 },
+	resCrystal = { shape = "dodeca", size = { 0.075 }, seg = 0 },
+	resWater = { shape = "cyl", size = { 0.16, 0.16, 0.015 }, seg = 12 },
+	resPalm = { shape = "cone", size = { 0.034, 0.36 }, seg = 3 },
+	resDerrick = { shape = "cone", size = { 0.06, 0.34 }, seg = 4 },
+	resStraw = { shape = "cone", size = { 0.035, 0.4 }, seg = 4 },
+	resBeast = { shape = "sphere", size = { 0.1 }, seg = { 8, 6 } },
+	resBeastHead = { shape = "sphere", size = { 0.06 }, seg = { 8, 6 } },
+	resLeg = { shape = "cyl", size = { 0.014, 0.018, 0.17 }, seg = 5 },
+	resNeck = { shape = "cyl", size = { 0.024, 0.042, 0.18 }, seg = 6 },
+	resMuzzle = { shape = "box", size = { 0.085, 0.045, 0.05 } },
+	resTail = { shape = "cone", size = { 0.02, 0.14 }, seg = 4 },
+	resEar = { shape = "cone", size = { 0.013, 0.05 }, seg = 3 },
+	resAntler = { shape = "cone", size = { 0.022, 0.2 }, seg = 4 },
+	pond = { shape = "cyl", size = { 0.11, 0.11, 0.012 }, seg = 10 },
 	fortress = { shape = "torus", size = { 0.34, 0.05 }, seg = { 6, 12 } },
 	tie = { shape = "box", size = { 0.03, 0.024, 0.17 } },
 	mineDoor = { shape = "box", size = { 0.11, 0.1, 0.02 } },
@@ -29,22 +48,20 @@ M.PROP_SHAPES = {
 	foam = { shape = "box", size = { 0.82, 0.01, 0.06 } },
 	hutBase = { shape = "cyl", size = { 0.13, 0.15, 0.12 }, seg = 6 },
 	hutRoof = { shape = "cone", size = { 0.18, 0.14 }, seg = 6 },
-	-- XV §5: tropical rainforest — buttress base + slender trunk + broad dome canopy
-	jungleTrunk = { shape = "cyl", size = { 0.028, 0.042, 0.46 }, seg = 6 },
-	jungleCanopy = { shape = "sphere", size = { 0.21 }, seg = { 8, 5 } },
-	jungleButtress = { shape = "cone", size = { 0.085, 0.16 }, seg = 6 },
-	-- specials-icons: per-resource Civ-1 special motifs (recipes.js twin)
-	resFish = { shape = "sphere", size = { 0.09 }, seg = { 8, 6 } },
-	resFishTail = { shape = "cone", size = { 0.06, 0.09 }, seg = 4 },
-	resCrystal = { shape = "dodeca", size = { 0.075 }, seg = 0 },
-	resWater = { shape = "cyl", size = { 0.16, 0.16, 0.015 }, seg = 12 },
-	resPalm = { shape = "cone", size = { 0.034, 0.36 }, seg = 3 }, -- palm FROND blade (a ring = the crown)
-	resDerrick = { shape = "cone", size = { 0.06, 0.34 }, seg = 4 },
-	resStraw = { shape = "cone", size = { 0.035, 0.4 }, seg = 4 },
-	pond = { shape = "cyl", size = { 0.11, 0.11, 0.012 }, seg = 10 },
-	resBeast = { shape = "sphere", size = { 0.1 }, seg = { 8, 6 } },
-	resBeastHead = { shape = "sphere", size = { 0.06 }, seg = { 8, 6 } },
-	resAntler = { shape = "cone", size = { 0.022, 0.2 }, seg = 4 },
+	treeTrunk = { shape = "cyl", size = { 0.018, 0.026, 0.16 }, seg = 6 },
+	treeCanopy = { shape = "sphere", size = { 0.11 }, seg = { 10, 8 } },
+	roadDash = { shape = "box", size = { 0.09, 0.006, 0.016 } },
+	hiBody = { shape = "sphere", size = { 0.1 }, seg = { 18, 14 } },
+	hiHead = { shape = "sphere", size = { 0.06 }, seg = { 16, 12 } },
+	hiMuzzle = { shape = "sphere", size = { 0.035 }, seg = { 12, 10 } },
+	hiLegU = { shape = "cyl", size = { 0.016, 0.02, 0.1 }, seg = 10 },
+	hiLegL = { shape = "cyl", size = { 0.011, 0.014, 0.09 }, seg = 10 },
+	hiHoof = { shape = "cyl", size = { 0.016, 0.017, 0.022 }, seg = 10 },
+	hiEar = { shape = "cone", size = { 0.012, 0.045 }, seg = 8 },
+	hiBeam = { shape = "cyl", size = { 0.006, 0.009, 0.14 }, seg = 8 },
+	hiTine = { shape = "cone", size = { 0.008, 0.09 }, seg = 6 },
+	hiFin = { shape = "cone", size = { 0.05, 0.1 }, seg = 10 },
+	hiHorn = { shape = "cone", size = { 0.012, 0.06 }, seg = 8 },
 }
 
 M.PROP_COLOR = {
@@ -63,8 +80,11 @@ local SCRUB_COLOR = { grassland = "#3f8f3f", plains = "#9d8f55", desert = "#9d8f
 -- An ocean special (fish) rides the water surface (see the special handler below).
 local SPECIAL_MOTIF = {
 	ocean = {
-		{ k = "resFish", color = "#d2e6f5", sx = 1.7, sy = 0.55, sz = 0.95, dy = 0.03 }, -- Fish
-		{ k = "resFishTail", color = "#bcd2e4", dx = 0.14, dy = 0.03, rotY = math.pi / 2, sx = 0.8, sy = 0.7 },
+		{ k = "resFish", color = "#d2e6f5", dy = 0.06, sx = 1.5, sy = 0.75, sz = 0.45 },
+		{ k = "resFishTail", color = "#bcd2e4", dx = 0.15, dy = 0.1, rotZ = -0.9, sx = 0.9, sy = 0.85 },
+		{ k = "resFishTail", color = "#bcd2e4", dx = 0.15, dy = 0.015, rotZ = -2.2, sx = 0.9, sy = 0.85 },
+		{ k = "resFishTail", color = "#bcd2e4", dx = -0.01, dy = 0.13, rotZ = -0.35, sx = 0.8, sy = 0.9 },
+		{ k = "resEar", color = "#2b3a4a", dx = -0.1, dz = 0.042, dy = 0.075, rotX = 1.57079632679, sx = 1.4, sy = 0.4, sz = 1.4 },
 	},
 	grassland = { -- Shield -> wheat sheaf (XVII #8/#14): a cluster of golden stalks
 		{ k = "resStraw", color = "#f2d84e", dy = 0.2 },
@@ -75,26 +95,52 @@ local SPECIAL_MOTIF = {
 		{ k = "resStraw", color = "#f2d84e", dx = 0.08, dz = -0.04, dy = 0.19, rotX = 0.26, rotY = 1.2 },
 		{ k = "resStraw", color = "#f6e264", dx = -0.02, dz = 0.1, dy = 0.19, rotX = 0.26, rotY = 4.4 },
 	},
-	plains = { -- Horse — REARING profile (specials-silhouettes #4)
-		{ k = "resBeast", color = "#9a6b3f", sx = 1.65, sy = 0.6, sz = 0.6, dy = 0.15, rotZ = -0.9 },
-		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.09, dy = 0.31 },
+	plains = {
+		{ k = "resBeast", color = "#9a6b3f", dy = 0.24, sx = 1.5, sy = 0.75, sz = 0.65 },
+		{ k = "resLeg", color = "#8a5f36", dx = -0.1, dz = -0.045, dy = 0.085 },
+		{ k = "resLeg", color = "#8a5f36", dx = -0.1, dz = 0.045, dy = 0.085 },
+		{ k = "resLeg", color = "#8a5f36", dx = 0.1, dz = -0.045, dy = 0.085 },
+		{ k = "resLeg", color = "#8a5f36", dx = 0.1, dz = 0.045, dy = 0.085 },
+		{ k = "resNeck", color = "#9a6b3f", dx = -0.13, dy = 0.33, rotZ = 0.55 },
+		{ k = "resBeastHead", color = "#9a6b3f", dx = -0.185, dy = 0.42, sy = 0.9 },
+		{ k = "resMuzzle", color = "#9a6b3f", dx = -0.245, dy = 0.405 },
+		{ k = "resEar", color = "#5d3f22", dx = -0.165, dz = -0.025, dy = 0.475 },
+		{ k = "resEar", color = "#5d3f22", dx = -0.165, dz = 0.025, dy = 0.475 },
+		{ k = "resTail", color = "#5d3f22", dx = 0.175, dy = 0.24, rotZ = 2.6 },
 	},
-	forest = { -- Game (deer) + stag-antler V fork
-		{ k = "resBeast", color = "#7a5a35", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
-		{ k = "resBeastHead", color = "#7a5a35", dx = -0.11, dy = 0.12 },
-		{ k = "resAntler", color = "#533c22", dx = -0.12, dy = 0.26, rotZ = 0.62 },
-		{ k = "resAntler", color = "#533c22", dx = -0.07, dy = 0.26, rotZ = -0.62 },
+	forest = {
+		{ k = "resBeast", color = "#7a5a35", dy = 0.22, sx = 1.15, sy = 0.62, sz = 0.5 },
+		{ k = "resLeg", color = "#6b4d2c", dx = -0.08, dz = -0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#6b4d2c", dx = -0.08, dz = 0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#6b4d2c", dx = 0.08, dz = -0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#6b4d2c", dx = 0.08, dz = 0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resNeck", color = "#7a5a35", dx = -0.1, dy = 0.31, rotZ = 0.28, sx = 0.75, sz = 0.75 },
+		{ k = "resBeastHead", color = "#7a5a35", dx = -0.13, dy = 0.41, sy = 0.85 },
+		{ k = "resMuzzle", color = "#7a5a35", dx = -0.18, dy = 0.4, sx = 0.7, sy = 0.8, sz = 0.8 },
+		{ k = "resAntler", color = "#533c22", dx = -0.15, dy = 0.5, rotZ = 0.62 },
+		{ k = "resAntler", color = "#533c22", dx = -0.1, dy = 0.5, rotZ = -0.62 },
+		{ k = "resTail", color = "#e8e0cc", dx = 0.12, dy = 0.24, rotZ = 2.4, sx = 0.5, sy = 0.4 },
 	},
-	tundra = { -- Game + antlers
-		{ k = "resBeast", color = "#8a6a45", sx = 1.35, sy = 0.85, sz = 0.9, dy = 0.05 },
-		{ k = "resBeastHead", color = "#8a6a45", dx = -0.11, dy = 0.12 },
-		{ k = "resAntler", color = "#5f4728", dx = -0.12, dy = 0.26, rotZ = 0.62 },
-		{ k = "resAntler", color = "#5f4728", dx = -0.07, dy = 0.26, rotZ = -0.62 },
+	tundra = {
+		{ k = "resBeast", color = "#8a6a45", dy = 0.22, sx = 1.15, sy = 0.62, sz = 0.5 },
+		{ k = "resLeg", color = "#5f4728", dx = -0.08, dz = -0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#5f4728", dx = -0.08, dz = 0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#5f4728", dx = 0.08, dz = -0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resLeg", color = "#5f4728", dx = 0.08, dz = 0.035, dy = 0.075, sx = 0.8, sz = 0.8 },
+		{ k = "resNeck", color = "#8a6a45", dx = -0.1, dy = 0.31, rotZ = 0.28, sx = 0.75, sz = 0.75 },
+		{ k = "resBeastHead", color = "#8a6a45", dx = -0.13, dy = 0.41, sy = 0.85 },
+		{ k = "resMuzzle", color = "#8a6a45", dx = -0.18, dy = 0.4, sx = 0.7, sy = 0.8, sz = 0.8 },
+		{ k = "resAntler", color = "#5f4728", dx = -0.15, dy = 0.5, rotZ = 0.62 },
+		{ k = "resAntler", color = "#5f4728", dx = -0.1, dy = 0.5, rotZ = -0.62 },
+		{ k = "resTail", color = "#e8e0cc", dx = 0.12, dy = 0.24, rotZ = 2.4, sx = 0.5, sy = 0.4 },
 	},
-	arctic = { -- Seal — low flat body + the upturned tail flipper
-		{ k = "resBeast", color = "#c4cbd4", sx = 1.85, sy = 0.55, sz = 0.72, dy = 0.04 },
-		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.16, dy = 0.06 },
-		{ k = "resFishTail", color = "#b4bcc6", dx = 0.17, dy = 0.09, rotZ = -0.95, sx = 1.1, sy = 1.3 },
+	arctic = {
+		{ k = "resBeast", color = "#c4cbd4", dy = 0.12, rotZ = -0.22, sx = 1.6, sy = 0.6, sz = 0.7 },
+		{ k = "resBeastHead", color = "#c4cbd4", dx = -0.2, dy = 0.26, sy = 0.9 },
+		{ k = "resMuzzle", color = "#b4bcc6", dx = -0.26, dy = 0.24, sx = 0.6, sy = 0.6, sz = 0.7 },
+		{ k = "resLeg", color = "#b4bcc6", dx = -0.12, dz = -0.06, dy = 0.05, rotZ = 0.5, sx = 1.2, sy = 0.45, sz = 0.6 },
+		{ k = "resLeg", color = "#b4bcc6", dx = -0.12, dz = 0.06, dy = 0.05, rotZ = -0.5, sx = 1.2, sy = 0.45, sz = 0.6 },
+		{ k = "resFishTail", color = "#b4bcc6", dx = 0.18, dy = 0.08, rotZ = -0.95, sx = 1.1, sy = 1.3 },
 	},
 	desert = { -- Oasis (f92b088): pool + slender trunk + a 6-frond ring crown
 		-- (position-offset splay, the wheat-sheaf idiom — rotY alone gimbal-
@@ -122,6 +168,19 @@ local ROAD_DIRS = {
 	{ dx = 1, dy = 1, rot = -math.pi / 4, diag = true }, { dx = -1, dy = -1, rot = -math.pi / 4, diag = true },
 	{ dx = 1, dy = -1, rot = math.pi / 4, diag = true }, { dx = -1, dy = 1, rot = math.pi / 4, diag = true },
 }
+
+-- props.js RS (H13): the road look by the VIEWER's era stage 0..4 — dirt path /
+-- cobblestone / slim unmarked / marked (classic) / four-lane highway.
+local ROAD_STAGE = {
+	{ color = "#7a5c38", w = 0.55, len = 0.85, dash = false },
+	{ color = "#8a8578", w = 0.8, len = 1, dash = false },
+	{ color = "#50505a", w = 0.6, len = 1, dash = false },
+	{ color = "#8a6f4d", w = 1, len = 1, dash = true },
+	{ color = "#3a3a44", w = 1.7, len = 1, dash = true },
+}
+local ROAD_STAGE_DEFAULT = { color = "#8a6f4d", w = 1, len = 1, dash = true }
+local DASH_COLOR = "#e8e8e8"
+local RAIL_STEEL = "#9aa0a8"
 
 local function hexColor(hex)
 	local n = tonumber(string.sub(hex, 2), 16) or 0
@@ -166,7 +225,7 @@ end
 
 -- lightweight content signature so we only rebuild when prop-relevant tile
 -- fields (not unit moves) change; fog visibility is included so dimming tracks.
-local function signature(map)
+local function signature(map, joins, roadStage)
 	local h = 2166136261
 	for i, t in ipairs(map.tiles) do
 		if t.t ~= "unknown" then
@@ -177,7 +236,11 @@ local function signature(map)
 			h = (h * 16777619) % 4294967296
 		end
 	end
-	return h
+	local jsum = 0 -- city tiles join roads; summed so pairs() order cannot matter
+	for idx in pairs(joins) do
+		jsum = (jsum + idx * 40503 + 7) % 4294967296
+	end
+	return h + jsum * 8 + roadStage * 4294967296
 end
 
 local lastSig = nil
@@ -190,9 +253,14 @@ function M.resetCache()
 	lastSig = nil
 end
 
-function M.rebuild(folder, view, tileTop, TILE)
+function M.rebuild(folder, view, tileTop, TILE, roadStage)
 	local map = view.map
-	local sig = signature(map)
+	roadStage = roadStage or 3 -- props.js default: unannotated views get the classic look
+	local joins = {}
+	for _, city in pairs(view.cities or {}) do
+		joins[city.y * map.width + city.x + 1] = true
+	end
+	local sig = signature(map, joins, roadStage)
 	if sig == lastSig then
 		return false
 	end
@@ -212,9 +280,23 @@ function M.rebuild(folder, view, tileTop, TILE)
 		end
 		return map.tiles[y * map.width + xx + 1]
 	end
-	local function roadAt(x, y)
+	-- real=true: only tiles that CARRY a road — city joins don't count
+	local function roadAt(x, y, real)
 		local n = tileAt(x, y)
-		return n ~= nil and (n.road == true or n.railroad == true)
+		if n == nil then
+			return false
+		end
+		if n.road == true or n.railroad == true then
+			return true
+		end
+		if real == true then
+			return false
+		end
+		local xx = x
+		if xx < 0 or xx >= map.width then
+			xx = ((xx % map.width) + map.width) % map.width
+		end
+		return joins[y * map.width + xx + 1] == true
 	end
 	local function landAt(x, y)
 		local n = tileAt(x, y)
@@ -239,23 +321,44 @@ function M.rebuild(folder, view, tileTop, TILE)
 					put("fieldPatch", { color = M.PROP_COLOR.fieldPatch, dx = -0.2, dz = 0.14, dy = 0.015, rotY = math.pi / 4 })
 					put("fieldPatch", { color = M.PROP_COLOR.fieldPatch, dx = 0.16, dz = -0.2, dy = 0.015, rotY = math.pi / 4 })
 				end
-				if t.road or t.railroad then
-					local color = t.railroad and M.PROP_COLOR.railroad or M.PROP_COLOR.road
+					-- city tiles draw the road's OTHER half toward real-road neighbours
+				-- (plain road, never rail); no isolated stub on a city (H13b)
+				local isCity = joins[y * map.width + x + 1] == true
+				if t.road or t.railroad or isCity then
+					local rs = ROAD_STAGE[roadStage + 1] or ROAD_STAGE_DEFAULT
+					local isRail = t.railroad == true and not isCity
+					local color = isRail and M.PROP_COLOR.railroad or rs.color
 					local connected = 0
 					for _, d in ipairs(ROAD_DIRS) do
-						if roadAt(x + d.dx, y + d.dy) then
+						if roadAt(x + d.dx, y + d.dy, isCity) then
 							connected += 1
+							local df = d.diag and 1.42 or 1
 							put("roadSeg", { color = color, rotY = d.rot, dy = 0.03,
-								dx = d.dx * 0.25, dz = d.dy * 0.25, sx = d.diag and 1.42 or 1 })
-							if t.railroad then
+								dx = d.dx * 0.25, dz = d.dy * 0.25, sx = df * rs.len,
+								sz = (not isRail) and rs.w or 1 })
+							if (not isRail) and rs.dash then
+								local rows = roadStage == 4 and { -0.03, 0.03 } or { 0 }
+								for _, off in ipairs(rows) do
+									put("roadDash", { color = DASH_COLOR, rotY = d.rot, dy = 0.041,
+										dx = d.dx * 0.25 - math.sin(d.rot) * off,
+										dz = d.dy * 0.25 - math.cos(d.rot) * off, sx = df })
+								end
+							end
+							if isRail then
+								local tracks = roadStage >= 3 and { -0.062, -0.018, 0.018, 0.062 } or { -0.022, 0.022 }
+								for _, off in ipairs(tracks) do
+									put("roadSeg", { color = RAIL_STEEL, rotY = d.rot, dy = 0.037,
+										dx = d.dx * 0.25 - math.sin(d.rot) * off,
+										dz = d.dy * 0.25 - math.cos(d.rot) * off, sx = df, sz = 0.09 })
+								end
 								for _, k in ipairs({ 0.14, 0.3 }) do
 									put("tie", { color = M.PROP_COLOR.tie, rotY = d.rot, dy = 0.032,
-										dx = d.dx * k, dz = d.dy * k })
+										dx = d.dx * k, dz = d.dy * k, sz = roadStage >= 3 and 1.6 or 1 })
 								end
 							end
 						end
 					end
-					if connected == 0 then
+					if connected == 0 and not isCity then
 						put("roadSeg", { color = color, rotY = 0, dy = 0.03, sx = 0.5 })
 					end
 				end

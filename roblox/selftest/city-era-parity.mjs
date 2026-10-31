@@ -33,8 +33,20 @@ for (const era of engineEras) {
   else if (!contractSet.has(e2b[era])) errs.push(`ERA_TO_BAND maps ${era} -> ${e2b[era]} (not a contract band)`);
 }
 
+// (c) H13 roadStageFor twin: same function present with the same tech-id/era
+// literals as shared/city-era.js, and the stage is stamped + handed to TileProps.
+const shared = readFileSync(new URL('../../shared/city-era.js', import.meta.url), 'utf8');
+if (!src.includes('local function roadStageFor')) errs.push('ViewRenderer missing roadStageFor twin');
+if (!src.includes('annotateViewerRoadStage(')) errs.push('ViewRenderer missing annotateViewerRoadStage (viewerRoadStage stamp)');
+if (!src.includes('TileProps.rebuild(propsFolder, view, tileTop, TILE, roadStage)')) errs.push('ViewRenderer does not pass roadStage to TileProps.rebuild');
+for (const lit of ['renaissance', 'industrial', 'automobile', 'plastics', 'space-flight']) {
+  if (!shared.includes(`'${lit}'`)) errs.push(`shared/city-era.js lost roadStageFor literal ${lit}`);
+  const fnBody = src.slice(src.indexOf('local function roadStageFor'), src.indexOf('local function annotateViewerRoadStage'));
+  if (!fnBody.includes(`"${lit}"`)) errs.push(`roadStageFor twin missing literal ${lit}`);
+}
+
 if (errs.length > 0) {
   for (const e of errs) console.error(e);
   process.exit(1);
 }
-console.log(`city-era-parity: ${bands.length} bands match shared/city-era.js; ${engineEras.size} engine eras mapped`);
+console.log(`city-era-parity: ${bands.length} bands match shared/city-era.js; ${engineEras.size} engine eras mapped; roadStageFor twin wired`);

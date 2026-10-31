@@ -473,6 +473,55 @@ local function cityEraBand(ownerPlayer, techsTable)
 	return best
 end
 
+-- shared/city-era.js roadStageFor ported 1:1 (H13): the road-era stage 0..4 from
+-- the VIEWER's own techs — 1 renaissance, 2 industrial, 3 automobile, 4 plastics /
+-- space-flight. Pure; fog-honest (a rival's techs never reach the view).
+local function roadStageFor(viewerPlayer, techsTable)
+	if viewerPlayer == nil or viewerPlayer.techs == nil or techsTable == nil then
+		return 0
+	end
+	local stage = 0
+	for _, id in ipairs(viewerPlayer.techs) do
+		local t = techsTable[id]
+		if t ~= nil then
+			if t.era == "renaissance" and stage < 1 then
+				stage = 1
+			elseif t.era == "industrial" and stage < 2 then
+				stage = 2
+			end
+			if id == "automobile" and stage < 3 then
+				stage = 3
+			end
+			if (id == "plastics" or id == "space-flight") and stage < 4 then
+				stage = 4
+			end
+		end
+	end
+	return stage
+end
+
+-- the viewerRoadStage half of shared/city-era.js annotateCityEra(view, techs,
+-- viewerId): a viewer with no player (spectator) sees the MAX stage across the
+-- players whose techs the view carries. Stamps view.viewerRoadStage (render-only
+-- side field) and returns it; the band half stays in renderCities.
+local function annotateViewerRoadStage(view, techsTable, viewerId)
+	local stage = 0
+	if view.players ~= nil then
+		if viewerId ~= nil and view.players[viewerId] ~= nil then
+			stage = roadStageFor(view.players[viewerId], techsTable)
+		else
+			for _, p in pairs(view.players) do
+				local st = roadStageFor(p, techsTable)
+				if st > stage then
+					stage = st
+				end
+			end
+		end
+	end
+	view.viewerRoadStage = stage
+	return stage
+end
+
 -- pop -> settlement tier (block count grows 3/6/9/12); pop is fog-legal for
 -- every visible city
 local function popTier(pop)
@@ -634,7 +683,8 @@ propsFolder.Name = "TileProps"
 propsFolder.Parent = world
 
 local function renderImprovements(view)
-	if TileProps.rebuild(propsFolder, view, tileTop, TILE) then
+	local roadStage = annotateViewerRoadStage(view, ClientState.rulesets().techs, view.you)
+	if TileProps.rebuild(propsFolder, view, tileTop, TILE, roadStage) then
 		for _, p in ipairs(propsFolder:GetDescendants()) do
 			if p:IsA("BasePart") then
 				p.CanCollide = false

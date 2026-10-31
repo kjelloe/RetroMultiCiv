@@ -352,6 +352,9 @@ local function narrate(view, e, rs)
 		return ("[city] %s completed %s"):format(cityName(view, e.cityId), rs.units[e.unitType].name), ""
 	elseif e.type == "buildingBuilt" and ownCity(view, e.cityId) then
 		return ("[city] %s completed %s"):format(cityName(view, e.cityId), rs.buildings[e.building].name), ""
+	elseif e.type == "buildingSold" and e.playerId == you then
+		local suffix = e.reason == "obsolete" and ", obsolete" or e.reason == "bankrupt" and ", treasury empty" or ""
+		return ("[city] %s sold %s (+%dg%s)"):format(cityName(view, e.cityId) or tostring(e.cityId), rs.buildings[e.building].name, e.gold, suffix), ""
 	elseif e.type == "wonderBuilt" then
 		local mine = ownCity(view, e.cityId)
 		local c = view.cities[e.cityId]

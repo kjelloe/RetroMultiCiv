@@ -23,7 +23,7 @@ a pairing together is fine.
 
 ---
 
-## 1. G0 re-mirror — Horse rework + desert palette [task, architect, queued 2026-08-08]
+## 1. G0 re-mirror — Horse rework + desert palette [task, architect, queued 2026-08-08] [done: 2026-11-01 — architect session (Sonnet agent): PROP_SHAPES regenerated key-for-key from recipes.js (50); 12-primitive standing horse; desert palette via the regenerated TerrainPalette. tile-props-parity green. Studio look pending (no rojo/Studio on the dev PC).]
 
 G0 (specs/graphics-levels.md) is DONE on the browser side 2026-08-05.
 Mirror two browser-renderer changes into `roblox/src/client` (your
@@ -42,7 +42,7 @@ files):
 Verification: your usual Studio screenshot vs `debugging/g0-final.png`
 framing (gallery rows 20–22 swatch + row 19 plains special).
 
-## 2. EXTENDS item 1 — H1 animal reworks [task, architect, queued 2026-08-09]
+## 2. EXTENDS item 1 — H1 animal reworks [task, architect, queued 2026-08-09] [done: 2026-11-01 — same pass: fish side profile, forest/tundra deer, arctic seal motifs. Studio look pending (no rojo/Studio on the dev PC).]
 
 H1 added three more SPECIAL_MOTIF animal reworks in props.js (source of
 truth) that TileProps.luau must mirror in the same pass:
@@ -64,7 +64,7 @@ No NEW prop shapes beyond G0's five (all reused). `treeTrunk` /
 browser-only (Roblox mirrors low; skip them). Verification: Studio
 screenshot vs the browser gallery row 19 (`cx=6&cy=19&zoom=4`).
 
-## 3. city-era twin — roadStageFor + annotateCityEra viewer param [architect, queued 2026-08-11]
+## 3. city-era twin — roadStageFor + annotateCityEra viewer param [architect, queued 2026-08-11] [done: 2026-11-01 — ViewRenderer roadStageFor (1:1; lune-checked vs JS over 370 tech sets, 0 mismatches) + annotateViewerRoadStage (viewer stage, spectator max); city-era-parity extended to cover it.]
 
 marker-0128 (H13): `shared/city-era.js` gained a pure function the
 roblox twin needs. Full context (originally mail #2925):
@@ -82,7 +82,7 @@ reference. Review sheet: `debugging/h13-road-eras.png`.
 Mirror `roadStageFor` + the `annotateCityEra` param into the roblox
 city-era twin.
 
-## 4. Encyclopedia rename — the held #2616 edits never landed [architect, queued 2026-08-11]
+## 4. Encyclopedia rename — the held #2616 edits never landed [architect, queued 2026-08-11] [done: 2026-11-01 — architect session (Sonnet agent): Pedia.client.luau 5 sites + Ship comment; no Gamepedia left in roblox/src; the resetServer site carried no stale text. Studio look: the 12-char button vs the Ship button at -370.]
 
 Background: a 2026-08 roblox session claimed this but its environment
 denied all file writes; the edits were held, and verification 2026-08-11
@@ -95,7 +95,7 @@ The swap: Gamepedia → Encyclopedia in
 `Ship.client.luau` line 25 comment + the resetServer comment. Browser
 twin for reference: `client/ui/pedia-name.js`.
 
-## 5. EXTENDS item 3 — TileProps road/rail sync to H13+H13b [architect, queued 2026-08-11]
+## 5. EXTENDS item 3 — TileProps road/rail sync to H13+H13b [architect, queued 2026-08-11] [done: 2026-11-01 — ROAD_STAGE 5 stages, dash rows, twin/quad rails + wide ties from stage 3, city tiles draw a plain-road half toward real-road neighbours (no stub). Medium-tier shape only (no surfaceAt for the high-tier conforming ribbons). Studio look pending (no rojo/Studio on the dev PC).]
 
 `TileProps.luau` road/rail sync to H13+H13b (props.js @d599d3f is the
 source):
@@ -112,7 +112,7 @@ describe both features.
 
 ---
 
-## 6. Server door validation — the fe-R13/R2 twin [architect, queued 2026-10-30, P1]
+## 6. Server door validation — the fe-R13/R2 twin [architect, queued 2026-10-30, P1] [done: 2026-11-01 — architect: luau/state-string.luau twin (stricter: integers/booleans only, no floats/NaN/Roblox datatypes); GameServer rejects badShape (non-state-legal payload or name > 24) and notAllowed (not in CLIENT_COMMANDS, so claimSeat) before engine.applyCommand; test/state-string-twin.test.js JS==Luau.]
 
 `GameServer.server.luau` copies every client `cmd` field into
 `engine.applyCommand` unchecked. A client can send `type = "claimSeat"`
@@ -129,7 +129,7 @@ as a twin, reject both with `badShape` before the engine call, cap
 in Studio that the `[world]` age line shows once per age. Detail:
 `specs/luau-catchup-2026-10-30.md` step 2.
 
-## 8. Turn-log line for `buildingSold`, incl. the new `bankrupt` reason [architect, queued 2026-10-30]
+## 8. Turn-log line for `buildingSold`, incl. the new `bankrupt` reason [architect, queued 2026-10-30] [done: 2026-11-01 — architect session (Sonnet agent): TurnLog narrate branch (own seat, obsolete / treasury empty suffixes); PediaConcepts upkeep + combat synced (parity 29/29).]
 
 P4 (engine + `luau/tech.luau`, 2026-10-30): when a player's treasury goes
 negative at the turn wrap, the cheapest non-Palace building is sold, with a
@@ -146,7 +146,7 @@ cannot pay, your cheapest building is sold each turn until it can". The
 weapon first, but a civ that uses one invites nuclear retaliation from every
 civ at war with it."
 
-## 9. Re-bake the generated rulesets — `rules.nukeDoctrine` [architect, queued 2026-10-30]
+## 9. Re-bake the generated rulesets — `rules.nukeDoctrine` [architect, queued 2026-10-30] [done: 2026-11-01 — node roblox/data/build.js + --check OK; RulesetHashes + rules.luau, and AssetRecipes/TerrainPalette picked up the August art data.]
 
 P3 (A115) added `nukeDoctrine` to `data/rules.json`, so the rules hash the
 GameServer gates on at boot has moved; re-bake as after `f210760`

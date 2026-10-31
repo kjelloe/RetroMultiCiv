@@ -2184,6 +2184,48 @@ return [==[{
         6
       ]
     },
+    "resLeg": {
+      "shape": "cyl",
+      "size": [
+        0.014,
+        0.018,
+        0.17
+      ],
+      "seg": 5
+    },
+    "resNeck": {
+      "shape": "cyl",
+      "size": [
+        0.024,
+        0.042,
+        0.18
+      ],
+      "seg": 6
+    },
+    "resMuzzle": {
+      "shape": "box",
+      "size": [
+        0.085,
+        0.045,
+        0.05
+      ]
+    },
+    "resTail": {
+      "shape": "cone",
+      "size": [
+        0.02,
+        0.14
+      ],
+      "seg": 4
+    },
+    "resEar": {
+      "shape": "cone",
+      "size": [
+        0.013,
+        0.05
+      ],
+      "seg": 3
+    },
     "resAntler": {
       "shape": "cone",
       "size": [
@@ -2268,6 +2310,131 @@ return [==[{
         0.14
       ],
       "seg": 6
+    },
+    "treeTrunk": {
+      "shape": "cyl",
+      "size": [
+        0.018,
+        0.026,
+        0.16
+      ],
+      "seg": 6
+    },
+    "treeCanopy": {
+      "shape": "sphere",
+      "size": [
+        0.11
+      ],
+      "seg": [
+        10,
+        8
+      ]
+    },
+    "roadDash": {
+      "shape": "box",
+      "size": [
+        0.09,
+        0.006,
+        0.016
+      ]
+    },
+    "hiBody": {
+      "shape": "sphere",
+      "size": [
+        0.1
+      ],
+      "seg": [
+        18,
+        14
+      ]
+    },
+    "hiHead": {
+      "shape": "sphere",
+      "size": [
+        0.06
+      ],
+      "seg": [
+        16,
+        12
+      ]
+    },
+    "hiMuzzle": {
+      "shape": "sphere",
+      "size": [
+        0.035
+      ],
+      "seg": [
+        12,
+        10
+      ]
+    },
+    "hiLegU": {
+      "shape": "cyl",
+      "size": [
+        0.016,
+        0.02,
+        0.1
+      ],
+      "seg": 10
+    },
+    "hiLegL": {
+      "shape": "cyl",
+      "size": [
+        0.011,
+        0.014,
+        0.09
+      ],
+      "seg": 10
+    },
+    "hiHoof": {
+      "shape": "cyl",
+      "size": [
+        0.016,
+        0.017,
+        0.022
+      ],
+      "seg": 10
+    },
+    "hiEar": {
+      "shape": "cone",
+      "size": [
+        0.012,
+        0.045
+      ],
+      "seg": 8
+    },
+    "hiBeam": {
+      "shape": "cyl",
+      "size": [
+        0.006,
+        0.009,
+        0.14
+      ],
+      "seg": 8
+    },
+    "hiTine": {
+      "shape": "cone",
+      "size": [
+        0.008,
+        0.09
+      ],
+      "seg": 6
+    },
+    "hiFin": {
+      "shape": "cone",
+      "size": [
+        0.05,
+        0.1
+      ],
+      "seg": 10
+    },
+    "hiHorn": {
+      "shape": "cone",
+      "size": [
+        0.012,
+        0.06
+      ],
+      "seg": 8
     }
   }
 }

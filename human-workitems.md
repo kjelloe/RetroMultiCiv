@@ -52,13 +52,12 @@ RELEASED and live; everything below is post-release.)_
 
 ## C. Other lanes
 
-- [ ] **C1. Wake the Roblox lane when convenient** — its queue holds 7
-  items (items 6–7 added 2026-10-30: the server door-validation twin, P1,
-  and an `ageChanged` Studio check; the first 5 audited 2026-08-15): G0 horse/desert + H1 deer/seal/fish
-  motif re-mirrors, the `roadStageFor` city-era twin + the TileProps
-  H13/H13b road-rail sync, and the never-landed Encyclopedia swap (the
-  held #2616 edits — `Pedia.client.luau` still says Gamepedia). Code
-  travels by your git pump.
+- [ ] **C1. Roblox queue: 8 of 9 items landed headless (2026-11-01)** — items
+  1-6, 8, 9 done from the dev PC (parity harnesses green; no rojo/Studio
+  here). Needs your Studio session (fold into C1b): item 7 (`ageChanged`
+  world line), plus a look at the new animals, era roads/rails + city road
+  joins, the wider Encyclopedia button, and a real `buildingSold` line.
+  Detail per item in `workitems-roblox.md`.
 - [ ] **C1b. The ONE Roblox Studio session (the lane's only remaining
   v1 gate, surfaced #2665 but previously untracked here):** verify
   midgame-join live (two clients, B joins with seats full → gets the

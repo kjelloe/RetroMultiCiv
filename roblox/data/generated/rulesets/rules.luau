@@ -57,6 +57,7 @@ return [==[{
   },
   "siegePillageRadius": 2,
   "airDoctrine": { "bombers": 2, "fighters": 2, "leash": 6 },
+  "nukeDoctrine": { "maxStock": 2, "safeDistance": 2 },
   "aiAttackerTechWeight": 1,
   "aiBuyThreshold": 200,
   "aiSurplusBuyThreshold": 1000,

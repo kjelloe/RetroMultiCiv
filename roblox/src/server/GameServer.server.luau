@@ -33,6 +33,7 @@ local gamecode = require(shared:WaitForChild("gamecode"))
 local scoreModule = require(shared:WaitForChild("score")) -- SO7 end screen
 local strategicModule = require(shared:WaitForChild("strategic")) -- SO17
 local json2lua = require(shared:WaitForChild("json2lua"))
+local stateString = require(shared:WaitForChild("state-string")) -- item 6: the command door (fe-R13/R2 twin)
 local ageSnapshots = require(shared:WaitForChild("age-snapshots")) -- instant later-age starts (browser main.js twin)
 local civShuffle = require(shared:WaitForChild("civ-shuffle")) -- roster-shuffle: seed-shuffled default lineup (browser parity)
 local Deck = require(script.Parent:WaitForChild("Deck"))
@@ -1531,6 +1532,15 @@ for name, handler in pairs(PAD_HANDLERS) do
 end
 
 -- ---- remote routing ---------------------------------------------------------
+-- item 6: server/protocol.js CLIENT_COMMANDS (claimSeat stays server-only)
+local CLIENT_COMMANDS = {
+	"moveUnit", "fortify", "wait", "endTurn", "foundCity", "setProduction", "setWorkers",
+	"startWork", "pillage", "disband", "rehome", "buy", "helpWonder", "sellBuilding",
+	"setGovernment", "setResearch", "setRates", "launchShip", "establishTradeRoute",
+	"upgradeUnit", "debug", "diplomacy", "diplomatMission",
+}
+local MAX_CMD_NAME = 24
+
 remote.OnServerEvent:Connect(function(player, msg)
 	if typeof(msg) ~= "table" then
 		return
@@ -1745,6 +1755,19 @@ remote.OnServerEvent:Connect(function(player, msg)
 	end
 
 	if msg.t ~= "cmd" or typeof(msg.cmd) ~= "table" then
+		return
+	end
+	-- item 6 (fe-R13/R2 twin, server/protocol.js): every field a client sends
+	-- reaches engine state, so the payload must be state-legal (printable-ASCII
+	-- strings, integers, booleans), a name fits 24, and the type is a CLIENT
+	-- command — claimSeat is server-only (the late-join flow issues it itself).
+	if typeof(msg.cmd.type) ~= "string" or not stateString.onlyStateStrings(msg.cmd)
+		or (msg.cmd.name ~= nil and not stateString.isStateString(msg.cmd.name, MAX_CMD_NAME)) then
+		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "badShape" })
+		return
+	end
+	if table.find(CLIENT_COMMANDS, msg.cmd.type) == nil then
+		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "notAllowed" })
 		return
 	end
 	local pid = seatOfUser[player.UserId]

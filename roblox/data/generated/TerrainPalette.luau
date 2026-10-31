@@ -7,7 +7,7 @@ return {
 	forest = { base = 0.06, peak = 0, palette = { Color3.fromRGB(45, 106, 53), Color3.fromRGB(51, 116, 60), Color3.fromRGB(39, 96, 47) } },
 	hills = { base = 0.20, peak = 0.10, palette = { Color3.fromRGB(150, 133, 79), Color3.fromRGB(160, 143, 88), Color3.fromRGB(138, 122, 71) } },
 	mountains = { base = 0.80, peak = 0.45, palette = { Color3.fromRGB(140, 140, 148), Color3.fromRGB(127, 127, 134), Color3.fromRGB(154, 154, 162) } },
-	desert = { base = 0.05, peak = 0, palette = { Color3.fromRGB(217, 194, 126), Color3.fromRGB(226, 205, 138), Color3.fromRGB(205, 182, 113) } },
+	desert = { base = 0.05, peak = 0, palette = { Color3.fromRGB(234, 184, 79), Color3.fromRGB(242, 196, 96), Color3.fromRGB(220, 170, 64) } },
 	tundra = { base = 0.04, peak = 0, palette = { Color3.fromRGB(176, 184, 168), Color3.fromRGB(165, 173, 157), Color3.fromRGB(187, 195, 179) } },
 	arctic = { base = 0.06, peak = 0, palette = { Color3.fromRGB(232, 238, 240), Color3.fromRGB(221, 228, 231), Color3.fromRGB(242, 247, 248) } },
 	swamp = { base = 0.02, peak = 0, palette = { Color3.fromRGB(93, 122, 90), Color3.fromRGB(84, 111, 82), Color3.fromRGB(102, 133, 99) } },

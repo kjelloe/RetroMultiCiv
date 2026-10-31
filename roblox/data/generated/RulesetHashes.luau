@@ -5,10 +5,10 @@ return {
 	buildings = "0x0b40a48f",
 	civs = "0x13266028",
 	governments = "0xc0cdc126",
-	rules = "0xb8f59095",
+	rules = "0x1435b844",
 	techs = "0x211651c1",
 	terrain = "0x0f366ad4",
 	units = "0x1ed16afd",
 	wonders = "0x3659974f",
-	assetRecipes = 1456779177,
+	assetRecipes = 2209404253,
 }
