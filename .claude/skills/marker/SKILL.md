@@ -25,6 +25,9 @@ lanes never tag; sim-runner lands commits, the architect tags.
    annotated tag on the exact landing commit:
    `git tag -a marker-NNNN <sha> -m "<one-line delta + consistency verdict>"`;
    `git push origin marker-NNNN`.
+   If the push fails for missing credentials (the agent shell on the dev
+   PC has none, 2026-10-30), keep the tag local and put the exact push
+   command in the user's merge item (human-workitems A2b) and the report.
 4. **Report**: write `reports/marker-NNNN.md` — delta since previous marker,
    each item what/why, golden re-records with new-hash summary, breaking
    notes, test state. Build-log voice (facts, no autonomous-actor framing).

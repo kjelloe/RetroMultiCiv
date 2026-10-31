@@ -139,6 +139,10 @@ no formatter for it, so no sale (obsolete, manual or bankrupt) is shown.
 Browser reference, `client/ui/turnlog.js`: `sold <Building> (+<gold>g)` with
 the suffix `, obsolete` or `, treasury empty`; own seat only.
 
+Same pass: `PediaConcepts.luau` mirrors the browser's `upkeep` concept,
+which gained one sentence (`client/ui/pedia-concepts.js`): "If the treasury
+cannot pay, your cheapest building is sold each turn until it can".
+
 ---
 
 ## Not in this file (user-side, for completeness)
