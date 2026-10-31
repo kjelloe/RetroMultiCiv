@@ -110,6 +110,11 @@ priority and states the reason.
 
 ## P4 — Bankruptcy clamps instead of selling
 
+**Done 2026-10-30.** One sale per turn of the cheapest non-Palace building
+(ties: earlier city in cityOrder, then building id), then clamp; event
+`buildingSold` reason `bankrupt`. Fixture `test/scenarios/070-bankruptcy-sells.json`;
+engine/tech.js + luau/tech.luau.
+
 **What.** `engine/tech.js:230` — `if (player.gold < 0) player.gold = 0;` with the
 comment *"Civ 1 sells buildings; clamped for now"*.
 

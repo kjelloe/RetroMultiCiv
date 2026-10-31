@@ -39,9 +39,16 @@ Both must print the pinned GOLDEN_SOAK / GOLDEN_NATURAL hashes from
 `test/simulation.test.js` unchanged. Any mismatch is a blocker: mail
 `coordinator` (tag `blocked`) with the first divergent checkpoint.
 
+**[done 2026-10-30, dev PC, lune 0.10.5 at marker-0133 `8c62aaa`]:**
+luau-twins + visibility 29/29, no skips. `sim-smoke.luau 400`:
+checkpoints 0xb176b92a / 0xee94526b / 0xc071aa36 / 0x7fee3918, behavior
+0x18b4976c, all equal to the pins. `sim-smoke.luau natural`: 545 rounds,
+winner p2, 0x0877dae9, behavior 0x42fb3338, all equal. P4 (bankruptcy)
+followed on top of this and re-records; see its commit.
+
 ## Step 2 — roblox-helper queue (`workitems-roblox.md`)
 
-Items 1–5 (queued 2026-08-08..11) are all still open:
+Items 1–5 (queued 2026-08-08..11) are all still open; item 8 (the `buildingSold` turn-log line, P4) was added after this plan:
 
 1. G0 re-mirror — Horse rework + desert palette (TileProps)
 2. H1 animal reworks — deer/seal/fish (pair with 1)

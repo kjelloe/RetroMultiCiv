@@ -26,7 +26,8 @@ EXACTLY Civ1-complete (Adam Smith's / Marco Polo's are Civ2+ — their absence i
 5. **Score omits happy-citizen term (+ pollution penalty)** — `engine/score.js` has
    pop+techs+futureTech+wonders; spec §10 also has happyCitizens×1 − pollution. Noted in
    §11 but happiness is now a full system, so closeable. → minor.
-6. **Bankruptcy clamps instead of selling buildings** — `engine/tech.js` clamps gold to
+6. **Bankruptcy clamps instead of selling buildings** — [FIXED 2026-10-30 as P4/A114:
+   one sale per turn of the cheapest non-Palace building, then clamp.] `engine/tech.js` clamps gold to
    0; Civ1 force-sells a building. Already a documented §11 deviation; `sellBuilding`
    (A86) machinery exists to build on. → low priority.
 

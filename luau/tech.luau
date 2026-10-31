@@ -252,6 +252,36 @@ local function sellObsoletedBuildings(state: any, pid: string, discoveredTech: s
 	end
 end
 
+-- P4 twin: an unpayable maintenance bill sells ONE building per turn (Civ 1), the
+-- cheapest one the player owns, never the Palace. Ties go to the earlier city in
+-- cityOrder, then the lower building id (matches engine/tech.js).
+local function sellForBankruptcy(state: any, pid: string, ruleset: any, events: any)
+	local pickCity: any = nil
+	local pickId = ""
+	local pickCost = 0
+	local order = if state.cityOrder == nil then {} else state.cityOrder
+	for _, cid in ipairs(order) do
+		local city = state.cities[cid]
+		if city ~= nil and city.owner == pid and city.buildings ~= nil then
+			local ids = table.clone(city.buildings)
+			table.sort(ids)
+			for _, bid in ipairs(ids) do
+				local def = ruleset.buildings[bid]
+				if not (def.effect ~= nil and def.effect.isPalace == true) then
+					if pickCity == nil or def.cost < pickCost then
+						pickCity = city
+						pickId = bid
+						pickCost = def.cost
+					end
+				end
+			end
+		end
+	end
+	if pickCity ~= nil then
+		cities.sellBuildingFrom(state, pickCity, pickId, ruleset, events, "bankrupt")
+	end
+end
+
 -- R3 (N11 3b): the single tech-acquisition seam (twin of engine/tech.js grantTech).
 -- Every grant path routes here; Leonardo is a no-op without an owned active one.
 local function grantTech(state: any, pid: string, techId: string, ruleset: any, events: any)
@@ -283,7 +313,10 @@ local function processResearch(state: any, ruleset: any, events: any)
 		local income = playerIncome(state, pid, ruleset)
 		player.gold = player.gold + income.gold - income.maintenance
 		if player.gold < 0 then
-			player.gold = 0 -- Civ 1 sells buildings; clamped for now
+			sellForBankruptcy(state, pid, ruleset, events)
+		end
+		if player.gold < 0 then
+			player.gold = 0 -- nothing left to sell
 		end
 		player.bulbs += income.bulbs
 

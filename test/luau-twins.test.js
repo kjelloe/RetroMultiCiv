@@ -103,7 +103,7 @@ test('luau json2lua: every scenario setup and a messy save hash equal in both la
       }
       const scenarioDir = path.join(REPO, 'test', 'scenarios');
       const files = fs.readdirSync(scenarioDir).filter(f => f.endsWith('.json')).sort();
-      assert.strictEqual(files.length, 69, 'the scenarios (069 diplomacy-notmet added)');
+      assert.strictEqual(files.length, 70, 'the scenarios (070 bankruptcy-sells added)');
       for (const f of files) {
         const scenario = JSON.parse(fs.readFileSync(path.join(scenarioDir, f), 'utf8'));
         const nodeHash = hashState(scenario.setup.state !== undefined ? scenario.setup.state : scenario.setup);
@@ -191,7 +191,8 @@ const PORTED = [
   '066-sdi-intercept.json', // W2: SDI Defense intercepts a nuke on an SDI city (rng roll off crafted rngState); cross-language
   '067-wltkd.json', // W4: We Love the King Day — celebrate flag at the wrap, corruption zero, Rep celebrate trade bonus (cross-language)
   '068-capture-defender-era.json', // capture garrisons at the CAPTOR's tech level (barbarians, tech-less, still get militia); cross-language
-  '069-diplomacy-notmet.json' // A105: the engine refuses diplomacy with an unmet civ (the UI half is not the rule); cross-language
+  '069-diplomacy-notmet.json', // A105: the engine refuses diplomacy with an unmet civ (the UI half is not the rule); cross-language
+  '070-bankruptcy-sells.json' // P4: a negative treasury sells the cheapest non-Palace building; cross-language
 ];
 // Partial column (P5-3 convention): steps before the value pass cross-
 // language; the guard must fire at EXACTLY that command — earlier means a

@@ -66,13 +66,8 @@ RELEASED and live; everything below is post-release.)_
   (`roblox/acceptance/editableimage-glyph-spike.md` — EditableImage is
   provable only in Play-Solo; the renderer is built + gate-31-pinned).
   Parked alongside: the Studded round-2 screenshot review.
-- [ ] **C3. Run the Luau twins gate on a lune box** — lune is absent on the
-  dev PC, so the twins skipped for `e612651` (one view-only line in
-  `luau/visibility.luau`). Hand `specs/luau-catchup-2026-10-30.md` to the
-  sim-runner or roblox-helper; step 1 is the gate.
 - [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
   status table in `~/GIT/unityworks/specs/server_change_requests.md` is
   uncommitted there (your git).
-- [ ] **C2. Remaining patch-plan engine items** (your go starts them):
-  P4 bankruptcy sells buildings (small window), P3 AI nuke doctrine
-  (a measured behavioural window).
+- [ ] **C2. Remaining patch-plan engine item:** P3 AI nuke doctrine (a
+  measured behavioural window). P4 bankruptcy landed 2026-10-30.

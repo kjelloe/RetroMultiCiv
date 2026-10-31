@@ -91,6 +91,11 @@ deflate negotiated by the client. Nothing a running game must react to.
 
 ## Test state
 
+- Luau, run after tagging (2026-10-30, lune 0.10.5 installed on the dev
+  PC): twins + visibility 29/29, no skips; `sim-smoke.luau 400` and
+  `natural` equal every GOLDEN_* and BEHAVIOR_* pin. The caveat above is
+  closed.
+
 - `node --test test/`: 1078 tests, 1056 pass, 0 fail, 22 skipped (the
   Luau twins among the skips — lune absent).
 - Playwright lane `test-ui/`: 65 pass, 2 skipped, including

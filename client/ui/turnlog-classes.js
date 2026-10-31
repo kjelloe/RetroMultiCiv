@@ -33,7 +33,7 @@ export function classifyEvent(e, viewer, cityOwner) {
       return null;
     case 'improvementBuilt':
       return e.owner === viewer ? 'cities' : 'rival';
-    case 'buildingSold': // B13/A63: obsolete building auto-sold (own-seat only)
+    case 'buildingSold': // B13/A63 obsolete, P4 bankrupt, A86 manual (own-seat only)
       return e.playerId === viewer ? 'cities' : null;
     case 'wonderHelped': // A83: caravan helped a wonder (own-seat only)
       return e.playerId === viewer ? 'cities' : null;

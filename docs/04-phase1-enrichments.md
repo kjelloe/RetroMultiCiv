@@ -174,8 +174,9 @@ unit after End Turn.
   (Civ 1: 1 gold per shield), building removed, one sale per city per turn
   (`city.soldThisTurn` flag cleared at wrap). Replace the negative-gold
   clamp: at wrap, if gold < 0, auto-sell the cheapest building (Civ 1
-  behavior), THEN clamp. Re-records nothing (auto-sale only fires in
-  bankrupt states, which no scenario has).
+  behavior), THEN clamp. [done 2026-10-30 as P4: one sale per turn, Palace
+  excluded, ties to the earlier city then building id; event reason
+  `bankrupt`; scenario 070.]
 
 ## 7. Correctness / AI polish
 

@@ -200,6 +200,26 @@ function sellObsoletedBuildings(state, pid, discoveredTech, ruleset, events) {
   }
 }
 
+// P4: an unpayable maintenance bill sells ONE building per turn (Civ 1), the
+// cheapest one the player owns, never the Palace. Ties go to the earlier city
+// in cityOrder, then the lower building id, so the pick is order-independent.
+function sellForBankruptcy(state, pid, ruleset, events) {
+  let pickCity = null, pickId = '', pickCost = 0;
+  for (const cid of state.cityOrder === undefined ? [] : state.cityOrder) {
+    const city = state.cities[cid];
+    if (!city || city.owner !== pid || city.buildings === undefined) continue;
+    const ids = city.buildings.slice().sort();
+    for (const bid of ids) {
+      const def = ruleset.buildings[bid];
+      if (def.effect !== undefined && def.effect.isPalace === true) continue;
+      if (pickCity === null || def.cost < pickCost) {
+        pickCity = city; pickId = bid; pickCost = def.cost;
+      }
+    }
+  }
+  if (pickCity !== null) sellBuildingFrom(state, pickCity, pickId, ruleset, events, 'bankrupt');
+}
+
 // R3 (N11 3b): the SINGLE tech-acquisition seam. Every path that grants a player
 // a tech routes here — research now, goody-hut grants and D-family trades later —
 // so the acquisition side effects (techDiscovered, obsolete-sell, and Leonardo's
@@ -227,7 +247,8 @@ function processResearch(state, ruleset, events) {
 
     const income = playerIncome(state, pid, ruleset);
     player.gold = player.gold + income.gold - income.maintenance;
-    if (player.gold < 0) player.gold = 0; // Civ 1 sells buildings; clamped for now
+    if (player.gold < 0) sellForBankruptcy(state, pid, ruleset, events);
+    if (player.gold < 0) player.gold = 0; // nothing left to sell
     player.bulbs = player.bulbs + income.bulbs;
 
     if (player.researching !== '' && player.researching !== undefined) {

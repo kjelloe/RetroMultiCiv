@@ -129,6 +129,16 @@ as a twin, reject both with `badShape` before the engine call, cap
 in Studio that the `[world]` age line shows once per age. Detail:
 `specs/luau-catchup-2026-10-30.md` step 2.
 
+## 8. Turn-log line for `buildingSold`, incl. the new `bankrupt` reason [architect, queued 2026-10-30]
+
+P4 (engine + `luau/tech.luau`, 2026-10-30): when a player's treasury goes
+negative at the turn wrap, the cheapest non-Palace building is sold, with a
+`buildingSold` event `{playerId, cityId, building, gold, reason = "bankrupt"}`.
+`TurnLogClasses.luau` classifies `buildingSold` but `TurnLog.client.luau` has
+no formatter for it, so no sale (obsolete, manual or bankrupt) is shown.
+Browser reference, `client/ui/turnlog.js`: `sold <Building> (+<gold>g)` with
+the suffix `, obsolete` or `, treasury empty`; own seat only.
+
 ---
 
 ## Not in this file (user-side, for completeness)

@@ -224,22 +224,27 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // from the SCENARIOS instead: all 24 that moved failed on the hash ONLY, with
 // zero behavioural assertions failing, which shows crafted states take the
 // omit-safe path unchanged. Natural 545/p2 holds a NINTH consecutive re-record.
+// 2026-10-30 re-record (P4 bankruptcy): a negative treasury at the wrap now sells
+// the cheapest non-Palace building instead of clamping. BEHAVIORAL: both families
+// move from round 200 on (round 100 byte-identical — no AI is bankrupt that early),
+// no new state fields, and none of the 69 existing scenarios moved (the new 070 is
+// the fixture). Natural 545/p2 holds a TENTH consecutive re-record.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0xb176b92a', 200: '0xee94526b', 300: '0xc071aa36', 400: '0x7fee3918' },
-  finalHash: '0x7fee3918'
+  checkpoints: { 100: '0xb176b92a', 200: '0xd87202c1', 300: '0x124a4b4a', 400: '0x4d3aa5ab' },
+  finalHash: '0x4d3aa5ab'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0x0877dae9' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xa571278e' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic
 // rulesetHash-stamp (a data/rules.json knob added, behavior byte-identical); when these move too,
 // it is a real behavioral change. Recorded at HEAD; re-record with GOLDEN_* (same procedure).
 const BEHAVIOR_SOAK = {
-  checkpoints: { 100: '0x9cb746ec', 200: '0xbb89c617', 300: '0xdcee3574', 400: '0x18b4976c' },
-  finalHash: '0x18b4976c'
+  checkpoints: { 100: '0x9cb746ec', 200: '0xcbda1375', 300: '0xa75c21b6', 400: '0xc7b0d0b5' },
+  finalHash: '0xc7b0d0b5'
 };
-const BEHAVIOR_NATURAL = { finalHash: '0x42fb3338' };
+const BEHAVIOR_NATURAL = { finalHash: '0x0c5f1b2b' };
 
 test('mechanics soak: 400 turns with chaos, run twice — deterministic and golden', async () => {
   const opts = Object.assign({}, SIM, {

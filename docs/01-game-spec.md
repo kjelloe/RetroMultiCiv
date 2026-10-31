@@ -471,7 +471,9 @@ below is a known, deliberate deviation to be closed in a later slice:
   `rules.json`) instead of Civ 1's tiered formula; purchases complete at the
   next turn wrap. Pillage destroys field works (irrigation/mine) before
   roads, one per action.
-- **Negative treasury is clamped to 0** — Civ 1 sells buildings instead.
+- **Bankruptcy sells one building per turn** — the cheapest non-Palace
+  building (ties: earlier city, then building id); the treasury clamps to 0
+  only when nothing is left to sell (P4, 2026-10-30).
 - **Score counts citizens/techs/wonders only** — happy-citizen points, Future
   Tech points, and the pollution penalty from §10's full formula await their
   systems. Elimination requires losing all units *and* cities (no capital rule).
