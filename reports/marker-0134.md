@@ -1,7 +1,14 @@
 # marker-0134 — P4: bankruptcy sells a building
 
-**Tag:** `marker-0134` at `6181b51` · **merge-consistent — the user may
-merge this** (supersedes marker-0133). BEHAVIORAL golden re-record (user
+**Tag:** `marker-0134` at `6181b51` · **CORRECTION 2026-10-31: NOT
+merge-consistent** — one unit test is red at this tag (`test/tech.test.js`
+"marketplace boosts tax gold; maintenance drains it" still asserted the old
+clamp-to-0; P4 now sells the walls, gold 118). The engine is correct; the
+test was stale. `debugging/t.sh` capped failure output at 40 lines and hid
+this third failure behind two long ones; it now lists every failing test
+by name. Fixed in the P3 commit. **Latest merge-consistent marker remains
+marker-0133.** (Original declaration, kept for the record: merge-consistent,
+supersedes marker-0133.) BEHAVIORAL golden re-record (user
 go 2026-10-30, alerted as human-workitems C2a). Saves keep loading; a game
 whose treasury goes negative plays differently from a pre-P4 replay of it.
 
@@ -61,6 +68,7 @@ Luau `sim-smoke.luau 400` and `natural` reproduce every new pin.
 
 - `node --test test/`: 1079 tests. The full run flagged two pins (the
   age-snapshot hash, the twins scenario count/list); both fixed, and those
-  files re-ran green (89/89). lune installed: twins run, no Luau skips.
+  files re-ran green (89/89). A third failure (tech.test.js, see the
+  correction above) was hidden by the runner's output cap. lune installed: twins run, no Luau skips.
 - Playwright lane at `6181b51`: 65 passed, 2 skipped.
 - Luau goldens: 400 and natural equal the new pins.

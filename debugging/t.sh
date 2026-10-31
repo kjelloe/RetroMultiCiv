@@ -29,7 +29,9 @@ STATUS=$?
 if [ "$VERBOSE" = 1 ]; then
   echo "$OUT" | grep -E "^(ok|not ok)"
 fi
-# failures with their error blocks, then the tally
+# every failing test by name (never truncated — a 40-line block cap once hid a
+# third red behind two long ones), then the first error blocks, then the tally
+echo "$OUT" | grep -E "^not ok" | sed 's/^/FAIL: /'
 echo "$OUT" | awk '/^not ok/{p=1} p{print} /^  \.\.\.$/{p=0}' | head -40
 echo "$OUT" | grep -E "^# (tests|pass|fail|skipped)"
 exit $STATUS

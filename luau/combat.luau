@@ -321,6 +321,11 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 		-- A91c: the detonation's area effects -- halve the target city's population
 		-- (never below 1) and foul the ring. Deterministic, no roll.
 		if nuke then
+			-- P3: the world remembers who has used the bomb (omit-safe)
+			local np = state.players[attacker.owner]
+			if np ~= nil then
+				np.nukesUsed = (if np.nukesUsed == nil then 0 else np.nukesUsed) + 1
+			end
 			local nc = cityAt(state, tx, ty)
 			if nc ~= nil then
 				nc.pop = math.floor(nc.pop / 2)

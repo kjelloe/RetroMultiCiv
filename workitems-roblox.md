@@ -143,6 +143,14 @@ Same pass: `PediaConcepts.luau` mirrors the browser's `upkeep` concept,
 which gained one sentence (`client/ui/pedia-concepts.js`): "If the treasury
 cannot pay, your cheapest building is sold each turn until it can".
 
+## 9. Re-bake the generated rulesets — `rules.nukeDoctrine` [architect, queued 2026-10-30]
+
+P3 (A115) added `nukeDoctrine` to `data/rules.json`, so the rules hash the
+GameServer gates on at boot has moved; re-bake as after `f210760`
+(`ae21749`). The doctrine itself arrives through `../luau` with no Roblox
+code: the AI now retaliates with nuclear units against a civ that has
+detonated one.
+
 ---
 
 ## Not in this file (user-side, for completeness)

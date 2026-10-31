@@ -258,7 +258,7 @@ test('luau ai: the golden-seed sim reaches the turn-100 checkpoint bit-exact',
       // 100 lune turns need more headroom than the old 3-min cap
       { cwd: REPO, encoding: 'utf8', timeout: 600000 });
     assert.strictEqual(res.status, 0, `sim smoke failed:\n${res.stdout}\n${res.stderr}`);
-    assert.match(res.stdout, /checkpoint 100: 0xb176b92a\n/,
+    assert.match(res.stdout, /checkpoint 100: 0x85358d50\n/,
       'the Luau AI diverged from the JS soak trajectory — bisect with the divergence report tools');
   });
 
@@ -316,11 +316,11 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
     const RULESET = require('./ruleset.js');
     const { createGame } = await import('../engine/mapgen.js');
     const { hashState } = await import('../shared/statehash.js');
-    const PINS = { // barbarian ceiling: rules.json stamp cascade over the nine shapes
-      continents: 'b801b8cd', pangaea: '3e9e9766',
-      archipelago: '85e7fe47', islands: '4b715a2b',
-      fractal: '96f9c49f', oval: '00a3a3ff', ring: '0d3e86cd',
-      'inland-sea': 'acfbe724', clover: 'c7f308d3'
+    const PINS = { // P3 nukeDoctrine: rules.json stamp cascade over the nine shapes
+      continents: 'cb0e8c8d', pangaea: 'f185060e',
+      archipelago: 'ab80f52f', islands: 'f2a44483',
+      fractal: '106d2007', oval: '7bd0f617', ring: 'e4537f8d',
+      'inland-sea': 'bb83b63c', clover: '1fee6d13'
     };
     const players = [
       { id: 'p1', name: 'Romans', color: '#3b7dd8', human: true },
@@ -392,7 +392,7 @@ test('luau mapgen: map-type preset worlds match the JS engine and the pins',
 //    siegePillageRadius/happinessLadder — stamp AND behavioral: the ff turns now
 //    role-route buildings).
 // Re-pin here whenever a ruleset window moves it.
-const FF_PARITY_PIN = 'ff-parity 0x77a4b11c turn 25 grant 22'; // production-switch baseline (turn/grant UNMOVED)
+const FF_PARITY_PIN = 'ff-parity 0x11a7fcd4 turn 25 grant 22'; // P3 nukeDoctrine rules.json stamp (turn/grant UNMOVED)
 test('luau fast-forward: the cross-language ff-parity probe matches JS and the pin',
   { skip: !lune && 'lune not installed (dev-only toolchain)' }, () => {
     const line = out => {

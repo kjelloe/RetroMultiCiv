@@ -229,12 +229,16 @@ const CHECKPOINTS = [100, 200, 300, 400];
 // move from round 200 on (round 100 byte-identical — no AI is bankrupt that early),
 // no new state fields, and none of the 69 existing scenarios moved (the new 070 is
 // the fixture). Natural 545/p2 holds a TENTH consecutive re-record.
+// 2026-10-30 re-record (P3 retaliation-only nukes): STAMP-ONLY — data/rules.json gains
+// nukeDoctrine, which ripples the rulesetHash stamp into every createGame golden. No AI
+// in the soak ever detonates a nuke, so the doctrine is DORMANT; BEHAVIOR_SOAK and
+// BEHAVIOR_NATURAL are UNMOVED (the #28 discriminator's proof). A paste-back.
 const GOLDEN_SOAK = {
   rounds: 400,
-  checkpoints: { 100: '0xb176b92a', 200: '0xd87202c1', 300: '0x124a4b4a', 400: '0x4d3aa5ab' },
-  finalHash: '0x4d3aa5ab'
+  checkpoints: { 100: '0x85358d50', 200: '0x8cd88873', 300: '0x3829de74', 400: '0x06bfeed9' },
+  finalHash: '0x06bfeed9'
 };
-const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xa571278e' };
+const GOLDEN_NATURAL = { rounds: 545, winner: 'p2', finalHash: '0xdce82beb' };
 
 // #28 behavior-hash discriminator: the STAMP-EXCLUDED trajectory hash (behaviorHash) at the same
 // checkpoints. When a re-record shifts GOLDEN_* but these DON'T move, the change was a cosmetic

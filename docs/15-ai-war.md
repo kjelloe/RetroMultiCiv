@@ -363,3 +363,24 @@ WHERE IT SLOTS (NOT now — the engine is single-stream on N9b):
 Provenance: Civ1-authentic play pattern (ZOC + terrain + fortress are
 the game's own tools); the detection heuristic is original,
 Civ1-consistent.
+
+## Nuclear doctrine — retaliation only (P3, 2026-10-30)
+
+The AI never uses a nuclear weapon first. Every detonation increments the
+attacker's `players[id].nukesUsed` (engine/combat.js). A civ that has met and
+is at war with a civ whose `nukesUsed` > 0 treats that civ as a retaliation
+target:
+
+| Knob (`rules.nukeDoctrine`) | Value | Effect |
+|---|---|---|
+| `maxStock` | 2 | nuclear units held + in production, empire-wide |
+| `safeDistance` | 2 | a target within this Chebyshev distance of an own city is skipped (fallout ring) |
+
+- Build: below walls/doctrine buildings/defence-builder, above diplomats,
+  caravans and the army treadmill; needs nukes enabled (Manhattan Project,
+  not host-disabled) and the unit's tech.
+- Strike: the largest known, defended city of the aggressor within the
+  missile's remaining moves; the missile flies its whole leg in one turn
+  (fuel 1). Out of range: it holds at base.
+- SDI is not read (fog: the AI does not inspect a rival city's buildings).
+- The first-use (desperation) half stays on `plan-version2.md`.

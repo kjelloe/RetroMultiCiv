@@ -263,6 +263,10 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
     // A91c: the detonation's area effects — halve the target city's population
     // (never below 1) and foul the ring. Deterministic, no roll.
     if (nuke) {
+      // P3: the world remembers who has used the bomb; the AI retaliates only
+      // against a civ with nukesUsed > 0 (omit-safe: absent until a detonation).
+      const np = state.players[attacker.owner];
+      if (np) np.nukesUsed = (np.nukesUsed === undefined ? 0 : np.nukesUsed) + 1;
       const nc = cityAt(state, tx, ty);
       if (nc !== null) {
         nc.pop = Math.floor(nc.pop / 2);

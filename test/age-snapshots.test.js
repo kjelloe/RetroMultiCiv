@@ -75,7 +75,7 @@ test('baker genesis == browser genesis (snapshot load reproduces the live ff)', 
 // a stamp move is exactly when the baked snapshots go stale and need re-baking,
 // which is the whole point of the forcing function. The #28 behavior/stamp
 // DISCRIMINATION lives in simulation.test.js, not here.
-const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0xb1dc493e' }; // P4 bankruptcy re-record (2026-10-30)
+const CANONICAL_PIN = { seed: 7, size: 'small', age: 'renaissance', civs: 7, statehash: '0x0c3ab9c6' }; // P3 nukeDoctrine stamp (2026-10-30)
 test('canonical snapshot statehash pin — moves only on a behavioral re-record', async () => {
   const { createEngine, fastForwardTo, hashState, shuffleRoster } = await deps();
   const p = CANONICAL_PIN;

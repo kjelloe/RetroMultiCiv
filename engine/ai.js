@@ -18,7 +18,7 @@ import { availableTechs, cityEconOutput, playerIncome, FUTURE_TECH_ID } from './
 import { metOf, relationOf, pairKey } from './diplomacy.js';
 import { scoreWarIntent, scorePeaceAccept, wantsTribute, wantsPayTribute } from './ai-diplomacy.js';
 import { unitsAt, cityAt, sortIds, attackStrength, defenseStrength, bestDefender } from './combat.js';
-import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit, cityIsCoastal } from './cities.js';
+import { workedTiles, citySpacingOk, candidateTiles, unitObsolete, wonderActive, cityYields, bestDefenderUnit, cityIsCoastal, nukesEnabled } from './cities.js';
 import { hasWaterSource } from './improvements.js';
 import { cityMood } from './happiness.js';
 import { capitalOf } from './government.js';
@@ -500,6 +500,59 @@ function bestBomberUnit(me, ruleset) {
   }
   return best;
 }
+// P3 (plan-version-1-patch.md): the RETALIATION-ONLY nuke doctrine. A civ fields
+// and fires nuclear units only at a civ it has met, is at war with, and that has
+// already detonated one (players[*].nukesUsed) — never a first strike, so a game
+// where no one uses the bomb never sees an AI nuke. Caps in rules.nukeDoctrine.
+function nuclearUnitFor(me, ruleset) {
+  for (const id of Object.keys(ruleset.units).sort()) {
+    const def = ruleset.units[id];
+    if (def.nuclearBlast !== true) continue;
+    if (def.tech !== '' && me.techs.indexOf(def.tech) === -1) continue;
+    return id;
+  }
+  return null;
+}
+
+// The largest known, defended city of a nuclear aggressor within `range` of
+// (fromX, fromY) (range < 0 = any distance), skipping any target whose fallout
+// ring would reach within nukeDoctrine.safeDistance of one of our own cities.
+// Ties go to the earlier city in cityOrder. null = nothing to retaliate against.
+function nukeTarget(state, playerId, ruleset, fromX, fromY, range) {
+  const ND = ruleset.rules.nukeDoctrine;
+  if (ND === undefined) return null;
+  const me = state.players[playerId];
+  let best = null;
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (!c || c.owner === playerId) continue;
+    const foe = state.players[c.owner];
+    if (foe === undefined || foe.nukesUsed === undefined || foe.nukesUsed <= 0) continue;
+    if (!metOf(state, playerId, c.owner) || relationOf(state, playerId, c.owner) !== 'war') continue;
+    if (!isExplored(me, state.map, c.x, c.y)) continue;
+    if (range >= 0 && chebyshev(state.map, fromX, fromY, c.x, c.y) > range) continue;
+    if (unitsAt(state, c.x, c.y).length === 0) continue;
+    let tooClose = false;
+    for (const oid of state.cityOrder || []) {
+      const oc = state.cities[oid];
+      if (oc && oc.owner === playerId && chebyshev(state.map, oc.x, oc.y, c.x, c.y) <= ND.safeDistance) { tooClose = true; break; }
+    }
+    if (tooClose) continue;
+    if (best === null || c.pop > best.pop) best = c;
+  }
+  return best;
+}
+
+// How many nuclear units the civ holds or has in production elsewhere.
+function nuclearStock(state, playerId, nukeId, exceptCid) {
+  let n = countOwnUnitsOfType(state, playerId, nukeId);
+  for (const cid of state.cityOrder || []) {
+    const c = state.cities[cid];
+    if (c && cid !== exceptCid && c.owner === playerId && c.producing.kind === 'unit' && c.producing.id === nukeId) n++;
+  }
+  return n;
+}
+
 function bestFighterUnit(me, ruleset) {
   let best = null, bestDef = null;
   for (const id of Object.keys(ruleset.units)) {
@@ -558,11 +611,18 @@ function siegePillageCommand(state, unit, playerId, target, ruleset) {
 // ground attacker stands adjacent (the siege exists — "reduce a besieged
 // city's defenders before the assault"). A FIGHTER is DEFENSE: it engages a
 // visible enemy air unit within the leash (attacksAir interception), else
-// holds at base — it never marches or strikes cities. AI nuclear units hold
-// (nuke doctrine = v1.x, user-ruled).
+// holds at base — it never marches or strikes cities. A NUCLEAR unit strikes
+// only a retaliation target in range (P3 nukeTarget), else holds at base.
 function airCommand(state, me, playerId, unit, uid, ruleset, A) {
   const def = ruleset.units[unit.type];
-  if (def.nuclearBlast === true) return { type: 'wait', playerId, unitId: uid };
+  if (def.nuclearBlast === true) {
+    const t = nukeTarget(state, playerId, ruleset, unit.x, unit.y, unit.moves);
+    if (t !== null) {
+      const dir = dirToward(state.map, unit.x, unit.y, t.x, t.y);
+      if (dir) return { type: 'moveUnit', playerId, unitId: uid, dir };
+    }
+    if (unit.aloft === undefined) return { type: 'wait', playerId, unitId: uid };
+  }
   if (unit.aloft !== undefined) {
     const home = nearestOwnCityTo(state, playerId, unit.x, unit.y);
     if (home !== null && (home.x !== unit.x || home.y !== unit.y)) {
@@ -3212,6 +3272,15 @@ function pickCommand(state, playerId, ruleset, done, stance) {
                 && nearestKnownEnemyCity(state, city, playerId) !== null) airW = bu;
           }
         }
+        // P3: the retaliation arm — a nuclear unit, only while a met, at-war civ
+        // that has used the bomb has a target we know of; capped empire-wide.
+        const ND = ruleset.rules.nukeDoctrine;
+        let nukeW = null;
+        if (ND !== undefined && nukesEnabled(state, ruleset)) {
+          const nk = nuclearUnitFor(me, ruleset);
+          if (nk !== null && nuclearStock(state, playerId, nk, cid) < ND.maxStock
+              && nukeTarget(state, playerId, ruleset, city.x, city.y, -1) !== null) nukeW = nk;
+        }
         // W8a: the offensive diplomat. INTENT-GATED (no intent => no diplomat, so
         // the doctrine never produces idle diplomats wandering the map) and bounded
         // by maxInFlight. PRIORITY, decided here: it sits ABOVE the generic army
@@ -3254,6 +3323,8 @@ function pickCommand(state, playerId, ruleset, done, stance) {
           want = { kind: 'building', id: doctrine };
         } else if (defBuild !== null) {
           want = defBuild; // stance-mix: the defending-builder's economy reserve
+        } else if (nukeW !== null) {
+          want = { kind: 'unit', id: nukeW };
         } else if (diploW !== null) {
           want = { kind: 'unit', id: diploW };
         } else if (caravanW !== null) {
@@ -3338,7 +3409,17 @@ function pickCommand(state, playerId, ruleset, done, stance) {
     // fighters intercept, aloft units head home. Knobs absent = the legacy
     // fall-through (omit-safe, pre-slice behavior).
     if (ruleset.units[unit.type].domain === 'air' && ruleset.rules.airDoctrine !== undefined) {
-      return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine);
+      const ac = airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine);
+      // P3: a nuclear strike flies its whole leg this turn (fuel 1 — one step a
+      // turn would crash it aloft); re-picked at most `moves` times.
+      if (ac.type === 'moveUnit' && ruleset.units[unit.type].nuclearBlast === true) {
+        const legs = done['nk:' + uid] === undefined ? 0 : done['nk:' + uid];
+        if (legs < ruleset.units[unit.type].moves) {
+          done['nk:' + uid] = legs + 1;
+          delete done['u:' + uid];
+        }
+      }
+      return ac;
     }
 
     // W8b: a caravan walks to the wonder it is feeding and spends itself there;

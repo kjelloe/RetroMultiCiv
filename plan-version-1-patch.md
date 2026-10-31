@@ -89,6 +89,14 @@ line, pick a destination box, fill DEST, install the 03:20 cron.
 
 ## P3 — Nukes are asymmetric: a player can, the AI never will
 
+**Done 2026-10-30 (retaliation half).** The AI builds (cap
+`rules.nukeDoctrine.maxStock` 2) and fires nuclear units only at a met,
+at-war civ whose `nukesUsed` > 0 (recorded on every detonation), targeting
+its largest known defended city in range, never one within
+`safeDistance` 2 of an own city. No first strike. Dormant in the soak
+(stamp-only re-record). `engine/ai.js`, `engine/combat.js` + Luau twins;
+`test/ai-nuke.test.js` (5 cases, each cross-checked in Luau).
+
 **What.** The engine fully simulates nuclear weapons — blast, fallout, city
 meltdown, and SDI as the counter. `engine/ai.js` mentions nuclear only to
 **exclude** it from air-unit selection (`if (def.domain !== 'air' ||

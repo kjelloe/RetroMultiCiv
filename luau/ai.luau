@@ -2529,6 +2529,63 @@ local function bestBomberUnit(me: any, ruleset: any): string?
 	end
 	return best
 end
+-- P3 twin: the RETALIATION-ONLY nuke doctrine (engine/ai.js nuclearUnitFor /
+-- nukeTarget / nuclearStock). Fields and fires nuclear units only at a met,
+-- at-war civ that has already detonated one; caps in rules.nukeDoctrine.
+local function nuclearUnitFor(me: any, ruleset: any): string?
+	for _, id in ipairs(sortedKeys(ruleset.units)) do
+		local def = ruleset.units[id]
+		if def.nuclearBlast == true and (def.tech == "" or table.find(me.techs, def.tech) ~= nil) then
+			return id
+		end
+	end
+	return nil
+end
+
+local function nukeTarget(state: any, playerId: string, ruleset: any, fromX: number, fromY: number, range: number): any
+	local ND = ruleset.rules.nukeDoctrine
+	if ND == nil then
+		return nil
+	end
+	local me = state.players[playerId]
+	local best = nil
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and c.owner ~= playerId then
+			local foe = state.players[c.owner]
+			if foe ~= nil and foe.nukesUsed ~= nil and foe.nukesUsed > 0
+				and diplomacy.metOf(state, playerId, c.owner) and diplomacy.relationOf(state, playerId, c.owner) == "war"
+				and isExplored(me, state.map, c.x, c.y)
+				and (range < 0 or chebyshev(state.map, fromX, fromY, c.x, c.y) <= range)
+				and #combat.unitsAt(state, c.x, c.y) > 0 then
+				local tooClose = false
+				for _, oid in ipairs(state.cityOrder or {}) do
+					local oc = state.cities[oid]
+					if oc ~= nil and oc.owner == playerId and chebyshev(state.map, oc.x, oc.y, c.x, c.y) <= ND.safeDistance then
+						tooClose = true
+						break
+					end
+				end
+				if not tooClose and (best == nil or c.pop > best.pop) then
+					best = c
+				end
+			end
+		end
+	end
+	return best
+end
+
+local function nuclearStock(state: any, playerId: string, nukeId: string, exceptCid: string): number
+	local n = countOwnUnitsOfType(state, playerId, nukeId)
+	for _, cid in ipairs(state.cityOrder or {}) do
+		local c = state.cities[cid]
+		if c ~= nil and cid ~= exceptCid and c.owner == playerId and c.producing.kind == "unit" and c.producing.id == nukeId then
+			n += 1
+		end
+	end
+	return n
+end
+
 local function bestFighterUnit(me: any, ruleset: any): string?
 	local best, bestDef = nil, nil
 	for _, id in ipairs(sortedKeys(ruleset.units)) do
@@ -2594,7 +2651,16 @@ end
 local function airCommand(state: any, me: any, playerId: string, unit: any, uid: string, ruleset: any, A: any): any
 	local def = ruleset.units[unit.type]
 	if def.nuclearBlast == true then
-		return { type = "wait", playerId = playerId, unitId = uid }
+		local t = nukeTarget(state, playerId, ruleset, unit.x, unit.y, unit.moves)
+		if t ~= nil then
+			local dir = dirToward(state.map, unit.x, unit.y, t.x, t.y)
+			if dir ~= nil then
+				return { type = "moveUnit", playerId = playerId, unitId = uid, dir = dir }
+			end
+		end
+		if unit.aloft == nil then
+			return { type = "wait", playerId = playerId, unitId = uid }
+		end
 	end
 	if unit.aloft ~= nil then
 		local home = nearestOwnCityTo(state, playerId, unit.x, unit.y)
@@ -3623,6 +3689,16 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 								end
 							end
 						end
+						-- P3: the retaliation arm (twin of engine/ai.js nukeW)
+						local ND = ruleset.rules.nukeDoctrine
+						local nukeW = nil
+						if ND ~= nil and cities.nukesEnabled(state, ruleset) then
+							local nk = nuclearUnitFor(me, ruleset)
+							if nk ~= nil and nuclearStock(state, playerId, nk, cid) < ND.maxStock
+								and nukeTarget(state, playerId, ruleset, city.x, city.y, -1) ~= nil then
+								nukeW = nk
+							end
+						end
 						-- W8a: the offensive diplomat. INTENT-GATED (no intent => no diplomat, so the
 						-- doctrine never produces idle diplomats) and bounded by maxInFlight. PRIORITY:
 						-- above the generic army treadmill, BELOW the settler loop -- expansion keeps
@@ -3659,6 +3735,8 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 							want = { kind = "building", id = doctrine }
 						elseif defBuild ~= nil then
 							want = defBuild
+						elseif nukeW ~= nil then
+							want = { kind = "unit", id = nukeW }
 						elseif diploW ~= nil then
 							want = { kind = "unit", id = diploW }
 						elseif caravanW ~= nil then
@@ -3728,7 +3806,17 @@ local function pickCommand(state: any, playerId: string, ruleset: any, done: any
 				-- escort/march selection can misfile them). Knobs absent = the
 				-- legacy fall-through (omit-safe). TWIN.
 				if ruleset.units[unit.type].domain == "air" and ruleset.rules.airDoctrine ~= nil then
-					return airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine)
+					local ac = airCommand(state, me, playerId, unit, uid, ruleset, ruleset.rules.airDoctrine)
+					-- P3: a nuclear strike flies its whole leg this turn (fuel 1);
+					-- re-picked at most `moves` times
+					if ac.type == "moveUnit" and ruleset.units[unit.type].nuclearBlast == true then
+						local legs = if done["nk:" .. uid] == nil then 0 else done["nk:" .. uid]
+						if legs < ruleset.units[unit.type].moves then
+							done["nk:" .. uid] = legs + 1
+							done["u:" .. uid] = nil
+						end
+					end
+					return ac
 				end
 
 				-- W8b: a caravan walks to the wonder it feeds and spends itself there; with no

@@ -268,7 +268,10 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
   launched); once nuked, the attacked civ retaliates at-will against
   the aggressor's cities or large stacks. Near-unobservable before
   the marathon measurements land — **stays v1.x pending the marathon
-  lane (re-confirmed 2026-07-27)**.
+  lane (re-confirmed 2026-07-27)**. **[2026-10-30, user go on patch-plan
+  P3: the RETALIATION half shipped (A115): a met, at-war civ that has
+  detonated a nuke draws AI nuclear builds and strikes on its cities.
+  The first-use (desperation) half stays here.]**
 - **Overseas expansion on saturation** (§8, ADDED 2026-07-31 by user ruling
   after the W7 naval acceptance): when a civ's home landmass has no legal city
   site left, it should re-evaluate expansion across water instead of simply

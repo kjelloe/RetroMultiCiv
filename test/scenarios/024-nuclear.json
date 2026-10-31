@@ -1,6 +1,6 @@
 {
   "name": "A72: a nuclear missile strikes once and is consumed",
-  "notes": "A nuclear missile (attack 99, one-shot) at (1,2) strikes an enemy militia at (2,2). rngState 1: the attacker wins, the militia dies, and the missile is CONSUMED (one-shot, does not promote or survive). Final state (both units gone) is the cross-language contract. Area damage/pollution is a deferred follow-up.",
+  "notes": "A nuclear missile (attack 99, one-shot) at (1,2) strikes an enemy militia at (2,2). rngState 1: the attacker wins, the militia dies, and the missile is CONSUMED (one-shot, does not promote or survive). Final state (both units gone) is the cross-language contract. Area damage/pollution is a deferred follow-up. P3: the detonation is recorded on the attacker (players.p1.nukesUsed), the fact the AI retaliation doctrine reads.",
   "setup": {
     "state": {
       "version": 1,
@@ -161,7 +161,8 @@
         "ok": true,
         "state": {
           "units.n1": null,
-          "units.d1": null
+          "units.d1": null,
+          "players.p1.nukesUsed": 1
         }
       },
       "notes": "the missile strikes, the militia dies, the missile is consumed"
@@ -170,8 +171,9 @@
   "final": {
     "state": {
       "units.n1": null,
-      "units.d1": null
+      "units.d1": null,
+      "players.p1.nukesUsed": 1
     },
-    "hash": "0xaabf1e87"
+    "hash": "0x8220b2fb"
   }
 }

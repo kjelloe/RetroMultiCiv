@@ -162,11 +162,13 @@ test('marketplace boosts tax gold; maintenance drains it', async () => {
   const res = engine.applyCommand(state, { type: 'endTurn', playerId: 'p1' });
   assert.strictEqual(res.state.players.p1.gold, 5);
 
-  // maintenance alone can never push gold below zero (clamped)
+  // P4: an unpayable bill sells the cheapest building (walls, 120) instead of clamping
   let poor = labState({ taxRate: 0, sciRate: 100 });
   poor.cities.c1.buildings = ['city-walls']; // maintenance 2, no income
   const drained = engine.applyCommand(poor, { type: 'endTurn', playerId: 'p1' });
-  assert.strictEqual(drained.state.players.p1.gold, 0);
+  assert.strictEqual(drained.state.players.p1.gold, 118);
+  assert.deepStrictEqual(drained.state.cities.c1.buildings, []);
+  assert.ok(drained.events.some(e => e.type === 'buildingSold' && e.reason === 'bankrupt'));
 });
 
 test('playerIncome forecasts exactly what processResearch applies (HUD contract)', async () => {
