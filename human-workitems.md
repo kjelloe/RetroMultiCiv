@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-10-30 (tip on `dev_night`; **marker-0133 = the fastengine batch R1–R14, merge-consistent**, supersedes 0132 and earlier. v1.0.0 + v1.0.1 are
+_Last synced: 2026-10-30 (tip on `dev_night`; **marker-0134 = P4 bankruptcy on top of marker-0133 (the fastengine batch), merge-consistent**, supersedes 0133 and earlier. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -22,10 +22,11 @@ RELEASED and live; everything below is post-release.)_
   landed provisionals.
 - [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
   (user). This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A2b. Push, then merge marker-0133 (supersedes 0130-0132)** — first
-  `git push origin dev_night marker-0133` (this session has no GitHub
-  credentials; the tag is local). 0133 adds the fastengine batch
-  (`reports/marker-0133.md`) on top of 0132's canonical-floors CI
+- [ ] **A2b. Push, then merge marker-0134 (supersedes 0130-0133)** — first
+  `git push origin dev_night marker-0133 marker-0134` (this session has no
+  GitHub credentials; the tags are local). 0134 = P4 bankruptcy (a golden
+  re-record, `reports/marker-0134.md`); 0133 = the fastengine batch
+  (`reports/marker-0133.md`); both on top of 0132's canonical-floors CI
   repair (the nightly's floor-enforcement job has been killed at its
   45-min budget every night since ~2026-08-09; fixed measured at 150) +
   the H13b road-city regression guard. Workflow+test only; until it
@@ -69,10 +70,5 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
   status table in `~/GIT/unityworks/specs/server_change_requests.md` is
   uncommitted there (your git).
-- [ ] **C2a. P4 is a golden re-record — next marker on your word.**
-  `220b5c5` (bankruptcy sells a building) moved GOLDEN_SOAK/NATURAL and
-  the behavior pins (behavioral; 545/p2 held). Saves keep loading; a
-  running game's later turns differ from a pre-P4 replay. Untagged until
-  you say go (it would be marker-0134). Push it with the marker-0133 push.
 - [ ] **C2. Remaining patch-plan engine item:** P3 AI nuke doctrine (a
   measured behavioural window). P4 bankruptcy landed 2026-10-30.
