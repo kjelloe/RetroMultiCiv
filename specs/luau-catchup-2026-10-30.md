@@ -107,7 +107,14 @@ Step 1 done (2026-10-30). Step 2: Roblox items 1-6, 8, 9 landed headless
 in `1666b33` (harnesses green, no Studio); item 7 and the visual checks
 wait for the user's Studio session. A116 (2026-11-01) renamed the
 Luau door function to `onlyStateValues` (twin of the JS command rule).
-Step 3 not started.
+Step 3 done 2026-11-01 (Sonnet agent, verified here): one Roblox
+fix — EndScreen headline falls back to "leading civilization" when no
+winner is recorded (it printed "the nil"). The rest have no Roblox
+counterpart or no defect: envoy offers (the Roblox diplomacy panel is
+read-only; treaty actions are a later slice), pedia terrain (already
+listed + opens from the pair), tech-tree Back (one Close button), capital
+tooltip (none), wonder mood lines (CityPanel has no happiness breakdown —
+adding one is new UI, a design call).
 
 ## Close-out
 

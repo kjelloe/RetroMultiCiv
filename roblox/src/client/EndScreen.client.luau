@@ -104,7 +104,7 @@ local function hexColor(hex)
 end
 
 local function headlineOf(msg)
-	local wname = msg.winner
+	local wname = msg.winner or "leading civilization" -- fe-R11: no winner recorded -> no "nil" in the headline
 	for _, r in ipairs(msg.rows) do
 		if r.pid == msg.winner then
 			wname = r.name
