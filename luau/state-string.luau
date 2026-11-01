@@ -1,12 +1,13 @@
 --!strict
--- Twin of shared/state-string.js (fe-R13): client-supplied text that can reach
+-- Twin of shared/state-string.js (fe-R13, A116): client-supplied text that can reach
 -- game state must obey statehash's string rule (every byte in 32..126), or the
 -- first hash of that state throws. The Roblox GameServer checks at the door
 -- (workitems-roblox item 6). foldToAscii stays browser-side (a client nicety).
 --
--- Stricter than the JS on purpose: a RemoteEvent can carry floats, NaN and
--- Roblox datatypes (Vector3, Instance...) that JSON never can, so a value must
--- be a string, a boolean, an integer, or a table of those.
+-- onlyStateValues twins the JS command rule: a value must be a string, a
+-- boolean, an integer, or a table of those. It also rejects what JSON never
+-- carries but a RemoteEvent can (NaN, Roblox datatypes). The looser JS
+-- onlyStateStrings (lobby options) has no Roblox caller and is not twinned.
 
 local function isStateString(s: any, maxLen: number): boolean
 	if type(s) ~= "string" or #s > maxLen then
@@ -26,7 +27,7 @@ local function isStateInteger(n: any): boolean
 end
 
 -- every string anywhere inside a client payload (keys included) passes the rule
-local function onlyStateStrings(value: any, depth: number?): boolean
+local function onlyStateValues(value: any, depth: number?): boolean
 	local d = depth or 0
 	if d > 8 then
 		return false
@@ -52,7 +53,7 @@ local function onlyStateStrings(value: any, depth: number?): boolean
 		elseif not (isStateInteger(k) and k >= 1) then
 			return false
 		end
-		if not onlyStateStrings(v, d + 1) then
+		if not onlyStateValues(v, d + 1) then
 			return false
 		end
 	end
@@ -61,5 +62,5 @@ end
 
 return {
 	isStateString = isStateString,
-	onlyStateStrings = onlyStateStrings,
+	onlyStateValues = onlyStateValues,
 }

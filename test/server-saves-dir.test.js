@@ -46,6 +46,11 @@ test('CLI --saves-dir: the default game autosaves there after one command', asyn
     ws.send(JSON.stringify({ t: 'cmd', token: joined.token, commandId: 1, cmd: { type: 'foundCity', unitId: settlers.id, name: 'Dirtown' } }));
     await next('applied');
     ws.close();
+    // the autosave write is not ordered before the ack; under a loaded suite it lands later
+    const want = joined.gameId + '.json';
+    for (let i = 0; i < 300 && !(fs.existsSync(savesDir) && fs.readdirSync(savesDir).includes(want)); i++) {
+      await new Promise(r => setTimeout(r, 100));
+    }
     const files = fs.readdirSync(savesDir).filter(f => f.endsWith('.json'));
     assert.ok(files.includes(joined.gameId + '.json'), `autosave in --saves-dir (got ${files})`);
     const after = fs.existsSync(path.join(REPO, 'saves')) ? fs.readdirSync(path.join(REPO, 'saves')) : [];

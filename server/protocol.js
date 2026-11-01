@@ -3,7 +3,7 @@
 // the results. Per-seat views can't be broadcast (they differ per player),
 // so routing signals `viewsChanged` and the socket layer sends each
 // connection its own `game.view(seat)`.
-import { isStateString, onlyStateStrings } from '../shared/state-string.js';
+import { isStateString, onlyStateStrings, onlyStateValues } from '../shared/state-string.js';
 
 const MAX_FRAME = 64 * 1024;
 
@@ -186,7 +186,7 @@ export function parseMessage(raw) {
     if (!Number.isInteger(msg.commandId)) return { ok: false, code: REJECT_REASONS.badShape };
     if (msg.t === 'cmd'
         && (!msg.cmd || typeof msg.cmd !== 'object' || Array.isArray(msg.cmd)
-            || typeof msg.cmd.type !== 'string' || !onlyStateStrings(msg.cmd)
+            || typeof msg.cmd.type !== 'string' || !onlyStateValues(msg.cmd)
             || (msg.cmd.name !== undefined && !isStateString(msg.cmd.name, MAX_NAME)))) {
       return { ok: false, code: REJECT_REASONS.badShape };
     }

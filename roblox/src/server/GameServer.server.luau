@@ -1761,7 +1761,7 @@ remote.OnServerEvent:Connect(function(player, msg)
 	-- reaches engine state, so the payload must be state-legal (printable-ASCII
 	-- strings, integers, booleans), a name fits 24, and the type is a CLIENT
 	-- command — claimSeat is server-only (the late-join flow issues it itself).
-	if typeof(msg.cmd.type) ~= "string" or not stateString.onlyStateStrings(msg.cmd)
+	if typeof(msg.cmd.type) ~= "string" or not stateString.onlyStateValues(msg.cmd)
 		or (msg.cmd.name ~= nil and not stateString.isStateString(msg.cmd.name, MAX_CMD_NAME)) then
 		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "badShape" })
 		return

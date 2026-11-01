@@ -48,6 +48,10 @@ test('parseMessage: non-ASCII names and command strings are refused at the door'
   assert.strictEqual(cmd({ type: 'foundCity', unitId: 'u1', name: 'Åse' }).code, 'badShape');
   assert.strictEqual(cmd({ type: 'foundCity', unitId: 'u1', name: 'x'.repeat(25) }).code, 'badShape', 'city name length bound');
   assert.strictEqual(cmd({ type: 'diplomacy', payload: { note: ['ok', 'Ø'] } }).code, 'badShape', 'nested strings too');
+  // A116: a float or null would sit in state and throw at the next hash
+  assert.strictEqual(cmd({ type: 'setRates', tax: 50.5, sci: 49.5 }).code, 'badShape', 'a float');
+  assert.strictEqual(cmd({ type: 'wait', unitId: null }).code, 'badShape', 'null');
+  assert.strictEqual(cmd({ type: 'setRates', tax: 60, sci: 40 }).ok, true, 'integers pass');
   assert.strictEqual(cmd({ type: 'foundCity', unitId: 'u1', name: 'Ase' }).ok, true);
   assert.strictEqual(p({ t: 'create', name: 'Host', options: { maptype: 'Å' } }).code, 'badShape');
 });
