@@ -241,4 +241,10 @@ Self-executed by the architect in plan order; all golden-neutral (the only engin
 - The Roblox server has the same door gap R13/R2 closed here (unchecked
   `cmd` fields, `claimSeat` reachable from a client): queued as
   `workitems-roblox.md` item 6.
-- No marker cut yet; `human-workitems.md` C5.
+- No marker cut yet; `human-workitems.md` C5. [marker-0133 cut 2026-10-30.]
+- Gap found 2026-11-01 (open, A116): the R13/R2 door accepts a
+  non-integer number and `null` inside a `cmd` (probed:
+  `{type:'setRates',tax:50.5}` and `{type:'wait',unitId:null}` both pass
+  `parseMessage`). Game state allows neither; if the engine stores one, the
+  next hash throws and `containFault` closes the game. The Roblox twin
+  (`luau/state-string.luau`) already rejects both.

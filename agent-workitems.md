@@ -4311,3 +4311,17 @@ makes the reviewer's attribution job harder. Sequenced as the next window.
 ## A114 — P4: bankruptcy sells a building (architect, self-executed 2026-10-30; engine + Luau twin, BEHAVIORAL re-record)  [done: 2026-10-30 — `plan-version-1-patch.md` P4 / docs/04 §6 design. A negative treasury at the wrap sells ONE building per turn: the cheapest non-Palace building the player owns, ties to the earlier city in cityOrder then the lower building id; credit = cost × sellPriceRatio via the shared `sellBuildingFrom`; event `buildingSold` reason `bankrupt`; clamp to 0 only when nothing is left. `sellForBankruptcy` in engine/tech.js + luau/tech.luau. Fixture first: `test/scenarios/070-bankruptcy-sells.json` (red: gold 0 + temple kept; green: temple sold, gold 37; hash 0xe69221c4). None of the 69 existing scenarios moved. Goldens: round 100 byte-identical, both families move from 200 — GOLDEN_SOAK 400 0x4d3aa5ab, GOLDEN_NATURAL 0xa571278e (545/p2 held, tenth consecutive), BEHAVIOR 0xc7b0d0b5 / 0x0c5f1b2b. Age snapshots rebaked. Turn log suffix ", treasury empty"; Roblox formatter queued (workitems-roblox.md item 8). docs/01 §11 deviation line replaced.]
 
 ## A115 — P3: retaliation-only AI nuke doctrine (architect, self-executed 2026-10-30; engine + Luau twins, STAMP-ONLY re-record)  [done: 2026-10-30 — `plan-version-1-patch.md` P3; the retaliation half of the plan-version2 nuke entry (the first-use half stays shelved). Engine: every detonation increments `players[attacker].nukesUsed` (engine/combat.js + luau/combat.luau; omit-safe; scenario 024 re-pinned 0x8220b2fb, red first). AI (engine/ai.js + luau/ai.luau): `nuclearUnitFor`, `nukeTarget` (met + war + nukesUsed>0 + explored + defended + in range + not within safeDistance of an own city; largest pop, cityOrder ties), `nuclearStock`; production slot `nukeW` below defBuild; airCommand strikes in range else holds; the strike re-picks up to `moves` legs in one turn (fuel 1). Data: `rules.nukeDoctrine {maxStock 2, safeDistance 2}`. Tests: `test/ai-nuke.test.js` 5/5, each case hash-matched JS==Luau via luau/apollo-check.luau. Re-record STAMP-ONLY (nukeDoctrine moves the rulesetHash stamp): GOLDEN_SOAK 100-400 0x85358d50/0x8cd88873/0x3829de74/0x06bfeed9, GOLDEN_NATURAL 0xdce82beb (545/p2), BEHAVIOR pins UNMOVED; scenario 002 0x4e9a27f3; nine maptype pins; ff-parity 0x11a7fcd4; age-snapshot 0x0c3ab9c6. Roblox rules re-bake queued (workitems-roblox item 9). docs/15 "Nuclear doctrine".]
+
+## A116 — Browser server door: reject non-integer numbers and null in a `cmd` (open, found 2026-11-01)
+
+`server/protocol.js` `parseMessage` accepts `{type:'setRates',tax:50.5}` and
+`{type:'wait',unitId:null}` (probed). Game state holds neither (CLAUDE.md
+state rule); if the engine stores one, the next hash throws and
+`containFault` closes that game, so one client can end a shared game.
+Fix shape: `shared/state-string.js` `onlyStateStrings` also requires
+numbers to be safe integers and rejects null — the rule
+`luau/state-string.luau` already applies — then re-run
+`test/state-string-twin.test.js` (the two must agree again) and
+`test/server-door-validation.test.js` plus a new case per value. Check first
+that no legitimate client command sends a float or null (grep
+`client/` command builders; `setRates` sends integers). golden-neutral.

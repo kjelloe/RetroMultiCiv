@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-10-30 (tip on `dev_night`; **marker-0133 = the fastengine batch, the latest merge-consistent marker**; marker-0134 (P4) is not consistent, P3 is untagged. v1.0.0 + v1.0.1 are
+_Last synced: 2026-11-01 (tip on `dev_night`; **marker-0133 = the fastengine batch, the latest merge-consistent marker**; marker-0134 (P4) is not consistent, P3 is untagged. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---

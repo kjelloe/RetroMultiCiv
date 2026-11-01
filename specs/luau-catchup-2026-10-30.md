@@ -101,6 +101,12 @@ gaps as new items. Per-item detail: `specs/fastengine-requests.md`
   headers / `--saves-dir`: browser-server only, no Roblox equivalent.
 - No data re-bake: `data/*.json` unchanged since `ae21749`.
 
+## Status 2026-11-01
+
+Step 1 done (2026-10-30). Step 2: Roblox items 1-6, 8, 9 landed headless
+in `1666b33` (harnesses green, no Studio); item 7 and the visual checks
+wait for the user's Studio session. Step 3 not started.
+
 ## Close-out
 
 Record completions in `workitems-roblox.md` as `[done: date — note +
