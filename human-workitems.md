@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-11-01 (tip on `dev_night`; **marker-0133 = the fastengine batch, the latest merge-consistent marker**; marker-0134 (P4) is not consistent, P3 is untagged. v1.0.0 + v1.0.1 are
+_Last synced: 2026-11-01 (tip on `dev_night`; **marker-0135 = P3 nukes + Roblox queue + stricter command door (with P4 and the fastengine batch), merge-consistent**, supersedes 0134 and earlier. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---
@@ -22,13 +22,13 @@ RELEASED and live; everything below is post-release.)_
   landed provisionals.
 - [x] **A2. Merge marker-0129 to main and redeploy** — DONE 2026-08-15
   (user). This is effectively **v1.0.2** — say the word for release notes.
-- [ ] **A2b. Push, then merge marker-0133 (supersedes 0130-0132)** — first
-  `git push origin dev_night marker-0133 marker-0134` (this session has no
-  GitHub credentials; the tags are local). 0133 = the fastengine batch
-  (`reports/marker-0133.md`). **marker-0134 (P4) is NOT merge-consistent:**
-  one stale unit test is red at that tag (fixed after it, see its report).
-  P3 + that fix are committed after 0134 and untagged: a stamp-only golden
-  re-record, so the next marker (0135) waits for your word. Both on top of 0132's canonical-floors CI
+- [ ] **A2b. Push, then merge marker-0135 (supersedes 0130-0134)** — first
+  `git push origin dev_night marker-0133 marker-0134 marker-0135` (this
+  session has no GitHub credentials; the tags are local). 0135 = P3
+  retaliation-only AI nukes (stamp-only re-record) + the Roblox queue + the
+  stricter command door (`reports/marker-0135.md`); it carries 0134's P4
+  bankruptcy (0134 itself was not consistent) and 0133's fastengine batch.
+  All on top of 0132's canonical-floors CI
   repair (the nightly's floor-enforcement job has been killed at its
   45-min budget every night since ~2026-08-09; fixed measured at 150) +
   the H13b road-city regression guard. Workflow+test only; until it

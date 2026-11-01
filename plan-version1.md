@@ -8,7 +8,7 @@ Companion added 2026-08-05: **`plan-version-1-patch.md`** — the middle tier,
 from a post-release code review: things worth a PATCH, not worth holding a
 release for (alerting, off-host backups, AI nukes, bankruptcy, ai.js size, CI
 branch coverage).
-Last updated: 2026-10-30 — **marker-0133 (merge-consistent)**: the fastengine change requests R1–R14 (@e612651, golden-neutral; door validation, seat-only saves, protocol version, client fixes — `specs/fastengine-requests.md`, `reports/marker-0133.md`). Luau twins + full goldens verified on it. Then marker-0134: P4 bankruptcy (A114, behavioural re-record, 545/p2 held) — **NOT merge-consistent** (one stale unit test red at the tag; fixed after). Then P3 retaliation-only AI nukes (A115, stamp-only re-record), untagged pending the user's word. Latest consistent: marker-0133.
+Last updated: 2026-10-30 — **marker-0133 (merge-consistent)**: the fastengine change requests R1–R14 (@e612651, golden-neutral; door validation, seat-only saves, protocol version, client fixes — `specs/fastengine-requests.md`, `reports/marker-0133.md`). Luau twins + full goldens verified on it. Then marker-0134: P4 bankruptcy (A114, behavioural re-record, 545/p2 held) — **NOT merge-consistent** (one stale unit test red at the tag; fixed after). Then **marker-0135 (merge-consistent)**: P3 retaliation-only AI nukes (A115, stamp-only re-record), the Roblox queue (8/9 headless), A116 stricter command door (`reports/marker-0135.md`).
 --- prior: 2026-08-15 — **v1.0.2 in effect: marker-0129 merged to main and
 deployed by the user** (the graphics ladder G0–H13b: three display tiers, era
 roads, roads-into-cities; client/render-side only, every gamesim golden
