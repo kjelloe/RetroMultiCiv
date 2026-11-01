@@ -105,7 +105,9 @@ gaps as new items. Per-item detail: `specs/fastengine-requests.md`
 
 Step 1 done (2026-10-30). Step 2: Roblox items 1-6, 8, 9 landed headless
 in `1666b33` (harnesses green, no Studio); item 7 and the visual checks
-wait for the user's Studio session. Step 3 not started.
+wait for the user's Studio session. A116 (2026-11-01) renamed the
+Luau door function to `onlyStateValues` (twin of the JS command rule).
+Step 3 not started.
 
 ## Close-out
 

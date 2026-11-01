@@ -124,7 +124,9 @@ Rules:
 - **Client strings obey the state-string rule (fe-R13).** Every string in a
   `cmd`, and `name` on `join`/`create`/`joinListed`, must be printable
   ASCII (`shared/state-string.js`, the `statehash.js` rule) — else
-  `badName`/`badShape`. A throw while handling one frame answers
+  `badName`/`badShape`. A `cmd` must also hold only values game state can
+  (A116, `onlyStateValues`): safe integers, booleans, arrays, plain
+  objects — a float or null is `badShape`. A throw while handling one frame answers
   `rejected internal`; a game whose state no longer hashes is closed
   (`gameClosed`, reason `fault`).
 - **Live save downloads are seat-only (fe-R1).** `GET /saves/<id>.json` for

@@ -582,3 +582,39 @@ readable by whoever holds a shell on the box (who can already read
 everything). §4 quick-card already carries the operator line.** Next
 re-run triggers unchanged: new dependency · residuals acted on · any new
 listener/POST sink.
+
+## 10. fastengine batch + command door (2026-11-01 — trigger: new listener paths + protocol change)
+
+Surfaces added or changed in marker-0133..0135 (`specs/fastengine-requests.md`,
+A107-A113, A116). **No ranked gap.**
+
+- **Command door (A107, A116).** Every `cmd` must be state-legal
+  (`onlyStateValues`: printable-ASCII strings, safe integers, booleans,
+  arrays, plain objects — never float or null) and of a `CLIENT_COMMANDS`
+  type; `claimSeat` is server-only. Before, a non-ASCII join name crashed
+  the PROCESS (exit 70) and a float or null could close a game at its next
+  hash. Residual: a frame that passes the door can still throw inside the
+  engine; `containFault` answers `rejected internal` and closes only that
+  game whose state no longer hashes, never the process.
+- **Roblox GameServer door (workitems-roblox item 6).** Same rule via
+  `luau/state-string.luau`, stricter (also NaN and Roblox datatypes a
+  RemoteEvent can carry). Not yet exercised in Studio.
+- **Live save downloads seat-only (A108).** `/saves/<id>.json` for a live
+  game needs `X-Seat-Token` of a seat in that game; else the same 404 as
+  an unknown game (existence not advertised). Finished games and `--debug`
+  serve without it — a finished game holds no live tokens.
+- **Native downloads (A112).** `/native.json` + `/native/<file>`, off unless
+  the operator sets `NATIVE_DOWNLOADS`. Files are served only when the name
+  matches `SAFE_NAME` and starts with the product name; the folder is
+  listed per request and no path component reaches the filesystem
+  (`..%2f` probe → 404 in `test/server-native.test.js`). Single byte
+  ranges only.
+- **permessage-deflate (A109).** Negotiated above 4 KB with no context
+  takeover. `ws` applies `maxPayload` (64 KB) to the INFLATED size, so a
+  compressed frame cannot expand past the existing frame cap.
+- **Protocol version (A109).** `/ws?proto=N` mismatch is refused with
+  `protocolMismatch` + close 1008 before the rate limiter counts the
+  connection — a refusal path only, no new state.
+
+Next re-run triggers unchanged: new dependency · residuals acted on · any
+new listener/POST sink.
