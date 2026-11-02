@@ -517,7 +517,8 @@ function nuclearUnitFor(me, ruleset) {
 // The largest known, defended city of a nuclear aggressor within `range` of
 // (fromX, fromY) (range < 0 = any distance), skipping any target whose fallout
 // ring would reach within nukeDoctrine.safeDistance of one of our own cities.
-// Ties go to the earlier city in cityOrder. null = nothing to retaliate against.
+// A city with a revealed SDI (an interception there) ranks last. Ties go to
+// the earlier city in cityOrder. null = nothing to retaliate against.
 function nukeTarget(state, playerId, ruleset, fromX, fromY, range) {
   const ND = ruleset.rules.nukeDoctrine;
   if (ND === undefined) return null;
@@ -538,7 +539,11 @@ function nukeTarget(state, playerId, ruleset, fromX, fromY, range) {
       if (oc && oc.owner === playerId && chebyshev(state.map, oc.x, oc.y, c.x, c.y) <= ND.safeDistance) { tooClose = true; break; }
     }
     if (tooClose) continue;
-    if (best === null || c.pop > best.pop) best = c;
+    // P3b: a city whose SDI already shot one down ranks below any unshielded
+    // target, but is still struck when nothing else is in range (no waiting)
+    const shielded = c.sdiRevealed === true;
+    const bestShielded = best !== null && best.sdiRevealed === true;
+    if (best === null || (bestShielded && !shielded) || (bestShielded === shielded && c.pop > best.pop)) best = c;
   }
   return best;
 }

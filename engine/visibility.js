@@ -232,6 +232,9 @@ function filterView(state, playerId, ruleset) {
     view.gameOver = true;
     if (state.winner !== undefined) view.winner = state.winner;
   }
+  // the difficulty is public game setup, and cityMood reads its contentCitizens:
+  // without it a server-game client computes every city's faces at the default
+  if (state.difficulty !== undefined) view.difficulty = state.difficulty;
   return view;
 }
 

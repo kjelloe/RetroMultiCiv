@@ -18,6 +18,8 @@ local CatalogText = require(script.Parent:WaitForChild("CatalogText")) -- R15
 -- session-E round 13: read-only engine math for the rush-buy price preview
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 local tradeModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("trade")) -- CP17 report
+local happinessModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("happiness")) -- mood row
+local governmentModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("government"))
 local BuildQueue = require(script.Parent:WaitForChild("BuildQueue")) -- CP8
 local Tooltip = require(script.Parent:WaitForChild("Tooltip")) -- SO2
 
@@ -54,6 +56,11 @@ local title = label("Title", 6, 22, "")
 local stats = label("Stats", 30, 16, "")
 local producing = label("Producing", 50, 16, "")
 stats.Active = true -- SO2: tooltip target (attached below openCityId's decl)
+-- mood row (browser panels.js city-mood-row twin): faces beside the Buy button
+local moodLabel = label("Mood", 72, 16, "")
+moodLabel.Position = UDim2.new(0, 134, 0, 72)
+moodLabel.Size = UDim2.new(0, 178, 0, 16)
+moodLabel.Active = true
 
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -210,6 +217,103 @@ Tooltip.attach(stats, function()
 	return ("worked-tile totals\n  food %d  shields %d  trade %d\npop %d - specialists: tax %d sci %d%s\n(city tile always works free)")
 		:format(y.food or 0, y.shields or 0, y.trade or 0, city.pop or 1,
 			city.taxmen or 0, city.scientists or 0, routes)
+end)
+
+-- mood row: the engine's own cityMood on a read-only shim of the view (the
+-- view carries difficulty, so contentCitizens resolves like the engine)
+local MOOD_WONDER_EFFECTS = { "happyEverywhere", "contentEverywhere", "allContentInCity", "doublesTemple", "warUnhappyReduce" }
+
+local function moodShim(view)
+	return { map = view.map, players = view.players, cities = view.cities,
+		cityOrder = view.cityOrder, units = view.units, wonders = view.wonders,
+		playerOrder = view.playerOrder, difficulty = view.difficulty }
+end
+
+local function moodOf(view, city)
+	local ok, mood = pcall(happinessModule.cityMood, moodShim(view), city, ClientState.rulesets())
+	return ok and mood or nil
+end
+
+local function moodFaces(mood)
+	return ("😊%d 😐%d 😠%d · 🎭%d 💰%d 🔬%d"):format(mood.happy, mood.content, mood.unhappy,
+		mood.entertainers, mood.taxmen, mood.scientists)
+end
+
+local function moodTip(view, city, mood)
+	local rs = ClientState.rulesets()
+	local shim = moodShim(view)
+	local me = view.players[city.owner]
+	local d = rs.rules.difficulties ~= nil and view.difficulty ~= nil and rs.rules.difficulties[view.difficulty] or nil
+	local contentN = d ~= nil and d.contentCitizens or rs.rules.contentCitizens
+	local luxRate = me.luxRate or 0
+	local okY, y = pcall(citiesModule.cityYields, shim, city, rs)
+	local lux = okY and y ~= nil and (y.trade * luxRate) // 100 or 0
+	lux += (lux * citiesModule.effectPct(city, rs, "luxBonus")) // 100
+	lux += mood.entertainers * rs.rules.specialistOutput
+	local oracleMine = false
+	if citiesModule.wonderActive(shim, "oracle", rs) then
+		local home = view.cities[view.wonders["oracle"]]
+		oracleMine = home ~= nil and home.owner == city.owner
+	end
+	local bldgs = {}
+	for _, b in ipairs(city.buildings or {}) do
+		local eff = rs.buildings[b].effect
+		if eff.contentBonus ~= nil then
+			local v = eff.contentBonus
+			if eff.contentDoubleTech ~= nil and table.find(me.techs or {}, eff.contentDoubleTech) ~= nil then
+				v *= 2
+			end
+			if b == "temple" and oracleMine then
+				v *= 2
+			end
+			table.insert(bldgs, ("%s +%d"):format(rs.buildings[b].name, v))
+		end
+	end
+	local wids = {}
+	for wid in pairs(view.wonders or {}) do
+		table.insert(wids, wid)
+	end
+	table.sort(wids)
+	local wonders = {}
+	for _, wid in ipairs(wids) do
+		local home = view.cities[view.wonders[wid]]
+		if home ~= nil and home.owner == city.owner and citiesModule.wonderActive(shim, wid, rs) then
+			local e = rs.wonders[wid].effect or {}
+			for _, k in ipairs(MOOD_WONDER_EFFECTS) do
+				if e[k] ~= nil then
+					table.insert(wonders, rs.wonders[wid].name)
+					break
+				end
+			end
+		end
+	end
+	local lines = { "mood factors (the engine computes the faces):",
+		("first %d workers are born content, the rest unhappy"):format(contentN),
+		("luxuries %d (%d%% of trade + entertainers): one citizen up per %d"):format(lux, luxRate, rs.rules.luxPerStep) }
+	if #bldgs > 0 then
+		table.insert(lines, "content from buildings: " .. table.concat(bldgs, ", "))
+	end
+	if #wonders > 0 then
+		table.insert(lines, "mood wonders: " .. table.concat(wonders, ", "))
+	end
+	local gov = governmentModule.governmentOf(shim, city.owner, rs)
+	if gov ~= nil and (gov.warUnhappiness or 0) > 0 then
+		table.insert(lines, ("%s: each military unit abroad upsets %d citizen(s)"):format(gov.name, gov.warUnhappiness))
+	end
+	return table.concat(lines, "\n")
+end
+
+Tooltip.attach(moodLabel, function()
+	local view = ClientState.view
+	local city = view ~= nil and openCityId ~= nil and view.cities[openCityId] or nil
+	if city == nil then
+		return ""
+	end
+	local mood = moodOf(view, city)
+	if mood == nil then
+		return ""
+	end
+	return moodTip(view, city, mood)
 end)
 
 local function sortedIds(t)
@@ -375,6 +479,8 @@ local function refresh()
 	-- fog-honest — filterView strips `celebrating` from rival shells)
 	local celebrate = city.celebrating == true
 		and "\nWE LOVE THE KING DAY - no corruption while it lasts" or ""
+	local mood = moodOf(view, city)
+	moodLabel.Text = mood ~= nil and moodFaces(mood) or ""
 	stats.Text = ("food %d · shields %d · gold %d%s"):format(city.food or 0, city.shields or 0, me.gold or 0, celebrate)
 	local prodDef = (rs[city.producing.kind .. "s"] or {})[city.producing.id]
 	producing.Text = ("producing: %s %s (%d/%d)"):format(city.producing.kind,

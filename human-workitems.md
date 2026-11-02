@@ -52,11 +52,13 @@ RELEASED and live; everything below is post-release.)_
 
 ## C. Other lanes
 
-- [ ] **C1. Roblox queue: 8 of 9 items landed headless (2026-11-01)** — items
+- [ ] **C1. Roblox queue: 9 of 10 items landed headless (2026-11-02)** — items
   1-6, 8, 9 done from the dev PC (parity harnesses green; no rojo/Studio
   here). Needs your Studio session (fold into C1b): item 7 (`ageChanged`
   world line), plus a look at the new animals, era roads/rails + city road
   joins, the wider Encyclopedia button, and a real `buildingSold` line.
+  Item 10 (2026-11-02): the city happiness row + tooltip on a
+  non-medium game.
   Detail per item in `workitems-roblox.md`.
 - [ ] **C1b. The ONE Roblox Studio session (the lane's only remaining
   v1 gate, surfaced #2665 but previously untracked here):** verify

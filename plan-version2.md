@@ -272,6 +272,22 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
   P3: the RETALIATION half shipped (A115): a met, at-war civ that has
   detonated a nuke draws AI nuclear builds and strikes on its cities.
   The first-use (desperation) half stays here.]**
+  **[Evaluation 2026-11-02 (architect, user asked "evaluate"):** the AI
+  never builds the Manhattan Project (GLOBAL_UNLOCK_WONDERS excludes it
+  from wonder appetite; no other path builds it), so in an all-AI game
+  nukes never exist and any AI nuke doctrine — retaliation included — is
+  reachable only after a HUMAN completes Manhattan. Consequences: (1) the
+  soak/marathon lanes can never observe it, so "pending the marathon lane"
+  can never resolve; crafted-state tests (test/ai-nuke.test.js pattern,
+  JS == Luau) are the only measurement. (2) Today a Manhattan-building human
+  holds a first-strike monopoly: the AI answers only after being hit.
+  (3) Cost is small: nukeTarget, the build slot and the multi-leg strike
+  exist; first use adds one gate (aggressive stance, score rank 2-3,
+  year >= endYear - N or a rival spaceship launched) targeting the score
+  leader, golden-neutral. **Recommendation: build it now, conservative
+  gate, crafted-state tests only; and decide separately whether the AI
+  should ever build Manhattan itself (that is the change that would make
+  nukes appear in AI games).]**
 - **Overseas expansion on saturation** (§8, ADDED 2026-07-31 by user ruling
   after the W7 naval acceptance): when a civ's home landmass has no legal city
   site left, it should re-evaluate expansion across water instead of simply

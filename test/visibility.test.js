@@ -313,3 +313,12 @@ test('filterView omits gameOver/winner mid-game and never writes a null winner',
   assert.strictEqual(v2.gameOver, true, 'gameOver still reported');
   assert.ok(!('winner' in v2), 'winner key is omitted when undefined (never null)');
 });
+
+test('filterView: the game difficulty is public — a seat view carries it so a client computes mood like the engine', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  state.difficulty = 'godemperor';
+  assert.strictEqual(vis.filterView(state, 'p1').difficulty, 'godemperor');
+  delete state.difficulty;
+  assert.strictEqual('difficulty' in vis.filterView(state, 'p1'), false, 'absent stays absent (no-null rule)');
+});

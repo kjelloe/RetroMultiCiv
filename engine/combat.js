@@ -193,6 +193,9 @@ function resolveAttack(state, attacker, tx, ty, ruleset) {
             iev.push({ type: 'unitConsumed', unitId: attacker.id, owner: attacker.owner, x: attacker.x, y: attacker.y });
           }
           iev.push({ type: 'nukeIntercepted', cityId: sdiCity.id, owner: sdiCity.owner, attackerOwner: attacker.owner, x: tx, y: ty });
+          // P3b: the interception is public — the AI doctrine reads this to
+          // prefer an unshielded target next time (omit-safe until it fires)
+          sdiCity.sdiRevealed = true;
           return { ok: true, events: iev };
         }
       }

@@ -1,6 +1,6 @@
 {
   "name": "W2 SDI Defense: a nuke on an SDI city is intercepted (cross-language)",
-  "notes": "A nuclear missile (attack 99, one-shot) at (1,2) strikes an enemy city at (2,2) that holds an SDI Defense building (effect blocksNuke). rngState 42: the SDI intercept roll (rollRange 100 = 32 < rules.sdiInterceptPct 70) HITS -> the missile is shot down: no detonation, the city keeps its population, the garrison survives, and the one-shot missile is still consumed. Pins the deterministic intercept path (rng off the crafted rngState) identically in Node and Luau. Golden-neutral to the soak (AI never fires nukes at the sim seeds).",
+  "notes": "A nuclear missile (attack 99, one-shot) at (1,2) strikes an enemy city at (2,2) that holds an SDI Defense building (effect blocksNuke). rngState 42: the SDI intercept roll (rollRange 100 = 32 < rules.sdiInterceptPct 70) HITS -> the missile is shot down: no detonation, the city keeps its population, the garrison survives, and the one-shot missile is still consumed. Pins the deterministic intercept path (rng off the crafted rngState) identically in Node and Luau. Golden-neutral to the soak (AI never fires nukes at the sim seeds). The interception is public: the city is marked sdiRevealed, which the AI retaliation doctrine reads to prefer an unshielded target.",
   "setup": {
     "state": {
       "version": 1,
@@ -16,31 +16,81 @@
         "height": 5,
         "wrapX": false,
         "tiles": [
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" },
-          { "t": "grassland" }
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          },
+          {
+            "t": "grassland"
+          }
         ]
       },
       "units": {
@@ -132,7 +182,8 @@
         "state": {
           "units.n1": null,
           "units.d1.id": "d1",
-          "cities.c1.pop": 6
+          "cities.c1.pop": 6,
+          "cities.c1.sdiRevealed": true
         }
       },
       "notes": "the SDI intercepts: the missile is consumed, the garrison and city survive intact"
@@ -142,8 +193,9 @@
     "state": {
       "units.n1": null,
       "units.d1.id": "d1",
-      "cities.c1.pop": 6
+      "cities.c1.pop": 6,
+      "cities.c1.sdiRevealed": true
     },
-    "hash": "0x7d67d913"
+    "hash": "0xc58e8967"
   }
 }

@@ -154,6 +154,17 @@ GameServer gates on at boot has moved; re-bake as after `f210760`
 code: the AI now retaliates with nuclear units against a civ that has
 detonated one.
 
+## 10. City happiness breakdown [user ruling 2026-11-02, done same day]
+
+[done: 2026-11-02 — architect session (Sonnet agent): CityPanel mood row
+(faces + specialists) and a factor tooltip from the engine's own
+`happiness.cityMood` (contentCitizens from the new `view.difficulty`,
+luxuries, content buildings with temple doubling, owned mood wonders by
+MOOD_WONDER_EFFECTS, war unhappiness); no command sends.
+`roblox/selftest/city-mood-parity.mjs` = check.sh gate 32. Studio look:
+emoji in the Code font, the 178 px row beside Buy, tooltip placement, and
+the numbers on a non-medium game.]
+
 ---
 
 ## Not in this file (user-side, for completeness)

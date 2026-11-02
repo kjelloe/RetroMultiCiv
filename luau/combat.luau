@@ -238,6 +238,8 @@ local function resolveAttack(state: any, attacker: any, tx: number, ty: number, 
 						table.insert(iev, { type = "unitConsumed", unitId = attacker.id, owner = attacker.owner, x = attacker.x, y = attacker.y })
 					end
 					table.insert(iev, { type = "nukeIntercepted", cityId = sdiCity.id, owner = sdiCity.owner, attackerOwner = attacker.owner, x = tx, y = ty })
+					-- P3b: the interception is public (the AI doctrine prefers an unshielded target)
+					sdiCity.sdiRevealed = true
 					return { ok = true, events = iev }
 				end
 			end

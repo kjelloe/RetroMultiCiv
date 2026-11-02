@@ -264,6 +264,10 @@ local function filterView(state: any, playerId: string, ruleset: any): any
 		view.gameOver = true
 		if state.winner ~= nil then view.winner = state.winner end
 	end
+	-- the difficulty is public game setup; cityMood reads its contentCitizens
+	if state.difficulty ~= nil then
+		view.difficulty = state.difficulty
+	end
 	return view
 end
 

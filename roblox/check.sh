@@ -420,5 +420,18 @@ else
   note SKIP "gate 31: node absent"
 fi
 
+# gate 32 — city mood row: the Roblox city panel lists the same mood-wonder
+# effect keys as client/ui/panels.js MOOD_WONDER_EFFECTS and calls the shared
+# happiness.cityMood (no reimplemented mood math).
+if command -v node >/dev/null 2>&1; then
+  if node roblox/selftest/city-mood-parity.mjs >/dev/null 2>&1; then
+    note PASS "gate 32: city mood row matches panels.js MOOD_WONDER_EFFECTS"
+  else
+    note FAIL "gate 32: city-mood parity — run: node roblox/selftest/city-mood-parity.mjs"
+  fi
+else
+  note SKIP "gate 32: node absent"
+fi
+
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"
 exit $fail

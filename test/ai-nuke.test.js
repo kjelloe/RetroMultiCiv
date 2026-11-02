@@ -108,3 +108,23 @@ test('P3: a target beyond range, or too close to home, is held', async () => {
   assert.ok(r2.units.n1 !== undefined && r2.units.n1.x === 3, 'fallout would reach home: held');
   await luauMatches(far, r1);
 });
+
+test('P3b: a city whose SDI shot one down ranks last; still struck when it is the only target', async () => {
+  const st = world();
+  st.units.n1 = { id: 'n1', type: 'nuclear', owner: 'p1', x: 3, y: 4, moves: 16, fortified: false, veteran: false };
+  st.cities.c2.sdiRevealed = true; // the bigger city (pop 10) already intercepted one
+  st.cities.c3 = { id: 'c3', name: 'Small', owner: 'p2', x: 12, y: 2, pop: 3, food: 0, shields: 0, buildings: [], producing: { kind: 'unit', id: 'militia' } };
+  st.cityOrder.push('c3');
+  st.units.e2 = { id: 'e2', type: 'mech-inf', owner: 'p2', x: 12, y: 2, moves: 0, fortified: true, veteran: false };
+  const r = await aiTurn(st);
+  assert.strictEqual(r.units.e2, undefined, 'the unshielded city is struck');
+  assert.ok(r.units.e1 !== undefined, 'the revealed-SDI city is spared');
+  await luauMatches(st, r);
+  const alone = world();
+  alone.units.n1 = { id: 'n1', type: 'nuclear', owner: 'p1', x: 3, y: 4, moves: 16, fortified: false, veteran: false };
+  alone.cities.c2.sdiRevealed = true;
+  alone.cities.c2.buildings = ['sdi-defense'];
+  const r2 = await aiTurn(alone);
+  assert.strictEqual(r2.units.n1, undefined, 'no waiting: the only target is still struck (and here intercepted again)');
+  await luauMatches(alone, r2);
+});

@@ -382,5 +382,10 @@ target:
 - Strike: the largest known, defended city of the aggressor within the
   missile's remaining moves; the missile flies its whole leg in one turn
   (fuel 1). Out of range: it holds at base.
-- SDI is not read (fog: the AI does not inspect a rival city's buildings).
+- SDI (P3b, user ruling 2026-11-02: "if possible, but cannot wait for
+  SDI defence check on that city"): the AI cannot see a rival's buildings
+  (a city shell shows walls only), so it never checks before striking. An
+  interception is public, so the engine marks that city `sdiRevealed`; the
+  AI then ranks any unshielded target in range above it, and still strikes
+  a revealed-SDI city when it is the only target (no waiting).
 - The first-use (desperation) half stays on `plan-version2.md`.

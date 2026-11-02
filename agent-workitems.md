@@ -275,7 +275,7 @@ items live in `./human-workitems.md`.
    no new dependencies) override anything written here.
 2. **Never run git commit/push/pull/checkout — the user handles all git.**
 3. Definition of done, every item: `node --test test/` fully green
-   (currently 1085 tests), the item's own verification steps pass, related
+   (currently 1087 tests), the item's own verification steps pass, related
    docs updated, then STOP AND REPORT — list files touched, tests added,
    anything unexpected.
 4. Golden hashes: `test/simulation.test.js` pins checkpoint hashes of a
@@ -4325,3 +4325,5 @@ numbers to be safe integers and rejects null — the rule
 `test/server-door-validation.test.js` plus a new case per value. Check first
 that no legitimate client command sends a float or null (grep
 `client/` command builders; `setRates` sends integers). golden-neutral.
+
+## A117 — P3b SDI preference + the game difficulty in the seat view (architect, 2026-11-02; engine + Luau twins, golden-neutral)  [done: 2026-11-02 — (1) user ruling "if possible, but cannot wait for SDI defence check on that city": an interception marks the city `sdiRevealed` (engine/combat.js + luau/combat.luau; scenario 066 red first, re-pinned 0xc58e8967); `nukeTarget` ranks revealed-SDI cities below any unshielded target in range but still strikes one when it is the only target (engine/ai.js + luau/ai.luau; test/ai-nuke.test.js +1 case, JS == Luau). (2) Found by the Roblox happiness-breakdown agent: `filterView` omitted `difficulty`, so every server-game client (browser AND Roblox) computed city mood at the default contentCitizens on non-medium games. `view.difficulty` now copied when defined (engine/visibility.js + luau/visibility.luau; test/visibility.test.js red first). No golden moves: no nuke fires in the soak, and views are not hashed.]

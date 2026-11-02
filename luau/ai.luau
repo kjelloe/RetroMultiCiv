@@ -2566,8 +2566,13 @@ local function nukeTarget(state: any, playerId: string, ruleset: any, fromX: num
 						break
 					end
 				end
-				if not tooClose and (best == nil or c.pop > best.pop) then
-					best = c
+				if not tooClose then
+					-- P3b: a revealed SDI ranks last, but is still struck when alone in range
+					local shielded = c.sdiRevealed == true
+					local bestShielded = best ~= nil and best.sdiRevealed == true
+					if best == nil or (bestShielded and not shielded) or (bestShielded == shielded and c.pop > best.pop) then
+						best = c
+					end
 				end
 			end
 		end
