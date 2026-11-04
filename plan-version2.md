@@ -3,7 +3,7 @@
 _LIVING DOCUMENT, deliberately looser than `plan-version1.md`: an unordered
 holding list of everything explicitly designated post-1.0, so nothing is
 lost and nothing sneaks into the v1 critical path. An item leaves this file
-only by a user ruling. Last updated: 2026-08-01 — **the v1 engine programme is
+only by a user ruling. Last updated: 2026-11-02 — the first-use nuke evaluation was recorded under the nuclear item (retaliation half shipped as A115/A117; first use awaits a user ruling, and so does whether the AI may build Manhattan); nothing left the shelf. Before that: 2026-08-01 — **the v1 engine programme is
 COMPLETE (W1–W8 all tagged, marker-0111), so this shelf is now the definitive
 list of what v1.0 deliberately does NOT do.** Three items ARRIVED this pass, all
 from measurement rather than speculation: overseas expansion on saturation, the

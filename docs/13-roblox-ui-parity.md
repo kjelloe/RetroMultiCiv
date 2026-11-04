@@ -90,6 +90,7 @@ per item; the architect cuts R-items from the tiers in order.
 | City list / paging | panel with arrows (browser parity) | |
 | Build catalog w/ locks+effects | production picker grows lock reasons + plain-language effects | data already in view |
 | Worked-tile assignment | city panel: tap tiles in the fat cross to toggle; auto/manual reset | the browser's setWorkers semantics |
+| City happiness breakdown | city panel mood row + factor tooltip from `happiness.cityMood` | done headless 2026-11-02 (workitems-roblox item 10); needs `view.difficulty` (A117) |
 | Sell building (A86) | city panel buildings list: sell action w/ price + confirm | follows the browser shape once A86 lands; one sale/city/turn |
 | Options (anim, auto-end-turn…) | settings panel; Roblox adds its own (streaming off is pinned, input prefs) | |
 | Save/load | R6 question — DataStore vs envelope (scoping lands with R5) | |

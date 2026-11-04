@@ -116,6 +116,17 @@ listed + opens from the pair), tech-tree Back (one Close button), capital
 tooltip (none), wonder mood lines (CityPanel has no happiness breakdown —
 adding one is new UI, a design call).
 
+## Status 2026-11-02
+
+A117 changed three Luau twins with their JS sides in one window:
+`luau/combat.luau` (an interception sets the city's `sdiRevealed`;
+scenario 066 re-pinned 0xc58e8967), `luau/ai.luau` (`nukeTarget` ranks
+revealed-SDI cities last), `luau/visibility.luau` (`filterView` copies
+`difficulty`). Twins gate 11/11 green after it. Roblox item 10 (city
+happiness breakdown, user ruling) landed headless with
+`roblox/selftest/city-mood-parity.mjs` as check.sh gate 32; it closes the
+"wonder mood lines" note above. Studio look pending with item 7.
+
 ## Close-out
 
 Record completions in `workitems-roblox.md` as `[done: date — note +

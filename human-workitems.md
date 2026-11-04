@@ -8,7 +8,7 @@ Convention: `[ ]` open, `[x]` done. Agent/coder tasks live in
 `./agent-workitems.md`. An HTML companion is `human-workitems.html`
 (regenerated from this file).
 
-_Last synced: 2026-11-01 (tip on `dev_night`; **marker-0135 = P3 nukes + Roblox queue + stricter command door (with P4 and the fastengine batch), merge-consistent**, supersedes 0134 and earlier. v1.0.0 + v1.0.1 are
+_Last synced: 2026-11-05 (tip on `dev_night`; untagged since 0135: A117 + Roblox item 10, golden-neutral; **marker-0135 = P3 nukes + Roblox queue + stricter command door (with P4 and the fastengine batch), merge-consistent**, supersedes 0134 and earlier. v1.0.0 + v1.0.1 are
 RELEASED and live; everything below is post-release.)_
 
 ---

@@ -248,3 +248,9 @@ Self-executed by the architect in plan order; all golden-neutral (the only engin
   `parseMessage`). Game state allows neither; if the engine stores one, the
   next hash throws and `containFault` closes the game. The Roblox twin
   (`luau/state-string.luau`) already rejects both.
+- 2026-11-02 (A117, mirrored helpers): `filterView` now copies
+  `view.difficulty` (engine/visibility.js). Before, every server-game
+  client computed city mood with the default contentCitizens on
+  non-medium games; a native client reading the seat view and running
+  `happiness.cityMood` had the same error. `engine/combat.js` adds
+  `city.sdiRevealed` on an interception (state field, hashed).
