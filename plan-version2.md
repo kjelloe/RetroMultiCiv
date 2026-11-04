@@ -273,12 +273,16 @@ ruling 2026-07-27, sequenced after W6 + W7). What REMAINS here:
   detonated a nuke draws AI nuclear builds and strikes on its cities.
   The first-use (desperation) half stays here.]**
   **[Evaluation 2026-11-02 (architect, user asked "evaluate"):** the AI
-  never builds the Manhattan Project (GLOBAL_UNLOCK_WONDERS excludes it
-  from wonder appetite; no other path builds it), so in an all-AI game
-  nukes never exist and any AI nuke doctrine — retaliation included — is
-  reachable only after a HUMAN completes Manhattan. Consequences: (1) the
-  soak/marathon lanes can never observe it, so "pending the marathon lane"
-  can never resolve; crafted-state tests (test/ai-nuke.test.js pattern,
+  does not seek the Manhattan Project (GLOBAL_UNLOCK_WONDERS excludes it
+  from the stance wonder pick). Correction 2026-11-05: the econ fallback
+  `nextWonder` (engine/ai.js, used when a city has no building left) does
+  NOT exclude it, so an AI can build it; measured on the golden seed, it
+  does not happen (soak 400 and natural 545: no Manhattan, no detonation).
+  So in practice nukes rarely exist in an all-AI game, and any AI nuke
+  doctrine, retaliation included, is mostly reachable only after a HUMAN
+  completes Manhattan. Consequences: (1) the
+  soak/marathon lanes have not observed it, so "pending the marathon lane"
+  is unlikely to resolve; crafted-state tests (test/ai-nuke.test.js pattern,
   JS == Luau) are the only measurement. (2) Today a Manhattan-building human
   holds a first-strike monopoly: the AI answers only after being hit.
   (3) Cost is small: nukeTarget, the build slot and the multi-leg strike

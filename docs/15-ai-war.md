@@ -388,4 +388,9 @@ target:
   interception is public, so the engine marks that city `sdiRevealed`; the
   AI then ranks any unshielded target in range above it, and still strikes
   a revealed-SDI city when it is the only target (no waiting).
+- Reachability: the stance wonder pick never seeks the Manhattan Project
+  (a global unlock, engine/ai.js GLOBAL_UNLOCK_WONDERS); only the econ
+  fallback `nextWonder` can pick it. The golden soak (400) and natural
+  (545) runs never build it (measured 2026-11-05), so this doctrine is
+  measured by crafted states in `test/ai-nuke.test.js` (JS == Luau).
 - The first-use (desperation) half stays on `plan-version2.md`.
