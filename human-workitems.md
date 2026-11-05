@@ -73,3 +73,13 @@ RELEASED and live; everything below is post-release.)_
 - [ ] **C4. Commit the unityworks status edit** — the RetroMultiCiv R1–R14
   status table in `~/GIT/unityworks/specs/server_change_requests.md` is
   uncommitted there (your git).
+
+## D. Decisions
+
+- [ ] **D1. AI first use of nukes** (plan-version2 nuclear item,
+  evaluation 2026-11-02, corrected 2026-11-05): go/no-go on one extra
+  gate (aggressive stance, score rank 2-3, endgame or a rival launch,
+  targets the score leader; crafted-state tests). Recommended: go.
+- [ ] **D2. Should the AI build the Manhattan Project on purpose?** Today
+  only the econ fallback can pick it; the golden soak and natural runs
+  never do, so AI nukes in practice need a human to open them.
