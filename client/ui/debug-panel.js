@@ -71,7 +71,7 @@ export function initDebugPanel(ctx) {
 
   // ctx.apply = input.js's path: REASON_TEXT flash on rejection
   box.querySelector('#debug-grant-gold').addEventListener('click', () => {
-    const amount = Number(box.querySelector('#debug-gold').value) || 0;
+    const amount = Math.trunc(Number(box.querySelector('#debug-gold').value)) || 0; // the command door refuses non-integers
     ctx.apply({ type: 'debug', playerId: ctx.HUMAN, action: 'grantGold', amount });
   });
   box.querySelector('#debug-spawn').addEventListener('click', () => {

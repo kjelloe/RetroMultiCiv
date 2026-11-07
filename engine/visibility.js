@@ -167,6 +167,9 @@ function filterView(state, playerId, ruleset) {
     // who the builders are) — passed through for ALL players, not just the owner.
     // Views are never hashed, so this is golden-neutral.
     if (p.stance !== undefined) players[pid].stance = p.stance;
+    // the civ is public (names, colours and the diplomacy screen show it); the
+    // game-start civ splash reads the seat's own
+    if (p.civ !== undefined) players[pid].civ = p.civ;
     // D6 embassy intel: an established embassy in a rival reveals more than plain fog
     // — their government, gold, tech COUNT (not the list), and capital location.
     // View-only (never hashed), omit-safe (no embassy -> the bare {id,name,color,human}).

@@ -89,6 +89,7 @@ operator).
   client:
   `engine/{cities,combat,tech,trade,government,difficulty,diplomacy,happiness,improvements,score,upgrade,visibility,spaceship,leaders}.js`
   (diplomacy: its read side), `shared/{pathfind,statehash,gamecode,beeline,city-era,diplomacy-view,victory-presets}.js`,
+  `shared/state-string.js` (foldToAscii, isStateString, onlyStateValues),
   `client/ui/hud.js` cityNotes and refresh (what it hands the renderer: filterView, annotateCityEra, capitalOf),
   `client/session-remote.js` augment, its command path (one waiter, the ack's events on the next view) and
   OFFTURN_WHITELIST, `client/ui/move-hints.js`, `client/ui/input.js`'s tables (MOVE_KEYS, PRODUCTION_KEYS, the work

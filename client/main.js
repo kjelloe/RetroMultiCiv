@@ -671,6 +671,7 @@ session.onChange((_state, events) => {
 });
 
 ctx.hud.refresh();
+ctx.overlays.recompute(); // the renderer has a view only now; a remote game may not change again until the player acts
 const firstUnit = Object.values(session.state.units).find(
   u => u.owner === ctx.HUMAN && session.state.players[ctx.HUMAN]
     && session.state.players[ctx.HUMAN].human

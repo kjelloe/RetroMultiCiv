@@ -127,6 +127,11 @@ happiness breakdown, user ruling) landed headless with
 `roblox/selftest/city-mood-parity.mjs` as check.sh gate 32; it closes the
 "wonder mood lines" note above. Studio look pending with item 7.
 
+2026-11-07 (A118): `luau/visibility.luau` `filterView` also copies each
+player's `civ` (twin of engine/visibility.js; lune-checked). Views are not
+hashed. Roblox TurnLog diplomacy rows read `view.players[you].civ`, so
+party rows now show detail instead of the world headline (Studio look).
+
 ## Close-out
 
 Record completions in `workitems-roblox.md` as `[done: date — note +

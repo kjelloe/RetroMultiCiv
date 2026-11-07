@@ -97,3 +97,28 @@ test('R12: Enter on the historian closes it and does not end the turn', async ({
   await page.waitForTimeout(500);
   await expect(page.locator('#hud-status')).toContainText('turn 1');
 });
+
+// fastengine follow-ups 2026-11-07 (#176, R11.8 in a server game; #184's view.civ is unit-tested
+// in test/visibility.test.js — the CLI boot game assigns no civs, lobby games do)
+// one human seat per server, so each server-mode test boots its own
+let seatServer;
+test.afterEach(async () => { if (seatServer) { await seatServer.close(); seatServer = undefined; } });
+const bootServer = async (page, extra = '') => {
+  seatServer = await startServer({ seed: 2, civs: 2, humans: 1, size: 'xsmall', autosave: false, host: '127.0.0.1' });
+  await page.goto(`http://127.0.0.1:${seatServer.port}/client/?server=1${extra}`);
+  await expect(page.locator('#hud-status')).toContainText('turn 1', { timeout: 30000 });
+};
+
+test('#176: ?overlay= draws at boot in a server game', async ({ page }) => {
+  await bootServer(page, '&overlay=units&overlaydiag=1');
+  await expect(page.locator('#overlay-probe')).toHaveText(/boot:[1-9]/, { timeout: 10000 });
+});
+
+test('R11.8: the server-game pedia terrain list has no nameless unknown row', async ({ page }) => {
+  await bootServer(page);
+  await page.locator('#open-pedia').click();
+  await page.locator('.pedia-cat[data-cat="terrain"]').click();
+  await expect(page.locator('.pedia-item', { hasText: 'Grassland' })).toHaveCount(1);
+  const names = await page.locator('.pedia-item').allTextContents();
+  expect(names.every(n => n.trim().length > 0)).toBe(true);
+});

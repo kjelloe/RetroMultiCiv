@@ -58,7 +58,8 @@ export function initPedia(ctx) {
         ${statRow('Martial law', g.martialLawMax ? 'up to ' + g.martialLawMax + ' units calm a city' : 'none')}${statRow('War unhappiness', g.warUnhappiness ? 'yes' : 'no')}
       </div>
       ${g.tech ? `<p class="pedia-req">Requires ${techLink(g.tech)}</p>` : '<p class="pedia-req">Available from the start</p>'}` },
-    terrain: { label: 'Terrain', list: () => sorted(terrains), render: (id, t) => `
+    // session-remote adds a nameless zero-yield 'unknown' terrain for fog tiles; it is not an entry
+    terrain: { label: 'Terrain', list: () => sorted(terrains).filter(([id]) => id !== 'unknown'), render: (id, t) => `
       <div class="pedia-stats">
         ${statRow('Yields (F/S/T)', (t.yields ? [t.yields.food || 0, t.yields.shields || 0, t.yields.trade || 0].join(' / ') : '0 / 0 / 0'))}
         ${statRow('Defense', t.defenseBonus ? '+' + t.defenseBonus + '%' : 'none')}${statRow('Move cost', t.move)}

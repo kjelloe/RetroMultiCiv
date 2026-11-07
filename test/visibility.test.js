@@ -322,3 +322,15 @@ test('filterView: the game difficulty is public — a seat view carries it so a 
   delete state.difficulty;
   assert.strictEqual('difficulty' in vis.filterView(state, 'p1'), false, 'absent stays absent (no-null rule)');
 });
+
+test('filterView: every player\'s civ is public — the seat view carries it (the game-start civ splash reads it)', async () => {
+  const { vis } = await load();
+  const state = eventsState();
+  state.players.p1.civ = 'romans';
+  state.players.p2.civ = 'greeks';
+  const v = vis.filterView(state, 'p1');
+  assert.strictEqual(v.players.p1.civ, 'romans');
+  assert.strictEqual(v.players.p2.civ, 'greeks', 'a rival civ is public too');
+  delete state.players.p2.civ;
+  assert.strictEqual('civ' in vis.filterView(state, 'p1').players.p2, false, 'absent stays absent');
+});

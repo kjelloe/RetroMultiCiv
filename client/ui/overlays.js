@@ -139,6 +139,7 @@ export function initOverlays(ctx) {
   if (PARAMS.get('overlaydiag') === '1') {
     setTimeout(() => {
       let diagErr = '';
+      const bootCount = renderer.overlayCount ? renderer.overlayCount() : -1; // before the probe's own recompute
       try { recompute(); } catch (e) { diagErr = ` err:${e.message}`; }
       const probe = document.createElement('div');
       probe.id = 'overlay-probe';
@@ -149,6 +150,7 @@ export function initOverlays(ctx) {
       };
       probe.textContent = `overlaydiag count:${renderer.overlayCount ? renderer.overlayCount() : -1}`
         + ` order:${rect('turn-log') > rect('map-overlays') && rect('map-overlays') > rect('help') ? 'ok' : 'BAD'}`
+        + ` boot:${bootCount}`
         + ` turnlog:${Math.round(rect('turn-log'))} overlays:${Math.round(rect('map-overlays'))} help:${Math.round(rect('help'))}${diagErr}`;
       document.body.appendChild(probe);
     }, 300);

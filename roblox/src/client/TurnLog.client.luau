@@ -247,9 +247,8 @@ end
 -- the three treaty events → (text, cls) or nil, a 1:1 port of
 -- shared/diplomacy-view.js diplomacyEventRow. Fog per B5: a PARTY hears the
 -- reason/penalty/expiry, the world hears the headline. myCiv is the viewer's
--- civ — the filtered view does not expose own civ yet, so mine() is false and
--- rows render as the world headline (👀), exactly the browser's undefined-civ
--- path; it upgrades to party detail when filterView exposes own civ.
+-- civ (filterView carries it since A118, 2026-11-07); without one, mine() is
+-- false and rows render as the world headline (👀).
 local function diplomacyRow(view, rs, e)
 	local myCiv = view.players[view.you] ~= nil and view.players[view.you].civ or nil
 	local function mine(civId)

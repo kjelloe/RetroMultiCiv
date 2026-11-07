@@ -205,6 +205,8 @@ local function filterView(state: any, playerId: string, ruleset: any): any
 		-- stance-mix v1: a civ AI stance is public (R21 Statistics panel) — passed
 		-- through for ALL players. Views are never hashed = golden-neutral. Matches engine/visibility.js.
 		if p.stance ~= nil then players[pid].stance = p.stance end
+		-- the civ is public; the game-start civ splash reads the seat's own. Matches engine/visibility.js.
+		if p.civ ~= nil then players[pid].civ = p.civ end
 		-- D6 embassy intel: an established embassy reveals a rival's gov/gold/tech-count/
 		-- capital beyond plain fog. View-only, omit-safe. Matches engine/visibility.js.
 		if pid ~= playerId and embassyBetween(state, playerId, pid) then

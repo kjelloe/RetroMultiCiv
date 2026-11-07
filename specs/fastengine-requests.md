@@ -254,3 +254,14 @@ Self-executed by the architect in plan order; all golden-neutral (the only engin
   non-medium games; a native client reading the seat view and running
   `happiness.cityMood` had the same error. `engine/combat.js` adds
   `city.sdiRevealed` on an interception (state field, hashed).
+
+### Follow-ups 2026-11-07 (fastengine message, A118)
+
+| # | What | Status |
+|---|---|---|
+| 1 (#184) | civ splash in server games | `view.players[pid].civ` added (additive). Lobby games carry civs; the CLI boot game (`setupFromOpts`) assigns none, so the splash cannot show there — open: give the CLI boot game civs (changes its player names and colours from "Player N"). |
+| 2 (#176) | `?overlay=` at boot in a remote game | fixed: overlays recompute after the boot refresh. |
+| 3 (R11.8) | nameless `unknown` pedia terrain row | fixed: pedia skips it. |
+| 4 | mirror list | CLAUDE.md lists `shared/state-string.js`. |
+| 5 | debug-panel fractional gold | fixed: truncated to an integer. |
+
