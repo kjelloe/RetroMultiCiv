@@ -150,7 +150,7 @@ items only if they block reading or tapping.
       rendering as a blank frame.
 
 14. **Options + pedia spot-check** — Tier 2
-    - Tap: Options (sound/palette rows present); open the Gamepedia, one
+    - Tap: Options (sound/palette rows present); open the Encyclopedia, one
       concept page and one unit page.
     - Expect: pedia text matches the browser wording (em-dash rendered as
       " - " on concepts); options toggle without error.

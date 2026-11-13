@@ -300,8 +300,12 @@ since 2026-08-04, #2922.) **TileProps drift note
 road/rail block after CP1 landed — 5-stage viewer-era roads
 (`roadStageFor` in shared/city-era.js), twin steel rails double-tracked
 from stage 3, and city tiles drawing the road half toward real-road
-neighbours (plain road, never rail). The twin sync is queued to this
-lane (queue items #3 + #5).
+neighbours (plain road, never rail). **RESOLVED (2026-11-01):** the full block is twinned in
+TileProps.luau — city road joins, `roadAt(x,y,real)`, 5-stage
+viewer-era roads via the `roadStageFor` twin (`view.viewerRoadStage`),
+twin rails double-tracked from stage 3, and the new PROP_SHAPES keys
+(gate 25 key-for-key). Detail per item in `workitems-roblox.md`
+(items 3 + 5).
 
 **Decision flow:** the toggle IS the side-by-side (the soundboard house
 pattern — this machine cannot render Roblox, the user's session can):

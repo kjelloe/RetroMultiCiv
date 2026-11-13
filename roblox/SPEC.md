@@ -859,13 +859,22 @@ seat/reset flow; JS engine untouched). Delivered:
   (`ClientState.reshowEndScreen`), **server reset** (post-game, no theater
   watcher for 30s → 60s countdown → soft reset to the deck; watcher
   tracked via a `theaterAlive` keep-alive).
-- **run-L**: Civilopedia → **Gamepedia**; deck `CastShadow=false` (no
+- **run-L**: Civilopedia → **Encyclopedia** (user ruling 2026-07-25, generic
+  no-brand; mirrors browser `PEDIA_NAME`); deck `CastShadow=false` (no
   board shadow); worked-tile removal reworked to single-click + debounce
   (gotcha 6); CLOSE / VIEW-NEXT-CITY side by side; **post-game is public**
   (gotcha 5 — the theater + endscreen reach a defeated/deck player);
   Studio `PlaceId==0` teleport guard (gotcha 7); **boot intro** animation
   (`Intro.client.luau`, tap-to-skip); fixed the `WaitStatus` Rojo name
   collision (gotcha 8).
+- **run-M** (2026-11-01, sync to the H1–H13c browser graphics arc;
+  landed headless from the dev PC, Studio look pending — C1b):
+  Encyclopedia rename in `Pedia.client.luau`; `TileProps.luau`
+  re-mirrored to `recipes.js` (G0 horse anatomy, H2 tree kit +
+  `roadDash`, H6 `hi*` kit — gate 25 key-for-key); H13/H13b road block
+  twinned — city road joins, `roadAt(x,y,real)`, 5-stage viewer-era
+  roads (`roadStage` param from `view.viewerRoadStage`), twin rails
+  double-tracked from stage 3. Detail per item in `workitems-roblox.md`.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
