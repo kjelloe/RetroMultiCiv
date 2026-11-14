@@ -174,6 +174,12 @@ Architect follow-up (not this lane's files): flip the F1 bullet in
 
 Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
+## 13. U1 — chunky button dress + code-drawn menu icons [user direction 2026-11-14, specs/roblox-native-look.md] [done: 2026-11-14 — UiTheme.luau + MenuIcons.luau + EditableGlyph.renderPrims; top row, action bar, End Turn; check.sh gate 35. Built with Studio unattended: look NOT verified — PLAYTHROUGH-UI §F look check.]
+
+## 14. T1 — sculpted mountains + hills (ENHANCED look) [user direction 2026-11-14, same spec] [done: 2026-11-14 — TerrainSculpt.luau planner through TileProps put; mountain block 0.6 height; gate 36. Look NOT verified in Studio.]
+
+## 15. Next in the spec's order [open]: U2 panel chrome, U3 top-row layout bar + phone sizing, U4 remaining icons; T2 slope skirts, T3 coasts, T4 trees. Each waits on the first Studio look at U1/T1 for proportions.
+
 ---
 
 ## Not in this file (user-side, for completeness)

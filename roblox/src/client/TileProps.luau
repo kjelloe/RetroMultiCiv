@@ -240,10 +240,17 @@ local function signature(map, joins, roadStage)
 	for idx in pairs(joins) do
 		jsum = (jsum + idx * 40503 + 7) % 4294967296
 	end
-	return h + jsum * 8 + roadStage * 4294967296
+	return h + jsum * 8 + roadStage * 4294967296 + (M.sculpt and 0.5 or 0)
 end
 
 local lastSig = nil
+
+-- T1 (specs/roblox-native-look.md): the ENHANCED look swaps the single cone
+-- + rocks for the TerrainSculpt massif / mounds. ViewRenderer sets the flag;
+-- it rides the rebuild signature. A planner failure falls back to the classic
+-- props for that tile.
+M.sculpt = false
+local TerrainSculpt = require(script.Parent:WaitForChild("TerrainSculpt"))
 
 -- Rebuild the whole props folder from the view (wholesale, guarded by the
 -- content signature). tileTop maps a terrain id -> its top-surface stud height.
@@ -301,6 +308,17 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 	local function landAt(x, y)
 		local n = tileAt(x, y)
 		return n ~= nil and n.t ~= "ocean" and n.t ~= "unknown"
+	end
+
+	local sculptLite = false
+	if M.sculpt then
+		local mountains = 0
+		for _, mt in ipairs(map.tiles) do
+			if mt.t == "mountains" then
+				mountains += 1
+			end
+		end
+		sculptLite = mountains > TerrainSculpt.LITE_ABOVE
 	end
 
 	for y = 0, map.height - 1 do
@@ -371,7 +389,24 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 					put("fortress", { color = M.PROP_COLOR.fortress, rotX = math.pi / 2, dy = 0.05 })
 				end
 
-				if t.t == "forest" then
+				-- T1: sculpted massif / mounds replace the classic cone + rocks
+				local sculpted = false
+				if M.sculpt and (t.t == "hills" or t.t == "mountains") then
+					local function rand(salt)
+						return M.visualRand(x, y, 200 + salt)
+					end
+					local ok, items = pcall(t.t == "hills" and TerrainSculpt.hills or TerrainSculpt.mountain,
+						rand, sculptLite)
+					if ok then
+						sculpted = true
+						for _, it in ipairs(items) do
+							put(it.k, it)
+						end
+					end
+				end
+				if sculpted then
+					-- placed above
+				elseif t.t == "forest" then
 					-- spruce cones (temperate forest)
 					local color = M.PROP_COLOR.forest
 					local count = 3 + math.floor(M.visualRand(x, y, 1) * 3)
@@ -437,7 +472,11 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 					if motif ~= nil then
 						local base = t.t == "ocean" and (tileTop("ocean") + WATER_LEVEL) or nil
 						for _, m in ipairs(motif) do
-							put(m.k, { color = m.color, dx = m.dx, dz = m.dz, dy = m.dy,
+							-- T1: on a sculpted massif the resource sits on a foot FLANK,
+							-- not inside the main summit (the browser H13c medium rule)
+							local flank = sculpted and t.t == "mountains"
+							put(m.k, { color = m.color, dx = flank and (m.dx or 0) + 0.3 or m.dx,
+								dz = flank and (m.dz or 0) + 0.26 or m.dz, dy = flank and 0.08 or m.dy,
 								sx = m.sx, sy = m.sy, sz = m.sz,
 								rotX = m.rotX, rotY = m.rotY, rotZ = m.rotZ, top = base })
 						end

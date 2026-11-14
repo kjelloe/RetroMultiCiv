@@ -74,6 +74,11 @@ local function tileTop(id)
 		local m = specFor("mountains")
 		return (m.base + m.peak * 0.5) * HEIGHT * 0.5
 	end
+	-- T1: the enhanced look carries the height in a sculpted massif, so the
+	-- block under it drops to a shoulder (0.6) instead of standing as a tower
+	if id == "mountains" and ClientState.options.look == "enhanced" then
+		return (spec.base + spec.peak * 0.5) * HEIGHT * 0.6
+	end
 	return (spec.base + spec.peak * 0.5) * HEIGHT
 end
 
@@ -754,6 +759,7 @@ propsFolder.Parent = world
 
 local function renderImprovements(view)
 	local roadStage = annotateViewerRoadStage(view, ClientState.rulesets().techs, view.you)
+	TileProps.sculpt = lookOf() == "enhanced" -- T1 sculpted mountains/hills
 	if TileProps.rebuild(propsFolder, view, tileTop, TILE, roadStage) then
 		for _, p in ipairs(propsFolder:GetDescendants()) do
 			if p:IsA("BasePart") then
@@ -811,6 +817,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
 		renderTerrain(ClientState.view)
 		renderCities(ClientState.view)
 		renderUnits(ClientState.view) -- unit materials come from AssetFactory's look map
+		renderImprovements(ClientState.view) -- T1: the sculpt follows the look (signature carries it)
 		applyLookExtras(look)
 	end
 	lastLook = look

@@ -1,0 +1,111 @@
+-- check.sh gate 36: headless (lune) pins for the T1 sculpt planner.
+local fs = require("@lune/fs")
+local M = require("../src/client/TerrainSculpt")
+
+local fails = 0
+local function check(name, ok, detail)
+	if not ok then
+		fails += 1
+		print(("FAIL %s%s"):format(name, detail and (": " .. tostring(detail)) or ""))
+	end
+end
+
+-- a deterministic stand-in for TileProps.visualRand at one tile
+local function randFor(seed)
+	return function(salt)
+		local h = (seed * 374761393 + (salt + 1) * 668265263) % 4294967296
+		h = bit32.bxor(h, bit32.rshift(h, 13))
+		h = (h * 1274126177) % 4294967296
+		h = bit32.bxor(h, bit32.rshift(h, 16))
+		return h / 4294967296
+	end
+end
+
+local propSrc = fs.readFile("roblox/src/client/TileProps.luau")
+local function shapeExists(k)
+	return propSrc:find("\n\t" .. k .. " = { shape = ", 1, true) ~= nil
+end
+
+local function sameList(a, b)
+	if #a ~= #b then
+		return false
+	end
+	for i = 1, #a do
+		for key, v in pairs(a[i]) do
+			if b[i][key] ~= v then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+local maxParts, snowSeen, liteMax = 0, 0, 0
+for seed = 1, 400 do
+	local items = M.mountain(randFor(seed), false)
+	check("mountain deterministic " .. seed, sameList(items, M.mountain(randFor(seed), false)))
+	local peaks, parts = 0, 0
+	local lastPeak = nil
+	for _, it in ipairs(items) do
+		check("known shape " .. it.k, shapeExists(it.k))
+		check("has color", type(it.color) == "string" and it.color:sub(1, 1) == "#")
+		if it.k == "peak" then
+			peaks += 1
+			parts += 5
+			lastPeak = it
+			local reach = math.max(math.abs(it.dx), math.abs(it.dz)) + M.baseRadiusOf(it)
+			check("peak near its tile " .. seed, reach <= 0.6, reach)
+			-- the tile centre (where a unit or city sits) stays outside every cone
+			local axis = math.sqrt(it.dx * it.dx + it.dz * it.dz)
+			check("centre clear of the cone " .. seed, axis > M.baseRadiusOf(it), axis - M.baseRadiusOf(it))
+		elseif it.k == "snow" then
+			snowSeen += 1
+			parts += 5
+			check("snow follows its peak", lastPeak ~= nil and it.dx == lastPeak.dx and it.dz == lastPeak.dz)
+			-- same apex (within the anti-z-fight lift), cap no wider than the cone base
+			check("snow apex = peak apex " .. seed,
+				math.abs(M.apexOf(it) - M.apexOf(lastPeak)) < 0.01, M.apexOf(it) - M.apexOf(lastPeak))
+			check("snow narrower than the peak", M.baseRadiusOf(it) < M.baseRadiusOf(lastPeak))
+		else
+			parts += 1
+			check("boulder inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) <= 0.42)
+		end
+	end
+	check("three summits " .. seed, peaks == 3, peaks)
+	check("the first summit is the tallest " .. seed, (function()
+		local top, first = 0, nil
+		for _, it in ipairs(items) do
+			if it.k == "peak" then
+				first = first or M.apexOf(it)
+				top = math.max(top, M.apexOf(it))
+			end
+		end
+		return first == top
+	end)())
+	maxParts = math.max(maxParts, parts)
+
+	local lite = M.mountain(randFor(seed), true)
+	local lp = 0
+	for _, it in ipairs(lite) do
+		lp += (it.k == "rock") and 1 or 5
+	end
+	liteMax = math.max(liteMax, lp)
+
+	local hills = M.hills(randFor(seed))
+	check("hills deterministic " .. seed, sameList(hills, M.hills(randFor(seed))))
+	check("2-3 mounds " .. seed, #hills == 2 or #hills == 3, #hills)
+	for _, it in ipairs(hills) do
+		check("mound shape exists", shapeExists(it.k))
+		local r = 0.11 * it.sx
+		check("mound mostly sunk (a low cap)", it.dy < 0 and it.dy + r > 0.02 and it.dy + r < 0.2, it.dy + r)
+		check("mound cap inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) + r * 0.8 <= 0.5)
+	end
+end
+check("full massif part budget <= 32", maxParts <= 32, maxParts)
+check("lite massif part budget <= 20", liteMax <= 20, liteMax)
+check("some shoulders carry snow, not all", snowSeen > 400 and snowSeen < 1200, snowSeen)
+
+if fails > 0 then
+	error(("%d terrain-sculpt check(s) failed"):format(fails))
+end
+print(("terrain-sculpt: full<=%d parts, lite<=%d parts, ALL PASS"):format(maxParts, liteMax))

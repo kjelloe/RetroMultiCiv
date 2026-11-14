@@ -900,6 +900,28 @@ seat/reset flow; JS engine untouched). Delivered:
   the zoom band hides unit labels. Gates 33 (names) + 34 (declutter), both
   lune-pinned in `roblox/selftest/`.
 
+- **run-N acceptance** (2026-11-14): `acceptance/runN.txt` — 69 turns,
+  10 commands, ALL HASHES MATCH, code `D99W-P1B6-BVGRY`; roster name
+  (`Washington`) and a typed name (`Mycity`) both founded through the card.
+  `acceptance/assemble.js` now mirrors `GameServer.startGame`: player `civ`
+  ids, the difficulty/combat/marathon rule overrides, and the Studio
+  `debug` flag (tried on, then off). It had drifted since run-F and failed
+  every lobby-era run at the initial hash; non-ancient age starts are
+  reported as not replayable.
+- **run-O** (2026-11-14, `specs/roblox-native-look.md`; built with Studio
+  unattended — look NOT yet verified):
+  **U1 button dress** — `UiTheme.apply(button, opts)` (rounded, outlined,
+  gradient, FredokaOne, hover/press, role palette, pcall-wrapped) on the
+  top-row menus, the action bar, the Research/Cities/Government cluster and
+  End Turn; `MenuIcons.luau` (12 pictograms, pure data) drawn by the new
+  `EditableGlyph.renderPrims`; text stays when EditableImage is absent.
+  **T1 terrain sculpt** (ENHANCED look only) — `TerrainSculpt.luau` plans a
+  three-summit ring massif with fitted snow caps + boulders for mountains
+  and low mounds for hills, placed through TileProps' own `put` with
+  existing shapes; the mountain block drops to 0.6 height (`tileTop`);
+  mountain resources move to a flank; `TileProps.sculpt` rides the rebuild
+  signature and a look change re-renders props. Gates 35 + 36.
+
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
 1. **The AI-round-chain guard is SEATS-DERIVED, never a fixed number.**

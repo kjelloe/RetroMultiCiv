@@ -307,6 +307,14 @@ twin rails double-tracked from stage 3, and the new PROP_SHAPES keys
 (gate 25 key-for-key). Detail per item in `workitems-roblox.md`
 (items 3 + 5).
 
+**ROBLOX-NATIVE LOOK (user direction 2026-11-14,
+`specs/roblox-native-look.md`):** chunky game-style buttons with
+code-drawn icons (U1 built: `UiTheme` + `MenuIcons`) and sculpted
+per-tile terrain for the ENHANCED look (T1 built: `TerrainSculpt`
+three-summit mountains, mounded hills). Phases U2–U4 / T2–T4 are in the
+spec; all of it is the "style/placement polish" bucket the 1.0 appendix
+deferred, now opened by the user.
+
 **Decision flow:** the toggle IS the side-by-side (the soundboard house
 pattern — this machine cannot render Roblox, the user's session can):
 Options → world look → flip retro/enhanced live → screenshot both →
