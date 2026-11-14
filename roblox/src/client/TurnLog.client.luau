@@ -175,7 +175,7 @@ local function put(turn, text, cls, fclass, loc)
 		end
 	end
 	list.CanvasSize = UDim2.new(0, 0, 0, math.min(rowCount, MAX_ROWS) * 17)
-	list.CanvasPosition = Vector2.new(0, math.max(0, list.CanvasSize.Y.Offset - list.AbsoluteSize.Y))
+	list.CanvasPosition = Vector2.new(0, list.CanvasSize.Y.Offset) -- the engine clamps to the bottom (AbsoluteSize is scaled by PanelDress)
 	if not panel.Visible then
 		unseen += 1
 		toggle.Text = ("  Turn log (L) — %d new"):format(unseen)

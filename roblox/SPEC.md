@@ -963,6 +963,21 @@ seat/reset flow; JS engine untouched). Delivered:
   sand rims (enhanced look, own `ClientWorld.TerrainCoast` folder), gate
   41. **T4** — `TerrainSculpt.forest` mixed woods through the same
   `TileProps` sculpt branch (every look), pinned in gate 36.
+- **run-R** (2026-11-14, three Studio sessions read from the log with
+  "Allow Mesh / Image APIs" on; all replay hash-exact): icons 27 of 27
+  after a 1 px floor on fill spans (`EditableGlyph.fillPoly`; the engine
+  refuses a sub-pixel `DrawRectangle`). **Gotcha**: a `UIPadding` on a
+  button moves its child instances too — the icon is offset back out of
+  the padding (`UiTheme`), `setCompact` zeroes the padding. Tech tree =
+  graph icon + "Tech Tree". Menu row + research cluster in the Roblox
+  top-bar inset (`HudDock.topFor`; `GetGuiInset` reads 0 during load, so
+  the cluster re-reads it). **U6** — `UiTheme.TEXT` reading sizes;
+  `UiPanel.luau` + `PanelDress.client.luau` scale every panel per screen
+  (authored for 1280x720) and cut it to fit a small one, gate 42; a panel
+  script that reads `AbsoluteSize` of its own content now reads SCALED
+  pixels (TurnLog's scroll-to-bottom was the one case). Top-left turn
+  line = RichText chip. Audit: `icon over label`, `text` (under 14 px
+  on screen), one `panel` line each.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 

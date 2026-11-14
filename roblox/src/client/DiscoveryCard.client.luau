@@ -149,7 +149,7 @@ local function show(techId)
 	end
 
 	local shownUnlocks = math.min(#unlocks, 3)
-	local W = 540 -- run-R (user): reading-size copy; height follows the content
+	local W = math.min(540, math.max(280, math.floor(gui.AbsoluteSize.X) - 16)) -- run-R (user): reading-size copy; height follows the content
 
 	card = Instance.new("TextButton") -- whole card click = dismiss
 	card.Size = UDim2.new(0, W, 0, 40)

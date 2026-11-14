@@ -121,7 +121,41 @@ no engine, state, command, or shared-recipe change; gamesim-golden-neutral.
 Phases: **U1** (built) top row, action bar, End Turn. **U2** (built) close
 / primary / toggle buttons. **U3a** (built) top-row dock. **U3b** (built)
 phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
-**U5** panel title bars and list rows (open).
+**U5** list rows inside panels (open). **U6** (built, run-R) below.
+
+### U6 — reading sizes, panel fit, top strip (user, run-R)
+
+- **Text scale** (`UiTheme.TEXT`): title 22, body 17, small 14 px;
+  `BODY_FONT` GothamMedium for reading copy, FredokaOne for headings and
+  buttons. Monospace (`Code`) stays only where columns line up (ledgers,
+  tooltips). The advice / welcome card (440 px, grows with its text, themed
+  buttons), the discovery card (540 px, measured height) and the tooltip
+  (15 px, 360 px) use it; both cards narrow to the screen width.
+- **Panel fit** (`UiPanel.luau` pure, `PanelDress.client.luau` applies):
+  panels are authored in pixels for 1280x720. Every pixel-sized Frame placed
+  straight on an RMC ScreenGui (>= 180x100; HUD surfaces skipped by name)
+  gets a `UIScale`: screen scale = min(w/1280, h/720), floor 1, cap 1.4,
+  0.05 steps; per panel it is cut until the panel fits the gui area. The
+  position is re-derived as home offset x scale, so the panel scales about
+  its screen anchor (right/bottom-pinned panels keep hugging their edge,
+  centred ones stay centred), then clamped on screen. Each panel also gets
+  12 px corners, one outline, and its heading (a short label along its top
+  edge) in the display font. No panel script changed for this.
+- **Phone**: the same rule cuts a panel to fit; under 0.75 the audit logs
+  `panel … cut to N to fit` as a FAIL — that list is the set of panels that
+  need a real narrow layout (expected: Pedia, Ship, End screen, Tech tree).
+- **Top strip**: the menu row (`HudDock.topFor`) and the Research / Cities /
+  Government cluster sit in the Roblox top-bar inset when it is at least
+  row height + 8 px tall, else at the old y. The cluster re-reads the inset
+  for 10 s (it reads 0 during load). The research-status line is below the
+  cluster. The menu row's width share is capped at 0.5 − 260/vw so it goes
+  icon-only before it reaches the cluster.
+- **Turn line** (top-left): a rounded chip as wide as its text, GothamBold
+  18 px — `Turn N · year · N gold · your turn | waiting for <seat>`, gold
+  and turn state coloured; code chips 14 px.
+- **Audit additions**: `icon over label`, `N visible text(s) under 14 px`
+  (on-screen size = TextSize x every UIScale above it), one `panel` line per
+  panel (scale, authored size, heading or NONE).
 
 ### T — terrain
 
@@ -158,7 +192,10 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 8 | fixes from that log | open | item 7 |
 | 9 | phone: unit cards, bottom-left toggles, research cluster | open | the phone audit's overlap list |
 | 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
-| 11 | U5 panel title bars / list rows, river banks | open | a look at U1/U2 |
+| 11 | U5 list rows, river banks | open | a look at U1/U2 |
+| 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
+| 13 | panels with heading=NONE get a heading; phone layouts for panels cut under 0.75 | open | the audit lists from item 12 |
+| 14 | remaining sub-14 px texts | open | the audit `text` line after the panel scale |
 
 Items 9–11 are held on purpose: T2b stacks a second wedge type on an
 orientation nobody has seen, and U5 touches every panel.
@@ -179,7 +216,8 @@ orientation nobody has seen, and U5 touches every panel.
 `roblox/check.sh`: gate 35 menu icons, 36 terrain sculpt, 37 slope skirts,
 38 diagnostics (Diag pins, audit gui list == created ScreenGuis,
 studio-log parser), 39 dock planner + touch labels + phone rule, 40 every
-source compiles, 41 sand coasts; gate 36 also pins the woods. Studio: `node roblox/tools/studio-log.js --diag` after a Play
+source compiles, 41 sand coasts, 42 panel fit (scale, anchor-preserving
+placement, phone cut-to-fit); gate 36 also pins the woods. Studio: `node roblox/tools/studio-log.js --diag` after a Play
 Solo — expected `0 failure kind(s)`, `icons drawn N of N wanted`.
 
 ## 8. Open questions

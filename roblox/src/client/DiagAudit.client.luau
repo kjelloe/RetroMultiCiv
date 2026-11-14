@@ -159,14 +159,27 @@ end
 
 -- reading-size floor (UiTheme.TEXT.small): every visible fixed-size text under
 -- 14 px is counted and the first few are named, so the log is the work list
+-- the on-screen size of a text: its TextSize times every UIScale above it
+local function scaleOf(obj)
+	local s, node = 1, obj
+	while node ~= nil and node ~= playerGui do
+		local u = node:FindFirstChildOfClass("UIScale")
+		if u ~= nil then
+			s *= u.Scale
+		end
+		node = node.Parent
+	end
+	return s
+end
+
 local function auditText()
 	local small, samples = 0, {}
 	for _, d in ipairs(playerGui:GetDescendants()) do
 		if (d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox")) and d.Text ~= ""
-			and not d.TextScaled and d.TextSize < 14 and shownOnScreen(d) then
+			and not d.TextScaled and d.TextSize * scaleOf(d) < 13.5 and shownOnScreen(d) then
 			small += 1
 			if #samples < 12 then
-				table.insert(samples, ("%s/%s %dpx '%s'"):format(guiOf(d), d.Name, d.TextSize, (d.Text:sub(1, 24):gsub("[\r\n]+", " "))))
+				table.insert(samples, ("%s/%s %dpx '%s'"):format(guiOf(d), d.Name, r(d.TextSize * scaleOf(d)), (d.Text:sub(1, 24):gsub("[\r\n]+", " "))))
 			end
 		end
 	end

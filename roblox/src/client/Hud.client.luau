@@ -16,16 +16,33 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local status = Instance.new("TextLabel")
 status.Name = "Status"
-status.Size = UDim2.new(0, 560, 0, 28)
-status.Position = UDim2.new(0, 8, 0, 8)
+-- run-R (user): the turn line as a rounded chip in the UI's own faces, as
+-- wide as its text (was a 560 px monospace strip)
+status.Size = UDim2.new(0, 0, 0, 34)
+status.AutomaticSize = Enum.AutomaticSize.X
+status.Position = UDim2.new(0, 8, 0, 6)
 status.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
-status.BackgroundTransparency = 0.25
-status.TextColor3 = Color3.fromRGB(235, 235, 235)
-status.Font = Enum.Font.Code
-status.TextSize = 16
+status.BackgroundTransparency = 0.12
+status.TextColor3 = Color3.fromRGB(245, 245, 245)
+status.Font = Enum.Font.GothamBold
+status.TextSize = 18
+status.RichText = true
 status.TextXAlignment = Enum.TextXAlignment.Left
-status.Text = "  joining…"
+status.Text = "joining…"
 status.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 10)
+	c.Parent = status
+	local s = Instance.new("UIStroke")
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.Color = Color3.fromRGB(18, 20, 28)
+	s.Thickness = 2
+	s.Parent = status
+	local p = Instance.new("UIPadding")
+	p.PaddingLeft, p.PaddingRight = UDim.new(0, 12), UDim.new(0, 12)
+	p.Parent = status
+end
 status.Active = true -- SO2: tooltip target
 
 -- SO2 (C2 twin): the income ledger on the status line — hover/long-press
@@ -299,7 +316,7 @@ end)
 -- push envelope says debugUsed (the watermark never comes off the state)
 local debugChip = Instance.new("TextLabel")
 debugChip.Size = UDim2.new(0, 70, 0, 20)
-debugChip.Position = UDim2.new(0, 574, 0, 8)
+debugChip.Position = UDim2.new(0, 574, 0, 13)
 debugChip.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
 debugChip.TextColor3 = Color3.fromRGB(255, 230, 230)
 debugChip.Font = Enum.Font.SourceSansBold
@@ -307,6 +324,9 @@ debugChip.TextSize = 14
 debugChip.Text = "DEBUG"
 debugChip.Visible = false
 debugChip.Parent = gui
+status:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+	debugChip.Position = UDim2.new(0, 8 + math.floor(status.AbsoluteSize.X) + 8, 0, 13)
+end)
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 6)
@@ -318,13 +338,13 @@ end
 -- available affordance). Server sends the code with every push.
 local codeChip = Instance.new("TextBox")
 codeChip.Name = "GameCode"
-codeChip.Size = UDim2.new(0, 220, 0, 20)
-codeChip.Position = UDim2.new(0, 8, 0, 40)
+codeChip.Size = UDim2.new(0, 250, 0, 22)
+codeChip.Position = UDim2.new(0, 8, 0, 46)
 codeChip.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
 codeChip.BackgroundTransparency = 0.35
 codeChip.TextColor3 = Color3.fromRGB(160, 200, 160)
-codeChip.Font = Enum.Font.Code
-codeChip.TextSize = 13
+codeChip.Font = Enum.Font.GothamMedium
+codeChip.TextSize = 14
 codeChip.TextXAlignment = Enum.TextXAlignment.Left
 codeChip.TextEditable = false
 codeChip.ClearTextOnFocus = false
@@ -336,13 +356,13 @@ codeChip.Parent = gui
 -- for read/retype into the lobby resume box after a stop.
 local saveChip = Instance.new("TextBox")
 saveChip.Name = "SavedCode"
-saveChip.Size = UDim2.new(0, 220, 0, 20)
-saveChip.Position = UDim2.new(0, 8, 0, 62)
+saveChip.Size = UDim2.new(0, 250, 0, 22)
+saveChip.Position = UDim2.new(0, 8, 0, 72)
 saveChip.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
 saveChip.BackgroundTransparency = 0.35
 saveChip.TextColor3 = Color3.fromRGB(200, 180, 120)
-saveChip.Font = Enum.Font.Code
-saveChip.TextSize = 13
+saveChip.Font = Enum.Font.GothamMedium
+saveChip.TextSize = 14
 saveChip.TextXAlignment = Enum.TextXAlignment.Left
 saveChip.TextEditable = false
 saveChip.ClearTextOnFocus = false
@@ -407,14 +427,15 @@ end)
 local function refresh(view)
 	local mine = ClientState.myTurn()
 	local me = view.players[view.you]
-	local bits = ("  turn %d · %s · gold %d · active %s%s"):format(
-		view.turn,
-		view.year < 0 and (-view.year .. " BC") or (view.year .. " AD"),
-		me and me.gold or 0,
-		view.activePlayer,
-		mine and " (YOU)" or " (AI thinking…)")
+	local sep = '  <font color="#6f7c94">·</font>  '
+	local bits = ('Turn %d%s%s%s<font color="#ffd76a">%d gold</font>%s%s'):format(
+		view.turn, sep,
+		view.year < 0 and (-view.year .. " BC") or (view.year .. " AD"), sep,
+		me and me.gold or 0, sep,
+		mine and '<font color="#8fe3a0">your turn</font>'
+			or ('<font color="#aab4c8">waiting for %s</font>'):format(tostring(view.activePlayer)))
 	if ClientState.gameOver then
-		bits ..= "  ·  GAME OVER"
+		bits ..= sep .. '<font color="#ff9a8a">GAME OVER</font>'
 	end
 	status.Text = bits
 	if ClientState.code ~= nil then

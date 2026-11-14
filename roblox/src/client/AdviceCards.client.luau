@@ -56,7 +56,7 @@ local function show(id)
 	end
 	card = Instance.new("Frame")
 	-- run-R (user): reading-size copy; the card grows with its text
-	card.Size = UDim2.new(0, 440, 0, 0)
+	card.Size = UDim2.new(0, math.min(440, math.max(240, gui.AbsoluteSize.X - 16)), 0, 0)
 	card.AutomaticSize = Enum.AutomaticSize.Y
 	do
 		local p = Instance.new("UIPadding")
