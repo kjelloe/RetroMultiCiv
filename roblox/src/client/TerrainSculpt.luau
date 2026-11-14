@@ -87,6 +87,14 @@ function M.mountain(rand, lite)
 	return out
 end
 
+-- where a resource marker stands on a mountain tile: the one gap of the ring
+-- that holds neither a summit (a0, +120, +240 deg) nor a boulder (+60, +180)
+M.FLANK_R = 0.38
+function M.flank(rand)
+	local a = rand(7) * math.pi * 2 - math.pi / 3
+	return math.cos(a) * M.FLANK_R, math.sin(a) * M.FLANK_R
+end
+
 -- rolling ground: one broad low dome off the tile centre and two lesser ones
 -- on the far side, each longer along its own heading
 M.HILL_MAX_H = 0.17

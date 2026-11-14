@@ -491,8 +491,14 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 							-- T1: on a sculpted massif the resource sits on a foot FLANK,
 							-- not inside the main summit (the browser H13c medium rule)
 							local flank = sculpted and t.t == "mountains"
-							put(m.k, { color = m.color, dx = flank and (m.dx or 0) + 0.3 or m.dx,
-								dz = flank and (m.dz or 0) + 0.26 or m.dz, dy = flank and 0.08 or m.dy,
+							local fx, fz = 0, 0
+							if flank then
+								fx, fz = TerrainSculpt.flank(function(salt) -- the ring gap free of summits and boulders
+									return M.visualRand(x, y, 200 + salt)
+								end)
+							end
+							put(m.k, { color = m.color, dx = flank and (m.dx or 0) * 0.3 + fx or m.dx,
+								dz = flank and (m.dz or 0) * 0.3 + fz or m.dz, dy = flank and 0.08 or m.dy,
 								sx = m.sx, sy = m.sy, sz = m.sz,
 								rotX = m.rotX, rotY = m.rotY, rotZ = m.rotZ, top = base })
 						end

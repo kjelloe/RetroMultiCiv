@@ -38,6 +38,10 @@ local function headingOf(frame)
 	if gui ~= nil and TAB_TITLE[gui.Name] ~= nil then
 		return nil
 	end
+	local named = frame:FindFirstChild("Heading")
+	if named ~= nil and named:IsA("TextLabel") then
+		return named
+	end
 	for _, c in ipairs(frame:GetChildren()) do
 		if c:IsA("TextLabel") and c.Name ~= "PanelTab" and c.Text ~= "" and c.Position.Y.Scale == 0 and c.Position.Y.Offset <= 12
 			and c.Size.Y.Scale == 0 and c.Size.Y.Offset >= 18 and c.Size.Y.Offset <= 64 then

@@ -45,6 +45,7 @@ headline.TextSize = 26
 headline.TextWrapped = true
 headline.TextXAlignment = Enum.TextXAlignment.Left
 headline.Text = ""
+headline.Name = "Heading" -- PanelDress: a heading even while empty
 headline.Parent = frame
 
 local list = Instance.new("ScrollingFrame")

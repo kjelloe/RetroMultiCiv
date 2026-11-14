@@ -78,6 +78,16 @@ for seed = 1, 400 do
 			end
 		end
 	end
+	local fx, fz = M.flank(randFor(seed))
+	check("flank inside the tile", math.max(math.abs(fx), math.abs(fz)) <= 0.42)
+	for _, it in ipairs(items) do
+		local d = math.sqrt((it.dx - fx) ^ 2 + (it.dz - fz) ^ 2)
+		if it.role == "foot" then
+			check("resource flank clear of every foot " .. seed, d > M.baseRadiusOf(it) * 0.8, d - M.baseRadiusOf(it))
+		elseif it.role == "boulder" then
+			check("resource flank clear of the boulders " .. seed, d > 0.2, d)
+		end
+	end
 	check("three summits " .. seed, feet == 3 and #tops == 3, feet)
 	check("the first summit is the tallest " .. seed, tops[1] == math.max(tops[1], tops[2], tops[3]))
 	maxParts = math.max(maxParts, #items)
