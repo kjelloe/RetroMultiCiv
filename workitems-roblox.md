@@ -186,7 +186,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 18. U4 verb icons + fitted action bar, U3b phone row, T3 sand coasts, T4 mixed woods ["go ahead with items" 2026-11-14] [done: 2026-11-14 — MenuIcons 27; ActionBar AutomaticSize + UIScale; UiText.isPhone / DockLayout bottom mode / phone verb filter; TerrainCoast.luau (gate 41); TerrainSculpt.forest (gate 36). Look NOT verified in Studio; phone not seen on a device or emulator.]
 
-## 19. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
+## 19. run-M read from the Studio log + two screenshots [2026-11-14] [done: 2026-11-14 — session replays hash-exact (324 turns, code 91RT-4XKC-PY91R, regent game). Log findings fixed: bottom-left toggle stack 16 px up (Turn log hung below the screen), Debug toggle out from under Map overlays, auto end turn silent under regency (was one roundInFlight reject per round), audit covers HUD-level unthemed buttons. Screenshot findings fixed: Roblox player list off (it covered the menu row), mountain summits ~25 % lower. Confirmed: script warn lands as Warning on CreatorOutput. OPEN (user): icons need Game Settings > Security > "Allow Mesh / Image APIs" — EditableImage refused, 0 of 27 drawn.]
+
+## 20. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---
 

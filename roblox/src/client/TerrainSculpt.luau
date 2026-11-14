@@ -52,9 +52,10 @@ function M.mountain(rand, lite)
 	for i = 0, summits - 1 do
 		local a = a0 + i * (math.pi * 2 / 3) + (rand(8 + i) - 0.5) * 0.5
 		local main = i == 0
-		local sy = main and (1.75 + rand(6) * 0.45) or (1.1 + rand(12 + i) * 0.5)
+		-- run-M screenshot: at 1.75-2.2 the summits read as needles; lowered ~25 %
+		local sy = main and (1.35 + rand(6) * 0.35) or (0.85 + rand(12 + i) * 0.4)
 		local sx = math.min(M.MAX_R / PEAK_R, main and (1.0 + rand(5) * 0.07) or (0.82 + rand(14 + i) * 0.18))
-		local snow = main and 0.36 or ((not lite and sy > 1.42) and 0.26 or 0)
+		local snow = main and 0.36 or ((not lite and sy > 1.11) and 0.26 or 0)
 		summit(out, rand, 100 + i * 10, math.cos(a) * M.RING, math.sin(a) * M.RING, sx, sy, snow)
 	end
 	if not lite then

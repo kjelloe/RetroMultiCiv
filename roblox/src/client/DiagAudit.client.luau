@@ -94,7 +94,9 @@ local function auditButtons(viewport)
 	-- AbsolutePosition is measured from below the top bar; the viewport is not
 	local inset = GuiService:GetGuiInset().Y
 	for _, d in ipairs(playerGui:GetDescendants()) do
-		if d:IsA("GuiButton") and d:GetAttribute("themed") == true then
+		-- themed buttons anywhere, plus any button placed straight on a ScreenGui
+		-- (HUD level: the unthemed Debug toggle sat unseen under Map overlays)
+		if d:IsA("TextButton") and (d:GetAttribute("themed") == true or d.Parent:IsA("ScreenGui")) then
 			local want = d:GetAttribute("themeIcon")
 			local got = d:FindFirstChild("ThemeIcon") ~= nil
 			if want ~= nil then

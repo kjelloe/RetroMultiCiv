@@ -26,7 +26,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local toggle = Instance.new("TextButton")
 toggle.Size = UDim2.new(0, 190, 0, 40)
-toggle.Position = UDim2.new(0, 8, 1, -120) -- above Legend
+toggle.Position = UDim2.new(0, 8, 1, -224) -- run-M: it sat UNDER Map overlays (same offset); now above Diplomacy
 toggle.BackgroundColor3 = Color3.fromRGB(70, 40, 40)
 toggle.BackgroundTransparency = 0.25
 toggle.TextColor3 = Color3.fromRGB(255, 200, 200)
@@ -43,7 +43,7 @@ end
 
 local panel = Instance.new("Frame")
 panel.Size = UDim2.new(0, 250, 0, 246)
-panel.Position = UDim2.new(0, 8, 1, -372)
+panel.Position = UDim2.new(0, 8, 1, -476)
 panel.BackgroundColor3 = Color3.fromRGB(34, 22, 22)
 panel.BackgroundTransparency = 0.06
 panel.BorderSizePixel = 0

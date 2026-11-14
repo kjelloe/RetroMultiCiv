@@ -335,13 +335,15 @@ ClientState.onView(function(view)
 
 	-- (7) end the turn when nothing is left to move
 	if allUnitsDone(view) then
-		if ClientState.options.autoEndTurn then
+		-- run-M (log): with the regent driving, auto end turn fired every round
+		-- and each send came back roundInFlight — the regent ends its own turns
+		if ClientState.options.autoEndTurn and not ClientState.away then
 			if lastAutoEndTurn ~= view.turn then
 				lastAutoEndTurn = view.turn
 				task.delay(1, function()
 					local v = ClientState.view
 					if v ~= nil and v.turn == lastAutoEndTurn and ClientState.myTurn()
-						and ClientState.options.autoEndTurn and allUnitsDone(v) then
+						and ClientState.options.autoEndTurn and not ClientState.away and allUnitsDone(v) then
 						print("[Options] auto end turn " .. v.turn)
 						ClientState.send({ type = "endTurn" })
 					end

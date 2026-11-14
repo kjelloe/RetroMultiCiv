@@ -168,8 +168,8 @@ orientation nobody has seen, and U5 touches every panel.
 | risk | note |
 |---|---|
 | Not seen in Studio | Everything since run-N was built with Studio unattended: lune-compiled (gate 40), pure halves pinned, look unverified. The audit now reports geometry (rects, fit, counts), not appearance — a screenshot is still the look check. |
-| Warning channel | The log reader is proven on `print` lines (the run-N session, replayed hash-exact from the log). No script `warn` or error has occurred in a logged session yet, so their channel/level is unconfirmed; the reader therefore matches the `[RMC-DIAG]` tag on any channel and error lines that name a script. |
-| EditableImage | Never yet confirmed in Studio. Failure is benign (text-only buttons) and now logged with its cause. Needs the experience's "Allow Mesh / Image APIs" security setting — to confirm. |
+| Warning channel | Confirmed in run-M: a script `warn` lands as level Warning on `FLog::CreatorOutput`; the reader shows it under `--diag`. |
+| EditableImage | run-M: refused — "EditableImage is not accessible. Go to the Security Tab in Experience Settings to enable this API." 0 of 27 icons drawn, buttons text-only (logged, no error). User-side setting; the draw path itself is still unproven. |
 | Dock | The row now moves on every viewport change; a planner error falls back to the built offsets. Icon size is fixed at dress time (24 px in a 40 px button). |
 | Part count | Full massif ≤ 32 parts per mountain tile, now in every look. ~80 mountain tiles on 40×25 = ~2.6 k parts; lite path above 150 tiles. The audit prints the folder counts. |
 | Look parity | The browser Medium/High surfaces are meshes; this is a part-built reading of the same idea, not a twin. No gate compares them, by design. |

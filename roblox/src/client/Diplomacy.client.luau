@@ -21,7 +21,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 local toggle = Instance.new("TextButton")
 toggle.Name = "Toggle"
 toggle.Size = UDim2.new(0, 190, 0, 40)
-toggle.Position = UDim2.new(0, 8, 1, -164) -- runJ item 2: moved up so Map overlays fits above Legend
+toggle.Position = UDim2.new(0, 8, 1, -180) -- runJ item 2: moved up so Map overlays fits above Legend
 toggle.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 toggle.BackgroundTransparency = 0.25
 toggle.TextColor3 = Color3.fromRGB(235, 235, 235)
@@ -40,7 +40,7 @@ end
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
 panel.Size = UDim2.new(0, 360, 0, 200)
-panel.Position = UDim2.new(0, 8, 1, -324)
+panel.Position = UDim2.new(0, 8, 1, -340)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0

@@ -37,7 +37,7 @@ local btn = Instance.new("TextButton")
 -- runJ item 2: match the Legend button (190x40, TextSize 18) and sit just above
 -- Legend, in the slot Diplomacy used to hold (Diplomacy moved up 44px).
 btn.Size = UDim2.new(0, 190, 0, 40)
-btn.Position = UDim2.new(0, 8, 1, -120)
+btn.Position = UDim2.new(0, 8, 1, -136)
 btn.BackgroundColor3 = Color3.fromRGB(30, 40, 54)
 btn.BackgroundTransparency = 0.25
 btn.TextColor3 = Color3.fromRGB(235, 235, 235)
@@ -55,7 +55,7 @@ end
 
 local panel = Instance.new("Frame")
 panel.Size = UDim2.new(0, 232, 0, 116)
-panel.Position = UDim2.new(0, 8, 1, -240) -- runJ item 2: just above the Map-overlays button
+panel.Position = UDim2.new(0, 8, 1, -256) -- runJ item 2: just above the Map-overlays button
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0

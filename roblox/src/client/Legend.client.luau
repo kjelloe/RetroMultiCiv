@@ -15,7 +15,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local toggle = Instance.new("TextButton")
 toggle.Size = UDim2.new(0, 190, 0, 40)
-toggle.Position = UDim2.new(0, 8, 1, -76) -- above the Turn log toggle
+toggle.Position = UDim2.new(0, 8, 1, -92) -- above the Turn log toggle
 toggle.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 toggle.BackgroundTransparency = 0.25
 toggle.TextColor3 = Color3.fromRGB(235, 235, 235)
@@ -63,7 +63,7 @@ local LINES = {
 
 local panel = Instance.new("ScrollingFrame")
 panel.Size = UDim2.new(0, 430, 0, 440)
-panel.Position = UDim2.new(0, 8, 1, -524)
+panel.Position = UDim2.new(0, 8, 1, -540)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0

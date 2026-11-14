@@ -103,6 +103,21 @@ function M.register(obj, opts)
 	request()
 end
 
+-- run-M (screenshot): the Roblox player list opens over the top-right menu
+-- row. The lobby panel already lists the seats, so the core list is off.
+task.spawn(function()
+	for _ = 1, 10 do
+		local ok = pcall(function()
+			game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+		end)
+		if ok then
+			return
+		end
+		task.wait(0.5)
+	end
+	Diag.fail("dock", "player list still on (it covers the menu row)", "SetCoreGuiEnabled refused 10 times")
+end)
+
 task.spawn(function()
 	local cam = workspace.CurrentCamera
 	while cam == nil do
