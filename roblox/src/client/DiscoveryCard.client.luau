@@ -119,6 +119,11 @@ local function unlocksOf(rs, techId)
 	return out
 end
 
+-- the tech tree's hover card reads the same text and unlock list (a
+-- LocalScript cannot be required; ClientState is the shared table)
+ClientState.techBlurbs = TECH_BLURBS
+ClientState.techUnlocks = unlocksOf
+
 local pump -- forward: close() pumps the queue
 
 local function close()

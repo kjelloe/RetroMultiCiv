@@ -213,6 +213,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 16 | dev-tool gating (owner debug game, admins attribute, diagnostics option) | built | a published server for the owner paths |
 | 17 | phone: bottom-left icon row (`LeftStack`), unit cards follow the bar fit | built | one phone-emulator run |
 | 19 | smooth mountains / rolling hills (ellipsoids), tech tree graph, income card | built (gates 36, 44) | a look at each |
+| 20 | civilization gallery (pick before start, default random), close X on every click-opened panel, tech hover card | built (gate 45) | a look; two players picking the same civ |
 | 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
 Items 9–11 are held on purpose: T2b stacks a second wedge type on an

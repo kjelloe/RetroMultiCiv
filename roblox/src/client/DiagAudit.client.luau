@@ -36,7 +36,7 @@ end)
 local EXPECTED_GUIS = {
 	"RMCActionBar", "RMCAdvice", "RMCCityList", "RMCCityPanel", "RMCDiplomacy",
 	"RMCDiscoveryCard", "RMCEndScreen", "RMCFastForward", "RMCGovernment",
-	"RMCHistorian", "RMCHud", "RMCLegend", "RMCLobby", "RMCMinimap", "RMCOptions",
+	"RMCCivGallery", "RMCHistorian", "RMCHud", "RMCLegend", "RMCLobby", "RMCMinimap", "RMCOptions",
 	"RMCOverlays", "RMCPedia", "RMCRegentDialog", "RMCTheater", "RMCResearch",
 	"RMCRidePad", "RMCTileCard", "RMCShip", "RMCStats", "RMCStrategic",
 	"RMCTechTree", "RMCTooltip", "RMCTurnLog", "RMCWaitStatus", "RMCResume",

@@ -244,6 +244,18 @@ local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	debugGame = false, -- run-R ruling 1: owner-only switch, a debug-enabled (hash-tainted on use) game
 	diag = false } -- run-R ruling 4: client diagnostics for every player (the owner always has them)
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
+-- run-S shot15 (user): each seated player may choose a civilization before
+-- the start (the gallery in Lobby.client). UserId -> civ id; absent = random
+-- (the seed-shuffled roster slot). One player per civ.
+local civPicks = {}
+local function civPickTaken(civId, exceptUserId)
+	for _, userId in ipairs(seatUserIds) do
+		if userId ~= exceptUserId and civPicks[userId] == civId then
+			return true
+		end
+	end
+	return false
+end
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
 -- command from the seat's player takes it back.
@@ -385,7 +397,9 @@ local function lobbyPayloadFor(player)
 					end
 				end
 			end
-			table.insert(seats, { pid = "seat " .. i, name = civPool[i] or "?", who = who })
+			local pick = userId ~= nil and civPicks[userId] or nil
+			table.insert(seats, { pid = "seat " .. i, name = civPool[i] or "?", who = who,
+				civ = pick, civName = pick ~= nil and ruleset.civs[pick].name or nil })
 		end
 	end
 	return {
@@ -407,6 +421,8 @@ local function lobbyPayloadFor(player)
 				debugGame = (state ~= nil and state.debugEnabled == true) or (state == nil and setup.debugGame == true),
 				diag = setup.diag == true },
 			seats = seats,
+			yourCiv = state == nil and civPicks[player.UserId] or nil,
+			canPickCiv = state == nil and table.find(seatUserIds, player.UserId) ~= nil,
 			gameRunning = state ~= nil,
 		},
 	}
@@ -988,6 +1004,17 @@ local function startGame()
 	end
 	table.sort(sortedCivIds)
 	local roster = civShuffle.shuffleRoster(sortedCivIds, seed)
+	-- chosen civilizations: a human seat's pick is swapped into its roster
+	-- slot (the AI seats keep the shuffle's order around it). [R4INIT] prints
+	-- the final civ list, so the replay rebuilds the same world.
+	for i = 1, setup.humans do
+		local pick = seatUserIds[i] ~= nil and civPicks[seatUserIds[i]] or nil
+		local j = pick ~= nil and table.find(roster, pick) or nil
+		if j ~= nil and j ~= i and not (j < i and civPicks[seatUserIds[j]] == pick) then
+			roster[i], roster[j] = roster[j], roster[i]
+			print(("[GameServer] seat %d plays its chosen civilization: %s"):format(i, pick))
+		end
+	end
 	local civIds = {}
 	local playerDefs = setmetatable({}, statehash.ARRAY_MT)
 	for i = 1, setup.civs do
@@ -1296,6 +1323,7 @@ local function resumeGame(player, rawCode)
 	hostUserId = player.UserId
 	seatOfUser = { [player.UserId] = "p1" }
 	seatUserIds = { player.UserId }
+	civPicks = {}
 	seatMeta = {} -- R6
 	bindSeatMeta("p1", player.UserId, player.Name)
 	print(("[R4RESUME] code=%s turn=%d humans=%d hash=%s"):format(code, state.turn,
@@ -1359,6 +1387,7 @@ local function padStart(player)
 		spectators = true, marathon = false, midgameJoin = true,
 		debugGame = false, diag = false }
 	seatUserIds = { player.UserId }
+	civPicks = {}
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
 	-- the 60-SECOND host window (user design): no completion = pad reopens
@@ -1634,6 +1663,17 @@ remote.OnServerEvent:Connect(function(player, msg)
 		if seatOfUser[player.UserId] == nil then
 			remote:FireClient(player, { t = "greeting" })
 		end
+		return
+	end
+
+	if msg.t == "pickCiv" and state == nil and table.find(seatUserIds, player.UserId) ~= nil then
+		local civId = msg.civ
+		if civId == nil or civId == "random" then
+			civPicks[player.UserId] = nil
+		elseif type(civId) == "string" and ruleset.civs[civId] ~= nil and not civPickTaken(civId, player.UserId) then
+			civPicks[player.UserId] = civId
+		end
+		broadcastLobby()
 		return
 	end
 

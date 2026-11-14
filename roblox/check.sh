@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock TerrainCoast UiPanel PanelDress DevAccess HudGate DeckPlan LeftStack TechTreeLayout CivGallery; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -605,6 +605,21 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 44: lune absent"
+fi
+
+# gate 45 — run-S wiring pins (grep): civilization pick end to end (gallery ->
+# pickCiv -> roster swap, printed in [R4INIT]'s civ list), a close X on every
+# click-opened panel, the tech tree hover card
+if grep -q 'msg.t == "pickCiv"' roblox/src/server/GameServer.server.luau \
+   && grep -q 'roster\[i\], roster\[j\] = roster\[j\], roster\[i\]' roblox/src/server/GameServer.server.luau \
+   && grep -q 't = "pickCiv"' roblox/src/client/Lobby.client.luau \
+   && grep -q '"random"' roblox/src/client/CivGallery.luau \
+   && grep -q 'PanelClose' roblox/src/client/PanelDress.client.luau \
+   && grep -q 'CloseByEnabled' roblox/src/client/CityList.client.luau \
+   && grep -q 'Tooltip.attach(btn' roblox/src/client/TechTree.client.luau; then
+  note PASS "gate 45: civ pick wiring, panel close X, tech hover card (grep pins)"
+else
+  note FAIL "gate 45: run-S wiring pins — civ pick / PanelClose / tech hover card"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

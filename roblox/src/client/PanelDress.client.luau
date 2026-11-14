@@ -28,6 +28,21 @@ local TAB_TITLE = {
 }
 local TAB_H = 28
 
+-- run-S (user): "all panels that pop up on a click can be closed". A panel
+-- without its own X gets one. These are not click-opened or close themselves.
+local NO_CLOSE = {
+	RMCLobby = true, RMCFastForward = true, RMCFoundCity = true, RMCEndScreen = true,
+	RMCHistorian = true, RMCResume = true,
+}
+local function hasClose(frame)
+	for _, c in ipairs(frame:GetChildren()) do
+		if c:IsA("TextButton") and (c.Text == "X" or c.Text == "x" or c.Text == "✕" or c.Name:lower():find("close") ~= nil) then
+			return true
+		end
+	end
+	return false
+end
+
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local panels = {} -- frame -> { gui, home, scale, last }
 
@@ -157,6 +172,28 @@ local function adopt(gui, frame)
 		ts.Color = UiTheme.OUTLINE
 		ts.Thickness = 2
 		ts.Parent = tab
+	end
+
+	if NO_CLOSE[gui.Name] == nil and not hasClose(frame) then
+		local tabbed = frame:FindFirstChild("PanelTab") ~= nil
+		local x = Instance.new("TextButton")
+		x.Name = "PanelClose"
+		x.Size = UDim2.new(0, 28, 0, 26)
+		-- a tabbed panel's rows start at its top edge: the X stands on the tab line
+		x.Position = tabbed and UDim2.new(1, -38, 0, -TAB_H + 2) or UDim2.new(1, -34, 0, 6)
+		x.TextSize = 16
+		x.Text = "X"
+		x.ZIndex = frame.ZIndex + 5
+		x.Parent = frame
+		UiTheme.apply(x, { color = "danger", radius = 8 })
+		x.Activated:Connect(function()
+			if gui:GetAttribute("CloseByEnabled") then
+				gui.Enabled = false
+			else
+				frame.Visible = false
+			end
+		end)
+		Diag.count("ui", "closeAdded")
 	end
 
 	frame:GetPropertyChangedSignal("Size"):Connect(function()

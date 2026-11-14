@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local CivGallery = require(script.Parent:WaitForChild("CivGallery"))
 
 local remote = ReplicatedStorage:WaitForChild("RMC")
 
@@ -198,7 +199,23 @@ setupPanel.BorderSizePixel = 0
 setupPanel.Visible = false
 setupPanel.Parent = gui
 
-label(setupPanel, 6, 33, "New game (you are the host)") -- runI item 5: +50% title
+label(setupPanel, 6, 33, "New game").Size = UDim2.new(0, 200, 0, 33) -- runI item 5: +50% title
+
+local function openCivGallery()
+	CivGallery.open(function(civId)
+		remote:FireServer({ t = "pickCiv", civ = civId })
+	end)
+end
+-- shot15 (user): "where can I choose civilization?" - here, and on your seat card
+local hostCivBtn = Instance.new("TextButton")
+hostCivBtn.Name = "ChooseCiv"
+hostCivBtn.Size = UDim2.new(0, 282, 0, 36)
+hostCivBtn.Position = UDim2.new(1, -292, 0, 6)
+hostCivBtn.TextSize = 17
+hostCivBtn.Text = "Your civilization: Random"
+hostCivBtn.Parent = setupPanel
+UiTheme.apply(hostCivBtn, { color = "primary", radius = 8 })
+hostCivBtn.Activated:Connect(openCivGallery)
 
 local function sendSetup(key, dir)
 	remote:FireServer({ t = "setup", key = key, dir = dir })
@@ -527,6 +544,19 @@ local function render(lobby)
 		end
 	end
 	local rows = 0
+	local extra = 0 -- px added by the own seat's "choose civilization" button
+	local takenBy = {}
+	for _, seat in ipairs(lobby.seats or {}) do
+		if seat.civ ~= nil and seat.who ~= Players.LocalPlayer.Name then
+			takenBy[seat.civ] = seat.who
+		end
+	end
+	CivGallery.update(lobby.yourCiv, takenBy)
+	if not lobby.canPickCiv then
+		CivGallery.close()
+	end
+	local civs = ClientState.rulesets().civs
+	hostCivBtn.Text = "Your civilization: " .. (lobby.yourCiv ~= nil and civs[lobby.yourCiv] ~= nil and civs[lobby.yourCiv].name or "Random")
 	for i, seat in ipairs(lobby.seats or {}) do
 		rows += 1
 		local mine = seat.who == Players.LocalPlayer.Name
@@ -588,7 +618,9 @@ local function render(lobby)
 		local stanceTag = seat.stance == "builder" and "  ·  Perfectionist" or ""
 		local holder = kind == "open" and "free - step on JOIN" or kind == "ai" and "computer player"
 			or kind == "regent" and "AI regent holds this seat" or seat.who
-		who.Text = preGame and ("%s  ·  civilization drawn at start"):format(holder)
+		who.Text = preGame and ("%s  ·  %s"):format(holder,
+				kind == "open" and "civilization chosen by whoever joins"
+					or (seat.civName ~= nil and seat.civName or "random civilization"))
 			or ("%s  ·  %s%s"):format(tostring(seat.pid), holder, stanceTag)
 		who.Parent = row
 		local canKick = lobby.youAreAdmin and kind == "player" -- shot11: no Kick on your own seat
@@ -605,6 +637,22 @@ local function render(lobby)
 		local bdc = Instance.new("UICorner")
 		bdc.CornerRadius = UDim.new(0, 11)
 		bdc.Parent = badge
+		if mine and preGame and lobby.canPickCiv then
+			row.Size = UDim2.new(1, -8, 0, 92)
+			extra = 42
+			-- the card's own rows keep their place at the top of the taller card
+			badge.Position = UDim2.new(1, -70, 0, 14)
+			bar.Size = UDim2.new(0, 6, 0, 38)
+			local choose = Instance.new("TextButton")
+			choose.Name = "ChooseCiv"
+			choose.Size = UDim2.new(1, -32, 0, 34)
+			choose.Position = UDim2.new(0, 20, 0, 52)
+			choose.TextSize = 16
+			choose.Text = seat.civName ~= nil and ("Change civilization (" .. seat.civName .. ")") or "Choose civilization (now: random)"
+			choose.Parent = row
+			UiTheme.apply(choose, { color = "primary", radius = 8 })
+			choose.Activated:Connect(openCivGallery)
+		end
 		if canKick then
 			local kick = Instance.new("TextButton")
 			kick.Size = UDim2.new(0, 56, 0, 28)
@@ -623,7 +671,7 @@ local function render(lobby)
 	-- the seat list ends above them)
 	local foot = lobby.phase == "idle" and 40 or 0
 	seatsFrame.Size = UDim2.new(1, -16, 1, -(SEATS_TOP + 8 + foot))
-	panel.Size = UDim2.new(0, 360, 0, SEATS_TOP + 8 + math.clamp(rows, 1, 8) * 56 + foot)
+	panel.Size = UDim2.new(0, 360, 0, SEATS_TOP + 8 + math.clamp(rows, 1, 8) * 56 + extra + foot)
 	ClientState.youAreAdmin = lobby.youAreAdmin == true -- the mid-game replay button's gate
 
 	local isHostSetup = lobby.youAreHost and lobby.phase == "setup"

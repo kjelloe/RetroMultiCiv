@@ -11,6 +11,7 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "RMCCityList"
 gui.ResetOnSpawn = false
 gui.Enabled = false
+gui:SetAttribute("CloseByEnabled", true) -- PanelDress adds the X: this panel opens by gui.Enabled
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local panel = Instance.new("Frame")

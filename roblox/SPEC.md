@@ -1017,7 +1017,17 @@ seat/reset flow; JS engine untouched). Delivered:
   **Gotchas**: a `UIStroke` under a TextButton outlines the TEXT unless
   `ApplyStrokeMode = Border`; the engine writes `researching = ""` for
   none - `ClientState` turns it into nil on the view; `ClientState.send`
-  returns nil and sends nothing while the regent has the seat. Not seen yet: phone layouts, a station
+  returns nil and sends nothing while the regent has the seat. shot15:
+  **civilization pick** - `CivGallery.luau` (own gui `RMCCivGallery`),
+  server `pickCiv` + `civPicks` (UserId -> civ, one per civ, cleared with
+  each host window), swapped into the human's roster slot in `startGame`;
+  a pick makes a pre-baked age snapshot fall through to the live
+  fast-forward (roster differs). **Close X on every click-opened panel**:
+  `PanelDress` adds `PanelClose` unless the panel has an X / a *close*
+  button or its gui is in `NO_CLOSE`; a panel opened by `gui.Enabled`
+  sets the gui attribute `CloseByEnabled`. Tech tree boxes carry a
+  `Tooltip` card (`ClientState.techBlurbs` / `techUnlocks`, published by
+  DiscoveryCard). Gate 45. Not seen yet: phone layouts, a station
   sign up close, river banks, scrolling inside scaled panels.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
