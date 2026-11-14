@@ -73,7 +73,10 @@ items only if they block reading or tapping.
 
 4. **Host setup panel** — Tier 3 📷
    - Tap: the NEW GAME pad.
-   - Expect: "New game (you are the host)" panel; segmented bars for map
+   - Expect: "New game" panel with a "Your civilization: Random" button at
+     its top right (opens the civilization gallery: left / right through
+     the civs, Random first; the same button is on your seat card in the
+     Game lobby panel; a civ another player picked reads "Taken by ..."); segmented bars for map
      size / civilizations / human seats / **map type (9 segments:
      archipelago, clover, continents, fractal, inland-sea, islands, oval,
      pangaea, ring)** / max idle / starting age / difficulty / combat.
@@ -270,7 +273,8 @@ items only if they block reading or tapping.
   where Ship is hidden, the clock left of it; (b) the tree and target
   buttons show an icon, not an emoji; (c) mountains are three-summit
   massifs with snow in ALL three looks, a unit on a mountain tile visible
-  between the summits, mountain gold on a flank; (d) enhanced look only:
+  between the summits, mountain gold on a flank; hills are a low block
+  carrying two long rounded ridges with a valley through the middle; (d) enhanced look only:
   sloped skirts toward lower neighbours, none toward unexplored tiles,
   none burying a road or unit; (e) panel close buttons red, Buy / START
   GAME green; (f) narrow the Studio window below ~1100 px: Options /

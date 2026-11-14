@@ -75,7 +75,7 @@ local function popColor(pop)
 end
 
 local function chip(parent, x, label, color)
-	local c = text(parent, x, 6, 0, 20, 13, Enum.Font.GothamBold, Color3.fromRGB(18, 20, 28))
+	local c = text(parent, x, 6, 0, 20, 14, Enum.Font.GothamBold, Color3.fromRGB(18, 20, 28))
 	c.AutomaticSize = Enum.AutomaticSize.X
 	c.BackgroundTransparency = 0
 	c.BackgroundColor3 = color
@@ -156,7 +156,7 @@ local function refresh()
 			local num = text(row, 0, 27, 60, 22, 14, Enum.Font.GothamBold, Color3.fromRGB(226, 231, 242))
 			num.Position = UDim2.new(1, -66, 0, 27)
 			num.Text = ("%d/%d"):format(done, cost)
-			local size = text(row, 0, 6, 110, 18, 13, nil, Color3.fromRGB(143, 155, 179))
+			local size = text(row, 0, 6, 110, 18, 14, nil, Color3.fromRGB(143, 155, 179))
 			size.Position = UDim2.new(1, -116, 0, 6)
 			size.TextXAlignment = Enum.TextXAlignment.Right
 			size.Text = "population " .. tostring(c.pop)

@@ -135,7 +135,7 @@ end
 for _, r in ipairs(RATES) do
 	local name = text(panel, 14, r.y, 76, 18, 16, Enum.Font.GothamBold)
 	name.Text = r.label
-	local note = text(panel, 14, r.y + 17, 96, 14, 12, nil, MUTED)
+	local note = text(panel, 14, r.y + 18, 96, 16, 14, nil, MUTED)
 	note.Text = r.note
 	local track = Instance.new("Frame")
 	track.Position = UDim2.new(0, 104, 0, r.y + 6)
@@ -156,7 +156,7 @@ for _, r in ipairs(RATES) do
 		ui.down = stepButton(296, r.y, "-")
 		ui.up = stepButton(334, r.y, "+")
 	else
-		local rest = text(panel, 296, r.y + 4, 76, 22, 13, nil, MUTED)
+		local rest = text(panel, 296, r.y + 4, 76, 22, 14, nil, MUTED)
 		rest.Text = "what is left"
 	end
 	rateUi[r.key] = ui
@@ -226,11 +226,11 @@ local DISPLAY_ORDER = { "despotism", "monarchy", "communism", "republic", "democ
 local function govButton(gov, order, lockedBy)
 	local b = Instance.new("TextButton")
 	b.LayoutOrder = order
-	b.TextSize = 16
+	b.TextSize = 15
 	b.RichText = true
 	b.Parent = switchRow
 	if lockedBy ~= nil then
-		b.Text = ('%s\n<font size="12">needs %s</font>'):format(gov.name, lockedBy)
+		b.Text = ('%s\n<font size="14">needs %s</font>'):format(gov.name, lockedBy)
 		b.BackgroundColor3 = Color3.fromRGB(40, 44, 56)
 		b.TextColor3 = Color3.fromRGB(130, 136, 150)
 		b.Font = UiTheme.BODY_FONT
@@ -240,7 +240,7 @@ local function govButton(gov, order, lockedBy)
 		round(b, 10)
 		return b
 	end
-	b.Text = ('%s\n<font size="12">rates to %d%%</font>'):format(gov.name, gov.maxRate or 0)
+	b.Text = ('%s\n<font size="14">rates to %d%%</font>'):format(gov.name, gov.maxRate or 0)
 	UiTheme.apply(b, { color = "primary", radius = 10 })
 	local stripe = Instance.new("Frame") -- the government's colour
 	stripe.Size = UDim2.new(0, 6, 1, -14)

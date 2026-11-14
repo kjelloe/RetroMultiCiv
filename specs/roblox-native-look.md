@@ -173,8 +173,11 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 - **T1** (built, EVERY look since the second ruling): `TerrainSculpt.luau`
   — mountain = three summits on a ring around the tile centre (the centre
   stays clear for a unit or city), fitted snow caps, two foot boulders; the
-  block drops to 0.6 height. Hills = 2–3 low mounds. Mountain resources
-  move to a flank. More than 150 mountain tiles in view → lite massif.
+  block drops to 0.6 height. Hills (run-S shot16 ruling): the block at 50 % of
+  its old height, and on it two long rolling ridges (true ellipsoids) side by
+  side with a valley through the tile centre. An all-ellipsoid mountain was
+  tried and withdrawn (read as blobs). Mountain resources stand in the free
+  gap of the summit ring (`TerrainSculpt.flank`). More than 150 mountain tiles in view → lite massif.
 - **T2** (built, ENHANCED look only — slopes were not part of the ruling
   and retro is deliberately blocky): `TerrainSkirts.luau` wedges against
   walls ≥ 1 stud. Outer corners between two skirts are open

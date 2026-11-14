@@ -187,7 +187,7 @@ function refresh()
 		badge.Position = UDim2.new(0, 8, 0.5, 0)
 		local name = text(row, 36, 0, 200, 38, 17, Enum.Font.GothamBold)
 		name.Text = rs.techs[id] and rs.techs[id].name or id
-		local side = text(row, 0, 0, 110, 38, 13, nil, isCurrent and Color3.fromRGB(255, 225, 130) or MUTED)
+		local side = text(row, 0, 0, 110, 38, 14, nil, isCurrent and Color3.fromRGB(255, 225, 130) or MUTED)
 		side.Position = UDim2.new(1, -118, 0, 0)
 		side.TextXAlignment = Enum.TextXAlignment.Right
 		side.Text = isCurrent and "in progress" or (selected == id and "hide" or "details")

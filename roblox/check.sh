@@ -616,8 +616,13 @@ if grep -q 'msg.t == "pickCiv"' roblox/src/server/GameServer.server.luau \
    && grep -q '"random"' roblox/src/client/CivGallery.luau \
    && grep -q 'PanelClose' roblox/src/client/PanelDress.client.luau \
    && grep -q 'CloseByEnabled' roblox/src/client/CityList.client.luau \
-   && grep -q 'Tooltip.attach(btn' roblox/src/client/TechTree.client.luau; then
-  note PASS "gate 45: civ pick wiring, panel close X, tech hover card (grep pins)"
+   && grep -q 'Tooltip.attach(btn' roblox/src/client/TechTree.client.luau \
+   && grep -q 'TechInfo.card' roblox/src/client/TechTree.client.luau \
+   && grep -q 'TechInfo.card' roblox/src/client/ResearchPicker.client.luau \
+   && grep -q 'HEIGHT \* 0.25' roblox/src/client/ViewRenderer.client.luau \
+   && grep -q 'REFONT\[gui.Name\]' roblox/src/client/PanelDress.client.luau \
+   && ! grep -qE 'size="1[0-3]"|, 1[0-3], (nil|Enum)' roblox/src/client/GovernmentPanel.client.luau roblox/src/client/CityList.client.luau roblox/src/client/ResearchPicker.client.luau roblox/src/client/CivGallery.luau roblox/src/client/TechInfo.luau; then
+  note PASS "gate 45: civ pick wiring, panel close X, shared tech info, half-height hills, reading face, no text under 14 px in the new panels (grep pins)"
 else
   note FAIL "gate 45: run-S wiring pins — civ pick / PanelClose / tech hover card"
 fi
