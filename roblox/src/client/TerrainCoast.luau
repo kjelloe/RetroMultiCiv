@@ -12,6 +12,10 @@ M.THICK = 0.06 -- studs
 M.LIFT = 0.04 -- studs the rim's top stands above the land block (no z-fight)
 M.SAND = Color3 ~= nil and Color3.fromRGB(216, 198, 144) or nil
 M.FOG_DIM = 0.55
+-- river banks (T3 remainder): the same rim where low land meets a river tile,
+-- narrower and in damp earth instead of sand
+M.BANK = Color3 ~= nil and Color3.fromRGB(122, 104, 72) or nil
+M.BANK_DEPTH = 0.09
 
 -- land that gets no beach: cliffs and ice (and water itself)
 M.NO_BEACH = { ocean = true, unknown = true, hills = true, mountains = true, arctic = true, river = true }
@@ -42,7 +46,9 @@ function M.edges(map, x, y)
 	for _, d in ipairs(DIRS) do
 		local n = neighbour(map, x, y, d)
 		if n ~= nil and n.t == "ocean" then
-			out[#out + 1] = { dx = d[1], dy = d[2] }
+			out[#out + 1] = { dx = d[1], dy = d[2], kind = "sand" }
+		elseif n ~= nil and n.t == "river" then
+			out[#out + 1] = { dx = d[1], dy = d[2], kind = "bank" }
 		end
 	end
 	return out
@@ -53,7 +59,7 @@ function M.keyOf(map, x, y, look)
 	local parts = { t.t, tostring(t.visible), look }
 	for _, d in ipairs(DIRS) do
 		local n = neighbour(map, x, y, d)
-		parts[#parts + 1] = (n ~= nil and n.t == "ocean") and "o" or "-"
+		parts[#parts + 1] = (n ~= nil and n.t == "ocean") and "o" or (n ~= nil and n.t == "river") and "r" or "-"
 	end
 	return table.concat(parts, "|")
 end
@@ -100,12 +106,12 @@ function M.update(folder, view, tileParts, look, TILE)
 				local model = Instance.new("Model")
 				model.Name = ("Coast_%d_%d"):format(x, y)
 				local top = block.Position.Y + block.Size.Y / 2
-				local depth = TILE * M.DEPTH
-				local color = M.SAND
-				if tile.visible ~= true then
-					color = Color3.new(color.R * M.FOG_DIM, color.G * M.FOG_DIM, color.B * M.FOG_DIM)
-				end
+				local dim = tile.visible ~= true and M.FOG_DIM or 1
 				for _, e in ipairs(edges) do
+					local bank = e.kind == "bank"
+					local depth = TILE * (bank and M.BANK_DEPTH or M.DEPTH)
+					local base = bank and M.BANK or M.SAND
+					local color = Color3.new(base.R * dim, base.G * dim, base.B * dim)
 					local p = Instance.new("Part")
 					p.Anchored = true
 					p.CanCollide = false
@@ -114,7 +120,7 @@ function M.update(folder, view, tileParts, look, TILE)
 					p.CastShadow = false
 					p.TopSurface = Enum.SurfaceType.Smooth
 					p.BottomSurface = Enum.SurfaceType.Smooth
-					p.Material = Enum.Material.Sand
+					p.Material = bank and Enum.Material.Ground or Enum.Material.Sand
 					p.Color = color
 					-- long axis along the shared edge
 					p.Size = e.dx ~= 0 and Vector3.new(depth, M.THICK, TILE) or Vector3.new(TILE, M.THICK, depth)

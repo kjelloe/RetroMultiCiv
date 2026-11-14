@@ -51,6 +51,16 @@ local filled = mapOf(false)
 filled.tiles[7].t = "grassland"
 check("key moves when a neighbour stops being ocean",
 	M.keyOf(filled, 1, 1, "enhanced") ~= M.keyOf(map, 1, 1, "enhanced"), true)
+-- river banks: a river neighbour gives a "bank" rim; a river tile owns none
+local rmap = { width = 3, height = 1, tiles = {
+	{ t = "grassland", visible = true }, { t = "river", visible = true }, { t = "ocean", visible = true },
+} }
+check("land beside a river: one bank edge east", sig(M.edges(rmap, 0, 0)), "1,0")
+check("that edge is a bank", M.edges(rmap, 0, 0)[1].kind, "bank")
+check("an ocean edge is sand", M.edges(map, 1, 0)[1].kind, "sand")
+check("a river tile owns no rim", sig(M.edges(rmap, 1, 0)), "")
+check("key marks the river side", M.keyOf(rmap, 0, 0, "enhanced"), "grassland|true|enhanced|r|-|-|-")
+check("bank is narrower than the beach", M.BANK_DEPTH < M.DEPTH, true)
 check("rim is thin and shallow", M.DEPTH < 0.25 and M.THICK < 0.2, true)
 
 if fails > 0 then

@@ -182,7 +182,8 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 - **T3** (built, ENHANCED look only): `TerrainCoast.luau` — a thin sand rim
   along each edge where low land (not hills, mountains, arctic, river)
   meets ocean, on the land tile so the order reads land → sand → the
-  existing foam strip → water. River banks: open.
+  existing foam strip → water. River banks (built): the same rim, narrower
+  (0.09 tile) and in damp earth, on a land edge that faces a river tile.
 - **T4** (built, every look): `TerrainSculpt.forest` — a mixed wood on a
   ring (centre open): 2–3 spruces with a bare trunk + two broadleaf trees
   (trunk + ball canopy), three greens each; fewer cones than the classic
@@ -203,7 +204,8 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 8 | fixes from that log | open | item 7 |
 | 9 | phone: unit cards, bottom-left toggles, research cluster | open | the phone audit's overlap list |
 | 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
-| 11 | U5 list rows, river banks | open | a look at U1/U2 |
+| 11 | U5 list rows | open | a look at U1/U2 |
+| 11b | river banks | built (gate 41 pins) | a close shot of a river |
 | 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
 | 13 | panels with heading=NONE get a heading | built (name tabs; run-S log) | — |
 | 14 | remaining sub-14 px texts | done — run-S log: 0 visible under 14 px at scale 1.25 | recheck on a 1280x720 window (scale 1.0) |
