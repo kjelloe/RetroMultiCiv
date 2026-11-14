@@ -70,6 +70,7 @@ closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.Text = "X"
 closeBtn.Parent = frame
+require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 
 local diagram = Instance.new("Frame")
 diagram.Size = UDim2.new(0, 316, 0, 446)
@@ -116,6 +117,7 @@ launchBtn.TextSize = 18
 launchBtn.Text = "Launch"
 launchBtn.Visible = false
 launchBtn.Parent = side
+require(script.Parent:WaitForChild("UiTheme")).apply(launchBtn, { color = "space" }) -- U2 dress
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

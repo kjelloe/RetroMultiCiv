@@ -24,6 +24,7 @@ toggle.TextSize = 18
 toggle.TextXAlignment = Enum.TextXAlignment.Left
 toggle.Text = "  Legend"
 toggle.Parent = gui
+require(script.Parent:WaitForChild("UiTheme")).apply(toggle, { color = "neutral", icon = "legend" }) -- U2 dress
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

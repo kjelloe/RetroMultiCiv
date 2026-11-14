@@ -56,6 +56,7 @@ closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.Text = "✕"
 closeBtn.Parent = panel
+require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 closeBtn.Activated:Connect(function()
 	gui.Enabled = false
 end)

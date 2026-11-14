@@ -71,6 +71,7 @@ closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.Text = "X"
 closeBtn.Parent = panel
+require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 
 local buyBtn = Instance.new("TextButton")
 buyBtn.Size = UDim2.new(0, 120, 0, 26)
@@ -81,6 +82,7 @@ buyBtn.Font = Enum.Font.SourceSansBold
 buyBtn.TextSize = 16
 buyBtn.Text = "Buy"
 buyBtn.Parent = panel
+require(script.Parent:WaitForChild("UiTheme")).apply(buyBtn, { color = "go", radius = 8 }) -- U2 dress
 
 -- session-E round 13 (user): rush-buy asks first — an inline confirmation
 -- stating the exact engine price (itemCost + buyGoldPerShield math, the

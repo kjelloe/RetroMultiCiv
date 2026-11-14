@@ -46,6 +46,7 @@ btn.TextSize = 18
 btn.Text = "  Map overlays"
 btn.TextXAlignment = Enum.TextXAlignment.Left
 btn.Parent = gui
+require(script.Parent:WaitForChild("UiTheme")).apply(btn, { color = "neutral", icon = "overlays" }) -- U2 dress
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

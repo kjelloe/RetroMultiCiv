@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 36 gates on tip
+- `roblox/check.sh` ALL GREEN — 37 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -259,7 +259,11 @@ items only if they block reading or tapping.
   emoji — if every button is text-only, check Game Settings → Security →
   "Allow Mesh / Image APIs" (EditableImage) before filing it as a bug; (d) mountains are three-summit massifs with snow, a unit standing
   on a mountain tile is visible between the summits, mountain gold sits on
-  a flank; (e) Options → world look cycles retro/brick back to the single
+  a flank; (d2) hill and mountain blocks have sloped skirts toward lower
+  neighbours instead of sheer walls, none toward unexplored tiles, and no
+  skirt buries a road or a neighbouring unit; (d3) panel close buttons are
+  red rounded squares and Buy / START GAME are green;
+  (e) Options → world look cycles retro/brick back to the single
   cone and enhanced back to the massif. Screenshot each into
   `roblox/debugging/`.
 - Add sitting findings here as `F3, F4, …` with the step number and a

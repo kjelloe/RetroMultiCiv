@@ -199,6 +199,7 @@ regencyBtn.Font = Enum.Font.SourceSansBold
 regencyBtn.TextSize = 18
 regencyBtn.Text = "AI"
 regencyBtn.Parent = gui
+require(script.Parent:WaitForChild("UiTheme")).apply(regencyBtn, { color = "neutral" }) -- U2 dress
 local regencyCorner = Instance.new("UICorner")
 regencyCorner.CornerRadius = UDim.new(0, 8)
 regencyCorner.Parent = regencyBtn

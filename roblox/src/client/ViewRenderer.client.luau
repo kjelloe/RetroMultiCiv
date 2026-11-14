@@ -19,6 +19,7 @@ local TileProps = require(script.Parent:WaitForChild("TileProps")) -- CP1 tile p
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
 local LabelDeclutter = require(script.Parent:WaitForChild("LabelDeclutter")) -- F2 label collision
+local TerrainSkirts = require(script.Parent:WaitForChild("TerrainSkirts")) -- T2 slope skirts
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
@@ -32,6 +33,9 @@ world.Name = "ClientWorld"
 local terrainFolder = Instance.new("Folder")
 terrainFolder.Name = "Terrain"
 terrainFolder.Parent = world
+local skirtsFolder = Instance.new("Folder") -- T2: separate from Terrain (other modules look tiles up there)
+skirtsFolder.Name = "TerrainSkirts"
+skirtsFolder.Parent = world
 local unitsFolder = Instance.new("Folder")
 unitsFolder.Name = "Units"
 unitsFolder.Parent = world
@@ -194,6 +198,11 @@ local function renderTerrain(view)
 				part.TopSurface = Enum.SurfaceType.Smooth
 			end
 		end
+	end
+	-- T2: slope skirts follow the blocks (incremental; a failure leaves walls)
+	local ok, err = pcall(TerrainSkirts.update, skirtsFolder, view, tileParts, look, TILE, tileTop)
+	if not ok then
+		warn("[ViewRenderer] slope skirts skipped: " .. tostring(err))
 	end
 end
 
@@ -788,6 +797,7 @@ ClientState.onServerReset(function()
 		tileShown[i] = nil
 	end
 	terrainFolder:ClearAllChildren()
+	TerrainSkirts.reset(skirtsFolder)
 	unitsFolder:ClearAllChildren()
 	citiesFolder:ClearAllChildren()
 	dangerFolder:ClearAllChildren()

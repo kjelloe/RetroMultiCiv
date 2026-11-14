@@ -30,6 +30,7 @@ toggle.TextSize = 18
 toggle.TextXAlignment = Enum.TextXAlignment.Left
 toggle.Text = "  Turn log (L)"
 toggle.Parent = gui
+require(script.Parent:WaitForChild("UiTheme")).apply(toggle, { color = "menu", icon = "turnlog" }) -- U2 dress
 do -- session-E: big rounded buttons (CLOSE CITY VIEW as the template)
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

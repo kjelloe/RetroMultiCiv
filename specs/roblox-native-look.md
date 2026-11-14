@@ -60,13 +60,16 @@ command, or shared-recipe change; gamesim-golden-neutral.
   `iconOnly` buttons drop their text. No `EditableImage` → the original
   text (or emoji) stays.
 
-Phases: **U1** (built) top-row menus, action bar, End Turn. **U2** panel
-chrome — close buttons (`danger`), panel title bars, primary/secondary
-buttons inside CityPanel / Research / Government / Lobby. **U3** layout:
+Phases: **U1** (built) top-row menus, action bar, End Turn. **U2** (built,
+buttons only) close buttons (`danger`) on eight panels, the primary buttons
+(Buy, Launch, START GAME, RESUME, GET RESUME CODE, the name-card pair), the
+Turn log / Diplomacy / Legend / Map-overlays toggles with icons, the regent
+button. Panel title bars and list rows are NOT dressed yet. **U3** layout:
 replace the absolute top row with one `UIListLayout` bar so buttons can
 grow to a touch-friendly 44 px and never collide; phone breakpoints.
-**U4** remaining icons (turn log, statistics, diplomacy, overlays, legend,
-city list) + icons on action-bar verbs.
+**U4** remaining icons — turn log, diplomacy, overlays, legend are built
+(16 icons total); statistics and city list have no open button of their
+own; icons on the other action-bar verbs are open.
 
 ### T — terrain
 
@@ -80,9 +83,12 @@ city list) + icons on action-bar verbs.
   2–3 low rounded mounds. Mountain resources move to a flank. A view with
   more than 150 mountain tiles gets the lite massif (two summits, one
   cap). Retro and brick looks keep the classic cone.
-- **T2** slope skirts: wedge parts along each edge where a tile block
-  stands above its neighbour, so height steps read as slopes, not walls.
-  Needs a wedge primitive in the terrain renderer (not a shared recipe).
+- **T2** (built, ENHANCED look only): `TerrainSkirts.luau` — a `WedgePart`
+  against each wall where a tile stands ≥ 1 stud above an explored
+  orthogonal neighbour (run ≤ 0.3 tile), coloured and textured like the
+  upper block; incremental per tile (key = own type, four neighbour types,
+  fog state, look). Outer corners between two skirts are left open (a
+  `CornerWedgePart` fill is the follow-up).
 - **T3** coast: sand strip + foam where land meets ocean (the High-tier
   "sand coasts"), river banks.
 - **T4** forest/jungle canopy density + two-part trees (the docs/13
@@ -101,11 +107,21 @@ city list) + icons on action-bar verbs.
 ## 6. Tests
 
 `roblox/check.sh` gate 35 (`selftest/menu-icons.luau`: known kinds, in-box
-coordinates, every used icon id present) and gate 36
+coordinates, every used icon id present, Draw-call arity), gate 37
+(`selftest/terrain-skirts.luau`: step threshold, fog, map edge, wrap, cache
+key) and gate 36
 (`selftest/terrain-sculpt.luau`: deterministic, centre clear, snow apex =
 cone apex, existing shapes only, part budgets). Studio look: buttons at
 1080p and on a phone emulator; a mountain range with a unit and a city on
 mountain tiles; look toggle retro ↔ enhanced ↔ brick repaints props.
+
+## 6b. Held for the first Studio look
+
+U3 (top-row layout bar, phone sizing), T3 (coasts) and T4 (trees) are NOT
+built. U3 moves every top-row button, and T3/T4 add parts on most tiles;
+both need proportions from a real look at U1/U2/T1/T2 first. Everything
+built so far decorates in place and falls back to the previous rendering
+on error.
 
 ## 7. Open questions for the user
 

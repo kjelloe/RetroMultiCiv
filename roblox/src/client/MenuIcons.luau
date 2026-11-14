@@ -66,6 +66,24 @@ M.ICONS = {
 	},
 	theater = { { p = "ring", x = 50, y = 50, r = 38, w = 8 }, tri({ 40, 30 }, { 72, 50 }, { 40, 70 }) },
 	found = { tri({ 50, 14 }, { 88, 48 }, { 12, 48 }), bar(50, 68, 50, 36) }, -- house
+	turnlog = { -- list: three bullet rows
+		{ p = "dots", r = 6, pts = { { 20, 26 }, { 20, 50 }, { 20, 74 } } },
+		bar(60, 26, 52, 10, 4), bar(60, 50, 52, 10, 4), bar(60, 74, 52, 10, 4),
+	},
+	diplomacy = { -- two flags on one pole base
+		bar(30, 52, 7, 72), quad({ 34, 16 }, { 62, 24 }, { 34, 40 }, { 34, 28 }),
+		bar(70, 58, 7, 60), quad({ 66, 28 }, { 40, 38 }, { 66, 52 }, { 66, 40 }),
+		bar(50, 90, 70, 7, 3),
+	},
+	legend = { -- a key cap
+		{ p = "bar", x = 50, y = 50, w = 70, h = 70, r = 14, rot = 0, fill = false, w2 = 9 },
+		bar(50, 40, 10, 26, 4), { p = "disc", x = 50, y = 66, r = 6 },
+	},
+	overlays = { -- stacked layers
+		quad({ 50, 14 }, { 88, 34 }, { 50, 54 }, { 12, 34 }),
+		{ p = "poly", fill = false, close = false, w = 8, pts = { { 12, 52 }, { 50, 72 }, { 88, 52 } } },
+		{ p = "poly", fill = false, close = false, w = 8, pts = { { 12, 70 }, { 50, 90 }, { 88, 70 } } },
+	},
 	fortify = { -- shield
 		{ p = "poly", fill = true, close = true,
 			pts = { { 50, 10 }, { 84, 22 }, { 80, 60 }, { 50, 90 }, { 20, 60 }, { 16, 22 } } },

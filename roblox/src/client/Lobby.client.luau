@@ -311,6 +311,7 @@ startBtn.Font = Enum.Font.SourceSansBold
 startBtn.TextSize = 26
 startBtn.Text = "START GAME"
 startBtn.Parent = setupPanel
+require(script.Parent:WaitForChild("UiTheme")).apply(startBtn, { color = "go" }) -- U2 dress
 startBtn.Activated:Connect(function()
 	remote:FireServer({ t = "setupDone" })
 end)
@@ -340,6 +341,7 @@ resumeBtn.TextSize = 15
 resumeBtn.Text = "RESUME"
 resumeBtn.Visible = false
 resumeBtn.Parent = panel
+require(script.Parent:WaitForChild("UiTheme")).apply(resumeBtn, { color = "menu" }) -- U2 dress
 resumeBtn.Activated:Connect(function()
 	if resumeBox.Text ~= "" then
 		remote:FireServer({ t = "resume", code = resumeBox.Text })
@@ -362,6 +364,7 @@ saveBtn.TextSize = 14
 saveBtn.Text = "GET RESUME CODE"
 saveBtn.Visible = false
 saveBtn.Parent = hostSaveGui
+require(script.Parent:WaitForChild("UiTheme")).apply(saveBtn, { color = "menu" }) -- U2 dress
 local codeOut = Instance.new("TextBox")
 codeOut.Size = UDim2.new(0, 170, 0, 24)
 codeOut.Position = UDim2.new(1, -178, 0, 112)

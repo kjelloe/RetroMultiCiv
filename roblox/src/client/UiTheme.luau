@@ -79,6 +79,15 @@ local function dress(btn, opts)
 
 	if btn:GetAttribute("themed") ~= true then
 		btn:SetAttribute("themed", true)
+		-- owners often add their own UICorner right after the dress; two
+		-- corners on one button fight, so a later one is dropped
+		btn.ChildAdded:Connect(function(c)
+			if c:IsA("UICorner") and c ~= corner then
+				task.defer(function()
+					c:Destroy()
+				end)
+			end
+		end)
 		btn.MouseEnter:Connect(function()
 			outline.Color = Color3.fromRGB(245, 245, 245)
 		end)

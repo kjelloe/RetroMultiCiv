@@ -178,7 +178,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 14. T1 — sculpted mountains + hills (ENHANCED look) [user direction 2026-11-14, same spec] [done: 2026-11-14 — TerrainSculpt.luau planner through TileProps put; mountain block 0.6 height; gate 36. Look NOT verified in Studio.]
 
-## 15. Next in the spec's order [open]: U2 panel chrome, U3 top-row layout bar + phone sizing, U4 remaining icons; T2 slope skirts, T3 coasts, T4 trees. Each waits on the first Studio look at U1/T1 for proportions.
+## 15. U2 buttons + T2 slope skirts [same spec] [done: 2026-11-14 — close/primary/toggle buttons through UiTheme, 4 more icons; TerrainSkirts.luau wedges, gate 37; EditableGlyph Draw* combineType fix (gate 35 arity pin). Look NOT verified in Studio.]
+
+## 16. Held for the first Studio look [open]: U3 top-row layout bar + phone sizing, panel title bars / list rows, icons on the remaining action verbs; T2 corner fills, T3 coasts, T4 trees. Reason in the spec §6b.
 
 ---
 

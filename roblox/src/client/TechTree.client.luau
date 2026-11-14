@@ -93,6 +93,7 @@ closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.Text = "X"
 closeBtn.Parent = frame
+require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, -20, 1, -56)

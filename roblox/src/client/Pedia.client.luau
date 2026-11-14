@@ -63,6 +63,7 @@ closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.TextSize = 16
 closeBtn.Text = "X"
 closeBtn.Parent = frame
+require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 
 local catBar = Instance.new("Frame")
 catBar.Size = UDim2.new(0, 120, 1, -40)

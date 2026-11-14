@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local CityNames = require(script.Parent:WaitForChild("CityNames"))
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 
 local M = {}
 
@@ -47,9 +48,7 @@ local function button(parent, text, x, color)
 	b.TextSize = 22
 	b.Text = text
 	b.Parent = parent
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 8)
-	c.Parent = b
+	UiTheme.apply(b) -- U2 dress (colour stays the caller's)
 	return b
 end
 
@@ -95,8 +94,8 @@ local function build()
 	bc.CornerRadius = UDim.new(0, 6)
 	bc.Parent = box
 
-	button(frame, "FOUND", 12, Color3.fromRGB(52, 110, 64)).Activated:Connect(confirm)
-	button(frame, "CANCEL", 178, Color3.fromRGB(96, 56, 56)).Activated:Connect(close)
+	button(frame, "FOUND", 12, UiTheme.COLOR.go).Activated:Connect(confirm)
+	button(frame, "CANCEL", 178, UiTheme.COLOR.danger).Activated:Connect(close)
 
 	box:GetPropertyChangedSignal("Text"):Connect(function()
 		if #box.Text > CityNames.MAX_NAME then

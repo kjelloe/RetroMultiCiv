@@ -921,6 +921,15 @@ seat/reset flow; JS engine untouched). Delivered:
   existing shapes; the mountain block drops to 0.6 height (`tileTop`);
   mountain resources move to a flank; `TileProps.sculpt` rides the rebuild
   signature and a look change re-renders props. Gates 35 + 36.
+  **U2** — the same dress on eight panel close buttons, the primary
+  buttons (Buy, Launch, START GAME, RESUME, GET RESUME CODE, the name
+  card) and the Turn log / Diplomacy / Legend / Map-overlays toggles (four
+  more icons, 16 total); `UiTheme` drops a `UICorner` an owner adds after
+  the dress. **T2 slope skirts** — `TerrainSkirts.luau`: wedges against
+  walls ≥ 1 stud high toward explored neighbours, incremental per tile, in
+  their own `ClientWorld.TerrainSkirts` folder (other modules look tiles up
+  in `Terrain`). Gate 37. `EditableGlyph` draw calls gained the required
+  `combineType` (gotcha 11).
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
