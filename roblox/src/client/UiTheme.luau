@@ -105,7 +105,10 @@ local function dress(btn, opts)
 
 	if opts.icon ~= nil and btn:FindFirstChild("ThemeIcon") == nil then
 		local h = btn.AbsoluteSize.Y > 0 and btn.AbsoluteSize.Y or btn.Size.Y.Offset
-		local px = math.max(16, h - 12)
+		local w = btn.AbsoluteSize.X > 0 and btn.AbsoluteSize.X or btn.Size.X.Offset
+		-- never taller than the button, never wider than its share of it
+		local share = opts.iconOnly == true and (w - 12) or math.floor(w * 0.45)
+		local px = math.max(12, math.min(h - 12, share > 0 and share or h - 12))
 		local icon = EditableGlyph.renderPrims(btn, MenuIcons.ICONS[opts.icon], px, M.INK)
 		if icon ~= nil then
 			icon.Name = "ThemeIcon"
