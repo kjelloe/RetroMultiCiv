@@ -17,6 +17,7 @@
 local AssetService = game:GetService("AssetService")
 local GlyphData = require(script.Parent:WaitForChild("GlyphData"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs"))
+local Diag = require(script.Parent:WaitForChild("Diag"))
 
 local M = {}
 -- The Draw* calls take a REQUIRED 5th combineType argument (current API:
@@ -169,8 +170,10 @@ function M.render(parent, techs, id, px)
 		return AssetService:CreateEditableImage({ Size = Vector2.new(RES, RES) })
 	end)
 	if not ok or img == nil then
+		Diag.fail("glyph", "CreateEditableImage (tech glyphs fall back to era badges)", img)
 		return TechGlyphs.badge(parent, era, px) -- graceful fallback: the era frame
 	end
+	Diag.count("glyph", "tech")
 	-- frame: era-colored rounded badge (fill + edge), 7..93 box, r=20
 	fillPoly(img, barPts(50, 50, 86, 86, 20, 0), pal.fill)
 	strokePolyline(img, barPts(50, 50, 86, 86, 20, 0), 5, pal.edge, true)
@@ -189,7 +192,10 @@ function M.render(parent, techs, id, px)
 	label.Name = "TechGlyph_" .. id
 	label.Size = UDim2.fromOffset(px, px)
 	label.BackgroundTransparency = 1
-	pcall(function() label.ImageContent = Content.fromObject(img) end)
+	local shown, showErr = pcall(function() label.ImageContent = Content.fromObject(img) end)
+	if not shown then
+		Diag.fail("glyph", "ImageContent (tech glyph label stays blank)", showErr)
+	end
 	-- letter overlay (EditableImage draws no text): a serif TextLabel matching the ink
 	if letterCh ~= nil then
 		local t = Instance.new("TextLabel")
@@ -210,31 +216,36 @@ end
 -- unavailable or prims is missing — the caller keeps its text label then.
 function M.renderPrims(parent, prims, px, ink)
 	if prims == nil then
+		Diag.fail("icon", "unknown icon id", "no MenuIcons entry")
 		return nil
 	end
 	local ok, img = pcall(function()
 		return AssetService:CreateEditableImage({ Size = Vector2.new(RES, RES) })
 	end)
 	if not ok or img == nil then
+		Diag.fail("icon", "CreateEditableImage (buttons stay text-only; check Game Settings > Security > Allow Mesh / Image APIs)", img)
 		return nil
 	end
-	local drawn = pcall(function()
+	local drawn, drawErr = pcall(function()
 		for _, pr in ipairs(prims) do
 			drawPrim(img, pr, ink)
 		end
 	end)
 	if not drawn then
+		Diag.fail("icon", "draw (buttons stay text-only)", drawErr)
 		return nil
 	end
 	local label = Instance.new("ImageLabel")
 	label.Size = UDim2.fromOffset(px, px)
 	label.BackgroundTransparency = 1
 	label.Active = false
-	local set = pcall(function() label.ImageContent = Content.fromObject(img) end)
+	local set, setErr = pcall(function() label.ImageContent = Content.fromObject(img) end)
 	if not set then
+		Diag.fail("icon", "ImageContent (buttons stay text-only)", setErr)
 		label:Destroy()
 		return nil
 	end
+	Diag.count("icon", "rendered")
 	label.Parent = parent
 	return label
 end

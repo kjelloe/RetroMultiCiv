@@ -41,6 +41,7 @@ do
 end
 optionsBtn.BackgroundTransparency = 0
 require(script.Parent:WaitForChild("UiTheme")).apply(optionsBtn, { color = "neutral", icon = "options" }) -- U1: chunky game-style dress
+require(script.Parent:WaitForChild("HudDock")).register(optionsBtn, { id = "options", order = 1 }) -- U3: one planned top row
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"
@@ -97,6 +98,7 @@ clockLabel.Font = Enum.Font.Code
 clockLabel.TextSize = 13
 clockLabel.Text = ""
 clockLabel.Parent = gui
+require(script.Parent:WaitForChild("HudDock")).register(clockLabel, { id = "clock", order = 6, fixedW = 150, fixedH = 18 }) -- U3
 local bootClock = os.clock()
 
 local hint = Instance.new("TextLabel")

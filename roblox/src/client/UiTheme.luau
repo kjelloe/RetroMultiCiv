@@ -7,9 +7,12 @@
 -- BackgroundColor3 (the gradient multiplies whatever colour is set).
 -- Presentation only: no state, no commands.
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local EditableGlyph = require(script.Parent:WaitForChild("EditableGlyph"))
 local MenuIcons = require(script.Parent:WaitForChild("MenuIcons"))
+local UiText = require(script.Parent:WaitForChild("UiText"))
+local Diag = require(script.Parent:WaitForChild("Diag"))
 
 local M = {}
 
@@ -37,6 +40,11 @@ local function child(parent, class, name)
 		c.Parent = parent
 	end
 	return c
+end
+
+-- ruling 2026-11-14: hotkey hints stay on desktop, go on a touch-only device
+function M.touchOnly()
+	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 end
 
 -- opts: color (Color3 or a M.COLOR key), icon (MenuIcons id), iconOnly (drop
@@ -79,6 +87,19 @@ local function dress(btn, opts)
 
 	if btn:GetAttribute("themed") ~= true then
 		btn:SetAttribute("themed", true)
+		Diag.count("ui", "themed")
+		-- owners rewrite Text at runtime ("Ride (P)" <-> "Dismount (P)"), so
+		-- the hint is dropped on every write; a stripped label is a fixed point
+		local function hint()
+			if btn.Text ~= "" and M.touchOnly() then
+				local t = UiText.stripHint(btn.Text)
+				if t ~= btn.Text then
+					btn.Text = t
+				end
+			end
+		end
+		btn:GetPropertyChangedSignal("Text"):Connect(hint)
+		hint()
 		-- owners often add their own UICorner right after the dress; two
 		-- corners on one button fight, so a later one is dropped
 		btn.ChildAdded:Connect(function(c)
@@ -103,6 +124,9 @@ local function dress(btn, opts)
 		end)
 	end
 
+	if opts.icon ~= nil then
+		btn:SetAttribute("themeIcon", opts.icon) -- the audit compares wanted vs drawn
+	end
 	if opts.icon ~= nil and btn:FindFirstChild("ThemeIcon") == nil then
 		local h = btn.AbsoluteSize.Y > 0 and btn.AbsoluteSize.Y or btn.Size.Y.Offset
 		local w = btn.AbsoluteSize.X > 0 and btn.AbsoluteSize.X or btn.Size.X.Offset
@@ -133,12 +157,33 @@ local function dress(btn, opts)
 	end
 end
 
+-- U3: flip a dressed icon + label button between its full form and an
+-- icon-only square (HudDock, when the row runs out of width). A button whose
+-- icon did not render keeps its text: there would be nothing left to show.
+function M.setCompact(btn, compact)
+	local icon = btn:FindFirstChild("ThemeIcon")
+	if icon == nil or (btn:GetAttribute("themeCompact") == true) == compact then
+		return
+	end
+	btn:SetAttribute("themeCompact", compact)
+	if compact then
+		btn:SetAttribute("themeText", btn.Text)
+		btn.Text = ""
+		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.Position = UDim2.fromScale(0.5, 0.5)
+	else
+		btn.Text = btn:GetAttribute("themeText") or btn.Text
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.new(0, 7, 0.5, 0)
+	end
+end
+
 -- A dress failure must never take the calling panel script down with it: the
 -- button stays as its owner built it and the Output carries one warning.
 function M.apply(btn, opts)
 	local ok, err = pcall(dress, btn, opts)
 	if not ok then
-		warn(("[UiTheme] %s left unstyled: %s"):format(btn.Name, tostring(err)))
+		Diag.fail("ui", ("dress %s '%s' (left as built)"):format(btn.Name, btn.Text), err)
 	end
 	return btn
 end

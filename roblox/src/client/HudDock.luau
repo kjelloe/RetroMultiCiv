@@ -1,0 +1,97 @@
+-- U3: applies DockLayout's plan to the top-row menu buttons. Each owner
+-- script still builds its own button and registers it here; the dock sets
+-- Position/Size (and icon-only mode through UiTheme) on every change of the
+-- viewport or of a member's visibility. A plan failure restores every member
+-- to the offsets its owner gave it and leaves one Diag line.
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
+local DockLayout = require(script.Parent:WaitForChild("DockLayout"))
+local Diag = require(script.Parent:WaitForChild("Diag"))
+
+local M = {}
+
+local members = {} -- id -> { obj, order, chars, iconOnly, fixedW, home = { pos, size } }
+local queued = false
+
+local function viewportWidth()
+	local cam = workspace.CurrentCamera
+	return cam ~= nil and cam.ViewportSize.X or 0
+end
+
+local function layout()
+	local vw = viewportWidth()
+	if vw <= 0 then
+		return
+	end
+	local h = UiTheme.touchOnly() and DockLayout.H_TOUCH or DockLayout.H_DESKTOP
+	local items = {}
+	for id, m in pairs(members) do
+		local hasIcon = m.obj:FindFirstChild("ThemeIcon") ~= nil
+		local w, compactW
+		if m.fixedW ~= nil then
+			w = m.fixedW
+		elseif m.iconOnly then
+			w = h + 4
+		else
+			w = DockLayout.widthFor(m.chars, h) - (hasIcon and 0 or (h - 12))
+			compactW = hasIcon and (h + 4) or nil
+		end
+		table.insert(items, { id = id, order = m.order, w = w, compactW = compactW, visible = m.obj.Visible })
+	end
+	local plan = DockLayout.plan(vw, items, { h = h })
+	for id, place in pairs(plan.places) do
+		local m = members[id]
+		local oh = m.fixedH or place.h
+		m.obj.Position = UDim2.new(1, -(place.right + place.w), 0, place.y + math.floor((place.h - oh) / 2))
+		m.obj.Size = UDim2.new(0, place.w, 0, oh)
+		if m.fixedW == nil and not m.iconOnly then
+			UiTheme.setCompact(m.obj, place.compact)
+		end
+	end
+	Diag.count("dock", "layouts")
+end
+
+local function relayout()
+	local ok, err = pcall(layout)
+	if not ok then
+		for _, m in pairs(members) do
+			m.obj.Position = m.home.pos
+			m.obj.Size = m.home.size
+		end
+		Diag.fail("dock", "top-row layout (buttons back at their built offsets)", err)
+	end
+end
+
+local function request()
+	if queued then
+		return
+	end
+	queued = true
+	task.defer(function()
+		queued = false
+		relayout()
+	end)
+end
+
+-- opts: id, order (1 = rightmost), chars (label length for the full width),
+-- iconOnly (always a square), fixedW/fixedH (a non-button member, e.g. the clock)
+function M.register(obj, opts)
+	members[opts.id] = {
+		obj = obj, order = opts.order, chars = opts.chars or #obj.Text,
+		iconOnly = opts.iconOnly == true, fixedW = opts.fixedW, fixedH = opts.fixedH,
+		home = { pos = obj.Position, size = obj.Size },
+	}
+	obj:GetPropertyChangedSignal("Visible"):Connect(request)
+	request()
+end
+
+task.spawn(function()
+	local cam = workspace.CurrentCamera
+	while cam == nil do
+		task.wait(0.2)
+		cam = workspace.CurrentCamera
+	end
+	cam:GetPropertyChangedSignal("ViewportSize"):Connect(request)
+	request()
+end)
+
+return M

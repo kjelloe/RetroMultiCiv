@@ -222,8 +222,9 @@ local function spawnFighter(unitType, colors, x, z, dir)
 	local model = Instance.new("Model")
 	model.Parent = scene
 	local home = CFrame.new(ORIGIN + Vector3.new(x, 1, z)) * CFrame.Angles(0, dir > 0 and math.rad(-90) or math.rad(90), 0)
-	local ok = pcall(AssetFactory.buildUnit, model, unitType, colors, home)
+	local ok, err = pcall(AssetFactory.buildUnit, model, unitType, colors, home)
 	if not ok then
+		require(script.Parent:WaitForChild("Diag")).fail("intro", "recipe " .. tostring(unitType) .. " (fighter skipped)", err)
 		model:Destroy()
 		return
 	end

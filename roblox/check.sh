@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons TerrainSculpt TerrainSkirts Diag DiagAudit DiagServer UiText DockLayout HudDock; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -500,6 +500,49 @@ if command -v lune >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 37: lune absent"
+fi
+
+# gate 38 — diagnostics: Diag's tagged failure record (lune); the audit's
+# ScreenGui lists equal what the client creates and tools/studio-log.js
+# parses the Studio log shape (node); the fallback paths still report.
+if command -v lune >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
+  if lune run roblox/selftest/diag.luau >/dev/null 2>&1 \
+     && node roblox/selftest/diag-coverage.mjs >/dev/null 2>&1 \
+     && grep -q 'Diag.fail' roblox/src/client/UiTheme.luau \
+     && grep -q 'Diag.fail' roblox/src/client/EditableGlyph.luau \
+     && grep -q 'Diag.fail' roblox/src/client/TileProps.luau \
+     && grep -q 'Diag.fail' roblox/src/client/HudDock.luau; then
+    note PASS "gate 38: diagnostics record (lune) + audit gui list + studio-log parser (node)"
+  else
+    note FAIL "gate 38: diagnostics — run: lune run roblox/selftest/diag.luau; node roblox/selftest/diag-coverage.mjs"
+  fi
+else
+  note SKIP "gate 38: lune or node absent"
+fi
+
+# gate 39 — U3 top-row planner (no overlap, hidden members close up, compact
+# and wrap on narrow viewports) + the touch label rule (lune); the five menu
+# buttons and the clock are registered with the dock.
+if command -v lune >/dev/null 2>&1; then
+  docked=$(grep -l 'HudDock")).register' roblox/src/client/*.client.luau | wc -l)
+  if lune run roblox/selftest/ui-dock.luau >/dev/null 2>&1 && [ "$docked" -eq 5 ]; then
+    note PASS "gate 39: top-row dock planner + touch label pins (lune), 5 scripts docked"
+  else
+    note FAIL "gate 39: top-row dock — run: lune run roblox/selftest/ui-dock.luau (docked scripts: $docked, want 5)"
+  fi
+else
+  note SKIP "gate 39: lune absent"
+fi
+
+# gate 40 — every Luau source compiles (rojo build does not parse scripts)
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/syntax.luau >/dev/null 2>&1; then
+    note PASS "gate 40: all roblox/src Luau sources compile (lune)"
+  else
+    note FAIL "gate 40: syntax — run: lune run roblox/selftest/syntax.luau"
+  fi
+else
+  note SKIP "gate 40: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

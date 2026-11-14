@@ -36,6 +36,7 @@ do
 	c.Parent = openBtn
 end
 require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "neutral", icon = "strategic", iconOnly = true }) -- U1: chunky game-style dress
+require(script.Parent:WaitForChild("HudDock")).register(openBtn, { id = "strategic", order = 4, iconOnly = true }) -- U3: one planned top row
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 560, 0, 320)

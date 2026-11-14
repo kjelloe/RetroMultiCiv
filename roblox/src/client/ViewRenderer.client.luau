@@ -20,6 +20,7 @@ local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitFo
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
 local LabelDeclutter = require(script.Parent:WaitForChild("LabelDeclutter")) -- F2 label collision
 local TerrainSkirts = require(script.Parent:WaitForChild("TerrainSkirts")) -- T2 slope skirts
+local Diag = require(script.Parent:WaitForChild("Diag"))
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
@@ -78,9 +79,10 @@ local function tileTop(id)
 		local m = specFor("mountains")
 		return (m.base + m.peak * 0.5) * HEIGHT * 0.5
 	end
-	-- T1: the enhanced look carries the height in a sculpted massif, so the
-	-- block under it drops to a shoulder (0.6) instead of standing as a tower
-	if id == "mountains" and ClientState.options.look == "enhanced" then
+	-- T1: the height is carried by a sculpted massif, so the block under it
+	-- drops to a shoulder (0.6) instead of standing as a tower. Every look
+	-- (ruling 2026-11-14: retro and brick get the new mountains too).
+	if id == "mountains" then
 		return (spec.base + spec.peak * 0.5) * HEIGHT * 0.6
 	end
 	return (spec.base + spec.peak * 0.5) * HEIGHT
@@ -202,7 +204,7 @@ local function renderTerrain(view)
 	-- T2: slope skirts follow the blocks (incremental; a failure leaves walls)
 	local ok, err = pcall(TerrainSkirts.update, skirtsFolder, view, tileParts, look, TILE, tileTop)
 	if not ok then
-		warn("[ViewRenderer] slope skirts skipped: " .. tostring(err))
+		Diag.fail("terrain", "slope skirts (walls stay bare)", err)
 	end
 end
 
@@ -454,10 +456,11 @@ local function renderUnits(view)
 		-- R8: the body is DATA — the same recipe table the browser renders;
 		-- primary/secondary are the color-role slots (A88 contract). Faction
 		-- identity stays procedural on top (disc, rampart, billboard).
-		local built = pcall(AssetFactory.buildUnit, model, u.type,
+		local built, buildErr = pcall(AssetFactory.buildUnit, model, u.type,
 			{ primary = ownerColor, secondary = ownerColor:Lerp(Color3.new(1, 1, 1), 0.35) },
 			CFrame.new(cx, top + 0.1, cz))
 		if not built then -- recipes gate failed or bad recipe: old placeholder
+			Diag.fail("units", "recipe " .. tostring(u.type) .. " (grey placeholder shown)", buildErr)
 			block(model, "Body", Vector3.new(0.9, 1.6, 0.9),
 				Vector3.new(cx, top + 1.1, cz), Color3.fromRGB(120, 120, 126))
 			block(model, "Head", Vector3.new(0.6, 0.5, 0.6),
@@ -768,7 +771,7 @@ propsFolder.Parent = world
 
 local function renderImprovements(view)
 	local roadStage = annotateViewerRoadStage(view, ClientState.rulesets().techs, view.you)
-	TileProps.sculpt = lookOf() == "enhanced" -- T1 sculpted mountains/hills
+	TileProps.sculpt = true -- T1 sculpted mountains/hills, every look (ruling 2026-11-14)
 	if TileProps.rebuild(propsFolder, view, tileTop, TILE, roadStage) then
 		for _, p in ipairs(propsFolder:GetDescendants()) do
 			if p:IsA("BasePart") then
@@ -828,7 +831,7 @@ game:GetService("RunService").Heartbeat:Connect(function()
 		renderCities(ClientState.view)
 		renderUnits(ClientState.view) -- unit materials come from AssetFactory's look map
 		renderImprovements(ClientState.view) -- T1: the sculpt follows the look (signature carries it)
-		applyLookExtras(look)
+		applyLookExtras(lookOf()) -- (was handed the "look|palette" key: the haze never came back)
 	end
 	lastLook = look
 end)

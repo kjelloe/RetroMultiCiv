@@ -251,6 +251,7 @@ local lastSig = nil
 -- props for that tile.
 M.sculpt = false
 local TerrainSculpt = require(script.Parent:WaitForChild("TerrainSculpt"))
+local Diag = require(script.Parent:WaitForChild("Diag"))
 
 -- Rebuild the whole props folder from the view (wholesale, guarded by the
 -- content signature). tileTop maps a terrain id -> its top-surface stud height.
@@ -402,6 +403,8 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 						for _, it in ipairs(items) do
 							put(it.k, it)
 						end
+					else
+						Diag.fail("terrain", "sculpt " .. t.t .. " (classic cone/rocks shown)", items)
 					end
 				end
 				if sculpted then
