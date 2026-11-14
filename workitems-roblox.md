@@ -180,7 +180,11 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 15. U2 buttons + T2 slope skirts [same spec] [done: 2026-11-14 — close/primary/toggle buttons through UiTheme, 4 more icons; TerrainSkirts.luau wedges, gate 37; EditableGlyph Draw* combineType fix (gate 35 arity pin). Look NOT verified in Studio.]
 
-## 16. Held for the first Studio look [open]: U3 top-row layout bar + phone sizing, panel title bars / list rows, icons on the remaining action verbs; T2 corner fills, T3 coasts, T4 trees. Reason in the spec §6b.
+## 16. Diagnostics + Studio-log reader [user direction 2026-11-14, second round] [done: 2026-11-14 — Diag.luau / DiagAudit / DiagServer, tools/studio-log.js (--diag, --list, --save for assemble.js; the run-N session replays hash-exact from the log, 155 turns); gate 38; gate 40 compiles every source. Unconfirmed: the channel/level a script warn or error lands on (none has occurred in a logged session).]
+
+## 17. U3a top-row dock + rulings 2/3 [same round] [done: 2026-11-14 — DockLayout (pure) + HudDock, 5 buttons + clock; hotkey hints off on touch-only (UiText); sculpted mountains in every look; enhanced-haze look-change fix; gate 39. Look NOT verified in Studio.]
+
+## 18. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; U4 action-verb icons (sized from the audit's fit numbers); U3b phone bottom bar (needs one phone-emulator run); T2b corner fills, T3 coasts; T4 trees, U5 panel chrome.
 
 ---
 

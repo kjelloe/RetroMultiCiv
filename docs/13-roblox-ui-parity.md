@@ -309,10 +309,14 @@ twin rails double-tracked from stage 3, and the new PROP_SHAPES keys
 
 **ROBLOX-NATIVE LOOK (user direction 2026-11-14,
 `specs/roblox-native-look.md`):** chunky game-style buttons with
-code-drawn icons (U1 built: `UiTheme` + `MenuIcons`) and sculpted
-per-tile terrain for the ENHANCED look (T1 built: `TerrainSculpt`
-three-summit mountains, mounded hills). Phases U2–U4 / T2–T4 are in the
-spec; all of it is the "style/placement polish" bucket the 1.0 appendix
+code-drawn icons (U1/U2 built: `UiTheme` + `MenuIcons`; U3a built: the
+top row as one planned `DockLayout` row) and sculpted per-tile terrain in
+every look (T1 built: `TerrainSculpt` three-summit mountains, mounded
+hills; T2 slope skirts, enhanced look). A diagnostics layer (`Diag`,
+`DiagAudit`, `roblox/tools/studio-log.js`) logs every load/render/show
+fallback and reads Studio's log file directly. Remaining phases (phone
+bottom bar U3b, verb icons, coasts, trees) and their order are in the
+spec §5; all of it is the "style/placement polish" bucket the 1.0 appendix
 deferred, now opened by the user.
 
 **Decision flow:** the toggle IS the side-by-side (the soundboard house

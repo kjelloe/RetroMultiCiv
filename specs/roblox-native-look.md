@@ -1,8 +1,8 @@
-# Roblox-native look — UI dress, menu icons, sculpted terrain
+# Roblox-native look — UI dress, menu icons, sculpted terrain, diagnostics
 
-Status: user direction 2026-11-14 (four rulings below). Owner: roblox-helper
-lane (`roblox/` only). Presentation layer throughout — no engine, state,
-command, or shared-recipe change; gamesim-golden-neutral.
+Status: user direction 2026-11-14 (rulings below, second round same day).
+Owner: roblox-helper lane (`roblox/` only). Presentation layer throughout —
+no engine, state, command, or shared-recipe change; gamesim-golden-neutral.
 
 ## 1. Problem (user, 2026-11-14)
 
@@ -12,6 +12,9 @@ command, or shared-recipe change; gamesim-golden-neutral.
 3. The browser map got a complete graphics pass (graphics-levels v2); the
    Roblox map did not. Mountains in particular: one flat-topped block with a
    small cone on it.
+4. (second round) Studio debugging: any failure to load, render or show an
+   element must leave an error or warning in the log — and the log should be
+   readable without a copy-paste.
 
 ## 2. Rulings (user, 2026-11-14)
 
@@ -21,111 +24,156 @@ command, or shared-recipe change; gamesim-golden-neutral.
 | icons | drawn in code (the EditableImage glyph renderer) — no uploads |
 | terrain | sculpted parts per tile; tile blocks stay (no EditableMesh, no voxel Terrain) |
 | order | UI buttons first, terrain second |
+| button colours | one colour per ROLE (as built): `menu` blue, `go` green, `danger` red, `space` purple, `science` amber, `neutral` slate |
+| hotkey hints | "Research (T)" stays on desktop; dropped on a touch-only device |
+| mountains per look | retro and brick get the sculpted mountains too |
+| phone layout | a bottom bar only, if it fits; a collapsible side dock only if it does not |
+| diagnostics | every load/render/show failure logged; the log read directly from disk |
 
 ## 3. Analysis — what was there
 
 - **Buttons**: ~40 `TextButton`s, each styled inline in its own script
   (`SourceSansBold`, flat dark `BackgroundColor3`, an 8 px `UICorner`). No
-  shared style module; 13 scripts already use `UIStroke`/`UIGradient`
-  one-off. Top row is absolutely positioned per script (Options −158,
-  Encyclopedia −284, Ship −370, Strategic −458, TechTree −546).
+  shared style module. Top row absolutely positioned per script (Options
+  −158, Encyclopedia −284, Ship −370, Strategic −458, TechTree −546), with a
+  180 px clock label at −428 that ran under the Encyclopedia button, and a
+  gap wherever Ship / Strategic were hidden.
 - **Icons**: `EditableGlyph.luau` already rasterises a primitive vocabulary
-  (disc/ring/arc/ell/bar/poly/dots) for the 68 tech glyphs, with a fallback
-  when `EditableImage` is unavailable. Menu icons are the same problem with
-  different data.
+  (disc/ring/arc/ell/bar/poly/dots) for the 68 tech glyphs.
 - **Terrain**: `ViewRenderer.renderTerrain` = one `Part` per tile, height
-  from `TerrainPalette` (generated, gate-4 locked), per-look material.
-  `TileProps.luau` (the `props.js` twin) adds a 5-wedge cone + snow cone on
-  mountains and 1–2 rocks on hills. Seven other modules read a tile's top
-  from the live Part, so block height is safe to change in one place.
-- **Browser reference**: Low = faceted SEGS 2 with the same cone props
-  (Roblox's current baseline); Medium = faceted SEGS 8 mesh that owns real
-  summits, snow by vertex lerp, resource on a flank (H13c); High = smooth.
+  from `TerrainPalette` (generated, gate-4 locked). `TileProps.luau` (the
+  `props.js` twin) added a 5-wedge cone + snow cone on mountains.
+- **Failure visibility**: 47 `pcall` sites in the client; the render-path
+  ones fell back silently (no icon, grey unit placeholder, classic cone),
+  and a LocalScript that died at load took its panel with it, visible only
+  as a stock red line. The only way to get the Output to the agent was a
+  manual save into `roblox/acceptance/`.
+- **Phone**: nothing adapts. The action bar is a fixed 1436 px frame; the
+  bottom-left toggles are 190 px wide; End Turn is pinned bottom-right.
+  A phone viewport (e.g. 844×390) shows a fraction of the bar.
+- **Browser reference**: Low = faceted SEGS 2 with the same cone props;
+  Medium = faceted SEGS 8 mesh that owns real summits, snow by vertex lerp,
+  resource on a flank (H13c); High = smooth.
 
 ## 4. Design
 
+### D — diagnostics (built)
+
+- **Reading the log**: Studio mirrors its Output window to
+  `%LOCALAPPDATA%\Roblox\logs\*_Studio_*_last.log` while it runs (script
+  output on the `FLog::CreatorOutput` channel, flushed live).
+  `node roblox/tools/studio-log.js` reads it from WSL: default = the last
+  play session without the `[R4LOG]` lines; `--diag` = tagged lines,
+  warnings, errors; `--list` = sessions; `--save <file>` writes the session
+  in the shape `acceptance/assemble.js` reads (replaces the manual Output
+  save). No Studio setting, no plugin, no HttpService. Rojo itself has no
+  log-out channel; it is not needed.
+- **`Diag.luau`** (pure): `fail(area, what, err)` prints ONE
+  `[RMC-DIAG] FAIL area: what: cause` warning per distinct failure and
+  counts repeats; `note`, `count`, `try` (pcall + traceback), `summary`.
+- **Reporting sites**: `UiTheme` (dress error), `EditableGlyph` (image
+  create / draw / attach, each with the engine's message — the icon line
+  names the "Allow Mesh / Image APIs" setting), `TileProps` (sculpt
+  fallback), `ViewRenderer` (skirts, unit recipe placeholder), `Intro`
+  (fighter recipe), `HudDock` (layout fallback).
+- **`DiagAudit.client.luau`**: uncaught client script errors re-printed
+  tagged (`ScriptContext.Error`; `DiagServer` does the same server-side);
+  then an audit 6 s after the first view, 10 s after boot, and after a
+  viewport or look change: device line (viewport, inset, touch/keyboard),
+  every expected ScreenGui present or MISSING, every themed button's pixel
+  rect + `TextFits` + icon wanted/drawn, off-screen and overlap findings,
+  world folder counts, one massif sample (apex vs block height in studs),
+  and the failure summary with `0 failure kind(s)` printed when clean.
+- **Not routed through Diag**: the presentational engine reads
+  (`cityYields`, `playerIncome`, … on a view shim). They fail by design
+  under fog and each caller already shows its own "unavailable" text.
+
 ### U — UI dress
 
-- `UiTheme.luau`: `apply(button, opts)` decorates an EXISTING button — it
-  never moves or resizes it, so each panel keeps its layout and its own
-  enable/disable recolouring (the gradient multiplies whatever colour is
-  set). 12 px corners, 2.5 px dark outline, top-lit gradient, FredokaOne
-  with a 1.5 px text outline, outline flash on hover, gradient slide on
-  press. Role palette: `menu` blue, `go` green, `science` amber, `space`
-  purple, `danger` red, `neutral` slate. `apply` is pcall-wrapped: a dress
-  failure warns once and leaves the button as built.
-- `MenuIcons.luau`: pure data, 12 pictograms in the 0..100 box.
-  `EditableGlyph.renderPrims` draws them white on transparent. With an icon
-  the label shrinks-to-fit beside it (`TextScaled` + a max-size cap);
-  `iconOnly` buttons drop their text. No `EditableImage` → the original
-  text (or emoji) stays.
+- `UiTheme.luau`: `apply(button, opts)` decorates an EXISTING button — 12 px
+  corners, 2.5 px dark outline, top-lit gradient, FredokaOne with a 1.5 px
+  text outline, hover/press feedback. `setCompact` flips a button between
+  icon + label and icon-only. On a touch-only device the hotkey hint is
+  stripped on every text write (`UiText.stripHint`, pure).
+- `MenuIcons.luau`: pure data, 16 pictograms in the 0..100 box.
+- **Top row (U3a, built)**: `DockLayout.plan` (pure) places the menu row
+  right-to-left; a hidden member takes no space; past 55 % of the viewport
+  width the labelled members go icon-only; past that the row wraps. Height
+  40 px, 44 px on touch. `HudDock` applies it on viewport / visibility
+  change; a failure restores the built offsets. Members: Options,
+  Encyclopedia, Ship, Strategic, Tech tree, clock.
+- **Phone (U3b, designed, not built)**: landscape phone = touch-only and
+  short side < 600 px. Bottom zone in two rows:
+  row A (bottom): the action verbs that apply to the selected unit only
+  (inapplicable ones hidden rather than greyed), End Turn at the right;
+  row B (above): every menu as a 44 px icon square — the five top-row
+  menus plus Turn log, Diplomacy, Legend, Overlays (their panels keep
+  their positions). If row B exceeds the width, the overflow moves into a
+  side dock behind a "more" button — the ruling's fallback. Built after
+  one phone-emulator audit: the overlap / off-screen lines are the
+  acceptance list for it.
 
-Phases: **U1** (built) top-row menus, action bar, End Turn. **U2** (built,
-buttons only) close buttons (`danger`) on eight panels, the primary buttons
-(Buy, Launch, START GAME, RESUME, GET RESUME CODE, the name-card pair), the
-Turn log / Diplomacy / Legend / Map-overlays toggles with icons, the regent
-button. Panel title bars and list rows are NOT dressed yet. **U3** layout:
-replace the absolute top row with one `UIListLayout` bar so buttons can
-grow to a touch-friendly 44 px and never collide; phone breakpoints.
-**U4** remaining icons — turn log, diplomacy, overlays, legend are built
-(16 icons total); statistics and city list have no open button of their
-own; icons on the other action-bar verbs are open.
+Phases: **U1** (built) top row, action bar, End Turn. **U2** (built) close
+/ primary / toggle buttons. **U3a** (built) top-row dock. **U3b** phone
+bottom bar. **U4** icons on the remaining action verbs (the 91 px verb
+buttons leave ~45 px for a label beside an icon — sized from the audit's
+`fits` / `textBounds` numbers for Found and Fortify first). **U5** panel
+title bars and list rows.
 
 ### T — terrain
 
-- **T1** (built, ENHANCED look only): `TerrainSculpt.luau`, a pure planner
-  feeding TileProps' existing `put` pipeline with existing shapes (the
-  shared key set is untouched). Mountain = three summits on a ring around
-  the tile centre (one tall, two shoulders; the centre stays clear so a
-  unit or city on the tile is not buried), snow caps fitted to each cone's
-  apex and radius, two foot boulders; the block under it drops to 0.6 of
-  its height so the mass is carried by the summits, not a tower. Hills =
-  2–3 low rounded mounds. Mountain resources move to a flank. A view with
-  more than 150 mountain tiles gets the lite massif (two summits, one
-  cap). Retro and brick looks keep the classic cone.
-- **T2** (built, ENHANCED look only): `TerrainSkirts.luau` — a `WedgePart`
-  against each wall where a tile stands ≥ 1 stud above an explored
-  orthogonal neighbour (run ≤ 0.3 tile), coloured and textured like the
-  upper block; incremental per tile (key = own type, four neighbour types,
-  fog state, look). Outer corners between two skirts are left open (a
-  `CornerWedgePart` fill is the follow-up).
-- **T3** coast: sand strip + foam where land meets ocean (the High-tier
-  "sand coasts"), river banks.
-- **T4** forest/jungle canopy density + two-part trees (the docs/13
-  bigger-lift item), ground-cover colour variation per tile.
+- **T1** (built, EVERY look since the second ruling): `TerrainSculpt.luau`
+  — mountain = three summits on a ring around the tile centre (the centre
+  stays clear for a unit or city), fitted snow caps, two foot boulders; the
+  block drops to 0.6 height. Hills = 2–3 low mounds. Mountain resources
+  move to a flank. More than 150 mountain tiles in view → lite massif.
+- **T2** (built, ENHANCED look only — slopes were not part of the ruling
+  and retro is deliberately blocky): `TerrainSkirts.luau` wedges against
+  walls ≥ 1 stud. Outer corners between two skirts are open
+  (`CornerWedgePart` fill = T2b).
+- **T3** coast: sand strip + foam where land meets ocean, river banks.
+- **T4** forest/jungle canopy density + two-part trees, ground-cover
+  colour variation per tile.
 
-## 5. Assessment
+## 5. Plan — recommended order
+
+| # | item | state | needs |
+|---|---|---|---|
+| 1 | D diagnostics + log reader | built | first Play Solo proves the warning channel |
+| 2 | rulings: hints on touch, mountains every look | built | — |
+| 3 | U3a top-row dock | built | audit: no `overlap` / `off-screen` lines at 1080p |
+| 4 | first Studio run read from the log | **next** | user presses Play Solo once |
+| 5 | fixes from that log (icons, fit, dock) | open | item 4 |
+| 6 | U4 action-verb icons | open | Found/Fortify `fits` numbers from item 4 |
+| 7 | U3b phone bottom bar | open | one run in the phone emulator (item 4 shape) |
+| 8 | T2b corner fills, T3 coasts | open | a look at T1/T2 (screenshot) |
+| 9 | T4 trees, U5 panel chrome | open | part-count line from the audit on a large map |
+
+Items 6–9 change proportions that only a look or the audit's numbers can
+set; each is decorate-in-place with a logged fallback, same as 1–3.
+
+## 6. Assessment
 
 | risk | note |
 |---|---|
-| Not seen in Studio | U1 and T1 were built with Studio unattended. Syntax is lune-compiled and the pure halves are lune-pinned; layout, colour and proportion are unverified until a Studio look. Tuning knobs are constants at the top of `UiTheme` / `TerrainSculpt`. |
-| Label fit | Icon + label inside the old fixed widths relies on shrink-to-fit; the narrow ones (Encyclopedia 118 px, Ship 78 px) will render small until U3 gives the row a layout. |
-| EditableImage | Never yet confirmed in Studio (the pending one-motif check). Failure mode is benign: text-only buttons. Two things found while building: (a) every `Draw*` call in `EditableGlyph` lacked the required 5th `combineType` argument, so nothing had ever rendered through it — fixed (`COMBINE`), arity pinned by gate 35; (b) creating an EditableImage needs the experience's "Allow Mesh / Image APIs" security setting (owner ID-verified) — to confirm in Game Settings; with it off the buttons stay text-only and the tech glyphs stay era badges. |
-| Part count | Full massif ≤ 32 parts per mountain tile (was 10). ~8 % mountains on 40×25 = ~80 tiles = ~2.6 k parts; on 80×50 the lite path caps it near 6 k. To measure on a huge map on a phone before T2 adds more. |
+| Not seen in Studio | Everything since run-N was built with Studio unattended: lune-compiled (gate 40), pure halves pinned, look unverified. The audit now reports geometry (rects, fit, counts), not appearance — a screenshot is still the look check. |
+| Warning channel | The log reader is proven on `print` lines (the run-N session, replayed hash-exact from the log). No script `warn` or error has occurred in a logged session yet, so their channel/level is unconfirmed; the reader therefore matches the `[RMC-DIAG]` tag on any channel and error lines that name a script. |
+| EditableImage | Never yet confirmed in Studio. Failure is benign (text-only buttons) and now logged with its cause. Needs the experience's "Allow Mesh / Image APIs" security setting — to confirm. |
+| Dock | The row now moves on every viewport change; a planner error falls back to the built offsets. Icon size is fixed at dress time (24 px in a 40 px button). |
+| Part count | Full massif ≤ 32 parts per mountain tile, now in every look. ~80 mountain tiles on 40×25 = ~2.6 k parts; lite path above 150 tiles. The audit prints the folder counts. |
 | Look parity | The browser Medium/High surfaces are meshes; this is a part-built reading of the same idea, not a twin. No gate compares them, by design. |
 
-## 6. Tests
+## 7. Tests
 
-`roblox/check.sh` gate 35 (`selftest/menu-icons.luau`: known kinds, in-box
-coordinates, every used icon id present, Draw-call arity), gate 37
-(`selftest/terrain-skirts.luau`: step threshold, fog, map edge, wrap, cache
-key) and gate 36
-(`selftest/terrain-sculpt.luau`: deterministic, centre clear, snow apex =
-cone apex, existing shapes only, part budgets). Studio look: buttons at
-1080p and on a phone emulator; a mountain range with a unit and a city on
-mountain tiles; look toggle retro ↔ enhanced ↔ brick repaints props.
+`roblox/check.sh`: gate 35 menu icons, 36 terrain sculpt, 37 slope skirts,
+38 diagnostics (Diag pins, audit gui list == created ScreenGuis,
+studio-log parser), 39 dock planner + touch labels, 40 every source
+compiles. Studio: `node roblox/tools/studio-log.js --diag` after a Play
+Solo — expected `0 failure kind(s)`, `icons drawn N of N wanted`.
 
-## 6b. Held for the first Studio look
+## 8. Open questions
 
-U3 (top-row layout bar, phone sizing), T3 (coasts) and T4 (trees) are NOT
-built. U3 moves every top-row button, and T3/T4 add parts on most tiles;
-both need proportions from a real look at U1/U2/T1/T2 first. Everything
-built so far decorates in place and falls back to the previous rendering
-on error.
-
-## 7. Open questions for the user
-
-1. Button colours: one colour per ROLE (built) or one colour per MENU?
-2. Hotkey hints in labels ("Research (T)") — keep on desktop, hide on touch?
-3. Should retro/brick looks also get the massif, or stay classic (built)?
-4. Phone layout priority for U3: bottom bar only, or a collapsible side dock?
+None blocking. To confirm from the first logged run: the Image-API
+setting, and whether the massif should also lower in the brick look's
+stepped relief (`brickTop` is applied to blocks, not to prop seating —
+pre-existing).

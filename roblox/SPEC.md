@@ -930,6 +930,29 @@ seat/reset flow; JS engine untouched). Delivered:
   their own `ClientWorld.TerrainSkirts` folder (other modules look tiles up
   in `Terrain`). Gate 37. `EditableGlyph` draw calls gained the required
   `combineType` (gotcha 11).
+- **run-P** (2026-11-14, second ruling round; built with Studio unattended):
+  **Diagnostics** — `Diag.luau` (pure: one `[RMC-DIAG] FAIL area: what:
+  cause` warning per distinct failure, repeats counted) is the report path
+  for every render/show fallback (`UiTheme`, `EditableGlyph`, `TileProps`
+  sculpt, `ViewRenderer` skirts + unit recipes, `Intro`, `HudDock`);
+  `DiagAudit.client.luau` re-prints uncaught client script errors tagged
+  and audits, 6 s after the first view and after a viewport/look change:
+  expected ScreenGuis present or MISSING, each themed button's pixel rect,
+  `TextFits`, icon wanted/drawn, off-screen + overlap pairs, world folder
+  counts, a massif sample; `DiagServer.server.luau` tags server script
+  errors. **`tools/studio-log.js`** reads Studio's own log file (§5).
+  **U3a top-row dock** — `DockLayout.plan` (pure) + `HudDock`: Options,
+  Encyclopedia, Ship, Strategic, Tech tree and the clock are one planned
+  row (hidden members close up; icon-only past 55 % of the viewport; wraps
+  after that; 40 px, 44 px on touch); `UiTheme.setCompact`.
+  **Rulings** — hotkey hints dropped on a touch-only device
+  (`UiText.stripHint`, re-applied on every text write); sculpted
+  mountains/hills in EVERY look (`TileProps.sculpt = true`, the 0.6 block
+  in `tileTop` unconditional); skirts stay enhanced-only.
+  **Fix** — the look-change watcher handed `applyLookExtras` the
+  `look|palette` key, so the enhanced haze never came back after a look
+  or palette change. Gates 38 (diagnostics), 39 (dock), 40 (all sources
+  compile).
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
@@ -1006,6 +1029,13 @@ seat/reset flow; JS engine untouched). Delivered:
    text/badges everywhere without an error anyone saw. Use the module's
    `COMBINE`; gate 35 pins the arity. Code written against an API from
    memory and never run is unverified — check the reference page.
+12. **A fallback that prints nothing is a bug.** Any new `pcall` on a
+   load/render/show path reports through `Diag.fail(area, what, err)`
+   (what = what the player sees instead). After a Play Solo read
+   `node roblox/tools/studio-log.js --diag` before asking the user what
+   they saw. The Studio device emulator keeps `KeyboardEnabled` true on a
+   PC, so touch-only rules (hint stripping, 44 px row) do not show there —
+   the audit's device line prints the flags.
 
 ## 4. Self-test (`check.sh`)
 
@@ -1081,6 +1111,18 @@ architect):
    a reword either side, a paste typo, or a new unit/building without a
    blurb all fail.
 
+17. Gates 33–37: city names, label declutter, menu icons, terrain sculpt,
+   slope skirts (lune pins in `selftest/`).
+18. Gate 38 diagnostics (`selftest/diag.luau` lune + `diag-coverage.mjs`
+   node): Diag's record, the audit's ScreenGui lists == the names the
+   client creates (name every new ScreenGui on the line after
+   `Instance.new`), the studio-log parser, and the fallback sites still
+   calling `Diag.fail`.
+19. Gate 39 top-row dock (`selftest/ui-dock.luau`): no overlap, hidden
+   members close up, compact + wrap, touch label rule; 5 scripts docked.
+20. Gate 40 (`selftest/syntax.luau`): every `roblox/src` Luau file
+   compiles under lune (`rojo build` does not parse scripts).
+
 What check.sh cannot cover: general Luau execution (only the pinned
 lune gates 7, 9 and 15 run Luau headlessly). The full executable proof is
 Studio Play Solo output (docs/10 §4.2) — captured verbatim into the
@@ -1096,9 +1138,14 @@ hash-exact through the Node engine.
 
 1. Play N turns in Studio (found a city, move units, end turns). The
    server prints `[R4INIT]`/`[R4LOG]`/`[R4CODE]` lines throughout.
-2. Copy the whole Output into `roblox/acceptance/<run>.txt` (raw copy
-   fine — timestamps/context suffixes are stripped; the file is
-   COMMITTED as the acceptance artifact).
+2. `node roblox/tools/studio-log.js --save roblox/acceptance/<run>.txt`
+   writes the last play session straight from Studio's log file
+   (`%LOCALAPPDATA%\Roblox\logs\*_Studio_*_last.log`, script output on
+   `FLog::CreatorOutput`; `--list` shows the sessions, `--session N` picks
+   one). A manual copy of the Output window still works. The file is
+   COMMITTED as the acceptance artifact. The same tool is the debugging
+   read path: no flags = the session without `[R4LOG]` lines, `--diag` =
+   `[RMC-DIAG]` lines + warnings + errors.
 3. `node roblox/acceptance/assemble.js roblox/acceptance/<run>.txt`:
    rebuilds the initial state JS-side from the printed setup (asserts
    createGame parity), replays every entry through the Node engine

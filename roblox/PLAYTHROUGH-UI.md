@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 37 gates on tip
+- `roblox/check.sh` ALL GREEN — 40 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -251,20 +251,24 @@ items only if they block reading or tapping.
   (city > selected unit > own unit > other unit; nearer wins a tie); check.sh
   gate 34. Verify with the same repro; tune `SLACK` / `textWidth` if labels
   hide while visibly clear of each other.
-- **U1 / T1 look check (run-O, built unattended 2026-11-14 — first Studio
-  look still owed):** (a) Output has no `[UiTheme] … left unstyled` warning;
-  (b) top-row and action-bar buttons are rounded, outlined, with white
-  pictograms, labels readable beside the icons (Encyclopedia and Ship are
-  the tight ones); (c) the tree and target buttons show an icon, not an
-  emoji — if every button is text-only, check Game Settings → Security →
-  "Allow Mesh / Image APIs" (EditableImage) before filing it as a bug; (d) mountains are three-summit massifs with snow, a unit standing
-  on a mountain tile is visible between the summits, mountain gold sits on
-  a flank; (d2) hill and mountain blocks have sloped skirts toward lower
-  neighbours instead of sheer walls, none toward unexplored tiles, and no
-  skirt buries a road or a neighbouring unit; (d3) panel close buttons are
-  red rounded squares and Buy / START GAME are green;
-  (e) Options → world look cycles retro/brick back to the single
-  cone and enhanced back to the massif. Screenshot each into
-  `roblox/debugging/`.
+- **Look check (run-O + run-P, built unattended 2026-11-14 — first Studio
+  look still owed).** After one Play Solo into a game, the agent reads
+  `node roblox/tools/studio-log.js --diag`; the user only needs to play and
+  screenshot. Expected in the log: `0 failure kind(s)`, `icons drawn N of N
+  wanted`, no `overlap` / `off-screen` / `label clipped` / `MISSING` line.
+  If `icon` FAILs with a permissions message: Game Settings → Security →
+  "Allow Mesh / Image APIs". To look at (screenshots into
+  `roblox/debugging/`): (a) top-row and action-bar buttons rounded,
+  outlined, white pictograms, one evenly spaced top-right row with no gap
+  where Ship is hidden, the clock left of it; (b) the tree and target
+  buttons show an icon, not an emoji; (c) mountains are three-summit
+  massifs with snow in ALL three looks, a unit on a mountain tile visible
+  between the summits, mountain gold on a flank; (d) enhanced look only:
+  sloped skirts toward lower neighbours, none toward unexplored tiles,
+  none burying a road or unit; (e) panel close buttons red, Buy / START
+  GAME green; (f) narrow the Studio window below ~1100 px: Options /
+  Encyclopedia / Ship collapse to icon squares, nothing overlaps;
+  (g) Options → world look enhanced → retro → enhanced: the depth haze
+  comes back (it did not before run-P).
 - Add sitting findings here as `F3, F4, …` with the step number and a
   one-line repro.

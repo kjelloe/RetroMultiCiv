@@ -252,6 +252,7 @@ local lastSig = nil
 M.sculpt = false
 local TerrainSculpt = require(script.Parent:WaitForChild("TerrainSculpt"))
 local Diag = require(script.Parent:WaitForChild("Diag"))
+local sculptNoted = false
 
 -- Rebuild the whole props folder from the view (wholesale, guarded by the
 -- content signature). tileTop maps a terrain id -> its top-surface stud height.
@@ -402,6 +403,16 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 						sculpted = true
 						for _, it in ipairs(items) do
 							put(it.k, it)
+						end
+						Diag.count("terrain", t.t == "hills" and "moundTiles" or "massifTiles")
+						if t.t == "mountains" and not sculptNoted then
+							sculptNoted = true -- one sample per session: the numbers a look check needs
+							local apex = 0
+							for _, it in ipairs(items) do
+								apex = math.max(apex, TerrainSculpt.apexOf(it) or 0)
+							end
+							Diag.note("terrain", ("massif sample at %d,%d: %d items%s, tallest apex %.2f tile = %.1f studs above a %.1f-stud block (tile %s studs)")
+								:format(x, y, #items, sculptLite and " (lite)" or "", apex, apex * TILE, top, tostring(TILE)))
 						end
 					else
 						Diag.fail("terrain", "sculpt " .. t.t .. " (classic cone/rocks shown)", items)
