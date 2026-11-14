@@ -16,6 +16,20 @@ local GuiService = game:GetService("GuiService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local Diag = require(script.Parent:WaitForChild("Diag"))
+local DevAccess = require(script.Parent:WaitForChild("DevAccess"))
+
+-- run-R ruling 4: the log is always on for Studio and the place owner; for
+-- other players it follows the host's "diagnostics log for players" option
+local function wanted()
+	return DevAccess.dev() or ClientState.diagForPlayers == true
+end
+Diag.quiet = not wanted()
+task.spawn(function()
+	while true do
+		task.wait(2)
+		Diag.quiet = not wanted()
+	end
+end)
 
 -- check.sh gate 38 holds this list to the ScreenGui names the client scripts
 -- create (a new panel adds its name here)
@@ -215,6 +229,9 @@ end
 
 local audits = 0
 local function audit(reason)
+	if not wanted() then
+		return
+	end
 	audits += 1
 	local cam = workspace.CurrentCamera
 	local viewport = cam ~= nil and cam.ViewportSize or Vector2.new(0, 0)

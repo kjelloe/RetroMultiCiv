@@ -12,6 +12,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
+local ClientState = require(script.Parent:WaitForChild("ClientState"))
 
 local remote = ReplicatedStorage:WaitForChild("RMC")
 
@@ -165,7 +166,7 @@ seatsLayout.Parent = seatsFrame
 
 -- host setup panel
 local setupPanel = Instance.new("Frame")
-setupPanel.Size = UDim2.new(0, 510, 0, 560) -- runI/runJ item 1 width; taller for the #2543 toggle row
+setupPanel.Size = UDim2.new(0, 510, 0, 628) -- runI/runJ item 1 width; taller for the #2543 toggle row + two run-R rows
 setupPanel.Position = UDim2.new(0.5, -255, 0.28, 0)
 setupPanel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 setupPanel.BackgroundTransparency = 0.08
@@ -320,6 +321,14 @@ midgameJoinToggle.Size = UDim2.new(0, 58, 0, 26)
 label(setupPanel, 406, 20, "        spectators").Position = UDim2.new(0, 74, 0, 406)
 label(setupPanel, 440, 20, "        marathon (play to victory)").Position = UDim2.new(0, 74, 0, 440)
 label(setupPanel, 474, 20, "        mid-game join (AI-civ takeover)").Position = UDim2.new(0, 74, 0, 474)
+-- run-R rulings 1 + 4: diagnostics for players (host), debug game (owner only)
+local diagToggle = stepButton(8, 508, "", function() sendSetup("diag", 1) end)
+local debugGameToggle = stepButton(8, 542, "", function() sendSetup("debuggame", 1) end)
+diagToggle.Size = UDim2.new(0, 58, 0, 26)
+debugGameToggle.Size = UDim2.new(0, 58, 0, 26)
+label(setupPanel, 508, 20, "        diagnostics log for players").Position = UDim2.new(0, 74, 0, 508)
+local debugGameLabel = label(setupPanel, 542, 20, "        debug game (owner; marks the game debug-used)")
+debugGameLabel.Position = UDim2.new(0, 74, 0, 542)
 
 local startBtn = Instance.new("TextButton")
 -- runI item 5: +50% Start button, anchored bottom-center, full width minus margins
@@ -449,6 +458,9 @@ local SEAT_LOOK = {
 local youSeated = false
 
 local function render(lobby)
+	-- run-R rulings 1 + 4: what the dev surfaces read (DebugMenu, Strategic, DiagAudit)
+	ClientState.debugGame = lobby.options ~= nil and lobby.options.debugGame == true
+	ClientState.diagForPlayers = lobby.options ~= nil and lobby.options.diag == true
 	if lobby.gameRunning ~= true then
 		youSeated = false -- the game ended (ephemeral or otherwise): lobby returns
 	end
@@ -595,6 +607,14 @@ local function render(lobby)
 		local mgjOn = lobby.options.midgameJoin ~= false -- #2543 (default ON)
 		midgameJoinToggle.Text = mgjOn and "On" or "Off"
 		midgameJoinToggle.BackgroundColor3 = mgjOn and ON or OFF
+		local diagOn = lobby.options.diag == true
+		diagToggle.Text = diagOn and "On" or "Off"
+		diagToggle.BackgroundColor3 = diagOn and ON or OFF
+		local dbgOn = lobby.options.debugGame == true
+		debugGameToggle.Text = dbgOn and "On" or "Off"
+		debugGameToggle.BackgroundColor3 = dbgOn and ON or OFF
+		debugGameToggle.Visible = lobby.youAreOwner == true
+		debugGameLabel.Visible = lobby.youAreOwner == true
 	end
 
 	-- R10 chrome: resume input only while gameless; host save button in-game

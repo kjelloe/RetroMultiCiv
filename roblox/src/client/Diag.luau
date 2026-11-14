@@ -19,6 +19,9 @@ local counts = {} -- "area.key" -> n
 local countOrder = {}
 
 M.sink = { warn = warn or print, print = print } -- the selftest swaps these
+-- run-R ruling 4: with quiet set nothing prints; failures and tallies are
+-- still recorded, so a later summary (quiet lifted) carries them
+M.quiet = false
 
 function M.line(kind, area, text)
 	return ("%s %s %s: %s"):format(M.TAG, kind, area, text)
@@ -34,11 +37,15 @@ function M.fail(area, what, err)
 	local msg = tostring(err == nil and "(no detail)" or err):gsub("[\r\n]+", " | ")
 	fails[key] = { area = area, what = what, err = msg, n = 1 }
 	table.insert(failOrder, key)
-	M.sink.warn(M.line("FAIL", area, what .. ": " .. msg))
+	if not M.quiet then
+		M.sink.warn(M.line("FAIL", area, what .. ": " .. msg))
+	end
 end
 
 function M.note(area, msg)
-	M.sink.print(M.line("NOTE", area, tostring(msg)))
+	if not M.quiet then
+		M.sink.print(M.line("NOTE", area, tostring(msg)))
+	end
 end
 
 function M.count(area, key, n)

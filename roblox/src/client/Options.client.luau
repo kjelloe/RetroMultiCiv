@@ -130,7 +130,7 @@ local function paint()
 	hideHintBtn.Text = ("  hide end-turn hint: %s"):format(o.hideNoMovesHint and "ON" or "off")
 	clockBtn.Text = ("  clock: %s"):format(o.clock)
 	voidArtBtn.Text = ("  map border: %s"):format(o.voidArt)
-	ridePadBtn.Text = ("  ride pads: %s"):format(
+	ridePadBtn.Text = ("  on-screen ride pads: %s"):format(
 		o.ridePad == true and "ON" or (o.ridePad == false and "off" or "auto"))
 	lookBtn.Text = ("  world look: %s"):format(LOOK_LABEL[o.look or "enhanced"] or (o.look or "enhanced"))
 	autoResearchBtn.Text = ("  auto-select research: %s"):format(o.autoResearch and "ON" or "off")

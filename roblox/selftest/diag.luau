@@ -48,6 +48,16 @@ check("summary totals", sum[4], "[RMC-DIAG] SUM totals: 3 failure kind(s); icon.
 M.reset()
 check("summary with nothing", M.summary()[1], "[RMC-DIAG] SUM totals: 0 failure kind(s); no tallies")
 
+-- quiet (diagnostics off for players): nothing prints, the record is kept
+M.quiet = true
+local before = #out
+M.fail("q", "x", "y")
+M.note("q", "z")
+check("quiet prints nothing", #out, before)
+check("quiet still records the failure", #M.failures(), 1)
+M.quiet = false
+M.reset()
+
 if fails > 0 then
 	error(("%d diag pin(s) failed"):format(fails))
 end

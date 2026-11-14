@@ -14,8 +14,11 @@ local RunService = game:GetService("RunService")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 
-if not RunService:IsStudio() then
-	print("[DebugMenu] R17 dormant (not Studio)")
+-- run-R ruling 1: Studio, or the place owner in a published server (the
+-- server takes debug commands from the owner only, in a debug game only)
+local DevAccess = require(script.Parent:WaitForChild("DevAccess"))
+if not DevAccess.dev() then
+	print("[DebugMenu] R17 dormant (not Studio, not the place owner)")
 	return
 end
 
@@ -33,7 +36,7 @@ toggle.TextColor3 = Color3.fromRGB(255, 200, 200)
 toggle.Font = Enum.Font.Code
 toggle.TextSize = 18
 toggle.TextXAlignment = Enum.TextXAlignment.Left
-toggle.Text = "  Debug (Studio)"
+toggle.Text = RunService:IsStudio() and "  Debug (Studio)" or "  Debug (owner)"
 toggle.Parent = gui
 do
 	local c = Instance.new("UICorner")
@@ -153,4 +156,21 @@ ClientState.onPanelOpen(function(id)
 	end
 end)
 
-print("[DebugMenu] R17 thin client up (Studio only; commands taint permanently)")
+-- outside Studio the menu shows only while the running game is a debug game
+if not RunService:IsStudio() then
+	local function gate()
+		toggle.Visible = ClientState.debugGame == true and ClientState.view ~= nil
+		if not toggle.Visible then
+			panel.Visible = false
+		end
+	end
+	ClientState.onView(gate)
+	task.spawn(function()
+		while true do
+			gate()
+			task.wait(2)
+		end
+	end)
+end
+
+print("[DebugMenu] R17 thin client up (Studio / place owner; commands taint permanently)")

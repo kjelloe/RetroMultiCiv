@@ -135,6 +135,7 @@ toggleBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 toggleBtn.Font = Enum.Font.SourceSansBold
 toggleBtn.TextSize = 14
 toggleBtn.Parent = gui
+toggleBtn.Visible = false -- run-R ruling 3: the control is the Options row ("ride pads"); this one read as a dev button
 local function paintToggle()
 	toggleBtn.Text = padEnabled and "PAD on" or "PAD off"
 	toggleBtn.BackgroundColor3 = padEnabled and Color3.fromRGB(50, 90, 70) or Color3.fromRGB(38, 40, 48)

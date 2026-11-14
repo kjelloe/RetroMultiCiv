@@ -158,6 +158,8 @@ local function eligible()
 	-- Studio debug game, or a spectator seat (server independently gates)
 	return RunService:IsStudio()
 		or (ClientState.view ~= nil and ClientState.view.you == "spectator")
+		-- run-R ruling 1: the place owner, in a debug game
+		or (ClientState.debugGame == true and require(script.Parent:WaitForChild("DevAccess")).owner())
 end
 
 closeBtn.Activated:Connect(function()

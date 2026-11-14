@@ -229,8 +229,24 @@ published server), `dev()` = either. Client-only tools use `dev()`: the
 asset gallery (button AND its K hotkey), the mid-game THEATER button.
 Tools the server judges keep the server's gate (debug menu: Studio debug
 game; AI-strategy pull: Studio or spectator; Kick: creator or `ADMINS`).
-Open for a ruling: owner debug in a published place (a host-setup switch
-that creates a `debugEnabled`, hash-tainted game).
+Rulings (user, same day):
+
+1. **Owner debug game** — host setup has a "debug game" switch, shown to
+   and accepted from the place owner only (`isOwner`: Studio, or the
+   creator account of a user-owned place). It creates the game with
+   `debug = true` (docs/07 §6 taint on first use, as in Studio). The
+   server takes `debug` commands and the AI-strategy pull from the owner
+   only; the Debug menu and strategy button show for the owner while the
+   running game is a debug game. A Studio game is a debug game as before
+   (initial hash unchanged).
+2. **Admins = place setting** — `RMCAdmins` attribute on **ServerStorage**
+   (string of UserIds, e.g. `"12345, 67890"`; server-only). The creator is
+   always an admin. Set it in Studio's Properties and publish.
+3. **PAD** — the left-edge button is gone; the control is the Options row
+   "on-screen ride pads: auto / ON / off".
+4. **Diagnostics** — game option "diagnostics log for players" in host
+   setup (default Off). Off: `Diag.quiet` for non-owners (nothing printed,
+   no audit; failures still recorded). Studio and the owner always log.
 
 ## 7. Tests
 

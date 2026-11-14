@@ -171,8 +171,31 @@ local MAP_SIZES = { -- client/main.js MAP_SIZES parity
 -- admins-only kick (user ruling: no host-kick, no vote-kick). The Studio /
 -- place creator is always an admin; add UserIds here for public servers.
 local ADMINS = {}
+-- run-R ruling 2: the admin list is a PLACE SETTING — the `RMCAdmins`
+-- attribute on ServerStorage (server-only, never replicated): UserIds
+-- separated by commas or spaces, e.g. "12345, 67890". Read on every check, so
+-- an edit in a live Studio session applies at once.
+local function placeAdmins()
+	local raw = game:GetService("ServerStorage"):GetAttribute("RMCAdmins")
+	local out = {}
+	if typeof(raw) == "string" then
+		for id in raw:gmatch("%d+") do
+			table.insert(out, tonumber(id))
+		end
+	elseif typeof(raw) == "number" then
+		table.insert(out, raw)
+	end
+	return out
+end
 local function isAdmin(player)
 	return player.UserId == game.CreatorId or table.find(ADMINS, player.UserId) ~= nil
+		or table.find(placeAdmins(), player.UserId) ~= nil
+end
+-- run-R ruling 1: developer surfaces (debug game switch, debug commands, the
+-- AI-strategy pull) belong to the place OWNER; a Studio session counts as one
+local function isOwner(player)
+	return RunService:IsStudio()
+		or (game.CreatorType == Enum.CreatorType.User and game.CreatorId ~= 0 and player.UserId == game.CreatorId)
 end
 
 -- NO CHAT on Roblox (age restrictions — docs/13 Tier-3, decided): assert the
@@ -205,7 +228,9 @@ local setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 	maxIdleMin = 1, -- R22: host-set idle threshold (minutes) before regency
 	age = "ancient", -- R24: starting age (rules.ages id; later = fast-forward)
 	difficulty = "medium", combat = "bestof3", seedOverride = 0, -- R24b (0 = random)
-	spectators = true, marathon = false, midgameJoin = true } -- CP16/MP8 + #2543 mid-game join (default ON)
+	spectators = true, marathon = false, midgameJoin = true, -- CP16/MP8 + #2543 mid-game join (default ON)
+	debugGame = false, -- run-R ruling 1: owner-only switch, a debug-enabled (hash-tainted on use) game
+	diag = false } -- run-R ruling 4: client diagnostics for every player (the owner always has them)
 local seatUserIds = {} -- seat number (1..humans) -> UserId; 1 = host
 -- R22: seats voluntarily (or via idle timeout) handed to the AI regent —
 -- pid -> true. Treated exactly like an absent seat by advance(); any
@@ -357,6 +382,7 @@ local function lobbyPayloadFor(player)
 			phase = phase,
 			youAreHost = player.UserId == hostUserId,
 			youAreAdmin = isAdmin(player),
+			youAreOwner = isOwner(player),
 			countdown = countdownEnds ~= nil and math.max(0, math.ceil(countdownEnds - os.clock())) or 0,
 			options = { size = MAP_SIZES[setup.sizeIndex].name, civs = setup.civs,
 				humans = setup.humans, mapType = setup.mapType,
@@ -364,7 +390,10 @@ local function lobbyPayloadFor(player)
 				difficulty = setup.difficulty, combat = setup.combat,
 				seed = setup.seedOverride, spectators = setup.spectators == true,
 				marathon = setup.marathon == true,
-				midgameJoin = setup.midgameJoin ~= false }, -- #2543 (default ON)
+				midgameJoin = setup.midgameJoin ~= false, -- #2543 (default ON)
+				-- while a game runs this is what the GAME is, not what the next one would be
+				debugGame = (state ~= nil and state.debugEnabled == true) or (state == nil and setup.debugGame == true),
+				diag = setup.diag == true },
 			seats = seats,
 			gameRunning = state ~= nil,
 		},
@@ -969,7 +998,7 @@ local function startGame()
 			mapType = setup.mapType, -- A82a preset (validated by mapgen)
 			-- R17 (marker-0057): STUDIO games are debug-enabled; the engine
 			-- taints permanently on first use (debugUsed rides every push)
-			debug = RunService:IsStudio() },
+			debug = RunService:IsStudio() or setup.debugGame == true }, -- run-R ruling 1
 	})
 	if created.ok == false then
 		print("[GameServer] createGame failed: " .. tostring(created.reason))
@@ -1315,7 +1344,8 @@ local function padStart(player)
 	setup = { sizeIndex = 1, civs = 3, humans = 1, mapType = "continents",
 		maxIdleMin = 1, age = "ancient",
 		difficulty = "medium", combat = "bestof3", seedOverride = 0,
-		spectators = true, marathon = false, midgameJoin = true }
+		spectators = true, marathon = false, midgameJoin = true,
+		debugGame = false, diag = false }
 	seatUserIds = { player.UserId }
 	setPhase("setup")
 	toast(player, "You are the HOST - pick map size / civs / human seats, then START GAME (60s).")
@@ -1622,6 +1652,12 @@ remote.OnServerEvent:Connect(function(player, msg)
 			setup.marathon = not (setup.marathon == true) -- MP11 toggle
 		elseif msg.key == "midgamejoin" then
 			setup.midgameJoin = setup.midgameJoin == false -- #2543 toggle (default ON)
+		elseif msg.key == "debuggame" then
+			if isOwner(player) then -- a host who is not the owner cannot switch it
+				setup.debugGame = not (setup.debugGame == true)
+			end
+		elseif msg.key == "diag" then
+			setup.diag = not (setup.diag == true)
 		elseif msg.key == "seed" then
 			-- R24b: explicit world seed from the host's TextBox; 0 = random
 			setup.seedOverride = math.clamp(math.floor(tonumber(msg.value) or 0), 0, 999999)
@@ -1692,7 +1728,8 @@ remote.OnServerEvent:Connect(function(player, msg)
 		-- OR a Studio session (debug game); the snapshot itself needs all
 		-- players' units/cities, which only the server has fog-free.
 		local isStudio = game:GetService("RunService"):IsStudio()
-		if state ~= nil and (spectators[player.UserId] == true or isStudio) then
+		if state ~= nil and (spectators[player.UserId] == true or isStudio
+			or (isOwner(player) and state.debugEnabled == true)) then
 			-- every civ's snapshot (the browser overlay shows all; the client
 			-- tags human vs AI). One computation, the shared twin, no fork.
 			local rows = setmetatable({}, statehash.ARRAY_MT)
@@ -1793,6 +1830,12 @@ remote.OnServerEvent:Connect(function(player, msg)
 		return
 	end
 	if table.find(CLIENT_COMMANDS, msg.cmd.type) == nil then
+		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "notAllowed" })
+		return
+	end
+	-- run-R ruling 1: in a published debug game only the owner issues debug
+	-- commands (the engine's debugEnabled gate alone would take them from any seat)
+	if msg.cmd.type == "debug" and not isOwner(player) then
 		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "notAllowed" })
 		return
 	end
