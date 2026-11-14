@@ -953,6 +953,16 @@ seat/reset flow; JS engine untouched). Delivered:
   `look|palette` key, so the enhanced haze never came back after a look
   or palette change. Gates 38 (diagnostics), 39 (dock), 40 (all sources
   compile).
+- **run-Q** (2026-11-14, "go ahead with items"; Studio unattended):
+  **U4** — 11 more `MenuIcons` (27 total), every action verb has one;
+  the action bar is `AutomaticSize` + a `UIScale` fitted to
+  viewport − 2×206 px (it was a fixed 1436 px frame). **U3b phone** —
+  `UiText.isPhone` (touch + short side < 600); `HudDock` puts the menus
+  as 44 px icons above End Turn (`DockLayout` bottom mode), verbs that
+  cannot apply are hidden, hints dropped. **T3** — `TerrainCoast.luau`
+  sand rims (enhanced look, own `ClientWorld.TerrainCoast` folder), gate
+  41. **T4** — `TerrainSculpt.forest` mixed woods through the same
+  `TileProps` sculpt branch (every look), pinned in gate 36.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
@@ -1120,6 +1130,7 @@ architect):
    calling `Diag.fail`.
 19. Gate 39 top-row dock (`selftest/ui-dock.luau`): no overlap, hidden
    members close up, compact + wrap, touch label rule; 5 scripts docked.
+21. Gate 41 (`selftest/terrain-coast.luau`): sand-rim edges + cache key.
 20. Gate 40 (`selftest/syntax.luau`): every `roblox/src` Luau file
    compiles under lune (`rojo build` does not parse scripts).
 

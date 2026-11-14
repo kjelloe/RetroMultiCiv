@@ -184,7 +184,9 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 17. U3a top-row dock + rulings 2/3 [same round] [done: 2026-11-14 — DockLayout (pure) + HudDock, 5 buttons + clock; hotkey hints off on touch-only (UiText); sculpted mountains in every look; enhanced-haze look-change fix; gate 39. Look NOT verified in Studio.]
 
-## 18. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; U4 action-verb icons (sized from the audit's fit numbers); U3b phone bottom bar (needs one phone-emulator run); T2b corner fills, T3 coasts; T4 trees, U5 panel chrome.
+## 18. U4 verb icons + fitted action bar, U3b phone row, T3 sand coasts, T4 mixed woods ["go ahead with items" 2026-11-14] [done: 2026-11-14 — MenuIcons 27; ActionBar AutomaticSize + UIScale; UiText.isPhone / DockLayout bottom mode / phone verb filter; TerrainCoast.luau (gate 41); TerrainSculpt.forest (gate 36). Look NOT verified in Studio; phone not seen on a device or emulator.]
+
+## 19. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---
 

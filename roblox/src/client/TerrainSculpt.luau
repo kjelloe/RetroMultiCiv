@@ -82,6 +82,45 @@ function M.hills(rand)
 	return out
 end
 
+-- T4: a mixed wood — 2-3 spruces (a trunk under the existing cone) and two
+-- broadleaf trees (trunk + ball canopy) on a jittered ring, three greens.
+-- The cone count drops from 3-5 to 2-3, so the part count stays near the
+-- classic forest's; the ring keeps the tile centre open for a unit.
+M.SPRUCE = { "#1e6b2f", "#24753a", "#195c2b" }
+M.LEAF = { "#4f8f3a", "#5a9a44", "#447f36" }
+M.TRUNK = "#6b4a2b"
+M.WOOD_RING_MIN = 0.2
+M.WOOD_RING_MAX = 0.34
+local TRUNK_H = 0.16 -- TileProps treeTrunk height
+local TREE_H = 0.28 -- TileProps tree cone height
+local CANOPY_R = 0.11 -- TileProps treeCanopy radius
+
+function M.forest(rand)
+	local out = {}
+	local spruces = 2 + (rand(41) > 0.5 and 1 or 0)
+	local total = spruces + 2
+	local a0 = rand(42) * math.pi * 2
+	for i = 0, total - 1 do
+		local a = a0 + i * (math.pi * 2 / total) + (rand(43 + i) - 0.5) * 0.6
+		local dist = M.WOOD_RING_MIN + rand(50 + i) * (M.WOOD_RING_MAX - M.WOOD_RING_MIN)
+		local dx, dz = math.cos(a) * dist, math.sin(a) * dist
+		local s = 0.8 + rand(57 + i) * 0.5
+		if i < spruces then
+			local stem = 0.4 * s -- a short bare trunk under the cone
+			out[#out + 1] = { k = "treeTrunk", color = M.TRUNK, dx = dx, dz = dz,
+				dy = TRUNK_H * stem / 2, sx = s, sy = stem, sz = s }
+			out[#out + 1] = { k = "tree", color = M.SPRUCE[1 + math.floor(rand(64 + i) * #M.SPRUCE)],
+				dx = dx, dz = dz, dy = TRUNK_H * stem * 0.8 + TREE_H * s / 2, sx = s, sy = s, sz = s }
+		else
+			out[#out + 1] = { k = "treeTrunk", color = M.TRUNK, dx = dx, dz = dz,
+				dy = TRUNK_H * s / 2, sx = 1.3 * s, sy = s, sz = 1.3 * s }
+			out[#out + 1] = { k = "treeCanopy", color = M.LEAF[1 + math.floor(rand(71 + i) * #M.LEAF)],
+				dx = dx, dz = dz, dy = TRUNK_H * s * 0.85 + CANOPY_R * s * 0.8, sx = 1.15 * s, sy = 0.9 * s, sz = 1.15 * s }
+		end
+	end
+	return out
+end
+
 -- geometry facts the selftest pins (tile units)
 function M.apexOf(item)
 	if item.k == "peak" then

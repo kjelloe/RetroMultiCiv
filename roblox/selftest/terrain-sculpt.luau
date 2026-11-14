@@ -101,6 +101,36 @@ for seed = 1, 400 do
 		check("mound cap inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) + r * 0.8 <= 0.5)
 	end
 end
+-- T4 woods
+for seed = 1, 400 do
+	local wood = M.forest(randFor(seed))
+	check("forest deterministic " .. seed, sameList(wood, M.forest(randFor(seed))))
+	check("4-5 trees = 8-10 items " .. seed, #wood == 8 or #wood == 10, #wood)
+	local cones, balls = 0, 0
+	for i, it in ipairs(wood) do
+		check("wood shape exists " .. it.k, shapeExists(it.k))
+		check("wood has color", type(it.color) == "string" and it.color:sub(1, 1) == "#")
+		local axis = math.sqrt(it.dx * it.dx + it.dz * it.dz)
+		check("tree on the ring " .. seed, axis >= M.WOOD_RING_MIN - 1e-9 and axis <= M.WOOD_RING_MAX + 1e-9, axis)
+		check("tree inside the tile " .. seed, math.max(math.abs(it.dx), math.abs(it.dz)) <= 0.36)
+		if i % 2 == 1 then
+			check("each tree starts with its trunk", it.k == "treeTrunk")
+			check("trunk stands on the ground", math.abs(it.dy - 0.16 * it.sy / 2) < 1e-9)
+		else
+			local trunk = wood[i - 1]
+			check("crown over its trunk", it.dx == trunk.dx and it.dz == trunk.dz)
+			local trunkTop = 0.16 * trunk.sy
+			local crownBottom = it.k == "tree" and (it.dy - 0.28 * it.sy / 2) or (it.dy - 0.11 * it.sy)
+			check("crown overlaps the trunk top, clear of the ground " .. it.k,
+				crownBottom < trunkTop and crownBottom > 0, crownBottom)
+			cones += it.k == "tree" and 1 or 0
+			balls += it.k == "treeCanopy" and 1 or 0
+		end
+	end
+	check("2-3 spruces " .. seed, cones == 2 or cones == 3, cones)
+	check("two broadleaf " .. seed, balls == 2, balls)
+end
+
 check("full massif part budget <= 32", maxParts <= 32, maxParts)
 check("lite massif part budget <= 20", liteMax <= 20, liteMax)
 check("some shoulders carry snow, not all", snowSeen > 400 and snowSeen < 1200, snowSeen)

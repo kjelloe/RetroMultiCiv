@@ -393,18 +393,19 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 
 				-- T1: sculpted massif / mounds replace the classic cone + rocks
 				local sculpted = false
-				if M.sculpt and (t.t == "hills" or t.t == "mountains") then
+				if M.sculpt and (t.t == "hills" or t.t == "mountains" or t.t == "forest") then
 					local function rand(salt)
 						return M.visualRand(x, y, 200 + salt)
 					end
-					local ok, items = pcall(t.t == "hills" and TerrainSculpt.hills or TerrainSculpt.mountain,
-						rand, sculptLite)
+					local planner = t.t == "hills" and TerrainSculpt.hills
+						or (t.t == "forest" and TerrainSculpt.forest or TerrainSculpt.mountain)
+					local ok, items = pcall(planner, rand, sculptLite)
 					if ok then
 						sculpted = true
 						for _, it in ipairs(items) do
 							put(it.k, it)
 						end
-						Diag.count("terrain", t.t == "hills" and "moundTiles" or "massifTiles")
+						Diag.count("terrain", t.t == "hills" and "moundTiles" or (t.t == "forest" and "woodTiles" or "massifTiles"))
 						if t.t == "mountains" and not sculptNoted then
 							sculptNoted = true -- one sample per session: the numbers a look check needs
 							local apex = 0
@@ -415,7 +416,7 @@ function M.rebuild(folder, view, tileTop, TILE, roadStage)
 								:format(x, y, #items, sculptLite and " (lite)" or "", apex, apex * TILE, top, tostring(TILE)))
 						end
 					else
-						Diag.fail("terrain", "sculpt " .. t.t .. " (classic cone/rocks shown)", items)
+						Diag.fail("terrain", "sculpt " .. t.t .. " (classic props shown)", items)
 					end
 				end
 				if sculpted then

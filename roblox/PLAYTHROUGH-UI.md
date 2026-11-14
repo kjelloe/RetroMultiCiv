@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 40 gates on tip
+- `roblox/check.sh` ALL GREEN — 41 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -269,6 +269,13 @@ items only if they block reading or tapping.
   GAME green; (f) narrow the Studio window below ~1100 px: Options /
   Encyclopedia / Ship collapse to icon squares, nothing overlaps;
   (g) Options → world look enhanced → retro → enhanced: the depth haze
-  comes back (it did not before run-P).
+  comes back (it did not before run-P); (h) every action verb has an
+  icon and a readable label, the bar sits between the bottom-left toggles
+  and End Turn without touching either; (i) enhanced look: a sand rim on
+  low coasts, none under cliffs or ice; forests are mixed spruce +
+  round-crowned trees with trunks, tile centre open; (j) Studio device
+  emulator on a phone preset: menus are five icon squares above End
+  Turn, only applicable verbs show — then send the log, the overlap lines
+  are the remaining phone work.
 - Add sitting findings here as `F3, F4, …` with the step number and a
   one-line repro.

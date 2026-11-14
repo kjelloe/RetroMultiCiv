@@ -102,23 +102,26 @@ no engine, state, command, or shared-recipe change; gamesim-golden-neutral.
   40 px, 44 px on touch. `HudDock` applies it on viewport / visibility
   change; a failure restores the built offsets. Members: Options,
   Encyclopedia, Ship, Strategic, Tech tree, clock.
-- **Phone (U3b, designed, not built)**: landscape phone = touch-only and
-  short side < 600 px. Bottom zone in two rows:
-  row A (bottom): the action verbs that apply to the selected unit only
-  (inapplicable ones hidden rather than greyed), End Turn at the right;
-  row B (above): every menu as a 44 px icon square — the five top-row
-  menus plus Turn log, Diplomacy, Legend, Overlays (their panels keep
-  their positions). If row B exceeds the width, the overflow moves into a
-  side dock behind a "more" button — the ruling's fallback. Built after
-  one phone-emulator audit: the overlap / off-screen lines are the
-  acceptance list for it.
+- **Action bar (U4, built)**: all 13 verbs carry an icon (27 icons
+  total); an icon button is 26 px wider. The bar is as wide as its
+  buttons (was a fixed 1436 px frame) and a `UIScale` fits it to the room
+  between the bottom corners (viewport − 2×206 px, floor 0.5).
+- **Phone (U3b, built, not seen on a device)**: phone = touch screen with
+  short side < 600 px (`UiText.isPhone`; the keyboard flag is ignored so
+  Studio's emulator shows it). The five menus become 44 px icon squares
+  in the slot above End Turn (bottom-right, 58 px up; wraps upward), the
+  clock stays top-right, inapplicable verbs are hidden instead of greyed
+  so the bar holds only what applies, hotkey hints are dropped. The
+  5-icon row is 252 px, so it fits any phone width and the ruling's
+  side-dock fallback is not needed. NOT adapted yet: the unit tab cards
+  (940 px row above the bar), the four 190 px bottom-left toggles, the
+  research cluster (760 px, top centre) — the phone audit's overlap lines
+  are the work list for those.
 
 Phases: **U1** (built) top row, action bar, End Turn. **U2** (built) close
-/ primary / toggle buttons. **U3a** (built) top-row dock. **U3b** phone
-bottom bar. **U4** icons on the remaining action verbs (the 91 px verb
-buttons leave ~45 px for a label beside an icon — sized from the audit's
-`fits` / `textBounds` numbers for Found and Fortify first). **U5** panel
-title bars and list rows.
+/ primary / toggle buttons. **U3a** (built) top-row dock. **U3b** (built)
+phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
+**U5** panel title bars and list rows (open).
 
 ### T — terrain
 
@@ -131,9 +134,15 @@ title bars and list rows.
   and retro is deliberately blocky): `TerrainSkirts.luau` wedges against
   walls ≥ 1 stud. Outer corners between two skirts are open
   (`CornerWedgePart` fill = T2b).
-- **T3** coast: sand strip + foam where land meets ocean, river banks.
-- **T4** forest/jungle canopy density + two-part trees, ground-cover
-  colour variation per tile.
+- **T3** (built, ENHANCED look only): `TerrainCoast.luau` — a thin sand rim
+  along each edge where low land (not hills, mountains, arctic, river)
+  meets ocean, on the land tile so the order reads land → sand → the
+  existing foam strip → water. River banks: open.
+- **T4** (built, every look): `TerrainSculpt.forest` — a mixed wood on a
+  ring (centre open): 2–3 spruces with a bare trunk + two broadleaf trees
+  (trunk + ball canopy), three greens each; fewer cones than the classic
+  forest, so the part count stays close. Jungle keeps its three-part
+  trees.
 
 ## 5. Plan — recommended order
 
@@ -142,15 +151,17 @@ title bars and list rows.
 | 1 | D diagnostics + log reader | built | first Play Solo proves the warning channel |
 | 2 | rulings: hints on touch, mountains every look | built | — |
 | 3 | U3a top-row dock | built | audit: no `overlap` / `off-screen` lines at 1080p |
-| 4 | first Studio run read from the log | **next** | user presses Play Solo once |
-| 5 | fixes from that log (icons, fit, dock) | open | item 4 |
-| 6 | U4 action-verb icons | open | Found/Fortify `fits` numbers from item 4 |
-| 7 | U3b phone bottom bar | open | one run in the phone emulator (item 4 shape) |
-| 8 | T2b corner fills, T3 coasts | open | a look at T1/T2 (screenshot) |
-| 9 | T4 trees, U5 panel chrome | open | part-count line from the audit on a large map |
+| 4 | U4 verb icons + fitted action bar | built | audit `fits` lines for the verb labels |
+| 5 | U3b phone menu row + verb filter | built | one run in the phone emulator |
+| 6 | T3 sand coasts, T4 mixed woods | built | a look (screenshot) + the audit's part counts |
+| 7 | first Studio run read from the log | **next** | user presses Play Solo once |
+| 8 | fixes from that log | open | item 7 |
+| 9 | phone: unit cards, bottom-left toggles, research cluster | open | the phone audit's overlap list |
+| 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
+| 11 | U5 panel title bars / list rows, river banks | open | a look at U1/U2 |
 
-Items 6–9 change proportions that only a look or the audit's numbers can
-set; each is decorate-in-place with a logged fallback, same as 1–3.
+Items 9–11 are held on purpose: T2b stacks a second wedge type on an
+orientation nobody has seen, and U5 touches every panel.
 
 ## 6. Assessment
 
@@ -167,8 +178,8 @@ set; each is decorate-in-place with a logged fallback, same as 1–3.
 
 `roblox/check.sh`: gate 35 menu icons, 36 terrain sculpt, 37 slope skirts,
 38 diagnostics (Diag pins, audit gui list == created ScreenGuis,
-studio-log parser), 39 dock planner + touch labels, 40 every source
-compiles. Studio: `node roblox/tools/studio-log.js --diag` after a Play
+studio-log parser), 39 dock planner + touch labels + phone rule, 40 every
+source compiles, 41 sand coasts; gate 36 also pins the woods. Studio: `node roblox/tools/studio-log.js --diag` after a Play
 Solo — expected `0 failure kind(s)`, `icons drawn N of N wanted`.
 
 ## 8. Open questions
