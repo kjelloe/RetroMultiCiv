@@ -19,13 +19,13 @@ card.BackgroundColor3 = Color3.fromRGB(14, 16, 26)
 card.BackgroundTransparency = 0.03
 card.TextColor3 = Color3.fromRGB(225, 230, 240)
 card.Font = Enum.Font.Code
-card.TextSize = 13
+card.TextSize = 15
 card.TextWrapped = true
 card.TextXAlignment = Enum.TextXAlignment.Left
 card.TextYAlignment = Enum.TextYAlignment.Top
 card.RichText = true
 card.Visible = false
-card.Size = UDim2.new(0, 300, 0, 40)
+card.Size = UDim2.new(0, 360, 0, 40)
 card.Parent = gui
 do
 	local c = Instance.new("UICorner")
@@ -47,13 +47,13 @@ local function showAt(target, text)
 	-- size to content: measure via TextService-less heuristic (wrapped at
 	-- 300px, ~13px lines) — generous height, clipped by content being short
 	local _, lineCount = string.gsub(text, "\n", "")
-	card.Size = UDim2.new(0, 300, 0, 14 * (lineCount + 1) + 12)
+	card.Size = UDim2.new(0, 360, 0, 17 * (lineCount + 1) + 12)
 	local pos = target.AbsolutePosition
 	local size = target.AbsoluteSize
 	local screen = gui.AbsoluteSize
 	local x = pos.X + size.X + 8
-	if x + 300 > screen.X then
-		x = math.max(4, pos.X - 308)
+	if x + 360 > screen.X then
+		x = math.max(4, pos.X - 368)
 	end
 	local y = math.clamp(pos.Y, 4, math.max(4, screen.Y - card.AbsoluteSize.Y - 4))
 	card.Position = UDim2.new(0, x, 0, y)

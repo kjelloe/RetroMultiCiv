@@ -157,6 +157,22 @@ local function auditButtons(viewport)
 	end
 end
 
+-- reading-size floor (UiTheme.TEXT.small): every visible fixed-size text under
+-- 14 px is counted and the first few are named, so the log is the work list
+local function auditText()
+	local small, samples = 0, {}
+	for _, d in ipairs(playerGui:GetDescendants()) do
+		if (d:IsA("TextLabel") or d:IsA("TextButton") or d:IsA("TextBox")) and d.Text ~= ""
+			and not d.TextScaled and d.TextSize < 14 and shownOnScreen(d) then
+			small += 1
+			if #samples < 12 then
+				table.insert(samples, ("%s/%s %dpx '%s'"):format(guiOf(d), d.Name, d.TextSize, (d.Text:sub(1, 24):gsub("[\r\n]+", " "))))
+			end
+		end
+	end
+	Diag.note("text", ("%d visible text(s) under 14 px%s"):format(small, small > 0 and (": " .. table.concat(samples, "; ")) or ""))
+end
+
 local function auditWorld()
 	local world = workspace:FindFirstChild("ClientWorld")
 	if world == nil then
@@ -196,6 +212,7 @@ local function audit(reason)
 	local ok, err = pcall(function()
 		auditGuis()
 		auditButtons(viewport)
+		auditText()
 		auditWorld()
 	end)
 	if not ok then

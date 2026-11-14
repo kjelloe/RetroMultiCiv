@@ -17,6 +17,10 @@ local Diag = require(script.Parent:WaitForChild("Diag"))
 local M = {}
 
 M.FONT = Enum.Font.FredokaOne
+-- reading text (cards, welcome / advice copy): proportional face, 17 px body,
+-- never under SMALL for anything a player is meant to read
+M.BODY_FONT = Enum.Font.GothamMedium
+M.TEXT = { title = 22, body = 17, small = 14 }
 M.COLOR = {
 	menu = Color3.fromRGB(56, 128, 214), -- blue: opens a panel
 	go = Color3.fromRGB(62, 176, 84), -- green: commits / advances

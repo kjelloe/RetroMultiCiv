@@ -294,8 +294,13 @@ local possessBtn = addButton(13, "Ride (P)", 80, "ride")
 local cluster = Instance.new("Frame")
 -- run-R (user): the cluster sits in the Roblox top bar strip, as wide as its
 -- buttons; the research-status line moved from above it to just below
-local topInset = game:GetService("GuiService"):GetGuiInset().Y
-local clusterY = topInset >= 54 and (-topInset + math.floor((topInset - 46) / 2)) or 4
+-- (the inset reads 0 while the client is still loading: shot4 had the cluster
+-- at y=4 with the menu row already in the strip, so it is re-read below)
+local function clusterTop()
+	local topInset = game:GetService("GuiService"):GetGuiInset().Y
+	return topInset >= 54 and (-topInset + math.floor((topInset - 46) / 2)) or 4
+end
+local clusterY = clusterTop()
 cluster.Size = UDim2.new(0, 0, 0, 46)
 cluster.AutomaticSize = Enum.AutomaticSize.X
 cluster.AnchorPoint = Vector2.new(0.5, 0)
@@ -349,6 +354,17 @@ researchStatus.TextSize = 17
 researchStatus.TextXAlignment = Enum.TextXAlignment.Center
 researchStatus.Text = ""
 researchStatus.Parent = gui
+task.spawn(function()
+	for _ = 1, 20 do
+		local y = clusterTop()
+		if y ~= clusterY then
+			clusterY = y
+			cluster.Position = UDim2.new(0.5, 0, 0, y)
+			researchStatus.Position = UDim2.new(0.5, -380, 0, y + 48)
+		end
+		task.wait(0.5)
+	end
+end)
 
 -- session-E round 18 (user): Cities button, LEFT of Government + Research —
 -- the C hotkey's clickable twin (ClientState.toggleCityList channel)

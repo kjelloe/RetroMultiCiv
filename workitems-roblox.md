@@ -190,6 +190,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19b. run-R (Image API on) read from the log + shot3 [2026-11-14] [done: 2026-11-14 — session replays hash-exact (424 rounds, code 6C0W-NCRS-3WBMA). Icons 22 of 27 drawn; 5 refused ("DrawRectangle expects size > 0": a fill span under 1 px at a triangle apex) -> span clamped to 1 px. Icon over label on every icon + text button (UIPadding shifts child instances) -> icon offset back out of the padding, audit line "icon over label" added. User requests: Tech tree = graph icon + "Tech Tree" label; menu row and Research/Cities/Government cluster moved into the Roblox top bar strip (inset >= row height, else the old y), cluster sized to its buttons, research-status line below it, menu row share capped so it stays clear of the cluster. Look of these NOT yet seen.]
 
+## 19c. shot4 + reading-size text [2026-11-14] [done: 2026-11-14 — log: icons 27 of 27, 0 failure kinds, menu row in the top strip (y=-49). shot4: research cluster stayed at y=8 (inset read 0 at script load) -> re-read for 10 s. User request "text large enough": UiTheme.TEXT (title 22 / body 17 / small 14) + BODY_FONT; advice card 440 px auto-height with themed buttons, discovery card 540 px measured height, tooltip 15 px / 360 px; audit line "N visible text(s) under 14 px" names the rest. OPEN: the remaining sub-14 px texts (29 sites, per-panel row heights), Turn log label wraps when it carries a count.]
+
 ## 20. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---

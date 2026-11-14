@@ -7,9 +7,11 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs")) -- CP-art: era colouring
 
 -- CONTENT RULES (license boundary, CLAUDE.md): original prose only — never
@@ -147,12 +149,11 @@ local function show(techId)
 	end
 
 	local shownUnlocks = math.min(#unlocks, 3)
-	local height = 34 + (blurb ~= nil and 36 or 0) + shownUnlocks * 26
-		+ (#unlocks > shownUnlocks and 18 or 0) + (wantsResearch and 20 or 0) + 18
+	local W = 540 -- run-R (user): reading-size copy; height follows the content
 
 	card = Instance.new("TextButton") -- whole card click = dismiss
-	card.Size = UDim2.new(0, 440, 0, height)
-	card.Position = UDim2.new(0.5, -220, 0.12, 0)
+	card.Size = UDim2.new(0, W, 0, 40)
+	card.Position = UDim2.new(0.5, -W / 2, 0.12, 0)
 	card.BackgroundColor3 = Color3.fromRGB(26, 30, 44)
 	card.BackgroundTransparency = 0.05
 	card.Text = ""
@@ -169,44 +170,49 @@ local function show(techId)
 	stroke.Thickness = 2
 	stroke.Parent = card
 
-	local y = 4
+	local y = 8
 	local head = Instance.new("TextLabel")
-	head.Size = UDim2.new(1, -16, 0, 26)
-	head.Position = UDim2.new(0, 8, 0, y)
+	head.Size = UDim2.new(1, -24, 0, 30)
+	head.Position = UDim2.new(0, 12, 0, y)
 	head.BackgroundTransparency = 1
 	head.RichText = true
 	head.TextColor3 = eraCol.ink
-	head.Font = Enum.Font.SourceSansBold
-	head.TextSize = 20
+	head.Font = UiTheme.FONT
+	head.TextSize = 24
 	head.TextXAlignment = Enum.TextXAlignment.Left
-	head.Text = ("%s  <font size=\"14\" color=\"#9db2c8\">%s</font>"):format(def.name or techId, def.era or "")
+	head.Text = ("%s  <font size=\"16\" color=\"#9db2c8\">%s</font>"):format(def.name or techId, def.era or "")
 	head.Parent = card
-	y += 30
+	y += 36
 
 	if blurb ~= nil then
 		local b = Instance.new("TextLabel")
-		b.Size = UDim2.new(1, -16, 0, 32)
-		b.Position = UDim2.new(0, 8, 0, y)
+		local okSize, measured = pcall(function()
+			return TextService:GetTextSize(blurb, UiTheme.TEXT.body, UiTheme.BODY_FONT, Vector2.new(W - 24, 1000))
+		end)
+		local bh = okSize and (measured.Y + 4) or 66
+		b.Size = UDim2.new(1, -24, 0, bh)
+		b.Position = UDim2.new(0, 12, 0, y)
 		b.BackgroundTransparency = 1
 		b.TextColor3 = Color3.fromRGB(220, 226, 238)
-		b.Font = Enum.Font.Code
-		b.TextSize = 14
+		b.Font = UiTheme.BODY_FONT
+		b.TextSize = UiTheme.TEXT.body
 		b.TextWrapped = true
 		b.TextXAlignment = Enum.TextXAlignment.Left
+		b.TextYAlignment = Enum.TextYAlignment.Top
 		b.Text = blurb
 		b.Parent = card
-		y += 36
+		y += bh + 6
 	end
 
 	for i = 1, shownUnlocks do
 		local u = unlocks[i]
 		local link = Instance.new("TextButton")
-		link.Size = UDim2.new(1, -16, 0, 22)
-		link.Position = UDim2.new(0, 8, 0, y)
+		link.Size = UDim2.new(1, -24, 0, 30)
+		link.Position = UDim2.new(0, 12, 0, y)
 		link.BackgroundColor3 = Color3.fromRGB(40, 52, 70)
 		link.TextColor3 = Color3.fromRGB(180, 220, 255)
-		link.Font = Enum.Font.Code
-		link.TextSize = 14
+		link.Font = UiTheme.BODY_FONT
+		link.TextSize = 16
 		link.TextXAlignment = Enum.TextXAlignment.Left
 		link.Text = "  unlocks: " .. u.name .. "  (pedia)"
 		link.Parent = card
@@ -217,44 +223,45 @@ local function show(techId)
 			close()
 			ClientState.openPedia(u.cat, u.id)
 		end)
-		y += 26
+		y += 34
 	end
 	if #unlocks > shownUnlocks then
 		local more = Instance.new("TextLabel")
-		more.Size = UDim2.new(1, -16, 0, 16)
-		more.Position = UDim2.new(0, 8, 0, y)
+		more.Size = UDim2.new(1, -24, 0, 20)
+		more.Position = UDim2.new(0, 12, 0, y)
 		more.BackgroundTransparency = 1
 		more.TextColor3 = Color3.fromRGB(150, 160, 175)
-		more.Font = Enum.Font.Code
-		more.TextSize = 12
+		more.Font = UiTheme.BODY_FONT
+		more.TextSize = UiTheme.TEXT.small
 		more.TextXAlignment = Enum.TextXAlignment.Left
 		more.Text = ("  +%d more in the Pedia"):format(#unlocks - shownUnlocks)
 		more.Parent = card
-		y += 18
+		y += 22
 	end
 	if wantsResearch then
 		local r = Instance.new("TextLabel")
-		r.Size = UDim2.new(1, -16, 0, 18)
-		r.Position = UDim2.new(0, 8, 0, y)
+		r.Size = UDim2.new(1, -24, 0, 24)
+		r.Position = UDim2.new(0, 12, 0, y)
 		r.BackgroundTransparency = 1
 		r.TextColor3 = Color3.fromRGB(255, 220, 120)
-		r.Font = Enum.Font.SourceSansBold
-		r.TextSize = 14
+		r.Font = UiTheme.FONT
+		r.TextSize = UiTheme.TEXT.body
 		r.TextXAlignment = Enum.TextXAlignment.Left
 		r.Text = "Choose new research - press T or the Research button"
 		r.Parent = card
-		y += 20
+		y += 26
 	end
 	local hint = Instance.new("TextLabel")
-	hint.Size = UDim2.new(1, -16, 0, 14)
-	hint.Position = UDim2.new(0, 8, 0, y)
+	hint.Size = UDim2.new(1, -24, 0, 18)
+	hint.Position = UDim2.new(0, 12, 0, y)
 	hint.BackgroundTransparency = 1
 	hint.TextColor3 = Color3.fromRGB(130, 140, 155)
-	hint.Font = Enum.Font.Code
-	hint.TextSize = 11
+	hint.Font = UiTheme.BODY_FONT
+	hint.TextSize = UiTheme.TEXT.small
 	hint.TextXAlignment = Enum.TextXAlignment.Left
 	hint.Text = "click to dismiss"
 	hint.Parent = card
+	card.Size = UDim2.new(0, W, 0, y + 24)
 
 	card.Activated:Connect(close)
 	cardGen += 1

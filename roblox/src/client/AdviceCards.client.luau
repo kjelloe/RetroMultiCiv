@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 
 local ADVICE = {
 	["unit-selected"] = { title = "Moving units", text = "Click a unit to select it, then click an adjacent tile to move. The action bar along the bottom holds its orders - fortify, wait, and GoTo for longer journeys. Or ride it: press P and steer with WASD." },
@@ -54,7 +55,19 @@ local function show(id)
 		return
 	end
 	card = Instance.new("Frame")
-	card.Size = UDim2.new(0, 340, 0, 150)
+	-- run-R (user): reading-size copy; the card grows with its text
+	card.Size = UDim2.new(0, 440, 0, 0)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	do
+		local p = Instance.new("UIPadding")
+		p.PaddingLeft, p.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
+		p.PaddingTop, p.PaddingBottom = UDim.new(0, 10), UDim.new(0, 12)
+		p.Parent = card
+		local l = Instance.new("UIListLayout")
+		l.SortOrder = Enum.SortOrder.LayoutOrder
+		l.Padding = UDim.new(0, 8)
+		l.Parent = card
+	end
 	card.Position = UDim2.new(0, 8, 0.5, -180)
 	card.BackgroundColor3 = Color3.fromRGB(24, 30, 26)
 	card.BackgroundTransparency = 0.05
@@ -67,52 +80,54 @@ local function show(id)
 	s.Transparency = 0.5
 	s.Parent = card
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -16, 0, 24)
-	title.Position = UDim2.new(0, 8, 0, 4)
+	title.Size = UDim2.new(1, 0, 0, 28)
+	title.LayoutOrder = 1
 	title.BackgroundTransparency = 1
 	title.TextColor3 = Color3.fromRGB(160, 230, 175)
-	title.Font = Enum.Font.SourceSansBold
-	title.TextSize = 18
+	title.Font = UiTheme.FONT
+	title.TextSize = UiTheme.TEXT.title
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.Text = def.title
 	title.Parent = card
 	local body = Instance.new("TextLabel")
-	body.Size = UDim2.new(1, -16, 0, 84)
-	body.Position = UDim2.new(0, 8, 0, 28)
+	body.Size = UDim2.new(1, 0, 0, 0)
+	body.AutomaticSize = Enum.AutomaticSize.Y
+	body.LayoutOrder = 2
 	body.BackgroundTransparency = 1
 	body.TextColor3 = Color3.fromRGB(222, 228, 222)
-	body.Font = Enum.Font.Code
-	body.TextSize = 13
+	body.Font = UiTheme.BODY_FONT
+	body.TextSize = UiTheme.TEXT.body
 	body.TextWrapped = true
 	body.TextXAlignment = Enum.TextXAlignment.Left
 	body.TextYAlignment = Enum.TextYAlignment.Top
 	body.Text = def.text
 	body.Parent = card
+	local row = Instance.new("Frame")
+	row.Size = UDim2.new(1, 0, 0, 40)
+	row.BackgroundTransparency = 1
+	row.LayoutOrder = 3
+	row.Parent = card
 	local ok = Instance.new("TextButton")
-	ok.Size = UDim2.new(0, 110, 0, 26)
-	ok.Position = UDim2.new(0, 8, 1, -32)
+	ok.Size = UDim2.new(0, 150, 0, 38)
+	ok.Position = UDim2.new(0, 0, 0, 2)
 	ok.BackgroundColor3 = Color3.fromRGB(56, 96, 66)
 	ok.TextColor3 = Color3.fromRGB(235, 245, 238)
 	ok.Font = Enum.Font.SourceSansBold
-	ok.TextSize = 15
+	ok.TextSize = 17
 	ok.Text = "OK, got it"
-	ok.Parent = card
-	local okc = Instance.new("UICorner")
-	okc.CornerRadius = UDim.new(0, 6)
-	okc.Parent = ok
+	ok.Parent = row
+	UiTheme.apply(ok, { color = "go" })
 	ok.Activated:Connect(dismiss)
 	local no = Instance.new("TextButton")
-	no.Size = UDim2.new(0, 110, 0, 26)
-	no.Position = UDim2.new(0, 126, 1, -32)
+	no.Size = UDim2.new(0, 150, 0, 38)
+	no.Position = UDim2.new(0, 160, 0, 2)
 	no.BackgroundColor3 = Color3.fromRGB(52, 52, 58)
 	no.TextColor3 = Color3.fromRGB(200, 200, 205)
 	no.Font = Enum.Font.SourceSansBold
-	no.TextSize = 15
+	no.TextSize = 17
 	no.Text = "No thanks"
-	no.Parent = card
-	local noc = Instance.new("UICorner")
-	noc.CornerRadius = UDim.new(0, 6)
-	noc.Parent = no
+	no.Parent = row
+	UiTheme.apply(no, { color = "neutral" })
 	no.Activated:Connect(function()
 		ClientState.options.adviceCards = false -- Options row re-enables
 		dismiss()
