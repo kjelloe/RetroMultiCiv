@@ -25,8 +25,15 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 -- session-E: buttons sized like CLOSE CITY VIEW (big, bold, rounded)
 local bar = Instance.new("Frame")
-bar.Size = UDim2.new(0, 1436, 0, 50)
-bar.Position = UDim2.new(0.5, -718, 1, -58)
+-- U4: the bar is as wide as its buttons and scales down to the room between
+-- the bottom-left toggles and End Turn (it was a fixed 1436 px frame that ran
+-- off any viewport narrower than that)
+bar.AutomaticSize = Enum.AutomaticSize.X
+bar.Size = UDim2.new(0, 0, 0, 50)
+bar.AnchorPoint = Vector2.new(0.5, 1)
+bar.Position = UDim2.new(0.5, 0, 1, -8)
+local barScale = Instance.new("UIScale")
+barScale.Parent = bar
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -37,6 +44,41 @@ layout.Padding = UDim.new(0, 4)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.VerticalAlignment = Enum.VerticalAlignment.Center
 layout.Parent = bar
+do
+	local SIDE = 206 -- the wider of the two bottom corners (190 px toggles + margins)
+	local MIN_SCALE = 0.5
+	local function fit()
+		local cam = workspace.CurrentCamera
+		if cam == nil then
+			return
+		end
+		-- the natural width from the buttons' own offsets (independent of the
+		-- current scale, so a refit can never feed on itself)
+		local natural, n = 0, 0
+		for _, c in ipairs(bar:GetChildren()) do
+			if c:IsA("GuiObject") and c.Visible then
+				natural += c.Size.X.Offset
+				n += 1
+			end
+		end
+		if n == 0 then
+			return
+		end
+		natural += (n - 1) * layout.Padding.Offset
+		local room = cam.ViewportSize.X - SIDE * 2
+		barScale.Scale = math.clamp(room / natural, MIN_SCALE, 1)
+	end
+	bar.ChildAdded:Connect(function()
+		task.defer(fit)
+	end)
+	task.spawn(function()
+		while workspace.CurrentCamera == nil do
+			task.wait(0.2)
+		end
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
+		fit()
+	end)
+end
 
 -- runI item 22: widen the enabled/disabled contrast so an inapplicable action
 -- reads clearly as grayed-out (a live action is a lit blue; disabled is a flat,
@@ -45,10 +87,12 @@ local UiTheme = require(script.Parent:WaitForChild("UiTheme")) -- U1 chunky dres
 local ENABLED = UiTheme.COLOR.menu
 local DISABLED = Color3.fromRGB(46, 50, 60)
 
+local ICON_ROOM = 26
 local buttons = {}
 local function addButton(order, text, width, icon)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(0, math.floor(width * 1.3), 0, 40)
+	-- U4: an icon takes ~28 px of the face; the button grows so the label keeps its room
+	b.Size = UDim2.new(0, math.floor(width * 1.3) + (icon ~= nil and ICON_ROOM or 0), 0, 40)
 	b.LayoutOrder = order
 	b.BackgroundColor3 = DISABLED
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
@@ -201,27 +245,27 @@ end)
 
 local foundBtn = addButton(1, "Found (B)", 90, "found")
 local fortifyBtn = addButton(2, "Fortify (O)", 90, "fortify")
-local waitBtn = addButton(3, "Wait (Spc)", 90)
+local waitBtn = addButton(3, "Wait (Spc)", 90, "wait")
 -- session-E round 20 (user): GoTo as a visible action — arms the same
 -- target-pick the G key uses; the plan then marches MULTI-TURN by design
 -- (GoToPlan re-plans and steps every turn until arrival)
-local gotoBtn = addButton(4, "GoTo (G)", 80)
-local disbandBtn = addButton(5, "Disband (X)", 100)
-local irrigateBtn = addButton(6, "Irr (I)", 70)
-local mineBtn = addButton(7, "Mine (M)", 70)
-local roadBtn = addButton(8, "Road (R)", 70)
+local gotoBtn = addButton(4, "GoTo (G)", 80, "goto")
+local disbandBtn = addButton(5, "Disband (X)", 100, "disband")
+local irrigateBtn = addButton(6, "Irr (I)", 70, "irrigate")
+local mineBtn = addButton(7, "Mine (M)", 70, "mine")
+local roadBtn = addButton(8, "Road (R)", 70, "road")
 -- CP3 (catalog): fortress + pillage complete the browser action set —
 -- fortress is a startWork like irrigate/mine/road (tech-gated, server
 -- judges); pillage strips the stood-on tile's improvement
-local fortBtn = addButton(9, "Fort", 60)
-local pillageBtn = addButton(10, "Pillage", 76)
+local fortBtn = addButton(9, "Fort", 60, "fort")
+local pillageBtn = addButton(10, "Pillage", 76, "pillage")
 -- CP17 (marker-0052): caravans establish trade routes standing in a city;
 -- the engine judges the nine rejections (red banners explain)
-local tradeBtn = addButton(11, "Trade", 66)
+local tradeBtn = addButton(11, "Trade", 66, "trade")
 -- CP18 (marker-0055/browser 6f30a46): paid unit upgrade IN an own city;
 -- the button carries the live upgradeCost price
-local upgradeBtn = addButton(12, "Upgrade", 82)
-local possessBtn = addButton(13, "Ride (P)", 80)
+local upgradeBtn = addButton(12, "Upgrade", 82, "upgrade")
+local possessBtn = addButton(13, "Ride (P)", 80, "ride")
 
 -- R7a (6): research leaves the unit bar for a top-center cluster (slots
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a

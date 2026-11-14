@@ -84,6 +84,34 @@ M.ICONS = {
 		{ p = "poly", fill = false, close = false, w = 8, pts = { { 12, 52 }, { 50, 72 }, { 88, 52 } } },
 		{ p = "poly", fill = false, close = false, w = 8, pts = { { 12, 70 }, { 50, 90 }, { 88, 70 } } },
 	},
+	-- U4: the remaining action verbs
+	wait = { bar(36, 50, 14, 56, 4), bar(64, 50, 14, 56, 4) }, -- pause
+	["goto"] = { bar(38, 50, 52, 12, 3), tri({ 58, 26 }, { 90, 50 }, { 58, 74 }) }, -- arrow
+	disband = { bar(50, 50, 14, 80, 4, 45), bar(50, 50, 14, 80, 4, -45) }, -- cross
+	irrigate = { tri({ 50, 8 }, { 73, 52 }, { 27, 52 }), { p = "disc", x = 50, y = 62, r = 26 } }, -- drop
+	mine = { -- pickaxe
+		bar(50, 58, 10, 64, 3),
+		{ p = "arc", x = 50, y = 58, r = 38, a0 = 222, a1 = 318, w = 11 },
+	},
+	road = {
+		{ p = "poly", fill = false, close = false, w = 8, pts = { { 36, 12 }, { 14, 90 } } },
+		{ p = "poly", fill = false, close = false, w = 8, pts = { { 64, 12 }, { 86, 90 } } },
+		bar(50, 22, 6, 14), bar(50, 48, 7, 16), bar(50, 78, 8, 18),
+	},
+	fort = { bar(50, 62, 56, 52, 2), bar(29, 28, 14, 18), bar(50, 28, 14, 18), bar(71, 28, 14, 18) }, -- tower
+	pillage = { -- flame
+		{ p = "poly", fill = true, close = true, pts = { { 50, 8 }, { 70, 40 }, { 78, 64 }, { 64, 88 },
+			{ 36, 88 }, { 22, 64 }, { 34, 44 }, { 42, 56 } } },
+	},
+	trade = { -- opposed arrows
+		bar(42, 34, 56, 10, 3), tri({ 68, 18 }, { 92, 34 }, { 68, 50 }),
+		bar(58, 66, 56, 10, 3), tri({ 32, 50 }, { 8, 66 }, { 32, 82 }),
+	},
+	upgrade = { tri({ 50, 10 }, { 86, 46 }, { 14, 46 }), tri({ 50, 48 }, { 86, 84 }, { 14, 84 }) }, -- double chevron
+	ride = { -- eye: the camera rides the unit
+		{ p = "ell", x = 50, y = 50, rx = 40, ry = 24, rot = 0, fill = false, w = 9 },
+		{ p = "disc", x = 50, y = 50, r = 12 },
+	},
 	fortify = { -- shield
 		{ p = "poly", fill = true, close = true,
 			pts = { { 50, 10 }, { 84, 22 }, { 80, 60 }, { 50, 90 }, { 20, 60 }, { 16, 22 } } },
