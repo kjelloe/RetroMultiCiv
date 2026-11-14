@@ -187,6 +187,19 @@ local function buildPrimitive(model, prim, colors, origin, coneMode)
 		p.Color = resolveColor(prim.color, colors)
 		p.CFrame = placeAt(origin, prim) * CFrame.Angles(0, 0, math.rad(90))
 		p.Parent = model
+	elseif shape == "sphere" and prim.ellipsoid then
+		-- a Ball part is always round; a Sphere SpecialMesh fills the part's
+		-- box, so the three scales give a true ellipsoid (smooth massifs and
+		-- rolling hills, TerrainSculpt)
+		local d = prim.size[1] * 2 * SCALE
+		local p = basePart()
+		p.Size = Vector3.new(d * sx, d * sy, d * sz)
+		p.Color = resolveColor(prim.color, colors)
+		p.CFrame = placeAt(origin, prim)
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = p
+		p.Parent = model
 	elseif shape == "sphere" then
 		local d = prim.size[1] * 2 * (sx + sy + sz) / 3 * SCALE
 		local p = basePart()

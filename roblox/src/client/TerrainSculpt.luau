@@ -2,7 +2,7 @@
 -- mountains and hills for the ENHANCED look. PURE planner — each function
 -- returns a list of prop items for TileProps' existing `put` pipeline
 -- ({ k = PROP_SHAPES key, color, dx, dz, dy, sx, sy, sz, rotY }, offsets in
--- tile units), built from shapes that already exist (peak / snow / rock /
+-- tile units), built from shapes that already exist (treeCanopy sphere / rock /
 -- treeCanopy), so the shared recipe key set is untouched (gate 25).
 -- A mountain is a three-summit massif (one tall summit + two shoulders on a
 -- ring that leaves the tile centre clear, snow caps fitted to each cone, foot
@@ -13,36 +13,56 @@
 
 local M = {}
 
--- base shape sizes, tile units (TileProps.PROP_SHAPES peak / snow)
-local PEAK_R, PEAK_H = 0.26, 0.5
-local SNOW_R, SNOW_H = 0.12, 0.2
+-- run-S shot12 (user): the wedge-fan cones read as coarse spikes and the
+-- mounds as eggs. Both are now built from ELLIPSOIDS (the treeCanopy sphere
+-- with `ell = true`: three independent scales, smooth shading), each sitting
+-- with its centre on the ground so only the upper half shows:
+--   summit = foot (wide, low) + body + crown (narrow, full height), nested on
+--            one axis: a smooth concave flank with a rounded top; the snow is
+--            a fourth ellipsoid fitted to the crown's upper part
+--   hills  = one broad low dome and two lesser ones, each longer one way
+local BALL_R = 0.11 -- TileProps.PROP_SHAPES treeCanopy radius
 
-M.ROCK_GREYS = { "#63636d", "#6f6e76", "#58585f" }
-M.SNOW = "#e8eef0"
+M.FOOT = { "#5d6054", "#646659", "#585a52" } -- scree with a trace of turf
+M.ROCK_GREYS = { "#6c6b72", "#74737a", "#646369" }
+M.CROWN = { "#86858c", "#8e8d94" }
+M.SNOW = "#eef2f4"
 M.BOULDER = "#6a655d"
-M.MOUND = { "#96854f", "#8a7a47", "#a08f58" } -- the hills palette family
-M.SINK = 0.03 -- cones sit slightly into the tile top (no visible seam)
+M.MOUND = { "#8f8750", "#867d49", "#98905a" } -- the hills palette family
 M.LITE_ABOVE = 150 -- more sculpted mountain tiles than this in view = lite massifs
 
-local function summit(out, rand, salt, dx, dz, sx, sy, snowFrac)
+local function ell(role, color, dx, dz, rx, h, rz, dy, rotY)
+	return { k = "treeCanopy", ell = true, role = role, color = color, dx = dx, dz = dz, dy = dy or 0,
+		sx = rx / BALL_R, sy = h / BALL_R, sz = rz / BALL_R, rotY = rotY or 0 }
+end
+
+local function pick(list, r)
+	return list[1 + math.floor(r * #list)]
+end
+
+-- r = foot radius, h = summit height (tile units); lite drops the body layer
+local function summit(out, rand, salt, dx, dz, r, h, snowFrac, lite)
 	local rotY = rand(salt) * math.pi
-	out[#out + 1] = { k = "peak", color = M.ROCK_GREYS[1 + math.floor(rand(salt + 1) * #M.ROCK_GREYS)],
-		dx = dx, dz = dz, dy = PEAK_H * sy / 2 - M.SINK, sx = sx, sy = sy, sz = sx, rotY = rotY }
+	local squash = 0.88 + rand(salt + 2) * 0.12 -- the foot is a little oval
+	out[#out + 1] = ell("foot", pick(M.FOOT, rand(salt + 1)), dx, dz, r, h * 0.42, r * squash, 0, rotY)
+	if not lite then
+		out[#out + 1] = ell("body", pick(M.ROCK_GREYS, rand(salt + 3)), dx, dz, r * 0.66, h * 0.78, r * 0.66 * squash, 0, rotY)
+	end
+	local rc = r * (lite and 0.46 or 0.38)
+	out[#out + 1] = ell("crown", pick(M.CROWN, rand(salt + 4)), dx, dz, rc, h, rc, 0, rotY)
 	if snowFrac > 0 then
-		-- cap = the top snowFrac of the cone: same apex, radius matched to the
-		-- cone at that height (+6% so the faces do not z-fight)
-		local capH = PEAK_H * sy * snowFrac
-		local ky = capH / SNOW_H
-		local kxz = (PEAK_R * sx * snowFrac) / SNOW_R * 1.06
-		out[#out + 1] = { k = "snow", color = M.SNOW, dx = dx, dz = dz,
-			dy = PEAK_H * sy - capH / 2 - M.SINK + 0.004, sx = kxz, sy = ky, sz = kxz, rotY = rotY }
+		-- centred where the snow line cuts the crown, a touch wider than the
+		-- crown there: the upper half is the cap, the lower half is inside
+		local hc = h * (1 - snowFrac)
+		local rs = rc * math.sqrt(1 - (1 - snowFrac) ^ 2) * 1.1
+		out[#out + 1] = ell("snow", M.SNOW, dx, dz, rs, h * snowFrac * 1.02, rs, hc, rotY)
 	end
 end
 
 -- Three summits stand on a RING around the tile centre (never on it): a unit
 -- or city seated on a mountain tile stays visible in the saddle between them.
 M.RING = 0.3 -- summit axis distance from the tile centre
-M.MAX_R = 0.28 -- summit base radius cap (< RING keeps the centre clear)
+M.MAX_R = 0.28 -- summit foot radius cap (< RING keeps the centre clear)
 
 -- lite = the reduced massif for views with very many mountain tiles
 function M.mountain(rand, lite)
@@ -52,33 +72,35 @@ function M.mountain(rand, lite)
 	for i = 0, summits - 1 do
 		local a = a0 + i * (math.pi * 2 / 3) + (rand(8 + i) - 0.5) * 0.5
 		local main = i == 0
-		-- run-M screenshot: at 1.75-2.2 the summits read as needles; lowered ~25 %
-		local sy = main and (1.35 + rand(6) * 0.35) or (0.85 + rand(12 + i) * 0.4)
-		local sx = math.min(M.MAX_R / PEAK_R, main and (1.0 + rand(5) * 0.07) or (0.82 + rand(14 + i) * 0.18))
-		local snow = main and 0.36 or ((not lite and sy > 1.11) and 0.26 or 0)
-		summit(out, rand, 100 + i * 10, math.cos(a) * M.RING, math.sin(a) * M.RING, sx, sy, snow)
+		local h = main and (0.64 + rand(6) * 0.16) or (0.38 + rand(12 + i) * 0.2)
+		local r = math.min(M.MAX_R, main and (0.26 + rand(5) * 0.02) or (0.21 + rand(14 + i) * 0.06))
+		local snow = main and 0.34 or ((not lite and h > 0.5) and 0.24 or 0)
+		summit(out, rand, 100 + i * 10, math.cos(a) * M.RING, math.sin(a) * M.RING, r, h, snow, lite)
 	end
 	if not lite then
 		for i = 0, 1 do
 			local a = a0 + math.pi / 3 + i * (math.pi * 2 / 3) + (rand(16 + i) - 0.5) * 0.4
-			out[#out + 1] = { k = "rock", color = M.BOULDER, dx = math.cos(a) * 0.36, dz = math.sin(a) * 0.36,
+			out[#out + 1] = { k = "rock", role = "boulder", color = M.BOULDER, dx = math.cos(a) * 0.36, dz = math.sin(a) * 0.36,
 				dy = 0.04, sx = 1.1, sy = 0.9, sz = 1.1, rotY = rand(18 + i) * math.pi }
 		end
 	end
 	return out
 end
 
--- rounded mounds: balls sunk so only a low cap shows above the hill top
+-- rolling ground: one broad low dome off the tile centre and two lesser ones
+-- on the far side, each longer along its own heading
+M.HILL_MAX_H = 0.17
 function M.hills(rand)
 	local out = {}
-	local count = 2 + (rand(2) > 0.5 and 1 or 0)
 	local a0 = rand(21) * math.pi * 2
-	for i = 0, count - 1 do
-		local a = a0 + i * (math.pi * 2 / count) + (rand(22 + i) - 0.5) * 0.7
-		local dist = 0.14 + rand(25 + i) * 0.1
-		local k = 2.2 + rand(28 + i) * 0.7 -- ball radius 0.11 * k
-		out[#out + 1] = { k = "treeCanopy", color = M.MOUND[1 + math.floor(rand(31 + i) * #M.MOUND)],
-			dx = math.cos(a) * dist, dz = math.sin(a) * dist, dy = -0.11 * k * 0.62, sx = k, sy = k, sz = k }
+	local d0 = 0.08 + rand(25) * 0.06
+	out[#out + 1] = ell("dome", pick(M.MOUND, rand(31)), math.cos(a0) * d0, math.sin(a0) * d0,
+		0.3 + rand(28) * 0.06, 0.12 + rand(29) * 0.05, 0.24 + rand(30) * 0.06, 0, rand(32) * math.pi)
+	for i = 1, 2 do
+		local a = a0 + math.pi + (i == 1 and -0.9 or 0.9) + (rand(22 + i) - 0.5) * 0.5
+		local dist = 0.2 + rand(25 + i) * 0.06
+		out[#out + 1] = ell("dome", pick(M.MOUND, rand(31 + i)), math.cos(a) * dist, math.sin(a) * dist,
+			0.19 + rand(34 + i) * 0.05, 0.07 + rand(36 + i) * 0.04, 0.16 + rand(38 + i) * 0.05, 0, rand(40 + i) * math.pi)
 	end
 	return out
 end
@@ -124,16 +146,14 @@ end
 
 -- geometry facts the selftest pins (tile units)
 function M.apexOf(item)
-	if item.k == "peak" then
-		return item.dy + PEAK_H * item.sy / 2
+	if item.ell then
+		return item.dy + BALL_R * item.sy
 	end
-	return item.dy + SNOW_H * item.sy / 2
+	return nil
 end
 function M.baseRadiusOf(item)
-	if item.k == "peak" then
-		return PEAK_R * item.sx
-	elseif item.k == "snow" then
-		return SNOW_R * item.sx
+	if item.ell then
+		return BALL_R * math.max(item.sx, item.sz)
 	end
 	return nil
 end

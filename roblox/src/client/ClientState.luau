@@ -369,7 +369,18 @@ function M.toggleAuto(unitId)
 	M.autoSettlers[unitId] = not M.autoSettlers[unitId] and true or nil
 end
 
+M.droppedWhileAway = 0
 function M.send(cmdTable)
+	-- run-S log: 134 commands in 36 s came back roundInFlight while the regent
+	-- played the seat (route plans / automation re-sending on every view
+	-- push). The regent owns the seat: nothing is sent until it is taken back.
+	if M.away then
+		M.droppedWhileAway += 1
+		if M.droppedWhileAway == 1 then
+			print(("[Client] regent has the seat: %s not sent (further ones counted, not printed)"):format(tostring(cmdTable.type)))
+		end
+		return nil
+	end
 	local id = nextCommandId
 	nextCommandId += 1
 	M.lastActivity = os.clock() -- R22: any command counts as activity

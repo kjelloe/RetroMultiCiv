@@ -44,61 +44,61 @@ local maxParts, snowSeen, liteMax = 0, 0, 0
 for seed = 1, 400 do
 	local items = M.mountain(randFor(seed), false)
 	check("mountain deterministic " .. seed, sameList(items, M.mountain(randFor(seed), false)))
-	local peaks, parts = 0, 0
-	local lastPeak = nil
+	local feet, crown, tops = 0, nil, {}
 	for _, it in ipairs(items) do
 		check("known shape " .. it.k, shapeExists(it.k))
 		check("has color", type(it.color) == "string" and it.color:sub(1, 1) == "#")
-		if it.k == "peak" then
-			peaks += 1
-			parts += 5
-			lastPeak = it
-			local reach = math.max(math.abs(it.dx), math.abs(it.dz)) + M.baseRadiusOf(it)
-			check("peak near its tile " .. seed, reach <= 0.6, reach)
-			-- the tile centre (where a unit or city sits) stays outside every cone
-			local axis = math.sqrt(it.dx * it.dx + it.dz * it.dz)
-			check("centre clear of the cone " .. seed, axis > M.baseRadiusOf(it), axis - M.baseRadiusOf(it))
-		elseif it.k == "snow" then
-			snowSeen += 1
-			parts += 5
-			check("snow follows its peak", lastPeak ~= nil and it.dx == lastPeak.dx and it.dz == lastPeak.dz)
-			-- same apex (within the anti-z-fight lift), cap no wider than the cone base
-			check("snow apex = peak apex " .. seed,
-				math.abs(M.apexOf(it) - M.apexOf(lastPeak)) < 0.01, M.apexOf(it) - M.apexOf(lastPeak))
-			check("snow narrower than the peak", M.baseRadiusOf(it) < M.baseRadiusOf(lastPeak))
-		else
-			parts += 1
+		if it.role == "boulder" then
 			check("boulder inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) <= 0.42)
-		end
-	end
-	check("three summits " .. seed, peaks == 3, peaks)
-	check("the first summit is the tallest " .. seed, (function()
-		local top, first = 0, nil
-		for _, it in ipairs(items) do
-			if it.k == "peak" then
-				first = first or M.apexOf(it)
-				top = math.max(top, M.apexOf(it))
+		else
+			check("smooth: an ellipsoid, not a wedge fan", it.k == "treeCanopy" and it.ell == true)
+			local axis = math.sqrt(it.dx * it.dx + it.dz * it.dz)
+			-- the tile centre (where a unit or city sits) stays outside every layer
+			check("centre clear " .. seed, axis > M.baseRadiusOf(it), axis - M.baseRadiusOf(it))
+			check("near its tile " .. seed, math.max(math.abs(it.dx), math.abs(it.dz)) + M.baseRadiusOf(it) <= 0.6)
+			if it.role == "foot" then
+				feet += 1
+				check("foot within the cap", M.baseRadiusOf(it) <= M.MAX_R + 1e-9, M.baseRadiusOf(it))
+				check("foot is low and wide", M.apexOf(it) < M.baseRadiusOf(it) * 1.4)
+			elseif it.role == "body" then
+				check("body rises above the foot", M.apexOf(it) > 0.2)
+			elseif it.role == "crown" then
+				crown = it
+				tops[#tops + 1] = M.apexOf(it)
+				check("crown narrower than the foot cap", M.baseRadiusOf(it) < 0.14)
+				check("summit height in range " .. seed, M.apexOf(it) >= 0.38 and M.apexOf(it) <= 0.81, M.apexOf(it))
+			elseif it.role == "snow" then
+				snowSeen += 1
+				check("snow sits on its crown", crown ~= nil and it.dx == crown.dx and it.dz == crown.dz)
+				check("snow apex = crown apex " .. seed, math.abs(M.apexOf(it) - M.apexOf(crown)) < 0.01, M.apexOf(it) - M.apexOf(crown))
+				check("snow narrower than the crown", M.baseRadiusOf(it) < M.baseRadiusOf(crown))
+				check("snow starts above half height", it.dy > M.apexOf(crown) * 0.5)
+			else
+				check("known role", false, it.role)
 			end
 		end
-		return first == top
-	end)())
-	maxParts = math.max(maxParts, parts)
+	end
+	check("three summits " .. seed, feet == 3 and #tops == 3, feet)
+	check("the first summit is the tallest " .. seed, tops[1] == math.max(tops[1], tops[2], tops[3]))
+	maxParts = math.max(maxParts, #items)
 
 	local lite = M.mountain(randFor(seed), true)
-	local lp = 0
+	liteMax = math.max(liteMax, #lite)
 	for _, it in ipairs(lite) do
-		lp += (it.k == "rock") and 1 or 5
+		check("lite has no body layer or boulders", it.role ~= "body" and it.role ~= "boulder")
 	end
-	liteMax = math.max(liteMax, lp)
 
 	local hills = M.hills(randFor(seed))
 	check("hills deterministic " .. seed, sameList(hills, M.hills(randFor(seed))))
-	check("2-3 mounds " .. seed, #hills == 2 or #hills == 3, #hills)
-	for _, it in ipairs(hills) do
-		check("mound shape exists", shapeExists(it.k))
-		local r = 0.11 * it.sx
-		check("mound mostly sunk (a low cap)", it.dy < 0 and it.dy + r > 0.02 and it.dy + r < 0.2, it.dy + r)
-		check("mound cap inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) + r * 0.8 <= 0.5)
+	check("three domes " .. seed, #hills == 3, #hills)
+	for i, it in ipairs(hills) do
+		check("dome shape exists", shapeExists(it.k) and it.ell == true)
+		local r = M.baseRadiusOf(it)
+		check("dome is low (rolling, not a ball)", M.apexOf(it) <= M.HILL_MAX_H + 1e-9 and M.apexOf(it) < r * 0.75, M.apexOf(it))
+		check("dome stands on the ground", it.dy == 0)
+		check("dome inside the tile", math.max(math.abs(it.dx), math.abs(it.dz)) + r * 0.8 <= 0.5,
+			math.max(math.abs(it.dx), math.abs(it.dz)) + r * 0.8)
+		check("the first dome is the broad one", i == 1 or r < M.baseRadiusOf(hills[1]) + 1e-9)
 	end
 end
 -- T4 woods
@@ -131,8 +131,8 @@ for seed = 1, 400 do
 	check("two broadleaf " .. seed, balls == 2, balls)
 end
 
-check("full massif part budget <= 32", maxParts <= 32, maxParts)
-check("lite massif part budget <= 20", liteMax <= 20, liteMax)
+check("full massif part budget <= 14", maxParts <= 14, maxParts)
+check("lite massif part budget <= 5", liteMax <= 5, liteMax)
 check("some shoulders carry snow, not all", snowSeen > 400 and snowSeen < 1200, snowSeen)
 
 if fails > 0 then

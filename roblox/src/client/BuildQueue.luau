@@ -62,6 +62,9 @@ local function advance(cityId)
 		fireChanged()
 		return
 	end
+	if ClientState.away then
+		return -- the regent picks production; the queue waits for the take-back
+	end
 	local head = q[1]
 	M.removeAt(cityId, 1)
 	local cmdId = ClientState.send({ type = "setProduction", cityId = cityId,

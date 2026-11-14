@@ -219,6 +219,7 @@ local function placeProp(folder, kind, x, y, top, tile, o)
 		pos = { o.dx or 0, o.dy or 0, o.dz or 0 },
 		rot = { o.rotX or 0, o.rotY or 0, o.rotZ or 0 },
 		color = "primary",
+		ellipsoid = o.ell,
 	}
 	AssetFactory.buildShape(folder, prim, { primary = col }, CFrame.new(x * o.TILE, top, y * o.TILE))
 end
