@@ -67,7 +67,7 @@ local function refresh()
 			row.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
 			row.TextColor3 = Color3.fromRGB(235, 235, 235)
 			row.Font = Enum.Font.Code
-			row.TextSize = 13
+			row.TextSize = 14
 			row.TextXAlignment = Enum.TextXAlignment.Left
 			row.TextTruncate = Enum.TextTruncate.AtEnd
 			row.Text = ("  %s (pop %d) - %s %d/%d"):format(c.name, c.pop,
