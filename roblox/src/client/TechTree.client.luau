@@ -30,21 +30,21 @@ gui.DisplayOrder = 20
 gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 44, 0, 36)
+openBtn.Size = UDim2.new(0, 147, 0, 40)
 openBtn.Position = UDim2.new(1, -546, 0, 8) -- left of 🧠 (Strategic -458)
 openBtn.BackgroundColor3 = Color3.fromRGB(38, 46, 40)
 openBtn.TextColor3 = Color3.fromRGB(220, 235, 210)
 openBtn.Font = Enum.Font.SourceSansBold
-openBtn.TextSize = 20
-openBtn.Text = "🌳"
+openBtn.TextSize = 18
+openBtn.Text = "Tech Tree"
 openBtn.Parent = gui
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = openBtn
 end
-require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "go", icon = "techtree", iconOnly = true }) -- U1: chunky game-style dress
-require(script.Parent:WaitForChild("HudDock")).register(openBtn, { id = "techtree", order = 5, iconOnly = true }) -- U3: one planned top row
+require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "go", icon = "techtree" }) -- U1: chunky game-style dress
+require(script.Parent:WaitForChild("HudDock")).register(openBtn, { id = "techtree", order = 5 }) -- U3: one planned top row
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 520, 0, 460)

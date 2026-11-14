@@ -153,9 +153,13 @@ local function dress(btn, opts)
 				btn.Text = ""
 			else
 				-- the label shares the button with the icon: shrink-to-fit, never clip
+				-- run-R: UIPadding moves child instances too, so the icon is
+				-- pulled back out of the padded area to the button's left edge
 				local pad = child(btn, "UIPadding", "ThemePad")
 				pad.PaddingLeft = UDim.new(0, px + 12)
 				pad.PaddingRight = UDim.new(0, 6)
+				icon.Position = UDim2.new(0, 7 - (px + 12), 0.5, 0)
+				btn:SetAttribute("themeIconPad", px + 12)
 				local cap = child(btn, "UITextSizeConstraint", "ThemeTextCap")
 				cap.MaxTextSize = opts.maxText or btn.TextSize
 				cap.MinTextSize = 9
@@ -174,15 +178,25 @@ function M.setCompact(btn, compact)
 		return
 	end
 	btn:SetAttribute("themeCompact", compact)
+	local pad = btn:FindFirstChild("ThemePad")
+	local padPx = btn:GetAttribute("themeIconPad") or 0
 	if compact then
 		btn:SetAttribute("themeText", btn.Text)
 		btn.Text = ""
+		if pad ~= nil then
+			pad.PaddingLeft = UDim.new(0, 0)
+			pad.PaddingRight = UDim.new(0, 0)
+		end
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		icon.Position = UDim2.fromScale(0.5, 0.5)
 	else
 		btn.Text = btn:GetAttribute("themeText") or btn.Text
+		if pad ~= nil then
+			pad.PaddingLeft = UDim.new(0, padPx)
+			pad.PaddingRight = UDim.new(0, 6)
+		end
 		icon.AnchorPoint = Vector2.new(0, 0.5)
-		icon.Position = UDim2.new(0, 7, 0.5, 0)
+		icon.Position = UDim2.new(0, 7 - padPx, 0.5, 0)
 	end
 end
 

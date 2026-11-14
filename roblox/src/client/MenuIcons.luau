@@ -41,11 +41,12 @@ M.ICONS = {
 		quad({ 47, 28 }, { 14, 20 }, { 14, 76 }, { 47, 84 }),
 		quad({ 53, 28 }, { 86, 20 }, { 86, 76 }, { 53, 84 }),
 	},
-	techtree = {
-		{ p = "disc", x = 50, y = 34, r = 25 },
-		{ p = "disc", x = 30, y = 48, r = 17 },
-		{ p = "disc", x = 70, y = 48, r = 17 },
-		bar(50, 76, 13, 30),
+	techtree = { -- graph: one root node linked to two, which join in a fourth
+		{ p = "poly", fill = false, close = true, w = 6, pts = { { 16, 50 }, { 50, 20 }, { 84, 50 }, { 50, 80 } } },
+		{ p = "disc", x = 16, y = 50, r = 12 },
+		{ p = "disc", x = 50, y = 20, r = 12 },
+		{ p = "disc", x = 50, y = 80, r = 12 },
+		{ p = "disc", x = 84, y = 50, r = 12 },
 	},
 	ship = { -- rocket
 		{ p = "poly", fill = true, close = true,

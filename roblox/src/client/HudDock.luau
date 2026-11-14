@@ -6,6 +6,7 @@
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 local DockLayout = require(script.Parent:WaitForChild("DockLayout"))
 local Diag = require(script.Parent:WaitForChild("Diag"))
+local GuiService = game:GetService("GuiService")
 
 local M = {}
 
@@ -16,6 +17,16 @@ local lastPhone = nil
 local function viewportWidth()
 	local cam = workspace.CurrentCamera
 	return cam ~= nil and cam.ViewportSize.X or 0
+end
+
+-- run-R (user): the menu row sits in the Roblox top bar strip (the inset
+-- above the ScreenGui origin) when that strip is tall enough to hold it
+function M.topFor(h)
+	local inset = GuiService:GetGuiInset().Y
+	if inset >= h + 8 then
+		return -inset + math.floor((inset - h) / 2)
+	end
+	return DockLayout.TOP
 end
 
 local function layout()
@@ -47,8 +58,10 @@ local function layout()
 		end
 		table.insert(items, { id = id, order = m.order, w = w, compactW = compactW, visible = m.obj.Visible })
 	end
-	local plan = DockLayout.plan(vw, items, { h = h, forceCompact = phone,
-		fromBottom = phone and DockLayout.PHONE_BOTTOM or nil, maxShare = phone and 0.9 or nil })
+	-- the research cluster (about 500 px) owns the centre of the same strip
+	local plan = DockLayout.plan(vw, items, { h = h, forceCompact = phone, top = M.topFor(h),
+		fromBottom = phone and DockLayout.PHONE_BOTTOM or nil,
+		maxShare = phone and 0.9 or math.max(0.2, 0.5 - 260 / vw) })
 	if phone ~= lastPhone then
 		lastPhone = phone
 		Diag.note("dock", phone and "phone layout: menu row above End Turn" or "desktop layout: menu row top-right")

@@ -292,9 +292,23 @@ local possessBtn = addButton(13, "Ride (P)", 80, "ride")
 -- reserved for diplomacy later). R12 (2)(5): Government joins it, and a
 -- live research-status line sits beside the Research button.
 local cluster = Instance.new("Frame")
-cluster.Size = UDim2.new(0, 760, 0, 46)
-cluster.Position = UDim2.new(0.5, -380, 0, 30) -- run-F #10: dropped 24px so the
--- research-status line sits ABOVE the Research/Cities button row
+-- run-R (user): the cluster sits in the Roblox top bar strip, as wide as its
+-- buttons; the research-status line moved from above it to just below
+local topInset = game:GetService("GuiService"):GetGuiInset().Y
+local clusterY = topInset >= 54 and (-topInset + math.floor((topInset - 46) / 2)) or 4
+cluster.Size = UDim2.new(0, 0, 0, 46)
+cluster.AutomaticSize = Enum.AutomaticSize.X
+cluster.AnchorPoint = Vector2.new(0.5, 0)
+cluster.Position = UDim2.new(0.5, 0, 0, clusterY)
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 12)
+	c.Parent = cluster
+	local p = Instance.new("UIPadding")
+	p.PaddingLeft = UDim.new(0, 6)
+	p.PaddingRight = UDim.new(0, 6)
+	p.Parent = cluster
+end
 cluster.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 cluster.BackgroundTransparency = 0.25
 cluster.BorderSizePixel = 0
@@ -308,7 +322,7 @@ clusterLayout.Parent = cluster
 
 local researchBtn = Instance.new("TextButton")
 researchBtn.LayoutOrder = 1
-researchBtn.Size = UDim2.new(0, 140, 0, 38)
+researchBtn.Size = UDim2.new(0, 166, 0, 38)
 researchBtn.BackgroundColor3 = DISABLED
 researchBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 researchBtn.Font = Enum.Font.SourceSansBold
@@ -327,7 +341,7 @@ UiTheme.apply(researchBtn, { icon = "research" })
 -- "current research" reads clearly over the Research/Cities buttons.
 local researchStatus = Instance.new("TextLabel")
 researchStatus.Size = UDim2.new(0, 760, 0, 22)
-researchStatus.Position = UDim2.new(0.5, -380, 0, 6)
+researchStatus.Position = UDim2.new(0.5, -380, 0, clusterY + 48)
 researchStatus.BackgroundTransparency = 1
 researchStatus.TextColor3 = Color3.fromRGB(180, 210, 240)
 researchStatus.Font = Enum.Font.SourceSansBold
@@ -340,7 +354,7 @@ researchStatus.Parent = gui
 -- the C hotkey's clickable twin (ClientState.toggleCityList channel)
 local citiesBtn = Instance.new("TextButton")
 citiesBtn.LayoutOrder = -1
-citiesBtn.Size = UDim2.new(0, 110, 0, 38)
+citiesBtn.Size = UDim2.new(0, 136, 0, 38)
 citiesBtn.BackgroundColor3 = DISABLED
 citiesBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 citiesBtn.Font = Enum.Font.SourceSansBold
@@ -363,7 +377,7 @@ end)
 -- the government switch). Run-4 live request: sits LEFT of Research.
 local governmentBtn = Instance.new("TextButton")
 governmentBtn.LayoutOrder = 0
-governmentBtn.Size = UDim2.new(0, 150, 0, 38)
+governmentBtn.Size = UDim2.new(0, 170, 0, 38)
 governmentBtn.BackgroundColor3 = DISABLED
 governmentBtn.TextColor3 = Color3.fromRGB(235, 235, 235)
 governmentBtn.Font = Enum.Font.SourceSansBold

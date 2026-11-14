@@ -92,7 +92,8 @@ local function fillPoly(img, pts, color)
 		for i = 1, #xs - 1, 2 do
 			local x0, x1 = xs[i], xs[i + 1]
 			if x1 > x0 then
-				img:DrawRectangle(v2(x0, y), Vector2.new((x1 - x0) * SCALE, SCALE), color, 0, COMBINE)
+				-- run-R: a span under 1 px (a triangle's apex row) is refused by the engine
+				img:DrawRectangle(v2(x0, y), Vector2.new(math.max(1, (x1 - x0) * SCALE), SCALE), color, 0, COMBINE)
 			end
 		end
 		y += 1

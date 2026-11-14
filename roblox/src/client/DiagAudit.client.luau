@@ -116,6 +116,18 @@ local function auditButtons(viewport)
 				elseif p.X < 0 or p.Y < -inset or p.X + s.X > viewport.X or p.Y + s.Y > viewport.Y - inset then
 					Diag.fail("btn", id .. " is off-screen", ("%s in viewport %dx%d"):format(rectText(d), r(viewport.X), r(viewport.Y)))
 				end
+				local icon = d:FindFirstChild("ThemeIcon")
+				if icon ~= nil and d.Text ~= "" then
+					local pad = d:FindFirstChild("ThemePad")
+					local left = p.X + (pad ~= nil and pad.PaddingLeft.Offset or 0)
+					local right = p.X + s.X - (pad ~= nil and pad.PaddingRight.Offset or 0)
+					local textL = d.TextXAlignment == Enum.TextXAlignment.Left and left
+						or (left + right) / 2 - d.TextBounds.X / 2
+					local iconR = icon.AbsolutePosition.X + icon.AbsoluteSize.X
+					if iconR > textL + 1 or icon.AbsolutePosition.X < p.X then
+						Diag.fail("btn", id .. " icon over label", ("icon %s, label starts x=%d"):format(rectText(icon), r(textL)))
+					end
+				end
 				if d.Text ~= "" and not d.TextFits then
 					Diag.fail("btn", id .. " label clipped", rectText(d))
 				end
