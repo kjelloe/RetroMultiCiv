@@ -165,6 +165,15 @@ MOOD_WONDER_EFFECTS, war unhappiness); no command sends.
 emoji in the Code font, the 178 px row beside Buy, tooltip placement, and
 the numbers on a non-medium game.]
 
+## 11. F1 — found-city name prompt [roblox-helper, self-queued 2026-11-14 from plan-version2 "Roblox parity remainder"] [done: 2026-11-14 — FoundCity.luau card + CityNames.luau (suggestCityName twin, lune-pinned) + GameServer TextService filter with Colony-N fallback; check.sh gate 33. Studio look pending: PLAYTHROUGH-UI step 8.]
+
+Architect follow-up (not this lane's files): flip the F1 bullet in
+`plan-version2.md` / `.html` "Roblox parity remainder" to built.
+
+## 12. F2 — world-label collision at close camera range [roblox-helper, self-queued 2026-11-14 from PLAYTHROUGH-UI §F2] [done: 2026-11-14 — LabelDeclutter.luau (pure pick, lune-pinned) + ViewRenderer 0.2 s screen-space pass; check.sh gate 34. Studio look pending: the §F2 repro (3+ adjacent cities, default camera height); SLACK / textWidth are the tuning knobs.]
+
+Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
+
 ---
 
 ## Not in this file (user-side, for completeness)

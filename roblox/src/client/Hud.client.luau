@@ -64,6 +64,7 @@ do -- session-E: big rounded buttons
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = endTurn
 end
+require(script.Parent:WaitForChild("UiTheme")).apply(endTurn, { icon = "endturn" }) -- U1: chunky game-style dress
 
 -- session-E round 21 (user): every server REJECT gets a visible red
 -- center-screen banner in plain language (rejects carry no coordinates,

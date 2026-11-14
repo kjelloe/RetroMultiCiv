@@ -22,6 +22,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
+local TextService = game:GetService("TextService")
 
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local engineModule = require(shared:WaitForChild("index"))
@@ -1274,6 +1275,31 @@ local function toast(player, text, kind)
 	remote:FireClient(player, { t = "toast", text = text, kind = kind })
 end
 
+-- F1: the numbered name the server founds under when a typed one is unusable
+local function autoCityName(player)
+	local pid = seatOfUser[player.UserId]
+	local n = 1
+	if state ~= nil and pid ~= nil then
+		for _, c in pairs(state.cities) do
+			if c.owner == pid then
+				n += 1
+			end
+		end
+	end
+	return "Colony " .. n
+end
+
+local function filteredCityName(player, name, maxLen)
+	local ok, filtered = pcall(function()
+		return TextService:FilterStringAsync(name, player.UserId):GetNonChatStringForBroadcastAsync()
+	end)
+	if ok and filtered == name and stateString.isStateString(filtered, maxLen) then
+		return name
+	end
+	toast(player, "That city name is not available - a numbered name was used.")
+	return autoCityName(player)
+end
+
 local function padStart(player)
 	if phase == "setup" or phase == "starting" then
 		toast(player, hostUserId == player.UserId
@@ -1769,6 +1795,13 @@ remote.OnServerEvent:Connect(function(player, msg)
 	if table.find(CLIENT_COMMANDS, msg.cmd.type) == nil then
 		remote:FireClient(player, { t = "rejected", commandId = commandId, code = "notAllowed" })
 		return
+	end
+	-- F1: a typed city name is player text other players will read, so it goes
+	-- through the platform text filter BEFORE any state read (the filter call
+	-- yields; every state check below runs after it). A filter outage or a
+	-- moderated/non-state-legal result founds under the numbered name instead.
+	if msg.cmd.type == "foundCity" and msg.cmd.name ~= nil then
+		msg.cmd.name = filteredCityName(player, msg.cmd.name, MAX_CMD_NAME)
 	end
 	local pid = seatOfUser[player.UserId]
 	if state == nil or pid == nil then

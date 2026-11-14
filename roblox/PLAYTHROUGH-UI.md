@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 31 gates / 103 PASS assertions on tip
+- `roblox/check.sh` ALL GREEN — 34 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -97,16 +97,18 @@ items only if they block reading or tapping.
    - Likely wrong: the unit teleporting (render-anim regression) or hints
      not refreshing after the move.
 
-8. **Found a city — NOTE: no name dialog on Roblox** — Tier 0/1 📷
+8. **Found a city — name prompt (F1, built 2026-11-14)** — Tier 0/1 📷
    - Tap: `Found` on the action bar (or B).
-   - Expect: city founded IMMEDIATELY, auto-named `Colony 1` — the Roblox
-     client has NO name prompt (browser divergence, see Findings §F1);
-     billboard appears with name + pop; settlers consumed; turn log gains
-     the founding row.
-   - Likely wrong: nothing blocks here by design — if a modal DOES appear,
-     that is new/unexpected code. (On the browser this step traps
-     automation in the name field; Roblox cannot reproduce that trap
-     today because the dialog does not exist.)
+   - Expect: a small centered card "Name your city" with a TextBox
+     pre-filled with the civ's next roster name (e.g. `Rome`), FOUND and
+     CANCEL. FOUND (or Enter) founds under the shown/typed name; CANCEL
+     founds nothing. Billboard appears with name + pop; settlers consumed;
+     turn log gains the founding row. Type a custom name once: it must
+     appear on the billboard; game keys must work again after the card
+     closes (focus released).
+   - Likely wrong: the B keypress typed into the box; the on-screen
+     keyboard covering FOUND on a phone; a moderated name not falling back
+     to `Colony N` with the toast.
 
 9. **City panel** — Tier 0/2 📷
    - Tap: the city billboard.
@@ -202,7 +204,7 @@ items only if they block reading or tapping.
 | 02 | `02-deck.png` | Step 3 — deck, greeting, pads |
 | 03 | `03-setup-panel.png` | Step 4 — all 8 bars incl. 9-segment map type |
 | 04 | `04-first-turn.png` | Step 6 — selection + hints + action bar |
-| 05 | `05-city-founded.png` | Step 8 — billboard "Colony 1" |
+| 05 | `05-city-founded.png` | Step 8 — name card, then the billboard with the chosen name |
 | 06 | `06-city-panel.png` | Step 9 — full panel |
 | 07 | `07-build-queue.png` | Step 10 — 2-item queue |
 | 08 | `08-turn-log.png` | Step 12 — filtered log |
@@ -213,9 +215,8 @@ items only if they block reading or tapping.
 
 ## E. Known-unreachable / expected-absent (do not spend sitting time)
 
-- **City NAME PROMPT and rename** — the browser founds via a name dialog;
-  Roblox auto-names `Colony N` and has no rename surface. Finding §F1,
-  routed to the architect (not fixable in this sitting).
+- **City RENAME** — the found-time name prompt exists (step 8); renaming
+  an existing city has no surface on either platform's Roblox side.
 - **Diplomacy audiences beyond D3** — D4–D6 client UI is post-1.0 by
   ruling, and D3+ parity is additionally blocked server-side (filterView
   omits `state.relations`; needs a golden-window change). Skip diplomacy
@@ -231,10 +232,9 @@ items only if they block reading or tapping.
 
 ## F. Findings routed (write down, do not fix during the sitting)
 
-- **F1 (pre-logged by this checklist):** found-city name-prompt parity —
-  browser has a confirm-by-tap name dialog, Roblox auto-names with no
-  prompt. Tier-1 row divergence; needs an architect route (dialog vs
-  ruled-divergence note in docs/13).
+- **F1 — BUILT 2026-11-14, Studio look pending:** found-city name prompt
+  (`FoundCity.luau` + `CityNames.luau`; server text filter in GameServer;
+  check.sh gate 33). Verify at step 8.
 - **F2 (from the 2026-08-05 publish screenshot, `roblox/debugging/roblox-screenshot-close.png`):**
   **world-space labels collide and become unreadable at close camera range.**
   At turn 288 with several cities in view, the city name/pop lines and the unit
@@ -246,5 +246,10 @@ items only if they block reading or tapping.
   Browser avoids it by drawing labels in screen space with collision handling.
   Routes to the docs/13 parity tiers; NOT a v1.0 gate (the Roblox client is a
   v1.x point release) but it is the first thing a new player sees.
+  **BUILT 2026-11-14, Studio look pending:** `LabelDeclutter.luau` + a 0.2 s
+  pass in ViewRenderer hide the lower-priority label of any colliding pair
+  (city > selected unit > own unit > other unit; nearer wins a tie); check.sh
+  gate 34. Verify with the same repro; tune `SLACK` / `textWidth` if labels
+  hide while visibly clear of each other.
 - Add sitting findings here as `F3, F4, …` with the step number and a
   one-line repro.

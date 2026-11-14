@@ -53,7 +53,7 @@ function M.rulesets()
 		local json2lua = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("json2lua"))
 		local folder = ReplicatedStorage:WaitForChild("GameData"):WaitForChild("rulesets")
 		rulesetCache = {}
-		for _, name in ipairs({ "units", "buildings", "wonders", "techs", "rules", "terrain", "governments" }) do
+		for _, name in ipairs({ "units", "buildings", "wonders", "techs", "rules", "terrain", "governments", "civs" }) do
 			rulesetCache[name] = json2lua.parse(require(folder:WaitForChild(name)))
 		end
 	end

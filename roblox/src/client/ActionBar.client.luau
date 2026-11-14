@@ -14,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- round 20
+local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local techModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("tech"))
 local upgradeModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("upgrade")) -- CP18
 
@@ -40,11 +41,12 @@ layout.Parent = bar
 -- runI item 22: widen the enabled/disabled contrast so an inapplicable action
 -- reads clearly as grayed-out (a live action is a lit blue; disabled is a flat,
 -- near-black gray). The can()-gate already blocks the send + colors every button.
-local ENABLED = Color3.fromRGB(58, 82, 118)
-local DISABLED = Color3.fromRGB(28, 30, 35)
+local UiTheme = require(script.Parent:WaitForChild("UiTheme")) -- U1 chunky dress
+local ENABLED = UiTheme.COLOR.menu
+local DISABLED = Color3.fromRGB(46, 50, 60)
 
 local buttons = {}
-local function addButton(order, text, width)
+local function addButton(order, text, width, icon)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(0, math.floor(width * 1.3), 0, 40)
 	b.LayoutOrder = order
@@ -57,6 +59,7 @@ local function addButton(order, text, width)
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = b
+	UiTheme.apply(b, { icon = icon })
 	table.insert(buttons, b)
 	return b
 end
@@ -196,8 +199,8 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
-local foundBtn = addButton(1, "Found (B)", 90)
-local fortifyBtn = addButton(2, "Fortify (O)", 90)
+local foundBtn = addButton(1, "Found (B)", 90, "found")
+local fortifyBtn = addButton(2, "Fortify (O)", 90, "fortify")
 local waitBtn = addButton(3, "Wait (Spc)", 90)
 -- session-E round 20 (user): GoTo as a visible action — arms the same
 -- target-pick the G key uses; the plan then marches MULTI-TURN by design
@@ -252,6 +255,7 @@ do
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = researchBtn
 end
+UiTheme.apply(researchBtn, { icon = "research" })
 
 -- R12 (5): always-visible research status (tech + turns remaining). run-F #10
 -- (user): moved OUT of the button row to a centered line just ABOVE it, so
@@ -283,6 +287,7 @@ do
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = citiesBtn
 end
+UiTheme.apply(citiesBtn, { icon = "cities" })
 citiesBtn.Activated:Connect(function()
 	if ClientState.view ~= nil then
 		ClientState.toggleCityList()
@@ -305,6 +310,7 @@ do
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = governmentBtn
 end
+UiTheme.apply(governmentBtn, { icon = "government" })
 
 local function selectedUnit()
 	local view = ClientState.view
@@ -316,16 +322,6 @@ local function selectedUnit()
 		return u
 	end
 	return nil
-end
-
-local function ownCityCount(view)
-	local n = 0
-	for _, c in pairs(view.cities) do
-		if c.owner == view.you then
-			n += 1
-		end
-	end
-	return n
 end
 
 -- R7a (4): view-side legality PRECHECK — grey + dead when the action can't
@@ -395,10 +391,7 @@ local function doFound()
 	if not can("found") then
 		return
 	end
-	local u = selectedUnit()
-	local name = "Colony " .. (ownCityCount(ClientState.view) + 1)
-	print(("[ActionBar] found city '%s' with %s"):format(name, u.id))
-	ClientState.send({ type = "foundCity", unitId = u.id, name = name })
+	FoundCity.prompt(selectedUnit().id) -- F1: the name prompt sends the command
 end
 
 local function doUnitCmd(cmdType)

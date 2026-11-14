@@ -19,6 +19,8 @@ const { replayDiagnostics, loadRuleset } = require('../../tools/replay.js');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 
+const DIFFICULTY_CONTENT = { trainer: 6, easy: 5, medium: 4, hard: 3, godemperor: 2 }; // GameServer twin
+
 function parseOutput(text) {
   const init = {};
   const log = [];
@@ -73,22 +75,42 @@ async function main() {
   const civIds = init.civs.split(',');
   const players = civIds.map((id, i) => ({
     id: 'p' + (i + 1),
+    civ: id, // run-F #11: GameServer passes the civ (city rosters + specialty)
     name: ruleset.civs[id].name,
     color: ruleset.civs[id].color,
     human: i < humans
   }));
-  const engine = createEngine(ruleset);
-  const initialState = engine.createGame({
-    seed: Number(init.seed),
-    options: { width: Number(init.width), height: Number(init.height), players,
-      // A82a: maptype in [R4INIT] (absent = continents default, old runs fine)
-      mapType: init.maptype || undefined }
-  });
-  if (initialState.ok === false) {
-    console.error('createGame failed: ' + initialState.reason);
+  // R24b/MP11: the lobby knobs are rules overrides (GameServer.applyRuleOverrides)
+  const overrides = {};
+  if (init.difficulty && init.difficulty !== 'medium' && DIFFICULTY_CONTENT[init.difficulty] !== undefined) {
+    overrides.contentCitizens = DIFFICULTY_CONTENT[init.difficulty];
+  }
+  if (init.combat === 'bestof3') overrides.combatRounds = 3;
+  if (init.marathon === 'true') overrides.endYear = 9999;
+  ruleset.rules = Object.assign({}, ruleset.rules, overrides);
+  if (init.age && init.age !== 'ancient') {
+    console.error(`age=${init.age} start: the initial state comes from a fast-forward/snapshot, not createGame — not replayable by this tool`);
     process.exit(1);
   }
-  const h0 = hashState(initialState);
+  const engine = createEngine(ruleset);
+  // R17: Studio games are created debug-enabled, published ones are not; the
+  // Output does not say which, so accept whichever reproduces the initial hash.
+  let initialState = null;
+  let h0 = null;
+  for (const debug of [true, false]) {
+    initialState = engine.createGame({
+      seed: Number(init.seed),
+      options: Object.assign({ width: Number(init.width), height: Number(init.height), players,
+        // A82a: maptype in [R4INIT] (absent = continents default, old runs fine)
+        mapType: init.maptype || undefined }, debug ? { debug: true } : {})
+    });
+    if (initialState.ok === false) {
+      console.error('createGame failed: ' + initialState.reason);
+      process.exit(1);
+    }
+    h0 = hashState(initialState);
+    if (h0 === init.initialHash) break;
+  }
   if (h0 !== init.initialHash) {
     console.error(`INITIAL STATE DIVERGES: JS createGame ${h0}, Studio ${init.initialHash}`);
     process.exit(1);

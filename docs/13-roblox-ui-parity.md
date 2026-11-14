@@ -349,3 +349,16 @@ close; (b) do NOT port the browser modal naively — the browser version put a
 persistent touch overlay on top of its own confirm button (fixed 2026-07-30,
 `body.modal-open`), and a naive port would recreate that trap on a platform
 where focus handling is harder to inspect.
+**BUILT 2026-11-14 (roblox run-N, Studio look pending):** `FoundCity.luau`
+name card (no full-screen overlay; focus released on close) + the
+`CityNames.luau` roster suggestion (the `ctx.suggestCityName` twin, falling
+back to `Colony N`). One platform addition the browser does not need: the
+typed name passes the Roblox text filter on the server before it reaches
+state; a moderated name founds under `Colony N`. Rename of an existing city
+stays unbuilt on both platforms.
+
+**F2 — LABEL COLLISION (PLAYTHROUGH-UI §F2). BUILT 2026-11-14 (run-N,
+Studio look pending):** world labels are fixed-pixel billboards, so a 0.2 s
+screen-space pass hides the lower-priority label of each colliding pair
+(city > selected unit > own unit > other unit). Detail: `roblox/SPEC.md`
+run-N.

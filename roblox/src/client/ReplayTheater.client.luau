@@ -50,6 +50,7 @@ openBtn.Font = Enum.Font.SourceSansBold
 openBtn.TextSize = 14
 openBtn.Text = "THEATER"
 openBtn.Parent = gui
+require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "space", icon = "theater", radius = 8 }) -- U1
 
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(0, 780, 0, 116) -- runK item 3: 50% wider + 2x taller

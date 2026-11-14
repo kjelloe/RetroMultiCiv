@@ -35,6 +35,7 @@ do
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = openBtn
 end
+require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "space", icon = "ship" }) -- U1: chunky game-style dress
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 780, 0, 490)

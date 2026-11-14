@@ -1,0 +1,323 @@
+  01:19:54.839  [GameServer] stray SpawnLocation moved onto the deck plane: Workspace.SpawnLocation  -  Server - GameServer:89
+  01:19:54.847  [GameServer] data gate: 8/8 ruleset hashes match the Node side  -  Server - GameServer:139
+  01:19:54.847  [GameServer] R9 chat assert: window + input bar DISABLED  -  Server - GameServer:185
+  01:19:54.847  [GameServer] R9 lobby up: observation deck live, START pad open  -  Server - GameServer:1916
+  01:19:54.847  === RetroMultiCiv R1 anchor gate ===  -  Server - VerifyAnchors:35
+  01:19:54.847  xorshift32(123456789): 2714967881, 2238813396, 1250077441, 3820100336  -  Server - VerifyAnchors:29
+  01:19:54.847    PASS (2714967881, 2238813396, 1250077441, 3820100336)  -  Server - VerifyAnchors:30
+  01:19:54.847  hashState({b=2,a={1,"x",true}}): 0x30db1e29  -  Server - VerifyAnchors:29
+  01:19:54.847    PASS (0x30db1e29)  -  Server - VerifyAnchors:30
+  01:19:54.847  gamecode codeHi: 0xa687b72d  -  Server - VerifyAnchors:29
+  01:19:54.847    PASS (0xa687b72d)  -  Server - VerifyAnchors:30
+  01:19:54.847  gameCode: AD1X-Q5MR-DP7H9  -  Server - VerifyAnchors:29
+  01:19:54.847    PASS (AD1X-Q5MR-DP7H9)  -  Server - VerifyAnchors:30
+  01:19:54.848  === R1 anchor gate: ALL PASS ===  -  Server - VerifyAnchors:74
+  01:19:55.018  [Diplomacy] D3 Tier-B foreign-relations panel up (Y toggles)  -  Client - Diplomacy:163
+  01:19:55.019  [Minimap] SO1 minimap up (flat grid, click/drag jumps the camera)  -  Client - Minimap:150
+  01:19:55.033  [TechTree] XII.6 era-grouped tech tree up (🌳 / Shift+T; client beeline)  -  Client - TechTree:338
+  01:19:55.034  [Pedia] R19 Encyclopedia up (PEDIA button, top right)  -  Client - Pedia:331
+  01:19:55.034  [Advice] SO5 first-timer advice up (once per session; No thanks mutes)  -  Client - AdviceCards:213
+  01:19:55.034  [WaitStatus] Tier-3 wait-status HUD line up (names who the round waits on)  -  Client - WaitStatusHud:64
+  01:19:55.064  [Theater] R18 replay theater ready (THEATER button; opens post-game)  -  Client - ReplayTheater:520
+  01:19:55.065  [Government] R12 government panel up (rate steppers + CP13 government switching)  -  Client - GovernmentPanel:240
+  01:19:55.065  [Strategic] SO17 AI-strategy overlay up (🧠; spectator/Studio only)  -  Client - Strategic:178
+  01:19:55.067  [Lobby] R9 lobby UI up (deck pads drive the flow)  -  Client - Lobby:583
+  01:19:55.068  [DebugMenu] R17 thin client up (Studio only; commands taint permanently)  -  Client - DebugMenu:156
+  01:19:55.069  [CityList] R7d city list up (C toggles, Cities button)  -  Client - CityList:119
+  01:19:55.069  [RegentDialog] MP4 regent stance picker up (🤖 opens; 5 stances)  -  Client - RegentDialog:91
+  01:19:55.069  [Historian] SO9 age interstitial up (server historian frames)  -  Client - Historian:129
+  01:19:55.073  [ViewRenderer] R4 view renderer up: waiting for the first view push  -  Client - ViewRenderer:819
+  01:19:55.073  [MoveHints] R6 move hints up  -  Client - MoveHints:98
+  01:19:55.073  [Gallery] R8 gallery grid ready (K or the Studio DEBUG button toggles)  -  Client - GalleryGrid:160
+  01:19:55.074  [Overlays] map-overlays panel up (item 8: city influence / unit presence / hide labels)  -  Client - Overlays:205
+  01:19:55.075  [WorkedTiles] R7c-3 worked-tile overlay ready (CityPanel drives it)  -  Client - WorkedTiles:456
+  01:19:55.075  [BuildQueue] CP8 per-city build queue up (Q+ on catalog rows)  -  Client - BuildQueue:93
+  01:19:55.076  [Tooltip] SO2 tooltip helper up (hover 0.35s / long-press 0.5s)  -  Client - Tooltip:98
+  01:19:55.076  [CityPanel] city panel up (R13 sell strip, R15 effects sublines, hideFuture wired)  -  Client - CityPanel:646
+  01:19:55.079  [Legend] keyboard legend up (left-edge button)  -  Client - Legend:111
+  01:19:55.079  [TurnLog] R6 turn log up (L toggles; SO6 class filters)  -  Client - TurnLog:472
+  01:19:55.080  [Camera] R4 map camera up: dist 60 — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar  -  Client - Camera:151
+  01:19:55.080  [FastForward] SO12 diorama up (waits for {t=ffProgress})  -  Client - FastForward:190
+  01:19:55.080  [Stats] R7d statistics up (J toggles; SO8 score chart + battles/wonders)  -  Client - Statistics:225
+  01:19:55.080  [SettlerAuto] CP20 settler automation up (Au card toggle; manual order cancels)  -  Client - SettlerAuto:168
+  01:19:55.081  [Ship] SO11 spaceship screen up (Ship button appears once the race exists)  -  Client - Ship:391
+  01:19:55.082  [Hud] R7d hud up (three-state End Turn, game-code chip)  -  Client - Hud:445
+  01:19:55.082  [Research] research picker up (T toggles; rate steppers live in Government now)  -  Client - ResearchPicker:254
+  01:19:55.082  [DiscoveryCard] SO3 tech-discovery card up (options.discoveryCards mutes)  -  Client - DiscoveryCard:288
+  01:19:55.083  [Intro] One City Through Time boot intro up (Skip lower-right)  -  Client - Intro:463
+  01:19:55.083  [EndScreen] SO7 end screen up (opens on the server's gameOver frame)  -  Client - EndScreen:194
+  01:19:55.084  [Sound] SO15 cue player up (SoundAssets.luau: bespoke uploads via roblox/tools/upload-sounds.js)  -  Client - Sound:63
+  01:19:55.085  [Options] options up (collapsible panel; auto-next/auto-end/auto-research ON)  -  Client - Options:358
+  01:19:55.088  [GoTo] R14 route-as-plan up (O arms target pick on the selected unit)  -  Client - GoToPlan:171
+  01:19:55.089  [Select] actions up: click select/move, B found city, O GoTo, Return end turn  -  Client - Select:334
+  01:19:55.092  [ActionBar] action bar up (O fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)  -  Client - ActionBar:635
+  01:19:55.156  [RidePad] R11 ride pad up (auto-detect: off - keyboard present; the PAD button toggles)  -  Client - RidePad:191
+  01:19:55.596  Animation Spoofer cannot run while game is running  -  Server
+  01:19:55.973  Animation Spoofer cannot run while game is running  -  Client
+  01:19:56.210  [Odds] R7d combat odds preview up (hover an adjacent enemy)  -  Client - OddsPreview:177
+  01:19:56.210  [Possess] possession up: P ride/dismount toggle, N next unit (select-only afoot), WASD/arrows step, F dismount  -  Client - Possess:342
+  01:19:56.935  [Camera] respawn: follow-avatar reset ON  -  Client - Camera:31
+  01:19:56.961  ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type  -  Studio
+  01:20:15.707  [GameServer] R9 host window: vv_beemy (60s)  -  Server - GameServer:1330
+  01:20:48.031  [R4INIT] seed=615648 width=40 height=25 civs=americans,mongols,zulus humanSeat=p1 humans=1 maptype=continents age=ancient difficulty=medium combat=bestof3 marathon=false initialHash=0x9e703b15  -  Server - GameServer:1076
+  01:20:48.057  [Client] joined as p1 (turn 1, p1 active)  -  Client - ClientState:429
+  01:20:48.093  [VoidCover] R7b void cover up: guard walls on, art = frame (V cycles)  -  Client - VoidCover:178
+  01:20:48.093  [Possess] game start: beside your settler (sparkle arrival)  -  Client - Possess:218
+  01:20:49.456  [Select] tile (26,20) unknown  -  Client - Select:252
+  01:20:51.473  [Select] found city: select a settlers unit first  -  Client - Select:316
+  01:20:52.089  [Select] selected u1 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:20:57.256  [Select] tile (22,16) grassland — unit u1 (settlers, p1)  -  Client - Select:252
+  01:20:57.922  [Select] selected u1 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:20:58.989  [FoundCity] found city 'Washington' with u1  -  Client - FoundCity:36
+  01:20:59.025  [R4LOG] {"cmd":{"name":"Washington","playerId":"p1","type":"foundCity","unitId":"u1"},"hash":"0xf53910e8","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:275
+  01:21:01.022  [Select] open city Washington (c1)  -  Client - Select:220
+  01:21:03.272  [CityPanel] setProduction c1 -> unit settlers  -  Client - CityPanel:350
+  01:21:03.309  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0x568dcd97","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:275
+  01:21:09.338  [CityPanel] setProduction c1 -> unit settlers  -  Client - CityPanel:350
+  01:21:09.374  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"hash":"0x568dcd97","ok":true,"t":"cmd","turn":1}  -  Server - GameServer:275
+  01:21:16.938  [Hud] end turn 1  -  Client - Hud:401
+  01:21:16.998  [R4LOG] {"activePlayer":"p1","hash":"0x9973a938","t":"round","turn":2}  -  Server - GameServer:275
+  01:21:17.003  [R4CODE] turn=2 code=4E18-DDJC-Q7A9R  -  Server - GameServer:456
+  01:21:17.871  [Hud] end turn 2  -  Client - Hud:401
+  01:21:17.931  [R4LOG] {"activePlayer":"p1","hash":"0x8c8c4d44","t":"round","turn":3}  -  Server - GameServer:275
+  01:21:17.936  [R4CODE] turn=3 code=8RVJ-5SA6-8RKA4  -  Server - GameServer:456
+  01:21:18.705  [Hud] end turn 3  -  Client - Hud:401
+  01:21:18.765  [R4LOG] {"activePlayer":"p1","hash":"0x09bc2700","t":"round","turn":4}  -  Server - GameServer:275
+  01:21:18.770  [R4CODE] turn=4 code=DQHQ-D8R4-VR9R0  -  Server - GameServer:456
+  01:21:23.188  [WorkedTiles] setWorkers auto c1  -  Client - WorkedTiles:272
+  01:21:23.223  [R4LOG] {"cmd":{"auto":true,"cityId":"c1","playerId":"p1","type":"setWorkers"},"hash":"0x09bc2700","ok":true,"t":"cmd","turn":4}  -  Server - GameServer:275
+  01:21:25.371   ▶ [Select] tile (26,22) unknown (x2)  -  Client - Select:252
+  01:21:26.971  [Hud] end turn 4  -  Client - Hud:401
+  01:21:27.030  [R4LOG] {"activePlayer":"p1","hash":"0x3fd106a1","t":"round","turn":5}  -  Server - GameServer:275
+  01:21:27.035  [R4CODE] turn=5 code=00D8-PBMZ-X21N1  -  Server - GameServer:456
+  01:21:27.521  [Hud] end turn 5  -  Client - Hud:401
+  01:21:27.581  [R4LOG] {"activePlayer":"p1","hash":"0x3a89b1ce","t":"round","turn":6}  -  Server - GameServer:275
+  01:21:27.585  [R4CODE] turn=6 code=EFPM-04GX-8KCEE  -  Server - GameServer:456
+  01:21:27.905  [Hud] end turn 6  -  Client - Hud:401
+  01:21:27.964  [R4LOG] {"activePlayer":"p1","hash":"0x31e07ac9","t":"round","turn":7}  -  Server - GameServer:275
+  01:21:27.969  [R4CODE] turn=7 code=AFSX-Q34R-Y0YP9  -  Server - GameServer:456
+  01:21:28.089  [Hud] end turn 7  -  Client - Hud:401
+  01:21:28.148  [R4LOG] {"activePlayer":"p1","hash":"0xf418013a","t":"round","turn":8}  -  Server - GameServer:275
+  01:21:28.153  [R4CODE] turn=8 code=AA9N-2MBT-1G09T  -  Server - GameServer:456
+  01:21:28.287  [Hud] end turn 8  -  Client - Hud:401
+  01:21:28.348  [R4LOG] {"activePlayer":"p1","hash":"0x4fa6390d","t":"round","turn":9}  -  Server - GameServer:275
+  01:21:28.353  [R4CODE] turn=9 code=ESG2-GC57-TCE8D  -  Server - GameServer:456
+  01:21:28.471  [Hud] end turn 9  -  Client - Hud:401
+  01:21:28.531  [R4LOG] {"activePlayer":"p1","hash":"0x01d7155f","t":"round","turn":10}  -  Server - GameServer:275
+  01:21:28.536  [R4CODE] turn=10 code=AEF2-BDW0-XE5AZ  -  Server - GameServer:456
+  01:21:28.804  [Hud] end turn 10  -  Client - Hud:401
+  01:21:28.864  [R4LOG] {"activePlayer":"p1","hash":"0xc89daf70","t":"round","turn":11}  -  Server - GameServer:275
+  01:21:28.870  [R4CODE] turn=11 code=0X6S-MZB4-9VBVG  -  Server - GameServer:456
+  01:21:29.037  [Hud] end turn 11  -  Client - Hud:401
+  01:21:29.098  [R4LOG] {"activePlayer":"p1","hash":"0x48f7e1cf","t":"round","turn":12}  -  Server - GameServer:275
+  01:21:29.102  [R4CODE] turn=12 code=8YBE-30X4-FFREF  -  Server - GameServer:456
+  01:21:29.134  [GameServer] R10 save (autosave): AEF2-BDW0-XE5AZ at turn 12  -  Server - GameServer:1121
+  01:21:29.167  [Client] autosaved at turn 12 - resume code AEF2-BDW0-XE5AZ  -  Client - ClientState:456
+  01:21:29.505  [Hud] end turn 12  -  Client - Hud:401
+  01:21:29.564  [R4LOG] {"activePlayer":"p1","hash":"0xb90bfc4f","t":"round","turn":13}  -  Server - GameServer:275
+  01:21:29.570  [R4CODE] turn=13 code=4Z0C-8RYW-GQZ2F  -  Server - GameServer:456
+  01:21:33.938  [Research] setResearch alphabet  -  Client - ResearchPicker:131
+  01:21:33.973  [R4LOG] {"cmd":{"playerId":"p1","tech":"alphabet","type":"setResearch"},"hash":"0xd2cb21b0","ok":true,"t":"cmd","turn":13}  -  Server - GameServer:275
+  01:21:49.704  [Hud] end turn 13  -  Client - Hud:401
+  01:21:49.764  [R4LOG] {"activePlayer":"p1","hash":"0x4dc0f5c0","t":"round","turn":14}  -  Server - GameServer:275
+  01:21:49.769  [R4CODE] turn=14 code=27DX-QXH6-W1XE0  -  Server - GameServer:456
+  01:21:50.004  [Hud] end turn 14  -  Client - Hud:401
+  01:21:50.063  [R4LOG] {"activePlayer":"p1","hash":"0x626a2379","t":"round","turn":15}  -  Server - GameServer:275
+  01:21:50.068  [R4CODE] turn=15 code=1A17-G1NH-6M8VS  -  Server - GameServer:456
+  01:21:50.170  [Hud] end turn 15  -  Client - Hud:401
+  01:21:50.230  [R4LOG] {"activePlayer":"p1","hash":"0xad417fa0","t":"round","turn":16}  -  Server - GameServer:275
+  01:21:50.235  [R4CODE] turn=16 code=DYBB-GX2P-M2ZX0  -  Server - GameServer:456
+  01:21:50.337  [Hud] end turn 16  -  Client - Hud:401
+  01:21:50.397  [R4LOG] {"activePlayer":"p1","hash":"0xf4e29204","t":"round","turn":17}  -  Server - GameServer:275
+  01:21:50.403  [R4CODE] turn=17 code=3D21-XCBT-E54G4  -  Server - GameServer:456
+  01:21:50.504  [Hud] end turn 17  -  Client - Hud:401
+  01:21:50.564  [R4LOG] {"activePlayer":"p1","hash":"0x2bd1294c","t":"round","turn":18}  -  Server - GameServer:275
+  01:21:50.570  [R4CODE] turn=18 code=FZ8G-H68N-X2AAC  -  Server - GameServer:456
+  01:21:50.671  [Hud] end turn 18  -  Client - Hud:401
+  01:21:50.736  [R4LOG] {"activePlayer":"p1","hash":"0x17df7220","t":"round","turn":19}  -  Server - GameServer:275
+  01:21:50.744  [R4CODE] turn=19 code=92VA-45RB-XYWH0  -  Server - GameServer:456
+  01:21:50.837  [Hud] end turn 19  -  Client - Hud:401
+  01:21:50.897  [R4LOG] {"activePlayer":"p1","hash":"0x8c07d732","t":"round","turn":20}  -  Server - GameServer:275
+  01:21:50.902  [R4CODE] turn=20 code=FFEC-JR26-0FNSJ  -  Server - GameServer:456
+  01:21:51.386  [GameServer] R10 save (autosave): FFEC-JR26-0FNSJ at turn 20  -  Server - GameServer:1121
+  01:21:51.419  [Client] autosaved at turn 20 - resume code FFEC-JR26-0FNSJ  -  Client - ClientState:456
+  01:21:51.603  [Options] auto end turn 20  -  Client - Options:341
+  01:21:51.646  [R4LOG] {"activePlayer":"p1","hash":"0x06f3f375","t":"round","turn":21}  -  Server - GameServer:275
+  01:21:51.651  [R4CODE] turn=21 code=0NJA-T143-F7WVN  -  Server - GameServer:456
+  01:21:51.787  [Options] auto end turn 21  -  Client - Options:341
+  01:21:51.830  [R4LOG] {"activePlayer":"p1","hash":"0xe50ae9c6","t":"round","turn":22}  -  Server - GameServer:275
+  01:21:51.835  [R4CODE] turn=22 code=3412-V1BJ-GNTE6  -  Server - GameServer:456
+  01:21:51.936  [Options] auto end turn 22  -  Client - Options:341
+  01:21:51.980  [R4LOG] {"activePlayer":"p1","hash":"0x7ec1d1fc","t":"round","turn":23}  -  Server - GameServer:275
+  01:21:51.985  [R4CODE] turn=23 code=FNTP-B51Z-C3MFW  -  Server - GameServer:456
+  01:21:52.087  [Select] selected u6 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:21:52.686  [Options] auto end turn 23  -  Client - Options:341
+  01:21:52.720  [Select] tile (23,18) grassland  -  Client - Select:252
+  01:21:52.729  [R4LOG] {"activePlayer":"p1","hash":"0x6a60a246","t":"round","turn":24}  -  Server - GameServer:275
+  01:21:52.734  [R4CODE] turn=24 code=6D12-AD1N-618J6  -  Server - GameServer:456
+  01:21:52.869  [Options] auto end turn 24  -  Client - Options:341
+  01:21:52.912  [R4LOG] {"activePlayer":"p1","hash":"0x711bc522","t":"round","turn":25}  -  Server - GameServer:275
+  01:21:52.917  [R4CODE] turn=25 code=63K9-009R-HQH92  -  Server - GameServer:456
+  01:21:53.019  [Options] auto end turn 25  -  Client - Options:341
+  01:21:53.064  [R4LOG] {"activePlayer":"p1","hash":"0x4b0ccb65","t":"round","turn":26}  -  Server - GameServer:275
+  01:21:53.069  [R4CODE] turn=26 code=4AS1-BT55-GSJV5  -  Server - GameServer:456
+  01:21:53.269  [Select] selected u6 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:21:53.769  [Options] auto end turn 26  -  Client - Options:341
+  01:21:53.813  [R4LOG] {"activePlayer":"p1","hash":"0xa252a172","t":"round","turn":27}  -  Server - GameServer:275
+  01:21:53.818  [R4CODE] turn=27 code=2AY0-3Y2H-558BJ  -  Server - GameServer:456
+  01:21:53.953  [Options] auto end turn 27  -  Client - Options:341
+  01:21:53.995  [R4LOG] {"activePlayer":"p1","hash":"0x2355f7bc","t":"round","turn":28}  -  Server - GameServer:275
+  01:21:54.000  [R4CODE] turn=28 code=FXX3-5GGH-NBXXW  -  Server - GameServer:456
+  01:21:54.103  [Options] auto end turn 28  -  Client - Options:341
+  01:21:54.149  [R4LOG] {"activePlayer":"p1","hash":"0xdbf26255","t":"round","turn":29}  -  Server - GameServer:275
+  01:21:54.154  [R4CODE] turn=29 code=9N6N-EWQD-Z4RJN  -  Server - GameServer:456
+  01:21:54.853  [Options] auto end turn 29  -  Client - Options:341
+  01:21:54.898  [R4LOG] {"activePlayer":"p1","hash":"0x70a8725e","t":"round","turn":30}  -  Server - GameServer:275
+  01:21:54.903  [R4CODE] turn=30 code=31R7-NP1R-AGWJY  -  Server - GameServer:456
+  01:21:55.021  [Select] tile (23,18) grassland  -  Client - Select:252
+  01:21:55.038  [Options] auto end turn 30  -  Client - Options:341
+  01:21:55.080  [R4LOG] {"activePlayer":"p1","hash":"0xfef31d2d","t":"round","turn":31}  -  Server - GameServer:275
+  01:21:55.086  [R4CODE] turn=31 code=6WF5-QVQZ-F679D  -  Server - GameServer:456
+  01:21:55.185  [Options] auto end turn 31  -  Client - Options:341
+  01:21:55.230  [R4LOG] {"activePlayer":"p1","hash":"0x8e21965c","t":"round","turn":32}  -  Server - GameServer:275
+  01:21:55.235  [R4CODE] turn=32 code=2VZ8-E3J7-235JW  -  Server - GameServer:456
+  01:21:55.255  [GameServer] R10 save (autosave): 31R7-NP1R-AGWJY at turn 32  -  Server - GameServer:1121
+  01:21:55.286  [Client] autosaved at turn 32 - resume code 31R7-NP1R-AGWJY  -  Client - ClientState:456
+  01:21:55.620  [Select] selected u6 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:21:55.935  [Options] auto end turn 32  -  Client - Options:341
+  01:21:55.979  [R4LOG] {"activePlayer":"p1","hash":"0x0e0ab9ce","t":"round","turn":33}  -  Server - GameServer:275
+  01:21:55.985  [R4CODE] turn=33 code=8RF3-KH87-0NEEE  -  Server - GameServer:456
+  01:21:56.119  [Options] auto end turn 33  -  Client - Options:341
+  01:21:56.166  [R4LOG] {"activePlayer":"p1","hash":"0xbcf5eb48","t":"round","turn":34}  -  Server - GameServer:275
+  01:21:56.172  [R4CODE] turn=34 code=60J1-8BAY-FBTT8  -  Server - GameServer:456
+  01:21:56.269  [Options] auto end turn 34  -  Client - Options:341
+  01:21:56.313  [R4LOG] {"activePlayer":"p1","hash":"0xe1a4752a","t":"round","turn":35}  -  Server - GameServer:275
+  01:21:56.318  [R4CODE] turn=35 code=2MX4-8T3G-T8X9A  -  Server - GameServer:456
+  01:21:56.637  [GoTo] pick a destination (O again cancels)  -  Client - GoToPlan:117
+  01:21:57.019  [Options] auto end turn 35  -  Client - Options:341
+  01:21:57.064  [R4LOG] {"activePlayer":"p1","hash":"0xdac20892","t":"round","turn":36}  -  Server - GameServer:275
+  01:21:57.069  [R4CODE] turn=36 code=932Y-Z8KD-C424J  -  Server - GameServer:456
+  01:21:57.170  [GoTo] u6 -> (23,18): 2 tiles, cost 6/3 — marching  -  Client - GoToPlan:107
+  01:21:57.220  [Options] auto end turn 36  -  Client - Options:341
+  01:21:57.265  [R4LOG] {"activePlayer":"p1","hash":"0x1d658c4b","t":"round","turn":37}  -  Server - GameServer:275
+  01:21:57.271  [R4CODE] turn=37 code=3AWV-9KCE-PB32B  -  Server - GameServer:456
+  01:21:57.307  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8d5079c5","ok":true,"t":"cmd","turn":37}  -  Server - GameServer:275
+  01:21:57.353  [Options] auto end turn 37  -  Client - Options:341
+  01:21:57.399  [R4LOG] {"activePlayer":"p1","hash":"0x13fe062a","t":"round","turn":38}  -  Server - GameServer:275
+  01:21:57.404  [R4CODE] turn=38 code=5K9X-K6R9-ZW1HA  -  Server - GameServer:456
+  01:21:57.439  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x11c7c146","ok":true,"t":"cmd","turn":38}  -  Server - GameServer:275
+  01:21:57.479  [GoTo] u6 arrived at (23,18)  -  Client - GoToPlan:140
+  01:21:58.102  [Options] auto end turn 38  -  Client - Options:341
+  01:21:58.147  [R4LOG] {"activePlayer":"p1","hash":"0xc2d450b5","t":"round","turn":39}  -  Server - GameServer:275
+  01:21:58.152  [R4CODE] turn=39 code=E4JX-XMQ1-D8M5N  -  Server - GameServer:456
+  01:21:58.220  [Select] tile (23,18) grassland — unit u6 (settlers, p1)  -  Client - Select:252
+  01:22:00.953  [Select] tile (23,19) grassland  -  Client - Select:252
+  01:22:01.687  [Select] selected u6 (settlers) at (23,18), moves 1  -  Client - Select:211
+  01:22:02.087  [Select] move u6 S -> (23,19)  -  Client - Select:244
+  01:22:02.122  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0x8bf6458f","ok":true,"t":"cmd","turn":39}  -  Server - GameServer:275
+  01:22:03.169  [Options] auto end turn 39  -  Client - Options:341
+  01:22:03.214  [R4LOG] {"activePlayer":"p1","hash":"0xd36b8002","t":"round","turn":40}  -  Server - GameServer:275
+  01:22:03.219  [R4CODE] turn=40 code=290X-BB39-PQ002  -  Server - GameServer:456
+  01:22:03.370  [Select] tile (23,19) grassland — unit u6 (settlers, p1)  -  Client - Select:252
+  01:22:03.687  [Select] tile (24,20) grassland  -  Client - Select:252
+  01:22:03.702  [GameServer] R10 save (autosave): 290X-BB39-PQ002 at turn 40  -  Server - GameServer:1121
+  01:22:03.735  [Client] autosaved at turn 40 - resume code 290X-BB39-PQ002  -  Client - ClientState:456
+  01:22:04.388  [Select] selected u6 (settlers) at (23,19), moves 1  -  Client - Select:211
+  01:22:04.788  [Select] move u6 SE -> (24,20)  -  Client - Select:244
+  01:22:04.822  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u6"},"hash":"0xf6cf62c3","ok":true,"t":"cmd","turn":40}  -  Server - GameServer:275
+  01:22:05.804  [Select] tile (24,20) grassland — unit u6 (settlers, p1)  -  Client - Select:252
+  01:22:05.886  [Options] auto end turn 40  -  Client - Options:341
+  01:22:05.931  [R4LOG] {"activePlayer":"p1","hash":"0x21074d34","t":"round","turn":41}  -  Server - GameServer:275
+  01:22:05.936  [R4CODE] turn=41 code=2X7B-FP8G-GEK9M  -  Server - GameServer:456
+  01:22:07.837  [Select] selected u6 (settlers) at (24,20), moves 1  -  Client - Select:211
+  01:22:11.552  [FoundCity] found city 'Mycity' with u6  -  Client - FoundCity:36
+  01:22:11.588  [R4LOG] {"cmd":{"name":"Mycity","playerId":"p1","type":"foundCity","unitId":"u6"},"hash":"0x6063b3ad","ok":true,"t":"cmd","turn":41}  -  Server - GameServer:275
+  01:22:12.635  [Options] auto end turn 41  -  Client - Options:341
+  01:22:12.684  [R4LOG] {"activePlayer":"p1","hash":"0xab4d04ad","t":"round","turn":42}  -  Server - GameServer:275
+  01:22:12.689  [R4CODE] turn=42 code=DE67-51PN-MT15D  -  Server - GameServer:456
+  01:22:13.735  [Options] auto end turn 42  -  Client - Options:341
+  01:22:13.783  [R4LOG] {"activePlayer":"p1","hash":"0xba9126a2","t":"round","turn":43}  -  Server - GameServer:275
+  01:22:13.788  [R4CODE] turn=43 code=0QS3-ZXTX-929N2  -  Server - GameServer:456
+  01:22:14.836  [Options] auto end turn 43  -  Client - Options:341
+  01:22:14.881  [R4LOG] {"activePlayer":"p1","hash":"0x930f804a","t":"round","turn":44}  -  Server - GameServer:275
+  01:22:14.886  [R4CODE] turn=44 code=8ZQD-B829-GZ02A  -  Server - GameServer:456
+  01:22:15.918  [Options] auto end turn 44  -  Client - Options:341
+  01:22:15.964  [R4LOG] {"activePlayer":"p1","hash":"0x943384d7","t":"round","turn":45}  -  Server - GameServer:275
+  01:22:15.969  [R4CODE] turn=45 code=EAM7-W3YA-3716Q  -  Server - GameServer:456
+  01:22:17.002  [Options] auto end turn 45  -  Client - Options:341
+  01:22:17.049  [R4LOG] {"activePlayer":"p1","hash":"0x94cfb68f","t":"round","turn":46}  -  Server - GameServer:275
+  01:22:17.054  [R4CODE] turn=46 code=CGNK-RCYA-CZDMF  -  Server - GameServer:456
+  01:22:18.102  [Options] auto end turn 46  -  Client - Options:341
+  01:22:18.148  [R4LOG] {"activePlayer":"p1","hash":"0xee1d21b2","t":"round","turn":47}  -  Server - GameServer:275
+  01:22:18.154  [R4CODE] turn=47 code=98K4-2Y3Q-1T8DJ  -  Server - GameServer:456
+  01:22:19.202  [Options] auto end turn 47  -  Client - Options:341
+  01:22:19.249  [R4LOG] {"activePlayer":"p1","hash":"0xa18e0be0","t":"round","turn":48}  -  Server - GameServer:275
+  01:22:19.255  [R4CODE] turn=48 code=9SP3-7AJG-RW2Z0  -  Server - GameServer:456
+  01:22:20.302  [Options] auto end turn 48  -  Client - Options:341
+  01:22:20.351  [R4LOG] {"activePlayer":"p1","hash":"0x2a444399","t":"round","turn":49}  -  Server - GameServer:275
+  01:22:20.356  [R4CODE] turn=49 code=B51D-ME4N-48GWS  -  Server - GameServer:456
+  01:22:21.236  [Select] selected u10 (settlers) at (22,16), moves 1  -  Client - Select:211
+  01:22:21.401  [Options] auto end turn 49  -  Client - Options:341
+  01:22:21.450  [R4LOG] {"activePlayer":"p1","hash":"0x8bfb4692","t":"round","turn":50}  -  Server - GameServer:275
+  01:22:21.456  [R4CODE] turn=50 code=DYQ8-JN25-ZPHMJ  -  Server - GameServer:456
+  01:22:21.984  [GameServer] R10 save (autosave): DYQ8-JN25-ZPHMJ at turn 50  -  Server - GameServer:1121
+  01:22:22.019  [Client] autosaved at turn 50 - resume code DYQ8-JN25-ZPHMJ  -  Client - ClientState:456
+  01:22:22.503  [Options] auto end turn 50  -  Client - Options:341
+  01:22:22.553  [R4LOG] {"activePlayer":"p1","hash":"0x388a72dc","t":"round","turn":51}  -  Server - GameServer:275
+  01:22:22.559  [R4CODE] turn=51 code=6CKK-PNGW-8MWPW  -  Server - GameServer:456
+  01:22:23.601  [Options] auto end turn 51  -  Client - Options:341
+  01:22:23.650  [R4LOG] {"activePlayer":"p1","hash":"0x3c554777","t":"round","turn":52}  -  Server - GameServer:275
+  01:22:23.656  [R4CODE] turn=52 code=D6FM-TSWY-5AHVQ  -  Server - GameServer:456
+  01:22:24.702  [Options] auto end turn 52  -  Client - Options:341
+  01:22:24.751  [R4LOG] {"activePlayer":"p1","hash":"0x26f29290","t":"round","turn":53}  -  Server - GameServer:275
+  01:22:24.756  [R4CODE] turn=53 code=64C6-AVRK-F54MG  -  Server - GameServer:456
+  01:22:25.802  [Options] auto end turn 53  -  Client - Options:341
+  01:22:25.850  [R4LOG] {"activePlayer":"p1","hash":"0x529935d8","t":"round","turn":54}  -  Server - GameServer:275
+  01:22:25.856  [R4CODE] turn=54 code=5B8S-00H9-9JDER  -  Server - GameServer:456
+  01:22:26.901  [Options] auto end turn 54  -  Client - Options:341
+  01:22:26.951  [R4LOG] {"activePlayer":"p1","hash":"0xe52d5b07","t":"round","turn":55}  -  Server - GameServer:275
+  01:22:26.957  [R4CODE] turn=55 code=1PC2-J8ZJ-JTPR7  -  Server - GameServer:456
+  01:22:28.001  [Options] auto end turn 55  -  Client - Options:341
+  01:22:28.058  [R4LOG] {"activePlayer":"p1","hash":"0x2fc213d2","t":"round","turn":56}  -  Server - GameServer:275
+  01:22:28.063  [R4CODE] turn=56 code=A9XJ-7XRQ-W44YJ  -  Server - GameServer:456
+  01:22:29.102  [Options] auto end turn 56  -  Client - Options:341
+  01:22:29.152  [R4LOG] {"activePlayer":"p1","hash":"0xd70edcf4","t":"round","turn":57}  -  Server - GameServer:275
+  01:22:29.157  [R4CODE] turn=57 code=9GZC-79KB-GXQ7M  -  Server - GameServer:456
+  01:22:30.201  [Options] auto end turn 57  -  Client - Options:341
+  01:22:30.252  [R4LOG] {"activePlayer":"p1","hash":"0x8e68f0bf","t":"round","turn":58}  -  Server - GameServer:275
+  01:22:30.258  [R4CODE] turn=58 code=832T-G2Y7-6HW5Z  -  Server - GameServer:456
+  01:22:31.302  [Options] auto end turn 58  -  Client - Options:341
+  01:22:31.357  [R4LOG] {"activePlayer":"p1","hash":"0xd5763b4f","t":"round","turn":59}  -  Server - GameServer:275
+  01:22:31.362  [R4CODE] turn=59 code=8XMM-7CZA-QCETF  -  Server - GameServer:456
+  01:22:32.402  [Options] auto end turn 59  -  Client - Options:341
+  01:22:32.458  [R4LOG] {"activePlayer":"p1","hash":"0xb024b875","t":"round","turn":60}  -  Server - GameServer:275
+  01:22:32.464  [R4CODE] turn=60 code=B0V6-H8PR-29E3N  -  Server - GameServer:456
+  01:22:33.134  [GameServer] R10 save (autosave): B0V6-H8PR-29E3N at turn 60  -  Server - GameServer:1121
+  01:22:33.168  [Client] autosaved at turn 60 - resume code B0V6-H8PR-29E3N  -  Client - ClientState:456
+  01:22:33.501  [Options] auto end turn 60  -  Client - Options:341
+  01:22:33.557  [R4LOG] {"activePlayer":"p1","hash":"0xf109b9fd","t":"round","turn":61}  -  Server - GameServer:275
+  01:22:33.562  [R4CODE] turn=61 code=8S54-V07R-GKEFX  -  Server - GameServer:456
+  01:22:34.601  [Options] auto end turn 61  -  Client - Options:341
+  01:22:34.656  [R4LOG] {"activePlayer":"p1","hash":"0x0e3da42f","t":"round","turn":62}  -  Server - GameServer:275
+  01:22:34.661  [R4CODE] turn=62 code=00ST-MWW7-3V91F  -  Server - GameServer:456
+  01:22:35.701  [Options] auto end turn 62  -  Client - Options:341
+  01:22:35.754  [R4LOG] {"activePlayer":"p1","hash":"0x8e3131e0","t":"round","turn":63}  -  Server - GameServer:275
+  01:22:35.759  [R4CODE] turn=63 code=0WAG-KKT7-32CF0  -  Server - GameServer:456
+  01:22:36.802  [Options] auto end turn 63  -  Client - Options:341
+  01:22:36.855  [R4LOG] {"activePlayer":"p1","hash":"0x77429937","t":"round","turn":64}  -  Server - GameServer:275
+  01:22:36.861  [R4CODE] turn=64 code=BWQZ-P6XV-M569Q  -  Server - GameServer:456
+  01:22:37.901  [Options] auto end turn 64  -  Client - Options:341
+  01:22:37.955  [R4LOG] {"activePlayer":"p1","hash":"0x7cefa043","t":"round","turn":65}  -  Server - GameServer:275
+  01:22:37.961  [R4CODE] turn=65 code=A7FM-EKDY-EZ823  -  Server - GameServer:456
+  01:22:39.002  [Options] auto end turn 65  -  Client - Options:341
+  01:22:39.055  [R4LOG] {"activePlayer":"p1","hash":"0xb3321d2f","t":"round","turn":66}  -  Server - GameServer:275
+  01:22:39.061  [R4CODE] turn=66 code=DBT1-NJYS-K479F  -  Server - GameServer:456
+  01:22:40.101  [Options] auto end turn 66  -  Client - Options:341
+  01:22:40.153  [R4LOG] {"activePlayer":"p1","hash":"0xac34c3b3","t":"round","turn":67}  -  Server - GameServer:275
+  01:22:40.159  [R4CODE] turn=67 code=7J0X-2GEP-39GXK  -  Server - GameServer:456
+  01:22:41.202  [Options] auto end turn 67  -  Client - Options:341
+  01:22:41.258  [R4LOG] {"activePlayer":"p1","hash":"0xbdd0c843","t":"round","turn":68}  -  Server - GameServer:275
+  01:22:41.264  [R4CODE] turn=68 code=B4ME-GDEY-X1J23  -  Server - GameServer:456
+  01:22:42.318  [Options] auto end turn 68  -  Client - Options:341
+  01:22:42.376  [R4LOG] {"activePlayer":"p1","hash":"0xccbdc31e","t":"round","turn":69}  -  Server - GameServer:275
+  01:22:42.381  [R4CODE] turn=69 code=D99W-P1B6-BVGRY  -  Server - GameServer:456

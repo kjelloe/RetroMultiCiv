@@ -201,5 +201,39 @@ function M.render(parent, techs, id, px)
 	return label
 end
 
+-- Generic entry (UiTheme menu icons): draw a primitive list in one ink on a
+-- transparent image. Returns the ImageLabel, or nil when EditableImage is
+-- unavailable or prims is missing — the caller keeps its text label then.
+function M.renderPrims(parent, prims, px, ink)
+	if prims == nil then
+		return nil
+	end
+	local ok, img = pcall(function()
+		return AssetService:CreateEditableImage({ Size = Vector2.new(RES, RES) })
+	end)
+	if not ok or img == nil then
+		return nil
+	end
+	local drawn = pcall(function()
+		for _, pr in ipairs(prims) do
+			drawPrim(img, pr, ink)
+		end
+	end)
+	if not drawn then
+		return nil
+	end
+	local label = Instance.new("ImageLabel")
+	label.Size = UDim2.fromOffset(px, px)
+	label.BackgroundTransparency = 1
+	label.Active = false
+	local set = pcall(function() label.ImageContent = Content.fromObject(img) end)
+	if not set then
+		label:Destroy()
+		return nil
+	end
+	label.Parent = parent
+	return label
+end
+
 M.PRIMITIVE_KINDS = KINDS -- gate 31: every kind GlyphData uses must be a key here
 return M

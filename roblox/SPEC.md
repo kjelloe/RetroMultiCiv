@@ -215,7 +215,7 @@ The authoritative loop, single Studio instance (one human seat + AI).
 - Actions (`Select.client.luau`): click own unit = select (cyan
   cursor); click adjacent tile with a selection = `moveUnit`
   (dir-based, wrapX-aware delta); `B` = `foundCity` with a selected
-  settlers (name `Colony <n>`); `Return`/HUD button = `endTurn`.
+  settlers (opens the F1 name prompt, run-N); `Return`/HUD button = `endTurn`.
 
 ## 3f. City panel + possession (`src/client/`, R5)
 
@@ -876,6 +876,30 @@ seat/reset flow; JS engine untouched). Delivered:
   roads (`roadStage` param from `view.viewerRoadStage`), twin rails
   double-tracked from stage 3. Detail per item in `workitems-roblox.md`.
 
+- **run-N** (2026-11-14, the two v1.x findings from PLAYTHROUGH-UI §F;
+  headless only, Studio look pending):
+  **F1 city naming** — `Found`/`B` open a name card instead of sending:
+  `FoundCity.luau` (the ONLY client `foundCity` send site; centered card,
+  no full-screen overlay, TextBox focus released on every close, auto-focus
+  only on keyboard-without-touch devices and deferred a frame so the `B`
+  press is not typed) + pure `CityNames.luau` (`suggest` = the browser
+  `ctx.suggestCityName` twin: next unused name on the viewer civ's roster
+  from the baked `civs` ruleset via `view.players[you].civ`, else
+  `Colony N`; `clean` = printable ASCII, trimmed, <= 24). SERVER: every
+  `foundCity` name passes `TextService:FilterStringAsync` →
+  `GetNonChatStringForBroadcastAsync` before any state read; a filter
+  error, a moderated result, or a non-state-legal result founds under the
+  server's `Colony N` and toasts the player (gotcha 9). The recorded
+  command carries the final name, so replays are unaffected.
+  **F2 label collision** — pure `LabelDeclutter.luau` (`pick`: greedy by
+  priority CITY > SELECTED > OWN_UNIT > OTHER_UNIT, nearer wins a tie, 4 px
+  slack) driven by a 0.2 s pass in `ViewRenderer` that projects each
+  label anchor (`WorldToViewportPoint`), uses a text-width estimate stored
+  on the billboard (`tw` attribute) and toggles `BillboardGui.Enabled`; it
+  also runs right after each unit/city re-render, and stands aside while
+  the zoom band hides unit labels. Gates 33 (names) + 34 (declutter), both
+  lune-pinned in `roblox/selftest/`.
+
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
 1. **The AI-round-chain guard is SEATS-DERIVED, never a fixed number.**
@@ -930,6 +954,19 @@ seat/reset flow; JS engine untouched). Delivered:
    argument(s)" at boot, and the consumer silently never runs. Give the
    consumer a distinct basename (`FooHud.client.luau`); the module keeps
    the plain name. (Latent in `WaitStatus` since Tier-3, found in run-L.)
+9. **Player-typed text is FILTERED on the server before it reaches game
+   state.** Anything a player types that other players can read (today:
+   city names) goes through `TextService:FilterStringAsync(text, userId)`
+   → `GetNonChatStringForBroadcastAsync()` in `GameServer`, pcall'd, BEFORE
+   the state checks (the call yields). Unchanged result = accept; anything
+   else = server-chosen fallback, never the `#`-masked string (it would be
+   baked into saves and replays). No free-text surface ships without this
+   — it is a platform rule, and the reason the client has no chat.
+10. **No Luau analyzer on this box — syntax-check with lune.** `rojo build`
+   does not parse scripts. `luau.compile(source)` from `@lune/luau` in a
+   five-line lune script catches syntax errors in `*.client.luau` /
+   `*.server.luau` headlessly; logic that touches Roblox APIs still needs
+   Studio, so keep the decidable part in a pure module with lune pins.
 
 ## 4. Self-test (`check.sh`)
 

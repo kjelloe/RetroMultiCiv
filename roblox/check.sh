@@ -21,7 +21,7 @@ else
 fi
 
 # gate 2 — mapped instances present in the built place
-for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap; do
+for name in VerifyAnchors GameServer RetroMultiCiv Shared RetroMultiCivClient GameData TerrainPalette RulesetHashes rulesets Camera Select ClientState ViewRenderer Hud CityPanel Possess TurnLog ActionBar ResearchPicker MoveHints Options VoidCover CityList Statistics OddsPreview AssetFactory AssetRecipes GalleryGrid GovernmentPanel Deck Lobby SaveStore RidePad GoToPlan StepLegality WorkedTiles CatalogText pathfind fastforward spaceship ReplayTheater Pedia PediaConcepts Legend BuildQueue Ship DiscoveryCard Minimap Tooltip Palette EndScreen score Historian AdviceCards DebugMenu SettlerAuto strategic Strategic FastForward Beeline TechTree PediaBlurbs Diplomacy DiplomacyView WaitStatus TurnLogClasses RegentDialog TileProps TechGlyphs SoundMap CityNames FoundCity LabelDeclutter UiTheme MenuIcons; do
   if grep -q "$name" "$out" 2>/dev/null; then
     note PASS "gate 2: $name in built place"
   else
@@ -431,6 +431,48 @@ if command -v node >/dev/null 2>&1; then
   fi
 else
   note SKIP "gate 32: node absent"
+fi
+
+# gate 33 — F1 city naming: the name suggestion + typed-name cleanup pins
+# (lune), every client foundCity send goes through the FoundCity prompt, and
+# the server filters the typed name (TextService) before the engine sees it.
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/city-names.luau >/dev/null 2>&1 \
+     && [ "$(grep -l 'type = "foundCity"' roblox/src/client/*.luau | tr '\n' ' ')" = "roblox/src/client/FoundCity.luau " ] \
+     && grep -q 'FilterStringAsync' roblox/src/server/GameServer.server.luau \
+     && grep -q 'filteredCityName(player, msg.cmd.name' roblox/src/server/GameServer.server.luau; then
+    note PASS "gate 33: city-name pins (lune) + single prompt send site + server text filter"
+  else
+    note FAIL "gate 33: city naming — run: lune run roblox/selftest/city-names.luau; foundCity must be sent only by FoundCity.luau and filtered in GameServer"
+  fi
+else
+  note SKIP "gate 33: lune absent"
+fi
+
+# gate 34 — F2 label collision: LabelDeclutter.pick pinned verdicts (lune) and
+# ViewRenderer still routes both label kinds through it.
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/label-declutter.luau >/dev/null 2>&1 \
+     && grep -q 'LabelDeclutter.pick(items)' roblox/src/client/ViewRenderer.client.luau; then
+    note PASS "gate 34: label declutter pinned verdicts (lune) + ViewRenderer wiring"
+  else
+    note FAIL "gate 34: label declutter — run: lune run roblox/selftest/label-declutter.luau"
+  fi
+else
+  note SKIP "gate 34: lune absent"
+fi
+
+# gate 35 — U1 menu icons: MenuIcons data contract (known kinds, in-box
+# coordinates), every kind drawable by EditableGlyph, every icon id used by a
+# client script present (lune).
+if command -v lune >/dev/null 2>&1; then
+  if lune run roblox/selftest/menu-icons.luau >/dev/null 2>&1; then
+    note PASS "gate 35: menu icons data contract + used ids present (lune)"
+  else
+    note FAIL "gate 35: menu icons — run: lune run roblox/selftest/menu-icons.luau"
+  fi
+else
+  note SKIP "gate 35: lune absent"
 fi
 
 [ $fail -eq 0 ] && echo "roblox/check.sh: ALL GREEN" || echo "roblox/check.sh: FAILURES"

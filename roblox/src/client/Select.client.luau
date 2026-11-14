@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
 local GoToPlan = require(script.Parent:WaitForChild("GoToPlan")) -- R14
+local FoundCity = require(script.Parent:WaitForChild("FoundCity")) -- F1 name prompt
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities")) -- runI item 16: tileYields
 
 local TILE = ClientState.TILE
@@ -176,16 +177,6 @@ local function dirTo(view, u, tx, ty)
 	return DIR_BY_DELTA[dx .. "," .. dy]
 end
 
-local function ownCityCount(view)
-	local n = 0
-	for _, c in pairs(view.cities) do
-		if c.owner == ClientState.playerId then
-			n += 1
-		end
-	end
-	return n
-end
-
 local lastOwnPick = nil -- R7a (9): double-click detection on own units
 
 local function handlePick(tx, ty)
@@ -320,9 +311,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == Enum.KeyCode.B then
 		local u = ClientState.selectedUnitId and view.units[ClientState.selectedUnitId]
 		if u ~= nil and u.type == "settlers" then
-			local name = "Colony " .. (ownCityCount(view) + 1)
-			print(("[Select] found city '%s' with %s at (%d,%d)"):format(name, u.id, u.x, u.y))
-			ClientState.send({ type = "foundCity", unitId = u.id, name = name })
+			FoundCity.prompt(u.id) -- F1: the name prompt sends the command
 		else
 			print("[Select] found city: select a settlers unit first")
 		end

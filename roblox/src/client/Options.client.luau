@@ -39,6 +39,8 @@ do
 	c.CornerRadius = UDim.new(0, 8)
 	c.Parent = optionsBtn
 end
+optionsBtn.BackgroundTransparency = 0
+require(script.Parent:WaitForChild("UiTheme")).apply(optionsBtn, { color = "neutral", icon = "options" }) -- U1: chunky game-style dress
 
 local panel = Instance.new("Frame")
 panel.Name = "Panel"

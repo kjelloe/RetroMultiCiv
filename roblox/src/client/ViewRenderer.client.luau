@@ -18,6 +18,7 @@ local AssetFactory = require(script.Parent:WaitForChild("AssetFactory"))
 local TileProps = require(script.Parent:WaitForChild("TileProps")) -- CP1 tile props
 local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitForChild("TerrainPalette"))
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
+local LabelDeclutter = require(script.Parent:WaitForChild("LabelDeclutter")) -- F2 label collision
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
 
@@ -264,6 +265,13 @@ local function unitBillboard(model, adornee, view, u)
 	text.TextSize = 22
 	text.Text = table.concat(lines, "\n")
 	text.Parent = bb
+	local chars = 0
+	for _, l in ipairs(lines) do
+		chars = math.max(chars, #l)
+	end
+	bb:SetAttribute("tw", LabelDeclutter.textWidth(chars, 22)) -- F2: declutter rect
+	bb:SetAttribute("pri", mine and LabelDeclutter.OWN_UNIT or LabelDeclutter.OTHER_UNIT)
+	bb:SetAttribute("uid", u.id)
 	bb.Parent = model
 end
 
@@ -316,6 +324,9 @@ local function cityBillboard(model, adornee, view, c)
 	text.TextSize = 20
 	text.Text = table.concat(lines, "\n")
 	text.Parent = bb
+	-- F2: the name line (size 26, plus the pop suffix) is the widest in practice
+	bb:SetAttribute("tw", math.min(240, LabelDeclutter.textWidth(#(c.name or "city") + 9, 26)))
+	bb:SetAttribute("pri", LabelDeclutter.CITY)
 	bb.Parent = model
 end
 
@@ -341,6 +352,63 @@ RunService.Heartbeat:Connect(function()
 	if hide ~= lodUnitsHidden then
 		lodUnitsHidden = hide
 		applyUnitLabelLOD()
+	end
+end)
+
+-- F2: screen-space label collision. Every DECLUTTER_PERIOD (and right after a
+-- re-render) project each label's anchor, hand the pixel rects to the pure
+-- LabelDeclutter.pick, and switch off the losers: city labels win, then the
+-- selected unit, own units, other units; nearer wins a tie. Labels off screen
+-- or past their MaxDistance are left alone (the engine already hides them).
+local DECLUTTER_PERIOD = 0.2
+local function declutterLabels()
+	local cam = workspace.CurrentCamera
+	if cam == nil then
+		return
+	end
+	local vp = cam.ViewportSize
+	local items, guis = {}, {}
+	local function collect(folder, name)
+		for _, m in ipairs(folder:GetChildren()) do
+			local bb = m:FindFirstChild(name)
+			local a = bb ~= nil and bb.Adornee or nil
+			if a ~= nil then
+				local pos = a.Position + Vector3.new(0, bb.StudsOffset.Y, 0)
+				local sp, onScreen = cam:WorldToViewportPoint(pos)
+				local h = bb.Size.Y.Offset
+				local w = bb:GetAttribute("tw") or bb.Size.X.Offset
+				if onScreen and sp.Z <= bb.MaxDistance
+					and sp.X > -w and sp.X < vp.X + w and sp.Y > -h and sp.Y < vp.Y + h then
+					local pri = bb:GetAttribute("pri") or 0
+					local uid = bb:GetAttribute("uid")
+					if uid ~= nil and uid == ClientState.selectedUnitId then
+						pri = LabelDeclutter.SELECTED
+					end
+					table.insert(items, { x = sp.X, y = sp.Y, w = w, h = h, pri = pri, depth = sp.Z })
+					table.insert(guis, bb)
+				else
+					bb.Enabled = true
+				end
+			end
+		end
+	end
+	collect(citiesFolder, "CityLabel")
+	if not lodUnitsHidden then -- the zoom band owns Enabled while it hides units
+		collect(unitsFolder, "Label")
+	end
+	local shown = LabelDeclutter.pick(items)
+	for i, bb in ipairs(guis) do
+		if bb.Enabled ~= shown[i] then
+			bb.Enabled = shown[i]
+		end
+	end
+end
+local declutterClock = 0
+RunService.Heartbeat:Connect(function(dt)
+	declutterClock += dt
+	if declutterClock >= DECLUTTER_PERIOD then
+		declutterClock = 0
+		declutterLabels()
 	end
 end)
 
@@ -417,6 +485,7 @@ local function renderUnits(view)
 		model.Parent = unitsFolder
 	end
 	applyUnitLabelLOD() -- runI item 9: freshly-rendered labels honor the current zoom band
+	declutterLabels() -- F2: no one-tick flash of colliding labels after a re-render
 end
 
 -- run-F #8 (user) — the city model GROWS with pop AND changes look by ERA.
@@ -610,6 +679,7 @@ local function renderCities(view)
 		cityBillboard(model, plaza, view, c)
 		model.Parent = citiesFolder
 	end
+	declutterLabels() -- F2
 end
 
 -- session-E round 15 (user): DANGER overlay — any visible enemy unit standing
