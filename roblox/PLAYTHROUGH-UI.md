@@ -149,7 +149,7 @@ items only if they block reading or tapping.
     - Likely wrong: jump-to centring on the wrong tile after map wrap.
 
 13. **Research + discovery moment** — Tier 1 📷
-    - Tap: the research chip; pick a tech (or open the 🌳 tech tree and
+    - Tap: the research chip; pick a tech (or open the Tech Tree graph - boxes by level with dependency lines, scrolls sideways - and
       set a beeline goal); end turns until it lands.
     - Expect: picker lists techs with turn costs; on completion the
       DISCOVERY CARD presents the tech with its procedural glyph and

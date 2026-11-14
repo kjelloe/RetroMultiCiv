@@ -657,7 +657,7 @@ Run-F live playtest (2026-07-19) fixes:
 - Pedia (#1726 §1): the ally's `movement` + `regency` concepts ported
   into `PediaConcepts.luau` (recordings already had the richer Roblox
   body) — 16 concepts, gate 14 keeps them in sync.
-- **XII.6 tech-tree tier (#1726 §2, SO18)**: the era-GROUPED-LIST fork
+- **XII.6 tech-tree tier (#1726 §2, SO18)** (SUPERSEDED run-S, user ruling: the panel is a dependency graph — `TechTreeLayout.luau`, gate 44; states and beeline unchanged): the era-GROUPED-LIST fork
   (docs/13) — `TechTree.client.luau` (🌳/Shift+T, ✓/○/·/◇ states, click
   avail→setResearch / locked→beeline goal) + `Beeline.luau` (ported
   `shared/beeline.js`, gate-15 lune parity over all 68 techs). Golden-
