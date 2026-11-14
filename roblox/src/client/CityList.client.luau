@@ -15,7 +15,7 @@ gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local panel = Instance.new("Frame")
 panel.Size = UDim2.new(0, 280, 0, 300)
-panel.Position = UDim2.new(0, 316, 0, 44)
+panel.Position = UDim2.new(0.5, -460, 0, 44) -- run-R: under the Cities button (top centre), was at the left edge
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.08
 panel.BorderSizePixel = 0

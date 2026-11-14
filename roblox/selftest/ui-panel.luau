@@ -50,6 +50,8 @@ check("phone bottom on screen", top + 440 * p.s <= 332 - P.MARGIN + 0.5, true)
 local o = P.place(0, 316, 0, 44, 280, 300, 600, 500, 1.4)
 check("pulled back inside", 316 * 1.4 + 280 * o.s > 600 and (o.xo + 280 * o.s <= 600 - P.MARGIN), true)
 
+check("an unsettled viewport is below the area floor", 1 < P.MIN_AREA and 332 >= P.MIN_AREA, true)
+
 -- what counts as a panel
 check("panel size", P.isPanelSize(0, 320, 0, 420), true)
 check("a toggle is not a panel", P.isPanelSize(0, 190, 0, 40), false)

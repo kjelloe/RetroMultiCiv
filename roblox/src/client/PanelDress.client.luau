@@ -44,16 +44,22 @@ local function place(frame, rec)
 	if not rec.gui.IgnoreGuiInset then
 		area = Vector2.new(area.X, area.Y - GuiService:GetGuiInset().Y)
 	end
-	if area.X <= 0 or area.Y <= 0 then
+	-- the viewport reads 1x1 while the client loads (shot9 log: every panel
+	-- "cut to 0.30 in a 1x1 area" and clamped into the top-left corner)
+	if area.X < UiPanel.MIN_AREA or area.Y < UiPanel.MIN_AREA then
 		return
 	end
 	local home, size = rec.home, frame.Size
 	local r = UiPanel.place(home.X.Scale, home.X.Offset, home.Y.Scale, home.Y.Offset,
 		size.X.Offset, size.Y.Offset, area.X, area.Y, UiPanel.scaleFor(area.X, area.Y))
 	rec.scale.Scale = r.s
-	rec.placing = true
-	frame.Position = UDim2.new(home.X.Scale, r.xo, home.Y.Scale, r.yo)
-	rec.placing = false
+	-- property signals are DEFERRED: a "placing" flag is already false again
+	-- when the Position handler runs, so the handler took our own placement
+	-- for an owner's move and adopted it as the new home (shot9: setup panel
+	-- and seat list stuck top-left / bottom-left). The handler compares
+	-- against the value written here instead.
+	rec.written = UDim2.new(home.X.Scale, r.xo, home.Y.Scale, r.yo)
+	frame.Position = rec.written
 	local key = ("%.2f %dx%d"):format(r.s, size.X.Offset, size.Y.Offset)
 	if key ~= rec.last then
 		rec.last = key
@@ -81,7 +87,7 @@ local function adopt(gui, frame)
 	local scale = Instance.new("UIScale")
 	scale.Name = "PanelScale"
 	scale.Parent = frame
-	local rec = { gui = gui, home = frame.Position, scale = scale, placing = false }
+	local rec = { gui = gui, home = frame.Position, scale = scale, written = nil }
 	panels[frame] = rec
 
 	local corner = frame:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
@@ -105,7 +111,7 @@ local function adopt(gui, frame)
 	end)
 	-- an owner that moves its panel later sets a new home
 	frame:GetPropertyChangedSignal("Position"):Connect(function()
-		if not rec.placing then
+		if frame.Position ~= rec.written then
 			rec.home = frame.Position
 			place(frame, rec)
 		end

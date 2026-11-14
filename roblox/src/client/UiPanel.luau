@@ -12,6 +12,7 @@ M.REF_W = 1280
 M.REF_H = 720
 M.MAX_SCALE = 1.4
 M.MARGIN = 4
+M.MIN_AREA = 200 -- a smaller "screen" is the viewport before it settles, not a device
 M.READABLE = 0.75 -- under this a 17 px body is below 13 px: flagged by the audit
 
 -- screen-wide scale: never under 1 (a small screen is handled per panel by

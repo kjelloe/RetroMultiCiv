@@ -5,8 +5,16 @@
 --   START A NEW GAME  (phase idle)     first user becomes HOST
 --   JOIN GAME         (phase setup)    claim one of the host's human seats
 --   TAKE OVER AI CIV  (phase running)  RANDOM vacant seat (regency-in-reverse)
+-- run-R (user): rebuilt as an observation platform — glass railings, a glass
+-- look-down balcony, lit pylons, and one STATION per action (pad + sign with
+-- what it does and whether it is open right now). Layout and copy come from
+-- DeckPlan (pure, gate 43). The contract GameServer relies on is unchanged:
+-- folder.DeckSpawn, folder.Floor, prompts/padParts for start/join/takeover/
+-- spectate, capitolPad, setPhase.
 -- Pure presentation/physical: no game logic here — GameServer connects the
 -- prompt events and calls setPhase(). Own/procedural art only.
+
+local DeckPlan = require(script.Parent:WaitForChild("DeckPlan"))
 
 local M = {}
 
@@ -62,31 +70,158 @@ local function pad(parent, name, offsetX, color, promptText, zOffset)
 	return base, prompt
 end
 
+local GLASS = Color3.fromRGB(170, 210, 235)
+local METAL = Color3.fromRGB(70, 78, 96)
+local SIGN_BG = Color3.fromRGB(22, 26, 36)
+
+local function rgb(c)
+	return Color3.fromRGB(c[1], c[2], c[3])
+end
+
+local function text(parent, y, h, size, font, color, str)
+	local l = Instance.new("TextLabel")
+	l.Size = UDim2.new(1, -40, 0, h)
+	l.Position = UDim2.new(0, 20, 0, y)
+	l.BackgroundTransparency = 1
+	l.TextColor3 = color
+	l.Font = font
+	l.TextSize = size
+	l.TextWrapped = true
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.TextYAlignment = Enum.TextYAlignment.Top
+	l.Text = str
+	l.Parent = parent
+	return l
+end
+
+-- a board facing the spawn (+Z) with a SurfaceGui canvas at 50 px per stud
+-- (`faceBack` = facing -Z instead, for a sign at the front edge read from the deck)
+local function board(parent, name, size, pos, faceBack)
+	local p = part(parent, name, size, CFrame.new(pos) * CFrame.Angles(0, faceBack and 0 or math.pi, 0), SIGN_BG)
+	local sg = Instance.new("SurfaceGui")
+	sg.Face = Enum.NormalId.Front
+	sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	sg.PixelsPerStud = 50
+	sg.LightInfluence = 0
+	sg.Parent = p
+	return p, sg
+end
+
+-- a run of glass railing along one edge: posts, panes between them, a top rail.
+-- `gap` = { from, to } along the edge leaves an opening (the balcony doorway).
+local function railing(parent, from, to, gap)
+	local dir = to - from
+	local len = dir.Magnitude
+	local unit = dir.Unit
+	local alongX = math.abs(unit.X) > 0.5
+	local bays = math.max(1, math.floor(len / 12 + 0.5))
+	local bay = len / bays
+	for i = 0, bays do
+		part(parent, "RailPost", Vector3.new(0.7, 5, 0.7), CFrame.new(from + unit * (bay * i) + Vector3.new(0, 3.5, 0)), METAL,
+			{ Material = Enum.Material.Metal })
+	end
+	for i = 1, bays do
+		local a, b = bay * (i - 1), bay * i
+		local open = gap ~= nil and a >= gap[1] - 0.01 and b <= gap[2] + 0.01
+		if not open then
+			local mid = from + unit * ((a + b) / 2)
+			local w = bay - 0.7
+			part(parent, "GlassPane", alongX and Vector3.new(w, 4, 0.25) or Vector3.new(0.25, 4, w),
+				CFrame.new(mid + Vector3.new(0, 3.2, 0)), GLASS, { Material = Enum.Material.Glass, Transparency = 0.6 })
+			part(parent, "TopRail", alongX and Vector3.new(bay, 0.35, 0.5) or Vector3.new(0.5, 0.35, bay),
+				CFrame.new(mid + Vector3.new(0, 5.4, 0)), METAL, { Material = Enum.Material.Metal })
+		end
+	end
+end
+
 function M.build()
 	local folder = Instance.new("Folder")
 	folder.Name = "ObservationDeck"
+	local W, D = DeckPlan.FLOOR.w, DeckPlan.FLOOR.d
+	local hw, hd = W / 2, D / 2
+	local top = 1 -- floor top above DECK_POS
 
-	-- the platform: a wide disc with a rim so avatars don't step off by accident
-	part(folder, "Floor", Vector3.new(60, 2, 40),
-		CFrame.new(DECK_POS), Color3.fromRGB(52, 58, 72))
-	for _, rim in ipairs({
-		{ Vector3.new(60, 3, 1), Vector3.new(0, 2, -20.5) },
-		{ Vector3.new(60, 3, 1), Vector3.new(0, 2, 20.5) },
-		{ Vector3.new(1, 3, 40), Vector3.new(-30.5, 2, 0) },
-		{ Vector3.new(1, 3, 40), Vector3.new(30.5, 2, 0) },
+	-- the platform: a dark deck with a lighter walkway from the spawn to the
+	-- station row and a lit edge strip
+	part(folder, "Floor", Vector3.new(W, 2, D), CFrame.new(DECK_POS), Color3.fromRGB(46, 52, 66))
+	part(folder, "Walkway", Vector3.new(W - 8, 0.06, 10),
+		CFrame.new(DECK_POS + Vector3.new(0, top + 0.03, DeckPlan.STATION_Z)), Color3.fromRGB(66, 74, 94),
+		{ CanCollide = false })
+	part(folder, "Walkway", Vector3.new(12, 0.06, DeckPlan.SPAWN_Z - DeckPlan.STATION_Z),
+		CFrame.new(DECK_POS + Vector3.new(0, top + 0.03, (DeckPlan.SPAWN_Z + DeckPlan.STATION_Z) / 2)),
+		Color3.fromRGB(66, 74, 94), { CanCollide = false })
+	for _, e in ipairs({
+		{ Vector3.new(W, 0.3, 0.6), Vector3.new(0, top - 0.1, -hd + 0.3) },
+		{ Vector3.new(W, 0.3, 0.6), Vector3.new(0, top - 0.1, hd - 0.3) },
+		{ Vector3.new(0.6, 0.3, D), Vector3.new(-hw + 0.3, top - 0.1, 0) },
+		{ Vector3.new(0.6, 0.3, D), Vector3.new(hw - 0.3, top - 0.1, 0) },
 	}) do
-		part(folder, "Rim", rim[1], CFrame.new(DECK_POS + rim[2]),
-			Color3.fromRGB(80, 88, 106), { Transparency = 0.35 })
+		part(folder, "EdgeLight", e[1], CFrame.new(DECK_POS + e[2]), Color3.fromRGB(120, 190, 255),
+			{ Material = Enum.Material.Neon, CanCollide = false })
 	end
 
-	-- ONE COMMON PLANE (user run-4 live feedback): the spawn plate, the lobby
-	-- pads, and the action strip are all FLUSH tiles in the deck floor —
-	-- every walk-tile top sits at floor-top + 0.06 (no z-fight, no steps)
+	-- glass railings all round (they also keep avatars on the deck); the front
+	-- edge opens onto the look-down balcony
+	local BAL_W, BAL_D = 24, 10
+	local c = DECK_POS + Vector3.new(0, top, 0)
+	railing(folder, c + Vector3.new(-hw, 0, -hd), c + Vector3.new(hw, 0, -hd))
+	railing(folder, c + Vector3.new(-hw, 0, -hd), c + Vector3.new(-hw, 0, hd))
+	railing(folder, c + Vector3.new(hw, 0, -hd), c + Vector3.new(hw, 0, hd))
+	railing(folder, c + Vector3.new(-hw, 0, hd), c + Vector3.new(-BAL_W / 2, 0, hd))
+	railing(folder, c + Vector3.new(BAL_W / 2, 0, hd), c + Vector3.new(hw, 0, hd))
+
+	-- the balcony: a glass floor past the front edge, to look straight down at
+	-- the world (the catch floor below returns anyone who gets over a rail)
+	part(folder, "BalconyFloor", Vector3.new(BAL_W, 1, BAL_D),
+		CFrame.new(DECK_POS + Vector3.new(0, top - 0.5, hd + BAL_D / 2)), GLASS,
+		{ Material = Enum.Material.Glass, Transparency = 0.45 })
+	local b0 = c + Vector3.new(0, 0, hd)
+	railing(folder, b0 + Vector3.new(-BAL_W / 2, 0, 0), b0 + Vector3.new(-BAL_W / 2, 0, BAL_D))
+	railing(folder, b0 + Vector3.new(BAL_W / 2, 0, 0), b0 + Vector3.new(BAL_W / 2, 0, BAL_D))
+	railing(folder, b0 + Vector3.new(-BAL_W / 2, 0, BAL_D), b0 + Vector3.new(BAL_W / 2, 0, BAL_D))
+	do
+		local _, sg = board(folder, "BalconySign", Vector3.new(16, 1.6, 0.3), b0 + Vector3.new(0, 6.6, BAL_D), true)
+		local t = text(sg, 10, 60, 40, Enum.Font.FredokaOne, Color3.fromRGB(200, 230, 255), "LOOK DOWN - THE WORLD BELOW")
+		t.TextXAlignment = Enum.TextXAlignment.Center
+	end
+
+	-- four lit pylons mark the corners from far away
+	for _, corner in ipairs({ { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }) do
+		local base = c + Vector3.new(corner[1] * (hw - 1), 0, corner[2] * (hd - 1))
+		part(folder, "Pylon", Vector3.new(1.4, 14, 1.4), CFrame.new(base + Vector3.new(0, 7, 0)), METAL,
+			{ Material = Enum.Material.Metal })
+		local cap = part(folder, "PylonLight", Vector3.new(2, 1.2, 2), CFrame.new(base + Vector3.new(0, 14.6, 0)),
+			Color3.fromRGB(255, 226, 150), { Material = Enum.Material.Neon })
+		local light = Instance.new("PointLight")
+		light.Range = 34
+		light.Brightness = 1.2
+		light.Color = Color3.fromRGB(255, 232, 180)
+		light.Parent = cap
+	end
+
+	-- the banner over the station row
+	do
+		local _, sg = board(folder, "Banner", Vector3.new(44, 3.4, 0.4),
+			c + Vector3.new(0, 12.6, -hd + 1.2))
+		local t = text(sg, 16, 80, 72, Enum.Font.FredokaOne, Color3.fromRGB(255, 240, 200), "A WORLD BEGUN") -- name ruled #2541
+		t.TextXAlignment = Enum.TextXAlignment.Center
+		local sub = text(sg, 100, 50, 36, Enum.Font.GothamMedium, Color3.fromRGB(190, 205, 230),
+			"Observation deck  -  walk onto a station to act")
+		sub.TextXAlignment = Enum.TextXAlignment.Center
+		for _, x in ipairs({ -21, 21 }) do
+			part(folder, "BannerPost", Vector3.new(0.8, 12, 0.8), CFrame.new(c + Vector3.new(x, 6, -hd + 1.2)), METAL,
+				{ Material = Enum.Material.Metal })
+		end
+	end
+
+	-- ONE COMMON PLANE (user run-4 live feedback): the spawn plate and the
+	-- station pads are all FLUSH tiles in the deck floor — every walk-tile top
+	-- sits at floor-top + 0.06 (no z-fight, no steps)
 	local spawnLoc = Instance.new("SpawnLocation")
 	spawnLoc.Name = "DeckSpawn"
 	spawnLoc.Anchored = true
 	spawnLoc.Size = Vector3.new(10, 1, 10)
-	spawnLoc.CFrame = CFrame.new(DECK_POS + Vector3.new(0, 0.56, 10))
+	spawnLoc.CFrame = CFrame.new(DECK_POS + Vector3.new(0, 0.56, DeckPlan.SPAWN_Z))
 	spawnLoc.Color = Color3.fromRGB(70, 80, 100)
 	spawnLoc.TopSurface = Enum.SurfaceType.Smooth
 	spawnLoc.Duration = 0
@@ -96,31 +231,6 @@ function M.build()
 	-- CanCollide stays true so it catches the spawn like before
 	spawnLoc.Transparency = 1
 	spawnLoc.Parent = folder
-
-	-- session-E (user ruling): the unit ACTION STRIP is REMOVED from the deck
-	-- (unit actions live with the units/menus). In its place: one GOTO
-	-- CAPITOL pad — flush tile, walk-on; GameServer teleports the toucher to
-	-- their own civ's capital with sparkles.
-	local capitolPad = part(folder, "GotoCapitolPad", Vector3.new(10, 0.12, 4),
-		CFrame.new(DECK_POS + Vector3.new(0, 1.06, 16)), Color3.fromRGB(150, 120, 60),
-		{ Material = Enum.Material.Neon, CanCollide = false, Transparency = 0.1 })
-	do
-		local bb = Instance.new("BillboardGui")
-		bb.Size = UDim2.new(0, 130, 0, 18)
-		bb.StudsOffset = Vector3.new(0, 1.6, 0)
-		bb.AlwaysOnTop = true
-		bb.Adornee = capitolPad
-		local t = Instance.new("TextLabel")
-		t.Size = UDim2.new(1, 0, 1, 0)
-		t.BackgroundTransparency = 1
-		t.TextColor3 = Color3.fromRGB(235, 235, 235)
-		t.TextStrokeTransparency = 0.3
-		t.Font = Enum.Font.SourceSansBold
-		t.TextSize = 14
-		t.Text = "GOTO CAPITOL"
-		t.Parent = bb
-		bb.Parent = capitolPad
-	end
 
 	-- run-4 fix: a PERMANENT catch floor — pre-game there is no other floor
 	-- anywhere (VoidCover's builds only with the first view), so any fall
@@ -136,50 +246,59 @@ function M.build()
 		end
 	end)
 
-	local startPad, startPrompt = pad(folder, "StartPad", -20,
-		Color3.fromRGB(60, 130, 80), "START A NEW GAME")
-	local joinPad, joinPrompt = pad(folder, "JoinPad", 0,
-		Color3.fromRGB(60, 90, 150), "JOIN GAME")
-	local takeoverPad, takeoverPrompt = pad(folder, "TakeoverPad", 20,
-		Color3.fromRGB(150, 110, 50), "TAKE OVER AI CIV")
-	-- CP16/MP8 (spectate slice, ruling @d1ce4920): view-only entry.
-	-- runI item 1: moved INSIDE the deck (offsetX 40 sat past the 30-half-width
-	-- floor edge) — now on StartPad's X column (-20) and the capitol pad's front
-	-- row (z+16), so it reads left of "goto capitol".
-	local spectatePad, spectatePrompt = pad(folder, "SpectatePad", -20,
-		Color3.fromRGB(110, 80, 150), "SPECTATE", 16)
+	-- the stations: pad + a sign behind it (what it does, and whether it is
+	-- open in the current phase)
+	local stations = {} -- id -> { pad, prompt, status, header }
+	for _, st in ipairs(DeckPlan.STATIONS) do
+		local color = rgb(st.color)
+		local padPart, prompt
+		if st.id == "capitol" then
+			-- session-E (user ruling): a flush walk-on tile; GameServer teleports
+			-- the toucher to their own civ's capital with sparkles
+			padPart = part(folder, st.pad, Vector3.new(DeckPlan.PAD, 0.12, DeckPlan.PAD),
+				CFrame.new(DECK_POS + Vector3.new(st.x, 1.06, DeckPlan.STATION_Z)), color,
+				{ Material = Enum.Material.Neon, CanCollide = false, Transparency = 0.1 })
+		else
+			padPart, prompt = pad(folder, st.pad, st.x, color, st.title, DeckPlan.STATION_Z)
+		end
+		local signPos = c + Vector3.new(st.x, 4.6, DeckPlan.STATION_Z - DeckPlan.PAD / 2 - 2.6)
+		local _, sg = board(folder, "StationSign", Vector3.new(10, 5.6, 0.4), signPos)
+		for _, dx in ipairs({ -4.6, 4.6 }) do
+			part(folder, "SignPost", Vector3.new(0.5, 2, 0.5), CFrame.new(signPos + Vector3.new(dx, -3.6, 0)), METAL,
+				{ Material = Enum.Material.Metal })
+		end
+		local header = part(folder, "SignHeader", Vector3.new(10, 0.5, 0.6), CFrame.new(signPos + Vector3.new(0, 3.05, 0)),
+			color, { Material = Enum.Material.Neon })
+		text(sg, 14, 50, 44, Enum.Font.FredokaOne, Color3.fromRGB(245, 245, 250), st.title)
+		text(sg, 72, 130, 27, Enum.Font.GothamMedium, Color3.fromRGB(205, 212, 226), st.text)
+		local status = text(sg, 214, 56, 27, Enum.Font.GothamBold, Color3.fromRGB(150, 160, 180), "")
+		stations[st.id] = { pad = padPart, prompt = prompt, status = status, header = header, color = color }
+	end
 
 	folder.Parent = workspace
 
-	local pads = {
-		start = { pad = startPad, prompt = startPrompt },
-		join = { pad = joinPad, prompt = joinPrompt },
-		takeover = { pad = takeoverPad, prompt = takeoverPrompt },
-		spectate = { pad = spectatePad, prompt = spectatePrompt },
-	}
-
 	local deck = { folder = folder, prompts = {
-		start = startPrompt, join = joinPrompt, takeover = takeoverPrompt,
-		spectate = spectatePrompt,
+		start = stations.start.prompt, join = stations.join.prompt, takeover = stations.takeover.prompt,
+		spectate = stations.spectate.prompt,
 	}, padParts = {
-		start = startPad, join = joinPad, takeover = takeoverPad,
-		spectate = spectatePad,
-	}, capitolPad = capitolPad }
+		start = stations.start.pad, join = stations.join.pad, takeover = stations.takeover.pad,
+		spectate = stations.spectate.pad,
+	}, capitolPad = stations.capitol.pad }
 
-	-- phase DIMS non-applicable pads but never disables them (run-4 live
+	-- phase DIMS non-applicable stations but never disables them (run-4 live
 	-- ruling: a touched pad that doesn't apply EXPLAINS itself instead of
-	-- silently doing nothing — GameServer sends the toast)
+	-- silently doing nothing — GameServer sends the toast; the sign says why)
 	function deck.setPhase(phase, takeoverAvailable)
-		local live = {
-			idle = { start = true },
-			setup = { join = true },
-			starting = { join = true },
-			running = { takeover = takeoverAvailable == true },
-		}
-		local on = live[phase] or {}
-		for name, entry in pairs(pads) do
-			entry.prompt.Enabled = on[name] == true -- E-hold stays a backup
-			entry.pad.Transparency = on[name] == true and 0 or 0.6
+		for id, entry in pairs(stations) do
+			local open, line = DeckPlan.status(id, phase, takeoverAvailable)
+			if entry.prompt ~= nil then
+				entry.prompt.Enabled = open -- E-hold stays a backup
+			end
+			entry.pad.Transparency = open and (id == "capitol" and 0.1 or 0) or 0.6
+			entry.status.Text = line
+			entry.status.TextColor3 = open and Color3.fromRGB(130, 235, 150) or Color3.fromRGB(235, 190, 120)
+			entry.header.Color = open and entry.color or Color3.fromRGB(70, 74, 84)
+			entry.header.Material = open and Enum.Material.Neon or Enum.Material.SmoothPlastic
 		end
 	end
 
