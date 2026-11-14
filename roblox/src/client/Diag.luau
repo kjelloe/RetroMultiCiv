@@ -21,7 +21,18 @@ local countOrder = {}
 M.sink = { warn = warn or print, print = print } -- the selftest swaps these
 -- run-R ruling 4: with quiet set nothing prints; failures and tallies are
 -- still recorded, so a later summary (quiet lifted) carries them
+-- Outside Studio it starts quiet (scripts that load before DiagAudit would
+-- otherwise print to every player); DiagAudit lifts it for the owner or when
+-- the host's option is on. Under lune there is no `game`: not quiet.
 M.quiet = false
+do
+	local ok, studio = pcall(function()
+		return game:GetService("RunService"):IsStudio()
+	end)
+	if ok and studio == false then
+		M.quiet = true
+	end
+end
 
 function M.line(kind, area, text)
 	return ("%s %s %s: %s"):format(M.TAG, kind, area, text)

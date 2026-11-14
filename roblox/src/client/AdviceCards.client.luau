@@ -147,6 +147,12 @@ local function offer(id)
 	if not enabled() or seen[id] == true then
 		return
 	end
+	-- play advice applies only while the player is playing: refused (and NOT
+	-- marked seen, so it can still show later) once the game is over or while
+	-- the regent holds the seat — the regent card is the one exception
+	if ClientState.gameOver or (ClientState.away and id ~= "regent") then
+		return
+	end
 	seen[id] = true
 	table.insert(queue, id)
 	pump()
@@ -190,8 +196,18 @@ ClientState.onView(function()
 	end
 	local title = card:FindFirstChildWhichIsA("TextLabel")
 	local isRegentCard = title ~= nil and ADVICE.regent ~= nil and title.Text == ADVICE.regent.title
-	if ClientState.gameOver or (ClientState.away and not isRegentCard) then
+	if ClientState.gameOver then
 		queue = {}
+		dismiss()
+	elseif ClientState.away and not isRegentCard then
+		-- drop queued play advice, keep a queued regent card (dismiss pumps it)
+		local keep = {}
+		for _, id in ipairs(queue) do
+			if id == "regent" then
+				table.insert(keep, id)
+			end
+		end
+		queue = keep
 		dismiss()
 	end
 end)

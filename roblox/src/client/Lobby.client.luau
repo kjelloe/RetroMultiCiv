@@ -589,7 +589,12 @@ local function render(lobby)
 		end
 	end
 	-- the panel is as tall as its seats (was a fixed 430 px box around one row)
-	panel.Size = UDim2.new(0, 360, 0, SEATS_TOP + 8 + math.clamp(rows, 1, 8) * 56)
+	-- (review: in the idle phase the resume box + button sit along the foot;
+	-- the seat list ends above them)
+	local foot = lobby.phase == "idle" and 40 or 0
+	seatsFrame.Size = UDim2.new(1, -16, 1, -(SEATS_TOP + 8 + foot))
+	panel.Size = UDim2.new(0, 360, 0, SEATS_TOP + 8 + math.clamp(rows, 1, 8) * 56 + foot)
+	ClientState.youAreAdmin = lobby.youAreAdmin == true -- the mid-game replay button's gate
 
 	local isHostSetup = lobby.youAreHost and lobby.phase == "setup"
 	setupPanel.Visible = isHostSetup

@@ -32,7 +32,7 @@ local panels = {} -- frame -> { gui, home, scale, last }
 -- the heading: a short text label along the panel's top edge
 local function headingOf(frame)
 	for _, c in ipairs(frame:GetChildren()) do
-		if c:IsA("TextLabel") and c.Text ~= "" and c.Position.Y.Scale == 0 and c.Position.Y.Offset <= 12
+		if c:IsA("TextLabel") and c.Name ~= "PanelTab" and c.Text ~= "" and c.Position.Y.Scale == 0 and c.Position.Y.Offset <= 12
 			and c.Size.Y.Scale == 0 and c.Size.Y.Offset >= 18 and c.Size.Y.Offset <= 44 then
 			return c
 		end
@@ -66,6 +66,13 @@ local function place(frame, rec)
 	-- for an owner's move and adopted it as the new home (shot9: setup panel
 	-- and seat list stuck top-left / bottom-left). The handler compares
 	-- against the value written here instead.
+	-- a name tab stands above the frame: keep it on screen too
+	if frame:FindFirstChild("PanelTab") ~= nil then
+		local minTop = TAB_H * r.s + UiPanel.MARGIN
+		if home.Y.Scale * area.Y + r.yo < minTop then
+			r.yo = math.floor(minTop - home.Y.Scale * area.Y + 0.5)
+		end
+	end
 	rec.written = UDim2.new(home.X.Scale, r.xo, home.Y.Scale, r.yo)
 	frame.Position = rec.written
 	local key = ("%.2f %dx%d"):format(r.s, size.X.Offset, size.Y.Offset)

@@ -261,17 +261,24 @@ function M.build()
 		else
 			padPart, prompt = pad(folder, st.pad, st.x, color, st.title, DeckPlan.STATION_Z)
 		end
-		local signPos = c + Vector3.new(st.x, 4.6, DeckPlan.STATION_Z - DeckPlan.PAD / 2 - 2.6)
-		local _, sg = board(folder, "StationSign", Vector3.new(10, 5.6, 0.4), signPos)
-		for _, dx in ipairs({ -4.6, 4.6 }) do
-			part(folder, "SignPost", Vector3.new(0.5, 2, 0.5), CFrame.new(signPos + Vector3.new(dx, -3.6, 0)), METAL,
+		local signPos = c + Vector3.new(st.x, 4.9, DeckPlan.STATION_Z - DeckPlan.PAD / 2 - 2.6)
+		-- 12 x 6.6 studs = a 600 x 330 px canvas (review: at 500 x 280 the
+		-- longest title and the two-line status did not fit)
+		local _, sg = board(folder, "StationSign", Vector3.new(12, 6.6, 0.4), signPos)
+		for _, dx in ipairs({ -5.6, 5.6 }) do
+			part(folder, "SignPost", Vector3.new(0.5, 1.6, 0.5), CFrame.new(signPos + Vector3.new(dx, -3.9, 0)), METAL,
 				{ Material = Enum.Material.Metal })
 		end
-		local header = part(folder, "SignHeader", Vector3.new(10, 0.5, 0.6), CFrame.new(signPos + Vector3.new(0, 3.05, 0)),
+		local header = part(folder, "SignHeader", Vector3.new(12, 0.5, 0.6), CFrame.new(signPos + Vector3.new(0, 3.55, 0)),
 			color, { Material = Enum.Material.Neon })
-		text(sg, 14, 50, 44, Enum.Font.FredokaOne, Color3.fromRGB(245, 245, 250), st.title)
-		text(sg, 72, 130, 27, Enum.Font.GothamMedium, Color3.fromRGB(205, 212, 226), st.text)
-		local status = text(sg, 214, 56, 27, Enum.Font.GothamBold, Color3.fromRGB(150, 160, 180), "")
+		local title = text(sg, 14, 50, 44, Enum.Font.FredokaOne, Color3.fromRGB(245, 245, 250), st.title)
+		title.TextScaled = true -- one line at up to 44 px, shrunk to the width
+		local cap = Instance.new("UITextSizeConstraint")
+		cap.MaxTextSize = 44
+		cap.MinTextSize = 24
+		cap.Parent = title
+		text(sg, 74, 156, 27, Enum.Font.GothamMedium, Color3.fromRGB(205, 212, 226), st.text)
+		local status = text(sg, 240, 76, 27, Enum.Font.GothamBold, Color3.fromRGB(150, 160, 180), "")
 		stations[st.id] = { pad = padPart, prompt = prompt, status = status, header = header, color = color }
 	end
 

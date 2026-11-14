@@ -358,10 +358,19 @@ ClientState.onOpenTheater(openTheater) -- runJ item 6: the end screen's "Watch r
 -- shows for developers only (Studio / the place owner)
 local DevAccess = require(script.Parent:WaitForChild("DevAccess"))
 local function gateOpenBtn()
-	openBtn.Visible = ClientState.gameOver == true or DevAccess.dev()
+	-- post-game needs a view too (a soft reset clears the view, not gameOver);
+	-- admins keep the mid-game entry the server allows them
+	openBtn.Visible = (ClientState.gameOver == true and ClientState.view ~= nil)
+		or DevAccess.dev() or ClientState.youAreAdmin == true
 end
 ClientState.onView(gateOpenBtn)
 gateOpenBtn()
+task.spawn(function()
+	while true do
+		task.wait(1)
+		gateOpenBtn() -- the view is also dropped without a view push
+	end
+end)
 
 -- runI item 14: another left-stack panel opening closes the theater so they
 -- never overlap

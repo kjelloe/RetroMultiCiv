@@ -188,7 +188,9 @@ local function placeAdmins()
 	return out
 end
 local function isAdmin(player)
-	return player.UserId == game.CreatorId or table.find(ADMINS, player.UserId) ~= nil
+	-- (a group-owned place's CreatorId is a GROUP id: it must not match a user)
+	return (game.CreatorType == Enum.CreatorType.User and player.UserId == game.CreatorId)
+		or table.find(ADMINS, player.UserId) ~= nil
 		or table.find(placeAdmins(), player.UserId) ~= nil
 end
 -- run-R ruling 1: developer surfaces (debug game switch, debug commands, the
