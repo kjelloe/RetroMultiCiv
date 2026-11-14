@@ -19,6 +19,10 @@ local GlyphData = require(script.Parent:WaitForChild("GlyphData"))
 local TechGlyphs = require(script.Parent:WaitForChild("TechGlyphs"))
 
 local M = {}
+-- The Draw* calls take a REQUIRED 5th combineType argument (current API:
+-- center/position, radius/size, color, transparency, combineType). The image
+-- starts transparent and every stroke is opaque ink, so Overwrite is exact.
+local COMBINE = Enum.ImageCombineType.Overwrite
 local RES = 128 -- supersample resolution (glyphs shown ~24-48px; downscale = AA)
 local SCALE = RES / 100 -- the motif box is 0..100
 
@@ -33,7 +37,7 @@ local function strokeSeg(img, x0, y0, x1, y1, w, color)
 	local steps = math.max(1, math.ceil(len / math.max(r, 0.5)))
 	for i = 0, steps do
 		local t = i / steps
-		img:DrawCircle(v2(x0 + dx * t, y0 + dy * t), r * SCALE, color, 0)
+		img:DrawCircle(v2(x0 + dx * t, y0 + dy * t), r * SCALE, color, 0, COMBINE)
 	end
 end
 
@@ -87,7 +91,7 @@ local function fillPoly(img, pts, color)
 		for i = 1, #xs - 1, 2 do
 			local x0, x1 = xs[i], xs[i + 1]
 			if x1 > x0 then
-				img:DrawRectangle(v2(x0, y), Vector2.new((x1 - x0) * SCALE, SCALE), color, 0)
+				img:DrawRectangle(v2(x0, y), Vector2.new((x1 - x0) * SCALE, SCALE), color, 0, COMBINE)
 			end
 		end
 		y += 1
@@ -132,7 +136,7 @@ local function drawPrim(img, pr, ink)
 		if pr.fill == false then
 			strokePolyline(img, arcPts(pr.x, pr.y, pr.r, 0, 360), pr.w or 6, ink, true)
 		else
-			img:DrawCircle(v2(pr.x, pr.y), pr.r * SCALE, ink, 0)
+			img:DrawCircle(v2(pr.x, pr.y), pr.r * SCALE, ink, 0, COMBINE)
 		end
 	elseif k == "ring" then
 		strokePolyline(img, arcPts(pr.x, pr.y, pr.r, 0, 360), pr.w or 6, ink, true)
@@ -149,7 +153,7 @@ local function drawPrim(img, pr, ink)
 		if pr.fill then fillPoly(img, pr.pts, ink)
 		else strokePolyline(img, pr.pts, pr.w or 6, ink, pr.close) end
 	elseif k == "dots" then
-		for _, p in ipairs(pr.pts) do img:DrawCircle(v2(p[1], p[2]), (pr.r or 3) * SCALE, ink, 0) end
+		for _, p in ipairs(pr.pts) do img:DrawCircle(v2(p[1], p[2]), (pr.r or 3) * SCALE, ink, 0, COMBINE) end
 	elseif k == "letter" then
 		-- EditableImage has no text; the caller overlays a TextLabel (see drawGlyph).
 		-- Only 'alphabet' + the fallback use this; handled by the compositor.

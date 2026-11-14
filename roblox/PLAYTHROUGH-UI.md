@@ -256,7 +256,8 @@ items only if they block reading or tapping.
   (b) top-row and action-bar buttons are rounded, outlined, with white
   pictograms, labels readable beside the icons (Encyclopedia and Ship are
   the tight ones); (c) the tree and target buttons show an icon, not an
-  emoji; (d) mountains are three-summit massifs with snow, a unit standing
+  emoji — if every button is text-only, check Game Settings → Security →
+  "Allow Mesh / Image APIs" (EditableImage) before filing it as a bug; (d) mountains are three-summit massifs with snow, a unit standing
   on a mountain tile is visible between the summits, mountain gold sits on
   a flank; (e) Options → world look cycles retro/brick back to the single
   cone and enhanced back to the massif. Screenshot each into

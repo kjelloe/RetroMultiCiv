@@ -54,6 +54,21 @@ for kind in pairs(M.KINDS) do
 	end
 end
 
+-- every EditableImage Draw* call passes the REQUIRED combineType (5th arg);
+-- a 4-arg call errors at runtime and every glyph silently falls back to text
+local draws = 0
+for line in glyphSrc:gmatch("[^\n]+") do
+	if line:find("img:Draw%u%l+%(") then
+		draws += 1
+		if not line:find("COMBINE%)") then
+			fail("Draw call without COMBINE: " .. line:gsub("^%s+", ""))
+		end
+	end
+end
+if draws < 4 then
+	fail("only " .. draws .. " Draw calls found — the scan pattern drifted")
+end
+
 -- every icon id asked for in client code exists
 local used = 0
 for _, name in ipairs(fs.readDir("roblox/src/client")) do

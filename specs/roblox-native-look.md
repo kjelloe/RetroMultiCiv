@@ -94,7 +94,7 @@ city list) + icons on action-bar verbs.
 |---|---|
 | Not seen in Studio | U1 and T1 were built with Studio unattended. Syntax is lune-compiled and the pure halves are lune-pinned; layout, colour and proportion are unverified until a Studio look. Tuning knobs are constants at the top of `UiTheme` / `TerrainSculpt`. |
 | Label fit | Icon + label inside the old fixed widths relies on shrink-to-fit; the narrow ones (Encyclopedia 118 px, Ship 78 px) will render small until U3 gives the row a layout. |
-| EditableImage | Never yet confirmed in Studio (the pending one-motif check). Failure mode is benign: text-only buttons. |
+| EditableImage | Never yet confirmed in Studio (the pending one-motif check). Failure mode is benign: text-only buttons. Two things found while building: (a) every `Draw*` call in `EditableGlyph` lacked the required 5th `combineType` argument, so nothing had ever rendered through it — fixed (`COMBINE`), arity pinned by gate 35; (b) creating an EditableImage needs the experience's "Allow Mesh / Image APIs" security setting (owner ID-verified) — to confirm in Game Settings; with it off the buttons stay text-only and the tech glyphs stay era badges. |
 | Part count | Full massif ≤ 32 parts per mountain tile (was 10). ~8 % mountains on 40×25 = ~80 tiles = ~2.6 k parts; on 80×50 the lite path caps it near 6 k. To measure on a huge map on a phone before T2 adds more. |
 | Look parity | The browser Medium/High surfaces are meshes; this is a part-built reading of the same idea, not a twin. No gate compares them, by design. |
 

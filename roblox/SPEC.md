@@ -989,6 +989,14 @@ seat/reset flow; JS engine untouched). Delivered:
    five-line lune script catches syntax errors in `*.client.luau` /
    `*.server.luau` headlessly; logic that touches Roblox APIs still needs
    Studio, so keep the decidable part in a pure module with lune pins.
+11. **EditableImage `Draw*` calls take a REQUIRED 5th `combineType`.**
+   `DrawCircle(center, radius, color, transparency, combineType)`,
+   `DrawRectangle(position, size, color, transparency, combineType)`. The
+   first `EditableGlyph` omitted it on all four call sites and had never
+   executed (no consumer called `render`); it would have fallen back to
+   text/badges everywhere without an error anyone saw. Use the module's
+   `COMBINE`; gate 35 pins the arity. Code written against an API from
+   memory and never run is unverified — check the reference page.
 
 ## 4. Self-test (`check.sh`)
 
