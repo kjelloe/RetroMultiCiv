@@ -198,6 +198,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19f. shot8 (game over, score victory) + log [2026-11-14] [done: 2026-11-14 — session replays hash-exact to the end (545 rounds, 23438 commands, code EZJW-TR99-KSH5R); 0 failure kinds, 0 errors over 52 min. Fixed from the shot: turn chip showed "your turn · GAME OVER" (now GAME OVER only); End Turn reads "Results" after the game (its click already reopened the end screen); play-advice cards are taken down at game over and while the regent holds the seat; Turn log toggle count is short and capped ("· 99+", was a wrapped "— 2211 new"). That session predates the panel-area fix, so panel scale is still unseen.]
 
+## 19g. code placement [2026-11-14, user: "Get resume code … more logical location"; "code … elsewhere or a tool tip"] [done: 2026-11-14 — the host's resume-code button + code box moved from under the menu row to the foot of the Options panel (host, game running; the panel grows 74 px); the per-turn game-code chip and the autosave chip left the HUD, both codes read in the turn chip's tooltip; the "saves off" warning chip stays. Resume after rejoin is unchanged (lobby panel's resume box, idle phase; its phase line now says so). Not built: a prompt on leave/disconnect — the client gets no hook before a leave; the autosave covers it. Look NOT yet seen.]
+
 ## 20. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---

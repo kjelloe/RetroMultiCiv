@@ -159,7 +159,7 @@ items only if they block reading or tapping.
     - Likely wrong: a pedia page overflowing its frame with no scroll.
 
 15. **Save code + soft reset** — Tier 3 (R10) 📷
-    - Tap: read the game-code chip (HUD/options); host taps reset
+    - Tap: hover the top-left turn chip (the game code and the last autosave code are in its tooltip since run-R); host opens Options -> "Save - get resume code"; host taps reset
       (Studio path).
     - Expect: the code chip is selectable/readable (no clipboard on
       Roblox — read/retype is the platform shape); reset in Studio takes

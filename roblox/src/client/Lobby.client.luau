@@ -401,8 +401,37 @@ saveBtn.Activated:Connect(function()
 	remote:FireServer({ t = "getResumeCode" })
 end)
 
+-- run-R (user): the button floated under the menu row with no context. Saving
+-- is a settings-menu action, so it and its code box live at the foot of the
+-- Options panel (host, game running); the panel grows by their height.
+local optionsPanel, optionsBase = nil, nil
+local function placeSave()
+	if optionsPanel ~= nil then
+		optionsPanel.Size = optionsBase + UDim2.new(0, 0, 0, saveBtn.Visible and 74 or 0)
+	end
+end
+task.spawn(function()
+	local og = Players.LocalPlayer.PlayerGui:WaitForChild("RMCOptions", 20)
+	local p = og ~= nil and og:WaitForChild("Panel", 20) or nil
+	if p == nil then
+		return -- stays where it was built
+	end
+	optionsPanel, optionsBase = p, p.Size
+	saveBtn.Size = UDim2.new(1, -12, 0, 32)
+	saveBtn.Position = UDim2.new(0, 6, 1, -70)
+	saveBtn.TextSize = 15
+	saveBtn.Text = "Save - get resume code"
+	saveBtn.Parent = p
+	codeOut.Size = UDim2.new(1, -12, 0, 28)
+	codeOut.Position = UDim2.new(0, 6, 1, -34)
+	codeOut.TextSize = 15
+	codeOut.PlaceholderText = "the code appears here"
+	codeOut.Parent = p
+	placeSave()
+end)
+
 local PHASE_TEXT = {
-	idle = "no game - START pad opens hosting",
+	idle = "No game yet. Step on the START pad to host one, or enter a resume code below.",
 	setup = "The host is choosing options. Step on the JOIN pad to claim a seat.",
 	starting = "The game is starting. The JOIN pad is still open.",
 	running = "A game is in progress. Step on TAKE OVER to play an AI civ.",
@@ -573,7 +602,8 @@ local function render(lobby)
 	resumeBox.Visible = idle
 	resumeBtn.Visible = idle
 	saveBtn.Visible = lobby.phase == "running" and lobby.youAreHost
-	codeOut.Visible = saveBtn.Visible and codeOut.Text ~= ""
+	codeOut.Visible = saveBtn.Visible and (optionsPanel ~= nil or codeOut.Text ~= "")
+	placeSave()
 end
 
 -- runJ item 5: the defeat overlay — a seated player who loses their last city

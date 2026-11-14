@@ -61,9 +61,17 @@ Tooltip.attach(status, function()
 	end
 	local tax = me.taxRate or rs.rules.defaultTaxRate or 0
 	local sci = me.sciRate or rs.rules.defaultSciRate or 0
-	return ("income per turn\n  gold %+d (maintenance -%d)\n  bulbs +%d\nrates: tax %d%% sci %d%% lux %d%%\ntreasury %d gold")
+	local text = ("income per turn\n  gold %+d (maintenance -%d)\n  bulbs +%d\nrates: tax %d%% sci %d%% lux %d%%\ntreasury %d gold")
 		:format((inc.gold or 0) - (inc.maintenance or 0), inc.maintenance or 0,
 			inc.bulbs or 0, tax, sci, math.max(0, 100 - tax - sci), me.gold or 0)
+	-- run-R (user): the game-code chips left the HUD; the codes read here
+	if ClientState.code ~= nil then
+		text ..= "\n\ngame code (this turn's fingerprint)\n  " .. tostring(ClientState.code)
+	end
+	if ClientState.lastSave ~= nil then
+		text ..= ("\nlast autosave (resume code)\n  %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)
+	end
+	return text
 end)
 
 local endTurn = Instance.new("TextButton")
@@ -349,6 +357,7 @@ codeChip.TextXAlignment = Enum.TextXAlignment.Left
 codeChip.TextEditable = false
 codeChip.ClearTextOnFocus = false
 codeChip.Text = "  code …"
+codeChip.Visible = false -- run-R: in the turn chip's tooltip; kept for the debug/trust loop
 codeChip.Parent = gui
 
 -- R23: the latest AUTOSAVED (resumable) code — distinct from the live chip
@@ -357,7 +366,7 @@ codeChip.Parent = gui
 local saveChip = Instance.new("TextBox")
 saveChip.Name = "SavedCode"
 saveChip.Size = UDim2.new(0, 250, 0, 22)
-saveChip.Position = UDim2.new(0, 8, 0, 72)
+saveChip.Position = UDim2.new(0, 8, 0, 46)
 saveChip.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
 saveChip.BackgroundTransparency = 0.35
 saveChip.TextColor3 = Color3.fromRGB(200, 180, 120)
@@ -446,9 +455,8 @@ local function refresh(view)
 		saveChip.Visible = true
 		saveChip.Text = "  \226\154\160 saves off - enable Studio API access"
 		saveChip.TextColor3 = Color3.fromRGB(235, 180, 70)
-	elseif ClientState.lastSave ~= nil then
-		saveChip.Visible = true
-		saveChip.Text = ("  saved %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)
+	else
+		saveChip.Visible = false -- the autosave code reads in the turn chip's tooltip
 	end
 	if os.clock() > confirmUntil then
 		-- after the game the button reopens the results (its click handler above)
