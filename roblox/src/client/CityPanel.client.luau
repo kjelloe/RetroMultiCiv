@@ -138,7 +138,7 @@ queueStrip.BackgroundColor3 = Color3.fromRGB(30, 40, 32)
 queueStrip.BackgroundTransparency = 0.3
 queueStrip.TextColor3 = Color3.fromRGB(190, 225, 190)
 queueStrip.Font = Enum.Font.Code
-queueStrip.TextSize = 13
+queueStrip.TextSize = 14
 queueStrip.TextXAlignment = Enum.TextXAlignment.Left
 queueStrip.TextTruncate = Enum.TextTruncate.AtEnd
 queueStrip.Visible = false
@@ -345,8 +345,9 @@ local function addRow(order, kind, id, def, lockReason, effects)
 	row.RichText = true
 	row.Text = ("  %s %s (%d)%s%s"):format(kind, def.name or id, def.cost or 0,
 		lockReason and ("  — " .. lockReason) or "",
-		twoLine and ('\n  <font size="12" color="#9db2c8">' .. effects .. "</font>") or "")
+		twoLine and ('\n  <font size="14" color="#9db2c8">' .. effects .. "</font>") or "")
 	row.Parent = list
+	require(script.Parent:WaitForChild("UiTheme")).row(row, { locked = lockReason ~= nil }) -- U5
 	if not lockReason then
 		local function pick()
 			print(("[CityPanel] setProduction %s -> %s %s"):format(openCityId, kind, id))
@@ -388,7 +389,7 @@ local function addRow(order, kind, id, def, lockReason, effects)
 		qBtn.BackgroundColor3 = Color3.fromRGB(60, 84, 60)
 		qBtn.TextColor3 = Color3.fromRGB(210, 240, 210)
 		qBtn.Font = Enum.Font.SourceSansBold
-		qBtn.TextSize = 13
+		qBtn.TextSize = 14
 		qBtn.Text = "Q+"
 		qBtn.Parent = row
 		qBtn.Activated:Connect(function()
@@ -429,7 +430,7 @@ local function addBuildingRow(order, id, def, price, sold)
 	sell.Size = UDim2.new(0, 72, 0, 18)
 	sell.Position = UDim2.new(1, -74, 0, 2)
 	sell.Font = Enum.Font.SourceSansBold
-	sell.TextSize = 13
+	sell.TextSize = 14
 	local armed = sellConfirm.key == openCityId .. ":" .. id and os.clock() <= sellConfirm.until_
 	sell.BackgroundColor3 = sold and Color3.fromRGB(38, 40, 48)
 		or (armed and Color3.fromRGB(150, 60, 50) or Color3.fromRGB(90, 62, 42))

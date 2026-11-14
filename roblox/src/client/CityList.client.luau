@@ -74,6 +74,7 @@ local function refresh()
 				prodDef and prodDef.name or (c.producing and c.producing.id or "?"),
 				c.shields or 0, prodDef and prodDef.cost or 0)
 			row.Parent = list
+			require(script.Parent:WaitForChild("UiTheme")).row(row) -- U5
 			row.Activated:Connect(function()
 				print(("[CityList] jump to %s (%d,%d)"):format(c.name, c.x, c.y))
 				ClientState.focusCamera(c.x, c.y)

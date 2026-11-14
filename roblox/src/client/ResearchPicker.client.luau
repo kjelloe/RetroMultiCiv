@@ -124,6 +124,7 @@ local function refresh()
 		row.TextXAlignment = Enum.TextXAlignment.Left
 		row.Text = "       " .. (rs.techs[id] and rs.techs[id].name or id)
 		row.Parent = list
+		require(script.Parent:WaitForChild("UiTheme")).row(row) -- U5
 		-- CP-art (glyphs fallback b): per-era colour badge at the row's left
 		local badge = TechGlyphs.badge(row, TechGlyphs.eraOf(rs.techs, id), 14)
 		badge.AnchorPoint = Vector2.new(0, 0.5)

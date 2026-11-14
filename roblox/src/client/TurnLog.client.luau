@@ -100,7 +100,7 @@ local function makeFilterButton(cls)
 	b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
 	b.Font = Enum.Font.Code
-	b.TextSize = 12
+	b.TextSize = 14
 	b.Text = cls.label
 	b.Parent = strip
 	local function paint()
@@ -137,7 +137,7 @@ local function put(turn, text, cls, fclass, loc)
 	row.BackgroundTransparency = 1
 	row.TextColor3 = COLORS[cls or ""] or COLORS[""]
 	row.Font = Enum.Font.Code
-	row.TextSize = 13
+	row.TextSize = 14
 	row.TextXAlignment = Enum.TextXAlignment.Left
 	row.TextTruncate = Enum.TextTruncate.AtEnd
 	row.Text = ("T%d %s"):format(turn, text)
@@ -158,7 +158,7 @@ local function put(turn, text, cls, fclass, loc)
 		jump.BackgroundColor3 = Color3.fromRGB(40, 52, 70)
 		jump.TextColor3 = Color3.fromRGB(210, 226, 243)
 		jump.Font = Enum.Font.Code
-		jump.TextSize = 12
+		jump.TextSize = 14
 		jump.Text = "⌖"
 		jump.AutoButtonColor = true
 		jump.Parent = row

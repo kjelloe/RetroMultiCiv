@@ -121,7 +121,7 @@ no engine, state, command, or shared-recipe change; gamesim-golden-neutral.
 Phases: **U1** (built) top row, action bar, End Turn. **U2** (built) close
 / primary / toggle buttons. **U3a** (built) top-row dock. **U3b** (built)
 phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
-**U5** list rows inside panels (open). **U6** (built, run-R) below.
+**U5** list rows inside panels (built: `UiTheme.row`). **U6** (built, run-R) below.
 
 ### U6 — reading sizes, panel fit, top strip (user, run-R)
 
@@ -204,7 +204,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 8 | fixes from that log | open | item 7 |
 | 9 | phone: unit cards, bottom-left toggles, research cluster | open | the phone audit's overlap list |
 | 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
-| 11 | U5 list rows | open | a look at U1/U2 |
+| 11 | U5 list rows | built for the city list, research picker and build catalog (`UiTheme.row`: rounded, >= 14 px, lighter under the pointer); panel texts raised to 14 px (gate 42 pins) | a look; Encyclopedia / lobby rows keep their own style |
 | 11b | river banks | built (gate 41 pins) | a close shot of a river |
 | 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
 | 13 | panels with heading=NONE get a heading | built (name tabs; run-S log: 8 tabs, end-screen headline styled in place) | — |

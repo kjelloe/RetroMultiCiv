@@ -212,6 +212,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19m. run-S second session (21:06Z) log read [2026-11-14] [done: 2026-11-14 — boot audit: 0 failure kinds, 0 errors, 27 of 27 icons, 30/30 guis, 0 texts under 14 px. Finding: RMCOverlays reported heading='City influence' and RMCDebugMenu its warning line — the heading scan had restyled a first row. Both now carry a name tab (`TAB_TITLE` wins over the scan); end-screen headline styled in place. Commit 7a5508f. gamesim-golden-neutral.]
 
+## 19n. run-S playtest notes + U5 [2026-11-14] [done: 2026-11-14 — deck pads stand 0.3 proud (their tops were coplanar with the 0.06 walkway strips: the flicker); welcome banner 40 px title / 24 px body, up to 900 px wide, 14 s; the place file's template spawn no longer draws its mark (decal hidden, spawn disabled); U5 `UiTheme.row` on city list / research picker / build catalog; CityPanel, TurnLog, Options, TechTree legend, WorkedTiles, Historian hint texts raised to 14 px. Commits 3ffe860, e14f55c + this one. Needs a fresh Play to show. gamesim-golden-neutral.]
+
 ## 20. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---

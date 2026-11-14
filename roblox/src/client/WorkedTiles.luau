@@ -122,7 +122,7 @@ local function quad(c, worked, isCenter, onClick)
 	btn.RichText = true
 	btn.TextColor3 = Color3.fromRGB(235, 235, 235)
 	btn.Font = Enum.Font.Code
-	btn.TextSize = 13
+	btn.TextSize = 14
 	btn.Text = isCenter and "AUTO" or yieldLine(c.yields)
 	btn.Parent = bb
 	bb.Parent = bbHome
@@ -157,7 +157,7 @@ local function summaryBoard(city, workersPlaced)
 	t.Font = Enum.Font.Code
 	t.TextSize = 16
 	t.Text = ('<font color="#7fd08a">workers %d/%d placed</font>  ·  specialists %d'
-		.. '<font size="13" color="#9db2c8"> (ent %d · tax %d · sci %d)</font>')
+		.. '<font size="14" color="#9db2c8"> (ent %d · tax %d · sci %d)</font>')
 		:format(workersPlaced, pop, pop - workersPlaced,
 			math.max(0, entertainers), taxmen, scientists)
 	t.Parent = bb

@@ -222,4 +222,38 @@ function M.apply(btn, opts)
 	return btn
 end
 
+-- U5 list rows (city list, research picker, build catalog): one look for a
+-- clickable row inside a panel - rounded, reading size at least TEXT.small,
+-- lighter under the pointer. The row keeps its owner's colour, font and
+-- height (ledger rows stay monospace so their columns line up).
+local function dressRow(row, opts)
+	local corner = child(row, "UICorner", "RowCorner")
+	corner.CornerRadius = UDim.new(0, 6)
+	row.BorderSizePixel = 0
+	row.AutoButtonColor = false
+	row.TextSize = math.max(row.TextSize, M.TEXT.small)
+	if opts ~= nil and opts.locked then
+		return
+	end
+	local base = nil
+	row.MouseEnter:Connect(function()
+		base = row.BackgroundColor3
+		row.BackgroundColor3 = base:Lerp(Color3.new(1, 1, 1), 0.14)
+	end)
+	row.MouseLeave:Connect(function()
+		if base ~= nil then
+			row.BackgroundColor3 = base
+			base = nil
+		end
+	end)
+end
+
+function M.row(row, opts)
+	local ok, err = pcall(dressRow, row, opts)
+	if not ok then
+		Diag.fail("ui", ("row %s (left as built)"):format(row.Name), err)
+	end
+	return row
+end
+
 return M

@@ -66,7 +66,7 @@ local function toggleButton(y, text)
 	b.BackgroundTransparency = 0.25
 	b.TextColor3 = Color3.fromRGB(235, 235, 235)
 	b.Font = Enum.Font.Code
-	b.TextSize = 13
+	b.TextSize = 14
 	b.TextXAlignment = Enum.TextXAlignment.Left
 	b.Text = text
 	b.Parent = panel
@@ -95,7 +95,7 @@ clockLabel.TextXAlignment = Enum.TextXAlignment.Right
 clockLabel.BackgroundTransparency = 1
 clockLabel.TextColor3 = Color3.fromRGB(200, 210, 225)
 clockLabel.Font = Enum.Font.Code
-clockLabel.TextSize = 13
+clockLabel.TextSize = 14
 clockLabel.Text = ""
 clockLabel.Parent = gui
 require(script.Parent:WaitForChild("HudDock")).register(clockLabel, { id = "clock", order = 6, fixedW = 150, fixedH = 18 }) -- U3

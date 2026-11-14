@@ -104,12 +104,12 @@ local function show(msg)
 	end
 
 	local hint = Instance.new("TextLabel")
-	hint.Size = UDim2.new(1, -20, 0, 14)
-	hint.Position = UDim2.new(0, 10, 1, -18)
+	hint.Size = UDim2.new(1, -20, 0, 16)
+	hint.Position = UDim2.new(0, 10, 1, -20)
 	hint.BackgroundTransparency = 1
 	hint.TextColor3 = Color3.fromRGB(130, 140, 155)
 	hint.Font = Enum.Font.Code
-	hint.TextSize = 11
+	hint.TextSize = 14
 	hint.TextXAlignment = Enum.TextXAlignment.Left
 	hint.Text = "click to dismiss"
 	hint.Parent = card

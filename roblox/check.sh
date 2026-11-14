@@ -562,7 +562,12 @@ fi
 # cut-to-fit on a phone; PanelDress is the only applier
 if command -v lune >/dev/null 2>&1; then
   if lune run roblox/selftest/ui-panel.luau >/dev/null 2>&1 \
-     && grep -q 'UiPanel.place' roblox/src/client/PanelDress.client.luau; then
+     && grep -q 'UiPanel.place' roblox/src/client/PanelDress.client.luau \
+     && grep -q '^function M.row' roblox/src/client/UiTheme.luau \
+     && grep -q '\.row(row' roblox/src/client/CityList.client.luau \
+     && grep -q '\.row(row' roblox/src/client/ResearchPicker.client.luau \
+     && grep -q '\.row(row' roblox/src/client/CityPanel.client.luau \
+     && ! grep -qE 'TextSize = (9|1[0-3])$' roblox/src/client/CityPanel.client.luau roblox/src/client/CityList.client.luau roblox/src/client/TurnLog.client.luau roblox/src/client/Options.client.luau; then
     note PASS "gate 42: panel fit pins (lune) + PanelDress wiring"
   else
     note FAIL "gate 42: panel fit — run: lune run roblox/selftest/ui-panel.luau"
