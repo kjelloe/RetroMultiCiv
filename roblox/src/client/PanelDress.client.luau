@@ -5,6 +5,7 @@
 -- offsets its owner gave it, one outline, and its heading in the display
 -- font. Presentation only. A failure leaves the panel as built + one Diag line.
 local Players = game:GetService("Players")
+local GuiService = game:GetService("GuiService")
 
 local UiPanel = require(script.Parent:WaitForChild("UiPanel"))
 local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
@@ -32,7 +33,17 @@ local function headingOf(frame)
 end
 
 local function place(frame, rec)
-	local area = rec.gui.AbsoluteSize
+	-- not the ScreenGui's AbsoluteSize: it reads a stale 800x600 on a gui
+	-- that is disabled or was built before the viewport settled (run-R log:
+	-- every panel fitted at scale 1.00 in an 800x600 area)
+	local cam = workspace.CurrentCamera
+	if cam == nil then
+		return
+	end
+	local area = cam.ViewportSize
+	if not rec.gui.IgnoreGuiInset then
+		area = Vector2.new(area.X, area.Y - GuiService:GetGuiInset().Y)
+	end
 	if area.X <= 0 or area.Y <= 0 then
 		return
 	end

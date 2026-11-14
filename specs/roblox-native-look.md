@@ -153,6 +153,17 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 - **Turn line** (top-left): a rounded chip as wide as its text, GothamBold
   18 px — `Turn N · year · N gold · your turn | waiting for <seat>`, gold
   and turn state coloured; code chips 14 px.
+- **Area source**: the fit reads the camera viewport minus the top inset,
+  never `ScreenGui.AbsoluteSize` (stale 800x600 on a disabled gui — the
+  first U6 run fitted every panel at 1.00).
+- **Lobby seat panel**: heading, a plain-language phase line, a
+  seat / player / open count (with `starts in N s`), one card per seat —
+  civ, holder, status badge (YOU / PLAYER / AI / REGENT / OPEN, one colour
+  each, repeated on the card's edge bar), themed Kick for admins. The panel
+  is as tall as its seats (max 8 rows, then it scrolls).
+- **Encyclopedia**: 880x520, 44 px header, reading faces (detail 17,
+  list 16, categories 17), the picked entry and category stay lit.
+- **Research status**: a 20 px chip under the cluster, hidden while empty.
 - **Audit additions**: `icon over label`, `N visible text(s) under 14 px`
   (on-screen size = TextSize x every UIScale above it), one `panel` line per
   panel (scale, authored size, heading or NONE).

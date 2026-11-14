@@ -38,47 +38,53 @@ require(script.Parent:WaitForChild("UiTheme")).apply(openBtn, { color = "menu", 
 require(script.Parent:WaitForChild("HudDock")).register(openBtn, { id = "pedia", order = 2 }) -- U3: one planned top row
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 760, 0, 440)
-frame.Position = UDim2.new(0.5, -380, 0.5, -220)
+-- run-R (user, shot7): reading faces and sizes, a 44 px header, wider panes;
+-- PanelDress scales the whole panel per screen
+frame.Size = UDim2.new(0, 880, 0, 520)
+frame.Position = UDim2.new(0.5, -440, 0.5, -260)
 frame.BackgroundColor3 = Color3.fromRGB(20, 24, 32)
 frame.BackgroundTransparency = 0.04
 frame.BorderSizePixel = 0
 frame.Visible = false
 frame.Parent = gui
 
+local UiThemeMod = require(script.Parent:WaitForChild("UiTheme"))
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -40, 0, 30)
+title.Size = UDim2.new(1, -60, 0, 40)
+title.Position = UDim2.new(0, 14, 0, 4)
 title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(235, 235, 235)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(240, 242, 248)
+title.Font = UiThemeMod.FONT
+title.TextSize = 24
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextTruncate = Enum.TextTruncate.AtEnd
 title.Text = "Encyclopedia"
 title.Parent = frame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 26, 0, 26)
-closeBtn.Position = UDim2.new(1, -30, 0, 2)
+closeBtn.Size = UDim2.new(0, 34, 0, 34)
+closeBtn.Position = UDim2.new(1, -42, 0, 7)
 closeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 66)
 closeBtn.TextColor3 = Color3.fromRGB(240, 240, 240)
 closeBtn.Font = Enum.Font.SourceSansBold
-closeBtn.TextSize = 16
+closeBtn.TextSize = 18
 closeBtn.Text = "X"
 closeBtn.Parent = frame
 require(script.Parent:WaitForChild("UiTheme")).apply(closeBtn, { color = "danger", radius = 8 }) -- U2 dress
 
 local catBar = Instance.new("Frame")
-catBar.Size = UDim2.new(0, 120, 1, -40)
-catBar.Position = UDim2.new(0, 6, 0, 34)
+catBar.Size = UDim2.new(0, 160, 1, -58)
+catBar.Position = UDim2.new(0, 10, 0, 50)
 catBar.BackgroundTransparency = 1
 catBar.Parent = frame
 local catLayout = Instance.new("UIListLayout")
 catLayout.SortOrder = Enum.SortOrder.LayoutOrder
-catLayout.Padding = UDim.new(0, 3)
+catLayout.Padding = UDim.new(0, 6)
 catLayout.Parent = catBar
 
 local listPane = Instance.new("ScrollingFrame")
-listPane.Size = UDim2.new(0, 200, 1, -40)
-listPane.Position = UDim2.new(0, 132, 0, 34)
+listPane.Size = UDim2.new(0, 240, 1, -58)
+listPane.Position = UDim2.new(0, 178, 0, 50)
 listPane.BackgroundColor3 = Color3.fromRGB(26, 30, 40)
 listPane.BorderSizePixel = 0
 listPane.ScrollBarThickness = 6
@@ -89,8 +95,8 @@ listLayout.Padding = UDim.new(0, 2)
 listLayout.Parent = listPane
 
 local detail = Instance.new("ScrollingFrame")
-detail.Size = UDim2.new(1, -350, 1, -40)
-detail.Position = UDim2.new(0, 340, 0, 34)
+detail.Size = UDim2.new(1, -436, 1, -58)
+detail.Position = UDim2.new(0, 426, 0, 50)
 detail.BackgroundColor3 = Color3.fromRGB(26, 30, 40)
 detail.BorderSizePixel = 0
 detail.ScrollBarThickness = 6
@@ -102,8 +108,8 @@ detailText.AutomaticSize = Enum.AutomaticSize.Y
 detailText.BackgroundTransparency = 1
 detailText.RichText = true
 detailText.TextColor3 = Color3.fromRGB(225, 230, 238)
-detailText.Font = Enum.Font.Code
-detailText.TextSize = 15
+detailText.Font = UiThemeMod.BODY_FONT
+detailText.TextSize = UiThemeMod.TEXT.body
 detailText.TextWrapped = true
 detailText.TextXAlignment = Enum.TextXAlignment.Left
 detailText.TextYAlignment = Enum.TextYAlignment.Top
@@ -233,9 +239,18 @@ end
 
 local cats = nil
 local curCat = 1
+local rowOf = {} -- entry id -> its list row
+local catButtons = {}
+local ROW_IDLE = Color3.fromRGB(40, 50, 66)
+local ROW_PICKED = Color3.fromRGB(56, 128, 214) -- UiTheme's menu blue
+local CAT_IDLE = Color3.fromRGB(50, 66, 92)
 
 local function showEntry(catDef, id, def)
-	title.Text = "Encyclopedia - " .. (def.name or id)
+	title.Text = "Encyclopedia  ·  " .. (def.name or id)
+	-- the picked entry stays lit, so the list shows where the detail came from
+	for rid, row in pairs(rowOf) do
+		row.BackgroundColor3 = rid == id and ROW_PICKED or ROW_IDLE
+	end
 	detailText.Text = catDef.render(id, def)
 	detail.CanvasPosition = Vector2.new(0, 0)
 end
@@ -248,22 +263,33 @@ local function renderList()
 	end
 	local catDef = cats[curCat]
 	local entries = catDef.list()
+	rowOf = {}
 	for i, pair in ipairs(entries) do
 		local row = Instance.new("TextButton")
-		row.Size = UDim2.new(1, -8, 0, 22)
+		row.Size = UDim2.new(1, -10, 0, 30)
 		row.LayoutOrder = i
-		row.BackgroundColor3 = Color3.fromRGB(40, 50, 66)
-		row.TextColor3 = Color3.fromRGB(225, 230, 238)
-		row.Font = Enum.Font.Code
-		row.TextSize = 14
+		row.BackgroundColor3 = ROW_IDLE
+		row.AutoButtonColor = false
+		row.BorderSizePixel = 0
+		row.TextColor3 = Color3.fromRGB(230, 234, 242)
+		row.Font = UiThemeMod.BODY_FONT
+		row.TextSize = 16
 		row.TextXAlignment = Enum.TextXAlignment.Left
-		row.Text = "  " .. (pair[2].name or pair[1])
+		row.TextTruncate = Enum.TextTruncate.AtEnd
+		row.Text = "   " .. (pair[2].name or pair[1])
 		row.Parent = listPane
+		local rcorner = Instance.new("UICorner")
+		rcorner.CornerRadius = UDim.new(0, 6)
+		rcorner.Parent = row
+		rowOf[pair[1]] = row
 		row.Activated:Connect(function()
 			showEntry(catDef, pair[1], pair[2])
 		end)
 	end
-	listPane.CanvasSize = UDim2.new(0, 0, 0, #entries * 24)
+	listPane.CanvasSize = UDim2.new(0, 0, 0, #entries * 32)
+	for ci, b in ipairs(catButtons) do
+		b.BackgroundColor3 = ci == curCat and ROW_PICKED or CAT_IDLE
+	end
 	if entries[1] ~= nil then
 		showEntry(catDef, entries[1][1], entries[1][2])
 	end
@@ -272,14 +298,20 @@ end
 local function buildCatButtons()
 	for i, catDef in ipairs(cats) do
 		local b = Instance.new("TextButton")
-		b.Size = UDim2.new(1, 0, 0, 26)
+		b.Size = UDim2.new(1, 0, 0, 38)
 		b.LayoutOrder = i
-		b.BackgroundColor3 = Color3.fromRGB(50, 66, 92)
-		b.TextColor3 = Color3.fromRGB(235, 235, 235)
-		b.Font = Enum.Font.SourceSansBold
-		b.TextSize = 15
+		b.BackgroundColor3 = CAT_IDLE
+		b.AutoButtonColor = false
+		b.BorderSizePixel = 0
+		b.TextColor3 = Color3.fromRGB(240, 242, 248)
+		b.Font = UiThemeMod.FONT
+		b.TextSize = 17
 		b.Text = catDef.label
 		b.Parent = catBar
+		local bcorner = Instance.new("UICorner")
+		bcorner.CornerRadius = UDim.new(0, 8)
+		bcorner.Parent = b
+		catButtons[i] = b
 		b.Activated:Connect(function()
 			curCat = i
 			renderList()

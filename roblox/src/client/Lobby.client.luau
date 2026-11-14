@@ -11,6 +11,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UiTheme = require(script.Parent:WaitForChild("UiTheme"))
 
 local remote = ReplicatedStorage:WaitForChild("RMC")
 
@@ -105,8 +106,8 @@ greeting.Parent = gui
 
 -- lobby panel (phase + seats + countdown)
 local panel = Instance.new("Frame")
-panel.Size = UDim2.new(0, 330, 0, 430) -- runI item 6: wider + taller for the +50% seat font
-panel.Position = UDim2.new(1, -338, 0, 120)
+panel.Size = UDim2.new(0, 360, 0, 172) -- render() sizes it to the seat count
+panel.Position = UDim2.new(1, -368, 0, 120)
 panel.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 panel.BackgroundTransparency = 0.15
 panel.BorderSizePixel = 0
@@ -127,11 +128,30 @@ local function label(parent, y, size, text)
 	return l
 end
 
-local phaseLine = label(panel, 6, 18, "")
-local countdownLine = label(panel, 26, 18, "")
+-- run-R (user): the seat list as a titled panel — heading, what the phase
+-- means for YOU, a seat count, then one card per seat (civ, who holds it, a
+-- status badge). Same lobby payload; nothing sent changed.
+local SEATS_TOP = 108
+local panelTitle = label(panel, 8, 30, "Game lobby")
+panelTitle.Position = UDim2.new(0, 12, 0, 8)
+panelTitle.Font = UiTheme.FONT
+panelTitle.TextSize = UiTheme.TEXT.title
+local phaseLine = label(panel, 40, 40, "")
+phaseLine.Position = UDim2.new(0, 12, 0, 40)
+phaseLine.Size = UDim2.new(1, -24, 0, 40)
+phaseLine.Font = UiTheme.BODY_FONT
+phaseLine.TextSize = 15
+phaseLine.TextColor3 = Color3.fromRGB(200, 208, 224)
+phaseLine.TextYAlignment = Enum.TextYAlignment.Top
+local countdownLine = label(panel, 82, 22, "")
+countdownLine.Position = UDim2.new(0, 12, 0, 82)
+countdownLine.Size = UDim2.new(1, -24, 0, 22)
+countdownLine.Font = Enum.Font.GothamBold
+countdownLine.TextSize = 15
+countdownLine.RichText = true
 local seatsFrame = Instance.new("ScrollingFrame") -- runI item 6: scroll so ALL N seats show at the +50% font
-seatsFrame.Size = UDim2.new(1, -12, 1, -52)
-seatsFrame.Position = UDim2.new(0, 6, 0, 48)
+seatsFrame.Size = UDim2.new(1, -16, 1, -(SEATS_TOP + 8))
+seatsFrame.Position = UDim2.new(0, 8, 0, SEATS_TOP)
 seatsFrame.BackgroundTransparency = 1
 seatsFrame.BorderSizePixel = 0
 seatsFrame.ScrollBarThickness = 6
@@ -140,7 +160,7 @@ seatsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 seatsFrame.Parent = panel
 local seatsLayout = Instance.new("UIListLayout")
 seatsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-seatsLayout.Padding = UDim.new(0, 3)
+seatsLayout.Padding = UDim.new(0, 6)
 seatsLayout.Parent = seatsFrame
 
 -- host setup panel
@@ -383,9 +403,18 @@ end)
 
 local PHASE_TEXT = {
 	idle = "no game - START pad opens hosting",
-	setup = "host is choosing options (JOIN pad claims a seat)",
-	starting = "game starting! (JOIN pad still open)",
-	running = "game in progress (TAKE OVER pad joins as a civ)",
+	setup = "The host is choosing options. Step on the JOIN pad to claim a seat.",
+	starting = "The game is starting. The JOIN pad is still open.",
+	running = "A game is in progress. Step on TAKE OVER to play an AI civ.",
+}
+
+-- seat status -> badge text + colour (one colour per status, also the row's edge bar)
+local SEAT_LOOK = {
+	you = { badge = "YOU", color = Color3.fromRGB(110, 220, 130) },
+	player = { badge = "PLAYER", color = Color3.fromRGB(96, 168, 240) },
+	ai = { badge = "AI", color = Color3.fromRGB(150, 160, 180) },
+	regent = { badge = "REGENT", color = Color3.fromRGB(176, 136, 236) },
+	open = { badge = "OPEN", color = Color3.fromRGB(240, 196, 96) },
 }
 
 local youSeated = false
@@ -395,9 +424,23 @@ local function render(lobby)
 		youSeated = false -- the game ended (ephemeral or otherwise): lobby returns
 	end
 	panel.Visible = not youSeated -- seated players live in the HUD, not here
-	phaseLine.Text = "lobby: " .. (PHASE_TEXT[lobby.phase] or lobby.phase)
+	phaseLine.Text = PHASE_TEXT[lobby.phase] or tostring(lobby.phase)
 	phaseLine.TextWrapped = true
-	countdownLine.Text = lobby.countdown > 0 and ("countdown: %ds"):format(lobby.countdown) or ""
+	do
+		local humans, open = 0, 0
+		for _, seat in ipairs(lobby.seats or {}) do
+			if seat.who == "open" then
+				open += 1
+			elseif seat.who ~= "AI" and seat.who ~= "regent" then
+				humans += 1
+			end
+		end
+		local n = #(lobby.seats or {})
+		local count = ("%d seat%s  ·  %d player%s  ·  %d open"):format(n, n == 1 and "" or "s",
+			humans, humans == 1 and "" or "s", open)
+		countdownLine.Text = lobby.countdown > 0
+			and ('<font color="#ffd76a">starts in %d s</font>  ·  %s'):format(lobby.countdown, count) or count
+	end
 
 	-- the BIG center countdown: game start is green + loud; the host setup
 	-- window shows amber so nobody mistakes the two
@@ -418,41 +461,94 @@ local function render(lobby)
 			child:Destroy()
 		end
 	end
+	local rows = 0
 	for i, seat in ipairs(lobby.seats or {}) do
+		rows += 1
+		local mine = seat.who == Players.LocalPlayer.Name
+		local kind = mine and "you" or seat.who == "open" and "open" or seat.who == "AI" and "ai"
+			or seat.who == "regent" and "regent" or "player"
+		local look = SEAT_LOOK[kind]
 		local row = Instance.new("Frame")
-		row.Size = UDim2.new(1, 0, 0, 30) -- runI item 6: taller for the +50% font
+		row.Size = UDim2.new(1, -8, 0, 50)
 		row.LayoutOrder = i
-		row.BackgroundTransparency = 1
+		row.BackgroundColor3 = Color3.fromRGB(38, 44, 60)
+		row.BackgroundTransparency = kind == "open" and 0.55 or 0.1
+		row.BorderSizePixel = 0
 		row.Parent = seatsFrame
-		local text = Instance.new("TextLabel")
-		text.Size = UDim2.new(1, lobby.youAreAdmin and -46 or 0, 1, 0)
-		text.BackgroundTransparency = 1
-		text.TextColor3 = Color3.fromRGB(220, 220, 225)
-		text.Font = Enum.Font.Code
-		text.TextSize = 21 -- runI item 6: +50% font
-		text.TextXAlignment = Enum.TextXAlignment.Left
+		local rc = Instance.new("UICorner")
+		rc.CornerRadius = UDim.new(0, 8)
+		rc.Parent = row
+		if mine then
+			local rs = Instance.new("UIStroke")
+			rs.Color = look.color
+			rs.Thickness = 2
+			rs.Parent = row
+		end
+		local bar = Instance.new("Frame") -- status colour along the left edge
+		bar.Size = UDim2.new(0, 6, 1, -12)
+		bar.Position = UDim2.new(0, 6, 0, 6)
+		bar.BackgroundColor3 = look.color
+		bar.BorderSizePixel = 0
+		bar.Parent = row
+		local bc = Instance.new("UICorner")
+		bc.CornerRadius = UDim.new(0, 3)
+		bc.Parent = bar
+		local civ = Instance.new("TextLabel")
+		civ.Size = UDim2.new(1, -150, 0, 24)
+		civ.Position = UDim2.new(0, 20, 0, 4)
+		civ.BackgroundTransparency = 1
+		civ.TextColor3 = Color3.fromRGB(240, 242, 248)
+		civ.Font = Enum.Font.GothamBold
+		civ.TextSize = 18
+		civ.TextXAlignment = Enum.TextXAlignment.Left
+		civ.TextTruncate = Enum.TextTruncate.AtEnd
+		civ.Text = tostring(seat.name):sub(1, 1):upper() .. tostring(seat.name):sub(2)
+		civ.Parent = row
+		local who = Instance.new("TextLabel")
+		who.Size = UDim2.new(1, -150, 0, 18)
+		who.Position = UDim2.new(0, 20, 0, 28)
+		who.BackgroundTransparency = 1
+		who.TextColor3 = Color3.fromRGB(170, 180, 198)
+		who.Font = UiTheme.BODY_FONT
+		who.TextSize = 14
+		who.TextXAlignment = Enum.TextXAlignment.Left
+		who.TextTruncate = Enum.TextTruncate.AtEnd
 		-- R21: 'Perfectionist' = the authentic Civ1 trait name for the
 		-- engine's 'builder' stance (reviewer-verified); balanced = no tag
-		local stanceTag = seat.stance == "builder" and " [Perfectionist]" or ""
-		-- runI item 6: the host's own row carries the same ★ idiom the capital uses
-		local star = seat.who == Players.LocalPlayer.Name and "★ " or ""
-		text.Text = ("%s%s %s - %s%s"):format(star, seat.pid, seat.name, seat.who, stanceTag)
-		text.Parent = row
-		if lobby.youAreAdmin and seat.who ~= "open" and seat.who ~= "AI" and seat.who ~= "regent" then
+		local stanceTag = seat.stance == "builder" and "  ·  Perfectionist" or ""
+		who.Text = ("%s  ·  %s%s"):format(tostring(seat.pid),
+			kind == "open" and "free - step on JOIN" or kind == "ai" and "computer player"
+				or kind == "regent" and "AI regent holds this seat" or seat.who, stanceTag)
+		who.Parent = row
+		local canKick = lobby.youAreAdmin and (kind == "player" or kind == "you")
+		local badge = Instance.new("TextLabel")
+		badge.Size = UDim2.new(0, 62, 0, 22)
+		badge.Position = UDim2.new(1, canKick and -132 or -70, 0.5, -11)
+		badge.BackgroundColor3 = look.color
+		badge.BackgroundTransparency = 0.15
+		badge.TextColor3 = Color3.fromRGB(16, 18, 26)
+		badge.Font = Enum.Font.GothamBold
+		badge.TextSize = 14
+		badge.Text = look.badge
+		badge.Parent = row
+		local bdc = Instance.new("UICorner")
+		bdc.CornerRadius = UDim.new(0, 11)
+		bdc.Parent = badge
+		if canKick then
 			local kick = Instance.new("TextButton")
-			kick.Size = UDim2.new(0, 42, 0, 18)
-			kick.Position = UDim2.new(1, -42, 0, 1)
-			kick.BackgroundColor3 = Color3.fromRGB(120, 50, 50)
-			kick.TextColor3 = Color3.fromRGB(240, 220, 220)
-			kick.Font = Enum.Font.SourceSansBold
-			kick.TextSize = 13
-			kick.Text = "kick"
+			kick.Size = UDim2.new(0, 56, 0, 28)
+			kick.Position = UDim2.new(1, -62, 0.5, -14)
+			kick.TextSize = 15
+			kick.Text = "Kick"
 			kick.Parent = row
+			UiTheme.apply(kick, { color = "danger", radius = 8 })
 			kick.Activated:Connect(function()
 				remote:FireServer({ t = "kick", seat = seat.pid })
 			end)
 		end
 	end
+	-- the panel is as tall as its seats (was a fixed 430 px box around one row)
+	panel.Size = UDim2.new(0, 360, 0, SEATS_TOP + 8 + math.clamp(rows, 1, 8) * 56)
 
 	local isHostSetup = lobby.youAreHost and lobby.phase == "setup"
 	setupPanel.Visible = isHostSetup

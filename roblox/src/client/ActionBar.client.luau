@@ -345,22 +345,40 @@ UiTheme.apply(researchBtn, { icon = "research" })
 -- (user): moved OUT of the button row to a centered line just ABOVE it, so
 -- "current research" reads clearly over the Research/Cities buttons.
 local researchStatus = Instance.new("TextLabel")
-researchStatus.Size = UDim2.new(0, 760, 0, 22)
-researchStatus.Position = UDim2.new(0.5, -380, 0, clusterY + 48)
-researchStatus.BackgroundTransparency = 1
-researchStatus.TextColor3 = Color3.fromRGB(180, 210, 240)
-researchStatus.Font = Enum.Font.SourceSansBold
-researchStatus.TextSize = 17
+-- run-R (user, shot6): 17 px with no backing was hard to read over the map —
+-- a 20 px chip as wide as its text, hidden while empty
+researchStatus.Size = UDim2.new(0, 0, 0, 32)
+researchStatus.AutomaticSize = Enum.AutomaticSize.X
+researchStatus.AnchorPoint = Vector2.new(0.5, 0)
+researchStatus.Position = UDim2.new(0.5, 0, 0, clusterY + 52)
+researchStatus.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
+researchStatus.BackgroundTransparency = 0.15
+researchStatus.BorderSizePixel = 0
+researchStatus.Visible = false
+researchStatus.TextColor3 = Color3.fromRGB(190, 222, 255)
+researchStatus.Font = Enum.Font.GothamBold
+researchStatus.TextSize = 20
 researchStatus.TextXAlignment = Enum.TextXAlignment.Center
 researchStatus.Text = ""
 researchStatus.Parent = gui
+do
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 10)
+	c.Parent = researchStatus
+	local p = Instance.new("UIPadding")
+	p.PaddingLeft, p.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
+	p.Parent = researchStatus
+	researchStatus:GetPropertyChangedSignal("Text"):Connect(function()
+		researchStatus.Visible = researchStatus.Text ~= ""
+	end)
+end
 task.spawn(function()
 	for _ = 1, 20 do
 		local y = clusterTop()
 		if y ~= clusterY then
 			clusterY = y
 			cluster.Position = UDim2.new(0.5, 0, 0, y)
-			researchStatus.Position = UDim2.new(0.5, -380, 0, y + 48)
+			researchStatus.Position = UDim2.new(0.5, 0, 0, y + 52)
 		end
 		task.wait(0.5)
 	end

@@ -68,7 +68,9 @@ local function show(id)
 		l.Padding = UDim.new(0, 8)
 		l.Parent = card
 	end
-	card.Position = UDim2.new(0, 8, 0.5, -180)
+	-- shot6: the taller card ran over the DEBUG / PAD chips; it now grows upward
+	card.AnchorPoint = Vector2.new(0, 1)
+	card.Position = UDim2.new(0, 8, 0.5, -28)
 	card.BackgroundColor3 = Color3.fromRGB(24, 30, 26)
 	card.BackgroundTransparency = 0.05
 	card.Parent = gui
