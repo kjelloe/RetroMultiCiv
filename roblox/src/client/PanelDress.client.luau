@@ -23,17 +23,24 @@ local SKIP = {
 local TAB_TITLE = {
 	RMCOptions = "Options", RMCDiplomacy = "Diplomacy", RMCTurnLog = "Turn log",
 	RMCStats = "Statistics", RMCCityPanel = "City", RMCLegend = "Legend",
+	-- run-S log: the first row of these was taken for a heading and restyled
+	RMCOverlays = "Map overlays", RMCDebugMenu = "Debug",
 }
 local TAB_H = 28
 
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local panels = {} -- frame -> { gui, home, scale, last }
 
--- the heading: a short text label along the panel's top edge
+-- the heading: a short text label along the panel's top edge (up to the
+-- end screen's 60 px headline). A gui with a TAB_TITLE has none by ruling.
 local function headingOf(frame)
+	local gui = frame.Parent
+	if gui ~= nil and TAB_TITLE[gui.Name] ~= nil then
+		return nil
+	end
 	for _, c in ipairs(frame:GetChildren()) do
 		if c:IsA("TextLabel") and c.Name ~= "PanelTab" and c.Text ~= "" and c.Position.Y.Scale == 0 and c.Position.Y.Offset <= 12
-			and c.Size.Y.Scale == 0 and c.Size.Y.Offset >= 18 and c.Size.Y.Offset <= 44 then
+			and c.Size.Y.Scale == 0 and c.Size.Y.Offset >= 18 and c.Size.Y.Offset <= 64 then
 			return c
 		end
 	end
