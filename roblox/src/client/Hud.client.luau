@@ -432,11 +432,10 @@ local function refresh(view)
 		view.turn, sep,
 		view.year < 0 and (-view.year .. " BC") or (view.year .. " AD"), sep,
 		me and me.gold or 0, sep,
-		mine and '<font color="#8fe3a0">your turn</font>'
+		-- shot8: "your turn · GAME OVER" read as two states; a finished game has one
+		ClientState.gameOver and '<font color="#ff9a8a">GAME OVER</font>'
+			or mine and '<font color="#8fe3a0">your turn</font>'
 			or ('<font color="#aab4c8">waiting for %s</font>'):format(tostring(view.activePlayer)))
-	if ClientState.gameOver then
-		bits ..= sep .. '<font color="#ff9a8a">GAME OVER</font>'
-	end
 	status.Text = bits
 	if ClientState.code ~= nil then
 		codeChip.Text = "  code " .. ClientState.code
@@ -452,9 +451,12 @@ local function refresh(view)
 		saveChip.Text = ("  saved %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)
 	end
 	if os.clock() > confirmUntil then
-		endTurn.Text = "End Turn"
+		-- after the game the button reopens the results (its click handler above)
+		endTurn.Text = ClientState.gameOver and "Results" or "End Turn"
 	end
-	if not mine then
+	if ClientState.gameOver then
+		endTurn.BackgroundColor3 = READY
+	elseif not mine then
 		endTurn.BackgroundColor3 = OFF
 	elseif movableCount() == 0 then
 		endTurn.BackgroundColor3 = READY -- A29 'ready': green when all moved

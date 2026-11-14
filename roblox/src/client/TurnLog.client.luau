@@ -178,7 +178,8 @@ local function put(turn, text, cls, fclass, loc)
 	list.CanvasPosition = Vector2.new(0, list.CanvasSize.Y.Offset) -- the engine clamps to the bottom (AbsoluteSize is scaled by PanelDress)
 	if not panel.Visible then
 		unseen += 1
-		toggle.Text = ("  Turn log (L) — %d new"):format(unseen)
+		-- one line in a 190 px button: a short count, capped (was "— 2211 new", wrapped)
+		toggle.Text = ("  Turn log (L) · %s"):format(unseen > 99 and "99+" or tostring(unseen))
 	end
 end
 

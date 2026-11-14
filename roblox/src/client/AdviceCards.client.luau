@@ -180,6 +180,22 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
+-- shot8: a how-to card ("Moving units") was still up at game over, and it
+-- had stood through a whole regent game. Play advice only applies while the
+-- player is playing: it is taken down when the game ends or the regent holds
+-- the seat (the regent card itself stays).
+ClientState.onView(function()
+	if card == nil then
+		return
+	end
+	local title = card:FindFirstChildWhichIsA("TextLabel")
+	local isRegentCard = title ~= nil and ADVICE.regent ~= nil and title.Text == ADVICE.regent.title
+	if ClientState.gameOver or (ClientState.away and not isRegentCard) then
+		queue = {}
+		dismiss()
+	end
+end)
+
 -- A99 state predicates on every view push (already fog-filtered for us)
 ClientState.onView(function(view)
 	if not enabled() then
