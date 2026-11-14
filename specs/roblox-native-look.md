@@ -222,6 +222,26 @@ orientation nobody has seen, and U5 touches every panel.
 | Part count | Full massif ≤ 32 parts per mountain tile, now in every look. ~80 mountain tiles on 40×25 = ~2.6 k parts; lite path above 150 tiles. The audit prints the folder counts. |
 | Look parity | The browser Medium/High surfaces are meshes; this is a part-built reading of the same idea, not a twin. No gate compares them, by design. |
 
+## 6a. Placement rule and the deck (run-R, shot9)
+
+- **Same area as the button**: a panel opens in the screen area of the
+  control that opens it. Top-centre buttons → top-centre panels (Cities
+  left of centre, Government centre, Research right of centre); top-right
+  Options → right; bottom-left toggles → left, above the stack; modal
+  panels (host setup, regent dialog, Encyclopedia, Tech tree, Ship, end
+  screen) → centre. The seat list stays right, opposite nothing.
+- **No game HUD without a game** (`HudGate`): action bar, research cluster,
+  bottom-left toggles, minimap are off until the client has a view.
+- **Heading on every panel**: its own top label, else a name tab above the
+  frame (`PanelDress.TAB_TITLE`).
+- **Observation deck** (`DeckPlan.luau` pure + `Deck.luau`): a 76x48 railed
+  platform. Five stations in one row facing the spawn — START A NEW GAME,
+  JOIN GAME, TAKE OVER AI CIV, SPECTATE, GOTO CAPITOL — each a flush pad
+  with a sign: title, one-sentence explanation, and a status line per
+  lobby phase (`DeckPlan.status`). Glass railings, a glass look-down
+  balcony past the front edge, four lit pylons, a banner. Nothing casts a
+  shadow on the board. Server contract unchanged.
+
 ## 6b. Dev-tool gating (run-R review)
 
 `DevAccess.luau`: `studio()`, `owner()` (the place's creator account in a
@@ -254,7 +274,8 @@ Rulings (user, same day):
 38 diagnostics (Diag pins, audit gui list == created ScreenGuis,
 studio-log parser), 39 dock planner + touch labels + phone rule, 40 every
 source compiles, 41 sand coasts, 42 panel fit (scale, anchor-preserving
-placement, phone cut-to-fit); gate 36 also pins the woods. Studio: `node roblox/tools/studio-log.js --diag` after a Play
+placement, phone cut-to-fit), 43 deck plan (stations inside the floor,
+explanation + per-phase status for each); gate 36 also pins the woods. Studio: `node roblox/tools/studio-log.js --diag` after a Play
 Solo — expected `0 failure kind(s)`, `icons drawn N of N wanted`.
 
 ## 8. Open questions

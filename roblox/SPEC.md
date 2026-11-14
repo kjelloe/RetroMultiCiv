@@ -977,7 +977,20 @@ seat/reset flow; JS engine untouched). Delivered:
   script that reads `AbsoluteSize` of its own content now reads SCALED
   pixels (TurnLog's scroll-to-bottom was the one case). Top-left turn
   line = RichText chip. Audit: `icon over label`, `text` (under 14 px
-  on screen), one `panel` line each.
+  on screen), one `panel` line each. Later the same day: lobby seat
+  cards; Encyclopedia reading layout; resume-code button in Options,
+  codes in the turn chip's tooltip; `DevAccess.luau` (studio / owner /
+  dev) with the rulings — owner-only "debug game" setup switch
+  (`setup.debugGame`, server takes `debug` commands and the strat pull
+  from the owner only), admins from the ServerStorage `RMCAdmins`
+  attribute, "diagnostics log for players" setup switch (`Diag.quiet`),
+  PAD control in Options only; `HudGate.client.luau` (game HUD guis off
+  without a view); Cities / Research panels under their buttons; panels
+  with no heading get a name tab; `Deck.luau` rebuilt from
+  `DeckPlan.luau` (five stations with explanation + per-phase status
+  signs, glass railings, look-down balcony, pylons, banner), gate 43.
+  Acceptance artifact `acceptance/runR.txt`: 545 rounds, 24554 commands,
+  code `AY99-6SDW-04P43`, ALL HASHES MATCH.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 
@@ -1061,6 +1074,22 @@ seat/reset flow; JS engine untouched). Delivered:
    they saw. The Studio device emulator keeps `KeyboardEnabled` true on a
    PC, so touch-only rules (hint stripping, 44 px row) do not show there —
    the audit's device line prints the flags.
+13. **Property signals are DEFERRED.** A handler for
+   `GetPropertyChangedSignal` runs after the code that wrote the property
+   has returned, so a "busy" flag set around the write is already false in
+   the handler. `PanelDress` adopted its own placement as an owner's move
+   that way (panels stuck in a corner, run-R shot9). Compare against the
+   value written, never a flag.
+14. **Screen metrics are wrong while the client loads.** In the first
+   moments `Camera.ViewportSize` reads 1x1, `GuiService:GetGuiInset()`
+   reads 0, and a disabled ScreenGui's `AbsoluteSize` stays 800x600 for
+   good. Layout code reads the camera viewport minus the inset, skips an
+   area under `UiPanel.MIN_AREA`, and re-reads on a viewport change (the
+   research cluster re-reads the inset for 10 s).
+15. **`UIPadding` moves child instances, not only the text.** An icon
+   parented to a padded button is offset back by the padding (`UiTheme`).
+16. **`EditableImage:DrawRectangle` refuses a size under 1 px** — a
+   scanline fill clamps each span to 1 px (`EditableGlyph.fillPoly`).
 
 ## 4. Self-test (`check.sh`)
 

@@ -29,7 +29,7 @@ items only if they block reading or tapping.
 
 ## Pre-sitting headless clears (already run by the roblox lane)
 
-- `roblox/check.sh` ALL GREEN — 42 gates on tip
+- `roblox/check.sh` ALL GREEN — 43 gates on tip
   3e5dff8: anchors + statehash/rng/gamecode twins, gate-4 baked-data
   freshness (rules 0xe8c9e1cd, the held W8 re-bake), scenario twins, the
   pedia/blurb/tile-prop/sound-map/turn-log mirror gates, glyph parity (68),
@@ -60,7 +60,14 @@ items only if they block reading or tapping.
 3. **Observation deck + greeting** — Tier 3 (lobby slice) 📷
    - Tap: look around; read the greeting board.
    - Expect: greeting "Welcome to A World Begun! …"; spectator-by-default
-     (no seat auto-claim); NEW GAME and JOIN pads visible below the deck.
+     (no seat auto-claim). Since run-R the deck is a railed glass platform:
+     a banner, five stations in a row facing the spawn (START A NEW GAME,
+     JOIN GAME, TAKE OVER AI CIV, SPECTATE, GOTO CAPITOL), each a pad with
+     a sign behind it — title, what it does, and a status line (green
+     "OPEN - walk onto the pad" or an amber reason) that changes with the
+     lobby phase; a glass look-down balcony at the front edge. No game HUD
+     (action bar, research buttons, bottom-left toggles, minimap) on the
+     deck before a game exists.
    - Likely wrong: a pad touch that answers with nothing — every pad touch
      must toast either an action or a reason.
 

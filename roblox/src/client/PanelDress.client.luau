@@ -18,6 +18,14 @@ local SKIP = {
 	RMCAdvice = true, RMCDiscoveryCard = true, RMCTheater = true, RMCWaitStatus = true, RMCRidePad = true,
 }
 
+-- run-R log: these panels reported heading=NONE. Their rows start at the top
+-- edge, so the name goes on a tab ABOVE the frame (nothing inside moves).
+local TAB_TITLE = {
+	RMCOptions = "Options", RMCDiplomacy = "Diplomacy", RMCTurnLog = "Turn log",
+	RMCStats = "Statistics", RMCCityPanel = "City", RMCLegend = "Legend",
+}
+local TAB_H = 28
+
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local panels = {} -- frame -> { gui, home, scale, last }
 
@@ -66,7 +74,8 @@ local function place(frame, rec)
 		local head = headingOf(frame)
 		Diag.note("panel", ("%s/%s scale=%.2f authored=%dx%d area=%dx%d heading=%s"):format(rec.gui.Name, frame.Name,
 			r.s, size.X.Offset, size.Y.Offset, math.floor(area.X), math.floor(area.Y),
-			head ~= nil and ("'" .. head.Text:sub(1, 28) .. "'") or "NONE"))
+			head ~= nil and ("'" .. head.Text:sub(1, 28) .. "'")
+				or (frame:FindFirstChild("PanelTab") ~= nil and ("tab '" .. frame.PanelTab.Text .. "'") or "NONE")))
 		if r.s < UiPanel.READABLE then
 			Diag.fail("panel", ("%s/%s cut to %.2f to fit"):format(rec.gui.Name, frame.Name, r.s),
 				("authored %dx%d in a %dx%d area: text is under reading size, needs a narrow layout"):format(
@@ -104,6 +113,32 @@ local function adopt(gui, frame)
 	if head ~= nil then
 		head.Font = UiTheme.FONT
 		head.TextSize = math.max(head.TextSize, math.min(UiTheme.TEXT.title, head.Size.Y.Offset - 4))
+	elseif TAB_TITLE[gui.Name] ~= nil then
+		local tab = Instance.new("TextLabel")
+		tab.Name = "PanelTab"
+		tab.AutomaticSize = Enum.AutomaticSize.X
+		tab.Size = UDim2.new(0, 0, 0, TAB_H)
+		tab.Position = UDim2.new(0, 10, 0, -TAB_H + 2)
+		tab.BackgroundColor3 = frame.BackgroundColor3
+		tab.BackgroundTransparency = math.min(frame.BackgroundTransparency, 0.1)
+		tab.BorderSizePixel = 0
+		tab.TextColor3 = Color3.fromRGB(240, 242, 248)
+		tab.Font = UiTheme.FONT
+		tab.TextSize = 18
+		tab.Text = TAB_TITLE[gui.Name]
+		tab.ZIndex = frame.ZIndex
+		tab.Parent = frame
+		local tc = Instance.new("UICorner")
+		tc.CornerRadius = UDim.new(0, 8)
+		tc.Parent = tab
+		local tp = Instance.new("UIPadding")
+		tp.PaddingLeft, tp.PaddingRight = UDim.new(0, 12), UDim.new(0, 12)
+		tp.Parent = tab
+		local ts = Instance.new("UIStroke")
+		ts.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		ts.Color = UiTheme.OUTLINE
+		ts.Thickness = 2
+		ts.Parent = tab
 	end
 
 	frame:GetPropertyChangedSignal("Size"):Connect(function()
