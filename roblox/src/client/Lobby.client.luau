@@ -92,17 +92,41 @@ bigCountdown.Parent = gui
 
 -- greeting banner
 local greeting = Instance.new("TextLabel")
-greeting.Size = UDim2.new(0, 560, 0, 60)
-greeting.Position = UDim2.new(0.5, -280, 0.18, 0)
+greeting.AnchorPoint = Vector2.new(0.5, 0)
+greeting.Size = UDim2.new(0.92, 0, 0, 0)
+greeting.AutomaticSize = Enum.AutomaticSize.Y
+greeting.Position = UDim2.new(0.5, 0, 0.12, 0)
 greeting.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
-greeting.BackgroundTransparency = 0.15
-greeting.TextColor3 = Color3.fromRGB(220, 235, 255)
-greeting.Font = Enum.Font.SourceSansBold
-greeting.TextSize = 20
+greeting.BackgroundTransparency = 0.08
+greeting.BorderSizePixel = 0
+greeting.TextColor3 = Color3.fromRGB(235, 240, 250)
+greeting.Font = Enum.Font.GothamMedium
+greeting.TextSize = 24
+greeting.RichText = true
 greeting.TextWrapped = true
+greeting.ZIndex = 5 -- over the seat list on a narrow window, for its 14 s
 greeting.Visible = false
-greeting.Text = "Welcome to A World Begun! You are on the observation deck - " -- name ruled #2541
-	.. "spectate from the sky, or use the pads below to start or join a game."
+-- run-S: the 20 px one-liner was missed on a 2208 px window
+greeting.Text = '<font face="FredokaOne" size="40" color="#ffe182">Welcome to A World Begun!</font>\n' -- name ruled #2541
+	.. "You are on the observation deck. Walk onto a coloured pad to start, join or watch a game - "
+	.. "the sign behind each pad says what it does."
+do
+	local max = Instance.new("UISizeConstraint")
+	max.MaxSize = Vector2.new(900, math.huge)
+	max.Parent = greeting
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 16), UDim.new(0, 18)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 24), UDim.new(0, 24)
+	pad.Parent = greeting
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 14)
+	corner.Parent = greeting
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(255, 225, 130)
+	stroke.Thickness = 2
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = greeting
+end
 greeting.Parent = gui
 
 -- lobby panel (phase + seats + countdown)
@@ -707,7 +731,7 @@ remote.OnClientEvent:Connect(function(msg)
 		end)
 	elseif msg.t == "greeting" then
 		greeting.Visible = true
-		task.delay(8, function()
+		task.delay(14, function()
 			greeting.Visible = false
 		end)
 	elseif msg.t == "lobby" then

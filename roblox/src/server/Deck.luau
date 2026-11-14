@@ -40,9 +40,10 @@ local function part(parent, name, size, cframe, color, props)
 end
 
 local function pad(parent, name, offsetX, color, promptText, zOffset)
-	-- flush with the floor plane (the user's one-common-plate ruling)
+	-- a 0.3 stud lip above the floor (run-S: flush at +0.06 the pad tops
+	-- flickered against the floor from the spawn camera; still a walk-on step)
 	local base = part(parent, name, Vector3.new(8, 1, 8),
-		CFrame.new(DECK_POS + Vector3.new(offsetX, 0.56, zOffset or -10)), color,
+		CFrame.new(DECK_POS + Vector3.new(offsetX, 0.8, zOffset or -10)), color,
 		{ Material = Enum.Material.Neon })
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "Prompt"
@@ -215,8 +216,8 @@ function M.build()
 	end
 
 	-- ONE COMMON PLANE (user run-4 live feedback): the spawn plate and the
-	-- station pads are all FLUSH tiles in the deck floor — every walk-tile top
-	-- sits at floor-top + 0.06 (no z-fight, no steps)
+	-- station pads are tiles in the deck floor. The spawn plate is flush
+	-- (invisible); the pads stand 0.3 proud (run-S: +0.06 flickered)
 	local spawnLoc = Instance.new("SpawnLocation")
 	spawnLoc.Name = "DeckSpawn"
 	spawnLoc.Anchored = true
@@ -255,8 +256,8 @@ function M.build()
 		if st.id == "capitol" then
 			-- session-E (user ruling): a flush walk-on tile; GameServer teleports
 			-- the toucher to their own civ's capital with sparkles
-			padPart = part(folder, st.pad, Vector3.new(DeckPlan.PAD, 0.12, DeckPlan.PAD),
-				CFrame.new(DECK_POS + Vector3.new(st.x, 1.06, DeckPlan.STATION_Z)), color,
+			padPart = part(folder, st.pad, Vector3.new(DeckPlan.PAD, 0.3, DeckPlan.PAD),
+				CFrame.new(DECK_POS + Vector3.new(st.x, 1.15, DeckPlan.STATION_Z)), color,
 				{ Material = Enum.Material.Neon, CanCollide = false, Transparency = 0.1 })
 		else
 			padPart, prompt = pad(folder, st.pad, st.x, color, st.title, DeckPlan.STATION_Z)
