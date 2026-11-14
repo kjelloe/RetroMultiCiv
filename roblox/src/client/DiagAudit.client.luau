@@ -150,7 +150,7 @@ local function auditWorld()
 		return
 	end
 	local parts = {}
-	for _, name in ipairs({ "Terrain", "TerrainSkirts", "TileProps", "Units", "Cities" }) do
+	for _, name in ipairs({ "Terrain", "TerrainSkirts", "TerrainCoast", "TileProps", "Units", "Cities" }) do
 		local f = world:FindFirstChild(name)
 		table.insert(parts, ("%s=%s"):format(name, f ~= nil and tostring(#f:GetChildren()) or "MISSING"))
 		if f == nil then

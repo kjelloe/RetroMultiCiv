@@ -20,6 +20,7 @@ local TerrainPalette = require(ReplicatedStorage:WaitForChild("GameData"):WaitFo
 local Palette = require(script.Parent:WaitForChild("Palette")) -- SO14 display-time remap
 local LabelDeclutter = require(script.Parent:WaitForChild("LabelDeclutter")) -- F2 label collision
 local TerrainSkirts = require(script.Parent:WaitForChild("TerrainSkirts")) -- T2 slope skirts
+local TerrainCoast = require(script.Parent:WaitForChild("TerrainCoast")) -- T3 sand coasts
 local Diag = require(script.Parent:WaitForChild("Diag"))
 local aiModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("ai"))
 local citiesModule = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("cities"))
@@ -37,6 +38,9 @@ terrainFolder.Parent = world
 local skirtsFolder = Instance.new("Folder") -- T2: separate from Terrain (other modules look tiles up there)
 skirtsFolder.Name = "TerrainSkirts"
 skirtsFolder.Parent = world
+local coastFolder = Instance.new("Folder") -- T3 sand rims
+coastFolder.Name = "TerrainCoast"
+coastFolder.Parent = world
 local unitsFolder = Instance.new("Folder")
 unitsFolder.Name = "Units"
 unitsFolder.Parent = world
@@ -205,6 +209,11 @@ local function renderTerrain(view)
 	local ok, err = pcall(TerrainSkirts.update, skirtsFolder, view, tileParts, look, TILE, tileTop)
 	if not ok then
 		Diag.fail("terrain", "slope skirts (walls stay bare)", err)
+	end
+	-- T3: sand rims where low land meets ocean (same contract)
+	local okCoast, coastErr = pcall(TerrainCoast.update, coastFolder, view, tileParts, look, TILE)
+	if not okCoast then
+		Diag.fail("terrain", "sand coasts (no rim drawn)", coastErr)
 	end
 end
 
@@ -801,6 +810,7 @@ ClientState.onServerReset(function()
 	end
 	terrainFolder:ClearAllChildren()
 	TerrainSkirts.reset(skirtsFolder)
+	TerrainCoast.reset(coastFolder)
 	unitsFolder:ClearAllChildren()
 	citiesFolder:ClearAllChildren()
 	dangerFolder:ClearAllChildren()
