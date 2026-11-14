@@ -242,7 +242,7 @@ orientation nobody has seen, and U5 touches every panel.
   frame (`PanelDress.TAB_TITLE`).
 - **Observation deck** (`DeckPlan.luau` pure + `Deck.luau`): a 76x48 railed
   platform. Five stations in one row facing the spawn — START A NEW GAME,
-  JOIN GAME, TAKE OVER AI CIV, SPECTATE, GOTO CAPITOL — each a flush pad
+  JOIN GAME, TAKE OVER AI CIV, SPECTATE, GOTO CAPITOL — each a pad standing 0.3 studs proud of the floor (flush tops flickered against the walkway strips, run-S)
   with a sign: title, one-sentence explanation, and a status line per
   lobby phase (`DeckPlan.status`). Glass railings, a glass look-down
   balcony past the front edge, four lit pylons, a banner. Nothing casts a

@@ -551,7 +551,7 @@ Fixes, in boot order:
 - camera: follow-avatar is the JOIN DEFAULT and tracks height (the
   deck lives at y~141, above the old 0..100 focus clamp).
 - ONE COMMON PLANE (user ruling): spawn plate, lobby pads, and the
-  ACTION STRIP are flush tiles in the deck floor (+0.06 reveal).
+  ACTION STRIP are flush tiles in the deck floor (+0.06 reveal). Superseded run-S: station pads stand 0.3 proud; stray spawns are disabled, walk-through, decal hidden.
 - lobby pads are WALK-ON (touch triggers, 1.5s/player debounce;
   E-hold prompt = backup) and EVERY touch answers: act, or a toast
   explaining why the pad doesn't apply right now (join-with-no-host,
@@ -1005,7 +1005,10 @@ seat/reset flow; JS engine untouched). Delivered:
   listed in `PanelDress.TAB_TITLE` never has a row restyled as a heading
   (the log showed 'City influence' and the debug warning line taken for
   one); end-screen headline in the display font (empty at build, so the
-  heading scan cannot see it). Not seen yet: phone layouts, a station
+  heading scan cannot see it). Playtest notes, same session: pads 0.3
+  proud; welcome banner 40 / 24 px, 14 s; template spawn mark hidden;
+  **U5** `UiTheme.row` (city list, research picker, build catalog) and
+  panel texts raised to 14 px, pinned in gate 42. Not seen yet: phone layouts, a station
   sign up close, river banks, scrolling inside scaled panels.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
