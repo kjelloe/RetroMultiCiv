@@ -84,7 +84,17 @@ do
 			inst.CFrame = CFrame.new(deckSpawn.Position.X + slot * 12,
 				floorTop + 0.06 - inst.Size.Y / 2, deckSpawn.Position.Z)
 			inst.Anchored = true
-			inst.Transparency = 1 -- user request: no spawn plate shows (still functional)
+			inst.Transparency = 1 -- user request: no spawn plate shows
+			-- run-S: the template plate's Decal (the spawn mark) still drew on
+			-- the deck. Part transparency does not reach it; DeckSpawn is the
+			-- one spawn, so this one is switched off and walk-through.
+			inst.Enabled = false
+			inst.CanCollide = false
+			for _, d in ipairs(inst:GetDescendants()) do
+				if d:IsA("Decal") then
+					d.Transparency = 1
+				end
+			end
 			slot += 1
 			print("[GameServer] stray SpawnLocation moved onto the deck plane: " .. inst:GetFullName())
 		end
