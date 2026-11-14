@@ -31,6 +31,7 @@ toggle.TextXAlignment = Enum.TextXAlignment.Left
 toggle.Text = "  Diplomacy (Y)"
 toggle.Parent = gui
 require(script.Parent:WaitForChild("UiTheme")).apply(toggle, { color = "menu", icon = "diplomacy" }) -- U2 dress
+require(script.Parent:WaitForChild("LeftStack")).register(toggle, 4) -- phone: one icon row, bottom-left
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

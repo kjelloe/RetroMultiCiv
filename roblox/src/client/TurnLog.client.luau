@@ -31,6 +31,7 @@ toggle.TextXAlignment = Enum.TextXAlignment.Left
 toggle.Text = "  Turn log (L)"
 toggle.Parent = gui
 require(script.Parent:WaitForChild("UiTheme")).apply(toggle, { color = "menu", icon = "turnlog" }) -- U2 dress
+require(script.Parent:WaitForChild("LeftStack")).register(toggle, 1) -- phone: one icon row, bottom-left
 do -- session-E: big rounded buttons (CLOSE CITY VIEW as the template)
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

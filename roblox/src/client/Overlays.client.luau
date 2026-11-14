@@ -47,6 +47,7 @@ btn.Text = "  Map overlays"
 btn.TextXAlignment = Enum.TextXAlignment.Left
 btn.Parent = gui
 require(script.Parent:WaitForChild("UiTheme")).apply(btn, { color = "neutral", icon = "overlays" }) -- U2 dress
+require(script.Parent:WaitForChild("LeftStack")).register(btn, 3) -- phone: one icon row, bottom-left
 do
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 8)

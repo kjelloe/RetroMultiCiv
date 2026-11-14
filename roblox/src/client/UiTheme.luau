@@ -103,6 +103,14 @@ local function dress(btn, opts)
 		-- owners rewrite Text at runtime ("Ride (P)" <-> "Dismount (P)"), so
 		-- the hint is dropped on every write; a stripped label is a fixed point
 		local function hint()
+			-- an icon-only (compact) button stays icon-only when its owner
+			-- rewrites the label ("Turn log (L) · 3"): the text is kept for
+			-- the way back and blanked again
+			if btn.Text ~= "" and btn:GetAttribute("themeCompact") == true then
+				btn:SetAttribute("themeText", btn.Text)
+				btn.Text = ""
+				return
+			end
 			if btn.Text ~= "" and (M.touchOnly() or M.phone()) then
 				local t = UiText.stripHint(btn.Text)
 				if t ~= btn.Text then
