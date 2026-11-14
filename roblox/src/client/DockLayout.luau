@@ -14,6 +14,7 @@ M.TOP = 8
 M.H_DESKTOP = 40
 M.H_TOUCH = 44 -- the platform's minimum comfortable touch target
 M.MAX_SHARE = 0.55 -- of the viewport width (status text owns the left, the wait label the centre)
+M.PHONE_BOTTOM = 58 -- the phone row sits in the slot above End Turn (52 px + 6)
 M.CHAR_W = 10 -- FredokaOne at 18 px averages about this per character
 M.ICON_PAD = 47 -- icon (h - 12) + its 7 px inset + 12 px gap, at h = 40
 
@@ -53,7 +54,7 @@ function M.plan(vw, items, opts)
 		end
 		return sum
 	end
-	local compact = total(false) > avail
+	local compact = opts.forceCompact == true or total(false) > avail
 
 	local places = {}
 	local right, row = margin, 0
@@ -64,7 +65,11 @@ function M.plan(vw, items, opts)
 			row += 1
 			right = margin
 		end
-		places[it.id] = { right = right, y = top + row * (h + gap), w = w, h = h, compact = isCompact }
+		-- top mode: y from the top edge; bottom mode (opts.fromBottom): `bottom` =
+		-- distance from the viewport's bottom edge to the button's bottom, rows
+		-- stacking upward
+		places[it.id] = { right = right, y = top + row * (h + gap), w = w, h = h, compact = isCompact,
+			bottom = opts.fromBottom ~= nil and (opts.fromBottom + row * (h + gap)) or nil }
 		right += w + gap
 	end
 	return { compact = compact, rows = (#shown > 0) and (row + 1) or 0, h = h, places = places }

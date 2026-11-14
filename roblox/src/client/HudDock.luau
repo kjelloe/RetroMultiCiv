@@ -11,6 +11,7 @@ local M = {}
 
 local members = {} -- id -> { obj, order, chars, iconOnly, fixedW, home = { pos, size } }
 local queued = false
+local lastPhone = nil
 
 local function viewportWidth()
 	local cam = workspace.CurrentCamera
@@ -22,9 +23,18 @@ local function layout()
 	if vw <= 0 then
 		return
 	end
-	local h = UiTheme.touchOnly() and DockLayout.H_TOUCH or DockLayout.H_DESKTOP
+	-- U3b (ruling: bottom bar on a phone): the menu row drops to the slot above
+	-- End Turn as 44 px icon squares; members with no icon-only form (the
+	-- clock) keep the place their owner gave them
+	local phone = UiTheme.phone()
+	local h = (phone or UiTheme.touchOnly()) and DockLayout.H_TOUCH or DockLayout.H_DESKTOP
 	local items = {}
 	for id, m in pairs(members) do
+		if phone and m.fixedW ~= nil then
+			m.obj.Position = m.home.pos
+			m.obj.Size = m.home.size
+			continue
+		end
 		local hasIcon = m.obj:FindFirstChild("ThemeIcon") ~= nil
 		local w, compactW
 		if m.fixedW ~= nil then
@@ -37,11 +47,20 @@ local function layout()
 		end
 		table.insert(items, { id = id, order = m.order, w = w, compactW = compactW, visible = m.obj.Visible })
 	end
-	local plan = DockLayout.plan(vw, items, { h = h })
+	local plan = DockLayout.plan(vw, items, { h = h, forceCompact = phone,
+		fromBottom = phone and DockLayout.PHONE_BOTTOM or nil, maxShare = phone and 0.9 or nil })
+	if phone ~= lastPhone then
+		lastPhone = phone
+		Diag.note("dock", phone and "phone layout: menu row above End Turn" or "desktop layout: menu row top-right")
+	end
 	for id, place in pairs(plan.places) do
 		local m = members[id]
 		local oh = m.fixedH or place.h
-		m.obj.Position = UDim2.new(1, -(place.right + place.w), 0, place.y + math.floor((place.h - oh) / 2))
+		if place.bottom ~= nil then
+			m.obj.Position = UDim2.new(1, -(place.right + place.w), 1, -(place.bottom + oh))
+		else
+			m.obj.Position = UDim2.new(1, -(place.right + place.w), 0, place.y + math.floor((place.h - oh) / 2))
+		end
 		m.obj.Size = UDim2.new(0, place.w, 0, oh)
 		if m.fixedW == nil and not m.iconOnly then
 			UiTheme.setCompact(m.obj, place.compact)

@@ -1,0 +1,1820 @@
+  11:31:39.071  [GameServer] stray SpawnLocation moved onto the deck plane: Workspace.SpawnLocation  -  Server - GameServer:85
+  11:31:39.078  [GameServer] data gate: 8/8 ruleset hashes match the Node side  -  Server - GameServer:135
+  11:31:39.078  [GameServer] R9 chat assert: window + input bar DISABLED  -  Server - GameServer:181
+  11:31:39.078  [GameServer] R9 lobby up: observation deck live, START pad open  -  Server - GameServer:1505
+  11:31:39.078  === RetroMultiCiv R1 anchor gate ===  -  Server - VerifyAnchors:35
+  11:31:39.078  xorshift32(123456789): 2714967881, 2238813396, 1250077441, 3820100336  -  Server - VerifyAnchors:29
+  11:31:39.078    PASS (2714967881, 2238813396, 1250077441, 3820100336)  -  Server - VerifyAnchors:30
+  11:31:39.078  hashState({b=2,a={1,"x",true}}): 0x30db1e29  -  Server - VerifyAnchors:29
+  11:31:39.078    PASS (0x30db1e29)  -  Server - VerifyAnchors:30
+  11:31:39.078  gamecode codeHi: 0xa687b72d  -  Server - VerifyAnchors:29
+  11:31:39.078    PASS (0xa687b72d)  -  Server - VerifyAnchors:30
+  11:31:39.078  gameCode: AD1X-Q5MR-DP7H9  -  Server - VerifyAnchors:29
+  11:31:39.078    PASS (AD1X-Q5MR-DP7H9)  -  Server - VerifyAnchors:30
+  11:31:39.078  === R1 anchor gate: ALL PASS ===  -  Server - VerifyAnchors:74
+  11:31:39.257  [Legend] keyboard legend up (left-edge button)  -  Client - Legend:110
+  11:31:39.258  [Pedia] R19 Civilopedia up (PEDIA button, top right)  -  Client - Pedia:330
+  11:31:39.264  [Ship] SO11 spaceship screen up (Ship button appears once the race exists)  -  Client - Ship:390
+  11:31:39.264  [RegentDialog] MP4 regent stance picker up (🤖 opens; 5 stances)  -  Client - RegentDialog:91
+  11:31:39.265  [Government] R12 government panel up (rate steppers + CP13 government switching)  -  Client - GovernmentPanel:239
+  11:31:39.280  [ViewRenderer] R4 view renderer up: waiting for the first view push  -  Client - ViewRenderer:605
+  11:31:39.280  [Possess] possession up: P ride/dismount toggle, N next unit (select-only afoot), WASD/arrows step, F dismount  -  Client - Possess:342
+  11:31:39.280  [Advice] SO5 first-timer advice up (once per session; No thanks mutes)  -  Client - AdviceCards:213
+  11:31:39.280  [Strategic] SO17 AI-strategy overlay up (🧠; spectator/Studio only)  -  Client - Strategic:177
+  11:31:39.280  [Camera] R4 map camera up: dist 60 — LMB-drag orbit, RMB-drag pan, Q/E down/up, wheel zoom, F follow-avatar; WASD moves the avatar  -  Client - Camera:144
+  11:31:39.281  [Stats] R7d statistics up (J toggles; SO8 score chart + battles/wonders)  -  Client - Statistics:224
+  11:31:39.282  [Options] options up (collapsible panel; auto-next/auto-end/auto-research ON)  -  Client - Options:355
+  11:31:39.282  [CityList] R7d city list up (C toggles, Cities button)  -  Client - CityList:118
+  11:31:39.282  [DiscoveryCard] SO3 tech-discovery card up (options.discoveryCards mutes)  -  Client - DiscoveryCard:288
+  11:31:39.283  [FastForward] SO12 diorama up (waits for {t=ffProgress})  -  Client - FastForward:190
+  11:31:39.288  [Theater] R18 replay theater ready (THEATER button; opens post-game)  -  Client - ReplayTheater:357
+  11:31:39.289  [DebugMenu] R17 thin client up (Studio only; commands taint permanently)  -  Client - DebugMenu:156
+  11:31:39.290  [Tooltip] SO2 tooltip helper up (hover 0.35s / long-press 0.5s)  -  Client - Tooltip:98
+  11:31:39.291  [Hud] R7d hud up (three-state End Turn, game-code chip)  -  Client - Hud:441
+  11:31:39.291  [Historian] SO9 age interstitial up (server historian frames)  -  Client - Historian:129
+  11:31:39.291  [WaitStatus] Tier-3 wait-status HUD line up (names who the round waits on)  -  Client - WaitStatus:64
+  11:31:39.291  [SettlerAuto] CP20 settler automation up (Au card toggle; manual order cancels)  -  Client - SettlerAuto:168
+  11:31:39.292  [WorkedTiles] R7c-3 worked-tile overlay ready (CityPanel drives it)  -  Client - WorkedTiles:371
+  11:31:39.292  [BuildQueue] CP8 per-city build queue up (Q+ on catalog rows)  -  Client - BuildQueue:93
+  11:31:39.293  [CityPanel] city panel up (R13 sell strip, R15 effects sublines, hideFuture wired)  -  Client - CityPanel:525
+  11:31:39.293  [EndScreen] SO7 end screen up (opens on the server's gameOver frame)  -  Client - EndScreen:146
+  11:31:39.294  [Gallery] R8 gallery grid ready (K or the Studio DEBUG button toggles)  -  Client - GalleryGrid:160
+  11:31:39.294  [Minimap] SO1 minimap up (flat grid, click/drag jumps the camera)  -  Client - Minimap:150
+  11:31:39.295  [RidePad] R11 ride pad up (auto-detect: off - keyboard present; the PAD button toggles)  -  Client - RidePad:191
+  11:31:39.306  [TechTree] XII.6 era-grouped tech tree up (🌳 / Shift+T; client beeline)  -  Client - TechTree:337
+  11:31:39.307  [MoveHints] R6 move hints up  -  Client - MoveHints:98
+  11:31:39.307  [Sound] SO15 cue player up (SoundIds provisional — curate in Studio Toolbox)  -  Client - Sound:65
+  11:31:39.307  [Odds] R7d combat odds preview up (hover an adjacent enemy)  -  Client - OddsPreview:177
+  11:31:39.308  [Lobby] R9 lobby UI up (deck pads drive the flow)  -  Client - Lobby:388
+  11:31:39.309  [Diplomacy] D3 Tier-B foreign-relations panel up (Y toggles)  -  Client - Diplomacy:155
+  11:31:39.310  [TurnLog] R6 turn log up (L toggles; SO6 class filters)  -  Client - TurnLog:465
+  11:31:39.312  [GoTo] R14 route-as-plan up (O arms target pick on the selected unit)  -  Client - GoToPlan:171
+  11:31:39.314  [ActionBar] action bar up (G fortify, Space wait, X disband, I/M/R work, P ride/dismount; cluster: research + government)  -  Client - ActionBar:644
+  11:31:39.314  [Select] actions up: click select/move, B found city, O GoTo, Return end turn  -  Client - Select:235
+  11:31:39.315  [Research] research picker up (T toggles; rate steppers live in Government now)  -  Client - ResearchPicker:253
+  11:31:39.471  Animation Spoofer cannot run while game is running  -  Server
+  11:31:40.025  Animation Spoofer cannot run while game is running  -  Client
+  11:31:40.718  [Camera] respawn: follow-avatar reset ON  -  Client - Camera:31
+  12:26:31.110  [GameServer] R9 host window: vv_beemy (60s)  -  Server - GameServer:1030
+  12:27:08.985  [R4INIT] seed=716028 width=40 height=25 civs=romans,babylonians,germans,egyptians humanSeat=p1 humans=1 maptype=continents age=ancient difficulty=medium combat=bestof3 marathon=false initialHash=0x803c103d  -  Server - GameServer:809
+  12:27:09.028  [Client] joined as p1 (turn 1, p1 active)  -  Client - ClientState:377
+  12:27:09.044  [Possess] game start: beside your settler (sparkle arrival)  -  Client - Possess:218
+  12:27:09.057  [VoidCover] R7b void cover up: guard walls on, art = frame (V cycles)  -  Client - VoidCover:178
+  12:33:48.316  [R22] p1 away=true (vv_beemy)  -  Server - GameServer:1289
+  12:33:48.323  [R4LOG] {"cmd":{"playerId":"p1","tech":"horseback-riding","type":"setResearch"},"ok":true,"t":"cmd","turn":1}  -  Server - GameServer:241
+  12:33:48.323  [R4LOG] {"cmd":{"playerId":"p1","type":"foundCity","unitId":"u1"},"ok":true,"t":"cmd","turn":1}  -  Server - GameServer:241
+  12:33:48.351  [Client] AI regency ON (regent plays your seat)  -  Client - ClientState:427
+  12:33:48.363  [R4LOG] {"activePlayer":"p1","hash":"0x249e6598","t":"round","turn":2}  -  Server - GameServer:241
+  12:33:48.369  [R4CODE] turn=2 code=42X8-A4GJ-9WSCR  -  Server - GameServer:416
+  12:33:48.426  [R4LOG] {"activePlayer":"p1","hash":"0x590605b4","t":"round","turn":3}  -  Server - GameServer:241
+  12:33:48.431  [R4CODE] turn=3 code=22G5-0YHC-GC1DM  -  Server - GameServer:416
+  12:33:48.477  [R4LOG] {"activePlayer":"p1","hash":"0x016ecbfd","t":"round","turn":4}  -  Server - GameServer:241
+  12:33:48.482  [R4CODE] turn=4 code=7J3W-HWM0-PXJZX  -  Server - GameServer:416
+  12:33:48.527  [R4LOG] {"activePlayer":"p1","hash":"0xfc64c802","t":"round","turn":5}  -  Server - GameServer:241
+  12:33:48.532  [R4CODE] turn=5 code=9YZQ-DFBY-69J02  -  Server - GameServer:416
+  12:33:48.575  [R4LOG] {"activePlayer":"p1","hash":"0x23eb3122","t":"round","turn":6}  -  Server - GameServer:241
+  12:33:48.580  [R4CODE] turn=6 code=BKXB-VPRH-YPC92  -  Server - GameServer:416
+  12:33:48.587  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"barracks","kind":"building"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":6}  -  Server - GameServer:241
+  12:33:48.588  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u5"},"ok":true,"t":"cmd","turn":6}  -  Server - GameServer:241
+  12:33:48.627  [R4LOG] {"activePlayer":"p1","hash":"0xdc534e8d","t":"round","turn":7}  -  Server - GameServer:241
+  12:33:48.632  [R4CODE] turn=7 code=C6X7-JJQE-56KMD  -  Server - GameServer:416
+  12:33:48.639  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":7}  -  Server - GameServer:241
+  12:33:48.677  [R4LOG] {"activePlayer":"p1","hash":"0x52e2b093","t":"round","turn":8}  -  Server - GameServer:241
+  12:33:48.682  [R4CODE] turn=8 code=2126-X9D9-E5C4K  -  Server - GameServer:416
+  12:33:48.689  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":8}  -  Server - GameServer:241
+  12:33:48.690  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":8}  -  Server - GameServer:241
+  12:33:48.743  [R4LOG] {"activePlayer":"p1","hash":"0x0b9bd807","t":"round","turn":9}  -  Server - GameServer:241
+  12:33:48.749  [R4CODE] turn=9 code=05FM-73W5-SQP07  -  Server - GameServer:416
+  12:33:48.756  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":9}  -  Server - GameServer:241
+  12:33:48.793  [R4LOG] {"activePlayer":"p1","hash":"0x7085e222","t":"round","turn":10}  -  Server - GameServer:241
+  12:33:48.799  [R4CODE] turn=10 code=DGD0-G6SR-8BRH2  -  Server - GameServer:416
+  12:33:48.806  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":10}  -  Server - GameServer:241
+  12:33:48.860  [R4LOG] {"activePlayer":"p1","hash":"0xec177fdc","t":"round","turn":11}  -  Server - GameServer:241
+  12:33:48.865  [R4CODE] turn=11 code=ATP8-ES3P-1EZYW  -  Server - GameServer:416
+  12:33:48.872  [R4LOG] {"cmd":{"playerId":"p1","tech":"alphabet","type":"setResearch"},"ok":true,"t":"cmd","turn":11}  -  Server - GameServer:241
+  12:33:48.873  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":11}  -  Server - GameServer:241
+  12:33:48.928  [R4LOG] {"activePlayer":"p1","hash":"0x2562f43a","t":"round","turn":12}  -  Server - GameServer:241
+  12:33:48.933  [R4CODE] turn=12 code=7YRW-C5RJ-P5X1T  -  Server - GameServer:416
+  12:33:48.940  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":12}  -  Server - GameServer:241
+  12:33:48.941  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":12}  -  Server - GameServer:241
+  12:33:48.941  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u8"},"ok":true,"t":"cmd","turn":12}  -  Server - GameServer:241
+  12:33:48.992  [R4LOG] {"activePlayer":"p1","hash":"0xa21b92e7","t":"round","turn":13}  -  Server - GameServer:241
+  12:33:48.998  [R4CODE] turn=13 code=98V8-8WYH-1Q4Q7  -  Server - GameServer:416
+  12:33:49.005  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":13}  -  Server - GameServer:241
+  12:33:49.006  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":13}  -  Server - GameServer:241
+  12:33:49.048  [R4LOG] {"activePlayer":"p1","hash":"0x511953d0","t":"round","turn":14}  -  Server - GameServer:241
+  12:33:49.053  [R4CODE] turn=14 code=8RZ6-SW98-HJMYG  -  Server - GameServer:416
+  12:33:49.061  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":14}  -  Server - GameServer:241
+  12:33:49.061  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":14}  -  Server - GameServer:241
+  12:33:49.062  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":14}  -  Server - GameServer:241
+  12:33:49.109  [R4LOG] {"activePlayer":"p1","hash":"0x3ac04fd0","t":"round","turn":15}  -  Server - GameServer:241
+  12:33:49.116  [R4CODE] turn=15 code=CX20-D5GX-C0KYG  -  Server - GameServer:416
+  12:33:49.123  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":15}  -  Server - GameServer:241
+  12:33:49.124  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":15}  -  Server - GameServer:241
+  12:33:49.124  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":15}  -  Server - GameServer:241
+  12:33:49.125  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u12"},"ok":true,"t":"cmd","turn":15}  -  Server - GameServer:241
+  12:33:49.178  [R4LOG] {"activePlayer":"p1","hash":"0x026bed30","t":"round","turn":16}  -  Server - GameServer:241
+  12:33:49.184  [R4CODE] turn=16 code=8HKP-1D01-6QV9G  -  Server - GameServer:416
+  12:33:49.191  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":16}  -  Server - GameServer:241
+  12:33:49.192  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":16}  -  Server - GameServer:241
+  12:33:49.192  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":16}  -  Server - GameServer:241
+  12:33:49.244  [R4LOG] {"activePlayer":"p1","hash":"0x1693c9af","t":"round","turn":17}  -  Server - GameServer:241
+  12:33:49.250  [R4CODE] turn=17 code=DSG1-R2WB-97JDF  -  Server - GameServer:416
+  12:33:49.257  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":17}  -  Server - GameServer:241
+  12:33:49.257  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":17}  -  Server - GameServer:241
+  12:33:49.258  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":17}  -  Server - GameServer:241
+  12:33:49.259  [R4LOG] {"cmd":{"dir":"NW","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":17}  -  Server - GameServer:241
+  12:33:49.310  [R4LOG] {"activePlayer":"p1","hash":"0x98b201bb","t":"round","turn":18}  -  Server - GameServer:241
+  12:33:49.315  [R4CODE] turn=18 code=AQ7C-D6EC-B40DV  -  Server - GameServer:416
+  12:33:49.323  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u5"},"ok":true,"t":"cmd","turn":18}  -  Server - GameServer:241
+  12:33:49.323  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":18}  -  Server - GameServer:241
+  12:33:49.324  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":18}  -  Server - GameServer:241
+  12:33:49.377  [R4LOG] {"activePlayer":"p1","hash":"0xe88bc15e","t":"round","turn":19}  -  Server - GameServer:241
+  12:33:49.382  [R4CODE] turn=19 code=1ASV-ZVKM-8QGAY  -  Server - GameServer:416
+  12:33:49.390  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":19}  -  Server - GameServer:241
+  12:33:49.390  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u5"},"ok":true,"t":"cmd","turn":19}  -  Server - GameServer:241
+  12:33:49.391  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":19}  -  Server - GameServer:241
+  12:33:49.391  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":19}  -  Server - GameServer:241
+  12:33:49.392  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u13"},"ok":true,"t":"cmd","turn":19}  -  Server - GameServer:241
+  12:33:49.445  [R4LOG] {"activePlayer":"p1","hash":"0x302d1f43","t":"round","turn":20}  -  Server - GameServer:241
+  12:33:49.451  [R4CODE] turn=20 code=CBWP-K7CR-2T7T3  -  Server - GameServer:416
+  12:33:49.458  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":20}  -  Server - GameServer:241
+  12:33:49.458  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":20}  -  Server - GameServer:241
+  12:33:49.459  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":20}  -  Server - GameServer:241
+  12:33:49.512  [R4LOG] {"activePlayer":"p1","hash":"0x3bb53a5d","t":"round","turn":21}  -  Server - GameServer:241
+  12:33:49.518  [R4CODE] turn=21 code=92BA-004X-VAEJX  -  Server - GameServer:416
+  12:33:49.525  [R4LOG] {"cmd":{"kind":"reject","playerId":"p1","target":"p4","type":"diplomacy"},"ok":true,"t":"cmd","turn":21}  -  Server - GameServer:241
+  12:33:49.525  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":21}  -  Server - GameServer:241
+  12:33:49.526  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":21}  -  Server - GameServer:241
+  12:33:49.527  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":21}  -  Server - GameServer:241
+  12:33:49.527  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":21}  -  Server - GameServer:241
+  12:33:49.578  [R4LOG] {"activePlayer":"p1","hash":"0x599229e6","t":"round","turn":22}  -  Server - GameServer:241
+  12:33:49.584  [R4CODE] turn=22 code=038Z-NRHC-S4AF6  -  Server - GameServer:416
+  12:33:49.591  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":22}  -  Server - GameServer:241
+  12:33:49.591  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u8"},"ok":true,"t":"cmd","turn":22}  -  Server - GameServer:241
+  12:33:49.592  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":22}  -  Server - GameServer:241
+  12:33:49.593  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":22}  -  Server - GameServer:241
+  12:33:49.593  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u17"},"ok":true,"t":"cmd","turn":22}  -  Server - GameServer:241
+  12:33:49.643  [R4LOG] {"activePlayer":"p1","hash":"0x81bc5b35","t":"round","turn":23}  -  Server - GameServer:241
+  12:33:49.649  [R4CODE] turn=23 code=7VNX-8VP0-VRPSN  -  Server - GameServer:416
+  12:33:49.656  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":23}  -  Server - GameServer:241
+  12:33:49.657  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":23}  -  Server - GameServer:241
+  12:33:49.658  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":23}  -  Server - GameServer:241
+  12:33:49.713  [R4LOG] {"activePlayer":"p1","hash":"0xfb7c009b","t":"round","turn":24}  -  Server - GameServer:241
+  12:33:49.719  [R4CODE] turn=24 code=20NF-XBFX-QR04V  -  Server - GameServer:416
+  12:33:49.726  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":24}  -  Server - GameServer:241
+  12:33:49.727  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":24}  -  Server - GameServer:241
+  12:33:49.728  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":24}  -  Server - GameServer:241
+  12:33:49.729  [R4LOG] {"cmd":{"dir":"S","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":24}  -  Server - GameServer:241
+  12:33:49.776  [R4LOG] {"activePlayer":"p1","hash":"0x9ed20ea4","t":"round","turn":25}  -  Server - GameServer:241
+  12:33:49.782  [R4CODE] turn=25 code=0SKQ-PQAF-D43N4  -  Server - GameServer:416
+  12:33:49.789  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":25}  -  Server - GameServer:241
+  12:33:49.790  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u12"},"ok":true,"t":"cmd","turn":25}  -  Server - GameServer:241
+  12:33:49.791  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":25}  -  Server - GameServer:241
+  12:33:49.791  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":25}  -  Server - GameServer:241
+  12:33:49.792  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u18"},"ok":true,"t":"cmd","turn":25}  -  Server - GameServer:241
+  12:33:49.844  [R4LOG] {"activePlayer":"p1","hash":"0xa635bef8","t":"round","turn":26}  -  Server - GameServer:241
+  12:33:49.850  [R4CODE] turn=26 code=7MPD-YE2K-3BFQR  -  Server - GameServer:416
+  12:33:49.857  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":26}  -  Server - GameServer:241
+  12:33:49.858  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":26}  -  Server - GameServer:241
+  12:33:49.859  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":true,"t":"cmd","turn":26}  -  Server - GameServer:241
+  12:33:49.911  [R4LOG] {"activePlayer":"p1","hash":"0x7eb90561","t":"round","turn":27}  -  Server - GameServer:241
+  12:33:49.917  [R4CODE] turn=27 code=8KXG-6VNZ-BJ1B1  -  Server - GameServer:416
+  12:33:49.924  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":27}  -  Server - GameServer:241
+  12:33:49.925  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":27}  -  Server - GameServer:241
+  12:33:49.925  [R4LOG] {"cmd":{"dir":"E","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":27}  -  Server - GameServer:241
+  12:33:49.926  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":true,"t":"cmd","turn":27}  -  Server - GameServer:241
+  12:33:49.980  [R4LOG] {"activePlayer":"p1","hash":"0x123b43fe","t":"round","turn":28}  -  Server - GameServer:241
+  12:33:49.986  [R4CODE] turn=28 code=DJDR-F509-3PGZY  -  Server - GameServer:416
+  12:33:49.993  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"settlers","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:49.994  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u13"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:49.995  [R4LOG] {"cmd":{"dir":"NE","playerId":"p1","type":"moveUnit","unitId":"u17"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:49.996  [R4LOG] {"cmd":{"cityId":"c5","item":{"id":"cavalry","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:49.996  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:49.997  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u22"},"ok":true,"t":"cmd","turn":28}  -  Server - GameServer:241
+  12:33:50.044  [R4LOG] {"activePlayer":"p1","hash":"0x7cfd8d64","t":"round","turn":29}  -  Server - GameServer:241
+  12:33:50.050  [R4CODE] turn=29 code=78ZE-8BSY-FV3B4  -  Server - GameServer:416
+  12:33:50.051  [Options] auto end turn 28  -  Client - Options:338
+  12:33:50.059  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u8"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.059  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u12"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.060  [R4LOG] {"cmd":{"dir":"N","playerId":"p1","type":"moveUnit","unitId":"u13"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.061  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u17"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.062  [R4LOG] {"cmd":{"dir":"SE","playerId":"p1","type":"moveUnit","unitId":"u18"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.062  [R4LOG] {"cmd":{"dir":"SW","playerId":"p1","type":"moveUnit","unitId":"u22"},"ok":true,"t":"cmd","turn":29}  -  Server - GameServer:241
+  12:33:50.110  [R4LOG] {"activePlayer":"p1","hash":"0x4bac1d29","t":"round","turn":30}  -  Server - GameServer:241
+  12:33:50.116  [R4CODE] turn=30 code=0P3G-75N5-TR799  -  Server - GameServer:416
+  12:33:50.121  [Client] rejected (commandId 1): roundInFlight  -  Client - ClientState:458
+  12:33:50.124  [R4LOG] {"cmd":{"playerId":"p1","tech":"ceremonial-burial","type":"setResearch"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.125  [R4LOG] {"cmd":{"cityId":"c1","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.125  [R4LOG] {"cmd":{"cityId":"c5","item":{"id":"militia","kind":"unit"},"playerId":"p1","type":"setProduction"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.126  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u8"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.127  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u12"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.127  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u13"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.128  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u18"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.129  [R4LOG] {"cmd":{"playerId":"p1","type":"fortify","unitId":"u22"},"ok":true,"t":"cmd","turn":30}  -  Server - GameServer:241
+  12:33:50.172  [Options] auto end turn 30  -  Client - Options:338
+  12:33:50.195  [R4LOG] {"activePlayer":"p1","hash":"0x9dfb7aad","t":"round","turn":31}  -  Server - GameServer:241
+  12:33:50.202  [R4CODE] turn=31 code=57YH-4MPE-ZPYND  -  Server - GameServer:416
+  12:33:50.218  [Client] rejected (commandId 2): roundInFlight  -  Client - ClientState:458
+  12:33:50.249  [Options] auto end turn 31  -  Client - Options:338
+  12:33:50.265  [R22] p1 reclaimed by command (vv_beemy)  -  Server - GameServer:1410
+  12:33:50.298  [Client] AI regency OFF (your seat)  -  Client - ClientState:427
+  12:33:50.316  [R4LOG] {"activePlayer":"p1","hash":"0x76110a47","t":"round","turn":32}  -  Server - GameServer:241
+  12:33:50.321  [R4CODE] turn=32 code=FFNW-26XV-122J7  -  Server - GameServer:416
+  12:33:50.381  [Options] auto end turn 32  -  Client - Options:338
+  12:33:50.427  [R4LOG] {"activePlayer":"p1","hash":"0x24310c3f","t":"round","turn":33}  -  Server - GameServer:241
+  12:33:50.434  [R4CODE] turn=33 code=0K9M-8NWJ-3231Z  -  Server - GameServer:416
+  12:33:50.516  [Options] auto end turn 33  -  Client - Options:338
+  12:33:50.583  [R4LOG] {"activePlayer":"p1","hash":"0x17f1fbf1","t":"round","turn":34}  -  Server - GameServer:241
+  12:33:50.588  [R4CODE] turn=34 code=C7MT-144B-Z3YZH  -  Server - GameServer:416
+  12:33:50.647  [Options] auto end turn 34  -  Client - Options:338
+  12:33:50.695  [R4LOG] {"activePlayer":"p1","hash":"0xee1efb46","t":"round","turn":35}  -  Server - GameServer:241
+  12:33:50.701  [R4CODE] turn=35 code=0QSZ-SWKQ-1XYT6  -  Server - GameServer:416
+  12:33:50.783  [Options] auto end turn 35  -  Client - Options:338
+  12:33:50.844  [R4LOG] {"activePlayer":"p1","hash":"0x0a53caf1","t":"round","turn":36}  -  Server - GameServer:241
+  12:33:50.850  [R4CODE] turn=36 code=5AQZ-DX45-57JQH  -  Server - GameServer:416
+  12:33:50.918  [Options] auto end turn 36  -  Client - Options:338
+  12:33:50.976  [R4LOG] {"activePlayer":"p1","hash":"0x009cb4b6","t":"round","turn":37}  -  Server - GameServer:241
+  12:33:50.982  [R4CODE] turn=37 code=67GK-0XG0-9SD5P  -  Server - GameServer:416
+  12:33:51.065  [Options] auto end turn 37  -  Client - Options:338
+  12:33:51.127  [R4LOG] {"activePlayer":"p1","hash":"0x91a9bbab","t":"round","turn":38}  -  Server - GameServer:241
+  12:33:51.133  [R4CODE] turn=38 code=AF8K-8VE8-TKEXB  -  Server - GameServer:416
+  12:33:51.181  [Options] auto end turn 38  -  Client - Options:338
+  12:33:51.228  [R4LOG] {"activePlayer":"p1","hash":"0xb3a21554","t":"round","turn":39}  -  Server - GameServer:241
+  12:33:51.234  [R4CODE] turn=39 code=DBDC-VMTS-T45AM  -  Server - GameServer:416
+  12:33:51.366  [Options] auto end turn 39  -  Client - Options:338
+  12:33:51.428  [R4LOG] {"activePlayer":"p1","hash":"0x30bcf117","t":"round","turn":40}  -  Server - GameServer:241
+  12:33:51.434  [R4CODE] turn=40 code=CJ38-5BWR-BSW8Q  -  Server - GameServer:416
+  12:33:51.448  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:33:51.495  [Client] saves/resume DISABLED - enable Studio Access to API Services (Home > Game Settings > Security)  -  Client - ClientState:410
+  12:33:51.632  [Options] auto end turn 40  -  Client - Options:338
+  12:33:51.694  [R4LOG] {"activePlayer":"p1","hash":"0x682a7aeb","t":"round","turn":41}  -  Server - GameServer:241
+  12:33:51.700  [R4CODE] turn=41 code=80J4-65DM-2MYQB  -  Server - GameServer:416
+  12:33:51.751  [Options] auto end turn 41  -  Client - Options:338
+  12:33:51.796  [R4LOG] {"activePlayer":"p1","hash":"0xf842bde8","t":"round","turn":42}  -  Server - GameServer:241
+  12:33:51.802  [R4CODE] turn=42 code=0PGN-CJBW-45FF8  -  Server - GameServer:416
+  12:33:51.899  [Options] auto end turn 42  -  Client - Options:338
+  12:33:51.962  [R4LOG] {"activePlayer":"p1","hash":"0x7d000a64","t":"round","turn":43}  -  Server - GameServer:241
+  12:33:51.968  [R4CODE] turn=43 code=55Y5-J79Y-G02K4  -  Server - GameServer:416
+  12:33:52.034  [Options] auto end turn 43  -  Client - Options:338
+  12:33:52.080  [R4LOG] {"activePlayer":"p1","hash":"0x28b90574","t":"round","turn":44}  -  Server - GameServer:241
+  12:33:52.086  [R4CODE] turn=44 code=EFFR-460M-BJ1BM  -  Server - GameServer:416
+  12:33:52.184  [Options] auto end turn 44  -  Client - Options:338
+  12:33:52.245  [R4LOG] {"activePlayer":"p1","hash":"0x0589a528","t":"round","turn":45}  -  Server - GameServer:241
+  12:33:52.251  [R4CODE] turn=45 code=6ZX1-18R2-RK998  -  Server - GameServer:416
+  12:33:52.483  [Options] auto end turn 45  -  Client - Options:338
+  12:33:52.545  [R4LOG] {"activePlayer":"p1","hash":"0x05106c67","t":"round","turn":46}  -  Server - GameServer:241
+  12:33:52.551  [R4CODE] turn=46 code=E3NK-6PW2-H0V37  -  Server - GameServer:416
+  12:33:52.750  [Options] auto end turn 46  -  Client - Options:338
+  12:33:52.813  [R4LOG] {"activePlayer":"p1","hash":"0x7be9bcaa","t":"round","turn":47}  -  Server - GameServer:241
+  12:33:52.820  [R4CODE] turn=47 code=2H3A-JP1X-YKF5A  -  Server - GameServer:416
+  12:33:53.016  [Options] auto end turn 47  -  Client - Options:338
+  12:33:53.078  [R4LOG] {"activePlayer":"p1","hash":"0x26b86ac2","t":"round","turn":48}  -  Server - GameServer:241
+  12:33:53.084  [R4CODE] turn=48 code=FN81-NN0K-BGTP2  -  Server - GameServer:416
+  12:33:53.140  [Options] auto end turn 48  -  Client - Options:338
+  12:33:53.185  [R4LOG] {"activePlayer":"p1","hash":"0x2a5d0d7e","t":"round","turn":49}  -  Server - GameServer:241
+  12:33:53.191  [R4CODE] turn=49 code=BVP8-8C0N-5T3BY  -  Server - GameServer:416
+  12:33:53.299  [Options] auto end turn 49  -  Client - Options:338
+  12:33:53.361  [R4LOG] {"activePlayer":"p1","hash":"0x1622c14d","t":"round","turn":50}  -  Server - GameServer:241
+  12:33:53.367  [R4CODE] turn=50 code=88SP-SC4B-25GAD  -  Server - GameServer:416
+  12:33:53.381  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:33:53.599  [Options] auto end turn 50  -  Client - Options:338
+  12:33:53.661  [R4LOG] {"activePlayer":"p1","hash":"0xcfde0e0f","t":"round","turn":51}  -  Server - GameServer:241
+  12:33:53.668  [R4CODE] turn=51 code=E31V-DMZ7-XW3GF  -  Server - GameServer:416
+  12:33:53.882  [Options] auto end turn 51  -  Client - Options:338
+  12:33:53.945  [R4LOG] {"activePlayer":"p1","hash":"0x73898e95","t":"round","turn":52}  -  Server - GameServer:241
+  12:33:53.952  [R4CODE] turn=52 code=531B-ZBNS-RK3MN  -  Server - GameServer:416
+  12:33:54.132  [Options] auto end turn 52  -  Client - Options:338
+  12:33:54.195  [R4LOG] {"activePlayer":"p1","hash":"0xe8e0d76a","t":"round","turn":53}  -  Server - GameServer:241
+  12:33:54.201  [R4CODE] turn=53 code=7FK3-ZPKM-E1NVA  -  Server - GameServer:416
+  12:33:54.260  [Options] auto end turn 53  -  Client - Options:338
+  12:33:54.311  [R4LOG] {"activePlayer":"p1","hash":"0x98f294cb","t":"round","turn":54}  -  Server - GameServer:241
+  12:33:54.317  [R4CODE] turn=54 code=6VN0-1PEC-F556B  -  Server - GameServer:416
+  12:33:54.433  [Options] auto end turn 54  -  Client - Options:338
+  12:33:54.497  [R4LOG] {"activePlayer":"p1","hash":"0x62eba34d","t":"round","turn":55}  -  Server - GameServer:241
+  12:33:54.503  [R4CODE] turn=55 code=DXTT-7NNH-EQ8TD  -  Server - GameServer:416
+  12:33:54.716  [Options] auto end turn 55  -  Client - Options:338
+  12:33:54.779  [R4LOG] {"activePlayer":"p1","hash":"0x17600b6b","t":"round","turn":56}  -  Server - GameServer:241
+  12:33:54.785  [R4CODE] turn=56 code=A0QH-TBCB-P02VB  -  Server - GameServer:416
+  12:33:55.015  [Options] auto end turn 56  -  Client - Options:338
+  12:33:55.078  [R4LOG] {"activePlayer":"p1","hash":"0x9343df44","t":"round","turn":57}  -  Server - GameServer:241
+  12:33:55.085  [R4CODE] turn=57 code=0SHG-7EJ9-M7QT4  -  Server - GameServer:416
+  12:33:55.249  [Options] auto end turn 57  -  Client - Options:338
+  12:33:55.312  [R4LOG] {"activePlayer":"p1","hash":"0x7db8c78c","t":"round","turn":58}  -  Server - GameServer:241
+  12:33:55.318  [R4CODE] turn=58 code=EMYK-EV9Y-VHHWC  -  Server - GameServer:416
+  12:33:55.379  [Options] auto end turn 58  -  Client - Options:338
+  12:33:55.430  [R4LOG] {"activePlayer":"p1","hash":"0x02cdcafc","t":"round","turn":59}  -  Server - GameServer:241
+  12:33:55.437  [R4CODE] turn=59 code=FH6F-YQ81-CVJQW  -  Server - GameServer:416
+  12:33:55.565  [Options] auto end turn 59  -  Client - Options:338
+  12:33:55.629  [R4LOG] {"activePlayer":"p1","hash":"0x4ccd6bd6","t":"round","turn":60}  -  Server - GameServer:241
+  12:33:55.635  [R4CODE] turn=60 code=0W0T-68S6-CTTYP  -  Server - GameServer:416
+  12:33:55.650  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:33:55.849  [Options] auto end turn 60  -  Client - Options:338
+  12:33:55.913  [R4LOG] {"activePlayer":"p1","hash":"0x21783dc3","t":"round","turn":61}  -  Server - GameServer:241
+  12:33:55.919  [R4CODE] turn=61 code=65WC-AECG-QGFE3  -  Server - GameServer:416
+  12:33:56.150  [Options] auto end turn 61  -  Client - Options:338
+  12:33:56.213  [R4LOG] {"activePlayer":"p1","hash":"0x71cfa857","t":"round","turn":62}  -  Server - GameServer:241
+  12:33:56.219  [R4CODE] turn=62 code=9QGZ-JMXR-WZA2Q  -  Server - GameServer:416
+  12:33:56.382  [Options] auto end turn 62  -  Client - Options:338
+  12:33:56.449  [R4LOG] {"activePlayer":"p1","hash":"0xc337c764","t":"round","turn":63}  -  Server - GameServer:241
+  12:33:56.455  [R4CODE] turn=63 code=BYVJ-VW31-KFHV4  -  Server - GameServer:416
+  12:33:56.699  [Options] auto end turn 63  -  Client - Options:338
+  12:33:56.762  [R4LOG] {"activePlayer":"p1","hash":"0x5cc2e3a4","t":"round","turn":64}  -  Server - GameServer:241
+  12:33:56.768  [R4CODE] turn=64 code=38V1-C8SE-C5RX4  -  Server - GameServer:416
+  12:33:56.982  [Options] auto end turn 64  -  Client - Options:338
+  12:33:57.047  [R4LOG] {"activePlayer":"p1","hash":"0xe3891922","t":"round","turn":65}  -  Server - GameServer:241
+  12:33:57.053  [R4CODE] turn=65 code=2CPW-Z9VH-RJ692  -  Server - GameServer:416
+  12:33:57.283  [Options] auto end turn 65  -  Client - Options:338
+  12:33:57.346  [R4LOG] {"activePlayer":"p1","hash":"0xf39572ec","t":"round","turn":66}  -  Server - GameServer:241
+  12:33:57.353  [R4CODE] turn=66 code=AX2N-2ZKS-SAWQC  -  Server - GameServer:416
+  12:33:57.515  [Options] auto end turn 66  -  Client - Options:338
+  12:33:57.581  [R4LOG] {"activePlayer":"p1","hash":"0xd07cda45","t":"round","turn":67}  -  Server - GameServer:241
+  12:33:57.587  [R4CODE] turn=67 code=1HN5-WHQ8-7SPJ5  -  Server - GameServer:416
+  12:33:57.831  [Options] auto end turn 67  -  Client - Options:338
+  12:33:57.896  [R4LOG] {"activePlayer":"p1","hash":"0x4b5a02fe","t":"round","turn":68}  -  Server - GameServer:241
+  12:33:57.902  [R4CODE] turn=68 code=4M0Q-G2H5-NM0QY  -  Server - GameServer:416
+  12:33:58.116  [Options] auto end turn 68  -  Client - Options:338
+  12:33:58.180  [R4LOG] {"activePlayer":"p1","hash":"0xca2299c7","t":"round","turn":69}  -  Server - GameServer:241
+  12:33:58.187  [R4CODE] turn=69 code=9078-F3Z5-256E7  -  Server - GameServer:416
+  12:33:58.417  [Options] auto end turn 69  -  Client - Options:338
+  12:33:58.480  [R4LOG] {"activePlayer":"p1","hash":"0xafc4ecc7","t":"round","turn":70}  -  Server - GameServer:241
+  12:33:58.487  [R4CODE] turn=70 code=15YP-G9YQ-W9V67  -  Server - GameServer:416
+  12:33:58.502  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:33:58.650  [Options] auto end turn 70  -  Client - Options:338
+  12:33:58.712  [R4LOG] {"activePlayer":"p1","hash":"0x9f2abc33","t":"round","turn":71}  -  Server - GameServer:241
+  12:33:58.719  [R4CODE] turn=71 code=95SH-H1EF-JNF1K  -  Server - GameServer:416
+  12:33:58.965  [Options] auto end turn 71  -  Client - Options:338
+  12:33:59.030  [R4LOG] {"activePlayer":"p1","hash":"0xec2e3d62","t":"round","turn":72}  -  Server - GameServer:241
+  12:33:59.037  [R4CODE] turn=72 code=78BR-C9BP-2WFB2  -  Server - GameServer:416
+  12:33:59.248  [Options] auto end turn 72  -  Client - Options:338
+  12:33:59.320  [R4LOG] {"activePlayer":"p1","hash":"0xe97e6e4e","t":"round","turn":73}  -  Server - GameServer:241
+  12:33:59.326  [R4CODE] turn=73 code=DYW8-WNBM-QWVJE  -  Server - GameServer:416
+  12:33:59.565  [Options] auto end turn 73  -  Client - Options:338
+  12:33:59.629  [R4LOG] {"activePlayer":"p1","hash":"0x8d038566","t":"round","turn":74}  -  Server - GameServer:241
+  12:33:59.636  [R4CODE] turn=74 code=99MC-WQ26-G71B6  -  Server - GameServer:416
+  12:33:59.782  [Options] auto end turn 74  -  Client - Options:338
+  12:33:59.847  [R4LOG] {"activePlayer":"p1","hash":"0x35d60fe6","t":"round","turn":75}  -  Server - GameServer:241
+  12:33:59.853  [R4CODE] turn=75 code=F4RC-DS0T-XC3Z6  -  Server - GameServer:416
+  12:34:00.099  [Options] auto end turn 75  -  Client - Options:338
+  12:34:00.165  [R4LOG] {"activePlayer":"p1","hash":"0x3bf02f18","t":"round","turn":76}  -  Server - GameServer:241
+  12:34:00.172  [R4CODE] turn=76 code=BB3S-P58X-Z0BRR  -  Server - GameServer:416
+  12:34:00.399  [Options] auto end turn 76  -  Client - Options:338
+  12:34:00.463  [R4LOG] {"activePlayer":"p1","hash":"0x6ab1d794","t":"round","turn":77}  -  Server - GameServer:241
+  12:34:00.470  [R4CODE] turn=77 code=5WS9-Y39N-B3NWM  -  Server - GameServer:416
+  12:34:00.699  [Options] auto end turn 77  -  Client - Options:338
+  12:34:00.767  [R4LOG] {"activePlayer":"p1","hash":"0x7eb1cc2c","t":"round","turn":78}  -  Server - GameServer:241
+  12:34:00.774  [R4CODE] turn=78 code=6462-SASZ-B3K1C  -  Server - GameServer:416
+  12:34:00.918  [Options] auto end turn 78  -  Client - Options:338
+  12:34:00.984  [R4LOG] {"activePlayer":"p1","hash":"0xfbb90a51","t":"round","turn":79}  -  Server - GameServer:241
+  12:34:00.991  [R4CODE] turn=79 code=5ZFS-RNQX-VJ2JH  -  Server - GameServer:416
+  12:34:01.232  [Options] auto end turn 79  -  Client - Options:338
+  12:34:01.297  [R4LOG] {"activePlayer":"p1","hash":"0x790435ea","t":"round","turn":80}  -  Server - GameServer:241
+  12:34:01.304  [R4CODE] turn=80 code=94YA-2GHW-G8DFA  -  Server - GameServer:416
+  12:34:01.320  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:01.532  [Options] auto end turn 80  -  Client - Options:338
+  12:34:01.601  [R4LOG] {"activePlayer":"p1","hash":"0xaa5668cd","t":"round","turn":81}  -  Server - GameServer:241
+  12:34:01.608  [R4CODE] turn=81 code=6ADG-AX6N-5CT6D  -  Server - GameServer:416
+  12:34:01.833  [Options] auto end turn 81  -  Client - Options:338
+  12:34:01.899  [R4LOG] {"activePlayer":"p1","hash":"0x9f8cf3ca","t":"round","turn":82}  -  Server - GameServer:241
+  12:34:01.906  [R4CODE] turn=82 code=3FNN-QETF-RSWYA  -  Server - GameServer:416
+  12:34:02.065  [Options] auto end turn 82  -  Client - Options:338
+  12:34:02.132  [R4LOG] {"activePlayer":"p1","hash":"0x3f3bac38","t":"round","turn":83}  -  Server - GameServer:241
+  12:34:02.139  [R4CODE] turn=83 code=5DDJ-KYRZ-KQB1R  -  Server - GameServer:416
+  12:34:02.382  [Options] auto end turn 83  -  Client - Options:338
+  12:34:02.451  [R4LOG] {"activePlayer":"p1","hash":"0x010e0e5e","t":"round","turn":84}  -  Server - GameServer:241
+  12:34:02.459  [R4CODE] turn=84 code=8DH7-STR0-GW3JY  -  Server - GameServer:416
+  12:34:02.683  [Options] auto end turn 84  -  Client - Options:338
+  12:34:02.752  [R4LOG] {"activePlayer":"p1","hash":"0xbcbd0577","t":"round","turn":85}  -  Server - GameServer:241
+  12:34:02.759  [R4CODE] turn=85 code=EFQZ-NWYY-BT1BQ  -  Server - GameServer:416
+  12:34:02.982  [Options] auto end turn 85  -  Client - Options:338
+  12:34:03.049  [R4LOG] {"activePlayer":"p1","hash":"0xabd89f53","t":"round","turn":86}  -  Server - GameServer:241
+  12:34:03.056  [R4CODE] turn=86 code=A6S0-K6EN-XH7TK  -  Server - GameServer:416
+  12:34:03.216  [Options] auto end turn 86  -  Client - Options:338
+  12:34:03.282  [R4LOG] {"activePlayer":"p1","hash":"0x8326787a","t":"round","turn":87}  -  Server - GameServer:241
+  12:34:03.289  [R4CODE] turn=87 code=8X4R-D7A1-JCY3T  -  Server - GameServer:416
+  12:34:03.533  [Options] auto end turn 87  -  Client - Options:338
+  12:34:03.599  [R4LOG] {"activePlayer":"p1","hash":"0x7f1f7bf8","t":"round","turn":88}  -  Server - GameServer:241
+  12:34:03.606  [R4CODE] turn=88 code=9556-2CSZ-HYYZR  -  Server - GameServer:416
+  12:34:03.831  [Options] auto end turn 88  -  Client - Options:338
+  12:34:03.898  [R4LOG] {"activePlayer":"p1","hash":"0x9470c06a","t":"round","turn":89}  -  Server - GameServer:241
+  12:34:03.905  [R4CODE] turn=89 code=3B8R-HRTA-71G3A  -  Server - GameServer:416
+  12:34:04.132  [Options] auto end turn 89  -  Client - Options:338
+  12:34:04.199  [R4LOG] {"activePlayer":"p1","hash":"0x869d80b7","t":"round","turn":90}  -  Server - GameServer:241
+  12:34:04.206  [R4CODE] turn=90 code=0S4R-6KY3-9V05Q  -  Server - GameServer:416
+  12:34:04.222  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:04.366  [Options] auto end turn 90  -  Client - Options:338
+  12:34:04.432  [R4LOG] {"activePlayer":"p1","hash":"0xc67a3cc8","t":"round","turn":91}  -  Server - GameServer:241
+  12:34:04.439  [R4CODE] turn=91 code=164V-ZGV3-7MF68  -  Server - GameServer:416
+  12:34:04.683  [Options] auto end turn 91  -  Client - Options:338
+  12:34:04.751  [R4LOG] {"activePlayer":"p1","hash":"0xb60c35a9","t":"round","turn":92}  -  Server - GameServer:241
+  12:34:04.758  [R4CODE] turn=92 code=7R28-SNPV-0RDD9  -  Server - GameServer:416
+  12:34:04.981  [Options] auto end turn 92  -  Client - Options:338
+  12:34:05.052  [R4LOG] {"activePlayer":"p1","hash":"0x1f46d484","t":"round","turn":93}  -  Server - GameServer:241
+  12:34:05.060  [R4CODE] turn=93 code=85GN-QS0F-MDN44  -  Server - GameServer:416
+  12:34:05.284  [Options] auto end turn 93  -  Client - Options:338
+  12:34:05.353  [R4LOG] {"activePlayer":"p1","hash":"0x8e880aab","t":"round","turn":94}  -  Server - GameServer:241
+  12:34:05.360  [R4CODE] turn=94 code=FJST-6PE7-8G2NB  -  Server - GameServer:416
+  12:34:05.516  [Options] auto end turn 94  -  Client - Options:338
+  12:34:05.587  [R4LOG] {"activePlayer":"p1","hash":"0xacd40cf8","t":"round","turn":95}  -  Server - GameServer:241
+  12:34:05.594  [R4CODE] turn=95 code=01HD-X4JP-D837R  -  Server - GameServer:416
+  12:34:05.833  [Options] auto end turn 95  -  Client - Options:338
+  12:34:05.903  [R4LOG] {"activePlayer":"p1","hash":"0xd376b352","t":"round","turn":96}  -  Server - GameServer:241
+  12:34:05.911  [R4CODE] turn=96 code=AKST-MVB9-QDCTJ  -  Server - GameServer:416
+  12:34:06.132  [Options] auto end turn 96  -  Client - Options:338
+  12:34:06.206  [R4LOG] {"activePlayer":"p1","hash":"0x3c537365","t":"round","turn":97}  -  Server - GameServer:241
+  12:34:06.214  [R4CODE] turn=97 code=1R47-6M4Y-56WV5  -  Server - GameServer:416
+  12:34:06.432  [Options] auto end turn 97  -  Client - Options:338
+  12:34:06.504  [R4LOG] {"activePlayer":"p1","hash":"0xb7b53ca3","t":"round","turn":98}  -  Server - GameServer:241
+  12:34:06.512  [R4CODE] turn=98 code=D15A-GZEV-VAF53  -  Server - GameServer:416
+  12:34:06.665  [Options] auto end turn 98  -  Client - Options:338
+  12:34:06.740  [R4LOG] {"activePlayer":"p1","hash":"0xd7ca310e","t":"round","turn":99}  -  Server - GameServer:241
+  12:34:06.748  [R4CODE] turn=99 code=CTVB-3PVB-WMC8E  -  Server - GameServer:416
+  12:34:06.982  [Options] auto end turn 99  -  Client - Options:338
+  12:34:07.062  [R4LOG] {"activePlayer":"p1","hash":"0x26a72af0","t":"round","turn":100}  -  Server - GameServer:241
+  12:34:07.069  [R4CODE] turn=100 code=BCXF-0S0K-AEAQG  -  Server - GameServer:416
+  12:34:07.087  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:07.299  [Options] auto end turn 100  -  Client - Options:338
+  12:34:07.375  [R4LOG] {"activePlayer":"p1","hash":"0xbec7936c","t":"round","turn":101}  -  Server - GameServer:241
+  12:34:07.382  [R4CODE] turn=101 code=5B8W-C0TZ-CF4VC  -  Server - GameServer:416
+  12:34:07.583  [Options] auto end turn 101  -  Client - Options:338
+  12:34:07.655  [R4LOG] {"activePlayer":"p1","hash":"0x51c3a695","t":"round","turn":102}  -  Server - GameServer:241
+  12:34:07.663  [R4CODE] turn=102 code=DD1D-F758-W79MN  -  Server - GameServer:416
+  12:34:07.832  [Options] auto end turn 102  -  Client - Options:338
+  12:34:07.906  [R4LOG] {"activePlayer":"p1","hash":"0x9e84cd7e","t":"round","turn":103}  -  Server - GameServer:241
+  12:34:07.914  [R4CODE] turn=103 code=1Q1G-DATF-89KBY  -  Server - GameServer:416
+  12:34:08.166  [Options] auto end turn 103  -  Client - Options:338
+  12:34:08.240  [R4LOG] {"activePlayer":"p1","hash":"0x1d8d44f2","t":"round","turn":104}  -  Server - GameServer:241
+  12:34:08.247  [R4CODE] turn=104 code=02XT-5TGE-RTH7J  -  Server - GameServer:416
+  12:34:08.466  [Options] auto end turn 104  -  Client - Options:338
+  12:34:08.539  [R4LOG] {"activePlayer":"p1","hash":"0x4456b62c","t":"round","turn":105}  -  Server - GameServer:241
+  12:34:08.547  [R4CODE] turn=105 code=5W2M-RA92-5DDHC  -  Server - GameServer:416
+  12:34:08.749  [Options] auto end turn 105  -  Client - Options:338
+  12:34:08.823  [R4LOG] {"activePlayer":"p1","hash":"0x0abe371c","t":"round","turn":106}  -  Server - GameServer:241
+  12:34:08.831  [R4CODE] turn=106 code=BCNE-ST85-BWDRW  -  Server - GameServer:416
+  12:34:09.000  [Options] auto end turn 106  -  Client - Options:338
+  12:34:09.073  [R4LOG] {"activePlayer":"p1","hash":"0x965fb1f7","t":"round","turn":107}  -  Server - GameServer:241
+  12:34:09.080  [R4CODE] turn=107 code=11X1-1HYB-5ZCFQ  -  Server - GameServer:416
+  12:34:09.332  [Options] auto end turn 107  -  Client - Options:338
+  12:34:09.408  [R4LOG] {"activePlayer":"p1","hash":"0x16c1c25d","t":"round","turn":108}  -  Server - GameServer:241
+  12:34:09.415  [R4CODE] turn=108 code=EZC1-XJMB-C3GJX  -  Server - GameServer:416
+  12:34:09.633  [Options] auto end turn 108  -  Client - Options:338
+  12:34:09.713  [R4LOG] {"activePlayer":"p1","hash":"0x8a946b04","t":"round","turn":109}  -  Server - GameServer:241
+  12:34:09.720  [R4CODE] turn=109 code=1FZC-WNA5-98TR4  -  Server - GameServer:416
+  12:34:09.916  [Options] auto end turn 109  -  Client - Options:338
+  12:34:09.999  [R4LOG] {"activePlayer":"p1","hash":"0x61be8dbc","t":"round","turn":110}  -  Server - GameServer:241
+  12:34:10.007  [R4CODE] turn=110 code=09MX-7K9G-VX3DW  -  Server - GameServer:416
+  12:34:10.025  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:10.165  [Options] auto end turn 110  -  Client - Options:338
+  12:34:10.248  [R4LOG] {"activePlayer":"p1","hash":"0xf81d9dc3","t":"round","turn":111}  -  Server - GameServer:241
+  12:34:10.256  [R4CODE] turn=111 code=3ZZS-NZFW-1V7E3  -  Server - GameServer:416
+  12:34:10.498  [Options] auto end turn 111  -  Client - Options:338
+  12:34:10.581  [R4LOG] {"activePlayer":"p1","hash":"0xfb172d25","t":"round","turn":112}  -  Server - GameServer:241
+  12:34:10.588  [R4CODE] turn=112 code=0B4E-G27X-HEB95  -  Server - GameServer:416
+  12:34:10.801  [Options] auto end turn 112  -  Client - Options:338
+  12:34:10.883  [R4LOG] {"activePlayer":"p1","hash":"0xc94be3a7","t":"round","turn":113}  -  Server - GameServer:241
+  12:34:10.891  [R4CODE] turn=113 code=9060-BPZ4-MQRX7  -  Server - GameServer:416
+  12:34:11.099  [Options] auto end turn 113  -  Client - Options:338
+  12:34:11.184  [R4LOG] {"activePlayer":"p1","hash":"0x83e8aa6b","t":"round","turn":114}  -  Server - GameServer:241
+  12:34:11.192  [R4CODE] turn=114 code=68WR-3GE1-YHAKB  -  Server - GameServer:416
+  12:34:11.351  [Options] auto end turn 114  -  Client - Options:338
+  12:34:11.429  [R4LOG] {"activePlayer":"p1","hash":"0x8b0442f5","t":"round","turn":115}  -  Server - GameServer:241
+  12:34:11.437  [R4CODE] turn=115 code=3F41-DJ65-G8GQN  -  Server - GameServer:416
+  12:34:11.683  [Options] auto end turn 115  -  Client - Options:338
+  12:34:11.764  [R4LOG] {"activePlayer":"p1","hash":"0x10540bc9","t":"round","turn":116}  -  Server - GameServer:241
+  12:34:11.772  [R4CODE] turn=116 code=7TQD-3EM8-582Y9  -  Server - GameServer:416
+  12:34:11.982  [Options] auto end turn 116  -  Client - Options:338
+  12:34:12.074  [R4LOG] {"activePlayer":"p1","hash":"0x7bfeec43","t":"round","turn":117}  -  Server - GameServer:241
+  12:34:12.082  [R4CODE] turn=117 code=26VN-CMDX-ZXV23  -  Server - GameServer:416
+  12:34:12.283  [Options] auto end turn 117  -  Client - Options:338
+  12:34:12.364  [R4LOG] {"activePlayer":"p1","hash":"0xad199ca0","t":"round","turn":118}  -  Server - GameServer:241
+  12:34:12.372  [R4CODE] turn=118 code=8HH8-EPTP-HK750  -  Server - GameServer:416
+  12:34:12.533  [Options] auto end turn 118  -  Client - Options:338
+  12:34:12.613  [R4LOG] {"activePlayer":"p1","hash":"0x61d55a79","t":"round","turn":119}  -  Server - GameServer:241
+  12:34:12.621  [R4CODE] turn=119 code=0YAP-3B5G-XAPKS  -  Server - GameServer:416
+  12:34:12.865  [Options] auto end turn 119  -  Client - Options:338
+  12:34:12.949  [R4LOG] {"activePlayer":"p1","hash":"0x6822637b","t":"round","turn":120}  -  Server - GameServer:241
+  12:34:12.957  [R4CODE] turn=120 code=8872-ZFDM-24RVV  -  Server - GameServer:416
+  12:34:12.975  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:13.182  [Options] auto end turn 120  -  Client - Options:338
+  12:34:13.267  [R4LOG] {"activePlayer":"p1","hash":"0xe75654da","t":"round","turn":121}  -  Server - GameServer:241
+  12:34:13.275  [R4CODE] turn=121 code=CHVJ-N8KK-NCN6T  -  Server - GameServer:416
+  12:34:13.468  [Options] auto end turn 121  -  Client - Options:338
+  12:34:13.550  [R4LOG] {"activePlayer":"p1","hash":"0x7a611c31","t":"round","turn":122}  -  Server - GameServer:241
+  12:34:13.558  [R4CODE] turn=122 code=D360-B85X-6271H  -  Server - GameServer:416
+  12:34:13.714  [Options] auto end turn 122  -  Client - Options:338
+  12:34:13.792  [R4LOG] {"activePlayer":"p1","hash":"0x556da6e3","t":"round","turn":123}  -  Server - GameServer:241
+  12:34:13.800  [R4CODE] turn=123 code=09ZY-GCDA-PV9Q3  -  Server - GameServer:416
+  12:34:14.065  [Options] auto end turn 123  -  Client - Options:338
+  12:34:14.159  [R4LOG] {"activePlayer":"p1","hash":"0xe92959a0","t":"round","turn":124}  -  Server - GameServer:241
+  12:34:14.167  [R4CODE] turn=124 code=ESGC-HTBM-JJPD0  -  Server - GameServer:416
+  12:34:14.366  [Options] auto end turn 124  -  Client - Options:338
+  12:34:14.459  [R4LOG] {"activePlayer":"p1","hash":"0x2bed19a5","t":"round","turn":125}  -  Server - GameServer:241
+  12:34:14.467  [R4CODE] turn=125 code=D9V6-744N-YT6D5  -  Server - GameServer:416
+  12:34:14.668  [Options] auto end turn 125  -  Client - Options:338
+  12:34:14.752  [R4LOG] {"activePlayer":"p1","hash":"0x67dedbc3","t":"round","turn":126}  -  Server - GameServer:241
+  12:34:14.761  [R4CODE] turn=126 code=4EM0-3JDK-XXPY3  -  Server - GameServer:416
+  12:34:14.907  [Options] auto end turn 126  -  Client - Options:338
+  12:34:14.988  [R4LOG] {"activePlayer":"p1","hash":"0xe6d8a6d5","t":"round","turn":127}  -  Server - GameServer:241
+  12:34:14.997  [R4CODE] turn=127 code=B0M6-DYQK-DH9PN  -  Server - GameServer:416
+  12:34:15.265  [Options] auto end turn 127  -  Client - Options:338
+  12:34:15.353  [R4LOG] {"activePlayer":"p1","hash":"0x18ca65d7","t":"round","turn":128}  -  Server - GameServer:241
+  12:34:15.361  [R4CODE] turn=128 code=0YGK-JZWC-CMSEQ  -  Server - GameServer:416
+  12:34:15.567  [Options] auto end turn 128  -  Client - Options:338
+  12:34:15.654  [R4LOG] {"activePlayer":"p1","hash":"0xf974d3b6","t":"round","turn":129}  -  Server - GameServer:241
+  12:34:15.662  [R4CODE] turn=129 code=D2H9-FT3W-Q9MXP  -  Server - GameServer:416
+  12:34:15.868  [Options] auto end turn 129  -  Client - Options:338
+  12:34:15.969  [R4LOG] {"activePlayer":"p1","hash":"0xc654497c","t":"round","turn":130}  -  Server - GameServer:241
+  12:34:15.979  [R4CODE] turn=130 code=7KM9-KKB3-58JBW  -  Server - GameServer:416
+  12:34:16.002  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:16.122  [Options] auto end turn 130  -  Client - Options:338
+  12:34:16.207  [R4LOG] {"activePlayer":"p1","hash":"0x91f47906","t":"round","turn":131}  -  Server - GameServer:241
+  12:34:16.215  [R4CODE] turn=131 code=B4JW-2ZT8-Z8Y86  -  Server - GameServer:416
+  12:34:16.466  [Options] auto end turn 131  -  Client - Options:338
+  12:34:16.557  [R4LOG] {"activePlayer":"p1","hash":"0x6a81ad78","t":"round","turn":132}  -  Server - GameServer:241
+  12:34:16.565  [R4CODE] turn=132 code=8MNG-ZNHN-83BBR  -  Server - GameServer:416
+  12:34:16.766  [Options] auto end turn 132  -  Client - Options:338
+  12:34:16.861  [R4LOG] {"activePlayer":"p1","hash":"0x25ea6378","t":"round","turn":133}  -  Server - GameServer:241
+  12:34:16.873  [R4CODE] turn=133 code=ACA9-440J-YMRVR  -  Server - GameServer:416
+  12:34:17.099  [Options] auto end turn 133  -  Client - Options:338
+  12:34:17.184  [R4LOG] {"activePlayer":"p1","hash":"0x61bbbf89","t":"round","turn":134}  -  Server - GameServer:241
+  12:34:17.193  [R4CODE] turn=134 code=98P0-B95G-VQFW9  -  Server - GameServer:416
+  12:34:17.315  [Options] auto end turn 134  -  Client - Options:338
+  12:34:17.411  [R4LOG] {"activePlayer":"p1","hash":"0x62c8923a","t":"round","turn":135}  -  Server - GameServer:241
+  12:34:17.420  [R4CODE] turn=135 code=7Y3X-D29H-CH4HT  -  Server - GameServer:416
+  12:34:17.683  [Options] auto end turn 135  -  Client - Options:338
+  12:34:17.777  [R4LOG] {"activePlayer":"p1","hash":"0x99a0a429","t":"round","turn":136}  -  Server - GameServer:241
+  12:34:17.786  [R4CODE] turn=136 code=BMQ3-0W6C-T1919  -  Server - GameServer:416
+  12:34:17.986  [Options] auto end turn 136  -  Client - Options:338
+  12:34:18.075  [R4LOG] {"activePlayer":"p1","hash":"0x283af778","t":"round","turn":137}  -  Server - GameServer:241
+  12:34:18.083  [R4CODE] turn=137 code=9666-CVGM-3NXVR  -  Server - GameServer:416
+  12:34:18.299  [Options] auto end turn 137  -  Client - Options:338
+  12:34:18.387  [R4LOG] {"activePlayer":"p1","hash":"0xa252d9a1","t":"round","turn":138}  -  Server - GameServer:241
+  12:34:18.395  [R4CODE] turn=138 code=4JQS-NM6H-55PD1  -  Server - GameServer:416
+  12:34:18.497  [Options] auto end turn 138  -  Client - Options:338
+  12:34:18.611  [R4LOG] {"activePlayer":"p1","hash":"0xcf5adea5","t":"round","turn":139}  -  Server - GameServer:241
+  12:34:18.620  [R4CODE] turn=139 code=5S28-7NQ7-NNQN5  -  Server - GameServer:416
+  12:34:18.898  [Options] auto end turn 139  -  Client - Options:338
+  12:34:18.993  [R4LOG] {"activePlayer":"p1","hash":"0x020542e8","t":"round","turn":140}  -  Server - GameServer:241
+  12:34:19.001  [R4CODE] turn=140 code=4GN3-9MG1-0AGQ8  -  Server - GameServer:416
+  12:34:19.021  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:19.199  [Options] auto end turn 140  -  Client - Options:338
+  12:34:19.295  [R4LOG] {"activePlayer":"p1","hash":"0x41971d00","t":"round","turn":141}  -  Server - GameServer:241
+  12:34:19.304  [R4CODE] turn=141 code=25XD-5ES0-SE780  -  Server - GameServer:416
+  12:34:19.499  [Options] auto end turn 141  -  Client - Options:338
+  12:34:19.603  [R4LOG] {"activePlayer":"p1","hash":"0x8882beb8","t":"round","turn":142}  -  Server - GameServer:241
+  12:34:19.611  [R4CODE] turn=142 code=6MEP-B8T4-85FNR  -  Server - GameServer:416
+  12:34:19.737  [Options] auto end turn 142  -  Client - Options:338
+  12:34:19.835  [R4LOG] {"activePlayer":"p1","hash":"0x6e59080d","t":"round","turn":143}  -  Server - GameServer:241
+  12:34:19.843  [R4CODE] turn=143 code=0KTE-18NQ-5J20D  -  Server - GameServer:416
+  12:34:20.116  [Options] auto end turn 143  -  Client - Options:338
+  12:34:20.223  [R4LOG] {"activePlayer":"p1","hash":"0xc53afa9c","t":"round","turn":144}  -  Server - GameServer:241
+  12:34:20.232  [R4CODE] turn=144 code=CMX2-WVK2-KNYMW  -  Server - GameServer:416
+  12:34:20.416  [Options] auto end turn 144  -  Client - Options:338
+  12:34:20.519  [R4LOG] {"activePlayer":"p1","hash":"0x824aeb2d","t":"round","turn":145}  -  Server - GameServer:241
+  12:34:20.528  [R4CODE] turn=145 code=ED54-3C61-4NTSD  -  Server - GameServer:416
+  12:34:20.714  [Options] auto end turn 145  -  Client - Options:338
+  12:34:20.808  [R4LOG] {"activePlayer":"p1","hash":"0xdb8fc7f9","t":"round","turn":146}  -  Server - GameServer:241
+  12:34:20.817  [R4CODE] turn=146 code=5HZF-38QD-RZHZS  -  Server - GameServer:416
+  12:34:20.950  [Options] auto end turn 146  -  Client - Options:338
+  12:34:21.056  [R4LOG] {"activePlayer":"p1","hash":"0x84a4bb32","t":"round","turn":147}  -  Server - GameServer:241
+  12:34:21.065  [R4CODE] turn=147 code=BD3Z-1QA2-A9ESJ  -  Server - GameServer:416
+  12:34:21.349  [Options] auto end turn 147  -  Client - Options:338
+  12:34:21.457  [R4LOG] {"activePlayer":"p1","hash":"0x9cba5702","t":"round","turn":148}  -  Server - GameServer:241
+  12:34:21.466  [R4CODE] turn=148 code=298D-H92E-BMNR2  -  Server - GameServer:416
+  12:34:21.647  [Options] auto end turn 148  -  Client - Options:338
+  12:34:21.740  [R4LOG] {"activePlayer":"p1","hash":"0xc7df743e","t":"round","turn":149}  -  Server - GameServer:241
+  12:34:21.749  [R4CODE] turn=149 code=7MTB-GG33-XYX1Y  -  Server - GameServer:416
+  12:34:21.934  [Options] auto end turn 149  -  Client - Options:338
+  12:34:22.024  [R4LOG] {"activePlayer":"p1","hash":"0x78a9616d","t":"round","turn":150}  -  Server - GameServer:241
+  12:34:22.034  [R4CODE] turn=150 code=53Z0-VRNW-AJRBD  -  Server - GameServer:416
+  12:34:22.056  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:22.181  [Options] auto end turn 150  -  Client - Options:338
+  12:34:22.288  [R4LOG] {"activePlayer":"p1","hash":"0x01cea9a3","t":"round","turn":151}  -  Server - GameServer:241
+  12:34:22.296  [R4CODE] turn=151 code=ER4Z-K0C0-WXAD3  -  Server - GameServer:416
+  12:34:22.582  [Options] auto end turn 151  -  Client - Options:338
+  12:34:22.686  [R4LOG] {"activePlayer":"p1","hash":"0x1740ef7b","t":"round","turn":152}  -  Server - GameServer:241
+  12:34:22.695  [R4CODE] turn=152 code=F3K7-WCCB-M1VVV  -  Server - GameServer:416
+  12:34:22.868  [Options] auto end turn 152  -  Client - Options:338
+  12:34:22.967  [R4LOG] {"activePlayer":"p1","hash":"0x79577d48","t":"round","turn":153}  -  Server - GameServer:241
+  12:34:22.976  [R4CODE] turn=153 code=4MKH-J39W-NEZA8  -  Server - GameServer:416
+  12:34:23.157  [Options] auto end turn 153  -  Client - Options:338
+  12:34:23.258  [R4LOG] {"activePlayer":"p1","hash":"0xe26f5702","t":"round","turn":154}  -  Server - GameServer:241
+  12:34:23.267  [R4CODE] turn=154 code=3YPZ-RSVH-6YNR2  -  Server - GameServer:416
+  12:34:23.384  [Options] auto end turn 154  -  Client - Options:338
+  12:34:23.510  [R4LOG] {"activePlayer":"p1","hash":"0xc48bd00d","t":"round","turn":155}  -  Server - GameServer:241
+  12:34:23.520  [R4CODE] turn=155 code=1JK3-Z8Q2-8QM0D  -  Server - GameServer:416
+  12:34:23.816  [Options] auto end turn 155  -  Client - Options:338
+  12:34:23.929  [R4LOG] {"activePlayer":"p1","hash":"0xd563664a","t":"round","turn":156}  -  Server - GameServer:241
+  12:34:23.938  [R4CODE] turn=156 code=2T7J-74BA-P6SJA  -  Server - GameServer:416
+  12:34:24.121  [Options] auto end turn 156  -  Client - Options:338
+  12:34:24.229  [R4LOG] {"activePlayer":"p1","hash":"0xa34baf20","t":"round","turn":157}  -  Server - GameServer:241
+  12:34:24.238  [R4CODE] turn=157 code=FWCP-Q3JH-MQBS0  -  Server - GameServer:416
+  12:34:24.421  [Options] auto end turn 157  -  Client - Options:338
+  12:34:24.524  [R4LOG] {"activePlayer":"p1","hash":"0xeba89061","t":"round","turn":158}  -  Server - GameServer:241
+  12:34:24.534  [R4CODE] turn=158 code=96YH-EV7N-TH431  -  Server - GameServer:416
+  12:34:24.678  [Options] auto end turn 158  -  Client - Options:338
+  12:34:24.796  [R4LOG] {"activePlayer":"p1","hash":"0xd77c86b9","t":"round","turn":159}  -  Server - GameServer:241
+  12:34:24.805  [R4CODE] turn=159 code=B2RS-9CQB-QS1NS  -  Server - GameServer:416
+  12:34:25.066  [Options] auto end turn 159  -  Client - Options:338
+  12:34:25.177  [R4LOG] {"activePlayer":"p1","hash":"0xa0399d54","t":"round","turn":160}  -  Server - GameServer:241
+  12:34:25.187  [R4CODE] turn=160 code=DVZ8-70JG-3K7AM  -  Server - GameServer:416
+  12:34:25.208  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:25.383  [Options] auto end turn 160  -  Client - Options:338
+  12:34:25.487  [R4LOG] {"activePlayer":"p1","hash":"0xa282f879","t":"round","turn":161}  -  Server - GameServer:241
+  12:34:25.496  [R4CODE] turn=161 code=8K67-TEPH-85Y3S  -  Server - GameServer:416
+  12:34:25.684  [Options] auto end turn 161  -  Client - Options:338
+  12:34:25.790  [R4LOG] {"activePlayer":"p1","hash":"0x0f66af41","t":"round","turn":162}  -  Server - GameServer:241
+  12:34:25.799  [R4CODE] turn=162 code=6ZJ7-24M7-PDBT1  -  Server - GameServer:416
+  12:34:25.947  [Options] auto end turn 162  -  Client - Options:338
+  12:34:26.059  [R4LOG] {"activePlayer":"p1","hash":"0xaddcd1a0","t":"round","turn":163}  -  Server - GameServer:241
+  12:34:26.068  [R4CODE] turn=163 code=AHRM-W6AP-XSMD0  -  Server - GameServer:416
+  12:34:26.317  [Options] auto end turn 163  -  Client - Options:338
+  12:34:26.432  [R4LOG] {"activePlayer":"p1","hash":"0x01874386","t":"round","turn":164}  -  Server - GameServer:241
+  12:34:26.442  [R4CODE] turn=164 code=E33K-DN00-REGW6  -  Server - GameServer:416
+  12:34:26.637  [Options] auto end turn 164  -  Client - Options:338
+  12:34:26.751  [R4LOG] {"activePlayer":"p1","hash":"0x4c2550d5","t":"round","turn":165}  -  Server - GameServer:241
+  12:34:26.760  [R4CODE] turn=165 code=EHEJ-KDN6-2AM6N  -  Server - GameServer:416
+  12:34:26.952  [Options] auto end turn 165  -  Client - Options:338
+  12:34:27.067  [R4LOG] {"activePlayer":"p1","hash":"0x7b2b03cd","t":"round","turn":166}  -  Server - GameServer:241
+  12:34:27.077  [R4CODE] turn=166 code=0NAW-475X-JP0YD  -  Server - GameServer:416
+  12:34:27.201  [Options] auto end turn 166  -  Client - Options:338
+  12:34:27.338  [R4LOG] {"activePlayer":"p1","hash":"0x9100a80f","t":"round","turn":167}  -  Server - GameServer:241
+  12:34:27.348  [R4CODE] turn=167 code=4QCP-ZPY8-G1A0F  -  Server - GameServer:416
+  12:34:27.566  [Options] auto end turn 167  -  Client - Options:338
+  12:34:27.687  [R4LOG] {"activePlayer":"p1","hash":"0xc8521626","t":"round","turn":168}  -  Server - GameServer:241
+  12:34:27.698  [R4CODE] turn=168 code=58YB-VXK4-545H6  -  Server - GameServer:416
+  12:34:27.890  [Options] auto end turn 168  -  Client - Options:338
+  12:34:28.004  [R4LOG] {"activePlayer":"p1","hash":"0x1560e2f2","t":"round","turn":169}  -  Server - GameServer:241
+  12:34:28.013  [R4CODE] turn=169 code=8GGV-JK0A-P1RQJ  -  Server - GameServer:416
+  12:34:28.211  [Options] auto end turn 169  -  Client - Options:338
+  12:34:28.327  [R4LOG] {"activePlayer":"p1","hash":"0x248c7d71","t":"round","turn":170}  -  Server - GameServer:241
+  12:34:28.336  [R4CODE] turn=170 code=CE0D-D7MJ-8RZBH  -  Server - GameServer:416
+  12:34:28.358  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:28.499  [Options] auto end turn 170  -  Client - Options:338
+  12:34:28.618  [R4LOG] {"activePlayer":"p1","hash":"0x55889663","t":"round","turn":171}  -  Server - GameServer:241
+  12:34:28.628  [R4CODE] turn=171 code=FEGZ-Q6DA-RH5K3  -  Server - GameServer:416
+  12:34:28.826  [Options] auto end turn 171  -  Client - Options:338
+  12:34:28.946  [R4LOG] {"activePlayer":"p1","hash":"0xbe61a50a","t":"round","turn":172}  -  Server - GameServer:241
+  12:34:28.956  [R4CODE] turn=172 code=1GKZ-DGTZ-6398A  -  Server - GameServer:416
+  12:34:29.155  [Options] auto end turn 172  -  Client - Options:338
+  12:34:29.276  [R4LOG] {"activePlayer":"p1","hash":"0x7f737fc1","t":"round","turn":173}  -  Server - GameServer:241
+  12:34:29.285  [R4CODE] turn=173 code=AQ73-FGNZ-Q6ZY1  -  Server - GameServer:416
+  12:34:29.488  [Options] auto end turn 173  -  Client - Options:338
+  12:34:29.620  [R4LOG] {"activePlayer":"p1","hash":"0xaeb06d92","t":"round","turn":174}  -  Server - GameServer:241
+  12:34:29.629  [R4CODE] turn=174 code=AR0Y-V72Q-B0VCJ  -  Server - GameServer:416
+  12:34:29.758  [Options] auto end turn 174  -  Client - Options:338
+  12:34:29.910  [R4LOG] {"activePlayer":"p1","hash":"0xf8f925e1","t":"round","turn":175}  -  Server - GameServer:241
+  12:34:29.919  [R4CODE] turn=175 code=4R6T-3CQW-FJ9F1  -  Server - GameServer:416
+  12:34:30.080  [Options] auto end turn 175  -  Client - Options:338
+  12:34:30.201  [R4LOG] {"activePlayer":"p1","hash":"0x599ba97e","t":"round","turn":176}  -  Server - GameServer:241
+  12:34:30.210  [R4CODE] turn=176 code=7N6K-669C-SQABY  -  Server - GameServer:416
+  12:34:30.414  [Options] auto end turn 176  -  Client - Options:338
+  12:34:30.541  [R4LOG] {"activePlayer":"p1","hash":"0xf799dbb2","t":"round","turn":177}  -  Server - GameServer:241
+  12:34:30.551  [R4CODE] turn=177 code=CCK4-VKKV-SKPXJ  -  Server - GameServer:416
+  12:34:30.757  [Options] auto end turn 177  -  Client - Options:338
+  12:34:30.883  [R4LOG] {"activePlayer":"p1","hash":"0x7b8b0253","t":"round","turn":178}  -  Server - GameServer:241
+  12:34:30.893  [R4CODE] turn=178 code=FJD6-REDX-RP0JK  -  Server - GameServer:416
+  12:34:31.025  [Options] auto end turn 178  -  Client - Options:338
+  12:34:31.179  [R4LOG] {"activePlayer":"p1","hash":"0x4abb0c0d","t":"round","turn":179}  -  Server - GameServer:241
+  12:34:31.189  [R4CODE] turn=179 code=2HVY-H555-BP30D  -  Server - GameServer:416
+  12:34:31.338  [Options] auto end turn 179  -  Client - Options:338
+  12:34:31.467  [R4LOG] {"activePlayer":"p1","hash":"0x2c96f866","t":"round","turn":180}  -  Server - GameServer:241
+  12:34:31.477  [R4CODE] turn=180 code=DCSF-1G8P-9DY36  -  Server - GameServer:416
+  12:34:31.499  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:31.701  [Options] auto end turn 180  -  Client - Options:338
+  12:34:31.839  [R4LOG] {"activePlayer":"p1","hash":"0x20aec905","t":"round","turn":181}  -  Server - GameServer:241
+  12:34:31.849  [R4CODE] turn=181 code=3B8X-A7MG-AXJ85  -  Server - GameServer:416
+  12:34:32.064  [Options] auto end turn 181  -  Client - Options:338
+  12:34:32.193  [R4LOG] {"activePlayer":"p1","hash":"0xc1942569","t":"round","turn":182}  -  Server - GameServer:241
+  12:34:32.203  [R4CODE] turn=182 code=1P5A-E8Q0-S89B9  -  Server - GameServer:416
+  12:34:32.366  [Options] auto end turn 182  -  Client - Options:338
+  12:34:32.500  [R4LOG] {"activePlayer":"p1","hash":"0x7b48755d","t":"round","turn":183}  -  Server - GameServer:241
+  12:34:32.510  [R4CODE] turn=183 code=347G-M1NX-MGXAX  -  Server - GameServer:416
+  12:34:32.676  [Options] auto end turn 183  -  Client - Options:338
+  12:34:32.811  [R4LOG] {"activePlayer":"p1","hash":"0xd5b969ba","t":"round","turn":184}  -  Server - GameServer:241
+  12:34:32.820  [R4CODE] turn=184 code=3HXQ-HMVA-VJTDT  -  Server - GameServer:416
+  12:34:32.983  [Options] auto end turn 184  -  Client - Options:338
+  12:34:33.121  [R4LOG] {"activePlayer":"p1","hash":"0x7e66198b","t":"round","turn":185}  -  Server - GameServer:241
+  12:34:33.130  [R4CODE] turn=185 code=86ZB-P5DZ-6C6CB  -  Server - GameServer:416
+  12:34:33.347  [Options] auto end turn 185  -  Client - Options:338
+  12:34:33.481  [R4LOG] {"activePlayer":"p1","hash":"0xc58eaf05","t":"round","turn":186}  -  Server - GameServer:241
+  12:34:33.490  [R4CODE] turn=186 code=0CS1-KX72-RXBR5  -  Server - GameServer:416
+  12:34:33.711  [Options] auto end turn 186  -  Client - Options:338
+  12:34:33.843  [R4LOG] {"activePlayer":"p1","hash":"0x6fab069c","t":"round","turn":187}  -  Server - GameServer:241
+  12:34:33.853  [R4CODE] turn=187 code=5T4G-CX9Q-TP1MW  -  Server - GameServer:416
+  12:34:34.023  [Options] auto end turn 187  -  Client - Options:338
+  12:34:34.160  [R4LOG] {"activePlayer":"p1","hash":"0x1d5109b9","t":"round","turn":188}  -  Server - GameServer:241
+  12:34:34.170  [R4CODE] turn=188 code=3AGG-F4ME-N22DS  -  Server - GameServer:416
+  12:34:34.341  [Options] auto end turn 188  -  Client - Options:338
+  12:34:34.477  [R4LOG] {"activePlayer":"p1","hash":"0xea6c6c6e","t":"round","turn":189}  -  Server - GameServer:241
+  12:34:34.487  [R4CODE] turn=189 code=1HK2-VWBN-6RV3E  -  Server - GameServer:416
+  12:34:34.661  [Options] auto end turn 189  -  Client - Options:338
+  12:34:34.805  [R4LOG] {"activePlayer":"p1","hash":"0xc1a0bb54","t":"round","turn":190}  -  Server - GameServer:241
+  12:34:34.815  [R4CODE] turn=190 code=7BS8-KK30-T1ETM  -  Server - GameServer:416
+  12:34:34.837  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:34.995  [Options] auto end turn 190  -  Client - Options:338
+  12:34:35.136  [R4LOG] {"activePlayer":"p1","hash":"0x7b1a20a1","t":"round","turn":191}  -  Server - GameServer:241
+  12:34:35.147  [R4CODE] turn=191 code=3604-N85X-HM851  -  Server - GameServer:416
+  12:34:35.319  [Options] auto end turn 191  -  Client - Options:338
+  12:34:35.456  [R4LOG] {"activePlayer":"p1","hash":"0xfe8fb420","t":"round","turn":192}  -  Server - GameServer:241
+  12:34:35.466  [R4CODE] turn=192 code=6DZ1-CVVZ-8ZD10  -  Server - GameServer:416
+  12:34:35.640  [Options] auto end turn 192  -  Client - Options:338
+  12:34:35.780  [R4LOG] {"activePlayer":"p1","hash":"0x984798cb","t":"round","turn":193}  -  Server - GameServer:241
+  12:34:35.790  [R4CODE] turn=193 code=8HB2-CKEC-4F66B  -  Server - GameServer:416
+  12:34:36.015  [Options] auto end turn 193  -  Client - Options:338
+  12:34:36.150  [R4LOG] {"activePlayer":"p1","hash":"0x731abe71","t":"round","turn":194}  -  Server - GameServer:241
+  12:34:36.161  [R4CODE] turn=194 code=5NJ8-965S-HNFKH  -  Server - GameServer:416
+  12:34:36.338  [Options] auto end turn 194  -  Client - Options:338
+  12:34:36.475  [R4LOG] {"activePlayer":"p1","hash":"0xcc417fce","t":"round","turn":195}  -  Server - GameServer:241
+  12:34:36.485  [R4CODE] turn=195 code=59Y8-3KK6-42ZYE  -  Server - GameServer:416
+  12:34:36.663  [Options] auto end turn 195  -  Client - Options:338
+  12:34:36.801  [R4LOG] {"activePlayer":"p1","hash":"0x730a4b2a","t":"round","turn":196}  -  Server - GameServer:241
+  12:34:36.811  [R4CODE] turn=196 code=B3YE-MTSS-GMJSA  -  Server - GameServer:416
+  12:34:36.991  [Options] auto end turn 196  -  Client - Options:338
+  12:34:37.132  [R4LOG] {"activePlayer":"p1","hash":"0x9f4975b3","t":"round","turn":197}  -  Server - GameServer:241
+  12:34:37.141  [R4CODE] turn=197 code=AHSB-QCEF-MJXDK  -  Server - GameServer:416
+  12:34:37.319  [Options] auto end turn 197  -  Client - Options:338
+  12:34:37.457  [R4LOG] {"activePlayer":"p1","hash":"0x8bea5bac","t":"round","turn":198}  -  Server - GameServer:241
+  12:34:37.467  [R4CODE] turn=198 code=7Z3Y-6XT5-YMPXC  -  Server - GameServer:416
+  12:34:37.646  [Options] auto end turn 198  -  Client - Options:338
+  12:34:37.784  [R4LOG] {"activePlayer":"p1","hash":"0xa7a85478","t":"round","turn":199}  -  Server - GameServer:241
+  12:34:37.794  [R4CODE] turn=199 code=4MH4-KT2K-TGN3R  -  Server - GameServer:416
+  12:34:37.968  [Options] auto end turn 199  -  Client - Options:338
+  12:34:38.106  [R4LOG] {"activePlayer":"p1","hash":"0x864935ea","t":"round","turn":200}  -  Server - GameServer:241
+  12:34:38.117  [R4CODE] turn=200 code=B4Z6-1CA3-4JDFA  -  Server - GameServer:416
+  12:34:38.140  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:38.317  [Options] auto end turn 200  -  Client - Options:338
+  12:34:38.460  [R4LOG] {"activePlayer":"p1","hash":"0xcf0e540d","t":"round","turn":201}  -  Server - GameServer:241
+  12:34:38.470  [R4CODE] turn=201 code=C9CD-E377-GWN0D  -  Server - GameServer:416
+  12:34:38.653  [Options] auto end turn 201  -  Client - Options:338
+  12:34:38.791  [R4LOG] {"activePlayer":"p1","hash":"0x42c95ff7","t":"round","turn":202}  -  Server - GameServer:241
+  12:34:38.801  [R4CODE] turn=202 code=9TGT-H7X1-CJQZQ  -  Server - GameServer:416
+  12:34:38.982  [Options] auto end turn 202  -  Client - Options:338
+  12:34:39.121  [R4LOG] {"activePlayer":"p1","hash":"0x21e7597f","t":"round","turn":203}  -  Server - GameServer:241
+  12:34:39.131  [R4CODE] turn=203 code=126V-77WG-YEPBZ  -  Server - GameServer:416
+  12:34:39.311  [Options] auto end turn 203  -  Client - Options:338
+  12:34:39.453  [R4LOG] {"activePlayer":"p1","hash":"0xab96e87b","t":"round","turn":204}  -  Server - GameServer:241
+  12:34:39.463  [R4CODE] turn=204 code=8SVG-3DEN-SDT3V  -  Server - GameServer:416
+  12:34:39.650  [Options] auto end turn 204  -  Client - Options:338
+  12:34:39.787  [R4LOG] {"activePlayer":"p1","hash":"0x7840579d","t":"round","turn":205}  -  Server - GameServer:241
+  12:34:39.797  [R4CODE] turn=205 code=AGGW-MCNW-40NWX  -  Server - GameServer:416
+  12:34:39.979  [Options] auto end turn 205  -  Client - Options:338
+  12:34:40.121  [R4LOG] {"activePlayer":"p1","hash":"0x1f3994d9","t":"round","turn":206}  -  Server - GameServer:241
+  12:34:40.131  [R4CODE] turn=206 code=8DX9-ZF4F-KK56S  -  Server - GameServer:416
+  12:34:40.286  [Options] auto end turn 206  -  Client - Options:338
+  12:34:40.472  [R4LOG] {"activePlayer":"p1","hash":"0x1bad7eb5","t":"round","turn":207}  -  Server - GameServer:241
+  12:34:40.483  [R4CODE] turn=207 code=FXYN-8RMD-TTZNN  -  Server - GameServer:416
+  12:34:40.673  [Options] auto end turn 207  -  Client - Options:338
+  12:34:40.854  [R4LOG] {"activePlayer":"p1","hash":"0x8b97c446","t":"round","turn":208}  -  Server - GameServer:241
+  12:34:40.864  [R4CODE] turn=208 code=52M3-MMJ5-SFH26  -  Server - GameServer:416
+  12:34:41.016  [Options] auto end turn 208  -  Client - Options:338
+  12:34:41.191  [R4LOG] {"activePlayer":"p1","hash":"0xc398695f","t":"round","turn":209}  -  Server - GameServer:241
+  12:34:41.202  [R4CODE] turn=209 code=5YZM-WGZ1-SGTAZ  -  Server - GameServer:416
+  12:34:41.387  [Options] auto end turn 209  -  Client - Options:338
+  12:34:41.551  [R4LOG] {"activePlayer":"p1","hash":"0x812863ec","t":"round","turn":210}  -  Server - GameServer:241
+  12:34:41.562  [R4CODE] turn=210 code=8T1B-VBT0-JGRZC  -  Server - GameServer:416
+  12:34:41.585  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:42.015  [Options] auto end turn 210  -  Client - Options:338
+  12:34:42.170  [R4LOG] {"activePlayer":"p1","hash":"0xd115135b","t":"round","turn":211}  -  Server - GameServer:241
+  12:34:42.180  [R4CODE] turn=211 code=C5K0-RKF8-HA4TV  -  Server - GameServer:416
+  12:34:42.366  [Options] auto end turn 211  -  Client - Options:338
+  12:34:42.521  [R4LOG] {"activePlayer":"p1","hash":"0x1a3f5097","t":"round","turn":212}  -  Server - GameServer:241
+  12:34:42.531  [R4CODE] turn=212 code=24TG-9AWD-3YM4Q  -  Server - GameServer:416
+  12:34:42.721  [Options] auto end turn 212  -  Client - Options:338
+  12:34:42.864  [R4LOG] {"activePlayer":"p1","hash":"0x074ad23e","t":"round","turn":213}  -  Server - GameServer:241
+  12:34:42.874  [R4CODE] turn=213 code=C04P-RFR3-MNMHY  -  Server - GameServer:416
+  12:34:43.332  [Options] auto end turn 213  -  Client - Options:338
+  12:34:43.466  [R4LOG] {"activePlayer":"p1","hash":"0x88eccae5","t":"round","turn":214}  -  Server - GameServer:241
+  12:34:43.477  [R4CODE] turn=214 code=6VPT-DH64-ESJQ5  -  Server - GameServer:416
+  12:34:43.723  [Options] auto end turn 214  -  Client - Options:338
+  12:34:43.849  [R4LOG] {"activePlayer":"p1","hash":"0xa9ca2971","t":"round","turn":215}  -  Server - GameServer:241
+  12:34:43.859  [R4CODE] turn=215 code=EF6K-3GPM-WMABH  -  Server - GameServer:416
+  12:34:44.104  [Options] auto end turn 215  -  Client - Options:338
+  12:34:44.247  [R4LOG] {"activePlayer":"p1","hash":"0x28eab8b2","t":"round","turn":216}  -  Server - GameServer:241
+  12:34:44.258  [R4CODE] turn=216 code=2R85-ZNGM-ENE5J  -  Server - GameServer:416
+  12:34:44.632  [Options] auto end turn 216  -  Client - Options:338
+  12:34:44.784  [R4LOG] {"activePlayer":"p1","hash":"0x80f50b6a","t":"round","turn":217}  -  Server - GameServer:241
+  12:34:44.795  [R4CODE] turn=217 code=1WWQ-AR20-FA2VA  -  Server - GameServer:416
+  12:34:45.042  [Options] auto end turn 217  -  Client - Options:338
+  12:34:45.188  [R4LOG] {"activePlayer":"p1","hash":"0xca061288","t":"round","turn":218}  -  Server - GameServer:241
+  12:34:45.198  [R4CODE] turn=218 code=8BMS-VZV5-0C4M8  -  Server - GameServer:416
+  12:34:45.450  [Options] auto end turn 218  -  Client - Options:338
+  12:34:45.600  [R4LOG] {"activePlayer":"p1","hash":"0x23fcce0f","t":"round","turn":219}  -  Server - GameServer:241
+  12:34:45.611  [R4CODE] turn=219 code=3EVH-JRWH-ZSKGF  -  Server - GameServer:416
+  12:34:45.950  [Options] auto end turn 219  -  Client - Options:338
+  12:34:46.138  [R4LOG] {"activePlayer":"p1","hash":"0x71667191","t":"round","turn":220}  -  Server - GameServer:241
+  12:34:46.149  [R4CODE] turn=220 code=7PF9-PNNR-PCWCH  -  Server - GameServer:416
+  12:34:46.175  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:46.427  [Options] auto end turn 220  -  Client - Options:338
+  12:34:46.586  [R4LOG] {"activePlayer":"p1","hash":"0xa1a975a9","t":"round","turn":221}  -  Server - GameServer:241
+  12:34:46.598  [R4CODE] turn=221 code=E9NB-FRPG-TJXD9  -  Server - GameServer:416
+  12:34:46.795  [Options] auto end turn 221  -  Client - Options:338
+  12:34:46.959  [R4LOG] {"activePlayer":"p1","hash":"0xfed2d035","t":"round","turn":222}  -  Server - GameServer:241
+  12:34:46.972  [R4CODE] turn=222 code=8CVY-W97Z-D5M1N  -  Server - GameServer:416
+  12:34:47.332  [Options] auto end turn 222  -  Client - Options:338
+  12:34:47.492  [R4LOG] {"activePlayer":"p1","hash":"0x40335223","t":"round","turn":223}  -  Server - GameServer:241
+  12:34:47.502  [R4CODE] turn=223 code=FA6C-VKD0-36MH3  -  Server - GameServer:416
+  12:34:47.774  [Options] auto end turn 223  -  Client - Options:338
+  12:34:47.932  [R4LOG] {"activePlayer":"p1","hash":"0x5e2e2cac","t":"round","turn":224}  -  Server - GameServer:241
+  12:34:47.943  [R4CODE] turn=224 code=AC8E-P39F-2WB5C  -  Server - GameServer:416
+  12:34:48.143  [Options] auto end turn 224  -  Client - Options:338
+  12:34:48.305  [R4LOG] {"activePlayer":"p1","hash":"0x8fa7963d","t":"round","turn":225}  -  Server - GameServer:241
+  12:34:48.316  [R4CODE] turn=225 code=7F9V-HJP7-TF5HX  -  Server - GameServer:416
+  12:34:48.683  [Options] auto end turn 225  -  Client - Options:338
+  12:34:48.848  [R4LOG] {"activePlayer":"p1","hash":"0x6c1ee6ad","t":"round","turn":226}  -  Server - GameServer:241
+  12:34:48.858  [R4CODE] turn=226 code=D9BQ-QR5P-1XSND  -  Server - GameServer:416
+  12:34:49.120  [Options] auto end turn 226  -  Client - Options:338
+  12:34:49.324  [R4LOG] {"activePlayer":"p1","hash":"0x387d6507","t":"round","turn":227}  -  Server - GameServer:241
+  12:34:49.335  [R4CODE] turn=227 code=5338-9FWW-7TS87  -  Server - GameServer:416
+  12:34:49.537  [Options] auto end turn 227  -  Client - Options:338
+  12:34:49.747  [R4LOG] {"activePlayer":"p1","hash":"0xc80ef63a","t":"round","turn":228}  -  Server - GameServer:241
+  12:34:49.758  [R4CODE] turn=228 code=5ADH-X2K4-0XXHT  -  Server - GameServer:416
+  12:34:50.028  [Options] auto end turn 228  -  Client - Options:338
+  12:34:50.213  [R4LOG] {"activePlayer":"p1","hash":"0xdc81df88","t":"round","turn":229}  -  Server - GameServer:241
+  12:34:50.224  [R4CODE] turn=229 code=3DRV-FP3E-83QW8  -  Server - GameServer:416
+  12:34:50.498  [Options] auto end turn 229  -  Client - Options:338
+  12:34:50.644  [R4LOG] {"activePlayer":"p1","hash":"0x5c602192","t":"round","turn":230}  -  Server - GameServer:241
+  12:34:50.654  [R4CODE] turn=230 code=84XE-NGHE-608CJ  -  Server - GameServer:416
+  12:34:50.680  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:50.928  [Options] auto end turn 230  -  Client - Options:338
+  12:34:51.073  [R4LOG] {"activePlayer":"p1","hash":"0x5706132d","t":"round","turn":231}  -  Server - GameServer:241
+  12:34:51.085  [R4CODE] turn=231 code=E09M-MKNB-GC4SD  -  Server - GameServer:416
+  12:34:51.401  [Options] auto end turn 231  -  Client - Options:338
+  12:34:51.544  [R4LOG] {"activePlayer":"p1","hash":"0xfd700169","t":"round","turn":232}  -  Server - GameServer:241
+  12:34:51.556  [R4CODE] turn=232 code=C5NB-PFQY-Q00B9  -  Server - GameServer:416
+  12:34:51.836  [Options] auto end turn 232  -  Client - Options:338
+  12:34:51.996  [R4LOG] {"activePlayer":"p1","hash":"0xbc192bc0","t":"round","turn":233}  -  Server - GameServer:241
+  12:34:52.007  [R4CODE] turn=233 code=0ACT-K4AY-1JAY0  -  Server - GameServer:416
+  12:34:52.274  [Options] auto end turn 233  -  Client - Options:338
+  12:34:52.432  [R4LOG] {"activePlayer":"p1","hash":"0x93e5303a","t":"round","turn":234}  -  Server - GameServer:241
+  12:34:52.445  [R4CODE] turn=234 code=1GJK-CWJ9-YAC1T  -  Server - GameServer:416
+  12:34:52.731  [Options] auto end turn 234  -  Client - Options:338
+  12:34:52.856  [R4LOG] {"activePlayer":"p1","hash":"0x50c7bbf3","t":"round","turn":235}  -  Server - GameServer:241
+  12:34:52.867  [R4CODE] turn=235 code=6GYX-JGD8-CFEZK  -  Server - GameServer:416
+  12:34:53.183  [Options] auto end turn 235  -  Client - Options:338
+  12:34:53.325  [R4LOG] {"activePlayer":"p1","hash":"0x2fdcb1dc","t":"round","turn":236}  -  Server - GameServer:241
+  12:34:53.336  [R4CODE] turn=236 code=5V3F-FYGQ-XSCEW  -  Server - GameServer:416
+  12:34:53.626  [Options] auto end turn 236  -  Client - Options:338
+  12:34:53.809  [R4LOG] {"activePlayer":"p1","hash":"0x8ca382f6","t":"round","turn":237}  -  Server - GameServer:241
+  12:34:53.820  [R4CODE] turn=237 code=7FWQ-NNJ6-A70QP  -  Server - GameServer:416
+  12:34:54.090  [Options] auto end turn 237  -  Client - Options:338
+  12:34:54.294  [R4LOG] {"activePlayer":"p1","hash":"0x246b8813","t":"round","turn":238}  -  Server - GameServer:241
+  12:34:54.305  [R4CODE] turn=238 code=8BE1-B6CJ-6Q20K  -  Server - GameServer:416
+  12:34:54.515  [Options] auto end turn 238  -  Client - Options:338
+  12:34:54.706  [R4LOG] {"activePlayer":"p1","hash":"0x31ce790b","t":"round","turn":239}  -  Server - GameServer:241
+  12:34:54.718  [R4CODE] turn=239 code=9YY0-J2CR-WWY8B  -  Server - GameServer:416
+  12:34:54.990  [Options] auto end turn 239  -  Client - Options:338
+  12:34:55.159  [R4LOG] {"activePlayer":"p1","hash":"0xec4baa44","t":"round","turn":240}  -  Server - GameServer:241
+  12:34:55.170  [R4CODE] turn=240 code=BCEG-7ZKP-4QAJ4  -  Server - GameServer:416
+  12:34:55.195  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:34:55.484  [Options] auto end turn 240  -  Client - Options:338
+  12:34:55.668  [R4LOG] {"activePlayer":"p1","hash":"0x411cfd04","t":"round","turn":241}  -  Server - GameServer:241
+  12:34:55.679  [R4CODE] turn=241 code=3P83-JQH0-HSZ84  -  Server - GameServer:416
+  12:34:55.892  [Options] auto end turn 241  -  Client - Options:338
+  12:34:56.128  [R4LOG] {"activePlayer":"p1","hash":"0x66b5efcb","t":"round","turn":242}  -  Server - GameServer:241
+  12:34:56.139  [R4CODE] turn=242 code=D4QK-J2DK-BBVYB  -  Server - GameServer:416
+  12:34:56.355  [Options] auto end turn 242  -  Client - Options:338
+  12:34:56.602  [R4LOG] {"activePlayer":"p1","hash":"0x67c40ffb","t":"round","turn":243}  -  Server - GameServer:241
+  12:34:56.613  [R4CODE] turn=243 code=C947-7NDK-W83ZV  -  Server - GameServer:416
+  12:34:56.893  [Options] auto end turn 243  -  Client - Options:338
+  12:34:57.129  [R4LOG] {"activePlayer":"p1","hash":"0xd64191c1","t":"round","turn":244}  -  Server - GameServer:241
+  12:34:57.141  [R4CODE] turn=244 code=4YPR-48QB-434E1  -  Server - GameServer:416
+  12:34:57.320  [Options] auto end turn 244  -  Client - Options:338
+  12:34:57.563  [R4LOG] {"activePlayer":"p1","hash":"0x3aee44dc","t":"round","turn":245}  -  Server - GameServer:241
+  12:34:57.575  [R4CODE] turn=245 code=1GG8-Y9RX-EWH6W  -  Server - GameServer:416
+  12:34:57.796  [Options] auto end turn 245  -  Client - Options:338
+  12:34:58.055  [R4LOG] {"activePlayer":"p1","hash":"0x99b6f5ea","t":"round","turn":246}  -  Server - GameServer:241
+  12:34:58.066  [R4CODE] turn=246 code=94QS-VW2C-VDXFA  -  Server - GameServer:416
+  12:34:58.353  [Options] auto end turn 246  -  Client - Options:338
+  12:34:58.604  [R4LOG] {"activePlayer":"p1","hash":"0xd334f580","t":"round","turn":247}  -  Server - GameServer:241
+  12:34:58.616  [R4CODE] turn=247 code=E2GP-RXB9-K9XC0  -  Server - GameServer:416
+  12:34:58.834  [Options] auto end turn 247  -  Client - Options:338
+  12:34:59.048  [R4LOG] {"activePlayer":"p1","hash":"0x6790769b","t":"round","turn":248}  -  Server - GameServer:241
+  12:34:59.061  [R4CODE] turn=248 code=9AW2-CHDK-S0XMV  -  Server - GameServer:416
+  12:34:59.283  [Options] auto end turn 248  -  Client - Options:338
+  12:34:59.457  [R4LOG] {"activePlayer":"p1","hash":"0xc8037efc","t":"round","turn":249}  -  Server - GameServer:241
+  12:34:59.468  [R4CODE] turn=249 code=EN70-34B4-06ZQW  -  Server - GameServer:416
+  12:34:59.800  [Options] auto end turn 249  -  Client - Options:338
+  12:34:59.975  [R4LOG] {"activePlayer":"p1","hash":"0x957e872c","t":"round","turn":250}  -  Server - GameServer:241
+  12:34:59.986  [R4CODE] turn=250 code=BVB0-ZTAA-QX1SC  -  Server - GameServer:416
+  12:35:00.013  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:00.290  [Options] auto end turn 250  -  Client - Options:338
+  12:35:00.459  [R4LOG] {"activePlayer":"p1","hash":"0x3cb044bf","t":"round","turn":251}  -  Server - GameServer:241
+  12:35:00.470  [R4CODE] turn=251 code=4B64-SVWY-B0H5Z  -  Server - GameServer:416
+  12:35:00.699  [Options] auto end turn 251  -  Client - Options:338
+  12:35:00.905  [R4LOG] {"activePlayer":"p1","hash":"0x079c1f77","t":"round","turn":252}  -  Server - GameServer:241
+  12:35:00.917  [R4CODE] turn=252 code=13CS-20W3-SR7VQ  -  Server - GameServer:416
+  12:35:01.217  [Options] auto end turn 252  -  Client - Options:338
+  12:35:01.413  [R4LOG] {"activePlayer":"p1","hash":"0x1fa7aa6a","t":"round","turn":253}  -  Server - GameServer:241
+  12:35:01.425  [R4CODE] turn=253 code=A4PZ-7JRF-TFAKA  -  Server - GameServer:416
+  12:35:01.658  [Options] auto end turn 253  -  Client - Options:338
+  12:35:01.889  [R4LOG] {"activePlayer":"p1","hash":"0xf771cea5","t":"round","turn":254}  -  Server - GameServer:241
+  12:35:01.900  [R4CODE] turn=254 code=CS0H-SJQV-Q3KN5  -  Server - GameServer:416
+  12:35:02.134  [Options] auto end turn 254  -  Client - Options:338
+  12:35:02.347  [R4LOG] {"activePlayer":"p1","hash":"0xdb7d0f89","t":"round","turn":255}  -  Server - GameServer:241
+  12:35:02.359  [R4CODE] turn=255 code=C1WJ-047D-QT3W9  -  Server - GameServer:416
+  12:35:02.663  [Options] auto end turn 255  -  Client - Options:338
+  12:35:02.883  [R4LOG] {"activePlayer":"p1","hash":"0xc7823ac9","t":"round","turn":256}  -  Server - GameServer:241
+  12:35:02.896  [R4CODE] turn=256 code=15S6-QFQ3-R4EP9  -  Server - GameServer:416
+  12:35:03.131  [Options] auto end turn 256  -  Client - Options:338
+  12:35:03.341  [R4LOG] {"activePlayer":"p1","hash":"0x203442d6","t":"round","turn":257}  -  Server - GameServer:241
+  12:35:03.354  [R4CODE] turn=257 code=64BN-56GG-38GPP  -  Server - GameServer:416
+  12:35:03.596  [Options] auto end turn 257  -  Client - Options:338
+  12:35:03.816  [R4LOG] {"activePlayer":"p1","hash":"0xcbdbaee5","t":"round","turn":258}  -  Server - GameServer:241
+  12:35:03.828  [R4CODE] turn=258 code=3DQ5-47Q5-XQBQ5  -  Server - GameServer:416
+  12:35:04.135  [Options] auto end turn 258  -  Client - Options:338
+  12:35:04.312  [R4LOG] {"activePlayer":"p1","hash":"0xd4da1903","t":"round","turn":259}  -  Server - GameServer:241
+  12:35:04.324  [R4CODE] turn=259 code=AECT-EDFA-DM683  -  Server - GameServer:416
+  12:35:04.649  [Options] auto end turn 259  -  Client - Options:338
+  12:35:04.827  [R4LOG] {"activePlayer":"p1","hash":"0x99b3b40d","t":"round","turn":260}  -  Server - GameServer:241
+  12:35:04.839  [R4CODE] turn=260 code=9D5H-E1PC-V7D0D  -  Server - GameServer:416
+  12:35:04.866  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:05.048  [Options] auto end turn 260  -  Client - Options:338
+  12:35:05.281  [R4LOG] {"activePlayer":"p1","hash":"0xe4e194e7","t":"round","turn":261}  -  Server - GameServer:241
+  12:35:05.292  [R4CODE] turn=261 code=A25N-JSZJ-E3577  -  Server - GameServer:416
+  12:35:05.529  [Options] auto end turn 261  -  Client - Options:338
+  12:35:05.725  [R4LOG] {"activePlayer":"p1","hash":"0xadfa3414","t":"round","turn":262}  -  Server - GameServer:241
+  12:35:05.737  [R4CODE] turn=262 code=0D9Z-X4TP-ZMD0M  -  Server - GameServer:416
+  12:35:06.052  [Options] auto end turn 262  -  Client - Options:338
+  12:35:06.238  [R4LOG] {"activePlayer":"p1","hash":"0x38f0ffd0","t":"round","turn":263}  -  Server - GameServer:241
+  12:35:06.250  [R4CODE] turn=263 code=DP76-PX0W-F1ZYG  -  Server - GameServer:416
+  12:35:06.485  [Options] auto end turn 263  -  Client - Options:338
+  12:35:06.677  [R4LOG] {"activePlayer":"p1","hash":"0x5683814a","t":"round","turn":264}  -  Server - GameServer:241
+  12:35:06.688  [R4CODE] turn=264 code=8HA4-DHSB-870AA  -  Server - GameServer:416
+  12:35:07.002  [Options] auto end turn 264  -  Client - Options:338
+  12:35:07.192  [R4LOG] {"activePlayer":"p1","hash":"0xb99ba0a3","t":"round","turn":265}  -  Server - GameServer:241
+  12:35:07.204  [R4CODE] turn=265 code=EJMM-07EW-SQ853  -  Server - GameServer:416
+  12:35:07.512  [Options] auto end turn 265  -  Client - Options:338
+  12:35:07.712  [R4LOG] {"activePlayer":"p1","hash":"0x0d9a3955","t":"round","turn":266}  -  Server - GameServer:241
+  12:35:07.724  [R4CODE] turn=266 code=AGD6-D546-SMEAN  -  Server - GameServer:416
+  12:35:07.963  [Options] auto end turn 266  -  Client - Options:338
+  12:35:08.158  [R4LOG] {"activePlayer":"p1","hash":"0x8599bfe3","t":"round","turn":267}  -  Server - GameServer:241
+  12:35:08.170  [R4CODE] turn=267 code=7KFY-6VE2-SKFZ3  -  Server - GameServer:416
+  12:35:08.412  [Options] auto end turn 267  -  Client - Options:338
+  12:35:08.608  [R4LOG] {"activePlayer":"p1","hash":"0x86ef8072","t":"round","turn":268}  -  Server - GameServer:241
+  12:35:08.620  [R4CODE] turn=268 code=8TED-P0A3-EZ03J  -  Server - GameServer:416
+  12:35:08.937  [Options] auto end turn 268  -  Client - Options:338
+  12:35:09.137  [R4LOG] {"activePlayer":"p1","hash":"0x64fa156a","t":"round","turn":269}  -  Server - GameServer:241
+  12:35:09.150  [R4CODE] turn=269 code=1JM0-9R1J-FM5BA  -  Server - GameServer:416
+  12:35:09.474  [Options] auto end turn 269  -  Client - Options:338
+  12:35:09.683  [R4LOG] {"activePlayer":"p1","hash":"0x68d1d7f7","t":"round","turn":270}  -  Server - GameServer:241
+  12:35:09.695  [R4CODE] turn=270 code=7SE0-ZXXM-D3NZQ  -  Server - GameServer:416
+  12:35:09.723  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:09.956  [Options] auto end turn 270  -  Client - Options:338
+  12:35:10.164  [R4LOG] {"activePlayer":"p1","hash":"0xf85a5c3d","t":"round","turn":271}  -  Server - GameServer:241
+  12:35:10.176  [R4CODE] turn=271 code=6RK9-W3QW-5MQ1X  -  Server - GameServer:416
+  12:35:10.424  [Options] auto end turn 271  -  Client - Options:338
+  12:35:10.630  [R4LOG] {"activePlayer":"p1","hash":"0xf5f18a35","t":"round","turn":272}  -  Server - GameServer:241
+  12:35:10.643  [R4CODE] turn=272 code=07XR-SK7T-Z32HN  -  Server - GameServer:416
+  12:35:10.971  [Options] auto end turn 272  -  Client - Options:338
+  12:35:11.174  [R4LOG] {"activePlayer":"p1","hash":"0xe05653f4","t":"round","turn":273}  -  Server - GameServer:241
+  12:35:11.189  [R4CODE] turn=273 code=EW1R-4JVG-5CMZM  -  Server - GameServer:416
+  12:35:11.437  [Options] auto end turn 273  -  Client - Options:338
+  12:35:11.647  [R4LOG] {"activePlayer":"p1","hash":"0xda4fc3ba","t":"round","turn":274}  -  Server - GameServer:241
+  12:35:11.659  [R4CODE] turn=274 code=APSN-RHVD-4ZGXT  -  Server - GameServer:416
+  12:35:11.909  [Options] auto end turn 274  -  Client - Options:338
+  12:35:12.117  [R4LOG] {"activePlayer":"p1","hash":"0x7a62aca8","t":"round","turn":275}  -  Server - GameServer:241
+  12:35:12.130  [R4CODE] turn=275 code=EWEN-55SX-65B58  -  Server - GameServer:416
+  12:35:12.454  [Options] auto end turn 275  -  Client - Options:338
+  12:35:12.665  [R4LOG] {"activePlayer":"p1","hash":"0xaafd4fd4","t":"round","turn":276}  -  Server - GameServer:241
+  12:35:12.677  [R4CODE] turn=276 code=CFQP-MQAN-FTKYM  -  Server - GameServer:416
+  12:35:12.926  [Options] auto end turn 276  -  Client - Options:338
+  12:35:13.139  [R4LOG] {"activePlayer":"p1","hash":"0x5321da7f","t":"round","turn":277}  -  Server - GameServer:241
+  12:35:13.152  [R4CODE] turn=277 code=30NY-M4X9-J3PKZ  -  Server - GameServer:416
+  12:35:13.419  [Options] auto end turn 277  -  Client - Options:338
+  12:35:13.634  [R4LOG] {"activePlayer":"p1","hash":"0x3e214cb0","t":"round","turn":278}  -  Server - GameServer:241
+  12:35:13.646  [R4CODE] turn=278 code=244N-9WRZ-22K5G  -  Server - GameServer:416
+  12:35:13.898  [Options] auto end turn 278  -  Client - Options:338
+  12:35:14.112  [R4LOG] {"activePlayer":"p1","hash":"0xa9d34ea5","t":"round","turn":279}  -  Server - GameServer:241
+  12:35:14.127  [R4CODE] turn=279 code=7RA3-NN6M-X6KN5  -  Server - GameServer:416
+  12:35:14.454  [Options] auto end turn 279  -  Client - Options:338
+  12:35:14.672  [R4LOG] {"activePlayer":"p1","hash":"0x6394440e","t":"round","turn":280}  -  Server - GameServer:241
+  12:35:14.685  [R4CODE] turn=280 code=96Y8-AR9H-S8H0E  -  Server - GameServer:416
+  12:35:14.713  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:14.955  [Options] auto end turn 280  -  Client - Options:338
+  12:35:15.175  [R4LOG] {"activePlayer":"p1","hash":"0x94ea42b6","t":"round","turn":281}  -  Server - GameServer:241
+  12:35:15.187  [R4CODE] turn=281 code=1AN3-P2JA-EMGNP  -  Server - GameServer:416
+  12:35:15.441  [Options] auto end turn 281  -  Client - Options:338
+  12:35:15.666  [R4LOG] {"activePlayer":"p1","hash":"0xb65dcc9d","t":"round","turn":282}  -  Server - GameServer:241
+  12:35:15.678  [R4CODE] turn=282 code=40AK-NPPV-5VK4X  -  Server - GameServer:416
+  12:35:15.940  [Options] auto end turn 282  -  Client - Options:338
+  12:35:16.197  [R4LOG] {"activePlayer":"p1","hash":"0xcd619234","t":"round","turn":283}  -  Server - GameServer:241
+  12:35:16.212  [R4CODE] turn=283 code=5MB4-30B6-P34HM  -  Server - GameServer:416
+  12:35:16.492  [Options] auto end turn 283  -  Client - Options:338
+  12:35:16.723  [R4LOG] {"activePlayer":"p1","hash":"0x1c9088df","t":"round","turn":284}  -  Server - GameServer:241
+  12:35:16.736  [R4CODE] turn=284 code=CS4Q-BPWE-9126Z  -  Server - GameServer:416
+  12:35:16.950  [Options] auto end turn 284  -  Client - Options:338
+  12:35:17.218  [R4LOG] {"activePlayer":"p1","hash":"0x56b5a4b2","t":"round","turn":285}  -  Server - GameServer:241
+  12:35:17.232  [R4CODE] turn=285 code=CAKP-JC9B-BB95J  -  Server - GameServer:416
+  12:35:17.495  [Options] auto end turn 285  -  Client - Options:338
+  12:35:17.719  [R4LOG] {"activePlayer":"p1","hash":"0x94e90191","t":"round","turn":286}  -  Server - GameServer:241
+  12:35:17.733  [R4CODE] turn=286 code=2HYS-PA6A-EJ0CH  -  Server - GameServer:416
+  12:35:17.948  [Options] auto end turn 286  -  Client - Options:338
+  12:35:18.197  [R4LOG] {"activePlayer":"p1","hash":"0x565cf288","t":"round","turn":287}  -  Server - GameServer:241
+  12:35:18.209  [R4CODE] turn=287 code=09AC-TVSB-5SWM8  -  Server - GameServer:416
+  12:35:18.420  [Options] auto end turn 287  -  Client - Options:338
+  12:35:18.650  [R4LOG] {"activePlayer":"p1","hash":"0x4770aab2","t":"round","turn":288}  -  Server - GameServer:241
+  12:35:18.662  [R4CODE] turn=288 code=12W2-6CH3-Q1ANJ  -  Server - GameServer:416
+  12:35:19.002  [Options] auto end turn 288  -  Client - Options:338
+  12:35:19.222  [R4LOG] {"activePlayer":"p1","hash":"0x0e9c595c","t":"round","turn":289}  -  Server - GameServer:241
+  12:35:19.235  [R4CODE] turn=289 code=FADQ-1XG7-9RPAW  -  Server - GameServer:416
+  12:35:19.495  [Options] auto end turn 289  -  Client - Options:338
+  12:35:19.716  [R4LOG] {"activePlayer":"p1","hash":"0xffa49a83","t":"round","turn":290}  -  Server - GameServer:241
+  12:35:19.730  [R4CODE] turn=290 code=4P93-YAFZ-T96M3  -  Server - GameServer:416
+  12:35:19.760  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:20.006  [Options] auto end turn 290  -  Client - Options:338
+  12:35:20.229  [R4LOG] {"activePlayer":"p1","hash":"0x55b1f11b","t":"round","turn":291}  -  Server - GameServer:241
+  12:35:20.242  [R4CODE] turn=291 code=5M3T-A0DA-V3W8V  -  Server - GameServer:416
+  12:35:20.456  [Options] auto end turn 291  -  Client - Options:338
+  12:35:20.713  [R4LOG] {"activePlayer":"p1","hash":"0xe83a88ae","t":"round","turn":292}  -  Server - GameServer:241
+  12:35:20.726  [R4CODE] turn=292 code=BK66-DVBM-3N25E  -  Server - GameServer:416
+  12:35:20.985  [Options] auto end turn 292  -  Client - Options:338
+  12:35:21.209  [R4LOG] {"activePlayer":"p1","hash":"0xfcfe23b9","t":"round","turn":293}  -  Server - GameServer:241
+  12:35:21.222  [R4CODE] turn=293 code=5XAW-9BQY-FW8XS  -  Server - GameServer:416
+  12:35:21.569  [Options] auto end turn 293  -  Client - Options:338
+  12:35:21.807  [R4LOG] {"activePlayer":"p1","hash":"0x8a6e691f","t":"round","turn":294}  -  Server - GameServer:241
+  12:35:21.821  [R4CODE] turn=294 code=2WAX-P6Y5-6WT8Z  -  Server - GameServer:416
+  12:35:22.434  [Options] auto end turn 294  -  Client - Options:338
+  12:35:22.658  [R4LOG] {"activePlayer":"p1","hash":"0x8581d342","t":"round","turn":295}  -  Server - GameServer:241
+  12:35:22.671  [R4CODE] turn=295 code=873V-AWJ2-R3MT2  -  Server - GameServer:416
+  12:35:23.050  [Options] auto end turn 295  -  Client - Options:338
+  12:35:23.268  [R4LOG] {"activePlayer":"p1","hash":"0xdc0518da","t":"round","turn":296}  -  Server - GameServer:241
+  12:35:23.281  [R4CODE] turn=296 code=3B5Q-RV3E-0A66T  -  Server - GameServer:416
+  12:35:23.900  [Options] auto end turn 296  -  Client - Options:338
+  12:35:24.120  [R4LOG] {"activePlayer":"p1","hash":"0xe4bb1e27","t":"round","turn":297}  -  Server - GameServer:241
+  12:35:24.133  [R4CODE] turn=297 code=4SKP-ZFZJ-BP7H7  -  Server - GameServer:416
+  12:35:24.505  [Options] auto end turn 297  -  Client - Options:338
+  12:35:24.728  [R4LOG] {"activePlayer":"p1","hash":"0x084ee6d9","t":"round","turn":298}  -  Server - GameServer:241
+  12:35:24.740  [R4CODE] turn=298 code=3ZJ6-3Z44-4XSPS  -  Server - GameServer:416
+  12:35:25.367  [Options] auto end turn 298  -  Client - Options:338
+  12:35:25.587  [R4LOG] {"activePlayer":"p1","hash":"0x81c4efac","t":"round","turn":299}  -  Server - GameServer:241
+  12:35:25.599  [R4CODE] turn=299 code=0QEP-KRJ0-W9VXC  -  Server - GameServer:416
+  12:35:25.966  [Options] auto end turn 299  -  Client - Options:338
+  12:35:26.174  [R4LOG] {"activePlayer":"p1","hash":"0xae7f3bf8","t":"round","turn":300}  -  Server - GameServer:241
+  12:35:26.187  [R4CODE] turn=300 code=5P14-0JJQ-7YEZR  -  Server - GameServer:416
+  12:35:26.216  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:26.817  [Options] auto end turn 300  -  Client - Options:338
+  12:35:27.047  [R4LOG] {"activePlayer":"p1","hash":"0x97a816c7","t":"round","turn":301}  -  Server - GameServer:241
+  12:35:27.060  [R4CODE] turn=301 code=BJHQ-CFYB-TG5P7  -  Server - GameServer:416
+  12:35:27.421  [Options] auto end turn 301  -  Client - Options:338
+  12:35:27.652  [R4LOG] {"activePlayer":"p1","hash":"0x3af2e3e8","t":"round","turn":302}  -  Server - GameServer:241
+  12:35:27.665  [R4CODE] turn=302 code=9GZ0-998X-F5RZ8  -  Server - GameServer:416
+  12:35:28.283  [Options] auto end turn 302  -  Client - Options:338
+  12:35:28.511  [R4LOG] {"activePlayer":"p1","hash":"0x36d0d1d0","t":"round","turn":303}  -  Server - GameServer:241
+  12:35:28.524  [R4CODE] turn=303 code=AFSP-T5GV-D1MEG  -  Server - GameServer:416
+  12:35:28.895  [Options] auto end turn 303  -  Client - Options:338
+  12:35:29.105  [R4LOG] {"activePlayer":"p1","hash":"0x6c13696b","t":"round","turn":304}  -  Server - GameServer:241
+  12:35:29.118  [R4CODE] turn=304 code=3EQ7-FHDP-16TBB  -  Server - GameServer:416
+  12:35:29.750  [Options] auto end turn 304  -  Client - Options:338
+  12:35:29.973  [R4LOG] {"activePlayer":"p1","hash":"0x672aa1c9","t":"round","turn":305}  -  Server - GameServer:241
+  12:35:29.985  [R4CODE] turn=305 code=30SW-76NK-JN8E9  -  Server - GameServer:416
+  12:35:30.338  [Options] auto end turn 305  -  Client - Options:338
+  12:35:30.565  [R4LOG] {"activePlayer":"p1","hash":"0x1a98761d","t":"round","turn":306}  -  Server - GameServer:241
+  12:35:30.578  [R4CODE] turn=306 code=AFJM-QJMD-9GXGX  -  Server - GameServer:416
+  12:35:31.216  [Options] auto end turn 306  -  Client - Options:338
+  12:35:31.439  [R4LOG] {"activePlayer":"p1","hash":"0xd858d130","t":"round","turn":307}  -  Server - GameServer:241
+  12:35:31.451  [R4CODE] turn=307 code=1YXZ-ZAVC-5HM9G  -  Server - GameServer:416
+  12:35:31.810  [Options] auto end turn 307  -  Client - Options:338
+  12:35:32.058  [R4LOG] {"activePlayer":"p1","hash":"0xfdcbd636","t":"round","turn":308}  -  Server - GameServer:241
+  12:35:32.072  [R4CODE] turn=308 code=CY97-G9BY-WQNHP  -  Server - GameServer:416
+  12:35:32.683  [Options] auto end turn 308  -  Client - Options:338
+  12:35:32.904  [R4LOG] {"activePlayer":"p1","hash":"0x540bec20","t":"round","turn":309}  -  Server - GameServer:241
+  12:35:32.918  [R4CODE] turn=309 code=6ARD-331A-0QV10  -  Server - GameServer:416
+  12:35:33.299  [Options] auto end turn 309  -  Client - Options:338
+  12:35:33.504  [R4LOG] {"activePlayer":"p1","hash":"0xcf1dc738","t":"round","turn":310}  -  Server - GameServer:241
+  12:35:33.516  [R4CODE] turn=310 code=3D7B-S3V7-HVHSR  -  Server - GameServer:416
+  12:35:33.546  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:34.149  [Options] auto end turn 310  -  Client - Options:338
+  12:35:34.365  [R4LOG] {"activePlayer":"p1","hash":"0xbfe33aaf","t":"round","turn":311}  -  Server - GameServer:241
+  12:35:34.378  [R4CODE] turn=311 code=AW2Z-9JYZ-Y6ENF  -  Server - GameServer:416
+  12:35:34.755  [Options] auto end turn 311  -  Client - Options:338
+  12:35:34.979  [R4LOG] {"activePlayer":"p1","hash":"0x23448601","t":"round","turn":312}  -  Server - GameServer:241
+  12:35:34.992  [R4CODE] turn=312 code=D6BP-BSMH-M91G1  -  Server - GameServer:416
+  12:35:35.600  [Options] auto end turn 312  -  Client - Options:338
+  12:35:35.828  [R4LOG] {"activePlayer":"p1","hash":"0xd45e3429","t":"round","turn":313}  -  Server - GameServer:241
+  12:35:35.841  [R4CODE] turn=313 code=4TKJ-ZFQA-5WD19  -  Server - GameServer:416
+  12:35:36.222  [Options] auto end turn 313  -  Client - Options:338
+  12:35:36.449  [R4LOG] {"activePlayer":"p1","hash":"0xed81e83c","t":"round","turn":314}  -  Server - GameServer:241
+  12:35:36.462  [R4CODE] turn=314 code=354H-AS3P-R3T1W  -  Server - GameServer:416
+  12:35:37.067  [Options] auto end turn 314  -  Client - Options:338
+  12:35:37.298  [R4LOG] {"activePlayer":"p1","hash":"0xdd1249c8","t":"round","turn":315}  -  Server - GameServer:241
+  12:35:37.311  [R4CODE] turn=315 code=D5FX-16VE-H4JE8  -  Server - GameServer:416
+  12:35:37.694  [Options] auto end turn 315  -  Client - Options:338
+  12:35:37.912  [R4LOG] {"activePlayer":"p1","hash":"0xa5b6e483","t":"round","turn":316}  -  Server - GameServer:241
+  12:35:37.926  [R4CODE] turn=316 code=5J0J-JCEJ-VDS43  -  Server - GameServer:416
+  12:35:38.533  [Options] auto end turn 316  -  Client - Options:338
+  12:35:38.763  [R4LOG] {"activePlayer":"p1","hash":"0x89a7133e","t":"round","turn":317}  -  Server - GameServer:241
+  12:35:38.776  [R4CODE] turn=317 code=E7XP-7X24-TE4SY  -  Server - GameServer:416
+  12:35:39.164  [Options] auto end turn 317  -  Client - Options:338
+  12:35:39.385  [R4LOG] {"activePlayer":"p1","hash":"0x8f3ea21c","t":"round","turn":318}  -  Server - GameServer:241
+  12:35:39.398  [R4CODE] turn=318 code=CMAG-1VA7-KX8GW  -  Server - GameServer:416
+  12:35:40.016  [Options] auto end turn 318  -  Client - Options:338
+  12:35:40.248  [R4LOG] {"activePlayer":"p1","hash":"0x1dc21e05","t":"round","turn":319}  -  Server - GameServer:241
+  12:35:40.262  [R4CODE] turn=319 code=E159-8G4E-W47G5  -  Server - GameServer:416
+  12:35:40.631  [Options] auto end turn 319  -  Client - Options:338
+  12:35:40.860  [R4LOG] {"activePlayer":"p1","hash":"0x76b8b9f0","t":"round","turn":320}  -  Server - GameServer:241
+  12:35:40.874  [R4CODE] turn=320 code=9GWW-YPSV-BHEFG  -  Server - GameServer:416
+  12:35:40.904  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:41.499  [Options] auto end turn 320  -  Client - Options:338
+  12:35:41.737  [R4LOG] {"activePlayer":"p1","hash":"0x4d87db2c","t":"round","turn":321}  -  Server - GameServer:241
+  12:35:41.750  [R4CODE] turn=321 code=EJ27-5C16-RFPSC  -  Server - GameServer:416
+  12:35:42.123  [Options] auto end turn 321  -  Client - Options:338
+  12:35:42.363  [R4LOG] {"activePlayer":"p1","hash":"0xb9e02525","t":"round","turn":322}  -  Server - GameServer:241
+  12:35:42.376  [R4CODE] turn=322 code=75H1-VE6W-Y0995  -  Server - GameServer:416
+  12:35:42.983  [Options] auto end turn 322  -  Client - Options:338
+  12:35:43.217  [R4LOG] {"activePlayer":"p1","hash":"0x2a030437","t":"round","turn":323}  -  Server - GameServer:241
+  12:35:43.230  [R4CODE] turn=323 code=28A5-TXWN-0611Q  -  Server - GameServer:416
+  12:35:43.607  [Options] auto end turn 323  -  Client - Options:338
+  12:35:43.842  [R4LOG] {"activePlayer":"p1","hash":"0x0343ba41","t":"round","turn":324}  -  Server - GameServer:241
+  12:35:43.855  [R4CODE] turn=324 code=7QK8-YFM1-M7EJ1  -  Server - GameServer:416
+  12:35:43.870  [SO9] historian sent: the world enters renaissance  -  Server - GameServer:575
+  12:35:44.467  [Options] auto end turn 324  -  Client - Options:338
+  12:35:44.701  [R4LOG] {"activePlayer":"p1","hash":"0x81aa8707","t":"round","turn":325}  -  Server - GameServer:241
+  12:35:44.714  [R4CODE] turn=325 code=7HXE-CSY0-TN1R7  -  Server - GameServer:416
+  12:35:45.086  [Options] auto end turn 325  -  Client - Options:338
+  12:35:45.321  [R4LOG] {"activePlayer":"p1","hash":"0xb699b28e","t":"round","turn":326}  -  Server - GameServer:241
+  12:35:45.334  [R4CODE] turn=326 code=C1RV-ANTV-9KCME  -  Server - GameServer:416
+  12:35:45.950  [Options] auto end turn 326  -  Client - Options:338
+  12:35:46.196  [R4LOG] {"activePlayer":"p1","hash":"0x67a24b24","t":"round","turn":327}  -  Server - GameServer:241
+  12:35:46.214  [R4CODE] turn=327 code=6G86-0MHK-T4JS4  -  Server - GameServer:416
+  12:35:46.628  [Options] auto end turn 327  -  Client - Options:338
+  12:35:46.866  [R4LOG] {"activePlayer":"p1","hash":"0x724db326","t":"round","turn":328}  -  Server - GameServer:241
+  12:35:46.880  [R4CODE] turn=328 code=BPME-3A1S-4VCS6  -  Server - GameServer:416
+  12:35:47.483  [Options] auto end turn 328  -  Client - Options:338
+  12:35:47.720  [R4LOG] {"activePlayer":"p1","hash":"0x6ac178e5","t":"round","turn":329}  -  Server - GameServer:241
+  12:35:47.734  [R4CODE] turn=329 code=3CXS-37NN-C2Y75  -  Server - GameServer:416
+  12:35:48.141  [Options] auto end turn 329  -  Client - Options:338
+  12:35:48.371  [R4LOG] {"activePlayer":"p1","hash":"0x3059c6a6","t":"round","turn":330}  -  Server - GameServer:241
+  12:35:48.384  [R4CODE] turn=330 code=C0RW-J2RR-5KHN6  -  Server - GameServer:416
+  12:35:48.415  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:48.984  [Options] auto end turn 330  -  Client - Options:338
+  12:35:49.220  [R4LOG] {"activePlayer":"p1","hash":"0xb2001e24","t":"round","turn":331}  -  Server - GameServer:241
+  12:35:49.234  [R4CODE] turn=331 code=8BKQ-48TS-007H4  -  Server - GameServer:416
+  12:35:49.636  [Options] auto end turn 331  -  Client - Options:338
+  12:35:49.887  [R4LOG] {"activePlayer":"p1","hash":"0x5e17bd7a","t":"round","turn":332}  -  Server - GameServer:241
+  12:35:49.900  [R4CODE] turn=332 code=7GPH-K4SF-1FFBT  -  Server - GameServer:416
+  12:35:50.466  [Options] auto end turn 332  -  Client - Options:338
+  12:35:50.705  [R4LOG] {"activePlayer":"p1","hash":"0xbf2a01dc","t":"round","turn":333}  -  Server - GameServer:241
+  12:35:50.718  [R4CODE] turn=333 code=2KCF-ABAZ-JM0EW  -  Server - GameServer:416
+  12:35:51.150  [Options] auto end turn 333  -  Client - Options:338
+  12:35:51.387  [R4LOG] {"activePlayer":"p1","hash":"0x0e99a250","t":"round","turn":334}  -  Server - GameServer:241
+  12:35:51.401  [R4CODE] turn=334 code=CKNJ-AE07-9K8JG  -  Server - GameServer:416
+  12:35:51.966  [Options] auto end turn 334  -  Client - Options:338
+  12:35:52.250  [R4LOG] {"activePlayer":"p1","hash":"0xc6c9103e","t":"round","turn":335}  -  Server - GameServer:241
+  12:35:52.266  [R4CODE] turn=335 code=93RC-GVK3-CJ41Y  -  Server - GameServer:416
+  12:35:52.671  [Options] auto end turn 335  -  Client - Options:338
+  12:35:52.923  [R4LOG] {"activePlayer":"p1","hash":"0x195519e5","t":"round","turn":336}  -  Server - GameServer:241
+  12:35:52.937  [R4CODE] turn=336 code=DQV4-KG4C-NA6F5  -  Server - GameServer:416
+  12:35:53.517  [Options] auto end turn 336  -  Client - Options:338
+  12:35:53.762  [R4LOG] {"activePlayer":"p1","hash":"0xaf39c55b","t":"round","turn":337}  -  Server - GameServer:241
+  12:35:53.776  [R4CODE] turn=337 code=5BRA-1FEQ-KKHAV  -  Server - GameServer:416
+  12:35:54.182  [Options] auto end turn 337  -  Client - Options:338
+  12:35:54.418  [R4LOG] {"activePlayer":"p1","hash":"0x1d7aa70a","t":"round","turn":338}  -  Server - GameServer:241
+  12:35:54.432  [R4CODE] turn=338 code=9PT0-DT8E-QN9RA  -  Server - GameServer:416
+  12:35:55.016  [Options] auto end turn 338  -  Client - Options:338
+  12:35:55.304  [R4LOG] {"activePlayer":"p1","hash":"0x57effe22","t":"round","turn":339}  -  Server - GameServer:241
+  12:35:55.318  [R4CODE] turn=339 code=C9P0-811B-YZZH2  -  Server - GameServer:416
+  12:35:55.707  [Options] auto end turn 339  -  Client - Options:338
+  12:35:55.994  [R4LOG] {"activePlayer":"p1","hash":"0x9b3d978f","t":"round","turn":340}  -  Server - GameServer:241
+  12:35:56.008  [R4CODE] turn=340 code=F2QD-KTYD-KV5WF  -  Server - GameServer:416
+  12:35:56.040  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:35:56.568  [Options] auto end turn 340  -  Client - Options:338
+  12:35:56.830  [R4LOG] {"activePlayer":"p1","hash":"0xc9f865fe","t":"round","turn":341}  -  Server - GameServer:241
+  12:35:56.843  [R4CODE] turn=341 code=2P1M-GB34-ZGSFY  -  Server - GameServer:416
+  12:35:57.266  [Options] auto end turn 341  -  Client - Options:338
+  12:35:57.531  [R4LOG] {"activePlayer":"p1","hash":"0x3b655835","t":"round","turn":342}  -  Server - GameServer:241
+  12:35:57.545  [R4CODE] turn=342 code=DN7A-K1MX-PAP1N  -  Server - GameServer:416
+  12:35:58.100  [Options] auto end turn 342  -  Client - Options:338
+  12:35:58.374  [R4LOG] {"activePlayer":"p1","hash":"0xb7347d12","t":"round","turn":343}  -  Server - GameServer:241
+  12:35:58.388  [R4CODE] turn=343 code=BDH7-KZ2V-K8Z8J  -  Server - GameServer:416
+  12:35:58.788  [Options] auto end turn 343  -  Client - Options:338
+  12:35:59.072  [R4LOG] {"activePlayer":"p1","hash":"0xf96814dd","t":"round","turn":344}  -  Server - GameServer:241
+  12:35:59.085  [R4CODE] turn=344 code=FZPS-TH7W-PG56X  -  Server - GameServer:416
+  12:35:59.633  [Options] auto end turn 344  -  Client - Options:338
+  12:35:59.884  [R4LOG] {"activePlayer":"p1","hash":"0x18e43034","t":"round","turn":345}  -  Server - GameServer:241
+  12:35:59.898  [R4CODE] turn=345 code=FZ10-53RC-E8C1M  -  Server - GameServer:416
+  12:36:00.333  [Options] auto end turn 345  -  Client - Options:338
+  12:36:00.601  [R4LOG] {"activePlayer":"p1","hash":"0x7a7115d9","t":"round","turn":346}  -  Server - GameServer:241
+  12:36:00.615  [R4CODE] turn=346 code=BKER-80NX-725ES  -  Server - GameServer:416
+  12:36:01.150  [Options] auto end turn 346  -  Client - Options:338
+  12:36:01.417  [R4LOG] {"activePlayer":"p1","hash":"0x78bef469","t":"round","turn":347}  -  Server - GameServer:241
+  12:36:01.431  [R4CODE] turn=347 code=5995-KA5W-BXX39  -  Server - GameServer:416
+  12:36:01.867  [Options] auto end turn 347  -  Client - Options:338
+  12:36:02.123  [R4LOG] {"activePlayer":"p1","hash":"0xac4931a2","t":"round","turn":348}  -  Server - GameServer:241
+  12:36:02.137  [R4CODE] turn=348 code=85A4-PW2P-4JCD2  -  Server - GameServer:416
+  12:36:02.683  [Options] auto end turn 348  -  Client - Options:338
+  12:36:02.919  [R4LOG] {"activePlayer":"p1","hash":"0xbd28bd45","t":"round","turn":349}  -  Server - GameServer:241
+  12:36:02.933  [R4CODE] turn=349 code=0V8S-6MPY-JHFA5  -  Server - GameServer:416
+  12:36:03.384  [Options] auto end turn 349  -  Client - Options:338
+  12:36:03.619  [R4LOG] {"activePlayer":"p1","hash":"0x911fd1e6","t":"round","turn":350}  -  Server - GameServer:241
+  12:36:03.632  [R4CODE] turn=350 code=A16W-FJJ8-HZMF6  -  Server - GameServer:416
+  12:36:03.665  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:04.183  [Options] auto end turn 350  -  Client - Options:338
+  12:36:04.436  [R4LOG] {"activePlayer":"p1","hash":"0x2c8d5086","t":"round","turn":351}  -  Server - GameServer:241
+  12:36:04.449  [R4CODE] turn=351 code=AT5G-BD0P-8TM46  -  Server - GameServer:416
+  12:36:04.900  [Options] auto end turn 351  -  Client - Options:338
+  12:36:05.161  [R4LOG] {"activePlayer":"p1","hash":"0x52f8292f","t":"round","turn":352}  -  Server - GameServer:241
+  12:36:05.175  [R4CODE] turn=352 code=E703-QJX9-FGA9F  -  Server - GameServer:416
+  12:36:05.700  [Options] auto end turn 352  -  Client - Options:338
+  12:36:05.986  [R4LOG] {"activePlayer":"p1","hash":"0xb57f7a3e","t":"round","turn":353}  -  Server - GameServer:241
+  12:36:05.999  [R4CODE] turn=353 code=CV2A-WHAT-QYYHY  -  Server - GameServer:416
+  12:36:06.430  [Options] auto end turn 353  -  Client - Options:338
+  12:36:06.668  [R4LOG] {"activePlayer":"p1","hash":"0x05307a30","t":"round","turn":354}  -  Server - GameServer:241
+  12:36:06.682  [R4CODE] turn=354 code=0RZ0-NZ82-K0YHG  -  Server - GameServer:416
+  12:36:07.266  [Options] auto end turn 354  -  Client - Options:338
+  12:36:07.597  [R4LOG] {"activePlayer":"p1","hash":"0x2e48f663","t":"round","turn":355}  -  Server - GameServer:241
+  12:36:07.613  [R4CODE] turn=355 code=6WF5-05CQ-4HXK3  -  Server - GameServer:416
+  12:36:08.026  [Options] auto end turn 355  -  Client - Options:338
+  12:36:08.362  [R4LOG] {"activePlayer":"p1","hash":"0xa2c2ac5d","t":"round","turn":356}  -  Server - GameServer:241
+  12:36:08.376  [R4CODE] turn=356 code=0V1D-BZ6H-C5B2X  -  Server - GameServer:416
+  12:36:08.867  [Options] auto end turn 356  -  Client - Options:338
+  12:36:09.206  [R4LOG] {"activePlayer":"p1","hash":"0xa9fcabfd","t":"round","turn":357}  -  Server - GameServer:241
+  12:36:09.220  [R4CODE] turn=357 code=9B33-EMPM-ZSAZX  -  Server - GameServer:416
+  12:36:09.637  [Options] auto end turn 357  -  Client - Options:338
+  12:36:09.914  [R4LOG] {"activePlayer":"p1","hash":"0xe9e622ac","t":"round","turn":358}  -  Server - GameServer:241
+  12:36:09.928  [R4CODE] turn=358 code=C5WR-YW3M-YC8NC  -  Server - GameServer:416
+  12:36:10.484  [Options] auto end turn 358  -  Client - Options:338
+  12:36:10.758  [R4LOG] {"activePlayer":"p1","hash":"0x2b1e9576","t":"round","turn":359}  -  Server - GameServer:241
+  12:36:10.772  [R4CODE] turn=359 code=CYPS-P1GN-HX5BP  -  Server - GameServer:416
+  12:36:11.200  [Options] auto end turn 359  -  Client - Options:338
+  12:36:11.488  [R4LOG] {"activePlayer":"p1","hash":"0x5c9fa81d","t":"round","turn":360}  -  Server - GameServer:241
+  12:36:11.503  [R4CODE] turn=360 code=9FBK-KVNE-9ZA0X  -  Server - GameServer:416
+  12:36:11.538  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:12.034  [Options] auto end turn 360  -  Client - Options:338
+  12:36:12.317  [R4LOG] {"activePlayer":"p1","hash":"0x2c7c117b","t":"round","turn":361}  -  Server - GameServer:241
+  12:36:12.332  [R4CODE] turn=361 code=ARGD-AYCP-7R4BV  -  Server - GameServer:416
+  12:36:12.800  [Options] auto end turn 361  -  Client - Options:338
+  12:36:13.069  [R4LOG] {"activePlayer":"p1","hash":"0x50e7def1","t":"round","turn":362}  -  Server - GameServer:241
+  12:36:13.085  [R4CODE] turn=362 code=B2JM-N758-EFQQH  -  Server - GameServer:416
+  12:36:13.601  [Options] auto end turn 362  -  Client - Options:338
+  12:36:13.876  [R4LOG] {"activePlayer":"p1","hash":"0x9b020d9b","t":"round","turn":363}  -  Server - GameServer:241
+  12:36:13.890  [R4CODE] turn=363 code=AEPY-F6ED-G43CV  -  Server - GameServer:416
+  12:36:14.368  [Options] auto end turn 363  -  Client - Options:338
+  12:36:14.654  [R4LOG] {"activePlayer":"p1","hash":"0xeaf62afd","t":"round","turn":364}  -  Server - GameServer:241
+  12:36:14.669  [R4CODE] turn=364 code=5D62-HZQN-FCAQX  -  Server - GameServer:416
+  12:36:15.168  [Options] auto end turn 364  -  Client - Options:338
+  12:36:15.522  [R4LOG] {"activePlayer":"p1","hash":"0x3f2a8473","t":"round","turn":365}  -  Server - GameServer:241
+  12:36:15.536  [R4CODE] turn=365 code=E2SA-RTCZ-JN13K  -  Server - GameServer:416
+  12:36:15.966  [Options] auto end turn 365  -  Client - Options:338
+  12:36:16.340  [R4LOG] {"activePlayer":"p1","hash":"0x8e2fd353","t":"round","turn":366}  -  Server - GameServer:241
+  12:36:16.361  [R4CODE] turn=366 code=0WFZ-KRE7-2ZMTK  -  Server - GameServer:416
+  12:36:16.859  [Options] auto end turn 366  -  Client - Options:338
+  12:36:17.202  [R4LOG] {"activePlayer":"p1","hash":"0xeebbf2d7","t":"round","turn":367}  -  Server - GameServer:241
+  12:36:17.217  [R4CODE] turn=367 code=55E2-X0ZQ-BQWPQ  -  Server - GameServer:416
+  12:36:17.702  [Options] auto end turn 367  -  Client - Options:338
+  12:36:18.005  [R4LOG] {"activePlayer":"p1","hash":"0xb58394c0","t":"round","turn":368}  -  Server - GameServer:241
+  12:36:18.020  [R4CODE] turn=368 code=63FB-6CAT-R7560  -  Server - GameServer:416
+  12:36:18.500  [Options] auto end turn 368  -  Client - Options:338
+  12:36:18.805  [R4LOG] {"activePlayer":"p1","hash":"0xde3541da","t":"round","turn":369}  -  Server - GameServer:241
+  12:36:18.820  [R4CODE] turn=369 code=72HH-X6KF-3AGET  -  Server - GameServer:416
+  12:36:19.284  [Options] auto end turn 369  -  Client - Options:338
+  12:36:19.586  [R4LOG] {"activePlayer":"p1","hash":"0xd071826c","t":"round","turn":370}  -  Server - GameServer:241
+  12:36:19.601  [R4CODE] turn=370 code=DMZB-BEK8-730KC  -  Server - GameServer:416
+  12:36:19.636  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:20.083  [Options] auto end turn 370  -  Client - Options:338
+  12:36:20.386  [R4LOG] {"activePlayer":"p1","hash":"0xcb560799","t":"round","turn":371}  -  Server - GameServer:241
+  12:36:20.400  [R4CODE] turn=371 code=98RJ-2R75-NC1WS  -  Server - GameServer:416
+  12:36:20.884  [Options] auto end turn 371  -  Client - Options:338
+  12:36:21.184  [R4LOG] {"activePlayer":"p1","hash":"0x6bf8874c","t":"round","turn":372}  -  Server - GameServer:241
+  12:36:21.198  [R4CODE] turn=372 code=3762-XD9N-ZH1TC  -  Server - GameServer:416
+  12:36:21.681  [Options] auto end turn 372  -  Client - Options:338
+  12:36:21.992  [R4LOG] {"activePlayer":"p1","hash":"0x08befe1a","t":"round","turn":373}  -  Server - GameServer:241
+  12:36:22.007  [R4CODE] turn=373 code=010P-SMG4-BXZGT  -  Server - GameServer:416
+  12:36:22.481  [Options] auto end turn 373  -  Client - Options:338
+  12:36:22.801  [R4LOG] {"activePlayer":"p1","hash":"0xb670fb8e","t":"round","turn":374}  -  Server - GameServer:241
+  12:36:22.816  [R4CODE] turn=374 code=4NB6-G22V-71YWE  -  Server - GameServer:416
+  12:36:23.284  [Options] auto end turn 374  -  Client - Options:338
+  12:36:23.611  [R4LOG] {"activePlayer":"p1","hash":"0x21aef66a","t":"round","turn":375}  -  Server - GameServer:241
+  12:36:23.627  [R4CODE] turn=375 code=1KSX-SX8G-TXXKA  -  Server - GameServer:416
+  12:36:24.088  [Options] auto end turn 375  -  Client - Options:338
+  12:36:24.413  [R4LOG] {"activePlayer":"p1","hash":"0x1796091c","t":"round","turn":376}  -  Server - GameServer:241
+  12:36:24.428  [R4CODE] turn=376 code=89AY-868B-SC28W  -  Server - GameServer:416
+  12:36:24.900  [Options] auto end turn 376  -  Client - Options:338
+  12:36:25.210  [R4LOG] {"activePlayer":"p1","hash":"0xd43fad5c","t":"round","turn":377}  -  Server - GameServer:241
+  12:36:25.226  [R4CODE] turn=377 code=58KB-8X3A-3ZBAW  -  Server - GameServer:416
+  12:36:25.700  [Options] auto end turn 377  -  Client - Options:338
+  12:36:26.014  [R4LOG] {"activePlayer":"p1","hash":"0xe1fb9234","t":"round","turn":378}  -  Server - GameServer:241
+  12:36:26.028  [R4CODE] turn=378 code=DAEM-97VG-ZQ4HM  -  Server - GameServer:416
+  12:36:26.495  [Options] auto end turn 378  -  Client - Options:338
+  12:36:26.804  [R4LOG] {"activePlayer":"p1","hash":"0xcb11d6ce","t":"round","turn":379}  -  Server - GameServer:241
+  12:36:26.818  [R4CODE] turn=379 code=1V0K-4D35-H3NPE  -  Server - GameServer:416
+  12:36:27.300  [Options] auto end turn 379  -  Client - Options:338
+  12:36:27.625  [R4LOG] {"activePlayer":"p1","hash":"0x3dfba586","t":"round","turn":380}  -  Server - GameServer:241
+  12:36:27.640  [R4CODE] turn=380 code=BP7W-PPRY-ZQ9C6  -  Server - GameServer:416
+  12:36:27.675  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:28.105  [Options] auto end turn 380  -  Client - Options:338
+  12:36:28.419  [R4LOG] {"activePlayer":"p1","hash":"0x1150eb9f","t":"round","turn":381}  -  Server - GameServer:241
+  12:36:28.435  [R4CODE] turn=381 code=7W8R-HDW8-N1TWZ  -  Server - GameServer:416
+  12:36:28.934  [Options] auto end turn 381  -  Client - Options:338
+  12:36:29.231  [R4LOG] {"activePlayer":"p1","hash":"0x13384852","t":"round","turn":382}  -  Server - GameServer:241
+  12:36:29.246  [R4CODE] turn=382 code=0SS8-GYG9-KGJ2J  -  Server - GameServer:416
+  12:36:29.715  [Options] auto end turn 382  -  Client - Options:338
+  12:36:30.005  [R4LOG] {"activePlayer":"p1","hash":"0x88b4df9e","t":"round","turn":383}  -  Server - GameServer:241
+  12:36:30.019  [R4CODE] turn=383 code=6EQV-WP24-B9QWY  -  Server - GameServer:416
+  12:36:30.518  [Options] auto end turn 383  -  Client - Options:338
+  12:36:30.818  [R4LOG] {"activePlayer":"p1","hash":"0x07d8f577","t":"round","turn":384}  -  Server - GameServer:241
+  12:36:30.832  [R4CODE] turn=384 code=8PE9-R5W3-XHXBQ  -  Server - GameServer:416
+  12:36:31.295  [Options] auto end turn 384  -  Client - Options:338
+  12:36:31.585  [R4LOG] {"activePlayer":"p1","hash":"0xae7ffbaf","t":"round","turn":385}  -  Server - GameServer:241
+  12:36:31.600  [R4CODE] turn=385 code=BR1H-KPYQ-7ZYXF  -  Server - GameServer:416
+  12:36:32.100  [Options] auto end turn 385  -  Client - Options:338
+  12:36:32.406  [R4LOG] {"activePlayer":"p1","hash":"0x4127d9fa","t":"round","turn":386}  -  Server - GameServer:241
+  12:36:32.421  [R4CODE] turn=386 code=D19N-Z8S0-JFPFT  -  Server - GameServer:416
+  12:36:32.884  [Options] auto end turn 386  -  Client - Options:338
+  12:36:33.201  [R4LOG] {"activePlayer":"p1","hash":"0x1eea4002","t":"round","turn":387}  -  Server - GameServer:241
+  12:36:33.215  [R4CODE] turn=387 code=7KNR-8ZRF-EMG02  -  Server - GameServer:416
+  12:36:33.702  [Options] auto end turn 387  -  Client - Options:338
+  12:36:34.021  [R4LOG] {"activePlayer":"p1","hash":"0x97c26bba","t":"round","turn":388}  -  Server - GameServer:241
+  12:36:34.036  [R4CODE] turn=388 code=8553-CE2B-W4TXT  -  Server - GameServer:416
+  12:36:34.485  [Options] auto end turn 388  -  Client - Options:338
+  12:36:34.810  [R4LOG] {"activePlayer":"p1","hash":"0xf858824f","t":"round","turn":389}  -  Server - GameServer:241
+  12:36:34.825  [R4CODE] turn=389 code=BM0P-V9ZW-5H0JF  -  Server - GameServer:416
+  12:36:35.313  [Options] auto end turn 389  -  Client - Options:338
+  12:36:35.631  [R4LOG] {"activePlayer":"p1","hash":"0x3112a2af","t":"round","turn":390}  -  Server - GameServer:241
+  12:36:35.646  [R4CODE] turn=390 code=49MS-F9WR-H58NF  -  Server - GameServer:416
+  12:36:35.681  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:36.124  [Options] auto end turn 390  -  Client - Options:338
+  12:36:36.500  [R4LOG] {"activePlayer":"p1","hash":"0xaa3d0480","t":"round","turn":391}  -  Server - GameServer:241
+  12:36:36.518  [R4CODE] turn=391 code=95W1-VJTN-3T140  -  Server - GameServer:416
+  12:36:36.994  [Options] auto end turn 391  -  Client - Options:338
+  12:36:37.329  [R4LOG] {"activePlayer":"p1","hash":"0x6565f2f8","t":"round","turn":392}  -  Server - GameServer:241
+  12:36:37.345  [R4CODE] turn=392 code=00SV-4ZSJ-PBWQR  -  Server - GameServer:416
+  12:36:37.830  [Options] auto end turn 392  -  Client - Options:338
+  12:36:38.146  [R4LOG] {"activePlayer":"p1","hash":"0x749a5b23","t":"round","turn":393}  -  Server - GameServer:241
+  12:36:38.161  [R4CODE] turn=393 code=3W6S-HRDT-9MPS3  -  Server - GameServer:416
+  12:36:38.637  [Options] auto end turn 393  -  Client - Options:338
+  12:36:38.960  [R4LOG] {"activePlayer":"p1","hash":"0x207da1f2","t":"round","turn":394}  -  Server - GameServer:241
+  12:36:38.974  [R4CODE] turn=394 code=C8BR-4G0G-7V8FJ  -  Server - GameServer:416
+  12:36:39.454  [Options] auto end turn 394  -  Client - Options:338
+  12:36:39.776  [R4LOG] {"activePlayer":"p1","hash":"0x033feeb7","t":"round","turn":395}  -  Server - GameServer:241
+  12:36:39.792  [R4CODE] turn=395 code=1NSB-3KW1-KZVNQ  -  Server - GameServer:416
+  12:36:40.270  [Options] auto end turn 395  -  Client - Options:338
+  12:36:40.599  [R4LOG] {"activePlayer":"p1","hash":"0xc98e2732","t":"round","turn":396}  -  Server - GameServer:241
+  12:36:40.614  [R4CODE] turn=396 code=3HY0-KCB4-RW9SJ  -  Server - GameServer:416
+  12:36:41.067  [Options] auto end turn 396  -  Client - Options:338
+  12:36:41.395  [R4LOG] {"activePlayer":"p1","hash":"0xffefad50","t":"round","turn":397}  -  Server - GameServer:241
+  12:36:41.410  [R4CODE] turn=397 code=BZ31-WRKZ-YZBAG  -  Server - GameServer:416
+  12:36:41.895  [Options] auto end turn 397  -  Client - Options:338
+  12:36:42.211  [R4LOG] {"activePlayer":"p1","hash":"0x67bf41f2","t":"round","turn":398}  -  Server - GameServer:241
+  12:36:42.227  [R4CODE] turn=398 code=8KVB-JW1K-VYGFJ  -  Server - GameServer:416
+  12:36:42.712  [Options] auto end turn 398  -  Client - Options:338
+  12:36:43.036  [R4LOG] {"activePlayer":"p1","hash":"0x39814f69","t":"round","turn":399}  -  Server - GameServer:241
+  12:36:43.051  [R4CODE] turn=399 code=B2E0-DHMW-R2KV9  -  Server - GameServer:416
+  12:36:43.514  [Options] auto end turn 399  -  Client - Options:338
+  12:36:43.851  [R4LOG] {"activePlayer":"p1","hash":"0xfc60e05c","t":"round","turn":400}  -  Server - GameServer:241
+  12:36:43.865  [R4CODE] turn=400 code=30FY-RY3Y-61R2W  -  Server - GameServer:416
+  12:36:43.901  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:44.355  [Options] auto end turn 400  -  Client - Options:338
+  12:36:44.698  [R4LOG] {"activePlayer":"p1","hash":"0x51a2cff4","t":"round","turn":401}  -  Server - GameServer:241
+  12:36:44.712  [R4CODE] turn=401 code=9CA2-PRH8-T5KZM  -  Server - GameServer:416
+  12:36:45.177  [Options] auto end turn 401  -  Client - Options:338
+  12:36:45.517  [R4LOG] {"activePlayer":"p1","hash":"0xb1ed35fa","t":"round","turn":402}  -  Server - GameServer:241
+  12:36:45.533  [R4CODE] turn=402 code=84QR-9J2R-YTDFT  -  Server - GameServer:416
+  12:36:45.998  [Options] auto end turn 402  -  Client - Options:338
+  12:36:46.347  [R4LOG] {"activePlayer":"p1","hash":"0xa645eb9e","t":"round","turn":403}  -  Server - GameServer:241
+  12:36:46.362  [R4CODE] turn=403 code=75K3-TYAK-4BTWY  -  Server - GameServer:416
+  12:36:46.896  [Options] auto end turn 403  -  Client - Options:338
+  12:36:47.248  [R4LOG] {"activePlayer":"p1","hash":"0xca868171","t":"round","turn":404}  -  Server - GameServer:241
+  12:36:47.267  [R4CODE] turn=404 code=3FTW-QSQ5-8D0BH  -  Server - GameServer:416
+  12:36:47.752  [Options] auto end turn 404  -  Client - Options:338
+  12:36:48.098  [R4LOG] {"activePlayer":"p1","hash":"0x35e1f6af","t":"round","turn":405}  -  Server - GameServer:241
+  12:36:48.115  [R4CODE] turn=405 code=49EW-ENWT-Y3XNF  -  Server - GameServer:416
+  12:36:48.580  [Options] auto end turn 405  -  Client - Options:338
+  12:36:48.919  [R4LOG] {"activePlayer":"p1","hash":"0xfbe59dc9","t":"round","turn":406}  -  Server - GameServer:241
+  12:36:48.933  [R4CODE] turn=406 code=F2DW-1J7X-YB7E9  -  Server - GameServer:416
+  12:36:49.403  [Options] auto end turn 406  -  Client - Options:338
+  12:36:49.753  [R4LOG] {"activePlayer":"p1","hash":"0x08f3fac9","t":"round","turn":407}  -  Server - GameServer:241
+  12:36:49.768  [R4CODE] turn=407 code=C3BY-FRM4-F7YP9  -  Server - GameServer:416
+  12:36:50.247  [Options] auto end turn 407  -  Client - Options:338
+  12:36:50.585  [R4LOG] {"activePlayer":"p1","hash":"0x1bf22989","t":"round","turn":408}  -  Server - GameServer:241
+  12:36:50.600  [R4CODE] turn=408 code=7DJT-JNMD-Z4AC9  -  Server - GameServer:416
+  12:36:51.065  [Options] auto end turn 408  -  Client - Options:338
+  12:36:51.428  [R4LOG] {"activePlayer":"p1","hash":"0x47199d48","t":"round","turn":409}  -  Server - GameServer:241
+  12:36:51.443  [R4CODE] turn=409 code=7AD3-4K93-HK7A8  -  Server - GameServer:416
+  12:36:51.915  [Options] auto end turn 409  -  Client - Options:338
+  12:36:52.261  [R4LOG] {"activePlayer":"p1","hash":"0xcd1ddb2e","t":"round","turn":410}  -  Server - GameServer:241
+  12:36:52.279  [R4CODE] turn=410 code=B7RF-S936-HVPSE  -  Server - GameServer:416
+  12:36:52.318  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:36:52.786  [Options] auto end turn 410  -  Client - Options:338
+  12:36:53.136  [R4LOG] {"activePlayer":"p1","hash":"0xa7cc8512","t":"round","turn":411}  -  Server - GameServer:241
+  12:36:53.150  [R4CODE] turn=411 code=DSQP-QT2K-WS18J  -  Server - GameServer:416
+  12:36:53.621  [Options] auto end turn 411  -  Client - Options:338
+  12:36:53.969  [R4LOG] {"activePlayer":"p1","hash":"0x0a5ef111","t":"round","turn":412}  -  Server - GameServer:241
+  12:36:53.984  [R4CODE] turn=412 code=2WG8-8N45-5XW8H  -  Server - GameServer:416
+  12:36:54.460  [Options] auto end turn 412  -  Client - Options:338
+  12:36:54.803  [R4LOG] {"activePlayer":"p1","hash":"0x7599631e","t":"round","turn":413}  -  Server - GameServer:241
+  12:36:54.817  [R4CODE] turn=413 code=C48C-NJHT-SJRRY  -  Server - GameServer:416
+  12:36:55.297  [Options] auto end turn 413  -  Client - Options:338
+  12:36:55.640  [R4LOG] {"activePlayer":"p1","hash":"0x3318c987","t":"round","turn":414}  -  Server - GameServer:241
+  12:36:55.655  [R4CODE] turn=414 code=AB0H-YCWS-HHJC7  -  Server - GameServer:416
+  12:36:56.134  [Options] auto end turn 414  -  Client - Options:338
+  12:36:56.479  [R4LOG] {"activePlayer":"p1","hash":"0x89d27587","t":"round","turn":415}  -  Server - GameServer:241
+  12:36:56.494  [R4CODE] turn=415 code=2QP8-T8Y4-X4XC7  -  Server - GameServer:416
+  12:36:56.985  [Options] auto end turn 415  -  Client - Options:338
+  12:36:57.338  [R4LOG] {"activePlayer":"p1","hash":"0x6f5862d8","t":"round","turn":416}  -  Server - GameServer:241
+  12:36:57.353  [R4CODE] turn=416 code=0ZXV-WRHQ-NGRPR  -  Server - GameServer:416
+  12:36:57.836  [Options] auto end turn 416  -  Client - Options:338
+  12:36:58.178  [R4LOG] {"activePlayer":"p1","hash":"0x2065e3b8","t":"round","turn":417}  -  Server - GameServer:241
+  12:36:58.193  [R4CODE] turn=417 code=97PT-RDGG-6BRXR  -  Server - GameServer:416
+  12:36:58.675  [Options] auto end turn 417  -  Client - Options:338
+  12:36:59.022  [R4LOG] {"activePlayer":"p1","hash":"0x5258c066","t":"round","turn":418}  -  Server - GameServer:241
+  12:36:59.037  [R4CODE] turn=418 code=DE8D-P4H9-5HG36  -  Server - GameServer:416
+  12:36:59.514  [Options] auto end turn 418  -  Client - Options:338
+  12:36:59.859  [R4LOG] {"activePlayer":"p1","hash":"0x204281a2","t":"round","turn":419}  -  Server - GameServer:241
+  12:36:59.874  [R4CODE] turn=419 code=615V-V6RG-450D2  -  Server - GameServer:416
+  12:37:00.352  [Options] auto end turn 419  -  Client - Options:338
+  12:37:00.711  [R4LOG] {"activePlayer":"p1","hash":"0xb36eee7f","t":"round","turn":420}  -  Server - GameServer:241
+  12:37:00.726  [R4CODE] turn=420 code=7NPY-62YS-PXVKZ  -  Server - GameServer:416
+  12:37:00.762  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:01.217  [Options] auto end turn 420  -  Client - Options:338
+  12:37:01.571  [R4LOG] {"activePlayer":"p1","hash":"0xc30744b6","t":"round","turn":421}  -  Server - GameServer:241
+  12:37:01.585  [R4CODE] turn=421 code=AB10-H1K1-GEH5P  -  Server - GameServer:416
+  12:37:02.061  [Options] auto end turn 421  -  Client - Options:338
+  12:37:02.420  [R4LOG] {"activePlayer":"p1","hash":"0x08d09099","t":"round","turn":422}  -  Server - GameServer:241
+  12:37:02.435  [R4CODE] turn=422 code=6Q3B-T3M4-D144S  -  Server - GameServer:416
+  12:37:02.908  [Options] auto end turn 422  -  Client - Options:338
+  12:37:03.259  [R4LOG] {"activePlayer":"p1","hash":"0xb2c62ddf","t":"round","turn":423}  -  Server - GameServer:241
+  12:37:03.275  [R4CODE] turn=423 code=7WSP-W1YS-CCBEZ  -  Server - GameServer:416
+  12:37:03.752  [Options] auto end turn 423  -  Client - Options:338
+  12:37:04.103  [R4LOG] {"activePlayer":"p1","hash":"0x0db4ac0c","t":"round","turn":424}  -  Server - GameServer:241
+  12:37:04.119  [R4CODE] turn=424 code=59SG-1306-V9B0C  -  Server - GameServer:416
+  12:37:04.604  [Options] auto end turn 424  -  Client - Options:338
+  12:37:04.973  [R4LOG] {"activePlayer":"p1","hash":"0x4a3d8e4d","t":"round","turn":425}  -  Server - GameServer:241
+  12:37:04.988  [R4CODE] turn=425 code=73PH-KA55-3V3JD  -  Server - GameServer:416
+  12:37:05.466  [Options] auto end turn 425  -  Client - Options:338
+  12:37:05.825  [R4LOG] {"activePlayer":"p1","hash":"0x478d4386","t":"round","turn":426}  -  Server - GameServer:241
+  12:37:05.840  [R4CODE] turn=426 code=5FPD-T313-RTGW6  -  Server - GameServer:416
+  12:37:06.327  [Options] auto end turn 426  -  Client - Options:338
+  12:37:06.686  [R4LOG] {"activePlayer":"p1","hash":"0x9042fe6a","t":"round","turn":427}  -  Server - GameServer:241
+  12:37:06.702  [R4CODE] turn=427 code=4YE0-3BT8-45ZKA  -  Server - GameServer:416
+  12:37:07.185  [Options] auto end turn 427  -  Client - Options:338
+  12:37:07.538  [R4LOG] {"activePlayer":"p1","hash":"0x26b7160e","t":"round","turn":428}  -  Server - GameServer:241
+  12:37:07.553  [R4CODE] turn=428 code=BDHP-X1GK-BE5GE  -  Server - GameServer:416
+  12:37:08.033  [Options] auto end turn 428  -  Client - Options:338
+  12:37:08.393  [R4LOG] {"activePlayer":"p1","hash":"0xe3dec620","t":"round","turn":429}  -  Server - GameServer:241
+  12:37:08.408  [R4CODE] turn=429 code=01WR-AXBH-XXHH0  -  Server - GameServer:416
+  12:37:08.891  [Options] auto end turn 429  -  Client - Options:338
+  12:37:09.252  [R4LOG] {"activePlayer":"p1","hash":"0x52a4c26e","t":"round","turn":430}  -  Server - GameServer:241
+  12:37:09.268  [R4CODE] turn=430 code=AJS2-7GS9-A9GKE  -  Server - GameServer:416
+  12:37:09.305  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:09.766  [Options] auto end turn 430  -  Client - Options:338
+  12:37:10.130  [R4LOG] {"activePlayer":"p1","hash":"0x60fc1359","t":"round","turn":431}  -  Server - GameServer:241
+  12:37:10.146  [R4CODE] turn=431 code=2KNV-J55G-FR4TS  -  Server - GameServer:416
+  12:37:10.629  [Options] auto end turn 431  -  Client - Options:338
+  12:37:10.988  [R4LOG] {"activePlayer":"p1","hash":"0x554a5393","t":"round","turn":432}  -  Server - GameServer:241
+  12:37:11.004  [R4CODE] turn=432 code=55ZN-JNDA-MMMWK  -  Server - GameServer:416
+  12:37:11.486  [Options] auto end turn 432  -  Client - Options:338
+  12:37:11.843  [R4LOG] {"activePlayer":"p1","hash":"0xd504b532","t":"round","turn":433}  -  Server - GameServer:241
+  12:37:11.858  [R4CODE] turn=433 code=64SS-N1BA-G9D9J  -  Server - GameServer:416
+  12:37:12.340  [Options] auto end turn 433  -  Client - Options:338
+  12:37:12.702  [R4LOG] {"activePlayer":"p1","hash":"0xe27ecc91","t":"round","turn":434}  -  Server - GameServer:241
+  12:37:12.718  [R4CODE] turn=434 code=DHJR-RA7H-7XK4H  -  Server - GameServer:416
+  12:37:13.194  [Options] auto end turn 434  -  Client - Options:338
+  12:37:13.554  [R4LOG] {"activePlayer":"p1","hash":"0xd247cfb5","t":"round","turn":435}  -  Server - GameServer:241
+  12:37:13.570  [R4CODE] turn=435 code=0FKM-XX79-4FKXN  -  Server - GameServer:416
+  12:37:14.044  [Options] auto end turn 435  -  Client - Options:338
+  12:37:14.407  [R4LOG] {"activePlayer":"p1","hash":"0xe6360eef","t":"round","turn":436}  -  Server - GameServer:241
+  12:37:14.423  [R4CODE] turn=436 code=E895-CVZK-3C3QF  -  Server - GameServer:416
+  12:37:14.897  [Options] auto end turn 436  -  Client - Options:338
+  12:37:15.241  [R4LOG] {"activePlayer":"p1","hash":"0x87e43b4e","t":"round","turn":437}  -  Server - GameServer:241
+  12:37:15.256  [R4CODE] turn=437 code=42VZ-1RJ3-Y8ETE  -  Server - GameServer:416
+  12:37:15.737  [Options] auto end turn 437  -  Client - Options:338
+  12:37:16.029  [R4LOG] {"activePlayer":"p1","hash":"0xdf772945","t":"round","turn":438}  -  Server - GameServer:241
+  12:37:16.044  [R4CODE] turn=438 code=63H6-NR7F-QEAA5  -  Server - GameServer:416
+  12:37:16.551  [Options] auto end turn 438  -  Client - Options:338
+  12:37:16.948  [R4LOG] {"activePlayer":"p1","hash":"0x6b07e2c7","t":"round","turn":439}  -  Server - GameServer:241
+  12:37:16.964  [R4CODE] turn=439 code=DEHN-ZVXN-GFRP7  -  Server - GameServer:416
+  12:37:17.348  [Options] auto end turn 439  -  Client - Options:338
+  12:37:17.720  [R4LOG] {"activePlayer":"p1","hash":"0x8c7f1713","t":"round","turn":440}  -  Server - GameServer:241
+  12:37:17.735  [R4CODE] turn=440 code=AC47-23E6-7Y5RK  -  Server - GameServer:416
+  12:37:17.771  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:18.267  [Options] auto end turn 440  -  Client - Options:338
+  12:37:18.620  [R4LOG] {"activePlayer":"p1","hash":"0x6bf763f1","t":"round","turn":441}  -  Server - GameServer:241
+  12:37:18.636  [R4CODE] turn=441 code=08P2-RQNN-ZERZH  -  Server - GameServer:416
+  12:37:19.108  [Options] auto end turn 441  -  Client - Options:338
+  12:37:19.464  [R4LOG] {"activePlayer":"p1","hash":"0x174debdb","t":"round","turn":442}  -  Server - GameServer:241
+  12:37:19.479  [R4CODE] turn=442 code=3YN6-63CB-MVTYV  -  Server - GameServer:416
+  12:37:19.943  [Options] auto end turn 442  -  Client - Options:338
+  12:37:20.298  [R4LOG] {"activePlayer":"p1","hash":"0x52d4c33d","t":"round","turn":443}  -  Server - GameServer:241
+  12:37:20.314  [R4CODE] turn=443 code=DNS6-H059-D9GSX  -  Server - GameServer:416
+  12:37:20.787  [Options] auto end turn 443  -  Client - Options:338
+  12:37:21.146  [R4LOG] {"activePlayer":"p1","hash":"0x84915308","t":"round","turn":444}  -  Server - GameServer:241
+  12:37:21.161  [R4CODE] turn=444 code=43NJ-YGA2-92MR8  -  Server - GameServer:416
+  12:37:21.629  [Options] auto end turn 444  -  Client - Options:338
+  12:37:21.988  [R4LOG] {"activePlayer":"p1","hash":"0xe19fb245","t":"round","turn":445}  -  Server - GameServer:241
+  12:37:22.004  [R4CODE] turn=445 code=3FVG-HV7G-SZCJ5  -  Server - GameServer:416
+  12:37:22.475  [Options] auto end turn 445  -  Client - Options:338
+  12:37:22.824  [R4LOG] {"activePlayer":"p1","hash":"0xb7cad40e","t":"round","turn":446}  -  Server - GameServer:241
+  12:37:22.838  [R4CODE] turn=446 code=1YMV-P5AV-WNN0E  -  Server - GameServer:416
+  12:37:23.326  [Options] auto end turn 446  -  Client - Options:338
+  12:37:23.683  [R4LOG] {"activePlayer":"p1","hash":"0x81c36fb5","t":"round","turn":447}  -  Server - GameServer:241
+  12:37:23.697  [R4CODE] turn=447 code=1EQ5-ZH60-W6VXN  -  Server - GameServer:416
+  12:37:24.160  [Options] auto end turn 447  -  Client - Options:338
+  12:37:24.508  [R4LOG] {"activePlayer":"p1","hash":"0xa268a716","t":"round","turn":448}  -  Server - GameServer:241
+  12:37:24.523  [R4CODE] turn=448 code=C20Y-VBTH-6H9RP  -  Server - GameServer:416
+  12:37:24.995  [Options] auto end turn 448  -  Client - Options:338
+  12:37:25.373  [R4LOG] {"activePlayer":"p1","hash":"0xdbba8444","t":"round","turn":449}  -  Server - GameServer:241
+  12:37:25.388  [R4CODE] turn=449 code=C69T-66VD-VN124  -  Server - GameServer:416
+  12:37:25.856  [Options] auto end turn 449  -  Client - Options:338
+  12:37:26.229  [R4LOG] {"activePlayer":"p1","hash":"0x3a88f150","t":"round","turn":450}  -  Server - GameServer:241
+  12:37:26.244  [R4CODE] turn=450 code=CP3T-TQ0X-8HWAG  -  Server - GameServer:416
+  12:37:26.282  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:26.731  [Options] auto end turn 450  -  Client - Options:338
+  12:37:27.100  [R4LOG] {"activePlayer":"p1","hash":"0x10dfa5b1","t":"round","turn":451}  -  Server - GameServer:241
+  12:37:27.116  [R4CODE] turn=451 code=A2WN-H248-DZ9DH  -  Server - GameServer:416
+  12:37:27.576  [Options] auto end turn 451  -  Client - Options:338
+  12:37:27.944  [R4LOG] {"activePlayer":"p1","hash":"0x2fd1e281","t":"round","turn":452}  -  Server - GameServer:241
+  12:37:27.960  [R4CODE] turn=452 code=CE1D-GC4Q-X3RM1  -  Server - GameServer:416
+  12:37:28.422  [Options] auto end turn 452  -  Client - Options:338
+  12:37:28.808  [R4LOG] {"activePlayer":"p1","hash":"0x0a0192e7","t":"round","turn":453}  -  Server - GameServer:241
+  12:37:28.823  [R4CODE] turn=453 code=0509-XBW5-034Q7  -  Server - GameServer:416
+  12:37:29.283  [Options] auto end turn 453  -  Client - Options:338
+  12:37:29.630  [R4LOG] {"activePlayer":"p1","hash":"0x91ae46cc","t":"round","turn":454}  -  Server - GameServer:241
+  12:37:29.645  [R4CODE] turn=454 code=6J0S-9WT8-TWHPC  -  Server - GameServer:416
+  12:37:30.121  [Options] auto end turn 454  -  Client - Options:338
+  12:37:30.466  [R4LOG] {"activePlayer":"p1","hash":"0xe418cd56","t":"round","turn":455}  -  Server - GameServer:241
+  12:37:30.482  [R4CODE] turn=455 code=63J6-HT3J-1HKAP  -  Server - GameServer:416
+  12:37:30.935  [Options] auto end turn 455  -  Client - Options:338
+  12:37:31.289  [R4LOG] {"activePlayer":"p1","hash":"0xabbc0d18","t":"round","turn":456}  -  Server - GameServer:241
+  12:37:31.304  [R4CODE] turn=456 code=CPZJ-57AN-VR38R  -  Server - GameServer:416
+  12:37:31.776  [Options] auto end turn 456  -  Client - Options:338
+  12:37:32.111  [R4LOG] {"activePlayer":"p1","hash":"0xa5071b2e","t":"round","turn":457}  -  Server - GameServer:241
+  12:37:32.129  [R4CODE] turn=457 code=4HHV-9VAJ-GE6SE  -  Server - GameServer:416
+  12:37:32.582  [Options] auto end turn 457  -  Client - Options:338
+  12:37:32.924  [R4LOG] {"activePlayer":"p1","hash":"0x9f63f4b2","t":"round","turn":458}  -  Server - GameServer:241
+  12:37:32.940  [R4CODE] turn=458 code=8N1J-MXAF-P7X5J  -  Server - GameServer:416
+  12:37:33.417  [Options] auto end turn 458  -  Client - Options:338
+  12:37:33.758  [R4LOG] {"activePlayer":"p1","hash":"0xd346e03d","t":"round","turn":459}  -  Server - GameServer:241
+  12:37:33.773  [R4CODE] turn=459 code=B8HZ-ARQ9-MDR1X  -  Server - GameServer:416
+  12:37:34.227  [Options] auto end turn 459  -  Client - Options:338
+  12:37:34.578  [R4LOG] {"activePlayer":"p1","hash":"0x865af2c8","t":"round","turn":460}  -  Server - GameServer:241
+  12:37:34.595  [R4CODE] turn=460 code=2DY3-8BT3-5NWP8  -  Server - GameServer:416
+  12:37:34.631  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:35.060  [Options] auto end turn 460  -  Client - Options:338
+  12:37:35.408  [R4LOG] {"activePlayer":"p1","hash":"0x7e696dcf","t":"round","turn":461}  -  Server - GameServer:241
+  12:37:35.424  [R4CODE] turn=461 code=DYWA-PHXZ-6JVEF  -  Server - GameServer:416
+  12:37:35.894  [Options] auto end turn 461  -  Client - Options:338
+  12:37:36.230  [R4LOG] {"activePlayer":"p1","hash":"0x4f485766","t":"round","turn":462}  -  Server - GameServer:241
+  12:37:36.245  [R4CODE] turn=462 code=2NFP-XWH7-MGNV6  -  Server - GameServer:416
+  12:37:36.743  [Options] auto end turn 462  -  Client - Options:338
+  12:37:37.082  [R4LOG] {"activePlayer":"p1","hash":"0x06829be0","t":"round","turn":463}  -  Server - GameServer:241
+  12:37:37.098  [R4CODE] turn=463 code=CEQT-QTR3-856Z0  -  Server - GameServer:416
+  12:37:37.535  [Options] auto end turn 463  -  Client - Options:338
+  12:37:37.885  [R4LOG] {"activePlayer":"p1","hash":"0x9196639f","t":"round","turn":464}  -  Server - GameServer:241
+  12:37:37.899  [R4CODE] turn=464 code=1FFV-7XY8-SCRWZ  -  Server - GameServer:416
+  12:37:38.368  [Options] auto end turn 464  -  Client - Options:338
+  12:37:38.701  [R4LOG] {"activePlayer":"p1","hash":"0x4c8cecce","t":"round","turn":465}  -  Server - GameServer:241
+  12:37:38.716  [R4CODE] turn=465 code=1MMP-2E16-8SV6E  -  Server - GameServer:416
+  12:37:39.169  [Options] auto end turn 465  -  Client - Options:338
+  12:37:39.498  [R4LOG] {"activePlayer":"p1","hash":"0x1883405d","t":"round","turn":466}  -  Server - GameServer:241
+  12:37:39.513  [R4CODE] turn=466 code=E1M7-N3MC-86G2X  -  Server - GameServer:416
+  12:37:39.985  [Options] auto end turn 466  -  Client - Options:338
+  12:37:40.328  [R4LOG] {"activePlayer":"p1","hash":"0xc94f7a92","t":"round","turn":467}  -  Server - GameServer:241
+  12:37:40.343  [R4CODE] turn=467 code=BRPF-81V4-MYYMJ  -  Server - GameServer:416
+  12:37:40.781  [Options] auto end turn 467  -  Client - Options:338
+  12:37:41.119  [R4LOG] {"activePlayer":"p1","hash":"0x94de117c","t":"round","turn":468}  -  Server - GameServer:241
+  12:37:41.134  [R4CODE] turn=468 code=BFFH-A62A-DW4BW  -  Server - GameServer:416
+  12:37:41.618  [Options] auto end turn 468  -  Client - Options:338
+  12:37:41.957  [R4LOG] {"activePlayer":"p1","hash":"0x3016acb5","t":"round","turn":469}  -  Server - GameServer:241
+  12:37:41.972  [R4CODE] turn=469 code=9E88-HY4R-1DB5N  -  Server - GameServer:416
+  12:37:42.394  [Options] auto end turn 469  -  Client - Options:338
+  12:37:42.733  [R4LOG] {"activePlayer":"p1","hash":"0x750caca0","t":"round","turn":470}  -  Server - GameServer:241
+  12:37:42.747  [R4CODE] turn=470 code=6PCH-011T-GSB50  -  Server - GameServer:416
+  12:37:42.782  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:43.234  [Options] auto end turn 470  -  Client - Options:338
+  12:37:43.569  [R4LOG] {"activePlayer":"p1","hash":"0x48278984","t":"round","turn":471}  -  Server - GameServer:241
+  12:37:43.584  [R4CODE] turn=471 code=91JZ-D1S4-2F2C4  -  Server - GameServer:416
+  12:37:44.023  [Options] auto end turn 471  -  Client - Options:338
+  12:37:44.362  [R4LOG] {"activePlayer":"p1","hash":"0x99281099","t":"round","turn":472}  -  Server - GameServer:241
+  12:37:44.376  [R4CODE] turn=472 code=55RZ-5A6C-JG44S  -  Server - GameServer:416
+  12:37:44.851  [Options] auto end turn 472  -  Client - Options:338
+  12:37:45.185  [R4LOG] {"activePlayer":"p1","hash":"0x9a5b25b1","t":"round","turn":473}  -  Server - GameServer:241
+  12:37:45.200  [R4CODE] turn=473 code=EDDW-NK6D-5P9DH  -  Server - GameServer:416
+  12:37:45.628  [Options] auto end turn 473  -  Client - Options:338
+  12:37:45.959  [R4LOG] {"activePlayer":"p1","hash":"0xaf06d028","t":"round","turn":474}  -  Server - GameServer:241
+  12:37:45.973  [R4CODE] turn=474 code=8S55-Z1AQ-GDM18  -  Server - GameServer:416
+  12:37:46.451  [Options] auto end turn 474  -  Client - Options:338
+  12:37:46.786  [R4LOG] {"activePlayer":"p1","hash":"0xe8039fbb","t":"round","turn":475}  -  Server - GameServer:241
+  12:37:46.801  [R4CODE] turn=475 code=556R-ARFM-077XV  -  Server - GameServer:416
+  12:37:47.248  [Options] auto end turn 475  -  Client - Options:338
+  12:37:47.600  [R4LOG] {"activePlayer":"p1","hash":"0x9d18a106","t":"round","turn":476}  -  Server - GameServer:241
+  12:37:47.615  [R4CODE] turn=476 code=AB6Z-K0JE-HH886  -  Server - GameServer:416
+  12:37:48.084  [Options] auto end turn 476  -  Client - Options:338
+  12:37:48.415  [R4LOG] {"activePlayer":"p1","hash":"0x794dd3fe","t":"round","turn":477}  -  Server - GameServer:241
+  12:37:48.428  [R4CODE] turn=477 code=ADDQ-YV9W-MVMZY  -  Server - GameServer:416
+  12:37:48.854  [Options] auto end turn 477  -  Client - Options:338
+  12:37:49.181  [R4LOG] {"activePlayer":"p1","hash":"0xe6670ffa","t":"round","turn":478}  -  Server - GameServer:241
+  12:37:49.196  [R4CODE] turn=478 code=8XMH-YMVK-6E3ZT  -  Server - GameServer:416
+  12:37:49.684  [Options] auto end turn 478  -  Client - Options:338
+  12:37:50.002  [R4LOG] {"activePlayer":"p1","hash":"0x9f4bab28","t":"round","turn":479}  -  Server - GameServer:241
+  12:37:50.017  [R4CODE] turn=479 code=BFAW-032F-MQAS8  -  Server - GameServer:416
+  12:37:50.435  [Options] auto end turn 479  -  Client - Options:338
+  12:37:50.752  [R4LOG] {"activePlayer":"p1","hash":"0x6d73c59d","t":"round","turn":480}  -  Server - GameServer:241
+  12:37:50.767  [R4CODE] turn=480 code=2RV1-3ANP-Q7HCX  -  Server - GameServer:416
+  12:37:50.801  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:51.269  [Options] auto end turn 480  -  Client - Options:338
+  12:37:51.589  [R4LOG] {"activePlayer":"p1","hash":"0x1f986f4b","t":"round","turn":481}  -  Server - GameServer:241
+  12:37:51.603  [R4CODE] turn=481 code=AAYK-GXCF-SGVTB  -  Server - GameServer:416
+  12:37:52.035  [Options] auto end turn 481  -  Client - Options:338
+  12:37:52.350  [R4LOG] {"activePlayer":"p1","hash":"0xcf691e91","t":"round","turn":482}  -  Server - GameServer:241
+  12:37:52.364  [R4CODE] turn=482 code=0P3B-3N77-PJ7MH  -  Server - GameServer:416
+  12:37:52.850  [Options] auto end turn 482  -  Client - Options:338
+  12:37:53.166  [R4LOG] {"activePlayer":"p1","hash":"0xaaf7717d","t":"round","turn":483}  -  Server - GameServer:241
+  12:37:53.182  [R4CODE] turn=483 code=8JPT-D7PN-FEWBX  -  Server - GameServer:416
+  12:37:53.601  [Options] auto end turn 483  -  Client - Options:338
+  12:37:53.930  [R4LOG] {"activePlayer":"p1","hash":"0xba1e6101","t":"round","turn":484}  -  Server - GameServer:241
+  12:37:53.945  [R4CODE] turn=484 code=7C92-H9PX-1WR81  -  Server - GameServer:416
+  12:37:54.417  [Options] auto end turn 484  -  Client - Options:338
+  12:37:54.745  [R4LOG] {"activePlayer":"p1","hash":"0x96d150f4","t":"round","turn":485}  -  Server - GameServer:241
+  12:37:54.760  [R4CODE] turn=485 code=AP44-EDAB-D2M7M  -  Server - GameServer:416
+  12:37:55.183  [Options] auto end turn 485  -  Client - Options:338
+  12:37:55.524  [R4LOG] {"activePlayer":"p1","hash":"0x51ea78c2","t":"round","turn":486}  -  Server - GameServer:241
+  12:37:55.538  [R4CODE] turn=486 code=2CNB-Y598-YMY62  -  Server - GameServer:416
+  12:37:56.034  [Options] auto end turn 486  -  Client - Options:338
+  12:37:56.387  [R4LOG] {"activePlayer":"p1","hash":"0x2fa4c192","t":"round","turn":487}  -  Server - GameServer:241
+  12:37:56.402  [R4CODE] turn=487 code=36SK-BZRQ-T9GCJ  -  Server - GameServer:416
+  12:37:56.799  [Options] auto end turn 487  -  Client - Options:338
+  12:37:57.105  [R4LOG] {"activePlayer":"p1","hash":"0x56c1d02f","t":"round","turn":488}  -  Server - GameServer:241
+  12:37:57.120  [R4CODE] turn=488 code=1Y27-BSXB-C3M1F  -  Server - GameServer:416
+  12:37:57.635  [Options] auto end turn 488  -  Client - Options:338
+  12:37:57.960  [R4LOG] {"activePlayer":"p1","hash":"0xa37656b3","t":"round","turn":489}  -  Server - GameServer:241
+  12:37:57.975  [R4CODE] turn=489 code=FWGJ-74EH-QCNNK  -  Server - GameServer:416
+  12:37:58.368  [Options] auto end turn 489  -  Client - Options:338
+  12:37:58.682  [R4LOG] {"activePlayer":"p1","hash":"0xfc8a9834","t":"round","turn":490}  -  Server - GameServer:241
+  12:37:58.697  [R4CODE] turn=490 code=B4QJ-DVBY-8N61M  -  Server - GameServer:416
+  12:37:58.733  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:37:59.217  [Options] auto end turn 490  -  Client - Options:338
+  12:37:59.526  [R4LOG] {"activePlayer":"p1","hash":"0x4bf6a343","t":"round","turn":491}  -  Server - GameServer:241
+  12:37:59.541  [R4CODE] turn=491 code=21W9-NND5-ZD8T3  -  Server - GameServer:416
+  12:37:59.951  [Options] auto end turn 491  -  Client - Options:338
+  12:38:00.257  [R4LOG] {"activePlayer":"p1","hash":"0xdc6425cc","t":"round","turn":492}  -  Server - GameServer:241
+  12:38:00.272  [R4CODE] turn=492 code=4BGG-HVKE-689EC  -  Server - GameServer:416
+  12:38:00.767  [Options] auto end turn 492  -  Client - Options:338
+  12:38:01.075  [R4LOG] {"activePlayer":"p1","hash":"0xe7659a26","t":"round","turn":493}  -  Server - GameServer:241
+  12:38:01.089  [R4CODE] turn=493 code=95QW-YVKK-PB6H6  -  Server - GameServer:416
+  12:38:01.501  [Options] auto end turn 493  -  Client - Options:338
+  12:38:01.821  [R4LOG] {"activePlayer":"p1","hash":"0xe899fcc9","t":"round","turn":494}  -  Server - GameServer:241
+  12:38:01.836  [R4CODE] turn=494 code=DJD9-EY7M-9KZ69  -  Server - GameServer:416
+  12:38:02.317  [Options] auto end turn 494  -  Client - Options:338
+  12:38:02.644  [R4LOG] {"activePlayer":"p1","hash":"0x7abbb93b","t":"round","turn":495}  -  Server - GameServer:241
+  12:38:02.659  [R4CODE] turn=495 code=E20Q-XFDX-BQE9V  -  Server - GameServer:416
+  12:38:03.052  [Options] auto end turn 495  -  Client - Options:338
+  12:38:03.353  [R4LOG] {"activePlayer":"p1","hash":"0x85cbd268","t":"round","turn":496}  -  Server - GameServer:241
+  12:38:03.369  [R4CODE] turn=496 code=6JKE-AHJ2-WQMK8  -  Server - GameServer:416
+  12:38:03.884  [Options] auto end turn 496  -  Client - Options:338
+  12:38:04.184  [R4LOG] {"activePlayer":"p1","hash":"0x551d0c0f","t":"round","turn":497}  -  Server - GameServer:241
+  12:38:04.199  [R4CODE] turn=497 code=EAH3-9NXA-HT30F  -  Server - GameServer:416
+  12:38:04.601  [Options] auto end turn 497  -  Client - Options:338
+  12:38:04.905  [R4LOG] {"activePlayer":"p1","hash":"0x49bfa106","t":"round","turn":498}  -  Server - GameServer:241
+  12:38:04.920  [R4CODE] turn=498 code=4CAY-SFH4-VZ886  -  Server - GameServer:416
+  12:38:05.418  [Options] auto end turn 498  -  Client - Options:338
+  12:38:05.773  [R4LOG] {"activePlayer":"p1","hash":"0x2a5a1961","t":"round","turn":499}  -  Server - GameServer:241
+  12:38:05.788  [R4CODE] turn=499 code=2M80-2V4N-5M6B1  -  Server - GameServer:416
+  12:38:06.151  [Options] auto end turn 499  -  Client - Options:338
+  12:38:06.447  [R4LOG] {"activePlayer":"p1","hash":"0x45679225","t":"round","turn":500}  -  Server - GameServer:241
+  12:38:06.461  [R4CODE] turn=500 code=1E1Z-M152-PF4H5  -  Server - GameServer:416
+  12:38:06.496  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:38:06.985  [Options] auto end turn 500  -  Client - Options:338
+  12:38:07.278  [R4LOG] {"activePlayer":"p1","hash":"0xb0b9882d","t":"round","turn":501}  -  Server - GameServer:241
+  12:38:07.291  [R4CODE] turn=501 code=F945-MQPR-BK21D  -  Server - GameServer:416
+  12:38:07.684  [Options] auto end turn 501  -  Client - Options:338
+  12:38:07.973  [R4LOG] {"activePlayer":"p1","hash":"0x98e731f3","t":"round","turn":502}  -  Server - GameServer:241
+  12:38:07.987  [R4CODE] turn=502 code=BAT3-CEEC-EECFK  -  Server - GameServer:416
+  12:38:08.501  [Options] auto end turn 502  -  Client - Options:338
+  12:38:08.797  [R4LOG] {"activePlayer":"p1","hash":"0x7358bec0","t":"round","turn":503}  -  Server - GameServer:241
+  12:38:08.811  [R4CODE] turn=503 code=AHP8-DB1S-NHFP0  -  Server - GameServer:416
+  12:38:09.184  [Options] auto end turn 503  -  Client - Options:338
+  12:38:09.485  [R4LOG] {"activePlayer":"p1","hash":"0xb9b804b0","t":"round","turn":504}  -  Server - GameServer:241
+  12:38:09.499  [R4CODE] turn=504 code=9XHV-JGAW-VG15G  -  Server - GameServer:416
+  12:38:10.018  [Options] auto end turn 504  -  Client - Options:338
+  12:38:10.313  [R4LOG] {"activePlayer":"p1","hash":"0x22b3e266","t":"round","turn":505}  -  Server - GameServer:241
+  12:38:10.326  [R4CODE] turn=505 code=6Z6Q-A3GH-B7RK6  -  Server - GameServer:416
+  12:38:10.701  [Options] auto end turn 505  -  Client - Options:338
+  12:38:10.989  [R4LOG] {"activePlayer":"p1","hash":"0x127a44d1","t":"round","turn":506}  -  Server - GameServer:241
+  12:38:11.003  [R4CODE] turn=506 code=7V32-QEM9-7MH6H  -  Server - GameServer:416
+  12:38:11.517  [Options] auto end turn 506  -  Client - Options:338
+  12:38:11.810  [R4LOG] {"activePlayer":"p1","hash":"0xb5a51416","t":"round","turn":507}  -  Server - GameServer:241
+  12:38:11.823  [R4CODE] turn=507 code=DJNW-M12T-TA50P  -  Server - GameServer:416
+  12:38:12.200  [Options] auto end turn 507  -  Client - Options:338
+  12:38:12.492  [R4LOG] {"activePlayer":"p1","hash":"0x6d56998c","t":"round","turn":508}  -  Server - GameServer:241
+  12:38:12.506  [R4CODE] turn=508 code=2S42-X1HP-ND6CC  -  Server - GameServer:416
+  12:38:13.018  [Options] auto end turn 508  -  Client - Options:338
+  12:38:13.306  [R4LOG] {"activePlayer":"p1","hash":"0xdab1dd67","t":"round","turn":509}  -  Server - GameServer:241
+  12:38:13.320  [R4CODE] turn=509 code=6PSK-6PZD-B3QB7  -  Server - GameServer:416
+  12:38:13.701  [Options] auto end turn 509  -  Client - Options:338
+  12:38:14.012  [R4LOG] {"activePlayer":"p1","hash":"0x3ca8f4d6","t":"round","turn":510}  -  Server - GameServer:241
+  12:38:14.025  [R4CODE] turn=510 code=8KK8-P20Y-AHX6P  -  Server - GameServer:416
+  12:38:14.057  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:38:14.518  [Options] auto end turn 510  -  Client - Options:338
+  12:38:14.804  [R4LOG] {"activePlayer":"p1","hash":"0xb2f5b935","t":"round","turn":511}  -  Server - GameServer:241
+  12:38:14.818  [R4CODE] turn=511 code=BQ6P-WH6S-FBE9N  -  Server - GameServer:416
+  12:38:15.234  [Options] auto end turn 511  -  Client - Options:338
+  12:38:15.532  [R4LOG] {"activePlayer":"p1","hash":"0x504991d3","t":"round","turn":512}  -  Server - GameServer:241
+  12:38:15.545  [R4CODE] turn=512 code=DGBB-T2D8-4K4EK  -  Server - GameServer:416
+  12:38:16.001  [Options] auto end turn 512  -  Client - Options:338
+  12:38:16.287  [R4LOG] {"activePlayer":"p1","hash":"0xc0fe4269","t":"round","turn":513}  -  Server - GameServer:241
+  12:38:16.300  [R4CODE] turn=513 code=0KZD-8970-FWGK9  -  Server - GameServer:416
+  12:38:16.734  [Options] auto end turn 513  -  Client - Options:338
+  12:38:17.018  [R4LOG] {"activePlayer":"p1","hash":"0x92d823e7","t":"round","turn":514}  -  Server - GameServer:241
+  12:38:17.034  [R4CODE] turn=514 code=8REE-4AY9-DG8Z7  -  Server - GameServer:416
+  12:38:17.485  [Options] auto end turn 514  -  Client - Options:338
+  12:38:17.773  [R4LOG] {"activePlayer":"p1","hash":"0x6eb055f1","t":"round","turn":515}  -  Server - GameServer:241
+  12:38:17.787  [R4CODE] turn=515 code=2XYV-2BNQ-B0NFH  -  Server - GameServer:416
+  12:38:18.250  [Options] auto end turn 515  -  Client - Options:338
+  12:38:18.540  [R4LOG] {"activePlayer":"p1","hash":"0x33e826c8","t":"round","turn":516}  -  Server - GameServer:241
+  12:38:18.553  [R4CODE] turn=516 code=9H0J-J70S-YG9P8  -  Server - GameServer:416
+  12:38:18.968  [Options] auto end turn 516  -  Client - Options:338
+  12:38:19.252  [R4LOG] {"activePlayer":"p1","hash":"0xacd9e337","t":"round","turn":517}  -  Server - GameServer:241
+  12:38:19.266  [R4CODE] turn=517 code=FTKG-THYP-DKRSQ  -  Server - GameServer:416
+  12:38:19.734  [Options] auto end turn 517  -  Client - Options:338
+  12:38:20.031  [R4LOG] {"activePlayer":"p1","hash":"0x7f69dbf2","t":"round","turn":518}  -  Server - GameServer:241
+  12:38:20.044  [R4CODE] turn=518 code=9T95-ZM1Z-PKPZJ  -  Server - GameServer:416
+  12:38:20.434  [Options] auto end turn 518  -  Client - Options:338
+  12:38:20.704  [R4LOG] {"activePlayer":"p1","hash":"0x22daac4a","t":"round","turn":519}  -  Server - GameServer:241
+  12:38:20.717  [R4CODE] turn=519 code=8D90-9S0H-DNB2A  -  Server - GameServer:416
+  12:38:21.217  [Options] auto end turn 519  -  Client - Options:338
+  12:38:21.483  [R4LOG] {"activePlayer":"p1","hash":"0x176790a7","t":"round","turn":520}  -  Server - GameServer:241
+  12:38:21.497  [R4CODE] turn=520 code=FAG9-8JWB-PF457  -  Server - GameServer:416
+  12:38:21.530  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:38:21.902  [Options] auto end turn 520  -  Client - Options:338
+  12:38:22.164  [R4LOG] {"activePlayer":"p1","hash":"0x32cc11b2","t":"round","turn":521}  -  Server - GameServer:241
+  12:38:22.177  [R4CODE] turn=521 code=E4CJ-7NRS-CR4DJ  -  Server - GameServer:416
+  12:38:22.685  [Options] auto end turn 521  -  Client - Options:338
+  12:38:22.943  [R4LOG] {"activePlayer":"p1","hash":"0xd057ecee","t":"round","turn":522}  -  Server - GameServer:241
+  12:38:22.955  [R4CODE] turn=522 code=FHZ2-HT38-5FV7E  -  Server - GameServer:416
+  12:38:23.335  [Options] auto end turn 522  -  Client - Options:338
+  12:38:23.600  [R4LOG] {"activePlayer":"p1","hash":"0xfdc3dd0c","t":"round","turn":523}  -  Server - GameServer:241
+  12:38:23.613  [R4CODE] turn=523 code=ECBP-XEBY-W7Q8C  -  Server - GameServer:416
+  12:38:24.117  [Options] auto end turn 523  -  Client - Options:338
+  12:38:24.396  [R4LOG] {"activePlayer":"p1","hash":"0x8b118131","t":"round","turn":524}  -  Server - GameServer:241
+  12:38:24.408  [R4CODE] turn=524 code=7RC1-JVP5-H309H  -  Server - GameServer:416
+  12:38:24.767  [Options] auto end turn 524  -  Client - Options:338
+  12:38:25.025  [R4LOG] {"activePlayer":"p1","hash":"0xf7b32ec0","t":"round","turn":525}  -  Server - GameServer:241
+  12:38:25.037  [R4CODE] turn=525 code=5C32-HC3V-V6BP0  -  Server - GameServer:416
+  12:38:25.567  [Options] auto end turn 525  -  Client - Options:338
+  12:38:25.836  [R4LOG] {"activePlayer":"p1","hash":"0x475ecb5f","t":"round","turn":526}  -  Server - GameServer:241
+  12:38:25.849  [R4CODE] turn=526 code=0RBZ-M2X3-NXJTZ  -  Server - GameServer:416
+  12:38:26.201  [Options] auto end turn 526  -  Client - Options:338
+  12:38:26.461  [R4LOG] {"activePlayer":"p1","hash":"0xdb9a2e31","t":"round","turn":527}  -  Server - GameServer:241
+  12:38:26.474  [R4CODE] turn=527 code=69HT-06QD-SMBHH  -  Server - GameServer:416
+  12:38:27.017  [Options] auto end turn 527  -  Client - Options:338
+  12:38:27.284  [R4LOG] {"activePlayer":"p1","hash":"0x95f1de0f","t":"round","turn":528}  -  Server - GameServer:241
+  12:38:27.297  [R4CODE] turn=528 code=8DVH-AWYA-Z3QGF  -  Server - GameServer:416
+  12:38:27.635  [Options] auto end turn 528  -  Client - Options:338
+  12:38:27.905  [R4LOG] {"activePlayer":"p1","hash":"0x211bdcfb","t":"round","turn":529}  -  Server - GameServer:241
+  12:38:27.918  [R4CODE] turn=529 code=AE95-DYCG-HQQ7V  -  Server - GameServer:416
+  12:38:28.466  [Options] auto end turn 529  -  Client - Options:338
+  12:38:28.746  [R4LOG] {"activePlayer":"p1","hash":"0x2f4dd4c3","t":"round","turn":530}  -  Server - GameServer:241
+  12:38:28.759  [R4CODE] turn=530 code=BXZ0-2XCQ-MVN63  -  Server - GameServer:416
+  12:38:28.791  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:38:29.084  [Options] auto end turn 530  -  Client - Options:338
+  12:38:29.362  [R4LOG] {"activePlayer":"p1","hash":"0xd191e714","t":"round","turn":531}  -  Server - GameServer:241
+  12:38:29.375  [R4CODE] turn=531 code=3QDA-GC38-S3SRM  -  Server - GameServer:416
+  12:38:29.950  [Options] auto end turn 531  -  Client - Options:338
+  12:38:30.235  [R4LOG] {"activePlayer":"p1","hash":"0x8a7da4f9","t":"round","turn":532}  -  Server - GameServer:241
+  12:38:30.248  [R4CODE] turn=532 code=22TZ-RA65-7V97S  -  Server - GameServer:416
+  12:38:30.551  [Options] auto end turn 532  -  Client - Options:338
+  12:38:30.827  [R4LOG] {"activePlayer":"p1","hash":"0xada32f6c","t":"round","turn":533}  -  Server - GameServer:241
+  12:38:30.841  [R4CODE] turn=533 code=9GWY-SCJP-T6BVC  -  Server - GameServer:416
+  12:38:31.417  [Options] auto end turn 533  -  Client - Options:338
+  12:38:31.692  [R4LOG] {"activePlayer":"p1","hash":"0xaf64ad79","t":"round","turn":534}  -  Server - GameServer:241
+  12:38:31.706  [R4CODE] turn=534 code=9N5Y-5B6Q-P9BBS  -  Server - GameServer:416
+  12:38:32.001  [Options] auto end turn 534  -  Client - Options:338
+  12:38:32.279  [R4LOG] {"activePlayer":"p1","hash":"0xe22d0128","t":"round","turn":535}  -  Server - GameServer:241
+  12:38:32.292  [R4CODE] turn=535 code=9MTH-J1VH-2T098  -  Server - GameServer:416
+  12:38:32.884  [Options] auto end turn 535  -  Client - Options:338
+  12:38:33.167  [R4LOG] {"activePlayer":"p1","hash":"0x509440b7","t":"round","turn":536}  -  Server - GameServer:241
+  12:38:33.180  [R4CODE] turn=536 code=3RTG-A5X8-98G5Q  -  Server - GameServer:416
+  12:38:33.455  [Options] auto end turn 536  -  Client - Options:338
+  12:38:33.742  [R4LOG] {"activePlayer":"p1","hash":"0xfb2cf94c","t":"round","turn":537}  -  Server - GameServer:241
+  12:38:33.756  [R4CODE] turn=537 code=AFSP-XBBX-JSYAC  -  Server - GameServer:416
+  12:38:34.350  [Options] auto end turn 537  -  Client - Options:338
+  12:38:34.629  [R4LOG] {"activePlayer":"p1","hash":"0x2c8eddf4","t":"round","turn":538}  -  Server - GameServer:241
+  12:38:34.643  [R4CODE] turn=538 code=5203-GDRP-8XQFM  -  Server - GameServer:416
+  12:38:34.919  [Options] auto end turn 538  -  Client - Options:338
+  12:38:35.193  [R4LOG] {"activePlayer":"p1","hash":"0xac47cf1c","t":"round","turn":539}  -  Server - GameServer:241
+  12:38:35.206  [R4CODE] turn=539 code=CCSY-AY2P-4FKRW  -  Server - GameServer:416
+  12:38:35.818  [Options] auto end turn 539  -  Client - Options:338
+  12:38:36.096  [R4LOG] {"activePlayer":"p1","hash":"0x09d098ec","t":"round","turn":540}  -  Server - GameServer:241
+  12:38:36.109  [R4CODE] turn=540 code=3YAC-QZ84-X167C  -  Server - GameServer:416
+  12:38:36.141  [SaveStore] DataStore unavailable — saves/resume disabled. In Studio: Home > Game Settings > Security > Enable Studio Access to API Services.  -  Server - SaveStore:36
+  12:38:36.378  [Options] auto end turn 540  -  Client - Options:338
+  12:38:36.646  [R4LOG] {"activePlayer":"p1","hash":"0xb284d3f3","t":"round","turn":541}  -  Server - GameServer:241
+  12:38:36.660  [R4CODE] turn=541 code=C2EQ-5PES-89MZK  -  Server - GameServer:416
+  12:38:37.300  [Options] auto end turn 541  -  Client - Options:338
+  12:38:37.573  [R4LOG] {"activePlayer":"p1","hash":"0x8df5cd1c","t":"round","turn":542}  -  Server - GameServer:241
+  12:38:37.586  [R4CODE] turn=542 code=6PYG-X0J6-ZBK8W  -  Server - GameServer:416
+  12:38:37.833  [Options] auto end turn 542  -  Client - Options:338
+  12:38:38.098  [R4LOG] {"activePlayer":"p1","hash":"0x412740d9","t":"round","turn":543}  -  Server - GameServer:241
+  12:38:38.111  [R4CODE] turn=543 code=5W10-EB50-JEG6S  -  Server - GameServer:416
+  12:38:38.750  [Options] auto end turn 543  -  Client - Options:338
+  12:38:39.026  [R4LOG] {"activePlayer":"p1","hash":"0x9830c56b","t":"round","turn":544}  -  Server - GameServer:241
+  12:38:39.039  [R4CODE] turn=544 code=3278-THEC-31HBB  -  Server - GameServer:416
+  12:38:39.279  [Options] auto end turn 544  -  Client - Options:338
+  12:38:39.542  [R4LOG] {"activePlayer":"p1","hash":"0x1fefe3ab","t":"round","turn":545}  -  Server - GameServer:241
+  12:38:39.554  [R4CODE] turn=545 code=6BES-J8CF-YZRXB  -  Server - GameServer:416
+  12:38:40.201  [Options] auto end turn 545  -  Client - Options:338
+  12:38:40.472  [R4LOG] {"activePlayer":"p1","hash":"0xb1e7818d","t":"round","turn":546}  -  Server - GameServer:241
+  12:38:40.485  [R4CODE] turn=546 code=01JR-1EPR-YF0CD  -  Server - GameServer:416
+  12:38:40.507  [R4FINAL] hash=0xb1e7818d  -  Server - GameServer:646
+  12:38:40.507  [SO7] endscreen sent: score victory, winner p2  -  Server - GameServer:541

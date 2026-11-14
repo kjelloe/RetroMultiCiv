@@ -34,6 +34,7 @@ bar.AnchorPoint = Vector2.new(0.5, 1)
 bar.Position = UDim2.new(0.5, 0, 1, -8)
 local barScale = Instance.new("UIScale")
 barScale.Parent = bar
+local fitBar = nil -- set below; the phone filter calls it
 bar.BackgroundColor3 = Color3.fromRGB(24, 28, 38)
 bar.BackgroundTransparency = 0.25
 bar.BorderSizePixel = 0
@@ -78,6 +79,7 @@ do
 		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
 		fit()
 	end)
+	fitBar = fit
 end
 
 -- runI item 22: widen the enabled/disabled contrast so an inapplicable action
@@ -105,6 +107,25 @@ local function addButton(order, text, width, icon)
 	corner.Parent = b
 	UiTheme.apply(b, { icon = icon })
 	table.insert(buttons, b)
+	-- U3b: a phone has no room for greyed-out verbs — one that cannot apply
+	-- is hidden there (desktop keeps the stable greyed row)
+	local function phoneFilter()
+		local show = not UiTheme.phone() or b.BackgroundColor3 ~= DISABLED
+		if b.Visible ~= show then
+			b.Visible = show
+			if fitBar ~= nil then
+				fitBar()
+			end
+		end
+	end
+	b:GetPropertyChangedSignal("BackgroundColor3"):Connect(phoneFilter)
+	task.spawn(function()
+		while workspace.CurrentCamera == nil do
+			task.wait(0.2)
+		end
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(phoneFilter)
+		phoneFilter()
+	end)
 	return b
 end
 

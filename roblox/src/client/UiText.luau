@@ -21,4 +21,12 @@ function M.label(text, touchOnly)
 	return text
 end
 
+-- U3b: the phone layout applies on a touch screen whose short side is under
+-- 600 px (a touchscreen PC keeps the desktop layout). The keyboard flag is
+-- not part of it: Studio's device emulator leaves it on.
+M.PHONE_SHORT_SIDE = 600
+function M.isPhone(touch, w, h)
+	return touch == true and math.min(w, h) > 0 and math.min(w, h) < M.PHONE_SHORT_SIDE
+end
+
 return M

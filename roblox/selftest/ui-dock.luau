@@ -88,6 +88,24 @@ local touch = D.plan(1920, items(false), { h = D.H_TOUCH })
 check("touch height", touch.places.options.h, 44)
 check("empty", D.plan(1920, {}).rows, 0)
 
+-- U3b phone row: forced icon-only, measured from the bottom edge
+local phone = D.plan(844, items(true), { h = D.H_TOUCH, forceCompact = true, fromBottom = D.PHONE_BOTTOM, maxShare = 0.9 })
+check("phone: compact though it would fit", phone.places.options.compact, true)
+check("phone: 44 px squares", phone.places.pedia.w, 44)
+check("phone: bottom offset", phone.places.options.bottom, 58)
+check("phone: one row on 844 px", phone.rows, 1)
+check("phone: no overlap", overlaps(phone), false)
+check("top mode has no bottom offset", wide.places.options.bottom, nil)
+local slim = D.plan(360, items(true), { h = D.H_TOUCH, forceCompact = true, fromBottom = D.PHONE_BOTTOM, maxShare = 0.9 })
+check("slim phone: wraps upward", slim.places.clock.bottom, 58 + 44 + D.GAP)
+
+check("isPhone: phone landscape", T.isPhone(true, 844, 390), true)
+check("isPhone: phone portrait", T.isPhone(true, 390, 844), true)
+check("isPhone: tablet", T.isPhone(true, 1180, 820), false)
+check("isPhone: touchscreen PC", T.isPhone(true, 1920, 1080), false)
+check("isPhone: no touch", T.isPhone(false, 844, 390), false)
+check("isPhone: viewport not ready", T.isPhone(true, 0, 0), false)
+
 if fails > 0 then
 	error(("%d ui-dock pin(s) failed"):format(fails))
 end

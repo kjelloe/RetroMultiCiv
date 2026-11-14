@@ -47,6 +47,14 @@ function M.touchOnly()
 	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 end
 
+function M.phone()
+	local cam = workspace.CurrentCamera
+	if cam == nil then
+		return false
+	end
+	return UiText.isPhone(UserInputService.TouchEnabled, cam.ViewportSize.X, cam.ViewportSize.Y)
+end
+
 -- opts: color (Color3 or a M.COLOR key), icon (MenuIcons id), iconOnly (drop
 -- the text when the icon renders), radius, maxText
 local function dress(btn, opts)
@@ -91,7 +99,7 @@ local function dress(btn, opts)
 		-- owners rewrite Text at runtime ("Ride (P)" <-> "Dismount (P)"), so
 		-- the hint is dropped on every write; a stripped label is a fixed point
 		local function hint()
-			if btn.Text ~= "" and M.touchOnly() then
+			if btn.Text ~= "" and (M.touchOnly() or M.phone()) then
 				local t = UiText.stripHint(btn.Text)
 				if t ~= btn.Text then
 					btn.Text = t
