@@ -205,8 +205,12 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 10 | T2b skirt corner fills | open | a screenshot confirming the T2 wedge orientation first |
 | 11 | U5 list rows, river banks | open | a look at U1/U2 |
 | 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
-| 13 | panels with heading=NONE get a heading; phone layouts for panels cut under 0.75 | open | the audit lists from item 12 |
-| 14 | remaining sub-14 px texts | open | the audit `text` line after the panel scale |
+| 13 | panels with heading=NONE get a heading | built (name tabs; run-S log) | — |
+| 14 | remaining sub-14 px texts | done — run-S log: 0 visible under 14 px at scale 1.25 | recheck on a 1280x720 window (scale 1.0) |
+| 15 | placement rule, HUD off on the deck, observation deck with stations | built; deck seen in shot11 | a close shot of one station sign |
+| 16 | dev-tool gating (owner debug game, admins attribute, diagnostics option) | built | a published server for the owner paths |
+| 17 | phone: bottom-left icon row (`LeftStack`), unit cards follow the bar fit | built | one phone-emulator run |
+| 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
 Items 9–11 are held on purpose: T2b stacks a second wedge type on an
 orientation nobody has seen, and U5 touches every panel.

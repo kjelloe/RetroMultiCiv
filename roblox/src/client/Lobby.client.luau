@@ -543,7 +543,12 @@ local function render(lobby)
 		civ.TextSize = 18
 		civ.TextXAlignment = Enum.TextXAlignment.Left
 		civ.TextTruncate = Enum.TextTruncate.AtEnd
-		civ.Text = tostring(seat.name):sub(1, 1):upper() .. tostring(seat.name):sub(2)
+		-- shot11: before the game the server lists pool names by seat number
+		-- ("Romans"), but civs are drawn at start (that game gave English) —
+		-- a pre-game seat is titled by its number and says so
+		local preGame = tostring(seat.pid):sub(1, 5) == "seat "
+		civ.Text = preGame and ("Seat " .. tostring(seat.pid):sub(6))
+			or (tostring(seat.name):sub(1, 1):upper() .. tostring(seat.name):sub(2))
 		civ.Parent = row
 		local who = Instance.new("TextLabel")
 		who.Size = UDim2.new(1, -150, 0, 18)
@@ -557,11 +562,12 @@ local function render(lobby)
 		-- R21: 'Perfectionist' = the authentic Civ1 trait name for the
 		-- engine's 'builder' stance (reviewer-verified); balanced = no tag
 		local stanceTag = seat.stance == "builder" and "  ·  Perfectionist" or ""
-		who.Text = ("%s  ·  %s%s"):format(tostring(seat.pid),
-			kind == "open" and "free - step on JOIN" or kind == "ai" and "computer player"
-				or kind == "regent" and "AI regent holds this seat" or seat.who, stanceTag)
+		local holder = kind == "open" and "free - step on JOIN" or kind == "ai" and "computer player"
+			or kind == "regent" and "AI regent holds this seat" or seat.who
+		who.Text = preGame and ("%s  ·  civilization drawn at start"):format(holder)
+			or ("%s  ·  %s%s"):format(tostring(seat.pid), holder, stanceTag)
 		who.Parent = row
-		local canKick = lobby.youAreAdmin and (kind == "player" or kind == "you")
+		local canKick = lobby.youAreAdmin and kind == "player" -- shot11: no Kick on your own seat
 		local badge = Instance.new("TextLabel")
 		badge.Size = UDim2.new(0, 62, 0, 22)
 		badge.Position = UDim2.new(1, canKick and -132 or -70, 0.5, -11)

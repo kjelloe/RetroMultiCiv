@@ -135,9 +135,28 @@ end
 -- active unit highlighted; click selects (mounted: rides) it.
 local stackBar = Instance.new("Frame")
 stackBar.Size = UDim2.new(0, 940, 0, 38)
-stackBar.Position = UDim2.new(0.5, -470, 1, -100)
+-- phone: the 940 px card row follows the action bar's own fit (bottom-centre
+-- anchored, so it shrinks toward the bar instead of off both screen edges)
+stackBar.AnchorPoint = Vector2.new(0.5, 1)
+stackBar.Position = UDim2.new(0.5, 0, 1, -62)
 stackBar.BackgroundTransparency = 1
 stackBar.Parent = gui
+local stackScale = Instance.new("UIScale")
+stackScale.Parent = stackBar
+task.spawn(function()
+	while workspace.CurrentCamera == nil do
+		task.wait(0.2)
+	end
+	local function fitStack()
+		local vw = workspace.CurrentCamera.ViewportSize.X
+		stackScale.Scale = math.clamp((vw - 16) / 940, 0.5, 1)
+		-- the cards sit on top of the (also scaled) action bar
+		stackBar.Position = UDim2.new(0.5, 0, 1, -(8 + math.floor(40 * barScale.Scale + 0.5) + 14))
+	end
+	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fitStack)
+	barScale:GetPropertyChangedSignal("Scale"):Connect(fitStack)
+	fitStack()
+end)
 local stackLayout = Instance.new("UIListLayout")
 stackLayout.FillDirection = Enum.FillDirection.Horizontal
 stackLayout.Padding = UDim.new(0, 4)
