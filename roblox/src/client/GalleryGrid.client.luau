@@ -8,6 +8,7 @@
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local DevAccess = require(script.Parent:WaitForChild("DevAccess"))
 local UserInputService = game:GetService("UserInputService")
 
 local ClientState = require(script.Parent:WaitForChild("ClientState"))
@@ -132,7 +133,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if UserInputService:GetFocusedTextBox() ~= nil then
 		return
 	end
-	if input.KeyCode == Enum.KeyCode.K then
+	-- run-R review: K opened the asset gallery for every player in a published
+	-- place (only the button was Studio-gated)
+	if input.KeyCode == Enum.KeyCode.K and DevAccess.dev() then
 		toggle()
 	end
 end)
@@ -140,7 +143,7 @@ end)
 -- R12 (9): dev-only DEBUG button hosting the gallery toggle (K stays its
 -- hotkey); Studio-gated so published places never show it. The future A92
 -- debug-command menu rides this same button.
-if RunService:IsStudio() then
+if DevAccess.dev() then
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "RMCDebug"
 	gui.ResetOnSpawn = false

@@ -354,6 +354,15 @@ openBtn.Activated:Connect(function()
 end)
 ClientState.onOpenTheater(openTheater) -- runJ item 6: the end screen's "Watch replay"
 
+-- run-R review: the replay is a post-game surface; during play the button
+-- shows for developers only (Studio / the place owner)
+local DevAccess = require(script.Parent:WaitForChild("DevAccess"))
+local function gateOpenBtn()
+	openBtn.Visible = ClientState.gameOver == true or DevAccess.dev()
+end
+ClientState.onView(gateOpenBtn)
+gateOpenBtn()
+
 -- runI item 14: another left-stack panel opening closes the theater so they
 -- never overlap
 ClientState.onPanelOpen(function(id)

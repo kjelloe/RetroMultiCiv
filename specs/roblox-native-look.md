@@ -222,6 +222,16 @@ orientation nobody has seen, and U5 touches every panel.
 | Part count | Full massif ≤ 32 parts per mountain tile, now in every look. ~80 mountain tiles on 40×25 = ~2.6 k parts; lite path above 150 tiles. The audit prints the folder counts. |
 | Look parity | The browser Medium/High surfaces are meshes; this is a part-built reading of the same idea, not a twin. No gate compares them, by design. |
 
+## 6b. Dev-tool gating (run-R review)
+
+`DevAccess.luau`: `studio()`, `owner()` (the place's creator account in a
+published server), `dev()` = either. Client-only tools use `dev()`: the
+asset gallery (button AND its K hotkey), the mid-game THEATER button.
+Tools the server judges keep the server's gate (debug menu: Studio debug
+game; AI-strategy pull: Studio or spectator; Kick: creator or `ADMINS`).
+Open for a ruling: owner debug in a published place (a host-setup switch
+that creates a `debugEnabled`, hash-tainted game).
+
 ## 7. Tests
 
 `roblox/check.sh`: gate 35 menu icons, 36 terrain sculpt, 37 slope skirts,
