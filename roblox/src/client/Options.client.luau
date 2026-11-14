@@ -137,6 +137,17 @@ local function paint()
 	discoveryBtn.Text = ("  discovery cards: %s"):format(o.discoveryCards ~= false and "ON" or "off")
 	paletteBtn.Text = ("  civ palette: %s"):format(o.civPalette == "deuteranopia-safe" and "deuteranopia" or "default")
 	adviceBtn.Text = ("  advice tips: %s"):format(o.adviceCards ~= false and "ON" or "off")
+	-- run-S shot16: the state reads by colour - ON green, off grey, a named choice blue
+	for _, b in ipairs(panel:GetChildren()) do
+		if b:IsA("TextButton") and b.Name ~= "PanelClose" then
+			local name, value = b.Text:match("^%s*(.-): (.*)$")
+			if name ~= nil then
+				local color = value == "ON" and "#7fe08f" or (value == "off" and "#8f9bb3" or "#8fd0ff")
+				b.RichText = true
+				b.Text = ('  %s  <font color="%s"><b>%s</b></font>'):format(name, color, value)
+			end
+		end
+	end
 end
 paint()
 

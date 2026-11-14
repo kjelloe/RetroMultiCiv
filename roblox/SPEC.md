@@ -1027,7 +1027,14 @@ seat/reset flow; JS engine untouched). Delivered:
   button or its gui is in `NO_CLOSE`; a panel opened by `gui.Enabled`
   sets the gui attribute `CloseByEnabled`. Tech tree boxes carry a
   `Tooltip` card (`ClientState.techBlurbs` / `techUnlocks`, published by
-  DiscoveryCard). Gate 45. Not seen yet: phone layouts, a station
+  DiscoveryCard). Gate 45. shot16: ellipsoid SUMMITS withdrawn (read
+  as blobs) - mountains are the cone massif again; hills = half-height
+  block + two ellipsoid ridges (valley through the centre keeps a unit
+  visible). `TechInfo.luau` = the one tech text builder (tree hover card
+  + research picker's expanding row). Cities / Government / Research
+  panels rebuilt (cards, bars, colour by meaning); `PanelDress.REFONT`
+  swaps Code / SourceSans for the reading face in the listed guis
+  (ledgers stay monospace). Not seen yet: phone layouts, a station
   sign up close, river banks, scrolling inside scaled panels.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these

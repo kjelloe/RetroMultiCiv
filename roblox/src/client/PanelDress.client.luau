@@ -34,6 +34,25 @@ local NO_CLOSE = {
 	RMCLobby = true, RMCFastForward = true, RMCFoundCity = true, RMCEndScreen = true,
 	RMCHistorian = true, RMCResume = true,
 }
+-- run-S shot16 (user): "other panels that still have the same basic fonts".
+-- In these guis the old faces become the reading face; a themed button
+-- already carries the display font. Ledgers whose columns must line up
+-- (turn log, statistics, legend, AI strategy, debug) keep monospace.
+local REFONT = {
+	RMCOptions = true, RMCOverlays = true, RMCLobby = true, RMCDiplomacy = true, RMCRegentDialog = true,
+	RMCFoundCity = true, RMCEndScreen = true, RMCFastForward = true, RMCCityPanel = true, RMCPedia = true,
+	RMCShip = true,
+}
+local OLD_FACE = {
+	[Enum.Font.Code] = Enum.Font.GothamMedium, [Enum.Font.SourceSans] = Enum.Font.GothamMedium,
+	[Enum.Font.SourceSansBold] = Enum.Font.GothamBold, [Enum.Font.SourceSansSemibold] = Enum.Font.GothamBold,
+}
+local function reface(inst)
+	if (inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox")) and OLD_FACE[inst.Font] ~= nil then
+		inst.Font = OLD_FACE[inst.Font]
+	end
+end
+
 local function hasClose(frame)
 	for _, c in ipairs(frame:GetChildren()) do
 		if c:IsA("TextButton") and (c.Text == "X" or c.Text == "x" or c.Text == "✕" or c.Name:lower():find("close") ~= nil) then
@@ -174,6 +193,15 @@ local function adopt(gui, frame)
 		ts.Parent = tab
 	end
 
+	if REFONT[gui.Name] then
+		for _, d in ipairs(frame:GetDescendants()) do
+			reface(d)
+		end
+		frame.DescendantAdded:Connect(function(d)
+			task.defer(reface, d) -- the owner sets Font after Instance.new
+		end)
+		Diag.count("ui", "refaced")
+	end
 	if NO_CLOSE[gui.Name] == nil and not hasClose(frame) then
 		local tabbed = frame:FindFirstChild("PanelTab") ~= nil
 		local x = Instance.new("TextButton")
