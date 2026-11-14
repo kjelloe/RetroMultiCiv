@@ -25,29 +25,38 @@ card.TextXAlignment = Enum.TextXAlignment.Left
 card.TextYAlignment = Enum.TextYAlignment.Top
 card.RichText = true
 card.Visible = false
-card.Size = UDim2.new(0, 360, 0, 40)
+card.Size = UDim2.new(0, 360, 0, 0)
+card.AutomaticSize = Enum.AutomaticSize.Y -- run-S: the line-count guess left a tall empty box
 card.Parent = gui
 do
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 10), UDim.new(0, 12)
+	pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
+	pad.Parent = card
 	local c = Instance.new("UICorner")
 	c.CornerRadius = UDim.new(0, 6)
 	c.Parent = card
 	local s = Instance.new("UIStroke")
 	s.Color = Color3.fromRGB(120, 140, 180)
-	s.Transparency = 0.5
+	s.Transparency = 0.3
+	s.Thickness = 2
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	s.Parent = card
 end
 
 local gen = 0
 
-local function showAt(target, text)
+-- style "card" = reading copy (proportional face, RichText headings);
+-- default = the monospace ledger whose columns line up
+local function showAt(target, text, style)
 	if text == nil or text == "" then
 		return
 	end
-	card.Text = " " .. text
-	-- size to content: measure via TextService-less heuristic (wrapped at
-	-- 300px, ~13px lines) — generous height, clipped by content being short
-	local _, lineCount = string.gsub(text, "\n", "")
-	card.Size = UDim2.new(0, 360, 0, 17 * (lineCount + 1) + 12)
+	local reading = style == "card"
+	card.Font = reading and Enum.Font.GothamMedium or Enum.Font.Code
+	card.TextSize = reading and 17 or 15
+	card.LineHeight = reading and 1.15 or 1
+	card.Text = text
 	local pos = target.AbsolutePosition
 	local size = target.AbsoluteSize
 	local screen = gui.AbsoluteSize

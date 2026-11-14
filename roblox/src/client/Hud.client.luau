@@ -61,17 +61,38 @@ Tooltip.attach(status, function()
 	end
 	local tax = me.taxRate or rs.rules.defaultTaxRate or 0
 	local sci = me.sciRate or rs.rules.defaultSciRate or 0
-	local text = ("income per turn\n  gold %+d (maintenance -%d)\n  bulbs +%d\nrates: tax %d%% sci %d%% lux %d%%\ntreasury %d gold")
-		:format((inc.gold or 0) - (inc.maintenance or 0), inc.maintenance or 0,
-			inc.bulbs or 0, tax, sci, math.max(0, 100 - tax - sci), me.gold or 0)
+	local net = (inc.gold or 0) - (inc.maintenance or 0)
+	local function head(t)
+		return ('<font face="FredokaOne" size="20" color="#ffe182">%s</font>'):format(t)
+	end
+	local function caption(t)
+		return ('<font size="14" color="#8f9bb3">%s</font>'):format(t)
+	end
+	local function value(t, color)
+		return ('<font face="GothamBold" color="%s">%s</font>'):format(color or "#ffffff", t)
+	end
+	local lines = {
+		head("Income per turn"),
+		("Gold  %s  %s"):format(value(("%+d"):format(net), net < 0 and "#ff8a7a" or "#ffe182"),
+			caption(("%d earned, %d building upkeep"):format(inc.gold or 0, inc.maintenance or 0))),
+		("Science  %s  %s"):format(value(("+%d"):format(inc.bulbs or 0), "#8fd0ff"), caption("bulbs")),
+		("Treasury  %s"):format(value(("%d gold"):format(me.gold or 0), "#ffe182")),
+		"",
+		caption("RATES - change them in Government"),
+		("Tax %s   Science %s   Luxury %s"):format(value(tax .. "%"), value(sci .. "%"),
+			value(math.max(0, 100 - tax - sci) .. "%")),
+	}
 	-- run-R (user): the game-code chips left the HUD; the codes read here
 	if ClientState.code ~= nil then
-		text ..= "\n\ngame code (this turn's fingerprint)\n  " .. tostring(ClientState.code)
+		lines[#lines + 1] = ""
+		lines[#lines + 1] = caption("GAME CODE - this turn's fingerprint")
+		lines[#lines + 1] = ('<font face="Code">%s</font>'):format(tostring(ClientState.code))
 	end
 	if ClientState.lastSave ~= nil then
-		text ..= ("\nlast autosave (resume code)\n  %s (turn %d)"):format(ClientState.lastSave.code, ClientState.lastSave.turn)
+		lines[#lines + 1] = caption(("LAST AUTOSAVE - resume code, turn %d"):format(ClientState.lastSave.turn))
+		lines[#lines + 1] = ('<font face="Code">%s</font>'):format(tostring(ClientState.lastSave.code))
 	end
-	return text
+	return table.concat(lines, "\n"), "card"
 end)
 
 local endTurn = Instance.new("TextButton")

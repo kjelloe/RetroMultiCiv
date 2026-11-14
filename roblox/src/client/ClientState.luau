@@ -491,6 +491,14 @@ remote.OnClientEvent:Connect(function(msg)
 	end
 	if msg.t == "joined" or msg.t == "view" then
 		M.view = msg.view
+		-- run-S shot12: the engine writes researching = "" for "none" (state
+		-- holds no nil); every reader here tests nil, so the top line read
+		-- "researching:  - 10 turns" and auto-research never armed
+		for _, p in pairs(M.view.players or {}) do
+			if p.researching == "" then
+				p.researching = nil
+			end
+		end
 		M.gameOver = msg.gameOver == true
 		if msg.code ~= nil then
 			M.code = msg.code -- R7d: the docs/07 game verification code

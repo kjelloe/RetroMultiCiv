@@ -1008,7 +1008,16 @@ seat/reset flow; JS engine untouched). Delivered:
   heading scan cannot see it). Playtest notes, same session: pads 0.3
   proud; welcome banner 40 / 24 px, 14 s; template spawn mark hidden;
   **U5** `UiTheme.row` (city list, research picker, build catalog) and
-  panel texts raised to 14 px, pinned in gate 42. Not seen yet: phone layouts, a station
+  panel texts raised to 14 px, pinned in gate 42. shot12 / shot13:
+  mountains and hills from ELLIPSOIDS (`TerrainSculpt` items carry
+  `ell = true`; `AssetFactory` builds a Sphere SpecialMesh part - a Ball
+  part is always round), gate 36; tech tree as a dependency graph
+  (`TechTreeLayout.luau`, gate 44); income tooltip as a reading card
+  (`Tooltip` textFn may return `text, "card"`; the card sizes itself).
+  **Gotchas**: a `UIStroke` under a TextButton outlines the TEXT unless
+  `ApplyStrokeMode = Border`; the engine writes `researching = ""` for
+  none - `ClientState` turns it into nil on the view; `ClientState.send`
+  returns nil and sends nothing while the regent has the seat. Not seen yet: phone layouts, a station
   sign up close, river banks, scrolling inside scaled panels.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
