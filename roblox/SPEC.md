@@ -991,6 +991,22 @@ seat/reset flow; JS engine untouched). Delivered:
   signs, glass railings, look-down balcony, pylons, banner), gate 43.
   Acceptance artifact `acceptance/runR.txt`: 545 rounds, 24554 commands,
   code `AY99-6SDW-04P43`, ALL HASHES MATCH.
+- **run-S** (2026-11-14, sessions 19:45Z and 21:06Z, read from the log):
+  0 DIAG FAIL, 0 errors, icons 27 of 27, every panel fitted at 1.25 in a
+  2208x911 area, 0 visible texts under 14 px; replay hash-exact at 264
+  rounds (code `B7SG-M8AR-XT5AM`). From shot11 and the log: pre-game seat
+  cards read "Seat N · civilization drawn at start" (the civ is drawn at
+  start, the card named a wrong one); no Kick on the own seat; `HudGate`
+  also hides the `RMCHud` Status / EndTurn / Regency parts without a
+  view; `LeftStack.luau` = the four bottom-left toggles as one row of
+  44 px icon squares on a phone (labelled column on desktop); the unit
+  card row follows the action bar's fit; river banks (`TerrainCoast`
+  `kind="bank"`, gate 41); name tabs for Map overlays and Debug — a gui
+  listed in `PanelDress.TAB_TITLE` never has a row restyled as a heading
+  (the log showed 'City influence' and the debug warning line taken for
+  one); end-screen headline in the display font (empty at build, so the
+  heading scan cannot see it). Not seen yet: phone layouts, a station
+  sign up close, river banks, scrolling inside scaled panels.
 
 ### 3aa. Recurring gotchas (roblox lane) — READ BEFORE touching these
 

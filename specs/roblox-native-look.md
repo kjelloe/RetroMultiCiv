@@ -207,7 +207,7 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 11 | U5 list rows | open | a look at U1/U2 |
 | 11b | river banks | built (gate 41 pins) | a close shot of a river |
 | 12 | U6 reading sizes, panel fit, top strip, turn chip | built | a Play: `panel` lines, `text` line, no `off-screen` |
-| 13 | panels with heading=NONE get a heading | built (name tabs; run-S log) | — |
+| 13 | panels with heading=NONE get a heading | built (name tabs; run-S log: 8 tabs, end-screen headline styled in place) | — |
 | 14 | remaining sub-14 px texts | done — run-S log: 0 visible under 14 px at scale 1.25 | recheck on a 1280x720 window (scale 1.0) |
 | 15 | placement rule, HUD off on the deck, observation deck with stations | built; deck seen in shot11 | a close shot of one station sign |
 | 16 | dev-tool gating (owner debug game, admins attribute, diagnostics option) | built | a published server for the owner paths |

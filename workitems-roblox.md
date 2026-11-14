@@ -210,6 +210,8 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19l. run-S first read (shot11: deck during the start countdown) [2026-11-14] [done: 2026-11-14 — log at 3 min: 0 failure kinds, 0 errors, 27 of 27 icons, every panel fitted at scale 1.25 in the real 2208x911 area (the 1x1 / 800x600 readings are gone), name tabs reported on 6 panels, no game HUD on the deck. SEEN in shot11: deck with railings, lit edge, pylons, five station signs, seat card panel. Fixed from it: a pre-game seat card showed a pool civ name ("Romans") though civs are drawn at start (the game gave English) -> "Seat N · civilization drawn at start"; Kick button on the player's own seat removed; turn chip ("joining…"), End Turn and the AI button hidden on the deck (HudGate). Phone: unit cards row follows the action bar's fit. EndScreen still reports heading=NONE (its headline is larger than the heading rule) — left. Station sign text is small from the spawn camera distance — to judge from a closer shot.]
 
+## 19m. run-S second session (21:06Z) log read [2026-11-14] [done: 2026-11-14 — boot audit: 0 failure kinds, 0 errors, 27 of 27 icons, 30/30 guis, 0 texts under 14 px. Finding: RMCOverlays reported heading='City influence' and RMCDebugMenu its warning line — the heading scan had restyled a first row. Both now carry a name tab (`TAB_TITLE` wins over the scan); end-screen headline styled in place. Commit 7a5508f. gamesim-golden-neutral.]
+
 ## 20. Next [open], order in specs/roblox-native-look.md §5: read the first logged Play Solo -> fixes; phone unit cards / bottom-left toggles / research cluster (from the phone audit); T2b corner fills (after a screenshot confirms the T2 wedge orientation); U5 panel chrome, river banks.
 
 ---
