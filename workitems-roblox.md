@@ -230,7 +230,22 @@ Architect follow-up: the `plan-version1.md` "Roblox label collision" row.
 
 ## 19v. T2b slope corner fills [done: 2026-11-15 — shot20 confirmed the skirt orientation; `TerrainSkirts.corners` + CornerWedgePart fill, apex corner measured at run time by raycast (`probeApex`), diagonals in the cache key; gate 37 pins. Wants one close shot. gamesim-golden-neutral]
 
-## 20. Next [open] (2026-11-15), order in specs/roblox-native-look.md §5. Waiting on a Studio look: city catalog hover cards, Statistics, Legend, Turn log, bare hills / mountains, city panel, host setup cards, tech tree graph + hover card, civilization gallery, Cities / Government / Research panels, refaced panels (text clipping), income card, raised pads, welcome banner, river banks, station signs. Open work: phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen; wants a phone-emulator run); two-player civ pick contention; owner paths on a published server.
+## 20. Next [open] (2026-11-15, after session 09:27Z), order in specs/roblox-native-look.md §5.
+
+Session 09:27Z (60x38 pangaea, 6 civs, regent from turn ~128): 546 turns, score victory p1, 0 DIAG FAIL, 0 warnings, 0 errors, 27,254 logged commands.
+
+Waiting on a Studio look (built, not yet seen): slope corner fills + the `corner wedge apex measured` log line; city catalog hover cards and the absent Barbarian Leader; Statistics cards; Legend ("Controls"); Turn log chips and kind words; Diplomacy / Map overlays beside the button column; city panel and host setup cards; bare hills; civilization gallery; Cities / Government / Research panels; tech tree graph + hover card.
+
+Open work, in order:
+1. Phone narrow layouts (Encyclopedia, Ship, Tech tree, End screen) - wants one run in Studio's phone emulator for the `cut to` list.
+2. Statistics has no on-screen button (J only): a touch player cannot open it. Needs a `stats` icon in MenuIcons and a slot in the top row (DockLayout widths are pinned by gate ui-dock).
+3. Touch: a long-press on a city catalog row both shows the hover card (0.5 s) and picks-and-closes (0.5 s). One of the two has to move (proposal: long-press = card, tap = pick, the green "building" row + X closes).
+4. Diplomacy and Options panels in the card style (last two on the old row layout).
+5. Two-player civilization pick contention; owner paths on a published server (need a second account / a published place).
+
+Noticed, other lanes (report only, `luau/` is read-only here):
+- Regent seat: 3,184 of 27,254 logged p1 commands were refused by the engine (moveUnit: zoc 2,116, impassable 834, atPeace 222; startWork techRequired 12). `aiModule.pickCommand` proposes them, `playRegentSeat` logs them as ordinary entries (the browser shape). The 00:00Z game had 1,010 of 2,282. Not a replay problem (they replay as refusals); it is AI work spent on moves that cannot happen.
+- Turn time under the regent grew through the game on the 60x38 / 6-civ map: 1.9 s/turn (turns 130-200), 3.0 (300-500), 3.5 (500-546). The 40x25 / 3-civ game ran at about 0.54 s/turn.
 
 ---
 

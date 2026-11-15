@@ -223,6 +223,9 @@ phone menu row + verb filter. **U4** (built) verb icons + fitted bar.
 | 24 | Statistics as civ cards, wonders list and captioned score chart | built (gate 48) | a look with 3 and with 14 civs |
 | 23 | Legend as a Controls panel (key caps), Turn log filter chips + kind words, bottom-left panels beside the button column | built (gates 46, 47) | a look at each |
 | 22 | city panel and host setup panel in the card style | built (session 2026-11-15) | a look at each; catalog row widths, option card scroll |
+| 26 | Statistics button for touch (J is the only way in) | open | a `stats` icon + a top-row slot |
+| 27 | touch: long-press on a catalog row = hover card AND pick-and-close | open | a ruling on which gesture picks |
+| 28 | Diplomacy and Options panels in the card style | open | - |
 | 18 | phone: narrow layouts for panels cut under 0.75 (Encyclopedia, Ship, Tech tree, End screen) | open | the phone run's `cut to` list |
 
 Items 9–11 were held until a screenshot showed the T2 wedge orientation
